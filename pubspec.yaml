@@ -1,0 +1,7 @@
+name:  liftoff
+description: An experimental repo for a web based interactive Dart tutorial
+
+dependencies:
+  browser: any
+dev_dependencies:
+  unittest: any
