@@ -1,0 +1,111 @@
+
+body {
+  margin: 0;
+  padding: 0;
+
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: absolute;
+
+  font-size: 12pt;
+  line-height: 20px;
+  font-family: 'Roboto', sans-serif;
+}
+
+header {
+  border-bottom: 1px solid #ddd;
+  margin-bottom: 16px;
+  height: 32px;
+  line-height: 32px;
+  background: #eee;
+  padding: 0 16px;
+}
+
+section {
+  margin: 0;
+  padding: 0;
+}
+
+pre {
+  margin: 0;
+  padding: 0;
+  border: 1px solid #eee;
+}
+
+footer {
+  margin: 32px 16px 0 16px;
+  padding: 16px 0;
+  border-top: 1px solid #ddd;
+  color: #777777;
+  font-size: 10pt;
+}
+
+div.viewpart {
+  color: #ffe;
+  border-radius: 3px;
+  -webkit-box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  box-shadow: 0 1px 3px rgba(0,0,0,.3);
+  background: #1d232b;
+  border: 1px solid #000;
+  position: relative;
+  /*padding-top: 40px;*/
+  margin: 0 16px;
+}
+
+.viewpart .header {
+  border-radius: 3px 3px 0 0;
+  background: -webkit-gradient(linear,left top,left bottom,from(#323c49),to(#1d232b));
+  background: -webkit-linear-gradient(top,#323c49,#1d232b);
+  background: linear-gradient(top,#323c49,#1d232b);
+  -webkit-box-shadow: rgba(255,255,255,.1) 0 1px 0 inset,rgba(0,0,0,.5) 0 1px 2px;
+  box-shadow: rgba(255,255,255,.1) 0 1px 0 inset,rgba(0,0,0,.5) 0 1px 2px;
+  height: 33px;
+  padding: 7px 7px 0 7px;
+}
+
+.viewpart .buttongroup:first-child {
+  border-radius: 3px 0 0 3px;
+  border-left: 1px solid #000;
+}
+
+.viewpart .buttongroup button {
+  padding: 0 15px;
+  border-left: none;
+  font-size: 10px;
+  color: #fff;
+  line-height: 21px;
+  height: 21px;
+
+  font-family: proxima-nova,"Helvetica Neue Light","Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;
+  font-weight: 600;
+  font-style: normal;
+  background-color: #1d232b;
+  background: -webkit-gradient(linear,left top,left bottom,from(#323c49),to(#1d232b));
+  background: -webkit-linear-gradient(top,#323c49,#1d232b);
+  background: linear-gradient(top,#323c49,#1d232b);
+  display: inline-block;
+  line-height: 23px;
+  height: 23px;
+  color: #fff;
+  margin: 0;
+  border: 1px solid #000;
+  text-decoration: none;
+  text-shadow: 0 -1px 0 #000;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.viewpart .buttongroup button[selected] {
+  background: #465568;
+  outline: 0;
+}
+
+.somecode {
+  font-family: 'Inconsolata', monospace;
+}
+
+.text-right {
+  text-align: right;
+}

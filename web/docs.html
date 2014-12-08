@@ -8,7 +8,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Library dart.core</title>
-  <link href="bootstrap.css" rel="stylesheet" media="screen">
+  <link href="packages/bootstrap/css/bootstrap.css" rel="stylesheet" media="screen">
 </head>
 
 <body>
@@ -23,13 +23,10 @@
   }
 
   .runbutton {
-    background: antiquewhite;
-    z-index: 1;
+    z-index: 10;
     position: absolute;
-    right: 0;
-    padding: 2px;
-    border: 1px solid #ccc;
-    border-radius: 0 4px;
+    right: 10px;
+    top: 5px;
   }
 
   .output {
@@ -51,8 +48,24 @@
 <div>
   <div>
     <div class="runcontainer">
-      <div class='runbutton'>Run</div>
+      <!-- button type="button" class="btn btn-primary btn-xs runbutton">Run</button -->
+
+      <div class="btn-group runbutton">
+        <button type="button" class="btn btn-primary btn-xs">&nbsp;Run&nbsp;</button>
+        <!-- button type="button" class="btn btn-primary btn-xs dropdown-toggle"
+            data-toggle="dropdown" aria-expanded="false">
+          <span class="caret"></span>
+        </button -->
+        <!-- ul class="dropdown-menu" role="menu">
+          <li><a href="#">Action</a></li>
+          <li><a href="#">Another action</a></li>
+          <li><a href="#">Something else here</a></li>
+          <li class="divider"></li>
+          <li><a href="#">Separated link</a></li>
+        </ul -->
+      </div>
     </div>
+
     <pre code executable>List superheroes = [ 'Batman', 'Superman', 'Harry Potter' ];</pre>
   </div>
   <div class="output"></div>

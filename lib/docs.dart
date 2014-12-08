@@ -11,6 +11,16 @@ void init() {
   print('Found ${elements.length} matching executable doc comments.');
 }
 
+//<div>
+//  <div>
+//    <div class="runcontainer">
+//      <div class='runbutton'>Run</div>
+//    </div>
+//    <pre code executable>List superheroes = [ 'Batman', 'Superman', 'Harry Potter' ];</pre>
+//  </div>
+//  <div class="output"></div>
+//</div>
+
 // insert a run button
 // have it show on hover
 // on a mouse click in the text area

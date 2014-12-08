@@ -1,7 +1,11 @@
-name:  liftoff
+name: liftoff
 description: An experimental repo for a web based interactive Dart tutorial
 
 dependencies:
+  bootstrap: any
   browser: any
+  codemirror:
+    path: /Users/devoncarew/projects/codemirror.dart
+
 dev_dependencies:
   unittest: any

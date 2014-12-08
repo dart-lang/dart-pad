@@ -1,0 +1,164 @@
+
+body {
+  margin: 0;
+  padding: 0;
+
+  background: #2f2f2f;
+  color: rgb(198, 198, 198);
+
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: absolute;
+
+  font-family: 'Lucida Grande', Arial, sans-serif;
+  font-size: 15px;
+  line-height: 20px;
+
+  max-width: 1500px;
+  min-width: 700px;
+  margin: 0 auto;
+  line-height: 1.45em;
+}
+
+header {
+  height: 48px;
+  line-height: 48px;
+  padding-left: 20px;
+  padding-right: 20px;
+  font-size: 150%;
+  color: white;
+
+  box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
+  border-bottom: 1px solid #121212;
+
+  border-width: 4px;
+  margin-bottom: 16px;
+}
+
+section {
+  margin: 0;
+  padding-bottom: 8px;
+  box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
+  border-bottom: 1px solid #121212;
+}
+
+footer {
+  margin: 16px 20px 8px 20px;
+  font-size: 12px;
+}
+
+.view {
+  margin: 0 24px;
+  /*box-shadow: 0px 0px 2px rgba(0,0,0,0.23);
+  border-radius: 4px;*/
+}
+
+.noleft {
+  margin-left: 0;
+}
+
+.leftmargin {
+  margin-left: 24px;
+}
+
+.leftborder {
+  padding-left: 24px;
+  box-shadow: rgba(255, 255, 255, 0.07) 1px 0 0 inset;
+  border-left: 1px solid #121212;
+}
+
+.content {
+  margin-top: 16px;
+  margin-bottom: 16px;
+}
+
+pre {
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a,
+a:visited {
+  color: #bfbfbf;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* TODO: display an arrow */
+
+a[selected] {
+  color: #84bcde;
+  cursor: none;
+}
+
+a[selected]:hover {
+  text-decoration: none;
+}
+
+.header a {
+  margin-right: 16px;
+  text-transform: uppercase;
+}
+
+.header {
+  height: 20px;
+  line-height: 20px;
+  font-size: 13px;
+  box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
+  border-bottom: 1px solid #121212;
+  padding-bottom: 8px;
+}
+
+.header.nobottommargin {
+  box-shadow: none;
+  border-bottom: none;
+}
+
+#editpanel .CodeMirror {
+  background: inherit;
+  color: inherit;
+  box-shadow: none;
+}
+
+#editpanel .CodeMirror-gutters {
+  background: inherit;
+  border-right: none;
+  box-shadow: none;
+}
+
+.somecode {
+  /*font-family: 'Inconsolata', monospace;*/
+  font-family: monospace;
+  font-size: 10pt;
+  line-height: 1.2em;
+}
+
+button {
+  outline: none;
+  border: none;
+  min-width: 48px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #aaa;
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 2px;
+  font-family: 'Lucida Grande', Arial, sans-serif;
+  font-size: 15px;
+  height: 24px;
+}
+
+button:hover {
+  color: rgb(198, 198, 198);
+}
+
+iframe {
+  border: none;
+}
