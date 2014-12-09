@@ -3,11 +3,13 @@
 // license that can be found in the LICENSE file.
 
 /**
- * A simple dependency manager for Chrome Dev Editor.
+ * A simple dependency manager.
  */
 library core.dependencies;
 
 import 'dart:async';
+
+// TODO: add dependencies by name
 
 /**
  * A simple dependency manager. This class manages a collection of singletons.

@@ -97,7 +97,7 @@ a:hover {
 
 a[selected] {
   color: #84bcde;
-  cursor: none;
+  cursor: default;
 }
 
 a[selected]:hover {
