@@ -4,7 +4,7 @@
   <head>
   	<meta charset="utf-8">
   	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playground</title>
+    <title>Dartpad</title>
 
     <link href="layout.css" rel="stylesheet" media="screen">
     <link href="playground2.css" rel="stylesheet" media="screen">
@@ -13,17 +13,25 @@
         rel='stylesheet' type='text/css' -->
     <!-- link href='http://fonts.googleapis.com/css?family=Inconsolata:400,700'
         rel='stylesheet' type='text/css' -->
-    <link href="packages/codemirror/codemirror.css" rel="stylesheet">
-    <link href="packages/codemirror/css/lint.css" rel="stylesheet">
+
+    <link href="fontawesome/css/font-awesome.min.css" rel="stylesheet" media="screen">
   </head>
 
   <body layout vertical>
     <header layout horizontal>
-      <div flex>Dart playground</div>
+      <div>Dartpad</div>
+      <div flex></div>
       <div>
+        <a small href="https://gist.github.com/devoncarew/6893556">gist:6893556</a>
+      </div>
+      <!-- div>
         <span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>
         &nbsp;
         <span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
+      </div -->
+        &nbsp;
+      <div>
+        <button disabled>Save</button>
       </div>
     </header>
 
@@ -31,11 +39,13 @@
 
       <div class="view" flex three layout vertical>
         <div class="header" layout horizontal>
-          <a selected><span>Dart</span></a>
-          <a><span>Html</span></a>
-          <a><span>Css</span></a>
+          <li><a id="darttab" selected class="arrow_box"><span>Dart</span></a></li>
+          <li><a id="htmltab"><span>Html</span></a></li>
+          <li><a id="csstab"><span>Css</span></a></li>
           <div flex></div>
-          <button type="button">Run</button>
+          <div>
+            <button type="button" id="runbutton">Run</button>
+          </div>
         </div>
         <div flex id="editpanel" class="content" layout vertical>
         </div>
@@ -43,10 +53,17 @@
 
       <div class="view noleft" flex two layout vertical>
         <div class="header leftmargin nobottommargin" layout horizontal>
-
+          <div flex></div>
+          <!-- div class="toggle">
+            <a><i class="fa fa-globe"></i></a>
+            <a selected><i class="fa fa-globe"> / <i class="fa fa-font"></i></i></a>
+            <a><i class="fa fa-font"></i></a>
+          </div -->
         </div>
         <div flex id="outputpanel" layout vertical class="somecode content leftborder">
-          <iframe id="frame" flex src="frame.html"></iframe>
+          <iframe id="frame" flex four src="frame.html"></iframe>
+          <div id="divider"></div>
+          <div flex two id="output" class="console"></div>
         </div>
       </div>
 
@@ -60,7 +77,6 @@
       </div>
     </footer>
 
-    <script src="packages/codemirror/codemirror.js"></script>
     <script type="application/dart" src="playground2.dart"></script>
     <script defer src="packages/browser/dart.js"></script>
   </body>

@@ -11,6 +11,8 @@ import 'dart:async';
 
 // TODO: add dependencies by name
 
+Dependencies get deps => Dependencies.instance;
+
 /**
  * A simple dependency manager. This class manages a collection of singletons.
  * You can create separate `Dependency` instances to manage separate sets of

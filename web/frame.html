@@ -4,10 +4,7 @@
   <head>
   	<meta charset="utf-8">
   	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frame</title>
-  </head>
-
-  <body>
+    <title></title>
     <style>
       body {
         color: #ddd;
@@ -15,8 +12,42 @@
         padding: 0;
       }
     </style>
+    <script>
+messageHandler = function(e) {
+  // TODO: verify the domain is correct
 
-    <p>- frame contents -</p>
-    <script src="out.js"></script>
-  </body>
+  var obj = e.data;
+  var command = obj.command;
+
+  // TODO: sanitize all this data
+
+  if (command == 'setCss') {
+    document.getElementById('styleid').innerHTML = obj.data;
+  } else if (command == 'setHtml') {
+    document.querySelector('body').innerHTML = obj.data;
+  } else if (command == 'setJavaScript') {
+    // Remove old node.
+    var node = document.getElementById('scriptid');
+    if (node && node.parentNode) {
+      node.parentNode.removeChild(node);
+    }
+
+    // Create new node.
+    var s = document.createElement('script');
+    s.text = obj.data;
+    document.head.appendChild(s);
+  } else if (command == 'reset') {
+    // TODO:
+    console.log('TODO: reset');
+  }
+}
+
+window.addEventListener('message', messageHandler, false);
+    </script>
+
+    <style id="styleid"></style>
+    <script id="scriptid"></script>
+  </head>
+
+  <body></body>
 </html>

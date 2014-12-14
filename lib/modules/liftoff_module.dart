@@ -13,7 +13,7 @@ class LiftoffModule extends Module {
       Dependencies.setGlobalInstance(new Dependencies());
     }
 
-    Dependencies.instance[EventBus] = new EventBus();
+    deps[EventBus] = new EventBus();
 
     return new Future.value();
   }

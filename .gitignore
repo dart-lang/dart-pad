@@ -9,3 +9,4 @@ packages
 *.js.map
 
 pubspec.lock
+.settings/

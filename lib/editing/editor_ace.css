@@ -1,0 +1,15 @@
+
+#editpanel.ace_editor {
+  background: inherit;
+  /*color: inherit;*/
+}
+
+#editpanel div.ace_gutter {
+  background: inherit;
+  color: rgb(198, 198, 198);
+}
+
+/*.ace_gutter-cell.ace_warning {
+	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAmVBMÉ3CUEDJC84707djRc5MTAQxoLgupWRwW6UB5fS++NV8AbOZgnsC7BpEAAAAABJRU5ErkJggg==");
+	background-position: 2px center;
+}*/

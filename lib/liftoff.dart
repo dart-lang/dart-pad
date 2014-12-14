@@ -1,10 +1,19 @@
 
 library liftoff;
 
+import 'analysis.dart';
 import 'compiler.dart';
+import 'context.dart';
 import 'dependencies.dart';
+import 'editing/editor.dart';
 import 'event_bus.dart';
 
-CompilerService getCompilerService() => Dependencies.instance[CompilerService];
+Context get context => deps[Context];
 
-EventBus get eventBus => Dependencies.instance[EventBus];
+CompilerService get compilerService => deps[CompilerService];
+
+AnalysisIssueService get analysisService => deps[AnalysisIssueService];
+
+EventBus get eventBus => deps[EventBus];
+
+EditorFactory get editorFactory => deps[EditorFactory];

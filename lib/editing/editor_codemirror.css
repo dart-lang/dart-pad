@@ -1,0 +1,21 @@
+
+@import '../../../packages/codemirror/codemirror.css';
+
+/* CodeMirror tweaks */
+
+#editpanel .CodeMirror {
+  background: inherit;
+  color: inherit;
+  box-shadow: none;
+}
+
+#editpanel .CodeMirror-gutters {
+  background: inherit;
+  border-right: none;
+  box-shadow: none;
+}
+
+.issuesgutter {
+	width: 5px;
+	background: red;
+}
