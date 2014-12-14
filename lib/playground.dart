@@ -10,11 +10,11 @@ import 'compiler.dart';
 import 'dependencies.dart';
 import 'editing/editor.dart';
 import 'elements.dart';
-import 'liftoff.dart';
+import 'dartpad.dart';
 import 'modules.dart';
 //import 'modules/ace_module.dart';
 import 'modules/codemirror_module.dart';
-import 'modules/liftoff_module.dart';
+import 'modules/dartpad_module.dart';
 //import 'modules/mock_analysis.dart';
 //import 'modules/mock_compiler.dart';
 import 'modules/server_analysis.dart';
@@ -68,7 +68,7 @@ class Playground {
   }
 
   Future _initModules() {
-    modules.register(new LiftoffModule());
+    modules.register(new DartpadModule());
     //modules.register(new MockAnalysisModule());
     modules.register(new ServerAnalysisModule());
     //modules.register(new MockCompilerModule());

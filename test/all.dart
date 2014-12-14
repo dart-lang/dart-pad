@@ -1,5 +1,5 @@
 
-library liftoff.all_test;
+library dartpad_ui.all_test;
 
 import 'dependencies_test.dart' as dependencies_test;
 import 'event_bus_test.dart' as event_bus_test;

@@ -22,7 +22,7 @@ final AceFactory aceFactory = new AceFactory._();
 // TODO: how to show errors and warnings that are off screen?
 
 class AceFactory extends EditorFactory {
-  static final String cssRef = 'packages/liftoff/editing/editor_ace.css';
+  static final String cssRef = 'packages/dartpad_ui/editing/editor_ace.css';
   static final String jsRef = 'packages/ace/src/js/ace.js';
 
   AceFactory._();
@@ -36,7 +36,7 @@ class AceFactory extends EditorFactory {
     // TODO: This injection is slower then hardcoding in the html file.
     html.Element head = html.querySelector('html head');
 
-    // <link href="packages/liftoff/editing/editor_codemirror.css" rel="stylesheet">
+    // <link href="packages/dartpad_ui/editing/editor_codemirror.css" rel="stylesheet">
     html.LinkElement link = new html.LinkElement();
     link.rel = 'stylesheet';
     link.href = cssRef;

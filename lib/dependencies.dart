@@ -11,6 +11,8 @@ import 'dart:async';
 
 // TODO: add dependencies by name
 
+// TODO: rename to deps?
+
 Dependencies get deps => Dependencies.instance;
 
 /**

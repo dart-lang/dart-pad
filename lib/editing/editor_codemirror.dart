@@ -18,7 +18,7 @@ export 'editor.dart';
 final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
 
 class CodeMirrorFactory extends EditorFactory {
-  static final String cssRef = 'packages/liftoff/editing/editor_codemirror.css';
+  static final String cssRef = 'packages/dartpad_ui/editing/editor_codemirror.css';
   static final String jsRef = 'packages/codemirror/codemirror.js';
 
   CodeMirrorFactory._();
@@ -35,7 +35,7 @@ class CodeMirrorFactory extends EditorFactory {
     List futures = [];
     html.Element head = html.querySelector('html head');
 
-    // <link href="packages/liftoff/editing/editor_codemirror.css"
+    // <link href="packages/dartpad_ui/editing/editor_codemirror.css"
     //   rel="stylesheet">
     html.LinkElement link = new html.LinkElement();
     link.rel = 'stylesheet';

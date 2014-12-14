@@ -1,5 +1,5 @@
 
-library liftoff.elements;
+library dartpad_ui.elements;
 
 import 'dart:async';
 import 'dart:html';

@@ -1,5 +1,5 @@
 
-library liftoff.common;
+library dartpad_ui.common;
 
 abstract class TextProvider {
   // TODO: current location as well

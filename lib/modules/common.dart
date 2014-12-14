@@ -1,4 +1,8 @@
 
+library modules.common;
+
+final String serverURL = 'http://localhost:8081/api';
+
 class Lines {
   List<int> _starts = [];
 

@@ -4,6 +4,7 @@ library server_compiler;
 import 'dart:async';
 import 'dart:html';
 
+import 'common.dart';
 import '../compiler.dart';
 import '../dependencies.dart';
 import '../modules.dart';
@@ -19,7 +20,7 @@ class ServerCompilerModule extends Module {
 
 class ServerCompilerService extends CompilerService {
   Future<CompilerResult> compile(String source) {
-    final String url = 'http://localhost:8081/api/compile';
+    final String url = '${serverURL}/compile';
     Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
     return HttpRequest.request(url, method: 'POST',

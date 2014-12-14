@@ -2,11 +2,11 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-library liftoff.event_bus_test;
+library dartpad_ui.event_bus_test;
 
 import 'dart:async';
 
-import 'package:liftoff/event_bus.dart';
+import 'package:dartpad_ui/event_bus.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {

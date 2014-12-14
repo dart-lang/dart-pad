@@ -1,5 +1,5 @@
 
-import 'package:liftoff/playground.dart' as playground;
+import 'package:dartpad_ui/playground.dart' as playground;
 
 void main() {
   playground.init();

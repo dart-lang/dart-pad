@@ -5,6 +5,7 @@ import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:html';
 
+import 'common.dart';
 import '../analysis.dart';
 import '../dependencies.dart';
 import '../modules.dart';
@@ -20,7 +21,7 @@ class ServerAnalysisModule extends Module {
 
 class ServerAnalysisIssueService implements AnalysisIssueService {
   Future<AnalysisResults> analyze(String source) {
-    final String url = 'http://localhost:8081/api/analyze';
+    final String url = '${serverURL}/analyze';
     Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
     return HttpRequest.request(url, method: 'POST',

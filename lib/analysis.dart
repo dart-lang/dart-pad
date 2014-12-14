@@ -1,5 +1,5 @@
 
-library liftoff.analysis;
+library dartpad_ui.analysis;
 
 import 'dart:async';
 

@@ -1,4 +1,4 @@
-name: liftoff
+name: dartpad_ui
 description: An experimental repo for a web based interactive Dart tutorial
 
 dependencies:

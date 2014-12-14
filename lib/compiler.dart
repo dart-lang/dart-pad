@@ -1,6 +1,6 @@
 
 
-library liftoff.compiler;
+library dartpad_ui.compiler;
 
 import 'dart:async';
 

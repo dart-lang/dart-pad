@@ -2,9 +2,9 @@
 // All rights reserved. Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-library liftoff.dependencies_test;
+library dartpad_ui.dependencies_test;
 
-import 'package:liftoff/dependencies.dart';
+import 'package:dartpad_ui/dependencies.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {
