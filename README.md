@@ -1,3 +1,3 @@
-# dart_ui
+# dartpad_ui
 
 An experimental repo for a web based interactive Dart tutorial.
