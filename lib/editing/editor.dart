@@ -62,11 +62,11 @@ class Annotation implements Comparable {
   final String message;
   final int line;
 
-  final int charStart;
-  final int charLength;
+  final Position start;
+  final Position end;
 
   Annotation(this.type, this.message, this.line,
-      {this.charStart, this.charLength});
+      {this.start, this.end});
 
   int compareTo(Annotation other) {
     if (type == other.type){
@@ -77,4 +77,13 @@ class Annotation implements Comparable {
   }
 
   String toString() => '${type}, line ${line}: ${message}';
+}
+
+class Position {
+  final int line;
+  final int char;
+
+  Position(this.line, this.char);
+
+  String toString() => '[${line},${char}]';
 }

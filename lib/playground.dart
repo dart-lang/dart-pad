@@ -6,14 +6,15 @@ import 'dart:html' hide Document;
 
 import 'analysis.dart';
 import 'context.dart';
+import 'common.dart';
 import 'compiler.dart';
 import 'dependencies.dart';
 import 'editing/editor.dart';
 import 'elements.dart';
 import 'dartpad.dart';
 import 'modules.dart';
-//import 'modules/ace_module.dart';
-import 'modules/codemirror_module.dart';
+import 'modules/ace_module.dart';
+//import 'modules/codemirror_module.dart';
 import 'modules/dartpad_module.dart';
 //import 'modules/mock_analysis.dart';
 //import 'modules/mock_compiler.dart';
@@ -73,8 +74,8 @@ class Playground {
     modules.register(new ServerAnalysisModule());
     //modules.register(new MockCompilerModule());
     modules.register(new ServerCompilerModule());
-    //modules.register(new AceModule());
-    modules.register(new CodeMirrorModule());
+    modules.register(new AceModule());
+    //modules.register(new CodeMirrorModule());
 
     return modules.start();
   }
@@ -94,10 +95,22 @@ class Playground {
     });
 
     _context.onDartReconcile.listen((_) {
-      analysisService.analyze(_context.dartSource).then((AnalysisResults result) {
-        _context.dartDocument.setAnnotations(result.issues.map((AnalysisIssue issue) {
+      String source = _context.dartSource;
+      Lines lines = new Lines(source);
+
+      analysisService.analyze(source).then((AnalysisResults result) {
+        _context.dartDocument.setAnnotations(result.issues.map(
+            (AnalysisIssue issue) {
+          int startLine = lines.getLineForOffset(issue.charStart);
+          int endLine = lines.getLineForOffset(issue.charStart + issue.charLength);
+
+          Position start = new Position(startLine,
+              issue.charStart - lines.offsetForLine(startLine));
+          Position end = new Position(endLine,
+              issue.charStart + issue.charLength - lines.offsetForLine(startLine));
+
           return new Annotation(issue.kind, issue.message, issue.line,
-              charStart: issue.charStart, charLength: issue.charLength);
+              start: start, end: end);
         }).toList());
       });
     });

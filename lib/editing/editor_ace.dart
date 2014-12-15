@@ -68,7 +68,8 @@ class AceFactory extends EditorFactory {
     editor.theme = new ace.Theme.named('monokai');
     editor.highlightActiveLine = false;
     editor.highlightGutterLine = false;
-    //fadeFoldWidgets = true
+    // TODO: Turn this on when the new version of ace is available.
+    //editor.showFoldWidgets = false;
 
     if (options == null) {
       options = {'enableBasicAutocompletion': true};
@@ -125,11 +126,12 @@ class _AceEditor extends Editor {
 class _AceDocument extends Document {
   final ace.EditSession session;
 
-  bool _dirty = false;
+  bool dirty = false;
+  //List<int> markers = [];
 
   _AceDocument._(_AceEditor editor, this.session) : super(editor) {
     onChange.listen((_) {
-      _dirty = true;
+      dirty = true;
     });
   }
 
@@ -140,21 +142,37 @@ class _AceDocument extends Document {
 
   // TODO: ace.dart should expose undoManager.isClean
 
-  bool get isClean => !_dirty;
+  bool get isClean => !dirty;
   void markClean() {
-    _dirty = false;
+    dirty = false;
   }
 
   void setAnnotations(List<Annotation> annotations) {
+//    if (markers.isNotEmpty) {
+//      for (int markerId in markers) {
+//        session.removeMarker(markerId);
+//      }
+//      markers.clear();
+//    }
+
     // Sort annotations so that the errors are set first.
     annotations.sort();
-
-    // TODO: Use the charStart and charLength information.
 
     session.setAnnotations(annotations.map((Annotation annotation) {
       return new ace.Annotation(text: annotation.message,
           type: annotation.type, row: annotation.line - 1);
     }).toList());
+
+//    for (Annotation annotation in annotations) {
+//      // TODO: use the positions from the source we analyzed, not the current source
+//      // TODO: we need tooltips too
+//      ace.Point start = new ace.Point(annotation.start.line, annotation.start.char);
+//      ace.Point end = new ace.Point(annotation.end.line, annotation.end.char);
+//
+//      int markerId = session.addMarker(new ace.Range.fromPoints(start, end),
+//          '${annotation.type}marker');
+//      markers.add(markerId);
+//    }
   }
 
   void clearAnnotations() => session.clearAnnotations();
