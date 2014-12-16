@@ -12,3 +12,6 @@ packages/
 
 # Include when developing application packages.
 pubspec.lock
+
+# OS files
+.DS_Store
