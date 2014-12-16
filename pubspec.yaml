@@ -1,0 +1,19 @@
+name: 'dartpad_server'
+version: 0.0.1
+description: A minimal web server using the shelf package.
+
+author: <Devon Carew> <devoncarew@google.com>
+#homepage: https://www.example.com
+environment:
+  sdk: '>=1.0.0 <2.0.0'
+
+dependencies:
+  analyzer: '>=0.22.4 <0.23.0'
+  args: any
+  compiler_unsupported: 0.7.3
+  logging: any
+  shelf: any
+  shelf_route: any
+
+executables:
+  dartpad_server:
