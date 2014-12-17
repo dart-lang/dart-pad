@@ -5,7 +5,7 @@
 /**
  * This library is a wrapper around the Dart to JavaScript (dart2js) compiler.
  */
-library dartpad_serve.compiler;
+library dartpad_server.compiler;
 
 import 'dart:async';
 import 'dart:io' show File;

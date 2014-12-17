@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>dartpad_server</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>com.google.dart.tools.core.dartBuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>com.google.dart.tools.core.dartNature</nature>
+	</natures>
+	<filteredResources>
+		<filter>
+			<id>1418563233791</id>
+			<name></name>
+			<type>30</type>
+			<matcher>
+				<id>com.google.dart.tools.core.packagesFolderMatcher</id>
+			</matcher>
+		</filter>
+	</filteredResources>
+</projectDescription>
