@@ -15,5 +15,8 @@ dependencies:
   shelf: any
   shelf_route: any
 
+dev_dependencies:
+  unittest: any
+
 executables:
   dartpad_server:
