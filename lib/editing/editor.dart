@@ -69,10 +69,10 @@ class Annotation implements Comparable {
       {this.start, this.end});
 
   int compareTo(Annotation other) {
-    if (type == other.type){
-      return line - other.line;
-    } else {
+    if (line == other.line) {
       return _errorValue(other.type) - _errorValue(type);
+    } else {
+      return line - other.line;
     }
   }
 

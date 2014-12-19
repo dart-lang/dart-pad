@@ -162,6 +162,10 @@ button:hover {
   color: #fff;
 }
 
+button:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
 button[disabled] {
   color: #555;
   pointer-events: none;

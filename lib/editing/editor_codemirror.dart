@@ -4,9 +4,11 @@ library editor.codemirror;
 import 'dart:async';
 import 'dart:html' as html;
 
-import 'package:codemirror/codemirror.dart';
+import 'package:codemirror/codemirror.dart' hide Position;
+import 'package:codemirror/codemirror.dart' as pos show Position;
 
-import 'editor.dart';
+import 'editor.dart' hide Position;
+import 'editor.dart' as ed show Position;
 
 export 'editor.dart';
 
@@ -16,6 +18,8 @@ export 'editor.dart';
 //<script src="../addon/hint/html-hint.js"></script>
 
 final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
+
+final _gutterId = 'CodeMirror-lint-markers';
 
 class CodeMirrorFactory extends EditorFactory {
   static final String cssRef = 'packages/dartpad_ui/editing/editor_codemirror.css';
@@ -59,9 +63,21 @@ class CodeMirrorFactory extends EditorFactory {
         'autofocus': true,
         'cursorHeight': 0.85,
         'autoCloseBrackets': true,
-        //'gutters': ['issuesgutter'],
+        'gutters': [_gutterId],
+        //'lint': true,
         'theme': 'ambiance' // ambiance, vibrant-ink, monokai
       };
+
+//      CodeMirror.registerHelper('lint', 'dart', (text) {
+//        var found = [];
+////        found.push({
+////          from: CodeMirror.Pos(1, 0),
+////          to: CodeMirror.Post(1, 0),
+////          severity: "error",
+////          message: "bad"
+////        });
+//        return found;
+//      });
     }
 
     return new _CodeMirrorEditor._(this,
@@ -117,8 +133,37 @@ class _CodeMirrorDocument extends Document {
   void markClean() => doc.markClean();
 
   void setAnnotations(List<Annotation> annotations) {
-    // TODO: implement
+    CodeMirror cm = parent.cm;
+    cm.clearGutter(_gutterId);
 
+    // Sort annotations so that the errors are set first.
+    annotations.sort();
+
+    int lastLine = -1;
+
+    // TODO: codemirror lint has no support for info markers
+    // TODO: contribute some?
+
+    // TODO: squiggles in the text
+
+    for (Annotation an in annotations) {
+      if (lastLine == an.line) continue;
+      lastLine = an.line;
+      cm.setGutterMarker(an.line - 1, _gutterId,
+          _makeMarker(an.type, an.message, an.start, an.end));
+    }
+  }
+
+  html.Element _makeMarker(String severity, String tooltip, ed.Position start,
+      ed.Position end) {
+    html.Element marker = new html.DivElement();
+    marker.className = "CodeMirror-lint-marker-" + severity;
+    if (tooltip != null) marker.title = tooltip;
+    marker.onClick.listen((_) {
+      doc.setSelection(new pos.Position(start.line, start.char),
+          head: new pos.Position(end.line, end.char));
+    });
+    return marker;
   }
 
   Stream get onChange => doc.onChange;
