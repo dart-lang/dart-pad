@@ -37,6 +37,7 @@ class Compiler {
 
     CompilationResults result = new CompilationResults(lines);
 
+    // --incremental-support, --disable-type-inference
     return compiler.compile(
         provider.getInitialUri(),
         new Uri(scheme: 'sdk', path: '/'),

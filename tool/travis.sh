@@ -29,3 +29,6 @@ dartanalyzer --fatal-warnings \
 
 # Run the tests.
 dart test/all.dart
+
+# Run the benchmarks.
+dart benchmark/bench.dart

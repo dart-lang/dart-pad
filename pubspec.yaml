@@ -1,9 +1,9 @@
 name: 'dartpad_server'
 version: 0.0.1
-description: A minimal web server using the shelf package.
+description: An experimental repo for a web based interactive Dart tutorial.
 
-author: <Devon Carew> <devoncarew@google.com>
-#homepage: https://www.example.com
+author: Dart Team <misc@dartlang.org>
+homepage: https://github.com/dart-lang/dartpad_server
 environment:
   sdk: '>=1.0.0 <2.0.0'
 
@@ -16,6 +16,7 @@ dependencies:
   shelf_route: any
 
 dev_dependencies:
+  grinder: '>=0.6.0 <0.7.0'
   unittest: any
 
 executables:
