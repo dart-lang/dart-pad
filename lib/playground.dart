@@ -1,18 +1,21 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 library playground;
 
 import 'dart:async';
 import 'dart:html' hide Document;
 
-import 'analysis.dart';
+import 'services/analysis.dart';
 import 'context.dart';
-import 'common.dart';
-import 'compiler.dart';
-import 'dependencies.dart';
+import 'services/common.dart';
+import 'services/compiler.dart';
+import 'core/dependencies.dart';
 import 'editing/editor.dart';
-import 'elements.dart';
+import 'elements/elements.dart';
 import 'dartpad.dart';
-import 'modules.dart';
+import 'core/modules.dart';
 import 'modules/ace_module.dart';
 //import 'modules/codemirror_module.dart';
 import 'modules/dartpad_module.dart';
