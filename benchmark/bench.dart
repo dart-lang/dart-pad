@@ -14,8 +14,6 @@ import 'package:grinder/grinder.dart' as grinder;
 
 final String sdkPath = grinder.getSdkDir().path;
 
-// TODO: refactor into a benchmark model, runner, and reporter
-
 void main() {
   BenchmarkHarness harness = new BenchmarkHarness();
 

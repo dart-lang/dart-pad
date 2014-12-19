@@ -12,7 +12,7 @@ import 'dart:async';
 
 // TODO: add tests
 
-// TODO: warn when running in checked mode
+// TODO: refactor into a benchmark model, runner, and reporter
 
 abstract class Benchmark {
   final String name;
