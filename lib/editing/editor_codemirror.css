@@ -1,5 +1,6 @@
 
 @import '../../../packages/codemirror/codemirror.css';
+@import '../../../packages/codemirror/addon/lint/lint.css';
 
 /* CodeMirror tweaks */
 
@@ -13,9 +14,4 @@
   background: inherit;
   border-right: none;
   box-shadow: none;
-}
-
-.issuesgutter {
-	width: 5px;
-	background: red;
 }
