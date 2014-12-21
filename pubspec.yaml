@@ -2,7 +2,7 @@ name: dartpad_ui
 description: An experimental repo for a web based interactive Dart tutorial
 
 dependencies:
-  ace: any
+  ace: '>=0.5.10 <0.6.0'
   bootstrap: any
   browser: any
   codemirror: any

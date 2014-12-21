@@ -92,6 +92,11 @@ class Playground {
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
 
+    _context.onHtmlReconcile.listen((_) {
+      executionService.replaceHtml(_context.htmlSource);
+      _context.markHtmlClean();
+    });
+
     _context.onCssReconcile.listen((_) {
       executionService.replaceCss(_context.cssSource);
       _context.markCssClean();
@@ -176,6 +181,7 @@ class PlaygroundContext extends Context {
   Document _htmlDoc;
   Document _cssDoc;
 
+  StreamController _htmlReconcileController = new StreamController.broadcast();
   StreamController _cssReconcileController = new StreamController.broadcast();
   StreamController _dartReconcileController = new StreamController.broadcast();
 
@@ -187,7 +193,8 @@ class PlaygroundContext extends Context {
     _cssDoc = editor.createDocument(
         content: _sampleCssCode, mode: 'css');
 
-    _createReconciler(_cssDoc, _cssReconcileController);
+    _createReconciler(_htmlDoc, _htmlReconcileController, 250);
+    _createReconciler(_cssDoc, _cssReconcileController, 250);
     _createReconciler(_dartDoc, _dartReconcileController);
 
     editor.swapDocument(_dartDoc);
@@ -222,17 +229,22 @@ class PlaygroundContext extends Context {
     editor.focus();
   }
 
+  Stream get onHtmlReconcile => _htmlReconcileController.stream;
+
   Stream get onCssReconcile => _cssReconcileController.stream;
 
   Stream get onDartReconcile => _dartReconcileController.stream;
 
+  void markHtmlClean() => _htmlDoc.markClean();
+
   void markCssClean() => _cssDoc.markClean();
 
-  void _createReconciler(Document doc, StreamController controller) {
+  void _createReconciler(Document doc, StreamController controller,
+      [int delay = 1250]) {
     Timer timer;
     doc.onChange.listen((_) {
       if (timer != null) timer.cancel();
-      timer = new Timer(new Duration(milliseconds: 1250), () {
+      timer = new Timer(new Duration(milliseconds: delay), () {
         if (!doc.isClean) {
           controller.add(null);
         }
@@ -247,6 +259,8 @@ final String _sampleDartCode = r'''void main() {
   }
 }
 ''';
+
+// TODO: better sample code
 
 final String _sampleHtmlCode = r'''<h2>Dart Sample</h2>
 
@@ -263,6 +277,8 @@ p {
   color: #888;
 }
 ''';
+
+// TODO: move into it's own file
 
 class ExecutionService {
   final IFrameElement frame;

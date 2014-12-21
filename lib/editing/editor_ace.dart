@@ -71,8 +71,7 @@ class AceFactory extends EditorFactory {
     editor.theme = new ace.Theme.named('monokai');
     editor.highlightActiveLine = false;
     editor.highlightGutterLine = false;
-    // TODO: Turn this on when the new version of ace is available.
-    //editor.showFoldWidgets = false;
+    editor.showFoldWidgets = false;
 
     if (options == null) {
       options = {'enableBasicAutocompletion': true};
@@ -129,26 +128,18 @@ class _AceEditor extends Editor {
 class _AceDocument extends Document {
   final ace.EditSession session;
 
-  bool dirty = false;
   //List<int> markers = [];
 
-  _AceDocument._(_AceEditor editor, this.session) : super(editor) {
-    onChange.listen((_) {
-      dirty = true;
-    });
-  }
+  _AceDocument._(_AceEditor editor, this.session) : super(editor);
 
   String get value => session.value;
   set value(String str) {
     session.value = str;
   }
 
-  // TODO: ace.dart should expose undoManager.isClean
+  bool get isClean => session.undoManager.isClean;
 
-  bool get isClean => !dirty;
-  void markClean() {
-    dirty = false;
-  }
+  void markClean() => session.undoManager.markClean();
 
   void setAnnotations(List<Annotation> annotations) {
 //    if (markers.isNotEmpty) {
