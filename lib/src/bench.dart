@@ -89,8 +89,8 @@ class BenchMarkResult {
 
   double _averageMicroseconds() => microseconds / iteration;
 
-  String toString() => '[${_padLeft(benchmark.name, 23)}: '
-      '${_padRight(_averageMilliseconds().toStringAsFixed(3), 8)}ms]';
+  String toString() => '[${benchmark.name.padRight(23)}: '
+      '${_averageMilliseconds().toStringAsFixed(3).padLeft(8)}ms]';
 }
 
 bool isCheckedMode() {
@@ -104,28 +104,3 @@ bool isCheckedMode() {
 }
 
 dynamic get _intVal => 1 + 2;
-
-String _padLeft(String str, int cols) =>
-    (str.length < cols) ? str + _spaces(cols - str.length) : str;
-
-String _padRight(String str, int cols) =>
-    (str.length < cols) ? _spaces(cols - str.length) + str : str;
-
-String _spaces(int count) {
-  assert(count >= 0);
-  switch (count) {
-    case 0 : return '';
-    case 1 : return ' ';
-    case 2 : return '  ';
-    case 3 : return '   ';
-    case 4 : return '    ';
-    case 5 : return '     ';
-    case 6 : return '      ';
-    case 7 : return '       ';
-    case 8 : return '        ';
-    case 9 : return '         ';
-    case 10 : return '          ';
-    default :
-      return _spaces(10) + _spaces(count - 10);
-  }
-}

@@ -73,7 +73,6 @@ class DartpadServer {
   Compiler compiler;
 
   DartpadServer._(String sdkPath, this.port) {
-    // TODO: Warm up the analyzer and compiler.
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath);
 
@@ -113,7 +112,6 @@ Dartpad server.
 
       Stopwatch watch = new Stopwatch()..start();
 
-      // TODO: Catch an exception, return a 500 error code?
       return analyzer.analyze(source).then((AnalysisResults results) {
         List issues = results.issues.map((issue) => issue.toMap()).toList();
         String json = JSON.encode(issues);
@@ -123,6 +121,9 @@ Dartpad server.
         _logger.info('Analyzed ${lineCount} lines of Dart in ${ms}ms.');
 
         return new Response.ok(json, headers: _jsonHeader);
+      }).catchError((e, st) {
+        String errorText = 'Error during analysis: ${e}\n${st}';
+        return new Response(500, body: errorText);
       });
     });
   }
@@ -148,6 +149,9 @@ Dartpad server.
             String errors = results.problems.map(_printProblem).join('\n');
             return new Response(400, body: errors);
           }
+        }).catchError((e, st) {
+          String errorText = 'Error during compile: ${e}\n${st}';
+          return new Response(500, body: errorText);
         });
     });
   }

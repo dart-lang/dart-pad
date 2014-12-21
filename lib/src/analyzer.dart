@@ -47,34 +47,38 @@ class Analyzer {
       analyze(useHtml ? sampleCodeWeb : sampleCode);
 
   Future<AnalysisResults> analyze(String source) {
-    _source.updateSource(source);
+    try {
+      _source.updateSource(source);
 
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(_source);
-    _context.applyChanges(changeSet);
-    _context.computeErrors(_source);
-    _context.getErrors(_source);
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.addedSource(_source);
+      _context.applyChanges(changeSet);
+      _context.computeErrors(_source);
+      _context.getErrors(_source);
 
-    List<AnalysisErrorInfo> errorInfos = [];
+      List<AnalysisErrorInfo> errorInfos = [];
 
-    _context.computeErrors(_source);
-    errorInfos.add(_context.getErrors(_source));
+      _context.computeErrors(_source);
+      errorInfos.add(_context.getErrors(_source));
 
-    List<_Error> errors = errorInfos
-      .expand((AnalysisErrorInfo info) {
-        return info.errors.map((error) => new _Error(error, info.lineInfo));
-      })
-      .where((_Error error) => error.errorType != ErrorType.TODO)
-      .toList();
+      List<_Error> errors = errorInfos
+        .expand((AnalysisErrorInfo info) {
+          return info.errors.map((error) => new _Error(error, info.lineInfo));
+        })
+        .where((_Error error) => error.errorType != ErrorType.TODO)
+        .toList();
 
-    List<AnalysisIssue> issues = errors.map((_Error error) {
-      return new AnalysisIssue(
-          error.severityName, error.line, error.message,
-          location: error.location,
-          charStart: error.offset, charLength: error.length);
-    }).toList();
+      List<AnalysisIssue> issues = errors.map((_Error error) {
+        return new AnalysisIssue(
+            error.severityName, error.line, error.message,
+            location: error.location,
+            charStart: error.offset, charLength: error.length);
+      }).toList();
 
-    return new Future.value(new AnalysisResults(issues));
+      return new Future.value(new AnalysisResults(issues));
+    } catch (e, st) {
+      return new Future.error(e, st);
+    }
   }
 }
 
