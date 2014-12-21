@@ -110,7 +110,7 @@ class CompilationProblem implements Comparable {
 
   CompilationProblem._(this.uri, this.begin, this.end, this.message,
       this._diagnostic, Lines lines) {
-    _line = lines.getLineForOffset(begin) + 1;
+    _line = begin == null ? 0 : lines.getLineForOffset(begin) + 1;
   }
 
   /// The 1-based line number.
