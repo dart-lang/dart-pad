@@ -1,5 +1,0 @@
-name:  dartpad-api-viewer
-description:  A sample application
-
-dependencies:
-  browser: any
