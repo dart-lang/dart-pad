@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+    <link href="apitest.css" rel="stylesheet">
+    <link href="packages/codemirror/codemirror.css" rel="stylesheet">
+  </head>
+
+  <body>
+    <script src="packages/codemirror/codemirror.js"></script>
+
+    <h2>Dartpad Server API Tester</h2>
+    <input type="text" value="https://liftoff-dev.appspot.com/">
+
+    <section id="analyzeSection">
+      <h3>api/analyze</h3>
+      <div class="row">
+        <button class="post">POST</button>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="compileSection">
+      <h3>api/compile</h3>
+      <div class="row">
+        <button class="post">POST</button>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="completeSection">
+      <h3>api/complete</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="documentSection">
+      <h3>api/document</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <script type="application/dart" src="apitest.dart"></script>
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>

@@ -1,0 +1,63 @@
+/* Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
+
+body {
+  display: flex;
+  flex-direction: column;
+  margin: 15px;
+  color: #555;
+}
+
+section {
+  margin-top: 20px;
+  padding-top: 6px;
+  border-top: 1px solid #eee;
+  border-width: 2px;
+  padding-left: 16px;
+}
+
+h3 {
+  margin-top: 0;
+  margin-bottom: 8px;
+  margin-left: -16px;
+}
+
+#controls {
+  margin-bottom: 1em;
+}
+
+button.post {
+  /*float: right;*/
+}
+
+div.container {
+  display: flex;
+  flex-direction: row;
+}
+
+div.row {
+  margin: 0 0 6px 0;
+}
+
+.editor {
+  flex: 20;
+  display: inline-block;
+  box-shadow: 1px 1px 2px 0px rgba(50, 50, 50, 0.75);
+  margin-right: 16px;
+  height: 300px;
+}
+
+.offset {
+  /*background: #333;*/
+}
+
+.output {
+  flex: 15;
+  display: inline-block;
+  box-shadow: 1px 1px 2px 0px rgba(50, 50, 50, 0.75);
+  height: 300px;
+  white-space: pre-wrap;
+  overflow: scroll;
+  font-family: monospace;
+}
