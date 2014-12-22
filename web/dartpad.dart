@@ -4,8 +4,6 @@
 
 import 'package:dartpad_ui/playground.dart' as playground;
 
-// TODO: rename to dartpad
-
 // TODO: intercept the command-s keystroke
 
 // TODO: display errors that aren't currently on the screen
@@ -21,6 +19,17 @@ import 'package:dartpad_ui/playground.dart' as playground;
 // TODO: investigate https://github.com/DirectMyFile/github.dart for the gists API
 
 // TODO: build JS output; package it for deployment
+
+// TODO: fontawesome as a resource package
+
+// TODO: keybinding for run
+
+// TODO: flex layout, -ms-, -webkit-, ...
+
+// TODO: all scripts (js and css) that load at the beginning should be listed in
+// main html file.
+// Or, all concatenated into one file?
+
 
 void main() {
   playground.init();
