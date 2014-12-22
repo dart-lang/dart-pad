@@ -16,4 +16,4 @@ transformers:
 - script_inliner
 
 - $dart2js:
-    $exclude: ['web/old/playground1.dart', 'web/packages/csslib/css.dart']
+    $exclude: ['web/old/playground1.dart', 'web/old/playground2.dart', 'web/packages/csslib/css.dart']
