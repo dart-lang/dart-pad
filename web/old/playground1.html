@@ -6,16 +6,14 @@
   	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Playground</title>
 
-    <!-- link href="packages/bootstrap/css/bootstrap.css" rel="stylesheet" media="screen">
-    <link href="packages/bootstrap/css/bootstrap-theme.css" rel="stylesheet" media="screen" -->
+    <link href="../packages/bootstrap/css/bootstrap.css" rel="stylesheet" media="screen">
+    <link href="../packages/bootstrap/css/bootstrap-theme.css" rel="stylesheet" media="screen">
 
-    <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css"
-        rel="stylesheet">
-
-    <link href="layout.css" rel="stylesheet" media="screen">
+    <link href="../layout.css" rel="stylesheet" media="screen">
     <link href="playground1.css" rel="stylesheet" media="screen">
-    <link href='http://fonts.googleapis.com/css?family=Roboto:400,400italic,500,700'
-        rel='stylesheet' type='text/css'>
+
+    <!-- link href='http://fonts.googleapis.com/css?family=Roboto:400,400italic,500,700'
+        rel='stylesheet' type='text/css' -->
     <link href='http://fonts.googleapis.com/css?family=Inconsolata:400,700'
         rel='stylesheet' type='text/css'>
   </head>
@@ -24,49 +22,49 @@
     <header layout horizontal>
       <div flex>Dart playground</div>
       <div>
-        <i class="fa fa-leaf"></i>
+        <span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>
         &nbsp;
-        <i class="fa fa-fire"></i>
-        &nbsp;
-        <i class="fa fa-gear"></i>
+        <span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
       </div>
     </header>
 
     <section flex layout horizontal>
-
-      <div class="viewpart" flex layout vertical>
+      <div class="view" flex three layout vertical>
         <div class="header" layout horizontal>
-          <div class="buttongroup">
-            <button selected>Dart</button>
-            <button>Html</button>
-            <button>Css</button>
+          <div class="btn-group" role="group" flex>
+            <button type="button" class="btn btn-primary btn-sm">Dart</button>
+            <button type="button" class="btn btn-primary btn-sm">Html</button>
+            <button type="button" class="btn btn-primary btn-sm">Css</button>
           </div>
+          <button type="button" class="btn btn-primary btn-sm">
+            <span class="glyphicon glyphicon-play" aria-hidden="true"></span>
+            Run
+          </button>
         </div>
-        <div flex class="container somecode">
+        <div flex class="somecode content">
           Some text here.
         </div>
       </div>
 
-      <div class="viewpart" flex layout vertical>
+      <div class="view noleft" flex two layout vertical>
         <div class="header" layout horizontal>
-
+          -
         </div>
-        <div flex class="container somecode">
+        <div flex class="somecode content">
           Some text here.
         </div>
       </div>
-
     </section>
 
     <footer layout horizontal>
-      <div flex>Hey there</div>
-      <div>Dart</div>
-      <div flex class="text-right">Some stuff</div>
+      <div flex></div>
+      <div>foo - Dart - bar </div>
+      <div flex></div>
     </footer>
 
-    <script type="application/dart" src="playground1.dart"></script>
-    <script src="packages/browser/dart.js"></script>
-
-    <!-- script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="../packages/bootstrap/js/bootstrap.min.js"></script>
+    <script src="playground1.dart" type="application/dart"></script>
+    <script src="../packages/browser/dart.js"></script>
   </body>
 </html>
