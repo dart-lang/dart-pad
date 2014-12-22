@@ -12,6 +12,8 @@ import '../core/dependencies.dart';
 import '../core/modules.dart';
 import '../services/compiler.dart';
 
+// TODO: move the services to the /services dir
+
 class ServerCompilerModule extends Module {
   ServerCompilerModule();
 

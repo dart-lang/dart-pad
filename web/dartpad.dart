@@ -22,14 +22,20 @@ import 'package:dartpad_ui/playground.dart' as playground;
 
 // TODO: fontawesome as a resource package
 
-// TODO: keybinding for run
-
-// TODO: flex layout, -ms-, -webkit-, ...
+// TODO: add a keybinding for run
 
 // TODO: all scripts (js and css) that load at the beginning should be listed in
-// main html file.
-// Or, all concatenated into one file?
+// main html file. Or, all concatenated into one file?
 
+// TODO: the default editing font is too small on ipad
+
+// TODO: ipad has no keybindings; no way to type 'undo'
+
+// TODO: very hard to select text in ace on mobile
+
+// TODO: ensure css works cross-platform: flexbox layout, box-shadow, transitions
+
+// TODO: cut the flexbox css down smaller
 
 void main() {
   playground.init();
