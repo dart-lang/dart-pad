@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+  	<meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>index</title>
+
+    <style>
+  #code {font-family: monospace;}
+</style>
+  </head>
+  <body>
+    <h1>API Tester</h1>
+    <br />
+
+    <table>
+      <tr>
+        <td width = "100px" />
+        <td width = "500px">
+          <pre id="code" style="fontface:monospace" contentEditable="true">
+main() {
+  print(primesLessThan(15));
+}
+
+// Computes primes less than [n] using the Sieve of Eratosthenes.
+primesLessThan(n) {
+  var l = new List.generate(n, (i) => i);
+  for (int i = 2; i * i < n; i++)
+      if (l[i] != null)
+          for (int j = i * i; j < n; j += i)
+              l[j] = null;
+  return l.skip(2).where((i) => i != null);
+}
+          </pre>
+        </td>
+      </tr>
+    </table>
+
+
+    <input type="text" id="apiEndPoint"
+    value="http://liftoff-dev.appspot.com/api/analyze" size="64" />
+
+    <button id="sendButton">Send</button>
+    <hr />
+    <pre id="perf">Perf</pre>
+    <pre id="output">Output</pre>
+
+    <script type="application/dart" src="index.dart"></script>
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>
