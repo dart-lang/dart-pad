@@ -5,20 +5,22 @@
 library dartpad_server.analyzer;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
-import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/engine.dart' hide Logger;
+import 'package:analyzer/src/generated/engine.dart' as engine show Logger;
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/java_io.dart';
+import 'package:logging/logging.dart';
 
 import 'common.dart' hide DartSdk;
 
-// TODO: a package resolver
+Logger _logger = new Logger('analyzer');
 
 class Analyzer {
   _StringSource _source;
@@ -108,7 +110,7 @@ class AnalysisIssue {
   }
 }
 
-/// An implementation of [Source] that's based on an in-memory Dart string.
+/// An implementation of [Source] that is based on an in-memory string.
 class _StringSource implements Source {
   final String fullName;
 
@@ -137,30 +139,30 @@ class _StringSource implements Source {
 
   TimestampedData<String> get contents => new TimestampedData(modificationStamp, _contents);
 
-  String get encoding => throw new UnsupportedError("StringSource doesn't support "
-      "encoding.");
+  String get encoding => 'utf-8';
 
   String get shortName => fullName;
 
-  UriKind get uriKind => throw new UnsupportedError("StringSource doesn't support "
-      "uriKind.");
+  UriKind get uriKind => UriKind.FILE_URI;
 
-  int get hashCode => _contents.hashCode ^ fullName.hashCode;
+  int get hashCode => fullName.hashCode;
 
   bool get isInSystemLibrary => false;
 
-  @override
-  Uri get uri => throw new UnsupportedError(
-      "StringSource doesn't support uri.");
+  Uri get uri => throw new UnsupportedError("StringSource doesn't support uri.");
 
-  Uri resolveRelativeUri(Uri relativeUri) => throw new UnsupportedError(
-      "StringSource doesn't support resolveRelative.");
+  Uri resolveRelativeUri(Uri relativeUri) =>
+      throw new AnalysisException("Cannot resolve a URI: ${relativeUri}");
 }
 
-class _Logger extends Logger {
-  void logError(String message) => stderr.writeln(message);
-  void logError2(String message, dynamic exception) => stderr.writeln(message);
+class _Logger extends engine.Logger {
+  void logError(String message) => _logger.severe(message);
+
+  void logError2(String message, dynamic exception) =>
+      _logger.severe(message, exception);
+
   void logInformation(String message) { }
+
   void logInformation2(String message, dynamic exception) { }
 }
 

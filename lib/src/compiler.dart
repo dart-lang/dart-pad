@@ -11,8 +11,11 @@ import 'dart:async';
 import 'dart:io' show File;
 
 import 'package:compiler_unsupported/compiler.dart' as compiler;
+import 'package:logging/logging.dart';
 
 import 'common.dart';
+
+Logger _logger = new Logger('compiler');
 
 // TODO: Are there any options we can pass in to speed up compilation time?
 
