@@ -16,6 +16,8 @@ dependencies:
   shelf_route: any
 
 dev_dependencies:
+  browser: any
+  codemirror: any
   grinder: '>=0.6.0 <0.7.0'
   unittest: any
 
