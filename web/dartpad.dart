@@ -22,8 +22,6 @@ import 'package:dartpad_ui/playground.dart' as playground;
 
 // TODO: fontawesome as a resource package
 
-// TODO: transformer to eliminate dart.js
-
 // TODO: keybinding for run
 
 // TODO: flex layout, -ms-, -webkit-, ...
