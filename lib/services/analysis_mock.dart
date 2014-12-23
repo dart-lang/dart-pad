@@ -8,7 +8,8 @@ import 'dart:async';
 
 import 'common.dart';
 import 'analysis.dart';
-import '../core/modules.dart';
+
+export 'analysis.dart';
 
 class MockAnalysisIssueService implements AnalysisIssueService {
   Future<AnalysisResults> analyze(String source) {
