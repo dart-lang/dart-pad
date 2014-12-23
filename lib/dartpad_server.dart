@@ -9,13 +9,13 @@ import 'dart:convert' show JSON;
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:grinder/grinder.dart' as grinder;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart';
 
 import 'src/analyzer.dart';
-import 'src/common.dart';
 import 'src/compiler.dart';
 
 const Map _textHtmlHeader = const {HttpHeaders.CONTENT_TYPE: 'text/html'};
@@ -35,7 +35,7 @@ void main(List<String> args) {
     exit(1);
   });
 
-  Directory sdkDir = getSdkDir(args);
+  Directory sdkDir = grinder.getSdkDir(args);
   if (sdkDir == null) {
     stdout.writeln("Could not locate the SDK; please start the server with the "
         "'--dart-sdk' option.");

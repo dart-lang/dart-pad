@@ -18,12 +18,12 @@ void main() {
   BenchmarkHarness harness = new BenchmarkHarness();
 
   List<Benchmark> benchmarks = [
-    new AnalyzerBenchmark('simple', sampleCode),
-    new AnalyzerBenchmark('simple html', sampleCodeWeb),
+    new AnalyzerBenchmark('hello', sampleCode),
+    new AnalyzerBenchmark('hellohtml', sampleCodeWeb),
     new AnalyzerBenchmark('sunflower', _sunflower),
 
-    new Dart2jsBenchmark('simple', sampleCode),
-    new Dart2jsBenchmark('simple html', sampleCodeWeb),
+    new Dart2jsBenchmark('hello', sampleCode),
+    new Dart2jsBenchmark('hellohtml', sampleCodeWeb),
     new Dart2jsBenchmark('sunflower', _sunflower),
   ];
 
@@ -34,7 +34,7 @@ class AnalyzerBenchmark extends Benchmark {
   final String source;
   Analyzer analyzer;
 
-  AnalyzerBenchmark(String name, this.source) : super('analyzer - ${name}') {
+  AnalyzerBenchmark(String name, this.source) : super('analyzer.${name}') {
     analyzer = new Analyzer(sdkPath);
   }
 
@@ -45,11 +45,15 @@ class Dart2jsBenchmark extends Benchmark {
   final String source;
   Compiler compiler;
 
-  Dart2jsBenchmark(String name, this.source) : super('dart2js - ${name}') {
+  Dart2jsBenchmark(String name, this.source) : super('dart2js.${name}') {
     compiler = new Compiler(sdkPath);
   }
 
-  Future perform() => compiler.compile(source);
+  Future perform() {
+    return compiler.compile(source).then((CompilationResults result) {
+      if (!result.success) throw result;
+    });
+  }
 }
 
 final String _sunflower = '''

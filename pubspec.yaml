@@ -18,7 +18,8 @@ dependencies:
 dev_dependencies:
   browser: any
   codemirror: any
-  grinder: '>=0.6.0 <0.7.0'
+  crypto: any
+  grinder: '>=0.6.4 <0.7.0'
   unittest: any
 
 executables:
