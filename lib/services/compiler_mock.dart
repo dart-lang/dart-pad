@@ -7,7 +7,8 @@ library dartpad_ui.compiler_mock;
 import 'dart:async';
 
 import 'compiler.dart';
-import '../core/modules.dart';
+
+export 'compiler.dart';
 
 class MockCompilerService extends CompilerService {
   Future<CompilerResult> compile(String source) {
