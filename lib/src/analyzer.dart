@@ -27,7 +27,8 @@ class Analyzer {
   AnalysisContext _context;
 
   Analyzer(String sdkPath) {
-    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(sdkPath));
+    // useDart2jsPaths == true
+    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(sdkPath), true);
     _context = AnalysisEngine.instance.createAnalysisContext();
     _context.analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
     List<UriResolver> resolvers = [new DartUriResolver(sdk)];

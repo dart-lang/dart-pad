@@ -14,6 +14,8 @@ import 'dart:async';
 
 // TODO: refactor into a benchmark model, runner, and reporter
 
+// TODO: add in mean, % error
+
 abstract class Benchmark {
   final String name;
 
@@ -25,7 +27,6 @@ abstract class Benchmark {
 }
 
 class BenchmarkHarness {
-
   Future benchmark(List<Benchmark> benchmarks) {
     if (isCheckedMode()) {
       print('WARNING: You are running in checked mode. Benchmarks should be run'
@@ -89,7 +90,7 @@ class BenchMarkResult {
 
   double _averageMicroseconds() => microseconds / iteration;
 
-  String toString() => '[${benchmark.name.padRight(23)}: '
+  String toString() => '[${benchmark.name.padRight(20)}: '
       '${_averageMilliseconds().toStringAsFixed(3).padLeft(8)}ms]';
 }
 
