@@ -11,6 +11,7 @@ dependencies:
   analyzer: '>=0.22.4 <0.23.0'
   args: any
   compiler_unsupported: 0.7.3
+  grinder: '>=0.6.4 <0.7.0'
   logging: any
   shelf: any
   shelf_route: any
@@ -19,7 +20,6 @@ dev_dependencies:
   browser: any
   codemirror: any
   crypto: any
-  grinder: '>=0.6.4 <0.7.0'
   unittest: any
 
 executables:
