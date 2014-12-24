@@ -1,0 +1,4 @@
+version: liftoff-dev
+runtime: custom
+vm: true
+api_version: 1
