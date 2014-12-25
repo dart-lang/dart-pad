@@ -22,10 +22,7 @@ dev_dependencies:
   browser: any
   codemirror: any
   unittest: any
+  http: any
 
 executables:
   dartpad_server:
-
-  compiler_unsupported: ">=0.7.2 <0.8.0"
-  analyzer: '>=0.23.0-dev.14 <0.24.0'
-  crypto: '>=0.9.0 <0.10.0'
