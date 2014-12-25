@@ -15,12 +15,14 @@ dependencies:
   logging: any
   shelf: any
   shelf_route: any
+  crypto: any
+  appengine: '>=0.2.1 <0.3.0'
 
 dev_dependencies:
   browser: any
   codemirror: any
-  crypto: any
   unittest: any
+  http: any
 
 executables:
   dartpad_server:

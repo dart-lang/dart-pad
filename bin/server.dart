@@ -1,10 +1,9 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-library dartpad_server.all_test;
 
-import 'gae_deployed_test.dart' as gaeTest_test;
+// To meet GAE needs this file must be called 'server.dart'.
 
-void main() {
-  gaeTest_test.defineTests();
-}
+import 'package:dartpad_server/dartpad_gae.dart' as server;
+
+void main() => server.main();
