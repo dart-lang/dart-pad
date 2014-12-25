@@ -11,24 +11,11 @@ import 'package:appengine/appengine.dart';
 import 'src/analyzer.dart';
 import 'src/compiler.dart';
 
-var logging;// = context.services.logging;
-var memcache;// = context.services.memcache;
-
+var logging;
+var memcache;
 var sdkPath = '/usr/lib/dart';
-
 var analyzer = new Analyzer(sdkPath);
 var compiler = new Compiler(sdkPath);
-
-/*
-
-main() {
-  runAppEngine((io.HttpRequest request) {
-    request.response.writeln("OK");
-    request.response.close();
-  });
-}
-
-*/
 
 main() {
   runAppEngine((io.HttpRequest request) {
@@ -42,7 +29,7 @@ Future<String> checkCache(String query) {
   return memcache.get(query);
 }
 
-void pushCache(String query, String result) {
+void setCache(String query, String result) {
   memcache.set(query, result);
 }
 
@@ -56,9 +43,8 @@ void requestHandler(io.HttpRequest request) {
     handleCompilePost(request);
   } else {
     request.response.statusCode = 404;
+    request.response.close();
   }
-
-
 }
 
 handleAnalyzePost(io.HttpRequest request) {
@@ -69,14 +55,7 @@ handleAnalyzePost(io.HttpRequest request) {
     builder.add(buffer);
   }, onDone: () {
 
-    //builder now contains
-
     String source = UTF8.decode(builder.toBytes());
-    //request.response.writeln(source);
-    //String source = sampleCodeWeb;
-
-
-
     Stopwatch watch = new Stopwatch()..start();
 
     try {
@@ -92,7 +71,7 @@ handleAnalyzePost(io.HttpRequest request) {
         });
       }
     catch (e) {
-      request.response.writeln("Err");
+      request.response.statusCode = 500;
       request.response.writeln(e);
       request.response.close();
     }
@@ -107,47 +86,28 @@ handleCompilePost(io.HttpRequest request) {
     builder.add(buffer);
   }, onDone: () {
 
-    //builder now contains
-
     String source = UTF8.decode(builder.toBytes());
-    //request.response.writeln(source);
-    //String source = sampleCodeWeb;
-
-    //TODO(luke): replace this with something unforgable
-
     checkCache("%%COMPILE:" +source).then((String r) {
       if (r != null) {
         logging.info("Cache hit for compile");
         request.response.writeln(r);
         request.response.close();
-        return r;
       } else {
         Stopwatch watch = new Stopwatch()..start();
-
-              compiler.compile(source).then((CompilationResults results) {
-
-
-                if (results.hasOutput) {
-                  int lineCount = source.split('\n').length;
-                  int outputSize = (results.getOutput().length + 512) ~/ 1024;
-                  int ms = watch.elapsedMilliseconds;
-                  logging.info('Compiled ${lineCount} lines of Dart into '
-                      '${outputSize}kb of JavaScript in ${ms}ms.');
-
-                  String out = results.getOutput();
-
-                  request.response.writeln(out);
-                  pushCache("%%COMPILE:" + source, out);
-                }
-
-                request.response.close();
-      });
-    }
-
-
-
-
-  });
+        compiler.compile(source).then((CompilationResults results) {
+          if (results.hasOutput) {
+            int lineCount = source.split('\n').length;
+            int outputSize = (results.getOutput().length + 512) ~/ 1024;
+            int ms = watch.elapsedMilliseconds;
+            logging.info('Compiled ${lineCount} lines of Dart into '
+                '${outputSize}kb of JavaScript in ${ms}ms.');
+            String out = results.getOutput();
+            request.response.writeln(out);
+            setCache("%%COMPILE:" + source, out);
+          }
+          request.response.close();
+        });
+      }
+    });
   });
 }
-
