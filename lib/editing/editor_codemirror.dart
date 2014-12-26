@@ -68,7 +68,7 @@ class CodeMirrorFactory extends EditorFactory {
         'autoCloseBrackets': true,
         'gutters': [_gutterId],
         //'lint': true,
-        'theme': 'ambiance' // ambiance, vibrant-ink, monokai
+        'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
       };
 
 //      CodeMirror.registerHelper('lint', 'dart', (text) {
@@ -98,8 +98,6 @@ class _CodeMirrorEditor extends Editor {
   }
 
   Document createDocument({String content, String mode}) {
-    // TODO: use dart when available
-    if (mode == 'dart') mode = 'javascript';
     if (mode == 'html') mode = 'text/html';
 
     if (content == null) content = '';

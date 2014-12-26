@@ -11,7 +11,7 @@
 }
 
 #editpanel .CodeMirror-gutters {
-  background: inherit;
+  background: inherit !important;
   border-right: none;
   box-shadow: none;
 }

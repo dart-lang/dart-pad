@@ -5,7 +5,7 @@ dependencies:
   ace: '>=0.5.10 <0.6.0'
   bootstrap: any
   browser: any
-  codemirror: any
+  codemirror: '>=0.1.0 <0.2.0'
   script_inliner: '>=1.0.0 <2.0.0'
 
 dev_dependencies:
