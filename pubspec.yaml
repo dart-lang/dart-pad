@@ -12,6 +12,7 @@ dependencies:
   appengine: '>=0.2.1 <0.3.0'
   args: any
   compiler_unsupported: 1.9.0-dev.2.2
+  crypto: any
   grinder: '>=0.6.4 <0.7.0'
   logging: any
   shelf: any
@@ -20,7 +21,6 @@ dependencies:
 dev_dependencies:
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
-  crypto: any
   http: any
   unittest: any
 

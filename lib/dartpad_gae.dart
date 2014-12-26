@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart';
+import 'package:crypto/crypto.dart';
 import 'package:memcache/memcache.dart';
 
 import 'src/analyzer.dart';
@@ -62,6 +63,7 @@ handleAnalyzePost(io.HttpRequest request) {
   }, onDone: () {
 
     String source = UTF8.decode(builder.toBytes());
+    logging.info("ANALYZE: $source");
     Stopwatch watch = new Stopwatch()..start();
 
     try {
@@ -71,7 +73,7 @@ handleAnalyzePost(io.HttpRequest request) {
 
         int lineCount = source.split('\n').length;
         int ms = watch.elapsedMilliseconds;
-        logging.info('Analyzed ${lineCount} lines of Dart in ${ms}ms.');
+        logging.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
         request.response.writeln(json);
         request.response.close();
       }).catchError((e) {
@@ -89,7 +91,7 @@ handleAnalyzePost(io.HttpRequest request) {
 
 handleCompletePost(io.HttpRequest request) {
   // TODO: implement
-  request.response.statusCode = 500;
+  request.response.statusCode = 501;
   request.response.writeln('Unimplemented: /api/complete');
   request.response.close();
 }
@@ -101,7 +103,10 @@ handleDocumentPost(io.HttpRequest request) {
   request.listen((buffer) {
     builder.add(buffer);
   }, onDone: () {
-    Map m = JSON.decode(UTF8.decode(builder.toBytes()));
+    String requestJSON = UTF8.decode(builder.toBytes());
+    logging.info("DOCUMENT: $requestJSON");
+
+    Map m = JSON.decode(requestJSON);
     String source = m['source'];
     int offset = m['offset'];
 
@@ -111,7 +116,7 @@ handleDocumentPost(io.HttpRequest request) {
       analyzer.dartdoc(source, offset).then((Map docInfo) {
         if (docInfo == null) docInfo = {};
         String json = JSON.encode(docInfo);
-        logging.info('Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
+        logging.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
         request.response.writeln(json);
         request.response.close();
       }).catchError((e) {
@@ -135,10 +140,14 @@ handleCompilePost(io.HttpRequest request) {
     builder.add(buffer);
   }, onDone: () {
 
-    String source = UTF8.decode(builder.toBytes());
-    checkCache("%%COMPILE:" +source).then((String r) {
+    List<int> sourceBytes = builder.toBytes();
+    String sourceHash = _hashSource(sourceBytes);
+    String source = UTF8.decode(sourceBytes);
+
+    logging.info("COMPILE: $source");
+    checkCache("%%COMPILE:$sourceHash").then((String r) {
       if (r != null) {
-        logging.info("Cache hit for compile");
+        logging.info("CACHE: Cache hit for compile");
         request.response.writeln(r);
         request.response.close();
       } else {
@@ -148,11 +157,11 @@ handleCompilePost(io.HttpRequest request) {
             int lineCount = source.split('\n').length;
             int outputSize = (results.getOutput().length + 512) ~/ 1024;
             int ms = watch.elapsedMilliseconds;
-            logging.info('Compiled ${lineCount} lines of Dart into '
+            logging.info('PERF: Compiled ${lineCount} lines of Dart into '
                 '${outputSize}kb of JavaScript in ${ms}ms.');
             String out = results.getOutput();
             request.response.writeln(out);
-            setCache("%%COMPILE:" + source, out);
+            setCache("%%COMPILE:$sourceHash", out);
           } else {
             String errors = results.problems.map(_printProblem).join('\n');
             request.response.statusCode = 500;
@@ -167,3 +176,10 @@ handleCompilePost(io.HttpRequest request) {
 
 String _printProblem(CompilationProblem problem) =>
     '[${problem.kind}, line ${problem.line}] ${problem.message}';
+
+String _hashSource(List<int> sourceBytes) {
+  SHA1 sha1 = new SHA1();
+  sha1.add(sourceBytes);
+  return CryptoUtils.bytesToHex(sha1.close());
+}
+
