@@ -9,20 +9,20 @@ environment:
 
 dependencies:
   analyzer: '>=0.22.4 <0.23.0'
+  appengine: '>=0.2.1 <0.3.0'
   args: any
   compiler_unsupported: 0.7.3
   grinder: '>=0.6.4 <0.7.0'
   logging: any
   shelf: any
   shelf_route: any
-  crypto: any
-  appengine: '>=0.2.1 <0.3.0'
 
 dev_dependencies:
   browser: any
   codemirror: any
-  unittest: any
+  crypto: any
   http: any
+  unittest: any
 
 executables:
   dartpad_server:

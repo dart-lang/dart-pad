@@ -4,10 +4,12 @@
 
 library dartpad_gae;
 
-import 'dart:io' as io;
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io' as io;
+
 import 'package:appengine/appengine.dart';
+
 import 'src/analyzer.dart';
 import 'src/compiler.dart';
 

@@ -205,7 +205,8 @@ class _DartSdk {
       return _cache[path];
     }
 
-    File file = new File('${sdkPath}${path}');
+    File file = sdkPath.endsWith('/') ?
+        new File('${sdkPath}${path}') : new File('${sdkPath}/${path}');
 
     if (file.existsSync()) {
       _cache[path] = file.readAsStringSync();
