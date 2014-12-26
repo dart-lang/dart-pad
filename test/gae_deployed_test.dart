@@ -4,10 +4,9 @@
 
 library gaeDeployed_test;
 
-import 'package:unittest/unittest.dart';
-import 'dart:io' as io;
-import 'package:http/http.dart' as http;
 import 'package:dartpad_server/src/common.dart' as common;
+import 'package:http/http.dart' as http;
+import 'package:unittest/unittest.dart';
 
 final String serverUrl = "https://liftoff-dev.appspot.com";
 
@@ -19,7 +18,6 @@ void defineTests() {
     test('compile end point', compileTest);
   });
 }
-
 
 analyzeTest() {
   final String url = '${serverUrl}/api/analyze';
