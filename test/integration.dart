@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_server.all_test;
+/**
+ * Tests which run as part of integration testing; these test high level
+ * services.
+ */
+library dartpad_server.integration;
 
-import 'src/analyzer_test.dart' as analyzer_test;
+import 'gae_deployed_test.dart' as gaeTest_test;
 
 void main() {
-  analyzer_test.defineTests();
+  gaeTest_test.defineTests();
 }
