@@ -5,6 +5,7 @@
 library dartpad_server.apitest;
 
 import 'dart:html';
+import 'dart:convert' show JSON;
 
 import 'package:codemirror/codemirror.dart';
 
@@ -91,13 +92,17 @@ CodeMirror createEditor(Element element) {
 }
 
 void invoke(String api, String source, Element output, {int offset}) {
+  bool json = offset != null;
+
   Stopwatch timer = new Stopwatch()..start();
   String url = '${_uriBase}${api}';
-  Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
+  Map headers = {'Content-Type': (json ? 'application/json' : 'text/plain') +
+    '; charset=UTF-8'};
 
   output.text = '';
 
-  // TODO: Send in the offset, for code complete and for get documentation.
+  // Send in the offset, for code complete and for get documentation.
+  if (json) source = JSON.encode({'source': source, 'offset': offset});
 
   HttpRequest.request(url, method: 'POST',
       requestHeaders: headers, sendData: source).then((HttpRequest r) {

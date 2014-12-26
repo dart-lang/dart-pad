@@ -9,20 +9,20 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart';
+import 'package:memcache/memcache.dart';
 
 import 'src/analyzer.dart';
 import 'src/compiler.dart';
 
-var logging;
-var memcache;
+Logging get logging => context.services.logging;
+Memcache get memcache => context.services.memcache;
+
 var sdkPath = '/usr/lib/dart';
-var analyzer = new Analyzer(sdkPath);
-var compiler = new Compiler(sdkPath);
+Analyzer analyzer = new Analyzer(sdkPath);
+Compiler compiler = new Compiler(sdkPath);
 
 main() {
   runAppEngine((io.HttpRequest request) {
-    logging = context.services.logging;
-    memcache = context.services.memcache;
     requestHandler(request);
   });
 }
@@ -43,6 +43,10 @@ void requestHandler(io.HttpRequest request) {
     handleAnalyzePost(request);
   } else if (request.uri.path == '/api/compile') {
     handleCompilePost(request);
+  } else if (request.uri.path == '/api/complete') {
+    handleCompletePost(request);
+  } else if (request.uri.path == '/api/document') {
+    handleDocumentPost(request);
   } else {
     request.response.statusCode = 404;
     request.response.close();
@@ -70,9 +74,52 @@ handleAnalyzePost(io.HttpRequest request) {
         logging.info('Analyzed ${lineCount} lines of Dart in ${ms}ms.');
         request.response.writeln(json);
         request.response.close();
-        });
-      }
-    catch (e) {
+      }).catchError((e) {
+        request.response.statusCode = 500;
+        request.response.writeln(e);
+        request.response.close();
+      });
+    } catch (e) {
+      request.response.statusCode = 500;
+      request.response.writeln(e);
+      request.response.close();
+    }
+  });
+}
+
+handleCompletePost(io.HttpRequest request) {
+  // TODO: implement
+  request.response.statusCode = 500;
+  request.response.writeln('Unimplemented: /api/complete');
+  request.response.close();
+}
+
+handleDocumentPost(io.HttpRequest request) {
+  io.BytesBuilder builder = new io.BytesBuilder();
+  Map<String, String> params = request.requestedUri.queryParameters;
+
+  request.listen((buffer) {
+    builder.add(buffer);
+  }, onDone: () {
+    Map m = JSON.decode(UTF8.decode(builder.toBytes()));
+    String source = m['source'];
+    int offset = m['offset'];
+
+    Stopwatch watch = new Stopwatch()..start();
+
+    try {
+      analyzer.dartdoc(source, offset).then((Map docInfo) {
+        if (docInfo == null) docInfo = {};
+        String json = JSON.encode(docInfo);
+        logging.info('Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
+        request.response.writeln(json);
+        request.response.close();
+      }).catchError((e) {
+        request.response.statusCode = 500;
+        request.response.writeln(e);
+        request.response.close();
+      });
+    } catch (e) {
       request.response.statusCode = 500;
       request.response.writeln(e);
       request.response.close();
@@ -106,6 +153,10 @@ handleCompilePost(io.HttpRequest request) {
             String out = results.getOutput();
             request.response.writeln(out);
             setCache("%%COMPILE:" + source, out);
+          } else {
+            String errors = results.problems.map(_printProblem).join('\n');
+            request.response.statusCode = 500;
+            request.response.writeln(errors);
           }
           request.response.close();
         });
@@ -113,3 +164,6 @@ handleCompilePost(io.HttpRequest request) {
     });
   });
 }
+
+String _printProblem(CompilationProblem problem) =>
+    '[${problem.kind}, line ${problem.line}] ${problem.message}';

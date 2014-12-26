@@ -54,8 +54,6 @@ class DartpadServer {
     DartpadServer dartpad = new DartpadServer._(sdkPath, port);
 
     return shelf.serve(
-        // TODO: always compress
-        // TODO: https
         dartpad.handler, InternetAddress.ANY_IP_V4, port).then((server) {
       dartpad.server = server;
       return dartpad;
@@ -85,6 +83,8 @@ class DartpadServer {
     routes.get('/api', handleApiRoot);
     routes.post('/api/analyze', handleAnalyzePost);
     routes.post('/api/compile', handleCompilePost);
+    routes.post('/api/complete', handleCompletePost);
+    routes.post('/api/document', handleDocumentPost);
 
     handler = pipeline.addHandler(routes.handler);
   }
@@ -100,14 +100,14 @@ Dartpad server.
 /api/analyze  - POST Dart source to this URL and get JSON errors and warnings back.
 /api/compile  - POST Dart source to this URL and get compiled results back.
 /api/complete - TODO:
-/api/document - TODO:
+/api/document - POST json encoded (source, offset) to the URL to calculate dartdoc.:
 ''');
   }
 
   Future<Response> handleAnalyzePost(Request request) {
     return request.readAsString().then((String source) {
       if (source.isEmpty) {
-        return new Future.value(new Response(400, body: "No 'source' parameter"));
+        return new Future.value(new Response(400, body: "No source received"));
       }
 
       Stopwatch watch = new Stopwatch()..start();
@@ -131,7 +131,7 @@ Dartpad server.
   Future<Response> handleCompilePost(Request request) {
     return request.readAsString().then((String source) {
         if (source.isEmpty) {
-          return new Future.value(new Response(400, body: "No 'source' parameter"));
+          return new Future.value(new Response(400, body: "No source received"));
         }
 
         Stopwatch watch = new Stopwatch()..start();
@@ -153,6 +153,47 @@ Dartpad server.
           String errorText = 'Error during compile: ${e}\n${st}';
           return new Response(500, body: errorText);
         });
+    });
+  }
+
+  Future<Response> handleCompletePost(Request request) {
+    return request.readAsString().then((String json) {
+      if (json.isEmpty) {
+        return new Future.value(new Response(400, body: "No source received"));
+      }
+
+      // TODO: Add error handling.
+      Map m = JSON.decode(json);
+      String source = m['source'];
+      int offset = m['offset'];
+
+      // TODO: implement
+      String errorText = 'Unimplemented: /api/complete';
+      return new Response(500, body: errorText);
+    });
+  }
+
+  Future<Response> handleDocumentPost(Request request) {
+    return request.readAsString().then((String json) {
+      if (json.isEmpty) {
+        return new Future.value(new Response(400, body: "No source received"));
+      }
+
+      // TODO: Add error handling.
+      Map m = JSON.decode(json);
+      String source = m['source'];
+      int offset = m['offset'];
+
+      Stopwatch watch = new Stopwatch()..start();
+
+      return analyzer.dartdoc(source, offset).then((Map dartdoc) {
+        if (dartdoc == null) dartdoc = {};
+        _logger.info('Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
+        return new Response.ok(JSON.encode(dartdoc), headers: _textPlainHeader);
+      }).catchError((e, st) {
+        String errorText = 'Error during analysis: ${e}\n${st}';
+        return new Response(500, body: errorText);
+      });
     });
   }
 

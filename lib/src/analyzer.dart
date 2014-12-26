@@ -7,6 +7,7 @@ library dartpad_server.analyzer;
 import 'dart:async';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' hide Logger;
 import 'package:analyzer/src/generated/engine.dart' as engine show Logger;
 import 'package:analyzer/src/generated/error.dart';
@@ -82,6 +83,87 @@ class Analyzer {
     } catch (e, st) {
       return new Future.error(e, st);
     }
+  }
+
+  Future<Map<String, String>> dartdoc(String source, int offset) {
+    try {
+      _source.updateSource(source);
+
+      ChangeSet changeSet = new ChangeSet();
+      changeSet.addedSource(_source);
+      _context.applyChanges(changeSet);
+
+      LibraryElement library = _context.computeLibraryElement(_source);
+      CompilationUnit unit = _context.resolveCompilationUnit(_source, library);
+      return new Future.value(_computeDartdocInfo(unit, offset));
+    } catch (e, st) {
+      return new Future.error(e, st);
+    }
+  }
+
+  Map<String, String> _computeDartdocInfo(CompilationUnit unit, int offset) {
+    AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+
+    if (node.parent is TypeName &&
+        node.parent.parent is ConstructorName &&
+        node.parent.parent.parent is InstanceCreationExpression) {
+      node = node.parent.parent.parent;
+    }
+
+    if (node.parent is ConstructorName &&
+        node.parent.parent is InstanceCreationExpression) {
+      node = node.parent.parent;
+    }
+
+    if (node is Expression) {
+      Expression expression = node;
+      Map info = {};
+
+      // element
+      Element element = ElementLocator.locateWithOffset(expression, offset);
+
+      if (element != null) {
+        // variable, if synthetic accessor
+        if (element is PropertyAccessorElement) {
+          PropertyAccessorElement accessor = element;
+          if (accessor.isSynthetic) element = accessor.variable;
+        }
+
+        // Name and description.
+        if (element.name != null) info['name'] = element.name;
+        //if (element.displayName != null) info['displayName'] = element.displayName;
+        info['description'] = '${element}';
+        info['kind'] = element.kind.displayName;
+
+        // library
+        LibraryElement library = element.library;
+
+        if (library != null) {
+          if (library.name != null && library.name.isNotEmpty) {
+            info['libraryName'] = library.name;
+          }
+          //info['libraryPath'] = library.source.shortName;
+        }
+
+        // documentation
+        String dartDoc = element.computeDocumentationComment();
+        dartDoc = cleanDartDoc(dartDoc);
+        if (dartDoc != null) info['dartdoc'] = dartDoc;
+      }
+
+      // types
+      if (expression.staticType != null) {
+        info['staticType'] = '${expression.staticType}';
+      }
+
+      if (expression.propagatedType != null) {
+        info['propagatedType'] = '${expression.propagatedType}';
+      }
+
+      return info;
+    }
+
+    return null;
   }
 }
 
@@ -195,4 +277,40 @@ class _Error implements Comparable {
   }
 
   String toString() => '[${severityName}] ${description}';
+}
+
+/**
+ * Converts [str] from a Dartdoc string with slashes and stars to a plain text
+ * representation of the comment.
+ */
+String cleanDartDoc(String str) {
+  if (str == null) return null;
+
+  // Remove /** */.
+  str = str.trim();
+  if (str.startsWith('/**')) str = str.substring(3);
+  if (str.endsWith("*/")) str = str.substring(0, str.length - 2);
+  str = str.trim();
+
+  // Remove leading '* '.
+  StringBuffer sb = new StringBuffer();
+  bool firstLine = true;
+
+  for (String line in str.split('\n')) {
+    line = line.trim();
+
+    if (line.startsWith("*")) {
+      line = line.substring(1);
+      if (line.startsWith(" ")) line = line.substring(1);
+    } else if (line.startsWith("///")) {
+      line = line.substring(3);
+      if (line.startsWith(" ")) line = line.substring(1);
+    }
+
+    if (!firstLine) sb.write('\n');
+    firstLine = false;
+    sb.write(line);
+  }
+
+  return sb.toString();
 }
