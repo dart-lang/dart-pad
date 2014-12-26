@@ -19,7 +19,7 @@ dependencies:
 
 dev_dependencies:
   browser: any
-  codemirror: any
+  codemirror: '>=0.1.0 <0.2.0'
   crypto: any
   http: any
   unittest: any

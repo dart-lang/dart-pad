@@ -80,9 +80,8 @@ CodeMirror createEditor(Element element) {
     'indentUnit': 2,
     'autoCloseBrackets': true,
     'matchBrackets': true,
-    'theme': '3024-day',
-    // TODO: use dart when available
-    'mode': 'javascript',
+    'theme': 'zenburn',
+    'mode': 'dart',
     'value': _text
   };
 
