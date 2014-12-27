@@ -143,6 +143,10 @@ a[selected]:hover {
   line-height: 1.2em;
 }
 
+#editpanel {
+	/*margin-left: -24px;*/
+}
+
 button {
   outline: none;
   border: none;

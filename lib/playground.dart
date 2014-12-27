@@ -7,15 +7,12 @@ library playground;
 import 'dart:async';
 import 'dart:html' hide Document;
 
-import 'services/analysis.dart';
 import 'context.dart';
-import 'services/common.dart';
-import 'services/compiler.dart';
+import 'dartpad.dart';
 import 'core/dependencies.dart';
+import 'core/modules.dart';
 import 'editing/editor.dart';
 import 'elements/elements.dart';
-import 'dartpad.dart';
-import 'core/modules.dart';
 import 'modules/ace_module.dart';
 //import 'modules/codemirror_module.dart';
 import 'modules/dartpad_module.dart';
@@ -23,6 +20,9 @@ import 'modules/dartpad_module.dart';
 //import 'modules/mock_compiler.dart';
 import 'modules/server_analysis.dart';
 import 'modules/server_compiler.dart';
+import 'services/analysis.dart';
+import 'services/common.dart';
+import 'services/compiler.dart';
 
 // TODO: have a selected tab visualizer arrow
 
@@ -64,7 +64,7 @@ class Playground {
     });
 
     runbutton = new BButton(querySelector('#runbutton'));
-    runbutton.onClick.listen((e) => _handleRunButton());
+    runbutton.onClick.listen((e) => _handleRun());
 
     _initModules().then((_) {
       _initPlayground();
@@ -88,6 +88,9 @@ class Playground {
     editor = editorFactory.createFromElement(_editpanel);
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
+
+    keys.bind('ctrl-s', _handleSave);
+    keys.bind('ctrl-r', _handleRun);
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
@@ -143,7 +146,7 @@ class Playground {
 
   List<Element> _getTabElements(Element element) => element.querySelectorAll('a');
 
-  void _handleRunButton() {
+  void _handleRun() {
     runbutton.disabled = true;
     _showSpinner(true);
 
@@ -163,6 +166,11 @@ class Playground {
 
   void _showSpinner(bool show) {
     //_spinner.classes.toggle('showing', show);
+  }
+
+  void _handleSave() {
+    // TODO:
+    print('handleSave');
   }
 
   void _showOuput(String message) {

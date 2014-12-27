@@ -8,6 +8,7 @@ import 'dart:async';
 
 import '../core/dependencies.dart';
 import '../core/event_bus.dart';
+import '../core/keys.dart';
 import '../core/modules.dart';
 
 class DartpadModule extends Module {
@@ -17,6 +18,7 @@ class DartpadModule extends Module {
     }
 
     deps[EventBus] = new EventBus();
+    deps[Keys] = new Keys();
 
     return new Future.value();
   }

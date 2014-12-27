@@ -4,8 +4,6 @@
 
 import 'package:dartpad_ui/playground.dart' as playground;
 
-// TODO: intercept the command-s keystroke
-
 // TODO: display errors that aren't currently on the screen
 
 // TODO: a quick way to find samples?
@@ -20,10 +18,8 @@ import 'package:dartpad_ui/playground.dart' as playground;
 
 // TODO: fontawesome as a resource package
 
-// TODO: add a keybinding for run
-
-// TODO: all scripts (js and css) that load at the beginning should be listed in
-// main html file. Or, all concatenated into one file?
+// TODO: perf: all scripts (js and css) that load at the beginning should be
+// listed in main html file. Or, all concatenated into one file?
 
 // TODO: the default editing font is too small on ipad (need 16pt/16px)
 
