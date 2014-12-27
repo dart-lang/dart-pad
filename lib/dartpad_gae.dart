@@ -182,4 +182,3 @@ String _hashSource(List<int> sourceBytes) {
   sha1.add(sourceBytes);
   return CryptoUtils.bytesToHex(sha1.close());
 }
-
