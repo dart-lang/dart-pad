@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:logging/logging.dart';
 
-import 'common.dart' hide DartSdk;
+import 'common.dart';
 
 Logger _logger = new Logger('analyzer');
 
@@ -28,8 +28,8 @@ class Analyzer {
   AnalysisContext _context;
 
   Analyzer(String sdkPath) {
-    // useDart2jsPaths == true
-    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(sdkPath), true);
+    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(sdkPath),
+        /*useDart2jsPaths*/ true);
     _context = AnalysisEngine.instance.createAnalysisContext();
     _context.analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
     List<UriResolver> resolvers = [new DartUriResolver(sdk)];

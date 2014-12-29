@@ -8,9 +8,9 @@
 library dartpad_server.compiler;
 
 import 'dart:async';
-import 'dart:io' show File;
 
 import 'package:compiler_unsupported/compiler.dart' as compiler;
+import 'package:compiler_unsupported/sdk_io.dart' as sdk;
 import 'package:logging/logging.dart';
 
 import 'common.dart';
@@ -26,9 +26,9 @@ Logger _logger = new Logger('compiler');
  * on the order of a 2x speedup.
  */
 class Compiler {
-  final _DartSdk _sdk;
+  final sdk.DartSdk _sdk;
 
-  Compiler(String sdkPath) : _sdk = new _DartSdk(sdkPath);
+  Compiler(String sdkPath) : _sdk = new sdk.DartSdkIO();
 
   Future warmup([bool useHtml = false]) =>
       compile(useHtml ? sampleCodeWeb : sampleCode);
@@ -166,7 +166,7 @@ class _CompilerProvider {
   static const String resourceUri = 'resource:/main.dart';
 
   final String text;
-  final _DartSdk sdk;
+  final sdk.DartSdk sdk;
 
   _CompilerProvider(this.sdk, this.text);
 
@@ -190,29 +190,5 @@ class _CompilerProvider {
 //    }
 
     return new Future.error('file not found');
-  }
-}
-
-class _DartSdk {
-  final String sdkPath;
-
-  Map<String, String> _cache = {};
-
-  _DartSdk(this.sdkPath);
-
-  String getSourceForPath(String path) {
-    if (_cache.containsKey(path)) {
-      return _cache[path];
-    }
-
-    File file = sdkPath.endsWith('/') ?
-        new File('${sdkPath}${path}') : new File('${sdkPath}/${path}');
-
-    if (file.existsSync()) {
-      _cache[path] = file.readAsStringSync();
-      return _cache[path];
-    }
-
-    return null;
   }
 }
