@@ -4,8 +4,8 @@
 
 library dartpad_ui.common;
 
-final String serverURL = 'https://liftoff-dev.appspot.com/api';
-//final String serverURL = 'http://127.0.0.1:8082/api';
+//final String serverURL = 'https://liftoff-dev.appspot.com/api';
+final String serverURL = 'http://127.0.0.1:8082/api';
 
 abstract class TextProvider {
   // TODO: current location as well

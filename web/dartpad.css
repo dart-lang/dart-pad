@@ -13,13 +13,12 @@ body {
   position: absolute;
 
   font-family: 'Lucida Grande', Arial, sans-serif;
-  font-size: 15px;
+  font-size: 14px;
   line-height: 20px;
 
   max-width: 1500px;
   min-width: 700px;
   margin: 0 auto;
-  line-height: 1.45em;
 }
 
 header {
@@ -36,6 +35,10 @@ header {
 
   border-width: 4px;
   margin-bottom: 16px;
+}
+
+div.header {
+  margin-left: 6px;
 }
 
 section {
@@ -94,11 +97,10 @@ a:hover {
   color: #fff;
 }
 
-/* TODO: display an arrow */
-
 a[selected] {
   color: #84bcde;
   cursor: default;
+  border-bottom: 2px solid #84bcde;
 }
 
 a[selected]:hover {
@@ -125,7 +127,7 @@ a[selected]:hover {
 .header {
   height: 24px;
   line-height: 24px;
-  font-size: 13px;
+  font-size: 14px;
   box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
   border-bottom: 1px solid #121212;
   padding-bottom: 8px;
@@ -136,27 +138,16 @@ a[selected]:hover {
   border-bottom: none;
 }
 
-.somecode {
-  /*font-family: 'Inconsolata', monospace;*/
-  font-family: monospace;
-  font-size: 10pt;
-  line-height: 1.2em;
-}
-
-#editpanel {
-	/*margin-left: -24px;*/
-}
-
 button {
   outline: none;
-  border: none;
   min-width: 48px;
   background: rgba(255, 255, 255, 0.06);
   color: #aaa;
   border: 1px solid rgba(0, 0, 0, 0.5);
-  border-radius: 4px;
+  border-radius: 2px;
   font-family: 'Lucida Grande', Arial, sans-serif;
-  font-size: 15px;
+  font-size: 14px;
+  line-size: 14px;
   height: 24px;
   cursor: pointer;
   padding: 2px 6px;
@@ -176,7 +167,7 @@ button[disabled] {
 }
 
 [small] {
-  font-size: 15px;
+  font-size: 14px;
 }
 
 iframe {
@@ -225,13 +216,17 @@ div.toggle {
 }
 
 .console {
-  /*font-family: 'Inconsolata', monospace;*/
-  font-family: monospace;
-  font-size: 10pt;
-  line-height: 1.2em;
+  font-family:
+    'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+  font-size: 13px;
+  line-height: normal;
   min-height: 100px;
   overflow-y: auto;
   white-space: pre;
+}
+
+.right {
+	text-align: right;
 }
 
 #spinner {

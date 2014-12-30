@@ -2,6 +2,7 @@
 #editpanel.ace_editor {
   background: inherit;
   /*color: inherit;*/
+  font-size: 13px;
 }
 
 #editpanel div.ace_gutter {
@@ -42,4 +43,12 @@
   background: #575757;
   padding: 0 2px;
   margin: 0 -2px;
+}
+
+.ace_gutter-cell {
+  margin-left: 6px;
+}
+
+#editpanel {
+  margin-left: -25px;
 }

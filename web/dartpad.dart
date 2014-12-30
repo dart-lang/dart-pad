@@ -8,6 +8,8 @@ import 'package:dartpad_ui/playground.dart' as playground;
 
 // TODO: a quick way to find samples?
 
+// TODO: not enough feedback that something is running
+
 // TODO: auto run on page load; also, auto-analyze
 
 // TODO: ace: remove line numbers
@@ -30,6 +32,12 @@ import 'package:dartpad_ui/playground.dart' as playground;
 // TODO: ensure css works cross-platform: flexbox layout, box-shadow, transitions
 
 // TODO: cut the flexbox css down smaller
+
+// TODO: discard older analysis / compilation requests (if we've sent a newer one)
+
+// TODO: on long analysis timeouts, remove any analysis issues
+
+// TODO: create a hidden ping time counter - display it on a key combination
 
 void main() {
   playground.init();
