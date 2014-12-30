@@ -90,7 +90,8 @@ class Playground {
     editor.resize();
 
     keys.bind('ctrl-s', _handleSave);
-    keys.bind('ctrl-r', _handleRun);
+    // Users expect this to refresh the page.
+    //keys.bind('ctrl-r', _handleRun);
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
@@ -278,6 +279,7 @@ final String _sampleHtmlCode = r'''<h2>Dart Sample</h2>
 final String _sampleCssCode = r'''/* my styles */
 
 h2 {
+  font-weight: normal;
   margin-top: 0;
 }
 

@@ -7,6 +7,8 @@ library core.keys;
 import 'dart:async';
 import 'dart:html';
 
+// TODO: test
+
 final _isMac = window.navigator.appVersion.toLowerCase().contains('macintosh');
 
 /**

@@ -17,8 +17,8 @@
         rel='stylesheet' type='text/css' -->
     <!-- link href='http://fonts.googleapis.com/css?family=Inconsolata:400,700'
         rel='stylesheet' type='text/css' -->
-
-    <link href="fontawesome/css/font-awesome.min.css" rel="stylesheet" media="screen">
+    <!-- link href="fontawesome/css/font-awesome.min.css" rel="stylesheet"
+        media="screen" -->
   </head>
 
   <body layout vertical>
@@ -28,19 +28,13 @@
       <div>
         <a small href="https://gist.github.com/devoncarew/6893556">gist:6893556</a>
       </div>
-      <!-- div>
-        <span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>
-        &nbsp;
-        <span class="glyphicon glyphicon-fire" aria-hidden="true"></span>
-      </div -->
-        &nbsp;
+        &nbsp;&nbsp;
       <div>
         <button disabled>Save</button>
       </div>
     </header>
 
     <section flex layout horizontal>
-
       <div class="view" flex three layout vertical>
         <div class="header" layout horizontal>
           <li><a id="darttab" selected class="arrow_box"><span>Dart</span></a></li>
@@ -58,25 +52,19 @@
       <div class="view noleft" flex two layout vertical>
         <div class="header leftmargin nobottommargin" layout horizontal>
           <div flex></div>
-          <!-- div class="toggle">
-            <a><i class="fa fa-globe"></i></a>
-            <a selected><i class="fa fa-globe"> / <i class="fa fa-font"></i></i></a>
-            <a><i class="fa fa-font"></i></a>
-          </div -->
         </div>
-        <div flex id="outputpanel" layout vertical class="somecode content leftborder">
+        <div flex id="outputpanel" layout vertical class="content leftborder">
           <iframe id="frame" flex four src="frame.html"></iframe>
           <div id="divider"></div>
           <div flex two id="output" class="console"></div>
         </div>
       </div>
-
     </section>
 
     <footer layout horizontal>
       <div flex><a href="https://www.dartlang.org/">www.dartlang.org</a></div>
       <div>This stuff is totally all copyright</div>
-      <div flex style="text-align: right">
+      <div flex class="right">
         <a href="https://www.dartlang.org/">API documentation</a>
       </div>
     </footer>

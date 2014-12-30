@@ -4,6 +4,8 @@
 
 library core.modules;
 
+// TODO: test
+
 import 'dart:async';
 
 export 'dart:async' show Future;

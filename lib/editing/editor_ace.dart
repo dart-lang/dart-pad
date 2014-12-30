@@ -71,10 +71,11 @@ class AceFactory extends EditorFactory {
     editor.theme = new ace.Theme.named('monokai');
     editor.highlightActiveLine = false;
     editor.highlightGutterLine = false;
+    editor.showPrintMargin = false;
     editor.showFoldWidgets = false;
 
     if (options == null) {
-      options = {'enableBasicAutocompletion': true};
+      options = {'enableBasicAutocompletion': true, 'showLineNumbers': false};
     }
 
     editor.setOptions(options);
