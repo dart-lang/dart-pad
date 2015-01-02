@@ -32,8 +32,8 @@ Future<String> checkCache(String query) {
   return memcache.get(query);
 }
 
-void setCache(String query, String result) {
-  memcache.set(query, result);
+setCache(String query, String result) {
+  return memcache.set(query, result);
 }
 
 void requestHandler(io.HttpRequest request) {
@@ -160,14 +160,16 @@ handleCompilePost(io.HttpRequest request) {
             logging.info('PERF: Compiled ${lineCount} lines of Dart into '
                 '${outputSize}kb of JavaScript in ${ms}ms.');
             String out = results.getOutput();
-            request.response.writeln(out);
-            setCache("%%COMPILE:$sourceHash", out);
+            setCache("%%COMPILE:$sourceHash", out).then((_) {
+              request.response.writeln(out);
+              request.response.close();
+            });
           } else {
             String errors = results.problems.map(_printProblem).join('\n');
             request.response.statusCode = 500;
             request.response.writeln(errors);
+            request.response.close();
           }
-          request.response.close();
         });
       }
     });
