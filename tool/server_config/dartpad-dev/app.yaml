@@ -1,0 +1,16 @@
+application: dartpad-dev
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: yes
+
+handlers:
+# re-direct to index.html if no path is give
+- url: /
+  static_files: dartpad.html
+  upload: dartpad.html
+
+# access the static resources in the root directory
+- url: /(.*)
+  static_files: \1
+  upload: (.*)
