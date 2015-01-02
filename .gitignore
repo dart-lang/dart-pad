@@ -2,11 +2,12 @@
 build/
 packages
 .buildlog
+.pub/
+pubspec.lock
 
 # Or the files created by dart2js.
 *.dart.js
 *.js.deps
 *.js.map
 
-pubspec.lock
 .settings/

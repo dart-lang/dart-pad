@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>liftoff.dart</name>
+	<name>dartpad_ui</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -17,6 +17,14 @@
 	<filteredResources>
 		<filter>
 			<id>1418371089090</id>
+			<name></name>
+			<type>30</type>
+			<matcher>
+				<id>com.google.dart.tools.core.packagesFolderMatcher</id>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1418563205204</id>
 			<name></name>
 			<type>30</type>
 			<matcher>

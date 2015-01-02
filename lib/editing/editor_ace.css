@@ -2,6 +2,7 @@
 #editpanel.ace_editor {
   background: inherit;
   /*color: inherit;*/
+  font-size: 13px;
 }
 
 #editpanel div.ace_gutter {
@@ -10,6 +11,44 @@
 }
 
 /*.ace_gutter-cell.ace_warning {
-	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAmVBMÉ3CUEDJC84707djRc5MTAQxoLgupWRwW6UB5fS++NV8AbOZgnsC7BpEAAAAABJRU5ErkJggg==");
+	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAmVBMÃ‰3CUEDJC84707djRc5MTAQxoLgupWRwW6UB5fS++NV8AbOZgnsC7BpEAAAAABJRU5ErkJggg==");
 	background-position: 2px center;
 }*/
+
+.infomarker {
+  position: absolute;
+  z-index: 4;
+  /*border-bottom: 1px solid blue;*/
+  border-radius: 4px;
+  background: #575757;
+  padding: 0 2px;
+  margin: 0 -2px;
+}
+
+.warningmarker {
+  position: absolute;
+  z-index: 4;
+  /*border-bottom: 1px solid yellow;*/
+  border-radius: 4px;
+  background: #575757;
+  padding: 0 2px;
+  margin: 0 -2px;
+}
+
+.errormarker {
+  position: absolute;
+  z-index: 4;
+  /*border-bottom: 1px solid red;*/
+  border-radius: 4px;
+  background: #575757;
+  padding: 0 2px;
+  margin: 0 -2px;
+}
+
+.ace_gutter-cell {
+  margin-left: 6px;
+}
+
+#editpanel {
+  margin-left: -25px;
+}

@@ -1,3 +1,6 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 library editor.ace;
 
@@ -22,7 +25,7 @@ final AceFactory aceFactory = new AceFactory._();
 // TODO: how to show errors and warnings that are off screen?
 
 class AceFactory extends EditorFactory {
-  static final String cssRef = 'packages/liftoff/editing/editor_ace.css';
+  static final String cssRef = 'packages/dartpad_ui/editing/editor_ace.css';
   static final String jsRef = 'packages/ace/src/js/ace.js';
 
   AceFactory._();
@@ -36,7 +39,7 @@ class AceFactory extends EditorFactory {
     // TODO: This injection is slower then hardcoding in the html file.
     html.Element head = html.querySelector('html head');
 
-    // <link href="packages/liftoff/editing/editor_codemirror.css" rel="stylesheet">
+    // <link href="packages/dartpad_ui/editing/editor_codemirror.css" rel="stylesheet">
     html.LinkElement link = new html.LinkElement();
     link.rel = 'stylesheet';
     link.href = cssRef;
@@ -68,10 +71,11 @@ class AceFactory extends EditorFactory {
     editor.theme = new ace.Theme.named('monokai');
     editor.highlightActiveLine = false;
     editor.highlightGutterLine = false;
-    //fadeFoldWidgets = true
+    editor.showPrintMargin = false;
+    editor.showFoldWidgets = false;
 
     if (options == null) {
-      options = {'enableBasicAutocompletion': true};
+      options = {'enableBasicAutocompletion': true, 'showLineNumbers': false};
     }
 
     editor.setOptions(options);
@@ -125,36 +129,45 @@ class _AceEditor extends Editor {
 class _AceDocument extends Document {
   final ace.EditSession session;
 
-  bool _dirty = false;
+  //List<int> markers = [];
 
-  _AceDocument._(_AceEditor editor, this.session) : super(editor) {
-    onChange.listen((_) {
-      _dirty = true;
-    });
-  }
+  _AceDocument._(_AceEditor editor, this.session) : super(editor);
 
   String get value => session.value;
   set value(String str) {
     session.value = str;
   }
 
-  // TODO: ace.dart should expose undoManager.isClean
+  bool get isClean => session.undoManager.isClean;
 
-  bool get isClean => !_dirty;
-  void markClean() {
-    _dirty = false;
-  }
+  void markClean() => session.undoManager.markClean();
 
   void setAnnotations(List<Annotation> annotations) {
+//    if (markers.isNotEmpty) {
+//      for (int markerId in markers) {
+//        session.removeMarker(markerId);
+//      }
+//      markers.clear();
+//    }
+
     // Sort annotations so that the errors are set first.
     annotations.sort();
-
-    // TODO: Use the charStart and charLength information.
 
     session.setAnnotations(annotations.map((Annotation annotation) {
       return new ace.Annotation(text: annotation.message,
           type: annotation.type, row: annotation.line - 1);
     }).toList());
+
+//    for (Annotation annotation in annotations) {
+//      // TODO: use the positions from the source we analyzed, not the current source
+//      // TODO: we need tooltips too
+//      ace.Point start = new ace.Point(annotation.start.line, annotation.start.char);
+//      ace.Point end = new ace.Point(annotation.end.line, annotation.end.char);
+//
+//      int markerId = session.addMarker(new ace.Range.fromPoints(start, end),
+//          '${annotation.type}marker');
+//      markers.add(markerId);
+//    }
   }
 
   void clearAnnotations() => session.clearAnnotations();

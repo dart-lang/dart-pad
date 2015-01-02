@@ -1,24 +1,28 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 library playground;
 
 import 'dart:async';
 import 'dart:html' hide Document;
 
-import 'analysis.dart';
 import 'context.dart';
-import 'compiler.dart';
-import 'dependencies.dart';
+import 'dartpad.dart';
+import 'core/dependencies.dart';
+import 'core/modules.dart';
 import 'editing/editor.dart';
-import 'elements.dart';
-import 'liftoff.dart';
-import 'modules.dart';
-//import 'modules/ace_module.dart';
-import 'modules/codemirror_module.dart';
-import 'modules/liftoff_module.dart';
+import 'elements/elements.dart';
+import 'modules/ace_module.dart';
+//import 'modules/codemirror_module.dart';
+import 'modules/dartpad_module.dart';
 //import 'modules/mock_analysis.dart';
 //import 'modules/mock_compiler.dart';
 import 'modules/server_analysis.dart';
 import 'modules/server_compiler.dart';
+import 'services/analysis.dart';
+import 'services/common.dart';
+import 'services/compiler.dart';
 
 // TODO: have a selected tab visualizer arrow
 
@@ -60,7 +64,7 @@ class Playground {
     });
 
     runbutton = new BButton(querySelector('#runbutton'));
-    runbutton.onClick.listen((e) => _handleRunButton());
+    runbutton.onClick.listen((e) => _handleRun());
 
     _initModules().then((_) {
       _initPlayground();
@@ -68,13 +72,13 @@ class Playground {
   }
 
   Future _initModules() {
-    modules.register(new LiftoffModule());
+    modules.register(new DartpadModule());
     //modules.register(new MockAnalysisModule());
     modules.register(new ServerAnalysisModule());
     //modules.register(new MockCompilerModule());
     modules.register(new ServerCompilerModule());
-    //modules.register(new AceModule());
-    modules.register(new CodeMirrorModule());
+    modules.register(new AceModule());
+    //modules.register(new CodeMirrorModule());
 
     return modules.start();
   }
@@ -85,8 +89,17 @@ class Playground {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
+    keys.bind('ctrl-s', _handleSave);
+    // Users expect this to refresh the page.
+    //keys.bind('ctrl-r', _handleRun);
+
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
+
+    _context.onHtmlReconcile.listen((_) {
+      executionService.replaceHtml(_context.htmlSource);
+      _context.markHtmlClean();
+    });
 
     _context.onCssReconcile.listen((_) {
       executionService.replaceCss(_context.cssSource);
@@ -94,10 +107,22 @@ class Playground {
     });
 
     _context.onDartReconcile.listen((_) {
-      analysisService.analyze(_context.dartSource).then((AnalysisResults result) {
-        _context.dartDocument.setAnnotations(result.issues.map((AnalysisIssue issue) {
+      String source = _context.dartSource;
+      Lines lines = new Lines(source);
+
+      analysisService.analyze(source).then((AnalysisResults result) {
+        _context.dartDocument.setAnnotations(result.issues.map(
+            (AnalysisIssue issue) {
+          int startLine = lines.getLineForOffset(issue.charStart);
+          int endLine = lines.getLineForOffset(issue.charStart + issue.charLength);
+
+          Position start = new Position(startLine,
+              issue.charStart - lines.offsetForLine(startLine));
+          Position end = new Position(endLine,
+              issue.charStart + issue.charLength - lines.offsetForLine(startLine));
+
           return new Annotation(issue.kind, issue.message, issue.line,
-              charStart: issue.charStart, charLength: issue.charLength);
+              start: start, end: end);
         }).toList());
       });
     });
@@ -122,7 +147,7 @@ class Playground {
 
   List<Element> _getTabElements(Element element) => element.querySelectorAll('a');
 
-  void _handleRunButton() {
+  void _handleRun() {
     runbutton.disabled = true;
     _showSpinner(true);
 
@@ -144,6 +169,11 @@ class Playground {
     //_spinner.classes.toggle('showing', show);
   }
 
+  void _handleSave() {
+    // TODO:
+    print('handleSave');
+  }
+
   void _showOuput(String message) {
     _outputpanel.text += message;
   }
@@ -160,6 +190,7 @@ class PlaygroundContext extends Context {
   Document _htmlDoc;
   Document _cssDoc;
 
+  StreamController _htmlReconcileController = new StreamController.broadcast();
   StreamController _cssReconcileController = new StreamController.broadcast();
   StreamController _dartReconcileController = new StreamController.broadcast();
 
@@ -171,7 +202,8 @@ class PlaygroundContext extends Context {
     _cssDoc = editor.createDocument(
         content: _sampleCssCode, mode: 'css');
 
-    _createReconciler(_cssDoc, _cssReconcileController);
+    _createReconciler(_htmlDoc, _htmlReconcileController, 250);
+    _createReconciler(_cssDoc, _cssReconcileController, 250);
     _createReconciler(_dartDoc, _dartReconcileController);
 
     editor.swapDocument(_dartDoc);
@@ -206,17 +238,22 @@ class PlaygroundContext extends Context {
     editor.focus();
   }
 
+  Stream get onHtmlReconcile => _htmlReconcileController.stream;
+
   Stream get onCssReconcile => _cssReconcileController.stream;
 
   Stream get onDartReconcile => _dartReconcileController.stream;
 
+  void markHtmlClean() => _htmlDoc.markClean();
+
   void markCssClean() => _cssDoc.markClean();
 
-  void _createReconciler(Document doc, StreamController controller) {
+  void _createReconciler(Document doc, StreamController controller,
+      [int delay = 1250]) {
     Timer timer;
     doc.onChange.listen((_) {
       if (timer != null) timer.cancel();
-      timer = new Timer(new Duration(milliseconds: 1250), () {
+      timer = new Timer(new Duration(milliseconds: delay), () {
         if (!doc.isClean) {
           controller.add(null);
         }
@@ -232,6 +269,8 @@ final String _sampleDartCode = r'''void main() {
 }
 ''';
 
+// TODO: better sample code
+
 final String _sampleHtmlCode = r'''<h2>Dart Sample</h2>
 
 <p id="output">Hello world!<p>
@@ -240,6 +279,7 @@ final String _sampleHtmlCode = r'''<h2>Dart Sample</h2>
 final String _sampleCssCode = r'''/* my styles */
 
 h2 {
+  font-weight: normal;
   margin-top: 0;
 }
 
@@ -247,6 +287,8 @@ p {
   color: #888;
 }
 ''';
+
+// TODO: move into it's own file
 
 class ExecutionService {
   final IFrameElement frame;

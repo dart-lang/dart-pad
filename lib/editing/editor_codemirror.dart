@@ -1,12 +1,17 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 library editor.codemirror;
 
 import 'dart:async';
 import 'dart:html' as html;
 
-import 'package:codemirror/codemirror.dart';
+import 'package:codemirror/codemirror.dart' hide Position;
+import 'package:codemirror/codemirror.dart' as pos show Position;
 
-import 'editor.dart';
+import 'editor.dart' hide Position;
+import 'editor.dart' as ed show Position;
 
 export 'editor.dart';
 
@@ -17,8 +22,10 @@ export 'editor.dart';
 
 final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
 
+final _gutterId = 'CodeMirror-lint-markers';
+
 class CodeMirrorFactory extends EditorFactory {
-  static final String cssRef = 'packages/liftoff/editing/editor_codemirror.css';
+  static final String cssRef = 'packages/dartpad_ui/editing/editor_codemirror.css';
   static final String jsRef = 'packages/codemirror/codemirror.js';
 
   CodeMirrorFactory._();
@@ -35,7 +42,7 @@ class CodeMirrorFactory extends EditorFactory {
     List futures = [];
     html.Element head = html.querySelector('html head');
 
-    // <link href="packages/liftoff/editing/editor_codemirror.css"
+    // <link href="packages/dartpad_ui/editing/editor_codemirror.css"
     //   rel="stylesheet">
     html.LinkElement link = new html.LinkElement();
     link.rel = 'stylesheet';
@@ -59,9 +66,21 @@ class CodeMirrorFactory extends EditorFactory {
         'autofocus': true,
         'cursorHeight': 0.85,
         'autoCloseBrackets': true,
-        //'gutters': ['issuesgutter'],
-        'theme': 'ambiance' // ambiance, vibrant-ink, monokai
+        'gutters': [_gutterId],
+        //'lint': true,
+        'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
       };
+
+//      CodeMirror.registerHelper('lint', 'dart', (text) {
+//        var found = [];
+////        found.push({
+////          from: CodeMirror.Pos(1, 0),
+////          to: CodeMirror.Post(1, 0),
+////          severity: "error",
+////          message: "bad"
+////        });
+//        return found;
+//      });
     }
 
     return new _CodeMirrorEditor._(this,
@@ -79,8 +98,6 @@ class _CodeMirrorEditor extends Editor {
   }
 
   Document createDocument({String content, String mode}) {
-    // TODO: use dart when available
-    if (mode == 'dart') mode = 'javascript';
     if (mode == 'html') mode = 'text/html';
 
     if (content == null) content = '';
@@ -117,8 +134,37 @@ class _CodeMirrorDocument extends Document {
   void markClean() => doc.markClean();
 
   void setAnnotations(List<Annotation> annotations) {
-    // TODO: implement
+    CodeMirror cm = parent.cm;
+    cm.clearGutter(_gutterId);
 
+    // Sort annotations so that the errors are set first.
+    annotations.sort();
+
+    int lastLine = -1;
+
+    // TODO: codemirror lint has no support for info markers
+    // TODO: contribute some?
+
+    // TODO: squiggles in the text
+
+    for (Annotation an in annotations) {
+      if (lastLine == an.line) continue;
+      lastLine = an.line;
+      cm.setGutterMarker(an.line - 1, _gutterId,
+          _makeMarker(an.type, an.message, an.start, an.end));
+    }
+  }
+
+  html.Element _makeMarker(String severity, String tooltip, ed.Position start,
+      ed.Position end) {
+    html.Element marker = new html.DivElement();
+    marker.className = "CodeMirror-lint-marker-" + severity;
+    if (tooltip != null) marker.title = tooltip;
+    marker.onClick.listen((_) {
+      doc.setSelection(new pos.Position(start.line, start.char),
+          head: new pos.Position(end.line, end.char));
+    });
+    return marker;
   }
 
   Stream get onChange => doc.onChange;

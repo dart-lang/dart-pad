@@ -1,5 +1,6 @@
 
 @import '../../../packages/codemirror/codemirror.css';
+@import '../../../packages/codemirror/addon/lint/lint.css';
 
 /* CodeMirror tweaks */
 
@@ -10,12 +11,7 @@
 }
 
 #editpanel .CodeMirror-gutters {
-  background: inherit;
+  background: inherit !important;
   border-right: none;
   box-shadow: none;
-}
-
-.issuesgutter {
-	width: 5px;
-	background: red;
 }
