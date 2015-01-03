@@ -107,7 +107,8 @@ Dartpad server.
   Future<Response> handleAnalyzePost(Request request) {
     return request.readAsString().then((String source) {
       if (source.isEmpty) {
-        return new Future.value(new Response(400, body: "No source received"));
+        return new Future.value(new Response(
+            HttpStatus.BAD_REQUEST, body: "No source received"));
       }
 
       Stopwatch watch = new Stopwatch()..start();
@@ -123,7 +124,8 @@ Dartpad server.
         return new Response.ok(json, headers: _jsonHeader);
       }).catchError((e, st) {
         String errorText = 'Error during analysis: ${e}\n${st}';
-        return new Response(500, body: errorText);
+        return new Response(
+            HttpStatus.INTERNAL_SERVER_ERROR, body: errorText);
       });
     });
   }
@@ -131,7 +133,8 @@ Dartpad server.
   Future<Response> handleCompilePost(Request request) {
     return request.readAsString().then((String source) {
         if (source.isEmpty) {
-          return new Future.value(new Response(400, body: "No source received"));
+          return new Future.value(new Response(
+              HttpStatus.BAD_REQUEST, body: "No source received"));
         }
 
         Stopwatch watch = new Stopwatch()..start();
@@ -147,11 +150,13 @@ Dartpad server.
             return new Response.ok(results.getOutput(), headers: _textPlainHeader);
           } else {
             String errors = results.problems.map(_printProblem).join('\n');
-            return new Response(400, body: errors);
+            return new Response(
+                HttpStatus.BAD_REQUEST, body: errors);
           }
         }).catchError((e, st) {
           String errorText = 'Error during compile: ${e}\n${st}';
-          return new Response(500, body: errorText);
+          return new Response(
+              HttpStatus.INTERNAL_SERVER_ERROR, body: errorText);
         });
     });
   }
@@ -159,7 +164,8 @@ Dartpad server.
   Future<Response> handleCompletePost(Request request) {
     return request.readAsString().then((String json) {
       if (json.isEmpty) {
-        return new Future.value(new Response(400, body: "No source received"));
+        return new Future.value(new Response(
+            HttpStatus.BAD_REQUEST, body: "No source received"));
       }
 
       // TODO: Add error handling.
@@ -169,14 +175,16 @@ Dartpad server.
 
       // TODO: implement
       String errorText = 'Unimplemented: /api/complete';
-      return new Response(500, body: errorText);
+      return new Response(
+          HttpStatus.NOT_IMPLEMENTED, body: errorText);
     });
   }
 
   Future<Response> handleDocumentPost(Request request) {
     return request.readAsString().then((String json) {
       if (json.isEmpty) {
-        return new Future.value(new Response(400, body: "No source received"));
+        return new Future.value(new Response(
+            HttpStatus.BAD_REQUEST, body: "No source received"));
       }
 
       // TODO: Add error handling.
@@ -192,7 +200,8 @@ Dartpad server.
         return new Response.ok(JSON.encode(dartdoc), headers: _textPlainHeader);
       }).catchError((e, st) {
         String errorText = 'Error during analysis: ${e}\n${st}';
-        return new Response(500, body: errorText);
+        return new Response(
+            HttpStatus.INTERNAL_SERVER_ERROR, body: errorText);
       });
     });
   }

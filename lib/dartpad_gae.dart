@@ -49,7 +49,7 @@ void requestHandler(io.HttpRequest request) {
   } else if (request.uri.path == '/api/document') {
     handleDocumentPost(request);
   } else {
-    request.response.statusCode = 404;
+    request.response.statusCode = io.HttpStatus.NOT_FOUND;
     request.response.close();
   }
 }
@@ -77,12 +77,12 @@ handleAnalyzePost(io.HttpRequest request) {
         request.response.writeln(json);
         request.response.close();
       }).catchError((e) {
-        request.response.statusCode = 500;
+        request.response.statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR;
         request.response.writeln(e);
         request.response.close();
       });
     } catch (e) {
-      request.response.statusCode = 500;
+      request.response.statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR;
       request.response.writeln(e);
       request.response.close();
     }
@@ -91,7 +91,7 @@ handleAnalyzePost(io.HttpRequest request) {
 
 handleCompletePost(io.HttpRequest request) {
   // TODO: implement
-  request.response.statusCode = 501;
+  request.response.statusCode = io.HttpStatus.NOT_IMPLEMENTED;
   request.response.writeln('Unimplemented: /api/complete');
   request.response.close();
 }
@@ -120,12 +120,12 @@ handleDocumentPost(io.HttpRequest request) {
         request.response.writeln(json);
         request.response.close();
       }).catchError((e) {
-        request.response.statusCode = 500;
+        request.response.statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR;
         request.response.writeln(e);
         request.response.close();
       });
     } catch (e) {
-      request.response.statusCode = 500;
+      request.response.statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR;
       request.response.writeln(e);
       request.response.close();
     }
@@ -166,7 +166,7 @@ handleCompilePost(io.HttpRequest request) {
             });
           } else {
             String errors = results.problems.map(_printProblem).join('\n');
-            request.response.statusCode = 500;
+            request.response.statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR;
             request.response.writeln(errors);
             request.response.close();
           }
