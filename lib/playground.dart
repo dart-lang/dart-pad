@@ -24,8 +24,6 @@ import 'services/analysis.dart';
 import 'services/common.dart';
 import 'services/compiler.dart';
 
-// TODO: console output needs to scroll the output field
-
 // TODO: we need blinkers when something happens. console is appended to,
 // css is updated, result area dom is modified.
 
@@ -60,7 +58,7 @@ class Playground {
     // Set up iframe.
     executionService = new ExecutionService(_frame);
     executionService.onStdout.listen(_showOuput);
-    executionService.onStderr.listen(_showErrorOuput);
+    executionService.onStderr.listen((m) => _showOuput(m, error: true));
 
     runbutton = new DButton(querySelector('#runbutton'));
     runbutton.onClick.listen((e) {
@@ -160,7 +158,8 @@ class Playground {
     }).catchError((e) {
       // TODO: Also display using a toast.
       _clearOutput();
-      _showErrorOuput('Error compiling:\n${e}');
+      _showOuput('There was an issue when compiling to JavaScript:\n${e}',
+          error: true);
     }).whenComplete(() {
       _context.markCssClean();
       runbutton.disabled = false;
@@ -178,19 +177,17 @@ class Playground {
     _context.focus();
   }
 
-  void _showOuput(String message) {
-    _outputpanel.text += message;
-  }
-
-  void _showErrorOuput(String message) {
-    SpanElement span = new SpanElement();
-    span.classes.add('errorOutput');
-    span.text = message;
-    _outputpanel.children.add(span);
-  }
-
   void _clearOutput() {
     _outputpanel.text = '';
+  }
+
+  void _showOuput(String message, {bool error: false}) {
+    message = message.trimRight() + '\n';
+    SpanElement span = new SpanElement();
+    if (error) span.classes.add('errorOutput');
+    span.text = message;
+    _outputpanel.children.add(span);
+    span.scrollIntoView(ScrollAlignment.BOTTOM);
   }
 }
 
@@ -314,7 +311,7 @@ class ExecutionService {
 
   ExecutionService(this.frame) {
     window.onMessage.listen((MessageEvent event) {
-      String message = '${event.data}\n';
+      String message = '${event.data}';
 
       if (message.startsWith('stderr: ')) {
         _stderrController.add(message.substring(8));
