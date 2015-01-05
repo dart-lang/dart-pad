@@ -2,7 +2,8 @@
 #editpanel.ace_editor {
   background: inherit;
   /*color: inherit;*/
-  font-size: 13px;
+  font-size: 12pt;
+  line-height: 17px;
 }
 
 #editpanel div.ace_gutter {
@@ -14,6 +15,20 @@
 	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAmVBMÉ3CUEDJC84707djRc5MTAQxoLgupWRwW6UB5fS++NV8AbOZgnsC7BpEAAAAABJRU5ErkJggg==");
 	background-position: 2px center;
 }*/
+
+/* theme specific ace overrides */
+
+#editpanel.ace-monokai .ace_storage.ace_type,
+#editpanel.ace-monokai .ace_support.ace_class,
+#editpanel.ace-monokai .ace_support.ace_type {
+  font-style: normal;
+}
+
+#editpanel.ace-monokai .ace_variable.ace_parameter {
+  font-style: normal;
+}
+
+/* end theme specific ace overrides */
 
 .infomarker {
   position: absolute;

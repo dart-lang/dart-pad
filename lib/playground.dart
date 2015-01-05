@@ -24,7 +24,12 @@ import 'services/analysis.dart';
 import 'services/common.dart';
 import 'services/compiler.dart';
 
-// TODO: have a selected tab visualizer arrow
+// TODO: console output needs to scroll the output field
+
+// TODO: we need blinkers when something happens. console is appended to,
+// css is updated, result area dom is modified.
+
+// TODO: we need a component for the output area
 
 Playground get playground => _playground;
 
@@ -52,19 +57,16 @@ class Playground {
     _registerTab(querySelector('#htmltab'), 'html');
     _registerTab(querySelector('#csstab'), 'css');
 
+    // Set up iframe.
     executionService = new ExecutionService(_frame);
-
-    // TODO: setup output area
-
-    // set up iframe
-    // TODO: This code should be on the execution service.
-    // TODO: Also, listen for uncaught exceptions from the iframe.
-    window.onMessage.listen((MessageEvent event) {
-      _showOuput('${event.data}\n');
-    });
+    executionService.onStdout.listen(_showOuput);
+    executionService.onStderr.listen(_showErrorOuput);
 
     runbutton = new BButton(querySelector('#runbutton'));
-    runbutton.onClick.listen((e) => _handleRun());
+    runbutton.onClick.listen((e) {
+      _handleRun();
+      _context.focus();
+    });
 
     _initModules().then((_) {
       _initPlayground();
@@ -90,8 +92,7 @@ class Playground {
     editor.resize();
 
     keys.bind('ctrl-s', _handleSave);
-    // Users expect this to refresh the page.
-    //keys.bind('ctrl-r', _handleRun);
+    keys.bind('ctrl-enter', _handleRun);
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
@@ -129,12 +130,13 @@ class Playground {
   }
 
   void _registerTab(Element element, String name) {
-    BComponent component = new BComponent(element);
+    DElement component = new DElement(element);
 
     component.onClick.listen((_) {
       if (component.hasAttr('selected')) return;
 
-      component.attr('selected', '');
+      component.setAttr('selected');
+
       _getTabElements(component.element.parent.parent).forEach((c) {
         if (c != component.element && c.attributes.containsKey('selected')) {
           c.attributes.remove('selected');
@@ -156,8 +158,9 @@ class Playground {
       return executionService.execute(
           _context.htmlSource, _context.cssSource, result.output);
     }).catchError((e) {
-      // TODO: Display the error - use a toast.
-      print('Error compiling: ${e}');
+      // TODO: Also display using a toast.
+      _clearOutput();
+      _showErrorOuput('Error compiling:\n${e}');
     }).whenComplete(() {
       _context.markCssClean();
       runbutton.disabled = false;
@@ -172,10 +175,18 @@ class Playground {
   void _handleSave() {
     // TODO:
     print('handleSave');
+    _context.focus();
   }
 
   void _showOuput(String message) {
     _outputpanel.text += message;
+  }
+
+  void _showErrorOuput(String message) {
+    SpanElement span = new SpanElement();
+    span.classes.add('errorOutput');
+    span.text = message;
+    _outputpanel.children.add(span);
   }
 
   void _clearOutput() {
@@ -248,6 +259,11 @@ class PlaygroundContext extends Context {
 
   void markCssClean() => _cssDoc.markClean();
 
+  /**
+   * Restore the focus to the last focused editor.
+   */
+  void focus() => editor.focus();
+
   void _createReconciler(Document doc, StreamController controller,
       [int delay = 1250]) {
     Timer timer;
@@ -291,17 +307,35 @@ p {
 // TODO: move into it's own file
 
 class ExecutionService {
+  final StreamController _stdoutController = new StreamController.broadcast();
+  final StreamController _stderrController = new StreamController.broadcast();
+
   final IFrameElement frame;
 
-  ExecutionService(this.frame);
+  ExecutionService(this.frame) {
+    window.onMessage.listen((MessageEvent event) {
+      String message = '${event.data}\n';
+
+      if (message.startsWith('stderr: ')) {
+        _stderrController.add(message.substring(8));
+      } else {
+        _stdoutController.add(message);
+      }
+    });
+  }
 
   Future execute(String html, String css, String javaScript) {
     final String postMessagePrint =
         "function dartPrint(message) { parent.postMessage(message, '*'); }";
 
+    // TODO: Use a better encoding than 'stderr: '.
+    final String exceptionHandler =
+        "window.onerror = function(message, url, lineNumber) { "
+        "parent.postMessage('stderr: ' + message.toString(), '*'); };";
+
     replaceCss(css);
     replaceHtml(html);
-    replaceJavaScript('${postMessagePrint}\n${javaScript}');
+    replaceJavaScript('${postMessagePrint}\n${exceptionHandler}\n${javaScript}');
 
     return new Future.value();
   }
@@ -321,6 +355,10 @@ class ExecutionService {
   void reset() {
     _send('reset');
   }
+
+  Stream<String> get onStdout => _stdoutController.stream;
+
+  Stream<String> get onStderr => _stderrController.stream;
 
   void _send(String command, [String data]) {
     Map m = {'command': command};

@@ -3,8 +3,8 @@ body {
   margin: 0;
   padding: 0;
 
-  background: #2f2f2f;
-  color: rgb(198, 198, 198);
+  background: #333;
+  color: #c6c6c6;
 
   top: 0;
   bottom: 0;
@@ -12,13 +12,13 @@ body {
   right: 0;
   position: absolute;
 
-  font-family: 'Lucida Grande', Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 14px;
   line-height: 20px;
 
-  max-width: 1500px;
+  /*max-width: 1500px;
   min-width: 700px;
-  margin: 0 auto;
+  margin: 0 auto;*/
 }
 
 header {
@@ -27,13 +27,13 @@ header {
   padding-left: 20px;
   padding-right: 20px;
   font-size: 150%;
-  color: white;
+  color: #fff;
   vertical-align: middle;
 
   box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
   border-bottom: 1px solid #121212;
-
   border-width: 4px;
+
   margin-bottom: 16px;
 }
 
@@ -44,19 +44,19 @@ div.header {
 section {
   margin: 0;
   padding-bottom: 8px;
+
   box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
   border-bottom: 1px solid #121212;
+  border-width: 4px;
 }
 
 footer {
-  margin: 16px 20px 8px 20px;
-  font-size: 12px;
+  margin: 8px 20px;
+  font-size: 13px;
 }
 
 .view {
   margin: 0 24px;
-  /*box-shadow: 0px 0px 2px rgba(0,0,0,0.23);
-  border-radius: 4px;*/
 }
 
 .noleft {
@@ -64,11 +64,11 @@ footer {
 }
 
 .leftmargin {
-  margin-left: 24px;
+  margin-left: 16px;
 }
 
 .leftborder {
-  padding-left: 24px;
+  padding-left: 16px;
   box-shadow: rgba(255, 255, 255, 0.07) 1px 0 0 inset;
   border-left: 1px solid #121212;
 }
@@ -90,7 +90,7 @@ a {
 
 a,
 a:visited {
-  color: #bfbfbf;
+  color: #ccc;
 }
 
 a:hover {
@@ -98,13 +98,13 @@ a:hover {
 }
 
 a[selected] {
-  color: #84bcde;
+  color: #66d9ef;
   cursor: default;
-  border-bottom: 2px solid #84bcde;
+  border-bottom: 2px solid #66d9ef;
 }
 
 a[selected]:hover {
-  color: #84bcde;
+  color: #66d9ef;
 }
 
 .header li {
@@ -128,14 +128,6 @@ a[selected]:hover {
   height: 24px;
   line-height: 24px;
   font-size: 14px;
-  box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
-  border-bottom: 1px solid #121212;
-  padding-bottom: 8px;
-}
-
-.header.nobottommargin {
-  box-shadow: none;
-  border-bottom: none;
 }
 
 button {
@@ -143,11 +135,12 @@ button {
   min-width: 48px;
   background: rgba(255, 255, 255, 0.06);
   color: #aaa;
+  fill: #aaa;
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 2px;
-  font-family: 'Lucida Grande', Arial, sans-serif;
+  font-family: 'Roboto', sans-serif;
   font-size: 14px;
-  line-size: 14px;
+  line-height: 18px;
   height: 24px;
   cursor: pointer;
   padding: 2px 6px;
@@ -155,6 +148,7 @@ button {
 
 button:hover {
   color: #fff;
+  fill: #fff;
 }
 
 button:active {
@@ -163,6 +157,7 @@ button:active {
 
 button[disabled] {
   color: #555;
+  fill: #555;
   pointer-events: none;
 }
 
@@ -209,20 +204,29 @@ div.toggle {
   border-radius: 1em;
 }
 
-#divider {
-  margin: 16px;
+.horz_divider {
+  margin: 16px 0;
   box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
   border-top: 1px solid #121212;
 }
 
 .console {
-  font-family:
-    'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
-  font-size: 13px;
-  line-height: normal;
+  font-family: 'Inconsolata', monospace;
+  font-size: 12pt;
+  line-height: 17px;
   min-height: 100px;
   overflow-y: auto;
   white-space: pre;
+}
+
+.errorOutput {
+	color: red;
+}
+
+#editpanel {
+	font-family: 'Inconsolata', monospace;
+	font-size: 12pt;
+	line-height: 17px;
 }
 
 .right {

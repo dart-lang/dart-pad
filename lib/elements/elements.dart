@@ -4,28 +4,40 @@ library dartpad_ui.elements;
 import 'dart:async';
 import 'dart:html';
 
-class BComponent {
+class DElement {
   final Element element;
 
-  BComponent(this.element);
+  //DElement(String tag) : element = new Element.tag(tag);
+  DElement(this.element);
 
-  String get text => element.text;
-  set text(String value) => element.text = value;
+  bool hasAttr(String name) => element.attributes.containsKey(name);
 
-  Stream<MouseEvent> get onClick => element.onClick;
+  void toggleAttr(String name, bool value) {
+    value ? element.setAttribute(name, '') : element.attributes.remove(name);
+  }
 
-  void attr(String name, String value) {
-    if (value == null) {
-      element.attributes.remove(name);
-    } else {
-      element.attributes[name] = value;
+  String getAttr(String name) => element.getAttribute(name);
+
+  void setAttr(String name, [String value = '']) => element.setAttribute(name, value);
+
+  String clearAttr(String name) => element.attributes.remove(name);
+
+  Stream<Event> get onClick => element.onClick;
+
+  void dispose() {
+    if (element.parent.children.contains(element)) {
+      try {
+        element.parent.children.remove(element);
+      } catch (e) {
+        print('foo');
+      }
     }
   }
 
-  bool hasAttr(String name) => element.attributes.containsKey(name);
+  String toString() => element.toString();
 }
 
-class BButton extends BComponent {
+class BButton extends DElement {
   BButton(ButtonElement element) : super(element);
 
   ButtonElement get belement => element;
