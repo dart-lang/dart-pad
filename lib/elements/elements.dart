@@ -7,8 +7,8 @@ import 'dart:html';
 class DElement {
   final Element element;
 
-  //DElement(String tag) : element = new Element.tag(tag);
   DElement(this.element);
+  DElement.tag(String tag) : element = new Element.tag(tag);
 
   bool hasAttr(String name) => element.attributes.containsKey(name);
 
@@ -44,4 +44,42 @@ class DButton extends DElement {
 
   bool get disabled => belement.disabled;
   set disabled(bool value) => belement.disabled = value;
+}
+
+class DSplitter extends DElement {
+  DSplitter(Element element) : super(element) {
+    _init();
+  }
+
+  DSplitter.createHorizontal() : super.tag('div') {
+    horizontal = true;
+    _init();
+  }
+
+  DSplitter.createVertical() : super.tag('div') {
+    vertical = true;
+    _init();
+  }
+
+  bool get horizontal => hasAttr('horizontal');
+  set horizontal(bool value) {
+    clearAttr(value ? 'vertical' : 'horizontal');
+    setAttr(value ? 'horizontal' : 'vertical');
+  }
+
+  bool get vertical => hasAttr('vertical');
+  set vertical(bool value) {
+    clearAttr(value ? 'horizontal' : 'vertical');
+    setAttr(value ? 'vertical' : 'horizontal');
+  }
+
+  void _init() {
+    element.classes.toggle('splitter', true);
+    if (!horizontal && !vertical) {
+      horizontal = true;
+    }
+
+    // TODO:
+
+  }
 }
