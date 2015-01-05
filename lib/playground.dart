@@ -23,6 +23,7 @@ import 'modules/server_compiler.dart';
 import 'services/analysis.dart';
 import 'services/common.dart';
 import 'services/compiler.dart';
+import 'src/util.dart';
 
 // TODO: we need blinkers when something happens. console is appended to,
 // css is updated, result area dom is modified.
@@ -63,7 +64,9 @@ class Playground {
     runbutton = new DButton(querySelector('#runbutton'));
     runbutton.onClick.listen((e) {
       _handleRun();
-      _context.focus();
+      // On a mobile device, focusing the editing are causes the keyboard to pop
+      // up when the user hits the run button.
+      if (!isMobile()) _context.focus();
     });
 
     _initModules().then((_) {

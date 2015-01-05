@@ -130,6 +130,8 @@ class _CodeMirrorDocument extends Document {
   String get value => doc.getValue();
   set value(String str) => doc.setValue(str);
 
+  String get mode => parent.mode;
+
   bool get isClean => doc.isClean();
   void markClean() => doc.markClean();
 

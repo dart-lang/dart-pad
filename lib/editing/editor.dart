@@ -44,6 +44,8 @@ abstract class Document {
   String get value;
   set value(String str);
 
+  String get mode;
+
   bool get isClean;
   void markClean();
 
@@ -90,3 +92,16 @@ class Position {
 
   String toString() => '[${line},${char}]';
 }
+
+//abstract class CodeCompleter {
+//  Future<List<Completion>> complete(
+//      Document document, Position position, String prefix);
+//}
+//
+//class Completion {
+//  final String value;
+//
+//  Completion(this.value);
+//
+//  String toString() => value;
+//}

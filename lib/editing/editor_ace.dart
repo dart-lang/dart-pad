@@ -20,8 +20,6 @@ final AceFactory aceFactory = new AceFactory._();
 
 // TODO: improve the styling for error and warning icons
 
-// TODO: how to show errors and warnings that are off screen?
-
 class AceFactory extends EditorFactory {
   static final String cssRef = 'packages/dartpad_ui/editing/editor_ace.css';
   static final String jsRef = 'packages/ace/src/js/ace.js';
@@ -83,8 +81,20 @@ class AceFactory extends EditorFactory {
     editor.commands.removeCommand('gotoline');
     editor.commands.removeCommand('find');
 
+//    // TODO: Make this generic and pluggable.
+//    ace.LanguageTools langTools = ace.require('ace/ext/language_tools');
+//    langTools.addCompleter(new ace.AutoCompleter(_aceCompleter));
+
     return new _AceEditor._(this, editor);
   }
+
+//  Future<List<ace.Completion>> _aceCompleter(ace.Editor editor,
+//      ace.EditSession session, ace.Point position, String prefix) {
+//    // TODO:
+//    print('complete (${session.mode.name}): ${prefix}');
+//
+//    return new Future.value([]);
+//  }
 }
 
 class _AceEditor extends Editor {
@@ -135,6 +145,8 @@ class _AceDocument extends Document {
   set value(String str) {
     session.value = str;
   }
+
+  String get mode => session.mode.name;
 
   bool get isClean => session.undoManager.isClean;
 
