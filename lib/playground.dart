@@ -45,7 +45,7 @@ class Playground {
   IFrameElement get _frame => querySelector('#frame');
   //Element get _spinner => querySelector('#spinner');
 
-  BButton runbutton;
+  DButton runbutton;
   Editor editor;
   PlaygroundContext _context;
 
@@ -62,7 +62,7 @@ class Playground {
     executionService.onStdout.listen(_showOuput);
     executionService.onStderr.listen(_showErrorOuput);
 
-    runbutton = new BButton(querySelector('#runbutton'));
+    runbutton = new DButton(querySelector('#runbutton'));
     runbutton.onClick.listen((e) {
       _handleRun();
       _context.focus();

@@ -37,8 +37,8 @@ class DElement {
   String toString() => element.toString();
 }
 
-class BButton extends DElement {
-  BButton(ButtonElement element) : super(element);
+class DButton extends DElement {
+  DButton(ButtonElement element) : super(element);
 
   ButtonElement get belement => element;
 
