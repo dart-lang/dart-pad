@@ -72,30 +72,30 @@ class Sunflower {
   static const SCALE_FACTOR = 4;
   static const TAU = math.PI * 2;
   static const MAX_D = 300;
-  
+
   CanvasRenderingContext2D ctx;
   num xc, yc;
   num seeds = 0;
   num PHI;
-  
+
   Sunflower() {
     PHI = (math.sqrt(5) + 1) / 2;
-    
+
     CanvasElement canvas = querySelector("#canvas");
     xc = yc = MAX_D / 2;
     ctx = canvas.getContext("2d");
-    
+
     InputElement slider = querySelector("#slider");
     slider.onChange.listen((Event e) {
       seeds = int.parse(slider.value);
       drawFrame();
     });
-    
+
     seeds = int.parse(slider.value);
-    
+
     drawFrame();
   }
-  
+
   // Draw the complete figure for the current number of seeds.
   void drawFrame() {
     ctx.clearRect(0, 0, MAX_D, MAX_D);
@@ -107,7 +107,7 @@ class Sunflower {
       drawSeed(x,y);
     }
   }
-  
+
   // Draw a small circle representing a seed centered at (x,y).
   void drawSeed(num x, num y) {
     ctx.beginPath();
