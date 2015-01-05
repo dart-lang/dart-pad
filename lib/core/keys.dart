@@ -33,9 +33,9 @@ class Keys {
   void _handleKeyEvent(KeyboardEvent event) {
     KeyboardEvent k = event;
 
-    if (k.keyCode < 27 || k.keyCode == 91) return;
+    //if (k.keyCode < 27 || k.keyCode == 91) return;
     if (!k.altKey && !k.ctrlKey && !k.metaKey) return;
-    if (!KeyCode.isCharacterKey(k.keyCode)) return;
+    //if (!KeyCode.isCharacterKey(k.keyCode)) return;
 
     if (_handleKey(printKeyEvent(k))) {
       k.preventDefault();
@@ -132,6 +132,8 @@ final Map _codeMap = {
   KeyCode.COMMA: ',', //
   KeyCode.SLASH: '/', //
   KeyCode.BACKSLASH: '\\', //
+
+  KeyCode.ENTER: 'enter', //
 
   KeyCode.OPEN_SQUARE_BRACKET: '[', //
   KeyCode.CLOSE_SQUARE_BRACKET: ']', //

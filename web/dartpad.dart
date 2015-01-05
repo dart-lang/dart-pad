@@ -12,13 +12,7 @@ import 'package:dartpad_ui/playground.dart' as playground;
 
 // TODO: auto run on page load; also, auto-analyze
 
-// TODO: ace: remove line numbers
-
-// TODO: ace: indent left the width of the error markers
-
 // TODO: investigate https://github.com/DirectMyFile/github.dart for the gists API
-
-// TODO: fontawesome as a resource package
 
 // TODO: perf: all scripts (js and css) that load at the beginning should be
 // listed in main html file. Or, all concatenated into one file?

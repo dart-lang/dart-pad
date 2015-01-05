@@ -16,8 +16,6 @@ export 'editor.dart';
 
 final AceFactory aceFactory = new AceFactory._();
 
-// TODO: remove line numbers
-
 // TODO: underline errors and warnings
 
 // TODO: improve the styling for error and warning icons
