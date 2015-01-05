@@ -166,10 +166,15 @@ handleCompilePost(io.HttpRequest request) {
             });
           } else {
             String errors = results.problems.map(_printProblem).join('\n');
-            request.response.statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR;
+            request.response.statusCode = io.HttpStatus.BAD_REQUEST;
             request.response.writeln(errors);
             request.response.close();
           }
+        }).catchError((e, st) {
+          String errorText = 'Error during compile: ${e}\n${st}';
+          request.response.statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR;
+          request.response.writeln(errorText);
+          request.response.close();
         });
       }
     });
