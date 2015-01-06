@@ -3,13 +3,13 @@
 /* BSD-style license that can be found in the LICENSE file. */
 
 .splitter {
-	
+
 }
 
 .splitter[horizontal] {
-	width: auto;
-	height: 24px;
-	cursor: row-resize;
+  width: auto;
+  height: 24px;
+  cursor: row-resize;
 }
 
 .splitter[vertical] {
