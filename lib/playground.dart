@@ -69,6 +69,8 @@ class Playground {
       if (!isMobile()) _context.focus();
     });
 
+    /*DSplitter splitter = new DSplitter(querySelector('#vert_split'));*/
+
     _initModules().then((_) {
       _initPlayground();
     });
