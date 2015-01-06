@@ -1,0 +1,22 @@
+/* Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
+
+.splitter {
+	
+}
+
+.splitter[horizontal] {
+	width: auto;
+	height: 24px;
+	cursor: row-resize;
+}
+
+.splitter[vertical] {
+  width: 24px;
+  height: auto;
+
+  /*box-shadow: rgba(255, 255, 255, 0.07) 1px 0 0 inset;
+  border-left: 1px solid #121212;*/
+  cursor: col-resize;
+}

@@ -1,8 +1,12 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 library dartpad_ui.elements;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:math' as math;
 
 class DElement {
   final Element element;
@@ -29,6 +33,7 @@ class DElement {
       try {
         element.parent.children.remove(element);
       } catch (e) {
+        // TODO:
         print('foo');
       }
     }
@@ -46,7 +51,15 @@ class DButton extends DElement {
   set disabled(bool value) => belement.disabled = value;
 }
 
+// TODO: get the position
+// TODO: set the position
+// TODO: fire events for position change
 class DSplitter extends DElement {
+  Point _offset = new Point(0, 0);
+
+  StreamSubscription _moveSub;
+  StreamSubscription _upSub;
+
   DSplitter(Element element) : super(element) {
     _init();
   }
@@ -75,11 +88,59 @@ class DSplitter extends DElement {
 
   void _init() {
     element.classes.toggle('splitter', true);
-    if (!horizontal && !vertical) {
-      horizontal = true;
+    if (!horizontal && !vertical) horizontal = true;
+
+    element.onMouseDown.listen((e) {
+      e.preventDefault();
+      _offset = e.screen;
+      num initialTargetSize = _targetSize;
+
+      _moveSub = document.onMouseMove.listen(
+          (e) => _handleDrag(e.screen - _offset, initialTargetSize));
+      _upSub = document.onMouseUp.listen((e) {
+        if (_moveSub != null) _moveSub.cancel();
+        if (_upSub != null) _upSub.cancel();
+      });
+    });
+  }
+
+  void _handleDrag(Point point, num initialTargetSize) {
+    if (horizontal) {
+      _targetSize = initialTargetSize + point.y;
+    } else {
+      _targetSize = initialTargetSize + point.x;
     }
+  }
 
-    // TODO:
+  Element get _target {
+    List children = element.parent.children;
+    return children[children.indexOf(element) - 1];
+  }
 
+  num get _targetSize {
+    CssStyleDeclaration style = _target.getComputedStyle();
+    String str = vertical ? style.height : style.width;
+    if (str.endsWith('px')) str = str.substring(0, str.length - 2);
+    return num.parse(str);
+  }
+
+  num _minSize(Element e) {
+    CssStyleDeclaration style = e.style;
+    String str = vertical ? style.minWidth : style.minHeight;
+    if (str.isEmpty) return 0;
+    if (str.endsWith('px')) str = str.substring(0, str.length - 2);
+    return num.parse(str);
+  }
+
+  set _targetSize(num size) {
+    num min = _minSize(_target);
+    print(min);
+    size = math.max(size, _minSize(_target));
+
+    if (horizontal) {
+      _target.style.height = '${size}px';
+    } else {
+      _target.style.width = '${size}px';
+    }
   }
 }
