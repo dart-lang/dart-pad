@@ -71,7 +71,7 @@ class AceFactory extends EditorFactory {
     editor.showFoldWidgets = false;
 
     if (options == null) {
-      options = {'enableBasicAutocompletion': true, 'showLineNumbers': false};
+      options = {'enableBasicAutocompletion': false, 'showLineNumbers': false};
     }
 
     editor.setOptions(options);

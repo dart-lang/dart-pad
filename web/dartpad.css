@@ -1,9 +1,12 @@
+/* Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file */
+/* for details. All rights reserved. Use of this source code is governed by a */
+/* BSD-style license that can be found in the LICENSE file. */
 
 body {
   margin: 0;
   padding: 0;
 
-  background: #333;
+  background-color: #333;
   color: #c6c6c6;
 
   top: 0;
@@ -53,6 +56,7 @@ footer {
 
 .view {
   margin: 0 24px;
+  min-width: 200px;
 }
 
 .noleft {
