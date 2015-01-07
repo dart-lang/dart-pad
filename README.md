@@ -15,11 +15,11 @@ Pre-alpha! Definitely still a work in progress.
 ## Issues and bugs
 
 Please file reports on the
-[GitHub Issue Tracker](https://github.com/google/dartpad_ui/issues).
+[GitHub Issue Tracker](https://github.com/dart-lang/dartpad_ui/issues).
 
 ## License and Contributing
 
 Contributions welcome! Please read this short
-[guide](https://github.com/google/dartpad_ui/wiki/Contributing) first.
+[guide](https://github.com/dart-lang/dartpad_ui/wiki/Contributing) first.
 
 [LICENSE]
