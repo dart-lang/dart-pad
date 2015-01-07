@@ -28,11 +28,11 @@ The [dartpad_ui](https://github.com/dart-lang/dartpad_ui) repo.
 ## Issues and bugs
 
 Please file reports on the
-[GitHub Issue Tracker](https://github.com/google/dartpad_server/issues).
+[GitHub Issue Tracker](https://github.com/dart-lang/dartpad_server/issues).
 
 ## License and Contributing
 
 Contributions welcome! Please read this short
-[guide](https://github.com/google/dartpad_server/wiki/Contributing) first.
+[guide](https://github.com/dart-lang/dartpad_server/wiki/Contributing) first.
 
-[LICENSE]
+[LICENSE](https://github.com/dart-lang/dartpad_server/blob/master/LICENSE)
