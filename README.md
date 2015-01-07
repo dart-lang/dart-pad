@@ -34,4 +34,4 @@ Please file reports on the
 
 Contributions welcome! Please read this short
 [guide](https://github.com/dart-lang/dartpad_server/wiki/Contributing) first. You can view
-out license [here](https://github.com/dart-lang/dartpad_server/blob/master/LICENSE).
+our license [here](https://github.com/dart-lang/dartpad_server/blob/master/LICENSE).
