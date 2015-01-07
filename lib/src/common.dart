@@ -19,6 +19,13 @@ void main() {
 }
 """;
 
+
+final String sampleCodeErrors = """
+void main() {
+  print("hello")
+}
+""";
+
 class Lines {
   List<int> _starts = [];
 

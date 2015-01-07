@@ -5,7 +5,11 @@
 library dartpad_server.all_test;
 
 import 'src/analyzer_test.dart' as analyzer_test;
+import 'src/common_test.dart' as common_test;
+import 'src/compiler_test.dart' as compiler_test;
 
 void main() {
   analyzer_test.defineTests();
+  common_test.defineTests();
+  compiler_test.defineTests();
 }
