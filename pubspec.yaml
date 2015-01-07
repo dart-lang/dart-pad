@@ -1,9 +1,14 @@
 name: dartpad_ui
-description: An experimental repo for a web based interactive Dart tutorial
+version: 0.0.1
+description: The UI client for a web based interactive Dart service.
+
+author: Dart Team <misc@dartlang.org>
+homepage: https://github.com/dart-lang/dartpad_ui
+environment:
+  sdk: '>=1.0.0 <2.0.0'
 
 dependencies:
   ace: '>=0.5.10 <0.6.0'
-  bootstrap: any
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
   script_inliner: '>=1.0.0 <2.0.0'
