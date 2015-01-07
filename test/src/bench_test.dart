@@ -1,0 +1,41 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+library dartpad_server.bench_test;
+
+import 'dart:async';
+
+import 'package:dartpad_server/src/bench.dart';
+import 'package:unittest/unittest.dart';
+
+void defineTests() {
+  group('BenchmarkHarness', () {
+    test('single', () {
+      BenchmarkHarness harness = new BenchmarkHarness();
+      MockBenchmark benchmark = new MockBenchmark();
+
+      return harness.benchmarkSingle(benchmark).then((BenchMarkResult result) {
+        expect(result.iteration, greaterThan(1));
+        expect(result.microseconds, greaterThan(1));
+        expect(benchmark.count, greaterThan(80));
+      });
+    });
+
+    test('many', () {
+      // TODO:
+
+    });
+  });
+}
+
+class MockBenchmark extends Benchmark {
+  int count = 0;
+
+  MockBenchmark() : super('mock');
+
+  Future perform() {
+    count++;
+    return new Future.delayed(new Duration(milliseconds: 10));
+  }
+}
