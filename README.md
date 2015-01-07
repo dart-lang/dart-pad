@@ -1,6 +1,6 @@
 # dartpad_server
 
-The server backend for a web based interactive Dart service.
+The pre-alpha server backend for a web based interactive Dart service.
 
 ## What is it? What does it do?
 
@@ -11,6 +11,8 @@ The API provides services to:
 - analyze Dart code (for errors and warnings)
 - perform code completion for a snippet of Dart code
 - get dartdoc tooltip information for a snippet of Dart code
+
+It is currently in a pre-alpha state, partially complete and very much under active development.
 
 ## Running
 
