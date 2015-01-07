@@ -25,7 +25,7 @@ main() {
 
 // Computes primes less than [n] using the Sieve of Eratosthenes.
 primesLessThan(n) {
-  var l = new List.generate(n, (i) => i);
+  var l = new List.generate(n, (i) =&gt; i);
   for (int i = 2; i * i < n; i++)
       if (l[i] != null)
           for (int j = i * i; j < n; j += i)

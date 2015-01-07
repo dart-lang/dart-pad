@@ -37,8 +37,9 @@ void main(List<String> args) {
 
   Directory sdkDir = grinder.getSdkDir(args);
   if (sdkDir == null) {
-    stdout.writeln("Could not locate the SDK; please start the server with the "
-        "'--dart-sdk' option.");
+    stdout.writeln(
+        "Could not locate the SDK; "
+        "please start the server with the '--dart-sdk' option.");
     exit(1);
   }
 

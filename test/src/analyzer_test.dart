@@ -5,13 +5,53 @@
 library dartpad_server.analyzer_test;
 
 import 'package:dartpad_server/src/analyzer.dart';
+import 'package:dartpad_server/src/common.dart';
+import 'package:grinder/grinder.dart' as grinder;
 import 'package:unittest/unittest.dart';
 
-// TODO: analyze
-// TODO: dartdoc
+String sdkPath = grinder.getSdkDir().path;
 
 void defineTests() {
-  group('analyzer.cleanDartDoc', () {
+  Analyzer analyzer;
+
+  group('analyzer.analyze', () {
+    setUp(() {
+      analyzer = new Analyzer(sdkPath);
+    });
+
+    test('simple', () {
+      return analyzer.analyze(sampleCode).then((AnalysisResults results) {
+        expect(results.issues, isEmpty);
+      });
+    });
+
+    test('simple', () {
+      return analyzer.analyze(sampleCodeWeb).then((AnalysisResults results) {
+        expect(results.issues, isEmpty);
+      });
+    });
+
+    test('errors', () {
+      return analyzer.analyze(sampleCodeErrors).then((AnalysisResults results) {
+        expect(results.issues.length, 1);
+      });
+    });
+  });
+
+  group('analyzer.dartdoc', () {
+    setUp(() {
+      analyzer = new Analyzer(sdkPath);
+    });
+
+    test('simple', () {
+      return analyzer.dartdoc(sampleCode, 17).then((Map m) {
+        expect(m['name'], 'print');
+        expect(m['dartdoc'], isNotEmpty);
+      });
+    });
+  });
+
+  group('cleanDartDoc', () {
     test('null', () {
       expect(cleanDartDoc(null), null);
     });
