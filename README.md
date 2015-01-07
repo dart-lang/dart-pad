@@ -12,7 +12,9 @@ The API provides services to:
 - perform code completion for a snippet of Dart code
 - get dartdoc tooltip information for a snippet of Dart code
 
-It is currently in a pre-alpha state, partially complete and very much under active development.
+## Project status
+
+It is currently in a pre-alpha state, partially complete, and very much under active development.
 
 ## Running
 
