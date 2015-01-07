@@ -1,6 +1,16 @@
 # dartpad_server
 
-An experimental repo for a web based interactive Dart tutorial.
+The server backend for a web based interactive Dart service.
+
+## What is it? What does it do?
+
+This project is a small, stateless Dart server, which exposes a RESTful API.
+The API provides services to:
+
+- compile Dart code
+- analyze Dart code (for errors and warnings)
+- perform code completion for a snippet of Dart code
+- get dartdoc tooltip information for a snippet of Dart code
 
 ## Running
 
@@ -8,4 +18,21 @@ To run the server, run:
 
     dart bin/dartpad_server.dart --port 8082
 
-The server will run from port 8082 and export /api/compile and /api/analyze JSON APIs.
+The server will run from port 8082 and export /api/compile and /api/analyze JSON
+APIs.
+
+## See also
+
+The [dartpad_ui](https://github.com/dart-lang/dartpad_ui) repo.
+
+## Issues and bugs
+
+Please file reports on the
+[GitHub Issue Tracker](https://github.com/google/dartpad_server/issues).
+
+## License and Contributing
+
+Contributions welcome! Please read this short
+[guide](https://github.com/google/dartpad_server/wiki/Contributing) first.
+
+[LICENSE]
