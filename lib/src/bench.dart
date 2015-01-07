@@ -10,8 +10,6 @@ library dartpad_server.bench;
 
 import 'dart:async';
 
-// TODO: add tests
-
 // TODO: refactor into a benchmark model, runner, and reporter
 
 // TODO: add in mean, % error

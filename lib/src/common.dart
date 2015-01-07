@@ -19,7 +19,6 @@ void main() {
 }
 """;
 
-
 final String sampleCodeErrors = """
 void main() {
   print("hello")
