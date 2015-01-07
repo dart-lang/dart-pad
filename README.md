@@ -22,4 +22,4 @@ Please file reports on the
 Contributions welcome! Please read this short
 [guide](https://github.com/dart-lang/dartpad_ui/wiki/Contributing) first.
 
-[LICENSE]
+[LICENSE](https://github.com/dart-lang/dartpad_ui/blob/master/LICENSE)
