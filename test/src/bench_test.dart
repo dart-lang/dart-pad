@@ -23,8 +23,13 @@ void defineTests() {
     });
 
     test('many', () {
-      // TODO:
+      BenchmarkHarness harness = new BenchmarkHarness();
+      List<MockBenchmark> benchmarks = [new MockBenchmark(), new MockBenchmark()];
 
+      return harness.benchmark(benchmarks).then((_) {
+        expect(benchmarks[0].count, greaterThan(80));
+        expect(benchmarks[1].count, greaterThan(80));
+      });
     });
   });
 }
