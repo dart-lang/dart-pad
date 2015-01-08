@@ -168,7 +168,8 @@ Dartpad server.
 
   Future<Response> handleCompletePost(Request request) {
     return request.readAsString().then((String data) {
-      return commonServer.handleComplete(data).then(_convertResponse);
+      String contentType = request.headers[HttpHeaders.CONTENT_TYPE];
+      return commonServer.handleComplete(data, contentType).then(_convertResponse);
     });
   }
 

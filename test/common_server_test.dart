@@ -25,7 +25,8 @@ void defineTests() {
     });
 
     test('handleComplete', () {
-      String json = JSON.encode({'source': 'void main() {print("foo");}', 'offset': 1});
+      String json = JSON.encode(
+          {'source': 'void main() {print("foo");}', 'offset': 1});
       return server.handleComplete(json).then((ServerResponse response) {
         expect(response.statusCode, 501);
       });
@@ -38,7 +39,15 @@ void defineTests() {
     });
 
     test('handleComplete param missing', () {
-      String json = JSON.encode({'offset': 1});
+      return server.handleComplete('offset=1', 'application/x-www-form-urlencoded')
+          .then((ServerResponse response) {
+        expect(response.statusCode, 400);
+        expect(response.toString(), '[response 400]');
+      });
+    });
+
+    test('handleComplete param missing 2', () {
+      String json = JSON.encode({'source': 'void main() {print("foo");}'});
       return server.handleComplete(json).then((ServerResponse response) {
         expect(response.statusCode, 400);
       });

@@ -49,27 +49,69 @@ class CommonServer {
     compiler = new Compiler(sdkPath);
   }
 
-  Future<ServerResponse> handleComplete(String data) {
-    if (data.isEmpty) {
-      return new Future.value(
-          new ServerResponse.badRequest("No JSON data received"));
-    }
+  Future<ServerResponse> handleComplete(String data, [String contentType]) {
+    _RequestInput input;
 
-    Map m = JSON.decode(data);
-
-    String source = m['source'];
-    if (source == null) {
-      return new Future.value(
-          new ServerResponse.badRequest("'source' parameter missing"));
-    }
-
-    int offset = m['offset'];
-    if (offset == null) {
-      return new Future.value(
-          new ServerResponse.badRequest("'offset' parameter missing"));
+    try {
+      input = _parseRequest(data, contentType, true);
+    } catch (e) {
+      return new Future.value(new ServerResponse.badRequest('${e}'));
     }
 
     return new Future.value(
         new ServerResponse.notImplemented('Unimplemented: /api/complete'));
   }
+}
+
+_RequestInput _parseRequest(String data, [String contentType, bool requiresOffset = false]) {
+  // This could be a plain text post of source code.
+  // It could be marked as plain text, but be json encoded.
+  // It could be a json post, with source and offset fields.
+  // Or it could be application/x-www-form-urlencoded encoded.
+
+  if (data == null || data.isEmpty) {
+    throw "No data received";
+  }
+
+  if (contentType == null) {
+    contentType = 'application/json';
+  }
+  if (contentType.contains(';')) {
+    contentType = contentType.substring(contentType.indexOf(';'));
+  }
+  if (contentType == 'text/plain' && (data.startsWith('{"') || data.startsWith("{'"))) {
+    contentType = 'application/json';
+  }
+
+  String source;
+  int offset;
+
+  if (contentType == 'text/plain') {
+    source = data;
+  } else if (contentType == 'application/json') {
+    Map m = JSON.decode(data);
+    source = m['source'];
+    offset = m['offset'];
+  } else if (contentType == 'application/x-www-form-urlencoded') {
+    Map m = Uri.splitQueryString(data);
+    source = m['source'];
+    if (m.containsKey('offset')) {
+      offset = int.parse(m['offset'], onError: (str) => null);
+    }
+  } else {
+    // Hmm, an unknown content type.
+    source = data;
+  }
+
+  if (source == null) throw "'source' parameter missing";
+  if (offset == null && requiresOffset) throw "'offset' parameter missing";
+
+  return new _RequestInput(source, offset);
+}
+
+class _RequestInput {
+  final String source;
+  final int offset;
+
+  _RequestInput(this.source, [this.offset]);
 }
