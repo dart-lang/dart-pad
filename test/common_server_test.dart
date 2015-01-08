@@ -7,6 +7,7 @@ library dartpad_server.common_server_test;
 import 'dart:async';
 import 'dart:convert' show JSON;
 
+import 'package:dartpad_server/src/common.dart';
 import 'package:dartpad_server/src/common_server.dart';
 import 'package:grinder/grinder.dart' as grinder;
 import 'package:unittest/unittest.dart';
@@ -24,7 +25,32 @@ void defineTests() {
       }
     });
 
-    test('handleComplete', () {
+    test('analyze', () {
+      String json = JSON.encode({'source': sampleCode});
+      return server.handleAnalyze(json).then((ServerResponse response) {
+        expect(response.statusCode, 200);
+        expect(response.data, '[]');
+      });
+    });
+
+    test('analyze errors', () {
+      String json = JSON.encode({'source': sampleCodeErrors});
+      return server.handleAnalyze(json).then((ServerResponse response) {
+        expect(response.statusCode, 200);
+        expect(response.data, '[{"kind":"error","line":2,"message":'
+            '"Expected to find \';\'","charStart":29,"charLength":1}]');
+      });
+    });
+
+    test('compile', () {
+      String json = JSON.encode({'source': sampleCode});
+      return server.handleCompile(json).then((ServerResponse response) {
+        expect(response.statusCode, 200);
+        expect(response.data, isNotEmpty);
+      });
+    });
+
+    test('complete', () {
       String json = JSON.encode(
           {'source': 'void main() {print("foo");}', 'offset': 1});
       return server.handleComplete(json, 'application/json; utf8')
@@ -33,13 +59,13 @@ void defineTests() {
       });
     });
 
-    test('handleComplete no data', () {
+    test('complete no data', () {
       return server.handleComplete('').then((ServerResponse response) {
         expect(response.statusCode, 400);
       });
     });
 
-    test('handleComplete param missing', () {
+    test('complete param missing', () {
       return server.handleComplete('offset=1', 'application/x-www-form-urlencoded')
           .then((ServerResponse response) {
         expect(response.statusCode, 400);
@@ -47,10 +73,37 @@ void defineTests() {
       });
     });
 
-    test('handleComplete param missing 2', () {
+    test('complete param missing 2', () {
       String json = JSON.encode({'source': 'void main() {print("foo");}'});
       return server.handleComplete(json).then((ServerResponse response) {
         expect(response.statusCode, 400);
+      });
+    });
+
+    test('document', () {
+      String json = JSON.encode(
+          {'source': 'void main() {print("foo");}', 'offset': 17});
+      return server.handleDocument(json).then((ServerResponse response) {
+        expect(response.statusCode, 200);
+        expect(response.data, isNotEmpty);
+      });
+    });
+
+    test('document little data', () {
+      String json = JSON.encode(
+          {'source': 'void main() {print("foo");}', 'offset': 2});
+      return server.handleDocument(json).then((ServerResponse response) {
+        expect(response.statusCode, 200);
+        expect(response.data, '{"staticType":"void"}');
+      });
+    });
+
+    test('document no data', () {
+      String json = JSON.encode(
+          {'source': 'void main() {print("foo");}', 'offset': 12});
+      return server.handleDocument(json).then((ServerResponse response) {
+        expect(response.statusCode, 200);
+        expect(response.data, '{}');
       });
     });
   });
@@ -60,6 +113,9 @@ class MockLogger implements ServerLogger {
   StringBuffer builder = new StringBuffer();
 
   void info(String message) => builder.write('${message}\n');
+  void warn(String message) => builder.write('${message}\n');
+  void error(String message) => builder.write('${message}\n');
+
   void clear() => builder.clear();
   String getLog() => builder.toString();
 }
