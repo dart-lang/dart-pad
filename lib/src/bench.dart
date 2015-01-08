@@ -54,16 +54,20 @@ class BenchmarkHarness {
   }
 
   Future<BenchMarkResult> _measure(Benchmark benchmark) {
-    return _time(benchmark, 10, 2000);
+    return _time(benchmark, 10, 2000, 10000);
   }
 
   Future<BenchMarkResult> _time(Benchmark benchmark,
-      int minIterations, int minMillis) {
+      int minIterations, int minMillis, [int maxMillis]) {
     BenchMarkResult result = new BenchMarkResult(benchmark);
     Stopwatch timer = new Stopwatch()..start();
 
     return Future.doWhile(() {
       if (result.iteration >= minIterations && timer.elapsedMilliseconds >= minMillis) {
+        return false;
+      }
+
+      if (maxMillis != null && timer.elapsedMilliseconds >= maxMillis) {
         return false;
       }
 
