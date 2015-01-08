@@ -27,7 +27,8 @@ void defineTests() {
     test('handleComplete', () {
       String json = JSON.encode(
           {'source': 'void main() {print("foo");}', 'offset': 1});
-      return server.handleComplete(json).then((ServerResponse response) {
+      return server.handleComplete(json, 'application/json; utf8')
+          .then((ServerResponse response) {
         expect(response.statusCode, 501);
       });
     });
