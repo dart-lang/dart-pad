@@ -16,9 +16,9 @@ import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart';
 
 import 'src/analyzer.dart';
+import 'src/common_server.dart';
 import 'src/compiler.dart';
 
-const Map _textHtmlHeader = const {HttpHeaders.CONTENT_TYPE: 'text/html'};
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
 const Map _jsonHeader = const {HttpHeaders.CONTENT_TYPE: 'application/json'};
 
@@ -68,10 +68,14 @@ class DartpadServer {
   Router routes;
   Handler handler;
 
+  CommonServer commonServer;
+
   Analyzer analyzer;
   Compiler compiler;
 
   DartpadServer._(String sdkPath, this.port) {
+    commonServer = new CommonServer(sdkPath, new _Logger(), new _Cache());
+
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath);
 
@@ -163,21 +167,8 @@ Dartpad server.
   }
 
   Future<Response> handleCompletePost(Request request) {
-    return request.readAsString().then((String json) {
-      if (json.isEmpty) {
-        return new Future.value(new Response(
-            HttpStatus.BAD_REQUEST, body: "No source received"));
-      }
-
-      // TODO: Add error handling.
-      Map m = JSON.decode(json);
-      String source = m['source'];
-      int offset = m['offset'];
-
-      // TODO: implement
-      String errorText = 'Unimplemented: /api/complete';
-      return new Response(
-          HttpStatus.NOT_IMPLEMENTED, body: errorText);
+    return request.readAsString().then((String data) {
+      return commonServer.handleComplete(data).then(_convertResponse);
     });
   }
 
@@ -211,6 +202,19 @@ Dartpad server.
     return '[${problem.kind}, line ${problem.line}] ${problem.message}';
   }
 
+  Response _convertResponse(ServerResponse response) {
+    if (response.mimeType != null) {
+      return new Response(
+          response.statusCode,
+          headers: { HttpHeaders.CONTENT_TYPE: response.mimeType },
+          body: response.data);
+    } else {
+      return new Response(
+          response.statusCode,
+          body: response.data);
+    }
+  }
+
   Middleware _createCorsMiddleware() {
     Map _corsHeader = {
       'Access-Control-Allow-Origin': '*',
@@ -224,4 +228,15 @@ Dartpad server.
 
     return createMiddleware(requestHandler: _options, responseHandler: _cors);
   }
+}
+
+class _Logger implements ServerLogger {
+  void info(String message) => _logger.info(message);
+}
+
+class _Cache implements ServerCache {
+  Future<String> get(String key) => new Future.value(null);
+  Future set(String key, String value, {Duration expiration}) =>
+      new Future.value();
+  Future remove(String key) => new Future.value();
 }
