@@ -3,6 +3,7 @@
 The pre-alpha server backend for a web based interactive Dart service.
 
 [![Build Status](https://travis-ci.org/dart-lang/dartpad_server.svg)](https://travis-ci.org/dart-lang/dartpad_server)
+[![Coverage Status](https://img.shields.io/coveralls/dart-lang/dartpad_server.svg)](https://coveralls.io/r/dart-lang/dartpad_server)
 
 ## What is it? What does it do?
 
