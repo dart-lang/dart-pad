@@ -13,19 +13,84 @@ import 'package:crypto/crypto.dart';
 import 'package:memcache/memcache.dart';
 
 import 'src/analyzer.dart';
+import 'src/common_server.dart';
 import 'src/compiler.dart';
 
 Logging get logging => context.services.logging;
 Memcache get memcache => context.services.memcache;
 
-var sdkPath = '/usr/lib/dart';
-Analyzer analyzer = new Analyzer(sdkPath);
-Compiler compiler = new Compiler(sdkPath);
+// TODO: remove
+Analyzer analyzer = new Analyzer('/usr/lib/dart');
+Compiler compiler = new Compiler('/usr/lib/dart');
 
-main() {
-  runAppEngine((io.HttpRequest request) {
-    requestHandler(request);
-  });
+void main() {
+  GaeServer server = new GaeServer('/usr/lib/dart');
+  server.start();
+}
+
+class GaeServer {
+  final String sdkPath;
+
+  CommonServer commonServer;
+
+  GaeServer(this.sdkPath) {
+    commonServer = new CommonServer(sdkPath, new GaeLogger(), new GaeCache());
+  }
+
+  Future start() => runAppEngine(requestHandler);
+
+  void requestHandler(io.HttpRequest request) {
+    request.response.headers.add('Access-Control-Allow-Origin', '*');
+    request.response.headers.add('Access-Control-Allow-Credentials', 'true');
+
+    if (request.uri.path == '/api/analyze') {
+      handleAnalyzePost(request);
+    } else if (request.uri.path == '/api/compile') {
+      handleCompilePost(request);
+    } else if (request.uri.path == '/api/complete') {
+      handleCompletePost(request);
+    } else if (request.uri.path == '/api/document') {
+      handleDocumentPost(request);
+    } else {
+      request.response.statusCode = io.HttpStatus.NOT_FOUND;
+      request.response.close();
+    }
+  }
+
+  void handleCompletePost(io.HttpRequest request) {
+    _getRequestData(request).then((String data) {
+      commonServer.handleComplete(data).then((ServerResponse response) {
+        _sendResponse(request, response);
+      });
+    });
+  }
+
+  void _sendResponse(io.HttpRequest request, ServerResponse response) {
+    request.response.statusCode = response.statusCode;
+    if (response.mimeType != null) {
+      request.response.headers.set(io.HttpHeaders.CONTENT_TYPE, response.mimeType);
+    }
+    request.response.write(response.data);
+    request.response.close();
+  }
+}
+
+class GaeLogger implements ServerLogger {
+  Logging get _logging => context.services.logging;
+
+  void info(String message) => _logging.info(message);
+}
+
+class GaeCache implements ServerCache {
+  Memcache get _memcache => context.services.memcache;
+
+  Future<String> get(String key) => _memcache.get(key);
+
+  Future set(String key, String value, {Duration expiration}) {
+    return _memcache.set(key, value, expiration: expiration);
+  }
+
+  Future remove(String key) => _memcache.remove(key);
 }
 
 Future<String> checkCache(String query) {
@@ -34,24 +99,6 @@ Future<String> checkCache(String query) {
 
 setCache(String query, String result) {
   return memcache.set(query, result);
-}
-
-void requestHandler(io.HttpRequest request) {
-  request.response.headers.add('Access-Control-Allow-Origin', '*');
-  request.response.headers.add('Access-Control-Allow-Credentials', 'true');
-
-  if (request.uri.path == '/api/analyze') {
-    handleAnalyzePost(request);
-  } else if (request.uri.path == '/api/compile') {
-    handleCompilePost(request);
-  } else if (request.uri.path == '/api/complete') {
-    handleCompletePost(request);
-  } else if (request.uri.path == '/api/document') {
-    handleDocumentPost(request);
-  } else {
-    request.response.statusCode = io.HttpStatus.NOT_FOUND;
-    request.response.close();
-  }
 }
 
 handleAnalyzePost(io.HttpRequest request) {
@@ -87,13 +134,6 @@ handleAnalyzePost(io.HttpRequest request) {
       request.response.close();
     }
   });
-}
-
-handleCompletePost(io.HttpRequest request) {
-  // TODO: implement
-  request.response.statusCode = io.HttpStatus.NOT_IMPLEMENTED;
-  request.response.writeln('Unimplemented: /api/complete');
-  request.response.close();
 }
 
 handleDocumentPost(io.HttpRequest request) {
@@ -179,6 +219,19 @@ handleCompilePost(io.HttpRequest request) {
       }
     });
   });
+}
+
+Future<String> _getRequestData(io.HttpRequest request) {
+  Completer<String> completer = new Completer();
+  io.BytesBuilder builder = new io.BytesBuilder();
+
+  request.listen((buffer) {
+    builder.add(buffer);
+  }, onDone: () {
+    completer.complete(UTF8.decode(builder.toBytes()));
+  });
+
+  return completer.future;
 }
 
 String _printProblem(CompilationProblem problem) =>

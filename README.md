@@ -25,8 +25,8 @@ To run the server, run:
 
     dart bin/dartpad_server.dart --port 8082
 
-The server will run from port 8082 and export several JSON APIs, like `/api/compile`
-and `/api/analyze`.
+The server will run from port 8082 and export several JSON APIs, like
+`/api/compile` and `/api/analyze`.
 
 ## See also
 
@@ -40,5 +40,6 @@ Please file reports on the
 ## License and Contributing
 
 Contributions welcome! Please read this short
-[guide](https://github.com/dart-lang/dartpad_server/wiki/Contributing) first. You can view
-our license [here](https://github.com/dart-lang/dartpad_server/blob/master/LICENSE).
+[guide](https://github.com/dart-lang/dartpad_server/wiki/Contributing) first.
+You can view our license
+[here](https://github.com/dart-lang/dartpad_server/blob/master/LICENSE).
