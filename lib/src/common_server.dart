@@ -94,7 +94,6 @@ class CommonServer {
     }
   }
 
-  // TODO: test
   Future<ServerResponse> handleCompile(String data, [String contentType]) {
     _RequestInput input;
 
@@ -152,7 +151,6 @@ class CommonServer {
         new ServerResponse.notImplemented('Unimplemented: /api/complete'));
   }
 
-  // TODO: test
   Future<ServerResponse> handleDocument(String data, [String contentType]) {
     _RequestInput input;
 
