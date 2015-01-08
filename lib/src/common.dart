@@ -19,9 +19,17 @@ void main() {
 }
 """;
 
-final String sampleCodeErrors = """
+final String sampleCodeError = """
 void main() {
   print("hello")
+}
+""";
+
+final String sampleCodeErrors = """
+void main() {
+  print1("hello");
+  print2("hello");
+  print3("hello");
 }
 """;
 

@@ -32,8 +32,14 @@ void defineTests() {
     });
 
     test('errors', () {
-      return compiler.compile(sampleCodeErrors).then((CompilationResults result) {
+      return compiler.compile(sampleCodeError).then((CompilationResults result) {
         expect(result.success, false);
+      });
+    });
+
+    test('errors many', () {
+      return compiler.compile(sampleCodeErrors).then((CompilationResults result) {
+        expect(result.problems.length, 3);
       });
     });
   });

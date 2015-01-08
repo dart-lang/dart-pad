@@ -34,7 +34,7 @@ void defineTests() {
     });
 
     test('analyze errors', () {
-      String json = JSON.encode({'source': sampleCodeErrors});
+      String json = JSON.encode({'source': sampleCodeError});
       return server.handleAnalyze(json).then((ServerResponse response) {
         expect(response.statusCode, 200);
         expect(response.data, '[{"kind":"error","line":2,"message":'

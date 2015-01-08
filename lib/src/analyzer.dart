@@ -79,6 +79,8 @@ class Analyzer {
             charStart: error.offset, charLength: error.length);
       }).toList();
 
+      issues.sort();
+
       return new Future.value(new AnalysisResults(issues));
     } catch (e, st) {
       return new Future.error(e, st);
@@ -173,7 +175,7 @@ class AnalysisResults {
   AnalysisResults(this.issues);
 }
 
-class AnalysisIssue {
+class AnalysisIssue implements Comparable {
   final String kind;
   final int line;
   final String message;
@@ -191,6 +193,8 @@ class AnalysisIssue {
     if (charLength != null) m['charLength'] = charLength;
     return m;
   }
+
+  int compareTo(AnalysisIssue other) => line - other.line;
 }
 
 /// An implementation of [Source] that is based on an in-memory string.
@@ -249,7 +253,7 @@ class _Logger extends engine.Logger {
   void logInformation2(String message, dynamic exception) { }
 }
 
-class _Error implements Comparable {
+class _Error {
   final AnalysisError error;
   final LineInfo lineInfo;
 
@@ -266,15 +270,6 @@ class _Error implements Comparable {
   int get length => error.length;
 
   String get location => error.source.fullName;
-
-  int compareTo(_Error other) {
-    if (severity == other.severity) {
-      int cmp = error.source.fullName.compareTo(other.error.source.fullName);
-      return cmp == 0 ? line - other.line : cmp;
-    } else {
-      return other.severity - severity;
-    }
-  }
 
   String toString() => '[${severityName}] ${description}';
 }

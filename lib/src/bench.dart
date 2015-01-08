@@ -90,7 +90,7 @@ class BenchMarkResult {
 
   double _averageMilliseconds() => (microseconds / iteration) / 1000.0;
 
-  double _averageMicroseconds() => microseconds / iteration;
+  //double _averageMicroseconds() => microseconds / iteration;
 
   String toString() => '[${benchmark.name.padRight(20)}: '
       '${_averageMilliseconds().toStringAsFixed(3).padLeft(8)}ms]';

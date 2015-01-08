@@ -32,8 +32,14 @@ void defineTests() {
     });
 
     test('errors', () {
-      return analyzer.analyze(sampleCodeErrors).then((AnalysisResults results) {
+      return analyzer.analyze(sampleCodeError).then((AnalysisResults results) {
         expect(results.issues.length, 1);
+      });
+    });
+
+    test('errors many', () {
+      return analyzer.analyze(sampleCodeErrors).then((AnalysisResults results) {
+        expect(results.issues.length, 3);
       });
     });
   });

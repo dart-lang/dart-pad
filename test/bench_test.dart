@@ -19,6 +19,7 @@ void defineTests() {
         expect(result.iteration, greaterThan(1));
         expect(result.microseconds, greaterThan(1));
         expect(benchmark.count, greaterThan(80));
+        expect(benchmark.toString(), 'mock');
       });
     });
 
