@@ -59,7 +59,8 @@ class GaeServer {
 
   void handleCompletePost(io.HttpRequest request) {
     _getRequestData(request).then((String data) {
-      commonServer.handleComplete(data).then((ServerResponse response) {
+      String contentType = request.headers.value(io.HttpHeaders.CONTENT_TYPE);
+      commonServer.handleComplete(data, contentType).then((ServerResponse response) {
         _sendResponse(request, response);
       });
     });
