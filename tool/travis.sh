@@ -25,7 +25,7 @@ pub get
 dartanalyzer --fatal-warnings \
   lib/dartpad.dart \
   test/all.dart \
-  test/dartpad.dart
+  web/dartpad.dart
 
 # Run the tests.
 dart test/all.dart
