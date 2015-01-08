@@ -2,6 +2,8 @@
 
 The pre-alpha server backend for a web based interactive Dart service.
 
+[![Build Status](https://travis-ci.org/dart-lang/dartpad_server.svg)](https://travis-ci.org/dart-lang/dartpad_server)
+
 ## What is it? What does it do?
 
 This project is a small, stateless Dart server, which exposes a RESTful API.
