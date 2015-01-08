@@ -5,7 +5,6 @@
 library dartpad_server;
 
 import 'dart:async';
-import 'dart:convert' show JSON;
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -15,9 +14,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart';
 
-import 'src/analyzer.dart';
 import 'src/common_server.dart';
-import 'src/compiler.dart';
 
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
 const Map _jsonHeader = const {HttpHeaders.CONTENT_TYPE: 'application/json'};
@@ -70,14 +67,8 @@ class DartpadServer {
 
   CommonServer commonServer;
 
-  Analyzer analyzer;
-  Compiler compiler;
-
   DartpadServer._(String sdkPath, this.port) {
     commonServer = new CommonServer(sdkPath, new _Logger(), new _Cache());
-
-    analyzer = new Analyzer(sdkPath);
-    compiler = new Compiler(sdkPath);
 
     pipeline = new Pipeline()
       .addMiddleware(logRequests())
@@ -110,59 +101,16 @@ Dartpad server.
   }
 
   Future<Response> handleAnalyzePost(Request request) {
-    return request.readAsString().then((String source) {
-      if (source.isEmpty) {
-        return new Future.value(new Response(
-            HttpStatus.BAD_REQUEST, body: "No source received"));
-      }
-
-      Stopwatch watch = new Stopwatch()..start();
-
-      return analyzer.analyze(source).then((AnalysisResults results) {
-        List issues = results.issues.map((issue) => issue.toMap()).toList();
-        String json = JSON.encode(issues);
-
-        int lineCount = source.split('\n').length;
-        int ms = watch.elapsedMilliseconds;
-        _logger.info('Analyzed ${lineCount} lines of Dart in ${ms}ms.');
-
-        return new Response.ok(json, headers: _jsonHeader);
-      }).catchError((e, st) {
-        String errorText = 'Error during analysis: ${e}\n${st}';
-        return new Response(
-            HttpStatus.INTERNAL_SERVER_ERROR, body: errorText);
-      });
+    return request.readAsString().then((String data) {
+      String contentType = request.headers[HttpHeaders.CONTENT_TYPE];
+      return commonServer.handleAnalyze(data, contentType).then(_convertResponse);
     });
   }
 
   Future<Response> handleCompilePost(Request request) {
-    return request.readAsString().then((String source) {
-        if (source.isEmpty) {
-          return new Future.value(new Response(
-              HttpStatus.BAD_REQUEST, body: "No source received"));
-        }
-
-        Stopwatch watch = new Stopwatch()..start();
-
-        return compiler.compile(source).then((CompilationResults results) {
-          if (results.hasOutput) {
-            int lineCount = source.split('\n').length;
-            int outputSize = (results.getOutput().length + 512) ~/ 1024;
-            int ms = watch.elapsedMilliseconds;
-            _logger.info('Compiled ${lineCount} lines of Dart into '
-                '${outputSize}kb of JavaScript in ${ms}ms.');
-
-            return new Response.ok(results.getOutput(), headers: _textPlainHeader);
-          } else {
-            String errors = results.problems.map(_printProblem).join('\n');
-            return new Response(
-                HttpStatus.BAD_REQUEST, body: errors);
-          }
-        }).catchError((e, st) {
-          String errorText = 'Error during compile: ${e}\n${st}';
-          return new Response(
-              HttpStatus.INTERNAL_SERVER_ERROR, body: errorText);
-        });
+    return request.readAsString().then((String data) {
+      String contentType = request.headers[HttpHeaders.CONTENT_TYPE];
+      return commonServer.handleCompile(data, contentType).then(_convertResponse);
     });
   }
 
@@ -174,34 +122,12 @@ Dartpad server.
   }
 
   Future<Response> handleDocumentPost(Request request) {
-    return request.readAsString().then((String json) {
-      if (json.isEmpty) {
-        return new Future.value(new Response(
-            HttpStatus.BAD_REQUEST, body: "No source received"));
-      }
-
-      // TODO: Add error handling.
-      Map m = JSON.decode(json);
-      String source = m['source'];
-      int offset = m['offset'];
-
-      Stopwatch watch = new Stopwatch()..start();
-
-      return analyzer.dartdoc(source, offset).then((Map dartdoc) {
-        if (dartdoc == null) dartdoc = {};
-        _logger.info('Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-        return new Response.ok(JSON.encode(dartdoc), headers: _textPlainHeader);
-      }).catchError((e, st) {
-        String errorText = 'Error during analysis: ${e}\n${st}';
-        return new Response(
-            HttpStatus.INTERNAL_SERVER_ERROR, body: errorText);
-      });
+    return request.readAsString().then((String data) {
+      String contentType = request.headers[HttpHeaders.CONTENT_TYPE];
+      return commonServer.handleDocument(data, contentType).then(_convertResponse);
     });
   }
 
-  String _printProblem(CompilationProblem problem) {
-    return '[${problem.kind}, line ${problem.line}] ${problem.message}';
-  }
 
   Response _convertResponse(ServerResponse response) {
     if (response.mimeType != null) {
@@ -233,6 +159,8 @@ Dartpad server.
 
 class _Logger implements ServerLogger {
   void info(String message) => _logger.info(message);
+  void warn(String message) => _logger.warning(message);
+  void error(String message) => _logger.severe(message);
 }
 
 class _Cache implements ServerCache {
