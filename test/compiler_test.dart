@@ -34,6 +34,9 @@ void defineTests() {
     test('errors', () {
       return compiler.compile(sampleCodeError).then((CompilationResults result) {
         expect(result.success, false);
+        expect(result.problems.length, 1);
+        expect(result.problems[0].toString(),
+            startsWith("[error] Expected ';' after this"));
       });
     });
 

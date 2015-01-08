@@ -110,7 +110,7 @@ class CommonServer {
     return checkCache("%%COMPILE:$sourceHash").then((String result) {
       if (result != null) {
         log.info("CACHE: Cache hit for compile");
-        return new ServerResponse(HttpStatus.OK, result);
+        return new ServerResponse(HttpStatus.OK, result, _plain);
       } else {
         Stopwatch watch = new Stopwatch()..start();
 
@@ -124,7 +124,7 @@ class CommonServer {
                 '${outputSize}kb of JavaScript in ${ms}ms.');
             String out = results.getOutput();
             return setCache("%%COMPILE:$sourceHash", out).then((_) {
-              return new ServerResponse(HttpStatus.OK, out);
+              return new ServerResponse(HttpStatus.OK, out, _plain);
             });
           } else {
             String errors = results.problems.map(_printCompileProblem).join('\n');

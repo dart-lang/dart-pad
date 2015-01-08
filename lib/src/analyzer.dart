@@ -260,10 +260,8 @@ class _Error {
   _Error(this.error, this.lineInfo);
 
   ErrorType get errorType => error.errorCode.type;
-  int get severity => error.errorCode.errorSeverity.ordinal;
   String get severityName => error.errorCode.errorSeverity.displayName;
   String get message => error.message;
-  String get description => '${message} at ${location}, line ${line}.';
 
   int get line => lineInfo.getLocation(error.offset).lineNumber;
   int get offset => error.offset;
@@ -271,7 +269,7 @@ class _Error {
 
   String get location => error.source.fullName;
 
-  String toString() => '[${severityName}] ${description}';
+  String toString() => '${message} at ${location}, line ${line}.';
 }
 
 /**

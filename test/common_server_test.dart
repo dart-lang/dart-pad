@@ -37,6 +37,7 @@ void defineTests() {
       String json = JSON.encode({'source': sampleCodeError});
       return server.handleAnalyze(json).then((ServerResponse response) {
         expect(response.statusCode, 200);
+        expect(response.mimeType, 'application/json');
         expect(response.data, '[{"kind":"error","line":2,"message":'
             '"Expected to find \';\'","charStart":29,"charLength":1}]');
       });
@@ -46,7 +47,17 @@ void defineTests() {
       String json = JSON.encode({'source': sampleCode});
       return server.handleCompile(json).then((ServerResponse response) {
         expect(response.statusCode, 200);
+        expect(response.mimeType, 'text/plain');
         expect(response.data, isNotEmpty);
+      });
+    });
+
+    test('compile error', () {
+      String json = JSON.encode({'source': sampleCodeError});
+      return server.handleCompile(json).then((ServerResponse response) {
+        expect(response.statusCode, 400);
+        expect(response.data, isNotEmpty);
+        expect(response.data, "[error, line 2] Expected ';' after this.");
       });
     });
 
@@ -85,6 +96,7 @@ void defineTests() {
           {'source': 'void main() {print("foo");}', 'offset': 17});
       return server.handleDocument(json).then((ServerResponse response) {
         expect(response.statusCode, 200);
+        expect(response.mimeType, 'application/json');
         expect(response.data, isNotEmpty);
       });
     });
