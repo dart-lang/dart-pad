@@ -27,6 +27,13 @@ void build(GrinderContext context) {
   File outFile = joinFile(BUILD_DIR, ['web', 'dartpad.dart.js']);
   context.log('${outFile.path} compiled to ${_printSize(outFile)}');
 
+  // Delete the build/web/packages directory.
+  deleteEntity(getDir('build/web/packages'));
+
+  // Reify the symlinks.
+  // cp -R -L packages build/web/packages
+  runProcess(context, 'cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
+
   // TODO: tar it up now? How to distribute?
 
 }
@@ -34,9 +41,12 @@ void build(GrinderContext context) {
 /// Generate a new version of gh-pages.
 void copyGhPages(GrinderContext context) {
   context.log('Copying build/web to the `gh-pages` branch');
+
   new ghpages.Generator(rootDir: getDir('.').absolute.path)
       ..templateDir = getDir('build/web').absolute.path
       ..generate();
+
+  context.log('You now need to `git push origin gh-pages`.');
 }
 
 String _printSize(File file) => '${(file.lengthSync() + 1023) ~/ 1024}k';
