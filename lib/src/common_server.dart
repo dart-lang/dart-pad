@@ -13,6 +13,8 @@ import 'package:crypto/crypto.dart';
 import 'analyzer.dart';
 import 'compiler.dart';
 
+final Duration _standardExpiration = new Duration(hours: 1);
+
 const String _json = 'application/json';
 const String _plain = 'text/plain';
 const String _urlEncoded = 'application/x-www-form-urlencoded';
@@ -87,9 +89,11 @@ class CommonServer {
         log.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
         return new ServerResponse.asJson(json);
       }).catchError((e) {
+        log.error('Error during analyze: ${e}');
         return new ServerResponse.internalError('${e}');
       });
-    } catch (e) {
+    } catch (e, st) {
+      log.error('Error during analyze: ${e}\n${st}');
       return new Future.value(new ServerResponse.internalError('${e}'));
     }
   }
@@ -131,7 +135,7 @@ class CommonServer {
             return new ServerResponse.badRequest(errors);
           }
         }).catchError((e, st) {
-          log.error('Error during compile: ${e}\n${st}\n');
+          log.error('Error during compile: ${e}\n${st}');
           return new Future.value(new ServerResponse.internalError('Error during compile: ${e}'));
         });
       }
@@ -169,17 +173,20 @@ class CommonServer {
         String json = JSON.encode(docInfo);
         log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
         return new ServerResponse.asJson(json);
-      }).catchError((e) {
+      }).catchError((e, st) {
+        log.error('Error during dartdoc: ${e}\n${st}');
         return new ServerResponse.internalError('${e}');
       });
-    } catch (e) {
+    } catch (e, st) {
+      log.error('Error during dartdoc: ${e}\n${st}');
       return new Future.value(new ServerResponse.internalError('${e}'));
     }
   }
 
   Future<String> checkCache(String query) => cache.get(query);
 
-  Future setCache(String query, String result) => cache.set(query, result);
+  Future setCache(String query, String result) =>
+      cache.set(query, result, expiration: _standardExpiration);
 }
 
 _RequestInput _parseRequest(String data,
