@@ -15,10 +15,9 @@ export 'compiler.dart';
 class ServerCompilerService extends CompilerService {
   Future<CompilerResult> compile(String source) {
     final String url = '${serverURL}/compile';
-    Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
-    return HttpRequest.request(url, method: 'POST',
-        requestHeaders: headers, sendData: source).then((HttpRequest request) {
+    return HttpRequest.request(url, method: 'POST', sendData: source)
+        .then((HttpRequest request) {
       return new CompilerResult(request.responseText);
     }).catchError((e) {
       if (e is Event && e.target is HttpRequest) {

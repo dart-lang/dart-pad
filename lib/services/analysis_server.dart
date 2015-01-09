@@ -16,10 +16,9 @@ export 'analysis.dart';
 class ServerAnalysisIssueService implements AnalysisIssueService {
   Future<AnalysisResults> analyze(String source) {
     final String url = '${serverURL}/analyze';
-    Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
-    return HttpRequest.request(url, method: 'POST',
-        requestHeaders: headers, sendData: source).then((HttpRequest request) {
+    return HttpRequest.request(url, method: 'POST', sendData: source)
+        .then((HttpRequest request) {
       List issues = JSON.decode(request.responseText);
       return new AnalysisResults(issues.map(_convertResult).toList());
     }).catchError((e) {
