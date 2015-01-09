@@ -53,7 +53,7 @@ class GaeServer {
   void handleAnalyzePost(io.HttpRequest request) {
     _getRequestData(request).then((String data) {
       String contentType = request.headers.value(io.HttpHeaders.CONTENT_TYPE);
-      commonServer.handleAnalyze(data, contentType).then((ServerResponse response) {
+      commonServer.handleAnalyze(data, contentType).then((response) {
         _sendResponse(request, response);
       });
     });
@@ -62,7 +62,7 @@ class GaeServer {
   void handleCompilePost(io.HttpRequest request) {
     _getRequestData(request).then((String data) {
       String contentType = request.headers.value(io.HttpHeaders.CONTENT_TYPE);
-      commonServer.handleCompile(data, contentType).then((ServerResponse response) {
+      commonServer.handleCompile(data, contentType).then((response) {
         _sendResponse(request, response);
       });
     });
@@ -71,7 +71,7 @@ class GaeServer {
   void handleCompletePost(io.HttpRequest request) {
     _getRequestData(request).then((String data) {
       String contentType = request.headers.value(io.HttpHeaders.CONTENT_TYPE);
-      commonServer.handleComplete(data, contentType).then((ServerResponse response) {
+      commonServer.handleComplete(data, contentType).then((response) {
         _sendResponse(request, response);
       });
     });
@@ -80,17 +80,18 @@ class GaeServer {
   void handleDocumentPost(io.HttpRequest request) {
     _getRequestData(request).then((String data) {
       String contentType = request.headers.value(io.HttpHeaders.CONTENT_TYPE);
-      commonServer.handleDocument(data, contentType).then((ServerResponse response) {
+      commonServer.handleDocument(data, contentType).then((response) {
         _sendResponse(request, response);
       });
     });
   }
 
   void _sendResponse(io.HttpRequest request, ServerResponse response) {
+    String mime = response.mimeType != null ? response.mimeType : 'text/plain';
+
     request.response.statusCode = response.statusCode;
-    if (response.mimeType != null) {
-      request.response.headers.set(io.HttpHeaders.CONTENT_TYPE, response.mimeType);
-    }
+    request.response.headers.set(
+        io.HttpHeaders.CONTENT_TYPE, mime + '; charset=utf-8');
     request.response.write(response.data);
     request.response.close();
   }

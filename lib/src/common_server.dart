@@ -136,7 +136,8 @@ class CommonServer {
           }
         }).catchError((e, st) {
           log.error('Error during compile: ${e}\n${st}');
-          return new Future.value(new ServerResponse.internalError('Error during compile: ${e}'));
+          return new Future.value(
+              new ServerResponse.internalError('Error during compile: ${e}'));
         });
       }
     });
