@@ -95,6 +95,8 @@ void invoke(String api, String source, Element output, {int offset}) {
   String url = '${_uriBase}${api}';
   output.text = '';
 
+  //Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
+
   Map m = {'source': source};
   if (offset != null) m['offset'] = offset;
   String data = JSON.encode(m); //new Uri(queryParameters: m).query;
