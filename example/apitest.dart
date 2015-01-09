@@ -102,7 +102,7 @@ void invoke(String api, String source, Element output, {int offset}) {
   HttpRequest.request(url, method: 'POST', sendData: data).then((HttpRequest r) {
     String response =
         '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
-        '${r.responseHeaders}\n\n'
+        '${_printHeaders(r.responseHeaders)}\n\n'
         '${r.responseText}';
     output.text = response;
   }).catchError((e, st) {
@@ -110,13 +110,17 @@ void invoke(String api, String source, Element output, {int offset}) {
       HttpRequest r = e.target;
       String response =
           '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
-          '${r.responseHeaders}\n\n'
+          '${_printHeaders(r.responseHeaders)}\n\n'
           '${r.responseText}';
       output.text = response;
     } else {
       output.text = '${e}\n${st}';
     }
   });
+}
+
+String _printHeaders(Map m) {
+  return m.keys.map((k) => '${k}: ${m[k]}').join('\n');
 }
 
 String get _uriBase => (querySelector('input[type=text]') as InputElement).value;
