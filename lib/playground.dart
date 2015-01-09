@@ -110,25 +110,13 @@ class Playground {
       _context.markCssClean();
     });
 
-    _context.onDartReconcile.listen((_) {
-      String source = _context.dartSource;
-      Lines lines = new Lines(source);
+    _context.onDartReconcile.listen((_) => _performAnalysis());
 
-      analysisService.analyze(source).then((AnalysisResults result) {
-        _context.dartDocument.setAnnotations(result.issues.map(
-            (AnalysisIssue issue) {
-          int startLine = lines.getLineForOffset(issue.charStart);
-          int endLine = lines.getLineForOffset(issue.charStart + issue.charLength);
-
-          Position start = new Position(startLine,
-              issue.charStart - lines.offsetForLine(startLine));
-          Position end = new Position(endLine,
-              issue.charStart + issue.charLength - lines.offsetForLine(startLine));
-
-          return new Annotation(issue.kind, issue.message, issue.line,
-              start: start, end: end);
-        }).toList());
-      });
+    // TODO: This will need to be re-worked.
+    // Run the current contents.
+    Timer.run(() {
+      _handleRun();
+      _performAnalysis();
     });
   }
 
@@ -167,8 +155,30 @@ class Playground {
           error: true);
     }).whenComplete(() {
       _context.markCssClean();
+      _context.markHtmlClean();
       runbutton.disabled = false;
       _showSpinner(false);
+    });
+  }
+
+  void _performAnalysis() {
+    String source = _context.dartSource;
+    Lines lines = new Lines(source);
+
+    analysisService.analyze(source).then((AnalysisResults result) {
+      _context.dartDocument.setAnnotations(result.issues.map(
+          (AnalysisIssue issue) {
+        int startLine = lines.getLineForOffset(issue.charStart);
+        int endLine = lines.getLineForOffset(issue.charStart + issue.charLength);
+
+        Position start = new Position(startLine,
+            issue.charStart - lines.offsetForLine(startLine));
+        Position end = new Position(endLine,
+            issue.charStart + issue.charLength - lines.offsetForLine(startLine));
+
+        return new Annotation(issue.kind, issue.message, issue.line,
+            start: start, end: end);
+      }).toList());
     });
   }
 

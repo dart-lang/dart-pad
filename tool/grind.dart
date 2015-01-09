@@ -6,24 +6,18 @@ library dartpad_ui.grind;
 
 import 'dart:io';
 
+import 'package:ghpages_generator/ghpages_generator.dart' as ghpages;
 import 'package:grinder/grinder.dart';
 
 final Directory BUILD_DIR = new Directory('build');
 
 void main(List<String> args) {
-  task('init', init);
+  task('init', defaultInit);
   task('build', build, ['init']);
-  task('clean', clean);
+  task('gh-pages', copyGhPages, ['build']);
+  task('clean', defaultClean);
 
   startGrinder(args);
-}
-
-/// Do any necessary build set up.
-void init(GrinderContext context) {
-  // Verify we're running in the project root.
-  if (!getDir('lib').existsSync() || !getFile('pubspec.yaml').existsSync()) {
-    context.fail('This script must be run from the project root.');
-  }
 }
 
 /// Build the `web/dartpad.html` entrypoint.
@@ -37,10 +31,12 @@ void build(GrinderContext context) {
 
 }
 
-/// Delete all generated artifacts.
-void clean(GrinderContext context) {
-  // Delete the build/ dir.
-  deleteEntity(BUILD_DIR, context);
+/// Generate a new version of gh-pages.
+void copyGhPages(GrinderContext context) {
+  context.log('Copying build/web to the `gh-pages` branch');
+  new ghpages.Generator(rootDir: getDir('.').absolute.path)
+      ..templateDir = getDir('build/web').absolute.path
+      ..generate();
 }
 
 String _printSize(File file) => '${(file.lengthSync() + 1023) ~/ 1024}k';
