@@ -128,18 +128,13 @@ Dartpad server.
     });
   }
 
-
   Response _convertResponse(ServerResponse response) {
-    if (response.mimeType != null) {
-      return new Response(
-          response.statusCode,
-          headers: { HttpHeaders.CONTENT_TYPE: response.mimeType },
-          body: response.data);
-    } else {
-      return new Response(
-          response.statusCode,
-          body: response.data);
-    }
+    String mime = response.mimeType != null ? response.mimeType : 'text/plain';
+
+    return new Response(
+        response.statusCode,
+        headers: { HttpHeaders.CONTENT_TYPE: mime + '; charset=utf-8' },
+        body: response.data);
   }
 
   Middleware _createCorsMiddleware() {
