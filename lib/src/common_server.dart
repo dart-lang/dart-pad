@@ -197,7 +197,7 @@ _RequestInput _parseRequest(String data,
     contentType = _json;
   }
   if (contentType.contains(';')) {
-    contentType = contentType.substring(contentType.indexOf(';'));
+    contentType = contentType.substring(0, contentType.indexOf(';'));
   }
   if (data.startsWith('{"') || data.startsWith("{'")) {
     contentType = _json;
