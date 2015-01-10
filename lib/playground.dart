@@ -13,11 +13,9 @@ import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'editing/editor.dart';
 import 'elements/elements.dart';
-import 'modules/ace_module.dart';
-//import 'modules/codemirror_module.dart';
+//import 'modules/ace_module.dart';
+import 'modules/codemirror_module.dart';
 import 'modules/dartpad_module.dart';
-//import 'modules/mock_analysis.dart';
-//import 'modules/mock_compiler.dart';
 import 'modules/server_analysis.dart';
 import 'modules/server_compiler.dart';
 import 'services/analysis.dart';
@@ -82,8 +80,8 @@ class Playground {
     modules.register(new ServerAnalysisModule());
     //modules.register(new MockCompilerModule());
     modules.register(new ServerCompilerModule());
-    modules.register(new AceModule());
-    //modules.register(new CodeMirrorModule());
+    //modules.register(new AceModule());
+    modules.register(new CodeMirrorModule());
 
     return modules.start();
   }
@@ -166,6 +164,7 @@ class Playground {
     Lines lines = new Lines(source);
 
     analysisService.analyze(source).then((AnalysisResults result) {
+      // TODO: Make sure these show up on the right document.
       _context.dartDocument.setAnnotations(result.issues.map(
           (AnalysisIssue issue) {
         int startLine = lines.getLineForOffset(issue.charStart);

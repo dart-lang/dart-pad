@@ -7,8 +7,6 @@ library core.keys;
 import 'dart:async';
 import 'dart:html';
 
-// TODO: test
-
 final _isMac = window.navigator.appVersion.toLowerCase().contains('macintosh');
 
 /**
@@ -63,8 +61,8 @@ String printKeyEvent(KeyboardEvent event) {
 
   // shift ctrl alt
   if (event.shiftKey) buf.write('shift-');
-  if (event.ctrlKey) buf.write(_isMac ? 'macctrl-' : 'ctrl-');
-  if (event.metaKey) buf.write(_isMac ? 'ctrl-' : 'meta-');
+  if (event.ctrlKey) buf.write(isMac() ? 'macctrl-' : 'ctrl-');
+  if (event.metaKey) buf.write(isMac() ? 'ctrl-' : 'meta-');
   if (event.altKey) buf.write('alt-');
 
   if (_codeMap.containsKey(event.keyCode)) {
@@ -75,6 +73,8 @@ String printKeyEvent(KeyboardEvent event) {
 
   return buf.toString();
 }
+
+bool isMac() => _isMac;
 
 final Map _codeMap = {
   KeyCode.ZERO: '0',
