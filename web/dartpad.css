@@ -23,8 +23,7 @@ body {
 header {
   height: 48px;
   line-height: 48px;
-  padding-left: 20px;
-  padding-right: 20px;
+  padding: 0 24px;
   font-size: 150%;
   color: #fff;
   vertical-align: middle;
@@ -34,10 +33,6 @@ header {
   border-width: 4px;
 
   margin-bottom: 16px;
-}
-
-div.header {
-  margin-left: 6px;
 }
 
 section {
@@ -50,7 +45,7 @@ section {
 }
 
 footer {
-  margin: 8px 20px;
+  margin: 8px 24px;
   font-size: 13px;
 }
 

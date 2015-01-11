@@ -11,15 +11,14 @@ dependencies:
   ace: '>=0.5.10 <0.6.0'
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
-  script_inliner: '>=1.0.0 <2.0.0'
 
 dev_dependencies:
+  dart_to_js_script_rewriter: any
   ghpages_generator: any
   grinder: '>=0.6.0 <0.7.0'
   unittest: any
 
 transformers:
-- script_inliner
-
+- dart_to_js_script_rewriter
 - $dart2js:
     $exclude: ['web/old/playground1.dart', 'web/old/playground2.dart', 'web/packages/csslib/css.dart']

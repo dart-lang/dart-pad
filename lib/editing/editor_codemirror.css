@@ -2,8 +2,8 @@
 /* for details. All rights reserved. Use of this source code is governed by a */
 /* BSD-style license that can be found in the LICENSE file. */
 
-@import '../../../packages/codemirror/codemirror.css';
-@import '../../../packages/codemirror/addon/lint/lint.css';
+/*@import '../../../packages/codemirror/codemirror.css';
+@import '../../../packages/codemirror/addon/lint/lint.css';*/
 
 /* CodeMirror tweaks */
 
@@ -17,4 +17,8 @@
   background: inherit !important;
   border-right: none;
   box-shadow: none;
+}
+
+#editpanel {
+  margin-left: -20px;
 }
