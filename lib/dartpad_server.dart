@@ -140,7 +140,7 @@ Dartpad server.
   Middleware _createCorsMiddleware() {
     Map _corsHeader = {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
+      'Access-Control-Allow-Methods': 'POST',
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
     };
 
