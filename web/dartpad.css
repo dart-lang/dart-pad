@@ -211,7 +211,7 @@ div.toggle {
   line-height: 17px;
   min-height: 100px;
   overflow-y: auto;
-  white-space: pre;
+  white-space: pre-wrap;
 }
 
 .errorOutput {

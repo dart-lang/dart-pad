@@ -196,7 +196,7 @@ class Playground {
   }
 
   void _showOuput(String message, {bool error: false}) {
-    message = message.trimRight() + '\n';
+    message = message + '\n';
     SpanElement span = new SpanElement();
     if (error) span.classes.add('errorOutput');
     span.text = message;
@@ -328,7 +328,7 @@ class ExecutionService {
       String message = '${event.data}';
 
       if (message.startsWith('stderr: ')) {
-        _stderrController.add(message.substring(8));
+        _stderrController.add(message.substring('stderr: '.length));
       } else {
         _stdoutController.add(message);
       }
