@@ -11,6 +11,7 @@
   background: inherit;
   color: inherit;
   box-shadow: none;
+  line-height: 20px
 }
 
 #editpanel .CodeMirror-gutters {
@@ -21,4 +22,16 @@
 
 #editpanel {
   margin-left: -20px;
+}
+
+.squiggle-error {
+  border-bottom: 2px solid #F7977A;
+}
+
+.squiggle-warning {
+  border-bottom: 2px solid #FFF79A;
+}
+
+.squiggle-info {
+  border-bottom: 2px solid #7EA7D8;
 }

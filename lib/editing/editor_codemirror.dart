@@ -136,38 +136,46 @@ class _CodeMirrorDocument extends Document {
   void markClean() => doc.markClean();
 
   void setAnnotations(List<Annotation> annotations) {
-    CodeMirror cm = parent.cm;
-    cm.clearGutter(_gutterId);
+    // TODO: Codemirror lint has no support for info markers - contribute some?
+//    CodeMirror cm = parent.cm;
+//    cm.clearGutter(_gutterId);
 
-    // Sort annotations so that the errors are set first.
-    annotations.sort();
+    for (TextMarker marker in doc.getAllMarks()) {
+      marker.clear();
+    }
 
-    int lastLine = -1;
-
-    // TODO: codemirror lint has no support for info markers
-    // TODO: contribute some?
-
-    // TODO: squiggles in the text
+//    // Sort annotations so that the errors are set first.
+//    annotations.sort();
+//
+//    int lastLine = -1;
 
     for (Annotation an in annotations) {
-      if (lastLine == an.line) continue;
-      lastLine = an.line;
-      cm.setGutterMarker(an.line - 1, _gutterId,
-          _makeMarker(an.type, an.message, an.start, an.end));
+      // Create in-line squiggles.
+      doc.markText(_posToPos(an.start), _posToPos(an.end),
+          className: 'squiggle-${an.type}', title: an.message);
+
+//      // Create markers in the margin.
+//      if (lastLine == an.line) continue;
+//      lastLine = an.line;
+//      cm.setGutterMarker(an.line - 1, _gutterId,
+//          _makeMarker(an.type, an.message, an.start, an.end));
     }
   }
 
-  html.Element _makeMarker(String severity, String tooltip, ed.Position start,
-      ed.Position end) {
-    html.Element marker = new html.DivElement();
-    marker.className = "CodeMirror-lint-marker-" + severity;
-    if (tooltip != null) marker.title = tooltip;
-    marker.onClick.listen((_) {
-      doc.setSelection(new pos.Position(start.line, start.char),
-          head: new pos.Position(end.line, end.char));
-    });
-    return marker;
-  }
+  pos.Position _posToPos(ed.Position position) =>
+      new pos.Position(position.line, position.char);
+
+//  html.Element _makeMarker(String severity, String tooltip, ed.Position start,
+//      ed.Position end) {
+//    html.Element marker = new html.DivElement();
+//    marker.className = "CodeMirror-lint-marker-" + severity;
+//    if (tooltip != null) marker.title = tooltip;
+//    marker.onClick.listen((_) {
+//      doc.setSelection(new pos.Position(start.line, start.char),
+//          head: new pos.Position(end.line, end.char));
+//    });
+//    return marker;
+//  }
 
   Stream get onChange => doc.onChange;
 }
