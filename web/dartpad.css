@@ -208,24 +208,24 @@ div.toggle {
 .console {
   font-family: 'Inconsolata', monospace;
   font-size: 12pt;
-  line-height: 17px;
+  line-height: 20px;
   min-height: 100px;
   overflow-y: auto;
   white-space: pre-wrap;
 }
 
 .errorOutput {
-	color: red;
+  color: #F7977A;
 }
 
 #editpanel {
-	font-family: 'Inconsolata', monospace;
-	font-size: 12pt;
-	line-height: 17px;
+  font-family: 'Inconsolata', monospace;
+  font-size: 12pt;
+  line-height: 20px;
 }
 
 .right {
-	text-align: right;
+  text-align: right;
 }
 
 #spinner {
