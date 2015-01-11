@@ -33,10 +33,10 @@ class GaeServer {
   Future start() => runAppEngine(requestHandler);
 
   void requestHandler(io.HttpRequest request) {
-    _header(request, 'Access-Control-Allow-Origin', '*');
-    _header(request, 'Access-Control-Allow-Credentials', 'true');
-    _header(request, 'Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-    _header(request, 'Access-Control-Allow-Headers',
+    request.response.headers.add('Access-Control-Allow-Origin', '*');
+    request.response.headers.add('Access-Control-Allow-Credentials', 'true');
+    request.response.headers.add('Access-Control-Allow-Methods', 'POST');
+    request.response.headers.add('Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept');
 
     if (request.uri.path == '/api/analyze') {
@@ -51,10 +51,6 @@ class GaeServer {
       request.response.statusCode = io.HttpStatus.NOT_FOUND;
       request.response.close();
     }
-  }
-
-  void _header(io.HttpRequest request, String key, String value) {
-    request.response.headers.add(key, value);
   }
 
   void handleAnalyzePost(io.HttpRequest request) {
