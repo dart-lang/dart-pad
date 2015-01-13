@@ -15,8 +15,10 @@ dependencies:
   crypto: any
   grinder: '>=0.6.4 <0.7.0'
   logging: any
+  path: any
   shelf: any
   shelf_route: any
+  yaml: any
 
 dev_dependencies:
   browser: any
