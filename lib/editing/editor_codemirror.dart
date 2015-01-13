@@ -15,10 +15,7 @@ import 'editor.dart' as ed show Position;
 
 export 'editor.dart';
 
-// extraKeys: {"Ctrl-Space": "autocomplete"}
-//<script src="../addon/hint/show-hint.js"></script>
-//<script src="../addon/hint/xml-hint.js"></script>
-//<script src="../addon/hint/html-hint.js"></script>
+// TODO: code completion initial hook up for dart
 
 final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
 
@@ -67,20 +64,10 @@ class CodeMirrorFactory extends EditorFactory {
         'cursorHeight': 0.85,
         'autoCloseBrackets': true,
         'gutters': [_gutterId],
+        'extraKeys': {'Ctrl-Space': 'autocomplete'},
         //'lint': true,
         'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
       };
-
-//      CodeMirror.registerHelper('lint', 'dart', (text) {
-//        var found = [];
-////        found.push({
-////          from: CodeMirror.Pos(1, 0),
-////          to: CodeMirror.Post(1, 0),
-////          severity: "error",
-////          message: "bad"
-////        });
-//        return found;
-//      });
     }
 
     return new _CodeMirrorEditor._(this,
