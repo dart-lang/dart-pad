@@ -57,14 +57,20 @@ class CodeMirrorFactory extends EditorFactory {
   Editor createFromElement(html.Element element, {Map options}) {
     if (options == null) {
       options = {
+        'continueComments': {'continueLineComment': false},
+        'autofocus': true,
+        'autoCloseTags': true,
+        'autoCloseBrackets': true,
         'matchBrackets': true,
         'tabSize': 2,
         'indentUnit': 2,
-        'autofocus': true,
         'cursorHeight': 0.85,
-        'autoCloseBrackets': true,
         'gutters': [_gutterId],
-        'extraKeys': {'Ctrl-Space': 'autocomplete'},
+        'extraKeys': {
+          'Ctrl-Space': 'autocomplete',
+          'Cmd-/': 'toggleComment',
+          'Ctrl-/': 'toggleComment'
+        },
         //'lint': true,
         'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
       };
