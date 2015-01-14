@@ -13,6 +13,8 @@ import 'dart:js';
 class Analytics {
   Analytics();
 
+  bool get isAvailable => _gaFunction != null;
+
   void sendPage() => _ga2('send', 'pageview');
 
   void sendEvent(String category, String action, {String label}) {
@@ -25,12 +27,13 @@ class Analytics {
     _ga('send', m);
   }
 
-  void sendTiming(String category, String variable, int value, {String label}) {
+  void sendTiming(String category, String variable, int valueMillis,
+      {String label}) {
     Map m = {
       'hitType': 'timing',
       'timingCategory': category,
       'timingVar': variable,
-      'timingValue': value
+      'timingValue': valueMillis
     };
     if (label != null) m['timingLabel'] = label;
     _ga('send', m);
@@ -43,24 +46,20 @@ class Analytics {
   }
 
   void _ga(String method, [Map args]) {
-    JsFunction ga = context['ga'];
-    if (ga != null) {
-      if (args == null) {
-        ga.apply([method]);
-      } else {
-        ga.apply([method, new JsObject.jsify(args)]);
-      }
+    if (isAvailable) {
+      List params = [method];
+      if (args != null) params.add(new JsObject.jsify(args));
+      _gaFunction.apply(params);
     }
   }
 
   void _ga2(String method, String type, [Map args]) {
-    JsFunction ga = context['ga'];
-    if (ga != null) {
-      if (args == null) {
-        ga.apply([method, type]);
-      } else {
-        ga.apply([method, type, new JsObject.jsify(args)]);
-      }
+    if (isAvailable) {
+      List params = [method, type];
+      if (args != null) params.add(new JsObject.jsify(args));
+      _gaFunction.apply(params);
     }
   }
+
+  JsFunction get _gaFunction => context['ga'];
 }
