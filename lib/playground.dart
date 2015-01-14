@@ -21,6 +21,7 @@ import 'modules/server_compiler.dart';
 import 'services/analysis.dart';
 import 'services/common.dart';
 import 'services/compiler.dart';
+import 'src/ga.dart';
 import 'src/util.dart';
 
 // TODO: we need blinkers when something happens. console is appended to,
@@ -31,6 +32,7 @@ import 'src/util.dart';
 Playground get playground => _playground;
 
 Playground _playground;
+Analytics ga = new Analytics();
 
 void init() {
   _playground = new Playground();
@@ -139,6 +141,7 @@ class Playground {
   List<Element> _getTabElements(Element element) => element.querySelectorAll('a');
 
   void _handleRun() {
+    ga.sendEvent('main', 'run');
     runbutton.disabled = true;
     _showSpinner(true);
 
@@ -186,6 +189,7 @@ class Playground {
   }
 
   void _handleSave() {
+    ga.sendEvent('main', 'save');
     // TODO:
     print('handleSave');
     _context.focus();
