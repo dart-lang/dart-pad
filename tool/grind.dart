@@ -14,6 +14,7 @@ final Directory BUILD_DIR = new Directory('build');
 void main(List<String> args) {
   task('init', defaultInit);
   task('build', build, ['init']);
+  task('deploy', deploy, ['build']);
   task('gh-pages', copyGhPages, ['build']);
   task('clean', defaultClean);
 
@@ -32,10 +33,13 @@ void build(GrinderContext context) {
 
   // Reify the symlinks.
   // cp -R -L packages build/web/packages
-  runProcess(context, 'cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
+  runProcess(context, 'cp',
+      arguments: ['-R', '-L', 'packages', 'build/web/packages']);
+}
 
-  // TODO: tar it up now? How to distribute?
-
+/// Prepare the app for deployment.
+void deploy(GrinderContext context) {
+  context.log('execute: `appcfg.py update build/web`');
 }
 
 /// Generate a new version of gh-pages.
