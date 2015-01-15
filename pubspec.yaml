@@ -14,7 +14,6 @@ dependencies:
 
 dev_dependencies:
   dart_to_js_script_rewriter: any
-  ghpages_generator: any
   grinder: '>=0.6.0 <0.7.0'
   unittest: any
 

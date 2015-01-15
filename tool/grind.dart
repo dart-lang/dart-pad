@@ -6,7 +6,6 @@ library dartpad_ui.grind;
 
 import 'dart:io';
 
-import 'package:ghpages_generator/ghpages_generator.dart' as ghpages;
 import 'package:grinder/grinder.dart';
 
 final Directory BUILD_DIR = new Directory('build');
@@ -15,7 +14,6 @@ void main(List<String> args) {
   task('init', defaultInit);
   task('build', build, ['init']);
   task('deploy', deploy, ['build']);
-  task('gh-pages', copyGhPages, ['build']);
   task('clean', defaultClean);
 
   startGrinder(args);
@@ -40,17 +38,6 @@ void build(GrinderContext context) {
 /// Prepare the app for deployment.
 void deploy(GrinderContext context) {
   context.log('execute: `appcfg.py update build/web`');
-}
-
-/// Generate a new version of gh-pages.
-void copyGhPages(GrinderContext context) {
-  context.log('Copying build/web to the `gh-pages` branch');
-
-  new ghpages.Generator(rootDir: getDir('.').absolute.path)
-      ..templateDir = getDir('build/web').absolute.path
-      ..generate();
-
-  context.log('You now need to `git push origin gh-pages`.');
 }
 
 String _printSize(File file) => '${(file.lengthSync() + 1023) ~/ 1024}k';
