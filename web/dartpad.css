@@ -222,6 +222,8 @@ div.toggle {
   font-family: 'Inconsolata', monospace;
   font-size: 12pt;
   line-height: 20px;
+  display: block;
+  position: relative;
 }
 
 .right {
