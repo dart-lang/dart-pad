@@ -64,8 +64,8 @@ class CodeMirrorFactory extends EditorFactory {
         'matchBrackets': true,
         'tabSize': 2,
         'indentUnit': 2,
-        'cursorHeight': 0.85,
-        'gutters': [_gutterId],
+        //'cursorHeight': 0.85,
+        //'gutters': [_gutterId],
         'extraKeys': {
           'Ctrl-Space': 'autocomplete',
           'Cmd-/': 'toggleComment',
