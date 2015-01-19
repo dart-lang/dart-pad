@@ -7,15 +7,18 @@
 <html>
   <head>
   	<meta charset="utf-8">
-  	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
     <title>Dartpad</title>
 
     <link href="layout.css" rel="stylesheet" media="screen">
     <link href="dartpad.css" rel="stylesheet" media="screen">
     <!-- link href="packages/dartpad_ui/elements/elements.css" rel="stylesheet" media="screen" -->
 
-    <link href='http://fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
-    <link href='http://fonts.googleapis.com/css?family=Inconsolata:400,700' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Inconsolata:400,700' rel='stylesheet' type='text/css'>
 
     <!-- codemirror -->
     <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
@@ -25,7 +28,7 @@
     <link href="packages/dartpad_ui/editing/editor_codemirror.css" rel="stylesheet" media="screen">
   </head>
 
-  <body layout vertical>
+  <body fullbleed layout vertical>
     <header layout horizontal>
       <div>Dartpad</div>
       <div flex></div>

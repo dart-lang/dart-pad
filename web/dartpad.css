@@ -224,6 +224,7 @@ div.toggle {
   line-height: 20px;
   display: block;
   position: relative;
+  min-height: 100px;
 }
 
 .right {

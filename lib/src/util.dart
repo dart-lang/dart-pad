@@ -5,16 +5,15 @@
 library dartpad_ui.util;
 
 import 'dart:html';
-import 'dart:math' as math;
 
 /**
  * Return whether we are running on a mobile device.
  */
 bool isMobile() {
-  final int mobileSize = 600;
+  final int mobileSize = 610;
 
   int width = document.documentElement.clientWidth;
   int height = document.documentElement.clientHeight;
 
-  return math.min(width, height) <= mobileSize;
+  return width <= mobileSize || height <= mobileSize;
 }
