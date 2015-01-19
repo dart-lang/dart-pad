@@ -1,4 +1,4 @@
-application: dartpad-dev
+application: google.com:dartpad
 version: 2
 runtime: python27
 api_version: 1
