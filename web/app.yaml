@@ -9,8 +9,10 @@ handlers:
 - url: /
   static_files: dartpad.html
   upload: dartpad.html
+  secure: always
 
 # access the static resources in the root directory
 - url: /(.*)
   static_files: \1
   upload: (.*)
+  secure: always
