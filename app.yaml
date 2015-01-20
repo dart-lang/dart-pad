@@ -1,4 +1,8 @@
-version: liftoff-dev
+version: liftoff-dev-2
 runtime: custom
 vm: true
 api_version: 1
+
+resources:
+  cpu: 2
+  memory_gb: 3

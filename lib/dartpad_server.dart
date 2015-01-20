@@ -43,7 +43,7 @@ void main(List<String> args) {
   Logger.root.onRecord.listen((r) => print(r));
 
   DartpadServer.serve(sdkDir.path, port).then((DartpadServer server) {
-    print('Listening on port ${server.port}');
+    _logger.info('Listening on port ${server.port}');
   });
 }
 
