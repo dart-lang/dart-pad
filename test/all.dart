@@ -11,7 +11,7 @@ import 'services/common_test.dart' as common_test;
 void main() => defineTests();
 
 void defineTests() {
+  common_test.defineTests();
   dependencies_test.defineTests();
   event_bus_test.defineTests();
-  common_test.defineTests();
 }

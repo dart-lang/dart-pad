@@ -10,7 +10,7 @@ import 'dart:async';
 
 // TODO: dartdoc hover
 
-abstract class AnalysisIssueService {
+abstract class AnalysisService {
   Future<AnalysisResults> analyze(String source);
 }
 

@@ -13,7 +13,7 @@ import 'analysis.dart';
 
 export 'analysis.dart';
 
-class ServerAnalysisIssueService implements AnalysisIssueService {
+class ServerAnalysisService implements AnalysisService {
   Future<AnalysisResults> analyze(String source) {
     final String url = '${serverURL}/analyze';
 

@@ -14,7 +14,7 @@ class ServerAnalysisModule extends Module {
   ServerAnalysisModule();
 
   Future init() {
-    deps[AnalysisIssueService] = new ServerAnalysisIssueService();
+    deps[AnalysisService] = new ServerAnalysisService();
     return new Future.value();
   }
 }

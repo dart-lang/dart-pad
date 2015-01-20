@@ -21,6 +21,7 @@ import 'modules/server_compiler.dart';
 import 'services/analysis.dart';
 import 'services/common.dart';
 import 'services/compiler.dart';
+import 'services/execution_iframe.dart';
 import 'src/ga.dart';
 import 'src/util.dart';
 
@@ -49,17 +50,11 @@ class Playground {
   PlaygroundContext _context;
 
   ModuleManager modules = new ModuleManager();
-  ExecutionService executionService;
 
   Playground() {
     _registerTab(querySelector('#darttab'), 'dart');
     _registerTab(querySelector('#htmltab'), 'html');
     _registerTab(querySelector('#csstab'), 'css');
-
-    // Set up iframe.
-    executionService = new ExecutionService(_frame);
-    executionService.onStdout.listen(_showOuput);
-    executionService.onStderr.listen((m) => _showOuput(m, error: true));
 
     runbutton = new DButton(querySelector('#runbutton'));
     runbutton.onClick.listen((e) {
@@ -89,6 +84,11 @@ class Playground {
   }
 
   void _initPlayground() {
+    // Set up iframe.
+    deps[ExecutionService] = new ExecutionServiceIFrame(_frame);
+    executionService.onStdout.listen(_showOuput);
+    executionService.onStderr.listen((m) => _showOuput(m, error: true));
+
     // Set up the editing area.
     editor = editorFactory.createFromElement(_editpanel);
     _editpanel.children.first.attributes['flex'] = '';
@@ -337,66 +337,3 @@ p {
   color: #888;
 }
 ''';
-
-// TODO: move into it's own file
-
-class ExecutionService {
-  final StreamController _stdoutController = new StreamController.broadcast();
-  final StreamController _stderrController = new StreamController.broadcast();
-
-  final IFrameElement frame;
-
-  ExecutionService(this.frame) {
-    window.onMessage.listen((MessageEvent event) {
-      String message = '${event.data}';
-
-      if (message.startsWith('stderr: ')) {
-        _stderrController.add(message.substring('stderr: '.length));
-      } else {
-        _stdoutController.add(message);
-      }
-    });
-  }
-
-  Future execute(String html, String css, String javaScript) {
-    final String postMessagePrint =
-        "function dartPrint(message) { parent.postMessage(message, '*'); }";
-
-    // TODO: Use a better encoding than 'stderr: '.
-    final String exceptionHandler =
-        "window.onerror = function(message, url, lineNumber) { "
-        "parent.postMessage('stderr: ' + message.toString(), '*'); };";
-
-    replaceCss(css);
-    replaceHtml(html);
-    replaceJavaScript('${postMessagePrint}\n${exceptionHandler}\n${javaScript}');
-
-    return new Future.value();
-  }
-
-  void replaceCss(String css) {
-    _send('setCss', css);
-  }
-
-  void replaceHtml(String html) {
-    _send('setHtml', html);
-  }
-
-  void replaceJavaScript(String js) {
-    _send('setJavaScript', js);
-  }
-
-  void reset() {
-    _send('reset');
-  }
-
-  Stream<String> get onStdout => _stdoutController.stream;
-
-  Stream<String> get onStderr => _stderrController.stream;
-
-  void _send(String command, [String data]) {
-    Map m = {'command': command};
-    if (data != null) m['data'] = data;
-    frame.contentWindow.postMessage(m, '*');
-  }
-}

@@ -11,12 +11,15 @@ import 'core/keys.dart';
 import 'editing/editor.dart';
 import 'services/analysis.dart';
 import 'services/compiler.dart';
+import 'services/execution.dart';
 
 Context get context => deps[Context];
 
 CompilerService get compilerService => deps[CompilerService];
 
-AnalysisIssueService get analysisService => deps[AnalysisIssueService];
+AnalysisService get analysisService => deps[AnalysisService];
+
+ExecutionService get executionService => deps[ExecutionService];
 
 EventBus get eventBus => deps[EventBus];
 

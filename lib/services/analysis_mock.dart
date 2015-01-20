@@ -11,7 +11,7 @@ import 'analysis.dart';
 
 export 'analysis.dart';
 
-class MockAnalysisIssueService implements AnalysisIssueService {
+class MockAnalysisService implements AnalysisService {
   Future<AnalysisResults> analyze(String source) {
     Lines lines = new Lines(source);
     List<AnalysisIssue> issues = 'todo'.allMatches(source).map((Match match) {
