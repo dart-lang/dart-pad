@@ -10,10 +10,12 @@ environment:
 dependencies:
   analyzer: '>=0.22.4 <0.23.0'
   appengine: '>=0.2.1 <0.3.0'
+  archive: '>=1.0.18 <1.1.0'
   args: any
   compiler_unsupported: 1.9.0-dev.2.2.1
   crypto: any
   grinder: '>=0.6.4 <0.7.0'
+  http: any
   logging: any
   path: any
   shelf: any
@@ -23,7 +25,6 @@ dependencies:
 dev_dependencies:
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
-  http: any
   unittest: any
 
 executables:

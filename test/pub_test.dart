@@ -4,6 +4,8 @@
 
 library dartpad_server.pub_test;
 
+import 'dart:io';
+
 import 'package:dartpad_server/src/pub.dart';
 import 'package:unittest/unittest.dart';
 
@@ -33,6 +35,23 @@ void defineTests() {
         expect(result.packages.length, greaterThanOrEqualTo(5));
         expect(result.packages.map((p) => p.name), contains('grinder'));
       });
+    });
+
+    test('getPackageLibDir', () {
+      PackageInfo packageInfo = new PackageInfo('which', '0.1.2');
+      return pub.getPackageLibDir(packageInfo).then((Directory libDir) {
+        expect(libDir, isNotNull);
+        expect(libDir.path, endsWith('lib'));
+        expect(libDir.existsSync(), true);
+        expect(libDir.parent.path, endsWith('which-0.1.2'));
+      });
+    });
+
+    test('flushCache', () {
+      expect(pub.cacheDir.listSync(), isNotEmpty);
+      pub.flushCache();
+      print(pub.cacheDir);
+      expect(pub.cacheDir.listSync(), isEmpty);
     });
   });
 }

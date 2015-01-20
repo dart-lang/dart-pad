@@ -10,7 +10,9 @@ library dartpad_server.pub;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:archive/archive.dart';
 import 'package:logging/logging.dart';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
 
@@ -24,13 +26,16 @@ class Pub {
     if (!_cacheDir.existsSync()) _cacheDir.createSync();
   }
 
+  Directory get cacheDir => _cacheDir;
+
   String get version {
     ProcessResult result = Process.runSync('pub', ['--version']);
     return result.stdout.trim();
   }
 
   Future<PackagesInfo> resolvePackages(List<String> packages) {
-    Directory tempDir = Directory.systemTemp.createTempSync('temp_package');
+    Directory tempDir = Directory.systemTemp.createTempSync(
+        /* prefix: */ 'temp_package');
 
     try {
       // Create pubspec file.
@@ -68,26 +73,22 @@ class Pub {
    * Return the directory on disk that points to the `lib/` directory of the
    * version of the specific package requested.
    */
-  Directory getPackageLibDir(PackageInfo packageInfo) {
+  Future<Directory> getPackageLibDir(PackageInfo packageInfo) {
     try {
-      String dirName = '${packageInfo.name}_${packageInfo.version}';
+      String dirName = '${packageInfo.name}-${packageInfo.version}';
       Directory packageDir = new Directory(path.join(_cacheDir.path, dirName));
       Directory libDir = new Directory(path.join(packageDir.path, 'lib'));
 
       if (packageDir.existsSync() && libDir.existsSync()) {
-        return libDir;
+        return new Future.value(libDir);
       }
 
-      _populatePackage(packageInfo, packageDir);
-
-      if (packageDir.existsSync() && libDir.existsSync()) {
+      return _populatePackage(packageInfo, _cacheDir, packageDir).then((_) {
         return libDir;
-      }
-
-      return null;
+      });
     } catch (e, st) {
       _logger.severe('Error getting package ${packageInfo}: ${e}\n${st}');
-      return null;
+      return new Future.error(e);
     }
   }
 
@@ -132,9 +133,35 @@ class Pub {
   /**
    * Download the indicated package and expand it into the target directory.
    */
-  void _populatePackage(PackageInfo package, Directory target) {
-    // TODO:
+  Future _populatePackage(PackageInfo package, Directory cacheDir,
+      Directory target) {
+    final String base =
+        'https://storage.googleapis.com/pub.dartlang.org/packages';
 
+    // tuneup-0.0.1.tar.gz
+    String tgzName = '${package.name}-${package.version}.tar.gz';
+    return http.get('${base}/${tgzName}').then((http.Response response) {
+      // Save to disk (for posterity?).
+      File tzgFile = new File(path.join(cacheDir.path, tgzName));
+      tzgFile.writeAsBytesSync(response.bodyBytes);
+
+      // Use the archive package to decompress.
+      if (!target.existsSync()) target.createSync(recursive: true);
+
+      // Embiggen the `.tar.gz` data.
+      List<int> data = new GZipDecoder().decodeBytes(response.bodyBytes);
+
+      // Extract the tar files.
+      TarDecoder tarArchive = new TarDecoder();
+      tarArchive.decodeBytes(data);
+
+      for (TarFile file in tarArchive.files) {
+        File f = new File(
+            '${target.path}${Platform.pathSeparator}${file.filename}');
+        f.parent.createSync(recursive: true);
+        f.writeAsBytesSync(file.content);
+      };
+    });
   }
 }
 
