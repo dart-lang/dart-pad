@@ -18,6 +18,21 @@ import 'package:yaml/yaml.dart' as yaml;
 
 Logger _logger = new Logger('pub');
 
+/**
+ * This class has two general functions:
+ *
+ * Given a list of packages, resolve the list to the full transitive set of
+ * referenced packages and their versions. This uses an implicit `any`
+ * constraint. It will resolve to the lastest non-dev versions that satisfy
+ * their mutual constraints.
+ *
+ * And, given a package and a version, it can return a local directory with the
+ * contents of the package's `lib/` folder. This will download the
+ * package+version from pub.dartlang.org and store it in a disk cache. As the
+ * cache is populated the cost of asking for a package's `lib/` folder contents
+ * will go to zero.
+ *
+ */
 class Pub {
   Directory _cacheDir;
 
@@ -28,11 +43,18 @@ class Pub {
 
   Directory get cacheDir => _cacheDir;
 
+  /**
+   * Return the current version of the `pub` executable.
+   */
   String get version {
     ProcessResult result = Process.runSync('pub', ['--version']);
     return result.stdout.trim();
   }
 
+  /**
+   * Return the transitive closure of the given packages, resolved into the
+   * latest compatible versions.
+   */
   Future<PackagesInfo> resolvePackages(List<String> packages) {
     Directory tempDir = Directory.systemTemp.createTempSync(
         /* prefix: */ 'temp_package');
@@ -165,6 +187,9 @@ class Pub {
   }
 }
 
+/**
+ * A set of packages.
+ */
 class PackagesInfo {
   final List<PackageInfo> packages;
 
@@ -173,6 +198,9 @@ class PackagesInfo {
   String toString() => '${packages}';
 }
 
+/**
+ * A packake name and version tuple.
+ */
 class PackageInfo {
   final String name;
   final String version;
