@@ -15,6 +15,11 @@ abstract class EditorFactory {
   Future init();
 
   Editor createFromElement(html.Element element);
+
+  // TODO: codemirror gives the client more control over where to insert the
+  // completions. With Ace, you can only insert from the requested position
+  // forward.
+  void registerCompleter(String mode, CodeCompleter completer);
 }
 
 abstract class Editor {
@@ -93,15 +98,17 @@ class Position {
   String toString() => '[${line},${char}]';
 }
 
-//abstract class CodeCompleter {
-//  Future<List<Completion>> complete(
-//      Document document, Position position, String prefix);
-//}
-//
-//class Completion {
-//  final String value;
-//
-//  Completion(this.value);
-//
-//  String toString() => value;
-//}
+abstract class CodeCompleter {
+  Future<List<Completion>> complete(Editor editor);
+}
+
+// TODO: positions?
+class Completion {
+  /// The value to insert.
+  final String value;
+
+  /// An optional string that is displayed during auto-completion if specified.
+  final String displayString;
+
+  Completion(this.value, {this.displayString});
+}

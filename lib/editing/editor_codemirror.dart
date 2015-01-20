@@ -9,6 +9,7 @@ import 'dart:html' as html;
 
 import 'package:codemirror/codemirror.dart' hide Position;
 import 'package:codemirror/codemirror.dart' as pos show Position;
+import 'package:codemirror/hints.dart';
 
 import 'editor.dart' hide Position;
 import 'editor.dart' as ed show Position;
@@ -78,6 +79,26 @@ class CodeMirrorFactory extends EditorFactory {
 
     return new _CodeMirrorEditor._(this,
         new CodeMirror.fromElement(element, options: options));
+  }
+
+  void registerCompleter(String mode, CodeCompleter completer) {
+    Hints.registerHintsHelperAsync(mode, (CodeMirror editor, [HintsOptions options]) {
+      return _completionHelper(editor, completer, options);
+    });
+  }
+
+  Future<HintResults> _completionHelper(CodeMirror editor,
+      CodeCompleter completer, HintsOptions options) {
+    pos.Position position = editor.getCursor();
+    _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, editor);
+
+    return completer.complete(ed).then((List<Completion> completions) {
+      List<HintResult> hints = completions.map((Completion completion) {
+        return new HintResult(
+            completion.value, displayText: completion.displayString);
+      }).toList();
+      return new HintResults.fromHints(hints, position, position);
+    });
   }
 }
 

@@ -94,6 +94,9 @@ class Playground {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
+    // TODO: Add a real code completer here.
+    //editorFactory.registerCompleter('dart', new DartCompleter());
+
     keys.bind('ctrl-s', _handleSave);
     keys.bind('ctrl-enter', _handleRun);
 
@@ -290,6 +293,22 @@ class PlaygroundContext extends Context {
         }
       });
     });
+  }
+}
+
+// TODO: For CodeMirror, we get a request each time the user hits a key when the
+// completion popup is open. We need to cache the results when appropriate.
+
+// TODO: We need to cancel completion requests if one is open when we get
+// another.
+
+class DartCompleter extends CodeCompleter {
+  Future<List<Completion>> complete(Editor editor) {
+    return new Future.value([
+      new Completion('one'),
+      new Completion('two'),
+      new Completion('three')
+    ]);
   }
 }
 
