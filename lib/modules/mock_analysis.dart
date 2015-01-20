@@ -15,7 +15,7 @@ class MockAnalysisModule extends Module {
   MockAnalysisModule();
 
   Future init() {
-    deps[AnalysisIssueService] = new MockAnalysisIssueService();
+    deps[AnalysisService] = new MockAnalysisService();
     return new Future.value();
   }
 }

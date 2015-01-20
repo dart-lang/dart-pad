@@ -89,7 +89,6 @@ class AceFactory extends EditorFactory {
 //    ace.LanguageTools langTools = ace.require('ace/ext/language_tools');
 //    langTools.addCompleter(new ace.AutoCompleter(_aceCompleter));
 
-
   }
 }
 
