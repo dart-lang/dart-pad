@@ -81,20 +81,16 @@ class AceFactory extends EditorFactory {
     editor.commands.removeCommand('gotoline');
     editor.commands.removeCommand('find');
 
-//    // TODO: Make this generic and pluggable.
-//    ace.LanguageTools langTools = ace.require('ace/ext/language_tools');
-//    langTools.addCompleter(new ace.AutoCompleter(_aceCompleter));
-
     return new _AceEditor._(this, editor);
   }
 
-//  Future<List<ace.Completion>> _aceCompleter(ace.Editor editor,
-//      ace.EditSession session, ace.Point position, String prefix) {
-//    // TODO:
-//    print('complete (${session.mode.name}): ${prefix}');
-//
-//    return new Future.value([]);
-//  }
+  void registerCompleter(String mode, CodeCompleter completer) {
+    // TODO:
+//    ace.LanguageTools langTools = ace.require('ace/ext/language_tools');
+//    langTools.addCompleter(new ace.AutoCompleter(_aceCompleter));
+
+
+  }
 }
 
 class _AceEditor extends Editor {
