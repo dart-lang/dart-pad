@@ -7,6 +7,8 @@ library playground;
 import 'dart:async';
 import 'dart:html' hide Document;
 
+import 'package:logging/logging.dart';
+
 import 'context.dart';
 import 'dartpad.dart';
 import 'core/dependencies.dart';
@@ -33,6 +35,8 @@ Playground get playground => _playground;
 Playground _playground;
 Analytics ga = new Analytics();
 
+Logger _logger = new Logger('dartpad');
+
 void init() {
   _playground = new Playground();
 }
@@ -41,11 +45,14 @@ class Playground {
   DivElement get _editpanel => querySelector('#editpanel');
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
-  //Element get _spinner => querySelector('#spinner');
 
   DButton runbutton;
+  DBusyLight dartBusyLight;
+  DBusyLight cssBusyLight;
+  DBusyLight htmlBusyLight;
   Editor editor;
   PlaygroundContext _context;
+  Future _analysisRequest;
 
   ModuleManager modules = new ModuleManager();
 
@@ -57,10 +64,17 @@ class Playground {
     runbutton = new DButton(querySelector('#runbutton'));
     runbutton.onClick.listen((e) {
       _handleRun();
+
       // On a mobile device, focusing the editing are causes the keyboard to pop
       // up when the user hits the run button.
       if (!isMobile()) _context.focus();
     });
+
+    // TODO: Currently the lights are all shared; we should have one for each
+    // type.
+    dartBusyLight = new DBusyLight(querySelector('#dartbusy'));
+    cssBusyLight = new DBusyLight(querySelector('#dartbusy'));
+    htmlBusyLight = new DBusyLight(querySelector('#dartbusy'));
 
     _initModules().then((_) {
       _initPlayground();
@@ -116,16 +130,19 @@ class Playground {
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
 
+    _context.onHtmlDirty.listen((_) => htmlBusyLight.on());
     _context.onHtmlReconcile.listen((_) {
       executionService.replaceHtml(_context.htmlSource);
-      _context.markHtmlClean();
+      htmlBusyLight.reset();
     });
 
+    _context.onCssDirty.listen((_) => cssBusyLight.on());
     _context.onCssReconcile.listen((_) {
       executionService.replaceCss(_context.cssSource);
-      _context.markCssClean();
+      cssBusyLight.reset();
     });
 
+    _context.onDartDirty.listen((_) => dartBusyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     DSplash splash = new DSplash(querySelector('div.splash'));
@@ -162,7 +179,6 @@ class Playground {
   void _handleRun() {
     ga.sendEvent('main', 'run');
     runbutton.disabled = true;
-    _showSpinner(true);
 
     compilerService.compile(context.dartSource).then((CompilerResult result) {
       _clearOutput();
@@ -171,13 +187,9 @@ class Playground {
     }).catchError((e) {
       // TODO: Also display using a toast.
       _clearOutput();
-      _showOuput('There was an issue when compiling to JavaScript:\n${e}',
-          error: true);
+      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {
-      _context.markCssClean();
-      _context.markHtmlClean();
       runbutton.disabled = false;
-      _showSpinner(false);
     });
   }
 
@@ -185,8 +197,19 @@ class Playground {
     String source = _context.dartSource;
     Lines lines = new Lines(source);
 
-    analysisService.analyze(source).then((AnalysisResults result) {
-      // TODO: Make sure these show up on the right document.
+    Future request = analysisService.analyze(source);
+
+    _analysisRequest = request;
+
+    request.then((AnalysisResults result) {
+      // Discard if we requested another analysis.
+      if (_analysisRequest != request) return;
+
+      // Discard if the document has been mutated since we requested analysis.
+      if (source != _context.dartSource) return;
+
+      dartBusyLight.reset();
+
       _context.dartDocument.setAnnotations(result.issues.map(
           (AnalysisIssue issue) {
         int startLine = lines.getLineForOffset(issue.charStart);
@@ -200,11 +223,11 @@ class Playground {
         return new Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
       }).toList());
+    }).catchError((e) {
+      _context.dartDocument.setAnnotations([]);
+      dartBusyLight.reset();
+      _logger.severe(e);
     });
-  }
-
-  void _showSpinner(bool show) {
-    //_spinner.classes.toggle('showing', show);
   }
 
   void _handleSave() {
@@ -235,21 +258,26 @@ class PlaygroundContext extends Context {
   Document _htmlDoc;
   Document _cssDoc;
 
-  StreamController _htmlReconcileController = new StreamController.broadcast();
+  StreamController _cssDirtyController = new StreamController.broadcast();
+  StreamController _dartDirtyController = new StreamController.broadcast();
+  StreamController _htmlDirtyController = new StreamController.broadcast();
+
   StreamController _cssReconcileController = new StreamController.broadcast();
   StreamController _dartReconcileController = new StreamController.broadcast();
+  StreamController _htmlReconcileController = new StreamController.broadcast();
 
   PlaygroundContext(this.editor) {
-    _dartDoc = editor.createDocument(
-        content: _sampleDartCode, mode: 'dart');
-    _htmlDoc = editor.createDocument(
-        content: _sampleHtmlCode, mode: 'html');
-    _cssDoc = editor.createDocument(
-        content: _sampleCssCode, mode: 'css');
+    _dartDoc = editor.createDocument(content: _sampleDartCode, mode: 'dart');
+    _htmlDoc = editor.createDocument(content: _sampleHtmlCode, mode: 'html');
+    _cssDoc = editor.createDocument(content: _sampleCssCode, mode: 'css');
 
-    _createReconciler(_htmlDoc, _htmlReconcileController, 250);
+    _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
+    _htmlDoc.onChange.listen((_) => _htmlDirtyController.add(null));
+    _cssDoc.onChange.listen((_) => _cssDirtyController.add(null));
+
     _createReconciler(_cssDoc, _cssReconcileController, 250);
-    _createReconciler(_dartDoc, _dartReconcileController);
+    _createReconciler(_dartDoc, _dartReconcileController, 1250);
+    _createReconciler(_htmlDoc, _htmlReconcileController, 250);
 
     editor.swapDocument(_dartDoc);
   }
@@ -283,30 +311,29 @@ class PlaygroundContext extends Context {
     editor.focus();
   }
 
-  Stream get onHtmlReconcile => _htmlReconcileController.stream;
+  Stream get onCssDirty => _cssDirtyController.stream;
+  Stream get onDartDirty => _dartDirtyController.stream;
+  Stream get onHtmlDirty => _htmlDirtyController.stream;
 
   Stream get onCssReconcile => _cssReconcileController.stream;
-
   Stream get onDartReconcile => _dartReconcileController.stream;
-
-  void markHtmlClean() => _htmlDoc.markClean();
+  Stream get onHtmlReconcile => _htmlReconcileController.stream;
 
   void markCssClean() => _cssDoc.markClean();
+  void markDartClean() => _dartDoc.markClean();
+  void markHtmlClean() => _htmlDoc.markClean();
 
   /**
    * Restore the focus to the last focused editor.
    */
   void focus() => editor.focus();
 
-  void _createReconciler(Document doc, StreamController controller,
-      [int delay = 1250]) {
+  void _createReconciler(Document doc, StreamController controller, int delay) {
     Timer timer;
     doc.onChange.listen((_) {
       if (timer != null) timer.cancel();
       timer = new Timer(new Duration(milliseconds: delay), () {
-        if (!doc.isClean) {
-          controller.add(null);
-        }
+        controller.add(null);
       });
     });
   }

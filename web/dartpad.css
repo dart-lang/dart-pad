@@ -109,7 +109,7 @@ a[selected]:hover {
 .header {
   height: 24px;
   line-height: 24px;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 button {
@@ -121,11 +121,13 @@ button {
   border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 2px;
   font-family: 'Roboto', sans-serif;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 18px;
   height: 24px;
   cursor: pointer;
   padding: 2px 6px;
+  transition: 100ms;
+  min-width: 75px;
 }
 
 button:hover {
@@ -141,6 +143,12 @@ button[disabled] {
   color: #555;
   fill: #555;
   pointer-events: none;
+  border-color: #272727;
+  background-color: #3b3b3b;
+}
+
+#runbutton {
+  padding-right: 11px;	
 }
 
 [small] {
@@ -216,19 +224,9 @@ div.toggle {
   display: block;
   position: relative;
   min-height: 100px;
+  margin-left: -3px;
 }
 
 .right {
   text-align: right;
-}
-
-#spinner {
-  opacity: 0;
-  transition: 150ms;
-  font-size: 18px;
-  margin-right: 3px;
-}
-
-#spinner.showing {
-  opacity: 0.4;
 }
