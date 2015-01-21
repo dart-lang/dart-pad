@@ -192,6 +192,10 @@ class DSplash extends DElement {
   }
 }
 
+/**
+ * A simple element that can display a lightbulb, with fade in and out and a
+ * built in counter.
+ */
 class DBusyLight extends DElement {
   static final Duration _delay = const Duration(milliseconds: 150);
 
