@@ -6,16 +6,16 @@
 
 <html>
   <head>
-  	<meta charset="utf-8">
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <title>Dartpad</title>
+    <title>Dartpad [alpha]</title>
 
     <link href="layout.css" rel="stylesheet" media="screen">
     <link href="dartpad.css" rel="stylesheet" media="screen">
-    <!-- link href="packages/dartpad_ui/elements/elements.css" rel="stylesheet" media="screen" -->
+    <link href="packages/dartpad_ui/elements/elements.css" rel="stylesheet" media="screen">
 
     <link href='//fonts.googleapis.com/css?family=Roboto' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Inconsolata:400,700' rel='stylesheet' type='text/css'>
@@ -30,18 +30,13 @@
 
   <body fullbleed layout vertical>
     <header layout horizontal>
-      <div>Dartpad</div>
+      <div>Dartpad [alpha]</div>
       <div flex></div>
-      <!-- div>
-        <a small href="https://gist.github.com/devoncarew/6893556">gist:6893556</a>
-      </div>
-        &nbsp;&nbsp;
-      <div>
-        <button disabled>Save</button>
-      </div -->
     </header>
 
     <section flex layout horizontal>
+      <div class="splash"></div>
+
       <div class="view" flex three layout vertical>
         <div class="header" layout horizontal>
           <li><a id="darttab" selected class="arrow_box"><span>Dart</span></a></li>
@@ -63,27 +58,33 @@
         </div>
       </div>
 
-      <!-- div class="splitter" vertical id="vert_split"></div -->
+      <div class="splitter" vertical id="editor_split">
+        <div class="inner"></div>
+      </div>
 
-      <div class="view noleft" flex two layout vertical>
-        <div class="header leftmargin" layout horizontal>
-          <div flex></div>
+      <div class="view" flex two layout vertical>
+        <iframe id="frame" sandbox="allow-scripts" flex four src="frame.html">
+        </iframe>
+        <div class="splitter" horizontal id="output_split">
+          <div class="inner"></div>
         </div>
-        <div flex id="outputpanel" layout vertical class="content leftborder">
-          <iframe id="frame" sandbox="allow-scripts" flex four src="frame.html">
-          </iframe>
-          <div class="horz_divider"></div>
-          <div flex two id="output" class="console"></div>
+        <div flex two id="output" class="console"></div>
         </div>
       </div>
     </section>
 
     <footer layout horizontal>
-      <div flex>
+      <div>
         <a href="https://www.dartlang.org/" target="dartlang">www.dartlang.org</a>
       </div>
-      <div flex class="right">
+      <div flex></div>
+      <div>
         <a href="https://api.dartlang.org/" target="docs">API documentation</a>
+      </div>
+      <div flex></div>
+      <div>
+        <a href="https://github.com/dart-lang/dartpad_ui/issues"
+          target="github_issues">Send feedback</a>
       </div>
     </footer>
 
