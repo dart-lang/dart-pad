@@ -51,10 +51,13 @@ class DButton extends DElement {
   set disabled(bool value) => belement.disabled = value;
 }
 
-// TODO: get the position
-// TODO: set the position
-// TODO: fire events for position change
+// TODO: Don't squash components on the right.
+
+// TODO: Support touch events.
+
 class DSplitter extends DElement {
+  StreamController<num> _controller = new StreamController.broadcast();
+
   Point _offset = new Point(0, 0);
 
   StreamSubscription _moveSub;
@@ -86,30 +89,53 @@ class DSplitter extends DElement {
     setAttr(value ? 'vertical' : 'horizontal');
   }
 
+  num get position => _targetSize;
+
+  set position(num value) {
+    _targetSize = value;
+  }
+
+  Stream<num> get onPositionChanged => _controller.stream;
+
   void _init() {
     element.classes.toggle('splitter', true);
     if (!horizontal && !vertical) horizontal = true;
 
-    element.onMouseDown.listen((e) {
-      e.preventDefault();
-      _offset = e.screen;
-      num initialTargetSize = _targetSize;
+    if (element.querySelector('div.inner') == null) {
+      Element e = new DivElement();
+      e.classes.add('inner');
+      element.children.add(e);
+    }
 
-      _moveSub = document.onMouseMove.listen(
-          (e) => _handleDrag(e.screen - _offset, initialTargetSize));
+    var cancel = () {
+      if (_moveSub != null) _moveSub.cancel();
+      if (_upSub != null) _upSub.cancel();
+    };
+
+    element.onMouseDown.listen((e) {
+      if (e.which != 1) return;
+
+      e.preventDefault();
+      _offset = e.offset;
+
+      _moveSub = document.onMouseMove.listen((e) {
+        if (e.which != 1) {
+          cancel();
+        } else {
+          Point current = e.client - element.parent.client.topLeft - _offset;
+          current -= _target.marginEdge.topLeft;
+          _handleDrag(current);
+        }
+      });
+
       _upSub = document.onMouseUp.listen((e) {
-        if (_moveSub != null) _moveSub.cancel();
-        if (_upSub != null) _upSub.cancel();
+        cancel();
       });
     });
   }
 
-  void _handleDrag(Point point, num initialTargetSize) {
-    if (horizontal) {
-      _targetSize = initialTargetSize + point.y;
-    } else {
-      _targetSize = initialTargetSize + point.x;
-    }
+  void _handleDrag(Point size) {
+    _targetSize = vertical ? size.x : size.y;
   }
 
   Element get _target {
@@ -117,30 +143,51 @@ class DSplitter extends DElement {
     return children[children.indexOf(element) - 1];
   }
 
-  num get _targetSize {
-    CssStyleDeclaration style = _target.getComputedStyle();
-    String str = vertical ? style.height : style.width;
-    if (str.endsWith('px')) str = str.substring(0, str.length - 2);
-    return num.parse(str);
-  }
-
   num _minSize(Element e) {
-    CssStyleDeclaration style = e.style;
+    CssStyleDeclaration style = e.getComputedStyle();
     String str = vertical ? style.minWidth : style.minHeight;
     if (str.isEmpty) return 0;
     if (str.endsWith('px')) str = str.substring(0, str.length - 2);
     return num.parse(str);
   }
 
+  num get _targetSize {
+    CssStyleDeclaration style = _target.getComputedStyle();
+    String str = vertical ? style.width : style.height;
+    if (str.endsWith('px')) str = str.substring(0, str.length - 2);
+    return num.parse(str);
+  }
+
   set _targetSize(num size) {
+    final num currentPos = _controller.hasListener ? position : null;
+
     num min = _minSize(_target);
-    print(min);
     size = math.max(size, _minSize(_target));
 
-    if (horizontal) {
-      _target.style.height = '${size}px';
-    } else {
-      _target.style.width = '${size}px';
+    if (_target.attributes.containsKey('flex')) {
+      _target.attributes.remove('flex');
     }
+
+    if (vertical) {
+      _target.style.width = '${size}px';
+    } else {
+      _target.style.height = '${size}px';
+    }
+
+    if (_controller.hasListener) {
+      num newPos = position;
+      if (currentPos != newPos) _controller.add(newPos);
+    }
+  }
+}
+
+class DSplash extends DElement {
+  DSplash(Element element) : super(element);
+
+  void hide({bool removeOnHide: true}) {
+    if (removeOnHide) {
+      element.onTransitionEnd.listen((_) => dispose());
+    }
+    element.classes.toggle('hide', true);
   }
 }

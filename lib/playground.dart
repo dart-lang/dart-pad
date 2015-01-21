@@ -28,8 +28,6 @@ import 'src/util.dart';
 // TODO: we need blinkers when something happens. console is appended to,
 // css is updated, result area dom is modified.
 
-// TODO: we need a component for the output area
-
 Playground get playground => _playground;
 
 Playground _playground;
@@ -64,8 +62,6 @@ class Playground {
       if (!isMobile()) _context.focus();
     });
 
-    /*DSplitter splitter = new DSplitter(querySelector('#vert_split'));*/
-
     _initModules().then((_) {
       _initPlayground();
     });
@@ -84,6 +80,23 @@ class Playground {
   }
 
   void _initPlayground() {
+    // TODO: Set up some automatic value bindings.
+    DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'));
+    editorSplitter.onPositionChanged.listen((pos) {
+      state['editor_split'] = pos;
+    });
+    if (state['editor_split'] != null) {
+     editorSplitter.position = state['editor_split'];
+    }
+
+    DSplitter outputSplitter = new DSplitter(querySelector('#output_split'));
+    outputSplitter.onPositionChanged.listen((pos) {
+      state['output_split'] = pos;
+    });
+    if (state['output_split'] != null) {
+      outputSplitter.position = state['output_split'];
+    }
+
     // Set up iframe.
     deps[ExecutionService] = new ExecutionServiceIFrame(_frame);
     executionService.onStdout.listen(_showOuput);
@@ -114,6 +127,9 @@ class Playground {
     });
 
     _context.onDartReconcile.listen((_) => _performAnalysis());
+
+    DSplash splash = new DSplash(querySelector('div.splash'));
+    splash.hide();
 
     // TODO: This will need to be re-worked.
     // Run the current contents.

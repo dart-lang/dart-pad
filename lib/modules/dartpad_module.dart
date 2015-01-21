@@ -10,6 +10,7 @@ import '../core/dependencies.dart';
 import '../core/event_bus.dart';
 import '../core/keys.dart';
 import '../core/modules.dart';
+import '../elements/state.dart';
 
 class DartpadModule extends Module {
   Future init() {
@@ -19,6 +20,7 @@ class DartpadModule extends Module {
 
     deps[EventBus] = new EventBus();
     deps[Keys] = new Keys();
+    deps[State] = new HtmlState('dartpad');
 
     return new Future.value();
   }

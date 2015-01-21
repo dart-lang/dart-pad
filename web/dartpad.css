@@ -32,12 +32,13 @@ header {
   border-bottom: 1px solid #121212;
   border-width: 4px;
 
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
 section {
-  margin: 0;
-  padding-bottom: 8px;
+  margin: 0 24px;
+  padding-bottom: 24px;
+  position: relative;
 
   box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
   border-bottom: 1px solid #121212;
@@ -50,22 +51,8 @@ footer {
 }
 
 .view {
-  margin: 0 24px;
+  margin: 0 0;
   min-width: 200px;
-}
-
-.noleft {
-  margin-left: 0;
-}
-
-.leftmargin {
-  margin-left: 16px;
-}
-
-.leftborder {
-  padding-left: 16px;
-  box-shadow: rgba(255, 255, 255, 0.07) 1px 0 0 inset;
-  border-left: 1px solid #121212;
 }
 
 .content {
@@ -160,6 +147,10 @@ button[disabled] {
   font-size: 14px;
 }
 
+#frame {
+  min-height: 100px;
+}
+
 iframe {
   border: none;
 }
@@ -209,7 +200,7 @@ div.toggle {
   font-family: 'Inconsolata', monospace;
   font-size: 12pt;
   line-height: 20px;
-  min-height: 100px;
+  min-height: 50px;
   overflow-y: auto;
   white-space: pre-wrap;
 }

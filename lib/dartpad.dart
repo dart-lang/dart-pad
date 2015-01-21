@@ -9,6 +9,7 @@ import 'core/dependencies.dart';
 import 'core/event_bus.dart';
 import 'core/keys.dart';
 import 'editing/editor.dart';
+import 'elements/state.dart';
 import 'services/analysis.dart';
 import 'services/compiler.dart';
 import 'services/execution.dart';
@@ -26,3 +27,5 @@ EventBus get eventBus => deps[EventBus];
 Keys get keys => deps[Keys];
 
 EditorFactory get editorFactory => deps[EditorFactory];
+
+State get state => deps[State];

@@ -5,7 +5,6 @@
 library dartpad.web_test;
 
 import 'package:unittest/html_config.dart';
-import 'package:unittest/unittest.dart';
 
 import 'core/dependencies_test.dart' as dependencies_test;
 import 'core/event_bus_test.dart' as event_bus_test;
@@ -15,7 +14,7 @@ import 'services/common_test.dart' as common_test;
 void main() {
   // Set up the test environment.
   // TODO: Use LoggingHtmlConfiguration when available.
-  unittestConfiguration = new HtmlConfiguration(false);
+  useHtmlConfiguration(false);
 
   // Define the tests.
   dependencies_test.defineTests();
