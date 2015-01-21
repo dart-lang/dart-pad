@@ -191,3 +191,38 @@ class DSplash extends DElement {
     element.classes.toggle('hide', true);
   }
 }
+
+/**
+ * A simple element that can display a lightbulb, with fade in and out and a
+ * built in counter.
+ */
+class DBusyLight extends DElement {
+  static final Duration _delay = const Duration(milliseconds: 150);
+
+  int _count = 0;
+
+  DBusyLight(Element element) : super(element);
+
+  void on() {
+    _count++;
+    _reconcile();
+  }
+
+  void off() {
+    _count--;
+    if (_count < 0) _count = 0;
+    _reconcile();
+  }
+
+  void flash() {
+    on();
+    new Future.delayed(_delay, off);
+  }
+
+  void reset() {
+    _count = 0;
+    _reconcile();
+  }
+
+  _reconcile() => element.classes.toggle('on', _count > 0);
+}

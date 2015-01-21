@@ -11,7 +11,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <title>Dartpad [alpha]</title>
+    <title>Dartpad (alpha)</title>
 
     <link href="layout.css" rel="stylesheet" media="screen">
     <link href="dartpad.css" rel="stylesheet" media="screen">
@@ -26,11 +26,16 @@
     <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
     <link href="packages/dartpad_ui/editing/editor_codemirror.css" rel="stylesheet" media="screen">
+    <style>
+      .alpha {
+        color: #888;
+      }
+    </style>
   </head>
 
   <body fullbleed layout vertical>
     <header layout horizontal>
-      <div>Dartpad [alpha]</div>
+      <div>Dartpad <span class="alpha">alpha</span></div>
       <div flex></div>
     </header>
 
@@ -40,8 +45,8 @@
       <div class="view" flex three layout vertical>
         <div class="header" layout horizontal>
           <li><a id="darttab" selected class="arrow_box"><span>Dart</span></a></li>
-          <li><a id="htmltab"><span>Html</span></a></li>
-          <li><a id="csstab"><span>Css</span></a></li>
+          <li><a id="htmltab"><span>HTML</span></a></li>
+          <li><a id="csstab"><span>CSS</span></a></li>
           <div flex></div>
           <div>
             <button type="button" id="runbutton">
@@ -53,6 +58,7 @@
               Run
             </button>
           </div>
+          <div id="dartbusy" class="busylight"></div>
         </div>
         <div id="editpanel" class="content" flex layout vertical>
         </div>
