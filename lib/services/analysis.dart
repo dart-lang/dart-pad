@@ -19,6 +19,10 @@ class AnalysisResults {
 
   AnalysisResults(this.issues);
 
+  bool get hasError => issues.any((i) => i.kind == 'error');
+  bool get hasWarning => issues.any((i) => i.kind == 'warning');
+  bool get hasInfo => issues.any((i) => i.kind == 'info');
+
   String toString() => '${issues}';
 }
 

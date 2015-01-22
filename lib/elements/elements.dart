@@ -51,8 +51,6 @@ class DButton extends DElement {
   set disabled(bool value) => belement.disabled = value;
 }
 
-// TODO: Don't squash components on the right.
-
 // TODO: Support touch events.
 
 class DSplitter extends DElement {
@@ -225,4 +223,28 @@ class DBusyLight extends DElement {
   }
 
   _reconcile() => element.classes.toggle('on', _count > 0);
+}
+
+// TODO: The label needs an extremely rich tooltip.
+
+class DLabel extends DElement {
+  DLabel(Element element) : super(element) {
+    element.classes.toggle('label', true);
+  }
+
+  String get message => element.text;
+
+  set message(String value) {
+    element.text = value;
+  }
+
+  void clearError() {
+    element.classes.removeAll(['error', 'warning', 'info']);
+  }
+
+  set error(final String value) {
+    element.classes.toggle('error', value == 'error');
+    element.classes.toggle('warning', value == 'warning');
+    element.classes.toggle('info', value == 'info');
+  }
 }
