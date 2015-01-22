@@ -11,11 +11,13 @@
 .splitter[horizontal] {
   width: auto;
   height: 48px;
+  min-height: 48px;
   cursor: row-resize;
 }
 
 .splitter[vertical] {
   width: 48px;
+  min-width: 48px;
   height: auto;
   cursor: col-resize;
 }
@@ -90,4 +92,31 @@
 
 .busylight.on {
   opacity: 0.6;
+}
+
+/* Label css. */
+
+.label {
+  border-radius: 9px;
+  padding: 0 10px;
+  height: 18px;
+  line-height: 18px;
+  margin-top: 3px;
+  margin-right: 10px;
+  /*transition: 100ms;*/
+}
+
+.label.error {
+  color: #000;
+  background-color: rgba(247, 151, 122, 0.8);
+}
+
+.label.warning {
+  color: #000;
+  background-color: rgba(255, 247, 154, 0.8);
+}
+
+.label.info {
+  color: #000;
+  background-color: rgba(126, 167, 216, 0.8);
 }

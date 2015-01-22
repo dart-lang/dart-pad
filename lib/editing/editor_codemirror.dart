@@ -137,6 +137,9 @@ class _CodeMirrorEditor extends Editor {
 class _CodeMirrorDocument extends Document {
   final Doc doc;
 
+  final List<LineWidget> widgets = [];
+  final List<html.DivElement> nodes = [];
+
   _CodeMirrorDocument._(_CodeMirrorEditor editor, this.doc) : super(editor);
 
   _CodeMirrorEditor get parent => editor;
@@ -158,21 +161,42 @@ class _CodeMirrorDocument extends Document {
       marker.clear();
     }
 
-//    // Sort annotations so that the errors are set first.
-//    annotations.sort();
-//
-//    int lastLine = -1;
+    for (LineWidget widget in widgets) {
+      widget.clear();
+    }
+    widgets.clear();
+
+    for (html.DivElement e in nodes) {
+      e.parent.children.remove(e);
+    }
+    nodes.clear();
+
+    // Sort annotations so that the errors are set first.
+    annotations.sort();
+
+    int lastLine = -1;
 
     for (Annotation an in annotations) {
       // Create in-line squiggles.
       doc.markText(_posToPos(an.start), _posToPos(an.end),
           className: 'squiggle-${an.type}', title: an.message);
 
-//      // Create markers in the margin.
-//      if (lastLine == an.line) continue;
-//      lastLine = an.line;
-//      cm.setGutterMarker(an.line - 1, _gutterId,
-//          _makeMarker(an.type, an.message, an.start, an.end));
+      // Create markers in the margin.
+      if (lastLine == an.line) continue;
+      lastLine = an.line;
+
+//      html.DivElement node = new html.DivElement();
+//      //node.style.position = 'absolute';
+//      node.text = an.message;
+//      node.style.backgroundColor = '#444';
+//      //node.style.height = '40px';
+//      //nodes.add(node);
+//      //(editor as _CodeMirrorEditor).cm.addWidget(_posToPos(an.start), node);
+//      widgets.add(
+//          (editor as _CodeMirrorEditor).cm.addLineWidget(an.line - 1, node));
+//
+////      cm.setGutterMarker(an.line - 1, _gutterId,
+////          _makeMarker(an.type, an.message, an.start, an.end));
     }
   }
 

@@ -50,6 +50,7 @@ class Playground {
   DBusyLight dartBusyLight;
   DBusyLight cssBusyLight;
   DBusyLight htmlBusyLight;
+  DLabel label;
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -76,6 +77,8 @@ class Playground {
     cssBusyLight = new DBusyLight(querySelector('#dartbusy'));
     htmlBusyLight = new DBusyLight(querySelector('#dartbusy'));
 
+    label = new DLabel(querySelector('#label'));
+
     _initModules().then((_) {
       _initPlayground();
     });
@@ -98,6 +101,7 @@ class Playground {
     DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'));
     editorSplitter.onPositionChanged.listen((pos) {
       state['editor_split'] = pos;
+      editor.resize();
     });
     if (state['editor_split'] != null) {
      editorSplitter.position = state['editor_split'];
@@ -209,6 +213,17 @@ class Playground {
       if (source != _context.dartSource) return;
 
       dartBusyLight.reset();
+
+      if (result.issues.isEmpty) {
+        label.message = '';
+        label.clearError();
+      } else {
+        // ${plural('issue', result.issues.length)}';
+        label.message = '${result.issues.length}';
+        if (result.hasError) label.error = 'error';
+        else if (result.hasWarning) label.error = 'warning';
+        else label.error = 'info';
+      }
 
       _context.dartDocument.setAnnotations(result.issues.map(
           (AnalysisIssue issue) {

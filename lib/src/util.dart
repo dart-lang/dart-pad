@@ -17,3 +17,10 @@ bool isMobile() {
 
   return width <= mobileSize || height <= mobileSize;
 }
+
+/**
+ * Return the plural of the given word.
+ */
+String plural(String word, int count) {
+  return count == 1 ? word : '${word}s';
+}
