@@ -12,12 +12,12 @@ dependencies:
   appengine: '>=0.2.1 <0.3.0'
   args: any
   compiler_unsupported: 1.9.0-dev.2.2.1
-  crypto: any
+  crypto: '>=0.9.0 <0.10.0'
   grinder: '>=0.6.4 <0.7.0'
+  librato: '>=0.0.1 <0.1.0'
   logging: any
   shelf: any
   shelf_route: any
-
 dev_dependencies:
   browser: any
   codemirror: '>=0.1.0 <0.2.0'

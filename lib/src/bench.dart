@@ -9,6 +9,7 @@
 library dartpad_server.bench;
 
 import 'dart:async';
+import 'dart:convert' show JSON;
 
 // TODO: refactor into a benchmark model, runner, and reporter
 
@@ -25,6 +26,10 @@ abstract class Benchmark {
 }
 
 class BenchmarkHarness {
+  final bool json;
+
+  BenchmarkHarness({this.json});
+
   Future benchmark(List<Benchmark> benchmarks) {
     if (isCheckedMode()) {
       print('WARNING: You are running in checked mode. Benchmarks should be run'
@@ -34,19 +39,38 @@ class BenchmarkHarness {
       print('');
     }
 
-    print('Running ${benchmarks.length} benchmarks.');
-    print('');
+    log('Running ${benchmarks.length} benchmarks.');
+    log('');
 
-    return Future.forEach(benchmarks, benchmarkSingle);
+    List<BenchMarkResult> results = [];
+
+    return Future.forEach(benchmarks, (benchmark) {
+      return benchmarkSingle(benchmark).then((result) {
+        results.add(result);
+      });
+    }).then((_) {
+      if (json) {
+        print(JSON.encode(results.map(
+            (r) => {r.benchmark.name: r.averageMilliseconds()}).toList()));
+      }
+    });
   }
 
   Future<BenchMarkResult> benchmarkSingle(Benchmark benchmark) {
     return _warmup(benchmark).then((_) {
       return _measure(benchmark);
     }).then((BenchMarkResult result) {
-      print(result);
+      logResult(result);
       return result;
     });
+  }
+
+  void log(String message) {
+    if (!json) print(message);
+  }
+
+  void logResult(BenchMarkResult result) {
+    if (!json) print(result);
   }
 
   Future _warmup(Benchmark benchmark) {
@@ -88,12 +112,12 @@ class BenchMarkResult {
 
   BenchMarkResult(this.benchmark);
 
-  double _averageMilliseconds() => (microseconds / iteration) / 1000.0;
+  double averageMilliseconds() => (microseconds / iteration) / 1000.0;
 
   //double _averageMicroseconds() => microseconds / iteration;
 
   String toString() => '[${benchmark.name.padRight(20)}: '
-      '${_averageMilliseconds().toStringAsFixed(3).padLeft(8)}ms]';
+      '${averageMilliseconds().toStringAsFixed(3).padLeft(8)}ms]';
 }
 
 bool isCheckedMode() {
