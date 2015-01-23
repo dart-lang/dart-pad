@@ -36,14 +36,26 @@ travisBench(GrinderContext context) {
   }
 
   List results = JSON.decode(result.stdout);
-  Map stats = {};
+  List<LibratoStat> stats = [];
 
-  results.forEach((r) {
-    context.log('${r}');
-    stats.addAll(r);
+  results.forEach((Map result) {
+    context.log('${result}');
+
+    String key = result.keys.first;
+    stats.add(new LibratoStat(key, result[key]));
   });
 
-  context.log('Uploading stats to ${librato.url}');
-  // groupName: Platform.environment['TRAVIS_COMMIT']);
-  return librato.postStats(stats);
+  context.log('Uploading stats to ${librato.baseUrl}');
+
+  return librato.postStats(stats).then((_) {
+    String commit = Platform.environment['TRAVIS_COMMIT'];
+    LibratoLink link = new LibratoLink(
+        'github',
+        'https://github.com/dart-lang/dartpad_server/commit/${commit}');
+    LibratoAnnotation annotation = new LibratoAnnotation(
+        commit,
+        description: 'Commit ${commit}',
+        links: [link]);
+    librato.createAnnotation('builds', annotation);
+  });
 }
