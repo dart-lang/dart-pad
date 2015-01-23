@@ -14,8 +14,10 @@ import 'package:grinder/grinder.dart' as grinder;
 
 final String sdkPath = grinder.getSdkDir().path;
 
-void main() {
-  BenchmarkHarness harness = new BenchmarkHarness();
+void main(List<String> args) {
+  bool json = args.contains('--json');
+
+  BenchmarkHarness harness = new BenchmarkHarness(json: json);
 
   List<Benchmark> benchmarks = [
     new AnalyzerBenchmark('hello', sampleCode),

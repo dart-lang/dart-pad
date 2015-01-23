@@ -41,4 +41,4 @@ if [ "$REPO_TOKEN" ]; then
 fi
 
 # Run the benchmarks.
-dart benchmark/bench.dart
+dart tool/grind.dart travis-bench
