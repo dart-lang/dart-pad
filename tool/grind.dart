@@ -48,8 +48,19 @@ Future _uploadCompiledStats(GrinderContext context, num length) {
   if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
     Librato librato = new Librato.fromEnvVars();
     Map stats = { 'dartpad.dart.js': length};
-    context.log('Uploading stats to ${librato.url}');
-    return librato.postStats(stats); // groupName: env['TRAVIS_COMMIT']);
+    context.log('Uploading stats to ${librato.baseUrl}');
+    LibratoStat compiledSize = new LibratoStat('dartpad.dart.js', length);
+    return librato.postStats([compiledSize]).then((_) {
+      String commit = env['TRAVIS_COMMIT'];
+      LibratoLink link = new LibratoLink(
+          'github',
+          'https://github.com/dart-lang/dartpad_ui/commit/${commit}');
+      LibratoAnnotation annotation = new LibratoAnnotation(
+          commit,
+          description: 'Commit ${commit}',
+          links: [link]);
+      return librato.createAnnotation('builds', annotation);
+    });
   } else {
     return new Future.value();
   }
