@@ -49,7 +49,7 @@ Future _uploadCompiledStats(GrinderContext context, num length) {
     Librato librato = new Librato.fromEnvVars();
     Map stats = { 'dartpad.dart.js': length};
     context.log('Uploading stats to ${librato.url}');
-    return librato.postStats(stats, groupName: env['TRAVIS_COMMIT']);
+    return librato.postStats(stats); // groupName: env['TRAVIS_COMMIT']);
   } else {
     return new Future.value();
   }
