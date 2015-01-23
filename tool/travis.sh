@@ -30,4 +30,7 @@ dartanalyzer --fatal-warnings \
 # Run the tests.
 dart test/all.dart
 
+# Build the app (into build/web).
+dart tool/grind.dart build
+
 # TODO: We need to run the UI/web tests as well.
