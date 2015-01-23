@@ -44,6 +44,6 @@ travisBench(GrinderContext context) {
   });
 
   context.log('Uploading stats to ${librato.url}');
-  return librato.postStats(
-      stats, groupName: Platform.environment['TRAVIS_COMMIT']);
+  // groupName: Platform.environment['TRAVIS_COMMIT']);
+  return librato.postStats(stats);
 }
