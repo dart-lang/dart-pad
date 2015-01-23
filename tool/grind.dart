@@ -59,7 +59,7 @@ Future _uploadCompiledStats(GrinderContext context, num length) {
           commit,
           description: 'Commit ${commit}',
           links: [link]);
-      return librato.createAnnotation('builds', annotation);
+      return librato.createAnnotation('build_ui', annotation);
     });
   } else {
     return new Future.value();
