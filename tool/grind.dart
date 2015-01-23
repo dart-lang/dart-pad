@@ -34,7 +34,7 @@ build(GrinderContext context) {
   runProcess(context, 'cp',
       arguments: ['-R', '-L', 'packages', 'build/web/packages']);
 
-  return _uploadCompiledStats(outFile.lengthSync());
+  return _uploadCompiledStats(context, outFile.lengthSync());
 }
 
 /// Prepare the app for deployment.
@@ -42,12 +42,13 @@ void deploy(GrinderContext context) {
   context.log('execute: `appcfg.py update build/web`');
 }
 
-Future _uploadCompiledStats(num length) {
+Future _uploadCompiledStats(GrinderContext context, num length) {
   Map env = Platform.environment;
 
   if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
     Librato librato = new Librato.fromEnvVars();
     Map stats = { 'dartpad.dart.js': length};
+    context.log('Uploading stats to ${librato.url}');
     return librato.postStats(stats, groupName: env['TRAVIS_COMMIT']);
   } else {
     return new Future.value();
