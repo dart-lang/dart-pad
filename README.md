@@ -4,7 +4,7 @@ The pre-alpha server backend for a web based interactive Dart service.
 
 [![Build Status](https://travis-ci.org/dart-lang/dartpad_server.svg)](https://travis-ci.org/dart-lang/dartpad_server)
 [![Coverage Status](https://img.shields.io/coveralls/dart-lang/dartpad_server.svg)](https://coveralls.io/r/dart-lang/dartpad_server?branch=master)
-[![Uptime Status](https://img.shields.io/badge/uptime-StatusCake-green.svg)](http://uptime.statuscake.com/?TestID=6FVej0AP1A)
+[![Uptime Status](https://img.shields.io/badge/uptime-StatusCake-blue.svg)](http://uptime.statuscake.com/?TestID=6FVej0AP1A)
 
 ## What is it? What does it do?
 
