@@ -56,6 +56,6 @@ travisBench(GrinderContext context) {
         commit,
         description: 'Commit ${commit}',
         links: [link]);
-    librato.createAnnotation('builds', annotation);
+    librato.createAnnotation('build_server', annotation);
   });
 }
