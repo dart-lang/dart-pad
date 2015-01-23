@@ -4,11 +4,11 @@
 
 library dartpad_ui.grind;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:grinder/grinder.dart';
-
-final Directory BUILD_DIR = new Directory('build');
+import 'package:librato/librato.dart';
 
 void main(List<String> args) {
   task('init', defaultInit);
@@ -20,7 +20,7 @@ void main(List<String> args) {
 }
 
 /// Build the `web/dartpad.html` entrypoint.
-void build(GrinderContext context) {
+build(GrinderContext context) {
   Pub.build(context, directories: ['web']);
 
   File outFile = joinFile(BUILD_DIR, ['web', 'dartpad.dart.js']);
@@ -33,11 +33,25 @@ void build(GrinderContext context) {
   // cp -R -L packages build/web/packages
   runProcess(context, 'cp',
       arguments: ['-R', '-L', 'packages', 'build/web/packages']);
+
+  return _uploadCompiledStats(outFile.lengthSync());
 }
 
 /// Prepare the app for deployment.
 void deploy(GrinderContext context) {
   context.log('execute: `appcfg.py update build/web`');
+}
+
+Future _uploadCompiledStats(num length) {
+  Map env = Platform.environment;
+
+  if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
+    Librato librato = new Librato.fromEnvVars();
+    Map stats = { 'dartpad.dart.js': length};
+    return librato.postStats(stats, groupName: env['TRAVIS_COMMIT']);
+  } else {
+    return new Future.value();
+  }
 }
 
 String _printSize(File file) => '${(file.lengthSync() + 1023) ~/ 1024}k';
