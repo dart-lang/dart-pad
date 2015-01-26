@@ -228,11 +228,13 @@ class Playground {
         }
       });
 
+      ga.sendEvent('edit', name);
       _context.switchTo(name);
     });
   }
 
-  List<Element> _getTabElements(Element element) => element.querySelectorAll('a');
+  List<Element> _getTabElements(Element element) =>
+      element.querySelectorAll('a');
 
   void _handleRun() {
     ga.sendEvent('main', 'run');
