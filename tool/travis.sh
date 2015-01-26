@@ -30,6 +30,9 @@ dartanalyzer --fatal-warnings \
 # Run the tests.
 dart test/all.dart
 
+# Run the benchmarks.
+dart tool/grind.dart travis-bench
+
 # Install dart_coveralls; gather and send coverage data.
 if [ "$REPO_TOKEN" ]; then
   pub global activate dart_coveralls
@@ -39,6 +42,3 @@ if [ "$REPO_TOKEN" ]; then
     --exclude-test-files \
     test/all.dart
 fi
-
-# Run the benchmarks.
-dart tool/grind.dart travis-bench
