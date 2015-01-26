@@ -9,10 +9,11 @@ environment:
 
 dependencies:
   ace: '>=0.5.10 <0.6.0'
-  browser: any
+  browser: '>=0.10.0 <0.11.0'
   codemirror: '>=0.1.5 <0.2.0'
   librato: '>=0.0.1 <0.1.0'
   logging: '>=0.9.0 <0.10.0'
+  route_hierarchical: '>=0.6.0 <0.7.0'
 
 dev_dependencies:
   dart_to_js_script_rewriter: any

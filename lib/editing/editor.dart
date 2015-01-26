@@ -29,6 +29,8 @@ abstract class Editor {
 
   Document createDocument({String content, String mode});
 
+  Document get document;
+
   String get mode;
   set mode(String str);
 
