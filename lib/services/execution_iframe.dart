@@ -29,6 +29,31 @@ class ExecutionServiceIFrame implements ExecutionService {
   }
 
   Future execute(String html, String css, String javaScript) {
+    return _send('execute', {
+      'html': html,
+      'css': css,
+      'js': _decorateJavaScript(javaScript)
+    });
+  }
+
+  void replaceHtml(String html) {
+    _send('setHtml', {'html': html});
+  }
+
+  void replaceCss(String css) {
+    _send('setCss', {'css': css});
+  }
+
+  void replaceJavaScript(String js) {
+    _send('setJavaScript', {'js': _decorateJavaScript(js)});
+  }
+
+  void reset() {
+    // TODO: Destroy and re-load iframe.
+
+  }
+
+  String _decorateJavaScript(String javaScript) {
     final String postMessagePrint =
         "function dartPrint(message) { parent.postMessage(message, '*'); }";
 
@@ -37,36 +62,18 @@ class ExecutionServiceIFrame implements ExecutionService {
         "window.onerror = function(message, url, lineNumber) { "
         "parent.postMessage('stderr: ' + message.toString(), '*'); };";
 
-    replaceCss(css);
-    replaceHtml(html);
-    replaceJavaScript('${postMessagePrint}\n${exceptionHandler}\n${javaScript}');
-
-    return new Future.value();
-  }
-
-  void replaceCss(String css) {
-    _send('setCss', css);
-  }
-
-  void replaceHtml(String html) {
-    _send('setHtml', html);
-  }
-
-  void replaceJavaScript(String js) {
-    _send('setJavaScript', js);
-  }
-
-  void reset() {
-    _send('reset');
+    return '${postMessagePrint}\n${exceptionHandler}\n${javaScript}';
   }
 
   Stream<String> get onStdout => _stdoutController.stream;
 
   Stream<String> get onStderr => _stderrController.stream;
 
-  void _send(String command, [String data]) {
+  Future _send(String command, Map params) {
     Map m = {'command': command};
-    if (data != null) m['data'] = data;
+    m.addAll(params);
     frame.contentWindow.postMessage(m, '*');
+
+    return new Future.value();
   }
 }

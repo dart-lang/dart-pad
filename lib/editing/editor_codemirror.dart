@@ -60,7 +60,8 @@ class CodeMirrorFactory extends EditorFactory {
       options = {
         'continueComments': {'continueLineComment': false},
         'autofocus': true,
-        'autoCloseTags': true,
+        // Removing this - with this enabled you can't type a forward slash.
+        //'autoCloseTags': true,
         'autoCloseBrackets': true,
         'matchBrackets': true,
         'tabSize': 2,
@@ -111,12 +112,14 @@ class _CodeMirrorEditor extends Editor {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
   }
 
+  Document get document => _document;
+
   Document createDocument({String content, String mode}) {
     if (mode == 'html') mode = 'text/html';
-
     if (content == null) content = '';
-    Doc doc = new Doc(content, mode);
-    return new _CodeMirrorDocument._(this, doc);
+
+    // TODO: For `html`, enable and disable the 'autoCloseTags' option.
+    return new _CodeMirrorDocument._(this, new Doc(content, mode));
   }
 
   String get mode => cm.getMode();
@@ -145,11 +148,18 @@ class _CodeMirrorDocument extends Document {
   _CodeMirrorEditor get parent => editor;
 
   String get value => doc.getValue();
-  set value(String str) => doc.setValue(str);
+
+  set value(String str) {
+    doc.setValue(str);
+    doc.markClean();
+    // TODO: Switch over to non-JS interop when this method is exposed.
+    doc.jsProxy.callMethod('clearHistory');
+  }
 
   String get mode => parent.mode;
 
   bool get isClean => doc.isClean();
+
   void markClean() => doc.markClean();
 
   void setAnnotations(List<Annotation> annotations) {

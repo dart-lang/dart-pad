@@ -5,9 +5,11 @@
 library playground;
 
 import 'dart:async';
+import 'dart:convert' show JSON;
 import 'dart:html' hide Document;
 
 import 'package:logging/logging.dart';
+import 'package:route_hierarchical/client.dart';
 
 import 'context.dart';
 import 'dartpad.dart';
@@ -25,6 +27,7 @@ import 'services/common.dart';
 import 'services/compiler.dart';
 import 'services/execution_iframe.dart';
 import 'src/ga.dart';
+import 'src/sample.dart' as sample;
 import 'src/util.dart';
 
 // TODO: we need blinkers when something happens. console is appended to,
@@ -84,6 +87,50 @@ class Playground {
     });
   }
 
+  void showHome(RouteEnterEvent event) {
+    // TODO: What should the workflow be for hitting '/'? Load the last sample
+    // edited here?
+    context.dartSource = sample.dartCode;
+    context.htmlSource = sample.htmlCode;
+    context.cssSource = sample.cssCode;
+
+    Timer.run(_handleRun);
+  }
+
+  void showGist(RouteEnterEvent event) {
+    String gistId = event.parameters['gist'];
+
+    // Load the gist.
+    HttpRequest.getString('https://api.github.com/gists/${gistId}').then((data) {
+      Map m = JSON.decode(data);
+
+      String description = m['description'];
+      _logger.info('Loaded gist ${gistId} (${description})');
+
+      Map files = m['files'];
+
+      String dart = _getFileContent(files, ['main.dart'],
+          (f) => f.endsWith('.dart'));
+      String html = _getFileContent(files, ['index.html', 'body.html']);
+      String css = _getFileContent(files, ['styles.css', 'style.css']);
+
+      context.dartSource = dart;
+      context.htmlSource = html;
+      context.cssSource = css;
+
+      // Analyze and run it.
+      Timer.run(() {
+        _handleRun();
+        _performAnalysis();
+      });
+    }).catchError((e) {
+      // TODO: Display any errors - use a toast.
+
+      print('Error loading gist ${gistId}.');
+      print(e);
+    });
+  }
+
   Future _initModules() {
     modules.register(new DartpadModule());
     //modules.register(new MockAnalysisModule());
@@ -115,7 +162,7 @@ class Playground {
       outputSplitter.position = state['output_split'];
     }
 
-    // Set up iframe.
+    // Set up the iframe.
     deps[ExecutionService] = new ExecutionServiceIFrame(_frame);
     executionService.onStdout.listen(_showOuput);
     executionService.onStderr.listen((m) => _showOuput(m, error: true));
@@ -149,15 +196,22 @@ class Playground {
     _context.onDartDirty.listen((_) => dartBusyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
+    _finishedInit();
+  }
+
+  _finishedInit() {
+    // Clear the splash.
     DSplash splash = new DSplash(querySelector('div.splash'));
     splash.hide();
 
-    // TODO: This will need to be re-worked.
-    // Run the current contents.
-    Timer.run(() {
-      _handleRun();
-      _performAnalysis();
-    });
+    // TODO: I really want to be able to have paths without hashes in them.
+    // So, dartpad.foo/123456af rather then dartpad.foo/#123456af.
+    Router router = new Router(useFragment: true);
+    router.root.addRoute(
+        name: 'home', defaultRoute: true, path: '/', enter: showHome);
+    router.root.addRoute(
+        name: 'gist', path: ':gist', enter: showGist);
+    router.listen();
   }
 
   void _registerTab(Element element, String name) {
@@ -184,13 +238,13 @@ class Playground {
     ga.sendEvent('main', 'run');
     runbutton.disabled = true;
 
+    _clearOutput();
+
     compilerService.compile(context.dartSource).then((CompilerResult result) {
-      _clearOutput();
       return executionService.execute(
           _context.htmlSource, _context.cssSource, result.output);
     }).catchError((e) {
       // TODO: Also display using a toast.
-      _clearOutput();
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {
       runbutton.disabled = false;
@@ -282,9 +336,10 @@ class PlaygroundContext extends Context {
   StreamController _htmlReconcileController = new StreamController.broadcast();
 
   PlaygroundContext(this.editor) {
-    _dartDoc = editor.createDocument(content: _sampleDartCode, mode: 'dart');
-    _htmlDoc = editor.createDocument(content: _sampleHtmlCode, mode: 'html');
-    _cssDoc = editor.createDocument(content: _sampleCssCode, mode: 'css');
+    editor.mode = 'dart';
+    _dartDoc = editor.document;
+    _htmlDoc = editor.createDocument(content: '', mode: 'html');
+    _cssDoc = editor.createDocument(content: '', mode: 'css');
 
     _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
     _htmlDoc.onChange.listen((_) => _htmlDirtyController.add(null));
@@ -293,15 +348,13 @@ class PlaygroundContext extends Context {
     _createReconciler(_cssDoc, _cssReconcileController, 250);
     _createReconciler(_dartDoc, _dartReconcileController, 1250);
     _createReconciler(_htmlDoc, _htmlReconcileController, 250);
-
-    editor.swapDocument(_dartDoc);
   }
 
   Document get dartDocument => _dartDoc;
 
   String get dartSource => _dartDoc.value;
   set dartSource(String value) {
-    _dartDoc.value = dartSource;
+    _dartDoc.value = value;
   }
 
   String get htmlSource => _htmlDoc.value;
@@ -370,28 +423,21 @@ class DartCompleter extends CodeCompleter {
   }
 }
 
-final String _sampleDartCode = r'''void main() {
-  for (int i = 0; i < 4; i++) {
-    print('hello ${i}');
+/**
+ * Find the best match for the given file names in the gist file info; return
+ * the file content (or the empty string if no match is found).
+ */
+String _getFileContent(Map files, List<String> names, [Function matcher]) {
+  for (String name in names) {
+    if (files.containsKey(name)) {
+      return files[name]['content'];
+    }
   }
+
+  if (matcher != null) {
+    String name = files.keys.firstWhere(matcher, orElse: () => null);
+    if (name != null) return files[name]['content'];
+  }
+
+  return '';
 }
-''';
-
-// TODO: better sample code
-
-final String _sampleHtmlCode = r'''<h2>Dart Sample</h2>
-
-<p id="output">Hello world!<p>
-''';
-
-final String _sampleCssCode = r'''/* my styles */
-
-h2 {
-  font-weight: normal;
-  margin-top: 0;
-}
-
-p {
-  color: #888;
-}
-''';

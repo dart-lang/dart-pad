@@ -101,6 +101,8 @@ class _AceEditor extends Editor {
     _document = new _AceDocument._(this, editor.session);
   }
 
+  Document get document => _document;
+
   Document createDocument({String content, String mode}) {
     if (content == null) content = '';
     ace.EditSession session = ace.createEditSession(

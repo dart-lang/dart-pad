@@ -55,11 +55,6 @@ footer {
   min-width: 200px;
 }
 
-.content {
-  margin-top: 16px;
-  margin-bottom: 16px;
-}
-
 pre {
   margin: 0;
   padding: 0;
@@ -224,6 +219,7 @@ div.toggle {
   display: block;
   position: relative;
   min-height: 100px;
+  margin-top: 16px;
   margin-left: -3px;
 }
 

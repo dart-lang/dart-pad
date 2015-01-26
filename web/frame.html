@@ -20,41 +20,50 @@
       }
     </style>
     <script>
+replaceJavaScript = function(value) {
+  // Remove the old node.
+  var node = document.getElementById('scriptId');
+  if (node && node.parentNode) {
+    node.parentNode.removeChild(node);
+  }
+
+  // Create a new node.
+  var s = document.createElement('script');
+  s.setAttribute('defer', 'true');
+  s.text = value;
+  document.head.appendChild(s);
+}
+
 messageHandler = function(e) {
   // TODO: verify the domain is correct
 
   var obj = e.data;
   var command = obj.command;
 
-  // TODO: sanitize all this data
+  var body = document.querySelector('body');
 
   if (command == 'setCss') {
-    document.getElementById('styleid').innerHTML = obj.data;
+    document.getElementById('styleId').innerHTML = obj.css;
   } else if (command == 'setHtml') {
-    document.querySelector('body').innerHTML = obj.data;
+    body.innerHTML = obj.html;
   } else if (command == 'setJavaScript') {
-    // Remove old node.
-    var node = document.getElementById('scriptid');
-    if (node && node.parentNode) {
-      node.parentNode.removeChild(node);
-    }
-
-    // Create new node.
-    var s = document.createElement('script');
-    s.text = obj.data;
-    document.head.appendChild(s);
-  } else if (command == 'reset') {
-    // TODO:
-    console.log('TODO: reset');
+	  replaceJavaScript(obj.js);
+  } else if (command == 'execute') {
+    // Replace all three.
+    body.innerHTML = obj.html;
+    document.getElementById('styleId').innerHTML = obj.css;
+    // TODO: We need to wait until the DOM nodes above are created.
+    setTimeout(function() {
+      replaceJavaScript(obj.js);
+    }, 70);
   }
 }
 
 window.addEventListener('message', messageHandler, false);
     </script>
 
-    <style id="styleid"></style>
-    <script id="scriptid"></script>
+    <style id="styleId"></style>
+    <div id="scriptId" defer="true"></div>
   </head>
-
   <body></body>
 </html>
