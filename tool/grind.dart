@@ -47,7 +47,6 @@ Future _uploadCompiledStats(GrinderContext context, num length) {
 
   if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
     Librato librato = new Librato.fromEnvVars();
-    Map stats = { 'dartpad.dart.js': length};
     context.log('Uploading stats to ${librato.baseUrl}');
     LibratoStat compiledSize = new LibratoStat('dartpad.dart.js', length);
     return librato.postStats([compiledSize]).then((_) {
