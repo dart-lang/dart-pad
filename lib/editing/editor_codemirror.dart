@@ -156,6 +156,8 @@ class _CodeMirrorDocument extends Document {
     doc.jsProxy.callMethod('clearHistory');
   }
 
+  ed.Position get cursor => _posFromPos(doc.getCursor());
+
   String get mode => parent.mode;
 
   bool get isClean => doc.isClean();
@@ -210,8 +212,14 @@ class _CodeMirrorDocument extends Document {
     }
   }
 
+  int indexFromPos(ed.Position position) =>
+      doc.indexFromPos(_posToPos(position));
+
   pos.Position _posToPos(ed.Position position) =>
       new pos.Position(position.line, position.char);
+
+  ed.Position _posFromPos(pos.Position position) =>
+      new ed.Position(position.line, position.ch);
 
 //  html.Element _makeMarker(String severity, String tooltip, ed.Position start,
 //      ed.Position end) {

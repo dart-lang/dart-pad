@@ -22,4 +22,7 @@ class MockAnalysisService implements AnalysisService {
     return new Future.delayed(
         new Duration(milliseconds: 500), () => new AnalysisResults(issues));
   }
+
+  Future<Map> getDocumentation(String source, int offset) =>
+      new Future.value({});
 }

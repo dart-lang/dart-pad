@@ -53,7 +53,6 @@ class Playground {
   DBusyLight dartBusyLight;
   DBusyLight cssBusyLight;
   DBusyLight htmlBusyLight;
-  DLabel label;
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -79,8 +78,6 @@ class Playground {
     dartBusyLight = new DBusyLight(querySelector('#dartbusy'));
     cssBusyLight = new DBusyLight(querySelector('#dartbusy'));
     htmlBusyLight = new DBusyLight(querySelector('#dartbusy'));
-
-    label = new DLabel(querySelector('#label'));
 
     _initModules().then((_) {
       _initPlayground();
@@ -177,6 +174,7 @@ class Playground {
 
     keys.bind('ctrl-s', _handleSave);
     keys.bind('ctrl-enter', _handleRun);
+    keys.bind('f1', _handleHelp);
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
@@ -271,14 +269,13 @@ class Playground {
       dartBusyLight.reset();
 
       if (result.issues.isEmpty) {
-        label.message = '';
-        label.clearError();
+        //label.message = '';
+        //label.clearError();
       } else {
-        // ${plural('issue', result.issues.length)}';
-        label.message = '${result.issues.length}';
-        if (result.hasError) label.error = 'error';
-        else if (result.hasWarning) label.error = 'warning';
-        else label.error = 'info';
+        //label.message = '${result.issues.length}';
+        //if (result.hasError) label.error = 'error';
+        //else if (result.hasWarning) label.error = 'warning';
+        //else label.error = 'info';
       }
 
       _context.dartDocument.setAnnotations(result.issues.map(
@@ -305,7 +302,27 @@ class Playground {
     ga.sendEvent('main', 'save');
     // TODO:
     print('handleSave');
-    _context.focus();
+  }
+
+  void _handleHelp() {
+    if (context.focusedEditor == 'dart') {
+      ga.sendEvent('main', 'help');
+
+      String source = _context.dartSource;
+      Position pos = editor.document.cursor;
+      int offset = editor.document.indexFromPos(pos);
+
+      // TODO: Show busy.
+      analysisService.getDocumentation(source, offset).then((Map result) {
+        if (result['description'] == null && result['dartdoc'] == null) {
+          // TODO: Tell the user there were no results.
+
+        } else {
+          // TODO: Display this info
+          print(result['description']);
+        }
+      });
+    }
   }
 
   void _clearOutput() {
@@ -379,6 +396,12 @@ class PlaygroundContext extends Context {
     }
 
     editor.focus();
+  }
+
+  String get focusedEditor {
+    if (editor.document == _htmlDoc) return 'html';
+    if (editor.document == _cssDoc) return 'css';
+    return 'dart';
   }
 
   Stream get onCssDirty => _cssDirtyController.stream;
