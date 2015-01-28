@@ -8,10 +8,16 @@ import 'dart:async';
 
 // TODO: code completion
 
-// TODO: dartdoc hover
-
 abstract class AnalysisService {
   Future<AnalysisResults> analyze(String source);
+
+  /**
+   * Get dartdoc documentation for the element at the given offset. The returned
+   * map contains fields `name`, `description`, `kind`, `libraryName`,
+   * `staticType`, and `dartdoc`. Note that the `dartdoc` field is in markdown
+   * format.
+   */
+  Future<Map> getDocumentation(String source, int offset);
 }
 
 class AnalysisResults {

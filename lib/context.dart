@@ -9,6 +9,8 @@ import 'services/analysis.dart';
 abstract class Context {
   List<AnalysisIssue> issues = [];
 
+  String get focusedEditor;
+
   String name;
   String description;
 

@@ -51,6 +51,8 @@ abstract class Document {
   String get value;
   set value(String str);
 
+  Position get cursor;
+
   String get mode;
 
   bool get isClean;
@@ -58,6 +60,8 @@ abstract class Document {
 
   void setAnnotations(List<Annotation> annotations);
   void clearAnnotations() => setAnnotations([]);
+
+  int indexFromPos(Position pos);
 
   Stream get onChange;
 }

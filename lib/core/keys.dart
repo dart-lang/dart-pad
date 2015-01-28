@@ -31,9 +31,10 @@ class Keys {
   void _handleKeyEvent(KeyboardEvent event) {
     KeyboardEvent k = event;
 
-    //if (k.keyCode < 27 || k.keyCode == 91) return;
-    if (!k.altKey && !k.ctrlKey && !k.metaKey) return;
-    //if (!KeyCode.isCharacterKey(k.keyCode)) return;
+    if (!k.altKey && !k.ctrlKey && !k.metaKey
+        && !(event.keyCode >= KeyCode.F1 && event.keyCode <= KeyCode.F12)) {
+      return;
+    }
 
     if (_handleKey(printKeyEvent(k))) {
       k.preventDefault();

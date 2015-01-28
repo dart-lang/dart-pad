@@ -143,6 +143,9 @@ class _AceDocument extends Document {
     session.value = str;
   }
 
+  Position get cursor =>
+      _ptToPosition((editor as _AceEditor).editor.selection.cursor);
+
   String get mode => session.mode.name;
 
   bool get isClean => session.undoManager.isClean;
@@ -179,6 +182,10 @@ class _AceDocument extends Document {
 
   void clearAnnotations() => session.clearAnnotations();
 
+  int indexFromPos(Position position) {
+    return session.document.positionToIndex(_positionToPoint(position));
+  }
+
   Stream get onChange => session.onChange;
 }
 
@@ -190,3 +197,9 @@ Future _appendNode(html.Element parent, html.Element child) {
   parent.nodes.add(child);
   return completer.future;
 }
+
+Position _ptToPosition(ace.Point point) =>
+    new Position(point.row, point.column);
+
+ace.Point _positionToPoint(Position position) =>
+    new ace.Point(position.line, position.char);

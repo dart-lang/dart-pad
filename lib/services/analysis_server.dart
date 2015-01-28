@@ -31,6 +31,29 @@ class ServerAnalysisService implements AnalysisService {
     });
   }
 
+  // {"name":"print",
+  //  "description":"print(Object object) → void",
+  //  "kind":"function",
+  //  "libraryName":"dart.core",
+  //  "dartdoc":"Prints a string representation of the object to the console."}
+
+  Future<Map> getDocumentation(String source, int offset) {
+    final String url = '${serverURL}/document';
+    String data = JSON.encode({'source': source, 'offset': offset});
+
+    return HttpRequest.request(url, method: 'POST', sendData: data).then(
+        (HttpRequest request) {
+      return JSON.decode(request.responseText);
+    }).catchError((e) {
+      if (e is Event && e.target is HttpRequest) {
+        HttpRequest request = e.target;
+        throw '[${request.status} ${request.statusText}] ${request.responseText}';
+      } else {
+        throw e;
+      }
+    });
+  }
+
   AnalysisIssue _convertResult(Map m) =>
       new AnalysisIssue(m['kind'], m['line'], m['message'],
           charStart: m['charStart'], charLength: m['charLength']);
