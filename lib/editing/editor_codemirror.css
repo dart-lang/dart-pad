@@ -25,6 +25,10 @@
   box-shadow: none;
 }
 
+#editpanel .CodeMirror-lines {
+  padding: 0;
+}
+
 #editpanel {
 
 }
