@@ -1,18 +1,18 @@
-application: google.com:dartpad
-version: 2
+application: dartpad-dev
+version: prod
 runtime: python27
 api_version: 1
 threadsafe: yes
 
 handlers:
-# re-direct to index.html if no path is give
-- url: /
-  static_files: dartpad.html
-  upload: dartpad.html
-  secure: always
+- url: /favicon\.ico
+  static_files: favicon.ico
+  upload: favicon\.ico
 
-# access the static resources in the root directory
-- url: /(.*)
-  static_files: \1
-  upload: (.*)
-  secure: always
+- url: .*
+  script: main.app
+  login: required
+
+libraries:
+- name: webapp2
+  version: "2.5.2"
