@@ -13,7 +13,7 @@ class MainHandler(webapp2.RequestHandler):
 
         # Everyone has to be logged in via the YAML.
         user = users.get_current_user()
-        email = user.email()
+        email = user.email().lower()
 
         # Assume Auth failure.
         authenticated = False
