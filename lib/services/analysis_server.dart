@@ -28,7 +28,7 @@ class ServerAnalysisService implements AnalysisService {
       } else {
         throw e;
       }
-    });
+    }).timeout(serviceCallTimeout);
   }
 
   // {"name":"print",
@@ -51,7 +51,7 @@ class ServerAnalysisService implements AnalysisService {
       } else {
         throw e;
       }
-    });
+    }).timeout(serviceCallTimeout);
   }
 
   AnalysisIssue _convertResult(Map m) =>

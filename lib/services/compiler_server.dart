@@ -33,6 +33,6 @@ class ServerCompilerService extends CompilerService {
       } else {
         throw e;
       }
-    });
+    }).timeout(longServiceCallTimeout);
   }
 }

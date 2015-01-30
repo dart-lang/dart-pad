@@ -7,6 +7,9 @@ library dartpad_ui.common;
 final String serverURL = 'https://liftoff-dev.appspot.com/api';
 //final String serverURL = 'http://127.0.0.1:8082/api';
 
+final Duration serviceCallTimeout = new Duration(seconds: 10);
+final Duration longServiceCallTimeout = new Duration(seconds: 20);
+
 abstract class TextProvider {
   // TODO: current location as well
 
