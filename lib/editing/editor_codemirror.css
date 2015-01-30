@@ -48,20 +48,20 @@
 /* Zenburn theme overrides for code completion. */
 
 .CodeMirror-hints {
-	border: 1px solid #cc9393;
-	font-size: 100%;
-	background: grey;
+  border: 1px solid #cc9393;
+  font-size: 100%;
+  background: grey;
 }
 
 .CodeMirror-hint {
-	background: #3f3f3f;
-	color: #dcdccc;
-	border-radius: 0px;
+  background: #3f3f3f;
+  color: #dcdccc;
+  border-radius: 0px;
 }
 
 li.CodeMirror-hint-active {
-	background: #545454;
-	color: #f0dfaf;
+  background: #545454;
+  color: #f0dfaf;
 }
 
 .CodeMirror-hints::-webkit-scrollbar-track {
