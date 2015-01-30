@@ -2,7 +2,7 @@
 
 The UI client for a web based interactive Dart service.
 
-[![Build Status](https://travis-ci.org/dart-lang/dartpad_ui.svg)](https://travis-ci.org/dart-lang/dartpad_ui)
+[![Build Status](https://travis-ci.org/dart-lang/dartpad_ui.svg?branch=master)](https://travis-ci.org/dart-lang/dartpad_ui)
 
 ## What is it? What does it do?
 
