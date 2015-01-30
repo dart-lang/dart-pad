@@ -1,6 +1,7 @@
 from urlparse import urlparse
 from google.appengine.api import users
 from google.appengine.ext import ndb
+import os
 import webapp2
 
 class WhiteListEntry(ndb.Model):
@@ -20,6 +21,10 @@ class MainHandler(webapp2.RequestHandler):
 
         # All Google is whitelisted.
         if email.endswith("@google.com"):
+            authenticated = True
+
+        # For local testing.
+        if isDevelopment():
             authenticated = True
 
         res = WhiteListEntry.query(WhiteListEntry.emailAddress == email).get()
@@ -68,6 +73,12 @@ class MainHandler(webapp2.RequestHandler):
                 else:
                     _serve(self.response, newPath)
                 return
+
+
+# Return whether we're running in the development server or not.
+def isDevelopment():
+    return os.environ['SERVER_SOFTWARE'].startswith('Development')
+
 
 # Serve the files.
 def _serve(resp, path):
