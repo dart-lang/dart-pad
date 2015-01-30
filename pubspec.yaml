@@ -9,7 +9,6 @@ environment:
 
 dependencies:
   ace: '>=0.5.10 <0.6.0'
-  browser: '>=0.10.0 <0.11.0'
   codemirror: '>=0.1.5 <0.2.0'
   librato: '>=0.0.1 <0.1.0'
   logging: '>=0.9.0 <0.10.0'
@@ -17,10 +16,15 @@ dependencies:
 
 dev_dependencies:
   dart_to_js_script_rewriter: any
-  grinder: '>=0.6.0 <0.7.0'
+  grinder: '>=0.6.6+2 <0.7.0'
   unittest: any
 
 transformers:
 - dart_to_js_script_rewriter
 - $dart2js:
-    $exclude: ['web/old/playground1.dart', 'web/old/playground2.dart', 'web/packages/csslib/css.dart']
+    $exclude: [
+      'test/all.dart',
+      'web/old/playground1.dart',
+      'web/old/playground2.dart',
+      'web/packages/csslib/css.dart'
+    ]

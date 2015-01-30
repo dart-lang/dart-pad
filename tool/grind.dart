@@ -12,7 +12,9 @@ import 'package:librato/librato.dart';
 
 void main(List<String> args) {
   task('init', defaultInit);
+
   task('build', build, ['init']);
+
   task('deploy', deploy, ['build']);
   task('clean', defaultClean);
 
@@ -21,10 +23,12 @@ void main(List<String> args) {
 
 /// Build the `web/dartpad.html` entrypoint.
 build(GrinderContext context) {
-  Pub.build(context, directories: ['web']);
+  Pub.build(context, directories: ['web', 'test']);
 
   File outFile = joinFile(BUILD_DIR, ['web', 'dartpad.dart.js']);
+  File testFile = joinFile(BUILD_DIR, ['test', 'web.dart.js']);
   context.log('${outFile.path} compiled to ${_printSize(outFile)}');
+  context.log('${testFile.path} compiled to ${_printSize(testFile)}');
 
   // Delete the build/web/packages directory.
   deleteEntity(getDir('build/web/packages'));

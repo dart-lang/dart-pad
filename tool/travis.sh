@@ -7,16 +7,18 @@
 # Fast fail the script on failures.
 set -e
 
+# TODO: use tuneup
 # Verify that the libraries are error free.
 dartanalyzer --fatal-warnings \
   lib/dartpad.dart \
   test/all.dart \
   web/dartpad.dart
 
-# Run the tests.
+# Run the command-line tests.
 dart test/all.dart
 
-# Build the app (into build/web).
+# Build the app and the tests (into build/web and build/test, respectively).
 dart tool/grind.dart build
 
-# TODO: We need to run the UI/web tests as well.
+# Run the UI/web tests as well.
+pub run grinder:test build/test/web.html
