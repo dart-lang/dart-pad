@@ -85,6 +85,18 @@ class Playground {
   }
 
   void showHome(RouteEnterEvent event) {
+    _logger.info('routed to showHome, ${window.location}, ${event.parameters}');
+
+    // TODO(devoncarew): Hack, until we resolve the issue with routing.
+    String path = window.location.pathname;
+    if (path.length > 2 && path.lastIndexOf('/') == 0) {
+      String id = path.substring(1);
+      if (_isLegalGistId(id)) {
+        _showGist(id);
+        return;
+      }
+    }
+
     // TODO: What should the workflow be for hitting '/'? Load the last sample
     // edited here?
     context.dartSource = sample.dartCode;
@@ -95,8 +107,19 @@ class Playground {
   }
 
   void showGist(RouteEnterEvent event) {
+    _logger.info('routed to showGist, ${window.location}, ${event.parameters}');
+
     String gistId = event.parameters['gist'];
 
+    if (!_isLegalGistId(gistId)) {
+      showHome(event);
+      return;
+    }
+
+    _showGist(gistId);
+  }
+
+  void _showGist(String gistId) {
     // Load the gist.
     HttpRequest.getString('https://api.github.com/gists/${gistId}').then((data) {
       Map m = JSON.decode(data);
@@ -202,13 +225,11 @@ class Playground {
     DSplash splash = new DSplash(querySelector('div.splash'));
     splash.hide();
 
-    // TODO: I really want to be able to have paths without hashes in them.
-    // So, dartpad.foo/123456af rather then dartpad.foo/#123456af.
-    Router router = new Router(useFragment: true);
+    Router router = new Router();
     router.root.addRoute(
         name: 'home', defaultRoute: true, path: '/', enter: showHome);
     router.root.addRoute(
-        name: 'gist', path: ':gist', enter: showGist);
+        name: 'gist', path: '/:gist/', enter: showGist);
     router.listen();
   }
 
@@ -465,4 +486,9 @@ String _getFileContent(Map files, List<String> names, [Function matcher]) {
   }
 
   return '';
+}
+
+bool _isLegalGistId(String id) {
+  final RegExp regex = new RegExp(r'[0-9a-f]+$');
+  return regex.hasMatch(id) && id.length >= 5 && id.length <= 22;
 }

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dartpad_ui/playground.dart' as playground;
+import 'package:logging/logging.dart';
 
 // TODO: display errors that aren't currently on the screen
 
@@ -11,5 +12,7 @@ import 'package:dartpad_ui/playground.dart' as playground;
 // TODO: create a hidden ping time counter - display it on a key combination
 
 void main() {
+  Logger.root.onRecord.listen(print);
+
   playground.init();
 }
