@@ -120,3 +120,20 @@
   color: #000;
   background-color: rgba(126, 167, 216, 0.8);
 }
+
+.shell {
+  /*bottom: 0;
+  position: absolute;
+  left: 40px;
+  right: 40px;*/
+
+  /*min-height: 70px;*/
+
+  /*z-index: 10;*/
+
+  border: 1px solid #272727;
+  border-radius: 2px;
+  background-color: #3a3a3a;
+  padding: 8px 16px;
+  box-shadow: 3px 3px 4px 0px rgba(15, 14, 14, 0.7);
+}
