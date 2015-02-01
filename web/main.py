@@ -82,6 +82,12 @@ def isDevelopment():
 
 # Serve the files.
 def _serve(resp, path):
+
+    if not os.path.isfile(path):
+        resp.status = 404
+        resp.write("<html><h1>404: Not found</h1></html>")
+        return
+
     if path.endswith('.css'):
         resp.content_type = 'text/css'
 
