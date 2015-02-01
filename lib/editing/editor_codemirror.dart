@@ -65,6 +65,7 @@ class CodeMirrorFactory extends EditorFactory {
         'autoCloseBrackets': true,
         'matchBrackets': true,
         'tabSize': 2,
+        'lineWrapping': true,
         'indentUnit': 2,
         'cursorHeight': 0.85,
         //'gutters': [_gutterId],
