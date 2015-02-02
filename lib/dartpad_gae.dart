@@ -35,7 +35,8 @@ class GaeServer {
   void requestHandler(io.HttpRequest request) {
     request.response.headers.add('Access-Control-Allow-Origin', '*');
     request.response.headers.add('Access-Control-Allow-Credentials', 'true');
-    request.response.headers.add('Access-Control-Allow-Methods', 'POST');
+    request.response.headers.add('Access-Control-Allow-Methods',
+        'POST, OPTIONS');
     request.response.headers.add('Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept');
 
