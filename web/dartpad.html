@@ -11,7 +11,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <title>Dartpad (alpha)</title>
+    <title>Dart Codepad (alpha)</title>
 
     <link href="layout.css" rel="stylesheet" media="screen">
     <link href="dartpad.css" rel="stylesheet" media="screen">
@@ -28,17 +28,15 @@
     <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
     <link href="packages/dartpad_ui/editing/editor_codemirror.css" rel="stylesheet" media="screen">
-    <style>
-      .alpha {
-        color: #888;
-      }
-    </style>
   </head>
 
   <body fullbleed layout vertical>
     <header layout horizontal>
-      <div class="header-title">Dartpad <span class="alpha">alpha</span></div>
+      <div class="header-title">Dart Codepad <span class="minor">(alpha!)</span></div>
       <div flex></div>
+      <div class="header-gist-name"></div>
+      <div flex></div>
+      <div class="header-gist-id"></div>
     </header>
 
     <section flex layout horizontal>
@@ -83,16 +81,19 @@
 
     <footer layout horizontal>
       <div>
-        <a href="https://www.dartlang.org/" target="dartlang">www.dartlang.org</a>
-      </div>
-      <div flex></div>
-      <div>
         <a href="https://api.dartlang.org/" target="docs">API documentation</a>
       </div>
       <div flex></div>
       <div>
         <a href="https://github.com/dart-lang/dartpad_ui/issues"
-          target="github_issues">Send feedback</a>
+          target="github_issues">
+            Send feedback
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                style="margin-bottom: -4px"
+                viewBox="0 0 24 24">
+              <path d="M21.99 4c0-1.1-.89-2-1.99-2h-16c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zm-3.99 10h-12v-2h12v2zm0-3h-12v-2h12v2zm0-3h-12v-2h12v2z"/>
+            </svg>
+          </a>
       </div>
     </footer>
 
