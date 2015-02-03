@@ -1,6 +1,6 @@
-# dartpad_server
+# endpoints
 
-The pre-alpha server backend for a web based interactive Dart service.
+The pre-alpha server backend to support interactive Dart services.
 
 [![Build Status](https://travis-ci.org/dart-lang/dartpad_server.svg?branch=master)](https://travis-ci.org/dart-lang/dartpad_server)
 [![Coverage Status](https://img.shields.io/coveralls/dart-lang/dartpad_server.svg)](https://coveralls.io/r/dart-lang/dartpad_server?branch=master)
@@ -31,7 +31,7 @@ The server will run from port 8082 and export several JSON APIs, like
 
 ## See also
 
-The [dartpad_ui](https://github.com/dart-lang/dartpad_ui) repo.
+The [codepad](https://github.com/dart-lang/codepad) repo.
 
 ## Issues and bugs
 
