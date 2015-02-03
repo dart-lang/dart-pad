@@ -97,6 +97,9 @@ class Playground {
       }
     }
 
+    _setGistDescription(null);
+    _setGistId(null, null);
+
     // TODO: What should the workflow be for hitting '/'? Load the last sample
     // edited here?
     context.dartSource = sample.dartCode;
@@ -120,12 +123,15 @@ class Playground {
   }
 
   void _showGist(String gistId) {
-    // Load the gist.
+    // Load the gist using the github gist API:
+    // https://developer.github.com/v3/gists/#get-a-single-gist.
     HttpRequest.getString('https://api.github.com/gists/${gistId}').then((data) {
       Map m = JSON.decode(data);
 
       String description = m['description'];
       _logger.info('Loaded gist ${gistId} (${description})');
+      _setGistDescription(description);
+      _setGistId(m['id'], m['html_url']);
 
       Map files = m['files'];
 
@@ -357,6 +363,26 @@ class Playground {
     span.text = message;
     _outputpanel.children.add(span);
     span.scrollIntoView(ScrollAlignment.BOTTOM);
+  }
+
+  void _setGistDescription(String description) {
+    Element e = querySelector('header .header-gist-name');
+    e.text = description == null ? '' : description;
+  }
+
+  void _setGistId(String title, String url) {
+    Element e = querySelector('header .header-gist-id');
+
+    if (title == null || url == null) {
+      e.text = '';
+    } else {
+      e.children.clear();
+
+      AnchorElement a = new AnchorElement(href: url);
+      a.text = title;
+      a.target = 'gist';
+      e.children.add(a);
+    }
   }
 }
 

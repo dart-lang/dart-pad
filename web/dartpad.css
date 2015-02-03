@@ -24,7 +24,6 @@ header {
   height: 48px;
   line-height: 48px;
   padding: 0 24px;
-  font-size: 150%;
   color: #fff;
   vertical-align: middle;
 
@@ -33,10 +32,31 @@ header {
   border-width: 4px;
 
   margin-bottom: 24px;
+  text-shadow: rgba(0,0,0,0.75) 0px 1px;
 }
 
 .header-title {
-  text-shadow: rgba(0,0,0,0.75) 0px 1px;
+  text-overflow: ellipsis;
+  font-size: 16pt;
+}
+
+.header-title .minor {
+  color: #888;
+}
+
+.header-gist-name {
+  text-overflow: ellipsis;
+  margin-left: 1em;
+  margin-right: 1em;
+  color: #ccc;
+  font-size: 14pt;
+}
+
+.header-gist-id {
+  text-overflow: ellipsis;
+  color: #ccc;
+  font-size: 10pt;
+  text-transform: uppercase;
 }
 
 section {
@@ -73,10 +93,12 @@ a {
 a,
 a:visited {
   color: #ccc;
+  fill: #ccc;
 }
 
 a:hover {
   color: #fff;
+  fill: #fff;
 }
 
 a[selected] {
