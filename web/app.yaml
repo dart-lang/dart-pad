@@ -1,4 +1,4 @@
-application: dartpad-dev
+application: dart-codepad
 version: prod
 runtime: python27
 api_version: 1
