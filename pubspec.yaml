@@ -1,9 +1,9 @@
-name: dartpad_ui
+name: codepad
 version: 0.0.1
 description: The UI client for a web based interactive Dart service.
 
 author: Dart Team <misc@dartlang.org>
-homepage: https://github.com/dart-lang/dartpad_ui
+homepage: https://github.com/dart-lang/codepad
 environment:
   sdk: '>=1.0.0 <2.0.0'
 

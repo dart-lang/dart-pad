@@ -11,15 +11,15 @@ import 'dart:html' hide Document;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
+import 'codepad.dart';
 import 'context.dart';
-import 'dartpad.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'editing/editor.dart';
 import 'elements/elements.dart';
 //import 'modules/ace_module.dart';
 import 'modules/codemirror_module.dart';
-import 'modules/dartpad_module.dart';
+import 'modules/codepad_module.dart';
 import 'modules/server_analysis.dart';
 import 'modules/server_compiler.dart';
 import 'services/analysis.dart';
@@ -38,7 +38,7 @@ Playground get playground => _playground;
 Playground _playground;
 Analytics ga = new Analytics();
 
-Logger _logger = new Logger('dartpad');
+Logger _logger = new Logger('codepad');
 
 void init() {
   _playground = new Playground();
@@ -160,7 +160,7 @@ class Playground {
   }
 
   Future _initModules() {
-    modules.register(new DartpadModule());
+    modules.register(new CodepadModule());
     //modules.register(new MockAnalysisModule());
     modules.register(new ServerAnalysisModule());
     //modules.register(new MockCompilerModule());

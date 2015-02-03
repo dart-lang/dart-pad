@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_ui_module;
+library codepad_module;
 
 import 'dart:async';
 
@@ -12,7 +12,7 @@ import '../core/keys.dart';
 import '../core/modules.dart';
 import '../elements/state.dart';
 
-class DartpadModule extends Module {
+class CodepadModule extends Module {
   Future init() {
     if (Dependencies.instance == null) {
       Dependencies.setGlobalInstance(new Dependencies());
@@ -20,7 +20,7 @@ class DartpadModule extends Module {
 
     deps[EventBus] = new EventBus();
     deps[Keys] = new Keys();
-    deps[State] = new HtmlState('dartpad');
+    deps[State] = new HtmlState('codepad');
 
     return new Future.value();
   }
