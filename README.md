@@ -3,7 +3,7 @@
 The pre-alpha server backend to support interactive Dart services.
 
 [![Build Status](https://travis-ci.org/dart-lang/endpoints.svg?branch=master)](https://travis-ci.org/dart-lang/endpoints)
-[![Coverage Status](https://img.shields.io/coveralls/dart-lang/endpoints.svg)](https://coveralls.io/r/dart-lang/endpoints?branch=master)
+[![Coverage Status](https://coveralls.io/repos/dart-lang/endpoints/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/endpoints?branch=master)
 [![Uptime Status](https://img.shields.io/badge/uptime-StatusCake-blue.svg)](http://uptime.statuscake.com/?TestID=6FVej0AP1A)
 
 ## What is it? What does it do?
