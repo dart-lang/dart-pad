@@ -527,6 +527,6 @@ String _getFileContent(Map files, List<String> names, [Function matcher]) {
 }
 
 bool _isLegalGistId(String id) {
-  final RegExp regex = new RegExp(r'[0-9a-f]+$');
+  final RegExp regex = new RegExp(r'^[0-9a-f]+$');
   return regex.hasMatch(id) && id.length >= 5 && id.length <= 22;
 }
