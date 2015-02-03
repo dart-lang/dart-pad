@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_server.bench_test;
+library endpoints.bench_test;
 
 import 'dart:async';
 
-import 'package:dartpad_server/src/bench.dart';
+import 'package:endpoints/src/bench.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {

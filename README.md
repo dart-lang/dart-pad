@@ -1,4 +1,4 @@
-# endpoints
+# Dart Endpoints
 
 The pre-alpha server backend to support interactive Dart services.
 

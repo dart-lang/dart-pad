@@ -4,6 +4,6 @@
 
 // To meet GAE needs this file must be called 'server.dart'.
 
-import 'package:dartpad_server/dartpad_gae.dart' as server;
+import 'package:endpoints/endpoints_gae.dart' as server;
 
 void main() => server.main();

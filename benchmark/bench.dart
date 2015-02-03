@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_server.bench;
+library endpoints.bench;
 
 import 'dart:async';
 
-import 'package:dartpad_server/src/analyzer.dart';
-import 'package:dartpad_server/src/bench.dart';
-import 'package:dartpad_server/src/common.dart';
-import 'package:dartpad_server/src/compiler.dart';
+import 'package:endpoints/src/analyzer.dart';
+import 'package:endpoints/src/bench.dart';
+import 'package:endpoints/src/common.dart';
+import 'package:endpoints/src/compiler.dart';
 import 'package:grinder/grinder.dart' as grinder;
 
 final String sdkPath = grinder.getSdkDir().path;
