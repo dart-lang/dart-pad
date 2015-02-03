@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_server;
+library endpoints;
 
 import 'dart:async';
 import 'dart:io';
@@ -19,7 +19,7 @@ import 'src/common_server.dart';
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
 const Map _jsonHeader = const {HttpHeaders.CONTENT_TYPE: 'application/json'};
 
-Logger _logger = new Logger('dartpad');
+Logger _logger = new Logger('endpoints');
 
 void main(List<String> args) {
   var parser = new ArgParser();
@@ -42,19 +42,19 @@ void main(List<String> args) {
 
   Logger.root.onRecord.listen((r) => print(r));
 
-  DartpadServer.serve(sdkDir.path, port).then((DartpadServer server) {
+  EndpointsServer.serve(sdkDir.path, port).then((EndpointsServer server) {
     _logger.info('Listening on port ${server.port}');
   });
 }
 
-class DartpadServer {
-  static Future<DartpadServer> serve(String sdkPath, int port) {
-    DartpadServer dartpad = new DartpadServer._(sdkPath, port);
+class EndpointsServer {
+  static Future<EndpointsServer> serve(String sdkPath, int port) {
+    EndpointsServer endpointsServer = new EndpointsServer._(sdkPath, port);
 
     return shelf.serve(
-        dartpad.handler, InternetAddress.ANY_IP_V4, port).then((server) {
-      dartpad.server = server;
-      return dartpad;
+        endpointsServer.handler, InternetAddress.ANY_IP_V4, port).then((server) {
+      endpointsServer.server = server;
+      return endpointsServer;
     });
   }
 
@@ -67,7 +67,7 @@ class DartpadServer {
 
   CommonServer commonServer;
 
-  DartpadServer._(String sdkPath, this.port) {
+  EndpointsServer._(String sdkPath, this.port) {
     commonServer = new CommonServer(sdkPath, new _Logger(), new _Cache());
 
     pipeline = new Pipeline()
@@ -86,12 +86,12 @@ class DartpadServer {
   }
 
   Response handleRoot(Request request) {
-    return new Response.ok('Dartpad server. See /api for more information.');
+    return new Response.ok('Dart Endpoints server. See /api for more information.');
   }
 
   Response handleApiRoot(Request request) {
     return new Response.ok('''
-Dartpad server.
+Dart Endpoints server.
 
 /api/analyze  - POST Dart source to this URL and get JSON errors and warnings back.
 /api/compile  - POST Dart source to this URL and get compiled results back.

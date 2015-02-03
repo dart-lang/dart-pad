@@ -1,9 +1,9 @@
-name: dartpad_server
+name: endpoints
 version: 0.0.1
 description: The server backend for a web based interactive Dart service.
 
 author: Dart Team <misc@dartlang.org>
-homepage: https://github.com/dart-lang/dartpad_server
+homepage: https://github.com/dart-lang/endpoints
 environment:
   sdk: '>=1.0.0 <2.0.0'
 
@@ -25,4 +25,4 @@ dev_dependencies:
   unittest: any
 
 executables:
-  dartpad_server:
+  endpoints:
