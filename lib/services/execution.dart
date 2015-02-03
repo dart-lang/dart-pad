@@ -11,7 +11,6 @@ abstract class ExecutionService {
 
   void replaceCss(String css);
   void replaceHtml(String html);
-  void replaceJavaScript(String js);
 
   void reset();
 

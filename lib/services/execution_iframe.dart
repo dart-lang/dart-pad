@@ -44,10 +44,6 @@ class ExecutionServiceIFrame implements ExecutionService {
     _send('setCss', {'css': css});
   }
 
-  void replaceJavaScript(String js) {
-    _send('setJavaScript', {'js': _decorateJavaScript(js)});
-  }
-
   void reset() {
     // TODO: Destroy and re-load iframe.
 

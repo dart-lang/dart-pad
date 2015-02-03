@@ -144,6 +144,8 @@ class _CodeMirrorDocument extends Document {
   final List<LineWidget> widgets = [];
   final List<html.DivElement> nodes = [];
 
+  String _lastSetValue;
+
   _CodeMirrorDocument._(_CodeMirrorEditor editor, this.doc) : super(editor);
 
   _CodeMirrorEditor get parent => editor;
@@ -151,6 +153,7 @@ class _CodeMirrorDocument extends Document {
   String get value => doc.getValue();
 
   set value(String str) {
+    _lastSetValue = str;
     doc.setValue(str);
     doc.markClean();
     // TODO: Switch over to non-JS interop when this method is exposed.
@@ -234,7 +237,11 @@ class _CodeMirrorDocument extends Document {
 //    return marker;
 //  }
 
-  Stream get onChange => doc.onChange;
+  Stream get onChange => doc.onChange.where((_) {
+    if (value != _lastSetValue) return true;
+    _lastSetValue = null;
+    return false;
+  });
 }
 
 Future _appendNode(html.Element parent, html.Element child) {
