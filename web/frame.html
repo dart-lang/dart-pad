@@ -52,10 +52,10 @@ messageHandler = function(e) {
     // Replace all three.
     body.innerHTML = obj.html;
     document.getElementById('styleId').innerHTML = obj.css;
-    // TODO: We need to wait until the DOM nodes above are created.
+    // TODO: We have a race condition here.
     setTimeout(function() {
       replaceJavaScript(obj.js);
-    }, 70);
+    }, 150);
   }
 }
 

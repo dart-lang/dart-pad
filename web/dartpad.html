@@ -28,6 +28,12 @@
     <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
     <link href="packages/dartpad_ui/editing/editor_codemirror.css" rel="stylesheet" media="screen">
+
+    <style>
+      #samples {
+        margin-left: 10px;
+      }
+    </style>
   </head>
 
   <body fullbleed layout vertical>
@@ -37,6 +43,21 @@
       <div class="header-gist-name"></div>
       <div flex></div>
       <div class="header-gist-id"></div>
+      <div>
+        <select id="samples" required="false" style="width: 80px;">
+          <option value="0">Samples</option>
+          <option disabled></option>
+          <option value="b51ea7c04322042b582a">Bootstrap</option>
+          <option value="83caa2b65236f8ebd703">Clock</option>
+          <option value="74e990d984faad26dea0">Fibonacci</option>
+          <option value="33706e19df021e52d98c">Helloworld</option>
+          <option value="9126d5d48ebabf5bf547">Helloworld Html</option>
+          <option value="72d83fe97bfc8e735607">Solar</option>
+          <option value="76d27117fd6313dd9167">Spirodraw</option>
+          <option value="9d2dd2ce17981ecacadd">Sunflower</option>
+          <option value="479ecba5a56fd706b648">WebSockets</option>
+        </select>
+      </div>
     </header>
 
     <section flex layout horizontal>
@@ -88,7 +109,7 @@
         <a href="https://github.com/dart-lang/dartpad_ui/issues"
           target="github_issues">
             Send feedback
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15"
                 style="margin-bottom: -4px"
                 viewBox="0 0 24 24">
               <path d="M21.99 4c0-1.1-.89-2-1.99-2h-16c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4-.01-18zm-3.99 10h-12v-2h12v2zm0-3h-12v-2h12v2zm0-3h-12v-2h12v2z"/>

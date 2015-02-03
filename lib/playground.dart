@@ -56,6 +56,7 @@ class Playground {
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
+  Router _router;
 
   ModuleManager modules = new ModuleManager();
 
@@ -79,6 +80,9 @@ class Playground {
     cssBusyLight = new DBusyLight(querySelector('#dartbusy'));
     htmlBusyLight = new DBusyLight(querySelector('#dartbusy'));
 
+    SelectElement select = querySelector('#samples');
+    select.onChange.listen((_) => _handleSelectChanged(select));
+
     _initModules().then((_) {
       _initPlayground();
     });
@@ -100,8 +104,6 @@ class Playground {
     _setGistDescription(null);
     _setGistId(null, null);
 
-    // TODO: What should the workflow be for hitting '/'? Load the last sample
-    // edited here?
     context.dartSource = sample.dartCode;
     context.htmlSource = sample.htmlCode;
     context.cssSource = sample.cssCode;
@@ -231,12 +233,12 @@ class Playground {
     DSplash splash = new DSplash(querySelector('div.splash'));
     splash.hide();
 
-    Router router = new Router();
-    router.root.addRoute(
+    _router = new Router();
+    _router.root.addRoute(
         name: 'home', defaultRoute: true, path: '/', enter: showHome);
-    router.root.addRoute(
+    _router.root.addRoute(
         name: 'gist', path: '/:gist/', enter: showGist);
-    router.listen();
+    _router.listen();
   }
 
   void _registerTab(Element element, String name) {
@@ -363,6 +365,16 @@ class Playground {
     span.text = message;
     _outputpanel.children.add(span);
     span.scrollIntoView(ScrollAlignment.BOTTOM);
+  }
+
+  void _handleSelectChanged(SelectElement select) {
+    String value = select.value;
+
+    if (_isLegalGistId(value)) {
+      _router.go('gist', {'gist': value});
+    }
+
+    select.value = '0';
   }
 
   void _setGistDescription(String description) {
