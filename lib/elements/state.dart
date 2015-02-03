@@ -6,7 +6,7 @@
  * A library for storing non-semantic user state, like UI component positions.
  * This information is differentiated from user configurable settings.
  */
-library dartpad_ui.state;
+library codepad.state;
 
 import 'dart:convert' show JSON;
 import 'dart:html';

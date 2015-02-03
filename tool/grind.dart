@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_ui.grind;
+library codepad.grind;
 
 import 'dart:async';
 import 'dart:io';
@@ -21,11 +21,11 @@ void main(List<String> args) {
   startGrinder(args);
 }
 
-/// Build the `web/dartpad.html` entrypoint.
+/// Build the `web/codepad.html` entrypoint.
 build(GrinderContext context) {
   Pub.build(context, directories: ['web', 'test']);
 
-  File outFile = joinFile(BUILD_DIR, ['web', 'dartpad.dart.js']);
+  File outFile = joinFile(BUILD_DIR, ['web', 'codepad.dart.js']);
   File testFile = joinFile(BUILD_DIR, ['test', 'web.dart.js']);
   context.log('${outFile.path} compiled to ${_printSize(outFile)}');
   context.log('${testFile.path} compiled to ${_printSize(testFile)}');
@@ -52,12 +52,12 @@ Future _uploadCompiledStats(GrinderContext context, num length) {
   if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
     Librato librato = new Librato.fromEnvVars();
     context.log('Uploading stats to ${librato.baseUrl}');
-    LibratoStat compiledSize = new LibratoStat('dartpad.dart.js', length);
+    LibratoStat compiledSize = new LibratoStat('codepad.dart.js', length);
     return librato.postStats([compiledSize]).then((_) {
       String commit = env['TRAVIS_COMMIT'];
       LibratoLink link = new LibratoLink(
           'github',
-          'https://github.com/dart-lang/dartpad_ui/commit/${commit}');
+          'https://github.com/dart-lang/codepad/commit/${commit}');
       LibratoAnnotation annotation = new LibratoAnnotation(
           commit,
           description: 'Commit ${commit}',
