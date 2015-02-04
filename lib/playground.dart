@@ -131,7 +131,7 @@ class Playground {
       Map m = JSON.decode(data);
 
       String description = m['description'];
-      _logger.info('Loaded gist ${gistId} (${description})');
+      _logger.info('loaded gist ${gistId} (${description})');
       _setGistDescription(description);
       _setGistId(m['id'], m['html_url']);
 
@@ -234,10 +234,8 @@ class Playground {
     splash.hide();
 
     _router = new Router();
-    _router.root.addRoute(
-        name: 'home', defaultRoute: true, path: '/', enter: showHome);
-    _router.root.addRoute(
-        name: 'gist', path: '/:gist/', enter: showGist);
+    _router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
+    _router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
     _router.listen();
   }
 
