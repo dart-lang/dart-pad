@@ -162,6 +162,14 @@ class _CodeMirrorDocument extends Document {
 
   ed.Position get cursor => _posFromPos(doc.getCursor());
 
+  void select(ed.Position start, [ed.Position end]) {
+    if (end != null) {
+      doc.setSelection(_posToPos(start), head: _posToPos(end));
+    } else {
+      doc.setSelection(_posToPos(start));
+    }
+  }
+
   String get mode => parent.mode;
 
   bool get isClean => doc.isClean();
@@ -218,6 +226,8 @@ class _CodeMirrorDocument extends Document {
 
   int indexFromPos(ed.Position position) =>
       doc.indexFromPos(_posToPos(position));
+
+  ed.Position posFromIndex(int index) => _posFromPos(doc.posFromIndex(index));
 
   pos.Position _posToPos(ed.Position position) =>
       new pos.Position(position.line, position.char);

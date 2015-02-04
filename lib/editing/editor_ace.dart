@@ -146,6 +146,11 @@ class _AceDocument extends Document {
   Position get cursor =>
       _ptToPosition((editor as _AceEditor).editor.selection.cursor);
 
+  void select(Position start, [Position end]) {
+    // TODO: Implement.
+
+  }
+
   String get mode => session.mode.name;
 
   bool get isClean => session.undoManager.isClean;
@@ -184,6 +189,10 @@ class _AceDocument extends Document {
 
   int indexFromPos(Position position) {
     return session.document.positionToIndex(_positionToPoint(position));
+  }
+
+  Position posFromIndex(int index) {
+    return _ptToPosition(session.document.indexToPosition(index));
   }
 
   Stream get onChange => session.onChange;

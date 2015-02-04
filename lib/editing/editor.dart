@@ -53,6 +53,8 @@ abstract class Document {
 
   Position get cursor;
 
+  void select(Position start, [Position end]);
+
   String get mode;
 
   bool get isClean;
@@ -62,6 +64,7 @@ abstract class Document {
   void clearAnnotations() => setAnnotations([]);
 
   int indexFromPos(Position pos);
+  Position posFromIndex(int index);
 
   Stream get onChange;
 }

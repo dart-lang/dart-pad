@@ -297,15 +297,8 @@ class Playground {
 
       dartBusyLight.reset();
 
-      if (result.issues.isEmpty) {
-        //label.message = '';
-        //label.clearError();
-      } else {
-        //label.message = '${result.issues.length}';
-        //if (result.hasError) label.error = 'error';
-        //else if (result.hasWarning) label.error = 'warning';
-        //else label.error = 'info';
-      }
+
+      _displayIssues(result.issues);
 
       _context.dartDocument.setAnnotations(result.issues.map(
           (AnalysisIssue issue) {
@@ -395,6 +388,59 @@ class Playground {
       a.target = 'gist';
       e.children.add(a);
     }
+  }
+
+  void _displayIssues(List<AnalysisIssue> issues) {
+    Element issuesElement = querySelector('#issues');
+
+    // Detect when hiding; don't remove the content until hidden.
+    bool isHiding = issuesElement.children.isNotEmpty && issues.isEmpty;
+
+    if (isHiding) {
+      issuesElement.classes.toggle('showing', issues.isNotEmpty);
+
+      StreamSubscription sub;
+      sub = issuesElement.onTransitionEnd.listen((_) {
+        issuesElement.children.clear();
+        sub.cancel();
+      });
+    } else {
+      issuesElement.children.clear();
+
+      issues.sort((a, b) => a.charStart - b.charStart);
+
+      // Create an item for each issue.
+      for (AnalysisIssue issue in issues) {
+        DivElement e = new DivElement();
+        e.classes.add('issue');
+        issuesElement.children.add(e);
+        e.onClick.listen((_) {
+          _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+        });
+
+        SpanElement typeSpan = new SpanElement();
+        typeSpan.classes.addAll([issue.kind, 'issuelabel']);
+        typeSpan.text = issue.kind;
+        e.children.add(typeSpan);
+
+        SpanElement messageSpan = new SpanElement();
+        messageSpan.classes.add('message');
+        messageSpan.text = issue.message;
+        e.children.add(messageSpan);
+      }
+
+      issuesElement.classes.toggle('showing', issues.isNotEmpty);
+    }
+  }
+
+  void _jumpTo(int line, int charStart, int charLength, {bool focus: false}) {
+    Document doc = editor.document;
+
+    doc.select(
+        doc.posFromIndex(charStart),
+        doc.posFromIndex(charStart + charLength));
+
+    if (focus) editor.focus();
   }
 }
 
