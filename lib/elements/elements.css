@@ -151,7 +151,7 @@
 #issues.showing {
   margin-top: 8px;
   overflow-y: auto;
-  max-height: 90px;
+  max-height: 68px;
 }
 
 #issues .issue {
@@ -164,7 +164,7 @@
 }
 
 .issue + .issue {
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .issue .issuelabel {
@@ -191,5 +191,6 @@
 }
 
 .issue .message {
+  color: #eee;
   padding-left: 5px;
 }
