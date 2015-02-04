@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library codepad.dependencies_test;
+library dart_pad.dependencies_test;
 
 import 'package:dart_pad/core/dependencies.dart';
 import 'package:unittest/unittest.dart';

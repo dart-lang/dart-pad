@@ -25,7 +25,7 @@ void main(List<String> args) {
 build(GrinderContext context) {
   Pub.build(context, directories: ['web', 'test']);
 
-  File outFile = joinFile(BUILD_DIR, ['web', 'codepad.dart.js']);
+  File outFile = joinFile(BUILD_DIR, ['web', 'main.dart.js']);
   File testFile = joinFile(BUILD_DIR, ['test', 'web.dart.js']);
   context.log('${outFile.path} compiled to ${_printSize(outFile)}');
   context.log('${testFile.path} compiled to ${_printSize(testFile)}');
@@ -52,12 +52,12 @@ Future _uploadCompiledStats(GrinderContext context, num length) {
   if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
     Librato librato = new Librato.fromEnvVars();
     context.log('Uploading stats to ${librato.baseUrl}');
-    LibratoStat compiledSize = new LibratoStat('codepad.dart.js', length);
+    LibratoStat compiledSize = new LibratoStat('main.dart.js', length);
     return librato.postStats([compiledSize]).then((_) {
       String commit = env['TRAVIS_COMMIT'];
       LibratoLink link = new LibratoLink(
           'github',
-          'https://github.com/dart-lang/codepad/commit/${commit}');
+          'https://github.com/dart-lang/dart-pad/commit/${commit}');
       LibratoAnnotation annotation = new LibratoAnnotation(
           commit,
           description: 'Commit ${commit}',
