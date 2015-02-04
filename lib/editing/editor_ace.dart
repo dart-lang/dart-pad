@@ -21,7 +21,7 @@ final AceFactory aceFactory = new AceFactory._();
 // TODO: improve the styling for error and warning icons
 
 class AceFactory extends EditorFactory {
-  static final String cssRef = 'packages/codepad/editing/editor_ace.css';
+  static final String cssRef = 'packages/dart_pad/editing/editor_ace.css';
   static final String jsRef = 'packages/ace/src/js/ace.js';
 
   AceFactory._();
@@ -35,7 +35,7 @@ class AceFactory extends EditorFactory {
     // TODO: This injection is slower then hardcoding in the html file.
     html.Element head = html.querySelector('html head');
 
-    // <link href="packages/codepad/editing/editor_codemirror.css" rel="stylesheet">
+    // <link href="packages/dart_pad/editing/editor_codemirror.css" rel="stylesheet">
     html.LinkElement link = new html.LinkElement();
     link.rel = 'stylesheet';
     link.href = cssRef;

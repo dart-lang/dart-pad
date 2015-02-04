@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library codepad.keys_test;
+library dart_pad.keys_test;
 
 import 'dart:html';
 
-import 'package:codepad/core/keys.dart';
+import 'package:dart_pad/core/keys.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {

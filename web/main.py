@@ -44,14 +44,14 @@ class MainHandler(webapp2.RequestHandler):
             if targetSplits[1].find('.') > 0:
                 newPath = "/".join(targetSplits[1:])
                 if newPath == '':
-                    _serve(self.response, 'codepad.html')
+                    _serve(self.response, 'index.html')
                 else:
                     _serve(self.response, newPath)
                 return
 
             # If it is a request for a TLD psuedo-item, serve back the main page
             if len(targetSplits) < 3:
-                _serve(self.response, 'codepad.html')
+                _serve(self.response, 'index.html')
                 return
 
 
@@ -59,7 +59,7 @@ class MainHandler(webapp2.RequestHandler):
             if targetSplits[1] == 'packages':
                 newPath = "/".join(targetSplits[1:])
                 if newPath == '':
-                    _serve(self.response, 'codepad.html')
+                    _serve(self.response, 'index.html')
                 else:
                     _serve(self.response, newPath)
                 return
@@ -69,7 +69,7 @@ class MainHandler(webapp2.RequestHandler):
             if len(targetSplits) >= 3:
                 newPath = "/".join(targetSplits[2:])
                 if newPath == '':
-                    _serve(self.response, 'codepad.html')
+                    _serve(self.response, 'index.html')
                 else:
                     _serve(self.response, newPath)
                 return

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library codepad.common;
+library dart_pad.common;
 
 final String serverURL = 'https://liftoff-dev.appspot.com/api';
 //final String serverURL = 'http://127.0.0.1:8082/api';

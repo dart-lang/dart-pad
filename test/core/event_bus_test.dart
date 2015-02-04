@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library codepad.event_bus_test;
+library dart_pad.event_bus_test;
 
 import 'dart:async';
 
-import 'package:codepad/core/event_bus.dart';
+import 'package:dart_pad/core/event_bus.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {

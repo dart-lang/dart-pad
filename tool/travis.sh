@@ -10,9 +10,9 @@ set -e
 # TODO: use tuneup
 # Verify that the libraries are error free.
 dartanalyzer --fatal-warnings \
-  lib/codepad.dart \
+  lib/dart_pad.dart \
   test/all.dart \
-  web/codepad.dart
+  web/main.dart
 
 # Run the command-line tests.
 dart test/all.dart
