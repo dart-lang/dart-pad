@@ -9,8 +9,8 @@ set -e
 
 # Verify that the libraries are error free.
 dartanalyzer --fatal-warnings \
-  bin/endpoints.dart \
-  lib/endpoints_server.dart \
+  bin/services.dart \
+  lib/services_server.dart \
   test/all.dart
 
 # Run the tests.

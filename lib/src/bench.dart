@@ -6,7 +6,7 @@
  * A benchmark library. This library supports running benchmarks which can
  * run asynchronously.
  */
-library endpoints.bench;
+library services.bench;
 
 import 'dart:async';
 import 'dart:convert' show JSON;

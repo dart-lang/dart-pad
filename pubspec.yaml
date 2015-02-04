@@ -1,12 +1,10 @@
-name: endpoints
+name: services
 version: 0.0.1
-description: The server backend for a web based interactive Dart service.
-
 author: Dart Team <misc@dartlang.org>
+description: The server backend for a web based interactive Dart service.
 homepage: https://github.com/dart-lang/endpoints
 environment:
   sdk: '>=1.0.0 <2.0.0'
-
 dependencies:
   analyzer: '>=0.22.4 <0.23.0'
   appengine: '>=0.2.1 <0.3.0'
@@ -23,6 +21,5 @@ dev_dependencies:
   codemirror: '>=0.1.0 <0.2.0'
   http: any
   unittest: any
-
 executables:
-  endpoints:
+  endpoints: null

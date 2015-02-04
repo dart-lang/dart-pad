@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library endpoints.grind;
+library services.grind;
 
 import 'dart:convert' show JSON;
 import 'dart:io';
@@ -52,7 +52,7 @@ travisBench(GrinderContext context) {
     String commit = Platform.environment['TRAVIS_COMMIT'];
     LibratoLink link = new LibratoLink(
         'github',
-        'https://github.com/dart-lang/endpoints/commit/${commit}');
+        'https://github.com/dart-lang/services/commit/${commit}');
     LibratoAnnotation annotation = new LibratoAnnotation(
         commit,
         description: 'Commit ${commit}',

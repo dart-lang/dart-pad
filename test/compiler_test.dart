@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library endpoints.compiler_test;
+library services.compiler_test;
 
-import 'package:endpoints/src/common.dart';
-import 'package:endpoints/src/compiler.dart';
+import 'package:services/src/common.dart';
+import 'package:services/src/compiler.dart';
 import 'package:grinder/grinder.dart' as grinder;
 import 'package:unittest/unittest.dart';
 

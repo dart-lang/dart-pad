@@ -1,9 +1,9 @@
-# Dart Endpoints
+# Dart Services
 
 The pre-alpha server backend to support interactive Dart services.
 
-[![Build Status](https://travis-ci.org/dart-lang/endpoints.svg?branch=master)](https://travis-ci.org/dart-lang/endpoints)
-[![Coverage Status](https://coveralls.io/repos/dart-lang/endpoints/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/endpoints?branch=master)
+[![Build Status](https://travis-ci.org/dart-lang/services.svg?branch=master)](https://travis-ci.org/dart-lang/endpoints)
+[![Coverage Status](https://coveralls.io/repos/dart-lang/services/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/endpoints?branch=master)
 [![Uptime Status](https://img.shields.io/badge/uptime-StatusCake-blue.svg)](http://uptime.statuscake.com/?TestID=6FVej0AP1A)
 
 ## What is it? What does it do?
@@ -24,19 +24,19 @@ It is currently in a pre-alpha state, partially complete, and very much under ac
 
 To run the server, run:
 
-    dart bin/endpoints.dart --port 8082
+    dart bin/services.dart --port 8082
 
 The server will run from port 8082 and export several JSON APIs, like
 `/api/compile` and `/api/analyze`.
 
 ## See also
 
-The [codepad](https://github.com/dart-lang/codepad) repo.
+The [codepad](https://github.com/dart-lang/services) repo.
 
 ## Issues and bugs
 
 Please file reports on the
-[GitHub Issue Tracker](https://github.com/dart-lang/endpoints/issues).
+[GitHub Issue Tracker](https://github.com/dart-lang/services/issues).
 
 ## License and Contributing
 

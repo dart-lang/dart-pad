@@ -5,7 +5,7 @@
 /**
  * This library is a wrapper around the Dart to JavaScript (dart2js) compiler.
  */
-library endpoints.compiler;
+library services.compiler;
 
 import 'dart:async';
 

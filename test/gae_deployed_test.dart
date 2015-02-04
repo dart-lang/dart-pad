@@ -4,7 +4,7 @@
 
 library gaeDeployed_test;
 
-import 'package:endpoints/src/common.dart' as common;
+import 'package:services/src/common.dart' as common;
 import 'package:http/http.dart' as http;
 import 'package:unittest/unittest.dart';
 

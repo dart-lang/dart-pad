@@ -1,4 +1,4 @@
-version: liftoff-dev-2
+version: prod
 runtime: custom
 vm: true
 api_version: 1

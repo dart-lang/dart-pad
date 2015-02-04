@@ -6,7 +6,7 @@
  * Tests which run as part of integration testing; these test high level
  * services.
  */
-library endpoints.integration;
+library services.integration;
 
 import 'gae_deployed_test.dart' as gaeTest_test;
 
