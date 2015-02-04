@@ -1,30 +1,25 @@
-name: codepad
+name: dart_pad
 version: 0.0.1
-description: The UI client for a web based interactive Dart service.
-
 author: Dart Team <misc@dartlang.org>
-homepage: https://github.com/dart-lang/codepad
+description: The UI client for a web based interactive Dart service.
+homepage: https://github.com/dart-lang/dart-pad
 environment:
   sdk: '>=1.0.0 <2.0.0'
-
 dependencies:
   ace: '>=0.5.10 <0.6.0'
   codemirror: '>=0.1.5 <0.2.0'
   librato: '>=0.0.1 <0.1.0'
   logging: '>=0.9.0 <0.10.0'
   route_hierarchical: '>=0.6.0 <0.7.0'
-
 dev_dependencies:
   dart_to_js_script_rewriter: any
   grinder: '>=0.6.6+2 <0.7.0'
   unittest: any
-
 transformers:
 - dart_to_js_script_rewriter
 - $dart2js:
-    $exclude: [
-      'test/all.dart',
-      'web/old/playground1.dart',
-      'web/old/playground2.dart',
-      'web/packages/csslib/css.dart'
-    ]
+    $exclude:
+    - test/all.dart
+    - web/old/playground1.dart
+    - web/old/playground2.dart
+    - web/packages/csslib/css.dart

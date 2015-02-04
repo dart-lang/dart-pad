@@ -4,7 +4,7 @@
 
 library codepad.common_test;
 
-import 'package:codepad/services/common.dart';
+import 'package:dart_pad/services/common.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {

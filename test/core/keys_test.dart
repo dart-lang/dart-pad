@@ -6,7 +6,7 @@ library codepad.keys_test;
 
 import 'dart:html';
 
-import 'package:codepad/core/keys.dart';
+import 'package:dart_pad/core/keys.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {

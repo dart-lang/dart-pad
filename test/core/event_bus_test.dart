@@ -6,7 +6,7 @@ library codepad.event_bus_test;
 
 import 'dart:async';
 
-import 'package:codepad/core/event_bus.dart';
+import 'package:dart_pad/core/event_bus.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {

@@ -4,7 +4,7 @@
 
 library codepad.dependencies_test;
 
-import 'package:codepad/core/dependencies.dart';
+import 'package:dart_pad/core/dependencies.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {
