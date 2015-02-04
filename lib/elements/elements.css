@@ -121,6 +121,8 @@
   background-color: rgba(126, 167, 216, 0.8);
 }
 
+/* shell css */
+
 .shell {
   /*bottom: 0;
   position: absolute;
@@ -136,4 +138,58 @@
   background-color: #3a3a3a;
   padding: 8px 16px;
   box-shadow: 3px 3px 4px 0px rgba(15, 14, 14, 0.7);
+}
+
+/* issues css */
+
+#issues {
+  max-height: 0;
+  overflow: hidden;
+  transition: 1000ms;
+}
+
+#issues.showing {
+  margin-top: 8px;
+  overflow-y: auto;
+  max-height: 90px;
+}
+
+#issues .issue {
+  line-height: 20px;
+  background: #444;
+  border-radius: 3px;
+  margin-right: 4px;
+  cursor: pointer;
+  /*box-shadow: 3px 3px 4px 0px rgba(15, 14, 14, 0.7);*/
+}
+
+.issue + .issue {
+  margin-top: 8px;
+}
+
+.issue .issuelabel {
+  color: #222;
+  display: inline-block;
+  border-radius: 0;
+  padding: 0 5px;
+  min-width: 53px;
+  text-align: right;
+  border-top-left-radius: 3px;
+  border-bottom-left-radius: 3px;
+}
+
+.issue .issuelabel.error {
+  background-color: #F7977A;
+}
+
+.issue .issuelabel.warning {
+  background-color: #FFF79A;
+}
+
+.issue .issuelabel.info {
+  background-color: #7EA7D8;
+}
+
+.issue .message {
+  padding-left: 5px;
 }
