@@ -145,7 +145,7 @@
 #issues {
   max-height: 0;
   overflow: hidden;
-  transition: 1000ms;
+  transition: 500ms;
 }
 
 #issues.showing {
