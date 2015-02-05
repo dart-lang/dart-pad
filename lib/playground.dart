@@ -295,7 +295,6 @@ class Playground {
 
       dartBusyLight.reset();
 
-
       _displayIssues(result.issues);
 
       _context.dartDocument.setAnnotations(result.issues.map(

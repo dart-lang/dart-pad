@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library codepad.grind;
+library dart_pad.grind;
 
 import 'dart:async';
 import 'dart:io';
@@ -21,7 +21,7 @@ void main(List<String> args) {
   startGrinder(args);
 }
 
-/// Build the `web/codepad.html` entrypoint.
+/// Build the `web/index.html` entrypoint.
 build(GrinderContext context) {
   Pub.build(context, directories: ['web', 'test']);
 
