@@ -4,7 +4,7 @@
 
 library dart_pad.common;
 
-final String serverURL = 'https://liftoff-dev.appspot.com/api';
+final String serverURL = 'https://dart-services.appspot.com/api';
 //final String serverURL = 'http://127.0.0.1:8082/api';
 
 final Duration serviceCallTimeout = new Duration(seconds: 10);
