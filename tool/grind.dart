@@ -52,7 +52,7 @@ travisBench(GrinderContext context) {
     String commit = Platform.environment['TRAVIS_COMMIT'];
     LibratoLink link = new LibratoLink(
         'github',
-        'https://github.com/dart-lang/services/commit/${commit}');
+        'https://github.com/dart-lang/dart-services/commit/${commit}');
     LibratoAnnotation annotation = new LibratoAnnotation(
         commit,
         description: 'Commit ${commit}',
