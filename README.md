@@ -1,4 +1,4 @@
-# Dart pad
+# Dart Pad
 
 The UI client for a web based interactive Dart service.
 
