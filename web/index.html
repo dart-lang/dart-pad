@@ -39,9 +39,7 @@
   <body fullbleed layout vertical>
     <header layout horizontal>
       <div class="header-title">Dart Pad <span class="minor">(alpha!)</span></div>
-      <div flex></div>
-      <div class="header-gist-name"></div>
-      <div flex></div>
+      <div class="header-gist-name" flex></div>
       <div class="header-gist-id"></div>
       <div>
         <select id="samples" required="false" style="width: 80px;">
@@ -64,11 +62,12 @@
       <div class="splash"></div>
 
       <div class="view" flex three layout vertical>
-        <div class="header" layout horizontal>
+        <div class="header" layout horizontal wrap>
           <li><a id="darttab" selected class="arrow_box"><span>Dart</span></a></li>
           <li><a id="htmltab"><span>HTML</span></a></li>
           <li><a id="csstab"><span>CSS</span></a></li>
           <div flex></div>
+          <div id="dartbusy" class="busylight"></div>
           <div>
             <button type="button" id="runbutton">
               <svg width="18" height="18" viewBox="0 0 24 24"
@@ -78,7 +77,6 @@
               Run
             </button>
           </div>
-          <div id="dartbusy" class="busylight"></div>
         </div>
         <div id="editpanel" flex layout vertical>
         </div>
