@@ -351,7 +351,7 @@ class Playground {
   void _showOuput(String message, {bool error: false}) {
     message = message + '\n';
     SpanElement span = new SpanElement();
-    if (error) span.classes.add('errorOutput');
+    span.classes.add(error ? 'errorOutput' : 'normal');
     span.text = message;
     _outputpanel.children.add(span);
     span.scrollIntoView(ScrollAlignment.BOTTOM);

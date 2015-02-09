@@ -16,7 +16,7 @@ EventBus _bus = new EventBus();
 void init() {
   List<Element> elements = querySelectorAll('[executable]');
 
-  List<DocSnippet> snippets = elements.map((e) => new DocSnippet(e)).toList();
+  /*List<DocSnippet> snippets =*/ elements.map((e) => new DocSnippet(e)).toList();
 
   print('Found ${elements.length} matching executable doc comments.');
 }
@@ -167,10 +167,10 @@ class DocSnippet {
     _output.text += str + '\n';
   }
 
-  void _displayErrors(String str) {
-    _output.text = str;
-    _output.classes.toggle('errors', false);
-  }
+//  void _displayErrors(String str) {
+//    _output.text = str;
+//    _output.classes.toggle('errors', false);
+//  }
 
   void _fireRunningEvent() {
     _bus.addEvent(new BusEvent('dart-run', {'snippet': this}));
