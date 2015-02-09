@@ -51,8 +51,6 @@ class DButton extends DElement {
   set disabled(bool value) => belement.disabled = value;
 }
 
-// TODO: Support touch events.
-
 class DSplitter extends DElement {
   StreamController<num> _controller = new StreamController.broadcast();
 
@@ -130,6 +128,31 @@ class DSplitter extends DElement {
         cancel();
       });
     });
+
+    // TODO: implement touch events
+    Point touchOffset;
+
+    element.onTouchStart.listen((TouchEvent e) {
+      if (e.targetTouches.isEmpty) return;
+      // TODO:
+
+      e.preventDefault();
+
+//      touchOffset
+//      Point current = e.targetTouches.first.client;
+    });
+
+    element.onTouchMove.listen((TouchEvent e) {
+      if (e.targetTouches.isEmpty) return;
+
+      e.preventDefault();
+
+      if (touchOffset == null) touchOffset = new Point(0, 0);
+
+      Point current = e.targetTouches.first.client;
+      current -= _target.marginEdge.topLeft - touchOffset;
+      _handleDrag(current - touchOffset);
+    });
   }
 
   void _handleDrag(Point size) {
@@ -159,7 +182,6 @@ class DSplitter extends DElement {
   set _targetSize(num size) {
     final num currentPos = _controller.hasListener ? position : null;
 
-    num min = _minSize(_target);
     size = math.max(size, _minSize(_target));
 
     if (_target.attributes.containsKey('flex')) {

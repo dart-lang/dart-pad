@@ -38,7 +38,7 @@ class CodeMirrorFactory extends EditorFactory {
 
   Future init() {
     List futures = [];
-    html.Element head = html.querySelector('html head');
+    //html.Element head = html.querySelector('html head');
 
 //    // <link href="packages/dart_pad/editing/editor_codemirror.css"
 //    //   rel="stylesheet">
@@ -254,11 +254,11 @@ class _CodeMirrorDocument extends Document {
   });
 }
 
-Future _appendNode(html.Element parent, html.Element child) {
-  Completer completer = new Completer();
-  child.onLoad.listen((e) {
-    completer.complete();
-  });
-  parent.nodes.add(child);
-  return completer.future;
-}
+//Future _appendNode(html.Element parent, html.Element child) {
+//  Completer completer = new Completer();
+//  child.onLoad.listen((e) {
+//    completer.complete();
+//  });
+//  parent.nodes.add(child);
+//  return completer.future;
+//}

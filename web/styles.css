@@ -233,7 +233,11 @@ div.toggle {
   white-space: pre-wrap;
 }
 
-.errorOutput {
+.console .normal {
+  color: #c6c6c6;
+}
+
+.console .errorOutput {
   color: #F7977A;
 }
 
