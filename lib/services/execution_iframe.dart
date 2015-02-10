@@ -14,25 +14,39 @@ class ExecutionServiceIFrame implements ExecutionService {
   final StreamController _stdoutController = new StreamController.broadcast();
   final StreamController _stderrController = new StreamController.broadcast();
 
-  final IFrameElement frame;
+  IFrameElement _frame;
+  String _frameSrc;
+  Completer _readyCompleter = new Completer();
 
-  ExecutionServiceIFrame(this.frame) {
+  ExecutionServiceIFrame(this._frame) {
+    _frameSrc = _frame.src;
+
     window.onMessage.listen((MessageEvent event) {
       String message = '${event.data}';
 
       if (message.startsWith('stderr: ')) {
-        _stderrController.add(message.substring('stderr: '.length));
+        // Ignore any exceptions before the iframe has completed initialization.
+        //
+        if (_readyCompleter.isCompleted) {
+          _stderrController.add(message.substring('stderr: '.length));
+        }
+      } else if (message == 'status: ready' && !_readyCompleter.isCompleted) {
+        _readyCompleter.complete();
       } else {
         _stdoutController.add(message);
       }
     });
   }
 
+  IFrameElement get frame => _frame;
+
   Future execute(String html, String css, String javaScript) {
-    return _send('execute', {
-      'html': html,
-      'css': css,
-      'js': _decorateJavaScript(javaScript)
+    return _reset().whenComplete(() {
+      return _send('execute', {
+        'html': html,
+        'css': css,
+        'js': _decorateJavaScript(javaScript)
+      });
     });
   }
 
@@ -44,16 +58,10 @@ class ExecutionServiceIFrame implements ExecutionService {
     _send('setCss', {'css': css});
   }
 
-  void reset() {
-    // TODO: Destroy and re-load iframe.
-
-  }
-
   String _decorateJavaScript(String javaScript) {
     final String postMessagePrint =
         "function dartPrint(message) { parent.postMessage(message, '*'); }";
 
-    // TODO: Use a better encoding than 'stderr: '.
     final String exceptionHandler =
         "window.onerror = function(message, url, lineNumber) { "
         "parent.postMessage('stderr: ' + message.toString(), '*'); };";
@@ -71,5 +79,25 @@ class ExecutionServiceIFrame implements ExecutionService {
     frame.contentWindow.postMessage(m, '*');
 
     return new Future.value();
+  }
+
+  /// Destroy and re-load the iframe.
+  Future _reset() {
+    _readyCompleter = new Completer();
+
+    IFrameElement clone = _frame.clone(false);
+    clone.src = _frameSrc;
+
+    List<Element> children = frame.parent.children;
+    int index = children.indexOf(_frame);
+    children.insert(index, clone);
+    frame.parent.children.remove(_frame);
+    _frame = clone;
+
+    return _readyCompleter.future.timeout(
+        new Duration(seconds: 1),
+        onTimeout: () {
+          if (!_readyCompleter.isCompleted) _readyCompleter.complete();
+        });
   }
 }

@@ -9,10 +9,8 @@ import 'dart:async';
 abstract class ExecutionService {
   Future execute(String html, String css, String javaScript);
 
-  void replaceCss(String css);
   void replaceHtml(String html);
-
-  void reset();
+  void replaceCss(String css);
 
   Stream<String> get onStdout;
   Stream<String> get onStderr;
