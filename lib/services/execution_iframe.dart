@@ -81,7 +81,7 @@ class ExecutionServiceIFrame implements ExecutionService {
     return new Future.value();
   }
 
-  /// Destroy and re-load iframe.
+  /// Destroy and re-load the iframe.
   Future _reset() {
     _readyCompleter = new Completer();
 
