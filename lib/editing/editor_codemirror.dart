@@ -144,6 +144,10 @@ class _CodeMirrorDocument extends Document {
   final List<LineWidget> widgets = [];
   final List<html.DivElement> nodes = [];
 
+  /**
+   * We use `_lastSetValue` here to avoid a change notification when we
+   * programatically change the `value` field.
+   */
   String _lastSetValue;
 
   _CodeMirrorDocument._(_CodeMirrorEditor editor, this.doc) : super(editor);
@@ -248,9 +252,13 @@ class _CodeMirrorDocument extends Document {
 //  }
 
   Stream get onChange => doc.onChange.where((_) {
-    if (value != _lastSetValue) return true;
-    _lastSetValue = null;
-    return false;
+    if (value != _lastSetValue) {
+      _lastSetValue = null;
+      return true;
+    } else {
+      //_lastSetValue = null;
+      return false;
+    }
   });
 }
 

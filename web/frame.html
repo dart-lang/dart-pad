@@ -64,6 +64,8 @@ messageHandler = function(e) {
 }
 
 window.addEventListener('message', messageHandler, false);
+
+parent.postMessage('status: ready', '*');
     </script>
 
     <style id="styleId"></style>
