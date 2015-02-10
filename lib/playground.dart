@@ -5,7 +5,6 @@
 library playground;
 
 import 'dart:async';
-import 'dart:convert' show JSON;
 import 'dart:html' hide Document;
 
 import 'package:logging/logging.dart';
@@ -27,11 +26,9 @@ import 'services/common.dart';
 import 'services/compiler.dart';
 import 'services/execution_iframe.dart';
 import 'src/ga.dart';
+import 'src/gists.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
-
-// TODO: we need blinkers when something happens. console is appended to,
-// css is updated, result area dom is modified.
 
 Playground get playground => _playground;
 
@@ -95,7 +92,7 @@ class Playground {
     String path = window.location.pathname;
     if (path.length > 2 && path.lastIndexOf('/') == 0) {
       String id = path.substring(1);
-      if (_isLegalGistId(id)) {
+      if (isLegalGistId(id)) {
         _showGist(id);
         return;
       }
@@ -116,7 +113,7 @@ class Playground {
 
     String gistId = event.parameters['gist'];
 
-    if (!_isLegalGistId(gistId)) {
+    if (!isLegalGistId(gistId)) {
       showHome(event);
       return;
     }
@@ -125,26 +122,17 @@ class Playground {
   }
 
   void _showGist(String gistId) {
-    // Load the gist using the github gist API:
-    // https://developer.github.com/v3/gists/#get-a-single-gist.
-    HttpRequest.getString('https://api.github.com/gists/${gistId}').then((data) {
-      Map m = JSON.decode(data);
+    Gist.loadGist(gistId).then((Gist gist) {
+      _setGistDescription(gist.description);
+      _setGistId(gist.id, gist.htmlUrl);
 
-      String description = m['description'];
-      _logger.info('loaded gist ${gistId} (${description})');
-      _setGistDescription(description);
-      _setGistId(m['id'], m['html_url']);
+      GistFile dart = chooseGistFile(gist, ['main.dart'], (f) => f.endsWith('.dart'));
+      GistFile html = chooseGistFile(gist, ['index.html', 'body.html']);
+      GistFile css = chooseGistFile(gist, ['styles.css', 'style.css']);
 
-      Map files = m['files'];
-
-      String dart = _getFileContent(files, ['main.dart'],
-          (f) => f.endsWith('.dart'));
-      String html = _getFileContent(files, ['index.html', 'body.html']);
-      String css = _getFileContent(files, ['styles.css', 'style.css']);
-
-      context.dartSource = dart;
-      context.htmlSource = html;
-      context.cssSource = css;
+      context.dartSource = dart == null ? '' : dart.contents;
+      context.htmlSource = html == null ? '' : html.contents;
+      context.cssSource = css == null ? '' : css.contents;
 
       // Analyze and run it.
       Timer.run(() {
@@ -153,7 +141,6 @@ class Playground {
       });
     }).catchError((e) {
       // TODO: Display any errors - use a toast.
-
       print('Error loading gist ${gistId}.');
       print(e);
     });
@@ -360,7 +347,7 @@ class Playground {
   void _handleSelectChanged(SelectElement select) {
     String value = select.value;
 
-    if (_isLegalGistId(value)) {
+    if (isLegalGistId(value)) {
       _router.go('gist', {'gist': value});
     }
 
@@ -440,6 +427,8 @@ class Playground {
     if (focus) editor.focus();
   }
 }
+
+// TODO: create pages (dart / html / css)
 
 class PlaygroundContext extends Context {
   final Editor editor;
@@ -548,28 +537,4 @@ class DartCompleter extends CodeCompleter {
       new Completion('three')
     ]);
   }
-}
-
-/**
- * Find the best match for the given file names in the gist file info; return
- * the file content (or the empty string if no match is found).
- */
-String _getFileContent(Map files, List<String> names, [Function matcher]) {
-  for (String name in names) {
-    if (files.containsKey(name)) {
-      return files[name]['content'];
-    }
-  }
-
-  if (matcher != null) {
-    String name = files.keys.firstWhere(matcher, orElse: () => null);
-    if (name != null) return files[name]['content'];
-  }
-
-  return '';
-}
-
-bool _isLegalGistId(String id) {
-  final RegExp regex = new RegExp(r'^[0-9a-f]+$');
-  return regex.hasMatch(id) && id.length >= 5 && id.length <= 22;
 }
