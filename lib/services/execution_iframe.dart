@@ -6,6 +6,7 @@ library execution_iframe;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:js';
 
 import 'execution.dart';
 export 'execution.dart';
@@ -21,21 +22,7 @@ class ExecutionServiceIFrame implements ExecutionService {
   ExecutionServiceIFrame(this._frame) {
     _frameSrc = _frame.src;
 
-    window.onMessage.listen((MessageEvent event) {
-      String message = '${event.data}';
-
-      if (message.startsWith('stderr: ')) {
-        // Ignore any exceptions before the iframe has completed initialization.
-        //
-        if (_readyCompleter.isCompleted) {
-          _stderrController.add(message.substring('stderr: '.length));
-        }
-      } else if (message == 'status: ready' && !_readyCompleter.isCompleted) {
-        _readyCompleter.complete();
-      } else {
-        _stdoutController.add(message);
-      }
-    });
+    _initListener();
   }
 
   IFrameElement get frame => _frame;
@@ -59,12 +46,19 @@ class ExecutionServiceIFrame implements ExecutionService {
   }
 
   String _decorateJavaScript(String javaScript) {
-    final String postMessagePrint =
-        "function dartPrint(message) { parent.postMessage(message, '*'); }";
+    final String postMessagePrint = '''
+function dartPrint(message) {
+  parent.postMessage(
+    {'sender': 'frame', 'type': 'stdout', 'message': message.toString()}, '*');
+}
+''';
 
-    final String exceptionHandler =
-        "window.onerror = function(message, url, lineNumber) { "
-        "parent.postMessage('stderr: ' + message.toString(), '*'); };";
+    final String exceptionHandler = '''
+window.onerror = function(message, url, lineNumber) {
+  parent.postMessage(
+    {'sender': 'frame', 'type': 'stderr', 'message': message.toString()}, '*');
+};
+''';
 
     return '${postMessagePrint}\n${exceptionHandler}\n${javaScript}';
   }
@@ -99,5 +93,50 @@ class ExecutionServiceIFrame implements ExecutionService {
         onTimeout: () {
           if (!_readyCompleter.isCompleted) _readyCompleter.complete();
         });
+  }
+
+  void _initListener() {
+    context['dartMessageListener'] = new JsFunction.withThis((_this, data) {
+      String type = data['type'];
+
+      if (type == 'stderr') {
+        // Ignore any exceptions before the iframe has completed initialization.
+        if (_readyCompleter.isCompleted) {
+          _stderrController.add(data['message']);
+        }
+      } else if (type == 'ready' && !_readyCompleter.isCompleted) {
+        _readyCompleter.complete();
+      } else {
+        _stdoutController.add(data['message']);
+      }
+    });
+
+//    window.onMessage.listen((MessageEvent event) {
+//      Map data;
+//
+//      try {
+//        // TODO: This throws in Safari and FireFox with the polymer polyfills active.
+//        if (event.data is! Map) return;
+//        data = event.data;
+//        if (data['sender'] != 'frame') return;
+//      } catch (e) {
+//        print('${e}');
+//
+//        return;
+//      }
+//
+//      String type = data['type'];
+//
+//      if (type == 'stderr') {
+//        // Ignore any exceptions before the iframe has completed initialization.
+//        if (_readyCompleter.isCompleted) {
+//          _stderrController.add(data['message']);
+//        }
+//      } else if (type == 'ready' && !_readyCompleter.isCompleted) {
+//        _readyCompleter.complete();
+//      } else {
+//        _stdoutController.add(data['message']);
+//      }
+//    });
   }
 }
