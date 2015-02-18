@@ -126,5 +126,19 @@
       ga('create', 'UA-26406144-18', 'auto');
       ga('send', 'pageview');
     </script>
+    <script>
+      /* Patch to work around a polymer polyfill issue. */
+
+      // Patch window message listening.
+      window.addEventListener('message', function(event) {
+        var data = event.data;
+
+        if (data.sender == 'frame') {
+          if (dartMessageListener) {
+            dartMessageListener(data);
+          }
+        }
+      });
+    </script>
   </body>
 </html>

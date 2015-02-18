@@ -15,6 +15,7 @@ final _isMac = window.navigator.appVersion.toLowerCase().contains('macintosh');
 class Keys {
   Map<String, Function> _bindings = {};
   StreamSubscription _sub;
+  bool _loggedException = false;
 
   Keys() {
     _sub = document.onKeyDown.listen(_handleKeyEvent);
@@ -29,16 +30,25 @@ class Keys {
   }
 
   void _handleKeyEvent(KeyboardEvent event) {
-    KeyboardEvent k = event;
+    try {
+      KeyboardEvent k = event;
 
-    if (!k.altKey && !k.ctrlKey && !k.metaKey
-        && !(event.keyCode >= KeyCode.F1 && event.keyCode <= KeyCode.F12)) {
-      return;
-    }
+      if (!k.altKey && !k.ctrlKey && !k.metaKey
+          && !(event.keyCode >= KeyCode.F1 && event.keyCode <= KeyCode.F12)) {
+        return;
+      }
 
-    if (_handleKey(printKeyEvent(k))) {
-      k.preventDefault();
-      k.stopPropagation();
+      if (_handleKey(printKeyEvent(k))) {
+        k.preventDefault();
+        k.stopPropagation();
+      }
+    } catch (e) {
+      if (!_loggedException) {
+        _loggedException = true;
+
+        // The polymer polyfills make any event handling code unhappy.
+        print('${e}');
+      }
     }
   }
 

@@ -66,8 +66,8 @@ class Playground {
     runbutton.onClick.listen((e) {
       _handleRun();
 
-      // On a mobile device, focusing the editing are causes the keyboard to pop
-      // up when the user hits the run button.
+      // On a mobile device, focusing the editing area causes the keyboard to
+      // pop up when the user hits the run button.
       if (!isMobile()) _context.focus();
     });
 
