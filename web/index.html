@@ -134,8 +134,8 @@
         var data = event.data;
 
         if (data.sender == 'frame') {
-          if (dartMessageListener) {
-            dartMessageListener(data);
+          if (window.dartMessageListener) {
+            window.dartMessageListener(data);
           }
         }
       });
