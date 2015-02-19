@@ -131,7 +131,7 @@ class Playground {
       GistFile css = chooseGistFile(gist, ['styles.css', 'style.css']);
 
       context.dartSource = dart == null ? '' : dart.contents;
-      context.htmlSource = html == null ? '' : html.contents;
+      context.htmlSource = html == null ? '' : extractHtmlBody(html.contents);
       context.cssSource = css == null ? '' : css.contents;
 
       // Analyze and run it.
