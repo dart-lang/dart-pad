@@ -10,16 +10,17 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:grinder/grinder.dart' as grinder;
 import 'package:logging/logging.dart';
+import 'package:rpc/rpc.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart';
-import 'package:rpc/rpc.dart';
+
 import 'src/common_server.dart';
 
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
 const Map _jsonHeader = const {HttpHeaders.CONTENT_TYPE: 'application/json'};
 
-Logger _logger = new Logger('endpoints');
+Logger _logger = new Logger('services');
 
 void main(List<String> args) {
   var parser = new ArgParser();
@@ -106,16 +107,9 @@ class EndpointsServer {
 
   Response printUsage(Request request) {
     return new Response.ok('''
-Dart Endpoints server.
+Dart Services server
 
-POST /api/dartServices/v1/analyze  - Send Dart source as JSON to this URL and get JSON errors and warnings back.
-GET  /api/dartServices/v1/analyze  - Send Dart source to this URL as url query string and get JSON errors and warnings back.
-POST /api/dartServices/v1/compile  - Send Dart source as JSON to this URL and get compiled results back.
-GET  /api/dartServices/v1/compile  - Send Dart source to this URL as url query string and compiled results back.
-POST /api/dartServices/v1/complete - TODO:
-GET  /api/dartServices/v1/complete - TODO:
-POST /api/dartServices/v1/document - Send Dart source as JSON (source, offset) to the URL to calculate dartdoc.
-GET  /api/dartServices/v1/document - Send Dart source to this URL as url query string (source, offset) to calculate dartdoc.
+View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
 ''');
   }
 

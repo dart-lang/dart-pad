@@ -29,6 +29,11 @@ To run the server, run:
 The server will run from port 8082 and export several JSON APIs, like
 `/api/compile` and `/api/analyze`.
 
+## The API
+
+The discovery doc for the server's REST API is available here:
+http://dart-services.appspot.com/api/discovery/v1/apis/dartservices/v1/rest.
+
 ## See also
 
 The [Dart Pad](https://github.com/dart-lang/dart-pad) repo.

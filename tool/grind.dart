@@ -4,6 +4,7 @@
 
 library services.grind;
 
+import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:io';
 
@@ -12,10 +13,35 @@ import 'package:librato/librato.dart';
 
 void main(List<String> args) {
   task('init', defaultInit);
+  task('discovery', discovery, ['init']);
   task('travis-bench', travisBench, ['init']);
   task('clean', defaultClean);
 
   startGrinder(args);
+}
+
+/**
+ * Generate the discovery doc from the annotated API.
+ */
+Future discovery(GrinderContext context) async {
+  context.log('starting Dart Services server.');
+  Process process = await Process.start('dart', ['bin/services.dart', '--port=9090']);
+
+  await new Future.delayed(new Duration(milliseconds: 300));
+
+  HttpClientRequest request = await new HttpClient().get(
+        'localhost', 9090, 'api/discovery/v1/apis/dartservices/v1/rest');
+  HttpClientResponse response = await request.close();
+  List<List<int>> data = await response.toList();
+  List<int> list = data.reduce((l1, l2) => l1.addAll(l2));
+  String contents = new String.fromCharCodes(list);
+
+  File discoveryFile = new File('doc/dartservices.json');
+  context.log('writing ${discoveryFile.path}');
+  discoveryFile.writeAsStringSync(contents);
+
+  context.log('closing Dart Services server');
+  process.kill();
 }
 
 /**

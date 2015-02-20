@@ -1,0 +1,220 @@
+{
+ "kind": "discovery#restDescription",
+ "etag": "f0c37e3991119bf8abfe2c1625b5779a389c2bd5",
+ "discoveryVersion": "v1",
+ "id": "dartservices:v1",
+ "name": "dartservices",
+ "version": "v1",
+ "revision": "0",
+ "protocol": "rest",
+ "baseUrl": "http://localhost:9090/api/dartservices/v1/",
+ "basePath": "/api/dartservices/v1/",
+ "rootUrl": "http://localhost:9090/",
+ "servicePath": "api/dartservices/v1/",
+ "parameters": {},
+ "schemas": {
+  "SourceRequest": {
+   "id": "SourceRequest",
+   "type": "object",
+   "properties": {
+    "source": {
+     "type": "string",
+     "required": true
+    },
+    "offset": {
+     "type": "integer",
+     "format": "int32"
+    }
+   }
+  },
+  "AnalysisResults": {
+   "id": "AnalysisResults",
+   "type": "object",
+   "properties": {
+    "issues": {
+     "type": "array",
+     "items": {
+      "$ref": "AnalysisIssue"
+     }
+    }
+   }
+  },
+  "AnalysisIssue": {
+   "id": "AnalysisIssue",
+   "type": "object",
+   "properties": {
+    "kind": {
+     "type": "string"
+    },
+    "line": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "message": {
+     "type": "string"
+    },
+    "charStart": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "charLength": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "location": {
+     "type": "string"
+    }
+   }
+  },
+  "CompileResponse": {
+   "id": "CompileResponse",
+   "type": "object",
+   "properties": {
+    "result": {
+     "type": "string"
+    }
+   }
+  },
+  "DocumentResponse": {
+   "id": "DocumentResponse",
+   "type": "object",
+   "properties": {
+    "info": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "string"
+     }
+    }
+   }
+  }
+ },
+ "methods": {
+  "analyze": {
+   "id": "CommonServer.analyze",
+   "path": "analyze",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "AnalysisResults"
+   }
+  },
+  "analyzeGet": {
+   "id": "CommonServer.analyzeGet",
+   "path": "analyze",
+   "httpMethod": "GET",
+   "parameters": {
+    "source": {
+     "type": "string",
+     "description": "Query parameter: 'source'.",
+     "required": false,
+     "location": "query"
+    }
+   },
+   "parameterOrder": [],
+   "response": {
+    "$ref": "AnalysisResults"
+   }
+  },
+  "compile": {
+   "id": "CommonServer.compile",
+   "path": "compile",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "CompileResponse"
+   }
+  },
+  "compileGet": {
+   "id": "CommonServer.compileGet",
+   "path": "compile",
+   "httpMethod": "GET",
+   "parameters": {
+    "source": {
+     "type": "string",
+     "description": "Query parameter: 'source'.",
+     "required": false,
+     "location": "query"
+    }
+   },
+   "parameterOrder": [],
+   "response": {
+    "$ref": "CompileResponse"
+   }
+  },
+  "complete": {
+   "id": "CommonServer.complete",
+   "path": "complete",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   }
+  },
+  "completeGet": {
+   "id": "CommonServer.completeGet",
+   "path": "complete",
+   "httpMethod": "GET",
+   "parameters": {
+    "source": {
+     "type": "string",
+     "description": "Query parameter: 'source'.",
+     "required": false,
+     "location": "query"
+    },
+    "offset": {
+     "type": "integer",
+     "description": "Query parameter: 'offset'.",
+     "required": false,
+     "location": "query"
+    }
+   },
+   "parameterOrder": []
+  },
+  "document": {
+   "id": "CommonServer.document",
+   "path": "document",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "DocumentResponse"
+   }
+  },
+  "documentGet": {
+   "id": "CommonServer.documentGet",
+   "path": "document",
+   "httpMethod": "GET",
+   "parameters": {
+    "source": {
+     "type": "string",
+     "description": "Query parameter: 'source'.",
+     "required": false,
+     "location": "query"
+    },
+    "offset": {
+     "type": "integer",
+     "description": "Query parameter: 'offset'.",
+     "required": false,
+     "location": "query"
+    }
+   },
+   "parameterOrder": [],
+   "response": {
+    "$ref": "DocumentResponse"
+   }
+  }
+ },
+ "resources": {}
+}
