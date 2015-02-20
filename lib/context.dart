@@ -4,7 +4,7 @@
 
 library context;
 
-import 'services/analysis.dart';
+import 'dartservices_client/v1.dart';
 
 abstract class Context {
   List<AnalysisIssue> issues = [];

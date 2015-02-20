@@ -8,17 +8,15 @@ import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/event_bus.dart';
 import 'core/keys.dart';
+import 'dartservices_client/v1.dart';
 import 'editing/editor.dart';
 import 'elements/state.dart';
-import 'services/analysis.dart';
-import 'services/compiler.dart';
+import 'modules/dartservices_module.dart';
 import 'services/execution.dart';
 
 Context get context => deps[Context];
 
-CompilerService get compilerService => deps[CompilerService];
-
-AnalysisService get analysisService => deps[AnalysisService];
+DartservicesApi get dartServices => deps[DartServices];
 
 ExecutionService get executionService => deps[ExecutionService];
 

@@ -14,16 +14,15 @@ import 'dart_pad.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
+import 'dartservices_client/v1.dart';
 import 'editing/editor.dart';
 import 'elements/elements.dart';
 //import 'modules/ace_module.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
-import 'modules/server_analysis.dart';
-import 'modules/server_compiler.dart';
-import 'services/analysis.dart';
+import 'modules/dartservices_module.dart';
+//import 'modules/mock_dartservices_module.dart';
 import 'services/common.dart';
-import 'services/compiler.dart';
 import 'services/execution_iframe.dart';
 import 'src/ga.dart';
 import 'src/gists.dart';
@@ -148,10 +147,8 @@ class Playground {
 
   Future _initModules() {
     modules.register(new DartPadModule());
-    //modules.register(new MockAnalysisModule());
-    modules.register(new ServerAnalysisModule());
-    //modules.register(new MockCompilerModule());
-    modules.register(new ServerCompilerModule());
+    //modules.register(new MockDartServicesModule());
+    modules.register(new DartServicesModule());
     //modules.register(new AceModule());
     modules.register(new CodeMirrorModule());
 
@@ -254,23 +251,24 @@ class Playground {
 
     _clearOutput();
 
-    compilerService.compile(context.dartSource).then((CompilerResult result) {
-      return executionService.execute(
-          _context.htmlSource, _context.cssSource, result.output);
-    }).catchError((e) {
-      // TODO: Also display using a toast.
-      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
-    }).whenComplete(() {
-      runbutton.disabled = false;
-    });
+    var input = new SourceRequest()..source = context.dartSource;
+    dartServices.compile(input)
+        .then((CompileResponse response) {
+          return executionService.execute(
+              _context.htmlSource, _context.cssSource, response.result);
+        }).catchError((e) {
+          // TODO: Also display using a toast.
+          _showOuput('Error compiling to JavaScript:\n${e}', error: true);
+        }).whenComplete(() {
+          runbutton.disabled = false;
+        });
   }
 
   void _performAnalysis() {
-    String source = _context.dartSource;
-    Lines lines = new Lines(source);
+    var input = new SourceRequest()..source = _context.dartSource;
+    Lines lines = new Lines(input.source);
 
-    Future request = analysisService.analyze(source);
-
+    Future request = dartServices.analyze(input);
     _analysisRequest = request;
 
     request.then((AnalysisResults result) {
@@ -278,7 +276,7 @@ class Playground {
       if (_analysisRequest != request) return;
 
       // Discard if the document has been mutated since we requested analysis.
-      if (source != _context.dartSource) return;
+      if (input.source != _context.dartSource) return;
 
       dartBusyLight.reset();
 
@@ -314,20 +312,21 @@ class Playground {
     if (context.focusedEditor == 'dart') {
       ga.sendEvent('main', 'help');
 
-      String source = _context.dartSource;
       Position pos = editor.document.cursor;
-      int offset = editor.document.indexFromPos(pos);
-
+      var input = new SourceRequest()
+          ..source = _context.dartSource
+          ..offset = editor.document.indexFromPos(pos);
       // TODO: Show busy.
-      analysisService.getDocumentation(source, offset).then((Map result) {
-        if (result['description'] == null && result['dartdoc'] == null) {
-          // TODO: Tell the user there were no results.
-
-        } else {
-          // TODO: Display this info
-          print(result['description']);
-        }
-      });
+      dartServices.document(input)
+          .then((DocumentResponse result) {
+            if (result.info['description'] == null &&
+                result.info['dartdoc'] == null) {
+              // TODO: Tell the user there were no results.
+            } else {
+              // TODO: Display this info
+              print(result.info['description']);
+            }
+          });
     }
   }
 

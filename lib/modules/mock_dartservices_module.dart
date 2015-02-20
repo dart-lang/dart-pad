@@ -1,21 +1,79 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart_pad.compiler_mock;
+library mock_dart_services;
 
 import 'dart:async';
+import 'dart:convert';
 
-import 'compiler.dart';
+import 'package:http/http.dart';
 
-export 'compiler.dart';
+import 'dartservices_module.dart';
+import '../core/dependencies.dart';
+import '../core/modules.dart';
+import '../services/common.dart';
+import '../dartservices_client/v1.dart';
 
-class MockCompilerService extends CompilerService {
-  Future<CompilerResult> compile(String source) {
-    return new Future.delayed(new Duration(milliseconds: 1250), () {
-      return new CompilerResult(_mockResults);
+class MockDartServicesModule extends Module {
+  MockDartServicesModule();
+
+  Future init() {
+    var client = new HttpServerMock();
+    deps[DartServices] = new DartservicesApi(client);
+    return new Future.value();
+  }
+}
+
+// Mock DataServicesApi server.
+class HttpServerMock extends BaseClient {
+  Future<StreamedResponse> send(BaseRequest request) {
+    return request.finalize()
+        .transform(UTF8.decoder)
+        .join('')
+        .then((String jsonString) {
+      var result;
+      if (jsonString.isEmpty) {
+        result = _apiHandler(request, null);
+      } else {
+        result = _apiHandler(request, JSON.decode(jsonString));
+      }
+      // Encode the result and return it as a StreamedResponse.
+      var h = {
+        "content-type" : "application/json; charset=utf-8",
+      };
+      var encodedResult = UTF8.encode(JSON.encode(result));
+      var stream = new Stream.fromIterable([encodedResult]);
+      return new Future.delayed(new Duration(milliseconds: 500),
+          () => new StreamedResponse(stream, 200, headers: h));
     });
   }
+}
+
+// Mock handler for the api methods we care about on /api/dataServices.
+Map _apiHandler(BaseRequest request, dynamic json) {
+  var response;
+  if (request.url.path == '/api/dartservices/v1/analyze') {
+    var source = new SourceRequest.fromJson(json).source;
+    Lines lines = new Lines(source);
+    List<AnalysisIssue> issues = 'todo'.allMatches(source).map((Match match) {
+      return new AnalysisIssue()
+          ..kind = 'todo'
+          ..line = lines.getLineForOffset(match.start) + 1
+          ..message = 'found a todo';
+    }).toList();
+    response = new AnalysisResults()..issues = issues;
+  } else if (request.url.path == '/api/dartservices/v1/compile') {
+    response = new CompileResponse()..result = _mockResults;
+  } else if (request.url.path == '/api/dartservices/v1/complete') {
+    throw new UnimplementedError('Method \'complete\' not implemented.');
+  } else if (request.url.path == '/api/dartservices/v1/document') {
+    response = new DocumentResponse();
+  } else {
+    throw new UnimplementedError(
+        'Method with path: \'${request.url.path}\' not implemented.');
+  }
+  return response.toJson();
 }
 
 final String _mockResults = r"""
