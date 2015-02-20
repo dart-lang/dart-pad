@@ -9,3 +9,8 @@ resources:
 
 env_variables:
       DART_VM_OPTIONS: --enable-async
+
+skip_files:
+- ^.*/packages.*$
+- ^.*\.dart$
+- ^\.git/.*$
