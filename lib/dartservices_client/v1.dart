@@ -19,7 +19,7 @@ class DartservicesApi {
   final common_internal.ApiRequester _requester;
 
   DartservicesApi(http.Client client) :
-      _requester = new common_internal.ApiRequester(client, "http://localhost:8080/", "api/dartservices/v1/");
+      _requester = new common_internal.ApiRequester(client, "https://dart-services.appspot.com/", "api/dartservices/v1/");
 
   /**
    * Not documented yet.
