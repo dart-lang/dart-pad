@@ -61,10 +61,14 @@ class GaeServer {
     if (request.uri.path.startsWith('/api')) {
       // Strip off the leading '/api' prefix.
       requestPath = requestPath.substring('/api'.length);
+      
+      commonServer.log.info("Request path: $requestPath");
 
       if (!discoveryEnabled) {
+        commonServer.log.info("Enabling discovery");
         apiServer.enableDiscoveryApi(request.requestedUri.origin, '/api');
         discoveryEnabled = true;
+        commonServer.log.info("Discovery enabled");
       }
       // NOTE: We could read in the request body here and parse it similar to
       // the _parseRequest method to determine content-type and dispatch to e.g.
@@ -73,9 +77,24 @@ class GaeServer {
                                           request.uri.queryParameters,
                                           request.headers.contentType.toString(),
                                           request);
+      commonServer.log.info("apirequest created");
       apiServer.handleHttpRequest(apiRequest)
-          .then((HttpApiResponse apiResponse) =>
-              _sendResponse(request, apiResponse))
+          .then((HttpApiResponse apiResponse) 
+              {
+        commonServer.log.info("about to send response ${apiResponse.status}");
+        if (apiResponse.exception != null)
+        {
+          
+          commonServer.log.info(apiResponse.exception.toString());
+          commonServer.log.info(apiResponse.exception.msg.toString());
+          
+        }
+        commonServer.log.info(apiResponse.toString());
+                
+        
+              _sendResponse(request, apiResponse);
+              commonServer.log.info("done sending response");
+              })
           .catchError((e) {
             // This should only happen in the case where there is a bug in the
             // rpc package. Otherwise it always returns an HttpApiResponse.
@@ -85,16 +104,19 @@ class GaeServer {
                             ..close();
           });
     } else {
-      request.response..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
+      commonServer.log.info("status not found");
+      request.response..statusCode = io.HttpStatus.NOT_FOUND
                        ..close();
     }
   }
 
   void _sendResponse(io.HttpRequest request, HttpApiResponse response) {
+    commonServer.log.info("_sendResponse started, response: ${response.status}");
     request.response.statusCode = response.status;
     request.response.headers.add(io.HttpHeaders.CONTENT_TYPE,
                                  response.headers[io.HttpHeaders.CONTENT_TYPE]);
     response.body.pipe(request.response);
+    commonServer.log.info("_sendResponse completed");
   }
 }
 

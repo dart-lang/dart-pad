@@ -64,11 +64,13 @@ class CommonServer {
 
   @ApiMethod(method: 'POST', path: 'analyze')
   Future<AnalysisResults> analyze(SourceRequest request) {
+    log.info("Beginning _analyze ApiMethod1");
     return _analyze(request.source);
   }
 
   @ApiMethod(method: 'GET', path: 'analyze')
   Future<AnalysisResults> analyzeGet({String source}) {
+    log.info("Beginning _analyze ApiMethod2");
     return _analyze(source);
   }
 
@@ -114,7 +116,10 @@ class CommonServer {
   }
 
   Future<AnalysisResults> _analyze(String source) {
+    log.info("Beginning _analyze");
+    
     if (source == null) {
+      log.info("Missing source parameter");
       throw new BadRequestError('Missing parameter: \'source\'');
     }
     Stopwatch watch = new Stopwatch()..start();
