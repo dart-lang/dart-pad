@@ -16,6 +16,9 @@ dependencies:
   logging: any
   shelf: any
   shelf_route: any
+  # TODO: change to pub package dependency once the rpc package is published.
+  rpc:
+    git: git://github.com/dart-lang/rpc.git
 dev_dependencies:
   browser: any
   codemirror: '>=0.1.0 <0.2.0'

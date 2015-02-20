@@ -5,118 +5,135 @@
 library services.common_server_test;
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert';
+import 'dart:io';
 
 import 'package:services/src/common.dart';
 import 'package:services/src/common_server.dart';
 import 'package:grinder/grinder.dart' as grinder;
+import 'package:rpc/rpc.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {
   CommonServer server;
+  ApiServer apiServer;
+
   MockLogger logger = new MockLogger();
   MockCache cache = new MockCache();
+
+  Future<HttpApiResponse> _sendPostRequest(String path, json) {
+    assert(apiServer != null);
+    var body = new Stream.fromIterable([UTF8.encode(JSON.encode(json))]);
+    var request =
+        new HttpApiRequest('POST', path, {}, ContentType.JSON.toString(), body);
+    return apiServer.handleHttpRequest(request);
+  }
 
   group('CommonServer', () {
     setUp(() {
       if (server == null) {
         String sdkPath = grinder.getSdkDir().path;
         server = new CommonServer(sdkPath, logger, cache);
+        apiServer = new ApiServer(prettyPrint: true)..addApi(server);
       }
     });
 
-    test('analyze', () {
-      String json = JSON.encode({'source': sampleCode});
-      return server.handleAnalyze(json).then((ServerResponse response) {
-        expect(response.statusCode, 200);
-        expect(response.data, '[]');
-      });
+    test('analyze', () async {
+      var json = {'source': sampleCode};
+      var response = await _sendPostRequest('dartservices/v1/analyze', json);
+      expect(response.status, 200);
+      var data = await response.body.first;
+      expect(JSON.decode(UTF8.decode(data)), { 'issues': [] });
     });
 
-    test('analyze errors', () {
-      String json = JSON.encode({'source': sampleCodeError});
-      return server.handleAnalyze(json).then((ServerResponse response) {
-        expect(response.statusCode, 200);
-        expect(response.mimeType, 'application/json');
-        expect(response.data, '[{"kind":"error","line":2,"message":'
-            '"Expected to find \';\'","charStart":29,"charLength":1}]');
-      });
+    test('analyze errors', () async {
+      var json = {'source': sampleCodeError};
+      var response = await _sendPostRequest('dartservices/v1/analyze', json);
+      expect(response.status, 200);
+      expect(response.headers['content-type'],
+             'application/json; charset=utf-8');
+      var data = await response.body.first;
+      var expectedJson = {
+        'issues': [
+          {
+            "kind": "error",
+            "line": 2,
+            "message": "Expected to find \';\'",
+            "charStart": 29,
+            "charLength": 1,
+            "location": "main.dart"
+          }
+      ]};
+      expect(JSON.decode(UTF8.decode(data)), expectedJson);
     });
 
-    test('compile', () {
-      String json = JSON.encode({'source': sampleCode});
-      return server.handleCompile(json).then((ServerResponse response) {
-        expect(response.statusCode, 200);
-        expect(response.mimeType, 'text/plain');
-        expect(response.data, isNotEmpty);
-      });
+    test('compile', () async {
+      var json = {'source': sampleCode};
+      var response = await _sendPostRequest('dartservices/v1/compile', json);
+      expect(response.status, 200);
+      var data = await response.body.first;
+      expect(JSON.decode(UTF8.decode(data)), isNotEmpty);
     });
 
-    test('compile error', () {
-      String json = JSON.encode({'source': sampleCodeError});
-      return server.handleCompile(json).then((ServerResponse response) {
-        expect(response.statusCode, 400);
-        expect(response.data, isNotEmpty);
-        expect(response.data, "[error, line 2] Expected ';' after this.");
-      });
+    test('compile error', () async {
+      var json = {'source': sampleCodeError};
+      var response = await _sendPostRequest('dartservices/v1/compile', json);
+      expect(response.status, 400);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data, isNotEmpty);
+      expect(data['error']['message'], "Compilation failed with errors: "
+          "[error, line 2] Expected ';' after this.");
     });
 
-    test('complete', () {
-      String json = JSON.encode(
-          {'source': 'void main() {print("foo");}', 'offset': 1});
-      return server.handleComplete(json, 'application/json; utf8')
-          .then((ServerResponse response) {
-        expect(response.statusCode, 501);
-      });
+    test('complete', () async {
+      var json = {'source': 'void main() {print("foo");}', 'offset': 1};
+      var response = await _sendPostRequest('dartservices/v1/complete', json);
+      expect(response.status, 501);
     });
 
-    test('complete no data', () {
-      return server.handleComplete('').then((ServerResponse response) {
-        expect(response.statusCode, 400);
-      });
+    test('complete no data', () async {
+      var response = await _sendPostRequest('dartservices/v1/complete', {});
+      expect(response.status, 400);
     });
 
-    test('complete param missing', () {
-      return server.handleComplete('offset=1', 'application/x-www-form-urlencoded')
-          .then((ServerResponse response) {
-        expect(response.statusCode, 400);
-        expect(response.toString(), '[response 400]');
-      });
+    test('complete param missing', () async {
+      var json = {'offset': 1};
+      var response = await _sendPostRequest('dartservices/v1/complete', json);
+      expect(response.status, 400);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data['error']['message'], 'Required field source is missing');
     });
 
-    test('complete param missing 2', () {
-      String json = JSON.encode({'source': 'void main() {print("foo");}'});
-      return server.handleComplete(json).then((ServerResponse response) {
-        expect(response.statusCode, 400);
-      });
+    test('complete param missing 2', () async {
+      var json = {'source': 'void main() {print("foo");}'};
+      var response = await _sendPostRequest('dartservices/v1/complete', json);
+      expect(response.status, 400);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data['error']['message'], 'Missing parameter: \'offset\'');
     });
 
-    test('document', () {
-      String json = JSON.encode(
-          {'source': 'void main() {print("foo");}', 'offset': 17});
-      return server.handleDocument(json).then((ServerResponse response) {
-        expect(response.statusCode, 200);
-        expect(response.mimeType, 'application/json');
-        expect(response.data, isNotEmpty);
-      });
+    test('document', () async {
+      var json = {'source': 'void main() {print("foo");}', 'offset': 17};
+      var response = await _sendPostRequest('dartservices/v1/document', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data, isNotEmpty);
     });
 
-    test('document little data', () {
-      String json = JSON.encode(
-          {'source': 'void main() {print("foo");}', 'offset': 2});
-      return server.handleDocument(json).then((ServerResponse response) {
-        expect(response.statusCode, 200);
-        expect(response.data, '{"staticType":"void"}');
-      });
+    test('document little data', () async {
+      var json = {'source': 'void main() {print("foo");}', 'offset': 2};
+      var response = await _sendPostRequest('dartservices/v1/document', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data, {"info": {"staticType": "void"}});
     });
 
-    test('document no data', () {
-      String json = JSON.encode(
-          {'source': 'void main() {print("foo");}', 'offset': 12});
-      return server.handleDocument(json).then((ServerResponse response) {
-        expect(response.statusCode, 200);
-        expect(response.data, '{}');
-      });
+    test('document no data', () async {
+      var json = {'source': 'void main() {print("foo");}', 'offset': 12};
+      var response = await _sendPostRequest('dartservices/v1/document', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data, {"info": {}});
     });
   });
 }

@@ -13,7 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart';
-
+import 'package:rpc/rpc.dart';
 import 'src/common_server.dart';
 
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
@@ -65,76 +65,58 @@ class EndpointsServer {
   Router routes;
   Handler handler;
 
+  ApiServer apiServer;
+  bool discoveryEnabled;
   CommonServer commonServer;
 
   EndpointsServer._(String sdkPath, this.port) {
+    discoveryEnabled = false;
     commonServer = new CommonServer(sdkPath, new _Logger(), new _Cache());
+    apiServer = new ApiServer(prettyPrint: true)..addApi(commonServer);
 
     pipeline = new Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(_createCorsMiddleware());
 
-    routes = router();
-    routes.get('/', handleRoot);
-    routes.get('/api', handleApiRoot);
-    routes.post('/api/analyze', handleAnalyzePost);
-    routes.post('/api/compile', handleCompilePost);
-    routes.post('/api/complete', handleCompletePost);
-    routes.post('/api/document', handleDocumentPost);
-
+    routes = router()
+        ..get('/', printUsage)
+        ..add('/api', ['GET', 'POST', 'OPTIONS'], _apiHandler,
+              exactMatch: false);
     handler = pipeline.addHandler(routes.handler);
   }
 
-  Response handleRoot(Request request) {
-    return new Response.ok('Dart Endpoints server. See /api for more information.');
+  Future<Response> _apiHandler(Request request) {
+    if (!discoveryEnabled) {
+      apiServer.enableDiscoveryApi(request.requestedUri.origin, '/api');
+      discoveryEnabled = true;
+    }
+    // NOTE: We could read in the request body here and parse it similar to
+    // the _parseRequest method to determine content-type and dispatch to e.g.
+    // a plain text handler if we want to support that.
+    var apiRequest = new HttpApiRequest(request.method, request.url.path,
+                                        request.url.queryParameters,
+                                        request.headers['content-type'],
+                                        request.read());
+    return apiServer.handleHttpRequest(apiRequest)
+        .then((HttpApiResponse apiResponse) {
+          return new Response(apiResponse.status, body: apiResponse.body,
+                              headers: apiResponse.headers);})
+        .catchError((e) => printUsage(request));
   }
 
-  Response handleApiRoot(Request request) {
+  Response printUsage(Request request) {
     return new Response.ok('''
 Dart Endpoints server.
 
-/api/analyze  - POST Dart source to this URL and get JSON errors and warnings back.
-/api/compile  - POST Dart source to this URL and get compiled results back.
-/api/complete - TODO:
-/api/document - POST json encoded (source, offset) to the URL to calculate dartdoc.:
+POST /api/dartServices/v1/analyze  - Send Dart source as JSON to this URL and get JSON errors and warnings back.
+GET  /api/dartServices/v1/analyze  - Send Dart source to this URL as url query string and get JSON errors and warnings back.
+POST /api/dartServices/v1/compile  - Send Dart source as JSON to this URL and get compiled results back.
+GET  /api/dartServices/v1/compile  - Send Dart source to this URL as url query string and compiled results back.
+POST /api/dartServices/v1/complete - TODO:
+GET  /api/dartServices/v1/complete - TODO:
+POST /api/dartServices/v1/document - Send Dart source as JSON (source, offset) to the URL to calculate dartdoc.
+GET  /api/dartServices/v1/document - Send Dart source to this URL as url query string (source, offset) to calculate dartdoc.
 ''');
-  }
-
-  Future<Response> handleAnalyzePost(Request request) {
-    return request.readAsString().then((String data) {
-      String contentType = request.headers[HttpHeaders.CONTENT_TYPE];
-      return commonServer.handleAnalyze(data, contentType).then(_convertResponse);
-    });
-  }
-
-  Future<Response> handleCompilePost(Request request) {
-    return request.readAsString().then((String data) {
-      String contentType = request.headers[HttpHeaders.CONTENT_TYPE];
-      return commonServer.handleCompile(data, contentType).then(_convertResponse);
-    });
-  }
-
-  Future<Response> handleCompletePost(Request request) {
-    return request.readAsString().then((String data) {
-      String contentType = request.headers[HttpHeaders.CONTENT_TYPE];
-      return commonServer.handleComplete(data, contentType).then(_convertResponse);
-    });
-  }
-
-  Future<Response> handleDocumentPost(Request request) {
-    return request.readAsString().then((String data) {
-      String contentType = request.headers[HttpHeaders.CONTENT_TYPE];
-      return commonServer.handleDocument(data, contentType).then(_convertResponse);
-    });
-  }
-
-  Response _convertResponse(ServerResponse response) {
-    String mime = response.mimeType != null ? response.mimeType : 'text/plain';
-
-    return new Response(
-        response.statusCode,
-        headers: { HttpHeaders.CONTENT_TYPE: mime + '; charset=utf-8' },
-        body: response.data);
   }
 
   Middleware _createCorsMiddleware() {

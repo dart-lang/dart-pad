@@ -5,19 +5,15 @@
 library services.common_server;
 
 import 'dart:async';
-import 'dart:convert' show JSON;
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:rpc/rpc.dart';
 
 import 'analyzer.dart';
 import 'compiler.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
-
-const String _json = 'application/json';
-const String _plain = 'text/plain';
-const String _urlEncoded = 'application/x-www-form-urlencoded';
 
 abstract class ServerLogger {
   void info(String message);
@@ -31,31 +27,29 @@ abstract class ServerCache {
   Future remove(String key);
 }
 
-class ServerResponse {
-  final int statusCode;
-  final String data;
-
-  String _mimeType;
-
-  String get mimeType => _mimeType;
-
-  ServerResponse(this.statusCode, this.data, [this._mimeType]);
-
-  ServerResponse.asJson(this.data):
-    statusCode = HttpStatus.OK, _mimeType = _json;
-
-  ServerResponse.badRequest(this.data):
-    statusCode = HttpStatus.BAD_REQUEST;
-
-  ServerResponse.notImplemented(this.data):
-    statusCode = HttpStatus.NOT_IMPLEMENTED;
-
-  ServerResponse.internalError(this.data):
-    statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-
-  String toString() => '[response ${statusCode}]';
+class SourceRequest {
+  @ApiProperty(required: true)
+  String source;
+  int offset;
 }
 
+class CompileResponse {
+  final String result;
+
+  CompileResponse(this.result);
+}
+
+class CompleteResponse {
+  // TODO: not yet implemented.
+}
+
+class DocumentResponse {
+  final Map<String, String> info;
+
+  DocumentResponse(this.info);
+}
+
+@ApiClass(name: 'dartservices', version: 'v1')
 class CommonServer {
   final ServerLogger log;
   final ServerCache cache;
@@ -68,53 +62,91 @@ class CommonServer {
     compiler = new Compiler(sdkPath);
   }
 
-  Future<ServerResponse> handleAnalyze(String data, [String contentType]) {
-    _RequestInput input;
+  @ApiMethod(method: 'POST', path: 'analyze')
+  Future<AnalysisResults> analyze(SourceRequest request) {
+    return _analyze(request.source);
+  }
 
-    try {
-      input = _parseRequest(data, contentType: contentType);
-    } catch (e) {
-      return new Future.value(new ServerResponse.badRequest('${e}'));
+  @ApiMethod(method: 'GET', path: 'analyze')
+  Future<AnalysisResults> analyzeGet({String source}) {
+    return _analyze(source);
+  }
+
+  @ApiMethod(method: 'POST', path: 'compile')
+  Future<CompileResponse> compile(SourceRequest request) {
+    return _compile(request.source);
+  }
+
+  @ApiMethod(method: 'GET', path: 'compile')
+  Future<CompileResponse> compileGet({String source}) {
+    return _compile(source);
+  }
+
+  @ApiMethod(method: 'POST', path: 'complete')
+  Future<CompleteResponse> complete(SourceRequest request) {
+    if (request.offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
     }
+    throw new RpcError(HttpStatus.NOT_IMPLEMENTED, 'Not Implemented',
+                       '\'complete\' method not implemented.');
+  }
 
+  @ApiMethod(method: 'GET', path: 'complete')
+  Future<CompleteResponse> completeGet({String source, int offset}) {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
+    }
+    if (offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
+    }
+    throw new RpcError(HttpStatus.NOT_IMPLEMENTED, 'Not Implemented',
+                       '\'complete\' method not implemented.');
+  }
+
+  @ApiMethod(method: 'POST', path: 'document')
+  Future<DocumentResponse> document(SourceRequest request) {
+    return _document(request.source, request.offset);
+  }
+
+  @ApiMethod(method: 'GET', path: 'document')
+  Future<DocumentResponse> documentGet({String source, int offset}) {
+    return _document(source, offset);
+  }
+
+  Future<AnalysisResults> _analyze(String source) {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
+    }
     Stopwatch watch = new Stopwatch()..start();
-    log.info("ANALYZE: ${input.source}");
+    log.info("ANALYZE: $source");
 
     try {
-      return analyzer.analyze(input.source).then((AnalysisResults results) {
-        List issues = results.issues.map((issue) => issue.toMap()).toList();
-        String json = JSON.encode(issues);
-        int lineCount = input.source.split('\n').length;
+      return analyzer.analyze(source).then((AnalysisResults results) {
+        int lineCount = source.split('\n').length;
         int ms = watch.elapsedMilliseconds;
         log.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
-        return new ServerResponse.asJson(json);
+        return results;
       }).catchError((e) {
         log.error('Error during analyze: ${e}');
-        return new ServerResponse.internalError('${e}');
+        throw e;
       });
     } catch (e, st) {
       log.error('Error during analyze: ${e}\n${st}');
-      return new Future.value(new ServerResponse.internalError('${e}'));
+      throw e;
     }
   }
 
-  Future<ServerResponse> handleCompile(String data, [String contentType]) {
-    _RequestInput input;
-
-    try {
-      input = _parseRequest(data, contentType: contentType);
-    } catch (e) {
-      return new Future.value(new ServerResponse.badRequest('${e}'));
+  Future<CompileResponse> _compile(String source) {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
     }
-
-    String source = input.source;
     log.info("COMPILE: ${source}");
     String sourceHash = _hashSource(source);
 
     return checkCache("%%COMPILE:$sourceHash").then((String result) {
       if (result != null) {
         log.info("CACHE: Cache hit for compile");
-        return new ServerResponse(HttpStatus.OK, result, _plain);
+        return new CompileResponse(result);
       } else {
         Stopwatch watch = new Stopwatch()..start();
 
@@ -128,59 +160,46 @@ class CommonServer {
                 '${outputSize}kb of JavaScript in ${ms}ms.');
             String out = results.getOutput();
             return setCache("%%COMPILE:$sourceHash", out).then((_) {
-              return new ServerResponse(HttpStatus.OK, out, _plain);
+              return new CompileResponse(out);
             });
           } else {
-            String errors = results.problems.map(_printCompileProblem).join('\n');
-            return new ServerResponse.badRequest(errors);
+            String errors =
+                results.problems.map(_printCompileProblem).join('\n');
+            throw new BadRequestError(
+                'Compilation failed with errors: $errors');
           }
         }).catchError((e, st) {
           log.error('Error during compile: ${e}\n${st}');
-          return new Future.value(
-              new ServerResponse.internalError('Error during compile: ${e}'));
+          throw e;
         });
       }
     });
   }
 
-  Future<ServerResponse> handleComplete(String data, [String contentType]) {
-    _RequestInput input;
-
-    try {
-      input = _parseRequest(data, contentType: contentType, requiresOffset: true);
-    } catch (e) {
-      return new Future.value(new ServerResponse.badRequest('${e}'));
+  Future<DocumentResponse> _document(String source, int offset) {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
     }
-
-    return new Future.value(
-        new ServerResponse.notImplemented('Unimplemented: /api/complete'));
-  }
-
-  Future<ServerResponse> handleDocument(String data, [String contentType]) {
-    _RequestInput input;
-
-    try {
-      input = _parseRequest(data, contentType: contentType, requiresOffset: true);
-    } catch (e) {
-      return new Future.value(new ServerResponse.badRequest('${e}'));
+    if (offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
     }
-
     Stopwatch watch = new Stopwatch()..start();
-    log.info("DOCUMENT: ${input.source}");
+    log.info("DOCUMENT: ${source}");
 
     try {
-      return analyzer.dartdoc(input.source, input.offset).then((Map docInfo) {
-        if (docInfo == null) docInfo = {};
-        String json = JSON.encode(docInfo);
-        log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-        return new ServerResponse.asJson(json);
-      }).catchError((e, st) {
-        log.error('Error during dartdoc: ${e}\n${st}');
-        return new ServerResponse.internalError('${e}');
-      });
+      return analyzer.dartdoc(source, offset)
+          .then((Map<String, String> docInfo) {
+            if (docInfo == null) docInfo = {};
+            log.info(
+                'PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
+            return new DocumentResponse(docInfo);
+          }).catchError((e, st) {
+            log.error('Error during dartdoc: ${e}\n${st}');
+            throw e;
+          });
     } catch (e, st) {
       log.error('Error during dartdoc: ${e}\n${st}');
-      return new Future.value(new ServerResponse.internalError('${e}'));
+      throw e;
     }
   }
 
@@ -188,60 +207,6 @@ class CommonServer {
 
   Future setCache(String query, String result) =>
       cache.set(query, result, expiration: _standardExpiration);
-}
-
-_RequestInput _parseRequest(String data,
-    {String contentType, bool requiresOffset: false}) {
-  // This could be a plain text post of source code.
-  // It could be marked as plain text, but be json encoded.
-  // It could be a json post, with source and offset fields.
-  // Or it could be application/x-www-form-urlencoded encoded.
-
-  if (data == null || data.isEmpty) {
-    throw "No data received";
-  }
-
-  if (contentType == null) {
-    contentType = _json;
-  }
-  if (contentType.contains(';')) {
-    contentType = contentType.substring(0, contentType.indexOf(';'));
-  }
-  if (data.startsWith('{"') || data.startsWith("{'")) {
-    contentType = _json;
-  }
-
-  String source;
-  int offset;
-
-  if (contentType == _plain) {
-    source = data;
-  } else if (contentType == _json) {
-    Map m = JSON.decode(data);
-    source = m['source'];
-    offset = m['offset'];
-  } else if (contentType == _urlEncoded) {
-    Map m = Uri.splitQueryString(data);
-    source = m['source'];
-    if (m.containsKey('offset')) {
-      offset = int.parse(m['offset'], onError: (str) => null);
-    }
-  } else {
-    // Hmm, an unknown content type.
-    source = data;
-  }
-
-  if (source == null) throw "'source' parameter missing";
-  if (offset == null && requiresOffset) throw "'offset' parameter missing";
-
-  return new _RequestInput(source, offset);
-}
-
-class _RequestInput {
-  final String source;
-  final int offset;
-
-  _RequestInput(this.source, [this.offset]);
 }
 
 String _printCompileProblem(CompilationProblem problem) =>

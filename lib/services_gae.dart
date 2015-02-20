@@ -5,12 +5,11 @@
 library services_gae;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart';
 import 'package:memcache/memcache.dart';
-
+import 'package:rpc/rpc.dart';
 import 'src/common_server.dart';
 
 Logging get logging => context.services.logging;
@@ -24,10 +23,15 @@ void main() {
 class GaeServer {
   final String sdkPath;
 
+  bool discoveryEnabled;
+  ApiServer apiServer;
   CommonServer commonServer;
 
   GaeServer(this.sdkPath) {
+    discoveryEnabled = false;
     commonServer = new CommonServer(sdkPath, new GaeLogger(), new GaeCache());
+    // Enabled pretty printing of returned json for debuggability.
+    apiServer = new ApiServer(prettyPrint: true)..addApi(commonServer);
   }
 
   Future start() => runAppEngine(requestHandler);
@@ -39,65 +43,58 @@ class GaeServer {
         'POST, OPTIONS');
     request.response.headers.add('Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept');
+    // Explicitly handle an OPTIONS requests.
+    if (request.method == 'OPTIONS') {
+      var requestedMethod =
+          request.headers.value('access-control-request-method');
+      var statusCode;
+      if (requestedMethod != null && requestedMethod.toUpperCase() == 'POST') {
+        statusCode = io.HttpStatus.OK;
+      } else {
+        statusCode = io.HttpStatus.BAD_REQUEST;
+      }
+      request.response..statusCode = statusCode
+                      ..close();
+      return;
+    }
+    var requestPath = request.uri.path;
+    if (request.uri.path.startsWith('/api')) {
+      // Strip off the leading '/api' prefix.
+      requestPath = requestPath.substring('/api'.length);
 
-    if (request.uri.path == '/api/analyze') {
-      handleAnalyzePost(request);
-    } else if (request.uri.path == '/api/compile') {
-      handleCompilePost(request);
-    } else if (request.uri.path == '/api/complete') {
-      handleCompletePost(request);
-    } else if (request.uri.path == '/api/document') {
-      handleDocumentPost(request);
+      if (!discoveryEnabled) {
+        apiServer.enableDiscoveryApi(request.requestedUri.origin, '/api');
+        discoveryEnabled = true;
+      }
+      // NOTE: We could read in the request body here and parse it similar to
+      // the _parseRequest method to determine content-type and dispatch to e.g.
+      // a plain text handler if we want to support that.
+      var apiRequest = new HttpApiRequest(request.method, requestPath,
+                                          request.uri.queryParameters,
+                                          request.headers.contentType.toString(),
+                                          request);
+      apiServer.handleHttpRequest(apiRequest)
+          .then((HttpApiResponse apiResponse) =>
+              _sendResponse(request, apiResponse))
+          .catchError((e) {
+            // This should only happen in the case where there is a bug in the
+            // rpc package. Otherwise it always returns an HttpApiResponse.
+            commonServer.log.warn('Failed with error: $e when trying to call'
+                'method at \'$requestPath\'.');
+            request.response..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
+                            ..close();
+          });
     } else {
-      request.response.statusCode = io.HttpStatus.NOT_FOUND;
-      request.response.close();
+      request.response..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
+                       ..close();
     }
   }
 
-  void handleAnalyzePost(io.HttpRequest request) {
-    _getRequestData(request).then((String data) {
-      String contentType = request.headers.value(io.HttpHeaders.CONTENT_TYPE);
-      commonServer.handleAnalyze(data, contentType).then((response) {
-        _sendResponse(request, response);
-      });
-    });
-  }
-
-  void handleCompilePost(io.HttpRequest request) {
-    _getRequestData(request).then((String data) {
-      String contentType = request.headers.value(io.HttpHeaders.CONTENT_TYPE);
-      commonServer.handleCompile(data, contentType).then((response) {
-        _sendResponse(request, response);
-      });
-    });
-  }
-
-  void handleCompletePost(io.HttpRequest request) {
-    _getRequestData(request).then((String data) {
-      String contentType = request.headers.value(io.HttpHeaders.CONTENT_TYPE);
-      commonServer.handleComplete(data, contentType).then((response) {
-        _sendResponse(request, response);
-      });
-    });
-  }
-
-  void handleDocumentPost(io.HttpRequest request) {
-    _getRequestData(request).then((String data) {
-      String contentType = request.headers.value(io.HttpHeaders.CONTENT_TYPE);
-      commonServer.handleDocument(data, contentType).then((response) {
-        _sendResponse(request, response);
-      });
-    });
-  }
-
-  void _sendResponse(io.HttpRequest request, ServerResponse response) {
-    String mime = response.mimeType != null ? response.mimeType : 'text/plain';
-
-    request.response.statusCode = response.statusCode;
-    request.response.headers.set(
-        io.HttpHeaders.CONTENT_TYPE, mime + '; charset=utf-8');
-    request.response.write(response.data);
-    request.response.close();
+  void _sendResponse(io.HttpRequest request, HttpApiResponse response) {
+    request.response.statusCode = response.status;
+    request.response.headers.add(io.HttpHeaders.CONTENT_TYPE,
+                                 response.headers[io.HttpHeaders.CONTENT_TYPE]);
+    response.body.pipe(request.response);
   }
 }
 
@@ -119,17 +116,4 @@ class GaeCache implements ServerCache {
   }
 
   Future remove(String key) => _memcache.remove(key);
-}
-
-Future<String> _getRequestData(io.HttpRequest request) {
-  Completer<String> completer = new Completer();
-  io.BytesBuilder builder = new io.BytesBuilder();
-
-  request.listen((buffer) {
-    builder.add(buffer);
-  }, onDone: () {
-    completer.complete(UTF8.decode(builder.toBytes()));
-  });
-
-  return completer.future;
 }

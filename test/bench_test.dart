@@ -12,7 +12,7 @@ import 'package:unittest/unittest.dart';
 void defineTests() {
   group('BenchmarkHarness', () {
     test('single', () {
-      BenchmarkHarness harness = new BenchmarkHarness();
+      BenchmarkHarness harness = new BenchmarkHarness(json: true);
       MockBenchmark benchmark = new MockBenchmark();
 
       return harness.benchmarkSingle(benchmark).then((BenchMarkResult result) {
@@ -24,7 +24,7 @@ void defineTests() {
     });
 
     test('many', () {
-      BenchmarkHarness harness = new BenchmarkHarness();
+      BenchmarkHarness harness = new BenchmarkHarness(json: true);
       List<MockBenchmark> benchmarks = [new MockBenchmark(), new MockBenchmark()];
 
       return harness.benchmark(benchmarks).then((_) {

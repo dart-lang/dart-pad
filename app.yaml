@@ -6,3 +6,6 @@ api_version: 1
 resources:
   cpu: 2
   memory_gb: 3
+
+env_variables:
+      DART_VM_OPTIONS: --enable-async

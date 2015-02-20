@@ -95,13 +95,14 @@ void invoke(String api, String source, Element output, {int offset}) {
   String url = '${_uriBase}${api}';
   output.text = '';
 
-  //Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
+  Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
 
   Map m = {'source': source};
   if (offset != null) m['offset'] = offset;
   String data = JSON.encode(m); //new Uri(queryParameters: m).query;
 
-  HttpRequest.request(url, method: 'POST', sendData: data).then((HttpRequest r) {
+  HttpRequest.request(url, method: 'POST', sendData: data,
+                      requestHeaders: headers).then((HttpRequest r) {
     String response =
         '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
         '${_printHeaders(r.responseHeaders)}\n\n'
