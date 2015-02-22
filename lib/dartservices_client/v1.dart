@@ -523,5 +523,3 @@ class SourceRequest {
     return _json;
   }
 }
-
-

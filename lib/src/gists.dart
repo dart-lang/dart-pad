@@ -8,12 +8,23 @@ import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:html';
 
+/**
+ * Return whether the given string is a valid github gist ID.
+ */
 bool isLegalGistId(String id) {
   final RegExp regex = new RegExp(r'^[0-9a-f]+$');
   return regex.hasMatch(id) && id.length >= 5 && id.length <= 22;
 }
 
-String extractHtmlBody(String html) => (new HtmlHtmlElement()..setInnerHtml(html)).innerHtml.trim();
+/**
+ * Given either partial html text, or a full html document, extract out the
+ * `<body>` tag.
+ */
+String extractHtmlBody(String html) {
+  HtmlHtmlElement element = new HtmlHtmlElement();
+  element.setInnerHtml(html);
+  return element.innerHtml.trim();
+}
 
 /**
  * A representation of a Github gist.
@@ -80,4 +91,3 @@ GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
     return null;
   }
 }
-
