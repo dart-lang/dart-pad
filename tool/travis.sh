@@ -8,10 +8,8 @@
 set -e
 
 # Verify that the libraries are error free.
-dartanalyzer --fatal-warnings \
-  bin/services.dart \
-  lib/services_server.dart \
-  test/all.dart
+pub global activate tuneup
+pub global run tuneup check
 
 # Run the tests.
 dart test/all.dart

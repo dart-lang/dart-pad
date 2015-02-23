@@ -25,9 +25,10 @@ void main(List<String> args) {
 
   print("QPS: $qps");
 
-  int ms =  (1000 / qps).floor();
-  Timer t = new Timer.periodic(new Duration(milliseconds: ms),
-     (t) { pingServer(t); });
+  int ms = (1000 / qps).floor();
+  new Timer.periodic(
+      new Duration(milliseconds: ms),
+      (t) => pingServer(t));
 }
 
 pingServer(Timer t) {
