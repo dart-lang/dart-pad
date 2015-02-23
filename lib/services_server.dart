@@ -10,11 +10,12 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:grinder/grinder.dart' as grinder;
 import 'package:logging/logging.dart';
+import 'package:rpc/rpc.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
-import 'package:shelf_route/shelf_route.dart';
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:rpc/rpc.dart';
+import 'package:shelf_route/shelf_route.dart';
+
 import 'src/common_server.dart';
 
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
