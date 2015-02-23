@@ -4,6 +4,7 @@
 
 library services.grind;
 
+import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:io';
 
@@ -45,8 +46,14 @@ travisBench(GrinderContext context) {
     stats.add(new LibratoStat(key, result[key]));
   });
 
-  context.log('Uploading stats to ${librato.baseUrl}');
   context.log('${stats}');
+
+  // If there's no librato auth info set, don't try and uplaod the stats data.
+  if (Platform.environment['LIBRATO_USER'] == null) {
+    return new Future.value();
+  }
+
+  context.log('Uploading stats to ${librato.baseUrl}');
 
   return librato.postStats(stats).then((_) {
     String commit = Platform.environment['TRAVIS_COMMIT'];
