@@ -9,7 +9,7 @@ main() {
   querySelector('#sendButton').onClick.listen((e) {
     String code = querySelector('#code').text;
     var json = { 'source': code };
-    var foo = querySelector('#apiEndPoint');
+    //var foo = querySelector('#apiEndPoint');
     String api = (querySelector('#apiEndPoint') as InputElement).value;
 
     Stopwatch sw = new Stopwatch()..start();

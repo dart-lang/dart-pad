@@ -51,7 +51,6 @@ void setupComplete() {
   offsetElement.text = 'offset ${_getOffset(editor)}';
 
   editor.onCursorActivity.listen((_) {
-    Position pos = editor.getCursor();
     offsetElement.text = 'offset ${_getOffset(editor)}';
   });
 }
@@ -69,7 +68,6 @@ void setupDocument() {
   offsetElement.text = 'offset ${_getOffset(editor)}';
 
   editor.onCursorActivity.listen((_) {
-    Position pos = editor.getCursor();
     offsetElement.text = 'offset ${_getOffset(editor)}';
   });
 }
