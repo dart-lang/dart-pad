@@ -13,6 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_route/shelf_route.dart';
+import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:rpc/rpc.dart';
 import 'src/common_server.dart';
 
@@ -76,7 +77,7 @@ class EndpointsServer {
 
     pipeline = new Pipeline()
       .addMiddleware(logRequests())
-      .addMiddleware(_createCorsMiddleware());
+      .addMiddleware(_createCustomCorsHeadersMiddleware());
 
     routes = router()
         ..get('/', printUsage)
@@ -119,18 +120,12 @@ GET  /api/dartServices/v1/document - Send Dart source to this URL as url query s
 ''');
   }
 
-  Middleware _createCorsMiddleware() {
-    Map _corsHeader = {
+  Middleware _createCustomCorsHeadersMiddleware() {
+    return shelf_cors.createCorsHeadersMiddleware(corsHeaders: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
-    };
-
-    Response _options(Request request) => (request.method == 'OPTIONS') ?
-        new Response.ok(null, headers: _corsHeader) : null;
-    Response _cors(Response response) => response.change(headers: _corsHeader);
-
-    return createMiddleware(requestHandler: _options, responseHandler: _cors);
+    });
   }
 }
 

@@ -14,11 +14,11 @@ dependencies:
   grinder: '>=0.6.4 <0.7.0'
   librato: '>=0.0.1 <0.1.0'
   logging: any
-  shelf: any
-  shelf_route: any
-  # TODO: change to pub package dependency once the rpc package is published.
   rpc:
     git: git://github.com/dart-lang/rpc.git
+  shelf: any
+  shelf_cors: any
+  shelf_route: any
 dev_dependencies:
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
