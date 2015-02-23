@@ -16,6 +16,7 @@ dependencies:
   logging: any
   shelf: any
   shelf_route: any
+  shelf_cors: any
   # TODO: change to pub package dependency once the rpc package is published.
   rpc:
     git: git://github.com/dart-lang/rpc.git
