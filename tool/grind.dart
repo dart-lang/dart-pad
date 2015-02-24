@@ -48,9 +48,17 @@ Future discovery(GrinderContext context) async {
  * Run the benchmarks on the build-bot; upload the data to librato.com.
  */
 travisBench(GrinderContext context) {
+  Librato librato;
+
+  try {
+    librato = new Librato.fromEnvVars();
+  } catch (e) {
+    // If there's no librato auth info set, don't try and uplaod the stats data.
+    return new Future.value();
+  }
+
   context.log('Running benchmarks...');
 
-  Librato librato = new Librato.fromEnvVars();
   if (Platform.environment['TRAVIS_COMMIT'] == null) {
     context.fail('Missing env var: TRAVIS_COMMIT');
   }

@@ -5,6 +5,7 @@
 library services;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -13,6 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
+import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:shelf_route/shelf_route.dart';
 
 import 'src/common_server.dart';
@@ -26,6 +28,8 @@ void main(List<String> args) {
   var parser = new ArgParser();
   parser.addOption('port', abbr: 'p', defaultsTo: '8080');
   parser.addOption('dart-sdk');
+  parser.addFlag('discovery');
+  parser.addOption('server-url', defaultsTo: 'http://localhost');
 
   var result = parser.parse(args);
   var port = int.parse(result['port'], onError: (val) {
@@ -39,6 +43,15 @@ void main(List<String> args) {
         "Could not locate the SDK; "
         "please start the server with the '--dart-sdk' option.");
     exit(1);
+  }
+
+  if (result['discovery']) {
+    var serverUrl = result['server-url'];
+    EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then((doc) {
+      print(doc);
+      exit(0);
+    });
+    return;
   }
 
   Logger.root.onRecord.listen((r) => print(r));
@@ -59,6 +72,19 @@ class EndpointsServer {
     });
   }
 
+  static Future<String> generateDiscovery(String sdkPath,
+                                          String serverUrl) async {
+    var commonServer = new CommonServer(sdkPath, new _Logger(), new _Cache());
+    var apiServer = new ApiServer(prettyPrint: true)..addApi(commonServer);
+    apiServer.enableDiscoveryApi(serverUrl, '/api');
+    var request =
+        new HttpApiRequest('GET',
+                           'discovery/v1/apis/dartservices/v1/rest',
+                           {}, 'application/json', new Stream.fromIterable([]));
+    HttpApiResponse response = await apiServer.handleHttpRequest(request);
+    return UTF8.decode(await response.body.first);
+  }
+
   final int port;
   HttpServer server;
 
@@ -77,7 +103,7 @@ class EndpointsServer {
 
     pipeline = new Pipeline()
       .addMiddleware(logRequests())
-      .addMiddleware(_createCorsMiddleware());
+      .addMiddleware(_createCustomCorsHeadersMiddleware());
 
     routes = router()
         ..get('/', printUsage)
@@ -113,18 +139,12 @@ View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
 ''');
   }
 
-  Middleware _createCorsMiddleware() {
-    Map _corsHeader = {
+  Middleware _createCustomCorsHeadersMiddleware() {
+    return shelf_cors.createCorsHeadersMiddleware(corsHeaders: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
-    };
-
-    Response _options(Request request) => (request.method == 'OPTIONS') ?
-        new Response.ok(null, headers: _corsHeader) : null;
-    Response _cors(Response response) => response.change(headers: _corsHeader);
-
-    return createMiddleware(requestHandler: _options, responseHandler: _cors);
+    });
   }
 }
 

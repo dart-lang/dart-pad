@@ -15,6 +15,7 @@ dependencies:
   librato: '>=0.0.1 <0.1.0'
   logging: any
   shelf: any
+  shelf_cors: any
   shelf_route: any
   # TODO: change to pub package dependency once the rpc package is published.
   rpc:
