@@ -5,6 +5,7 @@
 library services;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
@@ -27,6 +28,8 @@ void main(List<String> args) {
   var parser = new ArgParser();
   parser.addOption('port', abbr: 'p', defaultsTo: '8080');
   parser.addOption('dart-sdk');
+  parser.addFlag('discovery');
+  parser.addOption('server-url', defaultsTo: 'http://localhost');
 
   var result = parser.parse(args);
   var port = int.parse(result['port'], onError: (val) {
@@ -40,6 +43,15 @@ void main(List<String> args) {
         "Could not locate the SDK; "
         "please start the server with the '--dart-sdk' option.");
     exit(1);
+  }
+
+  if (result['discovery']) {
+    var serverUrl = result['server-url'];
+    EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then((doc) {
+      print(doc);
+      exit(0);
+    });
+    return;
   }
 
   Logger.root.onRecord.listen((r) => print(r));
@@ -58,6 +70,19 @@ class EndpointsServer {
       endpointsServer.server = server;
       return endpointsServer;
     });
+  }
+
+  static Future<String> generateDiscovery(String sdkPath,
+                                          String serverUrl) async {
+    var commonServer = new CommonServer(sdkPath, new _Logger(), new _Cache());
+    var apiServer = new ApiServer(prettyPrint: true)..addApi(commonServer);
+    apiServer.enableDiscoveryApi(serverUrl, '/api');
+    var request =
+        new HttpApiRequest('GET',
+                           'discovery/v1/apis/dartservices/v1/rest',
+                           {}, 'application/json', new Stream.fromIterable([]));
+    HttpApiResponse response = await apiServer.handleHttpRequest(request);
+    return UTF8.decode(await response.body.first);
   }
 
   final int port;
