@@ -7,9 +7,9 @@
  "version": "v1",
  "revision": "0",
  "protocol": "rest",
- "baseUrl": "http://localhost:9090/api/dartservices/v1/",
+ "baseUrl": "http://localhost/api/dartservices/v1/",
  "basePath": "/api/dartservices/v1/",
- "rootUrl": "http://localhost:9090/",
+ "rootUrl": "http://localhost/",
  "servicePath": "api/dartservices/v1/",
  "parameters": {},
  "schemas": {

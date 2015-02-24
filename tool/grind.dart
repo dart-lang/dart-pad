@@ -23,25 +23,19 @@ void main(List<String> args) {
 /**
  * Generate the discovery doc from the annotated API.
  */
-Future discovery(GrinderContext context) async {
-  context.log('starting Dart Services server.');
-  Process process = await Process.start('dart', ['bin/services.dart', '--port=9090']);
+discovery(GrinderContext context) {
+  ProcessResult result = Process.runSync(
+      'dart', ['bin/services.dart', '--discovery']);
 
-  await new Future.delayed(new Duration(milliseconds: 300));
+  if (result.exitCode != 0) {
+    throw 'Error generating the discovery document';
+  }
 
-  HttpClientRequest request = await new HttpClient().get(
-        'localhost', 9090, 'api/discovery/v1/apis/dartservices/v1/rest');
-  HttpClientResponse response = await request.close();
-  List<List<int>> data = await response.toList();
-  List<int> list = data.reduce((l1, l2) => l1.addAll(l2));
-  String contents = new String.fromCharCodes(list);
+  File discoveryFile = new File('doc/generated/dartservices.json');
+  discoveryFile.parent.createSync();
 
-  File discoveryFile = new File('doc/dartservices.json');
   context.log('writing ${discoveryFile.path}');
-  discoveryFile.writeAsStringSync(contents);
-
-  context.log('closing Dart Services server');
-  process.kill();
+  discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
 }
 
 /**
