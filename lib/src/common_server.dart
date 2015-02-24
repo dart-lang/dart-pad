@@ -145,7 +145,7 @@ class CommonServer {
     
     // TODO(lukechurch): Remove this hack after
     // https://github.com/dart-lang/rpc/issues/15 lands
-    bool supressCache = source.trim().endsWith("/** <Supress-Memcache> **/");
+    bool supressCache = source.trim().endsWith("/** Supress-Memcache **/");
 
     return checkCache("%%COMPILE:$sourceHash").then((String result) {
       if (!supressCache && result != null) {
