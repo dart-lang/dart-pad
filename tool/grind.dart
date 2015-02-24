@@ -13,10 +13,29 @@ import 'package:librato/librato.dart';
 
 void main(List<String> args) {
   task('init', defaultInit);
+  task('discovery', discovery, ['init']);
   task('travis-bench', travisBench, ['init']);
   task('clean', defaultClean);
 
   startGrinder(args);
+}
+
+/**
+ * Generate the discovery doc from the annotated API.
+ */
+discovery(GrinderContext context) {
+  ProcessResult result = Process.runSync(
+      'dart', ['bin/services.dart', '--discovery']);
+
+  if (result.exitCode != 0) {
+    throw 'Error generating the discovery document';
+  }
+
+  File discoveryFile = new File('doc/generated/dartservices.json');
+  discoveryFile.parent.createSync();
+
+  context.log('writing ${discoveryFile.path}');
+  discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
 }
 
 /**
