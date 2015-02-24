@@ -142,12 +142,17 @@ class CommonServer {
     }
     log.info("COMPILE: ${source}");
     String sourceHash = _hashSource(source);
+    
+    // TODO(lukechurch): Remove this hack after
+    // https://github.com/dart-lang/rpc/issues/15 lands
+    bool supressCache = source.trim().endsWith("/** <Supress-Memcache> **/");
 
     return checkCache("%%COMPILE:$sourceHash").then((String result) {
-      if (result != null) {
+      if (!supressCache && result != null) {
         log.info("CACHE: Cache hit for compile");
         return new CompileResponse(result);
       } else {
+        log.info("CACHE: MISS, forced: $supressCache");
         Stopwatch watch = new Stopwatch()..start();
 
         return compiler.compile(source).then((CompilationResults results) {
