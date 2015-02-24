@@ -142,7 +142,7 @@ class CommonServer {
     }
     log.info("COMPILE: ${source}");
     String sourceHash = _hashSource(source);
-    
+
     // TODO(lukechurch): Remove this hack after
     // https://github.com/dart-lang/rpc/issues/15 lands
     bool supressCache = source.trim().endsWith("/** Supress-Memcache **/");
