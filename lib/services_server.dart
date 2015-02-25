@@ -74,14 +74,15 @@ class EndpointsServer {
 
   static Future<String> generateDiscovery(String sdkPath,
                                           String serverUrl) async {
-    var commonServer = new CommonServer(sdkPath, new _Logger(), new _Cache());
-    var apiServer = new ApiServer(prettyPrint: true)..addApi(commonServer);
-    apiServer.enableDiscoveryApi(serverUrl, '/api');
+    var commonServer = new CommonServer(sdkPath, new _Cache());
+    var apiServer =
+        new ApiServer('/api', prettyPrint: true)..addApi(commonServer);
+    apiServer.enableDiscoveryApi(serverUrl);
     var request =
         new HttpApiRequest('GET',
                            'discovery/v1/apis/dartservices/v1/rest',
-                           {}, 'application/json', new Stream.fromIterable([]));
-    HttpApiResponse response = await apiServer.handleHttpRequest(request);
+                           {}, {}, new Stream.fromIterable([]));
+    HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
     return UTF8.decode(await response.body.first);
   }
 
@@ -98,8 +99,8 @@ class EndpointsServer {
 
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
-    commonServer = new CommonServer(sdkPath, new _Logger(), new _Cache());
-    apiServer = new ApiServer(prettyPrint: true)..addApi(commonServer);
+    commonServer = new CommonServer(sdkPath, new _Cache());
+    apiServer = new ApiServer('/api', prettyPrint: true)..addApi(commonServer);
 
     pipeline = new Pipeline()
       .addMiddleware(logRequests())
@@ -114,7 +115,7 @@ class EndpointsServer {
 
   Future<Response> _apiHandler(Request request) {
     if (!discoveryEnabled) {
-      apiServer.enableDiscoveryApi(request.requestedUri.origin, '/api');
+      apiServer.enableDiscoveryApi(request.requestedUri.origin);
       discoveryEnabled = true;
     }
     // NOTE: We could read in the request body here and parse it similar to
@@ -122,9 +123,9 @@ class EndpointsServer {
     // a plain text handler if we want to support that.
     var apiRequest = new HttpApiRequest(request.method, request.url.path,
                                         request.url.queryParameters,
-                                        request.headers['content-type'],
+                                        request.headers,
                                         request.read());
-    return apiServer.handleHttpRequest(apiRequest)
+    return apiServer.handleHttpApiRequest(apiRequest)
         .then((HttpApiResponse apiResponse) {
           return new Response(apiResponse.status, body: apiResponse.body,
                               headers: apiResponse.headers);})
@@ -146,12 +147,6 @@ View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
     });
   }
-}
-
-class _Logger implements ServerLogger {
-  void info(String message) => _logger.info(message);
-  void warn(String message) => _logger.warning(message);
-  void error(String message) => _logger.severe(message);
 }
 
 class _Cache implements ServerCache {

@@ -8,16 +8,19 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart';
+import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
-import 'package:rpc/rpc.dart';
-
+import 'package:rpc/rpc.dart' as rpc;
 import 'src/common_server.dart';
 
-Logging get logging => context.services.logging;
-Memcache get memcache => context.services.memcache;
+const String _API = '/api';
+
+final Logger _logger = new Logger('gae_server');
 
 void main() {
   GaeServer server = new GaeServer('/usr/lib/dart');
+  // Change the log level to get more or less detailed logging.
+  useLoggingPackageAdaptor();
   server.start();
 }
 
@@ -25,14 +28,15 @@ class GaeServer {
   final String sdkPath;
 
   bool discoveryEnabled;
-  ApiServer apiServer;
+  rpc.ApiServer apiServer;
   CommonServer commonServer;
 
   GaeServer(this.sdkPath) {
     discoveryEnabled = false;
-    commonServer = new CommonServer(sdkPath, new GaeLogger(), new GaeCache());
+    commonServer = new CommonServer(sdkPath, new GaeCache());
     // Enabled pretty printing of returned json for debuggability.
-    apiServer = new ApiServer(prettyPrint: true)..addApi(commonServer);
+    apiServer =
+        new rpc.ApiServer(_API, prettyPrint: true)..addApi(commonServer);
   }
 
   Future start() => runAppEngine(requestHandler);
@@ -58,30 +62,23 @@ class GaeServer {
                       ..close();
       return;
     }
-    var requestPath = request.uri.path;
-    if (request.uri.path.startsWith('/api')) {
-      // Strip off the leading '/api' prefix.
-      requestPath = requestPath.substring('/api'.length);
-
+    if (request.uri.path.startsWith(_API)) {
       if (!discoveryEnabled) {
-        apiServer.enableDiscoveryApi(request.requestedUri.origin, '/api');
+        apiServer.enableDiscoveryApi(request.requestedUri.origin);
         discoveryEnabled = true;
       }
       // NOTE: We could read in the request body here and parse it similar to
       // the _parseRequest method to determine content-type and dispatch to e.g.
       // a plain text handler if we want to support that.
-      var apiRequest = new HttpApiRequest(request.method, requestPath,
-                                          request.uri.queryParameters,
-                                          request.headers.contentType.toString(),
-                                          request);
-      apiServer.handleHttpRequest(apiRequest)
-          .then((HttpApiResponse apiResponse) =>
-              _sendResponse(request, apiResponse))
+      var apiRequest = new rpc.HttpApiRequest.fromHttpRequest(request, _API);
+      apiServer.handleHttpApiRequest(apiRequest)
+          .then((rpc.HttpApiResponse apiResponse) =>
+            rpc.sendApiResponse(apiResponse, request.response))
           .catchError((e) {
             // This should only happen in the case where there is a bug in the
             // rpc package. Otherwise it always returns an HttpApiResponse.
-            commonServer.log.warn('Failed with error: $e when trying to call'
-                'method at \'$requestPath\'.');
+            _logger.warning('Failed with error: $e when trying to call'
+                'method at \'${request.uri.path}\'.');
             request.response..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
                             ..close();
           });
@@ -90,21 +87,6 @@ class GaeServer {
                        ..close();
     }
   }
-
-  void _sendResponse(io.HttpRequest request, HttpApiResponse response) {
-    request.response.statusCode = response.status;
-    request.response.headers.add(io.HttpHeaders.CONTENT_TYPE,
-                                 response.headers[io.HttpHeaders.CONTENT_TYPE]);
-    response.body.pipe(request.response);
-  }
-}
-
-class GaeLogger implements ServerLogger {
-  Logging get _logging => context.services.logging;
-
-  void info(String message) => _logging.info(message);
-  void warn(String message) => _logging.warning(message);
-  void error(String message) => _logging.error(message);
 }
 
 class GaeCache implements ServerCache {

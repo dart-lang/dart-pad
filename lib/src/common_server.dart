@@ -8,18 +8,14 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 
 import 'analyzer.dart';
 import 'compiler.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
-
-abstract class ServerLogger {
-  void info(String message);
-  void warn(String message);
-  void error(String message);
-}
+final Logger _logger = new Logger('common_server');
 
 abstract class ServerCache {
   Future<String> get(String key);
@@ -51,13 +47,12 @@ class DocumentResponse {
 
 @ApiClass(name: 'dartservices', version: 'v1')
 class CommonServer {
-  final ServerLogger log;
   final ServerCache cache;
 
   Analyzer analyzer;
   Compiler compiler;
 
-  CommonServer(String sdkPath, this.log, this.cache) {
+  CommonServer(String sdkPath, this.cache) {
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath);
   }
@@ -118,20 +113,20 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
     Stopwatch watch = new Stopwatch()..start();
-    log.info("ANALYZE: $source");
+    _logger.info("ANALYZE: $source");
 
     try {
       return analyzer.analyze(source).then((AnalysisResults results) {
         int lineCount = source.split('\n').length;
         int ms = watch.elapsedMilliseconds;
-        log.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
+        _logger.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
         return results;
       }).catchError((e) {
-        log.error('Error during analyze: ${e}');
+        _logger.severe('Error during analyze: ${e}');
         throw e;
       });
     } catch (e, st) {
-      log.error('Error during analyze: ${e}\n${st}');
+      _logger.severe('Error during analyze: ${e}\n${st}');
       throw e;
     }
   }
@@ -140,7 +135,7 @@ class CommonServer {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
-    log.info("COMPILE: ${source}");
+    _logger.info("COMPILE: ${source}");
     String sourceHash = _hashSource(source);
 
     // TODO(lukechurch): Remove this hack after
@@ -149,10 +144,10 @@ class CommonServer {
 
     return checkCache("%%COMPILE:$sourceHash").then((String result) {
       if (!supressCache && result != null) {
-        log.info("CACHE: Cache hit for compile");
+        _logger.info("CACHE: Cache hit for compile");
         return new CompileResponse(result);
       } else {
-        log.info("CACHE: MISS, forced: $supressCache");
+        _logger.info("CACHE: MISS, forced: $supressCache");
         Stopwatch watch = new Stopwatch()..start();
 
         return compiler.compile(source).then((CompilationResults results) {
@@ -160,7 +155,7 @@ class CommonServer {
             int lineCount = source.split('\n').length;
             int outputSize = (results.getOutput().length + 512) ~/ 1024;
             int ms = watch.elapsedMilliseconds;
-            log.info(
+            _logger.info(
                 'PERF: Compiled ${lineCount} lines of Dart into '
                 '${outputSize}kb of JavaScript in ${ms}ms.');
             String out = results.getOutput();
@@ -174,7 +169,7 @@ class CommonServer {
                 'Compilation failed with errors: $errors');
           }
         }).catchError((e, st) {
-          log.error('Error during compile: ${e}\n${st}');
+          _logger.severe('Error during compile: ${e}\n${st}');
           throw e;
         });
       }
@@ -189,21 +184,21 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
     Stopwatch watch = new Stopwatch()..start();
-    log.info("DOCUMENT: ${source}");
+    _logger.info("DOCUMENT: ${source}");
 
     try {
       return analyzer.dartdoc(source, offset)
           .then((Map<String, String> docInfo) {
             if (docInfo == null) docInfo = {};
-            log.info(
+            _logger.info(
                 'PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
             return new DocumentResponse(docInfo);
           }).catchError((e, st) {
-            log.error('Error during dartdoc: ${e}\n${st}');
+            _logger.severe('Error during dartdoc: ${e}\n${st}');
             throw e;
           });
     } catch (e, st) {
-      log.error('Error during dartdoc: ${e}\n${st}');
+      _logger.severe('Error during dartdoc: ${e}\n${st}');
       throw e;
     }
   }
