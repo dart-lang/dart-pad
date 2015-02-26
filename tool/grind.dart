@@ -12,22 +12,29 @@ import 'package:librato/librato.dart';
 
 void main(List<String> args) {
   task('init', defaultInit);
-
+  task('bower', bower, ['init']);
   task('build', build, ['init']);
-
-  task('deploy', deploy, ['build']);
+  task('deploy', deploy, ['bower', 'build']);
   task('clean', defaultClean);
 
   startGrinder(args);
+}
+
+/// Run bower.
+bower(GrinderContext context) {
+  runProcess(context, 'bower', arguments: ['install']);
 }
 
 /// Build the `web/index.html` entrypoint.
 build(GrinderContext context) {
   Pub.build(context, directories: ['web', 'test']);
 
-  File outFile = joinFile(BUILD_DIR, ['web', 'main.dart.js']);
+  File mainFile = joinFile(BUILD_DIR, ['web', 'main.dart.js']);
+  File mobileFile = joinFile(BUILD_DIR, ['web', 'mobile.dart.js']);
   File testFile = joinFile(BUILD_DIR, ['test', 'web.dart.js']);
-  context.log('${outFile.path} compiled to ${_printSize(outFile)}');
+
+  context.log('${mainFile.path} compiled to ${_printSize(mainFile)}');
+  context.log('${mobileFile.path} compiled to ${_printSize(mobileFile)}');
   context.log('${testFile.path} compiled to ${_printSize(testFile)}');
 
   // Delete the build/web/packages directory.
@@ -38,7 +45,17 @@ build(GrinderContext context) {
   runProcess(context, 'cp',
       arguments: ['-R', '-L', 'packages', 'build/web/packages']);
 
-  return _uploadCompiledStats(context, outFile.lengthSync());
+  // Run vulcanize.
+  File mobileHtmlFile = joinFile(BUILD_DIR, ['web', 'mobile.html']);
+  context.log('${mobileHtmlFile.path} original: ${_printSize(mobileHtmlFile)}');
+  runProcess(context,
+      'vulcanize', // '--csp', '--inline',
+      arguments: ['--strip', '--output', 'mobile.html', 'mobile.html'],
+      workingDirectory: 'build/web');
+  context.log('${mobileHtmlFile.path} vulcanize: ${_printSize(mobileHtmlFile)}');
+
+  return _uploadCompiledStats(context,
+      mainFile.lengthSync(), mobileFile.lengthSync());
 }
 
 /// Prepare the app for deployment.
@@ -46,14 +63,16 @@ void deploy(GrinderContext context) {
   context.log('execute: `appcfg.py update build/web`');
 }
 
-Future _uploadCompiledStats(GrinderContext context, num length) {
+Future _uploadCompiledStats(GrinderContext context, num mainLength,
+    int mobileLength) {
   Map env = Platform.environment;
 
   if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
     Librato librato = new Librato.fromEnvVars();
     context.log('Uploading stats to ${librato.baseUrl}');
-    LibratoStat compiledSize = new LibratoStat('main.dart.js', length);
-    return librato.postStats([compiledSize]).then((_) {
+    LibratoStat mainSize = new LibratoStat('main.dart.js', mainLength);
+    LibratoStat mobileSize = new LibratoStat('mobileSize.dart.js', mobileLength);
+    return librato.postStats([mainSize, mobileSize]).then((_) {
       String commit = env['TRAVIS_COMMIT'];
       LibratoLink link = new LibratoLink(
           'github',

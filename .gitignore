@@ -11,3 +11,5 @@ pubspec.lock
 *.js.map
 
 .settings/
+
+lib/bower/
