@@ -1,0 +1,45 @@
+{
+  "name": "dart-pad",
+  "version": "0.0.1",
+  "authors": [
+    "Dart Team <misc@dartlang.org>"
+  ],
+  "description": "The mobile UI for Dartpad.",
+  "main": "web/index.html",
+  "license": "BSD",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "lib/",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^0.5",
+    "core-icons": "Polymer/core-icons#^0.5",
+    "paper-toggle-button": "Polymer/paper-toggle-button#^0.5",
+    "paper-fab": "Polymer/paper-fab#^0.5",
+    "paper-toast": "Polymer/paper-toast#^0.5",
+    "paper-dialog": "Polymer/paper-dialog#^0.5",
+    "core-collapse": "Polymer/core-collapse#^0.5",
+    "paper-spinner": "Polymer/paper-spinner#^0.5",
+    "paper-button": "polymer/paper-button#^0.5",
+    "paper-tabs": "Polymer/paper-tabs#^0.5",
+    "font-roboto": "Polymer/font-roboto#^0.5",
+    "core-toolbar": "Polymer/core-toolbar#^0.5",
+    "core-header-panel": "Polymer/core-header-panel#^0.5",
+    "paper-icon-button": "Polymer/paper-icon-button#^0.5",
+    "core-drawer-panel": "Polymer/core-drawer-panel#^0.5",
+    "core-pages": "Polymer/core-pages#^0.5",
+    "paper-progress": "polymer/paper-progress#^0.5",
+    "paper-shadow": "polymer/paper-shadow#^0.5",
+    "core-animated-pages": "polymer/core-animated-pages#^0.5",
+    "core-scaffold": "polymer/core-scaffold#^0.5",
+    "core-item": "polymer/core-item#^0.5",
+    "core-menu": "polymer/core-menu#^0.5",
+    "paper-menu-button": "polymer/paper-menu-button#^0.5",
+    "core-splitter": "polymer/core-splitter#^0.5"
+  }
+}

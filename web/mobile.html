@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="scaffolded-by" content="https://github.com/google/stagehand">
+    <title>Dart Pad</title>
+
+    <script src="packages/dart_pad/bower/webcomponentsjs/webcomponents.min.js"></script>
+
+    <link rel="import" href="packages/dart_pad/bower/core-animated-pages/core-animated-pages.html">
+    <link rel="import" href="packages/dart_pad/bower/core-animated-pages/transitions/slide-from-right.html">
+    <link rel="import" href="packages/dart_pad/bower/core-drawer-panel/core-drawer-panel.html">
+    <link rel="import" href="packages/dart_pad/bower/core-header-panel/core-header-panel.html">
+    <link rel="import" href="packages/dart_pad/bower/core-menu/core-menu.html">
+    <link rel="import" href="packages/dart_pad/bower/core-toolbar/core-toolbar.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-button/paper-button.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-icon-button/paper-icon-button.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-item/paper-item.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-menu-button/paper-menu-button.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-dialog/paper-dialog.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-dialog/paper-action-dialog.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-dropdown/paper-dropdown.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-tabs/paper-tabs.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-fab/paper-fab.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-progress/paper-progress.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-toast/paper-toast.html">
+    <link rel="import" href="packages/dart_pad/bower/paper-toggle-button/paper-toggle-button.html">
+    <link rel="import" href="packages/dart_pad/bower/core-icons/av-icons.html">
+    <link rel="import" href="packages/dart_pad/bower/font-roboto/roboto.html">
+
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+        rel='stylesheet' type='text/css'>
+
+    <!-- codemirror -->
+    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
+    <link href="packages/dart_pad/editing/editor_codemirror.css" rel="stylesheet" media="screen">
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <link rel="stylesheet" href="mobile.css">
+    <style>
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        font-family: 'Roboto', 'RobotoDraft', sans-serif;
+      }
+
+      .content {
+        padding: 20px;
+      }
+      
+      #main-header {
+        height: 88px;
+      }
+      
+      #run-button {
+        position: absolute;
+        bottom: 16px;
+        right: 16px;
+        z-index: 10;
+      }
+
+      body {
+        background-color: #37474f;
+        color: #c6c6c6;
+      }
+
+      .splash {
+        background: #37474f;
+        pointer-events:none;
+
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 0;
+        bottom: 0;
+
+        z-index: 1000;
+        opacity: 1;
+
+        transition: opacity .1s linear;
+        -webkit-transition: opacity .1s linear;
+      }
+
+      .splash.hide {
+        opacity: 0;
+      }
+    </style>
+</head>
+
+<body fullbleed vertical layout unresolved>
+  <div class="splash"></div>
+  <script src="packages/codemirror/codemirror.js"></script>
+  <script src="packages/browser/dart.js" async></script>
+  <script type="application/dart" src="mobile.dart"></script>
+  <script async>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+    ga('create', 'UA-26406144-18', 'auto');
+    ga('send', 'pageview');
+  </script>
+  <script>
+    /* Patch to work around a polymer polyfill issue. */
+
+    // Patch key event listening.
+    document.addEventListener('keydown', function(event) {
+      if (window.dartKeyListener) {
+        if (window.dartKeyListener(event)) {
+          event.preventDefault();
+        }
+      }
+    });
+
+    // Patch window message listening.
+    window.addEventListener('message', function(event) {
+      var data = event.data;
+
+      if (data.sender == 'frame') {
+        if (window.dartMessageListener) {
+          window.dartMessageListener(data);
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
