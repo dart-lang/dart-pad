@@ -7,7 +7,7 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
   analyzer: '>=0.22.4 <0.23.0'
-  appengine: '>=0.2.1 <0.3.0'
+  appengine: '>=0.2.6 <0.3.0'
   args: any
   compiler_unsupported: 1.9.0-dev.2.2.1
   crypto: '>=0.9.0 <0.10.0'
@@ -17,9 +17,7 @@ dependencies:
   shelf: any
   shelf_cors: any
   shelf_route: any
-  # TODO: change to pub package dependency once the rpc package is published.
-  rpc:
-    git: git://github.com/dart-lang/rpc.git
+  rpc: any
 dev_dependencies:
   browser: any
   codemirror: '>=0.1.0 <0.2.0'

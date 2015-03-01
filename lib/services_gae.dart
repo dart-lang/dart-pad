@@ -7,7 +7,7 @@ library services_gae;
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:appengine/appengine.dart';
+import 'package:appengine/appengine.dart' as ae;
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
@@ -19,8 +19,10 @@ final Logger _logger = new Logger('gae_server');
 
 void main() {
   GaeServer server = new GaeServer('/usr/lib/dart');
+  
   // Change the log level to get more or less detailed logging.
-  useLoggingPackageAdaptor();
+  ae.useLoggingPackageAdaptor();
+  //useLoggingPackageAdaptor();
   server.start();
 }
 
@@ -39,7 +41,7 @@ class GaeServer {
         new rpc.ApiServer(_API, prettyPrint: true)..addApi(commonServer);
   }
 
-  Future start() => runAppEngine(requestHandler);
+  Future start() => ae.runAppEngine(requestHandler);
 
   void requestHandler(io.HttpRequest request) {
     request.response.headers.add('Access-Control-Allow-Origin', '*');
@@ -90,7 +92,7 @@ class GaeServer {
 }
 
 class GaeCache implements ServerCache {
-  Memcache get _memcache => context.services.memcache;
+  Memcache get _memcache => ae.context.services.memcache;
 
   Future<String> get(String key) => _memcache.get(key);
 
