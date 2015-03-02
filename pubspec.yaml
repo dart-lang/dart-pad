@@ -8,16 +8,17 @@ environment:
 dependencies:
   analyzer: '>=0.22.4 <0.23.0'
   appengine: '>=0.2.6 <0.3.0'
-  args: any
+  args: ^0.12.0
+  # `compiler_unsupported` needs to be pegged to a specific version.
   compiler_unsupported: 1.9.0-dev.2.2.1
   crypto: '>=0.9.0 <0.10.0'
   grinder: '>=0.6.4 <0.7.0'
   librato: '>=0.0.1 <0.1.0'
-  logging: any
-  shelf: any
-  shelf_cors: any
-  shelf_route: any
-  rpc: any
+  logging: ^0.9.0
+  shelf: ^0.5.0
+  shelf_cors: ^0.2.0
+  shelf_route: ^0.11.0
+  rpc: ^0.1.0
 dev_dependencies:
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
