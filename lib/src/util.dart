@@ -17,3 +17,26 @@ bool isMobile() {
 
   return width <= mobileSize || height <= mobileSize;
 }
+
+/**
+ * Text to be displayed to Dart Pad users. The associated title should be
+ * 'About Dart Pad' (or equivalent).
+ */
+final String privacyText = '''
+Dart Pad is a free, open-source service to help developers learn about the Dart
+language and libraries. Source code entered into Dart Pad may be sent to servers
+running in Google Cloud Platform to be analyzed for errors/warnings, compiled to
+JavaScript, and returned to the browser.
+<br><br>
+Source code entered into Dart Pad may be stored, processed, and aggregated in
+order to improve the user experience of Dart Pad and other Dart tools. For
+example, we may use the source code to help offer better code completion
+suggestions. The raw source code is deleted after 6 months.
+<br><br>
+Learn more about Google's
+<a href="http://www.google.com/policies/privacy/" target="policy">privacy policy</a>.
+We look forward to your
+<a href="https://github.com/dart-lang/dart-pad/issues" target="feedback">feedback</a>.
+<br><br>
+Made with &lt;3 by Google.
+''';
