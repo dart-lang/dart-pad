@@ -18,6 +18,7 @@ void defineTests() {
   ApiServer apiServer;
 
   MockCache cache = new MockCache();
+  MockRequestRecorder recorder = new MockRequestRecorder();
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
@@ -30,7 +31,7 @@ void defineTests() {
     setUp(() {
       if (server == null) {
         String sdkPath = grinder.getSdkDir().path;
-        server = new CommonServer(sdkPath, cache);
+        server = new CommonServer(sdkPath, cache, recorder);
         apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
       }
     });
@@ -140,4 +141,12 @@ class MockCache implements ServerCache {
   Future set(String key, String value, {Duration expiration}) =>
       new Future.value();
   Future remove(String key) => new Future.value();
+}
+
+class MockRequestRecorder implements SourceRequestRecorder {
+  
+  @override
+  Future record(String verb, String source, [int offset]) {
+    return new Future.value();
+  }
 }
