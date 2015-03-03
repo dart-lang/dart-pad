@@ -27,6 +27,7 @@ import 'package:route_hierarchical/client.dart';
 import '../polymer/base.dart';
 import '../polymer/core.dart';
 import '../polymer/paper.dart';
+import '../src/util.dart';
 
 PlaygroundMobile get playground => _playground;
 
@@ -52,7 +53,7 @@ class PlaygroundMobile {
 
   PaperToast _messageToast;
   PaperToast _errorsToast;
-  PaperActionDialog _errorDialog;
+  PaperActionDialog _messageDialog;
   CoreElement _output;
   CoreAnimatedPages _pages;
   PaperProgress _editProgress;
@@ -122,13 +123,13 @@ class PlaygroundMobile {
     document.body.children.add(_errorsToast.element);
 
     // TODO: use a dark theme?
-    _errorDialog = new PaperActionDialog();
+    _messageDialog = new PaperActionDialog();
     PaperButton closeButton = new PaperButton(text: 'Close');
-    _errorDialog.makeAffirmative(closeButton);
-    _errorDialog.add(closeButton);
-    Transition.coreTransitionCenter(_errorDialog);
-    _errorDialog.add(CoreElement.p());
-    document.body.children.add(_errorDialog.element);
+    _messageDialog.makeAffirmative(closeButton);
+    _messageDialog.add(closeButton);
+    Transition.coreTransitionCenter(_messageDialog);
+    _messageDialog.add(CoreElement.p());
+    document.body.children.add(_messageDialog.element);
   }
 
   CoreElement _createEditSection(CoreAnimatedPages pages) {
@@ -160,25 +161,17 @@ class PlaygroundMobile {
     toolbar.add(CoreElement.span()..clazz('sample-titles')..flex());
 
     // Overflow menu.
-//    PaperMenuButton overflowMenuButton = new PaperMenuButton();
-//    overflowMenuButton.add(new PaperIconButton(icon: 'more-vert'));
-//    PaperDropdown dropdown = new PaperDropdown()..halign = 'right';
-//    CoreMenu overflowMenu = new CoreMenu();
-//    overflowMenu.add(new PaperItem(text: 'Share')..onTap.listen((event) {
-//      event.preventDefault();
-//      _showMessage('TODO: share');
-//    }));
-//    overflowMenu.add(new PaperItem(text: 'Settings')..onTap.listen((event) {
-//      event.preventDefault();
-//      _showMessage('TODO: settings');
-//    }));
-//    overflowMenu.add(new PaperItem(text: 'Help')..onTap.listen((event) {
-//      event.preventDefault();
-//      _showMessage('TODO: help');
-//    }));
-//    dropdown.add(overflowMenu);
-//    overflowMenuButton.add(dropdown);
-//    toolbar.add(overflowMenuButton);
+    PaperMenuButton overflowMenuButton = new PaperMenuButton();
+    overflowMenuButton.add(new PaperIconButton(icon: 'more-vert'));
+    PaperDropdown dropdown = new PaperDropdown()..halign = 'right';
+    CoreMenu overflowMenu = new CoreMenu();
+    overflowMenu.add(new PaperItem(text: 'About')..onTap.listen((event) {
+      event.preventDefault();
+      _showAboutDialog();
+    }));
+    dropdown.add(overflowMenu);
+    overflowMenuButton.add(dropdown);
+    toolbar.add(overflowMenuButton);
 
     CoreElement div = CoreElement.div()..clazz('bottom fit')..horizontal()..vertical();
     PaperTabs tabs = new PaperTabs()..flex();
@@ -548,11 +541,17 @@ class PlaygroundMobile {
     _messageToast.show();
   }
 
+  void _showAboutDialog() {
+    _messageDialog.heading = 'About Dart Pad';
+    _messageDialog.element.querySelector('p').setInnerHtml(privacyText,
+        validator: new _NodeValidator());
+    _messageDialog.open();
+  }
+
   void _showError(String title, String message) {
-    _errorDialog.heading = title;
-    _errorDialog.element.querySelector('p').text = message;
-    _errorDialog.open();
-    //_errorDialog.toggle();
+    _messageDialog.heading = title;
+    _messageDialog.element.querySelector('p').text = message;
+    _messageDialog.open();
   }
 
   String _currentGistId() => _gistId;
@@ -702,4 +701,10 @@ class BusyLight {
   }
 
   _reconcile() => element.classes.toggle('busy', _count > 0);
+}
+
+class _NodeValidator implements NodeValidator {
+  bool allowsAttribute(Element element, String attributeName, String value) =>
+      true;
+  bool allowsElement(Element element) => true;
 }
