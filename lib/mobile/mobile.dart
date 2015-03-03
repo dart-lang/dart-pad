@@ -349,7 +349,8 @@ class PlaygroundMobile {
     _editProgress.hidden(false);
 
     var input = new SourceRequest()..source = context.dartSource;
-    dartServices.compile(input).then((CompileResponse response) {
+    dartServices.compile(input).timeout(longServiceCallTimeout)
+    .then((CompileResponse response) {
       _clearOutput();
 
       // TODO: Use the router here instead -
@@ -376,7 +377,8 @@ class PlaygroundMobile {
     _runProgress.hidden(false);
 
     var input = new SourceRequest()..source = context.dartSource;
-    dartServices.compile(input).then((CompileResponse response) {
+    dartServices.compile(input).timeout(longServiceCallTimeout)
+    .then((CompileResponse response) {
       _clearOutput();
 
       // TODO: Use the router here instead -
@@ -399,7 +401,8 @@ class PlaygroundMobile {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
 
-    Future<AnalysisResults> request = dartServices.analyze(input);
+    Future<AnalysisResults> request =
+        dartServices.analyze(input).timeout(serviceCallTimeout);;
 
     _analysisRequest = request;
 

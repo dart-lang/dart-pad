@@ -5,11 +5,9 @@ import "dart:async" as async;
 import "dart:convert" as convert;
 
 import 'package:http/http.dart' as http;
-
 import 'common/common_internal.dart' as common_internal;
 import 'common/common.dart' as common;
-import '../services/common.dart'
-    show serviceCallTimeout, longServiceCallTimeout;
+
 export 'common/common.dart' show ApiRequestError;
 export 'common/common.dart' show DetailedApiRequestError;
 
@@ -18,8 +16,8 @@ class DartservicesApi {
 
   final common_internal.ApiRequester _requester;
 
-  DartservicesApi(http.Client client) :
-      _requester = new common_internal.ApiRequester(client, "https://dart-services.appspot.com/", "api/dartservices/v1/");
+  DartservicesApi(http.Client client, {core.String rootUrl: "http://localhost:8080/", core.String servicePath: "api/dartservices/v1/"}) :
+      _requester = new common_internal.ApiRequester(client, rootUrl, servicePath);
 
   /**
    * Not documented yet.
@@ -48,6 +46,7 @@ class DartservicesApi {
       _body = convert.JSON.encode((request).toJson());
     }
 
+
     _url = 'analyze';
 
     var _response = _requester.request(_url,
@@ -57,9 +56,7 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response
-        .then((data) => new AnalysisResults.fromJson(data))
-        .timeout(serviceCallTimeout);
+    return _response.then((data) => new AnalysisResults.fromJson(data));
   }
 
   /**
@@ -89,6 +86,7 @@ class DartservicesApi {
       _queryParams["source"] = [source];
     }
 
+
     _url = 'analyze';
 
     var _response = _requester.request(_url,
@@ -98,9 +96,7 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response
-        .then((data) => new AnalysisResults.fromJson(data))
-        .timeout(serviceCallTimeout);
+    return _response.then((data) => new AnalysisResults.fromJson(data));
   }
 
   /**
@@ -130,6 +126,7 @@ class DartservicesApi {
       _body = convert.JSON.encode((request).toJson());
     }
 
+
     _url = 'compile';
 
     var _response = _requester.request(_url,
@@ -139,9 +136,7 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response
-        .then((data) => new CompileResponse.fromJson(data))
-        .timeout(longServiceCallTimeout);
+    return _response.then((data) => new CompileResponse.fromJson(data));
   }
 
   /**
@@ -171,6 +166,7 @@ class DartservicesApi {
       _queryParams["source"] = [source];
     }
 
+
     _url = 'compile';
 
     var _response = _requester.request(_url,
@@ -180,9 +176,7 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response
-        .then((data) => new CompileResponse.fromJson(data))
-        .timeout(longServiceCallTimeout);
+    return _response.then((data) => new CompileResponse.fromJson(data));
   }
 
   /**
@@ -221,9 +215,7 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response
-        .then((data) => null)
-        .timeout(serviceCallTimeout);
+    return _response.then((data) => null);
   }
 
   /**
@@ -267,9 +259,7 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response
-        .then((data) => null)
-        .timeout(serviceCallTimeout);
+    return _response.then((data) => null);
   }
 
   /**
@@ -299,6 +289,7 @@ class DartservicesApi {
       _body = convert.JSON.encode((request).toJson());
     }
 
+
     _url = 'document';
 
     var _response = _requester.request(_url,
@@ -308,9 +299,7 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response
-        .then((data) => new DocumentResponse.fromJson(data))
-        .timeout(serviceCallTimeout);
+    return _response.then((data) => new DocumentResponse.fromJson(data));
   }
 
   /**
@@ -345,6 +334,7 @@ class DartservicesApi {
       _queryParams["offset"] = ["${offset}"];
     }
 
+
     _url = 'document';
 
     var _response = _requester.request(_url,
@@ -354,11 +344,12 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response
-        .then((data) => new DocumentResponse.fromJson(data))
-        .timeout(serviceCallTimeout);
+    return _response.then((data) => new DocumentResponse.fromJson(data));
   }
+
 }
+
+
 
 /** Not documented yet. */
 class AnalysisIssue {
@@ -379,6 +370,7 @@ class AnalysisIssue {
 
   /** Not documented yet. */
   core.String message;
+
 
   AnalysisIssue();
 
@@ -427,10 +419,12 @@ class AnalysisIssue {
   }
 }
 
+
 /** Not documented yet. */
 class AnalysisResults {
   /** Not documented yet. */
   core.List<AnalysisIssue> issues;
+
 
   AnalysisResults();
 
@@ -449,10 +443,12 @@ class AnalysisResults {
   }
 }
 
+
 /** Not documented yet. */
 class CompileResponse {
   /** Not documented yet. */
   core.String result;
+
 
   CompileResponse();
 
@@ -471,10 +467,12 @@ class CompileResponse {
   }
 }
 
+
 /** Not documented yet. */
 class DocumentResponse {
   /** Not documented yet. */
   core.Map<core.String, core.String> info;
+
 
   DocumentResponse();
 
@@ -493,6 +491,7 @@ class DocumentResponse {
   }
 }
 
+
 /** Not documented yet. */
 class SourceRequest {
   /** Not documented yet. */
@@ -500,6 +499,7 @@ class SourceRequest {
 
   /** Not documented yet. */
   core.String source;
+
 
   SourceRequest();
 
@@ -523,3 +523,5 @@ class SourceRequest {
     return _json;
   }
 }
+
+

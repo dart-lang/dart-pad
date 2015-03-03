@@ -250,7 +250,7 @@ class Playground {
     _clearOutput();
 
     var input = new SourceRequest()..source = context.dartSource;
-    dartServices.compile(input)
+    dartServices.compile(input).timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
           return executionService.execute(
               _context.htmlSource, _context.cssSource, response.result);
@@ -266,7 +266,7 @@ class Playground {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
 
-    Future request = dartServices.analyze(input);
+    Future request = dartServices.analyze(input).timeout(serviceCallTimeout);;
     _analysisRequest = request;
 
     request.then((AnalysisResults result) {
@@ -315,7 +315,7 @@ class Playground {
           ..source = _context.dartSource
           ..offset = editor.document.indexFromPos(pos);
       // TODO: Show busy.
-      dartServices.document(input)
+      dartServices.document(input).timeout(serviceCallTimeout)
           .then((DocumentResponse result) {
             if (result.info['description'] == null &&
                 result.info['dartdoc'] == null) {
