@@ -53,6 +53,7 @@ void main(List<String> args) {
     });
     return;
   }
+  _logger.level = Level.ALL;
 
   Logger.root.onRecord.listen((r) => print(r));
 
@@ -74,7 +75,7 @@ class EndpointsServer {
 
   static Future<String> generateDiscovery(String sdkPath,
                                           String serverUrl) async {
-    var commonServer = new CommonServer(sdkPath, new _Cache());
+    var commonServer = new CommonServer(sdkPath, new _Cache(), new _Recorder());
     var apiServer =
         new ApiServer('/api', prettyPrint: true)..addApi(commonServer);
     apiServer.enableDiscoveryApi(serverUrl);
@@ -99,7 +100,7 @@ class EndpointsServer {
 
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
-    commonServer = new CommonServer(sdkPath, new _Cache());
+    commonServer = new CommonServer(sdkPath, new _Cache(), new _Recorder());
     apiServer = new ApiServer('/api', prettyPrint: true)..addApi(commonServer);
 
     pipeline = new Pipeline()
@@ -154,4 +155,13 @@ class _Cache implements ServerCache {
   Future set(String key, String value, {Duration expiration}) =>
       new Future.value();
   Future remove(String key) => new Future.value();
+}
+
+class _Recorder implements SourceRequestRecorder {
+  
+  @override
+  Future record(String verb, String source, [int offset = -99]) {
+    _logger.fine("$verb, $offset, $source");
+    return new Future.value();
+  }
 }

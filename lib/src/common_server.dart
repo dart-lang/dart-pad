@@ -23,6 +23,14 @@ abstract class ServerCache {
   Future remove(String key);
 }
 
+/**
+ * Define a seperate class for source recording to provide a clearly
+ * defined schema
+ */
+abstract class SourceRequestRecorder {
+  Future record(String verb, String source, [int offset]);
+}
+
 class SourceRequest {
   @ApiProperty(required: true)
   String source;
@@ -48,11 +56,14 @@ class DocumentResponse {
 @ApiClass(name: 'dartservices', version: 'v1')
 class CommonServer {
   final ServerCache cache;
+  final SourceRequestRecorder srcRequestRecorder;
 
   Analyzer analyzer;
   Compiler compiler;
 
-  CommonServer(String sdkPath, this.cache) {
+  CommonServer(String sdkPath, this.cache, this.srcRequestRecorder) {
+    hierarchicalLoggingEnabled = true;
+    _logger.level = Level.ALL;
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath);
   }
@@ -113,8 +124,7 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
     Stopwatch watch = new Stopwatch()..start();
-    _logger.info("ANALYZE: $source");
-
+    srcRequestRecorder.record("ANALYZE", source);
     try {
       return analyzer.analyze(source).then((AnalysisResults results) {
         int lineCount = source.split('\n').length;
@@ -135,7 +145,7 @@ class CommonServer {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
-    _logger.info("COMPILE: ${source}");
+    srcRequestRecorder.record("COMPILE", source);
     String sourceHash = _hashSource(source);
 
     // TODO(lukechurch): Remove this hack after
@@ -156,17 +166,17 @@ class CommonServer {
             int outputSize = (results.getOutput().length + 512) ~/ 1024;
             int ms = watch.elapsedMilliseconds;
             _logger.info(
-                'PERF: Compiled ${lineCount} lines of Dart into '
-                '${outputSize}kb of JavaScript in ${ms}ms.');
+              'PERF: Compiled ${lineCount} lines of Dart into '
+              '${outputSize}kb of JavaScript in ${ms}ms.');
             String out = results.getOutput();
             return setCache("%%COMPILE:$sourceHash", out).then((_) {
               return new CompileResponse(out);
             });
           } else {
             String errors =
-                results.problems.map(_printCompileProblem).join('\n');
+              results.problems.map(_printCompileProblem).join('\n');
             throw new BadRequestError(
-                'Compilation failed with errors: $errors');
+              'Compilation of $sourceHash failed with errors: $errors');
           }
         }).catchError((e, st) {
           _logger.severe('Error during compile: ${e}\n${st}');
@@ -184,19 +194,18 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
     Stopwatch watch = new Stopwatch()..start();
-    _logger.info("DOCUMENT: ${source}");
-
+    srcRequestRecorder.record("DOCUMENT", source, offset);
     try {
       return analyzer.dartdoc(source, offset)
-          .then((Map<String, String> docInfo) {
-            if (docInfo == null) docInfo = {};
-            _logger.info(
-                'PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-            return new DocumentResponse(docInfo);
-          }).catchError((e, st) {
-            _logger.severe('Error during dartdoc: ${e}\n${st}');
-            throw e;
-          });
+        .then((Map<String, String> docInfo) {
+          if (docInfo == null) docInfo = {};
+          _logger.info(
+            'PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
+          return new DocumentResponse(docInfo);
+        }).catchError((e, st) {
+          _logger.severe('Error during dartdoc: ${e}\n${st}');
+          throw e;
+        });
     } catch (e, st) {
       _logger.severe('Error during dartdoc: ${e}\n${st}');
       throw e;
@@ -204,7 +213,6 @@ class CommonServer {
   }
 
   Future<String> checkCache(String query) => cache.get(query);
-
   Future setCache(String query, String result) =>
       cache.set(query, result, expiration: _standardExpiration);
 }

@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart' as ae;
+import 'package:gcloud/db.dart' as db;
+
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
@@ -34,8 +36,11 @@ class GaeServer {
   CommonServer commonServer;
 
   GaeServer(this.sdkPath) {
+    hierarchicalLoggingEnabled = true;
+    _logger.level = Level.ALL;
+    
     discoveryEnabled = false;
-    commonServer = new CommonServer(sdkPath, new GaeCache());
+    commonServer = new CommonServer(sdkPath, new GaeCache(), new GaeSourceRequestRecorder());
     // Enabled pretty printing of returned json for debuggability.
     apiServer =
         new rpc.ApiServer(_API, prettyPrint: true)..addApi(commonServer);
@@ -101,4 +106,38 @@ class GaeCache implements ServerCache {
   }
 
   Future remove(String key) => _memcache.remove(key);
+}
+
+class GaeSourceRequestRecorder implements SourceRequestRecorder {
+  @override
+  Future record(String verb, String source, [int offset = -99]) {
+    int ms = new DateTime.now().millisecondsSinceEpoch;
+    GaeSourceRecord record = new GaeSourceRecord.FromData(
+        ms, verb, source, offset);
+
+    return db.dbService.commit(inserts: [record]);
+  }
+}
+
+/*
+ * This is the schema for source code storage
+ */
+@db.Kind()
+class GaeSourceRecord extends db.Model {
+  @db.StringProperty()
+  String verb;
+
+  @db.StringProperty()
+  String source;
+
+  @db.IntProperty()
+  int offset;
+
+  @db.IntProperty()
+  int epochTime;
+  
+  GaeSourceRecord();
+  
+  GaeSourceRecord.FromData(this.epochTime, this.verb, this.source, this.offset);
+  
 }

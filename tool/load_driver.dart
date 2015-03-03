@@ -7,10 +7,10 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 const POST_PAYLOAD =
-r'''{"source":"void main() {\n  for (int i = 0; i < 4; i++) {\n    print('hello ${i}');\n }\n}\n''';
-const EPILOGUE = '\n"}';
+r'''{"source": "import 'dart:html'; void main() {var count = querySelector('#count');for (int i = 0; i < 4; i++) {count.text = '${i}';print('hello ${i}');}}''';
+const EPILOGUE = '"}';
 
-const URI = "http://rpc-test.dart-services.appspot.com/api/dartservices/v1/analyze";
+const URI = "https://dart-services.appspot.com/api/dartservices/v1/compile";
 
 int count = 0;
 
@@ -23,7 +23,7 @@ void main(List<String> args) {
     qps = 1;
   }
 
-  print("QPS: $qps");
+  print("QPS: $qps, URI: $URI");
 
   int ms = (1000 / qps).floor();
   new Timer.periodic(
@@ -34,15 +34,18 @@ void main(List<String> args) {
 pingServer(Timer t) {
   count++;
 
-  if (count > 25000) {
+  if (count > 1000) {
     t.cancel();
+    return;
   }
 
   Stopwatch sw = new Stopwatch()..start();
 
   int time = new DateTime.now().millisecondsSinceEpoch;
-  http.post(Uri.parse(URI),
-      body: '$POST_PAYLOAD //$time $EPILOGUE').then((response) {
-    print(sw.elapsedMilliseconds);
+  
+  String message = '$POST_PAYLOAD //$time $EPILOGUE';
+  print(message);
+  http.post(Uri.parse(URI), body: message).then((response) {
+    print("${response.statusCode}, ${sw.elapsedMilliseconds}");
   });
 }
