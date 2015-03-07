@@ -6,6 +6,7 @@ library services_gae;
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:convert' as convert;
 
 import 'package:appengine/appengine.dart' as ae;
 import 'package:gcloud/db.dart' as db;
@@ -21,7 +22,7 @@ final Logger _logger = new Logger('gae_server');
 
 void main() {
   GaeServer server = new GaeServer('/usr/lib/dart');
-  
+
   // Change the log level to get more or less detailed logging.
   ae.useLoggingPackageAdaptor();
   //useLoggingPackageAdaptor();
@@ -38,7 +39,7 @@ class GaeServer {
   GaeServer(this.sdkPath) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
-    
+
     discoveryEnabled = false;
     commonServer = new CommonServer(sdkPath, new GaeCache(), new GaeSourceRequestRecorder());
     // Enabled pretty printing of returned json for debuggability.
@@ -112,7 +113,7 @@ class GaeSourceRequestRecorder implements SourceRequestRecorder {
   @override
   Future record(String verb, String source, [int offset = -99]) {
     int ms = new DateTime.now().millisecondsSinceEpoch;
-    GaeSourceRecord record = new GaeSourceRecord.FromData(
+    GaeSourceRecordBlob record = new GaeSourceRecordBlob.FromData(
         ms, verb, source, offset);
 
     return db.dbService.commit(inserts: [record]);
@@ -123,21 +124,26 @@ class GaeSourceRequestRecorder implements SourceRequestRecorder {
  * This is the schema for source code storage
  */
 @db.Kind()
-class GaeSourceRecord extends db.Model {
+class GaeSourceRecordBlob extends db.Model {
   @db.StringProperty()
   String verb;
 
-  @db.StringProperty()
-  String source;
+  @db.BlobProperty()
+  List<int> source;
 
   @db.IntProperty()
   int offset;
 
   @db.IntProperty()
   int epochTime;
-  
-  GaeSourceRecord();
-  
-  GaeSourceRecord.FromData(this.epochTime, this.verb, this.source, this.offset);
-  
+
+  GaeSourceRecordBlob();
+
+  GaeSourceRecordBlob.FromData(
+      int epochTime, String verb, String source, int offset) {
+    this.epochTime = epochTime;
+    this.verb = verb;
+    this.source = io.GZIP.encode(convert.UTF8.encode(source));
+    this.offset = offset;
+  }
 }
