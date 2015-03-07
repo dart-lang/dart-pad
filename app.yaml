@@ -1,4 +1,4 @@
-version: logger-db
+version: dbtext
 runtime: custom
 vm: true
 api_version: 1
