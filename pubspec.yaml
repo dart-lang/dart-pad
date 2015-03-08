@@ -6,7 +6,16 @@ homepage: https://github.com/dart-lang/dart-services
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
-  analyzer: '>=0.22.4 <0.23.0'
+  analysis_server:
+    git: git://github.com/lukechurch/dart-analysis-server-temp-working.git
+
+  analyzer:
+    git: git://github.com/lukechurch/dart-analyzer-temp-working.git
+
+  dart_style:
+    git: git://github.com/lukechurch/dart_style.git
+
+#  analyzer: '>=0.22.4 <0.23.0'
   appengine: '>=0.2.6 <0.3.0'
   args: ^0.12.0
   # `compiler_unsupported` needs to be pegged to a specific version.

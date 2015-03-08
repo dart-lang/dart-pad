@@ -16,12 +16,16 @@ import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
 import 'src/common_server.dart';
 
+import 'src/completer_driver.dart' as completer;
+
+
 const String _API = '/api';
 
 final Logger _logger = new Logger('gae_server');
 
 void main() {
   GaeServer server = new GaeServer('/usr/lib/dart');
+  completer.setup();
 
   // Change the log level to get more or less detailed logging.
   ae.useLoggingPackageAdaptor();
@@ -56,6 +60,7 @@ class GaeServer {
         'POST, OPTIONS');
     request.response.headers.add('Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept');
+
     // Explicitly handle an OPTIONS requests.
     if (request.method == 'OPTIONS') {
       var requestedMethod =
@@ -80,8 +85,13 @@ class GaeServer {
       // a plain text handler if we want to support that.
       var apiRequest = new rpc.HttpApiRequest.fromHttpRequest(request, _API);
       apiServer.handleHttpApiRequest(apiRequest)
-          .then((rpc.HttpApiResponse apiResponse) =>
-            rpc.sendApiResponse(apiResponse, request.response))
+          .then((rpc.HttpApiResponse apiResponse) {
+
+            print ("rpc.HttpApiResponse");
+            print (apiResponse.toString());
+
+            return rpc.sendApiResponse(apiResponse, request.response);
+      })
           .catchError((e) {
             // This should only happen in the case where there is a bug in the
             // rpc package. Otherwise it always returns an HttpApiResponse.

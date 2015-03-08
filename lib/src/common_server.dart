@@ -14,6 +14,9 @@ import 'package:rpc/rpc.dart';
 import 'analyzer.dart';
 import 'compiler.dart';
 
+import 'completer_driver.dart' as completer;
+
+
 final Duration _standardExpiration = new Duration(hours: 1);
 final Logger _logger = new Logger('common_server');
 
@@ -44,7 +47,11 @@ class CompileResponse {
 }
 
 class CompleteResponse {
-  // TODO: not yet implemented.
+  String result;
+
+  CompleteResponse(List<String> completions) {
+    result = completions.join(",");
+  }
 }
 
 class DocumentResponse {
@@ -66,6 +73,7 @@ class CommonServer {
     _logger.level = Level.ALL;
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath);
+
   }
 
   @ApiMethod(method: 'POST', path: 'analyze')
@@ -93,8 +101,12 @@ class CommonServer {
     if (request.offset == null) {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
-    throw new RpcError(HttpStatus.NOT_IMPLEMENTED, 'Not Implemented',
-                       '\'complete\' method not implemented.');
+
+    var response = _complete(request.source, request.offset);
+
+    print ("returning: $response");
+
+    return response;
   }
 
   @ApiMethod(method: 'GET', path: 'complete')
@@ -105,8 +117,8 @@ class CommonServer {
     if (offset == null) {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
-    throw new RpcError(HttpStatus.NOT_IMPLEMENTED, 'Not Implemented',
-                       '\'complete\' method not implemented.');
+
+    return _complete(source, offset);
   }
 
   @ApiMethod(method: 'POST', path: 'document')
@@ -211,6 +223,18 @@ class CommonServer {
       throw e;
     }
   }
+
+  Future<CompleteResponse> _complete(String source, int offset) {
+    srcRequestRecorder.record("COMPILE", source, offset);
+    return completer.ensureSetup().then((_) {
+      return completer.completeSyncy(source, offset).then((var results) {
+        var completions = results['results'].map((r) => r['completion']);
+        return new CompleteResponse(completions);
+      });
+    });
+  }
+
+
 
   Future<String> checkCache(String query) => cache.get(query);
   Future setCache(String query, String result) =>
