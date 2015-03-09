@@ -20,7 +20,7 @@ void defineTests() {
       });
 
       test('should return empty string if html is well-formed but without body', () {
-        expect(extractHtmlBody('<html><head><title>Hello World!</title></head></html>'), isEmpty);
+        expect(extractHtmlBody('<html><head><title>Hello World!</title></head></html>'), '<title>Hello World!</title>');
       });
 
       test('should return body content even if html is malformed', () {
