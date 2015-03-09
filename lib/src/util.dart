@@ -19,6 +19,16 @@ bool isMobile() {
 }
 
 /**
+ * A [NodeValidator] which allows everything.
+ */
+class PermissiveNodeValidator implements NodeValidator {
+  bool allowsElement(Element element) => true;
+  bool allowsAttribute(Element element, String attributeName, String value) {
+    return true;
+  }
+}
+
+/**
  * Text to be displayed to Dart Pad users. The associated title should be
  * 'About Dart Pad' (or equivalent).
  */

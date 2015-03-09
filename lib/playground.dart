@@ -44,6 +44,7 @@ class Playground {
   IFrameElement get _frame => querySelector('#frame');
 
   DButton runbutton;
+  DOverlay overlay;
   DBusyLight dartBusyLight;
   DBusyLight cssBusyLight;
   DBusyLight htmlBusyLight;
@@ -59,6 +60,7 @@ class Playground {
     _registerTab(querySelector('#htmltab'), 'html');
     _registerTab(querySelector('#csstab'), 'css');
 
+    overlay = new DOverlay(querySelector('#frame_overlay'));
     runbutton = new DButton(querySelector('#runbutton'));
     runbutton.onClick.listen((e) {
       _handleRun();
@@ -83,7 +85,7 @@ class Playground {
   }
 
   void showHome(RouteEnterEvent event) {
-    _logger.info('routed to showHome, ${window.location}, ${event.parameters}');
+    //_logger.info('routed to showHome, ${window.location}, ${event.parameters}');
 
     // TODO(devoncarew): Hack, until we resolve the issue with routing.
     String path = window.location.pathname;
@@ -106,7 +108,7 @@ class Playground {
   }
 
   void showGist(RouteEnterEvent event) {
-    _logger.info('routed to showGist, ${window.location}, ${event.parameters}');
+    //_logger.info('routed to showGist, ${window.location}, ${event.parameters}');
 
     String gistId = event.parameters['gist'];
 
@@ -246,20 +248,22 @@ class Playground {
   void _handleRun() {
     ga.sendEvent('main', 'run');
     runbutton.disabled = true;
+    overlay.visible = true;
 
     _clearOutput();
 
     var input = new SourceRequest()..source = context.dartSource;
-    dartServices.compile(input).timeout(longServiceCallTimeout)
-        .then((CompileResponse response) {
-          return executionService.execute(
-              _context.htmlSource, _context.cssSource, response.result);
-        }).catchError((e) {
-          // TODO: Also display using a toast.
-          _showOuput('Error compiling to JavaScript:\n${e}', error: true);
-        }).whenComplete(() {
-          runbutton.disabled = false;
-        });
+    dartServices.compile(input).timeout(longServiceCallTimeout).then(
+        (CompileResponse response) {
+      return executionService.execute(
+          _context.htmlSource, _context.cssSource, response.result);
+    }).catchError((e) {
+      // TODO: Also display using a toast.
+      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
+    }).whenComplete(() {
+      runbutton.disabled = false;
+      overlay.visible = false;
+    });
   }
 
   void _performAnalysis() {
