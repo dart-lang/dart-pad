@@ -270,3 +270,12 @@ class DLabel extends DElement {
     element.classes.toggle('info', value == 'info');
   }
 }
+
+class DOverlay extends DElement {
+  DOverlay(Element element) : super(element);
+
+  bool get visible => element.classes.contains('visible');
+  set visible(bool value) {
+    element.classes.toggle('visible', value);
+  }
+}

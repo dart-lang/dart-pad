@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:html';
 
+import 'util.dart';
+
 /**
  * Return whether the given string is a valid github gist ID.
  */
@@ -22,7 +24,7 @@ bool isLegalGistId(String id) {
  */
 String extractHtmlBody(String html) {
   HtmlHtmlElement element = new HtmlHtmlElement();
-  element.setInnerHtml(html);
+  element.setInnerHtml(html, validator: new PermissiveNodeValidator());
   return element.innerHtml.trim();
 }
 

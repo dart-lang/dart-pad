@@ -547,7 +547,7 @@ class PlaygroundMobile {
   void _showAboutDialog() {
     _messageDialog.heading = 'About Dart Pad';
     _messageDialog.element.querySelector('p').setInnerHtml(privacyText,
-        validator: new _NodeValidator());
+        validator: new PermissiveNodeValidator());
     _messageDialog.open();
   }
 
@@ -704,10 +704,4 @@ class BusyLight {
   }
 
   _reconcile() => element.classes.toggle('busy', _count > 0);
-}
-
-class _NodeValidator implements NodeValidator {
-  bool allowsAttribute(Element element, String attributeName, String value) =>
-      true;
-  bool allowsElement(Element element) => true;
 }

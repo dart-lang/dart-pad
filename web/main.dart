@@ -5,10 +5,6 @@
 import 'package:dart_pad/playground.dart' as playground;
 import 'package:logging/logging.dart';
 
-// TODO: display errors that aren't currently on the screen
-
-// TODO: ensure css works cross-platform: flexbox layout, box-shadow, transitions
-
 // TODO: create a hidden ping time counter - display it on a key combination
 
 void main() {
