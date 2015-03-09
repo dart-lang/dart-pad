@@ -13,3 +13,4 @@ pubspec.lock
 .settings/
 
 lib/bower/
+.DS_Store
