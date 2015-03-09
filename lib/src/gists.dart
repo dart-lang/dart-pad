@@ -25,7 +25,12 @@ bool isLegalGistId(String id) {
 String extractHtmlBody(String html) {
   HtmlHtmlElement element = new HtmlHtmlElement();
   element.setInnerHtml(html, validator: new PermissiveNodeValidator());
-  return element.innerHtml.trim();
+  Element bodyElement = element.querySelector('body');
+  if (bodyElement != null) {
+    return bodyElement.outerHtml.trim();
+  } else {
+    return html;
+  }
 }
 
 /**
