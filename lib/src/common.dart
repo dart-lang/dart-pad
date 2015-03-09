@@ -19,6 +19,17 @@ void main() {
 }
 """;
 
+final String sampleCodeAsync = """
+import 'dart:html';
+
+main() async {
+  print("hello");
+  querySelector('#foo').text = 'bar';
+  var foo = await HttpRequest.getString('http://www.google.com');
+  print(foo);
+}
+""";
+
 final String sampleCodeError = """
 void main() {
   print("hello")

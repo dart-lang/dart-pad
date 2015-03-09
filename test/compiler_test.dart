@@ -31,6 +31,12 @@ void defineTests() {
       });
     });
 
+    test('web async', () {
+      return compiler.compile(sampleCodeAsync).then((CompilationResults result) {
+        expect(result.success, true);
+      });
+    });
+
     test('errors', () {
       return compiler.compile(sampleCodeError).then((CompilationResults result) {
         expect(result.success, false);
