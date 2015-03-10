@@ -478,6 +478,8 @@ class PlaygroundContext extends Context {
     _cssDoc.value = value;
   }
 
+  String get activeMode => editor.mode;
+
   void switchTo(String name) {
     if (name == 'dart') {
       editor.swapDocument(_dartDoc);
