@@ -21,6 +21,7 @@ const String _API = '/api';
 final Logger _logger = new Logger('gae_server');
 
 void main() {
+  // TODO: Use the cli_util package to locate the SDK? Or depend on a CLI arg?
   GaeServer server = new GaeServer('/usr/lib/dart');
 
   // Change the log level to get more or less detailed logging.
