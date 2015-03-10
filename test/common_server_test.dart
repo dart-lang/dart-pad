@@ -79,9 +79,10 @@ void defineTests() {
       expect(response.status, 400);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data, isNotEmpty);
-      expect(data['error']['message'], "Compilation failed with errors: "
-          "[error, line 2] Expected ';' after this.");
+      expect(data['error']['message'],
+          contains('failed with errors: [error, line 2] Expected'));
     });
+
     /* XXX: Disabled below tests as they are causing the dart vm to crash.
     test('complete', () async {
       var json = {'source': 'void main() {print("foo");}', 'offset': 1};
@@ -144,7 +145,7 @@ class MockCache implements ServerCache {
 }
 
 class MockRequestRecorder implements SourceRequestRecorder {
-  
+
   @override
   Future record(String verb, String source, [int offset]) {
     return new Future.value();

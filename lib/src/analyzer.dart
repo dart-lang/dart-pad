@@ -195,6 +195,8 @@ class AnalysisIssue implements Comparable {
   }
 
   int compareTo(AnalysisIssue other) => line - other.line;
+
+  String toString() => '${kind}: ${message} [${line}]';
 }
 
 /// An implementation of [Source] that is based on an in-memory string.
@@ -240,15 +242,19 @@ class _StringSource implements Source {
 
   Uri resolveRelativeUri(Uri relativeUri) =>
       throw new AnalysisException("Cannot resolve a URI: ${relativeUri}");
+
+  Source get source => this;
 }
 
 class _Logger extends engine.Logger {
-  void logError(String message) => _logger.severe(message);
+  void logError(String message, [CaughtException exception]) {
+    _logger.severe(message);
+  }
 
   void logError2(String message, dynamic exception) =>
       _logger.severe(message, exception);
 
-  void logInformation(String message) { }
+  void logInformation(String message, [CaughtException exception]) { }
 
   void logInformation2(String message, dynamic exception) { }
 }
