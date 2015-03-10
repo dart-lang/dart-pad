@@ -1,8 +1,8 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library editor.codemirror;
+library editor.comid;
 
 import 'dart:async';
 import 'dart:html' as html;
@@ -44,7 +44,7 @@ class CodeMirrorFactory extends EditorFactory {
     initializeBracketClosing();
 
     List futures = [];
-    html.Element head = html.querySelector('html head');
+//    html.Element head = html.querySelector('html head');
 
 //    // <link href="packages/dart_pad/editing/editor_codemirror.css"
 //    //   rel="stylesheet">
@@ -287,11 +287,11 @@ class _CodeMirrorDocument extends Document {
   }
 }
 
-Future _appendNode(html.Element parent, html.Element child) {
-  Completer completer = new Completer();
-  child.onLoad.listen((e) {
-    completer.complete();
-  });
-  parent.nodes.add(child);
-  return completer.future;
-}
+//Future _appendNode(html.Element parent, html.Element child) {
+//  Completer completer = new Completer();
+//  child.onLoad.listen((e) {
+//    completer.complete();
+//  });
+//  parent.nodes.add(child);
+//  return completer.future;
+//}
