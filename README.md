@@ -4,7 +4,7 @@ The pre-alpha server backend to support interactive Dart services.
 
 [![Build Status](https://travis-ci.org/dart-lang/dart-services.svg?branch=master)](https://travis-ci.org/dart-lang/dart-services)
 [![Coverage Status](https://coveralls.io/repos/dart-lang/dart-services/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/dart-services?branch=master)
-[![Uptime Status](https://img.shields.io/badge/uptime-Pingdom-yellow.svg)](http://stats.pingdom.com/8n3tfpl1u0j9)
+[![Uptime Status](https://img.shields.io/badge/uptime-Pingdom-blue.svg)](http://stats.pingdom.com/8n3tfpl1u0j9)
 
 ## What is it? What does it do?
 
