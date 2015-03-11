@@ -7,13 +7,14 @@ library editor.comid;
 import 'dart:async';
 import 'dart:html' as html;
 
-import 'package:comid/codemirror.dart' hide Document;
+import 'package:comid/addon/comment/comment.dart' as comments;
+import 'package:comid/addon/edit/closebrackets.dart';
+import 'package:comid/addon/edit/matchbrackets.dart';
+import 'package:comid/addon/edit/show-hint.dart' as hints;
+import 'package:comid/addon/mode/css.dart';
 import 'package:comid/addon/mode/dart.dart';
 import 'package:comid/addon/mode/htmlmixed.dart';
-import 'package:comid/addon/edit/matchbrackets.dart';
-import 'package:comid/addon/edit/closebrackets.dart';
-import 'package:comid/addon/edit/show-hint.dart' as hints;
-import 'package:comid/addon/comment/comment.dart' as comments;
+import 'package:comid/codemirror.dart' hide Document;
 
 import 'editor.dart' hide Position;
 import 'editor.dart' as ed show Position;
@@ -25,19 +26,20 @@ final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
 final _gutterId = 'CodeMirror-lint-markers';
 
 class CodeMirrorFactory extends EditorFactory {
-
   CodeMirrorFactory._();
 
-  List<String> get modes => null; // TODO CodeMirror.MODES; unused
-  List<String> get themes => null; // TODO CodeMirror.THEMES; unused
+  List<String> get modes => ['dart', 'html', 'css'];
+  List<String> get themes => ['zenburn'];
 
   bool get inited {
-    return CodeMirror.getMode({}, 'dart').name != "null";
+    // TODO: Comparing to `'null'` can't be right.
+    return CodeMirror.getMode({}, 'dart').name != 'null';
   }
 
   Future init() {
     DartMode.initialize();
     HtmlMode.initialize();
+    CssMode.initialize();
     hints.initialize();
     comments.initialize();
     initializeBracketMatching();
@@ -75,7 +77,7 @@ class CodeMirrorFactory extends EditorFactory {
           (mac ? "Cmd-/" : "Ctrl-/"): "toggleComment"
         },
         //'lint': true,
-        'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
+        'theme': 'zenburn'
       };
     }
 
@@ -233,19 +235,6 @@ class _CodeMirrorDocument extends Document {
       // Create markers in the margin.
       if (lastLine == an.line) continue;
       lastLine = an.line;
-
-//      html.DivElement node = new html.DivElement();
-//      //node.style.position = 'absolute';
-//      node.text = an.message;
-//      node.style.backgroundColor = '#444';
-//      //node.style.height = '40px';
-//      //nodes.add(node);
-//      //(editor as _CodeMirrorEditor).cm.addWidget(_posToPos(an.start), node);
-//      widgets.add(
-//          (editor as _CodeMirrorEditor).cm.addLineWidget(an.line - 1, node));
-//
-////      cm.setGutterMarker(an.line - 1, _gutterId,
-////          _makeMarker(an.type, an.message, an.start, an.end));
     }
   }
 
@@ -259,18 +248,6 @@ class _CodeMirrorDocument extends Document {
 
   ed.Position _posFromPos(Pos position) =>
       new ed.Position(position.line, position.char);
-
-//  html.Element _makeMarker(String severity, String tooltip, ed.Position start,
-//      ed.Position end) {
-//    html.Element marker = new html.DivElement();
-//    marker.className = "CodeMirror-lint-marker-" + severity;
-//    if (tooltip != null) marker.title = tooltip;
-//    marker.onClick.listen((_) {
-//      doc.setSelection(new pos.Position(start.line, start.char),
-//          head: new pos.Position(end.line, end.char));
-//    });
-//    return marker;
-//  }
 
   Stream get onChange => doc.onEvent('change', 2).where((_) {
       if (value != _lastSetValue) return true;
@@ -286,12 +263,3 @@ class _CodeMirrorDocument extends Document {
     doc.dispose();
   }
 }
-
-//Future _appendNode(html.Element parent, html.Element child) {
-//  Completer completer = new Completer();
-//  child.onLoad.listen((e) {
-//    completer.complete();
-//  });
-//  parent.nodes.add(child);
-//  return completer.future;
-//}
