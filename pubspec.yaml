@@ -6,6 +6,7 @@ homepage: https://github.com/dart-lang/dart-pad
 environment:
   sdk: '>=1.0.0 <2.0.0'
 dependencies:
+  _discoveryapis_commons: '>=0.1.0 <0.2.0'
   ace: '>=0.5.10 <0.6.0'
   codemirror: '>=0.1.5 <0.2.0'
   comid:
