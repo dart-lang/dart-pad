@@ -115,7 +115,16 @@ class CodeMirrorFactory extends EditorFactory {
       [hints.ShowProposals displayProposals]) {
     assert(displayProposals != null); // ensure async
     _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, cm); // new instance!?
-    /*Future<List<Completion>> props =*/ completer.complete(ed);
+    Future<List<Completion>> props = completer.complete(ed);
+    Pos pos = cm.getCursor();
+    props.then((List<Completion> completions) {
+      hints.ProposalList proposals;
+      List<hints.Proposal> list = completions.map((Completion completion) =>
+          // this map is broken -- should use custom display ala Dart Editor
+          new hints.Proposal(completion.value)).toList();
+      proposals = new hints.ProposalList(list: list, from: pos, to: pos);
+      displayProposals(proposals);
+    });
     return null;
   }
 }
