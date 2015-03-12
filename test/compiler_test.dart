@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_server.compiler_test;
+library services.compiler_test;
 
-import 'package:dartpad_server/src/common.dart';
-import 'package:dartpad_server/src/compiler.dart';
+import 'package:services/src/common.dart';
+import 'package:services/src/compiler.dart';
 import 'package:grinder/grinder.dart' as grinder;
 import 'package:unittest/unittest.dart';
 
@@ -27,6 +27,12 @@ void defineTests() {
 
     test('simple web', () {
       return compiler.compile(sampleCodeWeb).then((CompilationResults result) {
+        expect(result.success, true);
+      });
+    });
+
+    test('web async', () {
+      return compiler.compile(sampleCodeAsync).then((CompilationResults result) {
         expect(result.success, true);
       });
     });

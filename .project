@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>dartpad_server</name>
+	<name>dart-services</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -17,6 +17,14 @@
 	<filteredResources>
 		<filter>
 			<id>1418563233791</id>
+			<name></name>
+			<type>30</type>
+			<matcher>
+				<id>com.google.dart.tools.core.packagesFolderMatcher</id>
+			</matcher>
+		</filter>
+		<filter>
+			<id>1423100841637</id>
 			<name></name>
 			<type>30</type>
 			<matcher>

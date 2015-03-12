@@ -1,7 +1,4 @@
-language: node_js
-node_js:
-  - "0.11"
-before_install:
-  - export DISPLAY=:99.0
-script:
-  - ./tool/travis.sh
+language: dart
+dart: dev
+script: ./tool/travis.sh
+

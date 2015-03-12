@@ -1,4 +1,4 @@
-version: liftoff-dev-2
+version: dbtext
 runtime: custom
 vm: true
 api_version: 1
@@ -6,3 +6,18 @@ api_version: 1
 resources:
   cpu: 2
   memory_gb: 3
+
+automatic_scaling:
+  min_num_instances: 3
+  max_num_instances: 20
+  cool_down_period_sec: 60
+  cpu_utilization:
+    target_utilization: 0.5
+
+env_variables:
+      DART_VM_OPTIONS: --enable-async
+
+skip_files:
+- ^.*/packages.*$
+- ^.*\.dart$
+- ^\.git/.*$

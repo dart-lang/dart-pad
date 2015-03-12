@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_server.analyzer_test;
+library services.analyzer_test;
 
-import 'package:dartpad_server/src/analyzer.dart';
-import 'package:dartpad_server/src/common.dart';
+import 'package:services/src/analyzer.dart';
+import 'package:services/src/common.dart';
 import 'package:grinder/grinder.dart' as grinder;
 import 'package:unittest/unittest.dart';
 
@@ -27,6 +27,12 @@ void defineTests() {
 
     test('simple', () {
       return analyzer.analyze(sampleCodeWeb).then((AnalysisResults results) {
+        expect(results.issues, isEmpty);
+      });
+    });
+
+    test('async', () {
+      return analyzer.analyze(sampleCodeAsync).then((AnalysisResults results) {
         expect(results.issues, isEmpty);
       });
     });

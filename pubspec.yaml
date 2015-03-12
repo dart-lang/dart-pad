@@ -1,31 +1,30 @@
-name: dartpad_server
+name: services
 version: 0.0.1
-description: The server backend for a web based interactive Dart service.
-
 author: Dart Team <misc@dartlang.org>
-homepage: https://github.com/dart-lang/dartpad_server
+description: The server backend for a web based interactive Dart service.
+homepage: https://github.com/dart-lang/dart-services
 environment:
   sdk: '>=1.0.0 <2.0.0'
-
 dependencies:
-  analyzer: '>=0.22.4 <0.23.0'
-  appengine: '>=0.2.1 <0.3.0'
-  archive: '>=1.0.18 <1.1.0'
-  args: any
-  compiler_unsupported: 1.9.0-dev.2.2.1
-  crypto: any
+  analyzer: ^0.24.0
+  appengine: '>=0.2.6 <0.3.0'
+  archive: '>=1.0.19 <1.1.0'
+  args: ^0.12.0
+  cli_util: ^0.0.1
+  # `compiler_unsupported` needs to be pegged to a specific version.
+  compiler_unsupported: 1.9.0-dev.10.4
+  crypto: '>=0.9.0 <0.10.0'
   grinder: '>=0.6.4 <0.7.0'
-  http: any
-  logging: any
-  path: any
-  shelf: any
-  shelf_route: any
-  yaml: any
-
+  librato: '>=0.0.1 <0.1.0'
+  logging: ^0.9.0
+  shelf: ^0.5.0
+  shelf_cors: ^0.2.0
+  shelf_route: ^0.11.0
+  rpc: ^0.1.0
+  yaml: ^2.0.0
 dev_dependencies:
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
   unittest: any
-
 executables:
-  dartpad_server:
+  services: null

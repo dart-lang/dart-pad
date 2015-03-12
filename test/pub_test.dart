@@ -6,7 +6,7 @@ library dartpad_server.pub_test;
 
 import 'dart:io';
 
-import 'package:dartpad_server/src/pub.dart';
+import 'package:services/src/pub.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {

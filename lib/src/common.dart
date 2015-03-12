@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_server.common;
+library services.common;
 
 final String sampleCode = """
 void main() {
@@ -16,6 +16,17 @@ import 'dart:html';
 void main() {
   print("hello");
   querySelector('#foo').text = 'bar';
+}
+""";
+
+final String sampleCodeAsync = """
+import 'dart:html';
+
+main() async {
+  print("hello");
+  querySelector('#foo').text = 'bar';
+  var foo = await HttpRequest.getString('http://www.google.com');
+  print(foo);
 }
 """;
 

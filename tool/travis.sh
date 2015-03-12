@@ -7,28 +7,15 @@
 # Fast fail the script on failures.
 set -e
 
-# Get the Dart SDK.
-DART_DIST=dartsdk-linux-x64-release.zip
-curl http://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/$DART_DIST > $DART_DIST
-unzip $DART_DIST > /dev/null
-rm $DART_DIST
-export DART_SDK="$PWD/dart-sdk"
-export PATH="$DART_SDK/bin:$PATH"
-
-# Display installed versions.
-dart --version
-
-# Get our packages.
-pub get
-
 # Verify that the libraries are error free.
-dartanalyzer --fatal-warnings \
-  bin/dartpad_server.dart \
-  lib/dartpad_server.dart \
-  test/all.dart
+pub global activate tuneup
+pub global run tuneup check
 
 # Run the tests.
 dart test/all.dart
+
+# Run the benchmarks.
+dart tool/grind.dart travis-bench
 
 # Install dart_coveralls; gather and send coverage data.
 if [ "$REPO_TOKEN" ]; then
@@ -39,6 +26,3 @@ if [ "$REPO_TOKEN" ]; then
     --exclude-test-files \
     test/all.dart
 fi
-
-# Run the benchmarks.
-dart benchmark/bench.dart

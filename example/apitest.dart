@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_server.apitest;
+library services_server.apitest;
 
 import 'dart:html';
 import 'dart:convert' show JSON;
@@ -51,7 +51,6 @@ void setupComplete() {
   offsetElement.text = 'offset ${_getOffset(editor)}';
 
   editor.onCursorActivity.listen((_) {
-    Position pos = editor.getCursor();
     offsetElement.text = 'offset ${_getOffset(editor)}';
   });
 }
@@ -69,7 +68,6 @@ void setupDocument() {
   offsetElement.text = 'offset ${_getOffset(editor)}';
 
   editor.onCursorActivity.listen((_) {
-    Position pos = editor.getCursor();
     offsetElement.text = 'offset ${_getOffset(editor)}';
   });
 }
@@ -95,13 +93,14 @@ void invoke(String api, String source, Element output, {int offset}) {
   String url = '${_uriBase}${api}';
   output.text = '';
 
-  //Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
+  Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
 
   Map m = {'source': source};
   if (offset != null) m['offset'] = offset;
   String data = JSON.encode(m); //new Uri(queryParameters: m).query;
 
-  HttpRequest.request(url, method: 'POST', sendData: data).then((HttpRequest r) {
+  HttpRequest.request(url, method: 'POST', sendData: data,
+                      requestHeaders: headers).then((HttpRequest r) {
     String response =
         '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
         '${_printHeaders(r.responseHeaders)}\n\n'
