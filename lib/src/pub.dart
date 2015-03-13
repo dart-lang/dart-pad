@@ -5,7 +5,7 @@
 /**
  * This library is an interface to the command-line pub tool.
  */
-library dartpad_server.pub;
+library services.pub;
 
 import 'dart:async';
 import 'dart:io';
@@ -37,7 +37,7 @@ class Pub {
   Directory _cacheDir;
 
   Pub() {
-    _cacheDir = new Directory(path.join(_userHomeDir(), '.dartpadcache'));
+    _cacheDir = Directory.systemTemp.createTempSync('dartpadcache');
     if (!_cacheDir.existsSync()) _cacheDir.createSync();
   }
 
@@ -46,7 +46,7 @@ class Pub {
   /**
    * Return the current version of the `pub` executable.
    */
-  String get version {
+  String getVersion() {
     ProcessResult result = Process.runSync('pub', ['--version']);
     return result.stdout.trim();
   }
@@ -64,31 +64,29 @@ class Pub {
       File pubspecFile = new File(path.join(tempDir.path, 'pubspec.yaml'));
       String specContents = 'name: temp\ndependencies:\n' +
           packages.map((p) => '  ${p}: any').join('\n');
-      pubspecFile.writeAsStringSync(specContents);
+      pubspecFile.writeAsStringSync(specContents, flush: true);
 
       // Run pub.
-      ProcessResult result = Process.runSync(
-          'pub', ['get'], workingDirectory: tempDir.path);
-      if (result.exitCode != 0) {
-        if (result.stderr.isNotEmpty) {
-          return new Future.value(result.stderr);
-        } else {
-          return new Future.value(
-              'failed to get pub packages: ${result.exitCode}');
+      return Process.run('pub', ['get'], workingDirectory: tempDir.path)
+          .timeout(new Duration(seconds: 20))
+          .then((ProcessResult result) {
+        if (result.exitCode != 0) {
+          String message = result.stderr.isNotEmpty ?
+              result.stderr : 'failed to get pub packages: ${result.exitCode}';
+          _logger.severe('Error running pub get: ${message}');
+          return new Future.value(message);
         }
-      }
 
-      // Parse the lock file.
-      File pubspecLock = new File(path.join(tempDir.path, 'pubspec.lock'));
-      return new Future.value(
-          _parseLockContents(pubspecLock.readAsStringSync()));
+        // Parse the lock file.
+        File pubspecLock = new File(path.join(tempDir.path, 'pubspec.lock'));
+        return new Future.value(
+            _parseLockContents(pubspecLock.readAsStringSync()));
+      }).whenComplete(() {
+        tempDir.deleteSync(recursive: true);
+      });
     } catch (e, st) {
       return new Future.error(e, st);
-    } finally {
-      tempDir.deleteSync(recursive: true);
     }
-
-    return new Future.value();
   }
 
   /**
@@ -165,7 +163,7 @@ class Pub {
     return http.get('${base}/${tgzName}').then((http.Response response) {
       // Save to disk (for posterity?).
       File tzgFile = new File(path.join(cacheDir.path, tgzName));
-      tzgFile.writeAsBytesSync(response.bodyBytes);
+      tzgFile.writeAsBytesSync(response.bodyBytes, flush: true);
 
       // Use the archive package to decompress.
       if (!target.existsSync()) target.createSync(recursive: true);
@@ -181,7 +179,7 @@ class Pub {
         File f = new File(
             '${target.path}${Platform.pathSeparator}${file.filename}');
         f.parent.createSync(recursive: true);
-        f.writeAsBytesSync(file.content);
+        f.writeAsBytesSync(file.content, flush: true);
       };
     });
   }
@@ -199,13 +197,15 @@ class PackagesInfo {
 }
 
 /**
- * A packake name and version tuple.
+ * A package name and version tuple.
  */
 class PackageInfo {
   final String name;
   final String version;
 
-  PackageInfo(this.name, this.version);
+  PackageInfo(this.name, this.version) {
+    // TODO: hard fail on bad name or version strings
+  }
 
   String toString() => '[${name}: ${version}]';
 }

@@ -14,7 +14,7 @@ void defineTests() {
 
   group('pub', () {
     test('version', () {
-      String ver = pub.version.toLowerCase();
+      String ver = pub.getVersion().toLowerCase();
       expect(ver, isNotEmpty);
       expect(ver, startsWith('pub 1.'));
     });
