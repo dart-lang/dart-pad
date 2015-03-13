@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad_server.pub_test;
+library services.pub_test;
 
 import 'dart:io';
 
@@ -82,7 +82,7 @@ void defineTests() {
 
 void ensureBad(String packageName, String packageVersion) {
   try {
-    PackageInfo info = new PackageInfo(packageName, packageVersion);
+    /*PackageInfo info =*/ new PackageInfo(packageName, packageVersion);
     fail('${packageName}, ${packageVersion} should have failed');
   } catch (e) {
     // expected -
