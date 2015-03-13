@@ -144,11 +144,11 @@ class Pub {
     return new PackagesInfo(results);
   }
 
-  String _userHomeDir() {
-    String envKey = Platform.operatingSystem == 'windows' ? 'APPDATA' : 'HOME';
-    String value = Platform.environment[envKey];
-    return value == null ? '.' : value;
-  }
+//  String _userHomeDir() {
+//    String envKey = Platform.operatingSystem == 'windows' ? 'APPDATA' : 'HOME';
+//    String value = Platform.environment[envKey];
+//    return value == null ? '.' : value;
+//  }
 
   /**
    * Download the indicated package and expand it into the target directory.
@@ -200,11 +200,15 @@ class PackagesInfo {
  * A package name and version tuple.
  */
 class PackageInfo {
+  static final nameRegex = new RegExp(r'^([\w]+)$');
+  static final versionRegex = new RegExp(r'^([\w-\+\.]+)$');
+
   final String name;
   final String version;
 
   PackageInfo(this.name, this.version) {
-    // TODO: hard fail on bad name or version strings
+    if (!nameRegex.hasMatch(name)) throw 'invalid package name: ${name}';
+    if (!versionRegex.hasMatch(version)) throw 'invalid package version: ${version}';
   }
 
   String toString() => '[${name}: ${version}]';

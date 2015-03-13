@@ -53,5 +53,38 @@ void defineTests() {
       print(pub.cacheDir);
       expect(pub.cacheDir.listSync(), isEmpty);
     });
+
+    test('PackageInfo name', () {
+      new PackageInfo('foo', '1');
+      new PackageInfo('foo_bar', '1');
+      new PackageInfo('foo_bar2', '1');
+    });
+
+    test('PackageInfo name bad', () {
+      ensureBad('foo bar', '1');
+      ensureBad('foobar.9', '1');
+      ensureBad('../foobar', '1');
+    });
+
+    test('PackageInfo version', () {
+      new PackageInfo('foo', '1.1.0');
+      new PackageInfo('foo', '1.1.0-dev23');
+      new PackageInfo('foo', '1.2.3+324bar');
+    });
+
+    test('PackageInfo version bad', () {
+      ensureBad('foo', '1 2');
+      ensureBad('foo', '../1.0.1');
+      ensureBad('foo', '1.0.0/2.0.0');
+    });
   });
+}
+
+void ensureBad(String packageName, String packageVersion) {
+  try {
+    PackageInfo info = new PackageInfo(packageName, packageVersion);
+    fail('${packageName}, ${packageVersion} should have failed');
+  } catch (e) {
+    // expected -
+  }
 }
