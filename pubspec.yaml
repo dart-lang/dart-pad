@@ -23,6 +23,7 @@ dependencies:
   rpc: ^0.1.0
   yaml: ^2.0.0
 dev_dependencies:
+  _discoveryapis_commons: any
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
   unittest: any
