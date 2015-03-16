@@ -133,7 +133,7 @@ a[selected]:hover {
 
 .header {
   line-height: 24px;
-  font-size: 12pt;
+  font-size: 15px;
 }
 
 button {
@@ -143,7 +143,7 @@ button {
   border: 1px solid #222;
   border-radius: 2px;
   font-family: 'Roboto', sans-serif;
-  font-size: 12pt;
+  font-size: 15px;
   line-height: 18px;
   height: 24px;
   cursor: pointer;
@@ -226,7 +226,7 @@ div.toggle {
 
 .console {
   font-family: 'Inconsolata', monospace;
-  font-size: 12pt;
+  font-size: 15px;
   line-height: 20px;
   min-height: 50px;
   overflow-y: auto;
@@ -243,7 +243,7 @@ div.toggle {
 
 #editpanel {
   font-family: 'Inconsolata', monospace;
-  font-size: 12pt;
+  font-size: 15px;
   line-height: 20px;
   display: block;
   position: relative;
