@@ -21,21 +21,33 @@ void main(List<String> args) {
 }
 
 /**
- * Generate the discovery doc from the annotated API.
+ * Generate the discovery doc and Dart library from the annotated API.
  */
 discovery(GrinderContext context) {
   ProcessResult result = Process.runSync(
       'dart', ['bin/services.dart', '--discovery']);
 
-  if (result.exitCode != 0) {
-    throw 'Error generating the discovery document';
-  }
+  if (result.exitCode != 0) throw 'Error generating the discovery document';
 
   File discoveryFile = new File('doc/generated/dartservices.json');
   discoveryFile.parent.createSync();
-
   context.log('writing ${discoveryFile.path}');
   discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
+
+  // Generate the Dart library from the json discovery file.
+  Pub.global.activate(context, 'discoveryapis_generator');
+  Pub.global.run(context, 'discoveryapis_generator:generate', arguments: [
+    'generate',
+    '--input-dir=doc/generated',
+    '--output-dir=doc/gen_pkg',
+    '--package-name=dartservices_clientlib'
+  ]);
+
+  Directory docDir = joinDir(Directory.current, ['doc']);
+  copyFile(
+      joinFile(docDir, ['gen_pkg/lib/dartservices/v1.dart']),
+      joinDir(docDir, ['generated']));
+  deleteEntity(joinDir(docDir, ['gen_pkg']));
 }
 
 /**

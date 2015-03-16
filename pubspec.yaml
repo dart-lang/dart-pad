@@ -9,17 +9,18 @@ dependencies:
   analysis_server:
     git: git://github.com/lukechurch/dart-analysis-server-temp-working.git
 
-  analyzer:
-    git: git://github.com/lukechurch/dart-analyzer-temp-working.git
+  analyzer: ^0.24.0
 
   dart_style:
     git: git://github.com/lukechurch/dart_style.git
 
 #  analyzer: '>=0.22.4 <0.23.0'
   appengine: '>=0.2.6 <0.3.0'
+  archive: '>=1.0.19 <1.1.0'
   args: ^0.12.0
+  cli_util: ^0.0.1
   # `compiler_unsupported` needs to be pegged to a specific version.
-  compiler_unsupported: 1.9.0-dev.2.2.1
+  compiler_unsupported: 1.9.0-dev.10.4
   crypto: '>=0.9.0 <0.10.0'
   grinder: '>=0.6.4 <0.7.0'
   librato: '>=0.0.1 <0.1.0'
@@ -28,7 +29,9 @@ dependencies:
   shelf_cors: ^0.2.0
   shelf_route: ^0.11.0
   rpc: ^0.1.0
+  yaml: ^2.0.0
 dev_dependencies:
+  _discoveryapis_commons: any
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
   http: any

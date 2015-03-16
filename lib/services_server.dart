@@ -9,7 +9,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:grinder/grinder.dart' as grinder;
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 import 'package:shelf/shelf.dart';
@@ -37,7 +37,7 @@ void main(List<String> args) {
     exit(1);
   });
 
-  Directory sdkDir = grinder.getSdkDir(args);
+  Directory sdkDir = cli_util.getSdkDir(args);
   if (sdkDir == null) {
     stdout.writeln(
         "Could not locate the SDK; "
@@ -53,8 +53,8 @@ void main(List<String> args) {
     });
     return;
   }
-  _logger.level = Level.ALL;
 
+  Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((r) => print(r));
 
   EndpointsServer.serve(sdkDir.path, port).then((EndpointsServer server) {
@@ -158,8 +158,6 @@ class _Cache implements ServerCache {
 }
 
 class _Recorder implements SourceRequestRecorder {
-  
-  @override
   Future record(String verb, String source, [int offset = -99]) {
     _logger.fine("$verb, $offset, $source");
     return new Future.value();

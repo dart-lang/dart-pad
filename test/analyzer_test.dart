@@ -31,6 +31,12 @@ void defineTests() {
       });
     });
 
+    test('async', () {
+      return analyzer.analyze(sampleCodeAsync).then((AnalysisResults results) {
+        expect(results.issues, isEmpty);
+      });
+    });
+
     test('errors', () {
       return analyzer.analyze(sampleCodeError).then((AnalysisResults results) {
         expect(results.issues.length, 1);

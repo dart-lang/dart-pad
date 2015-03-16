@@ -195,6 +195,8 @@ class AnalysisIssue implements Comparable {
   }
 
   int compareTo(AnalysisIssue other) => line - other.line;
+
+  String toString() => '${kind}: ${message} [${line}]';
 }
 
 /// An implementation of [Source] that is based on an in-memory string.
