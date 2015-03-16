@@ -1,7 +1,4 @@
 language: dart
-dart:
-  - stable
-  - dev
 before_install:
   - "export CHROME_ARGS=--no-sandbox"
   - "export DISPLAY=:99.0"

@@ -8,6 +8,7 @@
 /* CodeMirror tweaks */
 
 #editpanel .CodeMirror {
+  font-family: 'Inconsolata', monospace;
   background: inherit;
   color: inherit;
   box-shadow: none;
@@ -27,10 +28,6 @@
 
 #editpanel .CodeMirror-lines {
   padding: 0;
-}
-
-#editpanel {
-
 }
 
 .squiggle-error {
