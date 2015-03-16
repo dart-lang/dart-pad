@@ -8,12 +8,10 @@ environment:
 dependencies:
   analysis_server:
     git: git://github.com/lukechurch/dart-analysis-server-temp-working.git
-
-  analyzer: ^0.24.0
-
+  analyzer:
+    git: git://github.com/lukechurch/dart-analyzer-temp-working.git
   dart_style:
     git: git://github.com/lukechurch/dart_style.git
-
 #  analyzer: '>=0.22.4 <0.23.0'
   appengine: '>=0.2.6 <0.3.0'
   archive: '>=1.0.19 <1.1.0'
