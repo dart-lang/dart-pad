@@ -1,10 +1,13 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library services.completer_driver;
 
 import 'dart:io' as io;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'package:path/path.dart';
 
 import 'package:analysis_server/src/protocol.dart';
 
@@ -13,7 +16,9 @@ io.Directory sourceDirectory = io.Directory.systemTemp.createTempSync('analysisS
 // GAE configurations.
 String PACKAGE_ROOT = '/app/packages';
 String SDK = '/usr/lib/dart';
+String SERVER_PATH = "/app/lib/src/analysis_server_server.dart";
 
+bool NEEDS_ENABLE_ASYNC = true;
 bool USE_OVERLAYS = true;
 
 final Server server = new Server();
@@ -104,19 +109,13 @@ _complete(String src, int offset) {
       });
   };
 
-  if (!USE_OVERLAYS) {
-    f.writeAsStringSync(src, flush: true);
-    io.sleep(new Duration(milliseconds: 1000));
-    return continuation(null);
-  } else {
-    var ret = sendAddOverlay(path, src).then(continuation);
-    isSettingUp = false;
-    return ret;
+  var ret = sendAddOverlay(path, src).then(continuation);
+  isSettingUp = false;
+  return ret;
 
-  }
 }
 
-completeSyncy(String src, int offset) async => _complete(src, i);
+completeSyncy(String src, int offset) async => _complete(src, offset);
 
 procResults(List results) {
   return results.map((r) => r['completion']);
@@ -385,13 +384,12 @@ class Server {
 
  */
 
-    String serverPath = "/app/lib/src/analysis_server_server.dart";
     List<String> arguments = [];
 
     //arguments.add ('--port=8181');
     //arguments.add ("8181");
 
-    arguments.add('--enable-async');
+    if (NEEDS_ENABLE_ASYNC) arguments.add('--enable-async');
     arguments.add('-p$PACKAGE_ROOT');
     //arguments.add('--enable-vm-service=8183');
     //arguments.add('--profile');
@@ -406,7 +404,7 @@ class Server {
       arguments.add('--package-root=${io.Platform.packageRoot}');
     }
     arguments.add('--checked');
-    arguments.add(serverPath);
+    arguments.add(SERVER_PATH);
 
     //arguments.add ('--port');
     //arguments.add ("8182");
