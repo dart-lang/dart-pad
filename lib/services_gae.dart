@@ -18,7 +18,6 @@ import 'src/common_server.dart';
 
 import 'src/completer_driver.dart' as completer;
 
-
 const String _API = '/api';
 
 final Logger _logger = new Logger('gae_server');
@@ -65,7 +64,7 @@ class GaeServer {
     // Explicitly handle an OPTIONS requests.
     if (request.method == 'OPTIONS') {
       var requestedMethod =
-          request.headers.value('access-control-request-method');
+        request.headers.value('access-control-request-method');
       var statusCode;
       if (requestedMethod != null && requestedMethod.toUpperCase() == 'POST') {
         statusCode = io.HttpStatus.OK;
@@ -86,20 +85,15 @@ class GaeServer {
       // a plain text handler if we want to support that.
       var apiRequest = new rpc.HttpApiRequest.fromHttpRequest(request, _API);
       apiServer.handleHttpApiRequest(apiRequest)
-          .then((rpc.HttpApiResponse apiResponse) {
-
-            print ("rpc.HttpApiResponse");
-            print (apiResponse.toString());
-
-            return rpc.sendApiResponse(apiResponse, request.response);
-      })
-          .catchError((e) {
-            // This should only happen in the case where there is a bug in the
-            // rpc package. Otherwise it always returns an HttpApiResponse.
-            _logger.warning('Failed with error: $e when trying to call'
-                'method at \'${request.uri.path}\'.');
-            request.response..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
-                            ..close();
+        .then((rpc.HttpApiResponse apiResponse) {
+          return rpc.sendApiResponse(apiResponse, request.response);
+      }).catchError((e) {
+          // This should only happen in the case where there is a bug in the
+          // rpc package. Otherwise it always returns an HttpApiResponse.
+          _logger.warning('Failed with error: $e when trying to call'
+            'method at \'${request.uri.path}\'.');
+          request.response..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
+                        ..close();
           });
     } else {
       request.response..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR

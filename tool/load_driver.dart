@@ -42,7 +42,6 @@ pingServer(Timer t) {
   Stopwatch sw = new Stopwatch()..start();
 
   int time = new DateTime.now().millisecondsSinceEpoch;
-  
   String message = '$POST_PAYLOAD //$time $EPILOGUE';
   print(message);
   http.post(Uri.parse(URI), body: message).then((response) {
