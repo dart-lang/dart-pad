@@ -21,12 +21,12 @@ import 'editor.dart' as ed show Position;
 
 export 'editor.dart';
 
-final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
+final ComidFactory comidFactory = new ComidFactory._();
 
 final _gutterId = 'CodeMirror-lint-markers';
 
-class CodeMirrorFactory extends EditorFactory {
-  CodeMirrorFactory._();
+class ComidFactory extends EditorFactory {
+  ComidFactory._();
 
   List<String> get modes => ['dart', 'html', 'css'];
   List<String> get themes => ['zenburn'];
@@ -134,7 +134,7 @@ class _CodeMirrorEditor extends Editor {
 
   _CodeMirrorDocument _document;
 
-  _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
+  _CodeMirrorEditor._(ComidFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
   }
 
