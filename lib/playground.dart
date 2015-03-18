@@ -536,12 +536,12 @@ class DartCompleter extends CodeCompleter {
 
     int offset = editor.document.indexFromPos(editor.document.cursor);
 
-    var sq =
+    var request =
         new SourceRequest()..source = editor.document.value
         ..offset = offset;
 
-    return dartServices.complete(sq).then((cr) {
-      var suggestions = cr.result.split(",");
+    return dartServices.complete(request).then((response) {
+      var suggestions = response.result.split(",");
       List<Completion> cpls = new List<Completion>();
       for (var s in suggestions) {
         cpls.add(new Completion(s));
