@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "16c15e9156d49b5b9b14054d828c35e6d3e5e0c0",
+ "etag": "67cad34af5b4b64436452aef9eaa91fcf9b1a3cb",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -68,6 +68,15 @@
   },
   "CompileResponse": {
    "id": "CompileResponse",
+   "type": "object",
+   "properties": {
+    "result": {
+     "type": "string"
+    }
+   }
+  },
+  "CompleteResponse": {
+   "id": "CompleteResponse",
    "type": "object",
    "properties": {
     "result": {
@@ -157,6 +166,9 @@
    "parameterOrder": [],
    "request": {
     "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "CompleteResponse"
    }
   },
   "completeGet": {
@@ -177,7 +189,10 @@
      "location": "query"
     }
    },
-   "parameterOrder": []
+   "parameterOrder": [],
+   "response": {
+    "$ref": "CompleteResponse"
+   }
   },
   "document": {
    "id": "CommonServer.document",
