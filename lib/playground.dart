@@ -185,7 +185,7 @@ class Playground {
     editor.resize();
 
     // TODO: Add a real code completer here.
-    //editorFactory.registerCompleter('dart', new DartCompleter());
+    editorFactory.registerCompleter('dart', new DartCompleter());
 
     keys.bind('ctrl-s', _handleSave);
     keys.bind('ctrl-enter', _handleRun);
@@ -534,10 +534,21 @@ class PlaygroundContext extends Context {
 
 class DartCompleter extends CodeCompleter {
   Future<List<Completion>> complete(Editor editor) {
-    return new Future.value([
-      new Completion('one'),
-      new Completion('two'),
-      new Completion('three')
-    ]);
+
+    int offset = editor.document.indexFromPos(editor.document.cursor);
+
+    var sq =
+        new SourceRequest()..source = editor.document.value
+        ..offset = offset;
+
+    return dartServices.complete(sq).then((cr) {
+      var suggestions = cr.result.split(",");
+      List<Completion> cpls = new List<Completion>();
+      for (var s in suggestions) {
+        cpls.add(new Completion(s));
+      }
+
+      return cpls;
+    });
   }
 }
