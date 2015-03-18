@@ -169,6 +169,7 @@ button[disabled] {
   pointer-events: none;
   border-color: #272727;
   background-color: #3b3b3b;
+  background-image: none;
 }
 
 #runbutton {
