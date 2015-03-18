@@ -184,7 +184,6 @@ class Playground {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    // TODO: Add a real code completer here.
     editorFactory.registerCompleter('dart', new DartCompleter());
 
     keys.bind('ctrl-s', _handleSave);
