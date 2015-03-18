@@ -106,8 +106,6 @@ class CoreOverlay extends CoreElement {
 }
 
 abstract class CoreSelector extends CoreElement {
-  Stream _coreActivateStream;
-
   CoreSelector(String tag) : super(tag);
   CoreSelector.from(HtmlElement element) : super.from(element);
 

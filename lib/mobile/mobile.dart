@@ -338,8 +338,8 @@ class PlaygroundMobile {
     _router.listen();
   }
 
-  List<Element> _getTabElements(Element element) =>
-      element.querySelectorAll('a');
+//  List<Element> _getTabElements(Element element) =>
+//      element.querySelectorAll('a');
 
   void _handleRun() {
     ga.sendEvent('main', 'run');
@@ -355,7 +355,7 @@ class PlaygroundMobile {
 
       // TODO: Use the router here instead -
       _pages.selected = '1';
-      //_router.go('gist', {'gist': _currentGistId()});
+      //_router.go('gist', {'gist': currentGistId()});
 
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
@@ -383,7 +383,7 @@ class PlaygroundMobile {
 
       // TODO: Use the router here instead -
       _pages.selected = '1';
-      //_router.go('gist', {'gist': _currentGistId()});
+      //_router.go('gist', {'gist': currentGistId()});
 
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
@@ -447,9 +447,9 @@ class PlaygroundMobile {
     if (context.focusedEditor == 'dart') {
       ga.sendEvent('main', 'help');
 
-      String source = _context.dartSource;
-      Position pos = editor.document.cursor;
-      int offset = editor.document.indexFromPos(pos);
+//      String source = _context.dartSource;
+//      Position pos = editor.document.cursor;
+//      int offset = editor.document.indexFromPos(pos);
 
 //      // TODO: Show busy.
 //      dartServices.document(source, offset).then((Map result) {
@@ -539,10 +539,10 @@ class PlaygroundMobile {
     if (focus) editor.focus();
   }
 
-  void _showMessage(String message) {
-    _messageToast.text = message;
-    _messageToast.show();
-  }
+//  void _showMessage(String message) {
+//    _messageToast.text = message;
+//    _messageToast.show();
+//  }
 
   void _showAboutDialog() {
     _messageDialog.heading = 'About Dart Pad';
@@ -557,7 +557,7 @@ class PlaygroundMobile {
     _messageDialog.open();
   }
 
-  String _currentGistId() => _gistId;
+  String currentGistId() => _gistId;
 
   void _buildSamples(CoreMenu menu) {
     menu.add(new PaperItem(text: 'Bootstrap')..name('b51ea7c04322042b582a'));
