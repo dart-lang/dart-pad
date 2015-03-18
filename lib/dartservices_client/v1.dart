@@ -189,13 +189,15 @@ class DartservicesApi {
    *
    * Request parameters:
    *
+   * Completes with a [CompleteResponse].
+   *
    * Completes with a [commons.ApiRequestError] if the API endpoint returned an
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future complete(SourceRequest request) {
+  async.Future<CompleteResponse> complete(SourceRequest request) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -207,7 +209,6 @@ class DartservicesApi {
       _body = convert.JSON.encode((request).toJson());
     }
 
-    _downloadOptions = null;
 
     _url = 'complete';
 
@@ -218,7 +219,7 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response.then((data) => null);
+    return _response.then((data) => new CompleteResponse.fromJson(data));
   }
 
   /**
@@ -230,13 +231,15 @@ class DartservicesApi {
    *
    * [offset] - Query parameter: 'offset'.
    *
+   * Completes with a [CompleteResponse].
+   *
    * Completes with a [commons.ApiRequestError] if the API endpoint returned an
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future completeGet({core.String source, core.int offset}) {
+  async.Future<CompleteResponse> completeGet({core.String source, core.int offset}) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -251,7 +254,6 @@ class DartservicesApi {
       _queryParams["offset"] = ["${offset}"];
     }
 
-    _downloadOptions = null;
 
     _url = 'complete';
 
@@ -262,7 +264,7 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response.then((data) => null);
+    return _response.then((data) => new CompleteResponse.fromJson(data));
   }
 
   /**
@@ -456,6 +458,30 @@ class CompileResponse {
   CompileResponse();
 
   CompileResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("result")) {
+      result = _json["result"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (result != null) {
+      _json["result"] = result;
+    }
+    return _json;
+  }
+}
+
+
+/** Not documented yet. */
+class CompleteResponse {
+  /** Not documented yet. */
+  core.String result;
+
+
+  CompleteResponse();
+
+  CompleteResponse.fromJson(core.Map _json) {
     if (_json.containsKey("result")) {
       result = _json["result"];
     }
