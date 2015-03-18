@@ -228,6 +228,8 @@ class CommonServer {
     srcRequestRecorder.record("COMPILE", source, offset);
     return completer.ensureSetup().then((_) {
       return completer.completeSyncy(source, offset).then((var results) {
+        results['results']
+          .sort((x, y) => -1 * x['relevance'].compareTo(y['relevance']));
         var completions = results['results'].map((r) => r['completion']);
         return new CompleteResponse(completions);
       });
