@@ -6,7 +6,7 @@ library codemirror_module;
 
 import '../core/modules.dart';
 import '../core/dependencies.dart';
-import '../editing/editor_codemirror.dart';
+import '../editing/editor_comid.dart';
 
 class CodeMirrorModule extends Module {
   Future init() {
