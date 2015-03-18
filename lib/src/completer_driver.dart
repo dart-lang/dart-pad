@@ -139,7 +139,8 @@ Future<ServerGetVersionResult> sendServerGetVersion() {
   });
 }
 
-Future sendCompletionGetSuggestions(String file, int offset) {
+Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions
+  (String file, int offset) {
   var params = new CompletionGetSuggestionsParams(file, offset).toJson();
   return server.send("completion.getSuggestions", params)
       .then((result) {
@@ -148,7 +149,8 @@ Future sendCompletionGetSuggestions(String file, int offset) {
   });
 }
 
-Future sendAddOverlay(String file, String contents) {
+Future<AnalysisUpdateContentResult> sendAddOverlay
+  (String file, String contents) {
   setupLog.writeln("sendAddOverlay: $file $contents");
 
   var overlay = new AddContentOverlay(contents);

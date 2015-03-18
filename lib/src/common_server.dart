@@ -5,7 +5,6 @@
 library services.common_server;
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -15,7 +14,6 @@ import 'analyzer.dart';
 import 'compiler.dart';
 
 import 'completer_driver.dart' as completer;
-
 
 final Duration _standardExpiration = new Duration(hours: 1);
 final Logger _logger = new Logger('common_server');
@@ -235,8 +233,6 @@ class CommonServer {
       });
     });
   }
-
-
 
   Future<String> checkCache(String query) => cache.get(query);
   Future setCache(String query, String result) =>
