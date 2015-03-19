@@ -1,4 +1,4 @@
-version: ccMap
+version: cc-map
 runtime: custom
 vm: true
 api_version: 1
