@@ -75,6 +75,7 @@ class GaeServer {
                       ..close();
       return;
     }
+
     if (request.uri.path.startsWith(_API)) {
       if (!discoveryEnabled) {
         apiServer.enableDiscoveryApi(request.requestedUri.origin);
