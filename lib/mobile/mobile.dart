@@ -338,9 +338,6 @@ class PlaygroundMobile {
     _router.listen();
   }
 
-//  List<Element> _getTabElements(Element element) =>
-//      element.querySelectorAll('a');
-
   void _handleRun() {
     ga.sendEvent('main', 'run');
     runButton.disabled = true;

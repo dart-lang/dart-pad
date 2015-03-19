@@ -62,9 +62,9 @@ build(GrinderContext context) {
 
 /// Prepare the app for deployment.
 deploy(GrinderContext context) {
-  // Validate the deloy. This means that we're using version `dev` on the master
-  // branch and version `prod` on the prod branch. We only deploy prod from the
-  // prod branch. Other versions are possible but not verified.
+  // Validate the deploy. This means that we're using version `dev` on the
+  // master branch and version `prod` on the prod branch. We only deploy prod
+  // from the prod branch. Other versions are possible but not verified.
 
   // `dev` is served from dev.dart-pad.appspot.com
   // `prod` is served from prod.dart-pad.appspot.com and from dartpad.dartlang.org.
