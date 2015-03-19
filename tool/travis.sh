@@ -12,7 +12,7 @@ pub global activate tuneup
 pub global run tuneup check
 
 # Run the tests.
-dart test/all.dart
+dart --checked test/all.dart
 
 # Run the benchmarks.
 dart tool/grind.dart travis-bench

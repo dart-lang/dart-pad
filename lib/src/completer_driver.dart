@@ -31,8 +31,8 @@ typedef void NotificationProcessor(String event, params);
 Stream<bool> analysisComplete;
 StreamController<bool> _onServerStatus;
 
-Stream completionResults;
-StreamController _onCompletionResults;
+Stream<Map> completionResults;
+StreamController<Map> _onCompletionResults;
 
 io.File f = new io.File(sourceDirectory.path + io.Platform.pathSeparator + "main.dart");
 String path = f.path;
@@ -54,7 +54,6 @@ Future ensureSetup() async {
 }
 
 Future setup() async {
-
   isSettingUp = true;
 
   _onServerStatus = new StreamController<bool>(sync: true);
@@ -71,58 +70,59 @@ Future setup() async {
   return server.start().then((_) {
     setupLog.writeln("Server started");
 
-      server.listenToOutput(dispatchNotification);
-      server.sendServerSetSubscriptions([ServerService.STATUS]);
+    server.listenToOutput(dispatchNotification);
+    server.sendServerSetSubscriptions([ServerService.STATUS]);
 
-      setupLog.writeln("Server Set Subscriptions completed");
+    setupLog.writeln("Server Set Subscriptions completed");
 
-      f.writeAsStringSync("", flush: true);
+    f.writeAsStringSync("", flush: true);
 
-      setupLog.writeln("File write completed");
+    setupLog.writeln("File write completed");
 
-      var continuation = (_) {
-        sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
-        setupLog.writeln("Analysis Roots set");
+    var continuation = (_) {
+      sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
+      setupLog.writeln("Analysis Roots set");
 
-        server.sendPrioritySetSources([path]);
-        setupLog.writeln("Priority sources set");
+      server.sendPrioritySetSources([path]);
+      setupLog.writeln("Priority sources set");
 
-        isSettingUp = false;
-        isSetup = true;
-        return analysisComplete.first;
-      };
+      isSettingUp = false;
+      isSetup = true;
+      return analysisComplete.first;
+    };
 
-      if (!USE_OVERLAYS) {
-        return continuation(null);
-      } else {
-        return sendAddOverlay(path, src0).then(continuation);
-      }
-    });
+    if (!USE_OVERLAYS) {
+      return continuation(null);
+    } else {
+      return sendAddOverlay(path, src0).then(continuation);
+    }
+  });
 }
 
-_complete(String src, int offset) {
+Future<Map> _complete(String src, int offset) {
   var continuation = (_) {
     return analysisComplete.first.then((_) {
       return sendCompletionGetSuggestions(path, offset).then((_) {
         return completionResults.first;
       });
-      });
+    });
   };
 
   var ret = sendAddOverlay(path, src).then(continuation);
   isSettingUp = false;
   return ret;
-
 }
 
-completeSyncy(String src, int offset) async => _complete(src, offset);
+Future<Map> completeSyncy(String src, int offset) async =>
+    _complete(src, offset);
 
-procResults(List results) {
-  return results.map((r) => r['completion']);
-}
+//procResults(List results) {
+//  return results.map((r) => r['completion']);
+//}
 
 void dispatchNotification(String event, params) {
-  if (event == "server.status" && params.containsKey('analysis') && !params['analysis']['isAnalyzing']) {
+  if (event == "server.status" && params.containsKey('analysis') &&
+      !params['analysis']['isAnalyzing']) {
     _onServerStatus.add(true);
   }
 
@@ -132,15 +132,14 @@ void dispatchNotification(String event, params) {
 }
 
 Future<ServerGetVersionResult> sendServerGetVersion() {
-  return server.send("server.getVersion", null)
-      .then((result) {
+  return server.send("server.getVersion", null).then((result) {
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new ServerGetVersionResult.fromJson(decoder, 'result', result);
   });
 }
 
-Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions
-  (String file, int offset) {
+Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
+    String file, int offset) {
   var params = new CompletionGetSuggestionsParams(file, offset).toJson();
   return server.send("completion.getSuggestions", params)
       .then((result) {
@@ -149,8 +148,8 @@ Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions
   });
 }
 
-Future<AnalysisUpdateContentResult> sendAddOverlay
-  (String file, String contents) {
+Future<AnalysisUpdateContentResult> sendAddOverlay(
+    String file, String contents) {
   setupLog.writeln("sendAddOverlay: $file $contents");
 
   var overlay = new AddContentOverlay(contents);
@@ -158,9 +157,7 @@ Future<AnalysisUpdateContentResult> sendAddOverlay
 
   setupLog.writeln("About to send analysis.updateContent");
 
-  return server.send("analysis.updateContent", params)
-      .then((result) {
-
+  return server.send("analysis.updateContent", params).then((result) {
     setupLog.writeln("analysis.updateContent -> then");
 
     ResponseDecoder decoder = new ResponseDecoder(null);
