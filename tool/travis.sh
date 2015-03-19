@@ -11,12 +11,9 @@ set -e
 npm install -g bower
 npm install -g vulcanize
 
-# TODO: use tuneup
 # Verify that the libraries are error free.
-dartanalyzer --fatal-warnings \
-  lib/dart_pad.dart \
-  test/all.dart \
-  web/main.dart
+pub global activate tuneup
+pub global run tuneup check --ignore-infos
 
 # Run the command-line tests.
 dart test/all.dart

@@ -7,8 +7,10 @@ library dart_pad.grind;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:git/git.dart';
 import 'package:grinder/grinder.dart';
 import 'package:librato/librato.dart';
+import 'package:yaml/yaml.dart' as yaml;
 
 void main(List<String> args) {
   task('init', defaultInit);
@@ -59,8 +61,64 @@ build(GrinderContext context) {
 }
 
 /// Prepare the app for deployment.
-void deploy(GrinderContext context) {
-  context.log('execute: `appcfg.py update build/web`');
+deploy(GrinderContext context) {
+  // Validate the deploy. This means that we're using version `dev` on the
+  // master branch and version `prod` on the prod branch. We only deploy prod
+  // from the prod branch. Other versions are possible but not verified.
+
+  // `dev` is served from dev.dart-pad.appspot.com
+  // `prod` is served from prod.dart-pad.appspot.com and from dartpad.dartlang.org.
+
+  Map app = yaml.loadYaml(new File('web/app.yaml').readAsStringSync());
+
+  final String version = app['version'];
+  List handlers = app['handlers'];
+  bool isSecure = false;
+
+  for (Map m in handlers) {
+    if (m['url'] == '.*') {
+      isSecure = m['secure'] == 'always';
+    }
+  }
+
+  return GitDir.fromExisting('.').then((GitDir dir) {
+    return dir.getCurrentBranch();
+  }).then((BranchReference branchRef) {
+    final String branch = branchRef.branchName;
+
+    context.log('branch: ${branch}');
+    context.log('version: ${version}');
+
+    if (branch == 'prod') {
+      if (version != 'prod') {
+        context.fail('Trying to deploy non-prod version from the prod branch');
+      }
+
+      if (!isSecure) {
+        context.fail('The prod branch must have `secure: always`.');
+      }
+    }
+
+    if (branch == 'master') {
+      if (version != 'dev') {
+        context.fail('Trying to deploy non-dev version from the master branch');
+      }
+    }
+
+    if (version == 'prod') {
+      if (branch != 'prod') {
+        context.fail('The prod version can only be deployed from the prod branch');
+      }
+    }
+
+    if (version != 'prod') {
+      if (isSecure) {
+        context.fail('The ${version} version should not have `secure: always` set');
+      }
+    }
+
+    context.log('\nexecute: `appcfg.py update build/web`');
+  });
 }
 
 Future _uploadCompiledStats(GrinderContext context, num mainLength,
