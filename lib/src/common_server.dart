@@ -219,7 +219,7 @@ class CommonServer {
   }
 
   Future<CompleteResponse> _complete(String source, int offset) {
-    srcRequestRecorder.record("COMPILE", source, offset);
+    srcRequestRecorder.record("COMPLETE", source, offset);
 
     return completer_driver.ensureSetup().then((_) {
       return completer_driver.completeSyncy(source, offset).then((Map results) {
