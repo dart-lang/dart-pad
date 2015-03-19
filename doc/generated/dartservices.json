@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "67cad34af5b4b64436452aef9eaa91fcf9b1a3cb",
+ "etag": "13679ea51ed6f29880123385839fcd300c3496f2",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -79,8 +79,14 @@
    "id": "CompleteResponse",
    "type": "object",
    "properties": {
-    "result": {
-     "type": "string"
+    "completions": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "additionalProperties": {
+       "type": "string"
+      }
+     }
     }
    }
   },

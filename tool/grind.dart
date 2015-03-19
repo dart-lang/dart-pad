@@ -27,7 +27,9 @@ discovery(GrinderContext context) {
   ProcessResult result = Process.runSync(
       'dart', ['bin/services.dart', '--discovery']);
 
-  if (result.exitCode != 0) throw 'Error generating the discovery document';
+  if (result.exitCode != 0) {
+    throw 'Error generating the discovery document\n${result.stderr}';
+  }
 
   File discoveryFile = new File('doc/generated/dartservices.json');
   discoveryFile.parent.createSync();

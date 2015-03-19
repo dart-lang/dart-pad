@@ -45,10 +45,23 @@ class CompileResponse {
 }
 
 class CompleteResponse {
-  final String result;
+  final List<Map<String, String>> completions;
 
-  CompleteResponse(Iterable<String> completions) :
-    result = completions.join(",");
+  CompleteResponse(List<Map> completions) :
+    this.completions = _convert(completions);
+
+  /**
+   * Convert any non-string values from the contained maps.
+   */
+  static List<Map<String, String>> _convert(List<Map> list) {
+    return list.map((m) {
+      Map newMap = {};
+      for (String key in m.keys) {
+        newMap[key] = '${m[key]}';
+      }
+      return newMap;
+    }).toList();
+  }
 }
 
 class DocumentResponse {
@@ -98,9 +111,7 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
-    var response = _complete(request.source, request.offset);
-
-    return response;
+    return _complete(request.source, request.offset);
   }
 
   @ApiMethod(method: 'GET', path: 'complete')
@@ -222,12 +233,10 @@ class CommonServer {
     srcRequestRecorder.record("COMPLETE", source, offset);
 
     return completer_driver.ensureSetup().then((_) {
-      return completer_driver.completeSyncy(source, offset).then((Map results) {
-        results['results']
-            .sort((x, y) => -1 * x['relevance']
-            .compareTo(y['relevance']));
-        var completions = results['results'].map((r) => r['completion']);
-        return new CompleteResponse(completions);
+      return completer_driver.completeSyncy(source, offset).then((Map response) {
+        List<Map> results = response['results'];
+        results.sort((x, y) => -1 * x['relevance'].compareTo(y['relevance']));
+        return new CompleteResponse(results);
       });
     });
   }
