@@ -19,7 +19,7 @@ class DartservicesApi {
 
   final commons.ApiRequester _requester;
 
-  DartservicesApi(http.Client client, {core.String rootUrl: "http://localhost:8080/", core.String servicePath: "api/dartservices/v1/"}) :
+  DartservicesApi(http.Client client, {core.String rootUrl: "http://localhost/", core.String servicePath: "api/dartservices/v1/"}) :
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
@@ -476,21 +476,21 @@ class CompileResponse {
 /** Not documented yet. */
 class CompleteResponse {
   /** Not documented yet. */
-  core.String result;
+  core.List<core.Map<core.String, core.String>> completions;
 
 
   CompleteResponse();
 
   CompleteResponse.fromJson(core.Map _json) {
-    if (_json.containsKey("result")) {
-      result = _json["result"];
+    if (_json.containsKey("completions")) {
+      completions = _json["completions"];
     }
   }
 
   core.Map toJson() {
     var _json = new core.Map();
-    if (result != null) {
-      _json["result"] = result;
+    if (completions != null) {
+      _json["completions"] = completions;
     }
     return _json;
   }

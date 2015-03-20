@@ -541,11 +541,10 @@ class DartCompleter extends CodeCompleter {
         ..offset = offset;
 
     return dartServices.complete(request).then((response) {
-      var suggestions = response.result.split(",");
+
       List<Completion> cpls = new List<Completion>();
-      for (var s in suggestions) {
-        cpls.add(new Completion(s));
-      }
+      response.completions.forEach((mp)
+          => cpls.add(new Completion(mp['completion'])));
 
       return cpls;
     });
