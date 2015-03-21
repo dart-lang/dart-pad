@@ -58,10 +58,11 @@ class DartCompleter extends CodeCompleter {
       int delta = offset - response.replacementOffset;
 
       List<Completion> completions =  analysisCompletions.map((completion) {
-        // TODO: Move to using a LabelProvider; decouple the data from the
-        // rendering.
+        // TODO: Move to using a LabelProvider; decouple the data and rendering.
         String displayString = completion.isMethod ? '${completion.text}()' : completion.text;
-        if (completion.returnType != null) displayString += ': ${completion.returnType}';
+        if (completion.isMethod && completion.returnType != null) {
+          displayString += ' → ${completion.returnType}';
+        }
 
         // TODO: We need to be more precise about the text we're inserting and
         // replacing.
