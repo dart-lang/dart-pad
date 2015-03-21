@@ -4,6 +4,7 @@
 
 library dart_pad.util;
 
+import 'dart:async';
 import 'dart:html';
 
 /**
@@ -50,3 +51,31 @@ We look forward to your
 <br><br>
 Made with &lt;3 by Google.
 ''';
+
+class CancellableCompleter<T> implements Completer {
+  Completer _completer = new Completer();
+  bool _cancelled = false;
+
+  CancellableCompleter();
+
+  void complete([value]) {
+    if (!_cancelled) _completer.complete(value);
+  }
+
+  void completeError(Object error, [StackTrace stackTrace]) {
+    if (!_cancelled) _completer.completeError(error, stackTrace);
+  }
+
+  Future<T> get future => _completer.future;
+
+  bool get isCompleted => _completer.isCompleted;
+
+  void cancel() {
+    if (!_cancelled) {
+      if (!isCompleted) completeError(new TimeoutException('cancelled'));
+      _cancelled = true;
+    }
+  }
+
+  bool get isCancelled => _cancelled;
+}
