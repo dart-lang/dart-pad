@@ -16,8 +16,6 @@ import 'editor.dart' as ed show Position;
 
 export 'editor.dart';
 
-// TODO: code completion initial hook up for dart
-
 final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
 
 final _gutterId = 'CodeMirror-lint-markers';

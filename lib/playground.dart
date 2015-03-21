@@ -10,6 +10,7 @@ import 'dart:html' hide Document;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
+import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
@@ -184,14 +185,15 @@ class Playground {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    editorFactory.registerCompleter('dart', new DartCompleter());
-
     keys.bind('ctrl-s', _handleSave);
     keys.bind('ctrl-enter', _handleRun);
     keys.bind('f1', _handleHelp);
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
+
+    editorFactory.registerCompleter(
+        'dart', new DartCompleter(dartServices, _context._dartDoc));
 
     _context.onHtmlDirty.listen((_) => htmlBusyLight.on());
     _context.onHtmlReconcile.listen((_) {
@@ -325,7 +327,7 @@ class Playground {
               // TODO: Tell the user there were no results.
             } else {
               // TODO: Display this info
-              print(result.info['description']);
+              print(result.info); //['description']);
             }
           });
     }
@@ -521,32 +523,6 @@ class PlaygroundContext extends Context {
       timer = new Timer(new Duration(milliseconds: delay), () {
         controller.add(null);
       });
-    });
-  }
-}
-
-// TODO: For CodeMirror, we get a request each time the user hits a key when the
-// completion popup is open. We need to cache the results when appropriate.
-
-// TODO: We need to cancel completion requests if one is open when we get
-// another.
-
-class DartCompleter extends CodeCompleter {
-  Future<List<Completion>> complete(Editor editor) {
-
-    int offset = editor.document.indexFromPos(editor.document.cursor);
-
-    var request =
-        new SourceRequest()..source = editor.document.value
-        ..offset = offset;
-
-    return dartServices.complete(request).then((response) {
-
-      List<Completion> cpls = new List<Completion>();
-      response.completions.forEach((mp)
-          => cpls.add(new Completion(mp['completion'])));
-
-      return cpls;
     });
   }
 }
