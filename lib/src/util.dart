@@ -52,6 +52,21 @@ We look forward to your
 Made with &lt;3 by Google.
 ''';
 
+/**
+ * Thrown when a cancellation occurs whilst waiting for a result.
+ */
+class CancellationException implements Exception {
+  final String reason;
+
+  CancellationException(this.reason);
+
+  String toString() {
+    String result = "Request cancelled";
+    if (reason != null) result = "$result due to: $reason";
+    return result;
+  }
+}
+
 class CancellableCompleter<T> implements Completer {
   Completer _completer = new Completer();
   bool _cancelled = false;
@@ -70,9 +85,9 @@ class CancellableCompleter<T> implements Completer {
 
   bool get isCompleted => _completer.isCompleted;
 
-  void cancel() {
+  void cancel({String reason : "cancelled"}) {
     if (!_cancelled) {
-      if (!isCompleted) completeError(new TimeoutException('cancelled'));
+      if (!isCompleted) completeError(new CancellationException(reason));
       _cancelled = true;
     }
   }
