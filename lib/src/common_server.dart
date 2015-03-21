@@ -250,7 +250,7 @@ class CommonServer {
         List<Map> results = response['results'];
         results.sort((x, y) => -1 * x['relevance'].compareTo(y['relevance']));
         return new CompleteResponse(
-            response['replacementOffset'], response['replacementOffset'],
+            response['replacementOffset'], response['replacementLength'],
             results);
       });
     });
