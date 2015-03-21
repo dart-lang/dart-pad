@@ -126,6 +126,7 @@ void dispatchNotification(String event, params) {
     _onServerStatus.add(true);
   }
 
+  // TODO: Should we be ignoring the ones that aren't marked 'isLast'?
   if (event == "completion.results" && params["isLast"]) {
     _onCompletionResults.add(params);
   }
@@ -141,8 +142,7 @@ Future<ServerGetVersionResult> sendServerGetVersion() {
 Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
     String file, int offset) {
   var params = new CompletionGetSuggestionsParams(file, offset).toJson();
-  return server.send("completion.getSuggestions", params)
-      .then((result) {
+  return server.send("completion.getSuggestions", params).then((result) {
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
   });
@@ -166,14 +166,15 @@ Future<AnalysisUpdateContentResult> sendAddOverlay(
 }
 
 Future sendServerShutdown() {
-  return server.send("server.shutdown", null)
-      .then((result) {
+  return server.send("server.shutdown", null).then((result) {
     return null;
   });
 }
 
-Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded, {Map<String, String> packageRoots}) {
-  var params = new AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: packageRoots).toJson();
+Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded,
+    {Map<String, String> packageRoots}) {
+  var params = new AnalysisSetAnalysisRootsParams(
+      included, excluded, packageRoots: packageRoots).toJson();
   return server.send("analysis.setAnalysisRoots", params);
 }
 
@@ -327,8 +328,8 @@ class Server {
     // This will only work if the caller has already subscribed to
     // SERVER_STATUS (e.g. using sendServerSetSubscriptions(['STATUS']))
     subscription = analysisComplete.listen((bool p) {
-        completer.complete(p);
-        subscription.cancel();
+      completer.complete(p);
+      subscription.cancel();
     });
     return completer.future;
   }
@@ -342,7 +343,6 @@ class Server {
    * error response, the future will be completed with an error.
    */
   Future send(String method, Map<String, dynamic> params) {
-
     serverLog.writeln("Server.send $method $params");
 
     String id = '${_nextId++}';
@@ -380,7 +380,6 @@ class Server {
 
     String serverPath =
         normalize(join(dirname(io.Platform.script.toFilePath()), 'analysis_server_server.dart'));
-
  */
 
     List<String> arguments = [];
@@ -458,7 +457,6 @@ class Server {
       fail('Bad data received from server');
     }));
   */
-
   }
 
   /**

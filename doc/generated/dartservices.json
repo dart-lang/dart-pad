@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "13679ea51ed6f29880123385839fcd300c3496f2",
+ "etag": "9406bbd71d3611efb3691e4d0fd51f8ac9dbe4a4",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -79,6 +79,16 @@
    "id": "CompleteResponse",
    "type": "object",
    "properties": {
+    "replacementOffset": {
+     "type": "integer",
+     "description": "The offset of the start of the text to be replaced.",
+     "format": "int32"
+    },
+    "replacementLength": {
+     "type": "integer",
+     "description": "The length of the text to be replaced.",
+     "format": "int32"
+    },
     "completions": {
      "type": "array",
      "items": {

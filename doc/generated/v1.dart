@@ -478,6 +478,12 @@ class CompleteResponse {
   /** Not documented yet. */
   core.List<core.Map<core.String, core.String>> completions;
 
+  /** The length of the text to be replaced. */
+  core.int replacementLength;
+
+  /** The offset of the start of the text to be replaced. */
+  core.int replacementOffset;
+
 
   CompleteResponse();
 
@@ -485,12 +491,24 @@ class CompleteResponse {
     if (_json.containsKey("completions")) {
       completions = _json["completions"];
     }
+    if (_json.containsKey("replacementLength")) {
+      replacementLength = _json["replacementLength"];
+    }
+    if (_json.containsKey("replacementOffset")) {
+      replacementOffset = _json["replacementOffset"];
+    }
   }
 
   core.Map toJson() {
     var _json = new core.Map();
     if (completions != null) {
       _json["completions"] = completions;
+    }
+    if (replacementLength != null) {
+      _json["replacementLength"] = replacementLength;
+    }
+    if (replacementOffset != null) {
+      _json["replacementOffset"] = replacementOffset;
     }
     return _json;
   }
