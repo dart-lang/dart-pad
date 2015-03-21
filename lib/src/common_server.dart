@@ -5,6 +5,7 @@
 library services.common_server;
 
 import 'dart:async';
+import 'dart:convert' show JSON;
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -45,9 +46,16 @@ class CompileResponse {
 }
 
 class CompleteResponse {
+  @ApiProperty(description: 'The offset of the start of the text to be replaced.')
+  final int replacementOffset;
+
+  @ApiProperty(description: 'The length of the text to be replaced.')
+  final int replacementLength;
+
   final List<Map<String, String>> completions;
 
-  CompleteResponse(List<Map> completions) :
+  CompleteResponse(this.replacementOffset, this.replacementLength,
+      List<Map> completions) :
     this.completions = _convert(completions);
 
   /**
@@ -57,7 +65,12 @@ class CompleteResponse {
     return list.map((m) {
       Map newMap = {};
       for (String key in m.keys) {
-        newMap[key] = '${m[key]}';
+        var data = m[key];
+        // TODO: Properly support Lists, Maps (this is a hack).
+        if (data is Map || data is List) {
+          data = JSON.encode(data);
+        }
+        newMap[key] = '${data}';
       }
       return newMap;
     }).toList();
@@ -236,7 +249,9 @@ class CommonServer {
       return completer_driver.completeSyncy(source, offset).then((Map response) {
         List<Map> results = response['results'];
         results.sort((x, y) => -1 * x['relevance'].compareTo(y['relevance']));
-        return new CompleteResponse(results);
+        return new CompleteResponse(
+            response['replacementOffset'], response['replacementOffset'],
+            results);
       });
     });
   }
