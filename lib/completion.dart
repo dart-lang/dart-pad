@@ -5,7 +5,7 @@
 library dartpad.completion;
 
 import 'dart:async';
-//import 'dart:convert' show JSON;
+import 'dart:convert' show JSON;
 
 import 'package:logging/logging.dart';
 
@@ -41,23 +41,40 @@ class DartCompleter extends CodeCompleter {
     CancellableCompleter completer = new CancellableCompleter();
     _lastCompleter = completer;
 
-    servicesApi.complete(request).then((response) {
-      List<Completion> completions =  response.completions.map((completion) {
-        AnalysisCompletion c = new AnalysisCompletion(completion);
+    servicesApi.complete(request).then((CompleteResponse response) {
+      if (completer.isCancelled) return;
 
-        String displayString = c.isMethod ? '${c.text}()' : c.text;
+      _logger.info('completion request in ${timer.elapsedMilliseconds}ms; '
+          '${response.completions.length} completions, '
+          'offset=${response.replacementOffset}, '
+          'length=${response.replacementLength}');
 
-        if (c.returnType != null) displayString += ': ${c.returnType}';
+      List<AnalysisCompletion> analysisCompletions = response.completions.map(
+          (completion) {
+        return new AnalysisCompletion(
+            response.replacementOffset, response.replacementLength, completion);
+      }).toList();
 
-        return new Completion(c.text, displayString: displayString);
+      int delta = offset - response.replacementOffset;
+
+      List<Completion> completions =  analysisCompletions.map((completion) {
+        // TODO: Move to using a LabelProvider; decouple the data from the
+        // rendering.
+        String displayString = completion.isMethod ? '${completion.text}()' : completion.text;
+        if (completion.returnType != null) displayString += ': ${completion.returnType}';
+
+        // TODO: We need to be more precise about the text we're inserting and
+        // replacing.
+        String text = completion.text;
+        if (delta > 0 && delta <= text.length) {
+          text = text.substring(delta);
+        }
+
+        // TODO: Use classes to decorate the completion UI ('cm-builtin').
+        return new Completion(text, displayString: displayString);
       }).toList();
 
       completer.complete(completions);
-
-      if (!completer.isCancelled) {
-        timer.stop();
-        _logger.info('completion request in ${timer.elapsedMilliseconds}ms');
-      }
     }).catchError((e) {
       completer.completeError(e);
     });
@@ -75,29 +92,33 @@ class DartCompleter extends CodeCompleter {
 //{kind: INVOCATION, relevance: 1000, completion: Cat, selectionOffset: 3, selectionLength: 0, isDeprecated: false, isPotential: false, element: {kind: CLASS, name: Cat, flags: 0}}
 //{kind: INVOCATION, relevance: 1000, completion: print, selectionOffset: 5, selectionLength: 0, isDeprecated: false, isPotential: false, element: {kind: FUNCTION, name: print, flags: 8, parameters: (Object object), returnType: void}, returnType: void, parameterNames: [object], parameterTypes: [Object], requiredParameterCount: 1, hasNamedParameters: false}
 
-class AnalysisCompletion {
+class AnalysisCompletion implements Comparable {
+  final int offset;
+  final int length;
+
   final Map _map;
 
-  AnalysisCompletion(this._map) {
-    print(_map);
+  AnalysisCompletion(this.offset, this.length, this._map) {
+    // TODO: We need to pass this completion info better.
+    _convert('element');
+    _convert('parameterNames');
+    _convert('parameterTypes');
 
-    // TODO: We need to pass the completion info better.
-    var element = _map['element'];
-    if (element is String) {
-      _map.remove('element'); //['element'] = JSON.decode(element);
-    }
+    if (_map.containsKey('element')) _map['element'].remove('location');
+  }
+
+  // Convert maps and lists that have been passed as json.
+  void _convert(String key) {
+    if (_map[key] is String) _map[key] = JSON.decode(_map[key]);
   }
 
   // KEYWORD, INVOCATION, ...
   String get kind => _map['kind'];
 
-  // TODO:
-  bool get isMethod => _map.containsKey('parameterNames');
-
-//  bool get isMethod {
-//    var element = _map['element'];
-//    return element is Map ? element['kind'] == 'FUNCTION' : false;
-//  }
+  bool get isMethod {
+    var element = _map['element'];
+    return element is Map ? element['kind'] == 'FUNCTION' : false;
+  }
 
   String get text => _map['completion'];
 
@@ -112,6 +133,11 @@ class AnalysisCompletion {
   int get selectionLength => _int(_map['selectionLength']);
 
   int get selectionOffset => _int(_map['selectionOffset']);
+
+  int compareTo(other) {
+    if (other is! AnalysisCompletion) return -1;
+    return text.compareTo(other.text);
+  }
 
   String toString() => text;
 
