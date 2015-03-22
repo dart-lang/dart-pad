@@ -138,8 +138,8 @@ class GaeCounter implements PersistentCounter {
   }
 
   @override
-  Future increment(String name, {int increment}) {
-    return counter.Counter.increment(name);
+  Future increment(String name, {int increment : 1}) {
+    return counter.Counter.increment(name, increment: increment);
   }
 }
 

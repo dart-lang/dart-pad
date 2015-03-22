@@ -161,7 +161,7 @@ class MockCounter implements PersistentCounter {
   }
 
   @override
-  Future increment(String name, {int increment}) {
+  Future increment(String name, {int increment : 1}) {
     return new Future.value();
   }
 }

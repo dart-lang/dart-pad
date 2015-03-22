@@ -126,7 +126,7 @@ void dispatchNotification(String event, params) {
     _onServerStatus.add(true);
   }
 
-  // Ignore all but the last compeltion result. This means that we get a
+  // Ignore all but the last completion result. This means that we get a
   // precise map of the completion results, rather than a partial list.
   if (event == "completion.results" && params["isLast"]) {
     _onCompletionResults.add(params);
