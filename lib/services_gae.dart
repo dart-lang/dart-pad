@@ -17,6 +17,7 @@ import 'package:rpc/rpc.dart' as rpc;
 import 'src/common_server.dart';
 
 import 'src/completer_driver.dart' as completer;
+import 'src/sharded_counter.dart' as counter;
 
 const String _API = '/api';
 
@@ -45,7 +46,11 @@ class GaeServer {
     _logger.level = Level.ALL;
 
     discoveryEnabled = false;
-    commonServer = new CommonServer(sdkPath, new GaeCache(), new GaeSourceRequestRecorder());
+    commonServer = new CommonServer(
+        sdkPath,
+        new GaeCache(),
+        new GaeSourceRequestRecorder(),
+        new GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
     apiServer =
         new rpc.ApiServer(_API, prettyPrint: true)..addApi(commonServer);
@@ -123,6 +128,18 @@ class GaeSourceRequestRecorder implements SourceRequestRecorder {
         ms, verb, source, offset);
 
     return db.dbService.commit(inserts: [record]);
+  }
+}
+
+class GaeCounter implements PersistentCounter {
+  @override
+  Future<int> getTotal(String name) {
+    return counter.Counter.getTotal(name);
+  }
+
+  @override
+  Future increment(String name, {int increment}) {
+    return counter.Counter.increment(name);
   }
 }
 

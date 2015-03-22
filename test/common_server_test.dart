@@ -19,6 +19,7 @@ void defineTests() {
 
   MockCache cache = new MockCache();
   MockRequestRecorder recorder = new MockRequestRecorder();
+  MockCounter counter = new MockCounter();
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
@@ -31,7 +32,7 @@ void defineTests() {
     setUp(() {
       if (server == null) {
         String sdkPath = grinder.getSdkDir().path;
-        server = new CommonServer(sdkPath, cache, recorder);
+        server = new CommonServer(sdkPath, cache, recorder, counter);
         apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
       }
     });
@@ -148,6 +149,19 @@ class MockRequestRecorder implements SourceRequestRecorder {
 
   @override
   Future record(String verb, String source, [int offset]) {
+    return new Future.value();
+  }
+}
+
+class MockCounter implements PersistentCounter {
+
+  @override
+  Future<int> getTotal(String name) {
+    return new Future.value(42);
+  }
+
+  @override
+  Future increment(String name, {int increment}) {
     return new Future.value();
   }
 }

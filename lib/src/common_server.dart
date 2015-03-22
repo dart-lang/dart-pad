@@ -33,6 +33,11 @@ abstract class SourceRequestRecorder {
   Future record(String verb, String source, [int offset]);
 }
 
+abstract class PersistentCounter {
+  Future increment(String name, {int increment : 1});
+  Future<int> getTotal(String name);
+}
+
 class SourceRequest {
   @ApiProperty(required: true)
   String source;
@@ -43,6 +48,17 @@ class CompileResponse {
   final String result;
 
   CompileResponse(this.result);
+}
+
+class CounterRequest {
+  @ApiProperty(required: true)
+  String name;
+}
+
+class CounterResponse {
+  final int count;
+
+  CounterResponse(this.count);
 }
 
 class CompleteResponse {
@@ -87,15 +103,26 @@ class DocumentResponse {
 class CommonServer {
   final ServerCache cache;
   final SourceRequestRecorder srcRequestRecorder;
+  final PersistentCounter counter;
 
   Analyzer analyzer;
   Compiler compiler;
 
-  CommonServer(String sdkPath, this.cache, this.srcRequestRecorder) {
+  CommonServer(String sdkPath,
+      this.cache,
+      this.srcRequestRecorder,
+      this.counter) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath);
+  }
+
+  @ApiMethod(method: 'GET', path: 'counter')
+  Future<CounterResponse> counterGet({String name}) {
+    return counter.getTotal(name).then((total) {
+      return new CounterResponse(total);
+    });
   }
 
   @ApiMethod(method: 'POST', path: 'analyze')
@@ -149,17 +176,19 @@ class CommonServer {
     return _document(source, offset);
   }
 
-  Future<AnalysisResults> _analyze(String source) {
+  Future<AnalysisResults> _analyze(String source) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
     Stopwatch watch = new Stopwatch()..start();
     srcRequestRecorder.record("ANALYZE", source);
     try {
-      return analyzer.analyze(source).then((AnalysisResults results) {
+      return analyzer.analyze(source).then((AnalysisResults results) async {
         int lineCount = source.split('\n').length;
         int ms = watch.elapsedMilliseconds;
         _logger.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
+        await counter.increment("Analyses");
+        await counter.increment("Analyzed-Lines", increment: lineCount);
         return results;
       }).catchError((e) {
         _logger.severe('Error during analyze: ${e}');
@@ -171,7 +200,7 @@ class CommonServer {
     }
   }
 
-  Future<CompileResponse> _compile(String source) {
+  Future<CompileResponse> _compile(String source) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
@@ -190,7 +219,7 @@ class CommonServer {
         _logger.info("CACHE: MISS, forced: $supressCache");
         Stopwatch watch = new Stopwatch()..start();
 
-        return compiler.compile(source).then((CompilationResults results) {
+        return compiler.compile(source).then((CompilationResults results) async {
           if (results.hasOutput) {
             int lineCount = source.split('\n').length;
             int outputSize = (results.getOutput().length + 512) ~/ 1024;
@@ -198,6 +227,8 @@ class CommonServer {
             _logger.info(
               'PERF: Compiled ${lineCount} lines of Dart into '
               '${outputSize}kb of JavaScript in ${ms}ms.');
+            await counter.increment("Compilations");
+            await counter.increment("Compiled-Lines", increment: lineCount);
             String out = results.getOutput();
             return setCache("%%COMPILE:$sourceHash", out).then((_) {
               return new CompileResponse(out);
@@ -216,7 +247,7 @@ class CommonServer {
     });
   }
 
-  Future<DocumentResponse> _document(String source, int offset) {
+  Future<DocumentResponse> _document(String source, int offset) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
@@ -227,10 +258,11 @@ class CommonServer {
     srcRequestRecorder.record("DOCUMENT", source, offset);
     try {
       return analyzer.dartdoc(source, offset)
-        .then((Map<String, String> docInfo) {
+        .then((Map<String, String> docInfo) async {
           if (docInfo == null) docInfo = {};
           _logger.info(
             'PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
+          await counter.increment("DartDocs");
           return new DocumentResponse(docInfo);
         }).catchError((e, st) {
           _logger.severe('Error during dartdoc: ${e}\n${st}');
@@ -242,9 +274,9 @@ class CommonServer {
     }
   }
 
-  Future<CompleteResponse> _complete(String source, int offset) {
+  Future<CompleteResponse> _complete(String source, int offset) async {
     srcRequestRecorder.record("COMPLETE", source, offset);
-
+    await counter.increment("Completions");
     return completer_driver.ensureSetup().then((_) {
       return completer_driver.completeSyncy(source, offset).then((Map response) {
         List<Map> results = response['results'];

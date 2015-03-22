@@ -126,7 +126,8 @@ void dispatchNotification(String event, params) {
     _onServerStatus.add(true);
   }
 
-  // TODO: Should we be ignoring the ones that aren't marked 'isLast'?
+  // Ignore all but the last compeltion result. This means that we get a
+  // precise map of the completion results, rather than a partial list.
   if (event == "completion.results" && params["isLast"]) {
     _onCompletionResults.add(params);
   }
