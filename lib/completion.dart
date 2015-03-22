@@ -57,7 +57,7 @@ class DartCompleter extends CodeCompleter {
 
       int replacementOffset = response.replacementOffset;
       int delta = offset - replacementOffset;
-      String prefix = editor.document.value.substring(
+      String lowerPrefix = editor.document.value.substring(
           replacementOffset, replacementOffset + delta).toLowerCase();
 
 
@@ -69,7 +69,7 @@ class DartCompleter extends CodeCompleter {
 
         // Filter unmatching completions.
         if (delta > 0) {
-          if (!completion.text.toLowerCase().startsWith(prefix)) {
+          if (!completion.text.toLowerCase().startsWith(lowerPrefix)) {
             return null;
           }
         }
