@@ -270,6 +270,46 @@ class DartservicesApi {
   /**
    * Not documented yet.
    *
+   * Request parameters:
+   *
+   * [name] - Query parameter: 'name'.
+   *
+   * Completes with a [CounterResponse].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<CounterResponse> counterGet({core.String name}) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (name != null) {
+      _queryParams["name"] = [name];
+    }
+
+
+    _url = 'counter';
+
+    var _response = _requester.request(_url,
+                                       "GET",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new CounterResponse.fromJson(data));
+  }
+
+  /**
+   * Not documented yet.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -509,6 +549,30 @@ class CompleteResponse {
     }
     if (replacementOffset != null) {
       _json["replacementOffset"] = replacementOffset;
+    }
+    return _json;
+  }
+}
+
+
+/** Not documented yet. */
+class CounterResponse {
+  /** Not documented yet. */
+  core.int count;
+
+
+  CounterResponse();
+
+  CounterResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("count")) {
+      count = _json["count"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (count != null) {
+      _json["count"] = count;
     }
     return _json;
   }
