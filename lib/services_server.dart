@@ -75,7 +75,11 @@ class EndpointsServer {
 
   static Future<String> generateDiscovery(String sdkPath,
                                           String serverUrl) async {
-    var commonServer = new CommonServer(sdkPath, new _Cache(), new _Recorder());
+    var commonServer = new CommonServer(
+        sdkPath,
+        new _Cache(),
+        new _Recorder(),
+        new _Counter());
     var apiServer =
         new ApiServer('/api', prettyPrint: true)..addApi(commonServer);
     apiServer.enableDiscoveryApi(serverUrl);
@@ -100,7 +104,11 @@ class EndpointsServer {
 
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
-    commonServer = new CommonServer(sdkPath, new _Cache(), new _Recorder());
+    commonServer = new CommonServer(
+        sdkPath,
+        new _Cache(),
+        new _Recorder(),
+        new _Counter());
     apiServer = new ApiServer('/api', prettyPrint: true)..addApi(commonServer);
 
     pipeline = new Pipeline()
@@ -160,6 +168,28 @@ class _Cache implements ServerCache {
 class _Recorder implements SourceRequestRecorder {
   Future record(String verb, String source, [int offset = -99]) {
     _logger.fine("$verb, $offset, $source");
+    return new Future.value();
+  }
+}
+
+/**
+ * This is a mock implementation of a counter, it doesn't use
+ * a proper persistent store.
+ */
+class _Counter implements PersistentCounter {
+  final Map<String, int> _map = {};
+
+  @override
+  Future<int> getTotal(String name) {
+    _map.putIfAbsent(name, () => 0);
+
+    return new Future.value(_map[name]);
+  }
+
+  @override
+  Future increment(String name, {int increment : 1}) {
+    _map.putIfAbsent(name, () => 0);
+    _map[name]++;
     return new Future.value();
   }
 }
