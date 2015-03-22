@@ -8,8 +8,6 @@ import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:html';
 
-import 'util.dart';
-
 /**
  * Return whether the given string is a valid github gist ID.
  */
@@ -23,9 +21,15 @@ bool isLegalGistId(String id) {
  * `<body>` tag.
  */
 String extractHtmlBody(String html) {
-  HtmlHtmlElement element = new HtmlHtmlElement();
-  element.setInnerHtml(html, validator: new PermissiveNodeValidator());
-  return element.innerHtml.trim();
+  if(!html.contains('<html')) {
+    return html;
+  } else {
+    var body = r'body(?:\s[^>]*)?'; // Body tag with its attributes
+    var any = r'[\s\S]'; // Any character including new line
+    var bodyRegExp = new RegExp("<$body>($any*)</$body>(?:(?!</$body>)$any)*", multiLine: true, caseSensitive: false);
+    var match = bodyRegExp.firstMatch(html);
+    return match == null ? '' : match.group(1).trim();
+  }
 }
 
 /**
