@@ -21,12 +21,13 @@ bool isLegalGistId(String id) {
  * `<body>` tag.
  */
 String extractHtmlBody(String html) {
-  if(!html.contains('<html')) {
+  if (!html.contains('<html')) {
     return html;
   } else {
     var body = r'body(?:\s[^>]*)?'; // Body tag with its attributes
     var any = r'[\s\S]'; // Any character including new line
-    var bodyRegExp = new RegExp("<$body>($any*)</$body>(?:(?!</$body>)$any)*", multiLine: true, caseSensitive: false);
+    var bodyRegExp = new RegExp("<$body>($any*)</$body>(?:(?!</$body>)$any)*",
+        multiLine: true, caseSensitive: false);
     var match = bodyRegExp.firstMatch(html);
     return match == null ? '' : match.group(1).trim();
   }
