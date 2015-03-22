@@ -28,7 +28,7 @@ class DartCompleter extends CodeCompleter {
 
   Future<List<Completion>> complete(Editor editor) {
     // Cancel any open completion request.
-    if (_lastCompleter != null) _lastCompleter.cancel();
+    if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 
     int offset = editor.document.indexFromPos(editor.document.cursor);
 
