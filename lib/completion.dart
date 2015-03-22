@@ -55,13 +55,24 @@ class DartCompleter extends CodeCompleter {
             response.replacementOffset, response.replacementLength, completion);
       }).toList();
 
-      int delta = offset - response.replacementOffset;
+      int replacementOffset = response.replacementOffset;
+      int delta = offset - replacementOffset;
+      String lowerPrefix = editor.document.value.substring(
+          replacementOffset, replacementOffset + delta).toLowerCase();
+
 
       List<Completion> completions =  analysisCompletions.map((completion) {
         // TODO: Move to using a LabelProvider; decouple the data and rendering.
         String displayString = completion.isMethod ? '${completion.text}()' : completion.text;
         if (completion.isMethod && completion.returnType != null) {
           displayString += ' → ${completion.returnType}';
+        }
+
+        // Filter unmatching completions.
+        if (delta > 0) {
+          if (!completion.text.toLowerCase().startsWith(lowerPrefix)) {
+            return null;
+          }
         }
 
         // TODO: We need to be more precise about the text we're inserting and
@@ -73,7 +84,7 @@ class DartCompleter extends CodeCompleter {
 
         // TODO: Use classes to decorate the completion UI ('cm-builtin').
         return new Completion(text, displayString: displayString);
-      }).toList();
+      }).where((x) => x != null).toList();
 
       completer.complete(completions);
     }).catchError((e) {
