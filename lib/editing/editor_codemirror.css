@@ -53,12 +53,15 @@
 .CodeMirror-hint {
   background: #3f3f3f;
   color: #dcdccc;
-  border-radius: 0px;
+  border-radius: 0;
+  max-width: 30em; /* overrides the default 19em in show-hint.css */
+  padding-right: 10px;
 }
 
 li.CodeMirror-hint-active {
   background: #545454;
   color: #f0dfaf;
+  max-width: none;
 }
 
 .CodeMirror-hints::-webkit-scrollbar-track {

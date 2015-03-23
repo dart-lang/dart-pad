@@ -63,7 +63,7 @@ class DartCompleter extends CodeCompleter {
       List<Completion> completions =  analysisCompletions.map((completion) {
         // TODO: Move to using a LabelProvider; decouple the data and rendering.
         String displayString = completion.isMethod
-            ? '${completion.text}()' : completion.text;
+            ? completion.text + completion.parameters : completion.text;
         if (completion.isMethod && completion.returnType != null) {
           displayString += ' → ${completion.returnType}';
         }
@@ -136,6 +136,8 @@ class AnalysisCompletion implements Comparable {
     return element is Map
         ? (element['kind'] == 'FUNCTION' || element['kind'] == 'METHOD') : false;
   }
+
+  String get parameters => isMethod ? _map['element']["parameters"] : null;
 
   String get text => _map['completion'];
 
