@@ -53,6 +53,7 @@
 
 /* adds a second border for shadow */
 .CodeMirror-hints::after {
+  z-index:-1;
   background: none;
   border: 2px solid grey;
   content: "";
@@ -70,13 +71,17 @@
   color: #dcdccc;
   border-radius: 0;
   max-width: 30em; /* overrides the default 19em in show-hint.css */
+  text-overflow: ellipsis;
   padding-right: 10px;
 }
 
 li.CodeMirror-hint-active {
   background: #545454;
-  color: #f0dfaf;
+}
+
+.CodeMirror-hint-active:hover {
   max-width: none;
+  text-overflow: clip;
 }
 
 .CodeMirror-hints::-webkit-scrollbar-track {
