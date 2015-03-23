@@ -81,6 +81,7 @@ class DartCompleter extends CodeCompleter {
         if (delta > 0 && delta <= text.length) {
           text = text.substring(delta);
         }
+        if (completion.parameters == "()") text += "()";
         // TODO: Use classes to decorate the completion UI ('cm-builtin').
         if (completion.type == null) {
           return new Completion(text, displayString: displayString);
