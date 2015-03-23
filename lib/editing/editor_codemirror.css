@@ -47,23 +47,7 @@
 .CodeMirror-hints {
   border: 1px solid #cc9393;
   font-size: 100%;
-  background:  #3f3f3f;
-
-}
-
-/* adds a second border for shadow */
-.CodeMirror-hints::after {
-  z-index:-1;
-  background: none;
-  border: 2px solid grey;
-  content: "";
-  display: block;
-  position: absolute;
-  height: 1000000px;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  background: grey;
 }
 
 .CodeMirror-hint {
@@ -77,11 +61,6 @@
 
 li.CodeMirror-hint-active {
   background: #545454;
-}
-
-.CodeMirror-hint-active:hover {
-  max-width: none;
-  text-overflow: clip;
 }
 
 .CodeMirror-hints::-webkit-scrollbar-track {
