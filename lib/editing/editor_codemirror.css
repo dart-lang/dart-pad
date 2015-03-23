@@ -74,3 +74,39 @@ li.CodeMirror-hint-active {
 .CodeMirror-hints::-webkit-scrollbar-thumb {
   background-color: #000000;
 }
+.CodeMirror-hint::before {
+  color: #333;
+  font-weight:bold;
+  box-sizing:border-box;
+  line-height:16px;
+  width:15px;
+  height:15px;
+  font-size: 12px;
+  display: inline-block;
+  text-align:center;
+  margin-right: 5px;
+  border-radius:50%;
+  content : " "
+}
+
+.type-class::before{
+  content: "C";
+  background-color: #A2D7F5;
+}
+.type-getter::before, .type-setter::before{
+  content: "p";
+  background-color: #e1C2ff;
+}
+.type-method::before{
+  content: "m";
+  background-color: #fdbeb6;
+}
+.type-local_variable::before, .type-variable::before{
+  content: "v";
+  background-color: #f4c381;
+}
+.type-function::before{
+  content: "f";
+  background-color: #f4c381;
+}
+

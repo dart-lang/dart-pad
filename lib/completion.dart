@@ -63,8 +63,8 @@ class DartCompleter extends CodeCompleter {
 
       List<Completion> completions =  analysisCompletions.map((completion) {
         // TODO: Move to using a LabelProvider; decouple the data and rendering.
-        String displayString = completion.isMethod ? '${completion.text}()' : completion.text;
-        if (completion.isMethod && completion.returnType != null) {
+        String displayString = (completion.isMethod || completion.type == "METHOD") ? '${completion.text}()' : completion.text;
+        if ((completion.isMethod || completion.type == "METHOD") && completion.returnType != null) {
           displayString += ' → ${completion.returnType}';
         }
 
@@ -81,9 +81,8 @@ class DartCompleter extends CodeCompleter {
         if (delta > 0 && delta <= text.length) {
           text = text.substring(delta);
         }
-
         // TODO: Use classes to decorate the completion UI ('cm-builtin').
-        return new Completion(text, displayString: displayString);
+        return new Completion(text, displayString: displayString, type: "type-"+completion.type.toLowerCase());
       }).where((x) => x != null).toList();
 
       completer.complete(completions);
@@ -145,6 +144,10 @@ class AnalysisCompletion implements Comparable {
   int get selectionLength => _int(_map['selectionLength']);
 
   int get selectionOffset => _int(_map['selectionOffset']);
+
+  // FUNCTION, GETTER, CLASS, ...
+  String get type => _map['element']['kind'];
+
 
   int compareTo(other) {
     if (other is! AnalysisCompletion) return -1;

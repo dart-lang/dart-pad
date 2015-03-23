@@ -95,7 +95,7 @@ class CodeMirrorFactory extends EditorFactory {
     return completer.complete(ed).then((List<Completion> completions) {
       List<HintResult> hints = completions.map((Completion completion) {
         return new HintResult(
-            completion.value, displayText: completion.displayString);
+            completion.value, displayText: completion.displayString, className: completion.type);
       }).toList();
       return new HintResults.fromHints(hints, position, position);
     });
