@@ -101,7 +101,7 @@ li.CodeMirror-hint-active {
   content: "m";
   background-color: #fdbeb6;
 }
-.type-local_variable::before, .type-variable::before{
+.CodeMirror-hints li[class*="variable"]::before{
   content: "v";
   background-color: #f4c381;
 }
