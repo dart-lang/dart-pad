@@ -119,5 +119,7 @@ class Completion {
   /// An optional string that is displayed during auto-completion if specified.
   final String displayString;
 
-  Completion(this.value, {this.displayString});
+  final String type;
+
+  Completion(this.value, {this.displayString, this.type});
 }
