@@ -74,54 +74,64 @@ li.CodeMirror-hint-active {
 .CodeMirror-hints::-webkit-scrollbar-thumb {
   background-color: #000000;
 }
+
+/* Selectors for the code completion UI. */
+
 .CodeMirror-hint::before {
   color: #333;
-  font-weight:bold;
-  box-sizing:border-box;
-  line-height:14px;
-  width:15px;
-  height:15px;
+  font-weight: bold;
+  box-sizing: border-box;
+  line-height: 14px;
+  width: 15px;
+  height: 15px;
   font-size: 12px;
   display: inline-block;
-  text-align:center;
+  text-align: center;
   margin-right: 5px;
-  border-radius:50%;
-  content : " "
+  border-radius: 50%;
+  content : " ";
 }
 
-.type-class::before{
+.type-class::before {
   content: "C";
   background: radial-gradient(#A2D7F5, #8ebfd7);
   line-height: 16px; /*for vertical centering */
 }
-.type-getter::before, .type-setter::before{
+
+.type-getter::before,
+.type-setter::before {
   content: "p";
   background: radial-gradient(#e1C2ff, #cdb7e8);
 }
-.type-method::before{
+
+.type-method::before {
   content: "m";
   background: radial-gradient(#fdc0b8, #eb9a94);
 }
-.type-local_variable::before{
+
+.type-local_variable::before {
   content: "v"; /*maybe l? */
   background: radial-gradient(#f0c183, #da9f5e);
 }
-.type-library::before{
+
+.type-library::before {
   content: "l";
   background: radial-gradient(#f0c183, #da9f5e);
 }
-.type-top_level_variable::before{
+
+.type-top_level_variable::before {
   content: "v";
   background: radial-gradient(#f0c183, #da9f5e);
 }
-.type-field::before{
+
+.type-field::before {
   content: "f";
   line-height: 16px; /*for vertical centering */
   background: radial-gradient(#f0c183, #da9f5e);
 }
-.type-function::before{
+
+.type-function::before {
   content: "\03BB"; /*lambda */
   line-height: 15px; /*for vertical centering */
   background: radial-gradient(#fdc0b8, #eb9a94);
 }
-

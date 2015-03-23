@@ -60,10 +60,10 @@ class DartCompleter extends CodeCompleter {
       String lowerPrefix = editor.document.value.substring(
           replacementOffset, replacementOffset + delta).toLowerCase();
 
-
       List<Completion> completions =  analysisCompletions.map((completion) {
         // TODO: Move to using a LabelProvider; decouple the data and rendering.
-        String displayString = completion.isMethod ? '${completion.text}()' : completion.text;
+        String displayString = completion.isMethod
+            ? '${completion.text}()' : completion.text;
         if (completion.isMethod && completion.returnType != null) {
           displayString += ' → ${completion.returnType}';
         }
@@ -85,7 +85,8 @@ class DartCompleter extends CodeCompleter {
         if (completion.type == null) {
           return new Completion(text, displayString: displayString);
         } else {
-          return new Completion(text, displayString: displayString, type: "type-" + completion.type.toLowerCase());
+          return new Completion(text, displayString: displayString,
+              type: "type-${completion.type.toLowerCase()}");
         }
       }).where((x) => x != null).toList();
 
@@ -129,9 +130,11 @@ class AnalysisCompletion implements Comparable {
 
   // KEYWORD, INVOCATION, ...
   String get kind => _map['kind'];
+
   bool get isMethod {
     var element = _map['element'];
-    return element is Map ? (element['kind'] == 'FUNCTION' || element['kind'] == 'METHOD') : false;
+    return element is Map
+        ? (element['kind'] == 'FUNCTION' || element['kind'] == 'METHOD') : false;
   }
 
   String get text => _map['completion'];
@@ -149,8 +152,7 @@ class AnalysisCompletion implements Comparable {
   int get selectionOffset => _int(_map['selectionOffset']);
 
   // FUNCTION, GETTER, CLASS, ...
-  String get type => _map['element'] == null ? null : _map['element']['kind'];
-
+  String get type => _map.containsKey('element') ? _map['element']['kind'] : null;
 
   int compareTo(other) {
     if (other is! AnalysisCompletion) return -1;
