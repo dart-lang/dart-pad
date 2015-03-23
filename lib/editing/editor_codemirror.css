@@ -78,7 +78,7 @@ li.CodeMirror-hint-active {
   color: #333;
   font-weight:bold;
   box-sizing:border-box;
-  line-height:16px;
+  line-height:14px;
   width:15px;
   height:15px;
   font-size: 12px;
@@ -91,22 +91,37 @@ li.CodeMirror-hint-active {
 
 .type-class::before{
   content: "C";
-  background-color: #A2D7F5;
+  background: radial-gradient(#A2D7F5, #8ebfd7);
+  line-height: 16px; /*for vertical centering */
 }
 .type-getter::before, .type-setter::before{
   content: "p";
-  background-color: #e1C2ff;
+  background: radial-gradient(#e1C2ff, #cdb7e8);
 }
 .type-method::before{
   content: "m";
-  background-color: #fdbeb6;
+  background: radial-gradient(#fdc0b8, #eb9a94);
 }
-.CodeMirror-hints li[class*="variable"]::before{
+.type-local_variable::before{
+  content: "v"; /*maybe l? */
+  background: radial-gradient(#f0c183, #da9f5e);
+}
+.type-library::before{
+  content: "l";
+  background: radial-gradient(#f0c183, #da9f5e);
+}
+.type-top_level_variable::before{
   content: "v";
-  background-color: #f4c381;
+  background: radial-gradient(#f0c183, #da9f5e);
+}
+.type-field::before{
+  content: "f";
+  line-height: 16px; /*for vertical centering */
+  background: radial-gradient(#f0c183, #da9f5e);
 }
 .type-function::before{
-  content: "f";
-  background-color: #f4c381;
+  content: "\03BB"; /*lambda */
+  line-height: 15px; /*for vertical centering */
+  background: radial-gradient(#fdc0b8, #eb9a94);
 }
 
