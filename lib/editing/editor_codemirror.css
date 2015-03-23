@@ -47,7 +47,22 @@
 .CodeMirror-hints {
   border: 1px solid #cc9393;
   font-size: 100%;
-  background: grey;
+  background:  #3f3f3f;
+
+}
+
+/* adds a second border for shadow */
+.CodeMirror-hints::after {
+  background: none;
+  border: 2px solid grey;
+  content: "";
+  display: block;
+  position: absolute;
+  height: 1000000px;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 .CodeMirror-hint {
