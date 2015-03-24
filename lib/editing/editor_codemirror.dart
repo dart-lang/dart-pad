@@ -72,6 +72,9 @@ class CodeMirrorFactory extends EditorFactory {
           'Cmd-/': 'toggleComment',
           'Ctrl-/': 'toggleComment'
         },
+        'hintOptions': {
+          'completeSingle': false
+        },
         //'lint': true,
         'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
       };

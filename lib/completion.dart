@@ -100,6 +100,11 @@ class DartCompleter extends CodeCompleter {
         }
       }).where((x) => x != null).toList();
 
+      if (completions.isEmpty) {
+        // TODO: Flash something to indicate that there were no completions.
+
+      }
+
       completer.complete(completions);
     }).catchError((e) {
       completer.completeError(e);
