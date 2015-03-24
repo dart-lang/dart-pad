@@ -121,5 +121,7 @@ class Completion {
 
   final String type;
 
+  bool get isMethodWithArguments => displayString.contains("(") && !displayString.contains("()");
+
   Completion(this.value, {this.displayString, this.type});
 }

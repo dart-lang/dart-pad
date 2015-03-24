@@ -84,12 +84,8 @@ class DartCompleter extends CodeCompleter {
           text = text.substring(delta);
         }
 
-        if (completion.parameters == "()") {
+        if (completion.isMethod) {
           text += "()";
-        } else if (completion.isMethod) {
-          // TODO(devoncarew): A placeholder until we have control over the
-          // insertion location.
-          text += "(";
         }
 
         if (completion.type == null) {
@@ -102,7 +98,6 @@ class DartCompleter extends CodeCompleter {
 
       if (completions.isEmpty) {
         // TODO: Flash something to indicate that there were no completions.
-
       }
 
       completer.complete(completions);
