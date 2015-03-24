@@ -187,8 +187,8 @@ class CommonServer {
         int lineCount = source.split('\n').length;
         int ms = watch.elapsedMilliseconds;
         _logger.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
-        await counter.increment("Analyses");
-        await counter.increment("Analyzed-Lines", increment: lineCount);
+        counter.increment("Analyses");
+        counter.increment("Analyzed-Lines", increment: lineCount);
         return results;
       }).catchError((e) {
         _logger.severe('Error during analyze: ${e}');
@@ -227,8 +227,8 @@ class CommonServer {
             _logger.info(
               'PERF: Compiled ${lineCount} lines of Dart into '
               '${outputSize}kb of JavaScript in ${ms}ms.');
-            await counter.increment("Compilations");
-            await counter.increment("Compiled-Lines", increment: lineCount);
+            counter.increment("Compilations");
+            counter.increment("Compiled-Lines", increment: lineCount);
             String out = results.getOutput();
             return setCache("%%COMPILE:$sourceHash", out).then((_) {
               return new CompileResponse(out);
@@ -262,7 +262,7 @@ class CommonServer {
           if (docInfo == null) docInfo = {};
           _logger.info(
             'PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-          await counter.increment("DartDocs");
+          counter.increment("DartDocs");
           return new DocumentResponse(docInfo);
         }).catchError((e, st) {
           _logger.severe('Error during dartdoc: ${e}\n${st}');
@@ -276,7 +276,7 @@ class CommonServer {
 
   Future<CompleteResponse> _complete(String source, int offset) async {
     srcRequestRecorder.record("COMPLETE", source, offset);
-    await counter.increment("Completions");
+    counter.increment("Completions");
     return completer_driver.ensureSetup().then((_) {
       return completer_driver.completeSyncy(source, offset).then((Map response) {
         List<Map> results = response['results'];

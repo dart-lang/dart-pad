@@ -1,4 +1,4 @@
-version: cc-counter
+version: cc-bg-counter
 runtime: custom
 vm: true
 api_version: 1
