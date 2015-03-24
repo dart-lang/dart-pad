@@ -15,10 +15,11 @@ final SHARDS_COUNT = 20;
 
 class Counter {
   static Future increment(String name, {int increment : 1 }) {
+    db.DatastoreDB datastore = db.dbService;
     int shardId = new math.Random().nextInt(SHARDS_COUNT);
-    return _getCounterShard(name, shardId).then((counter) {
+    return _getCounterShard(name, shardId, datastore).then((counter) {
         counter.count++;
-        return db.dbService.withTransaction((transaction) {
+        return datastore.withTransaction((transaction) {
           return transaction.lookup([counter.key]).then((models) {
             var model = models[0];
             model.count += increment;
@@ -41,8 +42,9 @@ class Counter {
     });
   }
 
-  static Future<_ShardedCounter> _getCounterShard(String name, int shardId) {
-    var query = db.dbService.query(_ShardedCounter)
+  static Future<_ShardedCounter> _getCounterShard(
+      String name, int shardId, db.DatastoreDB datastore) {
+    var query = datastore.query(_ShardedCounter)
       ..filter("counterName =", name)
       ..filter("shardId =", shardId);
     var results = query.run().toList();
@@ -55,7 +57,7 @@ class Counter {
            ..count = 0
            ..shardId = shardId;
 
-        return db.dbService.commit(inserts: [newCounter]).then((result) {
+        return datastore.commit(inserts: [newCounter]).then((result) {
              return newCounter;
            });
       } else {
