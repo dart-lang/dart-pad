@@ -63,12 +63,14 @@ class DartCompleter extends CodeCompleter {
       List<Completion> completions =  analysisCompletions.map((completion) {
         // TODO: Move to using a LabelProvider; decouple the data and rendering.
         String displayString = completion.isMethod
-            ? '${completion.text} ${completion.parameters}' : completion.text;
+            ? '${completion.text}${completion.parameters}' : completion.text;
         if (completion.isMethod && completion.returnType != null) {
           displayString += ' → ${completion.returnType}';
         }
 
         // Filter unmatching completions.
+        // TODO: This is temporary; tracking issue here:
+        // https://github.com/dart-lang/dart-services/issues/87.
         if (delta > 0) {
           if (!completion.text.toLowerCase().startsWith(lowerPrefix)) {
             return null;
@@ -81,8 +83,15 @@ class DartCompleter extends CodeCompleter {
         if (delta > 0 && delta <= text.length) {
           text = text.substring(delta);
         }
-        if (completion.parameters == "()") text += "()";
-        // TODO: Use classes to decorate the completion UI ('cm-builtin').
+
+        if (completion.parameters == "()") {
+          text += "()";
+        } else if (completion.isMethod) {
+          // TODO(devoncarew): A placeholder until we have control over the
+          // insertion location.
+          text += "(";
+        }
+
         if (completion.type == null) {
           return new Completion(text, displayString: displayString);
         } else {
