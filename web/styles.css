@@ -232,6 +232,7 @@ div.toggle {
   min-height: 50px;
   overflow-y: auto;
   white-space: pre-wrap;
+  margin-top: 16px;
 }
 
 .console .normal {
@@ -242,7 +243,7 @@ div.toggle {
   color: #F7977A;
 }
 
-#editpanel {
+#editpanel, #documentation {
   font-family: 'Inconsolata', monospace;
   font-size: 12pt;
   line-height: 20px;
@@ -251,6 +252,12 @@ div.toggle {
   min-height: 50px;
   margin-top: 16px;
   margin-left: -3px;
+  overflow: auto;
+}
+
+#documentation {
+  display: none;
+  margin-left: 0;
 }
 
 .right {

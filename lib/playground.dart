@@ -27,6 +27,7 @@ import 'src/ga.dart';
 import 'src/gists.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
+import 'dart:math';
 
 Playground get playground => _playground;
 
@@ -43,6 +44,7 @@ class Playground {
   DivElement get _editpanel => querySelector('#editpanel');
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
+  DivElement get _docPanel => querySelector('#documentation');
 
   DButton runbutton;
   DOverlay overlay;
@@ -187,7 +189,12 @@ class Playground {
 
     keys.bind('ctrl-s', _handleSave);
     keys.bind('ctrl-enter', _handleRun);
-    keys.bind('f1', _handleHelp);
+    keys.bind('f1', () => _toggleDocTab());
+    document.onKeyUp.listen((e) => _handleHelp());
+    document.onClick.listen((e) => _handleHelp());
+
+    querySelector("#doctab").onClick.listen((e) => _toggleDocTab());
+    querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
@@ -246,7 +253,24 @@ class Playground {
   List<Element> _getTabElements(Element element) =>
       element.querySelectorAll('a');
 
+  void _toggleDocTab() {
+    _outputpanel.style.display = "none";
+    querySelector("#consoletab").attributes.remove('selected');
+
+    _docPanel..style.display = "block";
+    querySelector("#doctab").setAttribute('selected','');
+  }
+
+  void _toggleConsoleTab() {
+    _outputpanel.style.display = "block";
+    querySelector("#consoletab").setAttribute('selected','');
+
+    _docPanel..style.display = "none";
+    querySelector("#doctab").attributes.remove('selected');
+  }
+
   void _handleRun() {
+    _toggleConsoleTab();
     ga.sendEvent('main', 'run');
     runbutton.disabled = true;
     overlay.visible = true;
@@ -315,21 +339,42 @@ class Playground {
     if (context.focusedEditor == 'dart') {
       ga.sendEvent('main', 'help');
 
+      var input;
       Position pos = editor.document.cursor;
-      var input = new SourceRequest()
+      int offset = editor.document.indexFromPos(pos);
+
+      if (querySelector(".CodeMirror-hint-active") != null) {
+        String completionText = querySelector(".CodeMirror-hint-active").text;
+        var source = context.dartSource;
+        int lastSpace = source.substring(0, offset).lastIndexOf(" ") + 1;
+        int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
+        offset = max(lastSpace, lastDot);
+        source = _context.dartSource.substring(0, offset)
+        + completionText + context.dartSource.substring(offset);
+        input = new SourceRequest()
+          ..source = source
+          ..offset = offset;
+      } else {
+        print(_context.dartSource);
+        Position pos = editor.document.cursor;
+        input = new SourceRequest()
           ..source = _context.dartSource
-          ..offset = editor.document.indexFromPos(pos);
+          ..offset = offset;
+      }
       // TODO: Show busy.
       dartServices.document(input).timeout(serviceCallTimeout)
-          .then((DocumentResponse result) {
-            if (result.info['description'] == null &&
-                result.info['dartdoc'] == null) {
-              // TODO: Tell the user there were no results.
-            } else {
-              // TODO: Display this info
-              print(result.info); //['description']);
-            }
-          });
+        .then((DocumentResponse result) {
+          if (result.info['description'] == null &&
+              result.info['dartdoc'] == null) {
+            _docPanel.innerHtml = "No documentation found.";
+          } else {
+            _docPanel.innerHtml = '''
+                <strong>${result.info['description']}</strong><br><br>
+                ${result.info['dartdoc'] != null ? result.info['dartdoc'] : ""} <br><br>
+                <em>${result.info['libraryName'] != null ? "Library:${result.info['libraryName']}" : ""}</em>
+                ''';
+          }
+      });
     }
   }
 
