@@ -140,7 +140,8 @@ class Analyzer {
         //parameters for functions and methods
         if (element is ExecutableElement) {
           List<String> list = [];
-          element.parameters.forEach((par) => list.add('${par}'));
+          ExecutableElement el = element;
+          el.parameters.forEach((par) => list.add('${par}'));
           info['parameters'] = list;
         }
 
