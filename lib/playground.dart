@@ -355,7 +355,6 @@ class Playground {
           ..source = source
           ..offset = offset;
       } else {
-        print(_context.dartSource);
         Position pos = editor.document.cursor;
         input = new SourceRequest()
           ..source = _context.dartSource

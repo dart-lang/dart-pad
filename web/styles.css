@@ -252,11 +252,12 @@ div.toggle {
   min-height: 50px;
   margin-top: 16px;
   margin-left: -3px;
-  overflow: auto;
 }
 
 #documentation {
   display: none;
+  overflow: auto;
+  overflow-wrap: break-word;
   margin-left: 0;
 }
 
