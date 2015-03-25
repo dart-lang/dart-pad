@@ -6,9 +6,13 @@ library playground;
 
 import 'dart:async';
 import 'dart:html' hide Document;
+import 'dart:math';
+import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
+import 'package:markd/markdown.dart' show markdownToHtml;
+import 'package:markd/markdown.dart' as md;
 
 import 'completion.dart';
 import 'context.dart';
@@ -27,10 +31,7 @@ import 'src/ga.dart';
 import 'src/gists.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
-import 'dart:math';
-import 'package:markd/markdown.dart' show markdownToHtml;
-import 'package:markd/markdown.dart' as md;
-import 'dart:convert';
+
 Playground get playground => _playground;
 
 Playground _playground;
@@ -47,6 +48,8 @@ class Playground {
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
   DivElement get _docPanel => querySelector('#documentation');
+  bool get _isCompletionActive => querySelector(".CodeMirror-hint-active") != null;
+
 
   DButton runbutton;
   DOverlay overlay;
@@ -191,8 +194,15 @@ class Playground {
 
     keys.bind('ctrl-s', _handleSave);
     keys.bind('ctrl-enter', _handleRun);
-    keys.bind('f1', () => _toggleDocTab());
-    document.onKeyUp.listen((e) => _handleHelp());
+    keys.bind('f1', () {
+      _toggleDocTab();
+      _handleHelp();
+    });
+    document.onKeyUp.listen((e) {
+      if (_isCompletionActive || [KeyCode.LEFT,KeyCode.RIGHT,KeyCode.UP,KeyCode.DOWN].contains(e.keyCode)) {
+        _handleHelp();
+      }
+    });
     document.onClick.listen((e) => _handleHelp());
 
     querySelector("#doctab").onClick.listen((e) => _toggleDocTab());
@@ -264,11 +274,11 @@ class Playground {
   }
 
   void _toggleConsoleTab() {
-    _outputpanel.style.display = "block";
-    querySelector("#consoletab").setAttribute('selected','');
-
     _docPanel..style.display = "none";
     querySelector("#doctab").attributes.remove('selected');
+
+    _outputpanel.style.display = "block";
+    querySelector("#consoletab").setAttribute('selected','');
   }
 
   void _handleRun() {
@@ -338,25 +348,28 @@ class Playground {
   }
 
   void _handleHelp() {
-    if (context.focusedEditor == 'dart') {
+    if (context.focusedEditor == 'dart' && querySelector("#doctab").attributes.containsKey('selected')) {
       ga.sendEvent('main', 'help');
 
       var input;
       Position pos = editor.document.cursor;
       int offset = editor.document.indexFromPos(pos);
 
-      if (querySelector(".CodeMirror-hint-active") != null) {
+      if (_isCompletionActive) {
+        //if the completion popup is open
+        //we create a new source as if the completion popup was chosen
+        //and ask for the documentation of that source
         String completionText = querySelector(".CodeMirror-hint-active").text;
         var source = context.dartSource;
         int lastSpace = source.substring(0, offset).lastIndexOf(" ") + 1;
         int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
         offset = max(lastSpace, lastDot);
-        source = _context.dartSource.substring(0, offset)
-        + completionText + context.dartSource.substring(editor.document.indexFromPos(pos));
+        source = _context.dartSource.substring(0, offset) +
+                 completionText +
+                 context.dartSource.substring(editor.document.indexFromPos(pos));
         input = new SourceRequest()
           ..source = source
           ..offset = offset;
-        print(source);
       } else {
         Position pos = editor.document.cursor;
         input = new SourceRequest()
