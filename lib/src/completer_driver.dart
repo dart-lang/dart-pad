@@ -97,7 +97,6 @@ Future setup() async {
 }
 
 Future<Map> _complete(String src, int offset) async {
-
   await sendAddOverlay(path, src);
   await analysisComplete.first;
   await sendCompletionGetSuggestions(path, offset);
@@ -112,10 +111,6 @@ Future<Map> _complete(String src, int offset) async {
 Future<Map> completeSyncy(String src, int offset) async =>
     _complete(src, offset);
 
-//procResults(List results) {
-//  return results.map((r) => r['completion']);
-//}
-
 dispatchNotification(String event, params) async {
   if (event == "server.error") {
     // Something has gone wrong with the analysis server. This request is going
@@ -126,7 +121,7 @@ dispatchNotification(String event, params) async {
 
     await server.kill();
     _onErrors.add(null);
-    _logger.severe("Analysis server has crashed. CRASH CRASH CRASH $event");
+    _logger.severe("Analysis server has crashed. $event");
     return;
   }
 
