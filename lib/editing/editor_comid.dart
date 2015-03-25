@@ -90,6 +90,8 @@ class ComidFactory extends EditorFactory {
   CodeCompleter completer;
   String completoinMode;
 
+  bool get supportsCompletionPositioning => false;
+
   void registerCompleter(String mode, CodeCompleter codeCompleter) {
     options = new hints.CompletionOptions(
         hint: computeProposals,
