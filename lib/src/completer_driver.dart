@@ -221,7 +221,7 @@ class Server {
   /**
    * True if we are currently printing out messages exchanged with the server.
    */
-  bool _debuggingStdio = true;
+  bool _debuggingStdio = false;
 
   /**
    * True if we've received bad data from the server, and we are aborting the
