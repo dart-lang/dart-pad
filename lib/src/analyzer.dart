@@ -137,6 +137,13 @@ class Analyzer {
         info['description'] = '${element}';
         info['kind'] = element.kind.displayName;
 
+        //parameters for functions and methods
+        if (element is ExecutableElement) {
+          List<String> list = [];
+          element.parameters.forEach((par) => list.add('${par}'));
+          info['parameters'] = list;
+        }
+
         // library
         LibraryElement library = element.library;
 
