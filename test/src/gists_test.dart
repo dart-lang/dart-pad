@@ -4,7 +4,7 @@
 
 library dart_pad.gists_test;
 
-import 'package:dart_pad/src/gists.dart';
+import 'package:dart_pad/sharing/gists.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {

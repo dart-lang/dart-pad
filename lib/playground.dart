@@ -23,8 +23,9 @@ import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'services/common.dart';
 import 'services/execution_iframe.dart';
+import 'sharing/gists.dart';
+import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
-import 'src/gists.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
 
@@ -44,7 +45,8 @@ class Playground {
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
 
-  DButton runbutton;
+  DButton runButton;
+  DButton shareButton;
   DOverlay overlay;
   DBusyLight dartBusyLight;
   DBusyLight cssBusyLight;
@@ -53,6 +55,7 @@ class Playground {
   PlaygroundContext _context;
   Future _analysisRequest;
   Router _router;
+  MutableGist editableGist = new MutableGist(new Gist());
 
   ModuleManager modules = new ModuleManager();
 
@@ -62,8 +65,14 @@ class Playground {
     _registerTab(querySelector('#csstab'), 'css');
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
-    runbutton = new DButton(querySelector('#runbutton'));
-    runbutton.onClick.listen((e) {
+
+    shareButton = new DButton(querySelector('#sharebutton'));
+    shareButton.disabled = true;
+    shareButton.onClick.listen((e) => _handleShareButton());
+    editableGist.onDirtyChanged.listen((dirty) => shareButton.disabled = !dirty);
+
+    runButton = new DButton(querySelector('#runbutton'));
+    runButton.onClick.listen((e) {
       _handleRun();
 
       // On a mobile device, focusing the editing area causes the keyboard to
@@ -130,9 +139,9 @@ class Playground {
       GistFile html = chooseGistFile(gist, ['index.html', 'body.html']);
       GistFile css = chooseGistFile(gist, ['styles.css', 'style.css']);
 
-      context.dartSource = dart == null ? '' : dart.contents;
-      context.htmlSource = html == null ? '' : extractHtmlBody(html.contents);
-      context.cssSource = css == null ? '' : css.contents;
+      context.dartSource = dart == null ? '' : dart.content;
+      context.htmlSource = html == null ? '' : extractHtmlBody(html.content);
+      context.cssSource = css == null ? '' : css.content;
 
       // Analyze and run it.
       Timer.run(() {
@@ -248,7 +257,7 @@ class Playground {
 
   void _handleRun() {
     ga.sendEvent('main', 'run');
-    runbutton.disabled = true;
+    runButton.disabled = true;
     overlay.visible = true;
 
     _clearOutput();
@@ -262,9 +271,14 @@ class Playground {
       // TODO: Also display using a toast.
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {
-      runbutton.disabled = false;
+      runButton.disabled = false;
       overlay.visible = false;
     });
+  }
+
+  void _handleShareButton() {
+    // TODO:
+
   }
 
   void _performAnalysis() {
