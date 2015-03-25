@@ -35,9 +35,6 @@ StreamController<bool> _onServerStatus;
 Stream<Map> completionResults;
 StreamController<Map> _onCompletionResults;
 
-Stream<Map> errors;
-StreamController<Map> _onErrors;
-
 io.File f = new io.File(sourceDirectory.path + io.Platform.pathSeparator + "main.dart");
 String path = f.path;
 
@@ -66,9 +63,6 @@ Future setup() async {
 
   _onCompletionResults = new StreamController(sync: true);
   completionResults = _onCompletionResults.stream.asBroadcastStream();
-
-  _onErrors = new StreamController(sync: true);
-  errors = _onErrors.stream.asBroadcastStream();
 
   _logger.fine("Server about to start");
 
@@ -100,17 +94,8 @@ Future<Map> _complete(String src, int offset) async {
   await analysisComplete.first;
   await sendCompletionGetSuggestions(path, offset);
 
-  // This is using a merged stream of completion results and errors,
-  // stopping on either one of them.
-
-  MergeStream completionOrError = new MergeStream();
-  completionOrError.add(completionResults);
-
-  // We want to watch on the stream of errors to make sure that the request
-  // returns, even if it's going to fail.
-  completionOrError.add(errors);
-
-  return completionOrError.stream.first;
+  return completionResults.handleError(
+      (error) => throw "Completion failed").first;
 }
 
 Future<Map> completeSyncy(String src, int offset) async =>
@@ -125,7 +110,7 @@ dispatchNotification(String event, params) async {
     isSettingUp = false;
 
     await server.kill();
-    _onErrors.add(null);
+    _onCompletionResults.addError(null);
     _logger.severe("Analysis server has crashed. $event");
     return;
   }
@@ -482,21 +467,4 @@ class Server {
     _recordedStdio.add(line);
   }
 }
-
-
-///
-/// Class to support merging multiple streams together into one so that
-/// the first item can be extracted from either, this is used for blocking
-/// on either a result or an error.
-///
-class MergeStream {
-  final StreamController controller = new StreamController();
-
-  Stream get stream => controller.stream;
-
-  void add(Stream stream) {
-    stream.listen(controller.add);
- }
-}
-
 
