@@ -89,9 +89,9 @@ class DartCompleter extends CodeCompleter {
         }
 
         if (completion.type == null) {
-          return new Completion(text, displayString: displayString);
+          return new Completion(text, displayString: displayString, parameterCount: completion.parameterCount);
         } else {
-          return new Completion(text, displayString: displayString,
+          return new Completion(text, displayString: displayString, parameterCount: completion.parameterCount,
               type: "type-${completion.type.toLowerCase()}");
         }
       }).where((x) => x != null).toList();
@@ -148,6 +148,9 @@ class AnalysisCompletion implements Comparable {
   }
 
   String get parameters => isMethod ? _map['element']["parameters"] : null;
+
+  int get parameterCount =>
+    isMethod ? _map['parameterNames'].length : null;
 
   String get text => _map['completion'];
 

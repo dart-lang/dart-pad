@@ -121,7 +121,9 @@ class Completion {
 
   final String type;
 
-  bool get isMethodWithArguments => displayString.contains("(") && !displayString.contains("()");
+  int parameterCount;
 
-  Completion(this.value, {this.displayString, this.type});
+  bool get isMethodWithArguments => parameterCount != null && parameterCount > 0;
+
+  Completion(this.value, {this.displayString, this.type, this.parameterCount});
 }
