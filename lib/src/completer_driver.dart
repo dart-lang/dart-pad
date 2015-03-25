@@ -160,7 +160,7 @@ Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
 
 Future<AnalysisUpdateContentResult> sendAddOverlay(
     String file, String contents) {
-  _logger.fine("sendAddOverlay: $file $contents");
+  //_logger.fine("sendAddOverlay: $file $contents");
 
   var overlay = new AddContentOverlay(contents);
   var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
