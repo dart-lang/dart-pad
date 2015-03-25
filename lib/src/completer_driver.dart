@@ -484,6 +484,11 @@ class Server {
 }
 
 
+///
+/// Class to support merging multiple streams together into one so that
+/// the first item can be extracted from either, this is used for blocking
+/// on either a result or an error.
+///
 class MergeStream {
   final StreamController controller = new StreamController();
 
