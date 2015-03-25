@@ -49,6 +49,7 @@ class Playground {
   IFrameElement get _frame => querySelector('#frame');
   DivElement get _docPanel => querySelector('#documentation');
   bool get _isCompletionActive => querySelector(".CodeMirror-hint-active") != null;
+  bool get _isDocPanelOpen => querySelector("#doctab").attributes.containsKey('selected');
 
 
   DButton runbutton;
@@ -348,7 +349,7 @@ class Playground {
   }
 
   void _handleHelp() {
-    if (context.focusedEditor == 'dart' && querySelector("#doctab").attributes.containsKey('selected')) {
+    if (context.focusedEditor == 'dart' && _isDocPanelOpen) {
       ga.sendEvent('main', 'help');
 
       var input;

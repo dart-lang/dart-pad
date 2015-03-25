@@ -134,6 +134,6 @@ li.CodeMirror-hint-active {
 
 .type-function::before {
   content: "\03BB"; /*lambda */
-  line-height: 15px; /*for vertical centering */
+  line-height: 16px; /*for vertical centering */
   background: radial-gradient(#fdc0b8, #eb9a94);
 }
