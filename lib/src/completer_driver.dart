@@ -8,8 +8,11 @@ import 'dart:io' as io;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'package:logging/logging.dart';
 
 import 'package:analysis_server/src/protocol.dart';
+
+final Logger _logger = new Logger('completer_driver');
 
 io.Directory sourceDirectory = io.Directory.systemTemp.createTempSync('analysisServer');
 
@@ -19,9 +22,8 @@ String SDK = '/usr/lib/dart';
 String SERVER_PATH = "/app/lib/src/analysis_server_server.dart";
 
 bool NEEDS_ENABLE_ASYNC = true;
-bool USE_OVERLAYS = true;
 
-final Server server = new Server();
+Server server;
 
 /**
  * Type of callbacks used to process notifications.
@@ -33,6 +35,9 @@ StreamController<bool> _onServerStatus;
 
 Stream<Map> completionResults;
 StreamController<Map> _onCompletionResults;
+
+Stream<Map> errors;
+StreamController<Map> _onErrors;
 
 io.File f = new io.File(sourceDirectory.path + io.Platform.pathSeparator + "main.dart");
 String path = f.path;
@@ -47,6 +52,7 @@ StringBuffer setupLog = new StringBuffer();
 StringBuffer serverLog = new StringBuffer();
 
 Future ensureSetup() async {
+  _logger.fine("ensureSetup: SETUP $isSetup IS_SETTING_UP $isSettingUp");
   if (!isSetup && !isSettingUp) {
     return setup();
   }
@@ -54,7 +60,10 @@ Future ensureSetup() async {
 }
 
 Future setup() async {
+  _logger.fine("Setup starting");
   isSettingUp = true;
+
+  server = new Server();
 
   _onServerStatus = new StreamController<bool>(sync: true);
   analysisComplete = _onServerStatus.stream.asBroadcastStream();
@@ -62,48 +71,48 @@ Future setup() async {
   _onCompletionResults = new StreamController(sync: true);
   completionResults = _onCompletionResults.stream.asBroadcastStream();
 
-  if (!USE_OVERLAYS) f.writeAsStringSync(src0, flush: true);
+  _onErrors = new StreamController(sync: true);
+  errors = _onErrors.stream.asBroadcastStream();
 
-  setupLog.writeln("Server about to start");
+  _logger.fine("Server about to start");
 
   // Warm up target.
   return server.start().then((_) {
-    setupLog.writeln("Server started");
+    _logger.fine("Setver started");
 
     server.listenToOutput(dispatchNotification);
     server.sendServerSetSubscriptions([ServerService.STATUS]);
 
-    setupLog.writeln("Server Set Subscriptions completed");
+    _logger.fine("Server Set Subscriptions completed");
 
     f.writeAsStringSync("", flush: true);
 
-    setupLog.writeln("File write completed");
-
     var continuation = (_) {
       sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
-      setupLog.writeln("Analysis Roots set");
-
       server.sendPrioritySetSources([path]);
-      setupLog.writeln("Priority sources set");
-
       isSettingUp = false;
       isSetup = true;
+
+      _logger.fine("Setup done");
+
       return analysisComplete.first;
     };
 
-    if (!USE_OVERLAYS) {
-      return continuation(null);
-    } else {
-      return sendAddOverlay(path, src0).then(continuation);
-    }
+    return sendAddOverlay(path, src0).then(continuation);
   });
 }
 
 Future<Map> _complete(String src, int offset) {
+
+
   var continuation = (_) {
     return analysisComplete.first.then((_) {
       return sendCompletionGetSuggestions(path, offset).then((_) {
-        return completionResults.first;
+        MergeStream completionOrError = new MergeStream();
+        completionOrError.add(completionResults);
+        completionOrError.add(errors);
+
+        return completionOrError.stream.first;
       });
     });
   };
@@ -120,7 +129,20 @@ Future<Map> completeSyncy(String src, int offset) async =>
 //  return results.map((r) => r['completion']);
 //}
 
-void dispatchNotification(String event, params) {
+dispatchNotification(String event, params) async {
+  if (event == "server.error") {
+    // Something has gone wrong with the analysis server. This request is going
+    // to fail, but we need to restart the server to be able to process
+    // another request
+    isSetup = false;
+    isSettingUp = false;
+
+    await server.kill();
+    _onErrors.add(null);
+    _logger.severe("Analysis server has crashed. CRASH CRASH CRASH $event");
+    return;
+  }
+
   if (event == "server.status" && params.containsKey('analysis') &&
       !params['analysis']['isAnalyzing']) {
     _onServerStatus.add(true);
@@ -212,7 +234,7 @@ class Server {
   /**
    * True if we are currently printing out messages exchanged with the server.
    */
-  bool _debuggingStdio = false;
+  bool _debuggingStdio = true;
 
   /**
    * True if we've received bad data from the server, and we are aborting the
@@ -475,3 +497,16 @@ class Server {
     _recordedStdio.add(line);
   }
 }
+
+
+class MergeStream {
+  final StreamController controller = new StreamController();
+
+  Stream get stream => controller.stream;
+
+  void add(Stream stream) {
+    stream.listen(controller.add);
+ }
+}
+
+
