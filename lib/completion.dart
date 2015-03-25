@@ -89,10 +89,17 @@ class DartCompleter extends CodeCompleter {
         }
 
         if (completion.type == null) {
-          return new Completion(text, displayString: displayString, parameterCount: completion.parameterCount);
+          return new Completion(text, displayString: displayString);
         } else {
-          return new Completion(text, displayString: displayString, parameterCount: completion.parameterCount,
-              type: "type-${completion.type.toLowerCase()}");
+          int cursorPos = null;
+
+          if (completion.isMethod && completion.parameterCount > 0) {
+            cursorPos = text.indexOf('(') + 1;
+          }
+
+          return new Completion(text, displayString: displayString,
+              type: "type-${completion.type.toLowerCase()}",
+              cursorOffset: cursorPos);
         }
       }).where((x) => x != null).toList();
 

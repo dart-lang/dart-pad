@@ -84,11 +84,12 @@ class AceFactory extends EditorFactory {
     return new _AceEditor._(this, editor);
   }
 
+  bool get supportsCompletionPositioning => false;
+
   void registerCompleter(String mode, CodeCompleter completer) {
     // TODO:
 //    ace.LanguageTools langTools = ace.require('ace/ext/language_tools');
 //    langTools.addCompleter(new ace.AutoCompleter(_aceCompleter));
-
   }
 }
 
