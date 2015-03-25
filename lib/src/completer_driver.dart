@@ -48,9 +48,6 @@ int i = 30;
 bool isSetup = false;
 bool isSettingUp = false;
 
-StringBuffer setupLog = new StringBuffer();
-StringBuffer serverLog = new StringBuffer();
-
 Future ensureSetup() async {
   _logger.fine("ensureSetup: SETUP $isSetup IS_SETTING_UP $isSettingUp");
   if (!isSetup && !isSettingUp) {
@@ -77,49 +74,39 @@ Future setup() async {
   _logger.fine("Server about to start");
 
   // Warm up target.
-  return server.start().then((_) {
-    _logger.fine("Setver started");
+  await server.start();
+  _logger.fine("Setver started");
 
-    server.listenToOutput(dispatchNotification);
-    server.sendServerSetSubscriptions([ServerService.STATUS]);
+  server.listenToOutput(dispatchNotification);
+  server.sendServerSetSubscriptions([ServerService.STATUS]);
 
-    _logger.fine("Server Set Subscriptions completed");
+  _logger.fine("Server Set Subscriptions completed");
 
-    f.writeAsStringSync("", flush: true);
+  f.writeAsStringSync("", flush: true);
 
-    var continuation = (_) {
-      sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
-      server.sendPrioritySetSources([path]);
-      isSettingUp = false;
-      isSetup = true;
+  await sendAddOverlay(path, src0);
+  sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
+  server.sendPrioritySetSources([path]);
+  isSettingUp = false;
+  isSetup = true;
 
-      _logger.fine("Setup done");
+  _logger.fine("Setup done");
 
-      return analysisComplete.first;
-    };
+  return analysisComplete.first;
 
-    return sendAddOverlay(path, src0).then(continuation);
-  });
 }
 
-Future<Map> _complete(String src, int offset) {
+Future<Map> _complete(String src, int offset) async {
 
+  await sendAddOverlay(path, src);
+  await analysisComplete.first;
+  await sendCompletionGetSuggestions(path, offset);
 
-  var continuation = (_) {
-    return analysisComplete.first.then((_) {
-      return sendCompletionGetSuggestions(path, offset).then((_) {
-        MergeStream completionOrError = new MergeStream();
-        completionOrError.add(completionResults);
-        completionOrError.add(errors);
+  MergeStream completionOrError = new MergeStream();
+  completionOrError.add(completionResults);
+  completionOrError.add(errors);
 
-        return completionOrError.stream.first;
-      });
-    });
-  };
-
-  var ret = sendAddOverlay(path, src).then(continuation);
-  isSettingUp = false;
-  return ret;
+  return completionOrError.stream.first;
 }
 
 Future<Map> completeSyncy(String src, int offset) async =>
@@ -173,15 +160,15 @@ Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
 
 Future<AnalysisUpdateContentResult> sendAddOverlay(
     String file, String contents) {
-  setupLog.writeln("sendAddOverlay: $file $contents");
+  _logger.fine("sendAddOverlay: $file $contents");
 
   var overlay = new AddContentOverlay(contents);
   var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
 
-  setupLog.writeln("About to send analysis.updateContent");
+  _logger.fine("About to send analysis.updateContent");
 
   return server.send("analysis.updateContent", params).then((result) {
-    setupLog.writeln("analysis.updateContent -> then");
+    _logger.fine("analysis.updateContent -> then");
 
     ResponseDecoder decoder = new ResponseDecoder(null);
     return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
@@ -293,8 +280,6 @@ class Server {
         (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
       String trimmedLine = line.trim();
 
-      serverLog.writeln(trimmedLine);
-
       _recordStdio('RECV: $trimmedLine');
       var message;
       try {
@@ -366,7 +351,7 @@ class Server {
    * error response, the future will be completed with an error.
    */
   Future send(String method, Map<String, dynamic> params) {
-    serverLog.writeln("Server.send $method $params");
+    _logger.fine("Server.send $method $params");
 
     String id = '${_nextId++}';
     Map<String, dynamic> command = <String, dynamic>{
@@ -433,11 +418,11 @@ class Server {
     arguments.add('--sdk');
     arguments.add(SDK);
 
-    setupLog.writeln("Binary: $dartBinary");
-    setupLog.writeln("Arguments: $arguments");
+    _logger.fine("Binary: $dartBinary");
+    _logger.fine("Arguments: $arguments");
 
     return io.Process.start(dartBinary, arguments).then((io.Process process) {
-      setupLog.writeln("io.Process.then returned");
+      _logger.fine("io.Process.then returned");
 
       _process = process;
       process.exitCode.then((int code) {
@@ -487,7 +472,7 @@ class Server {
    * [debugStdio] has been called.
    */
   void _recordStdio(String line) {
-    setupLog.writeln(line);
+    _logger.fine(line);
 
     double elapsedTime = _time.elapsedTicks / _time.frequency;
     line = "$elapsedTime: $line";
