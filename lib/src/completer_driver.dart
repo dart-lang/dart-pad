@@ -351,7 +351,7 @@ class Server {
    * error response, the future will be completed with an error.
    */
   Future send(String method, Map<String, dynamic> params) {
-    _logger.fine("Server.send $method $params");
+    _logger.fine("Server.send $method");
 
     String id = '${_nextId++}';
     Map<String, dynamic> command = <String, dynamic>{
