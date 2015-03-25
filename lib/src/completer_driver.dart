@@ -20,7 +20,6 @@ io.Directory sourceDirectory = io.Directory.systemTemp.createTempSync('analysisS
 String PACKAGE_ROOT = '/app/packages';
 String SDK = '/usr/lib/dart';
 String SERVER_PATH = "/app/lib/src/analysis_server_server.dart";
-
 bool NEEDS_ENABLE_ASYNC = true;
 
 Server server;
@@ -101,8 +100,14 @@ Future<Map> _complete(String src, int offset) async {
   await analysisComplete.first;
   await sendCompletionGetSuggestions(path, offset);
 
+  // This is using a merged stream of completion results and errors,
+  // stopping on either one of them.
+
   MergeStream completionOrError = new MergeStream();
   completionOrError.add(completionResults);
+
+  // We want to watch on the stream of errors to make sure that the request
+  // returns, even if it's going to fail.
   completionOrError.add(errors);
 
   return completionOrError.stream.first;
