@@ -255,10 +255,17 @@ div.toggle {
 }
 
 #documentation {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11pt;
   display: none;
   overflow: auto;
   overflow-wrap: break-word;
   margin-left: 0;
+}
+
+#documentation code {
+  font-family: 'Inconsolata', monospace;
+  font-size: 12pt;
 }
 
 #documentation h2 {
