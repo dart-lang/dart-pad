@@ -28,6 +28,7 @@ import 'src/gists.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
 import 'dart:math';
+import 'package:markd/markdown.dart' show markdownToHtml;
 
 Playground get playground => _playground;
 
@@ -350,10 +351,11 @@ class Playground {
         int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
         offset = max(lastSpace, lastDot);
         source = _context.dartSource.substring(0, offset)
-        + completionText + context.dartSource.substring(offset);
+        + completionText + context.dartSource.substring(editor.document.indexFromPos(pos));
         input = new SourceRequest()
           ..source = source
           ..offset = offset;
+        print(source);
       } else {
         Position pos = editor.document.cursor;
         input = new SourceRequest()
@@ -365,13 +367,18 @@ class Playground {
         .then((DocumentResponse result) {
           if (result.info['description'] == null &&
               result.info['dartdoc'] == null) {
-            _docPanel.innerHtml = "No documentation found.";
+            _docPanel.setInnerHtml("No documentation found.");
           } else {
-            _docPanel.innerHtml = '''
-                <strong>${result.info['description']}</strong><br><br>
-                ${result.info['dartdoc'] != null ? result.info['dartdoc'] : ""} <br><br>
-                <em>${result.info['libraryName'] != null ? "Library:${result.info['libraryName']}" : ""}</em>
-                ''';
+            final NodeValidatorBuilder _htmlValidator=new NodeValidatorBuilder.common()
+              ..allowElement('a', attributes: ['href']);
+            _docPanel.setInnerHtml(markdownToHtml(
+'''
+**${result.info['description']}**\n\n
+${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
+${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
+${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
+${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName']}" : ""}\n\n
+'''), validator: _htmlValidator);
           }
       });
     }
