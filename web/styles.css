@@ -261,6 +261,19 @@ div.toggle {
   margin-left: 0;
 }
 
+#documentation h2 {
+  font-size: inherit;
+  font-weight: bold;
+}
+
+#documentation a {
+   color: #66d9ef;
+}
+
+#documentation a:hover {
+  color: #66d9ef;
+  font-weight: bold;
+}
 .right {
   text-align: right;
 }
