@@ -29,7 +29,8 @@ import 'src/sample.dart' as sample;
 import 'src/util.dart';
 import 'dart:math';
 import 'package:markd/markdown.dart' show markdownToHtml;
-
+import 'package:markd/markdown.dart' as md;
+import 'dart:convert';
 Playground get playground => _playground;
 
 Playground _playground;
@@ -367,9 +368,9 @@ class Playground {
         .then((DocumentResponse result) {
           if (result.info['description'] == null &&
               result.info['dartdoc'] == null) {
-            _docPanel.setInnerHtml("No documentation found.");
+            _docPanel.setInnerHtml("<p>No documentation found.</p>");
           } else {
-            final NodeValidatorBuilder _htmlValidator=new NodeValidatorBuilder.common()
+            final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
               ..allowElement('a', attributes: ['href']);
             _docPanel.setInnerHtml(markdownToHtml(
 '''
@@ -378,8 +379,8 @@ ${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
 ${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
 ${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
 ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName']}" : ""}\n\n
-'''), validator: _htmlValidator);
-          }
+''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
+        }
       });
     }
   }
@@ -575,5 +576,34 @@ class PlaygroundContext extends Context {
         controller.add(null);
       });
     });
+  }
+}
+
+//TODO: [someReference] should be converted to for example
+//https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
+class InlineBracketsColon extends md.InlineSyntax {
+  InlineBracketsColon() : super(r'\[:\s?((?:.|\n)*?)\s?:\]');
+
+  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    var element = new md.Element.text('code', htmlEscape(match[1]));
+    parser.addNode(element);
+    return true;
+  }
+}
+
+class InlineBrackets extends md.InlineSyntax {
+  InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\()');
+
+
+  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    var element = new md.Element.text('code', "<em>" + htmlEscape(match[1]) + "</em>");
+    parser.addNode(element);
+    return true;
   }
 }

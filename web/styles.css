@@ -243,7 +243,7 @@ div.toggle {
   color: #F7977A;
 }
 
-#editpanel, #documentation {
+#editpanel{
   font-family: 'Inconsolata', monospace;
   font-size: 12pt;
   line-height: 20px;
@@ -257,15 +257,23 @@ div.toggle {
 #documentation {
   font-family: 'Roboto', sans-serif;
   font-size: 11pt;
+  line-height: 20px;
+  position: relative;
   display: none;
   overflow: auto;
   overflow-wrap: break-word;
+  margin-top: 0;
   margin-left: 0;
 }
 
 #documentation code {
   font-family: 'Inconsolata', monospace;
-  font-size: 12pt;
+  font-size: 13pt;
+}
+
+#documentation code em {
+  color: #dfaf8f;
+  font-style: normal;
 }
 
 #documentation h2 {
