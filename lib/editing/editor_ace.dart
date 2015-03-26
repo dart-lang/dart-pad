@@ -6,6 +6,7 @@ library editor.ace;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math';
 
 import 'package:ace/ace.dart' as ace;
 import 'package:ace/proxy.dart';
@@ -122,6 +123,8 @@ class _AceEditor extends Editor {
   set theme(String str) {
     editor.theme = new ace.Theme.named(str);
   }
+
+  Point get cursorCoords => new Point(0, 0);
 
   void focus() => editor.focus();
   void resize() => editor.resize(true);

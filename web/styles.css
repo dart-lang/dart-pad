@@ -273,11 +273,20 @@ div.toggle {
   font-size: 12pt;
 }
 
-#documentation code em,
-.parameter-hints code em
+.parameter-hints code {
+  color: #dfaf8f;
+}
+
+#documentation code em
 {
   color: #dfaf8f;
   font-style: normal;
+}
+
+.parameter-hints code em {
+  color: white;
+  font-style: normal;
+  font-weight: bold;
 }
 
 #documentation h2 {

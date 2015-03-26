@@ -6,6 +6,8 @@ library editor.codemirror;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:js';
+import 'dart:math';
 
 import 'package:codemirror/codemirror.dart' hide Position;
 import 'package:codemirror/codemirror.dart' as pos show Position;
@@ -13,8 +15,6 @@ import 'package:codemirror/hints.dart';
 
 import 'editor.dart' hide Position;
 import 'editor.dart' as ed show Position;
-import 'dart:js';
-import 'dart:math';
 
 export 'editor.dart';
 
