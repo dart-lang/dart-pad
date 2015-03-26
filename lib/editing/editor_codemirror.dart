@@ -241,9 +241,9 @@ class _CodeMirrorDocument extends Document {
 //      node.style.backgroundColor = '#444';
 //      //node.style.height = '40px';
 //      //nodes.add(node);
-//      //(editor as CodeMirrorEditor).cm.addWidget(_posToPos(an.start), node);
+//      //(editor as _CodeMirrorEditor).cm.addWidget(_posToPos(an.start), node);
 //      widgets.add(
-//          (editor as CodeMirrorEditor).cm.addLineWidget(an.line - 1, node));
+//          (editor as _CodeMirrorEditor).cm.addLineWidget(an.line - 1, node));
 //
 ////      cm.setGutterMarker(an.line - 1, _gutterId,
 ////          _makeMarker(an.type, an.message, an.start, an.end));
