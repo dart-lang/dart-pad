@@ -203,7 +203,7 @@ class Playground {
       if (_isCompletionActive || [KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
         _handleHelp();
       }
-      if (_isCompletionActive || [KeyCode.COMMA, KeyCode.NINE, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
+      if (_isCompletionActive || [KeyCode.ENTER, KeyCode.COMMA, KeyCode.NINE, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
         _lookupParameterInfo();
       }
     });
@@ -466,6 +466,9 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
       if (!result.info.containsKey("parameters")) {
         return;
       }
+      if (result.info["parameters"].length == 0) {
+        return;
+      }
       String string = "<code>(";
       List list = result.info["parameters"] as List;
       for (int i = 0; i < list.length; i++) {
@@ -479,17 +482,28 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
         }
       }
       string += ")</code>";
+      Position pos = editor.document.cursor;
+      DivElement editorDiv = querySelector("#editpanel .CodeMirror");
+      var lineHeight = editorDiv.getComputedStyle().getPropertyValue('line-height');
+//      var charWidth = editorDiv.getComputedStyle().getPropertyValue('letter-spacing');
+      lineHeight = int.parse(lineHeight.substring(0,lineHeight.indexOf("px")));
+
       if (_parPopupActive) {
-        querySelector(".parameter-hint").innerHtml = string;
+        querySelector(".parameter-hint")
+          ..innerHtml = string;
+//        querySelector(".parameter-hints")
+//          ..style.left = "${(pos.char - querySelector(".parameter-hint").text.length~/2) * 8 +25}px"
+//          ..style.top = "${pos.line *20 + 88}px";
       } else {
-        UListElement parTab = new UListElement()
-          ..classes.add("parameter-hints")
-          //TODO: Should update on the position of the caret.
-          ..style.left = "180px"
-          ..style.top = "75px";
         LIElement li = new LIElement()
           ..innerHtml = string
           ..classes.add("parameter-hint");
+        UListElement parTab = new UListElement()
+          ..classes.add("parameter-hints")
+          //TODO: Probably we can use some codemirror method that gives a more exact result.
+          ..style.left = "${(pos.char - li.text.length~/2) * 8 +25}px"
+          ..style.top = "${pos.line * lineHeight + 88}px";
+
         parTab.append(li);
         document.body.append(parTab);
       }
