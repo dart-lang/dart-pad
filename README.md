@@ -5,6 +5,8 @@ The UI client for a web based interactive Dart service.
 [![Build Status](https://travis-ci.org/dart-lang/dart-pad.svg?branch=master)](https://travis-ci.org/dart-lang/dart-pad)
 [![Project Metrics](https://img.shields.io/badge/metrics-librato-blue.svg)](https://metrics.librato.com/share/dashboards/jr4dyv0j?duration=604800)
 
+![](https://github.com/dart-lang/dart-pad/blob/master/doc/images/codepad_ss.jpg)
+
 ## What is it? What does it do?
 
 This project is a web based interactive Dart service. It's meant to be a simple,
@@ -13,7 +15,8 @@ configuration environment. It'll support an easy snippet sharing service.
 
 ## Project status
 
-Pre-alpha! Definitely still a work in progress.
+Beta - available to play with here: https://dartpad.dartlang.org/, but still a
+work in progress.
 
 ## Issues and bugs
 
