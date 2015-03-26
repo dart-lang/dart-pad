@@ -16,6 +16,7 @@ abstract class EditorFactory {
 
   Editor createFromElement(html.Element element);
 
+  bool get supportsCompletionPositioning;
   // TODO: codemirror gives the client more control over where to insert the
   // completions. With Ace, you can only insert from the requested position
   // forward.
@@ -111,7 +112,6 @@ abstract class CodeCompleter {
   Future<List<Completion>> complete(Editor editor);
 }
 
-// TODO: positions?
 class Completion {
   /// The value to insert.
   final String value;
@@ -119,7 +119,15 @@ class Completion {
   /// An optional string that is displayed during auto-completion if specified.
   final String displayString;
 
+  /// The css class type for the completion. This may not be supported by all
+  /// completors.
   final String type;
 
-  Completion(this.value, {this.displayString, this.type});
+  /// The (optional) offset to display the cursor at after completion. This is
+  /// relative to the insertion location, not the absolute position in the file.
+  /// This may be `null`, and cursor re-positioning may not be supported by all
+  /// completors. See [EditorFactory.supportsCompletionPositioning].
+  final int cursorOffset;
+
+  Completion(this.value, {this.displayString, this.type, this.cursorOffset});
 }

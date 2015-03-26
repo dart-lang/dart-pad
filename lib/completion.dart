@@ -84,25 +84,27 @@ class DartCompleter extends CodeCompleter {
           text = text.substring(delta);
         }
 
-        if (completion.parameters == "()") {
+        if (completion.isMethod) {
           text += "()";
-        } else if (completion.isMethod) {
-          // TODO(devoncarew): A placeholder until we have control over the
-          // insertion location.
-          text += "(";
         }
 
         if (completion.type == null) {
           return new Completion(text, displayString: displayString);
         } else {
+          int cursorPos = null;
+
+          if (completion.isMethod && completion.parameterCount > 0) {
+            cursorPos = text.indexOf('(') + 1;
+          }
+
           return new Completion(text, displayString: displayString,
-              type: "type-${completion.type.toLowerCase()}");
+              type: "type-${completion.type.toLowerCase()}",
+              cursorOffset: cursorPos);
         }
       }).where((x) => x != null).toList();
 
       if (completions.isEmpty) {
         // TODO: Flash something to indicate that there were no completions.
-
       }
 
       completer.complete(completions);
@@ -153,6 +155,9 @@ class AnalysisCompletion implements Comparable {
   }
 
   String get parameters => isMethod ? _map['element']["parameters"] : null;
+
+  int get parameterCount =>
+    isMethod ? _map['parameterNames'].length : null;
 
   String get text => _map['completion'];
 

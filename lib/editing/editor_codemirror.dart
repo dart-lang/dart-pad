@@ -84,6 +84,8 @@ class CodeMirrorFactory extends EditorFactory {
         new CodeMirror.fromElement(element, options: options));
   }
 
+  bool get supportsCompletionPositioning => true;
+
   void registerCompleter(String mode, CodeCompleter completer) {
     Hints.registerHintsHelperAsync(mode, (CodeMirror editor, [HintsOptions options]) {
       return _completionHelper(editor, completer, options);
@@ -98,7 +100,18 @@ class CodeMirrorFactory extends EditorFactory {
     return completer.complete(ed).then((List<Completion> completions) {
       List<HintResult> hints = completions.map((Completion completion) {
         return new HintResult(
-            completion.value, displayText: completion.displayString, className: completion.type);
+            completion.value,
+            displayText: completion.displayString,
+            className: completion.type,
+            hintApplier: (CodeMirror editor, HintResult hint, pos.Position from, pos.Position to) {
+              editor.getDoc().replaceRange(hint.text, from, to);
+              if (completion.cursorOffset != null) {
+                int diff = hint.text.length - completion.cursorOffset;
+                editor.getDoc().setCursor(new pos.Position(
+                    editor.getCursor().line, editor.getCursor().ch - diff));
+              }
+            }
+        );
       }).toList();
       return new HintResults.fromHints(hints, position, position);
     });
