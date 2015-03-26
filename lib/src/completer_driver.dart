@@ -393,7 +393,8 @@ class Server {
     if (io.Platform.packageRoot.isNotEmpty) {
       arguments.add('--package-root=${io.Platform.packageRoot}');
     }
-    arguments.add('--checked');
+
+//    arguments.add('--checked');
     arguments.add(SERVER_PATH);
 
     //arguments.add ('--port');
