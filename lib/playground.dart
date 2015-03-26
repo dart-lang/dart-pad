@@ -49,6 +49,8 @@ class Playground {
   DivElement get _docPanel => querySelector('#documentation');
   bool get _isCompletionActive => querySelector(".CodeMirror-hint-active") != null;
   bool get _isDocPanelOpen => querySelector("#doctab").attributes.containsKey('selected');
+  bool get _parPopupActive => querySelector(".parameter-hints") != null;
+
 
   DButton runbutton;
   DOverlay overlay;
@@ -198,11 +200,18 @@ class Playground {
       _handleHelp();
     });
     document.onKeyUp.listen((e) {
-      if (_isCompletionActive || [KeyCode.LEFT,KeyCode.RIGHT,KeyCode.UP,KeyCode.DOWN].contains(e.keyCode)) {
+      if (_isCompletionActive || [KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
         _handleHelp();
       }
+      if (_isCompletionActive || [KeyCode.COMMA, KeyCode.NINE, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
+        _lookupParameterInfo();
+      }
     });
-    document.onClick.listen((e) => _handleHelp());
+    document.onClick.listen((e) {
+      _handleHelp();
+      _lookupParameterInfo();
+    });
+
 
     querySelector("#doctab").onClick.listen((e) => _toggleDocTab());
     querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
@@ -269,12 +278,12 @@ class Playground {
     _outputpanel.style.display = "none";
     querySelector("#consoletab").attributes.remove('selected');
 
-    _docPanel..style.display = "block";
+    _docPanel.style.display = "block";
     querySelector("#doctab").setAttribute('selected','');
   }
 
   void _toggleConsoleTab() {
-    _docPanel..style.display = "none";
+    _docPanel.style.display = "none";
     querySelector("#doctab").attributes.remove('selected');
 
     _outputpanel.style.display = "block";
@@ -396,6 +405,95 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
         }
       });
     }
+  }
+
+  Map<String,int> _parameterInfo(String source, int offset) {
+    offset += -1;
+    int parameterPosition = 0;
+    int beginParen;
+    bool skip = false;
+    while (beginParen == null && offset > 0) {
+      if (source[offset] == ",") {
+        parameterPosition += 1;
+      }
+      if (source[offset] == "(" && !skip) {
+        beginParen = offset;
+        continue;
+      } else if (source[offset] == ")") {
+        skip = true;
+      } else if (source[offset] == ";") {
+        return null;
+      } else if (skip == true && source[offset] == "(") {
+        skip = false;
+      }
+      offset += -1;
+    }
+    return beginParen == null ? null : {
+      "beginParen" : beginParen,
+      "parameterPosition" : parameterPosition
+    };
+  }
+
+  void _lookupParameterInfo() {
+
+    //TODO: `document.activeElement.toString() != "textarea"` is probably not a solid way
+    //for checking if the editor is active
+    if (context.focusedEditor != 'dart' || document.activeElement.toString() != "textarea") {
+      document.body.children.remove(querySelector(".parameter-hints"));
+      return;
+    }
+
+    int offset = editor.document.indexFromPos(editor.document.cursor);
+    String source = _context.dartSource;
+    Map<String, int> parInfo = _parameterInfo(source, offset);
+
+    if (parInfo == null) {
+      document.body.children.remove(querySelector(".parameter-hints"));
+      return;
+    }
+    //parInfo["beginParen"] returns the position of the opening parenthesis
+    //if the cursor is inside parenthesis
+    offset = parInfo["beginParen"] - 1;
+
+    //we then request documentation info of what is before that parenthesis
+    SourceRequest input = new SourceRequest()
+      ..source = source
+      ..offset = offset;
+
+    dartServices.document(input).timeout(serviceCallTimeout)
+    .then((DocumentResponse result) {
+
+      if (!result.info.containsKey("parameters")) {
+        return;
+      }
+      String string = "<code>(";
+      List list = result.info["parameters"] as List;
+      for (int i = 0; i < list.length; i++) {
+        if (i == parInfo["parameterPosition"]) {
+          string += '<em>${list[i]}</em>';
+        } else {
+          string += '${list[i]}';
+        }
+        if (i != list.length - 1) {
+          string += ", ";
+        }
+      }
+      string += ")</code>";
+      if (_parPopupActive) {
+        querySelector(".parameter-hint").innerHtml = string;
+      } else {
+        UListElement parTab = new UListElement()
+          ..classes.add("parameter-hints")
+          //TODO: Should update on the position of the caret.
+          ..style.left = "180px"
+          ..style.top = "75px";
+        LIElement li = new LIElement()
+          ..innerHtml = string
+          ..classes.add("parameter-hint");
+        parTab.append(li);
+        document.body.append(parTab);
+      }
+    });
   }
 
   void _clearOutput() {

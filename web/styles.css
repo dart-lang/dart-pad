@@ -266,12 +266,16 @@ div.toggle {
   margin-left: 0;
 }
 
-#documentation code {
+#documentation code,
+.parameter-hints code
+{
   font-family: 'Inconsolata', monospace;
   font-size: 12pt;
 }
 
-#documentation code em {
+#documentation code em,
+.parameter-hints code em
+{
   color: #dfaf8f;
   font-style: normal;
 }
@@ -289,9 +293,39 @@ div.toggle {
   color: #66d9ef;
   text-decoration: underline;
 }
-
 .right {
   text-align: right;
+}
+
+.parameter-hints {
+  position: absolute;
+  z-index: 10;
+  overflow: hidden;
+  list-style: none;
+  margin: 0;
+  padding: 0px;
+  -webkit-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  -moz-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  border-radius: 3px;
+  font-family: 'Inconsolata', monospace;
+  max-height: 20em;
+  overflow-y: auto;
+  border: 1px solid #cc9393;
+  font-size: 100%;
+  background: grey;
+
+}
+
+.parameter-hint {
+  margin: 0;
+  padding: 0 4px;
+  overflow: hidden;
+  white-space: pre;
+  cursor: pointer;
+  background: #3f3f3f;
+  color: #dcdccc;
+  border-radius: 0;
 }
 
 .footer-item {
