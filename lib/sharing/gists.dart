@@ -10,6 +10,8 @@ import 'dart:html';
 
 // TODO: saving an anonymous gist
 
+// TODO: Save gists as valid pub packages (pubspecs, and readmes).
+
 /**
  * Return whether the given string is a valid github gist ID.
  */

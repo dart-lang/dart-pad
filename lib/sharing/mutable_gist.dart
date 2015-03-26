@@ -12,6 +12,8 @@ import 'gists.dart';
 
 // TODO: add docs
 
+/// On overlay on a gist. Used to edit gists, this overlay knows about its dirty
+/// state, and can have dirty state listeners.
 class MutableGist {
   Gist _backingGist;
   Map _localValues = {};
@@ -34,8 +36,9 @@ class MutableGist {
 
   void createFile(String name, String data) => _setProperty(name, data);
 
-  set backingGist(Gist newGist) {
+  void setBackingGist(Gist newGist, {bool wipeState: true}) {
     bool wasDirty = dirty;
+    if (wipeState) _localValues.clear();
     _backingGist = newGist;
     if (wasDirty != dirty) _dirtyChangedController.add(dirty);
   }

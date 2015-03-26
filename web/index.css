@@ -62,6 +62,10 @@ header {
   text-transform: uppercase;
 }
 
+#newbutton {
+  margin-right: 10px;
+}
+
 section {
   padding: 0 24px 24px 24px;
   position: relative;

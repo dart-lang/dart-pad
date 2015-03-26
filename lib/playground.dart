@@ -51,6 +51,7 @@ class Playground {
   bool get _isCompletionActive => querySelector(".CodeMirror-hint-active") != null;
   bool get _isDocPanelOpen => querySelector("#doctab").attributes.containsKey('selected');
 
+  DButton newButton;
   DButton runButton;
   DButton shareButton;
   DOverlay overlay;
@@ -72,6 +73,8 @@ class Playground {
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
 
+    newButton = new DButton(querySelector('#newbutton'));
+    newButton.onClick.listen((e) => _handleNewButton());
     shareButton = new DButton(querySelector('#sharebutton'));
     shareButton.disabled = true;
     shareButton.onClick.listen((e) => _handleShareButton());
@@ -313,6 +316,11 @@ class Playground {
   }
 
   void _handleShareButton() {
+    // TODO:
+
+  }
+
+  void _handleNewButton() {
     // TODO:
 
   }
