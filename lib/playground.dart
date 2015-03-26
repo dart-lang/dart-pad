@@ -6,9 +6,13 @@ library playground;
 
 import 'dart:async';
 import 'dart:html' hide Document;
+import 'dart:math';
+import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
+import 'package:markd/markdown.dart' show markdownToHtml;
+import 'package:markd/markdown.dart' as md;
 
 import 'completion.dart';
 import 'context.dart';
@@ -43,6 +47,10 @@ class Playground {
   DivElement get _editpanel => querySelector('#editpanel');
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
+  DivElement get _docPanel => querySelector('#documentation');
+  bool get _isCompletionActive => querySelector(".CodeMirror-hint-active") != null;
+  bool get _isDocPanelOpen => querySelector("#doctab").attributes.containsKey('selected');
+
 
   DButton runbutton;
   DOverlay overlay;
@@ -187,7 +195,19 @@ class Playground {
 
     keys.bind('ctrl-s', _handleSave);
     keys.bind('ctrl-enter', _handleRun);
-    keys.bind('f1', _handleHelp);
+    keys.bind('f1', () {
+      _toggleDocTab();
+      _handleHelp();
+    });
+    document.onKeyUp.listen((e) {
+      if (_isCompletionActive || [KeyCode.LEFT,KeyCode.RIGHT,KeyCode.UP,KeyCode.DOWN].contains(e.keyCode)) {
+        _handleHelp();
+      }
+    });
+    document.onClick.listen((e) => _handleHelp());
+
+    querySelector("#doctab").onClick.listen((e) => _toggleDocTab());
+    querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
@@ -246,7 +266,24 @@ class Playground {
   List<Element> _getTabElements(Element element) =>
       element.querySelectorAll('a');
 
+  void _toggleDocTab() {
+    _outputpanel.style.display = "none";
+    querySelector("#consoletab").attributes.remove('selected');
+
+    _docPanel..style.display = "block";
+    querySelector("#doctab").setAttribute('selected','');
+  }
+
+  void _toggleConsoleTab() {
+    _docPanel..style.display = "none";
+    querySelector("#doctab").attributes.remove('selected');
+
+    _outputpanel.style.display = "block";
+    querySelector("#consoletab").setAttribute('selected','');
+  }
+
   void _handleRun() {
+    _toggleConsoleTab();
     ga.sendEvent('main', 'run');
     runbutton.disabled = true;
     overlay.visible = true;
@@ -312,24 +349,53 @@ class Playground {
   }
 
   void _handleHelp() {
-    if (context.focusedEditor == 'dart') {
+    if (context.focusedEditor == 'dart' && _isDocPanelOpen) {
       ga.sendEvent('main', 'help');
 
+      var input;
       Position pos = editor.document.cursor;
-      var input = new SourceRequest()
+      int offset = editor.document.indexFromPos(pos);
+
+      if (_isCompletionActive) {
+        //if the completion popup is open
+        //we create a new source as if the completion popup was chosen
+        //and ask for the documentation of that source
+        String completionText = querySelector(".CodeMirror-hint-active").text;
+        var source = context.dartSource;
+        int lastSpace = source.substring(0, offset).lastIndexOf(" ") + 1;
+        int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
+        offset = max(lastSpace, lastDot);
+        source = _context.dartSource.substring(0, offset) +
+                 completionText +
+                 context.dartSource.substring(editor.document.indexFromPos(pos));
+        input = new SourceRequest()
+          ..source = source
+          ..offset = offset;
+      } else {
+        Position pos = editor.document.cursor;
+        input = new SourceRequest()
           ..source = _context.dartSource
-          ..offset = editor.document.indexFromPos(pos);
+          ..offset = offset;
+      }
       // TODO: Show busy.
       dartServices.document(input).timeout(serviceCallTimeout)
-          .then((DocumentResponse result) {
-            if (result.info['description'] == null &&
-                result.info['dartdoc'] == null) {
-              // TODO: Tell the user there were no results.
-            } else {
-              // TODO: Display this info
-              print(result.info); //['description']);
-            }
-          });
+        .then((DocumentResponse result) {
+          if (result.info['description'] == null &&
+              result.info['dartdoc'] == null) {
+            _docPanel.setInnerHtml("<p>No documentation found.</p>");
+          } else {
+            final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
+              ..allowElement('a', attributes: ['href']);
+            _docPanel.setInnerHtml(markdownToHtml(
+'''
+**`${result.info['description']}`**\n\n
+${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
+${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
+${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
+${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName']}" : ""}\n\n
+''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
+        }
+      });
     }
   }
 
@@ -524,5 +590,34 @@ class PlaygroundContext extends Context {
         controller.add(null);
       });
     });
+  }
+}
+
+//TODO: [someReference] should be converted to for example
+//https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
+class InlineBracketsColon extends md.InlineSyntax {
+  InlineBracketsColon() : super(r'\[:\s?((?:.|\n)*?)\s?:\]');
+
+  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    var element = new md.Element.text('code', htmlEscape(match[1]));
+    parser.addNode(element);
+    return true;
+  }
+}
+
+class InlineBrackets extends md.InlineSyntax {
+  InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\()');
+
+
+  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
+
+  @override
+  bool onMatch(md.InlineParser parser, Match match) {
+    var element = new md.Element.text('code', "<em>" + htmlEscape(match[1]) + "</em>");
+    parser.addNode(element);
+    return true;
   }
 }

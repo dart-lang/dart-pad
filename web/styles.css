@@ -232,6 +232,7 @@ div.toggle {
   min-height: 50px;
   overflow-y: auto;
   white-space: pre-wrap;
+  margin-top: 16px;
 }
 
 .console .normal {
@@ -242,7 +243,7 @@ div.toggle {
   color: #F7977A;
 }
 
-#editpanel {
+#editpanel{
   font-family: 'Inconsolata', monospace;
   font-size: 12pt;
   line-height: 20px;
@@ -253,6 +254,41 @@ div.toggle {
   margin-left: -3px;
 }
 
+#documentation {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11pt;
+  line-height: 20px;
+  position: relative;
+  display: none;
+  overflow: auto;
+  overflow-wrap: break-word;
+  margin-top: 0;
+  margin-left: 0;
+}
+
+#documentation code {
+  font-family: 'Inconsolata', monospace;
+  font-size: 12pt;
+}
+
+#documentation code em {
+  color: #dfaf8f;
+  font-style: normal;
+}
+
+#documentation h2 {
+  font-size: inherit;
+  font-weight: bold;
+}
+
+#documentation a {
+   color: #66d9ef;
+}
+
+#documentation a:hover {
+  color: #66d9ef;
+  font-weight: bold;
+}
 .right {
   text-align: right;
 }
