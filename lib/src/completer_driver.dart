@@ -20,7 +20,6 @@ io.Directory sourceDirectory = io.Directory.systemTemp.createTempSync('analysisS
 String PACKAGE_ROOT = '/app/packages';
 String SDK = '/usr/lib/dart';
 String SERVER_PATH = "/app/lib/src/analysis_server_server.dart";
-bool NEEDS_ENABLE_ASYNC = true;
 
 Server server;
 
@@ -395,7 +394,6 @@ class Server {
     //arguments.add ('--port=8181');
     //arguments.add ("8181");
 
-    if (NEEDS_ENABLE_ASYNC) arguments.add('--enable-async');
     arguments.add('-p$PACKAGE_ROOT');
     //arguments.add('--enable-vm-service=8183');
     //arguments.add('--profile');

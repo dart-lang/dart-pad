@@ -1,4 +1,4 @@
-version: cc-bg-counter
+version: dartvm-1-9-1
 runtime: custom
 vm: true
 api_version: 1
@@ -13,9 +13,6 @@ automatic_scaling:
   cool_down_period_sec: 60
   cpu_utilization:
     target_utilization: 0.5
-
-env_variables:
-      DART_VM_OPTIONS: --enable-async
 
 skip_files:
 - ^.*/packages.*$
