@@ -10,7 +10,7 @@ import 'dart:convert' as convert;
 
 import 'package:appengine/appengine.dart' as ae;
 import 'package:gcloud/db.dart' as db;
-
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
@@ -24,8 +24,13 @@ const String _API = '/api';
 final Logger _logger = new Logger('gae_server');
 
 void main() {
-  // TODO: Use the cli_util package to locate the SDK? Or depend on a CLI arg?
-  GaeServer server = new GaeServer('/usr/lib/dart');
+  io.Directory sdkDir = cli_util.getSdkDir([]);
+
+  if (sdkDir == null) {
+    throw 'No Dart SDK is available; set the DART_SDK env var.';
+  }
+
+  GaeServer server = new GaeServer(sdkDir.path);
   completer.setup();
 
   // Change the log level to get more or less detailed logging.

@@ -116,6 +116,8 @@ class CommonServer {
     _logger.level = Level.ALL;
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath);
+    // TODO(lukechurch): Migrate this to a Completer
+    completer_driver.SDK = sdkPath;
   }
 
   @ApiMethod(method: 'GET', path: 'counter')
