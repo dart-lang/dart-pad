@@ -13,6 +13,8 @@ import 'package:codemirror/hints.dart';
 
 import 'editor.dart' hide Position;
 import 'editor.dart' as ed show Position;
+import 'dart:js';
+import 'dart:math';
 
 export 'editor.dart';
 
@@ -127,6 +129,7 @@ class _CodeMirrorEditor extends Editor {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
   }
 
+
   Document get document => _document;
 
   Document createDocument({String content, String mode}) {
@@ -142,6 +145,11 @@ class _CodeMirrorEditor extends Editor {
 
   String get theme => cm.getTheme();
   set theme(String str) => cm.setTheme(str);
+
+  Point get cursorCoords {
+    JsObject js = cm.call("cursorCoords");
+    return new Point(js["left"], js["top"]);
+  }
 
   void focus() => cm.focus();
   void resize() => cm.refresh();
@@ -233,9 +241,9 @@ class _CodeMirrorDocument extends Document {
 //      node.style.backgroundColor = '#444';
 //      //node.style.height = '40px';
 //      //nodes.add(node);
-//      //(editor as _CodeMirrorEditor).cm.addWidget(_posToPos(an.start), node);
+//      //(editor as CodeMirrorEditor).cm.addWidget(_posToPos(an.start), node);
 //      widgets.add(
-//          (editor as _CodeMirrorEditor).cm.addLineWidget(an.line - 1, node));
+//          (editor as CodeMirrorEditor).cm.addLineWidget(an.line - 1, node));
 //
 ////      cm.setGutterMarker(an.line - 1, _gutterId,
 ////          _makeMarker(an.type, an.message, an.start, an.end));

@@ -6,6 +6,7 @@ library editor;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math';
 
 abstract class EditorFactory {
   List<String> get modes;
@@ -37,6 +38,8 @@ abstract class Editor {
 
   String get theme;
   set theme(String str);
+
+  Point get cursorCoords;
 
   void resize();
   void focus();

@@ -482,27 +482,39 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
         }
       }
       string += ")</code>";
-      Position pos = editor.document.cursor;
+
       DivElement editorDiv = querySelector("#editpanel .CodeMirror");
       var lineHeight = editorDiv.getComputedStyle().getPropertyValue('line-height');
-//      var charWidth = editorDiv.getComputedStyle().getPropertyValue('letter-spacing');
-      lineHeight = int.parse(lineHeight.substring(0,lineHeight.indexOf("px")));
+      //var charWidth = editorDiv.getComputedStyle().getPropertyValue('letter-spacing');
+      int charWidth = 8;
+      lineHeight = int.parse(lineHeight.substring(0, lineHeight.indexOf("px")));
+      Point point = editor.cursorCoords;
+
 
       if (_parPopupActive) {
         querySelector(".parameter-hint")
           ..innerHtml = string;
-//        querySelector(".parameter-hints")
-//          ..style.left = "${(pos.char - querySelector(".parameter-hint").text.length~/2) * 8 +25}px"
-//          ..style.top = "${pos.line *20 + 88}px";
+        UListElement parameterPopup = querySelector(".parameter-hints");
+        LIElement li = querySelector(".parameter-hint");
+
+        var oldLeft = parameterPopup.style.left;
+        print([oldLeft,point.x - (li.text.length * charWidth ~/ 2)]);
+        oldLeft = int.parse(oldLeft.substring(0,oldLeft.indexOf("px")));
+        int newLeft = point.x - (li.text.length * charWidth ~/ 2);
+
+        //edits the popup position when it seems needed
+        if ((newLeft - oldLeft).abs() > 50) {
+          parameterPopup.style.left = "${newLeft}px";
+        }
       } else {
         LIElement li = new LIElement()
           ..innerHtml = string
           ..classes.add("parameter-hint");
         UListElement parTab = new UListElement()
           ..classes.add("parameter-hints")
-          //TODO: Probably we can use some codemirror method that gives a more exact result.
-          ..style.left = "${(pos.char - li.text.length~/2) * 8 +25}px"
-          ..style.top = "${pos.line * lineHeight + 88}px";
+        //TODO: Probably we can use some codemirror method that gives a more exact result.
+          ..style.left = "${point.x - (li.text.length * charWidth ~/ 2)}px"
+          ..style.top = "${point.y - lineHeight - 4}px";
 
         parTab.append(li);
         document.body.append(parTab);
