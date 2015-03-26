@@ -70,7 +70,12 @@ class CodeMirrorFactory extends EditorFactory {
         'extraKeys': {
           'Ctrl-Space': 'autocomplete',
           'Cmd-/': 'toggleComment',
-          'Ctrl-/': 'toggleComment'
+          'Ctrl-/': 'toggleComment',
+          '.' : (jsEditor) {
+            CodeMirror editor = new CodeMirror.fromJsObject(jsEditor);
+            new Timer(const Duration(milliseconds: 10), () => editor.execCommand("autocomplete"));
+            return "CodeMirror.Pass";
+          }
         },
         'hintOptions': {
           'completeSingle': false
