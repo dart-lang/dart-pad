@@ -6,4 +6,4 @@
 
 import 'package:services/services_gae.dart' as server;
 
-void main(List<String> args) => server.main();
+void main(List<String> args) => server.main(args);

@@ -23,8 +23,8 @@ const String _API = '/api';
 
 final Logger _logger = new Logger('gae_server');
 
-void main() {
-  io.Directory sdkDir = cli_util.getSdkDir([]);
+void main(List<String> args) {
+  io.Directory sdkDir = cli_util.getSdkDir(args);
 
   if (sdkDir == null) {
     throw 'No Dart SDK is available; set the DART_SDK env var.';
