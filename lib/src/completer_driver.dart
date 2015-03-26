@@ -16,9 +16,10 @@ final Logger _logger = new Logger('completer_driver');
 
 io.Directory sourceDirectory = io.Directory.systemTemp.createTempSync('analysisServer');
 
-// GAE configurations.
+// GAE configurations
+// TODO(lukechurch): Migrate into a ctor
+String SDK = null;
 String PACKAGE_ROOT = '/app/packages';
-String SDK = '/usr/lib/dart';
 String SERVER_PATH = "/app/lib/src/analysis_server_server.dart";
 
 Server server;
@@ -392,7 +393,8 @@ class Server {
     if (io.Platform.packageRoot.isNotEmpty) {
       arguments.add('--package-root=${io.Platform.packageRoot}');
     }
-    arguments.add('--checked');
+
+//    arguments.add('--checked');
     arguments.add(SERVER_PATH);
 
     //arguments.add ('--port');
