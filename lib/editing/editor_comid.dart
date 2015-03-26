@@ -157,7 +157,8 @@ class _CodeMirrorEditor extends Editor {
   String get theme => cm.getOption('theme');
   set theme(String str) => cm.setOption('theme', str);
 
-  Point get cursorCoords => new Point(0, 0);
+  //TODO: Add a cursorCoords getter for comid
+  Point get cursorCoords => null;
 
   void focus() => cm.focus();
   void resize() => cm.refresh();
