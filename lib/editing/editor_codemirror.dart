@@ -128,8 +128,7 @@ class _CodeMirrorEditor extends Editor {
   _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
   }
-
-
+  
   Document get document => _document;
 
   Document createDocument({String content, String mode}) {

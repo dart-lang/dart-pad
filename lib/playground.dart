@@ -51,7 +51,6 @@ class Playground {
   bool get _isDocPanelOpen => querySelector("#doctab").attributes.containsKey('selected');
   bool get _parPopupActive => querySelector(".parameter-hints") != null;
 
-
   DButton runbutton;
   DOverlay overlay;
   DBusyLight dartBusyLight;
