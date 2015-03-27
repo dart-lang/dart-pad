@@ -198,8 +198,17 @@ class Playground {
       _toggleDocTab();
       _handleHelp();
     });
-    document.onKeyUp.listen((e) {
 
+    document.onKeyDown.listen((e) {
+      if (e.keyCode == KeyCode.ENTER) {
+        //TODO: this should probably only be fired when the completion popup was active
+        //TODO: but there doesn't seem a way to find this out
+        //TODO: maybe adding _loopParameterInfo to hintApplier in editor_codemirror.dart ?
+        _lookupParameterInfo();
+      }
+    });
+
+    document.onKeyUp.listen((e) {
       if (_isCompletionActive || [KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
         _handleHelp();
       }
@@ -207,16 +216,16 @@ class Playground {
         document.body.children.remove(querySelector(".parameter-hints"));
         return;
       }
-      if (_isCompletionActive || [KeyCode.BACKSPACE, KeyCode.ENTER, KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
+      if (_isCompletionActive || [KeyCode.BACKSPACE, KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
         _lookupParameterInfo();
       }
     });
+
     document.onClick.listen((e) {
       _handleHelp();
       _lookupParameterInfo();
     });
-
-
+    
     querySelector("#doctab").onClick.listen((e) => _toggleDocTab());
     querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
