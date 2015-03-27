@@ -216,7 +216,7 @@ class Playground {
         document.body.children.remove(querySelector(".parameter-hints"));
         return;
       }
-      if (_isCompletionActive || [KeyCode.BACKSPACE, KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
+      if (_isCompletionActive || [KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
         _lookupParameterInfo();
       }
     });
@@ -427,26 +427,34 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
   Map<String,int> _parameterInfo(String source, int offset) {
     int parameterIndex = 0;
     int openingParenIndex;
-    bool skip = false;
+    int nesting = 0;
+
     while (openingParenIndex == null && offset > 0) {
       offset += -1;
-      if (!skip) {
+      print(nesting);
+      if (nesting == 0) {
         switch (source[offset]) {
           case "(":
             openingParenIndex = offset;
-            break;
-          case ")":
-            skip = true;
             break;
           case ",":
             parameterIndex += 1;
             break;
           case ";":
             return null;
+          case ")":
+            nesting += 1;
+            break;
         }
-      }
-      if (skip && source[offset] == "(") {
-          skip = false;
+      } else {
+        switch(source[offset]) {
+          case "(":
+            nesting += -1;
+            break;
+          case ")":
+            nesting += 1;
+            break;
+        }
       }
     }
     return openingParenIndex == null ? null : {
@@ -527,8 +535,8 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
       var parameterHint = querySelector(".parameter-hint");
       int newLeft = math.max(cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2),0);
 
-      var parameterPopup = querySelector(".parameter-hints")
-        ..style.top = "${cursorCoords.y - lineHeight - 5}px";
+      var parameterPopup = querySelector(".parameter-hints");
+      //..style.top = "${cursorCoords.y - lineHeight - 5}px";
       var oldLeft = parameterPopup.style.left;
       oldLeft = int.parse(oldLeft.substring(0,oldLeft.indexOf("px")));
       if ((newLeft - oldLeft).abs() > 50) {
