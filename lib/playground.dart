@@ -200,10 +200,15 @@ class Playground {
       _handleHelp();
     });
     document.onKeyUp.listen((e) {
+
       if (_isCompletionActive || [KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
         _handleHelp();
       }
-      if (_isCompletionActive || [KeyCode.ENTER, KeyCode.COMMA, KeyCode.NINE, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
+      if (e.keyCode == KeyCode.ESC) {
+        document.body.children.remove(querySelector(".parameter-hints"));
+        return;
+      }
+      if (_isCompletionActive || [KeyCode.BACKSPACE, KeyCode.ENTER, KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
         _lookupParameterInfo();
       }
     });
@@ -407,37 +412,44 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
     }
   }
 
+  ///Returns null if the offset is not contained in parenthesis.
+  ///Otherwise it will return information about the parameters.
+  ///For example, if the source is `substring(1, <caret>)`, it will return
+  ///`{openingParenIndex: 9, parameterIndex: 1}`.
   Map<String,int> _parameterInfo(String source, int offset) {
-    offset += -1;
-    int parameterPosition = 0;
-    int beginParen;
+    int parameterIndex = 0;
+    int openingParenIndex;
     bool skip = false;
-    while (beginParen == null && offset > 0) {
-      if (source[offset] == ",") {
-        parameterPosition += 1;
-      }
-      if (source[offset] == "(" && !skip) {
-        beginParen = offset;
-        continue;
-      } else if (source[offset] == ")") {
-        skip = true;
-      } else if (source[offset] == ";") {
-        return null;
-      } else if (skip == true && source[offset] == "(") {
-        skip = false;
-      }
+    while (openingParenIndex == null && offset > 0) {
       offset += -1;
+      if (!skip) {
+        switch (source[offset]) {
+          case "(":
+            openingParenIndex = offset;
+            break;
+          case ")":
+            skip = true;
+            break;
+          case ",":
+            parameterIndex += 1;
+            break;
+          case ";":
+            return null;
+        }
+      }
+      if (skip && source[offset] == "(") {
+          skip = false;
+      }
     }
-    return beginParen == null ? null : {
-      "beginParen" : beginParen,
-      "parameterPosition" : parameterPosition
+    return openingParenIndex == null ? null : {
+      "openingParenIndex" : openingParenIndex,
+      "parameterIndex" : parameterIndex
     };
   }
 
   void _lookupParameterInfo() {
-
     //TODO: `document.activeElement.toString() != "textarea"` is probably not a solid way
-    //for checking if the editor is active
+    //TODO: for checking if the editor is active
     if (context.focusedEditor != 'dart' || document.activeElement.toString() != "textarea") {
       document.body.children.remove(querySelector(".parameter-hints"));
       return;
@@ -451,9 +463,8 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
       document.body.children.remove(querySelector(".parameter-hints"));
       return;
     }
-    //parInfo["beginParen"] returns the position of the opening parenthesis
-    //if the cursor is inside parenthesis
-    offset = parInfo["beginParen"] - 1;
+    int openingParenIndex = parInfo["openingParenIndex"], parameterIndex = parInfo["parameterIndex"];
+    offset = openingParenIndex - 1;
 
     //we then request documentation info of what is before that parenthesis
     SourceRequest input = new SourceRequest()
@@ -462,64 +473,71 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
 
     dartServices.document(input).timeout(serviceCallTimeout)
     .then((DocumentResponse result) {
-
       if (!result.info.containsKey("parameters")) {
+        document.body.children.remove(querySelector(".parameter-hints"));
         return;
       }
-      if (result.info["parameters"].length == 0) {
-        return;
-      }
-      String string = "<code>(";
-      List list = result.info["parameters"] as List;
-      for (int i = 0; i < list.length; i++) {
-        if (i == parInfo["parameterPosition"]) {
-          string += '<em>${list[i]}</em>';
-        } else {
-          string += '${list[i]}';
-        }
-        if (i != list.length - 1) {
-          string += ", ";
-        }
-      }
-      string += ")</code>";
-
-      DivElement editorDiv = querySelector("#editpanel .CodeMirror");
-      var lineHeight = editorDiv.getComputedStyle().getPropertyValue('line-height');
-      //var charWidth = editorDiv.getComputedStyle().getPropertyValue('letter-spacing');
-      int charWidth = 8;
-      lineHeight = int.parse(lineHeight.substring(0, lineHeight.indexOf("px")));
-      Point point = editor.cursorCoords;
-
-
-      if (_parPopupActive) {
-        querySelector(".parameter-hint")
-          ..innerHtml = string;
-        UListElement parameterPopup = querySelector(".parameter-hints");
-        LIElement li = querySelector(".parameter-hint");
-
-        var oldLeft = parameterPopup.style.left;
-        print([oldLeft,point.x - (li.text.length * charWidth ~/ 2)]);
-        oldLeft = int.parse(oldLeft.substring(0,oldLeft.indexOf("px")));
-        int newLeft = point.x - (li.text.length * charWidth ~/ 2);
-
-        //edits the popup position when it seems needed
-        if ((newLeft - oldLeft).abs() > 50) {
-          parameterPopup.style.left = "${newLeft}px";
-        }
+      List parameterInfo = result.info["parameters"] as List;
+      String outputString = "";
+      if (parameterInfo.length == 0) {
+        outputString += "<code>&lt;no parameters&gt;</code>";
+      } else if (parameterInfo.length < parameterIndex + 1) {
+        outputString += "<code>too many parameters listed</code>";
       } else {
-        LIElement li = new LIElement()
-          ..innerHtml = string
-          ..classes.add("parameter-hint");
-        UListElement parTab = new UListElement()
-          ..classes.add("parameter-hints")
-        //TODO: Probably we can use some codemirror method that gives a more exact result.
-          ..style.left = "${point.x - (li.text.length * charWidth ~/ 2)}px"
-          ..style.top = "${point.y - lineHeight - 4}px";
+        outputString += "<code>";
+        var sanitizer = const HtmlEscape();
 
-        parTab.append(li);
-        document.body.append(parTab);
+        for (int i = 0; i < parameterInfo.length; i++) {
+          if (i == parameterIndex) {
+            outputString += '<em>${parameterInfo[i]}</em>';
+          } else {
+            outputString += '${sanitizer.convert(parameterInfo[i])}';
+          }
+          if (i != parameterInfo.length - 1) {
+            outputString += ", ";
+          }
+        }
+        outputString += "</code>";
       }
+      _showParameterPopup(outputString);
     });
+  }
+
+  void _showParameterPopup(String string) {
+    DivElement editorDiv = querySelector("#editpanel .CodeMirror");
+    var lineHeight = editorDiv.getComputedStyle().getPropertyValue('line-height');
+    lineHeight = int.parse(lineHeight.substring(0, lineHeight.indexOf("px")));
+    //var charWidth = editorDiv.getComputedStyle().getPropertyValue('letter-spacing');
+    int charWidth = 8;
+
+    Point cursorCoords = editor.cursorCoords;
+
+    if (_parPopupActive) {
+      querySelector(".parameter-hint")
+        ..innerHtml = string;
+      //update popup position
+      var parameterHint = querySelector(".parameter-hint");
+      int newLeft = math.max(cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2),0);
+
+      var parameterPopup = querySelector(".parameter-hints")
+        ..style.top = "${cursorCoords.y - lineHeight - 5}px";
+      var oldLeft = parameterPopup.style.left;
+      oldLeft = int.parse(oldLeft.substring(0,oldLeft.indexOf("px")));
+      if ((newLeft - oldLeft).abs() > 50) {
+        parameterPopup.style.left = "${newLeft}px";
+      }
+    } else {
+      var parameterHint = new SpanElement()
+        ..innerHtml = string
+        ..classes.add("parameter-hint");
+      int left = math.max(cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 0);
+      var parameterPopup = new DivElement()
+        ..classes.add("parameter-hints")
+        ..style.left = "${left}px"
+        ..style.top = "${cursorCoords.y - lineHeight - 5}px";
+      parameterPopup.append(parameterHint);
+      document.body.append(parameterPopup);
+    }
   }
 
   void _clearOutput() {
