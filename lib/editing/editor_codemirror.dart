@@ -244,11 +244,12 @@ class _CodeMirrorDocument extends Document {
 ////      cm.setGutterMarker(an.line - 1, _gutterId,
 ////          _makeMarker(an.type, an.message, an.start, an.end));
     }
-    html.querySelector("#runbutton").attributes.remove("disabled");
+    var runButton = html.querySelector("#runbutton");
+    runButton.attributes.remove("disabled");
     if (containsError) {
-      html.querySelector("#runbutton").classes.add("error");
+      runButton.classes.add("error");
     } else {
-      html.querySelector("#runbutton").classes.remove("error");
+      runButton.classes.remove("error");
     }
   }
 
