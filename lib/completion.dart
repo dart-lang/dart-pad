@@ -174,7 +174,7 @@ class AnalysisCompletion implements Comparable {
   int get selectionOffset => _int(_map['selectionOffset']);
 
   // FUNCTION, GETTER, CLASS, ...
-  String get type => _map.containsKey('element') ? _map['element']['kind'] : null;
+  String get type => _map.containsKey('element') ? _map['element']['kind'] : kind;
 
   int compareTo(other) {
     if (other is! AnalysisCompletion) return -1;
