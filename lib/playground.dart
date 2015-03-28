@@ -225,7 +225,10 @@ class Playground {
       cssBusyLight.reset();
     });
 
-    _context.onDartDirty.listen((_) => dartBusyLight.on());
+    _context.onDartDirty.listen((_) {
+      querySelector("#runbutton").attributes["disabled"] = "";
+      dartBusyLight.on();
+    });
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     _finishedInit();
