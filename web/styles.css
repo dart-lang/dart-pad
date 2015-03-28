@@ -138,8 +138,8 @@ a[selected]:hover {
 
 button {
   outline: none;
-  color: #aaa;
-  fill: #aaa;
+  color: #222;
+  fill: #222;
   border: 1px solid #222;
   border-radius: 2px;
   font-family: 'Roboto', sans-serif;
@@ -151,7 +151,13 @@ button {
   transition: 100ms;
   min-width: 75px;
   background-color: #444;
-  background-image: linear-gradient(to bottom, #444, #333);
+  background-image: linear-gradient(to bottom, #4CAF50, #388E3C);
+}
+
+button.error {
+  background-image: linear-gradient(to bottom, #F7977A, #ac6356);
+  color: #222;
+  fill: #222;
 }
 
 button:hover {

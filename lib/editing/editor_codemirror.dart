@@ -218,7 +218,11 @@ class _CodeMirrorDocument extends Document {
 
     int lastLine = -1;
 
+    bool containsError = false;
     for (Annotation an in annotations) {
+      if (an.type == "error") {
+        containsError = true;
+      }
       // Create in-line squiggles.
       doc.markText(_posToPos(an.start), _posToPos(an.end),
           className: 'squiggle-${an.type}', title: an.message);
@@ -239,6 +243,12 @@ class _CodeMirrorDocument extends Document {
 //
 ////      cm.setGutterMarker(an.line - 1, _gutterId,
 ////          _makeMarker(an.type, an.message, an.start, an.end));
+    }
+    html.querySelector("#runbutton").attributes.remove("disabled");
+    if (containsError) {
+      html.querySelector("#runbutton").classes.add("error");
+    } else {
+      html.querySelector("#runbutton").classes.remove("error");
     }
   }
 
