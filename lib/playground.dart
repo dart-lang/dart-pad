@@ -198,6 +198,11 @@ class Playground {
       _handleHelp();
     });
     document.onKeyUp.listen((e) {
+      RegExp exp = new RegExp(r"[a-zA-Z]|\.");
+      if (!_isCompletionActive && exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        editor.execCommand("autocomplete");
+      }
+
       if (_isCompletionActive || [KeyCode.LEFT,KeyCode.RIGHT,KeyCode.UP,KeyCode.DOWN].contains(e.keyCode)) {
         _handleHelp();
       }

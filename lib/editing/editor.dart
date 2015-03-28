@@ -32,6 +32,8 @@ abstract class Editor {
 
   Document get document;
 
+  void execCommand(String name);
+
   String get mode;
   set mode(String str);
 

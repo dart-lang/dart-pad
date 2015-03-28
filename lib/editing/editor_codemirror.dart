@@ -142,6 +142,10 @@ class _CodeMirrorEditor extends Editor {
     return new _CodeMirrorDocument._(this, new Doc(content, mode));
   }
 
+  void execCommand(String name) {
+    cm.callArg('execCommand', name);
+  }
+
   String get mode => cm.getMode();
   set mode(String str) => cm.setMode(str);
 
@@ -192,6 +196,8 @@ class _CodeMirrorDocument extends Document {
       doc.setSelection(_posToPos(start));
     }
   }
+
+
 
   String get mode => parent.mode;
 
