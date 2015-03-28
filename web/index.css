@@ -53,6 +53,7 @@ header {
   color: #ccc;
   font-size: 14pt;
   text-align: center;
+  min-width: 2em;
 }
 
 .header-gist-id {
@@ -63,7 +64,7 @@ header {
 }
 
 #newbutton {
-  margin-right: 10px;
+  margin-left: 10px;
 }
 
 section {
@@ -138,6 +139,10 @@ a[selected]:hover {
 .header {
   line-height: 24px;
   font-size: 12pt;
+}
+
+.header.small {
+  font-size: 10pt;
 }
 
 button {

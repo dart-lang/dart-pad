@@ -20,6 +20,7 @@ import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
 import 'editing/editor.dart';
+import 'elements/bind.dart';
 import 'elements/elements.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
@@ -63,6 +64,7 @@ class Playground {
   Future _analysisRequest;
   Router _router;
   MutableGist editableGist = new MutableGist(new Gist());
+  DContentEditable titleEditable;
 
   ModuleManager modules = new ModuleManager();
 
@@ -95,6 +97,11 @@ class Playground {
     cssBusyLight = new DBusyLight(querySelector('#dartbusy'));
     htmlBusyLight = new DBusyLight(querySelector('#dartbusy'));
 
+    titleEditable = new DContentEditable(
+        querySelector('header .header-gist-name'));
+    bind(titleEditable.onChanged, editableGist.property('description'));
+    bind(editableGist.property('description'), titleEditable.textProperty);
+
     SelectElement select = querySelector('#samples');
     select.onChange.listen((_) => _handleSelectChanged(select));
 
@@ -116,9 +123,11 @@ class Playground {
       }
     }
 
-    _setGistDescription(null);
-    _setGistId(null, null);
+    editableGist.setBackingGist(createSampleGist());
 
+    // TODO: Remove the following lines.
+    _setGistDescription('Untitled');
+    _setGistId(null, null);
     context.dartSource = sample.dartCode;
     context.htmlSource = sample.htmlCode;
     context.cssSource = sample.cssCode;
@@ -158,9 +167,9 @@ class Playground {
         _performAnalysis();
       });
     }).catchError((e) {
-      // TODO: Display any errors - use a toast.
-      print('Error loading gist ${gistId}.');
-      print(e);
+      String message = 'Error loading gist ${gistId}.';
+      DToast.showMessage(message);
+      _logger.severe('${message}: ${e}');
     });
   }
 
@@ -307,7 +316,7 @@ class Playground {
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
-      // TODO: Also display using a toast.
+      DToast.showMessage('Error compiling to JavaScript');
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {
       runButton.disabled = false;
@@ -316,13 +325,25 @@ class Playground {
   }
 
   void _handleShareButton() {
-    // TODO:
+    ga.sendEvent('main', 'share');
 
+    Gist.createAnon(editableGist.backingGist).then((Gist newGist) {
+      print(newGist);
+      editableGist.setBackingGist(newGist);
+    }).catchError((e) {
+      String message = 'Error saving gist: ${e}';
+      DToast.showMessage(message);
+      _logger.severe(message);
+    });
   }
 
   void _handleNewButton() {
-    // TODO:
+    if (editableGist.dirty) {
+      if (!window.confirm('Discard changes to the current pad?')) return;
+    }
 
+    ga.sendEvent('main', 'new');
+    editableGist.setBackingGist(createSampleGist());
   }
 
   void _performAnalysis() {
@@ -365,8 +386,6 @@ class Playground {
 
   void _handleSave() {
     ga.sendEvent('main', 'save');
-    // TODO:
-    print('handleSave');
   }
 
   void _handleHelp() {
@@ -444,8 +463,7 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
   }
 
   void _setGistDescription(String description) {
-    Element e = querySelector('header .header-gist-name');
-    e.text = description == null ? '' : description;
+    titleEditable.text = description == null ? '' : description;
   }
 
   void _setGistId(String title, String url) {

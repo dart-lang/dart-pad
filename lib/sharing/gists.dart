@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:html';
 
+import 'package:dart_pad/src/sample.dart' as sample;
+
 // TODO: saving an anonymous gist
 
 // TODO: Save gists as valid pub packages (pubspecs, and readmes).
@@ -37,6 +39,15 @@ String extractHtmlBody(String html) {
   }
 }
 
+Gist createSampleGist() {
+  Gist gist = new Gist();
+  gist.description = 'Untitled';
+  gist.files.add(new GistFile(name: 'main.dart', content: sample.dartCode));
+  gist.files.add(new GistFile(name: 'index.html', content: '\n'));
+  gist.files.add(new GistFile(name: 'styles.css', content: '\n'));
+  return gist;
+}
+
 /// A representation of a Github gist.
 class Gist {
   static final String _apiUrl = 'https://api.github.com/gists';
@@ -53,9 +64,8 @@ class Gist {
   /// Create a new gist and return the newly created Gist.
   static Future<Gist> createAnon(Gist gist) {
     // POST /gists
-    Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
-    return HttpRequest.postFormData(_apiUrl, gist.toMap(), requestHeaders: headers).then(
-        (HttpRequest request) {
+    return HttpRequest.request(_apiUrl, method: 'POST',
+        sendData: JSON.encode(gist.toMap())).then((HttpRequest request) {
       return new Gist.fromMap(JSON.decode(request.responseText));
     });
   }
@@ -93,22 +103,15 @@ class Gist {
 
   Map toMap() {
     Map m = {};
-
     if (id != null) m['id'] = id;
     if (description != null) m['description'] = description;
     if (public != null) m['public'] = public;
-
-    // "files": {
-    //   "file1.txt": {
-    //     "content": "String file contents"
-    //   }
-    // }
-
-    Map f = {};
+    m['files'] = {};
     for (GistFile file in files) {
-      f[file.name] = {'content': file.content};
+      m['files'][file.name] = {
+        'content': file.content
+      };
     }
-    m['files'] = f;
     return m;
   }
 
