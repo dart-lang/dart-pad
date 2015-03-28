@@ -560,8 +560,8 @@ class PlaygroundMobile {
     menu.add(new PaperItem(text: 'Bootstrap')..name('b51ea7c04322042b582a'));
     menu.add(new PaperItem(text: 'Clock')..name('83caa2b65236f8ebd703'));
     menu.add(new PaperItem(text: 'Fibonacci')..name('74e990d984faad26dea0'));
-    menu.add(new PaperItem(text: 'Helloworld')..name('33706e19df021e52d98c'));
-    menu.add(new PaperItem(text: 'Helloworld Html')..name('9126d5d48ebabf5bf547'));
+    menu.add(new PaperItem(text: 'Hello World')..name('33706e19df021e52d98c'));
+    menu.add(new PaperItem(text: 'Hello World HTML')..name('9126d5d48ebabf5bf547'));
     menu.add(new PaperItem(text: 'Solar')..name('72d83fe97bfc8e735607'));
     menu.add(new PaperItem(text: 'Spirodraw')..name('76d27117fd6313dd9167'));
     menu.add(new PaperItem(text: 'Sunflower')..name('9d2dd2ce17981ecacadd'));
