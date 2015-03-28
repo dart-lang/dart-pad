@@ -91,11 +91,21 @@ li.CodeMirror-hint-active {
   text-align: center;
   margin-right: 5px;
   border-radius: 50%;
-  content : " ";
+  content: " ";
 }
 
+.type-keyword::before {
+  background: radial-gradient(#f0dfaf, #e0cfa1);
+  content : "k";
+}
 .type-class::before {
   content: "C";
+  background: radial-gradient(#A2D7F5, #8ebfd7);
+  line-height: 16px; /*for vertical centering */
+}
+
+.type-function_type_alias::before {
+  content: "T";
   background: radial-gradient(#A2D7F5, #8ebfd7);
   line-height: 16px; /*for vertical centering */
 }
