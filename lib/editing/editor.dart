@@ -30,6 +30,13 @@ abstract class Editor {
 
   Document createDocument({String content, String mode});
 
+  /**
+   * Runs the command with the given name on the editor.
+   * Only implemented for codemirror and comid.
+   * Returns null for ace editor.
+   */
+  void execCommand(String name);
+
   Document get document;
 
   String get mode;
