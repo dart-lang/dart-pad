@@ -113,6 +113,9 @@ class CodeMirrorFactory extends EditorFactory {
             }
         );
       }).toList();
+      if (hints.length == 0) {
+        hints = [new HintResult("", displayText: "No suggestions", className: "type-no_suggestions")];
+      }
       return new HintResults.fromHints(hints, position, position);
     });
   }
