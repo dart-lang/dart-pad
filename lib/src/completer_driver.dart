@@ -19,8 +19,7 @@ io.Directory sourceDirectory = io.Directory.systemTemp.createTempSync('analysisS
 // GAE configurations
 // TODO(lukechurch): Migrate into a ctor
 String SDK = null;
-String PACKAGE_ROOT = '/app/packages';
-String SERVER_PATH = "/app/lib/src/analysis_server_server.dart";
+String SERVER_PATH = "/app/bin/_analysis_server_entry.dart";
 
 Server server;
 
@@ -380,7 +379,6 @@ class Server {
     //arguments.add ('--port=8181');
     //arguments.add ("8181");
 
-    arguments.add('-p$PACKAGE_ROOT');
     //arguments.add('--enable-vm-service=8183');
     //arguments.add('--profile');
     if (debugServer) {
@@ -394,7 +392,6 @@ class Server {
       arguments.add('--package-root=${io.Platform.packageRoot}');
     }
 
-//    arguments.add('--checked');
     arguments.add(SERVER_PATH);
 
     //arguments.add ('--port');
