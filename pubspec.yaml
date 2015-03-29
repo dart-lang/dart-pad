@@ -20,7 +20,6 @@ dependencies:
   # `compiler_unsupported` needs to be pegged to a specific version.
   compiler_unsupported: 1.9.0-dev.10.4
   crypto: '>=0.9.0 <0.10.0'
-  grinder: '>=0.6.4 <0.7.0'
   librato: '>=0.0.1 <0.1.0'
   logging: ^0.9.0
   shelf: ^0.5.0
@@ -32,6 +31,7 @@ dev_dependencies:
   _discoveryapis_commons: any
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
+  grinder: '>=0.6.4 <0.7.0'
   http: any
   unittest: any
 executables:
