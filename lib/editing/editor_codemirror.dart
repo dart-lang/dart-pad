@@ -140,6 +140,10 @@ class _CodeMirrorEditor extends Editor {
     return new _CodeMirrorDocument._(this, new Doc(content, mode));
   }
 
+  void execCommand(String name) {
+    cm.execCommand(name);
+  }
+
   String get mode => cm.getMode();
   set mode(String str) => cm.setMode(str);
 
