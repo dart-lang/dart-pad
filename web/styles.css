@@ -154,6 +154,27 @@ button {
   background-image: linear-gradient(to bottom, #444, #333);
 }
 
+#runbutton svg {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  fill: #45914b;
+}
+
+#runbutton svg.error {
+  padding: 0 0 1px 1px;
+  width: 17px;
+  height: 17px;
+  fill: #d78870;
+}
+
+#runbutton svg.warning {
+  padding: 0 0 1px 1px;
+  width: 17px;
+  height: 17px;
+  fill: #d7cf85;
+}
+
 button:hover {
   color: #fff;
   fill: #fff;
