@@ -137,3 +137,9 @@ li.CodeMirror-hint-active {
   line-height: 16px; /*for vertical centering */
   background: radial-gradient(#fdc0b8, #eb9a94);
 }
+
+.type-no_suggestions::before {
+  content: "?";
+  line-height: 14px; /*for vertical centering */
+  background: radial-gradient(#fff, #eee);
+}
