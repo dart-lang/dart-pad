@@ -19,7 +19,7 @@ io.Directory sourceDirectory = io.Directory.systemTemp.createTempSync('analysisS
 // GAE configurations
 // TODO(lukechurch): Migrate into a ctor
 String SDK = null;
-String SERVER_PATH = "/app/bin/_analysis_server_entry.dart";
+String SERVER_PATH = "bin/_analysis_server_entry.dart";
 
 Server server;
 
