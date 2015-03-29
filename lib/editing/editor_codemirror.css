@@ -142,4 +142,5 @@ li.CodeMirror-hint-active {
   content: "?";
   line-height: 14px; /*for vertical centering */
   background: radial-gradient(#fff, #eee);
+  vertical-align: text-bottom;
 }
