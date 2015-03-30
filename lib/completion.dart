@@ -36,7 +36,7 @@ class DartCompleter extends CodeCompleter {
       ..source = editor.document.value
       ..offset = offset;
 
-    Stopwatch timer = new Stopwatch()..start();
+    //Stopwatch timer = new Stopwatch()..start();
 
     CancellableCompleter completer = new CancellableCompleter();
     _lastCompleter = completer;
@@ -47,9 +47,9 @@ class DartCompleter extends CodeCompleter {
       int replaceOffset = response.replacementOffset;
       int replaceLength = response.replacementLength;
 
-      _logger.info('completion request in ${timer.elapsedMilliseconds}ms; '
-          '${response.completions.length} completions, '
-          'offset=${replaceOffset}, length=${replaceLength}');
+      //_logger.info('completion request in ${timer.elapsedMilliseconds}ms; '
+      //    '${response.completions.length} completions, '
+      //    'offset=${replaceOffset}, length=${replaceLength}');
 
       List<AnalysisCompletion> analysisCompletions = response.completions.map(
           (completion) {
