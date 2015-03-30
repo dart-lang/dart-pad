@@ -115,11 +115,11 @@ class _AceEditor extends Editor {
     return new _AceDocument._(this, session);
   }
 
-  //TODO: Implement execCommand for ace.
+  // TODO: Implement execCommand for ace.
   void execCommand(String name) => null;
 
-  //TODO: Implement completionActive for ace.
-  bool get completionActive => null;
+  // TODO: Implement completionActive for ace.
+  bool get completionActive => false;
 
   String get mode => _document.session.mode.name;
   set mode(String str) => _document.session.mode = new ace.Mode.named(str);
@@ -145,20 +145,21 @@ class _AceDocument extends Document {
 
   _AceDocument._(_AceEditor editor, this.session) : super(editor);
 
+  _AceEditor get _aceEditor => editor;
+
   String get value => session.value;
   set value(String str) {
     session.value = str;
   }
 
-  Position get cursor =>
-      _ptToPosition((editor as _AceEditor).editor.selection.cursor);
+  Position get cursor => _ptToPosition(_aceEditor.editor.selection.cursor);
 
   void select(Position start, [Position end]) {
     // TODO: Implement.
 
   }
 
-  String get selection => (editor as _AceEditor).editor.copyText;
+  String get selection => _aceEditor.editor.copyText;
 
   String get mode => session.mode.name;
 

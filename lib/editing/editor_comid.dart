@@ -154,8 +154,8 @@ class _CodeMirrorEditor extends Editor {
     cm.execCommand(name);
   }
 
-  //TODO: Implement completionActive for comid.
-  bool get completionActive => null;
+  // TODO: Implement completionActive for comid.
+  bool get completionActive => false;
 
   String get mode => cm.doc.getMode().name;
   set mode(String str) => cm.setOption('mode', str);

@@ -49,6 +49,13 @@ class Options {
 
   String getValue(String name) => _values[name];
 
+  /// Return the value for the given name. Coerce to a `bool`, or return `false`
+  /// if that is not possible.
+  dynamic getValueBool(String name) {
+    String val = getValue(name);
+    return val == 'true' ? true : false;
+  }
+
   void setValue(String name, String value) {
     if (_values.containsKey(name) && _values[name] == value) return;
 

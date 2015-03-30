@@ -28,7 +28,6 @@ import 'services/common.dart';
 import 'services/execution_iframe.dart';
 import 'src/ga.dart';
 import 'src/gists.dart';
-import 'src/options.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
 
@@ -164,6 +163,8 @@ class Playground {
   }
 
   void _initPlayground() {
+    final List cursorKeys = [KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN];
+
     // TODO: Set up some automatic value bindings.
     DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'));
     editorSplitter.onPositionChanged.listen((pos) {
@@ -199,16 +200,17 @@ class Playground {
       _handleHelp();
     });
     document.onKeyUp.listen((e) {
-      if (options.getValue("autopopup_code_completion") == "true") {
+      if (options.getValueBool('autopopup_code_completion')) {
         RegExp exp = new RegExp(r"[a-zA-Z]");
-        //TODO: _isCompletionActive won't work correct
-        //TODO: which causes some issues
-        //TODO: will be fixed when we use the latest codemirror.js version
-        if (!_isCompletionActive && exp.hasMatch(new String.fromCharCode(e.keyCode)) || e.keyCode == KeyCode.PERIOD) {
+        // TODO: _isCompletionActive won't work correct
+        // TODO: which causes some issues
+        // TODO: will be fixed when we use the latest codemirror.js version
+        if (!_isCompletionActive && exp.hasMatch(
+            new String.fromCharCode(e.keyCode)) || e.keyCode == KeyCode.PERIOD) {
           editor.execCommand("autocomplete");
         }
       }
-      if (_isCompletionActive || [KeyCode.LEFT,KeyCode.RIGHT,KeyCode.UP,KeyCode.DOWN].contains(e.keyCode)) {
+      if (_isCompletionActive || cursorKeys.contains(e.keyCode)) {
         _handleHelp();
       }
     });
@@ -239,12 +241,6 @@ class Playground {
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     // Set up development options.
-    options.onOptionChanged.listen((OptionChangedEvent event) {
-      // TODO: handle changes
-
-    });
-    options.registerOption('foo.bar', 'true');
-    options.registerOption('foo.baz', 'qux');
     options.registerOption('autopopup_code_completion', 'false');
 
     _finishedInit();
