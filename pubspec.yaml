@@ -24,6 +24,8 @@ dev_dependencies:
   librato: '>=0.0.1 <0.1.0'
   unittest: any
   yaml: any
+dependency_overrides:
+  grinder: 0.7.0-dev.1
 transformers:
 - dart_to_js_script_rewriter
 - $dart2js:

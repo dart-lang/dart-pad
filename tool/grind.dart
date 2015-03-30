@@ -12,56 +12,69 @@ import 'package:grinder/grinder.dart';
 import 'package:librato/librato.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
-void main(List<String> args) {
-  task('init', defaultInit);
-  task('bower', bower, ['init']);
-  task('build', build, ['init']);
-  task('deploy', deploy, ['bower', 'build']);
-  task('clean', defaultClean);
+final FilePath _buildDir = new FilePath('build');
 
-  startGrinder(args);
+main(List args) => grind(args);
+
+//  task('deploy', deploy, ['bower', 'build']);
+
+@Task()
+analyze() {
+  // The --ignore-infos arg is due to lib/dartservices_client/v1.dart.
+  new PubApplication('tuneup')..run(['check', '--ignore-infos']);
 }
 
-/// Run bower.
-bower(GrinderContext context) {
-  runProcess(context, 'bower', arguments: ['install']);
-}
+@Task()
+testCli() => Tests.runCliTests();
 
-/// Build the `web/index.html` entrypoint.
-build(GrinderContext context) {
-  Pub.build(context, directories: ['web', 'test']);
+// This task require a frame buffer to run.
+@Task()
+testWeb() => Tests.runWebTests(directory: 'build/test', htmlFile: 'web.html');
 
-  File mainFile = joinFile(BUILD_DIR, ['web', 'main.dart.js']);
-  File mobileFile = joinFile(BUILD_DIR, ['web', 'mobile.dart.js']);
-  File testFile = joinFile(BUILD_DIR, ['test', 'web.dart.js']);
+@Task('Run bower')
+bower() => runProcess('bower', arguments: ['install']);
 
-  context.log('${mainFile.path} compiled to ${_printSize(mainFile)}');
-  context.log('${mobileFile.path} compiled to ${_printSize(mobileFile)}');
-  context.log('${testFile.path} compiled to ${_printSize(testFile)}');
+@Task('Build the `web/index.html` entrypoint')
+@Depends(bower)
+build() {
+  Pub.build(directories: ['web', 'test']);
+
+  FilePath mainFile = _buildDir.join('web', 'main.dart.js');
+  log('${mainFile} compiled to ${_printSize(mainFile)}');
+
+  FilePath mobileFile = _buildDir.join('web', 'mobile.dart.js');
+  log('${mobileFile.path} compiled to ${_printSize(mobileFile)}');
+
+  FilePath testFile = _buildDir.join('test', 'web.dart.js');
+  log('${testFile.path} compiled to ${_printSize(testFile)}');
 
   // Delete the build/web/packages directory.
-  deleteEntity(getDir('build/web/packages'));
+  delete(getDir('build/web/packages'));
 
   // Reify the symlinks.
   // cp -R -L packages build/web/packages
-  runProcess(context, 'cp',
-      arguments: ['-R', '-L', 'packages', 'build/web/packages']);
+  runProcess('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
 
   // Run vulcanize.
-  File mobileHtmlFile = joinFile(BUILD_DIR, ['web', 'mobile.html']);
-  context.log('${mobileHtmlFile.path} original: ${_printSize(mobileHtmlFile)}');
-  runProcess(context,
-      'vulcanize', // '--csp', '--inline',
+  FilePath mobileHtmlFile = _buildDir.join('web', 'mobile.html');
+  log('${mobileHtmlFile.path} original: ${_printSize(mobileHtmlFile)}');
+  runProcess('vulcanize', // '--csp', '--inline',
       arguments: ['--strip', '--output', 'mobile.html', 'mobile.html'],
       workingDirectory: 'build/web');
-  context.log('${mobileHtmlFile.path} vulcanize: ${_printSize(mobileHtmlFile)}');
+  log('${mobileHtmlFile.path} vulcanize: ${_printSize(mobileHtmlFile)}');
 
-  return _uploadCompiledStats(context,
-      mainFile.lengthSync(), mobileFile.lengthSync());
+  return _uploadCompiledStats(
+      mainFile.asFile.lengthSync(),
+      mobileFile.asFile.lengthSync());
 }
 
-/// Prepare the app for deployment.
-deploy(GrinderContext context) {
+@DefaultTask()
+@Depends(analyze, testCli, build)
+void buildbot() => null;
+
+@Task('Prepare the app for deployment')
+@Depends(buildbot)
+deploy() {
   // Validate the deploy. This means that we're using version `dev` on the
   // master branch and version `prod` on the prod branch. We only deploy prod
   // from the prod branch. Other versions are possible but not verified.
@@ -86,48 +99,50 @@ deploy(GrinderContext context) {
   }).then((BranchReference branchRef) {
     final String branch = branchRef.branchName;
 
-    context.log('branch: ${branch}');
-    context.log('version: ${version}');
+    log('branch: ${branch}');
+    log('version: ${version}');
 
     if (branch == 'prod') {
       if (version != 'prod') {
-        context.fail('Trying to deploy non-prod version from the prod branch');
+        fail('Trying to deploy non-prod version from the prod branch');
       }
 
       if (!isSecure) {
-        context.fail('The prod branch must have `secure: always`.');
+        fail('The prod branch must have `secure: always`.');
       }
     }
 
     if (branch == 'master') {
       if (version != 'dev') {
-        context.fail('Trying to deploy non-dev version from the master branch');
+        fail('Trying to deploy non-dev version from the master branch');
       }
     }
 
     if (version == 'prod') {
       if (branch != 'prod') {
-        context.fail('The prod version can only be deployed from the prod branch');
+        fail('The prod version can only be deployed from the prod branch');
       }
     }
 
     if (version != 'prod') {
       if (isSecure) {
-        context.fail('The ${version} version should not have `secure: always` set');
+        fail('The ${version} version should not have `secure: always` set');
       }
     }
 
-    context.log('\nexecute: `appcfg.py update build/web`');
+    log('\nexecute: `appcfg.py update build/web`');
   });
 }
 
-Future _uploadCompiledStats(GrinderContext context, num mainLength,
-    int mobileLength) {
+@Task()
+clean() => defaultClean();
+
+Future _uploadCompiledStats(num mainLength, int mobileLength) {
   Map env = Platform.environment;
 
   if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
     Librato librato = new Librato.fromEnvVars();
-    context.log('Uploading stats to ${librato.baseUrl}');
+    log('Uploading stats to ${librato.baseUrl}');
     LibratoStat mainSize = new LibratoStat('main.dart.js', mainLength);
     LibratoStat mobileSize = new LibratoStat('mobileSize.dart.js', mobileLength);
     return librato.postStats([mainSize, mobileSize]).then((_) {
@@ -146,4 +161,5 @@ Future _uploadCompiledStats(GrinderContext context, num mainLength,
   }
 }
 
-String _printSize(File file) => '${(file.lengthSync() + 1023) ~/ 1024}k';
+String _printSize(FilePath file) =>
+    '${(file.asFile.lengthSync() + 1023) ~/ 1024}k';
