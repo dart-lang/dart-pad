@@ -16,28 +16,32 @@ import 'dart:html';
 /// all the available options, and `setOption` will let you change the value of
 /// an option.
 class Options {
-  final String _namespace = 'dartpad';
+  final String namespace;
 
   Map<String, String> _values = {};
   StreamController _controller = new StreamController.broadcast();
 
-  Options();
+  Options({this.namespace: 'dartpad'});
 
   void installIntoJsContext() {
-    context['setOption'] = (name, value) {
-      setValue('${name}', value);
+    Map options = {};
+
+    options['setOption'] = (name, value) {
+      setValue('${name}', '${value}');
     };
 
-    context['listOptions'] = () {
+    options['listOptions'] = () {
       for (String key in keys) {
         window.console.log('[dartpad] ${key}: ${_values[key]}');
       }
     };
+
+    context[namespace] = new JsObject.jsify(options);
   }
 
   void registerOption(String name, String defaultValue) {
     // Load saved value.
-    String savedValue = window.localStorage['${_namespace}.${name}'];
+    String savedValue = window.localStorage['${namespace}.${name}'];
     setValue(name, savedValue == null ? defaultValue : savedValue);
   }
 
@@ -52,7 +56,7 @@ class Options {
     _controller.add(new OptionChangedEvent(name, value));
 
     // Persistent the value across sessions.
-    window.localStorage['${_namespace}.${name}'] = value;
+    window.localStorage['${namespace}.${name}'] = value;
   }
 
   Stream<OptionChangedEvent> get onOptionChanged => _controller.stream;
@@ -60,7 +64,7 @@ class Options {
 
 class OptionChangedEvent {
   final String name;
-  final dynamic value;
+  final String value;
 
   OptionChangedEvent(this.name, this.value);
 
