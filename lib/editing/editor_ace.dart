@@ -115,6 +115,12 @@ class _AceEditor extends Editor {
     return new _AceDocument._(this, session);
   }
 
+  //TODO: Implement execCommand for ace.
+  void execCommand(String name) => null;
+
+  //TODO: Implement completionActive for ace.
+  bool get completionActive => null;
+
   String get mode => _document.session.mode.name;
   set mode(String str) => _document.session.mode = new ace.Mode.named(str);
 

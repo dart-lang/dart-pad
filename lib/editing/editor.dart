@@ -32,6 +32,20 @@ abstract class Editor {
 
   Document get document;
 
+  /**
+   * Runs the command with the given name on the editor.
+   * Only implemented for codemirror and comid.
+   * Returns null for ace editor.
+   */
+  void execCommand(String name);
+
+  /**
+   * Checks if the completion popup is displayed.
+   * Only implemented for codemirror.
+   * Returns null for ace editor and comid.
+   */
+  bool get completionActive;
+
   String get mode;
   set mode(String str);
 

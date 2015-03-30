@@ -113,7 +113,7 @@ class CodeMirrorFactory extends EditorFactory {
             }
         );
       }).toList();
-      if (hints.length == 0) {
+      if (hints.length == 0 && ed.completionActive) {
         hints = [new HintResult("", displayText: "No suggestions", className: "type-no_suggestions")];
       }
       return new HintResults.fromHints(hints, position, position);
@@ -138,6 +138,18 @@ class _CodeMirrorEditor extends Editor {
 
     // TODO: For `html`, enable and disable the 'autoCloseTags' option.
     return new _CodeMirrorDocument._(this, new Doc(content, mode));
+  }
+
+  void execCommand(String name) {
+    cm.execCommand(name);
+  }
+
+  bool get completionActive {
+    if (cm.jsProxy['state']['completionActive'] == null) {
+      return false;
+    } else {
+      return cm.jsProxy['state']['completionActive']['widget'] != null;
+    }
   }
 
   String get mode => cm.getMode();
