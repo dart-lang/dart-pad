@@ -130,16 +130,15 @@ abstract class CodeCompleter {
 }
 
 class CompletionResult {
-
   final List<Completion> completions;
 
   /// The start offset of the text to be replaced by a completion.
-  final int replacementOffset;
+  final int replaceOffset;
 
   /// The length of the text to be replaced by a completion.
-  final int replacementLength;
+  final int replaceLength;
 
-  CompletionResult(this.completions, {this.replacementOffset, this.replacementLength});
+  CompletionResult(this.completions, {this.replaceOffset, this.replaceLength});
 }
 
 class Completion {
