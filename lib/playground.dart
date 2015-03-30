@@ -620,10 +620,10 @@ class InlineBracketsColon extends markdown.InlineSyntax {
 // for now it gets converted <code>someCodeReference</code>
 class InlineBrackets extends markdown.InlineSyntax {
 
-  //We don't want to convert [text] (http://www.example.com) to
-  //<code>text</code> (http://www.example.com)
-  //I've added a negative lookahead (?!\s?\() that checks if
-  //[text] is followed by ( or <space>(
+  // This matches URL text in the documentation, with a negative filter
+  // to detect if it is followed by a URL to prevent e.g.
+  // [text] (http://www.example.com) getting turned into
+  // <code>text</code> (http://www.example.com)
   InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\s?\()');
 
   String htmlEscape(String text) => HTML_ESCAPE.convert(text);
