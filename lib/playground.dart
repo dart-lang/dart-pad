@@ -617,7 +617,7 @@ class InlineBracketsColon extends markdown.InlineSyntax {
 }
 
 class InlineBrackets extends markdown.InlineSyntax {
-  InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\()');
+  InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\s?\()');
 
   String htmlEscape(String text) => HTML_ESCAPE.convert(text);
 
