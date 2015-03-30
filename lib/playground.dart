@@ -216,9 +216,7 @@ class Playground {
         document.body.children.remove(querySelector(".parameter-hints"));
         return;
       }
-      if (_isCompletionActive || [KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
-        _lookupParameterInfo();
-      }
+      _lookupParameterInfo(e);
     });
 
     document.onClick.listen((e) {
@@ -431,7 +429,6 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
 
     while (openingParenIndex == null && offset > 0) {
       offset += -1;
-      print(nesting);
       if (nesting == 0) {
         switch (source[offset]) {
           case "(":
@@ -463,22 +460,31 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
     };
   }
 
-  void _lookupParameterInfo() {
-    //TODO: `document.activeElement.toString() != "textarea"` is probably not a solid way
-    //TODO: for checking if the editor is active
-    if (context.focusedEditor != 'dart' || document.activeElement.toString() != "textarea") {
-      document.body.children.remove(querySelector(".parameter-hints"));
-      return;
-    }
+  void _lookupParameterInfo([KeyboardEvent e]) {
 
     int offset = editor.document.indexFromPos(editor.document.cursor);
     String source = _context.dartSource;
-    Map<String, int> parInfo = _parameterInfo(source, offset);
-
-    if (parInfo == null) {
+    //TODO: `document.activeElement.toString() != "textarea"` is probably not a solid way
+    //TODO: for checking if the editor is active
+    if (context.focusedEditor != 'dart' || document.activeElement.toString() != "textarea") {
+      if (_parPopupActive) document.body.children.remove(querySelector(".parameter-hints"));
+      return;
+    }
+    if (_parPopupActive && _parameterInfo(source, offset) == null ){
       document.body.children.remove(querySelector(".parameter-hints"));
       return;
     }
+
+    if (e != null && !_parPopupActive && ![KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
+      return;
+    }
+
+    Map<String, int> parInfo = _parameterInfo(source, offset);
+
+    if (parInfo == null) {
+      return;
+    }
+
     int openingParenIndex = parInfo["openingParenIndex"], parameterIndex = parInfo["parameterIndex"];
     offset = openingParenIndex - 1;
 
@@ -535,8 +541,8 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
       var parameterHint = querySelector(".parameter-hint");
       int newLeft = math.max(cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2),0);
 
-      var parameterPopup = querySelector(".parameter-hints");
-      //..style.top = "${cursorCoords.y - lineHeight - 5}px";
+      var parameterPopup = querySelector(".parameter-hints")
+      ..style.top = "${cursorCoords.y - lineHeight - 5}px";
       var oldLeft = parameterPopup.style.left;
       oldLeft = int.parse(oldLeft.substring(0,oldLeft.indexOf("px")));
       if ((newLeft - oldLeft).abs() > 50) {
