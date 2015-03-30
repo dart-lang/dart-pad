@@ -6,6 +6,7 @@ library editor.comid;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math';
 
 import 'package:comid/addon/comment/comment.dart' as comments;
 import 'package:comid/addon/edit/closebrackets.dart';
@@ -156,8 +157,13 @@ class _CodeMirrorEditor extends Editor {
   String get theme => cm.getOption('theme');
   set theme(String str) => cm.setOption('theme', str);
 
+  //TODO: Add a cursorCoords getter for comid
+  Point get cursorCoords => null;
+
   void focus() => cm.focus();
   void resize() => cm.refresh();
+
+  bool get hasFocus => cm.state.focused;
 
   void swapDocument(Document document) {
     _document = document;
