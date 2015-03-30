@@ -302,9 +302,11 @@ div.toggle {
   color: #eee;
 }
 
-#documentation h2 {
-  font-size: inherit;
+#documentation h2, #documentation strong {
   font-weight: bold;
+  letter-spacing: -0.05em;
+  font-size: 10.5pt;
+  color: #cdcdcd; /* little bit brigher than normal text*/
 }
 
 #documentation a {
