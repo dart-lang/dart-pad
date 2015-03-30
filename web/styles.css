@@ -139,7 +139,7 @@ a[selected]:hover {
 button {
   outline: none;
   color: #aaa;
-  fill: #aaa;
+  fill: #45914b;
   border: 1px solid #222;
   border-radius: 2px;
   font-family: 'Roboto', sans-serif;
@@ -152,6 +152,26 @@ button {
   min-width: 75px;
   background-color: #444;
   background-image: linear-gradient(to bottom, #444, #333);
+}
+
+#runbutton svg {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+}
+
+#runbutton svg.error {
+  padding: 0 0 1px 1px;
+  width: 17px;
+  height: 17px;
+  fill: #F7977A;
+}
+
+#runbutton svg.warning {
+  padding: 0 0 1px 1px;
+  width: 17px;
+  height: 17px;
+  fill: #FFF79A;
 }
 
 button:hover {
