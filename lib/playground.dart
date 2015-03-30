@@ -343,9 +343,14 @@ class Playground {
         return new Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
       }).toList());
+
+      _updateRunButton(
+          hasErrors: result.issues.any((issue) => issue.kind == 'error'),
+          hasWarnings: result.issues.any((issue) => issue.kind == 'warning'));
     }).catchError((e) {
       _context.dartDocument.setAnnotations([]);
       dartBusyLight.reset();
+      _updateRunButton();
       _logger.severe(e);
     });
   }
@@ -366,7 +371,7 @@ class Playground {
 
       if (_isCompletionActive) {
         // If the completion popup is open we create a new source as if the
-        // completion popup was chosen and ask for the documentation of that
+        // completion popup was chosen, and ask for the documentation of that
         // source.
         String completionText = querySelector(".CodeMirror-hint-active").text;
         var source = context.dartSource;
@@ -491,6 +496,19 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
 
       issuesElement.classes.toggle('showing', issues.isNotEmpty);
     }
+  }
+
+  void _updateRunButton({bool hasErrors: false, bool hasWarnings: false}) {
+    const alertSVGIcon =
+        "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,"
+        "1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
+
+    var path = runbutton.element.querySelector("path");
+    path.attributes["d"] =
+        (hasErrors || hasWarnings) ? alertSVGIcon : "M8 5v14l11-7z";
+
+    path.parent.classes.toggle("error", hasErrors);
+    path.parent.classes.toggle("warning", hasWarnings && !hasErrors);
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus: false}) {

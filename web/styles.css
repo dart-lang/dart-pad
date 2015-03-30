@@ -139,7 +139,7 @@ a[selected]:hover {
 button {
   outline: none;
   color: #aaa;
-  fill: #45914b;
+  fill: #aaa;
   border: 1px solid #222;
   border-radius: 2px;
   font-family: 'Roboto', sans-serif;
@@ -302,7 +302,7 @@ div.toggle {
 }
 
 #documentation a {
-   color: #66d9ef;
+  color: #66d9ef;
 }
 
 #documentation a:hover {
