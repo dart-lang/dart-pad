@@ -56,6 +56,9 @@ abstract class Document {
 
   void select(Position start, [Position end]);
 
+  ///The currently selected text in the editor.
+  String get selection;
+
   String get mode;
 
   bool get isClean;

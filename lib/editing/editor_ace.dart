@@ -152,6 +152,8 @@ class _AceDocument extends Document {
 
   }
 
+  String get selection => (editor as _AceEditor).editor.copyText;
+
   String get mode => session.mode.name;
 
   bool get isClean => session.undoManager.isClean;

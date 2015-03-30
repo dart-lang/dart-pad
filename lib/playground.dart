@@ -357,7 +357,7 @@ class Playground {
   }
 
   void _handleHelp() {
-    if (context.focusedEditor == 'dart' && _isDocPanelOpen) {
+    if (context.focusedEditor == 'dart' && _isDocPanelOpen && editor.document.selection.isEmpty) {
       ga.sendEvent('main', 'help');
 
       SourceRequest input;

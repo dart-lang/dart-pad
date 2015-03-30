@@ -196,6 +196,8 @@ class _CodeMirrorDocument extends Document {
     }
   }
 
+  String get selection => doc.getSelection(value);
+
   String get mode => parent.mode;
 
   bool get isClean => doc.isClean();
