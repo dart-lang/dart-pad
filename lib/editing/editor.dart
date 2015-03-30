@@ -56,7 +56,8 @@ abstract class Document {
 
   void select(Position start, [Position end]);
 
-  String get getSelection;
+  ///The currently selected text in the editor.
+  String get selection;
 
   String get mode;
 

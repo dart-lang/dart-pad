@@ -191,7 +191,7 @@ class _CodeMirrorDocument extends Document {
     }
   }
 
-  String get getSelection => doc.getSelection(value);
+  String get selection => doc.getSelection(value);
 
   String get mode => parent.mode;
 

@@ -152,7 +152,7 @@ class _AceDocument extends Document {
 
   }
 
-  String get getSelection => (editor as _AceEditor).editor.copyText;
+  String get selection => (editor as _AceEditor).editor.copyText;
 
   String get mode => session.mode.name;
 
