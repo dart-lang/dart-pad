@@ -11,6 +11,7 @@ import '../core/event_bus.dart';
 import '../core/keys.dart';
 import '../core/modules.dart';
 import '../elements/state.dart';
+import '../src/options.dart';
 
 class DartPadModule extends Module {
   Future init() {
@@ -21,6 +22,7 @@ class DartPadModule extends Module {
     deps[EventBus] = new EventBus();
     deps[Keys] = new Keys();
     deps[State] = new HtmlState('dart_pad');
+    deps[Options] = new Options()..installIntoJsContext();
 
     return new Future.value();
   }

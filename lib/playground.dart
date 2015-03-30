@@ -28,6 +28,7 @@ import 'services/common.dart';
 import 'services/execution_iframe.dart';
 import 'src/ga.dart';
 import 'src/gists.dart';
+import 'src/options.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
 
@@ -227,6 +228,14 @@ class Playground {
 
     _context.onDartDirty.listen((_) => dartBusyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
+
+    // Set up development options.
+    options.onOptionChanged.listen((OptionChangedEvent event) {
+      // TODO: handle changes
+
+    });
+    options.registerOption('foo.bar', 'true');
+    options.registerOption('foo.baz', 'qux');
 
     _finishedInit();
   }

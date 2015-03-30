@@ -13,6 +13,7 @@ import 'editing/editor.dart';
 import 'elements/state.dart';
 import 'modules/dartservices_module.dart';
 import 'services/execution.dart';
+import 'src/options.dart';
 
 Context get context => deps[Context];
 
@@ -27,3 +28,5 @@ Keys get keys => deps[Keys];
 EditorFactory get editorFactory => deps[EditorFactory];
 
 State get state => deps[State];
+
+Options get options => deps[Options];
