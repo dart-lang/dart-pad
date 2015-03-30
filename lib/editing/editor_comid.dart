@@ -150,6 +150,13 @@ class _CodeMirrorEditor extends Editor {
     return new _CodeMirrorDocument._(this, new Doc(content, mode));
   }
 
+  void execCommand(String name) {
+    cm.execCommand(name);
+  }
+
+  // TODO: Implement completionActive for comid.
+  bool get completionActive => false;
+
   String get mode => cm.doc.getMode().name;
   set mode(String str) => cm.setOption('mode', str);
 
@@ -195,6 +202,8 @@ class _CodeMirrorDocument extends Document {
       doc.setSelection(_posToPos(start));
     }
   }
+
+  String get selection => doc.getSelection(value);
 
   String get mode => parent.mode;
 

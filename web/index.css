@@ -163,6 +163,26 @@ button {
   background-image: linear-gradient(to bottom, #444, #333);
 }
 
+#runbutton svg {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+}
+
+#runbutton svg.error {
+  padding: 0 0 1px 1px;
+  width: 17px;
+  height: 17px;
+  fill: #F7977A;
+}
+
+#runbutton svg.warning {
+  padding: 0 0 1px 1px;
+  width: 17px;
+  height: 17px;
+  fill: #FFF79A;
+}
+
 button:hover {
   color: #fff;
   fill: #fff;
@@ -285,13 +305,21 @@ div.toggle {
   font-style: normal;
 }
 
-#documentation h2 {
-  font-size: inherit;
+#documentation h1 {
+  font-size: 12pt;
   font-weight: bold;
+  color: #eee;
+}
+
+#documentation h2, #documentation strong {
+  font-weight: bold;
+  letter-spacing: -0.05em;
+  font-size: 10.5pt;
+  color: #cdcdcd; /* little bit brigher than normal text*/
 }
 
 #documentation a {
-   color: #66d9ef;
+  color: #66d9ef;
 }
 
 #documentation a:hover {
