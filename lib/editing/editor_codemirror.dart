@@ -123,13 +123,13 @@ class CodeMirrorFactory extends EditorFactory {
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
       if (hints.isEmpty) {
-        return [
+        hints = [
           new HintResult(stringToReplace,
               displayText: "No suggestions", className: "type-no_suggestions")
         ];
-      } else {
-        return new HintResults.fromHints(hints, from, to);
       }
+
+      return new HintResults.fromHints(hints, from, to);
     });
   }
 }
