@@ -56,6 +56,8 @@ abstract class Document {
 
   void select(Position start, [Position end]);
 
+  String get getSelection;
+
   String get mode;
 
   bool get isClean;
