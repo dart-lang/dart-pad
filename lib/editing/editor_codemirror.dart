@@ -151,6 +151,9 @@ class _CodeMirrorEditor extends Editor {
   }
 
   void focus() => cm.focus();
+
+  bool get hasFocus => cm.jsProxy['state']['focused'];
+
   void resize() => cm.refresh();
 
   void swapDocument(Document document) {

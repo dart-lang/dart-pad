@@ -462,26 +462,25 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
 
   void _lookupParameterInfo([KeyboardEvent e]) {
 
-    int offset = editor.document.indexFromPos(editor.document.cursor);
-    String source = _context.dartSource;
-    //TODO: `document.activeElement.toString() != "textarea"` is probably not a solid way
-    //TODO: for checking if the editor is active
-    if (context.focusedEditor != 'dart' || document.activeElement.toString() != "textarea") {
-      if (_parPopupActive) document.body.children.remove(querySelector(".parameter-hints"));
-      return;
-    }
-    if (_parPopupActive && _parameterInfo(source, offset) == null ){
+    if (context.focusedEditor != 'dart' || !editor.hasFocus) {
       document.body.children.remove(querySelector(".parameter-hints"));
       return;
     }
 
-    if (e != null && !_parPopupActive && ![KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN].contains(e.keyCode)) {
-      return;
+    if (e != null && !_parPopupActive) {
+      //so if we have a keyboardevent (not a click)
+      const List navKeys = const[KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN];
+      if (!navKeys.contains(e.keyCode)) {
+        return;
+      }
     }
 
+    int offset = editor.document.indexFromPos(editor.document.cursor);
+    String source = _context.dartSource;
     Map<String, int> parInfo = _parameterInfo(source, offset);
 
     if (parInfo == null) {
+      document.body.children.remove(querySelector(".parameter-hints"));
       return;
     }
 
@@ -521,6 +520,15 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
         }
         outputString += "</code>";
       }
+
+      //check again if cursor is in parameter position
+      offset = editor.document.indexFromPos(editor.document.cursor);
+      source = _context.dartSource;
+      parInfo = _parameterInfo(source, offset);
+      if (parInfo == null) {
+        document.body.children.remove(querySelector(".parameter-hints"));
+        return;
+      }
       _showParameterPopup(outputString);
     });
   }
@@ -535,14 +543,14 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
     Point cursorCoords = editor.cursorCoords;
 
     if (_parPopupActive) {
-      querySelector(".parameter-hint")
-        ..innerHtml = string;
-      //update popup position
       var parameterHint = querySelector(".parameter-hint");
+      parameterHint.innerHtml = string;
+
+      //update popup position
       int newLeft = math.max(cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2),0);
 
       var parameterPopup = querySelector(".parameter-hints")
-      ..style.top = "${cursorCoords.y - lineHeight - 5}px";
+        ..style.top = "${cursorCoords.y - lineHeight - 5}px";
       var oldLeft = parameterPopup.style.left;
       oldLeft = int.parse(oldLeft.substring(0,oldLeft.indexOf("px")));
       if ((newLeft - oldLeft).abs() > 50) {

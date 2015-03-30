@@ -163,6 +163,8 @@ class _CodeMirrorEditor extends Editor {
   void focus() => cm.focus();
   void resize() => cm.refresh();
 
+  bool get hasFocus => cm.state.focused;
+
   void swapDocument(Document document) {
     _document = document;
     cm.swapDoc(_document.doc);

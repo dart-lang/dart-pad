@@ -49,6 +49,8 @@ abstract class Editor {
   void resize();
   void focus();
 
+  bool get hasFocus;
+
   void swapDocument(Document document);
 }
 

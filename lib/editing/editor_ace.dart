@@ -130,6 +130,8 @@ class _AceEditor extends Editor {
   void focus() => editor.focus();
   void resize() => editor.resize(true);
 
+  bool get hasFocus => editor.isFocused;
+
   void swapDocument(Document document) {
     _document = document;
     editor.session = _document.session;
