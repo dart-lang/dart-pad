@@ -549,7 +549,7 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
         "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,"
         "1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
 
-    var path = runbutton.element.querySelector("path");
+    var path = runButton.element.querySelector("path");
     path.attributes["d"] =
         (hasErrors || hasWarnings) ? alertSVGIcon : "M8 5v14l11-7z";
 
