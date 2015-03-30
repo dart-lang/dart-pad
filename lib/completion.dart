@@ -26,7 +26,7 @@ class DartCompleter extends CodeCompleter {
 
   DartCompleter(this.servicesApi, this.document);
 
-  Future<List<Completion>> complete(Editor editor) {
+  Future<CompletionResult> complete(Editor editor) {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 
@@ -44,23 +44,21 @@ class DartCompleter extends CodeCompleter {
     servicesApi.complete(request).then((CompleteResponse response) {
       if (completer.isCancelled) return;
 
+      int replacementOffset = response.replacementOffset;
+      int replacementLength = response.replacementLength;
+
       _logger.info('completion request in ${timer.elapsedMilliseconds}ms; '
           '${response.completions.length} completions, '
-          'offset=${response.replacementOffset}, '
-          'length=${response.replacementLength}');
+          'offset=${replacementOffset}, '
+          'length=${replacementLength}');
 
       List<AnalysisCompletion> analysisCompletions = response.completions.map(
           (completion) {
         return new AnalysisCompletion(
-            response.replacementOffset, response.replacementLength, completion);
+            replacementOffset, replacementLength, completion);
       }).toList();
 
-      int replacementOffset = response.replacementOffset;
-      int delta = offset - replacementOffset;
-      String lowerPrefix = editor.document.value.substring(
-          replacementOffset, replacementOffset + delta).toLowerCase();
-
-      List<Completion> completions =  analysisCompletions.map((completion) {
+      List<Completion> completionList =  analysisCompletions.map((completion) {
         // TODO: Move to using a LabelProvider; decouple the data and rendering.
         String displayString = completion.isMethod
             ? '${completion.text}${completion.parameters}' : completion.text;
@@ -68,11 +66,13 @@ class DartCompleter extends CodeCompleter {
           displayString += ' → ${completion.returnType}';
         }
 
+        String replacementString =  editor.document.value.substring(
+            replacementOffset, replacementOffset + replacementLength);
         // Filter unmatching completions.
         // TODO: This is temporary; tracking issue here:
         // https://github.com/dart-lang/dart-services/issues/87.
-        if (delta > 0) {
-          if (!completion.text.toLowerCase().startsWith(lowerPrefix)) {
+        if (replacementString.isNotEmpty) {
+          if (!completion.matches(replacementString)) {
             return null;
           }
         }
@@ -80,9 +80,6 @@ class DartCompleter extends CodeCompleter {
         // TODO: We need to be more precise about the text we're inserting and
         // replacing.
         String text = completion.text;
-        if (delta > 0 && delta <= text.length) {
-          text = text.substring(delta);
-        }
 
         if (completion.isMethod) {
           text += "()";
@@ -103,9 +100,10 @@ class DartCompleter extends CodeCompleter {
         }
       }).where((x) => x != null).toList();
 
-      if (completions.isEmpty) {
-        // TODO: Flash something to indicate that there were no completions.
-      }
+      var completions = new CompletionResult(
+          completionList,
+          replacementOffset: replacementOffset,
+          replacementLength: replacementLength);
 
       completer.complete(completions);
     }).catchError((e) {
@@ -180,6 +178,8 @@ class AnalysisCompletion implements Comparable {
     if (other is! AnalysisCompletion) return -1;
     return text.compareTo(other.text);
   }
+
+  bool matches(String string) => text.toLowerCase().contains(string.toLowerCase());
 
   String toString() => text;
 
