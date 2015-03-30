@@ -16,8 +16,6 @@ final FilePath _buildDir = new FilePath('build');
 
 main(List args) => grind(args);
 
-//  task('deploy', deploy, ['bower', 'build']);
-
 @Task()
 analyze() {
   // The --ignore-infos arg is due to lib/dartservices_client/v1.dart.
