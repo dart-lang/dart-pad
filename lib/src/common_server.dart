@@ -5,7 +5,6 @@
 library services.common_server;
 
 import 'dart:async';
-import 'dart:convert' show JSON;
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -13,6 +12,7 @@ import 'package:rpc/rpc.dart';
 
 import 'analyzer.dart';
 import 'compiler.dart';
+import 'analysis_server.dart';
 
 import 'completer_driver.dart' as completer_driver;
 
@@ -61,37 +61,6 @@ class CounterResponse {
   CounterResponse(this.count);
 }
 
-class CompleteResponse {
-  @ApiProperty(description: 'The offset of the start of the text to be replaced.')
-  final int replacementOffset;
-
-  @ApiProperty(description: 'The length of the text to be replaced.')
-  final int replacementLength;
-
-  final List<Map<String, String>> completions;
-
-  CompleteResponse(this.replacementOffset, this.replacementLength,
-      List<Map> completions) :
-    this.completions = _convert(completions);
-
-  /**
-   * Convert any non-string values from the contained maps.
-   */
-  static List<Map<String, String>> _convert(List<Map> list) {
-    return list.map((m) {
-      Map newMap = {};
-      for (String key in m.keys) {
-        var data = m[key];
-        // TODO: Properly support Lists, Maps (this is a hack).
-        if (data is Map || data is List) {
-          data = JSON.encode(data);
-        }
-        newMap[key] = '${data}';
-      }
-      return newMap;
-    }).toList();
-  }
-}
 
 class DocumentResponse {
   final Map<String, String> info;
