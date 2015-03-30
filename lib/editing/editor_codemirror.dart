@@ -96,30 +96,40 @@ class CodeMirrorFactory extends EditorFactory {
       CodeCompleter completer, HintsOptions options) {
     _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, editor);
 
-    return completer.complete(ed).then((CompletionResult completionResult) {
-      List<HintResult> hints = completionResult.completions.map((Completion completion) {
+    return completer.complete(ed).then((CompletionResult result) {
+      Doc doc = editor.getDoc();
+
+      List<HintResult> hints = result.completions.map((Completion completion) {
         return new HintResult(
             completion.value,
             displayText: completion.displayString,
             className: completion.type,
-            hintApplier: (CodeMirror editor, HintResult hint, pos.Position from, pos.Position to) {
-              editor.getDoc().replaceRange(hint.text, from, to);
+            hintApplier: (CodeMirror editor, HintResult hint, pos.Position from,
+                pos.Position to) {
+              doc.replaceRange(hint.text, from, to);
               if (completion.cursorOffset != null) {
                 int diff = hint.text.length - completion.cursorOffset;
-                editor.getDoc().setCursor(new pos.Position(
+                doc.setCursor(new pos.Position(
                     editor.getCursor().line, editor.getCursor().ch - diff));
               }
             }
         );
       }).toList();
-      pos.Position from =  editor.getDoc().posFromIndex(completionResult.replacementOffset);
-      pos.Position to = editor.getDoc().posFromIndex(completionResult.replacementOffset + completionResult.replacementLength);
-      String stringToReplace = editor.getDoc().getValue().substring(
-          completionResult.replacementOffset, completionResult.replacementOffset + completionResult.replacementLength);
-      if (hints.length == 0) {
-        hints = [new HintResult(stringToReplace, displayText: "No suggestions", className: "type-no_suggestions")];
+
+      pos.Position from =  doc.posFromIndex(result.replaceOffset);
+      pos.Position to = doc.posFromIndex(
+          result.replaceOffset + result.replaceLength);
+      String stringToReplace = doc.getValue().substring(
+          result.replaceOffset, result.replaceOffset + result.replaceLength);
+
+      if (hints.isEmpty) {
+        return [
+          new HintResult(stringToReplace,
+              displayText: "No suggestions", className: "type-no_suggestions")
+        ];
+      } else {
+        return new HintResults.fromHints(hints, from, to);
       }
-      return new HintResults.fromHints(hints, from, to);
     });
   }
 }
