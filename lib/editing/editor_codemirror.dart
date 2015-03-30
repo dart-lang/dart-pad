@@ -218,14 +218,14 @@ class _CodeMirrorDocument extends Document {
 
     int lastLine = -1;
 
-    bool containsError = false;
-    bool containsWarning = false;
+    bool hasError = false;
+    bool hasWarning = false;
 
     for (Annotation an in annotations) {
       if (an.type == "error") {
-        containsError = true;
+        hasError = true;
       } else if (an.type == "warning") {
-        containsWarning = true;
+        hasWarning = true;
       }
       // Create in-line squiggles.
       doc.markText(_posToPos(an.start), _posToPos(an.end),
@@ -248,17 +248,23 @@ class _CodeMirrorDocument extends Document {
 ////      cm.setGutterMarker(an.line - 1, _gutterId,
 ////          _makeMarker(an.type, an.message, an.start, an.end));
     }
+    _updateRunButton(hasError: hasError, hasWarning: hasWarning);
+  }
+
+  _updateRunButton({bool hasError: false, bool hasWarning: false}) {
     var path = html.querySelector("#runbutton path");
-    if (containsError) {
-      path.attributes["d"] = "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
+    const alertIconString = "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
+
+    if (hasError) {
+      path.attributes["d"] = alertIconString;
       path.parent.classes.add("error");
       path.parent.classes.remove("warning");
 
-   } else if (containsWarning) {
-      path.attributes["d"] = "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
+    } else if (hasWarning) {
+      path.attributes["d"] = alertIconString;
       path.parent.classes.add("warning");
       path.parent.classes.remove("error");
-   } else {
+    } else {
       path.attributes["d"] = "M8 5v14l11-7z";
       path.parent.classes.remove("error");
       path.parent.classes.remove("warning");

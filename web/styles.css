@@ -139,7 +139,7 @@ a[selected]:hover {
 button {
   outline: none;
   color: #aaa;
-  fill: #aaa;
+  fill: #45914b;
   border: 1px solid #222;
   border-radius: 2px;
   font-family: 'Roboto', sans-serif;
@@ -158,21 +158,20 @@ button {
   width: 18px;
   height: 18px;
   padding: 0;
-  fill: #45914b;
 }
 
 #runbutton svg.error {
   padding: 0 0 1px 1px;
   width: 17px;
   height: 17px;
-  fill: #d78870;
+  fill: #F7977A;
 }
 
 #runbutton svg.warning {
   padding: 0 0 1px 1px;
   width: 17px;
   height: 17px;
-  fill: #DBD389;
+  fill: #FFF79A;
 }
 
 button:hover {
