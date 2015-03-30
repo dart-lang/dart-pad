@@ -8,7 +8,7 @@ environment:
 dependencies:
   _discoveryapis_commons: '>=0.1.0 <0.2.0'
   ace: '>=0.5.10 <0.6.0'
-  codemirror: '>=0.2.0 <0.3.0'
+  codemirror: '>=0.2.3 <0.3.0'
   # TODO: We need to move to a hosted (and versioned) dependency.
   comid:
     git: https://github.com/google/comid
