@@ -26,7 +26,7 @@ class DartCompleter extends CodeCompleter {
 
   DartCompleter(this.servicesApi, this.document);
 
-  Future<Completions> complete(Editor editor) {
+  Future<CompletionResult> complete(Editor editor) {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 
@@ -58,9 +58,6 @@ class DartCompleter extends CodeCompleter {
             replacementOffset, replacementLength, completion);
       }).toList();
 
-      String lowercaseReplacementString =  editor.document.value.substring(
-          replacementOffset, replacementOffset + replacementLength).toLowerCase();
-
       List<Completion> completionList =  analysisCompletions.map((completion) {
         // TODO: Move to using a LabelProvider; decouple the data and rendering.
         String displayString = completion.isMethod
@@ -69,11 +66,13 @@ class DartCompleter extends CodeCompleter {
           displayString += ' → ${completion.returnType}';
         }
 
+        String replacementString =  editor.document.value.substring(
+            replacementOffset, replacementOffset + replacementLength);
         // Filter unmatching completions.
         // TODO: This is temporary; tracking issue here:
         // https://github.com/dart-lang/dart-services/issues/87.
-        if (lowercaseReplacementString.isNotEmpty) {
-          if (!completion.text.toLowerCase().contains(lowercaseReplacementString)) {
+        if (replacementString.isNotEmpty) {
+          if (!completion.matches(replacementString)) {
             return null;
           }
         }
@@ -101,7 +100,10 @@ class DartCompleter extends CodeCompleter {
         }
       }).where((x) => x != null).toList();
 
-      Completions completions = new Completions(completionList, replacementOffset: replacementOffset, replacementLength: replacementLength);
+      var completions = new CompletionResult(
+          completionList,
+          replacementOffset: replacementOffset,
+          replacementLength: replacementLength);
 
       completer.complete(completions);
     }).catchError((e) {
@@ -176,6 +178,8 @@ class AnalysisCompletion implements Comparable {
     if (other is! AnalysisCompletion) return -1;
     return text.compareTo(other.text);
   }
+
+  bool matches(String string) => text.toLowerCase().contains(string.toLowerCase());
 
   String toString() => text;
 

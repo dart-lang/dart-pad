@@ -117,10 +117,10 @@ class ComidFactory extends EditorFactory {
       [hints.ShowProposals displayProposals]) {
     assert(displayProposals != null); // ensure async
     _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, cm); // new instance!?
-    Future<Completions> props = completer.complete(ed);
+    Future<CompletionResult> props = completer.complete(ed);
     Pos pos = cm.getCursor();
-    props.then((Completions completions) {
-      List<Completion> completionList = completions.completionList;
+    props.then((CompletionResult completions) {
+      List<Completion> completionList = completions.completions;
       hints.ProposalList proposals;
       List<hints.Proposal> list = completionList.map((Completion completion) =>
           // this map is broken -- should use custom display ala Dart Editor

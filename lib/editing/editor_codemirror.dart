@@ -96,8 +96,8 @@ class CodeMirrorFactory extends EditorFactory {
       CodeCompleter completer, HintsOptions options) {
     _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, editor);
 
-    return completer.complete(ed).then((Completions completions) {
-      List<HintResult> hints = completions.completionList.map((Completion completion) {
+    return completer.complete(ed).then((CompletionResult completionResult) {
+      List<HintResult> hints = completionResult.completions.map((Completion completion) {
         return new HintResult(
             completion.value,
             displayText: completion.displayString,
@@ -112,10 +112,10 @@ class CodeMirrorFactory extends EditorFactory {
             }
         );
       }).toList();
-      pos.Position from =  editor.getDoc().posFromIndex(completions.replacementOffset);
-      pos.Position to = editor.getDoc().posFromIndex(completions.replacementOffset + completions.replacementLength);
+      pos.Position from =  editor.getDoc().posFromIndex(completionResult.replacementOffset);
+      pos.Position to = editor.getDoc().posFromIndex(completionResult.replacementOffset + completionResult.replacementLength);
       String stringToReplace = editor.getDoc().getValue().substring(
-          completions.replacementOffset, completions.replacementOffset + completions.replacementLength);
+          completionResult.replacementOffset, completionResult.replacementOffset + completionResult.replacementLength);
       if (hints.length == 0) {
         hints = [new HintResult(stringToReplace, displayText: "No suggestions", className: "type-no_suggestions")];
       }
