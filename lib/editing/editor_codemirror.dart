@@ -94,11 +94,10 @@ class CodeMirrorFactory extends EditorFactory {
 
   Future<HintResults> _completionHelper(CodeMirror editor,
       CodeCompleter completer, HintsOptions options) {
-    pos.Position position = editor.getCursor();
     _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, editor);
 
-    return completer.complete(ed).then((List<Completion> completions) {
-      List<HintResult> hints = completions.map((Completion completion) {
+    return completer.complete(ed).then((Completions completions) {
+      List<HintResult> hints = completions.completionList.map((Completion completion) {
         return new HintResult(
             completion.value,
             displayText: completion.displayString,
@@ -113,15 +112,14 @@ class CodeMirrorFactory extends EditorFactory {
             }
         );
       }).toList();
-
-      if (hints.length == 0 && ed.completionActive) {
-        hints = [
-          new HintResult("", displayText: "No suggestions",
-              className: "type-no_suggestions")
-        ];
+      pos.Position from =  editor.getDoc().posFromIndex(completions.replacementOffset);
+      pos.Position to = editor.getDoc().posFromIndex(completions.replacementOffset + completions.replacementLength);
+      String stringToReplace = editor.getDoc().getValue().substring(
+          completions.replacementOffset, completions.replacementOffset + completions.replacementLength);
+      if (hints.length == 0) {
+        hints = [new HintResult(stringToReplace, displayText: "No suggestions", className: "type-no_suggestions")];
       }
-
-      return new HintResults.fromHints(hints, position, position);
+      return new HintResults.fromHints(hints, from, to);
     });
   }
 }

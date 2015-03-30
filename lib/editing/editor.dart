@@ -126,7 +126,18 @@ class Position {
 }
 
 abstract class CodeCompleter {
-  Future<List<Completion>> complete(Editor editor);
+  Future<Completions> complete(Editor editor);
+}
+
+class Completions {
+
+  List<Completion> completionList;
+
+  int replacementOffset;
+
+  int replacementLength;
+
+  Completions(this.completionList, {this.replacementOffset, this.replacementLength});
 }
 
 class Completion {
