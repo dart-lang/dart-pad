@@ -396,7 +396,7 @@ class Playground {
             ..allowElement('a', attributes: ['href']);
           _docPanel.setInnerHtml(markdown.markdownToHtml(
 '''
-**`${result.info['description']}`**\n\n
+# `${result.info['description']}`\n\n
 ${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
 ${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
 ${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}

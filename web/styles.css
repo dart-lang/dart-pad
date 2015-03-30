@@ -296,6 +296,12 @@ div.toggle {
   font-style: normal;
 }
 
+#documentation h1 {
+  font-size: 12pt;
+  font-weight: bold;
+  color: #eee;
+}
+
 #documentation h2 {
   font-size: inherit;
   font-weight: bold;
