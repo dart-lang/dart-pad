@@ -48,7 +48,7 @@ class Playground {
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
   DivElement get _docPanel => querySelector('#documentation');
-  bool get _isCompletionActive => querySelector(".CodeMirror-hint-active") != null;
+  bool get _isCompletionActive => editor.completionActive;
   bool get _isDocPanelOpen => querySelector("#doctab").attributes.containsKey('selected');
 
   DButton runbutton;
@@ -199,6 +199,15 @@ class Playground {
       _handleHelp();
     });
     document.onKeyUp.listen((e) {
+      if (options.getValue("autopopup_code_completion") == "true") {
+        RegExp exp = new RegExp(r"[a-zA-Z]");
+        //TODO: _isCompletionActive won't work correct
+        //TODO: which causes some issues
+        //TODO: will be fixed when we use the latest codemirror.js version
+        if (!_isCompletionActive && exp.hasMatch(new String.fromCharCode(e.keyCode)) || e.keyCode == KeyCode.PERIOD) {
+          editor.execCommand("autocomplete");
+        }
+      }
       if (_isCompletionActive || [KeyCode.LEFT,KeyCode.RIGHT,KeyCode.UP,KeyCode.DOWN].contains(e.keyCode)) {
         _handleHelp();
       }
@@ -236,6 +245,7 @@ class Playground {
     });
     options.registerOption('foo.bar', 'true');
     options.registerOption('foo.baz', 'qux');
+    options.registerOption('autopopup_code_completion', 'false');
 
     _finishedInit();
   }
