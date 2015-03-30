@@ -407,7 +407,7 @@ class Playground {
             ..allowElement('a', attributes: ['href']);
           _docPanel.setInnerHtml(markdown.markdownToHtml(
 '''
-**`${result.info['description']}`**\n\n
+# `${result.info['description']}`\n\n
 ${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
 ${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
 ${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
@@ -625,9 +625,8 @@ class PlaygroundContext extends Context {
   }
 }
 
-// TODO: [someReference] should be converted to for example
-// https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
 class InlineBracketsColon extends markdown.InlineSyntax {
+
   InlineBracketsColon() : super(r'\[:\s?((?:.|\n)*?)\s?:\]');
 
   String htmlEscape(String text) => HTML_ESCAPE.convert(text);
@@ -640,8 +639,16 @@ class InlineBracketsColon extends markdown.InlineSyntax {
   }
 }
 
+// TODO: [someCodeReference] should be converted to for example
+// https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
+// for now it gets converted <code>someCodeReference</code>
 class InlineBrackets extends markdown.InlineSyntax {
-  InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\()');
+
+  // This matches URL text in the documentation, with a negative filter
+  // to detect if it is followed by a URL to prevent e.g.
+  // [text] (http://www.example.com) getting turned into
+  // <code>text</code> (http://www.example.com)
+  InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\s?\()');
 
   String htmlEscape(String text) => HTML_ESCAPE.convert(text);
 
