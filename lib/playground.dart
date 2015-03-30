@@ -601,9 +601,8 @@ class PlaygroundContext extends Context {
   }
 }
 
-// TODO: [someReference] should be converted to for example
-// https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
 class InlineBracketsColon extends markdown.InlineSyntax {
+
   InlineBracketsColon() : super(r'\[:\s?((?:.|\n)*?)\s?:\]');
 
   String htmlEscape(String text) => HTML_ESCAPE.convert(text);
@@ -616,7 +615,15 @@ class InlineBracketsColon extends markdown.InlineSyntax {
   }
 }
 
+// TODO: [someCodeReference] should be converted to for example
+// https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
+// for now it gets converted <code>someCodeReference</code>
 class InlineBrackets extends markdown.InlineSyntax {
+
+  //We don't want to convert [text] (http://www.example.com) to
+  //<code>text</code> (http://www.example.com)
+  //I've added a negative lookahead (?!\s?\() that checks if
+  //[text] is followed by ( or <space>(
   InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\s?\()');
 
   String htmlEscape(String text) => HTML_ESCAPE.convert(text);
