@@ -413,6 +413,9 @@ ${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
 ${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
 ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName']}" : ""}\n\n
 ''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
+          for (AnchorElement a in _docPanel.querySelectorAll("a")) {
+            a.target = "_blank";
+          }
         }
       });
     }
