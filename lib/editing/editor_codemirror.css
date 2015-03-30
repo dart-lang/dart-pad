@@ -110,9 +110,13 @@ li.CodeMirror-hint-active {
   line-height: 16px; /*for vertical centering */
 }
 
-.type-getter::before,
+.type-getter::before {
+  content: "⇽";
+  background: radial-gradient(#e1C2ff, #cdb7e8);
+}
+
 .type-setter::before {
-  content: "p";
+  content: "⇾";
   background: radial-gradient(#e1C2ff, #cdb7e8);
 }
 
