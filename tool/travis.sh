@@ -11,15 +11,9 @@ set -e
 npm install -g bower
 npm install -g vulcanize
 
-# Verify that the libraries are error free.
-pub global activate tuneup
-pub global run tuneup check --ignore-infos
-
-# Run the command-line tests.
-dart test/all.dart
-
-# Build the app and the tests (into build/web and build/test, respectively).
-dart tool/grind.dart bower build
+# Run the analyze/test/build script.
+dart tool/grind.dart buildbot
 
 # Run the UI/web tests as well.
-pub run grinder:test build/test/web.html
+# TODO: Our bot is flakey...
+#dart tool/grind.dart test-web

@@ -154,6 +154,26 @@ button {
   background-image: linear-gradient(to bottom, #444, #333);
 }
 
+#runbutton svg {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+}
+
+#runbutton svg.error {
+  padding: 0 0 1px 1px;
+  width: 17px;
+  height: 17px;
+  fill: #F7977A;
+}
+
+#runbutton svg.warning {
+  padding: 0 0 1px 1px;
+  width: 17px;
+  height: 17px;
+  fill: #FFF79A;
+}
+
 button:hover {
   color: #fff;
   fill: #fff;
@@ -232,6 +252,7 @@ div.toggle {
   min-height: 50px;
   overflow-y: auto;
   white-space: pre-wrap;
+  margin-top: 16px;
 }
 
 .console .normal {
@@ -251,6 +272,50 @@ div.toggle {
   min-height: 50px;
   margin-top: 16px;
   margin-left: -3px;
+}
+
+#documentation {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11pt;
+  line-height: 20px;
+  position: relative;
+  display: none;
+  overflow: auto;
+  overflow-wrap: break-word;
+  margin-top: 0;
+  margin-left: 0;
+}
+
+#documentation code {
+  font-family: 'Inconsolata', monospace;
+  font-size: 12pt;
+}
+
+#documentation code em {
+  color: #dfaf8f;
+  font-style: normal;
+}
+
+#documentation h1 {
+  font-size: 12pt;
+  font-weight: bold;
+  color: #eee;
+}
+
+#documentation h2, #documentation strong {
+  font-weight: bold;
+  letter-spacing: -0.05em;
+  font-size: 10.5pt;
+  color: #cdcdcd; /* little bit brigher than normal text*/
+}
+
+#documentation a {
+  color: #66d9ef;
+}
+
+#documentation a:hover {
+  color: #66d9ef;
+  text-decoration: underline;
 }
 
 .right {

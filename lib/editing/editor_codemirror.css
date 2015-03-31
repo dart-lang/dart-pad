@@ -53,12 +53,14 @@
 .CodeMirror-hint {
   background: #3f3f3f;
   color: #dcdccc;
-  border-radius: 0px;
+  border-radius: 0;
+  max-width: 30em; /* overrides the default 19em in show-hint.css */
+  text-overflow: ellipsis;
+  padding-right: 10px;
 }
 
 li.CodeMirror-hint-active {
   background: #545454;
-  color: #f0dfaf;
 }
 
 .CodeMirror-hints::-webkit-scrollbar-track {
@@ -73,4 +75,96 @@ li.CodeMirror-hint-active {
 
 .CodeMirror-hints::-webkit-scrollbar-thumb {
   background-color: #000000;
+}
+
+/* Selectors for the code completion UI. */
+
+.CodeMirror-hint::before {
+  color: #333;
+  font-weight: bold;
+  box-sizing: border-box;
+  line-height: 14px;
+  width: 15px;
+  height: 15px;
+  font-size: 12px;
+  display: inline-block;
+  text-align: center;
+  margin-right: 5px;
+  border-radius: 50%;
+  content: " ";
+}
+
+.deprecated {
+  text-decoration: line-through;
+}
+
+.type-keyword::before {
+  background: radial-gradient(#f0dfaf, #e0cfa1);
+  content : "k";
+}
+
+.type-class::before {
+  content: "C";
+  background: radial-gradient(#A2D7F5, #8ebfd7);
+  line-height: 16px; /*for vertical centering */
+}
+
+.type-function_type_alias::before {
+  content: "T";
+  background: radial-gradient(#A2D7F5, #8ebfd7);
+  line-height: 16px; /*for vertical centering */
+}
+
+.type-getter::before {
+  content: "\21FD";
+  background: radial-gradient(#e1C2ff, #cdb7e8);
+}
+
+.type-setter::before {
+  content: "\21FE";
+  background: radial-gradient(#e1C2ff, #cdb7e8);
+}
+
+.type-getter_and_setter::before {
+  content: "\21FF";
+  background: radial-gradient(#e1C2ff, #cdb7e8);
+}
+
+.type-method::before {
+  content: "m";
+  background: radial-gradient(#fdc0b8, #eb9a94);
+}
+
+.type-local_variable::before {
+  content: "v"; /*maybe l? */
+  background: radial-gradient(#f0c183, #da9f5e);
+}
+
+.type-library::before {
+  content: "l";
+  background: radial-gradient(#f0c183, #da9f5e);
+}
+
+.type-top_level_variable::before {
+  content: "v";
+  background: radial-gradient(#f0c183, #da9f5e);
+}
+
+.type-field::before {
+  content: "f";
+  line-height: 16px; /*for vertical centering */
+  background: radial-gradient(#f0c183, #da9f5e);
+}
+
+.type-function::before {
+  content: "\03BB"; /*lambda */
+  line-height: 16px; /*for vertical centering */
+  background: radial-gradient(#fdc0b8, #eb9a94);
+}
+
+.type-no_suggestions::before {
+  content: "?";
+  line-height: 14px; /*for vertical centering */
+  background: radial-gradient(#fff, #eee);
+  vertical-align: text-bottom;
 }

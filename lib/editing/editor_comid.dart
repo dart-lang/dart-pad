@@ -90,6 +90,8 @@ class ComidFactory extends EditorFactory {
   CodeCompleter completer;
   String completoinMode;
 
+  bool get supportsCompletionPositioning => false;
+
   void registerCompleter(String mode, CodeCompleter codeCompleter) {
     options = new hints.CompletionOptions(
         hint: computeProposals,
@@ -115,11 +117,12 @@ class ComidFactory extends EditorFactory {
       [hints.ShowProposals displayProposals]) {
     assert(displayProposals != null); // ensure async
     _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, cm); // new instance!?
-    Future<List<Completion>> props = completer.complete(ed);
+    Future<CompletionResult> props = completer.complete(ed);
     Pos pos = cm.getCursor();
-    props.then((List<Completion> completions) {
+    props.then((CompletionResult completions) {
+      List<Completion> completionList = completions.completions;
       hints.ProposalList proposals;
-      List<hints.Proposal> list = completions.map((Completion completion) =>
+      List<hints.Proposal> list = completionList.map((Completion completion) =>
           // this map is broken -- should use custom display ala Dart Editor
           new hints.Proposal(completion.value)).toList();
       proposals = new hints.ProposalList(list: list, from: pos, to: pos);
@@ -147,6 +150,13 @@ class _CodeMirrorEditor extends Editor {
     // TODO: For `html`, enable and disable the 'autoCloseTags' option.
     return new _CodeMirrorDocument._(this, new Doc(content, mode));
   }
+
+  void execCommand(String name) {
+    cm.execCommand(name);
+  }
+
+  // TODO: Implement completionActive for comid.
+  bool get completionActive => false;
 
   String get mode => cm.doc.getMode().name;
   set mode(String str) => cm.setOption('mode', str);
@@ -193,6 +203,8 @@ class _CodeMirrorDocument extends Document {
       doc.setSelection(_posToPos(start));
     }
   }
+
+  String get selection => doc.getSelection(value);
 
   String get mode => parent.mode;
 

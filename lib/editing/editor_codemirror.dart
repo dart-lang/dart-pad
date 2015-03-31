@@ -16,8 +16,6 @@ import 'editor.dart' as ed show Position;
 
 export 'editor.dart';
 
-// TODO: code completion initial hook up for dart
-
 final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
 
 final _gutterId = 'CodeMirror-lint-markers';
@@ -74,6 +72,9 @@ class CodeMirrorFactory extends EditorFactory {
           'Cmd-/': 'toggleComment',
           'Ctrl-/': 'toggleComment'
         },
+        'hintOptions': {
+          'completeSingle': false
+        },
         //'lint': true,
         'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
       };
@@ -83,6 +84,8 @@ class CodeMirrorFactory extends EditorFactory {
         new CodeMirror.fromElement(element, options: options));
   }
 
+  bool get supportsCompletionPositioning => true;
+
   void registerCompleter(String mode, CodeCompleter completer) {
     Hints.registerHintsHelperAsync(mode, (CodeMirror editor, [HintsOptions options]) {
       return _completionHelper(editor, completer, options);
@@ -91,15 +94,42 @@ class CodeMirrorFactory extends EditorFactory {
 
   Future<HintResults> _completionHelper(CodeMirror editor,
       CodeCompleter completer, HintsOptions options) {
-    pos.Position position = editor.getCursor();
     _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, editor);
 
-    return completer.complete(ed).then((List<Completion> completions) {
-      List<HintResult> hints = completions.map((Completion completion) {
+    return completer.complete(ed).then((CompletionResult result) {
+      Doc doc = editor.getDoc();
+
+      List<HintResult> hints = result.completions.map((Completion completion) {
         return new HintResult(
-            completion.value, displayText: completion.displayString);
+            completion.value,
+            displayText: completion.displayString,
+            className: completion.type,
+            hintApplier: (CodeMirror editor, HintResult hint, pos.Position from,
+                pos.Position to) {
+              doc.replaceRange(hint.text, from, to);
+              if (completion.cursorOffset != null) {
+                int diff = hint.text.length - completion.cursorOffset;
+                doc.setCursor(new pos.Position(
+                    editor.getCursor().line, editor.getCursor().ch - diff));
+              }
+            }
+        );
       }).toList();
-      return new HintResults.fromHints(hints, position, position);
+
+      pos.Position from =  doc.posFromIndex(result.replaceOffset);
+      pos.Position to = doc.posFromIndex(
+          result.replaceOffset + result.replaceLength);
+      String stringToReplace = doc.getValue().substring(
+          result.replaceOffset, result.replaceOffset + result.replaceLength);
+
+      if (hints.isEmpty) {
+        hints = [
+          new HintResult(stringToReplace,
+              displayText: "No suggestions", className: "type-no_suggestions")
+        ];
+      }
+
+      return new HintResults.fromHints(hints, from, to);
     });
   }
 }
@@ -121,6 +151,18 @@ class _CodeMirrorEditor extends Editor {
 
     // TODO: For `html`, enable and disable the 'autoCloseTags' option.
     return new _CodeMirrorDocument._(this, new Doc(content, mode));
+  }
+
+  void execCommand(String name) {
+    cm.execCommand(name);
+  }
+
+  bool get completionActive {
+    if (cm.jsProxy['state']['completionActive'] == null) {
+      return false;
+    } else {
+      return cm.jsProxy['state']['completionActive']['widget'] != null;
+    }
   }
 
   String get mode => cm.getMode();
@@ -173,6 +215,8 @@ class _CodeMirrorDocument extends Document {
       doc.setSelection(_posToPos(start));
     }
   }
+
+  String get selection => doc.getSelection(value);
 
   String get mode => parent.mode;
 

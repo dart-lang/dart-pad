@@ -16,6 +16,7 @@ abstract class EditorFactory {
 
   Editor createFromElement(html.Element element);
 
+  bool get supportsCompletionPositioning;
   // TODO: codemirror gives the client more control over where to insert the
   // completions. With Ace, you can only insert from the requested position
   // forward.
@@ -30,6 +31,20 @@ abstract class Editor {
   Document createDocument({String content, String mode});
 
   Document get document;
+
+  /**
+   * Runs the command with the given name on the editor.
+   * Only implemented for codemirror and comid.
+   * Returns null for ace editor.
+   */
+  void execCommand(String name);
+
+  /**
+   * Checks if the completion popup is displayed.
+   * Only implemented for codemirror.
+   * Returns null for ace editor and comid.
+   */
+  bool get completionActive;
 
   String get mode;
   set mode(String str);
@@ -54,6 +69,9 @@ abstract class Document {
   Position get cursor;
 
   void select(Position start, [Position end]);
+
+  /// The currently selected text in the editor.
+  String get selection;
 
   String get mode;
 
@@ -108,10 +126,21 @@ class Position {
 }
 
 abstract class CodeCompleter {
-  Future<List<Completion>> complete(Editor editor);
+  Future<CompletionResult> complete(Editor editor);
 }
 
-// TODO: positions?
+class CompletionResult {
+  final List<Completion> completions;
+
+  /// The start offset of the text to be replaced by a completion.
+  final int replaceOffset;
+
+  /// The length of the text to be replaced by a completion.
+  final int replaceLength;
+
+  CompletionResult(this.completions, {this.replaceOffset, this.replaceLength});
+}
+
 class Completion {
   /// The value to insert.
   final String value;
@@ -119,5 +148,19 @@ class Completion {
   /// An optional string that is displayed during auto-completion if specified.
   final String displayString;
 
-  Completion(this.value, {this.displayString});
+  /// The css class type for the completion. This may not be supported by all
+  /// completors.
+  String type;
+
+  /// The (optional) offset to display the cursor at after completion. This is
+  /// relative to the insertion location, not the absolute position in the file.
+  /// This may be `null`, and cursor re-positioning may not be supported by all
+  /// completors. See [EditorFactory.supportsCompletionPositioning].
+  final int cursorOffset;
+
+  Completion(this.value, {this.displayString, this.type, this.cursorOffset});
+
+  bool isSetterAndMatchesGetter(Completion other) =>
+      displayString == other.displayString &&
+      (type == "type-getter" && other.type == "type-setter");
 }

@@ -6,10 +6,14 @@ library playground;
 
 import 'dart:async';
 import 'dart:html' hide Document;
+import 'dart:math' as math;
+import 'dart:convert';
 
 import 'package:logging/logging.dart';
+import 'package:markd/markdown.dart' as markdown;
 import 'package:route_hierarchical/client.dart';
 
+import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
@@ -42,6 +46,9 @@ class Playground {
   DivElement get _editpanel => querySelector('#editpanel');
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
+  DivElement get _docPanel => querySelector('#documentation');
+  bool get _isCompletionActive => editor.completionActive;
+  bool get _isDocPanelOpen => querySelector("#doctab").attributes.containsKey('selected');
 
   DButton runbutton;
   DOverlay overlay;
@@ -156,6 +163,8 @@ class Playground {
   }
 
   void _initPlayground() {
+    final List cursorKeys = [KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN];
+
     // TODO: Set up some automatic value bindings.
     DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'));
     editorSplitter.onPositionChanged.listen((pos) {
@@ -184,14 +193,37 @@ class Playground {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    editorFactory.registerCompleter('dart', new DartCompleter());
-
     keys.bind('ctrl-s', _handleSave);
     keys.bind('ctrl-enter', _handleRun);
-    keys.bind('f1', _handleHelp);
+    keys.bind('f1', () {
+      _toggleDocTab();
+      _handleHelp();
+    });
+    document.onKeyUp.listen((e) {
+      if (_isCompletionActive || cursorKeys.contains(e.keyCode)) _handleHelp();
+
+      // If we're already in completion bail.
+      if (_isCompletionActive) return;
+
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.execCommand("autocomplete");
+      } else if (options.getValueBool('autopopup_code_completion')) {
+        RegExp exp = new RegExp(r"[A-Z]");
+        if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+          editor.execCommand("autocomplete");
+        }
+      }
+    });
+    document.onClick.listen((e) => _handleHelp());
+
+    querySelector("#doctab").onClick.listen((e) => _toggleDocTab());
+    querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
+
+    editorFactory.registerCompleter(
+        'dart', new DartCompleter(dartServices, _context._dartDoc));
 
     _context.onHtmlDirty.listen((_) => htmlBusyLight.on());
     _context.onHtmlReconcile.listen((_) {
@@ -207,6 +239,9 @@ class Playground {
 
     _context.onDartDirty.listen((_) => dartBusyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
+
+    // Set up development options.
+    options.registerOption('autopopup_code_completion', 'false');
 
     _finishedInit();
   }
@@ -244,7 +279,25 @@ class Playground {
   List<Element> _getTabElements(Element element) =>
       element.querySelectorAll('a');
 
+  void _toggleDocTab() {
+    // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
+    _outputpanel.style.display = "none";
+    querySelector("#consoletab").attributes.remove('selected');
+
+    _docPanel..style.display = "block";
+    querySelector("#doctab").setAttribute('selected','');
+  }
+
+  void _toggleConsoleTab() {
+    _docPanel..style.display = "none";
+    querySelector("#doctab").attributes.remove('selected');
+
+    _outputpanel.style.display = "block";
+    querySelector("#consoletab").setAttribute('selected','');
+  }
+
   void _handleRun() {
+    _toggleConsoleTab();
     ga.sendEvent('main', 'run');
     runbutton.disabled = true;
     overlay.visible = true;
@@ -296,9 +349,14 @@ class Playground {
         return new Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
       }).toList());
+
+      _updateRunButton(
+          hasErrors: result.issues.any((issue) => issue.kind == 'error'),
+          hasWarnings: result.issues.any((issue) => issue.kind == 'warning'));
     }).catchError((e) {
       _context.dartDocument.setAnnotations([]);
       dartBusyLight.reset();
+      _updateRunButton();
       _logger.severe(e);
     });
   }
@@ -310,24 +368,56 @@ class Playground {
   }
 
   void _handleHelp() {
-    if (context.focusedEditor == 'dart') {
+    if (context.focusedEditor == 'dart' && _isDocPanelOpen && editor.document.selection.isEmpty) {
       ga.sendEvent('main', 'help');
 
+      SourceRequest input;
       Position pos = editor.document.cursor;
-      var input = new SourceRequest()
+      int offset = editor.document.indexFromPos(pos);
+
+      if (_isCompletionActive) {
+        // If the completion popup is open we create a new source as if the
+        // completion popup was chosen, and ask for the documentation of that
+        // source.
+        String completionText = querySelector(".CodeMirror-hint-active").text;
+        var source = context.dartSource;
+        int lastSpace = source.substring(0, offset).lastIndexOf(" ") + 1;
+        int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
+        offset = math.max(lastSpace, lastDot);
+        source = _context.dartSource.substring(0, offset) +
+            completionText +
+            context.dartSource.substring(editor.document.indexFromPos(pos));
+        input = new SourceRequest()
+          ..source = source
+          ..offset = offset;
+      } else {
+        input = new SourceRequest()
           ..source = _context.dartSource
-          ..offset = editor.document.indexFromPos(pos);
+          ..offset = offset;
+      }
+
       // TODO: Show busy.
-      dartServices.document(input).timeout(serviceCallTimeout)
-          .then((DocumentResponse result) {
-            if (result.info['description'] == null &&
-                result.info['dartdoc'] == null) {
-              // TODO: Tell the user there were no results.
-            } else {
-              // TODO: Display this info
-              print(result.info['description']);
-            }
-          });
+      dartServices.document(input).timeout(serviceCallTimeout).then(
+          (DocumentResponse result) {
+        if (result.info['description'] == null &&
+            result.info['dartdoc'] == null) {
+          _docPanel.setInnerHtml("<p>No documentation found.</p>");
+        } else {
+          final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
+            ..allowElement('a', attributes: ['href']);
+          _docPanel.setInnerHtml(markdown.markdownToHtml(
+'''
+# `${result.info['description']}`\n\n
+${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
+${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
+${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
+${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName']}" : ""}\n\n
+''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
+          for (AnchorElement a in _docPanel.querySelectorAll("a")) {
+            a.target = "_blank";
+          }
+        }
+      });
     }
   }
 
@@ -415,6 +505,19 @@ class Playground {
 
       issuesElement.classes.toggle('showing', issues.isNotEmpty);
     }
+  }
+
+  void _updateRunButton({bool hasErrors: false, bool hasWarnings: false}) {
+    const alertSVGIcon =
+        "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,"
+        "1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
+
+    var path = runbutton.element.querySelector("path");
+    path.attributes["d"] =
+        (hasErrors || hasWarnings) ? alertSVGIcon : "M8 5v14l11-7z";
+
+    path.parent.classes.toggle("error", hasErrors);
+    path.parent.classes.toggle("warning", hasWarnings && !hasErrors);
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus: false}) {
@@ -525,28 +628,38 @@ class PlaygroundContext extends Context {
   }
 }
 
-// TODO: For CodeMirror, we get a request each time the user hits a key when the
-// completion popup is open. We need to cache the results when appropriate.
+class InlineBracketsColon extends markdown.InlineSyntax {
 
-// TODO: We need to cancel completion requests if one is open when we get
-// another.
+  InlineBracketsColon() : super(r'\[:\s?((?:.|\n)*?)\s?:\]');
 
-class DartCompleter extends CodeCompleter {
-  Future<List<Completion>> complete(Editor editor) {
+  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
 
-    int offset = editor.document.indexFromPos(editor.document.cursor);
+  @override
+  bool onMatch(markdown.InlineParser parser, Match match) {
+    var element = new markdown.Element.text('code', htmlEscape(match[1]));
+    parser.addNode(element);
+    return true;
+  }
+}
 
-    var request =
-        new SourceRequest()..source = editor.document.value
-        ..offset = offset;
+// TODO: [someCodeReference] should be converted to for example
+// https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
+// for now it gets converted <code>someCodeReference</code>
+class InlineBrackets extends markdown.InlineSyntax {
 
-    return dartServices.complete(request).then((response) {
+  // This matches URL text in the documentation, with a negative filter
+  // to detect if it is followed by a URL to prevent e.g.
+  // [text] (http://www.example.com) getting turned into
+  // <code>text</code> (http://www.example.com)
+  InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\s?\()');
 
-      List<Completion> cpls = new List<Completion>();
-      response.completions.forEach((mp)
-          => cpls.add(new Completion(mp['completion'])));
+  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
 
-      return cpls;
-    });
+  @override
+  bool onMatch(markdown.InlineParser parser, Match match) {
+    var element = new markdown.Element.text(
+        'code', "<em>${htmlEscape(match[1])}</em>");
+    parser.addNode(element);
+    return true;
   }
 }

@@ -20,14 +20,57 @@ void defineTests() {
       });
 
       test('should return empty string if html is well-formed but without body', () {
-        expect(extractHtmlBody('<html><head><title>Hello World!</title></head></html>'), '<title>Hello World!</title>');
+        expect(extractHtmlBody('<html><head><title>Hello World!</title></head></html>'), isEmpty);
       });
 
       test('should return body content even if html is malformed', () {
         expect(extractHtmlBody('Hello World!'), equals('Hello World!'));
         expect(extractHtmlBody('<h1>Hello World!</h1>'), equals('<h1>Hello World!</h1>'));
-        expect(extractHtmlBody('<body><h1>Hello World!</h1>'), '<h1>Hello World!</h1>');
-        expect(extractHtmlBody('<body><h1>Hello World!</h1></XXX>'), '<h1>Hello World!</h1>');
+        expect(extractHtmlBody('<html><body><h1>Hello World!</h1></XXX></body></html>'), '<h1>Hello World!</h1></XXX>');
+        //expect(extractHtmlBody('<html><body><h1>Hello World!</h1>'), '<h1>Hello World!</h1>');
+        //expect(extractHtmlBody('<html><body><h1>Hello World!</h1></html>'), '<h1>Hello World!</h1>');
+      });
+
+      test('should return body content with external scripts or resources', () {
+        var js = 'https://cdn.com/bootstrap.js';
+        var css = 'https://cdn.com/bootstrap.css';
+        expect(extractHtmlBody('<link rel="stylesheet" href="$css">'), equals('<link rel="stylesheet" href="$css">'));
+        expect(extractHtmlBody('<script src="$js"></script>'), equals('<script src="$js"></script>'));
+        expect(extractHtmlBody('<html><body><script src="$js"></script></body></html>'), equals('<script src="$js"></script>'));
+        expect(extractHtmlBody('<script src="$js"></script><h1>Mixed script and content</h1>'), equals('<script src="$js"></script><h1>Mixed script and content</h1>'));
+      });
+
+      test('should return body content with custom elements or attributes', () {
+        expect(extractHtmlBody('<custom-element>Hello World!</custom-element>'), equals('<custom-element>Hello World!</custom-element>'));
+        expect(extractHtmlBody('<h1 custom-attribute="Bob">Hello World!</h1>'), equals('<h1 custom-attribute="Bob">Hello World!</h1>'));
+      });
+
+      test('should avoid hacky body tags', () {
+        expect(extractHtmlBody('<html><body><h1>Hello <!-- </body> --> World!</h1></body></html>'), equals('<h1>Hello <!-- </body> --> World!</h1>'));
+      });
+
+      test('should preserve formatting', () {
+        expect(extractHtmlBody(r'''<html>
+<body>
+<h1  class="awesome" >
+  Hello World!
+
+  <!-- Some comments
+       <custom-comments> -->
+
+  <input type='text'
+    required >
+</h1 >
+</body>
+</html>'''), equals(r'''<h1  class="awesome" >
+  Hello World!
+
+  <!-- Some comments
+       <custom-comments> -->
+
+  <input type='text'
+    required >
+</h1 >'''));
       });
     });
   });
