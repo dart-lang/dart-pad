@@ -47,6 +47,8 @@ class DartCompleter extends CodeCompleter {
       int replaceOffset = response.replacementOffset;
       int replaceLength = response.replacementLength;
 
+      String replacementString =  editor.document.value.substring(
+          replaceOffset, replaceOffset + replaceLength);
       //_logger.info('completion request in ${timer.elapsedMilliseconds}ms; '
       //    '${response.completions.length} completions, '
       //    'offset=${replaceOffset}, length=${replaceLength}');
@@ -64,8 +66,6 @@ class DartCompleter extends CodeCompleter {
           displayString += ' → ${completion.returnType}';
         }
 
-        String replacementString =  editor.document.value.substring(
-            replaceOffset, replaceOffset + replaceLength);
         // Filter unmatching completions.
         // TODO: This is temporary; tracking issue here:
         // https://github.com/dart-lang/dart-services/issues/87.
@@ -96,8 +96,26 @@ class DartCompleter extends CodeCompleter {
         }
       }).where((x) => x != null).toList();
 
+      List<Completion> filterCompletions = new List.from(completions);
+
+      // If we have 2 hint results with the same displaytext
+      // where one is a getter and the other setter,
+      // we merge them as 1 result with classname: "type-getter_and_setter"
+      for (Completion completion in completions) {
+        if (completion.value == replacementString && filterCompletions[0].value != completion.value) {
+          filterCompletions.remove(completion);
+          filterCompletions.insert(0, completion);
+        }
+        for (Completion other in completions) {
+          if (completion.isSetterAndMatchesGetter(other)) {
+            filterCompletions.removeWhere((c) => completion == c);
+            other.type = "type-getter_and_setter";
+          }
+        }
+      }
+
       completer.complete(new CompletionResult(
-          completions,
+          filterCompletions,
           replaceOffset: replaceOffset,
           replaceLength: replaceLength));
     }).catchError((e) {

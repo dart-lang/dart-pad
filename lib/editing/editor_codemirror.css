@@ -121,10 +121,7 @@ li.CodeMirror-hint-active {
 }
 
 .type-getter_and_setter::before {
-  content: "\21FD\21FE";
-  letter-spacing: -0.5em;
-  text-align: left;
-  padding-left: 0.28em;
+  content: "\21FF";
   background: radial-gradient(#e1C2ff, #cdb7e8);
 }
 
