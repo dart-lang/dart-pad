@@ -13,8 +13,6 @@ import 'package:logging/logging.dart';
 import 'dart:convert' show JSON;
 import 'package:rpc/rpc.dart';
 
-
-
 import 'package:analysis_server/src/protocol.dart';
 
 /**
@@ -24,7 +22,8 @@ typedef void NotificationProcessor(String event, params);
 
 final Logger _logger = new Logger('analysis_server');
 
-final _WARMUP_SRC = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
+final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
+final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
 final _SERVER_PATH = "bin/_analysis_server_entry.dart";
 
 class AnalysisServerWrapper {
@@ -40,7 +39,7 @@ class AnalysisServerWrapper {
   Future<CompleteResponse> complete(String src, int offset) async {
     Future<Map> results = _completeImpl(src, offset);
 
-    // Post process the result from Analysis Server
+    // Post process the result from Analysis Server.
     return results.then((Map response) {
       List<Map> results = response['results'];
       results.sort((x, y) => -1 * x['relevance'].compareTo(y['relevance']));
@@ -50,6 +49,7 @@ class AnalysisServerWrapper {
     });
   }
 
+  /// Internal implementation of the completion mechanism.
   Future<Map> _completeImpl(String src, int offset) async {
     await serverConnection._ensureSetup();
 
@@ -61,6 +61,9 @@ class AnalysisServerWrapper {
         (error) => throw "Completion failed").first;
   }
 
+  /// Warm up the analysis server to be ready for use.
+  Future warmup([bool useHtml = false]) =>
+      _completeImpl(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
 }
 
 /**
@@ -69,16 +72,30 @@ class AnalysisServerWrapper {
  */
 class _Server {
 
+  final String _SDKPath;
+
   /// An imaginary backing store file that will be used as a name
-  /// to communicate with the analysis server
+  /// to communicate with the analysis server. This can be removed when
+  /// when the upgrade to 1.10 lands
   io.File psudeoFile;
 
   // TODO(lukechurch): Refactor this so that it can handle multiple files
   var psuedoFilePath;
   io.Directory sourceDirectory;
 
-  _Server(this._SDK) {
+  /// Control flags to handle the server state machine
+  bool isSetup = false;
+  bool isSettingUp = false;
 
+  // TODO(lukechurch): Replace this with a notice baord + dispatcher pattern
+  /// Streams used to handle syncing data with the server
+  Stream<bool> analysisComplete;
+  StreamController<bool> _onServerStatus;
+
+  Stream<Map> completionResults;
+  StreamController<Map> _onCompletionResults;
+
+  _Server(this._SDKPath) {
     _onServerStatus = new StreamController<bool>(sync: true);
     analysisComplete = _onServerStatus.stream.asBroadcastStream();
 
@@ -89,37 +106,23 @@ class _Server {
     psudeoFile = new io.File(
         sourceDirectory.path + io.Platform.pathSeparator + "main.dart");
     psuedoFilePath = psudeoFile.path;
-
   }
 
-  // TODO(lukechurch): Replace this with a notice baord + dispatcher pattern
-  /// Streams used to handle syncing data with the server
-  Stream<bool> analysisComplete;
-  StreamController<bool> _onServerStatus;
-
-  Stream<Map> completionResults;
-  StreamController<Map> _onCompletionResults;
-
-  /// Control flags to handle the server state machine
-  bool isSetup = false;
-  bool isSettingUp = false;
-
+  /// Ensure that the server is ready for use.
   Future _ensureSetup() async {
     _logger.fine("ensureSetup: SETUP $isSetup IS_SETTING_UP $isSettingUp");
     if (!isSetup && !isSettingUp) {
-      return setup();
+      return _setup();
     }
     return new Future.value();
   }
 
-  Future setup() async {
+  Future _setup() async {
     _logger.fine("Setup starting");
     isSettingUp = true;
 
-
     _logger.fine("Server about to start");
 
-    // Warm up target.
     await start();
     _logger.fine("Setver started");
 
@@ -140,12 +143,6 @@ class _Server {
 
     return analysisComplete.first;
   }
-
-
-  final String _SDK;
-
-
-
 
   /**
    * Server process object, or null if server hasn't been started yet.
@@ -353,7 +350,7 @@ class _Server {
     arguments.add(_SERVER_PATH);
 
     arguments.add('--sdk');
-    arguments.add(_SDK);
+    arguments.add(_SDKPath);
 
     _logger.fine("Binary: $dartBinary");
     _logger.fine("Arguments: $arguments");
@@ -404,7 +401,6 @@ class _Server {
 
       // TODO(lukechurch): Refactor to allow multiple files
       String file = psuedoFilePath;
-      //_logger.fine("sendAddOverlay: $file $contents");
 
       var overlay = new AddContentOverlay(contents);
       var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
@@ -456,7 +452,6 @@ class _Server {
     }
   }
 
-
   /**
    * Record a message that was exchanged with the server, and print it out if
    * [debugStdio] has been called.
@@ -472,7 +467,6 @@ class _Server {
     _recordedStdio.add(line);
   }
 }
-
 
 class CompleteResponse {
   @ApiProperty(description: 'The offset of the start of the text to be replaced.')
