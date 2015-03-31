@@ -201,10 +201,7 @@ class Playground {
     });
     document.onKeyUp.listen((e) {
       if (options.getValueBool('autopopup_code_completion')) {
-        RegExp exp = new RegExp(r"[a-zA-Z]");
-        // TODO: _isCompletionActive won't work correct
-        // TODO: which causes some issues
-        // TODO: will be fixed when we use the latest codemirror.js version
+        RegExp exp = new RegExp(r"[A-Z]");
         if (!_isCompletionActive && exp.hasMatch(
             new String.fromCharCode(e.keyCode)) || e.keyCode == KeyCode.PERIOD) {
           editor.execCommand("autocomplete");
