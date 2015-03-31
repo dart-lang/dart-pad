@@ -76,7 +76,7 @@ class DartCompleter extends CodeCompleter {
           text += "()";
         }
 
-        String deprecatedClass = completion.isDeprecated ? 'deprecated' : '';
+        String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
 
         if (completion.type == null) {
           return new Completion(text, displayString: displayString,
@@ -89,7 +89,7 @@ class DartCompleter extends CodeCompleter {
           }
 
           return new Completion(text, displayString: displayString,
-              type: "type-${completion.type.toLowerCase()} ${deprecatedClass}",
+              type: "type-${completion.type.toLowerCase()}${deprecatedClass}",
               cursorOffset: cursorPos);
         }
       }).where((x) => x != null).toList();
