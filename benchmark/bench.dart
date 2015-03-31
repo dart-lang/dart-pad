@@ -10,6 +10,8 @@ import 'package:services/src/analyzer.dart';
 import 'package:services/src/bench.dart';
 import 'package:services/src/common.dart';
 import 'package:services/src/compiler.dart';
+import 'package:services/src/analysis_server.dart';
+
 import 'package:grinder/grinder.dart' as grinder;
 
 final String sdkPath = grinder.getSdkDir().path;
@@ -23,6 +25,10 @@ void main(List<String> args) {
     new AnalyzerBenchmark('hello', sampleCode),
     new AnalyzerBenchmark('hellohtml', sampleCodeWeb),
     new AnalyzerBenchmark('sunflower', _sunflower),
+
+    new AnalysisServerBenchmark('hello', sampleCode),
+    new AnalysisServerBenchmark('hellohtml', sampleCodeWeb),
+    new AnalysisServerBenchmark('sunflower', _sunflower),
 
     new Dart2jsBenchmark('hello', sampleCode),
     new Dart2jsBenchmark('hellohtml', sampleCodeWeb),
@@ -57,6 +63,20 @@ class Dart2jsBenchmark extends Benchmark {
     });
   }
 }
+
+class AnalysisServerBenchmark extends Benchmark {
+  final String source;
+  AnalysisServerWrapper analysisServer;
+
+  AnalysisServerBenchmark(String name, this.source)
+    : super('completion.${name}') {
+    analysisServer = new AnalysisServerWrapper(sdkPath);
+  }
+
+  Future perform() =>
+    analysisServer.complete(source, 30);
+}
+
 
 final String _sunflower = '''
 library sunflower;
