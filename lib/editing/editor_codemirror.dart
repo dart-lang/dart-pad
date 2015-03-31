@@ -116,20 +116,39 @@ class CodeMirrorFactory extends EditorFactory {
         );
       }).toList();
 
+      List<HintResult> filterHints = new List.from(hints, growable: true);
+
+      // If we have 2 hint results with the same displaytext
+      // where one is a getter and the other setter,
+      // we merge them as 1 result with classname: "type-property"
+      for (HintResult result in hints) {
+        for (HintResult other in hints) {
+          if (result.displayText  == other.displayText && result.className == "type-getter" && other.className == "type-setter") {
+            filterHints.removeWhere((e) => result.displayText == e.displayText);
+            filterHints.add(new HintResult(
+                other.text,
+                displayText: other.displayText,
+                className: "type-getter_and_setter",
+                from: other.from,
+                to: other.to));
+          }
+        }
+      }
+
       pos.Position from =  doc.posFromIndex(result.replaceOffset);
       pos.Position to = doc.posFromIndex(
           result.replaceOffset + result.replaceLength);
       String stringToReplace = doc.getValue().substring(
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
-      if (hints.isEmpty) {
-        hints = [
+      if (filterHints.isEmpty) {
+        filterHints = [
           new HintResult(stringToReplace,
               displayText: "No suggestions", className: "type-no_suggestions")
         ];
       }
 
-      return new HintResults.fromHints(hints, from, to);
+      return new HintResults.fromHints(filterHints, from, to);
     });
   }
 }
