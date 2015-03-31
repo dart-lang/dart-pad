@@ -200,7 +200,9 @@ class Playground {
       _handleHelp();
     });
     document.onKeyUp.listen((e) {
-      if (options.getValueBool('autopopup_code_completion')) {
+      if (!_isCompletionActive && e.keyCode == KeyCode.PERIOD) {
+        editor.execCommand("autocomplete");
+      } else if (options.getValueBool('autopopup_code_completion')) {
         RegExp exp = new RegExp(r"[A-Z]");
         if (!_isCompletionActive && exp.hasMatch(
             new String.fromCharCode(e.keyCode)) || e.keyCode == KeyCode.PERIOD) {
