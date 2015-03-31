@@ -98,15 +98,14 @@ class DartCompleter extends CodeCompleter {
 
       List<Completion> filterCompletions = new List.from(completions);
 
-      // If we have 2 hint results with the same displaytext
-      // where one is a getter and the other setter,
-      // we merge them as 1 result with classname: "type-getter_and_setter"
       for (Completion completion in completions) {
+        // If the text to be replaced matches the completion text, put it on top.
         if (completion.value == replacementString && filterCompletions[0].value != completion.value) {
           filterCompletions.remove(completion);
           filterCompletions.insert(0, completion);
         }
         for (Completion other in completions) {
+          // Removes duplicates when a completion is both a getter and a setter.
           if (completion.isSetterAndMatchesGetter(other)) {
             filterCompletions.removeWhere((c) => completion == c);
             other.type = "type-getter_and_setter";
