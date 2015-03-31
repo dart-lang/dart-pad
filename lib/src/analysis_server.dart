@@ -49,6 +49,9 @@ class AnalysisServerWrapper {
     });
   }
 
+  /// Cleanly shutdown the Analysis Server.
+  Future shutdown() async => serverConnection.sendServerShutdown();
+
   /// Internal implementation of the completion mechanism.
   Future<Map> _completeImpl(String src, int offset) async {
     await serverConnection._ensureSetup();

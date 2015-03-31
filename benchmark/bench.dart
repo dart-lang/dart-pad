@@ -75,6 +75,8 @@ class AnalysisServerBenchmark extends Benchmark {
 
   Future perform() =>
     analysisServer.complete(source, 30);
+
+  Future teardown() => analysisServer.shutdown();
 }
 
 
