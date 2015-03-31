@@ -200,6 +200,8 @@ class Playground {
       _handleHelp();
     });
     document.onKeyUp.listen((e) {
+      if (cursorKeys.contains(e.keyCode)) _handleHelp();
+
       // If we're already in completion bail.
       if (_isCompletionActive) return;
 
@@ -210,9 +212,6 @@ class Playground {
         if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
           editor.execCommand("autocomplete");
         }
-      }
-      if (_isCompletionActive || cursorKeys.contains(e.keyCode)) {
-        _handleHelp();
       }
     });
     document.onClick.listen((e) => _handleHelp());
