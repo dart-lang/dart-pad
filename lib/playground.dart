@@ -415,9 +415,9 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
 ''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
 
           _docPanel.querySelectorAll("a").forEach((AnchorElement a)
-            => a.target = "_blank");
+              => a.target = "_blank");
           _docPanel.querySelectorAll("h1").forEach((h)
-            => h.classes.add("type-${result.info["kind"].replaceAll(" ","_")}"));
+              => h.classes.add("type-${result.info["kind"].replaceAll(" ","_")}"));
         }
       });
     }
