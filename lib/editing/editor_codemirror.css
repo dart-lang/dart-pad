@@ -111,12 +111,17 @@ li.CodeMirror-hint-active {
 }
 
 .type-getter::before {
-  content: "⇽";
+  content: "\21FD";
   background: radial-gradient(#e1C2ff, #cdb7e8);
 }
 
 .type-setter::before {
-  content: "⇾";
+  content: "\21FE";
+  background: radial-gradient(#e1C2ff, #cdb7e8);
+}
+
+.type-getter_and_setter::before {
+  content: "\21FF";
   background: radial-gradient(#e1C2ff, #cdb7e8);
 }
 
