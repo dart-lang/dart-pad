@@ -94,10 +94,15 @@ li.CodeMirror-hint-active {
   content: " ";
 }
 
+.deprecated {
+  text-decoration: line-through;
+}
+
 .type-keyword::before {
   background: radial-gradient(#f0dfaf, #e0cfa1);
   content : "k";
 }
+
 .type-class::before {
   content: "C";
   background: radial-gradient(#A2D7F5, #8ebfd7);

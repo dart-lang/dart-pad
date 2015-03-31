@@ -161,5 +161,6 @@ class Completion {
   Completion(this.value, {this.displayString, this.type, this.cursorOffset});
 
   bool isSetterAndMatchesGetter(Completion other) =>
-    displayString == other.displayString && (type == "type-getter" && other.type == "type-setter");
+      displayString == other.displayString &&
+      (type == "type-getter" && other.type == "type-setter");
 }
