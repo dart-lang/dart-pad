@@ -200,7 +200,7 @@ class Playground {
       _handleHelp();
     });
     document.onKeyUp.listen((e) {
-      if (cursorKeys.contains(e.keyCode)) _handleHelp();
+      if (_isCompletionActive || cursorKeys.contains(e.keyCode)) _handleHelp();
 
       // If we're already in completion bail.
       if (_isCompletionActive) return;
