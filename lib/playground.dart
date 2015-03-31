@@ -55,6 +55,7 @@ class Playground {
   DButton newButton;
   DButton runButton;
   DButton shareButton;
+  DButton reloadButton;
   DOverlay overlay;
   DBusyLight dartBusyLight;
   DBusyLight cssBusyLight;
@@ -78,9 +79,10 @@ class Playground {
     newButton = new DButton(querySelector('#newbutton'));
     newButton.onClick.listen((e) => _handleNewButton());
     shareButton = new DButton(querySelector('#sharebutton'));
-    shareButton.disabled = true;
     shareButton.onClick.listen((e) => _handleShareButton());
-    editableGist.onDirtyChanged.listen((dirty) => shareButton.disabled = !dirty);
+    reloadButton = new DButton(querySelector('#reloadbutton'));
+    reloadButton.onClick.listen((e) => _handleReloadButton());
+    editableGist.onDirtyChanged.listen((dirty) => _updateButtons());
 
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
@@ -339,6 +341,14 @@ class Playground {
     });
   }
 
+  void _updateButtons() {
+    bool dirty = editableGist.dirty;
+    bool wasSaved = editableGist.id != null;
+
+    shareButton.disabled = !dirty;
+    reloadButton.disabled = !dirty || !wasSaved;
+  }
+
   void _handleShareButton() {
     ga.sendEvent('main', 'share');
 
@@ -350,6 +360,11 @@ class Playground {
       DToast.showMessage(message);
       _logger.severe(message);
     });
+  }
+
+  void _handleReloadButton() {
+    // TODO:
+    print('todo: _handleReloadButton');
   }
 
   void _handleNewButton() {
@@ -493,6 +508,8 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
       e.text = '';
     } else {
       e.children.clear();
+
+      if (title.length > 10) title = title.substring(0, 10);
 
       AnchorElement a = new AnchorElement(href: url);
       a.text = title;

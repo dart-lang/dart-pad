@@ -48,6 +48,25 @@ Gist createSampleGist() {
   return gist;
 }
 
+/**
+ * Find the best match for the given file names in the gist file info; return
+ * the file (or `null` if no match is found).
+ */
+GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
+  List<GistFile> files = gist.files;
+
+  for (String name in names) {
+    GistFile file = files.firstWhere((f) => f.name == name, orElse: () => null);
+    if (file != null) return file;
+  }
+
+  if (matcher != null) {
+    return files.firstWhere((f) => matcher(f.name), orElse: () => null);
+  } else {
+    return null;
+  }
+}
+
 /// A representation of a Github gist.
 class Gist {
   static final String _apiUrl = 'https://api.github.com/gists';
@@ -65,7 +84,7 @@ class Gist {
   static Future<Gist> createAnon(Gist gist) {
     // POST /gists
     return HttpRequest.request(_apiUrl, method: 'POST',
-        sendData: JSON.encode(gist.toMap())).then((HttpRequest request) {
+        sendData: gist.toJson()).then((HttpRequest request) {
       return new Gist.fromMap(JSON.decode(request.responseText));
     });
   }
@@ -108,9 +127,11 @@ class Gist {
     if (public != null) m['public'] = public;
     m['files'] = {};
     for (GistFile file in files) {
-      m['files'][file.name] = {
-        'content': file.content
-      };
+      if (file.hasContent) {
+        m['files'][file.name] = {
+          'content': file.content
+        };
+      }
     }
     return m;
   }
@@ -130,24 +151,7 @@ class GistFile {
     content = data['content'];
   }
 
-  String toString() => name;
-}
+  bool get hasContent => content != null && content.trim().isNotEmpty;
 
-/**
- * Find the best match for the given file names in the gist file info; return
- * the file (or `null` if no match is found).
- */
-GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
-  List<GistFile> files = gist.files;
-
-  for (String name in names) {
-    GistFile file = files.firstWhere((f) => f.name == name, orElse: () => null);
-    if (file != null) return file;
-  }
-
-  if (matcher != null) {
-    return files.firstWhere((f) => matcher(f.name), orElse: () => null);
-  } else {
-    return null;
-  }
+  String toString() => '[${name}, ${content.length} chars]';
 }

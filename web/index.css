@@ -57,14 +57,17 @@ header {
 }
 
 .header-gist-id {
-  text-overflow: ellipsis;
   overflow-x: hidden;
   max-width: 100px;
   text-transform: uppercase;
 }
 
-#newbutton {
+#sharebutton {
   margin-left: 10px;
+}
+
+#reloadbutton {
+  margin-right: 10px;
 }
 
 section {
