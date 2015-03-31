@@ -200,15 +200,18 @@ class Playground {
       _handleHelp();
     });
     document.onKeyUp.listen((e) {
-      if (options.getValueBool('autopopup_code_completion')) {
+      if (cursorKeys.contains(e.keyCode)) _handleHelp();
+
+      // If we're already in completion bail.
+      if (_isCompletionActive) return;
+
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.execCommand("autocomplete");
+      } else if (options.getValueBool('autopopup_code_completion')) {
         RegExp exp = new RegExp(r"[A-Z]");
-        if (!_isCompletionActive && exp.hasMatch(
-            new String.fromCharCode(e.keyCode)) || e.keyCode == KeyCode.PERIOD) {
+        if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
           editor.execCommand("autocomplete");
         }
-      }
-      if (_isCompletionActive || cursorKeys.contains(e.keyCode)) {
-        _handleHelp();
       }
     });
     document.onClick.listen((e) => _handleHelp());
