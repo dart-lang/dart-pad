@@ -193,12 +193,19 @@ class Playground {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    keys.bind('ctrl-s', _handleSave);
-    keys.bind('ctrl-enter', _handleRun);
-    keys.bind('f1', () {
+    keys.bind(['ctrl-s'], _handleSave);
+    keys.bind(['ctrl-enter'], _handleRun);
+    keys.bind(['f1'], () {
       _toggleDocTab();
       _handleHelp();
     });
+
+    keys.bind(['crtl-space', 'macctrl-space'], (){
+      editor.completionAutoInvoked = false;
+      editor.execCommand('autocomplete');
+      new Timer(const Duration(milliseconds: 500), _handleHelp);
+    });
+
     document.onKeyUp.listen((e) {
       if (_isCompletionActive || cursorKeys.contains(e.keyCode)) _handleHelp();
 
@@ -207,11 +214,13 @@ class Playground {
 
       if (e.keyCode == KeyCode.PERIOD) {
         editor.execCommand("autocomplete");
+        new Timer(const Duration(milliseconds: 500), _handleHelp);
       } else if (options.getValueBool('autopopup_code_completion')) {
         RegExp exp = new RegExp(r"[A-Z]");
         if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
           editor.completionAutoInvoked = true;
           editor.execCommand("autocomplete");
+          new Timer(const Duration(milliseconds: 500), _handleHelp);
         }
       }
     });
