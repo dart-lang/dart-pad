@@ -12,6 +12,7 @@ import 'dart:convert';
 import 'package:logging/logging.dart';
 import 'package:markd/markdown.dart' as markdown;
 import 'package:route_hierarchical/client.dart';
+import 'package:dart_pad/core/keys.dart';
 
 import 'completion.dart';
 import 'context.dart';
@@ -209,20 +210,7 @@ class Playground {
     document.onKeyUp.listen((e) {
       if (_isCompletionActive || cursorKeys.contains(e.keyCode)) _handleHelp();
 
-      // If we're already in completion bail.
-      if (_isCompletionActive) return;
-
-      if (e.keyCode == KeyCode.PERIOD) {
-        editor.execCommand("autocomplete");
-        new Timer(const Duration(milliseconds: 500), _handleHelp);
-      } else if (options.getValueBool('autopopup_code_completion')) {
-        RegExp exp = new RegExp(r"[A-Z]");
-        if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-          editor.completionAutoInvoked = true;
-          editor.execCommand("autocomplete");
-          new Timer(const Duration(milliseconds: 500), _handleHelp);
-        }
-      }
+      _handleAutoCompletion(e);
     });
     document.onClick.listen((e) => _handleHelp());
 
@@ -304,6 +292,46 @@ class Playground {
 
     _outputpanel.style.display = "block";
     querySelector("#consoletab").setAttribute('selected','');
+  }
+
+
+  _handleAutoCompletion(KeyboardEvent e) {
+    // If we're already in completion bail.
+    if (_isCompletionActive) return;
+
+    if (context.focusedEditor == 'dart') {
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.completionAutoInvoked = true;
+        editor.execCommand("autocomplete");
+        new Timer(const Duration(milliseconds: 500), _handleHelp);
+      }
+    }
+    if (!options.getValueBool('autopopup_code_completion')) {
+      return;
+    }
+
+    if (context.focusedEditor == 'dart') {
+      RegExp exp = new RegExp(r"[A-Z]");
+        if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+          editor.completionAutoInvoked = true;
+          editor.execCommand("autocomplete");
+          new Timer(const Duration(milliseconds: 500), _handleHelp);
+        }
+    } else if (context.focusedEditor == "html") {
+      if (options.getValueBool('autopopup_code_completion')) {
+        // TODO: autocompletion for attirbutes
+        if (printKeyEvent(e) == "shift-,") {
+          editor.completionAutoInvoked = true;
+          editor.execCommand("autocomplete");
+        }
+      }
+    } else if (context.focusedEditor == "css") {
+      RegExp exp = new RegExp(r"[A-Z]");
+      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        editor.completionAutoInvoked = true;
+        editor.execCommand("autocomplete");
+      }
+    }
   }
 
   void _handleRun() {
