@@ -16,7 +16,6 @@ import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
 import 'src/common_server.dart';
 
-import 'src/completer_driver.dart' as completer;
 import 'src/sharded_counter.dart' as counter;
 
 const String _API = '/api';
@@ -31,7 +30,6 @@ void main(List<String> args) {
   }
 
   GaeServer server = new GaeServer(sdkDir.path);
-  completer.setup();
 
   // Change the log level to get more or less detailed logging.
   ae.useLoggingPackageAdaptor();

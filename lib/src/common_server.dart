@@ -5,7 +5,6 @@
 library services.common_server;
 
 import 'dart:async';
-import 'dart:convert' show JSON;
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -13,8 +12,7 @@ import 'package:rpc/rpc.dart';
 
 import 'analyzer.dart';
 import 'compiler.dart';
-
-import 'completer_driver.dart' as completer_driver;
+import 'analysis_server.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
 final Logger _logger = new Logger('common_server');
@@ -61,37 +59,6 @@ class CounterResponse {
   CounterResponse(this.count);
 }
 
-class CompleteResponse {
-  @ApiProperty(description: 'The offset of the start of the text to be replaced.')
-  final int replacementOffset;
-
-  @ApiProperty(description: 'The length of the text to be replaced.')
-  final int replacementLength;
-
-  final List<Map<String, String>> completions;
-
-  CompleteResponse(this.replacementOffset, this.replacementLength,
-      List<Map> completions) :
-    this.completions = _convert(completions);
-
-  /**
-   * Convert any non-string values from the contained maps.
-   */
-  static List<Map<String, String>> _convert(List<Map> list) {
-    return list.map((m) {
-      Map newMap = {};
-      for (String key in m.keys) {
-        var data = m[key];
-        // TODO: Properly support Lists, Maps (this is a hack).
-        if (data is Map || data is List) {
-          data = JSON.encode(data);
-        }
-        newMap[key] = '${data}';
-      }
-      return newMap;
-    }).toList();
-  }
-}
 
 class DocumentResponse {
   final Map<String, String> info;
@@ -107,6 +74,7 @@ class CommonServer {
 
   Analyzer analyzer;
   Compiler compiler;
+  AnalysisServerWrapper analysisServer;
 
   CommonServer(String sdkPath,
       this.cache,
@@ -116,8 +84,7 @@ class CommonServer {
     _logger.level = Level.ALL;
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath);
-    // TODO(lukechurch): Migrate this to a Completer
-    completer_driver.SDK = sdkPath;
+    analysisServer = new AnalysisServerWrapper(sdkPath);
   }
 
   @ApiMethod(method: 'GET', path: 'counter')
@@ -279,15 +246,7 @@ class CommonServer {
   Future<CompleteResponse> _complete(String source, int offset) async {
     srcRequestRecorder.record("COMPLETE", source, offset);
     counter.increment("Completions");
-    return completer_driver.ensureSetup().then((_) {
-      return completer_driver.completeSyncy(source, offset).then((Map response) {
-        List<Map> results = response['results'];
-        results.sort((x, y) => -1 * x['relevance'].compareTo(y['relevance']));
-        return new CompleteResponse(
-            response['replacementOffset'], response['replacementLength'],
-            results);
-      });
-    });
+    return analysisServer.complete(source, offset);
   }
 
   Future<String> checkCache(String query) => cache.get(query);

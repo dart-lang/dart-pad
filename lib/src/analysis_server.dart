@@ -1,182 +1,151 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.completer_driver;
+/// A wrapper around an analysis server instance
+library services.analysis_server;
 
 import 'dart:io' as io;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'package:logging/logging.dart';
+import 'package:rpc/rpc.dart';
 
 import 'package:analysis_server/src/protocol.dart';
-
-final Logger _logger = new Logger('completer_driver');
-
-io.Directory sourceDirectory = io.Directory.systemTemp.createTempSync('analysisServer');
-
-// GAE configurations
-// TODO(lukechurch): Migrate into a ctor
-String SDK = null;
-String SERVER_PATH = "bin/_analysis_server_entry.dart";
-
-Server server;
 
 /**
  * Type of callbacks used to process notifications.
  */
 typedef void NotificationProcessor(String event, params);
 
-Stream<bool> analysisComplete;
-StreamController<bool> _onServerStatus;
+final Logger _logger = new Logger('analysis_server');
 
-Stream<Map> completionResults;
-StreamController<Map> _onCompletionResults;
+final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
+final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
+final _SERVER_PATH = "bin/_analysis_server_entry.dart";
 
-io.File f = new io.File(sourceDirectory.path + io.Platform.pathSeparator + "main.dart");
-String path = f.path;
+class AnalysisServerWrapper {
+  final String sdkPath;
 
-String src0 = "main() { int b = 2;  b++;   b. }";
-String src1  = "main() { String a = 'test'; a. }";
-int i = 30;
-bool isSetup = false;
-bool isSettingUp = false;
+  /// Instance to handle communication with the server.
+  _Server serverConnection;
 
-Future ensureSetup() async {
-  _logger.fine("ensureSetup: SETUP $isSetup IS_SETTING_UP $isSettingUp");
-  if (!isSetup && !isSettingUp) {
-    return setup();
-  }
-  return new Future.value();
-}
-
-Future setup() async {
-  _logger.fine("Setup starting");
-  isSettingUp = true;
-
-  server = new Server();
-
-  _onServerStatus = new StreamController<bool>(sync: true);
-  analysisComplete = _onServerStatus.stream.asBroadcastStream();
-
-  _onCompletionResults = new StreamController(sync: true);
-  completionResults = _onCompletionResults.stream.asBroadcastStream();
-
-  _logger.fine("Server about to start");
-
-  // Warm up target.
-  await server.start();
-  _logger.fine("Setver started");
-
-  server.listenToOutput(dispatchNotification);
-  server.sendServerSetSubscriptions([ServerService.STATUS]);
-
-  _logger.fine("Server Set Subscriptions completed");
-
-  f.writeAsStringSync("", flush: true);
-
-  await sendAddOverlay(path, src0);
-  sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
-  server.sendPrioritySetSources([path]);
-  isSettingUp = false;
-  isSetup = true;
-
-  _logger.fine("Setup done");
-
-  return analysisComplete.first;
-
-}
-
-Future<Map> _complete(String src, int offset) async {
-  await sendAddOverlay(path, src);
-  await analysisComplete.first;
-  await sendCompletionGetSuggestions(path, offset);
-
-  return completionResults.handleError(
-      (error) => throw "Completion failed").first;
-}
-
-Future<Map> completeSyncy(String src, int offset) async =>
-    _complete(src, offset);
-
-dispatchNotification(String event, params) async {
-  if (event == "server.error") {
-    // Something has gone wrong with the analysis server. This request is going
-    // to fail, but we need to restart the server to be able to process
-    // another request
-    isSetup = false;
-    isSettingUp = false;
-
-    await server.kill();
-    _onCompletionResults.addError(null);
-    _logger.severe("Analysis server has crashed. $event");
-    return;
+  AnalysisServerWrapper(this.sdkPath) {
+    serverConnection = new _Server(this.sdkPath);
   }
 
-  if (event == "server.status" && params.containsKey('analysis') &&
-      !params['analysis']['isAnalyzing']) {
-    _onServerStatus.add(true);
+  Future<CompleteResponse> complete(String src, int offset) async {
+    Future<Map> results = _completeImpl(src, offset);
+
+    // Post process the result from Analysis Server.
+    return results.then((Map response) {
+      List<Map> results = response['results'];
+      results.sort((x, y) => -1 * x['relevance'].compareTo(y['relevance']));
+      return new CompleteResponse(
+          response['replacementOffset'], response['replacementLength'],
+          results);
+    });
   }
 
-  // Ignore all but the last completion result. This means that we get a
-  // precise map of the completion results, rather than a partial list.
-  if (event == "completion.results" && params["isLast"]) {
-    _onCompletionResults.add(params);
+  /// Cleanly shutdown the Analysis Server.
+  Future shutdown() => serverConnection.sendServerShutdown();
+
+  /// Internal implementation of the completion mechanism.
+  Future<Map> _completeImpl(String src, int offset) async {
+    await serverConnection._ensureSetup();
+
+    serverConnection.sendAddOverlay(src);
+    await serverConnection.analysisComplete.first;
+    await serverConnection.sendCompletionGetSuggestions(offset);
+
+    return serverConnection.completionResults.handleError(
+        (error) => throw "Completion failed").first;
   }
-}
 
-Future<ServerGetVersionResult> sendServerGetVersion() {
-  return server.send("server.getVersion", null).then((result) {
-    ResponseDecoder decoder = new ResponseDecoder(null);
-    return new ServerGetVersionResult.fromJson(decoder, 'result', result);
-  });
-}
-
-Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
-    String file, int offset) {
-  var params = new CompletionGetSuggestionsParams(file, offset).toJson();
-  return server.send("completion.getSuggestions", params).then((result) {
-    ResponseDecoder decoder = new ResponseDecoder(null);
-    return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
-  });
-}
-
-Future<AnalysisUpdateContentResult> sendAddOverlay(
-    String file, String contents) {
-  //_logger.fine("sendAddOverlay: $file $contents");
-
-  var overlay = new AddContentOverlay(contents);
-  var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
-
-  _logger.fine("About to send analysis.updateContent");
-
-  return server.send("analysis.updateContent", params).then((result) {
-    _logger.fine("analysis.updateContent -> then");
-
-    ResponseDecoder decoder = new ResponseDecoder(null);
-    return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
-  });
-}
-
-Future sendServerShutdown() {
-  return server.send("server.shutdown", null).then((result) {
-    return null;
-  });
-}
-
-Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded,
-    {Map<String, String> packageRoots}) {
-  var params = new AnalysisSetAnalysisRootsParams(
-      included, excluded, packageRoots: packageRoots).toJson();
-  return server.send("analysis.setAnalysisRoots", params);
+  /// Warm up the analysis server to be ready for use.
+  Future warmup([bool useHtml = false]) =>
+      _completeImpl(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
 }
 
 /**
- * Instances of the class [Server] manage a connection to a server process, and
+ * Instances of the class [_Server] manage a connection to a server process, and
  * facilitate communication to and from the server.
  */
-class Server {
+class _Server {
+
+  final String _SDKPath;
+
+  /// An imaginary backing store file that will be used as a name
+  /// to communicate with the analysis server. This can be removed when
+  /// when the upgrade to 1.10 lands
+  io.File psudeoFile;
+
+  // TODO(lukechurch): Refactor this so that it can handle multiple files
+  var psuedoFilePath;
+  io.Directory sourceDirectory;
+
+  /// Control flags to handle the server state machine
+  bool isSetup = false;
+  bool isSettingUp = false;
+
+  // TODO(lukechurch): Replace this with a notice baord + dispatcher pattern
+  /// Streams used to handle syncing data with the server
+  Stream<bool> analysisComplete;
+  StreamController<bool> _onServerStatus;
+
+  Stream<Map> completionResults;
+  StreamController<Map> _onCompletionResults;
+
+  _Server(this._SDKPath) {
+    _onServerStatus = new StreamController<bool>(sync: true);
+    analysisComplete = _onServerStatus.stream.asBroadcastStream();
+
+    _onCompletionResults = new StreamController(sync: true);
+    completionResults = _onCompletionResults.stream.asBroadcastStream();
+
+    sourceDirectory = io.Directory.systemTemp.createTempSync('analysisServer');
+    psudeoFile = new io.File(
+        sourceDirectory.path + io.Platform.pathSeparator + "main.dart");
+    psuedoFilePath = psudeoFile.path;
+  }
+
+  /// Ensure that the server is ready for use.
+  Future _ensureSetup() async {
+    _logger.fine("ensureSetup: SETUP $isSetup IS_SETTING_UP $isSettingUp");
+    if (!isSetup && !isSettingUp) {
+      return _setup();
+    }
+    return new Future.value();
+  }
+
+  Future _setup() async {
+    _logger.fine("Setup starting");
+    isSettingUp = true;
+
+    _logger.fine("Server about to start");
+
+    await start();
+    _logger.fine("Setver started");
+
+    listenToOutput(dispatchNotification);
+    sendServerSetSubscriptions([ServerService.STATUS]);
+
+    _logger.fine("Server Set Subscriptions completed");
+
+    psudeoFile.writeAsStringSync("", flush: true);
+
+    await sendAddOverlay(_WARMUP_SRC);
+    sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
+    sendPrioritySetSources([psuedoFilePath]);
+    isSettingUp = false;
+    isSetup = true;
+
+    _logger.fine("Setup done");
+
+    return analysisComplete.first;
+  }
+
   /**
    * Server process object, or null if server hasn't been started yet.
    */
@@ -206,12 +175,6 @@ class Server {
    * True if we are currently printing out messages exchanged with the server.
    */
   bool _debuggingStdio = false;
-
-  /**
-   * True if we've received bad data from the server, and we are aborting the
-   * test.
-   */
-  bool _receivedBadDataFromServer = false;
 
   /**
    * Stopwatch that we use to generate timing information for debug output.
@@ -269,7 +232,7 @@ class Server {
       try {
         message = JSON.decoder.convert(trimmedLine);
       } catch (exception) {
-        _badDataFromServer();
+        _logger.severe("Bad data from server");
         return;
       }
       Map messageAsMap = message;
@@ -309,7 +272,6 @@ class Server {
         (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
       String trimmedLine = line.trim();
       _recordStdio('ERR:  $trimmedLine');
-      _badDataFromServer();
     });
   }
 
@@ -376,11 +338,6 @@ class Server {
 
     List<String> arguments = [];
 
-    //arguments.add ('--port=8181');
-    //arguments.add ("8181");
-
-    //arguments.add('--enable-vm-service=8183');
-    //arguments.add('--profile');
     if (debugServer) {
       arguments.add('--debug');
     }
@@ -392,13 +349,10 @@ class Server {
       arguments.add('--package-root=${io.Platform.packageRoot}');
     }
 
-    arguments.add(SERVER_PATH);
-
-    //arguments.add ('--port');
-    //arguments.add ("8182");
+    arguments.add(_SERVER_PATH);
 
     arguments.add('--sdk');
-    arguments.add(SDK);
+    arguments.add(_SDKPath);
 
     _logger.fine("Binary: $dartBinary");
     _logger.fine("Arguments: $arguments");
@@ -410,43 +364,94 @@ class Server {
       process.exitCode.then((int code) {
         _recordStdio('TERMINATED WITH EXIT CODE $code');
 
-        if (code != 0) {
-          _badDataFromServer();
-        }
       });
     });
   }
 
   Future sendServerSetSubscriptions(List<ServerService> subscriptions) {
     var params = new ServerSetSubscriptionsParams(subscriptions).toJson();
-    return server.send("server.setSubscriptions", params);
+    return send("server.setSubscriptions", params);
   }
 
   Future sendPrioritySetSources(List<String> paths) {
     var params = new AnalysisSetPriorityFilesParams(paths).toJson();
-    return server.send("analysis.setPriorityFiles", params);
+    return send("analysis.setPriorityFiles", params);
   }
 
-  /**
-   * Deal with bad data received from the server.
-   */
-  void _badDataFromServer() {
-    if (_receivedBadDataFromServer) {
-      // We're already dealing with it.
+  Future<ServerGetVersionResult> sendServerGetVersion() {
+      return send("server.getVersion", null).then((result) {
+        ResponseDecoder decoder = new ResponseDecoder(null);
+        return new ServerGetVersionResult.fromJson(decoder, 'result', result);
+      });
+    }
+
+    Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
+        int offset) {
+
+      // TODO(lukechurch): Refactor to allow multiple files
+      String file = psuedoFilePath;
+
+      var params = new CompletionGetSuggestionsParams(file, offset).toJson();
+      return send("completion.getSuggestions", params).then((result) {
+        ResponseDecoder decoder = new ResponseDecoder(null);
+        return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
+      });
+    }
+
+
+    Future<AnalysisUpdateContentResult> sendAddOverlay(String contents) {
+
+      // TODO(lukechurch): Refactor to allow multiple files
+      String file = psuedoFilePath;
+
+      var overlay = new AddContentOverlay(contents);
+      var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
+      _logger.fine("About to send analysis.updateContent");
+      return send("analysis.updateContent", params).then((result) {
+        _logger.fine("analysis.updateContent -> then");
+
+        ResponseDecoder decoder = new ResponseDecoder(null);
+        return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
+      });
+    }
+
+    Future sendServerShutdown() {
+      return send("server.shutdown", null).then((result) {
+        return null;
+      });
+    }
+
+    Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded,
+        {Map<String, String> packageRoots}) {
+      var params = new AnalysisSetAnalysisRootsParams(
+          included, excluded, packageRoots: packageRoots).toJson();
+      return send("analysis.setAnalysisRoots", params);
+    }
+
+    dispatchNotification(String event, params) async {
+    if (event == "server.error") {
+      // Something has gone wrong with the analysis server. This request is going
+      // to fail, but we need to restart the server to be able to process
+      // another request
+      isSetup = false;
+      isSettingUp = false;
+
+      await kill();
+      _onCompletionResults.addError(null);
+      _logger.severe("Analysis server has crashed. $event");
       return;
     }
-    _receivedBadDataFromServer = true;
-    debugStdio();
-    // Give the server 1 second to continue outputting bad data before we kill
-    // the test.  This is helpful if the server has had an unhandled exception
-    // and is outputting a stacktrace, because it ensures that we see the
-    // entire stacktrace.  Use expectAsync() to prevent the test from
-    // ending during this 1 second.
 
-    /*new Future.delayed(new Duration(seconds: 1), expectAsync(() {
-      fail('Bad data received from server');
-    }));
-  */
+    if (event == "server.status" && params.containsKey('analysis') &&
+        !params['analysis']['isAnalyzing']) {
+      _onServerStatus.add(true);
+    }
+
+    // Ignore all but the last completion result. This means that we get a
+    // precise map of the completion results, rather than a partial list.
+    if (event == "completion.results" && params["isLast"]) {
+      _onCompletionResults.add(params);
+    }
   }
 
   /**
@@ -465,3 +470,34 @@ class Server {
   }
 }
 
+class CompleteResponse {
+  @ApiProperty(description: 'The offset of the start of the text to be replaced.')
+  final int replacementOffset;
+
+  @ApiProperty(description: 'The length of the text to be replaced.')
+  final int replacementLength;
+
+  final List<Map<String, String>> completions;
+
+  CompleteResponse(this.replacementOffset, this.replacementLength,
+      List<Map> completions) :
+    this.completions = _convert(completions);
+
+  /**
+   * Convert any non-string values from the contained maps.
+   */
+  static List<Map<String, String>> _convert(List<Map> list) {
+    return list.map((m) {
+      Map newMap = {};
+      for (String key in m.keys) {
+        var data = m[key];
+        // TODO: Properly support Lists, Maps (this is a hack).
+        if (data is Map || data is List) {
+          data = JSON.encode(data);
+        }
+        newMap[key] = '${data}';
+      }
+      return newMap;
+    }).toList();
+  }
+}

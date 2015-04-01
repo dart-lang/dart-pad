@@ -22,6 +22,9 @@ abstract class Benchmark {
 
   Future perform();
 
+  /// Called once when this benchmark will no longer be used.
+  Future tearDown() => new Future.value();
+
   String toString() => name;
 }
 
@@ -62,6 +65,8 @@ class BenchmarkHarness {
     }).then((BenchMarkResult result) {
       logResult(result);
       return result;
+    }).whenComplete(() {
+      return benchmark.tearDown().catchError((e) => null);
     });
   }
 
