@@ -5,10 +5,10 @@
 library services.analyzer_server_test;
 
 import 'package:services/src/analysis_server.dart';
-import 'package:grinder/grinder.dart' as grinder;
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:unittest/unittest.dart';
 
-String sdkPath = grinder.getSdkDir().path;
+String sdkPath = cli_util.getSdkDir([]).path;
 
 String completionCode = r'''
 void main() {
@@ -45,4 +45,3 @@ void defineTests() {
 
 bool completionsContains(CompleteResponse response, String completion) =>
     response.completions.any((map) => map["completion"] == completion);
-

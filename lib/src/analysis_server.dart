@@ -10,7 +10,6 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'package:logging/logging.dart';
-import 'dart:convert' show JSON;
 import 'package:rpc/rpc.dart';
 
 import 'package:analysis_server/src/protocol.dart';
@@ -50,7 +49,7 @@ class AnalysisServerWrapper {
   }
 
   /// Cleanly shutdown the Analysis Server.
-  Future shutdown() async => serverConnection.sendServerShutdown();
+  Future shutdown() => serverConnection.sendServerShutdown();
 
   /// Internal implementation of the completion mechanism.
   Future<Map> _completeImpl(String src, int offset) async {

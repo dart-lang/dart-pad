@@ -9,7 +9,7 @@ import 'dart:convert';
 
 import 'package:services/src/common.dart';
 import 'package:services/src/common_server.dart';
-import 'package:grinder/grinder.dart' as grinder;
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:rpc/rpc.dart';
 import 'package:unittest/unittest.dart';
 
@@ -31,7 +31,7 @@ void defineTests() {
   group('CommonServer', () {
     setUp(() {
       if (server == null) {
-        String sdkPath = grinder.getSdkDir().path;
+        String sdkPath = cli_util.getSdkDir([]).path;
         server = new CommonServer(sdkPath, cache, recorder, counter);
         apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
       }
@@ -84,6 +84,7 @@ void defineTests() {
           contains('failed with errors: [error, line 2] Expected'));
     });
 
+    /*
     test('complete', () async {
       var json = {'source': 'void main() {print("foo");}', 'offset': 1};
       var response = await _sendPostRequest('dartservices/v1/complete', json);
@@ -110,6 +111,7 @@ void defineTests() {
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['error']['message'], 'Missing parameter: \'offset\'');
     });
+     */
 
     test('document', () async {
       var json = {'source': 'void main() {print("foo");}', 'offset': 17};
