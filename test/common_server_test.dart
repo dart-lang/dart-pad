@@ -84,7 +84,6 @@ void defineTests() {
           contains('failed with errors: [error, line 2] Expected'));
     });
 
-    /*
     test('complete', () async {
       var json = {'source': 'void main() {print("foo");}', 'offset': 1};
       var response = await _sendPostRequest('dartservices/v1/complete', json);
@@ -111,7 +110,6 @@ void defineTests() {
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['error']['message'], 'Missing parameter: \'offset\'');
     });
-     */
 
     test('document', () async {
       var json = {'source': 'void main() {print("foo");}', 'offset': 17};
