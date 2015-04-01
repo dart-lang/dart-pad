@@ -24,7 +24,7 @@ class Keys {
   /**
    * Bind a list of keys to an action.
    * The key is a string, with a specific format.
-   * Here are some examples of this format:
+   * Some examples of this format:
    * `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
    */
   void bind(List<String> keys, Function action) {
