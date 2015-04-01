@@ -210,6 +210,7 @@ class Playground {
       } else if (options.getValueBool('autopopup_code_completion')) {
         RegExp exp = new RegExp(r"[A-Z]");
         if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+          editor.completionAutoInvoked = true;
           editor.execCommand("autocomplete");
         }
       }
