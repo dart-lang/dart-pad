@@ -46,6 +46,8 @@ abstract class Editor {
    */
   bool get completionActive;
 
+  bool completionAutoInvoked;
+
   String get mode;
   set mode(String str);
 

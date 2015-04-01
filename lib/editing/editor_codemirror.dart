@@ -68,7 +68,12 @@ class CodeMirrorFactory extends EditorFactory {
         'cursorHeight': 0.85,
         //'gutters': [_gutterId],
         'extraKeys': {
-          'Ctrl-Space': 'autocomplete',
+          'Ctrl-Space': (jsEditor) {
+            // TODO: maybe move this to playground ?
+            CodeMirror editor = new CodeMirror.fromJsObject(jsEditor);
+            editor.jsProxy['state']['completionAutoInvoked'] = false;
+            editor.execCommand('autocomplete');
+          },
           'Cmd-/': 'toggleComment',
           'Ctrl-/': 'toggleComment'
         },
@@ -122,7 +127,11 @@ class CodeMirrorFactory extends EditorFactory {
       String stringToReplace = doc.getValue().substring(
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
-      if (hints.isEmpty && ed.completionActive) {
+      // Only show 'no suggestions' if the completion was explicitly invoked
+      // or if the popup was already active.
+      if (hints.isEmpty
+            && (ed.completionActive
+                  || (!ed.completionActive && !ed.completionAutoInvoked))) {
         hints = [
           new HintResult(stringToReplace,
               displayText: "No suggestions", className: "type-no_suggestions")
@@ -164,6 +173,11 @@ class _CodeMirrorEditor extends Editor {
       return cm.jsProxy['state']['completionActive']['widget'] != null;
     }
   }
+
+  bool get completionAutoInvoked
+      => cm.jsProxy['state']['completionAutoInvoked'];
+  set completionAutoInvoked(bool value)
+      => cm.jsProxy['state']['completionAutoInvoked'] = value;
 
   String get mode => cm.getMode();
   set mode(String str) => cm.setMode(str);
