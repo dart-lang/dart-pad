@@ -185,6 +185,8 @@ class _CodeMirrorEditor extends Editor {
   String get theme => cm.getTheme();
   set theme(String str) => cm.setTheme(str);
 
+  bool get hasFocus => cm.jsProxy['state']['focused'];
+
   void focus() => cm.focus();
   void resize() => cm.refresh();
 

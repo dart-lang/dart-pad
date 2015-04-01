@@ -158,7 +158,6 @@ class _CodeMirrorEditor extends Editor {
   // TODO: Implement completionActive for comid.
   bool get completionActive => false;
 
-
   // TODO: Implement completionActivelyInvoked for comid.
   bool get completionAutoInvoked => false;
   set completionAutoInvoked(bool value) { }
@@ -168,6 +167,8 @@ class _CodeMirrorEditor extends Editor {
 
   String get theme => cm.getOption('theme');
   set theme(String str) => cm.setOption('theme', str);
+
+  bool get hasFocus => cm.state.focused;
 
   void focus() => cm.focus();
   void resize() => cm.refresh();
