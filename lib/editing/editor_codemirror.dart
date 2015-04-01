@@ -103,8 +103,6 @@ class CodeMirrorFactory extends EditorFactory {
       String stringToReplace = doc.getValue().substring(
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
-
-
       List<HintResult> hints = result.completions.map((Completion completion) {
         return new HintResult(
             completion.value,
