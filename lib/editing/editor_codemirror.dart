@@ -124,7 +124,9 @@ class CodeMirrorFactory extends EditorFactory {
               }
             },
             hintRenderer: (html.Element element, HintResult hint) {
-              element.innerHtml = completion.displayString.replaceFirst(stringToReplace,"<em>${stringToReplace}</em>");
+              element.innerHtml = completion.displayString.replaceFirst(
+                  stringToReplace,"<em>${stringToReplace}</em>"
+              );
             }
         );
       }).toList();
