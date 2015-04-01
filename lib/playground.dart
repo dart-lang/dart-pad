@@ -404,7 +404,8 @@ class Playground {
           _docPanel.setInnerHtml("<p>No documentation found.</p>");
         } else {
           final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
-            ..allowElement('a', attributes: ['href']);
+            ..allowElement('a', attributes: ['href'])
+            ..allowElement('img', attributes: ['src']);
           _docPanel.setInnerHtml(markdown.markdownToHtml(
 '''
 # `${result.info['description']}`\n\n
