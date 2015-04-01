@@ -172,10 +172,10 @@ li.CodeMirror-hint-active {
   background: radial-gradient(#fff, #eee);
 }
 
-/*Chrome specific styling hack*/
+/*Chrome specific styling hack, see #236*/
 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
   #documentation h1::before, .CodeMirror-hint::before {
-    line-height: 16px;
+    line-height: 16px;  /*for vertical centering */
   }
   .type-field::before,
   .type-function_type_alias::before,
