@@ -59,6 +59,11 @@
   padding-right: 10px;
 }
 
+.CodeMirror-hint em {
+  font-style: normal;
+  font-weight: bold;
+}
+
 li.CodeMirror-hint-active {
   background: #545454;
 }

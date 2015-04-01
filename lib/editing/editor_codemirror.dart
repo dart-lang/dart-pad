@@ -68,12 +68,6 @@ class CodeMirrorFactory extends EditorFactory {
         'cursorHeight': 0.85,
         //'gutters': [_gutterId],
         'extraKeys': {
-          'Ctrl-Space': (jsEditor) {
-            // TODO: maybe move this to playground ?
-            CodeMirror editor = new CodeMirror.fromJsObject(jsEditor);
-            editor.jsProxy['state']['completionAutoInvoked'] = false;
-            editor.execCommand('autocomplete');
-          },
           'Cmd-/': 'toggleComment',
           'Ctrl-/': 'toggleComment'
         },
@@ -103,6 +97,11 @@ class CodeMirrorFactory extends EditorFactory {
 
     return completer.complete(ed).then((CompletionResult result) {
       Doc doc = editor.getDoc();
+      pos.Position from =  doc.posFromIndex(result.replaceOffset);
+      pos.Position to = doc.posFromIndex(
+          result.replaceOffset + result.replaceLength);
+      String stringToReplace = doc.getValue().substring(
+          result.replaceOffset, result.replaceOffset + result.replaceLength);
 
       List<HintResult> hints = result.completions.map((Completion completion) {
         return new HintResult(
@@ -117,15 +116,12 @@ class CodeMirrorFactory extends EditorFactory {
                 doc.setCursor(new pos.Position(
                     editor.getCursor().line, editor.getCursor().ch - diff));
               }
+            },
+            hintRenderer: (html.Element element, HintResult hint) {
+              element.innerHtml = completion.displayString.replaceFirst(stringToReplace,"<em>${stringToReplace}</em>");
             }
         );
       }).toList();
-
-      pos.Position from =  doc.posFromIndex(result.replaceOffset);
-      pos.Position to = doc.posFromIndex(
-          result.replaceOffset + result.replaceLength);
-      String stringToReplace = doc.getValue().substring(
-          result.replaceOffset, result.replaceOffset + result.replaceLength);
 
       // Only show 'no suggestions' if the completion was explicitly invoked
       // or if the popup was already active.
