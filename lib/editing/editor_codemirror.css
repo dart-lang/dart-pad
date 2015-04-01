@@ -79,18 +79,23 @@ li.CodeMirror-hint-active {
 
 /* Selectors for the code completion UI. */
 
-.CodeMirror-hint::before {
+#documentation h1::before, .CodeMirror-hint::before {
   color: #333;
   font-weight: bold;
+  font-family: "Courier", monospace;
   box-sizing: border-box;
   line-height: 14px;
   width: 15px;
   height: 15px;
+  vertical-align: middle;
   font-size: 12px;
   display: inline-block;
   text-align: center;
-  margin-right: 5px;
+  margin: 0 5px 2px 0;
   border-radius: 50%;
+}
+
+.CodeMirror-hint::before {
   content: " ";
 }
 
