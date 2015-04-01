@@ -169,7 +169,19 @@ li.CodeMirror-hint-active {
 
 .type-no_suggestions::before {
   content: "?";
-  line-height: 14px; /*for vertical centering */
   background: radial-gradient(#fff, #eee);
-  vertical-align: text-bottom;
 }
+
+/*Chrome specific styling hack*/
+@media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
+  #documentation h1::before, .CodeMirror-hint::before {
+    line-height: 16px;
+  }
+  .type-field::before,
+  .type-function_type_alias::before,
+  .type-function::before,
+  .type-class::before {
+    line-height: 18px; /*for vertical centering */
+  }
+}
+
