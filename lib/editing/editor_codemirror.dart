@@ -127,6 +127,8 @@ class CodeMirrorFactory extends EditorFactory {
       String stringToReplace = doc.getValue().substring(
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
+      // Only show 'no suggestions' if the completion was explicitly invoked
+      // or if the popup was already active.
       if (hints.isEmpty
             && (ed.completionActive
                   || (!ed.completionActive && !ed.completionAutoInvoked))) {

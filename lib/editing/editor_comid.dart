@@ -161,7 +161,7 @@ class _CodeMirrorEditor extends Editor {
 
   // TODO: Implement completionActivelyInvoked for comid.
   bool get completionAutoInvoked => false;
-  set completionAutoInvoked(bool value) => false;
+  set completionAutoInvoked(bool value) { }
 
   String get mode => cm.doc.getMode().name;
   set mode(String str) => cm.setOption('mode', str);
