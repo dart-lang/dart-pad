@@ -203,18 +203,19 @@ class Playground {
     });
 
     document.onKeyUp.listen((e) {
-      if (options.getValueBool('autopopup_code_completion')) {
-        RegExp exp = new RegExp(r"[a-zA-Z]");
-        // TODO: _isCompletionActive won't work correct
-        // TODO: which causes some issues
-        // TODO: will be fixed when we use the latest codemirror.js version
-        if (!_isCompletionActive && exp.hasMatch(
-            new String.fromCharCode(e.keyCode)) || e.keyCode == KeyCode.PERIOD) {
+      if (_isCompletionActive || cursorKeys.contains(e.keyCode)) _handleHelp();
+
+      // If we're already in completion bail.
+      if (_isCompletionActive) return;
+
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.execCommand("autocomplete");
+      } else if (options.getValueBool('autopopup_code_completion')) {
+        RegExp exp = new RegExp(r"[A-Z]");
+        if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+          editor.completionAutoInvoked = true;
           editor.execCommand("autocomplete");
         }
-      }
-      if (_isCompletionActive || cursorKeys.contains(e.keyCode)) {
-        _handleHelp();
       }
     });
     document.onClick.listen((e) => _handleHelp());
@@ -375,7 +376,7 @@ class Playground {
   }
 
   void _handleHelp() {
-    if (context.focusedEditor == 'dart' && _isDocPanelOpen && editor.document.selection.isEmpty) {
+    if (context.focusedEditor == 'dart' && editor.hasFocus && _isDocPanelOpen && editor.document.selection.isEmpty) {
       ga.sendEvent('main', 'help');
 
       SourceRequest input;
@@ -411,7 +412,8 @@ class Playground {
           _docPanel.setInnerHtml("<p>No documentation found.</p>");
         } else {
           final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
-            ..allowElement('a', attributes: ['href']);
+            ..allowElement('a', attributes: ['href'])
+            ..allowElement('img', attributes: ['src']);
           _docPanel.setInnerHtml(markdown.markdownToHtml(
 '''
 # `${result.info['description']}`\n\n
@@ -420,6 +422,11 @@ ${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
 ${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
 ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName']}" : ""}\n\n
 ''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
+
+          _docPanel.querySelectorAll("a").forEach((AnchorElement a)
+              => a.target = "_blank");
+          _docPanel.querySelectorAll("h1").forEach((h)
+              => h.classes.add("type-${result.info["kind"].replaceAll(" ","_")}"));
         }
       });
     }

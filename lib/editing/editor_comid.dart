@@ -159,6 +159,10 @@ class _CodeMirrorEditor extends Editor {
   // TODO: Implement completionActive for comid.
   bool get completionActive => false;
 
+  // TODO: Implement completionActivelyInvoked for comid.
+  bool get completionAutoInvoked => false;
+  set completionAutoInvoked(bool value) { }
+
   String get mode => cm.doc.getMode().name;
   set mode(String str) => cm.setOption('mode', str);
 
@@ -168,10 +172,10 @@ class _CodeMirrorEditor extends Editor {
   // TODO: Add a cursorCoords getter for comid
   Point get cursorCoords => null;
 
+  bool get hasFocus => cm.state.focused;
+
   void focus() => cm.focus();
   void resize() => cm.refresh();
-
-  bool get hasFocus => cm.state.focused;
 
   void swapDocument(Document document) {
     _document = document;

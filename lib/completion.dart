@@ -36,8 +36,6 @@ class DartCompleter extends CodeCompleter {
       ..source = editor.document.value
       ..offset = offset;
 
-    //Stopwatch timer = new Stopwatch()..start();
-
     CancellableCompleter completer = new CancellableCompleter();
     _lastCompleter = completer;
 
@@ -47,9 +45,8 @@ class DartCompleter extends CodeCompleter {
       int replaceOffset = response.replacementOffset;
       int replaceLength = response.replacementLength;
 
-      //_logger.info('completion request in ${timer.elapsedMilliseconds}ms; '
-      //    '${response.completions.length} completions, '
-      //    'offset=${replaceOffset}, length=${replaceLength}');
+      String replacementString =  editor.document.value.substring(
+          replaceOffset, replaceOffset + replaceLength);
 
       List<AnalysisCompletion> analysisCompletions = response.completions.map(
           (completion) {
@@ -64,8 +61,6 @@ class DartCompleter extends CodeCompleter {
           displayString += ' → ${completion.returnType}';
         }
 
-        String replacementString =  editor.document.value.substring(
-            replaceOffset, replaceOffset + replaceLength);
         // Filter unmatching completions.
         // TODO: This is temporary; tracking issue here:
         // https://github.com/dart-lang/dart-services/issues/87.
@@ -81,8 +76,11 @@ class DartCompleter extends CodeCompleter {
           text += "()";
         }
 
+        String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
+
         if (completion.type == null) {
-          return new Completion(text, displayString: displayString);
+          return new Completion(text, displayString: displayString,
+              type: deprecatedClass);
         } else {
           int cursorPos = null;
 
@@ -91,13 +89,25 @@ class DartCompleter extends CodeCompleter {
           }
 
           return new Completion(text, displayString: displayString,
-              type: "type-${completion.type.toLowerCase()}",
+              type: "type-${completion.type.toLowerCase()}${deprecatedClass}",
               cursorOffset: cursorPos);
         }
       }).where((x) => x != null).toList();
 
+      List<Completion> filterCompletions = new List.from(completions);
+
+      // Removes duplicates when a completion is both a getter and a setter.
+      for (Completion completion in completions) {
+        for (Completion other in completions) {
+          if (completion.isSetterAndMatchesGetter(other)) {
+            filterCompletions.removeWhere((c) => completion == c);
+            other.type = "type-getter_and_setter";
+          }
+        }
+      }
+
       completer.complete(new CompletionResult(
-          completions,
+          filterCompletions,
           replaceOffset: replaceOffset,
           replaceLength: replaceLength));
     }).catchError((e) {

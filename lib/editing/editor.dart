@@ -47,6 +47,8 @@ abstract class Editor {
    */
   bool get completionActive;
 
+  bool completionAutoInvoked;
+
   String get mode;
   set mode(String str);
 
@@ -60,10 +62,10 @@ abstract class Editor {
    */
   Point get cursorCoords;
 
+  bool get hasFocus;
+
   void resize();
   void focus();
-
-  bool get hasFocus;
 
   void swapDocument(Document document);
 }
@@ -160,7 +162,7 @@ class Completion {
 
   /// The css class type for the completion. This may not be supported by all
   /// completors.
-  final String type;
+  String type;
 
   /// The (optional) offset to display the cursor at after completion. This is
   /// relative to the insertion location, not the absolute position in the file.
@@ -169,4 +171,8 @@ class Completion {
   final int cursorOffset;
 
   Completion(this.value, {this.displayString, this.type, this.cursorOffset});
+
+  bool isSetterAndMatchesGetter(Completion other) =>
+      displayString == other.displayString &&
+      (type == "type-getter" && other.type == "type-setter");
 }
