@@ -54,6 +54,8 @@ abstract class Editor {
   String get theme;
   set theme(String str);
 
+  bool get hasFocus;
+
   void resize();
   void focus();
 

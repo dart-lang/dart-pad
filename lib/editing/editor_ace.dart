@@ -133,6 +133,8 @@ class _AceEditor extends Editor {
     editor.theme = new ace.Theme.named(str);
   }
 
+  bool get hasFocus => editor.isFocused;
+
   void focus() => editor.focus();
   void resize() => editor.resize(true);
 
