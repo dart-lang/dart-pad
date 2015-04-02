@@ -135,7 +135,11 @@ class Analyzer {
         if (element.name != null) info['name'] = element.name;
         info['description'] = '${element}';
         info['kind'] = element.kind.displayName;
-        info['parent'] = '${element.enclosingElement}';
+
+        // Only defined if there is an enclosing class.
+        if (element.enclosingElement.kind.name == "CLASS") {
+          info['enclosingClassName'] = '${element.enclosingElement}';
+        }
 
         //parameters for functions and methods
         if (element is ExecutableElement) {
