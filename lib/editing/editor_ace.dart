@@ -130,7 +130,7 @@ class _AceEditor extends Editor {
     editor.theme = new ace.Theme.named(str);
   }
 
-  //TODO: Add a cursorCoords getter for ace
+  // TODO: Add a cursorCoords getter for ace
   Point get cursorCoords => null;
 
   void focus() => editor.focus();
