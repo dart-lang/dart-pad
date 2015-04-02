@@ -68,12 +68,6 @@ class CodeMirrorFactory extends EditorFactory {
         'cursorHeight': 0.85,
         //'gutters': [_gutterId],
         'extraKeys': {
-          'Ctrl-Space': (jsEditor) {
-            // TODO: maybe move this to playground ?
-            CodeMirror editor = new CodeMirror.fromJsObject(jsEditor);
-            editor.jsProxy['state']['completionAutoInvoked'] = false;
-            editor.execCommand('autocomplete');
-          },
           'Cmd-/': 'toggleComment',
           'Ctrl-/': 'toggleComment'
         },

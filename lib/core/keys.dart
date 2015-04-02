@@ -21,8 +21,14 @@ class Keys {
     _sub = document.onKeyDown.listen(_handleKeyEvent);
   }
 
-  void bind(String key, Function action) {
-    _bindings[key] = action;
+  /**
+   * Bind a list of keys to an action.
+   * The key is a string, with a specific format.
+   * Here are some examples of this format:
+   * `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
+   */
+  void bind(List<String> keys, Function action) {
+    keys.forEach((key) => _bindings[key] = action);
   }
 
   void dispose() {
@@ -145,6 +151,7 @@ final Map _codeMap = {
   KeyCode.BACKSLASH: '\\', //
 
   KeyCode.ENTER: 'enter', //
+  KeyCode.SPACE: 'space', //
 
   KeyCode.OPEN_SQUARE_BRACKET: '[', //
   KeyCode.CLOSE_SQUARE_BRACKET: ']', //
