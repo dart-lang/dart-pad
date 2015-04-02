@@ -133,9 +133,9 @@ class Analyzer {
 
         // Name and description.
         if (element.name != null) info['name'] = element.name;
-        //if (element.displayName != null) info['displayName'] = element.displayName;
         info['description'] = '${element}';
         info['kind'] = element.kind.displayName;
+        info['parent'] = '${element.enclosingElement}';
 
         //parameters for functions and methods
         if (element is ExecutableElement) {
