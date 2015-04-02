@@ -2,15 +2,30 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of playground;
+
+library dartpad.parameter_popup;
+
+import 'dart:convert';
+import 'dart:html';
+import 'dart:math' as math;
+
+import 'package:dart_pad/dartservices_client/v1.dart';
+import 'package:dart_pad/editing/editor.dart';
+import 'package:dart_pad/context.dart';
+import 'package:dart_pad/services/common.dart';
+
 
 class ParameterPopup {
   DartservicesApi servicesApi;
+  Context context;
   Editor editor;
-  List parKeys = const[KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO, KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN];
+  static const List parKeys = const[
+    KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO,
+    KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN];
+
   HtmlEscape sanitizer = const HtmlEscape();
 
-  ParameterPopup(this.servicesApi, this.editor) {
+  ParameterPopup(this.servicesApi, this.context, this.editor) {
     document.onKeyDown.listen((e) => handleKeyDown(e));
     document.onKeyUp.listen((e) => handleKeyUp(e));
     document.onClick.listen((e) => handleClick());
@@ -61,43 +76,43 @@ class ParameterPopup {
       ..offset = offset;
 
     servicesApi.document(input).timeout(serviceCallTimeout)
-    .then((DocumentResponse result) {
-      if (!result.info.containsKey("parameters")) {
-        remove();
-        return;
-      }
-      List parameterInfo = result.info["parameters"] as List;
-      String outputString = "";
-      if (parameterInfo.length == 0) {
-        outputString += "<code>&lt;no parameters&gt;</code>";
-      } else if (parameterInfo.length < parameterIndex + 1) {
-        outputString += "<code>too many parameters listed</code>";
-      } else {
-        outputString += "<code>";
-
-        for (int i = 0; i < parameterInfo.length; i++) {
-          if (i == parameterIndex) {
-            outputString += '<em>${parameterInfo[i]}</em>';
+        .then((DocumentResponse result) {
+          if (!result.info.containsKey("parameters")) {
+            remove();
+            return;
+          }
+          List parameterInfo = result.info["parameters"] as List;
+          String outputString = "";
+          if (parameterInfo.length == 0) {
+            outputString += "<code>&lt;no parameters&gt;</code>";
+          } else if (parameterInfo.length < parameterIndex + 1) {
+            outputString += "<code>too many parameters listed</code>";
           } else {
-            outputString += '${sanitizer.convert(parameterInfo[i])}';
-          }
-          if (i != parameterInfo.length - 1) {
-            outputString += ", ";
-          }
-        }
-        outputString += "</code>";
-      }
+            outputString += "<code>";
 
-      // Check if cursor is still in parameter position
-      offset = editor.document.indexFromPos(editor.document.cursor);
-      source = editor.document.value;
-      parInfo = _parameterInfo(source, offset);
-      if (parInfo == null) {
-        remove();
-        return;
-      }
-      _showParameterPopup(outputString);
-    });
+            for (int i = 0; i < parameterInfo.length; i++) {
+              if (i == parameterIndex) {
+                outputString += '<em>${parameterInfo[i]}</em>';
+              } else {
+                outputString += '${sanitizer.convert(parameterInfo[i])}';
+              }
+              if (i != parameterInfo.length - 1) {
+                outputString += ", ";
+              }
+            }
+            outputString += "</code>";
+          }
+
+          // Check if cursor is still in parameter position
+          offset = editor.document.indexFromPos(editor.document.cursor);
+          source = editor.document.value;
+          parInfo = _parameterInfo(source, offset);
+          if (parInfo == null) {
+            remove();
+            return;
+          }
+          _showParameterPopup(outputString);
+        });
   }
 
   void _showParameterPopup(String string) {

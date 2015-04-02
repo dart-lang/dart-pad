@@ -30,8 +30,7 @@ import 'src/ga.dart';
 import 'src/gists.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
-
-part 'parameter_popup.dart';
+import 'parameter_popup.dart';
 
 Playground get playground => _playground;
 
@@ -61,7 +60,7 @@ class Playground {
   PlaygroundContext _context;
   Future _analysisRequest;
   Router _router;
-  ParameterPopup parPopup;
+  ParameterPopup paramPopup;
 
   ModuleManager modules = new ModuleManager();
 
@@ -249,7 +248,7 @@ class Playground {
     options.registerOption('parameter_popup', 'false');
 
     if (options.getValueBool("parameter_popup")) {
-      parPopup = new ParameterPopup(dartServices, editor);
+      paramPopup = new ParameterPopup(dartServices, context, editor);
     }
     _finishedInit();
   }
