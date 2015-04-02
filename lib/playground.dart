@@ -201,10 +201,10 @@ class Playground {
       _handleHelp();
     });
 
-    keys.bind(['crtl-space', 'macctrl-space'], (){
+    keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.completionAutoInvoked = false;
       editor.execCommand('autocomplete');
-      new Timer(const Duration(milliseconds: 500), _handleHelp);
+      _handleHelp();
     });
 
     document.onKeyUp.listen((e) {
@@ -303,7 +303,7 @@ class Playground {
       if (e.keyCode == KeyCode.PERIOD) {
         editor.completionAutoInvoked = true;
         editor.execCommand("autocomplete");
-        new Timer(const Duration(milliseconds: 500), _handleHelp);
+        _handleHelp();
       }
     }
     if (!options.getValueBool('autopopup_code_completion')) {
@@ -315,7 +315,7 @@ class Playground {
         if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
           editor.completionAutoInvoked = true;
           editor.execCommand("autocomplete");
-          new Timer(const Duration(milliseconds: 500), _handleHelp);
+          _handleHelp();
         }
     } else if (context.focusedEditor == "html") {
       if (options.getValueBool('autopopup_code_completion')) {
