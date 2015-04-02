@@ -14,7 +14,6 @@ import 'package:dart_pad/editing/editor.dart';
 import 'package:dart_pad/context.dart';
 import 'package:dart_pad/services/common.dart';
 
-
 class ParameterPopup {
   DartservicesApi servicesApi;
   Context context;
