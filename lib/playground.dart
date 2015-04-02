@@ -30,6 +30,7 @@ import 'src/ga.dart';
 import 'src/gists.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
+import 'parameter_popup.dart';
 
 Playground get playground => _playground;
 
@@ -59,6 +60,7 @@ class Playground {
   PlaygroundContext _context;
   Future _analysisRequest;
   Router _router;
+  ParameterPopup paramPopup;
 
   ModuleManager modules = new ModuleManager();
 
@@ -199,6 +201,7 @@ class Playground {
       _toggleDocTab();
       _handleHelp();
     });
+
     document.onKeyUp.listen((e) {
       if (_isCompletionActive || cursorKeys.contains(e.keyCode)) _handleHelp();
 
@@ -243,7 +246,11 @@ class Playground {
 
     // Set up development options.
     options.registerOption('autopopup_code_completion', 'false');
+    options.registerOption('parameter_popup', 'false');
 
+    if (options.getValueBool("parameter_popup")) {
+      paramPopup = new ParameterPopup(dartServices, context, editor);
+    }
     _finishedInit();
   }
 

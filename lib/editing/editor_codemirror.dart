@@ -6,6 +6,8 @@ library editor.codemirror;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:js';
+import 'dart:math';
 
 import 'package:codemirror/codemirror.dart' hide Position;
 import 'package:codemirror/codemirror.dart' as pos show Position;
@@ -190,6 +192,11 @@ class _CodeMirrorEditor extends Editor {
   set theme(String str) => cm.setTheme(str);
 
   bool get hasFocus => cm.jsProxy['state']['focused'];
+
+  Point get cursorCoords {
+    JsObject js = cm.call("cursorCoords");
+    return new Point(js["left"], js["top"]);
+  }
 
   void focus() => cm.focus();
   void resize() => cm.refresh();

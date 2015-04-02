@@ -6,6 +6,7 @@ library editor;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math';
 
 abstract class EditorFactory {
   List<String> get modes;
@@ -53,6 +54,13 @@ abstract class Editor {
 
   String get theme;
   set theme(String str);
+
+  /**
+   * Returns the cursor coordinates in pixels.
+   * cursorCoords.x corresponds to left and cursorCoords.y corresponds to top.
+   * Only implemented for codemirror, returns null for ace editor and comid.
+   */
+  Point get cursorCoords;
 
   bool get hasFocus;
 

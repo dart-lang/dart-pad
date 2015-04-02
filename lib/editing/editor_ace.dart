@@ -6,6 +6,7 @@ library editor.ace;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math';
 
 import 'package:ace/ace.dart' as ace;
 import 'package:ace/proxy.dart';
@@ -134,6 +135,9 @@ class _AceEditor extends Editor {
   }
 
   bool get hasFocus => editor.isFocused;
+
+  // TODO: Add a cursorCoords getter for ace
+  Point get cursorCoords => null;
 
   void focus() => editor.focus();
   void resize() => editor.resize(true);
