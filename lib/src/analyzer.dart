@@ -168,8 +168,8 @@ class Analyzer {
             for (ElementAnnotationImpl e in element.metadata) {
               if (e.toString().startsWith("@DomName")) {
                 EvaluationResultImpl evaluationResult = e.evaluationResult;
-                if (evaluationResult != null) {
-                  info["DomName"] = e.evaluationResult.value.fields["name"].value;
+                if (evaluationResult != null && evaluationResult.value.fields["name"] != null) {
+                  info["DomName"] = evaluationResult.value.fields["name"].value;
                 } else {
                   _logger.fine("WARNING: Unexpected null, aborting");
                 }
