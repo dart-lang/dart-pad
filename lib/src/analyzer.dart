@@ -167,7 +167,7 @@ class Analyzer {
             element.metadata.forEach((ElementAnnotationImpl e) {
               if (e.toString().startsWith("@DomName")) {
                 //e.evaluationResult.value.fields["name"].value;
-                String value = e.evaluationResult.value.stringValue.toString();
+                String value = e.evaluationResult.value.toString();
                 value = value.substring(value.indexOf("'"),value.lastIndexOf("'"));
                 info['DomName'] = value;
               }
