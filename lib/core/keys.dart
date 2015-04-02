@@ -154,8 +154,6 @@ final Map _codeMap = {
   KeyCode.EQUALS: "=", //
   KeyCode.APOSTROPHE: "`", //
   KeyCode.SINGLE_QUOTE: "'", //
-  KeyCode.QUESTION_MARK: "?", //
-
   KeyCode.ENTER: 'enter', //
   KeyCode.SPACE: 'space', //
   KeyCode.TAB: "tab", //
