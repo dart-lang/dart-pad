@@ -137,8 +137,10 @@ class Analyzer {
         info['kind'] = element.kind.displayName;
 
         // Only defined if there is an enclosing class.
-        if (element.enclosingElement.kind.name == "CLASS") {
+        if (element.enclosingElement is ClassElement) {
           info['enclosingClassName'] = '${element.enclosingElement}';
+        } else {
+          info['enclosingClassName'] = null;
         }
 
         //parameters for functions and methods
