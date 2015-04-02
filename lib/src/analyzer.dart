@@ -133,9 +133,15 @@ class Analyzer {
 
         // Name and description.
         if (element.name != null) info['name'] = element.name;
-        //if (element.displayName != null) info['displayName'] = element.displayName;
         info['description'] = '${element}';
         info['kind'] = element.kind.displayName;
+
+        // Only defined if there is an enclosing class.
+        if (element.enclosingElement is ClassElement) {
+          info['enclosingClassName'] = '${element.enclosingElement}';
+        } else {
+          info['enclosingClassName'] = null;
+        }
 
         //parameters for functions and methods
         if (element is ExecutableElement) {
@@ -150,7 +156,12 @@ class Analyzer {
 
         if (library != null) {
           if (library.name != null && library.name.isNotEmpty) {
-            info['libraryName'] = library.name;
+            // TODO(lukechurch) remove this once this bug is fixed
+            if (library.location.toString() != "utf-8") {
+              info['libraryName'] = '${library.location}';
+            } else {
+              info['libraryName'] = library.name;
+            }
           }
           //info['libraryPath'] = library.source.shortName;
         }
