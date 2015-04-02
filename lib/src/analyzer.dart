@@ -156,7 +156,12 @@ class Analyzer {
 
         if (library != null) {
           if (library.name != null && library.name.isNotEmpty) {
-            info['libraryName'] = library.name;
+            // TODO(lukechurch) remove this once this bug is fixed
+            if (library.location.toString() != "utf-8") {
+              info['libraryName'] = '${library.location}';
+            } else {
+              info['libraryName'] = library.name;
+            }
           }
           //info['libraryPath'] = library.source.shortName;
         }
