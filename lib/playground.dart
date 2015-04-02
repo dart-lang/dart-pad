@@ -400,29 +400,48 @@ class Playground {
       // TODO: Show busy.
       dartServices.document(input).timeout(serviceCallTimeout).then(
           (DocumentResponse result) {
-        if (result.info['description'] == null &&
-            result.info['dartdoc'] == null) {
+            Map info = result.info;
+        if (info['description'] == null &&
+            info['dartdoc'] == null) {
           _docPanel.setInnerHtml("<p>No documentation found.</p>");
         } else {
+          String apiLink = _dartApiLink(info);
           final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
             ..allowElement('a', attributes: ['href'])
             ..allowElement('img', attributes: ['src']);
           _docPanel.setInnerHtml(markdown.markdownToHtml(
 '''
-# `${result.info['description']}`\n\n
-${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
-${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
-${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
-${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName']}" : ""}\n\n
+# `${info['description']}`\n\n
+${info['dartdoc'] != null ? info['dartdoc'] + "\n\n" : ""}
+${info['kind'].contains("variable") ? "${info['kind']}\n\n" : ""}
+${info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
+${info['libraryName'] != null ? "**Library:** [${info['libraryName']}](${apiLink})" : ""}\n\n
 ''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
 
           _docPanel.querySelectorAll("a").forEach((AnchorElement a)
               => a.target = "_blank");
           _docPanel.querySelectorAll("h1").forEach((h)
-              => h.classes.add("type-${result.info["kind"].replaceAll(" ","_")}"));
+              => h.classes.add("type-${info["kind"].replaceAll(" ","_")}"));
         }
       });
     }
+  }
+
+  String _dartApiLink(Map info){
+    StringBuffer apiLink = new StringBuffer();
+    if (info["libraryName"] != null) {
+      if (info["libraryName"].contains("dart:")) {
+        apiLink.write( "https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/");
+        apiLink.write(info["libraryName"] == null ? "" : "${info['libraryName']}");
+        if (info["enclosingClassName"] == null) {
+          apiLink.write("#id_${info['name']}");
+        } else {
+          apiLink.write(".${info['enclosingClassName']}#id_${info['name']}");
+        }
+      }
+      return apiLink.toString();
+    }
+    return null;
   }
 
   void _clearOutput() {
