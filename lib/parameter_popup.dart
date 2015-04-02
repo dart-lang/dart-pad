@@ -9,10 +9,10 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:math' as math;
 
-import 'package:dart_pad/dartservices_client/v1.dart';
-import 'package:dart_pad/editing/editor.dart';
-import 'package:dart_pad/context.dart';
-import 'package:dart_pad/services/common.dart';
+import 'dartservices_client/v1.dart';
+import 'editing/editor.dart';
+import 'context.dart';
+import 'services/common.dart';
 
 class ParameterPopup {
   DartservicesApi servicesApi;
