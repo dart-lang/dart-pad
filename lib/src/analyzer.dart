@@ -164,14 +164,15 @@ class Analyzer {
             }
           }
           if (library.location.toString() == "dart:html") {
-            element.metadata.forEach((ElementAnnotationImpl e) {
-              if (e.toString().startsWith("@DomName")) {
-                //e.evaluationResult.value.fields["name"].value;
-                String value = e.evaluationResult.value.stringValue.toString();
-                value = value.substring(value.indexOf("'"),value.lastIndexOf("'"));
-                info['DomName'] = value;
-              }
-            });
+            if (element.metadata != null) {
+              element.metadata.forEach((ElementAnnotationImpl e) {
+                if (e.toString().startsWith("@DomName")) {
+                  if (e.evaluationResult.value.fields["name"] != null) {
+                    info["DomName"] = e.evaluationResult.value.fields["name"].value;
+                  }
+                }
+              });
+            }
           }
           //info['libraryPath'] = library.source.shortName;
         }
