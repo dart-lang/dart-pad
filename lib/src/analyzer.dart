@@ -20,6 +20,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:logging/logging.dart';
 
 import 'common.dart';
+import 'package:analyzer/src/generated/constant.dart';
 
 Logger _logger = new Logger('analyzer');
 
@@ -164,14 +165,16 @@ class Analyzer {
             }
           }
           if (library.location.toString() == "dart:html") {
-            if (element.metadata != null) {
-              element.metadata.forEach((ElementAnnotationImpl e) {
-                if (e.toString().startsWith("@DomName")) {
-                  if (e.evaluationResult.value.fields["name"] != null) {
-                    info["DomName"] = e.evaluationResult.value.fields["name"].value;
-                  }
+            for (ElementAnnotationImpl e in element.metadata) {
+              if (e.toString().startsWith("@DomName")) {
+                EvaluationResultImpl evaluationResult = e.evaluationResult;
+                if (evaluationResult != null) {
+                  info["DomName"] = e.evaluationResult.value.fields["name"].value;
+                } else {
+                  _logger.fine("WARNING: Unexpected null, aborting");
                 }
-              });
+                break;
+              }
             }
           }
           //info['libraryPath'] = library.source.shortName;
