@@ -282,7 +282,7 @@ class Playground {
 
   void _toggleDocTab() {
     // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
-    ga.sendEvent('open', 'doc-tab');
+    ga.sendEvent('view', 'dartdoc');
     _outputpanel.style.display = "none";
     querySelector("#consoletab").attributes.remove('selected');
 
@@ -291,7 +291,7 @@ class Playground {
   }
 
   void _toggleConsoleTab() {
-    ga.sendEvent('open', 'console-tab');
+    ga.sendEvent('view', 'console');
     _docPanel.style.display = "none";
     querySelector("#doctab").attributes.remove('selected');
 
