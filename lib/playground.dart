@@ -425,7 +425,7 @@ ${info['dartdoc'] != null ? info['dartdoc'] + "\n\n" : ""}
 ${mdnLink == null || info['dartdoc'] != null ? "" : "## External resources:\n * $mdnLink at MDN"}
 ${kind.contains("variable") ? "${info['kind']}\n\n" : ""}
 ${kind.contains("variable") ? "**Propagated type:** ${info["propagatedType"]}\n\n" : ""}
-${info['libraryName'] == null ? "" : "**Library:** ${info['dartdoc'] == null ? info['libraryName'] : apiLink}" }\n\n
+${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
   ''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
 
           _docPanel.querySelectorAll("a").forEach((AnchorElement a)
