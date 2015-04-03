@@ -41,7 +41,14 @@ class AnalysisServerWrapper {
     // Post process the result from Analysis Server.
     return results.then((Map response) {
       List<Map> results = response['results'];
-      results.sort((x, y) => -1 * x['relevance'].compareTo(y['relevance']));
+      results.sort((x, y) {
+        var xRelevance = x['relevance'];
+        var yRelevance = y['relevance'];
+        if (xRelevance == yRelevance) {
+          return x['completion'].compareTo(y['completion']);
+        } else {
+          return -1 * xRelevance.compareTo(yRelevance);
+        }});
       return new CompleteResponse(
           response['replacementOffset'], response['replacementLength'],
           results);
