@@ -406,7 +406,11 @@ class Playground {
             info['dartdoc'] == null) {
           _docPanel.setInnerHtml("<p>No documentation found.</p>");
         } else {
-          String apiLink = _dartApiLink(info);
+          String apiLink = _dartApiLink(
+              libraryName: info['libraryName'],
+              enclosingClassName: info['enclosingClassName'],
+              memberName: info["name"]
+          );
           final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
             ..allowElement('a', attributes: ['href'])
             ..allowElement('img', attributes: ['src']);
@@ -428,16 +432,16 @@ ${info['libraryName'] == null ? "" : "**Library:** ${apiLink == null ? info['lib
     }
   }
 
-  String _dartApiLink(Map info){
+  String _dartApiLink({String libraryName, String enclosingClassName, String memberName}){
     StringBuffer apiLink = new StringBuffer();
-    if (info["libraryName"] != null) {
-      if (info["libraryName"].contains("dart:")) {
-        apiLink.write( "https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/");
-        apiLink.write(info["libraryName"] == null ? "" : "${info['libraryName']}");
-        if (info["enclosingClassName"] == null) {
-          apiLink.write("#id_${info['name']}");
+    if (libraryName != null) {
+      if (libraryName.contains("dart:")) {
+        apiLink.write( "https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/$libraryName");
+        memberName = '${memberName == null ? "" : "#id_${memberName}"}';
+        if (enclosingClassName == null) {
+          apiLink.write(memberName);
         } else {
-          apiLink.write(".${info['enclosingClassName']}#id_${info['name']}");
+          apiLink.write(".$enclosingClassName$memberName");
         }
         return apiLink.toString();
       }

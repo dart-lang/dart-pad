@@ -304,6 +304,7 @@ div.toggle {
 
 #documentation h2, #documentation strong {
   font-weight: bold;
+  font-size: inherit;
   color: #cdcdcd; /* little bit brigher than normal text*/
 }
 
