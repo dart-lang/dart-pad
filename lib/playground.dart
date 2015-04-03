@@ -444,7 +444,7 @@ class Playground {
 
       // TODO: Show busy.
       dartServices.document(input).timeout(serviceCallTimeout).then(
-          (DocumentResponse result) {
+          (DocumentResponse result) async {
             Map info = result.info;
             String kind = info['kind'];
         if (info['description'] == null &&
@@ -456,6 +456,10 @@ class Playground {
               enclosingClassName: info['enclosingClassName'],
               memberName: info["name"]
           );
+          String mdnLink;
+          if (info["libraryName"] == "dart:html" && info["DomName"] != null) {
+            mdnLink = await _mdnApiLink(info['DomName']);
+          }
           final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
             ..allowElement('a', attributes: ['href'])
             ..allowElement('img', attributes: ['src']);
@@ -463,10 +467,11 @@ class Playground {
 '''
 # `${info['description']}`\n\n
 ${info['dartdoc'] != null ? info['dartdoc'] + "\n\n" : ""}
+${mdnLink == null || info['dartdoc'] != null ? "" : "## External resources:\n * $mdnLink at MDN"}
 ${kind.contains("variable") ? "${info['kind']}\n\n" : ""}
 ${kind.contains("variable") ? "**Propagated type:** ${info["propagatedType"]}\n\n" : ""}
-${info['libraryName'] == null ? "" : "**Library:** ${apiLink == null ? info['libraryName'] : '[${info['libraryName']}](${apiLink})'}" }\n\n
-''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
+${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
+  ''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
 
           _docPanel.querySelectorAll("a").forEach((AnchorElement a)
               => a.target = "_blank");
@@ -482,16 +487,39 @@ ${info['libraryName'] == null ? "" : "**Library:** ${apiLink == null ? info['lib
     if (libraryName != null) {
       if (libraryName.contains("dart:")) {
         apiLink.write( "https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/$libraryName");
-        memberName = '${memberName == null ? "" : "#id_${memberName}"}';
+        memberName = '${memberName == null ? "" : "#id_$memberName"}';
         if (enclosingClassName == null) {
           apiLink.write(memberName);
         } else {
           apiLink.write(".$enclosingClassName$memberName");
         }
-        return apiLink.toString();
+        return '[$libraryName]($apiLink)';
       }
     }
-    return null;
+    return libraryName;
+  }
+
+  Future<String> _mdnApiLink(String domName) async{
+    String domClassName = domName.substring(0,domName.indexOf("."));
+    String baseUrl = "https://developer.mozilla.org/en-US/docs/Web/API/";
+
+    if (await urlExists('$baseUrl$domName')) {
+      return '[$domName]($baseUrl$domName)';
+    } else if (await urlExists('$baseUrl$domClassName')) {
+      return '[$domClassName]($baseUrl$domClassName)';
+    } else {
+      String searchUrl = "https://developer.mozilla.org/en-US/search?q=";
+      return 'Search for [$domName]($searchUrl$domName)';
+     }
+  }
+
+  Future<bool> urlExists(String url) async {
+    try {
+      await HttpRequest.getString(url);
+      return true;
+    } catch(error) {
+      return false;
+    }
   }
 
   void _clearOutput() {
