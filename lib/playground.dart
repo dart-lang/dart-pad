@@ -401,6 +401,7 @@ class Playground {
       dartServices.document(input).timeout(serviceCallTimeout).then(
           (DocumentResponse result) {
             Map info = result.info;
+            String kind = info['kind'];
         if (info['description'] == null &&
             info['dartdoc'] == null) {
           _docPanel.setInnerHtml("<p>No documentation found.</p>");
@@ -413,15 +414,15 @@ class Playground {
 '''
 # `${info['description']}`\n\n
 ${info['dartdoc'] != null ? info['dartdoc'] + "\n\n" : ""}
-${info['kind'].contains("variable") ? "${info['kind']}\n\n" : ""}
-${info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
-${info['libraryName'] != null ? "**Library:** [${info['libraryName']}](${apiLink})" : ""}\n\n
+${kind.contains("variable") ? "${info['kind']}\n\n" : ""}
+${kind.contains("variable") ? "**Propagated type:** ${info["propagatedType"]}\n\n" : ""}
+${info['libraryName'] == null ? "" : "**Library:** ${apiLink == null ? info['libraryName'] : '[${info['libraryName']}](${apiLink})'}" }\n\n
 ''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
 
           _docPanel.querySelectorAll("a").forEach((AnchorElement a)
               => a.target = "_blank");
           _docPanel.querySelectorAll("h1").forEach((h)
-              => h.classes.add("type-${info["kind"].replaceAll(" ","_")}"));
+              => h.classes.add("type-${kind.replaceAll(" ","_")}"));
         }
       });
     }
@@ -438,8 +439,8 @@ ${info['libraryName'] != null ? "**Library:** [${info['libraryName']}](${apiLink
         } else {
           apiLink.write(".${info['enclosingClassName']}#id_${info['name']}");
         }
+        return apiLink.toString();
       }
-      return apiLink.toString();
     }
     return null;
   }
