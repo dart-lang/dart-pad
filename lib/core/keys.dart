@@ -21,8 +21,14 @@ class Keys {
     _sub = document.onKeyDown.listen(_handleKeyEvent);
   }
 
-  void bind(String key, Function action) {
-    _bindings[key] = action;
+  /**
+   * Bind a list of keys to an action.
+   * The key is a string, with a specific format.
+   * Some examples of this format:
+   * `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
+   */
+  void bind(List<String> keys, Function action) {
+    keys.forEach((key) => _bindings[key] = action);
   }
 
   void dispose() {
@@ -143,12 +149,40 @@ final Map _codeMap = {
   KeyCode.COMMA: ',', //
   KeyCode.SLASH: '/', //
   KeyCode.BACKSLASH: '\\', //
-
+  KeyCode.SEMICOLON: ";", //
+  KeyCode.DASH: "-", //
+  KeyCode.EQUALS: "=", //
+  KeyCode.APOSTROPHE: "`", //
+  KeyCode.SINGLE_QUOTE: "'", //
   KeyCode.ENTER: 'enter', //
+  KeyCode.SPACE: 'space', //
+  KeyCode.TAB: "tab", //
 
   KeyCode.OPEN_SQUARE_BRACKET: '[', //
   KeyCode.CLOSE_SQUARE_BRACKET: ']', //
 
   KeyCode.LEFT: 'left', //
   KeyCode.RIGHT: 'right', //
+  KeyCode.UP: "up", //
+  KeyCode.DOWN: "down", //
+
+  KeyCode.BACKSPACE: "backsapce", //
+  KeyCode.CAPS_LOCK: "caps_lock", //
+  KeyCode.DELETE: "delete", //
+  KeyCode.END: "end", //
+  KeyCode.ESC: "esc", //
+  KeyCode.HOME: "home", //
+  KeyCode.INSERT: "insert", //
+  KeyCode.NUMLOCK: "numlock", //
+  KeyCode.PAGE_DOWN: "page_down", //
+  KeyCode.PAGE_UP: "page_up", //
+  KeyCode.PAUSE: "pause", //
+  KeyCode.PRINT_SCREEN: "print_screen", //
+
+  // Already handled above.
+  // If you press ctrl and nothing more,
+  // then printKeyEvent will print ctrl-.
+  KeyCode.CTRL: "", //
+  KeyCode.META: "", //
+  KeyCode.SHIFT: "", //
 };
