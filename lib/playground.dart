@@ -445,29 +445,53 @@ class Playground {
       // TODO: Show busy.
       dartServices.document(input).timeout(serviceCallTimeout).then(
           (DocumentResponse result) {
-        if (result.info['description'] == null &&
-            result.info['dartdoc'] == null) {
+            Map info = result.info;
+            String kind = info['kind'];
+        if (info['description'] == null &&
+            info['dartdoc'] == null) {
           _docPanel.setInnerHtml("<p>No documentation found.</p>");
         } else {
+          String apiLink = _dartApiLink(
+              libraryName: info['libraryName'],
+              enclosingClassName: info['enclosingClassName'],
+              memberName: info["name"]
+          );
           final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
             ..allowElement('a', attributes: ['href'])
             ..allowElement('img', attributes: ['src']);
           _docPanel.setInnerHtml(markdown.markdownToHtml(
 '''
-# `${result.info['description']}`\n\n
-${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
-${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
-${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
-${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName']}" : ""}\n\n
+# `${info['description']}`\n\n
+${info['dartdoc'] != null ? info['dartdoc'] + "\n\n" : ""}
+${kind.contains("variable") ? "${info['kind']}\n\n" : ""}
+${kind.contains("variable") ? "**Propagated type:** ${info["propagatedType"]}\n\n" : ""}
+${info['libraryName'] == null ? "" : "**Library:** ${apiLink == null ? info['libraryName'] : '[${info['libraryName']}](${apiLink})'}" }\n\n
 ''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
 
           _docPanel.querySelectorAll("a").forEach((AnchorElement a)
               => a.target = "_blank");
           _docPanel.querySelectorAll("h1").forEach((h)
-              => h.classes.add("type-${result.info["kind"].replaceAll(" ","_")}"));
+              => h.classes.add("type-${kind.replaceAll(" ","_")}"));
         }
       });
     }
+  }
+
+  String _dartApiLink({String libraryName, String enclosingClassName, String memberName}){
+    StringBuffer apiLink = new StringBuffer();
+    if (libraryName != null) {
+      if (libraryName.contains("dart:")) {
+        apiLink.write( "https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/$libraryName");
+        memberName = '${memberName == null ? "" : "#id_${memberName}"}';
+        if (enclosingClassName == null) {
+          apiLink.write(memberName);
+        } else {
+          apiLink.write(".$enclosingClassName$memberName");
+        }
+        return apiLink.toString();
+      }
+    }
+    return null;
   }
 
   void _clearOutput() {
