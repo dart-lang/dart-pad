@@ -57,18 +57,24 @@ header {
 }
 
 .header-gist-id {
+  text-overflow: ellipsis;
   overflow-x: hidden;
   max-width: 100px;
   text-transform: uppercase;
 }
 
-#sharebutton {
+#newbutton {
   margin-left: 10px;
 }
 
-#reloadbutton {
+#sharebutton {
+  margin-left: 10px;
   margin-right: 10px;
 }
+
+/*#reloadbutton {
+  margin-right: 10px;
+}*/
 
 section {
   padding: 0 24px 24px 24px;

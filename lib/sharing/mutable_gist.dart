@@ -9,15 +9,15 @@ import 'dart:async';
 import 'gists.dart';
 import '../elements/bind.dart';
 
-// TODO: add tests
-
-// TODO: add docs
+// TODO: Simplify these classes.
 
 /// On overlay on a gist. Used to edit gists, this overlay knows about its dirty
 /// state, and can have dirty state listeners.
 class MutableGist implements PropertyOwner {
   Gist _backingGist;
   Map _localValues = {};
+
+  Map<String, MutableGistFile> _files = {};
 
   StreamController _dirtyChangedController = new StreamController.broadcast();
   StreamController _changedController = new StreamController.broadcast();
@@ -32,11 +32,25 @@ class MutableGist implements PropertyOwner {
 
   set description(String value) => _setProperty('description', value);
 
-  String getFileData(String name) => _getProperty(name);
+  String get html_url => _getProperty('html_url');
 
-  void setFileData(String name, String data) => _setProperty(name, data);
+  bool get public => _backingGist.public;
 
-  void createFile(String name, String data) => _setProperty(name, data);
+//  String getFileData(String name) => _getProperty(name);
+//
+//  void setFileData(String name, String data) => _setProperty(name, data);
+
+  MutableGistFile getGistFile(String name) {
+    if (_files[name] == null) {
+      _files[name] = new MutableGistFile._(this, name);
+    }
+    return _files[name];
+  }
+
+  List<MutableGistFile> getFiles() {
+    _backingGist.files.forEach((f) => getGistFile(f.name));
+    return _files.values.toList();
+  }
 
   Gist get backingGist => _backingGist;
 
@@ -58,12 +72,22 @@ class MutableGist implements PropertyOwner {
     Set set = new Set();
     set.add('id');
     set.add('description');
+    set.add('html_url');
     set.addAll(_backingGist.files.map((f) => f.name));
     set.addAll(_localValues.keys);
     return set.toList();
   }
 
   Property property(String name) => new _MutableGistProperty(this, name);
+
+  Gist createGist() {
+    Gist gist = new Gist(description: description, id: id, public: public);
+    gist.html_url = html_url;
+    for (MutableGistFile file in getFiles()) {
+      gist.files.add(new GistFile(name: file.name, content: file.content));
+    }
+    return gist;
+  }
 
   String _getProperty(String key) {
     if (_localValues.containsKey(key)) return _localValues[key];
@@ -79,11 +103,36 @@ class MutableGist implements PropertyOwner {
   }
 }
 
+class MutableGistFile {
+  final MutableGist _parent;
+  final String name;
+
+  MutableGistFile._(this._parent, this.name);
+
+  String get content => _parent._getProperty(name);
+
+  set content(String value) {
+    _parent._setProperty(name, value);
+  }
+
+  Stream get onChanged => _parent.property(name).onChanged;
+}
+
+/// An entity that can own a gist.
+abstract class GistContainer {
+  /// The current gist.
+  MutableGist get mutableGist;
+
+  /// Use the given gist, instead of the `route` indicated one, for the next
+  /// route request.
+  void overrideNextRoute(Gist gist);
+}
+
 class _MutableGistProperty implements Property {
   final MutableGist mutableGist;
   final String name;
 
-  StreamController _changedController = new StreamController.broadcast();
+  StreamController _changedController = new StreamController.broadcast(sync: true);
   dynamic _value;
 
   _MutableGistProperty(this.mutableGist, this.name) {

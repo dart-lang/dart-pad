@@ -10,8 +10,6 @@ import 'dart:html';
 
 import 'package:dart_pad/src/sample.dart' as sample;
 
-// TODO: saving an anonymous gist
-
 // TODO: Save gists as valid pub packages (pubspecs, and readmes).
 
 /**
@@ -76,7 +74,7 @@ class Gist {
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
     return HttpRequest.getString('${_apiUrl}/${gistId}').then((data) {
-      return new Gist.fromMap(JSON.decode(data));
+      return new Gist.fromMap(JSON.decode(data))..reconcile();
     });
   }
 
@@ -91,7 +89,7 @@ class Gist {
 
   String id;
   String description;
-  String htmlUrl;
+  String html_url;
 
   bool public;
 
@@ -105,7 +103,7 @@ class Gist {
     id = map['id'];
     description = map['description'];
     public = map['public'];
-    htmlUrl = map['html_url'];
+    html_url = map['html_url'];
 
     Map f = map['files'];
     files = f.keys.map((key) => new GistFile.fromMap(key, f[key])).toList();
@@ -114,11 +112,35 @@ class Gist {
   dynamic operator[](String key) {
     if (key == 'id') return id;
     if (key == 'description') return description;
+    if (key == 'html_url') return html_url;
+    if (key == 'public') return public;
     for (GistFile file in files) {
       if (file.name == key) return file.content;
     }
     return null;
   }
+
+  /// Update files based on our preferred file names.
+  void reconcile() {
+    if (getFile('body.html') != null && getFile('index.html') == null) {
+      GistFile file = getFile('body.html');
+      file.name = 'index.html';
+    }
+
+    if (getFile('style.css') != null && getFile('styles.css') == null) {
+      GistFile file = getFile('style.css');
+      file.name = 'styles.css';
+    }
+
+    if (getFile('main.dart') == null &&
+        files.where((f) => f.name.endsWith('.dart')).length == 1) {
+      GistFile file = files.firstWhere((f) => f.name.endsWith('.dart'));
+      file.name = 'main.dart';
+    }
+  }
+
+  GistFile getFile(String name) =>
+      files.firstWhere((f) => f.name == name, orElse: () => null);
 
   Map toMap() {
     Map m = {};

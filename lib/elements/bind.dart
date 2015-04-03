@@ -6,6 +6,28 @@ library dart_pad.bind;
 
 import 'dart:async';
 
+// TODO: test binding to streams
+
+// TODO: test binding to properties
+
+// TODO: test cancelling bindings
+
+Binding bind(from, to) {
+  if (to is! Function && to is! Property) {
+    throw new ArgumentError('`to` must be a Function or a Property');
+  }
+
+  // TODO: handle a Function - use polling (and the browser tick event?)
+
+  if (from is Stream) {
+    return new _StreamBinding(from, to);
+  } else if (from is Property) {
+    return new _PropertyBinding(from, to);
+  } else {
+    throw new ArgumentError('`from` must be a Stream or a Property');
+  }
+}
+
 abstract class Property {
   void set(value);
   dynamic get();
@@ -33,22 +55,6 @@ abstract class PropertyOwner {
   Property property(String name);
 }
 
-Binding bind(from, to) {
-  if (to is! Function && to is! Property) {
-    throw new ArgumentError('`to` must be a Function or a Property');
-  }
-
-  // TODO: handle a Function - use polling (and the browser tick event?)
-
-  if (from is Stream) {
-    return new _StreamBinding(from, to);
-  } else if (from is Property) {
-    return new _PropertyBinding(from, to);
-  } else {
-    throw new ArgumentError('`from` must be a Stream or a Property');
-  }
-}
-
 abstract class Binding {
   void cancel();
 }
@@ -67,7 +73,9 @@ class _StreamBinding implements Binding {
     _sub.cancel();
   }
 
-  void _handleEvent(e) => _sendTo(target, e);
+  void _handleEvent(e) {
+    _sendTo(target, e);
+  }
 }
 
 class _PropertyBinding implements Binding {
@@ -77,11 +85,12 @@ class _PropertyBinding implements Binding {
   StreamSubscription _sub;
 
   _PropertyBinding(this.property, this.target) {
-    _sub = property.onChanged.listen(_handleEvent);
+    Stream stream = property.onChanged;
+    if (stream != null) _sub = stream.listen(_handleEvent);
   }
 
   void cancel() {
-    _sub.cancel();
+    if (_sub != null) _sub.cancel();
   }
 
   void _handleEvent(e) => _sendTo(target, e);

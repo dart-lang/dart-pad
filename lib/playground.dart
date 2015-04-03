@@ -5,14 +5,16 @@
 library playground;
 
 import 'dart:async';
+import 'dart:convert' show HTML_ESCAPE;
 import 'dart:html' hide Document;
 import 'dart:math' as math;
-import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:markd/markdown.dart' as markdown;
 import 'package:route_hierarchical/client.dart';
+import 'package:rate_limit/rate_limit.dart';
 
+import 'actions.dart';
 import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
@@ -27,24 +29,23 @@ import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'services/common.dart';
 import 'services/execution_iframe.dart';
+//import 'sharing/gist_storage.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
-import 'src/sample.dart' as sample;
 import 'src/util.dart';
 
 Playground get playground => _playground;
 
 Playground _playground;
-Analytics ga = new Analytics();
 
-Logger _logger = new Logger('dart_pad');
+Logger _logger = new Logger('dartpad');
 
 void init() {
   _playground = new Playground();
 }
 
-class Playground {
+class Playground implements GistContainer {
   DivElement get _editpanel => querySelector('#editpanel');
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
@@ -52,20 +53,18 @@ class Playground {
   bool get _isCompletionActive => editor.completionActive;
   bool get _isDocPanelOpen => querySelector("#doctab").attributes.containsKey('selected');
 
-  DButton newButton;
   DButton runButton;
-  DButton shareButton;
-  DButton reloadButton;
   DOverlay overlay;
-  DBusyLight dartBusyLight;
-  DBusyLight cssBusyLight;
-  DBusyLight htmlBusyLight;
+  DBusyLight busyLight;
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
-  Router _router;
   MutableGist editableGist = new MutableGist(new Gist());
+  //GistStorage _gistStorage = new GistStorage();
   DContentEditable titleEditable;
+
+  // We store the last returned shared gist; it's used to update the url.
+  Gist _overrideNextRouteGist;
 
   ModuleManager modules = new ModuleManager();
 
@@ -76,13 +75,9 @@ class Playground {
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
 
-    newButton = new DButton(querySelector('#newbutton'));
-    newButton.onClick.listen((e) => _handleNewButton());
-    shareButton = new DButton(querySelector('#sharebutton'));
-    shareButton.onClick.listen((e) => _handleShareButton());
-    reloadButton = new DButton(querySelector('#reloadbutton'));
-    reloadButton.onClick.listen((e) => _handleReloadButton());
-    editableGist.onDirtyChanged.listen((dirty) => _updateButtons());
+    new NewPadAction(querySelector('#newbutton'), editableGist/*, _gistStorage*/);
+
+    new SharePadAction(querySelector('#sharebutton'), this);
 
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
@@ -93,16 +88,29 @@ class Playground {
       if (!isMobile()) _context.focus();
     });
 
-    // TODO: Currently the lights are all shared; we should have one for each
-    // type.
-    dartBusyLight = new DBusyLight(querySelector('#dartbusy'));
-    cssBusyLight = new DBusyLight(querySelector('#dartbusy'));
-    htmlBusyLight = new DBusyLight(querySelector('#dartbusy'));
+    busyLight = new DBusyLight(querySelector('#dartbusy'));
 
+    // Update the title on changes.
     titleEditable = new DContentEditable(
         querySelector('header .header-gist-name'));
     bind(titleEditable.onChanged, editableGist.property('description'));
     bind(editableGist.property('description'), titleEditable.textProperty);
+
+    // Update the ID on changes.
+    AnchorElement idAnchor = querySelector('header .header-gist-id a');
+    bind(editableGist.property('id'), (val) => idAnchor.text = val);
+    bind(editableGist.property('html_url'), (val) {
+      idAnchor.href = val == null ? '' : val;
+    });
+
+    Throttler throttle = new Throttler(const Duration(milliseconds: 100));
+//    mutableGist.onChanged.transform(throttle).listen((_) {
+//      if (mutableGist.dirty) {
+//        // If there was a change, and the gist is dirty, write the gist's
+//        // contents to storage.
+//        _gistStorage.setStoredGist(mutableGist.createGist());
+//      }
+//    });
 
     SelectElement select = querySelector('#samples');
     select.onChange.listen((_) => _handleSelectChanged(select));
@@ -113,33 +121,25 @@ class Playground {
   }
 
   void showHome(RouteEnterEvent event) {
-    //_logger.info('routed to showHome, ${window.location}, ${event.parameters}');
+//    String path = window.location.pathname;
+//    if (path.length > 2 && path.lastIndexOf('/') == 0) {
+//      String id = path.substring(1);
+//      if (isLegalGistId(id)) {
+//        _showGist(id);
+//        return;
+//      }
+//    }
 
-    // TODO(devoncarew): Hack, until we resolve the issue with routing.
-    String path = window.location.pathname;
-    if (path.length > 2 && path.lastIndexOf('/') == 0) {
-      String id = path.substring(1);
-      if (isLegalGistId(id)) {
-        _showGist(id);
-        return;
-      }
-    }
-
-    editableGist.setBackingGist(createSampleGist());
-
-    // TODO: Remove the following lines.
-    _setGistDescription('Untitled');
-    _setGistId(null, null);
-    context.dartSource = sample.dartCode;
-    context.htmlSource = sample.htmlCode;
-    context.cssSource = sample.cssCode;
+//    if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
+//      editableGist.setBackingGist(_gistStorage.getStoredGist());
+//    } else {
+      editableGist.setBackingGist(createSampleGist());
+//    }
 
     Timer.run(_handleRun);
   }
 
   void showGist(RouteEnterEvent event) {
-    //_logger.info('routed to showGist, ${window.location}, ${event.parameters}');
-
     String gistId = event.parameters['gist'];
 
     if (!isLegalGistId(gistId)) {
@@ -150,18 +150,34 @@ class Playground {
     _showGist(gistId);
   }
 
+  // GistContainer interface
+  MutableGist get mutableGist => editableGist;
+
+  void overrideNextRoute(Gist gist) {
+    _overrideNextRouteGist = gist;
+  }
+
   void _showGist(String gistId) {
+    // When sharing, we have to pipe the returned (created) gist through the
+    // routing library to update the url properly.
+    if (_overrideNextRouteGist != null && _overrideNextRouteGist.id == gistId) {
+      editableGist.setBackingGist(_overrideNextRouteGist);
+      _overrideNextRouteGist = null;
+      return;
+    }
+
+    _overrideNextRouteGist = null;
+
     Gist.loadGist(gistId).then((Gist gist) {
-      _setGistDescription(gist.description);
-      _setGistId(gist.id, gist.htmlUrl);
+      editableGist.setBackingGist(gist);
 
-      GistFile dart = chooseGistFile(gist, ['main.dart'], (f) => f.endsWith('.dart'));
-      GistFile html = chooseGistFile(gist, ['index.html', 'body.html']);
-      GistFile css = chooseGistFile(gist, ['styles.css', 'style.css']);
-
-      context.dartSource = dart == null ? '' : dart.content;
-      context.htmlSource = html == null ? '' : extractHtmlBody(html.content);
-      context.cssSource = css == null ? '' : css.content;
+//      if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
+//        Gist storedGist = _gistStorage.getStoredGist();
+//        mutableGist.description = storedGist.description;
+//        for (GistFile file in storedGist.files) {
+//          mutableGist.getGistFile(file.name).content = file.content;
+//        }
+//      }
 
       // Analyze and run it.
       Timer.run(() {
@@ -211,6 +227,15 @@ class Playground {
     executionService.onStdout.listen(_showOuput);
     executionService.onStderr.listen((m) => _showOuput(m, error: true));
 
+    // Set up Google Analytics.
+    deps[Analytics] = new Analytics();
+
+    // Set up the router.
+    deps[Router] = new Router();
+    router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
+    router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
+    router.listen();
+
     // Set up the editing area.
     editor = editorFactory.createFromElement(_editpanel);
     _editpanel.children.first.attributes['flex'] = '';
@@ -224,12 +249,11 @@ class Playground {
     });
     document.onKeyUp.listen((e) {
       if (options.getValueBool('autopopup_code_completion')) {
-        RegExp exp = new RegExp(r"[a-zA-Z]");
+        //RegExp exp = new RegExp(r"[a-zA-Z]");
         // TODO: _isCompletionActive won't work correct
         // TODO: which causes some issues
         // TODO: will be fixed when we use the latest codemirror.js version
-        if (!_isCompletionActive && exp.hasMatch(
-            new String.fromCharCode(e.keyCode)) || e.keyCode == KeyCode.PERIOD) {
+        if (!_isCompletionActive && e.keyCode == KeyCode.PERIOD) {
           editor.execCommand("autocomplete");
         }
       }
@@ -248,20 +272,36 @@ class Playground {
     editorFactory.registerCompleter(
         'dart', new DartCompleter(dartServices, _context._dartDoc));
 
-    _context.onHtmlDirty.listen((_) => htmlBusyLight.on());
+    _context.onHtmlDirty.listen((_) => busyLight.on());
     _context.onHtmlReconcile.listen((_) {
       executionService.replaceHtml(_context.htmlSource);
-      htmlBusyLight.reset();
+      busyLight.reset();
     });
 
-    _context.onCssDirty.listen((_) => cssBusyLight.on());
+    _context.onCssDirty.listen((_) => busyLight.on());
     _context.onCssReconcile.listen((_) {
       executionService.replaceCss(_context.cssSource);
-      cssBusyLight.reset();
+      busyLight.reset();
     });
 
-    _context.onDartDirty.listen((_) => dartBusyLight.on());
+    _context.onDartDirty.listen((_) => busyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
+
+    // Bind the editable files to the gist.
+    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'));
+    Property htmlDoc = new EditorDocumentProperty(_context.htmlDocument, 'html');
+    bind(htmlDoc, htmlFile);
+    bind(htmlFile, htmlDoc);
+
+    Property cssFile = new GistFileProperty(editableGist.getGistFile('styles.css'));
+    Property cssDoc = new EditorDocumentProperty(_context.cssDocument, 'css');
+    bind(cssDoc, cssFile);
+    bind(cssFile, cssDoc);
+
+    Property dartFile = new GistFileProperty(editableGist.getGistFile('main.dart'));
+    Property dartDoc = new EditorDocumentProperty(_context.dartDocument, 'dart');
+    bind(dartDoc, dartFile);
+    bind(dartFile, dartDoc);
 
     // Set up development options.
     options.registerOption('autopopup_code_completion', 'false');
@@ -273,11 +313,6 @@ class Playground {
     // Clear the splash.
     DSplash splash = new DSplash(querySelector('div.splash'));
     splash.hide();
-
-    _router = new Router();
-    _router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
-    _router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
-    _router.listen();
   }
 
   void _registerTab(Element element, String name) {
@@ -341,41 +376,6 @@ class Playground {
     });
   }
 
-  void _updateButtons() {
-    bool dirty = editableGist.dirty;
-    bool wasSaved = editableGist.id != null;
-
-    shareButton.disabled = !dirty;
-    reloadButton.disabled = !dirty || !wasSaved;
-  }
-
-  void _handleShareButton() {
-    ga.sendEvent('main', 'share');
-
-    Gist.createAnon(editableGist.backingGist).then((Gist newGist) {
-      print(newGist);
-      editableGist.setBackingGist(newGist);
-    }).catchError((e) {
-      String message = 'Error saving gist: ${e}';
-      DToast.showMessage(message);
-      _logger.severe(message);
-    });
-  }
-
-  void _handleReloadButton() {
-    // TODO:
-    print('todo: _handleReloadButton');
-  }
-
-  void _handleNewButton() {
-    if (editableGist.dirty) {
-      if (!window.confirm('Discard changes to the current pad?')) return;
-    }
-
-    ga.sendEvent('main', 'new');
-    editableGist.setBackingGist(createSampleGist());
-  }
-
   void _performAnalysis() {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
@@ -390,7 +390,7 @@ class Playground {
       // Discard if the document has been mutated since we requested analysis.
       if (input.source != _context.dartSource) return;
 
-      dartBusyLight.reset();
+      busyLight.reset();
 
       _displayIssues(result.issues);
 
@@ -413,7 +413,7 @@ class Playground {
           hasWarnings: result.issues.any((issue) => issue.kind == 'warning'));
     }).catchError((e) {
       _context.dartDocument.setAnnotations([]);
-      dartBusyLight.reset();
+      busyLight.reset();
       _updateRunButton();
       _logger.severe(e);
     });
@@ -461,8 +461,7 @@ class Playground {
         } else {
           final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
             ..allowElement('a', attributes: ['href']);
-          _docPanel.setInnerHtml(markdown.markdownToHtml(
-'''
+          _docPanel.setInnerHtml(markdown.markdownToHtml('''
 # `${result.info['description']}`\n\n
 ${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
 ${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
@@ -491,7 +490,7 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
     String value = select.value;
 
     if (isLegalGistId(value)) {
-      _router.go('gist', {'gist': value});
+      router.go('gist', {'gist': value});
     }
 
     select.value = '0';
@@ -499,23 +498,6 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
 
   void _setGistDescription(String description) {
     titleEditable.text = description == null ? '' : description;
-  }
-
-  void _setGistId(String title, String url) {
-    Element e = querySelector('header .header-gist-id');
-
-    if (title == null || url == null) {
-      e.text = '';
-    } else {
-      e.children.clear();
-
-      if (title.length > 10) title = title.substring(0, 10);
-
-      AnchorElement a = new AnchorElement(href: url);
-      a.text = title;
-      a.target = 'gist';
-      e.children.add(a);
-    }
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
@@ -585,8 +567,6 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
   }
 }
 
-// TODO: create pages (dart / html / css)
-
 class PlaygroundContext extends Context {
   final Editor editor;
 
@@ -618,6 +598,8 @@ class PlaygroundContext extends Context {
   }
 
   Document get dartDocument => _dartDoc;
+  Document get htmlDocument => _htmlDoc;
+  Document get cssDocument => _cssDoc;
 
   String get dartSource => _dartDoc.value;
   set dartSource(String value) {
@@ -683,12 +665,10 @@ class PlaygroundContext extends Context {
 }
 
 class InlineBracketsColon extends markdown.InlineSyntax {
-
   InlineBracketsColon() : super(r'\[:\s?((?:.|\n)*?)\s?:\]');
 
   String htmlEscape(String text) => HTML_ESCAPE.convert(text);
 
-  @override
   bool onMatch(markdown.InlineParser parser, Match match) {
     var element = new markdown.Element.text('code', htmlEscape(match[1]));
     parser.addNode(element);
@@ -700,20 +680,51 @@ class InlineBracketsColon extends markdown.InlineSyntax {
 // https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
 // for now it gets converted <code>someCodeReference</code>
 class InlineBrackets extends markdown.InlineSyntax {
-
-  // This matches URL text in the documentation, with a negative filter
-  // to detect if it is followed by a URL to prevent e.g.
-  // [text] (http://www.example.com) getting turned into
-  // <code>text</code> (http://www.example.com)
+  // This matches URL text in the documentation, with a negative filter to
+  // detect if it is followed by a URL to prevent e.g.
+  // `[text] (http://www.example.com)` getting turned into
+  // `<code>text</code> (http://www.example.com)`.
   InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\s?\()');
 
   String htmlEscape(String text) => HTML_ESCAPE.convert(text);
 
-  @override
   bool onMatch(markdown.InlineParser parser, Match match) {
     var element = new markdown.Element.text(
         'code', "<em>${htmlEscape(match[1])}</em>");
     parser.addNode(element);
     return true;
   }
+}
+
+class GistFileProperty implements Property {
+  final MutableGistFile file;
+
+  GistFileProperty(this.file);
+
+  get() => file.content;
+
+  void set(value) {
+    if (file.content != value) {
+      file.content = value;
+    }
+  }
+
+  Stream get onChanged => file.onChanged.map((value) {
+    return value;
+  });
+}
+
+class EditorDocumentProperty implements Property {
+  final Document document;
+  final String debugName;
+
+  EditorDocumentProperty(this.document, [this.debugName]);
+
+  get() => document.value;
+
+  void set(str) {
+    document.value = str == null ? '' : str;
+  }
+
+  Stream get onChanged => document.onChange.map((_) => get());
 }

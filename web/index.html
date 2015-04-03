@@ -38,16 +38,16 @@
 
   <body fullbleed layout vertical>
     <header layout horizontal>
-      <!-- div class="header-title">DartPad</div -->
+      <div class="header-title">DartPad <span class="minor">(β)</span></div>
       <div>
         <button type="button" id="newbutton">New…</button>
       </div>
       <div class="header-gist-name" flex></div>
       <div>
         <button type="button" id="sharebutton" disabled>Share</button>
-        <button type="button" id="reloadbutton" disabled>Reload</button>
+        <!-- button type="button" id="reloadbutton" disabled>Reload</button -->
       </div>
-      <div class="header-gist-id"></div>
+      <div class="header-gist-id"><a target='gist'></a></div>
       </div>
       <div>
         <select id="samples" required="false" style="width: 80px;">
