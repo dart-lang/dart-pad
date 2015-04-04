@@ -39,7 +39,7 @@ discovery(GrinderContext context) {
   // Generate the Dart library from the json discovery file.
   Pub.global.activate(context, 'discoveryapis_generator');
   Pub.global.run(context, 'discoveryapis_generator:generate', arguments: [
-    'generate',
+    'package',
     '--input-dir=doc/generated',
     '--output-dir=doc/gen_pkg',
     '--package-name=dartservices_clientlib'
