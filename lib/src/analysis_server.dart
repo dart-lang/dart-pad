@@ -57,9 +57,8 @@ class AnalysisServerWrapper {
 
   Future<FixesResponse> getFixes(String src, int offset) async {
     var results = _getFixesImpl(src, offset);
-
     return results.then((fixes) {
-        return new FixesResponse(fixes.fixes);
+      return new FixesResponse(fixes.fixes);
     });
   }
 
@@ -533,7 +532,7 @@ class CompleteResponse {
 }
 
 class FixesResponse {
-  final Fixes fixes;
+  final List<ProblemFix> fixes;
 
   FixesResponse(List<AnalysisErrorFixes> analysisErrorFixes) :
     this.fixes = _convert(analysisErrorFixes);
@@ -541,34 +540,55 @@ class FixesResponse {
   /**
    * Convert any non-string values from the contained maps.
    */
-  static Fixes _convert(List<AnalysisErrorFixes> list) {
-    var fixes = new List<Fix>();
-    list.forEach((errorFixes) {
-      List<Edit> edits = new List<Edit>();
-      errorFixes.fixes.forEach((sourceChange) {
-        sourceChange.edits.forEach((sourceFileEdits) {
-          sourceFileEdits.edits.forEach((sourceEdit) {
-            edits.add(new Edit(
-                sourceEdit.offset,
-                sourceEdit.length,
-                sourceEdit.replacement));
-            });
-          });
-        });
+  static List<ProblemFix> _convert(List<AnalysisErrorFixes> list) {
+    var problemsAndFixes = new List<ProblemFix>();
+    list.forEach((analysisErrorFix)
+        => problemsAndFixes.add(_convertAnalysisErrorFix(analysisErrorFix)));
 
-        var fix = new Fix(errorFixes.error.message, edits);
-        fixes.add(fix);
-      });
-    return new Fixes(fixes);
+    return problemsAndFixes;
   }
+
+  static ProblemFix _convertAnalysisErrorFix(AnalysisErrorFixes analysisErrFix) {
+    String problemMessage = analysisErrFix.error.message;
+    int problemOffset = analysisErrFix.error.location.offset;
+    int problemLength = analysisErrFix.error.location.length;
+
+    List<Fix> possibleFixes = new List<Fix>();
+
+    for (var sourceChange in analysisErrFix.fixes) {
+      List<Edit> edits = new List<Edit>();
+      for (var sourceFileEdit in sourceChange.edits) {
+        for (var sourceEdit in sourceFileEdit.edits) {
+          edits.add(new Edit(
+              sourceEdit.offset,
+              sourceEdit.length,
+              sourceEdit.replacement));
+        }
+      }
+      Fix possibleFix = new Fix(sourceChange.message, edits);
+      possibleFixes.add(possibleFix);
+    }
+
+    return new ProblemFix(
+        possibleFixes,
+        problemMessage,
+        problemOffset,
+        problemLength);
+  }
+
 }
 
-class Fixes {
+/// Set of fixes for a particular problem.
+class ProblemFix {
   final List<Fix> fixes;
+  final String problemMessage;
+  final int offset;
+  final int length;
 
-  Fixes(this.fixes);
+  ProblemFix(this.fixes, this.problemMessage, this.offset, this.length);
 }
 
+/// A single way of fixing a particular problem
 class Fix {
   final String message;
   final List<Edit> edits;
