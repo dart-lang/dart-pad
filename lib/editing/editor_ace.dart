@@ -177,6 +177,8 @@ class _AceDocument extends Document {
 
   void markClean() => session.undoManager.markClean();
 
+  void applyEdit(Edit edit) { }
+
   void setAnnotations(List<Annotation> annotations) {
 //    if (markers.isNotEmpty) {
 //      for (int markerId in markers) {

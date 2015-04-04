@@ -203,9 +203,24 @@ class Playground {
       _handleHelp();
     });
 
+    keys.bind(['alt-enter', 'ctrl-1'], (){
+      if (editor.document.hasIssueAtOffset) {
+        editor.autoComplete(quickFix: true);
+      }
+    });
+
+    document.onClick.listen((e) {
+      if (editor.document.hasIssueAtOffset) {
+        if (editor.document.selection.isNotEmpty) {
+          if (querySelectorAll(".issue").any((n) => n == e.target)) editor.autoComplete(quickFix: true);
+        } else {
+          editor.autoComplete(quickFix: true);
+        }
+      }
+    });
+
     keys.bind(['ctrl-space', 'macctrl-space'], (){
-      editor.completionAutoInvoked = false;
-      editor.execCommand('autocomplete');
+      editor.autoComplete();
       _handleHelp();
     });
 
@@ -308,8 +323,7 @@ class Playground {
 
     if (context.focusedEditor == 'dart') {
       if (e.keyCode == KeyCode.PERIOD) {
-        editor.completionAutoInvoked = true;
-        editor.execCommand("autocomplete");
+        editor.autoComplete(autoInvoked: true);
         _handleHelp();
       }
     }
@@ -320,23 +334,20 @@ class Playground {
     if (context.focusedEditor == 'dart') {
       RegExp exp = new RegExp(r"[A-Z]");
         if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-          editor.completionAutoInvoked = true;
-          editor.execCommand("autocomplete");
+          editor.autoComplete(autoInvoked: true);
           _handleHelp();
         }
     } else if (context.focusedEditor == "html") {
       if (options.getValueBool('autopopup_code_completion')) {
         // TODO: autocompletion for attirbutes
         if (printKeyEvent(e) == "shift-,") {
-          editor.completionAutoInvoked = true;
-          editor.execCommand("autocomplete");
+          editor.autoComplete(autoInvoked: true);
         }
       }
     } else if (context.focusedEditor == "css") {
       RegExp exp = new RegExp(r"[A-Z]");
       if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-        editor.completionAutoInvoked = true;
-        editor.execCommand("autocomplete");
+        editor.autoComplete(autoInvoked: true);
       }
     }
   }
