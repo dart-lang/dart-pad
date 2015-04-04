@@ -10,9 +10,10 @@ import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 
+import 'api_classes.dart';
+import 'analysis_server.dart';
 import 'analyzer.dart';
 import 'compiler.dart';
-import 'analysis_server.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
 final Logger _logger = new Logger('common_server');
@@ -34,36 +35,6 @@ abstract class SourceRequestRecorder {
 abstract class PersistentCounter {
   Future increment(String name, {int increment : 1});
   Future<int> getTotal(String name);
-}
-
-class SourceRequest {
-  @ApiProperty(required: true)
-  String source;
-  int offset;
-}
-
-class CompileResponse {
-  final String result;
-
-  CompileResponse(this.result);
-}
-
-class CounterRequest {
-  @ApiProperty(required: true)
-  String name;
-}
-
-class CounterResponse {
-  final int count;
-
-  CounterResponse(this.count);
-}
-
-
-class DocumentResponse {
-  final Map<String, String> info;
-
-  DocumentResponse(this.info);
 }
 
 @ApiClass(name: 'dartservices', version: 'v1')
@@ -134,6 +105,29 @@ class CommonServer {
 
     return _complete(source, offset);
   }
+
+
+  @ApiMethod(method: 'POST', path: 'fixes')
+  Future<FixesResponse> fix(SourceRequest request) {
+    if (request.offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
+    }
+
+    return _fix(request.source, request.offset);
+  }
+
+  @ApiMethod(method: 'GET', path: 'fixes')
+  Future<FixesResponse> fixGet({String source, int offset}) {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
+    }
+    if (offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
+    }
+
+    return _fix(source, offset);
+  }
+
 
   @ApiMethod(method: 'POST', path: 'document')
   Future<DocumentResponse> document(SourceRequest request) {
@@ -248,6 +242,12 @@ class CommonServer {
     counter.increment("Completions");
     return analysisServer.complete(source, offset);
   }
+
+  Future<FixesResponse> _fix(String source, int offset) async {
+      srcRequestRecorder.record("FIX", source, offset);
+      counter.increment("Fixes");
+      return analysisServer.getFixes(source, offset);
+    }
 
   Future<String> checkCache(String query) => cache.get(query);
 

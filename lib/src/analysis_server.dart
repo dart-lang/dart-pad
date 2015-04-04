@@ -5,14 +5,15 @@
 /// A wrapper around an analysis server instance
 library services.analysis_server;
 
-import 'dart:io' as io;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'package:logging/logging.dart';
-import 'package:rpc/rpc.dart';
+import 'dart:io' as io;
 
 import 'package:analysis_server/src/protocol.dart';
+import 'package:logging/logging.dart';
+
+import 'api_classes.dart';
 
 /**
  * Type of callbacks used to process notifications.
@@ -55,6 +56,13 @@ class AnalysisServerWrapper {
     });
   }
 
+  Future<FixesResponse> getFixes(String src, int offset) async {
+    var results = _getFixesImpl(src, offset);
+    return results.then((fixes) {
+      return new FixesResponse(fixes.fixes);
+    });
+  }
+
   /// Cleanly shutdown the Analysis Server.
   Future shutdown() => serverConnection.sendServerShutdown();
 
@@ -68,6 +76,13 @@ class AnalysisServerWrapper {
 
     return serverConnection.completionResults.handleError(
         (error) => throw "Completion failed").first;
+  }
+
+  _getFixesImpl(String src, int offset) async {
+    await serverConnection._ensureSetup();
+
+    serverConnection.sendAddOverlay(src);
+    return await serverConnection.sendGetFixes(offset);
   }
 
   /// Warm up the analysis server to be ready for use.
@@ -405,6 +420,14 @@ class _Server {
       });
     }
 
+    Future<EditGetFixesResult> sendGetFixes(int offset) {
+      String file = psuedoFilePath;
+      var params = new EditGetFixesParams(file, offset).toJson();
+      return send("edit.getFixes", params).then((result) {
+        ResponseDecoder decoder = new ResponseDecoder(null);
+        return new EditGetFixesResult.fromJson(decoder, 'result', result);
+      });
+    }
 
     Future<AnalysisUpdateContentResult> sendAddOverlay(String contents) {
 
@@ -477,34 +500,6 @@ class _Server {
   }
 }
 
-class CompleteResponse {
-  @ApiProperty(description: 'The offset of the start of the text to be replaced.')
-  final int replacementOffset;
 
-  @ApiProperty(description: 'The length of the text to be replaced.')
-  final int replacementLength;
 
-  final List<Map<String, String>> completions;
 
-  CompleteResponse(this.replacementOffset, this.replacementLength,
-      List<Map> completions) :
-    this.completions = _convert(completions);
-
-  /**
-   * Convert any non-string values from the contained maps.
-   */
-  static List<Map<String, String>> _convert(List<Map> list) {
-    return list.map((m) {
-      Map newMap = {};
-      for (String key in m.keys) {
-        var data = m[key];
-        // TODO: Properly support Lists, Maps (this is a hack).
-        if (data is Map || data is List) {
-          data = JSON.encode(data);
-        }
-        newMap[key] = '${data}';
-      }
-      return newMap;
-    }).toList();
-  }
-}
