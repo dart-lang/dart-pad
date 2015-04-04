@@ -149,7 +149,6 @@ class FixesResponse {
 
 }
 
-//TODO(lukechurch): Move these to a seperate file
 /// Set of fixes for a particular problem.
 class ProblemFix {
   final List<Fix> fixes;
