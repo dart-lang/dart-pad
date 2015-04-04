@@ -55,6 +55,14 @@ class AnalysisServerWrapper {
     });
   }
 
+  Future<FixesResponse> getFixes(String src, int offset) async {
+    var results = _getFixesImpl(src, offset);
+
+    return results.then((fixes) {
+        return new FixesResponse(fixes.fixes);
+    });
+  }
+
   /// Cleanly shutdown the Analysis Server.
   Future shutdown() => serverConnection.sendServerShutdown();
 
@@ -68,6 +76,13 @@ class AnalysisServerWrapper {
 
     return serverConnection.completionResults.handleError(
         (error) => throw "Completion failed").first;
+  }
+
+  _getFixesImpl(String src, int offset) async {
+    await serverConnection._ensureSetup();
+
+    serverConnection.sendAddOverlay(src);
+    return await serverConnection.sendGetFixes(offset);
   }
 
   /// Warm up the analysis server to be ready for use.
@@ -405,6 +420,14 @@ class _Server {
       });
     }
 
+    Future<EditGetFixesResult> sendGetFixes(int offset) {
+      String file = psuedoFilePath;
+      var params = new EditGetFixesParams(file, offset).toJson();
+      return send("edit.getFixes", params).then((result) {
+        ResponseDecoder decoder = new ResponseDecoder(null);
+        return new EditGetFixesResult.fromJson(decoder, 'result', result);
+      });
+    }
 
     Future<AnalysisUpdateContentResult> sendAddOverlay(String contents) {
 
@@ -508,3 +531,59 @@ class CompleteResponse {
     }).toList();
   }
 }
+
+class FixesResponse {
+  final Fixes fixes;
+
+  FixesResponse(List<AnalysisErrorFixes> analysisErrorFixes) :
+    this.fixes = _convert(analysisErrorFixes);
+
+  /**
+   * Convert any non-string values from the contained maps.
+   */
+  static Fixes _convert(List<AnalysisErrorFixes> list) {
+    var fixes = new List<Fix>();
+    list.forEach((errorFixes) {
+      List<Edit> edits = new List<Edit>();
+      errorFixes.fixes.forEach((sourceChange) {
+        sourceChange.edits.forEach((sourceFileEdits) {
+          sourceFileEdits.edits.forEach((sourceEdit) {
+            edits.add(new Edit(
+                sourceEdit.offset,
+                sourceEdit.length,
+                sourceEdit.replacement));
+            });
+          });
+        });
+
+        var fix = new Fix(errorFixes.error.message, edits);
+        fixes.add(fix);
+      });
+    return new Fixes(fixes);
+  }
+}
+
+class Fixes {
+  final List<Fix> fixes;
+
+  Fixes(this.fixes);
+}
+
+class Fix {
+  final String message;
+  final List<Edit> edits;
+
+  Fix(this.message, this.edits);
+}
+
+class Edit {
+  final int offset;
+  final int length;
+  final String replacement;
+
+  Edit(this.offset, this.length, this.replacement);
+}
+
+
+
+

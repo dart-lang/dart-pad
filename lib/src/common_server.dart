@@ -135,6 +135,29 @@ class CommonServer {
     return _complete(source, offset);
   }
 
+
+  @ApiMethod(method: 'POST', path: 'fixes')
+  Future<FixesResponse> fix(SourceRequest request) {
+    if (request.offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
+    }
+
+    return _fix(request.source, request.offset);
+  }
+
+  @ApiMethod(method: 'GET', path: 'complete')
+  Future<FixesResponse> fixGet({String source, int offset}) {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
+    }
+    if (offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
+    }
+
+    return _fix(source, offset);
+  }
+
+
   @ApiMethod(method: 'POST', path: 'document')
   Future<DocumentResponse> document(SourceRequest request) {
     return _document(request.source, request.offset);
@@ -248,6 +271,12 @@ class CommonServer {
     counter.increment("Completions");
     return analysisServer.complete(source, offset);
   }
+
+  Future<FixesResponse> _fix(String source, int offset) async {
+      srcRequestRecorder.record("FIX", source, offset);
+      counter.increment("Fixes");
+      return analysisServer.getFixes(source, offset);
+    }
 
   Future<String> checkCache(String query) => cache.get(query);
 
