@@ -14,6 +14,7 @@ void main() {
   setupCompile();
   setupComplete();
   setupDocument();
+  setupFixes();
 }
 
 void setupAnalyze() {
@@ -62,6 +63,23 @@ void setupDocument() {
   Element output = querySelector('#documentSection .output');
   Element offsetElement = querySelector('#documentSection .offset');
   ButtonElement button = querySelector('#documentSection button');
+  button.onClick.listen((e) {
+    invoke(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
+  });
+  offsetElement.text = 'offset ${_getOffset(editor)}';
+
+  editor.onCursorActivity.listen((_) {
+    offsetElement.text = 'offset ${_getOffset(editor)}';
+  });
+}
+
+void setupFixes() {
+  String api = querySelector('#fixesSection h3').text;
+
+  CodeMirror editor = createEditor(querySelector('#fixesSection .editor'));
+  Element output = querySelector('#fixesSection .output');
+  Element offsetElement = querySelector('#fixesSection .offset');
+  ButtonElement button = querySelector('#fixesSection button');
   button.onClick.listen((e) {
     invoke(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
   });
