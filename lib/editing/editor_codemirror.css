@@ -177,6 +177,17 @@ li.CodeMirror-hint-active {
   background: radial-gradient(#fff, #eee);
 }
 
+.type-quick_fix {
+  font-family: "Inconsolata", sans-serif;
+  font-size: 12pt;
+}
+
+.type-quick_fix::before {
+  content: " ";
+  background: url('bulb.svg');
+  background-size: 15px 15px;
+}
+
 /* Chrome specific styling hack, see #236. */
 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
   #documentation h1::before,

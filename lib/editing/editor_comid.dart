@@ -222,6 +222,8 @@ class _CodeMirrorDocument extends Document {
 
   void markClean() => doc.markClean();
 
+  void applyEdit(Edit edit) { }
+
   void setAnnotations(List<Annotation> annotations) {
     // TODO: Codemirror lint has no support for info markers - contribute some?
 //    CodeMirror cm = parent.cm;
