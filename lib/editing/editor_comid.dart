@@ -172,6 +172,9 @@ class _CodeMirrorEditor extends Editor {
   // TODO: Add a cursorCoords getter for comid.
   Point get cursorCoords => null;
 
+  // TODO: Add a onMouseDownn getter for comid.
+  Stream get onMouseDown => null;
+
   bool get hasFocus => cm.state.focused;
 
   void focus() => cm.focus();
