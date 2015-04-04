@@ -302,7 +302,6 @@ class Playground {
     querySelector("#consoletab").setAttribute('selected','');
   }
 
-
   _handleAutoCompletion(KeyboardEvent e) {
     // If we're already in completion bail.
     if (_isCompletionActive) return;
@@ -414,7 +413,8 @@ class Playground {
   }
 
   void _handleHelp() {
-    if (context.focusedEditor == 'dart' && editor.hasFocus && _isDocPanelOpen && editor.document.selection.isEmpty) {
+    if (context.focusedEditor == 'dart' && editor.hasFocus && _isDocPanelOpen &&
+        editor.document.selection.isEmpty) {
       ga.sendEvent('main', 'help');
 
       SourceRequest input;
@@ -478,10 +478,14 @@ ${info['libraryName'] == null ? "" : "**Library:** ${apiLink == null ? info['lib
   }
 
   String _dartApiLink({String libraryName, String enclosingClassName, String memberName}){
+    final String apiBase =
+        'https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer';
+
     StringBuffer apiLink = new StringBuffer();
+
     if (libraryName != null) {
       if (libraryName.contains("dart:")) {
-        apiLink.write( "https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/$libraryName");
+        apiLink.write("$apiBase/$libraryName");
         memberName = '${memberName == null ? "" : "#id_${memberName}"}';
         if (enclosingClassName == null) {
           apiLink.write(memberName);
@@ -491,6 +495,7 @@ ${info['libraryName'] == null ? "" : "**Library:** ${apiLink == null ? info['lib
         return apiLink.toString();
       }
     }
+
     return null;
   }
 
