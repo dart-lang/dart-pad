@@ -2,32 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 library dartpad.parameter_popup;
 
 import 'dart:convert';
 import 'dart:html';
 import 'dart:math' as math;
 
+import 'context.dart';
 import 'dartservices_client/v1.dart';
 import 'editing/editor.dart';
-import 'context.dart';
 import 'services/common.dart';
 
 class ParameterPopup {
-  DartservicesApi servicesApi;
-  Context context;
-  Editor editor;
   static const List parKeys = const[
-    KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO,
-    KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN];
+      KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO,
+      KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN
+  ];
 
-  HtmlEscape sanitizer = const HtmlEscape();
+  final DartservicesApi servicesApi;
+  final Context context;
+  final Editor editor;
+
+  final HtmlEscape sanitizer = const HtmlEscape();
 
   ParameterPopup(this.servicesApi, this.context, this.editor) {
-    document.onKeyDown.listen((e) => handleKeyDown(e));
-    document.onKeyUp.listen((e) => handleKeyUp(e));
-    document.onClick.listen((e) => handleClick());
+    document.onKeyDown.listen((e) => _handleKeyDown(e));
+    document.onKeyUp.listen((e) => _handleKeyUp(e));
+    document.onClick.listen((e) => _handleClick());
   }
 
   bool get parPopupActive => querySelector(".parameter-hints") != null;
@@ -36,24 +37,24 @@ class ParameterPopup {
     document.body.children.remove(querySelector(".parameter-hints"));
   }
 
-  void handleKeyDown(KeyboardEvent e) {
+  void _handleKeyDown(KeyboardEvent e) {
     if (e.keyCode == KeyCode.ENTER) {
       _lookupParameterInfo();
     }
   }
 
-  void handleKeyUp(KeyboardEvent e) {
+  void _handleKeyUp(KeyboardEvent e) {
     if (parPopupActive || parKeys.contains(e.keyCode)) {
       _lookupParameterInfo();
     }
   }
 
-  void handleClick() {
+  void _handleClick() {
     if (context.focusedEditor != 'dart' || !editor.hasFocus) {
       remove();
-      return;
+    } else {
+      _lookupParameterInfo();
     }
-    _lookupParameterInfo();
   }
 
   void _lookupParameterInfo() {
@@ -66,7 +67,8 @@ class ParameterPopup {
       return;
     }
 
-    int openingParenIndex = parInfo["openingParenIndex"], parameterIndex = parInfo["parameterIndex"];
+    int openingParenIndex = parInfo["openingParenIndex"];
+    int parameterIndex = parInfo["parameterIndex"];
     offset = openingParenIndex - 1;
 
     // We request documentation info of what is before the parenthesis.
@@ -74,44 +76,44 @@ class ParameterPopup {
       ..source = source
       ..offset = offset;
 
-    servicesApi.document(input).timeout(serviceCallTimeout)
-        .then((DocumentResponse result) {
-          if (!result.info.containsKey("parameters")) {
-            remove();
-            return;
-          }
-          List parameterInfo = result.info["parameters"] as List;
-          String outputString = "";
-          if (parameterInfo.length == 0) {
-            outputString += "<code>&lt;no parameters&gt;</code>";
-          } else if (parameterInfo.length < parameterIndex + 1) {
-            outputString += "<code>too many parameters listed</code>";
+    servicesApi.document(input).timeout(serviceCallTimeout).then(
+        (DocumentResponse result) {
+      if (!result.info.containsKey("parameters")) {
+        remove();
+        return;
+      }
+      List parameterInfo = result.info["parameters"] as List;
+      String outputString = "";
+      if (parameterInfo.length == 0) {
+        outputString += "<code>&lt;no parameters&gt;</code>";
+      } else if (parameterInfo.length < parameterIndex + 1) {
+        outputString += "<code>too many parameters listed</code>";
+      } else {
+        outputString += "<code>";
+
+        for (int i = 0; i < parameterInfo.length; i++) {
+          if (i == parameterIndex) {
+            outputString += '<em>${parameterInfo[i]}</em>';
           } else {
-            outputString += "<code>";
-
-            for (int i = 0; i < parameterInfo.length; i++) {
-              if (i == parameterIndex) {
-                outputString += '<em>${parameterInfo[i]}</em>';
-              } else {
-                outputString += '${sanitizer.convert(parameterInfo[i])}';
-              }
-              if (i != parameterInfo.length - 1) {
-                outputString += ", ";
-              }
-            }
-            outputString += "</code>";
+            outputString += '${sanitizer.convert(parameterInfo[i])}';
           }
-
-          // Check if cursor is still in parameter position
-          offset = editor.document.indexFromPos(editor.document.cursor);
-          source = editor.document.value;
-          parInfo = _parameterInfo(source, offset);
-          if (parInfo == null) {
-            remove();
-            return;
+          if (i != parameterInfo.length - 1) {
+            outputString += ", ";
           }
-          _showParameterPopup(outputString);
-        });
+        }
+        outputString += "</code>";
+      }
+
+      // Check if cursor is still in parameter position
+      offset = editor.document.indexFromPos(editor.document.cursor);
+      source = editor.document.value;
+      parInfo = _parameterInfo(source, offset);
+      if (parInfo == null) {
+        remove();
+        return;
+      }
+      _showParameterPopup(outputString);
+    });
   }
 
   void _showParameterPopup(String string) {
@@ -128,7 +130,8 @@ class ParameterPopup {
       parameterHint.innerHtml = string;
 
       //update popup position
-      int newLeft = math.max(cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 0);
+      int newLeft = math.max(
+          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 0);
 
       var parameterPopup = querySelector(".parameter-hints")
         ..style.top = "${cursorCoords.y - lineHeight - 5}px";
@@ -141,7 +144,8 @@ class ParameterPopup {
       var parameterHint = new SpanElement()
         ..innerHtml = string
         ..classes.add("parameter-hint");
-      int left = math.max(cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 0);
+      int left = math.max(
+          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 0);
       var parameterPopup = new DivElement()
         ..classes.add("parameter-hints")
         ..style.left = "${left}px"
@@ -187,6 +191,7 @@ class ParameterPopup {
         }
       }
     }
+
     return openingParenIndex == null ? null : {
       "openingParenIndex" : openingParenIndex,
       "parameterIndex" : parameterIndex

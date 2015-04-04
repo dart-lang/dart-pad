@@ -18,9 +18,7 @@ abstract class EditorFactory {
   Editor createFromElement(html.Element element);
 
   bool get supportsCompletionPositioning;
-  // TODO: codemirror gives the client more control over where to insert the
-  // completions. With Ace, you can only insert from the requested position
-  // forward.
+
   void registerCompleter(String mode, CodeCompleter completer);
 }
 
@@ -34,16 +32,14 @@ abstract class Editor {
   Document get document;
 
   /**
-   * Runs the command with the given name on the editor.
-   * Only implemented for codemirror and comid.
-   * Returns null for ace editor.
+   * Runs the command with the given name on the editor. Only implemented for
+   * codemirror and comid; returns `null` for ace editor.
    */
   void execCommand(String name);
 
   /**
-   * Checks if the completion popup is displayed.
-   * Only implemented for codemirror.
-   * Returns null for ace editor and comid.
+   * Checks if the completion popup is displayed. Only implemented for
+   * codemirror; returns `null` for ace editor and comid.
    */
   bool get completionActive;
 
@@ -56,9 +52,9 @@ abstract class Editor {
   set theme(String str);
 
   /**
-   * Returns the cursor coordinates in pixels.
-   * cursorCoords.x corresponds to left and cursorCoords.y corresponds to top.
-   * Only implemented for codemirror, returns null for ace editor and comid.
+   * Returns the cursor coordinates in pixels. cursorCoords.x corresponds to
+   * left and cursorCoords.y corresponds to top. Only implemented for
+   * codemirror, returns `null` for ace editor and comid.
    */
   Point get cursorCoords;
 

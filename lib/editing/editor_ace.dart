@@ -117,7 +117,7 @@ class _AceEditor extends Editor {
   }
 
   // TODO: Implement execCommand for ace.
-  void execCommand(String name) => null;
+  void execCommand(String name) { }
 
   // TODO: Implement completionActive for ace.
   bool get completionActive => false;
@@ -136,7 +136,7 @@ class _AceEditor extends Editor {
 
   bool get hasFocus => editor.isFocused;
 
-  // TODO: Add a cursorCoords getter for ace
+  // TODO: Add a cursorCoords getter for ace.
   Point get cursorCoords => null;
 
   void focus() => editor.focus();
