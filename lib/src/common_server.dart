@@ -145,7 +145,7 @@ class CommonServer {
     return _fix(request.source, request.offset);
   }
 
-  @ApiMethod(method: 'GET', path: 'complete')
+  @ApiMethod(method: 'GET', path: 'fixes')
   Future<FixesResponse> fixGet({String source, int offset}) {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
