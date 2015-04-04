@@ -17,6 +17,13 @@ void main() {
 }
 ''';
 
+String quickFixesCode =
+r'''
+void main() {
+  int i = 0
+}
+''';
+
 void defineTests() {
   AnalysisServerWrapper analysisServer;
 
@@ -29,7 +36,7 @@ void defineTests() {
       analysisServer.shutdown();
     });
 
-    test('simple', () {
+    test('simple_completion', () {
       //Just after i.
       return analysisServer.complete(completionCode, 32).then(
           (CompleteResponse results) {
@@ -39,6 +46,26 @@ void defineTests() {
         expect(completionsContains(results, "codeUnitAt"), false);
       });
     });
+
+    test('simple_quickFix', () {
+          //Just after i.
+          return analysisServer.getFixes(quickFixesCode, 25).then(
+              (FixesResponse results) {
+            expect(results.fixes.length, 1);
+            expect(results.fixes[0].offset, 24);
+            expect(results.fixes[0].length, 1); //we need an insertion
+
+            // We should be getting an insert ; fix
+            expect(results.fixes[0].fixes.length, 1);
+            Fix fix = results.fixes[0].fixes[0];
+            expect(fix.message.contains(";"), true);
+            expect(fix.edits[0].length, 0);
+            expect(fix.edits[0].offset, 25);
+            expect(fix.edits[0].replacement, ";");
+          });
+        });
+
+
   });
 }
 
