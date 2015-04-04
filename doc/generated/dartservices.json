@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "8bcaf7f48fb21b5334e009955c1050f8c222f8c7",
+ "etag": "3cfa20e22ae3ec9a709fd7e8e7bf539bbc55f3ba",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -107,6 +107,73 @@
        "type": "string"
       }
      }
+    }
+   }
+  },
+  "FixesResponse": {
+   "id": "FixesResponse",
+   "type": "object",
+   "properties": {
+    "fixes": {
+     "type": "array",
+     "items": {
+      "$ref": "ProblemFix"
+     }
+    }
+   }
+  },
+  "ProblemFix": {
+   "id": "ProblemFix",
+   "type": "object",
+   "properties": {
+    "fixes": {
+     "type": "array",
+     "items": {
+      "$ref": "Fix"
+     }
+    },
+    "problemMessage": {
+     "type": "string"
+    },
+    "offset": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "length": {
+     "type": "integer",
+     "format": "int32"
+    }
+   }
+  },
+  "Fix": {
+   "id": "Fix",
+   "type": "object",
+   "properties": {
+    "message": {
+     "type": "string"
+    },
+    "edits": {
+     "type": "array",
+     "items": {
+      "$ref": "Edit"
+     }
+    }
+   }
+  },
+  "Edit": {
+   "id": "Edit",
+   "type": "object",
+   "properties": {
+    "offset": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "length": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "replacement": {
+     "type": "string"
     }
    }
   },
@@ -235,6 +302,42 @@
    "parameterOrder": [],
    "response": {
     "$ref": "CompleteResponse"
+   }
+  },
+  "fix": {
+   "id": "CommonServer.fix",
+   "path": "fixes",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "FixesResponse"
+   }
+  },
+  "fixGet": {
+   "id": "CommonServer.fixGet",
+   "path": "fixes",
+   "httpMethod": "GET",
+   "parameters": {
+    "source": {
+     "type": "string",
+     "description": "Query parameter: 'source'.",
+     "required": false,
+     "location": "query"
+    },
+    "offset": {
+     "type": "integer",
+     "description": "Query parameter: 'offset'.",
+     "required": false,
+     "location": "query"
+    }
+   },
+   "parameterOrder": [],
+   "response": {
+    "$ref": "FixesResponse"
    }
   },
   "document": {

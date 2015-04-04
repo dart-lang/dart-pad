@@ -1,3 +1,5 @@
+// This is a generated file (see the discoveryapis_generator project).
+
 library dartservices_clientlib.dartservices.v1;
 
 import 'dart:core' as core;
@@ -14,7 +16,6 @@ export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
 
 const core.String USER_AGENT = 'dart-api-client dartservices/v1';
 
-/** Not documented yet. */
 class DartservicesApi {
 
   final commons.ApiRequester _requester;
@@ -23,8 +24,6 @@ class DartservicesApi {
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
-   * Not documented yet.
-   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -63,8 +62,6 @@ class DartservicesApi {
   }
 
   /**
-   * Not documented yet.
-   *
    * Request parameters:
    *
    * [source] - Query parameter: 'source'.
@@ -103,8 +100,6 @@ class DartservicesApi {
   }
 
   /**
-   * Not documented yet.
-   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -143,8 +138,6 @@ class DartservicesApi {
   }
 
   /**
-   * Not documented yet.
-   *
    * Request parameters:
    *
    * [source] - Query parameter: 'source'.
@@ -183,8 +176,6 @@ class DartservicesApi {
   }
 
   /**
-   * Not documented yet.
-   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -223,8 +214,6 @@ class DartservicesApi {
   }
 
   /**
-   * Not documented yet.
-   *
    * Request parameters:
    *
    * [source] - Query parameter: 'source'.
@@ -268,8 +257,6 @@ class DartservicesApi {
   }
 
   /**
-   * Not documented yet.
-   *
    * Request parameters:
    *
    * [name] - Query parameter: 'name'.
@@ -308,8 +295,6 @@ class DartservicesApi {
   }
 
   /**
-   * Not documented yet.
-   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -348,8 +333,6 @@ class DartservicesApi {
   }
 
   /**
-   * Not documented yet.
-   *
    * Request parameters:
    *
    * [source] - Query parameter: 'source'.
@@ -392,28 +375,102 @@ class DartservicesApi {
     return _response.then((data) => new DocumentResponse.fromJson(data));
   }
 
+  /**
+   * [request] - The metadata request object.
+   *
+   * Request parameters:
+   *
+   * Completes with a [FixesResponse].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<FixesResponse> fix(SourceRequest request) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (request != null) {
+      _body = convert.JSON.encode((request).toJson());
+    }
+
+
+    _url = 'fixes';
+
+    var _response = _requester.request(_url,
+                                       "POST",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new FixesResponse.fromJson(data));
+  }
+
+  /**
+   * Request parameters:
+   *
+   * [source] - Query parameter: 'source'.
+   *
+   * [offset] - Query parameter: 'offset'.
+   *
+   * Completes with a [FixesResponse].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<FixesResponse> fixGet({core.String source, core.int offset}) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (source != null) {
+      _queryParams["source"] = [source];
+    }
+    if (offset != null) {
+      _queryParams["offset"] = ["${offset}"];
+    }
+
+
+    _url = 'fixes';
+
+    var _response = _requester.request(_url,
+                                       "GET",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new FixesResponse.fromJson(data));
+  }
+
 }
 
 
 
-/** Not documented yet. */
 class AnalysisIssue {
-  /** Not documented yet. */
   core.int charLength;
 
-  /** Not documented yet. */
   core.int charStart;
 
-  /** Not documented yet. */
   core.String kind;
 
-  /** Not documented yet. */
   core.int line;
 
-  /** Not documented yet. */
   core.String location;
 
-  /** Not documented yet. */
   core.String message;
 
 
@@ -465,9 +522,7 @@ class AnalysisIssue {
 }
 
 
-/** Not documented yet. */
 class AnalysisResults {
-  /** Not documented yet. */
   core.List<AnalysisIssue> issues;
 
 
@@ -489,9 +544,7 @@ class AnalysisResults {
 }
 
 
-/** Not documented yet. */
 class CompileResponse {
-  /** Not documented yet. */
   core.String result;
 
 
@@ -513,9 +566,7 @@ class CompileResponse {
 }
 
 
-/** Not documented yet. */
 class CompleteResponse {
-  /** Not documented yet. */
   core.List<core.Map<core.String, core.String>> completions;
 
   /** The length of the text to be replaced. */
@@ -555,9 +606,7 @@ class CompleteResponse {
 }
 
 
-/** Not documented yet. */
 class CounterResponse {
-  /** Not documented yet. */
   core.int count;
 
 
@@ -579,9 +628,7 @@ class CounterResponse {
 }
 
 
-/** Not documented yet. */
 class DocumentResponse {
-  /** Not documented yet. */
   core.Map<core.String, core.String> info;
 
 
@@ -603,12 +650,145 @@ class DocumentResponse {
 }
 
 
-/** Not documented yet. */
-class SourceRequest {
-  /** Not documented yet. */
+class Edit {
+  core.int length;
+
   core.int offset;
 
-  /** Not documented yet. */
+  core.String replacement;
+
+
+  Edit();
+
+  Edit.fromJson(core.Map _json) {
+    if (_json.containsKey("length")) {
+      length = _json["length"];
+    }
+    if (_json.containsKey("offset")) {
+      offset = _json["offset"];
+    }
+    if (_json.containsKey("replacement")) {
+      replacement = _json["replacement"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (length != null) {
+      _json["length"] = length;
+    }
+    if (offset != null) {
+      _json["offset"] = offset;
+    }
+    if (replacement != null) {
+      _json["replacement"] = replacement;
+    }
+    return _json;
+  }
+}
+
+
+class Fix {
+  core.List<Edit> edits;
+
+  core.String message;
+
+
+  Fix();
+
+  Fix.fromJson(core.Map _json) {
+    if (_json.containsKey("edits")) {
+      edits = _json["edits"].map((value) => new Edit.fromJson(value)).toList();
+    }
+    if (_json.containsKey("message")) {
+      message = _json["message"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (edits != null) {
+      _json["edits"] = edits.map((value) => (value).toJson()).toList();
+    }
+    if (message != null) {
+      _json["message"] = message;
+    }
+    return _json;
+  }
+}
+
+
+class FixesResponse {
+  core.List<ProblemFix> fixes;
+
+
+  FixesResponse();
+
+  FixesResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("fixes")) {
+      fixes = _json["fixes"].map((value) => new ProblemFix.fromJson(value)).toList();
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (fixes != null) {
+      _json["fixes"] = fixes.map((value) => (value).toJson()).toList();
+    }
+    return _json;
+  }
+}
+
+
+class ProblemFix {
+  core.List<Fix> fixes;
+
+  core.int length;
+
+  core.int offset;
+
+  core.String problemMessage;
+
+
+  ProblemFix();
+
+  ProblemFix.fromJson(core.Map _json) {
+    if (_json.containsKey("fixes")) {
+      fixes = _json["fixes"].map((value) => new Fix.fromJson(value)).toList();
+    }
+    if (_json.containsKey("length")) {
+      length = _json["length"];
+    }
+    if (_json.containsKey("offset")) {
+      offset = _json["offset"];
+    }
+    if (_json.containsKey("problemMessage")) {
+      problemMessage = _json["problemMessage"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (fixes != null) {
+      _json["fixes"] = fixes.map((value) => (value).toJson()).toList();
+    }
+    if (length != null) {
+      _json["length"] = length;
+    }
+    if (offset != null) {
+      _json["offset"] = offset;
+    }
+    if (problemMessage != null) {
+      _json["problemMessage"] = problemMessage;
+    }
+    return _json;
+  }
+}
+
+
+class SourceRequest {
+  core.int offset;
+
   core.String source;
 
 
@@ -634,5 +814,3 @@ class SourceRequest {
     return _json;
   }
 }
-
-
