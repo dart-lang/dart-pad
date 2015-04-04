@@ -1,7 +1,8 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// All classes exported over the RPC protocol.
 library services.api_classes;
 
 import 'dart:convert';
@@ -108,26 +109,38 @@ class FixesResponse {
     this.fixes = _convert(analysisErrorFixes);
 
   /**
-   * Convert any non-string values from the contained maps.
+   * Convert between the Analysis Server type and the API protocol types.
    */
   static List<ProblemFix> _convert(List<AnalysisErrorFixes> list) {
     var problemsAndFixes = new List<ProblemFix>();
-    list.forEach((analysisErrorFix)
-        => problemsAndFixes.add(_convertAnalysisErrorFix(analysisErrorFix)));
+    list.forEach((fix)
+        => problemsAndFixes.add(_convertAnalysisErrorFix(fix)));
 
     return problemsAndFixes;
   }
 
-  static ProblemFix _convertAnalysisErrorFix(AnalysisErrorFixes analysisErrFix) {
-    String problemMessage = analysisErrFix.error.message;
-    int problemOffset = analysisErrFix.error.location.offset;
-    int problemLength = analysisErrFix.error.location.length;
+  static ProblemFix _convertAnalysisErrorFix(AnalysisErrorFixes analysisFixes) {
+    String problemMessage = analysisFixes.error.message;
+    int problemOffset = analysisFixes.error.location.offset;
+    int problemLength = analysisFixes.error.location.length;
 
     List<Fix> possibleFixes = new List<Fix>();
 
-    for (var sourceChange in analysisErrFix.fixes) {
+    for (var sourceChange in analysisFixes.fixes) {
       List<Edit> edits = new List<Edit>();
+
+      // A fix that tries to modify other files is considered invalid.
+
+      bool invalidFix = false;
       for (var sourceFileEdit in sourceChange.edits) {
+
+        // TODO(lukechurch): replace this with a more reliable test based
+        // on the psuedo file name in Analysis Server
+        if (!sourceFileEdit.file.endsWith("/main.dart")) {
+          invalidFix = true;
+          break;
+        }
+
         for (var sourceEdit in sourceFileEdit.edits) {
           edits.add(new Edit(
               sourceEdit.offset,
@@ -135,8 +148,10 @@ class FixesResponse {
               sourceEdit.replacement));
         }
       }
-      Fix possibleFix = new Fix(sourceChange.message, edits);
-      possibleFixes.add(possibleFix);
+      if (!invalidFix) {
+        Fix possibleFix = new Fix(sourceChange.message, edits);
+        possibleFixes.add(possibleFix);
+      }
     }
     return new ProblemFix(
         possibleFixes,
