@@ -29,14 +29,22 @@ main (List<String> args) async {
   var compiler = new comp.Compiler(sdkDir.path);
   await compiler.warmup();
 
-  io.Directory dir = new io.Directory(testCollectionRoot);
-  var fses =  dir.listSync(recursive: true);
+  var fses = [];
+
+  if (io.FileSystemEntity.isDirectorySync(testCollectionRoot)) {
+    io.Directory dir = new io.Directory(testCollectionRoot);
+    fses = dir.listSync(recursive: true);
+  } else {
+    fses = [ new io.File(testCollectionRoot) ];
+  }
+
   for (var fse in fses) {
     if (!fse.path.endsWith('.dart')) continue;
 
     try {
       await testPath(fse.path, analysisServer, analyzer, compiler);
     } catch (e) {
+      print (e);
       print ("FAILED: ${fse.path}");
 
       // Try and re-cycle the services for the next test after the crash
@@ -63,13 +71,16 @@ testPath(String path,
   var averageAnalysisTime = await testAnalysis(src, analyzer);
   var averageDocumentTime = await testDocument(src, analyzer);
   var averageCompilationTime = await testCompilation(src, compiler);
+  var averageFixesTime = await testFixes(src, wrapper);
 
   print (
       "$path, "
       "${averageCompilationTime.toStringAsFixed(2)}ms, "
       "${averageAnalysisTime.toStringAsFixed(2)}ms, "
       "${averageCompletionTime.toStringAsFixed(2)}ms, "
-      "${averageDocumentTime.toStringAsFixed(2)}ms");
+      "${averageDocumentTime.toStringAsFixed(2)}ms, "
+      "${averageFixesTime.toStringAsFixed(2)}ms"
+      );
 }
 
 testAnalysis(String src, ana.Analyzer analyzer) async {
@@ -96,6 +107,14 @@ testCompletions(String src, analysis_server.AnalysisServerWrapper wrapper) async
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
     await wrapper.complete(src, i);
+  }
+  return sw.elapsedMilliseconds / src.length;
+}
+
+testFixes(String src, analysis_server.AnalysisServerWrapper wrapper) async {
+  Stopwatch sw = new Stopwatch()..start();
+  for (int i = 0; i < src.length; i++) {
+    await wrapper.getFixes(src, i);
   }
   return sw.elapsedMilliseconds / src.length;
 }

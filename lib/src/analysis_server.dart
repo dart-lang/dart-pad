@@ -78,7 +78,7 @@ class AnalysisServerWrapper {
         (error) => throw "Completion failed").first;
   }
 
-  _getFixesImpl(String src, int offset) async {
+  Future<EditGetFixesResult> _getFixesImpl(String src, int offset) async {
     await serverConnection._ensureSetup();
 
     serverConnection.sendAddOverlay(src);
