@@ -29,6 +29,7 @@ class ParameterPopup {
     document.onKeyDown.listen((e) => _handleKeyDown(e));
     document.onKeyUp.listen((e) => _handleKeyUp(e));
     document.onClick.listen((e) => _handleClick());
+    editor.onMouseDown.listen((e) => _handleClick());
   }
 
   bool get parPopupActive => querySelector(".parameter-hints") != null;

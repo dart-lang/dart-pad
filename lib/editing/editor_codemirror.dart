@@ -187,6 +187,10 @@ class _CodeMirrorEditor extends Editor {
 
   bool get hasFocus => cm.jsProxy['state']['focused'];
 
+  Stream get onMouseDown {
+    return cm.onMouseDown;
+  }
+
   Point get cursorCoords {
     JsObject js = cm.call("cursorCoords");
     return new Point(js["left"], js["top"]);
