@@ -7,6 +7,7 @@ library editor;
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:math';
+import 'package:dart_pad/dartservices_client/v1.dart';
 
 abstract class EditorFactory {
   List<String> get modes;
@@ -159,9 +160,11 @@ class CompletionResult {
   final int replaceOffset;
 
   /// The length of the text to be replaced by a completion.
-  final int replaceLength;
+  int replaceLength;
 
-  CompletionResult(this.completions, {this.replaceOffset, this.replaceLength});
+  bool quickFixResult;
+
+  CompletionResult(this.completions, {this.replaceOffset, this.replaceLength, this.quickFixResult});
 }
 
 class Completion {
@@ -181,7 +184,7 @@ class Completion {
   /// completors. See [EditorFactory.supportsCompletionPositioning].
   final int cursorOffset;
 
-  List<Edit> quickFixes;
+  List<Edit> quickFixes = [];
 
   Completion(this.value, {this.displayString, this.type, this.cursorOffset, this.quickFixes});
 
@@ -189,14 +192,14 @@ class Completion {
       displayString == other.displayString &&
       (type == "type-getter" && other.type == "type-setter");
 }
-
-class Edit {
-
-  int offset;
-
-  int length;
-
-  String replacementText;
-
-  Edit(this.offset, this.length, this.replacementText);
-}
+//
+//class Edit {
+//
+//  int offset;
+//
+//  int length;
+//
+//  String replacementText;
+//
+//  Edit(this.offset, this.length, this.replacementText);
+//}

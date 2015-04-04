@@ -40,25 +40,24 @@ class DartCompleter extends CodeCompleter {
     _lastCompleter = completer;
 
     if (editor.lookingForQuickFix) {
-      // compute quick fixes
-
-      Edit edit1 = new Edit(0,0,'import "dart:html";\n\n');
-      Edit edit2 = new Edit(0,0,'class TextAreaElement{\n}\n\n');
-      List<Completion> completions = [
-        new Completion(
+      servicesApi.fix(request).then((FixesResponse response) {
+        print(response);
+        List<Completion> completions = [];
+        for (ProblemFix problemFix in response.fixes) {
+          for (Fix fix in problemFix.fixes) {
+            completions.add(new Completion(
             "",
-            displayString: "Import library 'dart:html'",
+            displayString: fix.message,
             type: "type-quick_fix",
-            quickFixes: [edit1]),
-        new Completion(
-            "",
-            displayString: "Create class 'TextAreaElement'",
-            type: "type-quick_fix",
-            quickFixes: [edit2])];
-      completer.complete(new CompletionResult(
+            quickFixes: fix.edits
+            ));
+          }
+        }
+        completer.complete(new CompletionResult(
           completions,
           replaceOffset: offset,
           replaceLength: 0));
+      });
     } else {
       servicesApi.complete(request).then((CompleteResponse response) {
         if (completer.isCancelled) return;

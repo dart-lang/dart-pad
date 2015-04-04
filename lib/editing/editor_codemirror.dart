@@ -15,6 +15,7 @@ import 'package:codemirror/hints.dart';
 
 import 'editor.dart' hide Position;
 import 'editor.dart' as ed show Position;
+import 'package:dart_pad/dartservices_client/v1.dart';
 
 export 'editor.dart';
 
@@ -118,7 +119,9 @@ class CodeMirrorFactory extends EditorFactory {
                 doc.setCursor(new pos.Position(
                     editor.getCursor().line, editor.getCursor().ch - diff));
               }
-              completion.quickFixes.forEach((Edit edit) => ed.document.applyEdit(edit));
+              if (completion.type == "type-quick_fix") {
+                completion.quickFixes.forEach((Edit edit) => ed.document.applyEdit(edit));
+              }
             },
             hintRenderer: (html.Element element, HintResult hint) {
               if (completion.type != "type-quick_fix") {
@@ -135,7 +138,12 @@ class CodeMirrorFactory extends EditorFactory {
 
       // Only show 'no suggestions' if the completion was explicitly invoked
       // or if the popup was already active.
-      if (hints.isEmpty
+      if (hints.isEmpty && ed.lookingForQuickFix) {
+        hints = [
+          new HintResult(stringToReplace,
+          displayText: "No fixes available", className: "type-no_suggestions")
+        ];
+      } else if (hints.isEmpty
             && (ed.completionActive
                   || (!ed.completionActive && !ed.completionAutoInvoked))) {
         hints = [
@@ -173,19 +181,18 @@ class _CodeMirrorEditor extends Editor {
   }
 
   void autoComplete({bool autoInvoked, bool quickFix}) {
-    if (autoInvoked) {
+    if (autoInvoked != null && autoInvoked) {
       completionAutoInvoked = true;
     } else {
       completionAutoInvoked = false;
     }
-    if (quickFix) {
+    if (quickFix != null && quickFix) {
       lookingForQuickFix = true;
-      print(document.hasIssueAtOffset);
-      cm.getDoc().setCursor(_document._posToPos(document.cursor));
+      // Codemirror autocompletion only works if there is no selected text.
+      cm.getDoc().setCursor(_document._posToPos(_document.selectionStart));
     } else {
       lookingForQuickFix = false;
     }
-    cm.focus();
     execCommand("autocomplete");
   }
 
@@ -203,9 +210,9 @@ class _CodeMirrorEditor extends Editor {
       => cm.jsProxy['state']['completionAutoInvoked'] = value;
 
   bool get lookingForQuickFix
-  => cm.jsProxy['state']['lookingForQuickFix'];
+      => cm.jsProxy['state']['lookingForQuickFix'];
   set lookingForQuickFix(bool value)
-  => cm.jsProxy['state']['lookingForQuickFix'] = value;
+      => cm.jsProxy['state']['lookingForQuickFix'] = value;
 
 
   String get mode => cm.getMode();
@@ -279,7 +286,11 @@ class _CodeMirrorDocument extends Document {
   void markClean() => doc.markClean();
 
   void applyEdit(Edit edit) {
-    doc.replaceRange(edit.replacementText, _posToPos(posFromIndex(edit.offset)), _posToPos(posFromIndex(edit.offset + edit.length)));
+    doc.replaceRange(
+        edit.replacement,
+        _posToPos(posFromIndex(edit.offset)),
+        _posToPos(posFromIndex(edit.offset + edit.length))
+    );
   }
 
   bool get hasIssueAtOffset {
@@ -291,6 +302,14 @@ class _CodeMirrorDocument extends Document {
     }
     return false;
   }
+
+  ed.Position get selectionStart {
+    int offset = indexFromPos(cursor) - doc.getSelection().length;
+    return posFromIndex(offset);
+  }
+
+  ed.Position get selectionEnd => cursor;
+
 
   void setAnnotations(List<Annotation> annotations) {
     // TODO: Codemirror lint has no support for info markers - contribute some?

@@ -209,15 +209,9 @@ class Playground {
       }
     });
 
-    document.onClick.listen((e) {
-      if (editor.document.hasIssueAtOffset) {
-        if (editor.document.selection.isNotEmpty) {
-          if (querySelectorAll(".issue").any((n) => n == e.target)) editor.autoComplete(quickFix: true);
-        } else {
-          editor.autoComplete(quickFix: true);
-        }
-      }
-    });
+    editor.onMouseDown.listen((e) => _handleQuickFix(e));
+
+    document.onClick.listen((e) => _handleQuickFix(e));
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.autoComplete();
@@ -421,6 +415,19 @@ class Playground {
     ga.sendEvent('main', 'save');
     // TODO:
     print('handleSave');
+  }
+
+  void _handleQuickFix(MouseEvent e) {
+    // this is a bit of hack
+    // basicly it checks if the the wrench is clicked
+    // if that is clicked, the selectio won't be empty
+    if (editor.document.hasIssueAtOffset) {
+      if (editor.document.selection.isNotEmpty) {
+        if (querySelectorAll(".issue").any((n) => n == e.target)) {
+          editor.autoComplete(quickFix: true);
+        }
+      }
+    }
   }
 
   void _handleHelp() {

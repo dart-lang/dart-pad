@@ -184,7 +184,7 @@ li.CodeMirror-hint-active {
 
 .type-quick_fix::before {
   content: " ";
-  background: url('bulb.svg');
+  background: url('../images/bulb.svg');
   background-size: 15px 15px;
 }
 

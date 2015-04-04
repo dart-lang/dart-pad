@@ -12,6 +12,7 @@ import 'package:ace/ace.dart' as ace;
 import 'package:ace/proxy.dart';
 
 import 'editor.dart';
+import 'package:dart_pad/dartservices_client/v1.dart';
 
 export 'editor.dart';
 
@@ -134,6 +135,8 @@ class _AceEditor extends Editor {
     editor.theme = new ace.Theme.named(str);
   }
 
+  void autoComplete({bool autoInvoked, bool quickFix}) { }
+
   bool get hasFocus => editor.isFocused;
 
   // TODO: Add a cursorCoords getter for ace.
@@ -181,6 +184,8 @@ class _AceDocument extends Document {
   void markClean() => session.undoManager.markClean();
 
   void applyEdit(Edit edit) { }
+
+  bool get hasIssueAtOffset => null;
 
   void setAnnotations(List<Annotation> annotations) {
 //    if (markers.isNotEmpty) {

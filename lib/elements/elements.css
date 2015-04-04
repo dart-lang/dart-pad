@@ -159,7 +159,7 @@
   border-radius: 3px;
   margin-right: 4px;
   cursor: pointer;
-  background: #444 url('bulb.svg') right no-repeat;
+  background: #444 url('../images/bulb.svg') right no-repeat;
   background-size: 15px 15px;
   /*box-shadow: 3px 3px 4px 0px rgba(15, 14, 14, 0.7);*/
 }

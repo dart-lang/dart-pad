@@ -45,6 +45,10 @@ class ParameterPopup {
   }
 
   void _handleKeyUp(KeyboardEvent e) {
+    if (parPopupActive && e.keyCode == KeyCode.ESC) {
+      remove();
+      return;
+    }
     if (parPopupActive || parKeys.contains(e.keyCode)) {
       _lookupParameterInfo();
     }
