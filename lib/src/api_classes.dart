@@ -62,7 +62,6 @@ class CounterResponse {
   CounterResponse(this.count);
 }
 
-
 class DocumentResponse {
   final Map<String, String> info;
 
@@ -139,14 +138,12 @@ class FixesResponse {
       Fix possibleFix = new Fix(sourceChange.message, edits);
       possibleFixes.add(possibleFix);
     }
-
     return new ProblemFix(
         possibleFixes,
         problemMessage,
         problemOffset,
         problemLength);
   }
-
 }
 
 /// Set of fixes for a particular problem.
