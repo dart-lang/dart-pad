@@ -10,9 +10,10 @@ import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 
+import 'api_classes.dart';
+import 'analysis_server.dart';
 import 'analyzer.dart';
 import 'compiler.dart';
-import 'analysis_server.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
 final Logger _logger = new Logger('common_server');
@@ -34,36 +35,6 @@ abstract class SourceRequestRecorder {
 abstract class PersistentCounter {
   Future increment(String name, {int increment : 1});
   Future<int> getTotal(String name);
-}
-
-class SourceRequest {
-  @ApiProperty(required: true)
-  String source;
-  int offset;
-}
-
-class CompileResponse {
-  final String result;
-
-  CompileResponse(this.result);
-}
-
-class CounterRequest {
-  @ApiProperty(required: true)
-  String name;
-}
-
-class CounterResponse {
-  final int count;
-
-  CounterResponse(this.count);
-}
-
-
-class DocumentResponse {
-  final Map<String, String> info;
-
-  DocumentResponse(this.info);
 }
 
 @ApiClass(name: 'dartservices', version: 'v1')

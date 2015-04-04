@@ -7,6 +7,7 @@ library services.analyzer;
 import 'dart:async';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' hide Logger;
 import 'package:analyzer/src/generated/engine.dart' as engine show Logger;
@@ -19,8 +20,9 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:logging/logging.dart';
 
+import 'api_classes.dart';
 import 'common.dart';
-import 'package:analyzer/src/generated/constant.dart';
+
 
 Logger _logger = new Logger('analyzer');
 
@@ -200,36 +202,6 @@ class Analyzer {
 
     return null;
   }
-}
-
-class AnalysisResults {
-  final List<AnalysisIssue> issues;
-
-  AnalysisResults(this.issues);
-}
-
-class AnalysisIssue implements Comparable {
-  final String kind;
-  final int line;
-  final String message;
-
-  final int charStart;
-  final int charLength;
-  final String location;
-
-  AnalysisIssue(this.kind, this.line, this.message,
-      {this.charStart, this.charLength, this.location});
-
-  Map toMap() {
-    Map m = {'kind': kind, 'line': line, 'message': message};
-    if (charStart != null) m['charStart'] = charStart;
-    if (charLength != null) m['charLength'] = charLength;
-    return m;
-  }
-
-  int compareTo(AnalysisIssue other) => line - other.line;
-
-  String toString() => '${kind}: ${message} [${line}]';
 }
 
 /// An implementation of [Source] that is based on an in-memory string.

@@ -4,9 +4,11 @@
 
 library services.analyzer_server_test;
 
-import 'package:services/src/analysis_server.dart';
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:unittest/unittest.dart';
+
+import 'package:services/src/analysis_server.dart';
+import 'package:services/src/api_classes.dart';
 
 String sdkPath = cli_util.getSdkDir([]).path;
 
