@@ -39,81 +39,102 @@ class DartCompleter extends CodeCompleter {
     CancellableCompleter completer = new CancellableCompleter();
     _lastCompleter = completer;
 
-    servicesApi.complete(request).then((CompleteResponse response) {
-      if (completer.isCancelled) return;
-
-      int replaceOffset = response.replacementOffset;
-      int replaceLength = response.replacementLength;
-
-      String replacementString =  editor.document.value.substring(
-          replaceOffset, replaceOffset + replaceLength);
-
-      List<AnalysisCompletion> analysisCompletions = response.completions.map(
-          (completion) {
-        return new AnalysisCompletion(replaceOffset, replaceLength, completion);
-      }).toList();
-
-      List<Completion> completions =  analysisCompletions.map((completion) {
-        // TODO: Move to using a LabelProvider; decouple the data and rendering.
-        String displayString = completion.isMethod
-            ? '${completion.text}${completion.parameters}' : completion.text;
-        if (completion.isMethod && completion.returnType != null) {
-          displayString += ' → ${completion.returnType}';
+    if (editor.lookingForQuickFix) {
+      servicesApi.fix(request).then((FixesResponse response) {
+        List<Completion> completions = [];
+        for (ProblemFix problemFix in response.fixes) {
+          for (Fix fix in problemFix.fixes) {
+            completions.add(new Completion(
+            "",
+            displayString: fix.message,
+            type: "type-quick_fix",
+            quickFixes: fix.edits
+            ));
+          }
         }
+        completer.complete(new CompletionResult(
+          completions,
+          replaceOffset: offset,
+          replaceLength: 0));
+      });
+    } else {
+      servicesApi.complete(request).then((CompleteResponse response) {
+        if (completer.isCancelled) return;
 
-        // Filter unmatching completions.
-        // TODO: This is temporary; tracking issue here:
-        // https://github.com/dart-lang/dart-services/issues/87.
-        if (replacementString.isNotEmpty) {
-          if (!completion.matchesCompletionFragment(replacementString)) {
-            return null;
+        int replaceOffset = response.replacementOffset;
+        int replaceLength = response.replacementLength;
+
+        String replacementString = editor.document.value.substring(
+            replaceOffset, replaceOffset + replaceLength);
+
+
+        List<AnalysisCompletion> analysisCompletions = response.completions.map(
+                (completion) {
+              return new AnalysisCompletion(replaceOffset, replaceLength, completion);
+            }).toList();
+
+
+        List<Completion> completions = analysisCompletions.map((completion) {
+          // TODO: Move to using a LabelProvider; decouple the data and rendering.
+          String displayString = completion.isMethod
+          ? '${completion.text}${completion.parameters}' : completion.text;
+          if (completion.isMethod && completion.returnType != null) {
+            displayString += ' → ${completion.returnType}';
+          }
+
+          // Filter unmatching completions.
+          // TODO: This is temporary; tracking issue here:
+          // https://github.com/dart-lang/dart-services/issues/87.
+          if (replacementString.isNotEmpty) {
+            if (!completion.matchesCompletionFragment(replacementString)) {
+              return null;
+            }
+          }
+
+          String text = completion.text;
+
+          if (completion.isMethod) {
+            text += "()";
+          }
+
+          String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
+
+          if (completion.type == null) {
+            return new Completion(text, displayString: displayString,
+            type: deprecatedClass);
+          } else {
+            int cursorPos = null;
+
+            if (completion.isMethod && completion.parameterCount > 0) {
+              cursorPos = text.indexOf('(') + 1;
+            }
+
+            return new Completion(text, displayString: displayString,
+            type: "type-${completion.type.toLowerCase()}${deprecatedClass}",
+            cursorOffset: cursorPos);
+          }
+        }).where((x) => x != null).toList();
+
+        List<Completion> filterCompletions = new List.from(completions);
+
+        // Removes duplicates when a completion is both a getter and a setter.
+        for (Completion completion in completions) {
+          for (Completion other in completions) {
+            if (completion.isSetterAndMatchesGetter(other)) {
+              filterCompletions.removeWhere((c) => completion == c);
+              other.type = "type-getter_and_setter";
+            }
           }
         }
 
-        String text = completion.text;
-
-        if (completion.isMethod) {
-          text += "()";
-        }
-
-        String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
-
-        if (completion.type == null) {
-          return new Completion(text, displayString: displayString,
-              type: deprecatedClass);
-        } else {
-          int cursorPos = null;
-
-          if (completion.isMethod && completion.parameterCount > 0) {
-            cursorPos = text.indexOf('(') + 1;
-          }
-
-          return new Completion(text, displayString: displayString,
-              type: "type-${completion.type.toLowerCase()}${deprecatedClass}",
-              cursorOffset: cursorPos);
-        }
-      }).where((x) => x != null).toList();
-
-      List<Completion> filterCompletions = new List.from(completions);
-
-      // Removes duplicates when a completion is both a getter and a setter.
-      for (Completion completion in completions) {
-        for (Completion other in completions) {
-          if (completion.isSetterAndMatchesGetter(other)) {
-            filterCompletions.removeWhere((c) => completion == c);
-            other.type = "type-getter_and_setter";
-          }
-        }
-      }
-
-      completer.complete(new CompletionResult(
-          filterCompletions,
-          replaceOffset: replaceOffset,
-          replaceLength: replaceLength));
-    }).catchError((e) {
-      completer.completeError(e);
-    });
-
+        completer.complete(new CompletionResult(
+            filterCompletions,
+            replaceOffset: replaceOffset,
+            replaceLength: replaceLength));
+      }).catchError((e) {
+        completer.completeError(e);
+      });
+    }
     return completer.future;
   }
 }

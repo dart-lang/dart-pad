@@ -12,6 +12,7 @@ import 'package:ace/ace.dart' as ace;
 import 'package:ace/proxy.dart';
 
 import 'editor.dart';
+import 'package:dart_pad/dartservices_client/v1.dart';
 
 export 'editor.dart';
 
@@ -134,10 +135,16 @@ class _AceEditor extends Editor {
     editor.theme = new ace.Theme.named(str);
   }
 
+  // TODO: Add an autoComplete method for ace.
+  void autoComplete({bool autoInvoked, bool quickFix}) { }
+
   bool get hasFocus => editor.isFocused;
 
   // TODO: Add a cursorCoords getter for ace.
   Point get cursorCoords => null;
+
+  // TODO: Add a onMouseDownn getter for ace.
+  Stream get onMouseDown => null;
 
   void focus() => editor.focus();
   void resize() => editor.resize(true);
@@ -176,6 +183,12 @@ class _AceDocument extends Document {
   bool get isClean => session.undoManager.isClean;
 
   void markClean() => session.undoManager.markClean();
+
+  // TODO: Add a applyEdit method for ace.
+  void applyEdit(Edit edit) { }
+
+  // TODO: Add a hasIssueAtOffset getter for ace.
+  bool get hasIssueAtOffset => null;
 
   void setAnnotations(List<Annotation> annotations) {
 //    if (markers.isNotEmpty) {

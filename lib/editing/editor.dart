@@ -7,6 +7,7 @@ library editor;
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:math';
+import 'package:dart_pad/dartservices_client/v1.dart';
 
 abstract class EditorFactory {
   List<String> get modes;
@@ -37,6 +38,8 @@ abstract class Editor {
    */
   void execCommand(String name);
 
+  void autoComplete({bool autoInvoked, bool quickFix});
+
   /**
    * Checks if the completion popup is displayed. Only implemented for
    * codemirror; returns `null` for ace editor and comid.
@@ -44,6 +47,8 @@ abstract class Editor {
   bool get completionActive;
 
   bool completionAutoInvoked;
+
+  bool lookingForQuickFix;
 
   String get mode;
   set mode(String str);
@@ -59,6 +64,13 @@ abstract class Editor {
   Point get cursorCoords;
 
   bool get hasFocus;
+
+  /**
+   * Fired when a mouse is clicked. You can preventDefault the event to signal
+   * that the editor should do no further handling.  Only implemented for
+   * codemirror, returns `null` for ace editor and comid.
+   */
+  Stream get onMouseDown;
 
   void resize();
   void focus();
@@ -92,6 +104,10 @@ abstract class Document {
   int indexFromPos(Position pos);
   Position posFromIndex(int index);
 
+  void applyEdit(Edit edit);
+
+  bool get hasIssueAtOffset;
+
   Stream get onChange;
 }
 
@@ -105,13 +121,14 @@ class Annotation implements Comparable {
   /// info, warning, or error
   final String type;
   final String message;
+  final bool hasFix;
   final int line;
 
   final Position start;
   final Position end;
 
   Annotation(this.type, this.message, this.line,
-      {this.start, this.end});
+      {this.start, this.end, this.hasFix});
 
   int compareTo(Annotation other) {
     if (line == other.line) {
@@ -166,7 +183,9 @@ class Completion {
   /// completors. See [EditorFactory.supportsCompletionPositioning].
   final int cursorOffset;
 
-  Completion(this.value, {this.displayString, this.type, this.cursorOffset});
+  List<Edit> quickFixes = [];
+
+  Completion(this.value, {this.displayString, this.type, this.cursorOffset, this.quickFixes});
 
   bool isSetterAndMatchesGetter(Completion other) =>
       displayString == other.displayString &&
