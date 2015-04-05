@@ -15,6 +15,7 @@ import 'package:codemirror/hints.dart';
 
 import 'editor.dart' hide Position;
 import 'editor.dart' as ed show Position;
+import 'package:dart_pad/dartservices_client/v1.dart';
 
 export 'editor.dart';
 
@@ -118,18 +119,31 @@ class CodeMirrorFactory extends EditorFactory {
                 doc.setCursor(new pos.Position(
                     editor.getCursor().line, editor.getCursor().ch - diff));
               }
+              if (completion.type == "type-quick_fix") {
+                completion.quickFixes.forEach((Edit edit) => ed.document.applyEdit(edit));
+              }
             },
             hintRenderer: (html.Element element, HintResult hint) {
-              element.innerHtml = completion.displayString.replaceFirst(
-                  stringToReplace,"<em>${stringToReplace}</em>"
-              );
+              if (completion.type != "type-quick_fix") {
+                element.innerHtml = completion.displayString.replaceFirst(
+                    stringToReplace, "<em>${stringToReplace}</em>"
+                );
+              } else {
+                element.innerHtml = completion.displayString;
+              }
+
             }
         );
       }).toList();
 
       // Only show 'no suggestions' if the completion was explicitly invoked
       // or if the popup was already active.
-      if (hints.isEmpty
+      if (hints.isEmpty && ed.lookingForQuickFix) {
+        hints = [
+          new HintResult(stringToReplace,
+          displayText: "No fixes available", className: "type-no_suggestions")
+        ];
+      } else if (hints.isEmpty
             && (ed.completionActive
                   || (!ed.completionActive && !ed.completionAutoInvoked))) {
         hints = [
@@ -166,6 +180,22 @@ class _CodeMirrorEditor extends Editor {
     cm.execCommand(name);
   }
 
+  void autoComplete({bool autoInvoked, bool quickFix}) {
+    if (autoInvoked != null && autoInvoked) {
+      completionAutoInvoked = true;
+    } else {
+      completionAutoInvoked = false;
+    }
+    if (quickFix != null && quickFix) {
+      lookingForQuickFix = true;
+      // Codemirror autocompletion only works if there is no selected text.
+      cm.getDoc().setCursor(_document._posToPos(_document.selectionStart));
+    } else {
+      lookingForQuickFix = false;
+    }
+    execCommand("autocomplete");
+  }
+
   bool get completionActive {
     if (cm.jsProxy['state']['completionActive'] == null) {
       return false;
@@ -179,6 +209,12 @@ class _CodeMirrorEditor extends Editor {
   set completionAutoInvoked(bool value)
       => cm.jsProxy['state']['completionAutoInvoked'] = value;
 
+  bool get lookingForQuickFix
+      => cm.jsProxy['state']['lookingForQuickFix'];
+  set lookingForQuickFix(bool value)
+      => cm.jsProxy['state']['lookingForQuickFix'] = value;
+
+
   String get mode => cm.getMode();
   set mode(String str) => cm.setMode(str);
 
@@ -186,6 +222,10 @@ class _CodeMirrorEditor extends Editor {
   set theme(String str) => cm.setTheme(str);
 
   bool get hasFocus => cm.jsProxy['state']['focused'];
+
+  Stream get onMouseDown {
+    return cm.onMouseDown;
+  }
 
   Point get cursorCoords {
     JsObject js = cm.call("cursorCoords");
@@ -245,6 +285,32 @@ class _CodeMirrorDocument extends Document {
 
   void markClean() => doc.markClean();
 
+  void applyEdit(Edit edit) {
+    doc.replaceRange(
+        edit.replacement,
+        _posToPos(posFromIndex(edit.offset)),
+        _posToPos(posFromIndex(edit.offset + edit.length))
+    );
+  }
+
+  bool get hasIssueAtOffset {
+    List<TextMarker> marks = doc.findMarksAt(_posToPos(cursor));
+    for (TextMarker mark in marks) {
+      if ((mark.jsProxy["className"] as String).startsWith("squiggle")) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  ed.Position get selectionStart {
+    int offset = indexFromPos(cursor) - doc.getSelection().length;
+    return posFromIndex(offset);
+  }
+
+  ed.Position get selectionEnd => cursor;
+
+
   void setAnnotations(List<Annotation> annotations) {
     // TODO: Codemirror lint has no support for info markers - contribute some?
 //    CodeMirror cm = parent.cm;
@@ -291,6 +357,10 @@ class _CodeMirrorDocument extends Document {
 ////      cm.setGutterMarker(an.line - 1, _gutterId,
 ////          _makeMarker(an.type, an.message, an.start, an.end));
     }
+  }
+
+  List<TextMarker> findMarksAt(ed.Position pos) {
+    return doc.findMarksAt(_posToPos(pos));
   }
 
   int indexFromPos(ed.Position position) =>

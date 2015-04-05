@@ -19,6 +19,7 @@ import 'package:comid/codemirror.dart' hide Document;
 
 import 'editor.dart' hide Position;
 import 'editor.dart' as ed show Position;
+import 'package:dart_pad/dartservices_client/v1.dart';
 
 export 'editor.dart';
 
@@ -163,6 +164,8 @@ class _CodeMirrorEditor extends Editor {
   bool get completionAutoInvoked => false;
   set completionAutoInvoked(bool value) { }
 
+  void autoComplete({bool autoInvoked, bool quickFix}) { }
+
   String get mode => cm.doc.getMode().name;
   set mode(String str) => cm.setOption('mode', str);
 
@@ -171,6 +174,9 @@ class _CodeMirrorEditor extends Editor {
 
   // TODO: Add a cursorCoords getter for comid.
   Point get cursorCoords => null;
+
+  // TODO: Add a onMouseDownn getter for comid.
+  Stream get onMouseDown => null;
 
   bool get hasFocus => cm.state.focused;
 
@@ -221,6 +227,10 @@ class _CodeMirrorDocument extends Document {
   bool get isClean => doc.isClean();
 
   void markClean() => doc.markClean();
+
+  void applyEdit(Edit edit) { }
+
+  bool get hasIssueAtOffset => null;
 
   void setAnnotations(List<Annotation> annotations) {
     // TODO: Codemirror lint has no support for info markers - contribute some?

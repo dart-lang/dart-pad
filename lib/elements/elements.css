@@ -156,10 +156,11 @@
 
 #issues .issue {
   line-height: 20px;
-  background: #444;
   border-radius: 3px;
   margin-right: 4px;
   cursor: pointer;
+  background: #444 url('../images/bulb.svg') right no-repeat;
+  background-size: 15px 15px;
   /*box-shadow: 3px 3px 4px 0px rgba(15, 14, 14, 0.7);*/
 }
 
@@ -177,6 +178,7 @@
   border-top-left-radius: 3px;
   border-bottom-left-radius: 3px;
 }
+
 
 .issue .issuelabel.error {
   background-color: #F7977A;
