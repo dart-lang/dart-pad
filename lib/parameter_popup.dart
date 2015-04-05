@@ -105,25 +105,30 @@ class ParameterPopup {
       }
 
       // Check if cursor is still in parameter position
-      offset = editor.document.indexFromPos(editor.document.cursor);
-      source = editor.document.value;
-      parInfo = _parameterInfo(source, offset);
+      parInfo = _parameterInfo(
+          editor.document.value,
+          editor.document.indexFromPos(editor.document.cursor));
       if (parInfo == null) {
         remove();
         return;
       }
-      _showParameterPopup(outputString);
+      _showParameterPopup(outputString, offset);
     });
   }
 
-  void _showParameterPopup(String string) {
+  void _showParameterPopup(String string, int methodOffset) {
     DivElement editorDiv = querySelector("#editpanel .CodeMirror");
     var lineHeight = editorDiv.getComputedStyle().getPropertyValue('line-height');
     lineHeight = int.parse(lineHeight.substring(0, lineHeight.indexOf("px")));
     // var charWidth = editorDiv.getComputedStyle().getPropertyValue('letter-spacing');
     int charWidth = 8;
 
+    Position methodPosition = editor.document.posFromIndex(methodOffset);
+    Position cursorPosition = editor.document.cursor;
     Point cursorCoords = editor.cursorCoords;
+
+    int heightDifference = methodPosition.line - cursorPosition.line - 1 ;
+    int heightOfMethod = cursorCoords.y + heightDifference * lineHeight - 5;
 
     if (parPopupActive) {
       var parameterHint = querySelector(".parameter-hint");
@@ -134,7 +139,7 @@ class ParameterPopup {
           cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 0);
 
       var parameterPopup = querySelector(".parameter-hints")
-        ..style.top = "${cursorCoords.y - lineHeight - 5}px";
+        ..style.top = "${heightOfMethod}px";
       var oldLeft = parameterPopup.style.left;
       oldLeft = int.parse(oldLeft.substring(0, oldLeft.indexOf("px")));
       if ((newLeft - oldLeft).abs() > 50) {
@@ -149,7 +154,7 @@ class ParameterPopup {
       var parameterPopup = new DivElement()
         ..classes.add("parameter-hints")
         ..style.left = "${left}px"
-        ..style.top = "${cursorCoords.y - lineHeight - 5}px";
+        ..style.top =  "${heightOfMethod}px";
       parameterPopup.append(parameterHint);
       document.body.append(parameterPopup);
     }
