@@ -566,35 +566,36 @@ ${info['libraryName'] == null ? "" : "**Library:** ${apiLink == null ? info['lib
       var source = new SourceRequest()
         ..source = _context.dartSource;
       for (AnalysisIssue issue in issues) {
+        DivElement e = new DivElement();
+        e.classes.add('issue');
+        issuesElement.children.add(e);
+        e.onClick.listen((e) {
+          _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+        });
+        SpanElement typeSpan = new SpanElement();
+
+        typeSpan.classes.addAll([issue.kind, 'issuelabel']);
+        typeSpan.text = issue.kind;
+        e.children.add(typeSpan);
+
+        SpanElement messageSpan = new SpanElement();
+        messageSpan.classes.add('message');
+        messageSpan.text = issue.message;
+        e.children.add(messageSpan);
         source.offset = issue.charStart;
         dartServices.fix(source).timeout(serviceCallTimeout).then((FixesResponse fixResponse) {
-          bool hasFix = false;
           if (fixResponse.fixes.isNotEmpty) {
-            hasFix = true;
+            e.classes.add("hasFix");
+            e.onClick.listen((e) {
+              _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+              // This is a bit of a hack to make sure quick fixes popup
+              // is only shown if the wrench is clicked,
+              // and not if the text or label is clicked.
+              if ((e.target as Element).className == "issue hasFix") {
+                editor.autoComplete(quickFix: true);
+              }
+            });
           }
-          DivElement e = new DivElement();
-          e.classes.addAll(['issue', '${hasFix ? "hasFix" : ""}']);
-          issuesElement.children.add(e);
-          e.onClick.listen((e) {
-            _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
-            // This is a bit of a hack to make sure quick fixes popup
-            // is only shown if the wrench is clicked,
-            // and not if the text or label is clicked.
-            if ((e.target as Element).className == "issue hasFix") {
-              editor.autoComplete(quickFix: true);
-            }
-          });
-
-          SpanElement typeSpan = new SpanElement();
-
-          typeSpan.classes.addAll([issue.kind, 'issuelabel']);
-          typeSpan.text = issue.kind;
-          e.children.add(typeSpan);
-
-          SpanElement messageSpan = new SpanElement();
-          messageSpan.classes.add('message');
-          messageSpan.text = issue.message;
-          e.children.add(messageSpan);
         });
 
       }

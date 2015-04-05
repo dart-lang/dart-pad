@@ -164,7 +164,7 @@
 }
 
 #issues .issue.hasFix {
-  background: #444 url('../images/bulb.svg') right no-repeat;
+  background: #444 url('../images/wrench.svg') right no-repeat;
   background-size: 15px 15px;
 }
 
