@@ -9,72 +9,39 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:math' as math;
 
-import 'dartservices_client/v1.dart';
+import 'package:markd/markdown.dart' as markdown;
+
 import 'editing/editor.dart';
 import 'context.dart';
 import 'services/common.dart';
 import 'src/ga.dart';
-
 import 'dart_pad.dart';
-import 'package:markd/markdown.dart' as markdown;
+import 'dartservices_client/v1.dart';
 
 class DocHandler {
+  static const List cursorKeys = const [
+    KeyCode.LEFT,
+    KeyCode.RIGHT,
+    KeyCode.UP,
+    KeyCode.DOWN
+  ];
+  Analytics _ga;
   Editor _editor;
   Context _context;
-  DartservicesApi _dartServices;
-  Analytics ga;
-  static const List cursorKeys = const [KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN];
 
   final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
     ..allowElement('a', attributes: ['href'])
     ..allowElement('img', attributes: ['src']);
 
-  DocHandler(this._editor, this._context, this._dartServices, this.ga) {
-    keys.bind(['f1'], toggleDocTab);
-    document.onClick.listen((e) => _handleClick(e));
-    document.onKeyUp.listen((e) => _handleKeyUp(e));
-  }
-  DivElement get docPanel => querySelector('#documentation');
+  DocHandler(this._editor, this._context, this._ga);
 
-  AnchorElement get docTab => querySelector('#doctab');
-
-  bool get _isDocPanelOpen => docTab.attributes.containsKey('selected');
-
-  void _handleClick(MouseEvent e) {
-    if (docTab.contains(e.target)) {
-      toggleDocTab();
-    } else if (_context.focusedEditor == 'dart'
-               && _editor.hasFocus
-               && _isDocPanelOpen
-               && _editor.document.selection.isEmpty) {
-      generateDoc();
+  void generateDoc(DivElement docPanel) {
+    if (!(_context.focusedEditor == 'dart'
+        && _editor.hasFocus
+        && _editor.document.selection.isEmpty)) {
+      return;
     }
-  }
-
-  void _handleKeyUp(KeyboardEvent e) {
-    if (_editor.completionActive || cursorKeys.contains(e.keyCode)){
-      if (_context.focusedEditor == 'dart'
-          && _editor.hasFocus
-          && _isDocPanelOpen
-          && _editor.document.selection.isEmpty) {
-        generateDoc();
-      }
-    }
-  }
-
-  void toggleDocTab() {
-    ga.sendEvent('view', 'dartdoc');
-    generateDoc();
-    // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
-    querySelector('#output').style.display = "none";
-    querySelector("#consoletab").attributes.remove('selected');
-
-    docPanel.style.display = "block";
-    docTab.setAttribute('selected','');
-  }
-
-  void generateDoc() {
-    ga.sendEvent('main', 'help');
+    _ga.sendEvent('main', 'help');
     SourceRequest input;
     int offset = _editor.document.indexFromPos(_editor.document.cursor);
 
@@ -82,7 +49,7 @@ class DocHandler {
       // If the completion popup is open we create a new source as if the
       // completion popup was chosen, and ask for the documentation of that
       // source.
-      String source = sourceWithCompletionInserted(_context.dartSource,offset);
+      String source = _sourceWithCompletionInserted(_context.dartSource,offset);
       input = new SourceRequest()
         ..source = source
         ..offset = offset;
@@ -93,7 +60,7 @@ class DocHandler {
     }
 
     // TODO: Show busy.
-    _dartServices.document(input).timeout(serviceCallTimeout).then(
+    dartServices.document(input).timeout(serviceCallTimeout).then(
         (DocumentResponse result) {
       Map info = result.info;
       String kind = info['kind'];
@@ -124,7 +91,7 @@ ${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
     });
   }
 
-  String sourceWithCompletionInserted(String source, int offset) {
+  String _sourceWithCompletionInserted(String source, int offset) {
     String completionText = querySelector(".CodeMirror-hint-active").text;
     int lastSpace = source.substring(0, offset).lastIndexOf(" ") + 1;
     int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
@@ -138,7 +105,7 @@ ${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
     StringBuffer apiLink = new StringBuffer();
     if (libraryName != null) {
       if (libraryName.contains("dart:")) {
-        apiLink.write( "https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/$libraryName");
+        apiLink.write("https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/$libraryName");
         memberName = '${memberName == null ? "" : "#id_$memberName"}';
         if (enclosingClassName == null) {
           apiLink.write(memberName);

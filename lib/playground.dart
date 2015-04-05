@@ -48,6 +48,9 @@ class Playground {
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
   bool get _isCompletionActive => editor.completionActive;
+  DivElement get _docPanel => querySelector('#documentation');
+  AnchorElement get _docTab => querySelector('#doctab');
+  bool get _isDocPanelOpen => _docTab.attributes.containsKey('selected');
 
   DButton runbutton;
   DOverlay overlay;
@@ -194,16 +197,25 @@ class Playground {
 
     keys.bind(['ctrl-s'], _handleSave);
     keys.bind(['ctrl-enter'], _handleRun);
+    keys.bind(['f1'], _toggleDocTab);
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.completionAutoInvoked = false;
       editor.execCommand('autocomplete');
     });
 
+    document.onClick.listen((MouseEvent e) {
+      if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+    });
+
     document.onKeyUp.listen((e) {
+      if (editor.completionActive || DocHandler.cursorKeys.contains(e.keyCode)){
+        if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+      }
       _handleAutoCompletion(e);
     });
 
+    _docTab.onClick.listen((e) => _toggleDocTab());
     querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
     _context = new PlaygroundContext(editor);
@@ -234,7 +246,7 @@ class Playground {
     if (options.getValueBool("parameter_popup")) {
       paramPopup = new ParameterPopup(dartServices, context, editor);
     }
-    docHandler = new DocHandler(editor,_context, dartServices, ga);
+    docHandler = new DocHandler(editor,_context, ga);
     _finishedInit();
   }
 
@@ -271,10 +283,22 @@ class Playground {
   List<Element> _getTabElements(Element element) =>
       element.querySelectorAll('a');
 
+
+  void _toggleDocTab() {
+    ga.sendEvent('view', 'dartdoc');
+    docHandler.generateDoc(_docPanel);
+    // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
+    querySelector('#output').style.display = "none";
+    querySelector("#consoletab").attributes.remove('selected');
+
+    _docPanel.style.display = "block";
+    _docTab.setAttribute('selected','');
+  }
+
   void _toggleConsoleTab() {
     ga.sendEvent('view', 'console');
-    docHandler.docPanel.style.display = "none";
-    docHandler.docTab.attributes.remove('selected');
+    _docPanel.style.display = "none";
+    _docTab.attributes.remove('selected');
 
     _outputpanel.style.display = "block";
     querySelector("#consoletab").setAttribute('selected','');
