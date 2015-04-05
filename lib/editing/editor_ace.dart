@@ -139,7 +139,7 @@ class _AceEditor extends Editor {
   // TODO: Add a cursorCoords getter for ace.
   Point get cursorCoords => null;
 
-  // TODO: Add a onMouseDownn getter for ace.
+  // TODO: Add a onMouseDown getter for ace.
   Stream get onMouseDown => null;
 
   void focus() => editor.focus();
