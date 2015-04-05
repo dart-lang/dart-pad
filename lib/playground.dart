@@ -203,9 +203,14 @@ class Playground {
       _handleHelp();
     });
 
+    keys.bind(['alt-enter', 'ctrl-1'], (){
+      if (editor.document.hasIssueAtOffset) {
+        editor.autoComplete(quickFix: true);
+      }
+    });
+
     keys.bind(['ctrl-space', 'macctrl-space'], (){
-      editor.completionAutoInvoked = false;
-      editor.execCommand('autocomplete');
+      editor.autoComplete();
       _handleHelp();
     });
 
@@ -308,8 +313,7 @@ class Playground {
 
     if (context.focusedEditor == 'dart') {
       if (e.keyCode == KeyCode.PERIOD) {
-        editor.completionAutoInvoked = true;
-        editor.execCommand("autocomplete");
+        editor.autoComplete(autoInvoked: true);
         _handleHelp();
       }
     }
@@ -320,23 +324,20 @@ class Playground {
     if (context.focusedEditor == 'dart') {
       RegExp exp = new RegExp(r"[A-Z]");
         if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-          editor.completionAutoInvoked = true;
-          editor.execCommand("autocomplete");
+          editor.autoComplete(autoInvoked: true);
           _handleHelp();
         }
     } else if (context.focusedEditor == "html") {
       if (options.getValueBool('autopopup_code_completion')) {
         // TODO: autocompletion for attirbutes
         if (printKeyEvent(e) == "shift-,") {
-          editor.completionAutoInvoked = true;
-          editor.execCommand("autocomplete");
+          editor.autoComplete(autoInvoked: true);
         }
       }
     } else if (context.focusedEditor == "css") {
       RegExp exp = new RegExp(r"[A-Z]");
       if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-        editor.completionAutoInvoked = true;
-        editor.execCommand("autocomplete");
+        editor.autoComplete(autoInvoked: true);
       }
     }
   }
@@ -367,7 +368,7 @@ class Playground {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
 
-    Future request = dartServices.analyze(input).timeout(serviceCallTimeout);;
+    Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
     _analysisRequest = request;
 
     request.then((AnalysisResults result) {
@@ -562,23 +563,40 @@ ${info['libraryName'] == null ? "" : "**Library:** ${apiLink == null ? info['lib
       issues.sort((a, b) => a.charStart - b.charStart);
 
       // Create an item for each issue.
+      var source = new SourceRequest()
+        ..source = _context.dartSource;
       for (AnalysisIssue issue in issues) {
-        DivElement e = new DivElement();
-        e.classes.add('issue');
-        issuesElement.children.add(e);
-        e.onClick.listen((_) {
-          _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+        source.offset = issue.charStart;
+        dartServices.fix(source).timeout(serviceCallTimeout).then((FixesResponse fixResponse) {
+          bool hasFix = false;
+          if (fixResponse.fixes.isNotEmpty) {
+            hasFix = true;
+          }
+          DivElement e = new DivElement();
+          e.classes.addAll(['issue', '${hasFix ? "hasFix" : ""}']);
+          issuesElement.children.add(e);
+          e.onClick.listen((e) {
+            _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+            // This is a bit of a hack to make sure quick fixes popup
+            // is only shown if the wrench is clicked,
+            // and not if the text or label is clicked.
+            if ((e.target as Element).className == "issue hasFix") {
+              editor.autoComplete(quickFix: true);
+            }
+          });
+
+          SpanElement typeSpan = new SpanElement();
+
+          typeSpan.classes.addAll([issue.kind, 'issuelabel']);
+          typeSpan.text = issue.kind;
+          e.children.add(typeSpan);
+
+          SpanElement messageSpan = new SpanElement();
+          messageSpan.classes.add('message');
+          messageSpan.text = issue.message;
+          e.children.add(messageSpan);
         });
 
-        SpanElement typeSpan = new SpanElement();
-        typeSpan.classes.addAll([issue.kind, 'issuelabel']);
-        typeSpan.text = issue.kind;
-        e.children.add(typeSpan);
-
-        SpanElement messageSpan = new SpanElement();
-        messageSpan.classes.add('message');
-        messageSpan.text = issue.message;
-        e.children.add(messageSpan);
       }
 
       issuesElement.classes.toggle('showing', issues.isNotEmpty);
