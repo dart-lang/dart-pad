@@ -83,7 +83,6 @@ class DocHandler {
       // completion popup was chosen, and ask for the documentation of that
       // source.
       String source = sourceWithCompletionInserted(_context.dartSource,offset);
-      print(source);
       input = new SourceRequest()
         ..source = source
         ..offset = offset;
@@ -126,7 +125,6 @@ ${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
   }
 
   String sourceWithCompletionInserted(String source, int offset) {
-    print(source);
     String completionText = querySelector(".CodeMirror-hint-active").text;
     int lastSpace = source.substring(0, offset).lastIndexOf(" ") + 1;
     int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
