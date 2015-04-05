@@ -8,6 +8,7 @@ library dartpad.doc_handler;
 import 'dart:convert';
 import 'dart:html';
 import 'dart:math' as math;
+import 'dart:async';
 
 import 'dartservices_client/v1.dart';
 import 'editing/editor.dart';
@@ -17,6 +18,7 @@ import 'src/ga.dart';
 
 import 'dart_pad.dart';
 import 'package:markd/markdown.dart' as markdown;
+
 
 class DocHandler {
   Editor _editor;
@@ -94,7 +96,7 @@ class DocHandler {
 
     // TODO: Show busy.
     _dartServices.document(input).timeout(serviceCallTimeout).then(
-        (DocumentResponse result) {
+        (DocumentResponse result) async {
       Map info = result.info;
       String kind = info['kind'];
       if (info['description'] == null &&
@@ -106,10 +108,15 @@ class DocHandler {
             enclosingClassName: info['enclosingClassName'],
             memberName: info["name"]
         );
+        String mdnLink;
+        if (info["libraryName"] == "dart:html" && info["DomName"] != null) {
+          mdnLink = await _mdnApiLink(info['DomName']);
+        }
         docPanel.setInnerHtml(markdown.markdownToHtml(
 '''
 # `${info['description']}`\n\n
 ${info['dartdoc'] != null ? info['dartdoc'] + "\n\n" : ""}
+${mdnLink == null || info['dartdoc'] != null ? "" : "## External resources:\n * $mdnLink at MDN"}
 ${kind.contains("variable") ? "${info['kind']}\n\n" : ""}
 ${kind.contains("variable") ? "**Propagated type:** ${info["propagatedType"]}\n\n" : ""}
 ${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
@@ -149,6 +156,30 @@ ${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
       }
     }
     return libraryName;
+  }
+
+
+  Future<String> _mdnApiLink(String domName) async{
+    String domClassName = domName.substring(0,domName.indexOf("."));
+    String baseUrl = "https://developer.mozilla.org/en-US/docs/Web/API/";
+
+    if (await urlExists('$baseUrl$domName')) {
+      return '[$domName]($baseUrl$domName)';
+    } else if (await urlExists('$baseUrl$domClassName')) {
+      return '[$domClassName]($baseUrl$domClassName)';
+    } else {
+      String searchUrl = "https://developer.mozilla.org/en-US/search?q=";
+      return 'Search for [$domName]($searchUrl$domName)';
+    }
+  }
+
+  Future<bool> urlExists(String url) async {
+    try {
+      await HttpRequest.getString(url);
+      return true;
+    } catch(error) {
+      return false;
+    }
   }
 }
 
