@@ -165,7 +165,7 @@
 
 #issues .issue.hasFix {
   background: #444 url('../images/wrench.svg') right no-repeat;
-  background-size: 20px 20px;
+  background-size: 15px 15px;
 }
 
 .issue + .issue {
