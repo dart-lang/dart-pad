@@ -97,8 +97,6 @@ class AceFactory extends EditorFactory {
 class _AceEditor extends Editor {
   final ace.Editor editor;
 
-  bool completionAutoInvoked = false;
-
   _AceDocument _document;
 
   _AceEditor._(AceFactory factory, this.editor) : super(factory) {

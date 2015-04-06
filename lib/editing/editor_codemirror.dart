@@ -149,8 +149,6 @@ class _CodeMirrorEditor extends Editor {
 
   final CodeMirror cm;
 
-  bool completionAutoInvoked = false;
-
   _CodeMirrorDocument _document;
 
   _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
