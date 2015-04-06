@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io' as io;
+
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:services/src/analysis_server.dart' as analysis_server;
 import 'package:services/src/analyzer.dart' as ana;
 import 'package:services/src/compiler.dart' as comp;
 
-import 'package:cli_util/cli_util.dart' as cli_util;
-import 'dart:io' as io;
-
 main (List<String> args) async {
-
   if (args.length == 0) {
     print ("Usage: slow_test path_to_test_collection");
     io.exit(1);
