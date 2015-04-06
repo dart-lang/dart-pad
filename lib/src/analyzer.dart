@@ -265,7 +265,7 @@ class _Logger extends engine.Logger {
 }
 
 class _Error {
-  final _HAS_FIXES_WHITELIST = [
+  static final _HAS_FIXES_WHITELIST = [
     HintCode.DEAD_CODE,
     HintCode.DUPLICATE_IMPORT,
     HintCode.UNUSED_IMPORT,
@@ -273,7 +273,7 @@ class _Error {
     ParserErrorCode.EXPECTED_TOKEN,
     StaticWarningCode.UNDEFINED_CLASS,
     StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
-    ];
+  ];
 
 
   final AnalysisError error;
