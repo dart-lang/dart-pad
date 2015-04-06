@@ -97,6 +97,8 @@ class AceFactory extends EditorFactory {
 class _AceEditor extends Editor {
   final ace.Editor editor;
 
+  bool completionAutoInvoked = false;
+
   _AceDocument _document;
 
   _AceEditor._(AceFactory factory, this.editor) : super(factory) {
@@ -121,10 +123,6 @@ class _AceEditor extends Editor {
 
   // TODO: Implement completionActive for ace.
   bool get completionActive => false;
-
-  // TODO: Implement completionActivelyInvoked for comid.
-  bool get completionAutoInvoked => false;
-  set completionAutoInvoked(bool value) { }
 
   String get mode => _document.session.mode.name;
   set mode(String str) => _document.session.mode = new ace.Mode.named(str);

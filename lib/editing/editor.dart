@@ -71,6 +71,9 @@ abstract class Editor {
   void focus();
 
   void swapDocument(Document document);
+
+  /// Let the `Editor` instance know that it will no longer be used.
+  void dispose() { }
 }
 
 abstract class Document {
