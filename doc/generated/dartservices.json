@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "3cfa20e22ae3ec9a709fd7e8e7bf539bbc55f3ba",
+ "etag": "9d2ffb4a7f8eeeaf51158d7d8bc4481cf5513aec",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -117,19 +117,19 @@
     "fixes": {
      "type": "array",
      "items": {
-      "$ref": "ProblemFix"
+      "$ref": "ProblemAndFix"
      }
     }
    }
   },
-  "ProblemFix": {
-   "id": "ProblemFix",
+  "ProblemAndFix": {
+   "id": "ProblemAndFix",
    "type": "object",
    "properties": {
     "fixes": {
      "type": "array",
      "items": {
-      "$ref": "Fix"
+      "$ref": "CandidateFix"
      }
     },
     "problemMessage": {
@@ -145,8 +145,8 @@
     }
    }
   },
-  "Fix": {
-   "id": "Fix",
+  "CandidateFix": {
+   "id": "CandidateFix",
    "type": "object",
    "properties": {
     "message": {
@@ -155,13 +155,13 @@
     "edits": {
      "type": "array",
      "items": {
-      "$ref": "Edit"
+      "$ref": "SourceEdit"
      }
     }
    }
   },
-  "Edit": {
-   "id": "Edit",
+  "SourceEdit": {
+   "id": "SourceEdit",
    "type": "object",
    "properties": {
     "offset": {

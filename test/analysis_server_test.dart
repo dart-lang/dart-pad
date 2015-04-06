@@ -59,7 +59,7 @@ void defineTests() {
 
             // We should be getting an insert ; fix
             expect(results.fixes[0].fixes.length, 1);
-            Fix fix = results.fixes[0].fixes[0];
+            CandidateFix fix = results.fixes[0].fixes[0];
             expect(fix.message.contains(";"), true);
             expect(fix.edits[0].length, 0);
             expect(fix.edits[0].offset, 25);

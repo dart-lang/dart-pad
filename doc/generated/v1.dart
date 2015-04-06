@@ -544,6 +544,36 @@ class AnalysisResults {
 }
 
 
+class CandidateFix {
+  core.List<SourceEdit> edits;
+
+  core.String message;
+
+
+  CandidateFix();
+
+  CandidateFix.fromJson(core.Map _json) {
+    if (_json.containsKey("edits")) {
+      edits = _json["edits"].map((value) => new SourceEdit.fromJson(value)).toList();
+    }
+    if (_json.containsKey("message")) {
+      message = _json["message"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (edits != null) {
+      _json["edits"] = edits.map((value) => (value).toJson()).toList();
+    }
+    if (message != null) {
+      _json["message"] = message;
+    }
+    return _json;
+  }
+}
+
+
 class CompileResponse {
   core.String result;
 
@@ -650,83 +680,15 @@ class DocumentResponse {
 }
 
 
-class Edit {
-  core.int length;
-
-  core.int offset;
-
-  core.String replacement;
-
-
-  Edit();
-
-  Edit.fromJson(core.Map _json) {
-    if (_json.containsKey("length")) {
-      length = _json["length"];
-    }
-    if (_json.containsKey("offset")) {
-      offset = _json["offset"];
-    }
-    if (_json.containsKey("replacement")) {
-      replacement = _json["replacement"];
-    }
-  }
-
-  core.Map toJson() {
-    var _json = new core.Map();
-    if (length != null) {
-      _json["length"] = length;
-    }
-    if (offset != null) {
-      _json["offset"] = offset;
-    }
-    if (replacement != null) {
-      _json["replacement"] = replacement;
-    }
-    return _json;
-  }
-}
-
-
-class Fix {
-  core.List<Edit> edits;
-
-  core.String message;
-
-
-  Fix();
-
-  Fix.fromJson(core.Map _json) {
-    if (_json.containsKey("edits")) {
-      edits = _json["edits"].map((value) => new Edit.fromJson(value)).toList();
-    }
-    if (_json.containsKey("message")) {
-      message = _json["message"];
-    }
-  }
-
-  core.Map toJson() {
-    var _json = new core.Map();
-    if (edits != null) {
-      _json["edits"] = edits.map((value) => (value).toJson()).toList();
-    }
-    if (message != null) {
-      _json["message"] = message;
-    }
-    return _json;
-  }
-}
-
-
 class FixesResponse {
-  core.List<ProblemFix> fixes;
+  core.List<ProblemAndFix> fixes;
 
 
   FixesResponse();
 
   FixesResponse.fromJson(core.Map _json) {
     if (_json.containsKey("fixes")) {
-      fixes = _json["fixes"].map((value) => new ProblemFix.fromJson(value)).toList();
+      fixes = _json["fixes"].map((value) => new ProblemAndFix.fromJson(value)).toList();
     }
   }
 
@@ -740,8 +702,8 @@ class FixesResponse {
 }
 
 
-class ProblemFix {
-  core.List<Fix> fixes;
+class ProblemAndFix {
+  core.List<CandidateFix> fixes;
 
   core.int length;
 
@@ -750,11 +712,11 @@ class ProblemFix {
   core.String problemMessage;
 
 
-  ProblemFix();
+  ProblemAndFix();
 
-  ProblemFix.fromJson(core.Map _json) {
+  ProblemAndFix.fromJson(core.Map _json) {
     if (_json.containsKey("fixes")) {
-      fixes = _json["fixes"].map((value) => new Fix.fromJson(value)).toList();
+      fixes = _json["fixes"].map((value) => new CandidateFix.fromJson(value)).toList();
     }
     if (_json.containsKey("length")) {
       length = _json["length"];
@@ -780,6 +742,44 @@ class ProblemFix {
     }
     if (problemMessage != null) {
       _json["problemMessage"] = problemMessage;
+    }
+    return _json;
+  }
+}
+
+
+class SourceEdit {
+  core.int length;
+
+  core.int offset;
+
+  core.String replacement;
+
+
+  SourceEdit();
+
+  SourceEdit.fromJson(core.Map _json) {
+    if (_json.containsKey("length")) {
+      length = _json["length"];
+    }
+    if (_json.containsKey("offset")) {
+      offset = _json["offset"];
+    }
+    if (_json.containsKey("replacement")) {
+      replacement = _json["replacement"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (length != null) {
+      _json["length"] = length;
+    }
+    if (offset != null) {
+      _json["offset"] = offset;
+    }
+    if (replacement != null) {
+      _json["replacement"] = replacement;
     }
     return _json;
   }
