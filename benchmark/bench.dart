@@ -79,7 +79,6 @@ class AnalysisServerBenchmark extends Benchmark {
   Future tearDown() => analysisServer.shutdown();
 }
 
-
 final String _sunflower = '''
 library sunflower;
 

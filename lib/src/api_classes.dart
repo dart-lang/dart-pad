@@ -7,8 +7,8 @@ library services.api_classes;
 
 import 'dart:convert';
 
-import 'package:rpc/rpc.dart';
 import 'package:analysis_server/src/protocol.dart';
+import 'package:rpc/rpc.dart';
 
 class AnalysisResults {
   final List<AnalysisIssue> issues;
@@ -70,7 +70,6 @@ class DocumentResponse {
 
   DocumentResponse(this.info);
 }
-
 
 class CompleteResponse {
   @ApiProperty(description: 'The offset of the start of the text to be replaced.')

@@ -24,7 +24,6 @@ import 'package:logging/logging.dart';
 import 'api_classes.dart';
 import 'common.dart';
 
-
 Logger _logger = new Logger('analyzer');
 
 class Analyzer {
