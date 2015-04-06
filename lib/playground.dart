@@ -7,7 +7,6 @@ library playground;
 import 'dart:async';
 import 'dart:html' hide Document;
 
-
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 import 'package:dart_pad/core/keys.dart';
@@ -18,19 +17,19 @@ import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
+import 'doc_handler.dart';
 import 'editing/editor.dart';
 import 'elements/elements.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
+import 'parameter_popup.dart';
 import 'services/common.dart';
 import 'services/execution_iframe.dart';
 import 'src/ga.dart';
 import 'src/gists.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
-import 'parameter_popup.dart';
-import 'doc_handler.dart';
 
 Playground get playground => _playground;
 
@@ -247,9 +246,11 @@ class Playground {
     options.registerOption('parameter_popup', 'false');
 
     if (options.getValueBool("parameter_popup")) {
-      paramPopup = new ParameterPopup(dartServices, context, editor);
+      paramPopup = new ParameterPopup(context, editor);
     }
+
     docHandler = new DocHandler(editor, _context);
+
     _finishedInit();
   }
 
@@ -285,7 +286,6 @@ class Playground {
 
   List<Element> _getTabElements(Element element) =>
       element.querySelectorAll('a');
-
 
   void _toggleDocTab() {
     ga.sendEvent('view', 'dartdoc');

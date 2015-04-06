@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO Rename the file to `documentation.dart`?
 
 library dartpad.doc_handler;
 
@@ -11,12 +12,11 @@ import 'dart:math' as math;
 
 import 'package:markd/markdown.dart' as markdown;
 
-import 'editing/editor.dart';
 import 'context.dart';
-import 'services/common.dart';
-import 'src/ga.dart';
+import 'editing/editor.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
+import 'services/common.dart';
 
 class DocHandler {
   static const List cursorKeys = const [
@@ -25,15 +25,15 @@ class DocHandler {
     KeyCode.UP,
     KeyCode.DOWN
   ];
-  Analytics _ga;
-  Editor _editor;
-  Context _context;
+
+  final Editor _editor;
+  final Context _context;
 
   final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
     ..allowElement('a', attributes: ['href'])
     ..allowElement('img', attributes: ['src']);
 
-  DocHandler(this._editor, this._context, this._ga);
+  DocHandler(this._editor, this._context);
 
   void generateDoc(DivElement docPanel) {
     if (!(_context.focusedEditor == 'dart'
@@ -41,7 +41,7 @@ class DocHandler {
         && _editor.document.selection.isEmpty)) {
       return;
     }
-    _ga.sendEvent('main', 'help');
+
     SourceRequest input;
     int offset = _editor.document.indexFromPos(_editor.document.cursor);
 
@@ -64,8 +64,7 @@ class DocHandler {
         (DocumentResponse result) {
       Map info = result.info;
       String kind = info['kind'];
-      if (info['description'] == null &&
-          info['dartdoc'] == null) {
+      if (info['description'] == null && info['dartdoc'] == null) {
         docPanel.setInnerHtml("<p>No documentation found.</p>");
       } else {
         String apiLink = _dartApiLink(
@@ -120,7 +119,6 @@ ${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
 }
 
 class InlineBracketsColon extends markdown.InlineSyntax {
-
   InlineBracketsColon() : super(r'\[:\s?((?:.|\n)*?)\s?:\]');
 
   String htmlEscape(String text) => HTML_ESCAPE.convert(text);
@@ -137,7 +135,6 @@ class InlineBracketsColon extends markdown.InlineSyntax {
 // https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
 // for now it gets converted <code>someCodeReference</code>
 class InlineBrackets extends markdown.InlineSyntax {
-
   // This matches URL text in the documentation, with a negative filter
   // to detect if it is followed by a URL to prevent e.g.
   // [text] (http://www.example.com) getting turned into

@@ -183,7 +183,7 @@ li.CodeMirror-hint-active {
   .CodeMirror-hint::before {
     line-height: 16px;  /*for vertical centering */
   }
-  
+
   .type-field::before,
   .type-function_type_alias::before,
   .type-function::before,
