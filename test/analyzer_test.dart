@@ -50,6 +50,29 @@ void defineTests() {
         expect(results.issues.length, 3);
       });
     });
+
+    test('missing ;', () {
+      return analyzer.analyze("void main() {\n  int i = 55\n}")
+      .then((AnalysisResults results) {
+         expect(results.issues.length, 2);
+         int _missingSemiC = 0;
+         results.issues.where(
+           (issue) => issue.message == "Expected to find ';'")
+           .forEach((issue) {
+             _missingSemiC++;
+             expect(issue.hasFixes, true);
+           });
+           expect(_missingSemiC, 1);
+      });
+    });
+
+    test('no fixes', () {
+      return analyzer.analyze(r'''#''')
+      .then((AnalysisResults results) {
+         expect(results.issues.length, 2);
+         results.issues.forEach((issue) => expect(issue.hasFixes, false));
+       });
+     });
   });
 
   group('analyzer.dartdoc', () {

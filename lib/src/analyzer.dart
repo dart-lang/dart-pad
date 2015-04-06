@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/engine.dart' as engine show Logger;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -78,7 +79,8 @@ class Analyzer {
         return new AnalysisIssue(
             error.severityName, error.line, error.message,
             location: error.location,
-            charStart: error.offset, charLength: error.length);
+            charStart: error.offset, charLength: error.length,
+            hasFixes: error.probablyHasFix);
       }).toList();
 
       issues.sort();
@@ -263,6 +265,17 @@ class _Logger extends engine.Logger {
 }
 
 class _Error {
+  static final _HAS_FIXES_WHITELIST = [
+    HintCode.DEAD_CODE,
+    HintCode.DUPLICATE_IMPORT,
+    HintCode.UNUSED_IMPORT,
+    HintCode.UNUSED_LOCAL_VARIABLE,
+    ParserErrorCode.EXPECTED_TOKEN,
+    StaticWarningCode.UNDEFINED_CLASS,
+    StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
+  ];
+
+
   final AnalysisError error;
   final LineInfo lineInfo;
 
@@ -277,6 +290,10 @@ class _Error {
   int get length => error.length;
 
   String get location => error.source.fullName;
+
+  /// Heurestic for whether there is going to be a fix offered for this
+  /// issue
+  bool get probablyHasFix => _HAS_FIXES_WHITELIST.contains(error.errorCode);
 
   String toString() => '${message} at ${location}, line ${line}.';
 }

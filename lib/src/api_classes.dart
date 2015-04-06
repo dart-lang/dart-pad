@@ -28,7 +28,7 @@ class AnalysisIssue implements Comparable {
   final String location;
 
   AnalysisIssue(this.kind, this.line, this.message,
-      {this.charStart, this.charLength, this.location, this.hasFixes});
+      {this.charStart, this.charLength, this.location, this.hasFixes: false});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};
