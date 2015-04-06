@@ -21,12 +21,14 @@ class AnalysisIssue implements Comparable {
   final int line;
   final String message;
 
+  final bool hasFixes;
+
   final int charStart;
   final int charLength;
   final String location;
 
   AnalysisIssue(this.kind, this.line, this.message,
-      {this.charStart, this.charLength, this.location});
+      {this.charStart, this.charLength, this.location, this.hasFixes});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};
@@ -103,7 +105,7 @@ class CompleteResponse {
 }
 
 class FixesResponse {
-  final List<ProblemFix> fixes;
+  final List<ProblemAndFixes> fixes;
 
   FixesResponse(List<AnalysisErrorFixes> analysisErrorFixes) :
     this.fixes = _convert(analysisErrorFixes);
@@ -111,23 +113,23 @@ class FixesResponse {
   /**
    * Convert between the Analysis Server type and the API protocol types.
    */
-  static List<ProblemFix> _convert(List<AnalysisErrorFixes> list) {
-    var problemsAndFixes = new List<ProblemFix>();
+  static List<ProblemAndFixes> _convert(List<AnalysisErrorFixes> list) {
+    var problemsAndFixes = new List<ProblemAndFixes>();
     list.forEach((fix)
         => problemsAndFixes.add(_convertAnalysisErrorFix(fix)));
 
     return problemsAndFixes;
   }
 
-  static ProblemFix _convertAnalysisErrorFix(AnalysisErrorFixes analysisFixes) {
+  static ProblemAndFixes _convertAnalysisErrorFix(AnalysisErrorFixes analysisFixes) {
     String problemMessage = analysisFixes.error.message;
     int problemOffset = analysisFixes.error.location.offset;
     int problemLength = analysisFixes.error.location.length;
 
-    List<Fix> possibleFixes = new List<Fix>();
+    List<CandidateFix> possibleFixes = new List<CandidateFix>();
 
     for (var sourceChange in analysisFixes.fixes) {
-      List<Edit> edits = new List<Edit>();
+      List<SourceEdit> edits = new List<SourceEdit>();
 
       // A fix that tries to modify other files is considered invalid.
 
@@ -142,18 +144,18 @@ class FixesResponse {
         }
 
         for (var sourceEdit in sourceFileEdit.edits) {
-          edits.add(new Edit(
+          edits.add(new SourceEdit(
               sourceEdit.offset,
               sourceEdit.length,
               sourceEdit.replacement));
         }
       }
       if (!invalidFix) {
-        Fix possibleFix = new Fix(sourceChange.message, edits);
+        CandidateFix possibleFix = new CandidateFix(sourceChange.message, edits);
         possibleFixes.add(possibleFix);
       }
     }
-    return new ProblemFix(
+    return new ProblemAndFixes(
         possibleFixes,
         problemMessage,
         problemOffset,
@@ -161,28 +163,37 @@ class FixesResponse {
   }
 }
 
-/// Set of fixes for a particular problem.
-class ProblemFix {
-  final List<Fix> fixes;
+/**
+ * Represents a problem detected during analysis, and a set of possible
+ * ways of resolving the problem.
+ */
+class ProblemAndFixes {
+  //TODO(lukechurch): consider consolidating this with [AnalysisIssue]
+  final List<CandidateFix> fixes;
   final String problemMessage;
   final int offset;
   final int length;
 
-  ProblemFix(this.fixes, this.problemMessage, this.offset, this.length);
+  ProblemAndFixes(this.fixes, this.problemMessage, this.offset, this.length);
 }
 
-/// A single way of fixing a particular problem
-class Fix {
+/**
+ * Represents a possible way of solving an Analysis Problem.
+ */
+class CandidateFix {
   final String message;
-  final List<Edit> edits;
+  final List<SourceEdit> edits;
 
-  Fix(this.message, this.edits);
+  CandidateFix(this.message, this.edits);
 }
 
-class Edit {
+/**
+ * Represents a single edit-point change to a source file.
+ */
+class SourceEdit {
   final int offset;
   final int length;
   final String replacement;
 
-  Edit(this.offset, this.length, this.replacement);
+  SourceEdit(this.offset, this.length, this.replacement);
 }

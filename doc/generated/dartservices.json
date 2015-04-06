@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "3cfa20e22ae3ec9a709fd7e8e7bf539bbc55f3ba",
+ "etag": "35eb15f29150e937f43fab3e0e409efc844723ef",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -63,6 +63,9 @@
     "message": {
      "type": "string"
     },
+    "hasFixes": {
+     "type": "boolean"
+    },
     "charStart": {
      "type": "integer",
      "format": "int32"
@@ -117,19 +120,19 @@
     "fixes": {
      "type": "array",
      "items": {
-      "$ref": "ProblemFix"
+      "$ref": "ProblemAndFixes"
      }
     }
    }
   },
-  "ProblemFix": {
-   "id": "ProblemFix",
+  "ProblemAndFixes": {
+   "id": "ProblemAndFixes",
    "type": "object",
    "properties": {
     "fixes": {
      "type": "array",
      "items": {
-      "$ref": "Fix"
+      "$ref": "CandidateFix"
      }
     },
     "problemMessage": {
@@ -145,8 +148,8 @@
     }
    }
   },
-  "Fix": {
-   "id": "Fix",
+  "CandidateFix": {
+   "id": "CandidateFix",
    "type": "object",
    "properties": {
     "message": {
@@ -155,13 +158,13 @@
     "edits": {
      "type": "array",
      "items": {
-      "$ref": "Edit"
+      "$ref": "SourceEdit"
      }
     }
    }
   },
-  "Edit": {
-   "id": "Edit",
+  "SourceEdit": {
+   "id": "SourceEdit",
    "type": "object",
    "properties": {
     "offset": {
