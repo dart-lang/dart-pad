@@ -465,6 +465,8 @@ class AnalysisIssue {
 
   core.int charStart;
 
+  core.bool hasFix;
+
   core.String kind;
 
   core.int line;
@@ -482,6 +484,9 @@ class AnalysisIssue {
     }
     if (_json.containsKey("charStart")) {
       charStart = _json["charStart"];
+    }
+    if (_json.containsKey("hasFix")) {
+      hasFix = _json["hasFix"];
     }
     if (_json.containsKey("kind")) {
       kind = _json["kind"];
@@ -504,6 +509,9 @@ class AnalysisIssue {
     }
     if (charStart != null) {
       _json["charStart"] = charStart;
+    }
+    if (hasFix != null) {
+      _json["hasFix"] = hasFix;
     }
     if (kind != null) {
       _json["kind"] = kind;
@@ -681,14 +689,14 @@ class DocumentResponse {
 
 
 class FixesResponse {
-  core.List<ProblemAndFix> fixes;
+  core.List<ProblemAndFixes> fixes;
 
 
   FixesResponse();
 
   FixesResponse.fromJson(core.Map _json) {
     if (_json.containsKey("fixes")) {
-      fixes = _json["fixes"].map((value) => new ProblemAndFix.fromJson(value)).toList();
+      fixes = _json["fixes"].map((value) => new ProblemAndFixes.fromJson(value)).toList();
     }
   }
 
@@ -702,7 +710,7 @@ class FixesResponse {
 }
 
 
-class ProblemAndFix {
+class ProblemAndFixes {
   core.List<CandidateFix> fixes;
 
   core.int length;
@@ -712,9 +720,9 @@ class ProblemAndFix {
   core.String problemMessage;
 
 
-  ProblemAndFix();
+  ProblemAndFixes();
 
-  ProblemAndFix.fromJson(core.Map _json) {
+  ProblemAndFixes.fromJson(core.Map _json) {
     if (_json.containsKey("fixes")) {
       fixes = _json["fixes"].map((value) => new CandidateFix.fromJson(value)).toList();
     }

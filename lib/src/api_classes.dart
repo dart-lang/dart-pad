@@ -21,12 +21,14 @@ class AnalysisIssue implements Comparable {
   final int line;
   final String message;
 
+  final bool hasFix;
+
   final int charStart;
   final int charLength;
   final String location;
 
   AnalysisIssue(this.kind, this.line, this.message,
-      {this.charStart, this.charLength, this.location});
+      {this.charStart, this.charLength, this.location, this.hasFix});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};
@@ -103,7 +105,7 @@ class CompleteResponse {
 }
 
 class FixesResponse {
-  final List<ProblemAndFix> fixes;
+  final List<ProblemAndFixes> fixes;
 
   FixesResponse(List<AnalysisErrorFixes> analysisErrorFixes) :
     this.fixes = _convert(analysisErrorFixes);
@@ -111,15 +113,15 @@ class FixesResponse {
   /**
    * Convert between the Analysis Server type and the API protocol types.
    */
-  static List<ProblemAndFix> _convert(List<AnalysisErrorFixes> list) {
-    var problemsAndFixes = new List<ProblemAndFix>();
+  static List<ProblemAndFixes> _convert(List<AnalysisErrorFixes> list) {
+    var problemsAndFixes = new List<ProblemAndFixes>();
     list.forEach((fix)
         => problemsAndFixes.add(_convertAnalysisErrorFix(fix)));
 
     return problemsAndFixes;
   }
 
-  static ProblemAndFix _convertAnalysisErrorFix(AnalysisErrorFixes analysisFixes) {
+  static ProblemAndFixes _convertAnalysisErrorFix(AnalysisErrorFixes analysisFixes) {
     String problemMessage = analysisFixes.error.message;
     int problemOffset = analysisFixes.error.location.offset;
     int problemLength = analysisFixes.error.location.length;
@@ -153,7 +155,7 @@ class FixesResponse {
         possibleFixes.add(possibleFix);
       }
     }
-    return new ProblemAndFix(
+    return new ProblemAndFixes(
         possibleFixes,
         problemMessage,
         problemOffset,
@@ -165,18 +167,18 @@ class FixesResponse {
  * Represents a problem detected during analysis, and a set of possible
  * ways of resolving the problem.
  */
-class ProblemAndFix {
+class ProblemAndFixes {
   //TODO(lukechurch): consider consolidating this with [AnalysisIssue]
   final List<CandidateFix> fixes;
   final String problemMessage;
   final int offset;
   final int length;
 
-  ProblemAndFix(this.fixes, this.problemMessage, this.offset, this.length);
+  ProblemAndFixes(this.fixes, this.problemMessage, this.offset, this.length);
 }
 
 /**
- * Represents a possible way of solving a [ProblemAndFix].
+ * Represents a possible way of solving an Analysis Problem.
  */
 class CandidateFix {
   final String message;
