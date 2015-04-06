@@ -197,7 +197,10 @@ class Playground {
 
     keys.bind(['ctrl-s'], _handleSave);
     keys.bind(['ctrl-enter'], _handleRun);
-    keys.bind(['f1'], _toggleDocTab);
+    keys.bind(['f1'], () {
+      ga.sendEvent('main', 'help');
+      _toggleDocTab();
+    });
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.completionAutoInvoked = false;
@@ -246,7 +249,7 @@ class Playground {
     if (options.getValueBool("parameter_popup")) {
       paramPopup = new ParameterPopup(dartServices, context, editor);
     }
-    docHandler = new DocHandler(editor,_context, ga);
+    docHandler = new DocHandler(editor, _context);
     _finishedInit();
   }
 
