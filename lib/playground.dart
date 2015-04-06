@@ -5,12 +5,10 @@
 library playground;
 
 import 'dart:async';
-import 'dart:convert' show HTML_ESCAPE;
 import 'dart:html' hide Document;
-import 'dart:math' as math;
 
+import 'package:dart_pad/core/keys.dart';
 import 'package:logging/logging.dart';
-import 'package:markd/markdown.dart' as markdown;
 import 'package:route_hierarchical/client.dart';
 import 'package:rate_limit/rate_limit.dart';
 
@@ -21,12 +19,14 @@ import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
+import 'doc_handler.dart';
 import 'editing/editor.dart';
 import 'elements/bind.dart';
 import 'elements/elements.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
+import 'parameter_popup.dart';
 import 'services/common.dart';
 import 'services/execution_iframe.dart';
 //import 'sharing/gist_storage.dart';
@@ -49,9 +49,10 @@ class Playground implements GistContainer {
   DivElement get _editpanel => querySelector('#editpanel');
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
-  DivElement get _docPanel => querySelector('#documentation');
   bool get _isCompletionActive => editor.completionActive;
-  bool get _isDocPanelOpen => querySelector("#doctab").attributes.containsKey('selected');
+  DivElement get _docPanel => querySelector('#documentation');
+  AnchorElement get _docTab => querySelector('#doctab');
+  bool get _isDocPanelOpen => _docTab.attributes.containsKey('selected');
 
   DButton runButton;
   DOverlay overlay;
@@ -65,6 +66,9 @@ class Playground implements GistContainer {
 
   // We store the last returned shared gist; it's used to update the url.
   Gist _overrideNextRouteGist;
+  Router _router;
+  ParameterPopup paramPopup;
+  DocHandler docHandler;
 
   ModuleManager modules = new ModuleManager();
 
@@ -202,8 +206,6 @@ class Playground implements GistContainer {
   }
 
   void _initPlayground() {
-    final List cursorKeys = [KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN];
-
     // TODO: Set up some automatic value bindings.
     DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'));
     editorSplitter.onPositionChanged.listen((pos) {
@@ -241,29 +243,30 @@ class Playground implements GistContainer {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    keys.bind('ctrl-s', _handleSave);
-    keys.bind('ctrl-enter', _handleRun);
-    keys.bind('f1', () {
+    keys.bind(['ctrl-s'], _handleSave);
+    keys.bind(['ctrl-enter'], _handleRun);
+    keys.bind(['f1'], () {
+      ga.sendEvent('main', 'help');
       _toggleDocTab();
-      _handleHelp();
     });
-    document.onKeyUp.listen((e) {
-      if (options.getValueBool('autopopup_code_completion')) {
-        //RegExp exp = new RegExp(r"[a-zA-Z]");
-        // TODO: _isCompletionActive won't work correct
-        // TODO: which causes some issues
-        // TODO: will be fixed when we use the latest codemirror.js version
-        if (!_isCompletionActive && e.keyCode == KeyCode.PERIOD) {
-          editor.execCommand("autocomplete");
-        }
-      }
-      if (_isCompletionActive || cursorKeys.contains(e.keyCode)) {
-        _handleHelp();
-      }
-    });
-    document.onClick.listen((e) => _handleHelp());
 
-    querySelector("#doctab").onClick.listen((e) => _toggleDocTab());
+    keys.bind(['ctrl-space', 'macctrl-space'], (){
+      editor.completionAutoInvoked = false;
+      editor.execCommand('autocomplete');
+    });
+
+    document.onClick.listen((MouseEvent e) {
+      if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+    });
+
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive || DocHandler.cursorKeys.contains(e.keyCode)){
+        if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+      }
+      _handleAutoCompletion(e);
+    });
+
+    _docTab.onClick.listen((e) => _toggleDocTab());
     querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
     _context = new PlaygroundContext(editor);
@@ -305,6 +308,13 @@ class Playground implements GistContainer {
 
     // Set up development options.
     options.registerOption('autopopup_code_completion', 'false');
+    options.registerOption('parameter_popup', 'false');
+
+    if (options.getValueBool("parameter_popup")) {
+      paramPopup = new ParameterPopup(context, editor);
+    }
+
+    docHandler = new DocHandler(editor, _context);
 
     _finishedInit();
   }
@@ -338,20 +348,60 @@ class Playground implements GistContainer {
       element.querySelectorAll('a');
 
   void _toggleDocTab() {
+    ga.sendEvent('view', 'dartdoc');
+    docHandler.generateDoc(_docPanel);
     // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
-    _outputpanel.style.display = "none";
+    querySelector('#output').style.display = "none";
     querySelector("#consoletab").attributes.remove('selected');
 
-    _docPanel..style.display = "block";
-    querySelector("#doctab").setAttribute('selected','');
+    _docPanel.style.display = "block";
+    _docTab.setAttribute('selected','');
   }
 
   void _toggleConsoleTab() {
-    _docPanel..style.display = "none";
-    querySelector("#doctab").attributes.remove('selected');
+    ga.sendEvent('view', 'console');
+    _docPanel.style.display = "none";
+    _docTab.attributes.remove('selected');
 
     _outputpanel.style.display = "block";
     querySelector("#consoletab").setAttribute('selected','');
+  }
+
+  _handleAutoCompletion(KeyboardEvent e) {
+    // If we're already in completion bail.
+    if (_isCompletionActive) return;
+
+    if (context.focusedEditor == 'dart') {
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.completionAutoInvoked = true;
+        editor.execCommand("autocomplete");
+      }
+    }
+    if (!options.getValueBool('autopopup_code_completion')) {
+      return;
+    }
+
+    if (context.focusedEditor == 'dart') {
+      RegExp exp = new RegExp(r"[A-Z]");
+        if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+          editor.completionAutoInvoked = true;
+          editor.execCommand("autocomplete");
+        }
+    } else if (context.focusedEditor == "html") {
+      if (options.getValueBool('autopopup_code_completion')) {
+        // TODO: autocompletion for attirbutes
+        if (printKeyEvent(e) == "shift-,") {
+          editor.completionAutoInvoked = true;
+          editor.execCommand("autocomplete");
+        }
+      }
+    } else if (context.focusedEditor == "css") {
+      RegExp exp = new RegExp(r"[A-Z]");
+      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        editor.completionAutoInvoked = true;
+        editor.execCommand("autocomplete");
+      }
+    }
   }
 
   void _handleRun() {
@@ -421,56 +471,6 @@ class Playground implements GistContainer {
 
   void _handleSave() {
     ga.sendEvent('main', 'save');
-  }
-
-  void _handleHelp() {
-    if (context.focusedEditor == 'dart' && _isDocPanelOpen && editor.document.selection.isEmpty) {
-      ga.sendEvent('main', 'help');
-
-      SourceRequest input;
-      Position pos = editor.document.cursor;
-      int offset = editor.document.indexFromPos(pos);
-
-      if (_isCompletionActive) {
-        // If the completion popup is open we create a new source as if the
-        // completion popup was chosen, and ask for the documentation of that
-        // source.
-        String completionText = querySelector(".CodeMirror-hint-active").text;
-        var source = context.dartSource;
-        int lastSpace = source.substring(0, offset).lastIndexOf(" ") + 1;
-        int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
-        offset = math.max(lastSpace, lastDot);
-        source = _context.dartSource.substring(0, offset) +
-            completionText +
-            context.dartSource.substring(editor.document.indexFromPos(pos));
-        input = new SourceRequest()
-          ..source = source
-          ..offset = offset;
-      } else {
-        input = new SourceRequest()
-          ..source = _context.dartSource
-          ..offset = offset;
-      }
-
-      // TODO: Show busy.
-      dartServices.document(input).timeout(serviceCallTimeout).then(
-          (DocumentResponse result) {
-        if (result.info['description'] == null &&
-            result.info['dartdoc'] == null) {
-          _docPanel.setInnerHtml("<p>No documentation found.</p>");
-        } else {
-          final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
-            ..allowElement('a', attributes: ['href']);
-          _docPanel.setInnerHtml(markdown.markdownToHtml('''
-# `${result.info['description']}`\n\n
-${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
-${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
-${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
-${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName']}" : ""}\n\n
-''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
-        }
-      });
-    }
   }
 
   void _clearOutput() {
@@ -661,38 +661,6 @@ class PlaygroundContext extends Context {
         controller.add(null);
       });
     });
-  }
-}
-
-class InlineBracketsColon extends markdown.InlineSyntax {
-  InlineBracketsColon() : super(r'\[:\s?((?:.|\n)*?)\s?:\]');
-
-  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
-
-  bool onMatch(markdown.InlineParser parser, Match match) {
-    var element = new markdown.Element.text('code', htmlEscape(match[1]));
-    parser.addNode(element);
-    return true;
-  }
-}
-
-// TODO: [someCodeReference] should be converted to for example
-// https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
-// for now it gets converted <code>someCodeReference</code>
-class InlineBrackets extends markdown.InlineSyntax {
-  // This matches URL text in the documentation, with a negative filter to
-  // detect if it is followed by a URL to prevent e.g.
-  // `[text] (http://www.example.com)` getting turned into
-  // `<code>text</code> (http://www.example.com)`.
-  InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\s?\()');
-
-  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
-
-  bool onMatch(markdown.InlineParser parser, Match match) {
-    var element = new markdown.Element.text(
-        'code', "<em>${htmlEscape(match[1])}</em>");
-    parser.addNode(element);
-    return true;
   }
 }
 

@@ -59,6 +59,11 @@
   padding-right: 10px;
 }
 
+.CodeMirror-hint em {
+  font-style: normal;
+  font-weight: bold;
+}
+
 li.CodeMirror-hint-active {
   background: #545454;
 }
@@ -79,25 +84,35 @@ li.CodeMirror-hint-active {
 
 /* Selectors for the code completion UI. */
 
-.CodeMirror-hint::before {
+#documentation h1::before, .CodeMirror-hint::before {
   color: #333;
   font-weight: bold;
+  font-family: "Courier", monospace;
   box-sizing: border-box;
   line-height: 14px;
   width: 15px;
   height: 15px;
+  vertical-align: middle;
   font-size: 12px;
   display: inline-block;
   text-align: center;
-  margin-right: 5px;
+  margin: 0 5px 2px 0;
   border-radius: 50%;
+}
+
+.CodeMirror-hint::before {
   content: " ";
+}
+
+.deprecated {
+  text-decoration: line-through;
 }
 
 .type-keyword::before {
   background: radial-gradient(#f0dfaf, #e0cfa1);
   content : "k";
 }
+
 .type-class::before {
   content: "C";
   background: radial-gradient(#A2D7F5, #8ebfd7);
@@ -110,9 +125,18 @@ li.CodeMirror-hint-active {
   line-height: 16px; /*for vertical centering */
 }
 
-.type-getter::before,
+.type-getter::before {
+  content: "\21FD";
+  background: radial-gradient(#e1C2ff, #cdb7e8);
+}
+
 .type-setter::before {
-  content: "p";
+  content: "\21FE";
+  background: radial-gradient(#e1C2ff, #cdb7e8);
+}
+
+.type-getter_and_setter::before {
+  content: "\21FF";
   background: radial-gradient(#e1C2ff, #cdb7e8);
 }
 
@@ -150,7 +174,20 @@ li.CodeMirror-hint-active {
 
 .type-no_suggestions::before {
   content: "?";
-  line-height: 14px; /*for vertical centering */
   background: radial-gradient(#fff, #eee);
-  vertical-align: text-bottom;
+}
+
+/* Chrome specific styling hack, see #236. */
+@media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
+  #documentation h1::before,
+  .CodeMirror-hint::before {
+    line-height: 16px;  /*for vertical centering */
+  }
+
+  .type-field::before,
+  .type-function_type_alias::before,
+  .type-function::before,
+  .type-class::before {
+    line-height: 18px; /*for vertical centering */
+  }
 }

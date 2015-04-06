@@ -26,7 +26,7 @@ class DartCompleter extends CodeCompleter {
 
   DartCompleter(this.servicesApi, this.document);
 
-  Future<List<Completion>> complete(Editor editor) {
+  Future<CompletionResult> complete(Editor editor) {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 
@@ -36,29 +36,22 @@ class DartCompleter extends CodeCompleter {
       ..source = editor.document.value
       ..offset = offset;
 
-    Stopwatch timer = new Stopwatch()..start();
-
     CancellableCompleter completer = new CancellableCompleter();
     _lastCompleter = completer;
 
     servicesApi.complete(request).then((CompleteResponse response) {
       if (completer.isCancelled) return;
 
-      _logger.info('completion request in ${timer.elapsedMilliseconds}ms; '
-          '${response.completions.length} completions, '
-          'offset=${response.replacementOffset}, '
-          'length=${response.replacementLength}');
+      int replaceOffset = response.replacementOffset;
+      int replaceLength = response.replacementLength;
+
+      String replacementString =  editor.document.value.substring(
+          replaceOffset, replaceOffset + replaceLength);
 
       List<AnalysisCompletion> analysisCompletions = response.completions.map(
           (completion) {
-        return new AnalysisCompletion(
-            response.replacementOffset, response.replacementLength, completion);
+        return new AnalysisCompletion(replaceOffset, replaceLength, completion);
       }).toList();
-
-      int replacementOffset = response.replacementOffset;
-      int delta = offset - replacementOffset;
-      String lowerPrefix = editor.document.value.substring(
-          replacementOffset, replacementOffset + delta).toLowerCase();
 
       List<Completion> completions =  analysisCompletions.map((completion) {
         // TODO: Move to using a LabelProvider; decouple the data and rendering.
@@ -71,25 +64,23 @@ class DartCompleter extends CodeCompleter {
         // Filter unmatching completions.
         // TODO: This is temporary; tracking issue here:
         // https://github.com/dart-lang/dart-services/issues/87.
-        if (delta > 0) {
-          if (!completion.text.toLowerCase().startsWith(lowerPrefix)) {
+        if (replacementString.isNotEmpty) {
+          if (!completion.matchesCompletionFragment(replacementString)) {
             return null;
           }
         }
 
-        // TODO: We need to be more precise about the text we're inserting and
-        // replacing.
         String text = completion.text;
-        if (delta > 0 && delta <= text.length) {
-          text = text.substring(delta);
-        }
 
         if (completion.isMethod) {
           text += "()";
         }
 
+        String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
+
         if (completion.type == null) {
-          return new Completion(text, displayString: displayString);
+          return new Completion(text, displayString: displayString,
+              type: deprecatedClass);
         } else {
           int cursorPos = null;
 
@@ -98,16 +89,27 @@ class DartCompleter extends CodeCompleter {
           }
 
           return new Completion(text, displayString: displayString,
-              type: "type-${completion.type.toLowerCase()}",
+              type: "type-${completion.type.toLowerCase()}${deprecatedClass}",
               cursorOffset: cursorPos);
         }
       }).where((x) => x != null).toList();
 
-      if (completions.isEmpty) {
-        // TODO: Flash something to indicate that there were no completions.
+      List<Completion> filterCompletions = new List.from(completions);
+
+      // Removes duplicates when a completion is both a getter and a setter.
+      for (Completion completion in completions) {
+        for (Completion other in completions) {
+          if (completion.isSetterAndMatchesGetter(other)) {
+            filterCompletions.removeWhere((c) => completion == c);
+            other.type = "type-getter_and_setter";
+          }
+        }
       }
 
-      completer.complete(completions);
+      completer.complete(new CompletionResult(
+          filterCompletions,
+          replaceOffset: replaceOffset,
+          replaceLength: replaceLength));
     }).catchError((e) {
       completer.completeError(e);
     });
@@ -115,15 +117,6 @@ class DartCompleter extends CodeCompleter {
     return completer.future;
   }
 }
-
-//{kind: KEYWORD, relevance: 2000, completion: library, selectionOffset: 7, selectionLength: 0, isDeprecated: false, isPotential: false}
-//{kind: INVOCATION, relevance: 1000, completion: int, selectionOffset: 3, selectionLength: 0, isDeprecated: false, isPotential: false, element: {kind: CLASS, name: int, flags: 1}}
-//{kind: INVOCATION, relevance: 1059, completion: i, selectionOffset: 1, selectionLength: 0, isDeprecated: false, isPotential: false, element: {kind: LOCAL_VARIABLE, name: i, flags: 0, returnType: int}, returnType: int}
-//{kind: INVOCATION, relevance: 1056, completion: main, selectionOffset: 4, selectionLength: 0, isDeprecated: false, isPotential: false, element: {kind: FUNCTION, name: main, flags: 0, parameters: (), returnType: void}, returnType: void, parameterNames: [], parameterTypes: [], requiredParameterCount: 0, hasNamedParameters: false}
-//{kind: INVOCATION, relevance: 1000, completion: proxy, selectionOffset: 5, selectionLength: 0, isDeprecated: false, isPotential: false, element: {kind: GETTER, name: proxy, flags: 8, returnType: Object}, returnType: Object}
-//{kind: INVOCATION, relevance: 1000, completion: int, selectionOffset: 3, selectionLength: 0, isDeprecated: false, isPotential: false, element: {kind: CLASS, name: int, flags: 1}}
-//{kind: INVOCATION, relevance: 1000, completion: Cat, selectionOffset: 3, selectionLength: 0, isDeprecated: false, isPotential: false, element: {kind: CLASS, name: Cat, flags: 0}}
-//{kind: INVOCATION, relevance: 1000, completion: print, selectionOffset: 5, selectionLength: 0, isDeprecated: false, isPotential: false, element: {kind: FUNCTION, name: print, flags: 8, parameters: (Object object), returnType: void}, returnType: void, parameterNames: [object], parameterTypes: [Object], requiredParameterCount: 1, hasNamedParameters: false}
 
 class AnalysisCompletion implements Comparable {
   final int offset;
@@ -175,6 +168,10 @@ class AnalysisCompletion implements Comparable {
 
   // FUNCTION, GETTER, CLASS, ...
   String get type => _map.containsKey('element') ? _map['element']['kind'] : kind;
+
+  // TODO: Changed from `contains` to `startsWith`; see #211.
+  bool matchesCompletionFragment(String completionFragment) =>
+      text.toLowerCase().startsWith(completionFragment.toLowerCase());
 
   int compareTo(other) {
     if (other is! AnalysisCompletion) return -1;

@@ -6,6 +6,7 @@ library editor.comid;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math';
 
 import 'package:comid/addon/comment/comment.dart' as comments;
 import 'package:comid/addon/edit/closebrackets.dart';
@@ -117,11 +118,12 @@ class ComidFactory extends EditorFactory {
       [hints.ShowProposals displayProposals]) {
     assert(displayProposals != null); // ensure async
     _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, cm); // new instance!?
-    Future<List<Completion>> props = completer.complete(ed);
+    Future<CompletionResult> props = completer.complete(ed);
     Pos pos = cm.getCursor();
-    props.then((List<Completion> completions) {
+    props.then((CompletionResult completions) {
+      List<Completion> completionList = completions.completions;
       hints.ProposalList proposals;
-      List<hints.Proposal> list = completions.map((Completion completion) =>
+      List<hints.Proposal> list = completionList.map((Completion completion) =>
           // this map is broken -- should use custom display ala Dart Editor
           new hints.Proposal(completion.value)).toList();
       proposals = new hints.ProposalList(list: list, from: pos, to: pos);
@@ -136,6 +138,8 @@ class _CodeMirrorEditor extends Editor {
 
   _CodeMirrorDocument _document;
 
+  // TODO: Return an existing _CodeMirrorEditor instance if we already have one
+  // for the given instance of `CodeMirror`.
   _CodeMirrorEditor._(ComidFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
   }
@@ -162,6 +166,14 @@ class _CodeMirrorEditor extends Editor {
 
   String get theme => cm.getOption('theme');
   set theme(String str) => cm.setOption('theme', str);
+
+  // TODO: Add a cursorCoords getter for comid.
+  Point get cursorCoords => null;
+
+  // TODO: Add a onMouseDown getter for comid.
+  Stream<html.MouseEvent> get onMouseDown => null;
+
+  bool get hasFocus => cm.state.focused;
 
   void focus() => cm.focus();
   void resize() => cm.refresh();

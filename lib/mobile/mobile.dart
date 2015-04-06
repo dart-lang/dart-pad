@@ -301,9 +301,9 @@ class PlaygroundMobile {
     // TODO: Add a real code completer here.
     //editorFactory.registerCompleter('dart', new DartCompleter());
 
-    keys.bind('ctrl-s', _handleSave);
-    keys.bind('ctrl-enter', _handleRun);
-    keys.bind('f1', _handleHelp);
+    keys.bind(['ctrl-s'], _handleSave);
+    keys.bind(['ctrl-enter'], _handleRun);
+    keys.bind(['f1'], _handleHelp);
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;

@@ -6,6 +6,8 @@ library editor.codemirror;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:js';
+import 'dart:math';
 
 import 'package:codemirror/codemirror.dart' hide Position;
 import 'package:codemirror/codemirror.dart' as pos show Position;
@@ -68,7 +70,6 @@ class CodeMirrorFactory extends EditorFactory {
         'cursorHeight': 0.85,
         //'gutters': [_gutterId],
         'extraKeys': {
-          'Ctrl-Space': 'autocomplete',
           'Cmd-/': 'toggleComment',
           'Ctrl-/': 'toggleComment'
         },
@@ -94,45 +95,76 @@ class CodeMirrorFactory extends EditorFactory {
 
   Future<HintResults> _completionHelper(CodeMirror editor,
       CodeCompleter completer, HintsOptions options) {
-    pos.Position position = editor.getCursor();
-    _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, editor);
+    _CodeMirrorEditor ed = new _CodeMirrorEditor._fromExisting(this, editor);
 
-    return completer.complete(ed).then((List<Completion> completions) {
-      List<HintResult> hints = completions.map((Completion completion) {
+    return completer.complete(ed).then((CompletionResult result) {
+      Doc doc = editor.getDoc();
+      pos.Position from =  doc.posFromIndex(result.replaceOffset);
+      pos.Position to = doc.posFromIndex(
+          result.replaceOffset + result.replaceLength);
+      String stringToReplace = doc.getValue().substring(
+          result.replaceOffset, result.replaceOffset + result.replaceLength);
+
+      List<HintResult> hints = result.completions.map((Completion completion) {
         return new HintResult(
             completion.value,
             displayText: completion.displayString,
             className: completion.type,
-            hintApplier: (CodeMirror editor, HintResult hint, pos.Position from, pos.Position to) {
-              editor.getDoc().replaceRange(hint.text, from, to);
+            hintApplier: (CodeMirror editor, HintResult hint, pos.Position from,
+                pos.Position to) {
+              doc.replaceRange(hint.text, from, to);
               if (completion.cursorOffset != null) {
                 int diff = hint.text.length - completion.cursorOffset;
-                editor.getDoc().setCursor(new pos.Position(
+                doc.setCursor(new pos.Position(
                     editor.getCursor().line, editor.getCursor().ch - diff));
               }
+            },
+            hintRenderer: (html.Element element, HintResult hint) {
+              element.innerHtml = completion.displayString.replaceFirst(
+                  stringToReplace,"<em>${stringToReplace}</em>"
+              );
             }
         );
       }).toList();
 
-      if (hints.length == 0 && ed.completionActive) {
+      // Only show 'no suggestions' if the completion was explicitly invoked
+      // or if the popup was already active.
+      if (hints.isEmpty
+            && (ed.completionActive
+                  || (!ed.completionActive && !ed.completionAutoInvoked))) {
         hints = [
-          new HintResult("", displayText: "No suggestions",
-              className: "type-no_suggestions")
+          new HintResult(stringToReplace,
+              displayText: "No suggestions", className: "type-no_suggestions")
         ];
       }
 
-      return new HintResults.fromHints(hints, position, position);
+      return new HintResults.fromHints(hints, from, to);
     });
   }
 }
 
 class _CodeMirrorEditor extends Editor {
+  // Map from JsObject codemirror instances to existing dartpad wrappers.
+  static Map<dynamic, _CodeMirrorEditor> _instances = {};
+
   final CodeMirror cm;
 
   _CodeMirrorDocument _document;
 
   _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
+    _instances[cm.jsProxy] = this;
+  }
+
+  factory _CodeMirrorEditor._fromExisting(CodeMirrorFactory factory, CodeMirror cm) {
+    // TODO: We should ensure that the Dart `CodeMirror` wrapper returns the
+    // same instances to us when possible (or, identity is based on the
+    // underlying JS proxy).
+    if (_instances.containsKey(cm.jsProxy)) {
+      return _instances[cm.jsProxy];
+    } else {
+      return new _CodeMirrorEditor._(factory,  cm);
+    }
   }
 
   Document get document => _document;
@@ -145,9 +177,7 @@ class _CodeMirrorEditor extends Editor {
     return new _CodeMirrorDocument._(this, new Doc(content, mode));
   }
 
-  void execCommand(String name) {
-    cm.execCommand(name);
-  }
+  void execCommand(String name) => cm.execCommand(name);
 
   bool get completionActive {
     if (cm.jsProxy['state']['completionActive'] == null) {
@@ -163,12 +193,25 @@ class _CodeMirrorEditor extends Editor {
   String get theme => cm.getTheme();
   set theme(String str) => cm.setTheme(str);
 
+  bool get hasFocus => cm.jsProxy['state']['focused'];
+
+  Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
+
+  Point get cursorCoords {
+    JsObject js = cm.call("cursorCoords");
+    return new Point(js["left"], js["top"]);
+  }
+
   void focus() => cm.focus();
   void resize() => cm.refresh();
 
   void swapDocument(Document document) {
     _document = document;
     cm.swapDoc(_document.doc);
+  }
+
+  void dispose() {
+    _instances.remove(cm.jsProxy);
   }
 }
 

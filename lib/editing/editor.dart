@@ -6,6 +6,7 @@ library editor;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math';
 
 abstract class EditorFactory {
   List<String> get modes;
@@ -17,14 +18,14 @@ abstract class EditorFactory {
   Editor createFromElement(html.Element element);
 
   bool get supportsCompletionPositioning;
-  // TODO: codemirror gives the client more control over where to insert the
-  // completions. With Ace, you can only insert from the requested position
-  // forward.
+
   void registerCompleter(String mode, CodeCompleter completer);
 }
 
 abstract class Editor {
   final EditorFactory factory;
+
+  bool completionAutoInvoked = false;
 
   Editor(this.factory);
 
@@ -33,16 +34,14 @@ abstract class Editor {
   Document get document;
 
   /**
-   * Runs the command with the given name on the editor.
-   * Only implemented for codemirror and comid.
-   * Returns null for ace editor.
+   * Runs the command with the given name on the editor. Only implemented for
+   * codemirror and comid; returns `null` for ace editor.
    */
   void execCommand(String name);
 
   /**
-   * Checks if the completion popup is displayed.
-   * Only implemented for codemirror.
-   * Returns null for ace editor and comid.
+   * Checks if the completion popup is displayed. Only implemented for
+   * codemirror; returns `null` for ace editor and comid.
    */
   bool get completionActive;
 
@@ -52,10 +51,29 @@ abstract class Editor {
   String get theme;
   set theme(String str);
 
+  /**
+   * Returns the cursor coordinates in pixels. cursorCoords.x corresponds to
+   * left and cursorCoords.y corresponds to top. Only implemented for
+   * codemirror, returns `null` for ace editor and comid.
+   */
+  Point get cursorCoords;
+
+  bool get hasFocus;
+
+  /**
+   * Fired when a mouse is clicked. You can preventDefault the event to signal
+   * that the editor should do no further handling.  Only implemented for
+   * codemirror, returns `null` for ace editor and comid.
+   */
+  Stream<html.MouseEvent> get onMouseDown;
+
   void resize();
   void focus();
 
   void swapDocument(Document document);
+
+  /// Let the `Editor` instance know that it will no longer be used.
+  void dispose() { }
 }
 
 abstract class Document {
@@ -126,7 +144,19 @@ class Position {
 }
 
 abstract class CodeCompleter {
-  Future<List<Completion>> complete(Editor editor);
+  Future<CompletionResult> complete(Editor editor);
+}
+
+class CompletionResult {
+  final List<Completion> completions;
+
+  /// The start offset of the text to be replaced by a completion.
+  final int replaceOffset;
+
+  /// The length of the text to be replaced by a completion.
+  final int replaceLength;
+
+  CompletionResult(this.completions, {this.replaceOffset, this.replaceLength});
 }
 
 class Completion {
@@ -138,7 +168,7 @@ class Completion {
 
   /// The css class type for the completion. This may not be supported by all
   /// completors.
-  final String type;
+  String type;
 
   /// The (optional) offset to display the cursor at after completion. This is
   /// relative to the insertion location, not the absolute position in the file.
@@ -147,4 +177,8 @@ class Completion {
   final int cursorOffset;
 
   Completion(this.value, {this.displayString, this.type, this.cursorOffset});
+
+  bool isSetterAndMatchesGetter(Completion other) =>
+      displayString == other.displayString &&
+      (type == "type-getter" && other.type == "type-setter");
 }
