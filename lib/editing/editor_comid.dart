@@ -163,6 +163,9 @@ class _CodeMirrorEditor extends Editor {
   bool get completionAutoInvoked => false;
   set completionAutoInvoked(bool value) { }
 
+  // TODO: Add an showCompletions method for comid.
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) { }
+
   String get mode => cm.doc.getMode().name;
   set mode(String str) => cm.setOption('mode', str);
 
@@ -224,6 +227,9 @@ class _CodeMirrorDocument extends Document {
   bool get isClean => doc.isClean();
 
   void markClean() => doc.markClean();
+
+  // TODO: Add an applyEdit method for comid.
+  void applyEdit(SourceEdit edit) { }
 
   void setAnnotations(List<Annotation> annotations) {
     // TODO: Codemirror lint has no support for info markers - contribute some?

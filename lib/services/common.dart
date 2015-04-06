@@ -4,9 +4,13 @@
 
 library dart_pad.common;
 
-final String serverURL = 'https://dart-services.appspot.com/';
-//final String serverURL = 'http://doc-test.dart-services.appspot.com/';
-//final String serverURL = 'http://127.0.0.1:8082/';
+
+// TODO: This is just for testing this PR remove when the dart-services are
+// updated and this PR is ready for merge
+
+//final String serverURL = 'https://dart-services.appspot.com/';
+final String serverURL = 'http://doc-test.dart-services.appspot.com/';
+//final String serverURL = 'http://127.0.0.1:8080/';
 
 final Duration serviceCallTimeout = new Duration(seconds: 10);
 final Duration longServiceCallTimeout = new Duration(seconds: 20);

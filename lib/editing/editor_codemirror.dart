@@ -97,7 +97,8 @@ class CodeMirrorFactory extends EditorFactory {
       CodeCompleter completer, HintsOptions options) {
     _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, editor);
 
-    return completer.complete(ed).then((CompletionResult result) {
+    return completer.complete(ed, onlyShowFixes: ed._lookingForQuickFix).then(
+            (CompletionResult result) {
       Doc doc = editor.getDoc();
       pos.Position from =  doc.posFromIndex(result.replaceOffset);
       pos.Position to = doc.posFromIndex(
@@ -118,18 +119,33 @@ class CodeMirrorFactory extends EditorFactory {
                 doc.setCursor(new pos.Position(
                     editor.getCursor().line, editor.getCursor().ch - diff));
               }
+              if (completion.type == "type-quick_fix") {
+                completion.quickFixes.forEach(
+                        (SourceEdit edit) => ed.document.applyEdit(edit));
+              }
             },
             hintRenderer: (html.Element element, HintResult hint) {
-              element.innerHtml = completion.displayString.replaceFirst(
-                  stringToReplace,"<em>${stringToReplace}</em>"
-              );
+              if (completion.type != "type-quick_fix") {
+                element.innerHtml = completion.displayString.replaceFirst(
+                    stringToReplace, "<em>${stringToReplace}</em>"
+                );
+              } else {
+                element.innerHtml = completion.displayString;
+              }
+
             }
         );
       }).toList();
 
+      if (hints.isEmpty && ed._lookingForQuickFix) {
+        hints = [
+          new HintResult(stringToReplace,
+          displayText: "No fixes available", className: "type-no_suggestions")
+        ];
+      }
       // Only show 'no suggestions' if the completion was explicitly invoked
       // or if the popup was already active.
-      if (hints.isEmpty
+      else if (hints.isEmpty
             && (ed.completionActive
                   || (!ed.completionActive && !ed.completionAutoInvoked))) {
         hints = [
@@ -166,6 +182,18 @@ class _CodeMirrorEditor extends Editor {
     cm.execCommand(name);
   }
 
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) {
+    if (autoInvoked)
+      completionAutoInvoked = true;
+    else
+      completionAutoInvoked = false;
+    if (onlyShowFixes)
+      _lookingForQuickFix = true;
+    else
+      _lookingForQuickFix = false;
+    execCommand("autocomplete");
+  }
+
   bool get completionActive {
     if (cm.jsProxy['state']['completionActive'] == null) {
       return false;
@@ -178,6 +206,11 @@ class _CodeMirrorEditor extends Editor {
       => cm.jsProxy['state']['completionAutoInvoked'];
   set completionAutoInvoked(bool value)
       => cm.jsProxy['state']['completionAutoInvoked'] = value;
+
+  bool get _lookingForQuickFix
+      => cm.jsProxy['state']['lookingForQuickFix'];
+  set _lookingForQuickFix(bool value)
+      => cm.jsProxy['state']['lookingForQuickFix'] = value;
 
   String get mode => cm.getMode();
   set mode(String str) => cm.setMode(str);
@@ -246,6 +279,14 @@ class _CodeMirrorDocument extends Document {
   bool get isClean => doc.isClean();
 
   void markClean() => doc.markClean();
+
+  void applyEdit(SourceEdit edit) {
+    doc.replaceRange(
+        edit.replacement,
+        _posToPos(posFromIndex(edit.offset)),
+        _posToPos(posFromIndex(edit.offset + edit.length))
+    );
+  }
 
   void setAnnotations(List<Annotation> annotations) {
     // TODO: Codemirror lint has no support for info markers - contribute some?
