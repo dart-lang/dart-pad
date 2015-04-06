@@ -204,13 +204,11 @@ class Playground {
     });
 
     keys.bind(['alt-enter', 'ctrl-1'], (){
-      if (editor.document.hasIssueAtOffset) {
-        editor.autoComplete(quickFix: true);
-      }
+        editor.showCompletions(onlyShowFixes: true);
     });
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
-      editor.autoComplete();
+      editor.showCompletions();
       _handleHelp();
     });
 
@@ -313,7 +311,7 @@ class Playground {
 
     if (context.focusedEditor == 'dart') {
       if (e.keyCode == KeyCode.PERIOD) {
-        editor.autoComplete(autoInvoked: true);
+        editor.showCompletions(autoInvoked: true);
         _handleHelp();
       }
     }
@@ -324,20 +322,20 @@ class Playground {
     if (context.focusedEditor == 'dart') {
       RegExp exp = new RegExp(r"[A-Z]");
         if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-          editor.autoComplete(autoInvoked: true);
+          editor.showCompletions(autoInvoked: true);
           _handleHelp();
         }
     } else if (context.focusedEditor == "html") {
       if (options.getValueBool('autopopup_code_completion')) {
         // TODO: autocompletion for attirbutes
         if (printKeyEvent(e) == "shift-,") {
-          editor.autoComplete(autoInvoked: true);
+          editor.showCompletions(autoInvoked: true);
         }
       }
     } else if (context.focusedEditor == "css") {
       RegExp exp = new RegExp(r"[A-Z]");
       if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-        editor.autoComplete(autoInvoked: true);
+        editor.showCompletions(autoInvoked: true);
       }
     }
   }
@@ -592,7 +590,7 @@ ${info['libraryName'] == null ? "" : "**Library:** ${apiLink == null ? info['lib
               // is only shown if the wrench is clicked,
               // and not if the text or label is clicked.
               if ((e.target as Element).className == "issue hasFix") {
-                editor.autoComplete(quickFix: true);
+                editor.showCompletions(onlyShowFixes: true);
               }
             });
           }

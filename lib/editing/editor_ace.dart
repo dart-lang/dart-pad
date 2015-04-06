@@ -12,7 +12,6 @@ import 'package:ace/ace.dart' as ace;
 import 'package:ace/proxy.dart';
 
 import 'editor.dart';
-import 'package:dart_pad/dartservices_client/v1.dart';
 
 export 'editor.dart';
 
@@ -135,8 +134,8 @@ class _AceEditor extends Editor {
     editor.theme = new ace.Theme.named(str);
   }
 
-  // TODO: Add an autoComplete method for ace.
-  void autoComplete({bool autoInvoked, bool quickFix}) { }
+  // TODO: Add an showCompletions method for ace.
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) { }
 
   bool get hasFocus => editor.isFocused;
 
@@ -185,7 +184,7 @@ class _AceDocument extends Document {
   void markClean() => session.undoManager.markClean();
 
   // TODO: Add a applyEdit method for ace.
-  void applyEdit(Edit edit) { }
+  void applyEdit(SourceEdit edit) { }
 
   // TODO: Add a hasIssueAtOffset getter for ace.
   bool get hasIssueAtOffset => null;

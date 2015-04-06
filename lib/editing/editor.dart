@@ -7,7 +7,6 @@ library editor;
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:math';
-import 'package:dart_pad/dartservices_client/v1.dart';
 
 abstract class EditorFactory {
   List<String> get modes;
@@ -38,7 +37,7 @@ abstract class Editor {
    */
   void execCommand(String name);
 
-  void autoComplete({bool autoInvoked, bool quickFix});
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false});
 
   /**
    * Checks if the completion popup is displayed. Only implemented for
@@ -47,8 +46,6 @@ abstract class Editor {
   bool get completionActive;
 
   bool completionAutoInvoked;
-
-  bool lookingForQuickFix;
 
   String get mode;
   set mode(String str);
@@ -104,9 +101,7 @@ abstract class Document {
   int indexFromPos(Position pos);
   Position posFromIndex(int index);
 
-  void applyEdit(Edit edit);
-
-  bool get hasIssueAtOffset;
+  void applyEdit(SourceEdit edit);
 
   Stream get onChange;
 }
@@ -151,7 +146,7 @@ class Position {
 }
 
 abstract class CodeCompleter {
-  Future<CompletionResult> complete(Editor editor);
+  Future<CompletionResult> complete(Editor editor, {onlyShowFixes: false});
 }
 
 class CompletionResult {
@@ -183,11 +178,19 @@ class Completion {
   /// completors. See [EditorFactory.supportsCompletionPositioning].
   final int cursorOffset;
 
-  List<Edit> quickFixes = [];
+  List<SourceEdit> quickFixes = [];
 
   Completion(this.value, {this.displayString, this.type, this.cursorOffset, this.quickFixes});
 
   bool isSetterAndMatchesGetter(Completion other) =>
       displayString == other.displayString &&
       (type == "type-getter" && other.type == "type-setter");
+}
+
+class SourceEdit {
+  int length;
+  int offset;
+  String replacement;
+
+  SourceEdit(this.length, this.offset, this.replacement);
 }

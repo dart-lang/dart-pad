@@ -26,7 +26,7 @@ class DartCompleter extends CodeCompleter {
 
   DartCompleter(this.servicesApi, this.document);
 
-  Future<CompletionResult> complete(Editor editor) {
+  Future<CompletionResult> complete(Editor editor, {onlyShowFixes: false}) {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 
@@ -39,17 +39,23 @@ class DartCompleter extends CodeCompleter {
     CancellableCompleter completer = new CancellableCompleter();
     _lastCompleter = completer;
 
-    if (editor.lookingForQuickFix) {
+    if (onlyShowFixes) {
       servicesApi.fix(request).then((FixesResponse response) {
         List<Completion> completions = [];
         for (ProblemFix problemFix in response.fixes) {
           for (Fix fix in problemFix.fixes) {
+            List<SourceEdit> fixes = fix.edits.map(
+                    (edit) => new SourceEdit(
+                        edit.length,
+                        edit.offset,
+                        edit.replacement)
+            ).toList();
             completions.add(new Completion(
-            "",
-            displayString: fix.message,
-            type: "type-quick_fix",
-            quickFixes: fix.edits
-            ));
+                              "",
+                              displayString: fix.message,
+                              type: "type-quick_fix",
+                              quickFixes: fixes)
+            );
           }
         }
         completer.complete(new CompletionResult(

@@ -15,7 +15,6 @@ import 'package:codemirror/hints.dart';
 
 import 'editor.dart' hide Position;
 import 'editor.dart' as ed show Position;
-import 'package:dart_pad/dartservices_client/v1.dart';
 
 export 'editor.dart';
 
@@ -98,7 +97,7 @@ class CodeMirrorFactory extends EditorFactory {
       CodeCompleter completer, HintsOptions options) {
     _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, editor);
 
-    return completer.complete(ed).then((CompletionResult result) {
+    return completer.complete(ed, onlyShowFixes: ed._lookingForQuickFix).then((CompletionResult result) {
       Doc doc = editor.getDoc();
       pos.Position from =  doc.posFromIndex(result.replaceOffset);
       pos.Position to = doc.posFromIndex(
@@ -120,7 +119,8 @@ class CodeMirrorFactory extends EditorFactory {
                     editor.getCursor().line, editor.getCursor().ch - diff));
               }
               if (completion.type == "type-quick_fix") {
-                completion.quickFixes.forEach((Edit edit) => ed.document.applyEdit(edit));
+                completion.quickFixes.forEach(
+                        (SourceEdit edit) => ed.document.applyEdit(edit));
               }
             },
             hintRenderer: (html.Element element, HintResult hint) {
@@ -136,7 +136,7 @@ class CodeMirrorFactory extends EditorFactory {
         );
       }).toList();
 
-      if (hints.isEmpty && ed.lookingForQuickFix) {
+      if (hints.isEmpty && ed._lookingForQuickFix) {
         hints = [
           new HintResult(stringToReplace,
           displayText: "No fixes available", className: "type-no_suggestions")
@@ -181,18 +181,18 @@ class _CodeMirrorEditor extends Editor {
     cm.execCommand(name);
   }
 
-  void autoComplete({bool autoInvoked, bool quickFix}) {
-    if (autoInvoked != null && autoInvoked) {
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) {
+    if (autoInvoked) {
       completionAutoInvoked = true;
     } else {
       completionAutoInvoked = false;
     }
-    if (quickFix != null && quickFix) {
-      lookingForQuickFix = true;
+    if (onlyShowFixes) {
+      _lookingForQuickFix = true;
       // Codemirror autocompletion only works if there is no selected text.
       cm.getDoc().setCursor(_document._posToPos(_document.selectionStart));
     } else {
-      lookingForQuickFix = false;
+      _lookingForQuickFix = false;
     }
     execCommand("autocomplete");
   }
@@ -210,11 +210,10 @@ class _CodeMirrorEditor extends Editor {
   set completionAutoInvoked(bool value)
       => cm.jsProxy['state']['completionAutoInvoked'] = value;
 
-  bool get lookingForQuickFix
+  bool get _lookingForQuickFix
       => cm.jsProxy['state']['lookingForQuickFix'];
-  set lookingForQuickFix(bool value)
+  set _lookingForQuickFix(bool value)
       => cm.jsProxy['state']['lookingForQuickFix'] = value;
-
 
   String get mode => cm.getMode();
   set mode(String str) => cm.setMode(str);
@@ -286,7 +285,7 @@ class _CodeMirrorDocument extends Document {
 
   void markClean() => doc.markClean();
 
-  void applyEdit(Edit edit) {
+  void applyEdit(SourceEdit edit) {
     doc.replaceRange(
         edit.replacement,
         _posToPos(posFromIndex(edit.offset)),
