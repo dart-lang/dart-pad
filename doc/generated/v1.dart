@@ -465,7 +465,7 @@ class AnalysisIssue {
 
   core.int charStart;
 
-  core.bool hasFix;
+  core.bool hasFixes;
 
   core.String kind;
 
@@ -485,8 +485,8 @@ class AnalysisIssue {
     if (_json.containsKey("charStart")) {
       charStart = _json["charStart"];
     }
-    if (_json.containsKey("hasFix")) {
-      hasFix = _json["hasFix"];
+    if (_json.containsKey("hasFixes")) {
+      hasFixes = _json["hasFixes"];
     }
     if (_json.containsKey("kind")) {
       kind = _json["kind"];
@@ -510,8 +510,8 @@ class AnalysisIssue {
     if (charStart != null) {
       _json["charStart"] = charStart;
     }
-    if (hasFix != null) {
-      _json["hasFix"] = hasFix;
+    if (hasFixes != null) {
+      _json["hasFixes"] = hasFixes;
     }
     if (kind != null) {
       _json["kind"] = kind;

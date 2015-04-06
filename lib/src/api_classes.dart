@@ -21,14 +21,14 @@ class AnalysisIssue implements Comparable {
   final int line;
   final String message;
 
-  final bool hasFix;
+  final bool hasFixes;
 
   final int charStart;
   final int charLength;
   final String location;
 
   AnalysisIssue(this.kind, this.line, this.message,
-      {this.charStart, this.charLength, this.location, this.hasFix});
+      {this.charStart, this.charLength, this.location, this.hasFixes});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};

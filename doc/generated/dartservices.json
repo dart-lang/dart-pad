@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "8a609d0213e144a60cbbdda48d2d5c76a8c5519e",
+ "etag": "35eb15f29150e937f43fab3e0e409efc844723ef",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -63,7 +63,7 @@
     "message": {
      "type": "string"
     },
-    "hasFix": {
+    "hasFixes": {
      "type": "boolean"
     },
     "charStart": {
