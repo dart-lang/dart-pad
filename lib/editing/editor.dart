@@ -25,6 +25,8 @@ abstract class EditorFactory {
 abstract class Editor {
   final EditorFactory factory;
 
+  bool completionAutoInvoked = false;
+
   Editor(this.factory);
 
   Document createDocument({String content, String mode});
@@ -42,8 +44,6 @@ abstract class Editor {
    * codemirror; returns `null` for ace editor and comid.
    */
   bool get completionActive;
-
-  bool completionAutoInvoked;
 
   String get mode;
   set mode(String str);
@@ -71,6 +71,9 @@ abstract class Editor {
   void focus();
 
   void swapDocument(Document document);
+
+  /// Let the `Editor` instance know that it will no longer be used.
+  void dispose() { }
 }
 
 abstract class Document {

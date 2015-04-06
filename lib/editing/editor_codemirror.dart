@@ -95,7 +95,7 @@ class CodeMirrorFactory extends EditorFactory {
 
   Future<HintResults> _completionHelper(CodeMirror editor,
       CodeCompleter completer, HintsOptions options) {
-    _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, editor);
+    _CodeMirrorEditor ed = new _CodeMirrorEditor._fromExisting(this, editor);
 
     return completer.complete(ed).then((CompletionResult result) {
       Doc doc = editor.getDoc();
@@ -144,12 +144,27 @@ class CodeMirrorFactory extends EditorFactory {
 }
 
 class _CodeMirrorEditor extends Editor {
+  // Map from JsObject codemirror instances to existing dartpad wrappers.
+  static Map<dynamic, _CodeMirrorEditor> _instances = {};
+
   final CodeMirror cm;
 
   _CodeMirrorDocument _document;
 
   _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
+    _instances[cm.jsProxy] = this;
+  }
+
+  factory _CodeMirrorEditor._fromExisting(CodeMirrorFactory factory, CodeMirror cm) {
+    // TODO: We should ensure that the Dart `CodeMirror` wrapper returns the
+    // same instances to us when possible (or, identity is based on the
+    // underlying JS proxy).
+    if (_instances.containsKey(cm.jsProxy)) {
+      return _instances[cm.jsProxy];
+    } else {
+      return new _CodeMirrorEditor._(factory,  cm);
+    }
   }
 
   Document get document => _document;
@@ -162,9 +177,7 @@ class _CodeMirrorEditor extends Editor {
     return new _CodeMirrorDocument._(this, new Doc(content, mode));
   }
 
-  void execCommand(String name) {
-    cm.execCommand(name);
-  }
+  void execCommand(String name) => cm.execCommand(name);
 
   bool get completionActive {
     if (cm.jsProxy['state']['completionActive'] == null) {
@@ -173,11 +186,6 @@ class _CodeMirrorEditor extends Editor {
       return cm.jsProxy['state']['completionActive']['widget'] != null;
     }
   }
-
-  bool get completionAutoInvoked
-      => cm.jsProxy['state']['completionAutoInvoked'];
-  set completionAutoInvoked(bool value)
-      => cm.jsProxy['state']['completionAutoInvoked'] = value;
 
   String get mode => cm.getMode();
   set mode(String str) => cm.setMode(str);
@@ -200,6 +208,10 @@ class _CodeMirrorEditor extends Editor {
   void swapDocument(Document document) {
     _document = document;
     cm.swapDoc(_document.doc);
+  }
+
+  void dispose() {
+    _instances.remove(cm.jsProxy);
   }
 }
 
