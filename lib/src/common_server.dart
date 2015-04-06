@@ -106,7 +106,6 @@ class CommonServer {
     return _complete(source, offset);
   }
 
-
   @ApiMethod(method: 'POST', path: 'fixes')
   Future<FixesResponse> fix(SourceRequest request) {
     if (request.offset == null) {
@@ -127,7 +126,6 @@ class CommonServer {
 
     return _fix(source, offset);
   }
-
 
   @ApiMethod(method: 'POST', path: 'document')
   Future<DocumentResponse> document(SourceRequest request) {

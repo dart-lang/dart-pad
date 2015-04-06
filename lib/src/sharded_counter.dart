@@ -7,8 +7,9 @@
  */
 library services.counter;
 
-import 'dart:math' as math;
 import 'dart:async';
+import 'dart:math' as math;
+
 import 'package:gcloud/db.dart' as db;
 
 final SHARDS_COUNT = 20;
