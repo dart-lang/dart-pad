@@ -254,7 +254,7 @@ class PlaygroundMobile {
   }
 
   void _showGist(String gistId, {bool run: false}) {
-    Gist.loadGist(gistId).then((Gist gist) {
+    gistLoader.loadGist(gistId).then((Gist gist) {
       _setGistDescription(gist.description);
       _setGistId(gist.id);
 
@@ -300,6 +300,10 @@ class PlaygroundMobile {
 
     // TODO: Add a real code completer here.
     //editorFactory.registerCompleter('dart', new DartCompleter());
+
+    // Set up the gist loader.
+    // TODO: Move to using the defaultFilters().
+    deps[GistLoader] = new GistLoader();
 
     keys.bind(['ctrl-s'], _handleSave);
     keys.bind(['ctrl-enter'], _handleRun);

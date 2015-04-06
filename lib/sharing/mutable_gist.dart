@@ -9,8 +9,6 @@ import 'dart:async';
 import 'gists.dart';
 import '../elements/bind.dart';
 
-// TODO: Simplify these classes.
-
 /// On overlay on a gist. Used to edit gists, this overlay knows about its dirty
 /// state, and can have dirty state listeners.
 class MutableGist implements PropertyOwner {
@@ -35,10 +33,6 @@ class MutableGist implements PropertyOwner {
   String get html_url => _getProperty('html_url');
 
   bool get public => _backingGist.public;
-
-//  String getFileData(String name) => _getProperty(name);
-//
-//  void setFileData(String name, String data) => _setProperty(name, data);
 
   MutableGistFile getGistFile(String name) {
     if (_files[name] == null) {

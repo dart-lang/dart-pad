@@ -15,6 +15,7 @@ import 'editing/editor.dart';
 import 'elements/state.dart';
 import 'modules/dartservices_module.dart';
 import 'services/execution.dart';
+import 'sharing/gists.dart';
 import 'src/ga.dart';
 import 'src/options.dart';
 
@@ -24,13 +25,15 @@ Context get context => deps[Context];
 
 DartservicesApi get dartServices => deps[DartServices];
 
-ExecutionService get executionService => deps[ExecutionService];
+EditorFactory get editorFactory => deps[EditorFactory];
 
 EventBus get eventBus => deps[EventBus];
 
-Keys get keys => deps[Keys];
+ExecutionService get executionService => deps[ExecutionService];
 
-EditorFactory get editorFactory => deps[EditorFactory];
+GistLoader get gistLoader => deps[GistLoader];
+
+Keys get keys => deps[Keys];
 
 Router get router => deps[Router];
 

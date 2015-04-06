@@ -73,5 +73,30 @@ void defineTests() {
 </h1 >'''));
       });
     });
+
+    test('clone', () {
+      Gist gist = new Gist(id: '2342jh2jh3g4', description: 'test gist');
+      Gist clone = gist.clone();
+      expect(clone.id, gist.id);
+      expect(clone.description, gist.description);
+    });
+  });
+
+  group('GistStorage', () {
+    test('store', () {
+      GistStorage storage = new GistStorage();
+      storage.setStoredGist(createSampleGist());
+      expect(storage.hasStoredGist, true);
+      expect(storage.getStoredGist(), isNotNull);
+      expect(storage.storedId, null);
+    });
+
+    test('clear', () {
+      GistStorage storage = new GistStorage();
+      storage.setStoredGist(createSampleGist());
+      expect(storage.hasStoredGist, true);
+      storage.clearStoredGist();
+      expect(storage.hasStoredGist, false);
+    });
   });
 }

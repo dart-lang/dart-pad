@@ -172,7 +172,7 @@ class Playground implements GistContainer {
 
     _overrideNextRouteGist = null;
 
-    Gist.loadGist(gistId).then((Gist gist) {
+    gistLoader.loadGist(gistId).then((Gist gist) {
       editableGist.setBackingGist(gist);
 
 //      if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
@@ -231,6 +231,9 @@ class Playground implements GistContainer {
 
     // Set up Google Analytics.
     deps[Analytics] = new Analytics();
+
+    // Set up the gist loader.
+    deps[GistLoader] = new GistLoader.defaultFilters();
 
     // Set up the router.
     deps[Router] = new Router();
@@ -389,7 +392,7 @@ class Playground implements GistContainer {
         }
     } else if (context.focusedEditor == "html") {
       if (options.getValueBool('autopopup_code_completion')) {
-        // TODO: autocompletion for attirbutes
+        // TODO: Autocompletion for attributes.
         if (printKeyEvent(e) == "shift-,") {
           editor.completionAutoInvoked = true;
           editor.execCommand("autocomplete");

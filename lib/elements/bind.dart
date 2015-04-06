@@ -6,12 +6,8 @@ library dart_pad.bind;
 
 import 'dart:async';
 
-// TODO: test binding to streams
-
-// TODO: test binding to properties
-
-// TODO: test cancelling bindings
-
+/// Bind changes from `from` to the target `to`. `from` can be a [Stream] or a
+/// [Property]. `to` can be a [Function] or a [Property].
 Binding bind(from, to) {
   if (to is! Function && to is! Property) {
     throw new ArgumentError('`to` must be a Function or a Property');
@@ -28,12 +24,16 @@ Binding bind(from, to) {
   }
 }
 
+/// A `Property` is able to get its value, change its value, and report changes
+/// to its value.
 abstract class Property {
-  void set(value);
   dynamic get();
+  void set(value);
   Stream get onChanged;
 }
 
+/// A [Property] backed by a getter and setter pair. Currently it cannot report
+/// changes to its value.
 class FunctionProperty implements Property {
   final Function getter;
   final Function setter;
@@ -50,12 +50,22 @@ class FunctionProperty implements Property {
   Stream get onChanged => null;
 }
 
+/// An object that can own a set of properties.
 abstract class PropertyOwner {
   List<String> get propertyNames;
   Property property(String name);
 }
 
+/// An instantiation of a binding from one element to another. [Binding]s can be
+/// cancelled, so changes are no longer propogated from the source to the
+/// target.
 abstract class Binding {
+  /// Explicitly push the value from the source to the target. This might be a
+  /// no-op for some types of bindings.
+  void flush();
+
+  /// Cancel the binding; no more changes will be delivered from the source to
+  /// the target.
   void cancel();
 }
 
@@ -68,6 +78,8 @@ class _StreamBinding implements Binding {
   _StreamBinding(this.stream, this.target) {
     _sub = stream.listen(_handleEvent);
   }
+
+  void flush() { }
 
   void cancel() {
     _sub.cancel();
@@ -88,6 +100,8 @@ class _PropertyBinding implements Binding {
     Stream stream = property.onChanged;
     if (stream != null) _sub = stream.listen(_handleEvent);
   }
+
+  void flush() =>_sendTo(target, property.get());
 
   void cancel() {
     if (_sub != null) _sub.cancel();

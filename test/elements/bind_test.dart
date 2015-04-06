@@ -4,13 +4,77 @@
 
 library dartpad.bind_test;
 
+import 'dart:async';
+
 import 'package:dart_pad/elements/bind.dart';
 import 'package:unittest/unittest.dart';
 
 void defineTests() {
-  group('TODO:', () {
-    test('TODO:', () {
+  group('bind', () {
+    test('get stream changes', () {
+      StreamController fromController = new StreamController.broadcast();
+      TestProperty to = new TestProperty();
+      bind(fromController.stream, to);
+      fromController.add('foo');
+      return to.onChanged.first.then((_) {
+        expect(to.value, 'foo');
+      });
+    });
 
+    test('get property changes', () {
+      TestProperty from = new TestProperty('foo');
+      TestProperty to = new TestProperty();
+      bind(from, to).flush();
+      return to.onChanged.first.then((_) {
+        expect(to.value, from.value);
+      });
+    });
+
+    test('target functions', () {
+      TestProperty from = new TestProperty('foo');
+      var val;
+      var to = (_val) => val = _val;
+      bind(from, to).flush();
+      expect(val, from.value);
+    });
+
+    test('target properties', () {
+      TestProperty from = new TestProperty('foo');
+      TestProperty to = new TestProperty();
+      bind(from, to).flush();
+      return to.onChanged.first.then((_) {
+        expect(to.value, from.value);
+      });
+    });
+
+    test('can cancel', () {
+      TestProperty from = new TestProperty();
+      TestProperty to = new TestProperty();
+      Binding binding = bind(from, to);
+      from.set('foo');
+      binding.cancel();
+      from.set('bar');
+      return new Future.delayed(Duration.ZERO, () {
+        expect(to.value, 'foo');
+      });
     });
   });
+}
+
+class TestProperty implements Property {
+  StreamController _controller = new StreamController(sync: true);
+  var value;
+  int changedCount = 0;
+
+  TestProperty([this.value]);
+
+  dynamic get() => value;
+
+  void set(val) {
+    value = val;
+    changedCount++;
+    _controller.add(value);
+  }
+
+  Stream get onChanged => _controller.stream;
 }

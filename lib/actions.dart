@@ -32,6 +32,7 @@ class NewPadAction {
 
     if (ga != null) ga.sendEvent('main', 'new');
 
+    DToast.showMessage('New pad created');
     router.go('gist', {'gist': ''});
   }
 }
@@ -52,9 +53,10 @@ class SharePadAction {
   void _handleButtonPress() {
     if (ga != null) ga.sendEvent('main', 'share');
 
-    Gist.createAnon(_gist.createGist()).then((Gist newGist) {
+    gistLoader.createAnon(_gist.createGist()).then((Gist newGist) {
       _gistContainer.overrideNextRoute(newGist);
       router.go('gist', {'gist': newGist.id});
+      DToast.showMessage('Created ${newGist.id}');
     }).catchError((e) {
       String message = 'Error saving gist: ${e}';
       DToast.showMessage(message);

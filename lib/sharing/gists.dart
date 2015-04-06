@@ -10,8 +10,6 @@ import 'dart:html';
 
 import 'package:dart_pad/src/sample.dart' as sample;
 
-// TODO: Save gists as valid pub packages (pubspecs, and readmes).
-
 /**
  * Return whether the given string is a valid github gist ID.
  */
@@ -25,7 +23,7 @@ bool isLegalGistId(String id) {
  * `<body>` tag.
  */
 String extractHtmlBody(String html) {
-  if (!html.contains('<html')) {
+  if (html == null || !html.contains('<html')) {
     return html;
   } else {
     var body = r'body(?:\s[^>]*)?'; // Body tag with its attributes
@@ -65,28 +63,105 @@ GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
   }
 }
 
-/// A representation of a Github gist.
-class Gist {
+typedef void GistFilterHook(Gist gist);
+
+/// A class to load and save gists. Gists can optionally be modified after
+/// loading and before saving.
+class GistLoader {
   static final String _apiUrl = 'https://api.github.com/gists';
 
+  static GistFilterHook _defaultLoadHook = (Gist gist) {
+    // Update files based on our preferred file names.
+    if (gist.getFile('body.html') != null && gist.getFile('index.html') == null) {
+      GistFile file = gist.getFile('body.html');
+      file.name = 'index.html';
+    }
+
+    if (gist.getFile('style.css') != null && gist.getFile('styles.css') == null) {
+      GistFile file = gist.getFile('style.css');
+      file.name = 'styles.css';
+    }
+
+    if (gist.getFile('main.dart') == null &&
+        gist.files.where((f) => f.name.endsWith('.dart')).length == 1) {
+      GistFile file = gist.files.firstWhere((f) => f.name.endsWith('.dart'));
+      file.name = 'main.dart';
+    }
+
+    // Extract the body out of the html file.
+    GistFile htmlFile = gist.getFile('index.html');
+    if (htmlFile != null) {
+      htmlFile.content = extractHtmlBody(htmlFile.content);
+    }
+  };
+
+  static GistFilterHook _defaultSaveHook = (Gist gist) {
+    // Create a full html file on save.
+    GistFile htmlFile = gist.getFile('index.html');
+    if (htmlFile != null) {
+      htmlFile.content = '''
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${gist.description}</title>
+  </head>
+
+  <body>
+    ${htmlFile.content}
+  </body>
+</html>
+''';
+    }
+
+    // TODO: Save gists as valid pub packages (pubspecs, and readmes).
+
+  };
+
+  final GistFilterHook afterLoadHook;
+  final GistFilterHook beforeSaveHook;
+
+  GistLoader({this.afterLoadHook, this.beforeSaveHook});
+
+  GistLoader.defaultFilters() :
+    afterLoadHook = _defaultLoadHook, beforeSaveHook = _defaultSaveHook;
+
   /// Load the gist with the given id.
-  static Future<Gist> loadGist(String gistId) {
+  Future<Gist> loadGist(String gistId) {
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
     return HttpRequest.getString('${_apiUrl}/${gistId}').then((data) {
-      return new Gist.fromMap(JSON.decode(data))..reconcile();
+      Gist gist = new Gist.fromMap(JSON.decode(data));
+      if (afterLoadHook != null) {
+        afterLoadHook(gist);
+      }
+      return gist;
     });
   }
 
   /// Create a new gist and return the newly created Gist.
-  static Future<Gist> createAnon(Gist gist) {
+  Future<Gist> createAnon(Gist gist) {
     // POST /gists
+    if (_defaultSaveHook != null) {
+      gist = gist.clone();
+      _defaultSaveHook(gist);
+    }
+
     return HttpRequest.request(_apiUrl, method: 'POST',
         sendData: gist.toJson()).then((HttpRequest request) {
-      return new Gist.fromMap(JSON.decode(request.responseText));
+      Gist gist = new Gist.fromMap(JSON.decode(request.responseText));
+      if (afterLoadHook != null) {
+        afterLoadHook(gist);
+      }
+      return gist;
     });
   }
+}
 
+/// A representation of a Github gist.
+class Gist {
   String id;
   String description;
   String html_url;
@@ -120,25 +195,6 @@ class Gist {
     return null;
   }
 
-  /// Update files based on our preferred file names.
-  void reconcile() {
-    if (getFile('body.html') != null && getFile('index.html') == null) {
-      GistFile file = getFile('body.html');
-      file.name = 'index.html';
-    }
-
-    if (getFile('style.css') != null && getFile('styles.css') == null) {
-      GistFile file = getFile('style.css');
-      file.name = 'styles.css';
-    }
-
-    if (getFile('main.dart') == null &&
-        files.where((f) => f.name.endsWith('.dart')).length == 1) {
-      GistFile file = files.firstWhere((f) => f.name.endsWith('.dart'));
-      file.name = 'main.dart';
-    }
-  }
-
   GistFile getFile(String name) =>
       files.firstWhere((f) => f.name == name, orElse: () => null);
 
@@ -160,6 +216,8 @@ class Gist {
 
   String toJson() => JSON.encode(toMap());
 
+  Gist clone() => new Gist.fromMap(JSON.decode(toJson()));
+
   String toString() => id;
 }
 
@@ -176,4 +234,38 @@ class GistFile {
   bool get hasContent => content != null && content.trim().isNotEmpty;
 
   String toString() => '[${name}, ${content.length} chars]';
+}
+
+/// A class to store gists in html's localStorage.
+class GistStorage {
+  static final String _key = 'gist';
+
+  String _storedId;
+
+  GistStorage() {
+    Gist gist = getStoredGist();
+    if (gist != null) {
+      _storedId = gist.id;
+    }
+  }
+
+  bool get hasStoredGist => window.localStorage.containsKey(_key);
+
+  /// Return the id of the stored gist. This will return `null` if there is no
+  /// gist stored.
+  String get storedId => _storedId;
+
+  Gist getStoredGist() {
+    String data = window.localStorage[_key];
+    return data == null ? null : new Gist.fromMap(JSON.decode(data));
+  }
+
+  void setStoredGist(Gist gist) {
+    _storedId = gist.id;
+    window.localStorage[_key] = gist.toJson();
+  }
+
+  void clearStoredGist() {
+    window.localStorage.remove(_key);
+  }
 }
