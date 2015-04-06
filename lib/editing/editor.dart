@@ -65,7 +65,7 @@ abstract class Editor {
    * that the editor should do no further handling.  Only implemented for
    * codemirror, returns `null` for ace editor and comid.
    */
-  Stream get onMouseDown;
+  Stream<html.MouseEvent> get onMouseDown;
 
   void resize();
   void focus();

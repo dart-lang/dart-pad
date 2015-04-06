@@ -10,6 +10,7 @@ import 'dart:math' as math;
 
 import 'context.dart';
 import 'dartservices_client/v1.dart';
+import 'dart_pad.dart';
 import 'editing/editor.dart';
 import 'services/common.dart';
 
@@ -19,13 +20,12 @@ class ParameterPopup {
       KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN
   ];
 
-  final DartservicesApi servicesApi;
   final Context context;
   final Editor editor;
 
   final HtmlEscape sanitizer = const HtmlEscape();
 
-  ParameterPopup(this.servicesApi, this.context, this.editor) {
+  ParameterPopup(this.context, this.editor) {
     document.onKeyDown.listen((e) => _handleKeyDown(e));
     document.onKeyUp.listen((e) => _handleKeyUp(e));
     document.onClick.listen((e) => _handleClick());
@@ -77,12 +77,13 @@ class ParameterPopup {
       ..source = source
       ..offset = offset;
 
-    servicesApi.document(input).timeout(serviceCallTimeout).then(
+    dartServices.document(input).timeout(serviceCallTimeout).then(
         (DocumentResponse result) {
       if (!result.info.containsKey("parameters")) {
         remove();
         return;
       }
+
       List parameterInfo = result.info["parameters"] as List;
       String outputString = "";
       if (parameterInfo.length == 0) {
