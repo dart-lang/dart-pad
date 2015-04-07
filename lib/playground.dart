@@ -359,7 +359,7 @@ class Playground {
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
       ga.sendTiming(
-          "perf", "compilation-e2e", compilationTimer.elapsedMilliseconds);
+          "action-perf", "compilation-e2e", compilationTimer.elapsedMilliseconds);
 
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
