@@ -308,8 +308,9 @@ class Playground {
   }
 
   _handleAutoCompletion(KeyboardEvent e) {
-    // If we're already in completion bail.
-    if (_isCompletionActive) return;
+    // If we're already in completion bail or if the editor has no focus.
+    // For example, if the title text is edited.
+    if (_isCompletionActive || !editor.hasFocus) return;
 
     if (context.focusedEditor == 'dart') {
       if (e.keyCode == KeyCode.PERIOD) {
