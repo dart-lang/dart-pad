@@ -50,9 +50,8 @@ class SharePadAction {
   MutableGist get _gist => _gistContainer.mutableGist;
 
   void _handleButtonPress() {
-    final String message =
-        'Sharing this pad will create a permanent, publically visible copy on '
-        'gist.github.com.';
+    final String message = 'Sharing this pad will create a permanent, publicly '
+        'visible copy on gist.github.com.';
 
     if (!window.confirm(message)) return;
 
