@@ -10,7 +10,7 @@ import 'core/dependencies_test.dart' as dependencies_test;
 import 'core/event_bus_test.dart' as event_bus_test;
 import 'core/keys_test.dart' as keys_test;
 import 'services/common_test.dart' as common_test;
-import 'src/gists_test.dart' as gists_test;
+import 'sharing/gists_test.dart' as gists_test;
 
 void main() {
   // Set up the test environment.

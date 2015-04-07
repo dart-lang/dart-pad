@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:math' as math;
 
+import 'bind.dart';
+
 class DElement {
   final Element element;
 
@@ -25,6 +27,14 @@ class DElement {
   void setAttr(String name, [String value = '']) => element.setAttribute(name, value);
 
   String clearAttr(String name) => element.attributes.remove(name);
+
+  String get text => element.text;
+
+  set text(String value) {
+    element.text = value;
+  }
+
+  Property get textProperty => new _ElementTextProperty(element);
 
   Stream<Event> get onClick => element.onClick;
 
@@ -278,4 +288,66 @@ class DOverlay extends DElement {
   set visible(bool value) {
     element.classes.toggle('visible', value);
   }
+}
+
+class DContentEditable extends DElement {
+  DContentEditable(Element element) : super(element) {
+    setAttr('contenteditable', 'true');
+
+    element.onKeyPress.listen((e) {
+      if (e.keyCode == KeyCode.ENTER) {
+        e.preventDefault();
+        element.blur();
+      }
+    });
+  }
+
+  Stream<String> get onChanged => element.on['input'].map((_) => element.text);
+}
+
+class DToast extends DElement {
+  static void showMessage(String message) {
+    new DToast(message)..show()..hide();
+  }
+
+  final String message;
+
+  DToast(this.message) : super.tag('div') {
+    element.classes.toggle('toast', true);
+    element.text = message;
+  }
+
+  void show() {
+    // Add to the DOM, start a timer, make it visible.
+    document.body.children.add(element);
+
+    new Timer(new Duration(milliseconds: 16), () {
+      element.classes.toggle('showing', true);
+    });
+  }
+
+  void hide([Duration delay = const Duration(seconds: 4)]) {
+    // Start a timer, hide, remove from dom.
+    new Timer(delay, () {
+      element.classes.toggle('showing', false);
+      element.onTransitionEnd.first.then((event) {
+        dispose();
+      });
+    });
+  }
+}
+
+class _ElementTextProperty implements Property {
+  final Element element;
+
+  _ElementTextProperty(this.element);
+
+  get() => element.text;
+
+  void set(value) {
+    element.text = value == null ? '' : value.toString();
+  }
+
+  // TODO:
+  Stream get onChanged => null;
 }
