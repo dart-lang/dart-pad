@@ -200,14 +200,15 @@
   position: absolute;
   right: 16px;
   top: 0;
-  box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0 inset;
+  box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.4) 0 1px 7px 0 inset;
   min-width: 12em;
   max-width: 40em;
-  background-color: #444;
+  background-color: inherit;
 
   z-index: 10;
   opacity: 0;
   transition: 400ms;
+  -webkit-user-select: none;
 }
 
 .toast.showing {

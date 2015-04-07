@@ -97,6 +97,14 @@ class GistLoader {
 
   static GistFilterHook _defaultSaveHook = (Gist gist) {
     // Create a full html file on save.
+    bool hasStyles = gist.getFile('styles.css') != null;
+    String styleRef = hasStyles ?
+        '    <link rel="stylesheet" href="styles.css">\n' : '';
+
+    bool hasDart = gist.getFile('main.dart') != null;
+    String dartRef = hasDart ?
+        '    <script type="application/dart" src="main.dart"></script>\n' : '';
+
     GistFile htmlFile = gist.getFile('index.html');
     if (htmlFile != null) {
       htmlFile.content = '''
@@ -107,7 +115,7 @@ class GistLoader {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${gist.description}</title>
-  </head>
+${styleRef}${dartRef}  </head>
 
   <body>
     ${htmlFile.content}
