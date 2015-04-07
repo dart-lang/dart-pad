@@ -364,7 +364,7 @@ class Playground {
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
-      ga.sendException(e.runtimeType.toString());
+      ga.sendException("${e.runtimeType}");
       // TODO: Also display using a toast.
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {
