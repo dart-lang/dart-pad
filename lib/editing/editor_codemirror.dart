@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:html' as html;
 import 'dart:js';
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:codemirror/codemirror.dart' hide Position;
 import 'package:codemirror/codemirror.dart' as pos show Position;
@@ -125,14 +126,14 @@ class CodeMirrorFactory extends EditorFactory {
               }
             },
             hintRenderer: (html.Element element, HintResult hint) {
+              var escapeHtml = new HtmlEscape().convert;
               if (completion.type != "type-quick_fix") {
-                element.innerHtml = completion.displayString.replaceFirst(
-                    stringToReplace, "<em>${stringToReplace}</em>"
+                element.innerHtml = escapeHtml(completion.displayString).replaceFirst(
+                    escapeHtml(stringToReplace), "<em>${escapeHtml(stringToReplace)}</em>"
                 );
               } else {
-                element.innerHtml = completion.displayString;
+                element.innerHtml = escapeHtml(completion.displayString);
               }
-
             }
         );
       }).toList();

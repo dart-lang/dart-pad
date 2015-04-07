@@ -52,7 +52,7 @@ header {
   margin-right: 1em;
   color: #ccc;
   font-size: 14pt;
-  text-align: center;
+  min-width: 2em;
 }
 
 .header-gist-id {
@@ -61,6 +61,19 @@ header {
   max-width: 100px;
   text-transform: uppercase;
 }
+
+#newbutton {
+  margin-left: 10px;
+}
+
+#sharebutton {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+/*#reloadbutton {
+  margin-right: 10px;
+}*/
 
 section {
   padding: 0 24px 24px 24px;
@@ -134,6 +147,10 @@ a[selected]:hover {
 .header {
   line-height: 24px;
   font-size: 12pt;
+}
+
+.header.small {
+  font-size: 11pt;
 }
 
 button {
@@ -385,6 +402,12 @@ div.toggle {
   font-family: 'Inconsolata', monospace;
   overflow-y: hidden;
   border: 1px solid #cc9393;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.parameter-hints::-webkit-scrollbar {
+  display: none;
 }
 
 .parameter-hint {

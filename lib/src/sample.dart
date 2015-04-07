@@ -12,14 +12,6 @@ void main() {
 }
 ''';
 
-final String htmlCode = r'''
-<h2>Dart Sample</h2>
+final String htmlCode = '\n';
 
-<p id="output">Hello world!<p>
-''';
-
-final String cssCode = r'''
-p {
-  color: #888;
-}
-''';
+final String cssCode = '\n';

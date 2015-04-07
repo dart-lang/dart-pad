@@ -18,8 +18,8 @@ import 'package:dart_pad/modules/dartservices_module.dart';
 import 'package:dart_pad/modules/dart_pad_module.dart';
 import 'package:dart_pad/services/common.dart';
 import 'package:dart_pad/services/execution_iframe.dart';
+import 'package:dart_pad/sharing/gists.dart';
 import 'package:dart_pad/src/ga.dart';
-import 'package:dart_pad/src/gists.dart';
 import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
@@ -254,7 +254,7 @@ class PlaygroundMobile {
   }
 
   void _showGist(String gistId, {bool run: false}) {
-    Gist.loadGist(gistId).then((Gist gist) {
+    gistLoader.loadGist(gistId).then((Gist gist) {
       _setGistDescription(gist.description);
       _setGistId(gist.id);
 
@@ -262,9 +262,9 @@ class PlaygroundMobile {
       GistFile html = chooseGistFile(gist, ['index.html', 'body.html']);
       GistFile css = chooseGistFile(gist, ['styles.css', 'style.css']);
 
-      context.dartSource = dart == null ? '' : dart.contents;
-      context.htmlSource = html == null ? '' : extractHtmlBody(html.contents);
-      context.cssSource = css == null ? '' : css.contents;
+      context.dartSource = dart == null ? '' : dart.content;
+      context.htmlSource = html == null ? '' : extractHtmlBody(html.content);
+      context.cssSource = css == null ? '' : css.content;
 
       // Analyze and run it.
       Timer.run(() {
@@ -300,6 +300,10 @@ class PlaygroundMobile {
 
     // TODO: Add a real code completer here.
     //editorFactory.registerCompleter('dart', new DartCompleter());
+
+    // Set up the gist loader.
+    // TODO: Move to using the defaultFilters().
+    deps[GistLoader] = new GistLoader();
 
     keys.bind(['ctrl-s'], _handleSave);
     keys.bind(['ctrl-enter'], _handleRun);

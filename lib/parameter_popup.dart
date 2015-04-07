@@ -40,12 +40,15 @@ class ParameterPopup {
 
   void _handleKeyDown(KeyboardEvent e) {
     if (e.keyCode == KeyCode.ENTER) {
+      // TODO: Use the onClose event of the completion event to trigger this
       _lookupParameterInfo();
     }
   }
 
   void _handleKeyUp(KeyboardEvent e) {
-    if (parPopupActive || parKeys.contains(e.keyCode)) {
+    if (e.keyCode == KeyCode.ESC) {
+      remove();
+    } else if (parPopupActive || parKeys.contains(e.keyCode)) {
       _lookupParameterInfo();
     }
   }
@@ -95,9 +98,9 @@ class ParameterPopup {
 
         for (int i = 0; i < parameterInfo.length; i++) {
           if (i == parameterIndex) {
-            outputString += '<em>${parameterInfo[i]}</em>';
+            outputString += '<em>${sanitizer.convert(parameterInfo[i])}</em>';
           } else {
-            outputString += '${sanitizer.convert(parameterInfo[i])}';
+            outputString += '<span>${sanitizer.convert(parameterInfo[i])}</span>';
           }
           if (i != parameterInfo.length - 1) {
             outputString += ", ";
@@ -130,17 +133,18 @@ class ParameterPopup {
     Point cursorCoords = editor.cursorCoords;
 
     int heightDifference = methodPosition.line - cursorPosition.line - 1 ;
-    int heightOfMethod = cursorCoords.y + heightDifference * lineHeight - 5;
+    int heightOfMethod = (cursorCoords.y + heightDifference * lineHeight - 5).round();
 
+    var parameterPopup;
     if (parPopupActive) {
       var parameterHint = querySelector(".parameter-hint");
       parameterHint.innerHtml = string;
 
       //update popup position
       int newLeft = math.max(
-          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 0);
+          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 22);
 
-      var parameterPopup = querySelector(".parameter-hints")
+      parameterPopup = querySelector(".parameter-hints")
         ..style.top = "${heightOfMethod}px";
       var oldLeft = parameterPopup.style.left;
       oldLeft = int.parse(oldLeft.substring(0, oldLeft.indexOf("px")));
@@ -152,13 +156,18 @@ class ParameterPopup {
         ..innerHtml = string
         ..classes.add("parameter-hint");
       int left = math.max(
-          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 0);
-      var parameterPopup = new DivElement()
+          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 22);
+      parameterPopup = new DivElement()
         ..classes.add("parameter-hints")
         ..style.left = "${left}px"
-        ..style.top =  "${heightOfMethod}px";
+        ..style.top =  "${heightOfMethod}px"
+        ..style.maxWidth = "${querySelector("#editpanel").getBoundingClientRect().width}px";
       parameterPopup.append(parameterHint);
       document.body.append(parameterPopup);
+    }
+    var activeParameter = querySelector(".parameter-hints em");
+    if (activeParameter != null && activeParameter.previousElementSibling != null) {
+      parameterPopup.scrollLeft = activeParameter.previousElementSibling.offsetLeft;
     }
   }
 
