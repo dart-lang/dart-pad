@@ -385,6 +385,12 @@ div.toggle {
   font-family: 'Inconsolata', monospace;
   overflow-y: hidden;
   border: 1px solid #cc9393;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.parameter-hints::-webkit-scrollbar {
+  display: none;
 }
 
 .parameter-hint {
