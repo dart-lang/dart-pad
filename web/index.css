@@ -52,7 +52,6 @@ header {
   margin-right: 1em;
   color: #ccc;
   font-size: 14pt;
-  text-align: center;
   min-width: 2em;
 }
 
@@ -151,7 +150,7 @@ a[selected]:hover {
 }
 
 .header.small {
-  font-size: 10pt;
+  font-size: 11pt;
 }
 
 button {

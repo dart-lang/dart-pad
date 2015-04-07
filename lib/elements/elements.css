@@ -199,16 +199,24 @@
   padding: 0.5em 1em;
   position: absolute;
   right: 16px;
-  bottom: 0;
+  top: 0;
   box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0 inset;
   min-width: 12em;
   max-width: 40em;
-  background-color: inherit;
+  background-color: #444;
 
   z-index: 10;
+  opacity: 0;
   transition: 400ms;
 }
 
 .toast.showing {
-  bottom: 48px;
+  opacity: 1;
+  top: 72px;
+}
+
+/* contenteditable elements */
+
+[contenteditable]:focus {
+  outline: 0 solid transparent;
 }

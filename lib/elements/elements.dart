@@ -295,7 +295,7 @@ class DContentEditable extends DElement {
     setAttr('contenteditable', 'true');
 
     element.onKeyPress.listen((e) {
-      if (e.keyCode == 13) {
+      if (e.keyCode == KeyCode.ENTER) {
         e.preventDefault();
         element.blur();
       }
@@ -321,7 +321,7 @@ class DToast extends DElement {
     // Add to the DOM, start a timer, make it visible.
     document.body.children.add(element);
 
-    Timer.run(() {
+    new Timer(new Duration(milliseconds: 16), () {
       element.classes.toggle('showing', true);
     });
   }
