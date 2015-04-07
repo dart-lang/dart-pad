@@ -353,12 +353,18 @@ class Playground {
 
     _clearOutput();
 
+    Stopwatch compilationTimer = new Stopwatch()..start();
+
     var input = new SourceRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
+      ga.sendTiming(
+          "action-perf", "compilation-e2e", compilationTimer.elapsedMilliseconds);
+
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
+      ga.sendException("${e.runtimeType}");
       // TODO: Also display using a toast.
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {
