@@ -8,7 +8,6 @@ import 'dart:html';
 
 import 'dart_pad.dart';
 import 'elements/elements.dart';
-//import 'sharing/gist_storage.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 
@@ -60,6 +59,7 @@ class SharePadAction {
     }).catchError((e) {
       String message = 'Error saving gist: ${e}';
       DToast.showMessage(message);
+      ga.sendException('GistLoader.createAnon: failed to create gist');
     });
   }
 }

@@ -10,7 +10,6 @@ import 'dart:html' hide Document;
 import 'package:dart_pad/core/keys.dart';
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
-import 'package:rate_limit/rate_limit.dart';
 
 import 'actions.dart';
 import 'completion.dart';
@@ -29,7 +28,6 @@ import 'modules/dartservices_module.dart';
 import 'parameter_popup.dart';
 import 'services/common.dart';
 import 'services/execution_iframe.dart';
-//import 'sharing/gist_storage.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
@@ -107,7 +105,9 @@ class Playground implements GistContainer {
       idAnchor.href = val == null ? '' : val;
     });
 
-    Throttler throttle = new Throttler(const Duration(milliseconds: 100));
+    // TODO(devoncarew): Commented out for now; more work is required on the
+    // auto-persistence mechanism.
+//    Throttler throttle = new Throttler(const Duration(milliseconds: 100));
 //    mutableGist.onChanged.transform(throttle).listen((_) {
 //      if (mutableGist.dirty) {
 //        // If there was a change, and the gist is dirty, write the gist's
@@ -125,15 +125,8 @@ class Playground implements GistContainer {
   }
 
   void showHome(RouteEnterEvent event) {
-//    String path = window.location.pathname;
-//    if (path.length > 2 && path.lastIndexOf('/') == 0) {
-//      String id = path.substring(1);
-//      if (isLegalGistId(id)) {
-//        _showGist(id);
-//        return;
-//      }
-//    }
-
+    // TODO(devoncarew): Commented out for now; more work is required on the
+    // auto-persistence mechanism.
 //    if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
 //      editableGist.setBackingGist(_gistStorage.getStoredGist());
 //    } else {
