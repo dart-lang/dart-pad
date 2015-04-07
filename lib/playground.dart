@@ -364,8 +364,9 @@ class Playground implements GistContainer {
   }
 
   _handleAutoCompletion(KeyboardEvent e) {
-    // If we're already in completion bail.
-    if (_isCompletionActive) return;
+    // If we're already in completion bail or if the editor has no focus.
+    // For example, if the title text is edited.
+    if (_isCompletionActive || !editor.hasFocus) return;
 
     if (context.focusedEditor == 'dart') {
       if (e.keyCode == KeyCode.PERIOD) {
@@ -408,13 +409,18 @@ class Playground implements GistContainer {
 
     _clearOutput();
 
+    Stopwatch compilationTimer = new Stopwatch()..start();
+
     var input = new SourceRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
+      ga.sendTiming('action-perf', "compilation-e2e",
+          compilationTimer.elapsedMilliseconds);
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
       DToast.showMessage('Error compiling to JavaScript');
+      ga.sendException("${e.runtimeType}");
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {
       runButton.disabled = false;
