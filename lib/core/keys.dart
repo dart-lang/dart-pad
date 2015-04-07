@@ -22,10 +22,9 @@ class Keys {
   }
 
   /**
-   * Bind a list of keys to an action.
-   * The key is a string, with a specific format.
-   * Some examples of this format:
-   * `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
+   * Bind a list of keys to an action. The key is a string, with a specific
+   * format. Some examples of this format:
+   *     `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
    */
   void bind(List<String> keys, Function action) {
     keys.forEach((key) => _bindings[key] = action);
@@ -180,8 +179,7 @@ final Map _codeMap = {
   KeyCode.PRINT_SCREEN: "print_screen", //
 
   // Already handled above.
-  // If you press ctrl and nothing more,
-  // then printKeyEvent will print ctrl-.
+  // If you press ctrl and nothing more, then `printKeyEvent` will print ctrl-.
   KeyCode.CTRL: "", //
   KeyCode.META: "", //
   KeyCode.SHIFT: "", //

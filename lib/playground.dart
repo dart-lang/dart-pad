@@ -7,7 +7,6 @@ library playground;
 import 'dart:async';
 import 'dart:html' hide Document;
 
-
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 import 'package:dart_pad/core/keys.dart';
@@ -18,19 +17,19 @@ import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
+import 'doc_handler.dart';
 import 'editing/editor.dart';
 import 'elements/elements.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
+import 'parameter_popup.dart';
 import 'services/common.dart';
 import 'services/execution_iframe.dart';
 import 'src/ga.dart';
 import 'src/gists.dart';
 import 'src/sample.dart' as sample;
 import 'src/util.dart';
-import 'parameter_popup.dart';
-import 'doc_handler.dart';
 
 Playground get playground => _playground;
 
@@ -48,6 +47,9 @@ class Playground {
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
   bool get _isCompletionActive => editor.completionActive;
+  DivElement get _docPanel => querySelector('#documentation');
+  AnchorElement get _docTab => querySelector('#doctab');
+  bool get _isDocPanelOpen => _docTab.attributes.containsKey('selected');
 
   DButton runbutton;
   DOverlay overlay;
@@ -194,16 +196,28 @@ class Playground {
 
     keys.bind(['ctrl-s'], _handleSave);
     keys.bind(['ctrl-enter'], _handleRun);
+    keys.bind(['f1'], () {
+      ga.sendEvent('main', 'help');
+      _toggleDocTab();
+    });
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.completionAutoInvoked = false;
       editor.execCommand('autocomplete');
     });
 
+    document.onClick.listen((MouseEvent e) {
+      if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+    });
+
     document.onKeyUp.listen((e) {
+      if (editor.completionActive || DocHandler.cursorKeys.contains(e.keyCode)){
+        if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+      }
       _handleAutoCompletion(e);
     });
 
+    _docTab.onClick.listen((e) => _toggleDocTab());
     querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
     _context = new PlaygroundContext(editor);
@@ -232,9 +246,11 @@ class Playground {
     options.registerOption('parameter_popup', 'false');
 
     if (options.getValueBool("parameter_popup")) {
-      paramPopup = new ParameterPopup(dartServices, context, editor);
+      paramPopup = new ParameterPopup(context, editor);
     }
-    docHandler = new DocHandler(editor,_context, dartServices, ga);
+
+    docHandler = new DocHandler(editor, _context);
+
     _finishedInit();
   }
 
@@ -271,18 +287,30 @@ class Playground {
   List<Element> _getTabElements(Element element) =>
       element.querySelectorAll('a');
 
+  void _toggleDocTab() {
+    ga.sendEvent('view', 'dartdoc');
+    docHandler.generateDoc(_docPanel);
+    // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
+    querySelector('#output').style.display = "none";
+    querySelector("#consoletab").attributes.remove('selected');
+
+    _docPanel.style.display = "block";
+    _docTab.setAttribute('selected','');
+  }
+
   void _toggleConsoleTab() {
     ga.sendEvent('view', 'console');
-    docHandler.docPanel.style.display = "none";
-    docHandler.docTab.attributes.remove('selected');
+    _docPanel.style.display = "none";
+    _docTab.attributes.remove('selected');
 
     _outputpanel.style.display = "block";
     querySelector("#consoletab").setAttribute('selected','');
   }
 
   _handleAutoCompletion(KeyboardEvent e) {
-    // If we're already in completion bail.
-    if (_isCompletionActive) return;
+    // If we're already in completion bail or if the editor has no focus.
+    // For example, if the title text is edited.
+    if (_isCompletionActive || !editor.hasFocus) return;
 
     if (context.focusedEditor == 'dart') {
       if (e.keyCode == KeyCode.PERIOD) {
@@ -325,12 +353,18 @@ class Playground {
 
     _clearOutput();
 
+    Stopwatch compilationTimer = new Stopwatch()..start();
+
     var input = new SourceRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
+      ga.sendTiming(
+          "action-perf", "compilation-e2e", compilationTimer.elapsedMilliseconds);
+
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
+      ga.sendException("${e.runtimeType}");
       // TODO: Also display using a toast.
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {

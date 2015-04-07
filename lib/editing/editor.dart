@@ -25,6 +25,8 @@ abstract class EditorFactory {
 abstract class Editor {
   final EditorFactory factory;
 
+  bool completionAutoInvoked = false;
+
   Editor(this.factory);
 
   Document createDocument({String content, String mode});
@@ -43,8 +45,6 @@ abstract class Editor {
    */
   bool get completionActive;
 
-  bool completionAutoInvoked;
-
   String get mode;
   set mode(String str);
 
@@ -60,10 +60,20 @@ abstract class Editor {
 
   bool get hasFocus;
 
+  /**
+   * Fired when a mouse is clicked. You can preventDefault the event to signal
+   * that the editor should do no further handling.  Only implemented for
+   * codemirror, returns `null` for ace editor and comid.
+   */
+  Stream<html.MouseEvent> get onMouseDown;
+
   void resize();
   void focus();
 
   void swapDocument(Document document);
+
+  /// Let the `Editor` instance know that it will no longer be used.
+  void dispose() { }
 }
 
 abstract class Document {

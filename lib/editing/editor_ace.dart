@@ -122,10 +122,6 @@ class _AceEditor extends Editor {
   // TODO: Implement completionActive for ace.
   bool get completionActive => false;
 
-  // TODO: Implement completionActivelyInvoked for comid.
-  bool get completionAutoInvoked => false;
-  set completionAutoInvoked(bool value) { }
-
   String get mode => _document.session.mode.name;
   set mode(String str) => _document.session.mode = new ace.Mode.named(str);
 
@@ -138,6 +134,9 @@ class _AceEditor extends Editor {
 
   // TODO: Add a cursorCoords getter for ace.
   Point get cursorCoords => null;
+
+  // TODO: Add a onMouseDown getter for ace.
+  Stream get onMouseDown => null;
 
   void focus() => editor.focus();
   void resize() => editor.resize(true);

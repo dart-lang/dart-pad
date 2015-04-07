@@ -138,6 +138,8 @@ class _CodeMirrorEditor extends Editor {
 
   _CodeMirrorDocument _document;
 
+  // TODO: Return an existing _CodeMirrorEditor instance if we already have one
+  // for the given instance of `CodeMirror`.
   _CodeMirrorEditor._(ComidFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
   }
@@ -159,10 +161,6 @@ class _CodeMirrorEditor extends Editor {
   // TODO: Implement completionActive for comid.
   bool get completionActive => false;
 
-  // TODO: Implement completionActivelyInvoked for comid.
-  bool get completionAutoInvoked => false;
-  set completionAutoInvoked(bool value) { }
-
   String get mode => cm.doc.getMode().name;
   set mode(String str) => cm.setOption('mode', str);
 
@@ -171,6 +169,9 @@ class _CodeMirrorEditor extends Editor {
 
   // TODO: Add a cursorCoords getter for comid.
   Point get cursorCoords => null;
+
+  // TODO: Add a onMouseDown getter for comid.
+  Stream<html.MouseEvent> get onMouseDown => null;
 
   bool get hasFocus => cm.state.focused;
 
