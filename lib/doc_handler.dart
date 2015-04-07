@@ -123,14 +123,17 @@ ${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
     return libraryName;
   }
 
-
   Future<String> _mdnApiLink(String domName) async{
-    String domClassName = domName.substring(0,domName.indexOf("."));
+
+    String domClassName;
+    if (domName.indexOf(".") != -1) {
+      domClassName = domName.substring(0, domName.indexOf("."));
+    }
     String baseUrl = "https://developer.mozilla.org/en-US/docs/Web/API/";
 
     if (await urlExists('$baseUrl$domName')) {
       return '[$domName]($baseUrl$domName)';
-    } else if (await urlExists('$baseUrl$domClassName')) {
+    } else if (domClassName != null && await urlExists('$baseUrl$domClassName')) {
       return '[$domClassName]($baseUrl$domClassName)';
     } else {
       String searchUrl = "https://developer.mozilla.org/en-US/search?q=";
