@@ -130,7 +130,7 @@ class ParameterPopup {
     Point cursorCoords = editor.cursorCoords;
 
     int heightDifference = methodPosition.line - cursorPosition.line - 1 ;
-    int heightOfMethod = cursorCoords.y + heightDifference * lineHeight - 5;
+    int heightOfMethod = (cursorCoords.y + heightDifference * lineHeight - 5).round();
 
     if (parPopupActive) {
       var parameterHint = querySelector(".parameter-hint");
