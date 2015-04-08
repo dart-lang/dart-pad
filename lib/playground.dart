@@ -65,7 +65,6 @@ class Playground implements GistContainer {
 
   // We store the last returned shared gist; it's used to update the url.
   Gist _overrideNextRouteGist;
-  Router _router;
   ParameterPopup paramPopup;
   DocHandler docHandler;
 
@@ -500,10 +499,6 @@ class Playground implements GistContainer {
     }
 
     select.value = '0';
-  }
-
-  void _setGistDescription(String description) {
-    titleEditable.text = description == null ? '' : description;
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
