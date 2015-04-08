@@ -21,6 +21,7 @@ import 'api_classes.dart';
 typedef void NotificationProcessor(String event, params);
 
 final Logger _logger = new Logger('analysis_server');
+const bool DUMP_SERVER_MESSAGES = false;
 
 final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
 final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
@@ -187,18 +188,6 @@ class _Server {
   int _nextId = 0;
 
   /**
-   * Messages which have been exchanged with the server; we buffer these
-   * up until the test finishes, so that they can be examined in the debugger
-   * or printed out in response to a call to [debugStdio].
-   */
-  final List<String> _recordedStdio = <String>[];
-
-  /**
-   * True if we are currently printing out messages exchanged with the server.
-   */
-  bool _debuggingStdio = false;
-
-  /**
    * Stopwatch that we use to generate timing information for debug output.
    */
   Stopwatch _time = new Stopwatch();
@@ -207,20 +196,6 @@ class _Server {
    * Future that completes when the server process exits.
    */
   Future<int> get exitCode => _process.exitCode;
-
-  /**
-   * Print out any messages exchanged with the server.  If some messages have
-   * already been exchanged with the server, they are printed out immediately.
-   */
-  void debugStdio() {
-    if (_debuggingStdio) {
-      return;
-    }
-    _debuggingStdio = true;
-    for (String line in _recordedStdio) {
-      print(line);
-    }
-  }
 
   /**
    * Return a future that will complete when all commands that have been sent
@@ -234,8 +209,7 @@ class _Server {
    * Stop the server.
    */
   Future kill() {
-    debugStdio();
-    _recordStdio('PROCESS FORCIBLY TERMINATED');
+    _logStdio('PROCESS FORCIBLY TERMINATED');
     _process.kill();
     return _process.exitCode;
   }
@@ -249,7 +223,7 @@ class _Server {
         (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
       String trimmedLine = line.trim();
 
-      _recordStdio('RECV: $trimmedLine');
+      _logStdio('RECV: $trimmedLine');
       var message;
       try {
         message = JSON.decoder.convert(trimmedLine);
@@ -293,7 +267,7 @@ class _Server {
     _process.stderr.transform(
         (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
       String trimmedLine = line.trim();
-      _recordStdio('ERR:  $trimmedLine');
+      _logStdio('ERR:  $trimmedLine');
     });
   }
 
@@ -332,7 +306,7 @@ class _Server {
     Completer completer = new Completer();
     _pendingCommands[id] = completer;
     String line = JSON.encode(command);
-    _recordStdio('SEND: $line');
+    _logStdio('SEND: $line');
     _process.stdin.add(UTF8.encoder.convert("${line}\n"));
     return completer.future;
   }
@@ -384,7 +358,7 @@ class _Server {
 
       _process = process;
       process.exitCode.then((int code) {
-        _recordStdio('TERMINATED WITH EXIT CODE $code');
+        _logStdio('TERMINATED WITH EXIT CODE $code');
 
       });
     });
@@ -486,16 +460,10 @@ class _Server {
 
   /**
    * Record a message that was exchanged with the server, and print it out if
-   * [debugStdio] has been called.
+   * [DUMP_SERVER_MESSAGES] is true.
    */
-  void _recordStdio(String line) {
-    _logger.fine(line);
-
-    double elapsedTime = _time.elapsedTicks / _time.frequency;
-    line = "$elapsedTime: $line";
-    if (_debuggingStdio) {
+  void _logStdio(String line) {
+    if (DUMP_SERVER_MESSAGES)
       print(line);
-    }
-    _recordedStdio.add(line);
   }
 }
