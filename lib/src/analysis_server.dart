@@ -21,7 +21,12 @@ import 'api_classes.dart';
 typedef void NotificationProcessor(String event, params);
 
 final Logger _logger = new Logger('analysis_server');
-final bool DUMP_SERVER_MESSAGES = false;
+
+/**
+ * Compile time flag to determine wheter we should dump
+ * the communication with the server to stdout.
+ */
+final bool _DUMP_SERVER_MESSAGES = false;
 
 final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
 final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
@@ -463,7 +468,7 @@ class _Server {
    * [DUMP_SERVER_MESSAGES] is true.
    */
   void _logStdio(String line) {
-    if (DUMP_SERVER_MESSAGES)
+    if (_DUMP_SERVER_MESSAGES)
       print(line);
   }
 }
