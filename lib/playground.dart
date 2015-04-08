@@ -371,7 +371,8 @@ class Playground implements GistContainer {
       }
     }
 
-    if (!options.getValueBool('autopopup_code_completion') || _isCompletionActive || !editor.hasFocus) {
+    if (!options.getValueBool('autopopup_code_completion')
+        || _isCompletionActive || !editor.hasFocus) {
       return;
     }
 
@@ -382,11 +383,11 @@ class Playground implements GistContainer {
           editor.execCommand("autocomplete");
         }
     } else if (context.focusedEditor == "html") {
-        // TODO: Autocompletion for attributes.
-        if (printKeyEvent(e) == "shift-,") {
-          editor.completionAutoInvoked = true;
-          editor.execCommand("autocomplete");
-        }
+      // TODO: Autocompletion for attributes.
+      if (printKeyEvent(e) == "shift-,") {
+        editor.completionAutoInvoked = true;
+        editor.execCommand("autocomplete");
+      }
     } else if (context.focusedEditor == "css") {
       RegExp exp = new RegExp(r"[A-Z]");
       if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
