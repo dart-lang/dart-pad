@@ -364,17 +364,15 @@ class Playground implements GistContainer {
   }
 
   _handleAutoCompletion(KeyboardEvent e) {
-    // If we're already in completion bail or if the editor has no focus.
-    // For example, if the title text is edited.
-    if (_isCompletionActive || !editor.hasFocus) return;
-
-    if (context.focusedEditor == 'dart') {
+    if (context.focusedEditor == 'dart' && editor.hasFocus) {
       if (e.keyCode == KeyCode.PERIOD) {
         editor.completionAutoInvoked = true;
         editor.execCommand("autocomplete");
       }
     }
-    if (!options.getValueBool('autopopup_code_completion')) {
+
+    if (!options.getValueBool('autopopup_code_completion')
+        || _isCompletionActive || !editor.hasFocus) {
       return;
     }
 
@@ -385,12 +383,10 @@ class Playground implements GistContainer {
           editor.execCommand("autocomplete");
         }
     } else if (context.focusedEditor == "html") {
-      if (options.getValueBool('autopopup_code_completion')) {
-        // TODO: Autocompletion for attributes.
-        if (printKeyEvent(e) == "shift-,") {
-          editor.completionAutoInvoked = true;
-          editor.execCommand("autocomplete");
-        }
+      // TODO: Autocompletion for attributes.
+      if (printKeyEvent(e) == "shift-,") {
+        editor.completionAutoInvoked = true;
+        editor.execCommand("autocomplete");
       }
     } else if (context.focusedEditor == "css") {
       RegExp exp = new RegExp(r"[A-Z]");
