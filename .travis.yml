@@ -1,4 +1,5 @@
 language: dart
+sudo: false
 before_install:
   - "export CHROME_ARGS=--no-sandbox"
   - "export DISPLAY=:99.0"
