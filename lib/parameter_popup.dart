@@ -46,7 +46,7 @@ class ParameterPopup {
   }
 
   void _handleKeyUp(KeyboardEvent e) {
-    if (e.keyCode == KeyCode.ESC) {
+    if (e.keyCode == KeyCode.ESC || context.focusedEditor != 'dart' || !editor.hasFocus) {
       remove();
     } else if (parPopupActive || parKeys.contains(e.keyCode)) {
       _lookupParameterInfo();
