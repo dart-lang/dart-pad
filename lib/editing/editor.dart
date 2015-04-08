@@ -56,7 +56,7 @@ abstract class Editor {
    * left and cursorCoords.y corresponds to top. Only implemented for
    * codemirror, returns `null` for ace editor and comid.
    */
-  Point get cursorCoords;
+  Point cursorCoords({Position position});
 
   bool get hasFocus;
 

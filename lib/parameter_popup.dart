@@ -130,10 +130,9 @@ class ParameterPopup {
 
     Position methodPosition = editor.document.posFromIndex(methodOffset);
     Position cursorPosition = editor.document.cursor;
-    Point cursorCoords = editor.cursorCoords;
-
-    int heightDifference = methodPosition.line - cursorPosition.line - 1 ;
-    int heightOfMethod = (cursorCoords.y + heightDifference * lineHeight - 5).round();
+    Point cursorCoords = editor.cursorCoords();
+    Point methodCoords = editor.cursorCoords(position: methodPosition);
+    int heightOfMethod = (methodCoords.y - lineHeight - 5).round();
 
     var parameterPopup;
     if (parPopupActive) {
