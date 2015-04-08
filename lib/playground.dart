@@ -18,7 +18,7 @@ import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
-import 'doc_handler.dart';
+import 'documentation.dart';
 import 'editing/editor.dart';
 import 'elements/bind.dart';
 import 'elements/elements.dart';

@@ -4,8 +4,11 @@
 
 library dart_pad.common;
 
-final String serverURL = 'https://dart-services.appspot.com/';
-//final String serverURL = 'http://doc-test.dart-services.appspot.com/';
+// TODO: MDN Link is only testable at doc-test
+// remove this when it is available from dart-services
+
+//final String serverURL = 'https://dart-services.appspot.com/';
+final String serverURL = 'http://doc-test.dart-services.appspot.com/';
 //final String serverURL = 'http://127.0.0.1:8082/';
 
 final Duration serviceCallTimeout = new Duration(seconds: 10);
