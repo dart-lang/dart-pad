@@ -27,6 +27,10 @@ abstract class Editor {
 
   bool completionAutoInvoked = false;
 
+  StreamController<String> completionStateController;
+
+  Stream<String> completionState;
+
   Editor(this.factory);
 
   Document createDocument({String content, String mode});

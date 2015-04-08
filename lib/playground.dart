@@ -246,6 +246,12 @@ class Playground implements GistContainer {
       _toggleDocTab();
     });
 
+    editor.completionState.listen((state) {
+      if (state == "shown") {
+        docHandler.generateDoc(_docPanel);
+      }
+    });
+
     keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.completionAutoInvoked = false;
       editor.execCommand('autocomplete');

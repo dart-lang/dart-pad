@@ -139,8 +139,10 @@ class CodeMirrorFactory extends EditorFactory {
               displayText: "No suggestions", className: "type-no_suggestions")
         ];
       }
-
-      return new HintResults.fromHints(hints, from, to);
+      var r = new HintResults.fromHints(hints, from, to);
+      r.registerOnShown(() => ed.completionStateController.add("shown"));
+      r.registerOnClose(() => ed.completionStateController.add("close"));
+      return r;
     });
   }
 }
@@ -151,11 +153,17 @@ class _CodeMirrorEditor extends Editor {
 
   final CodeMirror cm;
 
+  StreamController<String> completionStateController;
+
+  Stream<String> completionState;
+
   _CodeMirrorDocument _document;
 
   _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
     _instances[cm.jsProxy] = this;
+    completionStateController = new StreamController<String>.broadcast();
+    completionState = completionStateController.stream;
   }
 
   factory _CodeMirrorEditor._fromExisting(CodeMirrorFactory factory, CodeMirror cm) {

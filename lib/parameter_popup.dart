@@ -26,23 +26,21 @@ class ParameterPopup {
   final HtmlEscape sanitizer = const HtmlEscape();
 
   ParameterPopup(this.context, this.editor) {
-    document.onKeyDown.listen((e) => _handleKeyDown(e));
     document.onKeyUp.listen((e) => _handleKeyUp(e));
     document.onClick.listen((e) => _handleClick());
     editor.onMouseDown.listen((e) => _handleClick());
+    editor.completionState.listen((state) {
+      // TODO: only show parameter popup on pick, close is too general
+      if (state == "close") {
+        _lookupParameterInfo();
+      }
+    });
   }
 
   bool get parPopupActive => querySelector(".parameter-hints") != null;
 
   void remove() {
     document.body.children.remove(querySelector(".parameter-hints"));
-  }
-
-  void _handleKeyDown(KeyboardEvent e) {
-    if (e.keyCode == KeyCode.ENTER) {
-      // TODO: Use the onClose event of the completion event to trigger this
-      _lookupParameterInfo();
-    }
   }
 
   void _handleKeyUp(KeyboardEvent e) {
