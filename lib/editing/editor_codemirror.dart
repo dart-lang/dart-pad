@@ -140,8 +140,8 @@ class CodeMirrorFactory extends EditorFactory {
         ];
       }
       var r = new HintResults.fromHints(hints, from, to);
-      r.registerOnShown(() => ed.completionStateController.add("shown"));
-      r.registerOnClose(() => ed.completionStateController.add("close"));
+      r.registerOnShown(() => ed._completionStateController.add("shown"));
+      r.registerOnClose(() => ed._completionStateController.add("close"));
       return r;
     });
   }
@@ -153,17 +153,17 @@ class _CodeMirrorEditor extends Editor {
 
   final CodeMirror cm;
 
-  StreamController<String> completionStateController;
-
-  Stream<String> completionState;
-
   _CodeMirrorDocument _document;
+
+  StreamController<String> _completionStateController;
+
+  Stream<String> _completionState;
 
   _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
     _instances[cm.jsProxy] = this;
-    completionStateController = new StreamController<String>.broadcast();
-    completionState = completionStateController.stream;
+    _completionStateController = new StreamController<String>.broadcast();
+    _completionState = _completionStateController.stream;
   }
 
   factory _CodeMirrorEditor._fromExisting(CodeMirrorFactory factory, CodeMirror cm) {
@@ -206,6 +206,9 @@ class _CodeMirrorEditor extends Editor {
   bool get hasFocus => cm.jsProxy['state']['focused'];
 
   Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
+
+
+  Stream<String> get completionState => _completionState;
 
   Point get cursorCoords {
     JsObject js = cm.call("cursorCoords");

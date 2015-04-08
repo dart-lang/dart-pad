@@ -27,10 +27,6 @@ abstract class Editor {
 
   bool completionAutoInvoked = false;
 
-  StreamController<String> completionStateController;
-
-  Stream<String> completionState;
-
   Editor(this.factory);
 
   Document createDocument({String content, String mode});
@@ -70,6 +66,8 @@ abstract class Editor {
    * codemirror, returns `null` for ace editor and comid.
    */
   Stream<html.MouseEvent> get onMouseDown;
+
+  Stream<String> get completionState;
 
   void resize();
   void focus();

@@ -30,6 +30,12 @@ class DartCompleter extends CodeCompleter {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 
+    editor.completionState.listen((state) {
+      if (state == "close") {
+        if (_lastCompleter != null) _lastCompleter.cancel(reason: "completion closed");
+      }
+    });
+
     int offset = editor.document.indexFromPos(editor.document.cursor);
 
     var request = new SourceRequest()
