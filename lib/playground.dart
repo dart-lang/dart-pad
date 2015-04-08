@@ -9,6 +9,7 @@ import 'dart:html' hide Document;
 
 import 'package:dart_pad/core/keys.dart';
 import 'package:logging/logging.dart';
+import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
 
 import 'actions.dart';
@@ -59,7 +60,7 @@ class Playground implements GistContainer {
   PlaygroundContext _context;
   Future _analysisRequest;
   MutableGist editableGist = new MutableGist(new Gist());
-  //GistStorage _gistStorage = new GistStorage();
+  GistStorage _gistStorage = new GistStorage();
   DContentEditable titleEditable;
 
   // We store the last returned shared gist; it's used to update the url.
@@ -77,7 +78,7 @@ class Playground implements GistContainer {
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
 
-    new NewPadAction(querySelector('#newbutton'), editableGist/*, _gistStorage*/);
+    new NewPadAction(querySelector('#newbutton'), editableGist, _gistStorage);
 
     new SharePadAction(querySelector('#sharebutton'), this);
 
@@ -105,16 +106,14 @@ class Playground implements GistContainer {
       idAnchor.href = val == null ? '' : val;
     });
 
-    // TODO(devoncarew): Commented out for now; more work is required on the
-    // auto-persistence mechanism.
-//    Throttler throttle = new Throttler(const Duration(milliseconds: 100));
-//    mutableGist.onChanged.transform(throttle).listen((_) {
-//      if (mutableGist.dirty) {
-//        // If there was a change, and the gist is dirty, write the gist's
-//        // contents to storage.
-//        _gistStorage.setStoredGist(mutableGist.createGist());
-//      }
-//    });
+    // If there was a change, and the gist is dirty, write the gist's contents
+    // to storage.
+    Throttler throttle = new Throttler(const Duration(milliseconds: 100));
+    mutableGist.onChanged.transform(throttle).listen((_) {
+      if (mutableGist.dirty) {
+        _gistStorage.setStoredGist(mutableGist.createGist());
+      }
+    });
 
     SelectElement select = querySelector('#samples');
     select.onChange.listen((_) => _handleSelectChanged(select));
@@ -125,13 +124,18 @@ class Playground implements GistContainer {
   }
 
   void showHome(RouteEnterEvent event) {
-    // TODO(devoncarew): Commented out for now; more work is required on the
-    // auto-persistence mechanism.
-//    if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
-//      editableGist.setBackingGist(_gistStorage.getStoredGist());
-//    } else {
+    if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
+      Gist blankGist = new Gist();
+      editableGist.setBackingGist(blankGist);
+
+      Gist storedGist = _gistStorage.getStoredGist();
+      editableGist.description = storedGist.description;
+      for (GistFile file in storedGist.files) {
+        editableGist.getGistFile(file.name).content = file.content;
+      }
+    } else {
       editableGist.setBackingGist(createSampleGist());
-//    }
+    }
 
     Timer.run(_handleRun);
   }
@@ -168,13 +172,13 @@ class Playground implements GistContainer {
     gistLoader.loadGist(gistId).then((Gist gist) {
       editableGist.setBackingGist(gist);
 
-//      if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
-//        Gist storedGist = _gistStorage.getStoredGist();
-//        mutableGist.description = storedGist.description;
-//        for (GistFile file in storedGist.files) {
-//          mutableGist.getGistFile(file.name).content = file.content;
-//        }
-//      }
+      if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
+        Gist storedGist = _gistStorage.getStoredGist();
+        editableGist.description = storedGist.description;
+        for (GistFile file in storedGist.files) {
+          editableGist.getGistFile(file.name).content = file.content;
+        }
+      }
 
       // Analyze and run it.
       Timer.run(() {

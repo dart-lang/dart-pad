@@ -18,8 +18,7 @@ main(List args) => grind(args);
 
 @Task()
 analyze() {
-  // The --ignore-infos arg is due to lib/dartservices_client/v1.dart.
-  new PubApplication('tuneup')..run(['check', '--ignore-infos']);
+  new PubApplication('tuneup')..run(['check']);
 }
 
 @Task()

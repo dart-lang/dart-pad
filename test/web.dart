@@ -11,6 +11,7 @@ import 'core/event_bus_test.dart' as event_bus_test;
 import 'core/keys_test.dart' as keys_test;
 import 'services/common_test.dart' as common_test;
 import 'sharing/gists_test.dart' as gists_test;
+import 'sharing/mutable_gist_test.dart' as mutable_gist_test;
 
 void main() {
   // Set up the test environment.
@@ -22,4 +23,5 @@ void main() {
   event_bus_test.defineTests();
   keys_test.defineTests();
   gists_test.defineTests();
+  mutable_gist_test.defineTests();
 }

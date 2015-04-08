@@ -56,8 +56,6 @@ class MutableGist implements PropertyOwner {
     _changedController.add(null);
   }
 
-  //dynamic operator[](String key) => _localValues[key];
-
   Stream<bool> get onDirtyChanged => _dirtyChangedController.stream;
 
   Stream get onChanged => _changedController.stream;
