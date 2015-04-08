@@ -207,8 +207,7 @@ class _CodeMirrorEditor extends Editor {
 
   Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
 
-
-  Stream<String> get completionState => _completionState;
+  Stream<CompletionState> get completionState => _completionState;
 
   Point get cursorCoords {
     JsObject js = cm.call("cursorCoords");

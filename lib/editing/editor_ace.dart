@@ -138,6 +138,9 @@ class _AceEditor extends Editor {
   // TODO: Add a onMouseDown getter for ace.
   Stream get onMouseDown => null;
 
+  // TODO: Add a completionState getter for comid.
+  Stream<CompletionState> get completionState => null;
+
   void focus() => editor.focus();
   void resize() => editor.resize(true);
 

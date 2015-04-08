@@ -173,6 +173,9 @@ class _CodeMirrorEditor extends Editor {
   // TODO: Add a onMouseDown getter for comid.
   Stream<html.MouseEvent> get onMouseDown => null;
 
+  // TODO: Add a completionState getter for comid.
+  Stream<CompletionState> get completionState => null;
+
   bool get hasFocus => cm.state.focused;
 
   void focus() => cm.focus();
