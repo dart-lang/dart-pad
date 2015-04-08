@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad.doc_handler;
+library dartpad.documentation;
 
 import 'dart:async';
 import 'dart:convert';
@@ -98,7 +98,7 @@ class DocHandler {
 
     Future mdnCheck = new Future.value();
     if (!hasDartdoc && isHtmlLib && domName != null) {
-      mdnCheck = _createMdnApiLink(domName);
+      mdnCheck = createMdnMarkdownLink(domName);
     }
 
     return mdnCheck.then((String mdnLink) {
@@ -133,35 +133,35 @@ ${libraryName == null ? '' : "**Library:** $apiLink" }\n\n''';
     }
     return libraryName;
   }
+}
 
-  // TODO: We need a test to ensure that these URLs stay available.
+/// Returns the markdown url link for the MDN documentation for the given DOM
+/// element name, or `null` if no documentation URL for that element exits.
+Future<String> createMdnMarkdownLink(String domName) {
+  final String baseUrl = "https://developer.mozilla.org/en-US/docs/Web/API/";
 
-  Future<String> _createMdnApiLink(String domName) {
-    final String baseUrl = "https://developer.mozilla.org/en-US/docs/Web/API/";
+  String domClassName = domName.indexOf(".") != -1
+      ? domName.substring(0, domName.indexOf(".")) : null;
 
-    String domClassName = domName.indexOf(".") != -1
-        ? domName.substring(0, domName.indexOf(".")) : null;
+  return _urlExists('$baseUrl$domName').then((exists) {
+    if (exists) return '[$domName]($baseUrl$domName)';
 
-    return _urlExists('$baseUrl$domName').then((exists) {
-      if (exists) return '[$domName]($baseUrl$domName)';
+    if (domClassName != null) {
+      return _urlExists('$baseUrl$domClassName').then((exists) {
+        if (exists) return '[$domClassName]($baseUrl$domClassName)';
+      });
+    }
+  });
 
-      if (domClassName != null) {
-        return _urlExists('$baseUrl$domClassName').then((exists) {
-          if (exists) return '[$domClassName]($baseUrl$domClassName)';
-        });
-      }
-    });
+  // Avoid searching for now.
+  //String searchUrl = "https://developer.mozilla.org/en-US/search?q=";
+  //return 'Search for [$domName]($searchUrl$domName)';
+}
 
-    // Avoid searching for now.
-    //String searchUrl = "https://developer.mozilla.org/en-US/search?q=";
-    //return 'Search for [$domName]($searchUrl$domName)';
-  }
-
-  Future<bool> _urlExists(String url) {
-    return HttpRequest.getString(url)
-        .then((_) => true)
-        .catchError((e) => false);
-  }
+Future<bool> _urlExists(String url) {
+  return HttpRequest.getString(url)
+      .then((_) => true)
+      .catchError((e) => false);
 }
 
 class _DocResult {
