@@ -67,7 +67,7 @@ abstract class Editor {
    */
   Stream<html.MouseEvent> get onMouseDown;
 
-  Stream<String> get completionState;
+  Stream<CompletionState> get completionState;
 
   void resize();
   void focus();
@@ -184,3 +184,5 @@ class Completion {
       displayString == other.displayString &&
       (type == "type-getter" && other.type == "type-setter");
 }
+
+enum CompletionState { SHOWN, CLOSE, UPDATE, PICK, SELECT }

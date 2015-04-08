@@ -31,7 +31,7 @@ class ParameterPopup {
     editor.onMouseDown.listen((e) => _handleClick());
     editor.completionState.listen((state) {
       // TODO: only show parameter popup on pick, close is too general
-      if (state == "close") {
+      if (state == CompletionState.CLOSE) {
         _lookupParameterInfo();
       }
     });

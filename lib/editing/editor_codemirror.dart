@@ -140,8 +140,8 @@ class CodeMirrorFactory extends EditorFactory {
         ];
       }
       var r = new HintResults.fromHints(hints, from, to);
-      r.registerOnShown(() => ed._completionStateController.add("shown"));
-      r.registerOnClose(() => ed._completionStateController.add("close"));
+      r.registerOnShown(() => ed._completionStateController.add(CompletionState.SHOWN));
+      r.registerOnClose(() => ed._completionStateController.add(CompletionState.CLOSE));
       return r;
     });
   }
@@ -155,14 +155,14 @@ class _CodeMirrorEditor extends Editor {
 
   _CodeMirrorDocument _document;
 
-  StreamController<String> _completionStateController;
+  StreamController<CompletionState> _completionStateController;
 
-  Stream<String> _completionState;
+  Stream<CompletionState> _completionState;
 
   _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
     _instances[cm.jsProxy] = this;
-    _completionStateController = new StreamController<String>.broadcast();
+    _completionStateController = new StreamController<CompletionState>.broadcast();
     _completionState = _completionStateController.stream;
   }
 

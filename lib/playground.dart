@@ -247,7 +247,7 @@ class Playground implements GistContainer {
     });
 
     editor.completionState.listen((state) {
-      if (state == "shown") {
+      if (state == CompletionState.SHOWN) {
         docHandler.generateDoc(_docPanel);
       }
     });
