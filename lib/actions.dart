@@ -60,7 +60,7 @@ class SharePadAction {
     gistLoader.createAnon(_gist.createGist()).then((Gist newGist) {
       _gistContainer.overrideNextRoute(newGist);
       router.go('gist', {'gist': newGist.id});
-      var toast = new DToast('Created ${newGist.id}')..show()..hide();
+      var toast = new DToast('Created new Gist')..show()..hide();
       toast.element
         ..style.cursor = "pointer"
         ..onClick.listen((e)

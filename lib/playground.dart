@@ -99,10 +99,17 @@ class Playground implements GistContainer {
     bind(editableGist.property('description'), titleEditable.textProperty);
 
     // Update the ID on changes.
-    AnchorElement idAnchor = querySelector('header .header-gist-id a');
-    bind(editableGist.property('id'), (val) => idAnchor.text = val);
+    ButtonElement gistButton = querySelector('#gistbutton');
+    bind(editableGist.property('id'), (val) {
+      if (val == null)
+        gistButton.disabled = true;
+      else
+        gistButton.disabled = false;
+    });
     bind(editableGist.property('html_url'), (val) {
-      idAnchor.href = val == null ? '' : val;
+      if (val != null) {
+        gistButton.onClick.listen((e) => window.open(val, '_blank'));
+      }
     });
 
     // If there was a change, and the gist is dirty, write the gist's contents
