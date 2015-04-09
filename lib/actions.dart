@@ -60,7 +60,11 @@ class SharePadAction {
     gistLoader.createAnon(_gist.createGist()).then((Gist newGist) {
       _gistContainer.overrideNextRoute(newGist);
       router.go('gist', {'gist': newGist.id});
-      DToast.showMessage('Created ${newGist.id}');
+      var toast = new DToast('Created ${newGist.id}')..show()..hide();
+      toast.element
+        ..style.cursor = "pointer"
+        ..onClick.listen((e)
+            => window.open("https://gist.github.com/anonymous/${newGist.id}", '_blank'));
     }).catchError((e) {
       String message = 'Error saving gist: ${e}';
       DToast.showMessage(message);
