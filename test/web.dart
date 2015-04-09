@@ -12,6 +12,7 @@ import 'core/keys_test.dart' as keys_test;
 import 'documentation_test.dart' as documentation_test;
 import 'services/common_test.dart' as common_test;
 import 'sharing/gists_test.dart' as gists_test;
+import 'sharing/mutable_gist_test.dart' as mutable_gist_test;
 
 void main() {
   // Set up the test environment.
@@ -24,4 +25,5 @@ void main() {
   documentation_test.defineTests();
   common_test.defineTests();
   gists_test.defineTests();
+  mutable_gist_test.defineTests();
 }

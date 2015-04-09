@@ -15,9 +15,9 @@ import 'sharing/mutable_gist.dart';
 class NewPadAction {
   final DButton _button;
   final MutableGist _gist;
-  //final GistStorage _gistStorage;
+  final GistStorage _gistStorage;
 
-  NewPadAction(Element element, this._gist/*, this._gistStorage*/) :
+  NewPadAction(Element element, this._gist, this._gistStorage) :
       _button = new DButton(element) {
     _button.onClick.listen((e) => _handleButtonPress());
   }
@@ -27,7 +27,7 @@ class NewPadAction {
       if (!window.confirm('Discard changes to the current pad?')) return;
     }
 
-    //_gistStorage.clearStoredGist();
+    _gistStorage.clearStoredGist();
 
     if (ga != null) ga.sendEvent('main', 'new');
 
