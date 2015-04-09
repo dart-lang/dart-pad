@@ -133,7 +133,7 @@ class _AceEditor extends Editor {
   bool get hasFocus => editor.isFocused;
 
   // TODO: Add a cursorCoords getter for ace.
-  Point cursorCoords({Position position}) => null;
+  Point getCursorCoords({Position position}) => null;
 
   // TODO: Add a onMouseDown getter for ace.
   Stream get onMouseDown => null;
