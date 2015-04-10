@@ -168,7 +168,7 @@ class _CodeMirrorEditor extends Editor {
   set theme(String str) => cm.setOption('theme', str);
 
   // TODO: Add a cursorCoords getter for comid.
-  Point get cursorCoords => null;
+  Point getCursorCoords({ed.Position position}) => null;
 
   // TODO: Add a onMouseDown getter for comid.
   Stream<html.MouseEvent> get onMouseDown => null;
