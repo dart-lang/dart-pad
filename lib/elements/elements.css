@@ -216,8 +216,66 @@
   top: 72px;
 }
 
+.modal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(70,70,70,0.75);
+  z-index: 99999;
+  transition: opacity 400ms ease-in;
+}
+
+.modal > div {
+  width: 400px;
+  position: relative;
+  margin: 10% auto;
+  padding: 5px 20px 13px 20px;
+  border-radius: 4px;
+  box-shadow: 0 0 18px rgba(0,0,0,0.4);
+  background-clip: padding-box;
+  background: white;
+  color: black;
+}
+
+.modal > div h2 {
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 18px;
+}
+
+.modal dl {
+  padding: 0.5em;
+}
+.modal dt {
+  float: left;
+  clear: left;
+  font-weight: bold;
+}
+
+.modal dd {
+  text-align: right;
+}
+
+
+dd > span {
+  padding: 1px 6px;
+  border-radius: 4px;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2), 0 0 0 1px #fff inset;
+  background-color: #fafafa;
+  border-color: #ccc #ccc #fff;
+  border-style: solid solid none;
+  border-width: 1px 1px medium;
+  font-size: 14px;
+  color: #444;
+  margin: 2px 2px;
+  white-space: nowrap;
+  display: inline-block;
+}
+
 /* contenteditable elements */
 
 [contenteditable]:focus {
   outline: 0 solid transparent;
 }
+

@@ -9,6 +9,7 @@ import 'dart:html';
 import 'dart:math' as math;
 
 import 'bind.dart';
+import 'package:dart_pad/core/keys.dart';
 
 class DElement {
   final Element element;
@@ -334,6 +335,59 @@ class DToast extends DElement {
         dispose();
       });
     });
+  }
+}
+
+class SettingsModal extends DElement {
+  final Map<Action,Set<String>> keyMap;
+  bool visible = false;
+  SettingsModal(this.keyMap) : super.tag('div') {
+    element.classes.toggle('modal', true);
+    element.onClick.listen((e) {
+      if (e.target == element) {
+        hide();
+      }
+    });
+    document.onKeyDown.listen((e) {
+      if (e.keyCode == KeyCode.ESC) {
+        if (visible) {
+          hide();
+        }
+      }
+    });
+    element.append(
+        new DivElement()
+          ..append(new HeadingElement.h2()..text ="Keyboard shortcuts")
+          ..append(keyMapToHtml)
+    );
+  }
+
+  void toggle() {
+    if (!visible) {
+      show();
+    } else {
+      hide();
+    }
+  }
+
+  DListElement get keyMapToHtml {
+    DListElement dl = new DListElement();
+    keyMap.forEach((action, keys) {
+      String string = "";
+      keys.forEach((key) => string += "<span>${key}</span>");
+      dl.innerHtml += "<dt>$action</dt><dd>${string}</dd>";
+    });
+    return dl;
+  }
+
+  void show() {
+    visible = true;
+    document.body.children.add(element);
+  }
+
+  void hide() {
+    visible = false;
+    dispose();
   }
 }
 
