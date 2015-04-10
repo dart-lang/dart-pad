@@ -67,6 +67,12 @@ void defineTests() {
       expect(JSON.decode(UTF8.decode(data)), expectedJson);
     });
 
+    test('analyze negative-test noSource', () async {
+       var json = {};
+       var response = await _sendPostRequest('dartservices/v1/analyze', json);
+       expect(response.status, 400);
+    });
+
     test('compile', () async {
       var json = {'source': sampleCode};
       var response = await _sendPostRequest('dartservices/v1/compile', json);
@@ -84,6 +90,12 @@ void defineTests() {
       expect(data['error']['message'],
           contains('failed with errors: [error, line 2] Expected'));
     });
+
+    test('compile negative-test noSource', () async {
+        var json = {};
+        var response = await _sendPostRequest('dartservices/v1/compile', json);
+        expect(response.status, 400);
+     });
 
     /*
     test('complete', () async {
@@ -137,7 +149,21 @@ void defineTests() {
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data, {"info": {}});
     });
+
   });
+
+  test('document negative-test noSource', () async {
+      var json = { 'offset': 12 };
+      var response = await _sendPostRequest('dartservices/v1/document', json);
+      expect(response.status, 400);
+   });
+
+  test('document negative-test noOffset', () async {
+      var json = {'source': 'void main() {print("foo");}' };
+      var response = await _sendPostRequest('dartservices/v1/document', json);
+      expect(response.status, 400);
+   });
+
 }
 
 class MockCache implements ServerCache {
