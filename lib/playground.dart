@@ -98,13 +98,6 @@ class Playground implements GistContainer {
     bind(titleEditable.onChanged, editableGist.property('description'));
     bind(editableGist.property('description'), titleEditable.textProperty);
 
-    // Update the ID on changes.
-    AnchorElement idAnchor = querySelector('header .header-gist-id a');
-    bind(editableGist.property('id'), (val) => idAnchor.text = val);
-    bind(editableGist.property('html_url'), (val) {
-      idAnchor.href = val == null ? '' : val;
-    });
-
     // If there was a change, and the gist is dirty, write the gist's contents
     // to storage.
     Throttler throttle = new Throttler(const Duration(milliseconds: 100));
@@ -136,7 +129,11 @@ class Playground implements GistContainer {
       editableGist.setBackingGist(createSampleGist());
     }
 
-    Timer.run(_handleRun);
+    // Analyze and run it.
+    Timer.run(() {
+      _handleRun();
+      _performAnalysis();
+    });
   }
 
   void showGist(RouteEnterEvent event) {

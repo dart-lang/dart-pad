@@ -55,13 +55,6 @@ header {
   min-width: 2em;
 }
 
-.header-gist-id {
-  text-overflow: ellipsis;
-  overflow-x: hidden;
-  max-width: 100px;
-  text-transform: uppercase;
-}
-
 #newbutton {
   margin-left: 10px;
 }

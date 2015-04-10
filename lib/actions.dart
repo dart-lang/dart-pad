@@ -32,7 +32,7 @@ class NewPadAction {
     if (ga != null) ga.sendEvent('main', 'new');
 
     DToast.showMessage('New pad created');
-    router.go('gist', {'gist': ''});
+    router.go('gist', {'gist': ''}, forceReload: true);
   }
 }
 
