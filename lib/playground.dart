@@ -253,7 +253,7 @@ class Playground implements GistContainer {
     }, "Completion");
 
 
-    keys.bind(['shift-ctrl-/'], (){
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], (){
       settings.toggle();
     }, "Settings");
     settings = new SettingsModal(keys.inverseBindings);
