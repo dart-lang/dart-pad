@@ -261,7 +261,7 @@ class GistStorage {
 
   /// Return the id of the stored gist. This will return `null` if there is no
   /// gist stored.
-  String get storedId => _storedId;
+  String get storedId => _storedId == null || _storedId.isEmpty ? null : _storedId;
 
   Gist getStoredGist() {
     String data = window.localStorage[_key];
@@ -274,6 +274,7 @@ class GistStorage {
   }
 
   void clearStoredGist() {
+    _storedId = null;
     window.localStorage.remove(_key);
   }
 }
