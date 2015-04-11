@@ -289,18 +289,7 @@ class Playground implements GistContainer {
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     _context.htmlDocument.onChange.listen((e) {
-      if (editor.document.value.trim().isEmpty && !htmlIsEmpty) {
-        htmlIsEmpty = true;
-        querySelector("#consoletab").style.display = "none";
-        querySelector("#resulttab").style.display = "none";
-        _outputpanel.style.display = "block";
-        _frame.style.display = "none";
-      } else if (editor.document.value.isNotEmpty && htmlIsEmpty){
-        htmlIsEmpty = false;
-        querySelector("#consoletab").style.display = "block";
-        querySelector("#resulttab").style.display = "block";
-        _toggleResultTab();
-      }
+      _checkForHtml();
     });
 
     // Bind the editable files to the gist.
@@ -414,7 +403,13 @@ class Playground implements GistContainer {
   }
 
   void _checkForHtml() {
-    if (_context.htmlDocument.value.trim().isNotEmpty){
+    if (_context.htmlDocument.value.trim().isEmpty && !htmlIsEmpty) {
+      htmlIsEmpty = true;
+      querySelector("#consoletab").style.display = "none";
+      querySelector("#resulttab").style.display = "none";
+      _outputpanel.style.display = "block";
+      _frame.style.display = "none";
+    } else if (_context.htmlDocument.value.trim().isNotEmpty && htmlIsEmpty){
       htmlIsEmpty = false;
       querySelector("#consoletab").style.display = "block";
       querySelector("#resulttab").style.display = "block";
