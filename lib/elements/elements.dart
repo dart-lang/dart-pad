@@ -125,6 +125,7 @@ class DSplitter extends DElement {
       _offset = e.offset;
 
       _moveSub = document.onMouseMove.listen((e) {
+        querySelector("#frame").style.pointerEvents = "none";
         if (e.which != 1) {
           cancel();
         } else {
@@ -135,6 +136,7 @@ class DSplitter extends DElement {
       });
 
       _upSub = document.onMouseUp.listen((e) {
+        querySelector("#frame").style.pointerEvents = "inherit";
         cancel();
       });
     });
