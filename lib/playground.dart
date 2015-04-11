@@ -291,10 +291,10 @@ class Playground implements GistContainer {
     _context.htmlDocument.onChange.listen((e) {
       if (editor.document.value.trim().isEmpty && !htmlIsEmpty) {
         htmlIsEmpty = true;
-        querySelector("#frame").style.display = "none";
         querySelector("#consoletab").style.display = "none";
         querySelector("#resulttab").style.display = "none";
-        querySelector("#output").style.display = "block";
+        _outputpanel.style.display = "block";
+        _frame.style.display = "none";
       } else if (editor.document.value.isNotEmpty && htmlIsEmpty){
         htmlIsEmpty = false;
         querySelector("#consoletab").style.display = "block";
