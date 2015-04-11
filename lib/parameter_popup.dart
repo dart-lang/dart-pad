@@ -140,7 +140,7 @@ class ParameterPopup {
 
       //update popup position
       int newLeft = math.max(
-          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 22);
+          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2).round(), 22);
 
       parameterPopup = querySelector(".parameter-hints")
         ..style.top = "${heightOfMethod}px";
@@ -154,7 +154,7 @@ class ParameterPopup {
         ..innerHtml = string
         ..classes.add("parameter-hint");
       int left = math.max(
-          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 22);
+          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2).round(), 22);
       parameterPopup = new DivElement()
         ..classes.add("parameter-hints")
         ..style.left = "${left}px"

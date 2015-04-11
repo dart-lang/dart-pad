@@ -62,6 +62,7 @@ class Playground implements GistContainer {
   MutableGist editableGist = new MutableGist(new Gist());
   GistStorage _gistStorage = new GistStorage();
   DContentEditable titleEditable;
+  SettingsModal settings;
 
   // We store the last returned shared gist; it's used to update the url.
   Gist _overrideNextRouteGist;
@@ -239,17 +240,23 @@ class Playground implements GistContainer {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    keys.bind(['ctrl-s'], _handleSave);
-    keys.bind(['ctrl-enter'], _handleRun);
+    keys.bind(['ctrl-s'], _handleSave, "Save");
+    keys.bind(['ctrl-enter'], _handleRun, "Run");
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
       _toggleDocTab();
-    });
+    }, "Documentation");
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.completionAutoInvoked = false;
       editor.execCommand('autocomplete');
-    });
+    }, "Completion");
+
+
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], (){
+      settings.toggle();
+    }, "Settings");
+    settings = new SettingsModal(keys.inverseBindings);
 
     document.onClick.listen((MouseEvent e) {
       if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);

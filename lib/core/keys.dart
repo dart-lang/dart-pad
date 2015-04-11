@@ -13,7 +13,7 @@ final _isMac = window.navigator.appVersion.toLowerCase().contains('macintosh');
  * Map key events into commands.
  */
 class Keys {
-  Map<String, Function> _bindings = {};
+  Map<String, Action> _bindings = {};
   StreamSubscription _sub;
   bool _loggedException = false;
 
@@ -26,8 +26,8 @@ class Keys {
    * format. Some examples of this format:
    *     `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
    */
-  void bind(List<String> keys, Function action) {
-    keys.forEach((key) => _bindings[key] = action);
+  void bind(List<String> keys, Function action, String description) {
+    keys.forEach((key) => _bindings[key] = new Action(action, description));
   }
 
   void dispose() {
@@ -58,8 +58,7 @@ class Keys {
   }
 
   bool _handleKey(String key) {
-    Function action = _bindings[key];
-
+    Action action = _bindings[key];
     if (action != null) {
       Timer.run(action);
       return true;
@@ -67,6 +66,29 @@ class Keys {
 
     return false;
   }
+
+  Map<Action, Set<String>> get inverseBindings {
+    return new Map.fromIterable(
+        _bindings.values.toSet(),
+        value: (v) => _bindings.keys.where((k) => _bindings[k] == v).toSet()
+    );
+  }
+}
+
+class Action {
+  final Function function;
+  final String description;
+
+  Action(this.function, this.description);
+
+  call() => function();
+
+  toString() => description;
+
+  bool operator==(other)
+      => other is Action && description == other.description;
+
+  int get hashCode => description.hashCode;
 }
 
 /**

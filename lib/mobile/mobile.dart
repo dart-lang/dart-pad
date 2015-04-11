@@ -305,9 +305,9 @@ class PlaygroundMobile {
     // TODO: Move to using the defaultFilters().
     deps[GistLoader] = new GistLoader();
 
-    keys.bind(['ctrl-s'], _handleSave);
-    keys.bind(['ctrl-enter'], _handleRun);
-    keys.bind(['f1'], _handleHelp);
+//    keys.bind(['ctrl-s'], _handleSave);
+//    keys.bind(['ctrl-enter'], _handleRun);
+//    keys.bind(['f1'], _handleHelp);
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
