@@ -290,7 +290,7 @@ class Playground implements GistContainer {
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     _context.htmlDocument.onChange.listen((e) {
-      if (editor.document.value.isEmpty && !htmlIsEmpty) {
+      if (editor.document.value.trim().isEmpty && !htmlIsEmpty) {
         htmlIsEmpty = true;
         querySelector("#frame").style.display = "none";
         querySelector("#consoletab").style.display = "none";
@@ -415,7 +415,7 @@ class Playground implements GistContainer {
   }
 
   void _checkForHtml() {
-    if (_context.htmlDocument.value.isNotEmpty){
+    if (_context.htmlDocument.value.trim().isNotEmpty){
       htmlIsEmpty = false;
       querySelector("#consoletab").style.display = "block";
       querySelector("#resulttab").style.display = "block";
