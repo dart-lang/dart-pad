@@ -245,14 +245,13 @@ class Playground implements GistContainer {
     keys.bind(['ctrl-enter'], _handleRun);
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
+      docHandler.generateDoc(_docPanel);
     });
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.completionAutoInvoked = false;
       editor.execCommand('autocomplete');
     });
-
-
 
     document.onClick.listen((MouseEvent e) {
       docHandler.generateDoc(_docPanel);
