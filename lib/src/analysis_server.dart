@@ -253,6 +253,7 @@ class _Server {
         }
         if (messageAsMap.containsKey('error')) {
           // TODO(paulberry): propagate the error info to the completer.
+          kill();
           completer.completeError(
               new UnimplementedError(
                   'Server responded with an error: ${JSON.encode(message)}'));
