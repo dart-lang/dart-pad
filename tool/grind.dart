@@ -18,7 +18,7 @@ main(List args) => grind(args);
 
 @Task()
 analyze() {
-  new PubApplication('tuneup')..run(['check']);
+  new PubApp.global('tuneup')..run(['check']);
 }
 
 @Task()
@@ -29,7 +29,7 @@ testCli() => Tests.runCliTests();
 testWeb() => Tests.runWebTests(directory: 'build/test', htmlFile: 'web.html');
 
 @Task('Run bower')
-bower() => runProcess('bower', arguments: ['install']);
+bower() => run('bower', arguments: ['install']);
 
 @Task('Build the `web/index.html` entrypoint')
 @Depends(bower)
@@ -50,12 +50,12 @@ build() {
 
   // Reify the symlinks.
   // cp -R -L packages build/web/packages
-  runProcess('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
+  run('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
 
   // Run vulcanize.
   FilePath mobileHtmlFile = _buildDir.join('web', 'mobile.html');
   log('${mobileHtmlFile.path} original: ${_printSize(mobileHtmlFile)}');
-  runProcess('vulcanize', // '--csp', '--inline',
+  run('vulcanize', // '--csp', '--inline',
       arguments: ['--strip', '--output', 'mobile.html', 'mobile.html'],
       workingDirectory: 'build/web');
   log('${mobileHtmlFile.path} vulcanize: ${_printSize(mobileHtmlFile)}');
