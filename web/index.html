@@ -94,17 +94,19 @@
       </div>
 
       <div class="view" flex two layout vertical>
-        <iframe id="frame" sandbox="allow-scripts" flex four src="frame.html">
-        </iframe>
+        <div id="top" class="view" flex two layout vertical>
+          <div class="header small" layout horizontal reverse wrap>
+            <li><a id="consoletab"><span>Console</span></a></li>
+            <li><a id="resulttab" selected><span>Result</span></a></li>
+          </div>
+          <div id="output" class="console" flex layout vertical></div>
+          <iframe id="frame" sandbox="allow-scripts" flex four src="frame.html">
+          </iframe>
+        </div>
         <div class="splitter" horizontal id="output_split">
           <div class="inner"></div>
         </div>
-        <div class="view" flex two layout vertical>
-          <div class="header small" layout horizontal wrap>
-            <li><a id="consoletab" selected><span>Console</span></a></li>
-            <li><a id="doctab" title="Documentation (F1)"><span>Documentation</span></a></li>
-          </div>
-          <div id="output" class="console" flex layout vertical></div>
+        <div id="bottom" class="view" flex two layout vertical>
           <div id="documentation" flex layout vertical></div>
         </div>
         <div id="frame_overlay"></div>

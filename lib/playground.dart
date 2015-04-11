@@ -50,8 +50,8 @@ class Playground implements GistContainer {
   IFrameElement get _frame => querySelector('#frame');
   bool get _isCompletionActive => editor.completionActive;
   DivElement get _docPanel => querySelector('#documentation');
-  AnchorElement get _docTab => querySelector('#doctab');
-  bool get _isDocPanelOpen => _docTab.attributes.containsKey('selected');
+  AnchorElement get _resultTab => querySelector('#resulttab');
+  bool htmlIsEmpty = true;
 
   DButton runButton;
   DOverlay overlay;
@@ -176,6 +176,13 @@ class Playground implements GistContainer {
         }
       }
 
+      if (_context.htmlDocument.value.isNotEmpty){
+        htmlIsEmpty = false;
+        querySelector("#consoletab").style.display = "block";
+        querySelector("#resulttab").style.display = "block";
+        _toggleResultTab();
+      }
+
       // Analyze and run it.
       Timer.run(() {
         _handleRun();
@@ -243,7 +250,6 @@ class Playground implements GistContainer {
     keys.bind(['ctrl-enter'], _handleRun);
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
-      _toggleDocTab();
     });
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
@@ -251,18 +257,20 @@ class Playground implements GistContainer {
       editor.execCommand('autocomplete');
     });
 
+
+
     document.onClick.listen((MouseEvent e) {
-      if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+      docHandler.generateDoc(_docPanel);
     });
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive || DocHandler.cursorKeys.contains(e.keyCode)){
-        if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+        docHandler.generateDoc(_docPanel);
       }
       _handleAutoCompletion(e);
     });
 
-    _docTab.onClick.listen((e) => _toggleDocTab());
+    _resultTab.onClick.listen((e) => _toggleResultTab());
     querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
     _context = new PlaygroundContext(editor);
@@ -285,6 +293,21 @@ class Playground implements GistContainer {
 
     _context.onDartDirty.listen((_) => busyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
+
+    _context.htmlDocument.onChange.listen((e) {
+      if (editor.document.value.isEmpty && !htmlIsEmpty) {
+        htmlIsEmpty = true;
+        querySelector("#frame").style.display = "none";
+        querySelector("#consoletab").style.display = "none";
+        querySelector("#resulttab").style.display = "none";
+        querySelector("#output").style.display = "block";
+      } else if (editor.document.value.isNotEmpty && htmlIsEmpty){
+        htmlIsEmpty = false;
+        querySelector("#consoletab").style.display = "block";
+        querySelector("#resulttab").style.display = "block";
+        _toggleResultTab();
+      }
+    });
 
     // Bind the editable files to the gist.
     Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'));
@@ -343,21 +366,20 @@ class Playground implements GistContainer {
   List<Element> _getTabElements(Element element) =>
       element.querySelectorAll('a');
 
-  void _toggleDocTab() {
-    ga.sendEvent('view', 'dartdoc');
-    docHandler.generateDoc(_docPanel);
+  void _toggleResultTab() {
+    ga.sendEvent('view', 'result');
     // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
     querySelector('#output').style.display = "none";
     querySelector("#consoletab").attributes.remove('selected');
 
-    _docPanel.style.display = "block";
-    _docTab.setAttribute('selected','');
+    _frame.style.display = "block";
+    _resultTab.setAttribute('selected','');
   }
 
   void _toggleConsoleTab() {
     ga.sendEvent('view', 'console');
-    _docPanel.style.display = "none";
-    _docTab.attributes.remove('selected');
+    _frame.style.display = "none";
+    _resultTab.attributes.remove('selected');
 
     _outputpanel.style.display = "block";
     querySelector("#consoletab").setAttribute('selected','');
@@ -398,7 +420,7 @@ class Playground implements GistContainer {
   }
 
   void _handleRun() {
-    _toggleConsoleTab();
+//    _toggleConsoleTab();
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
     overlay.visible = true;
