@@ -271,6 +271,7 @@ class _Error {
     HintCode.UNUSED_IMPORT,
     HintCode.UNUSED_LOCAL_VARIABLE,
     ParserErrorCode.EXPECTED_TOKEN,
+    StaticWarningCode.UNDEFINED_IDENTIFIER,
     StaticWarningCode.UNDEFINED_CLASS,
     StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
   ];
