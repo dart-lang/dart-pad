@@ -51,7 +51,7 @@ class Playground implements GistContainer {
   bool get _isCompletionActive => editor.completionActive;
   DivElement get _docPanel => querySelector('#documentation');
   AnchorElement get _resultTab => querySelector('#resulttab');
-  bool htmlIsEmpty = true;
+  bool _htmlIsEmpty = true;
 
   DButton runButton;
   DOverlay overlay;
@@ -403,21 +403,21 @@ class Playground implements GistContainer {
   }
 
   void _checkForHtml() {
-    if (_context.htmlDocument.value.trim().isEmpty && !htmlIsEmpty) {
-      htmlIsEmpty = true;
-      querySelector("#consoletab").style.display = "none";
-      querySelector("#resulttab").style.display = "none";
-      _outputpanel.style.display = "block";
-      _frame.style.display = "none";
-    } else if (_context.htmlDocument.value.trim().isNotEmpty && htmlIsEmpty){
-      htmlIsEmpty = false;
-      querySelector("#consoletab").style.display = "block";
-      querySelector("#resulttab").style.display = "block";
+    if (_context.htmlDocument.value.trim().isEmpty && !_htmlIsEmpty) {
+      _htmlIsEmpty = true;
+      _toggleConsoleTab();
+    } else if (_context.htmlDocument.value.trim().isNotEmpty && _htmlIsEmpty){
+      _htmlIsEmpty = false;
       _toggleResultTab();
     }
   }
 
   void _handleRun() {
+    if (_htmlIsEmpty) {
+      _toggleConsoleTab();
+    } else {
+      _toggleResultTab();
+    }
 //    _toggleConsoleTab();
     ga.sendEvent('main', 'run');
     runButton.disabled = true;

@@ -317,10 +317,6 @@ div.toggle {
   top: 60px;
 }
 
-#consoletab, #resulttab {
-  display: none;
-}
-
 /* documentation and parameter info styling
 =========================================== */
 
