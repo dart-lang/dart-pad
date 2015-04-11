@@ -200,7 +200,11 @@ class Playground implements GistContainer {
 
   void _initPlayground() {
     // TODO: Set up some automatic value bindings.
-    DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'));
+    DSplitter editorSplitter = new DSplitter(
+        querySelector('#editor_split'),
+        onDragStart: () => _frame.style.pointerEvents = "none",
+        onDragEnd: () => _frame.style.pointerEvents = "inherit"
+    );
     editorSplitter.onPositionChanged.listen((pos) {
       state['editor_split'] = pos;
       editor.resize();
@@ -209,7 +213,11 @@ class Playground implements GistContainer {
      editorSplitter.position = state['editor_split'];
     }
 
-    DSplitter outputSplitter = new DSplitter(querySelector('#output_split'));
+    DSplitter outputSplitter = new DSplitter(
+        querySelector('#output_split'),
+        onDragStart: () => _frame.style.pointerEvents = "none",
+        onDragEnd: () => _frame.style.pointerEvents = "inherit"
+    );
     outputSplitter.onPositionChanged.listen((pos) {
       state['output_split'] = pos;
     });
