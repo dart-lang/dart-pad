@@ -133,6 +133,7 @@ class Playground implements GistContainer {
     Timer.run(() {
       _handleRun();
       _performAnalysis();
+      _checkForHtml();
     });
   }
 
@@ -176,17 +177,11 @@ class Playground implements GistContainer {
         }
       }
 
-      if (_context.htmlDocument.value.isNotEmpty){
-        htmlIsEmpty = false;
-        querySelector("#consoletab").style.display = "block";
-        querySelector("#resulttab").style.display = "block";
-        _toggleResultTab();
-      }
-
       // Analyze and run it.
       Timer.run(() {
         _handleRun();
         _performAnalysis();
+        _checkForHtml();
       });
     }).catchError((e) {
       String message = 'Error loading gist ${gistId}.';
@@ -416,6 +411,15 @@ class Playground implements GistContainer {
         editor.completionAutoInvoked = true;
         editor.execCommand("autocomplete");
       }
+    }
+  }
+
+  void _checkForHtml() {
+    if (_context.htmlDocument.value.isNotEmpty){
+      htmlIsEmpty = false;
+      querySelector("#consoletab").style.display = "block";
+      querySelector("#resulttab").style.display = "block";
+      _toggleResultTab();
     }
   }
 
