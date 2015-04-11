@@ -48,6 +48,12 @@ class AnalysisServerWrapper {
     // Post process the result from Analysis Server.
     return results.then((Map response) {
       List<Map> results = response['results'];
+
+
+      // This hack filters out of scope completions. It needs removing
+      // when we have categories of completions.
+      results = results.where((res) => res['relevance'] > 500).toList();
+
       results.sort((x, y) {
         var xRelevance = x['relevance'];
         var yRelevance = y['relevance'];

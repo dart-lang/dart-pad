@@ -18,6 +18,13 @@ void main() {
 }
 ''';
 
+String completionFilterCode = r'''
+void main() {
+  pr
+}
+''';
+
+
 String quickFixesCode =
 r'''
 void main() {
@@ -45,6 +52,22 @@ void defineTests() {
         expect(results.replacementOffset, 32);
         expect(completionsContains(results, "abs"), true);
         expect(completionsContains(results, "codeUnitAt"), false);
+      });
+    });
+
+    test('repro #126 - completions poluted on second request', () {
+      // https://github.com/dart-lang/dart-services/issues/126
+      return analysisServer.complete(completionFilterCode, 17).then(
+          (CompleteResponse results) {
+
+        return analysisServer.complete(completionFilterCode, 17).then(
+                  (CompleteResponse results) {
+
+          expect(results.replacementLength, 2);
+          expect(results.replacementOffset, 16);
+          expect(completionsContains(results, "print"), true);
+          expect(completionsContains(results, "pow"), false);
+        });
       });
     });
 
