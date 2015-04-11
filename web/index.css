@@ -87,6 +87,7 @@ footer {
   position: relative;
   margin: 0 0;
   min-width: 75px;
+  min-height: 50px;
 }
 
 pre {
