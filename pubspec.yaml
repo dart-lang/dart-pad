@@ -26,7 +26,7 @@ dev_dependencies:
   unittest: any
   yaml: any
 dependency_overrides:
-  grinder: 0.7.0-dev.1
+  grinder: 0.7.0-dev.2
 transformers:
 - dart_to_js_script_rewriter
 - $dart2js:
