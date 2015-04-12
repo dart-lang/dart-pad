@@ -3,19 +3,25 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' as io;
+import 'dart:math';
 
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:services/src/analysis_server.dart' as analysis_server;
 import 'package:services/src/analyzer.dart' as ana;
 import 'package:services/src/compiler.dart' as comp;
 
+var r = new Random(20);
+
 main (List<String> args) async {
   if (args.length == 0) {
-    print ("Usage: slow_test path_to_test_collection");
+    print ("Usage: slow_test path_to_test_collection [seed]");
     io.exit(1);
   }
 
+  int seed = 0;
   String testCollectionRoot = args[0];
+
+  if (args.length == 2) seed = int.parse(args[1]);
 
   io.Directory sdkDir = cli_util.getSdkDir([]);
   var analysisServer = new analysis_server.AnalysisServerWrapper(sdkDir.path);
@@ -41,6 +47,9 @@ main (List<String> args) async {
     if (!fse.path.endsWith('.dart')) continue;
 
     try {
+      print ("Seed: $seed");
+      r = new Random(seed);
+      seed++;
       await testPath(fse.path, analysisServer, analyzer, compiler);
     } catch (e) {
       print (e);
@@ -66,20 +75,30 @@ testPath(String path,
 
   var f = new io.File(path);
   String src = f.readAsStringSync();
-  var averageCompletionTime = await testCompletions(src, wrapper);
-  var averageAnalysisTime = await testAnalysis(src, analyzer);
-  var averageDocumentTime = await testDocument(src, analyzer);
-  var averageCompilationTime = await testCompilation(src, compiler);
-  var averageFixesTime = await testFixes(src, wrapper);
+  f = null;
 
-  print (
-      "$path, "
+  for (int i = 0; i < 5; i++) {
+    int noChanges = r.nextInt(20);
+
+    for (int j = 0; j < noChanges; j++) {
+      src = mutate(src);
+    }
+
+    var averageCompletionTime = await testCompletions(src, wrapper);
+    var averageAnalysisTime = await testAnalysis(src, analyzer);
+    var averageDocumentTime = await testDocument(src, analyzer);
+    var averageCompilationTime = await testCompilation(src, compiler);
+    var averageFixesTime = await testFixes(src, wrapper);
+
+    print (
+      "$path-$i - $noChanges, "
       "${averageCompilationTime.toStringAsFixed(2)}ms, "
       "${averageAnalysisTime.toStringAsFixed(2)}ms, "
       "${averageCompletionTime.toStringAsFixed(2)}ms, "
       "${averageDocumentTime.toStringAsFixed(2)}ms, "
       "${averageFixesTime.toStringAsFixed(2)}ms"
       );
+  }
 }
 
 testAnalysis(String src, ana.Analyzer analyzer) async {
@@ -116,4 +135,15 @@ testFixes(String src, analysis_server.AnalysisServerWrapper wrapper) async {
     await wrapper.getFixes(src, i);
   }
   return sw.elapsedMilliseconds / src.length;
+}
+
+mutate(String src) {
+  var c = ["{", "}", "[", "]", "'", ",", "!", "@", "#", "\$", "%",
+    "^", "&", " ", "(", ")", "null ", "class ", "for ", "void ", "var ",
+    "dynamic ", ";", "as ", "is ", ".", "import "];
+  String s = c[r.nextInt(c.length)];
+  int i = r.nextInt(src.length);
+  if (i == 0) i = 1;
+  String newStr = src.substring(0, i - 1) + s + src.substring(i);
+  return newStr;
 }
