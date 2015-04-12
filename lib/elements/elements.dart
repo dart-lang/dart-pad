@@ -326,7 +326,7 @@ class DToast extends DElement {
     });
   }
 
-  void hide([Duration delay = const Duration(seconds: 4000)]) {
+  void hide([Duration delay = const Duration(seconds: 4)]) {
     // Start a timer, hide, remove from dom.
     new Timer(delay, () {
       element.classes.toggle('showing', false);
