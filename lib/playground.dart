@@ -227,9 +227,7 @@ class Playground implements GistContainer {
 
     // Set up the gist loader.
     deps[GistLoader] = new GistLoader.defaultFilters();
-
-
-
+    
     // Set up the editing area.
     editor = editorFactory.createFromElement(_editpanel);
     _editpanel.children.first.attributes['flex'] = '';
