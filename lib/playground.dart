@@ -286,7 +286,7 @@ class Playground implements GistContainer {
 
     // Bind the editable files to the gist.
     Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'))
-      ..onChanged.listen((html) => _checkForEmptyHtml(html));
+      ..onChanged.listen((html) => _checkForEmptyHtml(html == null ? "" : html));
     Property htmlDoc = new EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
