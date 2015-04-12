@@ -279,11 +279,7 @@ class Playground implements GistContainer {
 
     _context.onDartDirty.listen((_) => busyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
-
-    _context.htmlDocument.onChange.listen((e) {
-
-    });
-
+    
     // Bind the editable files to the gist.
     Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'))
       ..onChanged.listen((html) => _checkForEmptyHtml(html == null ? "" : html));
