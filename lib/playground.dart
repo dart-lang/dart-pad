@@ -133,7 +133,7 @@ class Playground implements GistContainer {
     Timer.run(() {
       _handleRun();
       _performAnalysis();
-      _checkForHtml();
+      _checkForEmptyHtml();
     });
   }
 
@@ -181,7 +181,7 @@ class Playground implements GistContainer {
       Timer.run(() {
         _handleRun();
         _performAnalysis();
-        _checkForHtml();
+        _checkForEmptyHtml();
       });
     }).catchError((e) {
       String message = 'Error loading gist ${gistId}.';
@@ -289,7 +289,7 @@ class Playground implements GistContainer {
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     _context.htmlDocument.onChange.listen((e) {
-      _checkForHtml();
+      _checkForEmptyHtml();
     });
 
     // Bind the editable files to the gist.
@@ -402,7 +402,7 @@ class Playground implements GistContainer {
     }
   }
 
-  void _checkForHtml() {
+  void _checkForEmptyHtml() {
     if (_context.htmlDocument.value.trim().isEmpty && !_htmlIsEmpty) {
       _htmlIsEmpty = true;
       _toggleConsoleTab();
@@ -413,12 +413,6 @@ class Playground implements GistContainer {
   }
 
   void _handleRun() {
-    if (_htmlIsEmpty) {
-      _toggleConsoleTab();
-    } else {
-      _toggleResultTab();
-    }
-//    _toggleConsoleTab();
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
     overlay.visible = true;
