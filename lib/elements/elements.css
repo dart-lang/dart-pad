@@ -200,12 +200,9 @@
   position: absolute;
   right: 16px;
   top: 0;
-  box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.4) 0 1px 7px 0 inset;
   min-width: 12em;
   max-width: 40em;
-  background-color: inherit;
 
-  z-index: 10;
   opacity: 0;
   transition: 400ms;
   -webkit-user-select: none;
@@ -214,6 +211,15 @@
 .toast.showing {
   opacity: 1;
   top: 72px;
+}
+
+.dialog {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid;
+  border-color: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  box-shadow: rgba(255, 255, 255, 0.1) 0 0 0, rgba(0, 0, 0, 0.4) 0 1px 7px 0;
+  z-index: 20;
 }
 
 /* contenteditable elements */

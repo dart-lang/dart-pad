@@ -313,7 +313,7 @@ class DToast extends DElement {
   final String message;
 
   DToast(this.message) : super.tag('div') {
-    element.classes.toggle('toast', true);
+    element.classes..toggle('toast', true)..toggle('dialog', true);
     element.text = message;
   }
 
