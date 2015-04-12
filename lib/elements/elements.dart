@@ -313,7 +313,7 @@ class DToast extends DElement {
   final String message;
 
   DToast(this.message) : super.tag('div') {
-    element.classes.toggle('toast', true);
+    element.classes..toggle('toast', true)..toggle('dialog', true);
     element.text = message;
   }
 
@@ -326,7 +326,7 @@ class DToast extends DElement {
     });
   }
 
-  void hide([Duration delay = const Duration(seconds: 4)]) {
+  void hide([Duration delay = const Duration(seconds: 4000)]) {
     // Start a timer, hide, remove from dom.
     new Timer(delay, () {
       element.classes.toggle('showing', false);
