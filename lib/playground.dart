@@ -133,7 +133,6 @@ class Playground implements GistContainer {
     Timer.run(() {
       _handleRun();
       _performAnalysis();
-      _checkForEmptyHtml();
     });
   }
 
@@ -181,7 +180,6 @@ class Playground implements GistContainer {
       Timer.run(() {
         _handleRun();
         _performAnalysis();
-        _checkForEmptyHtml();
       });
     }).catchError((e) {
       String message = 'Error loading gist ${gistId}.';
@@ -230,11 +228,7 @@ class Playground implements GistContainer {
     // Set up the gist loader.
     deps[GistLoader] = new GistLoader.defaultFilters();
 
-    // Set up the router.
-    deps[Router] = new Router();
-    router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
-    router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
-    router.listen();
+
 
     // Set up the editing area.
     editor = editorFactory.createFromElement(_editpanel);
@@ -289,11 +283,12 @@ class Playground implements GistContainer {
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     _context.htmlDocument.onChange.listen((e) {
-      _checkForEmptyHtml();
+
     });
 
     // Bind the editable files to the gist.
-    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'));
+    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'))
+      ..onChanged.listen((html) => _checkForEmptyHtml(html));
     Property htmlDoc = new EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
@@ -307,6 +302,12 @@ class Playground implements GistContainer {
     Property dartDoc = new EditorDocumentProperty(_context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
+
+    // Set up the router.
+    deps[Router] = new Router();
+    router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
+    router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
+    router.listen();
 
     // Set up development options.
     options.registerOption('autopopup_code_completion', 'false');
@@ -402,11 +403,11 @@ class Playground implements GistContainer {
     }
   }
 
-  void _checkForEmptyHtml() {
-    if (_context.htmlDocument.value.trim().isEmpty && !_htmlIsEmpty) {
+  void _checkForEmptyHtml(String htmlSource) {
+    if (htmlSource.trim().isEmpty && !_htmlIsEmpty) {
       _htmlIsEmpty = true;
       _toggleConsoleTab();
-    } else if (_context.htmlDocument.value.trim().isNotEmpty && _htmlIsEmpty){
+    } else if (htmlSource.trim().isNotEmpty && _htmlIsEmpty){
       _htmlIsEmpty = false;
       _toggleResultTab();
     }
