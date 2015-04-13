@@ -7,7 +7,6 @@ library playground;
 import 'dart:async';
 import 'dart:html' hide Document;
 
-import 'package:dart_pad/core/keys.dart';
 import 'package:logging/logging.dart';
 import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
@@ -16,6 +15,7 @@ import 'actions.dart';
 import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
+import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
@@ -56,6 +56,7 @@ class Playground implements GistContainer {
   DButton runButton;
   DOverlay overlay;
   DBusyLight busyLight;
+  DBusyLight consoleBusyLight;
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -91,6 +92,7 @@ class Playground implements GistContainer {
     });
 
     busyLight = new DBusyLight(querySelector('#dartbusy'));
+    consoleBusyLight = new DBusyLight(querySelector('#consolebusy'));
 
     // Update the title on changes.
     titleEditable = new DContentEditable(
@@ -236,7 +238,7 @@ class Playground implements GistContainer {
 
     // Set up the gist loader.
     deps[GistLoader] = new GistLoader.defaultFilters();
-    
+
     // Set up the editing area.
     editor = editorFactory.createFromElement(_editpanel);
     _editpanel.children.first.attributes['flex'] = '';
@@ -288,7 +290,7 @@ class Playground implements GistContainer {
 
     _context.onDartDirty.listen((_) => busyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
-    
+
     // Bind the editable files to the gist.
     Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'))
       ..onChanged.listen((html) => _checkForEmptyHtml(html == null ? "" : html));
@@ -500,6 +502,7 @@ class Playground implements GistContainer {
     span.text = message;
     _outputpanel.children.add(span);
     span.scrollIntoView(ScrollAlignment.BOTTOM);
+    consoleBusyLight.flash();
   }
 
   void _handleSelectChanged(SelectElement select) {
