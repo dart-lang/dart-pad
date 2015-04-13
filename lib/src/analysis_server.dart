@@ -49,7 +49,6 @@ class AnalysisServerWrapper {
     return results.then((Map response) {
       List<Map> results = response['results'];
 
-
       // This hack filters out of scope completions. It needs removing
       // when we have categories of completions.
       results = results.where((res) => res['relevance'] > 500).toList();
