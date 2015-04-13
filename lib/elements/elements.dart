@@ -64,24 +64,24 @@ class DButton extends DElement {
 class DSplitter extends DElement {
   StreamController<num> _controller = new StreamController.broadcast();
 
+  final Function onDragStart;
+  final Function onDragEnd;
+
   Point _offset = new Point(0, 0);
 
   StreamSubscription _moveSub;
   StreamSubscription _upSub;
 
-  Function onDragStart;
-  Function onDragEnd;
-
   DSplitter(Element element, {this.onDragStart, this.onDragEnd}) : super(element) {
     _init();
   }
 
-  DSplitter.createHorizontal() : super.tag('div') {
+  DSplitter.createHorizontal({this.onDragStart, this.onDragEnd}) : super.tag('div') {
     horizontal = true;
     _init();
   }
 
-  DSplitter.createVertical() : super.tag('div') {
+  DSplitter.createVertical({this.onDragStart, this.onDragEnd}) : super.tag('div') {
     vertical = true;
     _init();
   }
@@ -119,6 +119,7 @@ class DSplitter extends DElement {
     var cancel = () {
       if (_moveSub != null) _moveSub.cancel();
       if (_upSub != null) _upSub.cancel();
+      if (onDragEnd != null) onDragEnd();
     };
 
     element.onMouseDown.listen((e) {
@@ -127,8 +128,9 @@ class DSplitter extends DElement {
       e.preventDefault();
       _offset = e.offset;
 
+      if (onDragStart != null) onDragStart();
+
       _moveSub = document.onMouseMove.listen((e) {
-        if (onDragStart != null) onDragStart();
         if (e.which != 1) {
           cancel();
         } else {
@@ -139,7 +141,6 @@ class DSplitter extends DElement {
       });
 
       _upSub = document.onMouseUp.listen((e) {
-        if (onDragEnd != null) onDragEnd();
         cancel();
       });
     });

@@ -199,12 +199,16 @@ class Playground implements GistContainer {
   }
 
   void _initPlayground() {
+    var disablePointerEvents = () {
+      _frame.style.pointerEvents = "none";
+    };
+    var enablePointerEvents = () {
+      _frame.style.pointerEvents = "inherit";
+    };
+
     // TODO: Set up some automatic value bindings.
-    DSplitter editorSplitter = new DSplitter(
-        querySelector('#editor_split'),
-        onDragStart: () => _frame.style.pointerEvents = "none",
-        onDragEnd: () => _frame.style.pointerEvents = "inherit"
-    );
+    DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'),
+        onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     editorSplitter.onPositionChanged.listen((pos) {
       state['editor_split'] = pos;
       editor.resize();
@@ -213,11 +217,8 @@ class Playground implements GistContainer {
      editorSplitter.position = state['editor_split'];
     }
 
-    DSplitter outputSplitter = new DSplitter(
-        querySelector('#output_split'),
-        onDragStart: () => _frame.style.pointerEvents = "none",
-        onDragEnd: () => _frame.style.pointerEvents = "inherit"
-    );
+    DSplitter outputSplitter = new DSplitter(querySelector('#output_split'),
+        onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     outputSplitter.onPositionChanged.listen((pos) {
       state['output_split'] = pos;
     });
