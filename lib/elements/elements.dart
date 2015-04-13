@@ -69,7 +69,10 @@ class DSplitter extends DElement {
   StreamSubscription _moveSub;
   StreamSubscription _upSub;
 
-  DSplitter(Element element) : super(element) {
+  Function onDragStart;
+  Function onDragEnd;
+
+  DSplitter(Element element, {this.onDragStart, this.onDragEnd}) : super(element) {
     _init();
   }
 
@@ -125,6 +128,7 @@ class DSplitter extends DElement {
       _offset = e.offset;
 
       _moveSub = document.onMouseMove.listen((e) {
+        if (onDragStart != null) onDragStart();
         if (e.which != 1) {
           cancel();
         } else {
@@ -135,6 +139,7 @@ class DSplitter extends DElement {
       });
 
       _upSub = document.onMouseUp.listen((e) {
+        if (onDragEnd != null) onDragEnd();
         cancel();
       });
     });
