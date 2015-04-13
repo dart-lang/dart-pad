@@ -14,6 +14,7 @@ import 'package:compiler_unsupported/sdk_io.dart' as sdk;
 import 'package:logging/logging.dart';
 
 import 'common.dart';
+import 'pub.dart';
 
 Logger _logger = new Logger('compiler');
 
@@ -27,30 +28,35 @@ Logger _logger = new Logger('compiler');
  */
 class Compiler {
   final sdk.DartSdk _sdk;
+  final Pub pub;
 
-  Compiler(String sdkPath) : _sdk = new sdk.DartSdkIO();
+  Compiler(String sdkPath, [this.pub]) : _sdk = new sdk.DartSdkIO();
 
   Future warmup([bool useHtml = false]) =>
       compile(useHtml ? sampleCodeWeb : sampleCode);
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(String input) {
-    _CompilerProvider provider = new _CompilerProvider(_sdk, input);
-    Lines lines = new Lines(input);
+    Future<PubHelper> f = pub == null ? null : pub.createPubHelperForSource(input);
+    return f.then((pubHelper) {
+      _CompilerProvider provider = new _CompilerProvider(_sdk, input, pubHelper);
 
-    CompilationResults result = new CompilationResults(lines);
+      Lines lines = new Lines(input);
 
-    // --incremental-support, --disable-type-inference
-    return compiler.compile(
-        provider.getInitialUri(),
-        new Uri(scheme: 'sdk', path: '/'),
-        new Uri(scheme: 'package', path: '/'),
-        provider.inputProvider,
-        result._diagnosticHandler,
-        ['--no-source-maps'],
-        result._outputProvider).then((_) {
-      result._problems.sort();
-      return result;
+      CompilationResults result = new CompilationResults(lines);
+
+      // --incremental-support, --disable-type-inference
+      return compiler.compile(
+          provider.getInitialUri(),
+          new Uri(scheme: 'sdk', path: '/'),
+          new Uri(scheme: 'package', path: '/'),
+          provider.inputProvider,
+          result._diagnosticHandler,
+          ['--no-source-maps'],
+          result._outputProvider).then((_) {
+        result._problems.sort();
+        return result;
+      });
     });
   }
 }
@@ -165,10 +171,11 @@ class _StringSink implements EventSink<String> {
 class _CompilerProvider {
   static const String resourceUri = 'resource:/main.dart';
 
-  final String text;
   final sdk.DartSdk sdk;
+  final String text;
+  final PubHelper pubHelper;
 
-  _CompilerProvider(this.sdk, this.text);
+  _CompilerProvider(this.sdk, this.text, this.pubHelper);
 
   Uri getInitialUri() => Uri.parse(_CompilerProvider.resourceUri);
 
@@ -183,11 +190,9 @@ class _CompilerProvider {
       if (contents != null) {
         return new Future.value(contents);
       }
+    } else if (uri.scheme == 'package' && pubHelper != null) {
+      return pubHelper.getPackageContentsAsync(uri.path.substring(1));
     }
-//    } else if (uri.scheme == 'package') {
-//      // Convert `package:/foo/foo.dart` to `package:foo/foo.dart`.
-//      return provider.getPackageContents('package:${uri.path.substring(1)}');
-//    }
 
     return new Future.error('file not found');
   }

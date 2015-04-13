@@ -78,6 +78,88 @@ void defineTests() {
       ensureBad('foo', '1.0.0/2.0.0');
     });
   });
+
+  group('getAllImportsFor', () {
+    test('null', () {
+      expect(getAllImportsFor(null), isEmpty);
+    });
+
+    test('empty', () {
+      expect(getAllImportsFor(''), isEmpty);
+      expect(getAllImportsFor('   \n '), isEmpty);
+    });
+
+    test('bad source', () {
+      expect(getAllImportsFor('foo bar;\n baz\nimport mybad;\n'), isEmpty);
+    });
+
+    test('one', () {
+      final String source = '''
+library woot;
+import 'dart:math';
+import 'package:foo/foo.dart';
+void main() { }
+''';
+      expect(getAllImportsFor(source), unorderedEquals(['dart:math', 'package:foo/foo.dart']));
+    });
+
+    test('two', () {
+      final String source = '''
+library woot;
+import 'dart:math';
+ import 'package:foo/foo.dart';
+import 'package:bar/bar.dart';
+void main() { }
+''';
+      expect(getAllImportsFor(source),
+          unorderedEquals(['dart:math', 'package:foo/foo.dart', 'package:bar/bar.dart']));
+    });
+
+    test('three', () {
+      final String source = '''
+library woot;
+import 'dart:math';
+import 'package:foo/foo.dart';
+import 'package:bar/bar.dart';import 'package:baz/baz.dart';
+import 'mybazfile.dart';
+void main() { }
+''';
+      expect(getAllImportsFor(source),
+          unorderedEquals(['dart:math', 'package:foo/foo.dart',
+            'package:bar/bar.dart', 'package:baz/baz.dart', 'mybazfile.dart']));
+    });
+  });
+
+  group('filterPackagesFromImports', () {
+    test('empty', () {
+      final String source = '''import 'package:';
+void main() { }
+''';
+      expect(filterPackagesFromImports(getAllImportsFor(source)), isEmpty);
+    });
+
+    test('simple', () {
+      final String source = '''
+import 'package:foo/foo.dart';
+import 'package:bar/bar.dart';
+void main() { }
+''';
+      expect(filterPackagesFromImports(getAllImportsFor(source)),
+          unorderedEquals(['foo', 'bar']));
+    });
+
+    test('defensive', () {
+      final String source = '''
+library woot;
+import 'dart:math';
+import 'package:../foo/foo.dart';
+void main() { }
+''';
+      Set imports = getAllImportsFor(source);
+      expect(imports, unorderedMatches(['dart:math', 'package:../foo/foo.dart']));
+      expect(filterPackagesFromImports(imports), isEmpty);
+    });
+  });
 }
 
 void ensureBad(String packageName, String packageVersion) {

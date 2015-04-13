@@ -10,11 +10,15 @@ library services.pub;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:archive/archive.dart';
 import 'package:logging/logging.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
+
+import 'analyzer.dart';
 
 Logger _logger = new Logger('pub');
 
@@ -41,6 +45,8 @@ class Pub {
     if (!_cacheDir.existsSync()) _cacheDir.createSync();
   }
 
+  factory Pub.mock() => new _MockPub();
+
   Directory get cacheDir => _cacheDir;
 
   /**
@@ -56,6 +62,8 @@ class Pub {
    * latest compatible versions.
    */
   Future<PackagesInfo> resolvePackages(List<String> packages) {
+    if (packages.isEmpty) return new Future.value(new PackagesInfo([]));
+
     Directory tempDir = Directory.systemTemp.createTempSync(
         /* prefix: */ 'temp_package');
 
@@ -110,6 +118,15 @@ class Pub {
       _logger.severe('Error getting package ${packageInfo}: ${e}\n${st}');
       return new Future.error(e);
     }
+  }
+
+  Future<PubHelper> createPubHelperForSource(String dartSource) {
+    Set<String> packageImports = filterPackagesFromImports(
+        getAllImportsFor(dartSource));
+
+    return resolvePackages(packageImports.toList()).then((PackagesInfo packages) {
+      return new PubHelper._(this, packages.packages);
+    });
   }
 
   void flushCache() {
@@ -186,6 +203,82 @@ class Pub {
 }
 
 /**
+ * A no-op version of the [Pub] class. This is used to disable `package:`
+ * support without having to change the code using the `Pub` class.
+ */
+class _MockPub implements Pub {
+  Directory _cacheDir = null;
+
+  _MockPub();
+
+  Directory get cacheDir => _cacheDir;
+
+  PackagesInfo _parseLockContents(String lockContents) => null;
+
+  Future _populatePackage(PackageInfo package, Directory cacheDir, Directory target) =>
+      null;
+
+  Future<PubHelper> createPubHelperForSource(String dartSource) =>
+      new Future.value(new PubHelper._(this, []));
+
+  void flushCache() { }
+
+  Future<Directory> getPackageLibDir(PackageInfo packageInfo) =>
+      new Future.value();
+
+  String getVersion() => null;
+
+  Future<PackagesInfo> resolvePackages(List<String> packages) =>
+      new Future.value(new PackagesInfo([]));
+}
+
+/**
+ * A class with knowledge of a certain set of `package:` imports, and the
+ * ability to load the package data for those imports.
+ */
+class PubHelper {
+  final Pub pub;
+  final List<PackageInfo> packages;
+
+  PubHelper._(this.pub, this.packages);
+
+  bool get hasPackages => packages.isNotEmpty;
+
+  Future<String> getPackageContentsAsync(String pathFragment) {
+    if (pathFragment == null || pathFragment.trim().isEmpty) {
+      return new Future.error('invalid path');
+    }
+
+    int index = pathFragment.indexOf('/');
+
+    if (index == -1) {
+      return new Future.error('invalid path');
+    }
+
+    String packageName = pathFragment.substring(0, index);
+    pathFragment = pathFragment.substring(index + 1);
+
+    PackageInfo package = getPackage(packageName);
+    if (package == null) {
+      return new Future.error('package not found: ${packageName}');
+    }
+
+    return pub.getPackageLibDir(package).then((dir) {
+      File file = new File(path.join(dir.path, pathFragment));
+      if (file.existsSync()) {
+        return file.readAsString();
+      } else {
+        return new Future.error('not found: ${packageName}/${pathFragment}');
+      }
+    });
+  }
+
+  PackageInfo getPackage(String packageName) {
+    return packages.firstWhere((p) => p.name == packageName, orElse: () => null);
+  }
+}
+
+/**
  * A set of packages.
  */
 class PackagesInfo {
@@ -212,4 +305,83 @@ class PackageInfo {
   }
 
   String toString() => '[${name}: ${version}]';
+}
+
+Set<String> getAllImportsFor(String dartSource) {
+  if (dartSource == null) return new Set();
+
+  Scanner scanner = new Scanner(
+      new StringSource(dartSource, 'temp.dart'),
+      new CharSequenceReader(dartSource),
+      AnalysisErrorListener.NULL_LISTENER);
+  Token token = scanner.tokenize();
+
+  Set imports = new Set();
+
+  while (token.type != TokenType.EOF) {
+    if (_isLibrary(token)) {
+      token = _consumeSemi(token);
+    } else if (_isImport(token)) {
+      token = token.next;
+
+      if (token.type == TokenType.STRING) {
+        String str = token.lexeme;
+        if (str.startsWith("'") && str.endsWith("'")) {
+          if (str.length > 1) {
+            str = str.substring(1, str.length - 1);
+          }
+        } else if (str.startsWith('"') && str.endsWith('"')) {
+          if (str.length > 1) {
+            str = str.substring(1, str.length - 1);
+          }
+        }
+        imports.add(str);
+      }
+
+      token = _consumeSemi(token);
+    } else {
+      break;
+    }
+  }
+
+  return imports;
+}
+
+/**
+ * Return the list of packages that are imported from the given imports. These
+ * packages are sanitized defensively.
+ */
+Set<String> filterPackagesFromImports(Set<String> allImports) {
+  return new Set.from(allImports.where((import) {
+    return import.startsWith('package:');
+  }).map((String import) {
+    return import.substring(8);
+  }).map((String import) {
+    int index = import.indexOf('/');
+    return index == -1 ? import : import.substring(0, index);
+  }).map((String import) {
+    return import.replaceAll('..', '');
+  }).where((import) {
+    return import.isNotEmpty;
+  }));
+}
+
+bool _isLibrary(Token token) {
+  return token.type == TokenType.KEYWORD && token.lexeme == 'library';
+}
+
+bool _isImport(Token token) {
+  return token.type == TokenType.KEYWORD && token.lexeme == 'import';
+}
+
+Token _consumeSemi(Token token) {
+  while (token.type != TokenType.SEMICOLON) {
+    if (token.type == TokenType.EOF) return token;
+    token = token.next;
+  }
+
+  // Skip past the semi-colon.
+  token = token.next;
+
+  return token;
 }
