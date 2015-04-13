@@ -87,6 +87,7 @@ footer {
   position: relative;
   margin: 0 0;
   min-width: 75px;
+  min-height: 50px;
 }
 
 pre {
@@ -137,6 +138,11 @@ a[selected]:hover {
   text-transform: uppercase;
 }
 
+[reverse].header a {
+  margin-left: 16px;
+  margin-right: 0;
+}
+
 .header {
   line-height: 24px;
   font-size: 12pt;
@@ -144,6 +150,7 @@ a[selected]:hover {
 
 .header.small {
   font-size: 11pt;
+  line-height: 18px;
 }
 
 button {
@@ -208,6 +215,8 @@ button[disabled] {
 
 #frame {
   min-height: 50px;
+  display: none;
+  margin-top: 10px;
 }
 
 iframe {
@@ -321,7 +330,7 @@ div.toggle {
   font-size: 11pt;
   line-height: 20px;
   position: relative;
-  display: none;
+  display: block;
   overflow: auto;
   overflow-wrap: break-word;
   margin-top: 0;

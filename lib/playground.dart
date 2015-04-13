@@ -7,7 +7,6 @@ library playground;
 import 'dart:async';
 import 'dart:html' hide Document;
 
-import 'package:dart_pad/core/keys.dart';
 import 'package:logging/logging.dart';
 import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
@@ -16,6 +15,7 @@ import 'actions.dart';
 import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
+import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
@@ -51,12 +51,13 @@ class Playground implements GistContainer {
   IFrameElement get _frame => querySelector('#frame');
   bool get _isCompletionActive => editor.completionActive;
   DivElement get _docPanel => querySelector('#documentation');
-  AnchorElement get _docTab => querySelector('#doctab');
-  bool get _isDocPanelOpen => _docTab.attributes.containsKey('selected');
+  AnchorElement get _resultTab => querySelector('#resulttab');
+  bool _htmlIsEmpty = true;
 
   DButton runButton;
   DOverlay overlay;
   DBusyLight busyLight;
+  DBusyLight consoleBusyLight;
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -94,6 +95,7 @@ class Playground implements GistContainer {
     });
 
     busyLight = new DBusyLight(querySelector('#dartbusy'));
+    consoleBusyLight = new DBusyLight(querySelector('#consolebusy'));
 
     // Update the title on changes.
     titleEditable = new DContentEditable(
@@ -240,12 +242,6 @@ class Playground implements GistContainer {
     // Set up the gist loader.
     deps[GistLoader] = new GistLoader.defaultFilters();
 
-    // Set up the router.
-    deps[Router] = new Router();
-    router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
-    router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
-    router.listen();
-
     // Set up the editing area.
     editor = editorFactory.createFromElement(_editpanel);
     _editpanel.children.first.attributes['flex'] = '';
@@ -255,7 +251,7 @@ class Playground implements GistContainer {
     keys.bind(['ctrl-enter'], _handleRun);
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
-      _toggleDocTab();
+      docHandler.generateDoc(_docPanel);
     });
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
@@ -264,17 +260,17 @@ class Playground implements GistContainer {
     });
 
     document.onClick.listen((MouseEvent e) {
-      if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+      docHandler.generateDoc(_docPanel);
     });
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive || DocHandler.cursorKeys.contains(e.keyCode)){
-        if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+        docHandler.generateDoc(_docPanel);
       }
       _handleAutoCompletion(e);
     });
 
-    _docTab.onClick.listen((e) => _toggleDocTab());
+    _resultTab.onClick.listen((e) => _toggleResultTab());
     querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
     _context = new PlaygroundContext(editor);
@@ -299,7 +295,8 @@ class Playground implements GistContainer {
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     // Bind the editable files to the gist.
-    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'));
+    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'))
+      ..onChanged.listen((html) => _checkForEmptyHtml(html == null ? "" : html));
     Property htmlDoc = new EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
@@ -313,6 +310,12 @@ class Playground implements GistContainer {
     Property dartDoc = new EditorDocumentProperty(_context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
+
+    // Set up the router.
+    deps[Router] = new Router();
+    router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
+    router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
+    router.listen();
 
     // Set up development options.
     options.registerOption('autopopup_code_completion', 'false');
@@ -355,21 +358,20 @@ class Playground implements GistContainer {
   List<Element> _getTabElements(Element element) =>
       element.querySelectorAll('a');
 
-  void _toggleDocTab() {
-    ga.sendEvent('view', 'dartdoc');
-    docHandler.generateDoc(_docPanel);
+  void _toggleResultTab() {
+    ga.sendEvent('view', 'result');
     // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
     querySelector('#output').style.display = "none";
     querySelector("#consoletab").attributes.remove('selected');
 
-    _docPanel.style.display = "block";
-    _docTab.setAttribute('selected','');
+    _frame.style.display = "block";
+    _resultTab.setAttribute('selected','');
   }
 
   void _toggleConsoleTab() {
     ga.sendEvent('view', 'console');
-    _docPanel.style.display = "none";
-    _docTab.attributes.remove('selected');
+    _frame.style.display = "none";
+    _resultTab.attributes.remove('selected');
 
     _outputpanel.style.display = "block";
     querySelector("#consoletab").setAttribute('selected','');
@@ -409,8 +411,17 @@ class Playground implements GistContainer {
     }
   }
 
+  void _checkForEmptyHtml(String htmlSource) {
+    if (htmlSource.trim().isEmpty && !_htmlIsEmpty) {
+      _htmlIsEmpty = true;
+      _toggleConsoleTab();
+    } else if (htmlSource.trim().isNotEmpty && _htmlIsEmpty){
+      _htmlIsEmpty = false;
+      _toggleResultTab();
+    }
+  }
+
   void _handleRun() {
-    _toggleConsoleTab();
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
     overlay.visible = true;
@@ -494,6 +505,7 @@ class Playground implements GistContainer {
     span.text = message;
     _outputpanel.children.add(span);
     span.scrollIntoView(ScrollAlignment.BOTTOM);
+    consoleBusyLight.flash();
   }
 
   void _handleSelectChanged(SelectElement select) {
