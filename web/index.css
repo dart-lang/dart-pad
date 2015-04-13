@@ -138,6 +138,11 @@ a[selected]:hover {
   text-transform: uppercase;
 }
 
+[reverse].header a {
+  margin-left: 16px;
+  margin-right: 0;
+}
+
 .header {
   line-height: 24px;
   font-size: 12pt;
