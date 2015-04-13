@@ -37,7 +37,9 @@ class Compiler {
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(String input) {
-    Future<PubHelper> f = pub == null ? null : pub.createPubHelperForSource(input);
+    Future<PubHelper> f = pub == null ?
+        new Future.value() : pub.createPubHelperForSource(input);
+
     return f.then((pubHelper) {
       _CompilerProvider provider = new _CompilerProvider(_sdk, input, pubHelper);
 
