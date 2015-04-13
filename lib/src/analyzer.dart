@@ -276,7 +276,6 @@ class _Error {
     StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
   ];
 
-
   final AnalysisError error;
   final LineInfo lineInfo;
 

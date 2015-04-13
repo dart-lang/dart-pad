@@ -69,10 +69,9 @@ main (List<String> args) async {
 }
 
 testPath(String path,
-             analysis_server.AnalysisServerWrapper wrapper,
-             ana.Analyzer analyzer,
-             comp.Compiler compiler) async {
-
+    analysis_server.AnalysisServerWrapper wrapper,
+    ana.Analyzer analyzer,
+    comp.Compiler compiler) async {
   var f = new io.File(path);
   String src = f.readAsStringSync();
   f = null;
