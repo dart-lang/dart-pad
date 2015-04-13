@@ -36,29 +36,28 @@ class Compiler {
       compile(useHtml ? sampleCodeWeb : sampleCode);
 
   /// Compile the given string and return the resulting [CompilationResults].
-  Future<CompilationResults> compile(String input) {
-    Future<PubHelper> f = pub == null ?
-        new Future.value() : pub.createPubHelperForSource(input);
+  Future<CompilationResults> compile(String input) async {
+    PubHelper pubHelper = null;
 
-    return f.then((pubHelper) {
-      _CompilerProvider provider = new _CompilerProvider(_sdk, input, pubHelper);
+    if (pub != null) {
+      pubHelper = await pub.createPubHelperForSource(input);
+    }
 
-      Lines lines = new Lines(input);
+    _CompilerProvider provider = new _CompilerProvider(_sdk, input, pubHelper);
+    Lines lines = new Lines(input);
+    CompilationResults result = new CompilationResults(lines);
 
-      CompilationResults result = new CompilationResults(lines);
-
-      // --incremental-support, --disable-type-inference
-      return compiler.compile(
-          provider.getInitialUri(),
-          new Uri(scheme: 'sdk', path: '/'),
-          new Uri(scheme: 'package', path: '/'),
-          provider.inputProvider,
-          result._diagnosticHandler,
-          ['--no-source-maps'],
-          result._outputProvider).then((_) {
-        result._problems.sort();
-        return result;
-      });
+    // --incremental-support, --disable-type-inference
+    return compiler.compile(
+        provider.getInitialUri(),
+        new Uri(scheme: 'sdk', path: '/'),
+        new Uri(scheme: 'package', path: '/'),
+        provider.inputProvider,
+        result._diagnosticHandler,
+        ['--no-source-maps'],
+        result._outputProvider).then((_) {
+      result._problems.sort();
+      return result;
     });
   }
 }
