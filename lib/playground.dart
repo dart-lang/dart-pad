@@ -19,6 +19,7 @@ import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
+import 'dialogs.dart';
 import 'documentation.dart';
 import 'editing/editor.dart';
 import 'elements/bind.dart';
@@ -70,6 +71,8 @@ class Playground implements GistContainer {
 
   ModuleManager modules = new ModuleManager();
 
+  SharingDialog sharingDialog = new SharingDialog();
+
   Playground() {
     _registerTab(querySelector('#darttab'), 'dart');
     _registerTab(querySelector('#htmltab'), 'html');
@@ -79,7 +82,7 @@ class Playground implements GistContainer {
 
     new NewPadAction(querySelector('#newbutton'), editableGist, _gistStorage);
 
-    new SharePadAction(querySelector('#sharebutton'), this);
+    new SharePadAction(querySelector('#sharebutton'), this, sharingDialog);
 
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {

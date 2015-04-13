@@ -40,8 +40,9 @@ class NewPadAction {
 class SharePadAction {
   final DButton _button;
   final GistContainer _gistContainer;
+  final DDialog sharingDialog;
 
-  SharePadAction(Element element, this._gistContainer) :
+  SharePadAction(Element element, this._gistContainer, this.sharingDialog) :
       _button = new DButton(element) {
     _button.onClick.listen((e) => _handleButtonPress());
     _gist.onDirtyChanged.listen((dirty) => _button.disabled = !dirty);
@@ -50,6 +51,11 @@ class SharePadAction {
   MutableGist get _gist => _gistContainer.mutableGist;
 
   void _handleButtonPress() {
+    if (true) {
+      sharingDialog.show();
+      return;
+    }
+
     final String message = 'Sharing this pad will create a permanent, publicly '
         'visible copy on gist.github.com.';
 

@@ -407,3 +407,11 @@ div.toggle {
   padding: 4px;
   background: #3f3f3f;
 }
+
+.sharing-dialog {
+  min-width: 400px;
+  min-height: 200px;
+  top: 100px;
+  left: 100px;
+  right: 100px;
+}

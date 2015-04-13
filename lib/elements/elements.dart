@@ -343,6 +343,85 @@ class DToast extends DElement {
   }
 }
 
+class GlassPane extends DElement {
+  StreamController _controller = new StreamController.broadcast();
+  StreamSubscription _keySub;
+
+  GlassPane() : super.tag('div') {
+    element.classes.toggle('glass-pane', true);
+
+    _keySub = document.onKeyDown.listen((KeyboardEvent e) {
+      if (e.keyCode == KeyCode.ESC) {
+        e.preventDefault();
+        _controller.add(null);
+      }
+    });
+
+    element.onMouseDown.listen((e) {
+      e.preventDefault();
+      _controller.add(null);
+    });
+  }
+
+  void show() {
+    document.body.children.add(element);
+  }
+
+  void hide() => dispose();
+
+  bool get isShowing => document.body.children.contains(element);
+
+  Stream get onCancel => _controller.stream;
+
+  void dispose() {
+    if (_keySub != null) _keySub.cancel();
+    _keySub = null;
+    super.dispose();
+  }
+}
+
+abstract class DDialog extends DElement {
+  GlassPane pane = new GlassPane();
+
+  DDialog() : super.tag('div') {
+    element.classes.toggle('dialog', true);
+    pane.onCancel.listen((_) {
+      if (isShowing) hide();
+    });
+  }
+
+  void show() {
+    pane.show();
+
+    // Add to the DOM, start a timer, make it visible.
+    document.body.children.add(element);
+
+    new Timer(new Duration(milliseconds: 16), () {
+      element.classes.toggle('showing', true);
+    });
+  }
+
+  void hide() {
+    if (!isShowing) return;
+
+    pane.hide();
+
+    // Start a timer, hide, remove from dom.
+    new Timer(new Duration(milliseconds: 16), () {
+      element.classes.toggle('showing', false);
+      element.onTransitionEnd.first.then((event) {
+        dispose();
+      });
+    });
+  }
+
+  void toggleShowing() {
+    isShowing ? hide() : show();
+  }
+
+  bool get isShowing => document.body.children.contains(element);
+}
+
 class _ElementTextProperty implements Property {
   final Element element;
 
