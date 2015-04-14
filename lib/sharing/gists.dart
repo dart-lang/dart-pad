@@ -244,6 +244,11 @@ class GistFile {
   String toString() => '[${name}, ${content.length} chars]';
 }
 
+abstract class GistController {
+  Future createNewGist();
+  Future shareAnon();
+}
+
 /// A class to store gists in html's localStorage.
 class GistStorage {
   static final String _key = 'gist';

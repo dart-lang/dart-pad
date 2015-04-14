@@ -40,12 +40,11 @@
     <header layout horizontal>
       <div class="header-title">DartPad <span class="minor">(β)</span></div>
       <div>
-        <button type="button" id="newbutton">New…</button>
+        <button type="button" id="newbutton" class="button">New…</button>
       </div>
       <div class="header-gist-name" flex></div>
       <div>
-        <button type="button" id="sharebutton" disabled>Share</button>
-        <!-- button type="button" id="reloadbutton" disabled>Reload</button -->
+        <button type="button" id="sharebutton" class="button">Share</button>
       </div>
       <div>
         <select id="samples" required="false" style="width: 80px;">
@@ -75,7 +74,8 @@
           <div flex></div>
           <div id="dartbusy" class="busylight"></div>
           <div>
-            <button type="button" id="runbutton" title="Run (ctrl-enter / ⌘-enter)">
+            <button type="button" id="runbutton" class="button"
+                title="Run (ctrl-enter / ⌘-enter)">
               <svg width="18" height="18" viewBox="0 0 24 24"
                   style="vertical-align: text-bottom;">
                 <path d="M8 5v14l11-7z"/>

@@ -14,7 +14,12 @@ class DElement {
   final Element element;
 
   DElement(this.element);
-  DElement.tag(String tag) : element = new Element.tag(tag);
+  DElement.tag(String tag, {String classes}) :
+    element = new Element.tag(tag) {
+    if (classes != null) {
+      element.classes.add(classes);
+    }
+  }
 
   bool hasAttr(String name) => element.attributes.containsKey(name);
 
@@ -36,14 +41,37 @@ class DElement {
 
   Property get textProperty => new _ElementTextProperty(element);
 
+  void layoutHorizontal() {
+    setAttr('layout');
+    setAttr('horizontal');
+  }
+
+  void layoutVertical() {
+    setAttr('layout');
+    setAttr('vertical');
+  }
+
+  void flex() => setAttr('flex');
+
+  dynamic add(var child) {
+    if (child is DElement) {
+      element.children.add(child.element);
+    } else {
+      element.children.add(child);
+    }
+
+    return child;
+  }
+
   Stream<Event> get onClick => element.onClick;
 
   void dispose() {
+    if (element.parent == null) return;
+
     if (element.parent.children.contains(element)) {
       try {
         element.parent.children.remove(element);
       } catch (e) {
-        // TODO:
         print('foo');
       }
     }
@@ -54,6 +82,14 @@ class DElement {
 
 class DButton extends DElement {
   DButton(ButtonElement element) : super(element);
+
+  DButton.button({String text, String classes}) :
+      super.tag('button', classes: classes) {
+    element.classes.add('button');
+    if (text != null) {
+      element.text = text;
+    }
+  }
 
   ButtonElement get belement => element;
 
@@ -311,6 +347,24 @@ class DContentEditable extends DElement {
   Stream<String> get onChanged => element.on['input'].map((_) => element.text);
 }
 
+class DInput extends DElement {
+  DInput.input({String type}) : super(new InputElement(type: type));
+
+  InputElement get inputElement => element;
+
+  void readonly() => setAttr('readonly');
+
+  String get value => inputElement.value;
+
+  set value(String v) {
+    inputElement.value = v;
+  }
+
+  void selectAll() {
+    inputElement.select();
+  }
+}
+
 class DToast extends DElement {
   static void showMessage(String message) {
     new DToast(message)..show()..hide();
@@ -341,6 +395,97 @@ class DToast extends DElement {
       });
     });
   }
+}
+
+class GlassPane extends DElement {
+  StreamController _controller = new StreamController.broadcast();
+
+  GlassPane() : super.tag('div') {
+    element.classes.toggle('glass-pane', true);
+
+    document.onKeyDown.listen((KeyboardEvent e) {
+      if (e.keyCode == KeyCode.ESC) {
+        e.preventDefault();
+        _controller.add(null);
+      }
+    });
+
+    element.onMouseDown.listen((e) {
+      e.preventDefault();
+      _controller.add(null);
+    });
+  }
+
+  void show() {
+    document.body.children.add(element);
+  }
+
+  void hide() => dispose();
+
+  bool get isShowing => document.body.children.contains(element);
+
+  Stream get onCancel => _controller.stream;
+}
+
+abstract class DDialog extends DElement {
+  GlassPane pane = new GlassPane();
+
+  DElement titleArea;
+  DElement content;
+  DElement buttonArea;
+
+  DDialog({String title}) : super.tag('div') {
+    element.classes.addAll(['dialog', 'dialog-position']);
+    setAttr('layout');
+    setAttr('vertical');
+    pane.onCancel.listen((_) {
+      if (isShowing) hide();
+    });
+
+    titleArea = add(new DElement.tag('div', classes: 'title'));
+    content = add(new DElement.tag('div', classes: 'content'));
+
+    // padding
+    add(new DElement.tag('div'))..flex();
+
+    buttonArea = add(new DElement.tag('div', classes: 'buttons')
+        ..setAttr('layout')..setAttr('horizontal'));
+
+    if (title != null) {
+      titleArea.text = title;
+    }
+  }
+
+  void show() {
+    pane.show();
+
+    // Add to the DOM, start a timer, make it visible.
+    document.body.children.add(element);
+
+    new Timer(new Duration(milliseconds: 16), () {
+      element.classes.toggle('showing', true);
+    });
+  }
+
+  void hide() {
+    if (!isShowing) return;
+
+    pane.hide();
+
+    // Start a timer, hide, remove from dom.
+    new Timer(new Duration(milliseconds: 16), () {
+      element.classes.toggle('showing', false);
+      element.onTransitionEnd.first.then((event) {
+        dispose();
+      });
+    });
+  }
+
+  void toggleShowing() {
+    isShowing ? hide() : show();
+  }
+
+  bool get isShowing => document.body.children.contains(element);
 }
 
 class _ElementTextProperty implements Property {
