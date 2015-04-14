@@ -14,7 +14,12 @@ class DElement {
   final Element element;
 
   DElement(this.element);
-  DElement.tag(String tag) : element = new Element.tag(tag);
+  DElement.tag(String tag, {String classes}) :
+    element = new Element.tag(tag) {
+    if (classes != null) {
+      element.classes.add(classes);
+    }
+  }
 
   bool hasAttr(String name) => element.attributes.containsKey(name);
 
@@ -36,14 +41,37 @@ class DElement {
 
   Property get textProperty => new _ElementTextProperty(element);
 
+  void layoutHorizontal() {
+    setAttr('layout');
+    setAttr('horizontal');
+  }
+
+  void layoutVertical() {
+    setAttr('layout');
+    setAttr('vertical');
+  }
+
+  void flex() => setAttr('flex');
+
+  dynamic add(var child) {
+    if (child is DElement) {
+      element.children.add(child.element);
+    } else {
+      element.children.add(child);
+    }
+
+    return child;
+  }
+
   Stream<Event> get onClick => element.onClick;
 
   void dispose() {
+    if (element.parent == null) return;
+
     if (element.parent.children.contains(element)) {
       try {
         element.parent.children.remove(element);
       } catch (e) {
-        // TODO:
         print('foo');
       }
     }
@@ -54,6 +82,14 @@ class DElement {
 
 class DButton extends DElement {
   DButton(ButtonElement element) : super(element);
+
+  DButton.button({String text, String classes}) :
+      super.tag('button', classes: classes) {
+    element.classes.add('button');
+    if (text != null) {
+      element.text = text;
+    }
+  }
 
   ButtonElement get belement => element;
 
@@ -311,6 +347,24 @@ class DContentEditable extends DElement {
   Stream<String> get onChanged => element.on['input'].map((_) => element.text);
 }
 
+class DInput extends DElement {
+  DInput.input({String type}) : super(new InputElement(type: type));
+
+  InputElement get inputElement => element;
+
+  void readonly() => setAttr('readonly');
+
+  String get value => inputElement.value;
+
+  set value(String v) {
+    inputElement.value = v;
+  }
+
+  void selectAll() {
+    inputElement.select();
+  }
+}
+
 class DToast extends DElement {
   static void showMessage(String message) {
     new DToast(message)..show()..hide();
@@ -345,12 +399,11 @@ class DToast extends DElement {
 
 class GlassPane extends DElement {
   StreamController _controller = new StreamController.broadcast();
-  StreamSubscription _keySub;
 
   GlassPane() : super.tag('div') {
     element.classes.toggle('glass-pane', true);
 
-    _keySub = document.onKeyDown.listen((KeyboardEvent e) {
+    document.onKeyDown.listen((KeyboardEvent e) {
       if (e.keyCode == KeyCode.ESC) {
         e.preventDefault();
         _controller.add(null);
@@ -372,22 +425,35 @@ class GlassPane extends DElement {
   bool get isShowing => document.body.children.contains(element);
 
   Stream get onCancel => _controller.stream;
-
-  void dispose() {
-    if (_keySub != null) _keySub.cancel();
-    _keySub = null;
-    super.dispose();
-  }
 }
 
 abstract class DDialog extends DElement {
   GlassPane pane = new GlassPane();
 
-  DDialog() : super.tag('div') {
+  DElement titleArea;
+  DElement content;
+  DElement buttonArea;
+
+  DDialog({String title}) : super.tag('div') {
     element.classes.toggle('dialog', true);
+    setAttr('layout');
+    setAttr('vertical');
     pane.onCancel.listen((_) {
       if (isShowing) hide();
     });
+
+    titleArea = add(new DElement.tag('div', classes: 'title'));
+    content = add(new DElement.tag('div', classes: 'content'));
+
+    // padding
+    add(new DElement.tag('div'))..flex();
+
+    buttonArea = add(new DElement.tag('div', classes: 'buttons')
+        ..setAttr('layout')..setAttr('horizontal'));
+
+    if (title != null) {
+      titleArea.text = title;
+    }
   }
 
   void show() {

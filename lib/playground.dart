@@ -45,7 +45,7 @@ void init() {
   _playground = new Playground();
 }
 
-class Playground implements GistContainer {
+class Playground implements GistContainer, GistController {
   DivElement get _editpanel => querySelector('#editpanel');
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
@@ -72,8 +72,6 @@ class Playground implements GistContainer {
 
   ModuleManager modules = new ModuleManager();
 
-  SharingDialog sharingDialog = new SharingDialog();
-
   Playground() {
     _registerTab(querySelector('#darttab'), 'dart');
     _registerTab(querySelector('#htmltab'), 'html');
@@ -81,9 +79,11 @@ class Playground implements GistContainer {
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
 
-    new NewPadAction(querySelector('#newbutton'), editableGist, _gistStorage);
+    SharingDialog sharingDialog = new SharingDialog(this, this);
 
-    new SharePadAction(querySelector('#sharebutton'), this, sharingDialog);
+    new NewPadAction(querySelector('#newbutton'), editableGist, this);
+    DButton shareButton = new DButton(querySelector('#sharebutton'));
+    shareButton.onClick.listen((e) => sharingDialog.show());
 
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
@@ -157,6 +157,34 @@ class Playground implements GistContainer {
 
   void overrideNextRoute(Gist gist) {
     _overrideNextRouteGist = gist;
+  }
+
+  Future createNewGist() {
+    _gistStorage.clearStoredGist();
+
+    if (ga != null) ga.sendEvent('main', 'new');
+
+    DToast.showMessage('New pad created');
+    router.go('gist', {'gist': ''}, forceReload: true);
+
+    return new Future.value();
+  }
+
+  Future shareAnon() {
+    return gistLoader.createAnon(mutableGist.createGist()).then((Gist newGist) {
+      editableGist.setBackingGist(newGist);
+      overrideNextRoute(newGist);
+      router.go('gist', {'gist': newGist.id});
+      var toast = new DToast('Created ${newGist.id}')..show()..hide();
+      toast.element
+        ..style.cursor = "pointer"
+        ..onClick.listen((e)
+            => window.open("https://gist.github.com/anonymous/${newGist.id}", '_blank'));
+    }).catchError((e) {
+      String message = 'Error saving gist: ${e}';
+      DToast.showMessage(message);
+      ga.sendException('GistLoader.createAnon: failed to create gist');
+    });
   }
 
   void _showGist(String gistId) {

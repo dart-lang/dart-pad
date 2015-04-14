@@ -22,6 +22,8 @@ class MutableGist implements PropertyOwner {
 
   MutableGist(this._backingGist);
 
+  bool get hasId => id != null && id.isNotEmpty;
+
   bool get dirty => _localValues.isNotEmpty;
 
   String get id => _backingGist.id;
@@ -93,6 +95,8 @@ class MutableGist implements PropertyOwner {
     if (wasDirty != dirty) _dirtyChangedController.add(dirty);
     _changedController.add(null);
   }
+
+  String toString() => _backingGist.toString();
 }
 
 class MutableGistFile {

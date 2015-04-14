@@ -6,7 +6,6 @@ library dartpad.actions;
 
 import 'dart:html';
 
-import 'dart_pad.dart';
 import 'elements/elements.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
@@ -15,9 +14,9 @@ import 'sharing/mutable_gist.dart';
 class NewPadAction {
   final DButton _button;
   final MutableGist _gist;
-  final GistStorage _gistStorage;
+  final GistController _gistController;
 
-  NewPadAction(Element element, this._gist, this._gistStorage) :
+  NewPadAction(Element element, this._gist, this._gistController) :
       _button = new DButton(element) {
     _button.onClick.listen((e) => _handleButtonPress());
   }
@@ -27,54 +26,6 @@ class NewPadAction {
       if (!window.confirm('Discard changes to the current pad?')) return;
     }
 
-    _gistStorage.clearStoredGist();
-
-    if (ga != null) ga.sendEvent('main', 'new');
-
-    DToast.showMessage('New pad created');
-    router.go('gist', {'gist': ''}, forceReload: true);
-  }
-}
-
-/// An action that creates a new anonymous copy of the current pad.
-class SharePadAction {
-  final DButton _button;
-  final GistContainer _gistContainer;
-  final DDialog sharingDialog;
-
-  SharePadAction(Element element, this._gistContainer, this.sharingDialog) :
-      _button = new DButton(element) {
-    _button.onClick.listen((e) => _handleButtonPress());
-    _gist.onDirtyChanged.listen((dirty) => _button.disabled = !dirty);
-  }
-
-  MutableGist get _gist => _gistContainer.mutableGist;
-
-  void _handleButtonPress() {
-    if (true) {
-      sharingDialog.show();
-      return;
-    }
-
-    final String message = 'Sharing this pad will create a permanent, publicly '
-        'visible copy on gist.github.com.';
-
-    if (!window.confirm(message)) return;
-
-    if (ga != null) ga.sendEvent('main', 'share');
-
-    gistLoader.createAnon(_gist.createGist()).then((Gist newGist) {
-      _gistContainer.overrideNextRoute(newGist);
-      router.go('gist', {'gist': newGist.id});
-      var toast = new DToast('Created ${newGist.id}')..show()..hide();
-      toast.element
-        ..style.cursor = "pointer"
-        ..onClick.listen((e)
-            => window.open("https://gist.github.com/anonymous/${newGist.id}", '_blank'));
-    }).catchError((e) {
-      String message = 'Error saving gist: ${e}';
-      DToast.showMessage(message);
-      ga.sendException('GistLoader.createAnon: failed to create gist');
-    });
+    _gistController.createNewGist();
   }
 }

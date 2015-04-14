@@ -200,12 +200,17 @@
   top: 0;
   min-width: 12em;
   max-width: 40em;
+  padding: 0.5em 1em;
 
   -webkit-user-select: none;
 }
 
 .toast.showing {
   top: 72px;
+}
+
+.toast.dialog {
+  z-index: 18;
 }
 
 .glass-pane {
@@ -222,7 +227,7 @@
 
 .dialog {
   position: absolute;
-  padding: 0.5em 1em;
+  padding: 10px;
   background-color: #444;
   border: 1px solid;
   border-color: rgba(0, 0, 0, 0.5);
@@ -238,8 +243,61 @@
   opacity: 1;
 }
 
+.dialog .title {
+  font-size: 16pt;
+  white-space: nowrap;
+}
+
+.dialog .content {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  min-width: 300px;
+  min-height: 60px;
+}
+
+.dialog .buttons button + button {
+  margin-left: 10px;
+}
+
 /* contenteditable elements */
 
 [contenteditable]:focus {
   outline: 0 solid transparent;
+}
+
+.button {
+  outline: none;
+  color: #aaa;
+  fill: #aaa;
+  border: 1px solid #222;
+  border-radius: 2px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12pt;
+  line-height: 18px;
+  height: 24px;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: 100ms;
+  min-width: 75px;
+  background-color: #444;
+  background-image: linear-gradient(to bottom, #444, #333);
+}
+
+.button.default,
+.button:hover {
+  color: #fff;
+  fill: #fff;
+}
+
+.button:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.button[disabled] {
+  color: #555;
+  fill: #555;
+  pointer-events: none;
+  border-color: #272727;
+  background-color: #3b3b3b;
+  background-image: none;
 }
