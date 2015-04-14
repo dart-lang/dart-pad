@@ -79,18 +79,18 @@ void defineTests() {
     });
   });
 
-  group('getAllImportsFor', () {
+  group('getAllUnsafeImportsFor', () {
     test('null', () {
-      expect(getAllImportsFor(null), isEmpty);
+      expect(getAllUnsafeImportsFor(null), isEmpty);
     });
 
     test('empty', () {
-      expect(getAllImportsFor(''), isEmpty);
-      expect(getAllImportsFor('   \n '), isEmpty);
+      expect(getAllUnsafeImportsFor(''), isEmpty);
+      expect(getAllUnsafeImportsFor('   \n '), isEmpty);
     });
 
     test('bad source', () {
-      expect(getAllImportsFor('foo bar;\n baz\nimport mybad;\n'), isEmpty);
+      expect(getAllUnsafeImportsFor('foo bar;\n baz\nimport mybad;\n'), isEmpty);
     });
 
     test('one', () {
@@ -100,7 +100,7 @@ import 'dart:math';
 import 'package:foo/foo.dart';
 void main() { }
 ''';
-      expect(getAllImportsFor(source), unorderedEquals(['dart:math', 'package:foo/foo.dart']));
+      expect(getAllUnsafeImportsFor(source), unorderedEquals(['dart:math', 'package:foo/foo.dart']));
     });
 
     test('two', () {
@@ -111,7 +111,7 @@ import 'dart:math';
 import 'package:bar/bar.dart';
 void main() { }
 ''';
-      expect(getAllImportsFor(source),
+      expect(getAllUnsafeImportsFor(source),
           unorderedEquals(['dart:math', 'package:foo/foo.dart', 'package:bar/bar.dart']));
     });
 
@@ -124,18 +124,18 @@ import 'package:bar/bar.dart';import 'package:baz/baz.dart';
 import 'mybazfile.dart';
 void main() { }
 ''';
-      expect(getAllImportsFor(source),
+      expect(getAllUnsafeImportsFor(source),
           unorderedEquals(['dart:math', 'package:foo/foo.dart',
             'package:bar/bar.dart', 'package:baz/baz.dart', 'mybazfile.dart']));
     });
   });
 
-  group('filterPackagesFromImports', () {
+  group('filterSafePackagesFromImports', () {
     test('empty', () {
       final String source = '''import 'package:';
 void main() { }
 ''';
-      expect(filterPackagesFromImports(getAllImportsFor(source)), isEmpty);
+      expect(filterSafePackagesFromImports(getAllUnsafeImportsFor(source)), isEmpty);
     });
 
     test('simple', () {
@@ -144,7 +144,7 @@ import 'package:foo/foo.dart';
 import 'package:bar/bar.dart';
 void main() { }
 ''';
-      expect(filterPackagesFromImports(getAllImportsFor(source)),
+      expect(filterSafePackagesFromImports(getAllUnsafeImportsFor(source)),
           unorderedEquals(['foo', 'bar']));
     });
 
@@ -155,9 +155,27 @@ import 'dart:math';
 import 'package:../foo/foo.dart';
 void main() { }
 ''';
-      Set imports = getAllImportsFor(source);
+      Set imports = getAllUnsafeImportsFor(source);
       expect(imports, unorderedMatches(['dart:math', 'package:../foo/foo.dart']));
-      expect(filterPackagesFromImports(imports), isEmpty);
+      expect(filterSafePackagesFromImports(imports), isEmpty);
+    });
+
+    test('negative dart import', () {
+      final String source = '''
+import 'dart:../bar.dart';
+''';
+      Set imports = getAllUnsafeImportsFor(source);
+      expect(imports, unorderedMatches(['dart:../bar.dart']));
+      expect(filterSafePackagesFromImports(imports), isEmpty);
+    });
+
+    test('negative path import', () {
+      final String source = '''
+import '../foo.dart';
+''';
+      Set imports = getAllUnsafeImportsFor(source);
+      expect(imports, unorderedMatches(['../foo.dart']));
+      expect(filterSafePackagesFromImports(imports), isEmpty);
     });
   });
 }

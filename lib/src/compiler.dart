@@ -192,7 +192,7 @@ class _CompilerProvider {
         return new Future.value(contents);
       }
     } else if (uri.scheme == 'package' && pubHelper != null) {
-      return pubHelper.getPackageContentsAsync(uri.path.substring(1));
+      return pubHelper.getPackageContentsAsync('package:${uri.path.substring(1)}');
     }
 
     return new Future.error('file not found');

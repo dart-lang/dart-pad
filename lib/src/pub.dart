@@ -121,8 +121,8 @@ class Pub {
   }
 
   Future<PubHelper> createPubHelperForSource(String dartSource) {
-    Set<String> packageImports = filterPackagesFromImports(
-        getAllImportsFor(dartSource));
+    Set<String> packageImports = filterSafePackagesFromImports(
+        getAllUnsafeImportsFor(dartSource));
 
     return resolvePackages(packageImports.toList()).then((PackagesInfo packages) {
       return new PubHelper._(this, packages.packages);
@@ -244,7 +244,18 @@ class PubHelper {
 
   bool get hasPackages => packages.isNotEmpty;
 
-  Future<String> getPackageContentsAsync(String pathFragment) {
+  /**
+   * Given a package path fragment, return the contents for the package:
+   * reference, or an error from the `Future` if the reference couldn't be
+   * resolved.
+   */
+  Future<String> getPackageContentsAsync(String packageReference) {
+    if (!packageReference.startsWith('package:')) {
+      return new Future.error('invalid package reference');
+    }
+
+    String pathFragment = packageReference.substring(8);
+
     if (pathFragment == null || pathFragment.trim().isEmpty) {
       return new Future.error('invalid path');
     }
@@ -264,11 +275,13 @@ class PubHelper {
     }
 
     return pub.getPackageLibDir(package).then((dir) {
+      _logger.fine('PACKAGE: reference to ${packageReference}');
+
       File file = new File(path.join(dir.path, pathFragment));
       if (file.existsSync()) {
         return file.readAsString();
       } else {
-        return new Future.error('not found: ${packageName}/${pathFragment}');
+        return new Future.error('not found: ${packageReference}');
       }
     });
   }
@@ -307,11 +320,11 @@ class PackageInfo {
   String toString() => '[${name}: ${version}]';
 }
 
-Set<String> getAllImportsFor(String dartSource) {
+Set<String> getAllUnsafeImportsFor(String dartSource) {
   if (dartSource == null) return new Set();
 
   Scanner scanner = new Scanner(
-      new StringSource(dartSource, 'temp.dart'),
+      new StringSource(dartSource, 'main.dart'),
       new CharSequenceReader(dartSource),
       AnalysisErrorListener.NULL_LISTENER);
   Token token = scanner.tokenize();
@@ -351,7 +364,7 @@ Set<String> getAllImportsFor(String dartSource) {
  * Return the list of packages that are imported from the given imports. These
  * packages are sanitized defensively.
  */
-Set<String> filterPackagesFromImports(Set<String> allImports) {
+Set<String> filterSafePackagesFromImports(Set<String> allImports) {
   return new Set.from(allImports.where((import) {
     return import.startsWith('package:');
   }).map((String import) {
