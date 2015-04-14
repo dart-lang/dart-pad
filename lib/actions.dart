@@ -4,8 +4,10 @@
 
 library dartpad.actions;
 
+import 'dart:async';
 import 'dart:html';
 
+import 'dialogs.dart';
 import 'elements/elements.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
@@ -22,10 +24,17 @@ class NewPadAction {
   }
 
   void _handleButtonPress() {
+    Future<bool> response = new Future.value(true);
+
     if (_gist.dirty) {
-      if (!window.confirm('Discard changes to the current pad?')) return;
+      response = confirm(
+          'Create New Pad',
+          'Discard changes to the current pad?',
+          okText: 'Discard');
     }
 
-    _gistController.createNewGist();
+    response.then((val) {
+      if (val) _gistController.createNewGist();
+    });
   }
 }

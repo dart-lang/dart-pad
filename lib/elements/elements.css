@@ -239,13 +239,26 @@
   z-index: 20;
 }
 
+.dialog-position {
+  top: 100px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 550px;
+}
+
 .dialog.showing {
   opacity: 1;
 }
 
 .dialog .title {
   font-size: 16pt;
+  text-shadow: rgba(0,0,0,0.75) 0 1px;
   white-space: nowrap;
+  padding: 5px 10px 10px 10px;
+  margin: 0 -10px;
+  box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
+  border-bottom: 1px solid #333;
 }
 
 .dialog .content {
@@ -257,6 +270,10 @@
 
 .dialog .buttons button + button {
   margin-left: 10px;
+}
+
+.dialog p {
+  margin-top: 0.5em;
 }
 
 /* contenteditable elements */

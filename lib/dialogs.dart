@@ -4,11 +4,52 @@
 
 library dartpad.dialogs;
 
+import 'dart:async';
 import 'dart:html';
 
 import 'elements/elements.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
+
+/**
+ * Show an OK / Cancel dialog, and return the option that the user selected.
+ */
+Future<bool> confirm(String title, String message,
+    {String okText: 'OK', String cancelText: 'Cancel'}) {
+
+  OkCancelDialog dialog = new OkCancelDialog(
+      title, message, okText: okText, cancelText: cancelText);
+  dialog.show();
+  return dialog.future;
+}
+
+class OkCancelDialog extends DDialog {
+  Completer<bool> _completer = new Completer();
+
+  OkCancelDialog(String title, String message,
+      {String okText: 'OK', String cancelText: 'Cancel'}) : super(title: title) {
+    content.add(new ParagraphElement()..text = message);
+
+    DButton cancelButton = buttonArea.add(new DButton.button(text: cancelText));
+    buttonArea.add(new SpanElement()..attributes['flex'] = '');
+    cancelButton.onClick.listen((_) => hide());
+
+    DButton okButton = buttonArea.add(
+        new DButton.button(text: okText, classes: 'default'));
+    okButton.onClick.listen((_) {
+      _completer.complete(true);
+      hide();
+    });
+  }
+
+  void hide() {
+    if (!_completer.isCompleted) _completer.complete(false);
+
+    super.hide();
+  }
+
+  Future<bool> get future => _completer.future;
+}
 
 class SharingDialog extends DDialog {
   final GistContainer gistContainer;
@@ -84,8 +125,8 @@ class SharingDialog extends DDialog {
       MutableGist gist = gistContainer.mutableGist;
 
       content.add(_div);
-      _padUrl.value = gist.html_url;
-      _gistUrl.value = 'https://dartpad.dartlang.org/${gist.id}';
+      _padUrl.value = 'https://dartpad.dartlang.org/${gist.id}';
+      _gistUrl.value = gist.html_url;
 
       buttonArea.add(new SpanElement()..attributes['flex'] = '');
       buttonArea.add(_closeButton);

@@ -435,7 +435,7 @@ abstract class DDialog extends DElement {
   DElement buttonArea;
 
   DDialog({String title}) : super.tag('div') {
-    element.classes.toggle('dialog', true);
+    element.classes.addAll(['dialog', 'dialog-position']);
     setAttr('layout');
     setAttr('vertical');
     pane.onCancel.listen((_) {

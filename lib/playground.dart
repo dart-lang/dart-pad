@@ -102,6 +102,9 @@ class Playground implements GistContainer, GistController {
         querySelector('header .header-gist-name'));
     bind(titleEditable.onChanged, editableGist.property('description'));
     bind(editableGist.property('description'), titleEditable.textProperty);
+    editableGist.onDirtyChanged.listen((val) {
+      titleEditable.element.classes.toggle('dirty', val);
+    });
 
     // If there was a change, and the gist is dirty, write the gist's contents
     // to storage.

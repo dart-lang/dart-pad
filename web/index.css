@@ -55,6 +55,10 @@ header {
   min-width: 2em;
 }
 
+.header-gist-name.dirty::before {
+  content: "• ";
+}
+
 #newbutton {
   margin-left: 10px;
 }
@@ -379,12 +383,6 @@ div.toggle {
 .parameter-hint {
   padding: 4px;
   background: #3f3f3f;
-}
-
-.sharing-dialog {
-  top: 100px;
-  left: 100px;
-  right: 100px;
 }
 
 .sharing-dialog .sharinglabel {
