@@ -488,6 +488,19 @@ abstract class DDialog extends DElement {
   bool get isShowing => document.body.children.contains(element);
 }
 
+class DCheckBox extends DElement implements Property {
+
+  DCheckBox(element) : super(element);
+
+  CheckboxInputElement get checkboxElement => element;
+
+  set(bool value) => checkboxElement.disabled = !value;
+
+  bool get() => !checkboxElement.disabled;
+
+  Stream get onChanged => element.onChange;
+}
+
 class _ElementTextProperty implements Property {
   final Element element;
 
