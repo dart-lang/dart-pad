@@ -14,9 +14,13 @@ import 'api_classes.dart';
 import 'analysis_server.dart';
 import 'analyzer.dart';
 import 'compiler.dart';
+import 'pub.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
 final Logger _logger = new Logger('common_server');
+
+/// Toggle to on to enable `package:` support.
+final bool enablePackages = false;
 
 abstract class ServerCache {
   Future<String> get(String key);
@@ -43,6 +47,7 @@ class CommonServer {
   final SourceRequestRecorder srcRequestRecorder;
   final PersistentCounter counter;
 
+  Pub pub;
   Analyzer analyzer;
   Compiler compiler;
   AnalysisServerWrapper analysisServer;
@@ -53,8 +58,11 @@ class CommonServer {
       this.counter) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
+
+    pub = enablePackages ? new Pub() : new Pub.mock();
+
     analyzer = new Analyzer(sdkPath);
-    compiler = new Compiler(sdkPath);
+    compiler = new Compiler(sdkPath, pub);
     analysisServer = new AnalysisServerWrapper(sdkPath);
   }
 
@@ -170,14 +178,16 @@ class CommonServer {
 
     // TODO(lukechurch): Remove this hack after
     // https://github.com/dart-lang/rpc/issues/15 lands
-    bool supressCache = source.trim().endsWith("/** Supress-Memcache **/");
+    var trimSrc = source.trim();
+    bool suppressCache = trimSrc.endsWith("/** Supress-Memcache **/") ||
+        trimSrc.endsWith("/** Suppress-Memcache **/");
 
     return checkCache("%%COMPILE:$sourceHash").then((String result) {
-      if (!supressCache && result != null) {
+      if (!suppressCache && result != null) {
         _logger.info("CACHE: Cache hit for compile");
         return new CompileResponse(result);
       } else {
-        _logger.info("CACHE: MISS, forced: $supressCache");
+        _logger.info("CACHE: MISS, forced: $suppressCache");
         Stopwatch watch = new Stopwatch()..start();
 
         return compiler.compile(source).then((CompilationResults results) async {

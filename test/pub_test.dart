@@ -78,6 +78,106 @@ void defineTests() {
       ensureBad('foo', '1.0.0/2.0.0');
     });
   });
+
+  group('getAllUnsafeImportsFor', () {
+    test('null', () {
+      expect(getAllUnsafeImportsFor(null), isEmpty);
+    });
+
+    test('empty', () {
+      expect(getAllUnsafeImportsFor(''), isEmpty);
+      expect(getAllUnsafeImportsFor('   \n '), isEmpty);
+    });
+
+    test('bad source', () {
+      expect(getAllUnsafeImportsFor('foo bar;\n baz\nimport mybad;\n'), isEmpty);
+    });
+
+    test('one', () {
+      final String source = '''
+library woot;
+import 'dart:math';
+import 'package:foo/foo.dart';
+void main() { }
+''';
+      expect(getAllUnsafeImportsFor(source), unorderedEquals(['dart:math', 'package:foo/foo.dart']));
+    });
+
+    test('two', () {
+      final String source = '''
+library woot;
+import 'dart:math';
+ import 'package:foo/foo.dart';
+import 'package:bar/bar.dart';
+void main() { }
+''';
+      expect(getAllUnsafeImportsFor(source),
+          unorderedEquals(['dart:math', 'package:foo/foo.dart', 'package:bar/bar.dart']));
+    });
+
+    test('three', () {
+      final String source = '''
+library woot;
+import 'dart:math';
+import 'package:foo/foo.dart';
+import 'package:bar/bar.dart';import 'package:baz/baz.dart';
+import 'mybazfile.dart';
+void main() { }
+''';
+      expect(getAllUnsafeImportsFor(source),
+          unorderedEquals(['dart:math', 'package:foo/foo.dart',
+            'package:bar/bar.dart', 'package:baz/baz.dart', 'mybazfile.dart']));
+    });
+  });
+
+  group('filterSafePackagesFromImports', () {
+    test('empty', () {
+      final String source = '''import 'package:';
+void main() { }
+''';
+      expect(filterSafePackagesFromImports(getAllUnsafeImportsFor(source)), isEmpty);
+    });
+
+    test('simple', () {
+      final String source = '''
+import 'package:foo/foo.dart';
+import 'package:bar/bar.dart';
+void main() { }
+''';
+      expect(filterSafePackagesFromImports(getAllUnsafeImportsFor(source)),
+          unorderedEquals(['foo', 'bar']));
+    });
+
+    test('defensive', () {
+      final String source = '''
+library woot;
+import 'dart:math';
+import 'package:../foo/foo.dart';
+void main() { }
+''';
+      Set imports = getAllUnsafeImportsFor(source);
+      expect(imports, unorderedMatches(['dart:math', 'package:../foo/foo.dart']));
+      expect(filterSafePackagesFromImports(imports), isEmpty);
+    });
+
+    test('negative dart import', () {
+      final String source = '''
+import 'dart:../bar.dart';
+''';
+      Set imports = getAllUnsafeImportsFor(source);
+      expect(imports, unorderedMatches(['dart:../bar.dart']));
+      expect(filterSafePackagesFromImports(imports), isEmpty);
+    });
+
+    test('negative path import', () {
+      final String source = '''
+import '../foo.dart';
+''';
+      Set imports = getAllUnsafeImportsFor(source);
+      expect(imports, unorderedMatches(['../foo.dart']));
+      expect(filterSafePackagesFromImports(imports), isEmpty);
+    });
+  });
 }
 
 void ensureBad(String packageName, String packageVersion) {
