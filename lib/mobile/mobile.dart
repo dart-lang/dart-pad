@@ -439,33 +439,6 @@ class PlaygroundMobile {
     });
   }
 
-  void _handleSave() {
-    ga.sendEvent('main', 'save');
-    // TODO:
-    print('handleSave');
-  }
-
-  void _handleHelp() {
-    if (context.focusedEditor == 'dart') {
-      ga.sendEvent('main', 'help');
-
-//      String source = _context.dartSource;
-//      Position pos = editor.document.cursor;
-//      int offset = editor.document.indexFromPos(pos);
-
-//      // TODO: Show busy.
-//      dartServices.document(source, offset).then((Map result) {
-//        if (result['description'] == null && result['dartdoc'] == null) {
-//          // TODO: Tell the user there were no results.
-//
-//        } else {
-//          // TODO: Display this info
-//          print(result['description']);
-//        }
-//      });
-    }
-  }
-
   void _clearOutput() {
     _output.text = '';
   }
