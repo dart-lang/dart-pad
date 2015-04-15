@@ -2,6 +2,58 @@
 /* for details. All rights reserved. Use of this source code is governed by a */
 /* BSD-style license that can be found in the LICENSE file. */
 
+/* Button css. */
+
+.button {
+  outline: none;
+  color: #aaa;
+  fill: #aaa;
+  border: 1px solid #222;
+  border-radius: 2px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12pt;
+  line-height: 18px;
+  height: 24px;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: 100ms;
+  min-width: 75px;
+  background-color: #444;
+  background-image: linear-gradient(to bottom, #444, #333);
+}
+
+.button.default,
+.button:hover {
+  color: #fff;
+  fill: #fff;
+}
+
+.button:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.button[disabled] {
+  color: #555;
+  fill: #555;
+  pointer-events: none;
+  border-color: #272727;
+  background-color: #3b3b3b;
+  background-image: none;
+}
+
+button.close {
+  border: none;
+  background: url(../images/close.svg) center no-repeat;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+button.close:hover {
+  opacity: 1;
+}
+
 /* Splitter css. */
 
 .splitter {
@@ -252,13 +304,19 @@
 }
 
 .dialog .title {
-  font-size: 16pt;
-  text-shadow: rgba(0,0,0,0.75) 0 1px;
   white-space: nowrap;
   padding: 5px 10px 10px 10px;
   margin: 0 -10px;
   box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
   border-bottom: 1px solid #333;
+}
+
+.dialog .title h1 {
+  font-size: 16pt;
+  font-weight: normal;
+  text-shadow: rgba(0,0,0,0.75) 0 1px;
+  margin: 0;
+  padding: 0;
 }
 
 .dialog .content {
@@ -276,45 +334,14 @@
   margin-top: 0.5em;
 }
 
+.dialog button.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
 /* contenteditable elements */
 
 [contenteditable]:focus {
   outline: 0 solid transparent;
-}
-
-.button {
-  outline: none;
-  color: #aaa;
-  fill: #aaa;
-  border: 1px solid #222;
-  border-radius: 2px;
-  font-family: 'Roboto', sans-serif;
-  font-size: 12pt;
-  line-height: 18px;
-  height: 24px;
-  cursor: pointer;
-  padding: 2px 6px;
-  transition: 100ms;
-  min-width: 75px;
-  background-color: #444;
-  background-image: linear-gradient(to bottom, #444, #333);
-}
-
-.button.default,
-.button:hover {
-  color: #fff;
-  fill: #fff;
-}
-
-.button:active {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.button[disabled] {
-  color: #555;
-  fill: #555;
-  pointer-events: none;
-  border-color: #272727;
-  background-color: #3b3b3b;
-  background-image: none;
 }
