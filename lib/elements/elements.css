@@ -323,7 +323,6 @@ button.close:hover {
   margin-top: 10px;
   margin-bottom: 10px;
   min-width: 300px;
-  min-height: 60px;
 }
 
 .dialog .buttons button + button {
