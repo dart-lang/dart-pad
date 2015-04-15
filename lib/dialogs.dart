@@ -146,12 +146,12 @@ class SharingDialog extends DDialog {
   }
 }
 
-class SettingsDialog extends DDialog {
+class KeysDialog extends DDialog {
 
   Map<Action, Set<String>> keyMap;
 
-  SettingsDialog(this.keyMap) : super(title: 'Keyboard shortcuts') {
-    element.classes.toggle('settings-dialog', true);
+  KeysDialog(this.keyMap) : super(title: 'Keyboard shortcuts') {
+    element.classes.toggle('keys-dialog', true);
     content.add(keyMapToHtml);
   }
 

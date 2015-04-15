@@ -66,7 +66,7 @@ class Playground implements GistContainer, GistController {
   DContentEditable titleEditable;
 
   SharingDialog sharingDialog;
-  SettingsDialog settings;
+  KeysDialog settings;
 
   // We store the last returned shared gist; it's used to update the url.
   Gist _overrideNextRouteGist;
@@ -298,7 +298,7 @@ class Playground implements GistContainer, GistController {
       else settings.show();
     }, "Settings");
 
-    settings = new SettingsDialog(keys.inverseBindings);
+    settings = new KeysDialog(keys.inverseBindings);
 
     document.onClick.listen((MouseEvent e) {
       docHandler.generateDoc(_docPanel);
@@ -530,10 +530,6 @@ class Playground implements GistContainer, GistController {
       _updateRunButton();
       _logger.severe(e);
     });
-  }
-
-  void _handleSave() {
-    ga.sendEvent('main', 'save');
   }
 
   void _clearOutput() {
