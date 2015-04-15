@@ -65,6 +65,7 @@ class Playground implements GistContainer, GistController {
   GistStorage _gistStorage = new GistStorage();
   DContentEditable titleEditable;
 
+  SharingDialog sharingDialog;
   SettingsDialog settings;
 
   // We store the last returned shared gist; it's used to update the url.
@@ -81,7 +82,7 @@ class Playground implements GistContainer, GistController {
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
 
-    SharingDialog sharingDialog = new SharingDialog(this, this);
+    sharingDialog = new SharingDialog(this, this);
 
     new NewPadAction(querySelector('#newbutton'), editableGist, this);
     DButton shareButton = new DButton(querySelector('#sharebutton'));
@@ -280,7 +281,7 @@ class Playground implements GistContainer, GistController {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    keys.bind(['ctrl-s'], _handleSave, "Save");
+    keys.bind(['ctrl-s'], sharingDialog.show, "Share");
     keys.bind(['ctrl-enter'], _handleRun, "Run");
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
@@ -292,7 +293,7 @@ class Playground implements GistContainer, GistController {
       editor.execCommand('autocomplete');
     }, "Completion");
 
-    keys.bind(['shift-ctrl-/'], (){
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], (){
       if (settings.isShowing) settings.hide();
       else settings.show();
     }, "Settings");

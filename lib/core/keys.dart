@@ -7,6 +7,8 @@ library core.keys;
 import 'dart:async';
 import 'dart:html';
 
+import '../src/util.dart';
+
 final _isMac = window.navigator.appVersion.toLowerCase().contains('macintosh');
 
 /**
@@ -83,10 +85,9 @@ class Action {
 
   call() => function();
 
-  toString() => description;
+  String toString() => description;
 
-  bool operator==(other)
-      => other is Action && description == other.description;
+  bool operator==(other) => other is Action && description == other.description;
 
   int get hashCode => description.hashCode;
 }
@@ -134,8 +135,6 @@ String makeKeyPresentable(String key) {
     return keyAsList.join("+");
   }
 }
-
-String capitalize(String s) => '${s.substring(0,1).toUpperCase()}${s.substring(1)}';
 
 bool isMac() => _isMac;
 

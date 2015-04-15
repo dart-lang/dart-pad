@@ -10,8 +10,7 @@ import 'dart:html';
 import 'elements/elements.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
-import 'package:dart_pad/core/keys.dart';
-import 'package:dart_pad/dart_pad.dart';
+import 'core/keys.dart';
 
 /**
  * Show an OK / Cancel dialog, and return the option that the user selected.
@@ -149,56 +148,34 @@ class SharingDialog extends DDialog {
 
 class SettingsDialog extends DDialog {
 
-  Map keyMap;
+  Map<Action, Set<String>> keyMap;
 
-  Map get optionMap => options.values;
-
-  SettingsDialog(this.keyMap) {
+  SettingsDialog(this.keyMap) : super(title: 'Keyboard shortcuts') {
     element.classes.toggle('settings-dialog', true);
-    var text = new ParagraphElement();
-
-    text.text = 'Sharing this pad will create a permanent, publicly visible '
-    'copy on gist.github.com.';
-
+    content.add(keyMapToHtml);
   }
 
   DListElement get keyMapToHtml {
     DListElement dl = new DListElement();
     keyMap.forEach((action, keys) {
       String string = "";
-      keys.forEach((key){
+      keys.forEach((key) {
         if (makeKeyPresentable(key) != null) {
-        string += "<span>${makeKeyPresentable(key)}</span>";
-      }
-    });
+          string += "<span>${makeKeyPresentable(key)}</span>";
+        }
+      });
       dl.innerHtml += "<dt>$action</dt><dd>${string}</dd>";
     });
     return dl;
   }
 
-  DListElement get optionMapToHtml {
-    DListElement dl = new DListElement();
-    optionMap.forEach((key, value) {
-      dl.innerHtml += "<dt>${capitalize(key.replaceAll("_"," "))}</dt>"
-      '<dd><input type="checkbox" id="$key" ${options.getValueBool(key) ? "checked" : ""}></dd>';
-    });
-    return dl;
-  }
-
-  String capitalize(String s) => '${s[0].toUpperCase()}${s.substring(1)}';
-
-
-  void show() {
-    super.show();
-    element.children = [];
-    element.append(
-        new DivElement()
-          ..append(new HeadingElement.h2()..text ="Keyboard shortcuts")
-          ..append(keyMapToHtml)
-          ..append(new HeadingElement.h2()..text ="Experimental options")
-          ..append(optionMapToHtml));
-    for (CheckboxInputElement cb in element.querySelectorAll('input[type="checkbox"')){
-      cb.onChange.listen((e) => options.setValue(cb.id, (!options.getValueBool(cb.id)).toString()));
-    }
-  }
+  // TODO: expose options
+  //  DListElement get optionMapToHtml {
+  //    DListElement dl = new DListElement();
+  //    optionMap.forEach((key, value) {
+  //      dl.innerHtml += "<dt>${capitalize(key.replaceAll("_"," "))}</dt>"
+  //      '<dd><input type="checkbox" id="$key" ${options.getValueBool(key) ? "checked" : ""}></dd>';
+  //    });
+  //    return dl;
+  //  }
 }
