@@ -55,8 +55,8 @@ header {
   min-width: 2em;
 }
 
-.header-gist-name.dirty::before {
-  content: "• ";
+.header-gist-name.dirty::after {
+  content: " •";
 }
 
 #newbutton {
