@@ -318,3 +318,11 @@
   background-color: #3b3b3b;
   background-image: none;
 }
+
+button.close {
+  border: none;
+  background: url(../images/close.svg);
+  float: right;
+  width: 20px;
+  height: 20px;
+}

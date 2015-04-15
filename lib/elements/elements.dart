@@ -91,6 +91,8 @@ class DButton extends DElement {
     }
   }
 
+  DButton.close() : super.tag('button', classes: "close");
+
   ButtonElement get belement => element;
 
   bool get disabled => belement.disabled;
@@ -453,6 +455,7 @@ abstract class DDialog extends DElement {
 
     if (title != null) {
       titleArea.text = title;
+      titleArea.add(new DButton.close()..onClick.listen((e) => hide()));
     }
   }
 
