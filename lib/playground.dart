@@ -301,9 +301,8 @@ class Playground implements GistContainer, GistController {
 
     settings = new KeysDialog(keys.inverseBindings);
 
-    document.onClick.listen((MouseEvent e) {
-      docHandler.generateDoc(_docPanel);
-    });
+    editor.onMouseDown.listen((e) => docHandler.generateDoc(_docPanel));
+    document.onClick.listen((e) => docHandler.generateDoc(_docPanel));
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive || DocHandler.cursorKeys.contains(e.keyCode)){

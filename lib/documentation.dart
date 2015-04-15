@@ -35,9 +35,11 @@ class DocHandler {
   DocHandler(this._editor, this._context);
 
   void generateDoc(DivElement docPanel) {
-    if (!(_context.focusedEditor == 'dart'
-        && _editor.hasFocus
-        && _editor.document.selection.isEmpty)) {
+    if (_context.focusedEditor != 'dart') {
+      docPanel.innerHtml = "";
+      return;
+    }
+    if (!_editor.hasFocus || _editor.document.selection.isNotEmpty) {
       return;
     }
 
