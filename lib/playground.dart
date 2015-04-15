@@ -281,7 +281,8 @@ class Playground implements GistContainer, GistController {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    keys.bind(['ctrl-s'], sharingDialog.show, "Share");
+
+    // keys.bind(['ctrl-s'], _handleSave, "Save");
     keys.bind(['ctrl-enter'], _handleRun, "Run");
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
@@ -531,6 +532,11 @@ class Playground implements GistContainer, GistController {
       _logger.severe(e);
     });
   }
+
+  // TODO
+  // void _handleSave() {
+  //   ga.sendEvent('main', 'save');
+  // }
 
   void _clearOutput() {
     _outputpanel.text = '';
