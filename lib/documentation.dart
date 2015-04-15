@@ -80,7 +80,7 @@ class DocHandler {
     Map info = result.info;
 
     if (info['description'] == null && info['dartdoc'] == null) {
-      return new Future.value(new _DocResult("<p>No documentation found.</p>"));
+      return new Future.value(new _DocResult(""));
     }
 
     String libraryName = info['libraryName'];
