@@ -9,6 +9,10 @@ import 'dart:convert' show JSON;
 import 'dart:html';
 
 import 'package:dart_pad/src/sample.dart' as sample;
+import 'package:haikunator/haikunator.dart';
+
+final String _dartpadLink =
+    "[dartpad.dartlang.org](https://dartpad.dartlang.org)";
 
 /**
  * Return whether the given string is a valid github gist ID.
@@ -37,12 +41,13 @@ String extractHtmlBody(String html) {
 
 Gist createSampleGist() {
   Gist gist = new Gist();
-  gist.description = 'Untitled';
+  // "wispy-dust-1337", "patient-king-8872", "purple-breeze-9817"
+  gist.description = Haikunator.haikunate();
   gist.files.add(new GistFile(name: 'main.dart', content: sample.dartCode));
   gist.files.add(new GistFile(name: 'index.html', content: '\n'));
   gist.files.add(new GistFile(name: 'styles.css', content: '\n'));
   gist.files.add(new GistFile(name: 'readme.md',
-      content: '# ${gist.description}\n\nCreated by dartpad.dartlang.org.\n'));
+      content: '# ${gist.description}\n\nCreated with <3 with ${_dartpadLink}.\n'));
   return gist;
 }
 
@@ -131,7 +136,7 @@ ${styleRef}${dartRef}  </head>
     if (readmeFile == null) {
       readmeFile = new GistFile(
           name: 'readme.md',
-          content: '# ${gist.description}\n\nView this gist at dartpad.dartlang.org.\n');
+          content: '# ${gist.description}\n\nView this gist at ${_dartpadLink}.\n');
       gist.files.add(readmeFile);
     } else {
       // Stamp the file content with the current description.
