@@ -41,6 +41,8 @@ Gist createSampleGist() {
   gist.files.add(new GistFile(name: 'main.dart', content: sample.dartCode));
   gist.files.add(new GistFile(name: 'index.html', content: '\n'));
   gist.files.add(new GistFile(name: 'styles.css', content: '\n'));
+  gist.files.add(new GistFile(name: 'readme.md',
+      content: '# ${gist.description}\n\nCreated by dartpad.dartlang.org.\n'));
   return gist;
 }
 
@@ -124,7 +126,23 @@ ${styleRef}${dartRef}  </head>
 ''';
     }
 
-    // TODO: Save gists as valid pub packages (pubspecs, and readmes).
+    // Update the readme for this gist.
+    GistFile readmeFile = gist.getFile('readme.md', ignoreCase: true);
+    if (readmeFile == null) {
+      readmeFile = new GistFile(
+          name: 'readme.md',
+          content: '# ${gist.description}\n\nView this gist at dartpad.dartlang.org.\n');
+      gist.files.add(readmeFile);
+    } else {
+      // Stamp the file content with the current description.
+      List<String> lines = readmeFile.content.split('\n').toList();
+      if (lines.isNotEmpty && lines.first.startsWith('# ')) {
+        lines[0] = '# ${gist.description}';
+        readmeFile.content = lines.join('\n');
+      }
+    }
+
+    // TODO: Write out a reasonable pubspec.yaml for this gist.
 
   };
 
@@ -152,9 +170,9 @@ ${styleRef}${dartRef}  </head>
   /// Create a new gist and return the newly created Gist.
   Future<Gist> createAnon(Gist gist) {
     // POST /gists
-    if (_defaultSaveHook != null) {
+    if (beforeSaveHook != null) {
       gist = gist.clone();
-      _defaultSaveHook(gist);
+      beforeSaveHook(gist);
     }
 
     return HttpRequest.request(_apiUrl, method: 'POST',
@@ -203,8 +221,15 @@ class Gist {
     return null;
   }
 
-  GistFile getFile(String name) =>
-      files.firstWhere((f) => f.name == name, orElse: () => null);
+  GistFile getFile(String name, {bool ignoreCase: false}) {
+    if (ignoreCase) {
+      name = name.toLowerCase();
+      return files.firstWhere((f) => f.name.toLowerCase() == name,
+          orElse: () => null);
+    } else {
+      return files.firstWhere((f) => f.name == name, orElse: () => null);
+    }
+  }
 
   Map toMap() {
     Map m = {};
