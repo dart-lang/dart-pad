@@ -65,6 +65,9 @@ class Playground implements GistContainer, GistController {
   GistStorage _gistStorage = new GistStorage();
   DContentEditable titleEditable;
 
+  SharingDialog sharingDialog;
+  KeysDialog settings;
+
   // We store the last returned shared gist; it's used to update the url.
   Gist _overrideNextRouteGist;
   ParameterPopup paramPopup;
@@ -79,7 +82,7 @@ class Playground implements GistContainer, GistController {
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
 
-    SharingDialog sharingDialog = new SharingDialog(this, this);
+    sharingDialog = new SharingDialog(this, this);
 
     new NewPadAction(querySelector('#newbutton'), editableGist, this);
     DButton shareButton = new DButton(querySelector('#sharebutton'));
@@ -278,17 +281,25 @@ class Playground implements GistContainer, GistController {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    keys.bind(['ctrl-s'], _handleSave);
-    keys.bind(['ctrl-enter'], _handleRun);
+
+    // keys.bind(['ctrl-s'], _handleSave, "Save");
+    keys.bind(['ctrl-enter'], _handleRun, "Run");
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
       docHandler.generateDoc(_docPanel);
-    });
+    }, "Documentation");
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.completionAutoInvoked = false;
       editor.execCommand('autocomplete');
-    });
+    }, "Completion");
+
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], (){
+      if (settings.isShowing) settings.hide();
+      else settings.show();
+    }, "Settings");
+
+    settings = new KeysDialog(keys.inverseBindings);
 
     document.onClick.listen((MouseEvent e) {
       docHandler.generateDoc(_docPanel);
@@ -522,9 +533,10 @@ class Playground implements GistContainer, GistController {
     });
   }
 
-  void _handleSave() {
-    ga.sendEvent('main', 'save');
-  }
+  // TODO
+  // void _handleSave() {
+  //   ga.sendEvent('main', 'save');
+  // }
 
   void _clearOutput() {
     _outputpanel.text = '';

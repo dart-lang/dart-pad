@@ -10,6 +10,7 @@ import 'dart:html';
 import 'elements/elements.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
+import 'core/keys.dart';
 
 /**
  * Show an OK / Cancel dialog, and return the option that the user selected.
@@ -143,4 +144,38 @@ class SharingDialog extends DDialog {
       _shareButton.disabled = false;
     });
   }
+}
+
+class KeysDialog extends DDialog {
+
+  Map<Action, Set<String>> keyMap;
+
+  KeysDialog(this.keyMap) : super(title: 'Keyboard shortcuts') {
+    element.classes.toggle('keys-dialog', true);
+    content.add(keyMapToHtml);
+  }
+
+  DListElement get keyMapToHtml {
+    DListElement dl = new DListElement();
+    keyMap.forEach((action, keys) {
+      String string = "";
+      keys.forEach((key) {
+        if (makeKeyPresentable(key) != null) {
+          string += "<span>${makeKeyPresentable(key)}</span>";
+        }
+      });
+      dl.innerHtml += "<dt>$action</dt><dd>${string}</dd>";
+    });
+    return dl;
+  }
+
+  // TODO: expose options
+  //  DListElement get optionMapToHtml {
+  //    DListElement dl = new DListElement();
+  //    optionMap.forEach((key, value) {
+  //      dl.innerHtml += "<dt>${capitalize(key.replaceAll("_"," "))}</dt>"
+  //      '<dd><input type="checkbox" id="$key" ${options.getValueBool(key) ? "checked" : ""}></dd>';
+  //    });
+  //    return dl;
+  //  }
 }

@@ -94,3 +94,13 @@ class CancellableCompleter<T> implements Completer {
 
   bool get isCancelled => _cancelled;
 }
+
+String capitalize(String s) {
+  if (s == null) {
+    return null;
+  } else if (s.length <= 1) {
+    return s.toUpperCase();
+  } else {
+    return '${s[0].toUpperCase()}${s.substring(1)}';
+  }
+}
