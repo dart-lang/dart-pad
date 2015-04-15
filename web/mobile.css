@@ -2,6 +2,14 @@ core-header-panel {
   background: #37474f;
 }
 
+/*
+ * Workaround for https://github.com/dart-lang/dart-pad/issues/117
+ * https://github.com/Polymer/polymer/issues/1123
+ * http://stackoverflow.com/questions/25824061/core-drawer-panel-vs-paper-fab-z-index
+ */
+core-header-panel[drawer] { z-index: 9999; }
+core-header-panel[main] { z-index: 0; }
+
 paper-tabs, core-toolbar {
   background-color: #263238;
   color: #FFFFFF;
