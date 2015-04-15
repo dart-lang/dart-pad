@@ -43,7 +43,7 @@
 
 button.close {
   border: none;
-  background: url(../images/close.svg) center no-repeat;
+  background: url(../../dart_pad/elements/close.svg) center no-repeat;
   width: 24px;
   height: 24px;
   cursor: pointer;
