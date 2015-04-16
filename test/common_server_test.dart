@@ -7,9 +7,9 @@ library services.common_server_test;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:services/src/common.dart';
 import 'package:services/src/common_server.dart';
-import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:rpc/rpc.dart';
 import 'package:unittest/unittest.dart';
 
@@ -87,8 +87,7 @@ void defineTests() {
       expect(response.status, 400);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data, isNotEmpty);
-      expect(data['error']['message'],
-          contains('failed with errors: [error, line 2] Expected'));
+      expect(data['error']['message'], contains('[error, line 2] Expected'));
     });
 
     test('compile negative-test noSource', () async {

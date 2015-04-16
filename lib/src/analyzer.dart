@@ -18,7 +18,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/source_io.dart';
 import 'package:logging/logging.dart';
 
 import 'api_classes.dart';
@@ -27,7 +26,7 @@ import 'common.dart';
 Logger _logger = new Logger('analyzer');
 
 class Analyzer {
-  _StringSource _source;
+  StringSource _source;
   AnalysisContext _context;
 
   Analyzer(String sdkPath) {
@@ -41,7 +40,7 @@ class Analyzer {
     _context.sourceFactory = new SourceFactory(resolvers);
     AnalysisEngine.instance.logger = new _Logger();
 
-    _source = new _StringSource('', 'main.dart');
+    _source = new StringSource('', 'main.dart');
 
     ChangeSet changeSet = new ChangeSet();
     changeSet.addedSource(_source);
@@ -206,13 +205,13 @@ class Analyzer {
 }
 
 /// An implementation of [Source] that is based on an in-memory string.
-class _StringSource implements Source {
+class StringSource implements Source {
   final String fullName;
 
   int _modificationStamp;
   String _contents;
 
-  _StringSource(this._contents, this.fullName)
+  StringSource(this._contents, this.fullName)
       : _modificationStamp = new DateTime.now().millisecondsSinceEpoch;
 
   void updateSource(String newSource) {
@@ -223,8 +222,8 @@ class _StringSource implements Source {
   int get modificationStamp => _modificationStamp;
 
   bool operator==(Object object) {
-    if (object is _StringSource) {
-      _StringSource ssObject = object;
+    if (object is StringSource) {
+      StringSource ssObject = object;
       return ssObject._contents == _contents && ssObject.fullName == fullName;
     }
     return false;
@@ -275,7 +274,6 @@ class _Error {
     StaticWarningCode.UNDEFINED_CLASS,
     StaticWarningCode.UNDEFINED_CLASS_BOOLEAN,
   ];
-
 
   final AnalysisError error;
   final LineInfo lineInfo;

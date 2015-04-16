@@ -24,7 +24,6 @@ void main() {
 }
 ''';
 
-
 String quickFixesCode =
 r'''
 void main() {
@@ -70,14 +69,13 @@ void defineTests() {
       });
     });
 
-    test('repro #126 - completions poluted on second request', () {
+    test('repro #126 - completions polluted on second request', () {
       // https://github.com/dart-lang/dart-services/issues/126
       return analysisServer.complete(completionFilterCode, 17).then(
           (CompleteResponse results) {
 
         return analysisServer.complete(completionFilterCode, 17).then(
-                  (CompleteResponse results) {
-
+            (CompleteResponse results) {
           expect(results.replacementLength, 2);
           expect(results.replacementOffset, 16);
           expect(completionsContains(results, "print"), true);
