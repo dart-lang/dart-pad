@@ -32,6 +32,21 @@ void main() {
 }
 ''';
 
+String badFormatCode =
+r'''
+void main()
+{
+int i = 0;
+}
+''';
+
+String formattedCode =
+r'''
+void main() {
+  int i = 0;
+}
+''';
+
 void defineTests() {
   AnalysisServerWrapper analysisServer;
 
@@ -88,6 +103,15 @@ void defineTests() {
         expect(fix.edits[0].replacement, ";");
       });
     });
+
+//    test('simple_format', () {
+//      //Just after i.
+//      return analysisServer.format(badFormatCode).then(
+//        (FormatResponse results) {
+//          expect(results.edits.length, 1);
+//          expect(results.edits[0].replacement, formattedCode);
+//        });
+//    });
   });
 }
 
