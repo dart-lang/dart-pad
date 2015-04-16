@@ -205,10 +205,8 @@ class CommonServer {
               return new CompileResponse(out);
             });
           } else {
-            String errors =
-              results.problems.map(_printCompileProblem).join('\n');
-            throw new BadRequestError(
-              'Compilation of $sourceHash failed with errors: $errors');
+            String errors = results.problems.map(_printCompileProblem).join('\n');
+            throw new BadRequestError(errors);
           }
         }).catchError((e, st) {
           _logger.severe('Error during compile: ${e}\n${st}');

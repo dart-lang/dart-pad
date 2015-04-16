@@ -23,7 +23,7 @@ void defineTests() {
       return pub.resolvePackages(['test']).then((PackagesInfo result) {
         expect(result, isNotNull);
         expect(result.packages, isNotEmpty);
-        expect(result.packages.length, 1);
+        expect(result.packages.length, greaterThanOrEqualTo(1));
         expect(result.packages[0].name, 'test');
       });
     });
