@@ -281,7 +281,6 @@ class Playground implements GistContainer, GistController {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-
     // keys.bind(['ctrl-s'], _handleSave, "Save");
     keys.bind(['ctrl-enter'], _handleRun, "Run");
     keys.bind(['f1'], () {
