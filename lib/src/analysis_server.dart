@@ -127,9 +127,9 @@ class AnalysisServerWrapper {
 
     await serverConnection.sendAddOverlay(src);
     await serverConnection.analysisComplete.first;
-    var fixes = await serverConnection.sendFormat();
+    var formatResult = await serverConnection.sendFormat();
     serverConnection.sendRemoveOverlay();
-    return fixes;
+    return formatResult;
   }
 
 
@@ -199,15 +199,15 @@ class _Server {
     _logger.fine("Setver started");
 
     listenToOutput(dispatchNotification);
-    await sendServerSetSubscriptions([ServerService.STATUS]);
+    sendServerSetSubscriptions([ServerService.STATUS]);
 
     _logger.fine("Server Set Subscriptions completed");
 
     psudeoFile.writeAsStringSync("", flush: true);
 
     await sendAddOverlay(_WARMUP_SRC);
-    await sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
-    await sendPrioritySetSources([psuedoFilePath]);
+    sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
+    sendPrioritySetSources([psuedoFilePath]);
     isSettingUp = false;
     isSetup = true;
 

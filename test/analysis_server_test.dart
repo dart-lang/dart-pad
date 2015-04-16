@@ -104,6 +104,7 @@ void defineTests() {
       });
     });
 
+// TODO(lukechurch): Enable once https://code.google.com/p/dart/issues/detail?id=23230 lands
 //    test('simple_format', () {
 //      //Just after i.
 //      return analysisServer.format(badFormatCode).then(
