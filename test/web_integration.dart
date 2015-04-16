@@ -49,19 +49,19 @@ main(List<String> args) async {
 /* WebDriver tests */
 
 // Test that the title is correct - that it starts with "DartPad".
-void testCheckTitle(WebDriver driver) async {
+testCheckTitle(WebDriver driver) async {
   String title = await driver.title;
   expect(title, startsWith('DartPad'));
 }
 
-void testCheckTitleExact(WebDriver driver) async {
+testCheckTitleExact(WebDriver driver) async {
   String title = await driver.title;
   expect(title, 'DartPad (β)');
 }
 
 /* WebDriver plumbing */
 
-void _setupTests(DriverFactory factory) async {
+_setupTests(DriverFactory factory) async {
   print('using ${factory} webdriver');
 
   MicroServer server = await MicroServer.start(path: 'build/web', port: 8888);
