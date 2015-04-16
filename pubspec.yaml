@@ -21,7 +21,7 @@ dependencies:
   args: ^0.12.0
   cli_util: ^0.0.1
   # `compiler_unsupported` needs to be pegged to a specific version.
-  compiler_unsupported: 1.9.0-dev.10.4
+  compiler_unsupported: 1.9.3
   crypto: '>=0.9.0 <0.10.0'
   librato: '>=0.0.1 <0.1.0'
   logging: ^0.9.0
