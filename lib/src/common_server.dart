@@ -128,12 +128,12 @@ class CommonServer {
   }
 
   @ApiMethod(method: 'POST', path: 'format')
-  Future<FixesResponse> format(SourceRequest request) {
+  Future<FormatResponse> format(SourceRequest request) {
     return _format(request.source);
   }
 
-  @ApiMethod(method: 'POST', path: 'format')
-  Future<FixesResponse> formatGet({String source}) {
+  @ApiMethod(method: 'GET', path: 'format')
+  Future<FormatResponse> formatGet({String source}) {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }

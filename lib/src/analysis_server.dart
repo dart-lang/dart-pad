@@ -14,7 +14,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:logging/logging.dart';
 import 'analyzer.dart';
 
-import 'api_classes.dart';
+import 'api_classes.dart' as api;
 
 /**
  * Type of callbacks used to process notifications.
@@ -36,6 +36,9 @@ final _SERVER_PATH = "bin/_analysis_server_entry.dart";
 class AnalysisServerWrapper {
   final String sdkPath;
 
+  // Needed to do fast verification check before formatting.
+  // TODO(lukechurch): Replace this with listening to server errors and
+  // warnings.
   Analyzer analyzer;
 
   /// Instance to handle communication with the server.
@@ -46,7 +49,7 @@ class AnalysisServerWrapper {
     analyzer = new Analyzer(this.sdkPath);
   }
 
-  Future<CompleteResponse> complete(String src, int offset) async {
+  Future<api.CompleteResponse> complete(String src, int offset) async {
     Future<Map> results = _completeImpl(src, offset);
 
     // Post process the result from Analysis Server.
@@ -66,23 +69,23 @@ class AnalysisServerWrapper {
         } else {
           return -1 * xRelevance.compareTo(yRelevance);
         }});
-      return new CompleteResponse(
+      return new api.CompleteResponse(
           response['replacementOffset'], response['replacementLength'],
           results);
     });
   }
 
-  Future<FixesResponse> getFixes(String src, int offset) async {
+  Future<api.FixesResponse> getFixes(String src, int offset) async {
     var results = _getFixesImpl(src, offset);
     return results.then((fixes) {
-      return new FixesResponse(fixes.fixes);
+      return new api.FixesResponse(fixes.fixes);
     });
   }
 
-  Future<FormatResponse> format(String src) async {
+  Future<api.FormatResponse> format(String src) async {
     var results = _formatImpl(src);
     return results.then((editResult) {
-      return new FormatResponse(editResult);
+      return new api.FormatResponse(editResult);
     });
   }
 
@@ -114,7 +117,7 @@ class AnalysisServerWrapper {
 
   Future<EditFormatResult> _formatImpl(String src) async {
 
-    AnalysisResults analysisResults = await analyzer.analyze(src);
+    api.AnalysisResults analysisResults = await analyzer.analyze(src);
     if (analysisResults.issues.where(
             (issue) => issue.kind == "error").length > 0)
       return new Future.value(new EditFormatResult(
