@@ -127,6 +127,20 @@ class CommonServer {
     return _fix(source, offset);
   }
 
+  @ApiMethod(method: 'POST', path: 'format')
+  Future<FixesResponse> format(SourceRequest request) {
+    return _format(request.source);
+  }
+
+  @ApiMethod(method: 'POST', path: 'format')
+  Future<FixesResponse> formatGet({String source}) {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
+    }
+    return _format(source);
+  }
+
+
   @ApiMethod(method: 'POST', path: 'document')
   Future<DocumentResponse> document(SourceRequest request) {
     return _document(request.source, request.offset);
@@ -246,6 +260,12 @@ class CommonServer {
       counter.increment("Fixes");
       return analysisServer.getFixes(source, offset);
     }
+
+  Future<FormatResponse> _format(String source) async {
+    srcRequestRecorder.record("FORMAT", source);
+    counter.increment("Formats");
+    return analysisServer.format(source);
+  }
 
   Future<String> checkCache(String query) => cache.get(query);
 

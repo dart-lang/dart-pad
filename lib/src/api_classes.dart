@@ -186,6 +186,23 @@ class CandidateFix {
   CandidateFix(this.message, this.edits);
 }
 
+/*
+ * Represents a reformatting of the code.
+ */
+class FormatResponse {
+  List<SourceEdit> edits;
+
+  FormatResponse(EditFormatResult format) {
+    edits = [];
+
+    format.edits.forEach((edit) => edits.add(
+      new SourceEdit(edit.offset,
+        edit.length != null ? edit.length : 0,
+        edit.replacement != null ? edit.replacement : 0)
+    ));
+  }
+}
+
 /**
  * Represents a single edit-point change to a source file.
  */
@@ -195,4 +212,5 @@ class SourceEdit {
   final String replacement;
 
   SourceEdit(this.offset, this.length, this.replacement);
+
 }

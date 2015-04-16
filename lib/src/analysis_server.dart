@@ -12,6 +12,7 @@ import 'dart:io' as io;
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:logging/logging.dart';
+import 'analyzer.dart';
 
 import 'api_classes.dart';
 
@@ -35,11 +36,14 @@ final _SERVER_PATH = "bin/_analysis_server_entry.dart";
 class AnalysisServerWrapper {
   final String sdkPath;
 
+  Analyzer analyzer;
+
   /// Instance to handle communication with the server.
   _Server serverConnection;
 
   AnalysisServerWrapper(this.sdkPath) {
     serverConnection = new _Server(this.sdkPath);
+    analyzer = new Analyzer(this.sdkPath);
   }
 
   Future<CompleteResponse> complete(String src, int offset) async {
@@ -75,6 +79,13 @@ class AnalysisServerWrapper {
     });
   }
 
+  Future<FormatResponse> format(String src) async {
+    var results = _formatImpl(src);
+    return results.then((editResult) {
+      return new FormatResponse(editResult);
+    });
+  }
+
   /// Cleanly shutdown the Analysis Server.
   Future shutdown() => serverConnection.sendServerShutdown();
 
@@ -82,9 +93,10 @@ class AnalysisServerWrapper {
   Future<Map> _completeImpl(String src, int offset) async {
     await serverConnection._ensureSetup();
 
-    serverConnection.sendAddOverlay(src);
+    await serverConnection.sendAddOverlay(src);
     await serverConnection.analysisComplete.first;
     await serverConnection.sendCompletionGetSuggestions(offset);
+    serverConnection.sendRemoveOverlay();
 
     return serverConnection.completionResults.handleError(
         (error) => throw "Completion failed").first;
@@ -93,9 +105,30 @@ class AnalysisServerWrapper {
   Future<EditGetFixesResult> _getFixesImpl(String src, int offset) async {
     await serverConnection._ensureSetup();
 
-    serverConnection.sendAddOverlay(src);
-    return await serverConnection.sendGetFixes(offset);
+    await serverConnection.sendAddOverlay(src);
+    await serverConnection.analysisComplete.first;
+    var fixes = await serverConnection.sendGetFixes(offset);
+    serverConnection.sendRemoveOverlay();
+    return fixes;
   }
+
+  Future<EditFormatResult> _formatImpl(String src) async {
+
+    AnalysisResults analysisResults = await analyzer.analyze(src);
+    if (analysisResults.issues.where(
+            (issue) => issue.kind == "error").length > 0)
+      return new Future.value(new EditFormatResult(
+          new List<SourceEdit>(), 0, 0));
+
+    await serverConnection._ensureSetup();
+
+    await serverConnection.sendAddOverlay(src);
+    await serverConnection.analysisComplete.first;
+    var fixes = await serverConnection.sendFormat();
+    serverConnection.sendRemoveOverlay();
+    return fixes;
+  }
+
 
   /// Warm up the analysis server to be ready for use.
   Future warmup([bool useHtml = false]) =>
@@ -163,15 +196,15 @@ class _Server {
     _logger.fine("Setver started");
 
     listenToOutput(dispatchNotification);
-    sendServerSetSubscriptions([ServerService.STATUS]);
+    await sendServerSetSubscriptions([ServerService.STATUS]);
 
     _logger.fine("Server Set Subscriptions completed");
 
     psudeoFile.writeAsStringSync("", flush: true);
 
     await sendAddOverlay(_WARMUP_SRC);
-    sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
-    sendPrioritySetSources([psuedoFilePath]);
+    await sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
+    await sendPrioritySetSources([psuedoFilePath]);
     isSettingUp = false;
     isSetup = true;
 
@@ -415,6 +448,20 @@ class _Server {
       });
     }
 
+    Future<EditFormatResult> sendFormat(
+        [int selectionOffset = 0, int selectionLength = 0]) {
+
+      String file = psuedoFilePath;
+      var params = new EditFormatParams(
+          file, selectionOffset, selectionLength).toJson();
+
+      return send("edit.format", params).then((result) {
+        ResponseDecoder decoder = new ResponseDecoder(null);
+        return new EditFormatResult.fromJson(decoder, 'result', result);
+      });
+
+    }
+
     Future<AnalysisUpdateContentResult> sendAddOverlay(String contents) {
 
       // TODO(lukechurch): Refactor to allow multiple files
@@ -423,6 +470,22 @@ class _Server {
       var overlay = new AddContentOverlay(contents);
       var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
       _logger.fine("About to send analysis.updateContent");
+      return send("analysis.updateContent", params).then((result) {
+        _logger.fine("analysis.updateContent -> then");
+
+        ResponseDecoder decoder = new ResponseDecoder(null);
+        return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
+      });
+    }
+
+    Future<AnalysisUpdateContentResult> sendRemoveOverlay() {
+
+      // TODO(lukechurch): Refactor to allow multiple files
+      String file = psuedoFilePath;
+
+      var overlay = new RemoveContentOverlay();
+      var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
+      _logger.fine("About to send analysis.updateContent - remove overlay");
       return send("analysis.updateContent", params).then((result) {
         _logger.fine("analysis.updateContent -> then");
 
