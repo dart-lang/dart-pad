@@ -46,7 +46,7 @@ class ParameterPopup {
   }
 
   void _handleKeyUp(KeyboardEvent e) {
-    if (e.keyCode == KeyCode.ESC) {
+    if (e.keyCode == KeyCode.ESC || context.focusedEditor != 'dart' || !editor.hasFocus) {
       remove();
     } else if (parPopupActive || parKeys.contains(e.keyCode)) {
       _lookupParameterInfo();
@@ -129,11 +129,9 @@ class ParameterPopup {
     int charWidth = 8;
 
     Position methodPosition = editor.document.posFromIndex(methodOffset);
-    Position cursorPosition = editor.document.cursor;
-    Point cursorCoords = editor.cursorCoords;
-
-    int heightDifference = methodPosition.line - cursorPosition.line - 1 ;
-    int heightOfMethod = (cursorCoords.y + heightDifference * lineHeight - 5).round();
+    Point cursorCoords = editor.getCursorCoords();
+    Point methodCoords = editor.getCursorCoords(position: methodPosition);
+    int heightOfMethod = (methodCoords.y - lineHeight - 5).round();
 
     var parameterPopup;
     if (parPopupActive) {
@@ -142,7 +140,7 @@ class ParameterPopup {
 
       //update popup position
       int newLeft = math.max(
-          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 22);
+          cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22).round();
 
       parameterPopup = querySelector(".parameter-hints")
         ..style.top = "${heightOfMethod}px";
@@ -156,7 +154,7 @@ class ParameterPopup {
         ..innerHtml = string
         ..classes.add("parameter-hint");
       int left = math.max(
-          cursorCoords.x - (parameterHint.text.length * charWidth ~/ 2), 22);
+          cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22).round();
       parameterPopup = new DivElement()
         ..classes.add("parameter-hints")
         ..style.left = "${left}px"

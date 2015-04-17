@@ -4,6 +4,8 @@
 
 library dart_pad.common;
 
+final String serverURL = 'https://dart-services.appspot.com/';
+//final String serverURL = 'http://127.0.0.1:8082/';
 
 // TODO: This is just for testing this PR remove when the dart-services are
 // updated and this PR is ready for merge

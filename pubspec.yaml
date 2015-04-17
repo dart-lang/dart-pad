@@ -13,6 +13,7 @@ dependencies:
   comid:
     git: https://github.com/google/comid
   crypto: '>=0.9.0 <0.10.0'
+  haikunator: ^0.1.0
   http: '>=0.11.1 <0.12.0'
   logging: '>=0.9.0 <0.10.0'
   markd: ">=0.7.1+4 <0.8.0"
@@ -26,7 +27,7 @@ dev_dependencies:
   unittest: any
   yaml: any
 dependency_overrides:
-  grinder: 0.7.0-dev.1
+  grinder: 0.7.0-dev.2
 transformers:
 - dart_to_js_script_rewriter
 - $dart2js:

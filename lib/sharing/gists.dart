@@ -9,6 +9,10 @@ import 'dart:convert' show JSON;
 import 'dart:html';
 
 import 'package:dart_pad/src/sample.dart' as sample;
+import 'package:haikunator/haikunator.dart';
+
+final String _dartpadLink =
+    "[dartpad.dartlang.org](https://dartpad.dartlang.org)";
 
 /**
  * Return whether the given string is a valid github gist ID.
@@ -37,10 +41,13 @@ String extractHtmlBody(String html) {
 
 Gist createSampleGist() {
   Gist gist = new Gist();
-  gist.description = 'Untitled';
+  // "wispy-dust-1337", "patient-king-8872", "purple-breeze-9817"
+  gist.description = Haikunator.haikunate();
   gist.files.add(new GistFile(name: 'main.dart', content: sample.dartCode));
   gist.files.add(new GistFile(name: 'index.html', content: '\n'));
   gist.files.add(new GistFile(name: 'styles.css', content: '\n'));
+  gist.files.add(new GistFile(name: 'readme.md',
+      content: '# ${gist.description}\n\nCreated with <3 with ${_dartpadLink}.\n'));
   return gist;
 }
 
@@ -124,7 +131,23 @@ ${styleRef}${dartRef}  </head>
 ''';
     }
 
-    // TODO: Save gists as valid pub packages (pubspecs, and readmes).
+    // Update the readme for this gist.
+    GistFile readmeFile = gist.getFile('readme.md', ignoreCase: true);
+    if (readmeFile == null) {
+      readmeFile = new GistFile(
+          name: 'readme.md',
+          content: '# ${gist.description}\n\nView this gist at ${_dartpadLink}.\n');
+      gist.files.add(readmeFile);
+    } else {
+      // Stamp the file content with the current description.
+      List<String> lines = readmeFile.content.split('\n').toList();
+      if (lines.isNotEmpty && lines.first.startsWith('# ')) {
+        lines[0] = '# ${gist.description}';
+        readmeFile.content = lines.join('\n');
+      }
+    }
+
+    // TODO: Write out a reasonable pubspec.yaml for this gist.
 
   };
 
@@ -152,9 +175,9 @@ ${styleRef}${dartRef}  </head>
   /// Create a new gist and return the newly created Gist.
   Future<Gist> createAnon(Gist gist) {
     // POST /gists
-    if (_defaultSaveHook != null) {
+    if (beforeSaveHook != null) {
       gist = gist.clone();
-      _defaultSaveHook(gist);
+      beforeSaveHook(gist);
     }
 
     return HttpRequest.request(_apiUrl, method: 'POST',
@@ -203,8 +226,15 @@ class Gist {
     return null;
   }
 
-  GistFile getFile(String name) =>
-      files.firstWhere((f) => f.name == name, orElse: () => null);
+  GistFile getFile(String name, {bool ignoreCase: false}) {
+    if (ignoreCase) {
+      name = name.toLowerCase();
+      return files.firstWhere((f) => f.name.toLowerCase() == name,
+          orElse: () => null);
+    } else {
+      return files.firstWhere((f) => f.name == name, orElse: () => null);
+    }
+  }
 
   Map toMap() {
     Map m = {};
@@ -244,6 +274,11 @@ class GistFile {
   String toString() => '[${name}, ${content.length} chars]';
 }
 
+abstract class GistController {
+  Future createNewGist();
+  Future shareAnon();
+}
+
 /// A class to store gists in html's localStorage.
 class GistStorage {
   static final String _key = 'gist';
@@ -261,7 +296,7 @@ class GistStorage {
 
   /// Return the id of the stored gist. This will return `null` if there is no
   /// gist stored.
-  String get storedId => _storedId;
+  String get storedId => _storedId == null || _storedId.isEmpty ? null : _storedId;
 
   Gist getStoredGist() {
     String data = window.localStorage[_key];
@@ -274,6 +309,7 @@ class GistStorage {
   }
 
   void clearStoredGist() {
+    _storedId = null;
     window.localStorage.remove(_key);
   }
 }

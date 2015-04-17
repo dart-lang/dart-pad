@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO Rename the file to `documentation.dart`?
+library dartpad.documentation;
 
-library dartpad.doc_handler;
-
+import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'dart:math' as math;
@@ -13,9 +12,9 @@ import 'dart:math' as math;
 import 'package:markd/markdown.dart' as markdown;
 
 import 'context.dart';
-import 'editing/editor.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
+import 'editing/editor.dart';
 import 'services/common.dart';
 
 class DocHandler {
@@ -42,51 +41,28 @@ class DocHandler {
       return;
     }
 
-    SourceRequest input;
     int offset = _editor.document.indexFromPos(_editor.document.cursor);
+
+    SourceRequest request = new SourceRequest()..offset = offset;
 
     if (_editor.completionActive) {
       // If the completion popup is open we create a new source as if the
       // completion popup was chosen, and ask for the documentation of that
       // source.
-      String source = _sourceWithCompletionInserted(_context.dartSource,offset);
-      input = new SourceRequest()
-        ..source = source
-        ..offset = offset;
+      request.source = _sourceWithCompletionInserted(_context.dartSource, offset);
     } else {
-      input = new SourceRequest()
-        ..source = _context.dartSource
-        ..offset = offset;
+      request.source = _context.dartSource;
     }
 
-    // TODO: Show busy.
-    dartServices.document(input).timeout(serviceCallTimeout).then(
+    dartServices.document(request).timeout(serviceCallTimeout).then(
         (DocumentResponse result) {
-      Map info = result.info;
-      String kind = info['kind'];
-      if (info['description'] == null && info['dartdoc'] == null) {
-        docPanel.setInnerHtml("<p>No documentation found.</p>");
-      } else {
-        String apiLink = _dartApiLink(
-            libraryName: info['libraryName'],
-            enclosingClassName: info['enclosingClassName'],
-            memberName: info["name"]
-        );
-        docPanel.setInnerHtml(markdown.markdownToHtml(
-'''
-# `${info['description']}`\n\n
-${info['dartdoc'] != null ? info['dartdoc'] + "\n\n" : ""}
-${kind.contains("variable") ? "${info['kind']}\n\n" : ""}
-${kind.contains("variable") ? "**Propagated type:** ${info["propagatedType"]}\n\n" : ""}
-${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
-''', inlineSyntaxes: [new InlineBracketsColon(), new InlineBrackets()]),
-          validator: _htmlValidator);
-
-        docPanel.querySelectorAll("a").forEach((AnchorElement a)
-        => a.target = "_blank");
-        docPanel.querySelectorAll("h1").forEach((h)
-        => h.classes.add("type-${kind.replaceAll(" ","_")}"));
-      }
+      return _getHtmlTextFor(result).then((_DocResult docResult) {
+        docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
+        docPanel.querySelectorAll("a").forEach(
+            (AnchorElement a) => a.target = "docs");
+        docPanel.querySelectorAll("h1").forEach(
+            (h) => h.classes.add("type-${docResult.entitykind}"));
+      });
     });
   }
 
@@ -100,7 +76,48 @@ ${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
     _context.dartSource.substring(offset);
   }
 
-  String _dartApiLink({String libraryName, String enclosingClassName, String memberName}){
+  Future<_DocResult> _getHtmlTextFor(DocumentResponse result) {
+    Map info = result.info;
+
+    if (info['description'] == null && info['dartdoc'] == null) {
+      return new Future.value(new _DocResult(""));
+    }
+
+    String libraryName = info['libraryName'];
+    String domName = info['DomName'];
+    String kind = info['kind'];
+    bool hasDartdoc = info['dartdoc'] != null;
+    bool isHtmlLib = libraryName == 'dart:html';
+    bool isVariable = kind.contains('variable');
+
+    String apiLink = _dartApiLink(
+        libraryName: libraryName,
+        enclosingClassName: info['enclosingClassName'],
+        memberName: info['name']
+    );
+
+    Future mdnCheck = new Future.value();
+    if (!hasDartdoc && isHtmlLib && domName != null) {
+      mdnCheck = createMdnMarkdownLink(domName);
+    }
+
+    return mdnCheck.then((String mdnLink) {
+      String _mdDocs = '''# `${info['description']}`\n\n
+${hasDartdoc ? info['dartdoc'] + "\n\n" : ''}
+${mdnLink != null ? "## External resources:\n * $mdnLink at MDN" : ''}
+${isVariable ? "${kind}\n\n" : ''}
+${isVariable ? "**Propagated type:** ${info["propagatedType"]}\n\n" : ''}
+${libraryName == null ? '' : "**Library:** $apiLink" }\n\n''';
+
+      String _htmlDocs = markdown.markdownToHtml(
+          _mdDocs,
+          inlineSyntaxes: [new InlineBracketsColon(), new InlineBrackets()]);
+
+      return new _DocResult(_htmlDocs, kind.replaceAll(' ','_'));
+    });
+  }
+
+  String _dartApiLink({String libraryName, String enclosingClassName, String memberName}) {
     StringBuffer apiLink = new StringBuffer();
     if (libraryName != null) {
       if (libraryName.contains("dart:")) {
@@ -116,6 +133,42 @@ ${info['libraryName'] == null ? "" : "**Library:** $apiLink" }\n\n
     }
     return libraryName;
   }
+}
+
+/// Returns the markdown url link for the MDN documentation for the given DOM
+/// element name, or `null` if no documentation URL for that element exits.
+Future<String> createMdnMarkdownLink(String domName) {
+  final String baseUrl = "https://developer.mozilla.org/en-US/docs/Web/API/";
+
+  String domClassName = domName.indexOf(".") != -1
+      ? domName.substring(0, domName.indexOf(".")) : null;
+
+  return _urlExists('$baseUrl$domName').then((exists) {
+    if (exists) return '[$domName]($baseUrl$domName)';
+
+    if (domClassName != null) {
+      return _urlExists('$baseUrl$domClassName').then((exists) {
+        if (exists) return '[$domClassName]($baseUrl$domClassName)';
+      });
+    }
+  });
+
+  // Avoid searching for now.
+  //String searchUrl = "https://developer.mozilla.org/en-US/search?q=";
+  //return 'Search for [$domName]($searchUrl$domName)';
+}
+
+Future<bool> _urlExists(String url) {
+  return HttpRequest.getString(url)
+      .then((_) => true)
+      .catchError((e) => false);
+}
+
+class _DocResult {
+  final String html;
+  final String entitykind;
+
+  _DocResult(this.html, [this.entitykind]);
 }
 
 class InlineBracketsColon extends markdown.InlineSyntax {

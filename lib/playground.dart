@@ -7,18 +7,20 @@ library playground;
 import 'dart:async';
 import 'dart:html' hide Document;
 
-import 'package:dart_pad/core/keys.dart';
 import 'package:logging/logging.dart';
+import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
 
 import 'actions.dart';
 import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
+import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
-import 'doc_handler.dart';
+import 'dialogs.dart';
+import 'documentation.dart';
 import 'editing/editor.dart';
 import 'elements/bind.dart';
 import 'elements/elements.dart';
@@ -43,28 +45,31 @@ void init() {
   _playground = new Playground();
 }
 
-class Playground implements GistContainer {
+class Playground implements GistContainer, GistController {
   DivElement get _editpanel => querySelector('#editpanel');
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
   bool get _isCompletionActive => editor.completionActive;
   DivElement get _docPanel => querySelector('#documentation');
-  AnchorElement get _docTab => querySelector('#doctab');
-  bool get _isDocPanelOpen => _docTab.attributes.containsKey('selected');
+  AnchorElement get _resultTab => querySelector('#resulttab');
+  bool _htmlIsEmpty = true;
 
   DButton runButton;
   DOverlay overlay;
   DBusyLight busyLight;
+  DBusyLight consoleBusyLight;
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
   MutableGist editableGist = new MutableGist(new Gist());
-  //GistStorage _gistStorage = new GistStorage();
+  GistStorage _gistStorage = new GistStorage();
   DContentEditable titleEditable;
+
+  SharingDialog sharingDialog;
+  KeysDialog settings;
 
   // We store the last returned shared gist; it's used to update the url.
   Gist _overrideNextRouteGist;
-  Router _router;
   ParameterPopup paramPopup;
   DocHandler docHandler;
 
@@ -77,9 +82,11 @@ class Playground implements GistContainer {
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
 
-    new NewPadAction(querySelector('#newbutton'), editableGist/*, _gistStorage*/);
+    sharingDialog = new SharingDialog(this, this);
 
-    new SharePadAction(querySelector('#sharebutton'), this);
+    new NewPadAction(querySelector('#newbutton'), editableGist, this);
+    DButton shareButton = new DButton(querySelector('#sharebutton'));
+    shareButton.onClick.listen((e) => sharingDialog.show());
 
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
@@ -91,30 +98,25 @@ class Playground implements GistContainer {
     });
 
     busyLight = new DBusyLight(querySelector('#dartbusy'));
+    consoleBusyLight = new DBusyLight(querySelector('#consolebusy'));
 
     // Update the title on changes.
     titleEditable = new DContentEditable(
         querySelector('header .header-gist-name'));
     bind(titleEditable.onChanged, editableGist.property('description'));
     bind(editableGist.property('description'), titleEditable.textProperty);
-
-    // Update the ID on changes.
-    AnchorElement idAnchor = querySelector('header .header-gist-id a');
-    bind(editableGist.property('id'), (val) => idAnchor.text = val);
-    bind(editableGist.property('html_url'), (val) {
-      idAnchor.href = val == null ? '' : val;
+    editableGist.onDirtyChanged.listen((val) {
+      titleEditable.element.classes.toggle('dirty', val);
     });
 
-    // TODO(devoncarew): Commented out for now; more work is required on the
-    // auto-persistence mechanism.
-//    Throttler throttle = new Throttler(const Duration(milliseconds: 100));
-//    mutableGist.onChanged.transform(throttle).listen((_) {
-//      if (mutableGist.dirty) {
-//        // If there was a change, and the gist is dirty, write the gist's
-//        // contents to storage.
-//        _gistStorage.setStoredGist(mutableGist.createGist());
-//      }
-//    });
+    // If there was a change, and the gist is dirty, write the gist's contents
+    // to storage.
+    Throttler throttle = new Throttler(const Duration(milliseconds: 100));
+    mutableGist.onChanged.transform(throttle).listen((_) {
+      if (mutableGist.dirty) {
+        _gistStorage.setStoredGist(mutableGist.createGist());
+      }
+    });
 
     SelectElement select = querySelector('#samples');
     select.onChange.listen((_) => _handleSelectChanged(select));
@@ -125,15 +127,24 @@ class Playground implements GistContainer {
   }
 
   void showHome(RouteEnterEvent event) {
-    // TODO(devoncarew): Commented out for now; more work is required on the
-    // auto-persistence mechanism.
-//    if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
-//      editableGist.setBackingGist(_gistStorage.getStoredGist());
-//    } else {
-      editableGist.setBackingGist(createSampleGist());
-//    }
+    if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
+      Gist blankGist = new Gist();
+      editableGist.setBackingGist(blankGist);
 
-    Timer.run(_handleRun);
+      Gist storedGist = _gistStorage.getStoredGist();
+      editableGist.description = storedGist.description;
+      for (GistFile file in storedGist.files) {
+        editableGist.getGistFile(file.name).content = file.content;
+      }
+    } else {
+      editableGist.setBackingGist(createSampleGist());
+    }
+
+    // Analyze and run it.
+    Timer.run(() {
+      _handleRun();
+      _performAnalysis();
+    });
   }
 
   void showGist(RouteEnterEvent event) {
@@ -154,6 +165,34 @@ class Playground implements GistContainer {
     _overrideNextRouteGist = gist;
   }
 
+  Future createNewGist() {
+    _gistStorage.clearStoredGist();
+
+    if (ga != null) ga.sendEvent('main', 'new');
+
+    DToast.showMessage('New pad created');
+    router.go('gist', {'gist': ''}, forceReload: true);
+
+    return new Future.value();
+  }
+
+  Future shareAnon() {
+    return gistLoader.createAnon(mutableGist.createGist()).then((Gist newGist) {
+      editableGist.setBackingGist(newGist);
+      overrideNextRoute(newGist);
+      router.go('gist', {'gist': newGist.id});
+      var toast = new DToast('Created ${newGist.id}')..show()..hide();
+      toast.element
+        ..style.cursor = "pointer"
+        ..onClick.listen((e)
+            => window.open("https://gist.github.com/anonymous/${newGist.id}", '_blank'));
+    }).catchError((e) {
+      String message = 'Error saving gist: ${e}';
+      DToast.showMessage(message);
+      ga.sendException('GistLoader.createAnon: failed to create gist');
+    });
+  }
+
   void _showGist(String gistId) {
     // When sharing, we have to pipe the returned (created) gist through the
     // routing library to update the url properly.
@@ -168,13 +207,13 @@ class Playground implements GistContainer {
     gistLoader.loadGist(gistId).then((Gist gist) {
       editableGist.setBackingGist(gist);
 
-//      if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
-//        Gist storedGist = _gistStorage.getStoredGist();
-//        mutableGist.description = storedGist.description;
-//        for (GistFile file in storedGist.files) {
-//          mutableGist.getGistFile(file.name).content = file.content;
-//        }
-//      }
+      if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
+        Gist storedGist = _gistStorage.getStoredGist();
+        editableGist.description = storedGist.description;
+        for (GistFile file in storedGist.files) {
+          editableGist.getGistFile(file.name).content = file.content;
+        }
+      }
 
       // Analyze and run it.
       Timer.run(() {
@@ -199,8 +238,16 @@ class Playground implements GistContainer {
   }
 
   void _initPlayground() {
+    var disablePointerEvents = () {
+      _frame.style.pointerEvents = "none";
+    };
+    var enablePointerEvents = () {
+      _frame.style.pointerEvents = "inherit";
+    };
+
     // TODO: Set up some automatic value bindings.
-    DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'));
+    DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'),
+        onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     editorSplitter.onPositionChanged.listen((pos) {
       state['editor_split'] = pos;
       editor.resize();
@@ -209,7 +256,8 @@ class Playground implements GistContainer {
      editorSplitter.position = state['editor_split'];
     }
 
-    DSplitter outputSplitter = new DSplitter(querySelector('#output_split'));
+    DSplitter outputSplitter = new DSplitter(querySelector('#output_split'),
+        onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     outputSplitter.onPositionChanged.listen((pos) {
       state['output_split'] = pos;
     });
@@ -228,23 +276,17 @@ class Playground implements GistContainer {
     // Set up the gist loader.
     deps[GistLoader] = new GistLoader.defaultFilters();
 
-    // Set up the router.
-    deps[Router] = new Router();
-    router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
-    router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
-    router.listen();
-
     // Set up the editing area.
     editor = editorFactory.createFromElement(_editpanel);
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    keys.bind(['ctrl-s'], _handleSave);
-    keys.bind(['ctrl-enter'], _handleRun);
+    // keys.bind(['ctrl-s'], _handleSave, "Save");
+    keys.bind(['ctrl-enter'], _handleRun, "Run");
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
-      _toggleDocTab();
-    });
+      docHandler.generateDoc(_docPanel);
+    }, "Documentation");
 
     keys.bind(['alt-enter', 'ctrl-1'], (){
         editor.showCompletions(onlyShowFixes: true);
@@ -252,20 +294,27 @@ class Playground implements GistContainer {
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.showCompletions();
-    });
+    }, "Completion");
+
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], (){
+      if (settings.isShowing) settings.hide();
+      else settings.show();
+    }, "Settings");
+
+    settings = new KeysDialog(keys.inverseBindings);
 
     document.onClick.listen((MouseEvent e) {
-      if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+      docHandler.generateDoc(_docPanel);
     });
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive || DocHandler.cursorKeys.contains(e.keyCode)){
-        if (_isDocPanelOpen) docHandler.generateDoc(_docPanel);
+        docHandler.generateDoc(_docPanel);
       }
       _handleAutoCompletion(e);
     });
 
-    _docTab.onClick.listen((e) => _toggleDocTab());
+    _resultTab.onClick.listen((e) => _toggleResultTab());
     querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
     _context = new PlaygroundContext(editor);
@@ -290,7 +339,8 @@ class Playground implements GistContainer {
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     // Bind the editable files to the gist.
-    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'));
+    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'))
+      ..onChanged.listen((html) => _checkForEmptyHtml(html == null ? "" : html));
     Property htmlDoc = new EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
@@ -304,6 +354,12 @@ class Playground implements GistContainer {
     Property dartDoc = new EditorDocumentProperty(_context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
+
+    // Set up the router.
+    deps[Router] = new Router();
+    router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
+    router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
+    router.listen();
 
     // Set up development options.
     options.registerOption('autopopup_code_completion', 'false');
@@ -346,38 +402,35 @@ class Playground implements GistContainer {
   List<Element> _getTabElements(Element element) =>
       element.querySelectorAll('a');
 
-  void _toggleDocTab() {
-    ga.sendEvent('view', 'dartdoc');
-    docHandler.generateDoc(_docPanel);
+  void _toggleResultTab() {
+    ga.sendEvent('view', 'result');
     // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
     querySelector('#output').style.display = "none";
     querySelector("#consoletab").attributes.remove('selected');
 
-    _docPanel.style.display = "block";
-    _docTab.setAttribute('selected','');
+    _frame.style.display = "block";
+    _resultTab.setAttribute('selected','');
   }
 
   void _toggleConsoleTab() {
     ga.sendEvent('view', 'console');
-    _docPanel.style.display = "none";
-    _docTab.attributes.remove('selected');
+    _frame.style.display = "none";
+    _resultTab.attributes.remove('selected');
 
     _outputpanel.style.display = "block";
     querySelector("#consoletab").setAttribute('selected','');
   }
 
   _handleAutoCompletion(KeyboardEvent e) {
-    // If we're already in completion bail or if the editor has no focus.
-    // For example, if the title text is edited.
-    if (_isCompletionActive || !editor.hasFocus) return;
-
-    if (context.focusedEditor == 'dart') {
+    if (context.focusedEditor == 'dart' && editor.hasFocus) {
       if (e.keyCode == KeyCode.PERIOD) {
         editor.completionAutoInvoked = true;
         editor.execCommand("autocomplete");
       }
     }
-    if (!options.getValueBool('autopopup_code_completion')) {
+
+    if (!options.getValueBool('autopopup_code_completion')
+        || _isCompletionActive || !editor.hasFocus) {
       return;
     }
 
@@ -387,11 +440,9 @@ class Playground implements GistContainer {
           editor.showCompletions(autoInvoked: true);
         }
     } else if (context.focusedEditor == "html") {
-      if (options.getValueBool('autopopup_code_completion')) {
-        // TODO: Autocompletion for attributes.
-        if (printKeyEvent(e) == "shift-,") {
-          editor.showCompletions(autoInvoked: true);
-        }
+      // TODO: Autocompletion for attributes.
+      if (printKeyEvent(e) == "shift-,") {
+        editor.showCompletions(autoInvoked: true);
       }
     } else if (context.focusedEditor == "css") {
       RegExp exp = new RegExp(r"[A-Z]");
@@ -401,8 +452,17 @@ class Playground implements GistContainer {
     }
   }
 
+  void _checkForEmptyHtml(String htmlSource) {
+    if (htmlSource.trim().isEmpty && !_htmlIsEmpty) {
+      _htmlIsEmpty = true;
+      _toggleConsoleTab();
+    } else if (htmlSource.trim().isNotEmpty && _htmlIsEmpty){
+      _htmlIsEmpty = false;
+      _toggleResultTab();
+    }
+  }
+
   void _handleRun() {
-    _toggleConsoleTab();
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
     overlay.visible = true;
@@ -419,6 +479,7 @@ class Playground implements GistContainer {
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
+      if (e is DetailedApiRequestError) e = e.message;
       DToast.showMessage('Error compiling to JavaScript');
       ga.sendException("${e.runtimeType}");
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
@@ -471,9 +532,10 @@ class Playground implements GistContainer {
     });
   }
 
-  void _handleSave() {
-    ga.sendEvent('main', 'save');
-  }
+  // TODO
+  // void _handleSave() {
+  //   ga.sendEvent('main', 'save');
+  // }
 
   void _clearOutput() {
     _outputpanel.text = '';
@@ -486,6 +548,7 @@ class Playground implements GistContainer {
     span.text = message;
     _outputpanel.children.add(span);
     span.scrollIntoView(ScrollAlignment.BOTTOM);
+    consoleBusyLight.flash();
   }
 
   void _handleSelectChanged(SelectElement select) {
@@ -496,10 +559,6 @@ class Playground implements GistContainer {
     }
 
     select.value = '0';
-  }
-
-  void _setGistDescription(String description) {
-    titleEditable.text = description == null ? '' : description;
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {

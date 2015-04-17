@@ -228,8 +228,13 @@ class _CodeMirrorEditor extends Editor {
 
   Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
 
-  Point get cursorCoords {
-    JsObject js = cm.call("cursorCoords");
+  Point getCursorCoords({ed.Position position}) {
+    JsObject js;
+    if (position == null) {
+      js = cm.call("cursorCoords");
+    } else {
+      js = cm.callArg("cursorCoords", _document._posToPos(position).toProxy());
+    }
     return new Point(js["left"], js["top"]);
   }
 

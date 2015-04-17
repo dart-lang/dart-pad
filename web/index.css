@@ -55,11 +55,8 @@ header {
   min-width: 2em;
 }
 
-.header-gist-id {
-  text-overflow: ellipsis;
-  overflow-x: hidden;
-  max-width: 100px;
-  text-transform: uppercase;
+.header-gist-name.dirty::after {
+  content: " •";
 }
 
 #newbutton {
@@ -94,6 +91,7 @@ footer {
   position: relative;
   margin: 0 0;
   min-width: 75px;
+  min-height: 50px;
 }
 
 pre {
@@ -144,6 +142,11 @@ a[selected]:hover {
   text-transform: uppercase;
 }
 
+[reverse].header a {
+  margin-left: 16px;
+  margin-right: 0;
+}
+
 .header {
   line-height: 24px;
   font-size: 12pt;
@@ -151,24 +154,7 @@ a[selected]:hover {
 
 .header.small {
   font-size: 11pt;
-}
-
-button {
-  outline: none;
-  color: #aaa;
-  fill: #aaa;
-  border: 1px solid #222;
-  border-radius: 2px;
-  font-family: 'Roboto', sans-serif;
-  font-size: 12pt;
   line-height: 18px;
-  height: 24px;
-  cursor: pointer;
-  padding: 2px 6px;
-  transition: 100ms;
-  min-width: 75px;
-  background-color: #444;
-  background-image: linear-gradient(to bottom, #444, #333);
 }
 
 #runbutton svg {
@@ -191,30 +177,14 @@ button {
   fill: #FFF79A;
 }
 
-button:hover {
-  color: #fff;
-  fill: #fff;
-}
-
-button:active {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-button[disabled] {
-  color: #555;
-  fill: #555;
-  pointer-events: none;
-  border-color: #272727;
-  background-color: #3b3b3b;
-  background-image: none;
-}
-
 #runbutton {
   padding-right: 11px;
 }
 
 #frame {
   min-height: 50px;
+  display: none;
+  margin-top: 10px;
 }
 
 iframe {
@@ -328,7 +298,7 @@ div.toggle {
   font-size: 11pt;
   line-height: 20px;
   position: relative;
-  display: none;
+  display: block;
   overflow: auto;
   overflow-wrap: break-word;
   margin-top: 0;
@@ -413,4 +383,56 @@ div.toggle {
 .parameter-hint {
   padding: 4px;
   background: #3f3f3f;
+}
+
+.sharing-dialog .sharinglabel {
+  min-width: 110px;
+  margin-right: 10px;
+  display: inline-block;
+}
+
+.sharing-dialog .row {
+  margin-bottom: 8px;
+}
+
+.sharing-dialog .inputgroup {
+  display: inline-block;
+}
+
+.sharing-dialog input {
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 4px 8px;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.075);
+}
+
+.keys-dialog {
+  max-width: 300px;
+  top: auto !important;
+  bottom: 20px;
+}
+
+.keys-dialog dl {
+  padding: 0.5em;
+}
+.keys-dialog dt {
+  float: left;
+  clear: left;
+}
+
+.keys-dialog dd {
+  text-align: right;
+}
+
+.keys-dialog dd > span {
+  font-family: "Helvetica Neue", "Inconsolata", monospace;
+  padding: 0 4px;
+  background-color: #FFF79A; /**#dfaf8f #f0dfaf #66d9ef #FFF79A #AEA859;*/
+  font-size: 10pt;
+  color: black;
+  border-radius: 2px;
+  margin: 2px 2px;
+  white-space: nowrap;
+  display: inline-block;
 }

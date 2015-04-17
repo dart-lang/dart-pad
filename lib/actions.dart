@@ -4,9 +4,10 @@
 
 library dartpad.actions;
 
+import 'dart:async';
 import 'dart:html';
 
-import 'dart_pad.dart';
+import 'dialogs.dart';
 import 'elements/elements.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
@@ -15,51 +16,25 @@ import 'sharing/mutable_gist.dart';
 class NewPadAction {
   final DButton _button;
   final MutableGist _gist;
-  //final GistStorage _gistStorage;
+  final GistController _gistController;
 
-  NewPadAction(Element element, this._gist/*, this._gistStorage*/) :
+  NewPadAction(Element element, this._gist, this._gistController) :
       _button = new DButton(element) {
     _button.onClick.listen((e) => _handleButtonPress());
   }
 
   void _handleButtonPress() {
+    Future<bool> response = new Future.value(true);
+
     if (_gist.dirty) {
-      if (!window.confirm('Discard changes to the current pad?')) return;
+      response = confirm(
+          'Create New Pad',
+          'Discard changes to the current pad?',
+          okText: 'Discard');
     }
 
-    //_gistStorage.clearStoredGist();
-
-    if (ga != null) ga.sendEvent('main', 'new');
-
-    DToast.showMessage('New pad created');
-    router.go('gist', {'gist': ''});
-  }
-}
-
-/// An action that creates a new anonymous copy of the current pad.
-class SharePadAction {
-  final DButton _button;
-  final GistContainer _gistContainer;
-
-  SharePadAction(Element element, this._gistContainer) :
-      _button = new DButton(element) {
-    _button.onClick.listen((e) => _handleButtonPress());
-    _gist.onDirtyChanged.listen((dirty) => _button.disabled = !dirty);
-  }
-
-  MutableGist get _gist => _gistContainer.mutableGist;
-
-  void _handleButtonPress() {
-    if (ga != null) ga.sendEvent('main', 'share');
-
-    gistLoader.createAnon(_gist.createGist()).then((Gist newGist) {
-      _gistContainer.overrideNextRoute(newGist);
-      router.go('gist', {'gist': newGist.id});
-      DToast.showMessage('Created ${newGist.id}');
-    }).catchError((e) {
-      String message = 'Error saving gist: ${e}';
-      DToast.showMessage(message);
-      ga.sendException('GistLoader.createAnon: failed to create gist');
+    response.then((val) {
+      if (val) _gistController.createNewGist();
     });
   }
 }

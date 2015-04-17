@@ -2,6 +2,58 @@
 /* for details. All rights reserved. Use of this source code is governed by a */
 /* BSD-style license that can be found in the LICENSE file. */
 
+/* Button css. */
+
+.button {
+  outline: none;
+  color: #aaa;
+  fill: #aaa;
+  border: 1px solid #222;
+  border-radius: 2px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12pt;
+  line-height: 18px;
+  height: 24px;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: 100ms;
+  min-width: 75px;
+  background-color: #444;
+  background-image: linear-gradient(to bottom, #444, #333);
+}
+
+.button.default,
+.button:hover {
+  color: #fff;
+  fill: #fff;
+}
+
+.button:active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.button[disabled] {
+  color: #555;
+  fill: #555;
+  pointer-events: none;
+  border-color: #272727;
+  background-color: #3b3b3b;
+  background-image: none;
+}
+
+button.close {
+  border: none;
+  background: url(close.svg) center no-repeat;
+  width: 24px;
+  height: 24px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+button.close:hover {
+  opacity: 1;
+}
+
 /* Splitter css. */
 
 .splitter {
@@ -205,24 +257,95 @@
 }
 
 .toast {
-  padding: 0.5em 1em;
-  position: absolute;
   right: 16px;
   top: 0;
-  box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.4) 0 1px 7px 0 inset;
   min-width: 12em;
   max-width: 40em;
-  background-color: inherit;
+  padding: 0.5em 1em;
 
-  z-index: 10;
-  opacity: 0;
-  transition: 400ms;
   -webkit-user-select: none;
 }
 
 .toast.showing {
-  opacity: 1;
   top: 72px;
+}
+
+.toast.dialog {
+  z-index: 18;
+}
+
+.glass-pane {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  opacity: 0.40;
+  background-color: #222;
+  z-index: 15;
+  transition: 200ms;
+}
+
+.dialog {
+  position: absolute;
+  padding: 10px;
+  background-color: #444;
+  border: 1px solid;
+  border-color: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  box-shadow: rgba(255, 255, 255, 0.1) 0 0 0, rgba(0, 0, 0, 0.4) 0 1px 7px 0;
+
+  opacity: 0;
+  transition: 400ms;
+  z-index: 20;
+}
+
+.dialog-position {
+  top: 100px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 550px;
+}
+
+.dialog.showing {
+  opacity: 1;
+}
+
+.dialog .title {
+  white-space: nowrap;
+  padding: 5px 10px 10px 10px;
+  margin: 0 -10px;
+  box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
+  border-bottom: 1px solid #333;
+}
+
+.dialog .title h1 {
+  font-size: 16pt;
+  font-weight: normal;
+  text-shadow: rgba(0,0,0,0.75) 0 1px;
+  margin: 0;
+  padding: 0;
+}
+
+.dialog .content {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  min-width: 300px;
+}
+
+.dialog .buttons button + button {
+  margin-left: 10px;
+}
+
+.dialog p {
+  margin-top: 0.5em;
+}
+
+.dialog button.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
 }
 
 /* contenteditable elements */
