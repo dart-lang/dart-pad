@@ -288,9 +288,12 @@ class Playground implements GistContainer, GistController {
       docHandler.generateDoc(_docPanel);
     }, "Documentation");
 
+    keys.bind(['alt-enter', 'ctrl-1'], (){
+        editor.showCompletions(onlyShowFixes: true);
+    }, "Quick fix");
+
     keys.bind(['ctrl-space', 'macctrl-space'], (){
-      editor.completionAutoInvoked = false;
-      editor.execCommand('autocomplete');
+      editor.showCompletions();
     }, "Completion");
 
     keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], (){
@@ -434,20 +437,17 @@ class Playground implements GistContainer, GistController {
     if (context.focusedEditor == 'dart') {
       RegExp exp = new RegExp(r"[A-Z]");
         if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-          editor.completionAutoInvoked = true;
-          editor.execCommand("autocomplete");
+          editor.showCompletions(autoInvoked: true);
         }
     } else if (context.focusedEditor == "html") {
       // TODO: Autocompletion for attributes.
       if (printKeyEvent(e) == "shift-,") {
-        editor.completionAutoInvoked = true;
-        editor.execCommand("autocomplete");
+        editor.showCompletions(autoInvoked: true);
       }
     } else if (context.focusedEditor == "css") {
       RegExp exp = new RegExp(r"[A-Z]");
       if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-        editor.completionAutoInvoked = true;
-        editor.execCommand("autocomplete");
+        editor.showCompletions(autoInvoked: true);
       }
     }
   }
@@ -493,7 +493,7 @@ class Playground implements GistContainer, GistController {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
 
-    Future request = dartServices.analyze(input).timeout(serviceCallTimeout);;
+    Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
     _analysisRequest = request;
 
     request.then((AnalysisResults result) {
@@ -598,6 +598,19 @@ class Playground implements GistContainer, GistController {
         messageSpan.classes.add('message');
         messageSpan.text = issue.message;
         e.children.add(messageSpan);
+        if (issue.hasFixes) {
+          e.classes.add("hasFix");
+          e.onClick.listen((e) {
+            // This is a bit of a hack to make sure quick fixes popup
+            // is only shown if the wrench is clicked,
+            // and not if the text or label is clicked.
+            if ((e.target as Element).className == "issue hasFix") {
+              // codemiror only shows completions if there is no selected text
+              _jumpTo(issue.line, issue.charStart, 0, focus: true);
+              editor.showCompletions(onlyShowFixes: true);
+            }
+          });
+        }
       }
 
       issuesElement.classes.toggle('showing', issues.isNotEmpty);

@@ -177,6 +177,20 @@ li.CodeMirror-hint-active {
   background: radial-gradient(#fff, #eee);
 }
 
+.type-quick_fix {
+  font-family: "Inconsolata", sans-serif;
+  font-size: 12pt;
+}
+
+.type-quick_fix::before {
+  content: " ";
+  background: url('../elements/wrench.svg') no-repeat;
+  background-size: 15px 15px;
+  height: 16px;
+  width: 16px;
+  margin-right: 2px;
+}
+
 /* Chrome specific styling hack, see #236. */
 @media all and (-webkit-min-device-pixel-ratio:0) and (min-resolution: .001dpcm) {
   #documentation h1::before,

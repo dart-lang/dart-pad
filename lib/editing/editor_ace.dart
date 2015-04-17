@@ -130,6 +130,9 @@ class _AceEditor extends Editor {
     editor.theme = new ace.Theme.named(str);
   }
 
+  // TODO: Add an showCompletions method for ace.
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) { }
+
   bool get hasFocus => editor.isFocused;
 
   // TODO: Add a cursorCoords getter for ace.
@@ -175,6 +178,9 @@ class _AceDocument extends Document {
   bool get isClean => session.undoManager.isClean;
 
   void markClean() => session.undoManager.markClean();
+
+  // TODO: Add a applyEdit method for ace.
+  void applyEdit(SourceEdit edit) { }
 
   void setAnnotations(List<Annotation> annotations) {
 //    if (markers.isNotEmpty) {
