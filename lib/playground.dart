@@ -335,7 +335,6 @@ class Playground implements GistContainer, GistController {
     // Listen for changes that would effect the documentation panel.
     editor.onMouseDown.listen((e) => docHandler.generateDoc(_docPanel));
     context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
-    context.onModeChange.listen(print);
 
     // Bind the editable files to the gist.
     Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'))
