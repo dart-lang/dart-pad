@@ -290,7 +290,7 @@ class Playground implements GistContainer, GistController {
 
     keys.bind(['alt-enter', 'ctrl-1'], (){
         editor.showCompletions(onlyShowFixes: true);
-    });
+    }, "Quick fix");
 
     keys.bind(['ctrl-space', 'macctrl-space'], (){
       editor.showCompletions();

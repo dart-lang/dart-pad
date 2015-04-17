@@ -216,7 +216,7 @@ button.close:hover {
 }
 
 #issues .issue.hasFix {
-  background: #444 url('../images/wrench.svg') right no-repeat;
+  background: #444 url('wrench.svg') right no-repeat;
   background-size: 15px 15px;
 }
 

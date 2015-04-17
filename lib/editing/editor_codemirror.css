@@ -184,8 +184,11 @@ li.CodeMirror-hint-active {
 
 .type-quick_fix::before {
   content: " ";
-  background: url('../images/wrench.svg');
+  background: url('../elements/wrench.svg') no-repeat;
   background-size: 15px 15px;
+  height: 16px;
+  width: 16px;
+  margin-right: 2px;
 }
 
 /* Chrome specific styling hack, see #236. */

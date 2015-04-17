@@ -199,15 +199,17 @@ class _CodeMirrorEditor extends Editor {
   void execCommand(String name) => cm.execCommand(name);
 
   void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) {
-    if (autoInvoked)
+    if (autoInvoked) {
       completionAutoInvoked = true;
-    else
+    } else {
       completionAutoInvoked = false;
-    if (onlyShowFixes)
+    }
+    if (onlyShowFixes) {
       _lookingForQuickFix = true;
-    else
+    } else {
       _lookingForQuickFix = false;
-    execCommand("autocomplete");
+      execCommand("autocomplete");
+    }
   }
 
   bool get completionActive {
