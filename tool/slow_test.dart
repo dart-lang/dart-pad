@@ -145,7 +145,7 @@ testFixes(String src, analysis_server.AnalysisServerWrapper wrapper) async {
 
 testFormat(String src, analysis_server.AnalysisServerWrapper wrapper) async {
   Stopwatch sw = new Stopwatch()..start();
-  await wrapper.format(src);
+  await wrapper.format(src, 0);
   return sw.elapsedMilliseconds;
 }
 

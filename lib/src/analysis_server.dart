@@ -79,7 +79,7 @@ class AnalysisServerWrapper {
     return results.then((editResult) {
       String editSrc = src;
       editResult.edits.forEach((edit) {
-        editSrc = edit.apply(s);
+        editSrc = edit.apply(editSrc);
       });
       return new api.FormatResponse(editSrc);
     });
