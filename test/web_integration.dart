@@ -37,9 +37,13 @@ main(List<String> args) async {
   }
 
   if (factory == null) {
-    print('No webdriver candidates found.');
-    print('Either set up the env. variables for using saucelabs, or install '
-        'chromedriver or phantomjs.');
+    print('''
+No webdriver candidates found. Either set up the env. variables for using
+saucelabs, or install chromedriver or phantomjs.
+
+See https://github.com/dart-lang/dart-pad/blob/master/doc/webdriver.md
+for more information.
+''');
     exit(1);
   }
 
