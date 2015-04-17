@@ -12,7 +12,6 @@ import 'dart:io' as io;
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:logging/logging.dart';
-import 'analyzer.dart';
 
 import 'api_classes.dart' as api;
 
@@ -36,17 +35,11 @@ final _SERVER_PATH = "bin/_analysis_server_entry.dart";
 class AnalysisServerWrapper {
   final String sdkPath;
 
-  // Needed to do fast verification check before formatting.
-  // TODO(lukechurch): Replace this with listening to server errors and
-  // warnings.
-  Analyzer analyzer;
-
   /// Instance to handle communication with the server.
   _Server serverConnection;
 
   AnalysisServerWrapper(this.sdkPath) {
     serverConnection = new _Server(this.sdkPath);
-    analyzer = new Analyzer(this.sdkPath);
   }
 
   Future<api.CompleteResponse> complete(String src, int offset) async {
@@ -81,10 +74,14 @@ class AnalysisServerWrapper {
     });
   }
 
-  Future<api.FormatResponse> format(String src) async {
-    var results = _formatImpl(src);
+  Future<api.FormatResponse> format(String src, int offset) async {
+    var results = _formatImpl(src, offset);
     return results.then((editResult) {
-      return new api.FormatResponse(editResult);
+      String editSrc = src;
+      editResult.edits.forEach((edit) {
+        editSrc = edit.apply(s);
+      });
+      return new api.FormatResponse(editSrc);
     });
   }
 
@@ -114,19 +111,11 @@ class AnalysisServerWrapper {
     return fixes;
   }
 
-  Future<EditFormatResult> _formatImpl(String src) async {
-
-    api.AnalysisResults analysisResults = await analyzer.analyze(src);
-    if (analysisResults.issues.where(
-            (issue) => issue.kind == "error").length > 0)
-      return new Future.value(new EditFormatResult(
-          new List<SourceEdit>(), 0, 0));
-
+  Future<EditFormatResult> _formatImpl(String src, int offset) async {
     await serverConnection._ensureSetup();
-
     await serverConnection.sendAddOverlay(src);
     await serverConnection.analysisComplete.first;
-    var formatResult = await serverConnection.sendFormat();
+    var formatResult = await serverConnection.sendFormat(offset);
     serverConnection.sendRemoveOverlay();
     return formatResult;
   }
@@ -450,8 +439,8 @@ class _Server {
       });
     }
 
-    Future<EditFormatResult> sendFormat(
-        [int selectionOffset = 0, int selectionLength = 0]) {
+    Future<EditFormatResult> sendFormat(int selectionOffset,
+      [int selectionLength = 0]) {
 
       String file = psuedoFilePath;
       var params = new EditFormatParams(

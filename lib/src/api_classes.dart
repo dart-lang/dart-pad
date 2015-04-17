@@ -190,17 +190,10 @@ class CandidateFix {
  * Represents a reformatting of the code.
  */
 class FormatResponse {
-  List<SourceEdit> edits;
+  String newString;
+  int offset;
 
-  FormatResponse(EditFormatResult format) {
-    edits = [];
-
-    format.edits.forEach((edit) => edits.add(
-      new SourceEdit(edit.offset,
-        edit.length != null ? edit.length : 0,
-        edit.replacement != null ? edit.replacement : 0)
-    ));
-  }
+  FormatResponse(this.newString, [this.offset = 0]);
 }
 
 /**
@@ -213,4 +206,15 @@ class SourceEdit {
 
   SourceEdit(this.offset, this.length, this.replacement);
 
+  String applyTo(String target) {
+    if (offset >= replacement.length) {
+      throw "Offset beyond end of string";
+    } else if (offset + length >= replacement.length) {
+      throw "Change beyond end of string";
+    }
+
+    String pre = "${target.substring(0, offset)}";
+    String post = "${target.substring(offset+length)}";
+    return "$pre$replacement$post";
+  }
 }
