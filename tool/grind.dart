@@ -13,6 +13,7 @@ import 'package:librato/librato.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 final FilePath _buildDir = new FilePath('build');
+final FilePath _webDir = new FilePath('web');
 
 main(List args) => grind(args);
 
@@ -34,6 +35,9 @@ bower() => run('bower', arguments: ['install']);
 @Task('Build the `web/index.html` entrypoint')
 @Depends(bower)
 build() {
+  // Copy our third party python code into web/.
+  new FilePath('third_party/mdetect/mdetect.py').copy(_webDir);
+
   Pub.build(directories: ['web', 'test']);
 
   FilePath mainFile = _buildDir.join('web', 'main.dart.js');
