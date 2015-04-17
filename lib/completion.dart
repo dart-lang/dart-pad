@@ -73,12 +73,10 @@ class DartCompleter extends CodeCompleter {
         String replacementString = editor.document.value.substring(
             replaceOffset, replaceOffset + replaceLength);
 
-
         List<AnalysisCompletion> analysisCompletions = response.completions.map(
                 (completion) {
               return new AnalysisCompletion(replaceOffset, replaceLength, completion);
             }).toList();
-
 
         List<Completion> completions = analysisCompletions.map((completion) {
           // TODO: Move to using a LabelProvider; decouple the data and rendering.

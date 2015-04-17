@@ -140,18 +140,20 @@ class CodeMirrorFactory extends EditorFactory {
 
       if (hints.isEmpty && ed._lookingForQuickFix) {
         hints = [
-          new HintResult(stringToReplace,
-          displayText: "No fixes available", className: "type-no_suggestions")
+          new HintResult(
+              stringToReplace,
+              displayText: "No fixes available",
+              className: "type-no_suggestions")
         ];
-      }
-      // Only show 'no suggestions' if the completion was explicitly invoked
-      // or if the popup was already active.
-      else if (hints.isEmpty
-            && (ed.completionActive
-                  || (!ed.completionActive && !ed.completionAutoInvoked))) {
+      } else if (hints.isEmpty &&
+          (ed.completionActive || (!ed.completionActive && !ed.completionAutoInvoked))) {
+        // Only show 'no suggestions' if the completion was explicitly invoked
+        // or if the popup was already active.
         hints = [
-          new HintResult(stringToReplace,
-              displayText: "No suggestions", className: "type-no_suggestions")
+          new HintResult(
+              stringToReplace,
+              displayText: "No suggestions",
+              className: "type-no_suggestions")
         ];
       }
 
