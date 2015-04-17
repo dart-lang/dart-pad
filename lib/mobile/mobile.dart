@@ -557,6 +557,8 @@ class PlaygroundMobile {
 class PlaygroundContext extends Context {
   final Editor editor;
 
+  StreamController<String> _modeController = new StreamController.broadcast();
+
   Document _dartDoc;
   Document _htmlDoc;
   Document _cssDoc;
@@ -601,7 +603,13 @@ class PlaygroundContext extends Context {
     _cssDoc.value = value;
   }
 
+  String get activeMode => editor.mode;
+
+  Stream<String> get onModeChange => _modeController.stream;
+
   void switchTo(String name) {
+    String oldMode = activeMode;
+
     if (name == 'dart') {
       editor.swapDocument(_dartDoc);
     } else if (name == 'html') {
@@ -609,6 +617,8 @@ class PlaygroundContext extends Context {
     } else if (name == 'css') {
       editor.swapDocument(_cssDoc);
     }
+
+    if (oldMode != name) _modeController.add(name);
   }
 
   String get focusedEditor {
