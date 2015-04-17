@@ -208,8 +208,8 @@ class _CodeMirrorEditor extends Editor {
       _lookingForQuickFix = true;
     } else {
       _lookingForQuickFix = false;
-      execCommand("autocomplete");
     }
+    execCommand("autocomplete");
   }
 
   bool get completionActive {
