@@ -303,10 +303,6 @@ class Playground implements GistContainer, GistController {
 
     settings = new KeysDialog(keys.inverseBindings);
 
-    document.onClick.listen((MouseEvent e) {
-      docHandler.generateDoc(_docPanel);
-    });
-
     document.onKeyUp.listen((e) {
       if (editor.completionActive || DocHandler.cursorKeys.contains(e.keyCode)){
         docHandler.generateDoc(_docPanel);
@@ -337,6 +333,10 @@ class Playground implements GistContainer, GistController {
 
     _context.onDartDirty.listen((_) => busyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
+
+    // Listen for changes that would effect the documentation panel.
+    editor.onMouseDown.listen((e) => docHandler.generateDoc(_docPanel));
+    context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
 
     // Bind the editable files to the gist.
     Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'))
@@ -644,6 +644,8 @@ class Playground implements GistContainer, GistController {
 class PlaygroundContext extends Context {
   final Editor editor;
 
+  StreamController<String> _modeController = new StreamController.broadcast();
+
   Document _dartDoc;
   Document _htmlDoc;
   Document _cssDoc;
@@ -692,7 +694,11 @@ class PlaygroundContext extends Context {
 
   String get activeMode => editor.mode;
 
+  Stream<String> get onModeChange => _modeController.stream;
+
   void switchTo(String name) {
+    String oldMode = activeMode;
+
     if (name == 'dart') {
       editor.swapDocument(_dartDoc);
     } else if (name == 'html') {
@@ -700,6 +706,8 @@ class PlaygroundContext extends Context {
     } else if (name == 'css') {
       editor.swapDocument(_cssDoc);
     }
+
+    if (oldMode != name) _modeController.add(name);
 
     editor.focus();
   }
