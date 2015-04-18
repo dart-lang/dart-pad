@@ -23,10 +23,10 @@ typedef void NotificationProcessor(String event, params);
 final Logger _logger = new Logger('analysis_server');
 
 /**
- * Compile time flag to determine wheter we should dump
- * the communication with the server to stdout.
+ * Flag to determine wheter we should dump the communication
+ * with the server to stdout.
  */
-final bool _DUMP_SERVER_MESSAGES = false;
+bool dumpServerMessages = false;
 
 final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
 final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
@@ -95,10 +95,12 @@ class AnalysisServerWrapper {
     await serverConnection.sendAddOverlay(src);
     await serverConnection.analysisComplete.first;
     await serverConnection.sendCompletionGetSuggestions(offset);
-    serverConnection.sendRemoveOverlay();
 
     return serverConnection.completionResults.handleError(
-        (error) => throw "Completion failed").first;
+        (error) => throw "Completion failed").first.then((ret) async {
+          await serverConnection.sendRemoveOverlay();
+          return ret;
+    });
   }
 
   Future<EditGetFixesResult> _getFixesImpl(String src, int offset) async {
@@ -107,7 +109,7 @@ class AnalysisServerWrapper {
     await serverConnection.sendAddOverlay(src);
     await serverConnection.analysisComplete.first;
     var fixes = await serverConnection.sendGetFixes(offset);
-    serverConnection.sendRemoveOverlay();
+    await serverConnection.sendRemoveOverlay();
     return fixes;
   }
 
@@ -116,7 +118,7 @@ class AnalysisServerWrapper {
     await serverConnection.sendAddOverlay(src);
     await serverConnection.analysisComplete.first;
     var formatResult = await serverConnection.sendFormat(offset);
-    serverConnection.sendRemoveOverlay();
+    await serverConnection.sendRemoveOverlay();
     return formatResult;
   }
 
@@ -200,7 +202,6 @@ class _Server {
     isSetup = true;
 
     _logger.fine("Setup done");
-
     return analysisComplete.first;
   }
 
@@ -529,7 +530,7 @@ class _Server {
    * [DUMP_SERVER_MESSAGES] is true.
    */
   void _logStdio(String line) {
-    if (_DUMP_SERVER_MESSAGES)
+    if (dumpServerMessages)
       print(line);
   }
 }
