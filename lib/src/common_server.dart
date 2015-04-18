@@ -205,7 +205,9 @@ class CommonServer {
               return new CompileResponse(out);
             });
           } else {
-            String errors = results.problems.map(_printCompileProblem).join('\n');
+            List problems = _filterCompileProblems(results.problems);
+            if (problems.isEmpty) problems = results.problems;
+            String errors = problems.map(_printCompileProblem).join('\n');
             throw new BadRequestError(errors);
           }
         }).catchError((e, st) {
@@ -261,8 +263,17 @@ class CommonServer {
       cache.set(query, result, expiration: _standardExpiration);
 }
 
-String _printCompileProblem(CompilationProblem problem) =>
-    '[${problem.kind}, line ${problem.line}] ${problem.message}';
+List<CompilationProblem> _filterCompileProblems(List<CompilationProblem> problems) {
+  return problems.where((p) => !p.isHint && p.isOnCompileTarget).toList();
+}
+
+String _printCompileProblem(CompilationProblem problem) {
+  if (problem.isOnCompileTarget) {
+    return '[${problem.kind} on line ${problem.line}] ${problem.message}';
+  } else {
+    return '[${problem.kind}] ${problem.message}';
+  }
+}
 
 String _hashSource(String str) {
   SHA1 sha1 = new SHA1();
