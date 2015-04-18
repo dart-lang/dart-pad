@@ -135,6 +135,23 @@ class CommonServer {
     return _fix(source, offset);
   }
 
+  @ApiMethod(method: 'POST', path: 'format')
+  Future<FormatResponse> format(SourceRequest request) {
+    if (request.offset == null) return _format(request.source);
+
+    return _format(request.source, offset: request.offset);
+  }
+
+  @ApiMethod(method: 'GET', path: 'format')
+  Future<FormatResponse> formatGet({String source, int offset}) {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
+    }
+
+    if (offset == null) return _format(source);
+    return _format(source, offset: offset);
+  }
+
   @ApiMethod(method: 'POST', path: 'document')
   Future<DocumentResponse> document(SourceRequest request) {
     return _document(request.source, request.offset);
@@ -254,6 +271,20 @@ class CommonServer {
       counter.increment("Fixes");
       return analysisServer.getFixes(source, offset);
     }
+
+  Future<FormatResponse> _format(String source, {int offset : 0}) async {
+    srcRequestRecorder.record("FORMAT", source, offset);
+    counter.increment("Formats");
+
+    // Guard against trying to format code with errors.
+    AnalysisResults analysisResults = await analyzer.analyze(source);
+
+    if (analysisResults.issues.where(
+      (issue) => issue.kind == "error").length > 0) {
+      return new FormatResponse(source, offset);
+    }
+    return analysisServer.format(source, offset);
+  }
 
   Future<String> checkCache(String query) => cache.get(query);
 

@@ -51,6 +51,7 @@ main (List<String> args) async {
       r = new Random(seed);
       seed++;
       await testPath(fse.path, analysisServer, analyzer, compiler);
+
     } catch (e) {
       print (e);
       print ("FAILED: ${fse.path}");
@@ -77,26 +78,32 @@ testPath(String path,
   f = null;
 
   for (int i = 0; i < 5; i++) {
-    int noChanges = r.nextInt(20);
 
-    for (int j = 0; j < noChanges; j++) {
-      src = mutate(src);
-    }
-
+    // Run once for each file without mutation.
     var averageCompletionTime = await testCompletions(src, wrapper);
     var averageAnalysisTime = await testAnalysis(src, analyzer);
     var averageDocumentTime = await testDocument(src, analyzer);
     var averageCompilationTime = await testCompilation(src, compiler);
     var averageFixesTime = await testFixes(src, wrapper);
+    var averageFormatTime = await testFormat(src, wrapper);
+
 
     print (
-      "$path-$i - $noChanges, "
+      "$path-$i, "
       "${averageCompilationTime.toStringAsFixed(2)}ms, "
       "${averageAnalysisTime.toStringAsFixed(2)}ms, "
       "${averageCompletionTime.toStringAsFixed(2)}ms, "
       "${averageDocumentTime.toStringAsFixed(2)}ms, "
-      "${averageFixesTime.toStringAsFixed(2)}ms"
+      "${averageFixesTime.toStringAsFixed(2)}ms, "
+      "${averageFormatTime.toStringAsFixed(2)}ms"
       );
+
+    // And then for the remainder with an increasing mutated file.
+    int noChanges = r.nextInt(20);
+
+    for (int j = 0; j < noChanges; j++) {
+      src = mutate(src);
+    }
   }
 }
 
@@ -135,6 +142,13 @@ testFixes(String src, analysis_server.AnalysisServerWrapper wrapper) async {
   }
   return sw.elapsedMilliseconds / src.length;
 }
+
+testFormat(String src, analysis_server.AnalysisServerWrapper wrapper) async {
+  Stopwatch sw = new Stopwatch()..start();
+  await wrapper.format(src, 0);
+  return sw.elapsedMilliseconds;
+}
+
 
 mutate(String src) {
   var c = ["{", "}", "[", "]", "'", ",", "!", "@", "#", "\$", "%",

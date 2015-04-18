@@ -13,7 +13,7 @@ import 'dart:io' as io;
 import 'package:analysis_server/src/protocol.dart';
 import 'package:logging/logging.dart';
 
-import 'api_classes.dart';
+import 'api_classes.dart' as api;
 
 /**
  * Type of callbacks used to process notifications.
@@ -23,10 +23,10 @@ typedef void NotificationProcessor(String event, params);
 final Logger _logger = new Logger('analysis_server');
 
 /**
- * Compile time flag to determine wheter we should dump
- * the communication with the server to stdout.
+ * Flag to determine wheter we should dump the communication
+ * with the server to stdout.
  */
-final bool _DUMP_SERVER_MESSAGES = false;
+bool dumpServerMessages = false;
 
 final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
 final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
@@ -42,7 +42,7 @@ class AnalysisServerWrapper {
     serverConnection = new _Server(this.sdkPath);
   }
 
-  Future<CompleteResponse> complete(String src, int offset) async {
+  Future<api.CompleteResponse> complete(String src, int offset) async {
     Future<Map> results = _completeImpl(src, offset);
 
     // Post process the result from Analysis Server.
@@ -61,16 +61,30 @@ class AnalysisServerWrapper {
         } else {
           return -1 * xRelevance.compareTo(yRelevance);
         }});
-      return new CompleteResponse(
+      return new api.CompleteResponse(
           response['replacementOffset'], response['replacementLength'],
           results);
     });
   }
 
-  Future<FixesResponse> getFixes(String src, int offset) async {
+  Future<api.FixesResponse> getFixes(String src, int offset) async {
     var results = _getFixesImpl(src, offset);
     return results.then((fixes) {
-      return new FixesResponse(fixes.fixes);
+      return new api.FixesResponse(fixes.fixes);
+    });
+  }
+
+  Future<api.FormatResponse> format(String src, int offset) async {
+    var results = _formatImpl(src, offset);
+    return results.then((editResult) {
+      String editSrc = src;
+      List<SourceEdit> edits = editResult.edits;
+      edits.sort((e1, e2) => -1 * e1.offset.compareTo(e2.offset));
+
+      for (var edit in edits) {
+        editSrc = edit.apply(editSrc);
+      }
+      return new api.FormatResponse(editSrc);
     });
   }
 
@@ -81,20 +95,36 @@ class AnalysisServerWrapper {
   Future<Map> _completeImpl(String src, int offset) async {
     await serverConnection._ensureSetup();
 
-    serverConnection.sendAddOverlay(src);
+    await serverConnection.sendAddOverlay(src);
     await serverConnection.analysisComplete.first;
     await serverConnection.sendCompletionGetSuggestions(offset);
 
     return serverConnection.completionResults.handleError(
-        (error) => throw "Completion failed").first;
+        (error) => throw "Completion failed").first.then((ret) async {
+          await serverConnection.sendRemoveOverlay();
+          return ret;
+    });
   }
 
   Future<EditGetFixesResult> _getFixesImpl(String src, int offset) async {
     await serverConnection._ensureSetup();
 
-    serverConnection.sendAddOverlay(src);
-    return await serverConnection.sendGetFixes(offset);
+    await serverConnection.sendAddOverlay(src);
+    await serverConnection.analysisComplete.first;
+    var fixes = await serverConnection.sendGetFixes(offset);
+    await serverConnection.sendRemoveOverlay();
+    return fixes;
   }
+
+  Future<EditFormatResult> _formatImpl(String src, int offset) async {
+    await serverConnection._ensureSetup();
+    await serverConnection.sendAddOverlay(src);
+    await serverConnection.analysisComplete.first;
+    var formatResult = await serverConnection.sendFormat(offset);
+    await serverConnection.sendRemoveOverlay();
+    return formatResult;
+  }
+
 
   /// Warm up the analysis server to be ready for use.
   Future warmup([bool useHtml = false]) =>
@@ -175,7 +205,6 @@ class _Server {
     isSetup = true;
 
     _logger.fine("Setup done");
-
     return analysisComplete.first;
   }
 
@@ -414,6 +443,20 @@ class _Server {
       });
     }
 
+    Future<EditFormatResult> sendFormat(int selectionOffset,
+      [int selectionLength = 0]) {
+
+      String file = psuedoFilePath;
+      var params = new EditFormatParams(
+          file, selectionOffset, selectionLength).toJson();
+
+      return send("edit.format", params).then((result) {
+        ResponseDecoder decoder = new ResponseDecoder(null);
+        return new EditFormatResult.fromJson(decoder, 'result', result);
+      });
+
+    }
+
     Future<AnalysisUpdateContentResult> sendAddOverlay(String contents) {
 
       // TODO(lukechurch): Refactor to allow multiple files
@@ -422,6 +465,22 @@ class _Server {
       var overlay = new AddContentOverlay(contents);
       var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
       _logger.fine("About to send analysis.updateContent");
+      return send("analysis.updateContent", params).then((result) {
+        _logger.fine("analysis.updateContent -> then");
+
+        ResponseDecoder decoder = new ResponseDecoder(null);
+        return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
+      });
+    }
+
+    Future<AnalysisUpdateContentResult> sendRemoveOverlay() {
+
+      // TODO(lukechurch): Refactor to allow multiple files
+      String file = psuedoFilePath;
+
+      var overlay = new RemoveContentOverlay();
+      var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
+      _logger.fine("About to send analysis.updateContent - remove overlay");
       return send("analysis.updateContent", params).then((result) {
         _logger.fine("analysis.updateContent -> then");
 
@@ -474,7 +533,7 @@ class _Server {
    * [DUMP_SERVER_MESSAGES] is true.
    */
   void _logStdio(String line) {
-    if (_DUMP_SERVER_MESSAGES)
+    if (dumpServerMessages)
       print(line);
   }
 }

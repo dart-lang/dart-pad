@@ -186,6 +186,16 @@ class CandidateFix {
   CandidateFix(this.message, this.edits);
 }
 
+/*
+ * Represents a reformatting of the code.
+ */
+class FormatResponse {
+  final String newString;
+  final int offset;
+
+  FormatResponse(this.newString, [this.offset = 0]);
+}
+
 /**
  * Represents a single edit-point change to a source file.
  */
@@ -195,4 +205,16 @@ class SourceEdit {
   final String replacement;
 
   SourceEdit(this.offset, this.length, this.replacement);
+
+  String applyTo(String target) {
+    if (offset >= replacement.length) {
+      throw "Offset beyond end of string";
+    } else if (offset + length >= replacement.length) {
+      throw "Change beyond end of string";
+    }
+
+    String pre = "${target.substring(0, offset)}";
+    String post = "${target.substring(offset+length)}";
+    return "$pre$replacement$post";
+  }
 }

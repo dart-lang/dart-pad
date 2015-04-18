@@ -31,6 +31,21 @@ void main() {
 }
 ''';
 
+String badFormatCode =
+r'''
+void main()
+{
+int i = 0;
+}
+''';
+
+String formattedCode =
+r'''
+void main() {
+  int i = 0;
+}
+''';
+
 void defineTests() {
   AnalysisServerWrapper analysisServer;
 
@@ -86,6 +101,16 @@ void defineTests() {
         expect(fix.edits[0].replacement, ";");
       });
     });
+
+// TODO(lukechurch): Enable once https://code.google.com/p/dart/issues/detail?id=23230 lands
+//    test('simple_format', () {
+//      //Just after i.
+//      return analysisServer.format(badFormatCode).then(
+//        (FormatResponse results) {
+//          expect(results.edits.length, 1);
+//          expect(results.edits[0].replacement, formattedCode);
+//        });
+//    });
   });
 }
 
