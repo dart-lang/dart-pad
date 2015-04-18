@@ -190,8 +190,8 @@ class CandidateFix {
  * Represents a reformatting of the code.
  */
 class FormatResponse {
-  String newString;
-  int offset;
+  final String newString;
+  final int offset;
 
   FormatResponse(this.newString, [this.offset = 0]);
 }

@@ -78,9 +78,12 @@ class AnalysisServerWrapper {
     var results = _formatImpl(src, offset);
     return results.then((editResult) {
       String editSrc = src;
-      editResult.edits.forEach((edit) {
+      List<SourceEdit> edits = editResult.edits;
+      edits.sort((e1, e2) => -1 * e1.offset.compareTo(e2.offset));
+
+      for (var edit in edits) {
         editSrc = edit.apply(editSrc);
-      });
+      }
       return new api.FormatResponse(editSrc);
     });
   }
