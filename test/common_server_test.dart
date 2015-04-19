@@ -17,9 +17,9 @@ void defineTests() {
   CommonServer server;
   ApiServer apiServer;
 
-  MockCache cache = new MockCache();
-  MockRequestRecorder recorder = new MockRequestRecorder();
-  MockCounter counter = new MockCounter();
+  MockCache cache;
+  MockRequestRecorder recorder;
+  MockCounter counter;
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
@@ -38,6 +38,11 @@ void defineTests() {
   group('CommonServer', () {
     setUp(() {
       String sdkPath = cli_util.getSdkDir([]).path;
+
+      cache = new MockCache();
+      recorder = new MockRequestRecorder();
+      counter = new MockCounter();
+
       server = new CommonServer(sdkPath, cache, recorder, counter);
       apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
       return server.warmup();
