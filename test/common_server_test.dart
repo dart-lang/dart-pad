@@ -13,6 +13,28 @@ import 'package:services/src/common_server.dart';
 import 'package:rpc/rpc.dart';
 import 'package:unittest/unittest.dart';
 
+String quickFixesCode =
+r'''
+void main() {
+  int i = 0
+}
+''';
+
+String badFormatCode =
+r'''
+void main()
+{
+int i = 0;
+}
+''';
+
+String formattedCode =
+r'''
+void main() {
+  int i = 0;
+}
+''';
+
 void defineTests() {
   CommonServer server;
   ApiServer apiServer;
@@ -189,6 +211,15 @@ void defineTests() {
       expect(response.status, 200);
       expect(data['count'], 1);
     });
+
+    test('format', () async {
+      var json = {'source': badFormatCode, 'offset': 0};
+      var response = await _sendPostRequest('dartservices/v1/format', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data["newString"], formattedCode);
+    });
+
   });
 }
 
