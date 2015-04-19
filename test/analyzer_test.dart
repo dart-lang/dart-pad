@@ -136,13 +136,13 @@ void main() {
 
     test('bold markdown', () {
       expect(
-          cleanDartDoc('/** *Deprecated*: override [attached] instead. */'),
+          cleanDartDoc('/**\n * *Deprecated*: override [attached] instead.\n */'),
           '*Deprecated*: override [attached] instead.');
     });
 
-    test('bold markdown', () {
+    test('bold markdown single line', () {
       expect(
-          cleanDartDoc('/**\n * *Deprecated*: override [attached] instead.\n */'),
+          cleanDartDoc('/** *Deprecated*: override [attached] instead. */'),
           '*Deprecated*: override [attached] instead.');
     });
   });

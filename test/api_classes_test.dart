@@ -10,8 +10,8 @@ import 'package:unittest/unittest.dart';
 void defineTests() {
   group('AnalysisIssue', () {
     test('toMap', () {
-      AnalysisIssue issue = new AnalysisIssue('error', 1, 'not found',
-          charStart: 123);
+      AnalysisIssue issue = new AnalysisIssue(
+          'error', 1, 'not found', charStart: 123);
       Map m = issue.toMap();
       expect(m['kind'], 'error');
       expect(m['line'], 1);

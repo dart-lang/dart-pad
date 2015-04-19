@@ -310,7 +310,7 @@ String cleanDartDoc(String str) {
   for (String line in str.split('\n')) {
     line = line.trim();
 
-    // Remove leaing '* ' and '///'; don't remove a leading '*' if there is a
+    // Remove leading '* ' and '///'; don't remove a leading '*' if there is a
     // matching '*' in the line.
     if (line.startsWith('* ')) {
       line = line.substring(2);

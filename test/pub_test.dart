@@ -117,7 +117,7 @@ void defineTests() {
       expect(pub.flushCache(), null);
       expect(pub.getVersion(), null);
 
-      return pub.createPubHelperForSource('''import 'package:foo/foo.dart';''').then(
+      return pub.createPubHelperForSource("import 'package:foo/foo.dart';").then(
           (helper) {
         expect(helper, isNotNull);
         return pub.resolvePackages(['foo', 'test']);
