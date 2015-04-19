@@ -30,12 +30,13 @@ void defineTests() {
 
   group('CommonServer', () {
     setUp(() {
-      if (server == null) {
-        String sdkPath = cli_util.getSdkDir([]).path;
-        server = new CommonServer(sdkPath, cache, recorder, counter);
-        apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
-      }
+      String sdkPath = cli_util.getSdkDir([]).path;
+      server = new CommonServer(sdkPath, cache, recorder, counter);
+      apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
+      return server.warmup();
     });
+
+    tearDown(() => server.shutdown());
 
     test('analyze', () async {
       var json = {'source': sampleCode};
@@ -96,7 +97,6 @@ void defineTests() {
         expect(response.status, 400);
      });
 
-    /*
     test('complete', () async {
       var json = {'source': 'void main() {print("foo");}', 'offset': 1};
       var response = await _sendPostRequest('dartservices/v1/complete', json);
@@ -123,7 +123,6 @@ void defineTests() {
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['error']['message'], 'Missing parameter: \'offset\'');
     });
-     */
 
     test('document', () async {
       var json = {'source': 'void main() {print("foo");}', 'offset': 17};
@@ -149,20 +148,18 @@ void defineTests() {
       expect(data, {"info": {}});
     });
 
-  });
-
-  test('document negative-test noSource', () async {
+    test('document negative-test noSource', () async {
       var json = { 'offset': 12 };
       var response = await _sendPostRequest('dartservices/v1/document', json);
       expect(response.status, 400);
-   });
+    });
 
-  test('document negative-test noOffset', () async {
+    test('document negative-test noOffset', () async {
       var json = {'source': 'void main() {print("foo");}' };
       var response = await _sendPostRequest('dartservices/v1/document', json);
       expect(response.status, 400);
-   });
-
+    });
+  });
 }
 
 class MockCache implements ServerCache {

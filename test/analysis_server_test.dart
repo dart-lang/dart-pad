@@ -54,9 +54,7 @@ void defineTests() {
       analysisServer = new AnalysisServerWrapper(sdkPath);
     });
 
-    tearDown(() {
-      analysisServer.shutdown();
-    });
+    tearDown(() => analysisServer.shutdown());
 
     test('simple_completion', () {
       //Just after i.

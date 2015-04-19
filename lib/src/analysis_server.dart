@@ -39,6 +39,7 @@ class AnalysisServerWrapper {
   _Server serverConnection;
 
   AnalysisServerWrapper(this.sdkPath) {
+    _logger.info("AnalysisServerWrapper ctor");
     serverConnection = new _Server(this.sdkPath);
   }
 
