@@ -43,8 +43,13 @@ class AnalysisIssue implements Comparable {
 }
 
 class SourceRequest {
-  @ApiProperty(required: true)
+  @ApiProperty(
+      required: true,
+      description: 'The Dart source.')
   String source;
+
+  @ApiProperty(
+      description: 'An optional offset into the source code.')
   int offset;
 }
 
@@ -114,9 +119,7 @@ class FixesResponse {
    */
   static List<ProblemAndFixes> _convert(List<AnalysisErrorFixes> list) {
     var problemsAndFixes = new List<ProblemAndFixes>();
-    list.forEach((fix)
-        => problemsAndFixes.add(_convertAnalysisErrorFix(fix)));
-
+    list.forEach((fix) => problemsAndFixes.add(_convertAnalysisErrorFix(fix)));
     return problemsAndFixes;
   }
 
@@ -134,9 +137,8 @@ class FixesResponse {
 
       bool invalidFix = false;
       for (var sourceFileEdit in sourceChange.edits) {
-
-        // TODO(lukechurch): replace this with a more reliable test based
-        // on the psuedo file name in Analysis Server
+        // TODO(lukechurch): replace this with a more reliable test based on the
+        // psuedo file name in Analysis Server
         if (!sourceFileEdit.file.endsWith("/main.dart")) {
           invalidFix = true;
           break;
@@ -186,11 +188,15 @@ class CandidateFix {
   CandidateFix(this.message, this.edits);
 }
 
-/*
+/**
  * Represents a reformatting of the code.
  */
 class FormatResponse {
+  @ApiProperty(description: 'The formatted source code.')
   final String newString;
+
+  @ApiProperty(
+      description: 'The (optional) new offset of the cursor; can be `null`.')
   final int offset;
 
   FormatResponse(this.newString, [this.offset = 0]);

@@ -81,7 +81,11 @@ class CommonServer {
     });
   }
 
-  @ApiMethod(method: 'POST', path: 'analyze')
+  @ApiMethod(
+      method: 'POST',
+      path: 'analyze',
+      description: 'Analyze the given Dart source code and return any resulting '
+        'analysis errors or warnings.')
   Future<AnalysisResults> analyze(SourceRequest request) {
     return _analyze(request.source);
   }
@@ -91,7 +95,11 @@ class CommonServer {
     return _analyze(source);
   }
 
-  @ApiMethod(method: 'POST', path: 'compile')
+  @ApiMethod(
+      method: 'POST',
+      path: 'compile',
+      description: 'Compile the given Dart source code and return the resulting '
+        'JavaScript.')
   Future<CompileResponse> compile(SourceRequest request) {
     return _compile(request.source);
   }
@@ -101,7 +109,10 @@ class CommonServer {
     return _compile(source);
   }
 
-  @ApiMethod(method: 'POST', path: 'complete')
+  @ApiMethod(
+      method: 'POST',
+      path: 'complete',
+      description: 'Get the valid code completion results for the given offset.')
   Future<CompleteResponse> complete(SourceRequest request) {
     if (request.offset == null) {
       throw new BadRequestError('Missing parameter: \'offset\'');
@@ -122,7 +133,10 @@ class CommonServer {
     return _complete(source, offset);
   }
 
-  @ApiMethod(method: 'POST', path: 'fixes')
+  @ApiMethod(
+      method: 'POST',
+      path: 'fixes',
+      description: 'Get any quick fixes for the given source code location.')
   Future<FixesResponse> fix(SourceRequest request) {
     if (request.offset == null) {
       throw new BadRequestError('Missing parameter: \'offset\'');
@@ -143,7 +157,12 @@ class CommonServer {
     return _fix(source, offset);
   }
 
-  @ApiMethod(method: 'POST', path: 'format')
+  @ApiMethod(
+      method: 'POST',
+      path: 'format',
+      description: 'Format the given Dart source code and return the results. '
+        'If an offset is supplied in the request, the new position for that '
+        'offset in the formatted code will be returned.')
   Future<FormatResponse> format(SourceRequest request) {
     if (request.offset == null) return _format(request.source);
 
@@ -160,7 +179,11 @@ class CommonServer {
     return _format(source, offset: offset);
   }
 
-  @ApiMethod(method: 'POST', path: 'document')
+  @ApiMethod(
+      method: 'POST',
+      path: 'document',
+      description: 'Return the relevant dartdoc information for the element at '
+        'the given offset.')
   Future<DocumentResponse> document(SourceRequest request) {
     return _document(request.source, request.offset);
   }
