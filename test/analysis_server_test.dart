@@ -102,15 +102,12 @@ void defineTests() {
       });
     });
 
-// TODO(lukechurch): Enable once https://code.google.com/p/dart/issues/detail?id=23230 lands
-//    test('simple_format', () {
-//      //Just after i.
-//      return analysisServer.format(badFormatCode).then(
-//        (FormatResponse results) {
-//          expect(results.edits.length, 1);
-//          expect(results.edits[0].replacement, formattedCode);
-//        });
-//    });
+    test('simple_format', () {
+      return analysisServer.format(badFormatCode, 0).then(
+        (FormatResponse results) {
+          expect(results.newString, formattedCode);
+        });
+    });
   });
 }
 
