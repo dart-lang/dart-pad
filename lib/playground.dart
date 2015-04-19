@@ -140,10 +140,14 @@ class Playground implements GistContainer, GistController {
       editableGist.setBackingGist(createSampleGist());
     }
 
+    _clearOutput();
+
     // Analyze and run it.
     Timer.run(() {
-      _handleRun();
-      _performAnalysis();
+      _performAnalysis().then((bool result) {
+        // Only auto-run if the static analysis comes back clean.
+        if (result) _handleRun();
+      }).catchError((e) => null);
     });
   }
 
@@ -215,10 +219,14 @@ class Playground implements GistContainer, GistController {
         }
       }
 
+      _clearOutput();
+
       // Analyze and run it.
       Timer.run(() {
-        _handleRun();
-        _performAnalysis();
+        _performAnalysis().then((bool result) {
+          // Only auto-run if the static analysis comes back clean.
+          if (result) _handleRun();
+        }).catchError((e) => null);
       });
     }).catchError((e) {
       String message = 'Error loading gist ${gistId}.';
@@ -479,9 +487,9 @@ class Playground implements GistContainer, GistController {
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
+      ga.sendException("${e.runtimeType}");
       if (e is DetailedApiRequestError) e = e.message;
       DToast.showMessage('Error compiling to JavaScript');
-      ga.sendException("${e.runtimeType}");
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {
       runButton.disabled = false;
@@ -489,19 +497,21 @@ class Playground implements GistContainer, GistController {
     });
   }
 
-  void _performAnalysis() {
+  /// Perform static analysis of the source code. Return whether the code
+  /// analyzed cleanly (had no errors or warnings).
+  Future<bool> _performAnalysis() {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
 
     Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
     _analysisRequest = request;
 
-    request.then((AnalysisResults result) {
+    return request.then((AnalysisResults result) {
       // Discard if we requested another analysis.
-      if (_analysisRequest != request) return;
+      if (_analysisRequest != request) return false;
 
       // Discard if the document has been mutated since we requested analysis.
-      if (input.source != _context.dartSource) return;
+      if (input.source != _context.dartSource) return false;
 
       busyLight.reset();
 
@@ -521,9 +531,12 @@ class Playground implements GistContainer, GistController {
             start: start, end: end);
       }).toList());
 
-      _updateRunButton(
-          hasErrors: result.issues.any((issue) => issue.kind == 'error'),
-          hasWarnings: result.issues.any((issue) => issue.kind == 'warning'));
+      bool hasErrors = result.issues.any((issue) => issue.kind == 'error');
+      bool hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
+
+      _updateRunButton(hasErrors: hasErrors, hasWarnings: hasWarnings);
+
+      return hasErrors == false && hasWarnings == false;
     }).catchError((e) {
       _context.dartDocument.setAnnotations([]);
       busyLight.reset();
@@ -584,6 +597,8 @@ class Playground implements GistContainer, GistController {
       for (AnalysisIssue issue in issues) {
         DivElement e = new DivElement();
         e.classes.add('issue');
+        e.attributes['layout'] = '';
+        e.attributes['horizontal'] = '';
         issuesElement.children.add(e);
         e.onClick.listen((_) {
           _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
@@ -596,6 +611,7 @@ class Playground implements GistContainer, GistController {
 
         SpanElement messageSpan = new SpanElement();
         messageSpan.classes.add('message');
+        messageSpan.attributes['flex'] = '';
         messageSpan.text = issue.message;
         e.children.add(messageSpan);
         if (issue.hasFixes) {

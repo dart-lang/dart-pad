@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart';
 
-import 'dartservices_module.dart';
 import '../core/dependencies.dart';
 import '../core/modules.dart';
 import '../services/common.dart';
@@ -20,7 +19,7 @@ class MockDartServicesModule extends Module {
 
   Future init() {
     var client = new HttpServerMock();
-    deps[DartServices] = new DartservicesApi(client);
+    deps[DartservicesApi] = new DartservicesApi(client);
     return new Future.value();
   }
 }

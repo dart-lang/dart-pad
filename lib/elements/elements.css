@@ -194,6 +194,9 @@ button.close:hover {
 
 /* issues css */
 
+/* TODO(devoncarew): the issues css is not general purpose, but specific to */
+/* dartpad UI; it should probably be moved to web/index.css. */
+
 #issues {
   max-height: 0;
   overflow: hidden;
@@ -253,7 +256,7 @@ button.close:hover {
 }
 
 .issue.hasFix .message {
-  padding-right: 15px;
+  margin-right: 15px;
 }
 
 .toast {

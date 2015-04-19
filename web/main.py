@@ -8,6 +8,7 @@ from mdetect import UAgentInfo
 class WhiteListEntry(ndb.Model):
     emailAddress = ndb.StringProperty()
 
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         uagent = UAgentInfo(str(self.request.user_agent), str(self.request.accept))
@@ -31,7 +32,6 @@ class MainHandler(webapp2.RequestHandler):
         if len(targetSplits) < 3:
             _serve(self.response, mainPage)
             return
-
 
         # If it is a request for something in the packages folder, serve it
         if targetSplits[1] == 'packages':
@@ -69,9 +69,11 @@ def _serve(resp, path):
     if path.endswith('.css'):
         resp.content_type = 'text/css'
 
+    if path.endswith('.svg'):
+        resp.content_type = 'image/svg+xml'
+
     if path.endswith('.js'):
         resp.content_type = 'application/javascript'
-
 
     f = open(path, 'r')
     c = f.read()
