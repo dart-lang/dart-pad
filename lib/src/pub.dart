@@ -19,6 +19,7 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
 
 import 'analyzer.dart';
+import 'common.dart';
 
 Logger _logger = new Logger('pub');
 
@@ -338,16 +339,7 @@ Set<String> getAllUnsafeImportsFor(String dartSource) {
       token = token.next;
 
       if (token.type == TokenType.STRING) {
-        String str = token.lexeme;
-        if (str.startsWith("'") && str.endsWith("'")) {
-          if (str.length > 1) {
-            str = str.substring(1, str.length - 1);
-          }
-        } else if (str.startsWith('"') && str.endsWith('"')) {
-          if (str.length > 1) {
-            str = str.substring(1, str.length - 1);
-          }
-        }
+        String str = stripQuotes(token.lexeme);
         imports.add(str);
       }
 

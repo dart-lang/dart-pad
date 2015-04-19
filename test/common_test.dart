@@ -35,4 +35,16 @@ void defineTests() {
       expect(lines.getLineForOffset(14), 2);
     });
   });
+
+  test('stripQuotes', () {
+    expect(stripQuotes(""), "");
+    expect(stripQuotes("'"), "'");
+    expect(stripQuotes("''"), "");
+    expect(stripQuotes("'abc'"), "abc");
+
+    expect(stripQuotes(''), '');
+    expect(stripQuotes('"'), '"');
+    expect(stripQuotes('""'), '');
+    expect(stripQuotes('"abc"'), 'abc');
+  });
 }
