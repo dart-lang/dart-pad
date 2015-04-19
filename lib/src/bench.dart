@@ -35,11 +35,10 @@ class BenchmarkHarness {
 
   Future benchmark(List<Benchmark> benchmarks) {
     if (isCheckedMode()) {
-      print('WARNING: You are running in checked mode. Benchmarks should be run'
-          ' in unchecked,\nnon-debug mode. I.e., run this from the command-line,'
-          ' not the Editor.');
-      print('(see also www.dartlang.org/articles/benchmarking)');
-      print('');
+      print(
+          'WARNING: You are running in checked mode. Benchmarks should be run '
+          'in unchecked,\nnon-debug mode. I.e., run this from the command-line, '
+          'not the Editor.\nSee also www.dartlang.org/articles/benchmarking.\n');
     }
 
     log('Running ${benchmarks.length} benchmarks.');

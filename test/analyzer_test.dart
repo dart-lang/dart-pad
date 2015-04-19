@@ -85,6 +85,36 @@ void defineTests() {
         expect(m['dartdoc'], isNotEmpty);
       });
     });
+
+    test('propagated', () {
+      final String source = '''
+void main() {
+  var foo = 'abc def';
+  print(foo);
+}
+''';
+
+      return analyzer.dartdoc(source, 47).then((Map m) {
+        expect(m['name'], 'foo');
+        expect(m['propagatedType'], 'String');
+      });
+    });
+
+    test('dart:html', () {
+      final String source = '''
+import 'dart:html';
+void main() {
+  DivElement div = new DivElement();
+  print(div);
+}
+''';
+
+      return analyzer.dartdoc(source, 44).then((Map m) {
+        expect(m['name'], 'DivElement');
+        expect(m['libraryName'], 'dart:html');
+        expect(m['DomName'], 'HTMLDivElement');
+      });
+    });
   });
 
   group('cleanDartDoc', () {
@@ -102,6 +132,18 @@ void defineTests() {
 
     test('C# comments', () {
       expect(cleanDartDoc("/// Foo.\n /// Foo.\n"), "Foo.\nFoo.");
+    });
+
+    test('bold markdown', () {
+      expect(
+          cleanDartDoc('/** *Deprecated*: override [attached] instead. */'),
+          '*Deprecated*: override [attached] instead.');
+    });
+
+    test('bold markdown', () {
+      expect(
+          cleanDartDoc('/**\n * *Deprecated*: override [attached] instead.\n */'),
+          '*Deprecated*: override [attached] instead.');
     });
   });
 }

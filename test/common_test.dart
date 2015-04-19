@@ -36,15 +36,15 @@ void defineTests() {
     });
   });
 
-  test('stripQuotes', () {
-    expect(stripQuotes(""), "");
-    expect(stripQuotes("'"), "'");
-    expect(stripQuotes("''"), "");
-    expect(stripQuotes("'abc'"), "abc");
+  test('stripMatchingQuotes', () {
+    expect(stripMatchingQuotes(""), "");
+    expect(stripMatchingQuotes("'"), "'");
+    expect(stripMatchingQuotes("''"), "");
+    expect(stripMatchingQuotes("'abc'"), "abc");
 
-    expect(stripQuotes(''), '');
-    expect(stripQuotes('"'), '"');
-    expect(stripQuotes('""'), '');
-    expect(stripQuotes('"abc"'), 'abc');
+    expect(stripMatchingQuotes(''), '');
+    expect(stripMatchingQuotes('"'), '"');
+    expect(stripMatchingQuotes('""'), '');
+    expect(stripMatchingQuotes('"abc"'), 'abc');
   });
 }

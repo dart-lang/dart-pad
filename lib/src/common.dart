@@ -65,7 +65,7 @@ class Lines {
 }
 
 /// If [str] has leading and trailing quotes, remove them.
-String stripQuotes(String str) {
+String stripMatchingQuotes(String str) {
   if (str.length <= 1) return str;
 
   if (str.startsWith("'") && str.endsWith("'")) {

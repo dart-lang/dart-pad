@@ -339,8 +339,7 @@ Set<String> getAllUnsafeImportsFor(String dartSource) {
       token = token.next;
 
       if (token.type == TokenType.STRING) {
-        String str = stripQuotes(token.lexeme);
-        imports.add(str);
+        imports.add(stripMatchingQuotes(token.lexeme));
       }
 
       token = _consumeSemi(token);
