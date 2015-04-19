@@ -66,6 +66,14 @@ class CommonServer {
     analysisServer = new AnalysisServerWrapper(sdkPath);
   }
 
+  Future warmup([bool useHtml = false]) async {
+    await analyzer.warmup(useHtml);
+    await compiler.warmup(useHtml);
+    await analysisServer.warmup(useHtml);
+  }
+
+  Future shutdown() => analysisServer.shutdown();
+
   @ApiMethod(method: 'GET', path: 'counter')
   Future<CounterResponse> counterGet({String name}) {
     return counter.getTotal(name).then((total) {
