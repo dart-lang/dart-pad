@@ -17,9 +17,9 @@ void defineTests() {
   CommonServer server;
   ApiServer apiServer;
 
-  MockCache cache = new MockCache();
-  MockRequestRecorder recorder = new MockRequestRecorder();
-  MockCounter counter = new MockCounter();
+  MockCache cache;
+  MockRequestRecorder recorder;
+  MockCounter counter;
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
@@ -28,9 +28,21 @@ void defineTests() {
     return apiServer.handleHttpApiRequest(request);
   }
 
+  Future<HttpApiResponse> _sendGetRequest(String path, Map queryParams) {
+    assert(apiServer != null);
+    var body = new Stream.fromIterable([]);
+    var request = new HttpApiRequest('GET', path, queryParams, {}, body);
+    return apiServer.handleHttpApiRequest(request);
+  }
+
   group('CommonServer', () {
     setUp(() {
       String sdkPath = cli_util.getSdkDir([]).path;
+
+      cache = new MockCache();
+      recorder = new MockRequestRecorder();
+      counter = new MockCounter();
+
       server = new CommonServer(sdkPath, cache, recorder, counter);
       apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
       return server.warmup();
@@ -159,6 +171,24 @@ void defineTests() {
       var response = await _sendPostRequest('dartservices/v1/document', json);
       expect(response.status, 400);
     });
+
+    test('counter test', () async {
+      var response =
+        await _sendGetRequest('dartservices/v1/counter', {"name" : "Analyses"});
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(response.status, 200);
+      expect(data['count'], 0);
+
+      // Do an Analysis.
+      var json = {'source': sampleCode};
+      response = await _sendPostRequest('dartservices/v1/analyze', json);
+
+      response =
+        await _sendGetRequest('dartservices/v1/counter', {"name" : "Analyses"});
+      data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(response.status, 200);
+      expect(data['count'], 1);
+    });
   });
 }
 
@@ -178,14 +208,17 @@ class MockRequestRecorder implements SourceRequestRecorder {
 }
 
 class MockCounter implements PersistentCounter {
+  Map<String, int> counter = {};
 
   @override
   Future<int> getTotal(String name) {
-    return new Future.value(42);
+    counter.putIfAbsent(name, () => 0);
+    return new Future.value(counter[name]);
   }
 
   @override
   Future increment(String name, {int increment : 1}) {
-    return new Future.value();
+    counter.putIfAbsent(name, () => 0);
+    return new Future.value(counter[name]++);
   }
 }
