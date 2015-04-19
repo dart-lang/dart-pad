@@ -1,6 +1,6 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library dartservices_clientlib.dartservices.v1;
+library services.dartservices.v1;
 
 import 'dart:core' as core;
 import 'dart:collection' as collection;
@@ -24,8 +24,8 @@ class DartservicesApi {
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
-   * Analyze the given Dart source code, and return any resulting analysis
-   * errors or warnings.
+   * Analyze the given Dart source code and return any resulting analysis errors
+   * or warnings.
    *
    * [request] - The metadata request object.
    *

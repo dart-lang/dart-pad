@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "5a7ce0eee6ffbfb90bcedfb5ec23d66822e93b4c",
+ "etag": "e0b74b384a4f3daf325eca29eccf60ffa002f155",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -232,7 +232,7 @@
    "id": "CommonServer.analyze",
    "path": "analyze",
    "httpMethod": "POST",
-   "description": "Analyze the given Dart source code, and return any resulting analysis errors or warnings.",
+   "description": "Analyze the given Dart source code and return any resulting analysis errors or warnings.",
    "parameters": {},
    "parameterOrder": [],
    "request": {
