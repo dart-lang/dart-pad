@@ -137,8 +137,7 @@ class AnalysisServerWrapper {
  * facilitate communication to and from the server.
  */
 class _Server {
-
-  final String _SDKPath;
+  final String _sdkPath;
 
   /// An imaginary backing store file that will be used as a name
   /// to communicate with the analysis server. This can be removed when
@@ -161,7 +160,7 @@ class _Server {
   Stream<Map> completionResults;
   StreamController<Map> _onCompletionResults;
 
-  _Server(this._SDKPath) {
+  _Server(this._sdkPath) {
     _onServerStatus = new StreamController<bool>(sync: true);
     analysisComplete = _onServerStatus.stream.asBroadcastStream();
 
@@ -212,7 +211,7 @@ class _Server {
   /**
    * Server process object, or null if server hasn't been started yet.
    */
-  io.Process _process = null;
+  io.Process _process;
 
   /**
    * Commands that have been sent to the server but not yet acknowledged, and
@@ -307,8 +306,7 @@ class _Server {
     });
     _process.stderr.transform(
         (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
-      String trimmedLine = line.trim();
-      _logStdio('ERR:  $trimmedLine');
+      _logStdio('ERR:  ${line.trim()}');
     });
   }
 
@@ -359,9 +357,8 @@ class _Server {
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
   Future start({bool debugServer: false, bool profileServer: false}) {
-    if (_process != null) {
-      throw new Exception('Process already started');
-    }
+    if (_process != null) throw new Exception('Process already started');
+
     _time.start();
     String dartBinary = io.Platform.executable;
     /*
@@ -389,7 +386,7 @@ class _Server {
     arguments.add(_SERVER_PATH);
 
     arguments.add('--sdk');
-    arguments.add(_SDKPath);
+    arguments.add(_sdkPath);
 
     _logger.fine("Binary: $dartBinary");
     _logger.fine("Arguments: $arguments");
@@ -531,10 +528,9 @@ class _Server {
 
   /**
    * Record a message that was exchanged with the server, and print it out if
-   * [DUMP_SERVER_MESSAGES] is true.
+   * [dumpServerMessages] is true.
    */
   void _logStdio(String line) {
-    if (dumpServerMessages)
-      print(line);
+    if (dumpServerMessages) print(line);
   }
 }

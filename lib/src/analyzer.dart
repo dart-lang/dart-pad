@@ -10,7 +10,6 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' hide Logger;
-import 'package:analyzer/src/generated/engine.dart' as engine show Logger;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -22,23 +21,28 @@ import 'package:logging/logging.dart';
 
 import 'api_classes.dart';
 import 'common.dart';
+import 'pub.dart';
 
 Logger _logger = new Logger('analyzer');
 
 class Analyzer {
+  final Pub pub;
+
   StringSource _source;
   AnalysisContext _context;
 
-  Analyzer(String sdkPath) {
+  Analyzer(String sdkPath, [this.pub]) {
     DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(sdkPath),
         /*useDart2jsPaths*/ true);
     _context = AnalysisEngine.instance.createAnalysisContext();
     _context.analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
-    List<UriResolver> resolvers = [new DartUriResolver(sdk)];
-    // new FileUriResolver()
-    // new PackageUriResolver([new JavaFile(project.packagePath)])
+    List<UriResolver> resolvers = [
+      new DartUriResolver(sdk),
+      // TODO: Create a new UriResolver.
+      //new PackageUriResolver([new JavaFile(project.packagePath)
+    ];
     _context.sourceFactory = new SourceFactory(resolvers);
-    AnalysisEngine.instance.logger = new _Logger();
+    AnalysisEngine.instance.logger = new NullLogger();
 
     _source = new StringSource('', 'main.dart');
 
@@ -146,7 +150,7 @@ class Analyzer {
           info['enclosingClassName'] = null;
         }
 
-        //parameters for functions and methods
+        // Parameters for functions and methods.
         if (element is ExecutableElement) {
           List<String> list = [];
           ExecutableElement el = element;
@@ -252,17 +256,6 @@ class StringSource implements Source {
   Source get source => this;
 }
 
-class _Logger extends engine.Logger {
-  void logError(String message, [CaughtException exception]) => _logger.severe(message);
-
-  void logError2(String message, dynamic exception) =>
-      _logger.severe(message, exception);
-
-  void logInformation(String message, [CaughtException exception]) { }
-
-  void logInformation2(String message, dynamic exception) { }
-}
-
 class _Error {
   static final _HAS_FIXES_WHITELIST = [
     HintCode.DEAD_CODE,
@@ -317,7 +310,11 @@ String cleanDartDoc(String str) {
   for (String line in str.split('\n')) {
     line = line.trim();
 
-    if (line.startsWith("*")) {
+    // Remove leading '* ' and '///'; don't remove a leading '*' if there is a
+    // matching '*' in the line.
+    if (line.startsWith('* ')) {
+      line = line.substring(2);
+    } else if (line.startsWith("*") && line.lastIndexOf('*') == 0) {
       line = line.substring(1);
       if (line.startsWith(" ")) line = line.substring(1);
     } else if (line.startsWith("///")) {

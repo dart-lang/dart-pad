@@ -18,6 +18,7 @@ void defineTests() {
       return harness.benchmarkSingle(benchmark).then((BenchMarkResult result) {
         expect(result.iteration, greaterThan(1));
         expect(result.microseconds, greaterThan(1));
+        expect(result.toString(), isNotNull);
         expect(benchmark.count, greaterThan(80));
         expect(benchmark.toString(), 'mock');
       });

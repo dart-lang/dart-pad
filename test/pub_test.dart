@@ -44,6 +44,11 @@ void defineTests() {
         expect(libDir.path, endsWith('lib'));
         expect(libDir.existsSync(), true);
         expect(libDir.parent.path, endsWith('which-0.1.2'));
+
+        // Test we can get it again.
+        return pub.getPackageLibDir(packageInfo).then((Directory libDir) {
+          expect(libDir, isNotNull);
+        });
       });
     });
 
@@ -76,6 +81,52 @@ void defineTests() {
       ensureBad('foo', '1 2');
       ensureBad('foo', '../1.0.1');
       ensureBad('foo', '1.0.0/2.0.0');
+    });
+  });
+
+  group('PubHelper', () {
+    test('resolves content', () {
+      final String source = "import 'package:path/path.dart'; void main() { }";
+
+      return pub.createPubHelperForSource(source).then((PubHelper helper) {
+        expect(helper.hasPackages, true);
+        PackageInfo pInfo = helper.getPackage('path');
+        expect(pInfo, isNotNull);
+        expect(pInfo.name, 'path');
+        expect(pInfo.version, isNotNull);
+        return helper.getPackageContentsAsync('package:path/path.dart').then(
+            (contents) {
+          expect(contents, isNotEmpty);
+        });
+      });
+    });
+
+    test('does not resolve', () {
+      final String source = "import 'package:path/path.dart; void main() { }";
+
+      return pub.createPubHelperForSource(source).then((PubHelper helper) {
+        expect(helper.hasPackages, false);
+      });
+    });
+  });
+
+  group('MockPub', () {
+    test('no-op impls', () {
+      Pub pub = new Pub.mock();
+      expect(pub.cacheDir, isNull);
+      expect(pub.flushCache(), null);
+      expect(pub.getVersion(), null);
+
+      return pub.createPubHelperForSource("import 'package:foo/foo.dart';").then(
+          (helper) {
+        expect(helper, isNotNull);
+        return pub.resolvePackages(['foo', 'test']);
+      }).then((packagesInfo) {
+        expect(packagesInfo, isNotNull);
+        return pub.getPackageLibDir(null);
+      }).then((result) {
+        expect(result, isNull);
+      });
     });
   });
 
