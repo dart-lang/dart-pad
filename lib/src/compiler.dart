@@ -134,10 +134,16 @@ class CompilationProblem implements Comparable {
     return INFO;
   }
 
+  bool get isHint => _diagnostic == compiler.Diagnostic.HINT;
+
   int compareTo(CompilationProblem other) {
     return severity == other.severity
         ? line - other.line : other.severity - severity;
   }
+
+  bool get isOnCompileTarget => uri != null && uri.scheme == 'resource';
+
+  bool get isOnSdk => uri != null && uri.scheme == 'sdk';
 
   String toString() {
     if (uri == null) {
