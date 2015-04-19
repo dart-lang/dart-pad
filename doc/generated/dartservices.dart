@@ -1,6 +1,6 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library dartservices_clientlib.dartservices.v1;
+library services.dartservices.v1;
 
 import 'dart:core' as core;
 import 'dart:collection' as collection;
@@ -24,6 +24,9 @@ class DartservicesApi {
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
+   * Analyze the given Dart source code and return any resulting analysis errors
+   * or warnings.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -100,6 +103,8 @@ class DartservicesApi {
   }
 
   /**
+   * Compile the given Dart source code and return the resulting JavaScript.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -176,6 +181,8 @@ class DartservicesApi {
   }
 
   /**
+   * Get the valid code completion results for the given offset.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -295,6 +302,9 @@ class DartservicesApi {
   }
 
   /**
+   * Return the relevant dartdoc information for the element at the given
+   * offset.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -376,6 +386,8 @@ class DartservicesApi {
   }
 
   /**
+   * Get any quick fixes for the given source code location.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -454,6 +466,91 @@ class DartservicesApi {
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
     return _response.then((data) => new FixesResponse.fromJson(data));
+  }
+
+  /**
+   * Format the given Dart source code and return the results. If an offset is
+   * supplied in the request, the new position for that offset in the formatted
+   * code will be returned.
+   *
+   * [request] - The metadata request object.
+   *
+   * Request parameters:
+   *
+   * Completes with a [FormatResponse].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<FormatResponse> format(SourceRequest request) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (request != null) {
+      _body = convert.JSON.encode((request).toJson());
+    }
+
+
+    _url = 'format';
+
+    var _response = _requester.request(_url,
+                                       "POST",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new FormatResponse.fromJson(data));
+  }
+
+  /**
+   * Request parameters:
+   *
+   * [source] - Query parameter: 'source'.
+   *
+   * [offset] - Query parameter: 'offset'.
+   *
+   * Completes with a [FormatResponse].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<FormatResponse> formatGet({core.String source, core.int offset}) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (source != null) {
+      _queryParams["source"] = [source];
+    }
+    if (offset != null) {
+      _queryParams["offset"] = ["${offset}"];
+    }
+
+
+    _url = 'format';
+
+    var _response = _requester.request(_url,
+                                       "GET",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new FormatResponse.fromJson(data));
   }
 
 }
@@ -710,6 +807,38 @@ class FixesResponse {
 }
 
 
+class FormatResponse {
+  /** The formatted source code. */
+  core.String newString;
+
+  /** The (optional) new offset of the cursor; can be `null`. */
+  core.int offset;
+
+
+  FormatResponse();
+
+  FormatResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("newString")) {
+      newString = _json["newString"];
+    }
+    if (_json.containsKey("offset")) {
+      offset = _json["offset"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (newString != null) {
+      _json["newString"] = newString;
+    }
+    if (offset != null) {
+      _json["offset"] = offset;
+    }
+    return _json;
+  }
+}
+
+
 class ProblemAndFixes {
   core.List<CandidateFix> fixes;
 
@@ -795,8 +924,10 @@ class SourceEdit {
 
 
 class SourceRequest {
+  /** An optional offset into the source code. */
   core.int offset;
 
+  /** The Dart source. */
   core.String source;
 
 

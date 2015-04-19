@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "35eb15f29150e937f43fab3e0e409efc844723ef",
+ "etag": "e0b74b384a4f3daf325eca29eccf60ffa002f155",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -29,10 +29,12 @@
    "properties": {
     "source": {
      "type": "string",
+     "description": "The Dart source.",
      "required": true
     },
     "offset": {
      "type": "integer",
+     "description": "An optional offset into the source code.",
      "format": "int32"
     }
    }
@@ -180,6 +182,21 @@
     }
    }
   },
+  "FormatResponse": {
+   "id": "FormatResponse",
+   "type": "object",
+   "properties": {
+    "newString": {
+     "type": "string",
+     "description": "The formatted source code."
+    },
+    "offset": {
+     "type": "integer",
+     "description": "The (optional) new offset of the cursor; can be `null`.",
+     "format": "int32"
+    }
+   }
+  },
   "DocumentResponse": {
    "id": "DocumentResponse",
    "type": "object",
@@ -215,6 +232,7 @@
    "id": "CommonServer.analyze",
    "path": "analyze",
    "httpMethod": "POST",
+   "description": "Analyze the given Dart source code and return any resulting analysis errors or warnings.",
    "parameters": {},
    "parameterOrder": [],
    "request": {
@@ -245,6 +263,7 @@
    "id": "CommonServer.compile",
    "path": "compile",
    "httpMethod": "POST",
+   "description": "Compile the given Dart source code and return the resulting JavaScript.",
    "parameters": {},
    "parameterOrder": [],
    "request": {
@@ -275,6 +294,7 @@
    "id": "CommonServer.complete",
    "path": "complete",
    "httpMethod": "POST",
+   "description": "Get the valid code completion results for the given offset.",
    "parameters": {},
    "parameterOrder": [],
    "request": {
@@ -311,6 +331,7 @@
    "id": "CommonServer.fix",
    "path": "fixes",
    "httpMethod": "POST",
+   "description": "Get any quick fixes for the given source code location.",
    "parameters": {},
    "parameterOrder": [],
    "request": {
@@ -343,10 +364,48 @@
     "$ref": "FixesResponse"
    }
   },
+  "format": {
+   "id": "CommonServer.format",
+   "path": "format",
+   "httpMethod": "POST",
+   "description": "Format the given Dart source code and return the results. If an offset is supplied in the request, the new position for that offset in the formatted code will be returned.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "FormatResponse"
+   }
+  },
+  "formatGet": {
+   "id": "CommonServer.formatGet",
+   "path": "format",
+   "httpMethod": "GET",
+   "parameters": {
+    "source": {
+     "type": "string",
+     "description": "Query parameter: 'source'.",
+     "required": false,
+     "location": "query"
+    },
+    "offset": {
+     "type": "integer",
+     "description": "Query parameter: 'offset'.",
+     "required": false,
+     "location": "query"
+    }
+   },
+   "parameterOrder": [],
+   "response": {
+    "$ref": "FormatResponse"
+   }
+  },
   "document": {
    "id": "CommonServer.document",
    "path": "document",
    "httpMethod": "POST",
+   "description": "Return the relevant dartdoc information for the element at the given offset.",
    "parameters": {},
    "parameterOrder": [],
    "request": {

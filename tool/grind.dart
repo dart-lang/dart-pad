@@ -39,17 +39,10 @@ discovery(GrinderContext context) {
   // Generate the Dart library from the json discovery file.
   Pub.global.activate(context, 'discoveryapis_generator');
   Pub.global.run(context, 'discoveryapis_generator:generate', arguments: [
-    'package',
+    'files',
     '--input-dir=doc/generated',
-    '--output-dir=doc/gen_pkg',
-    '--package-name=dartservices_clientlib'
+    '--output-dir=doc/generated'
   ]);
-
-  Directory docDir = joinDir(Directory.current, ['doc']);
-  copyFile(
-      joinFile(docDir, ['gen_pkg/lib/dartservices/v1.dart']),
-      joinDir(docDir, ['generated']));
-  deleteEntity(joinDir(docDir, ['gen_pkg']));
 }
 
 /**
