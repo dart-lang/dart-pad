@@ -213,7 +213,7 @@ void defineTests() {
     });
 
     test('format', () async {
-      var json = {'source': badFormatCode, 'offset': 0};
+      var json = {'source': badFormatCode};
       var response = await _sendPostRequest('dartservices/v1/format', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
