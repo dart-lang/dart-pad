@@ -51,5 +51,18 @@ void defineTests() {
         expect(result.problems.length, 3);
       });
     });
+
+    test('transitive errors', () {
+      final String code = '''
+import 'dart:io';
+void main() { print ('foo'); }
+''';
+      return compiler.compile(code).then((CompilationResults result) {
+        expect(result.problems.length, greaterThan(10));
+        List<CompilationProblem> problems = result.problems;
+        expect(problems.any((p) => p.isOnSdk), true);
+        expect(problems.any((p) => !p.isOnCompileTarget), true);
+      });
+    });
   });
 }

@@ -219,7 +219,6 @@ void defineTests() {
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data["newString"], formattedCode);
     });
-
   });
 }
 

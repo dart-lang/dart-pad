@@ -149,7 +149,6 @@ testFormat(String src, analysis_server.AnalysisServerWrapper wrapper) async {
   return sw.elapsedMilliseconds;
 }
 
-
 mutate(String src) {
   var c = ["{", "}", "[", "]", "'", ",", "!", "@", "#", "\$", "%",
     "^", "&", " ", "(", ")", "null ", "class ", "for ", "void ", "var ",

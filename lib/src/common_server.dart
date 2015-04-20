@@ -37,7 +37,7 @@ abstract class SourceRequestRecorder {
 }
 
 abstract class PersistentCounter {
-  Future increment(String name, {int increment : 1});
+  Future increment(String name, {int increment: 1});
   Future<int> getTotal(String name);
 }
 
@@ -164,8 +164,6 @@ class CommonServer {
         'If an offset is supplied in the request, the new position for that '
         'offset in the formatted code will be returned.')
   Future<FormatResponse> format(SourceRequest request) {
-    if (request.offset == null) return _format(request.source);
-
     return _format(request.source, offset: request.offset);
   }
 
@@ -175,7 +173,6 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
 
-    if (offset == null) return _format(source);
     return _format(source, offset: offset);
   }
 
@@ -305,7 +302,8 @@ class CommonServer {
       return analysisServer.getFixes(source, offset);
     }
 
-  Future<FormatResponse> _format(String source, {int offset : 0}) async {
+  Future<FormatResponse> _format(String source, {int offset}) async {
+    if (offset == null) offset = 0;
     srcRequestRecorder.record("FORMAT", source, offset);
     counter.increment("Formats");
 
