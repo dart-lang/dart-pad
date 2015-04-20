@@ -266,7 +266,7 @@ div.toggle {
 }
 
 .footer-item {
-  margin-left: 10px;
+  margin-right: 10px;
 }
 
 #frame_overlay {
@@ -416,6 +416,7 @@ div.toggle {
 .keys-dialog dl {
   padding: 0.5em;
 }
+
 .keys-dialog dt {
   float: left;
   clear: left;
@@ -435,4 +436,18 @@ div.toggle {
   margin: 2px 2px;
   white-space: nowrap;
   display: inline-block;
+}
+
+.keyboard {
+  display: inline-block;
+  background: url('packages/dart_pad/elements/keyboard.svg') center no-repeat;
+  background-size: 100%;
+  width: 24px;
+  height: 20px;
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.keyboard:hover {
+  opacity: 1;
 }
