@@ -143,7 +143,7 @@ class PlaygroundMobile {
     topPanel.makeDrawer(headerPanel);
     topPanel.add(headerPanel);
     CoreToolbar toolbar = new CoreToolbar()..id = 'nav-header';
-    toolbar.add(CoreElement.span('Dart Pad'));
+    toolbar.add(CoreElement.span('DartPad'));
     headerPanel.add(toolbar);
     CoreMenu menu = new CoreMenu();
     _buildSamples(menu);
@@ -454,7 +454,7 @@ class PlaygroundMobile {
 
   void _setGistDescription(String description) {
     if (description == null || description.isEmpty) {
-      description = 'Dart Pad';
+      description = 'DartPad';
     }
 
     for (Element e in querySelectorAll('.sample-titles')) {
@@ -520,7 +520,7 @@ class PlaygroundMobile {
 //  }
 
   void _showAboutDialog() {
-    _messageDialog.heading = 'About Dart Pad';
+    _messageDialog.heading = 'About DartPad';
     _messageDialog.element.querySelector('p').setInnerHtml(privacyText,
         validator: new PermissiveNodeValidator());
     _messageDialog.open();
