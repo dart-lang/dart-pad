@@ -97,6 +97,9 @@ class Playground implements GistContainer, GistController {
       if (!isMobile()) _context.focus();
     });
 
+    // Listen for the keyboard button.
+    querySelector('#keyboard-button').onClick.listen((_) => settings.show());
+
     busyLight = new DBusyLight(querySelector('#dartbusy'));
     consoleBusyLight = new DBusyLight(querySelector('#consolebusy'));
 
