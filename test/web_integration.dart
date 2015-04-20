@@ -13,7 +13,11 @@ import 'src/mserve.dart';
 import 'src/webdriver.dart';
 
 main(List<String> args) async {
-  createDriverFactory().then((DriverFactory factory) {
+  String username = args.length >= 1 ? args[0] : null;
+  String accessKey = args.length >= 2 ? args[1] : null;
+
+  createDriverFactory(username: username, accessKey: accessKey).then(
+      (DriverFactory factory) {
     _setupTests(factory);
   }).catchError((e) {
     print(e);
@@ -22,6 +26,8 @@ main(List<String> args) async {
 }
 
 /**
+ * Set up the integration test environment:
+ *
  * - start a web server on `build/web/`
  * - start a webdriver client (chromedriver, phantomjs, saucelabs)
  * - run the integration tests, providing the tests each their own new webdriver
@@ -61,7 +67,7 @@ _setupTests(DriverFactory factory) async {
 
     var _defineTest = (String name, Function fn, {bool mobile: false}) {
       test(mobile ? '${name} (mobile)' : name, () async {
-        await driver.get('${server.urlBase}${mobile ? 'mobile' : 'index'}.html');
+        await driver.navigate.to('${server.urlBase}${mobile ? 'mobile' : 'index'}.html');
         fn(driver);
       });
     };

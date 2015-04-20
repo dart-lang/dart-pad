@@ -20,20 +20,14 @@ main(List args) async {
 
   Map caps = Capabilities.firefox;
 
-  caps[Capabilities.version] = "17";
-  //capabilities.setCapability("platform", Platform.XP);
-
-  String uri = 'http://${username}:${accessKey}@ondemand.saucelabs.com:80/wd/hub';
+  String uri = 'http://${username}:${accessKey}@ondemand.saucelabs.com:80/wd/hub/';
   print('Connecting to ${uri}...');
-
-  // TODO: debug the saucelabs connection set / session creation
-
-  // TODO: establish the session, then use `fromExistingSession`.
 
   WebDriver driver = await createDriver(
       uri: Uri.parse(uri),
       desired: caps);
-  await driver.get("http://www.google.com/");
-  print(await driver.title);
+  await driver.navigate.to("https://dartpad.dartlang.org/");
+  String title = await driver.title;
+  print('[${title}]');
   driver.close();
 }

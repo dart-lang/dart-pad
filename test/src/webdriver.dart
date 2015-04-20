@@ -14,9 +14,10 @@ import 'package:which/which.dart';
  * Try and determine the best webdriver client to use based on the environment
  * and system.
  */
-Future<DriverFactory> createDriverFactory() {
+Future<DriverFactory> createDriverFactory({String username, String accessKey}) {
   List<DriverFactory> factories = [
     new SauceLabsDriverFactory(),
+    new SauceConnectLocalDriverFactory(username: username, accessKey: accessKey),
     new ChromeDriverFactory(),
     new PhantomJSDriverFactory(),
   ];
@@ -59,26 +60,46 @@ abstract class DriverFactory {
   String toString() => name;
 }
 
-// env['SAUCE_USERNAME'], env['SAUCE_ACCESS_KEY']
-// env['TRAVIS_JOB_NUMBER'] == the named tunnel
-// You must set your test's desired capability tunnelIdentifier to the Travis
-// job number to use the tunnel
+// For use to test saucelabs locally.
+class SauceConnectLocalDriverFactory extends DriverFactory {
+  final String username;
+  final String accessKey;
+
+  SauceConnectLocalDriverFactory({this.username, this.accessKey}) : super('sauce_connect');
+
+  Map get _env => Platform.environment;
+
+  bool get isAvailable => username != null && accessKey != null;
+
+  Future startFactory() => new Future.value();
+
+  Future<WebDriver> createWebDriver() {
+    Map caps = Capabilities.chrome;
+
+    return createDriver(
+        uri: Uri.parse("http://${username}:${accessKey}@localhost:4445/wd/hub/"),
+        desired: caps);
+  }
+
+  Future stopFactory() => new Future.value();
+}
+
 class SauceLabsDriverFactory extends DriverFactory {
   SauceLabsDriverFactory() : super('saucelabs');
 
   Map get _env => Platform.environment;
 
-  bool get isAvailable => true;
-      //_env.containsKey('SAUCE_USERNAME') && _env.containsKey('SAUCE_ACCESS_KEY');
+  bool get isAvailable =>
+      _env.containsKey('SAUCE_USERNAME') && _env.containsKey('SAUCE_ACCESS_KEY');
 
-  Future startFactory() => new Future.value(); //isAvailable ?
-      //new Future.value() : new Future.error('sauce_connect not available');
+  Future startFactory() => isAvailable ?
+      new Future.value() : new Future.error('sauce_connect not available');
 
   Future<WebDriver> createWebDriver() {
     Map caps = Capabilities.chrome;
 
-    String username = 'devoncarew'; //_env['SAUCE_USERNAME'];
-    String accessKey = '0145bdbd-8e1d-4ab7-a677-fc01cded1b47'; //_env['SAUCE_ACCESS_KEY'];
+    String username = _env['SAUCE_USERNAME'];
+    String accessKey = _env['SAUCE_ACCESS_KEY'];
 
     caps['username'] = username;
     caps['accessKey'] = accessKey;
@@ -93,15 +114,10 @@ class SauceLabsDriverFactory extends DriverFactory {
     caps['browser'] = {
       "username": username,
       "accessKey": accessKey,
-      "os": "Windows 8",
-      "browser": "firefox",
-      "browserVersion": "29"
     };
 
-    print(caps);
-
     return createDriver(
-        uri: Uri.parse("http://" + username + ":" + accessKey + "@localhost:4445/wd/hub"),
+        uri: Uri.parse("http://${username}:${accessKey}@localhost:4445/wd/hub/"),
         desired: caps);
   }
 
