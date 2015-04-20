@@ -343,7 +343,10 @@ class Playground implements GistContainer, GistController {
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     // Listen for changes that would effect the documentation panel.
-    editor.onMouseDown.listen((e) => docHandler.generateDoc(_docPanel));
+    editor.onMouseDown.listen((e) {
+      // Delay to give codemirror time to process the mouse event.
+      Timer.run(() => docHandler.generateDoc(_docPanel));
+    });
     context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
 
     // Bind the editable files to the gist.
