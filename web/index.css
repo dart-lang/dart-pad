@@ -440,9 +440,15 @@ div.toggle {
 
 .keyboard {
   display: inline-block;
-  background: #333 url('packages/dart_pad/elements/keyboard.svg') center no-repeat;
-  background-size: 100%;
+  background: url('packages/dart_pad/elements/keyboard.svg') center no-repeat;
   width: 24px;
   height: 20px;
   cursor: pointer;
+  border: none;
+  opacity: 0.8;
 }
+
+.keyboard:hover {
+  opacity: 1;
+}
+
