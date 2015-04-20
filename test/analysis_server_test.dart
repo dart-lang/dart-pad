@@ -102,9 +102,9 @@ void defineTests() {
 
     test('simple_format', () {
       return analysisServer.format(badFormatCode, 0).then(
-        (FormatResponse results) {
-          expect(results.newString, formattedCode);
-        });
+          (FormatResponse results) {
+        expect(results.newString, formattedCode);
+      });
     });
   });
 }
