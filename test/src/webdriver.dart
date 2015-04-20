@@ -7,7 +7,7 @@ library dartpad.test.webdriver;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:webdriver/webdriver.dart';
+import 'package:webdriver/io.dart';
 import 'package:which/which.dart';
 
 /**
@@ -52,7 +52,7 @@ abstract class DriverFactory {
 
   Future startFactory();
 
-  Future<WebDriver> createDriver();
+  Future<WebDriver> createWebDriver();
 
   Future stopFactory();
 
@@ -74,7 +74,7 @@ class SauceLabsDriverFactory extends DriverFactory {
   Future startFactory() => new Future.value(); //isAvailable ?
       //new Future.value() : new Future.error('sauce_connect not available');
 
-  Future<WebDriver> createDriver() {
+  Future<WebDriver> createWebDriver() {
     Map caps = Capabilities.chrome;
 
     String username = 'devoncarew'; //_env['SAUCE_USERNAME'];
@@ -100,9 +100,9 @@ class SauceLabsDriverFactory extends DriverFactory {
 
     print(caps);
 
-    return WebDriver.createDriver(
+    return createDriver(
         uri: Uri.parse("http://" + username + ":" + accessKey + "@localhost:4445/wd/hub"),
-        desiredCapabilities: caps);
+        desired: caps);
   }
 
   Future stopFactory() => new Future.value();
@@ -122,10 +122,10 @@ class PhantomJSDriverFactory extends DriverFactory {
     });
   }
 
-  Future<WebDriver> createDriver() {
-    return WebDriver.createDriver(
+  Future<WebDriver> createWebDriver() {
+    return createDriver(
         uri: Uri.parse('http://127.0.0.1:9515/wd'),
-        desiredCapabilities: Capabilities.chrome);
+        desired: Capabilities.chrome);
   }
 
   Future stopFactory() {
@@ -152,7 +152,7 @@ class ChromeDriverFactory extends DriverFactory {
     });
   }
 
-  Future<WebDriver> createDriver() {
+  Future<WebDriver> createWebDriver() {
     Map capabilities = Capabilities.chrome;
     Map env = Platform.environment;
     Map chromeOptions = {};
@@ -167,9 +167,9 @@ class ChromeDriverFactory extends DriverFactory {
       capabilities['chromeOptions'] = chromeOptions;
     }
 
-    return WebDriver.createDriver(
+    return createDriver(
         uri: Uri.parse('http://127.0.0.1:9515/wd'),
-        desiredCapabilities: capabilities);
+        desired: capabilities);
   }
 
   Future stopFactory() {

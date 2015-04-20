@@ -28,7 +28,7 @@ dev_dependencies:
   http_server: ^0.9.0
   librato: '>=0.0.1 <0.1.0'
   unittest: any
-  webdriver: ^0.9.0
+  webdriver: 0.10.0-pre.2
   which: ^0.1.0
   yaml: any
 dependency_overrides:

@@ -7,7 +7,7 @@ library dartpad.web_integration;
 import 'dart:io';
 
 import 'package:unittest/unittest.dart';
-import 'package:webdriver/webdriver.dart';
+import 'package:webdriver/io.dart';
 
 import 'src/mserve.dart';
 import 'src/webdriver.dart';
@@ -47,7 +47,7 @@ _setupTests(DriverFactory factory) async {
 
     setUp(() async {
       print('creating driver ${factory}');
-      driver = await factory.createDriver();
+      driver = await factory.createWebDriver();
     });
 
     tearDown(() async {
