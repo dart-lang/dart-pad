@@ -13,7 +13,6 @@ import 'core/keys.dart';
 import 'dartservices_client/v1.dart';
 import 'editing/editor.dart';
 import 'elements/state.dart';
-import 'modules/dartservices_module.dart';
 import 'services/execution.dart';
 import 'sharing/gists.dart';
 import 'src/ga.dart';
@@ -23,7 +22,7 @@ Analytics get ga => deps[Analytics];
 
 Context get context => deps[Context];
 
-DartservicesApi get dartServices => deps[DartServices];
+DartservicesApi get dartServices => deps[DartservicesApi];
 
 EditorFactory get editorFactory => deps[EditorFactory];
 
