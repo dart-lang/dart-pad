@@ -15,10 +15,20 @@ The API provides services to:
 - analyze Dart code (for errors and warnings)
 - perform code completion for a snippet of Dart code
 - get dartdoc tooltip information for a snippet of Dart code
+- format Dart code
+- get quick fixes for problems in code
 
 ## Project status
 
 It is currently in a pre-alpha state, partially complete, and very much under active development.
+
+## The API
+
+A minimal sample of how to make an analysis call is here:
+https://dartpad.dartlang.org/2a7fd9328e0a567ee79b
+
+The discovery doc for the server's REST API is available here:
+http://dart-services.appspot.com/api/discovery/v1/apis/dartservices/v1/rest.
 
 ## Running
 
@@ -28,11 +38,6 @@ To run the server, run:
 
 The server will run from port 8082 and export several JSON APIs, like
 `/api/compile` and `/api/analyze`.
-
-## The API
-
-The discovery doc for the server's REST API is available here:
-http://dart-services.appspot.com/api/discovery/v1/apis/dartservices/v1/rest.
 
 ## See also
 
