@@ -77,7 +77,7 @@ class AnalysisServerWrapper {
 
   Future<api.FormatResponse> format(String src, int offset) async {
     var results = _formatImpl(src, offset);
-    return results.then((editResult) {
+    return results.then((EditFormatResult editResult) {
       String editSrc = src;
       List<SourceEdit> edits = editResult.edits;
       edits.sort((e1, e2) => -1 * e1.offset.compareTo(e2.offset));
@@ -85,7 +85,7 @@ class AnalysisServerWrapper {
       for (var edit in edits) {
         editSrc = edit.apply(editSrc);
       }
-      return new api.FormatResponse(editSrc);
+      return new api.FormatResponse(editSrc, editResult.selectionOffset);
     });
   }
 
@@ -125,7 +125,6 @@ class AnalysisServerWrapper {
     await serverConnection.sendRemoveOverlay();
     return formatResult;
   }
-
 
   /// Warm up the analysis server to be ready for use.
   Future warmup([bool useHtml = false]) =>

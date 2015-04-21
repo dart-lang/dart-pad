@@ -15,12 +15,13 @@ import 'package:unittest/unittest.dart';
 
 String quickFixesCode =
 r'''
+import 'dart:async';
 void main() {
-  int i = 0
+  int i = 0;
 }
 ''';
 
-String badFormatCode =
+String preFormattedCode =
 r'''
 void main()
 {
@@ -28,7 +29,7 @@ int i = 0;
 }
 ''';
 
-String formattedCode =
+String postFormattedCode =
 r'''
 void main() {
   int i = 0;
@@ -213,11 +214,31 @@ void defineTests() {
     });
 
     test('format', () async {
-      var json = {'source': badFormatCode};
+      var json = {'source': preFormattedCode};
       var response = await _sendPostRequest('dartservices/v1/format', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
-      expect(data["newString"], formattedCode);
+      expect(data["newString"], postFormattedCode);
+    });
+
+    test('format position', () async {
+      var json = {'source': preFormattedCode, 'offset': 21};
+      var response = await _sendPostRequest('dartservices/v1/format', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data["newString"], postFormattedCode);
+      expect(data["offset"], 24);
+    });
+
+    test('fix', () async {
+      var json = {'source': quickFixesCode, 'offset': 10};
+      var response = await _sendPostRequest('dartservices/v1/fixes', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      var fixes = data['fixes'];
+      expect(fixes.length, 1);
+      var problemAndFix = fixes[0];
+      expect(problemAndFix['problemMessage'], isNotNull);
     });
   });
 }
