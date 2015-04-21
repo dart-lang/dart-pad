@@ -137,16 +137,16 @@ class CommonServer {
       method: 'POST',
       path: 'fixes',
       description: 'Get any quick fixes for the given source code location.')
-  Future<FixesResponse> fix(SourceRequest request) {
+  Future<FixesResponse> fixes(SourceRequest request) {
     if (request.offset == null) {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _fix(request.source, request.offset);
+    return _fixes(request.source, request.offset);
   }
 
   @ApiMethod(method: 'GET', path: 'fixes')
-  Future<FixesResponse> fixGet({String source, int offset}) {
+  Future<FixesResponse> fixesGet({String source, int offset}) {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
@@ -154,7 +154,7 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _fix(source, offset);
+    return _fixes(source, offset);
   }
 
   @ApiMethod(
@@ -296,7 +296,7 @@ class CommonServer {
     return analysisServer.complete(source, offset);
   }
 
-  Future<FixesResponse> _fix(String source, int offset) async {
+  Future<FixesResponse> _fixes(String source, int offset) async {
       srcRequestRecorder.record("FIX", source, offset);
       counter.increment("Fixes");
       return analysisServer.getFixes(source, offset);
