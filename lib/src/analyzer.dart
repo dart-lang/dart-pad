@@ -258,8 +258,6 @@ class StringSource implements Source {
 
 class _Error {
   static final _HAS_FIXES_WHITELIST = [
-    HintCode.DEAD_CODE,
-    HintCode.DUPLICATE_IMPORT,
     HintCode.UNUSED_IMPORT,
     ParserErrorCode.EXPECTED_TOKEN,
     StaticWarningCode.UNDEFINED_IDENTIFIER,
