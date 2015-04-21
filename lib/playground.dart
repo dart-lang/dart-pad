@@ -438,8 +438,7 @@ class Playground implements GistContainer, GistController {
   _handleAutoCompletion(KeyboardEvent e) {
     if (context.focusedEditor == 'dart' && editor.hasFocus) {
       if (e.keyCode == KeyCode.PERIOD) {
-        editor.completionAutoInvoked = true;
-        editor.execCommand("autocomplete");
+        editor.showCompletions(autoInvoked: true);
       }
     }
 
