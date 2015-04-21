@@ -400,7 +400,7 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future<FixesResponse> fix(SourceRequest request) {
+  async.Future<FixesResponse> fixes(SourceRequest request) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -440,7 +440,7 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future<FixesResponse> fixGet({core.String source, core.int offset}) {
+  async.Future<FixesResponse> fixesGet({core.String source, core.int offset}) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
