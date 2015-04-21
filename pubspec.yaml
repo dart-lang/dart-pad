@@ -24,15 +24,13 @@ dependencies:
 dev_dependencies:
   dart_to_js_script_rewriter: any
   git: any
-  grinder: '>=0.6.6+2 <0.7.0'
+  grinder: '>=0.7.0 <0.8.0'
   http_server: ^0.9.0
   librato: '>=0.0.1 <0.1.0'
   unittest: any
   webdriver: 0.10.0-pre.2
   which: ^0.1.0
   yaml: any
-dependency_overrides:
-  grinder: 0.7.0-dev.2
 transformers:
 - dart_to_js_script_rewriter
 - $dart2js:
