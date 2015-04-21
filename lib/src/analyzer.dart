@@ -261,7 +261,6 @@ class _Error {
     HintCode.DEAD_CODE,
     HintCode.DUPLICATE_IMPORT,
     HintCode.UNUSED_IMPORT,
-    HintCode.UNUSED_LOCAL_VARIABLE,
     ParserErrorCode.EXPECTED_TOKEN,
     StaticWarningCode.UNDEFINED_IDENTIFIER,
     StaticWarningCode.UNDEFINED_CLASS,
