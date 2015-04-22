@@ -140,7 +140,7 @@ class Analyzer {
 
         // Name and description.
         if (element.name != null) info['name'] = element.name;
-        info['description'] = '${element}';
+        info['description'] = '${_pretifyElement(element)}';
         info['kind'] = element.kind.displayName;
 
         // Only defined if there is an enclosing class.
@@ -154,7 +154,8 @@ class Analyzer {
         if (element is ExecutableElement) {
           List<String> list = [];
           ExecutableElement el = element;
-          el.parameters.forEach((par) => list.add('${par}'));
+          el.parameters.forEach((par)
+            => list.add('${_pretifyElement(par)}'));
           info['parameters'] = list;
         }
 
@@ -194,17 +195,31 @@ class Analyzer {
 
       // types
       if (expression.staticType != null) {
-        info['staticType'] = '${expression.staticType}';
+        info['staticType'] = '${_pretifyType(expression.staticType)}';
       }
 
+
       if (expression.propagatedType != null) {
-        info['propagatedType'] = '${expression.propagatedType}';
+        info['propagatedType'] = '${_pretifyType(expression.propagatedType)}';
       }
 
       return info;
     }
 
     return null;
+  }
+
+  // TODO(lukechurch): Determine whether we can change this in the Analyzer.
+  static String _pretifyElement(Element e) {
+    String returnString = "${e}";
+    returnString = returnString.replaceAll("Future<dynamic>", "Future");
+    return returnString;
+  }
+
+  static String _pretifyType(DartType dt) {
+    String returnString = "${dt}";
+    returnString = returnString.replaceAll("Future<dynamic>", "Future");
+    return returnString;
   }
 }
 
