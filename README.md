@@ -22,10 +22,12 @@ The API provides services to:
 
 It is currently in a pre-alpha state, partially complete, and very much under active development.
 
-## The API
+## Try it
 
-A minimal sample of how to make an analysis call is here:
+A simple DartPad example of how to use the library is here:
 https://dartpad.dartlang.org/2a7fd9328e0a567ee79b
+
+## The API
 
 The discovery doc for the server's REST API is available here:
 http://dart-services.appspot.com/api/discovery/v1/apis/dartservices/v1/rest.
