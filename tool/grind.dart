@@ -11,56 +11,53 @@ import 'dart:io';
 import 'package:grinder/grinder.dart';
 import 'package:librato/librato.dart';
 
-void main(List<String> args) {
-  task('init', defaultInit);
-  task('discovery', discovery, ['init']);
-  task('travis-bench', travisBench, ['init']);
-  task('clean', defaultClean);
+Map get _env => Platform.environment;
 
-  startGrinder(args);
+main(List<String> args) => grind(args);
+
+@Task()
+analyze() {
+  new PubApp.global('tuneup')..run(['check']);
 }
 
-/**
- * Generate the discovery doc and Dart library from the annotated API.
- */
-discovery(GrinderContext context) {
-  ProcessResult result = Process.runSync(
-      'dart', ['bin/services.dart', '--discovery']);
+@Task()
+test() => Tests.runCliTests();
 
-  if (result.exitCode != 0) {
-    throw 'Error generating the discovery document\n${result.stderr}';
+@DefaultTask()
+@Depends(analyze, test)
+analyzeTest() => null;
+
+@Task()
+coverage() {
+  if (!_env.containsKey('REPO_TOKEN')) {
+    log("env var 'REPO_TOKEN' not found");
+    return;
   }
 
-  File discoveryFile = new File('doc/generated/dartservices.json');
-  discoveryFile.parent.createSync();
-  context.log('writing ${discoveryFile.path}');
-  discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
-
-  // Generate the Dart library from the json discovery file.
-  Pub.global.activate(context, 'discoveryapis_generator');
-  Pub.global.run(context, 'discoveryapis_generator:generate', arguments: [
-    'files',
-    '--input-dir=doc/generated',
-    '--output-dir=doc/generated'
-  ]);
+  PubApp coveralls = new PubApp.global('dart_coveralls');
+  coveralls.run([
+    'report',
+    '--token', _env['REPO_TOKEN'],
+    '--retry', '2',
+    '--exclude-test-files',
+    'test/all.dart']);
 }
 
-/**
- * Run the benchmarks on the build-bot; upload the data to librato.com.
- */
-travisBench(GrinderContext context) {
+@Task('Run the benchmarks on the build-bot; upload the data to librato.com')
+bench(GrinderContext context) {
   Librato librato;
 
   try {
     librato = new Librato.fromEnvVars();
   } catch (e) {
     // If there's no librato auth info set, don't try and uplaod the stats data.
+    log("env var 'LIBRATO_USER' not found");
     return new Future.value();
   }
 
   context.log('Running benchmarks...');
 
-  if (Platform.environment['TRAVIS_COMMIT'] == null) {
+  if (_env['TRAVIS_COMMIT'] == null) {
     context.fail('Missing env var: TRAVIS_COMMIT');
   }
 
@@ -84,7 +81,7 @@ travisBench(GrinderContext context) {
   context.log('${stats}');
 
   return librato.postStats(stats).then((_) {
-    String commit = Platform.environment['TRAVIS_COMMIT'];
+    String commit = _env['TRAVIS_COMMIT'];
     LibratoLink link = new LibratoLink(
         'github',
         'https://github.com/dart-lang/dart-services/commit/${commit}');
@@ -94,4 +91,31 @@ travisBench(GrinderContext context) {
         links: [link]);
     return librato.createAnnotation('build_server', annotation);
   });
+}
+
+@Task()
+@Depends(analyze, test, bench, coverage)
+void buildbot() => null;
+
+@Task('Generate the discovery doc and Dart library from the annotated API')
+discovery() {
+  ProcessResult result = Process.runSync(
+      'dart', ['bin/services.dart', '--discovery']);
+
+  if (result.exitCode != 0) {
+    throw 'Error generating the discovery document\n${result.stderr}';
+  }
+
+  File discoveryFile = new File('doc/generated/dartservices.json');
+  discoveryFile.parent.createSync();
+  context.log('writing ${discoveryFile.path}');
+  discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
+
+  // Generate the Dart library from the json discovery file.
+  Pub.global.activate('discoveryapis_generator');
+  Pub.global.run('discoveryapis_generator:generate', arguments: [
+    'files',
+    '--input-dir=doc/generated',
+    '--output-dir=doc/generated'
+  ]);
 }

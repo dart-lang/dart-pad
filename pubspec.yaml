@@ -35,7 +35,7 @@ dev_dependencies:
   _discoveryapis_commons: any
   browser: any
   codemirror: '>=0.1.0 <0.2.0'
-  grinder: '>=0.6.4 <0.7.0'
+  grinder: '>=0.7.0 <0.8.0'
   http: any
   unittest: any
 executables:

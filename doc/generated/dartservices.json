@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "e0b74b384a4f3daf325eca29eccf60ffa002f155",
+ "etag": "326704774ef7358f4cc3c237ee8c6bdc4d9d0b80",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -327,8 +327,8 @@
     "$ref": "CompleteResponse"
    }
   },
-  "fix": {
-   "id": "CommonServer.fix",
+  "fixes": {
+   "id": "CommonServer.fixes",
    "path": "fixes",
    "httpMethod": "POST",
    "description": "Get any quick fixes for the given source code location.",
@@ -341,8 +341,8 @@
     "$ref": "FixesResponse"
    }
   },
-  "fixGet": {
-   "id": "CommonServer.fixGet",
+  "fixesGet": {
+   "id": "CommonServer.fixesGet",
    "path": "fixes",
    "httpMethod": "GET",
    "parameters": {
