@@ -192,7 +192,7 @@ testPath(String path,
   }
 }
 
-testAnalysis(String src, ana.Analyzer analyzer) async {
+Future<num> testAnalysis(String src, ana.Analyzer analyzer) async {
   Stopwatch sw = new Stopwatch()..start();
 
   if (_SERVER_BASED_CALL) await server.analyzeGet(source: src);
@@ -202,7 +202,7 @@ testAnalysis(String src, ana.Analyzer analyzer) async {
   return sw.elapsedMilliseconds;
 }
 
-testCompilation(String src, comp.Compiler compiler) async {
+Future<num> testCompilation(String src, comp.Compiler compiler) async {
   Stopwatch sw = new Stopwatch()..start();
 
   if (_SERVER_BASED_CALL) await server.compileGet(source: src);
@@ -212,7 +212,7 @@ testCompilation(String src, comp.Compiler compiler) async {
   return sw.elapsedMilliseconds;
 }
 
-testDocument(String src, ana.Analyzer analyzer) async {
+Future<num> testDocument(String src, ana.Analyzer analyzer) async {
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
     Stopwatch sw2 = new Stopwatch()..start();
@@ -226,7 +226,7 @@ testDocument(String src, ana.Analyzer analyzer) async {
   return sw.elapsedMilliseconds / src.length;
 }
 
-testCompletions(String src, analysis_server.AnalysisServerWrapper wrapper) async {
+Future<num> testCompletions(String src, analysis_server.AnalysisServerWrapper wrapper) async {
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
     Stopwatch sw2 = new Stopwatch()..start();
@@ -239,7 +239,7 @@ testCompletions(String src, analysis_server.AnalysisServerWrapper wrapper) async
   return sw.elapsedMilliseconds / src.length;
 }
 
-testFixes(String src, analysis_server.AnalysisServerWrapper wrapper) async {
+Future<num> testFixes(String src, analysis_server.AnalysisServerWrapper wrapper) async {
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
     Stopwatch sw2 = new Stopwatch()..start();
@@ -253,14 +253,13 @@ testFixes(String src, analysis_server.AnalysisServerWrapper wrapper) async {
   return sw.elapsedMilliseconds / src.length;
 }
 
-testFormat(String src) async {
-
+Future<num> testFormat(String src) async {
   Stopwatch sw = new Stopwatch()..start();
   await server.formatGet(source: src, offset: 0);
   return sw.elapsedMilliseconds;
 }
 
-mutate(String src) {
+String mutate(String src) {
   var chars = ["{", "}", "[", "]", "'", ",", "!", "@", "#", "\$", "%",
   "^", "&", " ", "(", ")", "null ", "class ", "for ", "void ", "var ",
   "dynamic ", ";", "as ", "is ", ".", "import "];
