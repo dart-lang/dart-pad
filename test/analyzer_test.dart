@@ -100,6 +100,24 @@ void main() {
       });
     });
 
+    test('future pretified', () {
+      final String source = '''
+import 'dart:async';
+
+void main() {
+  foo
+}
+
+Future foo() => new Future.value(4);
+''';
+
+      return analyzer.dartdoc(source, 39).then((Map m) {
+        expect(m['name'], 'foo');
+        expect(m['description'], 'foo() → Future');
+        expect(m['staticType'], '() → Future');
+      });
+    });
+
     test('dart:html', () {
       final String source = '''
 import 'dart:html';
