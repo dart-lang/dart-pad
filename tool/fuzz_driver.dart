@@ -11,6 +11,7 @@ library services.fuzz_driver;
 
 import 'dart:io' as io;
 import 'dart:math';
+import 'dart:async';
 
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:services/src/analysis_server.dart' as analysis_server;
@@ -52,10 +53,10 @@ Usage: slow_test path_to_test_collection
   // TODO: Replace this with args package.
   int seed = 0;
   String testCollectionRoot = args[0];
-  if (args.length == 2) seed = int.parse(args[1]);
-  if (args.length == 3) maxMutations = int.parse(args[2]);
-  if (args.length == 4) iterations = int.parse(args[3]);
-  if (args.length == 5) commandToRun = args[4];
+  if (args.length >= 2) seed = int.parse(args[1]);
+  if (args.length >= 3) maxMutations = int.parse(args[2]);
+  if (args.length >= 4) iterations = int.parse(args[3]);
+  if (args.length >= 5) commandToRun = args[4];
   io.Directory sdkDir = cli_util.getSdkDir([]);
 
   // Load the list of files.
@@ -97,11 +98,11 @@ Usage: slow_test path_to_test_collection
  * Init the tools, and warm them up
  */
 setupTools(String sdkPath) async {
-  server = new CommonServer(sdkPath, cache, recorder, counter);
-  apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
   cache = new MockCache();
   recorder = new MockRequestRecorder();
   counter = new MockCounter();
+  server = new CommonServer(sdkPath, cache, recorder, counter);
+  apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
 
   analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
   await analysisServer.warmup();
@@ -121,7 +122,8 @@ testPath(String path,
   String src = f.readAsStringSync();
   f = null;
 
-  print ('Path, Compilation, Analysis, Completion, Document, Fixes, Format');
+  print (
+'Path, Compilation/ms, Analysis/ms, Completion/ms, Document/ms, Fixes/ms, Format/ms');
 
   for (int i = 0; i < iterations; i++) {
 
@@ -172,12 +174,12 @@ testPath(String path,
 
     print (
         "$path-$i, "
-        "${averageCompilationTime.toStringAsFixed(2)}ms, "
-        "${averageAnalysisTime.toStringAsFixed(2)}ms, "
-        "${averageCompletionTime.toStringAsFixed(2)}ms, "
-        "${averageDocumentTime.toStringAsFixed(2)}ms, "
-        "${averageFixesTime.toStringAsFixed(2)}ms, "
-        "${averageFormatTime.toStringAsFixed(2)}ms"
+        "${averageCompilationTime.toStringAsFixed(2)}, "
+        "${averageAnalysisTime.toStringAsFixed(2)}, "
+        "${averageCompletionTime.toStringAsFixed(2)}, "
+        "${averageDocumentTime.toStringAsFixed(2)}, "
+        "${averageFixesTime.toStringAsFixed(2)}, "
+        "${averageFormatTime.toStringAsFixed(2)}"
     );
 
     if (maxMutations == 0) break;
