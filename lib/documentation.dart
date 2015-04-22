@@ -115,10 +115,10 @@ ${libraryName == null ? '' : apiLink }\n\n''';
           _mdDocs,
           inlineSyntaxes: [new InlineBracketsColon(), new InlineBrackets()]);
 
-      // TODO: Append a 'launch' icon to the 'Open external docs' link.
-      //_htmlDocs = _htmlDocs.replaceAll(
-      //    ">Open external docs</a>",
-      //    " class='launch'>Open external docs</a>");
+      // Append a 'launch' icon to the 'Open external docs' link.
+      _htmlDocs = _htmlDocs.replaceAll(
+          "external docs</a>",
+          "external docs <span class='launch-icon'></span></a>");
 
       return new _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
     });
