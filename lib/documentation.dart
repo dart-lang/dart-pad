@@ -106,31 +106,38 @@ class DocHandler {
     return mdnCheck.then((String mdnLink) {
       String _mdDocs = '''# `${info['description']}`\n\n
 ${hasDartdoc ? info['dartdoc'] + "\n\n" : ''}
-${mdnLink != null ? "## External resources:\n * $mdnLink at MDN" : ''}
+${mdnLink != null ? "## External resources:\n * ${mdnLink} at MDN" : ''}
 ${isVariable ? "${kind}\n\n" : ''}
 ${isVariable ? "**Propagated type:** ${info["propagatedType"]}\n\n" : ''}
-${libraryName == null ? '' : "**Library:** $apiLink" }\n\n''';
+${libraryName == null ? '' : apiLink }\n\n''';
 
       String _htmlDocs = markdown.markdownToHtml(
           _mdDocs,
           inlineSyntaxes: [new InlineBracketsColon(), new InlineBrackets()]);
 
-      return new _DocResult(_htmlDocs, kind.replaceAll(' ','_'));
+      // Append a 'launch' icon to the 'Open external docs' link.
+      _htmlDocs = _htmlDocs.replaceAll(
+          "external docs</a>",
+          "external docs <span class='launch-icon'></span></a>");
+
+      return new _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
     });
   }
 
   String _dartApiLink({String libraryName, String enclosingClassName, String memberName}) {
     StringBuffer apiLink = new StringBuffer();
     if (libraryName != null) {
-      if (libraryName.contains("dart:")) {
-        apiLink.write("https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/$libraryName");
-        memberName = '${memberName == null ? "" : "#id_$memberName"}';
+      if (libraryName.contains('dart:')) {
+        apiLink.write(
+            'https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/'
+            '${libraryName}');
+        memberName = '${memberName == null ? "" : "#id_${memberName}"}';
         if (enclosingClassName == null) {
           apiLink.write(memberName);
         } else {
-          apiLink.write(".$enclosingClassName$memberName");
+          apiLink.write(".${enclosingClassName}${memberName}");
         }
-        return '[$libraryName]($apiLink)';
+        return '[Open external docs](${apiLink})';
       }
     }
     return libraryName;
