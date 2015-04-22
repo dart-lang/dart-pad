@@ -67,7 +67,7 @@ _setupTests(DriverFactory factory) async {
 
     var _defineTest = (String name, Function fn, {bool mobile: false}) {
       test(mobile ? '${name} (mobile)' : name, () async {
-        await driver.navigate.to('${server.urlBase}${mobile ? 'mobile' : 'index'}.html');
+        await driver.get('${server.urlBase}${mobile ? 'mobile' : 'index'}.html');
         fn(driver);
       });
     };
@@ -81,10 +81,12 @@ _setupTests(DriverFactory factory) async {
 
 testCheckTitle(WebDriver driver) async {
   String title = await driver.title;
+  print('testCheckTitle: ${title}');
   expect(title, startsWith('DartPad'));
 }
 
 testCheckTitleExact(WebDriver driver) async {
   String title = await driver.title;
+  print('testCheckTitleExact: ${title}');
   expect(title, 'DartPad (β)');
 }
