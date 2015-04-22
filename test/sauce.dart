@@ -26,7 +26,7 @@ main(List args) async {
   WebDriver driver = await createDriver(
       uri: Uri.parse(uri),
       desired: caps);
-  await driver.navigate.to("https://dartpad.dartlang.org/");
+  await driver.get("https://dartpad.dartlang.org/");
   String title = await driver.title;
   print('[${title}]');
   driver.close();
