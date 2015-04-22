@@ -114,7 +114,7 @@ Future foo() => new Future.value(4);
       return analyzer.dartdoc(source, 39).then((Map m) {
         expect(m['name'], 'foo');
         expect(m['description'], 'foo() → Future');
-        expect(m['staticType'], '() => Future');
+        expect(m['staticType'], '() → Future');
       });
     });
 
