@@ -69,7 +69,6 @@ Usage: slow_test path_to_test_collection
   }
 
   analysis_server.dumpServerMessages = false;
-  String sdkPath = cli_util.getSdkDir([]).path;
 
   // Warm up the services.
   await setupTools(sdkDir.path);
@@ -242,7 +241,6 @@ testCompletions(String src, analysis_server.AnalysisServerWrapper wrapper) async
 
 testFixes(String src, analysis_server.AnalysisServerWrapper wrapper) async {
   Stopwatch sw = new Stopwatch()..start();
-  Stopwatch sw2 = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
     Stopwatch sw2 = new Stopwatch()..start();
 
