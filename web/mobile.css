@@ -144,7 +144,7 @@ iframe {
 }
 
 .frameContainer {
-  overflow: scroll;
+  overflow: auto;
 }
 
 .console {
