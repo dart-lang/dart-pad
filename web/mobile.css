@@ -92,10 +92,17 @@ paper-toast {
 }
 
 paper-tabs::shadow #selectionBar {
-  background-color: #607D8B;
+  background-color: #CFD8DC;
 }
 
-paper-tab paper-ripple#ink,
+paper-tabs #selectionBar {
+  background-color: #CFD8DC;
+}
+
+paper-tab paper-ripple#ink {
+  color: #CFD8DC;
+}
+
 paper-tab::shadow #ink {
   color: #CFD8DC;
 }
