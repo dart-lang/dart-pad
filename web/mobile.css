@@ -95,8 +95,17 @@ paper-tabs::shadow #selectionBar {
   background-color: #607D8B;
 }
 
-paper-tabs paper-tab::shadow #ink {
-  color: #607D8B;
+paper-tab paper-ripple#ink,
+paper-tab::shadow #ink {
+  color: #CFD8DC;
+}
+
+paper-tabs.pink::shadow #selectionBar {
+  background-color: #CFD8DC;
+}
+
+paper-tabs.pink paper-tab::shadow #ink {
+  color: #CFD8DC;
 }
 
 core-header-panel::shadow #dropShadow {
