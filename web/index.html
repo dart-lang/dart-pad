@@ -56,7 +56,7 @@
           <option value="33706e19df021e52d98c">Hello World</option>
           <option value="9126d5d48ebabf5bf547">Hello World HTML</option>
           <option value="72d83fe97bfc8e735607">Solar</option>
-          <option value="76d27117fd6313dd9167">Spirodraw</option>
+          <option value="9e42aabfcc15c81a0406">Spirodraw</option>
           <option value="9d2dd2ce17981ecacadd">Sunflower</option>
           <option value="479ecba5a56fd706b648">WebSockets</option>
         </select>
@@ -101,13 +101,15 @@
             <li><a id="resulttab"><span>Results</span></a></li>
           </div>
           <div id="output" class="console" flex></div>
+          <!-- TODO: We might want to embed the iframe into a div, and set -->
+          <!-- div to overflow: scroll. -->
           <iframe id="frame" sandbox="allow-scripts" flex src="frame.html">
           </iframe>
         </div>
         <div class="splitter" horizontal id="output_split">
           <div class="inner"></div>
         </div>
-        <div class="view" flex two layout vertical>
+        <div class="view" flex layout vertical>
           <div id="documentation" flex layout vertical></div>
         </div>
         <div id="frame_overlay"></div>
