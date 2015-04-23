@@ -48,7 +48,8 @@ class PaperDialogBase extends CoreOverlay {
 
 class PaperDropdown extends CoreDropdown {
   PaperDropdown() : super('paper-dropdown') {
-    clazz('dropdown core-transition');
+    clazz('dropdown');
+    clazz('core-transition');
   }
   PaperDropdown.from(HtmlElement element) : super.from(element);
 }

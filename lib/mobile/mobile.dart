@@ -81,6 +81,7 @@ class PlaygroundMobile {
       }
     }
 
+    _clearErrors();
     _setGistDescription(null);
     _setGistId(null);
 
@@ -173,7 +174,8 @@ class PlaygroundMobile {
     overflowMenuButton.add(dropdown);
     toolbar.add(overflowMenuButton);
 
-    CoreElement div = CoreElement.div()..clazz('bottom fit')..horizontal()..vertical();
+    CoreElement div = CoreElement.div()..clazz('bottom')..clazz('fit')
+        ..horizontal()..vertical();
     PaperTabs tabs = new PaperTabs()..flex();
     tabs.selected = '0';
     tabs.add(new PaperTab(name: 'dart', text: 'Dart'));
@@ -184,7 +186,7 @@ class PlaygroundMobile {
 
     div.add(tabs);
     toolbar.add(div);
-    _editProgress = new PaperProgress()..clazz('bottom fit')..hidden();
+    _editProgress = new PaperProgress()..clazz('bottom')..clazz('fit')..hidden();
     toolbar.add(_editProgress);
 
     mainPanel.add(toolbar);
@@ -225,7 +227,7 @@ class PlaygroundMobile {
     toolbar.add(toggleConsoleButton);
     rerunButton = new PaperIconButton(icon: 'refresh');
     toolbar.add(rerunButton);
-    _runProgress = new PaperProgress()..clazz('bottom fit')..hidden();
+    _runProgress = new PaperProgress()..clazz('bottom')..clazz('fit')..hidden();
     toolbar.add(_runProgress);
     header.add(toolbar);
 
@@ -234,17 +236,21 @@ class PlaygroundMobile {
     CoreElement content = CoreElement.div()..fit()..layout()..vertical();
     header.add(content);
 
+    CoreElement frameContainer = CoreElement.div()..flex(2)..layout()..vertical();
+    frameContainer.clazz('frameContainer');
+    content.add(frameContainer);
+
     CoreElement frame = new CoreElement('iframe')
-      ..flex(2)
+      ..flex()
       ..id = 'frame'
       ..setAttribute('sandbox', 'allow-scripts')
       ..setAttribute('src', 'frame.html');
-    content.add(frame);
+    frameContainer.add(frame);
     _output = CoreElement.div()
       ..flex(1)
-      ..clazz('console')
-      ..element.style.height = '30%';
+      ..clazz('console');
     content.add(_output);
+    _clearOutput();
 
     toggleConsoleButton.onCoreChange.listen((_) {
       _output.hidden(!toggleConsoleButton.checked);
@@ -265,6 +271,8 @@ class PlaygroundMobile {
       context.dartSource = dart == null ? '' : dart.content;
       context.htmlSource = html == null ? '' : extractHtmlBody(html.content);
       context.cssSource = css == null ? '' : css.content;
+
+      _clearErrors();
 
       // Analyze and run it.
       Timer.run(() {
@@ -351,8 +359,9 @@ class PlaygroundMobile {
     _editProgress.hidden(false);
 
     var input = new SourceRequest()..source = context.dartSource;
-    dartServices.compile(input).timeout(longServiceCallTimeout)
-    .then((CompileResponse response) {
+    dartServices.compile(input).timeout(longServiceCallTimeout).then(
+        (CompileResponse response) {
+      _clearErrors();
       _clearOutput();
 
       // TODO: Use the router here instead -
@@ -439,8 +448,15 @@ class PlaygroundMobile {
     });
   }
 
+  void _clearErrors() {
+    _errorsToast.dismiss();
+  }
+
   void _clearOutput() {
     _output.text = '';
+    _output.add(new DivElement()
+      ..text = 'Console output'
+      ..classes.add('consoleTitle'));
   }
 
   void _showOuput(String message, {bool error: false}) {
@@ -472,7 +488,7 @@ class PlaygroundMobile {
 
   void _displayIssues(List<AnalysisIssue> issues) {
     if (issues.isEmpty) {
-      _errorsToast.dismiss();
+      _clearErrors();
     } else {
       Element element = _errorsToast.element;
 
@@ -541,7 +557,7 @@ class PlaygroundMobile {
     menu.add(new PaperItem(text: 'Hello World')..name('33706e19df021e52d98c'));
     menu.add(new PaperItem(text: 'Hello World HTML')..name('9126d5d48ebabf5bf547'));
     menu.add(new PaperItem(text: 'Solar')..name('72d83fe97bfc8e735607'));
-    menu.add(new PaperItem(text: 'Spirodraw')..name('76d27117fd6313dd9167'));
+    menu.add(new PaperItem(text: 'Spirodraw')..name('9e42aabfcc15c81a0406'));
     menu.add(new PaperItem(text: 'Sunflower')..name('9d2dd2ce17981ecacadd'));
     menu.add(new PaperItem(text: 'WebSockets')..name('479ecba5a56fd706b648'));
 
