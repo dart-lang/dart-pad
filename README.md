@@ -23,6 +23,19 @@ work in progress.
 Please file reports on the
 [GitHub Issue Tracker](https://github.com/dart-lang/dart-pad/issues).
 
+## Running locally
+
+The project contains a tiny appengine for redirecting to gists and the mobile UI. To run this:
+- Download the AppEngine SDK for Python here: https://cloud.google.com/appengine/downloads
+- Navigate to the root of the checkout folder
+- run `pub get`
+- run `dart tool/grind.dart build`
+- Start the GoogleAppEngineLauncher
+- Right click on the empty projects area and select 'Add Existing...' (Mac UI, other platforms may vary a little)
+- Add the 'build/web' folder for the location of the project
+- Select the project and select 'Run'
+- Select the now running project, and click 'browse' - you should now have a fully working local copy of DartPad
+
 ## License and Contributing
 
 Contributions welcome! Please read this short
