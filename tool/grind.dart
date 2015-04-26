@@ -44,7 +44,7 @@ coverage() {
 }
 
 @Task('Run the benchmarks on the build-bot; upload the data to librato.com')
-bench(GrinderContext context) {
+bench() {
   Librato librato;
 
   try {
@@ -55,30 +55,30 @@ bench(GrinderContext context) {
     return new Future.value();
   }
 
-  context.log('Running benchmarks...');
+  log('Running benchmarks...');
 
   if (_env['TRAVIS_COMMIT'] == null) {
-    context.fail('Missing env var: TRAVIS_COMMIT');
+    fail('Missing env var: TRAVIS_COMMIT');
   }
 
   ProcessResult result = Process.runSync(
       'dart', ['benchmark/bench.dart', '--json']);
   if (result.exitCode != 0) {
-    context.fail('benchmarks exit code: ${result.exitCode}');
+    fail('benchmarks exit code: ${result.exitCode}');
   }
 
   List results = JSON.decode(result.stdout);
   List<LibratoStat> stats = [];
 
   results.forEach((Map result) {
-    context.log('${result}');
+    log('${result}');
 
     String key = result.keys.first;
     stats.add(new LibratoStat(key, result[key]));
   });
 
-  context.log('Uploading stats to ${librato.baseUrl}');
-  context.log('${stats}');
+  log('Uploading stats to ${librato.baseUrl}');
+  log('${stats}');
 
   return librato.postStats(stats).then((_) {
     String commit = _env['TRAVIS_COMMIT'];
@@ -108,7 +108,7 @@ discovery() {
 
   File discoveryFile = new File('doc/generated/dartservices.json');
   discoveryFile.parent.createSync();
-  context.log('writing ${discoveryFile.path}');
+  log('writing ${discoveryFile.path}');
   discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
 
   // Generate the Dart library from the json discovery file.
