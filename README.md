@@ -32,7 +32,7 @@ https://dartpad.dartlang.org/2a7fd9328e0a567ee79b
 The discovery doc for the server's REST API is available here:
 http://dart-services.appspot.com/api/discovery/v1/apis/dartservices/v1/rest.
 
-## Runningd
+## Running
 
 To run the server, run:
 
