@@ -8,12 +8,12 @@ tests written and they're running on each commit on your build system. If you're
 very forward looking you might be using a service like coveralls.io to get a
 sense of the code coverage from those unit tests.
 
-So you've got a continuous build, and tests, and maybe code coverage. But what
-is a green, passing build telling you? You know your unit tests work and are
-passing, but you really don't have any insight into whether the app you're
-shipping to your users really works. All your tests could pass but the app
-itself might fail to load. Or some critical feature of it could fail due to some
-component interaction; something that wouldn't be covered by a unit test.
+Imagine you have a continuous build system, and tests, and maybe code coverage.
+But what is a green, passing build telling you? You know your unit tests work
+and are passing, but you really don't have any insight into whether the app
+you're shipping to your users really works. All your tests could pass but the
+app itself might fail to load. Or some critical feature of it could fail due to
+some component interaction; something that wouldn't be covered by a unit test.
 
 Your unit tests are a very different perspective on the app - a perspective that
 your users will never see. In order to have confidence in the application that
