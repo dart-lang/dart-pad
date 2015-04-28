@@ -15,10 +15,10 @@ const URI = "https://dart-services.appspot.com/api/dartservices/v1/compile";
 int count = 0;
 
 void main(List<String> args) {
-  int qps;
+  num qps;
 
   if (args.length == 1) {
-    qps = int.parse(args[0]);
+    qps = num.parse(args[0]);
   } else {
     qps = 1;
   }
