@@ -2,7 +2,7 @@
 
 Code coverage is awesome! [coveralls.io](https://coveralls.io/) is awesome!
 Here's how you use them together in a Dart project. These instructions assume
-you're running your builds on Travis, but will work for most continuous
+you're running your builds on Travis, but they'll will work for most continuous
 integration systems.
 
 ## Turn on support for your project at coveralls.io
