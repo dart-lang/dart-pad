@@ -22,6 +22,13 @@ work in progress.
 
 See also the [dart-services](https://github.com/dart-lang/dart-services) repo.
 
+## How did we build DartPad?
+
+Interested in the tools we used to build DartPad? We put together some
+[documentation](https://github.com/dart-lang/dart-pad/tree/master/doc)
+about the hosted services - continuous integration, code coverage, cross-browser testing, ...
+that we used to build DartPad.
+
 ## Issues and bugs
 
 Please file reports on the
