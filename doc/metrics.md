@@ -1,12 +1,12 @@
 # Using Hosted Build Metrics
 
-## What is it?
+### What is it?
 
 A hosted metrics service allows you to upload various data metrics and views
 graphs of those metrics over time. The service we're using for DartPad is
 librato.com.
 
-## How do I get it set up?
+### How do I get it set up?
 
 - set up an account at librato.com
 - add the username and security token to the environment variables for your
@@ -20,7 +20,7 @@ You should now be able to see the individual metrics at librato. You can mix and
 match different metrics on the same chart as well as put together publicly
 visible dashboards.
 
-## What are some of the benefits?
+### What are some of the benefits?
 
 Having detailed historical data for your builds can be useful for a number of
 things. In DartPad, we use it to track the size of our compiled front-end. For

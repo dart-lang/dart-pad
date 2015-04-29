@@ -84,7 +84,8 @@ class Playground implements GistContainer, GistController {
 
     sharingDialog = new SharingDialog(this, this);
 
-    new NewPadAction(querySelector('#newbutton'), editableGist, this);
+    new NewPadAction(querySelector('#newbutton'), this);
+
     DButton shareButton = new DButton(querySelector('#sharebutton'));
     shareButton.onClick.listen((e) => sharingDialog.show());
 
