@@ -1,4 +1,4 @@
-version: v191-b
+version: v191-j
 runtime: custom
 vm: true
 api_version: 1
@@ -12,7 +12,7 @@ automatic_scaling:
   max_num_instances: 20
   cool_down_period_sec: 60
   cpu_utilization:
-    target_utilization: 0.5
+    target_utilization: 0.25
 
 skip_files:
 - ^.*/packages.*$
