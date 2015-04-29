@@ -1,6 +1,6 @@
 # WebDriver and Integration tests
 
-## Integration testing
+### Integration testing
 
 So let's say you have a web app you're working on. You might have a continuous
 build set up and running on a service like Travis. Let's say you have some unit
@@ -28,7 +28,7 @@ perform actions and verify the browser's state. There are adapters to support
 driving all major browsers across a variety of platforms, including mobile
 devices.
 
-## Sample test
+### Sample test
 
 Here's a sample webdriver test:
 
@@ -47,7 +47,7 @@ here can make the code significantly more readable. Besides that - and the
 code before the test to get the state set up - it looks very similar to a normal
 unit test.
 
-## Getting the environment set up
+### Getting the environment set up
 
 The basic procedure to get webdriver tests going is:
 
@@ -59,22 +59,22 @@ The basic procedure to get webdriver tests going is:
 - create the webdriver instance (https://www.github.com/google/webdriver.dart)
 - run your tests using the created webdriver client
 
-## Ways to test
+### Ways to test
 
 You have some options for applications that a webdriver client can talk to.
 
-### phantomjs
+#### phantomjs
 
 phantomjs is easy to install and supports headless testing. This is useful as
 you don't need a display connected to a computer to run your tests. This can be
 valuable in a CI setting.
 
-### chromedriver
+#### chromedriver
 
 Another app that supports webdriver clients is chromedriver. This tool can be
 used to drive instances of Chrome.
 
-### saucelabs
+#### saucelabs
 
 saucelabs is a very powerful option, especially when used in a continuous build.
 saucelabs gives you access to a variety of browsers and platforms. Using it, you
@@ -83,7 +83,7 @@ mobile browsers, without any additional complexity in your build setup. It can
 give you immediate, up-to-date visibility into whether your app works
 cross-browser, cross-platform.
 
-## More info
+### More info
 
 To see how DartPad is using these technologies, see:
 

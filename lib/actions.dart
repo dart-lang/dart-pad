@@ -10,15 +10,13 @@ import 'dart:html';
 import 'dialogs.dart';
 import 'elements/elements.dart';
 import 'sharing/gists.dart';
-import 'sharing/mutable_gist.dart';
 
 /// An action that creates a new pad when clicked.
 class NewPadAction {
   final DButton _button;
-  final MutableGist _gist;
   final GistController _gistController;
 
-  NewPadAction(Element element, this._gist, this._gistController) :
+  NewPadAction(Element element, this._gistController) :
       _button = new DButton(element) {
     _button.onClick.listen((e) => _handleButtonPress());
   }
@@ -26,12 +24,10 @@ class NewPadAction {
   void _handleButtonPress() {
     Future<bool> response = new Future.value(true);
 
-    if (_gist.dirty) {
-      response = confirm(
-          'Create New Pad',
-          'Discard changes to the current pad?',
-          okText: 'Discard');
-    }
+    response = confirm(
+        'Create New Pad',
+        'Discard changes to the current pad?',
+        okText: 'Discard');
 
     response.then((val) {
       if (val) _gistController.createNewGist();
