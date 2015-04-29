@@ -88,5 +88,5 @@ testCheckTitle(WebDriver driver) async {
 testCheckTitleExact(WebDriver driver) async {
   String title = await driver.title;
   print('testCheckTitleExact: ${title}');
-  expect(title, 'DartPad (β)');
+  expect(title, 'DartPad');
 }
