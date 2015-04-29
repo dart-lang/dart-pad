@@ -69,6 +69,9 @@ class CodeMirrorFactory extends EditorFactory {
         'lineWrapping': true,
         'indentUnit': 2,
         'cursorHeight': 0.85,
+        // Increase the number of lines that are rendered above and before
+        // what's visible.
+        'viewportMargin': 100,
         //'gutters': [_gutterId],
         'extraKeys': {
           'Cmd-/': 'toggleComment',
