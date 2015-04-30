@@ -119,20 +119,19 @@ testPath(String path,
          comp.Compiler compiler) async {
   var f = new io.File(path);
   String src = f.readAsStringSync();
-  f = null;
 
   print (
-'Path, Compilation/ms, Analysis/ms, Completion/ms, Document/ms, Fixes/ms, Format/ms');
+    'Path, Compilation/ms, Analysis/ms, '
+    'Completion/ms, Document/ms, Fixes/ms, Format/ms');
 
   for (int i = 0; i < iterations; i++) {
-
     // Run once for each file without mutation.
-    var averageCompilationTime = 0;//await testCompilation(src, compiler);
-    var averageAnalysisTime = 0;//await testAnalysis(src, analyzer);
-    var averageCompletionTime = 0;// await testCompletions(src, wrapper);
-    var averageDocumentTime = 0; await testDocument(src, analyzer);
-    var averageFixesTime =0;// await testFixes(src, wrapper);
-    var averageFormatTime = 0;//await testFormat(src);
+    var averageCompilationTime = 0;
+    var averageAnalysisTime = 0;
+    var averageCompletionTime = 0;
+    var averageDocumentTime = 0;
+    var averageFixesTime = 0;
+    var averageFormatTime = 0;
 
     switch (commandToRun.toLowerCase()) {
       case "all":
