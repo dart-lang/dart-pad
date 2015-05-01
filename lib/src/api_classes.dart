@@ -67,13 +67,18 @@ class CounterRequest {
 class CounterResponse {
   final int count;
 
-  CounterResponse(this.count);
+  CounterResponse({this.count : 0});
+//  {
+//    count = 0;
+//  }
+//
+//  CounterResponse.ByCount(this.count);
 }
 
 class DocumentResponse {
   final Map<String, String> info;
 
-  DocumentResponse(this.info);
+  DocumentResponse([this.info]);
 }
 
 class CompleteResponse {
@@ -85,8 +90,8 @@ class CompleteResponse {
 
   final List<Map<String, String>> completions;
 
-  CompleteResponse(this.replacementOffset, this.replacementLength,
-      List<Map> completions) :
+  CompleteResponse([this.replacementOffset, this.replacementLength,
+      List<Map> completions]) :
     this.completions = _convert(completions);
 
   /**
@@ -175,7 +180,7 @@ class ProblemAndFixes {
   final int offset;
   final int length;
 
-  ProblemAndFixes(this.fixes, this.problemMessage, this.offset, this.length);
+  ProblemAndFixes([this.fixes, this.problemMessage, this.offset, this.length]);
 }
 
 /**
@@ -185,7 +190,7 @@ class CandidateFix {
   final String message;
   final List<SourceEdit> edits;
 
-  CandidateFix(this.message, this.edits);
+  CandidateFix([this.message, this.edits]);
 }
 
 /**
@@ -210,7 +215,7 @@ class SourceEdit {
   final int length;
   final String replacement;
 
-  SourceEdit(this.offset, this.length, this.replacement);
+  SourceEdit([this.offset, this.length, this.replacement]);
 
   String applyTo(String target) {
     if (offset >= replacement.length) {

@@ -46,15 +46,17 @@ void defineTests() {
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
+    var uri = Uri.parse("http://localhost/$path");
     var body = new Stream.fromIterable([UTF8.encode(JSON.encode(json))]);
-    var request = new HttpApiRequest('POST', path, {}, {}, body);
+    var request = new HttpApiRequest('POST', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
   Future<HttpApiResponse> _sendGetRequest(String path, Map queryParams) {
     assert(apiServer != null);
+    var uri = Uri.parse("http://localhost/$path");
     var body = new Stream.fromIterable([]);
-    var request = new HttpApiRequest('GET', path, queryParams, {}, body);
+    var request = new HttpApiRequest('GET', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
@@ -67,7 +69,7 @@ void defineTests() {
       counter = new MockCounter();
 
       server = new CommonServer(sdkPath, cache, recorder, counter);
-      apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
+      apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
       return server.warmup();
     });
 

@@ -101,7 +101,7 @@ setupTools(String sdkPath) async {
   recorder = new MockRequestRecorder();
   counter = new MockCounter();
   server = new CommonServer(sdkPath, cache, recorder, counter);
-  apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
+  apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
 
   analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
   await analysisServer.warmup();

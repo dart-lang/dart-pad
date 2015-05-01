@@ -57,7 +57,7 @@ class GaeServer {
         new GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
     apiServer =
-        new rpc.ApiServer(_API, prettyPrint: true)..addApi(commonServer);
+        new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)..addApi(commonServer);
   }
 
   Future start() => ae.runAppEngine(requestHandler);
@@ -87,13 +87,13 @@ class GaeServer {
 
     if (request.uri.path.startsWith(_API)) {
       if (!discoveryEnabled) {
-        apiServer.enableDiscoveryApi(request.requestedUri.origin);
+        apiServer.enableDiscoveryApi();
         discoveryEnabled = true;
       }
       // NOTE: We could read in the request body here and parse it similar to
       // the _parseRequest method to determine content-type and dispatch to e.g.
       // a plain text handler if we want to support that.
-      var apiRequest = new rpc.HttpApiRequest.fromHttpRequest(request, _API);
+      var apiRequest = new rpc.HttpApiRequest.fromHttpRequest(request);
       apiServer.handleHttpApiRequest(apiRequest)
         .then((rpc.HttpApiResponse apiResponse) {
           return rpc.sendApiResponse(apiResponse, request.response);
