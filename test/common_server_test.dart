@@ -52,9 +52,9 @@ void defineTests() {
     return apiServer.handleHttpApiRequest(request);
   }
 
-  Future<HttpApiResponse> _sendGetRequest(String path, Map queryParams) {
+  Future<HttpApiResponse> _sendGetRequest(String path, String queryParams) {
     assert(apiServer != null);
-    var uri = Uri.parse("/api/$path");
+    var uri = Uri.parse("/api/$path?$queryParams");
     var body = new Stream.fromIterable([]);
     var request = new HttpApiRequest('GET', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
@@ -209,7 +209,7 @@ void defineTests() {
       response = await _sendPostRequest('dartservices/v1/analyze', json);
 
       response =
-        await _sendGetRequest('dartservices/v1/counter', {"name" : "Analyses"});
+        await _sendGetRequest('dartservices/v1/counter', "name=Analyses");
       data = JSON.decode(UTF8.decode(await response.body.first));
       expect(response.status, 200);
       expect(data['count'], 1);
