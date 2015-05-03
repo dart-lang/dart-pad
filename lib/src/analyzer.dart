@@ -94,6 +94,54 @@ class Analyzer {
     }
   }
 
+  Future<AnalysisResults> analyzeMulti(Map<String, String> sources) {
+    try {
+
+      List<StringSource> sourcesList = <StringSource>[];
+
+      for (String name in sources) {
+        sourcesList.add(new StringSource(sources[name], name));
+      }
+
+      ChangeSet changeSet = new ChangeSet();
+      sourcesList.forEach((s) => changeSet.addedSource(s));
+
+      _context.applyChanges(changeSet);
+
+      sourcesList.forEach((s) {
+        _context.computeErrors(s);
+        _context.getErrors(s);
+      });
+
+      List<AnalysisErrorInfo> errorInfos = [];
+
+
+      errorInfos.add(_context.getErrors(_source));
+
+      List<_Error> errors = errorInfos
+      .expand((AnalysisErrorInfo info) {
+        return info.errors.map((error) => new _Error(error, info.lineInfo));
+      })
+      .where((_Error error) => error.errorType != ErrorType.TODO)
+      .toList();
+
+      List<AnalysisIssue> issues = errors.map((_Error error) {
+        return new AnalysisIssue.byIssue(
+            error.severityName, error.line, error.message,
+            location: error.location,
+            charStart: error.offset, charLength: error.length,
+            hasFixes: error.probablyHasFix);
+      }).toList();
+
+      issues.sort();
+
+      return new Future.value(new AnalysisResults.byIssues(issues));
+    } catch (e, st) {
+      return new Future.error(e, st);
+    }
+  }
+
+
   Future<Map<String, String>> dartdoc(String source, int offset) {
     try {
       _source.updateSource(source);

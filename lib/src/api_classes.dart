@@ -55,6 +55,24 @@ class SourceRequest {
   int offset;
 }
 
+
+class SourcesRequest {
+  @ApiProperty(
+      required: true,
+      description: 'Map of names to sources.')
+  Map<String, String> sources;
+
+  @ApiProperty(
+      description: 'An optional offset into the source code.')
+  int offset;
+
+  @ApiProperty(
+      description: 'Name of file that the offset is in')
+  String offsetName;
+
+}
+
+
 class CompileResponse {
   final String result;
 
