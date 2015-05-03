@@ -13,7 +13,8 @@ import 'package:rpc/rpc.dart';
 class AnalysisResults {
   final List<AnalysisIssue> issues;
 
-  AnalysisResults(this.issues);
+  AnalysisResults() : this.byIssues([]);
+  AnalysisResults.byIssues(this.issues);
 }
 
 class AnalysisIssue implements Comparable {
@@ -27,7 +28,8 @@ class AnalysisIssue implements Comparable {
   final int charLength;
   final String location;
 
-  AnalysisIssue(this.kind, this.line, this.message,
+  AnalysisIssue() : this.byIssue("", 0, "");
+  AnalysisIssue.byIssue(this.kind, this.line, this.message,
       {this.charStart, this.charLength, this.location, this.hasFixes: false});
 
   Map toMap() {
@@ -56,7 +58,8 @@ class SourceRequest {
 class CompileResponse {
   final String result;
 
-  CompileResponse(this.result);
+  CompileResponse() : this.byResponse("");
+  CompileResponse.byResponse(this.result);
 }
 
 class CounterRequest {
@@ -67,18 +70,15 @@ class CounterRequest {
 class CounterResponse {
   final int count;
 
-  CounterResponse({this.count : 0});
-//  {
-//    count = 0;
-//  }
-//
-//  CounterResponse.ByCount(this.count);
+  CounterResponse() : this.byCount(0);
+  CounterResponse.byCount(this.count);
 }
 
 class DocumentResponse {
   final Map<String, String> info;
 
-  DocumentResponse([this.info]);
+  DocumentResponse() : this.byInfo();
+  DocumentResponse.byInfo([this.info]);
 }
 
 class CompleteResponse {
@@ -90,8 +90,9 @@ class CompleteResponse {
 
   final List<Map<String, String>> completions;
 
-  CompleteResponse([this.replacementOffset, this.replacementLength,
-      List<Map> completions]) :
+  CompleteResponse() : this.byCompletions(0, 0, []);
+  CompleteResponse.byCompletions(this.replacementOffset, this.replacementLength,
+      List<Map> completions) :
     this.completions = _convert(completions);
 
   /**
@@ -116,7 +117,8 @@ class CompleteResponse {
 class FixesResponse {
   final List<ProblemAndFixes> fixes;
 
-  FixesResponse(List<AnalysisErrorFixes> analysisErrorFixes) :
+  FixesResponse() : this.byFixes([]);
+  FixesResponse.byFixes(List<AnalysisErrorFixes> analysisErrorFixes) :
     this.fixes = _convert(analysisErrorFixes);
 
   /**
@@ -150,18 +152,19 @@ class FixesResponse {
         }
 
         for (var sourceEdit in sourceFileEdit.edits) {
-          edits.add(new SourceEdit(
+          edits.add(new SourceEdit.byChanges(
               sourceEdit.offset,
               sourceEdit.length,
               sourceEdit.replacement));
         }
       }
       if (!invalidFix) {
-        CandidateFix possibleFix = new CandidateFix(sourceChange.message, edits);
+        CandidateFix possibleFix = new
+          CandidateFix.byEdits(sourceChange.message, edits);
         possibleFixes.add(possibleFix);
       }
     }
-    return new ProblemAndFixes(
+    return new ProblemAndFixes.byList(
         possibleFixes,
         problemMessage,
         problemOffset,
@@ -180,7 +183,9 @@ class ProblemAndFixes {
   final int offset;
   final int length;
 
-  ProblemAndFixes([this.fixes, this.problemMessage, this.offset, this.length]);
+  ProblemAndFixes() : this.byList([]);
+  ProblemAndFixes.byList(
+      [this.fixes, this.problemMessage, this.offset, this.length]);
 }
 
 /**
@@ -190,7 +195,8 @@ class CandidateFix {
   final String message;
   final List<SourceEdit> edits;
 
-  CandidateFix([this.message, this.edits]);
+  CandidateFix() : this.byEdits();
+  CandidateFix.byEdits([this.message, this.edits]);
 }
 
 /**
@@ -204,7 +210,8 @@ class FormatResponse {
       description: 'The (optional) new offset of the cursor; can be `null`.')
   final int offset;
 
-  FormatResponse(this.newString, [this.offset = 0]);
+  FormatResponse() : this.byCode("");
+  FormatResponse.byCode(this.newString, [this.offset = 0]);
 }
 
 /**
@@ -215,7 +222,8 @@ class SourceEdit {
   final int length;
   final String replacement;
 
-  SourceEdit([this.offset, this.length, this.replacement]);
+  SourceEdit() : this.byChanges();
+  SourceEdit.byChanges([this.offset, this.length, this.replacement]);
 
   String applyTo(String target) {
     if (offset >= replacement.length) {

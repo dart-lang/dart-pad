@@ -62,7 +62,7 @@ class AnalysisServerWrapper {
         } else {
           return -1 * xRelevance.compareTo(yRelevance);
         }});
-      return new api.CompleteResponse(
+      return new api.CompleteResponse.byCompletions(
           response['replacementOffset'], response['replacementLength'],
           results);
     });
@@ -71,7 +71,7 @@ class AnalysisServerWrapper {
   Future<api.FixesResponse> getFixes(String src, int offset) async {
     var results = _getFixesImpl(src, offset);
     return results.then((fixes) {
-      return new api.FixesResponse(fixes.fixes);
+      return new api.FixesResponse.byFixes(fixes.fixes);
     });
   }
 
@@ -85,7 +85,7 @@ class AnalysisServerWrapper {
       for (var edit in edits) {
         editSrc = edit.apply(editSrc);
       }
-      return new api.FormatResponse(editSrc, editResult.selectionOffset);
+      return new api.FormatResponse.byCode(editSrc, editResult.selectionOffset);
     });
   }
 

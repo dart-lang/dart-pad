@@ -84,7 +84,7 @@ class EndpointsServer {
         new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(commonServer);
     apiServer.enableDiscoveryApi();
 
-    var uri = Uri.parse("http://localhost/discovery/v1/apis/dartservices/v1/rest");
+    var uri = Uri.parse("/api/discovery/v1/apis/dartservices/v1/rest");
 
     var request =
         new HttpApiRequest('GET',
