@@ -46,7 +46,7 @@ void defineTests() {
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
-    var uri = Uri.parse("http://localhost/$path");
+    var uri = Uri.parse("/api/$path");
     var body = new Stream.fromIterable([UTF8.encode(JSON.encode(json))]);
     var request = new HttpApiRequest('POST', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
@@ -54,7 +54,7 @@ void defineTests() {
 
   Future<HttpApiResponse> _sendGetRequest(String path, Map queryParams) {
     assert(apiServer != null);
-    var uri = Uri.parse("http://localhost/$path");
+    var uri = Uri.parse("/api/$path");
     var body = new Stream.fromIterable([]);
     var request = new HttpApiRequest('GET', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
