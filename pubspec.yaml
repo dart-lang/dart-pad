@@ -18,8 +18,7 @@ dependencies:
     git:
       url: git://github.com/lukechurch/dart_style.git
       ref: v1_10_0
-#  analyzer: '>=0.22.4 <0.23.0'
-  appengine: '>=0.2.6 <0.3.0'
+  appengine: '>=0.3.0 <0.4.0'
   archive: '>=1.0.19 <1.1.0'
   args: '>=0.12.0 <0.14.0'
   cli_util: ^0.0.1
