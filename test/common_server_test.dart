@@ -199,7 +199,7 @@ void defineTests() {
 
     test('counter test', () async {
       var response =
-        await _sendGetRequest('dartservices/v1/counter', {"name" : "Analyses"});
+        await _sendGetRequest('dartservices/v1/counter', "name=Analyses");
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(response.status, 200);
       expect(data['count'], 0);
