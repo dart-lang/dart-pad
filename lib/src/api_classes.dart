@@ -27,10 +27,12 @@ class AnalysisIssue implements Comparable {
   final int charStart;
   final int charLength;
   final String location;
+  final String fullName;
 
   AnalysisIssue() : this.byIssue("", 0, "");
   AnalysisIssue.byIssue(this.kind, this.line, this.message,
-      {this.charStart, this.charLength, this.location, this.hasFixes: false});
+      {this.charStart, this.charLength, this.location,
+      this.fullName, this.hasFixes: false});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};
