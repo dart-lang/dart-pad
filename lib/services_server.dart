@@ -81,12 +81,15 @@ class EndpointsServer {
         new _Recorder(),
         new _Counter());
     var apiServer =
-        new ApiServer('/api', prettyPrint: true)..addApi(commonServer);
-    apiServer.enableDiscoveryApi(serverUrl);
+        new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(commonServer);
+    apiServer.enableDiscoveryApi();
+
+    var uri = Uri.parse("/api/discovery/v1/apis/dartservices/v1/rest");
+
     var request =
         new HttpApiRequest('GET',
-                           'discovery/v1/apis/dartservices/v1/rest',
-                           {}, {}, new Stream.fromIterable([]));
+                           uri,
+                           {}, new Stream.fromIterable([]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
     return UTF8.decode(await response.body.first);
   }
@@ -109,7 +112,7 @@ class EndpointsServer {
         new _Cache(),
         new _Recorder(),
         new _Counter());
-    apiServer = new ApiServer('/api', prettyPrint: true)..addApi(commonServer);
+    apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(commonServer);
 
     pipeline = new Pipeline()
       .addMiddleware(logRequests())
@@ -124,14 +127,13 @@ class EndpointsServer {
 
   Future<Response> _apiHandler(Request request) {
     if (!discoveryEnabled) {
-      apiServer.enableDiscoveryApi(request.requestedUri.origin);
+      apiServer.enableDiscoveryApi();
       discoveryEnabled = true;
     }
     // NOTE: We could read in the request body here and parse it similar to
     // the _parseRequest method to determine content-type and dispatch to e.g.
     // a plain text handler if we want to support that.
-    var apiRequest = new HttpApiRequest(request.method, request.url.path,
-                                        request.url.queryParameters,
+    var apiRequest = new HttpApiRequest(request.method, request.url,
                                         request.headers,
                                         request.read());
     return apiServer.handleHttpApiRequest(apiRequest)

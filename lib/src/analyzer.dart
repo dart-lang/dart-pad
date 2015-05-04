@@ -77,7 +77,7 @@ class Analyzer {
         .toList();
 
       List<AnalysisIssue> issues = errors.map((_Error error) {
-        return new AnalysisIssue(
+        return new AnalysisIssue.fromIssue(
             error.severityName, error.line, error.message,
             location: error.location,
             charStart: error.offset, charLength: error.length,
@@ -86,7 +86,7 @@ class Analyzer {
 
       issues.sort();
 
-      return new Future.value(new AnalysisResults(issues));
+      return new Future.value(new AnalysisResults.fromIssues(issues));
     } catch (e, st) {
       return new Future.error(e, st);
     }

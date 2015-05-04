@@ -46,15 +46,17 @@ void defineTests() {
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
+    var uri = Uri.parse("/api/$path");
     var body = new Stream.fromIterable([UTF8.encode(JSON.encode(json))]);
-    var request = new HttpApiRequest('POST', path, {}, {}, body);
+    var request = new HttpApiRequest('POST', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
-  Future<HttpApiResponse> _sendGetRequest(String path, Map queryParams) {
+  Future<HttpApiResponse> _sendGetRequest(String path, String queryParams) {
     assert(apiServer != null);
+    var uri = Uri.parse("/api/$path?$queryParams");
     var body = new Stream.fromIterable([]);
-    var request = new HttpApiRequest('GET', path, queryParams, {}, body);
+    var request = new HttpApiRequest('GET', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
@@ -67,7 +69,7 @@ void defineTests() {
       counter = new MockCounter();
 
       server = new CommonServer(sdkPath, cache, recorder, counter);
-      apiServer = new ApiServer('/api', prettyPrint: true)..addApi(server);
+      apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
       return server.warmup();
     });
 
@@ -197,7 +199,7 @@ void defineTests() {
 
     test('counter test', () async {
       var response =
-        await _sendGetRequest('dartservices/v1/counter', {"name" : "Analyses"});
+        await _sendGetRequest('dartservices/v1/counter', "name=Analyses");
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(response.status, 200);
       expect(data['count'], 0);
@@ -207,7 +209,7 @@ void defineTests() {
       response = await _sendPostRequest('dartservices/v1/analyze', json);
 
       response =
-        await _sendGetRequest('dartservices/v1/counter', {"name" : "Analyses"});
+        await _sendGetRequest('dartservices/v1/counter', "name=Analyses");
       data = JSON.decode(UTF8.decode(await response.body.first));
       expect(response.status, 200);
       expect(data['count'], 1);

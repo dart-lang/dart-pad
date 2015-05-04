@@ -77,7 +77,7 @@ class CommonServer {
   @ApiMethod(method: 'GET', path: 'counter')
   Future<CounterResponse> counterGet({String name}) {
     return counter.getTotal(name).then((total) {
-      return new CounterResponse(total);
+      return new CounterResponse.fromCount(total);
     });
   }
 
@@ -230,7 +230,7 @@ class CommonServer {
     return checkCache("%%COMPILE:$sourceHash").then((String result) {
       if (!suppressCache && result != null) {
         _logger.info("CACHE: Cache hit for compile");
-        return new CompileResponse(result);
+        return new CompileResponse.fromResponse(result);
       } else {
         _logger.info("CACHE: MISS, forced: $suppressCache");
         Stopwatch watch = new Stopwatch()..start();
@@ -247,7 +247,7 @@ class CommonServer {
             counter.increment("Compiled-Lines", increment: lineCount);
             String out = results.getOutput();
             return setCache("%%COMPILE:$sourceHash", out).then((_) {
-              return new CompileResponse(out);
+              return new CompileResponse.fromResponse(out);
             });
           } else {
             List problems = _filterCompileProblems(results.problems);
@@ -279,7 +279,7 @@ class CommonServer {
           _logger.info(
             'PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
           counter.increment("DartDocs");
-          return new DocumentResponse(docInfo);
+          return new DocumentResponse.fromInfo(docInfo);
         }).catchError((e, st) {
           _logger.severe('Error during dartdoc: ${e}\n${st}');
           throw e;
@@ -312,7 +312,7 @@ class CommonServer {
 
     if (analysisResults.issues.where(
       (issue) => issue.kind == "error").length > 0) {
-      return new FormatResponse(source, offset);
+      return new FormatResponse.fromCode(source, offset);
     }
     return analysisServer.format(source, offset);
   }

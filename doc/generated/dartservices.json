@@ -1,15 +1,15 @@
 {
  "kind": "discovery#restDescription",
- "etag": "326704774ef7358f4cc3c237ee8c6bdc4d9d0b80",
+ "etag": "bd4e8cff8c987967ead41a32e025116cb6637f6f",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
  "version": "v1",
  "revision": "0",
  "protocol": "rest",
- "baseUrl": "http://localhost/api/dartservices/v1/",
+ "baseUrl": "/api/dartservices/v1/",
  "basePath": "/api/dartservices/v1/",
- "rootUrl": "http://localhost/",
+ "rootUrl": "/",
  "servicePath": "api/dartservices/v1/",
  "parameters": {},
  "schemas": {
