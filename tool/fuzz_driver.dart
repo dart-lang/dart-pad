@@ -70,15 +70,22 @@ Usage: slow_test path_to_test_collection
 
   analysis_server.dumpServerMessages = false;
 
+  int counter = 0;
+  Stopwatch sw = new Stopwatch()..start();
+
   // Warm up the services.
   await setupTools(sdkDir.path);
 
   // Main testing loop.
   for (var fse in fileEntities) {
+    counter++;
     if (!fse.path.endsWith('.dart')) continue;
 
     try {
-      print ("Seed: $seed");
+      print ("Seed: $seed, "
+        "${((counter/fileEntities.length)*100).toStringAsFixed(2)}%, "
+        "Elapsed: ${sw.elapsed}");
+
       random = new Random(seed);
       seed++;
       await testPath(fse.path, analysisServer, analyzer, compiler);
