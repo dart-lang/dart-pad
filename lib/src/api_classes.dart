@@ -13,8 +13,8 @@ import 'package:rpc/rpc.dart';
 class AnalysisResults {
   final List<AnalysisIssue> issues;
 
-  AnalysisResults() : this.byIssues([]);
-  AnalysisResults.byIssues(this.issues);
+  AnalysisResults() : this.fromIssues([]);
+  AnalysisResults.fromIssues(this.issues);
 }
 
 class AnalysisIssue implements Comparable {
@@ -28,8 +28,8 @@ class AnalysisIssue implements Comparable {
   final int charLength;
   final String location;
 
-  AnalysisIssue() : this.byIssue("", 0, "");
-  AnalysisIssue.byIssue(this.kind, this.line, this.message,
+  AnalysisIssue() : this.fromIssue("", 0, "");
+  AnalysisIssue.fromIssue(this.kind, this.line, this.message,
       {this.charStart, this.charLength, this.location, this.hasFixes: false});
 
   Map toMap() {
@@ -58,8 +58,8 @@ class SourceRequest {
 class CompileResponse {
   final String result;
 
-  CompileResponse() : this.byResponse("");
-  CompileResponse.byResponse(this.result);
+  CompileResponse() : this.fromResponse("");
+  CompileResponse.fromResponse(this.result);
 }
 
 class CounterRequest {
@@ -70,15 +70,15 @@ class CounterRequest {
 class CounterResponse {
   final int count;
 
-  CounterResponse() : this.byCount(0);
-  CounterResponse.byCount(this.count);
+  CounterResponse() : this.fromCount(0);
+  CounterResponse.fromCount(this.count);
 }
 
 class DocumentResponse {
   final Map<String, String> info;
 
-  DocumentResponse() : this.byInfo();
-  DocumentResponse.byInfo([this.info]);
+  DocumentResponse() : this.fromInfo();
+  DocumentResponse.fromInfo([this.info]);
 }
 
 class CompleteResponse {
@@ -90,9 +90,9 @@ class CompleteResponse {
 
   final List<Map<String, String>> completions;
 
-  CompleteResponse() : this.byCompletions(0, 0, []);
-  CompleteResponse.byCompletions(this.replacementOffset, this.replacementLength,
-      List<Map> completions) :
+  CompleteResponse() : this.fromCompletions(0, 0, []);
+  CompleteResponse.fromCompletions(this.replacementOffset,
+    this.replacementLength, List<Map> completions) :
     this.completions = _convert(completions);
 
   /**
@@ -117,8 +117,8 @@ class CompleteResponse {
 class FixesResponse {
   final List<ProblemAndFixes> fixes;
 
-  FixesResponse() : this.byFixes([]);
-  FixesResponse.byFixes(List<AnalysisErrorFixes> analysisErrorFixes) :
+  FixesResponse() : this.fromFixes([]);
+  FixesResponse.fromFixes(List<AnalysisErrorFixes> analysisErrorFixes) :
     this.fixes = _convert(analysisErrorFixes);
 
   /**
@@ -152,7 +152,7 @@ class FixesResponse {
         }
 
         for (var sourceEdit in sourceFileEdit.edits) {
-          edits.add(new SourceEdit.byChanges(
+          edits.add(new SourceEdit.fromChanges(
               sourceEdit.offset,
               sourceEdit.length,
               sourceEdit.replacement));
@@ -160,11 +160,11 @@ class FixesResponse {
       }
       if (!invalidFix) {
         CandidateFix possibleFix = new
-          CandidateFix.byEdits(sourceChange.message, edits);
+          CandidateFix.fromEdits(sourceChange.message, edits);
         possibleFixes.add(possibleFix);
       }
     }
-    return new ProblemAndFixes.byList(
+    return new ProblemAndFixes.fromList(
         possibleFixes,
         problemMessage,
         problemOffset,
@@ -183,8 +183,8 @@ class ProblemAndFixes {
   final int offset;
   final int length;
 
-  ProblemAndFixes() : this.byList([]);
-  ProblemAndFixes.byList(
+  ProblemAndFixes() : this.fromList([]);
+  ProblemAndFixes.fromList(
       [this.fixes, this.problemMessage, this.offset, this.length]);
 }
 
@@ -195,8 +195,8 @@ class CandidateFix {
   final String message;
   final List<SourceEdit> edits;
 
-  CandidateFix() : this.byEdits();
-  CandidateFix.byEdits([this.message, this.edits]);
+  CandidateFix() : this.fromEdits();
+  CandidateFix.fromEdits([this.message, this.edits]);
 }
 
 /**
@@ -210,8 +210,8 @@ class FormatResponse {
       description: 'The (optional) new offset of the cursor; can be `null`.')
   final int offset;
 
-  FormatResponse() : this.byCode("");
-  FormatResponse.byCode(this.newString, [this.offset = 0]);
+  FormatResponse() : this.fromCode("");
+  FormatResponse.fromCode(this.newString, [this.offset = 0]);
 }
 
 /**
@@ -222,8 +222,8 @@ class SourceEdit {
   final int length;
   final String replacement;
 
-  SourceEdit() : this.byChanges();
-  SourceEdit.byChanges([this.offset, this.length, this.replacement]);
+  SourceEdit() : this.fromChanges();
+  SourceEdit.fromChanges([this.offset, this.length, this.replacement]);
 
   String applyTo(String target) {
     if (offset >= replacement.length) {

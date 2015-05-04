@@ -10,7 +10,7 @@ import 'package:unittest/unittest.dart';
 void defineTests() {
   group('AnalysisIssue', () {
     test('toMap', () {
-      AnalysisIssue issue = new AnalysisIssue.byIssue(
+      AnalysisIssue issue = new AnalysisIssue.fromIssue(
           'error', 1, 'not found', charStart: 123);
       Map m = issue.toMap();
       expect(m['kind'], 'error');
@@ -21,7 +21,7 @@ void defineTests() {
     });
 
     test('toString', () {
-      AnalysisIssue issue = new AnalysisIssue.byIssue('error', 1, 'not found');
+      AnalysisIssue issue = new AnalysisIssue.fromIssue('error', 1, 'not found');
       expect(issue.toString(), isNotNull);
     });
   });
