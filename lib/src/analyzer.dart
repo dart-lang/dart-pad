@@ -63,8 +63,6 @@ class Analyzer {
       ChangeSet changeSet = new ChangeSet();
       changeSet.addedSource(_source);
       _context.applyChanges(changeSet);
-      _context.computeErrors(_source);
-      _context.getErrors(_source);
 
       List<AnalysisErrorInfo> errorInfos = [];
 
