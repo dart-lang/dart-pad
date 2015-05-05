@@ -18,7 +18,7 @@ import 'dart:html';
 class Options {
   final String namespace;
 
-  Map<String, String> _values = {};
+  Map<String, String> values = {};
   StreamController _controller = new StreamController.broadcast();
 
   Options({this.namespace: 'dartpad'});
@@ -32,7 +32,7 @@ class Options {
 
     options['listOptions'] = () {
       for (String key in keys) {
-        window.console.log('[dartpad] ${key}: ${_values[key]}');
+        window.console.log('[dartpad] ${key}: ${values[key]}');
       }
     };
 
@@ -45,9 +45,9 @@ class Options {
     setValue(name, savedValue == null ? defaultValue : savedValue);
   }
 
-  Iterable<String> get keys => _values.keys;
+  Iterable<String> get keys => values.keys;
 
-  String getValue(String name) => _values[name];
+  String getValue(String name) => values[name];
 
   /// Return the value for the given name. Coerce to a `bool`, or return `false`
   /// if that is not possible.
@@ -57,9 +57,9 @@ class Options {
   }
 
   void setValue(String name, String value) {
-    if (_values.containsKey(name) && _values[name] == value) return;
+    if (values.containsKey(name) && values[name] == value) return;
 
-    _values[name] = value;
+    values[name] = value;
     _controller.add(new OptionChangedEvent(name, value));
 
     // Persistent the value across sessions.

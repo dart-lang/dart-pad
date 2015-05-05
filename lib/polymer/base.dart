@@ -51,7 +51,9 @@ class WebElement {
   String clearAttribute(String name) => element.attributes.remove(name);
 
   void clazz(String _class) {
-    // TODO: check that this works with spaces in the class name
+    if (_class.contains(' ')) {
+      throw new ArgumentError('spaces not allowed in class names');
+    }
     element.classes.add(_class);
   }
 

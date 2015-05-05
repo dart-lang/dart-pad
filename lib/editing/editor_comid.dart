@@ -6,6 +6,7 @@ library editor.comid;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math';
 
 import 'package:comid/addon/comment/comment.dart' as comments;
 import 'package:comid/addon/edit/closebrackets.dart';
@@ -137,6 +138,8 @@ class _CodeMirrorEditor extends Editor {
 
   _CodeMirrorDocument _document;
 
+  // TODO: Return an existing _CodeMirrorEditor instance if we already have one
+  // for the given instance of `CodeMirror`.
   _CodeMirrorEditor._(ComidFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
   }
@@ -158,11 +161,22 @@ class _CodeMirrorEditor extends Editor {
   // TODO: Implement completionActive for comid.
   bool get completionActive => false;
 
+  // TODO: Add an showCompletions method for comid.
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) { }
+
   String get mode => cm.doc.getMode().name;
   set mode(String str) => cm.setOption('mode', str);
 
   String get theme => cm.getOption('theme');
   set theme(String str) => cm.setOption('theme', str);
+
+  // TODO: Add a cursorCoords getter for comid.
+  Point getCursorCoords({ed.Position position}) => null;
+
+  // TODO: Add a onMouseDown getter for comid.
+  Stream<html.MouseEvent> get onMouseDown => null;
+
+  bool get hasFocus => cm.state.focused;
 
   void focus() => cm.focus();
   void resize() => cm.refresh();
@@ -211,6 +225,9 @@ class _CodeMirrorDocument extends Document {
   bool get isClean => doc.isClean();
 
   void markClean() => doc.markClean();
+
+  // TODO: Add an applyEdit method for comid.
+  void applyEdit(SourceEdit edit) { }
 
   void setAnnotations(List<Annotation> annotations) {
     // TODO: Codemirror lint has no support for info markers - contribute some?

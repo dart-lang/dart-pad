@@ -13,13 +13,13 @@ import 'package:librato/librato.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 final FilePath _buildDir = new FilePath('build');
+final FilePath _webDir = new FilePath('web');
 
 main(List args) => grind(args);
 
 @Task()
 analyze() {
-  // The --ignore-infos arg is due to lib/dartservices_client/v1.dart.
-  new PubApplication('tuneup')..run(['check', '--ignore-infos']);
+  new PubApp.global('tuneup')..run(['check']);
 }
 
 @Task()
@@ -30,11 +30,14 @@ testCli() => Tests.runCliTests();
 testWeb() => Tests.runWebTests(directory: 'build/test', htmlFile: 'web.html');
 
 @Task('Run bower')
-bower() => runProcess('bower', arguments: ['install']);
+bower() => run('bower', arguments: ['install']);
 
 @Task('Build the `web/index.html` entrypoint')
 @Depends(bower)
 build() {
+  // Copy our third party python code into web/.
+  new FilePath('third_party/mdetect/mdetect.py').copy(_webDir);
+
   Pub.build(directories: ['web', 'test']);
 
   FilePath mainFile = _buildDir.join('web', 'main.dart.js');
@@ -51,12 +54,12 @@ build() {
 
   // Reify the symlinks.
   // cp -R -L packages build/web/packages
-  runProcess('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
+  run('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
 
   // Run vulcanize.
   FilePath mobileHtmlFile = _buildDir.join('web', 'mobile.html');
   log('${mobileHtmlFile.path} original: ${_printSize(mobileHtmlFile)}');
-  runProcess('vulcanize', // '--csp', '--inline',
+  run('vulcanize', // '--csp', '--inline',
       arguments: ['--strip', '--output', 'mobile.html', 'mobile.html'],
       workingDirectory: 'build/web');
   log('${mobileHtmlFile.path} vulcanize: ${_printSize(mobileHtmlFile)}');
@@ -128,7 +131,7 @@ deploy() {
       }
     }
 
-    log('\nexecute: `appcfg.py update build/web`');
+    log('\nexecute: `appcfg.py update build/web --oauth2`');
   });
 }
 

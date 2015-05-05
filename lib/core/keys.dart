@@ -7,13 +7,15 @@ library core.keys;
 import 'dart:async';
 import 'dart:html';
 
+import '../src/util.dart';
+
 final _isMac = window.navigator.appVersion.toLowerCase().contains('macintosh');
 
 /**
  * Map key events into commands.
  */
 class Keys {
-  Map<String, Function> _bindings = {};
+  Map<String, Action> _bindings = {};
   StreamSubscription _sub;
   bool _loggedException = false;
 
@@ -21,8 +23,13 @@ class Keys {
     _sub = document.onKeyDown.listen(_handleKeyEvent);
   }
 
-  void bind(String key, Function action) {
-    _bindings[key] = action;
+  /**
+   * Bind a list of keys to an action. The key is a string, with a specific
+   * format. Some examples of this format:
+   *     `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
+   */
+  void bind(List<String> keys, Function onInvoke, String description) {
+    keys.forEach((key) => _bindings[key] = new Action(onInvoke, description));
   }
 
   void dispose() {
@@ -53,8 +60,7 @@ class Keys {
   }
 
   bool _handleKey(String key) {
-    Function action = _bindings[key];
-
+    Action action = _bindings[key];
     if (action != null) {
       Timer.run(action);
       return true;
@@ -62,6 +68,28 @@ class Keys {
 
     return false;
   }
+
+  Map<Action, Set<String>> get inverseBindings {
+    return new Map.fromIterable(
+        _bindings.values.toSet(),
+        value: (v) => _bindings.keys.where((k) => _bindings[k] == v).toSet()
+    );
+  }
+}
+
+class Action {
+  final Function function;
+  final String description;
+
+  Action(this.function, this.description);
+
+  call() => function();
+
+  String toString() => description;
+
+  bool operator==(other) => other is Action && description == other.description;
+
+  int get hashCode => description.hashCode;
 }
 
 /**
@@ -83,6 +111,29 @@ String printKeyEvent(KeyboardEvent event) {
   }
 
   return buf.toString();
+}
+
+String makeKeyPresentable(String key) {
+  List keyAsList = key.split("-");
+  if (isMac()) {
+    if (keyAsList.any((s) => s == "meta")) {
+      return null;
+    }
+    keyAsList = keyAsList.map((s) {
+      if (_unicodeMac.containsKey(s)) {
+        return _unicodeMac[s];
+      } else {
+        return capitalize(s);
+      }
+    }).toList();
+    return keyAsList.join("&thinsp;");
+  } else {
+    if (keyAsList.any((s) => s == "macctrl")) {
+      return null;
+    }
+    keyAsList = keyAsList.map((String s) => capitalize(s)).toList();
+    return keyAsList.join("+");
+  }
 }
 
 bool isMac() => _isMac;
@@ -143,12 +194,54 @@ final Map _codeMap = {
   KeyCode.COMMA: ',', //
   KeyCode.SLASH: '/', //
   KeyCode.BACKSLASH: '\\', //
-
+  KeyCode.SEMICOLON: ";", //
+  KeyCode.DASH: "-", //
+  KeyCode.EQUALS: "=", //
+  KeyCode.APOSTROPHE: "`", //
+  KeyCode.SINGLE_QUOTE: "'", //
   KeyCode.ENTER: 'enter', //
+  KeyCode.SPACE: 'space', //
+  KeyCode.TAB: "tab", //
 
   KeyCode.OPEN_SQUARE_BRACKET: '[', //
   KeyCode.CLOSE_SQUARE_BRACKET: ']', //
 
   KeyCode.LEFT: 'left', //
   KeyCode.RIGHT: 'right', //
+  KeyCode.UP: "up", //
+  KeyCode.DOWN: "down", //
+
+  KeyCode.BACKSPACE: "backsapce", //
+  KeyCode.CAPS_LOCK: "caps_lock", //
+  KeyCode.DELETE: "delete", //
+  KeyCode.END: "end", //
+  KeyCode.ESC: "esc", //
+  KeyCode.HOME: "home", //
+  KeyCode.INSERT: "insert", //
+  KeyCode.NUMLOCK: "numlock", //
+  KeyCode.PAGE_DOWN: "page_down", //
+  KeyCode.PAGE_UP: "page_up", //
+  KeyCode.PAUSE: "pause", //
+  KeyCode.PRINT_SCREEN: "print_screen", //
+
+  // Already handled above.
+  // If you press ctrl and nothing more, then `printKeyEvent` will print ctrl-.
+  KeyCode.CTRL: "", //
+  KeyCode.META: "", //
+  KeyCode.SHIFT: "", //
+};
+
+final Map _unicodeMac = {
+    "macctrl" : "\u2303",
+    "alt" : "\u2325",
+    "shift" : "\u21E7",
+    "ctrl" : "\u2318",
+    "esc" : "\u238B",
+    "left" : "\u2190",
+    "enter" : "\u21A9",
+    "right" : "\u2192",
+    "caps_lock" : "\u21EA",
+    "tab" : "\u21E5",
+    "up" : "\u2191",
+    "space" : "Space"
 };

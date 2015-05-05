@@ -52,15 +52,25 @@ header {
   margin-right: 1em;
   color: #ccc;
   font-size: 14pt;
-  text-align: center;
+  min-width: 2em;
 }
 
-.header-gist-id {
-  text-overflow: ellipsis;
-  overflow-x: hidden;
-  max-width: 100px;
-  text-transform: uppercase;
+.header-gist-name.dirty::after {
+  content: " •";
 }
+
+#newbutton {
+  margin-left: 10px;
+}
+
+#sharebutton {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+
+/*#reloadbutton {
+  margin-right: 10px;
+}*/
 
 section {
   padding: 0 24px 24px 24px;
@@ -81,6 +91,7 @@ footer {
   position: relative;
   margin: 0 0;
   min-width: 75px;
+  min-height: 50px;
 }
 
 pre {
@@ -131,27 +142,19 @@ a[selected]:hover {
   text-transform: uppercase;
 }
 
+[reverse].header a {
+  margin-left: 16px;
+  margin-right: 0;
+}
+
 .header {
   line-height: 24px;
   font-size: 12pt;
 }
 
-button {
-  outline: none;
-  color: #aaa;
-  fill: #aaa;
-  border: 1px solid #222;
-  border-radius: 2px;
-  font-family: 'Roboto', sans-serif;
-  font-size: 12pt;
+.header.small {
+  font-size: 11pt;
   line-height: 18px;
-  height: 24px;
-  cursor: pointer;
-  padding: 2px 6px;
-  transition: 100ms;
-  min-width: 75px;
-  background-color: #444;
-  background-image: linear-gradient(to bottom, #444, #333);
 }
 
 #runbutton svg {
@@ -174,30 +177,14 @@ button {
   fill: #FFF79A;
 }
 
-button:hover {
-  color: #fff;
-  fill: #fff;
-}
-
-button:active {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-button[disabled] {
-  color: #555;
-  fill: #555;
-  pointer-events: none;
-  border-color: #272727;
-  background-color: #3b3b3b;
-  background-image: none;
-}
-
 #runbutton {
   padding-right: 11px;
 }
 
 #frame {
   min-height: 50px;
+  display: none;
+  margin-top: 10px;
 }
 
 iframe {
@@ -274,56 +261,12 @@ div.toggle {
   margin-left: -3px;
 }
 
-#documentation {
-  font-family: 'Roboto', sans-serif;
-  font-size: 11pt;
-  line-height: 20px;
-  position: relative;
-  display: none;
-  overflow: auto;
-  overflow-wrap: break-word;
-  margin-top: 0;
-  margin-left: 0;
-}
-
-#documentation code {
-  font-family: 'Inconsolata', monospace;
-  font-size: 12pt;
-}
-
-#documentation code em {
-  color: #dfaf8f;
-  font-style: normal;
-}
-
-#documentation h1 {
-  font-size: 12pt;
-  font-weight: bold;
-  color: #eee;
-}
-
-#documentation h2, #documentation strong {
-  font-weight: bold;
-  letter-spacing: -0.05em;
-  font-size: 10.5pt;
-  color: #cdcdcd; /* little bit brigher than normal text*/
-}
-
-#documentation a {
-  color: #66d9ef;
-}
-
-#documentation a:hover {
-  color: #66d9ef;
-  text-decoration: underline;
-}
-
 .right {
   text-align: right;
 }
 
 .footer-item {
-  margin-left: 10px;
+  margin-right: 10px;
 }
 
 #frame_overlay {
@@ -345,4 +288,176 @@ div.toggle {
   position: absolute;
   left: 45%;
   top: 60px;
+}
+
+/* documentation and parameter info styling
+=========================================== */
+
+#documentation {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11pt;
+  line-height: 20px;
+  position: relative;
+  display: block;
+  overflow: auto;
+  overflow-wrap: break-word;
+  margin-top: 0;
+  margin-left: 0;
+}
+
+#documentation h1 {
+  font-size: 12pt;
+  font-weight: bold;
+  color: #eee;
+}
+
+#documentation h2,
+#documentation strong {
+  font-weight: bold;
+  font-size: inherit;
+  color: #cdcdcd; /* little bit brigher than normal text*/
+}
+
+#documentation a {
+  color: #66d9ef;
+}
+
+#documentation a:hover {
+  color: #66d9ef;
+  text-decoration: underline;
+}
+
+#documentation a {
+  color: #66d9ef;
+}
+
+#documentation a:hover {
+  color: #66d9ef;
+  text-decoration: underline;
+}
+
+#documentation code,
+.parameter-hints code {
+  font-family: 'Inconsolata', monospace;
+  font-size: 12pt;
+}
+
+#documentation code em {
+  color: #dfaf8f;
+  font-style: normal;
+}
+
+.parameter-hints code {
+  color: #dfaf8f;
+}
+
+#documentation code em {
+  color: #dfaf8f;
+  font-style: normal;
+}
+
+.parameter-hints code em {
+  color: white;
+  font-style: normal;
+  font-weight: bold;
+}
+
+.parameter-hints {
+  position: absolute;
+  z-index: 10;
+  -webkit-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  -moz-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  border-radius: 3px;
+  font-family: 'Inconsolata', monospace;
+  overflow-y: hidden;
+  border: 1px solid #cc9393;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.parameter-hints::-webkit-scrollbar {
+  display: none;
+}
+
+.parameter-hint {
+  padding: 4px;
+  background: #3f3f3f;
+}
+
+.sharing-dialog .sharinglabel {
+  min-width: 110px;
+  margin-right: 10px;
+  display: inline-block;
+}
+
+.sharing-dialog .row {
+  margin-bottom: 8px;
+}
+
+.sharing-dialog .inputgroup {
+  display: inline-block;
+}
+
+.sharing-dialog input {
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 4px 8px;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.075);
+}
+
+.keys-dialog {
+  max-width: 300px;
+  top: auto !important;
+  bottom: 20px;
+}
+
+.keys-dialog dl {
+  padding: 0.5em;
+}
+
+.keys-dialog dt {
+  float: left;
+  clear: left;
+}
+
+.keys-dialog dd {
+  text-align: right;
+}
+
+.keys-dialog dd > span {
+  font-family: "Helvetica Neue", "Inconsolata", monospace;
+  padding: 0 4px;
+  background-color: #FFF79A; /**#dfaf8f #f0dfaf #66d9ef #FFF79A #AEA859;*/
+  font-size: 10pt;
+  color: black;
+  border-radius: 2px;
+  margin: 2px 2px;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.keyboard {
+  display: inline-block;
+  background: url('packages/dart_pad/elements/keyboard.svg') center no-repeat;
+  background-size: 100%;
+  width: 22px;
+  height: 18px;
+  margin-top: 1px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.keyboard:hover {
+  opacity: 1;
+}
+
+.launch-icon {
+  display: inline-block;
+  background: url('packages/dart_pad/elements/launch.svg') center no-repeat;
+  background-size: 100%;
+  width: 16px;
+  height: 14px;
+  margin-bottom: -2px;
 }

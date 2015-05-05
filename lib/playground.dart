@@ -6,59 +6,72 @@ library playground;
 
 import 'dart:async';
 import 'dart:html' hide Document;
-import 'dart:math' as math;
-import 'dart:convert';
 
 import 'package:logging/logging.dart';
-import 'package:markd/markdown.dart' as markdown;
+import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
 
+import 'actions.dart';
 import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
+import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'dartservices_client/v1.dart';
+import 'dialogs.dart';
+import 'documentation.dart';
 import 'editing/editor.dart';
+import 'elements/bind.dart';
 import 'elements/elements.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
+import 'parameter_popup.dart';
 import 'services/common.dart';
 import 'services/execution_iframe.dart';
+import 'sharing/gists.dart';
+import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
-import 'src/gists.dart';
-import 'src/sample.dart' as sample;
 import 'src/util.dart';
 
 Playground get playground => _playground;
 
 Playground _playground;
-Analytics ga = new Analytics();
 
-Logger _logger = new Logger('dart_pad');
+Logger _logger = new Logger('dartpad');
 
 void init() {
   _playground = new Playground();
 }
 
-class Playground {
+class Playground implements GistContainer, GistController {
   DivElement get _editpanel => querySelector('#editpanel');
   DivElement get _outputpanel => querySelector('#output');
   IFrameElement get _frame => querySelector('#frame');
-  DivElement get _docPanel => querySelector('#documentation');
   bool get _isCompletionActive => editor.completionActive;
-  bool get _isDocPanelOpen => querySelector("#doctab").attributes.containsKey('selected');
+  DivElement get _docPanel => querySelector('#documentation');
+  AnchorElement get _resultTab => querySelector('#resulttab');
+  bool _htmlIsEmpty = true;
 
-  DButton runbutton;
+  DButton runButton;
   DOverlay overlay;
-  DBusyLight dartBusyLight;
-  DBusyLight cssBusyLight;
-  DBusyLight htmlBusyLight;
+  DBusyLight busyLight;
+  DBusyLight consoleBusyLight;
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
-  Router _router;
+  MutableGist editableGist = new MutableGist(new Gist());
+  GistStorage _gistStorage = new GistStorage();
+  DContentEditable titleEditable;
+
+  SharingDialog sharingDialog;
+  KeysDialog settings;
+
+  // We store the last returned shared gist; it's used to update the url.
+  Gist _overrideNextRouteGist;
+  ParameterPopup paramPopup;
+  DocHandler docHandler;
 
   ModuleManager modules = new ModuleManager();
 
@@ -68,8 +81,16 @@ class Playground {
     _registerTab(querySelector('#csstab'), 'css');
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
-    runbutton = new DButton(querySelector('#runbutton'));
-    runbutton.onClick.listen((e) {
+
+    sharingDialog = new SharingDialog(this, this);
+
+    new NewPadAction(querySelector('#newbutton'), this);
+
+    DButton shareButton = new DButton(querySelector('#sharebutton'));
+    shareButton.onClick.listen((e) => sharingDialog.show());
+
+    runButton = new DButton(querySelector('#runbutton'));
+    runButton.onClick.listen((e) {
       _handleRun();
 
       // On a mobile device, focusing the editing area causes the keyboard to
@@ -77,11 +98,29 @@ class Playground {
       if (!isMobile()) _context.focus();
     });
 
-    // TODO: Currently the lights are all shared; we should have one for each
-    // type.
-    dartBusyLight = new DBusyLight(querySelector('#dartbusy'));
-    cssBusyLight = new DBusyLight(querySelector('#dartbusy'));
-    htmlBusyLight = new DBusyLight(querySelector('#dartbusy'));
+    // Listen for the keyboard button.
+    querySelector('#keyboard-button').onClick.listen((_) => settings.show());
+
+    busyLight = new DBusyLight(querySelector('#dartbusy'));
+    consoleBusyLight = new DBusyLight(querySelector('#consolebusy'));
+
+    // Update the title on changes.
+    titleEditable = new DContentEditable(
+        querySelector('header .header-gist-name'));
+    bind(titleEditable.onChanged, editableGist.property('description'));
+    bind(editableGist.property('description'), titleEditable.textProperty);
+    editableGist.onDirtyChanged.listen((val) {
+      titleEditable.element.classes.toggle('dirty', val);
+    });
+
+    // If there was a change, and the gist is dirty, write the gist's contents
+    // to storage.
+    Throttler throttle = new Throttler(const Duration(milliseconds: 100));
+    mutableGist.onChanged.transform(throttle).listen((_) {
+      if (mutableGist.dirty) {
+        _gistStorage.setStoredGist(mutableGist.createGist());
+      }
+    });
 
     SelectElement select = querySelector('#samples');
     select.onChange.listen((_) => _handleSelectChanged(select));
@@ -92,31 +131,31 @@ class Playground {
   }
 
   void showHome(RouteEnterEvent event) {
-    //_logger.info('routed to showHome, ${window.location}, ${event.parameters}');
+    if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
+      Gist blankGist = new Gist();
+      editableGist.setBackingGist(blankGist);
 
-    // TODO(devoncarew): Hack, until we resolve the issue with routing.
-    String path = window.location.pathname;
-    if (path.length > 2 && path.lastIndexOf('/') == 0) {
-      String id = path.substring(1);
-      if (isLegalGistId(id)) {
-        _showGist(id);
-        return;
+      Gist storedGist = _gistStorage.getStoredGist();
+      editableGist.description = storedGist.description;
+      for (GistFile file in storedGist.files) {
+        editableGist.getGistFile(file.name).content = file.content;
       }
+    } else {
+      editableGist.setBackingGist(createSampleGist());
     }
 
-    _setGistDescription(null);
-    _setGistId(null, null);
+    _clearOutput();
 
-    context.dartSource = sample.dartCode;
-    context.htmlSource = sample.htmlCode;
-    context.cssSource = sample.cssCode;
-
-    Timer.run(_handleRun);
+    // Analyze and run it.
+    Timer.run(() {
+      _performAnalysis().then((bool result) {
+        // Only auto-run if the static analysis comes back clean.
+        if (result) _handleRun();
+      }).catchError((e) => null);
+    });
   }
 
   void showGist(RouteEnterEvent event) {
-    //_logger.info('routed to showGist, ${window.location}, ${event.parameters}');
-
     String gistId = event.parameters['gist'];
 
     if (!isLegalGistId(gistId)) {
@@ -127,28 +166,76 @@ class Playground {
     _showGist(gistId);
   }
 
+  // GistContainer interface
+  MutableGist get mutableGist => editableGist;
+
+  void overrideNextRoute(Gist gist) {
+    _overrideNextRouteGist = gist;
+  }
+
+  Future createNewGist() {
+    _gistStorage.clearStoredGist();
+
+    if (ga != null) ga.sendEvent('main', 'new');
+
+    DToast.showMessage('New pad created');
+    router.go('gist', {'gist': ''}, forceReload: true);
+
+    return new Future.value();
+  }
+
+  Future shareAnon() {
+    return gistLoader.createAnon(mutableGist.createGist()).then((Gist newGist) {
+      editableGist.setBackingGist(newGist);
+      overrideNextRoute(newGist);
+      router.go('gist', {'gist': newGist.id});
+      var toast = new DToast('Created ${newGist.id}')..show()..hide();
+      toast.element
+        ..style.cursor = "pointer"
+        ..onClick.listen((e)
+            => window.open("https://gist.github.com/anonymous/${newGist.id}", '_blank'));
+    }).catchError((e) {
+      String message = 'Error saving gist: ${e}';
+      DToast.showMessage(message);
+      ga.sendException('GistLoader.createAnon: failed to create gist');
+    });
+  }
+
   void _showGist(String gistId) {
-    Gist.loadGist(gistId).then((Gist gist) {
-      _setGistDescription(gist.description);
-      _setGistId(gist.id, gist.htmlUrl);
+    // When sharing, we have to pipe the returned (created) gist through the
+    // routing library to update the url properly.
+    if (_overrideNextRouteGist != null && _overrideNextRouteGist.id == gistId) {
+      editableGist.setBackingGist(_overrideNextRouteGist);
+      _overrideNextRouteGist = null;
+      return;
+    }
 
-      GistFile dart = chooseGistFile(gist, ['main.dart'], (f) => f.endsWith('.dart'));
-      GistFile html = chooseGistFile(gist, ['index.html', 'body.html']);
-      GistFile css = chooseGistFile(gist, ['styles.css', 'style.css']);
+    _overrideNextRouteGist = null;
 
-      context.dartSource = dart == null ? '' : dart.contents;
-      context.htmlSource = html == null ? '' : extractHtmlBody(html.contents);
-      context.cssSource = css == null ? '' : css.contents;
+    gistLoader.loadGist(gistId).then((Gist gist) {
+      editableGist.setBackingGist(gist);
+
+      if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
+        Gist storedGist = _gistStorage.getStoredGist();
+        editableGist.description = storedGist.description;
+        for (GistFile file in storedGist.files) {
+          editableGist.getGistFile(file.name).content = file.content;
+        }
+      }
+
+      _clearOutput();
 
       // Analyze and run it.
       Timer.run(() {
-        _handleRun();
-        _performAnalysis();
+        _performAnalysis().then((bool result) {
+          // Only auto-run if the static analysis comes back clean.
+          if (result) _handleRun();
+        }).catchError((e) => null);
       });
     }).catchError((e) {
-      // TODO: Display any errors - use a toast.
-      print('Error loading gist ${gistId}.');
-      print(e);
+      String message = 'Error loading gist ${gistId}.';
+      DToast.showMessage(message);
+      _logger.severe('${message}: ${e}');
     });
   }
 
@@ -163,10 +250,16 @@ class Playground {
   }
 
   void _initPlayground() {
-    final List cursorKeys = [KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN];
+    var disablePointerEvents = () {
+      _frame.style.pointerEvents = "none";
+    };
+    var enablePointerEvents = () {
+      _frame.style.pointerEvents = "inherit";
+    };
 
     // TODO: Set up some automatic value bindings.
-    DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'));
+    DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'),
+        onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     editorSplitter.onPositionChanged.listen((pos) {
       state['editor_split'] = pos;
       editor.resize();
@@ -175,7 +268,8 @@ class Playground {
      editorSplitter.position = state['editor_split'];
     }
 
-    DSplitter outputSplitter = new DSplitter(querySelector('#output_split'));
+    DSplitter outputSplitter = new DSplitter(querySelector('#output_split'),
+        onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     outputSplitter.onPositionChanged.listen((pos) {
       state['output_split'] = pos;
     });
@@ -188,35 +282,47 @@ class Playground {
     executionService.onStdout.listen(_showOuput);
     executionService.onStderr.listen((m) => _showOuput(m, error: true));
 
+    // Set up Google Analytics.
+    deps[Analytics] = new Analytics();
+
+    // Set up the gist loader.
+    deps[GistLoader] = new GistLoader.defaultFilters();
+
     // Set up the editing area.
     editor = editorFactory.createFromElement(_editpanel);
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    keys.bind('ctrl-s', _handleSave);
-    keys.bind('ctrl-enter', _handleRun);
-    keys.bind('f1', () {
-      _toggleDocTab();
-      _handleHelp();
-    });
+    // keys.bind(['ctrl-s'], _handleSave, "Save");
+    keys.bind(['ctrl-enter'], _handleRun, "Run");
+    keys.bind(['f1'], () {
+      ga.sendEvent('main', 'help');
+      docHandler.generateDoc(_docPanel);
+    }, "Documentation");
+
+    keys.bind(['alt-enter', 'ctrl-1'], (){
+        editor.showCompletions(onlyShowFixes: true);
+    }, "Quick fix");
+
+    keys.bind(['ctrl-space', 'macctrl-space'], (){
+      editor.showCompletions();
+    }, "Completion");
+
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], (){
+      if (settings.isShowing) settings.hide();
+      else settings.show();
+    }, "Settings");
+
+    settings = new KeysDialog(keys.inverseBindings);
+
     document.onKeyUp.listen((e) {
-      if (_isCompletionActive || cursorKeys.contains(e.keyCode)) _handleHelp();
-
-      // If we're already in completion bail.
-      if (_isCompletionActive) return;
-
-      if (e.keyCode == KeyCode.PERIOD) {
-        editor.execCommand("autocomplete");
-      } else if (options.getValueBool('autopopup_code_completion')) {
-        RegExp exp = new RegExp(r"[A-Z]");
-        if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-          editor.execCommand("autocomplete");
-        }
+      if (editor.completionActive || DocHandler.cursorKeys.contains(e.keyCode)){
+        docHandler.generateDoc(_docPanel);
       }
+      _handleAutoCompletion(e);
     });
-    document.onClick.listen((e) => _handleHelp());
 
-    querySelector("#doctab").onClick.listen((e) => _toggleDocTab());
+    _resultTab.onClick.listen((e) => _toggleResultTab());
     querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
 
     _context = new PlaygroundContext(editor);
@@ -225,23 +331,60 @@ class Playground {
     editorFactory.registerCompleter(
         'dart', new DartCompleter(dartServices, _context._dartDoc));
 
-    _context.onHtmlDirty.listen((_) => htmlBusyLight.on());
+    _context.onHtmlDirty.listen((_) => busyLight.on());
     _context.onHtmlReconcile.listen((_) {
       executionService.replaceHtml(_context.htmlSource);
-      htmlBusyLight.reset();
+      busyLight.reset();
     });
 
-    _context.onCssDirty.listen((_) => cssBusyLight.on());
+    _context.onCssDirty.listen((_) => busyLight.on());
     _context.onCssReconcile.listen((_) {
       executionService.replaceCss(_context.cssSource);
-      cssBusyLight.reset();
+      busyLight.reset();
     });
 
-    _context.onDartDirty.listen((_) => dartBusyLight.on());
+    _context.onDartDirty.listen((_) => busyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
+
+    // Listen for changes that would effect the documentation panel.
+    editor.onMouseDown.listen((e) {
+      // Delay to give codemirror time to process the mouse event.
+      Timer.run(() => docHandler.generateDoc(_docPanel));
+    });
+    context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
+
+    // Bind the editable files to the gist.
+    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'))
+      ..onChanged.listen((html) => _checkForEmptyHtml(html == null ? "" : html));
+    Property htmlDoc = new EditorDocumentProperty(_context.htmlDocument, 'html');
+    bind(htmlDoc, htmlFile);
+    bind(htmlFile, htmlDoc);
+
+    Property cssFile = new GistFileProperty(editableGist.getGistFile('styles.css'));
+    Property cssDoc = new EditorDocumentProperty(_context.cssDocument, 'css');
+    bind(cssDoc, cssFile);
+    bind(cssFile, cssDoc);
+
+    Property dartFile = new GistFileProperty(editableGist.getGistFile('main.dart'));
+    Property dartDoc = new EditorDocumentProperty(_context.dartDocument, 'dart');
+    bind(dartDoc, dartFile);
+    bind(dartFile, dartDoc);
+
+    // Set up the router.
+    deps[Router] = new Router();
+    router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
+    router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
+    router.listen();
 
     // Set up development options.
     options.registerOption('autopopup_code_completion', 'false');
+    options.registerOption('parameter_popup', 'false');
+
+    if (options.getValueBool("parameter_popup")) {
+      paramPopup = new ParameterPopup(context, editor);
+    }
+
+    docHandler = new DocHandler(editor, _context);
 
     _finishedInit();
   }
@@ -250,11 +393,6 @@ class Playground {
     // Clear the splash.
     DSplash splash = new DSplash(querySelector('div.splash'));
     splash.hide();
-
-    _router = new Router();
-    _router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
-    _router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
-    _router.listen();
   }
 
   void _registerTab(Element element, String name) {
@@ -279,60 +417,109 @@ class Playground {
   List<Element> _getTabElements(Element element) =>
       element.querySelectorAll('a');
 
-  void _toggleDocTab() {
+  void _toggleResultTab() {
+    ga.sendEvent('view', 'result');
     // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
-    _outputpanel.style.display = "none";
+    querySelector('#output').style.display = "none";
     querySelector("#consoletab").attributes.remove('selected');
 
-    _docPanel..style.display = "block";
-    querySelector("#doctab").setAttribute('selected','');
+    _frame.style.display = "block";
+    _resultTab.setAttribute('selected','');
   }
 
   void _toggleConsoleTab() {
-    _docPanel..style.display = "none";
-    querySelector("#doctab").attributes.remove('selected');
+    ga.sendEvent('view', 'console');
+    _frame.style.display = "none";
+    _resultTab.attributes.remove('selected');
 
     _outputpanel.style.display = "block";
     querySelector("#consoletab").setAttribute('selected','');
   }
 
+  _handleAutoCompletion(KeyboardEvent e) {
+    if (context.focusedEditor == 'dart' && editor.hasFocus) {
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    }
+
+    if (!options.getValueBool('autopopup_code_completion')
+        || _isCompletionActive || !editor.hasFocus) {
+      return;
+    }
+
+    if (context.focusedEditor == 'dart') {
+      RegExp exp = new RegExp(r"[A-Z]");
+        if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+          editor.showCompletions(autoInvoked: true);
+        }
+    } else if (context.focusedEditor == "html") {
+      // TODO: Autocompletion for attributes.
+      if (printKeyEvent(e) == "shift-,") {
+        editor.showCompletions(autoInvoked: true);
+      }
+    } else if (context.focusedEditor == "css") {
+      RegExp exp = new RegExp(r"[A-Z]");
+      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    }
+  }
+
+  void _checkForEmptyHtml(String htmlSource) {
+    if (htmlSource.trim().isEmpty && !_htmlIsEmpty) {
+      _htmlIsEmpty = true;
+      _toggleConsoleTab();
+    } else if (htmlSource.trim().isNotEmpty && _htmlIsEmpty){
+      _htmlIsEmpty = false;
+      _toggleResultTab();
+    }
+  }
+
   void _handleRun() {
-    _toggleConsoleTab();
     ga.sendEvent('main', 'run');
-    runbutton.disabled = true;
+    runButton.disabled = true;
     overlay.visible = true;
 
     _clearOutput();
 
+    Stopwatch compilationTimer = new Stopwatch()..start();
+
     var input = new SourceRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
+      ga.sendTiming('action-perf', "compilation-e2e",
+          compilationTimer.elapsedMilliseconds);
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
-      // TODO: Also display using a toast.
+      ga.sendException("${e.runtimeType}");
+      if (e is DetailedApiRequestError) e = e.message;
+      DToast.showMessage('Error compiling to JavaScript');
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {
-      runbutton.disabled = false;
+      runButton.disabled = false;
       overlay.visible = false;
     });
   }
 
-  void _performAnalysis() {
+  /// Perform static analysis of the source code. Return whether the code
+  /// analyzed cleanly (had no errors or warnings).
+  Future<bool> _performAnalysis() {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
 
-    Future request = dartServices.analyze(input).timeout(serviceCallTimeout);;
+    Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
     _analysisRequest = request;
 
-    request.then((AnalysisResults result) {
+    return request.then((AnalysisResults result) {
       // Discard if we requested another analysis.
-      if (_analysisRequest != request) return;
+      if (_analysisRequest != request) return false;
 
       // Discard if the document has been mutated since we requested analysis.
-      if (input.source != _context.dartSource) return;
+      if (input.source != _context.dartSource) return false;
 
-      dartBusyLight.reset();
+      busyLight.reset();
 
       _displayIssues(result.issues);
 
@@ -350,76 +537,24 @@ class Playground {
             start: start, end: end);
       }).toList());
 
-      _updateRunButton(
-          hasErrors: result.issues.any((issue) => issue.kind == 'error'),
-          hasWarnings: result.issues.any((issue) => issue.kind == 'warning'));
+      bool hasErrors = result.issues.any((issue) => issue.kind == 'error');
+      bool hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
+
+      _updateRunButton(hasErrors: hasErrors, hasWarnings: hasWarnings);
+
+      return hasErrors == false && hasWarnings == false;
     }).catchError((e) {
       _context.dartDocument.setAnnotations([]);
-      dartBusyLight.reset();
+      busyLight.reset();
       _updateRunButton();
       _logger.severe(e);
     });
   }
 
-  void _handleSave() {
-    ga.sendEvent('main', 'save');
-    // TODO:
-    print('handleSave');
-  }
-
-  void _handleHelp() {
-    if (context.focusedEditor == 'dart' && _isDocPanelOpen && editor.document.selection.isEmpty) {
-      ga.sendEvent('main', 'help');
-
-      SourceRequest input;
-      Position pos = editor.document.cursor;
-      int offset = editor.document.indexFromPos(pos);
-
-      if (_isCompletionActive) {
-        // If the completion popup is open we create a new source as if the
-        // completion popup was chosen, and ask for the documentation of that
-        // source.
-        String completionText = querySelector(".CodeMirror-hint-active").text;
-        var source = context.dartSource;
-        int lastSpace = source.substring(0, offset).lastIndexOf(" ") + 1;
-        int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
-        offset = math.max(lastSpace, lastDot);
-        source = _context.dartSource.substring(0, offset) +
-            completionText +
-            context.dartSource.substring(editor.document.indexFromPos(pos));
-        input = new SourceRequest()
-          ..source = source
-          ..offset = offset;
-      } else {
-        input = new SourceRequest()
-          ..source = _context.dartSource
-          ..offset = offset;
-      }
-
-      // TODO: Show busy.
-      dartServices.document(input).timeout(serviceCallTimeout).then(
-          (DocumentResponse result) {
-        if (result.info['description'] == null &&
-            result.info['dartdoc'] == null) {
-          _docPanel.setInnerHtml("<p>No documentation found.</p>");
-        } else {
-          final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
-            ..allowElement('a', attributes: ['href']);
-          _docPanel.setInnerHtml(markdown.markdownToHtml(
-'''
-# `${result.info['description']}`\n\n
-${result.info['dartdoc'] != null ? result.info['dartdoc'] + "\n\n" : ""}
-${result.info['kind'].contains("variable") ? "${result.info['kind']}\n\n" : ""}
-${result.info['kind'].contains("variable") ? "**Propagated type:** ${result.info["propagatedType"]}\n\n" : ""}
-${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName']}" : ""}\n\n
-''', inlineSyntaxes: [ new InlineBracketsColon(), new InlineBrackets()]), validator: _htmlValidator);
-          for (AnchorElement a in _docPanel.querySelectorAll("a")) {
-            a.target = "_blank";
-          }
-        }
-      });
-    }
-  }
+  // TODO
+  // void _handleSave() {
+  //   ga.sendEvent('main', 'save');
+  // }
 
   void _clearOutput() {
     _outputpanel.text = '';
@@ -432,36 +567,17 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
     span.text = message;
     _outputpanel.children.add(span);
     span.scrollIntoView(ScrollAlignment.BOTTOM);
+    consoleBusyLight.flash();
   }
 
   void _handleSelectChanged(SelectElement select) {
     String value = select.value;
 
     if (isLegalGistId(value)) {
-      _router.go('gist', {'gist': value});
+      router.go('gist', {'gist': value});
     }
 
     select.value = '0';
-  }
-
-  void _setGistDescription(String description) {
-    Element e = querySelector('header .header-gist-name');
-    e.text = description == null ? '' : description;
-  }
-
-  void _setGistId(String title, String url) {
-    Element e = querySelector('header .header-gist-id');
-
-    if (title == null || url == null) {
-      e.text = '';
-    } else {
-      e.children.clear();
-
-      AnchorElement a = new AnchorElement(href: url);
-      a.text = title;
-      a.target = 'gist';
-      e.children.add(a);
-    }
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
@@ -487,6 +603,8 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
       for (AnalysisIssue issue in issues) {
         DivElement e = new DivElement();
         e.classes.add('issue');
+        e.attributes['layout'] = '';
+        e.attributes['horizontal'] = '';
         issuesElement.children.add(e);
         e.onClick.listen((_) {
           _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
@@ -499,8 +617,22 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
 
         SpanElement messageSpan = new SpanElement();
         messageSpan.classes.add('message');
+        messageSpan.attributes['flex'] = '';
         messageSpan.text = issue.message;
         e.children.add(messageSpan);
+        if (issue.hasFixes) {
+          e.classes.add("hasFix");
+          e.onClick.listen((e) {
+            // This is a bit of a hack to make sure quick fixes popup
+            // is only shown if the wrench is clicked,
+            // and not if the text or label is clicked.
+            if ((e.target as Element).className == "issue hasFix") {
+              // codemiror only shows completions if there is no selected text
+              _jumpTo(issue.line, issue.charStart, 0, focus: true);
+              editor.showCompletions(onlyShowFixes: true);
+            }
+          });
+        }
       }
 
       issuesElement.classes.toggle('showing', issues.isNotEmpty);
@@ -512,7 +644,7 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
         "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,"
         "1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
 
-    var path = runbutton.element.querySelector("path");
+    var path = runButton.element.querySelector("path");
     path.attributes["d"] =
         (hasErrors || hasWarnings) ? alertSVGIcon : "M8 5v14l11-7z";
 
@@ -531,10 +663,10 @@ ${result.info['libraryName'] != null ? "**Library:** ${result.info['libraryName'
   }
 }
 
-// TODO: create pages (dart / html / css)
-
 class PlaygroundContext extends Context {
   final Editor editor;
+
+  StreamController<String> _modeController = new StreamController.broadcast();
 
   Document _dartDoc;
   Document _htmlDoc;
@@ -564,6 +696,8 @@ class PlaygroundContext extends Context {
   }
 
   Document get dartDocument => _dartDoc;
+  Document get htmlDocument => _htmlDoc;
+  Document get cssDocument => _cssDoc;
 
   String get dartSource => _dartDoc.value;
   set dartSource(String value) {
@@ -582,7 +716,11 @@ class PlaygroundContext extends Context {
 
   String get activeMode => editor.mode;
 
+  Stream<String> get onModeChange => _modeController.stream;
+
   void switchTo(String name) {
+    String oldMode = activeMode;
+
     if (name == 'dart') {
       editor.swapDocument(_dartDoc);
     } else if (name == 'html') {
@@ -590,6 +728,8 @@ class PlaygroundContext extends Context {
     } else if (name == 'css') {
       editor.swapDocument(_cssDoc);
     }
+
+    if (oldMode != name) _modeController.add(name);
 
     editor.focus();
   }
@@ -628,38 +768,35 @@ class PlaygroundContext extends Context {
   }
 }
 
-class InlineBracketsColon extends markdown.InlineSyntax {
+class GistFileProperty implements Property {
+  final MutableGistFile file;
 
-  InlineBracketsColon() : super(r'\[:\s?((?:.|\n)*?)\s?:\]');
+  GistFileProperty(this.file);
 
-  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
+  get() => file.content;
 
-  @override
-  bool onMatch(markdown.InlineParser parser, Match match) {
-    var element = new markdown.Element.text('code', htmlEscape(match[1]));
-    parser.addNode(element);
-    return true;
+  void set(value) {
+    if (file.content != value) {
+      file.content = value;
+    }
   }
+
+  Stream get onChanged => file.onChanged.map((value) {
+    return value;
+  });
 }
 
-// TODO: [someCodeReference] should be converted to for example
-// https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/dart:core.someReference
-// for now it gets converted <code>someCodeReference</code>
-class InlineBrackets extends markdown.InlineSyntax {
+class EditorDocumentProperty implements Property {
+  final Document document;
+  final String debugName;
 
-  // This matches URL text in the documentation, with a negative filter
-  // to detect if it is followed by a URL to prevent e.g.
-  // [text] (http://www.example.com) getting turned into
-  // <code>text</code> (http://www.example.com)
-  InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\s?\()');
+  EditorDocumentProperty(this.document, [this.debugName]);
 
-  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
+  get() => document.value;
 
-  @override
-  bool onMatch(markdown.InlineParser parser, Match match) {
-    var element = new markdown.Element.text(
-        'code', "<em>${htmlEscape(match[1])}</em>");
-    parser.addNode(element);
-    return true;
+  void set(str) {
+    document.value = str == null ? '' : str;
   }
+
+  Stream get onChanged => document.onChange.map((_) => get());
 }

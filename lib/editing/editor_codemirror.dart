@@ -6,6 +6,9 @@ library editor.codemirror;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:js';
+import 'dart:math';
+import 'dart:convert';
 
 import 'package:codemirror/codemirror.dart' hide Position;
 import 'package:codemirror/codemirror.dart' as pos show Position;
@@ -68,7 +71,6 @@ class CodeMirrorFactory extends EditorFactory {
         'cursorHeight': 0.85,
         //'gutters': [_gutterId],
         'extraKeys': {
-          'Ctrl-Space': 'autocomplete',
           'Cmd-/': 'toggleComment',
           'Ctrl-/': 'toggleComment'
         },
@@ -94,10 +96,16 @@ class CodeMirrorFactory extends EditorFactory {
 
   Future<HintResults> _completionHelper(CodeMirror editor,
       CodeCompleter completer, HintsOptions options) {
-    _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, editor);
+    _CodeMirrorEditor ed = new _CodeMirrorEditor._fromExisting(this, editor);
 
-    return completer.complete(ed).then((CompletionResult result) {
+    return completer.complete(ed, onlyShowFixes: ed._lookingForQuickFix).then(
+            (CompletionResult result) {
       Doc doc = editor.getDoc();
+      pos.Position from =  doc.posFromIndex(result.replaceOffset);
+      pos.Position to = doc.posFromIndex(
+          result.replaceOffset + result.replaceLength);
+      String stringToReplace = doc.getValue().substring(
+          result.replaceOffset, result.replaceOffset + result.replaceLength);
 
       List<HintResult> hints = result.completions.map((Completion completion) {
         return new HintResult(
@@ -112,20 +120,40 @@ class CodeMirrorFactory extends EditorFactory {
                 doc.setCursor(new pos.Position(
                     editor.getCursor().line, editor.getCursor().ch - diff));
               }
+              if (completion.type == "type-quick_fix") {
+                completion.quickFixes.forEach(
+                        (SourceEdit edit) => ed.document.applyEdit(edit));
+              }
+            },
+            hintRenderer: (html.Element element, HintResult hint) {
+              var escapeHtml = new HtmlEscape().convert;
+              if (completion.type != "type-quick_fix") {
+                element.innerHtml = escapeHtml(completion.displayString).replaceFirst(
+                    escapeHtml(stringToReplace), "<em>${escapeHtml(stringToReplace)}</em>"
+                );
+              } else {
+                element.innerHtml = escapeHtml(completion.displayString);
+              }
             }
         );
       }).toList();
 
-      pos.Position from =  doc.posFromIndex(result.replaceOffset);
-      pos.Position to = doc.posFromIndex(
-          result.replaceOffset + result.replaceLength);
-      String stringToReplace = doc.getValue().substring(
-          result.replaceOffset, result.replaceOffset + result.replaceLength);
-
-      if (hints.isEmpty) {
+      if (hints.isEmpty && ed._lookingForQuickFix) {
         hints = [
-          new HintResult(stringToReplace,
-              displayText: "No suggestions", className: "type-no_suggestions")
+          new HintResult(
+              stringToReplace,
+              displayText: "No fixes available",
+              className: "type-no_suggestions")
+        ];
+      } else if (hints.isEmpty &&
+          (ed.completionActive || (!ed.completionActive && !ed.completionAutoInvoked))) {
+        // Only show 'no suggestions' if the completion was explicitly invoked
+        // or if the popup was already active.
+        hints = [
+          new HintResult(
+              stringToReplace,
+              displayText: "No suggestions",
+              className: "type-no_suggestions")
         ];
       }
 
@@ -135,12 +163,29 @@ class CodeMirrorFactory extends EditorFactory {
 }
 
 class _CodeMirrorEditor extends Editor {
+  // Map from JsObject codemirror instances to existing dartpad wrappers.
+  static Map<dynamic, _CodeMirrorEditor> _instances = {};
+
   final CodeMirror cm;
 
   _CodeMirrorDocument _document;
 
+  bool _lookingForQuickFix;
+
   _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
+    _instances[cm.jsProxy] = this;
+  }
+
+  factory _CodeMirrorEditor._fromExisting(CodeMirrorFactory factory, CodeMirror cm) {
+    // TODO: We should ensure that the Dart `CodeMirror` wrapper returns the
+    // same instances to us when possible (or, identity is based on the
+    // underlying JS proxy).
+    if (_instances.containsKey(cm.jsProxy)) {
+      return _instances[cm.jsProxy];
+    } else {
+      return new _CodeMirrorEditor._(factory,  cm);
+    }
   }
 
   Document get document => _document;
@@ -153,8 +198,20 @@ class _CodeMirrorEditor extends Editor {
     return new _CodeMirrorDocument._(this, new Doc(content, mode));
   }
 
-  void execCommand(String name) {
-    cm.execCommand(name);
+  void execCommand(String name) => cm.execCommand(name);
+
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) {
+    if (autoInvoked) {
+      completionAutoInvoked = true;
+    } else {
+      completionAutoInvoked = false;
+    }
+    if (onlyShowFixes) {
+      _lookingForQuickFix = true;
+    } else {
+      _lookingForQuickFix = false;
+    }
+    execCommand("autocomplete");
   }
 
   bool get completionActive {
@@ -171,12 +228,30 @@ class _CodeMirrorEditor extends Editor {
   String get theme => cm.getTheme();
   set theme(String str) => cm.setTheme(str);
 
+  bool get hasFocus => cm.jsProxy['state']['focused'];
+
+  Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
+
+  Point getCursorCoords({ed.Position position}) {
+    JsObject js;
+    if (position == null) {
+      js = cm.call("cursorCoords");
+    } else {
+      js = cm.callArg("cursorCoords", _document._posToPos(position).toProxy());
+    }
+    return new Point(js["left"], js["top"]);
+  }
+
   void focus() => cm.focus();
   void resize() => cm.refresh();
 
   void swapDocument(Document document) {
     _document = document;
     cm.swapDoc(_document.doc);
+  }
+
+  void dispose() {
+    _instances.remove(cm.jsProxy);
   }
 }
 
@@ -223,6 +298,14 @@ class _CodeMirrorDocument extends Document {
   bool get isClean => doc.isClean();
 
   void markClean() => doc.markClean();
+
+  void applyEdit(SourceEdit edit) {
+    doc.replaceRange(
+        edit.replacement,
+        _posToPos(posFromIndex(edit.offset)),
+        _posToPos(posFromIndex(edit.offset + edit.length))
+    );
+  }
 
   void setAnnotations(List<Annotation> annotations) {
     // TODO: Codemirror lint has no support for info markers - contribute some?

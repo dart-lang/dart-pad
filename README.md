@@ -1,4 +1,4 @@
-# Dart Pad
+# DartPad
 
 The UI client for a web based interactive Dart service.
 
@@ -11,12 +11,23 @@ The UI client for a web based interactive Dart service.
 
 This project is a web based interactive Dart service. It's meant to be a simple,
 easy way for users to play with Dart on-line, in a zero-install, zero
-configuration environment. It'll support an easy snippet sharing service.
+configuration environment. It supports an easy snippet sharing service.
 
 ## Project status
 
 Beta - available to play with here: https://dartpad.dartlang.org/, but still a
 work in progress.
+
+## Related projects
+
+See also the [dart-services](https://github.com/dart-lang/dart-services) repo.
+
+## How did we build DartPad?
+
+Interested in the tools we used to build DartPad? We put together some
+[documentation](https://github.com/dart-lang/dart-pad/tree/master/doc)
+about the hosted services - continuous integration, code coverage, cross-browser testing, ...
+that we used to build DartPad.
 
 ## Issues and bugs
 

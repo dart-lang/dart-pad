@@ -36,15 +36,12 @@ class SanitizingBrowserClient extends BrowserClient {
   }
 }
 
-// For indexing deps.
-abstract class DartServices {}
-
 class DartServicesModule extends Module {
   DartServicesModule();
 
   Future init() {
     var client = new SanitizingBrowserClient();
-    deps[DartServices] = new DartservicesApi(client, rootUrl: serverURL);
+    deps[DartservicesApi] = new DartservicesApi(client, rootUrl: serverURL);
     return new Future.value();
   }
 }

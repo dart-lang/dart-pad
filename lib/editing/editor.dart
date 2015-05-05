@@ -6,6 +6,7 @@ library editor;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math';
 
 abstract class EditorFactory {
   List<String> get modes;
@@ -17,14 +18,14 @@ abstract class EditorFactory {
   Editor createFromElement(html.Element element);
 
   bool get supportsCompletionPositioning;
-  // TODO: codemirror gives the client more control over where to insert the
-  // completions. With Ace, you can only insert from the requested position
-  // forward.
+
   void registerCompleter(String mode, CodeCompleter completer);
 }
 
 abstract class Editor {
   final EditorFactory factory;
+
+  bool completionAutoInvoked = false;
 
   Editor(this.factory);
 
@@ -33,16 +34,16 @@ abstract class Editor {
   Document get document;
 
   /**
-   * Runs the command with the given name on the editor.
-   * Only implemented for codemirror and comid.
-   * Returns null for ace editor.
+   * Runs the command with the given name on the editor. Only implemented for
+   * codemirror and comid; returns `null` for ace editor.
    */
   void execCommand(String name);
 
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false});
+
   /**
-   * Checks if the completion popup is displayed.
-   * Only implemented for codemirror.
-   * Returns null for ace editor and comid.
+   * Checks if the completion popup is displayed. Only implemented for
+   * codemirror; returns `null` for ace editor and comid.
    */
   bool get completionActive;
 
@@ -52,10 +53,29 @@ abstract class Editor {
   String get theme;
   set theme(String str);
 
+  /**
+   * Returns the cursor coordinates in pixels. cursorCoords.x corresponds to
+   * left and cursorCoords.y corresponds to top. Only implemented for
+   * codemirror, returns `null` for ace editor and comid.
+   */
+  Point getCursorCoords({Position position});
+
+  bool get hasFocus;
+
+  /**
+   * Fired when a mouse is clicked. You can preventDefault the event to signal
+   * that the editor should do no further handling.  Only implemented for
+   * codemirror, returns `null` for ace editor and comid.
+   */
+  Stream<html.MouseEvent> get onMouseDown;
+
   void resize();
   void focus();
 
   void swapDocument(Document document);
+
+  /// Let the `Editor` instance know that it will no longer be used.
+  void dispose() { }
 }
 
 abstract class Document {
@@ -83,6 +103,8 @@ abstract class Document {
 
   int indexFromPos(Position pos);
   Position posFromIndex(int index);
+
+  void applyEdit(SourceEdit edit);
 
   Stream get onChange;
 }
@@ -126,7 +148,7 @@ class Position {
 }
 
 abstract class CodeCompleter {
-  Future<CompletionResult> complete(Editor editor);
+  Future<CompletionResult> complete(Editor editor, {onlyShowFixes: false});
 }
 
 class CompletionResult {
@@ -158,9 +180,19 @@ class Completion {
   /// completors. See [EditorFactory.supportsCompletionPositioning].
   final int cursorOffset;
 
-  Completion(this.value, {this.displayString, this.type, this.cursorOffset});
+  List<SourceEdit> quickFixes = [];
+
+  Completion(this.value, {this.displayString, this.type, this.cursorOffset, this.quickFixes});
 
   bool isSetterAndMatchesGetter(Completion other) =>
       displayString == other.displayString &&
       (type == "type-getter" && other.type == "type-setter");
+}
+
+class SourceEdit {
+  int length;
+  int offset;
+  String replacement;
+
+  SourceEdit(this.length, this.offset, this.replacement);
 }

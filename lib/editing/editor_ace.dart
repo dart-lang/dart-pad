@@ -6,6 +6,7 @@ library editor.ace;
 
 import 'dart:async';
 import 'dart:html' as html;
+import 'dart:math';
 
 import 'package:ace/ace.dart' as ace;
 import 'package:ace/proxy.dart';
@@ -116,7 +117,7 @@ class _AceEditor extends Editor {
   }
 
   // TODO: Implement execCommand for ace.
-  void execCommand(String name) => null;
+  void execCommand(String name) { }
 
   // TODO: Implement completionActive for ace.
   bool get completionActive => false;
@@ -128,6 +129,17 @@ class _AceEditor extends Editor {
   set theme(String str) {
     editor.theme = new ace.Theme.named(str);
   }
+
+  // TODO: Add an showCompletions method for ace.
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) { }
+
+  bool get hasFocus => editor.isFocused;
+
+  // TODO: Add a cursorCoords getter for ace.
+  Point getCursorCoords({Position position}) => null;
+
+  // TODO: Add a onMouseDown getter for ace.
+  Stream get onMouseDown => null;
 
   void focus() => editor.focus();
   void resize() => editor.resize(true);
@@ -166,6 +178,9 @@ class _AceDocument extends Document {
   bool get isClean => session.undoManager.isClean;
 
   void markClean() => session.undoManager.markClean();
+
+  // TODO: Add a applyEdit method for ace.
+  void applyEdit(SourceEdit edit) { }
 
   void setAnnotations(List<Annotation> annotations) {
 //    if (markers.isNotEmpty) {

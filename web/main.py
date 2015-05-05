@@ -3,12 +3,18 @@ from google.appengine.api import users
 from google.appengine.ext import ndb
 import os
 import webapp2
+from mdetect import UAgentInfo
 
 class WhiteListEntry(ndb.Model):
     emailAddress = ndb.StringProperty()
 
+
 class MainHandler(webapp2.RequestHandler):
     def get(self):
+        uagent = UAgentInfo(str(self.request.user_agent), str(self.request.accept))
+        isMobile = uagent.detectMobileLong() or uagent.detectTierTablet()
+        mainPage = 'mobile.html' if isMobile else 'index.html' 
+
         parsedURL = urlparse(self.request.uri)
         path = parsedURL.path;
         targetSplits = path.split('/')
@@ -17,22 +23,21 @@ class MainHandler(webapp2.RequestHandler):
         if targetSplits[1].find('.') > 0:
             newPath = "/".join(targetSplits[1:])
             if newPath == '':
-                _serve(self.response, 'index.html')
+                _serve(self.response, mainPage)
             else:
                 _serve(self.response, newPath)
             return
 
         # If it is a request for a TLD psuedo-item, serve back the main page
         if len(targetSplits) < 3:
-            _serve(self.response, 'index.html')
+            _serve(self.response, mainPage)
             return
-
 
         # If it is a request for something in the packages folder, serve it
         if targetSplits[1] == 'packages':
             newPath = "/".join(targetSplits[1:])
             if newPath == '':
-                _serve(self.response, 'index.html')
+                _serve(self.response, mainPage)
             else:
                 _serve(self.response, newPath)
             return
@@ -42,7 +47,7 @@ class MainHandler(webapp2.RequestHandler):
         if len(targetSplits) >= 3:
             newPath = "/".join(targetSplits[2:])
             if newPath == '':
-                _serve(self.response, 'index.html')
+                _serve(self.response, mainPage)
             else:
                 _serve(self.response, newPath)
             return
@@ -64,9 +69,11 @@ def _serve(resp, path):
     if path.endswith('.css'):
         resp.content_type = 'text/css'
 
+    if path.endswith('.svg'):
+        resp.content_type = 'image/svg+xml'
+
     if path.endswith('.js'):
         resp.content_type = 'application/javascript'
-
 
     f = open(path, 'r')
     c = f.read()

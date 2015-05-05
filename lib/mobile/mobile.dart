@@ -18,8 +18,8 @@ import 'package:dart_pad/modules/dartservices_module.dart';
 import 'package:dart_pad/modules/dart_pad_module.dart';
 import 'package:dart_pad/services/common.dart';
 import 'package:dart_pad/services/execution_iframe.dart';
+import 'package:dart_pad/sharing/gists.dart';
 import 'package:dart_pad/src/ga.dart';
-import 'package:dart_pad/src/gists.dart';
 import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
@@ -81,6 +81,7 @@ class PlaygroundMobile {
       }
     }
 
+    _clearErrors();
     _setGistDescription(null);
     _setGistId(null);
 
@@ -143,7 +144,7 @@ class PlaygroundMobile {
     topPanel.makeDrawer(headerPanel);
     topPanel.add(headerPanel);
     CoreToolbar toolbar = new CoreToolbar()..id = 'nav-header';
-    toolbar.add(CoreElement.span('Dart Pad'));
+    toolbar.add(CoreElement.span('DartPad'));
     headerPanel.add(toolbar);
     CoreMenu menu = new CoreMenu();
     _buildSamples(menu);
@@ -173,7 +174,8 @@ class PlaygroundMobile {
     overflowMenuButton.add(dropdown);
     toolbar.add(overflowMenuButton);
 
-    CoreElement div = CoreElement.div()..clazz('bottom fit')..horizontal()..vertical();
+    CoreElement div = CoreElement.div()..clazz('bottom')..clazz('fit')
+        ..horizontal()..vertical();
     PaperTabs tabs = new PaperTabs()..flex();
     tabs.selected = '0';
     tabs.add(new PaperTab(name: 'dart', text: 'Dart'));
@@ -184,7 +186,7 @@ class PlaygroundMobile {
 
     div.add(tabs);
     toolbar.add(div);
-    _editProgress = new PaperProgress()..clazz('bottom fit')..hidden();
+    _editProgress = new PaperProgress()..clazz('bottom')..clazz('fit')..hidden();
     toolbar.add(_editProgress);
 
     mainPanel.add(toolbar);
@@ -225,7 +227,7 @@ class PlaygroundMobile {
     toolbar.add(toggleConsoleButton);
     rerunButton = new PaperIconButton(icon: 'refresh');
     toolbar.add(rerunButton);
-    _runProgress = new PaperProgress()..clazz('bottom fit')..hidden();
+    _runProgress = new PaperProgress()..clazz('bottom')..clazz('fit')..hidden();
     toolbar.add(_runProgress);
     header.add(toolbar);
 
@@ -234,17 +236,21 @@ class PlaygroundMobile {
     CoreElement content = CoreElement.div()..fit()..layout()..vertical();
     header.add(content);
 
+    CoreElement frameContainer = CoreElement.div()..flex(2)..layout()..vertical();
+    frameContainer.clazz('frameContainer');
+    content.add(frameContainer);
+
     CoreElement frame = new CoreElement('iframe')
-      ..flex(2)
+      ..flex()
       ..id = 'frame'
       ..setAttribute('sandbox', 'allow-scripts')
       ..setAttribute('src', 'frame.html');
-    content.add(frame);
+    frameContainer.add(frame);
     _output = CoreElement.div()
       ..flex(1)
-      ..clazz('console')
-      ..element.style.height = '30%';
+      ..clazz('console');
     content.add(_output);
+    _clearOutput();
 
     toggleConsoleButton.onCoreChange.listen((_) {
       _output.hidden(!toggleConsoleButton.checked);
@@ -254,7 +260,7 @@ class PlaygroundMobile {
   }
 
   void _showGist(String gistId, {bool run: false}) {
-    Gist.loadGist(gistId).then((Gist gist) {
+    gistLoader.loadGist(gistId).then((Gist gist) {
       _setGistDescription(gist.description);
       _setGistId(gist.id);
 
@@ -262,9 +268,11 @@ class PlaygroundMobile {
       GistFile html = chooseGistFile(gist, ['index.html', 'body.html']);
       GistFile css = chooseGistFile(gist, ['styles.css', 'style.css']);
 
-      context.dartSource = dart == null ? '' : dart.contents;
-      context.htmlSource = html == null ? '' : extractHtmlBody(html.contents);
-      context.cssSource = css == null ? '' : css.contents;
+      context.dartSource = dart == null ? '' : dart.content;
+      context.htmlSource = html == null ? '' : extractHtmlBody(html.content);
+      context.cssSource = css == null ? '' : css.content;
+
+      _clearErrors();
 
       // Analyze and run it.
       Timer.run(() {
@@ -301,9 +309,14 @@ class PlaygroundMobile {
     // TODO: Add a real code completer here.
     //editorFactory.registerCompleter('dart', new DartCompleter());
 
-    keys.bind('ctrl-s', _handleSave);
-    keys.bind('ctrl-enter', _handleRun);
-    keys.bind('f1', _handleHelp);
+    // Set up the gist loader.
+    // TODO: Move to using the defaultFilters().
+    deps[GistLoader] = new GistLoader();
+
+    // QUESTION: Do we need these bindings for mobile ?
+    // keys.bind(['ctrl-s'], _handleSave);
+    // keys.bind(['ctrl-enter'], _handleRun);
+    // keys.bind(['f1'], _handleHelp);
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
@@ -346,8 +359,9 @@ class PlaygroundMobile {
     _editProgress.hidden(false);
 
     var input = new SourceRequest()..source = context.dartSource;
-    dartServices.compile(input).timeout(longServiceCallTimeout)
-    .then((CompileResponse response) {
+    dartServices.compile(input).timeout(longServiceCallTimeout).then(
+        (CompileResponse response) {
+      _clearErrors();
       _clearOutput();
 
       // TODO: Use the router here instead -
@@ -434,35 +448,15 @@ class PlaygroundMobile {
     });
   }
 
-  void _handleSave() {
-    ga.sendEvent('main', 'save');
-    // TODO:
-    print('handleSave');
-  }
-
-  void _handleHelp() {
-    if (context.focusedEditor == 'dart') {
-      ga.sendEvent('main', 'help');
-
-//      String source = _context.dartSource;
-//      Position pos = editor.document.cursor;
-//      int offset = editor.document.indexFromPos(pos);
-
-//      // TODO: Show busy.
-//      dartServices.document(source, offset).then((Map result) {
-//        if (result['description'] == null && result['dartdoc'] == null) {
-//          // TODO: Tell the user there were no results.
-//
-//        } else {
-//          // TODO: Display this info
-//          print(result['description']);
-//        }
-//      });
-    }
+  void _clearErrors() {
+    _errorsToast.dismiss();
   }
 
   void _clearOutput() {
     _output.text = '';
+    _output.add(new DivElement()
+      ..text = 'Console output'
+      ..classes.add('consoleTitle'));
   }
 
   void _showOuput(String message, {bool error: false}) {
@@ -476,7 +470,7 @@ class PlaygroundMobile {
 
   void _setGistDescription(String description) {
     if (description == null || description.isEmpty) {
-      description = 'Dart Pad';
+      description = 'DartPad';
     }
 
     for (Element e in querySelectorAll('.sample-titles')) {
@@ -494,7 +488,7 @@ class PlaygroundMobile {
 
   void _displayIssues(List<AnalysisIssue> issues) {
     if (issues.isEmpty) {
-      _errorsToast.dismiss();
+      _clearErrors();
     } else {
       Element element = _errorsToast.element;
 
@@ -542,7 +536,7 @@ class PlaygroundMobile {
 //  }
 
   void _showAboutDialog() {
-    _messageDialog.heading = 'About Dart Pad';
+    _messageDialog.heading = 'About DartPad';
     _messageDialog.element.querySelector('p').setInnerHtml(privacyText,
         validator: new PermissiveNodeValidator());
     _messageDialog.open();
@@ -563,7 +557,7 @@ class PlaygroundMobile {
     menu.add(new PaperItem(text: 'Hello World')..name('33706e19df021e52d98c'));
     menu.add(new PaperItem(text: 'Hello World HTML')..name('9126d5d48ebabf5bf547'));
     menu.add(new PaperItem(text: 'Solar')..name('72d83fe97bfc8e735607'));
-    menu.add(new PaperItem(text: 'Spirodraw')..name('76d27117fd6313dd9167'));
+    menu.add(new PaperItem(text: 'Spirodraw')..name('9e42aabfcc15c81a0406'));
     menu.add(new PaperItem(text: 'Sunflower')..name('9d2dd2ce17981ecacadd'));
     menu.add(new PaperItem(text: 'WebSockets')..name('479ecba5a56fd706b648'));
 
@@ -578,6 +572,8 @@ class PlaygroundMobile {
 
 class PlaygroundContext extends Context {
   final Editor editor;
+
+  StreamController<String> _modeController = new StreamController.broadcast();
 
   Document _dartDoc;
   Document _htmlDoc;
@@ -623,7 +619,13 @@ class PlaygroundContext extends Context {
     _cssDoc.value = value;
   }
 
+  String get activeMode => editor.mode;
+
+  Stream<String> get onModeChange => _modeController.stream;
+
   void switchTo(String name) {
+    String oldMode = activeMode;
+
     if (name == 'dart') {
       editor.swapDocument(_dartDoc);
     } else if (name == 'html') {
@@ -631,6 +633,8 @@ class PlaygroundContext extends Context {
     } else if (name == 'css') {
       editor.swapDocument(_cssDoc);
     }
+
+    if (oldMode != name) _modeController.add(name);
   }
 
   String get focusedEditor {

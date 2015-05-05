@@ -4,6 +4,8 @@
 
 library context;
 
+import 'dart:async';
+
 import 'dartservices_client/v1.dart';
 
 abstract class Context {
@@ -17,6 +19,10 @@ abstract class Context {
   String dartSource;
   String htmlSource;
   String cssSource;
+
+  String get activeMode;
+  Stream<String> get onModeChange;
+  void switchTo(String name);
 }
 
 abstract class ContextProvider {

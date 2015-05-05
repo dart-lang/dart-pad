@@ -11,10 +11,10 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
 
-    <title>DartPad (β)</title>
+    <title>DartPad</title>
 
     <link href="layout.css" rel="stylesheet" media="screen">
-    <link href="styles.css" rel="stylesheet" media="screen">
+    <link href="index.css" rel="stylesheet" media="screen">
     <link href="packages/dart_pad/elements/elements.css" rel="stylesheet" media="screen">
 
     <link href='https://fonts.googleapis.com/css?family=Roboto'
@@ -38,9 +38,14 @@
 
   <body fullbleed layout vertical>
     <header layout horizontal>
-      <div class="header-title">DartPad <span class="minor">(β)</span></div>
+      <div class="header-title">DartPad</div>
+      <div>
+        <button type="button" id="newbutton" class="button">New Pad…</button>
+      </div>
       <div class="header-gist-name" flex></div>
-      <div class="header-gist-id"></div>
+      <div>
+        <button type="button" id="sharebutton" class="button">Share…</button>
+      </div>
       <div>
         <select id="samples" required="false" style="width: 80px;">
           <option value="0">Samples</option>
@@ -51,7 +56,7 @@
           <option value="33706e19df021e52d98c">Hello World</option>
           <option value="9126d5d48ebabf5bf547">Hello World HTML</option>
           <option value="72d83fe97bfc8e735607">Solar</option>
-          <option value="76d27117fd6313dd9167">Spirodraw</option>
+          <option value="9e42aabfcc15c81a0406">Spirodraw</option>
           <option value="9d2dd2ce17981ecacadd">Sunflower</option>
           <option value="479ecba5a56fd706b648">WebSockets</option>
         </select>
@@ -69,7 +74,8 @@
           <div flex></div>
           <div id="dartbusy" class="busylight"></div>
           <div>
-            <button type="button" id="runbutton" title="Run (ctrl-enter / ⌘-enter)">
+            <button type="button" id="runbutton" class="button"
+                title="Run (ctrl-enter / ⌘-enter)">
               <svg width="18" height="18" viewBox="0 0 24 24"
                   style="vertical-align: text-bottom;">
                 <path d="M8 5v14l11-7z"/>
@@ -88,17 +94,22 @@
       </div>
 
       <div class="view" flex two layout vertical>
-        <iframe id="frame" sandbox="allow-scripts" flex four src="frame.html">
-        </iframe>
+        <div class="view" flex two layout vertical>
+          <div class="header" layout horizontal reverse wrap>
+            <div id="consolebusy" class="busylight"></div>
+            <li><a id="consoletab" selected><span>Console</span></a></li>
+            <li><a id="resulttab"><span>Results</span></a></li>
+          </div>
+          <div id="output" class="console" flex></div>
+          <!-- TODO: We might want to embed the iframe into a div, and set -->
+          <!-- div to overflow: scroll. -->
+          <iframe id="frame" sandbox="allow-scripts" flex src="frame.html">
+          </iframe>
+        </div>
         <div class="splitter" horizontal id="output_split">
           <div class="inner"></div>
         </div>
-        <div class="view" flex two layout vertical>
-          <div class="header" layout horizontal wrap>
-            <li><a id="consoletab" selected><span>Console</span></a></li>
-            <li><a id="doctab" title="Documentation (F1)"><span>Documentation</span></a></li>
-          </div>
-          <div id="output" class="console" flex layout vertical></div>
+        <div class="view" flex layout vertical>
           <div id="documentation" flex layout vertical></div>
         </div>
         <div id="frame_overlay"></div>
@@ -110,11 +121,12 @@
         <a href="https://api.dartlang.org/" target="docs">API documentation</a>
       </div>
       <div flex></div>
+      <div id="keyboard-button" class="keyboard footer-item"></div>
       <div>
         <a href="https://github.com/dart-lang/dart-pad/wiki/Privacy-Policy"
-            target="privacy">Privacy policy</a>
+            target="privacy" class="footer-item">Privacy policy</a>
         <a href="https://github.com/dart-lang/dart-pad/issues"
-            target="send_feedback" class="footer-item">
+            target="send_feedback">
           Send feedback
         </a>
       </div>
