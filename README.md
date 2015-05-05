@@ -13,11 +13,6 @@ This project is a web based interactive Dart service. It's meant to be a simple,
 easy way for users to play with Dart on-line, in a zero-install, zero
 configuration environment. It supports an easy snippet sharing service.
 
-## Project status
-
-Beta - available to play with here: https://dartpad.dartlang.org/, but still a
-work in progress.
-
 ## Related projects
 
 See also the [dart-services](https://github.com/dart-lang/dart-services) repo.

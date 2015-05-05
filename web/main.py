@@ -15,6 +15,9 @@ class MainHandler(webapp2.RequestHandler):
         isMobile = uagent.detectMobileLong() or uagent.detectTierTablet()
         mainPage = 'mobile.html' if isMobile else 'index.html' 
 
+        if self.request.uri.find("try.dartlang.org") > 0:
+            self.redirect("https://dartpad.dartlang.org")
+
         parsedURL = urlparse(self.request.uri)
         path = parsedURL.path;
         targetSplits = path.split('/')

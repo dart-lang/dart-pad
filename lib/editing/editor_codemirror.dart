@@ -69,6 +69,9 @@ class CodeMirrorFactory extends EditorFactory {
         'lineWrapping': true,
         'indentUnit': 2,
         'cursorHeight': 0.85,
+        // Increase the number of lines that are rendered above and before
+        // what's visible.
+        'viewportMargin': 100,
         //'gutters': [_gutterId],
         'extraKeys': {
           'Cmd-/': 'toggleComment',
@@ -82,8 +85,9 @@ class CodeMirrorFactory extends EditorFactory {
       };
     }
 
-    return new _CodeMirrorEditor._(this,
-        new CodeMirror.fromElement(element, options: options));
+    CodeMirror editor = new CodeMirror.fromElement(element, options: options);
+    editor.addCommand('goLineLeft', _handleGoLineLeft);
+    return new _CodeMirrorEditor._(this, editor);
   }
 
   bool get supportsCompletionPositioning => true;
@@ -92,6 +96,11 @@ class CodeMirrorFactory extends EditorFactory {
     Hints.registerHintsHelperAsync(mode, (CodeMirror editor, [HintsOptions options]) {
       return _completionHelper(editor, completer, options);
     });
+  }
+
+  // Change the cmd-left behavior to move the cursor to the leftmost non-ws char.
+  void _handleGoLineLeft(CodeMirror editor) {
+    editor.execCommand('goLineLeftSmart');
   }
 
   Future<HintResults> _completionHelper(CodeMirror editor,
