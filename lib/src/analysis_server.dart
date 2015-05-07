@@ -249,7 +249,9 @@ class _Server {
   Future kill() {
     _logStdio('PROCESS FORCIBLY TERMINATED');
     _process.kill();
-    return _process.exitCode;
+    Future<int> exitCode = _process.exitCode;
+    _process = null;
+    return exitCode;
   }
 
   /**
