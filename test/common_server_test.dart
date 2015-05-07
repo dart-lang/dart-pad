@@ -57,7 +57,6 @@ void defineTests() {
   apiServer.addApi(server);
 
   onTestsFinished(() {
-    print('tests all done!');
     server.shutdown();
   });
 
