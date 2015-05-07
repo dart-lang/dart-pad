@@ -553,6 +553,41 @@ class DartservicesApi {
     return _response.then((data) => new FormatResponse.fromJson(data));
   }
 
+  /**
+   * Return the current SDK version for DartPad.
+   *
+   * Request parameters:
+   *
+   * Completes with a [VersionResponse].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<VersionResponse> sdkVersion() {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+
+
+    _url = 'sdkVersion';
+
+    var _response = _requester.request(_url,
+                                       "GET",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new VersionResponse.fromJson(data));
+  }
+
 }
 
 
@@ -949,6 +984,28 @@ class SourceRequest {
     }
     if (source != null) {
       _json["source"] = source;
+    }
+    return _json;
+  }
+}
+
+
+class VersionResponse {
+  core.String version;
+
+
+  VersionResponse();
+
+  VersionResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("version")) {
+      version = _json["version"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (version != null) {
+      _json["version"] = version;
     }
     return _json;
   }

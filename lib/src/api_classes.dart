@@ -237,3 +237,10 @@ class SourceEdit {
     return "$pre$replacement$post";
   }
 }
+
+class VersionResponse {
+  final String version;
+
+  VersionResponse() : version = null;
+  VersionResponse.fromVersion(this.version);
+}

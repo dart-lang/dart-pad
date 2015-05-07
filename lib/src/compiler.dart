@@ -11,6 +11,7 @@ import 'dart:async';
 
 import 'package:compiler_unsupported/compiler.dart' as compiler;
 import 'package:compiler_unsupported/sdk_io.dart' as sdk;
+import 'package:compiler_unsupported/version.dart' as compilerVersion;
 import 'package:logging/logging.dart';
 
 import 'common.dart';
@@ -31,6 +32,9 @@ class Compiler {
   final Pub pub;
 
   Compiler(String sdkPath, [this.pub]) : _sdk = new sdk.DartSdkIO();
+
+  /// The version of the SDK this copy of dart2js is based on.
+  String get version => compilerVersion.version;
 
   Future warmup([bool useHtml = false]) =>
       compile(useHtml ? sampleCodeWeb : sampleCode);

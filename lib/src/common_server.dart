@@ -190,6 +190,12 @@ class CommonServer {
     return _document(source, offset);
   }
 
+  @ApiMethod(
+      method: 'GET',
+      path: 'sdkVersion',
+      description: 'Return the current SDK version for DartPad.')
+  Future<VersionResponse> sdkVersion() => new Future.value(_sdkVersion());
+
   Future<AnalysisResults> _analyze(String source) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
@@ -289,6 +295,8 @@ class CommonServer {
       throw e;
     }
   }
+
+  VersionResponse _sdkVersion() => new VersionResponse.fromVersion(compiler.version);
 
   Future<CompleteResponse> _complete(String source, int offset) async {
     srcRequestRecorder.record("COMPLETE", source, offset);
