@@ -13,6 +13,8 @@ import 'package:services/src/common_server.dart';
 import 'package:rpc/rpc.dart';
 import 'package:unittest/unittest.dart';
 
+import 'src/test_config.dart';
+
 String quickFixesCode =
 r'''
 import 'dart:async';
@@ -44,6 +46,20 @@ void defineTests() {
   MockRequestRecorder recorder;
   MockCounter counter;
 
+  String sdkPath = cli_util.getSdkDir([]).path;
+
+  cache = new MockCache();
+  recorder = new MockRequestRecorder();
+  counter = new MockCounter();
+
+  server = new CommonServer(sdkPath, cache, recorder, counter);
+  apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
+  apiServer.addApi(server);
+
+  onTestsFinished(() {
+    server.shutdown();
+  });
+
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
     var uri = Uri.parse("/api/$path");
@@ -62,18 +78,8 @@ void defineTests() {
 
   group('CommonServer', () {
     setUp(() {
-      String sdkPath = cli_util.getSdkDir([]).path;
-
-      cache = new MockCache();
-      recorder = new MockRequestRecorder();
-      counter = new MockCounter();
-
-      server = new CommonServer(sdkPath, cache, recorder, counter);
-      apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
-      return server.warmup();
+      counter.reset();
     });
-
-    tearDown(() => server.shutdown());
 
     test('analyze', () async {
       var json = {'source': sampleCode};
@@ -253,7 +259,6 @@ class MockCache implements ServerCache {
 }
 
 class MockRequestRecorder implements SourceRequestRecorder {
-
   @override
   Future record(String verb, String source, [int offset]) {
     return new Future.value();
@@ -274,4 +279,6 @@ class MockCounter implements PersistentCounter {
     counter.putIfAbsent(name, () => 0);
     return new Future.value(counter[name]++);
   }
+
+  void reset() => counter.clear();
 }

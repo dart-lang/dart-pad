@@ -12,8 +12,11 @@ import 'common_server_test.dart' as common_server_test;
 import 'common_test.dart' as common_test;
 import 'compiler_test.dart' as compiler_test;
 import 'pub_test.dart' as pub_test;
+import 'src/test_config.dart';
 
 void main() {
+  setupTestConfiguration();
+
   analyzer_test.defineTests();
   analysis_server_test.defineTests();
   api_classes_test.defineTests();
