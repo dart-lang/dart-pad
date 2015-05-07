@@ -98,16 +98,15 @@ class CommonServer {
   @ApiMethod(
       method: 'POST',
       path: 'compile',
-      description: 'Compile the given Dart source code and return the resulting '
-        'JavaScript.')
-  Future<CompileResponse> compile(SourceRequest request) {
-    return _compile(request.source);
-  }
+      description: 'Compile the given Dart source code and return the '
+        'resulting JavaScript.')
+  Future<CompileResponse> compile(CompileRequest request) =>
+      _compile(
+          request.source, useCheckedMode: request.useCheckedMode,
+          returnSourceMap: request.returnSourceMap);
 
   @ApiMethod(method: 'GET', path: 'compile')
-  Future<CompileResponse> compileGet({String source}) {
-    return _compile(source);
-  }
+  Future<CompileResponse> compileGet({String source}) => _compile(source);
 
   @ApiMethod(
       method: 'POST',
@@ -214,10 +213,14 @@ class CommonServer {
     }
   }
 
-  Future<CompileResponse> _compile(String source) async {
+  Future<CompileResponse> _compile(String source,
+      {bool useCheckedMode, bool returnSourceMap}) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
+    if (useCheckedMode == null) useCheckedMode = false;
+    if (returnSourceMap == null) returnSourceMap = false;
+
     srcRequestRecorder.record("COMPILE", source);
     String sourceHash = _hashSource(source);
 
@@ -235,7 +238,8 @@ class CommonServer {
         _logger.info("CACHE: MISS, forced: $suppressCache");
         Stopwatch watch = new Stopwatch()..start();
 
-        return compiler.compile(source).then((CompilationResults results) async {
+        return compiler.compile(source, useCheckedMode: useCheckedMode,
+            returnSourceMap: returnSourceMap).then((CompilationResults results) async {
           if (results.hasOutput) {
             int lineCount = source.split('\n').length;
             int outputSize = (results.getOutput().length + 512) ~/ 1024;
@@ -247,7 +251,8 @@ class CommonServer {
             counter.increment("Compiled-Lines", increment: lineCount);
             String out = results.getOutput();
             return setCache("%%COMPILE:$sourceHash", out).then((_) {
-              return new CompileResponse.fromResponse(out);
+              return new CompileResponse.fromResponse(out,
+                  returnSourceMap ? results.getSourceMap() : null);
             });
           } else {
             List problems = _filterCompileProblems(results.problems);

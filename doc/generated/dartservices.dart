@@ -117,7 +117,7 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future<CompileResponse> compile(SourceRequest request) {
+  async.Future<CompileResponse> compile(CompileRequest request) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -679,8 +679,53 @@ class CandidateFix {
 }
 
 
+class CompileRequest {
+  /** Return the Dart to JS source map; optional (defaults to false). */
+  core.bool returnSourceMap;
+
+  /** The Dart source. */
+  core.String source;
+
+  /**
+   * Compile to code with checked mode checks; optional (defaults to false).
+   */
+  core.bool useCheckedMode;
+
+
+  CompileRequest();
+
+  CompileRequest.fromJson(core.Map _json) {
+    if (_json.containsKey("returnSourceMap")) {
+      returnSourceMap = _json["returnSourceMap"];
+    }
+    if (_json.containsKey("source")) {
+      source = _json["source"];
+    }
+    if (_json.containsKey("useCheckedMode")) {
+      useCheckedMode = _json["useCheckedMode"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (returnSourceMap != null) {
+      _json["returnSourceMap"] = returnSourceMap;
+    }
+    if (source != null) {
+      _json["source"] = source;
+    }
+    if (useCheckedMode != null) {
+      _json["useCheckedMode"] = useCheckedMode;
+    }
+    return _json;
+  }
+}
+
+
 class CompileResponse {
   core.String result;
+
+  core.String sourceMap;
 
 
   CompileResponse();
@@ -689,12 +734,18 @@ class CompileResponse {
     if (_json.containsKey("result")) {
       result = _json["result"];
     }
+    if (_json.containsKey("sourceMap")) {
+      sourceMap = _json["sourceMap"];
+    }
   }
 
   core.Map toJson() {
     var _json = new core.Map();
     if (result != null) {
       _json["result"] = result;
+    }
+    if (sourceMap != null) {
+      _json["sourceMap"] = sourceMap;
     }
     return _json;
   }
