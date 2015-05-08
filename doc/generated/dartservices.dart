@@ -566,7 +566,7 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future<VersionResponse> sdkVersion() {
+  async.Future<VersionResponse> version() {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -576,7 +576,7 @@ class DartservicesApi {
 
 
 
-    _url = 'sdkVersion';
+    _url = 'version';
 
     var _response = _requester.request(_url,
                                        "GET",
@@ -991,21 +991,55 @@ class SourceRequest {
 
 
 class VersionResponse {
-  core.String version;
+  /** The version of App Engine that the server is running on. */
+  core.String appEngineVersion;
+
+  /**
+   * The version of the Dart SDK that the server is running on. This will start
+   * with a semver string, and have a space and other build details appended.
+   */
+  core.String runtimeVersion;
+
+  /**
+   * The version of the Dart SDK that DartPad is compatible with. This will be a
+   * semver string.
+   */
+  core.String sdkVersion;
+
+  /** The version of the dart-services backend. */
+  core.String servicesVersion;
 
 
   VersionResponse();
 
   VersionResponse.fromJson(core.Map _json) {
-    if (_json.containsKey("version")) {
-      version = _json["version"];
+    if (_json.containsKey("appEngineVersion")) {
+      appEngineVersion = _json["appEngineVersion"];
+    }
+    if (_json.containsKey("runtimeVersion")) {
+      runtimeVersion = _json["runtimeVersion"];
+    }
+    if (_json.containsKey("sdkVersion")) {
+      sdkVersion = _json["sdkVersion"];
+    }
+    if (_json.containsKey("servicesVersion")) {
+      servicesVersion = _json["servicesVersion"];
     }
   }
 
   core.Map toJson() {
     var _json = new core.Map();
-    if (version != null) {
-      _json["version"] = version;
+    if (appEngineVersion != null) {
+      _json["appEngineVersion"] = appEngineVersion;
+    }
+    if (runtimeVersion != null) {
+      _json["runtimeVersion"] = runtimeVersion;
+    }
+    if (sdkVersion != null) {
+      _json["sdkVersion"] = sdkVersion;
+    }
+    if (servicesVersion != null) {
+      _json["servicesVersion"] = servicesVersion;
     }
     return _json;
   }

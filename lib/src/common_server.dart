@@ -13,8 +13,10 @@ import 'package:rpc/rpc.dart';
 import 'api_classes.dart';
 import 'analysis_server.dart';
 import 'analyzer.dart';
+import 'common.dart';
 import 'compiler.dart';
 import 'pub.dart';
+import '../version.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
 final Logger _logger = new Logger('common_server');
@@ -26,6 +28,10 @@ abstract class ServerCache {
   Future<String> get(String key);
   Future set(String key, String value, {Duration expiration});
   Future remove(String key);
+}
+
+abstract class ServerContainer {
+  String get version;
 }
 
 /**
@@ -43,6 +49,7 @@ abstract class PersistentCounter {
 
 @ApiClass(name: 'dartservices', version: 'v1')
 class CommonServer {
+  final ServerContainer container;
   final ServerCache cache;
   final SourceRequestRecorder srcRequestRecorder;
   final PersistentCounter counter;
@@ -53,6 +60,7 @@ class CommonServer {
   AnalysisServerWrapper analysisServer;
 
   CommonServer(String sdkPath,
+      this.container,
       this.cache,
       this.srcRequestRecorder,
       this.counter) {
@@ -192,9 +200,9 @@ class CommonServer {
 
   @ApiMethod(
       method: 'GET',
-      path: 'sdkVersion',
+      path: 'version',
       description: 'Return the current SDK version for DartPad.')
-  Future<VersionResponse> sdkVersion() => new Future.value(_sdkVersion());
+  Future<VersionResponse> version() => new Future.value(_version());
 
   Future<AnalysisResults> _analyze(String source) async {
     if (source == null) {
@@ -296,7 +304,11 @@ class CommonServer {
     }
   }
 
-  VersionResponse _sdkVersion() => new VersionResponse.fromVersion(compiler.version);
+  VersionResponse _version() => new VersionResponse.from(
+      sdkVersion: compiler.version,
+      runtimeVersion: vmVersion,
+      servicesVersion: servicesVersion,
+      appEngineVersion: "1.0");
 
   Future<CompleteResponse> _complete(String source, int offset) async {
     srcRequestRecorder.record("COMPLETE", source, offset);

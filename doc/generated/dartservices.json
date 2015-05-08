@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "1921d142520d08e6023eeb4f51f68bfb0535158e",
+ "etag": "12fa0452d0b98182f08537636be1dc655d4a7b13",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -213,8 +213,21 @@
    "id": "VersionResponse",
    "type": "object",
    "properties": {
-    "version": {
-     "type": "string"
+    "sdkVersion": {
+     "type": "string",
+     "description": "The version of the Dart SDK that DartPad is compatible with. This will be a semver string."
+    },
+    "runtimeVersion": {
+     "type": "string",
+     "description": "The version of the Dart SDK that the server is running on. This will start with a semver string, and have a space and other build details appended."
+    },
+    "appEngineVersion": {
+     "type": "string",
+     "description": "The version of App Engine that the server is running on."
+    },
+    "servicesVersion": {
+     "type": "string",
+     "description": "The version of the dart-services backend."
     }
    }
   }
@@ -447,9 +460,9 @@
     "$ref": "DocumentResponse"
    }
   },
-  "sdkVersion": {
-   "id": "CommonServer.sdkVersion",
-   "path": "sdkVersion",
+  "version": {
+   "id": "CommonServer.version",
+   "path": "version",
    "httpMethod": "GET",
    "description": "Return the current SDK version for DartPad.",
    "parameters": {},
