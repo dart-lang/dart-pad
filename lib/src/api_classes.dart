@@ -241,8 +241,8 @@ class SourceEdit {
 /// The response from the `/version` service call.
 class VersionResponse {
   @ApiProperty(
-      description: 'The Dart SDK version that DartPad is compatible with. This '
-        'will be a semver string.')
+      description: 'The Dart SDK version that DartServices is compatible with. '
+        'This will be a semver string.')
   final String sdkVersion;
 
   @ApiProperty(

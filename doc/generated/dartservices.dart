@@ -554,7 +554,7 @@ class DartservicesApi {
   }
 
   /**
-   * Return the current SDK version for DartPad.
+   * Return the current SDK version for DartServices.
    *
    * Request parameters:
    *
@@ -991,22 +991,22 @@ class SourceRequest {
 
 
 class VersionResponse {
-  /** The version of App Engine that the server is running on. */
+  /** The App Engine version. */
   core.String appEngineVersion;
 
   /**
-   * The version of the Dart SDK that the server is running on. This will start
-   * with a semver string, and have a space and other build details appended.
+   * The Dart SDK version that the server is running on. This will start with a
+   * semver string, and have a space and other build details appended.
    */
   core.String runtimeVersion;
 
   /**
-   * The version of the Dart SDK that DartPad is compatible with. This will be a
+   * The Dart SDK version that DartServices is compatible with. This will be a
    * semver string.
    */
   core.String sdkVersion;
 
-  /** The version of the dart-services backend. */
+  /** The dart-services backend version. */
   core.String servicesVersion;
 
 

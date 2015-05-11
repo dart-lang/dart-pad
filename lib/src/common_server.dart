@@ -201,7 +201,7 @@ class CommonServer {
   @ApiMethod(
       method: 'GET',
       path: 'version',
-      description: 'Return the current SDK version for DartPad.')
+      description: 'Return the current SDK version for DartServices.')
   Future<VersionResponse> version() => new Future.value(_version());
 
   Future<AnalysisResults> _analyze(String source) async {
