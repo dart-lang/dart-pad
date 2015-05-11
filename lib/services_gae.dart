@@ -115,13 +115,27 @@ class GaeServer {
 class GaeCache implements ServerCache {
   Memcache get _memcache => ae.context.services.memcache;
 
-  Future<String> get(String key) => _memcache.get(key);
-
-  Future set(String key, String value, {Duration expiration}) {
-    return _memcache.set(key, value, expiration: expiration);
+  Future<String> get(String key) {
+    return new Future.sync(() => _memcache.get(key)).catchError((e) {
+      _logger.fine("Soft-ERR in memcache get ${e}");
+      return new Future.value(null);
+    });
   }
 
-  Future remove(String key) => _memcache.remove(key);
+  Future set(String key, String value, {Duration expiration}) {
+    return new Future.sync(() =>
+      _memcache.set(key, value, expiration: expiration)).catchError((e) {
+        _logger.fine("Soft-ERR in memcache set ${e}");
+        return new Future.value(null);
+    });
+  }
+
+  Future remove(String key) {
+    return new Future.sync(() => _memcache.remove(key)).catchError((e) {
+      _logger.fine("Soft-ERR in memcache remove ${e}");
+      return new Future.value(null);
+    });
+  }
 }
 
 class GaeSourceRequestRecorder implements SourceRequestRecorder {
