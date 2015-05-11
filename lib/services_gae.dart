@@ -140,12 +140,22 @@ class GaeCache implements ServerCache {
 
 class GaeSourceRequestRecorder implements SourceRequestRecorder {
   @override
-  Future record(String verb, String source, [int offset = -99]) {
+  Future record(String verb, String source, [int offset = -99, maxRetries = 3]) {
+    if (maxRetries < 0) {
+      _logger.warning("Soft-ERR: Max retries exceeded in SourceRequest.record");
+      return new Future.value(null);
+    }
+
     int ms = new DateTime.now().millisecondsSinceEpoch;
     GaeSourceRecordBlob record = new GaeSourceRecordBlob.FromData(
         ms, verb, source, offset);
 
-    return db.dbService.commit(inserts: [record]);
+    return new Future.sync(() => db.dbService.commit(inserts: [record]))
+      .catchError((e) {
+        _logger.fine("Soft-ERR: Usage call ");
+        return this.record(verb, source, offset, maxRetries -1);
+      });
+
   }
 }
 
