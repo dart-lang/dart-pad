@@ -42,17 +42,19 @@ void defineTests() {
   CommonServer server;
   ApiServer apiServer;
 
+  MockContainer container;
   MockCache cache;
   MockRequestRecorder recorder;
   MockCounter counter;
 
   String sdkPath = cli_util.getSdkDir([]).path;
 
+  container = new MockContainer();
   cache = new MockCache();
   recorder = new MockRequestRecorder();
   counter = new MockCounter();
 
-  server = new CommonServer(sdkPath, cache, recorder, counter);
+  server = new CommonServer(sdkPath, container, cache, recorder, counter);
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
   apiServer.addApi(server);
 
@@ -68,9 +70,10 @@ void defineTests() {
     return apiServer.handleHttpApiRequest(request);
   }
 
-  Future<HttpApiResponse> _sendGetRequest(String path, String queryParams) {
+  Future<HttpApiResponse> _sendGetRequest(String path, [String queryParams]) {
     assert(apiServer != null);
-    var uri = Uri.parse("/api/$path?$queryParams");
+    var uri = Uri.parse(
+        queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
     var body = new Stream.fromIterable([]);
     var request = new HttpApiRequest('GET', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
@@ -248,7 +251,20 @@ void defineTests() {
       var problemAndFix = fixes[0];
       expect(problemAndFix['problemMessage'], isNotNull);
     });
+
+    test('version', () async {
+      var response = await _sendGetRequest('dartservices/v1/version');
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      print(data);
+      expect(data['sdkVersion'], isNotNull);
+      expect(data['runtimeVersion'], isNotNull);
+    });
   });
+}
+
+class MockContainer implements ServerContainer {
+  String get version => vmVersion;
 }
 
 class MockCache implements ServerCache {

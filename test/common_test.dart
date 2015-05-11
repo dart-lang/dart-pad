@@ -47,4 +47,9 @@ void defineTests() {
     expect(stripMatchingQuotes('""'), '');
     expect(stripMatchingQuotes('"abc"'), 'abc');
   });
+
+  test('vmVersion', () {
+    expect(vmVersion, isNotNull);
+    expect(vmVersion, startsWith('1.'));
+  });
 }

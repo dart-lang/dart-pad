@@ -16,6 +16,7 @@ import 'dart:async';
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:services/src/analysis_server.dart' as analysis_server;
 import 'package:services/src/analyzer.dart' as ana;
+import 'package:services/src/common.dart';
 import 'package:services/src/compiler.dart' as comp;
 
 import 'package:services/src/common_server.dart';
@@ -26,6 +27,7 @@ bool _SERVER_BASED_CALL = false;
 
 CommonServer server;
 ApiServer apiServer;
+MockContainer container;
 MockCache cache;
 MockRequestRecorder recorder;
 MockCounter counter;
@@ -104,10 +106,11 @@ Usage: slow_test path_to_test_collection
  * Init the tools, and warm them up
  */
 setupTools(String sdkPath) async {
+  container = new MockContainer();
   cache = new MockCache();
   recorder = new MockRequestRecorder();
   counter = new MockCounter();
-  server = new CommonServer(sdkPath, cache, recorder, counter);
+  server = new CommonServer(sdkPath, container, cache, recorder, counter);
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
 
   analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
@@ -274,6 +277,10 @@ String mutate(String src) {
   if (i == 0) i = 1;
   String newStr = src.substring(0, i - 1) + s + src.substring(i);
   return newStr;
+}
+
+class MockContainer implements ServerContainer {
+  String get version => vmVersion;
 }
 
 class MockCache implements ServerCache {

@@ -237,3 +237,30 @@ class SourceEdit {
     return "$pre$replacement$post";
   }
 }
+
+/// The response from the `/version` service call.
+class VersionResponse {
+  @ApiProperty(
+      description: 'The Dart SDK version that DartServices is compatible with. '
+        'This will be a semver string.')
+  final String sdkVersion;
+
+  @ApiProperty(
+      description: 'The Dart SDK version that the server is running on. This '
+        'will start with a semver string, and have a space and other build '
+        'details appended.')
+  final String runtimeVersion;
+
+  @ApiProperty(
+      description: 'The App Engine version.')
+  final String appEngineVersion;
+
+  @ApiProperty(
+      description: 'The dart-services backend version.')
+  final String servicesVersion;
+
+  VersionResponse() : sdkVersion = null, runtimeVersion = null,
+      appEngineVersion = null, servicesVersion = null;
+  VersionResponse.from({this.sdkVersion, this.runtimeVersion,
+    this.appEngineVersion, this.servicesVersion});
+}

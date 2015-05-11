@@ -25,6 +25,11 @@ void defineTests() {
       });
     });
 
+    test('version', () {
+      expect(compiler.version, isNotNull);
+      expect(compiler.version, startsWith('1.'));
+    });
+
     test('simple web', () {
       return compiler.compile(sampleCodeWeb).then((CompilationResults result) {
         expect(result.success, true);

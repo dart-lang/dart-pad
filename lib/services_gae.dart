@@ -52,6 +52,7 @@ class GaeServer {
     discoveryEnabled = false;
     commonServer = new CommonServer(
         sdkPath,
+        new GaeServerContainer(),
         new GaeCache(),
         new GaeSourceRequestRecorder(),
         new GaeCounter());
@@ -110,6 +111,10 @@ class GaeServer {
                        ..close();
     }
   }
+}
+
+class GaeServerContainer implements ServerContainer {
+  String get version => ae.context.services.modules.currentVersion;
 }
 
 class GaeCache implements ServerCache {

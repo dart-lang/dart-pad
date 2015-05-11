@@ -4,6 +4,8 @@
 
 library services.common;
 
+import 'dart:io';
+
 final String sampleCode = """
 void main() {
   print("hello");
@@ -63,6 +65,15 @@ class Lines {
     return _starts.length;
   }
 }
+
+/**
+ * Returns the version of the current Dart runtime.
+ *
+ * The returned `String` is formatted as the [semver](http://semver.org) version
+ * string of the current Dart runtime, possibly followed by whitespace and other
+ * version and build details.
+ */
+String get vmVersion => Platform.version;
 
 /// If [str] has leading and trailing quotes, remove them.
 String stripMatchingQuotes(String str) {

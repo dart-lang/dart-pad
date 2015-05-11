@@ -17,6 +17,7 @@ import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:shelf_route/shelf_route.dart';
 
+import 'src/common.dart';
 import 'src/common_server.dart';
 
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
@@ -77,6 +78,7 @@ class EndpointsServer {
                                           String serverUrl) async {
     var commonServer = new CommonServer(
         sdkPath,
+        new _ServerContainer(),
         new _Cache(),
         new _Recorder(),
         new _Counter());
@@ -109,6 +111,7 @@ class EndpointsServer {
     discoveryEnabled = false;
     commonServer = new CommonServer(
         sdkPath,
+        new _ServerContainer(),
         new _Cache(),
         new _Recorder(),
         new _Counter());
@@ -158,6 +161,10 @@ View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
     });
   }
+}
+
+class _ServerContainer implements ServerContainer {
+  String get version => vmVersion;
 }
 
 class _Cache implements ServerCache {
