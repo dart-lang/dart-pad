@@ -13,7 +13,7 @@ import 'package:comid/addon/comment/comment.dart' as comments;
 import 'package:comid/addon/edit/closebrackets.dart';
 import 'package:comid/addon/edit/matchbrackets.dart';
 import 'package:comid/addon/edit/show_hint.dart' as hints;
-import 'package:comid/addon/edit/html_hint.dart' as html;
+import 'package:comid/addon/edit/html_hint.dart' as html_hints;
 import 'package:comid/addon/mode/css.dart';
 import 'package:comid/addon/mode/dart.dart';
 import 'package:comid/addon/mode/htmlmixed.dart';
@@ -25,12 +25,12 @@ import 'editor.dart' as ed show Position;
 
 export 'editor.dart';
 
-final CodeMirrorFactory comidFactory = new CodeMirrorFactory._();
+final ComidFactory comidFactory = new ComidFactory._();
 
 final _gutterId = 'CodeMirror-lint-markers';
 
-class CodeMirrorFactory extends EditorFactory {
-  CodeMirrorFactory._();
+class ComidFactory extends EditorFactory {
+  ComidFactory._();
 
   List<String> get modes => ['dart', 'html', 'css'];
   List<String> get themes => ['zenburn'];
@@ -44,7 +44,7 @@ class CodeMirrorFactory extends EditorFactory {
     HtmlMode.initialize();
     CssMode.initialize();
     hints.initialize();
-    html.initialize();
+    html_hints.initialize();
     comments.initialize();
     initializeBracketMatching();
     initializeBracketClosing();
@@ -188,12 +188,12 @@ class _CodeMirrorEditor extends Editor {
   _CodeMirrorDocument _document;
   bool _lookingForQuickFix = false;
 
-  _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
+  _CodeMirrorEditor._(ComidFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
     _instances.add(this);
   }
 
-  factory _CodeMirrorEditor._fromExisting(CodeMirrorFactory fac, CodeMirror cm) {
+  factory _CodeMirrorEditor._fromExisting(ComidFactory fac, CodeMirror cm) {
     var existing = _instances.firstWhere((ed) => ed.cm == cm);
     if (existing != null) {
       return existing;

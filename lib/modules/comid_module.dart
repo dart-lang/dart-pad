@@ -8,7 +8,7 @@ import '../core/modules.dart';
 import '../core/dependencies.dart';
 import '../editing/editor_comid.dart';
 
-class CodeMirrorModule extends Module {
+class ComidModule extends Module {
   Future init() {
     deps[EditorFactory] = comidFactory;
 
