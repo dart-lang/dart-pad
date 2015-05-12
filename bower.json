@@ -40,6 +40,10 @@
     "core-item": "polymer/core-item#^0.5",
     "core-menu": "polymer/core-menu#^0.5",
     "paper-menu-button": "polymer/paper-menu-button#^0.5",
-    "core-splitter": "polymer/core-splitter#^0.5"
+    "core-splitter": "polymer/core-splitter#^0.5",
+    "webcomponentsjs": "polymer/webcomponentsjs#^0.5"
+  },
+  "resolutions": {
+    "webcomponentsjs": "~0.5.5"
   }
 }
