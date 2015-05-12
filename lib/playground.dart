@@ -24,7 +24,7 @@ import 'documentation.dart';
 import 'editing/editor.dart';
 import 'elements/bind.dart';
 import 'elements/elements.dart';
-import 'modules/codemirror_module.dart';
+import 'modules/comid_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'parameter_popup.dart';
@@ -244,7 +244,7 @@ class Playground implements GistContainer, GistController {
     //modules.register(new MockDartServicesModule());
     modules.register(new DartServicesModule());
     //modules.register(new AceModule());
-    modules.register(new CodeMirrorModule());
+    modules.register(new ComidModule());
 
     return modules.start();
   }
