@@ -115,25 +115,18 @@ class GaeServer {
 class GaeCache implements ServerCache {
   Memcache get _memcache => ae.context.services.memcache;
 
-  Future<String> get(String key) {
-    return new Future.sync(() => _memcache.get(key)).catchError((e) {
-      _logger.fine("Soft-ERR in memcache get ${e}");
-      return new Future.value(null);
-    });
-  }
+  Future<String> get(String key) => _ignoreErrors(_memcache.get(key));
 
-  Future set(String key, String value, {Duration expiration}) {
-    return new Future.sync(() =>
-      _memcache.set(key, value, expiration: expiration)).catchError((e) {
-        _logger.fine("Soft-ERR in memcache set ${e}");
-        return new Future.value(null);
-    });
-  }
+  Future set(String key, String value, {Duration expiration}) =>
+  _ignoreErrors(_memcache.set(key, value, expiration: expiration));
 
-  Future remove(String key) {
-    return new Future.sync(() => _memcache.remove(key)).catchError((e) {
-      _logger.fine("Soft-ERR in memcache remove ${e}");
-      return new Future.value(null);
+  Future remove(String key) => _ignoreErrors(_memcache.remove(key));
+
+  Future _ignoreErrors(Future f) {
+    return f.catchError((error, stackTrace) {
+      _logger.fine(
+          'Soft-ERR memcache API call (error: $error)',
+          error, stackTrace);
     });
   }
 }
@@ -151,11 +144,12 @@ class GaeSourceRequestRecorder implements SourceRequestRecorder {
         ms, verb, source, offset);
 
     return new Future.sync(() => db.dbService.commit(inserts: [record]))
-      .catchError((e) {
-        _logger.fine("Soft-ERR: Usage call ");
+      .catchError((error, stackTrace) {
+      _logger.fine(
+          'Soft-ERR SourceRequestRecorder.record failed (error: $error)',
+            error, stackTrace);
         return this.record(verb, source, offset, maxRetries -1);
       });
-
   }
 }
 
