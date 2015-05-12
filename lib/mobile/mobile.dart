@@ -13,7 +13,7 @@ import 'package:dart_pad/context.dart';
 import 'package:dart_pad/core/dependencies.dart';
 import 'package:dart_pad/core/modules.dart';
 import 'package:dart_pad/editing/editor.dart';
-import 'package:dart_pad/modules/codemirror_module.dart';
+import 'package:dart_pad/modules/comid_module.dart';
 import 'package:dart_pad/modules/dartservices_module.dart';
 import 'package:dart_pad/modules/dart_pad_module.dart';
 import 'package:dart_pad/services/common.dart';
@@ -290,7 +290,7 @@ class PlaygroundMobile {
     //modules.register(new MockCompilerModule());
     modules.register(new DartServicesModule());
     //modules.register(new AceModule());
-    modules.register(new CodeMirrorModule());
+    modules.register(new ComidModule());
 
     return modules.start();
   }
