@@ -5,6 +5,7 @@
 library services.common_server;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -244,10 +245,17 @@ class CommonServer {
     bool suppressCache = trimSrc.endsWith("/** Supress-Memcache **/") ||
         trimSrc.endsWith("/** Suppress-Memcache **/");
 
-    return checkCache("%%COMPILE:$sourceHash").then((String result) {
+    String memCacheKey =
+      "%%COMPILE:v0:useCheckedMode:$useCheckedMode"
+      "returnSourceMap:$returnSourceMap:"
+      "source:$sourceHash";
+
+    return checkCache(memCacheKey).then((String result) {
       if (!suppressCache && result != null) {
         _logger.info("CACHE: Cache hit for compile");
-        return new CompileResponse.fromResponse(result);
+        var resultObj = new JsonDecoder().convert(result);
+        return new CompileResponse.fromResponse(resultObj["output"],
+          returnSourceMap ? resultObj["sourceMap"] : null);
       } else {
         _logger.info("CACHE: MISS, forced: $suppressCache");
         Stopwatch watch = new Stopwatch()..start();
@@ -264,10 +272,14 @@ class CommonServer {
             counter.increment("Compilations");
             counter.increment("Compiled-Lines", increment: lineCount);
             String out = results.getOutput();
-            return setCache("%%COMPILE:$sourceHash", out).then((_) {
-              return new CompileResponse.fromResponse(out,
-                  returnSourceMap ? results.getSourceMap() : null);
+            String sourceMap = returnSourceMap ? results.getSourceMap() : null;
+
+            String cachedResult = new JsonEncoder().convert({
+              "output" : out,
+              "sourceMap" : sourceMap
             });
+            await setCache(memCacheKey, cachedResult);
+            return new CompileResponse.fromResponse(out, sourceMap);
           } else {
             List problems = _filterCompileProblems(results.problems);
             if (problems.isEmpty) problems = results.problems;
