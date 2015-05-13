@@ -86,7 +86,7 @@ class Analyzer {
 
       issues.sort();
 
-      return new Future.value(new AnalysisResults.fromIssues(issues));
+      return new Future.value(new AnalysisResults(issues));
     } catch (e, st) {
       return new Future.error(e, st);
     }

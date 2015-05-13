@@ -86,7 +86,7 @@ class CommonServer {
   @ApiMethod(method: 'GET', path: 'counter')
   Future<CounterResponse> counterGet({String name}) {
     return counter.getTotal(name).then((total) {
-      return new CounterResponse.fromCount(total);
+      return new CounterResponse(total);
     });
   }
 
@@ -254,8 +254,8 @@ class CommonServer {
       if (!suppressCache && result != null) {
         _logger.info("CACHE: Cache hit for compile");
         var resultObj = new JsonDecoder().convert(result);
-        return new CompileResponse.fromResponse(resultObj["output"],
-          returnSourceMap ? resultObj["sourceMap"] : null);
+        return new CompileResponse(resultObj["output"],
+            returnSourceMap ? resultObj["sourceMap"] : null);
       } else {
         _logger.info("CACHE: MISS, forced: $suppressCache");
         Stopwatch watch = new Stopwatch()..start();
@@ -279,7 +279,7 @@ class CommonServer {
               "sourceMap" : sourceMap
             });
             await setCache(memCacheKey, cachedResult);
-            return new CompileResponse.fromResponse(out, sourceMap);
+            return new CompileResponse(out, sourceMap);
           } else {
             List problems = _filterCompileProblems(results.problems);
             if (problems.isEmpty) problems = results.problems;
@@ -310,7 +310,7 @@ class CommonServer {
           _logger.info(
             'PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
           counter.increment("DartDocs");
-          return new DocumentResponse.fromInfo(docInfo);
+          return new DocumentResponse(docInfo);
         }).catchError((e, st) {
           _logger.severe('Error during dartdoc: ${e}\n${st}');
           throw e;
@@ -321,11 +321,11 @@ class CommonServer {
     }
   }
 
-  VersionResponse _version() => new VersionResponse.from(
+  VersionResponse _version() => new VersionResponse(
       sdkVersion: compiler.version,
       runtimeVersion: vmVersion,
       servicesVersion: servicesVersion,
-      appEngineVersion: "1.0");
+      appEngineVersion: container.version);
 
   Future<CompleteResponse> _complete(String source, int offset) async {
     srcRequestRecorder.record("COMPLETE", source, offset);
@@ -348,8 +348,8 @@ class CommonServer {
     AnalysisResults analysisResults = await analyzer.analyze(source);
 
     if (analysisResults.issues.where(
-      (issue) => issue.kind == "error").length > 0) {
-      return new FormatResponse.fromCode(source, offset);
+        (issue) => issue.kind == "error").length > 0) {
+      return new FormatResponse(source, offset);
     }
     return analysisServer.format(source, offset);
   }

@@ -62,7 +62,7 @@ class AnalysisServerWrapper {
         } else {
           return -1 * xRelevance.compareTo(yRelevance);
         }});
-      return new api.CompleteResponse.fromCompletions(
+      return new api.CompleteResponse(
           response['replacementOffset'], response['replacementLength'],
           results);
     });
@@ -70,9 +70,7 @@ class AnalysisServerWrapper {
 
   Future<api.FixesResponse> getFixes(String src, int offset) async {
     var results = _getFixesImpl(src, offset);
-    return results.then((fixes) {
-      return new api.FixesResponse.fromFixes(fixes.fixes);
-    });
+    return results.then((fixes) => new api.FixesResponse(fixes.fixes));
   }
 
   Future<api.FormatResponse> format(String src, int offset) async {
@@ -85,7 +83,7 @@ class AnalysisServerWrapper {
       for (var edit in edits) {
         editSrc = edit.apply(editSrc);
       }
-      return new api.FormatResponse.fromCode(editSrc, editResult.selectionOffset);
+      return new api.FormatResponse(editSrc, editResult.selectionOffset);
     });
   }
 
@@ -151,7 +149,7 @@ class _Server {
   bool isSetup = false;
   bool isSettingUp = false;
 
-  // TODO(lukechurch): Replace this with a notice baord + dispatcher pattern
+  // TODO(lukechurch): Replace this with a notice board + dispatcher pattern
   /// Streams used to handle syncing data with the server
   Stream<bool> analysisComplete;
   StreamController<bool> _onServerStatus;

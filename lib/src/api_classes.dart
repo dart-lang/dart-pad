@@ -13,8 +13,7 @@ import 'package:rpc/rpc.dart';
 class AnalysisResults {
   final List<AnalysisIssue> issues;
 
-  AnalysisResults() : this.fromIssues([]);
-  AnalysisResults.fromIssues(this.issues);
+  AnalysisResults(this.issues);
 }
 
 class AnalysisIssue implements Comparable {
@@ -75,8 +74,7 @@ class CompileResponse {
   final String result;
   final String sourceMap;
 
-  CompileResponse() : this.fromResponse("", null);
-  CompileResponse.fromResponse(this.result, [this.sourceMap = null]);
+  CompileResponse(this.result, [this.sourceMap]);
 }
 
 class CounterRequest {
@@ -87,15 +85,13 @@ class CounterRequest {
 class CounterResponse {
   final int count;
 
-  CounterResponse() : this.fromCount(0);
-  CounterResponse.fromCount(this.count);
+  CounterResponse(this.count);
 }
 
 class DocumentResponse {
   final Map<String, String> info;
 
-  DocumentResponse() : this.fromInfo();
-  DocumentResponse.fromInfo([this.info]);
+  DocumentResponse(this.info);
 }
 
 class CompleteResponse {
@@ -107,9 +103,8 @@ class CompleteResponse {
 
   final List<Map<String, String>> completions;
 
-  CompleteResponse() : this.fromCompletions(0, 0, []);
-  CompleteResponse.fromCompletions(this.replacementOffset,
-    this.replacementLength, List<Map> completions) :
+  CompleteResponse(
+      this.replacementOffset, this.replacementLength, List<Map> completions) :
     this.completions = _convert(completions);
 
   /**
@@ -134,8 +129,7 @@ class CompleteResponse {
 class FixesResponse {
   final List<ProblemAndFixes> fixes;
 
-  FixesResponse() : this.fromFixes([]);
-  FixesResponse.fromFixes(List<AnalysisErrorFixes> analysisErrorFixes) :
+  FixesResponse(List<AnalysisErrorFixes> analysisErrorFixes) :
     this.fixes = _convert(analysisErrorFixes);
 
   /**
@@ -227,8 +221,7 @@ class FormatResponse {
       description: 'The (optional) new offset of the cursor; can be `null`.')
   final int offset;
 
-  FormatResponse() : this.fromCode("");
-  FormatResponse.fromCode(this.newString, [this.offset = 0]);
+  FormatResponse(this.newString, [this.offset = 0]);
 }
 
 /**
@@ -276,8 +269,6 @@ class VersionResponse {
       description: 'The dart-services backend version.')
   final String servicesVersion;
 
-  VersionResponse() : sdkVersion = null, runtimeVersion = null,
-      appEngineVersion = null, servicesVersion = null;
-  VersionResponse.from({this.sdkVersion, this.runtimeVersion,
+  VersionResponse({this.sdkVersion, this.runtimeVersion,
     this.appEngineVersion, this.servicesVersion});
 }
