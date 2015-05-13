@@ -293,25 +293,28 @@ class Playground implements GistContainer, GistController {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    // keys.bind(['ctrl-s'], _handleSave, "Save");
+    keys.bind(['ctrl-s'], _handleSave, "Save", hidden: true);
     keys.bind(['ctrl-enter'], _handleRun, "Run");
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
       docHandler.generateDoc(_docPanel);
     }, "Documentation");
 
-    keys.bind(['alt-enter', 'ctrl-1'], (){
-        editor.showCompletions(onlyShowFixes: true);
+    keys.bind(['alt-enter', 'ctrl-1'], () {
+      editor.showCompletions(onlyShowFixes: true);
     }, "Quick fix");
 
-    keys.bind(['ctrl-space', 'macctrl-space'], (){
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
       editor.showCompletions();
     }, "Completion");
 
-    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], (){
-      if (settings.isShowing) settings.hide();
-      else settings.show();
-    }, "Settings");
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
+      if (settings.isShowing) {
+        settings.hide();
+      } else {
+        settings.show();
+      }
+    }, "Shortcuts");
 
     settings = new KeysDialog(keys.inverseBindings);
 
@@ -551,10 +554,7 @@ class Playground implements GistContainer, GistController {
     });
   }
 
-  // TODO
-  // void _handleSave() {
-  //   ga.sendEvent('main', 'save');
-  // }
+  void _handleSave() => ga.sendEvent('main', 'save');
 
   void _clearOutput() {
     _outputpanel.text = '';

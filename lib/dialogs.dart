@@ -147,7 +147,6 @@ class SharingDialog extends DDialog {
 }
 
 class KeysDialog extends DDialog {
-
   Map<Action, Set<String>> keyMap;
 
   KeysDialog(this.keyMap) : super(title: 'Keyboard shortcuts') {
@@ -157,14 +156,16 @@ class KeysDialog extends DDialog {
 
   DListElement get keyMapToHtml {
     DListElement dl = new DListElement();
-    keyMap.forEach((action, keys) {
-      String string = "";
-      keys.forEach((key) {
-        if (makeKeyPresentable(key) != null) {
-          string += "<span>${makeKeyPresentable(key)}</span>";
-        }
-      });
-      dl.innerHtml += "<dt>$action</dt><dd>${string}</dd>";
+    keyMap.forEach((Action action, Set<String> keys) {
+      if (!action.hidden) {
+        String string = "";
+        keys.forEach((key) {
+          if (makeKeyPresentable(key) != null) {
+            string += "<span>${makeKeyPresentable(key)}</span>";
+          }
+        });
+        dl.innerHtml += "<dt>${action}</dt><dd>${string}</dd>";
+      }
     });
     return dl;
   }
