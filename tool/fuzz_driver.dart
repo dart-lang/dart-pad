@@ -224,8 +224,8 @@ Future<num> testAnalysis(String src, ana.Analyzer analyzer) async {
   Stopwatch sw = new Stopwatch()..start();
 
   lastOffset = null;
-  if (_SERVER_BASED_CALL) await server.analyzeGet(source: src);
-  else await analyzer.analyze(src);
+  if (_SERVER_BASED_CALL) await withTimeOut(server.analyzeGet(source: src));
+  else await withTimeOut(analyzer.analyze(src));
 
   if (_PERF_DUMP) print ("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds;
@@ -236,8 +236,8 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
   Stopwatch sw = new Stopwatch()..start();
 
   lastOffset = null;
-  if (_SERVER_BASED_CALL) await server.compileGet(source: src);
-  else await compiler.compile(src);
+  if (_SERVER_BASED_CALL) await withTimeOut(server.compileGet(source: src));
+  else await withTimeOut(compiler.compile(src));
 
   if (_PERF_DUMP) print ("PERF: COMPILATION: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds;
@@ -251,15 +251,18 @@ Future<num> testDocument(String src, ana.Analyzer analyzer) async {
 
     if (i % 1000 == 0 && i > 0) print("INC: $i docs completed");
     lastOffset = i;
-    if (_SERVER_BASED_CALL) await server.documentGet(source: src, offset: i);
-    else await analyzer.dartdoc(src, i);
-
+    if (_SERVER_BASED_CALL) {
+      await withTimeOut(server.documentGet(source: src, offset: i));
+    } else {
+      await withTimeOut(analyzer.dartdoc(src, i));
+    }
     if (_PERF_DUMP) print ("PERF: DOCUMENT: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
 
-Future<num> testCompletions(String src, analysis_server.AnalysisServerWrapper wrapper) async {
+Future<num> testCompletions(
+    String src, analysis_server.AnalysisServerWrapper wrapper) async {
   lastExecuted = OperationType.Completion;
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
@@ -267,14 +270,15 @@ Future<num> testCompletions(String src, analysis_server.AnalysisServerWrapper wr
 
     if (i % 1000 == 0 && i > 0) print("INC: $i completes");
     lastOffset = i;
-    if (_SERVER_BASED_CALL) await server.completeGet(source: src, offset: i);
-    else await wrapper.complete(src, i);
+    if (_SERVER_BASED_CALL) await withTimeOut(server.completeGet(source: src, offset: i));
+    else await withTimeOut(wrapper.complete(src, i));
     if (_PERF_DUMP) print ("PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
 
-Future<num> testFixes(String src, analysis_server.AnalysisServerWrapper wrapper) async {
+Future<num> testFixes(
+    String src, analysis_server.AnalysisServerWrapper wrapper) async {
   lastExecuted = OperationType.Fixes;
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
@@ -282,9 +286,11 @@ Future<num> testFixes(String src, analysis_server.AnalysisServerWrapper wrapper)
 
     if (i % 1000 == 0 && i > 0) print("INC: $i fixes");
     lastOffset = i;
-    if (_SERVER_BASED_CALL) await server.fixesGet(source: src, offset: i);
-    else await wrapper.getFixes(src, i);
-
+    if (_SERVER_BASED_CALL) {
+      await withTimeOut(server.fixesGet(source: src, offset: i));
+    } else {
+      await withTimeOut(wrapper.getFixes(src, i));
+    }
     if (_PERF_DUMP) print ("PERF: FIXES: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
@@ -295,8 +301,12 @@ Future<num> testFormat(String src) async {
   Stopwatch sw = new Stopwatch()..start();
   int i = 0;
   lastOffset = i;
-  await server.formatGet(source: src, offset: i);
+  await withTimeOut(server.formatGet(source: src, offset: i));
   return sw.elapsedMilliseconds;
+}
+
+Future withTimeOut(Future f) {
+  return f.timeout(new Duration (seconds: 30));
 }
 
 String mutate(String src) {
