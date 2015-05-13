@@ -39,6 +39,6 @@ dev_dependencies:
   codemirror: '>=0.2.0 <0.3.0'
   grinder: '>=0.7.0 <0.8.0'
   http: any
-  unittest: any
+  unittest: ^0.11.0
 executables:
   services: null

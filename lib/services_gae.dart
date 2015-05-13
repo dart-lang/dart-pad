@@ -52,6 +52,7 @@ class GaeServer {
     discoveryEnabled = false;
     commonServer = new CommonServer(
         sdkPath,
+        new GaeServerContainer(),
         new GaeCache(),
         new GaeSourceRequestRecorder(),
         new GaeCounter());
@@ -112,26 +113,48 @@ class GaeServer {
   }
 }
 
+class GaeServerContainer implements ServerContainer {
+  String get version => ae.context.services.modules.currentVersion;
+}
+
 class GaeCache implements ServerCache {
   Memcache get _memcache => ae.context.services.memcache;
 
-  Future<String> get(String key) => _memcache.get(key);
+  Future<String> get(String key) => _ignoreErrors(_memcache.get(key));
 
-  Future set(String key, String value, {Duration expiration}) {
-    return _memcache.set(key, value, expiration: expiration);
+  Future set(String key, String value, {Duration expiration}) =>
+    _ignoreErrors(_memcache.set(key, value, expiration: expiration));
+
+  Future remove(String key) => _ignoreErrors(_memcache.remove(key));
+
+  Future _ignoreErrors(Future f) {
+    return f.catchError((error, stackTrace) {
+      _logger.fine(
+          'Soft-ERR memcache API call (error: $error)',
+          error, stackTrace);
+    });
   }
-
-  Future remove(String key) => _memcache.remove(key);
 }
 
 class GaeSourceRequestRecorder implements SourceRequestRecorder {
   @override
-  Future record(String verb, String source, [int offset = -99]) {
+  Future record(String verb, String source, [int offset = -99, maxRetries = 3]) {
+    if (maxRetries < 0) {
+      _logger.warning("Soft-ERR: Max retries exceeded in SourceRequest.record");
+      return new Future.value(null);
+    }
+
     int ms = new DateTime.now().millisecondsSinceEpoch;
     GaeSourceRecordBlob record = new GaeSourceRecordBlob.FromData(
         ms, verb, source, offset);
 
-    return db.dbService.commit(inserts: [record]);
+    return new Future.sync(() => db.dbService.commit(inserts: [record]))
+      .catchError((error, stackTrace) {
+      _logger.fine(
+          'Soft-ERR SourceRequestRecorder.record failed (error: $error)',
+            error, stackTrace);
+        return this.record(verb, source, offset, maxRetries -1);
+      });
   }
 }
 

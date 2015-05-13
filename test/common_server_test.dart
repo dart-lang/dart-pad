@@ -13,6 +13,8 @@ import 'package:services/src/common_server.dart';
 import 'package:rpc/rpc.dart';
 import 'package:unittest/unittest.dart';
 
+import 'src/test_config.dart';
+
 String quickFixesCode =
 r'''
 import 'dart:async';
@@ -40,9 +42,25 @@ void defineTests() {
   CommonServer server;
   ApiServer apiServer;
 
+  MockContainer container;
   MockCache cache;
   MockRequestRecorder recorder;
   MockCounter counter;
+
+  String sdkPath = cli_util.getSdkDir([]).path;
+
+  container = new MockContainer();
+  cache = new MockCache();
+  recorder = new MockRequestRecorder();
+  counter = new MockCounter();
+
+  server = new CommonServer(sdkPath, container, cache, recorder, counter);
+  apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
+  apiServer.addApi(server);
+
+  onTestsFinished(() {
+    server.shutdown();
+  });
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
@@ -52,9 +70,10 @@ void defineTests() {
     return apiServer.handleHttpApiRequest(request);
   }
 
-  Future<HttpApiResponse> _sendGetRequest(String path, String queryParams) {
+  Future<HttpApiResponse> _sendGetRequest(String path, [String queryParams]) {
     assert(apiServer != null);
-    var uri = Uri.parse("/api/$path?$queryParams");
+    var uri = Uri.parse(
+        queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
     var body = new Stream.fromIterable([]);
     var request = new HttpApiRequest('GET', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
@@ -62,18 +81,8 @@ void defineTests() {
 
   group('CommonServer', () {
     setUp(() {
-      String sdkPath = cli_util.getSdkDir([]).path;
-
-      cache = new MockCache();
-      recorder = new MockRequestRecorder();
-      counter = new MockCounter();
-
-      server = new CommonServer(sdkPath, cache, recorder, counter);
-      apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
-      return server.warmup();
+      counter.reset();
     });
-
-    tearDown(() => server.shutdown());
 
     test('analyze', () async {
       var json = {'source': sampleCode};
@@ -242,7 +251,20 @@ void defineTests() {
       var problemAndFix = fixes[0];
       expect(problemAndFix['problemMessage'], isNotNull);
     });
+
+    test('version', () async {
+      var response = await _sendGetRequest('dartservices/v1/version');
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      print(data);
+      expect(data['sdkVersion'], isNotNull);
+      expect(data['runtimeVersion'], isNotNull);
+    });
   });
+}
+
+class MockContainer implements ServerContainer {
+  String get version => vmVersion;
 }
 
 class MockCache implements ServerCache {
@@ -253,7 +275,6 @@ class MockCache implements ServerCache {
 }
 
 class MockRequestRecorder implements SourceRequestRecorder {
-
   @override
   Future record(String verb, String source, [int offset]) {
     return new Future.value();
@@ -274,4 +295,6 @@ class MockCounter implements PersistentCounter {
     counter.putIfAbsent(name, () => 0);
     return new Future.value(counter[name]++);
   }
+
+  void reset() => counter.clear();
 }
