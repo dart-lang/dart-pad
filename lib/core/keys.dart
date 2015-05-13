@@ -28,8 +28,10 @@ class Keys {
    * format. Some examples of this format:
    *     `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
    */
-  void bind(List<String> keys, Function onInvoke, String description) {
-    keys.forEach((key) => _bindings[key] = new Action(onInvoke, description));
+  void bind(List<String> keys, Function onInvoke, String description,
+      {bool hidden: false}) {
+    keys.forEach(
+        (key) => _bindings[key] = new Action(onInvoke, description, hidden: hidden));
   }
 
   void dispose() {
@@ -80,8 +82,9 @@ class Keys {
 class Action {
   final Function function;
   final String description;
+  final bool hidden;
 
-  Action(this.function, this.description);
+  Action(this.function, this.description, {this.hidden: false});
 
   call() => function();
 
