@@ -414,94 +414,93 @@ class _Server {
   }
 
   Future<ServerGetVersionResult> sendServerGetVersion() {
-      return send("server.getVersion", null).then((result) {
-        ResponseDecoder decoder = new ResponseDecoder(null);
-        return new ServerGetVersionResult.fromJson(decoder, 'result', result);
-      });
-    }
+    return send("server.getVersion", null).then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new ServerGetVersionResult.fromJson(decoder, 'result', result);
+    });
+  }
 
-    Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
-        int offset) {
+  Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
+      int offset) {
 
-      // TODO(lukechurch): Refactor to allow multiple files
-      String file = psuedoFilePath;
+    // TODO(lukechurch): Refactor to allow multiple files
+    String file = psuedoFilePath;
 
-      var params = new CompletionGetSuggestionsParams(file, offset).toJson();
-      return send("completion.getSuggestions", params).then((result) {
-        ResponseDecoder decoder = new ResponseDecoder(null);
-        return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
-      });
-    }
+    var params = new CompletionGetSuggestionsParams(file, offset).toJson();
+    return send("completion.getSuggestions", params).then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
+    });
+  }
 
-    Future<EditGetFixesResult> sendGetFixes(int offset) {
-      String file = psuedoFilePath;
-      var params = new EditGetFixesParams(file, offset).toJson();
-      return send("edit.getFixes", params).then((result) {
-        ResponseDecoder decoder = new ResponseDecoder(null);
-        return new EditGetFixesResult.fromJson(decoder, 'result', result);
-      });
-    }
+  Future<EditGetFixesResult> sendGetFixes(int offset) {
+    String file = psuedoFilePath;
+    var params = new EditGetFixesParams(file, offset).toJson();
+    return send("edit.getFixes", params).then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditGetFixesResult.fromJson(decoder, 'result', result);
+    });
+  }
 
-    Future<EditFormatResult> sendFormat(int selectionOffset,
-      [int selectionLength = 0]) {
+  Future<EditFormatResult> sendFormat(int selectionOffset,
+    [int selectionLength = 0]) {
 
-      String file = psuedoFilePath;
-      var params = new EditFormatParams(
-          file, selectionOffset, selectionLength).toJson();
+    String file = psuedoFilePath;
+    var params = new EditFormatParams(
+        file, selectionOffset, selectionLength).toJson();
 
-      return send("edit.format", params).then((result) {
-        ResponseDecoder decoder = new ResponseDecoder(null);
-        return new EditFormatResult.fromJson(decoder, 'result', result);
-      });
+    return send("edit.format", params).then((result) {
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new EditFormatResult.fromJson(decoder, 'result', result);
+    });
+  }
 
-    }
+  Future<AnalysisUpdateContentResult> sendAddOverlay(String contents) {
 
-    Future<AnalysisUpdateContentResult> sendAddOverlay(String contents) {
+    // TODO(lukechurch): Refactor to allow multiple files
+    String file = psuedoFilePath;
 
-      // TODO(lukechurch): Refactor to allow multiple files
-      String file = psuedoFilePath;
+    var overlay = new AddContentOverlay(contents);
+    var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
+    _logger.fine("About to send analysis.updateContent");
+    return send("analysis.updateContent", params).then((result) {
+      _logger.fine("analysis.updateContent -> then");
 
-      var overlay = new AddContentOverlay(contents);
-      var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
-      _logger.fine("About to send analysis.updateContent");
-      return send("analysis.updateContent", params).then((result) {
-        _logger.fine("analysis.updateContent -> then");
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
+    });
+  }
 
-        ResponseDecoder decoder = new ResponseDecoder(null);
-        return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
-      });
-    }
+  Future<AnalysisUpdateContentResult> sendRemoveOverlay() {
 
-    Future<AnalysisUpdateContentResult> sendRemoveOverlay() {
+    // TODO(lukechurch): Refactor to allow multiple files
+    String file = psuedoFilePath;
 
-      // TODO(lukechurch): Refactor to allow multiple files
-      String file = psuedoFilePath;
+    var overlay = new RemoveContentOverlay();
+    var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
+    _logger.fine("About to send analysis.updateContent - remove overlay");
+    return send("analysis.updateContent", params).then((result) {
+      _logger.fine("analysis.updateContent -> then");
 
-      var overlay = new RemoveContentOverlay();
-      var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
-      _logger.fine("About to send analysis.updateContent - remove overlay");
-      return send("analysis.updateContent", params).then((result) {
-        _logger.fine("analysis.updateContent -> then");
+      ResponseDecoder decoder = new ResponseDecoder(null);
+      return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
+    });
+  }
 
-        ResponseDecoder decoder = new ResponseDecoder(null);
-        return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
-      });
-    }
+  Future sendServerShutdown() {
+    return send("server.shutdown", null).then((result) {
+      return null;
+    });
+  }
 
-    Future sendServerShutdown() {
-      return send("server.shutdown", null).then((result) {
-        return null;
-      });
-    }
+  Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded,
+      {Map<String, String> packageRoots}) {
+    var params = new AnalysisSetAnalysisRootsParams(
+        included, excluded, packageRoots: packageRoots).toJson();
+    return send("analysis.setAnalysisRoots", params);
+  }
 
-    Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded,
-        {Map<String, String> packageRoots}) {
-      var params = new AnalysisSetAnalysisRootsParams(
-          included, excluded, packageRoots: packageRoots).toJson();
-      return send("analysis.setAnalysisRoots", params);
-    }
-
-    dispatchNotification(String event, params) async {
+  Future dispatchNotification(String event, params) async {
     if (event == "server.error") {
       // Something has gone wrong with the analysis server. This request is going
       // to fail, but we need to restart the server to be able to process

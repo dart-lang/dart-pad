@@ -334,10 +334,10 @@ class CommonServer {
   }
 
   Future<FixesResponse> _fixes(String source, int offset) async {
-      srcRequestRecorder.record("FIX", source, offset);
-      counter.increment("Fixes");
-      return analysisServer.getFixes(source, offset);
-    }
+    srcRequestRecorder.record("FIX", source, offset);
+    counter.increment("Fixes");
+    return analysisServer.getFixes(source, offset);
+  }
 
   Future<FormatResponse> _format(String source, {int offset}) async {
     if (offset == null) offset = 0;
