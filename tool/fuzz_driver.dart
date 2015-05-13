@@ -149,7 +149,6 @@ testPath(String path,
     var averageFixesTime = 0;
     var averageFormatTime = 0;
 
-
     try {
       switch (commandToRun.toLowerCase()) {
         case "all":

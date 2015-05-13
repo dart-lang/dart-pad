@@ -15,6 +15,7 @@ void main() {
   setupComplete();
   setupDocument();
   setupFixes();
+  setupVersion();
 }
 
 void setupAnalyze() {
@@ -24,7 +25,7 @@ void setupAnalyze() {
   Element output = querySelector('#analyzeSection .output');
   ButtonElement button = querySelector('#analyzeSection button');
   button.onClick.listen((e) {
-    invoke(api, editor.getDoc().getValue(), output);
+    invokePOST(api, editor.getDoc().getValue(), output);
   });
 }
 
@@ -35,7 +36,7 @@ void setupCompile() {
   Element output = querySelector('#compileSection .output');
   ButtonElement button = querySelector('#compileSection button');
   button.onClick.listen((e) {
-    invoke(api, editor.getDoc().getValue(), output);
+    invokePOST(api, editor.getDoc().getValue(), output);
   });
 }
 
@@ -47,7 +48,7 @@ void setupComplete() {
   Element offsetElement = querySelector('#completeSection .offset');
   ButtonElement button = querySelector('#completeSection button');
   button.onClick.listen((e) {
-    invoke(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
+    invokePOST(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
   });
   offsetElement.text = 'offset ${_getOffset(editor)}';
 
@@ -64,7 +65,7 @@ void setupDocument() {
   Element offsetElement = querySelector('#documentSection .offset');
   ButtonElement button = querySelector('#documentSection button');
   button.onClick.listen((e) {
-    invoke(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
+    invokePOST(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
   });
   offsetElement.text = 'offset ${_getOffset(editor)}';
 
@@ -81,12 +82,22 @@ void setupFixes() {
   Element offsetElement = querySelector('#fixesSection .offset');
   ButtonElement button = querySelector('#fixesSection button');
   button.onClick.listen((e) {
-    invoke(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
+    invokePOST(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
   });
   offsetElement.text = 'offset ${_getOffset(editor)}';
 
   editor.onCursorActivity.listen((_) {
     offsetElement.text = 'offset ${_getOffset(editor)}';
+  });
+}
+
+void setupVersion() {
+  String api = querySelector('#versionSection h3').text;
+
+  Element output = querySelector('#versionSection .output');
+  ButtonElement button = querySelector('#versionSection button');
+  button.onClick.listen((e) {
+    invokeGET(api, output);
   });
 }
 
@@ -106,7 +117,7 @@ CodeMirror createEditor(Element element) {
   return editor;
 }
 
-void invoke(String api, String source, Element output, {int offset}) {
+void invokePOST(String api, String source, Element output, {int offset}) {
   Stopwatch timer = new Stopwatch()..start();
   String url = '${_uriBase}${api}';
   output.text = '';
@@ -119,6 +130,31 @@ void invoke(String api, String source, Element output, {int offset}) {
 
   HttpRequest.request(url, method: 'POST', sendData: data,
                       requestHeaders: headers).then((HttpRequest r) {
+    String response =
+        '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
+        '${_printHeaders(r.responseHeaders)}\n\n'
+        '${r.responseText}';
+    output.text = response;
+  }).catchError((e, st) {
+    if (e is Event && e.target is HttpRequest) {
+      HttpRequest r = e.target;
+      String response =
+          '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
+          '${_printHeaders(r.responseHeaders)}\n\n'
+          '${r.responseText}';
+      output.text = response;
+    } else {
+      output.text = '${e}\n${st}';
+    }
+  });
+}
+
+void invokeGET(String api, Element output) {
+  Stopwatch timer = new Stopwatch()..start();
+  String url = '${_uriBase}${api}';
+  output.text = '';
+
+  HttpRequest.request(url, method: 'GET').then((HttpRequest r) {
     String response =
         '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
         '${_printHeaders(r.responseHeaders)}\n\n'
