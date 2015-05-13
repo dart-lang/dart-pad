@@ -104,6 +104,27 @@ class PlaygroundMobile {
     _showGist(gistId, run: page == 'run');
   }
 
+  void switchToEditPage() {
+    if (_pages.selected == '0') return;
+
+    executionService.tearDown();
+
+    // TODO: Use the router here instead.
+    _pages.selected = '0';
+    //window.history.back();
+  }
+
+  void switchToExecPage() {
+    if (_pages.selected == '1') return;
+
+    _clearErrors();
+    _clearOutput();
+
+    // TODO: Use the router here instead.
+    _pages.selected = '1';
+    //_router.go('gist', {'gist': currentGistId()});
+  }
+
   void _createUi() {
     _pages = new CoreAnimatedPages()
       ..selected = '0'
@@ -123,7 +144,6 @@ class PlaygroundMobile {
       ..duration = 100000;
     document.body.children.add(_errorsToast.element);
 
-    // TODO: use a dark theme?
     _messageDialog = new PaperActionDialog();
     PaperButton closeButton = new PaperButton(text: 'Close');
     _messageDialog.makeAffirmative(closeButton);
@@ -166,6 +186,12 @@ class PlaygroundMobile {
     overflowMenuButton.add(new PaperIconButton(icon: 'more-vert'));
     PaperDropdown dropdown = new PaperDropdown()..halign = 'right';
     CoreMenu overflowMenu = new CoreMenu();
+    PaperItem dartlangItem = new PaperItem(text: 'dartlang.org');
+    overflowMenu.add(dartlangItem);
+    dartlangItem.onClick.listen((event) {
+      event.preventDefault();
+      window.open("https://www.dartlang.org/", "_blank");
+    });
     overflowMenu.add(new PaperItem(text: 'About')..onTap.listen((event) {
       event.preventDefault();
       _showAboutDialog();
@@ -216,11 +242,7 @@ class PlaygroundMobile {
     PaperFab backButton = new PaperFab(icon: 'arrow-back')
       ..clazz('back-button')
       ..mini = true;
-    backButton.onTap.listen((_) {
-      // TODO:
-      pages.selected = '0';
-      //window.history.back();
-    });
+    backButton.onTap.listen((_) => switchToEditPage());
     toolbar.add(backButton);
     toolbar.add(CoreElement.span()..clazz('sample-titles')..flex());
     PaperToggleButton toggleConsoleButton = new PaperToggleButton()..checked = true;
@@ -361,13 +383,7 @@ class PlaygroundMobile {
     var input = new SourceRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
-      _clearErrors();
-      _clearOutput();
-
-      // TODO: Use the router here instead -
-      _pages.selected = '1';
-      //_router.go('gist', {'gist': currentGistId()});
-
+      switchToExecPage();
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
@@ -388,14 +404,9 @@ class PlaygroundMobile {
     _runProgress.hidden(false);
 
     var input = new SourceRequest()..source = context.dartSource;
-    dartServices.compile(input).timeout(longServiceCallTimeout)
-    .then((CompileResponse response) {
+    dartServices.compile(input).timeout(longServiceCallTimeout).then(
+        (CompileResponse response) {
       _clearOutput();
-
-      // TODO: Use the router here instead -
-      _pages.selected = '1';
-      //_router.go('gist', {'gist': currentGistId()});
-
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
@@ -567,8 +578,6 @@ class PlaygroundMobile {
     });
   }
 }
-
-// TODO: create pages (dart / html / css)
 
 class PlaygroundContext extends Context {
   final Editor editor;
