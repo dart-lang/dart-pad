@@ -131,7 +131,13 @@ class Playground implements GistContainer, GistController {
   }
 
   void showHome(RouteEnterEvent event) {
+    // Don't auto-run if we're re-loading some unsaved edits; the gist might
+    // have halting issues (#384).
+    bool loadedFromSaved = false;
+
     if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
+      loadedFromSaved = true;
+
       Gist blankGist = new Gist();
       editableGist.setBackingGist(blankGist);
 
@@ -150,7 +156,7 @@ class Playground implements GistContainer, GistController {
     Timer.run(() {
       _performAnalysis().then((bool result) {
         // Only auto-run if the static analysis comes back clean.
-        if (result) _handleRun();
+        if (result && !loadedFromSaved) _handleRun();
       }).catchError((e) => null);
     });
   }
@@ -202,6 +208,10 @@ class Playground implements GistContainer, GistController {
   }
 
   void _showGist(String gistId) {
+    // Don't auto-run if we're re-loading some unsaved edits; the gist might
+    // have halting issues (#384).
+    bool loadedFromSaved = false;
+
     // When sharing, we have to pipe the returned (created) gist through the
     // routing library to update the url properly.
     if (_overrideNextRouteGist != null && _overrideNextRouteGist.id == gistId) {
@@ -216,6 +226,8 @@ class Playground implements GistContainer, GistController {
       editableGist.setBackingGist(gist);
 
       if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
+        loadedFromSaved = true;
+
         Gist storedGist = _gistStorage.getStoredGist();
         editableGist.description = storedGist.description;
         for (GistFile file in storedGist.files) {
@@ -229,7 +241,7 @@ class Playground implements GistContainer, GistController {
       Timer.run(() {
         _performAnalysis().then((bool result) {
           // Only auto-run if the static analysis comes back clean.
-          if (result) _handleRun();
+          if (result && !loadedFromSaved) _handleRun();
         }).catchError((e) => null);
       });
     }).catchError((e) {
@@ -352,7 +364,11 @@ class Playground implements GistContainer, GistController {
     // Listen for changes that would effect the documentation panel.
     editor.onMouseDown.listen((e) {
       // Delay to give codemirror time to process the mouse event.
-      Timer.run(() => docHandler.generateDoc(_docPanel));
+      Timer.run(() {
+        if (!_context.cursorPositionIsWhitespace()) {
+          docHandler.generateDoc(_docPanel);
+        }
+      });
     });
     context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
 
@@ -765,6 +781,16 @@ class PlaygroundContext extends Context {
         controller.add(null);
       });
     });
+  }
+
+  /// Return true if the current cursor position is in a whitespace char.
+  bool cursorPositionIsWhitespace() {
+    Document document = editor.document;
+    String str = document.value;
+    int index = document.indexFromPos(document.cursor);
+    if (index < 0 || index >= str.length) return false;
+    String char = str[index];
+    return char != char.trim();
   }
 }
 
