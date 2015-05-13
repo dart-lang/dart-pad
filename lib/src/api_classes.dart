@@ -55,11 +55,28 @@ class SourceRequest {
   int offset;
 }
 
+class CompileRequest {
+  @ApiProperty(
+      required: true,
+      description: 'The Dart source.')
+  String source;
+
+  @ApiProperty(
+      description: 'Compile to code with checked mode checks; optional '
+        '(defaults to false).')
+  bool useCheckedMode;
+
+  @ApiProperty(
+      description: 'Return the Dart to JS source map; optional (defaults to false).')
+  bool returnSourceMap;
+}
+
 class CompileResponse {
   final String result;
+  final String sourceMap;
 
-  CompileResponse() : this.fromResponse("");
-  CompileResponse.fromResponse(this.result);
+  CompileResponse() : this.fromResponse("", null);
+  CompileResponse.fromResponse(this.result, [this.sourceMap = null]);
 }
 
 class CounterRequest {

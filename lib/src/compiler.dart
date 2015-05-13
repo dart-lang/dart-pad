@@ -40,7 +40,8 @@ class Compiler {
       compile(useHtml ? sampleCodeWeb : sampleCode);
 
   /// Compile the given string and return the resulting [CompilationResults].
-  Future<CompilationResults> compile(String input) async {
+  Future<CompilationResults> compile(String input,
+      {bool useCheckedMode, bool returnSourceMap}) async {
     PubHelper pubHelper = null;
 
     if (pub != null) {
@@ -51,6 +52,16 @@ class Compiler {
     Lines lines = new Lines(input);
     CompilationResults result = new CompilationResults(lines);
 
+    List args = [];
+
+    if (useCheckedMode != null && useCheckedMode) {
+      args.add('--checked');
+    }
+
+    if (returnSourceMap == null || !returnSourceMap) {
+      args.add('--no-source-maps');
+    }
+
     // --incremental-support, --disable-type-inference
     return compiler.compile(
         provider.getInitialUri(),
@@ -58,8 +69,8 @@ class Compiler {
         new Uri(scheme: 'package', path: '/'),
         provider.inputProvider,
         result._diagnosticHandler,
-        ['--no-source-maps'],
-        result._outputProvider).then((_) {
+        args,
+        result._getOutputProvider).then((_) {
       result._problems.sort();
       return result;
     });
@@ -68,15 +79,18 @@ class Compiler {
 
 /// The result of a dart2js compile.
 class CompilationResults {
-  final StringBuffer _output = new StringBuffer();
+  final StringBuffer _compiledJS = new StringBuffer();
+  final StringBuffer _sourceMap = new StringBuffer();
   final List<CompilationProblem> _problems = [];
   final Lines _lines;
 
   CompilationResults(this._lines);
 
-  bool get hasOutput => _output.isNotEmpty;
+  bool get hasOutput => _compiledJS.isNotEmpty;
 
-  String getOutput() => _output.toString();
+  String getOutput() => _compiledJS.toString();
+
+  String getSourceMap() => _sourceMap.toString();
 
   List<CompilationProblem> get problems => _problems;
 
@@ -96,8 +110,10 @@ class CompilationResults {
     }
   }
 
-  EventSink<String> _outputProvider(String name, String extension) {
-    return extension == 'js' ? new _StringSink(_output) : new _NullSink();
+  EventSink<String> _getOutputProvider(String name, String extension) {
+    if (extension == 'js') return new _StringSink(_compiledJS);
+    if (extension == 'js.map') return new _StringSink(_sourceMap);
+    return new _NullSink();
   }
 }
 

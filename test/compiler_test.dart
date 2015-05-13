@@ -22,13 +22,49 @@ void defineTests() {
     test('simple', () {
       return compiler.compile(sampleCode).then((CompilationResults result) {
         expect(result.success, true);
+        expect(result.getOutput(), isNotEmpty);
+        expect(result.getSourceMap(), isEmpty);
+      });
+    });
+    
+    test('sourcemap', () {
+      return compiler.compile(sampleCode, returnSourceMap: true).then(
+          (CompilationResults result) {
+        expect(result.success, true);
+        expect(result.getOutput(), isNotEmpty);
+        expect(result.getSourceMap(), isNotEmpty);
+      });
+    });
+    
+    test('version', () {
+      return compiler.compile(sampleCode, returnSourceMap: true).then(
+          (CompilationResults result) {
+        expect(compiler.version, isNotNull);
+        expect(compiler.version, startsWith('1.'));
+        expect(result.getSourceMap(), isNotEmpty);
       });
     });
 
-    test('version', () {
-      expect(compiler.version, isNotNull);
-      expect(compiler.version, startsWith('1.'));
-    });
+
+    // TODO: How to get different source when compiling with --checked?
+//    test('checked', () {
+//      final String sampleCodeChecked = '''
+//main() { foo(1); }
+//void foo(String bar) { print(bar); }
+//''';
+//
+//      String normal;
+//      String checked;
+//
+//      return compiler.compile(sampleCodeChecked).then((result) {
+//        normal = result.getOutput();
+//        return compiler.compile(sampleCodeChecked, useCheckedMode: true).then((result) {
+//          checked = result.getOutput();
+//
+//          expect(true, checked != normal);
+//        });
+//      });
+//    });
 
     test('simple web', () {
       return compiler.compile(sampleCodeWeb).then((CompilationResults result) {

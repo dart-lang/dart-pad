@@ -5,6 +5,7 @@
 library services.common_server;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -106,16 +107,15 @@ class CommonServer {
   @ApiMethod(
       method: 'POST',
       path: 'compile',
-      description: 'Compile the given Dart source code and return the resulting '
-        'JavaScript.')
-  Future<CompileResponse> compile(SourceRequest request) {
-    return _compile(request.source);
-  }
+      description: 'Compile the given Dart source code and return the '
+        'resulting JavaScript.')
+  Future<CompileResponse> compile(CompileRequest request) =>
+      _compile(
+          request.source, useCheckedMode: request.useCheckedMode,
+          returnSourceMap: request.returnSourceMap);
 
   @ApiMethod(method: 'GET', path: 'compile')
-  Future<CompileResponse> compileGet({String source}) {
-    return _compile(source);
-  }
+  Future<CompileResponse> compileGet({String source}) => _compile(source);
 
   @ApiMethod(
       method: 'POST',
@@ -228,10 +228,14 @@ class CommonServer {
     }
   }
 
-  Future<CompileResponse> _compile(String source) async {
+  Future<CompileResponse> _compile(String source,
+      {bool useCheckedMode, bool returnSourceMap}) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
+    if (useCheckedMode == null) useCheckedMode = false;
+    if (returnSourceMap == null) returnSourceMap = false;
+
     srcRequestRecorder.record("COMPILE", source);
     String sourceHash = _hashSource(source);
 
@@ -241,15 +245,23 @@ class CommonServer {
     bool suppressCache = trimSrc.endsWith("/** Supress-Memcache **/") ||
         trimSrc.endsWith("/** Suppress-Memcache **/");
 
-    return checkCache("%%COMPILE:$sourceHash").then((String result) {
+    String memCacheKey =
+      "%%COMPILE:v0:useCheckedMode:$useCheckedMode"
+      "returnSourceMap:$returnSourceMap:"
+      "source:$sourceHash";
+
+    return checkCache(memCacheKey).then((String result) {
       if (!suppressCache && result != null) {
         _logger.info("CACHE: Cache hit for compile");
-        return new CompileResponse.fromResponse(result);
+        var resultObj = new JsonDecoder().convert(result);
+        return new CompileResponse.fromResponse(resultObj["output"],
+          returnSourceMap ? resultObj["sourceMap"] : null);
       } else {
         _logger.info("CACHE: MISS, forced: $suppressCache");
         Stopwatch watch = new Stopwatch()..start();
 
-        return compiler.compile(source).then((CompilationResults results) async {
+        return compiler.compile(source, useCheckedMode: useCheckedMode,
+            returnSourceMap: returnSourceMap).then((CompilationResults results) async {
           if (results.hasOutput) {
             int lineCount = source.split('\n').length;
             int outputSize = (results.getOutput().length + 512) ~/ 1024;
@@ -260,9 +272,14 @@ class CommonServer {
             counter.increment("Compilations");
             counter.increment("Compiled-Lines", increment: lineCount);
             String out = results.getOutput();
-            return setCache("%%COMPILE:$sourceHash", out).then((_) {
-              return new CompileResponse.fromResponse(out);
+            String sourceMap = returnSourceMap ? results.getSourceMap() : null;
+
+            String cachedResult = new JsonEncoder().convert({
+              "output" : out,
+              "sourceMap" : sourceMap
             });
+            await setCache(memCacheKey, cachedResult);
+            return new CompileResponse.fromResponse(out, sourceMap);
           } else {
             List problems = _filterCompileProblems(results.problems);
             if (problems.isEmpty) problems = results.problems;
