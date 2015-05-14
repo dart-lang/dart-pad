@@ -72,40 +72,7 @@ class Analyzer {
       analyze(useHtml ? sampleCodeWeb : sampleCode);
 
   Future<AnalysisResults> analyze(String source) {
-    try {
-      StringSource _source = new StringSource(source, 'main.dart');
-
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.addedSource(_source);
-      _context.applyChanges(changeSet);
-
-      List<AnalysisErrorInfo> errorInfos = [];
-
-      _context.computeErrors(_source);
-      errorInfos.add(_context.getErrors(_source));
-
-      List<_Error> errors = errorInfos
-        .expand((AnalysisErrorInfo info) {
-          return info.errors.map((error) => new _Error(error, info.lineInfo));
-        })
-        .where((_Error error) => error.errorType != ErrorType.TODO)
-        .toList();
-
-      List<AnalysisIssue> issues = errors.map((_Error error) {
-        return new AnalysisIssue.fromIssue(
-            error.severityName, error.line, error.message,
-            location: error.location,
-            charStart: error.offset, charLength: error.length,
-            hasFixes: error.probablyHasFix);
-      }).toList();
-
-      issues.sort();
-
-      return new Future.value(new AnalysisResults(issues));
-    } catch (e, st) {
-      _reset();
-      return new Future.error(e, st);
-    }
+    return analyzeMulti({"main.dart" : source});
   }
 
   Future<AnalysisResults> analyzeMulti(Map<String, String> sources) {
@@ -128,14 +95,14 @@ class Analyzer {
       });
 
       List<_Error> errors = errorInfos
-      .expand((AnalysisErrorInfo info) {
+        .expand((AnalysisErrorInfo info) {
         return info.errors.map((error) => new _Error(error, info.lineInfo));
       })
       .where((_Error error) => error.errorType != ErrorType.TODO)
       .toList();
 
       List<AnalysisIssue> issues = errors.map((_Error error) {
-        return new AnalysisIssue.byIssue(
+        return new AnalysisIssue.fromIssue(
             error.severityName, error.line, error.message,
             location: error.location,
             charStart: error.offset, charLength: error.length,
@@ -151,7 +118,7 @@ class Analyzer {
       _resolver.clear();
       _context.applyChanges(changeSet);
 
-      return new Future.value(new AnalysisResults.byIssues(issues));
+      return new Future.value(new AnalysisResults(issues));
     } catch (e, st) {
       _reset();
       return new Future.error(e, st);
