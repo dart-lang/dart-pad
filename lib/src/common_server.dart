@@ -113,12 +113,6 @@ class CommonServer {
     return _analyze(source);
   }
 
-  @ApiMethod(method: 'GET', path: 'analyzeMulti')
-  Future<AnalysisResults> analyzeMultiGet({Map<String, String> sources}) {
-    return _analyzeMulti(sources);
-  }
-
-
   @ApiMethod(
       method: 'POST',
       path: 'compile',

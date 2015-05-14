@@ -70,10 +70,7 @@ class SourcesRequest {
 class Location {
   String fullName;
   int offset;
-
-  Location(this.fullName, this.offset);
 }
-
 
 class CompileRequest {
   @ApiProperty(
