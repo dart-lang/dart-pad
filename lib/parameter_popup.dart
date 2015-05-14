@@ -9,10 +9,10 @@ import 'dart:html';
 import 'dart:math' as math;
 
 import 'context.dart';
-import 'dartservices_client/v1.dart';
 import 'dart_pad.dart';
 import 'editing/editor.dart';
 import 'services/common.dart';
+import 'services/dartservices.dart';
 
 class ParameterPopup {
   static const List parKeys = const[

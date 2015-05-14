@@ -13,9 +13,9 @@ import 'package:markd/markdown.dart' as markdown;
 
 import 'context.dart';
 import 'dart_pad.dart';
-import 'dartservices_client/v1.dart';
 import 'editing/editor.dart';
 import 'services/common.dart';
+import 'services/dartservices.dart';
 
 class DocHandler {
   static const List cursorKeys = const [

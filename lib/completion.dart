@@ -9,8 +9,8 @@ import 'dart:convert' show JSON;
 
 import 'package:logging/logging.dart';
 
-import 'dartservices_client/v1.dart' hide SourceEdit;
 import 'editing/editor.dart';
+import 'services/dartservices.dart' hide SourceEdit;
 import 'src/util.dart';
 
 Logger _logger = new Logger('completion');
@@ -40,7 +40,7 @@ class DartCompleter extends CodeCompleter {
     _lastCompleter = completer;
 
     if (onlyShowFixes) {
-      servicesApi.fix(request).then((FixesResponse response) {
+      servicesApi.fixes(request).then((FixesResponse response) {
         List<Completion> completions = [];
         for (ProblemAndFixes problemFix in response.fixes) {
           for (CandidateFix fix in problemFix.fixes) {

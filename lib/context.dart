@@ -6,7 +6,7 @@ library context;
 
 import 'dart:async';
 
-import 'dartservices_client/v1.dart';
+import 'services/dartservices.dart';
 
 abstract class Context {
   List<AnalysisIssue> issues = [];
