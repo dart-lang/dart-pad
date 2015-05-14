@@ -17,7 +17,6 @@ import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:shelf_route/shelf_route.dart';
 
-import 'src/common.dart';
 import 'src/common_server.dart';
 
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
@@ -164,7 +163,7 @@ View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
 }
 
 class _ServerContainer implements ServerContainer {
-  String get version => vmVersion;
+  String get version => '1.0';
 }
 
 class _Cache implements ServerCache {
