@@ -13,8 +13,7 @@ import 'package:rpc/rpc.dart';
 class AnalysisResults {
   final List<AnalysisIssue> issues;
 
-  AnalysisResults() : this.byIssues([]);
-  AnalysisResults.byIssues(this.issues);
+  AnalysisResults(this.issues);
 }
 
 class AnalysisIssue implements Comparable {
@@ -27,12 +26,10 @@ class AnalysisIssue implements Comparable {
   final int charStart;
   final int charLength;
   final String location;
-  final String fullName;
 
-  AnalysisIssue() : this.byIssue("", 0, "");
-  AnalysisIssue.byIssue(this.kind, this.line, this.message,
-      {this.charStart, this.charLength, this.location,
-      this.fullName, this.hasFixes: false});
+  AnalysisIssue() : this.fromIssue("", 0, "");
+  AnalysisIssue.fromIssue(this.kind, this.line, this.message,
+      {this.charStart, this.charLength, this.location, this.hasFixes: false});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};
@@ -57,29 +54,27 @@ class SourceRequest {
   int offset;
 }
 
-
-class SourcesRequest {
+class CompileRequest {
   @ApiProperty(
       required: true,
-      description: 'Map of names to sources.')
-  Map<String, String> sources;
+      description: 'The Dart source.')
+  String source;
 
   @ApiProperty(
-      description: 'An optional offset into the source code.')
-  int offset;
+      description: 'Compile to code with checked mode checks; optional '
+        '(defaults to false).')
+  bool useCheckedMode;
 
   @ApiProperty(
-      description: 'Name of file that the offset is in')
-  String offsetName;
-
+      description: 'Return the Dart to JS source map; optional (defaults to false).')
+  bool returnSourceMap;
 }
-
 
 class CompileResponse {
   final String result;
+  final String sourceMap;
 
-  CompileResponse() : this.byResponse("");
-  CompileResponse.byResponse(this.result);
+  CompileResponse(this.result, [this.sourceMap]);
 }
 
 class CounterRequest {
@@ -90,15 +85,13 @@ class CounterRequest {
 class CounterResponse {
   final int count;
 
-  CounterResponse() : this.byCount(0);
-  CounterResponse.byCount(this.count);
+  CounterResponse(this.count);
 }
 
 class DocumentResponse {
   final Map<String, String> info;
 
-  DocumentResponse() : this.byInfo();
-  DocumentResponse.byInfo([this.info]);
+  DocumentResponse(this.info);
 }
 
 class CompleteResponse {
@@ -110,9 +103,8 @@ class CompleteResponse {
 
   final List<Map<String, String>> completions;
 
-  CompleteResponse() : this.byCompletions(0, 0, []);
-  CompleteResponse.byCompletions(this.replacementOffset, this.replacementLength,
-      List<Map> completions) :
+  CompleteResponse(
+      this.replacementOffset, this.replacementLength, List<Map> completions) :
     this.completions = _convert(completions);
 
   /**
@@ -137,8 +129,7 @@ class CompleteResponse {
 class FixesResponse {
   final List<ProblemAndFixes> fixes;
 
-  FixesResponse() : this.byFixes([]);
-  FixesResponse.byFixes(List<AnalysisErrorFixes> analysisErrorFixes) :
+  FixesResponse(List<AnalysisErrorFixes> analysisErrorFixes) :
     this.fixes = _convert(analysisErrorFixes);
 
   /**
@@ -172,7 +163,7 @@ class FixesResponse {
         }
 
         for (var sourceEdit in sourceFileEdit.edits) {
-          edits.add(new SourceEdit.byChanges(
+          edits.add(new SourceEdit.fromChanges(
               sourceEdit.offset,
               sourceEdit.length,
               sourceEdit.replacement));
@@ -180,11 +171,11 @@ class FixesResponse {
       }
       if (!invalidFix) {
         CandidateFix possibleFix = new
-          CandidateFix.byEdits(sourceChange.message, edits);
+          CandidateFix.fromEdits(sourceChange.message, edits);
         possibleFixes.add(possibleFix);
       }
     }
-    return new ProblemAndFixes.byList(
+    return new ProblemAndFixes.fromList(
         possibleFixes,
         problemMessage,
         problemOffset,
@@ -203,8 +194,8 @@ class ProblemAndFixes {
   final int offset;
   final int length;
 
-  ProblemAndFixes() : this.byList([]);
-  ProblemAndFixes.byList(
+  ProblemAndFixes() : this.fromList([]);
+  ProblemAndFixes.fromList(
       [this.fixes, this.problemMessage, this.offset, this.length]);
 }
 
@@ -215,8 +206,8 @@ class CandidateFix {
   final String message;
   final List<SourceEdit> edits;
 
-  CandidateFix() : this.byEdits();
-  CandidateFix.byEdits([this.message, this.edits]);
+  CandidateFix() : this.fromEdits();
+  CandidateFix.fromEdits([this.message, this.edits]);
 }
 
 /**
@@ -230,8 +221,7 @@ class FormatResponse {
       description: 'The (optional) new offset of the cursor; can be `null`.')
   final int offset;
 
-  FormatResponse() : this.byCode("");
-  FormatResponse.byCode(this.newString, [this.offset = 0]);
+  FormatResponse(this.newString, [this.offset = 0]);
 }
 
 /**
@@ -242,8 +232,8 @@ class SourceEdit {
   final int length;
   final String replacement;
 
-  SourceEdit() : this.byChanges();
-  SourceEdit.byChanges([this.offset, this.length, this.replacement]);
+  SourceEdit() : this.fromChanges();
+  SourceEdit.fromChanges([this.offset, this.length, this.replacement]);
 
   String applyTo(String target) {
     if (offset >= replacement.length) {
@@ -256,4 +246,29 @@ class SourceEdit {
     String post = "${target.substring(offset+length)}";
     return "$pre$replacement$post";
   }
+}
+
+/// The response from the `/version` service call.
+class VersionResponse {
+  @ApiProperty(
+      description: 'The Dart SDK version that DartServices is compatible with. '
+        'This will be a semver string.')
+  final String sdkVersion;
+
+  @ApiProperty(
+      description: 'The Dart SDK version that the server is running on. This '
+        'will start with a semver string, and have a space and other build '
+        'details appended.')
+  final String runtimeVersion;
+
+  @ApiProperty(
+      description: 'The App Engine version.')
+  final String appEngineVersion;
+
+  @ApiProperty(
+      description: 'The dart-services backend version.')
+  final String servicesVersion;
+
+  VersionResponse({this.sdkVersion, this.runtimeVersion,
+    this.appEngineVersion, this.servicesVersion});
 }

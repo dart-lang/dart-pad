@@ -117,7 +117,7 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future<CompileResponse> compile(SourceRequest request) {
+  async.Future<CompileResponse> compile(CompileRequest request) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -553,6 +553,41 @@ class DartservicesApi {
     return _response.then((data) => new FormatResponse.fromJson(data));
   }
 
+  /**
+   * Return the current SDK version for DartServices.
+   *
+   * Request parameters:
+   *
+   * Completes with a [VersionResponse].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<VersionResponse> version() {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+
+
+    _url = 'version';
+
+    var _response = _requester.request(_url,
+                                       "GET",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new VersionResponse.fromJson(data));
+  }
+
 }
 
 
@@ -679,8 +714,53 @@ class CandidateFix {
 }
 
 
+class CompileRequest {
+  /** Return the Dart to JS source map; optional (defaults to false). */
+  core.bool returnSourceMap;
+
+  /** The Dart source. */
+  core.String source;
+
+  /**
+   * Compile to code with checked mode checks; optional (defaults to false).
+   */
+  core.bool useCheckedMode;
+
+
+  CompileRequest();
+
+  CompileRequest.fromJson(core.Map _json) {
+    if (_json.containsKey("returnSourceMap")) {
+      returnSourceMap = _json["returnSourceMap"];
+    }
+    if (_json.containsKey("source")) {
+      source = _json["source"];
+    }
+    if (_json.containsKey("useCheckedMode")) {
+      useCheckedMode = _json["useCheckedMode"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (returnSourceMap != null) {
+      _json["returnSourceMap"] = returnSourceMap;
+    }
+    if (source != null) {
+      _json["source"] = source;
+    }
+    if (useCheckedMode != null) {
+      _json["useCheckedMode"] = useCheckedMode;
+    }
+    return _json;
+  }
+}
+
+
 class CompileResponse {
   core.String result;
+
+  core.String sourceMap;
 
 
   CompileResponse();
@@ -689,12 +769,18 @@ class CompileResponse {
     if (_json.containsKey("result")) {
       result = _json["result"];
     }
+    if (_json.containsKey("sourceMap")) {
+      sourceMap = _json["sourceMap"];
+    }
   }
 
   core.Map toJson() {
     var _json = new core.Map();
     if (result != null) {
       _json["result"] = result;
+    }
+    if (sourceMap != null) {
+      _json["sourceMap"] = sourceMap;
     }
     return _json;
   }
@@ -949,6 +1035,62 @@ class SourceRequest {
     }
     if (source != null) {
       _json["source"] = source;
+    }
+    return _json;
+  }
+}
+
+
+class VersionResponse {
+  /** The App Engine version. */
+  core.String appEngineVersion;
+
+  /**
+   * The Dart SDK version that the server is running on. This will start with a
+   * semver string, and have a space and other build details appended.
+   */
+  core.String runtimeVersion;
+
+  /**
+   * The Dart SDK version that DartServices is compatible with. This will be a
+   * semver string.
+   */
+  core.String sdkVersion;
+
+  /** The dart-services backend version. */
+  core.String servicesVersion;
+
+
+  VersionResponse();
+
+  VersionResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("appEngineVersion")) {
+      appEngineVersion = _json["appEngineVersion"];
+    }
+    if (_json.containsKey("runtimeVersion")) {
+      runtimeVersion = _json["runtimeVersion"];
+    }
+    if (_json.containsKey("sdkVersion")) {
+      sdkVersion = _json["sdkVersion"];
+    }
+    if (_json.containsKey("servicesVersion")) {
+      servicesVersion = _json["servicesVersion"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (appEngineVersion != null) {
+      _json["appEngineVersion"] = appEngineVersion;
+    }
+    if (runtimeVersion != null) {
+      _json["runtimeVersion"] = runtimeVersion;
+    }
+    if (sdkVersion != null) {
+      _json["sdkVersion"] = sdkVersion;
+    }
+    if (servicesVersion != null) {
+      _json["servicesVersion"] = servicesVersion;
     }
     return _json;
   }

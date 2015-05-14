@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "bd4e8cff8c987967ead41a32e025116cb6637f6f",
+ "etag": "42dedf5be1217e5f46fa3c199556964c515ca7f5",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -81,11 +81,33 @@
     }
    }
   },
+  "CompileRequest": {
+   "id": "CompileRequest",
+   "type": "object",
+   "properties": {
+    "source": {
+     "type": "string",
+     "description": "The Dart source.",
+     "required": true
+    },
+    "useCheckedMode": {
+     "type": "boolean",
+     "description": "Compile to code with checked mode checks; optional (defaults to false)."
+    },
+    "returnSourceMap": {
+     "type": "boolean",
+     "description": "Return the Dart to JS source map; optional (defaults to false)."
+    }
+   }
+  },
   "CompileResponse": {
    "id": "CompileResponse",
    "type": "object",
    "properties": {
     "result": {
+     "type": "string"
+    },
+    "sourceMap": {
      "type": "string"
     }
    }
@@ -208,6 +230,28 @@
      }
     }
    }
+  },
+  "VersionResponse": {
+   "id": "VersionResponse",
+   "type": "object",
+   "properties": {
+    "sdkVersion": {
+     "type": "string",
+     "description": "The Dart SDK version that DartServices is compatible with. This will be a semver string."
+    },
+    "runtimeVersion": {
+     "type": "string",
+     "description": "The Dart SDK version that the server is running on. This will start with a semver string, and have a space and other build details appended."
+    },
+    "appEngineVersion": {
+     "type": "string",
+     "description": "The App Engine version."
+    },
+    "servicesVersion": {
+     "type": "string",
+     "description": "The dart-services backend version."
+    }
+   }
   }
  },
  "methods": {
@@ -267,7 +311,7 @@
    "parameters": {},
    "parameterOrder": [],
    "request": {
-    "$ref": "SourceRequest"
+    "$ref": "CompileRequest"
    },
    "response": {
     "$ref": "CompileResponse"
@@ -436,6 +480,17 @@
    "parameterOrder": [],
    "response": {
     "$ref": "DocumentResponse"
+   }
+  },
+  "version": {
+   "id": "CommonServer.version",
+   "path": "version",
+   "httpMethod": "GET",
+   "description": "Return the current SDK version for DartServices.",
+   "parameters": {},
+   "parameterOrder": [],
+   "response": {
+    "$ref": "VersionResponse"
    }
   }
  },

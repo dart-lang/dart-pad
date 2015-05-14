@@ -16,6 +16,7 @@ import 'dart:async';
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:services/src/analysis_server.dart' as analysis_server;
 import 'package:services/src/analyzer.dart' as ana;
+import 'package:services/src/common.dart';
 import 'package:services/src/compiler.dart' as comp;
 
 import 'package:services/src/common_server.dart';
@@ -26,6 +27,7 @@ bool _SERVER_BASED_CALL = false;
 
 CommonServer server;
 ApiServer apiServer;
+MockContainer container;
 MockCache cache;
 MockRequestRecorder recorder;
 MockCounter counter;
@@ -37,6 +39,10 @@ var random = new Random(0);
 var maxMutations = 2;
 var iterations = 5;
 String commandToRun = "ALL";
+bool dumpServerComms = false;
+
+OperationType lastExecuted;
+int lastOffset;
 
 main (List<String> args) async {
   if (args.length == 0) {
@@ -45,7 +51,8 @@ Usage: slow_test path_to_test_collection
     [seed = 0]
     [mutations per iteration = 2]
     [iterations = 5]
-    [name of command to test = ALL]''');
+    [name of command to test = ALL]
+    [dump server communications = false]''');
 
     io.exit(1);
   }
@@ -57,6 +64,7 @@ Usage: slow_test path_to_test_collection
   if (args.length >= 3) maxMutations = int.parse(args[2]);
   if (args.length >= 4) iterations = int.parse(args[3]);
   if (args.length >= 5) commandToRun = args[4];
+  if (args.length >= 6) dumpServerComms = args[5].toLowerCase() == "true";
   io.Directory sdkDir = cli_util.getSdkDir([]);
 
   // Load the list of files.
@@ -70,15 +78,22 @@ Usage: slow_test path_to_test_collection
 
   analysis_server.dumpServerMessages = false;
 
+  int counter = 0;
+  Stopwatch sw = new Stopwatch()..start();
+
   // Warm up the services.
   await setupTools(sdkDir.path);
 
   // Main testing loop.
   for (var fse in fileEntities) {
+    counter++;
     if (!fse.path.endsWith('.dart')) continue;
 
     try {
-      print ("Seed: $seed");
+      print ("Seed: $seed, "
+        "${((counter/fileEntities.length)*100).toStringAsFixed(2)}%, "
+        "Elapsed: ${sw.elapsed}");
+
       random = new Random(seed);
       seed++;
       await testPath(fse.path, analysisServer, analyzer, compiler);
@@ -97,10 +112,11 @@ Usage: slow_test path_to_test_collection
  * Init the tools, and warm them up
  */
 setupTools(String sdkPath) async {
+  container = new MockContainer();
   cache = new MockCache();
   recorder = new MockRequestRecorder();
   counter = new MockCounter();
-  server = new CommonServer(sdkPath, cache, recorder, counter);
+  server = new CommonServer(sdkPath, container, cache, recorder, counter);
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
 
   analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
@@ -133,41 +149,53 @@ testPath(String path,
     var averageFixesTime = 0;
     var averageFormatTime = 0;
 
-    switch (commandToRun.toLowerCase()) {
-      case "all":
-        averageCompilationTime = await testCompilation(src, compiler);
-        averageCompletionTime = await testCompletions(src, wrapper);
-        averageAnalysisTime = await testAnalysis(src, analyzer);
-        averageDocumentTime = await testDocument(src, analyzer);
-        averageFixesTime = await testFixes(src, wrapper);
-        averageFormatTime = await testFormat(src);
-        break;
+    try {
+      switch (commandToRun.toLowerCase()) {
+        case "all":
+          averageCompilationTime = await testCompilation(src, compiler);
+          averageCompletionTime = await testCompletions(src, wrapper);
+          averageAnalysisTime = await testAnalysis(src, analyzer);
+          averageDocumentTime = await testDocument(src, analyzer);
+          averageFixesTime = await testFixes(src, wrapper);
+          averageFormatTime = await testFormat(src);
+          break;
 
-      case "complete":
-        averageCompletionTime = await testCompletions(src, wrapper);
-        break;
-      case "analyze":
-        averageAnalysisTime = await testAnalysis(src, analyzer);
-        break;
+        case "complete":
+          averageCompletionTime = await testCompletions(src, wrapper);
+          break;
+        case "analyze":
+          averageAnalysisTime = await testAnalysis(src, analyzer);
+          break;
 
-      case "document":
-        averageDocumentTime = await testDocument(src, analyzer);
-        break;
+        case "document":
+          averageDocumentTime = await testDocument(src, analyzer);
+          break;
 
-      case "compile":
-        averageCompilationTime = await testCompilation(src, compiler);
-        break;
+        case "compile":
+          averageCompilationTime = await testCompilation(src, compiler);
+          break;
 
-      case "fix":
-        averageFixesTime = await testFixes(src, wrapper);
-        break;
+        case "fix":
+          averageFixesTime = await testFixes(src, wrapper);
+          break;
 
-      case "format":
-        averageFormatTime = await testFormat(src);
-        break;
+        case "format":
+          averageFormatTime = await testFormat(src);
+          break;
 
-      default:
-        throw "Unknown command";
+        default:
+          throw "Unknown command";
+      }
+    } catch(e, stacktrace) {
+
+      print ("===== FAILING OP: $lastExecuted, offset: $lastOffset  =====");
+      print (src);
+      print ("=====                                                 =====");
+      print (e);
+      print (stacktrace);
+      print ("===========================================================");
+
+      throw e;
     }
 
     print (
@@ -192,70 +220,93 @@ testPath(String path,
 }
 
 Future<num> testAnalysis(String src, ana.Analyzer analyzer) async {
+  lastExecuted = OperationType.Analysis;
   Stopwatch sw = new Stopwatch()..start();
 
-  if (_SERVER_BASED_CALL) await server.analyzeGet(source: src);
-  else await analyzer.analyze(src);
+  lastOffset = null;
+  if (_SERVER_BASED_CALL) await withTimeOut(server.analyzeGet(source: src));
+  else await withTimeOut(analyzer.analyze(src));
 
   if (_PERF_DUMP) print ("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds;
 }
 
 Future<num> testCompilation(String src, comp.Compiler compiler) async {
+  lastExecuted = OperationType.Compilation;
   Stopwatch sw = new Stopwatch()..start();
 
-  if (_SERVER_BASED_CALL) await server.compileGet(source: src);
-  else await compiler.compile(src);
+  lastOffset = null;
+  if (_SERVER_BASED_CALL) await withTimeOut(server.compileGet(source: src));
+  else await withTimeOut(compiler.compile(src));
 
   if (_PERF_DUMP) print ("PERF: COMPILATION: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds;
 }
 
 Future<num> testDocument(String src, ana.Analyzer analyzer) async {
+  lastExecuted = OperationType.Document;
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
     Stopwatch sw2 = new Stopwatch()..start();
 
     if (i % 1000 == 0 && i > 0) print("INC: $i docs completed");
-    if (_SERVER_BASED_CALL) await server.documentGet(source: src, offset: i);
-    else await analyzer.dartdoc(src, i);
-
+    lastOffset = i;
+    if (_SERVER_BASED_CALL) {
+      await withTimeOut(server.documentGet(source: src, offset: i));
+    } else {
+      await withTimeOut(analyzer.dartdoc(src, i));
+    }
     if (_PERF_DUMP) print ("PERF: DOCUMENT: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
 
-Future<num> testCompletions(String src, analysis_server.AnalysisServerWrapper wrapper) async {
+Future<num> testCompletions(
+    String src, analysis_server.AnalysisServerWrapper wrapper) async {
+  lastExecuted = OperationType.Completion;
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
     Stopwatch sw2 = new Stopwatch()..start();
 
     if (i % 1000 == 0 && i > 0) print("INC: $i completes");
-    if (_SERVER_BASED_CALL) await server.completeGet(source: src, offset: i);
-    else await wrapper.complete(src, i);
+    lastOffset = i;
+    if (_SERVER_BASED_CALL) await withTimeOut(server.completeGet(source: src, offset: i));
+    else await withTimeOut(wrapper.complete(src, i));
     if (_PERF_DUMP) print ("PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
 
-Future<num> testFixes(String src, analysis_server.AnalysisServerWrapper wrapper) async {
+Future<num> testFixes(
+    String src, analysis_server.AnalysisServerWrapper wrapper) async {
+  lastExecuted = OperationType.Fixes;
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
     Stopwatch sw2 = new Stopwatch()..start();
 
     if (i % 1000 == 0 && i > 0) print("INC: $i fixes");
-    if (_SERVER_BASED_CALL) await server.fixesGet(source: src, offset: i);
-    else await wrapper.getFixes(src, i);
-
+    lastOffset = i;
+    if (_SERVER_BASED_CALL) {
+      await withTimeOut(server.fixesGet(source: src, offset: i));
+    } else {
+      await withTimeOut(wrapper.getFixes(src, i));
+    }
     if (_PERF_DUMP) print ("PERF: FIXES: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
 
 Future<num> testFormat(String src) async {
+  lastExecuted = OperationType.Format;
   Stopwatch sw = new Stopwatch()..start();
-  await server.formatGet(source: src, offset: 0);
+  int i = 0;
+  lastOffset = i;
+  await withTimeOut(server.formatGet(source: src, offset: i));
   return sw.elapsedMilliseconds;
+}
+
+Future withTimeOut(Future f) {
+  return f.timeout(new Duration (seconds: 30));
 }
 
 String mutate(String src) {
@@ -267,6 +318,10 @@ String mutate(String src) {
   if (i == 0) i = 1;
   String newStr = src.substring(0, i - 1) + s + src.substring(i);
   return newStr;
+}
+
+class MockContainer implements ServerContainer {
+  String get version => vmVersion;
 }
 
 class MockCache implements ServerCache {
@@ -298,4 +353,13 @@ class MockCounter implements PersistentCounter {
     counter.putIfAbsent(name, () => 0);
     return new Future.value(counter[name]++);
   }
+}
+
+enum OperationType {
+  Compilation,
+  Analysis,
+  Completion,
+  Document,
+  Fixes,
+  Format
 }

@@ -5,6 +5,7 @@
 library services.common_server;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -13,8 +14,10 @@ import 'package:rpc/rpc.dart';
 import 'api_classes.dart';
 import 'analysis_server.dart';
 import 'analyzer.dart';
+import 'common.dart';
 import 'compiler.dart';
 import 'pub.dart';
+import '../version.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
 final Logger _logger = new Logger('common_server');
@@ -26,6 +29,10 @@ abstract class ServerCache {
   Future<String> get(String key);
   Future set(String key, String value, {Duration expiration});
   Future remove(String key);
+}
+
+abstract class ServerContainer {
+  String get version;
 }
 
 /**
@@ -43,6 +50,7 @@ abstract class PersistentCounter {
 
 @ApiClass(name: 'dartservices', version: 'v1')
 class CommonServer {
+  final ServerContainer container;
   final ServerCache cache;
   final SourceRequestRecorder srcRequestRecorder;
   final PersistentCounter counter;
@@ -53,6 +61,7 @@ class CommonServer {
   AnalysisServerWrapper analysisServer;
 
   CommonServer(String sdkPath,
+      this.container,
       this.cache,
       this.srcRequestRecorder,
       this.counter) {
@@ -77,7 +86,7 @@ class CommonServer {
   @ApiMethod(method: 'GET', path: 'counter')
   Future<CounterResponse> counterGet({String name}) {
     return counter.getTotal(name).then((total) {
-      return new CounterResponse.byCount(total);
+      return new CounterResponse(total);
     });
   }
 
@@ -98,16 +107,15 @@ class CommonServer {
   @ApiMethod(
       method: 'POST',
       path: 'compile',
-      description: 'Compile the given Dart source code and return the resulting '
-        'JavaScript.')
-  Future<CompileResponse> compile(SourceRequest request) {
-    return _compile(request.source);
-  }
+      description: 'Compile the given Dart source code and return the '
+        'resulting JavaScript.')
+  Future<CompileResponse> compile(CompileRequest request) =>
+      _compile(
+          request.source, useCheckedMode: request.useCheckedMode,
+          returnSourceMap: request.returnSourceMap);
 
   @ApiMethod(method: 'GET', path: 'compile')
-  Future<CompileResponse> compileGet({String source}) {
-    return _compile(source);
-  }
+  Future<CompileResponse> compileGet({String source}) => _compile(source);
 
   @ApiMethod(
       method: 'POST',
@@ -190,6 +198,12 @@ class CommonServer {
     return _document(source, offset);
   }
 
+  @ApiMethod(
+      method: 'GET',
+      path: 'version',
+      description: 'Return the current SDK version for DartServices.')
+  Future<VersionResponse> version() => new Future.value(_version());
+
   Future<AnalysisResults> _analyze(String source) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
@@ -214,10 +228,14 @@ class CommonServer {
     }
   }
 
-  Future<CompileResponse> _compile(String source) async {
+  Future<CompileResponse> _compile(String source,
+      {bool useCheckedMode, bool returnSourceMap}) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
+    if (useCheckedMode == null) useCheckedMode = false;
+    if (returnSourceMap == null) returnSourceMap = false;
+
     srcRequestRecorder.record("COMPILE", source);
     String sourceHash = _hashSource(source);
 
@@ -227,15 +245,23 @@ class CommonServer {
     bool suppressCache = trimSrc.endsWith("/** Supress-Memcache **/") ||
         trimSrc.endsWith("/** Suppress-Memcache **/");
 
-    return checkCache("%%COMPILE:$sourceHash").then((String result) {
+    String memCacheKey =
+      "%%COMPILE:v0:useCheckedMode:$useCheckedMode"
+      "returnSourceMap:$returnSourceMap:"
+      "source:$sourceHash";
+
+    return checkCache(memCacheKey).then((String result) {
       if (!suppressCache && result != null) {
         _logger.info("CACHE: Cache hit for compile");
-        return new CompileResponse.byResponse(result);
+        var resultObj = new JsonDecoder().convert(result);
+        return new CompileResponse(resultObj["output"],
+            returnSourceMap ? resultObj["sourceMap"] : null);
       } else {
         _logger.info("CACHE: MISS, forced: $suppressCache");
         Stopwatch watch = new Stopwatch()..start();
 
-        return compiler.compile(source).then((CompilationResults results) async {
+        return compiler.compile(source, useCheckedMode: useCheckedMode,
+            returnSourceMap: returnSourceMap).then((CompilationResults results) async {
           if (results.hasOutput) {
             int lineCount = source.split('\n').length;
             int outputSize = (results.getOutput().length + 512) ~/ 1024;
@@ -246,9 +272,14 @@ class CommonServer {
             counter.increment("Compilations");
             counter.increment("Compiled-Lines", increment: lineCount);
             String out = results.getOutput();
-            return setCache("%%COMPILE:$sourceHash", out).then((_) {
-              return new CompileResponse.byResponse(out);
+            String sourceMap = returnSourceMap ? results.getSourceMap() : null;
+
+            String cachedResult = new JsonEncoder().convert({
+              "output" : out,
+              "sourceMap" : sourceMap
             });
+            await setCache(memCacheKey, cachedResult);
+            return new CompileResponse(out, sourceMap);
           } else {
             List problems = _filterCompileProblems(results.problems);
             if (problems.isEmpty) problems = results.problems;
@@ -279,7 +310,7 @@ class CommonServer {
           _logger.info(
             'PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
           counter.increment("DartDocs");
-          return new DocumentResponse.byInfo(docInfo);
+          return new DocumentResponse(docInfo);
         }).catchError((e, st) {
           _logger.severe('Error during dartdoc: ${e}\n${st}');
           throw e;
@@ -290,6 +321,12 @@ class CommonServer {
     }
   }
 
+  VersionResponse _version() => new VersionResponse(
+      sdkVersion: compiler.version,
+      runtimeVersion: vmVersion,
+      servicesVersion: servicesVersion,
+      appEngineVersion: container.version);
+
   Future<CompleteResponse> _complete(String source, int offset) async {
     srcRequestRecorder.record("COMPLETE", source, offset);
     counter.increment("Completions");
@@ -297,10 +334,10 @@ class CommonServer {
   }
 
   Future<FixesResponse> _fixes(String source, int offset) async {
-      srcRequestRecorder.record("FIX", source, offset);
-      counter.increment("Fixes");
-      return analysisServer.getFixes(source, offset);
-    }
+    srcRequestRecorder.record("FIX", source, offset);
+    counter.increment("Fixes");
+    return analysisServer.getFixes(source, offset);
+  }
 
   Future<FormatResponse> _format(String source, {int offset}) async {
     if (offset == null) offset = 0;
@@ -311,8 +348,8 @@ class CommonServer {
     AnalysisResults analysisResults = await analyzer.analyze(source);
 
     if (analysisResults.issues.where(
-      (issue) => issue.kind == "error").length > 0) {
-      return new FormatResponse.byCode(source, offset);
+        (issue) => issue.kind == "error").length > 0) {
+      return new FormatResponse(source, offset);
     }
     return analysisServer.format(source, offset);
   }

@@ -77,6 +77,7 @@ class EndpointsServer {
                                           String serverUrl) async {
     var commonServer = new CommonServer(
         sdkPath,
+        new _ServerContainer(),
         new _Cache(),
         new _Recorder(),
         new _Counter());
@@ -109,6 +110,7 @@ class EndpointsServer {
     discoveryEnabled = false;
     commonServer = new CommonServer(
         sdkPath,
+        new _ServerContainer(),
         new _Cache(),
         new _Recorder(),
         new _Counter());
@@ -158,6 +160,10 @@ View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
     });
   }
+}
+
+class _ServerContainer implements ServerContainer {
+  String get version => '1.0';
 }
 
 class _Cache implements ServerCache {
