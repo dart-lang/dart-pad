@@ -26,6 +26,8 @@ class AnalysisIssue implements Comparable {
 
   final int charStart;
   final int charLength;
+  // TODO: Once all clients have started using fullName, we should remove the
+  // location field.
   final String location;
 
   AnalysisIssue() : this.fromIssue("", 0, "");
