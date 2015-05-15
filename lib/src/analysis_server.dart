@@ -119,7 +119,7 @@ class AnalysisServerWrapper {
   /// Internal implementation of the completion mechanism.
   Future<Map> _completeImpl(Map<String, String> sources,
                             String sourceName, int offset) async {
-    sources = _rewriteOverlayNamesToPaths(sources);
+    sources = _getOverlayMapWithPaths(sources);
     String path = _getPathFromName(sourceName);
     await serverConnection._ensureSetup();
     await serverConnection.loadSources(sources);
@@ -135,7 +135,7 @@ class AnalysisServerWrapper {
 
   Future<EditGetFixesResult> _getFixesImpl(
       Map<String, String> sources, String sourceName, int offset) async {
-    sources = _rewriteOverlayNamesToPaths(sources);
+    sources = _getOverlayMapWithPaths(sources);
     String path = _getPathFromName(sourceName);
 
     await serverConnection._ensureSetup();
@@ -155,7 +155,7 @@ class AnalysisServerWrapper {
     return formatResult;
   }
 
-  Map<String, String> _rewriteOverlayNamesToPaths(Map<String, String> overlay) {
+  Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {
     var newOverlay = {};
     overlay.forEach((k,v) => newOverlay.putIfAbsent(
       _getPathFromName(k), () => v)
