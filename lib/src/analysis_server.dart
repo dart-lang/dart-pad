@@ -168,9 +168,7 @@ class AnalysisServerWrapper {
 
   /// Warm up the analysis server to be ready for use.
   Future warmup([bool useHtml = false]) =>
-      _completeImpl(
-          {mainPath : useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC},
-          mainPath, 10);
+    complete(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
 }
 
 /**
