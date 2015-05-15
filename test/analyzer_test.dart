@@ -174,7 +174,7 @@ void main() {
 
       return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
         expect(results.issues, isNotEmpty);
-        expect(results.issues[0].sourcePath, "main.dart");
+        expect(results.issues[0].sourceName, "main.dart");
       });
     });
 
@@ -184,7 +184,7 @@ void main() {
 
       return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
         expect(results.issues, isNotEmpty);
-        expect(results.issues[0].sourcePath, "foo.dart");
+        expect(results.issues[0].sourceName, "foo.dart");
       });
     });
 

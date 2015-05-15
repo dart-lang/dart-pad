@@ -26,7 +26,7 @@ class AnalysisIssue implements Comparable {
   final String kind;
   final int line;
   final String message;
-  final String sourcePath;
+  final String sourceName;
 
   final bool hasFixes;
 
@@ -34,13 +34,13 @@ class AnalysisIssue implements Comparable {
   final int charLength;
   // TODO: Once all clients have started using fullName, we should remove the
   // location field.
-  @Deprecated('use sourcePath instead')
-  @ApiProperty(description: 'deprecated - see `sourcePath`')
+  @Deprecated('use sourceName instead')
+  @ApiProperty(description: 'deprecated - see `sourceName`')
   final String location;
 
   AnalysisIssue.fromIssue(this.kind, this.line, this.message,
       {this.charStart, this.charLength, this.location,
-      this.sourcePath, this.hasFixes: false});
+      this.sourceName, this.hasFixes: false});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};

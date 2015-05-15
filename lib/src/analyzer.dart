@@ -104,7 +104,7 @@ class Analyzer {
             error.severityName, error.line, error.message,
             location: error.location,
             charStart: error.offset, charLength: error.length,
-            sourcePath: error.error.source.fullName,
+            sourceName: error.error.source.fullName,
             hasFixes: error.probablyHasFix);
       }).toList();
       issues.sort();

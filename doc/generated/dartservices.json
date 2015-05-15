@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "bcdd5cd7a7ae417c9cb60ad19808faa04c5f57d4",
+ "etag": "fd1ff4494fc57b70e09fa940ed802290a55d9668",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -79,7 +79,7 @@
     "message": {
      "type": "string"
     },
-    "sourcePath": {
+    "sourceName": {
      "type": "string"
     },
     "hasFixes": {
@@ -95,7 +95,7 @@
     },
     "location": {
      "type": "string",
-     "description": "deprecated - see sourcePath"
+     "description": "deprecated - see `sourceName`"
     }
    }
   },
