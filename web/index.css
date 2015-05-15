@@ -37,10 +37,9 @@ header {
 .header-title {
   font-size: 16pt;
   white-space: nowrap;
-}
-
-.header-title .minor {
-  color: #888;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .header-gist-name {

@@ -1,15 +1,13 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library dartservices_clientlib.dartservices.v1;
+library services.dartservices.v1;
 
 import 'dart:core' as core;
-// https://github.com/dart-lang/discoveryapis_generator/issues/139
 //import 'dart:collection' as collection;
 import 'dart:async' as async;
 import 'dart:convert' as convert;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as commons;
-// https://github.com/dart-lang/discoveryapis_generator/issues/139
 //import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
 
@@ -22,10 +20,13 @@ class DartservicesApi {
 
   final commons.ApiRequester _requester;
 
-  DartservicesApi(http.Client client, {core.String rootUrl: "http://localhost/", core.String servicePath: "api/dartservices/v1/"}) :
+  DartservicesApi(http.Client client, {core.String rootUrl: "/", core.String servicePath: "api/dartservices/v1/"}) :
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
+   * Analyze the given Dart source code and return any resulting analysis errors
+   * or warnings.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -49,6 +50,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'analyze';
 
@@ -87,6 +89,7 @@ class DartservicesApi {
       _queryParams["source"] = [source];
     }
 
+
     _url = 'analyze';
 
     var _response = _requester.request(_url,
@@ -100,6 +103,8 @@ class DartservicesApi {
   }
 
   /**
+   * Compile the given Dart source code and return the resulting JavaScript.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -112,7 +117,7 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future<CompileResponse> compile(SourceRequest request) {
+  async.Future<CompileResponse> compile(CompileRequest request) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -123,6 +128,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'compile';
 
@@ -161,6 +167,7 @@ class DartservicesApi {
       _queryParams["source"] = [source];
     }
 
+
     _url = 'compile';
 
     var _response = _requester.request(_url,
@@ -174,6 +181,8 @@ class DartservicesApi {
   }
 
   /**
+   * Get the valid code completion results for the given offset.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -197,6 +206,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'complete';
 
@@ -240,6 +250,7 @@ class DartservicesApi {
       _queryParams["offset"] = ["${offset}"];
     }
 
+
     _url = 'complete';
 
     var _response = _requester.request(_url,
@@ -277,6 +288,7 @@ class DartservicesApi {
       _queryParams["name"] = [name];
     }
 
+
     _url = 'counter';
 
     var _response = _requester.request(_url,
@@ -290,6 +302,9 @@ class DartservicesApi {
   }
 
   /**
+   * Return the relevant dartdoc information for the element at the given
+   * offset.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -313,6 +328,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'document';
 
@@ -356,6 +372,7 @@ class DartservicesApi {
       _queryParams["offset"] = ["${offset}"];
     }
 
+
     _url = 'document';
 
     var _response = _requester.request(_url,
@@ -369,6 +386,8 @@ class DartservicesApi {
   }
 
   /**
+   * Get any quick fixes for the given source code location.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -381,7 +400,7 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future<FixesResponse> fix(SourceRequest request) {
+  async.Future<FixesResponse> fixes(SourceRequest request) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -392,6 +411,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'fixes';
 
@@ -420,7 +440,7 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future<FixesResponse> fixGet({core.String source, core.int offset}) {
+  async.Future<FixesResponse> fixesGet({core.String source, core.int offset}) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -435,6 +455,7 @@ class DartservicesApi {
       _queryParams["offset"] = ["${offset}"];
     }
 
+
     _url = 'fixes';
 
     var _response = _requester.request(_url,
@@ -447,7 +468,129 @@ class DartservicesApi {
     return _response.then((data) => new FixesResponse.fromJson(data));
   }
 
+  /**
+   * Format the given Dart source code and return the results. If an offset is
+   * supplied in the request, the new position for that offset in the formatted
+   * code will be returned.
+   *
+   * [request] - The metadata request object.
+   *
+   * Request parameters:
+   *
+   * Completes with a [FormatResponse].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<FormatResponse> format(SourceRequest request) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (request != null) {
+      _body = convert.JSON.encode((request).toJson());
+    }
+
+
+    _url = 'format';
+
+    var _response = _requester.request(_url,
+                                       "POST",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new FormatResponse.fromJson(data));
+  }
+
+  /**
+   * Request parameters:
+   *
+   * [source] - Query parameter: 'source'.
+   *
+   * [offset] - Query parameter: 'offset'.
+   *
+   * Completes with a [FormatResponse].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<FormatResponse> formatGet({core.String source, core.int offset}) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (source != null) {
+      _queryParams["source"] = [source];
+    }
+    if (offset != null) {
+      _queryParams["offset"] = ["${offset}"];
+    }
+
+
+    _url = 'format';
+
+    var _response = _requester.request(_url,
+                                       "GET",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new FormatResponse.fromJson(data));
+  }
+
+  /**
+   * Return the current SDK version for DartServices.
+   *
+   * Request parameters:
+   *
+   * Completes with a [VersionResponse].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<VersionResponse> version() {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+
+
+    _url = 'version';
+
+    var _response = _requester.request(_url,
+                                       "GET",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new VersionResponse.fromJson(data));
+  }
+
 }
+
+
 
 class AnalysisIssue {
   core.int charLength;
@@ -463,6 +606,7 @@ class AnalysisIssue {
   core.String location;
 
   core.String message;
+
 
   AnalysisIssue();
 
@@ -517,8 +661,10 @@ class AnalysisIssue {
   }
 }
 
+
 class AnalysisResults {
   core.List<AnalysisIssue> issues;
+
 
   AnalysisResults();
 
@@ -537,10 +683,12 @@ class AnalysisResults {
   }
 }
 
+
 class CandidateFix {
   core.List<SourceEdit> edits;
 
   core.String message;
+
 
   CandidateFix();
 
@@ -565,14 +713,64 @@ class CandidateFix {
   }
 }
 
+
+class CompileRequest {
+  /** Return the Dart to JS source map; optional (defaults to false). */
+  core.bool returnSourceMap;
+
+  /** The Dart source. */
+  core.String source;
+
+  /**
+   * Compile to code with checked mode checks; optional (defaults to false).
+   */
+  core.bool useCheckedMode;
+
+
+  CompileRequest();
+
+  CompileRequest.fromJson(core.Map _json) {
+    if (_json.containsKey("returnSourceMap")) {
+      returnSourceMap = _json["returnSourceMap"];
+    }
+    if (_json.containsKey("source")) {
+      source = _json["source"];
+    }
+    if (_json.containsKey("useCheckedMode")) {
+      useCheckedMode = _json["useCheckedMode"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (returnSourceMap != null) {
+      _json["returnSourceMap"] = returnSourceMap;
+    }
+    if (source != null) {
+      _json["source"] = source;
+    }
+    if (useCheckedMode != null) {
+      _json["useCheckedMode"] = useCheckedMode;
+    }
+    return _json;
+  }
+}
+
+
 class CompileResponse {
   core.String result;
+
+  core.String sourceMap;
+
 
   CompileResponse();
 
   CompileResponse.fromJson(core.Map _json) {
     if (_json.containsKey("result")) {
       result = _json["result"];
+    }
+    if (_json.containsKey("sourceMap")) {
+      sourceMap = _json["sourceMap"];
     }
   }
 
@@ -581,9 +779,13 @@ class CompileResponse {
     if (result != null) {
       _json["result"] = result;
     }
+    if (sourceMap != null) {
+      _json["sourceMap"] = sourceMap;
+    }
     return _json;
   }
 }
+
 
 class CompleteResponse {
   core.List<core.Map<core.String, core.String>> completions;
@@ -593,6 +795,7 @@ class CompleteResponse {
 
   /** The offset of the start of the text to be replaced. */
   core.int replacementOffset;
+
 
   CompleteResponse();
 
@@ -623,8 +826,10 @@ class CompleteResponse {
   }
 }
 
+
 class CounterResponse {
   core.int count;
+
 
   CounterResponse();
 
@@ -643,8 +848,10 @@ class CounterResponse {
   }
 }
 
+
 class DocumentResponse {
   core.Map<core.String, core.String> info;
+
 
   DocumentResponse();
 
@@ -663,8 +870,10 @@ class DocumentResponse {
   }
 }
 
+
 class FixesResponse {
   core.List<ProblemAndFixes> fixes;
+
 
   FixesResponse();
 
@@ -683,6 +892,39 @@ class FixesResponse {
   }
 }
 
+
+class FormatResponse {
+  /** The formatted source code. */
+  core.String newString;
+
+  /** The (optional) new offset of the cursor; can be `null`. */
+  core.int offset;
+
+
+  FormatResponse();
+
+  FormatResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("newString")) {
+      newString = _json["newString"];
+    }
+    if (_json.containsKey("offset")) {
+      offset = _json["offset"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (newString != null) {
+      _json["newString"] = newString;
+    }
+    if (offset != null) {
+      _json["offset"] = offset;
+    }
+    return _json;
+  }
+}
+
+
 class ProblemAndFixes {
   core.List<CandidateFix> fixes;
 
@@ -691,6 +933,7 @@ class ProblemAndFixes {
   core.int offset;
 
   core.String problemMessage;
+
 
   ProblemAndFixes();
 
@@ -727,12 +970,14 @@ class ProblemAndFixes {
   }
 }
 
+
 class SourceEdit {
   core.int length;
 
   core.int offset;
 
   core.String replacement;
+
 
   SourceEdit();
 
@@ -763,10 +1008,14 @@ class SourceEdit {
   }
 }
 
+
 class SourceRequest {
+  /** An optional offset into the source code. */
   core.int offset;
 
+  /** The Dart source. */
   core.String source;
+
 
   SourceRequest();
 
@@ -786,6 +1035,62 @@ class SourceRequest {
     }
     if (source != null) {
       _json["source"] = source;
+    }
+    return _json;
+  }
+}
+
+
+class VersionResponse {
+  /** The App Engine version. */
+  core.String appEngineVersion;
+
+  /**
+   * The Dart SDK version that the server is running on. This will start with a
+   * semver string, and have a space and other build details appended.
+   */
+  core.String runtimeVersion;
+
+  /**
+   * The Dart SDK version that DartServices is compatible with. This will be a
+   * semver string.
+   */
+  core.String sdkVersion;
+
+  /** The dart-services backend version. */
+  core.String servicesVersion;
+
+
+  VersionResponse();
+
+  VersionResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("appEngineVersion")) {
+      appEngineVersion = _json["appEngineVersion"];
+    }
+    if (_json.containsKey("runtimeVersion")) {
+      runtimeVersion = _json["runtimeVersion"];
+    }
+    if (_json.containsKey("sdkVersion")) {
+      sdkVersion = _json["sdkVersion"];
+    }
+    if (_json.containsKey("servicesVersion")) {
+      servicesVersion = _json["servicesVersion"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (appEngineVersion != null) {
+      _json["appEngineVersion"] = appEngineVersion;
+    }
+    if (runtimeVersion != null) {
+      _json["runtimeVersion"] = runtimeVersion;
+    }
+    if (sdkVersion != null) {
+      _json["sdkVersion"] = sdkVersion;
+    }
+    if (servicesVersion != null) {
+      _json["servicesVersion"] = servicesVersion;
     }
     return _json;
   }

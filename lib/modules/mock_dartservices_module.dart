@@ -12,7 +12,7 @@ import 'package:http/http.dart';
 import '../core/dependencies.dart';
 import '../core/modules.dart';
 import '../services/common.dart';
-import '../dartservices_client/v1.dart';
+import '../services/dartservices.dart';
 
 class MockDartServicesModule extends Module {
   MockDartServicesModule();

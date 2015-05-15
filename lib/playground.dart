@@ -18,7 +18,6 @@ import 'core/dependencies.dart';
 import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
-import 'dartservices_client/v1.dart';
 import 'dialogs.dart';
 import 'documentation.dart';
 import 'editing/editor.dart';
@@ -29,6 +28,7 @@ import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'parameter_popup.dart';
 import 'services/common.dart';
+import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
@@ -124,6 +124,18 @@ class Playground implements GistContainer, GistController {
 
     SelectElement select = querySelector('#samples');
     select.onChange.listen((_) => _handleSelectChanged(select));
+
+    // Show the about box on title clicks.
+    querySelector('div.header-title').onClick.listen((e) {
+      e.preventDefault();
+
+      dartServices.version()./*timeout(new Duration(seconds: 2)).*/then(
+          (VersionResponse ver) {
+        new AboutDialog(ver.sdkVersion)..show();
+      }).catchError((e) {
+        new AboutDialog()..show();
+      });
+    });
 
     _initModules().then((_) {
       _initPlayground();
@@ -504,7 +516,7 @@ class Playground implements GistContainer, GistController {
 
     Stopwatch compilationTimer = new Stopwatch()..start();
 
-    var input = new SourceRequest()..source = context.dartSource;
+    var input = new CompileRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
       ga.sendTiming('action-perf', "compilation-e2e",

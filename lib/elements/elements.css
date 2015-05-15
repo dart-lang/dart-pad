@@ -337,6 +337,11 @@ button.close:hover {
   min-width: 300px;
 }
 
+.dialog a,
+.dialog a:visited {
+  text-decoration: underline;
+}
+
 .dialog .buttons button + button {
   margin-left: 10px;
 }

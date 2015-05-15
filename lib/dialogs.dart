@@ -7,10 +7,11 @@ library dartpad.dialogs;
 import 'dart:async';
 import 'dart:html';
 
+import 'core/keys.dart';
 import 'elements/elements.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
-import 'core/keys.dart';
+import 'src/util.dart';
 
 /**
  * Show an OK / Cancel dialog, and return the option that the user selected.
@@ -50,6 +51,22 @@ class OkCancelDialog extends DDialog {
   }
 
   Future<bool> get future => _completer.future;
+}
+
+class AboutDialog extends DDialog {
+  AboutDialog([String version]) : super(title: 'About DartPad') {
+    ParagraphElement p = content.add(new ParagraphElement());
+    p.setInnerHtml(privacyText, validator: new PermissiveNodeValidator());
+
+    if (version != null) {
+      content.add(new ParagraphElement()..text = 'SDK ${version}');
+    }
+
+    buttonArea.add(new SpanElement()..attributes['flex'] = '');
+    DButton okButton = buttonArea.add(
+        new DButton.button(text: "OK", classes: 'default'));
+    okButton.onClick.listen((_) => hide());
+  }
 }
 
 class SharingDialog extends DDialog {

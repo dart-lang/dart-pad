@@ -7,26 +7,26 @@ library dart_pad.mobile_ui;
 import 'dart:async';
 import 'dart:html' hide Document;
 
-import 'package:dart_pad/dart_pad.dart';
-import 'package:dart_pad/dartservices_client/v1.dart';
-import 'package:dart_pad/context.dart';
-import 'package:dart_pad/core/dependencies.dart';
-import 'package:dart_pad/core/modules.dart';
-import 'package:dart_pad/editing/editor.dart';
-import 'package:dart_pad/modules/codemirror_module.dart';
-import 'package:dart_pad/modules/dartservices_module.dart';
-import 'package:dart_pad/modules/dart_pad_module.dart';
-import 'package:dart_pad/services/common.dart';
-import 'package:dart_pad/services/execution_iframe.dart';
-import 'package:dart_pad/sharing/gists.dart';
-import 'package:dart_pad/src/ga.dart';
-import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
+import '../dart_pad.dart';
+import '../context.dart';
+import '../core/dependencies.dart';
+import '../core/modules.dart';
+import '../editing/editor.dart';
+import '../modules/codemirror_module.dart';
+import '../modules/dartservices_module.dart';
+import '../modules/dart_pad_module.dart';
 import '../polymer/base.dart';
 import '../polymer/core.dart';
 import '../polymer/paper.dart';
+import '../services/common.dart';
+import '../services/dartservices.dart';
+import '../services/execution_iframe.dart';
+import '../sharing/gists.dart';
+import '../src/ga.dart';
+import '../src/sample.dart' as sample;
 import '../src/util.dart';
 
 PlaygroundMobile get playground => _playground;
@@ -380,7 +380,7 @@ class PlaygroundMobile {
     _editProgress.indeterminate = true;
     _editProgress.hidden(false);
 
-    var input = new SourceRequest()..source = context.dartSource;
+    var input = new CompileRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
       switchToExecPage();
@@ -403,7 +403,7 @@ class PlaygroundMobile {
     _runProgress.indeterminate = true;
     _runProgress.hidden(false);
 
-    var input = new SourceRequest()..source = context.dartSource;
+    var input = new CompileRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
       _clearOutput();
