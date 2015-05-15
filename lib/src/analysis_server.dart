@@ -223,8 +223,7 @@ class _Server {
     _logger.fine("Server Set Subscriptions completed");
 
     await sendAddOverlays({
-        "${sourceDirectory.path}${io.Platform.pathSeparator}main.dart" :
-        _WARMUP_SRC});
+        mainPath : _WARMUP_SRC});
     sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
     isSettingUp = false;
     isSetup = true;
