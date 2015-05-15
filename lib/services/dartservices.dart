@@ -3,12 +3,12 @@
 library services.dartservices.v1;
 
 import 'dart:core' as core;
-//import 'dart:collection' as collection;
+import 'dart:collection' as collection;
 import 'dart:async' as async;
 import 'dart:convert' as convert;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as commons;
-//import 'package:crypto/crypto.dart' as crypto;
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
 
 export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
@@ -644,12 +644,12 @@ class AnalysisIssue {
 
   core.int line;
 
-  /** deprecated - see sourcePath */
+  /** deprecated - see `sourceName` */
   core.String location;
 
   core.String message;
 
-  core.String sourcePath;
+  core.String sourceName;
 
 
   AnalysisIssue();
@@ -676,8 +676,8 @@ class AnalysisIssue {
     if (_json.containsKey("message")) {
       message = _json["message"];
     }
-    if (_json.containsKey("sourcePath")) {
-      sourcePath = _json["sourcePath"];
+    if (_json.containsKey("sourceName")) {
+      sourceName = _json["sourceName"];
     }
   }
 
@@ -704,8 +704,8 @@ class AnalysisIssue {
     if (message != null) {
       _json["message"] = message;
     }
-    if (sourcePath != null) {
-      _json["sourcePath"] = sourcePath;
+    if (sourceName != null) {
+      _json["sourceName"] = sourceName;
     }
     return _json;
   }
