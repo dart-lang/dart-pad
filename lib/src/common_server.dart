@@ -138,6 +138,20 @@ class CommonServer {
     return _complete(request.source, request.offset);
   }
 
+  @ApiMethod(
+      method: 'POST',
+      path: 'completeMulti',
+      description: 'Get the valid code completion results for the given offset.')
+  Future<CompleteResponse> completeMulti(SourcesRequest request) {
+    if (request.location == null) {
+      throw new BadRequestError('Missing parameter: \'location\'');
+    }
+
+    return _completeMulti(
+        request.sources, request.location.fullName, request.location.offset);
+  }
+
+
   @ApiMethod(method: 'GET', path: 'complete')
   Future<CompleteResponse> completeGet({String source, int offset}) {
     if (source == null) {
@@ -160,6 +174,22 @@ class CommonServer {
     }
 
     return _fixes(request.source, request.offset);
+  }
+
+  @ApiMethod(
+      method: 'POST',
+      path: 'fixesMulti',
+      description: 'Get any quick fixes for the given source code location.')
+  Future<FixesResponse> fixesMulti(SourcesRequest request) {
+    if (request.location.fullName == null) {
+      throw new BadRequestError('Missing parameter: \'fullName\'');
+    }
+    if (request.location.offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
+    }
+
+    return _fixesMulti(
+        request.sources, request.location.fullName, request.location.offset);
   }
 
   @ApiMethod(method: 'GET', path: 'fixes')
@@ -353,12 +383,32 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
-    Stopwatch watch = new Stopwatch()..start();
-    srcRequestRecorder.record("COMPLETE", source, offset);
-    counter.increment("Completions");
-    var response = await analysisServer.complete(source, offset);
-    _logger.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
-    return response;
+    return _completeMulti({"main.dart" : source}, "main.dart", offset);
+  }
+
+  Future<CompleteResponse> _completeMulti(Map<String, String> sources,
+    String name, int offset) async {
+      if (sources == null) {
+        throw new BadRequestError('Missing parameter: \'source\'');
+      }
+      if (name == null) {
+        throw new BadRequestError('Missing parameter: \'name\'');
+      }
+      if (offset == null) {
+        throw new BadRequestError('Missing parameter: \'offset\'');
+      }
+
+      Stopwatch watch = new Stopwatch()..start();
+      srcRequestRecorder.record(
+        "COMPLETE-v1", new JsonEncoder().convert(sources), offset);
+
+      counter.increment("Completions");
+      var response = await analysisServer.completeMulti(sources,
+        new Location()
+          ..fullName = name
+          ..offset = offset);
+      _logger.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
+      return response;
   }
 
   Future<FixesResponse> _fixes(String source, int offset) async {
@@ -369,10 +419,26 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
+    return _fixesMulti({"main.dart" : source}, "main.dart", offset);
+  }
+
+  Future<FixesResponse> _fixesMulti(Map<String, String> sources,
+    String name, int offset) async {
+    if (sources == null) {
+      throw new BadRequestError('Missing parameter: \'sources\'');
+    }
+    if (offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
+    }
+
     Stopwatch watch = new Stopwatch()..start();
-    srcRequestRecorder.record("FIX", source, offset);
+    srcRequestRecorder.record("FIX-v1",
+      new JsonEncoder().convert(sources), offset);
     counter.increment("Fixes");
-    var response = await analysisServer.getFixes(source, offset);
+    var response = await analysisServer.getFixesMulti(sources,
+      new Location()
+        ..fullName = name
+        ..offset = offset);
     _logger.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
