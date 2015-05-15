@@ -328,30 +328,60 @@ class CommonServer {
       appEngineVersion: container.version);
 
   Future<CompleteResponse> _complete(String source, int offset) async {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
+    }
+    if (offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
+    }
+
+    Stopwatch watch = new Stopwatch()..start();
     srcRequestRecorder.record("COMPLETE", source, offset);
     counter.increment("Completions");
-    return analysisServer.complete(source, offset);
+    var response = await analysisServer.complete(source, offset);
+    _logger.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
+    return response;
   }
 
   Future<FixesResponse> _fixes(String source, int offset) async {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
+    }
+    if (offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
+    }
+
+    Stopwatch watch = new Stopwatch()..start();
     srcRequestRecorder.record("FIX", source, offset);
     counter.increment("Fixes");
-    return analysisServer.getFixes(source, offset);
+    var response = await analysisServer.getFixes(source, offset);
+    _logger.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
+    return response;
   }
 
   Future<FormatResponse> _format(String source, {int offset}) async {
+    if (source == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
+    }
     if (offset == null) offset = 0;
+    Stopwatch watch = new Stopwatch()..start();
     srcRequestRecorder.record("FORMAT", source, offset);
     counter.increment("Formats");
 
     // Guard against trying to format code with errors.
     AnalysisResults analysisResults = await analyzer.analyze(source);
 
+    var response;
     if (analysisResults.issues.where(
         (issue) => issue.kind == "error").length > 0) {
-      return new FormatResponse(source, offset);
+      response = new FormatResponse(source, offset);
+      _logger.info('PERF: Format aborted due to analysis errors in'
+        ' ${watch.elapsedMilliseconds}ms.');
+      return response;
     }
-    return analysisServer.format(source, offset);
+    response = await analysisServer.format(source, offset);
+    _logger.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
+    return response;
   }
 
   Future<String> checkCache(String query) => cache.get(query);
