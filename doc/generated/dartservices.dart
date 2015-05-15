@@ -103,6 +103,47 @@ class DartservicesApi {
   }
 
   /**
+   * Analyze the given Dart source code and return any resulting analysis errors
+   * or warnings.
+   *
+   * [request] - The metadata request object.
+   *
+   * Request parameters:
+   *
+   * Completes with a [AnalysisResults].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (request != null) {
+      _body = convert.JSON.encode((request).toJson());
+    }
+
+
+    _url = 'analyzeMulti';
+
+    var _response = _requester.request(_url,
+                                       "POST",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new AnalysisResults.fromJson(data));
+  }
+
+  /**
    * Compile the given Dart source code and return the resulting JavaScript.
    *
    * [request] - The metadata request object.
@@ -603,9 +644,12 @@ class AnalysisIssue {
 
   core.int line;
 
+  /** deprecated - see `sourceName` */
   core.String location;
 
   core.String message;
+
+  core.String sourceName;
 
 
   AnalysisIssue();
@@ -632,6 +676,9 @@ class AnalysisIssue {
     if (_json.containsKey("message")) {
       message = _json["message"];
     }
+    if (_json.containsKey("sourceName")) {
+      sourceName = _json["sourceName"];
+    }
   }
 
   core.Map toJson() {
@@ -657,6 +704,9 @@ class AnalysisIssue {
     if (message != null) {
       _json["message"] = message;
     }
+    if (sourceName != null) {
+      _json["sourceName"] = sourceName;
+    }
     return _json;
   }
 }
@@ -665,6 +715,12 @@ class AnalysisIssue {
 class AnalysisResults {
   core.List<AnalysisIssue> issues;
 
+  /** The package imports parsed from the source. */
+  core.List<core.String> packageImports;
+
+  /** The resolved imports - e.g. dart:async, dart:io, ... */
+  core.List<core.String> resolvedImports;
+
 
   AnalysisResults();
 
@@ -672,12 +728,24 @@ class AnalysisResults {
     if (_json.containsKey("issues")) {
       issues = _json["issues"].map((value) => new AnalysisIssue.fromJson(value)).toList();
     }
+    if (_json.containsKey("packageImports")) {
+      packageImports = _json["packageImports"];
+    }
+    if (_json.containsKey("resolvedImports")) {
+      resolvedImports = _json["resolvedImports"];
+    }
   }
 
   core.Map toJson() {
     var _json = new core.Map();
     if (issues != null) {
       _json["issues"] = issues.map((value) => (value).toJson()).toList();
+    }
+    if (packageImports != null) {
+      _json["packageImports"] = packageImports;
+    }
+    if (resolvedImports != null) {
+      _json["resolvedImports"] = resolvedImports;
     }
     return _json;
   }
@@ -925,6 +993,36 @@ class FormatResponse {
 }
 
 
+class Location {
+  core.String fullName;
+
+  core.int offset;
+
+
+  Location();
+
+  Location.fromJson(core.Map _json) {
+    if (_json.containsKey("fullName")) {
+      fullName = _json["fullName"];
+    }
+    if (_json.containsKey("offset")) {
+      offset = _json["offset"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (fullName != null) {
+      _json["fullName"] = fullName;
+    }
+    if (offset != null) {
+      _json["offset"] = offset;
+    }
+    return _json;
+  }
+}
+
+
 class ProblemAndFixes {
   core.List<CandidateFix> fixes;
 
@@ -1035,6 +1133,38 @@ class SourceRequest {
     }
     if (source != null) {
       _json["source"] = source;
+    }
+    return _json;
+  }
+}
+
+
+class SourcesRequest {
+  /** An optional location in the source code. */
+  Location location;
+
+  /** Map of names to Sources. */
+  core.Map<core.String, core.String> sources;
+
+
+  SourcesRequest();
+
+  SourcesRequest.fromJson(core.Map _json) {
+    if (_json.containsKey("location")) {
+      location = new Location.fromJson(_json["location"]);
+    }
+    if (_json.containsKey("sources")) {
+      sources = _json["sources"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (location != null) {
+      _json["location"] = (location).toJson();
+    }
+    if (sources != null) {
+      _json["sources"] = sources;
     }
     return _json;
   }
