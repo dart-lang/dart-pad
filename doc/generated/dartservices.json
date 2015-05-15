@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "fd1ff4494fc57b70e09fa940ed802290a55d9668",
+ "etag": "7364ddf579795afffb0c3642b20ccfaad8f148c6",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -121,7 +121,7 @@
    "id": "Location",
    "type": "object",
    "properties": {
-    "fullName": {
+    "sourceName": {
      "type": "string"
     },
     "offset": {
@@ -411,6 +411,20 @@
     "$ref": "CompleteResponse"
    }
   },
+  "completeMulti": {
+   "id": "CommonServer.completeMulti",
+   "path": "completeMulti",
+   "httpMethod": "POST",
+   "description": "Get the valid code completion results for the given offset.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourcesRequest"
+   },
+   "response": {
+    "$ref": "CompleteResponse"
+   }
+  },
   "completeGet": {
    "id": "CommonServer.completeGet",
    "path": "complete",
@@ -443,6 +457,20 @@
    "parameterOrder": [],
    "request": {
     "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "FixesResponse"
+   }
+  },
+  "fixesMulti": {
+   "id": "CommonServer.fixesMulti",
+   "path": "fixesMulti",
+   "httpMethod": "POST",
+   "description": "Get any quick fixes for the given source code location.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourcesRequest"
    },
    "response": {
     "$ref": "FixesResponse"
