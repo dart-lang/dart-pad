@@ -148,7 +148,7 @@ class CommonServer {
     }
 
     return _completeMulti(
-        request.sources, request.location.fullName, request.location.offset);
+        request.sources, request.location.sourceName, request.location.offset);
   }
 
 
@@ -181,7 +181,7 @@ class CommonServer {
       path: 'fixesMulti',
       description: 'Get any quick fixes for the given source code location.')
   Future<FixesResponse> fixesMulti(SourcesRequest request) {
-    if (request.location.fullName == null) {
+    if (request.location.sourceName == null) {
       throw new BadRequestError('Missing parameter: \'fullName\'');
     }
     if (request.location.offset == null) {
@@ -189,7 +189,7 @@ class CommonServer {
     }
 
     return _fixesMulti(
-        request.sources, request.location.fullName, request.location.offset);
+        request.sources, request.location.sourceName, request.location.offset);
   }
 
   @ApiMethod(method: 'GET', path: 'fixes')
@@ -405,7 +405,7 @@ class CommonServer {
       counter.increment("Completions");
       var response = await analysisServer.completeMulti(sources,
         new Location()
-          ..fullName = name
+          ..sourceName = name
           ..offset = offset);
       _logger.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
       return response;
@@ -437,7 +437,7 @@ class CommonServer {
     counter.increment("Fixes");
     var response = await analysisServer.getFixesMulti(sources,
       new Location()
-        ..fullName = name
+        ..sourceName = name
         ..offset = offset);
     _logger.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
     return response;

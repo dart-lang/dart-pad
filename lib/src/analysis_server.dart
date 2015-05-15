@@ -51,7 +51,7 @@ class AnalysisServerWrapper {
   Future<api.CompleteResponse> complete(String src, int offset) async =>
     completeMulti({"main.dart" : src},
       new api.Location()
-        ..fullName = "main.dart"
+        ..sourceName = "main.dart"
         ..offset = offset);
 
   Future<api.CompleteResponse> completeMulti(
@@ -59,7 +59,7 @@ class AnalysisServerWrapper {
     api.Location location) async {
 
     Future<Map> results = _completeImpl(
-      sources, location.fullName, location.offset);
+      sources, location.sourceName, location.offset);
 
     // Post process the result from Analysis Server.
     return results.then((Map response) {
@@ -87,12 +87,12 @@ class AnalysisServerWrapper {
     getFixesMulti(
       {"main.dart" : src},
       new api.Location()
-        ..fullName = "main.dart"
+        ..sourceName = "main.dart"
         ..offset = offset);
 
   Future<api.FixesResponse> getFixesMulti(
       Map<String, String> sources, api.Location location) async {
-    var results = _getFixesImpl(sources, location.fullName, location.offset);
+    var results = _getFixesImpl(sources, location.sourceName, location.offset);
     return results.then((fixes) => new api.FixesResponse(fixes.fixes));
   }
 

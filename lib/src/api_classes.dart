@@ -70,7 +70,7 @@ class SourcesRequest {
 }
 
 class Location {
-  String fullName;
+  String sourceName;
   int offset;
 }
 
