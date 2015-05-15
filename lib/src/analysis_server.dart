@@ -48,9 +48,18 @@ class AnalysisServerWrapper {
     serverConnection = new _Server(this.sdkPath);
   }
 
-  Future<api.CompleteResponse> complete(String src, int offset) async {
+  Future<api.CompleteResponse> complete(String src, int offset) async =>
+    completeMulti({mainPath : src},
+      new api.Location()
+        ..fullName = mainPath
+        ..offset = offset);
+
+  Future<api.CompleteResponse> completeMulti(
+    Map<String, String> sources,
+    api.Location location) async {
+
     Future<Map> results = _completeImpl(
-        {mainPath : src}, mainPath, offset);
+      sources, location.fullName, location.offset);
 
     // Post process the result from Analysis Server.
     return results.then((Map response) {
@@ -74,8 +83,16 @@ class AnalysisServerWrapper {
     });
   }
 
-  Future<api.FixesResponse> getFixes(String src, int offset) async {
-    var results = _getFixesImpl(src, offset);
+  Future<api.FixesResponse> getFixes(String src, int offset) async =>
+    getFixesMulti(
+      {mainPath : src},
+      new api.Location()
+        ..fullName = mainPath
+        ..offset = offset);
+
+  Future<api.FixesResponse> getFixesMulti(
+      Map<String, String> sources, api.Location location) async {
+    var results = _getFixesImpl(sources, location.fullName, location.offset);
     return results.then((fixes) => new api.FixesResponse(fixes.fixes));
   }
 
@@ -93,8 +110,11 @@ class AnalysisServerWrapper {
     });
   }
 
+
   /// Cleanly shutdown the Analysis Server.
   Future shutdown() => serverConnection.sendServerShutdown();
+
+  Future kill() => serverConnection.kill();
 
   /// Internal implementation of the completion mechanism.
   Future<Map> _completeImpl(Map<String, String> sources,
@@ -112,22 +132,23 @@ class AnalysisServerWrapper {
     });
   }
 
-  Future<EditGetFixesResult> _getFixesImpl(String src, int offset) async {
+  Future<EditGetFixesResult> _getFixesImpl(
+      Map<String, String> overlays, String path, int offset) async {
     await serverConnection._ensureSetup();
 
-    await serverConnection.sendAddOverlay(src);
+    await serverConnection.sendAddOverlays(overlays);
     await serverConnection.analysisComplete.first;
-    var fixes = await serverConnection.sendGetFixes(offset);
-    await serverConnection.sendRemoveOverlay();
+    var fixes = await serverConnection.sendGetFixes(path, offset);
+    await serverConnection.sendRemoveOverlays(overlays.keys.toList());
     return fixes;
   }
 
   Future<EditFormatResult> _formatImpl(String src, int offset) async {
     await serverConnection._ensureSetup();
-    await serverConnection.sendAddOverlay(src);
+    await serverConnection.sendAddOverlays({mainPath : src});
     await serverConnection.analysisComplete.first;
     var formatResult = await serverConnection.sendFormat(offset);
-    await serverConnection.sendRemoveOverlay();
+    await serverConnection.sendRemoveOverlays([mainPath]);
     return formatResult;
   }
 
@@ -189,9 +210,9 @@ class _Server {
 
     _logger.fine("Server Set Subscriptions completed");
 
-    await sendAddOverlay(
-        "${sourceDirectory.path}${io.Platform.pathSeparator}main.dart",
-        _WARMUP_SRC);
+    await sendAddOverlays({
+        "${sourceDirectory.path}${io.Platform.pathSeparator}main.dart" :
+        _WARMUP_SRC});
     sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
     isSettingUp = false;
     isSetup = true;
@@ -201,17 +222,12 @@ class _Server {
   }
 
   Future loadSources(Map<String, String> sources) async {
-    for (String path in sources.keys) {
-      String source = sources[path];
-      await sendAddOverlay(path, source);
-    }
+    await sendAddOverlays(sources);
     await sendPrioritySetSources(sources.keys.toList());
   }
 
   Future unloadSources(List<String> paths) async {
-    for (String path in paths) {
-      await sendRemoveOverlay(path);
-    }
+    await sendRemoveOverlays(paths);
   }
 
   /**
@@ -448,9 +464,8 @@ class _Server {
   Future<EditFormatResult> sendFormat(int selectionOffset,
     [int selectionLength = 0]) {
 
-    String file = psuedoFilePath;
     var params = new EditFormatParams(
-        file, selectionOffset, selectionLength).toJson();
+        mainPath, selectionOffset, selectionLength).toJson();
 
     return send("edit.format", params).then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
@@ -458,9 +473,14 @@ class _Server {
     });
   }
 
-  Future<AnalysisUpdateContentResult> sendAddOverlay(String path, String contents) {
-    var overlay = new AddContentOverlay(contents);
-    var params = new AnalysisUpdateContentParams({path: overlay}).toJson();
+  Future<AnalysisUpdateContentResult> sendAddOverlays(
+      Map<String, String> overlays) {
+    var updateMap = {};
+    for (String path in overlays.keys) {
+      updateMap.putIfAbsent(path, () => new AddContentOverlay(overlays[path]));
+    }
+
+    var params = new AnalysisUpdateContentParams(updateMap).toJson();
     _logger.fine("About to send analysis.updateContent");
     return send("analysis.updateContent", params).then((result) {
       _logger.fine("analysis.updateContent -> then");
@@ -470,9 +490,12 @@ class _Server {
     });
   }
 
-  Future<AnalysisUpdateContentResult> sendRemoveOverlay(String path) {
+  Future<AnalysisUpdateContentResult> sendRemoveOverlays(List<String> paths) {
+    var updateMap = {};
     var overlay = new RemoveContentOverlay();
-    var params = new AnalysisUpdateContentParams({path: overlay}).toJson();
+    paths.forEach((String path) => updateMap.putIfAbsent(path, () => overlay));
+
+    var params = new AnalysisUpdateContentParams(updateMap).toJson();
     _logger.fine("About to send analysis.updateContent - remove overlay");
     return send("analysis.updateContent", params).then((result) {
       _logger.fine("analysis.updateContent -> then");
