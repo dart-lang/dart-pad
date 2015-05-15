@@ -21,7 +21,6 @@ void main() {
 }
 """;
 
-
 final String sampleCodeMultiFoo = """
 import 'bar.dart';
 

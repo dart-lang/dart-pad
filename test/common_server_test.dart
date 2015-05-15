@@ -89,7 +89,11 @@ void defineTests() {
       var response = await _sendPostRequest('dartservices/v1/analyze', json);
       expect(response.status, 200);
       var data = await response.body.first;
-      expect(JSON.decode(UTF8.decode(data)), { 'issues': [] });
+      expect(JSON.decode(UTF8.decode(data)), {
+        'issues': [],
+        'packageImports': [],
+        'resolvedImports': []
+      });
     });
 
     test('analyze errors', () async {
@@ -104,14 +108,17 @@ void defineTests() {
           {
             "kind": "error",
             "line": 2,
-            "fullName": "main.dart",
+            "sourcePath": "main.dart",
             "message": "Expected to find \';\'",
             "hasFixes": true,
             "charStart": 29,
             "charLength": 1,
             "location": "main.dart"
           }
-      ]};
+        ],
+        'packageImports': [],
+        'resolvedImports': []
+      };
       expect(JSON.decode(UTF8.decode(data)), expectedJson);
     });
 

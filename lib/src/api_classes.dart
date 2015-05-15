@@ -13,14 +13,20 @@ import 'package:rpc/rpc.dart';
 class AnalysisResults {
   final List<AnalysisIssue> issues;
 
-  AnalysisResults(this.issues);
+  @ApiProperty(description: 'The package imports parsed from the source.')
+  final List<String> packageImports;
+
+  @ApiProperty(description: 'The resolved imports - e.g. dart:async, dart:io, ...')
+  final List<String> resolvedImports;
+
+  AnalysisResults(this.issues, this.packageImports, this.resolvedImports);
 }
 
 class AnalysisIssue implements Comparable {
   final String kind;
   final int line;
   final String message;
-  final String fullName;
+  final String sourcePath;
 
   final bool hasFixes;
 
@@ -28,12 +34,13 @@ class AnalysisIssue implements Comparable {
   final int charLength;
   // TODO: Once all clients have started using fullName, we should remove the
   // location field.
+  @Deprecated('use sourcePath instead')
+  @ApiProperty(description: 'deprecated - see `sourcePath`')
   final String location;
 
-  AnalysisIssue() : this.fromIssue("", 0, "");
   AnalysisIssue.fromIssue(this.kind, this.line, this.message,
       {this.charStart, this.charLength, this.location,
-      this.fullName, this.hasFixes: false});
+      this.sourcePath, this.hasFixes: false});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};
