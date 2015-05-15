@@ -44,14 +44,14 @@ class AnalysisServerWrapper {
   AnalysisServerWrapper(this.sdkPath) {
     _logger.info("AnalysisServerWrapper ctor");
     sourceDirectory = io.Directory.systemTemp.createTempSync('analysisServer');
-    mainPath = "${sourceDirectory.path}${io.Platform.pathSeparator}main.dart";
+    mainPath = _getPathFromName("main.dart");
     serverConnection = new _Server(this.sdkPath);
   }
 
   Future<api.CompleteResponse> complete(String src, int offset) async =>
-    completeMulti({mainPath : src},
+    completeMulti({"main.dart" : src},
       new api.Location()
-        ..fullName = mainPath
+        ..fullName = "main.dart"
         ..offset = offset);
 
   Future<api.CompleteResponse> completeMulti(
@@ -85,9 +85,9 @@ class AnalysisServerWrapper {
 
   Future<api.FixesResponse> getFixes(String src, int offset) async =>
     getFixesMulti(
-      {mainPath : src},
+      {"main.dart" : src},
       new api.Location()
-        ..fullName = mainPath
+        ..fullName = "main.dart"
         ..offset = offset);
 
   Future<api.FixesResponse> getFixesMulti(
@@ -118,9 +118,10 @@ class AnalysisServerWrapper {
 
   /// Internal implementation of the completion mechanism.
   Future<Map> _completeImpl(Map<String, String> sources,
-                            String path, int offset) async {
+                            String sourceName, int offset) async {
+    sources = _rewriteOverlayNamesToPaths(sources);
+    String path = _getPathFromName(sourceName);
     await serverConnection._ensureSetup();
-
     await serverConnection.loadSources(sources);
     await serverConnection.analysisComplete.first;
     await serverConnection.sendCompletionGetSuggestions(path, offset);
@@ -133,24 +134,37 @@ class AnalysisServerWrapper {
   }
 
   Future<EditGetFixesResult> _getFixesImpl(
-      Map<String, String> overlays, String path, int offset) async {
-    await serverConnection._ensureSetup();
+      Map<String, String> sources, String sourceName, int offset) async {
+    sources = _rewriteOverlayNamesToPaths(sources);
+    String path = _getPathFromName(sourceName);
 
-    await serverConnection.sendAddOverlays(overlays);
+    await serverConnection._ensureSetup();
+    await serverConnection.loadSources(sources);
     await serverConnection.analysisComplete.first;
     var fixes = await serverConnection.sendGetFixes(path, offset);
-    await serverConnection.sendRemoveOverlays(overlays.keys.toList());
+    await serverConnection.unloadSources(sources.keys.toList());
     return fixes;
   }
 
   Future<EditFormatResult> _formatImpl(String src, int offset) async {
     await serverConnection._ensureSetup();
-    await serverConnection.sendAddOverlays({mainPath : src});
+    await serverConnection.loadSources({mainPath : src});
     await serverConnection.analysisComplete.first;
     var formatResult = await serverConnection.sendFormat(offset);
-    await serverConnection.sendRemoveOverlays([mainPath]);
+    await serverConnection.unloadSources([mainPath]);
     return formatResult;
   }
+
+  Map<String, String> _rewriteOverlayNamesToPaths(Map<String, String> overlay) {
+    var newOverlay = {};
+    overlay.forEach((k,v) => newOverlay.putIfAbsent(
+      _getPathFromName(k), () => v)
+    );
+    return newOverlay;
+  }
+
+  String _getPathFromName(String sourceName) =>
+    "${sourceDirectory.path}${io.Platform.pathSeparator}$sourceName";
 
   /// Warm up the analysis server to be ready for use.
   Future warmup([bool useHtml = false]) =>
@@ -224,10 +238,14 @@ class _Server {
   Future loadSources(Map<String, String> sources) async {
     await sendAddOverlays(sources);
     await sendPrioritySetSources(sources.keys.toList());
+    sources.keys.forEach((path) =>
+      new io.File(path).writeAsStringSync("", flush: true));
   }
 
   Future unloadSources(List<String> paths) async {
     await sendRemoveOverlays(paths);
+    paths.forEach((path) =>
+      new io.File(path).deleteSync());
   }
 
   /**
