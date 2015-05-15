@@ -20,16 +20,20 @@ class AnalysisIssue implements Comparable {
   final String kind;
   final int line;
   final String message;
+  final String fullName;
 
   final bool hasFixes;
 
   final int charStart;
   final int charLength;
+  // TODO: Once all clients have started using fullName, we should remove the
+  // location field.
   final String location;
 
   AnalysisIssue() : this.fromIssue("", 0, "");
   AnalysisIssue.fromIssue(this.kind, this.line, this.message,
-      {this.charStart, this.charLength, this.location, this.hasFixes: false});
+      {this.charStart, this.charLength, this.location,
+      this.fullName, this.hasFixes: false});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};
@@ -51,6 +55,22 @@ class SourceRequest {
 
   @ApiProperty(
       description: 'An optional offset into the source code.')
+  int offset;
+}
+
+class SourcesRequest {
+  @ApiProperty(
+      required: true,
+      description: 'Map of names to Sources.')
+  Map<String, String> sources;
+
+  @ApiProperty(
+      description: 'An optional location in the source code.')
+  Location location;
+}
+
+class Location {
+  String fullName;
   int offset;
 }
 

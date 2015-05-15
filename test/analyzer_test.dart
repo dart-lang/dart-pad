@@ -133,6 +133,53 @@ void main() {
         expect(m['DomName'], 'HTMLDivElement');
       });
     });
+
+    test('simple Multi', () {
+      Map sourceMap = {};
+      sourceMap.putIfAbsent("foo.dart", () => sampleCodeMultiFoo);
+      sourceMap.putIfAbsent("bar.dart", () => sampleCodeMultiBar);
+
+      return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
+        expect(results.issues, isEmpty);
+      });
+    });
+
+    test('multi with error', () {
+      Map sourceMap = {};
+      sourceMap.putIfAbsent("foo.dart", () => sampleCodeMultiFoo);
+      sourceMap.putIfAbsent("bar.dart", () => sampleCodeMultiBar);
+      sourceMap.putIfAbsent("main.dart", () => sampleCodeError);
+
+      return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
+        expect(results.issues, isNotEmpty);
+        expect(results.issues[0].fullName, "main.dart");
+      });
+    });
+
+    test('multi file missing import', () {
+      Map sourceMap = {};
+      sourceMap.putIfAbsent("foo.dart", () => sampleCodeMultiFoo);
+
+      return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
+        expect(results.issues, isNotEmpty);
+        expect(results.issues[0].fullName, "foo.dart");
+      });
+    });
+
+    test('multi file clean between operation', () {
+      Map sourceMap = {};
+      sourceMap.putIfAbsent("foo.dart", () => sampleCodeMultiFoo);
+      sourceMap.putIfAbsent("bar.dart", () => sampleCodeMultiBar);
+
+      return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
+        expect(results.issues, isEmpty);
+
+        sourceMap.remove("bar.dart");
+        return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
+          expect((results.issues), isNotEmpty);
+        });
+      });
+    });
   });
 
   group('cleanDartDoc', () {

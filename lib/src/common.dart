@@ -21,6 +21,21 @@ void main() {
 }
 """;
 
+
+final String sampleCodeMultiFoo = """
+import 'bar.dart';
+
+void main() {
+  print(bar());
+}
+""";
+
+final String sampleCodeMultiBar = """
+bar() {
+  return 4;
+}
+""";
+
 final String sampleCodeAsync = """
 import 'dart:html';
 
