@@ -39,6 +39,28 @@ void defineTests() {
       });
     });
 
+    test('import parsing', () {
+      final String sample = '''
+import 'dart:async';
+import 'dart:io';
+import 'package:bar/bar.dart';
+import 'package:baz/baz.dart';
+
+void main() {
+  print('hello');
+}
+''';
+
+      return analyzer.analyze(sample).then((AnalysisResults results) {
+        expect(results.packageImports.length, 2);
+        expect(results.packageImports[0], 'bar');
+        expect(results.packageImports[1], 'baz');
+        expect(results.resolvedImports.length, 2);
+        expect(results.resolvedImports[0], 'dart:async');
+        expect(results.resolvedImports[1], 'dart:io');
+      });
+    });
+
     test('errors', () {
       return analyzer.analyze(sampleCodeError).then((AnalysisResults results) {
         expect(results.issues.length, 1);
@@ -100,7 +122,7 @@ void main() {
       });
     });
 
-    test('future pretified', () {
+    test('future prettified', () {
       final String source = '''
 import 'dart:async';
 
@@ -152,7 +174,7 @@ void main() {
 
       return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
         expect(results.issues, isNotEmpty);
-        expect(results.issues[0].fullName, "main.dart");
+        expect(results.issues[0].sourceName, "main.dart");
       });
     });
 
@@ -162,7 +184,7 @@ void main() {
 
       return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
         expect(results.issues, isNotEmpty);
-        expect(results.issues[0].fullName, "foo.dart");
+        expect(results.issues[0].sourceName, "foo.dart");
       });
     });
 

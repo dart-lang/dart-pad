@@ -94,23 +94,29 @@ class Analyzer {
         errorInfos.add(_context.getErrors(s));
       });
 
-      List<_Error> errors = errorInfos
-        .expand((AnalysisErrorInfo info) {
+      List<_Error> errors = errorInfos.expand((AnalysisErrorInfo info) {
         return info.errors.map((error) => new _Error(error, info.lineInfo));
-      })
-      .where((_Error error) => error.errorType != ErrorType.TODO)
-      .toList();
+      }).where((_Error error) => error.errorType != ErrorType.TODO).toList();
 
+      // Calculate the issues.
       List<AnalysisIssue> issues = errors.map((_Error error) {
         return new AnalysisIssue.fromIssue(
             error.severityName, error.line, error.message,
             location: error.location,
             charStart: error.offset, charLength: error.length,
-            fullName: error.error.source.fullName,
+            sourceName: error.error.source.fullName,
             hasFixes: error.probablyHasFix);
       }).toList();
-
       issues.sort();
+
+      // Calculate the imports.
+      Set<String> packageImports = new Set();
+      for (String source in sources.values) {
+        // TODO: Use the `pub` object for this in the future.
+        packageImports.addAll(
+            filterSafePackagesFromImports(getAllUnsafeImportsFor(source)));
+      }
+      List<String> resolvedImports = _calculateImports(_context, sourcesList);
 
       // Delete the files
       changeSet = new ChangeSet();
@@ -118,13 +124,13 @@ class Analyzer {
       _resolver.clear();
       _context.applyChanges(changeSet);
 
-      return new Future.value(new AnalysisResults(issues));
+      return new Future.value(new AnalysisResults(
+          issues, packageImports.toList(), resolvedImports));
     } catch (e, st) {
       _reset();
       return new Future.error(e, st);
     }
   }
-
 
   Future<Map<String, String>> dartdoc(String source, int offset) {
     try {
@@ -238,6 +244,24 @@ class Analyzer {
     }
 
     return null;
+  }
+
+  /// Calculate the resolved imports for the given set of sources.
+  List<String> _calculateImports(AnalysisContext context, List<Source> sources) {
+    Set<String> imports = new Set();
+
+    for (Source source in sources) {
+      LibraryElement element = context.getLibraryElement(source);
+
+      if (element != null) {
+        element.imports.forEach((ImportElement import) {
+          // The dart:core implicit import has a null uri.
+          if (import.uri != null) imports.add(import.uri);
+        });
+      }
+    }
+
+    return imports.toList();
   }
 
   // TODO(lukechurch): Determine whether we can change this in the Analyzer.

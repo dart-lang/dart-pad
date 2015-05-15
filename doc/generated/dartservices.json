@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "42dedf5be1217e5f46fa3c199556964c515ca7f5",
+ "etag": "fd1ff4494fc57b70e09fa940ed802290a55d9668",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -48,6 +48,20 @@
      "items": {
       "$ref": "AnalysisIssue"
      }
+    },
+    "packageImports": {
+     "type": "array",
+     "description": "The package imports parsed from the source.",
+     "items": {
+      "type": "string"
+     }
+    },
+    "resolvedImports": {
+     "type": "array",
+     "description": "The resolved imports - e.g. dart:async, dart:io, ...",
+     "items": {
+      "type": "string"
+     }
     }
    }
   },
@@ -65,6 +79,9 @@
     "message": {
      "type": "string"
     },
+    "sourceName": {
+     "type": "string"
+    },
     "hasFixes": {
      "type": "boolean"
     },
@@ -77,7 +94,39 @@
      "format": "int32"
     },
     "location": {
+     "type": "string",
+     "description": "deprecated - see `sourceName`"
+    }
+   }
+  },
+  "SourcesRequest": {
+   "id": "SourcesRequest",
+   "type": "object",
+   "properties": {
+    "sources": {
+     "type": "object",
+     "description": "Map of names to Sources.",
+     "required": true,
+     "additionalProperties": {
+      "type": "string"
+     }
+    },
+    "location": {
+     "$ref": "Location",
+     "description": "An optional location in the source code."
+    }
+   }
+  },
+  "Location": {
+   "id": "Location",
+   "type": "object",
+   "properties": {
+    "fullName": {
      "type": "string"
+    },
+    "offset": {
+     "type": "integer",
+     "format": "int32"
     }
    }
   },
@@ -281,6 +330,20 @@
    "parameterOrder": [],
    "request": {
     "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "AnalysisResults"
+   }
+  },
+  "analyzeMulti": {
+   "id": "CommonServer.analyzeMulti",
+   "path": "analyzeMulti",
+   "httpMethod": "POST",
+   "description": "Analyze the given Dart source code and return any resulting analysis errors or warnings.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourcesRequest"
    },
    "response": {
     "$ref": "AnalysisResults"

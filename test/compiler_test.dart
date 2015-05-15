@@ -26,7 +26,7 @@ void defineTests() {
         expect(result.getSourceMap(), isEmpty);
       });
     });
-    
+
     test('sourcemap', () {
       return compiler.compile(sampleCode, returnSourceMap: true).then(
           (CompilationResults result) {
@@ -35,7 +35,7 @@ void defineTests() {
         expect(result.getSourceMap(), isNotEmpty);
       });
     });
-    
+
     test('version', () {
       return compiler.compile(sampleCode, returnSourceMap: true).then(
           (CompilationResults result) {
@@ -44,7 +44,6 @@ void defineTests() {
         expect(result.getSourceMap(), isNotEmpty);
       });
     });
-
 
     // TODO: How to get different source when compiling with --checked?
 //    test('checked', () {
