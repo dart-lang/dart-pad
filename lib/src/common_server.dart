@@ -387,11 +387,11 @@ class CommonServer {
   }
 
   Future<CompleteResponse> _completeMulti(Map<String, String> sources,
-    String name, int offset) async {
+    String sourceName, int offset) async {
       if (sources == null) {
         throw new BadRequestError('Missing parameter: \'source\'');
       }
-      if (name == null) {
+      if (sourceName == null) {
         throw new BadRequestError('Missing parameter: \'name\'');
       }
       if (offset == null) {
@@ -405,7 +405,7 @@ class CommonServer {
       counter.increment("Completions");
       var response = await analysisServer.completeMulti(sources,
         new Location()
-          ..sourceName = name
+          ..sourceName = sourceName
           ..offset = offset);
       _logger.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
       return response;
@@ -423,7 +423,7 @@ class CommonServer {
   }
 
   Future<FixesResponse> _fixesMulti(Map<String, String> sources,
-    String name, int offset) async {
+    String sourceName, int offset) async {
     if (sources == null) {
       throw new BadRequestError('Missing parameter: \'sources\'');
     }
@@ -437,7 +437,7 @@ class CommonServer {
     counter.increment("Fixes");
     var response = await analysisServer.getFixesMulti(sources,
       new Location()
-        ..sourceName = name
+        ..sourceName = sourceName
         ..offset = offset);
     _logger.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
     return response;
