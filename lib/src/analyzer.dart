@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' hide Logger;
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
@@ -25,76 +24,111 @@ import 'pub.dart';
 
 Logger _logger = new Logger('analyzer');
 
+class MemoryResolver extends UriResolver {
+  Map<String, Source> sources = {};
+
+  @override
+  Source resolveAbsolute(Uri uri) {
+    return sources[uri.toString()];
+  }
+
+  void addFileToMap(StringSource file) {
+    sources[file.fullName] = file;
+  }
+
+  void clear() => sources.clear();
+}
+
 class Analyzer {
   final Pub pub;
-
-  StringSource _source;
   AnalysisContext _context;
+  MemoryResolver _resolver;
+  String _sdkPath;
 
-  Analyzer(String sdkPath, [this.pub]) {
-    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(sdkPath),
-        /*useDart2jsPaths*/ true);
+  Analyzer(this._sdkPath, [this.pub]) {
+    _reset();
+    analyze('');
+  }
+
+  void _reset() {
+    _resolver = new MemoryResolver();
+
+    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(_sdkPath),
+    /*useDart2jsPaths*/ true);
     _context = AnalysisEngine.instance.createAnalysisContext();
     _context.analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
+
     List<UriResolver> resolvers = [
       new DartUriResolver(sdk),
+      _resolver
       // TODO: Create a new UriResolver.
       //new PackageUriResolver([new JavaFile(project.packagePath)
     ];
     _context.sourceFactory = new SourceFactory(resolvers);
     AnalysisEngine.instance.logger = new NullLogger();
-
-    _source = new StringSource('', 'main.dart');
-
-    ChangeSet changeSet = new ChangeSet();
-    changeSet.addedSource(_source);
-    _context.applyChanges(changeSet);
-    _context.computeErrors(_source);
-    _context.getErrors(_source);
   }
 
   Future warmup([bool useHtml = false]) =>
       analyze(useHtml ? sampleCodeWeb : sampleCode);
 
   Future<AnalysisResults> analyze(String source) {
+    return analyzeMulti({"main.dart" : source});
+  }
+
+  Future<AnalysisResults> analyzeMulti(Map<String, String> sources) {
     try {
-      _source.updateSource(source);
+      List<StringSource> sourcesList = <StringSource>[];
+      for (String name in sources.keys) {
+        StringSource src = new StringSource(sources[name], name);
+        _resolver.addFileToMap(src);
+        sourcesList.add(src);
+      }
 
       ChangeSet changeSet = new ChangeSet();
-      changeSet.addedSource(_source);
+      sourcesList.forEach((s) => changeSet.addedSource(s));
       _context.applyChanges(changeSet);
 
       List<AnalysisErrorInfo> errorInfos = [];
-
-      _context.computeErrors(_source);
-      errorInfos.add(_context.getErrors(_source));
+      sourcesList.forEach((s) {
+        _context.computeErrors(s);
+        errorInfos.add(_context.getErrors(s));
+      });
 
       List<_Error> errors = errorInfos
         .expand((AnalysisErrorInfo info) {
-          return info.errors.map((error) => new _Error(error, info.lineInfo));
-        })
-        .where((_Error error) => error.errorType != ErrorType.TODO)
-        .toList();
+        return info.errors.map((error) => new _Error(error, info.lineInfo));
+      })
+      .where((_Error error) => error.errorType != ErrorType.TODO)
+      .toList();
 
       List<AnalysisIssue> issues = errors.map((_Error error) {
         return new AnalysisIssue.fromIssue(
             error.severityName, error.line, error.message,
             location: error.location,
             charStart: error.offset, charLength: error.length,
+            fullName: error.error.source.fullName,
             hasFixes: error.probablyHasFix);
       }).toList();
 
       issues.sort();
 
+      // Delete the files
+      changeSet = new ChangeSet();
+      sourcesList.forEach((s) => changeSet.deletedSource(s));
+      _resolver.clear();
+      _context.applyChanges(changeSet);
+
       return new Future.value(new AnalysisResults(issues));
     } catch (e, st) {
+      _reset();
       return new Future.error(e, st);
     }
   }
 
+
   Future<Map<String, String>> dartdoc(String source, int offset) {
     try {
-      _source.updateSource(source);
+      var _source = new StringSource(source, "main.dart");
 
       ChangeSet changeSet = new ChangeSet();
       changeSet.addedSource(_source);
@@ -259,10 +293,15 @@ class StringSource implements Source {
 
   bool get isInSystemLibrary => false;
 
-  Uri get uri => throw new UnsupportedError("StringSource doesn't support uri.");
+  Uri get uri {
+    throw new UnsupportedError("StringSource doesn't support uri.");
+  }
 
-  Uri resolveRelativeUri(Uri relativeUri) =>
-      throw new AnalysisException("Cannot resolve a URI: ${relativeUri}");
+  // TODO: I don't think this is generally sufficent, but it meets our purposes
+  // here.
+  Uri resolveRelativeUri(Uri relativeUri) {
+    return relativeUri;
+  }
 
   @override
   Source get source => this;

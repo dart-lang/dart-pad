@@ -99,6 +99,15 @@ class CommonServer {
     return _analyze(request.source);
   }
 
+  @ApiMethod(
+      method: 'POST',
+      path: 'analyzeMulti',
+      description: 'Analyze the given Dart source code and return any resulting '
+      'analysis errors or warnings.')
+  Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
+    return _analyzeMulti(request.sources);
+  }
+
   @ApiMethod(method: 'GET', path: 'analyze')
   Future<AnalysisResults> analyzeGet({String source}) {
     return _analyze(source);
@@ -208,11 +217,20 @@ class CommonServer {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
+    return _analyzeMulti({"main.dart" : source});
+  }
+
+  Future<AnalysisResults> _analyzeMulti(Map<String, String> sources) async {
+    if (sources == null) {
+      throw new BadRequestError('Missing parameter: \'sources\'');
+    }
     Stopwatch watch = new Stopwatch()..start();
-    srcRequestRecorder.record("ANALYZE", source);
+    srcRequestRecorder.record("ANALYZE-v1", new JsonEncoder().convert(sources));
     try {
-      return analyzer.analyze(source).then((AnalysisResults results) async {
-        int lineCount = source.split('\n').length;
+      return analyzer.analyzeMulti(sources).then((AnalysisResults results) async {
+        int lineCount = 0;
+        sources.values.forEach(
+          (String source) => lineCount += source.split('\n').length);
         int ms = watch.elapsedMilliseconds;
         _logger.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
         counter.increment("Analyses");
