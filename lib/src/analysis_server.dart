@@ -32,6 +32,9 @@ final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
 final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
 final _SERVER_PATH = "bin/_analysis_server_entry.dart";
 
+var sourceDirectory;
+var mainPath;
+
 class AnalysisServerWrapper {
   final String sdkPath;
 
@@ -40,11 +43,23 @@ class AnalysisServerWrapper {
 
   AnalysisServerWrapper(this.sdkPath) {
     _logger.info("AnalysisServerWrapper ctor");
+    sourceDirectory = io.Directory.systemTemp.createTempSync('analysisServer');
+    mainPath = _getPathFromName("main.dart");
     serverConnection = new _Server(this.sdkPath);
   }
 
-  Future<api.CompleteResponse> complete(String src, int offset) async {
-    Future<Map> results = _completeImpl(src, offset);
+  Future<api.CompleteResponse> complete(String src, int offset) async =>
+    completeMulti({"main.dart" : src},
+      new api.Location()
+        ..sourceName = "main.dart"
+        ..offset = offset);
+
+  Future<api.CompleteResponse> completeMulti(
+    Map<String, String> sources,
+    api.Location location) async {
+
+    Future<Map> results = _completeImpl(
+      sources, location.sourceName, location.offset);
 
     // Post process the result from Analysis Server.
     return results.then((Map response) {
@@ -68,8 +83,16 @@ class AnalysisServerWrapper {
     });
   }
 
-  Future<api.FixesResponse> getFixes(String src, int offset) async {
-    var results = _getFixesImpl(src, offset);
+  Future<api.FixesResponse> getFixes(String src, int offset) async =>
+    getFixesMulti(
+      {"main.dart" : src},
+      new api.Location()
+        ..sourceName = "main.dart"
+        ..offset = offset);
+
+  Future<api.FixesResponse> getFixesMulti(
+      Map<String, String> sources, api.Location location) async {
+    var results = _getFixesImpl(sources, location.sourceName, location.offset);
     return results.then((fixes) => new api.FixesResponse(fixes.fixes));
   }
 
@@ -87,46 +110,65 @@ class AnalysisServerWrapper {
     });
   }
 
+
   /// Cleanly shutdown the Analysis Server.
   Future shutdown() => serverConnection.sendServerShutdown();
 
-  /// Internal implementation of the completion mechanism.
-  Future<Map> _completeImpl(String src, int offset) async {
-    await serverConnection._ensureSetup();
+  Future kill() => serverConnection.kill();
 
-    await serverConnection.sendAddOverlay(src);
+  /// Internal implementation of the completion mechanism.
+  Future<Map> _completeImpl(Map<String, String> sources,
+                            String sourceName, int offset) async {
+    sources = _getOverlayMapWithPaths(sources);
+    String path = _getPathFromName(sourceName);
+    await serverConnection._ensureSetup();
+    await serverConnection.loadSources(sources);
     await serverConnection.analysisComplete.first;
-    await serverConnection.sendCompletionGetSuggestions(offset);
+    await serverConnection.sendCompletionGetSuggestions(path, offset);
 
     return serverConnection.completionResults.handleError(
         (error) => throw "Completion failed").first.then((ret) async {
-          await serverConnection.sendRemoveOverlay();
+          await serverConnection.unloadSources(sources.keys);
           return ret;
     });
   }
 
-  Future<EditGetFixesResult> _getFixesImpl(String src, int offset) async {
-    await serverConnection._ensureSetup();
+  Future<EditGetFixesResult> _getFixesImpl(
+      Map<String, String> sources, String sourceName, int offset) async {
+    sources = _getOverlayMapWithPaths(sources);
+    String path = _getPathFromName(sourceName);
 
-    await serverConnection.sendAddOverlay(src);
+    await serverConnection._ensureSetup();
+    await serverConnection.loadSources(sources);
     await serverConnection.analysisComplete.first;
-    var fixes = await serverConnection.sendGetFixes(offset);
-    await serverConnection.sendRemoveOverlay();
+    var fixes = await serverConnection.sendGetFixes(path, offset);
+    await serverConnection.unloadSources(sources.keys.toList());
     return fixes;
   }
 
   Future<EditFormatResult> _formatImpl(String src, int offset) async {
     await serverConnection._ensureSetup();
-    await serverConnection.sendAddOverlay(src);
+    await serverConnection.loadSources({mainPath : src});
     await serverConnection.analysisComplete.first;
     var formatResult = await serverConnection.sendFormat(offset);
-    await serverConnection.sendRemoveOverlay();
+    await serverConnection.unloadSources([mainPath]);
     return formatResult;
   }
 
+  Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {
+    var newOverlay = {};
+    overlay.forEach((k,v) => newOverlay.putIfAbsent(
+      _getPathFromName(k), () => v)
+    );
+    return newOverlay;
+  }
+
+  String _getPathFromName(String sourceName) =>
+    "${sourceDirectory.path}${io.Platform.pathSeparator}$sourceName";
+
   /// Warm up the analysis server to be ready for use.
   Future warmup([bool useHtml = false]) =>
-      _completeImpl(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
+    complete(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
 }
 
 /**
@@ -135,15 +177,6 @@ class AnalysisServerWrapper {
  */
 class _Server {
   final String _sdkPath;
-
-  /// An imaginary backing store file that will be used as a name
-  /// to communicate with the analysis server. This can be removed when
-  /// when the upgrade to 1.10 lands
-  io.File psudeoFile;
-
-  // TODO(lukechurch): Refactor this so that it can handle multiple files
-  var psuedoFilePath;
-  io.Directory sourceDirectory;
 
   /// Control flags to handle the server state machine
   bool isSetup = false;
@@ -164,10 +197,6 @@ class _Server {
     _onCompletionResults = new StreamController(sync: true);
     completionResults = _onCompletionResults.stream.asBroadcastStream();
 
-    sourceDirectory = io.Directory.systemTemp.createTempSync('analysisServer');
-    psudeoFile = new io.File(
-        sourceDirectory.path + io.Platform.pathSeparator + "main.dart");
-    psuedoFilePath = psudeoFile.path;
   }
 
   /// Ensure that the server is ready for use.
@@ -193,16 +222,27 @@ class _Server {
 
     _logger.fine("Server Set Subscriptions completed");
 
-    psudeoFile.writeAsStringSync("", flush: true);
-
-    await sendAddOverlay(_WARMUP_SRC);
+    await sendAddOverlays({
+        mainPath : _WARMUP_SRC});
     sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
-    sendPrioritySetSources([psuedoFilePath]);
     isSettingUp = false;
     isSetup = true;
 
     _logger.fine("Setup done");
     return analysisComplete.first;
+  }
+
+  Future loadSources(Map<String, String> sources) async {
+    await sendAddOverlays(sources);
+    await sendPrioritySetSources(sources.keys.toList());
+    sources.keys.forEach((path) =>
+      new io.File(path).writeAsStringSync("", flush: true));
+  }
+
+  Future unloadSources(List<String> paths) async {
+    await sendRemoveOverlays(paths);
+    paths.forEach((path) =>
+      new io.File(path).deleteSync());
   }
 
   /**
@@ -419,21 +459,17 @@ class _Server {
   }
 
   Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
-      int offset) {
+      String path, int offset) {
 
-    // TODO(lukechurch): Refactor to allow multiple files
-    String file = psuedoFilePath;
-
-    var params = new CompletionGetSuggestionsParams(file, offset).toJson();
+    var params = new CompletionGetSuggestionsParams(path, offset).toJson();
     return send("completion.getSuggestions", params).then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
       return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
     });
   }
 
-  Future<EditGetFixesResult> sendGetFixes(int offset) {
-    String file = psuedoFilePath;
-    var params = new EditGetFixesParams(file, offset).toJson();
+  Future<EditGetFixesResult> sendGetFixes(String path, int offset) {
+    var params = new EditGetFixesParams(path, offset).toJson();
     return send("edit.getFixes", params).then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
       return new EditGetFixesResult.fromJson(decoder, 'result', result);
@@ -443,9 +479,8 @@ class _Server {
   Future<EditFormatResult> sendFormat(int selectionOffset,
     [int selectionLength = 0]) {
 
-    String file = psuedoFilePath;
     var params = new EditFormatParams(
-        file, selectionOffset, selectionLength).toJson();
+        mainPath, selectionOffset, selectionLength).toJson();
 
     return send("edit.format", params).then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
@@ -453,13 +488,14 @@ class _Server {
     });
   }
 
-  Future<AnalysisUpdateContentResult> sendAddOverlay(String contents) {
+  Future<AnalysisUpdateContentResult> sendAddOverlays(
+      Map<String, String> overlays) {
+    var updateMap = {};
+    for (String path in overlays.keys) {
+      updateMap.putIfAbsent(path, () => new AddContentOverlay(overlays[path]));
+    }
 
-    // TODO(lukechurch): Refactor to allow multiple files
-    String file = psuedoFilePath;
-
-    var overlay = new AddContentOverlay(contents);
-    var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
+    var params = new AnalysisUpdateContentParams(updateMap).toJson();
     _logger.fine("About to send analysis.updateContent");
     return send("analysis.updateContent", params).then((result) {
       _logger.fine("analysis.updateContent -> then");
@@ -469,13 +505,12 @@ class _Server {
     });
   }
 
-  Future<AnalysisUpdateContentResult> sendRemoveOverlay() {
-
-    // TODO(lukechurch): Refactor to allow multiple files
-    String file = psuedoFilePath;
-
+  Future<AnalysisUpdateContentResult> sendRemoveOverlays(List<String> paths) {
+    var updateMap = {};
     var overlay = new RemoveContentOverlay();
-    var params = new AnalysisUpdateContentParams({file: overlay}).toJson();
+    paths.forEach((String path) => updateMap.putIfAbsent(path, () => overlay));
+
+    var params = new AnalysisUpdateContentParams(updateMap).toJson();
     _logger.fine("About to send analysis.updateContent - remove overlay");
     return send("analysis.updateContent", params).then((result) {
       _logger.fine("analysis.updateContent -> then");

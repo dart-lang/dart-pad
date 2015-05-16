@@ -112,6 +112,9 @@ Usage: slow_test path_to_test_collection
  * Init the tools, and warm them up
  */
 setupTools(String sdkPath) async {
+  print ("Executing setupTools");
+  if (analysisServer != null) await analysisServer.kill();
+
   container = new MockContainer();
   cache = new MockCache();
   recorder = new MockRequestRecorder();
