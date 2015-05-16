@@ -64,8 +64,6 @@ class GaeServer {
   Future start() => ae.runAppEngine(requestHandler);
 
   void requestHandler(io.HttpRequest request) {
-    request.response.headers.add('Access-Control-Allow-Origin', '*');
-    request.response.headers.add('Access-Control-Allow-Credentials', 'true');
     request.response.headers.add('Access-Control-Allow-Methods',
         'POST, OPTIONS');
     request.response.headers.add('Access-Control-Allow-Headers',
