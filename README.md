@@ -1,6 +1,6 @@
 # Dart Services
 
-A (beta) server backend to support interactive Dart services.
+A server backend to support interactive Dart services.
 
 [![Build Status](https://travis-ci.org/dart-lang/dart-services.svg?branch=master)](https://travis-ci.org/dart-lang/dart-services)
 [![Coverage Status](https://coveralls.io/repos/dart-lang/dart-services/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/dart-services?branch=master)
@@ -17,10 +17,6 @@ The API provides services to:
 - get dartdoc tooltip information for a snippet of Dart code (`/api/dartservices/v1/document`)
 - format Dart code (`/api/dartservices/v1/format`)
 - get quick fixes for problems in code (`/api/dartservices/v1/fixes`)
-
-## Project status
-
-Beta - the services APIa are available to play with, but still a work in progress.
 
 ## Try it!
 
