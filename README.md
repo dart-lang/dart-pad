@@ -23,6 +23,10 @@ The API provides services to:
 A simple DartPad example of how to use the library is here:
 https://dartpad.dartlang.org/2a7fd9328e0a567ee79b
 
+## Project status		
+		
+The services APIs are running and available to use. Please give it a try! We may still ammend them from time to time in a way that causes breaking changes. If you would like to make sure we discuss this with you first, please get in touch to let us know.
+
 ## The API
 
 The discovery doc for the server's REST API is available here:
