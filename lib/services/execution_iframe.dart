@@ -37,6 +37,8 @@ class ExecutionServiceIFrame implements ExecutionService {
     });
   }
 
+  Future tearDown() => _reset();
+
   void replaceHtml(String html) {
     _send('setHtml', {'html': html});
   }

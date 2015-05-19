@@ -111,7 +111,7 @@ abstract class CoreSelector extends CoreElement {
 
   // TODO: add valueattr
 
-  String get selected => property('selected');
+  String get selected => "${property('selected')}";
   set selected(String value) => setAttribute('selected', value);
 
   dynamic get selectedIndex => property('selectedIndex');

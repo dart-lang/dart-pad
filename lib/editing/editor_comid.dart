@@ -7,15 +7,18 @@ library editor.comid;
 import 'dart:async';
 import 'dart:html' as html;
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:comid/addon/comment/comment.dart' as comments;
 import 'package:comid/addon/edit/closebrackets.dart';
 import 'package:comid/addon/edit/matchbrackets.dart';
-import 'package:comid/addon/edit/show-hint.dart' as hints;
+import 'package:comid/addon/edit/show_hint.dart' as hints;
+import 'package:comid/addon/edit/html_hint.dart' as html_hints;
 import 'package:comid/addon/mode/css.dart';
 import 'package:comid/addon/mode/dart.dart';
 import 'package:comid/addon/mode/htmlmixed.dart';
 import 'package:comid/codemirror.dart' hide Document;
+import "package:comid/addon/search/search.dart";
 
 import 'editor.dart' hide Position;
 import 'editor.dart' as ed show Position;
@@ -33,7 +36,6 @@ class ComidFactory extends EditorFactory {
   List<String> get themes => ['zenburn'];
 
   bool get inited {
-    // TODO: Comparing to `'null'` can't be right.
     return CodeMirror.getMode({}, 'dart').name != 'null';
   }
 
@@ -42,19 +44,13 @@ class ComidFactory extends EditorFactory {
     HtmlMode.initialize();
     CssMode.initialize();
     hints.initialize();
+    html_hints.initialize();
     comments.initialize();
     initializeBracketMatching();
     initializeBracketClosing();
+    initializeSearch();
 
     List futures = [];
-//    html.Element head = html.querySelector('html head');
-
-//    // <link href="packages/dart_pad/editing/editor_codemirror.css"
-//    //   rel="stylesheet">
-//    html.LinkElement link = new html.LinkElement();
-//    link.rel = 'stylesheet';
-//    link.href = cssRef;
-//    futures.add(_appendNode(head, link));
 
     return Future.wait(futures);
   }
@@ -73,10 +69,7 @@ class ComidFactory extends EditorFactory {
         'indentUnit': 2,
         'cursorHeight': 0.85,
         //'gutters': [_gutterId],
-        'extraKeys': {
-          'Ctrl-Space': 'autocomplete',
-          (mac ? "Cmd-/" : "Ctrl-/"): "toggleComment"
-        },
+        'extraKeys': { (mac ? "Cmd-/" : "Ctrl-/"): "toggleComment" },
         //'lint': true,
         'theme': 'zenburn'
       };
@@ -89,9 +82,9 @@ class ComidFactory extends EditorFactory {
 
   hints.CompletionOptions options;
   CodeCompleter completer;
-  String completoinMode;
+  String completionMode;
 
-  bool get supportsCompletionPositioning => false;
+  bool get supportsCompletionPositioning => true;
 
   void registerCompleter(String mode, CodeCompleter codeCompleter) {
     options = new hints.CompletionOptions(
@@ -99,11 +92,11 @@ class ComidFactory extends EditorFactory {
         completeOnSingleClick: true,
         async: true);
     completer = codeCompleter;
-    completoinMode = mode;
+    completionMode = mode;
   }
 
   showDartCompletions([CodeMirror cm, var _]) {
-    if (cm.doc.mode.name == completoinMode) {
+    if (cm.doc.mode.name == completionMode) {
       hints.showHint(cm, options);
     } else {
       hints.showHint(cm, new hints.CompletionOptions(
@@ -117,31 +110,96 @@ class ComidFactory extends EditorFactory {
       hints.CompletionOptions options,
       [hints.ShowProposals displayProposals]) {
     assert(displayProposals != null); // ensure async
-    _CodeMirrorEditor ed = new _CodeMirrorEditor._(this, cm); // new instance!?
-    Future<CompletionResult> props = completer.complete(ed);
-    Pos pos = cm.getCursor();
-    props.then((CompletionResult completions) {
-      List<Completion> completionList = completions.completions;
+    _CodeMirrorEditor ed = new _CodeMirrorEditor._fromExisting(this, cm);
+    Future<CompletionResult> props = completer.complete(ed,
+        onlyShowFixes: ed._lookingForQuickFix);
+    Future futureProposals = props.then((CompletionResult result) {
+      Doc doc = cm.getDoc();
+      var from =  doc.posFromIndex(result.replaceOffset);
+      var to = doc.posFromIndex(result.replaceOffset + result.replaceLength);
+      String stringToReplace = doc.getValue().substring(
+          result.replaceOffset, result.replaceOffset + result.replaceLength);
+
+      List<Completion> completionList = result.completions;
+      List<Proposal> list = completionList.map((Completion completion) {
+        return new Proposal(
+            completion.value,
+            displayText: completion.displayString,
+            className: completion.type,
+            hintApplier: (CodeMirror editor, hints.ProposalList list, Proposal hint) {
+              doc.replaceRange(hint.text, list.from, list.to);
+              if (completion.cursorOffset != null) {
+                int diff = hint.text.length - completion.cursorOffset;
+                doc.setCursor(new Pos(
+                    editor.getCursor().line, editor.getCursor().char - diff));
+              }
+              if (completion.type == "type-quick_fix") {
+                completion.quickFixes.forEach(
+                        (SourceEdit edit) => ed.document.applyEdit(edit));
+              }
+            },
+            hintRenderer: (html.Element element, list, hints.Proposal hint) {
+              var escapeHtml = new HtmlEscape().convert;
+              if (completion.type != "type-quick_fix") {
+                var escDispl = escapeHtml(completion.displayString);
+                var escRepl = escapeHtml(stringToReplace);
+                element.innerHtml =
+                    escDispl.replaceFirst(escRepl, "<em>${escRepl}</em>");
+              } else {
+                element.innerHtml = escapeHtml(completion.displayString);
+              }
+            }
+        );
+      }).toList();
+
+      if (list.isEmpty && ed._lookingForQuickFix) {
+        list.add(
+          new Proposal(
+              stringToReplace,
+              displayText: "No fixes available",
+              className: "type-no_suggestions")
+        );
+      } else if (list.isEmpty &&
+          (ed.completionActive || (!ed.completionActive && !ed.completionAutoInvoked))) {
+        // Only show 'no suggestions' if the completion was explicitly invoked
+        // or if the popup was already active.
+        list.add(
+          new Proposal(
+              stringToReplace,
+              displayText: "No suggestions",
+              className: "type-no_suggestions")
+        );
+      }
+
       hints.ProposalList proposals;
-      List<hints.Proposal> list = completionList.map((Completion completion) =>
-          // this map is broken -- should use custom display ala Dart Editor
-          new hints.Proposal(completion.value)).toList();
-      proposals = new hints.ProposalList(list: list, from: pos, to: pos);
-      displayProposals(proposals);
+      proposals = new hints.ProposalList(list: list, from: from, to: to);
+      return proposals;
     });
+    futureProposals.then((proposals) { displayProposals(proposals); });
     return null;
   }
 }
 
 class _CodeMirrorEditor extends Editor {
+  static List<_CodeMirrorEditor> _instances = [];
+
   final CodeMirror cm;
 
   _CodeMirrorDocument _document;
+  bool _lookingForQuickFix = false;
 
-  // TODO: Return an existing _CodeMirrorEditor instance if we already have one
-  // for the given instance of `CodeMirror`.
   _CodeMirrorEditor._(ComidFactory factory, this.cm) : super(factory) {
     _document = new _CodeMirrorDocument._(this, cm.getDoc());
+    _instances.add(this);
+  }
+
+  factory _CodeMirrorEditor._fromExisting(ComidFactory fac, CodeMirror cm) {
+    var existing = _instances.firstWhere((ed) => ed.cm == cm);
+    if (existing != null) {
+      return existing;
+    } else {
+      return new _CodeMirrorEditor._(fac,  cm);
+    }
   }
 
   Document get document => _document;
@@ -158,11 +216,17 @@ class _CodeMirrorEditor extends Editor {
     cm.execCommand(name);
   }
 
-  // TODO: Implement completionActive for comid.
-  bool get completionActive => false;
+  bool get completionActive {
+    hints.Completion completion = cm.state.completionActive;
+    if (completion == null) return false;
+    return completion.widget != null;
+  }
 
-  // TODO: Add an showCompletions method for comid.
-  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) { }
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) {
+    completionAutoInvoked = autoInvoked;
+    _lookingForQuickFix = onlyShowFixes;
+    execCommand("autocomplete");
+  }
 
   String get mode => cm.doc.getMode().name;
   set mode(String str) => cm.setOption('mode', str);
@@ -170,11 +234,17 @@ class _CodeMirrorEditor extends Editor {
   String get theme => cm.getOption('theme');
   set theme(String str) => cm.setOption('theme', str);
 
-  // TODO: Add a cursorCoords getter for comid.
-  Point getCursorCoords({ed.Position position}) => null;
+  Point getCursorCoords({ed.Position position}) {
+    Rect loc;
+    if (position == null) {
+      loc = cm.cursorCoords(position);
+    } else {
+      loc = cm.cursorCoords(_document._posToPos(position));
+    }
+    return new Point(loc.left, loc.top);
+  }
 
-  // TODO: Add a onMouseDown getter for comid.
-  Stream<html.MouseEvent> get onMouseDown => null;
+  Stream<html.MouseEvent> get onMouseDown => cm.onMousedown;
 
   bool get hasFocus => cm.state.focused;
 
@@ -226,11 +296,15 @@ class _CodeMirrorDocument extends Document {
 
   void markClean() => doc.markClean();
 
-  // TODO: Add an applyEdit method for comid.
-  void applyEdit(SourceEdit edit) { }
+  void applyEdit(SourceEdit edit) {
+    doc.replaceRange(
+        edit.replacement,
+        _posToPos(posFromIndex(edit.offset)),
+        _posToPos(posFromIndex(edit.offset + edit.length))
+    );
+  }
 
   void setAnnotations(List<Annotation> annotations) {
-    // TODO: Codemirror lint has no support for info markers - contribute some?
 //    CodeMirror cm = parent.cm;
 //    cm.clearGutter(_gutterId);
 
@@ -288,4 +362,16 @@ class _CodeMirrorDocument extends Document {
   void dispose() {
     doc.dispose();
   }
+}
+
+class Proposal extends hints.Proposal {
+  Function hintApplier;
+  String displayText;
+
+  Proposal(text, {className, this.displayText, this.hintApplier, hintRenderer})
+      : super(text, className: className, render: hintRenderer);
+
+  /// Function f(CodeMirror, ProposalList, Proposal) called to do custom
+  /// editing. It should replace the editor's selection with the proposal text.
+  Function get hint => hintApplier;
 }

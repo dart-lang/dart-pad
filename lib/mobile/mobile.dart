@@ -7,26 +7,26 @@ library dart_pad.mobile_ui;
 import 'dart:async';
 import 'dart:html' hide Document;
 
-import 'package:dart_pad/dart_pad.dart';
-import 'package:dart_pad/dartservices_client/v1.dart';
-import 'package:dart_pad/context.dart';
-import 'package:dart_pad/core/dependencies.dart';
-import 'package:dart_pad/core/modules.dart';
-import 'package:dart_pad/editing/editor.dart';
-import 'package:dart_pad/modules/codemirror_module.dart';
-import 'package:dart_pad/modules/dartservices_module.dart';
-import 'package:dart_pad/modules/dart_pad_module.dart';
-import 'package:dart_pad/services/common.dart';
-import 'package:dart_pad/services/execution_iframe.dart';
-import 'package:dart_pad/sharing/gists.dart';
-import 'package:dart_pad/src/ga.dart';
-import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
+import '../dart_pad.dart';
+import '../context.dart';
+import '../core/dependencies.dart';
+import '../core/modules.dart';
+import '../editing/editor.dart';
+import '../modules/codemirror_module.dart';
+import '../modules/dartservices_module.dart';
+import '../modules/dart_pad_module.dart';
 import '../polymer/base.dart';
 import '../polymer/core.dart';
 import '../polymer/paper.dart';
+import '../services/common.dart';
+import '../services/dartservices.dart';
+import '../services/execution_iframe.dart';
+import '../sharing/gists.dart';
+import '../src/ga.dart';
+import '../src/sample.dart' as sample;
 import '../src/util.dart';
 
 PlaygroundMobile get playground => _playground;
@@ -104,6 +104,27 @@ class PlaygroundMobile {
     _showGist(gistId, run: page == 'run');
   }
 
+  void switchToEditPage() {
+    if (_pages.selected == '0') return;
+
+    executionService.tearDown();
+
+    // TODO: Use the router here instead.
+    _pages.selected = '0';
+    //window.history.back();
+  }
+
+  void switchToExecPage() {
+    if (_pages.selected == '1') return;
+
+    _clearErrors();
+    _clearOutput();
+
+    // TODO: Use the router here instead.
+    _pages.selected = '1';
+    //_router.go('gist', {'gist': currentGistId()});
+  }
+
   void _createUi() {
     _pages = new CoreAnimatedPages()
       ..selected = '0'
@@ -123,7 +144,6 @@ class PlaygroundMobile {
       ..duration = 100000;
     document.body.children.add(_errorsToast.element);
 
-    // TODO: use a dark theme?
     _messageDialog = new PaperActionDialog();
     PaperButton closeButton = new PaperButton(text: 'Close');
     _messageDialog.makeAffirmative(closeButton);
@@ -166,6 +186,12 @@ class PlaygroundMobile {
     overflowMenuButton.add(new PaperIconButton(icon: 'more-vert'));
     PaperDropdown dropdown = new PaperDropdown()..halign = 'right';
     CoreMenu overflowMenu = new CoreMenu();
+    PaperItem dartlangItem = new PaperItem(text: 'dartlang.org');
+    overflowMenu.add(dartlangItem);
+    dartlangItem.onClick.listen((event) {
+      event.preventDefault();
+      window.open("https://www.dartlang.org/", "_blank");
+    });
     overflowMenu.add(new PaperItem(text: 'About')..onTap.listen((event) {
       event.preventDefault();
       _showAboutDialog();
@@ -216,11 +242,7 @@ class PlaygroundMobile {
     PaperFab backButton = new PaperFab(icon: 'arrow-back')
       ..clazz('back-button')
       ..mini = true;
-    backButton.onTap.listen((_) {
-      // TODO:
-      pages.selected = '0';
-      //window.history.back();
-    });
+    backButton.onTap.listen((_) => switchToEditPage());
     toolbar.add(backButton);
     toolbar.add(CoreElement.span()..clazz('sample-titles')..flex());
     PaperToggleButton toggleConsoleButton = new PaperToggleButton()..checked = true;
@@ -358,16 +380,10 @@ class PlaygroundMobile {
     _editProgress.indeterminate = true;
     _editProgress.hidden(false);
 
-    var input = new SourceRequest()..source = context.dartSource;
+    var input = new CompileRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
-      _clearErrors();
-      _clearOutput();
-
-      // TODO: Use the router here instead -
-      _pages.selected = '1';
-      //_router.go('gist', {'gist': currentGistId()});
-
+      switchToExecPage();
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
@@ -387,15 +403,10 @@ class PlaygroundMobile {
     _runProgress.indeterminate = true;
     _runProgress.hidden(false);
 
-    var input = new SourceRequest()..source = context.dartSource;
-    dartServices.compile(input).timeout(longServiceCallTimeout)
-    .then((CompileResponse response) {
+    var input = new CompileRequest()..source = context.dartSource;
+    dartServices.compile(input).timeout(longServiceCallTimeout).then(
+        (CompileResponse response) {
       _clearOutput();
-
-      // TODO: Use the router here instead -
-      _pages.selected = '1';
-      //_router.go('gist', {'gist': currentGistId()});
-
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
@@ -530,14 +541,20 @@ class PlaygroundMobile {
     if (focus) editor.focus();
   }
 
-//  void _showMessage(String message) {
-//    _messageToast.text = message;
-//    _messageToast.show();
-//  }
-
   void _showAboutDialog() {
+    dartServices.version().timeout(new Duration(seconds: 2)).then(
+        (VersionResponse ver) {
+      _showAboutDialogWithVersion(version: ver.sdkVersion);
+    }).catchError((e) {
+      _showAboutDialogWithVersion();
+    });
+  }
+
+  void _showAboutDialogWithVersion({String version}) {
     _messageDialog.heading = 'About DartPad';
-    _messageDialog.element.querySelector('p').setInnerHtml(privacyText,
+    String text = privacyText;
+    if (version != null) text += " Based on Dart SDK ${version}.";
+    _messageDialog.element.querySelector('p').setInnerHtml(text,
         validator: new PermissiveNodeValidator());
     _messageDialog.open();
   }
@@ -567,8 +584,6 @@ class PlaygroundMobile {
     });
   }
 }
-
-// TODO: create pages (dart / html / css)
 
 class PlaygroundContext extends Context {
   final Editor editor;

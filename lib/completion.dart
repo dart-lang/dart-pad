@@ -9,8 +9,8 @@ import 'dart:convert' show JSON;
 
 import 'package:logging/logging.dart';
 
-import 'dartservices_client/v1.dart' hide SourceEdit;
 import 'editing/editor.dart';
+import 'services/dartservices.dart' hide SourceEdit;
 import 'src/util.dart';
 
 Logger _logger = new Logger('completion');
@@ -26,7 +26,7 @@ class DartCompleter extends CodeCompleter {
 
   DartCompleter(this.servicesApi, this.document);
 
-  Future<CompletionResult> complete(Editor editor, {onlyShowFixes: false}) {
+  Future<CompletionResult> complete(Editor editor, {bool onlyShowFixes: false}) {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 
@@ -40,28 +40,22 @@ class DartCompleter extends CodeCompleter {
     _lastCompleter = completer;
 
     if (onlyShowFixes) {
-      servicesApi.fix(request).then((FixesResponse response) {
+      servicesApi.fixes(request).then((FixesResponse response) {
         List<Completion> completions = [];
         for (ProblemAndFixes problemFix in response.fixes) {
           for (CandidateFix fix in problemFix.fixes) {
-            List<SourceEdit> fixes = fix.edits.map(
-                    (edit) => new SourceEdit(
-                        edit.length,
-                        edit.offset,
-                        edit.replacement)
-            ).toList();
-            completions.add(new Completion(
-                              "",
-                              displayString: fix.message,
-                              type: "type-quick_fix",
-                              quickFixes: fixes)
-            );
+            List<SourceEdit> fixes = fix.edits.map((edit) {
+              return new SourceEdit(edit.length, edit.offset, edit.replacement);
+            }).toList();
+
+            completions.add(new Completion("",
+                displayString: fix.message,
+                type: "type-quick_fix",
+                quickFixes: fixes));
           }
         }
         completer.complete(new CompletionResult(
-          completions,
-          replaceOffset: offset,
-          replaceLength: 0));
+            completions, replaceOffset: offset, replaceLength: 0));
       });
     } else {
       servicesApi.complete(request).then((CompleteResponse response) {
@@ -74,14 +68,14 @@ class DartCompleter extends CodeCompleter {
             replaceOffset, replaceOffset + replaceLength);
 
         List<AnalysisCompletion> analysisCompletions = response.completions.map(
-                (completion) {
-              return new AnalysisCompletion(replaceOffset, replaceLength, completion);
-            }).toList();
+            (Map completion) {
+          return new AnalysisCompletion(replaceOffset, replaceLength, completion);
+        }).toList();
 
         List<Completion> completions = analysisCompletions.map((completion) {
           // TODO: Move to using a LabelProvider; decouple the data and rendering.
-          String displayString = completion.isMethod
-          ? '${completion.text}${completion.parameters}' : completion.text;
+          String displayString = completion.isMethod ?
+              '${completion.text}${completion.parameters}' : completion.text;
           if (completion.isMethod && completion.returnType != null) {
             displayString += ' → ${completion.returnType}';
           }
@@ -97,9 +91,7 @@ class DartCompleter extends CodeCompleter {
 
           String text = completion.text;
 
-          if (completion.isMethod) {
-            text += "()";
-          }
+          if (completion.isMethod) text += "()";
 
           String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
 
@@ -114,8 +106,8 @@ class DartCompleter extends CodeCompleter {
             }
 
             return new Completion(text, displayString: displayString,
-            type: "type-${completion.type.toLowerCase()}${deprecatedClass}",
-            cursorOffset: cursorPos);
+                type: "type-${completion.type.toLowerCase()}${deprecatedClass}",
+                cursorOffset: cursorPos);
           }
         }).where((x) => x != null).toList();
 
@@ -139,6 +131,7 @@ class DartCompleter extends CodeCompleter {
         completer.completeError(e);
       });
     }
+
     return completer.future;
   }
 }
@@ -177,7 +170,14 @@ class AnalysisCompletion implements Comparable {
   int get parameterCount =>
     isMethod ? _map['parameterNames'].length : null;
 
-  String get text => _map['completion'];
+  String get text {
+    String str = _map['completion'];
+    if (str.startsWith("(") && str.endsWith(")")) {
+      return str.substring(1, str.length - 1);
+    } else {
+      return str;
+    }
+  }
 
   String get returnType => _map['returnType'];
 

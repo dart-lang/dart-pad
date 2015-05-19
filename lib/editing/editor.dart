@@ -148,7 +148,7 @@ class Position {
 }
 
 abstract class CodeCompleter {
-  Future<CompletionResult> complete(Editor editor, {onlyShowFixes: false});
+  Future<CompletionResult> complete(Editor editor, {bool onlyShowFixes: false});
 }
 
 class CompletionResult {

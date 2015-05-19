@@ -7,10 +7,11 @@ library dartpad.dialogs;
 import 'dart:async';
 import 'dart:html';
 
+import 'core/keys.dart';
 import 'elements/elements.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
-import 'core/keys.dart';
+import 'src/util.dart';
 
 /**
  * Show an OK / Cancel dialog, and return the option that the user selected.
@@ -50,6 +51,20 @@ class OkCancelDialog extends DDialog {
   }
 
   Future<bool> get future => _completer.future;
+}
+
+class AboutDialog extends DDialog {
+  AboutDialog([String version]) : super(title: 'About DartPad') {
+    ParagraphElement p = content.add(new ParagraphElement());
+    String text = privacyText;
+    if (version != null) text += " Based on Dart SDK ${version}.";
+    p.setInnerHtml(text, validator: new PermissiveNodeValidator());
+
+    buttonArea.add(new SpanElement()..attributes['flex'] = '');
+    DButton okButton = buttonArea.add(
+        new DButton.button(text: "OK", classes: 'default'));
+    okButton.onClick.listen((_) => hide());
+  }
 }
 
 class SharingDialog extends DDialog {
@@ -147,7 +162,6 @@ class SharingDialog extends DDialog {
 }
 
 class KeysDialog extends DDialog {
-
   Map<Action, Set<String>> keyMap;
 
   KeysDialog(this.keyMap) : super(title: 'Keyboard shortcuts') {
@@ -157,14 +171,16 @@ class KeysDialog extends DDialog {
 
   DListElement get keyMapToHtml {
     DListElement dl = new DListElement();
-    keyMap.forEach((action, keys) {
-      String string = "";
-      keys.forEach((key) {
-        if (makeKeyPresentable(key) != null) {
-          string += "<span>${makeKeyPresentable(key)}</span>";
-        }
-      });
-      dl.innerHtml += "<dt>$action</dt><dd>${string}</dd>";
+    keyMap.forEach((Action action, Set<String> keys) {
+      if (!action.hidden) {
+        String string = "";
+        keys.forEach((key) {
+          if (makeKeyPresentable(key) != null) {
+            string += "<span>${makeKeyPresentable(key)}</span>";
+          }
+        });
+        dl.innerHtml += "<dt>${action}</dt><dd>${string}</dd>";
+      }
     });
     return dl;
   }
