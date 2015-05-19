@@ -235,14 +235,10 @@ class _Server {
   Future loadSources(Map<String, String> sources) async {
     await sendAddOverlays(sources);
     await sendPrioritySetSources(sources.keys.toList());
-    sources.keys.forEach((path) =>
-      new io.File(path).writeAsStringSync("", flush: true));
   }
 
   Future unloadSources(List<String> paths) async {
     await sendRemoveOverlays(paths);
-    paths.forEach((path) =>
-      new io.File(path).deleteSync());
   }
 
   /**
