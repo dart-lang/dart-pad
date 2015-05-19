@@ -56,11 +56,9 @@ class OkCancelDialog extends DDialog {
 class AboutDialog extends DDialog {
   AboutDialog([String version]) : super(title: 'About DartPad') {
     ParagraphElement p = content.add(new ParagraphElement());
-    p.setInnerHtml(privacyText, validator: new PermissiveNodeValidator());
-
-    if (version != null) {
-      content.add(new ParagraphElement()..text = 'SDK ${version}');
-    }
+    String text = privacyText;
+    if (version != null) text += " Based on Dart SDK ${version}.";
+    p.setInnerHtml(text, validator: new PermissiveNodeValidator());
 
     buttonArea.add(new SpanElement()..attributes['flex'] = '');
     DButton okButton = buttonArea.add(
