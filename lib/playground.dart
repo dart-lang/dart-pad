@@ -129,7 +129,7 @@ class Playground implements GistContainer, GistController {
     querySelector('div.header-title').onClick.listen((e) {
       e.preventDefault();
 
-      dartServices.version()./*timeout(new Duration(seconds: 2)).*/then(
+      dartServices.version().timeout(new Duration(seconds: 2)).then(
           (VersionResponse ver) {
         new AboutDialog(ver.sdkVersion)..show();
       }).catchError((e) {

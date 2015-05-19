@@ -541,14 +541,20 @@ class PlaygroundMobile {
     if (focus) editor.focus();
   }
 
-//  void _showMessage(String message) {
-//    _messageToast.text = message;
-//    _messageToast.show();
-//  }
-
   void _showAboutDialog() {
+    dartServices.version().timeout(new Duration(seconds: 2)).then(
+        (VersionResponse ver) {
+      _showAboutDialogWithVersion(version: ver.sdkVersion);
+    }).catchError((e) {
+      _showAboutDialogWithVersion();
+    });
+  }
+
+  void _showAboutDialogWithVersion({String version}) {
     _messageDialog.heading = 'About DartPad';
-    _messageDialog.element.querySelector('p').setInnerHtml(privacyText,
+    String text = privacyText;
+    if (version != null) text += " Based on Dart SDK ${version}.";
+    _messageDialog.element.querySelector('p').setInnerHtml(text,
         validator: new PermissiveNodeValidator());
     _messageDialog.open();
   }
