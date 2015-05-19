@@ -149,7 +149,7 @@ class Analyzer {
   }
 
   Map<String, String> _computeDartdocInfo(CompilationUnit unit, int offset) {
-    AstNode node = new NodeLocator.con1(offset).searchWithin(unit);
+    AstNode node = new NodeLocator(offset).searchWithin(unit);
 
     if (node.parent is TypeName &&
         node.parent.parent is ConstructorName &&
