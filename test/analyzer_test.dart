@@ -156,6 +156,18 @@ void main() {
       });
     });
 
+    test('regression test #208', () {
+      final String source = '''import 'dart:async';
+main() {
+  var f = new Future(() => 42);
+  f.then((x) => x);
+}''';
+
+      return analyzer.dartdoc(source, 84).then((Map m) {
+        expect(m, null);
+      });
+    });
+
     test('simple Multi', () {
       Map sourceMap = {};
       sourceMap.putIfAbsent("foo.dart", () => sampleCodeMultiFoo);
