@@ -37,6 +37,7 @@ var mainPath;
 
 class AnalysisServerWrapper {
   final String sdkPath;
+  bool serverBusy = false;
 
   /// Instance to handle communication with the server.
   _Server serverConnection;
@@ -119,18 +120,26 @@ class AnalysisServerWrapper {
   /// Internal implementation of the completion mechanism.
   Future<Map> _completeImpl(Map<String, String> sources,
                             String sourceName, int offset) async {
-    sources = _getOverlayMapWithPaths(sources);
-    String path = _getPathFromName(sourceName);
-    await serverConnection._ensureSetup();
-    await serverConnection.loadSources(sources);
-    await serverConnection.analysisComplete.first;
-    await serverConnection.sendCompletionGetSuggestions(path, offset);
 
-    return serverConnection.completionResults.handleError(
-        (error) => throw "Completion failed").first.then((ret) async {
-          await serverConnection.unloadSources(sources.keys);
-          return ret;
-    });
+    while (serverBusy) {
+      await new Future.delayed(new Duration(seconds: 0));
+    }
+
+    serverBusy = true;
+    return new Future.sync(() async {
+      sources = _getOverlayMapWithPaths(sources);
+      String path = _getPathFromName(sourceName);
+      await serverConnection._ensureSetup();
+      await serverConnection.loadSources(sources);
+      await serverConnection.analysisComplete.first;
+      await serverConnection.sendCompletionGetSuggestions(path, offset);
+
+      return serverConnection.completionResults.handleError(
+          (error) => throw "Completion failed").first.then((ret) async {
+            await serverConnection.unloadSources(sources.keys);
+            return ret;
+      });
+    }).whenComplete(() => serverBusy = false);
   }
 
   Future<EditGetFixesResult> _getFixesImpl(
@@ -138,21 +147,35 @@ class AnalysisServerWrapper {
     sources = _getOverlayMapWithPaths(sources);
     String path = _getPathFromName(sourceName);
 
-    await serverConnection._ensureSetup();
-    await serverConnection.loadSources(sources);
-    await serverConnection.analysisComplete.first;
-    var fixes = await serverConnection.sendGetFixes(path, offset);
-    await serverConnection.unloadSources(sources.keys.toList());
-    return fixes;
+    while (serverBusy) {
+      await new Future.delayed(new Duration(seconds: 0));
+    }
+    serverBusy = true;
+
+    return new Future.sync(() async {
+      await serverConnection._ensureSetup();
+      await serverConnection.loadSources(sources);
+      await serverConnection.analysisComplete.first;
+      var fixes = await serverConnection.sendGetFixes(path, offset);
+      await serverConnection.unloadSources(sources.keys.toList());
+      return fixes;
+    }).whenComplete(() => serverBusy = false);
   }
 
   Future<EditFormatResult> _formatImpl(String src, int offset) async {
-    await serverConnection._ensureSetup();
-    await serverConnection.loadSources({mainPath : src});
-    await serverConnection.analysisComplete.first;
-    var formatResult = await serverConnection.sendFormat(offset);
-    await serverConnection.unloadSources([mainPath]);
-    return formatResult;
+    while (serverBusy) {
+      await new Future.delayed(new Duration(seconds: 0));
+    }
+    serverBusy = true;
+
+    return new Future.sync(() async {
+      await serverConnection._ensureSetup();
+      await serverConnection.loadSources({mainPath : src});
+      await serverConnection.analysisComplete.first;
+      var formatResult = await serverConnection.sendFormat(offset);
+      await serverConnection.unloadSources([mainPath]);
+      return formatResult;
+    }).whenComplete(() => serverBusy = false);
   }
 
   Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {
@@ -284,6 +307,7 @@ class _Server {
     _logStdio('PROCESS FORCIBLY TERMINATED');
     _process.kill();
     Future<int> exitCode = _process.exitCode;
+    isSetup = false;
     _process = null;
     return exitCode;
   }
