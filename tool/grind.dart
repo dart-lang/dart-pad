@@ -21,7 +21,7 @@ analyze() {
 }
 
 @Task()
-test() => Tests.runCliTests();
+test() => Dart.run('test/all.dart');
 
 @DefaultTask()
 @Depends(analyze, test)
