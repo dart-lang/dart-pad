@@ -7,8 +7,10 @@ library dartpad.summarize_test;
 import 'package:dart_pad/src/summarize.dart';
 import 'package:unittest/unittest.dart';
 
+///These tests serve to determine the functionality of the summarization tool
+
 void defineTests() {
-  group('summarization', () {
+  group('Summarizer', () {
     //Verify that summarizer returns non-null input
     test('non-null', () {
       Summarizer summer = new Summarizer();

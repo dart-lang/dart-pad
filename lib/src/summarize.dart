@@ -4,15 +4,12 @@
 
 library dart_pad.summarize;
 
+/// Instances of this class take string input of dart code and output a text 
+/// description ofthe code's size, packages, and other useful information
 class Summarizer {
   
   String summarize(String input) {
-//    String size;
-//    String packages;
-//    String libraries;
-//    String features;
-//    String complexity;
     return "foo";
-    }
+  }
 }
 
