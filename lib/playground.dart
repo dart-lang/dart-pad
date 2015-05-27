@@ -541,7 +541,7 @@ class Playground implements GistContainer, GistController {
   
   /// Perform static analysis of the source code. Return a summary future.
   Future<String> _formSummary() {
-      var input = new SourceRequest()..source = _context.dartSource;
+      SourceRequest input = new SourceRequest()..source = _context.dartSource;
       Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
       _analysisRequest = request;
       return request.then((AnalysisResults result) {
@@ -558,7 +558,7 @@ class Playground implements GistContainer, GistController {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
-    var input = new SourceRequest()..source = _context.dartSource;
+    SourceRequest input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
 
     Future request = dartServices.analyze(input).timeout(serviceCallTimeout);

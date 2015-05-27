@@ -7,15 +7,8 @@ library gists;
 import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:html';
-import 'package:dart_pad/src/summarize.dart';
-import 'package:dart_pad/editing/editor.dart';
 import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:haikunator/haikunator.dart';
-import 'package:dart_pad/services/dartservices.dart';
-import 'package:dart_pad/context.dart';
-import 'package:dart_pad/dart_pad.dart';
-import 'package:dart_pad/services/common.dart';
-import 'package:dart_pad/services/dartservices.dart';
 
 final String _dartpadLink =
     "[dartpad.dartlang.org](https://dartpad.dartlang.org)";
