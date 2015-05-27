@@ -10,7 +10,7 @@ import 'dart:html' hide Document;
 import 'package:logging/logging.dart';
 import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
-import 'package:dart_pad/src/summarize.dart';
+
 import 'actions.dart';
 import 'completion.dart';
 import 'context.dart';
@@ -33,6 +33,7 @@ import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
+import 'src/summarize.dart';
 import 'src/util.dart';
 
 Playground get playground => _playground;
