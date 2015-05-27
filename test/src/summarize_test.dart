@@ -13,8 +13,13 @@ void defineTests() {
   group('Summarizer', () {
     //Verify that summarizer returns non-null input
     test('non-null', () {
+      String codeSample = '''void main() {
+  for (int i = 0; i < 5; i++) {
+    print("hello \${i + 1}");
+  }
+};''';
       Summarizer summer = new Summarizer();
-      expect(summer.summarize(""), isNot(equals(null)));
+      expect(summer.summarize(null, null), isNot(equals(null)));
     });
   });
 }

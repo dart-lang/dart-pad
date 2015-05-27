@@ -10,6 +10,9 @@ import 'package:dart_pad/services/dartservices.dart';
 class Summarizer {
   
   String summarize(SourceRequest input, AnalysisResults result) {
+    if (input == null || result == null) {
+      return "Summarizer has broken!.";
+    }
     String summary = '<pre><code><b>Summary (Under Development)</b><p/>';
     summary += '${_linesCode(input)} lines of code used. <p/>';
     bool hasErrors = result.issues.any((issue) => issue.kind == 'error');
