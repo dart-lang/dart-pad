@@ -10,7 +10,7 @@ import 'dart:html' hide Document;
 import 'package:logging/logging.dart';
 import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
-
+import 'package:dart_pad/src/summarize.dart';
 import 'actions.dart';
 import 'completion.dart';
 import 'context.dart';
@@ -202,20 +202,24 @@ class Playground implements GistContainer, GistController {
     return new Future.value();
   }
 
-  Future shareAnon() {
-    return gistLoader.createAnon(mutableGist.createGist()).then((Gist newGist) {
-      editableGist.setBackingGist(newGist);
-      overrideNextRoute(newGist);
-      router.go('gist', {'gist': newGist.id});
-      var toast = new DToast('Created ${newGist.id}')..show()..hide();
-      toast.element
-        ..style.cursor = "pointer"
-        ..onClick.listen((e)
-            => window.open("https://gist.github.com/anonymous/${newGist.id}", '_blank'));
-    }).catchError((e) {
-      String message = 'Error saving gist: ${e}';
-      DToast.showMessage(message);
-      ga.sendException('GistLoader.createAnon: failed to create gist');
+  Future shareAnon() async{
+    Future<String> f = _formSummary();
+    await f.then((onValue) {
+      return gistLoader.createAnon(mutableGist.createGistWithSummary(onValue))
+              .then((Gist newGist) {
+            editableGist.setBackingGist(newGist);
+            overrideNextRoute(newGist);
+            router.go('gist', {'gist': newGist.id});
+            var toast = new DToast('Created ${newGist.id}')..show()..hide();
+            toast.element
+              ..style.cursor = "pointer"
+              ..onClick.listen((e)
+                  => window.open("https://gist.github.com/anonymous/${newGist.id}", '_blank'));
+          }).catchError((e) {
+            String message = 'Error saving gist: ${e}';
+            DToast.showMessage(message);
+            ga.sendException('GistLoader.createAnon: failed to create gist');
+          });
     });
   }
 
@@ -533,7 +537,24 @@ class Playground implements GistContainer, GistController {
       overlay.visible = false;
     });
   }
-
+  
+  
+  /// Perform static analysis of the source code. Return a summary future.
+  Future<String> _formSummary() {
+      var input = new SourceRequest()..source = _context.dartSource;
+      Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
+      _analysisRequest = request;
+      return request.then((AnalysisResults result) {
+        busyLight.reset();
+        Summarizer summer = new Summarizer();
+        return summer.summarize(input, result);
+      }).catchError((e) {
+        busyLight.reset();
+        _logger.severe(e);
+      });
+    }
+  
+  
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {

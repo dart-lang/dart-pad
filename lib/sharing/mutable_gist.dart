@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'gists.dart';
 import '../elements/bind.dart';
+import 'package:dart_pad/services/dartservices.dart';
 
 /// On overlay on a gist. Used to edit gists, this overlay knows about its dirty
 /// state, and can have dirty state listeners.
@@ -33,6 +34,8 @@ class MutableGist implements PropertyOwner {
   set description(String value) => _setProperty('description', value);
 
   String get html_url => _getProperty('html_url');
+  
+  String get summary => _getProperty('summary');
 
   bool get public => _backingGist.public;
 
@@ -67,6 +70,7 @@ class MutableGist implements PropertyOwner {
     set.add('id');
     set.add('description');
     set.add('html_url');
+    set.add('summary');
     set.addAll(_backingGist.files.map((f) => f.name));
     set.addAll(_localValues.keys);
     return set.toList();
@@ -82,7 +86,18 @@ class MutableGist implements PropertyOwner {
     }
     return gist;
   }
-
+  
+  //Creates a Gist with summary element for sharing
+  Gist createGistWithSummary(String summary) {
+      Gist gist = new Gist(description: description, id: id, public: public);
+      gist.html_url = html_url;
+      gist.summary = summary;
+      for (MutableGistFile file in getFiles()) {
+        gist.files.add(new GistFile(name: file.name, content: file.content));
+      }
+      return gist;
+    }
+  
   String _getProperty(String key) {
     if (_localValues.containsKey(key)) return _localValues[key];
     return _backingGist[key];

@@ -7,9 +7,15 @@ library gists;
 import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:html';
-
+import 'package:dart_pad/src/summarize.dart';
+import 'package:dart_pad/editing/editor.dart';
 import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:haikunator/haikunator.dart';
+import 'package:dart_pad/services/dartservices.dart';
+import 'package:dart_pad/context.dart';
+import 'package:dart_pad/dart_pad.dart';
+import 'package:dart_pad/services/common.dart';
+import 'package:dart_pad/services/dartservices.dart';
 
 final String _dartpadLink =
     "[dartpad.dartlang.org](https://dartpad.dartlang.org)";
@@ -47,7 +53,7 @@ Gist createSampleGist() {
   gist.files.add(new GistFile(name: 'index.html', content: '\n'));
   gist.files.add(new GistFile(name: 'styles.css', content: '\n'));
   gist.files.add(new GistFile(name: 'readme.md',
-      content: '# ${gist.description}\n\nCreated with <3 with ${_dartpadLink}.\n'));
+      content: '# ${gist.description}\n\nCreated with <3 with ${_dartpadLink}.'));
   return gist;
 }
 
@@ -142,8 +148,14 @@ ${styleRef}${dartRef}  </head>
       // Stamp the file content with the current description.
       List<String> lines = readmeFile.content.split('\n').toList();
       if (lines.isNotEmpty && lines.first.startsWith('# ')) {
-        lines[0] = '# ${gist.description}';
+        lines[0] = '# ${gist.description}'; 
+        //TODO: Change description to "title"
         readmeFile.content = lines.join('\n');
+        readmeFile.content = readmeFile.content.split('<pre>')[0];
+        //Summarizer summer = new Summarizer();
+        String summary = gist.summary;
+        //TODO: Add summary; check that summary isn't null
+        readmeFile.content += '\n \n \n ${summary}';
       }
     }
 
@@ -196,6 +208,7 @@ class Gist {
   String id;
   String description;
   String html_url;
+  String summary;
 
   bool public;
 
@@ -210,7 +223,7 @@ class Gist {
     description = map['description'];
     public = map['public'];
     html_url = map['html_url'];
-
+    summary = map['summary'];
     Map f = map['files'];
     files = f.keys.map((key) => new GistFile.fromMap(key, f[key])).toList();
   }
@@ -220,6 +233,7 @@ class Gist {
     if (key == 'description') return description;
     if (key == 'html_url') return html_url;
     if (key == 'public') return public;
+    if (key == 'summary') return summary;
     for (GistFile file in files) {
       if (file.name == key) return file.content;
     }
@@ -241,6 +255,7 @@ class Gist {
     if (id != null) m['id'] = id;
     if (description != null) m['description'] = description;
     if (public != null) m['public'] = public;
+    if (summary != null) m['summary'] = summary;
     m['files'] = {};
     for (GistFile file in files) {
       if (file.hasContent) {
