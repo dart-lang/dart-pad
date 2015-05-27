@@ -4,7 +4,7 @@
 
 library dart_pad.summarize;
 
-import 'package:dart_pad/services/dartservices.dart';
+import '../services/dartservices.dart';
 /// Instances of this class take string input of dart code and output a text 
 /// description ofthe code's size, packages, and other useful information
 class Summarizer {

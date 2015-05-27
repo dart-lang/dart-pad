@@ -10,7 +10,6 @@ import 'dart:html' hide Document;
 import 'package:logging/logging.dart';
 import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
-import 'package:dart_pad/services/dartservices.dart';
 
 import 'actions.dart';
 import 'completion.dart';
@@ -29,6 +28,7 @@ import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'parameter_popup.dart';
 import 'services/common.dart';
+import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
