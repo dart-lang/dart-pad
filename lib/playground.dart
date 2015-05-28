@@ -541,6 +541,10 @@ class Playground implements GistContainer, GistController {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
+
+    // We only have issues for dart source code.
+    if (context.focusedEditor != "dart") return null;
+
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
 
