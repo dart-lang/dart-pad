@@ -205,7 +205,7 @@ class Playground implements GistContainer, GistController {
 
   Future shareAnon() {
     return _createSummary().then((String summary) {
-      return gistLoader.createAnon(mutableGist.createGistWithSummary(summary));
+      return gistLoader.createAnon(mutableGist.createGist(summary));
     }).then((Gist newGist) {
       editableGist.setBackingGist(newGist);
       overrideNextRoute(newGist);
@@ -543,7 +543,7 @@ class Playground implements GistContainer, GistController {
       _analysisRequest = request;
       return request.then((AnalysisResults result) {
         Summarizer summer = new Summarizer(_context.dartSource, result);
-        return summer.returnAsGistMarkDown();
+        return summer.returnAsMarkDown();
       }).catchError((e) {
         _logger.severe(e);
       });

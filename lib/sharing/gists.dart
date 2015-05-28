@@ -132,27 +132,12 @@ ${styleRef}${dartRef}  </head>
     }
 
     // Update the readme for this gist.
-    GistFile readmeFile = gist.getFile('readme.md', ignoreCase: true);
-    if (readmeFile == null) {
-      readmeFile = new GistFile(
-          name: 'readme.md',
-          content: '# ${gist.description}\n\nView this gist at ${_dartpadLink}.\n');
-      gist.files.add(readmeFile);
-    } else {
-      // Stamp the file content with the current description.
-      List<String> lines = readmeFile.content.split('\n').toList();
-      if (lines.isNotEmpty && lines.first.startsWith('# ')) {
-        lines[0] = '# ${gist.description}'; 
-        //TODO: Change description to "title"
-        readmeFile.content = lines.join('\n');
-        readmeFile.content = readmeFile.content.split('<pre>')[0];
-        String summary = gist.summary;
-        readmeFile.content += '\n \n \n ${summary}';
-      }
-    }
-
+    GistFile readmeFile = new GistFile(
+        name: 'readme.md',
+        content: '# ${gist.description}\n\nCreated with <3 at ${_dartpadLink}.');
+    readmeFile.content += '\n \n ${gist.summary}';
+    gist.files.add(readmeFile);
     // TODO: Write out a reasonable pubspec.yaml for this gist.
-
   };
 
   final GistFilterHook afterLoadHook;

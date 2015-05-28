@@ -77,25 +77,15 @@ class MutableGist implements PropertyOwner {
 
   Property property(String name) => new _MutableGistProperty(this, name);
 
-  Gist createGist() {
+  Gist createGist([String summary]) {
     Gist gist = new Gist(description: description, id: id, public: public);
     gist.html_url = html_url;
     for (MutableGistFile file in getFiles()) {
       gist.files.add(new GistFile(name: file.name, content: file.content));
     }
+    if (summary != null) gist.summary = summary;
     return gist;
   }
-  
-  //Creates a Gist with summary element for sharing
-  Gist createGistWithSummary(String summary) {
-      Gist gist = new Gist(description: description, id: id, public: public);
-      gist.html_url = html_url;
-      gist.summary = summary;
-      for (MutableGistFile file in getFiles()) {
-        gist.files.add(new GistFile(name: file.name, content: file.content));
-      }
-      return gist;
-    }
   
   String _getProperty(String key) {
     if (_localValues.containsKey(key)) return _localValues[key];
