@@ -14,7 +14,7 @@ void defineTests() {
     Summarizer summer = new Summarizer("Test.");
     //Verify that summarizer returns non-null input
     test('non-null', () {
-      expect(summer.returnAsGistMarkDown(), isNot(equals(null)));
+      expect(summer.returnAsMarkDown(), isNot(equals(null)));
     });
   });
 }
