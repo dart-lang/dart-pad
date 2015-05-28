@@ -361,3 +361,22 @@ button.close:hover {
 [contenteditable]:focus {
   outline: 0 solid transparent;
 }
+
+/* style the <select> element */
+
+select {
+  -webkit-border-radius: 0px;
+
+  color: #aaa;
+  fill: #aaa;
+  border: 1px solid #222;
+  border-radius: 2px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12pt;
+  line-height: 18px;
+  height: 24px;
+  cursor: pointer;
+  padding: 2px 6px;
+  background-color: #444;
+  background-image: linear-gradient(to bottom, #444, #333);
+}
