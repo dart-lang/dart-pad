@@ -54,19 +54,20 @@ class Playground implements GistContainer, GistController {
   AnchorElement get _resultTab => querySelector('#resulttab');
   bool _htmlIsEmpty = true;
 
-  DButton runButton;
-  DOverlay overlay;
-  DBusyLight busyLight;
-  DBusyLight consoleBusyLight;
-  Editor editor;
-  PlaygroundContext _context;
-  Future _analysisRequest;
+  DButton runButton = new DButton(querySelector('#runbutton'));
+  DOverlay overlay = new DOverlay(querySelector('#frame_overlay'));
+  DBusyLight busyLight = new DBusyLight(querySelector('#dartbusy'));
+  DBusyLight consoleBusyLight = new DBusyLight(querySelector('#consolebusy'));
   MutableGist editableGist = new MutableGist(new Gist());
   GistStorage _gistStorage = new GistStorage();
-  DContentEditable titleEditable;
+  DContentEditable titleEditable = new DContentEditable(
+      querySelector('header .header-gist-name'));
 
   SharingDialog sharingDialog;
   KeysDialog settings;
+  Editor editor;
+  PlaygroundContext _context;
+  Future _analysisRequest;
 
   // We store the last returned shared gist; it's used to update the url.
   Gist _overrideNextRouteGist;
@@ -80,8 +81,6 @@ class Playground implements GistContainer, GistController {
     _registerTab(querySelector('#htmltab'), 'html');
     _registerTab(querySelector('#csstab'), 'css');
 
-    overlay = new DOverlay(querySelector('#frame_overlay'));
-
     sharingDialog = new SharingDialog(this, this);
 
     new NewPadAction(querySelector('#newbutton'), this);
@@ -89,7 +88,6 @@ class Playground implements GistContainer, GistController {
     DButton shareButton = new DButton(querySelector('#sharebutton'));
     shareButton.onClick.listen((e) => sharingDialog.show());
 
-    runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
       _handleRun();
 
@@ -101,12 +99,7 @@ class Playground implements GistContainer, GistController {
     // Listen for the keyboard button.
     querySelector('#keyboard-button').onClick.listen((_) => settings.show());
 
-    busyLight = new DBusyLight(querySelector('#dartbusy'));
-    consoleBusyLight = new DBusyLight(querySelector('#consolebusy'));
-
     // Update the title on changes.
-    titleEditable = new DContentEditable(
-        querySelector('header .header-gist-name'));
     bind(titleEditable.onChanged, editableGist.property('description'));
     bind(editableGist.property('description'), titleEditable.textProperty);
     editableGist.onDirtyChanged.listen((val) {
@@ -431,6 +424,10 @@ class Playground implements GistContainer, GistController {
 
     component.onClick.listen((_) {
       if (component.hasAttr('selected')) return;
+
+      Element issuesElement = querySelector('#issues');
+      if (name != "dart") issuesElement.style.display = "none";
+      else issuesElement.style.display = "block";
 
       component.setAttr('selected');
 
