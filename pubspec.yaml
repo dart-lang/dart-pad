@@ -16,7 +16,7 @@ dependencies:
   logging: '>=0.9.0 <0.10.0'
   markd: '>=0.7.1+4 <0.8.0'
   rate_limit: '>=0.1.0 <0.2.0'
-  route_hierarchical: '>=0.6.0 <0.7.0'
+  route_hierarchical: '>=0.6.0 <0.6.2'
 dev_dependencies:
   dart_to_js_script_rewriter: any
   git: any

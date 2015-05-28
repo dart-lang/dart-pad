@@ -433,8 +433,11 @@ class Playground implements GistContainer, GistController {
       if (component.hasAttr('selected')) return;
 
       Element issuesElement = querySelector('#issues');
-      if (name != "dart") issuesElement.style.display = "none";
-      else issuesElement.style.display = "block";
+      if (name != "dart") {
+        issuesElement.style.display = "none";
+      } else {
+        issuesElement.style.display = "block";
+      }
 
       component.setAttr('selected');
 
