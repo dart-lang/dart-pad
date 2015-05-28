@@ -49,9 +49,9 @@ class Summarizer {
   }
   
   String _condenseIssue(AnalysisIssue issue) {
-      return '''${issue.kind.toUpperCase()} | ${issue.message} </n>
+    return '''${issue.kind.toUpperCase()} | ${issue.message} </n>
   Source at ${issue.sourceName} <n/>
-  Located at line: ${issue.line}<n/>, 
+  Located at line: ${issue.line} <n/>.
   ''';
     }
 }
