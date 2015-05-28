@@ -33,6 +33,7 @@ import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
+import 'src/summarize.dart';
 import 'src/util.dart';
 
 Playground get playground => _playground;
@@ -203,7 +204,9 @@ class Playground implements GistContainer, GistController {
   }
 
   Future shareAnon() {
-    return gistLoader.createAnon(mutableGist.createGist()).then((Gist newGist) {
+    return _createSummary().then((String summary) {
+      return gistLoader.createAnon(mutableGist.createGist(summary));
+    }).then((Gist newGist) {
       editableGist.setBackingGist(newGist);
       overrideNextRoute(newGist);
       router.go('gist', {'gist': newGist.id});
@@ -540,11 +543,24 @@ class Playground implements GistContainer, GistController {
       overlay.visible = false;
     });
   }
-
+ 
+  Future<String> _createSummary() {
+      SourceRequest input = new SourceRequest()..source = _context.dartSource;
+      Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
+      _analysisRequest = request;
+      return request.then((AnalysisResults result) {
+        Summarizer summer = new Summarizer(_context.dartSource, result);
+        return summer.returnAsMarkDown();
+      }).catchError((e) {
+        _logger.severe(e);
+      });
+    }
+  
+  
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
-    var input = new SourceRequest()..source = _context.dartSource;
+    SourceRequest input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
 
     Future request = dartServices.analyze(input).timeout(serviceCallTimeout);

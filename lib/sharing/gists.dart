@@ -47,7 +47,7 @@ Gist createSampleGist() {
   gist.files.add(new GistFile(name: 'index.html', content: '\n'));
   gist.files.add(new GistFile(name: 'styles.css', content: '\n'));
   gist.files.add(new GistFile(name: 'readme.md',
-      content: '# ${gist.description}\n\nCreated with <3 with ${_dartpadLink}.\n'));
+      content: '# ${gist.description}\n\nCreated with <3 with ${_dartpadLink}.'));
   return gist;
 }
 
@@ -132,23 +132,12 @@ ${styleRef}${dartRef}  </head>
     }
 
     // Update the readme for this gist.
-    GistFile readmeFile = gist.getFile('readme.md', ignoreCase: true);
-    if (readmeFile == null) {
-      readmeFile = new GistFile(
-          name: 'readme.md',
-          content: '# ${gist.description}\n\nView this gist at ${_dartpadLink}.\n');
-      gist.files.add(readmeFile);
-    } else {
-      // Stamp the file content with the current description.
-      List<String> lines = readmeFile.content.split('\n').toList();
-      if (lines.isNotEmpty && lines.first.startsWith('# ')) {
-        lines[0] = '# ${gist.description}';
-        readmeFile.content = lines.join('\n');
-      }
-    }
-
+    GistFile readmeFile = new GistFile(
+        name: 'readme.md',
+        content: '# ${gist.description}\n\nCreated with <3 at ${_dartpadLink}.');
+    readmeFile.content += '\n \n ${gist.summary}';
+    gist.files.add(readmeFile);
     // TODO: Write out a reasonable pubspec.yaml for this gist.
-
   };
 
   final GistFilterHook afterLoadHook;
@@ -196,6 +185,7 @@ class Gist {
   String id;
   String description;
   String html_url;
+  String summary;
 
   bool public;
 
@@ -210,7 +200,7 @@ class Gist {
     description = map['description'];
     public = map['public'];
     html_url = map['html_url'];
-
+    summary = map['summary'];
     Map f = map['files'];
     files = f.keys.map((key) => new GistFile.fromMap(key, f[key])).toList();
   }
@@ -220,6 +210,7 @@ class Gist {
     if (key == 'description') return description;
     if (key == 'html_url') return html_url;
     if (key == 'public') return public;
+    if (key == 'summary') return summary;
     for (GistFile file in files) {
       if (file.name == key) return file.content;
     }
@@ -241,6 +232,7 @@ class Gist {
     if (id != null) m['id'] = id;
     if (description != null) m['description'] = description;
     if (public != null) m['public'] = public;
+    if (summary != null) m['summary'] = summary;
     m['files'] = {};
     for (GistFile file in files) {
       if (file.hasContent) {
