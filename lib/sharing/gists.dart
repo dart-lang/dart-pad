@@ -7,6 +7,7 @@ library gists;
 import 'dart:async';
 import 'dart:convert' show JSON;
 import 'dart:html';
+
 import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:haikunator/haikunator.dart';
 
@@ -145,9 +146,7 @@ ${styleRef}${dartRef}  </head>
         //TODO: Change description to "title"
         readmeFile.content = lines.join('\n');
         readmeFile.content = readmeFile.content.split('<pre>')[0];
-        //Summarizer summer = new Summarizer();
         String summary = gist.summary;
-        //TODO: Add summary; check that summary isn't null
         readmeFile.content += '\n \n \n ${summary}';
       }
     }

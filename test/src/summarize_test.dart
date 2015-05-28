@@ -11,10 +11,10 @@ import 'package:unittest/unittest.dart';
 
 void defineTests() {
   group('Summarizer', () {
-    Summarizer summer = new Summarizer();
+    Summarizer summer = new Summarizer("Test.");
     //Verify that summarizer returns non-null input
     test('non-null', () {
-      expect(summer.summarize(null, null), isNot(equals(null)));
+      expect(summer.returnAsGistMarkDown(), isNot(equals(null)));
     });
   });
 }

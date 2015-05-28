@@ -5,50 +5,94 @@
 library dart_pad.summarize;
 
 import '../services/dartservices.dart';
-/// Instances of this class take string input of dart code and output a text 
-/// description ofthe code's size, packages, and other useful information
+/// Instances of this class take string input of dart code as well as an analysis result,
+/// and output a text description ofthe code's size, packages, and other useful information.
 class Summarizer {
   
-  String summarize(SourceRequest input, AnalysisResults result) {
-    if (input == null || result == null) {
-      return "Summarizer has broken!.";
-    }
-    String summary = '<pre><code><b>Summary (Under Development)</b><p/>';
-    summary += '${_linesCode(input)} lines of code used. <p/>';
-    bool hasErrors = result.issues.any((issue) => issue.kind == 'error');
-    bool hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
-    if (hasErrors) summary += 'Errors are present.<p/>';
-    if (hasWarnings) summary += 'Warnings are present.<p/>';
-    summary += _languageFeatures(result);
-    summary += '${result.packageImports.length} ';
-    summary += 'Package Imports: ${result.packageImports.toString()}. <p/>';
-    summary += '${result.resolvedImports.length} ';
-    summary += 'Resolved Imports: ${result.resolvedImports.toString()}. <p/>';
-    summary += 'List of ${result.issues.length} Errors: <ul>';
-    for (AnalysisIssue issue in result.issues) {
-      summary += '<li>${_condenseIssue(issue)}</li>';
-    }
-    summary += '</ul></code></pre>';
+  SummarizeToken storage;
+
+  bool resultsPresent;
+  
+  Summarizer(String input, [AnalysisResults analysis]) {
+    if (input == null) throw new ArgumentError("Input can't be null.");
+    resultsPresent = !(analysis == null);
+    storage = new SummarizeToken(input, analysis);
+  }
+  
+  String returnAsSimpleSummary() {
+    String summary = 'Summary (Under Development):';
     return summary;
   }
   
-  ///Outputs the language features used
-  String _languageFeatures(AnalysisResults input) {
-    //TODO: Add language features
-    return "Language features under construction. <p/>";
+  String returnAsGistMarkDown() {
+    if (resultsPresent) {
+      String summary = '<pre><code><b>Summary (Under Development)</b><p/>';
+      summary +='${storage.linesCode} lines of code. <p/>';
+      if (storage.errorPresent) summary += 'Errors are present.<p/>';
+      if (storage.errorPresent) summary += 'Warnings are present.<p/>';
+      summary += '${storage.features} <p/>';
+      summary += '${storage.packageCount} Package Imports: ${storage.packageImports}. <p/>';
+      summary += '${storage.resolvedCount} Resolved Imports: ${storage.resolvedImports}. <p/>';
+      summary += 'List of ${storage.errorCount} Errors: <ul>';
+      for (AnalysisIssue issue in storage.errors) {
+        summary += '<li>${_condenseIssue(issue)}</li>';
+      }
+      summary += '</ul></code></pre>';
+      return summary;
+    }
+    else {
+      String summary = '<pre><code><b>Summary (Under Development)</b><p/>';
+      summary +='${storage.linesCode} lines of code. <p/>';
+      return summary;
+    }
+    
   }
   
-  ///Converts an AnalysisIssue into a summarized string
   String _condenseIssue(AnalysisIssue issue) {
-    return '''${issue.kind.toUpperCase()} | ${issue.message} </n>
+      return '''${issue.kind.toUpperCase()} | ${issue.message} </n>
   Source at ${issue.sourceName} <n/>
   Located at line: ${issue.line}<n/>, 
   ''';
-  }
-  
-  ///Returns the number of lines of a source request's source.
-  String _linesCode(SourceRequest input) {
-    return input.source.split('\n').length.toString();
-  }
+    }
 }
 
+class SummarizeToken {
+  int linesCode;
+  int packageCount;
+  int resolvedCount;
+  int errorCount;
+  
+  bool errorPresent;
+  bool warningPresent;
+  
+  String features;
+  
+  List<String> packageImports;
+  List<String> resolvedImports;
+  
+  List<AnalysisIssue> errors;
+  
+  SummarizeToken (String input, [AnalysisResults analysis]) {
+    linesCode = _linesCode(input);
+    if (analysis != null) {
+      errorPresent = analysis.issues.any((issue) => issue.kind == 'error');
+      warningPresent = analysis.issues.any((issue) => issue.kind == 'warning');
+      features = _languageFeatures(analysis);
+      packageCount= analysis.packageImports.length;
+      resolvedCount = analysis.resolvedImports.length;
+      packageImports = analysis.packageImports;
+      resolvedImports = analysis.resolvedImports;
+      errors = analysis.issues;
+      errorCount = errors.length;
+    }
+  }
+  
+  String _languageFeatures(AnalysisResults input) {
+    // TODO: Add language features.
+    return "Language features under construction.";
+  }
+   
+  int _linesCode(String input) {
+    return input.split('\n').length;
+  }
+}
