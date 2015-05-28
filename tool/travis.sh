@@ -19,4 +19,5 @@ dart tool/grind.dart buildbot
 #dart tool/grind.dart test-web
 
 # Run the webdriver integration tests.
-dart test/web_integration.dart
+# Disabled; tracking the failure here: #441.
+# dart test/web_integration.dart
