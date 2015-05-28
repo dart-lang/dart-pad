@@ -205,7 +205,7 @@ class Playground implements GistContainer, GistController {
 
   Future shareAnon() {
     return _createSummary().then((String summary) {
-      return gistLoader.createAnon(mutableGist.createGist(summary));
+      return gistLoader.createAnon(mutableGist.createGist(summary: summary));
     }).then((Gist newGist) {
       editableGist.setBackingGist(newGist);
       overrideNextRoute(newGist);
@@ -543,7 +543,7 @@ class Playground implements GistContainer, GistController {
       overlay.visible = false;
     });
   }
- 
+
   Future<String> _createSummary() {
       SourceRequest input = new SourceRequest()..source = _context.dartSource;
       Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
@@ -555,8 +555,7 @@ class Playground implements GistContainer, GistController {
         _logger.severe(e);
       });
     }
-  
-  
+
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
