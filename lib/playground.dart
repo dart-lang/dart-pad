@@ -523,16 +523,16 @@ class Playground implements GistContainer, GistController {
   }
 
   Future<String> _createSummary() {
-      SourceRequest input = new SourceRequest()..source = _context.dartSource;
-      Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
-      _analysisRequest = request;
-      return request.then((AnalysisResults result) {
-        Summarizer summer = new Summarizer(_context.dartSource, result);
-        return summer.returnAsSimpleSummary();
-      }).catchError((e) {
-        _logger.severe(e);
-      });
-    }
+    SourceRequest input = new SourceRequest()..source = _context.dartSource;
+    Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
+    _analysisRequest = request;
+    return request.then((AnalysisResults result) {
+      Summarizer summer = new Summarizer(_context.dartSource, result);
+      return summer.returnAsSimpleSummary();
+    }).catchError((e) {
+      _logger.severe(e);
+    });
+  }
 
 
   /// Perform static analysis of the source code. Return whether the code

@@ -12,7 +12,7 @@ import '../services/dartservices.dart';
 /// and output a text description ofthe code's size, packages, and other useful information.
 class Summarizer {
   _SummarizeToken storage;
-
+  String code;
   bool resultsPresent;
   int randomizer;
   
@@ -21,6 +21,16 @@ class Summarizer {
     'errorCount': [1,5,100]
   };
   
+  static Map<String, String> codeKeyWords = {
+    'await' : 'await',
+    'async' : 'async',
+  };
+  
+  static Map<String, String> additionKeyWords = {
+      'pirate' : 'pirates',
+      'bird' : 'birds',
+    };
+    
   static Map<String, List<String>> categories = {
     /// This [size] [codeQuantifier] contains [error] errors and warnings.
     'size-2': ['gigantic', 'Jupiterian sized', 'immense', 
@@ -33,11 +43,13 @@ class Summarizer {
     'errorCount-2':['many', 'a motherload of', 'copious amounts of', 'unholy quantities of'],
     'errorCount-1':['some', 'a few', 'sparse amounts of', 'very few instances of'],
     'errorCount-0':['zero', 'no', 'a nonexistent of', '0.0000', '0'],
+    'use' : ['demonstrates', 'contains', 'illustrates', 'depicts']
   };
   
   Summarizer(String input, [AnalysisResults analysis]) {
-    if (input == null) throw new ArgumentError("Input can't be null.");
+    if (input == null) throw new ArgumentError('Input cannot be null.');
     resultsPresent = !(analysis == null);
+    code = input;
     MD5 encryptor = new MD5();
     encryptor.add(input.codeUnits);
     randomizer = _sumList(encryptor.close());
@@ -53,7 +65,7 @@ class Summarizer {
   }
   
   String _categorySelector(String category, int itemCount) {
-    if (category == "size" || category == "errorCount") {
+    if (category == 'size' || category == 'errorCount') {
       List<int> maxField = cuttoffs[category];
       int counter = 0;
       while(counter < maxField.length) {
@@ -88,6 +100,58 @@ class Summarizer {
     }
   }
   
+  String _additionList(List<String> list) {
+    if (list.length == 0) return '';
+        String englishList = 'Also, mentions ';
+        for (int i = 0; i < list.length; i++) {
+          englishList += list[i];
+          if (i < list.length - 2) {
+            englishList += ', ';
+          }
+          if (i == list.length - 2) {
+            englishList += ', and ';
+          }
+        }
+        englishList += '.';
+        return englishList;
+  }
+  
+  List<String> _additionSearch() {
+    List<String> features = new List<String>();
+    for (String feature in  additionKeyWords.keys) {
+      if (code.contains(feature)) {
+        features.add(additionKeyWords[feature]);
+      }
+    }
+    return features;
+  }
+  
+  List<String> _codeSearch() {
+    List<String> features = new List<String>();
+    for (String feature in  codeKeyWords.keys) {
+      if (code.contains(feature)) {
+        features.add(codeKeyWords[feature]);
+      }
+    }
+    return features;
+  }
+  
+  String _listify (List<String> list) {
+    if (list.length == 0) return '';
+    String englishList = 'This code ${_sentenceFiller('use')} use of ';
+    for (int i = 0; i < list.length; i++) {
+      englishList += list[i];
+      if (i < list.length - 2) {
+        englishList += ', ';
+      }
+      if (i == list.length - 2) {
+        englishList += ', and ';
+      }
+    }
+    englishList += ' features.';
+    return englishList;
+  }
+  
   String returnAsSimpleSummary() {
     if (resultsPresent) {
       String summary = "Summary: ";
@@ -99,12 +163,16 @@ class Summarizer {
         summary += '${_sentenceFiller('compiledQuantifier')} contains ';
       }
       summary += '${_sentenceFiller('errorCount', storage.errorCount)} errors and warnings.';
+      summary += ' ${_listify(_codeSearch())}';
+      summary += ' ${_additionList(_additionSearch())}';
       return summary;
     }
     else {
       String summary = "Summary: ";
       summary += 'This is a ${_sentenceFiller('size', storage.linesCode)} ';
       summary += '${_sentenceFiller('compiledQuantifier')}.';
+      summary += ' ${_listify(_codeSearch())}';
+      summary += ' ${_additionList(_additionSearch())}';
       return summary;
     }
   }
