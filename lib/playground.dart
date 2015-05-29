@@ -66,6 +66,7 @@ class Playground implements GistContainer, GistController {
   GistStorage _gistStorage = new GistStorage();
   DContentEditable titleEditable;
 
+  TabController outputTabController;
   SharingDialog sharingDialog;
   KeysDialog settings;
 
@@ -77,9 +78,22 @@ class Playground implements GistContainer, GistController {
   ModuleManager modules = new ModuleManager();
 
   Playground() {
-    _registerTab(querySelector('#darttab'), 'dart');
-    _registerTab(querySelector('#htmltab'), 'html');
-    _registerTab(querySelector('#csstab'), 'css');
+
+    TabController controller = new TabController();
+    for (String name in ['dart', 'html', 'css']) {
+      controller.registerTab(new TabElement(querySelector('#${name}tab'), name: name)
+        ..onSelect = () {
+          Element issuesElement = querySelector('#issues');
+          if (name != "dart") {
+            issuesElement.style.display = "none";
+          } else {
+            issuesElement.style.display = "block";
+          }
+          ga.sendEvent('edit', name);
+          _context.switchTo(name);
+        }
+      );
+    }
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
 
@@ -352,8 +366,21 @@ class Playground implements GistContainer, GistController {
       _handleAutoCompletion(e);
     });
 
-    _resultTab.onClick.listen((e) => _toggleResultTab());
-    querySelector("#consoletab").onClick.listen((e) => _toggleConsoleTab());
+    outputTabController = new TabController()
+      ..registerTab(new TabElement(querySelector('#resulttab'), name: "result")
+        ..onSelect = () {
+          ga.sendEvent('view', "result");
+          querySelector('#frame').style.display = "block";
+          querySelector('#output').style.display = "none";
+        }
+      )
+      ..registerTab(new TabElement(querySelector('#consoletab'), name: "console")
+        ..onSelect = () {
+          ga.sendEvent('view', "console");
+          querySelector('#output').style.display = "block";
+          querySelector('#frame').style.display = "none";
+      }
+    );
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
@@ -429,54 +456,6 @@ class Playground implements GistContainer, GistController {
     splash.hide();
   }
 
-  void _registerTab(Element element, String name) {
-    DElement component = new DElement(element);
-
-    component.onClick.listen((_) {
-      if (component.hasAttr('selected')) return;
-
-      Element issuesElement = querySelector('#issues');
-      if (name != "dart") {
-        issuesElement.style.display = "none";
-      } else {
-        issuesElement.style.display = "block";
-      }
-
-      component.setAttr('selected');
-
-      _getTabElements(component.element.parent.parent).forEach((c) {
-        if (c != component.element && c.attributes.containsKey('selected')) {
-          c.attributes.remove('selected');
-        }
-      });
-
-      ga.sendEvent('edit', name);
-      _context.switchTo(name);
-    });
-  }
-
-  List<Element> _getTabElements(Element element) =>
-      element.querySelectorAll('a');
-
-  void _toggleResultTab() {
-    ga.sendEvent('view', 'result');
-    // TODO:(devoncarew): We need a tab component (in lib/elements.dart).
-    querySelector('#output').style.display = "none";
-    querySelector("#consoletab").attributes.remove('selected');
-
-    _frame.style.display = "block";
-    _resultTab.setAttribute('selected','');
-  }
-
-  void _toggleConsoleTab() {
-    ga.sendEvent('view', 'console');
-    _frame.style.display = "none";
-    _resultTab.attributes.remove('selected');
-
-    _outputpanel.style.display = "block";
-    querySelector("#consoletab").setAttribute('selected','');
-  }
-
   _handleAutoCompletion(KeyboardEvent e) {
     if (context.focusedEditor == 'dart' && editor.hasFocus) {
       if (e.keyCode == KeyCode.PERIOD) {
@@ -510,10 +489,10 @@ class Playground implements GistContainer, GistController {
   void _checkForEmptyHtml(String htmlSource) {
     if (htmlSource.trim().isEmpty && !_htmlIsEmpty) {
       _htmlIsEmpty = true;
-      _toggleConsoleTab();
+      outputTabController.selectTab("console");
     } else if (htmlSource.trim().isNotEmpty && _htmlIsEmpty){
       _htmlIsEmpty = false;
-      _toggleResultTab();
+      outputTabController.selectTab("result");
     }
   }
 
@@ -543,7 +522,7 @@ class Playground implements GistContainer, GistController {
       overlay.visible = false;
     });
   }
- 
+
   Future<String> _createSummary() {
       SourceRequest input = new SourceRequest()..source = _context.dartSource;
       Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
@@ -555,8 +534,8 @@ class Playground implements GistContainer, GistController {
         _logger.severe(e);
       });
     }
-  
-  
+
+
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
