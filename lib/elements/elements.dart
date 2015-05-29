@@ -523,10 +523,9 @@ class TabController {
 
   set selectedTab(TabElement s) {
     _selectedTab = s;
-    tabElements.where((tab) => tab != _selectedTab).forEach((tab) {
-      tab.element.attributes.remove('selected');
-    });
-    _selectedTab.setAttr('selected');
+    for (TabElement tab in tabElements) {
+      tab.toggleAttr('selected', tab == _selectedTab);
+    }
   }
 
   void registerTab(TabElement tab) {
@@ -537,15 +536,16 @@ class TabController {
     });
   }
 
+  /// This method will throw if the tabName is not the name of a current tab.
   void selectTab(String tabName) {
     selectedTab = tabElements.firstWhere((t) => t.name == tabName);
   }
 }
 
 class TabElement extends DElement {
-  String name;
+  final String name;
 
-  Function onSelect;
+  final Function onSelect;
 
   TabElement(Element element, {this.name, this.onSelect}) : super(element);
 

@@ -80,8 +80,8 @@ class Playground implements GistContainer, GistController {
 
     TabController controller = new TabController();
     for (String name in ['dart', 'html', 'css']) {
-      controller.registerTab(new TabElement(querySelector('#${name}tab'), name: name)
-        ..onSelect = () {
+      controller.registerTab(new TabElement(querySelector('#${name}tab'), name: name,
+        onSelect: () {
           Element issuesElement = querySelector('#issues');
           if (name != "dart") {
             issuesElement.style.display = "none";
@@ -90,7 +90,7 @@ class Playground implements GistContainer, GistController {
           }
           ga.sendEvent('edit', name);
           _context.switchTo(name);
-        }
+        })
       );
     }
 
@@ -366,20 +366,20 @@ class Playground implements GistContainer, GistController {
     });
 
     outputTabController = new TabController()
-      ..registerTab(new TabElement(querySelector('#resulttab'), name: "result")
-        ..onSelect = () {
+      ..registerTab(new TabElement(querySelector('#resulttab'), name: "result",
+        onSelect: () {
           ga.sendEvent('view', "result");
           querySelector('#frame').style.display = "block";
           querySelector('#output').style.display = "none";
-        }
+        })
       )
-      ..registerTab(new TabElement(querySelector('#consoletab'), name: "console")
-        ..onSelect = () {
+      ..registerTab(new TabElement(querySelector('#consoletab'), name: "console",
+        onSelect: () {
           ga.sendEvent('view', "console");
           querySelector('#output').style.display = "block";
           querySelector('#frame').style.display = "none";
-      }
-    );
+        })
+      );
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
