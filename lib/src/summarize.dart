@@ -26,11 +26,13 @@ class Summarizer {
   static Map<String, String> codeKeyWords = {
     'await' : 'await',
     'async' : 'async',
+    'rpc' : 'RESTful serverside app'
   };
   
   static Map<String, String> additionKeyWords = {
       'pirate' : 'pirates',
       'bird' : 'birds',
+      'llama' : 'llamas',
   };
     
   static Map<String, List<String>> categories = {
