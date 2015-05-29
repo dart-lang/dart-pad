@@ -17,42 +17,71 @@ class Summarizer {
   String _html;
   bool resultsPresent;
   int randomizer;
-  
+
   static Map<String, List<int>> cuttoffs = {
     'size': [8, 30, 1000], //0-7 = small, 8 - 29 = decent, 29+ = gigantic
-    'errorCount': [1,5,100]
+    'errorCount': [1, 5, 100]
   };
-  
+
   static Map<String, String> codeKeyWords = {
-    'await' : 'await',
-    'async' : 'async',
-    'rpc' : 'RESTful serverside app'
+    'await': 'await',
+    'async': 'async',
+    'rpc': 'RESTful serverside app'
   };
-  
+
   static Map<String, String> additionKeyWords = {
-      'pirate' : 'pirates',
-      'bird' : 'birds',
-      'llama' : 'llamas',
+    'pirate': 'pirates',
+    'bird': 'birds',
+    'llama': 'llamas',
   };
-    
+
   static Map<String, List<String>> categories = {
     /// This [size] [codeQuantifier] contains [error] errors and warnings.
-    'size-2': ['gigantic', 'Jupiterian sized', 'immense', 
-      'massive', 'enormous', 'huge', 'epic', 'humongous'],
-    'size-1': ['decently sized', 'exceptional', 'awesome', 
-      'amazing', 'visionary', 'legendary'],
+    'size-2': [
+      'gigantic',
+      'Jupiterian sized',
+      'immense',
+      'massive',
+      'enormous',
+      'huge',
+      'epic',
+      'humongous'
+    ],
+    'size-1': [
+      'decently sized',
+      'exceptional',
+      'awesome',
+      'amazing',
+      'visionary',
+      'legendary'
+    ],
     'size-0': ['itty-bitty', 'miniature', 'tiny', 'pint-sized'],
     'compiledQuantifier': ['DART program', 'pad'],
-    'failedQuantifier': ['assemblage of characters', 'series of strings', 'grouping of letters'],
-    'errorCount-2':['many', 'a motherload of', 'copious amounts of', 'unholy quantities of'],
-    'errorCount-1':['some', 'a few', 'sparse amounts of', 'very few instances of'],
-    'errorCount-0':['zero', 'no', 'a nonexistent amount of', '0.0000', '0'],
-    'use' : ['demonstrates', 'contains', 'illustrates', 'depicts'],
+    'failedQuantifier': [
+      'assemblage of characters',
+      'series of strings',
+      'grouping of letters'
+    ],
+    'errorCount-2': [
+      'many',
+      'a motherload of',
+      'copious amounts of',
+      'unholy quantities of'
+    ],
+    'errorCount-1': [
+      'some',
+      'a few',
+      'sparse amounts of',
+      'very few instances of'
+    ],
+    'errorCount-0': ['zero', 'no', 'a nonexistent amount of', '0.0000', '0'],
+    'use': ['demonstrates', 'contains', 'illustrates', 'depicts'],
     'code-0': ['it'],
     'code-1': ['It'],
   };
-  
-  Summarizer(String input, {String html, String css, AnalysisResults analysis}) {
+
+  Summarizer(String input,
+      {String html, String css, AnalysisResults analysis}) {
     if (input == null) throw new ArgumentError('Input cannot be null.');
     resultsPresent = !(analysis == null);
     _code = input;
@@ -63,7 +92,7 @@ class Summarizer {
     randomizer = _sumList(encryptor.close());
     storage = new _SummarizeToken(input, analysis);
   }
-  
+
   int _sumList(List<int> list) {
     int sum = 0;
     for (int number in list) {
@@ -71,83 +100,80 @@ class Summarizer {
     }
     return sum;
   }
-  
+
   String _categorySelector(String category, int itemCount) {
     if (category == 'size' || category == 'errorCount') {
       List<int> maxField = cuttoffs[category];
       int counter = 0;
-      while(counter < maxField.length) {
+      while (counter < maxField.length) {
         if (itemCount < maxField[counter]) {
           return '${category}-${counter}';
         }
         counter++;
       }
       return '${category}-${counter - 1}';
-    }
-    else {
+    } else {
       return null;
     }
   }
-  
+
   String _wordSelector(String category) {
     if (categories.containsKey(category)) {
       List<String> returnSet = categories[category];
       return returnSet.elementAt(randomizer % returnSet.length);
-    }
-    else {
+    } else {
       return null;
     }
   }
-  
+
   String _sentenceFiller(String word, [int size]) {
     if (size != null) {
       return _wordSelector(_categorySelector(word, size));
-    }
-    else {
+    } else {
       return _wordSelector(word);
     }
   }
-  
+
   String _additionList(List<String> list) {
     if (list.length == 0) return '';
-        String englishList = ' Also, mentions ';
-        for (int i = 0; i < list.length; i++) {
-          englishList += list[i];
-          if (i < list.length - 2) {
-            englishList += ', ';
-          }
-          if (i == list.length - 2) {
-            if (i != 0) {
-              englishList += ',';
-            }
-            englishList += ' and ';
-          }
+    String englishList = ' Also, mentions ';
+    for (int i = 0; i < list.length; i++) {
+      englishList += list[i];
+      if (i < list.length - 2) {
+        englishList += ', ';
+      }
+      if (i == list.length - 2) {
+        if (i != 0) {
+          englishList += ',';
         }
-        englishList += '. ';
-        return englishList;
+        englishList += ' and ';
+      }
+    }
+    englishList += '. ';
+    return englishList;
   }
-  
+
   List<String> _additionSearch() {
     List<String> features = new List<String>();
-    for (String feature in  additionKeyWords.keys) {
+    for (String feature in additionKeyWords.keys) {
       if (_code.contains(feature)) {
         features.add(additionKeyWords[feature]);
       }
     }
     return features;
   }
-  
+
   List<String> _codeSearch() {
     List<String> features = new List<String>();
-    for (String feature in  codeKeyWords.keys) {
+    for (String feature in codeKeyWords.keys) {
       if (_code.contains(feature)) {
         features.add(codeKeyWords[feature]);
       }
     }
     return features;
   }
-  
-  String _featureList (List<String> list) {
+
+  String _featureList(List<String> list) {
     if (list.length == 0) return '. ';
     String englishList = ', and ${_sentenceFiller('use')} use of ';
     for (int i = 0; i < list.length; i++) {
@@ -165,14 +191,15 @@ class Summarizer {
     englishList += ' features. ';
     return englishList;
   }
-  
-  String _packageList (List<String> list, {String source}) {
+
+  String _packageList(List<String> list, {String source}) {
     if (list.length == 0) {
       if (source == null) return '';
       else return '. ';
     }
     String englishList = '';
-    if (source == 'packages') englishList += ', and ${_sentenceFiller('code-0')} imports ';
+    if (source == 'packages') englishList +=
+        ', and ${_sentenceFiller('code-0')} imports ';
     else englishList += '${_sentenceFiller('code-1')} imports ';
     for (int i = 0; i < list.length; i++) {
       englishList += list[i];
@@ -190,7 +217,7 @@ class Summarizer {
     else englishList += ' from the dart package as well. ';
     return englishList;
   }
-  
+
   String _htmlCSS() {
     String htmlCSS = 'This code has ';
     if (_html.length < 1) htmlCSS += 'no ';
@@ -208,8 +235,7 @@ class Summarizer {
       summary += 'This ${_sentenceFiller('size', storage.linesCode)} ';
       if (storage.errorPresent) {
         summary += '${_sentenceFiller('failedQuantifier')} contains ';
-      }
-      else {
+      } else {
         summary += '${_sentenceFiller('compiledQuantifier')} contains ';
       }
       summary += '${_sentenceFiller('errorCount', storage.errorCount)} ';
@@ -220,8 +246,7 @@ class Summarizer {
       summary += '${_packageList(storage.resolvedImports)}';
       summary += '${_additionList(_additionSearch())}';
       return summary;
-    }
-    else {
+    } else {
       String summary = "Summary: ";
       summary += 'This is a ${_sentenceFiller('size', storage.linesCode)} ';
       summary += '${_sentenceFiller('compiledQuantifier')}';
@@ -230,26 +255,27 @@ class Summarizer {
       return summary;
     }
   }
-  
+
   String returnAsVerboseSummary() {
     if (resultsPresent) {
       String summary = "Summary:";
-      summary +='There are ${storage.linesCode} lines of code.\n';
+      summary += 'There are ${storage.linesCode} lines of code.\n';
       if (storage.errorPresent) summary += 'Errors are present.\n';
       if (storage.errorPresent) summary += 'Warnings are present.\n';
       summary += '${storage.features}\n\n';
-      summary += '${storage.packageCount} Package Imports: ${storage.packageImports}.\n';
-      summary += '${storage.resolvedCount} Resolved Imports: ${storage.resolvedImports}.\n';
+      summary +=
+          '${storage.packageCount} Package Imports: ${storage.packageImports}.\n';
+      summary +=
+          '${storage.resolvedCount} Resolved Imports: ${storage.resolvedImports}.\n';
       summary += 'List of ${storage.errorCount} Errors:\n';
       for (AnalysisIssue issue in storage.errors) {
         summary += '- ${_condenseIssue(issue)}\n';
       }
       summary += "```";
       return summary;
-    }
-    else {
+    } else {
       String summary = "``` \n-- Summary (Under Development) --\n";
-      summary +='${storage.linesCode} lines of code.\n';
+      summary += '${storage.linesCode} lines of code.\n';
       return summary;
     }
   }
@@ -257,22 +283,23 @@ class Summarizer {
   String returnAsMarkDown() {
     if (resultsPresent) {
       String summary = "``` \n-- Summary (Under Development) --\n\n";
-      summary +='${storage.linesCode} lines of code.\n\n';
+      summary += '${storage.linesCode} lines of code.\n\n';
       if (storage.errorPresent) summary += 'Errors are present.\n\n';
       if (storage.errorPresent) summary += 'Warnings are present.\n\n';
       summary += '${storage.features} \n\n';
-      summary += '${storage.packageCount} Package Imports: ${storage.packageImports}.\n\n';
-      summary += '${storage.resolvedCount} Resolved Imports: ${storage.resolvedImports}.\n\n';
+      summary +=
+          '${storage.packageCount} Package Imports: ${storage.packageImports}.\n\n';
+      summary +=
+          '${storage.resolvedCount} Resolved Imports: ${storage.resolvedImports}.\n\n';
       summary += 'List of ${storage.errorCount} Errors:\n\n';
       for (AnalysisIssue issue in storage.errors) {
         summary += '- ${_condenseIssue(issue)}\n';
       }
       summary += "```";
       return summary;
-    }
-    else {
+    } else {
       String summary = "``` \n-- Summary (Under Development) --\n\n";
-      summary +='${storage.linesCode} lines of code.\n\n';
+      summary += '${storage.linesCode} lines of code.\n\n';
       return summary;
     }
   }
@@ -282,8 +309,8 @@ class Summarizer {
   Source at ${issue.sourceName}.\n
   Located at line: ${issue.line}.\n
   ''';
-    }
   }
+}
 
 class _SummarizeToken {
   int linesCode;
@@ -302,13 +329,13 @@ class _SummarizeToken {
 
   List<AnalysisIssue> errors;
 
-  _SummarizeToken (String input, [AnalysisResults analysis]) {
+  _SummarizeToken(String input, [AnalysisResults analysis]) {
     linesCode = _linesOfCode(input);
     if (analysis != null) {
       errorPresent = analysis.issues.any((issue) => issue.kind == 'error');
       warningPresent = analysis.issues.any((issue) => issue.kind == 'warning');
       features = _languageFeatures(analysis);
-      packageCount= analysis.packageImports.length;
+      packageCount = analysis.packageImports.length;
       resolvedCount = analysis.resolvedImports.length;
       packageImports = analysis.packageImports;
       resolvedImports = analysis.resolvedImports;
