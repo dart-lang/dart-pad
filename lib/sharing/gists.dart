@@ -46,8 +46,10 @@ Gist createSampleGist() {
   gist.files.add(new GistFile(name: 'main.dart', content: sample.dartCode));
   gist.files.add(new GistFile(name: 'index.html', content: '\n'));
   gist.files.add(new GistFile(name: 'styles.css', content: '\n'));
-  gist.files.add(new GistFile(name: 'readme.md',
-      content: '# ${gist.description}\n\nCreated with <3 with ${_dartpadLink}.'));
+  gist.files.add(new GistFile(
+      name: 'readme.md',
+      content: _createReadmeContents(
+          title: gist.description, withLink: _dartpadLink)));
   return gist;
 }
 
@@ -134,8 +136,10 @@ ${styleRef}${dartRef}  </head>
     // Update the readme for this gist.
     GistFile readmeFile = new GistFile(
         name: 'readme.md',
-        content: '# ${gist.description}\n\nCreated with <3 at ${_dartpadLink}.');
-    readmeFile.content += '\n \n ${gist.summary}';
+        content: _createReadmeContents(
+            title: gist.description,
+            summary: gist.summary,
+            withLink: _dartpadLink));
     gist.files.add(readmeFile);
     // TODO: Write out a reasonable pubspec.yaml for this gist.
   };
@@ -304,4 +308,18 @@ class GistStorage {
     _storedId = null;
     window.localStorage.remove(_key);
   }
+}
+
+String _createReadmeContents({String title, String summary, String withLink}) {
+  String str = "# ${title}\n";
+
+  if (summary != null) {
+    str += "\n${summary}\n";
+  }
+
+  if (withLink != null) {
+    str += "\nCreated with <3 with ${withLink}.\n";
+  }
+
+  return str;
 }

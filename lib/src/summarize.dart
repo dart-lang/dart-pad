@@ -12,13 +12,13 @@ class Summarizer {
   _SummarizeToken storage;
 
   bool resultsPresent;
-  
+
   Summarizer(String input, [AnalysisResults analysis]) {
     if (input == null) throw new ArgumentError("Input can't be null.");
     resultsPresent = !(analysis == null);
     storage = new _SummarizeToken(input, analysis);
   }
-  
+
   String returnAsSimpleSummary() {
     if (resultsPresent) {
       String summary = "Summary:";
@@ -41,7 +41,7 @@ class Summarizer {
       return summary;
     }
   }
-  
+
   String returnAsMarkDown() {
     if (resultsPresent) {
       String summary = "``` \n-- Summary (Under Development) --\n\n";
@@ -64,7 +64,7 @@ class Summarizer {
       return summary;
     }
   }
-  
+
   String _condenseIssue(AnalysisIssue issue) {
     return '''${issue.kind.toUpperCase()} | ${issue.message}\n
   Source at ${issue.sourceName}.\n
@@ -78,17 +78,17 @@ class _SummarizeToken {
   int packageCount;
   int resolvedCount;
   int errorCount;
-  
+
   bool errorPresent;
   bool warningPresent;
-  
+
   String features;
-  
+
   List<String> packageImports;
   List<String> resolvedImports;
-  
+
   List<AnalysisIssue> errors;
-  
+
   _SummarizeToken (String input, [AnalysisResults analysis]) {
     linesCode = _linesOfCode(input);
     if (analysis != null) {
@@ -103,12 +103,12 @@ class _SummarizeToken {
       errorCount = errors.length;
     }
   }
-  
+
   String _languageFeatures(AnalysisResults input) {
     // TODO: Add language features.
     return "Language features under construction.";
   }
-   
+
   int _linesOfCode(String input) {
     return input.split('\n').length;
   }
