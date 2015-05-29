@@ -460,3 +460,7 @@ div.toggle {
   height: 14px;
   margin-bottom: -2px;
 }
+
+#samples {
+  width: 100px;
+}
