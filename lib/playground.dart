@@ -543,7 +543,7 @@ class Playground implements GistContainer, GistController {
       _analysisRequest = request;
       return request.then((AnalysisResults result) {
         Summarizer summer = new Summarizer(_context.dartSource, result);
-        return summer.returnAsMarkDown();
+        return summer.returnAsSimpleSummary();
       }).catchError((e) {
         _logger.severe(e);
       });
