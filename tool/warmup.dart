@@ -6,10 +6,27 @@ import 'dart:convert' as convert;
 
 import 'package:http/http.dart' as http;
 
-const BASE_URI = "http://localhost:8080/api/dartservices/v1/";
-const count = 5;
+String uri;
+
+const BASE_URI = "dart-services.appspot.com/api/dartservices/v1/";
+//const BASE_URI = "http://localhost:8080/api/dartservices/v1/";
+const count = 10;
 
 main(List<String> args) async {
+
+  String appPrefix;
+  if (args.length > 0) {
+    appPrefix = "${args[0]}.";
+  } else {
+    appPrefix = "";
+  }
+  
+  // Use an insecure connection for test driving to avoid cert problems
+  // with the prefixed app version.
+  uri = "http://$appPrefix$BASE_URI";
+
+  print ("Target URI\n$uri");
+
   String source =
     "import 'dart:html'; void main() { var a = 3; var b = a.abs(); }";
 
@@ -28,7 +45,7 @@ main(List<String> args) async {
 
 request(String verb, String postPayload) async {
   return http.post(
-      Uri.parse(BASE_URI + verb),
+      Uri.parse(uri + verb),
       body: postPayload).then((response) {
     print("${response.statusCode}");
     print("${response.body}");
