@@ -12,7 +12,9 @@ import '../services/dartservices.dart';
 /// and output a text description ofthe code's size, packages, and other useful information.
 class Summarizer {
   _SummarizeToken storage;
-  String code;
+  String _code;
+  String _css;
+  String _html;
   bool resultsPresent;
   int randomizer;
   
@@ -44,13 +46,16 @@ class Summarizer {
     'errorCount-1':['some', 'a few', 'sparse amounts of', 'very few instances of'],
     'errorCount-0':['zero', 'no', 'a nonexistent amount of', '0.0000', '0'],
     'use' : ['demonstrates', 'contains', 'illustrates', 'depicts'],
-    'code-0': ['It'],
+    'code-0': ['it'],
+    'code-1': ['It'],
   };
   
-  Summarizer(String input, [AnalysisResults analysis]) {
+  Summarizer(String input, {String html, String css, AnalysisResults analysis}) {
     if (input == null) throw new ArgumentError('Input cannot be null.');
     resultsPresent = !(analysis == null);
-    code = input;
+    _code = input;
+    _html = html;
+    _css = css;
     MD5 encryptor = new MD5();
     encryptor.add(input.codeUnits);
     randomizer = _sumList(encryptor.close());
@@ -123,7 +128,7 @@ class Summarizer {
   List<String> _additionSearch() {
     List<String> features = new List<String>();
     for (String feature in  additionKeyWords.keys) {
-      if (code.contains(feature)) {
+      if (_code.contains(feature)) {
         features.add(additionKeyWords[feature]);
       }
     }
@@ -133,7 +138,7 @@ class Summarizer {
   List<String> _codeSearch() {
     List<String> features = new List<String>();
     for (String feature in  codeKeyWords.keys) {
-      if (code.contains(feature)) {
+      if (_code.contains(feature)) {
         features.add(codeKeyWords[feature]);
       }
     }
@@ -141,8 +146,8 @@ class Summarizer {
   }
   
   String _featureList (List<String> list) {
-    if (list.length == 0) return '';
-    String englishList = '${_sentenceFiller('use')} use of ';
+    if (list.length == 0) return '. ';
+    String englishList = ', and ${_sentenceFiller('use')} use of ';
     for (int i = 0; i < list.length; i++) {
       englishList += list[i];
       if (i < list.length - 2) {
@@ -160,8 +165,13 @@ class Summarizer {
   }
   
   String _packageList (List<String> list, {String source}) {
-    if (list.length == 0) return '';
-    String englishList = '${_sentenceFiller('code-0')} imports ';
+    if (list.length == 0) {
+      if (source == null) return '';
+      else return '. ';
+    }
+    String englishList = '';
+    if (source == 'packages') englishList += ', and ${_sentenceFiller('code-0')} imports ';
+    else englishList += '${_sentenceFiller('code-1')} imports ';
     for (int i = 0; i < list.length; i++) {
       englishList += list[i];
       if (i < list.length - 2) {
@@ -178,6 +188,17 @@ class Summarizer {
     else englishList += ' from the dart package as well. ';
     return englishList;
   }
+  
+  String _htmlCSS() {
+    String htmlCSS = 'This code has ';
+    if (_html.length < 1) htmlCSS += 'no ';
+    else htmlCSS += 'some ';
+    htmlCSS += 'associated html and ';
+    if (_css.length < 1) htmlCSS += 'no ';
+    else htmlCSS += 'some ';
+    htmlCSS += 'associated css';
+    return htmlCSS;
+  }
 
   String returnAsSimpleSummary() {
     if (resultsPresent) {
@@ -190,8 +211,9 @@ class Summarizer {
         summary += '${_sentenceFiller('compiledQuantifier')} contains ';
       }
       summary += '${_sentenceFiller('errorCount', storage.errorCount)} ';
-      summary += 'errors and warnings, and ';
+      summary += 'errors and warnings';
       summary += '${_featureList(_codeSearch())}';
+      summary += '${_htmlCSS()}';
       summary += '${_packageList(storage.packageImports, source: 'packages')}';
       summary += '${_packageList(storage.resolvedImports)}';
       summary += '${_additionList(_additionSearch())}';
@@ -200,9 +222,9 @@ class Summarizer {
     else {
       String summary = "Summary: ";
       summary += 'This is a ${_sentenceFiller('size', storage.linesCode)} ';
-      summary += '${_sentenceFiller('compiledQuantifier')}.';
-      summary += ' ${_featureList(_codeSearch())}';
-      summary += ' ${_additionList(_additionSearch())}';
+      summary += '${_sentenceFiller('compiledQuantifier')}';
+      summary += '${_featureList(_codeSearch())}';
+      summary += '${_additionList(_additionSearch())}';
       return summary;
     }
   }
@@ -259,7 +281,7 @@ class Summarizer {
   Located at line: ${issue.line}.\n
   ''';
     }
-}
+  }
 
 class _SummarizeToken {
   int linesCode;
