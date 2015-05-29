@@ -52,7 +52,6 @@ class Playground implements GistContainer, GistController {
   IFrameElement get _frame => querySelector('#frame');
   bool get _isCompletionActive => editor.completionActive;
   DivElement get _docPanel => querySelector('#documentation');
-  AnchorElement get _resultTab => querySelector('#resulttab');
   bool _htmlIsEmpty = true;
 
   DButton runButton;
