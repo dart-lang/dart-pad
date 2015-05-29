@@ -29,7 +29,7 @@ class Summarizer {
   static Map<String, String> additionKeyWords = {
       'pirate' : 'pirates',
       'bird' : 'birds',
-    };
+  };
     
   static Map<String, List<String>> categories = {
     /// This [size] [codeQuantifier] contains [error] errors and warnings.
@@ -42,8 +42,9 @@ class Summarizer {
     'failedQuantifier': ['assemblage of characters', 'series of strings', 'grouping of letters'],
     'errorCount-2':['many', 'a motherload of', 'copious amounts of', 'unholy quantities of'],
     'errorCount-1':['some', 'a few', 'sparse amounts of', 'very few instances of'],
-    'errorCount-0':['zero', 'no', 'a nonexistent of', '0.0000', '0'],
-    'use' : ['demonstrates', 'contains', 'illustrates', 'depicts']
+    'errorCount-0':['zero', 'no', 'a nonexistent amount of', '0.0000', '0'],
+    'use' : ['demonstrates', 'contains', 'illustrates', 'depicts'],
+    'code-0': ['It'],
   };
   
   Summarizer(String input, [AnalysisResults analysis]) {
@@ -102,17 +103,20 @@ class Summarizer {
   
   String _additionList(List<String> list) {
     if (list.length == 0) return '';
-        String englishList = 'Also, mentions ';
+        String englishList = ' Also, mentions ';
         for (int i = 0; i < list.length; i++) {
           englishList += list[i];
           if (i < list.length - 2) {
             englishList += ', ';
           }
           if (i == list.length - 2) {
-            englishList += ', and ';
+            if (i != 0) {
+              englishList += ',';
+            }
+            englishList += ' and ';
           }
         }
-        englishList += '.';
+        englishList += '. ';
         return englishList;
   }
   
@@ -136,25 +140,48 @@ class Summarizer {
     return features;
   }
   
-  String _listify (List<String> list) {
+  String _featureList (List<String> list) {
     if (list.length == 0) return '';
-    String englishList = 'This code ${_sentenceFiller('use')} use of ';
+    String englishList = '${_sentenceFiller('use')} use of ';
     for (int i = 0; i < list.length; i++) {
       englishList += list[i];
       if (i < list.length - 2) {
         englishList += ', ';
       }
       if (i == list.length - 2) {
-        englishList += ', and ';
+        if (i != 0) {
+          englishList += ',';
+        }
+        englishList += ' and ';
       }
     }
-    englishList += ' features.';
+    englishList += ' features. ';
+    return englishList;
+  }
+  
+  String _packageList (List<String> list, {String source}) {
+    if (list.length == 0) return '';
+    String englishList = '${_sentenceFiller('code-0')} imports ';
+    for (int i = 0; i < list.length; i++) {
+      englishList += list[i];
+      if (i < list.length - 2) {
+        englishList += ', ';
+      }
+      if (i == list.length - 2) {
+        if (i != 0) {
+          englishList += ',';
+        }
+        englishList += ' and ';
+      }
+    }
+    if (source == 'packages') englishList += ' from external packages. ';
+    else englishList += ' from the dart package as well. ';
     return englishList;
   }
   
   String returnAsSimpleSummary() {
     if (resultsPresent) {
-      String summary = "Summary: ";
+      String summary = 'Summary: ';
       summary += 'This ${_sentenceFiller('size', storage.linesCode)} ';
       if (storage.errorPresent) {
         summary += '${_sentenceFiller('failedQuantifier')} contains ';
@@ -162,16 +189,19 @@ class Summarizer {
       else {
         summary += '${_sentenceFiller('compiledQuantifier')} contains ';
       }
-      summary += '${_sentenceFiller('errorCount', storage.errorCount)} errors and warnings.';
-      summary += ' ${_listify(_codeSearch())}';
-      summary += ' ${_additionList(_additionSearch())}';
+      summary += '${_sentenceFiller('errorCount', storage.errorCount)} ';
+      summary += 'errors and warnings, and ';
+      summary += '${_featureList(_codeSearch())}';
+      summary += '${_packageList(storage.packageImports, source: 'packages')}';
+      summary += '${_packageList(storage.resolvedImports)}';
+      summary += '${_additionList(_additionSearch())}';
       return summary;
     }
     else {
       String summary = "Summary: ";
       summary += 'This is a ${_sentenceFiller('size', storage.linesCode)} ';
       summary += '${_sentenceFiller('compiledQuantifier')}.';
-      summary += ' ${_listify(_codeSearch())}';
+      summary += ' ${_featureList(_codeSearch())}';
       summary += ' ${_additionList(_additionSearch())}';
       return summary;
     }
