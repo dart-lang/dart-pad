@@ -218,7 +218,7 @@ class Playground implements GistContainer, GistController {
 
   Future shareAnon() {
     return _createSummary().then((String summary) {
-      return gistLoader.createAnon(mutableGist.createGist(summary));
+      return gistLoader.createAnon(mutableGist.createGist(summary: summary));
     }).then((Gist newGist) {
       editableGist.setBackingGist(newGist);
       overrideNextRoute(newGist);
