@@ -141,10 +141,10 @@ class AnalysisServerWrapper {
         await serverConnection.unloadSources(sources.keys);
         return ret;
       });
-    }))).timeout(new Duration(seconds: _ANALYSIS_SERVER_TIMEOUT_S),
-        onTimeout: () {
+    }), timeoutDuration: new Duration(seconds: _ANALYSIS_SERVER_TIMEOUT_S)))
+        .catchError((e) {
       serverConnection.kill();
-      throw "Completion timed out";
+      throw e;
     });
   }
 
@@ -166,10 +166,10 @@ class AnalysisServerWrapper {
       var fixes = await serverConnection.sendGetFixes(path, offset);
       await serverConnection.unloadSources(sources.keys.toList());
       return fixes;
-    }))).timeout(new Duration(seconds: _ANALYSIS_SERVER_TIMEOUT_S),
-        onTimeout: () {
+    }), timeoutDuration: new Duration(seconds: _ANALYSIS_SERVER_TIMEOUT_S)))
+        .catchError((e) {
       serverConnection.kill();
-      throw "Get Fixes timed out";
+      throw e;
     });
   }
 
@@ -184,10 +184,10 @@ class AnalysisServerWrapper {
       var formatResult = await serverConnection.sendFormat(offset);
       await serverConnection.unloadSources([mainPath]);
       return formatResult;
-    }))).timeout(new Duration(seconds: _ANALYSIS_SERVER_TIMEOUT_S),
-        onTimeout: () {
+    }), timeoutDuration: new Duration(seconds: _ANALYSIS_SERVER_TIMEOUT_S)))
+        .catchError((e) {
       serverConnection.kill();
-      throw "Format timed out";
+      throw e;
     });
   }
 

@@ -14,7 +14,11 @@ class TaskScheduler {
   int get queueCount => _taskQueue.length;
 
   Future _performTask(Task task) {
-    return task.perform();
+    if (task.timeoutDuration != null) {
+      return task.perform().timeout(task.timeoutDuration);
+    } else {
+      return task.perform();
+    }
   }
 
   Future schedule(Task task) {
@@ -48,12 +52,15 @@ class _Task {
 // Public working data structure.
 abstract class Task {
   Future perform();
+  Duration timeoutDuration;
 }
 
 class ClosureTask extends Task {
   var _closure;
 
-  ClosureTask(this._closure);
+  ClosureTask(this._closure, {Duration timeoutDuration}) {
+    this.timeoutDuration = timeoutDuration;
+  }
 
   @override
   Future perform() {
