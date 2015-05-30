@@ -12,11 +12,12 @@ import '../services/dartservices.dart';
 /// and output a text description ofthe code's size, packages, and other useful information.
 class Summarizer {
   _SummarizeToken storage;
-  String _code;
-  String _css;
-  String _html;
+  String dart;
+  String css;
+  String html;
   bool resultsPresent;
   int randomizer;
+  AnalysisResults analysis;
 
   static Map<String, List<int>> cuttoffs = {
     'size': [8, 30, 1000], //0-7 = small, 8 - 29 = decent, 29+ = gigantic
@@ -33,6 +34,7 @@ class Summarizer {
     'pirate': 'pirates',
     'bird': 'birds',
     'llama': 'llamas',
+    'dog' : 'dogs'
   };
 
   static Map<String, List<String>> categories = {
@@ -80,17 +82,14 @@ class Summarizer {
     'code-1': ['It'],
   };
 
-  Summarizer(String input,
-      {String html, String css, AnalysisResults analysis}) {
-    if (input == null) throw new ArgumentError('Input cannot be null.');
+  Summarizer(
+      {this.dart, this.html, this.css, this.analysis}) {
+    if (dart == null) throw new ArgumentError('Input cannot be null.');
     resultsPresent = !(analysis == null);
-    _code = input;
-    _html = html;
-    _css = css;
     MD5 encryptor = new MD5();
-    encryptor.add(input.codeUnits);
+    encryptor.add(dart.codeUnits);
     randomizer = _sumList(encryptor.close());
-    storage = new _SummarizeToken(input, analysis);
+    storage = new _SummarizeToken(dart, analysis : analysis);
   }
 
   int _sumList(List<int> list) {
@@ -152,11 +151,14 @@ class Summarizer {
     englishList += '. ';
     return englishList;
   }
-
+  
+  ///Testing add-ons
+  List<String> additionSearch() => _additionSearch();
+  
   List<String> _additionSearch() {
     List<String> features = new List<String>();
     for (String feature in additionKeyWords.keys) {
-      if (_code.contains(feature)) {
+      if (dart.contains(feature)) {
         features.add(additionKeyWords[feature]);
       }
     }
@@ -166,7 +168,7 @@ class Summarizer {
   List<String> _codeSearch() {
     List<String> features = new List<String>();
     for (String feature in codeKeyWords.keys) {
-      if (_code.contains(feature)) {
+      if (dart.contains(feature)) {
         features.add(codeKeyWords[feature]);
       }
     }
@@ -220,10 +222,10 @@ class Summarizer {
 
   String _htmlCSS() {
     String htmlCSS = 'This code has ';
-    if (_html.length < 1) htmlCSS += 'no ';
+    if (html.length < 1) htmlCSS += 'no ';
     else htmlCSS += 'some ';
     htmlCSS += 'associated html and ';
-    if (_css.length < 1) htmlCSS += 'no ';
+    if (css.length < 1) htmlCSS += 'no ';
     else htmlCSS += 'some ';
     htmlCSS += 'associated css';
     return htmlCSS;
@@ -262,7 +264,6 @@ class Summarizer {
       summary += 'There are ${storage.linesCode} lines of code.\n';
       if (storage.errorPresent) summary += 'Errors are present.\n';
       if (storage.errorPresent) summary += 'Warnings are present.\n';
-      summary += '${storage.features}\n\n';
       summary +=
           '${storage.packageCount} Package Imports: ${storage.packageImports}.\n';
       summary +=
@@ -274,7 +275,7 @@ class Summarizer {
       summary += "```";
       return summary;
     } else {
-      String summary = "``` \n-- Summary (Under Development) --\n";
+      String summary = "``` \n-- Summary --\n";
       summary += '${storage.linesCode} lines of code.\n';
       return summary;
     }
@@ -282,11 +283,10 @@ class Summarizer {
 
   String returnAsMarkDown() {
     if (resultsPresent) {
-      String summary = "``` \n-- Summary (Under Development) --\n\n";
+      String summary = "``` \n-- Summary --\n\n";
       summary += '${storage.linesCode} lines of code.\n\n';
       if (storage.errorPresent) summary += 'Errors are present.\n\n';
       if (storage.errorPresent) summary += 'Warnings are present.\n\n';
-      summary += '${storage.features} \n\n';
       summary +=
           '${storage.packageCount} Package Imports: ${storage.packageImports}.\n\n';
       summary +=
@@ -298,7 +298,7 @@ class Summarizer {
       summary += "```";
       return summary;
     } else {
-      String summary = "``` \n-- Summary (Under Development) --\n\n";
+      String summary = "``` \n-- Summary --\n\n";
       summary += '${storage.linesCode} lines of code.\n\n';
       return summary;
     }
@@ -322,19 +322,16 @@ class _SummarizeToken {
   bool errorPresent;
   bool warningPresent;
 
-  String features;
-
   List<String> packageImports;
   List<String> resolvedImports;
 
   List<AnalysisIssue> errors;
 
-  _SummarizeToken(String input, [AnalysisResults analysis]) {
+  _SummarizeToken(String input, {AnalysisResults analysis}) {
     linesCode = _linesOfCode(input);
     if (analysis != null) {
       errorPresent = analysis.issues.any((issue) => issue.kind == 'error');
       warningPresent = analysis.issues.any((issue) => issue.kind == 'warning');
-      features = _languageFeatures(analysis);
       packageCount = analysis.packageImports.length;
       resolvedCount = analysis.resolvedImports.length;
       packageImports = analysis.packageImports;
@@ -342,11 +339,6 @@ class _SummarizeToken {
       errors = analysis.issues;
       errorCount = errors.length;
     }
-  }
-
-  String _languageFeatures(AnalysisResults input) {
-    // TODO: Add language features.
-    return "Language features under construction.";
   }
 
   int _linesOfCode(String input) {
