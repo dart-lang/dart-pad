@@ -34,9 +34,9 @@ final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
 final _SERVER_PATH = "bin/_analysis_server_entry.dart";
 
 // Use very long timeouts to ensure that the server has enough time to restart.
-const int _ANALYSIS_SERVER_TIMEOUT_S = 15;
-const int _COMPILE_TIMEOUT_S = 25;
-const int _ANALYZE_TIMEOUT_S = 15;
+final _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 15);
+final _COMPILE_TIMEOUT = new Duration(seconds: 25);
+final _ANALYZE_TIMEOUT = new Duration(seconds: 15);
 
 var sourceDirectory;
 var mainPath;
@@ -56,10 +56,11 @@ class AnalysisServerWrapper {
     serverScheduler = new scheduler.TaskScheduler();
   }
 
-  Future<api.CompleteResponse> complete(String src, int offset) async =>
-      completeMulti({"main.dart": src}, new api.Location()
-    ..sourceName = "main.dart"
-    ..offset = offset);
+  Future<api.CompleteResponse> complete(String src, int offset) async {
+    return completeMulti({"main.dart": src}, new api.Location()
+      ..sourceName = "main.dart"
+      ..offset = offset);
+  }
 
   Future<api.CompleteResponse> completeMulti(
       Map<String, String> sources, api.Location location) async {
@@ -88,10 +89,11 @@ class AnalysisServerWrapper {
     });
   }
 
-  Future<api.FixesResponse> getFixes(String src, int offset) async =>
-      getFixesMulti({"main.dart": src}, new api.Location()
-    ..sourceName = "main.dart"
-    ..offset = offset);
+  Future<api.FixesResponse> getFixes(String src, int offset) async {
+    return getFixesMulti({"main.dart": src}, new api.Location()
+      ..sourceName = "main.dart"
+      ..offset = offset);
+  }
 
   Future<api.FixesResponse> getFixesMulti(
       Map<String, String> sources, api.Location location) async {
@@ -141,7 +143,7 @@ class AnalysisServerWrapper {
         await serverConnection.unloadSources(sources.keys);
         return ret;
       });
-    }), timeoutDuration: new Duration(seconds: _ANALYSIS_SERVER_TIMEOUT_S)))
+    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
         .catchError((e) {
       serverConnection.kill();
       throw e;
@@ -166,7 +168,7 @@ class AnalysisServerWrapper {
       var fixes = await serverConnection.sendGetFixes(path, offset);
       await serverConnection.unloadSources(sources.keys.toList());
       return fixes;
-    }), timeoutDuration: new Duration(seconds: _ANALYSIS_SERVER_TIMEOUT_S)))
+    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
         .catchError((e) {
       serverConnection.kill();
       throw e;
@@ -184,7 +186,7 @@ class AnalysisServerWrapper {
       var formatResult = await serverConnection.sendFormat(offset);
       await serverConnection.unloadSources([mainPath]);
       return formatResult;
-    }), timeoutDuration: new Duration(seconds: _ANALYSIS_SERVER_TIMEOUT_S)))
+    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
         .catchError((e) {
       serverConnection.kill();
       throw e;
