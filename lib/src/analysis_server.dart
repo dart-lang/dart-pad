@@ -14,6 +14,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:logging/logging.dart';
 
 import 'api_classes.dart' as api;
+import 'scheduler.dart' as scheduler;
 
 /**
  * Type of callbacks used to process notifications.
@@ -32,12 +33,17 @@ final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
 final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
 final _SERVER_PATH = "bin/_analysis_server_entry.dart";
 
+// Use very long timeouts to ensure that the server has enough time to restart.
+final _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 15);
+final _COMPILE_TIMEOUT = new Duration(seconds: 25);
+final _ANALYZE_TIMEOUT = new Duration(seconds: 15);
+
 var sourceDirectory;
 var mainPath;
 
 class AnalysisServerWrapper {
   final String sdkPath;
-  bool serverBusy = false;
+  scheduler.TaskScheduler serverScheduler;
 
   /// Instance to handle communication with the server.
   _Server serverConnection;
@@ -47,20 +53,19 @@ class AnalysisServerWrapper {
     sourceDirectory = io.Directory.systemTemp.createTempSync('analysisServer');
     mainPath = _getPathFromName("main.dart");
     serverConnection = new _Server(this.sdkPath);
+    serverScheduler = new scheduler.TaskScheduler();
   }
 
-  Future<api.CompleteResponse> complete(String src, int offset) async =>
-    completeMulti({"main.dart" : src},
-      new api.Location()
-        ..sourceName = "main.dart"
-        ..offset = offset);
+  Future<api.CompleteResponse> complete(String src, int offset) async {
+    return completeMulti({"main.dart": src}, new api.Location()
+      ..sourceName = "main.dart"
+      ..offset = offset);
+  }
 
   Future<api.CompleteResponse> completeMulti(
-    Map<String, String> sources,
-    api.Location location) async {
-
-    Future<Map> results = _completeImpl(
-      sources, location.sourceName, location.offset);
+      Map<String, String> sources, api.Location location) async {
+    Future<Map> results =
+        _completeImpl(sources, location.sourceName, location.offset);
 
     // Post process the result from Analysis Server.
     return results.then((Map response) {
@@ -77,19 +82,18 @@ class AnalysisServerWrapper {
           return x['completion'].compareTo(y['completion']);
         } else {
           return -1 * xRelevance.compareTo(yRelevance);
-        }});
-      return new api.CompleteResponse(
-          response['replacementOffset'], response['replacementLength'],
-          results);
+        }
+      });
+      return new api.CompleteResponse(response['replacementOffset'],
+          response['replacementLength'], results);
     });
   }
 
-  Future<api.FixesResponse> getFixes(String src, int offset) async =>
-    getFixesMulti(
-      {"main.dart" : src},
-      new api.Location()
-        ..sourceName = "main.dart"
-        ..offset = offset);
+  Future<api.FixesResponse> getFixes(String src, int offset) async {
+    return getFixesMulti({"main.dart": src}, new api.Location()
+      ..sourceName = "main.dart"
+      ..offset = offset);
+  }
 
   Future<api.FixesResponse> getFixesMulti(
       Map<String, String> sources, api.Location location) async {
@@ -111,22 +115,21 @@ class AnalysisServerWrapper {
     });
   }
 
-
   /// Cleanly shutdown the Analysis Server.
   Future shutdown() => serverConnection.sendServerShutdown();
 
   Future kill() => serverConnection.kill();
 
   /// Internal implementation of the completion mechanism.
-  Future<Map> _completeImpl(Map<String, String> sources,
-                            String sourceName, int offset) async {
-
-    while (serverBusy) {
-      await new Future.delayed(new Duration(seconds: 0));
+  Future<Map> _completeImpl(
+      Map<String, String> sources, String sourceName, int offset) async {
+    if (serverScheduler.queueCount > 0) {
+      _logger
+          .info("completeImpl: Scheduler queue: ${serverScheduler.queueCount}");
     }
 
-    serverBusy = true;
-    return new Future.sync(() async {
+    return serverScheduler
+        .schedule(new scheduler.ClosureTask(() => new Future.sync(() async {
       sources = _getOverlayMapWithPaths(sources);
       String path = _getPathFromName(sourceName);
       await serverConnection._ensureSetup();
@@ -134,12 +137,17 @@ class AnalysisServerWrapper {
       await serverConnection.analysisComplete.first;
       await serverConnection.sendCompletionGetSuggestions(path, offset);
 
-      return serverConnection.completionResults.handleError(
-          (error) => throw "Completion failed").first.then((ret) async {
-            await serverConnection.unloadSources(sources.keys);
-            return ret;
+      return serverConnection.completionResults
+              .handleError((error) => throw "Completion failed").first
+          .then((ret) async {
+        await serverConnection.unloadSources(sources.keys);
+        return ret;
       });
-    }).whenComplete(() => serverBusy = false);
+    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
+        .catchError((e) {
+      serverConnection.kill();
+      throw e;
+    });
   }
 
   Future<EditGetFixesResult> _getFixesImpl(
@@ -147,51 +155,57 @@ class AnalysisServerWrapper {
     sources = _getOverlayMapWithPaths(sources);
     String path = _getPathFromName(sourceName);
 
-    while (serverBusy) {
-      await new Future.delayed(new Duration(seconds: 0));
+    if (serverScheduler.queueCount > 0) {
+      _logger
+          .fine("getFixesImpl: Scheduler queue: ${serverScheduler.queueCount}");
     }
-    serverBusy = true;
 
-    return new Future.sync(() async {
+    return serverScheduler
+        .schedule(new scheduler.ClosureTask(() => new Future.sync(() async {
       await serverConnection._ensureSetup();
       await serverConnection.loadSources(sources);
       await serverConnection.analysisComplete.first;
       var fixes = await serverConnection.sendGetFixes(path, offset);
       await serverConnection.unloadSources(sources.keys.toList());
       return fixes;
-    }).whenComplete(() => serverBusy = false);
+    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
+        .catchError((e) {
+      serverConnection.kill();
+      throw e;
+    });
   }
 
   Future<EditFormatResult> _formatImpl(String src, int offset) async {
-    while (serverBusy) {
-      await new Future.delayed(new Duration(seconds: 0));
-    }
-    serverBusy = true;
+    _logger.fine("FormatImpl: Scheduler queue: ${serverScheduler.queueCount}");
 
-    return new Future.sync(() async {
+    return serverScheduler
+        .schedule(new scheduler.ClosureTask(() => new Future.sync(() async {
       await serverConnection._ensureSetup();
-      await serverConnection.loadSources({mainPath : src});
+      await serverConnection.loadSources({mainPath: src});
       await serverConnection.analysisComplete.first;
       var formatResult = await serverConnection.sendFormat(offset);
       await serverConnection.unloadSources([mainPath]);
       return formatResult;
-    }).whenComplete(() => serverBusy = false);
+    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
+        .catchError((e) {
+      serverConnection.kill();
+      throw e;
+    });
   }
 
   Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {
     var newOverlay = {};
-    overlay.forEach((k,v) => newOverlay.putIfAbsent(
-      _getPathFromName(k), () => v)
-    );
+    overlay.forEach(
+        (k, v) => newOverlay.putIfAbsent(_getPathFromName(k), () => v));
     return newOverlay;
   }
 
   String _getPathFromName(String sourceName) =>
-    "${sourceDirectory.path}${io.Platform.pathSeparator}$sourceName";
+      "${sourceDirectory.path}${io.Platform.pathSeparator}$sourceName";
 
   /// Warm up the analysis server to be ready for use.
   Future warmup([bool useHtml = false]) =>
-    complete(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
+      complete(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
 }
 
 /**
@@ -219,7 +233,6 @@ class _Server {
 
     _onCompletionResults = new StreamController(sync: true);
     completionResults = _onCompletionResults.stream.asBroadcastStream();
-
   }
 
   /// Ensure that the server is ready for use.
@@ -238,15 +251,14 @@ class _Server {
     _logger.fine("Server about to start");
 
     await start();
-    _logger.fine("Setver started");
+    _logger.fine("Server started");
 
     listenToOutput(dispatchNotification);
     sendServerSetSubscriptions([ServerService.STATUS]);
 
     _logger.fine("Server Set Subscriptions completed");
 
-    await sendAddOverlays({
-        mainPath : _WARMUP_SRC});
+    await sendAddOverlays({mainPath: _WARMUP_SRC});
     sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
     isSettingUp = false;
     isSetup = true;
@@ -304,11 +316,18 @@ class _Server {
    * Stop the server.
    */
   Future kill() {
-    _logStdio('PROCESS FORCIBLY TERMINATED');
-    _process.kill();
-    Future<int> exitCode = _process.exitCode;
+    _logger.severe("Analysis Server forcibly terminated");
+    Future<int> exitCode;
+    if (_process != null) {
+      _process.kill();
+      exitCode = _process.exitCode;
+      _process = null;
+    } else {
+      _logger.warning("Kill signal sent to already dead Analysis Server");
+      exitCode = new Future.value(1);
+    }
     isSetup = false;
-    _process = null;
+
     return exitCode;
   }
 
@@ -317,8 +336,10 @@ class _Server {
    * [notificationProcessor].
    */
   void listenToOutput(NotificationProcessor notificationProcessor) {
-    _process.stdout.transform(
-        (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
+    _process.stdout
+        .transform((new Utf8Codec()).decoder)
+        .transform(new LineSplitter())
+        .listen((String line) {
       String trimmedLine = line.trim();
 
       _logStdio('RECV: $trimmedLine');
@@ -334,16 +355,15 @@ class _Server {
         String id = message['id'];
         Completer completer = _pendingCommands[id];
         if (completer == null) {
-          print ('Unexpected response from server: id=$id');
+          print('Unexpected response from server: id=$id');
         } else {
           _pendingCommands.remove(id);
         }
         if (messageAsMap.containsKey('error')) {
           // TODO(paulberry): propagate the error info to the completer.
           kill();
-          completer.completeError(
-              new UnimplementedError(
-                  'Server responded with an error: ${JSON.encode(message)}'));
+          completer.completeError(new UnimplementedError(
+              'Server responded with an error: ${JSON.encode(message)}'));
         } else {
           completer.complete(messageAsMap['result']);
         }
@@ -363,8 +383,10 @@ class _Server {
 //        expect(message, isNotification);
       }
     });
-    _process.stderr.transform(
-        (new Utf8Codec()).decoder).transform(new LineSplitter()).listen((String line) {
+    _process.stderr
+        .transform((new Utf8Codec()).decoder)
+        .transform(new LineSplitter())
+        .listen((String line) {
       _logStdio('ERR:  ${line.trim()}');
     });
   }
@@ -456,7 +478,6 @@ class _Server {
       _process = process;
       process.exitCode.then((int code) {
         _logStdio('TERMINATED WITH EXIT CODE $code');
-
       });
     });
   }
@@ -480,11 +501,11 @@ class _Server {
 
   Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
       String path, int offset) {
-
     var params = new CompletionGetSuggestionsParams(path, offset).toJson();
     return send("completion.getSuggestions", params).then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
-      return new CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
+      return new CompletionGetSuggestionsResult.fromJson(
+          decoder, 'result', result);
     });
   }
 
@@ -497,8 +518,7 @@ class _Server {
   }
 
   Future<EditFormatResult> sendFormat(int selectionOffset,
-    [int selectionLength = 0]) {
-
+      [int selectionLength = 0]) {
     var params = new EditFormatParams(
         mainPath, selectionOffset, selectionLength).toJson();
 
@@ -517,11 +537,13 @@ class _Server {
 
     var params = new AnalysisUpdateContentParams(updateMap).toJson();
     _logger.fine("About to send analysis.updateContent");
+    _logger.fine("Paths to update: ${updateMap.keys}");
     return send("analysis.updateContent", params).then((result) {
       _logger.fine("analysis.updateContent -> then");
 
       ResponseDecoder decoder = new ResponseDecoder(null);
-      return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
+      return new AnalysisUpdateContentResult.fromJson(
+          decoder, 'result', result);
     });
   }
 
@@ -532,24 +554,28 @@ class _Server {
 
     var params = new AnalysisUpdateContentParams(updateMap).toJson();
     _logger.fine("About to send analysis.updateContent - remove overlay");
+    _logger.fine("Paths to remove: ${updateMap.keys}");
     return send("analysis.updateContent", params).then((result) {
       _logger.fine("analysis.updateContent -> then");
 
       ResponseDecoder decoder = new ResponseDecoder(null);
-      return new AnalysisUpdateContentResult.fromJson(decoder, 'result', result);
+      return new AnalysisUpdateContentResult.fromJson(
+          decoder, 'result', result);
     });
   }
 
   Future sendServerShutdown() {
     return send("server.shutdown", null).then((result) {
+      isSetup = false;
       return null;
     });
   }
 
-  Future sendAnalysisSetAnalysisRoots(List<String> included, List<String> excluded,
+  Future sendAnalysisSetAnalysisRoots(
+      List<String> included, List<String> excluded,
       {Map<String, String> packageRoots}) {
-    var params = new AnalysisSetAnalysisRootsParams(
-        included, excluded, packageRoots: packageRoots).toJson();
+    var params = new AnalysisSetAnalysisRootsParams(included, excluded,
+        packageRoots: packageRoots).toJson();
     return send("analysis.setAnalysisRoots", params);
   }
 
@@ -558,8 +584,6 @@ class _Server {
       // Something has gone wrong with the analysis server. This request is going
       // to fail, but we need to restart the server to be able to process
       // another request
-      isSetup = false;
-      isSettingUp = false;
 
       await kill();
       _onCompletionResults.addError(null);
@@ -567,7 +591,8 @@ class _Server {
       return;
     }
 
-    if (event == "server.status" && params.containsKey('analysis') &&
+    if (event == "server.status" &&
+        params.containsKey('analysis') &&
         !params['analysis']['isAnalyzing']) {
       _onServerStatus.add(true);
     }
