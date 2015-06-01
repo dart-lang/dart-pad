@@ -64,5 +64,12 @@ void defineTests() {
       expect(summer1.returnAsSimpleSummary(),
           isNot(summer2.returnAsSimpleSummary()));
     });
+    test('Same input same output', () {
+      Summarizer summer1 =
+          new Summarizer(dart: "this does not return anything");
+      Summarizer summer2 =
+          new Summarizer(dart: "this does not return anything");
+      expect(summer1.returnAsSimpleSummary(), summer2.returnAsSimpleSummary());
+    });
   });
 }
