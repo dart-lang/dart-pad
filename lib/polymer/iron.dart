@@ -197,8 +197,9 @@ class PolymerElement extends WebElement {
       throw new ArgumentError('child must be a WebElement or an Element');
     }
     //Polymer.dom(this).appendChild(child);
-    context["Polymer"].callMethod("dom", [new JsObject.fromBrowserObject(element)])
-    .callMethod("appendChild", [new JsObject.fromBrowserObject(child)]);
+    context["Polymer"]
+      .callMethod("dom", [new JsObject.fromBrowserObject(element)])
+      .callMethod("appendChild", [new JsObject.fromBrowserObject(child)]);
   }
 
   dynamic selectorAll(String selector) {
