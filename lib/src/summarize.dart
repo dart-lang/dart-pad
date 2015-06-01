@@ -34,7 +34,7 @@ class Summarizer {
     'pirate': 'pirates',
     'bird': 'birds',
     'llama': 'llamas',
-    'dog' : 'dogs'
+    'dog': 'dogs'
   };
 
   static Map<String, List<String>> categories = {
@@ -82,14 +82,13 @@ class Summarizer {
     'code-1': ['It'],
   };
 
-  Summarizer(
-      {this.dart, this.html, this.css, this.analysis}) {
+  Summarizer({this.dart, this.html, this.css, this.analysis}) {
     if (dart == null) throw new ArgumentError('Input cannot be null.');
     resultsPresent = !(analysis == null);
     MD5 encryptor = new MD5();
     encryptor.add(dart.codeUnits);
     randomizer = _sumList(encryptor.close());
-    storage = new _SummarizeToken(dart, analysis : analysis);
+    storage = new _SummarizeToken(dart, analysis: analysis);
   }
 
   int _sumList(List<int> list) {
@@ -151,10 +150,10 @@ class Summarizer {
     englishList += '. ';
     return englishList;
   }
-  
+
   ///Testing add-ons
   List<String> additionSearch() => _additionSearch();
-  
+
   List<String> _additionSearch() {
     List<String> features = new List<String>();
     for (String feature in additionKeyWords.keys) {
