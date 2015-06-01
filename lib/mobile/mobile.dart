@@ -19,7 +19,7 @@ import '../modules/codemirror_module.dart';
 import '../modules/dartservices_module.dart';
 import '../modules/dart_pad_module.dart';
 import '../polymer/base.dart';
-import '../polymer/core.dart';
+import '../polymer/iron.dart';
 import '../polymer/paper.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
@@ -53,9 +53,9 @@ class PlaygroundMobile {
 
   PaperToast _messageToast;
   PaperToast _errorsToast;
-  PaperActionDialog _messageDialog;
-  CoreElement _output;
-  CoreAnimatedPages _pages;
+  PaperDialog _messageDialog;
+  PolymerElement _output;
+  IronPages _pages;
   PaperProgress _editProgress;
   PaperProgress _runProgress;
 
@@ -105,12 +105,13 @@ class PlaygroundMobile {
   }
 
   void switchToEditPage() {
+    _pages = new IronPages.from($("iron-pages"));
     if (_pages.selected == '0') return;
-
+    _pages.selected = "0";
     executionService.tearDown();
 
     // TODO: Use the router here instead.
-    _pages.selected = '0';
+
     //window.history.back();
   }
 
@@ -126,159 +127,78 @@ class PlaygroundMobile {
   }
 
   void _createUi() {
-    _pages = new CoreAnimatedPages()
-      ..selected = '0'
-      ..flex();
-    Transitions.slideFromRight(_pages);
-    document.body.children.add(_pages.element);
-
-    _pages.add(_createEditSection(_pages));
-    _pages.add(_createExecuteSection(_pages));
+    _pages = new IronPages.from($("iron-pages"));
+    // TODO: fix the pages transition
+    // Transitions.slideFromRight(_pages);
 
     _messageToast = new PaperToast();
     document.body.children.add(_messageToast.element);
 
     _errorsToast = new PaperToast()
-      ..swipeDisabled = true
-      ..autoCloseDisabled = true
       ..duration = 100000;
     document.body.children.add(_errorsToast.element);
 
-    _messageDialog = new PaperActionDialog();
-    PaperButton closeButton = new PaperButton(text: 'Close');
-    _messageDialog.makeAffirmative(closeButton);
-    _messageDialog.add(closeButton);
-    Transition.coreTransitionCenter(_messageDialog);
-    _messageDialog.add(CoreElement.p());
-    document.body.children.add(_messageDialog.element);
-  }
+    _messageDialog = new PaperDialog.from($("paper-dialog"));
 
-  CoreElement _createEditSection(CoreAnimatedPages pages) {
-    CoreElement section = CoreElement.section();
+    //edit section
+    PaperDrawerPanel topPanel = new PaperDrawerPanel.from($("paper-drawer-panel"));
 
-    CoreDrawerPanel topPanel = new CoreDrawerPanel()..forceNarrow();
-    section.add(topPanel);
+    PaperMenu menu = new PaperMenu.from($("paper-menu"));
+    menu.ironActivate.listen((_) {
+      _router.go('gist', {'gist': menu.selectedName});
+      topPanel.closeDrawer();
+    });
 
-    // drawer
-    CoreHeaderPanel headerPanel = new CoreHeaderPanel();
-    topPanel.makeDrawer(headerPanel);
-    topPanel.add(headerPanel);
-    CoreToolbar toolbar = new CoreToolbar()..id = 'nav-header';
-    toolbar.add(CoreElement.span('DartPad'));
-    headerPanel.add(toolbar);
-    CoreMenu menu = new CoreMenu();
-    _buildSamples(menu);
-    menu.onCoreActivate.listen((_) => topPanel.closeDrawer());
-    headerPanel.add(menu);
+    new PaperIconButton.from($('#nav-button'))
+      ..onTap.listen((_) => topPanel.togglePanel());
 
-    // main
-    CoreHeaderPanel mainPanel = new CoreHeaderPanel();
-    topPanel.makeMain(mainPanel);
-    topPanel.add(mainPanel);
-    toolbar = new CoreToolbar()..id = 'main-header';
-    PaperIconButton navButton = new PaperIconButton(icon: 'menu');
-    navButton.onTap.listen((_) => topPanel.togglePanel());
-    toolbar.add(navButton);
-    toolbar.add(CoreElement.span()..clazz('sample-titles')..flex());
+    PolymerElement dropdownAnimation = new PolymerElement.from($("animated-dropdown"));
 
-    // Overflow menu.
-    PaperMenuButton overflowMenuButton = new PaperMenuButton();
-    overflowMenuButton.add(new PaperIconButton(icon: 'more-vert'));
-    PaperDropdown dropdown = new PaperDropdown()..halign = 'right';
-    CoreMenu overflowMenu = new CoreMenu();
-    PaperItem dartlangItem = new PaperItem(text: 'dartlang.org');
-    overflowMenu.add(dartlangItem);
-    dartlangItem.onClick.listen((event) {
+    new PaperIconButton.from($("#more-button"))..onClick.listen((e){
+      $("#dropdown").style.top = ($("#more-button").getBoundingClientRect().top + 5).toString() + "px";
+      $("#dropdown").style.left = ($("#more-button").getBoundingClientRect().left - 75).toString() + "px";
+      dropdownAnimation.call("show");
+    });
+
+    new PaperItem.from($("#dartlang-item"))..onTap.listen((event) {
       event.preventDefault();
       window.open("https://www.dartlang.org/", "_blank");
+      dropdownAnimation.call("hide");
     });
-    overflowMenu.add(new PaperItem(text: 'About')..onTap.listen((event) {
+
+    new PaperItem.from($("#about-item"))..onClick.listen((event) {
       event.preventDefault();
       _showAboutDialog();
-    }));
-    dropdown.add(overflowMenu);
-    overflowMenuButton.add(dropdown);
-    toolbar.add(overflowMenuButton);
+      dropdownAnimation.call("hide");
+    });
 
-    CoreElement div = CoreElement.div()..clazz('bottom')..clazz('fit')
-        ..horizontal()..vertical();
-    PaperTabs tabs = new PaperTabs()..flex();
-    tabs.selected = '0';
-    tabs.add(new PaperTab(name: 'dart', text: 'Dart'));
-    tabs.add(new PaperTab(name: 'html', text: 'HTML'));
-    tabs.add(new PaperTab(name: 'css', text: 'CSS'));
-
-    dartBusyLight = new BusyLight(tabs.element.children[0]);
-
-    div.add(tabs);
-    toolbar.add(div);
-    _editProgress = new PaperProgress()..clazz('bottom')..clazz('fit')..hidden();
-    toolbar.add(_editProgress);
-
-    mainPanel.add(toolbar);
-    div = CoreElement.div()..fit()..id = 'editpanel'..clazz('editor');
-    mainPanel.add(div);
-
-    tabs.onCoreActivate.listen((_) {
-      String name = tabs.selected;
+    PaperTabs tabs = new PaperTabs.from($("paper-tabs"));
+    tabs.ironActivate.listen((_) {
+      String name = tabs.selectedName;
       ga.sendEvent('edit', name);
       _context.switchTo(name);
     });
 
-    runButton = new PaperFab(icon: 'av:play-arrow')..id = 'run-button';
-    runButton.onClick.listen((_) => _handleRun());
-    mainPanel.add(runButton);
+    dartBusyLight = new BusyLight(tabs.element.children[0]);
 
-    return section;
-  }
+    _editProgress = new PaperProgress.from($("#edit-progress"));
+    runButton = new PaperFab.from($("#run-button"))
+      ..onClick.listen((_) => _handleRun());
 
-  CoreElement _createExecuteSection(CoreAnimatedPages pages) {
-    CoreElement section = CoreElement.section();
+    // execute section
+    new PaperFab.from($(".back-button"))
+      ..onClick.listen((_) => _pages.selected = "0");
 
-    CoreHeaderPanel header = new CoreHeaderPanel()..fit();
-    section.add(header);
+    rerunButton = new PaperIconButton.from($('[icon="refresh"]'))
+      ..onClick.listen((_) => _handleRerun());
 
-    CoreToolbar toolbar = new CoreToolbar();
-    PaperFab backButton = new PaperFab(icon: 'arrow-back')
-      ..clazz('back-button')
-      ..mini = true;
-    backButton.onTap.listen((_) => switchToEditPage());
-    toolbar.add(backButton);
-    toolbar.add(CoreElement.span()..clazz('sample-titles')..flex());
-    PaperToggleButton toggleConsoleButton = new PaperToggleButton()..checked = true;
-    toolbar.add(toggleConsoleButton);
-    rerunButton = new PaperIconButton(icon: 'refresh');
-    toolbar.add(rerunButton);
-    _runProgress = new PaperProgress()..clazz('bottom')..clazz('fit')..hidden();
-    toolbar.add(_runProgress);
-    header.add(toolbar);
-
-    rerunButton.onClick.listen((_) => _handleRerun());
-
-    CoreElement content = CoreElement.div()..fit()..layout()..vertical();
-    header.add(content);
-
-    CoreElement frameContainer = CoreElement.div()..flex(2)..layout()..vertical();
-    frameContainer.clazz('frameContainer');
-    content.add(frameContainer);
-
-    CoreElement frame = new CoreElement('iframe')
-      ..flex()
-      ..id = 'frame'
-      ..setAttribute('sandbox', 'allow-scripts')
-      ..setAttribute('src', 'frame.html');
-    frameContainer.add(frame);
-    _output = CoreElement.div()
-      ..flex(1)
-      ..clazz('console');
-    content.add(_output);
-    _clearOutput();
-
-    toggleConsoleButton.onCoreChange.listen((_) {
+    _output = new PolymerElement.from($(".console"));
+    PaperToggleButton toggleConsoleButton = new PaperToggleButton.from($("paper-toggle-button"));
+    toggleConsoleButton.onIronChange.listen((_) {
       _output.hidden(!toggleConsoleButton.checked);
     });
 
-    return section;
+    _clearOutput();
   }
 
   void _showGist(String gistId, {bool run: false}) {
@@ -319,12 +239,12 @@ class PlaygroundMobile {
 
   void _initPlayground() {
     // Set up the iframe.
-    deps[ExecutionService] = new ExecutionServiceIFrame($('frame'));
+    deps[ExecutionService] = new ExecutionServiceIFrame($('#frame'));
     executionService.onStdout.listen(_showOuput);
     executionService.onStderr.listen((m) => _showOuput(m, error: true));
 
     // Set up the editing area.
-    editor = editorFactory.createFromElement($('editpanel'));
+    editor = editorFactory.createFromElement($('#editpanel'));
     //$('editpanel').children.first.attributes['flex'] = '';
     editor.resize();
 
@@ -367,10 +287,10 @@ class PlaygroundMobile {
       splash.classes.toggle('hide', true);
     });
 
-    _router = new Router();
-    _router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
-    _router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
-    _router.listen();
+    _router = new Router()
+      ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
+      ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
+      ..listen();
   }
 
   void _handleRun() {
@@ -400,6 +320,7 @@ class PlaygroundMobile {
     ga.sendEvent('main', 'rerun');
     rerunButton.disabled = true;
 
+    _runProgress = new PaperProgress.from($("#run-progress"));
     _runProgress.indeterminate = true;
     _runProgress.hidden(false);
 
@@ -460,7 +381,7 @@ class PlaygroundMobile {
   }
 
   void _clearErrors() {
-    _errorsToast.dismiss();
+    _errorsToast.hide();
   }
 
   void _clearOutput() {
@@ -551,7 +472,7 @@ class PlaygroundMobile {
   }
 
   void _showAboutDialogWithVersion({String version}) {
-    _messageDialog.heading = 'About DartPad';
+    _messageDialog.element.querySelector('h2').text = 'About DartPad';
     String text = privacyText;
     if (version != null) text += " Based on Dart SDK ${version}.";
     _messageDialog.element.querySelector('p').setInnerHtml(text,
@@ -566,23 +487,6 @@ class PlaygroundMobile {
   }
 
   String currentGistId() => _gistId;
-
-  void _buildSamples(CoreMenu menu) {
-    menu.add(new PaperItem(text: 'Bootstrap')..name('b51ea7c04322042b582a'));
-    menu.add(new PaperItem(text: 'Clock')..name('83caa2b65236f8ebd703'));
-    menu.add(new PaperItem(text: 'Fibonacci')..name('74e990d984faad26dea0'));
-    menu.add(new PaperItem(text: 'Hello World')..name('33706e19df021e52d98c'));
-    menu.add(new PaperItem(text: 'Hello World HTML')..name('9126d5d48ebabf5bf547'));
-    menu.add(new PaperItem(text: 'Solar')..name('72d83fe97bfc8e735607'));
-    menu.add(new PaperItem(text: 'Spirodraw')..name('9e42aabfcc15c81a0406'));
-    menu.add(new PaperItem(text: 'Sunflower')..name('9d2dd2ce17981ecacadd'));
-    menu.add(new PaperItem(text: 'WebSockets')..name('479ecba5a56fd706b648'));
-
-    menu.onCoreActivate.listen((e) {
-      _router.go('gist', {'gist': menu.selected});
-      menu.selected = '';
-    });
-  }
 }
 
 class PlaygroundContext extends Context {
