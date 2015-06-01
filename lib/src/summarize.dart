@@ -152,9 +152,7 @@ class Summarizer {
   List<String> _codeSearch() {
     List<String> features = new List<String>();
     for (String feature in codeKeyWords.keys) {
-      if (_usedInDartSource(feature)) {
-        features.add(codeKeyWords[feature]);
-      }
+      if (_usedInDartSource(feature)) features.add(codeKeyWords[feature]);
     }
     return features;
   }
@@ -321,7 +319,5 @@ class _SummarizeToken {
     }
   }
 
-  int _linesOfCode(String input) {
-    return input.split('\n').length;
-  }
+  int _linesOfCode(String input) => input.split('\n').length;
 }
