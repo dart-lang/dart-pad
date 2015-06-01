@@ -12,11 +12,11 @@ import '../services/dartservices.dart';
 /// and output a text description ofthe code's size, packages, and other useful information.
 class Summarizer {
   _SummarizeToken storage;
-  String dart;
-  String css;
-  String html;
+  final String dart;
+  final String css;
+  final String html;
   bool resultsPresent;
-  int randomizer;
+  int _randomizer;
   AnalysisResults analysis;
 
   static Map<String, List<int>> cuttoffs = {
@@ -58,7 +58,7 @@ class Summarizer {
       'legendary'
     ],
     'size-0': ['itty-bitty', 'miniature', 'tiny', 'pint-sized'],
-    'compiledQuantifier': ['DART program', 'pad'],
+    'compiledQuantifier': ['Dart program', 'pad'],
     'failedQuantifier': [
       'assemblage of characters',
       'series of strings',
@@ -77,7 +77,7 @@ class Summarizer {
       'very few instances of'
     ],
     'errorCount-0': ['zero', 'no', 'a nonexistent amount of', '0.0000', '0'],
-    'use': ['demonstrates', 'contains', 'illustrates', 'depicts'],
+    'use': ['demonstrates', 'illustrates', 'depicts'],
     'code-0': ['it'],
     'code-1': ['It'],
   };
@@ -85,40 +85,29 @@ class Summarizer {
   Summarizer({this.dart, this.html, this.css, this.analysis}) {
     if (dart == null) throw new ArgumentError('Input cannot be null.');
     resultsPresent = !(analysis == null);
-    MD5 encryptor = new MD5();
-    encryptor.add(dart.codeUnits);
-    randomizer = _sumList(encryptor.close());
+    MD5 hasher = new MD5();
+    hasher.add(dart.codeUnits);
+    _randomizer = _sumList(hasher.close());
     storage = new _SummarizeToken(dart, analysis: analysis);
   }
 
-  int _sumList(List<int> list) {
-    int sum = 0;
-    for (int number in list) {
-      sum += number;
-    }
-    return sum;
-  }
+  int _sumList(List<int> list) => list.reduce((a, b) => a + b);
 
   String _categorySelector(String category, int itemCount) {
     if (category == 'size' || category == 'errorCount') {
       List<int> maxField = cuttoffs[category];
-      int counter = 0;
-      while (counter < maxField.length) {
-        if (itemCount < maxField[counter]) {
-          return '${category}-${counter}';
-        }
+      for (int counter = 0; counter < maxField.length; counter++) {
+        if (itemCount < maxField[counter]) return '${category}-${counter}';
         counter++;
       }
-      return '${category}-${counter - 1}';
-    } else {
-      return null;
-    }
+      return '${category}-${maxField.length - 1}';
+    } else return null;
   }
 
   String _wordSelector(String category) {
     if (categories.containsKey(category)) {
       List<String> returnSet = categories[category];
-      return returnSet.elementAt(randomizer % returnSet.length);
+      return returnSet.elementAt(_randomizer % returnSet.length);
     } else {
       return null;
     }
@@ -137,29 +126,25 @@ class Summarizer {
     String englishList = ' Also, mentions ';
     for (int i = 0; i < list.length; i++) {
       englishList += list[i];
-      if (i < list.length - 2) {
-        englishList += ', ';
-      }
+      if (i < list.length - 2) englishList += ', ';
       if (i == list.length - 2) {
-        if (i != 0) {
-          englishList += ',';
-        }
+        if (i != 0) englishList += ',';
         englishList += ' and ';
       }
     }
     englishList += '. ';
     return englishList;
+    //TODO: Tokenize features instead of returning as string
   }
 
-  ///Testing add-ons
   List<String> additionSearch() => _additionSearch();
+
+  bool _usedInDartSource(String feature) => dart.contains(feature);
 
   List<String> _additionSearch() {
     List<String> features = new List<String>();
     for (String feature in additionKeyWords.keys) {
-      if (dart.contains(feature)) {
-        features.add(additionKeyWords[feature]);
-      }
+      if (_usedInDartSource(feature)) features.add(additionKeyWords[feature]);
     }
     return features;
   }
@@ -167,7 +152,7 @@ class Summarizer {
   List<String> _codeSearch() {
     List<String> features = new List<String>();
     for (String feature in codeKeyWords.keys) {
-      if (dart.contains(feature)) {
+      if (_usedInDartSource(feature)) {
         features.add(codeKeyWords[feature]);
       }
     }
@@ -179,13 +164,9 @@ class Summarizer {
     String englishList = ', and ${_sentenceFiller('use')} use of ';
     for (int i = 0; i < list.length; i++) {
       englishList += list[i];
-      if (i < list.length - 2) {
-        englishList += ', ';
-      }
+      if (i < list.length - 2) englishList += ', ';
       if (i == list.length - 2) {
-        if (i != 0) {
-          englishList += ',';
-        }
+        if (i != 0) englishList += ',';
         englishList += ' and ';
       }
     }
@@ -203,14 +184,10 @@ class Summarizer {
         ', and ${_sentenceFiller('code-0')} imports ';
     else englishList += '${_sentenceFiller('code-1')} imports ';
     for (int i = 0; i < list.length; i++) {
-      englishList += list[i];
-      if (i < list.length - 2) {
-        englishList += ', ';
-      }
+      englishList += "'${list[i]}'";
+      if (i < list.length - 2) englishList += ', ';
       if (i == list.length - 2) {
-        if (i != 0) {
-          englishList += ',';
-        }
+        if (i != 0) englishList += ',';
         englishList += ' and ';
       }
     }
@@ -221,14 +198,17 @@ class Summarizer {
 
   String _htmlCSS() {
     String htmlCSS = 'This code has ';
-    if (html.length < 1) htmlCSS += 'no ';
+    if (!_hasHtml || html.length < 1) htmlCSS += 'no ';
     else htmlCSS += 'some ';
     htmlCSS += 'associated html and ';
-    if (css.length < 1) htmlCSS += 'no ';
+    if (!_hasCSS || css.length < 1) htmlCSS += 'no ';
     else htmlCSS += 'some ';
     htmlCSS += 'associated css';
     return htmlCSS;
   }
+
+  bool get _hasHtml => html != null && html.isNotEmpty;
+  bool get _hasCSS => css != null && css.isNotEmpty;
 
   String returnAsSimpleSummary() {
     if (resultsPresent) {
@@ -252,6 +232,7 @@ class Summarizer {
       summary += 'This is a ${_sentenceFiller('size', storage.linesCode)} ';
       summary += '${_sentenceFiller('compiledQuantifier')}';
       summary += '${_featureList(_codeSearch())}';
+      summary += '${_htmlCSS()}';
       summary += '${_additionList(_additionSearch())}';
       return summary;
     }

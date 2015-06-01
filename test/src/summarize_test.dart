@@ -4,6 +4,7 @@
 
 library dartpad.summarize_test;
 
+import 'package:dart_pad/services/dartservices.dart';
 import 'package:dart_pad/src/summarize.dart';
 import 'package:unittest/unittest.dart';
 
@@ -12,11 +13,11 @@ import 'package:unittest/unittest.dart';
 void defineTests() {
   group('Summarizer helpers', () {
     test('Unique case detection in list', () {
-      Summarizer summer = new Summarizer(dart: "pirate");
+      Summarizer summer = new Summarizer(dart: 'pirate');
       expect(summer.additionSearch(), contains('pirates'));
     });
     test('Unique case detection no false triggers in list', () {
-      Summarizer summer = new Summarizer(dart: "ll not amma, pir not ates");
+      Summarizer summer = new Summarizer(dart: 'll not amma, pir not ates');
       expect(summer.additionSearch(), isNot(contains('pirates')));
       expect(summer.additionSearch(), isNot(contains('dogs')));
       expect(summer.additionSearch(), isNot(contains('birds')));
@@ -25,22 +26,35 @@ void defineTests() {
   });
 
   group('Summarizer', () {
-    //Verify that summarizer returns non-null input
+    test('AnalysisResults present', () {
+      AnalysisIssue issue = new AnalysisIssue();
+      issue.kind = 'error';
+      issue.message = 'foo';
+      issue.sourceName = 'main.dart';
+      AnalysisResults results = new AnalysisResults();
+      results.issues = [issue];
+      results.packageImports = [];
+      results.resolvedImports = [];
+      Summarizer summer1 = new Summarizer(dart: 'Test.', analysis: results);
+      Summarizer summer2 = new Summarizer(dart: 'Test.');
+      expect(summer1.returnAsSimpleSummary(),
+          isNot(equals(summer2.returnAsSimpleSummary())));
+    });
     test('Non-null input does not fail', () {
-      Summarizer summer = new Summarizer(dart: "Test.");
+      Summarizer summer = new Summarizer(dart: 'Test.');
       expect(summer.returnAsSimpleSummary(), isNot(equals(null)));
     });
     test('Null throws ArgumentError', () {
       expect(() => new Summarizer(), throwsArgumentError);
     });
     test('Same input causes same output', () {
-      Summarizer summer1 = new Summarizer(dart: "Test case one.");
-      Summarizer summer2 = new Summarizer(dart: "Test case one.");
+      Summarizer summer1 = new Summarizer(dart: 'Test case one.');
+      Summarizer summer2 = new Summarizer(dart: 'Test case one.');
       expect(summer1.returnAsSimpleSummary(),
           equals(summer2.returnAsSimpleSummary()));
     });
     test('Unique case detection', () {
-      Summarizer summer = new Summarizer(dart: "pirate");
+      Summarizer summer = new Summarizer(dart: 'pirate');
       expect(summer.returnAsSimpleSummary(), contains('pirates'));
     });
     test('Unique case detection', () {
@@ -51,7 +65,7 @@ void defineTests() {
       expect(summer.returnAsSimpleSummary(), contains('llamas'));
     });
     test('Unique case detection no false triggers', () {
-      Summarizer summer = new Summarizer(dart: "ll not amma, pir not ates");
+      Summarizer summer = new Summarizer(dart: 'll not amma, pir not ates');
       expect(summer.returnAsSimpleSummary(), isNot(contains('pirates')));
       expect(summer.returnAsSimpleSummary(), isNot(contains('dogs')));
       expect(summer.returnAsSimpleSummary(), isNot(contains('birds')));
@@ -66,10 +80,19 @@ void defineTests() {
     });
     test('Same input same output', () {
       Summarizer summer1 =
-          new Summarizer(dart: "this does not return anything");
+          new Summarizer(dart: 'this does not return anything');
       Summarizer summer2 =
-          new Summarizer(dart: "this does not return anything");
-      expect(summer1.returnAsSimpleSummary(), summer2.returnAsSimpleSummary());
+          new Summarizer(dart: 'this does not return anything');
+      expect(summer1.returnAsSimpleSummary(),
+          equals(summer2.returnAsSimpleSummary()));
+    });
+    test('Html and css detection', () {
+      Summarizer summer1 =
+          new Summarizer(dart: 'this does not return anything', html: '<div/>');
+      Summarizer summer2 =
+          new Summarizer(dart: 'this does not return anything');
+      expect(summer1.returnAsSimpleSummary(),
+          isNot(equals(summer2.returnAsSimpleSummary())));
     });
   });
 }
