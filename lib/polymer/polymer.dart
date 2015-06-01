@@ -9,10 +9,10 @@ import 'dart:html';
 import 'dart:js';
 
 /**
- * TODO: doc
+ * Access to basic polymer functionality.
  */
 class Polymer {
-  static JsObject _polymer = context['Polymer'];
+  //static JsObject _polymer = context['Polymer'];
   static JsObject _htmlImports = context['HTMLImports'];
 
   /**
