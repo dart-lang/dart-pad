@@ -151,7 +151,6 @@ class CommonServer {
         request.sources, request.location.sourceName, request.location.offset);
   }
 
-
   @ApiMethod(method: 'GET', path: 'complete')
   Future<CompleteResponse> completeGet({String source, int offset}) {
     if (source == null) {

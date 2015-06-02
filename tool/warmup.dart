@@ -20,7 +20,7 @@ main(List<String> args) async {
   } else {
     appPrefix = "";
   }
-  
+
   // Use an insecure connection for test driving to avoid cert problems
   // with the prefixed app version.
   uri = "http://$appPrefix$BASE_URI";
