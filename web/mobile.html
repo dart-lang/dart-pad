@@ -30,61 +30,9 @@
     <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
     <link href="packages/dart_pad/editing/editor_codemirror.css"
           rel="stylesheet" media="screen">
-
-    <style>
-      html, body {
-        width: 100%;
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        font-family: 'Roboto', 'RobotoDraft', sans-serif;
-      }
-
-      #main-header {
-        height: 88px;
-      }
-
-      #run-button {
-        position: absolute;
-        bottom: 16px;
-        right: 16px;
-        z-index: 10;
-      }
-
-      body {
-        background-color: #333;
-        color: #c6c6c6;
-      }
-
-      .splash {
-        background: #333;
-        pointer-events:none;
-
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-
-        z-index: 1000;
-        opacity: 1;
-
-        transition: opacity .1s linear;
-        -webkit-transition: opacity .1s linear;
-      }
-
-      .splash.hide {
-        opacity: 0;
-      }
-
-      #bottomBar.paper-toolbar {
-        height:32px;
-      }
-
-    </style>
   </head>
 
-  <body class="fullbleed vertical layout unresolved">
+  <body class="fullbleed vertical layout" unresolved>
     <div class="splash"></div>
     <iron-pages selected="0" class="flex">
       <section id="edit-section">
@@ -107,18 +55,18 @@
           </paper-header-panel>
           <paper-header-panel main>
             <paper-toolbar style="height: 90px">
-              <paper-icon-button id="nav-button" icon="menu" on-tap="menuAction"></paper-icon-button>
+              <paper-icon-button id="nav-button" icon="menu"></paper-icon-button>
               <div title class="flex sample-titles"
                    style="font-weight:500 !important"></div>
-              <paper-icon-button icon="more-vert" id="more-button"></paper-icon-button>
-              <div class="layout vertical bottom fit">
-                <paper-tabs selected="0">
-                  <paper-tab name="dart">Dart</paper-tab>
-                  <paper-tab name="html">HTML</paper-tab>
-                  <paper-tab name="css">CSS</paper-tab>
-                </paper-tabs>
-                <paper-progress id="edit-progress" hidden></paper-progress>
-              </div>
+              <paper-icon-button icon="more-vert"
+                                 id="more-button"></paper-icon-button>
+              <paper-tabs selected="0" class="bottom fit" style="top: inherit">
+                <paper-tab name="dart">Dart</paper-tab>
+                <paper-tab name="html">HTML</paper-tab>
+                <paper-tab name="css">CSS</paper-tab>
+              </paper-tabs>
+              <paper-progress id="edit-progress" class="bottom fit" hidden
+                              style="top: inherit"></paper-progress>
             </paper-toolbar>
             <div id="editpanel" class="fit editor"></div>
             <paper-fab id="run-button" icon="av:play-arrow"></paper-fab>
@@ -131,24 +79,22 @@
             <paper-fab icon="arrow-back" class="back-button" mini></paper-fab>
             <span title class="sample-titles flex"></span>
             <paper-toggle-button checked></paper-toggle-button>
-            <paper-icon-button icon="refresh" on-tap="moreAction"></paper-icon-button>
-            <div class="layout vertical bottom fit">
-              <div class="flex"></div>
-              <paper-progress id="run-progress" hidden></paper-progress>
-            </div>
+            <paper-icon-button icon="refresh"></paper-icon-button>
+            <paper-progress id="run-progress" class="bottom fit" hidden
+                            style="top: inherit"></paper-progress>
           </paper-toolbar>
           <div class="fit layout vertical">
-            <div class="frameContainer flex two layout vertical">
+            <div id="frameContainer" class="flex-2 layout vertical">
               <iframe class="flex" id="frame" sandbox="allow-scripts" src="frame.html">
               </iframe>
             </div>
-            <div class="flex one console"></div>
+            <div id="console" class="flex-1"></div>
           </div>
         </paper-header-panel>
       </section>
     </iron-pages>
 
-    //hidden elements
+    <!--hidden elements-->
 
     <animated-dropdown id="dropdown">
       <paper-menu selected-class="">
@@ -161,7 +107,7 @@
       <h2></h2>
       <p></p>
       <div class="buttons">
-        <paper-button dialog-dismiss>Close</paper-button>
+        <paper-button raised dialog-dismiss>Close</paper-button>
       </div>
     </paper-dialog>
 

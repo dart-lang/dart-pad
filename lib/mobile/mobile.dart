@@ -192,7 +192,7 @@ class PlaygroundMobile {
     rerunButton = new PaperIconButton.from($('[icon="refresh"]'))
       ..onClick.listen((_) => _handleRerun());
 
-    _output = new PolymerElement.from($(".console"));
+    _output = new PolymerElement.from($("#console"));
     PaperToggleButton toggleConsoleButton = new PaperToggleButton.from($("paper-toggle-button"));
     toggleConsoleButton.onIronChange.listen((_) {
       _output.hidden(!toggleConsoleButton.checked);
@@ -481,7 +481,7 @@ class PlaygroundMobile {
   }
 
   void _showError(String title, String message) {
-    _messageDialog.heading = title;
+    _messageDialog.element.querySelector('h2').text = title;
     _messageDialog.element.querySelector('p').text = message;
     _messageDialog.open();
   }
