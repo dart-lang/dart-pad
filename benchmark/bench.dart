@@ -26,9 +26,9 @@ void main(List<String> args) {
     new AnalyzerBenchmark('hellohtml', sampleCodeWeb),
     new AnalyzerBenchmark('sunflower', _sunflower),
 
-    new AnalysisServerBenchmark('hello', sampleCode),
+    /*new AnalysisServerBenchmark('hello', sampleCode),
     new AnalysisServerBenchmark('hellohtml', sampleCodeWeb),
-    new AnalysisServerBenchmark('sunflower', _sunflower),
+    new AnalysisServerBenchmark('sunflower', _sunflower),*/
 
     new Dart2jsBenchmark('hello', sampleCode),
     new Dart2jsBenchmark('hellohtml', sampleCodeWeb),
