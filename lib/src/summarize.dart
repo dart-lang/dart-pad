@@ -8,16 +8,17 @@ import 'package:crypto/crypto.dart';
 
 import '../services/dartservices.dart';
 
-/// Instances of this class take string input of dart code as well as an analysis result,
-/// and output a text description ofthe code's size, packages, and other useful information.
+/// Instances of this class take string input of dart code as well as an
+/// analysis result, and output a text description ofthe code's size, packages,
+/// and other useful information.
 class Summarizer {
-  _SummarizeToken storage;
   final String dart;
-  final String css;
   final String html;
-  bool resultsPresent;
+  final String css;
+  final AnalysisResults analysis;
+
+  _SummarizeToken storage;
   int _randomizer;
-  AnalysisResults analysis;
 
   static Map<String, List<int>> cuttoffs = {
     'size': [8, 30, 1000], //0-7 = small, 8 - 29 = decent, 29+ = gigantic
@@ -84,12 +85,13 @@ class Summarizer {
 
   Summarizer({this.dart, this.html, this.css, this.analysis}) {
     if (dart == null) throw new ArgumentError('Input cannot be null.');
-    resultsPresent = !(analysis == null);
-    MD5 hasher = new MD5();
-    hasher.add(dart.codeUnits);
-    _randomizer = _sumList(hasher.close());
+    MD5 md5 = new MD5();
+    md5.add(dart.codeUnits);
+    _randomizer = _sumList(md5.close());
     storage = new _SummarizeToken(dart, analysis: analysis);
   }
+
+  bool get hasAnalysisResults => analysis != null;
 
   int _sumList(List<int> list) => list.reduce((a, b) => a + b);
 
@@ -101,7 +103,9 @@ class Summarizer {
         counter++;
       }
       return '${category}-${maxField.length - 1}';
-    } else return null;
+    } else {
+      return null;
+    }
   }
 
   String _wordSelector(String category) {
@@ -134,7 +138,7 @@ class Summarizer {
     }
     englishList += '. ';
     return englishList;
-    //TODO: Tokenize features instead of returning as string
+    // TODO: Tokenize features instead of returning as string.
   }
 
   List<String> additionSearch() => _additionSearch();
@@ -174,13 +178,16 @@ class Summarizer {
 
   String _packageList(List<String> list, {String source}) {
     if (list.length == 0) {
-      if (source == null) return '';
-      else return '. ';
+      return source == null ? '': '. ';
     }
+
     String englishList = '';
-    if (source == 'packages') englishList +=
-        ', and ${_sentenceFiller('code-0')} imports ';
-    else englishList += '${_sentenceFiller('code-1')} imports ';
+    if (source == 'packages') {
+      englishList += ', and ${_sentenceFiller('code-0')} imports ';
+    } else {
+      englishList += '${_sentenceFiller('code-1')} imports ';
+    }
+
     for (int i = 0; i < list.length; i++) {
       englishList += "'${list[i]}'";
       if (i < list.length - 2) englishList += ', ';
@@ -189,18 +196,29 @@ class Summarizer {
         englishList += ' and ';
       }
     }
-    if (source == 'packages') englishList += ' from external packages. ';
-    else englishList += ' from the dart package as well. ';
+
+    if (source == 'packages') {
+      englishList += ' from external packages. ';
+    } else {
+      englishList += ' from the dart package as well. ';
+    }
+
     return englishList;
   }
 
   String _htmlCSS() {
     String htmlCSS = 'This code has ';
-    if (!_hasHtml || html.length < 1) htmlCSS += 'no ';
-    else htmlCSS += 'some ';
+    if (!_hasHtml || html.length < 1) {
+      htmlCSS += 'no ';
+    } else {
+      htmlCSS += 'some ';
+    }
     htmlCSS += 'associated html and ';
-    if (!_hasCSS || css.length < 1) htmlCSS += 'no ';
-    else htmlCSS += 'some ';
+    if (!_hasCSS || css.length < 1) {
+      htmlCSS += 'no ';
+    } else {
+      htmlCSS += 'some ';
+    }
     htmlCSS += 'associated css';
     return htmlCSS;
   }
@@ -209,8 +227,8 @@ class Summarizer {
   bool get _hasCSS => css != null && css.isNotEmpty;
 
   String returnAsSimpleSummary() {
-    if (resultsPresent) {
-      String summary = 'Summary: ';
+    if (hasAnalysisResults) {
+      String summary = '';
       summary += 'This ${_sentenceFiller('size', storage.linesCode)} ';
       if (storage.errorPresent) {
         summary += '${_sentenceFiller('failedQuantifier')} contains ';
@@ -236,57 +254,10 @@ class Summarizer {
     }
   }
 
-  String returnAsVerboseSummary() {
-    if (resultsPresent) {
-      String summary = "Summary:";
-      summary += 'There are ${storage.linesCode} lines of code.\n';
-      if (storage.errorPresent) summary += 'Errors are present.\n';
-      if (storage.errorPresent) summary += 'Warnings are present.\n';
-      summary +=
-          '${storage.packageCount} Package Imports: ${storage.packageImports}.\n';
-      summary +=
-          '${storage.resolvedCount} Resolved Imports: ${storage.resolvedImports}.\n';
-      summary += 'List of ${storage.errorCount} Errors:\n';
-      for (AnalysisIssue issue in storage.errors) {
-        summary += '- ${_condenseIssue(issue)}\n';
-      }
-      summary += "```";
-      return summary;
-    } else {
-      String summary = "``` \n-- Summary --\n";
-      summary += '${storage.linesCode} lines of code.\n';
-      return summary;
-    }
-  }
-
   String returnAsMarkDown() {
-    if (resultsPresent) {
-      String summary = "``` \n-- Summary --\n\n";
-      summary += '${storage.linesCode} lines of code.\n\n';
-      if (storage.errorPresent) summary += 'Errors are present.\n\n';
-      if (storage.errorPresent) summary += 'Warnings are present.\n\n';
-      summary +=
-          '${storage.packageCount} Package Imports: ${storage.packageImports}.\n\n';
-      summary +=
-          '${storage.resolvedCount} Resolved Imports: ${storage.resolvedImports}.\n\n';
-      summary += 'List of ${storage.errorCount} Errors:\n\n';
-      for (AnalysisIssue issue in storage.errors) {
-        summary += '- ${_condenseIssue(issue)}\n';
-      }
-      summary += "```";
-      return summary;
-    } else {
-      String summary = "``` \n-- Summary --\n\n";
-      summary += '${storage.linesCode} lines of code.\n\n';
-      return summary;
-    }
-  }
-
-  String _condenseIssue(AnalysisIssue issue) {
-    return '''${issue.kind.toUpperCase()} | ${issue.message}\n
-  Source at ${issue.sourceName}.\n
-  Located at line: ${issue.line}.\n
-  ''';
+    // For now, we're just returning plain text. This might change at some point
+    // to include some markdown styling as well.
+    return returnAsSimpleSummary();
   }
 }
 
