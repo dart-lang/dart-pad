@@ -80,6 +80,8 @@ abstract class IronSelectableBehavior extends PolymerElement {
    *   the selection state. Set to empty string to listen to no events.
    */
   Stream get ironActivate => listen('iron-activate');
+
+  Stream get ironSelect => listen('iron-select');
 }
 
 class CoreSplitter extends PolymerElement {
