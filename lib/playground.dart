@@ -226,8 +226,8 @@ class Playground implements GistContainer, GistController {
       var toast = new DToast('Created ${newGist.id}')..show()..hide();
       toast.element
         ..style.cursor = "pointer"
-        ..onClick.listen((e)
-            => window.open("https://gist.github.com/anonymous/${newGist.id}", '_blank'));
+        ..onClick.listen((e) =>
+            window.open("https://gist.github.com/anonymous/${newGist.id}", '_blank'));
     }).catchError((e) {
       String message = 'Error saving gist: ${e}';
       DToast.showMessage(message);
@@ -524,11 +524,13 @@ class Playground implements GistContainer, GistController {
 
   Future<String> _createSummary() {
     SourceRequest input = new SourceRequest()..source = _context.dartSource;
-    Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
-    _analysisRequest = request;
-    return request.then((AnalysisResults result) {
-      Summarizer summer = new Summarizer(dart: _context.dartSource, html: _context.htmlSource,
-        css: _context.cssSource, analysis: result);
+    return dartServices.analyze(input).timeout(shortServiceCallTimeout).then(
+        (AnalysisResults result) {
+      Summarizer summer = new Summarizer(
+          dart: _context.dartSource,
+          html: _context.htmlSource,
+          css: _context.cssSource,
+          analysis: result);
       return summer.returnAsSimpleSummary();
     }).catchError((e) {
       _logger.severe(e);
