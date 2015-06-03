@@ -72,18 +72,21 @@ class SharingDialog extends DDialog {
   final GistController gistController;
 
   ParagraphElement _text;
+  TextAreaElement _dialog;
   DButton _cancelButton;
   DButton _shareButton;
   DButton _closeButton;
   DElement _div;
   DInput _padUrl;
   DInput _gistUrl;
+  String _summary;
 
-  SharingDialog(this.gistContainer, this.gistController) : super(title: 'Sharing') {
+  SharingDialog(this.gistContainer, this.gistController, {summary: ""}) : super(title: 'Sharing') {
     element.classes.toggle('sharing-dialog', true);
-
+    _summary = summary;
     _text = content.add(new ParagraphElement());
-
+    _dialog = content.add(new TextAreaElement());
+    
     // About to share.
     _cancelButton = new DButton.button(text: 'Cancel');
     _cancelButton.onClick.listen((_) => hide());
@@ -109,6 +112,11 @@ class SharingDialog extends DDialog {
     _gistUrl.onClick.listen((_) => _gistUrl.selectAll());
   }
 
+  void updateSummary(String summary) {
+    this._summary = summary;
+    show();
+  }
+  
   void show() {
     _configure(gistContainer.mutableGist);
     super.show();
@@ -130,7 +138,10 @@ class SharingDialog extends DDialog {
       // Show 'about to share'.
       _text.text = 'Sharing this pad will create a permanent, publicly visible '
           'copy on gist.github.com.';
-
+      _dialog.defaultValue = _summary;
+      _dialog.cols = 75;
+      _dialog.className = 'dialogBox';
+      
       buttonArea.add(_cancelButton);
       buttonArea.add(new SpanElement()..attributes['flex'] = '');
       buttonArea.add(_shareButton);
@@ -153,7 +164,7 @@ class SharingDialog extends DDialog {
     _shareButton.disabled = true;
 
     // TODO: Show a spinner.
-    gistController.shareAnon().then((_) {
+    gistController.shareAnon(summary: _dialog.value).then((_) {
       _switchTo(aboutToShare: false);
     }).whenComplete(() {
       _shareButton.disabled = false;

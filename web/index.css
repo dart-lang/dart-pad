@@ -54,6 +54,16 @@ header {
   min-width: 2em;
 }
 
+.dialogBox{
+  background-color: #333;
+  color: #c6c6c6;
+  font-family: 'Roboto', sans-serif;
+  font-size: 12px;
+  height: 70px;
+  width: 95%;
+  resize: none;
+}
+
 .header-gist-name.dirty::after {
   content: " •";
 }

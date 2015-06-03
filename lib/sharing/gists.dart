@@ -272,7 +272,7 @@ class GistFile {
 
 abstract class GistController {
   Future createNewGist();
-  Future shareAnon();
+  Future shareAnon({String summary});
 }
 
 /// A class to store gists in html's localStorage.

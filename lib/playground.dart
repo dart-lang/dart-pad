@@ -101,8 +101,8 @@ class Playground implements GistContainer, GistController {
     new NewPadAction(querySelector('#newbutton'), this);
 
     DButton shareButton = new DButton(querySelector('#sharebutton'));
-    shareButton.onClick.listen((e) => sharingDialog.show());
-
+    shareButton.onClick.listen((e) => _createSummary().then((String sum) => 
+        sharingDialog.updateSummary(sum)));
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
       _handleRun();
@@ -216,10 +216,9 @@ class Playground implements GistContainer, GistController {
     return new Future.value();
   }
 
-  Future shareAnon() {
-    return _createSummary().then((String summary) {
-      return gistLoader.createAnon(mutableGist.createGist(summary: summary));
-    }).then((Gist newGist) {
+  Future shareAnon({String summary: ""}) {
+    return gistLoader.createAnon(mutableGist.createGist(summary: summary))
+        .then((Gist newGist) {
       editableGist.setBackingGist(newGist);
       overrideNextRoute(newGist);
       router.go('gist', {'gist': newGist.id});
