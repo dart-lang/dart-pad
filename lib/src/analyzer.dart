@@ -120,7 +120,7 @@ class Analyzer {
 
       // Delete the files
       changeSet = new ChangeSet();
-      sourcesList.forEach((s) => changeSet.deletedSource(s));
+      sourcesList.forEach((s) => changeSet.removedSource(s));
       _resolver.clear();
       _context.applyChanges(changeSet);
 
