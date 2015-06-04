@@ -178,7 +178,7 @@ class Summarizer {
 
   String _packageList(List<String> list, {String source}) {
     if (list.length == 0) {
-      return source == null ? '': '. ';
+      return source == null ? '' : '. ';
     }
 
     String englishList = '';
