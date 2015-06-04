@@ -18,9 +18,8 @@ import 'src/util.dart';
  */
 Future<bool> confirm(String title, String message,
     {String okText: 'OK', String cancelText: 'Cancel'}) {
-
-  OkCancelDialog dialog = new OkCancelDialog(
-      title, message, okText: okText, cancelText: cancelText);
+  OkCancelDialog dialog = new OkCancelDialog(title, message,
+      okText: okText, cancelText: cancelText);
   dialog.show();
   return dialog.future;
 }
@@ -29,15 +28,16 @@ class OkCancelDialog extends DDialog {
   Completer<bool> _completer = new Completer();
 
   OkCancelDialog(String title, String message,
-      {String okText: 'OK', String cancelText: 'Cancel'}) : super(title: title) {
+      {String okText: 'OK', String cancelText: 'Cancel'})
+      : super(title: title) {
     content.add(new ParagraphElement()..text = message);
 
     DButton cancelButton = buttonArea.add(new DButton.button(text: cancelText));
     buttonArea.add(new SpanElement()..attributes['flex'] = '');
     cancelButton.onClick.listen((_) => hide());
 
-    DButton okButton = buttonArea.add(
-        new DButton.button(text: okText, classes: 'default'));
+    DButton okButton =
+        buttonArea.add(new DButton.button(text: okText, classes: 'default'));
     okButton.onClick.listen((_) {
       _completer.complete(true);
       hide();
@@ -61,8 +61,8 @@ class AboutDialog extends DDialog {
     p.setInnerHtml(text, validator: new PermissiveNodeValidator());
 
     buttonArea.add(new SpanElement()..attributes['flex'] = '');
-    DButton okButton = buttonArea.add(
-        new DButton.button(text: "OK", classes: 'default'));
+    DButton okButton =
+        buttonArea.add(new DButton.button(text: "OK", classes: 'default'));
     okButton.onClick.listen((_) => hide());
   }
 }
@@ -72,17 +72,25 @@ class SharingDialog extends DDialog {
   final GistController gistController;
 
   ParagraphElement _text;
+  TextAreaElement _textArea;
   DButton _cancelButton;
   DButton _shareButton;
   DButton _closeButton;
   DElement _div;
   DInput _padUrl;
   DInput _gistUrl;
+  String _summary;
 
-  SharingDialog(this.gistContainer, this.gistController) : super(title: 'Sharing') {
+  SharingDialog(
+      GistContainer this.gistContainer, GistController this.gistController,
+      {String summary: ""})
+      : super(title: 'Sharing') {
     element.classes.toggle('sharing-dialog', true);
-
+    _summary = summary;
     _text = content.add(new ParagraphElement());
+    _textArea = content.add(new TextAreaElement());
+    _textArea.cols = 75;
+    _textArea.className = 'sharingSummaryText';
 
     // About to share.
     _cancelButton = new DButton.button(text: 'Cancel');
@@ -95,18 +103,33 @@ class SharingDialog extends DDialog {
     _closeButton.onClick.listen((_) => hide());
     _div = new DElement.tag('div')..layoutVertical();
 
-    DElement div = _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
-    div.add(new DElement.tag('span', classes: 'sharinglabel'))..text = 'DartPad:';
+    DElement div =
+        _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
+    div.add(new DElement.tag('span', classes: 'sharinglabel'))
+      ..text = 'DartPad:';
     DElement inputGroup = div.add(new DElement.tag('div'))
-        ..layoutHorizontal()..flex();
-    _padUrl = inputGroup.add(new DInput.input(type: 'text'))..flex()..readonly();
+      ..layoutHorizontal()
+      ..flex();
+    _padUrl = inputGroup.add(new DInput.input(type: 'text'))
+      ..flex()
+      ..readonly();
     _padUrl.onClick.listen((_) => _padUrl.selectAll());
 
     div = _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
-    div.add(new DElement.tag('span', classes: 'sharinglabel'))..text = 'gist.github.com:';
-    inputGroup = div.add(new DElement.tag('div'))..layoutHorizontal()..flex();
-    _gistUrl = inputGroup.add(new DInput.input(type: 'text'))..flex()..readonly();
+    div.add(new DElement.tag('span', classes: 'sharinglabel'))
+      ..text = 'gist.github.com:';
+    inputGroup = div.add(new DElement.tag('div'))
+      ..layoutHorizontal()
+      ..flex();
+    _gistUrl = inputGroup.add(new DInput.input(type: 'text'))
+      ..flex()
+      ..readonly();
     _gistUrl.onClick.listen((_) => _gistUrl.selectAll());
+  }
+
+  void showWithSummary(String summary) {
+    this._summary = summary;
+    show();
   }
 
   void show() {
@@ -130,13 +153,17 @@ class SharingDialog extends DDialog {
       // Show 'about to share'.
       _text.text = 'Sharing this pad will create a permanent, publicly visible '
           'copy on gist.github.com.';
+      _textArea.defaultValue = _summary == null ? '' : _summary;
+      _textArea.style.display = 'block';
 
       buttonArea.add(_cancelButton);
       buttonArea.add(new SpanElement()..attributes['flex'] = '');
       buttonArea.add(_shareButton);
     } else {
       // Show the existing sharing info.
-      _text.text = 'Share the DartPad link or view the source at gist.github.com.';
+      _text.text =
+          'Share the DartPad link or view the source at gist.github.com.';
+      _textArea.style.display = 'none';
 
       MutableGist gist = gistContainer.mutableGist;
 
@@ -153,7 +180,7 @@ class SharingDialog extends DDialog {
     _shareButton.disabled = true;
 
     // TODO: Show a spinner.
-    gistController.shareAnon().then((_) {
+    gistController.shareAnon(summary: _textArea.value).then((_) {
       _switchTo(aboutToShare: false);
     }).whenComplete(() {
       _shareButton.disabled = false;
