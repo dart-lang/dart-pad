@@ -154,7 +154,7 @@ class PlaygroundMobile {
 
     PolymerElement dropdownAnimation = new PolymerElement.from($("animated-dropdown"));
 
-    new PaperIconButton.from($("#more-button"))..onClick.listen((e){
+    new PaperIconButton.from($("#more-button"))..onTap.listen((e){
       $("#dropdown").style.top = ($("#more-button").getBoundingClientRect().top + 5).toString() + "px";
       $("#dropdown").style.left = ($("#more-button").getBoundingClientRect().left - 75).toString() + "px";
       dropdownAnimation.call("show");
@@ -166,14 +166,14 @@ class PlaygroundMobile {
       dropdownAnimation.call("hide");
     });
 
-    new PaperItem.from($("#about-item"))..onClick.listen((event) {
+    new PaperItem.from($("#about-item"))..onTap.listen((event) {
       event.preventDefault();
       _showAboutDialog();
       dropdownAnimation.call("hide");
     });
 
     PaperTabs tabs = new PaperTabs.from($("paper-tabs"));
-    tabs.ironActivate.listen((_) {
+    tabs.ironSelect.listen((_) {
       String name = tabs.selectedName;
       ga.sendEvent('edit', name);
       _context.switchTo(name);
@@ -183,16 +183,22 @@ class PlaygroundMobile {
 
     _editProgress = new PaperProgress.from($("#edit-progress"));
     runButton = new PaperFab.from($("#run-button"))
-      ..onClick.listen((_) => _handleRun());
+      ..onTap.listen((_) => _handleRun());
 
     // execute section
     new PaperFab.from($(".back-button"))
-      ..onClick.listen((_) => _pages.selected = "0");
+      ..onTap.listen((e)  {
+      _pages.selected = "0";
+      // for some reason e.stopPropagation is needed
+      // otherwise the pages.selected will be "1"
+      // TODO: we should probably report this bug to polymer
+      e.stopPropagation();
+    });
 
     rerunButton = new PaperIconButton.from($('[icon="refresh"]'))
-      ..onClick.listen((_) => _handleRerun());
+      ..onTap.listen((_) => _handleRerun());
 
-    _output = new PolymerElement.from($(".console"));
+    _output = new PolymerElement.from($("#console"));
     PaperToggleButton toggleConsoleButton = new PaperToggleButton.from($("paper-toggle-button"));
     toggleConsoleButton.onIronChange.listen((_) {
       _output.hidden(!toggleConsoleButton.checked);
@@ -481,7 +487,7 @@ class PlaygroundMobile {
   }
 
   void _showError(String title, String message) {
-    _messageDialog.heading = title;
+    _messageDialog.element.querySelector('h2').text = title;
     _messageDialog.element.querySelector('p').text = message;
     _messageDialog.open();
   }

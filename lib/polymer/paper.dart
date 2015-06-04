@@ -139,8 +139,7 @@ class PaperTabs extends IronSelectableBehavior {
   PaperTabs.from(HtmlElement element) : super.from(element);
 
   String get selectedName {
-    int index = new JsObject.fromBrowserObject(element)["selected"];
-    return new PaperTab.from(selectorAll("paper-tab")[index]).name;
+    return new PaperTab.from(property("focusedItem")).name;
   }
 }
 
