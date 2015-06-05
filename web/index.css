@@ -99,7 +99,7 @@ footer {
 .view {
   position: relative;
   margin: 0 0;
-  min-width: 75px;
+  min-width: 240px;
   min-height: 50px;
 }
 
