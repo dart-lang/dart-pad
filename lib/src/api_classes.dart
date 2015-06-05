@@ -46,6 +46,9 @@ class AnalysisIssue implements Comparable {
     Map m = {'kind': kind, 'line': line, 'message': message};
     if (charStart != null) m['charStart'] = charStart;
     if (charLength != null) m['charLength'] = charLength;
+    if (hasFixes != null) m['hasFixes'] = hasFixes;
+    if (sourceName != null) m['sourceName'] = sourceName;
+
     return m;
   }
 
