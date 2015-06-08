@@ -22,7 +22,7 @@ class Summarizer {
 
   static Map<String, List<int>> cuttoffs = {
     'size': [8, 30, 1000], //0-7 = small, 8 - 29 = decent, 29+ = gigantic
-    'errorCount': [1, 5, 100]
+    'errorCount': [1, 10, 100]
   };
 
   static Map<String, String> codeKeyWords = {
@@ -77,7 +77,7 @@ class Summarizer {
       'sparse amounts of',
       'very few instances of'
     ],
-    'errorCount-0': ['zero', 'no', 'a nonexistent amount of', '0.0000', '0'],
+    'errorCount-0': ['zero', 'no', 'a nonexistent amount of', '0'],
     'use': ['demonstrates', 'illustrates', 'depicts'],
     'code-0': ['it'],
     'code-1': ['It'],
@@ -100,7 +100,6 @@ class Summarizer {
       List<int> maxField = cuttoffs[category];
       for (int counter = 0; counter < maxField.length; counter++) {
         if (itemCount < maxField[counter]) return '${category}-${counter}';
-        counter++;
       }
       return '${category}-${maxField.length - 1}';
     } else {
@@ -185,7 +184,7 @@ class Summarizer {
     if (source == 'packages') {
       englishList += ', and ${_sentenceFiller('code-0')} imports ';
     } else {
-      englishList += '${_sentenceFiller('code-1')} imports ';
+      englishList += '${_sentenceFiller('code-1')} imports the ';
     }
 
     for (int i = 0; i < list.length; i++) {
@@ -200,7 +199,7 @@ class Summarizer {
     if (source == 'packages') {
       englishList += ' from external packages. ';
     } else {
-      englishList += ' from the dart package as well. ';
+      englishList += ' packages as well. ';
     }
 
     return englishList;
@@ -208,13 +207,17 @@ class Summarizer {
 
   String _htmlCSS() {
     String htmlCSS = 'This code has ';
-    if (!_hasHtml || html.length < 1) {
+    if (_hasCSS && _hasHtml) {
+      htmlCSS += 'associated html and css';
+      return htmlCSS;
+    }
+    if (!_hasHtml) {
       htmlCSS += 'no ';
     } else {
       htmlCSS += 'some ';
     }
     htmlCSS += 'associated html and ';
-    if (!_hasCSS || css.length < 1) {
+    if (!_hasCSS) {
       htmlCSS += 'no ';
     } else {
       htmlCSS += 'some ';
