@@ -116,6 +116,7 @@ discovery() {
   Pub.global.run('discoveryapis_generator:generate', arguments: [
     'files',
     '--input-dir=doc/generated',
-    '--output-dir=doc/generated'
+    '--output-dir=doc/generated',
+    '--no-core-prefixes'
   ]);
 }
