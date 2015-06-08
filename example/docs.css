@@ -33,16 +33,16 @@ button.running {
   border: 1px solid #ccc;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
-  padding: 9.5px;
+  padding: 9px;
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
   white-space: pre;
   overflow-y: scroll;
-  height: 0px;
+  height: 0;
   transition: height 350ms;
 }
 
 .errors {
-  background: #red;
+  background: red;
 }
 
 .output[showing] {
