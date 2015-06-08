@@ -207,18 +207,22 @@ class Summarizer {
 
   String _htmlCSS() {
     String htmlCSS = 'This code has ';
-    if (!_hasHtml || html.length < 1) {
+    if (_hasCSS && _hasHtml) {
+      htmlCSS += 'associated html and css code';
+      return htmlCSS;
+    }
+    if (!_hasHtml) {
       htmlCSS += 'no ';
     } else {
       htmlCSS += 'some ';
     }
     htmlCSS += 'associated html and ';
-    if (!_hasCSS || css.length < 1) {
+    if (!_hasCSS) {
       htmlCSS += 'no ';
     } else {
       htmlCSS += 'some ';
     }
-    htmlCSS += 'associated css';
+    htmlCSS += 'associated css code';
     return htmlCSS;
   }
 
