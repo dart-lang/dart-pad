@@ -87,10 +87,14 @@ class SharingDialog extends DDialog {
       : super(title: 'Sharing') {
     element.classes.toggle('sharing-dialog', true);
     _summary = summary;
+
+    content.setAttr('layout');
+    content.setAttr('vertical');
+
     _text = content.add(new ParagraphElement());
     _textArea = content.add(new TextAreaElement());
-    _textArea.cols = 75;
     _textArea.className = 'sharingSummaryText';
+    _textArea.setAttribute('flex', '');
 
     // About to share.
     _cancelButton = new DButton.button(text: 'Cancel');

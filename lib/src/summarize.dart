@@ -242,7 +242,7 @@ class Summarizer {
       summary += '${_packageList(storage.packageImports, source: 'packages')}';
       summary += '${_packageList(storage.resolvedImports)}';
       summary += '${_additionList(_additionSearch())}';
-      return summary;
+      return summary.trim();
     } else {
       String summary = "Summary: ";
       summary += 'This is a ${_sentenceFiller('size', storage.linesCode)} ';
@@ -250,7 +250,7 @@ class Summarizer {
       summary += '${_featureList(_codeSearch())}';
       summary += '${_htmlCSS()}';
       summary += '${_additionList(_additionSearch())}';
-      return summary;
+      return summary.trim();
     }
   }
 
