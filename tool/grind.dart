@@ -149,7 +149,7 @@ deploy() {
       }
     }
 
-    log('\nexecute: `appcfg.py update build/web --oauth2`');
+    log('\nexecute: `appcfg.py update build/web`');
   });
 }
 
