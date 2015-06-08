@@ -9,15 +9,9 @@ dependencies:
   analysis_server:
     git:
       url: git://github.com/lukechurch/dart-analysis-server-temp-working.git
-      ref: v1_10_1
-  analyzer:
-    git:
-      url: git://github.com/lukechurch/dart-analyzer-temp-working.git
-      ref: v1_10_1
-  dart_style:
-    git:
-      url: git://github.com/lukechurch/dart_style.git
-      ref: v1_10_1
+      ref: v1_11_0
+  analyzer: '>=0.25.1-alpha.1 <0.26.0'
+  dart_style: '>=0.1.7 <0.2.0'
   appengine: '>=0.3.0 <0.4.0'
   archive: '>=1.0.19 <1.1.0'
   args: '>=0.12.0 <0.14.0'
