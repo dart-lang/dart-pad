@@ -208,7 +208,7 @@ class Summarizer {
   String _htmlCSS() {
     String htmlCSS = 'This code has ';
     if (_hasCSS && _hasHtml) {
-      htmlCSS += 'associated html and css code';
+      htmlCSS += 'associated html and css';
       return htmlCSS;
     }
     if (!_hasHtml) {
@@ -222,7 +222,7 @@ class Summarizer {
     } else {
       htmlCSS += 'some ';
     }
-    htmlCSS += 'associated css code';
+    htmlCSS += 'associated css';
     return htmlCSS;
   }
 
