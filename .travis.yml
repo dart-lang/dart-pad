@@ -10,3 +10,11 @@ env:
 
 addons:
   sauce_connect: true
+
+branches:
+  only:
+    - master
+
+cache:
+  directories:
+  - $HOME/.pub-cache

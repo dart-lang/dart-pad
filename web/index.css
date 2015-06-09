@@ -54,6 +54,21 @@ header {
   min-width: 2em;
 }
 
+textarea {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+}
+
+.sharingSummaryText {
+  background-color: #333;
+  color: #c6c6c6;
+  height: 80px;
+  min-height: 80px;
+  resize: none;
+  border: 1px solid #555;
+  padding: 0.5em;
+}
+
 .header-gist-name.dirty::after {
   content: " •";
 }
@@ -89,7 +104,7 @@ footer {
 .view {
   position: relative;
   margin: 0 0;
-  min-width: 75px;
+  min-width: 240px;
   min-height: 50px;
 }
 
