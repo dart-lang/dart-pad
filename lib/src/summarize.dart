@@ -199,7 +199,11 @@ class Summarizer {
     if (source == 'packages') {
       englishList += ' from external packages. ';
     } else {
-      englishList += ' packages as well. ';
+      if (list.length == 1) {
+        englishList += ' package as well. ';
+      } else {
+        englishList += ' packages as well. ';
+      }
     }
 
     return englishList;
