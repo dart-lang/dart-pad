@@ -211,6 +211,10 @@ class Summarizer {
       htmlCSS += 'associated html and css';
       return htmlCSS;
     }
+    if (!_hasCSS && !_hasHtml) {
+      htmlCSS += 'no associated html or css';
+      return htmlCSS;
+    }
     if (!_hasHtml) {
       htmlCSS += 'no ';
     } else {
