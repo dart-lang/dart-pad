@@ -44,6 +44,18 @@ To run the server, run:
 The server will run from port 8082 and export several JSON APIs, like
 `/api/compile` and `/api/analyze`.
 
+## Deploying
+
+To deploy the server to Dart on AppEngine, follow the instructions [here](https://www.dartlang.org/server/google-cloud-platform/app-engine/).
+
+Modify `warmup.dart` to point the BASE_URI to your AppEngine project.
+
+Then run
+
+    ./tools/deploy.sh
+
+The will deploy the server, and run the warmup sequence and sanity checks.
+
 ## Related projects
 
 See also the [dart-pad](https://github.com/dart-lang/dart-pad) repo.
