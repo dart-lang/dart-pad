@@ -270,6 +270,7 @@ class PlaygroundMobile {
   }
 
   void _handleRun() {
+    _clearOutput();
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
 
