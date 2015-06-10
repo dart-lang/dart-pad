@@ -98,6 +98,20 @@ class Playground implements GistContainer, GistController {
 
     new NewPadAction(querySelector('#newbutton'), this);
 
+    DButton resetButton = new DButton(querySelector('#resetbutton'));
+    resetButton.onClick.listen((_) {
+      confirm('Reset Pad', 'Discard changes to the current pad?',
+          okText: 'Discard', cancelText: 'Cancel').then((bool val) {
+        if (val) {
+          _gistStorage.clearStoredGist();
+          editableGist.reset();
+        }
+      });
+    });
+    editableGist.onDirtyChanged.listen((val) {
+      resetButton.disabled = !val;
+    });
+
     DButton shareButton = new DButton(querySelector('#sharebutton'));
     shareButton.onClick.listen((e) => _createSummary()
         .then((String sum) => sharingDialog.showWithSummary(sum)));

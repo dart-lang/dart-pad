@@ -87,6 +87,13 @@ class MutableGist implements PropertyOwner {
     return gist;
   }
 
+  void reset() {
+    bool wasDirty = dirty;
+    _localValues.clear();
+    if (wasDirty != dirty) _dirtyChangedController.add(dirty);
+    _changedController.add(null);
+  }
+
   String _getProperty(String key) {
     if (_localValues.containsKey(key)) return _localValues[key];
     return _backingGist[key];
