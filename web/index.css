@@ -156,11 +156,6 @@ a[selected]:hover {
   text-transform: uppercase;
 }
 
-[reverse].header a {
-  margin-left: 16px;
-  margin-right: 0;
-}
-
 .header {
   line-height: 24px;
   font-size: 12pt;
@@ -169,6 +164,10 @@ a[selected]:hover {
 .header.small {
   font-size: 11pt;
   line-height: 18px;
+}
+
+.header a[last] {
+  margin-right: 0;
 }
 
 #runbutton svg {
