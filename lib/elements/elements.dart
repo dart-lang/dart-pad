@@ -507,47 +507,51 @@ class _ElementTextProperty implements Property {
 }
 
 class TabController {
-  List<TabElement> tabElements;
+  StreamController<TabElement> _selectedTabController = new StreamController.broadcast();
 
-  TabElement _selectedTab;
+  List<TabElement> tabs;
 
-  TabController({this.tabElements}) {
-    if (tabElements != null) {
-      tabElements.forEach((tab) => registerTab(tab));
-    } else {
-      tabElements = [];
-    }
-  }
+  TabController({this.tabs}) {
+    if (tabs == null) tabs = [];
+    tabs.forEach((tab) => registerTab(tab));
 
-  TabElement get selectedTab => tabElements.firstWhere((tab) => tab.hasAttr("selected"));
-
-  set selectedTab(TabElement s) {
-    _selectedTab = s;
-    for (TabElement tab in tabElements) {
-      tab.toggleAttr('selected', tab == _selectedTab);
+    if (tabs.isNotEmpty && selectedTab == null) {
+      selectTab(tabs.first.name);
     }
   }
 
   void registerTab(TabElement tab) {
-    tabElements.add(tab);
-    tab.onClick.listen((_) {
-      selectedTab = tab;
-      tab.onSelect();
-    });
+    tabs.add(tab);
+    tab.onClick.listen((_) => selectTab(tab.name));
   }
+
+  TabElement get selectedTab => tabs.firstWhere((tab) => tab.hasAttr("selected"));
 
   /// This method will throw if the tabName is not the name of a current tab.
   void selectTab(String tabName) {
-    selectedTab = tabElements.firstWhere((t) => t.name == tabName);
+    TabElement tab = tabs.firstWhere((t) => t.name == tabName);
+
+    for (TabElement t in tabs) {
+      t.toggleAttr('selected', t == tab);
+    }
+
+    tab.handleSelected();
+
+    _selectedTabController.add(tab);
   }
+
+  Stream<TabElement> get onTabSelect => _selectedTabController.stream;
 }
 
 class TabElement extends DElement {
   final String name;
-
   final Function onSelect;
 
   TabElement(Element element, {this.name, this.onSelect}) : super(element);
+
+  void handleSelected() {
+    if (onSelect != null) onSelect();
+  }
 
   String toString() => name;
 }
