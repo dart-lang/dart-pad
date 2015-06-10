@@ -52,7 +52,6 @@ class Playground implements GistContainer, GistController {
   IFrameElement get _frame => querySelector('#frame');
   bool get _isCompletionActive => editor.completionActive;
   DivElement get _docPanel => querySelector('#documentation');
-  bool _htmlIsEmpty = true;
 
   DButton runButton;
   DOverlay overlay;
@@ -415,25 +414,18 @@ class Playground implements GistContainer, GistController {
     context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
 
     // Bind the editable files to the gist.
-    Property htmlFile =
-        new GistFileProperty(editableGist.getGistFile('index.html'))
-      ..onChanged
-          .listen((html) => _checkForEmptyHtml(html == null ? "" : html));
-    Property htmlDoc =
-        new EditorDocumentProperty(_context.htmlDocument, 'html');
+    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'));
+    Property htmlDoc = new EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
-    Property cssFile =
-        new GistFileProperty(editableGist.getGistFile('styles.css'));
+    Property cssFile = new GistFileProperty(editableGist.getGistFile('styles.css'));
     Property cssDoc = new EditorDocumentProperty(_context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
-    Property dartFile =
-        new GistFileProperty(editableGist.getGistFile('main.dart'));
-    Property dartDoc =
-        new EditorDocumentProperty(_context.dartDocument, 'dart');
+    Property dartFile = new GistFileProperty(editableGist.getGistFile('main.dart'));
+    Property dartDoc = new EditorDocumentProperty(_context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
@@ -493,16 +485,6 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  void _checkForEmptyHtml(String htmlSource) {
-    if (htmlSource.trim().isEmpty && !_htmlIsEmpty) {
-      _htmlIsEmpty = true;
-      outputTabController.selectTab("console");
-    } else if (htmlSource.trim().isNotEmpty && _htmlIsEmpty) {
-      _htmlIsEmpty = false;
-      outputTabController.selectTab("result");
-    }
-  }
-
   void _handleRun() {
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
@@ -519,6 +501,9 @@ class Playground implements GistContainer, GistController {
         .then((CompileResponse response) {
       ga.sendTiming('action-perf', "compilation-e2e",
           compilationTimer.elapsedMilliseconds);
+
+      _switchOutputTab(_context.htmlSource);
+
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
@@ -530,6 +515,16 @@ class Playground implements GistContainer, GistController {
       runButton.disabled = false;
       overlay.visible = false;
     });
+  }
+
+  /// Switch to the console or html results tab depending on whether the sample
+  /// has html content or not.
+  void _switchOutputTab(String html) {
+    if (html.trim().isEmpty) {
+      outputTabController.selectTab("console");
+    } else {
+      outputTabController.selectTab("result");
+    }
   }
 
   Future<String> _createSummary() {
