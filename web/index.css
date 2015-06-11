@@ -202,6 +202,7 @@ a[selected]:hover {
 #frame {
   min-height: 50px;
   display: block;
+  visibility: hidden;
   margin-top: 5px;
 }
 

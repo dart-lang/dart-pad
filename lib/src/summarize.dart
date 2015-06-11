@@ -234,8 +234,8 @@ class Summarizer {
     return htmlCSS;
   }
 
-  bool get _hasHtml => html != null && html.isNotEmpty;
-  bool get _hasCSS => css != null && css.isNotEmpty;
+  bool get _hasHtml => html != null && html.trim().isNotEmpty;
+  bool get _hasCSS => css != null && css.trim().isNotEmpty;
 
   String returnAsSimpleSummary() {
     if (hasAnalysisResults) {
