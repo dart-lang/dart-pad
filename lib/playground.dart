@@ -619,14 +619,26 @@ class Playground implements GistContainer, GistController {
     _outputpanel.text = '';
   }
 
+  List<SpanElement> _bufferedOutput = [];
+  Duration _outputDuration = new Duration(milliseconds: 32);
+
   void _showOuput(String message, {bool error: false}) {
-    message = message + '\n';
-    SpanElement span = new SpanElement();
-    span.classes.add(error ? 'errorOutput' : 'normal');
-    span.text = message;
-    _outputpanel.children.add(span);
-    span.scrollIntoView(ScrollAlignment.BOTTOM);
     consoleBusyLight.flash();
+
+    SpanElement span = new SpanElement()..text = message + '\n';
+    span.classes.add(error ? 'errorOutput' : 'normal');
+
+    // Buffer the console output so that heavy writing to stdout does not starve
+    // the DOM thread.
+    _bufferedOutput.add(span);
+
+    if (_bufferedOutput.length == 1) {
+      new Timer(_outputDuration, () {
+        _outputpanel.children.addAll(_bufferedOutput);
+        _outputpanel.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
+        _bufferedOutput.clear();
+      });
+    }
   }
 
   void _handleSelectChanged(SelectElement select) {
