@@ -32,14 +32,34 @@
           rel="stylesheet" media="screen">
   </head>
   <style>
-  #tabs {
+  .tabs {
     background: #485D67;
-   } 
+   }
+   paper-toolbar {
+    display: none;
+   }
+   #resetDialog {
+    min-height: 90px;
+   }
+   #errorToast {
+     bottom: 2px;
+     position: absolute;
+   }
+   #leftContainer {
+     float:left; 
+     height:100%; 
+     width:60%; 
+     position:relative;
+   }
+   #editpanel {
+     margin: 8px 0px 8px 8px;
+     border-right: solid #818181;
+   }
   </style>
   <body class="fullbleed vertical layout" unresolved>
     <div class="splash"></div>
       <div style="height:100%" horizontal layout>
-      <div style = "float:left; height: 100%; width: 60%; position: relative;">
+      <div id = "leftContainer">
       <section id="edit-section" flex>
         <paper-drawer-panel force-narrow>
           <paper-header-panel drawer>
@@ -66,7 +86,7 @@
             </paper-toolbar>
             <div class = "fit layout vertical">
               <div class = "layout vertical">
-                <paper-tabs id ="tabs" selected="0" style = "position:relative" class="bottom fit vertical" style="top: inherit">
+                <paper-tabs class ="tabs" selected="0" style = "position:relative" class="bottom fit vertical" style="top: inherit">
                     <paper-tab name="dart">Dart</paper-tab>
                     <paper-tab name="html">HTML</paper-tab>
                     <paper-tab name="css">CSS</paper-tab>
@@ -77,7 +97,7 @@
               <div id="editpanel" style ="position: relative;" class="flex-5 layout vertical editor">
                 <paper-fab id="run-button" icon="av:play-arrow"></paper-fab>
               </div> 
-              <div id="console" class="flex-1 layout vertical"></div>
+              <div id="console" class="flex-1"></div>
             </div>
           </paper-header-panel>
         </paper-drawer-panel>
@@ -98,11 +118,20 @@
                  id="more-button"></paper-icon-button>
           </paper-toolbar>
           <div class="fit layout vertical">
+            <div class>
+              <paper-tabs class="tabs" selected="0" style = "position:relative" class="bottom fit vertical" style="top: inherit">
+                  <span class="flex"></span>
+                  <paper-icon-button icon="refresh"></paper-icon-button>
+              </paper-tabs>
+              <paper-progress id="edit-progress"  class="bottom fit" hidden
+                              style="top: inherit"></paper-progress>
+            </div>
             <div id="frameContainer" class="flex-2 layout vertical">
               <iframe class="flex" id="frame" sandbox="allow-scripts" src="frame.html">
               </iframe>
             </div>
           </div>
+          <paper-toast id="errorToast" text=""></paper-toast>
         </paper-header-panel>
       </section>
       </div>
@@ -116,13 +145,23 @@
       </paper-menu>
     </animated-dropdown>
 
-    <paper-dialog>
+    <paper-dialog id="messageDialog">
       <h2></h2>
       <p></p>
       <div class="buttons">
         <paper-button raised dialog-dismiss>Close</paper-button>
       </div>
     </paper-dialog>
+    
+    <paper-dialog id="resetDialog" heading="Reset"
+                  transition="paper-dialog-transition-bottom">
+      <p>This will reset all changes. Are you sure?</p>
+      <paper-button id = "cancelButton" dismissive>Cancel</paper-button>
+      <span class="flex"></span>
+      <paper-button id = "affirmButton" affirmative default>OK</paper-button>
+    </paper-dialog>
+    
+    <paper-toast id="resetToast" text="Your draft has been discarded."></paper-toast>
 
     <script src="packages/codemirror/codemirror.js"></script>
     <script src="packages/browser/dart.js" async></script>

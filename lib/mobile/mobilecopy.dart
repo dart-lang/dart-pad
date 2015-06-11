@@ -42,24 +42,33 @@ void init() {
 
 class PlaygroundMobile {
   PaperFab runButton;
-  PaperIconButton rerunButton;
-
+  PaperIconButton exportButton;
+  PaperIconButton cancelButton;
+  PaperIconButton affirmButton;
   BusyLight dartBusyLight;
 
+  Gist backupGist;
+  
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
   Router _router;
 
+  PaperToast _resetToast;
   PaperToast _messageToast;
   PaperToast _errorsToast;
   PaperDialog _messageDialog;
+  PaperDialog _resetDialog;
   PolymerElement _output;
   PaperProgress _editProgress;
   PaperProgress _runProgress;
 
   String _gistId;
-
+  
+  Future createNewGist() {
+      return null;
+  }
+  
   ModuleManager modules = new ModuleManager();
 
   PlaygroundMobile() {
@@ -107,11 +116,14 @@ class PlaygroundMobile {
     _messageToast = new PaperToast();
     document.body.children.add(_messageToast.element);
 
-    _errorsToast = new PaperToast()
+    _errorsToast = new PaperToast.from($('#errorToast'))
       ..duration = 100000;
-    document.body.children.add(_errorsToast.element);
-
-    _messageDialog = new PaperDialog.from($("paper-dialog"));
+    
+    _resetToast = new PaperToast.from($('#resetToast'))
+      ..duration = 3000;
+    
+    _messageDialog = new PaperDialog.from($("#messageDialog"));
+    _resetDialog = new PaperDialog.from($("#resetDialog"));
 
     //edit section
     PaperDrawerPanel topPanel = new PaperDrawerPanel.from($("paper-drawer-panel"));
@@ -167,16 +179,39 @@ class PlaygroundMobile {
       e.stopPropagation();
     });*/
 
-
+    exportButton = new PaperIconButton.from($('[icon="refresh"]'))
+      ..onTap.listen((_) {
+        _resetDialog.toggle();
+    });
+    
+    cancelButton = new PaperIconButton.from($('#cancelButton'))
+          ..onTap.listen((_) {
+            _resetDialog.toggle();
+    });
+    
+    affirmButton = new PaperIconButton.from($('#affirmButton'))
+          ..onTap.listen((_) {
+            _resetDialog.toggle();
+            _reset();
+    });
+    
     _output = new PolymerElement.from($("#console"));
     PaperToggleButton toggleConsoleButton = new PaperToggleButton.from($("paper-toggle-button"));
     toggleConsoleButton.onIronChange.listen((_) {
       _output.hidden(!toggleConsoleButton.checked);
     });
-
+  
     _clearOutput();
   }
 
+  void _reset() {
+    _router = new Router()
+      ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
+      ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
+      ..listen();
+    _resetToast.show();
+  }
+  
   void _showGist(String gistId, {bool run: false}) {
     gistLoader.loadGist(gistId).then((Gist gist) {
       _setGistDescription(gist.description);
@@ -294,7 +329,6 @@ class PlaygroundMobile {
 
   void _handleRerun() {
     ga.sendEvent('main', 'rerun');
-    rerunButton.disabled = true;
 
     _runProgress = new PaperProgress.from($("#run-progress"));
     _runProgress.indeterminate = true;
@@ -310,7 +344,6 @@ class PlaygroundMobile {
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
       _showError('Error compiling to JavaScript', '${e}');
     }).whenComplete(() {
-      rerunButton.disabled = false;
       _runProgress.hidden(true);
       _runProgress.indeterminate = false;
     });
