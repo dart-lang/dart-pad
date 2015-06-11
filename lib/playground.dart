@@ -538,7 +538,8 @@ class Playground implements GistContainer, GistController {
   /// Switch to the console or html results tab depending on whether the sample
   /// has html content or not.
   void _switchOutputTab(String html, String dart) {
-    if (html.trim().isEmpty || !dart.contains('dart:html')) {
+    if (html.trim().isEmpty && !dart.contains("'dart:html'")
+        && !dart.contains('"dart:html"')) {
       outputTabController.selectTab("console");
     } else {
       outputTabController.selectTab("result");
