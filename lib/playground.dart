@@ -105,6 +105,10 @@ class Playground implements GistContainer, GistController {
         if (val) {
           _gistStorage.clearStoredGist();
           editableGist.reset();
+          // Delay to give time for the model change event to propogate through
+          // to the editor component (which is where `_performAnalysis()` pulls
+          // the Dart source from).
+          Timer.run(() => _performAnalysis());
         }
       });
     });
