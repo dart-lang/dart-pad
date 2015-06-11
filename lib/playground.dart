@@ -545,7 +545,6 @@ class Playground implements GistContainer, GistController {
     }
   }
   
-  
   Future<String> _createSummary() {
     SourceRequest input = new SourceRequest()..source = _context.dartSource;
     return dartServices
