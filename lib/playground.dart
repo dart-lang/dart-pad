@@ -371,14 +371,14 @@ class Playground implements GistContainer, GistController {
       ..registerTab(new TabElement(querySelector('#resulttab'),
           name: "result", onSelect: () {
         ga.sendEvent('view', "result");
-        querySelector('#frame').style.display = "block";
-        querySelector('#output').style.display = "none";
+        querySelector('#frame').style.visibility = "visible";
+        querySelector('#output').style.visibility = "hidden";
       }))
       ..registerTab(new TabElement(querySelector('#consoletab'),
           name: "console", onSelect: () {
         ga.sendEvent('view', "console");
-        querySelector('#output').style.display = "block";
-        querySelector('#frame').style.display = "none";
+        querySelector('#output').style.visibility = "visible";
+        querySelector('#frame').style.visibility = "hidden";
       }));
 
     _context = new PlaygroundContext(editor);
@@ -502,7 +502,7 @@ class Playground implements GistContainer, GistController {
       ga.sendTiming('action-perf', "compilation-e2e",
           compilationTimer.elapsedMilliseconds);
 
-      _switchOutputTab(_context.htmlSource);
+      //_switchOutputTab(_context.htmlSource);
 
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
@@ -517,6 +517,7 @@ class Playground implements GistContainer, GistController {
     });
   }
 
+  /*
   /// Switch to the console or html results tab depending on whether the sample
   /// has html content or not.
   void _switchOutputTab(String html) {
@@ -526,7 +527,7 @@ class Playground implements GistContainer, GistController {
       outputTabController.selectTab("result");
     }
   }
-
+  */
   Future<String> _createSummary() {
     SourceRequest input = new SourceRequest()..source = _context.dartSource;
     return dartServices

@@ -194,10 +194,16 @@ a[selected]:hover {
   padding-right: 11px;
 }
 
+#output {
+  display: block;
+  position: absolute;
+}
+
 #frame {
   min-height: 50px;
-  display: none;
-  margin-top: 10px;
+  display: block;
+  margin-top: 5px;
+  position: aboslute;
 }
 
 iframe {
