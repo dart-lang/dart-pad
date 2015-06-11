@@ -28,12 +28,6 @@
     <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
     <link href="packages/dart_pad/editing/editor_codemirror.css" rel="stylesheet" media="screen">
-
-    <style>
-      #samples {
-        margin-left: 10px;
-      }
-    </style>
   </head>
 
   <body fullbleed layout vertical>
@@ -41,17 +35,18 @@
       <div class="header-title">DartPad</div>
       <div>
         <button type="button" id="newbutton" class="button">New Pad…</button>
+        <button type="button" id="resetbutton" class="button" disabled>Reset…</button>
       </div>
       <div class="header-gist-name" flex></div>
       <div>
         <button type="button" id="sharebutton" class="button">Share…</button>
       </div>
       <div>
-        <select id="samples" required="false" style="width: 80px;">
+        <select id="samples" required="false">
           <option value="0">Samples</option>
           <option disabled></option>
           <option value="b51ea7c04322042b582a">Bootstrap</option>
-          <option value="83caa2b65236f8ebd703">Clock</option>
+          <option value="0dfeb25a33be007e1d0f">Clock</option>
           <option value="74e990d984faad26dea0">Fibonacci</option>
           <option value="33706e19df021e52d98c">Hello World</option>
           <option value="9126d5d48ebabf5bf547">Hello World HTML</option>
@@ -86,7 +81,6 @@
         </div>
         <div id="editpanel" flex layout vertical>
         </div>
-        <div id="issues"></div>
       </div>
 
       <div class="splitter" vertical id="editor_split">
@@ -95,10 +89,11 @@
 
       <div class="view" flex two layout vertical>
         <div class="view" flex two layout vertical>
-          <div class="header" layout horizontal reverse wrap>
+          <div class="header" layout horizontal wrap>
+            <div flex></div>
             <div id="consolebusy" class="busylight"></div>
             <li><a id="consoletab" selected><span>Console</span></a></li>
-            <li><a id="resulttab"><span>HTML Output</span></a></li>
+            <li><a id="resulttab" last><span>HTML Output</span></a></li>
           </div>
           <div id="output" class="console" flex></div>
           <!-- TODO: We might want to embed the iframe into a div, and set -->
@@ -111,6 +106,7 @@
         </div>
         <div class="view" flex layout vertical>
           <div id="documentation" flex layout vertical></div>
+          <div id="issues"></div>
         </div>
         <div id="frame_overlay"></div>
       </div>

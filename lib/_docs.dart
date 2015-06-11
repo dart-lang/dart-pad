@@ -9,16 +9,33 @@ import 'dart:html';
 
 import 'core/event_bus.dart';
 
+import 'core/dependencies.dart';
+import 'core/modules.dart';
+import 'dart_pad.dart';
+import 'modules/dart_pad_module.dart';
+import 'modules/dartservices_module.dart';
+import 'services/dartservices.dart';
+import 'services/execution_iframe.dart';
+
 EventBus _bus = new EventBus();
+ModuleManager modules = new ModuleManager();
 
 // TODO: add an 'explore' button
 
+Future _initModules() {
+  modules.register(new DartPadModule());
+  modules.register(new DartServicesModule());
+  return modules.start();
+}
+
 void init() {
-  List<Element> elements = querySelectorAll('[executable]');
+  _initModules().then((_) {
+    List<Element> elements = querySelectorAll('[executable]');
 
-  /*List<DocSnippet> snippets =*/ elements.map((e) => new DocSnippet(e)).toList();
+    /*List<DocSnippet> snippets =*/ elements.map((e) => new DocSnippet(e)).toList();
 
-  print('Found ${elements.length} matching executable doc comments.');
+    print('Found ${elements.length} matching executable doc comments.');
+  });
 }
 
 //<div class="docexecutable">
@@ -111,18 +128,18 @@ class DocSnippet {
 
     _clearOutput();
 
-    // TODO: compile
+    deps[ExecutionService] = new ExecutionServiceIFrame(querySelector("iframe"));
+    executionService.onStdout.listen((m) => _appendOutput(m));
+    executionService.onStderr.listen((m) => _displayErrors(m));
 
-    // TODO: handle compile results
-
-    // TODO: start execution
-
-    // TODO: change button back
-    new Timer(new Duration(seconds: 3), () {
-      _enableButton(true);
-      _showOutput();
-      _appendOutput('foo\nbar\nbaz');
-    });
+    var input = new CompileRequest()..source = "void main(){${preElement.text}}";
+    dartServices.compile(input).then(
+            (CompileResponse response) {
+              executionService.execute(
+                  "", "", response.result);
+              _enableButton(true);
+              _showOutput();
+            });
   }
 
   void _enableButton(bool value) {
@@ -167,10 +184,10 @@ class DocSnippet {
     _output.text += str + '\n';
   }
 
-//  void _displayErrors(String str) {
-//    _output.text = str;
-//    _output.classes.toggle('errors', false);
-//  }
+  void _displayErrors(String str) {
+    _output.text = str;
+    _output.classes.toggle('errors', true);
+  }
 
   void _fireRunningEvent() {
     _bus.addEvent(new BusEvent('dart-run', {'snippet': this}));

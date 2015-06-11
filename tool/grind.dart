@@ -15,6 +15,8 @@ import 'package:yaml/yaml.dart' as yaml;
 final FilePath _buildDir = new FilePath('build');
 final FilePath _webDir = new FilePath('web');
 
+Map get _env => Platform.environment;
+
 main(List args) => grind(args);
 
 @Task()
@@ -69,8 +71,24 @@ build() {
       mobileFile.asFile.lengthSync());
 }
 
+@Task()
+coverage() {
+  if (!_env.containsKey('COVERAGE_TOKEN')) {
+    log("env var 'COVERAGE_TOKEN' not found");
+    return;
+  }
+
+  PubApp coveralls = new PubApp.global('dart_coveralls');
+  coveralls.run([
+    'report',
+    '--token', _env['COVERAGE_TOKEN'],
+    '--retry', '2',
+    '--exclude-test-files',
+    'test/all.dart']);
+}
+
 @DefaultTask()
-@Depends(analyze, testCli, build)
+@Depends(analyze, testCli, coverage, build)
 void buildbot() => null;
 
 @Task('Prepare the app for deployment')
@@ -131,7 +149,7 @@ deploy() {
       }
     }
 
-    log('\nexecute: `appcfg.py update build/web --oauth2`');
+    log('\nexecute: `appcfg.py update build/web`');
   });
 }
 

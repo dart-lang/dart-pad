@@ -34,6 +34,8 @@ class MutableGist implements PropertyOwner {
 
   String get html_url => _getProperty('html_url');
 
+  String get summary => _getProperty('summary');
+
   bool get public => _backingGist.public;
 
   MutableGistFile getGistFile(String name) {
@@ -67,6 +69,7 @@ class MutableGist implements PropertyOwner {
     set.add('id');
     set.add('description');
     set.add('html_url');
+    set.add('summary');
     set.addAll(_backingGist.files.map((f) => f.name));
     set.addAll(_localValues.keys);
     return set.toList();
@@ -74,13 +77,21 @@ class MutableGist implements PropertyOwner {
 
   Property property(String name) => new _MutableGistProperty(this, name);
 
-  Gist createGist() {
+  Gist createGist({String summary}) {
     Gist gist = new Gist(description: description, id: id, public: public);
     gist.html_url = html_url;
     for (MutableGistFile file in getFiles()) {
       gist.files.add(new GistFile(name: file.name, content: file.content));
     }
+    if (summary != null) gist.summary = summary;
     return gist;
+  }
+
+  void reset() {
+    bool wasDirty = dirty;
+    _localValues.clear();
+    if (wasDirty != dirty) _dirtyChangedController.add(dirty);
+    _changedController.add(null);
   }
 
   String _getProperty(String key) {

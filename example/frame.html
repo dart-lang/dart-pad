@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+  <head>
+  	<meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title></title>
+    <style>
+    </style>
+    <script>
+replaceJavaScript = function(value) {
+  // Remove the old node.
+  var node = document.getElementById('scriptId');
+  if (node && node.parentNode) {
+    node.parentNode.removeChild(node);
+  }
+
+  // Create a new node.
+  var s = document.createElement('script');
+  s.setAttribute('defer', 'true');
+  s.text = value;
+  document.head.appendChild(s);
+};
+
+messageHandler = function(e) {
+  // TODO: verify the domain is correct
+
+  var obj = e.data;
+  var command = obj.command;
+
+  var body = document.querySelector('body');
+
+  if (command == 'setCss') {
+    document.getElementById('styleId').innerHTML = obj.css;
+  } else if (command == 'setHtml') {
+    body.innerHTML = obj.html;
+  } else if (command == 'execute') {
+    // Replace all three.
+    body.innerHTML = obj.html;
+    document.getElementById('styleId').innerHTML = obj.css;
+    // TODO: We have a race condition here.
+    setTimeout(function() {
+      replaceJavaScript(obj.js);
+    }, 150);
+  }
+};
+
+window.addEventListener('message', messageHandler, false);
+
+parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
+    </script>
+
+    <style id="styleId"></style>
+
+  </head>
+  <div id="scriptId"></div>
+	<body>
+	</body>
+</html>

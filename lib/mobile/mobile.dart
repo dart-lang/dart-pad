@@ -569,7 +569,7 @@ class PlaygroundMobile {
 
   void _buildSamples(CoreMenu menu) {
     menu.add(new PaperItem(text: 'Bootstrap')..name('b51ea7c04322042b582a'));
-    menu.add(new PaperItem(text: 'Clock')..name('83caa2b65236f8ebd703'));
+    menu.add(new PaperItem(text: 'Clock')..name('0dfeb25a33be007e1d0f'));
     menu.add(new PaperItem(text: 'Fibonacci')..name('74e990d984faad26dea0'));
     menu.add(new PaperItem(text: 'Hello World')..name('33706e19df021e52d98c'));
     menu.add(new PaperItem(text: 'Hello World HTML')..name('9126d5d48ebabf5bf547'));

@@ -18,6 +18,10 @@
 	  .row {
 	    max-width: 700px;
 	  }
+
+    iframe {
+      display: none;
+    }
 	</style>
 </head>
 
@@ -72,11 +76,27 @@ DateTime moonLanding = DateTime.parse("1969-07-20");
 
 </div>
 </div>
+
 <footer>
 </footer>
 
+<iframe sandbox="allow-scripts" src="frame.html"></iframe>
+
 <script type="application/dart" src="docs.dart"></script>
 <script src="packages/browser/dart.js"></script>
+<script>
+  /* Patch to work around a polymer polyfill issue. */
 
+  // Patch window message listening.
+  window.addEventListener('message', function(event) {
+    var data = event.data;
+
+    if (data.sender == 'frame') {
+      if (window.dartMessageListener) {
+        window.dartMessageListener(data);
+      }
+    }
+  });
+</script>
 </body>
 </html>

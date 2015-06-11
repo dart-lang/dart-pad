@@ -54,6 +54,21 @@ header {
   min-width: 2em;
 }
 
+textarea {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+}
+
+.sharingSummaryText {
+  background-color: #333;
+  color: #c6c6c6;
+  height: 80px;
+  min-height: 80px;
+  resize: none;
+  border: 1px solid #555;
+  padding: 0.5em;
+}
+
 .header-gist-name.dirty::after {
   content: " •";
 }
@@ -63,13 +78,13 @@ header {
 }
 
 #sharebutton {
-  margin-left: 10px;
+  margin-left: 8px;
   margin-right: 10px;
 }
 
-/*#reloadbutton {
-  margin-right: 10px;
-}*/
+#resetbutton {
+  margin-left: 8px;
+}
 
 section {
   padding: 0 24px 24px 24px;
@@ -89,7 +104,7 @@ footer {
 .view {
   position: relative;
   margin: 0 0;
-  min-width: 75px;
+  min-width: 240px;
   min-height: 50px;
 }
 
@@ -141,11 +156,6 @@ a[selected]:hover {
   text-transform: uppercase;
 }
 
-[reverse].header a {
-  margin-left: 16px;
-  margin-right: 0;
-}
-
 .header {
   line-height: 24px;
   font-size: 12pt;
@@ -154,6 +164,10 @@ a[selected]:hover {
 .header.small {
   font-size: 11pt;
   line-height: 18px;
+}
+
+.header a[last] {
+  margin-right: 0;
 }
 
 #runbutton svg {
@@ -180,10 +194,16 @@ a[selected]:hover {
   padding-right: 11px;
 }
 
+#output {
+  display: block;
+  position: absolute;
+}
+
 #frame {
   min-height: 50px;
-  display: none;
-  margin-top: 10px;
+  display: block;
+  visibility: hidden;
+  margin-top: 5px;
 }
 
 iframe {
@@ -459,4 +479,8 @@ div.toggle {
   width: 16px;
   height: 14px;
   margin-bottom: -2px;
+}
+
+#samples {
+  width: 100px;
 }

@@ -505,3 +505,53 @@ class _ElementTextProperty implements Property {
   // TODO:
   Stream get onChanged => null;
 }
+
+class TabController {
+  StreamController<TabElement> _selectedTabController = new StreamController.broadcast();
+
+  List<TabElement> tabs;
+
+  TabController({this.tabs}) {
+    if (tabs == null) tabs = [];
+    tabs.forEach((tab) => registerTab(tab));
+
+    if (tabs.isNotEmpty && selectedTab == null) {
+      selectTab(tabs.first.name);
+    }
+  }
+
+  void registerTab(TabElement tab) {
+    tabs.add(tab);
+    tab.onClick.listen((_) => selectTab(tab.name));
+  }
+
+  TabElement get selectedTab => tabs.firstWhere((tab) => tab.hasAttr("selected"));
+
+  /// This method will throw if the tabName is not the name of a current tab.
+  void selectTab(String tabName) {
+    TabElement tab = tabs.firstWhere((t) => t.name == tabName);
+
+    for (TabElement t in tabs) {
+      t.toggleAttr('selected', t == tab);
+    }
+
+    tab.handleSelected();
+
+    _selectedTabController.add(tab);
+  }
+
+  Stream<TabElement> get onTabSelect => _selectedTabController.stream;
+}
+
+class TabElement extends DElement {
+  final String name;
+  final Function onSelect;
+
+  TabElement(Element element, {this.name, this.onSelect}) : super(element);
+
+  void handleSelected() {
+    if (onSelect != null) onSelect();
+  }
+
+  String toString() => name;
+}
