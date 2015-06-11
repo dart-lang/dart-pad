@@ -520,7 +520,7 @@ class Playground implements GistContainer, GistController {
       ga.sendTiming('action-perf', "compilation-e2e",
           compilationTimer.elapsedMilliseconds);
 
-      //_switchOutputTab(_context.htmlSource);
+      _switchOutputTab(_context.htmlSource, _context.dartSource);
 
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
@@ -535,17 +535,17 @@ class Playground implements GistContainer, GistController {
     });
   }
 
-  /*
   /// Switch to the console or html results tab depending on whether the sample
   /// has html content or not.
-  void _switchOutputTab(String html) {
-    if (html.trim().isEmpty) {
+  void _switchOutputTab(String html, String dart) {
+    if (html.trim().isEmpty && !dart.contains("'dart:html'")
+        && !dart.contains('"dart:html"')) {
       outputTabController.selectTab("console");
     } else {
       outputTabController.selectTab("result");
     }
   }
-  */
+  
   Future<String> _createSummary() {
     SourceRequest input = new SourceRequest()..source = _context.dartSource;
     return dartServices
@@ -619,14 +619,26 @@ class Playground implements GistContainer, GistController {
     _outputpanel.text = '';
   }
 
+  List<SpanElement> _bufferedOutput = [];
+  Duration _outputDuration = new Duration(milliseconds: 32);
+
   void _showOuput(String message, {bool error: false}) {
-    message = message + '\n';
-    SpanElement span = new SpanElement();
-    span.classes.add(error ? 'errorOutput' : 'normal');
-    span.text = message;
-    _outputpanel.children.add(span);
-    span.scrollIntoView(ScrollAlignment.BOTTOM);
     consoleBusyLight.flash();
+
+    SpanElement span = new SpanElement()..text = message + '\n';
+    span.classes.add(error ? 'errorOutput' : 'normal');
+
+    // Buffer the console output so that heavy writing to stdout does not starve
+    // the DOM thread.
+    _bufferedOutput.add(span);
+
+    if (_bufferedOutput.length == 1) {
+      new Timer(_outputDuration, () {
+        _outputpanel.children.addAll(_bufferedOutput);
+        _outputpanel.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
+        _bufferedOutput.clear();
+      });
+    }
   }
 
   void _handleSelectChanged(SelectElement select) {

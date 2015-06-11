@@ -298,7 +298,11 @@ class DBusyLight extends DElement {
     _reconcile();
   }
 
-  _reconcile() => element.classes.toggle('on', _count > 0);
+  void _reconcile() {
+    if (_count == 0 || _count == 1) {
+      element.classes.toggle('on', _count > 0);
+    }
+  }
 }
 
 // TODO: The label needs an extremely rich tooltip.
