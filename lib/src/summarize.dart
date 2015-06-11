@@ -26,8 +26,8 @@ class Summarizer {
   };
 
   static Map<String, String> codeKeyWords = {
-    'await': 'await',
     'async': 'async',
+    'await': 'await',
     'rpc': 'RESTful serverside app'
   };
 
