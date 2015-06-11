@@ -203,7 +203,6 @@ a[selected]:hover {
   min-height: 50px;
   display: block;
   margin-top: 5px;
-  position: absolute;
 }
 
 iframe {
