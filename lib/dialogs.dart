@@ -4,7 +4,6 @@
 
 library dartpad.dialogs;
 
-import 'dart:async';
 import 'dart:html';
 
 import 'core/keys.dart';
@@ -16,21 +15,15 @@ import 'src/util.dart';
 /**
  * Show an OK / Cancel dialog, and return the option that the user selected.
  */
-Future<bool> confirm(String title, String message,
-    {String okText: 'OK', String cancelText: 'Cancel'}) {
-  OkCancelDialog dialog = new OkCancelDialog(title, message,
-      okText: okText, cancelText: cancelText);
-  dialog.show();
-  return dialog.future;
-}
 
 class OkCancelDialog extends DDialog {
-  Completer<bool> _completer = new Completer();
 
-  OkCancelDialog(String title, String message,
+  OkCancelDialog(String title, String message, Function okAction,
       {String okText: 'OK', String cancelText: 'Cancel'})
       : super(title: title) {
-    content.add(new ParagraphElement()..text = message);
+    element.classes.toggle('sharing-dialog', true);
+    content.add(new ParagraphElement())
+        ..text = message;
 
     DButton cancelButton = buttonArea.add(new DButton.button(text: cancelText));
     buttonArea.add(new SpanElement()..attributes['flex'] = '');
@@ -39,18 +32,10 @@ class OkCancelDialog extends DDialog {
     DButton okButton =
         buttonArea.add(new DButton.button(text: okText, classes: 'default'));
     okButton.onClick.listen((_) {
-      _completer.complete(true);
+      okAction();
       hide();
     });
   }
-
-  void hide() {
-    if (!_completer.isCompleted) _completer.complete(false);
-
-    super.hide();
-  }
-
-  Future<bool> get future => _completer.future;
 }
 
 class AboutDialog extends DDialog {
