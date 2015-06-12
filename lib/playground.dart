@@ -91,23 +91,23 @@ class Playground implements GistContainer, GistController {
     overlay = new DOverlay(querySelector('#frame_overlay'));
 
     sharingDialog = new SharingDialog(this, this);
-
-    new NewPadAction(querySelector('#newbutton'), this);
+    
+    DButton newButton = new DButton(querySelector('#newbutton'));
+    OkCancelDialog newDialog = new OkCancelDialog(
+      'Create New Pad', 'Discard changes to the current pad?', 
+        this.createNewGist, okText: 'Discard');
+    newButton.onClick.listen((_) {
+      newDialog.show();
+    });
 
     DButton resetButton = new DButton(querySelector('#resetbutton'));
+    OkCancelDialog resetDialog = new OkCancelDialog('Reset Pad', 
+      'Discard changes to the current pad?', _resetGists, okText: 'Discard', 
+        cancelText: 'Cancel');
     resetButton.onClick.listen((_) {
-      confirm('Reset Pad', 'Discard changes to the current pad?',
-          okText: 'Discard', cancelText: 'Cancel').then((bool val) {
-        if (val) {
-          _gistStorage.clearStoredGist();
-          editableGist.reset();
-          // Delay to give time for the model change event to propogate through
-          // to the editor component (which is where `_performAnalysis()` pulls
-          // the Dart source from).
-          Timer.run(() => _performAnalysis());
-        }
-      });
+      resetDialog.show();
     });
+    
     editableGist.onDirtyChanged.listen((val) {
       resetButton.disabled = !val;
     });
@@ -170,6 +170,14 @@ class Playground implements GistContainer, GistController {
     });
   }
 
+  void _resetGists() {
+    _gistStorage.clearStoredGist();
+    editableGist.reset();
+    // Delay to give time for the model change event to propogate through
+    // to the editor component (which is where `_performAnalysis()` pulls
+    // the Dart source from).
+    Timer.run(() => _performAnalysis());
+  }
   void showHome(RouteEnterEvent event) {
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
