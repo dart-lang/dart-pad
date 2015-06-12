@@ -32,6 +32,15 @@
           rel="stylesheet" media="screen">
   </head>
   <style>
+  .largeWidth {
+    width:90%;
+   }
+  .maxWidth {
+    width:100%
+   }
+  .maxHeight {
+    height: 100%;
+   }
   .tabs {
     background: #485D67;
    }
@@ -57,7 +66,8 @@
    }
    #frameContainer {
      position: absolute;
-     padding:0px 10px 0px 10px;
+     margin:10px;
+     height: 100%
    }
    #documentation {
      position:absolute;
@@ -139,11 +149,13 @@
               <paper-progress id="edit-progress"  class="bottom fit" hidden
                               style="top: inherit"></paper-progress>
             </div>
-            <div>
-              <div id="frameContainer" class="flex-2 layout vertical">
+            <div class ="flex layout vertical">
+              <div id="frameContainer" class="flex-2 layout vertical largeWidth">
                 <div><h2>HTML Output</h2></div>
-                <iframe class="flex" id="frame" sandbox="allow-scripts" src="frame.html">
-                </iframe>
+                <div class = "flex maxHeight">
+                  <iframe class="flex maxHeight maxWidth" id="frame" sandbox="allow-scripts" src="frame.html">
+                  </iframe>
+                </div>
               </div>
               <div id="documentation"></div>
               </div>
