@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
 import '../dart_pad.dart';
+import '../documentation.dart';
 import '../context.dart';
 import '../core/dependencies.dart';
 import '../core/modules.dart';
@@ -62,7 +63,11 @@ class PlaygroundMobile {
   PolymerElement _output;
   PaperProgress _editProgress;
   PaperProgress _runProgress;
-
+  
+  DivElement _docPanel; 
+  DivElement _outputPanel;
+  
+  DocHandler docHandler;
   String _gistId;
   
   Future createNewGist() {
@@ -115,7 +120,7 @@ class PlaygroundMobile {
   void _createUi() {
     _messageToast = new PaperToast();
     document.body.children.add(_messageToast.element);
-
+    
     _errorsToast = new PaperToast.from($('#errorToast'))
       ..duration = 100000;
     
@@ -125,6 +130,9 @@ class PlaygroundMobile {
     _messageDialog = new PaperDialog.from($("#messageDialog"));
     _resetDialog = new PaperDialog.from($("#resetDialog"));
 
+    _docPanel = querySelector('#documentation');
+    _outputPanel = querySelector('#frameContainer');
+    
     //edit section
     PaperDrawerPanel topPanel = new PaperDrawerPanel.from($("paper-drawer-panel"));
 
@@ -196,9 +204,12 @@ class PlaygroundMobile {
     });
     
     _output = new PolymerElement.from($("#console"));
+    
+    
     PaperToggleButton toggleConsoleButton = new PaperToggleButton.from($("paper-toggle-button"));
     toggleConsoleButton.onIronChange.listen((_) {
-      _output.hidden(!toggleConsoleButton.checked);
+      _docPanel.style.display = toggleConsoleButton.checked ? 'none' : 'block';
+      _outputPanel.style.display = !toggleConsoleButton.checked ? 'none' : 'block';
     });
   
     _clearOutput();
@@ -271,9 +282,29 @@ class PlaygroundMobile {
     // keys.bind(['ctrl-enter'], _handleRun);
     // keys.bind(['f1'], _handleHelp);
 
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDoc(_docPanel);
+      }
+    });
+    
+    // Listen for changes that would effect the documentation panel.
+     editor.onMouseDown.listen((e) {
+       // Delay to give codemirror time to process the mouse event.
+       Timer.run(() {
+         if (!_context.cursorPositionIsWhitespace()) {
+           docHandler.generateDoc(_docPanel);
+         }
+       });
+     });
+    
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
 
+
+    context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
+    
     _context.onHtmlReconcile.listen((_) {
       executionService.replaceHtml(_context.htmlSource);
     });
@@ -285,6 +316,8 @@ class PlaygroundMobile {
     _context.onDartDirty.listen((_) => dartBusyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
+    docHandler = new DocHandler(editor, _context);
+    
     _finishedInit();
   }
 
@@ -596,6 +629,15 @@ class PlaygroundContext extends Context {
         controller.add(null);
       });
     });
+  }
+  
+  bool cursorPositionIsWhitespace() {
+    Document document = editor.document;
+    String str = document.value;
+    int index = document.indexFromPos(document.cursor);
+    if (index < 0 || index >= str.length) return false;
+    String char = str[index];
+    return char != char.trim();
   }
 }
 

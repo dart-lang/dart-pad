@@ -55,6 +55,18 @@
      margin: 8px 0px 8px 8px;
      border-right: solid #818181;
    }
+   #frameContainer {
+     position: absolute;
+     padding:0px 10px 0px 10px;
+   }
+   #documentation {
+     position:absolute;
+     padding:0px 10px 0px 10px;
+     display:none;
+   }
+   paper-toggle-button {
+     padding-top: 10px;
+   }
   </style>
   <body class="fullbleed vertical layout" unresolved>
     <div class="splash"></div>
@@ -110,7 +122,7 @@
             <!--<paper-fab icon="arrow-back" class="back-button" mini></paper-fab>--.
             <span title class="sample-titles flex"></span>-->
             <span class = "flex"></span>
-            <paper-toggle-button checked></paper-toggle-button>
+            <!--<paper-toggle-button checked></paper-toggle-button>-->
             <!--<paper-icon-button icon="refresh"></paper-icon-button>-->
             <paper-progress id="run-progress" class="bottom fit" hidden
                             style="top: inherit"></paper-progress>
@@ -118,19 +130,24 @@
                  id="more-button"></paper-icon-button>
           </paper-toolbar>
           <div class="fit layout vertical">
-            <div class>
+            <div>
               <paper-tabs class="tabs" selected="0" style = "position:relative" class="bottom fit vertical" style="top: inherit">
                   <span class="flex"></span>
+                  <paper-toggle-button checked></paper-toggle-button>
                   <paper-icon-button icon="refresh"></paper-icon-button>
               </paper-tabs>
               <paper-progress id="edit-progress"  class="bottom fit" hidden
                               style="top: inherit"></paper-progress>
             </div>
-            <div id="frameContainer" class="flex-2 layout vertical">
-              <iframe class="flex" id="frame" sandbox="allow-scripts" src="frame.html">
-              </iframe>
+            <div>
+              <div id="frameContainer" class="flex-2 layout vertical">
+                <div><h2>HTML Output</h2></div>
+                <iframe class="flex" id="frame" sandbox="allow-scripts" src="frame.html">
+                </iframe>
+              </div>
+              <div id="documentation"></div>
+              </div>
             </div>
-          </div>
           <paper-toast id="errorToast" text=""></paper-toast>
         </paper-header-panel>
       </section>
