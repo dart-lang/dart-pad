@@ -64,6 +64,7 @@ class Playground implements GistContainer, GistController {
   GistStorage _gistStorage = new GistStorage();
   DContentEditable titleEditable;
 
+  TabController sourceTabController;
   TabController outputTabController;
   SharingDialog sharingDialog;
   KeysDialog settings;
@@ -76,16 +77,12 @@ class Playground implements GistContainer, GistController {
   ModuleManager modules = new ModuleManager();
 
   Playground() {
-    TabController controller = new TabController();
+    sourceTabController = new TabController();
     for (String name in ['dart', 'html', 'css']) {
-      controller.registerTab(new TabElement(querySelector('#${name}tab'),
+      sourceTabController.registerTab(new TabElement(querySelector('#${name}tab'),
           name: name, onSelect: () {
         Element issuesElement = querySelector('#issues');
-        if (name != "dart") {
-          issuesElement.style.display = "none";
-        } else {
-          issuesElement.style.display = "block";
-        }
+        issuesElement.style.display = name == 'dart' ? 'block' : 'none';
         ga.sendEvent('edit', name);
         _context.switchTo(name);
       }));
@@ -194,6 +191,9 @@ class Playground implements GistContainer, GistController {
     }
 
     _clearOutput();
+    // We delay this because of the latency in populating the editors from the
+    // gist data.
+    Timer.run(_autoSwitchSourceTab);
 
     // Analyze and run it.
     Timer.run(() {
@@ -283,6 +283,9 @@ class Playground implements GistContainer, GistController {
       }
 
       _clearOutput();
+      // We delay this because of the latency in populating the editors from the
+      // gist data.
+      Timer.run(_autoSwitchSourceTab);
 
       // Analyze and run it.
       Timer.run(() {
@@ -520,7 +523,7 @@ class Playground implements GistContainer, GistController {
       ga.sendTiming('action-perf', "compilation-e2e",
           compilationTimer.elapsedMilliseconds);
 
-      _switchOutputTab(_context.htmlSource, _context.dartSource);
+      _autoSwitchOutputTab();
 
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
@@ -535,17 +538,31 @@ class Playground implements GistContainer, GistController {
     });
   }
 
-  /// Switch to the console or html results tab depending on whether the sample
-  /// has html content or not.
-  void _switchOutputTab(String html, String dart) {
-    if (html.trim().isEmpty && !dart.contains("'dart:html'")
-        && !dart.contains('"dart:html"')) {
-      outputTabController.selectTab("console");
-    } else {
-      outputTabController.selectTab("result");
+  /// Switch to the Dart / Html / Css tab depending on the sample type.
+  void _autoSwitchSourceTab() {
+    String htmlSrc = _context.htmlSource.trim();
+    String dartSrc = _context.dartSource.trim();
+
+    if (htmlSrc.isEmpty && dartSrc.isNotEmpty) {
+      sourceTabController.selectTab('dart');
     }
   }
-  
+
+  /// Switch to the console or html results tab depending on whether the sample
+  /// has html content or not.
+  void _autoSwitchOutputTab() {
+    String htmlSrc = _context.htmlSource.trim();
+    String dartSrc = _context.dartSource.trim();
+
+    if (htmlSrc.isNotEmpty) {
+      outputTabController.selectTab('result');
+    } else if (dartSrc.contains("'dart:html'") || dartSrc.contains('"dart:html"')) {
+      outputTabController.selectTab('result');
+    } else {
+      outputTabController.selectTab('console');
+    }
+  }
+
   Future<String> _createSummary() {
     SourceRequest input = new SourceRequest()..source = _context.dartSource;
     return dartServices
