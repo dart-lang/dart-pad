@@ -18,7 +18,7 @@ import 'src/util.dart';
 
 class OkCancelDialog extends DDialog {
 
-  OkCancelDialog(String title, String message, Function action,
+  OkCancelDialog(String title, String message, Function okAction,
       {String okText: 'OK', String cancelText: 'Cancel'})
       : super(title: title) {
     element.classes.toggle('sharing-dialog', true);
@@ -32,7 +32,7 @@ class OkCancelDialog extends DDialog {
     DButton okButton =
         buttonArea.add(new DButton.button(text: okText, classes: 'default'));
     okButton.onClick.listen((_) {
-      action();
+      okAction();
       hide();
     });
   }
