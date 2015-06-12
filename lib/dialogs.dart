@@ -4,7 +4,6 @@
 
 library dartpad.dialogs;
 
-import 'dart:async';
 import 'dart:html';
 
 import 'core/keys.dart';
