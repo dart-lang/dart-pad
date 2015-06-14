@@ -5,7 +5,6 @@
 /// These tests serve to determine the functionality of the summarization tool.
 library services.summarize_test;
 
-import 'package:services/src/api_classes.dart';
 import 'package:services/src/summarize.dart';
 import 'package:unittest/unittest.dart';
 
