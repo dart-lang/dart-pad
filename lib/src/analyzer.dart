@@ -123,6 +123,7 @@ class Analyzer {
       sourcesList.forEach((s) => changeSet.removedSource(s));
       _resolver.clear();
       _context.applyChanges(changeSet);
+      _context.performAnalysisTask();
 
       return new Future.value(new AnalysisResults(
           issues, packageImports.toList(), resolvedImports));
