@@ -17,6 +17,7 @@ import 'analyzer.dart';
 import 'common.dart';
 import 'compiler.dart';
 import 'pub.dart';
+import 'summarize.dart';
 import '../version.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
@@ -108,6 +109,15 @@ class CommonServer {
     return _analyzeMulti(request.sources);
   }
 
+  @ApiMethod(
+      method: 'POST',
+      path: 'summarize',
+      description: 'Summarize the given Dart source code and return any resulting '
+        'analysis errors or warnings.')
+  Future<AnalysisResults> summarize(SourcesRequest request) {
+    return _summarize(request.sources['dart'], request.sources['css'], request.sources['html']);
+  }
+  
   @ApiMethod(method: 'GET', path: 'analyze')
   Future<AnalysisResults> analyzeGet({String source}) {
     return _analyze(source);
@@ -247,6 +257,20 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
     return _analyzeMulti({"main.dart" : source});
+  }
+  
+  Future<AnalysisResults> _summarize(String dart, String html, String css) async {
+    if (dart == null || html == null || css == null) {
+      throw new BadRequestError('Missing core source parameter.');
+    }
+    return _analyzeMulti({"main.dart" : dart}).then((result) {
+      Summarizer summer = new Summarizer(
+          dart: dart,
+          html: html,
+          css: css,
+          analysis: result);
+      return summer.returnAsSimpleSummary();
+    });
   }
 
   Future<AnalysisResults> _analyzeMulti(Map<String, String> sources) async {
