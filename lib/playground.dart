@@ -32,7 +32,6 @@ import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
-import 'src/summarize.dart';
 import 'src/util.dart';
 
 Playground get playground => _playground;
@@ -571,6 +570,19 @@ class Playground implements GistContainer, GistController {
   }
 
   Future<String> _createSummary() {
+    SourcesRequest input = new SourcesRequest()
+      ..sources['dart'] = _context.dartSource
+      ..sources['css'] = _context.cssSource
+      ..sources['html'] = _context.htmlSource;
+    return dartServices
+        .summarize(input)
+        .timeout(shortServiceCallTimeout)
+        .catchError((e) {
+          _logger.severe(e);
+        });
+  }
+  
+  /*Future<String> _createSummary() {
     SourceRequest input = new SourceRequest()..source = _context.dartSource;
     return dartServices
         .analyze(input)
@@ -585,7 +597,7 @@ class Playground implements GistContainer, GistController {
     }).catchError((e) {
       _logger.severe(e);
     });
-  }
+  }*/
 
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
