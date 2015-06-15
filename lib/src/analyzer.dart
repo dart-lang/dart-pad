@@ -24,6 +24,8 @@ import 'pub.dart';
 
 Logger _logger = new Logger('analyzer');
 
+final Duration _MAX_ANALYSIS_DURATION = new Duration(seconds: 5);
+
 class MemoryResolver extends UriResolver {
   Map<String, Source> sources = {};
 
@@ -87,6 +89,7 @@ class Analyzer {
       ChangeSet changeSet = new ChangeSet();
       sourcesList.forEach((s) => changeSet.addedSource(s));
       _context.applyChanges(changeSet);
+      _ensureAnalysisDone(_context, _MAX_ANALYSIS_DURATION);
 
       List<AnalysisErrorInfo> errorInfos = [];
       sourcesList.forEach((s) {
@@ -123,7 +126,7 @@ class Analyzer {
       sourcesList.forEach((s) => changeSet.removedSource(s));
       _resolver.clear();
       _context.applyChanges(changeSet);
-      _context.performAnalysisTask();
+      _ensureAnalysisDone(_context, _MAX_ANALYSIS_DURATION);
 
       return new Future.value(new AnalysisResults(
           issues, packageImports.toList(), resolvedImports));
@@ -132,6 +135,25 @@ class Analyzer {
       return new Future.error(e, st);
     }
   }
+
+  /// Ensure that the Analysis engine completes all remaining work. If a
+  /// timeout is supplied, try to throw an exception if the time is
+  /// exceeded. This may not happen if a single call to performAnalysisTask
+  /// takes a long time.
+  void _ensureAnalysisDone(AnalysisContext context, [Duration timeout]) {
+    Stopwatch sw = new Stopwatch()..start();
+
+    AnalysisResult result = context.performAnalysisTask();
+    while (result.hasMoreWork) {
+      if (timeout != null && sw.elapsed > timeout) {
+        throw new TimeoutException(
+            "_ensureAnalysisDone exceeeded allowed time");
+      }
+      result = context.performAnalysisTask();
+    }
+  }
+
+
 
   Future<Map<String, String>> dartdoc(String source, int offset) {
     try {
