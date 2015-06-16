@@ -1,0 +1,266 @@
+<!-- Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+
+<link rel="import" href="imports.html"/>
+<dom-module id="selection-toolbar">
+  <style>
+  .tabs {
+    background: #485D67;
+    top: inherit;
+    position: relative;
+  }
+  </style>
+  <template>
+    <paper-tabs class ="tabs" selected="0" class="bottom fit vertical" >
+        <paper-tab name="dart">Dart</paper-tab>
+        <paper-tab name="html">HTML</paper-tab>
+        <paper-tab name="css">CSS</paper-tab>
+      </paper-tabs>
+    <paper-progress id="edit-progress"  class="bottom fit" hidden
+        style="top: inherit"></paper-progress>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'selection-toolbar'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="output-toolbar">
+  <style>
+  .tabs {
+    background: #485D67;
+    top: inherit;
+    position: relative;
+  }
+  </style>
+  <template>
+    <div>
+      <paper-tabs class="tabs" selected="0" style = "position:relative" class="bottom fit vertical" style="top: inherit">
+          <span class="flex"></span>
+          <paper-toggle-button checked></paper-toggle-button>
+          <paper-icon-button id = "refresh" icon="refresh"></paper-icon-button>
+          <paper-icon-button id = "launch" icon="launch"></paper-icon-button>
+      </paper-tabs>
+      <paper-progress id="edit-progress"  class="bottom fit" hidden
+                      style="top: inherit"></paper-progress>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'output-toolbar'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="documentation-box">
+  <style>
+  #documentation {
+     position:absolute;
+     padding:0px 10px 0px 10px;
+     display:none;
+   }
+  </style>
+  <template>
+    <div id="documentation"></div>
+    <paper-progress id="edit-progress"  class="bottom fit" hidden
+        style="top: inherit"></paper-progress>
+  </template>
+  <script>
+    Polymer({
+      is: 'documentation-box'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="reset-dialog">
+  <style>
+   #resetDialog {
+    min-height: 90px;
+   }
+  </style>
+  <template>
+    <paper-dialog id="resetDialog" heading="Reset"
+                  transition="paper-dialog-transition-bottom">
+      <p>This will reset all changes. Are you sure?</p>
+      <paper-button id = "cancelButton" dismissive>Cancel</paper-button>
+      <span class="flex"></span>
+      <paper-button id = "affirmButton" affirmative default>OK</paper-button>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: 'reset-dialog'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="export-dialog">
+  <style>
+   #resetDialog {
+    min-height: 90px;
+   }
+  </style>
+  <template>
+    <paper-dialog id="exportDialog" heading="Reset"
+                  transition="paper-dialog-transition-bottom">
+      <p>This will export your project and open a new dartpad page. Are you sure?</p>
+      <paper-button id = "cancelExportButton" dismissive>Cancel</paper-button>
+      <span class="flex"></span>
+      <paper-button id = "affirmExportButton" affirmative default>OK</paper-button>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: 'export-dialog'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="message-dialog">
+  <style></style>
+  <template>
+    <paper-dialog id="messageDialog">
+      <h2></h2>
+      <p></p>
+      <div class="buttons">
+        <paper-button raised dialog-dismiss>Close</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script>
+    Polymer({
+      is: 'message-dialog'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="html-output">
+  <style>
+   #frameContainer {
+     height: 100%
+   }
+  </style>
+  <template>
+    <div id="frameContainer" class="layout vertical">
+      <div class = "flex maxHeight">
+        <iframe class="flex maxHeight maxWidth" id="frame" sandbox="allow-scripts" src="frame.html">
+        </iframe>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'html-output'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="error-toast">
+  <style>
+   :host{
+    height:0px;
+    widht:0px;
+    position:relative;
+   }
+  </style>
+  <template>
+    <div id="larger">
+      <paper-toast id="errorToast" text=""></paper-toast>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'error-toast'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="dart-box">
+  <style>
+  :host {
+    min-height: 50px;
+  }
+  #editpanel {
+    position: relative;
+    margin: 8px;
+  }
+  #run-button {
+    display:block;
+    float:right;
+    margin: 2px;
+  }
+  </style>
+  <template>
+    <div id="editpanel" class="editor"> Dart
+      <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'dart-box',
+      properties: {
+        dart: String
+      }
+    });
+  </script>
+</dom-module>
+
+<dom-module id="horizontal-splitter">
+  <style>
+  :host {
+  min-height: 5px;
+  box-shadow:rgba(255, 255, 255, 0.07) 0 1px 0;
+  border-bottom:1px solid #121212;
+  }
+  </style>
+  <template>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'horizontal-splitter'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="vertical-splitter">
+  <style>
+  :host {
+  min-height: 5px;
+  min-width:1px;
+  box-shadow:rgba(255, 255, 255, 0.07) 1px 1px 0;
+  border-left:1px solid #121212;
+  }
+  </style>
+  <template>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'vertical-splitter'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="console-item">
+  <style>
+  :host {
+  margin: 8px;
+  min-height: 30px;
+  }
+  </style>
+  <template>
+    <div id="console">Console</div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'console-item'
+    });
+  </script>
+</dom-module>

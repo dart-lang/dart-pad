@@ -277,11 +277,6 @@ class PlaygroundMobile {
     // TODO: Move to using the defaultFilters().
     deps[GistLoader] = new GistLoader();
 
-    // QUESTION: Do we need these bindings for mobile ?
-    // keys.bind(['ctrl-s'], _handleSave);
-    // keys.bind(['ctrl-enter'], _handleRun);
-    // keys.bind(['f1'], _handleHelp);
-
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
           DocHandler.cursorKeys.contains(e.keyCode)) {
@@ -324,11 +319,6 @@ class PlaygroundMobile {
   _finishedInit() {
     Timer.run(() {
       editor.resize();
-
-      // Clear the splash.
-      Element splash = querySelector('div.splash');
-      splash.onTransitionEnd.listen((_) => splash.parent.children.remove(splash));
-      splash.classes.toggle('hide', true);
     });
 
     _router = new Router()
