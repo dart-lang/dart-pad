@@ -8,7 +8,5 @@ import 'package:dart_pad/polymer/polymer.dart';
 void main() {
   Polymer.whenReady().then((_) {
     mobile.init();
-
-    Polymer.checkForUnresolvedElements(logToConsole: true);
   });
 }

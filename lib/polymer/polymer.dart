@@ -9,10 +9,11 @@ import 'dart:html';
 import 'dart:js';
 
 /**
- * TODO: doc
+ * Access to basic polymer functionality.
  */
 class Polymer {
-  static JsObject _polymer = context['Polymer'];
+  //static JsObject _polymer = context['Polymer'];
+  static JsObject _htmlImports = context['HTMLImports'];
 
   /**
    * Return a `Future` that completes when Polymer element registration is
@@ -20,36 +21,36 @@ class Polymer {
    */
   static Future whenReady() {
     Completer completer = new Completer();
-    _polymer.callMethod('whenReady', [completer.complete]);
+    _htmlImports.callMethod('whenReady', [completer.complete]);
     return completer.future;
   }
 
-  /**
-   * The `waitingFor` method returns a list of `<polymer-element>` tags that
-   * don't have a matching Polymer call. The `waitingFor` method does not report
-   * elements that are missing HTML imports, or misspelled tags. You can use
-   * this method to help diagnose page load stalls.
-   */
-  static List<Element> waitingFor() => _polymer.callMethod('waitingFor');
+//  /**
+//   * The `waitingFor` method returns a list of `<polymer-element>` tags that
+//   * don't have a matching Polymer call. The `waitingFor` method does not report
+//   * elements that are missing HTML imports, or misspelled tags. You can use
+//   * this method to help diagnose page load stalls.
+//   */
+//  static List<Element> waitingFor() => _polymer.callMethod('waitingFor');
 
-  /**
-   * `Polymer.forceReady` causes Polymer to stop waiting and immediately
-   * register any elements that are ready to register.
-   */
-  static void forceReady() => _polymer.callMethod('forceReady');
-
-  /**
-   * The `Polymer.import` method can be used to dynamically import one or more
-   * HTML files. [urls] is a list of HTML import URLs. Loading is asynchronous;
-   * the `Future` will complete when all imports have loaded and any custom
-   * elements defined in the imports have been upgraded.
-   */
-  static Future import(List<String> urls) {
-    Completer completer = new Completer();
-    _polymer.callMethod('import',
-        [new JsObject.jsify(urls), completer.complete]);
-    return completer.future;
-  }
+//  /**
+//   * `Polymer.forceReady` causes Polymer to stop waiting and immediately
+//   * register any elements that are ready to register.
+//   */
+//  static void forceReady() => _polymer.callMethod('forceReady');
+//
+//  /**
+//   * The `Polymer.import` method can be used to dynamically import one or more
+//   * HTML files. [urls] is a list of HTML import URLs. Loading is asynchronous;
+//   * the `Future` will complete when all imports have loaded and any custom
+//   * elements defined in the imports have been upgraded.
+//   */
+//  static Future import(List<String> urls) {
+//    Completer completer = new Completer();
+//    _polymer.callMethod('import',
+//        [new JsObject.jsify(urls), completer.complete]);
+//    return completer.future;
+//  }
 
   /**
    * Check for and return any elements that have not been upgraded. This is

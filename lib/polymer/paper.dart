@@ -6,17 +6,59 @@ library paper;
 
 import 'dart:async';
 import 'dart:html';
+import 'dart:js';
 
-import 'core.dart';
+import 'iron.dart';
+
+
+class PaperDrawerPanel extends PolymerElement {
+  PaperDrawerPanel() : super('paper-drawer-panel');
+  PaperDrawerPanel.from(HtmlElement element) : super.from(element);
+
+  void forceNarrow() => toggleAttribute('forceNarrow');
+
+  void makeDrawer(PolymerElement element) =>
+  element.toggleAttribute('drawer', true);
+
+  void makeMain(PolymerElement element) => element.toggleAttribute('main', true);
+
+  /// Toggles the panel open and closed.
+  void togglePanel() => call('togglePanel');
+
+  /// Opens the drawer.
+  void openDrawer() => call('openDrawer');
+
+  /// Closes the drawer.
+  void closeDrawer() => call('closeDrawer');
+}
+
+class PaperHeaderPanel extends PolymerElement {
+  PaperHeaderPanel() : super('paper-header-panel');
+  PaperHeaderPanel.from(HtmlElement element) : super.from(element);
+}
+
+class PaperMenu extends IronSelectableBehavior {
+  PaperMenu() : super('paper-menu');
+  PaperMenu.from(HtmlElement element) : super.from(element);
+
+  void select(String value) {
+    call("select", [value]);
+  }
+
+  String get selectedName {
+    int index = new JsObject.fromBrowserObject(element)["selected"];
+    return new PaperItem.from(selectorAll("paper-item")[index]).name;
+  }
+}
 
 class PaperActionDialog extends PaperDialogBase {
   PaperActionDialog() : super('paper-action-dialog');
   PaperActionDialog.from(HtmlElement element) : super.from(element);
 
-  void makeAffirmative(CoreElement element) =>
+  void makeAffirmative(PolymerElement element) =>
       element.toggleAttribute('affirmative', true);
 
-  void makeDismissive(CoreElement element) =>
+  void makeDismissive(PolymerElement element) =>
       element.toggleAttribute('dismissive', true);
 }
 
@@ -28,7 +70,7 @@ class PaperButton extends PaperButtonBase {
   set raised(bool value) => toggleAttribute('raised', value);
 }
 
-abstract class PaperButtonBase extends CoreElement {
+abstract class PaperButtonBase extends PolymerElement {
   PaperButtonBase(String tag, {String text}) : super(tag, text: text);
   PaperButtonBase.from(HtmlElement element) : super.from(element);
 }
@@ -38,20 +80,12 @@ class PaperDialog extends PaperDialogBase {
   PaperDialog.from(HtmlElement element) : super.from(element);
 }
 
-class PaperDialogBase extends CoreOverlay {
+class PaperDialogBase extends IronOverlayBehavior {
   PaperDialogBase([String tag]) : super(tag == null ? 'paper-dialog-base' : tag);
   PaperDialogBase.from(HtmlElement element) : super.from(element);
 
   String get heading => attribute('heading');
   set heading(String value) => setAttribute('heading', value);
-}
-
-class PaperDropdown extends CoreDropdown {
-  PaperDropdown() : super('paper-dropdown') {
-    clazz('dropdown');
-    clazz('core-transition');
-  }
-  PaperDropdown.from(HtmlElement element) : super.from(element);
 }
 
 class PaperFab extends PaperButtonBase {
@@ -66,7 +100,7 @@ class PaperFab extends PaperButtonBase {
   set mini(bool value) => toggleAttribute('mini', value);
 }
 
-class PaperIconButton extends CoreElement {
+class PaperIconButton extends PolymerElement {
   PaperIconButton({String icon}) : super('paper-icon-button') {
     if (icon != null) this.icon = icon;
   }
@@ -82,16 +116,17 @@ class PaperItem extends PaperButtonBase {
 
   PaperItem.from(HtmlElement element) : super.from(element);
 
-  void name(String value) => setAttribute('name', value);
+  String get name => attribute("name");
+  set name(String value) => setAttribute('name', value);
 }
 
 // TODO: extends core-dropdown-base
-class PaperMenuButton extends CoreElement {
+class PaperMenuButton extends PolymerElement {
   PaperMenuButton() : super('paper-menu-button');
   PaperMenuButton.from(HtmlElement element) : super.from(element);
 }
 
-class PaperSpinner extends CoreElement {
+class PaperSpinner extends PolymerElement {
   PaperSpinner() : super('paper-spinner');
   PaperSpinner.from(HtmlElement element) : super.from(element);
 
@@ -99,20 +134,30 @@ class PaperSpinner extends CoreElement {
   set active(bool value) => toggleAttribute('active', value);
 }
 
-class PaperTabs extends CoreSelector {
+class PaperTabs extends IronSelectableBehavior {
   PaperTabs() : super('paper-tabs');
   PaperTabs.from(HtmlElement element) : super.from(element);
+
+  String get selectedName {
+    return new PaperTab.from(property("focusedItem")).name;
+  }
 }
 
-class PaperTab extends CoreElement {
+class PaperTab extends PolymerElement {
+  String name;
   PaperTab({String name, String text}) : super('paper-tab', text: text) {
-    if (name != null) setAttribute('name', name);
+    if (name != null) {
+      setAttribute('name', name);
+      this.name = name;
+    }
   }
 
-  PaperTab.from(HtmlElement element) : super.from(element);
+  PaperTab.from(HtmlElement element) : super.from(element) {
+    name = attribute("name");
+  }
 }
 
-class PaperToast extends CoreElement {
+class PaperToast extends PolymerElement {
   PaperToast({String text}) : super('paper-toast') {
     if (text != null) this.text = text;
   }
@@ -127,35 +172,20 @@ class PaperToast extends CoreElement {
   // TODO: set the JS property
   set duration(int value) => setAttribute('duration', '${value}');
 
-  /// Set opened to true to show the toast and to false to hide it.
-  bool get opened => hasAttribute('opened');
-  set opened(bool value) => toggleAttribute('opened', value);
-
-  /// If true, the toast can't be swiped.
-  bool get swipeDisabled => hasAttribute('swipeDisabled');
-  set swipeDisabled(bool value) => toggleAttribute('swipeDisabled', value);
-
-  /**
-   * By default, the toast will close automatically if the user taps outside it
-   * or presses the escape key. Disable this behavior by setting the
-   * autoCloseDisabled property to true.
-   */
-  bool get autoCloseDisabled => hasAttribute('autoCloseDisabled');
-  set autoCloseDisabled(bool value) => toggleAttribute('autoCloseDisabled', value);
+  /// True if the toast is currently visible.
+  bool get visible => hasAttribute('visible');
 
   /// Toggle the opened state of the toast.
   void toggle() => call('toggle');
 
-  /// Show the toast for the specified duration.
-  void show([Duration duration]) {
-    call('show', duration != null ? [duration.inMilliseconds] : null);
-  }
+  /// Show the toast.
+  void show() => call('show');
 
-  /// Dismiss the toast and hide it.
-  void dismiss() => call('dismiss');
+  /// Show the toast.
+  void hide() => call('hide');
 }
 
-class PaperToggleButton extends CoreElement {
+class PaperToggleButton extends PolymerElement {
   PaperToggleButton() : super('paper-toggle-button');
   PaperToggleButton.from(HtmlElement element) : super.from(element);
 
@@ -174,10 +204,10 @@ class PaperToggleButton extends CoreElement {
   /**
    * Fired when the checked state changes.
    */
-  Stream get onCoreChange => listen('core-change');
+  Stream get onIronChange => listen('iron-change');
 }
 
-class PaperProgress extends CoreElement {
+class PaperProgress extends PolymerElement {
   PaperProgress() : super('paper-progress');
   PaperProgress.from(HtmlElement element) : super.from(element);
 
