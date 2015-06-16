@@ -78,13 +78,13 @@ textarea {
 }
 
 #sharebutton {
-  margin-left: 10px;
+  margin-left: 8px;
   margin-right: 10px;
 }
 
-/*#reloadbutton {
-  margin-right: 10px;
-}*/
+#resetbutton {
+  margin-left: 8px;
+}
 
 section {
   padding: 0 24px 24px 24px;
@@ -156,11 +156,6 @@ a[selected]:hover {
   text-transform: uppercase;
 }
 
-[reverse].header a {
-  margin-left: 16px;
-  margin-right: 0;
-}
-
 .header {
   line-height: 24px;
   font-size: 12pt;
@@ -169,6 +164,10 @@ a[selected]:hover {
 .header.small {
   font-size: 11pt;
   line-height: 18px;
+}
+
+.header a[last] {
+  margin-right: 0;
 }
 
 #runbutton svg {
@@ -195,10 +194,20 @@ a[selected]:hover {
   padding-right: 11px;
 }
 
+#output {
+  display: block;
+  position: absolute;
+  top: 16px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
 #frame {
   min-height: 50px;
-  display: none;
-  margin-top: 10px;
+  display: block;
+  visibility: hidden;
+  margin-top: 5px;
 }
 
 iframe {

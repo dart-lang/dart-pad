@@ -11,7 +11,6 @@ import 'package:logging/logging.dart';
 import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
 
-import 'actions.dart';
 import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
@@ -52,7 +51,6 @@ class Playground implements GistContainer, GistController {
   IFrameElement get _frame => querySelector('#frame');
   bool get _isCompletionActive => editor.completionActive;
   DivElement get _docPanel => querySelector('#documentation');
-  bool _htmlIsEmpty = true;
 
   DButton runButton;
   DOverlay overlay;
@@ -65,6 +63,7 @@ class Playground implements GistContainer, GistController {
   GistStorage _gistStorage = new GistStorage();
   DContentEditable titleEditable;
 
+  TabController sourceTabController;
   TabController outputTabController;
   SharingDialog sharingDialog;
   KeysDialog settings;
@@ -77,16 +76,12 @@ class Playground implements GistContainer, GistController {
   ModuleManager modules = new ModuleManager();
 
   Playground() {
-    TabController controller = new TabController();
+    sourceTabController = new TabController();
     for (String name in ['dart', 'html', 'css']) {
-      controller.registerTab(new TabElement(querySelector('#${name}tab'),
+      sourceTabController.registerTab(new TabElement(querySelector('#${name}tab'),
           name: name, onSelect: () {
         Element issuesElement = querySelector('#issues');
-        if (name != "dart") {
-          issuesElement.style.display = "none";
-        } else {
-          issuesElement.style.display = "block";
-        }
+        issuesElement.style.display = name == 'dart' ? 'block' : 'none';
         ga.sendEvent('edit', name);
         _context.switchTo(name);
       }));
@@ -96,7 +91,25 @@ class Playground implements GistContainer, GistController {
 
     sharingDialog = new SharingDialog(this, this);
 
-    new NewPadAction(querySelector('#newbutton'), this);
+    DButton newButton = new DButton(querySelector('#newbutton'));
+    OkCancelDialog newDialog = new OkCancelDialog(
+      'Create New Pad', 'Discard changes to the current pad?',
+        this.createNewGist, okText: 'Discard');
+    newButton.onClick.listen((_) {
+      newDialog.show();
+    });
+
+    DButton resetButton = new DButton(querySelector('#resetbutton'));
+    OkCancelDialog resetDialog = new OkCancelDialog('Reset Pad',
+      'Discard changes to the current pad?', _resetGists, okText: 'Discard',
+        cancelText: 'Cancel');
+    resetButton.onClick.listen((_) {
+      resetDialog.show();
+    });
+
+    editableGist.onDirtyChanged.listen((val) {
+      resetButton.disabled = !val;
+    });
 
     DButton shareButton = new DButton(querySelector('#sharebutton'));
     shareButton.onClick.listen((e) => _createSummary()
@@ -156,6 +169,14 @@ class Playground implements GistContainer, GistController {
     });
   }
 
+  void _resetGists() {
+    _gistStorage.clearStoredGist();
+    editableGist.reset();
+    // Delay to give time for the model change event to propogate through
+    // to the editor component (which is where `_performAnalysis()` pulls
+    // the Dart source from).
+    Timer.run(() => _performAnalysis());
+  }
   void showHome(RouteEnterEvent event) {
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
@@ -177,6 +198,9 @@ class Playground implements GistContainer, GistController {
     }
 
     _clearOutput();
+    // We delay this because of the latency in populating the editors from the
+    // gist data.
+    Timer.run(_autoSwitchSourceTab);
 
     // Analyze and run it.
     Timer.run(() {
@@ -266,6 +290,9 @@ class Playground implements GistContainer, GistController {
       }
 
       _clearOutput();
+      // We delay this because of the latency in populating the editors from the
+      // gist data.
+      Timer.run(_autoSwitchSourceTab);
 
       // Analyze and run it.
       Timer.run(() {
@@ -372,14 +399,14 @@ class Playground implements GistContainer, GistController {
       ..registerTab(new TabElement(querySelector('#resulttab'),
           name: "result", onSelect: () {
         ga.sendEvent('view', "result");
-        querySelector('#frame').style.display = "block";
-        querySelector('#output').style.display = "none";
+        querySelector('#frame').style.visibility = "visible";
+        querySelector('#output').style.visibility = "hidden";
       }))
       ..registerTab(new TabElement(querySelector('#consoletab'),
           name: "console", onSelect: () {
         ga.sendEvent('view', "console");
-        querySelector('#output').style.display = "block";
-        querySelector('#frame').style.display = "none";
+        querySelector('#output').style.visibility = "visible";
+        querySelector('#frame').style.visibility = "hidden";
       }));
 
     _context = new PlaygroundContext(editor);
@@ -415,25 +442,18 @@ class Playground implements GistContainer, GistController {
     context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
 
     // Bind the editable files to the gist.
-    Property htmlFile =
-        new GistFileProperty(editableGist.getGistFile('index.html'))
-      ..onChanged
-          .listen((html) => _checkForEmptyHtml(html == null ? "" : html));
-    Property htmlDoc =
-        new EditorDocumentProperty(_context.htmlDocument, 'html');
+    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'));
+    Property htmlDoc = new EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
-    Property cssFile =
-        new GistFileProperty(editableGist.getGistFile('styles.css'));
+    Property cssFile = new GistFileProperty(editableGist.getGistFile('styles.css'));
     Property cssDoc = new EditorDocumentProperty(_context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
-    Property dartFile =
-        new GistFileProperty(editableGist.getGistFile('main.dart'));
-    Property dartDoc =
-        new EditorDocumentProperty(_context.dartDocument, 'dart');
+    Property dartFile = new GistFileProperty(editableGist.getGistFile('main.dart'));
+    Property dartDoc = new EditorDocumentProperty(_context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
@@ -493,16 +513,6 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  void _checkForEmptyHtml(String htmlSource) {
-    if (htmlSource.trim().isEmpty && !_htmlIsEmpty) {
-      _htmlIsEmpty = true;
-      outputTabController.selectTab("console");
-    } else if (htmlSource.trim().isNotEmpty && _htmlIsEmpty) {
-      _htmlIsEmpty = false;
-      outputTabController.selectTab("result");
-    }
-  }
-
   void _handleRun() {
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
@@ -519,6 +529,9 @@ class Playground implements GistContainer, GistController {
         .then((CompileResponse response) {
       ga.sendTiming('action-perf', "compilation-e2e",
           compilationTimer.elapsedMilliseconds);
+
+      _autoSwitchOutputTab();
+
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
@@ -530,6 +543,31 @@ class Playground implements GistContainer, GistController {
       runButton.disabled = false;
       overlay.visible = false;
     });
+  }
+
+  /// Switch to the Dart / Html / Css tab depending on the sample type.
+  void _autoSwitchSourceTab() {
+    String htmlSrc = _context.htmlSource.trim();
+    String dartSrc = _context.dartSource.trim();
+
+    if (htmlSrc.isEmpty && dartSrc.isNotEmpty) {
+      sourceTabController.selectTab('dart');
+    }
+  }
+
+  /// Switch to the console or html results tab depending on whether the sample
+  /// has html content or not.
+  void _autoSwitchOutputTab() {
+    String htmlSrc = _context.htmlSource.trim();
+    String dartSrc = _context.dartSource.trim();
+
+    if (htmlSrc.isNotEmpty) {
+      outputTabController.selectTab('result');
+    } else if (dartSrc.contains("'dart:html'") || dartSrc.contains('"dart:html"')) {
+      outputTabController.selectTab('result');
+    } else {
+      outputTabController.selectTab('console');
+    }
   }
 
   Future<String> _createSummary() {
@@ -605,14 +643,26 @@ class Playground implements GistContainer, GistController {
     _outputpanel.text = '';
   }
 
+  List<SpanElement> _bufferedOutput = [];
+  Duration _outputDuration = new Duration(milliseconds: 32);
+
   void _showOuput(String message, {bool error: false}) {
-    message = message + '\n';
-    SpanElement span = new SpanElement();
-    span.classes.add(error ? 'errorOutput' : 'normal');
-    span.text = message;
-    _outputpanel.children.add(span);
-    span.scrollIntoView(ScrollAlignment.BOTTOM);
     consoleBusyLight.flash();
+
+    SpanElement span = new SpanElement()..text = message + '\n';
+    span.classes.add(error ? 'errorOutput' : 'normal');
+
+    // Buffer the console output so that heavy writing to stdout does not starve
+    // the DOM thread.
+    _bufferedOutput.add(span);
+
+    if (_bufferedOutput.length == 1) {
+      new Timer(_outputDuration, () {
+        _outputpanel.children.addAll(_bufferedOutput);
+        _outputpanel.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
+        _bufferedOutput.clear();
+      });
+    }
   }
 
   void _handleSelectChanged(SelectElement select) {

@@ -206,7 +206,7 @@ button.close:hover {
 #issues.showing {
   margin-top: 8px;
   overflow-y: auto;
-  max-height: 68px;
+  max-height: 120px;
 }
 
 #issues .issue {
