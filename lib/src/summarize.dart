@@ -26,8 +26,8 @@ class Summarizer {
   };
 
   static Map<String, String> codeKeyWords = {
-    'await': 'await',
     'async': 'async',
+    'await': 'await',
     'rpc': 'RESTful serverside app'
   };
 
@@ -199,7 +199,11 @@ class Summarizer {
     if (source == 'packages') {
       englishList += ' from external packages. ';
     } else {
-      englishList += ' packages as well. ';
+      if (list.length == 1) {
+        englishList += ' package as well. ';
+      } else {
+        englishList += ' packages as well. ';
+      }
     }
 
     return englishList;
@@ -230,8 +234,8 @@ class Summarizer {
     return htmlCSS;
   }
 
-  bool get _hasHtml => html != null && html.isNotEmpty;
-  bool get _hasCSS => css != null && css.isNotEmpty;
+  bool get _hasHtml => html != null && html.trim().isNotEmpty;
+  bool get _hasCSS => css != null && css.trim().isNotEmpty;
 
   String returnAsSimpleSummary() {
     if (hasAnalysisResults) {

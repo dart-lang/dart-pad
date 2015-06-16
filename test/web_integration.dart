@@ -6,7 +6,7 @@ library dartpad.web_integration;
 
 import 'dart:io';
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
 
 import 'src/mserve.dart';
@@ -48,7 +48,7 @@ _setupTests(DriverFactory factory) async {
   };
 
   group('integration', () {
-    int count = 0;
+    // int count = 0;
     WebDriver driver;
 
     setUp(() async {
@@ -60,9 +60,10 @@ _setupTests(DriverFactory factory) async {
       print('closing driver ${factory}');
       await driver.quit();
 
-      // A hack.
-      count++;
-      if (count == testCases.length) await cleanup();
+      // // A hack.
+      // count++;
+      // if (count == testCases.length) await cleanup();
+      await cleanup();
     });
 
     var _defineTest = (String name, Function fn, {bool mobile: false}) {

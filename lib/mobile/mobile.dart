@@ -493,6 +493,23 @@ class PlaygroundMobile {
   }
 
   String currentGistId() => _gistId;
+  
+  void _buildSamples(CoreMenu menu) {
+    menu.add(new PaperItem(text: 'Bootstrap')..name('b51ea7c04322042b582a'));
+    menu.add(new PaperItem(text: 'Clock')..name('0dfeb25a33be007e1d0f'));
+    menu.add(new PaperItem(text: 'Fibonacci')..name('74e990d984faad26dea0'));
+    menu.add(new PaperItem(text: 'Hello World')..name('33706e19df021e52d98c'));
+    menu.add(new PaperItem(text: 'Hello World HTML')..name('9126d5d48ebabf5bf547'));
+    menu.add(new PaperItem(text: 'Solar')..name('72d83fe97bfc8e735607'));
+    menu.add(new PaperItem(text: 'Spirodraw')..name('9e42aabfcc15c81a0406'));
+    menu.add(new PaperItem(text: 'Sunflower')..name('9d2dd2ce17981ecacadd'));
+    menu.add(new PaperItem(text: 'WebSockets')..name('479ecba5a56fd706b648'));
+
+    menu.onCoreActivate.listen((e) {
+      _router.go('gist', {'gist': menu.selected});
+      menu.selected = '';
+    });
+  }
 }
 
 class PlaygroundContext extends Context {
