@@ -7,7 +7,9 @@ library dartpad.summarize_test;
 
 import 'package:dart_pad/services/dartservices.dart';
 import 'package:dart_pad/src/summarize.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+
+main() => defineTests();
 
 void defineTests() {
   group('Summarizer helpers', () {

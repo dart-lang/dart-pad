@@ -7,7 +7,9 @@ library dart_pad.event_bus_test;
 import 'dart:async';
 
 import 'package:dart_pad/core/event_bus.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+
+main() => defineTests();
 
 void defineTests() {
   group('event_bus', () {
