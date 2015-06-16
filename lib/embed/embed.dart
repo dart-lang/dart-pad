@@ -117,21 +117,44 @@ class PlaygroundMobile {
     _showGist(gistId, run: page == 'run');
   }
 
-  void _createUi() {
+  void registerMessageToast() {
     _messageToast = new PaperToast();
     document.body.children.add(_messageToast.element);
-    
+  }
+  
+  void registerErrorToast() {
     _errorsToast = new PaperToast.from($('#errorToast'))
       ..duration = 100000;
-    
-    _resetToast = new PaperToast.from($('#resetToast'))
+  }
+  void registerResetToast() {
+      _resetToast = new PaperToast.from($('#resetToast'))
       ..duration = 3000;
-    
+    }
+  void registerMessageDialog() {
     _messageDialog = new PaperDialog.from($("#messageDialog"));
+  }
+  void registerResetDialog() {
     _resetDialog = new PaperDialog.from($("#resetDialog"));
-
+  }
+  void registerDocPanel() {
     _docPanel = querySelector('#documentation');
+  }
+  void registerOutputPanel() {
     _outputPanel = querySelector('#frameContainer');
+  }
+  void registerPaperDrawer() {
+    _docPanel = querySelector('#documentation');
+  }
+  void _createUi() {
+    registerMessageToast();
+    registerErrorToast();
+    registerResetToast();
+    registerMessageDialog();
+    registerResetDialog();
+    registerDocPanel();
+    registerOutputPanel();
+    
+    
     
     //edit section
     PaperDrawerPanel topPanel = new PaperDrawerPanel.from($("paper-drawer-panel"));

@@ -17,7 +17,7 @@
     <script src="packages/dart_pad/bower/webcomponentsjs/webcomponents-lite.min.js"></script>
     <link rel="import" href="imports.html"/>
     <link rel="import" href="polymer/animated-dropdown.html">
-    <link rel="import" href="mobile_style.html"/>
+    <link rel="import" href="embed_style.html"/>
 
     <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
           rel='stylesheet' type='text/css'>
@@ -30,36 +30,9 @@
     <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
     <link href="packages/dart_pad/editing/editor_codemirror.css"
           rel="stylesheet" media="screen">
-    <link rel="import" href="mobileComponents.html">
-    <script type="application/dart" src="mobilerefresh.dart"></script>
+    <link rel="import" href="embed_components.html">
+    <!--<script type="application/dart" src="embed.dart"></script>-->
   </head>
-  <style>
-  .maxWidth {
-    width:100%
-   }
-  .maxHeight {
-    height: 100%;
-   }
-   paper-toolbar {
-    display: none;
-   }
-   #errorToast {
-     bottom: 2px;
-   }
-   paper-toggle-button {
-     padding-top: 10px;
-   }
-   #rightContainer {
-    float:right; 
-    height:100%;
-    position:relative;
-    }
-    #leftContainer {
-    float:left;
-    height:100%;
-    position:relative;
-    }
-  </style>
   <body class="fullbleed vertical layout" unresolved>
     <!--View 3
     <dart-box dart class = "flex-5"></dart-box>
@@ -69,7 +42,7 @@
     -->
     
     <!--View 2
-    <div style="height:100%" class="layout horizontal">
+    <div class="height-max layout horizontal">
       <div id="leftContainer" class = "vertical layout flex-6">
         <selection-toolbar class="layout vertical"></selection-toolbar>
         <dart-box dart class = "flex-5"></dart-box>
@@ -83,10 +56,11 @@
       </div>
       <paper-toast id="errorToast" text=""></paper-toast>
     </div>
+    <reset-dialog></reset-dialog>
     -->
     
     <!--View 1-->
-    <div style="height:100%" class="layout horizontal">
+    <div class="height-max layout horizontal">
       <div id="leftContainer" class = "vertical layout flex-6">
         <selection-toolbar class="layout vertical"></selection-toolbar>
         <dart-box dart class = "flex-5"></dart-box>
@@ -100,9 +74,11 @@
       </div>
       <paper-toast id="errorToast" text=""></paper-toast>
     </div>
+    <reset-dialog></reset-dialog>
+    
+    
     <script src="packages/codemirror/codemirror.js"></script>
     <script src="packages/browser/dart.js" async></script>
-    <!--<script type="application/dart" src="mobilecopy.dart"></script>-->
     <script async>
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
             (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

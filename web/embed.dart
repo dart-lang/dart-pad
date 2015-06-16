@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart_pad/mobile/mobilerefresh.dart' as mobile;
+import 'package:dart_pad/embed/embed.dart' as embed;
 import 'package:dart_pad/polymer/polymer.dart';
 
 void main() {
   Polymer.whenReady().then((_) {
-    mobile.init();
+    embed.init();
   });
 }
