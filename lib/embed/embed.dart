@@ -4,7 +4,7 @@
 
 library dart_pad.mobile_ui;
 
-import 'dart:async';
+/*import 'dart:async';
 import 'dart:html' hide Document;
 
 import 'package:logging/logging.dart';
@@ -35,13 +35,13 @@ PlaygroundMobile get playground => _playground;
 PlaygroundMobile _playground;
 Analytics ga = new Analytics();
 
-Logger _logger = new Logger('mobile');
+Logger _logger = new Logger('mobile');*/
 
 void init() {
-  _playground = new PlaygroundMobile();
+  //_playground = new PlaygroundMobile();
 }
 
-class PlaygroundMobile {
+/*class PlaygroundMobile {
   PaperFab runButton;
   PaperIconButton exportButton;
   PaperIconButton cancelButton;
@@ -666,4 +666,4 @@ class BusyLight {
   }
 
   _reconcile() => element.classes.toggle('busy', _count > 0);
-}
+}*/
