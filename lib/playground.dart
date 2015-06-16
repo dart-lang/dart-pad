@@ -90,23 +90,23 @@ class Playground implements GistContainer, GistController {
     overlay = new DOverlay(querySelector('#frame_overlay'));
 
     sharingDialog = new SharingDialog(this, this);
-    
+
     DButton newButton = new DButton(querySelector('#newbutton'));
     OkCancelDialog newDialog = new OkCancelDialog(
-      'Create New Pad', 'Discard changes to the current pad?', 
+      'Create New Pad', 'Discard changes to the current pad?',
         this.createNewGist, okText: 'Discard');
     newButton.onClick.listen((_) {
       newDialog.show();
     });
 
     DButton resetButton = new DButton(querySelector('#resetbutton'));
-    OkCancelDialog resetDialog = new OkCancelDialog('Reset Pad', 
-      'Discard changes to the current pad?', _resetGists, okText: 'Discard', 
+    OkCancelDialog resetDialog = new OkCancelDialog('Reset Pad',
+      'Discard changes to the current pad?', _resetGists, okText: 'Discard',
         cancelText: 'Cancel');
     resetButton.onClick.listen((_) {
       resetDialog.show();
     });
-    
+
     editableGist.onDirtyChanged.listen((val) {
       resetButton.disabled = !val;
     });
