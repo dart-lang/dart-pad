@@ -4,7 +4,6 @@
 
 library dartpad.actions;
 
-import 'dart:async';
 import 'dart:html';
 
 import 'dialogs.dart';
@@ -22,15 +21,10 @@ class NewPadAction {
   }
 
   void _handleButtonPress() {
-    Future<bool> response = new Future.value(true);
-
-    response = confirm(
+    new OkCancelDialog(
         'Create New Pad',
-        'Discard changes to the current pad?',
-        okText: 'Discard');
-
-    response.then((val) {
-      if (val) _gistController.createNewGist();
-    });
+        'Discard changes to the current pad?', _gistController.createNewGist,
+        okText: 'Discard')
+      .show();
   }
 }

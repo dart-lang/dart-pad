@@ -25,11 +25,11 @@ analyze() {
 }
 
 @Task()
-testCli() => Tests.runCliTests();
+testCli() => new TestRunner().testAsync(platformSelector: 'vm');
 
 // This task require a frame buffer to run.
 @Task()
-testWeb() => Tests.runWebTests(directory: 'build/test', htmlFile: 'web.html');
+testWeb() => new TestRunner().testAsync(platformSelector: 'chrome');
 
 @Task('Run bower')
 bower() => run('bower', arguments: ['install']);
@@ -63,7 +63,7 @@ build() {
   log('${mobileHtmlFile.path} original: ${_printSize(mobileHtmlFile)}');
   run('vulcanize', // '--csp', '--inline',
       arguments: ['--strip', '--output', 'mobile.html', 'mobile.html'],
-      workingDirectory: 'build/web');
+      runOptions: new RunOptions(workingDirectory: 'build/web'));
   log('${mobileHtmlFile.path} vulcanize: ${_printSize(mobileHtmlFile)}');
 
   return _uploadCompiledStats(
