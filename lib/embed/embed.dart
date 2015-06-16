@@ -11,6 +11,7 @@ import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
 import '../dart_pad.dart';
+import '../documentation.dart';
 import '../context.dart';
 import '../core/dependencies.dart';
 import '../core/modules.dart';
@@ -42,25 +43,37 @@ void init() {
 
 class PlaygroundMobile {
   PaperFab runButton;
-  PaperIconButton rerunButton;
-
+  PaperIconButton exportButton;
+  PaperIconButton cancelButton;
+  PaperIconButton affirmButton;
   BusyLight dartBusyLight;
 
+  Gist backupGist;
+  
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
   Router _router;
 
+  PaperToast _resetToast;
   PaperToast _messageToast;
   PaperToast _errorsToast;
   PaperDialog _messageDialog;
+  PaperDialog _resetDialog;
   PolymerElement _output;
-  IronPages _pages;
   PaperProgress _editProgress;
   PaperProgress _runProgress;
-
+  
+  DivElement _docPanel; 
+  DivElement _outputPanel;
+  
+  DocHandler docHandler;
   String _gistId;
-
+  
+  Future createNewGist() {
+      return null;
+  }
+  
   ModuleManager modules = new ModuleManager();
 
   PlaygroundMobile() {
@@ -104,42 +117,45 @@ class PlaygroundMobile {
     _showGist(gistId, run: page == 'run');
   }
 
-  void switchToEditPage() {
-    _pages = new IronPages.from($("iron-pages"));
-    if (_pages.selected == '0') return;
-    _pages.selected = "0";
-    executionService.tearDown();
-
-    // TODO: Use the router here instead.
-
-    //window.history.back();
-  }
-
-  void switchToExecPage() {
-    if (_pages.selected == '1') return;
-
-    _clearErrors();
-    _clearOutput();
-
-    // TODO: Use the router here instead.
-    _pages.selected = '1';
-    //_router.go('gist', {'gist': currentGistId()});
-  }
-
-  void _createUi() {
-    _pages = new IronPages.from($("iron-pages"));
-    // TODO: fix the pages transition
-    // Transitions.slideFromRight(_pages);
-
+  void registerMessageToast() {
     _messageToast = new PaperToast();
     document.body.children.add(_messageToast.element);
-
-    _errorsToast = new PaperToast()
+  }
+  
+  void registerErrorToast() {
+    _errorsToast = new PaperToast.from($('#errorToast'))
       ..duration = 100000;
-    document.body.children.add(_errorsToast.element);
-
-    _messageDialog = new PaperDialog.from($("paper-dialog"));
-
+  }
+  void registerResetToast() {
+      _resetToast = new PaperToast.from($('#resetToast'))
+      ..duration = 3000;
+    }
+  void registerMessageDialog() {
+    _messageDialog = new PaperDialog.from($("#messageDialog"));
+  }
+  void registerResetDialog() {
+    _resetDialog = new PaperDialog.from($("#resetDialog"));
+  }
+  void registerDocPanel() {
+    _docPanel = querySelector('#documentation');
+  }
+  void registerOutputPanel() {
+    _outputPanel = querySelector('#frameContainer');
+  }
+  void registerPaperDrawer() {
+    _docPanel = querySelector('#documentation');
+  }
+  void _createUi() {
+    registerMessageToast();
+    registerErrorToast();
+    registerResetToast();
+    registerMessageDialog();
+    registerResetDialog();
+    registerDocPanel();
+    registerOutputPanel();
+    
+    
+    
     //edit section
     PaperDrawerPanel topPanel = new PaperDrawerPanel.from($("paper-drawer-panel"));
 
@@ -155,7 +171,7 @@ class PlaygroundMobile {
     PolymerElement dropdownAnimation = new PolymerElement.from($("animated-dropdown"));
 
     new PaperIconButton.from($("#more-button"))..onTap.listen((e){
-      $("#dropdown").style.top = ($("#more-button").getBoundingClientRect().top + 5).toString() + "px";
+      $("#dropdown").style.top = ($("#more-button").getBoundingClientRect().top + 10).toString() + "px";
       $("#dropdown").style.left = ($("#more-button").getBoundingClientRect().left - 75).toString() + "px";
       dropdownAnimation.call("show");
     });
@@ -186,27 +202,50 @@ class PlaygroundMobile {
       ..onTap.listen((_) => _handleRun());
 
     // execute section
-    new PaperFab.from($(".back-button"))
+    /*new PaperFab.from($(".back-button"))
       ..onTap.listen((e)  {
-      _pages.selected = "0";
       // for some reason e.stopPropagation is needed
       // otherwise the pages.selected will be "1"
       // TODO: we should probably report this bug to polymer
       e.stopPropagation();
+    });*/
+
+    exportButton = new PaperIconButton.from($('[icon="refresh"]'))
+      ..onTap.listen((_) {
+        _resetDialog.toggle();
     });
-
-    rerunButton = new PaperIconButton.from($('[icon="refresh"]'))
-      ..onTap.listen((_) => _handleRerun());
-
+    
+    cancelButton = new PaperIconButton.from($('#cancelButton'))
+          ..onTap.listen((_) {
+            _resetDialog.toggle();
+    });
+    
+    affirmButton = new PaperIconButton.from($('#affirmButton'))
+          ..onTap.listen((_) {
+            _resetDialog.toggle();
+            _reset();
+    });
+    
     _output = new PolymerElement.from($("#console"));
+    
+    
     PaperToggleButton toggleConsoleButton = new PaperToggleButton.from($("paper-toggle-button"));
     toggleConsoleButton.onIronChange.listen((_) {
-      _output.hidden(!toggleConsoleButton.checked);
+      _docPanel.style.display = toggleConsoleButton.checked ? 'none' : 'block';
+      _outputPanel.style.display = !toggleConsoleButton.checked ? 'none' : 'block';
     });
-
+  
     _clearOutput();
   }
 
+  void _reset() {
+    _router = new Router()
+      ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
+      ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
+      ..listen();
+    _resetToast.show();
+  }
+  
   void _showGist(String gistId, {bool run: false}) {
     gistLoader.loadGist(gistId).then((Gist gist) {
       _setGistDescription(gist.description);
@@ -261,14 +300,29 @@ class PlaygroundMobile {
     // TODO: Move to using the defaultFilters().
     deps[GistLoader] = new GistLoader();
 
-    // QUESTION: Do we need these bindings for mobile ?
-    // keys.bind(['ctrl-s'], _handleSave);
-    // keys.bind(['ctrl-enter'], _handleRun);
-    // keys.bind(['f1'], _handleHelp);
-
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDoc(_docPanel);
+      }
+    });
+    
+    // Listen for changes that would effect the documentation panel.
+     editor.onMouseDown.listen((e) {
+       // Delay to give codemirror time to process the mouse event.
+       Timer.run(() {
+         if (!_context.cursorPositionIsWhitespace()) {
+           docHandler.generateDoc(_docPanel);
+         }
+       });
+     });
+    
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
 
+
+    context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
+    
     _context.onHtmlReconcile.listen((_) {
       executionService.replaceHtml(_context.htmlSource);
     });
@@ -280,17 +334,14 @@ class PlaygroundMobile {
     _context.onDartDirty.listen((_) => dartBusyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
+    docHandler = new DocHandler(editor, _context);
+    
     _finishedInit();
   }
 
   _finishedInit() {
     Timer.run(() {
       editor.resize();
-
-      // Clear the splash.
-      Element splash = querySelector('div.splash');
-      splash.onTransitionEnd.listen((_) => splash.parent.children.remove(splash));
-      splash.classes.toggle('hide', true);
     });
 
     _router = new Router()
@@ -300,6 +351,7 @@ class PlaygroundMobile {
   }
 
   void _handleRun() {
+    _clearOutput();
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
 
@@ -309,7 +361,6 @@ class PlaygroundMobile {
     var input = new CompileRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
-      switchToExecPage();
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
@@ -319,30 +370,6 @@ class PlaygroundMobile {
       runButton.disabled = false;
       _editProgress.hidden(true);
       _editProgress.indeterminate = false;
-    });
-  }
-
-  void _handleRerun() {
-    ga.sendEvent('main', 'rerun');
-    rerunButton.disabled = true;
-
-    _runProgress = new PaperProgress.from($("#run-progress"));
-    _runProgress.indeterminate = true;
-    _runProgress.hidden(false);
-
-    var input = new CompileRequest()..source = context.dartSource;
-    dartServices.compile(input).timeout(longServiceCallTimeout).then(
-        (CompileResponse response) {
-      _clearOutput();
-      return executionService.execute(
-          _context.htmlSource, _context.cssSource, response.result);
-    }).catchError((e) {
-      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
-      _showError('Error compiling to JavaScript', '${e}');
-    }).whenComplete(() {
-      rerunButton.disabled = false;
-      _runProgress.hidden(true);
-      _runProgress.indeterminate = false;
     });
   }
 
@@ -493,23 +520,6 @@ class PlaygroundMobile {
   }
 
   String currentGistId() => _gistId;
-  
-  void _buildSamples(CoreMenu menu) {
-    menu.add(new PaperItem(text: 'Bootstrap')..name('b51ea7c04322042b582a'));
-    menu.add(new PaperItem(text: 'Clock')..name('0dfeb25a33be007e1d0f'));
-    menu.add(new PaperItem(text: 'Fibonacci')..name('74e990d984faad26dea0'));
-    menu.add(new PaperItem(text: 'Hello World')..name('33706e19df021e52d98c'));
-    menu.add(new PaperItem(text: 'Hello World HTML')..name('9126d5d48ebabf5bf547'));
-    menu.add(new PaperItem(text: 'Solar')..name('72d83fe97bfc8e735607'));
-    menu.add(new PaperItem(text: 'Spirodraw')..name('9e42aabfcc15c81a0406'));
-    menu.add(new PaperItem(text: 'Sunflower')..name('9d2dd2ce17981ecacadd'));
-    menu.add(new PaperItem(text: 'WebSockets')..name('479ecba5a56fd706b648'));
-
-    menu.onCoreActivate.listen((e) {
-      _router.go('gist', {'gist': menu.selected});
-      menu.selected = '';
-    });
-  }
 }
 
 class PlaygroundContext extends Context {
@@ -610,6 +620,15 @@ class PlaygroundContext extends Context {
         controller.add(null);
       });
     });
+  }
+  
+  bool cursorPositionIsWhitespace() {
+    Document document = editor.document;
+    String str = document.value;
+    int index = document.indexFromPos(document.cursor);
+    if (index < 0 || index >= str.length) return false;
+    String char = str[index];
+    return char != char.trim();
   }
 }
 
