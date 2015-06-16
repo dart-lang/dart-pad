@@ -62,7 +62,6 @@ class PlaygroundMobile {
   PaperDialog _resetDialog;
   PolymerElement _output;
   PaperProgress _editProgress;
-  PaperProgress _runProgress;
   
   DivElement _docPanel; 
   DivElement _outputPanel;
