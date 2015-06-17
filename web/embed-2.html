@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. This version is
+     not finalized. -->
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="scaffolded-by" content="https://github.com/google/stagehand">
+    <title>DartPad</title>
+
+    <script src="packages/dart_pad/bower/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link rel="import" href="imports.html"/>
+    <link rel="import" href="polymer/animated-dropdown.html">
+    <link rel="import" href="embed_style.html"/>
+
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+          rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+
+    <!-- codemirror -->
+    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
+    <link href="packages/dart_pad/editing/editor_codemirror.css"
+          rel="stylesheet" media="screen">
+    <link rel="import" href="embed_components.html">
+    <!--<script type="application/dart" src="embed.dart"></script>-->
+  </head>
+  <body class="fullbleed vertical layout" unresolved>
+    <div class="height-max layout horizontal">
+      <div id="leftContainer" class = "vertical layout flex-6">
+        <selection-toolbar class="layout vertical"></selection-toolbar>
+        <dart-box dart class = "flex-5"></dart-box>
+        <horizontal-splitter class = "splitter"></horizontal-splitter>
+        <console-item class = "flex"></console-item>
+      </div>
+      <vertical-splitter></vertical-splitter>
+      <div id = "rightContainer" class ="flex-4">
+        <output-toolbar class= "layout vertical"></output-toolbar>
+        <html-output class = "flex"></html-output>
+      </div>
+      <paper-toast id="errorToast" text=""></paper-toast>
+    </div>
+    <reset-dialog></reset-dialog>
+    
+    <script src="packages/codemirror/codemirror.js"></script>
+    <script src="packages/browser/dart.js" async></script>
+    <script async>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-26406144-18', 'auto');
+      ga('send', 'pageview');
+    </script>
+    <script>
+      /* Patch to work around a polymer polyfill issue. */
+
+      // Patch key event listening.
+      document.addEventListener('keydown', function(event) {
+        if (window.dartKeyListener) {
+          if (window.dartKeyListener(event)) {
+            event.preventDefault();
+          }
+        }
+      });
+
+      // Patch window message listening.
+      window.addEventListener('message', function(event) {
+        var data = event.data;
+
+        if (data.sender == 'frame') {
+          if (window.dartMessageListener) {
+            window.dartMessageListener(data);
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

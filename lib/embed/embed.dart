@@ -44,18 +44,19 @@ void init() {
 }
 
 class PlaygroundMobile {
-  PaperFab runButton;
-  PaperIconButton exportButton;
-  PaperIconButton cancelButton;
-  PaperIconButton affirmButton;
-  BusyLight dartBusyLight;
-
+  PaperFab _runButton;
+  PaperIconButton _exportButton;
+  PaperIconButton _cancelButton;
+  PaperIconButton _affirmButton;
+  BusyLight _dartBusyLight;
+  PaperTabs _tabs;
+  
   Gist backupGist;
+  Router _router;
   
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
-  Router _router;
 
   PaperToast _resetToast;
   PaperToast _messageToast;
@@ -127,24 +128,78 @@ class PlaygroundMobile {
     _errorsToast = new PaperToast.from($('#errorToast'))
       ..duration = 100000;
   }
+  
   void registerResetToast() {
       _resetToast = new PaperToast.from($('#resetToast'))
       ..duration = 3000;
     }
+  
   void registerMessageDialog() {
     _messageDialog = new PaperDialog.from($("#messageDialog"));
   }
+  
   void registerResetDialog() {
     _resetDialog = new PaperDialog.from($("#resetDialog"));
   }
+  
   void registerDocPanel() {
     _docPanel = querySelector('#documentation');
   }
+  
   void registerOutputPanel() {
     _outputPanel = querySelector('#frameContainer');
   }
+  
   void registerPaperDrawer() {
     _docPanel = querySelector('#documentation');
+  }
+  
+  void registerSelectorTabs() {
+    _tabs = new PaperTabs.from($("#selector-tabs"));
+    _tabs.ironSelect.listen((_) {
+      String name = _tabs.selectedName;
+      ga.sendEvent('edit', name);
+      _context.switchTo(name);
+    });
+  }
+  
+  void registerBusyLight() {
+    _dartBusyLight = new BusyLight(_tabs.element.children[0]);
+  }
+  
+  void registerEditProgress() {
+    _editProgress = new PaperProgress.from($("#edit-progress"));
+  }
+  
+  void registerRunButton() {
+    _runButton = new PaperFab.from($("#run-button"));
+    _runButton.onTap.listen((_) => _handleRun());
+  }
+  
+  void registerExportButton() {
+    _exportButton = new PaperIconButton.from($('[icon="refresh"]'));
+    _exportButton.onTap.listen((_) {
+      _resetDialog.toggle();
+    });
+  }
+  
+  void registerCancelButton() {
+    _cancelButton = new PaperIconButton.from($('#cancelButton'));
+    _cancelButton.onTap.listen((_) {
+      _resetDialog.toggle();
+    });
+  }
+  
+  void registerAffirmButton() {
+    _affirmButton = new PaperIconButton.from($('#affirmButton'));
+    _affirmButton.onTap.listen((_) {
+      _resetDialog.toggle();
+      _reset();
+    });
+  }
+  
+  void registerConsole() {
+    _output = new PolymerElement.from($("#console"));
   }
   void _createUi() {
     registerMessageToast();
@@ -154,91 +209,18 @@ class PlaygroundMobile {
     registerResetDialog();
     registerDocPanel();
     registerOutputPanel();
-    
-    
-    
-    //edit section
-    PaperDrawerPanel topPanel = new PaperDrawerPanel.from($("paper-drawer-panel"));
-
-    PaperMenu menu = new PaperMenu.from($("paper-menu"));
-    menu.ironActivate.listen((_) {
-      _router.go('gist', {'gist': menu.selectedName});
-      topPanel.closeDrawer();
-    });
-
-    new PaperIconButton.from($('#nav-button'))
-      ..onTap.listen((_) => topPanel.togglePanel());
-
-    PolymerElement dropdownAnimation = new PolymerElement.from($("animated-dropdown"));
-
-    new PaperIconButton.from($("#more-button"))..onTap.listen((e){
-      $("#dropdown").style.top = ($("#more-button").getBoundingClientRect().top + 10).toString() + "px";
-      $("#dropdown").style.left = ($("#more-button").getBoundingClientRect().left - 75).toString() + "px";
-      dropdownAnimation.call("show");
-    });
-
-    new PaperItem.from($("#dartlang-item"))..onTap.listen((event) {
-      event.preventDefault();
-      window.open("https://www.dartlang.org/", "_blank");
-      dropdownAnimation.call("hide");
-    });
-
-    new PaperItem.from($("#about-item"))..onTap.listen((event) {
-      event.preventDefault();
-      _showAboutDialog();
-      dropdownAnimation.call("hide");
-    });
-
-    PaperTabs tabs = new PaperTabs.from($("paper-tabs"));
-    tabs.ironSelect.listen((_) {
-      String name = tabs.selectedName;
-      ga.sendEvent('edit', name);
-      _context.switchTo(name);
-    });
-
-    dartBusyLight = new BusyLight(tabs.element.children[0]);
-
-    _editProgress = new PaperProgress.from($("#edit-progress"));
-    runButton = new PaperFab.from($("#run-button"))
-      ..onTap.listen((_) => _handleRun());
-
-    // execute section
-    /*new PaperFab.from($(".back-button"))
-      ..onTap.listen((e)  {
-      // for some reason e.stopPropagation is needed
-      // otherwise the pages.selected will be "1"
-      // TODO: we should probably report this bug to polymer
-      e.stopPropagation();
-    });*/
-
-    exportButton = new PaperIconButton.from($('[icon="refresh"]'))
-      ..onTap.listen((_) {
-        _resetDialog.toggle();
-    });
-    
-    cancelButton = new PaperIconButton.from($('#cancelButton'))
-          ..onTap.listen((_) {
-            _resetDialog.toggle();
-    });
-    
-    affirmButton = new PaperIconButton.from($('#affirmButton'))
-          ..onTap.listen((_) {
-            _resetDialog.toggle();
-            _reset();
-    });
-    
-    _output = new PolymerElement.from($("#console"));
-    
-    
-    PaperToggleButton toggleConsoleButton = new PaperToggleButton.from($("paper-toggle-button"));
-    toggleConsoleButton.onIronChange.listen((_) {
-      _docPanel.style.display = toggleConsoleButton.checked ? 'none' : 'block';
-      _outputPanel.style.display = !toggleConsoleButton.checked ? 'none' : 'block';
-    });
+    registerSelectorTabs();
+    registerBusyLight();
+    registerEditProgress();
+    registerRunButton();
+    registerExportButton();
+    registerCancelButton();
+    registerAffirmButton();
+    registerConsole();
   
     _clearOutput();
   }
-
+  
   void _reset() {
     _router = new Router()
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
@@ -332,7 +314,7 @@ class PlaygroundMobile {
       executionService.replaceCss(_context.cssSource);
     });
 
-    _context.onDartDirty.listen((_) => dartBusyLight.on());
+    _context.onDartDirty.listen((_) => _dartBusyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     docHandler = new DocHandler(editor, _context);
@@ -354,7 +336,7 @@ class PlaygroundMobile {
   void _handleRun() {
     _clearOutput();
     ga.sendEvent('main', 'run');
-    runButton.disabled = true;
+    _runButton.disabled = true;
 
     _editProgress.indeterminate = true;
     _editProgress.hidden(false);
@@ -368,7 +350,7 @@ class PlaygroundMobile {
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
       _showError('Error compiling to JavaScript', '${e}');
     }).whenComplete(() {
-      runButton.disabled = false;
+      _runButton.disabled = false;
       _editProgress.hidden(true);
       _editProgress.indeterminate = false;
     });
@@ -390,7 +372,7 @@ class PlaygroundMobile {
       // Discard if the document has been mutated since we requested analysis.
       if (input.source != _context.dartSource) return;
 
-      dartBusyLight.reset();
+      _dartBusyLight.reset();
 
       _displayIssues(result.issues);
 
@@ -409,7 +391,7 @@ class PlaygroundMobile {
       }).toList());
     }).catchError((e) {
       _context.dartDocument.setAnnotations([]);
-      dartBusyLight.reset();
+      _dartBusyLight.reset();
       _logger.severe(e);
     });
   }
