@@ -30,7 +30,6 @@ import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/ga.dart';
 import '../src/sample.dart' as sample;
-import '../src/util.dart';
 
 PlaygroundMobile get playground => _playground;
 
@@ -66,8 +65,7 @@ class PlaygroundMobile {
   PolymerElement _output;
   PaperProgress _editProgress;
   
-  DivElement _docPanel; 
-  DivElement _outputPanel;
+  DivElement _docPanel;
   
   DocHandler docHandler;
   String _gistId;
@@ -146,10 +144,6 @@ class PlaygroundMobile {
     _docPanel = querySelector('#documentation');
   }
   
-  void registerOutputPanel() {
-    _outputPanel = querySelector('#frameContainer');
-  }
-  
   void registerPaperDrawer() {
     _docPanel = querySelector('#documentation');
   }
@@ -208,7 +202,6 @@ class PlaygroundMobile {
     registerMessageDialog();
     registerResetDialog();
     registerDocPanel();
-    registerOutputPanel();
     registerSelectorTabs();
     registerBusyLight();
     registerEditProgress();
@@ -222,7 +215,8 @@ class PlaygroundMobile {
   }
   
   void _reset() {
-    _router = new Router()
+    _router = new Router();
+    _router
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
       ..listen();
@@ -476,24 +470,6 @@ class PlaygroundMobile {
         doc.posFromIndex(charStart + charLength));
 
     if (focus) editor.focus();
-  }
-
-  void _showAboutDialog() {
-    dartServices.version().timeout(new Duration(seconds: 2)).then(
-        (VersionResponse ver) {
-      _showAboutDialogWithVersion(version: ver.sdkVersion);
-    }).catchError((e) {
-      _showAboutDialogWithVersion();
-    });
-  }
-
-  void _showAboutDialogWithVersion({String version}) {
-    _messageDialog.element.querySelector('h2').text = 'About DartPad';
-    String text = privacyText;
-    if (version != null) text += " Based on Dart SDK ${version}.";
-    _messageDialog.element.querySelector('p').setInnerHtml(text,
-        validator: new PermissiveNodeValidator());
-    _messageDialog.open();
   }
 
   void _showError(String title, String message) {
