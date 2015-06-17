@@ -43,37 +43,7 @@
     
     <script src="packages/codemirror/codemirror.js"></script>
     <script src="packages/browser/dart.js" async></script>
-    <script async>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-      ga('create', 'UA-26406144-18', 'auto');
-      ga('send', 'pageview');
-    </script>
-    <script>
-      /* Patch to work around a polymer polyfill issue. */
-
-      // Patch key event listening.
-      document.addEventListener('keydown', function(event) {
-        if (window.dartKeyListener) {
-          if (window.dartKeyListener(event)) {
-            event.preventDefault();
-          }
-        }
-      });
-
-      // Patch window message listening.
-      window.addEventListener('message', function(event) {
-        var data = event.data;
-
-        if (data.sender == 'frame') {
-          if (window.dartMessageListener) {
-            window.dartMessageListener(data);
-          }
-        }
-      });
-    </script>
+    <script src="ga.js" async></script>
+    <script src="polymerpatch.js"></script>
   </body>
 </html>
