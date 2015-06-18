@@ -11,6 +11,10 @@
     top: inherit;
     position: relative;
   }
+  paper-tabs {
+    height: 36px;
+    font-weight: 400;
+  }
   </style>
   <template>
     <paper-tabs id = "selector-tabs" class ="tabs" selected="0" class="bottom fit vertical" >
@@ -36,6 +40,10 @@
     top: inherit;
     position: relative;
   }
+  paper-tabs {
+    height: 36px;
+    font-weight: 400;
+  }
   </style>
   <template>
     <div>
@@ -53,15 +61,41 @@
   </script>
 </dom-module>
 
-<dom-module id="documentation-box">
+<dom-module id="export-floater">
   <style>
-  #documentation {
-     position:absolute;
-     padding:0px 10px 0px 10px;
-   }
+  .rightFloater {
+    position: absolute;
+    right: 5px;
+    z-index: 10;
+  }
   </style>
   <template>
-    <div id="documentation"></div>
+    <div class = 'rightFloater'>
+      <paper-icon-button id = "launch" icon="launch"></paper-icon-button>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'export-floater'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="documentation-box">
+  <style>
+    #documentation {
+      overflow-y: auto;
+      white-space: pre-wrap;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+    }
+    code {
+      white-space: pre-wrap;
+    }
+  </style>
+  <template>
+    <div id="documentation" class = 'flex'></div>
   </template>
   <script>
     Polymer({
@@ -88,6 +122,46 @@
   <script>
     Polymer({
       is: 'reset-dialog'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="menu-bar-icons">
+  <style>
+    .tabs {
+      background: #485D67;
+      top: inherit;
+      position: relative;
+    }
+    paper-tabs {
+      width:100%;
+      height: 36px;
+      font-weight: 400;
+    }
+  </style>
+  <template>
+    <div class = "layout horizontal flex">
+      <div class = "layout horizontal flex-6">
+        <paper-tabs id = "selector-tabs" class ="tabs" selected="0" class=flex" >
+            <paper-tab name="dart">Dart</paper-tab>
+            <paper-tab name="html">HTML</paper-tab>
+            <paper-tab name="css">CSS</paper-tab>
+          </paper-tabs>
+        <paper-progress id="edit-progress"  class="bottom fit" hidden
+            style="top: inherit"></paper-progress>
+      </div>
+      <div class = "layout horizontal flex-4"> 
+        <paper-tabs class="tabs" selected="0" class="flex" style="top: inherit">
+            <span class="flex"></span>
+            <paper-icon-button id = "refresh" icon="refresh"></paper-icon-button>
+            <paper-icon-button id = "launch" icon="launch"></paper-icon-button>
+        </paper-tabs>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'menu-bar-icons'
     });
   </script>
 </dom-module>
@@ -141,6 +215,7 @@
    #frame {
      width: 100%;
      height: 100%;
+     border: 0px;
    }
    .maxHeight {
      height: 100%;
@@ -186,19 +261,17 @@
 
 <dom-module id="dart-box">
   <style>
-  :host {
-    min-height: 50px;
-  }
   #editpanel {
     height: 100%;
     position: relative;
     margin: 8px;
   }
   #run-button {
-    display:block;
-    float:right;
-    z-index: 2000;
-    margin: 2px;
+    background-color: #d23f31;
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    z-index: 10;
   }
   </style>
   <template>
@@ -217,6 +290,36 @@
   </script>
 </dom-module>
 
+<dom-module id="dart-box-v2">
+  <style>
+  #editpanel {
+    height: 100%;
+    position: relative;
+    margin: 8px;
+  }
+  #run-button {
+    position: absolute;
+    right: 16px;
+    top: 10px;
+    z-index: 10;
+  }
+  </style>
+  <template>
+    <div id="editpanel" class="editor">
+      <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
+    </div> 
+  </template>
+
+  <script>
+    Polymer({
+      is: 'dart-box-v2',
+      properties: {
+        dart: String
+      }
+    });
+  </script>
+</dom-module>
+
 <dom-module id="horizontal-splitter">
   <style>
   :host {
@@ -227,7 +330,6 @@
   </style>
   <template>
   </template>
-
   <script>
     Polymer({
       is: 'horizontal-splitter'
@@ -239,9 +341,10 @@
   <style>
   :host {
   min-height: 5px;
-  min-width:1px;
-  box-shadow:rgba(255, 255, 255, 0.07) 1px 1px 0;
-  border-left:1px solid #121212;
+  min-width: 2px;
+  box-shadow: rgba(255, 255, 255, 0.07) 1px 1px 0;
+  border-left: 1px solid #121212;
+  margin-right: 8px;
   }
   </style>
   <template>
@@ -256,15 +359,10 @@
 
 <dom-module id="console-item">
   <style>
-  :host {
-    margin: 8px;
-    min-height: 30px;
-  }
   #console {
     font-family: 'Inconsolata', monospace;
     font-size: 12pt;
     line-height: 20px;
-    min-height: 50px;
     overflow-y: auto;
     margin: 2px;
     padding: 8px;

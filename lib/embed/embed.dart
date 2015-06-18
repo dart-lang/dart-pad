@@ -473,7 +473,6 @@ class PlaygroundMobile {
   void _clearOutput() {
     _output.text = '';
     _output.add(new DivElement()
-      ..text = 'Console output'
       ..classes.add('consoleTitle'));
   }
 
