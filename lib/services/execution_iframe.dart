@@ -73,7 +73,6 @@ window.onerror = function(message, url, lineNumber) {
     Map m = {'command': command};
     m.addAll(params);
     frame.contentWindow.postMessage(m, '*');
-    
     return new Future.value();
   }
 
