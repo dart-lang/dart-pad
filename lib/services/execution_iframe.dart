@@ -73,23 +73,24 @@ window.onerror = function(message, url, lineNumber) {
     Map m = {'command': command};
     m.addAll(params);
     frame.contentWindow.postMessage(m, '*');
-
     return new Future.value();
   }
 
   /// Destroy and re-load the iframe.
   Future _reset() {
-    _readyCompleter = new Completer();
-
-    IFrameElement clone = _frame.clone(false);
-    clone.src = _frameSrc;
-
-    List<Element> children = frame.parent.children;
-    int index = children.indexOf(_frame);
-    children.insert(index, clone);
-    frame.parent.children.remove(_frame);
-    _frame = clone;
-
+    if (frame.parent != null) {
+      _readyCompleter = new Completer();
+  
+      IFrameElement clone = _frame.clone(false);
+      clone.src = _frameSrc;
+      
+      List<Element> children = frame.parent.children;
+      int index = children.indexOf(_frame);
+      children.insert(index, clone);
+      frame.parent.children.remove(_frame);
+      _frame = clone;
+    }
+    
     return _readyCompleter.future.timeout(
         new Duration(seconds: 1),
         onTimeout: () {
