@@ -92,16 +92,17 @@
   </script>
 </dom-module>
 
+
 <dom-module id="export-dialog">
   <style>
-   #resetDialog {
+   #exportDialog {
     min-height: 90px;
    }
   </style>
   <template>
     <paper-dialog id="exportDialog" heading="Reset"
                   transition="paper-dialog-transition-bottom">
-      <p>This will export your project and open a new dartpad page. Are you sure?</p>
+      <p>Are you sure you want to export?</p>
       <paper-button id = "cancelExportButton" dismissive>Cancel</paper-button>
       <span class="flex"></span>
       <paper-button id = "affirmExportButton" affirmative default>OK</paper-button>

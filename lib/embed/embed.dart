@@ -47,6 +47,7 @@ class PlaygroundMobile {
   PaperIconButton _exportButton;
   PaperIconButton _cancelButton;
   PaperIconButton _affirmButton;
+  PaperIconButton _resetButton;
   PaperTabs _tabs;
   
   Gist backupGist;
@@ -61,6 +62,7 @@ class PlaygroundMobile {
   PaperToast _errorsToast;
   PaperDialog _messageDialog;
   PaperDialog _resetDialog;
+  PaperDialog _exportDialog;
   PolymerElement _output;
   PaperProgress _editProgress;
   
@@ -122,14 +124,20 @@ class PlaygroundMobile {
   }
   
   void registerErrorToast() {
-    _errorsToast = new PaperToast.from($('#errorToast'));
-    _errorsToast = _errorsToast == null ? _errorsToast : new PaperToast();
+    if ($('#errorToast') != null) {
+      _errorsToast = new PaperToast.from($('#errorToast'));
+    } else {
+      _errorsToast = new PaperToast();
+    }
     _errorsToast.duration = 100000;
   }
   
   void registerResetToast() {
+    if ($('#resetToast') != null) {
       _resetToast = new PaperToast.from($('#resetToast'));
-      _resetToast = _resetToast == null ? _resetToast : new PaperToast();
+    } else {
+      _resetToast = new PaperToast();
+    }
       _resetToast.duration = 3000;
     }
   
@@ -140,13 +148,27 @@ class PlaygroundMobile {
   }
   
   void registerResetDialog() {
-    _resetDialog = new PaperDialog.from($("#resetDialog"));
-    _resetDialog = _resetDialog != null ? _resetDialog : new PaperDialog();
+    if ($("#resetDialog") != null) {
+      _resetDialog = new PaperDialog.from($("#resetDialog"));
+    } else {
+      _resetDialog = new PaperDialog();
+    }
+  }
+  
+  void registerExportDialog() {
+    if ($("#exportDialog") != null) {
+      _exportDialog = new PaperDialog.from($("#exportDialog"));
+    } else {
+      _exportDialog = new PaperDialog(); 
+    }
   }
   
   void registerDocPanel() {
-    _docPanel = querySelector('#documentation');
-    _docPanel = _docPanel != null ? _docPanel : new DivElement();
+    if ($('#documentation') != null) {
+      _docPanel = $('#documentation');
+    } else {
+      _docPanel = new DivElement();
+    }
   }
   
   void registerSelectorTabs() {
@@ -173,15 +195,24 @@ class PlaygroundMobile {
   }
   
   void registerExportButton() {
-    if ($('[icon="refresh"]') != null) {
-      _exportButton = new PaperIconButton.from($('[icon="refresh"]'));
+    if ($('[icon="launch"]') != null) {
+      _exportButton = new PaperIconButton.from($('[icon="launch"]'));
       _exportButton.onTap.listen((_) {
+        _exportDialog.toggle();
+      });
+    }
+  }
+  
+  void registerResetButton() {
+    if ($('[icon="refresh"]') != null) {
+      _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
+      _resetButton.onTap.listen((_) {
         _resetDialog.toggle();
       });
     }
   }
   
-  void registerCancelButton() {
+  void registerCancelRefreshButton() {
     if ($('#cancelButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelButton'));
       _cancelButton.onTap.listen((_) {
@@ -190,12 +221,31 @@ class PlaygroundMobile {
     }
   }
   
-  void registerAffirmButton() {
+  void registerAffirmRefreshButton() {
     if ($('#affirmButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmButton'));
       _affirmButton.onTap.listen((_) {
         _resetDialog.toggle();
         _reset();
+    });
+    }
+  }
+  
+  void registerCancelExportButton() {
+      if ($('#cancelButton') != null) {
+        _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
+        _cancelButton.onTap.listen((_) {
+          _exportDialog.toggle();
+        });
+      }
+    }
+    
+  void registerAffirmExportButton() {
+    if ($('#affirmButton') != null) {
+      _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
+      _affirmButton.onTap.listen((_) {
+        _exportDialog.toggle();
+        _export();
     });
     }
   }
@@ -211,16 +261,24 @@ class PlaygroundMobile {
     registerResetToast();
     registerMessageDialog();
     registerResetDialog();
+    registerExportDialog();
     registerDocPanel();
     registerSelectorTabs();
     registerEditProgress();
     registerRunButton();
     registerExportButton();
-    registerCancelButton();
-    registerAffirmButton();
+    registerResetButton();
+    registerCancelRefreshButton();
+    registerAffirmRefreshButton();
+    registerCancelExportButton();
+    registerAffirmExportButton();
     registerConsole();
-  
+    
     _clearOutput();
+  }
+  
+  void _export() {
+    
   }
   
   void _reset() {
@@ -229,7 +287,6 @@ class PlaygroundMobile {
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
       ..listen();
-    _resetToast.show();
   }
   
   void _showGist(String gistId, {bool run: false}) {
