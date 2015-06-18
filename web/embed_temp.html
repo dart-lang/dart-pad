@@ -60,12 +60,12 @@
      width:60%; 
      position:relative;
    }
-   #editpanel {
+   #edit-panel {
      margin: 8px 0px 8px 8px;
      border-right: solid #818181;
    }
    #frameContainer {
-     position: absolute;
+     position: fixed;
      margin: 10px;
      height: 100%
    }
@@ -139,7 +139,6 @@
             <paper-icon-button icon="more-vert"
                  id="more-button"></paper-icon-button>
           </paper-toolbar>
-          <div class="fit layout vertical">
             <div>
               <paper-tabs class="tabs" selected="0" style = "position:relative" class="bottom fit vertical" style="top: inherit">
                   <span class="flex"></span>
@@ -160,7 +159,6 @@
               </div>
               <div id="documentation"></div>
               </div>
-            </div>
           <paper-toast id="errorToast" text=""></paper-toast>
         </paper-header-panel>
       </section>

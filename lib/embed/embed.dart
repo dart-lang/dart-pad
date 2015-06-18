@@ -47,7 +47,6 @@ class PlaygroundMobile {
   PaperIconButton _exportButton;
   PaperIconButton _cancelButton;
   PaperIconButton _affirmButton;
-  BusyLight _dartBusyLight;
   PaperTabs _tabs;
   
   Gist backupGist;
@@ -123,78 +122,89 @@ class PlaygroundMobile {
   }
   
   void registerErrorToast() {
-    _errorsToast = new PaperToast.from($('#errorToast'))
-      ..duration = 100000;
+    _errorsToast = new PaperToast.from($('#errorToast'));
+    _errorsToast = _errorsToast == null ? _errorsToast : new PaperToast();
+    _errorsToast.duration = 100000;
   }
   
   void registerResetToast() {
-      _resetToast = new PaperToast.from($('#resetToast'))
-      ..duration = 3000;
+      _resetToast = new PaperToast.from($('#resetToast'));
+      _resetToast = _resetToast == null ? _resetToast : new PaperToast();
+      _resetToast.duration = 3000;
     }
   
   void registerMessageDialog() {
-    _messageDialog = new PaperDialog.from($("#messageDialog"));
+    if ($("#messageDialog") != null) {
+      _messageDialog = new PaperDialog.from($("#messageDialog"));
+    }
   }
   
   void registerResetDialog() {
     _resetDialog = new PaperDialog.from($("#resetDialog"));
+    _resetDialog = _resetDialog != null ? _resetDialog : new PaperDialog();
   }
   
   void registerDocPanel() {
     _docPanel = querySelector('#documentation');
-  }
-  
-  void registerPaperDrawer() {
-    _docPanel = querySelector('#documentation');
+    _docPanel = _docPanel != null ? _docPanel : new DivElement();
   }
   
   void registerSelectorTabs() {
+    if ($("#selector-tabs") != null) {
     _tabs = new PaperTabs.from($("#selector-tabs"));
     _tabs.ironSelect.listen((_) {
       String name = _tabs.selectedName;
       ga.sendEvent('edit', name);
       _context.switchTo(name);
-    });
-  }
-  
-  void registerBusyLight() {
-    _dartBusyLight = new BusyLight(_tabs.element.children[0]);
+      });
+    }
   }
   
   void registerEditProgress() {
-    _editProgress = new PaperProgress.from($("#edit-progress"));
+    if ($("#edit-progress") != null) {
+      _editProgress = new PaperProgress.from($("#edit-progress"));
+    }
   }
   
   void registerRunButton() {
     _runButton = new PaperFab.from($("#run-button"));
+    _runButton = _runButton != null ? _runButton : new PaperFab();
     _runButton.onTap.listen((_) => _handleRun());
   }
   
   void registerExportButton() {
-    _exportButton = new PaperIconButton.from($('[icon="refresh"]'));
-    _exportButton.onTap.listen((_) {
-      _resetDialog.toggle();
-    });
+    if ($('[icon="refresh"]') != null) {
+      _exportButton = new PaperIconButton.from($('[icon="refresh"]'));
+      _exportButton.onTap.listen((_) {
+        _resetDialog.toggle();
+      });
+    }
   }
   
   void registerCancelButton() {
-    _cancelButton = new PaperIconButton.from($('#cancelButton'));
-    _cancelButton.onTap.listen((_) {
-      _resetDialog.toggle();
-    });
+    if ($('#cancelButton') != null) {
+      _cancelButton = new PaperIconButton.from($('#cancelButton'));
+      _cancelButton.onTap.listen((_) {
+        _resetDialog.toggle();
+      });
+    }
   }
   
   void registerAffirmButton() {
-    _affirmButton = new PaperIconButton.from($('#affirmButton'));
-    _affirmButton.onTap.listen((_) {
-      _resetDialog.toggle();
-      _reset();
+    if ($('#affirmButton') != null) {
+      _affirmButton = new PaperIconButton.from($('#affirmButton'));
+      _affirmButton.onTap.listen((_) {
+        _resetDialog.toggle();
+        _reset();
     });
+    }
   }
   
+  //Console must exist
   void registerConsole() {
     _output = new PolymerElement.from($("#console"));
   }
+  
   void _createUi() {
     registerMessageToast();
     registerErrorToast();
@@ -203,7 +213,6 @@ class PlaygroundMobile {
     registerResetDialog();
     registerDocPanel();
     registerSelectorTabs();
-    registerBusyLight();
     registerEditProgress();
     registerRunButton();
     registerExportButton();
@@ -259,12 +268,20 @@ class PlaygroundMobile {
     return modules.start();
   }
 
+  void registerExecutionService() {
+    if ($('#frame') != null) {
+      deps[ExecutionService] = new ExecutionServiceIFrame($('#frame'));
+    } else {
+      deps[ExecutionService] = new ExecutionServiceIFrame(new IFrameElement());
+    }
+  }
+  
   void _initPlayground() {
-    // Set up the iframe.
-    deps[ExecutionService] = new ExecutionServiceIFrame($('#frame'));
+    // Set up the iframe.execution
+    registerExecutionService();
     executionService.onStdout.listen(_showOuput);
     executionService.onStderr.listen((m) => _showOuput(m, error: true));
-
+    
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
     //$('editpanel').children.first.attributes['flex'] = '';
@@ -308,7 +325,6 @@ class PlaygroundMobile {
       executionService.replaceCss(_context.cssSource);
     });
 
-    _context.onDartDirty.listen((_) => _dartBusyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     docHandler = new DocHandler(editor, _context);
@@ -332,21 +348,27 @@ class PlaygroundMobile {
     ga.sendEvent('main', 'run');
     _runButton.disabled = true;
 
-    _editProgress.indeterminate = true;
-    _editProgress.hidden(false);
+    if (_editProgress != null) {
+      _editProgress.indeterminate = true;
+      _editProgress.hidden(false);
+    }
 
     var input = new CompileRequest()..source = context.dartSource;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
-      return executionService.execute(
-          _context.htmlSource, _context.cssSource, response.result);
+      if (executionService != null) {
+        return executionService.execute(
+            _context.htmlSource, _context.cssSource, response.result);
+      }
     }).catchError((e) {
       _showOuput('Error compiling to JavaScript:\n${e}', error: true);
       _showError('Error compiling to JavaScript', '${e}');
     }).whenComplete(() {
       _runButton.disabled = false;
-      _editProgress.hidden(true);
-      _editProgress.indeterminate = false;
+      if (_editProgress != null) {
+        _editProgress.hidden(true);
+        _editProgress.indeterminate = false;
+      }
     });
   }
 
@@ -366,8 +388,6 @@ class PlaygroundMobile {
       // Discard if the document has been mutated since we requested analysis.
       if (input.source != _context.dartSource) return;
 
-      _dartBusyLight.reset();
-
       _displayIssues(result.issues);
 
       _context.dartDocument.setAnnotations(result.issues.map(
@@ -385,7 +405,6 @@ class PlaygroundMobile {
       }).toList());
     }).catchError((e) {
       _context.dartDocument.setAnnotations([]);
-      _dartBusyLight.reset();
       _logger.severe(e);
     });
   }
@@ -433,7 +452,7 @@ class PlaygroundMobile {
       _clearErrors();
     } else {
       Element element = _errorsToast.element;
-
+      
       element.children.clear();
 
       issues.sort((a, b) => a.charStart - b.charStart);
@@ -473,6 +492,9 @@ class PlaygroundMobile {
   }
 
   void _showError(String title, String message) {
+    if (_messageDialog == null) {
+      return;
+    }
     _messageDialog.element.querySelector('h2').text = title;
     _messageDialog.element.querySelector('p').text = message;
     _messageDialog.open();
