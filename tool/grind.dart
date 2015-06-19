@@ -58,13 +58,15 @@ build() {
   // cp -R -L packages build/web/packages
   run('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
 
-  // Run vulcanize.
-  FilePath mobileHtmlFile = _buildDir.join('web', 'mobile.html');
-  log('${mobileHtmlFile.path} original: ${_printSize(mobileHtmlFile)}');
-  run('vulcanize', // '--csp', '--inline',
-      arguments: ['--strip', '--output', 'mobile.html', 'mobile.html'],
-      runOptions: new RunOptions(workingDirectory: 'build/web'));
-  log('${mobileHtmlFile.path} vulcanize: ${_printSize(mobileHtmlFile)}');
+  // // Run vulcanize.
+  // FilePath mobileHtmlFile = _buildDir.join('web', 'mobile.html');
+  // log('${mobileHtmlFile.path} original: ${_printSize(mobileHtmlFile)}');
+  // run('vulcanize',
+  //     arguments: ['--strip', '--inline', '--output', 'mobile.html', 'mobile.html'],
+  //     runOptions: new RunOptions(workingDirectory: 'build/web'));
+  // log('${mobileHtmlFile.path} vulcanize: ${_printSize(mobileHtmlFile)}');
+  //
+  // // TODO: vulcanize the embedding html files
 
   return _uploadCompiledStats(
       mainFile.asFile.lengthSync(),
