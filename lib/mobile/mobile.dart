@@ -292,11 +292,23 @@ class PlaygroundMobile {
       splash.onTransitionEnd.listen((_) => splash.parent.children.remove(splash));
       splash.classes.toggle('hide', true);
     });
-
+    
+    $('body').onClick.listen(_closeAbout);
+    
     _router = new Router()
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
       ..listen();
+  }
+  
+  void _closeAbout(Event e) {
+    PolymerElement dropdownAnimation = new PolymerElement.from($("animated-dropdown"));
+    if (e.target is Element) {
+      Element target = e.target;
+      if(target.id != 'ink' && target.id != 'icon') {
+        dropdownAnimation.call("hide");
+      }
+    }
   }
 
   void _handleRun() {
