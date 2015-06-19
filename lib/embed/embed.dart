@@ -49,10 +49,10 @@ class PlaygroundMobile {
   PaperIconButton _affirmButton;
   PaperIconButton _resetButton;
   PaperTabs _tabs;
-  
+
   Gist backupGist;
   Router _router;
-  
+
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -65,16 +65,16 @@ class PlaygroundMobile {
   PaperDialog _exportDialog;
   PolymerElement _output;
   PaperProgress _editProgress;
-  
+
   DivElement _docPanel;
-  
+
   DocHandler docHandler;
   String _gistId;
-  
+
   Future createNewGist() {
       return null;
   }
-  
+
   ModuleManager modules = new ModuleManager();
 
   PlaygroundMobile() {
@@ -122,7 +122,7 @@ class PlaygroundMobile {
     _messageToast = new PaperToast();
     document.body.children.add(_messageToast.element);
   }
-  
+
   void registerErrorToast() {
     if ($('#errorToast') != null) {
       _errorsToast = new PaperToast.from($('#errorToast'));
@@ -131,7 +131,7 @@ class PlaygroundMobile {
     }
     _errorsToast.duration = 100000;
   }
-  
+
   void registerResetToast() {
     if ($('#resetToast') != null) {
       _resetToast = new PaperToast.from($('#resetToast'));
@@ -140,13 +140,13 @@ class PlaygroundMobile {
     }
       _resetToast.duration = 3000;
     }
-  
+
   void registerMessageDialog() {
     if ($("#messageDialog") != null) {
       _messageDialog = new PaperDialog.from($("#messageDialog"));
     }
   }
-  
+
   void registerResetDialog() {
     if ($("#resetDialog") != null) {
       _resetDialog = new PaperDialog.from($("#resetDialog"));
@@ -154,15 +154,15 @@ class PlaygroundMobile {
       _resetDialog = new PaperDialog();
     }
   }
-  
+
   void registerExportDialog() {
     if ($("#exportDialog") != null) {
       _exportDialog = new PaperDialog.from($("#exportDialog"));
     } else {
-      _exportDialog = new PaperDialog(); 
+      _exportDialog = new PaperDialog();
     }
   }
-  
+
   void registerDocPanel() {
     if ($('#documentation') != null) {
       _docPanel = $('#documentation');
@@ -170,7 +170,7 @@ class PlaygroundMobile {
       _docPanel = new DivElement();
     }
   }
-  
+
   void registerSelectorTabs() {
     if ($("#selector-tabs") != null) {
     _tabs = new PaperTabs.from($("#selector-tabs"));
@@ -181,19 +181,19 @@ class PlaygroundMobile {
       });
     }
   }
-  
+
   void registerEditProgress() {
     if ($("#edit-progress") != null) {
       _editProgress = new PaperProgress.from($("#edit-progress"));
     }
   }
-  
+
   void registerRunButton() {
     _runButton = new PaperFab.from($("#run-button"));
     _runButton = _runButton != null ? _runButton : new PaperFab();
     _runButton.onTap.listen((_) => _handleRun());
   }
-  
+
   void registerExportButton() {
     if ($('[icon="launch"]') != null) {
       _exportButton = new PaperIconButton.from($('[icon="launch"]'));
@@ -202,7 +202,7 @@ class PlaygroundMobile {
       });
     }
   }
-  
+
   void registerResetButton() {
     if ($('[icon="refresh"]') != null) {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
@@ -211,7 +211,7 @@ class PlaygroundMobile {
       });
     }
   }
-  
+
   void registerCancelRefreshButton() {
     if ($('#cancelButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelButton'));
@@ -220,7 +220,7 @@ class PlaygroundMobile {
       });
     }
   }
-  
+
   void registerAffirmRefreshButton() {
     if ($('#affirmButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmButton'));
@@ -230,7 +230,7 @@ class PlaygroundMobile {
     });
     }
   }
-  
+
   void registerCancelExportButton() {
       if ($('#cancelButton') != null) {
         _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
@@ -239,7 +239,7 @@ class PlaygroundMobile {
         });
       }
     }
-    
+
   void registerAffirmExportButton() {
     if ($('#affirmButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
@@ -249,12 +249,12 @@ class PlaygroundMobile {
     });
     }
   }
-  
+
   //Console must exist
   void registerConsole() {
     _output = new PolymerElement.from($("#console"));
   }
-  
+
   void _createUi() {
     registerMessageToast();
     registerErrorToast();
@@ -273,14 +273,14 @@ class PlaygroundMobile {
     registerCancelExportButton();
     registerAffirmExportButton();
     registerConsole();
-    
+
     _clearOutput();
   }
-  
+
   void _export() {
-    
+
   }
-  
+
   void _reset() {
     _router = new Router();
     _router
@@ -288,7 +288,7 @@ class PlaygroundMobile {
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
       ..listen();
   }
-  
+
   void _showGist(String gistId, {bool run: false}) {
     gistLoader.loadGist(gistId).then((Gist gist) {
       _setGistDescription(gist.description);
@@ -332,13 +332,13 @@ class PlaygroundMobile {
       deps[ExecutionService] = new ExecutionServiceIFrame(new IFrameElement());
     }
   }
-  
+
   void _initPlayground() {
     // Set up the iframe.execution
     registerExecutionService();
     executionService.onStdout.listen(_showOuput);
     executionService.onStderr.listen((m) => _showOuput(m, error: true));
-    
+
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
     //$('editpanel').children.first.attributes['flex'] = '';
@@ -357,7 +357,7 @@ class PlaygroundMobile {
         docHandler.generateDoc(_docPanel);
       }
     });
-    
+
     // Listen for changes that would effect the documentation panel.
      editor.onMouseDown.listen((e) {
        // Delay to give codemirror time to process the mouse event.
@@ -367,13 +367,13 @@ class PlaygroundMobile {
          }
        });
      });
-    
+
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
 
 
     context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
-    
+
     _context.onHtmlReconcile.listen((_) {
       executionService.replaceHtml(_context.htmlSource);
     });
@@ -385,7 +385,7 @@ class PlaygroundMobile {
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
     docHandler = new DocHandler(editor, _context);
-    
+
     _finishedInit();
   }
 
@@ -482,7 +482,7 @@ class PlaygroundMobile {
     span.classes.add(error ? 'errorOutput' : 'normal');
     span.text = message;
     _output.add(span);
-    span.scrollIntoView(ScrollAlignment.BOTTOM);
+    span.scrollIntoView();
   }
 
   void _setGistDescription(String description) {
@@ -508,7 +508,7 @@ class PlaygroundMobile {
       _clearErrors();
     } else {
       Element element = _errorsToast.element;
-      
+
       element.children.clear();
 
       issues.sort((a, b) => a.charStart - b.charStart);
@@ -658,7 +658,7 @@ class PlaygroundContext extends Context {
       });
     });
   }
-  
+
   bool cursorPositionIsWhitespace() {
     Document document = editor.document;
     String str = document.value;

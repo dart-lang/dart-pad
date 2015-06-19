@@ -34,17 +34,18 @@
     <link rel="import" href="embed_components.html">
     <script type="application/dart" src="embed.dart"></script>
   </head>
+
   <body class="fullbleed vertical layout" unresolved>
     <menu-bar-icons></menu-bar-icons>
     <div class="height-max layout horizontal">
-      <div id="leftContainer" class = "vertical layout flex-6">
-        <dart-box dart class = "flex-5"></dart-box>
-        <horizontal-splitter class = "splitter"></horizontal-splitter>
-        <console-item class = "flex-2 layout vertical"></console-item>
+      <div id="leftContainer" class="vertical layout flex-6">
+        <dart-box-v2 dart class="flex-5"></dart-box-v2>
+        <horizontal-splitter class="splitter"></horizontal-splitter>
+        <console-item class="flex-2 layout vertical"></console-item>
       </div>
       <vertical-splitter></vertical-splitter>
-      <div id = "rightContainer" class ="vertical layout flex-4">
-        <html-output class = "flex"></html-output>
+      <div id="rightContainer" class ="vertical layout flex-4">
+        <dartpad-dom-output class="flex"></dartpad-dom-output>
       </div>
     </div>
     <paper-toast id="errorToast" text=""></paper-toast>

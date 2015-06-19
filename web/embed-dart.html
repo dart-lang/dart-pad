@@ -16,6 +16,7 @@
     <title>DartPad</title>
 
     <script src="packages/dart_pad/bower/webcomponentsjs/webcomponents-lite.min.js"></script>
+
     <link rel="import" href="imports.html"/>
     <link rel="import" href="animated-dropdown.html">
     <link rel="import" href="embed_style.html"/>
@@ -29,26 +30,46 @@
     <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
     <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
-    <link href="packages/dart_pad/editing/editor_codemirror.css"
-          rel="stylesheet" media="screen">
+    <link href="packages/dart_pad/editing/editor_codemirror.css" rel="stylesheet" media="screen">
+
     <link rel="import" href="embed_components.html">
     <script type="application/dart" src="embed.dart"></script>
+    <style>
+      #run-button {
+        background-color: #d23f31;
+      }
+
+      .button-bar {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        z-index: 20;
+      }
+
+      paper-fab + paper-fab {
+        margin-left: 8px;
+      }
+    </style>
   </head>
+
   <body class="fullbleed vertical layout" unresolved>
-    <div class="height-max layout horizontal">
-      <div id="leftContainer" class = "vertical layout flex-6">
-        <dart-box-v2 dart class = "flex-5"></dart-box-v2>
-        <horizontal-splitter class = "splitter"></horizontal-splitter>
-        <console-item class = "flex-2 layout vertical"></console-item>
+    <div class="flex layout horizontal">
+      <div class="relative vertical layout flex-6">
+        <div class="button-bar">
+          <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
+          <paper-fab id="export-pad" icon="launch" mini></paper-fab>
+        </div>
+        <dartpad-editor dart class="flex-5 layout vertical"></dartpad-editor>
+        <horizontal-splitter class="splitter"></horizontal-splitter>
+        <console-item class="flex-2 layout vertical"></console-item>
       </div>
       <vertical-splitter></vertical-splitter>
-      <div id = "rightContainer" class ="flex-4">
-        <export-floater></export-floater>
-        <documentation-box class = "flex layout vertical"></documentation-box>
-      </div>
+      <dartpad-documentation class="flex-4 layout vertical"></dartpad-documentation>
+
       <paper-toast id="errorToast" text=""></paper-toast>
     </div>
-    <html-output class = "invisible flex absolute"></html-output>
+
+    <dartpad-dom-output class="invisible"></dartpad-dom-output>
     <reset-dialog></reset-dialog>
     <export-dialog></export-dialog>
 

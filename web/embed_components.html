@@ -82,15 +82,17 @@
   </script>
 </dom-module>
 
-<dom-module id="documentation-box">
+<dom-module id="dartpad-documentation">
   <style>
+    :host {
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+
     #documentation {
       overflow-y: auto;
-      white-space: pre-wrap;
-      position: absolute;
-      width: 100%;
-      height: 100%;
     }
+
     code {
       white-space: pre-wrap;
     }
@@ -100,7 +102,7 @@
   </template>
   <script>
     Polymer({
-      is: 'documentation-box'
+      is: 'dartpad-documentation'
     });
   </script>
 </dom-module>
@@ -168,17 +170,23 @@
 
 <dom-module id="export-dialog">
   <style>
-    #exportDialog {
-      min-height: 90px;
-    }
+
   </style>
   <template>
-    <paper-dialog id="exportDialog" heading="Reset"
-                  transition="paper-dialog-transition-bottom">
-      <p>Export button under construction!</p>
-      <paper-button id="cancelExportButton" dismissive>Cancel</paper-button>
-      <span class="flex"></span>
-      <paper-button id="affirmExportButton" affirmative default>OK</paper-button>
+    <!-- entry-animation="scale-up-animation" exit-animation="fade-out-animation" -->
+    <paper-dialog id="exportDialog" heading="Export">
+      <h2>Export</h2>
+
+      <br>
+
+      <paper-dialog-scrollable>
+        Export button under construction!
+      </paper-dialog-scrollable>
+
+      <div class="buttons">
+        <paper-button dialog-dismiss id="cancelExportButton">Cancel</paper-button>
+        <paper-button dialog-confirm id="affirmExportButton">Export</paper-button>
+      </div>
     </paper-dialog>
   </template>
   <script>
@@ -206,7 +214,7 @@
   </script>
 </dom-module>
 
-<dom-module id="html-output">
+<dom-module id="dartpad-dom-output">
   <style>
     #frameContainer {
       position: fixed;
@@ -236,7 +244,7 @@
   </template>
   <script>
     Polymer({
-      is: 'html-output'
+      is: 'dartpad-dom-output'
     });
   </script>
 </dom-module>
@@ -261,7 +269,27 @@
   </script>
 </dom-module>
 
-<dom-module id="dart-box">
+<dom-module id="dartpad-editor">
+  <style>
+    #editpanel {
+      position: relative;
+      margin: 8px;
+    }
+  </style>
+  <template>
+    <div id="editpanel" class="editor flex"></div>
+  </template>
+  <script>
+    Polymer({
+      is: 'dartpad-editor',
+      properties: {
+        dart: String
+      }
+    });
+  </script>
+</dom-module>
+
+<dom-module id="dart-box-v2">
   <style>
     #editpanel {
       height: 100%;
@@ -283,36 +311,6 @@
     </div>
   </template>
 
-  <script>
-    Polymer({
-      is: 'dart-box',
-      properties: {
-        dart: String
-      }
-    });
-  </script>
-</dom-module>
-
-<dom-module id="dart-box-v2">
-  <style>
-    #editpanel {
-      height: 100%;
-      position: relative;
-      margin: 8px;
-    }
-
-    #run-button {
-      position: absolute;
-      right: 16px;
-      top: 10px;
-      z-index: 10;
-    }
-  </style>
-  <template>
-    <div id="editpanel" class="editor">
-      <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
-    </div>
-  </template>
   <script>
     Polymer({
       is: 'dart-box-v2',
@@ -361,15 +359,16 @@
 
 <dom-module id="console-item">
   <style>
+    :host {
+      padding: 8px;
+    }
+
     #console {
       font-family: 'Inconsolata', monospace;
       font-size: 12pt;
       line-height: 20px;
       overflow-y: auto;
-      margin: 2px;
-      padding: 8px;
       white-space: pre-wrap;
-      background-color: var(--secondary-text-color);
     }
 
     #console .normal {
