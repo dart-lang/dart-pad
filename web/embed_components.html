@@ -2,28 +2,32 @@
      for details. All rights reserved. Use of this source code is governed by a
      BSD-style license that can be found in the LICENSE file. -->
 
-
 <link rel="import" href="imports.html"/>
+
 <dom-module id="selection-toolbar">
   <style>
-  .tabs {
-    background: #485D67;
-    top: inherit;
-    position: relative;
-  }
-  paper-tabs {
-    height: 36px;
-    font-weight: 400;
-  }
+    .tabs {
+      background: #485D67;
+      top: inherit;
+      position: relative;
+    }
+
+    paper-tabs {
+      height: 36px;
+      font-weight: 400;
+    }
+
+    #edit-progress {
+      top: inherit;
+    }
   </style>
   <template>
-    <paper-tabs id = "selector-tabs" class ="tabs" selected="0" class="bottom fit vertical" >
-        <paper-tab name="dart">Dart</paper-tab>
-        <paper-tab name="html">HTML</paper-tab>
-        <paper-tab name="css">CSS</paper-tab>
-      </paper-tabs>
-    <paper-progress id="edit-progress"  class="bottom fit" hidden
-        style="top: inherit"></paper-progress>
+    <paper-tabs id="selector-tabs" class ="tabs" selected="0" class="bottom fit vertical">
+      <paper-tab name="dart">Dart</paper-tab>
+      <paper-tab name="html">HTML</paper-tab>
+      <paper-tab name="css">CSS</paper-tab>
+    </paper-tabs>
+    <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
   </template>
 
   <script>
@@ -35,22 +39,23 @@
 
 <dom-module id="output-toolbar">
   <style>
-  .tabs {
-    background: #485D67;
-    top: inherit;
-    position: relative;
-  }
-  paper-tabs {
-    height: 36px;
-    font-weight: 400;
-  }
+    .tabs {
+      background: #485D67;
+      top: inherit;
+      position: relative;
+    }
+
+    paper-tabs {
+      height: 36px;
+      font-weight: 400;
+    }
   </style>
   <template>
     <div>
-      <paper-tabs class="tabs" selected="0" style = "position:relative" class="bottom fit vertical" style="top: inherit">
-          <span class="flex"></span>
-          <paper-icon-button id = "refresh" icon="refresh"></paper-icon-button>
-          <paper-icon-button id = "launch" icon="launch"></paper-icon-button>
+      <paper-tabs selected="0" class="tabs bottom fit vertical">
+        <span class="flex"></span>
+        <paper-icon-button id="refresh" icon="refresh"></paper-icon-button>
+        <paper-icon-button id="launch" icon="launch"></paper-icon-button>
       </paper-tabs>
     </div>
   </template>
@@ -63,15 +68,15 @@
 
 <dom-module id="export-floater">
   <style>
-  .rightFloater {
-    position: absolute;
-    right: 5px;
-    z-index: 10;
-  }
+    .rightFloater {
+      position: absolute;
+      right: 5px;
+      z-index: 10;
+    }
   </style>
   <template>
-    <div class = 'rightFloater'>
-      <paper-icon-button id = "launch" icon="launch"></paper-icon-button>
+    <div class='rightFloater'>
+      <paper-icon-button id="launch" icon="launch"></paper-icon-button>
     </div>
   </template>
   <script>
@@ -81,42 +86,44 @@
   </script>
 </dom-module>
 
-<dom-module id="documentation-box">
+<dom-module id="dartpad-documentation">
   <style>
+    :host {
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+
     #documentation {
       overflow-y: auto;
-      white-space: pre-wrap;
-      position: absolute;
-      width: 100%;
-      height: 100%;
+      overflow-x: hidden;
     }
-    code {
-      white-space: pre-wrap;
+
+    pre {
+      overflow-x: auto;
     }
   </style>
   <template>
-    <div id="documentation" class = 'flex'></div>
+    <div id="documentation" class='flex'></div>
   </template>
   <script>
     Polymer({
-      is: 'documentation-box'
+      is: 'dartpad-documentation'
     });
   </script>
 </dom-module>
 
 <dom-module id="reset-dialog">
   <style>
-   #resetDialog {
-    min-height: 90px;
-   }
+    #resetDialog {
+      min-height: 90px;
+    }
   </style>
   <template>
-    <paper-dialog id="resetDialog" heading="Reset"
-                  transition="paper-dialog-transition-bottom">
+    <paper-dialog id="resetDialog" heading="Reset" transition="paper-dialog-transition-bottom">
       <p>This will reset all changes. Are you sure?</p>
-      <paper-button id = "cancelButton" dismissive>Cancel</paper-button>
+      <paper-button id="cancelButton" dismissive>Cancel</paper-button>
       <span class="flex"></span>
-      <paper-button id = "affirmButton" affirmative default>OK</paper-button>
+      <paper-button id="affirmButton" affirmative default>OK</paper-button>
     </paper-dialog>
   </template>
   <script>
@@ -133,28 +140,32 @@
       top: inherit;
       position: relative;
     }
+
     paper-tabs {
-      width:100%;
+      width: 100%;
       height: 36px;
       font-weight: 400;
     }
+
+    #edit-progress {
+      top: inherit;
+    }
   </style>
   <template>
-    <div class = "layout horizontal flex">
-      <div class = "layout horizontal flex-6">
-        <paper-tabs id = "selector-tabs" class ="tabs" selected="0" class=flex" >
-            <paper-tab name="dart">Dart</paper-tab>
-            <paper-tab name="html">HTML</paper-tab>
-            <paper-tab name="css">CSS</paper-tab>
-          </paper-tabs>
-        <paper-progress id="edit-progress"  class="bottom fit" hidden
-            style="top: inherit"></paper-progress>
+    <div class="layout horizontal flex">
+      <div class="layout horizontal flex-6">
+        <paper-tabs id="selector-tabs" class ="tabs" selected="0" class="flex">
+          <paper-tab name="dart">Dart</paper-tab>
+          <paper-tab name="html">HTML</paper-tab>
+          <paper-tab name="css">CSS</paper-tab>
+        </paper-tabs>
+        <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
       </div>
-      <div class = "layout horizontal flex-4"> 
-        <paper-tabs class="tabs" selected="0" class="flex" style="top: inherit">
-            <span class="flex"></span>
-            <paper-icon-button id = "refresh" icon="refresh"></paper-icon-button>
-            <paper-icon-button id = "launch" icon="launch"></paper-icon-button>
+      <div class="layout horizontal flex-4">
+        <paper-tabs selected="0" class="tabs flex">
+          <span class="flex"></span>
+          <paper-icon-button id="refresh" icon="refresh"></paper-icon-button>
+          <paper-icon-button id="launch" icon="launch"></paper-icon-button>
         </paper-tabs>
       </div>
     </div>
@@ -166,20 +177,25 @@
   </script>
 </dom-module>
 
-
 <dom-module id="export-dialog">
   <style>
-   #exportDialog {
-    min-height: 90px;
-   }
+
   </style>
   <template>
-    <paper-dialog id="exportDialog" heading="Reset"
-                  transition="paper-dialog-transition-bottom">
-      <p>Export button under construction!</p>
-      <paper-button id = "cancelExportButton" dismissive>Cancel</paper-button>
-      <span class="flex"></span>
-      <paper-button id = "affirmExportButton" affirmative default>OK</paper-button>
+    <!-- entry-animation="scale-up-animation" exit-animation="fade-out-animation" -->
+    <paper-dialog id="exportDialog" heading="Export">
+      <h2>Export</h2>
+
+      <br>
+
+      <paper-dialog-scrollable>
+        Export button under construction!
+      </paper-dialog-scrollable>
+
+      <div class="buttons">
+        <paper-button dialog-dismiss id="cancelExportButton">Cancel</paper-button>
+        <paper-button dialog-confirm id="affirmExportButton">Export</paper-button>
+      </div>
     </paper-dialog>
   </template>
   <script>
@@ -207,26 +223,29 @@
   </script>
 </dom-module>
 
-<dom-module id="html-output">
+<dom-module id="dartpad-dom-output">
   <style>
-   #frameContainer {
-     position: fixed;
-   }
-   #frame {
-     width: 100%;
-     height: 100%;
-     border: 0px;
-   }
-   .maxHeight {
-     height: 100%;
-   }
-   .maxWidth {
-     width: 100%;
-   }
+    #frameContainer {
+      position: fixed;
+    }
+
+    #frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .maxHeight {
+      height: 100%;
+    }
+
+    .maxWidth {
+      width: 100%;
+    }
   </style>
   <template>
     <div id="frameContainer" class="flex-2 layout vertical maxHeight maxWidth">
-      <div class = "flex maxHeight">
+      <div class="flex maxHeight">
         <iframe class="flex maxHeight maxWidth" id="frame" sandbox="allow-scripts" src="frame.html">
         </iframe>
       </div>
@@ -234,18 +253,18 @@
   </template>
   <script>
     Polymer({
-      is: 'html-output'
+      is: 'dartpad-dom-output'
     });
   </script>
 </dom-module>
 
 <dom-module id="error-toast">
   <style>
-   :host{
-    height:0px;
-    widht:0px;
-    position:relative;
-   }
+    :host {
+      height: 0;
+      width: 0;
+      position: relative;
+     }
   </style>
   <template>
     <div id="larger">
@@ -259,30 +278,19 @@
   </script>
 </dom-module>
 
-<dom-module id="dart-box">
+<dom-module id="dartpad-editor">
   <style>
-  #editpanel {
-    height: 100%;
-    position: relative;
-    margin: 8px;
-  }
-  #run-button {
-    background-color: #d23f31;
-    position: absolute;
-    bottom: 16px;
-    right: 16px;
-    z-index: 10;
-  }
+    #editpanel {
+      position: relative;
+      margin: 8px;
+    }
   </style>
   <template>
-    <div id="editpanel" class="editor">
-      <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
-    </div>
+    <div id="editpanel" class="editor flex"></div>
   </template>
-
   <script>
     Polymer({
-      is: 'dart-box',
+      is: 'dartpad-editor',
       properties: {
         dart: String
       }
@@ -292,22 +300,24 @@
 
 <dom-module id="dart-box-v2">
   <style>
-  #editpanel {
-    height: 100%;
-    position: relative;
-    margin: 8px;
-  }
-  #run-button {
-    position: absolute;
-    right: 16px;
-    top: 10px;
-    z-index: 10;
-  }
+    #editpanel {
+      height: 100%;
+      position: relative;
+      margin: 8px;
+    }
+
+    #run-button {
+      background-color: #d23f31;
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 10;
+    }
   </style>
   <template>
     <div id="editpanel" class="editor">
       <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
-    </div> 
+    </div>
   </template>
 
   <script>
@@ -322,11 +332,11 @@
 
 <dom-module id="horizontal-splitter">
   <style>
-  :host {
-  min-height: 5px;
-  box-shadow:rgba(255, 255, 255, 0.07) 0 1px 0;
-  border-bottom:1px solid #121212;
-  }
+    :host {
+      min-height: 5px;
+      box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
+      border-bottom: 1px solid #121212;
+    }
   </style>
   <template>
   </template>
@@ -339,17 +349,16 @@
 
 <dom-module id="vertical-splitter">
   <style>
-  :host {
-  min-height: 5px;
-  min-width: 2px;
-  box-shadow: rgba(255, 255, 255, 0.07) 1px 1px 0;
-  border-left: 1px solid #121212;
-  margin-right: 8px;
-  }
+    :host {
+      min-height: 5px;
+      min-width: 2px;
+      box-shadow: rgba(255, 255, 255, 0.07) 1px 1px 0;
+      border-left: 1px solid #121212;
+      margin-right: 8px;
+    }
   </style>
   <template>
   </template>
-
   <script>
     Polymer({
       is: 'vertical-splitter'
@@ -357,33 +366,35 @@
   </script>
 </dom-module>
 
-<dom-module id="console-item">
+<dom-module id="dartpad-console">
   <style>
-  #console {
-    font-family: 'Inconsolata', monospace;
-    font-size: 12pt;
-    line-height: 20px;
-    overflow-y: auto;
-    margin: 2px;
-    padding: 8px;
-    white-space: pre-wrap;
-    background-color: var(--secondary-text-color);
-  }
-  #console .normal {
-    color: var(--text-primary-color);
-  }
+    :host {
+      padding: 8px;
+    }
 
-  #console .errorOutput {
-    color: #F7977A;
-  }
+    #console {
+      font-family: 'Inconsolata', monospace;
+      font-size: 12pt;
+      line-height: 20px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      height: 0;
+    }
+
+    #console .normal {
+      color: var(--text-primary-color);
+    }
+
+    #console .errorOutput {
+      color: #F7977A;
+    }
   </style>
   <template>
-    <div id="console" class="flex-1 maxHeight"></div>
+    <div id="console" class="flex"></div>
   </template>
-
   <script>
     Polymer({
-      is: 'console-item'
+      is: 'dartpad-console'
     });
   </script>
 </dom-module>
