@@ -33,18 +33,35 @@
           rel="stylesheet" media="screen">
     <link rel="import" href="embed_components.html">
     <script type="application/dart" src="embed.dart"></script>
+    <style>
+      #run-button {
+        background-color: #d23f31;
+      }
+
+      .button-bar {
+        position: absolute;
+        right: 16px;
+        top: 16px;
+        z-index: 20;
+      }
+
+      paper-fab + paper-fab {
+        margin-left: 8px;
+      }
+    </style>
   </head>
 
   <body class="fullbleed vertical layout" unresolved>
     <menu-bar-icons></menu-bar-icons>
-    <div class="height-max layout horizontal">
-      <div id="leftContainer" class="vertical layout flex-6">
-        <dart-box-v2 dart class="flex-5"></dart-box-v2>
+    <div class="flex layout horizontal">
+      <div class="relative vertical layout flex-6">
+        <dartpad-run-button></dartpad-run-button>
+        <dartpad-editor dart class="flex-5 layout vertical"></dartpad-editor>
         <horizontal-splitter class="splitter"></horizontal-splitter>
         <dartpad-console class="flex-2 layout vertical"></dartpad-console>
       </div>
       <vertical-splitter></vertical-splitter>
-      <div id="rightContainer" class ="vertical layout flex-4">
+      <div class ="relative vertical layout flex-4">
         <dartpad-dom-output class="flex"></dartpad-dom-output>
       </div>
     </div>
