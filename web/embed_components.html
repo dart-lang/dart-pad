@@ -16,6 +16,10 @@
       height: 36px;
       font-weight: 400;
     }
+
+    #edit-progress {
+      top: inherit;
+    }
   </style>
   <template>
     <paper-tabs id="selector-tabs" class ="tabs" selected="0" class="bottom fit vertical">
@@ -23,7 +27,7 @@
       <paper-tab name="html">HTML</paper-tab>
       <paper-tab name="css">CSS</paper-tab>
     </paper-tabs>
-    <paper-progress id="edit-progress"  class="bottom fit" hidden style="top: inherit"></paper-progress>
+    <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
   </template>
 
   <script>
@@ -48,7 +52,7 @@
   </style>
   <template>
     <div>
-      <paper-tabs class="tabs" selected="0" style="position:relative" class="bottom fit vertical" style="top: inherit">
+      <paper-tabs selected="0" class="tabs bottom fit vertical">
         <span class="flex"></span>
         <paper-icon-button id="refresh" icon="refresh"></paper-icon-button>
         <paper-icon-button id="launch" icon="launch"></paper-icon-button>
@@ -142,6 +146,10 @@
       height: 36px;
       font-weight: 400;
     }
+
+    #edit-progress {
+      top: inherit;
+    }
   </style>
   <template>
     <div class="layout horizontal flex">
@@ -151,10 +159,10 @@
           <paper-tab name="html">HTML</paper-tab>
           <paper-tab name="css">CSS</paper-tab>
         </paper-tabs>
-        <paper-progress id="edit-progress"  class="bottom fit" hidden style="top: inherit"></paper-progress>
+        <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
       </div>
       <div class="layout horizontal flex-4">
-        <paper-tabs class="tabs" selected="0" class="flex" style="top: inherit">
+        <paper-tabs selected="0" class="tabs flex">
           <span class="flex"></span>
           <paper-icon-button id="refresh" icon="refresh"></paper-icon-button>
           <paper-icon-button id="launch" icon="launch"></paper-icon-button>
@@ -224,7 +232,7 @@
     #frame {
       width: 100%;
       height: 100%;
-      border: 0px;
+      border: 0;
     }
 
     .maxHeight {
