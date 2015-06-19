@@ -13,7 +13,7 @@ class MainHandler(webapp2.RequestHandler):
     def get(self):
         uagent = UAgentInfo(str(self.request.user_agent), str(self.request.accept))
         isMobile = uagent.detectMobileLong() or uagent.detectTierTablet()
-        mainPage = 'mobile.html' if isMobile else 'index.html' 
+        mainPage = 'mobile.html' if isMobile else 'index.html'
 
         if self.request.uri.find("try.dartlang.org") > 0:
             self.redirect("https://dartpad.dartlang.org")
@@ -21,6 +21,10 @@ class MainHandler(webapp2.RequestHandler):
         parsedURL = urlparse(self.request.uri)
         path = parsedURL.path;
         targetSplits = path.split('/')
+
+        if os.path.isfile(path):
+            _serve(self.response, path)
+            return
 
         # If it is a request for a file in the TLD, serve as is.
         if targetSplits[1].find('.') > 0:
@@ -71,12 +75,14 @@ def _serve(resp, path):
 
     if path.endswith('.css'):
         resp.content_type = 'text/css'
-
     if path.endswith('.svg'):
         resp.content_type = 'image/svg+xml'
-
     if path.endswith('.js'):
         resp.content_type = 'application/javascript'
+    if path.endswith('.ico'):
+        resp.content_type = 'image/x-icon'
+    if path.endswith('.html'):
+        resp.content_type = 'text/html '
 
     f = open(path, 'r')
     c = f.read()
