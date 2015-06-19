@@ -357,7 +357,7 @@
   </script>
 </dom-module>
 
-<dom-module id="console-item">
+<dom-module id="dartpad-console">
   <style>
     :host {
       padding: 8px;
@@ -369,6 +369,7 @@
       line-height: 20px;
       overflow-y: auto;
       white-space: pre-wrap;
+      height: 0;
     }
 
     #console .normal {
@@ -380,11 +381,11 @@
     }
   </style>
   <template>
-    <div id="console" class="flex-1 maxHeight"></div>
+    <div id="console" class="flex"></div>
   </template>
   <script>
     Polymer({
-      is: 'console-item'
+      is: 'dartpad-console'
     });
   </script>
 </dom-module>
