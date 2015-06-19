@@ -9,21 +9,23 @@
     .tabs {
       background: #485D67;
       top: inherit;
-      position: relative;
     }
 
     paper-tabs {
       height: 36px;
       font-weight: 400;
     }
+    #edit-progress {
+      top: inherit;
+    }
   </style>
   <template>
-    <paper-tabs id="selector-tabs" class ="tabs" selected="0" class="bottom fit vertical">
+    <paper-tabs id="selector-tabs" selected="0" class="bottom fit vertical tabs relative">
       <paper-tab name="dart">Dart</paper-tab>
       <paper-tab name="html">HTML</paper-tab>
       <paper-tab name="css">CSS</paper-tab>
     </paper-tabs>
-    <paper-progress id="edit-progress"  class="bottom fit" hidden style="top: inherit"></paper-progress>
+    <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
   </template>
 
   <script>
@@ -71,7 +73,6 @@
     .tabs {
       background: #485D67;
       top: inherit;
-      position: relative;
     }
 
     paper-tabs {
@@ -81,7 +82,7 @@
   </style>
   <template>
     <div>
-      <paper-tabs class="tabs" selected="0" style="position:relative" class="bottom fit vertical" style="top: inherit">
+      <paper-tabs class="tabs" selected="0" class="relative bottom fit vertical">
         <span class="flex"></span>
         <paper-icon-button id="refresh" icon="refresh"></paper-icon-button>
         <paper-icon-button id="launch" icon="launch"></paper-icon-button>
@@ -167,7 +168,6 @@
     .tabs {
       background: #485D67;
       top: inherit;
-      position: relative;
     }
 
     paper-tabs {
@@ -175,19 +175,23 @@
       height: 36px;
       font-weight: 400;
     }
+    
+    #edit-progress {
+      top: inherit;
+    }
   </style>
   <template>
     <div class="layout horizontal flex">
       <div class="layout horizontal flex-6">
-        <paper-tabs id="selector-tabs" class ="tabs" selected="0" class="flex">
+        <paper-tabs id="selector-tabs" class ="tabs relative flex" selected="0">
           <paper-tab name="dart">Dart</paper-tab>
           <paper-tab name="html">HTML</paper-tab>
           <paper-tab name="css">CSS</paper-tab>
         </paper-tabs>
-        <paper-progress id="edit-progress"  class="bottom fit" hidden style="top: inherit"></paper-progress>
+        <paper-progress id="edit-progress"  class="bottom fit" hidden></paper-progress>
       </div>
       <div class="layout horizontal flex-4">
-        <paper-tabs class="tabs" selected="0" class="flex" style="top: inherit">
+        <paper-tabs class="tabs" selected="0" class="flex">
           <span class="flex"></span>
           <paper-icon-button id="refresh" icon="refresh"></paper-icon-button>
           <paper-icon-button id="launch" icon="launch"></paper-icon-button>
@@ -292,12 +296,11 @@
 <dom-module id="dartpad-editor">
   <style>
     #editpanel {
-      position: relative;
       margin: 8px;
     }
   </style>
   <template>
-    <div id="editpanel" class="editor flex"></div>
+    <div id="editpanel" class="relative editor flex"></div>
   </template>
   <script>
     Polymer({
