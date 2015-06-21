@@ -54,6 +54,20 @@
 
 <dom-module id="dartpad-run-button">
   <style>
+    #run-button {
+      background-color: #d23f31;
+    }
+
+    .button-bar {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      z-index: 20;
+    }
+
+    paper-fab + paper-fab {
+      margin-left: 8px;
+    }
   </style>
   <template>
     <div class="button-bar">
@@ -191,7 +205,7 @@
         <paper-progress id="edit-progress"  class="bottom fit" hidden></paper-progress>
       </div>
       <div class="layout horizontal flex-4">
-        <paper-tabsselected="0" class="flex tabs">
+        <paper-tabs selected="0" class="tabs flex">
           <span class="flex"></span>
           <paper-icon-button id="refresh" icon="refresh"></paper-icon-button>
           <paper-icon-button id="launch" icon="launch"></paper-icon-button>
