@@ -19,6 +19,7 @@
       }
     </style>
     <script>
+
 replaceJavaScript = function(value) {
   // Remove the old node.
   var node = document.getElementById('scriptId');
@@ -33,13 +34,23 @@ replaceJavaScript = function(value) {
   document.head.appendChild(s);
 }
 
+retriggerJavaScriptScripts = function() {
+  var scripts = document.body.getElementsByTagName("script");
+  for (var i = 0; i < scripts.length; ++i) {
+    var oldScript = scripts[i];
+    var newScript = document.createElement('script');
+    if (oldScript.src) newScript.src = oldScript.src;
+    newScript.textContent = oldScript.textContent;
+    oldScript.parentNode.replaceChild(newScript, oldScript);
+  }
+}
+
 messageHandler = function(e) {
   // TODO: verify the domain is correct
 
   var obj = e.data;
   var command = obj.command;
-
-  var body = document.querySelector('body');
+  var body = document.body;
 
   if (command == 'setCss') {
     document.getElementById('styleId').innerHTML = obj.css;
@@ -52,6 +63,7 @@ messageHandler = function(e) {
     // TODO: We have a race condition here.
     setTimeout(function() {
       replaceJavaScript(obj.js);
+      retriggerJavaScriptScripts();
     }, 150);
   }
 }
