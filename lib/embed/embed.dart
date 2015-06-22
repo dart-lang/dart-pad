@@ -278,7 +278,8 @@ class PlaygroundMobile {
   }
 
   void _export() {
-
+    window.open("/newpad?dart=${context.dartSource}&html=${context.htmlSource}&${context.cssSource}"
+        , "Main DartPad");
   }
 
   void _reset() {
