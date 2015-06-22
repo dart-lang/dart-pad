@@ -34,31 +34,12 @@
 
     <link rel="import" href="embed_components.html">
     <script type="application/dart" src="embed.dart"></script>
-    <style>
-      #run-button {
-        background-color: #d23f31;
-      }
-
-      .button-bar {
-        position: absolute;
-        right: 16px;
-        top: 16px;
-        z-index: 20;
-      }
-
-      paper-fab + paper-fab {
-        margin-left: 8px;
-      }
-    </style>
   </head>
 
   <body class="fullbleed vertical layout" unresolved>
     <div class="flex layout horizontal">
       <div class="relative vertical layout flex-6">
-        <div class="button-bar">
-          <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
-          <paper-fab id="export-pad" icon="launch" mini></paper-fab>
-        </div>
+        <dartpad-buttons></dartpad-buttons>
         <dartpad-editor dart class="flex-5 layout vertical"></dartpad-editor>
         <horizontal-splitter class="splitter"></horizontal-splitter>
         <dartpad-console class="flex-2 layout vertical"></dartpad-console>
@@ -69,7 +50,7 @@
       <paper-toast id="errorToast" text=""></paper-toast>
     </div>
 
-    <dartpad-dom-output class="invisible"></dartpad-dom-output>
+    <dartpad-dom-output class="invisible flex"></dartpad-dom-output>
     <reset-dialog></reset-dialog>
     <export-dialog></export-dialog>
 

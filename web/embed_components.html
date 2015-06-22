@@ -9,20 +9,18 @@
     .tabs {
       background: #485D67;
       top: inherit;
-      position: relative;
     }
 
     paper-tabs {
       height: 36px;
       font-weight: 400;
     }
-
     #edit-progress {
       top: inherit;
     }
   </style>
   <template>
-    <paper-tabs id="selector-tabs" class ="tabs" selected="0" class="bottom fit vertical">
+    <paper-tabs id="selector-tabs" selected="0" class="bottom fit vertical tabs relative">
       <paper-tab name="dart">Dart</paper-tab>
       <paper-tab name="html">HTML</paper-tab>
       <paper-tab name="css">CSS</paper-tab>
@@ -37,12 +35,72 @@
   </script>
 </dom-module>
 
+<dom-module id="dartpad-buttons">
+  <style>
+    #run-button {
+      background-color: #d23f31;
+    }
+
+    .button-bar {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      z-index: 20;
+    }
+
+    paper-fab + paper-fab {
+      margin-left: 8px;
+    }
+  </style>
+  <template>
+    <div class="button-bar">
+      <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
+      <paper-fab id="export-pad" icon="launch" mini></paper-fab>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'dartpad-buttons'
+    });
+  </script>
+</dom-module>
+
+<dom-module id="dartpad-run-button">
+  <style>
+    #run-button {
+      background-color: #d23f31;
+    }
+
+    .button-bar {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      z-index: 20;
+    }
+
+    paper-fab + paper-fab {
+      margin-left: 8px;
+    }
+  </style>
+  <template>
+    <div class="button-bar">
+      <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'dartpad-run-button'
+    });
+  </script>
+</dom-module>
+
 <dom-module id="output-toolbar">
   <style>
     .tabs {
       background: #485D67;
       top: inherit;
-      position: relative;
     }
 
     paper-tabs {
@@ -52,7 +110,7 @@
   </style>
   <template>
     <div>
-      <paper-tabs selected="0" class="tabs bottom fit vertical">
+      <paper-tabs selected="0" class="tabs relative bottom fit vertical">
         <span class="flex"></span>
         <paper-icon-button id="refresh" icon="refresh"></paper-icon-button>
         <paper-icon-button id="launch" icon="launch"></paper-icon-button>
@@ -138,7 +196,6 @@
     .tabs {
       background: #485D67;
       top: inherit;
-      position: relative;
     }
 
     paper-tabs {
@@ -146,7 +203,7 @@
       height: 36px;
       font-weight: 400;
     }
-
+    
     #edit-progress {
       top: inherit;
     }
@@ -154,12 +211,12 @@
   <template>
     <div class="layout horizontal flex">
       <div class="layout horizontal flex-6">
-        <paper-tabs id="selector-tabs" class ="tabs" selected="0" class="flex">
+        <paper-tabs id="selector-tabs" class ="tabs relative flex" selected="0">
           <paper-tab name="dart">Dart</paper-tab>
           <paper-tab name="html">HTML</paper-tab>
           <paper-tab name="css">CSS</paper-tab>
         </paper-tabs>
-        <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
+        <paper-progress id="edit-progress"  class="bottom fit" hidden></paper-progress>
       </div>
       <div class="layout horizontal flex-4">
         <paper-tabs selected="0" class="tabs flex">
@@ -230,26 +287,12 @@
     }
 
     #frame {
-      width: 100%;
-      height: 100%;
-      border: 0;
-    }
-
-    .maxHeight {
-      height: 100%;
-    }
-
-    .maxWidth {
-      width: 100%;
+      border: none;
     }
   </style>
   <template>
-    <div id="frameContainer" class="flex-2 layout vertical maxHeight maxWidth">
-      <div class="flex maxHeight">
-        <iframe class="flex maxHeight maxWidth" id="frame" sandbox="allow-scripts" src="frame.html">
-        </iframe>
-      </div>
-    </div>
+    <iframe class="flex layout vertical" id="frame" sandbox="allow-scripts" src="frame.html">
+    </iframe>
   </template>
   <script>
     Polymer({
@@ -281,48 +324,15 @@
 <dom-module id="dartpad-editor">
   <style>
     #editpanel {
-      position: relative;
       margin: 8px;
     }
   </style>
   <template>
-    <div id="editpanel" class="editor flex"></div>
+    <div id="editpanel" class="relative editor flex"></div>
   </template>
   <script>
     Polymer({
       is: 'dartpad-editor',
-      properties: {
-        dart: String
-      }
-    });
-  </script>
-</dom-module>
-
-<dom-module id="dart-box-v2">
-  <style>
-    #editpanel {
-      height: 100%;
-      position: relative;
-      margin: 8px;
-    }
-
-    #run-button {
-      background-color: #d23f31;
-      position: absolute;
-      bottom: 16px;
-      right: 16px;
-      z-index: 10;
-    }
-  </style>
-  <template>
-    <div id="editpanel" class="editor">
-      <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
-    </div>
-  </template>
-
-  <script>
-    Polymer({
-      is: 'dart-box-v2',
       properties: {
         dart: String
       }
