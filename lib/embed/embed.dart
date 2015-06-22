@@ -279,8 +279,8 @@ class PlaygroundMobile {
 
   void _export() {
     window.open(
-        "/newpad?dart=${context.dartSource}&html=${context.htmlSource}&${context.cssSource}",
-        "Main DartPad");
+        "/newpad?dart=${Uri.encodeQueryComponent(context.dartSource)}&html=${Uri.encodeQueryComponent(context.htmlSource)}&css=${Uri.encodeQueryComponent(context.cssSource)}",
+        "DartPad");
   }
 
   void _reset() {
