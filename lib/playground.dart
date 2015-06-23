@@ -183,9 +183,9 @@ class Playground implements GistContainer, GistController {
     bool loadedFromSaved = false;
     if (querySelector('#dart-code') != null) {
       Gist blankGist = createSampleGist();
-      blankGist.getFile('main.dart').content = querySelector('#dart-code').innerHtml;
-      blankGist.getFile('index.html').content = querySelector('#html-code').innerHtml;
-      blankGist.getFile('styles.css').content = querySelector('#css-code').innerHtml;
+      blankGist.getFile('main.dart').content = Uri.decodeQueryComponent(querySelector('#dart-code').innerHtml);
+      blankGist.getFile('index.html').content = Uri.decodeQueryComponent(querySelector('#html-code').innerHtml);
+      blankGist.getFile('styles.css').content = Uri.decodeQueryComponent(querySelector('#css-code').innerHtml);
       editableGist.setBackingGist(blankGist);
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;

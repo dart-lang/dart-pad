@@ -67,7 +67,16 @@ def isDevelopment():
 
 # Serve the files.
 def _serve(resp, path):
-
+	if path.startswith('newpad'):
+	    	queryFields = path.split('=')
+	    	dart = queryFields[1].rstrip('html')[:-1]
+	    	html = queryFields[2].rstrip('css')[:-1]
+	    	css = queryFields[3]
+	    	c = open('index.html', 'r').read()
+	    	c = c + "<div id='dart-code'>{0}</div><div id='html-code'>{1}</div><div id='css-code'>{2}</div>".format(dart, html, css)
+	    	resp.write(c)
+	    	return
+	    	
     if not os.path.isfile(path):
         resp.status = 404
         resp.write("<html><h1>404: Not found</h1></html>")
@@ -83,7 +92,6 @@ def _serve(resp, path):
         resp.content_type = 'image/x-icon'
     if path.endswith('.html'):
         resp.content_type = 'text/html '
-
     f = open(path, 'r')
     c = f.read()
     resp.write(c)
