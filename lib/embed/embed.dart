@@ -72,7 +72,7 @@ class PlaygroundMobile {
   String _gistId;
 
   Future createNewGist() {
-      return null;
+    return null;
   }
 
   ModuleManager modules = new ModuleManager();
@@ -138,8 +138,8 @@ class PlaygroundMobile {
     } else {
       _resetToast = new PaperToast();
     }
-      _resetToast.duration = 3000;
-    }
+    _resetToast.duration = 3000;
+  }
 
   void registerMessageDialog() {
     if ($("#messageDialog") != null) {
@@ -173,11 +173,11 @@ class PlaygroundMobile {
 
   void registerSelectorTabs() {
     if ($("#selector-tabs") != null) {
-    _tabs = new PaperTabs.from($("#selector-tabs"));
-    _tabs.ironSelect.listen((_) {
-      String name = _tabs.selectedName;
-      ga.sendEvent('edit', name);
-      _context.switchTo(name);
+      _tabs = new PaperTabs.from($("#selector-tabs"));
+      _tabs.ironSelect.listen((_) {
+        String name = _tabs.selectedName;
+        ga.sendEvent('edit', name);
+        _context.switchTo(name);
       });
     }
   }
@@ -227,18 +227,18 @@ class PlaygroundMobile {
       _affirmButton.onTap.listen((_) {
         _resetDialog.toggle();
         _reset();
-    });
+      });
     }
   }
 
   void registerCancelExportButton() {
-      if ($('#cancelButton') != null) {
-        _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
-        _cancelButton.onTap.listen((_) {
-          _exportDialog.toggle();
-        });
-      }
+    if ($('#cancelButton') != null) {
+      _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
+      _cancelButton.onTap.listen((_) {
+        _exportDialog.toggle();
+      });
     }
+  }
 
   void registerAffirmExportButton() {
     if ($('#affirmButton') != null) {
@@ -246,7 +246,7 @@ class PlaygroundMobile {
       _affirmButton.onTap.listen((_) {
         _exportDialog.toggle();
         _export();
-    });
+      });
     }
   }
 
@@ -278,7 +278,9 @@ class PlaygroundMobile {
   }
 
   void _export() {
-
+    window.open(
+        "/newpad?dart=${Uri.encodeQueryComponent(context.dartSource)}&html=${Uri.encodeQueryComponent(context.htmlSource)}&css=${Uri.encodeQueryComponent(context.cssSource)}",
+        "DartPad");
   }
 
   void _reset() {
@@ -294,7 +296,8 @@ class PlaygroundMobile {
       _setGistDescription(gist.description);
       _setGistId(gist.id);
 
-      GistFile dart = chooseGistFile(gist, ['main.dart'], (f) => f.endsWith('.dart'));
+      GistFile dart =
+          chooseGistFile(gist, ['main.dart'], (f) => f.endsWith('.dart'));
       GistFile html = chooseGistFile(gist, ['index.html', 'body.html']);
       GistFile css = chooseGistFile(gist, ['styles.css', 'style.css']);
 
@@ -359,18 +362,17 @@ class PlaygroundMobile {
     });
 
     // Listen for changes that would effect the documentation panel.
-     editor.onMouseDown.listen((e) {
-       // Delay to give codemirror time to process the mouse event.
-       Timer.run(() {
-         if (!_context.cursorPositionIsWhitespace()) {
-           docHandler.generateDoc(_docPanel);
-         }
-       });
-     });
+    editor.onMouseDown.listen((e) {
+      // Delay to give codemirror time to process the mouse event.
+      Timer.run(() {
+        if (!_context.cursorPositionIsWhitespace()) {
+          docHandler.generateDoc(_docPanel);
+        }
+      });
+    });
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
-
 
     context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
 
@@ -411,8 +413,10 @@ class PlaygroundMobile {
     }
 
     var input = new CompileRequest()..source = context.dartSource;
-    dartServices.compile(input).timeout(longServiceCallTimeout).then(
-        (CompileResponse response) {
+    dartServices
+        .compile(input)
+        .timeout(longServiceCallTimeout)
+        .then((CompileResponse response) {
       if (executionService != null) {
         return executionService.execute(
             _context.htmlSource, _context.cssSource, response.result);
@@ -434,7 +438,8 @@ class PlaygroundMobile {
     Lines lines = new Lines(input.source);
 
     Future<AnalysisResults> request =
-        dartServices.analyze(input).timeout(serviceCallTimeout);;
+        dartServices.analyze(input).timeout(serviceCallTimeout);
+    ;
 
     _analysisRequest = request;
 
@@ -447,15 +452,17 @@ class PlaygroundMobile {
 
       _displayIssues(result.issues);
 
-      _context.dartDocument.setAnnotations(result.issues.map(
-          (AnalysisIssue issue) {
+      _context.dartDocument.setAnnotations(result.issues
+          .map((AnalysisIssue issue) {
         int startLine = lines.getLineForOffset(issue.charStart);
-        int endLine = lines.getLineForOffset(issue.charStart + issue.charLength);
+        int endLine =
+            lines.getLineForOffset(issue.charStart + issue.charLength);
 
-        Position start = new Position(startLine,
-            issue.charStart - lines.offsetForLine(startLine));
-        Position end = new Position(endLine,
-            issue.charStart + issue.charLength - lines.offsetForLine(startLine));
+        Position start = new Position(
+            startLine, issue.charStart - lines.offsetForLine(startLine));
+        Position end = new Position(endLine, issue.charStart +
+            issue.charLength -
+            lines.offsetForLine(startLine));
 
         return new Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
@@ -472,8 +479,7 @@ class PlaygroundMobile {
 
   void _clearOutput() {
     _output.text = '';
-    _output.add(new DivElement()
-      ..classes.add('consoleTitle'));
+    _output.add(new DivElement()..classes.add('consoleTitle'));
   }
 
   void _showOuput(String message, {bool error: false}) {
@@ -541,8 +547,7 @@ class PlaygroundMobile {
     Document doc = editor.document;
 
     doc.select(
-        doc.posFromIndex(charStart),
-        doc.posFromIndex(charStart + charLength));
+        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
     if (focus) editor.focus();
   }
