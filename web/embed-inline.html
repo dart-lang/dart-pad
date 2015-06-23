@@ -33,11 +33,6 @@
           rel="stylesheet" media="screen">
     <link rel="import" href="embed_components.html">
     <script type="application/dart" src="embed.dart"></script>
-    <style>
-    dartpad-dom-output {
-      display: none;
-    }
-    </style>
   </head>
 
   <body class="fullbleed vertical layout" unresolved>
@@ -50,7 +45,7 @@
       </div>
     </div>
     <paper-toast id="errorToast" text=""></paper-toast>
-    <dartpad-dom-output class="invisible flex"></dartpad-dom-output>
+    <dartpad-dom-output hidden class="flex"></dartpad-dom-output>
 
     <script src="packages/codemirror/codemirror.js"></script>
     <script src="packages/browser/dart.js" async></script>
