@@ -34,6 +34,44 @@ class DocHandler {
 
   DocHandler(this._editor, this._context);
 
+  void generateDocWithText(DivElement docPanel) {
+    if (_context.focusedEditor != 'dart') {
+        docPanel.innerHtml = "Documentation";
+        return;
+      }
+      if (!_editor.hasFocus || _editor.document.selection.isNotEmpty) {
+        return;
+      }
+
+      int offset = _editor.document.indexFromPos(_editor.document.cursor);
+
+      SourceRequest request = new SourceRequest()..offset = offset;
+
+      if (_editor.completionActive) {
+        // If the completion popup is open we create a new source as if the
+        // completion popup was chosen, and ask for the documentation of that
+        // source.
+        request.source = _sourceWithCompletionInserted(_context.dartSource, offset);
+      } else {
+        request.source = _context.dartSource;
+      }
+
+      dartServices.document(request).timeout(serviceCallTimeout).then(
+          (DocumentResponse result) {
+        return _getHtmlTextFor(result).then((_DocResult docResult) {
+          if (docResult.html == "") {
+            docPanel.innerHtml = "<div class='layout horizontal center-center height-max'>Documentation</div>";
+            return;
+          }
+          docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
+          docPanel.querySelectorAll("a").forEach(
+              (AnchorElement a) => a.target = "docs");
+          docPanel.querySelectorAll("h1").forEach(
+              (h) => h.classes.add("type-${docResult.entitykind}"));
+        });
+      });
+  }
+  
   void generateDoc(DivElement docPanel) {
     if (_context.focusedEditor != 'dart') {
       docPanel.innerHtml = "";
