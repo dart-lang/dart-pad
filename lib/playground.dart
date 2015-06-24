@@ -182,7 +182,6 @@ class Playground implements GistContainer, GistController {
     // have halting issues (#384).
     bool loadedFromSaved = false;
     Uri url = Uri.parse(window.location.toString());
-    print('url: ' + url.toString());
     if (url.hasQuery && url.queryParameters['dart'] != null) {
       Gist blankGist = createSampleGist();
       blankGist.getFile('main.dart').content = url.queryParameters['dart'];
