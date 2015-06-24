@@ -21,11 +21,6 @@ class MainHandler(webapp2.RequestHandler):
         parsedURL = urlparse(self.request.uri)
         path = parsedURL.path;
         targetSplits = path.split('/')
-        
-        # If it is a request for an export pad, serve back a new pad with given data
-        if path.endswith('newpad'):
-            _serve(self.response, "newpad?{0}".format(parsedURL.query))
-            return
 
         if os.path.isfile(path):
             _serve(self.response, path)
@@ -72,15 +67,6 @@ def isDevelopment():
 
 # Serve the files.
 def _serve(resp, path):
-    if path.startswith('newpad'):
-        queryFields = path.split('=')
-        dart = queryFields[1].rstrip('html')[:-1]
-        html = queryFields[2].rstrip('css')[:-1]
-        css = queryFields[3]
-        c = open('index.html', 'r').read()
-        c = c + "<div id='dart-code'>{0}</div><div id='html-code'>{1}</div><div id='css-code'>{2}</div>".format(dart, html, css)
-        resp.write(c)
-        return
         
     if not os.path.isfile(path):
         resp.status = 404
