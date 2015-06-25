@@ -482,7 +482,7 @@ class PlaygroundMobile {
   void _clearOutput() {
     _output.text = '';
     _output.element.innerHtml =
-        "<div class='consoleTitle default-text-div layout horizontal center-center'><span console='default-text'>Console output</span></div>";
+        "<div class='consoleTitle default-text-div layout horizontal center-center'><span class='default-text'>Console output</span></div>";
   }
 
   void _showOutput(String message, {bool error: false}) {

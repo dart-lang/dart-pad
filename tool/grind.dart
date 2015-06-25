@@ -58,19 +58,32 @@ build() {
   // cp -R -L packages build/web/packages
   run('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
 
-  // // Run vulcanize.
-  // FilePath mobileHtmlFile = _buildDir.join('web', 'mobile.html');
-  // log('${mobileHtmlFile.path} original: ${_printSize(mobileHtmlFile)}');
-  // run('vulcanize',
-  //     arguments: ['--strip', '--inline', '--output', 'mobile.html', 'mobile.html'],
-  //     runOptions: new RunOptions(workingDirectory: 'build/web'));
-  // log('${mobileHtmlFile.path} vulcanize: ${_printSize(mobileHtmlFile)}');
-  //
-  // // TODO: vulcanize the embedding html files
+   // Run vulcanize.
+   vulcanize('mobile.html');
+   vulcanize('embed-dart.html');
+   vulcanize('embed-html.html');
+   vulcanize('embed-inline.html');
+  
+   // TODO: vulcanize the embedding html files
 
   return _uploadCompiledStats(
       mainFile.asFile.lengthSync(),
       mobileFile.asFile.lengthSync());
+}
+
+//Run vulcanize
+vulcanize(String filepath) {
+  FilePath HtmlFile = _buildDir.join('web', filepath);
+  log('${HtmlFile.path} original: ${_printSize(HtmlFile)}');
+  ProcessResult result = Process.runSync(
+      'vulcanize', ['--strip', '--inline', filepath], 
+      workingDirectory: 'build/web');
+  if (result.exitCode != 0) {
+    fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
+  }
+  HtmlFile.asFile.writeAsStringSync(result.stdout);
+   
+  log('${HtmlFile.path} vulcanize: ${_printSize(HtmlFile)}');
 }
 
 @Task()
