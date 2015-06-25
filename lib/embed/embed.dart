@@ -166,7 +166,7 @@ class PlaygroundMobile {
     if ($('#documentation') != null) {
       _docPanel = $('#documentation');
       _docPanel.innerHtml =
-          "<div class='layout horizontal center-center height-max'>Documentation</div>";
+          "<div class='default-text-div layout horizontal center-center'><span id='default-doc-text'>Documentation</span></div>";
     } else {
       _docPanel = new DivElement();
     }
@@ -485,11 +485,11 @@ class PlaygroundMobile {
       ..classes.addAll([
         'consoleTitle',
         'center-center',
-        'height-max',
         'layout',
-        'horizontal'
+        'horizontal',
+        'default-text-div'
       ])
-      ..innerHtml = "Console Output Area");
+      ..innerHtml = "<span id='default-console-text'>Console output</span>");
   }
 
   void _showOutput(String message, {bool error: false}) {
