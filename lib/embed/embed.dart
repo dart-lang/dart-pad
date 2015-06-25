@@ -166,7 +166,7 @@ class PlaygroundMobile {
     if ($('#documentation') != null) {
       _docPanel = $('#documentation');
       _docPanel.innerHtml =
-          "<div class='default-text-div layout horizontal center-center'><span id='default-doc-text'>Documentation</span></div>";
+          "<div class='default-text-div layout horizontal center-center'><span class='default-text'>Documentation</span></div>";
     } else {
       _docPanel = new DivElement();
     }
@@ -482,7 +482,7 @@ class PlaygroundMobile {
   void _clearOutput() {
     _output.text = '';
     _output.element.innerHtml =
-        "<div class='consoleTitle default-text-div layout horizontal center-center'><span id='default-console-text'>Console output</span></div>";
+        "<div class='consoleTitle default-text-div layout horizontal center-center'><span console='default-text'>Console output</span></div>";
   }
 
   void _showOutput(String message, {bool error: false}) {
