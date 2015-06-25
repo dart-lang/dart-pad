@@ -78,8 +78,8 @@ class Playground implements GistContainer, GistController {
   Playground() {
     sourceTabController = new TabController();
     for (String name in ['dart', 'html', 'css']) {
-      sourceTabController.registerTab(new TabElement(querySelector('#${name}tab'),
-          name: name, onSelect: () {
+      sourceTabController.registerTab(new TabElement(
+          querySelector('#${name}tab'), name: name, onSelect: () {
         Element issuesElement = querySelector('#issues');
         issuesElement.style.display = name == 'dart' ? 'block' : 'none';
         ga.sendEvent('edit', name);
@@ -92,17 +92,17 @@ class Playground implements GistContainer, GistController {
     sharingDialog = new SharingDialog(this, this);
 
     DButton newButton = new DButton(querySelector('#newbutton'));
-    OkCancelDialog newDialog = new OkCancelDialog(
-      'Create New Pad', 'Discard changes to the current pad?',
-        this.createNewGist, okText: 'Discard');
+    OkCancelDialog newDialog = new OkCancelDialog('Create New Pad',
+        'Discard changes to the current pad?', this.createNewGist,
+        okText: 'Discard');
     newButton.onClick.listen((_) {
       newDialog.show();
     });
 
     DButton resetButton = new DButton(querySelector('#resetbutton'));
-    OkCancelDialog resetDialog = new OkCancelDialog('Reset Pad',
-      'Discard changes to the current pad?', _resetGists, okText: 'Discard',
-        cancelText: 'Cancel');
+    OkCancelDialog resetDialog = new OkCancelDialog(
+        'Reset Pad', 'Discard changes to the current pad?', _resetGists,
+        okText: 'Discard', cancelText: 'Cancel');
     resetButton.onClick.listen((_) {
       resetDialog.show();
     });
@@ -182,7 +182,10 @@ class Playground implements GistContainer, GistController {
     // have halting issues (#384).
     bool loadedFromSaved = false;
     Uri url = Uri.parse(window.location.toString());
-    if (url.hasQuery && url.queryParameters['dart'] != null) {
+    if (url.hasQuery &&
+        url.queryParameters['dart'] != null &&
+        url.queryParameters['html'] != null &&
+        url.queryParameters['css'] != null) {
       Gist blankGist = createSampleGist();
       blankGist.getFile('main.dart').content = url.queryParameters['dart'];
       blankGist.getFile('index.html').content = url.queryParameters['html'];
@@ -448,18 +451,23 @@ class Playground implements GistContainer, GistController {
     context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
 
     // Bind the editable files to the gist.
-    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'));
-    Property htmlDoc = new EditorDocumentProperty(_context.htmlDocument, 'html');
+    Property htmlFile =
+        new GistFileProperty(editableGist.getGistFile('index.html'));
+    Property htmlDoc =
+        new EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
-    Property cssFile = new GistFileProperty(editableGist.getGistFile('styles.css'));
+    Property cssFile =
+        new GistFileProperty(editableGist.getGistFile('styles.css'));
     Property cssDoc = new EditorDocumentProperty(_context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
-    Property dartFile = new GistFileProperty(editableGist.getGistFile('main.dart'));
-    Property dartDoc = new EditorDocumentProperty(_context.dartDocument, 'dart');
+    Property dartFile =
+        new GistFileProperty(editableGist.getGistFile('main.dart'));
+    Property dartDoc =
+        new EditorDocumentProperty(_context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
@@ -569,7 +577,8 @@ class Playground implements GistContainer, GistController {
 
     if (htmlSrc.isNotEmpty) {
       outputTabController.selectTab('result');
-    } else if (dartSrc.contains("'dart:html'") || dartSrc.contains('"dart:html"')) {
+    } else if (dartSrc.contains("'dart:html'") ||
+        dartSrc.contains('"dart:html"')) {
       outputTabController.selectTab('result');
     } else {
       outputTabController.selectTab('console');

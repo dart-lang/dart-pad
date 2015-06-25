@@ -84,7 +84,7 @@ class PlaygroundMobile {
 
   void showHome(RouteEnterEvent event) {
     _logger.info('routed to showHome, ${window.location}, ${event.parameters}');
-    
+
     Uri url = Uri.parse(window.location.toString());
     if (url.hasQuery) {
       String id = url.queryParameters['id'];
@@ -93,7 +93,7 @@ class PlaygroundMobile {
         return;
       }
     }
-    
+
     _clearErrors();
     _setGistDescription(null);
     _setGistId(null);
