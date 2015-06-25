@@ -18,6 +18,7 @@ final String _dartpadLink =
  * Return whether the given string is a valid github gist ID.
  */
 bool isLegalGistId(String id) {
+  if (id == null) return false;
   final RegExp regex = new RegExp(r'^[0-9a-f]+$');
   return regex.hasMatch(id) && id.length >= 5 && id.length <= 22;
 }
