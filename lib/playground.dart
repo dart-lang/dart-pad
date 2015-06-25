@@ -183,6 +183,10 @@ class Playground implements GistContainer, GistController {
     bool loadedFromSaved = false;
     Uri url = Uri.parse(window.location.toString());
     if (url.hasQuery &&
+        url.queryParameters['id'] != null &&
+        isLegalGistId(url.queryParameters['id'])) {
+      _showGist(url.queryParameters['id']);
+    } else if (url.hasQuery &&
         url.queryParameters['dart'] != null &&
         url.queryParameters['html'] != null &&
         url.queryParameters['css'] != null) {
