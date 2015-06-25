@@ -154,7 +154,7 @@ class PlaygroundMobile {
       _resetDialog = new PaperDialog();
     }
   }
-  
+
   void registerExportDialog() {
     if ($("#exportDialog") != null) {
       _exportDialog = new PaperDialog.from($("#exportDialog"));
@@ -166,7 +166,8 @@ class PlaygroundMobile {
   void registerDocPanel() {
     if ($('#documentation') != null) {
       _docPanel = $('#documentation');
-      _docPanel.innerHtml = "<div class='layout horizontal center-center height-max'>Documentation</div>";
+      _docPanel.innerHtml =
+          "<div class='layout horizontal center-center height-max'>Documentation</div>";
     } else {
       _docPanel = new DivElement();
     }
@@ -375,7 +376,8 @@ class PlaygroundMobile {
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
 
-    context.onModeChange.listen((_) => docHandler.generateDocWithText(_docPanel));
+    context.onModeChange
+        .listen((_) => docHandler.generateDocWithText(_docPanel));
 
     _context.onHtmlReconcile.listen((_) {
       executionService.replaceHtml(_context.htmlSource);
@@ -480,7 +482,15 @@ class PlaygroundMobile {
 
   void _clearOutput() {
     _output.text = '';
-    _output.add(new DivElement()..classes.addAll(['consoleTitle', 'center-center', 'height-max', 'layout', 'horizontal'])..innerHtml = "Console Output Area");
+    _output.add(new DivElement()
+      ..classes.addAll([
+        'consoleTitle',
+        'center-center',
+        'height-max',
+        'layout',
+        'horizontal'
+      ])
+      ..innerHtml = "Console Output Area");
   }
 
   void _showOutput(String message, {bool error: false}) {
