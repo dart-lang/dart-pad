@@ -165,6 +165,8 @@ class PlaygroundMobile {
   void registerDocPanel() {
     if ($('#documentation') != null) {
       _docPanel = $('#documentation');
+      _docPanel.innerHtml =
+          "<div class='layout horizontal center-center height-max'>Documentation</div>";
     } else {
       _docPanel = new DivElement();
     }
@@ -338,8 +340,8 @@ class PlaygroundMobile {
   void _initPlayground() {
     // Set up the iframe.execution
     registerExecutionService();
-    executionService.onStdout.listen(_showOuput);
-    executionService.onStderr.listen((m) => _showOuput(m, error: true));
+    executionService.onStdout.listen(_showOutput);
+    executionService.onStderr.listen((m) => _showOutput(m, error: true));
 
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
@@ -356,7 +358,7 @@ class PlaygroundMobile {
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
           DocHandler.cursorKeys.contains(e.keyCode)) {
-        docHandler.generateDoc(_docPanel);
+        docHandler.generateDocWithText(_docPanel);
       }
     });
 
@@ -365,7 +367,7 @@ class PlaygroundMobile {
       // Delay to give codemirror time to process the mouse event.
       Timer.run(() {
         if (!_context.cursorPositionIsWhitespace()) {
-          docHandler.generateDoc(_docPanel);
+          docHandler.generateDocWithText(_docPanel);
         }
       });
     });
@@ -373,7 +375,8 @@ class PlaygroundMobile {
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
 
-    context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
+    context.onModeChange
+        .listen((_) => docHandler.generateDocWithText(_docPanel));
 
     _context.onHtmlReconcile.listen((_) {
       executionService.replaceHtml(_context.htmlSource);
@@ -421,7 +424,7 @@ class PlaygroundMobile {
             _context.htmlSource, _context.cssSource, response.result);
       }
     }).catchError((e) {
-      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
+      _showOutput('Error compiling to JavaScript:\n${e}', error: true);
       _showError('Error compiling to JavaScript', '${e}');
     }).whenComplete(() {
       _runButton.disabled = false;
@@ -478,10 +481,19 @@ class PlaygroundMobile {
 
   void _clearOutput() {
     _output.text = '';
-    _output.add(new DivElement()..classes.add('consoleTitle'));
+    _output.add(new DivElement()
+      ..classes.addAll([
+        'consoleTitle',
+        'center-center',
+        'height-max',
+        'layout',
+        'horizontal'
+      ])
+      ..innerHtml = "Console Output Area");
   }
 
-  void _showOuput(String message, {bool error: false}) {
+  void _showOutput(String message, {bool error: false}) {
+    $('.consoleTitle').hidden = true;
     message = message + '\n';
     SpanElement span = new SpanElement();
     span.classes.add(error ? 'errorOutput' : 'normal');
