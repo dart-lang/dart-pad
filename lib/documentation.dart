@@ -64,7 +64,7 @@ class DocHandler {
       return _getHtmlTextFor(result).then((_DocResult docResult) {
         if (docResult.html == "") {
           docPanel.innerHtml =
-              "<div class='default-text-div layout horizontal center-center'><span id='default-doc-text>Documentation</span></div>";
+              "<div class='default-text-div layout horizontal center-center'><span id='default-doc-text'>Documentation</span></div>";
           return;
         }
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
