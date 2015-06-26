@@ -37,7 +37,7 @@
 
   <body class="fullbleed vertical layout" unresolved>
     <menu-bar-icons></menu-bar-icons>
-    <div class="flex layout horizontal">
+    <div id="left" class="flex layout horizontal">
       <div class="relative vertical layout flex-6">
         <dartpad-run-button></dartpad-run-button>
         <dartpad-editor dart class="flex-5 layout vertical"></dartpad-editor>
@@ -45,7 +45,7 @@
         <dartpad-console class="flex-2 layout vertical"></dartpad-console>
       </div>
       <vertical-splitter></vertical-splitter>
-      <div class ="relative vertical layout flex-4">
+      <div id="right" class ="relative vertical layout flex-4">
         <dartpad-dom-output class="flex layout horizontal"></dartpad-dom-output>
       </div>
     </div>

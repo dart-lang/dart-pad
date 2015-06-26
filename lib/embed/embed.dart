@@ -166,7 +166,7 @@ class PlaygroundMobile {
     if ($('#documentation') != null) {
       _docPanel = $('#documentation');
       _docPanel.innerHtml =
-          "<div class='layout horizontal center-center height-max'>Documentation</div>";
+          "<div class='default-text-div layout horizontal center-center'><span class='default-text'>Documentation</span></div>";
     } else {
       _docPanel = new DivElement();
     }
@@ -337,12 +337,29 @@ class PlaygroundMobile {
     }
   }
 
+  bool validFlex(String input) {
+    return input != null && int.parse(input) > 0;
+  }
   void _initPlayground() {
     // Set up the iframe.execution
     registerExecutionService();
     executionService.onStdout.listen(_showOutput);
     executionService.onStderr.listen((m) => _showOutput(m, error: true));
-
+    
+    //Set up the splitters
+    Uri url = Uri.parse(window.location.toString());
+    String l = url.queryParameters['left'];
+    String r = url.queryParameters['right'];
+    left() => $('#left');
+    right() =>$('#right');
+    if (l != null && left() != null) {
+      left().classes.remove('flex-6');
+      left().classes.add('flex-${l}');
+    }
+    if (r != null && right() != null) {
+      right().classes.remove('flex-4');
+      right().classes.add('flex-${r}');
+    }
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
     //$('editpanel').children.first.attributes['flex'] = '';
@@ -481,15 +498,8 @@ class PlaygroundMobile {
 
   void _clearOutput() {
     _output.text = '';
-    _output.add(new DivElement()
-      ..classes.addAll([
-        'consoleTitle',
-        'center-center',
-        'height-max',
-        'layout',
-        'horizontal'
-      ])
-      ..innerHtml = "Console Output Area");
+    _output.element.innerHtml =
+        "<div class='consoleTitle default-text-div layout horizontal center-center'><span class='default-text'>Console output</span></div>";
   }
 
   void _showOutput(String message, {bool error: false}) {
