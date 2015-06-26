@@ -338,7 +338,7 @@ class PlaygroundMobile {
   }
 
   bool validFlex(String input) {
-    return input != null && int.parse(input) > 0;
+    return input != null && int.parse(input) < 13;
   }
   void _initPlayground() {
     // Set up the iframe.execution
