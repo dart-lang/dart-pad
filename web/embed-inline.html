@@ -33,6 +33,10 @@
           rel="stylesheet" media="screen">
     <link rel="import" href="embed_components.html">
     <script type="application/dart" src="embed.dart"></script>
+    <script src="packages/codemirror/codemirror.js"></script>
+    <script src="packages/browser/dart.js" async></script>
+    <script src="ga.js" async></script>
+    <script src="polymerpatch.js"></script>
   </head>
 
   <body class="fullbleed vertical layout" unresolved>
@@ -46,10 +50,5 @@
     </div>
     <paper-toast id="errorToast" text=""></paper-toast>
     <dartpad-dom-output hidden class="flex"></dartpad-dom-output>
-
-    <script src="packages/codemirror/codemirror.js"></script>
-    <script src="packages/browser/dart.js" async></script>
-    <script src="ga.js" async></script>
-    <script src="polymerpatch.js"></script>
   </body>
 </html>
