@@ -243,12 +243,10 @@
   <template>
     <!-- entry-animation="scale-up-animation" exit-animation="fade-out-animation" -->
     <paper-dialog id="exportDialog" heading="Export">
-      <h2>Export</h2>
-
+      <h2>Export to DartPad</h2>
       <br>
-
       <paper-dialog-scrollable>
-        Export button under construction!
+        Open this sample in DartPad?
       </paper-dialog-scrollable>
 
       <div class="buttons">
@@ -284,8 +282,12 @@
 
 <dom-module id="dartpad-dom-output">
   <style>
+    :host {
+      padding: 8px 8px 8px 0;
+    }
+
     :host [hidden] {
-      display: none
+      display: none;
     }
 
     #frameContainer {
