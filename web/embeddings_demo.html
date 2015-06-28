@@ -17,13 +17,19 @@
 
     <style>
       iframe {
+        background-color: #333;
         border: 1px solid #ccc;
-        width: 750px;
+        width: 100%;
         height: 400px;
       }
 
       iframe[short] {
         height: 220px;
+      }
+
+      #choosePad {
+        margin-bottom: 8px;
+        float: right;
       }
     </style>
   </head>
@@ -53,20 +59,11 @@
             velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
             cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
             id est laborum.
-            <select id ="select" onChange = "changeOptions();">
-              <option value="">Home</option>
-              <option value="b51ea7c04322042b582a">Bootstrap</option>
-              <option value="0dfeb25a33be007e1d0f">Clock</option>
-              <option value="74e990d984faad26dea0">Fibonacci</option>
-              <option value="33706e19df021e52d98c">Hello World</option>
-              <option value="9126d5d48ebabf5bf547">Hello World HTML</option>
-              <option value="72d83fe97bfc8e735607">Solar</option>
-              <option value="9e42aabfcc15c81a0406">Spirodraw</option>
-              <option value="9d2dd2ce17981ecacadd">Sunflower</option>
-              <option value="479ecba5a56fd706b648">WebSockets</option>
-            </select>
-            
           </p>
+          <select id ="choosePad" onChange="changeOptions()">
+            <option value="33706e19df021e52d98c">Hello World</option>
+            <option value="74e990d984faad26dea0">Fibonacci</option>
+          </select>
           <iframe id="embed-dart" src="embed-dart.html"></iframe>
 
           <h3>Foo bar</h3>
@@ -79,7 +76,7 @@
             cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
             id est laborum.
           </p>
-          <iframe src="embed-html.html"></iframe>
+          <iframe src="embed-html.html?id=9126d5d48ebabf5bf547"></iframe>
 
           <h3>Foo bar</h3>
           <p>
@@ -101,10 +98,10 @@
     </div>
   </body>
   <script>
-  function changeOptions(){
-    var select = document.getElementById("select");
-    var url = 'embed-dart.html?id='+select.options[select.selectedIndex].value;
-    document.getElementById("embed-dart").src = url;
-  }
+    function changeOptions(){
+      var select = document.getElementById("choosePad");
+      var url = 'embed-dart.html?id='+select.options[select.selectedIndex].value;
+      document.getElementById("embed-dart").src = url;
+    }
   </script>
 </html>

@@ -10,7 +10,6 @@ import 'dart:js';
 
 import 'iron.dart';
 
-
 class PaperDrawerPanel extends PolymerElement {
   PaperDrawerPanel() : super('paper-drawer-panel');
   PaperDrawerPanel.from(HtmlElement element) : super.from(element);

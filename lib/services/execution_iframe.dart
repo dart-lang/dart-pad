@@ -80,17 +80,17 @@ window.onerror = function(message, url, lineNumber) {
   Future _reset() {
     if (frame.parent != null) {
       _readyCompleter = new Completer();
-  
+
       IFrameElement clone = _frame.clone(false);
       clone.src = _frameSrc;
-      
+
       List<Element> children = frame.parent.children;
       int index = children.indexOf(_frame);
       children.insert(index, clone);
       frame.parent.children.remove(_frame);
       _frame = clone;
     }
-    
+
     return _readyCompleter.future.timeout(
         new Duration(seconds: 1),
         onTimeout: () {
