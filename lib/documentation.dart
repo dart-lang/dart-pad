@@ -64,7 +64,7 @@ class DocHandler {
       return _getHtmlTextFor(result).then((_DocResult docResult) {
         if (docResult.html == "") {
           docPanel.innerHtml =
-              "<div class='layout horizontal center-center height-max'>Documentation</div>";
+              "<div class='default-text-div layout horizontal center-center'><span class='default-text'>Documentation</span></div>";
           return;
         }
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
