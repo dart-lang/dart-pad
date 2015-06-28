@@ -7,7 +7,7 @@ library execution;
 import 'dart:async';
 
 abstract class ExecutionService {
-  Future execute(String html, String css, String javaScript);
+  Future execute(String html, String css, String javaScript, [String sourceMap]);
 
   void replaceHtml(String html);
   void replaceCss(String css);
@@ -17,5 +17,21 @@ abstract class ExecutionService {
   Future tearDown();
 
   Stream<String> get onStdout;
-  Stream<String> get onStderr;
+  Stream<ExecutionException> get onStderr;
+
+  bool get hasSourceMap;
+  String revereStackTrace(String jsStackTrace);
+}
+
+class ExecutionException {
+  final String message;
+  final int line;
+  final int column;
+  final String stackTrace;
+
+  ExecutionException(this.message, [this.line, this.column, this.stackTrace]);
+
+  bool get hasStackTrace => stackTrace != null;
+
+  String toString() => message;
 }

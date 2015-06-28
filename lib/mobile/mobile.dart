@@ -246,8 +246,18 @@ class PlaygroundMobile {
   void _initPlayground() {
     // Set up the iframe.
     deps[ExecutionService] = new ExecutionServiceIFrame($('#frame'));
-    executionService.onStdout.listen(_showOuput);
-    executionService.onStderr.listen((m) => _showOuput(m, error: true));
+    executionService.onStdout.listen(_showOutput);
+    executionService.onStderr.listen((ExecutionException ex) {
+      if (ex.hasStackTrace && executionService.hasSourceMap) {
+        String reversed = executionService.revereStackTrace(ex.stackTrace);
+        if (reversed != null) {
+          _showOutput('${ex.message}\n${reversed}', error: true);
+          return;
+        }
+      }
+
+      _showOutput(ex.message, error: true);
+    });
 
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
@@ -318,14 +328,17 @@ class PlaygroundMobile {
     _editProgress.indeterminate = true;
     _editProgress.hidden(false);
 
-    var input = new CompileRequest()..source = context.dartSource;
+    CompileRequest input = new CompileRequest()
+      ..source = context.dartSource
+      ..returnSourceMap = true;
     dartServices.compile(input).timeout(longServiceCallTimeout).then(
         (CompileResponse response) {
       switchToExecPage();
       return executionService.execute(
-          _context.htmlSource, _context.cssSource, response.result);
+          _context.htmlSource, _context.cssSource, response.result,
+          response.sourceMap);
     }).catchError((e) {
-      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
+      _showOutput('Error compiling to JavaScript:\n${e}', error: true);
       _showError('Error compiling to JavaScript', '${e}');
     }).whenComplete(() {
       runButton.disabled = false;
@@ -349,7 +362,7 @@ class PlaygroundMobile {
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
-      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
+      _showOutput('Error compiling to JavaScript:\n${e}', error: true);
       _showError('Error compiling to JavaScript', '${e}');
     }).whenComplete(() {
       rerunButton.disabled = false;
@@ -409,7 +422,7 @@ class PlaygroundMobile {
       ..classes.add('consoleTitle'));
   }
 
-  void _showOuput(String message, {bool error: false}) {
+  void _showOutput(String message, {bool error: false}) {
     message = message + '\n';
     SpanElement span = new SpanElement();
     span.classes.add(error ? 'errorOutput' : 'normal');

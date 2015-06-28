@@ -341,7 +341,17 @@ class PlaygroundMobile {
     // Set up the iframe.execution
     registerExecutionService();
     executionService.onStdout.listen(_showOutput);
-    executionService.onStderr.listen((m) => _showOutput(m, error: true));
+    executionService.onStderr.listen((ExecutionException ex) {
+      if (ex.hasStackTrace && executionService.hasSourceMap) {
+        String reversed = executionService.revereStackTrace(ex.stackTrace);
+        if (reversed != null) {
+          _showOutput('${ex.message}\n${reversed}', error: true);
+          return;
+        }
+      }
+
+      _showOutput(ex.message, error: true);
+    });
 
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
@@ -414,14 +424,17 @@ class PlaygroundMobile {
       _editProgress.hidden(false);
     }
 
-    var input = new CompileRequest()..source = context.dartSource;
+    CompileRequest input = new CompileRequest()
+      ..source = context.dartSource
+      ..returnSourceMap = true;
     dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
       if (executionService != null) {
         return executionService.execute(
-            _context.htmlSource, _context.cssSource, response.result);
+            _context.htmlSource, _context.cssSource, response.result,
+            response.sourceMap);
       }
     }).catchError((e) {
       _showOutput('Error compiling to JavaScript:\n${e}', error: true);

@@ -361,8 +361,18 @@ class Playground implements GistContainer, GistController {
 
     // Set up the iframe.
     deps[ExecutionService] = new ExecutionServiceIFrame(_frame);
-    executionService.onStdout.listen(_showOuput);
-    executionService.onStderr.listen((m) => _showOuput(m, error: true));
+    executionService.onStdout.listen(_showOutput);
+    executionService.onStderr.listen((ExecutionException ex) {
+      if (ex.hasStackTrace && executionService.hasSourceMap) {
+        String reversed = executionService.revereStackTrace(ex.stackTrace);
+        if (reversed != null) {
+          _showOutput('${ex.message}\n${reversed}', error: true);
+          return;
+        }
+      }
+
+      _showOutput(ex.message, error: true);
+    });
 
     // Set up Google Analytics.
     deps[Analytics] = new Analytics();
@@ -538,25 +548,25 @@ class Playground implements GistContainer, GistController {
 
     _clearOutput();
 
-    Stopwatch compilationTimer = new Stopwatch()..start();
+    Stopwatch timer = new Stopwatch()..start();
+    CompileRequest input = new CompileRequest()
+      ..source = context.dartSource
+      ..returnSourceMap = true;
 
-    var input = new CompileRequest()..source = context.dartSource;
     dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
       ga.sendTiming('action-perf', "compilation-e2e",
-          compilationTimer.elapsedMilliseconds);
-
+          timer.elapsedMilliseconds);
       _autoSwitchOutputTab();
-
-      return executionService.execute(
-          _context.htmlSource, _context.cssSource, response.result);
+      return executionService.execute(_context.htmlSource, _context.cssSource,
+          response.result, response.sourceMap);
     }).catchError((e) {
       ga.sendException("${e.runtimeType}");
       if (e is DetailedApiRequestError) e = e.message;
       DToast.showMessage('Error compiling to JavaScript');
-      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
+      _showOutput('Error compiling to JavaScript:\n${e}', error: true);
     }).whenComplete(() {
       runButton.disabled = false;
       overlay.visible = false;
@@ -665,7 +675,7 @@ class Playground implements GistContainer, GistController {
   List<SpanElement> _bufferedOutput = [];
   Duration _outputDuration = new Duration(milliseconds: 32);
 
-  void _showOuput(String message, {bool error: false}) {
+  void _showOutput(String message, {bool error: false}) {
     consoleBusyLight.flash();
 
     SpanElement span = new SpanElement()..text = message + '\n';
