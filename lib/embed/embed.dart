@@ -338,8 +338,13 @@ class PlaygroundMobile {
   }
 
   bool validFlex(String input) {
-    return input != null && int.parse(input) < 13;
+    return input != null && double.parse(input) > 0.0 && double.parse(input) < 1.0;
   }
+  
+  int roundFlex(double flex) {
+    return (flex*10.0).round();
+  }
+  
   void _initPlayground() {
     // Set up the iframe.execution
     registerExecutionService();
@@ -348,18 +353,27 @@ class PlaygroundMobile {
     
     //Set up the splitters
     Uri url = Uri.parse(window.location.toString());
-    String l = url.queryParameters['left'];
-    String r = url.queryParameters['right'];
+    String v = url.queryParameters['verticalRatio'];
+    String h = url.queryParameters['horizontalRatio'];
     left() => $('#left');
     right() =>$('#right');
-    if (l != null && left() != null) {
+    top() => $('#top');
+    bottom() => $('#bottom');
+    if (right() != null && left() != null && validFlex(h) != false) {
       left().classes.remove('flex-6');
-      left().classes.add('flex-${l}');
-    }
-    if (r != null && right() != null) {
       right().classes.remove('flex-4');
-      right().classes.add('flex-${r}');
+      int l = roundFlex(double.parse(h));
+      left().classes.add('flex-${l}');
+      right().classes.add('flex-${10-l}');
     }
+    if (top() != null && bottom() != null && validFlex(v) != false) {
+      top().classes.remove('flex-5');
+      bottom().classes.remove('flex-2');
+      int t = roundFlex(double.parse(v));
+      top().classes.add('flex-${t}');
+      bottom().classes.add('flex-${10-t}');
+    }
+    
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
     //$('editpanel').children.first.attributes['flex'] = '';
