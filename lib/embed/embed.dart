@@ -290,6 +290,7 @@ class PlaygroundMobile {
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
       ..listen();
+    _clearOutput();
   }
 
   void _showGist(String gistId, {bool run: false}) {
