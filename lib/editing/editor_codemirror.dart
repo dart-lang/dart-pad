@@ -61,7 +61,7 @@ class CodeMirrorFactory extends EditorFactory {
     if (options == null) {
       options = {
         'continueComments': {'continueLineComment': false},
-        'autofocus': true,
+        'autofocus': false,
         // Removing this - with this enabled you can't type a forward slash.
         //'autoCloseTags': true,
         'autoCloseBrackets': true,

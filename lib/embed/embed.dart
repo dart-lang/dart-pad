@@ -486,13 +486,15 @@ class PlaygroundMobile {
   }
 
   void _showOutput(String message, {bool error: false}) {
-    $('.consoleTitle').hidden = true;
+    if (message == null) return;
+    Element title = $('.consoleTitle');
+    if (title != null) title.hidden = true;
     message = message + '\n';
     SpanElement span = new SpanElement();
     span.classes.add(error ? 'errorOutput' : 'normal');
     span.text = message;
     _output.add(span);
-    span.scrollIntoView();
+    _output.element.scrollTop = _output.element.scrollHeight;
   }
 
   void _setGistDescription(String description) {
@@ -632,7 +634,10 @@ class PlaygroundContext extends Context {
       editor.swapDocument(_cssDoc);
     }
 
-    if (oldMode != name) _modeController.add(name);
+    if (oldMode != name) {
+      _modeController.add(name);
+      focus();
+    }
   }
 
   String get focusedEditor {
