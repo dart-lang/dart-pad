@@ -43,9 +43,9 @@
     <div class="flex layout horizontal">
       <div class="relative vertical layout flex-6">
         <dartpad-run-button></dartpad-run-button>
-        <dartpad-editor dart class="flex-5 layout vertical"></dartpad-editor>
+        <dartpad-editor id='topPanel' dart class="flex-5 layout vertical"></dartpad-editor>
         <horizontal-splitter class="splitter"></horizontal-splitter>
-        <dartpad-console class="flex-2 layout vertical"></dartpad-console>
+        <dartpad-console id='bottomPanel' class="flex-2 layout vertical"></dartpad-console>
       </div>
     </div>
     <paper-toast id="errorToast" text=""></paper-toast>

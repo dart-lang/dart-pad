@@ -338,12 +338,54 @@ class PlaygroundMobile {
     }
   }
 
+  bool validFlex(String input) {
+    return input != null && double.parse(input) > 0.0 && double.parse(input) < 1.0;
+  }
+  
+  int roundFlex(double flex) => (flex*10.0).round();
+  
+  
+  void removeFlex(Element e) {
+    e.classes.removeWhere((elementClass)=>elementClass.startsWith('flex-'));
+  }
+  
   void _initPlayground() {
     // Set up the iframe.execution
     registerExecutionService();
     executionService.onStdout.listen(_showOutput);
     executionService.onStderr.listen((m) => _showOutput(m, error: true));
-
+    
+    //Set up the splitters
+    Uri url = Uri.parse(window.location.toString());
+    String v = url.queryParameters['verticalRatio'];
+    String h = url.queryParameters['horizontalRatio'];
+    Element leftPanel = $('#leftPanel');
+    Element rightPanel =$('#rightPanel');
+    Element topPanel = $('#topPanel');
+    Element bottomPanel = $('#bottomPanel');
+    Element toolbarLeftPanel = $('#toolbarLeftPanel');
+    Element toolbarRightPanel = $('#toolbarRightPanel');
+    if (rightPanel != null && leftPanel != null && validFlex(h) != false) {
+      removeFlex(leftPanel);
+      removeFlex(rightPanel);
+      int l = roundFlex(double.parse(h));
+      leftPanel.classes.add('flex-${l}');
+      rightPanel.classes.add('flex-${10-l}');
+      if (toolbarRightPanel != null && toolbarLeftPanel != null) {
+        removeFlex(toolbarLeftPanel);
+        removeFlex(toolbarRightPanel);
+        toolbarLeftPanel.classes.add('flex-${l}');
+        toolbarRightPanel.classes.add('flex-${10-l}');
+      }
+    }
+    if (topPanel != null && bottomPanel != null && validFlex(v) != false) {
+      removeFlex(topPanel);
+      removeFlex(bottomPanel);
+      int t = roundFlex(double.parse(v));
+      topPanel.classes.add('flex-${t}');
+      bottomPanel.classes.add('flex-${10-t}');
+    }
+    
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
     //$('editpanel').children.first.attributes['flex'] = '';
