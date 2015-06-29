@@ -12,6 +12,7 @@ import 'common_server_test.dart' as common_server_test;
 import 'common_test.dart' as common_test;
 import 'compiler_test.dart' as compiler_test;
 import 'pub_test.dart' as pub_test;
+import 'summarize_test.dart' as summarize_test;
 import 'src/test_config.dart';
 
 void main() {
@@ -25,4 +26,5 @@ void main() {
   common_test.defineTests();
   compiler_test.defineTests();
   pub_test.defineTests();
+  summarize_test.defineTests();
 }
