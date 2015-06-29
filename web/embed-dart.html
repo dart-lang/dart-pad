@@ -42,14 +42,14 @@
 
   <body class="fullbleed vertical layout" unresolved>
     <div class="flex layout horizontal">
-      <div id="left" class="relative vertical layout flex-6">
+      <div id="leftPanel" class="relative vertical layout flex-6">
         <dartpad-buttons></dartpad-buttons>
-        <dartpad-editor id='top' dart class="flex-5 layout vertical"></dartpad-editor>
+        <dartpad-editor id='topPanel' dart class="flex-5 layout vertical"></dartpad-editor>
         <horizontal-splitter class="splitter"></horizontal-splitter>
-        <dartpad-console id='bottom' class="flex-2 layout vertical"></dartpad-console>
+        <dartpad-console id='bottomPanel' class="flex-2 layout vertical"></dartpad-console>
       </div>
       <vertical-splitter></vertical-splitter>
-      <dartpad-documentation id="right" class="flex-4 layout vertical"></dartpad-documentation>
+      <dartpad-documentation id="rightPanel" class="flex-4 layout vertical"></dartpad-documentation>
 
       <paper-toast id="errorToast" text=""></paper-toast>
     </div>

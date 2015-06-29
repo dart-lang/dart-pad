@@ -341,8 +341,11 @@ class PlaygroundMobile {
     return input != null && double.parse(input) > 0.0 && double.parse(input) < 1.0;
   }
   
-  int roundFlex(double flex) {
-    return (flex*10.0).round();
+  int roundFlex(double flex) => (flex*10.0).round();
+  
+  
+  void removeFlex(Element e) {
+    e.classes.removeWhere((elementClass)=>elementClass.startsWith('flex-'));
   }
   
   void _initPlayground() {
@@ -355,23 +358,31 @@ class PlaygroundMobile {
     Uri url = Uri.parse(window.location.toString());
     String v = url.queryParameters['verticalRatio'];
     String h = url.queryParameters['horizontalRatio'];
-    left() => $('#left');
-    right() =>$('#right');
-    top() => $('#top');
-    bottom() => $('#bottom');
-    if (right() != null && left() != null && validFlex(h) != false) {
-      left().classes.remove('flex-6');
-      right().classes.remove('flex-4');
+    Element leftPanel = $('#leftPanel');
+    Element rightPanel =$('#rightPanel');
+    Element topPanel = $('#topPanel');
+    Element bottomPanel = $('#bottomPanel');
+    Element toolbarLeftPanel = $('#toolbarLeftPanel');
+    Element toolbarRightPanel = $('#toolbarRightPanel');
+    if (rightPanel != null && leftPanel != null && validFlex(h) != false) {
+      removeFlex(leftPanel);
+      removeFlex(rightPanel);
       int l = roundFlex(double.parse(h));
-      left().classes.add('flex-${l}');
-      right().classes.add('flex-${10-l}');
+      leftPanel.classes.add('flex-${l}');
+      rightPanel.classes.add('flex-${10-l}');
+      if (toolbarRightPanel != null && toolbarLeftPanel != null) {
+        removeFlex(toolbarLeftPanel);
+        removeFlex(toolbarRightPanel);
+        toolbarLeftPanel.classes.add('flex-${l}');
+        toolbarRightPanel.classes.add('flex-${10-l}');
+      }
     }
-    if (top() != null && bottom() != null && validFlex(v) != false) {
-      top().classes.remove('flex-5');
-      bottom().classes.remove('flex-2');
+    if (topPanel != null && bottomPanel != null && validFlex(v) != false) {
+      removeFlex(topPanel);
+      removeFlex(bottomPanel);
       int t = roundFlex(double.parse(v));
-      top().classes.add('flex-${t}');
-      bottom().classes.add('flex-${10-t}');
+      topPanel.classes.add('flex-${t}');
+      bottomPanel.classes.add('flex-${10-t}');
     }
     
     // Set up the editing area.

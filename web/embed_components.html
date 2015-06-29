@@ -210,7 +210,7 @@
   </style>
   <template>
     <div class="layout horizontal flex">
-      <div class="layout horizontal flex-6">
+      <div id="toolbarLeftPanel" class="layout horizontal flex-6">
         <paper-tabs id="selector-tabs" class ="tabs relative flex" selected="0">
           <paper-tab name="dart">Dart</paper-tab>
           <paper-tab name="html">HTML</paper-tab>
@@ -218,7 +218,7 @@
         </paper-tabs>
         <paper-progress id="edit-progress"  class="bottom fit" hidden></paper-progress>
       </div>
-      <div class="layout horizontal flex-4">
+      <div id="toolbarRightPanel" class="layout horizontal flex-4">
         <paper-tabs selected="0" class="tabs flex">
           <span class="flex"></span>
           <div class="center-center horizontal layout">HTML Output</div>
