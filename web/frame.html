@@ -35,6 +35,7 @@ replaceJavaScript = function(value) {
   // Create a new node.
   var s = document.createElement('script');
   s.setAttribute('defer', 'true');
+  //s.setAttribute('crossorigin', 'anonymous');
   s.text = value;
   document.head.appendChild(s);
 }

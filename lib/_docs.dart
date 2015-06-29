@@ -130,7 +130,7 @@ class DocSnippet {
 
     deps[ExecutionService] = new ExecutionServiceIFrame(querySelector("iframe"));
     executionService.onStdout.listen((m) => _appendOutput(m));
-    executionService.onStderr.listen((m) => _displayErrors(m));
+    executionService.onStderr.listen((ex) => _displayErrors(ex));
 
     var input = new CompileRequest()..source = "void main(){${preElement.text}}";
     dartServices.compile(input).then(
@@ -184,8 +184,8 @@ class DocSnippet {
     _output.text += str + '\n';
   }
 
-  void _displayErrors(String str) {
-    _output.text = str;
+  void _displayErrors(ExecutionException ex) {
+    _output.text = ex.message;
     _output.classes.toggle('errors', true);
   }
 
