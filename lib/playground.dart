@@ -176,6 +176,7 @@ class Playground implements GistContainer, GistController {
     // to the editor component (which is where `_performAnalysis()` pulls
     // the Dart source from).
     Timer.run(() => _performAnalysis());
+    _clearOutput();
   }
   void showHome(RouteEnterEvent event) {
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
