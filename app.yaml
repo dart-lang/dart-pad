@@ -1,4 +1,4 @@
-version: v1-10-1
+version: v1-11-0-prod-test
 runtime: custom
 vm: true
 api_version: 1
@@ -8,7 +8,7 @@ resources:
   memory_gb: 3
 
 automatic_scaling:
-  min_num_instances: 6
+  min_num_instances: 3
   max_num_instances: 20
   cool_down_period_sec: 60
   cpu_utilization:
