@@ -71,10 +71,9 @@ class PlaygroundMobile {
   void showHome(RouteEnterEvent event) {
     _logger.info('routed to showHome, ${window.location}, ${event.parameters}');
 
-    // TODO(devoncarew): Hack, until we resolve the issue with routing.
-    String path = window.location.pathname;
-    if (path.length > 2 && path.lastIndexOf('/') == 0) {
-      String id = path.substring(1);
+    Uri url = Uri.parse(window.location.toString());
+    if (url.hasQuery) {
+      String id = url.queryParameters['id'];
       if (isLegalGistId(id)) {
         _showGist(id);
         return;
@@ -128,6 +127,7 @@ class PlaygroundMobile {
 
   void _createUi() {
     _pages = new IronPages.from($("iron-pages"));
+    Transitions.slideFromRight(_pages);
     // TODO: fix the pages transition
     // Transitions.slideFromRight(_pages);
 
