@@ -10,7 +10,7 @@ String uri;
 
 const BASE_URI = "dart-services.appspot.com/api/dartservices/v1/";
 //const BASE_URI = "http://localhost:8080/api/dartservices/v1/";
-const count = 10;
+const count = 100;
 
 main(List<String> args) async {
 
