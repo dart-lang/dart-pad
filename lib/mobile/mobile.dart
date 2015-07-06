@@ -71,10 +71,9 @@ class PlaygroundMobile {
   void showHome(RouteEnterEvent event) {
     _logger.info('routed to showHome, ${window.location}, ${event.parameters}');
 
-    // TODO(devoncarew): Hack, until we resolve the issue with routing.
-    String path = window.location.pathname;
-    if (path.length > 2 && path.lastIndexOf('/') == 0) {
-      String id = path.substring(1);
+    Uri url = Uri.parse(window.location.toString());
+    if (url.hasQuery) {
+      String id = url.queryParameters['id'];
       if (isLegalGistId(id)) {
         _showGist(id);
         return;
@@ -134,14 +133,14 @@ class PlaygroundMobile {
     _messageToast = new PaperToast();
     document.body.children.add(_messageToast.element);
 
-    _errorsToast = new PaperToast()
-      ..duration = 100000;
+    _errorsToast = new PaperToast()..duration = 100000;
     document.body.children.add(_errorsToast.element);
 
     _messageDialog = new PaperDialog.from($("paper-dialog"));
 
     //edit section
-    PaperDrawerPanel topPanel = new PaperDrawerPanel.from($("paper-drawer-panel"));
+    PaperDrawerPanel topPanel =
+        new PaperDrawerPanel.from($("paper-drawer-panel"));
 
     PaperMenu menu = new PaperMenu.from($("paper-menu"));
     menu.ironActivate.listen((_) {
@@ -152,25 +151,33 @@ class PlaygroundMobile {
     new PaperIconButton.from($('#nav-button'))
       ..onTap.listen((_) => topPanel.togglePanel());
 
-    PolymerElement dropdownAnimation = new PolymerElement.from($("animated-dropdown"));
+    PolymerElement dropdownAnimation =
+        new PolymerElement.from($("animated-dropdown"));
 
-    new PaperIconButton.from($("#more-button"))..onTap.listen((e){
-      $("#dropdown").style.top = ($("#more-button").getBoundingClientRect().top + 5).toString() + "px";
-      $("#dropdown").style.left = ($("#more-button").getBoundingClientRect().left - 75).toString() + "px";
-      dropdownAnimation.call("show");
-    });
+    new PaperIconButton.from($("#more-button"))
+      ..onTap.listen((e) {
+        $("#dropdown").style.top =
+            ($("#more-button").getBoundingClientRect().top + 5).toString() +
+                "px";
+        $("#dropdown").style.left =
+            ($("#more-button").getBoundingClientRect().left - 75).toString() +
+                "px";
+        dropdownAnimation.call("show");
+      });
 
-    new PaperItem.from($("#dartlang-item"))..onTap.listen((event) {
-      event.preventDefault();
-      window.open("https://www.dartlang.org/", "_blank");
-      dropdownAnimation.call("hide");
-    });
+    new PaperItem.from($("#dartlang-item"))
+      ..onTap.listen((event) {
+        event.preventDefault();
+        window.open("https://www.dartlang.org/", "_blank");
+        dropdownAnimation.call("hide");
+      });
 
-    new PaperItem.from($("#about-item"))..onTap.listen((event) {
-      event.preventDefault();
-      _showAboutDialog();
-      dropdownAnimation.call("hide");
-    });
+    new PaperItem.from($("#about-item"))
+      ..onTap.listen((event) {
+        event.preventDefault();
+        _showAboutDialog();
+        dropdownAnimation.call("hide");
+      });
 
     PaperTabs tabs = new PaperTabs.from($("paper-tabs"));
     tabs.ironSelect.listen((_) {
@@ -187,19 +194,20 @@ class PlaygroundMobile {
 
     // execute section
     new PaperFab.from($(".back-button"))
-      ..onTap.listen((e)  {
-      _pages.selected = "0";
-      // for some reason e.stopPropagation is needed
-      // otherwise the pages.selected will be "1"
-      // TODO: we should probably report this bug to polymer
-      e.stopPropagation();
-    });
+      ..onTap.listen((e) {
+        _pages.selected = "0";
+        // for some reason e.stopPropagation is needed
+        // otherwise the pages.selected will be "1"
+        // TODO: we should probably report this bug to polymer
+        e.stopPropagation();
+      });
 
     rerunButton = new PaperIconButton.from($('[icon="refresh"]'))
       ..onTap.listen((_) => _handleRerun());
 
     _output = new PolymerElement.from($("#console"));
-    PaperToggleButton toggleConsoleButton = new PaperToggleButton.from($("paper-toggle-button"));
+    PaperToggleButton toggleConsoleButton =
+        new PaperToggleButton.from($("paper-toggle-button"));
     toggleConsoleButton.onIronChange.listen((_) {
       _output.hidden(!toggleConsoleButton.checked);
     });
@@ -212,7 +220,8 @@ class PlaygroundMobile {
       _setGistDescription(gist.description);
       _setGistId(gist.id);
 
-      GistFile dart = chooseGistFile(gist, ['main.dart'], (f) => f.endsWith('.dart'));
+      GistFile dart =
+          chooseGistFile(gist, ['main.dart'], (f) => f.endsWith('.dart'));
       GistFile html = chooseGistFile(gist, ['index.html', 'body.html']);
       GistFile css = chooseGistFile(gist, ['styles.css', 'style.css']);
 
@@ -289,7 +298,8 @@ class PlaygroundMobile {
 
       // Clear the splash.
       Element splash = querySelector('div.splash');
-      splash.onTransitionEnd.listen((_) => splash.parent.children.remove(splash));
+      splash.onTransitionEnd
+          .listen((_) => splash.parent.children.remove(splash));
       splash.classes.toggle('hide', true);
     });
 
@@ -302,10 +312,14 @@ class PlaygroundMobile {
   }
 
   void _closeAbout(Event e) {
-    PolymerElement dropdownAnimation = new PolymerElement.from($("animated-dropdown"));
+    PolymerElement dropdownAnimation =
+        new PolymerElement.from($("animated-dropdown"));
     if (e.target is Element) {
       Element target = e.target;
-      if(target.id != 'ink' && target.id != 'icon') {
+      if (target.id != 'ink' &&
+          target.id != 'icon' &&
+          target.id != 'dartlang-item' &&
+          target.id != 'about-item') {
         dropdownAnimation.call("hide");
       }
     }
@@ -319,8 +333,10 @@ class PlaygroundMobile {
     _editProgress.hidden(false);
 
     var input = new CompileRequest()..source = context.dartSource;
-    dartServices.compile(input).timeout(longServiceCallTimeout).then(
-        (CompileResponse response) {
+    dartServices
+        .compile(input)
+        .timeout(longServiceCallTimeout)
+        .then((CompileResponse response) {
       switchToExecPage();
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
@@ -343,8 +359,10 @@ class PlaygroundMobile {
     _runProgress.hidden(false);
 
     var input = new CompileRequest()..source = context.dartSource;
-    dartServices.compile(input).timeout(longServiceCallTimeout).then(
-        (CompileResponse response) {
+    dartServices
+        .compile(input)
+        .timeout(longServiceCallTimeout)
+        .then((CompileResponse response) {
       _clearOutput();
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
@@ -363,7 +381,8 @@ class PlaygroundMobile {
     Lines lines = new Lines(input.source);
 
     Future<AnalysisResults> request =
-        dartServices.analyze(input).timeout(serviceCallTimeout);;
+        dartServices.analyze(input).timeout(serviceCallTimeout);
+    ;
 
     _analysisRequest = request;
 
@@ -378,15 +397,17 @@ class PlaygroundMobile {
 
       _displayIssues(result.issues);
 
-      _context.dartDocument.setAnnotations(result.issues.map(
-          (AnalysisIssue issue) {
+      _context.dartDocument.setAnnotations(result.issues
+          .map((AnalysisIssue issue) {
         int startLine = lines.getLineForOffset(issue.charStart);
-        int endLine = lines.getLineForOffset(issue.charStart + issue.charLength);
+        int endLine =
+            lines.getLineForOffset(issue.charStart + issue.charLength);
 
-        Position start = new Position(startLine,
-            issue.charStart - lines.offsetForLine(startLine));
-        Position end = new Position(endLine,
-            issue.charStart + issue.charLength - lines.offsetForLine(startLine));
+        Position start = new Position(
+            startLine, issue.charStart - lines.offsetForLine(startLine));
+        Position end = new Position(endLine, issue.charStart +
+            issue.charLength -
+            lines.offsetForLine(startLine));
 
         return new Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
@@ -474,15 +495,16 @@ class PlaygroundMobile {
     Document doc = editor.document;
 
     doc.select(
-        doc.posFromIndex(charStart),
-        doc.posFromIndex(charStart + charLength));
+        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
     if (focus) editor.focus();
   }
 
   void _showAboutDialog() {
-    dartServices.version().timeout(new Duration(seconds: 2)).then(
-        (VersionResponse ver) {
+    dartServices
+        .version()
+        .timeout(new Duration(seconds: 2))
+        .then((VersionResponse ver) {
       _showAboutDialogWithVersion(version: ver.sdkVersion);
     }).catchError((e) {
       _showAboutDialogWithVersion();
