@@ -8,6 +8,7 @@ library dart_pad.embed_ui;
 
 import 'dart:async';
 import 'dart:html' hide Document;
+import 'dart:js' as js;
 
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
@@ -198,7 +199,7 @@ class PlaygroundMobile {
   void registerExportButton() {
     if ($('[icon="launch"]') != null) {
       _exportButton = new PaperIconButton.from($('[icon="launch"]'));
-      _exportButton.onTap.listen((_) {
+      _exportButton.onClick.listen((_) {
         _exportDialog.toggle();
       });
     }
@@ -207,7 +208,7 @@ class PlaygroundMobile {
   void registerResetButton() {
     if ($('[icon="refresh"]') != null) {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
-      _resetButton.onTap.listen((_) {
+      _resetButton.onClick.listen((_) {
         _resetDialog.toggle();
       });
     }
