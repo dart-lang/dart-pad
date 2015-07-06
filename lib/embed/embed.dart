@@ -116,7 +116,15 @@ class PlaygroundMobile {
 
     _showGist(gistId, run: page == 'run');
   }
-
+  
+  void clickAction(a, Function f) {
+    a.onClick.listen((e) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      f();
+    });
+  }
+  
   void registerMessageToast() {
     _messageToast = new PaperToast();
     document.body.children.add(_messageToast.element);
@@ -192,75 +200,50 @@ class PlaygroundMobile {
   void registerRunButton() {
     _runButton = new PaperFab.from($("#run-button"));
     _runButton = _runButton != null ? _runButton : new PaperFab();
-    _runButton.onClick.listen((e) {
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      _handleRun();
-    });
+    clickAction(_runButton, _handleRun);
   }
   
   void registerExportButton() {
     if ($('[icon="launch"]') != null) {
       _exportButton = new PaperIconButton.from($('[icon="launch"]'));
-      _exportButton.onClick.listen((e) {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        _exportDialog.toggle();
-      });
+      clickAction(_exportButton, _exportDialog.toggle);
     }
   }
 
   void registerResetButton() {
     if ($('[icon="refresh"]') != null) {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
-      _resetButton.onClick.listen((e) {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        _resetDialog.toggle();
-      });
+      clickAction(_resetButton, _resetDialog.toggle);
     }
   }
 
   void registerCancelRefreshButton() {
     if ($('#cancelButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelButton'));
-      _cancelButton.onClick.listen((e) {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        _resetDialog.toggle();
-      });
+      clickAction(_cancelButton, _resetDialog.toggle);
     }
   }
 
   void registerAffirmRefreshButton() {
     if ($('#affirmButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmButton'));
-      _affirmButton.onClick.listen((e) {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
+      clickAction(_affirmButton, () {
         _resetDialog.toggle();
-        _reset();
-      });
+        _reset(); });
     }
   }
 
   void registerCancelExportButton() {
     if ($('#cancelExportButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
-      _cancelButton.onClick.listen((e) {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        _exportDialog.toggle();
-      });
+      clickAction(_cancelButton, _exportDialog.toggle);
     }
   }
 
   void registerAffirmExportButton() {
     if ($('#affirmExportButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
-      _affirmButton.onClick.listen((e) {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
+      clickAction(_affirmButton, () {
         _exportDialog.toggle();
         _export();
       });
