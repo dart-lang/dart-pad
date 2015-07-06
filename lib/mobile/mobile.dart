@@ -190,20 +190,28 @@ class PlaygroundMobile {
 
     _editProgress = new PaperProgress.from($("#edit-progress"));
     runButton = new PaperFab.from($("#run-button"))
-      ..onTap.listen((_) => _handleRun());
+      ..onClick.listen((e) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        _handleRun();
+      });
 
     // execute section
     new PaperFab.from($(".back-button"))
-      ..onTap.listen((e) {
+      ..onClick.listen((e) {
         _pages.selected = "0";
         // for some reason e.stopPropagation is needed
         // otherwise the pages.selected will be "1"
         // TODO: we should probably report this bug to polymer
         e.stopPropagation();
+        e.stopImmediatePropagation();
       });
 
     rerunButton = new PaperIconButton.from($('[icon="refresh"]'))
-      ..onTap.listen((_) => _handleRerun());
+      ..onClick.listen((e) {
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+      });
 
     _output = new PolymerElement.from($("#console"));
     PaperToggleButton toggleConsoleButton =
