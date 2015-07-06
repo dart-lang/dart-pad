@@ -8,7 +8,6 @@ library dart_pad.embed_ui;
 
 import 'dart:async';
 import 'dart:html' hide Document;
-import 'dart:js' as js;
 
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
