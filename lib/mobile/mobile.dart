@@ -305,7 +305,9 @@ class PlaygroundMobile {
     PolymerElement dropdownAnimation = new PolymerElement.from($("animated-dropdown"));
     if (e.target is Element) {
       Element target = e.target;
-      if(target.id != 'ink' && target.id != 'icon') {
+      print(target.id);
+      if(target.id != 'ink' && target.id != 'icon' 
+          && target.id != 'dartlang-item' && target.id != 'about-item') {
         dropdownAnimation.call("hide");
       }
     }
