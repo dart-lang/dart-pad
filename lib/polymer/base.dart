@@ -50,7 +50,7 @@ class WebElement {
       f();
     });
   }
-  
+
   String attribute(String name) => element.getAttribute(name);
 
   void setAttribute(String name, [String value = '']) =>
