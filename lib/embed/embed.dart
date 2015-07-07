@@ -192,40 +192,34 @@ class PlaygroundMobile {
   void registerRunButton() {
     _runButton = new PaperFab.from($("#run-button"));
     _runButton = _runButton != null ? _runButton : new PaperFab();
-    _runButton.onTap.listen((_) => _handleRun());
+    _runButton.clickAction(_handleRun);
   }
 
   void registerExportButton() {
     if ($('[icon="launch"]') != null) {
       _exportButton = new PaperIconButton.from($('[icon="launch"]'));
-      _exportButton.onTap.listen((_) {
-        _exportDialog.toggle();
-      });
+      _exportButton.clickAction(_exportDialog.toggle);
     }
   }
 
   void registerResetButton() {
     if ($('[icon="refresh"]') != null) {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
-      _resetButton.onTap.listen((_) {
-        _resetDialog.toggle();
-      });
+      _resetButton.clickAction(_resetDialog.toggle);
     }
   }
 
   void registerCancelRefreshButton() {
     if ($('#cancelButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelButton'));
-      _cancelButton.onTap.listen((_) {
-        _resetDialog.toggle();
-      });
+      _cancelButton.clickAction(_resetDialog.toggle);
     }
   }
 
   void registerAffirmRefreshButton() {
     if ($('#affirmButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmButton'));
-      _affirmButton.onTap.listen((_) {
+      _affirmButton.clickAction(() {
         _resetDialog.toggle();
         _reset();
       });
@@ -233,18 +227,16 @@ class PlaygroundMobile {
   }
 
   void registerCancelExportButton() {
-    if ($('#cancelButton') != null) {
+    if ($('#cancelExportButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
-      _cancelButton.onTap.listen((_) {
-        _exportDialog.toggle();
-      });
+      _cancelButton.clickAction(_exportDialog.toggle);
     }
   }
 
   void registerAffirmExportButton() {
-    if ($('#affirmButton') != null) {
+    if ($('#affirmExportButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
-      _affirmButton.onTap.listen((_) {
+      _affirmButton.clickAction(() {
         _exportDialog.toggle();
         _export();
       });
@@ -339,7 +331,9 @@ class PlaygroundMobile {
   }
 
   bool validFlex(String input) {
-    return input != null && double.parse(input) > 0.0 && double.parse(input) < 1.0;
+    return input != null &&
+        double.parse(input) > 0.0 &&
+        double.parse(input) < 1.0;
   }
 
   int roundFlex(double flex) => (flex * 10.0).round();

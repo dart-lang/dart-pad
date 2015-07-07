@@ -43,6 +43,14 @@ class WebElement {
     }
   }
 
+  void clickAction(Function f) {
+    this.onClick.listen((e) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      f();
+    });
+  }
+  
   String attribute(String name) => element.getAttribute(name);
 
   void setAttribute(String name, [String value = '']) =>

@@ -189,21 +189,22 @@ class PlaygroundMobile {
     dartBusyLight = new BusyLight(tabs.element.children[0]);
 
     _editProgress = new PaperProgress.from($("#edit-progress"));
-    runButton = new PaperFab.from($("#run-button"))
-      ..onTap.listen((_) => _handleRun());
+    runButton = new PaperFab.from($("#run-button"));
+    runButton.clickAction(_handleRun);
 
     // execute section
     new PaperFab.from($(".back-button"))
-      ..onTap.listen((e) {
+      ..onClick.listen((e) {
         _pages.selected = "0";
         // for some reason e.stopPropagation is needed
         // otherwise the pages.selected will be "1"
         // TODO: we should probably report this bug to polymer
         e.stopPropagation();
+        e.stopImmediatePropagation();
       });
 
-    rerunButton = new PaperIconButton.from($('[icon="refresh"]'))
-      ..onTap.listen((_) => _handleRerun());
+    rerunButton = new PaperIconButton.from($('[icon="refresh"]'));
+    rerunButton.clickAction(_handleRerun);
 
     _output = new PolymerElement.from($("#console"));
     PaperToggleButton toggleConsoleButton =
