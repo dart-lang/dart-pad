@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart_pad.mobile_ui;
+//Currently not in use
+
+library dart_pad.embed_ui;
 
 import 'dart:async';
 import 'dart:html' hide Document;
@@ -11,6 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
 import '../dart_pad.dart';
+import '../documentation.dart';
 import '../context.dart';
 import '../core/dependencies.dart';
 import '../core/modules.dart';
@@ -27,7 +30,6 @@ import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/ga.dart';
 import '../src/sample.dart' as sample;
-import '../src/util.dart';
 
 PlaygroundMobile get playground => _playground;
 
@@ -41,25 +43,37 @@ void init() {
 }
 
 class PlaygroundMobile {
-  PaperFab runButton;
-  PaperIconButton rerunButton;
+  PaperFab _runButton;
+  PaperIconButton _exportButton;
+  PaperIconButton _cancelButton;
+  PaperIconButton _affirmButton;
+  PaperIconButton _resetButton;
+  PaperTabs _tabs;
 
-  BusyLight dartBusyLight;
+  Gist backupGist;
+  Router _router;
 
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
-  Router _router;
 
+  PaperToast _resetToast;
   PaperToast _messageToast;
   PaperToast _errorsToast;
   PaperDialog _messageDialog;
+  PaperDialog _resetDialog;
+  PaperDialog _exportDialog;
   PolymerElement _output;
-  IronPages _pages;
   PaperProgress _editProgress;
-  PaperProgress _runProgress;
 
+  DivElement _docPanel;
+
+  DocHandler docHandler;
   String _gistId;
+
+  Future createNewGist() {
+    return null;
+  }
 
   ModuleManager modules = new ModuleManager();
 
@@ -103,111 +117,171 @@ class PlaygroundMobile {
     _showGist(gistId, run: page == 'run');
   }
 
-  void switchToEditPage() {
-    _pages = new IronPages.from($("iron-pages"));
-    if (_pages.selected == '0') return;
-    _pages.selected = "0";
-    executionService.tearDown();
-
-    // TODO: Use the router here instead.
-
-    //window.history.back();
+  void registerMessageToast() {
+    _messageToast = new PaperToast();
+    document.body.children.add(_messageToast.element);
   }
 
-  void switchToExecPage() {
-    if (_pages.selected == '1') return;
+  void registerErrorToast() {
+    if ($('#errorToast') != null) {
+      _errorsToast = new PaperToast.from($('#errorToast'));
+    } else {
+      _errorsToast = new PaperToast();
+    }
+    _errorsToast.duration = 100000;
+  }
 
-    _clearErrors();
-    _clearOutput();
+  void registerResetToast() {
+    if ($('#resetToast') != null) {
+      _resetToast = new PaperToast.from($('#resetToast'));
+    } else {
+      _resetToast = new PaperToast();
+    }
+    _resetToast.duration = 3000;
+  }
 
-    // TODO: Use the router here instead.
-    _pages.selected = '1';
-    //_router.go('gist', {'gist': currentGistId()});
+  void registerMessageDialog() {
+    if ($("#messageDialog") != null) {
+      _messageDialog = new PaperDialog.from($("#messageDialog"));
+    }
+  }
+
+  void registerResetDialog() {
+    if ($("#resetDialog") != null) {
+      _resetDialog = new PaperDialog.from($("#resetDialog"));
+    } else {
+      _resetDialog = new PaperDialog();
+    }
+  }
+
+  void registerExportDialog() {
+    if ($("#exportDialog") != null) {
+      _exportDialog = new PaperDialog.from($("#exportDialog"));
+    } else {
+      _exportDialog = new PaperDialog();
+    }
+  }
+
+  void registerDocPanel() {
+    if ($('#documentation') != null) {
+      _docPanel = $('#documentation');
+      _docPanel.innerHtml =
+          "<div class='default-text-div layout horizontal center-center'><span class='default-text'>Documentation</span></div>";
+    } else {
+      _docPanel = new DivElement();
+    }
+  }
+
+  void registerSelectorTabs() {
+    if ($("#selector-tabs") != null) {
+      _tabs = new PaperTabs.from($("#selector-tabs"));
+      _tabs.ironSelect.listen((_) {
+        String name = _tabs.selectedName;
+        ga.sendEvent('edit', name);
+        _context.switchTo(name);
+      });
+    }
+  }
+
+  void registerEditProgress() {
+    if ($("#edit-progress") != null) {
+      _editProgress = new PaperProgress.from($("#edit-progress"));
+    }
+  }
+
+  void registerRunButton() {
+    _runButton = new PaperFab.from($("#run-button"));
+    _runButton = _runButton != null ? _runButton : new PaperFab();
+    _runButton.clickAction(_handleRun);
+  }
+
+  void registerExportButton() {
+    if ($('[icon="launch"]') != null) {
+      _exportButton = new PaperIconButton.from($('[icon="launch"]'));
+      _exportButton.clickAction(_exportDialog.toggle);
+    }
+  }
+
+  void registerResetButton() {
+    if ($('[icon="refresh"]') != null) {
+      _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
+      _resetButton.clickAction(_resetDialog.toggle);
+    }
+  }
+
+  void registerCancelRefreshButton() {
+    if ($('#cancelButton') != null) {
+      _cancelButton = new PaperIconButton.from($('#cancelButton'));
+      _cancelButton.clickAction(_resetDialog.toggle);
+    }
+  }
+
+  void registerAffirmRefreshButton() {
+    if ($('#affirmButton') != null) {
+      _affirmButton = new PaperIconButton.from($('#affirmButton'));
+      _affirmButton.clickAction(() {
+        _resetDialog.toggle();
+        _reset();
+      });
+    }
+  }
+
+  void registerCancelExportButton() {
+    if ($('#cancelExportButton') != null) {
+      _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
+      _cancelButton.clickAction(_exportDialog.toggle);
+    }
+  }
+
+  void registerAffirmExportButton() {
+    if ($('#affirmExportButton') != null) {
+      _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
+      _affirmButton.clickAction(() {
+        _exportDialog.toggle();
+        _export();
+      });
+    }
+  }
+
+  //Console must exist
+  void registerConsole() {
+    _output = new PolymerElement.from($("#console"));
   }
 
   void _createUi() {
-    _pages = new IronPages.from($("iron-pages"));
-    // TODO: fix the pages transition
-    // Transitions.slideFromRight(_pages);
+    registerMessageToast();
+    registerErrorToast();
+    registerResetToast();
+    registerMessageDialog();
+    registerResetDialog();
+    registerExportDialog();
+    registerDocPanel();
+    registerSelectorTabs();
+    registerEditProgress();
+    registerRunButton();
+    registerExportButton();
+    registerResetButton();
+    registerCancelRefreshButton();
+    registerAffirmRefreshButton();
+    registerCancelExportButton();
+    registerAffirmExportButton();
+    registerConsole();
 
-    _messageToast = new PaperToast();
-    document.body.children.add(_messageToast.element);
+    _clearOutput();
+  }
 
-    _errorsToast = new PaperToast()..duration = 100000;
-    document.body.children.add(_errorsToast.element);
+  void _export() {
+    window.open(
+        "/index.html?dart=${Uri.encodeQueryComponent(context.dartSource)}&html=${Uri.encodeQueryComponent(context.htmlSource)}&css=${Uri.encodeQueryComponent(context.cssSource)}",
+        "DartPad");
+  }
 
-    _messageDialog = new PaperDialog.from($("paper-dialog"));
-
-    //edit section
-    PaperDrawerPanel topPanel =
-        new PaperDrawerPanel.from($("paper-drawer-panel"));
-
-    PaperMenu menu = new PaperMenu.from($("paper-menu"));
-    menu.ironActivate.listen((_) {
-      _router.go('gist', {'gist': menu.selectedName});
-      topPanel.closeDrawer();
-    });
-
-    new PaperIconButton.from($('#nav-button')).clickAction(
-        () => topPanel.togglePanel());
-
-    PolymerElement dropdownAnimation =
-        new PolymerElement.from($("animated-dropdown"));
-
-    new PaperIconButton.from($("#more-button")).clickAction(() {
-      $("#dropdown").style.top =
-          ($("#more-button").getBoundingClientRect().top + 5).toString() +
-              "px";
-      $("#dropdown").style.left =
-          ($("#more-button").getBoundingClientRect().left - 75).toString() +
-              "px";
-      dropdownAnimation.call("show");
-    });
-
-    new PaperItem.from($("#dartlang-item")).clickAction(() {
-      window.open("https://www.dartlang.org/", "_blank");
-      dropdownAnimation.call("hide");
-    });
-
-    new PaperItem.from($("#about-item")).clickAction(() {
-      _showAboutDialog();
-      dropdownAnimation.call("hide");
-    });
-
-    PaperTabs tabs = new PaperTabs.from($("paper-tabs"));
-    tabs.ironSelect.listen((_) {
-      String name = tabs.selectedName;
-      ga.sendEvent('edit', name);
-      _context.switchTo(name);
-    });
-
-    dartBusyLight = new BusyLight(tabs.element.children[0]);
-
-    _editProgress = new PaperProgress.from($("#edit-progress"));
-    runButton = new PaperFab.from($("#run-button"));
-    runButton.clickAction(_handleRun);
-
-    // execute section
-    new PaperFab.from($("#back-button"))
-      ..onClick.listen((e) {
-        _pages.selected = "0";
-        // for some reason e.stopPropagation is needed
-        // otherwise the pages.selected will be "1"
-        // TODO: we should probably report this bug to polymer
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-      });
-
-    rerunButton = new PaperIconButton.from($('[icon="refresh"]'));
-    rerunButton.clickAction(_handleRerun);
-
-    _output = new PolymerElement.from($("#console"));
-    PaperToggleButton toggleConsoleButton =
-        new PaperToggleButton.from($("paper-toggle-button"));
-    toggleConsoleButton.onIronChange.listen((_) {
-      _output.hidden(!toggleConsoleButton.checked);
-    });
-
+  void _reset() {
+    _router = new Router();
+    _router
+      ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
+      ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
+      ..listen();
     _clearOutput();
   }
 
@@ -248,11 +322,62 @@ class PlaygroundMobile {
     return modules.start();
   }
 
+  void registerExecutionService() {
+    if ($('#frame') != null) {
+      deps[ExecutionService] = new ExecutionServiceIFrame($('#frame'));
+    } else {
+      deps[ExecutionService] = new ExecutionServiceIFrame(new IFrameElement());
+    }
+  }
+
+  bool validFlex(String input) {
+    return input != null &&
+        double.parse(input) > 0.0 &&
+        double.parse(input) < 1.0;
+  }
+
+  int roundFlex(double flex) => (flex * 10.0).round();
+
+  void removeFlex(Element e) {
+    e.classes.removeWhere((elementClass) => elementClass.startsWith('flex-'));
+  }
+
   void _initPlayground() {
-    // Set up the iframe.
-    deps[ExecutionService] = new ExecutionServiceIFrame($('#frame'));
-    executionService.onStdout.listen(_showOuput);
-    executionService.onStderr.listen((m) => _showOuput(m, error: true));
+    // Set up the iframe execution.
+    registerExecutionService();
+    executionService.onStdout.listen(_showOutput);
+    executionService.onStderr.listen((m) => _showOutput(m, error: true));
+
+    // Set up the splitters.
+    Uri url = Uri.parse(window.location.toString());
+    String v = url.queryParameters['verticalRatio'];
+    String h = url.queryParameters['horizontalRatio'];
+    Element leftPanel = $('#leftPanel');
+    Element rightPanel = $('#rightPanel');
+    Element topPanel = $('#topPanel');
+    Element bottomPanel = $('#bottomPanel');
+    Element toolbarLeftPanel = $('#toolbarLeftPanel');
+    Element toolbarRightPanel = $('#toolbarRightPanel');
+    if (rightPanel != null && leftPanel != null && validFlex(h) != false) {
+      removeFlex(leftPanel);
+      removeFlex(rightPanel);
+      int l = roundFlex(double.parse(h));
+      leftPanel.classes.add('flex-${l}');
+      rightPanel.classes.add('flex-${10 - l}');
+      if (toolbarRightPanel != null && toolbarLeftPanel != null) {
+        removeFlex(toolbarLeftPanel);
+        removeFlex(toolbarRightPanel);
+        toolbarLeftPanel.classes.add('flex-${l}');
+        toolbarRightPanel.classes.add('flex-${10 - l}');
+      }
+    }
+    if (topPanel != null && bottomPanel != null && validFlex(v) != false) {
+      removeFlex(topPanel);
+      removeFlex(bottomPanel);
+      int t = roundFlex(double.parse(v));
+      topPanel.classes.add('flex-${t}');
+      bottomPanel.classes.add('flex-${10 - t}');
+    }
 
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
@@ -266,13 +391,28 @@ class PlaygroundMobile {
     // TODO: Move to using the defaultFilters().
     deps[GistLoader] = new GistLoader();
 
-    // QUESTION: Do we need these bindings for mobile ?
-    // keys.bind(['ctrl-s'], _handleSave);
-    // keys.bind(['ctrl-enter'], _handleRun);
-    // keys.bind(['f1'], _handleHelp);
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDocWithText(_docPanel);
+      }
+    });
+
+    // Listen for changes that would effect the documentation panel.
+    editor.onMouseDown.listen((e) {
+      // Delay to give codemirror time to process the mouse event.
+      Timer.run(() {
+        if (!_context.cursorPositionIsWhitespace()) {
+          docHandler.generateDocWithText(_docPanel);
+        }
+      });
+    });
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
+
+    context.onModeChange
+        .listen((_) => docHandler.generateDocWithText(_docPanel));
 
     _context.onHtmlReconcile.listen((_) {
       executionService.replaceHtml(_context.htmlSource);
@@ -282,8 +422,9 @@ class PlaygroundMobile {
       executionService.replaceCss(_context.cssSource);
     });
 
-    _context.onDartDirty.listen((_) => dartBusyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
+
+    docHandler = new DocHandler(editor, _context);
 
     _finishedInit();
   }
@@ -291,15 +432,7 @@ class PlaygroundMobile {
   _finishedInit() {
     Timer.run(() {
       editor.resize();
-
-      // Clear the splash.
-      Element splash = querySelector('div.splash');
-      splash.onTransitionEnd
-          .listen((_) => splash.parent.children.remove(splash));
-      splash.classes.toggle('hide', true);
     });
-
-    $('body').onClick.listen(_closeAbout);
 
     _router = new Router()
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
@@ -307,68 +440,34 @@ class PlaygroundMobile {
       ..listen();
   }
 
-  void _closeAbout(Event e) {
-    PolymerElement dropdownAnimation =
-        new PolymerElement.from($("animated-dropdown"));
-    if (e.target is Element) {
-      Element target = e.target;
-      if (target.id != 'ink' &&
-          target.id != 'icon' &&
-          target.id != 'dartlang-item' &&
-          target.id != 'about-item') {
-        dropdownAnimation.call("hide");
-      }
-    }
-  }
-
   void _handleRun() {
+    _clearOutput();
     ga.sendEvent('main', 'run');
-    runButton.disabled = true;
+    _runButton.disabled = true;
 
-    _editProgress.indeterminate = true;
-    _editProgress.hidden(false);
-
-    var input = new CompileRequest()..source = context.dartSource;
-    dartServices
-        .compile(input)
-        .timeout(longServiceCallTimeout)
-        .then((CompileResponse response) {
-      switchToExecPage();
-      return executionService.execute(
-          _context.htmlSource, _context.cssSource, response.result);
-    }).catchError((e) {
-      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
-      _showError('Error compiling to JavaScript', '${e}');
-    }).whenComplete(() {
-      runButton.disabled = false;
-      _editProgress.hidden(true);
-      _editProgress.indeterminate = false;
-    });
-  }
-
-  void _handleRerun() {
-    ga.sendEvent('main', 'rerun');
-    rerunButton.disabled = true;
-
-    _runProgress = new PaperProgress.from($("#run-progress"));
-    _runProgress.indeterminate = true;
-    _runProgress.hidden(false);
+    if (_editProgress != null) {
+      _editProgress.indeterminate = true;
+      _editProgress.hidden(false);
+    }
 
     var input = new CompileRequest()..source = context.dartSource;
     dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
-      _clearOutput();
-      return executionService.execute(
-          _context.htmlSource, _context.cssSource, response.result);
+      if (executionService != null) {
+        return executionService.execute(
+            _context.htmlSource, _context.cssSource, response.result);
+      }
     }).catchError((e) {
-      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
+      _showOutput('Error compiling to JavaScript:\n${e}', error: true);
       _showError('Error compiling to JavaScript', '${e}');
     }).whenComplete(() {
-      rerunButton.disabled = false;
-      _runProgress.hidden(true);
-      _runProgress.indeterminate = false;
+      _runButton.disabled = false;
+      if (_editProgress != null) {
+        _editProgress.hidden(true);
+        _editProgress.indeterminate = false;
+      }
     });
   }
 
@@ -389,8 +488,6 @@ class PlaygroundMobile {
       // Discard if the document has been mutated since we requested analysis.
       if (input.source != _context.dartSource) return;
 
-      dartBusyLight.reset();
-
       _displayIssues(result.issues);
 
       _context.dartDocument.setAnnotations(result.issues
@@ -410,7 +507,6 @@ class PlaygroundMobile {
       }).toList());
     }).catchError((e) {
       _context.dartDocument.setAnnotations([]);
-      dartBusyLight.reset();
       _logger.severe(e);
     });
   }
@@ -421,18 +517,20 @@ class PlaygroundMobile {
 
   void _clearOutput() {
     _output.text = '';
-    _output.add(new DivElement()
-      ..text = 'Console output'
-      ..classes.add('consoleTitle'));
+    _output.element.innerHtml =
+        "<div class='consoleTitle default-text-div layout horizontal center-center'><span class='default-text'>Console output</span></div>";
   }
 
-  void _showOuput(String message, {bool error: false}) {
+  void _showOutput(String message, {bool error: false}) {
+    if (message == null) return;
+    Element title = $('.consoleTitle');
+    if (title != null) title.hidden = true;
     message = message + '\n';
     SpanElement span = new SpanElement();
     span.classes.add(error ? 'errorOutput' : 'normal');
     span.text = message;
     _output.add(span);
-    span.scrollIntoView(ScrollAlignment.BOTTOM);
+    _output.element.scrollTop = _output.element.scrollHeight;
   }
 
   void _setGistDescription(String description) {
@@ -496,27 +594,10 @@ class PlaygroundMobile {
     if (focus) editor.focus();
   }
 
-  void _showAboutDialog() {
-    dartServices
-        .version()
-        .timeout(new Duration(seconds: 2))
-        .then((VersionResponse ver) {
-      _showAboutDialogWithVersion(version: ver.sdkVersion);
-    }).catchError((e) {
-      _showAboutDialogWithVersion();
-    });
-  }
-
-  void _showAboutDialogWithVersion({String version}) {
-    _messageDialog.element.querySelector('h2').text = 'About DartPad';
-    String text = privacyText;
-    if (version != null) text += " Based on Dart SDK ${version}.";
-    _messageDialog.element.querySelector('p').setInnerHtml(text,
-        validator: new PermissiveNodeValidator());
-    _messageDialog.open();
-  }
-
   void _showError(String title, String message) {
+    if (_messageDialog == null) {
+      return;
+    }
     _messageDialog.element.querySelector('h2').text = title;
     _messageDialog.element.querySelector('p').text = message;
     _messageDialog.open();
@@ -589,7 +670,10 @@ class PlaygroundContext extends Context {
       editor.swapDocument(_cssDoc);
     }
 
-    if (oldMode != name) _modeController.add(name);
+    if (oldMode != name) {
+      _modeController.add(name);
+      focus();
+    }
   }
 
   String get focusedEditor {
@@ -623,6 +707,15 @@ class PlaygroundContext extends Context {
         controller.add(null);
       });
     });
+  }
+
+  bool cursorPositionIsWhitespace() {
+    Document document = editor.document;
+    String str = document.value;
+    int index = document.indexFromPos(document.cursor);
+    if (index < 0 || index >= str.length) return false;
+    String char = str[index];
+    return char != char.trim();
   }
 }
 

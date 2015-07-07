@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Embeddings Demo</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+    <style>
+      iframe {
+        background-color: #333;
+        border: 1px solid #ccc;
+        width: 100%;
+        height: 400px;
+      }
+
+      iframe[short] {
+        height: 220px;
+      }
+
+      #choosePad {
+        margin-bottom: 8px;
+        float: right;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+          <h2>Embeddings Demo</h2>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+            veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+            commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+            velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+            cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
+            id est laborum.
+          </p>
+
+          <h3>Foo bar</h3>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+            veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+            commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+            velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+            cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
+            id est laborum.
+          </p>
+          <select id ="choosePad" onChange="changeOptions()">
+            <option value="33706e19df021e52d98c">Hello World</option>
+            <option value="74e990d984faad26dea0">Fibonacci</option>
+          </select>
+          <iframe id="embed-dart" src="embed-dart.html"></iframe>
+
+          <h3>Foo bar</h3>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+            veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+            commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+            velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+            cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
+            id est laborum.
+          </p>
+          <iframe src="embed-html.html?id=9126d5d48ebabf5bf547"></iframe>
+
+          <h3>Foo bar</h3>
+          <p>
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
+            veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
+            commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
+            velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+            cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
+            id est laborum.
+          </p>
+          <iframe short src="embed-inline.html"></iframe>
+          <p></p>
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
+          tempor incididunt ut labore et dolore magna aliqua.</p>
+        </div>
+      </div>
+      <div class="col-md-2"></div>
+    </div>
+  </body>
+  <script>
+    function changeOptions(){
+      var select = document.getElementById("choosePad");
+      var url = 'embed-dart.html?id='+select.options[select.selectedIndex].value;
+      document.getElementById("embed-dart").src = url;
+    }
+  </script>
+</html>

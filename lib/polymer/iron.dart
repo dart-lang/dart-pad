@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library core;
+library iron;
 
 import 'dart:async';
 import 'dart:html';
@@ -10,82 +10,26 @@ import 'dart:js';
 
 import 'base.dart';
 
-class CoreAnimatedPages extends CoreSelector {
-  CoreAnimatedPages() : super('core-animated-pages');
-  CoreAnimatedPages.from(HtmlElement element) : super.from(element);
+class IronPages extends IronSelectableBehavior {
+  IronPages() : super('iron-pages');
+  IronPages.from(HtmlElement element) : super.from(element);
 }
 
-// core-drawer-panel
-class CoreDrawerPanel extends CoreElement {
-  CoreDrawerPanel() : super('core-drawer-panel');
-  CoreDrawerPanel.from(HtmlElement element) : super.from(element);
-
-  void forceNarrow() => toggleAttribute('forceNarrow');
-
-  void makeDrawer(CoreElement element) =>
-      element.toggleAttribute('drawer', true);
-
-  void makeMain(CoreElement element) => element.toggleAttribute('main', true);
-
-  /// Toggles the panel open and closed.
-  void togglePanel() => call('togglePanel');
-
-  /// Opens the drawer.
-  void openDrawer() => call('openDrawer');
-
-  /// Closes the drawer.
-  void closeDrawer() => call('closeDrawer');
-}
-
-class CoreDropdown extends CoreOverlay {
-  CoreDropdown([String tag]) : super(tag == null ? 'core-dropdown' : tag);
-  CoreDropdown.from(HtmlElement element) : super.from(element);
-
-  String get halign => attribute('halign');
-  /// Accepted values: 'left', 'right'.
-  set halign(String value) => setAttribute('halign', value);
-
-  String get valign => attribute('valign');
-  /// Accepted values: 'top', 'bottom'.
-  set valign(String value) => setAttribute('valign', value);
-}
-
-class CoreHeaderPanel extends CoreElement {
-  CoreHeaderPanel() : super('core-header-panel');
-  CoreHeaderPanel.from(HtmlElement element) : super.from(element);
-}
-
-class CoreIcon extends CoreElement {
-  CoreIcon({String icon, String src}) : super('core-item') {
+class IronIcon extends PolymerElement {
+  IronIcon({String icon, String src}) : super('iron-icon') {
     if (icon != null) this.icon = icon;
     if (src != null) this.src = src;
   }
 
-  CoreIcon.from(HtmlElement element) : super.from(element);
+  IronIcon.from(HtmlElement element) : super.from(element);
 
   String get src => attribute('src');
   set src(String value) => setAttribute('src', value);
 }
 
-class CoreItem extends CoreElement {
-  CoreItem({String icon, String label}) : super('core-item') {
-    if (icon != null) this.icon = icon;
-    if (label != null) this.label = label;
-  }
-
-  CoreItem.from(HtmlElement element) : super.from(element);
-
-  void name(String value) => setAttribute('name', value);
-}
-
-class CoreMenu extends CoreSelector {
-  CoreMenu() : super('core-menu');
-  CoreMenu.from(HtmlElement element) : super.from(element);
-}
-
-class CoreOverlay extends CoreElement {
-  CoreOverlay([String tag]) : super(tag == null ? 'core-overlay' : tag);
-  CoreOverlay.from(HtmlElement element) : super.from(element);
+class IronOverlayBehavior extends PolymerElement {
+  IronOverlayBehavior([String tag]) : super(tag == null ? 'core-overlay' : tag);
+  IronOverlayBehavior.from(HtmlElement element) : super.from(element);
 
   /**
    * Toggle the opened state of the overlay.
@@ -105,46 +49,42 @@ class CoreOverlay extends CoreElement {
   void close() => call('close');
 }
 
-abstract class CoreSelector extends CoreElement {
-  CoreSelector(String tag) : super(tag);
-  CoreSelector.from(HtmlElement element) : super.from(element);
+abstract class IronSelectableBehavior extends PolymerElement {
+  IronSelectableBehavior(String tag) : super(tag);
+  IronSelectableBehavior.from(HtmlElement element) : super.from(element);
 
   // TODO: add valueattr
 
   String get selected => "${property('selected')}";
-  set selected(String value) => setAttribute('selected', value);
+  set selected(String value) {
+    setAttribute('selected', value);
+  }
 
   dynamic get selectedIndex => property('selectedIndex');
 
   Object get selectedItem => property('selectedItem');
 
   /**
-   * Selects the previous item; this should be used in single selection only.
-   * This will wrap to the end if [wrapped] is `true` and it is already at the
-   * first item.
+   * Selects the previous item.
    */
-  void selectPrevious(bool wrapped) => call('selectPrevious', [wrapped]);
+  void selectPrevious() => call('selectPrevious');
 
   /**
-   * Selects the next item; this should be used in single selection only. This
-   * will wrap to the front if [wrapped] is `true` and it is already at the last
-   * item.
+   * Selects the next item.
    */
-  void selectNext(bool wrapped) => call('selectNext', [wrapped]);
+  void selectNext() => call('selectNext');
 
   /**
-   * Fired when an item's selection state is changed. This event is fired both
-   * when an item is selected or deselected.
+   *   The event that fires from items when they are selected.
+   *   Selectable will listen for this event from items and update
+   *   the selection state. Set to empty string to listen to no events.
    */
-  Stream get onCoreSelect => listen('core-select');
+  Stream get ironActivate => listen('iron-activate');
 
-  /**
-   * Fired when a selection is activated.
-   */
-  Stream get onCoreActivate => listen('core-activate');
+  Stream get ironSelect => listen('iron-select');
 }
 
-class CoreSplitter extends CoreElement {
+class CoreSplitter extends PolymerElement {
   CoreSplitter() : super('core-splitter');
   CoreSplitter.from(HtmlElement element) : super.from(element);
 
@@ -176,22 +116,22 @@ class CoreSplitter extends CoreElement {
   set allowOverflow(bool value) => toggleAttribute('allowOverflow', value);
 }
 
-class CoreToolbar extends CoreElement {
-  CoreToolbar() : super('core-toolbar');
-  CoreToolbar.from(HtmlElement element) : super.from(element);
+class PaperToolbar extends PolymerElement {
+  PaperToolbar() : super('paper-toolbar');
+  PaperToolbar.from(HtmlElement element) : super.from(element);
 }
 
-class CoreElement extends WebElement {
-  static CoreElement div() => new CoreElement('div');
-  static CoreElement p([String text]) => new CoreElement('p', text: text);
-  static CoreElement section() => new CoreElement('section');
-  static CoreElement span([String text]) => new CoreElement('span', text: text);
+class PolymerElement extends WebElement {
+  static PolymerElement div() => new PolymerElement('div');
+  static PolymerElement p([String text]) => new PolymerElement('p', text: text);
+  static PolymerElement section() => new PolymerElement('section');
+  static PolymerElement span([String text]) => new PolymerElement('span', text: text);
 
   JsObject _proxy;
   Map<String, Stream> _eventStreams = {};
 
-  CoreElement(String tag, {String text}) : super(tag, text: text);
-  CoreElement.from(HtmlElement element) : super.from(element);
+  PolymerElement(String tag, {String text}) : super(tag, text: text);
+  PolymerElement.from(HtmlElement element) : super.from(element);
 
   void hidden([bool value]) => toggleAttribute('hidden', value);
 
@@ -249,18 +189,37 @@ class CoreElement extends WebElement {
 
     return _eventStreams[eventName];
   }
+
+  void add(dynamic child) {
+    if (child is WebElement) {
+      child = child.element;
+    } else if (child is Element) {
+      child = child;
+    } else {
+      throw new ArgumentError('child must be a WebElement or an Element');
+    }
+    //Polymer.dom(this).appendChild(child);
+    context["Polymer"]
+      .callMethod("dom", [new JsObject.fromBrowserObject(element)])
+      .callMethod("appendChild", [new JsObject.fromBrowserObject(child)]);
+  }
+
+  dynamic selectorAll(String selector) {
+    //Polymer.dom(this).childNodes;
+    return context["Polymer"].callMethod("dom", [new JsObject.fromBrowserObject(element)]).callMethod("querySelectorAll", [selector]);
+  }
 }
 
 class Transition {
-  static void coreTransitionCenter(CoreElement element) =>
+  static void coreTransitionCenter(PolymerElement element) =>
       element.setAttribute('transition', 'core-transition-center');
 }
 
 class Transitions {
-  static void slideFromRight(CoreElement element) =>
+  static void slideFromRight(PolymerElement element) =>
       _add(element, 'slide-from-right');
 
-  static void _add(CoreElement element, String transitionId) {
+  static void _add(PolymerElement element, String transitionId) {
     String t = element.transitions;
     t = t == null ? transitionId : '${t} ${transitionId}';
     element.transitions = t;

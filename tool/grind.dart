@@ -25,11 +25,11 @@ analyze() {
 }
 
 @Task()
-testCli() => Tests.runCliTests();
+testCli() => new TestRunner().testAsync(platformSelector: 'vm');
 
 // This task require a frame buffer to run.
 @Task()
-testWeb() => Tests.runWebTests(directory: 'build/test', htmlFile: 'web.html');
+testWeb() => new TestRunner().testAsync(platformSelector: 'chrome');
 
 @Task('Run bower')
 bower() => run('bower', arguments: ['install']);
@@ -51,6 +51,9 @@ build() {
   FilePath testFile = _buildDir.join('test', 'web.dart.js');
   log('${testFile.path} compiled to ${_printSize(testFile)}');
 
+  FilePath embedFile = _buildDir.join('web', 'embed.dart.js');
+  log('${mainFile} compiled to ${_printSize(embedFile)}');
+
   // Delete the build/web/packages directory.
   delete(getDir('build/web/packages'));
 
@@ -59,16 +62,41 @@ build() {
   run('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
 
   // Run vulcanize.
-  FilePath mobileHtmlFile = _buildDir.join('web', 'mobile.html');
-  log('${mobileHtmlFile.path} original: ${_printSize(mobileHtmlFile)}');
-  run('vulcanize', // '--csp', '--inline',
-      arguments: ['--strip', '--output', 'mobile.html', 'mobile.html'],
-      workingDirectory: 'build/web');
-  log('${mobileHtmlFile.path} vulcanize: ${_printSize(mobileHtmlFile)}');
+  vulcanize('mobile.html');
+  vulcanize('embed-dart.html');
+  vulcanize('embed-html.html');
+  vulcanize('embed-inline.html');
+
+  // TODO: vulcanize the embedding html files
 
   return _uploadCompiledStats(
-      mainFile.asFile.lengthSync(),
-      mobileFile.asFile.lengthSync());
+      mainFile.asFile.lengthSync(), mobileFile.asFile.lengthSync());
+}
+
+//Run vulcanize
+vulcanize(String filepath) {
+  FilePath HtmlFile = _buildDir.join('web', filepath);
+  log('${HtmlFile.path} original: ${_printSize(HtmlFile)}');
+  ProcessResult result = Process.runSync('vulcanize', [
+    '--strip-comments',
+    '--inline-css',
+    '--inline-scripts',
+    '--exclude',
+    'mobile.dart.js',
+    '--exclude',
+    'embed.dart.js',
+    '--exclude',
+    'main.dart.js',
+    '--exclude',
+    'packages/codemirror/codemirror.js',
+    filepath
+  ], workingDirectory: 'build/web');
+  if (result.exitCode != 0) {
+    fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
+  }
+  HtmlFile.asFile.writeAsStringSync(result.stdout);
+
+  log('${HtmlFile.path} vulcanize: ${_printSize(HtmlFile)}');
 }
 
 @Task()
@@ -81,10 +109,13 @@ coverage() {
   PubApp coveralls = new PubApp.global('dart_coveralls');
   coveralls.run([
     'report',
-    '--token', _env['COVERAGE_TOKEN'],
-    '--retry', '2',
+    '--token',
+    _env['COVERAGE_TOKEN'],
+    '--retry',
+    '2',
     '--exclude-test-files',
-    'test/all.dart']);
+    'test/all.dart'
+  ]);
 }
 
 @DefaultTask()
@@ -163,16 +194,14 @@ Future _uploadCompiledStats(num mainLength, int mobileLength) {
     Librato librato = new Librato.fromEnvVars();
     log('Uploading stats to ${librato.baseUrl}');
     LibratoStat mainSize = new LibratoStat('main.dart.js', mainLength);
-    LibratoStat mobileSize = new LibratoStat('mobileSize.dart.js', mobileLength);
+    LibratoStat mobileSize =
+        new LibratoStat('mobileSize.dart.js', mobileLength);
     return librato.postStats([mainSize, mobileSize]).then((_) {
       String commit = env['TRAVIS_COMMIT'];
       LibratoLink link = new LibratoLink(
-          'github',
-          'https://github.com/dart-lang/dart-pad/commit/${commit}');
-      LibratoAnnotation annotation = new LibratoAnnotation(
-          commit,
-          description: 'Commit ${commit}',
-          links: [link]);
+          'github', 'https://github.com/dart-lang/dart-pad/commit/${commit}');
+      LibratoAnnotation annotation = new LibratoAnnotation(commit,
+          description: 'Commit ${commit}', links: [link]);
       return librato.createAnnotation('build_ui', annotation);
     });
   } else {

@@ -24,7 +24,7 @@ class DElement {
   bool hasAttr(String name) => element.attributes.containsKey(name);
 
   void toggleAttr(String name, bool value) {
-    value ? element.setAttribute(name, '') : element.attributes.remove(name);
+    value ? setAttr(name) : clearAttr(name);
   }
 
   String getAttr(String name) => element.getAttribute(name);

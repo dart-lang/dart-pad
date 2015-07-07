@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. This version is
+     not finalized. -->
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="scaffolded-by" content="https://github.com/google/stagehand">
+    <title>DartPad</title>
+
+    <script src="packages/dart_pad/bower/webcomponentsjs/webcomponents-lite.min.js"></script>
+
+    <link rel="import" href="imports.html"/>
+    <link rel="import" href="animated-dropdown.html">
+    <link rel="import" href="embed_style.html"/>
+
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+          rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+
+    <!-- codemirror -->
+    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
+    <link href="packages/dart_pad/editing/editor_codemirror.css" rel="stylesheet" media="screen">
+
+    <link rel="import" href="embed_components.html">
+    <script src="packages/codemirror/codemirror.js" defer></script>
+    <script type="application/dart" src="embed.dart" defer></script>
+    <script src="packages/browser/dart.js" async></script>
+    <script src="ga.js" async></script>
+    <script src="polymerpatch.js" async></script>
+  </head>
+
+  <body class="fullbleed vertical layout" unresolved>
+    <div class="flex layout horizontal">
+      <div id="leftPanel" class="relative vertical layout flex-6">
+        <dartpad-buttons></dartpad-buttons>
+        <dartpad-editor id='topPanel' dart class="flex-5 layout vertical"></dartpad-editor>
+        <horizontal-splitter class="splitter"></horizontal-splitter>
+        <dartpad-console id='bottomPanel' class="flex-2 layout vertical"></dartpad-console>
+      </div>
+      <vertical-splitter></vertical-splitter>
+      <dartpad-documentation id="rightPanel" class="flex-4 layout vertical"></dartpad-documentation>
+
+      <paper-toast id="errorToast" text=""></paper-toast>
+    </div>
+
+    <dartpad-dom-output hidden class="flex"></dartpad-dom-output>
+    <reset-dialog></reset-dialog>
+    <export-dialog></export-dialog>
+  </body>
+</html>

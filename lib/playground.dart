@@ -11,7 +11,6 @@ import 'package:logging/logging.dart';
 import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
 
-import 'actions.dart';
 import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
@@ -64,6 +63,7 @@ class Playground implements GistContainer, GistController {
   GistStorage _gistStorage = new GistStorage();
   DContentEditable titleEditable;
 
+  TabController sourceTabController;
   TabController outputTabController;
   SharingDialog sharingDialog;
   KeysDialog settings;
@@ -76,16 +76,12 @@ class Playground implements GistContainer, GistController {
   ModuleManager modules = new ModuleManager();
 
   Playground() {
-    TabController controller = new TabController();
+    sourceTabController = new TabController();
     for (String name in ['dart', 'html', 'css']) {
-      controller.registerTab(new TabElement(querySelector('#${name}tab'),
-          name: name, onSelect: () {
+      sourceTabController.registerTab(new TabElement(
+          querySelector('#${name}tab'), name: name, onSelect: () {
         Element issuesElement = querySelector('#issues');
-        if (name != "dart") {
-          issuesElement.style.display = "none";
-        } else {
-          issuesElement.style.display = "block";
-        }
+        issuesElement.style.display = name == 'dart' ? 'block' : 'none';
         ga.sendEvent('edit', name);
         _context.switchTo(name);
       }));
@@ -95,22 +91,22 @@ class Playground implements GistContainer, GistController {
 
     sharingDialog = new SharingDialog(this, this);
 
-    new NewPadAction(querySelector('#newbutton'), this);
+    DButton newButton = new DButton(querySelector('#newbutton'));
+    OkCancelDialog newDialog = new OkCancelDialog('Create New Pad',
+        'Discard changes to the current pad?', this.createNewGist,
+        okText: 'Discard');
+    newButton.onClick.listen((_) {
+      newDialog.show();
+    });
 
     DButton resetButton = new DButton(querySelector('#resetbutton'));
+    OkCancelDialog resetDialog = new OkCancelDialog(
+        'Reset Pad', 'Discard changes to the current pad?', _resetGists,
+        okText: 'Discard', cancelText: 'Cancel');
     resetButton.onClick.listen((_) {
-      confirm('Reset Pad', 'Discard changes to the current pad?',
-          okText: 'Discard', cancelText: 'Cancel').then((bool val) {
-        if (val) {
-          _gistStorage.clearStoredGist();
-          editableGist.reset();
-          // Delay to give time for the model change event to propogate through
-          // to the editor component (which is where `_performAnalysis()` pulls
-          // the Dart source from).
-          Timer.run(() => _performAnalysis());
-        }
-      });
+      resetDialog.show();
     });
+
     editableGist.onDirtyChanged.listen((val) {
       resetButton.disabled = !val;
     });
@@ -173,12 +169,34 @@ class Playground implements GistContainer, GistController {
     });
   }
 
+  void _resetGists() {
+    _gistStorage.clearStoredGist();
+    editableGist.reset();
+    // Delay to give time for the model change event to propogate through
+    // to the editor component (which is where `_performAnalysis()` pulls
+    // the Dart source from).
+    Timer.run(() => _performAnalysis());
+    _clearOutput();
+  }
   void showHome(RouteEnterEvent event) {
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
     bool loadedFromSaved = false;
-
-    if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
+    Uri url = Uri.parse(window.location.toString());
+    if (url.hasQuery &&
+        url.queryParameters['id'] != null &&
+        isLegalGistId(url.queryParameters['id'])) {
+      _showGist(url.queryParameters['id']);
+    } else if (url.hasQuery &&
+        url.queryParameters['dart'] != null &&
+        url.queryParameters['html'] != null &&
+        url.queryParameters['css'] != null) {
+      Gist blankGist = createSampleGist();
+      blankGist.getFile('main.dart').content = url.queryParameters['dart'];
+      blankGist.getFile('index.html').content = url.queryParameters['html'];
+      blankGist.getFile('styles.css').content = url.queryParameters['css'];
+      editableGist.setBackingGist(blankGist);
+    } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
       Gist blankGist = new Gist();
@@ -194,6 +212,9 @@ class Playground implements GistContainer, GistController {
     }
 
     _clearOutput();
+    // We delay this because of the latency in populating the editors from the
+    // gist data.
+    Timer.run(_autoSwitchSourceTab);
 
     // Analyze and run it.
     Timer.run(() {
@@ -283,6 +304,9 @@ class Playground implements GistContainer, GistController {
       }
 
       _clearOutput();
+      // We delay this because of the latency in populating the editors from the
+      // gist data.
+      Timer.run(_autoSwitchSourceTab);
 
       // Analyze and run it.
       Timer.run(() {
@@ -432,18 +456,23 @@ class Playground implements GistContainer, GistController {
     context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
 
     // Bind the editable files to the gist.
-    Property htmlFile = new GistFileProperty(editableGist.getGistFile('index.html'));
-    Property htmlDoc = new EditorDocumentProperty(_context.htmlDocument, 'html');
+    Property htmlFile =
+        new GistFileProperty(editableGist.getGistFile('index.html'));
+    Property htmlDoc =
+        new EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
-    Property cssFile = new GistFileProperty(editableGist.getGistFile('styles.css'));
+    Property cssFile =
+        new GistFileProperty(editableGist.getGistFile('styles.css'));
     Property cssDoc = new EditorDocumentProperty(_context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
-    Property dartFile = new GistFileProperty(editableGist.getGistFile('main.dart'));
-    Property dartDoc = new EditorDocumentProperty(_context.dartDocument, 'dart');
+    Property dartFile =
+        new GistFileProperty(editableGist.getGistFile('main.dart'));
+    Property dartDoc =
+        new EditorDocumentProperty(_context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
@@ -520,7 +549,7 @@ class Playground implements GistContainer, GistController {
       ga.sendTiming('action-perf', "compilation-e2e",
           compilationTimer.elapsedMilliseconds);
 
-      _switchOutputTab(_context.htmlSource, _context.dartSource);
+      _autoSwitchOutputTab();
 
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
@@ -535,17 +564,32 @@ class Playground implements GistContainer, GistController {
     });
   }
 
-  /// Switch to the console or html results tab depending on whether the sample
-  /// has html content or not.
-  void _switchOutputTab(String html, String dart) {
-    if (html.trim().isEmpty && !dart.contains("'dart:html'")
-        && !dart.contains('"dart:html"')) {
-      outputTabController.selectTab("console");
-    } else {
-      outputTabController.selectTab("result");
+  /// Switch to the Dart / Html / Css tab depending on the sample type.
+  void _autoSwitchSourceTab() {
+    String htmlSrc = _context.htmlSource.trim();
+    String dartSrc = _context.dartSource.trim();
+
+    if (htmlSrc.isEmpty && dartSrc.isNotEmpty) {
+      sourceTabController.selectTab('dart');
     }
   }
-  
+
+  /// Switch to the console or html results tab depending on whether the sample
+  /// has html content or not.
+  void _autoSwitchOutputTab() {
+    String htmlSrc = _context.htmlSource.trim();
+    String dartSrc = _context.dartSource.trim();
+
+    if (htmlSrc.isNotEmpty) {
+      outputTabController.selectTab('result');
+    } else if (dartSrc.contains("'dart:html'") ||
+        dartSrc.contains('"dart:html"')) {
+      outputTabController.selectTab('result');
+    } else {
+      outputTabController.selectTab('console');
+    }
+  }
+
   Future<String> _createSummary() {
     SourceRequest input = new SourceRequest()..source = _context.dartSource;
     return dartServices

@@ -13,9 +13,9 @@ import 'dart:html';
 Element queryId(String id) => querySelector('#${id}');
 
 /**
- * Finds the first descendant element of this document with the given id.
+ * Finds the first descendant element of this document that matches the specified group of selectors.
  */
-Element $(String id) => querySelector('#${id}');
+Element $(String selectors) => querySelector(selectors);
 
 class WebElement {
   final HtmlElement element;
@@ -41,6 +41,14 @@ class WebElement {
     } else {
       element.attributes.remove(name);
     }
+  }
+
+  void clickAction(Function f) {
+    this.onClick.listen((e) {
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      f();
+    });
   }
 
   String attribute(String name) => element.getAttribute(name);

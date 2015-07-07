@@ -34,6 +34,50 @@ class DocHandler {
 
   DocHandler(this._editor, this._context);
 
+  void generateDocWithText(DivElement docPanel) {
+    if (_context.focusedEditor != 'dart') {
+      docPanel.innerHtml = "Documentation";
+      return;
+    }
+    if (!_editor.hasFocus || _editor.document.selection.isNotEmpty) {
+      return;
+    }
+
+    int offset = _editor.document.indexFromPos(_editor.document.cursor);
+
+    SourceRequest request = new SourceRequest()..offset = offset;
+
+    if (_editor.completionActive) {
+      // If the completion popup is open we create a new source as if the
+      // completion popup was chosen, and ask for the documentation of that
+      // source.
+      request.source =
+          _sourceWithCompletionInserted(_context.dartSource, offset);
+    } else {
+      request.source = _context.dartSource;
+    }
+
+    dartServices
+        .document(request)
+        .timeout(serviceCallTimeout)
+        .then((DocumentResponse result) {
+      return _getHtmlTextFor(result).then((_DocResult docResult) {
+        if (docResult.html == "") {
+          docPanel.innerHtml =
+              "<div class='default-text-div layout horizontal center-center'><span class='default-text'>Documentation</span></div>";
+          return;
+        }
+        docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
+        docPanel
+            .querySelectorAll("a")
+            .forEach((AnchorElement a) => a.target = "docs");
+        docPanel
+            .querySelectorAll("h1")
+            .forEach((h) => h.classes.add("type-${docResult.entitykind}"));
+      });
+    });
+  }
+
   void generateDoc(DivElement docPanel) {
     if (_context.focusedEditor != 'dart') {
       docPanel.innerHtml = "";
@@ -51,19 +95,24 @@ class DocHandler {
       // If the completion popup is open we create a new source as if the
       // completion popup was chosen, and ask for the documentation of that
       // source.
-      request.source = _sourceWithCompletionInserted(_context.dartSource, offset);
+      request.source =
+          _sourceWithCompletionInserted(_context.dartSource, offset);
     } else {
       request.source = _context.dartSource;
     }
 
-    dartServices.document(request).timeout(serviceCallTimeout).then(
-        (DocumentResponse result) {
+    dartServices
+        .document(request)
+        .timeout(serviceCallTimeout)
+        .then((DocumentResponse result) {
       return _getHtmlTextFor(result).then((_DocResult docResult) {
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-        docPanel.querySelectorAll("a").forEach(
-            (AnchorElement a) => a.target = "docs");
-        docPanel.querySelectorAll("h1").forEach(
-            (h) => h.classes.add("type-${docResult.entitykind}"));
+        docPanel
+            .querySelectorAll("a")
+            .forEach((AnchorElement a) => a.target = "docs");
+        docPanel
+            .querySelectorAll("h1")
+            .forEach((h) => h.classes.add("type-${docResult.entitykind}"));
       });
     });
   }
@@ -74,8 +123,8 @@ class DocHandler {
     int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
     int insertOffset = math.max(lastSpace, lastDot);
     return _context.dartSource.substring(0, insertOffset) +
-    completionText +
-    _context.dartSource.substring(offset);
+        completionText +
+        _context.dartSource.substring(offset);
   }
 
   Future<_DocResult> _getHtmlTextFor(DocumentResponse result) {
@@ -95,8 +144,7 @@ class DocHandler {
     String apiLink = _dartApiLink(
         libraryName: libraryName,
         enclosingClassName: info['enclosingClassName'],
-        memberName: info['name']
-    );
+        memberName: info['name']);
 
     Future mdnCheck = new Future.value();
     if (!hasDartdoc && isHtmlLib && domName != null) {
@@ -111,20 +159,19 @@ ${isVariable ? "${kind}\n\n" : ''}
 ${isVariable ? "**Propagated type:** ${info["propagatedType"]}\n\n" : ''}
 ${libraryName == null ? '' : apiLink }\n\n''';
 
-      String _htmlDocs = markdown.markdownToHtml(
-          _mdDocs,
+      String _htmlDocs = markdown.markdownToHtml(_mdDocs,
           inlineSyntaxes: [new InlineBracketsColon(), new InlineBrackets()]);
 
       // Append a 'launch' icon to the 'Open external docs' link.
-      _htmlDocs = _htmlDocs.replaceAll(
-          "external docs</a>",
+      _htmlDocs = _htmlDocs.replaceAll("external docs</a>",
           "external docs <span class='launch-icon'></span></a>");
 
       return new _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
     });
   }
 
-  String _dartApiLink({String libraryName, String enclosingClassName, String memberName}) {
+  String _dartApiLink(
+      {String libraryName, String enclosingClassName, String memberName}) {
     StringBuffer apiLink = new StringBuffer();
     if (libraryName != null) {
       if (libraryName.contains('dart:')) {
@@ -150,7 +197,8 @@ Future<String> createMdnMarkdownLink(String domName) {
   final String baseUrl = "https://developer.mozilla.org/en-US/docs/Web/API/";
 
   String domClassName = domName.indexOf(".") != -1
-      ? domName.substring(0, domName.indexOf(".")) : null;
+      ? domName.substring(0, domName.indexOf("."))
+      : null;
 
   return _urlExists('$baseUrl$domName').then((exists) {
     if (exists) return '[$domName]($baseUrl$domName)';
@@ -168,9 +216,7 @@ Future<String> createMdnMarkdownLink(String domName) {
 }
 
 Future<bool> _urlExists(String url) {
-  return HttpRequest.getString(url)
-      .then((_) => true)
-      .catchError((e) => false);
+  return HttpRequest.getString(url).then((_) => true).catchError((e) => false);
 }
 
 class _DocResult {
@@ -207,8 +253,8 @@ class InlineBrackets extends markdown.InlineSyntax {
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
-    var element = new markdown.Element.text(
-        'code', "<em>${htmlEscape(match[1])}</em>");
+    var element =
+        new markdown.Element.text('code', "<em>${htmlEscape(match[1])}</em>");
     parser.addNode(element);
     return true;
   }
