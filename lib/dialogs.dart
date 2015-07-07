@@ -52,21 +52,20 @@ class AboutDialog extends DDialog {
   }
 }
 
-class ExportDialog extends DDialog {
+class EmbedDialog extends DDialog {
   final GistContainer gistContainer;
   final GistController gistController;
 
   ParagraphElement _text;
   ParagraphElement _controls;
-  TextAreaElement _textArea;
   DButton _cancelButton;
-  DButton _htmlButton;
-  DButton _docButton;
-  DButton _inlineButton;
+  DElement _doc;
+  DElement _html;
+  DElement _inline;
   
-  ExportDialog(
+  EmbedDialog(
       GistContainer this.gistContainer, GistController this.gistController)
-      : super(title: 'Export') {
+      : super(title: 'Embedding Options') {
     element.classes.toggle('sharing-dialog', true);
 
     content.setAttr('layout');
@@ -74,22 +73,12 @@ class ExportDialog extends DDialog {
 
     _text = content.add(new ParagraphElement());
     _controls = content.add(new ParagraphElement());
-    _textArea = content.add(new TextAreaElement());
-    _textArea.className = 'sharingSummaryText';
-    _textArea.setAttribute('flex', '');
+    _doc = content.add(new DElement.tag('div')..layoutHorizontal());
+    _html = content.add(new DElement.tag('div')..layoutHorizontal());
+    _inline = content.add(new DElement.tag('div')..layoutHorizontal());
 
     _cancelButton = new DButton.button(text: 'Cancel');
     _cancelButton.onClick.listen((_) => hide());
-    
-    _htmlButton = new DButton.button(text: 'HTML', classes: 'default');
-    _htmlButton.onClick.listen((_) => generateExport('html'));
-
-    _docButton = new DButton.button(text: 'Documentation', classes: 'default');
-    _docButton.onClick.listen((_) => generateExport('doc'));
-    
-
-    _inlineButton = new DButton.button(text: 'Inline', classes: 'default');
-    _inlineButton.onClick.listen((_) => generateExport('inline'));
   }
 
   void show() {
@@ -97,34 +86,25 @@ class ExportDialog extends DDialog {
     super.show();
   }
   
-  void generateExport(String source) {
+  void generateExport() {
     MutableGist gist = gistContainer.mutableGist;
     Uri url = Uri.parse(window.location.toString());
     String home = url.host;
-    switch(source) {
-      case ('html'):
-        _textArea.text = "${home}/embed-html.com?id=${gist.id}";
-        break;
-      case ('doc'):
-        _textArea.text = "${home}/embed-dart.com?id=${gist.id}";
-        break;
-      case ('inline'):
-        _textArea.text = "${home}/embed-inline.com?id=${gist.id}";
-        break;
-    }
+    _doc.add(new SpanElement()..text = 'Dart + Documentation: ' ..style.paddingRight = "12px");
+    _doc.add(new InputElement()..value = '${home}/embed-dart.com?id=${gist.id}' ..attributes['flex'] = '');
+    _html.add(new SpanElement()..text = "Dart + Html: " ..style.paddingRight = "12px");
+    _html.add(new InputElement()..value = '${home}/embed-html.com?id=${gist.id}' ..attributes['flex'] = '');
+    _inline.add(new SpanElement()..text = "Dart (Minimal): " ..style.paddingRight = "12px");
+    _inline.add(new InputElement()..value = '${home}/embed-inline.com?id=${gist.id}' ..attributes['flex'] = '');
   }
 
   void _configure() {
     buttonArea.element.children.clear();
     _text.text = 'URL to an embeddable iframe source.';
     _controls.text = 'Query controls: horizontalRatio (0.1 to 0.9), verticalRatio (0.1 to 0.9), id (gist id)';
-    _textArea.defaultValue = 'Embed URL Here';
-    _textArea.style.display = 'block';
+    generateExport();
     buttonArea.add(_cancelButton);
     buttonArea.add(new SpanElement()..attributes['flex'] = '');
-    buttonArea.add(_htmlButton);
-    buttonArea.add(_docButton);
-    buttonArea.add(_inlineButton);
   }
 }
 
@@ -137,7 +117,7 @@ class SharingDialog extends DDialog {
   DButton _cancelButton;
   DButton _shareButton;
   DButton _closeButton;
-  DButton _exportButton;
+  DButton _embedButton;
   DElement _div;
   DInput _padUrl;
   DInput _gistUrl;
@@ -168,9 +148,9 @@ class SharingDialog extends DDialog {
     _closeButton = new DButton.button(text: 'Close', classes: 'default');
     _closeButton.onClick.listen((_) => hide());
     _div = new DElement.tag('div')..layoutVertical();
-    _exportButton = new DButton.button(text: 'Export', classes: 'default');
-    _exportButton.onClick.listen((_) {
-      ExportDialog exportDialog = new ExportDialog(gistContainer, gistController);
+    _embedButton = new DButton.button(text: 'Embed', classes: 'default');
+    _embedButton.onClick.listen((_) {
+      EmbedDialog exportDialog = new EmbedDialog(gistContainer, gistController);
       exportDialog.show();
       hide();
     });
@@ -243,7 +223,7 @@ class SharingDialog extends DDialog {
       _gistUrl.value = gist.html_url;
       buttonArea.add(_closeButton);
       buttonArea.add(new SpanElement()..attributes['flex'] = '');
-      buttonArea.add(_exportButton);
+      buttonArea.add(_embedButton);
     }
   }
 
