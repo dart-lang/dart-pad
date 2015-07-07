@@ -65,7 +65,6 @@ messageHandler = function(e) {
     // Replace all three.
     body.innerHTML = obj.html;
     document.getElementById('styleId').innerHTML = obj.css;
-    // TODO: We have a race condition here.
     setTimeout(function() {
       replaceJavaScript(obj.js);
       retriggerJavaScriptScripts();
@@ -73,9 +72,10 @@ messageHandler = function(e) {
   }
 }
 
-window.addEventListener('message', messageHandler, false);
-
-parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
+window.setTimeout(function () {
+  window.addEventListener('message', messageHandler, false);
+  parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
+}, 50);
     </script>
 
     <style id="styleId"></style>

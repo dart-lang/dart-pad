@@ -148,36 +148,31 @@ class PlaygroundMobile {
       topPanel.closeDrawer();
     });
 
-    new PaperIconButton.from($('#nav-button'))
-      ..onTap.listen((_) => topPanel.togglePanel());
+    new PaperIconButton.from($('#nav-button')).clickAction(
+        () => topPanel.togglePanel());
 
     PolymerElement dropdownAnimation =
         new PolymerElement.from($("animated-dropdown"));
 
-    new PaperIconButton.from($("#more-button"))
-      ..onTap.listen((e) {
-        $("#dropdown").style.top =
-            ($("#more-button").getBoundingClientRect().top + 5).toString() +
-                "px";
-        $("#dropdown").style.left =
-            ($("#more-button").getBoundingClientRect().left - 75).toString() +
-                "px";
-        dropdownAnimation.call("show");
-      });
+    new PaperIconButton.from($("#more-button")).clickAction(() {
+      $("#dropdown").style.top =
+          ($("#more-button").getBoundingClientRect().top + 5).toString() +
+              "px";
+      $("#dropdown").style.left =
+          ($("#more-button").getBoundingClientRect().left - 75).toString() +
+              "px";
+      dropdownAnimation.call("show");
+    });
 
-    new PaperItem.from($("#dartlang-item"))
-      ..onTap.listen((event) {
-        event.preventDefault();
-        window.open("https://www.dartlang.org/", "_blank");
-        dropdownAnimation.call("hide");
-      });
+    new PaperItem.from($("#dartlang-item")).clickAction(() {
+      window.open("https://www.dartlang.org/", "_blank");
+      dropdownAnimation.call("hide");
+    });
 
-    new PaperItem.from($("#about-item"))
-      ..onTap.listen((event) {
-        event.preventDefault();
-        _showAboutDialog();
-        dropdownAnimation.call("hide");
-      });
+    new PaperItem.from($("#about-item")).clickAction(() {
+      _showAboutDialog();
+      dropdownAnimation.call("hide");
+    });
 
     PaperTabs tabs = new PaperTabs.from($("paper-tabs"));
     tabs.ironSelect.listen((_) {
@@ -193,7 +188,7 @@ class PlaygroundMobile {
     runButton.clickAction(_handleRun);
 
     // execute section
-    new PaperFab.from($(".back-button"))
+    new PaperFab.from($("#back-button"))
       ..onClick.listen((e) {
         _pages.selected = "0";
         // for some reason e.stopPropagation is needed
