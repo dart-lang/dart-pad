@@ -99,15 +99,17 @@ class ExportDialog extends DDialog {
   
   void generateExport(String source) {
     MutableGist gist = gistContainer.mutableGist;
+    Uri url = Uri.parse(window.location.toString());
+    String home = url.host;
     switch(source) {
       case ('html'):
-        _textArea.text = "https://dartpad.dartlang.org/embed-html.com?id=${gist.id}";
+        _textArea.text = "${home}/embed-html.com?id=${gist.id}";
         break;
       case ('doc'):
-        _textArea.text = "https://dartpad.dartlang.org/embed-dart.com?id=${gist.id}";
+        _textArea.text = "${home}/embed-dart.com?id=${gist.id}";
         break;
       case ('inline'):
-        _textArea.text = "https://dartpad.dartlang.org/embed-inline.com?id=${gist.id}";
+        _textArea.text = "${home}/embed-inline.com?id=${gist.id}";
         break;
     }
   }
