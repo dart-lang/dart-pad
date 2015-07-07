@@ -55,8 +55,7 @@
           <paper-header-panel main>
             <paper-toolbar style="height: 90px">
               <paper-icon-button id="nav-button" icon="menu"></paper-icon-button>
-              <div title class="flex sample-titles"
-                   style="font-weight:500 !important"></div>
+              <div title class="flex sample-titles"></div>
               <paper-icon-button icon="more-vert"
                                  id="more-button"></paper-icon-button>
               <paper-tabs selected="0" class="bottom fit" style="top: inherit">
@@ -75,8 +74,8 @@
       <section id="executable-section">
         <paper-header-panel class="fit">
           <paper-toolbar>
-            <paper-fab icon="arrow-back" class="back-button" mini></paper-fab>
-            <span title class="sample-titles flex"></span>
+            <paper-fab icon="arrow-back" id="back-button" mini></paper-fab>
+            <div title class="flex"></div>
             <paper-toggle-button checked></paper-toggle-button>
             <paper-icon-button icon="refresh"></paper-icon-button>
             <paper-progress id="run-progress" class="bottom fit" hidden
