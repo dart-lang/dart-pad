@@ -52,6 +52,80 @@ class AboutDialog extends DDialog {
   }
 }
 
+class ExportDialog extends DDialog {
+  final GistContainer gistContainer;
+  final GistController gistController;
+
+  ParagraphElement _text;
+  ParagraphElement _controls;
+  TextAreaElement _textArea;
+  DButton _cancelButton;
+  DButton _htmlButton;
+  DButton _docButton;
+  DButton _inlineButton;
+  
+  ExportDialog(
+      GistContainer this.gistContainer, GistController this.gistController)
+      : super(title: 'Export') {
+    element.classes.toggle('sharing-dialog', true);
+
+    content.setAttr('layout');
+    content.setAttr('vertical');
+
+    _text = content.add(new ParagraphElement());
+    _controls = content.add(new ParagraphElement());
+    _textArea = content.add(new TextAreaElement());
+    _textArea.className = 'sharingSummaryText';
+    _textArea.setAttribute('flex', '');
+
+    _cancelButton = new DButton.button(text: 'Cancel');
+    _cancelButton.onClick.listen((_) => hide());
+    
+    _htmlButton = new DButton.button(text: 'HTML', classes: 'default');
+    _htmlButton.onClick.listen((_) => generateExport('html'));
+
+    _docButton = new DButton.button(text: 'Documentation', classes: 'default');
+    _docButton.onClick.listen((_) => generateExport('doc'));
+    
+
+    _inlineButton = new DButton.button(text: 'Inline', classes: 'default');
+    _inlineButton.onClick.listen((_) => generateExport('inline'));
+  }
+
+  void show() {
+    _configure();
+    super.show();
+  }
+  
+  void generateExport(String source) {
+    MutableGist gist = gistContainer.mutableGist;
+    switch(source) {
+      case ('html'):
+        _textArea.text = "https://dartpad.dartlang.org/embed-html.com?id=${gist.id}";
+        break;
+      case ('doc'):
+        _textArea.text = "https://dartpad.dartlang.org/embed-dart.com?id=${gist.id}";
+        break;
+      case ('inline'):
+        _textArea.text = "https://dartpad.dartlang.org/embed-inline.com?id=${gist.id}";
+        break;
+    }
+  }
+
+  void _configure() {
+    buttonArea.element.children.clear();
+    _text.text = 'URL to an embeddable iframe source.';
+    _controls.text = 'Query controls: horizontalRatio (0.1 to 0.9), verticalRatio (0.1 to 0.9), id (gist id)';
+    _textArea.defaultValue = 'Embed URL Here';
+    _textArea.style.display = 'block';
+    buttonArea.add(_cancelButton);
+    buttonArea.add(new SpanElement()..attributes['flex'] = '');
+    buttonArea.add(_htmlButton);
+    buttonArea.add(_docButton);
+    buttonArea.add(_inlineButton);
+  }
+}
+
 class SharingDialog extends DDialog {
   final GistContainer gistContainer;
   final GistController gistController;
@@ -61,6 +135,7 @@ class SharingDialog extends DDialog {
   DButton _cancelButton;
   DButton _shareButton;
   DButton _closeButton;
+  DButton _exportButton;
   DElement _div;
   DInput _padUrl;
   DInput _gistUrl;
@@ -91,7 +166,12 @@ class SharingDialog extends DDialog {
     _closeButton = new DButton.button(text: 'Close', classes: 'default');
     _closeButton.onClick.listen((_) => hide());
     _div = new DElement.tag('div')..layoutVertical();
-
+    _exportButton = new DButton.button(text: 'Export', classes: 'default');
+    _exportButton.onClick.listen((_) {
+      ExportDialog exportDialog = new ExportDialog(gistContainer, gistController);
+      exportDialog.show();
+      hide();
+    });
     DElement div =
         _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
     div.add(new DElement.tag('span', classes: 'sharinglabel'))
@@ -159,9 +239,9 @@ class SharingDialog extends DDialog {
       content.add(_div);
       _padUrl.value = 'https://dartpad.dartlang.org/${gist.id}';
       _gistUrl.value = gist.html_url;
-
-      buttonArea.add(new SpanElement()..attributes['flex'] = '');
       buttonArea.add(_closeButton);
+      buttonArea.add(new SpanElement()..attributes['flex'] = '');
+      buttonArea.add(_exportButton);
     }
   }
 
