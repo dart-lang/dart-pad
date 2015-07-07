@@ -125,14 +125,6 @@ class PlaygroundMobile {
     //_router.go('gist', {'gist': currentGistId()});
   }
 
-  void clickAction(a, Function f) {
-    a.onClick.listen((e) {
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      f();
-    });
-  }
-  
   void _createUi() {
     _pages = new IronPages.from($("iron-pages"));
     // TODO: fix the pages transition
@@ -198,7 +190,7 @@ class PlaygroundMobile {
 
     _editProgress = new PaperProgress.from($("#edit-progress"));
     runButton = new PaperFab.from($("#run-button"));
-    clickAction(runButton, _handleRun);
+    runButton.clickAction(_handleRun);
 
     // execute section
     new PaperFab.from($(".back-button"))
@@ -212,7 +204,7 @@ class PlaygroundMobile {
       });
 
     rerunButton = new PaperIconButton.from($('[icon="refresh"]'));
-    clickAction(rerunButton, _handleRerun);
+    rerunButton.clickAction(_handleRerun);
 
     _output = new PolymerElement.from($("#console"));
     PaperToggleButton toggleConsoleButton =

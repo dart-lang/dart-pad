@@ -116,15 +116,7 @@ class PlaygroundMobile {
 
     _showGist(gistId, run: page == 'run');
   }
-  
-  void clickAction(a, Function f) {
-    a.onClick.listen((e) {
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-      f();
-    });
-  }
-  
+
   void registerMessageToast() {
     _messageToast = new PaperToast();
     document.body.children.add(_messageToast.element);
@@ -200,50 +192,51 @@ class PlaygroundMobile {
   void registerRunButton() {
     _runButton = new PaperFab.from($("#run-button"));
     _runButton = _runButton != null ? _runButton : new PaperFab();
-    clickAction(_runButton, _handleRun);
+    _runButton.clickAction(_handleRun);
   }
-  
+
   void registerExportButton() {
     if ($('[icon="launch"]') != null) {
       _exportButton = new PaperIconButton.from($('[icon="launch"]'));
-      clickAction(_exportButton, _exportDialog.toggle);
+      _exportButton.clickAction(_exportDialog.toggle);
     }
   }
 
   void registerResetButton() {
     if ($('[icon="refresh"]') != null) {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
-      clickAction(_resetButton, _resetDialog.toggle);
+      _resetButton.clickAction(_resetDialog.toggle);
     }
   }
 
   void registerCancelRefreshButton() {
     if ($('#cancelButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelButton'));
-      clickAction(_cancelButton, _resetDialog.toggle);
+      _cancelButton.clickAction(_resetDialog.toggle);
     }
   }
 
   void registerAffirmRefreshButton() {
     if ($('#affirmButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmButton'));
-      clickAction(_affirmButton, () {
+      _affirmButton.clickAction(() {
         _resetDialog.toggle();
-        _reset(); });
+        _reset();
+      });
     }
   }
 
   void registerCancelExportButton() {
     if ($('#cancelExportButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
-      clickAction(_cancelButton, _exportDialog.toggle);
+      _cancelButton.clickAction(_exportDialog.toggle);
     }
   }
 
   void registerAffirmExportButton() {
     if ($('#affirmExportButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
-      clickAction(_affirmButton, () {
+      _affirmButton.clickAction(() {
         _exportDialog.toggle();
         _export();
       });
@@ -338,7 +331,9 @@ class PlaygroundMobile {
   }
 
   bool validFlex(String input) {
-    return input != null && double.parse(input) > 0.0 && double.parse(input) < 1.0;
+    return input != null &&
+        double.parse(input) > 0.0 &&
+        double.parse(input) < 1.0;
   }
 
   int roundFlex(double flex) => (flex * 10.0).round();
