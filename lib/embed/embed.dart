@@ -29,6 +29,8 @@ import '../services/dartservices.dart';
 import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/ga.dart';
+
+import '../services/dbservices.dart';
 import '../src/sample.dart' as sample;
 
 PlaygroundMobile get playground => _playground;
@@ -271,9 +273,11 @@ class PlaygroundMobile {
   }
 
   void _export() {
-    window.open(
-        "/index.html?dart=${Uri.encodeQueryComponent(context.dartSource)}&html=${Uri.encodeQueryComponent(context.htmlSource)}&css=${Uri.encodeQueryComponent(context.cssSource)}",
-        "DartPad");
+    DbservicesApi f = deps[DbservicesApi];
+    //TODO: Get key URL from server
+    f.returnKey(new DataSaveObject()..html=context.htmlSource..css=context.cssSource..dart=context.dartSource).then((onValue) {
+      window.open('${Uri.parse(window.location.toString()).path}/index.html?export=${onValue.key}', 'Export');
+    });
   }
 
   void _reset() {
