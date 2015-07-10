@@ -16,6 +16,7 @@ import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
 
 import 'src/common_server.dart';
+import 'src/db_server.dart';
 
 import 'src/sharded_counter.dart' as counter;
 
@@ -44,12 +45,14 @@ class GaeServer {
   bool discoveryEnabled;
   rpc.ApiServer apiServer;
   CommonServer commonServer;
-
+  DbServer databaseServer;
+  
   GaeServer(this.sdkPath) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
 
     discoveryEnabled = false;
+    databaseServer = new DbServer();
     commonServer = new CommonServer(
         sdkPath,
         new GaeServerContainer(),
@@ -58,14 +61,15 @@ class GaeServer {
         new GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
     apiServer =
-        new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)..addApi(commonServer);
+        new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)..addApi(commonServer)
+        ..addApi(databaseServer);
   }
 
   Future start() => ae.runAppEngine(requestHandler);
 
   void requestHandler(io.HttpRequest request) {
     request.response.headers.add('Access-Control-Allow-Methods',
-        'POST, OPTIONS');
+        'DELETE, POST, OPTIONS');
     request.response.headers.add('Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept');
 
