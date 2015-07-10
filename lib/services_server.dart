@@ -18,6 +18,7 @@ import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:shelf_route/shelf_route.dart';
 
 import 'src/common_server.dart';
+import 'src/db_server.dart';
 
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
 const Map _jsonHeader = const {HttpHeaders.CONTENT_TYPE: 'application/json'};
@@ -29,6 +30,7 @@ void main(List<String> args) {
   parser.addOption('port', abbr: 'p', defaultsTo: '8080');
   parser.addOption('dart-sdk');
   parser.addFlag('discovery');
+  parser.addFlag('database');
   parser.addOption('server-url', defaultsTo: 'http://localhost');
 
   var result = parser.parse(args);
@@ -44,16 +46,23 @@ void main(List<String> args) {
         "please start the server with the '--dart-sdk' option.");
     exit(1);
   }
-
+  
   if (result['discovery']) {
     var serverUrl = result['server-url'];
-    EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then((doc) {
-      print(doc);
-      exit(0);
-    });
+    if (result['database']) {
+      EndpointsServer.generateDatabaseDiscovery(sdkDir.path, serverUrl).then((doc) {
+        print(doc);
+        exit(0);
+      });
+    } else {
+      EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then((doc) {
+        print(doc);
+        exit(0);
+      });
+    }
     return;
   }
-
+  
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((r) => print(r));
 
@@ -86,6 +95,23 @@ class EndpointsServer {
     apiServer.enableDiscoveryApi();
 
     var uri = Uri.parse("/api/discovery/v1/apis/dartservices/v1/rest");
+
+    var request =
+        new HttpApiRequest('GET',
+                           uri,
+                           {}, new Stream.fromIterable([]));
+    HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
+    return UTF8.decode(await response.body.first);
+  }
+  
+  static Future<String> generateDatabaseDiscovery(String sdkPath,
+                                            String serverUrl) async {
+    var databaseServer = new DbServer();
+    var apiServer =
+        new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(databaseServer);
+    apiServer.enableDiscoveryApi();
+
+    var uri = Uri.parse("/api/discovery/v1/apis/_dbservices/v1/rest");
 
     var request =
         new HttpApiRequest('GET',

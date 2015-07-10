@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "7364ddf579795afffb0c3642b20ccfaad8f148c6",
+ "etag": "151b00d18767799abfb872c0179d6146a7fbc625",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -340,6 +340,20 @@
    "path": "analyzeMulti",
    "httpMethod": "POST",
    "description": "Analyze the given Dart source code and return any resulting analysis errors or warnings.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourcesRequest"
+   },
+   "response": {
+    "$ref": "AnalysisResults"
+   }
+  },
+  "summarize": {
+   "id": "CommonServer.summarize",
+   "path": "summarize",
+   "httpMethod": "POST",
+   "description": "Summarize the given Dart source code and return any resulting analysis errors or warnings.",
    "parameters": {},
    "parameterOrder": [],
    "request": {

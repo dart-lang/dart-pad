@@ -12,7 +12,7 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'dart:convert' as convert;
 
 // This class defines the interface that the server provides.
-@ApiClass(name: 'dbservices', version: 'v1')
+@ApiClass(name: '_dbservices', version: 'v1')
 class DbServer {
   
   DbServer();

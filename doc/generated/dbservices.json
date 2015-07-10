@@ -1,0 +1,77 @@
+{
+ "kind": "discovery#restDescription",
+ "etag": "f86deff6acf8d14c2a21bf74ed893efa106783e6",
+ "discoveryVersion": "v1",
+ "id": "_dbservices:v1",
+ "name": "_dbservices",
+ "version": "v1",
+ "revision": "0",
+ "protocol": "rest",
+ "baseUrl": "/api/_dbservices/v1/",
+ "basePath": "/api/_dbservices/v1/",
+ "rootUrl": "/",
+ "servicePath": "api/_dbservices/v1/",
+ "parameters": {},
+ "schemas": {
+  "DataSaveObject": {
+   "id": "DataSaveObject",
+   "type": "object",
+   "properties": {
+    "dart": {
+     "type": "string"
+    },
+    "html": {
+     "type": "string"
+    },
+    "css": {
+     "type": "string"
+    },
+    "UUID": {
+     "type": "string"
+    }
+   }
+  },
+  "KeyContainer": {
+   "id": "KeyContainer",
+   "type": "object",
+   "properties": {
+    "key": {
+     "type": "string"
+    }
+   }
+  }
+ },
+ "methods": {
+  "returnKey": {
+   "id": "DbServer.returnKey",
+   "path": "export",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "DataSaveObject"
+   },
+   "response": {
+    "$ref": "KeyContainer"
+   }
+  },
+  "returnContent": {
+   "id": "DbServer.returnContent",
+   "path": "return",
+   "httpMethod": "DELETE",
+   "parameters": {
+    "key": {
+     "type": "string",
+     "description": "Query parameter: 'key'.",
+     "required": false,
+     "location": "query"
+    }
+   },
+   "parameterOrder": [],
+   "response": {
+    "$ref": "DataSaveObject"
+   }
+  }
+ },
+ "resources": {}
+}
