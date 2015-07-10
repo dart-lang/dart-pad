@@ -276,7 +276,7 @@ class PlaygroundMobile {
     DbservicesApi f = deps[DbservicesApi];
     //TODO: Get key URL from server
     f.returnKey(new DataSaveObject()..html=context.htmlSource..css=context.cssSource..dart=context.dartSource).then((onValue) {
-      window.open('${Uri.parse(window.location.toString()).path}/index.html?export=${onValue.key}', 'Export');
+      window.open('https://dartpad.dartlang.org/index.html?export=${onValue.key}', 'Export');
     });
   }
 

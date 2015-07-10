@@ -1,6 +1,6 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library helloworld.dbservices.v1;
+library dart_database.dbservices.v1;
 
 import 'dart:async';
 import 'dart:convert' as convert;
@@ -17,7 +17,6 @@ class DbservicesApi {
 
   final commons.ApiRequester _requester;
 
-  //TODO: Figure out why /api/dbservices/v1/ no longer works
   DbservicesApi(http.Client client, {String rootUrl: "/", String servicePath: "dbservices/v1/"}) :
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
@@ -49,7 +48,7 @@ class DbservicesApi {
     _url = 'return';
 
     var _response = _requester.request(_url,
-                                       "GET",
+                                       "DELETE",
                                        body: _body,
                                        queryParams: _queryParams,
                                        uploadOptions: _uploadOptions,
@@ -100,6 +99,7 @@ class DbservicesApi {
 
 
 class DataSaveObject {
+  String UUID;
   String css;
   String dart;
   String html;
@@ -107,6 +107,9 @@ class DataSaveObject {
   DataSaveObject();
 
   DataSaveObject.fromJson(Map _json) {
+    if (_json.containsKey("UUID")) {
+      UUID = _json["UUID"];
+    }
     if (_json.containsKey("css")) {
       css = _json["css"];
     }
@@ -120,6 +123,9 @@ class DataSaveObject {
 
   Map toJson() {
     var _json = new Map();
+    if (UUID != null) {
+      _json["UUID"] = UUID;
+    }
     if (css != null) {
       _json["css"] = css;
     }
