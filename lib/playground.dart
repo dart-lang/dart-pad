@@ -34,7 +34,7 @@ import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/summarize.dart';
 import 'src/util.dart';
-import 'services/dbservices.dart';
+import 'services/_dbservices.dart';
 Playground get playground => _playground;
 
 Playground _playground;
@@ -199,7 +199,7 @@ class Playground implements GistContainer, GistController {
     } 
     else if (url.hasQuery &&
         url.queryParameters['export'] != null) {
-      DbservicesApi f = deps[DbservicesApi];
+      P_dbservicesApi f = deps[P_dbservicesApi];
       Gist blankGist = createSampleGist();
       f.returnContent(key:url.queryParameters['export']).then((onValue) {
         blankGist.getFile('main.dart').content = onValue.dart;

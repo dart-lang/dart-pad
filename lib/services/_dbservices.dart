@@ -1,6 +1,6 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library dart_database.dbservices.v1;
+library services.P_dbservices.v1;
 
 import 'dart:async';
 import 'dart:convert' as convert;
@@ -11,13 +11,13 @@ import 'package:http/http.dart' as http;
 export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
     ApiRequestError, DetailedApiRequestError;
 
-const String USER_AGENT = 'dart-api-client dbservices/v1';
+const String USER_AGENT = 'dart-api-client _dbservices/v1';
 
-class DbservicesApi {
+class P_dbservicesApi {
 
   final commons.ApiRequester _requester;
 
-  DbservicesApi(http.Client client, {String rootUrl: "/", String servicePath: "dbservices/v1/"}) :
+  P_dbservicesApi(http.Client client, {String rootUrl: "/", String servicePath: "api/_dbservices/v1/"}) :
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**

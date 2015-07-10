@@ -30,7 +30,7 @@ import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/ga.dart';
 
-import '../services/dbservices.dart';
+import '../services/_dbservices.dart';
 import '../src/sample.dart' as sample;
 
 PlaygroundMobile get playground => _playground;
@@ -273,7 +273,7 @@ class PlaygroundMobile {
   }
 
   void _export() {
-    DbservicesApi f = deps[DbservicesApi];
+    P_dbservicesApi f = deps[P_dbservicesApi];
     //TODO: Get key URL from server
     f.returnKey(new DataSaveObject()..html=context.htmlSource..css=context.cssSource..dart=context.dartSource).then((onValue) {
       window.open('https://dartpad.dartlang.org/index.html?export=${onValue.key}', 'Export');
