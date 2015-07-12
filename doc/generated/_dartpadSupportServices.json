@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "8ef1d935aa845580f98008e5d71803d966541d16",
+ "etag": "4c86f20d246dba21e3f7b3369a5b7b086ecaff85",
  "discoveryVersion": "v1",
  "id": "_dartpadsupportservices:v1",
  "name": "_dartpadsupportservices",
@@ -42,8 +42,8 @@
   }
  },
  "methods": {
-  "returnKey": {
-   "id": "FileRelayServer.returnKey",
+  "export": {
+   "id": "FileRelayServer.export",
    "path": "export",
    "httpMethod": "POST",
    "parameters": {},

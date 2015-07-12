@@ -10,21 +10,29 @@ import 'package:appengine/appengine.dart' as ae;
 import 'package:gcloud/db.dart' as db;
 import 'package:crypto/crypto.dart' as crypto;
 import 'dart:convert' as convert;
+import 'package:logging/logging.dart';
+
+final Logger _logger = new Logger('dartpad_support_server');
 
 // This class defines the interface that the server provides.
 @ApiClass(name: '_dartpadsupportservices', version: 'v1')
 class FileRelayServer {
   
-  FileRelayServer();
+  FileRelayServer() {
+    hierarchicalLoggingEnabled = true;
+    _logger.level = Level.ALL;
+  }
   
   @ApiMethod(method:'POST', path:'export') 
-  Future<KeyContainer> returnKey(DataSaveObject data) {
+  Future<KeyContainer> export(DataSaveObject data){
     GaeExportRecord record = new GaeExportRecord.FromDSO(data);
     sha1SetUUID(record);
     db.dbService.commit(inserts: [record])
-      .catchError((error, stackTrace) {
-      print('Error recording');
+      .catchError((e) {
+      _logger.severe("Error while recording export ${e}");
+      throw(e);
     });
+    _logger.info("PERF: Recorded Export with ID ${record.UUID}");
     return new Future.value(new KeyContainer.FromKey(record.UUID));
   }
   
@@ -35,10 +43,16 @@ class FileRelayServer {
     var query = database.query(GaeExportRecord)
         ..filter('UUID =', key);
     return query.run().toList().then((List result) {
-      if (result.isEmpty) return new DataSaveObject();
+      if (result.isEmpty) {
+        _logger.severe("Export with key ${key} could not be found.");
+        return new DataSaveObject();
+      }
       record = result.first;
-      database.commit(deletes: [record.key]);
-      print('Deleted record with key: ${key}');
+      database.commit(deletes: [record.key]).catchError((e) {
+        _logger.severe("Error while deleting export ${e}");
+        throw(e);
+      });
+      _logger.info("PERF: Deleted Export with ID ${record.UUID}");
       return new Future.value(new DataSaveObject.FromData(record.dart, record.html, record.css));
     });
   }
