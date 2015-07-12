@@ -18,7 +18,7 @@ import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:shelf_route/shelf_route.dart';
 
 import 'src/common_server.dart';
-import 'src/db_server.dart';
+import 'src/dartpad_support_server.dart';
 
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
 const Map _jsonHeader = const {HttpHeaders.CONTENT_TYPE: 'application/json'};
@@ -30,7 +30,7 @@ void main(List<String> args) {
   parser.addOption('port', abbr: 'p', defaultsTo: '8080');
   parser.addOption('dart-sdk');
   parser.addFlag('discovery');
-  parser.addFlag('database');
+  parser.addFlag('relay');
   parser.addOption('server-url', defaultsTo: 'http://localhost');
 
   var result = parser.parse(args);
@@ -47,18 +47,19 @@ void main(List<String> args) {
     exit(1);
   }
   
+  printExit(String doc) {
+    print(doc);
+    exit(0);
+  }
+  
   if (result['discovery']) {
     var serverUrl = result['server-url'];
-    if (result['database']) {
-      EndpointsServer.generateDatabaseDiscovery(sdkDir.path, serverUrl).then((doc) {
-        print(doc);
-        exit(0);
-      });
+    if (result['relay']) {
+      EndpointsServer.generateRelayDiscovery(sdkDir.path, serverUrl).then((doc)
+          => printExit(doc));
     } else {
-      EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then((doc) {
-        print(doc);
-        exit(0);
-      });
+      EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then((doc) 
+          => printExit(doc));
     }
     return;
   }
@@ -104,9 +105,9 @@ class EndpointsServer {
     return UTF8.decode(await response.body.first);
   }
   
-  static Future<String> generateDatabaseDiscovery(String sdkPath,
+  static Future<String> generateRelayDiscovery(String sdkPath,
                                             String serverUrl) async {
-    var databaseServer = new DbServer();
+    var databaseServer = new FileRelayServer();
     var apiServer =
         new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(databaseServer);
     apiServer.enableDiscoveryApi();
@@ -148,7 +149,7 @@ class EndpointsServer {
 
     routes = router()
         ..get('/', printUsage)
-        ..add('/api', ['GET', 'POST', 'OPTIONS'], _apiHandler,
+        ..add('/api', ['DELETE', 'GET', 'POST', 'OPTIONS'], _apiHandler,
               exactMatch: false);
     handler = pipeline.addHandler(routes.handler);
   }
@@ -182,7 +183,7 @@ View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
   Middleware _createCustomCorsHeadersMiddleware() {
     return shelf_cors.createCorsHeadersMiddleware(corsHeaders: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'DELETE, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
     });
   }
