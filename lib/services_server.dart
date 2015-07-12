@@ -112,7 +112,7 @@ class EndpointsServer {
         new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(databaseServer);
     apiServer.enableDiscoveryApi();
 
-    var uri = Uri.parse("/api/discovery/v1/apis/_dbservices/v1/rest");
+    var uri = Uri.parse("/api/discovery/v1/apis/_dartpadsupportservices/v1/rest");
 
     var request =
         new HttpApiRequest('GET',

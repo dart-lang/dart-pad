@@ -1,1 +1,77 @@
-{"error":{"code":404,"message":"Discovery API '/_dbservices/v1' not found."}}
+{
+ "kind": "discovery#restDescription",
+ "etag": "8ef1d935aa845580f98008e5d71803d966541d16",
+ "discoveryVersion": "v1",
+ "id": "_dartpadsupportservices:v1",
+ "name": "_dartpadsupportservices",
+ "version": "v1",
+ "revision": "0",
+ "protocol": "rest",
+ "baseUrl": "/api/_dartpadsupportservices/v1/",
+ "basePath": "/api/_dartpadsupportservices/v1/",
+ "rootUrl": "/",
+ "servicePath": "api/_dartpadsupportservices/v1/",
+ "parameters": {},
+ "schemas": {
+  "DataSaveObject": {
+   "id": "DataSaveObject",
+   "type": "object",
+   "properties": {
+    "dart": {
+     "type": "string"
+    },
+    "html": {
+     "type": "string"
+    },
+    "css": {
+     "type": "string"
+    },
+    "UUID": {
+     "type": "string"
+    }
+   }
+  },
+  "KeyContainer": {
+   "id": "KeyContainer",
+   "type": "object",
+   "properties": {
+    "key": {
+     "type": "string"
+    }
+   }
+  }
+ },
+ "methods": {
+  "returnKey": {
+   "id": "FileRelayServer.returnKey",
+   "path": "export",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "DataSaveObject"
+   },
+   "response": {
+    "$ref": "KeyContainer"
+   }
+  },
+  "pullExportContent": {
+   "id": "FileRelayServer.pullExportContent",
+   "path": "pullExportData",
+   "httpMethod": "DELETE",
+   "parameters": {
+    "key": {
+     "type": "string",
+     "description": "Query parameter: 'key'.",
+     "required": false,
+     "location": "query"
+    }
+   },
+   "parameterOrder": [],
+   "response": {
+    "$ref": "DataSaveObject"
+   }
+  }
+ },
+ "resources": {}
+}

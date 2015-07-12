@@ -1,6 +1,6 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library services.P_dbservices.v1;
+library services.P_dartpadsupportservices.v1;
 
 import 'dart:async';
 import 'dart:convert' as convert;
@@ -11,13 +11,13 @@ import 'package:http/http.dart' as http;
 export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
     ApiRequestError, DetailedApiRequestError;
 
-const String USER_AGENT = 'dart-api-client _dbservices/v1';
+const String USER_AGENT = 'dart-api-client _dartpadsupportservices/v1';
 
-class P_dbservicesApi {
+class P_dartpadsupportservicesApi {
 
   final commons.ApiRequester _requester;
 
-  P_dbservicesApi(http.Client client, {String rootUrl: "/", String servicePath: "api/_dbservices/v1/"}) :
+  P_dartpadsupportservicesApi(http.Client client, {String rootUrl: "/", String servicePath: "api/_dartpadsupportservices/v1/"}) :
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
@@ -33,7 +33,7 @@ class P_dbservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  Future<DataSaveObject> returnContent({String key}) {
+  Future<DataSaveObject> pullExportContent({String key}) {
     var _url = null;
     var _queryParams = new Map();
     var _uploadMedia = null;
@@ -45,7 +45,7 @@ class P_dbservicesApi {
       _queryParams["key"] = [key];
     }
 
-    _url = 'return';
+    _url = 'pullExportData';
 
     var _response = _requester.request(_url,
                                        "DELETE",
