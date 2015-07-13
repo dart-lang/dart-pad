@@ -331,12 +331,14 @@ class PlaygroundMobile {
     }
   }
 
-  void bindSplitter() {
+  //Sync toolbar ratios to splitters
+  void _syncToolbar() {
     if ($('#toolbarLeftPanel') != null) {
       $('#toolbarLeftPanel').style.width = $('#leftPanel').style.width;
     }
   }
-
+  
+  //Determine if the query parameters for splitter ratios are valid (0 to 100)
   bool validFlex(String input) {
     return input != null &&
         double.parse(input) > 0.0 &&
@@ -365,11 +367,11 @@ class PlaygroundMobile {
     Element bottomPanel = $('#bottomPanel');
     if (rightPanel != null && leftPanel != null && validFlex(h) != false) {
       leftPanel.style.width = "$h%";
-      state['editor_split'] = new DSplitter($('vertical-splitter')).position;
+      state['vertical_split'] = new DSplitter($('vertical-splitter')).position;
     }
     if (topPanel != null && bottomPanel != null && validFlex(v) != false) {
       topPanel.style.height = '$v%';
-      state['output_split'] = new DSplitter($('horizontal-splitter')).position;
+      state['horizontal_split'] = new DSplitter($('horizontal-splitter')).position;
     }
 
     var disablePointerEvents = () {
@@ -379,26 +381,26 @@ class PlaygroundMobile {
       if ($("#frame") != null) $("#frame").style.pointerEvents = "inherit";
     };
     if ($('vertical-splitter') != null) {
-      bindSplitter();
-      DSplitter editorSplitter = new DSplitter($('vertical-splitter'),
+      _syncToolbar();
+      DSplitter verticalSplitter = new DSplitter($('vertical-splitter'),
           onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
-      editorSplitter.onPositionChanged.listen((pos) {
-        state['editor_split'] = pos;
+      verticalSplitter.onPositionChanged.listen((pos) {
+        state['vertical_split'] = pos;
         editor.resize();
-        bindSplitter();
+        _syncToolbar();
       });
-      if (state['editor_split'] != null) {
-        editorSplitter.position = state['editor_split'];
+      if (state['vertical_split'] != null) {
+        verticalSplitter.position = state['vertical_split'];
       }
     }
     if ($('horizontal-splitter') != null) {
-      DSplitter outputSplitter = new DSplitter($('horizontal-splitter'),
+      DSplitter horizontalSplitter = new DSplitter($('horizontal-splitter'),
           onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
-      outputSplitter.onPositionChanged.listen((pos) {
-        state['output_split'] = pos;
+      horizontalSplitter.onPositionChanged.listen((pos) {
+        state['horizontal_split'] = pos;
       });
-      if (state['output_split'] != null) {
-        outputSplitter.position = state['output_split'];
+      if (state['horizontal_split'] != null) {
+        horizontalSplitter.position = state['horizontal_split'];
       }
     }
     // Set up the editing area.
