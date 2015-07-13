@@ -727,6 +727,10 @@ class PlaygroundContext extends Context {
     _dartDoc = editor.document;
     _htmlDoc = editor.createDocument(content: '', mode: 'html');
     _cssDoc = editor.createDocument(content: '', mode: 'css');
+    
+    _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
+    _htmlDoc.onChange.listen((_) => _htmlDirtyController.add(null));
+    _cssDoc.onChange.listen((_) => _cssDirtyController.add(null));
 
     _createReconciler(_cssDoc, _cssReconcileController, 250);
     _createReconciler(_dartDoc, _dartReconcileController, 1250);
