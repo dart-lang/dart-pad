@@ -12,8 +12,8 @@ import 'dart:html' hide Document;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
-
 import '../completion.dart';
+import '../elements/elements.dart';
 import '../dart_pad.dart';
 import '../documentation.dart';
 import '../context.dart';
@@ -339,10 +339,18 @@ class PlaygroundMobile {
     }
   }
 
+  //Sync toolbar ratios to splitters
+  void _syncToolbar() {
+    if ($('#toolbarLeftPanel') != null) {
+      $('#toolbarLeftPanel').style.width = $('#leftPanel').style.width;
+    }
+  }
+  
+  //Determine if the query parameters for splitter ratios are valid (0 to 100)
   bool validFlex(String input) {
     return input != null &&
         double.parse(input) > 0.0 &&
-        double.parse(input) < 1.0;
+        double.parse(input) < 100.0;
   }
 
   int roundFlex(double flex) => (flex * 10.0).round();
@@ -365,29 +373,44 @@ class PlaygroundMobile {
     Element rightPanel = $('#rightPanel');
     Element topPanel = $('#topPanel');
     Element bottomPanel = $('#bottomPanel');
-    Element toolbarLeftPanel = $('#toolbarLeftPanel');
-    Element toolbarRightPanel = $('#toolbarRightPanel');
     if (rightPanel != null && leftPanel != null && validFlex(h) != false) {
-      removeFlex(leftPanel);
-      removeFlex(rightPanel);
-      int l = roundFlex(double.parse(h));
-      leftPanel.classes.add('flex-${l}');
-      rightPanel.classes.add('flex-${10 - l}');
-      if (toolbarRightPanel != null && toolbarLeftPanel != null) {
-        removeFlex(toolbarLeftPanel);
-        removeFlex(toolbarRightPanel);
-        toolbarLeftPanel.classes.add('flex-${l}');
-        toolbarRightPanel.classes.add('flex-${10 - l}');
-      }
+      leftPanel.style.width = "$h%";
+      state['vertical_split'] = new DSplitter($('vertical-splitter')).position;
     }
     if (topPanel != null && bottomPanel != null && validFlex(v) != false) {
-      removeFlex(topPanel);
-      removeFlex(bottomPanel);
-      int t = roundFlex(double.parse(v));
-      topPanel.classes.add('flex-${t}');
-      bottomPanel.classes.add('flex-${10 - t}');
+      topPanel.style.height = '$v%';
+      state['horizontal_split'] = new DSplitter($('horizontal-splitter')).position;
     }
 
+    var disablePointerEvents = () {
+      if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
+    };
+    var enablePointerEvents = () {
+      if ($("#frame") != null) $("#frame").style.pointerEvents = "inherit";
+    };
+    if ($('vertical-splitter') != null) {
+      _syncToolbar();
+      DSplitter verticalSplitter = new DSplitter($('vertical-splitter'),
+          onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
+      verticalSplitter.onPositionChanged.listen((pos) {
+        state['vertical_split'] = pos;
+        editor.resize();
+        _syncToolbar();
+      });
+      if (state['vertical_split'] != null) {
+        verticalSplitter.position = state['vertical_split'];
+      }
+    }
+    if ($('horizontal-splitter') != null) {
+      DSplitter horizontalSplitter = new DSplitter($('horizontal-splitter'),
+          onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
+      horizontalSplitter.onPositionChanged.listen((pos) {
+        state['horizontal_split'] = pos;
+      });
+      if (state['horizontal_split'] != null) {
+        horizontalSplitter.position = state['horizontal_split'];
+      }
+    }
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
     //$('editpanel').children.first.attributes['flex'] = '';

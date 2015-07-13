@@ -210,7 +210,7 @@
   </style>
   <template>
     <div class="layout horizontal flex">
-      <div id="toolbarLeftPanel" class="layout horizontal flex-6">
+      <div id="toolbarLeftPanel" class="layout horizontal ">
         <paper-tabs id="selector-tabs" class ="tabs relative flex" selected="0">
           <paper-tab name="dart">Dart</paper-tab>
           <paper-tab name="html">HTML</paper-tab>
@@ -218,7 +218,7 @@
         </paper-tabs>
         <paper-progress id="edit-progress"  class="bottom fit" hidden></paper-progress>
       </div>
-      <div id="toolbarRightPanel" class="layout horizontal flex-4">
+      <div id="toolbarRightPanel" class="layout horizontal flex">
         <paper-tabs selected="0" class="tabs flex">
           <span class="flex"></span>
           <div class="center-center horizontal layout">HTML Output</div>
@@ -350,13 +350,16 @@
 
 <dom-module id="horizontal-splitter">
   <style>
-    :host {
+    .inner {
       min-height: 5px;
       box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
       border-bottom: 1px solid #121212;
+      margin-top: 8px;
+      margin-bottom: 8px;
     }
   </style>
   <template>
+  <div class="inner flex"></div>
   </template>
   <script>
     Polymer({
@@ -367,15 +370,17 @@
 
 <dom-module id="vertical-splitter">
   <style>
-    :host {
+    .inner {
       min-height: 5px;
       min-width: 2px;
       box-shadow: rgba(255, 255, 255, 0.07) 1px 1px 0;
       border-left: 1px solid #121212;
       margin-right: 8px;
+      margin-left: 8px;
     }
   </style>
   <template>
+  <div class="inner flex"></div>
   </template>
   <script>
     Polymer({
@@ -387,7 +392,7 @@
 <dom-module id="dartpad-console">
   <style>
     :host {
-      padding: 8px;
+      padding: 0px 4px;
     }
 
     #console {
