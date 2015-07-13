@@ -637,36 +637,36 @@ class PlaygroundMobile {
     if (issues.isEmpty) {
       _clearErrors();
     } else {
-      Element element = _errorsToast.element;
+      Element errorElement = _errorsToast.element;
 
-      element.children.clear();
+      errorElement.children.clear();
 
       issues.sort((a, b) => a.charStart - b.charStart);
 
       // Create an item for each issue.
       for (AnalysisIssue issue in issues) {
-        DivElement e = new DivElement();
-        e.classes.add('issue');
-        e.classes.add('layout');
-        e.classes.add('horizontal');
-        element.children.add(e);
-        e.onClick.listen((_) {
+        DivElement error = new DivElement();
+        error.classes.add('issue');
+        error.classes.add('layout');
+        error.classes.add('horizontal');
+        errorElement.children.add(error);
+        error.onClick.listen((_) {
           _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
         });
 
         SpanElement typeSpan = new SpanElement();
         typeSpan.classes.addAll([issue.kind, 'issuelabel']);
         typeSpan.text = issue.kind;
-        e.children.add(typeSpan);
+        error.children.add(typeSpan);
 
         SpanElement messageSpan = new SpanElement();
         messageSpan.classes.add('message');
         messageSpan.classes.add('flex');
         messageSpan.text = issue.message;
-        e.children.add(messageSpan);
+        error.children.add(messageSpan);
         if (issue.hasFixes) {
-          e.classes.add("hasFix");
-          e.onClick.listen((e) {
+          error.classes.add("hasFix");
+          error.onClick.listen((e) {
             // This is a bit of a hack to make sure quick fixes popup
             // is only shown if the wrench is clicked,
             // and not if the text or label is clicked.
@@ -677,7 +677,7 @@ class PlaygroundMobile {
             }
           });
         }
-        element.classes.toggle('showing', issues.isNotEmpty);
+        errorElement.classes.toggle('showing', issues.isNotEmpty);
       }
 
       _errorsToast.show();
