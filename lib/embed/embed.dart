@@ -89,9 +89,6 @@ class PlaygroundMobile {
   PlaygroundMobile() {
     _createUi();
     _initModules().then((_) => _initPlayground());
-    _dartDoc = editor.document;
-    _htmlDoc = editor.createDocument(content: '', mode: 'html');
-    _cssDoc = editor.createDocument(content: '', mode: 'css');
   }
 
   void showHome(RouteEnterEvent event) {
