@@ -647,6 +647,8 @@ class PlaygroundMobile {
       for (AnalysisIssue issue in issues) {
         DivElement e = new DivElement();
         e.classes.add('issue');
+        e.classes.add('layout');
+        e.classes.add('horizontal');
         element.children.add(e);
         e.onClick.listen((_) {
           _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
@@ -659,6 +661,7 @@ class PlaygroundMobile {
 
         SpanElement messageSpan = new SpanElement();
         messageSpan.classes.add('message');
+        messageSpan.classes.add('flex');
         messageSpan.text = issue.message;
         e.children.add(messageSpan);
         if (issue.hasFixes) {
@@ -674,6 +677,7 @@ class PlaygroundMobile {
             }
           });
         }
+        element.classes.toggle('showing', issues.isNotEmpty);
       }
 
       _errorsToast.show();
