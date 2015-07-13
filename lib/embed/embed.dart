@@ -12,10 +12,13 @@ import 'dart:html' hide Document;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
+
+import '../completion.dart';
 import '../dart_pad.dart';
 import '../documentation.dart';
 import '../context.dart';
 import '../core/dependencies.dart';
+import '../core/keys.dart';
 import '../core/modules.dart';
 import '../editing/editor.dart';
 import '../modules/codemirror_module.dart';
@@ -53,6 +56,10 @@ class PlaygroundMobile {
   Gist backupGist;
   Router _router;
 
+  Document _dartDoc;
+  Document _htmlDoc;
+  Document _cssDoc;
+  
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -71,6 +78,8 @@ class PlaygroundMobile {
   DocHandler docHandler;
   String _gistId;
 
+  bool get _isCompletionActive => editor.completionActive;
+  
   Future createNewGist() {
     return null;
   }
@@ -80,6 +89,9 @@ class PlaygroundMobile {
   PlaygroundMobile() {
     _createUi();
     _initModules().then((_) => _initPlayground());
+    _dartDoc = editor.document;
+    _htmlDoc = editor.createDocument(content: '', mode: 'html');
+    _cssDoc = editor.createDocument(content: '', mode: 'css');
   }
 
   void showHome(RouteEnterEvent event) {
@@ -387,16 +399,7 @@ class PlaygroundMobile {
     // TODO: Add a real code completer here.
     //editorFactory.registerCompleter('dart', new DartCompleter());
 
-    // Set up the gist loader.
-    // TODO: Move to using the defaultFilters().
-    deps[GistLoader] = new GistLoader();
-
-    document.onKeyUp.listen((e) {
-      if (editor.completionActive ||
-          DocHandler.cursorKeys.contains(e.keyCode)) {
-        docHandler.generateDocWithText(_docPanel);
-      }
-    });
+    
 
     // Listen for changes that would effect the documentation panel.
     editor.onMouseDown.listen((e) {
@@ -424,6 +427,34 @@ class PlaygroundMobile {
 
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
+    keys.bind(['alt-enter', 'ctrl-1'], () {
+      editor.showCompletions(onlyShowFixes: true);
+    }, "Quick fix");
+
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
+      editor.showCompletions();
+    }, "Completion");
+    
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDoc(_docPanel);
+      }
+      _handleAutoCompletion(e);
+    });
+    
+    editorFactory.registerCompleter(
+            'dart', new DartCompleter(dartServices, _context._dartDoc));
+    // Set up the gist loader.
+    // TODO: Move to using the defaultFilters().
+    deps[GistLoader] = new GistLoader();
+
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDocWithText(_docPanel);
+      }
+    });
     docHandler = new DocHandler(editor, _context);
 
     _finishedInit();
@@ -440,6 +471,37 @@ class PlaygroundMobile {
       ..listen();
   }
 
+  _handleAutoCompletion(KeyboardEvent e) {
+    if (context.focusedEditor == 'dart' && editor.hasFocus) {
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    }
+
+    if (!options.getValueBool('autopopup_code_completion') ||
+        _isCompletionActive ||
+        !editor.hasFocus) {
+      return;
+    }
+
+    if (context.focusedEditor == 'dart') {
+      RegExp exp = new RegExp(r"[A-Z]");
+      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    } else if (context.focusedEditor == "html") {
+      // TODO: Autocompletion for attributes.
+      if (printKeyEvent(e) == "shift-,") {
+        editor.showCompletions(autoInvoked: true);
+      }
+    } else if (context.focusedEditor == "css") {
+      RegExp exp = new RegExp(r"[A-Z]");
+      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    }
+  }
+  
   void _handleRun() {
     _clearOutput();
     ga.sendEvent('main', 'run');
@@ -579,6 +641,19 @@ class PlaygroundMobile {
         messageSpan.classes.add('message');
         messageSpan.text = issue.message;
         e.children.add(messageSpan);
+        if (issue.hasFixes) {
+          e.classes.add("hasFix");
+          e.onClick.listen((e) {
+            // This is a bit of a hack to make sure quick fixes popup
+            // is only shown if the wrench is clicked,
+            // and not if the text or label is clicked.
+            if ((e.target as Element).className == "issue hasFix") {
+              // codemiror only shows completions if there is no selected text
+              _jumpTo(issue.line, issue.charStart, 0, focus: true);
+              editor.showCompletions(onlyShowFixes: true);
+            }
+          });
+        }
       }
 
       _errorsToast.show();
@@ -628,10 +703,6 @@ class PlaygroundContext extends Context {
     _dartDoc = editor.document;
     _htmlDoc = editor.createDocument(content: '', mode: 'html');
     _cssDoc = editor.createDocument(content: '', mode: 'css');
-
-    _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
-    _htmlDoc.onChange.listen((_) => _htmlDirtyController.add(null));
-    _cssDoc.onChange.listen((_) => _cssDirtyController.add(null));
 
     _createReconciler(_cssDoc, _cssReconcileController, 250);
     _createReconciler(_dartDoc, _dartReconcileController, 1250);
