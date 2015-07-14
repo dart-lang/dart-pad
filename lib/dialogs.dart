@@ -54,12 +54,11 @@ class EmbedDialog extends DDialog {
   final GistContainer gistContainer;
   final GistController gistController;
 
-  ParagraphElement _text;
-  ParagraphElement _controls;
   DButton _cancelButton;
   DElement _doc;
   DElement _html;
   DElement _inline;
+  DElement _info;
 
   EmbedDialog(
       GistContainer this.gistContainer, GistController this.gistController)
@@ -69,12 +68,10 @@ class EmbedDialog extends DDialog {
     content.setAttr('layout');
     content.setAttr('vertical');
 
-    _text = content.add(new ParagraphElement());
-    _controls = content.add(new ParagraphElement());
     _doc = content.add(new DElement.tag('div')..layoutHorizontal());
     _html = content.add(new DElement.tag('div')..layoutHorizontal());
     _inline = content.add(new DElement.tag('div')..layoutHorizontal());
-
+    _info = content.add(new DElement.tag('div')..layoutHorizontal());
     _cancelButton = new DButton.button(text: 'Cancel');
     _cancelButton.onClick.listen((_) => hide());
   }
@@ -90,32 +87,42 @@ class EmbedDialog extends DDialog {
     String home = url.host;
     _doc.add(new SpanElement()
       ..text = 'Dart + Documentation: '
-      ..style.paddingRight = "12px");
+      ..style.paddingRight = '12px'
+      ..style.minWidth = '140px');
     _doc.add(new InputElement()
       ..value = '${home}/embed-dart.html?id=${gist.id}'
       ..attributes['flex'] = '');
     _html.add(new SpanElement()
-      ..text = "Dart + Html: "
-      ..style.paddingRight = "12px");
+      ..text = 'Dart + Html: '
+      ..style.paddingRight = '12px'
+      ..style.minWidth = '140px');
     _html.add(new InputElement()
       ..value = '${home}/embed-html.html?id=${gist.id}'
       ..attributes['flex'] = '');
     _inline.add(new SpanElement()
-      ..text = "Dart (Minimal): "
-      ..style.paddingRight = "12px");
+      ..text = 'Dart (Minimal): '
+      ..style.paddingRight = '12px'
+      ..style.minWidth = '140px');
     _inline.add(new InputElement()
       ..value = '${home}/embed-inline.html?id=${gist.id}'
       ..attributes['flex'] = '');
+    _info.add(new SpanElement()
+      ..text = 'Need more control? Checkout out our '
+      ..style.fontSize = "12px"
+      ..append(new SpanElement()
+        ..text = 'embedding guide.'
+        ..attributes['onClick'] =
+        "window.open('https://github.com/dart-lang/dart-pad/wiki/Query-Conventions')"
+        ..style.cursor = "pointer"
+        ..style.textDecoration = "underline"
+        ..style.fontSize = "12px"));
+    buttonArea.add(_cancelButton);
+    buttonArea.add(new SpanElement()..attributes['flex'] = '');
   }
 
   void _configure() {
     buttonArea.element.children.clear();
-    _text.text = 'URL to an embeddable iframe source.';
-    _controls.text =
-        'Query controls: horizontalRatio (0 to 100), verticalRatio (0 to 100), id (gist id)';
     generateExport();
-    buttonArea.add(_cancelButton);
-    buttonArea.add(new SpanElement()..attributes['flex'] = '');
   }
 }
 
