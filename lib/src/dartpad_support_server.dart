@@ -37,24 +37,22 @@ class FileRelayServer {
   }
   
   @ApiMethod(method:'DELETE', path:'pullExportData')
-  Future<DataSaveObject> pullExportContent({String key}) {
+  Future<DataSaveObject> pullExportContent({String key}) async {
     var database = ae.context.services.db;
-    GaeExportRecord record;
     var query = database.query(GaeExportRecord)
         ..filter('UUID =', key);
-    return query.run().toList().then((List result) {
-      if (result.isEmpty) {
-        _logger.severe("Export with key ${key} could not be found.");
-        return new DataSaveObject();
-      }
-      record = result.first;
-      database.commit(deletes: [record.key]).catchError((e) {
-        _logger.severe("Error while deleting export ${e}");
-        throw(e);
-      });
-      _logger.info("PERF: Deleted Export with ID ${record.UUID}");
-      return new Future.value(new DataSaveObject.FromData(record.dart, record.html, record.css));
+    List result = await query.run().toList();
+    if (result.isEmpty) {
+      _logger.severe("Export with key ${key} could not be found.");
+      return new Future.value(new DataSaveObject());
+    }
+    GaeExportRecord record = result.first;
+    database.commit(deletes: [record.key]).catchError((e) {
+      _logger.severe("Error while deleting export ${e}");
+      throw(e);
     });
+    _logger.info("PERF: Deleted Export with ID ${record.UUID}");
+    return new Future.value(new DataSaveObject.FromData(record.dart, record.html, record.css));
   }
 }
 
