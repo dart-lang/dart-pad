@@ -12,11 +12,13 @@ import 'dart:html' hide Document;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
+import '../completion.dart';
 import '../elements/elements.dart';
 import '../dart_pad.dart';
 import '../documentation.dart';
 import '../context.dart';
 import '../core/dependencies.dart';
+import '../core/keys.dart';
 import '../core/modules.dart';
 import '../editing/editor.dart';
 import '../modules/codemirror_module.dart';
@@ -53,7 +55,7 @@ class PlaygroundMobile {
 
   Gist backupGist;
   Router _router;
-
+  
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -72,6 +74,8 @@ class PlaygroundMobile {
   DocHandler docHandler;
   String _gistId;
 
+  bool get _isCompletionActive => editor.completionActive;
+  
   Future createNewGist() {
     return null;
   }
@@ -411,16 +415,7 @@ class PlaygroundMobile {
     // TODO: Add a real code completer here.
     //editorFactory.registerCompleter('dart', new DartCompleter());
 
-    // Set up the gist loader.
-    // TODO: Move to using the defaultFilters().
-    deps[GistLoader] = new GistLoader();
-
-    document.onKeyUp.listen((e) {
-      if (editor.completionActive ||
-          DocHandler.cursorKeys.contains(e.keyCode)) {
-        docHandler.generateDocWithText(_docPanel);
-      }
-    });
+    
 
     // Listen for changes that would effect the documentation panel.
     editor.onMouseDown.listen((e) {
@@ -448,6 +443,34 @@ class PlaygroundMobile {
 
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
+    keys.bind(['alt-enter', 'ctrl-1'], () {
+      editor.showCompletions(onlyShowFixes: true);
+    }, "Quick fix");
+
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
+      editor.showCompletions();
+    }, "Completion");
+    
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDoc(_docPanel);
+      }
+      _handleAutoCompletion(e);
+    });
+    
+    editorFactory.registerCompleter(
+            'dart', new DartCompleter(dartServices, _context._dartDoc));
+    // Set up the gist loader.
+    // TODO: Move to using the defaultFilters().
+    deps[GistLoader] = new GistLoader();
+
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDocWithText(_docPanel);
+      }
+    });
     docHandler = new DocHandler(editor, _context);
 
     _finishedInit();
@@ -464,6 +487,37 @@ class PlaygroundMobile {
       ..listen();
   }
 
+  _handleAutoCompletion(KeyboardEvent e) {
+    if (context.focusedEditor == 'dart' && editor.hasFocus) {
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    }
+
+    if (!options.getValueBool('autopopup_code_completion') ||
+        _isCompletionActive ||
+        !editor.hasFocus) {
+      return;
+    }
+
+    if (context.focusedEditor == 'dart') {
+      RegExp exp = new RegExp(r"[A-Z]");
+      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    } else if (context.focusedEditor == "html") {
+      // TODO: Autocompletion for attributes.
+      if (printKeyEvent(e) == "shift-,") {
+        editor.showCompletions(autoInvoked: true);
+      }
+    } else if (context.focusedEditor == "css") {
+      RegExp exp = new RegExp(r"[A-Z]");
+      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    }
+  }
+  
   void _handleRun() {
     _clearOutput();
     ga.sendEvent('main', 'run');
@@ -579,30 +633,47 @@ class PlaygroundMobile {
     if (issues.isEmpty) {
       _clearErrors();
     } else {
-      Element element = _errorsToast.element;
+      Element errorElement = _errorsToast.element;
 
-      element.children.clear();
+      errorElement.children.clear();
 
       issues.sort((a, b) => a.charStart - b.charStart);
 
       // Create an item for each issue.
       for (AnalysisIssue issue in issues) {
-        DivElement e = new DivElement();
-        e.classes.add('issue');
-        element.children.add(e);
-        e.onClick.listen((_) {
+        DivElement error = new DivElement();
+        error.classes.add('issue');
+        error.classes.add('layout');
+        error.classes.add('horizontal');
+        errorElement.children.add(error);
+        error.onClick.listen((_) {
           _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
         });
 
         SpanElement typeSpan = new SpanElement();
         typeSpan.classes.addAll([issue.kind, 'issuelabel']);
         typeSpan.text = issue.kind;
-        e.children.add(typeSpan);
+        error.children.add(typeSpan);
 
         SpanElement messageSpan = new SpanElement();
         messageSpan.classes.add('message');
+        messageSpan.classes.add('flex');
         messageSpan.text = issue.message;
-        e.children.add(messageSpan);
+        error.children.add(messageSpan);
+        if (issue.hasFixes) {
+          error.classes.add("hasFix");
+          error.onClick.listen((e) {
+            // This is a bit of a hack to make sure quick fixes popup
+            // is only shown if the wrench is clicked,
+            // and not if the text or label is clicked.
+            if ((e.target as Element).className == "issue hasFix") {
+              // codemiror only shows completions if there is no selected text
+              _jumpTo(issue.line, issue.charStart, 0, focus: true);
+              editor.showCompletions(onlyShowFixes: true);
+            }
+          });
+        }
+        errorElement.classes.toggle('showing', issues.isNotEmpty);
       }
 
       _errorsToast.show();
@@ -652,7 +723,7 @@ class PlaygroundContext extends Context {
     _dartDoc = editor.document;
     _htmlDoc = editor.createDocument(content: '', mode: 'html');
     _cssDoc = editor.createDocument(content: '', mode: 'css');
-
+    
     _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
     _htmlDoc.onChange.listen((_) => _htmlDirtyController.add(null));
     _cssDoc.onChange.listen((_) => _cssDirtyController.add(null));
