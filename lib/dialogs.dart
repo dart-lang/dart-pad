@@ -91,17 +91,17 @@ class EmbedDialog extends DDialog {
     Uri url = Uri.parse(window.location.toString());
     String home = url.host;
     _doc.add(new SpanElement()..text = 'Dart + Documentation: ' ..style.paddingRight = "12px");
-    _doc.add(new InputElement()..value = '${home}/embed-dart.com?id=${gist.id}' ..attributes['flex'] = '');
+    _doc.add(new InputElement()..value = '${home}/embed-dart.html?id=${gist.id}' ..attributes['flex'] = '');
     _html.add(new SpanElement()..text = "Dart + Html: " ..style.paddingRight = "12px");
-    _html.add(new InputElement()..value = '${home}/embed-html.com?id=${gist.id}' ..attributes['flex'] = '');
+    _html.add(new InputElement()..value = '${home}/embed-html.html?id=${gist.id}' ..attributes['flex'] = '');
     _inline.add(new SpanElement()..text = "Dart (Minimal): " ..style.paddingRight = "12px");
-    _inline.add(new InputElement()..value = '${home}/embed-inline.com?id=${gist.id}' ..attributes['flex'] = '');
+    _inline.add(new InputElement()..value = '${home}/embed-inline.html?id=${gist.id}' ..attributes['flex'] = '');
   }
 
   void _configure() {
     buttonArea.element.children.clear();
     _text.text = 'URL to an embeddable iframe source.';
-    _controls.text = 'Query controls: horizontalRatio (0.1 to 0.9), verticalRatio (0.1 to 0.9), id (gist id)';
+    _controls.text = 'Query controls: horizontalRatio (0 to 100), verticalRatio (0 to 100), id (gist id)';
     generateExport();
     buttonArea.add(_cancelButton);
     buttonArea.add(new SpanElement()..attributes['flex'] = '');
