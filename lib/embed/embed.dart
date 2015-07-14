@@ -55,10 +55,6 @@ class PlaygroundMobile {
 
   Gist backupGist;
   Router _router;
-
-  Document _dartDoc;
-  Document _htmlDoc;
-  Document _cssDoc;
   
   Editor editor;
   PlaygroundContext _context;
