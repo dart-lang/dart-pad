@@ -17,13 +17,11 @@ import 'src/util.dart';
  */
 
 class OkCancelDialog extends DDialog {
-
   OkCancelDialog(String title, String message, Function okAction,
       {String okText: 'OK', String cancelText: 'Cancel'})
       : super(title: title) {
     element.classes.toggle('sharing-dialog', true);
-    content.add(new ParagraphElement())
-        ..text = message;
+    content.add(new ParagraphElement())..text = message;
 
     DButton cancelButton = buttonArea.add(new DButton.button(text: cancelText));
     buttonArea.add(new SpanElement()..attributes['flex'] = '');
@@ -62,7 +60,7 @@ class EmbedDialog extends DDialog {
   DElement _doc;
   DElement _html;
   DElement _inline;
-  
+
   EmbedDialog(
       GistContainer this.gistContainer, GistController this.gistController)
       : super(title: 'Embedding Options') {
@@ -85,23 +83,36 @@ class EmbedDialog extends DDialog {
     _configure();
     super.show();
   }
-  
+
   void generateExport() {
     MutableGist gist = gistContainer.mutableGist;
     Uri url = Uri.parse(window.location.toString());
     String home = url.host;
-    _doc.add(new SpanElement()..text = 'Dart + Documentation: ' ..style.paddingRight = "12px");
-    _doc.add(new InputElement()..value = '${home}/embed-dart.html?id=${gist.id}' ..attributes['flex'] = '');
-    _html.add(new SpanElement()..text = "Dart + Html: " ..style.paddingRight = "12px");
-    _html.add(new InputElement()..value = '${home}/embed-html.html?id=${gist.id}' ..attributes['flex'] = '');
-    _inline.add(new SpanElement()..text = "Dart (Minimal): " ..style.paddingRight = "12px");
-    _inline.add(new InputElement()..value = '${home}/embed-inline.html?id=${gist.id}' ..attributes['flex'] = '');
+    _doc.add(new SpanElement()
+      ..text = 'Dart + Documentation: '
+      ..style.paddingRight = "12px");
+    _doc.add(new InputElement()
+      ..value = '${home}/embed-dart.html?id=${gist.id}'
+      ..attributes['flex'] = '');
+    _html.add(new SpanElement()
+      ..text = "Dart + Html: "
+      ..style.paddingRight = "12px");
+    _html.add(new InputElement()
+      ..value = '${home}/embed-html.html?id=${gist.id}'
+      ..attributes['flex'] = '');
+    _inline.add(new SpanElement()
+      ..text = "Dart (Minimal): "
+      ..style.paddingRight = "12px");
+    _inline.add(new InputElement()
+      ..value = '${home}/embed-inline.html?id=${gist.id}'
+      ..attributes['flex'] = '');
   }
 
   void _configure() {
     buttonArea.element.children.clear();
     _text.text = 'URL to an embeddable iframe source.';
-    _controls.text = 'Query controls: horizontalRatio (0 to 100), verticalRatio (0 to 100), id (gist id)';
+    _controls.text =
+        'Query controls: horizontalRatio (0 to 100), verticalRatio (0 to 100), id (gist id)';
     generateExport();
     buttonArea.add(_cancelButton);
     buttonArea.add(new SpanElement()..attributes['flex'] = '');
