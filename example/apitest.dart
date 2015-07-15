@@ -6,7 +6,7 @@ library services_server.apitest;
 
 import 'dart:html';
 import 'dart:convert' show JSON;
-
+import '_dartpadsupportservices.dart' as support;
 import 'package:codemirror/codemirror.dart';
 
 void main() {
@@ -16,6 +16,7 @@ void main() {
   setupDocument();
   setupFixes();
   setupVersion();
+  setupSupport();
 }
 
 void setupAnalyze() {
@@ -101,6 +102,18 @@ void setupVersion() {
   });
 }
 
+void setupSupport() {
+  String api = querySelector('#supportSection h3').text;
+  CodeMirror editor = createEditor(querySelector('#supportSection .editor'));
+  Element output = querySelector('#supportSection .output');
+  ButtonElement button = querySelector('#supportSection button');
+  button.onClick.listen((e) {
+    support.PadSaveObject send = new support.PadSaveObject();
+    send.dart = editor.getDoc().getValue();
+    invokeSupportPOST(api, send, output);
+  });
+}
+
 CodeMirror createEditor(Element element) {
   final Map options = {
     'tabSize': 2,
@@ -127,6 +140,36 @@ void invokePOST(String api, String source, Element output, {int offset}) {
   Map m = {'source': source};
   if (offset != null) m['offset'] = offset;
   String data = JSON.encode(m); //new Uri(queryParameters: m).query;
+
+  HttpRequest.request(url, method: 'POST', sendData: data,
+                      requestHeaders: headers).then((HttpRequest r) {
+    String response =
+        '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
+        '${_printHeaders(r.responseHeaders)}\n\n'
+        '${r.responseText}';
+    output.text = response;
+  }).catchError((e, st) {
+    if (e is Event && e.target is HttpRequest) {
+      HttpRequest r = e.target;
+      String response =
+          '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
+          '${_printHeaders(r.responseHeaders)}\n\n'
+          '${r.responseText}';
+      output.text = response;
+    } else {
+      output.text = '${e}\n${st}';
+    }
+  });
+}
+
+void invokeSupportPOST(String api, support.PadSaveObject pso, Element output, {int offset}) {
+  Stopwatch timer = new Stopwatch()..start();
+  String url = '${_uriBase}${api}';
+  output.text = '';
+
+  Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
+
+  String data = JSON.encode(pso); //new Uri(queryParameters: m).query;
 
   HttpRequest.request(url, method: 'POST', sendData: data,
                       requestHeaders: headers).then((HttpRequest r) {

@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "4c86f20d246dba21e3f7b3369a5b7b086ecaff85",
+ "etag": "10dd30503884bbc5718876f8d2c56b93a3cdec1c",
  "discoveryVersion": "v1",
  "id": "_dartpadsupportservices:v1",
  "name": "_dartpadsupportservices",
@@ -13,8 +13,8 @@
  "servicePath": "api/_dartpadsupportservices/v1/",
  "parameters": {},
  "schemas": {
-  "DataSaveObject": {
-   "id": "DataSaveObject",
+  "PadSaveObject": {
+   "id": "PadSaveObject",
    "type": "object",
    "properties": {
     "dart": {
@@ -49,7 +49,7 @@
    "parameters": {},
    "parameterOrder": [],
    "request": {
-    "$ref": "DataSaveObject"
+    "$ref": "PadSaveObject"
    },
    "response": {
     "$ref": "KeyContainer"
@@ -69,7 +69,7 @@
    },
    "parameterOrder": [],
    "response": {
-    "$ref": "DataSaveObject"
+    "$ref": "PadSaveObject"
    }
   }
  },
