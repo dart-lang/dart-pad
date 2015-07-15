@@ -55,7 +55,7 @@ class PlaygroundMobile {
 
   Gist backupGist;
   Router _router;
-  
+
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -75,7 +75,7 @@ class PlaygroundMobile {
   String _gistId;
 
   bool get _isCompletionActive => editor.completionActive;
-  
+
   Future createNewGist() {
     return null;
   }
@@ -341,7 +341,7 @@ class PlaygroundMobile {
       $('#toolbarLeftPanel').style.width = $('#leftPanel').style.width;
     }
   }
-  
+
   //Determine if the query parameters for splitter ratios are valid (0 to 100)
   bool validFlex(String input) {
     return input != null &&
@@ -375,7 +375,8 @@ class PlaygroundMobile {
     }
     if (topPanel != null && bottomPanel != null && validFlex(v) != false) {
       topPanel.style.height = '$v%';
-      state['horizontal_split'] = new DSplitter($('horizontal-splitter')).position;
+      state['horizontal_split'] =
+          new DSplitter($('horizontal-splitter')).position;
     }
 
     var disablePointerEvents = () {
@@ -415,8 +416,6 @@ class PlaygroundMobile {
     // TODO: Add a real code completer here.
     //editorFactory.registerCompleter('dart', new DartCompleter());
 
-    
-
     // Listen for changes that would effect the documentation panel.
     editor.onMouseDown.listen((e) {
       // Delay to give codemirror time to process the mouse event.
@@ -450,7 +449,7 @@ class PlaygroundMobile {
     keys.bind(['ctrl-space', 'macctrl-space'], () {
       editor.showCompletions();
     }, "Completion");
-    
+
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
           DocHandler.cursorKeys.contains(e.keyCode)) {
@@ -458,9 +457,9 @@ class PlaygroundMobile {
       }
       _handleAutoCompletion(e);
     });
-    
+
     editorFactory.registerCompleter(
-            'dart', new DartCompleter(dartServices, _context._dartDoc));
+        'dart', new DartCompleter(dartServices, _context._dartDoc));
     // Set up the gist loader.
     // TODO: Move to using the defaultFilters().
     deps[GistLoader] = new GistLoader();
@@ -517,7 +516,7 @@ class PlaygroundMobile {
       }
     }
   }
-  
+
   void _handleRun() {
     _clearOutput();
     ga.sendEvent('main', 'run');
@@ -723,7 +722,7 @@ class PlaygroundContext extends Context {
     _dartDoc = editor.document;
     _htmlDoc = editor.createDocument(content: '', mode: 'html');
     _cssDoc = editor.createDocument(content: '', mode: 'css');
-    
+
     _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
     _htmlDoc.onChange.listen((_) => _htmlDirtyController.add(null));
     _cssDoc.onChange.listen((_) => _cssDirtyController.add(null));
