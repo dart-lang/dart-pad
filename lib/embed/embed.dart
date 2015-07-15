@@ -365,20 +365,34 @@ class PlaygroundMobile {
     Uri url = Uri.parse(window.location.toString());
     String v = url.queryParameters['verticalRatio'];
     String h = url.queryParameters['horizontalRatio'];
+    String defaultVerticalRatio = '60%';
+    String defaultHorizontalRatio = '70%';
     Element leftPanel = $('#leftPanel');
     Element rightPanel = $('#rightPanel');
     Element topPanel = $('#topPanel');
     Element bottomPanel = $('#bottomPanel');
-    if (rightPanel != null && leftPanel != null && validFlex(h) != false) {
-      leftPanel.style.width = "$h%";
-      state['vertical_split'] = new DSplitter($('vertical-splitter')).position;
+    if (rightPanel != null && leftPanel != null) {
+      if (validFlex(h) != false) {
+        leftPanel.style.width = "$h%";
+        state['vertical_split'] =
+            new DSplitter($('vertical-splitter')).position;
+      } else {
+        leftPanel.style.width = defaultVerticalRatio;
+        state['vertical_split'] =
+            new DSplitter($('vertical-splitter')).position;
+      }
     }
-    if (topPanel != null && bottomPanel != null && validFlex(v) != false) {
-      topPanel.style.height = '$v%';
-      state['horizontal_split'] =
-          new DSplitter($('horizontal-splitter')).position;
+    if (topPanel != null && bottomPanel != null) {
+      if (validFlex(v) != false) {
+        topPanel.style.height = '$v%';
+        state['horizontal_split'] =
+            new DSplitter($('horizontal-splitter')).position;
+      } else {
+        topPanel.style.height = defaultHorizontalRatio;
+        state['horizontal_split'] =
+            new DSplitter($('horizontal-splitter')).position;
+      }
     }
-
     var disablePointerEvents = () {
       if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
     };
