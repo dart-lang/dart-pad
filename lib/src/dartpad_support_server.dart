@@ -33,7 +33,7 @@ class FileRelayServer {
       _logger.severe("Error while recording export ${e}");
       throw(e);
     });
-    _logger.info("PERF: Recorded Export with ID ${record.UUID}");
+    _logger.info("Recorded Export with ID ${record.UUID}");
     return new Future.value(new KeyContainer.FromKey(record.UUID));
   }
   
@@ -52,7 +52,7 @@ class FileRelayServer {
       _logger.severe("Error while deleting export ${e}");
       throw(e);
     });
-    _logger.info("PERF: Deleted Export with ID ${record.UUID}");
+    _logger.info("Deleted Export with ID ${record.UUID}");
     return new Future.value(new PadSaveObject.FromRecordSource(record));
   }
 }
