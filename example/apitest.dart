@@ -16,7 +16,8 @@ void main() {
   setupDocument();
   setupFixes();
   setupVersion();
-  setupSupport();
+  setupExport();
+  setupRetrieve();
 }
 
 void setupAnalyze() {
@@ -102,11 +103,11 @@ void setupVersion() {
   });
 }
 
-void setupSupport() {
-  String api = querySelector('#supportSection h3').text;
-  CodeMirror editor = createEditor(querySelector('#supportSection .editor'));
-  Element output = querySelector('#supportSection .output');
-  ButtonElement button = querySelector('#supportSection button');
+void setupExport() {
+  String api = querySelector('#exportSection h3').text;
+  CodeMirror editor = createEditor(querySelector('#exportSection .editor'));
+  Element output = querySelector('#exportSection .output');
+  ButtonElement button = querySelector('#exportSection button');
   button.onClick.listen((e) {
     support.PadSaveObject send = new support.PadSaveObject();
     send.dart = editor.getDoc().getValue();
@@ -114,7 +115,19 @@ void setupSupport() {
   });
 }
 
-CodeMirror createEditor(Element element) {
+void setupRetrieve() {
+  String api = querySelector('#retrieveSection h3').text;
+  CodeMirror editor = createEditor(querySelector('#retrieveSection .editor'), defaultText: "");
+  Element output = querySelector('#retrieveSection .output');
+  ButtonElement button = querySelector('#retrieveSection button');
+  button.onClick.listen((e) {
+    support.PadSaveObject send = new support.PadSaveObject();
+    send.dart = editor.getDoc().getValue();
+    invokeSupportPOST(api, send, output);
+  });
+}
+
+CodeMirror createEditor(Element element, {String defaultText}) {
   final Map options = {
     'tabSize': 2,
     'indentUnit': 2,
@@ -122,7 +135,7 @@ CodeMirror createEditor(Element element) {
     'matchBrackets': true,
     'theme': 'zenburn',
     'mode': 'dart',
-    'value': _text
+    'value': defaultText == null ? _text: defaultText
   };
 
   CodeMirror editor = new CodeMirror.fromElement(element, options: options);
@@ -168,10 +181,41 @@ void invokeSupportPOST(String api, support.PadSaveObject pso, Element output, {i
   output.text = '';
 
   Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
-
+  
+  //Does pso actually have to be a map?
   String data = JSON.encode(pso); //new Uri(queryParameters: m).query;
 
   HttpRequest.request(url, method: 'POST', sendData: data,
+                      requestHeaders: headers).then((HttpRequest r) {
+    String response =
+        '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
+        '${_printHeaders(r.responseHeaders)}\n\n'
+        '${r.responseText}';
+    output.text = response;
+  }).catchError((e, st) {
+    if (e is Event && e.target is HttpRequest) {
+      HttpRequest r = e.target;
+      String response =
+          '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
+          '${_printHeaders(r.responseHeaders)}\n\n'
+          '${r.responseText}';
+      output.text = response;
+    } else {
+      output.text = '${e}\n${st}';
+    }
+  });
+}
+
+void invokeDelete(String api, String key, Element output, {int offset}) {
+  Stopwatch timer = new Stopwatch()..start();
+  String url = '${_uriBase}${api}';
+  output.text = '';
+
+  Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
+
+  String data = JSON.encode(key); //new Uri(queryParameters: m).query;
+
+  HttpRequest.request(url, method: 'DELETE', sendData: data,
                       requestHeaders: headers).then((HttpRequest r) {
     String response =
         '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'

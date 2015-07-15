@@ -38,7 +38,7 @@ class FileRelayServer {
   }
   
   @ApiMethod(method:'DELETE', path:'pullExportData')
-  Future<PadSaveObject> pullExportContent({String key}) async {
+  Future<PadSaveObject> pullExportContent(String key) async {
     var database = ae.context.services.db;
     var query = database.query(GaeExportRecord)
         ..filter('UUID =', key);
