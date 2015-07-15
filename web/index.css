@@ -20,6 +20,11 @@ body {
   line-height: 20px;
 }
 
+.export-text-dialog {
+  padding-right: 12px;
+  min-width: 140px;
+}
+
 #dart-code {
   display:none;
 }

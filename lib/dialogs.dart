@@ -87,27 +87,24 @@ class EmbedDialog extends DDialog {
     String home = url.host;
     _doc.add(new SpanElement()
       ..text = 'Dart + Documentation: '
-      ..style.paddingRight = '12px'
-      ..style.minWidth = '140px');
+      ..classes.toggle('export-text-dialog', true));
     _doc.add(new InputElement()
       ..value = '${home}/embed-dart.html?id=${gist.id}'
       ..attributes['flex'] = '');
     _html.add(new SpanElement()
       ..text = 'Dart + Html: '
-      ..style.paddingRight = '12px'
-      ..style.minWidth = '140px');
+      ..classes.toggle('export-text-dialog', true));
     _html.add(new InputElement()
       ..value = '${home}/embed-html.html?id=${gist.id}'
       ..attributes['flex'] = '');
     _inline.add(new SpanElement()
       ..text = 'Dart (Minimal): '
-      ..style.paddingRight = '12px'
-      ..style.minWidth = '140px');
+      ..classes.toggle('export-text-dialog', true));
     _inline.add(new InputElement()
       ..value = '${home}/embed-inline.html?id=${gist.id}'
       ..attributes['flex'] = '');
     _info.add(new SpanElement()
-      ..text = 'Need more control? Checkout out our '
+      ..text = 'Need more control? Check out out our '
       ..style.fontSize = "12px"
       ..append(new SpanElement()
         ..text = 'embedding guide.'
