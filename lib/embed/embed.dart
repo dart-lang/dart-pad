@@ -361,67 +361,6 @@ class PlaygroundMobile {
     executionService.onStdout.listen(_showOutput);
     executionService.onStderr.listen((m) => _showOutput(m, error: true));
 
-    // Set up the splitters.
-    Uri url = Uri.parse(window.location.toString());
-    String v = url.queryParameters['verticalRatio'];
-    String h = url.queryParameters['horizontalRatio'];
-    String defaultVerticalRatio = '60%';
-    String defaultHorizontalRatio = '70%';
-    Element leftPanel = $('#leftPanel');
-    Element rightPanel = $('#rightPanel');
-    Element topPanel = $('#topPanel');
-    Element bottomPanel = $('#bottomPanel');
-    if (rightPanel != null && leftPanel != null) {
-      if (validFlex(h) != false) {
-        leftPanel.style.width = "$h%";
-        state['vertical_split'] =
-            new DSplitter($('vertical-splitter')).position;
-      } else {
-        leftPanel.style.width = defaultVerticalRatio;
-        state['vertical_split'] =
-            new DSplitter($('vertical-splitter')).position;
-      }
-    }
-    if (topPanel != null && bottomPanel != null) {
-      if (validFlex(v) != false) {
-        topPanel.style.height = '$v%';
-        state['horizontal_split'] =
-            new DSplitter($('horizontal-splitter')).position;
-      } else {
-        topPanel.style.height = defaultHorizontalRatio;
-        state['horizontal_split'] =
-            new DSplitter($('horizontal-splitter')).position;
-      }
-    }
-    var disablePointerEvents = () {
-      if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
-    };
-    var enablePointerEvents = () {
-      if ($("#frame") != null) $("#frame").style.pointerEvents = "inherit";
-    };
-    if ($('vertical-splitter') != null) {
-      _syncToolbar();
-      DSplitter verticalSplitter = new DSplitter($('vertical-splitter'),
-          onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
-      verticalSplitter.onPositionChanged.listen((pos) {
-        state['vertical_split'] = pos;
-        editor.resize();
-        _syncToolbar();
-      });
-      if (state['vertical_split'] != null) {
-        verticalSplitter.position = state['vertical_split'];
-      }
-    }
-    if ($('horizontal-splitter') != null) {
-      DSplitter horizontalSplitter = new DSplitter($('horizontal-splitter'),
-          onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
-      horizontalSplitter.onPositionChanged.listen((pos) {
-        state['horizontal_split'] = pos;
-      });
-      if (state['horizontal_split'] != null) {
-        horizontalSplitter.position = state['horizontal_split'];
-      }
-    }
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
     //$('editpanel').children.first.attributes['flex'] = '';
@@ -485,6 +424,52 @@ class PlaygroundMobile {
       }
     });
     docHandler = new DocHandler(editor, _context);
+
+    // Set up the splitters.
+    Uri url = Uri.parse(window.location.toString());
+    String v = url.queryParameters['verticalRatio'];
+    String h = url.queryParameters['horizontalRatio'];
+    String defaultVerticalRatio = '60%';
+    String defaultHorizontalRatio = '70%';
+    Element leftPanel = $('#leftPanel');
+    Element rightPanel = $('#rightPanel');
+    Element topPanel = $('#topPanel');
+    Element bottomPanel = $('#bottomPanel');
+    if (rightPanel != null && leftPanel != null) {
+      if (validFlex(h) != false) {
+        leftPanel.style.width = '$h%';
+        editor.resize();
+        _syncToolbar();
+      } else {
+        leftPanel.style.width = defaultVerticalRatio;
+      }
+    }
+    if (topPanel != null && bottomPanel != null) {
+      if (validFlex(v) != false) {
+        topPanel.style.height = '$v%';
+      } else {
+        topPanel.style.height = defaultHorizontalRatio;
+      }
+    }
+    var disablePointerEvents = () {
+      if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
+    };
+    var enablePointerEvents = () {
+      if ($("#frame") != null) $("#frame").style.pointerEvents = "inherit";
+    };
+    if ($('vertical-splitter') != null) {
+      _syncToolbar();
+      DSplitter verticalSplitter = new DSplitter($('vertical-splitter'),
+          onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
+      verticalSplitter.onPositionChanged.listen((pos) {
+        editor.resize();
+        _syncToolbar();
+      });
+    }
+    if ($('horizontal-splitter') != null) {
+      new DSplitter($('horizontal-splitter'),
+          onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
+    }
 
     _finishedInit();
   }
