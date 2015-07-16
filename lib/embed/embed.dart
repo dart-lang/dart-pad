@@ -425,52 +425,52 @@ class PlaygroundMobile {
     });
     docHandler = new DocHandler(editor, _context);
 
-  // Set up the splitters.
+    // Set up the splitters.
     Uri url = Uri.parse(window.location.toString());
     String v = url.queryParameters['verticalRatio'];
     String h = url.queryParameters['horizontalRatio'];
     String defaultVerticalRatio = '60%';
-   String defaultHorizontalRatio = '70%';
-   Element leftPanel = $('#leftPanel');
-   Element rightPanel = $('#rightPanel');
-   Element topPanel = $('#topPanel');
-   Element bottomPanel = $('#bottomPanel');
-   if (rightPanel != null && leftPanel != null) {
-     if (validFlex(h) != false) {
-       leftPanel.style.width = '$h%';
-       editor.resize();
-       _syncToolbar();
-     } else {
-       leftPanel.style.width = defaultVerticalRatio;
-     }
-   }
-   if (topPanel != null && bottomPanel != null) {
-     if (validFlex(v) != false) {
-       topPanel.style.height = '$v%';
-     } else {
-       topPanel.style.height = defaultHorizontalRatio;
-     }
-   }
-   var disablePointerEvents = () {
-     if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
-   };
-   var enablePointerEvents = () {
-     if ($("#frame") != null) $("#frame").style.pointerEvents = "inherit";
-   };
-   if ($('vertical-splitter') != null) {
-     _syncToolbar();
-     DSplitter verticalSplitter = new DSplitter($('vertical-splitter'),
-         onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
-     verticalSplitter.onPositionChanged.listen((pos) {
-       editor.resize();
-       _syncToolbar();
-     });
-   }
-   if ($('horizontal-splitter') != null) {
-     new DSplitter($('horizontal-splitter'),
-         onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
-   }
-   
+    String defaultHorizontalRatio = '70%';
+    Element leftPanel = $('#leftPanel');
+    Element rightPanel = $('#rightPanel');
+    Element topPanel = $('#topPanel');
+    Element bottomPanel = $('#bottomPanel');
+    if (rightPanel != null && leftPanel != null) {
+      if (validFlex(h) != false) {
+        leftPanel.style.width = '$h%';
+        editor.resize();
+        _syncToolbar();
+      } else {
+        leftPanel.style.width = defaultVerticalRatio;
+      }
+    }
+    if (topPanel != null && bottomPanel != null) {
+      if (validFlex(v) != false) {
+        topPanel.style.height = '$v%';
+      } else {
+        topPanel.style.height = defaultHorizontalRatio;
+      }
+    }
+    var disablePointerEvents = () {
+      if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
+    };
+    var enablePointerEvents = () {
+      if ($("#frame") != null) $("#frame").style.pointerEvents = "inherit";
+    };
+    if ($('vertical-splitter') != null) {
+      _syncToolbar();
+      DSplitter verticalSplitter = new DSplitter($('vertical-splitter'),
+          onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
+      verticalSplitter.onPositionChanged.listen((pos) {
+        editor.resize();
+        _syncToolbar();
+      });
+    }
+    if ($('horizontal-splitter') != null) {
+      new DSplitter($('horizontal-splitter'),
+          onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
+    }
+
     _finishedInit();
   }
 
