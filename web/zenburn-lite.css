@@ -1,0 +1,37 @@
+/**
+ * "
+ *  Using Zenburn color palette from the Emacs Zenburn Theme
+ *  https://github.com/bbatsov/zenburn-emacs/blob/master/zenburn-theme.el
+ *
+ *  Also using parts of https://github.com/xavi/coderay-lighttable-theme
+ * "
+ * From: https://github.com/wisenomad/zenburn-lighttable-theme/blob/master/zenburn.css
+ */
+
+.cm-s-zenburn .CodeMirror-gutters { background: #3f3f3f !important; }
+.cm-s-zenburn .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: #999; }
+.cm-s-zenburn .CodeMirror-cursor { border-left: 1px solid white !important; }
+.cm-s-zenburn { background-color: #3f3f3f; color: #37372E; }
+.cm-s-zenburn span.cm-builtin { color: #37372E; font-weight: bold; }
+.cm-s-zenburn span.cm-comment { color: #7f9f7f; }
+.cm-s-zenburn span.cm-keyword { color: #DFB235; font-weight: bold; }
+.cm-s-zenburn span.cm-atom { color: #bfebbf; }
+.cm-s-zenburn span.cm-def { color: #37372E; }
+.cm-s-zenburn span.cm-variable { color: #DF7128; }
+.cm-s-zenburn span.cm-variable-2 { color: #37372E; }
+.cm-s-zenburn span.cm-string { color: #cc9393; }
+.cm-s-zenburn span.cm-string-2 { color: #cc9393; }
+.cm-s-zenburn span.cm-number { color: #37372E; }
+.cm-s-zenburn span.cm-tag { color: #4A7A7C; }
+.cm-s-zenburn span.cm-property { color: #DF7128; }
+.cm-s-zenburn span.cm-attribute { color: #DF7128; }
+.cm-s-zenburn span.cm-qualifier { color: #7cb8bb; }
+.cm-s-zenburn span.cm-meta { color: #DFB235; }
+.cm-s-zenburn span.cm-header { color: #8E8A00; }
+.cm-s-zenburn span.cm-operator { color: #8E8A00; }
+.cm-s-zenburn span.CodeMirror-matchingbracket { box-sizing: border-box; background: transparent; border-bottom: 1px solid; }
+.cm-s-zenburn span.CodeMirror-nonmatchingbracket { border-bottom: 1px solid; background: none; }
+.cm-s-zenburn .CodeMirror-activeline { background: #000000; }
+.cm-s-zenburn .CodeMirror-activeline-background { background: #000000; }
+.cm-s-zenburn .CodeMirror-selected { background: #545454; }
+.cm-s-zenburn .CodeMirror-focused .CodeMirror-selected { background: #4f4f4f; }
