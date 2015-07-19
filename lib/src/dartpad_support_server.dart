@@ -27,7 +27,7 @@ class FileRelayServer {
   @ApiMethod(method:'POST', path:'export') 
   Future<KeyContainer> export(PadSaveObject data){
     GaeExportRecord record = new GaeExportRecord.FromDSO(data);
-    sha1SetUUID(record);
+    record.UUID = _computeSHA1(record);
     db.dbService.commit(inserts: [record])
       .catchError((e) {
       _logger.severe("Error while recording export ${e}");
@@ -38,13 +38,13 @@ class FileRelayServer {
   }
   
   @ApiMethod(method:'DELETE', path:'pullExportData')
-  Future<PadSaveObject> pullExportContent(String key) async {
+  Future<PadSaveObject> pullExportContent(String uuid) async {
     var database = ae.context.services.db;
     var query = database.query(GaeExportRecord)
-        ..filter('UUID =', key);
+        ..filter('UUID =', uuid);
     List result = await query.run().toList();
     if (result.isEmpty) {
-      _logger.severe("Export with key ${key} could not be found.");
+      _logger.severe("Export with UUID ${uuid} could not be found.");
       return new Future.value(new PadSaveObject());
     }
     GaeExportRecord record = result.first;
@@ -81,28 +81,25 @@ class GaeExportRecord extends db.Model {
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 
-  List<int> GZIPencode(String input) => io.GZIP.encode(convert.UTF8.encode(input));
-  
   GaeExportRecord.FromData(String dart, String html, String css, {String UUID}) {
-    this.dart = GZIPencode(dart);
-    this.html = GZIPencode(html);
-    this.css = GZIPencode(css);;
+    this.dart = _gzipEncode(dart);
+    this.html = _gzipEncode(html);
+    this.css = _gzipEncode(css);;
     this.UUID = UUID;
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
   
   GaeExportRecord.FromDSO(PadSaveObject pso) {
-    this.dart = GZIPencode(pso.dart);
-    this.html = GZIPencode(pso.html);
-    this.css = GZIPencode(pso.css);
+    this.dart = _gzipEncode(pso.dart);
+    this.html = _gzipEncode(pso.html);
+    this.css = _gzipEncode(pso.css);
     this.UUID = pso.UUID;
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
   
-  String GZIPdecode(List<int> input) => convert.UTF8.decode(io.GZIP.decode(input));
-  String get getDart => GZIPdecode(this.dart);
-  String get getHtml => GZIPdecode(this.html);
-  String get getCss => GZIPdecode(this.css);
+  String get getDart => _gzipDecode(this.dart);
+  String get getHtml => _gzipDecode(this.html);
+  String get getCss => _gzipDecode(this.css);
 }
 
 class PadSaveObject {
@@ -135,14 +132,12 @@ class KeyContainer {
   }
 }
 
-List<int> computeSHA1(GaeExportRecord record) {
+String _computeSHA1(GaeExportRecord record) {
   crypto.SHA1 sha1 = new crypto.SHA1();
   convert.Utf8Encoder utf8 = new convert.Utf8Encoder();
   sha1.add(utf8.convert("blob  'n ${record.getDart} ${record.getHtml} ${record.getCss}"));
-  return sha1.close();
+  return crypto.CryptoUtils.bytesToHex(sha1.close());
 }
 
-// SHA1 set the id
-void sha1SetUUID(GaeExportRecord record) {
-  record.UUID = crypto.CryptoUtils.bytesToHex(computeSHA1(record));
-}
+List<int> _gzipEncode(String input) => io.GZIP.encode(convert.UTF8.encode(input));
+String _gzipDecode(List<int> input) => convert.UTF8.decode(io.GZIP.decode(input));
