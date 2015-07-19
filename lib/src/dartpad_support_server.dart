@@ -25,40 +25,73 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'export')
   Future<KeyContainer> export(PadSaveObject data) {
-    GaeExportRecord record = new GaeExportRecord.FromDSO(data);
-    record.UUID = _computeSHA1(record);
+    _GaePadSaveObject record = new _GaePadSaveObject.FromDSO(data);
+    record.uuid = _computeSHA1(record);
     db.dbService.commit(inserts: [record]).catchError((e) {
       _logger.severe("Error while recording export ${e}");
       throw (e);
     });
-    _logger.info("Recorded Export with ID ${record.UUID}");
-    return new Future.value(new KeyContainer.FromKey(record.UUID));
+    _logger.info("Recorded Export with ID ${record.uuid}");
+    return new Future.value(new KeyContainer.FromKey(record.uuid));
   }
 
   @ApiMethod(method: 'DELETE', path: 'pullExportData')
   Future<PadSaveObject> pullExportContent(String uuid) async {
     var database = ae.context.services.db;
-    var query = database.query(GaeExportRecord)..filter('UUID =', uuid);
+    var query = database.query(_GaePadSaveObject)..filter('UUID =', uuid);
     List result = await query.run().toList();
     if (result.isEmpty) {
       _logger.severe("Export with UUID ${uuid} could not be found.");
       return new Future.value(new PadSaveObject());
     }
-    GaeExportRecord record = result.first;
+    _GaePadSaveObject record = result.first;
     database.commit(deletes: [record.key]).catchError((e) {
       _logger.severe("Error while deleting export ${e}");
       throw (e);
     });
-    _logger.info("Deleted Export with ID ${record.UUID}");
+    _logger.info("Deleted Export with ID ${record.uuid}");
     return new Future.value(new PadSaveObject.FromRecordSource(record));
   }
 }
 
-/*
- * This is the schema for source code storage
+/**
+ * Public interface object for storage of pads.
+ */
+class PadSaveObject {
+  String dart;
+  String html;
+  String css;
+  String uuid;
+  PadSaveObject();
+
+  PadSaveObject.FromData(String dart, String html, String css, {String uuid}) {
+    this.dart = dart;
+    this.html = html;
+    this.css = css;
+    this.uuid = uuid;
+  }
+
+  PadSaveObject.FromRecordSource(_GaePadSaveObject record) {
+    this.dart = record.getDart;
+    this.html = record.getHtml;
+    this.css = record.getCss;
+    this.uuid = record.uuid;
+  }
+}
+
+class KeyContainer {
+  String key;
+  KeyContainer();
+  KeyContainer.FromKey(String key) {
+    this.key = key;
+  }
+}
+
+/**
+ * Internal storage representation for storage of pads.
  */
 @db.Kind()
-class GaeExportRecord extends db.Model {
+class _GaePadSaveObject extends db.Model {
   @db.BlobProperty()
   List<int> dart;
 
@@ -72,27 +105,27 @@ class GaeExportRecord extends db.Model {
   List<int> css;
 
   @db.StringProperty()
-  String UUID;
+  String uuid;
 
-  GaeExportRecord() {
+  _GaePadSaveObject() {
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 
-  GaeExportRecord.FromData(String dart, String html, String css,
-      {String UUID}) {
+  _GaePadSaveObject.FromData(String dart, String html, String css,
+      {String uuid}) {
     this.dart = _gzipEncode(dart);
     this.html = _gzipEncode(html);
     this.css = _gzipEncode(css);
     ;
-    this.UUID = UUID;
+    this.uuid = uuid;
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 
-  GaeExportRecord.FromDSO(PadSaveObject pso) {
+  _GaePadSaveObject.FromDSO(PadSaveObject pso) {
     this.dart = _gzipEncode(pso.dart);
     this.html = _gzipEncode(pso.html);
     this.css = _gzipEncode(pso.css);
-    this.UUID = pso.UUID;
+    this.uuid = pso.uuid;
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 
@@ -101,37 +134,7 @@ class GaeExportRecord extends db.Model {
   String get getCss => _gzipDecode(this.css);
 }
 
-class PadSaveObject {
-  String dart;
-  String html;
-  String css;
-  String UUID;
-  PadSaveObject();
-
-  PadSaveObject.FromData(String dart, String html, String css, {String UUID}) {
-    this.dart = dart;
-    this.html = html;
-    this.css = css;
-    this.UUID = UUID;
-  }
-
-  PadSaveObject.FromRecordSource(GaeExportRecord record) {
-    this.dart = record.getDart;
-    this.html = record.getHtml;
-    this.css = record.getCss;
-    this.UUID = record.UUID;
-  }
-}
-
-class KeyContainer {
-  String key;
-  KeyContainer();
-  KeyContainer.FromKey(String key) {
-    this.key = key;
-  }
-}
-
-String _computeSHA1(GaeExportRecord record) {
+String _computeSHA1(_GaePadSaveObject record) {
   crypto.SHA1 sha1 = new crypto.SHA1();
   convert.Utf8Encoder utf8 = new convert.Utf8Encoder();
   sha1.add(utf8.convert(
