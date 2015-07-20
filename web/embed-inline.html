@@ -40,13 +40,11 @@
   </head>
 
   <body class="fullbleed vertical layout" unresolved>
-    <div class="flex layout horizontal">
-      <div class="relative vertical layout flex-6">
+    <div id="main" class="relative layout vertical">
         <dartpad-run-button></dartpad-run-button>
-        <dartpad-editor id='topPanel' dart class="flex-5 layout vertical"></dartpad-editor>
-        <horizontal-splitter class="splitter"></horizontal-splitter>
-        <dartpad-console id='bottomPanel' class="flex-2 layout vertical"></dartpad-console>
-      </div>
+        <dartpad-editor id='topPanel' dart class="layout vertical"></dartpad-editor>
+        <horizontal-splitter class="splitter" horizontal></horizontal-splitter>
+        <dartpad-console id='bottomPanel' class="flex layout vertical"></dartpad-console>
     </div>
     <paper-toast id="errorToast" text=""></paper-toast>
     <dartpad-dom-output hidden class="flex"></dartpad-dom-output>

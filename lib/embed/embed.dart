@@ -12,10 +12,13 @@ import 'dart:html' hide Document;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
+import '../completion.dart';
+import '../elements/elements.dart';
 import '../dart_pad.dart';
 import '../documentation.dart';
 import '../context.dart';
 import '../core/dependencies.dart';
+import '../core/keys.dart';
 import '../core/modules.dart';
 import '../editing/editor.dart';
 import '../modules/codemirror_module.dart';
@@ -70,6 +73,8 @@ class PlaygroundMobile {
 
   DocHandler docHandler;
   String _gistId;
+
+  bool get _isCompletionActive => editor.completionActive;
 
   Future createNewGist() {
     return null;
@@ -330,10 +335,18 @@ class PlaygroundMobile {
     }
   }
 
+  //Sync toolbar ratios to splitters
+  void _syncToolbar() {
+    if ($('#toolbarLeftPanel') != null) {
+      $('#toolbarLeftPanel').style.width = $('#leftPanel').style.width;
+    }
+  }
+
+  //Determine if the query parameters for splitter ratios are valid (0 to 100)
   bool validFlex(String input) {
     return input != null &&
         double.parse(input) > 0.0 &&
-        double.parse(input) < 1.0;
+        double.parse(input) < 100.0;
   }
 
   int roundFlex(double flex) => (flex * 10.0).round();
@@ -348,37 +361,6 @@ class PlaygroundMobile {
     executionService.onStdout.listen(_showOutput);
     executionService.onStderr.listen((m) => _showOutput(m, error: true));
 
-    // Set up the splitters.
-    Uri url = Uri.parse(window.location.toString());
-    String v = url.queryParameters['verticalRatio'];
-    String h = url.queryParameters['horizontalRatio'];
-    Element leftPanel = $('#leftPanel');
-    Element rightPanel = $('#rightPanel');
-    Element topPanel = $('#topPanel');
-    Element bottomPanel = $('#bottomPanel');
-    Element toolbarLeftPanel = $('#toolbarLeftPanel');
-    Element toolbarRightPanel = $('#toolbarRightPanel');
-    if (rightPanel != null && leftPanel != null && validFlex(h) != false) {
-      removeFlex(leftPanel);
-      removeFlex(rightPanel);
-      int l = roundFlex(double.parse(h));
-      leftPanel.classes.add('flex-${l}');
-      rightPanel.classes.add('flex-${10 - l}');
-      if (toolbarRightPanel != null && toolbarLeftPanel != null) {
-        removeFlex(toolbarLeftPanel);
-        removeFlex(toolbarRightPanel);
-        toolbarLeftPanel.classes.add('flex-${l}');
-        toolbarRightPanel.classes.add('flex-${10 - l}');
-      }
-    }
-    if (topPanel != null && bottomPanel != null && validFlex(v) != false) {
-      removeFlex(topPanel);
-      removeFlex(bottomPanel);
-      int t = roundFlex(double.parse(v));
-      topPanel.classes.add('flex-${t}');
-      bottomPanel.classes.add('flex-${10 - t}');
-    }
-
     // Set up the editing area.
     editor = editorFactory.createFromElement($('#editpanel'));
     //$('editpanel').children.first.attributes['flex'] = '';
@@ -386,17 +368,6 @@ class PlaygroundMobile {
 
     // TODO: Add a real code completer here.
     //editorFactory.registerCompleter('dart', new DartCompleter());
-
-    // Set up the gist loader.
-    // TODO: Move to using the defaultFilters().
-    deps[GistLoader] = new GistLoader();
-
-    document.onKeyUp.listen((e) {
-      if (editor.completionActive ||
-          DocHandler.cursorKeys.contains(e.keyCode)) {
-        docHandler.generateDocWithText(_docPanel);
-      }
-    });
 
     // Listen for changes that would effect the documentation panel.
     editor.onMouseDown.listen((e) {
@@ -424,7 +395,81 @@ class PlaygroundMobile {
 
     _context.onDartReconcile.listen((_) => _performAnalysis());
 
+    keys.bind(['alt-enter', 'ctrl-1'], () {
+      editor.showCompletions(onlyShowFixes: true);
+    }, "Quick fix");
+
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
+      editor.showCompletions();
+    }, "Completion");
+
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDoc(_docPanel);
+      }
+      _handleAutoCompletion(e);
+    });
+
+    editorFactory.registerCompleter(
+        'dart', new DartCompleter(dartServices, _context._dartDoc));
+    // Set up the gist loader.
+    // TODO: Move to using the defaultFilters().
+    deps[GistLoader] = new GistLoader();
+
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDocWithText(_docPanel);
+      }
+    });
     docHandler = new DocHandler(editor, _context);
+
+    // Set up the splitters.
+    Uri url = Uri.parse(window.location.toString());
+    String v = url.queryParameters['verticalRatio'];
+    String h = url.queryParameters['horizontalRatio'];
+    String defaultVerticalRatio = '60%';
+    String defaultHorizontalRatio = '70%';
+    Element leftPanel = $('#leftPanel');
+    Element rightPanel = $('#rightPanel');
+    Element topPanel = $('#topPanel');
+    Element bottomPanel = $('#bottomPanel');
+    if (rightPanel != null && leftPanel != null) {
+      if (validFlex(h) != false) {
+        leftPanel.style.width = '$h%';
+        editor.resize();
+        _syncToolbar();
+      } else {
+        leftPanel.style.width = defaultVerticalRatio;
+      }
+    }
+    if (topPanel != null && bottomPanel != null) {
+      if (validFlex(v) != false) {
+        topPanel.style.height = '$v%';
+      } else {
+        topPanel.style.height = defaultHorizontalRatio;
+      }
+    }
+    var disablePointerEvents = () {
+      if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
+    };
+    var enablePointerEvents = () {
+      if ($("#frame") != null) $("#frame").style.pointerEvents = "inherit";
+    };
+    if ($('vertical-splitter') != null) {
+      _syncToolbar();
+      DSplitter verticalSplitter = new DSplitter($('vertical-splitter'),
+          onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
+      verticalSplitter.onPositionChanged.listen((pos) {
+        editor.resize();
+        _syncToolbar();
+      });
+    }
+    if ($('horizontal-splitter') != null) {
+      new DSplitter($('horizontal-splitter'),
+          onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
+    }
 
     _finishedInit();
   }
@@ -438,6 +483,37 @@ class PlaygroundMobile {
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
       ..listen();
+  }
+
+  _handleAutoCompletion(KeyboardEvent e) {
+    if (context.focusedEditor == 'dart' && editor.hasFocus) {
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    }
+
+    if (!options.getValueBool('autopopup_code_completion') ||
+        _isCompletionActive ||
+        !editor.hasFocus) {
+      return;
+    }
+
+    if (context.focusedEditor == 'dart') {
+      RegExp exp = new RegExp(r"[A-Z]");
+      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    } else if (context.focusedEditor == "html") {
+      // TODO: Autocompletion for attributes.
+      if (printKeyEvent(e) == "shift-,") {
+        editor.showCompletions(autoInvoked: true);
+      }
+    } else if (context.focusedEditor == "css") {
+      RegExp exp = new RegExp(r"[A-Z]");
+      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    }
   }
 
   void _handleRun() {
@@ -555,30 +631,47 @@ class PlaygroundMobile {
     if (issues.isEmpty) {
       _clearErrors();
     } else {
-      Element element = _errorsToast.element;
+      Element errorElement = _errorsToast.element;
 
-      element.children.clear();
+      errorElement.children.clear();
 
       issues.sort((a, b) => a.charStart - b.charStart);
 
       // Create an item for each issue.
       for (AnalysisIssue issue in issues) {
-        DivElement e = new DivElement();
-        e.classes.add('issue');
-        element.children.add(e);
-        e.onClick.listen((_) {
+        DivElement error = new DivElement();
+        error.classes.add('issue');
+        error.classes.add('layout');
+        error.classes.add('horizontal');
+        errorElement.children.add(error);
+        error.onClick.listen((_) {
           _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
         });
 
         SpanElement typeSpan = new SpanElement();
         typeSpan.classes.addAll([issue.kind, 'issuelabel']);
         typeSpan.text = issue.kind;
-        e.children.add(typeSpan);
+        error.children.add(typeSpan);
 
         SpanElement messageSpan = new SpanElement();
         messageSpan.classes.add('message');
+        messageSpan.classes.add('flex');
         messageSpan.text = issue.message;
-        e.children.add(messageSpan);
+        error.children.add(messageSpan);
+        if (issue.hasFixes) {
+          error.classes.add("hasFix");
+          error.onClick.listen((e) {
+            // This is a bit of a hack to make sure quick fixes popup
+            // is only shown if the wrench is clicked,
+            // and not if the text or label is clicked.
+            if ((e.target as Element).className == "issue hasFix") {
+              // codemiror only shows completions if there is no selected text
+              _jumpTo(issue.line, issue.charStart, 0, focus: true);
+              editor.showCompletions(onlyShowFixes: true);
+            }
+          });
+        }
+        errorElement.classes.toggle('showing', issues.isNotEmpty);
       }
 
       _errorsToast.show();

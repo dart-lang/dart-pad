@@ -53,18 +53,18 @@
             </paper-menu>
           </paper-header-panel>
           <paper-header-panel main>
-            <paper-toolbar style="height: 90px">
+            <paper-toolbar id="menu-toolbar">
               <paper-icon-button id="nav-button" icon="menu"></paper-icon-button>
               <div title class="flex sample-titles"></div>
               <paper-icon-button icon="more-vert"
                                  id="more-button"></paper-icon-button>
-              <paper-tabs selected="0" class="bottom fit" style="top: inherit">
+              <paper-tabs selected="0" class="bottom fit">
                 <paper-tab name="dart">Dart</paper-tab>
                 <paper-tab name="html">HTML</paper-tab>
                 <paper-tab name="css">CSS</paper-tab>
               </paper-tabs>
-              <paper-progress id="edit-progress" class="bottom fit" hidden
-                              style="top: inherit"></paper-progress>
+              <paper-progress id="edit-progress" class="bottom fit" hidden>
+              </paper-progress>
             </paper-toolbar>
             <div id="editpanel" class="fit editor"></div>
             <paper-fab id="run-button" icon="av:play-arrow"></paper-fab>
@@ -78,8 +78,8 @@
             <div title class="flex"></div>
             <paper-toggle-button checked></paper-toggle-button>
             <paper-icon-button icon="refresh"></paper-icon-button>
-            <paper-progress id="run-progress" class="bottom fit" hidden
-                            style="top: inherit"></paper-progress>
+            <paper-progress id="run-progress" class="bottom fit" hidden>
+            </paper-progress>
           </paper-toolbar>
           <div class="fit layout vertical">
             <div id="frameContainer" class="flex-2 layout vertical">

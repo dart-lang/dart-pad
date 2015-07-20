@@ -148,16 +148,15 @@ class PlaygroundMobile {
       topPanel.closeDrawer();
     });
 
-    new PaperIconButton.from($('#nav-button')).clickAction(
-        () => topPanel.togglePanel());
+    new PaperIconButton.from($('#nav-button'))
+        .clickAction(() => topPanel.togglePanel());
 
     PolymerElement dropdownAnimation =
         new PolymerElement.from($("animated-dropdown"));
 
     new PaperIconButton.from($("#more-button")).clickAction(() {
       $("#dropdown").style.top =
-          ($("#more-button").getBoundingClientRect().top + 5).toString() +
-              "px";
+          ($("#more-button").getBoundingClientRect().top + 5).toString() + "px";
       $("#dropdown").style.left =
           ($("#more-button").getBoundingClientRect().left - 75).toString() +
               "px";
