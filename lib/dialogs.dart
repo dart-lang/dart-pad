@@ -62,7 +62,7 @@ class EmbedDialog extends DDialog {
 
   EmbedDialog(
       GistContainer this.gistContainer, GistController this.gistController)
-      : super(title: 'Embedding Options') {
+      : super(title: 'Embedding Options (BETA)') {
     element.classes.toggle('sharing-dialog', true);
 
     content.setAttr('layout');
