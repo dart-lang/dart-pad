@@ -5,9 +5,14 @@
 library services_server.apitest;
 
 import 'dart:html';
-import 'dart:convert' show JSON;
-import '_dartpadsupportservices.dart' as support;
+import '../doc/generated/_dartpadsupportservices.dart' as support;
+import '../doc/generated/dartservices.dart' as services;
+import 'services_utils.dart' as utils;
 import 'package:codemirror/codemirror.dart';
+
+utils.SanitizingBrowserClient client;
+services.DartservicesApi servicesApi;
+support.P_dartpadsupportservicesApi _dartpadSupportApi;
 
 void main() {
   setupAnalyze();
@@ -20,71 +25,92 @@ void main() {
   setupRetrieve();
 }
 
-void setupAnalyze() {
-  String api = querySelector('#analyzeSection h3').text;
+_setupClients() {
+  client = new utils.SanitizingBrowserClient();
+  servicesApi = new services.DartservicesApi(client, rootUrl: _uriBase);
+  _dartpadSupportApi = new support.P_dartpadsupportservicesApi(client);
+}
 
+void setupAnalyze() {
   CodeMirror editor = createEditor(querySelector('#analyzeSection .editor'));
   Element output = querySelector('#analyzeSection .output');
   ButtonElement button = querySelector('#analyzeSection button');
   button.onClick.listen((e) {
-    invokePOST(api, editor.getDoc().getValue(), output);
+    _setupClients();
+    services.SourceRequest srcRequest = new services.SourceRequest()
+      ..source = editor.getDoc().getValue();
+    Stopwatch sw = new Stopwatch()..start();
+    servicesApi.analyze(srcRequest).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
   });
 }
 
 void setupCompile() {
-  String api = querySelector('#compileSection h3').text;
-
   CodeMirror editor = createEditor(querySelector('#compileSection .editor'));
   Element output = querySelector('#compileSection .output');
   ButtonElement button = querySelector('#compileSection button');
   button.onClick.listen((e) {
-    invokePOST(api, editor.getDoc().getValue(), output);
+    String source = editor.getDoc().getValue();
+
+    _setupClients();
+    services.CompileRequest compileRequest = new services.CompileRequest();
+    compileRequest.source = source;
+
+    Stopwatch sw = new Stopwatch()..start();
+    servicesApi.compile(compileRequest).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
   });
 }
 
 void setupComplete() {
-  String api = querySelector('#completeSection h3').text;
-
   CodeMirror editor = createEditor(querySelector('#completeSection .editor'));
   Element output = querySelector('#completeSection .output');
   Element offsetElement = querySelector('#completeSection .offset');
   ButtonElement button = querySelector('#completeSection button');
   button.onClick.listen((e) {
-    invokePOST(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
+    var sourceRequest = _getSourceRequest(editor);
+    Stopwatch sw = new Stopwatch()..start();
+    servicesApi.complete(sourceRequest).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
   });
   offsetElement.text = 'offset ${_getOffset(editor)}';
-
   editor.onCursorActivity.listen((_) {
     offsetElement.text = 'offset ${_getOffset(editor)}';
   });
 }
 
 void setupDocument() {
-  String api = querySelector('#documentSection h3').text;
-
   CodeMirror editor = createEditor(querySelector('#documentSection .editor'));
   Element output = querySelector('#documentSection .output');
   Element offsetElement = querySelector('#documentSection .offset');
   ButtonElement button = querySelector('#documentSection button');
   button.onClick.listen((e) {
-    invokePOST(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
+    var sourceRequest = _getSourceRequest(editor);
+    Stopwatch sw = new Stopwatch()..start();
+    servicesApi.document(sourceRequest).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
   });
   offsetElement.text = 'offset ${_getOffset(editor)}';
-
   editor.onCursorActivity.listen((_) {
     offsetElement.text = 'offset ${_getOffset(editor)}';
   });
 }
 
 void setupFixes() {
-  String api = querySelector('#fixesSection h3').text;
-
   CodeMirror editor = createEditor(querySelector('#fixesSection .editor'));
   Element output = querySelector('#fixesSection .output');
   Element offsetElement = querySelector('#fixesSection .offset');
   ButtonElement button = querySelector('#fixesSection button');
   button.onClick.listen((e) {
-    invokePOST(api, editor.getDoc().getValue(), output, offset: _getOffset(editor));
+    var sourceRequest = _getSourceRequest(editor);
+    Stopwatch sw = new Stopwatch()..start();
+    servicesApi.fixes(sourceRequest).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
   });
   offsetElement.text = 'offset ${_getOffset(editor)}';
 
@@ -94,36 +120,42 @@ void setupFixes() {
 }
 
 void setupVersion() {
-  String api = querySelector('#versionSection h3').text;
-
   Element output = querySelector('#versionSection .output');
   ButtonElement button = querySelector('#versionSection button');
   button.onClick.listen((e) {
-    invokeGET(api, output);
+    Stopwatch sw = new Stopwatch()..start();
+    servicesApi.version().then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
   });
 }
 
 void setupExport() {
-  String api = querySelector('#exportSection h3').text;
   CodeMirror editor = createEditor(querySelector('#exportSection .editor'));
   Element output = querySelector('#exportSection .output');
   ButtonElement button = querySelector('#exportSection button');
   button.onClick.listen((e) {
-    support.PadSaveObject send = new support.PadSaveObject();
-    send.dart = editor.getDoc().getValue();
-    invokeSupportPOST(api, send, output);
+    support.PadSaveObject saveObject = new support.PadSaveObject();
+    saveObject.dart = editor.getDoc().getValue();
+    Stopwatch sw = new Stopwatch()..start();
+    _dartpadSupportApi.export(saveObject).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
   });
 }
 
 void setupRetrieve() {
-  String api = querySelector('#retrieveSection h3').text;
-  CodeMirror editor = createEditor(querySelector('#retrieveSection .editor'), defaultText: "");
   Element output = querySelector('#retrieveSection .output');
+  CodeMirror editor =
+      createEditor(querySelector('#retrieveSection .editor'), defaultText: "");
   ButtonElement button = querySelector('#retrieveSection button');
   button.onClick.listen((e) {
-    support.PadSaveObject send = new support.PadSaveObject();
-    send.dart = editor.getDoc().getValue();
-    invokeSupportPOST(api, send, output);
+    String uuid = editor.getDoc().getValue();
+
+    Stopwatch sw = new Stopwatch()..start();
+    _dartpadSupportApi.pullExportContent(uuid: uuid).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
   });
 }
 
@@ -135,141 +167,33 @@ CodeMirror createEditor(Element element, {String defaultText}) {
     'matchBrackets': true,
     'theme': 'zenburn',
     'mode': 'dart',
-    'value': defaultText == null ? _text: defaultText
+    'value': defaultText == null ? _text : defaultText
   };
 
   CodeMirror editor = new CodeMirror.fromElement(element, options: options);
   editor.refresh();
   return editor;
 }
+//
+//String _printHeaders(Map m) {
+//  return m.keys.map((k) => '${k}: ${m[k]}').join('\n');
+//}
 
-void invokePOST(String api, String source, Element output, {int offset}) {
-  Stopwatch timer = new Stopwatch()..start();
-  String url = '${_uriBase}${api}';
-  output.text = '';
+String _formatTiming(Stopwatch sw) => "${sw.elapsedMilliseconds}ms\n";
 
-  Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
-
-  Map m = {'source': source};
-  if (offset != null) m['offset'] = offset;
-  String data = JSON.encode(m); //new Uri(queryParameters: m).query;
-
-  HttpRequest.request(url, method: 'POST', sendData: data,
-                      requestHeaders: headers).then((HttpRequest r) {
-    String response =
-        '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
-        '${_printHeaders(r.responseHeaders)}\n\n'
-        '${r.responseText}';
-    output.text = response;
-  }).catchError((e, st) {
-    if (e is Event && e.target is HttpRequest) {
-      HttpRequest r = e.target;
-      String response =
-          '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
-          '${_printHeaders(r.responseHeaders)}\n\n'
-          '${r.responseText}';
-      output.text = response;
-    } else {
-      output.text = '${e}\n${st}';
-    }
-  });
-}
-
-void invokeSupportPOST(String api, support.PadSaveObject pso, Element output, {int offset}) {
-  Stopwatch timer = new Stopwatch()..start();
-  String url = '${_uriBase}${api}';
-  output.text = '';
-
-  Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
-  
-  //Does pso actually have to be a map?
-  String data = JSON.encode(pso); //new Uri(queryParameters: m).query;
-
-  HttpRequest.request(url, method: 'POST', sendData: data,
-                      requestHeaders: headers).then((HttpRequest r) {
-    String response =
-        '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
-        '${_printHeaders(r.responseHeaders)}\n\n'
-        '${r.responseText}';
-    output.text = response;
-  }).catchError((e, st) {
-    if (e is Event && e.target is HttpRequest) {
-      HttpRequest r = e.target;
-      String response =
-          '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
-          '${_printHeaders(r.responseHeaders)}\n\n'
-          '${r.responseText}';
-      output.text = response;
-    } else {
-      output.text = '${e}\n${st}';
-    }
-  });
-}
-
-void invokeDelete(String api, String key, Element output, {int offset}) {
-  Stopwatch timer = new Stopwatch()..start();
-  String url = '${_uriBase}${api}';
-  output.text = '';
-
-  Map headers = {'Content-Type': 'application/json; charset=UTF-8'};
-
-  String data = JSON.encode(key); //new Uri(queryParameters: m).query;
-
-  HttpRequest.request(url, method: 'DELETE', sendData: data,
-                      requestHeaders: headers).then((HttpRequest r) {
-    String response =
-        '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
-        '${_printHeaders(r.responseHeaders)}\n\n'
-        '${r.responseText}';
-    output.text = response;
-  }).catchError((e, st) {
-    if (e is Event && e.target is HttpRequest) {
-      HttpRequest r = e.target;
-      String response =
-          '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
-          '${_printHeaders(r.responseHeaders)}\n\n'
-          '${r.responseText}';
-      output.text = response;
-    } else {
-      output.text = '${e}\n${st}';
-    }
-  });
-}
-
-void invokeGET(String api, Element output) {
-  Stopwatch timer = new Stopwatch()..start();
-  String url = '${_uriBase}${api}';
-  output.text = '';
-
-  HttpRequest.request(url, method: 'GET').then((HttpRequest r) {
-    String response =
-        '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
-        '${_printHeaders(r.responseHeaders)}\n\n'
-        '${r.responseText}';
-    output.text = response;
-  }).catchError((e, st) {
-    if (e is Event && e.target is HttpRequest) {
-      HttpRequest r = e.target;
-      String response =
-          '${r.status} ${r.statusText} - ${timer.elapsedMilliseconds}ms\n'
-          '${_printHeaders(r.responseHeaders)}\n\n'
-          '${r.responseText}';
-      output.text = response;
-    } else {
-      output.text = '${e}\n${st}';
-    }
-  });
-}
-
-String _printHeaders(Map m) {
-  return m.keys.map((k) => '${k}: ${m[k]}').join('\n');
-}
-
-String get _uriBase => (querySelector('input[type=text]') as InputElement).value;
+String get _uriBase =>
+    (querySelector('input[type=text]') as InputElement).value;
 
 int _getOffset(CodeMirror editor) {
   Position pos = editor.getDoc().getCursor();
   return editor.getDoc().indexFromPos(pos);
+}
+
+services.SourceRequest _getSourceRequest(CodeMirror editor) {
+  var srcRequest = new services.SourceRequest()
+    ..source = editor.getDoc().getValue()
+    ..offset = _getOffset(editor);
+  return srcRequest;
 }
 
 final String _text = r'''

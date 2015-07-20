@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "10dd30503884bbc5718876f8d2c56b93a3cdec1c",
+ "etag": "21b591de2da4ed06263ace8f9afb11b6856e1119",
  "discoveryVersion": "v1",
  "id": "_dartpadsupportservices:v1",
  "name": "_dartpadsupportservices",
@@ -26,16 +26,16 @@
     "css": {
      "type": "string"
     },
-    "UUID": {
+    "uuid": {
      "type": "string"
     }
    }
   },
-  "KeyContainer": {
-   "id": "KeyContainer",
+  "UuidContainer": {
+   "id": "UuidContainer",
    "type": "object",
    "properties": {
-    "key": {
+    "uuid": {
      "type": "string"
     }
    }
@@ -52,7 +52,7 @@
     "$ref": "PadSaveObject"
    },
    "response": {
-    "$ref": "KeyContainer"
+    "$ref": "UuidContainer"
    }
   },
   "pullExportContent": {
@@ -60,9 +60,9 @@
    "path": "pullExportData",
    "httpMethod": "DELETE",
    "parameters": {
-    "key": {
+    "uuid": {
      "type": "string",
-     "description": "Query parameter: 'key'.",
+     "description": "Query parameter: 'uuid'.",
      "required": false,
      "location": "query"
     }

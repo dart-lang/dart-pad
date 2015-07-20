@@ -2,22 +2,25 @@
 
 library services.P_dartpadsupportservices.v1;
 
-import 'dart:async';
+import 'dart:core' as core;
+import 'dart:collection' as collection;
+import 'dart:async' as async;
 import 'dart:convert' as convert;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as commons;
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
 
 export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
     ApiRequestError, DetailedApiRequestError;
 
-const String USER_AGENT = 'dart-api-client _dartpadsupportservices/v1';
+const core.String USER_AGENT = 'dart-api-client _dartpadsupportservices/v1';
 
 class P_dartpadsupportservicesApi {
 
   final commons.ApiRequester _requester;
 
-  P_dartpadsupportservicesApi(http.Client client, {String rootUrl: "/", String servicePath: "api/_dartpadsupportservices/v1/"}) :
+  P_dartpadsupportservicesApi(http.Client client, {core.String rootUrl: "/", core.String servicePath: "api/_dartpadsupportservices/v1/"}) :
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
@@ -25,17 +28,17 @@ class P_dartpadsupportservicesApi {
    *
    * Request parameters:
    *
-   * Completes with a [KeyContainer].
+   * Completes with a [UuidContainer].
    *
    * Completes with a [commons.ApiRequestError] if the API endpoint returned an
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<KeyContainer> export(PadSaveObject request) {
+  async.Future<UuidContainer> export(PadSaveObject request) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -44,6 +47,7 @@ class P_dartpadsupportservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'export';
 
@@ -54,13 +58,13 @@ class P_dartpadsupportservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response.then((data) => new KeyContainer.fromJson(data));
+    return _response.then((data) => new UuidContainer.fromJson(data));
   }
 
   /**
    * Request parameters:
    *
-   * [key] - Query parameter: 'key'.
+   * [uuid] - Query parameter: 'uuid'.
    *
    * Completes with a [PadSaveObject].
    *
@@ -68,19 +72,20 @@ class P_dartpadsupportservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<PadSaveObject> pullExportContent({String key}) {
+  async.Future<PadSaveObject> pullExportContent({core.String uuid}) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
     var _body = null;
 
-    if (key != null) {
-      _queryParams["key"] = [key];
+    if (uuid != null) {
+      _queryParams["uuid"] = [uuid];
     }
+
 
     _url = 'pullExportData';
 
@@ -98,38 +103,19 @@ class P_dartpadsupportservicesApi {
 
 
 
-class KeyContainer {
-  String key;
-
-  KeyContainer();
-
-  KeyContainer.fromJson(Map _json) {
-    if (_json.containsKey("key")) {
-      key = _json["key"];
-    }
-  }
-
-  Map toJson() {
-    var _json = new Map();
-    if (key != null) {
-      _json["key"] = key;
-    }
-    return _json;
-  }
-}
-
 class PadSaveObject {
-  String UUID;
-  String css;
-  String dart;
-  String html;
+  core.String css;
+
+  core.String dart;
+
+  core.String html;
+
+  core.String uuid;
+
 
   PadSaveObject();
 
-  PadSaveObject.fromJson(Map _json) {
-    if (_json.containsKey("UUID")) {
-      UUID = _json["UUID"];
-    }
+  PadSaveObject.fromJson(core.Map _json) {
     if (_json.containsKey("css")) {
       css = _json["css"];
     }
@@ -139,13 +125,13 @@ class PadSaveObject {
     if (_json.containsKey("html")) {
       html = _json["html"];
     }
+    if (_json.containsKey("uuid")) {
+      uuid = _json["uuid"];
+    }
   }
 
-  Map toJson() {
-    var _json = new Map();
-    if (UUID != null) {
-      _json["UUID"] = UUID;
-    }
+  core.Map toJson() {
+    var _json = new core.Map();
     if (css != null) {
       _json["css"] = css;
     }
@@ -154,6 +140,31 @@ class PadSaveObject {
     }
     if (html != null) {
       _json["html"] = html;
+    }
+    if (uuid != null) {
+      _json["uuid"] = uuid;
+    }
+    return _json;
+  }
+}
+
+
+class UuidContainer {
+  core.String uuid;
+
+
+  UuidContainer();
+
+  UuidContainer.fromJson(core.Map _json) {
+    if (_json.containsKey("uuid")) {
+      uuid = _json["uuid"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (uuid != null) {
+      _json["uuid"] = uuid;
     }
     return _json;
   }

@@ -24,19 +24,19 @@ class FileRelayServer {
   }
 
   @ApiMethod(method: 'POST', path: 'export')
-  Future<KeyContainer> export(PadSaveObject data) {
+  Future<UuidContainer> export(PadSaveObject data) {
     _GaePadSaveObject record = new _GaePadSaveObject.FromDSO(data);
     record.uuid = _computeSHA1(record);
     db.dbService.commit(inserts: [record]).catchError((e) {
       _logger.severe("Error while recording export ${e}");
-      throw (e);
+      throw e;
     });
     _logger.info("Recorded Export with ID ${record.uuid}");
-    return new Future.value(new KeyContainer.FromKey(record.uuid));
+    return new Future.value(new UuidContainer.FromUuid(record.uuid));
   }
 
   @ApiMethod(method: 'DELETE', path: 'pullExportData')
-  Future<PadSaveObject> pullExportContent(String uuid) async {
+  Future<PadSaveObject> pullExportContent({String uuid}) async {
     var database = ae.context.services.db;
     var query = database.query(_GaePadSaveObject)..filter('UUID =', uuid);
     List result = await query.run().toList();
@@ -79,11 +79,10 @@ class PadSaveObject {
   }
 }
 
-class KeyContainer {
-  String key;
-  KeyContainer();
-  KeyContainer.FromKey(String key) {
-    this.key = key;
+class UuidContainer {
+  String uuid;
+  UuidContainer.FromUuid(String uuid) {
+    this.uuid = uuid;
   }
 }
 
