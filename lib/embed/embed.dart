@@ -83,8 +83,13 @@ class PlaygroundMobile {
   ModuleManager modules = new ModuleManager();
 
   PlaygroundMobile() {
-    _createUi();
-    _initModules().then((_) => _initPlayground());
+    //Asyncronous processing to load UI faster in parallel
+    Timer.run(() {
+      _createUi();
+    });
+    Timer.run(() {
+      _initModules().then((_) => _initPlayground());
+    });
   }
 
   void showHome(RouteEnterEvent event) {
