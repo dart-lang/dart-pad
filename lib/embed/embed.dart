@@ -335,14 +335,14 @@ class PlaygroundMobile {
     }
   }
 
-  //Sync toolbar ratios to splitters
+  // Sync toolbar ratios to splitters.
   void _syncToolbar() {
     if ($('#toolbarLeftPanel') != null) {
       $('#toolbarLeftPanel').style.width = $('#leftPanel').style.width;
     }
   }
 
-  //Determine if the query parameters for splitter ratios are valid (0 to 100)
+  // Determine if the query parameters for splitter ratios are valid (0 to 100).
   bool validFlex(String input) {
     return input != null &&
         double.parse(input) > 0.0 &&
@@ -429,27 +429,21 @@ class PlaygroundMobile {
     Uri url = Uri.parse(window.location.toString());
     String v = url.queryParameters['verticalRatio'];
     String h = url.queryParameters['horizontalRatio'];
-    String defaultVerticalRatio = '60%';
-    String defaultHorizontalRatio = '70%';
+    num defaultVerticalRatio = 60;
+    num defaultHorizontalRatio = 70;
     Element leftPanel = $('#leftPanel');
     Element rightPanel = $('#rightPanel');
     Element topPanel = $('#topPanel');
     Element bottomPanel = $('#bottomPanel');
     if (rightPanel != null && leftPanel != null) {
-      if (validFlex(h) != false) {
-        leftPanel.style.width = '$h%';
-        editor.resize();
-        _syncToolbar();
-      } else {
-        leftPanel.style.width = defaultVerticalRatio;
-      }
+      num percent = validFlex(h) ? int.parse(h) : defaultVerticalRatio;
+      leftPanel.style.width = '${leftPanel.parent.client.width * percent / 100}px';
+      editor.resize();
+      _syncToolbar();
     }
     if (topPanel != null && bottomPanel != null) {
-      if (validFlex(v) != false) {
-        topPanel.style.height = '$v%';
-      } else {
-        topPanel.style.height = defaultHorizontalRatio;
-      }
+      num percent = validFlex(v) ? int.parse(v) : defaultHorizontalRatio;
+      topPanel.style.height = '${topPanel.parent.client.height * percent / 100}px';
     }
     var disablePointerEvents = () {
       if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
