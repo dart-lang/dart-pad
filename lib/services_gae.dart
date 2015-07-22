@@ -69,7 +69,7 @@ class GaeServer {
 
   void requestHandler(io.HttpRequest request) {
     request.response.headers.add('Access-Control-Allow-Methods',
-        'DELETE, POST, OPTIONS');
+        'POST, OPTIONS');
     request.response.headers.add('Access-Control-Allow-Headers',
         'Origin, X-Requested-With, Content-Type, Accept');
 
