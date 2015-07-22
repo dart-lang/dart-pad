@@ -17,7 +17,7 @@ import 'package:uuid/uuid.dart' as uuid_tools;
 final Logger _logger = new Logger('dartpad_support_server');
 
 // This class defines the interface that the server provides.
-@ApiClass(name: 'dartpadsupportservices', version: 'v1')
+@ApiClass(name: '_dartpadsupportservices', version: 'v1')
 class FileRelayServer {
   FileRelayServer() {
     hierarchicalLoggingEnabled = true;

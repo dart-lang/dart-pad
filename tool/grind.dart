@@ -118,7 +118,7 @@ discovery() {
       throw 'Error generating the discovery document\n${result.stderr}';
     }
     
-  File discoveryDbFile = new File('doc/generated/dartpadsupportservices.json');
+  File discoveryDbFile = new File('doc/generated/_dartpadsupportservices.json');
   discoveryDbFile.parent.createSync();
   log('writing ${discoveryDbFile.path}');
   discoveryDbFile.writeAsStringSync(resultDb.stdout.trim() + '\n');

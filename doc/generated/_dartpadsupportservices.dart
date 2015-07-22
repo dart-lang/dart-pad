@@ -1,6 +1,6 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library services.dartpadsupportservices.v1;
+library services.P_dartpadsupportservices.v1;
 
 import 'dart:core' as core;
 import 'dart:collection' as collection;
@@ -14,13 +14,13 @@ import 'package:http/http.dart' as http;
 export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
     ApiRequestError, DetailedApiRequestError;
 
-const core.String USER_AGENT = 'dart-api-client dartpadsupportservices/v1';
+const core.String USER_AGENT = 'dart-api-client _dartpadsupportservices/v1';
 
-class DartpadsupportservicesApi {
+class P_dartpadsupportservicesApi {
 
   final commons.ApiRequester _requester;
 
-  DartpadsupportservicesApi(http.Client client, {core.String rootUrl: "/", core.String servicePath: "api/dartpadsupportservices/v1/"}) :
+  P_dartpadsupportservicesApi(http.Client client, {core.String rootUrl: "/", core.String servicePath: "api/_dartpadsupportservices/v1/"}) :
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**

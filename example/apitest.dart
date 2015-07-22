@@ -5,14 +5,14 @@
 library services_server.apitest;
 
 import 'dart:html';
-import '../doc/generated/dartpadsupportservices.dart' as support;
+import '../doc/generated/_dartpadsupportservices.dart' as support;
 import '../doc/generated/dartservices.dart' as services;
 import 'services_utils.dart' as utils;
 import 'package:codemirror/codemirror.dart';
 
 utils.SanitizingBrowserClient client;
 services.DartservicesApi servicesApi;
-support.DartpadsupportservicesApi _dartpadSupportApi;
+support.P_dartpadsupportservicesApi _dartpadSupportApi;
 
 void main() {
   setupAnalyze();
@@ -28,7 +28,7 @@ void main() {
 _setupClients() {
   client = new utils.SanitizingBrowserClient();
   servicesApi = new services.DartservicesApi(client, rootUrl: _uriBase);
-  _dartpadSupportApi = new support.DartpadsupportservicesApi(client, rootUrl: _uriBase);
+  _dartpadSupportApi = new support.P_dartpadsupportservicesApi(client, rootUrl: _uriBase);
 }
 
 void setupAnalyze() {
