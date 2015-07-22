@@ -44,7 +44,7 @@ class FileRelayServer {
     print ('pullExportContent');
 
     var database = ae.context.services.db;
-    var query = database.query(_GaePadSaveObject)..filter('UUID =', uuidContainer.uuid);
+    var query = database.query(_GaePadSaveObject)..filter('uuid =', uuidContainer.uuid);
     List result = await query.run().toList();
     if (result.isEmpty) {
       _logger.severe("Export with UUID ${uuidContainer.uuid} could not be found.");
