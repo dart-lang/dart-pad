@@ -1,6 +1,6 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library services.P_dartpadsupportservices.v1;
+library services.dartpadsupportservices.v1;
 
 import 'dart:core' as core;
 import 'dart:collection' as collection;
@@ -14,13 +14,13 @@ import 'package:http/http.dart' as http;
 export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
     ApiRequestError, DetailedApiRequestError;
 
-const core.String USER_AGENT = 'dart-api-client _dartpadsupportservices/v1';
+const core.String USER_AGENT = 'dart-api-client dartpadsupportservices/v1';
 
-class P_dartpadsupportservicesApi {
+class DartpadsupportservicesApi {
 
   final commons.ApiRequester _requester;
 
-  P_dartpadsupportservicesApi(http.Client client, {core.String rootUrl: "/", core.String servicePath: "api/_dartpadsupportservices/v1/"}) :
+  DartpadsupportservicesApi(http.Client client, {core.String rootUrl: "/", core.String servicePath: "api/dartpadsupportservices/v1/"}) :
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
@@ -62,9 +62,9 @@ class P_dartpadsupportservicesApi {
   }
 
   /**
-   * Request parameters:
+   * [request] - The metadata request object.
    *
-   * [uuid] - Query parameter: 'uuid'.
+   * Request parameters:
    *
    * Completes with a [PadSaveObject].
    *
@@ -74,7 +74,7 @@ class P_dartpadsupportservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method  will complete with the same error.
    */
-  async.Future<PadSaveObject> pullExportContent({core.String uuid}) {
+  async.Future<PadSaveObject> pullExportContent(UuidContainer request) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -82,15 +82,15 @@ class P_dartpadsupportservicesApi {
     var _downloadOptions = commons.DownloadOptions.Metadata;
     var _body = null;
 
-    if (uuid != null) {
-      _queryParams["uuid"] = [uuid];
+    if (request != null) {
+      _body = convert.JSON.encode((request).toJson());
     }
 
 
     _url = 'pullExportData';
 
     var _response = _requester.request(_url,
-                                       "DELETE",
+                                       "POST",
                                        body: _body,
                                        queryParams: _queryParams,
                                        uploadOptions: _uploadOptions,

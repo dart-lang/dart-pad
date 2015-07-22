@@ -5,14 +5,14 @@
 library services_server.apitest;
 
 import 'dart:html';
-import '../doc/generated/_dartpadsupportservices.dart' as support;
+import '../doc/generated/dartpadsupportservices.dart' as support;
 import '../doc/generated/dartservices.dart' as services;
 import 'services_utils.dart' as utils;
 import 'package:codemirror/codemirror.dart';
 
 utils.SanitizingBrowserClient client;
 services.DartservicesApi servicesApi;
-support.P_dartpadsupportservicesApi _dartpadSupportApi;
+support.DartpadsupportservicesApi _dartpadSupportApi;
 
 void main() {
   setupAnalyze();
@@ -28,7 +28,7 @@ void main() {
 _setupClients() {
   client = new utils.SanitizingBrowserClient();
   servicesApi = new services.DartservicesApi(client, rootUrl: _uriBase);
-  _dartpadSupportApi = new support.P_dartpadsupportservicesApi(client);
+  _dartpadSupportApi = new support.DartpadsupportservicesApi(client, rootUrl: _uriBase);
 }
 
 void setupAnalyze() {
@@ -153,7 +153,11 @@ void setupRetrieve() {
     String uuid = editor.getDoc().getValue();
 
     Stopwatch sw = new Stopwatch()..start();
-    _dartpadSupportApi.pullExportContent(uuid: uuid).then((results) {
+
+    support.UuidContainer uuidContainer =
+      new support.UuidContainer()..uuid = uuid;
+
+    _dartpadSupportApi.pullExportContent(uuidContainer).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
   });

@@ -1,16 +1,16 @@
 {
  "kind": "discovery#restDescription",
- "etag": "21b591de2da4ed06263ace8f9afb11b6856e1119",
+ "etag": "37410112bdcea57e3e0a1876fa289ac1744e3347",
  "discoveryVersion": "v1",
- "id": "_dartpadsupportservices:v1",
- "name": "_dartpadsupportservices",
+ "id": "dartpadsupportservices:v1",
+ "name": "dartpadsupportservices",
  "version": "v1",
  "revision": "0",
  "protocol": "rest",
- "baseUrl": "/api/_dartpadsupportservices/v1/",
- "basePath": "/api/_dartpadsupportservices/v1/",
+ "baseUrl": "/api/dartpadsupportservices/v1/",
+ "basePath": "/api/dartpadsupportservices/v1/",
  "rootUrl": "/",
- "servicePath": "api/_dartpadsupportservices/v1/",
+ "servicePath": "api/dartpadsupportservices/v1/",
  "parameters": {},
  "schemas": {
   "PadSaveObject": {
@@ -58,16 +58,12 @@
   "pullExportContent": {
    "id": "FileRelayServer.pullExportContent",
    "path": "pullExportData",
-   "httpMethod": "DELETE",
-   "parameters": {
-    "uuid": {
-     "type": "string",
-     "description": "Query parameter: 'uuid'.",
-     "required": false,
-     "location": "query"
-    }
-   },
+   "httpMethod": "POST",
+   "parameters": {},
    "parameterOrder": [],
+   "request": {
+    "$ref": "UuidContainer"
+   },
    "response": {
     "$ref": "PadSaveObject"
    }

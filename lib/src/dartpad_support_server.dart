@@ -12,11 +12,12 @@ import 'package:crypto/crypto.dart' as crypto;
 import 'dart:convert' as convert;
 import 'dart:io' as io;
 import 'package:logging/logging.dart';
+import 'package:uuid/uuid.dart' as uuid_tools;
 
 final Logger _logger = new Logger('dartpad_support_server');
 
 // This class defines the interface that the server provides.
-@ApiClass(name: '_dartpadsupportservices', version: 'v1')
+@ApiClass(name: 'dartpadsupportservices', version: 'v1')
 class FileRelayServer {
   FileRelayServer() {
     hierarchicalLoggingEnabled = true;
@@ -25,8 +26,11 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'export')
   Future<UuidContainer> export(PadSaveObject data) {
+    print ('Export');
+
     _GaePadSaveObject record = new _GaePadSaveObject.FromDSO(data);
-    record.uuid = _computeSHA1(record);
+    String randomUuid = new uuid_tools.Uuid().v4();
+    record.uuid = "${_computeSHA1(record)}-$randomUuid";
     db.dbService.commit(inserts: [record]).catchError((e) {
       _logger.severe("Error while recording export ${e}");
       throw e;
@@ -35,13 +39,15 @@ class FileRelayServer {
     return new Future.value(new UuidContainer.FromUuid(record.uuid));
   }
 
-  @ApiMethod(method: 'DELETE', path: 'pullExportData')
-  Future<PadSaveObject> pullExportContent({String uuid}) async {
+  @ApiMethod(method: 'POST', path: 'pullExportData')
+  Future<PadSaveObject> pullExportContent(UuidContainer uuidContainer) async {
+    print ('pullExportContent');
+
     var database = ae.context.services.db;
-    var query = database.query(_GaePadSaveObject)..filter('UUID =', uuid);
+    var query = database.query(_GaePadSaveObject)..filter('UUID =', uuidContainer.uuid);
     List result = await query.run().toList();
     if (result.isEmpty) {
-      _logger.severe("Export with UUID ${uuid} could not be found.");
+      _logger.severe("Export with UUID ${uuidContainer.uuid} could not be found.");
       return new Future.value(new PadSaveObject());
     }
     _GaePadSaveObject record = result.first;
@@ -81,6 +87,7 @@ class PadSaveObject {
 
 class UuidContainer {
   String uuid;
+  UuidContainer();
   UuidContainer.FromUuid(String uuid) {
     this.uuid = uuid;
   }
@@ -115,15 +122,14 @@ class _GaePadSaveObject extends db.Model {
     this.dart = _gzipEncode(dart);
     this.html = _gzipEncode(html);
     this.css = _gzipEncode(css);
-    ;
     this.uuid = uuid;
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 
   _GaePadSaveObject.FromDSO(PadSaveObject pso) {
-    this.dart = _gzipEncode(pso.dart);
-    this.html = _gzipEncode(pso.html);
-    this.css = _gzipEncode(pso.css);
+    this.dart = _gzipEncode(pso.dart != null ? pso.dart : "");
+    this.html = _gzipEncode(pso.html != null ? pso.html : "");
+    this.css = _gzipEncode(pso.css != null ? pso.css : "");
     this.uuid = pso.uuid;
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
