@@ -149,7 +149,7 @@ class EndpointsServer {
 
     routes = router()
         ..get('/', printUsage)
-        ..add('/api', ['DELETE', 'GET', 'POST', 'OPTIONS'], _apiHandler,
+        ..add('/api', ['GET', 'POST', 'OPTIONS'], _apiHandler,
               exactMatch: false);
     handler = pipeline.addHandler(routes.handler);
   }
@@ -183,7 +183,7 @@ View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
   Middleware _createCustomCorsHeadersMiddleware() {
     return shelf_cors.createCorsHeadersMiddleware(corsHeaders: {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'DELETE, POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
     });
   }
