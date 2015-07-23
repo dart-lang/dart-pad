@@ -28,6 +28,7 @@ import 'modules/dartservices_module.dart';
 import 'parameter_popup.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
+import 'services/_dartpadsupportservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
@@ -187,7 +188,16 @@ class Playground implements GistContainer, GistController {
         url.queryParameters['id'] != null &&
         isLegalGistId(url.queryParameters['id'])) {
       _showGist(url.queryParameters['id']);
-    } else if (url.hasQuery &&
+    } else if (url.hasQuery && url.queryParameters['export'] != null) {
+      Gist blankGist = createSampleGist();
+      UuidContainer requestId = new UuidContainer()..uuid=url.queryParameters['export'];
+      Future<PadSaveObject> exportPad = dartSupportServices.pullExportContent(requestId);
+      exportPad.then((pad) {
+        blankGist.getFile('main.dart').content = pad.dart;
+        blankGist.getFile('index.html').content = pad.html;
+        blankGist.getFile('styles.css').content = pad.css;
+      });
+    }/*else if (url.hasQuery &&
         url.queryParameters['dart'] != null &&
         url.queryParameters['html'] != null &&
         url.queryParameters['css'] != null) {
@@ -196,7 +206,8 @@ class Playground implements GistContainer, GistController {
       blankGist.getFile('index.html').content = url.queryParameters['html'];
       blankGist.getFile('styles.css').content = url.queryParameters['css'];
       editableGist.setBackingGist(blankGist);
-    } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
+    } */
+    else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
       Gist blankGist = new Gist();
@@ -326,6 +337,7 @@ class Playground implements GistContainer, GistController {
     modules.register(new DartPadModule());
     //modules.register(new MockDartServicesModule());
     modules.register(new DartServicesModule());
+    modules.register(new DartSupportServicesModule());
     //modules.register(new AceModule());
     modules.register(new CodeMirrorModule());
 
