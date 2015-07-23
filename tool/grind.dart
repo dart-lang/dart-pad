@@ -110,13 +110,24 @@ discovery() {
   discoveryFile.parent.createSync();
   log('writing ${discoveryFile.path}');
   discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
+  
+  ProcessResult resultDb = Process.runSync(
+        'dart', ['bin/services.dart', '--discovery', '--relay']);
 
+    if (result.exitCode != 0) {
+      throw 'Error generating the discovery document\n${result.stderr}';
+    }
+    
+  File discoveryDbFile = new File('doc/generated/_dartpadsupportservices.json');
+  discoveryDbFile.parent.createSync();
+  log('writing ${discoveryDbFile.path}');
+  discoveryDbFile.writeAsStringSync(resultDb.stdout.trim() + '\n');
+  
   // Generate the Dart library from the json discovery file.
   Pub.global.activate('discoveryapis_generator');
   Pub.global.run('discoveryapis_generator:generate', arguments: [
     'files',
     '--input-dir=doc/generated',
-    '--output-dir=doc/generated',
-    '--no-core-prefixes'
+    '--output-dir=doc/generated'
   ]);
 }

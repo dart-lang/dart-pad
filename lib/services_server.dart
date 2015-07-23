@@ -18,6 +18,7 @@ import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:shelf_route/shelf_route.dart';
 
 import 'src/common_server.dart';
+import 'src/dartpad_support_server.dart';
 
 const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
 const Map _jsonHeader = const {HttpHeaders.CONTENT_TYPE: 'application/json'};
@@ -29,6 +30,7 @@ void main(List<String> args) {
   parser.addOption('port', abbr: 'p', defaultsTo: '8080');
   parser.addOption('dart-sdk');
   parser.addFlag('discovery');
+  parser.addFlag('relay');
   parser.addOption('server-url', defaultsTo: 'http://localhost');
 
   var result = parser.parse(args);
@@ -44,16 +46,24 @@ void main(List<String> args) {
         "please start the server with the '--dart-sdk' option.");
     exit(1);
   }
-
+  
+  printExit(String doc) {
+    print(doc);
+    exit(0);
+  }
+  
   if (result['discovery']) {
     var serverUrl = result['server-url'];
-    EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then((doc) {
-      print(doc);
-      exit(0);
-    });
+    if (result['relay']) {
+      EndpointsServer.generateRelayDiscovery(sdkDir.path, serverUrl).then((doc)
+          => printExit(doc));
+    } else {
+      EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then((doc) 
+          => printExit(doc));
+    }
     return;
   }
-
+  
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((r) => print(r));
 
@@ -86,6 +96,23 @@ class EndpointsServer {
     apiServer.enableDiscoveryApi();
 
     var uri = Uri.parse("/api/discovery/v1/apis/dartservices/v1/rest");
+
+    var request =
+        new HttpApiRequest('GET',
+                           uri,
+                           {}, new Stream.fromIterable([]));
+    HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
+    return UTF8.decode(await response.body.first);
+  }
+  
+  static Future<String> generateRelayDiscovery(String sdkPath,
+                                            String serverUrl) async {
+    var databaseServer = new FileRelayServer();
+    var apiServer =
+        new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(databaseServer);
+    apiServer.enableDiscoveryApi();
+
+    var uri = Uri.parse("/api/discovery/v1/apis/_dartpadsupportservices/v1/rest");
 
     var request =
         new HttpApiRequest('GET',

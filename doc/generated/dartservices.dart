@@ -2,22 +2,25 @@
 
 library services.dartservices.v1;
 
-import 'dart:async';
+import 'dart:core' as core;
+import 'dart:collection' as collection;
+import 'dart:async' as async;
 import 'dart:convert' as convert;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as commons;
+import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
 
 export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
     ApiRequestError, DetailedApiRequestError;
 
-const String USER_AGENT = 'dart-api-client dartservices/v1';
+const core.String USER_AGENT = 'dart-api-client dartservices/v1';
 
 class DartservicesApi {
 
   final commons.ApiRequester _requester;
 
-  DartservicesApi(http.Client client, {String rootUrl: "/", String servicePath: "api/dartservices/v1/"}) :
+  DartservicesApi(http.Client client, {core.String rootUrl: "/", core.String servicePath: "api/dartservices/v1/"}) :
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
@@ -34,11 +37,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<AnalysisResults> analyze(SourceRequest request) {
+  async.Future<AnalysisResults> analyze(SourceRequest request) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -47,6 +50,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'analyze';
 
@@ -71,11 +75,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<AnalysisResults> analyzeGet({String source}) {
+  async.Future<AnalysisResults> analyzeGet({core.String source}) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -84,6 +88,7 @@ class DartservicesApi {
     if (source != null) {
       _queryParams["source"] = [source];
     }
+
 
     _url = 'analyze';
 
@@ -111,11 +116,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
+  async.Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -124,6 +129,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'analyzeMulti';
 
@@ -150,11 +156,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<CompileResponse> compile(CompileRequest request) {
+  async.Future<CompileResponse> compile(CompileRequest request) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -163,6 +169,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'compile';
 
@@ -187,11 +194,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<CompileResponse> compileGet({String source}) {
+  async.Future<CompileResponse> compileGet({core.String source}) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -200,6 +207,7 @@ class DartservicesApi {
     if (source != null) {
       _queryParams["source"] = [source];
     }
+
 
     _url = 'compile';
 
@@ -226,11 +234,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<CompleteResponse> complete(SourceRequest request) {
+  async.Future<CompleteResponse> complete(SourceRequest request) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -239,6 +247,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'complete';
 
@@ -265,11 +274,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<CompleteResponse> completeGet({String source, int offset}) {
+  async.Future<CompleteResponse> completeGet({core.String source, core.int offset}) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -281,6 +290,7 @@ class DartservicesApi {
     if (offset != null) {
       _queryParams["offset"] = ["${offset}"];
     }
+
 
     _url = 'complete';
 
@@ -307,11 +317,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<CompleteResponse> completeMulti(SourcesRequest request) {
+  async.Future<CompleteResponse> completeMulti(SourcesRequest request) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -320,6 +330,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'completeMulti';
 
@@ -344,11 +355,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<CounterResponse> counterGet({String name}) {
+  async.Future<CounterResponse> counterGet({core.String name}) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -357,6 +368,7 @@ class DartservicesApi {
     if (name != null) {
       _queryParams["name"] = [name];
     }
+
 
     _url = 'counter';
 
@@ -384,11 +396,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<DocumentResponse> document(SourceRequest request) {
+  async.Future<DocumentResponse> document(SourceRequest request) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -397,6 +409,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'document';
 
@@ -423,11 +436,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<DocumentResponse> documentGet({String source, int offset}) {
+  async.Future<DocumentResponse> documentGet({core.String source, core.int offset}) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -439,6 +452,7 @@ class DartservicesApi {
     if (offset != null) {
       _queryParams["offset"] = ["${offset}"];
     }
+
 
     _url = 'document';
 
@@ -465,11 +479,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<FixesResponse> fixes(SourceRequest request) {
+  async.Future<FixesResponse> fixes(SourceRequest request) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -478,6 +492,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'fixes';
 
@@ -504,11 +519,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<FixesResponse> fixesGet({String source, int offset}) {
+  async.Future<FixesResponse> fixesGet({core.String source, core.int offset}) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -520,6 +535,7 @@ class DartservicesApi {
     if (offset != null) {
       _queryParams["offset"] = ["${offset}"];
     }
+
 
     _url = 'fixes';
 
@@ -546,11 +562,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<FixesResponse> fixesMulti(SourcesRequest request) {
+  async.Future<FixesResponse> fixesMulti(SourcesRequest request) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -559,6 +575,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'fixesMulti';
 
@@ -587,11 +604,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<FormatResponse> format(SourceRequest request) {
+  async.Future<FormatResponse> format(SourceRequest request) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -600,6 +617,7 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
+
 
     _url = 'format';
 
@@ -626,11 +644,11 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<FormatResponse> formatGet({String source, int offset}) {
+  async.Future<FormatResponse> formatGet({core.String source, core.int offset}) {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -642,6 +660,7 @@ class DartservicesApi {
     if (offset != null) {
       _queryParams["offset"] = ["${offset}"];
     }
+
 
     _url = 'format';
 
@@ -656,6 +675,47 @@ class DartservicesApi {
   }
 
   /**
+   * Summarize the given Dart source code and return any resulting analysis
+   * errors or warnings.
+   *
+   * [request] - The metadata request object.
+   *
+   * Request parameters:
+   *
+   * Completes with a [AnalysisResults].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method  will complete with the same error.
+   */
+  async.Future<AnalysisResults> summarize(SourcesRequest request) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (request != null) {
+      _body = convert.JSON.encode((request).toJson());
+    }
+
+
+    _url = 'summarize';
+
+    var _response = _requester.request(_url,
+                                       "POST",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new AnalysisResults.fromJson(data));
+  }
+
+  /**
    * Return the current SDK version for DartServices.
    *
    * Request parameters:
@@ -666,15 +726,16 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
+   * this method  will complete with the same error.
    */
-  Future<VersionResponse> version() {
+  async.Future<VersionResponse> version() {
     var _url = null;
-    var _queryParams = new Map();
+    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
     var _body = null;
+
 
 
     _url = 'version';
@@ -694,19 +755,27 @@ class DartservicesApi {
 
 
 class AnalysisIssue {
-  int charLength;
-  int charStart;
-  bool hasFixes;
-  String kind;
-  int line;
+  core.int charLength;
+
+  core.int charStart;
+
+  core.bool hasFixes;
+
+  core.String kind;
+
+  core.int line;
+
   /** deprecated - see `sourceName` */
-  String location;
-  String message;
-  String sourceName;
+  core.String location;
+
+  core.String message;
+
+  core.String sourceName;
+
 
   AnalysisIssue();
 
-  AnalysisIssue.fromJson(Map _json) {
+  AnalysisIssue.fromJson(core.Map _json) {
     if (_json.containsKey("charLength")) {
       charLength = _json["charLength"];
     }
@@ -733,8 +802,8 @@ class AnalysisIssue {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (charLength != null) {
       _json["charLength"] = charLength;
     }
@@ -763,16 +832,20 @@ class AnalysisIssue {
   }
 }
 
+
 class AnalysisResults {
-  List<AnalysisIssue> issues;
+  core.List<AnalysisIssue> issues;
+
   /** The package imports parsed from the source. */
-  List<String> packageImports;
+  core.List<core.String> packageImports;
+
   /** The resolved imports - e.g. dart:async, dart:io, ... */
-  List<String> resolvedImports;
+  core.List<core.String> resolvedImports;
+
 
   AnalysisResults();
 
-  AnalysisResults.fromJson(Map _json) {
+  AnalysisResults.fromJson(core.Map _json) {
     if (_json.containsKey("issues")) {
       issues = _json["issues"].map((value) => new AnalysisIssue.fromJson(value)).toList();
     }
@@ -784,8 +857,8 @@ class AnalysisResults {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (issues != null) {
       _json["issues"] = issues.map((value) => (value).toJson()).toList();
     }
@@ -799,13 +872,16 @@ class AnalysisResults {
   }
 }
 
+
 class CandidateFix {
-  List<SourceEdit> edits;
-  String message;
+  core.List<SourceEdit> edits;
+
+  core.String message;
+
 
   CandidateFix();
 
-  CandidateFix.fromJson(Map _json) {
+  CandidateFix.fromJson(core.Map _json) {
     if (_json.containsKey("edits")) {
       edits = _json["edits"].map((value) => new SourceEdit.fromJson(value)).toList();
     }
@@ -814,8 +890,8 @@ class CandidateFix {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (edits != null) {
       _json["edits"] = edits.map((value) => (value).toJson()).toList();
     }
@@ -826,19 +902,23 @@ class CandidateFix {
   }
 }
 
+
 class CompileRequest {
   /** Return the Dart to JS source map; optional (defaults to false). */
-  bool returnSourceMap;
+  core.bool returnSourceMap;
+
   /** The Dart source. */
-  String source;
+  core.String source;
+
   /**
    * Compile to code with checked mode checks; optional (defaults to false).
    */
-  bool useCheckedMode;
+  core.bool useCheckedMode;
+
 
   CompileRequest();
 
-  CompileRequest.fromJson(Map _json) {
+  CompileRequest.fromJson(core.Map _json) {
     if (_json.containsKey("returnSourceMap")) {
       returnSourceMap = _json["returnSourceMap"];
     }
@@ -850,8 +930,8 @@ class CompileRequest {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (returnSourceMap != null) {
       _json["returnSourceMap"] = returnSourceMap;
     }
@@ -865,13 +945,16 @@ class CompileRequest {
   }
 }
 
+
 class CompileResponse {
-  String result;
-  String sourceMap;
+  core.String result;
+
+  core.String sourceMap;
+
 
   CompileResponse();
 
-  CompileResponse.fromJson(Map _json) {
+  CompileResponse.fromJson(core.Map _json) {
     if (_json.containsKey("result")) {
       result = _json["result"];
     }
@@ -880,8 +963,8 @@ class CompileResponse {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (result != null) {
       _json["result"] = result;
     }
@@ -892,16 +975,20 @@ class CompileResponse {
   }
 }
 
+
 class CompleteResponse {
-  List<Map<String, String>> completions;
+  core.List<core.Map<core.String, core.String>> completions;
+
   /** The length of the text to be replaced. */
-  int replacementLength;
+  core.int replacementLength;
+
   /** The offset of the start of the text to be replaced. */
-  int replacementOffset;
+  core.int replacementOffset;
+
 
   CompleteResponse();
 
-  CompleteResponse.fromJson(Map _json) {
+  CompleteResponse.fromJson(core.Map _json) {
     if (_json.containsKey("completions")) {
       completions = _json["completions"];
     }
@@ -913,8 +1000,8 @@ class CompleteResponse {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (completions != null) {
       _json["completions"] = completions;
     }
@@ -928,19 +1015,21 @@ class CompleteResponse {
   }
 }
 
+
 class CounterResponse {
-  int count;
+  core.int count;
+
 
   CounterResponse();
 
-  CounterResponse.fromJson(Map _json) {
+  CounterResponse.fromJson(core.Map _json) {
     if (_json.containsKey("count")) {
       count = _json["count"];
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (count != null) {
       _json["count"] = count;
     }
@@ -948,19 +1037,21 @@ class CounterResponse {
   }
 }
 
+
 class DocumentResponse {
-  Map<String, String> info;
+  core.Map<core.String, core.String> info;
+
 
   DocumentResponse();
 
-  DocumentResponse.fromJson(Map _json) {
+  DocumentResponse.fromJson(core.Map _json) {
     if (_json.containsKey("info")) {
       info = _json["info"];
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (info != null) {
       _json["info"] = info;
     }
@@ -968,19 +1059,21 @@ class DocumentResponse {
   }
 }
 
+
 class FixesResponse {
-  List<ProblemAndFixes> fixes;
+  core.List<ProblemAndFixes> fixes;
+
 
   FixesResponse();
 
-  FixesResponse.fromJson(Map _json) {
+  FixesResponse.fromJson(core.Map _json) {
     if (_json.containsKey("fixes")) {
       fixes = _json["fixes"].map((value) => new ProblemAndFixes.fromJson(value)).toList();
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (fixes != null) {
       _json["fixes"] = fixes.map((value) => (value).toJson()).toList();
     }
@@ -988,15 +1081,18 @@ class FixesResponse {
   }
 }
 
+
 class FormatResponse {
   /** The formatted source code. */
-  String newString;
+  core.String newString;
+
   /** The (optional) new offset of the cursor; can be `null`. */
-  int offset;
+  core.int offset;
+
 
   FormatResponse();
 
-  FormatResponse.fromJson(Map _json) {
+  FormatResponse.fromJson(core.Map _json) {
     if (_json.containsKey("newString")) {
       newString = _json["newString"];
     }
@@ -1005,8 +1101,8 @@ class FormatResponse {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (newString != null) {
       _json["newString"] = newString;
     }
@@ -1017,13 +1113,16 @@ class FormatResponse {
   }
 }
 
+
 class Location {
-  int offset;
-  String sourceName;
+  core.int offset;
+
+  core.String sourceName;
+
 
   Location();
 
-  Location.fromJson(Map _json) {
+  Location.fromJson(core.Map _json) {
     if (_json.containsKey("offset")) {
       offset = _json["offset"];
     }
@@ -1032,8 +1131,8 @@ class Location {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (offset != null) {
       _json["offset"] = offset;
     }
@@ -1044,15 +1143,20 @@ class Location {
   }
 }
 
+
 class ProblemAndFixes {
-  List<CandidateFix> fixes;
-  int length;
-  int offset;
-  String problemMessage;
+  core.List<CandidateFix> fixes;
+
+  core.int length;
+
+  core.int offset;
+
+  core.String problemMessage;
+
 
   ProblemAndFixes();
 
-  ProblemAndFixes.fromJson(Map _json) {
+  ProblemAndFixes.fromJson(core.Map _json) {
     if (_json.containsKey("fixes")) {
       fixes = _json["fixes"].map((value) => new CandidateFix.fromJson(value)).toList();
     }
@@ -1067,8 +1171,8 @@ class ProblemAndFixes {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (fixes != null) {
       _json["fixes"] = fixes.map((value) => (value).toJson()).toList();
     }
@@ -1085,14 +1189,18 @@ class ProblemAndFixes {
   }
 }
 
+
 class SourceEdit {
-  int length;
-  int offset;
-  String replacement;
+  core.int length;
+
+  core.int offset;
+
+  core.String replacement;
+
 
   SourceEdit();
 
-  SourceEdit.fromJson(Map _json) {
+  SourceEdit.fromJson(core.Map _json) {
     if (_json.containsKey("length")) {
       length = _json["length"];
     }
@@ -1104,8 +1212,8 @@ class SourceEdit {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (length != null) {
       _json["length"] = length;
     }
@@ -1119,15 +1227,18 @@ class SourceEdit {
   }
 }
 
+
 class SourceRequest {
   /** An optional offset into the source code. */
-  int offset;
+  core.int offset;
+
   /** The Dart source. */
-  String source;
+  core.String source;
+
 
   SourceRequest();
 
-  SourceRequest.fromJson(Map _json) {
+  SourceRequest.fromJson(core.Map _json) {
     if (_json.containsKey("offset")) {
       offset = _json["offset"];
     }
@@ -1136,8 +1247,8 @@ class SourceRequest {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (offset != null) {
       _json["offset"] = offset;
     }
@@ -1148,15 +1259,18 @@ class SourceRequest {
   }
 }
 
+
 class SourcesRequest {
   /** An optional location in the source code. */
   Location location;
+
   /** Map of names to Sources. */
-  Map<String, String> sources;
+  core.Map<core.String, core.String> sources;
+
 
   SourcesRequest();
 
-  SourcesRequest.fromJson(Map _json) {
+  SourcesRequest.fromJson(core.Map _json) {
     if (_json.containsKey("location")) {
       location = new Location.fromJson(_json["location"]);
     }
@@ -1165,8 +1279,8 @@ class SourcesRequest {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (location != null) {
       _json["location"] = (location).toJson();
     }
@@ -1177,25 +1291,30 @@ class SourcesRequest {
   }
 }
 
+
 class VersionResponse {
   /** The App Engine version. */
-  String appEngineVersion;
+  core.String appEngineVersion;
+
   /**
    * The Dart SDK version that the server is running on. This will start with a
    * semver string, and have a space and other build details appended.
    */
-  String runtimeVersion;
+  core.String runtimeVersion;
+
   /**
    * The Dart SDK version that DartServices is compatible with. This will be a
    * semver string.
    */
-  String sdkVersion;
+  core.String sdkVersion;
+
   /** The dart-services backend version. */
-  String servicesVersion;
+  core.String servicesVersion;
+
 
   VersionResponse();
 
-  VersionResponse.fromJson(Map _json) {
+  VersionResponse.fromJson(core.Map _json) {
     if (_json.containsKey("appEngineVersion")) {
       appEngineVersion = _json["appEngineVersion"];
     }
@@ -1210,8 +1329,8 @@ class VersionResponse {
     }
   }
 
-  Map toJson() {
-    var _json = new Map();
+  core.Map toJson() {
+    var _json = new core.Map();
     if (appEngineVersion != null) {
       _json["appEngineVersion"] = appEngineVersion;
     }

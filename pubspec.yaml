@@ -25,6 +25,7 @@ dependencies:
   shelf_cors: ^0.2.0
   shelf_route: ^0.12.0
   rpc: ^0.5.0
+  uuid: ^0.5.0
   yaml: ^2.0.0
 dev_dependencies:
   _discoveryapis_commons: any

@@ -16,6 +16,7 @@ import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
 
 import 'src/common_server.dart';
+import 'src/dartpad_support_server.dart';
 
 import 'src/sharded_counter.dart' as counter;
 
@@ -44,12 +45,14 @@ class GaeServer {
   bool discoveryEnabled;
   rpc.ApiServer apiServer;
   CommonServer commonServer;
-
+  FileRelayServer fileRelayServer;
+  
   GaeServer(this.sdkPath) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
 
     discoveryEnabled = false;
+    fileRelayServer = new FileRelayServer();
     commonServer = new CommonServer(
         sdkPath,
         new GaeServerContainer(),
@@ -58,7 +61,8 @@ class GaeServer {
         new GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
     apiServer =
-        new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)..addApi(commonServer);
+        new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)..addApi(commonServer)
+        ..addApi(fileRelayServer);
   }
 
   Future start() => ae.runAppEngine(requestHandler);
