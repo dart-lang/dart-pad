@@ -179,7 +179,8 @@ class Playground implements GistContainer, GistController {
     Timer.run(() => _performAnalysis());
     _clearOutput();
   }
-  void showHome(RouteEnterEvent event) {
+  
+  Future showHome(RouteEnterEvent event) async {
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
     bool loadedFromSaved = false;
@@ -189,25 +190,16 @@ class Playground implements GistContainer, GistController {
         isLegalGistId(url.queryParameters['id'])) {
       _showGist(url.queryParameters['id']);
     } else if (url.hasQuery && url.queryParameters['export'] != null) {
-      Gist blankGist = createSampleGist();
       UuidContainer requestId = new UuidContainer()..uuid=url.queryParameters['export'];
       Future<PadSaveObject> exportPad = dartSupportServices.pullExportContent(requestId);
-      exportPad.then((pad) {
+      await exportPad.then((pad) {
+        Gist blankGist = createSampleGist();
         blankGist.getFile('main.dart').content = pad.dart;
         blankGist.getFile('index.html').content = pad.html;
         blankGist.getFile('styles.css').content = pad.css;
+        editableGist.setBackingGist(blankGist);
       });
-    }/*else if (url.hasQuery &&
-        url.queryParameters['dart'] != null &&
-        url.queryParameters['html'] != null &&
-        url.queryParameters['css'] != null) {
-      Gist blankGist = createSampleGist();
-      blankGist.getFile('main.dart').content = url.queryParameters['dart'];
-      blankGist.getFile('index.html').content = url.queryParameters['html'];
-      blankGist.getFile('styles.css').content = url.queryParameters['css'];
-      editableGist.setBackingGist(blankGist);
-    } */
-    else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
+    } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
       Gist blankGist = new Gist();
@@ -220,7 +212,17 @@ class Playground implements GistContainer, GistController {
       }
     } else {
       editableGist.setBackingGist(createSampleGist());
-    }
+    }/*else if (url.hasQuery &&
+        url.queryParameters['dart'] != null &&
+        url.queryParameters['html'] != null &&
+        url.queryParameters['css'] != null) {
+      Gist blankGist = createSampleGist();
+      blankGist.getFile('main.dart').content = url.queryParameters['dart'];
+      blankGist.getFile('index.html').content = url.queryParameters['html'];
+      blankGist.getFile('styles.css').content = url.queryParameters['css'];
+      editableGist.setBackingGist(blankGist);
+    } */
+    
 
     _clearOutput();
     // We delay this because of the latency in populating the editors from the
