@@ -12,10 +12,6 @@ pubspec.lock
 
 .settings/
 
-# Or intelliJ
-.idea/
-*.iml
-
 lib/bower/
 .DS_Store
 
