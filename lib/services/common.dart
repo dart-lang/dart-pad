@@ -5,7 +5,7 @@
 library dart_pad.common;
 
 final String serverURL = 'https://dart-services.appspot.com/';
-//final String serverURL = 'http://export-api.dart-services.appspot.com/';
+//final String serverURL = 'http://127.0.0.1:8080/';
 
 final Duration serviceCallTimeout = new Duration(seconds: 10);
 final Duration shortServiceCallTimeout = new Duration(seconds: 4);

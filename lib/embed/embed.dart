@@ -282,9 +282,6 @@ class PlaygroundMobile {
   }
 
   void _export() {
-    /*window.open(
-        "/index.html?dart=${Uri.encodeQueryComponent(context.dartSource)}&html=${Uri.encodeQueryComponent(context.htmlSource)}&css=${Uri.encodeQueryComponent(context.cssSource)}",
-        "DartPad");*/
     PadSaveObject exportObject = new PadSaveObject()..html = context.htmlSource
         ..css = context.cssSource ..dart = context.dartSource;
     Future<UuidContainer> id = dartSupportServices.export(exportObject);

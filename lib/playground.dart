@@ -212,18 +212,8 @@ class Playground implements GistContainer, GistController {
       }
     } else {
       editableGist.setBackingGist(createSampleGist());
-    }/*else if (url.hasQuery &&
-        url.queryParameters['dart'] != null &&
-        url.queryParameters['html'] != null &&
-        url.queryParameters['css'] != null) {
-      Gist blankGist = createSampleGist();
-      blankGist.getFile('main.dart').content = url.queryParameters['dart'];
-      blankGist.getFile('index.html').content = url.queryParameters['html'];
-      blankGist.getFile('styles.css').content = url.queryParameters['css'];
-      editableGist.setBackingGist(blankGist);
-    } */
+    }
     
-
     _clearOutput();
     // We delay this because of the latency in populating the editors from the
     // gist data.

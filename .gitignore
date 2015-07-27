@@ -12,7 +12,7 @@ pubspec.lock
 
 .settings/
 
-#Or intelliJ
+# Or intelliJ
 .idea/
 *.iml
 
