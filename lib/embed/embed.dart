@@ -29,6 +29,7 @@ import '../polymer/iron.dart';
 import '../polymer/paper.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
+import '../services/_dartpadsupportservices.dart';
 import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/ga.dart';
@@ -281,9 +282,12 @@ class PlaygroundMobile {
   }
 
   void _export() {
-    window.open(
-        "/index.html?dart=${Uri.encodeQueryComponent(context.dartSource)}&html=${Uri.encodeQueryComponent(context.htmlSource)}&css=${Uri.encodeQueryComponent(context.cssSource)}",
-        "DartPad");
+    PadSaveObject exportObject = new PadSaveObject()..html = context.htmlSource
+        ..css = context.cssSource ..dart = context.dartSource;
+    Future<UuidContainer> id = dartSupportServices.export(exportObject);
+    id.then((UuidContainer container) {
+      window.open('/index.html?export=${container.uuid}', 'Export');
+    });
   }
 
   void _reset() {
@@ -326,6 +330,7 @@ class PlaygroundMobile {
     //modules.register(new MockAnalysisModule());
     //modules.register(new MockCompilerModule());
     modules.register(new DartServicesModule());
+    modules.register(new DartSupportServicesModule());
     //modules.register(new AceModule());
     modules.register(new CodeMirrorModule());
 
