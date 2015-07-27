@@ -34,7 +34,7 @@ import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/summarize.dart';
 import 'src/util.dart';
-
+import 'services/_dbservices.dart';
 Playground get playground => _playground;
 
 Playground _playground;
@@ -196,7 +196,18 @@ class Playground implements GistContainer, GistController {
       blankGist.getFile('index.html').content = url.queryParameters['html'];
       blankGist.getFile('styles.css').content = url.queryParameters['css'];
       editableGist.setBackingGist(blankGist);
-    } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
+    } 
+    else if (url.hasQuery &&
+        url.queryParameters['export'] != null) {
+      P_dbservicesApi f = deps[P_dbservicesApi];
+      Gist blankGist = createSampleGist();
+      f.returnContent(key:url.queryParameters['export']).then((onValue) {
+        blankGist.getFile('main.dart').content = onValue.dart;
+        blankGist.getFile('index.html').content = onValue.html;
+        blankGist.getFile('styles.css').content = onValue.css;
+      }).then((_) => editableGist.setBackingGist(blankGist));
+    }
+    else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
       Gist blankGist = new Gist();

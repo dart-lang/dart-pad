@@ -656,6 +656,46 @@ class DartservicesApi {
   }
 
   /**
+   * Summarize the given Dart source code and return any resulting analysis
+   * errors or warnings.
+   *
+   * [request] - The metadata request object.
+   *
+   * Request parameters:
+   *
+   * Completes with a [AnalysisResults].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method will complete with the same error.
+   */
+  Future<AnalysisResults> summarize(SourcesRequest request) {
+    var _url = null;
+    var _queryParams = new Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (request != null) {
+      _body = convert.JSON.encode((request).toJson());
+    }
+
+    _url = 'summarize';
+
+    var _response = _requester.request(_url,
+                                       "POST",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new AnalysisResults.fromJson(data));
+  }
+
+  /**
    * Return the current SDK version for DartServices.
    *
    * Request parameters:

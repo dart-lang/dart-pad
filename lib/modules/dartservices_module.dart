@@ -13,6 +13,7 @@ import '../core/dependencies.dart';
 import '../core/modules.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
+import '../services/_dbservices.dart';
 
 // When sending requests from a browser we sanitize the headers to avoid
 // client side warnings for any blacklisted headers.
@@ -46,6 +47,7 @@ class DartServicesModule extends Module {
   Future init() {
     var client = new SanitizingBrowserClient();
     deps[DartservicesApi] = new DartservicesApi(client, rootUrl: serverURL);
+    deps[P_dbservicesApi] = new P_dbservicesApi(client, rootUrl: serverURL);
     return new Future.value();
   }
 }
