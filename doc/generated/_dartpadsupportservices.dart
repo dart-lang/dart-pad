@@ -3,12 +3,10 @@
 library services.P_dartpadsupportservices.v1;
 
 import 'dart:core' as core;
-import 'dart:collection' as collection;
 import 'dart:async' as async;
 import 'dart:convert' as convert;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as commons;
-import 'package:crypto/crypto.dart' as crypto;
 import 'package:http/http.dart' as http;
 
 export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
@@ -34,7 +32,7 @@ class P_dartpadsupportservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<UuidContainer> export(PadSaveObject request) {
     var _url = null;
@@ -47,7 +45,6 @@ class P_dartpadsupportservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'export';
 
@@ -72,7 +69,7 @@ class P_dartpadsupportservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<PadSaveObject> pullExportContent(UuidContainer request) {
     var _url = null;
@@ -85,7 +82,6 @@ class P_dartpadsupportservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'pullExportData';
 
@@ -105,13 +101,9 @@ class P_dartpadsupportservicesApi {
 
 class PadSaveObject {
   core.String css;
-
   core.String dart;
-
   core.String html;
-
   core.String uuid;
-
 
   PadSaveObject();
 
@@ -148,10 +140,8 @@ class PadSaveObject {
   }
 }
 
-
 class UuidContainer {
   core.String uuid;
-
 
   UuidContainer();
 
