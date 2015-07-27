@@ -35,7 +35,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<AnalysisResults> analyze(SourceRequest request) {
     var _url = null;
@@ -48,7 +48,6 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'analyze';
 
@@ -73,7 +72,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<AnalysisResults> analyzeGet({core.String source}) {
     var _url = null;
@@ -86,7 +85,6 @@ class DartservicesApi {
     if (source != null) {
       _queryParams["source"] = [source];
     }
-
 
     _url = 'analyze';
 
@@ -114,7 +112,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
     var _url = null;
@@ -127,7 +125,6 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'analyzeMulti';
 
@@ -154,7 +151,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<CompileResponse> compile(CompileRequest request) {
     var _url = null;
@@ -167,7 +164,6 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'compile';
 
@@ -192,7 +188,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<CompileResponse> compileGet({core.String source}) {
     var _url = null;
@@ -205,7 +201,6 @@ class DartservicesApi {
     if (source != null) {
       _queryParams["source"] = [source];
     }
-
 
     _url = 'compile';
 
@@ -232,7 +227,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<CompleteResponse> complete(SourceRequest request) {
     var _url = null;
@@ -245,7 +240,6 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'complete';
 
@@ -272,7 +266,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<CompleteResponse> completeGet({core.String source, core.int offset}) {
     var _url = null;
@@ -288,7 +282,6 @@ class DartservicesApi {
     if (offset != null) {
       _queryParams["offset"] = ["${offset}"];
     }
-
 
     _url = 'complete';
 
@@ -315,7 +308,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<CompleteResponse> completeMulti(SourcesRequest request) {
     var _url = null;
@@ -328,7 +321,6 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'completeMulti';
 
@@ -353,7 +345,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<CounterResponse> counterGet({core.String name}) {
     var _url = null;
@@ -366,7 +358,6 @@ class DartservicesApi {
     if (name != null) {
       _queryParams["name"] = [name];
     }
-
 
     _url = 'counter';
 
@@ -394,7 +385,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<DocumentResponse> document(SourceRequest request) {
     var _url = null;
@@ -407,7 +398,6 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'document';
 
@@ -434,7 +424,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<DocumentResponse> documentGet({core.String source, core.int offset}) {
     var _url = null;
@@ -450,7 +440,6 @@ class DartservicesApi {
     if (offset != null) {
       _queryParams["offset"] = ["${offset}"];
     }
-
 
     _url = 'document';
 
@@ -477,7 +466,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<FixesResponse> fixes(SourceRequest request) {
     var _url = null;
@@ -490,7 +479,6 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'fixes';
 
@@ -517,7 +505,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<FixesResponse> fixesGet({core.String source, core.int offset}) {
     var _url = null;
@@ -533,7 +521,6 @@ class DartservicesApi {
     if (offset != null) {
       _queryParams["offset"] = ["${offset}"];
     }
-
 
     _url = 'fixes';
 
@@ -560,7 +547,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<FixesResponse> fixesMulti(SourcesRequest request) {
     var _url = null;
@@ -573,7 +560,6 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'fixesMulti';
 
@@ -602,7 +588,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<FormatResponse> format(SourceRequest request) {
     var _url = null;
@@ -615,7 +601,6 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'format';
 
@@ -642,7 +627,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<FormatResponse> formatGet({core.String source, core.int offset}) {
     var _url = null;
@@ -658,7 +643,6 @@ class DartservicesApi {
     if (offset != null) {
       _queryParams["offset"] = ["${offset}"];
     }
-
 
     _url = 'format';
 
@@ -686,7 +670,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<AnalysisResults> summarize(SourcesRequest request) {
     var _url = null;
@@ -699,7 +683,6 @@ class DartservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'summarize';
 
@@ -724,7 +707,7 @@ class DartservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<VersionResponse> version() {
     var _url = null;
@@ -733,7 +716,6 @@ class DartservicesApi {
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
     var _body = null;
-
 
 
     _url = 'version';
@@ -754,22 +736,14 @@ class DartservicesApi {
 
 class AnalysisIssue {
   core.int charLength;
-
   core.int charStart;
-
   core.bool hasFixes;
-
   core.String kind;
-
   core.int line;
-
   /** deprecated - see `sourceName` */
   core.String location;
-
   core.String message;
-
   core.String sourceName;
-
 
   AnalysisIssue();
 
@@ -830,16 +804,12 @@ class AnalysisIssue {
   }
 }
 
-
 class AnalysisResults {
   core.List<AnalysisIssue> issues;
-
   /** The package imports parsed from the source. */
   core.List<core.String> packageImports;
-
   /** The resolved imports - e.g. dart:async, dart:io, ... */
   core.List<core.String> resolvedImports;
-
 
   AnalysisResults();
 
@@ -870,12 +840,9 @@ class AnalysisResults {
   }
 }
 
-
 class CandidateFix {
   core.List<SourceEdit> edits;
-
   core.String message;
-
 
   CandidateFix();
 
@@ -900,19 +867,15 @@ class CandidateFix {
   }
 }
 
-
 class CompileRequest {
   /** Return the Dart to JS source map; optional (defaults to false). */
   core.bool returnSourceMap;
-
   /** The Dart source. */
   core.String source;
-
   /**
    * Compile to code with checked mode checks; optional (defaults to false).
    */
   core.bool useCheckedMode;
-
 
   CompileRequest();
 
@@ -943,12 +906,9 @@ class CompileRequest {
   }
 }
 
-
 class CompileResponse {
   core.String result;
-
   core.String sourceMap;
-
 
   CompileResponse();
 
@@ -973,16 +933,12 @@ class CompileResponse {
   }
 }
 
-
 class CompleteResponse {
   core.List<core.Map<core.String, core.String>> completions;
-
   /** The length of the text to be replaced. */
   core.int replacementLength;
-
   /** The offset of the start of the text to be replaced. */
   core.int replacementOffset;
-
 
   CompleteResponse();
 
@@ -1013,10 +969,8 @@ class CompleteResponse {
   }
 }
 
-
 class CounterResponse {
   core.int count;
-
 
   CounterResponse();
 
@@ -1035,10 +989,8 @@ class CounterResponse {
   }
 }
 
-
 class DocumentResponse {
   core.Map<core.String, core.String> info;
-
 
   DocumentResponse();
 
@@ -1057,10 +1009,8 @@ class DocumentResponse {
   }
 }
 
-
 class FixesResponse {
   core.List<ProblemAndFixes> fixes;
-
 
   FixesResponse();
 
@@ -1079,14 +1029,11 @@ class FixesResponse {
   }
 }
 
-
 class FormatResponse {
   /** The formatted source code. */
   core.String newString;
-
   /** The (optional) new offset of the cursor; can be `null`. */
   core.int offset;
-
 
   FormatResponse();
 
@@ -1111,12 +1058,9 @@ class FormatResponse {
   }
 }
 
-
 class Location {
   core.int offset;
-
   core.String sourceName;
-
 
   Location();
 
@@ -1141,16 +1085,11 @@ class Location {
   }
 }
 
-
 class ProblemAndFixes {
   core.List<CandidateFix> fixes;
-
   core.int length;
-
   core.int offset;
-
   core.String problemMessage;
-
 
   ProblemAndFixes();
 
@@ -1187,14 +1126,10 @@ class ProblemAndFixes {
   }
 }
 
-
 class SourceEdit {
   core.int length;
-
   core.int offset;
-
   core.String replacement;
-
 
   SourceEdit();
 
@@ -1225,14 +1160,11 @@ class SourceEdit {
   }
 }
 
-
 class SourceRequest {
   /** An optional offset into the source code. */
   core.int offset;
-
   /** The Dart source. */
   core.String source;
-
 
   SourceRequest();
 
@@ -1257,14 +1189,11 @@ class SourceRequest {
   }
 }
 
-
 class SourcesRequest {
   /** An optional location in the source code. */
   Location location;
-
   /** Map of names to Sources. */
   core.Map<core.String, core.String> sources;
-
 
   SourcesRequest();
 
@@ -1289,26 +1218,21 @@ class SourcesRequest {
   }
 }
 
-
 class VersionResponse {
   /** The App Engine version. */
   core.String appEngineVersion;
-
   /**
    * The Dart SDK version that the server is running on. This will start with a
    * semver string, and have a space and other build details appended.
    */
   core.String runtimeVersion;
-
   /**
    * The Dart SDK version that DartServices is compatible with. This will be a
    * semver string.
    */
   core.String sdkVersion;
-
   /** The dart-services backend version. */
   core.String servicesVersion;
-
 
   VersionResponse();
 
