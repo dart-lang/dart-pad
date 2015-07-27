@@ -32,7 +32,7 @@ class P_dartpadsupportservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<UuidContainer> export(PadSaveObject request) {
     var _url = null;
@@ -45,7 +45,6 @@ class P_dartpadsupportservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'export';
 
@@ -70,7 +69,7 @@ class P_dartpadsupportservicesApi {
    * error.
    *
    * If the used [http.Client] completes with an error when making a REST call,
-   * this method  will complete with the same error.
+   * this method will complete with the same error.
    */
   async.Future<PadSaveObject> pullExportContent(UuidContainer request) {
     var _url = null;
@@ -83,7 +82,6 @@ class P_dartpadsupportservicesApi {
     if (request != null) {
       _body = convert.JSON.encode((request).toJson());
     }
-
 
     _url = 'pullExportData';
 
@@ -103,13 +101,9 @@ class P_dartpadsupportservicesApi {
 
 class PadSaveObject {
   core.String css;
-
   core.String dart;
-
   core.String html;
-
   core.String uuid;
-
 
   PadSaveObject();
 
@@ -146,10 +140,8 @@ class PadSaveObject {
   }
 }
 
-
 class UuidContainer {
   core.String uuid;
-
 
   UuidContainer();
 
