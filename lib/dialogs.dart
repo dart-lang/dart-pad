@@ -109,7 +109,7 @@ class EmbedDialog extends DDialog {
       ..append(new SpanElement()
         ..text = 'embedding guide.'
         ..attributes['onClick'] =
-        "window.open('https://github.com/dart-lang/dart-pad/wiki/Query-Conventions')"
+        "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
         ..style.cursor = "pointer"
         ..style.textDecoration = "underline"
         ..style.fontSize = "12px"));
