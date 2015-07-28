@@ -83,7 +83,6 @@ class EmbedDialog extends DDialog {
 
   void generateExport() {
     MutableGist gist = gistContainer.mutableGist;
-    Uri url = Uri.parse(window.location.toString());
     String home = 'dartpad.dartlang.org';
     _doc.add(new SpanElement()
       ..text = 'Dart + Documentation: '
