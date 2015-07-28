@@ -89,19 +89,19 @@ class EmbedDialog extends DDialog {
       ..text = 'Dart + Documentation: '
       ..classes.toggle('export-text-dialog', true));
     _doc.add(new InputElement()
-      ..value = '${home}/embed-dart.html?id=${gist.id}'
+      ..value = "<iframe src='${home}/embed-dart.html?id=${gist.id}'></iframe>"
       ..attributes['flex'] = '');
     _html.add(new SpanElement()
       ..text = 'Dart + Html: '
       ..classes.toggle('export-text-dialog', true));
     _html.add(new InputElement()
-      ..value = '${home}/embed-html.html?id=${gist.id}'
+      ..value = "<iframe src='${home}/embed-html.html?id=${gist.id}'></iframe>"
       ..attributes['flex'] = '');
     _inline.add(new SpanElement()
       ..text = 'Dart (Minimal): '
       ..classes.toggle('export-text-dialog', true));
     _inline.add(new InputElement()
-      ..value = '${home}/embed-inline.html?id=${gist.id}'
+      ..value = "<iframe src='${home}/embed-html.html?id=${gist.id}'></iframe>"
       ..attributes['flex'] = '');
     _info.add(new SpanElement()
       ..text = 'Need more control? Check out out our '
