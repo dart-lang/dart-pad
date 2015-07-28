@@ -221,16 +221,23 @@ class DSplitter extends DElement {
   num _minSize(Element e) {
     CssStyleDeclaration style = e.getComputedStyle();
     String str = vertical ? style.minWidth : style.minHeight;
-    if (str.isEmpty) return 0;
-    if (str.endsWith('px')) str = str.substring(0, str.length - 2);
-    return num.parse(str);
+    if (str.endsWith('px')) {
+      str = str.substring(0, str.length - 2);
+      return num.parse(str);
+    } else {
+      return 0;
+    }
   }
 
   num get _targetSize {
     CssStyleDeclaration style = _target.getComputedStyle();
     String str = vertical ? style.width : style.height;
-    if (str.endsWith('px')) str = str.substring(0, str.length - 2);
-    return num.parse(str);
+    if (str.endsWith('px')) { 
+      str = str.substring(0, str.length - 2);
+      return num.parse(str);
+    } else {
+      return 0;
+    }
   }
 
   set _targetSize(num size) {
