@@ -250,9 +250,8 @@ class PlaygroundMobile {
     if ($('#affirmExportButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
       _affirmButton.clickAction(() {
-        WindowBase exportWindow = window.open("", 'Window');
+        _export();
         _exportDialog.toggle();
-        _export(exportWindow);
       });
     }
   }
@@ -284,7 +283,8 @@ class PlaygroundMobile {
     _clearOutput();
   }
 
-  void _export(WindowBase exportWindow) {
+  void _export() {
+    WindowBase exportWindow = window.open("", 'Export');
     PadSaveObject exportObject = new PadSaveObject()..html = context.htmlSource
         ..css = context.cssSource ..dart = context.dartSource;
     Future<UuidContainer> id = dartSupportServices.export(exportObject);
