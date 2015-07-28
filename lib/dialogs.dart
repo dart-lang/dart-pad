@@ -101,7 +101,7 @@ class EmbedDialog extends DDialog {
       ..text = 'Dart (Minimal): '
       ..classes.toggle('export-text-dialog', true));
     _inline.add(new InputElement()
-      ..value = "<iframe src='${home}/embed-html.html?id=${gist.id}'></iframe>"
+      ..value = "<iframe src='${home}/embed-inline.html?id=${gist.id}'></iframe>"
       ..attributes['flex'] = '');
     _info.add(new SpanElement()
       ..text = 'Need more control? Check out out our '
