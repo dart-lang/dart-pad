@@ -250,9 +250,9 @@ class PlaygroundMobile {
     if ($('#affirmExportButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
       _affirmButton.clickAction(() {
-        WindowBase wind = window.open("", 'Window');
+        WindowBase exportWindow = window.open("", 'Window');
         _exportDialog.toggle();
-        _export(wind);
+        _export(exportWindow);
       });
     }
   }
