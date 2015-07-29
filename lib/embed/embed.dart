@@ -46,6 +46,10 @@ void init() {
   _playground = new PlaygroundMobile();
 }
 
+enum FileType {
+  DART, CSS, HTML
+}
+
 class PlaygroundMobile {
   final String webURL = "https://dartpad.dartlang.org";
   
@@ -56,7 +60,7 @@ class PlaygroundMobile {
   PaperIconButton _resetButton;
   PaperTabs _tabs;
 
-  Map<String, String> _lastRun;
+  Map<FileType, String> _lastRun;
   Router _router;
   
   CompileResponse _cachedCompile;
@@ -580,8 +584,8 @@ class PlaygroundMobile {
   }
 
   bool _hasStoredRequest() {
-    return (_lastRun != null && _lastRun['dart'] == context.dartSource && _lastRun['html'] == context.htmlSource 
-        &&  _lastRun['css'] == context.cssSource && _cachedCompile != null);
+    return (_lastRun != null && _lastRun[FileType.DART] == context.dartSource && _lastRun[FileType.CSS] == context.htmlSource 
+        &&  _lastRun[FileType.CSS] == context.cssSource && _cachedCompile != null);
   }
  
   void _storePreviousResult() {
@@ -667,10 +671,10 @@ class PlaygroundMobile {
   }
   
   void _setBackup () {
-    _lastRun = new Map<String, String>();
-    _lastRun['dart'] = context.dartSource;
-    _lastRun['html'] = context.htmlSource;
-    _lastRun['css'] = context.cssSource;
+    _lastRun = new Map<FileType, String>();
+    _lastRun[FileType.DART] = context.dartSource;
+    _lastRun[FileType.HTML] = context.htmlSource;
+    _lastRun[FileType.CSS] = context.cssSource;
   }
   
   void _setGistId(String id) {
