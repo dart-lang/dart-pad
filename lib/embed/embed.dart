@@ -560,7 +560,7 @@ class PlaygroundMobile {
     }
 
     var input = new CompileRequest()..source = context.dartSource;
-    _setBackup();
+    _setLastRunCondition();
     _cachedCompile = null;
     dartServices
         .compile(input)
@@ -590,7 +590,7 @@ class PlaygroundMobile {
  
   void _storePreviousResult() {
     var input = new CompileRequest()..source = context.dartSource;
-    _setBackup();
+    _setLastRunCondition();
     dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
@@ -670,7 +670,7 @@ class PlaygroundMobile {
     }
   }
   
-  void _setBackup () {
+  void _setLastRunCondition () {
     _lastRun = new Map<_FileType, String>();
     _lastRun[_FileType.DART] = context.dartSource;
     _lastRun[_FileType.HTML] = context.htmlSource;
