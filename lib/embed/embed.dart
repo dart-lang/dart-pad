@@ -56,10 +56,10 @@ class PlaygroundMobile {
   PaperIconButton _resetButton;
   PaperTabs _tabs;
 
-  Map _lastRun;
+  Map<String, String> _lastRun;
   Router _router;
   
-  CompileResponse _storedResponse;
+  CompileResponse _cachedCompile;
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -104,7 +104,7 @@ class PlaygroundMobile {
       String id = url.queryParameters['id'];
       if (isLegalGistId(id)) {
         _showGist(id);
-        _backupRun();
+        _storePreviousResult();
         return;
       }
     }
@@ -116,7 +116,7 @@ class PlaygroundMobile {
     context.dartSource = sample.dartCode;
     context.htmlSource = sample.htmlCode;
     context.cssSource = sample.cssCode;
-    _backupRun();
+    _storePreviousResult();
   }
 
   void showGist(RouteEnterEvent event) {
@@ -131,7 +131,7 @@ class PlaygroundMobile {
     }
 
     _showGist(gistId, run: page == 'run');
-    _backupRun();
+    _storePreviousResult();
   }
 
   void registerMessageToast() {
@@ -536,34 +536,33 @@ class PlaygroundMobile {
       _editProgress.hidden(false);
     }
 
-    if (_requestStored()) {
-      new Future(() {
-        CompileResponse response = _storedResponse;
+    if (_hasStoredRequest()) {
+      try {
+        CompileResponse response = _cachedCompile;
         if (executionService != null) {
-          return executionService.execute(
+          executionService.execute(
               _context.htmlSource, _context.cssSource, response.result);
         }
-      }).catchError((e) {
+      } catch (e) {
         _showOutput('Error compiling to JavaScript:\n${e}', error: true);
         _showError('Error compiling to JavaScript', '${e}');
-      }).whenComplete(() {
-        _runButton.disabled = false;
-        if (_editProgress != null) {
-          _editProgress.hidden(true);
-          _editProgress.indeterminate = false;
-        }
-      });
+      }
+      _runButton.disabled = false;
+      if (_editProgress != null) {
+        _editProgress.hidden(true);
+        _editProgress.indeterminate = false;
+      }
       return;
     }
 
     var input = new CompileRequest()..source = context.dartSource;
     _setBackup();
-    _storedResponse = null;
+    _cachedCompile = null;
     dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
-      _storedResponse = response;
+      _cachedCompile = response;
       if (executionService != null) {
         return executionService.execute(
             _context.htmlSource, _context.cssSource, response.result);
@@ -580,19 +579,19 @@ class PlaygroundMobile {
     });
   }
 
-  bool _requestStored() {
+  bool _hasStoredRequest() {
     return (_lastRun != null && _lastRun['dart'] == context.dartSource && _lastRun['html'] == context.htmlSource 
-        &&  _lastRun['css'] == context.cssSource && _storedResponse != null);
+        &&  _lastRun['css'] == context.cssSource && _cachedCompile != null);
   }
  
-  void _backupRun() {
+  void _storePreviousResult() {
     var input = new CompileRequest()..source = context.dartSource;
     _setBackup();
     dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
-      _storedResponse = response;
+      _cachedCompile = response;
     });
   }
   
@@ -668,7 +667,7 @@ class PlaygroundMobile {
   }
   
   void _setBackup () {
-    _lastRun = new Map();
+    _lastRun = new Map<String, String>();
     _lastRun['dart'] = context.dartSource;
     _lastRun['html'] = context.htmlSource;
     _lastRun['css'] = context.cssSource;
