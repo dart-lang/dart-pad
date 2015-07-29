@@ -310,7 +310,7 @@ class PlaygroundMobile {
     gistLoader.loadGist(gistId).then((Gist gist) {
       _setGistDescription(gist.description);
       _setGistId(gist.id);
-      
+
       GistFile dart =
           chooseGistFile(gist, ['main.dart'], (f) => f.endsWith('.dart'));
       GistFile html = chooseGistFile(gist, ['index.html', 'body.html']);
@@ -599,6 +599,7 @@ class PlaygroundMobile {
   void _performAnalysis() {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
+    
     Future<AnalysisResults> request =
         dartServices.analyze(input).timeout(serviceCallTimeout);
 
