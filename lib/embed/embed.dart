@@ -47,6 +47,8 @@ void init() {
 }
 
 class PlaygroundMobile {
+  final String webURL = "https://dartpad.dartlang.org/";
+  
   PaperFab _runButton;
   PaperIconButton _exportButton;
   PaperIconButton _cancelButton;
@@ -248,8 +250,8 @@ class PlaygroundMobile {
     if ($('#affirmExportButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
       _affirmButton.clickAction(() {
-        _exportDialog.toggle();
         _export();
+        _exportDialog.toggle();
       });
     }
   }
@@ -282,11 +284,12 @@ class PlaygroundMobile {
   }
 
   void _export() {
+    WindowBase exportWindow = window.open("", 'Export');
     PadSaveObject exportObject = new PadSaveObject()..html = context.htmlSource
         ..css = context.cssSource ..dart = context.dartSource;
     Future<UuidContainer> id = dartSupportServices.export(exportObject);
     id.then((UuidContainer container) {
-      window.open('/index.html?export=${container.uuid}', 'Export');
+      exportWindow.location.href='$webURL/index.html?export=${container.uuid}';
     });
   }
 
