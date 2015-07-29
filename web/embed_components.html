@@ -176,13 +176,18 @@
     #resetDialog {
       min-height: 90px;
     }
+    paper-button {
+      color: #44ccff;
+    }
   </style>
   <template>
-    <paper-dialog id="resetDialog" heading="Reset" transition="paper-dialog-transition-bottom">
+    <paper-dialog id="resetDialog" heading="Reset" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
       <p>This will reset all changes. Are you sure?</p>
-      <paper-button id="cancelButton" dismissive>Cancel</paper-button>
-      <span class="flex"></span>
-      <paper-button id="affirmButton" affirmative default>OK</paper-button>
+      <div class="buttons">
+        <paper-button id="cancelButton" dismissive default>Cancel</paper-button>
+        <span class="flex"></span>
+        <paper-button id="affirmButton" affirmative>OK</paper-button>
+      </div>
     </paper-dialog>
   </template>
   <script>
@@ -239,11 +244,12 @@
 
 <dom-module id="export-dialog">
   <style>
-
+    paper-button {
+      color: #44ccff;
+    }
   </style>
   <template>
-    <!-- entry-animation="scale-up-animation" exit-animation="fade-out-animation" -->
-    <paper-dialog id="exportDialog" heading="Export">
+    <paper-dialog id="exportDialog" heading="Export" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
       <h2>Export to DartPad</h2>
       <br>
       <paper-dialog-scrollable>
@@ -252,6 +258,7 @@
 
       <div class="buttons">
         <paper-button dialog-dismiss id="cancelExportButton">Cancel</paper-button>
+        <span class="flex"></span>
         <paper-button dialog-confirm id="affirmExportButton">Export</paper-button>
       </div>
     </paper-dialog>

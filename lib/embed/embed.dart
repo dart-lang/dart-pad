@@ -47,7 +47,7 @@ void init() {
 }
 
 class PlaygroundMobile {
-  final String webURL = "https://dartpad.dartlang.org/";
+  final String webURL = "https://dartpad.dartlang.org";
   
   PaperFab _runButton;
   PaperIconButton _exportButton;
