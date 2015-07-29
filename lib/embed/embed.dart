@@ -540,7 +540,7 @@ class PlaygroundMobile {
       _editProgress.hidden(false);
     }
 
-    if (_hasStoredRequest()) {
+    if (_hasStoredRequest) {
       try {
         CompileResponse response = _cachedCompile;
         if (executionService != null) {
@@ -583,7 +583,7 @@ class PlaygroundMobile {
     });
   }
 
-  bool _hasStoredRequest() {
+  bool get _hasStoredRequest {
     return (_lastRun != null && _lastRun[_FileType.DART] == context.dartSource && _lastRun[_FileType.CSS] == context.htmlSource 
         &&  _lastRun[_FileType.CSS] == context.cssSource && _cachedCompile != null);
   }
