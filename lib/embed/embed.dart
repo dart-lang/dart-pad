@@ -46,7 +46,7 @@ void init() {
   _playground = new PlaygroundMobile();
 }
 
-enum FileType {
+enum _FileType {
   DART, CSS, HTML
 }
 
@@ -60,7 +60,7 @@ class PlaygroundMobile {
   PaperIconButton _resetButton;
   PaperTabs _tabs;
 
-  Map<FileType, String> _lastRun;
+  Map<_FileType, String> _lastRun;
   Router _router;
   
   CompileResponse _cachedCompile;
@@ -584,8 +584,8 @@ class PlaygroundMobile {
   }
 
   bool _hasStoredRequest() {
-    return (_lastRun != null && _lastRun[FileType.DART] == context.dartSource && _lastRun[FileType.CSS] == context.htmlSource 
-        &&  _lastRun[FileType.CSS] == context.cssSource && _cachedCompile != null);
+    return (_lastRun != null && _lastRun[_FileType.DART] == context.dartSource && _lastRun[_FileType.CSS] == context.htmlSource 
+        &&  _lastRun[_FileType.CSS] == context.cssSource && _cachedCompile != null);
   }
  
   void _storePreviousResult() {
@@ -671,10 +671,10 @@ class PlaygroundMobile {
   }
   
   void _setBackup () {
-    _lastRun = new Map<FileType, String>();
-    _lastRun[FileType.DART] = context.dartSource;
-    _lastRun[FileType.HTML] = context.htmlSource;
-    _lastRun[FileType.CSS] = context.cssSource;
+    _lastRun = new Map<_FileType, String>();
+    _lastRun[_FileType.DART] = context.dartSource;
+    _lastRun[_FileType.HTML] = context.htmlSource;
+    _lastRun[_FileType.CSS] = context.cssSource;
   }
   
   void _setGistId(String id) {
