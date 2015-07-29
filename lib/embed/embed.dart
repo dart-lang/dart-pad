@@ -46,6 +46,10 @@ void init() {
   _playground = new PlaygroundMobile();
 }
 
+enum _FileType {
+  DART, CSS, HTML
+}
+
 class PlaygroundMobile {
   final String webURL = "https://dartpad.dartlang.org";
   
@@ -56,9 +60,10 @@ class PlaygroundMobile {
   PaperIconButton _resetButton;
   PaperTabs _tabs;
 
-  Gist backupGist;
+  Map<_FileType, String> _lastRun;
   Router _router;
-
+  
+  CompileResponse _cachedCompile;
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -103,6 +108,7 @@ class PlaygroundMobile {
       String id = url.queryParameters['id'];
       if (isLegalGistId(id)) {
         _showGist(id);
+        _storePreviousResult();
         return;
       }
     }
@@ -114,6 +120,7 @@ class PlaygroundMobile {
     context.dartSource = sample.dartCode;
     context.htmlSource = sample.htmlCode;
     context.cssSource = sample.cssCode;
+    _storePreviousResult();
   }
 
   void showGist(RouteEnterEvent event) {
@@ -128,6 +135,7 @@ class PlaygroundMobile {
     }
 
     _showGist(gistId, run: page == 'run');
+    _storePreviousResult();
   }
 
   void registerMessageToast() {
@@ -317,7 +325,6 @@ class PlaygroundMobile {
       context.cssSource = css == null ? '' : css.content;
 
       _clearErrors();
-
       // Analyze and run it.
       Timer.run(() {
         _performAnalysis();
@@ -533,11 +540,33 @@ class PlaygroundMobile {
       _editProgress.hidden(false);
     }
 
+    if (_hasStoredRequest) {
+      try {
+        CompileResponse response = _cachedCompile;
+        if (executionService != null) {
+          executionService.execute(
+              _context.htmlSource, _context.cssSource, response.result);
+        }
+      } catch (e) {
+        _showOutput('Error compiling to JavaScript:\n${e}', error: true);
+        _showError('Error compiling to JavaScript', '${e}');
+      }
+      _runButton.disabled = false;
+      if (_editProgress != null) {
+        _editProgress.hidden(true);
+        _editProgress.indeterminate = false;
+      }
+      return;
+    }
+
     var input = new CompileRequest()..source = context.dartSource;
+    _setLastRunCondition();
+    _cachedCompile = null;
     dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
+      _cachedCompile = response;
       if (executionService != null) {
         return executionService.execute(
             _context.htmlSource, _context.cssSource, response.result);
@@ -554,13 +583,28 @@ class PlaygroundMobile {
     });
   }
 
+  bool get _hasStoredRequest {
+    return (_lastRun != null && _lastRun[_FileType.DART] == context.dartSource && _lastRun[_FileType.CSS] == context.htmlSource 
+        &&  _lastRun[_FileType.CSS] == context.cssSource && _cachedCompile != null);
+  }
+ 
+  void _storePreviousResult() {
+    var input = new CompileRequest()..source = context.dartSource;
+    _setLastRunCondition();
+    dartServices
+        .compile(input)
+        .timeout(longServiceCallTimeout)
+        .then((CompileResponse response) {
+      _cachedCompile = response;
+    });
+  }
+  
   void _performAnalysis() {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
-
+    
     Future<AnalysisResults> request =
         dartServices.analyze(input).timeout(serviceCallTimeout);
-    ;
 
     _analysisRequest = request;
 
@@ -625,7 +669,14 @@ class PlaygroundMobile {
       e.text = description == null ? '' : description;
     }
   }
-
+  
+  void _setLastRunCondition () {
+    _lastRun = new Map<_FileType, String>();
+    _lastRun[_FileType.DART] = context.dartSource;
+    _lastRun[_FileType.HTML] = context.htmlSource;
+    _lastRun[_FileType.CSS] = context.cssSource;
+  }
+  
   void _setGistId(String id) {
     if (id == null || id.isEmpty) {
       _gistId = null;
