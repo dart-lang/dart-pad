@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "151b00d18767799abfb872c0179d6146a7fbc625",
+ "etag": "0aa77a088adf1d0f493048752b9dabfab6f8bf54",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -127,6 +127,15 @@
     "offset": {
      "type": "integer",
      "format": "int32"
+    }
+   }
+  },
+  "SummaryText": {
+   "id": "SummaryText",
+   "type": "object",
+   "properties": {
+    "text": {
+     "type": "string"
     }
    }
   },
@@ -360,7 +369,7 @@
     "$ref": "SourcesRequest"
    },
    "response": {
-    "$ref": "AnalysisResults"
+    "$ref": "SummaryText"
    }
   },
   "analyzeGet": {
