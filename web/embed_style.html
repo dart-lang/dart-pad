@@ -54,9 +54,20 @@
     height: 70%;
   }
 
+  #buffer {
+    /* This is to account for toolbar height in non-firefox browsers*/
+    height: 36px;
+    /* This is for firefox's flex display difference */
+    height: -moz-calc(0px);
+  }
+
   #leftPanel {
     width: 60%;
-    /*height: 100%;*/
+    height: 100%;
+  }
+
+  #bottomPanel {
+    overflow: auto;
   }
 
   #errorToast {
