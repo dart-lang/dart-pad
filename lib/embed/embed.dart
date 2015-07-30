@@ -457,13 +457,13 @@ class PlaygroundMobile {
     Element bottomPanel = $('#bottomPanel');
     if (rightPanel != null && leftPanel != null) {
       num percent = validFlex(h) ? int.parse(h) : defaultVerticalRatio;
-      leftPanel.style.width = '${leftPanel.parent.client.width * percent / 100}px';
+      leftPanel.style.width = '${percent}%';
       editor.resize();
       _syncToolbar();
     }
     if (topPanel != null && bottomPanel != null) {
       num percent = validFlex(v) ? int.parse(v) : defaultHorizontalRatio;
-      topPanel.style.height = '${topPanel.parent.client.height * percent / 100}px';
+      topPanel.style.height = '${percent}%';
     }
     var disablePointerEvents = () {
       if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
