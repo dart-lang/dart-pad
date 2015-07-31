@@ -50,78 +50,6 @@ class AboutDialog extends DDialog {
   }
 }
 
-class EmbedDialog extends DDialog {
-  final GistContainer gistContainer;
-  final GistController gistController;
-
-  DButton _cancelButton;
-  DElement _doc;
-  DElement _html;
-  DElement _inline;
-  DElement _info;
-
-  EmbedDialog(
-      GistContainer this.gistContainer, GistController this.gistController)
-      : super(title: 'Embedding Options (BETA)') {
-    element.classes.toggle('sharing-dialog', true);
-
-    content.setAttr('layout');
-    content.setAttr('vertical');
-
-    _doc = content.add(new DElement.tag('div')..layoutHorizontal());
-    _html = content.add(new DElement.tag('div')..layoutHorizontal());
-    _inline = content.add(new DElement.tag('div')..layoutHorizontal());
-    _info = content.add(new DElement.tag('div')..layoutHorizontal());
-    _cancelButton = new DButton.button(text: 'Cancel');
-    _cancelButton.onClick.listen((_) => hide());
-  }
-
-  void show() {
-    _configure();
-    super.show();
-  }
-
-  void generateExport() {
-    MutableGist gist = gistContainer.mutableGist;
-    String home = 'dartpad.dartlang.org';
-    _doc.add(new SpanElement()
-      ..text = 'Dart + Documentation: '
-      ..classes.toggle('export-text-dialog', true));
-    _doc.add(new InputElement()
-      ..value = "<iframe src='https://${home}/embed-dart.html?id=${gist.id}'></iframe>"
-      ..attributes['flex'] = '');
-    _html.add(new SpanElement()
-      ..text = 'Dart + Html: '
-      ..classes.toggle('export-text-dialog', true));
-    _html.add(new InputElement()
-      ..value = "<iframe src='https://${home}/embed-html.html?id=${gist.id}'></iframe>"
-      ..attributes['flex'] = '');
-    _inline.add(new SpanElement()
-      ..text = 'Dart (Minimal): '
-      ..classes.toggle('export-text-dialog', true));
-    _inline.add(new InputElement()
-      ..value = "<iframe src='https://${home}/embed-inline.html?id=${gist.id}'></iframe>"
-      ..attributes['flex'] = '');
-    _info.add(new SpanElement()
-      ..text = 'Need more control? Check out out our '
-      ..style.fontSize = "12px"
-      ..append(new SpanElement()
-        ..text = 'embedding guide.'
-        ..attributes['onClick'] =
-        "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
-        ..style.cursor = "pointer"
-        ..style.textDecoration = "underline"
-        ..style.fontSize = "12px"));
-    buttonArea.add(_cancelButton);
-    buttonArea.add(new SpanElement()..attributes['flex'] = '');
-  }
-
-  void _configure() {
-    buttonArea.element.children.clear();
-    generateExport();
-  }
-}
-
 class SharingDialog extends DDialog {
   final GistContainer gistContainer;
   final GistController gistController;
@@ -131,11 +59,15 @@ class SharingDialog extends DDialog {
   DButton _cancelButton;
   DButton _shareButton;
   DButton _closeButton;
-  DButton _embedButton;
   DElement _div;
   DInput _padUrl;
   DInput _gistUrl;
   String _summary;
+  DElement _embedArea;
+  DElement _doc;
+  DElement _html;
+  DElement _inline;
+  DElement _info;
 
   SharingDialog(
       GistContainer this.gistContainer, GistController this.gistController,
@@ -162,12 +94,7 @@ class SharingDialog extends DDialog {
     _closeButton = new DButton.button(text: 'Close', classes: 'default');
     _closeButton.onClick.listen((_) => hide());
     _div = new DElement.tag('div')..layoutVertical();
-    _embedButton = new DButton.button(text: 'Embed', classes: 'default');
-    _embedButton.onClick.listen((_) {
-      EmbedDialog exportDialog = new EmbedDialog(gistContainer, gistController);
-      exportDialog.show();
-      hide();
-    });
+    _embedArea = new DElement.tag('div')..layoutVertical();
     DElement div =
         _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
     div.add(new DElement.tag('span', classes: 'sharinglabel'))
@@ -202,6 +129,46 @@ class SharingDialog extends DDialog {
     super.show();
   }
 
+  void generateEmbed() {
+    DElement embedTitle = _embedArea.add(new DElement.tag('div', classes: 'title'));
+    embedTitle.add(new DElement.tag('h1')..text = "Embed DartPad");
+    _doc = _embedArea.add(new DElement.tag('div')..layoutHorizontal());
+    _html = _embedArea.add(new DElement.tag('div')..layoutHorizontal());
+    _inline = _embedArea.add(new DElement.tag('div')..layoutHorizontal());
+    _info = _embedArea.add(new DElement.tag('div')..layoutHorizontal());
+    MutableGist gist = gistContainer.mutableGist;
+    String home = 'dartpad.dartlang.org';
+    _doc.add(new SpanElement()
+      ..text = 'Dart + Documentation: '
+      ..classes.toggle('export-text-dialog', true));
+    _doc.add(new InputElement()
+      ..value = "<iframe src='https://${home}/embed-dart.html?id=${gist.id}'></iframe>"
+      ..attributes['flex'] = '');
+    _doc.setAttr("style", "margin-top:10px;");
+    _html.add(new SpanElement()
+      ..text = 'Dart + Html: '
+      ..classes.toggle('export-text-dialog', true));
+    _html.add(new InputElement()
+      ..value = "<iframe src='https://${home}/embed-html.html?id=${gist.id}'></iframe>"
+      ..attributes['flex'] = '');
+    _inline.add(new SpanElement()
+      ..text = 'Dart (Minimal): '
+      ..classes.toggle('export-text-dialog', true));
+    _inline.add(new InputElement()
+      ..value = "<iframe src='https://${home}/embed-inline.html?id=${gist.id}'></iframe>"
+      ..attributes['flex'] = '');
+    _info.add(new SpanElement()
+      ..text = 'Need more control? Check out out our '
+      ..style.fontSize = "12px"
+      ..append(new SpanElement()
+      ..text = 'embedding guide.'
+      ..attributes['onClick'] =
+    "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
+      ..style.cursor = "pointer"
+      ..style.textDecoration = "underline"
+      ..style.fontSize = "12px"));
+  }
+
   void _configure(MutableGist gist) {
     if (!gist.hasId || gist.dirty) {
       _switchTo(aboutToShare: true);
@@ -212,6 +179,7 @@ class SharingDialog extends DDialog {
 
   void _switchTo({bool aboutToShare: true}) {
     buttonArea.element.children.clear();
+    _embedArea.element.children.clear();
     _div.dispose();
 
     if (aboutToShare) {
@@ -225,6 +193,7 @@ class SharingDialog extends DDialog {
       buttonArea.add(new SpanElement()..attributes['flex'] = '');
       buttonArea.add(_shareButton);
     } else {
+      generateEmbed();
       // Show the existing sharing info.
       _text.text =
           'Share the DartPad link or view the source at gist.github.com.';
@@ -233,11 +202,11 @@ class SharingDialog extends DDialog {
       MutableGist gist = gistContainer.mutableGist;
 
       content.add(_div);
+      content.add(_embedArea);
       _padUrl.value = 'https://dartpad.dartlang.org/${gist.id}';
       _gistUrl.value = gist.html_url;
-      buttonArea.add(_closeButton);
+      buttonArea.add(_cancelButton);
       buttonArea.add(new SpanElement()..attributes['flex'] = '');
-      buttonArea.add(_embedButton);
     }
   }
 
