@@ -58,7 +58,6 @@ class SharingDialog extends DDialog {
   TextAreaElement _textArea;
   DButton _cancelButton;
   DButton _shareButton;
-  DButton _closeButton;
   DElement _div;
   DInput _padUrl;
   DInput _gistUrl;
@@ -91,8 +90,6 @@ class SharingDialog extends DDialog {
     _shareButton.onClick.listen((_) => _performShare());
 
     // Already sharing.
-    _closeButton = new DButton.button(text: 'Close', classes: 'default');
-    _closeButton.onClick.listen((_) => hide());
     _div = new DElement.tag('div')..layoutVertical();
     _embedArea = new DElement.tag('div')..layoutVertical();
     DElement div =
