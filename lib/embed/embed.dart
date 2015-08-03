@@ -226,7 +226,10 @@ class PlaygroundMobile {
   void registerResetButton() {
     if ($('[icon="refresh"]') != null) {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
-      _resetButton.clickAction(_resetDialog.toggle);
+      _resetButton.clickAction(() {
+        _resetDialog.toggle;
+        ga.sendEvent("export", "reset");
+      });
     }
   }
 
@@ -292,6 +295,7 @@ class PlaygroundMobile {
   }
 
   void _export() {
+    ga.sendEvent("export", "exportAffirm");
     WindowBase exportWindow = window.open("", 'Export');
     PadSaveObject exportObject = new PadSaveObject()..html = context.htmlSource
         ..css = context.cssSource ..dart = context.dartSource;
@@ -302,6 +306,7 @@ class PlaygroundMobile {
   }
 
   void _reset() {
+    ga.sendEvent("export", "resetAffirm");
     _router = new Router();
     _router
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
