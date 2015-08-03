@@ -219,7 +219,10 @@ class PlaygroundMobile {
   void registerExportButton() {
     if ($('[icon="launch"]') != null) {
       _exportButton = new PaperIconButton.from($('[icon="launch"]'));
-      _exportButton.clickAction(_exportDialog.toggle);
+      _exportButton.clickAction(() {
+        _exportDialog.toggle;
+        ga.sendEvent("embed", "export");
+      });
     }
   }
 
@@ -228,7 +231,7 @@ class PlaygroundMobile {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
       _resetButton.clickAction(() {
         _resetDialog.toggle;
-        ga.sendEvent("export", "reset");
+        ga.sendEvent("embed", "reset");
       });
     }
   }
@@ -295,7 +298,7 @@ class PlaygroundMobile {
   }
 
   void _export() {
-    ga.sendEvent("export", "exportAffirm");
+    ga.sendEvent("embed", "exportAffirm");
     WindowBase exportWindow = window.open("", 'Export');
     PadSaveObject exportObject = new PadSaveObject()..html = context.htmlSource
         ..css = context.cssSource ..dart = context.dartSource;
@@ -306,7 +309,7 @@ class PlaygroundMobile {
   }
 
   void _reset() {
-    ga.sendEvent("export", "resetAffirm");
+    ga.sendEvent("embed", "resetAffirm");
     _router = new Router();
     _router
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
