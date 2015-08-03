@@ -115,6 +115,8 @@ class Playground implements GistContainer, GistController {
     DButton shareButton = new DButton(querySelector('#sharebutton'));
     shareButton.onClick.listen((e) => _createSummary()
         .then((String sum) => sharingDialog.showWithSummary(sum)));
+    
+    HtmlElement share = querySelector('#sharebutton');
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
       _handleRun();
@@ -144,7 +146,12 @@ class Playground implements GistContainer, GistController {
     Throttler throttle = new Throttler(const Duration(milliseconds: 100));
     mutableGist.onChanged.transform(throttle).listen((_) {
       if (mutableGist.dirty) {
+        share.setInnerHtml("Share…");
         _gistStorage.setStoredGist(mutableGist.createGist());
+      } else if (!mutableGist.hasId) {
+        share.setInnerHtml("Share…");
+      } else {
+        share.setInnerHtml("Embed…");
       }
     });
 
