@@ -240,7 +240,7 @@ class PlaygroundMobile {
     if ($('#cancelButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelButton'));
       _cancelButton.clickAction(() {
-        ga.sendEvent("embed", "cancelReset");
+        ga.sendEvent("embed", "resetCancel");
       });
     }
   }
@@ -258,7 +258,7 @@ class PlaygroundMobile {
     if ($('#cancelExportButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
       _cancelButton.clickAction(() {
-        ga.sendEvent("embed", "cancelExport");
+        ga.sendEvent("embed", "exportCancel");
       });
     }
   }
