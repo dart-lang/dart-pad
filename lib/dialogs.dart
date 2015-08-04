@@ -127,8 +127,8 @@ class SharingDialog extends DDialog {
   }
 
   void generateEmbed() {
-    DElement embedTitle = _embedArea.add(new DElement.tag('div', classes: 'title'));
-    embedTitle.add(new DElement.tag('h1')..text = "Embed DartPad");
+    DElement embedTitle = _embedArea.add(new DElement.tag('div', classes: 'embed-title'));
+    embedTitle.add(new DElement.tag('h3')..text = "Embed DartPad");
     _doc = _embedArea.add(new DElement.tag('div')..layoutHorizontal());
     _html = _embedArea.add(new DElement.tag('div')..layoutHorizontal());
     _inline = _embedArea.add(new DElement.tag('div')..layoutHorizontal());
@@ -158,12 +158,14 @@ class SharingDialog extends DDialog {
       ..text = 'Need more control? Check out out our '
       ..style.fontSize = "12px"
       ..append(new SpanElement()
-      ..text = 'embedding guide.'
+      ..text = 'embedding guide'
       ..attributes['onClick'] =
     "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
       ..style.cursor = "pointer"
       ..style.textDecoration = "underline"
-      ..style.fontSize = "12px"));
+      ..style.fontSize = "12px")
+      ..append(new SpanElement()
+      ..text = '.'));
   }
 
   void _configure(MutableGist gist) {
