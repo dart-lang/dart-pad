@@ -220,7 +220,7 @@ class PlaygroundMobile {
     if ($('[icon="launch"]') != null) {
       _exportButton = new PaperIconButton.from($('[icon="launch"]'));
       _exportButton.clickAction(() {
-        _exportDialog.toggle();
+        _exportDialog.open();
         ga.sendEvent("embed", "export");
       });
     }
@@ -230,7 +230,7 @@ class PlaygroundMobile {
     if ($('[icon="refresh"]') != null) {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
       _resetButton.clickAction(() {
-        _resetDialog.toggle();
+        _resetDialog.open();
         ga.sendEvent("embed", "reset");
       });
     }
@@ -239,7 +239,9 @@ class PlaygroundMobile {
   void registerCancelRefreshButton() {
     if ($('#cancelButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelButton'));
-      _cancelButton.clickAction(_resetDialog.toggle);
+      _cancelButton.clickAction(() {
+        ga.sendEvent("embed", "cancelReset");
+      });
     }
   }
 
@@ -247,7 +249,6 @@ class PlaygroundMobile {
     if ($('#affirmButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmButton'));
       _affirmButton.clickAction(() {
-        _resetDialog.toggle();
         _reset();
       });
     }
@@ -256,7 +257,9 @@ class PlaygroundMobile {
   void registerCancelExportButton() {
     if ($('#cancelExportButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
-      _cancelButton.clickAction(_exportDialog.toggle);
+      _cancelButton.clickAction(() {
+        ga.sendEvent("embed", "cancelExport");
+      });
     }
   }
 
@@ -264,7 +267,6 @@ class PlaygroundMobile {
     if ($('#affirmExportButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
       _affirmButton.clickAction(() {
-        _exportDialog.toggle();
         _export();
       });
     }
