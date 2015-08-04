@@ -220,7 +220,7 @@ class PlaygroundMobile {
     if ($('[icon="launch"]') != null) {
       _exportButton = new PaperIconButton.from($('[icon="launch"]'));
       _exportButton.clickAction(() {
-        _exportDialog.toggle;
+        _exportDialog.toggle();
         ga.sendEvent("embed", "export");
       });
     }
@@ -230,7 +230,7 @@ class PlaygroundMobile {
     if ($('[icon="refresh"]') != null) {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
       _resetButton.clickAction(() {
-        _resetDialog.toggle;
+        _resetDialog.toggle();
         ga.sendEvent("embed", "reset");
       });
     }
@@ -264,8 +264,8 @@ class PlaygroundMobile {
     if ($('#affirmExportButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
       _affirmButton.clickAction(() {
-        _export();
         _exportDialog.toggle();
+        _export();
       });
     }
   }
