@@ -219,21 +219,29 @@ class PlaygroundMobile {
   void registerExportButton() {
     if ($('[icon="launch"]') != null) {
       _exportButton = new PaperIconButton.from($('[icon="launch"]'));
-      _exportButton.clickAction(_exportDialog.toggle);
+      _exportButton.clickAction(() {
+        _exportDialog.open();
+        ga.sendEvent("embed", "export");
+      });
     }
   }
 
   void registerResetButton() {
     if ($('[icon="refresh"]') != null) {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
-      _resetButton.clickAction(_resetDialog.toggle);
+      _resetButton.clickAction(() {
+        _resetDialog.open();
+        ga.sendEvent("embed", "reset");
+      });
     }
   }
 
   void registerCancelRefreshButton() {
     if ($('#cancelButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelButton'));
-      _cancelButton.clickAction(_resetDialog.toggle);
+      _cancelButton.clickAction(() {
+        ga.sendEvent("embed", "resetCancel");
+      });
     }
   }
 
@@ -241,7 +249,6 @@ class PlaygroundMobile {
     if ($('#affirmButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmButton'));
       _affirmButton.clickAction(() {
-        _resetDialog.toggle();
         _reset();
       });
     }
@@ -250,7 +257,9 @@ class PlaygroundMobile {
   void registerCancelExportButton() {
     if ($('#cancelExportButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
-      _cancelButton.clickAction(_exportDialog.toggle);
+      _cancelButton.clickAction(() {
+        ga.sendEvent("embed", "exportCancel");
+      });
     }
   }
 
@@ -259,7 +268,6 @@ class PlaygroundMobile {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
       _affirmButton.clickAction(() {
         _export();
-        _exportDialog.toggle();
       });
     }
   }
@@ -292,6 +300,7 @@ class PlaygroundMobile {
   }
 
   void _export() {
+    ga.sendEvent("embed", "exportAffirm");
     WindowBase exportWindow = window.open("", 'Export');
     PadSaveObject exportObject = new PadSaveObject()..html = context.htmlSource
         ..css = context.cssSource ..dart = context.dartSource;
@@ -302,6 +311,7 @@ class PlaygroundMobile {
   }
 
   void _reset() {
+    ga.sendEvent("embed", "resetAffirm");
     _router = new Router();
     _router
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
