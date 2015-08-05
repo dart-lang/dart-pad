@@ -659,6 +659,7 @@ class PlaygroundMobile {
   }
 
   void _showOutput(String message, {bool error: false}) {
+    _pulsateConsole();
     if (message == null) return;
     Element title = $('.consoleTitle');
     if (title != null) title.hidden = true;
@@ -668,6 +669,13 @@ class PlaygroundMobile {
     span.text = message;
     _output.add(span);
     _output.element.scrollTop = _output.element.scrollHeight;
+  }
+
+  Future _pulsateConsole() async {
+    $('#bottomPanel').classes.add('pulsate');
+    new Timer(new Duration(milliseconds:1000), () {
+      $('#bottomPanel').classes.remove('pulsate');
+    });
   }
 
   void _setGistDescription(String description) {
