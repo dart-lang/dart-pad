@@ -50,8 +50,8 @@ void setupIdRetrieval() {
 }
 
 void setupGistStore() {
-  CodeMirror editor = createEditor(querySelector('#storeSection .editor'), defaultText: "Internal id");
-  Element output = querySelector('#storetSection .output');
+  CodeMirror editor = createEditor(querySelector('#storeSection .editor'), defaultText: "Internal ID");
+  Element output = querySelector('#storeSection .output');
   ButtonElement button = querySelector('#storeSection button');
   button.onClick.listen((e) {
     String editorText = editor.getDoc().getValue();
