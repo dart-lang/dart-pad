@@ -58,6 +58,63 @@ class FileRelayServer {
     _logger.info("Deleted Export with ID ${record.uuid}");
     return new Future.value(new PadSaveObject.FromRecordSource(record));
   }
+
+  @ApiMethod(method: 'POST', path: 'getValidId')
+  Future<UuidContainer> shareGist() async {
+    int count = 0;
+    int limit = 4;
+    print('getValidId');
+    var database = ae.context.services.db;
+    String randomUuid;
+    var query;
+    List<_GistMapping> result;
+    do {
+      randomUuid = new uuid_tools.Uuid().v4();
+      query = database.query(_GistMapping)..filter('internalId =', randomUuid);
+      result = await query.run().toList();
+      count ++;
+    } while (!result.isEmpty && count < limit);
+    _logger.info("Valid ID ${randomUuid} retrieved.");
+    return new Future.value(new UuidContainer.FromUuid(randomUuid));
+  }
+
+  @ApiMethod(method: 'POST', path: 'shareGist')
+  Future<UuidContainer> storeMapping(UuidContainer id, UuidContainer gist) async {
+    print('shareGist');
+    _logger.info("Shared");
+    var database = ae.context.services.db;
+    var query = database.query(_GistMapping)..filter('internalId =', id);
+    List<_GistMapping> result = await query.run().toList();
+    if (!result.isEmpty) {
+      _logger.severe("Collision with mapping of Id ${id.uuid}.");
+      return new Future.value(new UuidContainer());
+    } else {
+      _GistMapping entry = new _GistMapping.FromMap(id, gist);
+      db.dbService.commit(inserts: [entry]).catchError((e) {
+        _logger.severe("Error while recording mapping with Id ${id.uuid}. Error ${e}");
+        throw e;
+      });
+      _logger.info("Mapping with ID ${id.uuid} stored.");
+      return new Future.value(id);
+    }
+  }
+
+  @ApiMethod(method: 'POST', path: 'retrieveGist')
+  Future<UuidContainer> retrieveGist(UuidContainer id) async {
+    print('shareGist');
+    _logger.info("Shared");
+    var database = ae.context.services.db;
+    var query = database.query(_GistMapping)..filter('internalId =', id);
+    List<_GistMapping> result = await query.run().toList();
+    if (result.isEmpty) {
+      _logger.severe("Missing mapping for Id ${id.uuid}.");
+      return new Future.value(new UuidContainer.FromUuid(""));
+    } else {
+      _GistMapping entry = result.first;
+      _logger.info("Mapping with ID ${id.uuid} retrieved.");
+      return new Future.value(new UuidContainer.FromUuid(entry.gist));
+    }
+  }
 }
 
 /**
@@ -137,6 +194,32 @@ class _GaePadSaveObject extends db.Model {
   String get getDart => _gzipDecode(this.dart);
   String get getHtml => _gzipDecode(this.html);
   String get getCss => _gzipDecode(this.css);
+}
+
+
+/**
+ * Internal storage representation for gist id mapping.
+ */
+@db.Kind()
+class _GistMapping extends db.Model {
+  @db.StringProperty()
+  String internalId;
+
+  @db.StringProperty()
+  String gist;
+
+  @db.IntProperty()
+  int epochTime;
+
+  _GistMapping() {
+    this.epochTime = new DateTime.now().millisecondsSinceEpoch;
+  }
+
+  _GistMapping.FromMap(UuidContainer id, UuidContainer gist) {
+    this.internalId = id.uuid;
+    this.gist = gist.uuid;
+    this.epochTime = new DateTime.now().millisecondsSinceEpoch;
+  }
 }
 
 String _computeSHA1(_GaePadSaveObject record) {
