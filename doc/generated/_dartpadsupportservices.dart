@@ -61,6 +61,38 @@ class P_dartpadsupportservicesApi {
   }
 
   /**
+   * Request parameters:
+   *
+   * Completes with a [UuidContainer].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method will complete with the same error.
+   */
+  async.Future<UuidContainer> getValidId() {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+
+    _url = 'getValidId';
+
+    var _response = _requester.request(_url,
+                                       "GET",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new UuidContainer.fromJson(data));
+  }
+
+  /**
    * Retrieve a stored gist data set.
    *
    * [request] - The metadata request object.
@@ -137,38 +169,6 @@ class P_dartpadsupportservicesApi {
   }
 
   /**
-   * Request parameters:
-   *
-   * Completes with a [UuidContainer].
-   *
-   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
-   * error.
-   *
-   * If the used [http.Client] completes with an error when making a REST call,
-   * this method will complete with the same error.
-   */
-  async.Future<UuidContainer> shareGist() {
-    var _url = null;
-    var _queryParams = new core.Map();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-
-    _url = 'getValidId';
-
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
-    return _response.then((data) => new UuidContainer.fromJson(data));
-  }
-
-  /**
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -181,7 +181,7 @@ class P_dartpadsupportservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  async.Future<UuidContainer> storeMapping(Mapping request) {
+  async.Future<UuidContainer> storeGist(Mapping request) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;

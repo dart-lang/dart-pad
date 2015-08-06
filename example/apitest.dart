@@ -39,42 +39,41 @@ _setupClients() {
 }
 
 void setupIdRetrieval() {
-  CodeMirror editor = createEditor(querySelector('#idSection .editor'));
   Element output = querySelector('#idSection .output');
   ButtonElement button = querySelector('#idSection button');
   button.onClick.listen((e) {
-    support.PadSaveObject saveObject = new support.PadSaveObject();
-    saveObject.dart = editor.getDoc().getValue();
     Stopwatch sw = new Stopwatch()..start();
-    _dartpadSupportApi.export(saveObject).then((results) {
+    _dartpadSupportApi.getValidId().then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
   });
 }
 
 void setupGistStore() {
-  CodeMirror editor = createEditor(querySelector('#exportSection .editor'));
-  Element output = querySelector('#exportSection .output');
-  ButtonElement button = querySelector('#exportSection button');
+  CodeMirror editor = createEditor(querySelector('#storeSection .editor'), defaultText: "Internal id");
+  Element output = querySelector('#storetSection .output');
+  ButtonElement button = querySelector('#storeSection button');
   button.onClick.listen((e) {
-    support.PadSaveObject saveObject = new support.PadSaveObject();
-    saveObject.dart = editor.getDoc().getValue();
+    String editorText = editor.getDoc().getValue();
+    support.Mapping saveObject = new support.Mapping();
+    saveObject.internalId = editorText;
+    saveObject.gistId = "72d83fe97bfc8e735607"; //Solar
     Stopwatch sw = new Stopwatch()..start();
-    _dartpadSupportApi.export(saveObject).then((results) {
+    _dartpadSupportApi.storeGist(saveObject).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
   });
 }
 
 void setupGistRetrieval() {
-  CodeMirror editor = createEditor(querySelector('#exportSection .editor'));
-  Element output = querySelector('#exportSection .output');
-  ButtonElement button = querySelector('#exportSection button');
+  CodeMirror editor = createEditor(querySelector('#gistSection .editor'), defaultText: "Internal ID");
+  Element output = querySelector('#gistSection .output');
+  ButtonElement button = querySelector('#gistSection button');
   button.onClick.listen((e) {
-    support.PadSaveObject saveObject = new support.PadSaveObject();
-    saveObject.dart = editor.getDoc().getValue();
+    String editorText = editor.getDoc().getValue();
+    support.UuidContainer saveObject = new support.UuidContainer()..uuid = editorText;
     Stopwatch sw = new Stopwatch()..start();
-    _dartpadSupportApi.export(saveObject).then((results) {
+    _dartpadSupportApi.retrieveGist(saveObject).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
   });

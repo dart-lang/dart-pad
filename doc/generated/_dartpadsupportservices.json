@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "99e1bae6c2a51df4914b018a0dd3ac5786863a81",
+ "etag": "90e7a1d4956ed1de30186a8e49dde660f7bb405f",
  "discoveryVersion": "v1",
  "id": "_dartpadsupportservices:v1",
  "name": "_dartpadsupportservices",
@@ -82,8 +82,8 @@
     "$ref": "PadSaveObject"
    }
   },
-  "shareGist": {
-   "id": "FileRelayServer.shareGist",
+  "getValidId": {
+   "id": "FileRelayServer.getValidId",
    "path": "getValidId",
    "httpMethod": "GET",
    "parameters": {},
@@ -92,8 +92,8 @@
     "$ref": "UuidContainer"
    }
   },
-  "storeMapping": {
-   "id": "FileRelayServer.storeMapping",
+  "storeGist": {
+   "id": "FileRelayServer.storeGist",
    "path": "storeGist",
    "httpMethod": "POST",
    "parameters": {},

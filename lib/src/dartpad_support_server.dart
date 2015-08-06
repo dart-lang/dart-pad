@@ -58,17 +58,13 @@ class FileRelayServer {
     _logger.info("Deleted Export with ID ${record.uuid}");
     return new Future.value(new PadSaveObject.FromRecordSource(record));
   }
-//////////
-///
-///
-///
+
   @ApiMethod(method: 'GET', path: 'getValidId')
-  Future<UuidContainer> shareGist() async {
+  Future<UuidContainer> getValidId() async {
     print('getValidId');
 
     int count = 0;
     int limit = 4;
-    print('getValidId');
     var database = ae.context.services.db;
     String randomUuid;
     var query;
@@ -88,7 +84,7 @@ class FileRelayServer {
   }
 
   @ApiMethod(method: 'POST', path: 'storeGist')
-  Future<UuidContainer> storeMapping(Mapping map) async {
+  Future<UuidContainer> storeGist(Mapping map) async {
     print('storeGist');
 
     var database = ae.context.services.db;
@@ -121,7 +117,7 @@ class FileRelayServer {
     } else {
       _GistMapping entry = result.first;
       _logger.info("Mapping with ID ${id.uuid} retrieved.");
-      return new Future.value(new UuidContainer.FromUuid(entry.gist));
+      return new Future.value(new UuidContainer.FromUuid(entry.gistId));
     }
   }
 }
