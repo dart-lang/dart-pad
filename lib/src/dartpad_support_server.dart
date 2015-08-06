@@ -61,6 +61,8 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'getValidId')
   Future<UuidContainer> shareGist() async {
+    print('getValidId');
+    
     int count = 0;
     int limit = 4;
     print('getValidId');
@@ -81,7 +83,7 @@ class FileRelayServer {
   @ApiMethod(method: 'POST', path: 'shareGist')
   Future<UuidContainer> storeMapping(UuidContainer id, UuidContainer gist) async {
     print('shareGist');
-    _logger.info("Shared");
+
     var database = ae.context.services.db;
     var query = database.query(_GistMapping)..filter('internalId =', id);
     List<_GistMapping> result = await query.run().toList();
@@ -101,8 +103,8 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'retrieveGist')
   Future<UuidContainer> retrieveGist(UuidContainer id) async {
-    print('shareGist');
-    _logger.info("Shared");
+    print('retrieveGist');
+
     var database = ae.context.services.db;
     var query = database.query(_GistMapping)..filter('internalId =', id);
     List<_GistMapping> result = await query.run().toList();
