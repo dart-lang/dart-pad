@@ -21,14 +21,63 @@ void main() {
   setupDocument();
   setupFixes();
   setupVersion();
+  setupDartpadServices();
+}
+
+void setupDartpadServices() {
   setupExport();
   setupRetrieve();
+  setupIdRetrieval();
+  setupGistStore();
+  setupGistRetrieval();
 }
 
 _setupClients() {
   client = new utils.SanitizingBrowserClient();
   servicesApi = new services.DartservicesApi(client, rootUrl: _uriBase);
   _dartpadSupportApi = new support.P_dartpadsupportservicesApi(client, rootUrl: _uriBase);
+}
+
+void setupIdRetrieval() {
+  CodeMirror editor = createEditor(querySelector('#idSection .editor'));
+  Element output = querySelector('#idSection .output');
+  ButtonElement button = querySelector('#idSection button');
+  button.onClick.listen((e) {
+    support.PadSaveObject saveObject = new support.PadSaveObject();
+    saveObject.dart = editor.getDoc().getValue();
+    Stopwatch sw = new Stopwatch()..start();
+    _dartpadSupportApi.export(saveObject).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
+  });
+}
+
+void setupGistStore() {
+  CodeMirror editor = createEditor(querySelector('#exportSection .editor'));
+  Element output = querySelector('#exportSection .output');
+  ButtonElement button = querySelector('#exportSection button');
+  button.onClick.listen((e) {
+    support.PadSaveObject saveObject = new support.PadSaveObject();
+    saveObject.dart = editor.getDoc().getValue();
+    Stopwatch sw = new Stopwatch()..start();
+    _dartpadSupportApi.export(saveObject).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
+  });
+}
+
+void setupGistRetrieval() {
+  CodeMirror editor = createEditor(querySelector('#exportSection .editor'));
+  Element output = querySelector('#exportSection .output');
+  ButtonElement button = querySelector('#exportSection button');
+  button.onClick.listen((e) {
+    support.PadSaveObject saveObject = new support.PadSaveObject();
+    saveObject.dart = editor.getDoc().getValue();
+    Stopwatch sw = new Stopwatch()..start();
+    _dartpadSupportApi.export(saveObject).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
+  });
 }
 
 void setupAnalyze() {

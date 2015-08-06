@@ -62,7 +62,7 @@ class FileRelayServer {
   @ApiMethod(method: 'POST', path: 'getValidId')
   Future<UuidContainer> shareGist() async {
     print('getValidId');
-    
+
     int count = 0;
     int limit = 4;
     print('getValidId');
@@ -76,13 +76,17 @@ class FileRelayServer {
       result = await query.run().toList();
       count ++;
     } while (!result.isEmpty && count < limit);
+    if (!result.isEmpty) {
+      _logger.severe("Could not generate valid ID.");
+      return new Future.value(new UuidContainer());
+    }
     _logger.info("Valid ID ${randomUuid} retrieved.");
     return new Future.value(new UuidContainer.FromUuid(randomUuid));
   }
 
-  @ApiMethod(method: 'POST', path: 'shareGist')
+  @ApiMethod(method: 'POST', path: 'storeGist')
   Future<UuidContainer> storeMapping(UuidContainer id, UuidContainer gist) async {
-    print('shareGist');
+    print('storeGist');
 
     var database = ae.context.services.db;
     var query = database.query(_GistMapping)..filter('internalId =', id);
