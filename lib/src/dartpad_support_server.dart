@@ -24,7 +24,7 @@ class FileRelayServer {
     _logger.level = Level.ALL;
   }
 
-  @ApiMethod(method: 'POST', path: 'export')
+  @ApiMethod(method: 'POST', path: 'export', description: 'Store a gist dataset to be retrieved.')
   Future<UuidContainer> export(PadSaveObject data) {
     print ('Export');
 
@@ -39,7 +39,7 @@ class FileRelayServer {
     return new Future.value(new UuidContainer.FromUuid(record.uuid));
   }
 
-  @ApiMethod(method: 'POST', path: 'pullExportData')
+  @ApiMethod(method: 'POST', path: 'pullExportData', description: 'Retrieve a stored gist data set.')
   Future<PadSaveObject> pullExportContent(UuidContainer uuidContainer) async {
     print ('pullExportContent');
 
@@ -58,8 +58,11 @@ class FileRelayServer {
     _logger.info("Deleted Export with ID ${record.uuid}");
     return new Future.value(new PadSaveObject.FromRecordSource(record));
   }
-
-  @ApiMethod(method: 'POST', path: 'getValidId')
+//////////
+///
+///
+///
+  @ApiMethod(method: 'GET', path: 'getValidId')
   Future<UuidContainer> shareGist() async {
     print('getValidId');
 
@@ -69,7 +72,7 @@ class FileRelayServer {
     var database = ae.context.services.db;
     String randomUuid;
     var query;
-    List<_GistMapping> result;
+    List result;
     do {
       randomUuid = new uuid_tools.Uuid().v4();
       query = database.query(_GistMapping)..filter('internalId =', randomUuid);
@@ -85,23 +88,23 @@ class FileRelayServer {
   }
 
   @ApiMethod(method: 'POST', path: 'storeGist')
-  Future<UuidContainer> storeMapping(UuidContainer id, UuidContainer gist) async {
+  Future<UuidContainer> storeMapping(Mapping map) async {
     print('storeGist');
 
     var database = ae.context.services.db;
-    var query = database.query(_GistMapping)..filter('internalId =', id);
-    List<_GistMapping> result = await query.run().toList();
+    var query = database.query(_GistMapping)..filter('internalId =', map.internalId);
+    List result = await query.run().toList();
     if (!result.isEmpty) {
-      _logger.severe("Collision with mapping of Id ${id.uuid}.");
+      _logger.severe("Collision with mapping of Id ${map.gistId}.");
       return new Future.value(new UuidContainer());
     } else {
-      _GistMapping entry = new _GistMapping.FromMap(id, gist);
+      _GistMapping entry = new _GistMapping.FromMap(map);
       db.dbService.commit(inserts: [entry]).catchError((e) {
-        _logger.severe("Error while recording mapping with Id ${id.uuid}. Error ${e}");
+        _logger.severe("Error while recording mapping with Id ${map.gistId}. Error ${e}");
         throw e;
       });
-      _logger.info("Mapping with ID ${id.uuid} stored.");
-      return new Future.value(id);
+      _logger.info("Mapping with ID ${map.gistId} stored.");
+      return new Future.value(new UuidContainer.FromUuid(map.gistId));
     }
   }
 
@@ -111,7 +114,7 @@ class FileRelayServer {
 
     var database = ae.context.services.db;
     var query = database.query(_GistMapping)..filter('internalId =', id);
-    List<_GistMapping> result = await query.run().toList();
+    List result = await query.run().toList();
     if (result.isEmpty) {
       _logger.severe("Missing mapping for Id ${id.uuid}.");
       return new Future.value(new UuidContainer.FromUuid(""));
@@ -148,6 +151,9 @@ class PadSaveObject {
   }
 }
 
+/**
+ * String container for IDs
+ */
 class UuidContainer {
   String uuid;
   UuidContainer();
@@ -156,6 +162,18 @@ class UuidContainer {
   }
 }
 
+/**
+ * Map from id to id
+ */
+class Mapping {
+  String gistId;
+  String internalId;
+  Mapping();
+  Mapping.FromIds(String gistId, String internalId) {
+    this.gistId = gistId;
+    this.internalId = internalId;
+  }
+}
 /**
  * Internal storage representation for storage of pads.
  */
@@ -212,7 +230,7 @@ class _GistMapping extends db.Model {
   String internalId;
 
   @db.StringProperty()
-  String gist;
+  String gistId;
 
   @db.IntProperty()
   int epochTime;
@@ -221,9 +239,9 @@ class _GistMapping extends db.Model {
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 
-  _GistMapping.FromMap(UuidContainer id, UuidContainer gist) {
-    this.internalId = id.uuid;
-    this.gist = gist.uuid;
+  _GistMapping.FromMap(Mapping map) {
+    this.internalId = map.internalId;
+    this.gistId = map.gistId;
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 }

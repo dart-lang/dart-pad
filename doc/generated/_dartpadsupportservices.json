@@ -1,1 +1,123 @@
-
+{
+ "kind": "discovery#restDescription",
+ "etag": "99e1bae6c2a51df4914b018a0dd3ac5786863a81",
+ "discoveryVersion": "v1",
+ "id": "_dartpadsupportservices:v1",
+ "name": "_dartpadsupportservices",
+ "version": "v1",
+ "revision": "0",
+ "protocol": "rest",
+ "baseUrl": "/api/_dartpadsupportservices/v1/",
+ "basePath": "/api/_dartpadsupportservices/v1/",
+ "rootUrl": "/",
+ "servicePath": "api/_dartpadsupportservices/v1/",
+ "parameters": {},
+ "schemas": {
+  "PadSaveObject": {
+   "id": "PadSaveObject",
+   "type": "object",
+   "properties": {
+    "dart": {
+     "type": "string"
+    },
+    "html": {
+     "type": "string"
+    },
+    "css": {
+     "type": "string"
+    },
+    "uuid": {
+     "type": "string"
+    }
+   }
+  },
+  "UuidContainer": {
+   "id": "UuidContainer",
+   "type": "object",
+   "properties": {
+    "uuid": {
+     "type": "string"
+    }
+   }
+  },
+  "Mapping": {
+   "id": "Mapping",
+   "type": "object",
+   "properties": {
+    "gistId": {
+     "type": "string"
+    },
+    "internalId": {
+     "type": "string"
+    }
+   }
+  }
+ },
+ "methods": {
+  "export": {
+   "id": "FileRelayServer.export",
+   "path": "export",
+   "httpMethod": "POST",
+   "description": "Store a gist dataset to be retrieved.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "PadSaveObject"
+   },
+   "response": {
+    "$ref": "UuidContainer"
+   }
+  },
+  "pullExportContent": {
+   "id": "FileRelayServer.pullExportContent",
+   "path": "pullExportData",
+   "httpMethod": "POST",
+   "description": "Retrieve a stored gist data set.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "UuidContainer"
+   },
+   "response": {
+    "$ref": "PadSaveObject"
+   }
+  },
+  "shareGist": {
+   "id": "FileRelayServer.shareGist",
+   "path": "getValidId",
+   "httpMethod": "GET",
+   "parameters": {},
+   "parameterOrder": [],
+   "response": {
+    "$ref": "UuidContainer"
+   }
+  },
+  "storeMapping": {
+   "id": "FileRelayServer.storeMapping",
+   "path": "storeGist",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "Mapping"
+   },
+   "response": {
+    "$ref": "UuidContainer"
+   }
+  },
+  "retrieveGist": {
+   "id": "FileRelayServer.retrieveGist",
+   "path": "retrieveGist",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "UuidContainer"
+   },
+   "response": {
+    "$ref": "UuidContainer"
+   }
+  }
+ },
+ "resources": {}
+}
