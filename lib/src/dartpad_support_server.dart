@@ -34,7 +34,7 @@ class FileRelayServer {
       throw e;
     });
     _logger.info("Recorded Export with ID ${record.uuid}");
-    return new Future.value(new UuidContainer.FromUuid(record.uuid));
+    return new Future.value(new UuidContainer.fromUuid(record.uuid));
   }
 
   @ApiMethod(method: 'POST', path: 'pullExportData', description: 'Retrieve a stored gist data set.')
@@ -52,7 +52,7 @@ class FileRelayServer {
       throw (e);
     });
     _logger.info("Deleted Export with ID ${record.uuid}");
-    return new Future.value(new PadSaveObject.FromRecordSource(record));
+    return new Future.value(new PadSaveObject.fromRecordSource(record));
   }
 
   @ApiMethod(method: 'GET', path: 'getValidId')
@@ -74,7 +74,7 @@ class FileRelayServer {
       return new Future.value(new UuidContainer());
     }
     _logger.info("Valid ID ${randomUuid} retrieved.");
-    return new Future.value(new UuidContainer.FromUuid(randomUuid));
+    return new Future.value(new UuidContainer.fromUuid(randomUuid));
   }
 
   @ApiMethod(method: 'POST', path: 'storeGist')
@@ -92,7 +92,7 @@ class FileRelayServer {
         throw e;
       });
       _logger.info("Mapping with ID ${map.gistId} stored.");
-      return new Future.value(new UuidContainer.FromUuid(map.gistId));
+      return new Future.value(new UuidContainer.fromUuid(map.gistId));
     }
   }
 
@@ -103,11 +103,11 @@ class FileRelayServer {
     List result = await query.run().toList();
     if (result.isEmpty) {
       _logger.severe("Missing mapping for Id ${id.uuid}.");
-      return new Future.value(new UuidContainer.FromUuid(""));
+      return new Future.value(new UuidContainer.fromUuid(""));
     } else {
       _GistMapping entry = result.first;
       _logger.info("Mapping with ID ${id.uuid} retrieved.");
-      return new Future.value(new UuidContainer.FromUuid(entry.gistId));
+      return new Future.value(new UuidContainer.fromUuid(entry.gistId));
     }
   }
 }
@@ -122,14 +122,14 @@ class PadSaveObject {
   String uuid;
   PadSaveObject();
 
-  PadSaveObject.FromData(String dart, String html, String css, {String uuid}) {
+  PadSaveObject.fromData(String dart, String html, String css, {String uuid}) {
     this.dart = dart;
     this.html = html;
     this.css = css;
     this.uuid = uuid;
   }
 
-  PadSaveObject.FromRecordSource(_GaePadSaveObject record) {
+  PadSaveObject.fromRecordSource(_GaePadSaveObject record) {
     this.dart = record.getDart;
     this.html = record.getHtml;
     this.css = record.getCss;
@@ -143,7 +143,7 @@ class PadSaveObject {
 class UuidContainer {
   String uuid;
   UuidContainer();
-  UuidContainer.FromUuid(String uuid) {
+  UuidContainer.fromUuid(String uuid) {
     this.uuid = uuid;
   }
 }
@@ -155,7 +155,7 @@ class Mapping {
   String gistId;
   String internalId;
   Mapping();
-  Mapping.FromIds(String gistId, String internalId) {
+  Mapping.fromIds(String gistId, String internalId) {
     this.gistId = gistId;
     this.internalId = internalId;
   }
