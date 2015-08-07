@@ -429,6 +429,8 @@ class PlaygroundMobile {
       editor.showCompletions(onlyShowFixes: true);
     }, "Quick fix");
 
+    keys.bind(['ctrl-s'], _handleSave, "Save", hidden: true);
+
     keys.bind(['ctrl-space', 'macctrl-space'], () {
       editor.showCompletions();
     }, "Completion");
@@ -540,9 +542,11 @@ class PlaygroundMobile {
     }
   }
 
+  void _handleSave() => ga.sendEvent('embed', 'save');
+
   void _handleRun() {
     _clearOutput();
-    ga.sendEvent('main', 'run');
+    ga.sendEvent('embed', 'run');
     _runButton.disabled = true;
 
     if (_editProgress != null) {
