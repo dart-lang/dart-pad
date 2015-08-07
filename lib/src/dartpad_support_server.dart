@@ -26,8 +26,6 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'export', description: 'Store a gist dataset to be retrieved.')
   Future<UuidContainer> export(PadSaveObject data) {
-    print ('Export');
-
     _GaePadSaveObject record = new _GaePadSaveObject.FromDSO(data);
     String randomUuid = new uuid_tools.Uuid().v4();
     record.uuid = "${_computeSHA1(record)}-$randomUuid";
@@ -41,8 +39,6 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'pullExportData', description: 'Retrieve a stored gist data set.')
   Future<PadSaveObject> pullExportContent(UuidContainer uuidContainer) async {
-    print ('pullExportContent');
-
     var database = ae.context.services.db;
     var query = database.query(_GaePadSaveObject)..filter('uuid =', uuidContainer.uuid);
     List result = await query.run().toList();
@@ -61,8 +57,6 @@ class FileRelayServer {
 
   @ApiMethod(method: 'GET', path: 'getValidId')
   Future<UuidContainer> getValidId() async {
-    print('getValidId');
-
     int count = 0;
     int limit = 4;
     var database = ae.context.services.db;
@@ -85,8 +79,6 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'storeGist')
   Future<UuidContainer> storeGist(Mapping map) async {
-    print('storeGist');
-
     var database = ae.context.services.db;
     var query = database.query(_GistMapping)..filter('internalId =', map.internalId);
     List result = await query.run().toList();
@@ -106,8 +98,6 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'retrieveGist')
   Future<UuidContainer> retrieveGist(UuidContainer id) async {
-    print('retrieveGist');
-
     var database = ae.context.services.db;
     var query = database.query(_GistMapping)..filter('internalId =', id);
     List result = await query.run().toList();
