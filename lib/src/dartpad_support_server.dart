@@ -26,7 +26,7 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'export', description: 'Store a gist dataset to be retrieved.')
   Future<UuidContainer> export(PadSaveObject data) {
-    _GaePadSaveObject record = new _GaePadSaveObject.FromDSO(data);
+    _GaePadSaveObject record = new _GaePadSaveObject.fromDSO(data);
     String randomUuid = new uuid_tools.Uuid().v4();
     record.uuid = "${_computeSHA1(record)}-$randomUuid";
     db.dbService.commit(inserts: [record]).catchError((e) {
@@ -86,7 +86,7 @@ class FileRelayServer {
       _logger.severe("Collision with mapping of Id ${map.gistId}.");
       return new Future.value(new UuidContainer());
     } else {
-      _GistMapping entry = new _GistMapping.FromMap(map);
+      _GistMapping entry = new _GistMapping.fromMap(map);
       db.dbService.commit(inserts: [entry]).catchError((e) {
         _logger.severe("Error while recording mapping with Id ${map.gistId}. Error ${e}");
         throw e;
@@ -184,7 +184,7 @@ class _GaePadSaveObject extends db.Model {
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 
-  _GaePadSaveObject.FromData(String dart, String html, String css,
+  _GaePadSaveObject.fromData(String dart, String html, String css,
       {String uuid}) {
     this.dart = _gzipEncode(dart);
     this.html = _gzipEncode(html);
@@ -193,7 +193,7 @@ class _GaePadSaveObject extends db.Model {
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 
-  _GaePadSaveObject.FromDSO(PadSaveObject pso) {
+  _GaePadSaveObject.fromDSO(PadSaveObject pso) {
     this.dart = _gzipEncode(pso.dart != null ? pso.dart : "");
     this.html = _gzipEncode(pso.html != null ? pso.html : "");
     this.css = _gzipEncode(pso.css != null ? pso.css : "");
@@ -225,7 +225,7 @@ class _GistMapping extends db.Model {
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 
-  _GistMapping.FromMap(Mapping map) {
+  _GistMapping.fromMap(Mapping map) {
     this.internalId = map.internalId;
     this.gistId = map.gistId;
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
