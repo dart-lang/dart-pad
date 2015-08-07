@@ -19,10 +19,12 @@
     <link rel="import" href="imports.html"/>
     <link rel="import" href="animated-dropdown.html">
     <link rel="import" href="embed_style.html"/>
-
-    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+    
+    <link href='text-fonts/inconsolata.css'
+          rel='stylesheet' type='text/css'>      
+    <!--<link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
           rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">-->
 
     <!-- codemirror -->
     <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
@@ -43,10 +45,13 @@
     <menu-bar-icons></menu-bar-icons>
     <div id ="main" class="flex layout horizontal">
       <div id="leftPanel" class="relative vertical layout">
+        <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
         <dartpad-run-button></dartpad-run-button>
         <dartpad-editor id='topPanel' dart class="layout vertical"></dartpad-editor>
         <horizontal-splitter class="splitter" horizontal></horizontal-splitter>
         <dartpad-console id='bottomPanel' class="flex layout vertical"></dartpad-console>
+        <!--This buffer is needed due to different display settings in chrome/safari/firefix-->
+        <div id="buffer"></div>
       </div>
       <vertical-splitter class="splitter layout horizontal" vertical></vertical-splitter>
       <div id="rightPanel" class ="relative vertical layout flex">

@@ -19,10 +19,12 @@
     <link rel="import" href="imports.html"/>
     <link rel="import" href="animated-dropdown.html">
     <link rel="import" href="embed_style.html"/>
-
-    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+    
+    <link href='text-fonts/inconsolata.css'
+          rel='stylesheet' type='text/css'>      
+    <!--<link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
           rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">-->
 
     <!-- codemirror -->
     <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
@@ -41,6 +43,7 @@
 
   <body class="fullbleed vertical layout" unresolved>
     <div id="main" class="relative layout vertical">
+        <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
         <dartpad-run-button></dartpad-run-button>
         <dartpad-editor id='topPanel' dart class="layout vertical"></dartpad-editor>
         <horizontal-splitter class="splitter" horizontal></horizontal-splitter>

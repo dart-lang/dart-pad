@@ -83,25 +83,24 @@ class EmbedDialog extends DDialog {
 
   void generateExport() {
     MutableGist gist = gistContainer.mutableGist;
-    Uri url = Uri.parse(window.location.toString());
-    String home = url.host;
+    String home = 'dartpad.dartlang.org';
     _doc.add(new SpanElement()
       ..text = 'Dart + Documentation: '
       ..classes.toggle('export-text-dialog', true));
     _doc.add(new InputElement()
-      ..value = '${home}/embed-dart.html?id=${gist.id}'
+      ..value = "<iframe src='https://${home}/embed-dart.html?id=${gist.id}'></iframe>"
       ..attributes['flex'] = '');
     _html.add(new SpanElement()
       ..text = 'Dart + Html: '
       ..classes.toggle('export-text-dialog', true));
     _html.add(new InputElement()
-      ..value = '${home}/embed-html.html?id=${gist.id}'
+      ..value = "<iframe src='https://${home}/embed-html.html?id=${gist.id}'></iframe>"
       ..attributes['flex'] = '');
     _inline.add(new SpanElement()
       ..text = 'Dart (Minimal): '
       ..classes.toggle('export-text-dialog', true));
     _inline.add(new InputElement()
-      ..value = '${home}/embed-inline.html?id=${gist.id}'
+      ..value = "<iframe src='https://${home}/embed-inline.html?id=${gist.id}'></iframe>"
       ..attributes['flex'] = '');
     _info.add(new SpanElement()
       ..text = 'Need more control? Check out out our '
@@ -109,7 +108,7 @@ class EmbedDialog extends DDialog {
       ..append(new SpanElement()
         ..text = 'embedding guide.'
         ..attributes['onClick'] =
-        "window.open('https://github.com/dart-lang/dart-pad/wiki/Query-Conventions')"
+        "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
         ..style.cursor = "pointer"
         ..style.textDecoration = "underline"
         ..style.fontSize = "12px"));

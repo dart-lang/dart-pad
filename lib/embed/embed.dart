@@ -29,6 +29,7 @@ import '../polymer/iron.dart';
 import '../polymer/paper.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
+import '../services/_dartpadsupportservices.dart';
 import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/ga.dart';
@@ -45,7 +46,13 @@ void init() {
   _playground = new PlaygroundMobile();
 }
 
+enum _FileType {
+  DART, CSS, HTML
+}
+
 class PlaygroundMobile {
+  final String webURL = "https://dartpad.dartlang.org";
+  
   PaperFab _runButton;
   PaperIconButton _exportButton;
   PaperIconButton _cancelButton;
@@ -53,9 +60,10 @@ class PlaygroundMobile {
   PaperIconButton _resetButton;
   PaperTabs _tabs;
 
-  Gist backupGist;
+  Map<_FileType, String> _lastRun;
   Router _router;
-
+  
+  CompileResponse _cachedCompile;
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
@@ -83,8 +91,13 @@ class PlaygroundMobile {
   ModuleManager modules = new ModuleManager();
 
   PlaygroundMobile() {
-    _createUi();
-    _initModules().then((_) => _initPlayground());
+    //Asyncronous processing to load UI faster in parallel
+    Timer.run(() {
+      _createUi();
+    });
+    Timer.run(() {
+      _initModules().then((_) => _initPlayground());
+    });
   }
 
   void showHome(RouteEnterEvent event) {
@@ -95,6 +108,7 @@ class PlaygroundMobile {
       String id = url.queryParameters['id'];
       if (isLegalGistId(id)) {
         _showGist(id);
+        _storePreviousResult();
         return;
       }
     }
@@ -106,6 +120,7 @@ class PlaygroundMobile {
     context.dartSource = sample.dartCode;
     context.htmlSource = sample.htmlCode;
     context.cssSource = sample.cssCode;
+    _storePreviousResult();
   }
 
   void showGist(RouteEnterEvent event) {
@@ -120,6 +135,7 @@ class PlaygroundMobile {
     }
 
     _showGist(gistId, run: page == 'run');
+    _storePreviousResult();
   }
 
   void registerMessageToast() {
@@ -203,21 +219,29 @@ class PlaygroundMobile {
   void registerExportButton() {
     if ($('[icon="launch"]') != null) {
       _exportButton = new PaperIconButton.from($('[icon="launch"]'));
-      _exportButton.clickAction(_exportDialog.toggle);
+      _exportButton.clickAction(() {
+        _exportDialog.open();
+        ga.sendEvent("embed", "export");
+      });
     }
   }
 
   void registerResetButton() {
     if ($('[icon="refresh"]') != null) {
       _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
-      _resetButton.clickAction(_resetDialog.toggle);
+      _resetButton.clickAction(() {
+        _resetDialog.open();
+        ga.sendEvent("embed", "reset");
+      });
     }
   }
 
   void registerCancelRefreshButton() {
     if ($('#cancelButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelButton'));
-      _cancelButton.clickAction(_resetDialog.toggle);
+      _cancelButton.clickAction(() {
+        ga.sendEvent("embed", "resetCancel");
+      });
     }
   }
 
@@ -225,7 +249,6 @@ class PlaygroundMobile {
     if ($('#affirmButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmButton'));
       _affirmButton.clickAction(() {
-        _resetDialog.toggle();
         _reset();
       });
     }
@@ -234,7 +257,9 @@ class PlaygroundMobile {
   void registerCancelExportButton() {
     if ($('#cancelExportButton') != null) {
       _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
-      _cancelButton.clickAction(_exportDialog.toggle);
+      _cancelButton.clickAction(() {
+        ga.sendEvent("embed", "exportCancel");
+      });
     }
   }
 
@@ -242,7 +267,6 @@ class PlaygroundMobile {
     if ($('#affirmExportButton') != null) {
       _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
       _affirmButton.clickAction(() {
-        _exportDialog.toggle();
         _export();
       });
     }
@@ -276,12 +300,18 @@ class PlaygroundMobile {
   }
 
   void _export() {
-    window.open(
-        "/index.html?dart=${Uri.encodeQueryComponent(context.dartSource)}&html=${Uri.encodeQueryComponent(context.htmlSource)}&css=${Uri.encodeQueryComponent(context.cssSource)}",
-        "DartPad");
+    ga.sendEvent("embed", "exportAffirm");
+    WindowBase exportWindow = window.open("", 'Export');
+    PadSaveObject exportObject = new PadSaveObject()..html = context.htmlSource
+        ..css = context.cssSource ..dart = context.dartSource;
+    Future<UuidContainer> id = dartSupportServices.export(exportObject);
+    id.then((UuidContainer container) {
+      exportWindow.location.href='$webURL/index.html?export=${container.uuid}';
+    });
   }
 
   void _reset() {
+    ga.sendEvent("embed", "resetAffirm");
     _router = new Router();
     _router
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
@@ -305,7 +335,6 @@ class PlaygroundMobile {
       context.cssSource = css == null ? '' : css.content;
 
       _clearErrors();
-
       // Analyze and run it.
       Timer.run(() {
         _performAnalysis();
@@ -321,6 +350,7 @@ class PlaygroundMobile {
     //modules.register(new MockAnalysisModule());
     //modules.register(new MockCompilerModule());
     modules.register(new DartServicesModule());
+    modules.register(new DartSupportServicesModule());
     //modules.register(new AceModule());
     modules.register(new CodeMirrorModule());
 
@@ -399,6 +429,8 @@ class PlaygroundMobile {
       editor.showCompletions(onlyShowFixes: true);
     }, "Quick fix");
 
+    keys.bind(['ctrl-s'], _handleSave, "Save", hidden: true);
+
     keys.bind(['ctrl-space', 'macctrl-space'], () {
       editor.showCompletions();
     }, "Completion");
@@ -437,13 +469,13 @@ class PlaygroundMobile {
     Element bottomPanel = $('#bottomPanel');
     if (rightPanel != null && leftPanel != null) {
       num percent = validFlex(h) ? int.parse(h) : defaultVerticalRatio;
-      leftPanel.style.width = '${leftPanel.parent.client.width * percent / 100}px';
+      leftPanel.style.width = '${percent}%';
       editor.resize();
       _syncToolbar();
     }
     if (topPanel != null && bottomPanel != null) {
       num percent = validFlex(v) ? int.parse(v) : defaultHorizontalRatio;
-      topPanel.style.height = '${topPanel.parent.client.height * percent / 100}px';
+      topPanel.style.height = '${percent}%';
     }
     var disablePointerEvents = () {
       if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
@@ -510,9 +542,11 @@ class PlaygroundMobile {
     }
   }
 
+  void _handleSave() => ga.sendEvent('embed', 'save');
+
   void _handleRun() {
     _clearOutput();
-    ga.sendEvent('main', 'run');
+    ga.sendEvent('embed', 'run');
     _runButton.disabled = true;
 
     if (_editProgress != null) {
@@ -520,11 +554,33 @@ class PlaygroundMobile {
       _editProgress.hidden(false);
     }
 
+    if (_hasStoredRequest) {
+      try {
+        CompileResponse response = _cachedCompile;
+        if (executionService != null) {
+          executionService.execute(
+              _context.htmlSource, _context.cssSource, response.result);
+        }
+      } catch (e) {
+        _showOutput('Error compiling to JavaScript:\n${e}', error: true);
+        _showError('Error compiling to JavaScript', '${e}');
+      }
+      _runButton.disabled = false;
+      if (_editProgress != null) {
+        _editProgress.hidden(true);
+        _editProgress.indeterminate = false;
+      }
+      return;
+    }
+
     var input = new CompileRequest()..source = context.dartSource;
+    _setLastRunCondition();
+    _cachedCompile = null;
     dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
+      _cachedCompile = response;
       if (executionService != null) {
         return executionService.execute(
             _context.htmlSource, _context.cssSource, response.result);
@@ -541,13 +597,28 @@ class PlaygroundMobile {
     });
   }
 
+  bool get _hasStoredRequest {
+    return (_lastRun != null && _lastRun[_FileType.DART] == context.dartSource && _lastRun[_FileType.CSS] == context.htmlSource 
+        &&  _lastRun[_FileType.CSS] == context.cssSource && _cachedCompile != null);
+  }
+ 
+  void _storePreviousResult() {
+    var input = new CompileRequest()..source = context.dartSource;
+    _setLastRunCondition();
+    dartServices
+        .compile(input)
+        .timeout(longServiceCallTimeout)
+        .then((CompileResponse response) {
+      _cachedCompile = response;
+    });
+  }
+  
   void _performAnalysis() {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
-
+    
     Future<AnalysisResults> request =
         dartServices.analyze(input).timeout(serviceCallTimeout);
-    ;
 
     _analysisRequest = request;
 
@@ -592,6 +663,7 @@ class PlaygroundMobile {
   }
 
   void _showOutput(String message, {bool error: false}) {
+    _pulsateConsole();
     if (message == null) return;
     Element title = $('.consoleTitle');
     if (title != null) title.hidden = true;
@@ -603,6 +675,13 @@ class PlaygroundMobile {
     _output.element.scrollTop = _output.element.scrollHeight;
   }
 
+  Future _pulsateConsole() async {
+    $('#bottomPanel').classes.add('pulsate');
+    new Timer(new Duration(milliseconds:1000), () {
+      $('#bottomPanel').classes.remove('pulsate');
+    });
+  }
+
   void _setGistDescription(String description) {
     if (description == null || description.isEmpty) {
       description = 'DartPad';
@@ -612,7 +691,14 @@ class PlaygroundMobile {
       e.text = description == null ? '' : description;
     }
   }
-
+  
+  void _setLastRunCondition () {
+    _lastRun = new Map<_FileType, String>();
+    _lastRun[_FileType.DART] = context.dartSource;
+    _lastRun[_FileType.HTML] = context.htmlSource;
+    _lastRun[_FileType.CSS] = context.cssSource;
+  }
+  
   void _setGistId(String id) {
     if (id == null || id.isEmpty) {
       _gistId = null;
