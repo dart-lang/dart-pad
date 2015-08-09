@@ -36,6 +36,31 @@
 
   .embed-title>* {
     margin: 0;
+
+  .pulsate {
+    -webkit-animation: pulsate 1s ease-out infinite;
+    -moz-animation: pulsate 1s ease-out infinite;
+    animation: pulsate 1s ease-out infinite;
+    background: linear-gradient(209deg, #959595, #1b1b1b);
+    background-size: 8000%, 8000%;
+  }
+
+  @-webkit-keyframes pulsate {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 51%}
+    100%{background-position:0% 50%}
+  }
+
+  @-moz-keyframes pulsate {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 51%}
+    100%{background-position:0% 50%}
+  }
+
+  @keyframes pulsate {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 51%}
+    100%{background-position:0% 50%}
   }
 
   .default-text-div {

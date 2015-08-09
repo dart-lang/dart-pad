@@ -15,9 +15,6 @@
       height: 36px;
       font-weight: 400;
     }
-    #edit-progress {
-      top: inherit;
-    }
   </style>
   <template>
     <paper-tabs id="selector-tabs" selected="0" class="bottom fit vertical tabs relative">
@@ -25,7 +22,6 @@
       <paper-tab name="html">HTML</paper-tab>
       <paper-tab name="css">CSS</paper-tab>
     </paper-tabs>
-    <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
   </template>
 
   <script>
@@ -251,13 +247,28 @@
     paper-button {
       color: #44ccff;
     }
+
+    #guide-text {
+      padding: 0 24px;
+    }
+
+    #small-font {
+      font-size: 12px;
+    }
+    #export-guide {
+      cursor: pointer;
+      text-decoration: underline;
+    }
   </style>
   <template>
     <paper-dialog id="exportDialog" heading="Export" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
-      <h2>Export to DartPad</h2>
+      <h2>Open in DartPad</h2>
       <br>
       <paper-dialog-scrollable>
-        Open this sample in DartPad?
+        <div id = "guide-text">
+          Open this sample in DartPad? <br/>
+          <span id="small-font">View our <a id="export-guide" onclick="window.open('https://github.com/dart-lang/dart-pad/wiki/Exporting-Guide');">export guide</a> for help.</span>
+        </div>
       </paper-dialog-scrollable>
 
       <div class="buttons">
