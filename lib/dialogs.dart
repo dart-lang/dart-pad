@@ -120,18 +120,17 @@ class SharingDialog extends DDialog {
       ..readonly();
     _gistUrl.onClick.listen((_) => _gistUrl.selectAll());
     div = _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
-    div.add(new DElement.tag('span', classes: 'sharinglabel'))
-      ..text = 'Embed:';
+    div.add(new DElement.tag('span', classes: 'sharinglabel'))..text = 'Embed:';
     inputGroup = div.add(new DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
     _embedUrl = inputGroup.add(new DInput.input(type: 'text'))
       ..flex()
       ..readonly()
-      ..value = "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}'></iframe>";
+      ..value =
+      "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}'></iframe>";
     _embedUrl.onClick.listen((_) => _embedUrl.selectAll());
-    div = _div.add(new DElement.tag('div', classes: 'row')
-      ..layoutHorizontal());
+    div = _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
     _embedArea = div.add(new DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
@@ -139,10 +138,10 @@ class SharingDialog extends DDialog {
       ..layoutVertical()
       ..flex());
     DElement _rightArea = _embedArea.add(new DElement.tag('div'));
-    DElement _embedDartArea = _leftArea.add(new DElement.tag('div')
-      ..layoutHorizontal());
-    DElement _embedHtmlArea = _leftArea.add(new DElement.tag('div')
-      ..layoutHorizontal());
+    DElement _embedDartArea =
+        _leftArea.add(new DElement.tag('div')..layoutHorizontal());
+    DElement _embedHtmlArea =
+        _leftArea.add(new DElement.tag('div')..layoutHorizontal());
     _embedDartRadio = _embedDartArea.add(new RadioButtonInputElement()
       ..name = "embed"
       ..id = "dart-radio");
@@ -158,36 +157,40 @@ class SharingDialog extends DDialog {
       ..text = 'Dart + HTML'
       ..style.paddingLeft = '8px');
     _embedDartRadio.checked = true;
-    _embedPicture = _rightArea.add(new ImageElement(src: _docThumbnail, height: 100, width: 300)
+    _embedPicture = _rightArea.add(
+        new ImageElement(src: _docThumbnail, height: 100, width: 300)
       ..alt = "Embed-dart"
       ..style.paddingLeft = "16px");
     _embedDartRadio.onClick.listen((_) => _embedToDart());
     _embedHtmlRadio.onClick.listen((_) => _embedToHtml());
-    _info = _leftArea.add(new DElement.tag('div')..layoutHorizontal()..flex());
+    _info = _leftArea.add(new DElement.tag('div')
+      ..layoutHorizontal()
+      ..flex());
     _info.add(new SpanElement()
       ..text = 'Check out our '
       ..style.fontSize = "12px"
       ..append(new SpanElement()
-      ..text = 'embedding guide'
-      ..attributes['onClick'] =
-    "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
-      ..style.cursor = "pointer"
-      ..style.textDecoration = "underline"
-      ..style.fontSize = "12px")
-      ..append(new SpanElement()
-      ..text = '.'));
+        ..text = 'embedding guide'
+        ..attributes['onClick'] =
+        "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
+        ..style.cursor = "pointer"
+        ..style.textDecoration = "underline"
+        ..style.fontSize = "12px")
+      ..append(new SpanElement()..text = '.'));
   }
 
   void _embedToDart() {
     _embedPicture.src = _docThumbnail;
     _embedPicture.alt = "Embed-dart";
-    _embedUrl.value = "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}'></iframe>";
+    _embedUrl.value =
+        "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}'></iframe>";
   }
 
   void _embedToHtml() {
     _embedPicture.src = _htmlThumbnail;
     _embedPicture.alt = "Embed-html";
-    _embedUrl.value = "<iframe src='https://${home}/embed-html.html?id=${gistContainer.mutableGist.id}'></iframe>";
+    _embedUrl.value =
+        "<iframe src='https://${home}/embed-html.html?id=${gistContainer.mutableGist.id}'></iframe>";
   }
 
   void showWithSummary(String summary) {
