@@ -71,7 +71,7 @@ class P_dartpadsupportservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  async.Future<UuidContainer> getValidId() {
+  async.Future<UuidContainer> getUnusedMappingId() {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -80,7 +80,7 @@ class P_dartpadsupportservicesApi {
     var _body = null;
 
 
-    _url = 'getValidId';
+    _url = 'getUnusedMappingId';
 
     var _response = _requester.request(_url,
                                        "GET",
@@ -132,9 +132,9 @@ class P_dartpadsupportservicesApi {
   }
 
   /**
-   * [request] - The metadata request object.
-   *
    * Request parameters:
+   *
+   * [id] - Query parameter: 'id'.
    *
    * Completes with a [UuidContainer].
    *
@@ -144,7 +144,7 @@ class P_dartpadsupportservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  async.Future<UuidContainer> retrieveGist(UuidContainer request) {
+  async.Future<UuidContainer> retrieveGist({core.String id}) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -152,14 +152,14 @@ class P_dartpadsupportservicesApi {
     var _downloadOptions = commons.DownloadOptions.Metadata;
     var _body = null;
 
-    if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+    if (id != null) {
+      _queryParams["id"] = [id];
     }
 
     _url = 'retrieveGist';
 
     var _response = _requester.request(_url,
-                                       "POST",
+                                       "GET",
                                        body: _body,
                                        queryParams: _queryParams,
                                        uploadOptions: _uploadOptions,
@@ -181,7 +181,7 @@ class P_dartpadsupportservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  async.Future<UuidContainer> storeGist(Mapping request) {
+  async.Future<UuidContainer> storeGist(GistToInternalIdMapping request) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -209,13 +209,13 @@ class P_dartpadsupportservicesApi {
 
 
 
-class Mapping {
+class GistToInternalIdMapping {
   core.String gistId;
   core.String internalId;
 
-  Mapping();
+  GistToInternalIdMapping();
 
-  Mapping.fromJson(core.Map _json) {
+  GistToInternalIdMapping.fromJson(core.Map _json) {
     if (_json.containsKey("gistId")) {
       gistId = _json["gistId"];
     }

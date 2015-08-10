@@ -43,7 +43,7 @@ void setupIdRetrieval() {
   ButtonElement button = querySelector('#idSection button');
   button.onClick.listen((e) {
     Stopwatch sw = new Stopwatch()..start();
-    _dartpadSupportApi.getValidId().then((results) {
+    _dartpadSupportApi.getUnusedMappingId().then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
   });
@@ -55,7 +55,7 @@ void setupGistStore() {
   ButtonElement button = querySelector('#storeSection button');
   button.onClick.listen((e) {
     String editorText = editor.getDoc().getValue();
-    support.Mapping saveObject = new support.Mapping();
+    support.GistToInternalIdMapping saveObject = new support.GistToInternalIdMapping();
     saveObject.internalId = editorText;
     saveObject.gistId = "72d83fe97bfc8e735607"; //Solar
     Stopwatch sw = new Stopwatch()..start();
@@ -71,9 +71,8 @@ void setupGistRetrieval() {
   ButtonElement button = querySelector('#gistSection button');
   button.onClick.listen((e) {
     String editorText = editor.getDoc().getValue();
-    support.UuidContainer saveObject = new support.UuidContainer()..uuid = editorText;
     Stopwatch sw = new Stopwatch()..start();
-    _dartpadSupportApi.retrieveGist(saveObject).then((results) {
+    _dartpadSupportApi.retrieveGist(id: editorText).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
   });

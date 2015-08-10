@@ -55,10 +55,10 @@ class FileRelayServer {
     return new Future.value(new PadSaveObject.fromRecordSource(record));
   }
 
-  @ApiMethod(method: 'GET', path: 'getValidId')
-  Future<UuidContainer> getValidId() async {
-    int count = 0;
-    int limit = 4;
+  @ApiMethod(method: 'GET', path: 'getUnusedMappingId')
+  Future<UuidContainer> getUnusedMappingId() async {
+    final int limit = 4;
+    int attemptCount = 0;
     var database = ae.context.services.db;
     String randomUuid;
     var query;
@@ -67,24 +67,25 @@ class FileRelayServer {
       randomUuid = new uuid_tools.Uuid().v4();
       query = database.query(_GistMapping)..filter('internalId =', randomUuid);
       result = await query.run().toList();
-      count ++;
-    } while (!result.isEmpty && count < limit);
+      attemptCount ++;
+      if (!result.isEmpty) _logger.info("Collision in retrieving mapping id ${randomUuid}.");
+    } while (!result.isEmpty && attemptCount < limit);
     if (!result.isEmpty) {
       _logger.severe("Could not generate valid ID.");
-      return new Future.value(new UuidContainer());
+      throw new InternalServerError("Could not generate ID.");
     }
     _logger.info("Valid ID ${randomUuid} retrieved.");
     return new Future.value(new UuidContainer.fromUuid(randomUuid));
   }
 
   @ApiMethod(method: 'POST', path: 'storeGist')
-  Future<UuidContainer> storeGist(Mapping map) async {
+  Future<UuidContainer> storeGist(GistToInternalIdMapping map) async {
     var database = ae.context.services.db;
     var query = database.query(_GistMapping)..filter('internalId =', map.internalId);
     List result = await query.run().toList();
     if (!result.isEmpty) {
       _logger.severe("Collision with mapping of Id ${map.gistId}.");
-      return new Future.value(new UuidContainer());
+      throw new BadRequestError("Mapping invalid.");
     } else {
       _GistMapping entry = new _GistMapping.fromMap(map);
       db.dbService.commit(inserts: [entry]).catchError((e) {
@@ -96,17 +97,20 @@ class FileRelayServer {
     }
   }
 
-  @ApiMethod(method: 'POST', path: 'retrieveGist')
-  Future<UuidContainer> retrieveGist(UuidContainer id) async {
+  @ApiMethod(method: 'GET', path: 'retrieveGist')
+  Future<UuidContainer> retrieveGist({String id}) async {
+    if (id == null) {
+      throw new BadRequestError('Missing parameter: \'id\'');
+    }
     var database = ae.context.services.db;
     var query = database.query(_GistMapping)..filter('internalId =', id);
     List result = await query.run().toList();
     if (result.isEmpty) {
-      _logger.severe("Missing mapping for Id ${id.uuid}.");
-      return new Future.value(new UuidContainer.fromUuid(""));
+      _logger.severe("Missing mapping for Id ${id}.");
+      throw new BadRequestError("Missing mapping for Id ${id}");
     } else {
       _GistMapping entry = result.first;
-      _logger.info("Mapping with ID ${id.uuid} retrieved.");
+      _logger.info("Mapping with ID ${id} retrieved.");
       return new Future.value(new UuidContainer.fromUuid(entry.gistId));
     }
   }
@@ -151,11 +155,11 @@ class UuidContainer {
 /**
  * Map from id to id
  */
-class Mapping {
+class GistToInternalIdMapping {
   String gistId;
   String internalId;
-  Mapping();
-  Mapping.fromIds(String gistId, String internalId) {
+  GistToInternalIdMapping();
+  GistToInternalIdMapping.fromIds(String gistId, String internalId) {
     this.gistId = gistId;
     this.internalId = internalId;
   }
@@ -225,7 +229,7 @@ class _GistMapping extends db.Model {
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;
   }
 
-  _GistMapping.fromMap(Mapping map) {
+  _GistMapping.fromMap(GistToInternalIdMapping map) {
     this.internalId = map.internalId;
     this.gistId = map.gistId;
     this.epochTime = new DateTime.now().millisecondsSinceEpoch;

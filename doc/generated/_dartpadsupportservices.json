@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "90e7a1d4956ed1de30186a8e49dde660f7bb405f",
+ "etag": "c910828f54f3058a3a0c7ed72989a5003e08c5a0",
  "discoveryVersion": "v1",
  "id": "_dartpadsupportservices:v1",
  "name": "_dartpadsupportservices",
@@ -40,8 +40,8 @@
     }
    }
   },
-  "Mapping": {
-   "id": "Mapping",
+  "GistToInternalIdMapping": {
+   "id": "GistToInternalIdMapping",
    "type": "object",
    "properties": {
     "gistId": {
@@ -82,9 +82,9 @@
     "$ref": "PadSaveObject"
    }
   },
-  "getValidId": {
-   "id": "FileRelayServer.getValidId",
-   "path": "getValidId",
+  "getUnusedMappingId": {
+   "id": "FileRelayServer.getUnusedMappingId",
+   "path": "getUnusedMappingId",
    "httpMethod": "GET",
    "parameters": {},
    "parameterOrder": [],
@@ -99,7 +99,7 @@
    "parameters": {},
    "parameterOrder": [],
    "request": {
-    "$ref": "Mapping"
+    "$ref": "GistToInternalIdMapping"
    },
    "response": {
     "$ref": "UuidContainer"
@@ -108,12 +108,16 @@
   "retrieveGist": {
    "id": "FileRelayServer.retrieveGist",
    "path": "retrieveGist",
-   "httpMethod": "POST",
-   "parameters": {},
-   "parameterOrder": [],
-   "request": {
-    "$ref": "UuidContainer"
+   "httpMethod": "GET",
+   "parameters": {
+    "id": {
+     "type": "string",
+     "description": "Query parameter: 'id'.",
+     "required": false,
+     "location": "query"
+    }
    },
+   "parameterOrder": [],
    "response": {
     "$ref": "UuidContainer"
    }
