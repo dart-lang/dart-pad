@@ -136,7 +136,8 @@ class SharingDialog extends DDialog {
       ..flex();
     DElement _leftArea = _embedArea.add(new DElement.tag('div')
       ..layoutVertical()
-      ..flex());
+      ..flex()
+      ..element.style.paddingLeft = "16px");
     DElement _rightArea = _embedArea.add(new DElement.tag('div'));
     DElement _embedDartArea =
         _leftArea.add(new DElement.tag('div')..layoutHorizontal());
