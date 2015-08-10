@@ -62,13 +62,17 @@ class SharingDialog extends DDialog {
   DButton _cancelButton;
   DButton _shareButton;
   DElement _div;
+  DElement _embedArea;
+  DElement _info;
   DInput _padUrl;
   DInput _gistUrl;
   DInput _embedUrl;
   String _summary;
-  DElement _embedArea;
-  DElement _info;
+
   ImageElement _embedPicture;
+
+  RadioButtonInputElement _embedDartRadio;
+  RadioButtonInputElement _embedHtmlRadio;
 
   SharingDialog(
       GistContainer this.gistContainer, GistController this.gistController,
@@ -139,23 +143,23 @@ class SharingDialog extends DDialog {
       ..layoutHorizontal());
     DElement _embedHtmlArea = _leftArea.add(new DElement.tag('div')
       ..layoutHorizontal());
-    RadioButtonInputElement _embedDartRadio = _embedDartArea.add(new RadioButtonInputElement()
-      ..name="embed"
-      ..id="dart-radio");
+    _embedDartRadio = _embedDartArea.add(new RadioButtonInputElement()
+      ..name = "embed"
+      ..id = "dart-radio");
     _embedDartArea.add(new LabelElement()
       ..htmlFor = 'dart-radio'
-      ..text = 'Embedding with Documentation'
+      ..text = 'Dart + documentation'
       ..style.paddingLeft = '8px');
-    RadioButtonInputElement _embedHtmlRadio = _embedHtmlArea.add(new RadioButtonInputElement()
-      ..name="embed"
-      ..id="html-radio");
+    _embedHtmlRadio = _embedHtmlArea.add(new RadioButtonInputElement()
+      ..name = "embed"
+      ..id = "html-radio");
     _embedHtmlArea.add(new LabelElement()
       ..htmlFor = 'html-radio'
-      ..text = 'Embedding with HTML'
+      ..text = 'Dart + HTML'
       ..style.paddingLeft = '8px');
     _embedDartRadio.checked = true;
     _embedPicture = _rightArea.add(new ImageElement(src: _docThumbnail, height: 100, width: 300)
-      ..alt="Embed-dart"
+      ..alt = "Embed-dart"
       ..style.paddingLeft = "16px");
     _embedDartRadio.onClick.listen((_) => _embedToDart());
     _embedHtmlRadio.onClick.listen((_) => _embedToHtml());
@@ -222,12 +226,13 @@ class SharingDialog extends DDialog {
       _text.text =
           'Share the DartPad link or view the source at gist.github.com.';
       _textArea.style.display = 'none';
-
       MutableGist gist = gistContainer.mutableGist;
-
       content.add(_div);
       _padUrl.value = 'https://dartpad.dartlang.org/${gist.id}';
       _gistUrl.value = gist.html_url;
+      _embedHtmlRadio.checked = false;
+      _embedDartRadio.checked = true;
+      _embedToDart();
       buttonArea.add(_cancelButton);
       buttonArea.add(new SpanElement()..attributes['flex'] = '');
     }
