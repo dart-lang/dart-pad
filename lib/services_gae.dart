@@ -147,7 +147,7 @@ class GaeSourceRequestRecorder implements SourceRequestRecorder {
     }
 
     int ms = new DateTime.now().millisecondsSinceEpoch;
-    GaeSourceRecordBlob record = new GaeSourceRecordBlob.FromData(
+    GaeSourceRecordBlob record = new GaeSourceRecordBlob.fromData(
         ms, verb, source, offset);
 
     return new Future.sync(() => db.dbService.commit(inserts: [record]))
@@ -191,7 +191,7 @@ class GaeSourceRecordBlob extends db.Model {
 
   GaeSourceRecordBlob();
 
-  GaeSourceRecordBlob.FromData(
+  GaeSourceRecordBlob.fromData(
       int epochTime, String verb, String source, int offset) {
     this.epochTime = epochTime;
     this.verb = verb;

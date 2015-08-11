@@ -21,14 +21,61 @@ void main() {
   setupDocument();
   setupFixes();
   setupVersion();
+  setupDartpadServices();
+}
+
+void setupDartpadServices() {
   setupExport();
   setupRetrieve();
+  setupIdRetrieval();
+  setupGistStore();
+  setupGistRetrieval();
 }
 
 _setupClients() {
   client = new utils.SanitizingBrowserClient();
   servicesApi = new services.DartservicesApi(client, rootUrl: _uriBase);
   _dartpadSupportApi = new support.P_dartpadsupportservicesApi(client, rootUrl: _uriBase);
+}
+
+void setupIdRetrieval() {
+  Element output = querySelector('#idSection .output');
+  ButtonElement button = querySelector('#idSection button');
+  button.onClick.listen((e) {
+    Stopwatch sw = new Stopwatch()..start();
+    _dartpadSupportApi.getUnusedMappingId().then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
+  });
+}
+
+void setupGistStore() {
+  CodeMirror editor = createEditor(querySelector('#storeSection .editor'), defaultText: "Internal ID");
+  Element output = querySelector('#storeSection .output');
+  ButtonElement button = querySelector('#storeSection button');
+  button.onClick.listen((e) {
+    String editorText = editor.getDoc().getValue();
+    support.GistToInternalIdMapping saveObject = new support.GistToInternalIdMapping();
+    saveObject.internalId = editorText;
+    saveObject.gistId = "72d83fe97bfc8e735607"; //Solar
+    Stopwatch sw = new Stopwatch()..start();
+    _dartpadSupportApi.storeGist(saveObject).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
+  });
+}
+
+void setupGistRetrieval() {
+  CodeMirror editor = createEditor(querySelector('#gistSection .editor'), defaultText: "Internal ID");
+  Element output = querySelector('#gistSection .output');
+  ButtonElement button = querySelector('#gistSection button');
+  button.onClick.listen((e) {
+    String editorText = editor.getDoc().getValue();
+    Stopwatch sw = new Stopwatch()..start();
+    _dartpadSupportApi.retrieveGist(id: editorText).then((results) {
+      output.text = "${_formatTiming(sw)}${results.toJson()}";
+    });
+  });
 }
 
 void setupAnalyze() {
