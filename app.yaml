@@ -1,4 +1,4 @@
-version: export-api
+version: v112rc
 runtime: custom
 vm: true
 api_version: 1
