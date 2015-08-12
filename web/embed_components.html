@@ -3,6 +3,7 @@
      BSD-style license that can be found in the LICENSE file. -->
 
 <link rel="import" href="imports.html"/>
+<link rel="import" href="embed_style.html"/>
 
 <dom-module id="selection-toolbar">
   <style>
@@ -33,10 +34,6 @@
 
 <dom-module id="dartpad-buttons">
   <style>
-    #run-button {
-      background-color: #d23f31;
-    }
-
     .button-bar {
       position: absolute;
       right: 16px;
@@ -49,10 +46,20 @@
     }
     
   </style>
+  <style is="custom-style">
+    paper-fab.blue {
+      --paper-fab-background: var(--paper-light-blue-500);
+      --paper-fab-keyboard-focus-background: var(--paper-light-blue-900);
+    }
+    paper-fab.red {
+      --paper-fab-background: var(--paper-red-500);
+      --paper-fab-keyboard-focus-background: var(--paper-red-900);
+    }
+  </style>
   <template>
     <div class="button-bar">
-      <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
-      <paper-fab id="export-pad" icon="launch" mini></paper-fab>
+      <paper-fab class="red" id="run-button" icon="av:play-arrow" mini></paper-fab>
+      <paper-fab class="blue" id="export-pad" icon="launch" mini></paper-fab>
     </div>
   </template>
 
@@ -65,10 +72,6 @@
 
 <dom-module id="dartpad-run-button">
   <style>
-    #run-button {
-      background-color: #d23f31;
-    }
-
     .button-bar {
       position: absolute;
       right: 16px;
@@ -80,9 +83,15 @@
       margin-left: 8px;
     }
   </style>
+  <style is="custom-style">
+    paper-fab.red {
+      --paper-fab-background: var(--paper-red-500);
+      --paper-fab-keyboard-focus-background: var(--paper-red-900);
+    }
+  </style>
   <template>
     <div class="button-bar">
-      <paper-fab id="run-button" icon="av:play-arrow" mini></paper-fab>
+      <paper-fab class="red" id="run-button" icon="av:play-arrow" mini></paper-fab>
     </div>
   </template>
 
@@ -171,6 +180,8 @@
   <style>
     #resetDialog {
       min-height: 90px;
+      background-color: #333;
+      color: #c6c6c6;
     }
     paper-button {
       color: #44ccff;
@@ -246,6 +257,11 @@
   <style>
     paper-button {
       color: #44ccff;
+    }
+
+    #exportDialog {
+      background-color: #333;
+      color: #c6c6c6;
     }
 
     #guide-text {

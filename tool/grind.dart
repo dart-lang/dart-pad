@@ -62,12 +62,13 @@ build() {
   run('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
 
   // Run vulcanize.
+  //Imports vulcanized, not inlined for IE support
+  vulcanizeNoExclusion('imports.html');
   vulcanize('mobile.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
   vulcanize('embed-inline.html');
 
-  // TODO: vulcanize the embedding html files
 
   return _uploadCompiledStats(
       mainFile.asFile.lengthSync(), mobileFile.asFile.lengthSync());
@@ -89,6 +90,28 @@ vulcanize(String filepath) {
     'main.dart.js',
     '--exclude',
     'packages/codemirror/codemirror.js',
+    '--exclude',
+    'embed_components.html',
+    '--exclude',
+    'animated-dropdown.html',
+    filepath
+  ], workingDirectory: 'build/web');
+  if (result.exitCode != 0) {
+    fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
+  }
+  HtmlFile.asFile.writeAsStringSync(result.stdout);
+
+  log('${HtmlFile.path} vulcanize: ${_printSize(HtmlFile)}');
+}
+
+//Run vulcanize with no exclusions
+vulcanizeNoExclusion(String filepath) {
+  FilePath HtmlFile = _buildDir.join('web', filepath);
+  log('${HtmlFile.path} original: ${_printSize(HtmlFile)}');
+  ProcessResult result = Process.runSync('vulcanize', [
+    '--strip-comments',
+    '--inline-css',
+    '--inline-scripts',
     filepath
   ], workingDirectory: 'build/web');
   if (result.exitCode != 0) {
