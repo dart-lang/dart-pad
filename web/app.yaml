@@ -12,10 +12,16 @@ handlers:
   static_files: favicon.ico
   upload: favicon\.ico
 
+- url: /pictures
+  static_dir: pictures
+
 - url: .*
   script: main.app
 # Enable for version == prod.
   secure: always
+
+
+
 
 libraries:
 - name: webapp2
