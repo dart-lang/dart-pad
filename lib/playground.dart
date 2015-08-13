@@ -618,7 +618,7 @@ class Playground implements GistContainer, GistController {
           html: _context.htmlSource,
           css: _context.cssSource,
           analysis: result);
-          return new Future.value("${summer.returnAsSimpleSummary()}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).");
+          return "${summer.returnAsSimpleSummary()}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).";
       }).catchError((e) {
       _logger.severe(e);
       });
