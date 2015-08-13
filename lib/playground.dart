@@ -606,7 +606,7 @@ class Playground implements GistContainer, GistController {
   }
 
   Future<String> _createSummary() async {
-    dartSupportServices.getUnusedMappingId().then((UuidContainer id) {
+    await dartSupportServices.getUnusedMappingId().then((UuidContainer id) {
       SourceRequest input = new SourceRequest()..source = _context.dartSource;
       _mappingId = id.uuid;
       return dartServices
@@ -618,7 +618,7 @@ class Playground implements GistContainer, GistController {
       html: _context.htmlSource,
       css: _context.cssSource,
       analysis: result);
-      return "${summer.returnAsSimpleSummary()}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId})." ;
+      return new Future.value("${summer.returnAsSimpleSummary()}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).");
       }).catchError((e) {
       _logger.severe(e);
       });
