@@ -76,8 +76,8 @@ build() {
 
 //Run vulcanize
 vulcanize(String filepath) {
-  FilePath HtmlFile = _buildDir.join('web', filepath);
-  log('${HtmlFile.path} original: ${_printSize(HtmlFile)}');
+  FilePath htmlFile = _buildDir.join('web', filepath);
+  log('${htmlFile.path} original: ${_printSize(htmlFile)}');
   ProcessResult result = Process.runSync('vulcanize', [
     '--strip-comments',
     '--inline-css',
@@ -99,15 +99,15 @@ vulcanize(String filepath) {
   if (result.exitCode != 0) {
     fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
   }
-  HtmlFile.asFile.writeAsStringSync(result.stdout);
+  htmlFile.asFile.writeAsStringSync(result.stdout);
 
-  log('${HtmlFile.path} vulcanize: ${_printSize(HtmlFile)}');
+  log('${htmlFile.path} vulcanize: ${_printSize(htmlFile)}');
 }
 
 //Run vulcanize with no exclusions
 vulcanizeNoExclusion(String filepath) {
-  FilePath HtmlFile = _buildDir.join('web', filepath);
-  log('${HtmlFile.path} original: ${_printSize(HtmlFile)}');
+  FilePath htmlFile = _buildDir.join('web', filepath);
+  log('${htmlFile.path} original: ${_printSize(htmlFile)}');
   ProcessResult result = Process.runSync('vulcanize', [
     '--strip-comments',
     '--inline-css',
@@ -117,9 +117,9 @@ vulcanizeNoExclusion(String filepath) {
   if (result.exitCode != 0) {
     fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
   }
-  HtmlFile.asFile.writeAsStringSync(result.stdout);
+  htmlFile.asFile.writeAsStringSync(result.stdout);
 
-  log('${HtmlFile.path} vulcanize: ${_printSize(HtmlFile)}');
+  log('${htmlFile.path} vulcanize: ${_printSize(htmlFile)}');
 }
 
 @Task()

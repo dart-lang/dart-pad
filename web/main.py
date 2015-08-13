@@ -83,6 +83,8 @@ def _serve(resp, path):
         resp.content_type = 'image/x-icon'
     if path.endswith('.html'):
         resp.content_type = 'text/html '
+    if path.endswith('.png'):
+           resp.content_type = 'image/png'
 
     f = open(path, 'r')
     c = f.read()
