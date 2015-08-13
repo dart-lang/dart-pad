@@ -377,7 +377,6 @@ class PlaygroundMobile {
 
     Future<AnalysisResults> request =
         dartServices.analyze(input).timeout(serviceCallTimeout);
-    ;
 
     _analysisRequest = request;
 
