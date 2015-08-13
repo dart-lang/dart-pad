@@ -74,6 +74,7 @@ class Playground implements GistContainer, GistController {
   ParameterPopup paramPopup;
   DocHandler docHandler;
 
+  String _mappingId;
   ModuleManager modules = new ModuleManager();
 
   Playground() {
@@ -199,6 +200,12 @@ class Playground implements GistContainer, GistController {
         blankGist.getFile('styles.css').content = pad.css;
         editableGist.setBackingGist(blankGist);
       });
+    } else if (url.hasQuery && url.queryParameters['source'] != null) {
+      dartSupportServices.retrieveGist(id:url.queryParameters['source']).then((UuidContainer gistId) {
+        gistLoader.loadGist(gistId.uuid).then((Gist backing) {
+          editableGist.setBackingGist(backing);
+        });
+      });
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
@@ -271,6 +278,10 @@ class Playground implements GistContainer, GistController {
         ..style.cursor = "pointer"
         ..onClick.listen((e) => window.open(
             "https://gist.github.com/anonymous/${newGist.id}", '_blank'));
+      GistToInternalIdMapping mapping = new GistToInternalIdMapping()
+        ..gistId = newGist.id
+        ..internalId=_mappingId;
+      dartSupportServices.storeGist(mapping);
     }).catchError((e) {
       String message = 'Error saving gist: ${e}';
       DToast.showMessage(message);
@@ -594,21 +605,25 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  Future<String> _createSummary() {
-    SourceRequest input = new SourceRequest()..source = _context.dartSource;
-    return dartServices
-        .analyze(input)
-        .timeout(shortServiceCallTimeout)
-        .then((AnalysisResults result) {
+  Future<String> _createSummary() async {
+    dartSupportServices.getUnusedMappingId().then((UuidContainer id) {
+      SourceRequest input = new SourceRequest()..source = _context.dartSource;
+      _mappingId = id.uuid;
+      return dartServices
+      .analyze(input)
+      .timeout(shortServiceCallTimeout)
+      .then((AnalysisResults result) {
       Summarizer summer = new Summarizer(
-          dart: _context.dartSource,
-          html: _context.htmlSource,
-          css: _context.cssSource,
-          analysis: result);
-      return summer.returnAsSimpleSummary();
-    }).catchError((e) {
+      dart: _context.dartSource,
+      html: _context.htmlSource,
+      css: _context.cssSource,
+      analysis: result);
+      return "${summer.returnAsSimpleSummary()}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId})." ;
+      }).catchError((e) {
       _logger.severe(e);
+      });
     });
+
   }
 
   /// Perform static analysis of the source code. Return whether the code
