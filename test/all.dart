@@ -25,6 +25,7 @@ void main() {
   common_server_test.defineTests();
   common_test.defineTests();
   compiler_test.defineTests();
+  dartpad_server_test.defineTests();
   pub_test.defineTests();
   summarize_test.defineTests();
 }
