@@ -30,7 +30,7 @@ class MemoryResolver extends UriResolver {
   Map<String, Source> sources = {};
 
   @override
-  Source resolveAbsolute(Uri uri) {
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     return sources[uri.toString()];
   }
 
