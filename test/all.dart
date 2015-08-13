@@ -13,6 +13,7 @@ import 'common_test.dart' as common_test;
 import 'compiler_test.dart' as compiler_test;
 import 'pub_test.dart' as pub_test;
 import 'summarize_test.dart' as summarize_test;
+import 'dartpad_server_test.dart' as dartpad_server_test;
 import 'src/test_config.dart';
 
 void main() {
