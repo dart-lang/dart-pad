@@ -606,19 +606,19 @@ class Playground implements GistContainer, GistController {
   }
 
   Future<String> _createSummary() async {
-    await dartSupportServices.getUnusedMappingId().then((UuidContainer id) {
+    return dartSupportServices.getUnusedMappingId().then((UuidContainer id) {
       SourceRequest input = new SourceRequest()..source = _context.dartSource;
       _mappingId = id.uuid;
       return dartServices
-      .analyze(input)
-      .timeout(shortServiceCallTimeout)
-      .then((AnalysisResults result) {
-      Summarizer summer = new Summarizer(
-      dart: _context.dartSource,
-      html: _context.htmlSource,
-      css: _context.cssSource,
-      analysis: result);
-      return new Future.value("${summer.returnAsSimpleSummary()}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).");
+        .analyze(input)
+        .timeout(shortServiceCallTimeout)
+        .then((AnalysisResults result) {
+        Summarizer summer = new Summarizer(
+          dart: _context.dartSource,
+          html: _context.htmlSource,
+          css: _context.cssSource,
+          analysis: result);
+          return new Future.value("${summer.returnAsSimpleSummary()}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).");
       }).catchError((e) {
       _logger.severe(e);
       });
