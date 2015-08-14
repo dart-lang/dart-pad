@@ -36,7 +36,6 @@ class FileRelayServer {
       database = new Map();
       this.test = true;
     } else {
-      database = ae.context.services.db;
       this.test = false;
     }
   }
@@ -56,7 +55,7 @@ class FileRelayServer {
         }
       }
     } else {
-      var query = database.query(dbClass)..filter(attribute, value);
+      var query = ae.context.services.db.query(dbClass)..filter(attribute, value);
       result = await query.run().toList();
     }
     return new Future.value(result);
@@ -76,7 +75,7 @@ class FileRelayServer {
         //TODO: Implement delete
       }
     } else {
-      database.commit(inserts: inserts, deletes: deletes);
+      ae.context.services.db.commit(inserts: inserts, deletes: deletes);
     }
     return new Future.value(null);
   }
