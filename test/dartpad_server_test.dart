@@ -143,6 +143,7 @@ void defineTests() {
       expect(postResponse.status, 200);
       var postData = JSON.decode(UTF8.decode(await postResponse.body.first));
       expect(postData['uuid'], gistId);
+      json = {'gistId':'failure', 'internalId':data['uuid']};
       postResponse = await _sendPostRequest(
           '_dartpadsupportservices/v1/storeGist', json);
       expect(postResponse.status, 400);
