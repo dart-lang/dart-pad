@@ -123,7 +123,7 @@ void defineTests() {
       expect(data['uuid'] != null, true);
       var json = {'gistId':'teststore', 'internalId':data['uuid']};
       var postResponse = await _sendPostRequest(
-          'dartpadsupportservices/v1/storeGist', json);
+          '_dartpadsupportservices/v1/storeGist', json);
       expect(postResponse.status, 200);
       var postData = JSON.decode(UTF8.decode(await postResponse.body.first));
       expect(postData['uuid'], data['uuid']);
@@ -137,12 +137,12 @@ void defineTests() {
       expect(data['uuid'] != null, true);
       var json = {'gistId':'testfail', 'internalId':data['uuid']};
       var postResponse = await _sendPostRequest(
-          'dartpadsupportservices/v1/storeGist', json);
+          '_dartpadsupportservices/v1/storeGist', json);
       expect(postResponse.status, 200);
       var postData = JSON.decode(UTF8.decode(await postResponse.body.first));
       expect(postData['uuid'], data['uuid']);
       postResponse = await _sendPostRequest(
-          'dartpadsupportservices/v1/storeGist', json);
+          '_dartpadsupportservices/v1/storeGist', json);
       expect(postResponse.status, 400);
     });
   });
