@@ -173,6 +173,7 @@ void defineTests() {
       var response = await _sendGetRequest(
           '_dartpadsupportservices/v1/getUnusedMappingId');
       expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['uuid'], isNotNull);
       var getResponse = await _sendGetRequest(
           '_dartpadsupportservices/v1/retrieveGist', 'id=${data['uuid']}');
