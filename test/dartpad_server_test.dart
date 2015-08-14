@@ -12,25 +12,21 @@ import 'package:services/src/dartpad_support_server.dart';
 import 'package:rpc/rpc.dart';
 import 'package:unittest/unittest.dart';
 
-
-String quickFixesCode =
-r'''
+String quickFixesCode = r'''
 import 'dart:async';
 void main() {
   int i = 0;
 }
 ''';
 
-String preFormattedCode =
-r'''
+String preFormattedCode = r'''
 void main()
 {
 int i = 0;
 }
 ''';
 
-String postFormattedCode =
-r'''
+String postFormattedCode = r'''
 void main() {
   int i = 0;
 }
@@ -40,7 +36,7 @@ void defineTests() {
   FileRelayServer server;
   ApiServer apiServer;
 
-  server = new FileRelayServer();
+  server = new FileRelayServer(test: true);
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
   apiServer.addApi(server);
 
@@ -54,35 +50,47 @@ void defineTests() {
 
   Future<HttpApiResponse> _sendGetRequest(String path, [String queryParams]) {
     assert(apiServer != null);
-    var uri = Uri.parse(
-        queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
+    var uri = Uri
+        .parse(queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
     var body = new Stream.fromIterable([]);
     var request = new HttpApiRequest('GET', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
   group('ExportServer', () {
-
     test('Export', () async {
-      var json = {'dart': sampleCode, 'html':'', 'css':''};
-      var response = await _sendPostRequest('_dartpadsupportservices/v1/export', json);
+      var json = {'dart': 'test', 'html': '', 'css': '', 'uuid': ''};
+      var response =
+          await _sendPostRequest('_dartpadsupportservices/v1/export', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['uuid'] == null, false);
-      var responseTwo = await _sendPostRequest('_dartpadsupportservices/v1/export', json);
-      expect(responseTwo.status, 200);
-      var dataTwo = JSON.decode(UTF8.decode(await responseTwo.body.first));
-      expect(dataTwo['uuid'], data['uuid']);
     });
 
-    test('Pull Export', () async {
-      var json = {'dart': sampleCode, 'html':'', 'css':''};
-      var response = await _sendPostRequest('_dartpadsupportservices/v1/export', json);
+    test('Export uuid different', () async {
+      var json = {'dart': 'test', 'html': '', 'css': '', 'uuid': ''};
+      var response =
+      await _sendPostRequest('_dartpadsupportservices/v1/export', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['uuid'] == null, false);
-      json = {'uuid':data['uuid']};
-      var pull = await _sendPostRequest('_dartpadsupportservices/v1/pullExportData', json);
+      var responseTwo =
+      await _sendPostRequest('_dartpadsupportservices/v1/export', json);
+      expect(responseTwo.status, 200);
+      var dataTwo = JSON.decode(UTF8.decode(await responseTwo.body.first));
+      expect(dataTwo['uuid'] == data['uuid'], false);
+    });
+
+    test('Pull export', () async {
+      var json = {'dart': sampleCode, 'html': '', 'css': ''};
+      var response =
+          await _sendPostRequest('_dartpadsupportservices/v1/export', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data['uuid'] == null, false);
+      json = {'uuid': data['uuid']};
+      var pull = await _sendPostRequest(
+          '_dartpadsupportservices/v1/pullExportData', json);
       expect(pull.status, 200);
       var pullData = JSON.decode(UTF8.decode(await pull.body.first));
       expect(pullData['dart'], sampleCode);
@@ -90,20 +98,23 @@ void defineTests() {
       expect(pullData['css'], '');
       expect(pullData['uuid'], data['uuid']);
     });
+    //TODO: Test delete functionality
   });
 
-  group('GistMapping', () {
 
+
+  group('GistMapping', () {
     test('ID request', () async {
-      var response = await _sendGetRequest('_dartpadsupportservices/v1/getUnusedMappingId');
+      var response = await _sendGetRequest(
+          '_dartpadsupportservices/v1/getUnusedMappingId');
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['uuid'] != null, true);
-      var responseTwo = await _sendGetRequest('_dartpadsupportservices/v1/getUnusedMappingId');
+      var responseTwo = await _sendGetRequest(
+          '_dartpadsupportservices/v1/getUnusedMappingId');
       expect(responseTwo.status, 200);
       var dataTwo = JSON.decode(UTF8.decode(await responseTwo.body.first));
       expect(data['uuid'] == dataTwo['uuid'], false);
-
     });
   });
 }
