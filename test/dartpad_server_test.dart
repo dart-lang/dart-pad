@@ -70,12 +70,12 @@ void defineTests() {
     test('Export uuid different', () async {
       var json = {'dart': 'test', 'html': '', 'css': '', 'uuid': ''};
       var response =
-      await _sendPostRequest('_dartpadsupportservices/v1/export', json);
+          await _sendPostRequest('_dartpadsupportservices/v1/export', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['uuid'], isNotNull);
       var responseTwo =
-      await _sendPostRequest('_dartpadsupportservices/v1/export', json);
+          await _sendPostRequest('_dartpadsupportservices/v1/export', json);
       expect(responseTwo.status, 200);
       var dataTwo = JSON.decode(UTF8.decode(await responseTwo.body.first));
       expect(dataTwo['uuid'] == data['uuid'], false);
@@ -100,8 +100,6 @@ void defineTests() {
     });
     //TODO: Test delete functionality
   });
-
-
 
   group('GistMapping', () {
     test('ID request', () async {
