@@ -19,14 +19,14 @@ import 'src/test_config.dart';
 void main() {
   setupTestConfiguration();
 
-  /*analyzer_test.defineTests();
+  analyzer_test.defineTests();
   analysis_server_test.defineTests();
   api_classes_test.defineTests();
   bench_test.defineTests();
   common_server_test.defineTests();
   common_test.defineTests();
-  compiler_test.defineTests();*/
+  compiler_test.defineTests();
   dartpad_server_test.defineTests();
-  /*pub_test.defineTests();
-  summarize_test.defineTests();*/
+  pub_test.defineTests();
+  summarize_test.defineTests();
 }
