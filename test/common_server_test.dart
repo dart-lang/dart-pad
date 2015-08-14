@@ -7,6 +7,8 @@ library services.common_server_test;
 import 'dart:async';
 import 'dart:convert';
 
+
+import 'package:services/src/api_classes.dart';
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:services/src/common.dart';
 import 'package:services/src/common_server.dart';
@@ -271,6 +273,9 @@ void defineTests() {
 
     test('summarize', () async {
       var json={'source':{'dart':sampleCode, 'html':'', 'css':''}};
+      server.summarize(new SourcesRequest()..sources={'dart':sampleCode, 'html':'', 'css':''}).then(
+              (summary) {print("SUMMARY: ${summary.text}");}
+      );
       var response = await _sendPostRequest('dartservices/v1/summarize', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
