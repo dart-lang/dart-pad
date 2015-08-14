@@ -64,7 +64,7 @@ void defineTests() {
           await _sendPostRequest('_dartpadsupportservices/v1/export', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
-      expect(data['uuid'] == null, false);
+      expect(data['uuid'], isNotNull);
     });
 
     test('Export uuid different', () async {
@@ -73,7 +73,7 @@ void defineTests() {
       await _sendPostRequest('_dartpadsupportservices/v1/export', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
-      expect(data['uuid'] == null, false);
+      expect(data['uuid'], isNotNull);
       var responseTwo =
       await _sendPostRequest('_dartpadsupportservices/v1/export', json);
       expect(responseTwo.status, 200);
@@ -87,7 +87,7 @@ void defineTests() {
           await _sendPostRequest('_dartpadsupportservices/v1/export', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
-      expect(data['uuid'] == null, false);
+      expect(data['uuid'], isNotNull);
       json = {'uuid': data['uuid']};
       var pull = await _sendPostRequest(
           '_dartpadsupportservices/v1/pullExportData', json);

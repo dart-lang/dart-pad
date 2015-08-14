@@ -268,6 +268,28 @@ void defineTests() {
       expect(data['sdkVersion'], isNotNull);
       expect(data['runtimeVersion'], isNotNull);
     });
+
+    test('summarize', () async {
+      var json={'source':{'dart':sampleCode, 'html':'', 'css':''}};
+      var response = await _sendPostRequest('dartservices/v1/_summarize', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data['text'], isNotNull);
+    });
+
+    test('summarizeDifferent', () async {
+      var json={'source':{'dart':sampleCode, 'html':'', 'css':''}};
+      var response = await _sendPostRequest('dartservices/v1/_summarize', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data['text'], isNotNull);
+      var jsonTwo={'source':{'dart':quickFixesCode, 'html':'', 'css':''}};
+      var responseTwo = await _sendPostRequest('dartservices/v1/_summarize', jsonTwo);
+      expect(responseTwo.status, 200);
+      var dataTwo = JSON.decode(UTF8.decode(await responseTwo.body.first));
+      expect(dataTwo['text'], isNotNull);
+      expect(dataTwo['text'] == data['text'], false);
+    });
   });
 }
 
