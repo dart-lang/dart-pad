@@ -272,10 +272,7 @@ void defineTests() {
     });
 
     test('summarize', () async {
-      var json={'source':{'dart':sampleCode, 'html':'', 'css':''}};
-      server.summarize(new SourcesRequest()..sources={'dart':sampleCode, 'html':'', 'css':''}).then(
-              (summary) {print("SUMMARY: ${summary.text}");}
-      );
+      var json={'sources':{'dart':sampleCode, 'html':'', 'css':''}};
       var response = await _sendPostRequest('dartservices/v1/summarize', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
@@ -283,7 +280,7 @@ void defineTests() {
     });
 
     test('summarizeDifferent', () async {
-      var json={'source':{'dart':sampleCode, 'html':'', 'css':''}};
+      var json={'sources':{'dart':sampleCode, 'html':'', 'css':''}};
       var response = await _sendPostRequest('dartservices/v1/summarize', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
