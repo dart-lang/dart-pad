@@ -15,21 +15,24 @@ import 'package:unittest/unittest.dart';
 
 import 'src/test_config.dart';
 
-String quickFixesCode = r'''
+String quickFixesCode =
+r'''
 import 'dart:async';
 void main() {
   int i = 0;
 }
 ''';
 
-String preFormattedCode = r'''
+String preFormattedCode =
+r'''
 void main()
 {
 int i = 0;
 }
 ''';
 
-String postFormattedCode = r'''
+String postFormattedCode =
+r'''
 void main() {
   int i = 0;
 }
@@ -69,8 +72,8 @@ void defineTests() {
 
   Future<HttpApiResponse> _sendGetRequest(String path, [String queryParams]) {
     assert(apiServer != null);
-    var uri = Uri
-        .parse(queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
+    var uri = Uri.parse(
+        queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
     var body = new Stream.fromIterable([]);
     var request = new HttpApiRequest('GET', uri, {}, body);
     return apiServer.handleHttpApiRequest(request);
@@ -86,16 +89,19 @@ void defineTests() {
       var response = await _sendPostRequest('dartservices/v1/analyze', json);
       expect(response.status, 200);
       var data = await response.body.first;
-      expect(JSON.decode(UTF8.decode(data)),
-          {'issues': [], 'packageImports': [], 'resolvedImports': []});
+      expect(JSON.decode(UTF8.decode(data)), {
+        'issues': [],
+        'packageImports': [],
+        'resolvedImports': []
+      });
     });
 
     test('analyze errors', () async {
       var json = {'source': sampleCodeError};
       var response = await _sendPostRequest('dartservices/v1/analyze', json);
       expect(response.status, 200);
-      expect(
-          response.headers['content-type'], 'application/json; charset=utf-8');
+      expect(response.headers['content-type'],
+             'application/json; charset=utf-8');
       var data = await response.body.first;
       var expectedJson = {
         'issues': [
@@ -117,9 +123,9 @@ void defineTests() {
     });
 
     test('analyze negative-test noSource', () async {
-      var json = {};
-      var response = await _sendPostRequest('dartservices/v1/analyze', json);
-      expect(response.status, 400);
+       var json = {};
+       var response = await _sendPostRequest('dartservices/v1/analyze', json);
+       expect(response.status, 400);
     });
 
     test('compile', () async {
@@ -140,10 +146,10 @@ void defineTests() {
     });
 
     test('compile negative-test noSource', () async {
-      var json = {};
-      var response = await _sendPostRequest('dartservices/v1/compile', json);
-      expect(response.status, 400);
-    });
+        var json = {};
+        var response = await _sendPostRequest('dartservices/v1/compile', json);
+        expect(response.status, 400);
+     });
 
     test('complete', () async {
       var json = {'source': 'void main() {print("foo");}', 'offset': 1};
@@ -185,9 +191,7 @@ void defineTests() {
       var response = await _sendPostRequest('dartservices/v1/document', json);
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
-      expect(data, {
-        "info": {"staticType": "void"}
-      });
+      expect(data, {"info": {"staticType": "void"}});
     });
 
     test('document no data', () async {
@@ -199,20 +203,20 @@ void defineTests() {
     });
 
     test('document negative-test noSource', () async {
-      var json = {'offset': 12};
+      var json = { 'offset': 12 };
       var response = await _sendPostRequest('dartservices/v1/document', json);
       expect(response.status, 400);
     });
 
     test('document negative-test noOffset', () async {
-      var json = {'source': 'void main() {print("foo");}'};
+      var json = {'source': 'void main() {print("foo");}' };
       var response = await _sendPostRequest('dartservices/v1/document', json);
       expect(response.status, 400);
     });
 
     test('counter test', () async {
       var response =
-          await _sendGetRequest('dartservices/v1/counter', "name=Analyses");
+        await _sendGetRequest('dartservices/v1/counter', "name=Analyses");
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(response.status, 200);
       expect(data['count'], 0);
@@ -222,7 +226,7 @@ void defineTests() {
       response = await _sendPostRequest('dartservices/v1/analyze', json);
 
       response =
-          await _sendGetRequest('dartservices/v1/counter', "name=Analyses");
+        await _sendGetRequest('dartservices/v1/counter', "name=Analyses");
       data = JSON.decode(UTF8.decode(await response.body.first));
       expect(response.status, 200);
       expect(data['count'], 1);
@@ -264,7 +268,7 @@ void defineTests() {
       expect(data['sdkVersion'], isNotNull);
       expect(data['runtimeVersion'], isNotNull);
     });
-
+    
     test('summarize', () async {
       var json = {
         'sources': {'dart': sampleCode, 'html': '', 'css': ''}
@@ -287,7 +291,7 @@ void defineTests() {
         'sources': {'dart': quickFixesCode, 'html': '', 'css': ''}
       };
       var responseTwo =
-          await _sendPostRequest('dartservices/v1/summarize', jsonTwo);
+      await _sendPostRequest('dartservices/v1/summarize', jsonTwo);
       expect(responseTwo.status, 200);
       var dataTwo = JSON.decode(UTF8.decode(await responseTwo.body.first));
       expect(dataTwo['text'], isNotNull);
@@ -324,7 +328,7 @@ class MockCounter implements PersistentCounter {
   }
 
   @override
-  Future increment(String name, {int increment: 1}) {
+  Future increment(String name, {int increment : 1}) {
     counter.putIfAbsent(name, () => 0);
     return new Future.value(counter[name]++);
   }
