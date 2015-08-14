@@ -165,7 +165,7 @@ class FileRelayServer {
     if (id == null) {
       throw new BadRequestError('Missing parameter: \'id\'');
     }
-    List result = await databaseQuery(_GistMapping, 'internalId= ', id);
+    List result = await databaseQuery(_GistMapping, 'internalId =', id);
     if (result.isEmpty) {
       _logger.severe("Missing mapping for Id ${id}.");
       throw new BadRequestError("Missing mapping for Id ${id}");
