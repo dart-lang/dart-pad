@@ -8,18 +8,6 @@ import 'dart:async';
 import 'dart:html';
 
 /**
- * Return whether we are running on a mobile device.
- */
-bool isMobile() {
-  final int mobileSize = 610;
-
-  int width = document.documentElement.clientWidth;
-  int height = document.documentElement.clientHeight;
-
-  return width <= mobileSize || height <= mobileSize;
-}
-
-/**
  * A [NodeValidator] which allows everything.
  */
 class PermissiveNodeValidator implements NodeValidator {

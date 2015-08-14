@@ -119,11 +119,6 @@ class Playground implements GistContainer, GistController {
     runButton.onClick.listen((e) {
       _handleRun();
 
-      // On a mobile device, focusing the editing area causes the keyboard to
-      // pop up when the user hits the run button.
-      if (!isMobile()) _context.focus();
-    });
-
     // Listen for the keyboard button.
     querySelector('#keyboard-button').onClick.listen((_) => settings.show());
 
@@ -179,7 +174,7 @@ class Playground implements GistContainer, GistController {
     Timer.run(() => _performAnalysis());
     _clearOutput();
   }
-  
+
   Future showHome(RouteEnterEvent event) async {
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
@@ -213,7 +208,7 @@ class Playground implements GistContainer, GistController {
     } else {
       editableGist.setBackingGist(createSampleGist());
     }
-    
+
     _clearOutput();
     // We delay this because of the latency in populating the editors from the
     // gist data.
