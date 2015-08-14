@@ -268,7 +268,7 @@ void defineTests() {
       expect(data['sdkVersion'], isNotNull);
       expect(data['runtimeVersion'], isNotNull);
     });
-    
+
     test('summarize', () async {
       var json = {
         'sources': {'dart': sampleCode, 'html': '', 'css': ''}
