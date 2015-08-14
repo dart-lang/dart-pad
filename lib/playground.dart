@@ -34,7 +34,6 @@ import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/summarize.dart';
-import 'src/util.dart';
 
 Playground get playground => _playground;
 
@@ -118,6 +117,7 @@ class Playground implements GistContainer, GistController {
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
       _handleRun();
+    });
 
     // Listen for the keyboard button.
     querySelector('#keyboard-button').onClick.listen((_) => settings.show());
