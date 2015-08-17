@@ -44,6 +44,11 @@ abstract class SourceRequestRecorder {
   Future record(String verb, String source, [int offset]);
 }
 
+class SummaryText {
+  String text;
+  SummaryText.fromString(String this.text);
+}
+
 abstract class PersistentCounter {
   Future increment(String name, {int increment: 1});
   Future<int> getTotal(String name);
@@ -114,7 +119,7 @@ class CommonServer {
       path: 'summarize',
       description: 'Summarize the given Dart source code and return any resulting '
         'analysis errors or warnings.')
-  Future<AnalysisResults> summarize(SourcesRequest request) {
+  Future<SummaryText> summarize(SourcesRequest request) {
     return _summarize(request.sources['dart'], request.sources['css'], request.sources['html']);
   }
   
@@ -259,18 +264,19 @@ class CommonServer {
     return _analyzeMulti({"main.dart" : source});
   }
   
-  Future<AnalysisResults> _summarize(String dart, String html, String css) async {
+  Future<SummaryText> _summarize(String dart, String html, String css) async {
     if (dart == null || html == null || css == null) {
       throw new BadRequestError('Missing core source parameter.');
     }
-    return _analyzeMulti({"main.dart" : dart}).then((result) {
-      Summarizer summer = new Summarizer(
+    SummaryText summaryString = await _analyzeMulti({"main.dart" : dart}).then((result) {
+      Summarizer summarizer = new Summarizer(
           dart: dart,
           html: html,
           css: css,
           analysis: result);
-      return summer.returnAsSimpleSummary();
+      return new SummaryText.fromString(summarizer.returnAsSimpleSummary());
     });
+    return new Future.value(summaryString);
   }
 
   Future<AnalysisResults> _analyzeMulti(Map<String, String> sources) async {

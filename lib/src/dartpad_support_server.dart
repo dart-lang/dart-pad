@@ -11,6 +11,7 @@ import 'package:gcloud/db.dart' as db;
 import 'package:crypto/crypto.dart' as crypto;
 import 'dart:convert' as convert;
 import 'dart:io' as io;
+import 'dart:mirrors' as mirrors;
 import 'package:logging/logging.dart';
 import 'package:uuid/uuid.dart' as uuid_tools;
 
@@ -19,17 +20,72 @@ final Logger _logger = new Logger('dartpad_support_server');
 // This class defines the interface that the server provides.
 @ApiClass(name: '_dartpadsupportservices', version: 'v1')
 class FileRelayServer {
-  FileRelayServer() {
+  var database;
+  bool test;
+
+  String getTypeName(dynamic obj) =>
+      mirrors.reflect(obj).type.reflectedType.toString();
+
+  String getClass(obj) =>
+      mirrors.MirrorSystem.getName(mirrors.reflectClass(obj).simpleName);
+
+  FileRelayServer({this.test: false}) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
+    if (this.test) {
+      database = new Map();
+    }
   }
 
-  @ApiMethod(method: 'POST', path: 'export', description: 'Store a gist dataset to be retrieved.')
+  Future<List> _databaseQuery(var dbClass, String attribute, var value) async {
+    List result = new List();
+    if (test) {
+      List dataList = database[getClass(dbClass)];
+      if (dataList != null) {
+        for (var dataObject in dataList) {
+          mirrors.InstanceMirror dataObjectMirror = mirrors.reflect(dataObject);
+          mirrors.InstanceMirror futureValue =
+              dataObjectMirror.getField(new Symbol(attribute.split(' ')[0]));
+          if (futureValue.hasReflectee && futureValue.reflectee == value) {
+            result.add(dataObject);
+          }
+        }
+      }
+    } else {
+      var query = ae.context.services.db.query(dbClass)..filter(attribute, value);
+      result = await query.run().toList();
+    }
+    return new Future.value(result);
+  }
+
+  Future _databaseCommit({List inserts, List deletes}) {
+    if (test) {
+      if (inserts != null) {
+        for (var insertObject in inserts) {
+          if (!database.containsKey(getTypeName(insertObject))) {
+            database[getTypeName(insertObject)] = new List();
+          }
+          database[getTypeName(insertObject)].add(insertObject);
+        }
+      }
+      if (deletes != null) {
+        //TODO: Implement delete
+      }
+    } else {
+      ae.context.services.db.commit(inserts: inserts, deletes: deletes);
+    }
+    return new Future.value(null);
+  }
+
+  @ApiMethod(
+      method: 'POST',
+      path: 'export',
+      description: 'Store a gist dataset to be retrieved.')
   Future<UuidContainer> export(PadSaveObject data) {
     _GaePadSaveObject record = new _GaePadSaveObject.fromDSO(data);
     String randomUuid = new uuid_tools.Uuid().v4();
     record.uuid = "${_computeSHA1(record)}-$randomUuid";
-    db.dbService.commit(inserts: [record]).catchError((e) {
+    _databaseCommit(inserts: [record]).catchError((e) {
       _logger.severe("Error while recording export ${e}");
       throw e;
     });
@@ -37,21 +93,26 @@ class FileRelayServer {
     return new Future.value(new UuidContainer.fromUuid(record.uuid));
   }
 
-  @ApiMethod(method: 'POST', path: 'pullExportData', description: 'Retrieve a stored gist data set.')
+  @ApiMethod(
+      method: 'POST',
+      path: 'pullExportData',
+      description: 'Retrieve a stored gist data set.')
   Future<PadSaveObject> pullExportContent(UuidContainer uuidContainer) async {
-    var database = ae.context.services.db;
-    var query = database.query(_GaePadSaveObject)..filter('uuid =', uuidContainer.uuid);
-    List result = await query.run().toList();
+    List result =
+        await _databaseQuery(_GaePadSaveObject, 'uuid =', uuidContainer.uuid);
     if (result.isEmpty) {
-      _logger.severe("Export with UUID ${uuidContainer.uuid} could not be found.");
-      return new Future.value(new PadSaveObject());
+      _logger
+          .severe("Export with UUID ${uuidContainer.uuid} could not be found.");
+      throw new BadRequestError("Nothing of correct uuid could be found.");
     }
     _GaePadSaveObject record = result.first;
-    database.commit(deletes: [record.key]).catchError((e) {
-      _logger.severe("Error while deleting export ${e}");
-      throw (e);
-    });
-    _logger.info("Deleted Export with ID ${record.uuid}");
+    if (!test) {
+      _databaseCommit(deletes: [record.key]).catchError((e) {
+        _logger.severe("Error while deleting export ${e}");
+        throw (e);
+      });
+      _logger.info("Deleted Export with ID ${record.uuid}");
+    }
     return new Future.value(new PadSaveObject.fromRecordSource(record));
   }
 
@@ -59,16 +120,15 @@ class FileRelayServer {
   Future<UuidContainer> getUnusedMappingId() async {
     final int limit = 4;
     int attemptCount = 0;
-    var database = ae.context.services.db;
     String randomUuid;
-    var query;
     List result;
     do {
       randomUuid = new uuid_tools.Uuid().v4();
-      query = database.query(_GistMapping)..filter('internalId =', randomUuid);
-      result = await query.run().toList();
-      attemptCount ++;
-      if (!result.isEmpty) _logger.info("Collision in retrieving mapping id ${randomUuid}.");
+      result = await _databaseQuery(_GistMapping, 'internalId =', randomUuid);
+      attemptCount++;
+      if (!result.isEmpty) {
+        _logger.info("Collision in retrieving mapping id ${randomUuid}.");
+      }
     } while (!result.isEmpty && attemptCount < limit);
     if (!result.isEmpty) {
       _logger.severe("Could not generate valid ID.");
@@ -80,16 +140,16 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'storeGist')
   Future<UuidContainer> storeGist(GistToInternalIdMapping map) async {
-    var database = ae.context.services.db;
-    var query = database.query(_GistMapping)..filter('internalId =', map.internalId);
-    List result = await query.run().toList();
+    List result =
+        await _databaseQuery(_GistMapping, 'internalId =', map.internalId);
     if (!result.isEmpty) {
       _logger.severe("Collision with mapping of Id ${map.gistId}.");
       throw new BadRequestError("Mapping invalid.");
     } else {
       _GistMapping entry = new _GistMapping.fromMap(map);
-      db.dbService.commit(inserts: [entry]).catchError((e) {
-        _logger.severe("Error while recording mapping with Id ${map.gistId}. Error ${e}");
+      _databaseCommit(inserts: [entry]).catchError((e) {
+        _logger.severe(
+            "Error while recording mapping with Id ${map.gistId}. Error ${e}");
         throw e;
       });
       _logger.info("Mapping with ID ${map.gistId} stored.");
@@ -102,9 +162,7 @@ class FileRelayServer {
     if (id == null) {
       throw new BadRequestError('Missing parameter: \'id\'');
     }
-    var database = ae.context.services.db;
-    var query = database.query(_GistMapping)..filter('internalId =', id);
-    List result = await query.run().toList();
+    List result = await _databaseQuery(_GistMapping, 'internalId =', id);
     if (result.isEmpty) {
       _logger.severe("Missing mapping for Id ${id}.");
       throw new BadRequestError("Missing mapping for Id ${id}");
@@ -164,6 +222,7 @@ class GistToInternalIdMapping {
     this.internalId = internalId;
   }
 }
+
 /**
  * Internal storage representation for storage of pads.
  */
@@ -209,7 +268,6 @@ class _GaePadSaveObject extends db.Model {
   String get getHtml => _gzipDecode(this.html);
   String get getCss => _gzipDecode(this.css);
 }
-
 
 /**
  * Internal storage representation for gist id mapping.
