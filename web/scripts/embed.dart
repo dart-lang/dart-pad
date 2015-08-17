@@ -4,8 +4,8 @@
 
 // Currently not in use
 
-import 'package:dart_pad/embed/embed.dart' as embed;
-import 'package:dart_pad/polymer/polymer.dart';
+import '../../lib/embed/embed.dart' as embed;
+import '../../lib/polymer/polymer.dart';
 
 void main() {
   Polymer.whenReady().then((_) {
