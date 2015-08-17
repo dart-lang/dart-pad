@@ -29,18 +29,15 @@ class FileRelayServer {
   String getClass(obj) =>
       mirrors.MirrorSystem.getName(mirrors.reflectClass(obj).simpleName);
 
-  FileRelayServer({bool test}) {
+  FileRelayServer({this.test: false}) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
-    if (test) {
+    if (this.test) {
       database = new Map();
-      this.test = true;
-    } else {
-      this.test = false;
     }
   }
 
-  Future<List> databaseQuery(var dbClass, String attribute, var value) async {
+  Future<List> _databaseQuery(var dbClass, String attribute, var value) async {
     List result = new List();
     if (test) {
       List dataList = database[getClass(dbClass)];
@@ -61,7 +58,7 @@ class FileRelayServer {
     return new Future.value(result);
   }
 
-  Future databaseCommit({List inserts, List deletes}) {
+  Future _databaseCommit({List inserts, List deletes}) {
     if (test) {
       if (inserts != null) {
         for (var insertObject in inserts) {
@@ -88,7 +85,7 @@ class FileRelayServer {
     _GaePadSaveObject record = new _GaePadSaveObject.fromDSO(data);
     String randomUuid = new uuid_tools.Uuid().v4();
     record.uuid = "${_computeSHA1(record)}-$randomUuid";
-    databaseCommit(inserts: [record]).catchError((e) {
+    _databaseCommit(inserts: [record]).catchError((e) {
       _logger.severe("Error while recording export ${e}");
       throw e;
     });
@@ -102,7 +99,7 @@ class FileRelayServer {
       description: 'Retrieve a stored gist data set.')
   Future<PadSaveObject> pullExportContent(UuidContainer uuidContainer) async {
     List result =
-        await databaseQuery(_GaePadSaveObject, 'uuid =', uuidContainer.uuid);
+        await _databaseQuery(_GaePadSaveObject, 'uuid =', uuidContainer.uuid);
     if (result.isEmpty) {
       _logger
           .severe("Export with UUID ${uuidContainer.uuid} could not be found.");
@@ -110,7 +107,7 @@ class FileRelayServer {
     }
     _GaePadSaveObject record = result.first;
     if (!test) {
-      databaseCommit(deletes: [record.key]).catchError((e) {
+      _databaseCommit(deletes: [record.key]).catchError((e) {
         _logger.severe("Error while deleting export ${e}");
         throw (e);
       });
@@ -127,7 +124,7 @@ class FileRelayServer {
     List result;
     do {
       randomUuid = new uuid_tools.Uuid().v4();
-      result = await databaseQuery(_GistMapping, 'internalId =', randomUuid);
+      result = await _databaseQuery(_GistMapping, 'internalId =', randomUuid);
       attemptCount++;
       if (!result.isEmpty) _logger
           .info("Collision in retrieving mapping id ${randomUuid}.");
@@ -143,13 +140,13 @@ class FileRelayServer {
   @ApiMethod(method: 'POST', path: 'storeGist')
   Future<UuidContainer> storeGist(GistToInternalIdMapping map) async {
     List result =
-        await databaseQuery(_GistMapping, 'internalId =', map.internalId);
+        await _databaseQuery(_GistMapping, 'internalId =', map.internalId);
     if (!result.isEmpty) {
       _logger.severe("Collision with mapping of Id ${map.gistId}.");
       throw new BadRequestError("Mapping invalid.");
     } else {
       _GistMapping entry = new _GistMapping.fromMap(map);
-      databaseCommit(inserts: [entry]).catchError((e) {
+      _databaseCommit(inserts: [entry]).catchError((e) {
         _logger.severe(
             "Error while recording mapping with Id ${map.gistId}. Error ${e}");
         throw e;
@@ -164,7 +161,7 @@ class FileRelayServer {
     if (id == null) {
       throw new BadRequestError('Missing parameter: \'id\'');
     }
-    List result = await databaseQuery(_GistMapping, 'internalId =', id);
+    List result = await _databaseQuery(_GistMapping, 'internalId =', id);
     if (result.isEmpty) {
       _logger.severe("Missing mapping for Id ${id}.");
       throw new BadRequestError("Missing mapping for Id ${id}");
