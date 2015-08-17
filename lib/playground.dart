@@ -203,9 +203,9 @@ class Playground implements GistContainer, GistController {
         editableGist.setBackingGist(blankGist);
       });
     } else if (url.hasQuery && url.queryParameters['source'] != null) {
-      dartSupportServices
-          .retrieveGist(id: url.queryParameters['source'])
-          .then((UuidContainer gistId) {
+      Future<UuidContainer> futureGistId = dartSupportServices
+          .retrieveGist(id: url.queryParameters['source']);
+      await futureGistId.then((UuidContainer gistId) {
         gistLoader.loadGist(gistId.uuid).then((Gist backing) {
           editableGist.setBackingGist(backing);
           router.go('gist', {'gist': ''});
