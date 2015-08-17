@@ -93,7 +93,7 @@ vulcanize(String filepath) {
     '--exclude',
     'embed_components.html',
     '--exclude',
-    'animated-dropdown.html',
+    'mobile_components.html',
     filepath
   ], workingDirectory: 'build/web');
   if (result.exitCode != 0) {
