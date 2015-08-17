@@ -92,7 +92,7 @@ vulcanize(String filepath) {
     '--exclude',
     'main.dart.js',
     '--exclude',
-    'packages/codemirror/codemirror.js',
+    'scripts/codemirror.js',
     '--exclude',
     'scripts/embed_components.html',
     '--exclude',
