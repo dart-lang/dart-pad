@@ -79,13 +79,14 @@ class Playground implements GistContainer, GistController {
   Playground() {
     sourceTabController = new TabController();
     for (String name in ['dart', 'html', 'css']) {
-      sourceTabController.registerTab(new TabElement(
-          querySelector('#${name}tab'), name: name, onSelect: () {
-            Element issuesElement = querySelector('#issues');
-            issuesElement.style.display = name == 'dart' ? 'block' : 'none';
-            ga.sendEvent('edit', name);
-            _context.switchTo(name);
-          }));
+      sourceTabController.registerTab(
+          new TabElement(querySelector('#${name}tab'), name: name,
+              onSelect: () {
+        Element issuesElement = querySelector('#issues');
+        issuesElement.style.display = name == 'dart' ? 'block' : 'none';
+        ga.sendEvent('edit', name);
+        _context.switchTo(name);
+      }));
     }
 
     overlay = new DOverlay(querySelector('#frame_overlay'));
@@ -94,8 +95,8 @@ class Playground implements GistContainer, GistController {
 
     DButton newButton = new DButton(querySelector('#newbutton'));
     OkCancelDialog newDialog = new OkCancelDialog('Create New Pad',
-    'Discard changes to the current pad?', this.createNewGist,
-    okText: 'Discard');
+        'Discard changes to the current pad?', this.createNewGist,
+        okText: 'Discard');
     newButton.onClick.listen((_) {
       newDialog.show();
     });
@@ -114,7 +115,7 @@ class Playground implements GistContainer, GistController {
 
     DButton shareButton = new DButton(querySelector('#sharebutton'));
     shareButton.onClick.listen((e) => _createSummary()
-    .then((String sum) => sharingDialog.showWithSummary(sum)));
+        .then((String sum) => sharingDialog.showWithSummary(sum)));
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
       _handleRun();
@@ -132,7 +133,7 @@ class Playground implements GistContainer, GistController {
 
     // Update the title on changes.
     titleEditable =
-    new DContentEditable(querySelector('header .header-gist-name'));
+        new DContentEditable(querySelector('header .header-gist-name'));
     bind(titleEditable.onChanged, editableGist.property('description'));
     bind(editableGist.property('description'), titleEditable.textProperty);
     editableGist.onDirtyChanged.listen((val) {
@@ -156,9 +157,9 @@ class Playground implements GistContainer, GistController {
       e.preventDefault();
 
       dartServices
-      .version()
-      .timeout(new Duration(seconds: 2))
-      .then((VersionResponse ver) {
+          .version()
+          .timeout(new Duration(seconds: 2))
+          .then((VersionResponse ver) {
         new AboutDialog(ver.sdkVersion)..show();
       }).catchError((e) {
         new AboutDialog()..show();
@@ -186,12 +187,14 @@ class Playground implements GistContainer, GistController {
     bool loadedFromSaved = false;
     Uri url = Uri.parse(window.location.toString());
     if (url.hasQuery &&
-    url.queryParameters['id'] != null &&
-    isLegalGistId(url.queryParameters['id'])) {
+        url.queryParameters['id'] != null &&
+        isLegalGistId(url.queryParameters['id'])) {
       _showGist(url.queryParameters['id']);
     } else if (url.hasQuery && url.queryParameters['export'] != null) {
-      UuidContainer requestId = new UuidContainer()..uuid=url.queryParameters['export'];
-      Future<PadSaveObject> exportPad = dartSupportServices.pullExportContent(requestId);
+      UuidContainer requestId = new UuidContainer()
+        ..uuid = url.queryParameters['export'];
+      Future<PadSaveObject> exportPad =
+          dartSupportServices.pullExportContent(requestId);
       await exportPad.then((pad) {
         Gist blankGist = createSampleGist();
         blankGist.getFile('main.dart').content = pad.dart;
@@ -200,7 +203,9 @@ class Playground implements GistContainer, GistController {
         editableGist.setBackingGist(blankGist);
       });
     } else if (url.hasQuery && url.queryParameters['source'] != null) {
-      dartSupportServices.retrieveGist(id: url.queryParameters['source']).then((UuidContainer gistId) {
+      dartSupportServices
+          .retrieveGist(id: url.queryParameters['source'])
+          .then((UuidContainer gistId) {
         gistLoader.loadGist(gistId.uuid).then((Gist backing) {
           editableGist.setBackingGist(backing);
           router.go('gist', {'gist': ''});
@@ -266,8 +271,8 @@ class Playground implements GistContainer, GistController {
 
   Future shareAnon({String summary: ""}) {
     return gistLoader
-    .createAnon(mutableGist.createGist(summary: summary))
-    .then((Gist newGist) {
+        .createAnon(mutableGist.createGist(summary: summary))
+        .then((Gist newGist) {
       editableGist.setBackingGist(newGist);
       overrideNextRoute(newGist);
       router.go('gist', {'gist': newGist.id});
@@ -277,7 +282,7 @@ class Playground implements GistContainer, GistController {
       toast.element
         ..style.cursor = "pointer"
         ..onClick.listen((e) => window.open(
-          "https://gist.github.com/anonymous/${newGist.id}", '_blank'));
+            "https://gist.github.com/anonymous/${newGist.id}", '_blank'));
       GistToInternalIdMapping mapping = new GistToInternalIdMapping()
         ..gistId = newGist.id
         ..internalId = _mappingId;
@@ -357,7 +362,7 @@ class Playground implements GistContainer, GistController {
 
     // TODO: Set up some automatic value bindings.
     DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'),
-    onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
+        onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     editorSplitter.onPositionChanged.listen((pos) {
       state['editor_split'] = pos;
       editor.resize();
@@ -367,7 +372,7 @@ class Playground implements GistContainer, GistController {
     }
 
     DSplitter outputSplitter = new DSplitter(querySelector('#output_split'),
-    onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
+        onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     outputSplitter.onPositionChanged.listen((pos) {
       state['output_split'] = pos;
     });
@@ -418,25 +423,25 @@ class Playground implements GistContainer, GistController {
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
-      DocHandler.cursorKeys.contains(e.keyCode)) {
+          DocHandler.cursorKeys.contains(e.keyCode)) {
         docHandler.generateDoc(_docPanel);
       }
       _handleAutoCompletion(e);
     });
 
     outputTabController = new TabController()
-      ..registerTab(new TabElement(querySelector('#resulttab'),
-    name: "result", onSelect: () {
-      ga.sendEvent('view', "result");
-      querySelector('#frame').style.visibility = "visible";
-      querySelector('#output').style.visibility = "hidden";
-    }))
+      ..registerTab(new TabElement(querySelector('#resulttab'), name: "result",
+          onSelect: () {
+        ga.sendEvent('view', "result");
+        querySelector('#frame').style.visibility = "visible";
+        querySelector('#output').style.visibility = "hidden";
+      }))
       ..registerTab(new TabElement(querySelector('#consoletab'),
-    name: "console", onSelect: () {
-      ga.sendEvent('view', "console");
-      querySelector('#output').style.visibility = "visible";
-      querySelector('#frame').style.visibility = "hidden";
-    }));
+          name: "console", onSelect: () {
+        ga.sendEvent('view', "console");
+        querySelector('#output').style.visibility = "visible";
+        querySelector('#frame').style.visibility = "hidden";
+      }));
 
     _context = new PlaygroundContext(editor);
     deps[Context] = _context;
@@ -472,22 +477,22 @@ class Playground implements GistContainer, GistController {
 
     // Bind the editable files to the gist.
     Property htmlFile =
-    new GistFileProperty(editableGist.getGistFile('index.html'));
+        new GistFileProperty(editableGist.getGistFile('index.html'));
     Property htmlDoc =
-    new EditorDocumentProperty(_context.htmlDocument, 'html');
+        new EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
     Property cssFile =
-    new GistFileProperty(editableGist.getGistFile('styles.css'));
+        new GistFileProperty(editableGist.getGistFile('styles.css'));
     Property cssDoc = new EditorDocumentProperty(_context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
     Property dartFile =
-    new GistFileProperty(editableGist.getGistFile('main.dart'));
+        new GistFileProperty(editableGist.getGistFile('main.dart'));
     Property dartDoc =
-    new EditorDocumentProperty(_context.dartDocument, 'dart');
+        new EditorDocumentProperty(_context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
@@ -524,8 +529,8 @@ class Playground implements GistContainer, GistController {
     }
 
     if (!options.getValueBool('autopopup_code_completion') ||
-    _isCompletionActive ||
-    !editor.hasFocus) {
+        _isCompletionActive ||
+        !editor.hasFocus) {
       return;
     }
 
@@ -558,11 +563,11 @@ class Playground implements GistContainer, GistController {
 
     var input = new CompileRequest()..source = context.dartSource;
     dartServices
-    .compile(input)
-    .timeout(longServiceCallTimeout)
-    .then((CompileResponse response) {
+        .compile(input)
+        .timeout(longServiceCallTimeout)
+        .then((CompileResponse response) {
       ga.sendTiming('action-perf', "compilation-e2e",
-      compilationTimer.elapsedMilliseconds);
+          compilationTimer.elapsedMilliseconds);
 
       _autoSwitchOutputTab();
 
@@ -598,7 +603,7 @@ class Playground implements GistContainer, GistController {
     if (htmlSrc.isNotEmpty) {
       outputTabController.selectTab('result');
     } else if (dartSrc.contains("'dart:html'") ||
-    dartSrc.contains('"dart:html"')) {
+        dartSrc.contains('"dart:html"')) {
       outputTabController.selectTab('result');
     } else {
       outputTabController.selectTab('console');
@@ -609,7 +614,11 @@ class Playground implements GistContainer, GistController {
     return dartSupportServices.getUnusedMappingId().then((UuidContainer id) {
       _mappingId = id.uuid;
       SourcesRequest input = new SourcesRequest()
-        ..sources = {'dart':_context.dartSource, 'css': _context.cssSource, 'html': _context.htmlSource};
+        ..sources = {
+          'dart': _context.dartSource,
+          'css': _context.cssSource,
+          'html': _context.htmlSource
+        };
       return dartServices.summarize(input);
     }).then((SummaryText summary) {
       return '${summary.text}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).';
@@ -638,20 +647,22 @@ class Playground implements GistContainer, GistController {
 
       _displayIssues(result.issues);
 
-      _context.dartDocument.setAnnotations(result.issues
-      .map((AnalysisIssue issue) {
+      _context.dartDocument
+          .setAnnotations(result.issues.map((AnalysisIssue issue) {
         int startLine = lines.getLineForOffset(issue.charStart);
         int endLine =
-        lines.getLineForOffset(issue.charStart + issue.charLength);
+            lines.getLineForOffset(issue.charStart + issue.charLength);
 
         Position start = new Position(
             startLine, issue.charStart - lines.offsetForLine(startLine));
-        Position end = new Position(endLine, issue.charStart +
-        issue.charLength -
-        lines.offsetForLine(startLine));
+        Position end = new Position(
+            endLine,
+            issue.charStart +
+                issue.charLength -
+                lines.offsetForLine(startLine));
 
         return new Annotation(issue.kind, issue.message, issue.line,
-        start: start, end: end);
+            start: start, end: end);
       }).toList());
 
       bool hasErrors = result.issues.any((issue) => issue.kind == 'error');
@@ -767,12 +778,12 @@ class Playground implements GistContainer, GistController {
 
   void _updateRunButton({bool hasErrors: false, bool hasWarnings: false}) {
     const alertSVGIcon =
-    "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,"
-    "1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
+        "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,"
+        "1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
 
     var path = runButton.element.querySelector("path");
     path.attributes["d"] =
-    (hasErrors || hasWarnings) ? alertSVGIcon : "M8 5v14l11-7z";
+        (hasErrors || hasWarnings) ? alertSVGIcon : "M8 5v14l11-7z";
 
     path.parent.classes.toggle("error", hasErrors);
     path.parent.classes.toggle("warning", hasWarnings && !hasErrors);
@@ -917,8 +928,8 @@ class GistFileProperty implements Property {
   }
 
   Stream get onChanged => file.onChanged.map((value) {
-    return value;
-  });
+        return value;
+      });
 }
 
 class EditorDocumentProperty implements Property {
