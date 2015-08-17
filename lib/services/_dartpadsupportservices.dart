@@ -22,6 +22,8 @@ class P_dartpadsupportservicesApi {
       _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
+   * Store a gist dataset to be retrieved.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -59,6 +61,40 @@ class P_dartpadsupportservicesApi {
   }
 
   /**
+   * Request parameters:
+   *
+   * Completes with a [UuidContainer].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method will complete with the same error.
+   */
+  async.Future<UuidContainer> getUnusedMappingId() {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+
+    _url = 'getUnusedMappingId';
+
+    var _response = _requester.request(_url,
+                                       "GET",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new UuidContainer.fromJson(data));
+  }
+
+  /**
+   * Retrieve a stored gist data set.
+   *
    * [request] - The metadata request object.
    *
    * Request parameters:
@@ -95,9 +131,110 @@ class P_dartpadsupportservicesApi {
     return _response.then((data) => new PadSaveObject.fromJson(data));
   }
 
+  /**
+   * Request parameters:
+   *
+   * [id] - Query parameter: 'id'.
+   *
+   * Completes with a [UuidContainer].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method will complete with the same error.
+   */
+  async.Future<UuidContainer> retrieveGist({core.String id}) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (id != null) {
+      _queryParams["id"] = [id];
+    }
+
+    _url = 'retrieveGist';
+
+    var _response = _requester.request(_url,
+                                       "GET",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new UuidContainer.fromJson(data));
+  }
+
+  /**
+   * [request] - The metadata request object.
+   *
+   * Request parameters:
+   *
+   * Completes with a [UuidContainer].
+   *
+   * Completes with a [commons.ApiRequestError] if the API endpoint returned an
+   * error.
+   *
+   * If the used [http.Client] completes with an error when making a REST call,
+   * this method will complete with the same error.
+   */
+  async.Future<UuidContainer> storeGist(GistToInternalIdMapping request) {
+    var _url = null;
+    var _queryParams = new core.Map();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (request != null) {
+      _body = convert.JSON.encode((request).toJson());
+    }
+
+    _url = 'storeGist';
+
+    var _response = _requester.request(_url,
+                                       "POST",
+                                       body: _body,
+                                       queryParams: _queryParams,
+                                       uploadOptions: _uploadOptions,
+                                       uploadMedia: _uploadMedia,
+                                       downloadOptions: _downloadOptions);
+    return _response.then((data) => new UuidContainer.fromJson(data));
+  }
+
 }
 
 
+
+class GistToInternalIdMapping {
+  core.String gistId;
+  core.String internalId;
+
+  GistToInternalIdMapping();
+
+  GistToInternalIdMapping.fromJson(core.Map _json) {
+    if (_json.containsKey("gistId")) {
+      gistId = _json["gistId"];
+    }
+    if (_json.containsKey("internalId")) {
+      internalId = _json["internalId"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (gistId != null) {
+      _json["gistId"] = gistId;
+    }
+    if (internalId != null) {
+      _json["internalId"] = internalId;
+    }
+    return _json;
+  }
+}
 
 class PadSaveObject {
   core.String css;
