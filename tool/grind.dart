@@ -45,7 +45,7 @@ build() {
 
   Pub.build(directories: ['web', 'test']);
 
-  FilePath mainFile = _buildDir.join('web', 'main.dart.js');
+  FilePath mainFile = _buildDir.join('web', 'scripts/main.dart.js');
   log('${mainFile} compiled to ${_printSize(mainFile)}');
 
   FilePath mobileFile = _buildDir.join('web', 'scripts/mobile.dart.js');
@@ -68,6 +68,7 @@ build() {
   //Imports vulcanized, not inlined for IE support
   vulcanizeNoExclusion('scripts/imports.html');
   vulcanize('mobile.html');
+  vulcanize('index.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
   vulcanize('embed-inline.html');
@@ -90,7 +91,7 @@ vulcanize(String filepath) {
     '--exclude',
     'scripts/embed.dart.js',
     '--exclude',
-    'main.dart.js',
+    'scripts/main.dart.js',
     '--exclude',
     'scripts/codemirror.js',
     '--exclude',
