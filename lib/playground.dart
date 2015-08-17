@@ -33,7 +33,6 @@ import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
-import 'src/summarize.dart';
 import 'src/util.dart';
 
 Playground get playground => _playground;
@@ -281,7 +280,7 @@ class Playground implements GistContainer, GistController {
           "https://gist.github.com/anonymous/${newGist.id}", '_blank'));
       GistToInternalIdMapping mapping = new GistToInternalIdMapping()
         ..gistId = newGist.id
-        ..internalId=_mappingId;
+        ..internalId = _mappingId;
       dartSupportServices.storeGist(mapping);
     }).catchError((e) {
       String message = 'Error saving gist: ${e}';
@@ -606,25 +605,17 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  Future<String> _createSummary() async {
+  Future<String> _createSummary() {
     return dartSupportServices.getUnusedMappingId().then((UuidContainer id) {
-      SourceRequest input = new SourceRequest()..source = _context.dartSource;
       _mappingId = id.uuid;
-      return dartServices
-      .analyze(input)
-      .timeout(shortServiceCallTimeout)
-      .then((AnalysisResults result) {
-        Summarizer summer = new Summarizer(
-            dart: _context.dartSource,
-            html: _context.htmlSource,
-            css: _context.cssSource,
-            analysis: result);
-        return "${summer.returnAsSimpleSummary()}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).";
-      }).catchError((e) {
-        _logger.severe(e);
-      });
+      SourcesRequest input = new SourcesRequest()
+        ..sources = {'dart':_context.dartSource, 'css': _context.cssSource, 'html': _context.htmlSource};
+      return dartServices.summarize(input);
+    }).then((SummaryText summary) {
+      return '${summary.text}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).';
+    }).catchError((e) {
+      _logger.severe(e);
     });
-
   }
 
   /// Perform static analysis of the source code. Return whether the code
