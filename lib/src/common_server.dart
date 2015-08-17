@@ -268,7 +268,7 @@ class CommonServer {
     if (dart == null || html == null || css == null) {
       throw new BadRequestError('Missing core source parameter.');
     }
-    return await _analyzeMulti({"main.dart" : dart}).then((result) {
+    SummaryText summaryString = await _analyzeMulti({"main.dart" : dart}).then((result) {
       Summarizer summarizer = new Summarizer(
           dart: dart,
           html: html,
@@ -276,6 +276,7 @@ class CommonServer {
           analysis: result);
       return new SummaryText.fromString(summarizer.returnAsSimpleSummary());
     });
+    return new Future.value(summaryString);
   }
 
   Future<AnalysisResults> _analyzeMulti(Map<String, String> sources) async {

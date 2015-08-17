@@ -149,7 +149,7 @@ void defineTests() {
       expect(postResponse.status, 400);
     });
 
-    test('Retrieve gist failure', () async {
+    test('Retrieve gist success', () async {
       var response = await _sendGetRequest(
           '_dartpadsupportservices/v1/getUnusedMappingId');
       String gistId = 'testretrieve';

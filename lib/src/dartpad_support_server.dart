@@ -126,8 +126,9 @@ class FileRelayServer {
       randomUuid = new uuid_tools.Uuid().v4();
       result = await _databaseQuery(_GistMapping, 'internalId =', randomUuid);
       attemptCount++;
-      if (!result.isEmpty) _logger
-          .info("Collision in retrieving mapping id ${randomUuid}.");
+      if (!result.isEmpty) {
+        _logger.info("Collision in retrieving mapping id ${randomUuid}.");
+      }
     } while (!result.isEmpty && attemptCount < limit);
     if (!result.isEmpty) {
       _logger.severe("Could not generate valid ID.");
