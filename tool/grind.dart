@@ -40,6 +40,9 @@ build() {
   // Copy our third party python code into web/.
   new FilePath('third_party/mdetect/mdetect.py').copy(_webDir);
 
+  // Copy the codemirror javascript into web/scripts.
+  new FilePath('packages/codemirror/codemirror.js').copy(_webDir.join('scripts'));
+
   Pub.build(directories: ['web', 'test']);
 
   FilePath mainFile = _buildDir.join('web', 'main.dart.js');
