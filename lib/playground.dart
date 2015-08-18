@@ -208,7 +208,7 @@ class Playground implements GistContainer, GistController {
       await futureGistId.then((UuidContainer gistId) {
         gistLoader.loadGist(gistId.uuid).then((Gist backing) {
           editableGist.setBackingGist(backing);
-          router.go('gist', {'gist': ''});
+          router.go('gist', {'gist': backing.id});
         });
       });
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
@@ -621,7 +621,7 @@ class Playground implements GistContainer, GistController {
         };
       return dartServices.summarize(input);
     }).then((SummaryText summary) {
-      return '${summary.text}\n Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).';
+      return '${summary.text}\n\nFind this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).';
     }).catchError((e) {
       _logger.severe(e);
     });
