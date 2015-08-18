@@ -191,7 +191,7 @@ class SharingDialog extends DDialog {
     _embedPicture.src = _htmlThumbnail;
     _embedPicture.alt = "Embed-html";
     _embedUrl.value =
-        "<iframe src='https://${home}/embed-html.html?id=${gistContainer.mutableGist.id}'></iframe>";
+        "<iframe src='https://${home}/embed-html.html?id=${gistContainer.mutableGist.id}' style='height:300px;width:100%;' frameborder='0'></iframe>";
   }
 
   void showWithSummary(String summary) {
