@@ -181,7 +181,7 @@ class Playground implements GistContainer, GistController {
     _clearOutput();
   }
 
-  Future showHome(RouteEnterEvent event) async {
+  void showHome(RouteEnterEvent event) {
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
     bool loadedFromSaved = false;
@@ -195,7 +195,7 @@ class Playground implements GistContainer, GistController {
         ..uuid = url.queryParameters['export'];
       Future<PadSaveObject> exportPad =
           dartSupportServices.pullExportContent(requestId);
-      await exportPad.then((pad) {
+      exportPad.then((pad) {
         Gist blankGist = createSampleGist();
         blankGist.getFile('main.dart').content = pad.dart;
         blankGist.getFile('index.html').content = pad.html;
@@ -205,7 +205,7 @@ class Playground implements GistContainer, GistController {
     } else if (url.hasQuery && url.queryParameters['source'] != null) {
       Future<UuidContainer> futureGistId = dartSupportServices
           .retrieveGist(id: url.queryParameters['source']);
-      await futureGistId.then((UuidContainer gistId) {
+      futureGistId.then((UuidContainer gistId) {
         gistLoader.loadGist(gistId.uuid).then((Gist backing) {
           editableGist.setBackingGist(backing);
           router.go('gist', {'gist': backing.id});
@@ -927,9 +927,7 @@ class GistFileProperty implements Property {
     }
   }
 
-  Stream get onChanged => file.onChanged.map((value) {
-        return value;
-      });
+  Stream get onChanged => file.onChanged.map((value) => value);
 }
 
 class EditorDocumentProperty implements Property {
