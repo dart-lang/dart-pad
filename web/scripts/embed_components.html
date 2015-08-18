@@ -264,13 +264,10 @@
       color: #c6c6c6;
     }
 
-    #guide-text {
+    .guide-text {
       padding: 0 24px;
     }
 
-    #small-font {
-      font-size: 12px;
-    }
     #export-guide {
       cursor: pointer;
       text-decoration: underline;
@@ -281,9 +278,13 @@
       <h2>Open in DartPad</h2>
       <br>
       <paper-dialog-scrollable>
-        <div id = "guide-text">
+        <div class="guide-text">
           Open this sample in DartPad? <br/>
-          <span id="small-font">View our <a id="export-guide" onclick="window.open('https://github.com/dart-lang/dart-pad/wiki/Exporting-Guide');">export guide</a> for help.</span>
+          <span>
+            View our
+            <a id="export-guide" onclick="window.open('https://github.com/dart-lang/dart-pad/wiki/Exporting-Guide');">export guide</a>
+            for help.
+          </span>
         </div>
       </paper-dialog-scrollable>
 
@@ -431,7 +432,7 @@
 <dom-module id="dartpad-console">
   <style>
     :host {
-      padding: 0px 4px;
+      padding: 0 0 8px 8px;
     }
 
     #console {
