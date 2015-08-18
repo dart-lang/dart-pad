@@ -33,7 +33,6 @@ import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
-import 'src/summarize.dart';
 import 'src/util.dart';
 
 Playground get playground => _playground;
@@ -595,19 +594,16 @@ class Playground implements GistContainer, GistController {
   }
 
   Future<String> _createSummary() {
-    SourceRequest input = new SourceRequest()..source = _context.dartSource;
+    SourcesRequest input = new SourcesRequest();
+    input.sources = new Map<String, String>();
+    input.sources['dart'] = _context.dartSource;
+    input.sources['css'] = _context.cssSource;
+    input.sources['html'] = _context.htmlSource;
     return dartServices
-        .analyze(input)
-        .timeout(shortServiceCallTimeout)
-        .then((AnalysisResults result) {
-      Summarizer summer = new Summarizer(
-          dart: _context.dartSource,
-          html: _context.htmlSource,
-          css: _context.cssSource,
-          analysis: result);
-      return summer.returnAsSimpleSummary();
-    }).catchError((e) {
-      _logger.severe(e);
+      .summarize(input)
+      .timeout(shortServiceCallTimeout)
+      .catchError((e) {
+        _logger.severe(e);
     });
   }
 
