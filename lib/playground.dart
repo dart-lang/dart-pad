@@ -181,7 +181,7 @@ class Playground implements GistContainer, GistController {
     _clearOutput();
   }
 
-  void showHome(RouteEnterEvent event) {
+  Future showHome(RouteEnterEvent event) async {
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
     bool loadedFromSaved = false;
@@ -195,7 +195,7 @@ class Playground implements GistContainer, GistController {
         ..uuid = url.queryParameters['export'];
       Future<PadSaveObject> exportPad =
           dartSupportServices.pullExportContent(requestId);
-      exportPad.then((pad) {
+      await exportPad.then((pad) {
         Gist blankGist = createSampleGist();
         blankGist.getFile('main.dart').content = pad.dart;
         blankGist.getFile('index.html').content = pad.html;
@@ -205,12 +205,11 @@ class Playground implements GistContainer, GistController {
     } else if (url.hasQuery && url.queryParameters['source'] != null) {
       Future<UuidContainer> futureGistId = dartSupportServices
           .retrieveGist(id: url.queryParameters['source']);
-      futureGistId.then((UuidContainer gistId) {
-        gistLoader.loadGist(gistId.uuid).then((Gist backing) {
+      await futureGistId.then((UuidContainer gistId) => gistLoader.loadGist(gistId.uuid))
+        .then((Gist backing) {
           editableGist.setBackingGist(backing);
           router.go('gist', {'gist': backing.id});
         });
-      });
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
@@ -242,6 +241,7 @@ class Playground implements GistContainer, GistController {
 
   void showGist(RouteEnterEvent event) {
     String gistId = event.parameters['gist'];
+    _clearOutput();
 
     if (!isLegalGistId(gistId)) {
       showHome(event);
@@ -557,7 +557,6 @@ class Playground implements GistContainer, GistController {
     runButton.disabled = true;
     overlay.visible = true;
 
-    _clearOutput();
 
     Stopwatch compilationTimer = new Stopwatch()..start();
 
@@ -570,6 +569,7 @@ class Playground implements GistContainer, GistController {
           compilationTimer.elapsedMilliseconds);
 
       _autoSwitchOutputTab();
+      _clearOutput();
 
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
