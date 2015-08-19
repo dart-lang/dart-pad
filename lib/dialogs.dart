@@ -169,14 +169,15 @@ class SharingDialog extends DDialog {
       ..flex());
     _info.add(new SpanElement()
       ..text = 'Check out our '
-      ..style.fontSize = "12px"
+      ..style.textAlign = 'center'
+      ..style.width = '100%'
+      ..style.marginTop = '5px'
       ..append(new SpanElement()
         ..text = 'embedding guide'
         ..attributes['onClick'] =
         "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
         ..style.cursor = "pointer"
-        ..style.textDecoration = "underline"
-        ..style.fontSize = "12px")
+        ..style.textDecoration = "underline")
       ..append(new SpanElement()..text = '.'));
   }
 

@@ -30,6 +30,7 @@ dev_dependencies:
 transformers:
 - dart_to_js_script_rewriter
 - $dart2js:
+    commandLineOptions: [--enable-experimental-mirrors]
     $exclude:
     - test/all.dart
     - test/sauce.dart
