@@ -664,7 +664,7 @@ class DartservicesApi {
    *
    * Request parameters:
    *
-   * Completes with a [AnalysisResults].
+   * Completes with a [SummaryText].
    *
    * Completes with a [commons.ApiRequestError] if the API endpoint returned an
    * error.
@@ -672,7 +672,7 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  async.Future<AnalysisResults> summarize(SourcesRequest request) {
+  async.Future<SummaryText> summarize(SourcesRequest request) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -693,7 +693,7 @@ class DartservicesApi {
                                        uploadOptions: _uploadOptions,
                                        uploadMedia: _uploadMedia,
                                        downloadOptions: _downloadOptions);
-    return _response.then((data) => new AnalysisResults.fromJson(data));
+    return _response.then((data) => new SummaryText.fromJson(data));
   }
 
   /**
@@ -1213,6 +1213,26 @@ class SourcesRequest {
     }
     if (sources != null) {
       _json["sources"] = sources;
+    }
+    return _json;
+  }
+}
+
+class SummaryText {
+  core.String text;
+
+  SummaryText();
+
+  SummaryText.fromJson(core.Map _json) {
+    if (_json.containsKey("text")) {
+      text = _json["text"];
+    }
+  }
+
+  core.Map toJson() {
+    var _json = new core.Map();
+    if (text != null) {
+      _json["text"] = text;
     }
     return _json;
   }

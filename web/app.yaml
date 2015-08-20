@@ -4,6 +4,8 @@ runtime: python27
 api_version: 1
 threadsafe: yes
 
+default_expiration: "0d 3h"
+
 builtins:
 - remote_api: on
 
@@ -14,6 +16,12 @@ handlers:
 
 - url: /pictures
   static_dir: pictures
+
+- url: /scripts
+  static_dir: scripts
+
+- url: /styles
+  static_dir: styles
 
 - url: .*
   script: main.app

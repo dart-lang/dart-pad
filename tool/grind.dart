@@ -40,18 +40,21 @@ build() {
   // Copy our third party python code into web/.
   new FilePath('third_party/mdetect/mdetect.py').copy(_webDir);
 
+  // Copy the codemirror javascript into web/scripts.
+  new FilePath('packages/codemirror/codemirror.js').copy(_webDir.join('scripts'));
+
   Pub.build(directories: ['web', 'test']);
 
-  FilePath mainFile = _buildDir.join('web', 'main.dart.js');
+  FilePath mainFile = _buildDir.join('web', 'scripts/main.dart.js');
   log('${mainFile} compiled to ${_printSize(mainFile)}');
 
-  FilePath mobileFile = _buildDir.join('web', 'mobile.dart.js');
+  FilePath mobileFile = _buildDir.join('web', 'scripts/mobile.dart.js');
   log('${mobileFile.path} compiled to ${_printSize(mobileFile)}');
 
   FilePath testFile = _buildDir.join('test', 'web.dart.js');
   log('${testFile.path} compiled to ${_printSize(testFile)}');
 
-  FilePath embedFile = _buildDir.join('web', 'embed.dart.js');
+  FilePath embedFile = _buildDir.join('web', 'scripts/embed.dart.js');
   log('${mainFile} compiled to ${_printSize(embedFile)}');
 
   // Delete the build/web/packages directory.
@@ -63,8 +66,9 @@ build() {
 
   // Run vulcanize.
   //Imports vulcanized, not inlined for IE support
-  vulcanizeNoExclusion('imports.html');
+  vulcanizeNoExclusion('scripts/imports.html');
   vulcanize('mobile.html');
+  vulcanize('index.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
   vulcanize('embed-inline.html');
@@ -83,17 +87,17 @@ vulcanize(String filepath) {
     '--inline-css',
     '--inline-scripts',
     '--exclude',
-    'mobile.dart.js',
+    'scripts/mobile.dart.js',
     '--exclude',
-    'embed.dart.js',
+    'scripts/embed.dart.js',
     '--exclude',
-    'main.dart.js',
+    'scripts/main.dart.js',
     '--exclude',
-    'packages/codemirror/codemirror.js',
+    'scripts/codemirror.js',
     '--exclude',
-    'embed_components.html',
+    'scripts/embed_components.html',
     '--exclude',
-    'animated-dropdown.html',
+    'scripts/mobile_components.html',
     filepath
   ], workingDirectory: 'build/web');
   if (result.exitCode != 0) {

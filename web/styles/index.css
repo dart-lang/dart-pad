@@ -495,7 +495,7 @@ div.toggle {
 
 .keyboard {
   display: inline-block;
-  background: url('packages/dart_pad/elements/keyboard.svg') center no-repeat;
+  background: url('../packages/dart_pad/elements/keyboard.svg') center no-repeat;
   background-size: 100%;
   width: 22px;
   height: 18px;

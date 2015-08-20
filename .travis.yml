@@ -8,8 +8,8 @@ env:
     - secure: Ggn2B0aDVTs6qmbXDw/Z0d6/KwxTDP+r3WYSTkyCxtih0yNq3LpWWdP6vZtcEF2/idISs1T8i2W1BRmCOcCEkyo+Tans+1BhVTrIx/0x7y/BZhLjBedW9DIwl5wpXgsp2oOUvrN+3FQuFI4LMYdATvd8gIj8Cm6fEyI1P7VcKI4=
     - secure: RPulBu8F0O4wFXV6U7YZ0csQ+OHGAbvLbFWwrzvxqtA6GtH1jkGOskv32J4xHN5vFQWECp0lWGPJj9GZbnJKEnM1WHLhOzYNn6YUGLymEHie+MC3vn60eb4vRXJMoDkkML5TTjRHmLbU9mfiDczZptm7Oz1h67Ysyb5loUBQ6J4=
 
-addons:
-  sauce_connect: true
+#addons:
+#  sauce_connect: true
 
 branches:
   only:

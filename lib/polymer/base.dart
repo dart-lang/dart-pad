@@ -37,9 +37,9 @@ class WebElement {
     if (value == null) value = !element.attributes.containsKey(name);
 
     if (value) {
-      element.setAttribute(name, '');
+      setAttribute(name);
     } else {
-      element.attributes.remove(name);
+      clearAttribute(name);
     }
   }
 
