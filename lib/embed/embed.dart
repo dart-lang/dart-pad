@@ -340,6 +340,10 @@ class PlaygroundMobile {
       Timer.run(() {
         _performAnalysis();
       });
+      Uri url = Uri.parse(window.location.toString());
+      if (url.hasQuery && url.queryParameters['line'] != null) {
+        _jumpToLine(int.parse(url.queryParameters['line']));
+      }
     }).catchError((e) {
       print('Error loading gist ${gistId}.\n${e}');
       _showError('Error Loading Gist', '${gistId} - ${e}');
@@ -510,10 +514,6 @@ class PlaygroundMobile {
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
       ..listen();
-    Uri url = Uri.parse(window.location.toString());
-    if (url.hasQuery && url.queryParameters['line'] != null) {
-      _jumpToLine(int.parse(url.queryParameters['line']));
-    }
   }
 
   _handleAutoCompletion(KeyboardEvent e) {
