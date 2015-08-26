@@ -235,6 +235,9 @@ class Playground implements GistContainer, GistController {
       _performAnalysis().then((bool result) {
         // Only auto-run if the static analysis comes back clean.
         if (result && !loadedFromSaved) _handleRun();
+        if (url.hasQuery && url.queryParameters['line'] != null) {
+          _jumpToLine(int.parse(url.queryParameters['line']));
+        }
       }).catchError((e) => null);
     });
   }
@@ -410,7 +413,7 @@ class Playground implements GistContainer, GistController {
     keys.bind(['ctrl-space', 'macctrl-space'], () {
       editor.showCompletions();
     }, "Completion");
-
+    
     keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
       if (settings.isShowing) {
         settings.hide();
@@ -796,6 +799,13 @@ class Playground implements GistContainer, GistController {
         doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
     if (focus) editor.focus();
+  }
+  
+  void _jumpToLine(int line) {
+    Document doc = editor.document;
+    doc.select(
+        new Position(line, 0), new Position(line, 0));
+    editor.focus();
   }
 }
 

@@ -509,6 +509,11 @@ class PlaygroundMobile {
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
       ..listen();
+    Uri url = Uri.parse(window.location.toString());
+    if (url.hasQuery && url.queryParameters['line'] != null) {
+      print(int.parse(url.queryParameters['line']));
+      _jumpToLine(int.parse(url.queryParameters['line']));
+    }
   }
 
   _handleAutoCompletion(KeyboardEvent e) {
@@ -767,6 +772,13 @@ class PlaygroundMobile {
     if (focus) editor.focus();
   }
 
+  void _jumpToLine(int line) {
+      Document doc = editor.document;
+      doc.select(
+          new Position(line, 0), new Position(line, 0));
+      editor.focus();
+  }
+  
   void _showError(String title, String message) {
     if (_messageDialog == null) {
       return;
