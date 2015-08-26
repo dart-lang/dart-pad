@@ -28,8 +28,7 @@ class MicroServer {
     vDir.jailRoot = false;
 
     runZoned(() {
-      _server.listen(
-          vDir.serveRequest,
+      _server.listen(vDir.serveRequest,
           onError: (e) => _errorController.add(e));
     }, onError: (e) => _errorController.add(e));
   }

@@ -29,11 +29,8 @@ class ExecutionServiceIFrame implements ExecutionService {
 
   Future execute(String html, String css, String javaScript) {
     return _reset().whenComplete(() {
-      return _send('execute', {
-        'html': html,
-        'css': css,
-        'js': _decorateJavaScript(javaScript)
-      });
+      return _send('execute',
+          {'html': html, 'css': css, 'js': _decorateJavaScript(javaScript)});
     });
   }
 
@@ -91,11 +88,10 @@ window.onerror = function(message, url, lineNumber) {
       _frame = clone;
     }
 
-    return _readyCompleter.future.timeout(
-        new Duration(seconds: 1),
+    return _readyCompleter.future.timeout(new Duration(seconds: 1),
         onTimeout: () {
-          if (!_readyCompleter.isCompleted) _readyCompleter.complete();
-        });
+      if (!_readyCompleter.isCompleted) _readyCompleter.complete();
+    });
   }
 
   void _initListener() {

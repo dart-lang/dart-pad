@@ -391,17 +391,19 @@ class PlaygroundMobile {
 
       _displayIssues(result.issues);
 
-      _context.dartDocument.setAnnotations(result.issues
-          .map((AnalysisIssue issue) {
+      _context.dartDocument
+          .setAnnotations(result.issues.map((AnalysisIssue issue) {
         int startLine = lines.getLineForOffset(issue.charStart);
         int endLine =
             lines.getLineForOffset(issue.charStart + issue.charLength);
 
         Position start = new Position(
             startLine, issue.charStart - lines.offsetForLine(startLine));
-        Position end = new Position(endLine, issue.charStart +
-            issue.charLength -
-            lines.offsetForLine(startLine));
+        Position end = new Position(
+            endLine,
+            issue.charStart +
+                issue.charLength -
+                lines.offsetForLine(startLine));
 
         return new Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
@@ -509,8 +511,9 @@ class PlaygroundMobile {
     _messageDialog.element.querySelector('h2').text = 'About DartPad';
     String text = privacyText;
     if (version != null) text += " Based on Dart SDK ${version}.";
-    _messageDialog.element.querySelector('p').setInnerHtml(text,
-        validator: new PermissiveNodeValidator());
+    _messageDialog.element
+        .querySelector('p')
+        .setInnerHtml(text, validator: new PermissiveNodeValidator());
     _messageDialog.open();
   }
 

@@ -32,7 +32,9 @@ void init() {
   _initModules().then((_) {
     List<Element> elements = querySelectorAll('[executable]');
 
-    /*List<DocSnippet> snippets =*/ elements.map((e) => new DocSnippet(e)).toList();
+    /*List<DocSnippet> snippets =*/ elements
+        .map((e) => new DocSnippet(e))
+        .toList();
 
     print('Found ${elements.length} matching executable doc comments.');
   });
@@ -128,18 +130,18 @@ class DocSnippet {
 
     _clearOutput();
 
-    deps[ExecutionService] = new ExecutionServiceIFrame(querySelector("iframe"));
+    deps[ExecutionService] =
+        new ExecutionServiceIFrame(querySelector("iframe"));
     executionService.onStdout.listen((m) => _appendOutput(m));
     executionService.onStderr.listen((m) => _displayErrors(m));
 
-    var input = new CompileRequest()..source = "void main(){${preElement.text}}";
-    dartServices.compile(input).then(
-            (CompileResponse response) {
-              executionService.execute(
-                  "", "", response.result);
-              _enableButton(true);
-              _showOutput();
-            });
+    var input = new CompileRequest()
+      ..source = "void main(){${preElement.text}}";
+    dartServices.compile(input).then((CompileResponse response) {
+      executionService.execute("", "", response.result);
+      _enableButton(true);
+      _showOutput();
+    });
   }
 
   void _enableButton(bool value) {

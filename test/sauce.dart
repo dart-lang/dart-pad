@@ -20,12 +20,11 @@ main(List args) async {
 
   Map caps = Capabilities.firefox;
 
-  String uri = 'http://${username}:${accessKey}@ondemand.saucelabs.com:80/wd/hub/';
+  String uri =
+      'http://${username}:${accessKey}@ondemand.saucelabs.com:80/wd/hub/';
   print('Connecting to ${uri}...');
 
-  WebDriver driver = await createDriver(
-      uri: Uri.parse(uri),
-      desired: caps);
+  WebDriver driver = await createDriver(uri: Uri.parse(uri), desired: caps);
   await driver.get("https://dartpad.dartlang.org/");
   String title = await driver.title;
   print('[${title}]');

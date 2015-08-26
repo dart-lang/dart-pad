@@ -125,7 +125,8 @@ class PolymerElement extends WebElement {
   static PolymerElement div() => new PolymerElement('div');
   static PolymerElement p([String text]) => new PolymerElement('p', text: text);
   static PolymerElement section() => new PolymerElement('section');
-  static PolymerElement span([String text]) => new PolymerElement('span', text: text);
+  static PolymerElement span([String text]) =>
+      new PolymerElement('span', text: text);
 
   JsObject _proxy;
   Map<String, Stream> _eventStreams = {};
@@ -200,13 +201,15 @@ class PolymerElement extends WebElement {
     }
     //Polymer.dom(this).appendChild(child);
     context["Polymer"]
-      .callMethod("dom", [new JsObject.fromBrowserObject(element)])
-      .callMethod("appendChild", [new JsObject.fromBrowserObject(child)]);
+        .callMethod("dom", [new JsObject.fromBrowserObject(element)])
+        .callMethod("appendChild", [new JsObject.fromBrowserObject(child)]);
   }
 
   dynamic selectorAll(String selector) {
     //Polymer.dom(this).childNodes;
-    return context["Polymer"].callMethod("dom", [new JsObject.fromBrowserObject(element)]).callMethod("querySelectorAll", [selector]);
+    return context["Polymer"]
+        .callMethod("dom", [new JsObject.fromBrowserObject(element)])
+        .callMethod("querySelectorAll", [selector]);
   }
 }
 

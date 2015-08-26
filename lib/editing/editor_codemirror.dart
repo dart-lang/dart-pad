@@ -74,13 +74,8 @@ class CodeMirrorFactory extends EditorFactory {
         // what's visible.
         'viewportMargin': 100,
         //'gutters': [_gutterId],
-        'extraKeys': {
-          'Cmd-/': 'toggleComment',
-          'Ctrl-/': 'toggleComment'
-        },
-        'hintOptions': {
-          'completeSingle': false
-        },
+        'extraKeys': {'Cmd-/': 'toggleComment', 'Ctrl-/': 'toggleComment'},
+        'hintOptions': {'completeSingle': false},
         //'lint': true,
         'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
       };
@@ -94,7 +89,8 @@ class CodeMirrorFactory extends EditorFactory {
   bool get supportsCompletionPositioning => true;
 
   void registerCompleter(String mode, CodeCompleter completer) {
-    Hints.registerHintsHelperAsync(mode, (CodeMirror editor, [HintsOptions options]) {
+    Hints.registerHintsHelperAsync(mode, (CodeMirror editor,
+        [HintsOptions options]) {
       return _completionHelper(editor, completer, options);
     });
   }
@@ -104,66 +100,61 @@ class CodeMirrorFactory extends EditorFactory {
     editor.execCommand('goLineLeftSmart');
   }
 
-  Future<HintResults> _completionHelper(CodeMirror editor,
-      CodeCompleter completer, HintsOptions options) {
+  Future<HintResults> _completionHelper(
+      CodeMirror editor, CodeCompleter completer, HintsOptions options) {
     _CodeMirrorEditor ed = new _CodeMirrorEditor._fromExisting(this, editor);
 
-    return completer.complete(ed, onlyShowFixes: ed._lookingForQuickFix).then(
-            (CompletionResult result) {
+    return completer
+        .complete(ed, onlyShowFixes: ed._lookingForQuickFix)
+        .then((CompletionResult result) {
       Doc doc = editor.getDoc();
-      pos.Position from =  doc.posFromIndex(result.replaceOffset);
-      pos.Position to = doc.posFromIndex(
-          result.replaceOffset + result.replaceLength);
+      pos.Position from = doc.posFromIndex(result.replaceOffset);
+      pos.Position to =
+          doc.posFromIndex(result.replaceOffset + result.replaceLength);
       String stringToReplace = doc.getValue().substring(
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
       List<HintResult> hints = result.completions.map((Completion completion) {
-        return new HintResult(
-            completion.value,
+        return new HintResult(completion.value,
             displayText: completion.displayString,
-            className: completion.type,
-            hintApplier: (CodeMirror editor, HintResult hint, pos.Position from,
-                pos.Position to) {
-              doc.replaceRange(hint.text, from, to);
-              if (completion.cursorOffset != null) {
-                int diff = hint.text.length - completion.cursorOffset;
-                doc.setCursor(new pos.Position(
-                    editor.getCursor().line, editor.getCursor().ch - diff));
-              }
-              if (completion.type == "type-quick_fix") {
-                completion.quickFixes.forEach(
-                        (SourceEdit edit) => ed.document.applyEdit(edit));
-              }
-            },
-            hintRenderer: (html.Element element, HintResult hint) {
-              var escapeHtml = new HtmlEscape().convert;
-              if (completion.type != "type-quick_fix") {
-                element.innerHtml = escapeHtml(completion.displayString).replaceFirst(
-                    escapeHtml(stringToReplace), "<em>${escapeHtml(stringToReplace)}</em>"
-                );
-              } else {
-                element.innerHtml = escapeHtml(completion.displayString);
-              }
-            }
-        );
+            className: completion.type, hintApplier: (CodeMirror editor,
+                HintResult hint, pos.Position from, pos.Position to) {
+          doc.replaceRange(hint.text, from, to);
+          if (completion.cursorOffset != null) {
+            int diff = hint.text.length - completion.cursorOffset;
+            doc.setCursor(new pos.Position(
+                editor.getCursor().line, editor.getCursor().ch - diff));
+          }
+          if (completion.type == "type-quick_fix") {
+            completion.quickFixes
+                .forEach((SourceEdit edit) => ed.document.applyEdit(edit));
+          }
+        }, hintRenderer: (html.Element element, HintResult hint) {
+          var escapeHtml = new HtmlEscape().convert;
+          if (completion.type != "type-quick_fix") {
+            element.innerHtml = escapeHtml(completion.displayString)
+                .replaceFirst(escapeHtml(stringToReplace),
+                    "<em>${escapeHtml(stringToReplace)}</em>");
+          } else {
+            element.innerHtml = escapeHtml(completion.displayString);
+          }
+        });
       }).toList();
 
       if (hints.isEmpty && ed._lookingForQuickFix) {
         hints = [
-          new HintResult(
-              stringToReplace,
+          new HintResult(stringToReplace,
               displayText: "No fixes available",
               className: "type-no_suggestions")
         ];
       } else if (hints.isEmpty &&
-          (ed.completionActive || (!ed.completionActive && !ed.completionAutoInvoked))) {
+          (ed.completionActive ||
+              (!ed.completionActive && !ed.completionAutoInvoked))) {
         // Only show 'no suggestions' if the completion was explicitly invoked
         // or if the popup was already active.
         hints = [
-          new HintResult(
-              stringToReplace,
-              displayText: "No suggestions",
-              className: "type-no_suggestions")
+          new HintResult(stringToReplace,
+              displayText: "No suggestions", className: "type-no_suggestions")
         ];
       }
 
@@ -187,14 +178,15 @@ class _CodeMirrorEditor extends Editor {
     _instances[cm.jsProxy] = this;
   }
 
-  factory _CodeMirrorEditor._fromExisting(CodeMirrorFactory factory, CodeMirror cm) {
+  factory _CodeMirrorEditor._fromExisting(
+      CodeMirrorFactory factory, CodeMirror cm) {
     // TODO: We should ensure that the Dart `CodeMirror` wrapper returns the
     // same instances to us when possible (or, identity is based on the
     // underlying JS proxy).
     if (_instances.containsKey(cm.jsProxy)) {
       return _instances[cm.jsProxy];
     } else {
-      return new _CodeMirrorEditor._(factory,  cm);
+      return new _CodeMirrorEditor._(factory, cm);
     }
   }
 
@@ -310,11 +302,8 @@ class _CodeMirrorDocument extends Document {
   void markClean() => doc.markClean();
 
   void applyEdit(SourceEdit edit) {
-    doc.replaceRange(
-        edit.replacement,
-        _posToPos(posFromIndex(edit.offset)),
-        _posToPos(posFromIndex(edit.offset + edit.length))
-    );
+    doc.replaceRange(edit.replacement, _posToPos(posFromIndex(edit.offset)),
+        _posToPos(posFromIndex(edit.offset + edit.length)));
   }
 
   void setAnnotations(List<Annotation> annotations) {
@@ -389,14 +378,14 @@ class _CodeMirrorDocument extends Document {
 //  }
 
   Stream get onChange => doc.onChange.where((_) {
-    if (value != _lastSetValue) {
-      _lastSetValue = null;
-      return true;
-    } else {
-      //_lastSetValue = null;
-      return false;
-    }
-  });
+        if (value != _lastSetValue) {
+          _lastSetValue = null;
+          return true;
+        } else {
+          //_lastSetValue = null;
+          return false;
+        }
+      });
 }
 
 //Future _appendNode(html.Element parent, html.Element child) {

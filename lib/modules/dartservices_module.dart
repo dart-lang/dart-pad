@@ -21,10 +21,26 @@ class SanitizingBrowserClient extends BrowserClient {
   // The below list of disallowed browser headers is based on list at:
   // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
   static const List<String> disallowedHeaders = const [
-    'accept-charset', 'accept-encoding', 'access-control-request-headers',
-    'access-control-request-method', 'connection', 'content-length', 'cookie',
-    'cookie2', 'date', 'dnt', 'expect', 'host', 'keep-alive', 'origin',
-    'referer', 'te', 'trailer', 'transfer-encoding', 'upgrade', 'user-agent',
+    'accept-charset',
+    'accept-encoding',
+    'access-control-request-headers',
+    'access-control-request-method',
+    'connection',
+    'content-length',
+    'cookie',
+    'cookie2',
+    'date',
+    'dnt',
+    'expect',
+    'host',
+    'keep-alive',
+    'origin',
+    'referer',
+    'te',
+    'trailer',
+    'transfer-encoding',
+    'upgrade',
+    'user-agent',
     'via'
   ];
 
@@ -54,7 +70,8 @@ class DartServicesModule extends Module {
 class DartSupportServicesModule extends Module {
   Future init() {
     var client = new SanitizingBrowserClient();
-    deps[P_dartpadsupportservicesApi] = new P_dartpadsupportservicesApi(client, rootUrl: serverURL);
+    deps[P_dartpadsupportservicesApi] =
+        new P_dartpadsupportservicesApi(client, rootUrl: serverURL);
     return new Future.value();
   }
 }

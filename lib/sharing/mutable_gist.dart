@@ -139,7 +139,8 @@ class _MutableGistProperty implements Property {
   final MutableGist mutableGist;
   final String name;
 
-  StreamController _changedController = new StreamController.broadcast(sync: true);
+  StreamController _changedController =
+      new StreamController.broadcast(sync: true);
   dynamic _value;
 
   _MutableGistProperty(this.mutableGist, this.name) {

@@ -16,8 +16,8 @@ main(List<String> args) async {
   String username = args.length >= 1 ? args[0] : null;
   String accessKey = args.length >= 2 ? args[1] : null;
 
-  createDriverFactory(username: username, accessKey: accessKey).then(
-      (DriverFactory factory) {
+  createDriverFactory(username: username, accessKey: accessKey)
+      .then((DriverFactory factory) {
     _setupTests(factory);
   }).catchError((e) {
     print(e);
@@ -68,7 +68,8 @@ _setupTests(DriverFactory factory) async {
 
     var _defineTest = (String name, Function fn, {bool mobile: false}) {
       test(mobile ? '${name} (mobile)' : name, () async {
-        await driver.get('${server.urlBase}${mobile ? 'mobile' : 'index'}.html');
+        await driver
+            .get('${server.urlBase}${mobile ? 'mobile' : 'index'}.html');
         fn(driver);
       });
     };

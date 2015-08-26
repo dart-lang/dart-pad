@@ -203,13 +203,14 @@ class Playground implements GistContainer, GistController {
         editableGist.setBackingGist(blankGist);
       });
     } else if (url.hasQuery && url.queryParameters['source'] != null) {
-      Future<UuidContainer> futureGistId = dartSupportServices
-          .retrieveGist(id: url.queryParameters['source']);
-      await futureGistId.then((UuidContainer gistId) => gistLoader.loadGist(gistId.uuid))
-        .then((Gist backing) {
-          editableGist.setBackingGist(backing);
-          router.go('gist', {'gist': backing.id});
-        });
+      Future<UuidContainer> futureGistId =
+          dartSupportServices.retrieveGist(id: url.queryParameters['source']);
+      await futureGistId
+          .then((UuidContainer gistId) => gistLoader.loadGist(gistId.uuid))
+          .then((Gist backing) {
+        editableGist.setBackingGist(backing);
+        router.go('gist', {'gist': backing.id});
+      });
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
@@ -413,7 +414,7 @@ class Playground implements GistContainer, GistController {
     keys.bind(['ctrl-space', 'macctrl-space'], () {
       editor.showCompletions();
     }, "Completion");
-    
+
     keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
       if (settings.isShowing) {
         settings.hide();
@@ -559,7 +560,6 @@ class Playground implements GistContainer, GistController {
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
     overlay.visible = true;
-
 
     Stopwatch compilationTimer = new Stopwatch()..start();
 
@@ -800,11 +800,10 @@ class Playground implements GistContainer, GistController {
 
     if (focus) editor.focus();
   }
-  
+
   void _jumpToLine(int line) {
     Document doc = editor.document;
-    doc.select(
-        new Position(line, 0), new Position(line, 0));
+    doc.select(new Position(line, 0), new Position(line, 0));
     editor.focus();
   }
 }

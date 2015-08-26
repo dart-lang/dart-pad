@@ -12,8 +12,8 @@ import 'dart:convert' show JSON;
 import 'dart:html';
 
 abstract class State {
-  dynamic operator[](String key);
-  void operator[]=(String key, dynamic value);
+  dynamic operator [](String key);
+  void operator []=(String key, dynamic value);
 }
 
 class HtmlState implements State {
@@ -26,9 +26,9 @@ class HtmlState implements State {
     }
   }
 
-  dynamic operator[](String key) => _values[key];
+  dynamic operator [](String key) => _values[key];
 
-  void operator[]=(String key, dynamic value) {
+  void operator []=(String key, dynamic value) {
     _values[key] = value;
     window.localStorage[id] = JSON.encode(_values);
   }

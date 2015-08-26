@@ -15,9 +15,14 @@ import 'services/common.dart';
 import 'services/dartservices.dart';
 
 class ParameterPopup {
-  static const List parKeys = const[
-      KeyCode.COMMA, KeyCode.NINE, KeyCode.ZERO,
-      KeyCode.LEFT, KeyCode.RIGHT, KeyCode.UP, KeyCode.DOWN
+  static const List parKeys = const [
+    KeyCode.COMMA,
+    KeyCode.NINE,
+    KeyCode.ZERO,
+    KeyCode.LEFT,
+    KeyCode.RIGHT,
+    KeyCode.UP,
+    KeyCode.DOWN
   ];
 
   final Context context;
@@ -46,7 +51,9 @@ class ParameterPopup {
   }
 
   void _handleKeyUp(KeyboardEvent e) {
-    if (e.keyCode == KeyCode.ESC || context.focusedEditor != 'dart' || !editor.hasFocus) {
+    if (e.keyCode == KeyCode.ESC ||
+        context.focusedEditor != 'dart' ||
+        !editor.hasFocus) {
       remove();
     } else if (parPopupActive || parKeys.contains(e.keyCode)) {
       _lookupParameterInfo();
@@ -80,8 +87,10 @@ class ParameterPopup {
       ..source = source
       ..offset = offset;
 
-    dartServices.document(input).timeout(serviceCallTimeout).then(
-        (DocumentResponse result) {
+    dartServices
+        .document(input)
+        .timeout(serviceCallTimeout)
+        .then((DocumentResponse result) {
       if (!result.info.containsKey("parameters")) {
         remove();
         return;
@@ -100,7 +109,8 @@ class ParameterPopup {
           if (i == parameterIndex) {
             outputString += '<em>${sanitizer.convert(parameterInfo[i])}</em>';
           } else {
-            outputString += '<span>${sanitizer.convert(parameterInfo[i])}</span>';
+            outputString +=
+                '<span>${sanitizer.convert(parameterInfo[i])}</span>';
           }
           if (i != parameterInfo.length - 1) {
             outputString += ", ";
@@ -110,8 +120,7 @@ class ParameterPopup {
       }
 
       // Check if cursor is still in parameter position
-      parInfo = _parameterInfo(
-          editor.document.value,
+      parInfo = _parameterInfo(editor.document.value,
           editor.document.indexFromPos(editor.document.cursor));
       if (parInfo == null) {
         remove();
@@ -123,7 +132,8 @@ class ParameterPopup {
 
   void _showParameterPopup(String string, int methodOffset) {
     DivElement editorDiv = querySelector("#editpanel .CodeMirror");
-    var lineHeight = editorDiv.getComputedStyle().getPropertyValue('line-height');
+    var lineHeight =
+        editorDiv.getComputedStyle().getPropertyValue('line-height');
     lineHeight = int.parse(lineHeight.substring(0, lineHeight.indexOf("px")));
     // var charWidth = editorDiv.getComputedStyle().getPropertyValue('letter-spacing');
     int charWidth = 8;
@@ -139,8 +149,9 @@ class ParameterPopup {
       parameterHint.innerHtml = string;
 
       //update popup position
-      int newLeft = math.max(
-          cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22).round();
+      int newLeft = math
+          .max(cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22)
+          .round();
 
       parameterPopup = querySelector(".parameter-hints")
         ..style.top = "${heightOfMethod}px";
@@ -153,19 +164,23 @@ class ParameterPopup {
       var parameterHint = new SpanElement()
         ..innerHtml = string
         ..classes.add("parameter-hint");
-      int left = math.max(
-          cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22).round();
+      int left = math
+          .max(cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22)
+          .round();
       parameterPopup = new DivElement()
         ..classes.add("parameter-hints")
         ..style.left = "${left}px"
-        ..style.top =  "${heightOfMethod}px"
-        ..style.maxWidth = "${querySelector("#editpanel").getBoundingClientRect().width}px";
+        ..style.top = "${heightOfMethod}px"
+        ..style.maxWidth =
+            "${querySelector("#editpanel").getBoundingClientRect().width}px";
       parameterPopup.append(parameterHint);
       document.body.append(parameterPopup);
     }
     var activeParameter = querySelector(".parameter-hints em");
-    if (activeParameter != null && activeParameter.previousElementSibling != null) {
-      parameterPopup.scrollLeft = activeParameter.previousElementSibling.offsetLeft;
+    if (activeParameter != null &&
+        activeParameter.previousElementSibling != null) {
+      parameterPopup.scrollLeft =
+          activeParameter.previousElementSibling.offsetLeft;
     }
   }
 
@@ -206,9 +221,11 @@ class ParameterPopup {
       }
     }
 
-    return openingParenIndex == null ? null : {
-      "openingParenIndex" : openingParenIndex,
-      "parameterIndex" : parameterIndex
-    };
+    return openingParenIndex == null
+        ? null
+        : {
+            "openingParenIndex": openingParenIndex,
+            "parameterIndex": parameterIndex
+          };
   }
 }

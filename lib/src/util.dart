@@ -85,7 +85,7 @@ class CancellableCompleter<T> implements Completer {
 
   bool get isCompleted => _completer.isCompleted;
 
-  void cancel({String reason : "cancelled"}) {
+  void cancel({String reason: "cancelled"}) {
     if (!_cancelled) {
       if (!isCompleted) completeError(new CancellationException(reason));
       _cancelled = true;

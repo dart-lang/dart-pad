@@ -12,7 +12,8 @@ import 'dart:async';
  * event listeners.
  */
 class EventBus {
-  final StreamController<BusEvent> _controller = new StreamController.broadcast();
+  final StreamController<BusEvent> _controller =
+      new StreamController.broadcast();
 
   EventBus();
 

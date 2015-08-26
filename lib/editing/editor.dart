@@ -75,7 +75,7 @@ abstract class Editor {
   void swapDocument(Document document);
 
   /// Let the `Editor` instance know that it will no longer be used.
-  void dispose() { }
+  void dispose() {}
 }
 
 abstract class Document {
@@ -124,8 +124,7 @@ class Annotation implements Comparable {
   final Position start;
   final Position end;
 
-  Annotation(this.type, this.message, this.line,
-      {this.start, this.end});
+  Annotation(this.type, this.message, this.line, {this.start, this.end});
 
   int compareTo(Annotation other) {
     if (line == other.line) {
@@ -182,11 +181,12 @@ class Completion {
 
   List<SourceEdit> quickFixes = [];
 
-  Completion(this.value, {this.displayString, this.type, this.cursorOffset, this.quickFixes});
+  Completion(this.value,
+      {this.displayString, this.type, this.cursorOffset, this.quickFixes});
 
   bool isSetterAndMatchesGetter(Completion other) =>
       displayString == other.displayString &&
-      (type == "type-getter" && other.type == "type-setter");
+          (type == "type-getter" && other.type == "type-setter");
 }
 
 class SourceEdit {

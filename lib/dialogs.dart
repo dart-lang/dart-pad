@@ -128,7 +128,7 @@ class SharingDialog extends DDialog {
       ..flex()
       ..readonly()
       ..value =
-      "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}' style='height:300px;width:100%;' frameborder='0'></iframe>";
+          "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}' style='height:300px;width:100%;' frameborder='0'></iframe>";
     _embedUrl.onClick.listen((_) => _embedUrl.selectAll());
     div = _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
     _embedArea = div.add(new DElement.tag('div'))
@@ -158,10 +158,10 @@ class SharingDialog extends DDialog {
       ..text = 'Dart + HTML'
       ..style.paddingLeft = '8px');
     _embedDartRadio.checked = true;
-    _embedPicture = _rightArea.add(
-        new ImageElement(src: _docThumbnail, height: 100, width: 300)
-      ..alt = "Embed-dart"
-      ..style.paddingLeft = "16px");
+    _embedPicture = _rightArea
+        .add(new ImageElement(src: _docThumbnail, height: 100, width: 300)
+          ..alt = "Embed-dart"
+          ..style.paddingLeft = "16px");
     _embedDartRadio.onClick.listen((_) => _embedToDart());
     _embedHtmlRadio.onClick.listen((_) => _embedToHtml());
     _info = _leftArea.add(new DElement.tag('div')
@@ -175,7 +175,7 @@ class SharingDialog extends DDialog {
       ..append(new SpanElement()
         ..text = 'embedding guide'
         ..attributes['onClick'] =
-        "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
+            "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
         ..style.cursor = "pointer"
         ..style.textDecoration = "underline")
       ..append(new SpanElement()..text = '.'));
