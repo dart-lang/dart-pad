@@ -348,7 +348,6 @@ class PlaygroundMobile {
       print('Error loading gist ${gistId}.\n${e}');
       _showError('Error Loading Gist', '${gistId} - ${e}');
     });
-    
   }
 
   Future _initModules() {
