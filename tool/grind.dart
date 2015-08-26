@@ -41,7 +41,8 @@ build() {
   new FilePath('third_party/mdetect/mdetect.py').copy(_webDir);
 
   // Copy the codemirror javascript into web/scripts.
-  new FilePath('packages/codemirror/codemirror.js').copy(_webDir.join('scripts'));
+  new FilePath('packages/codemirror/codemirror.js')
+      .copy(_webDir.join('scripts'));
 
   Pub.build(directories: ['web', 'test']);
 
@@ -73,7 +74,6 @@ build() {
   vulcanize('embed-html.html');
   vulcanize('embed-inline.html');
 
-
   return _uploadCompiledStats(
       mainFile.asFile.lengthSync(), mobileFile.asFile.lengthSync());
 }
@@ -82,24 +82,27 @@ build() {
 vulcanize(String filepath) {
   FilePath htmlFile = _buildDir.join('web', filepath);
   log('${htmlFile.path} original: ${_printSize(htmlFile)}');
-  ProcessResult result = Process.runSync('vulcanize', [
-    '--strip-comments',
-    '--inline-css',
-    '--inline-scripts',
-    '--exclude',
-    'scripts/mobile.dart.js',
-    '--exclude',
-    'scripts/embed.dart.js',
-    '--exclude',
-    'scripts/main.dart.js',
-    '--exclude',
-    'scripts/codemirror.js',
-    '--exclude',
-    'scripts/embed_components.html',
-    '--exclude',
-    'scripts/mobile_components.html',
-    filepath
-  ], workingDirectory: 'build/web');
+  ProcessResult result = Process.runSync(
+      'vulcanize',
+      [
+        '--strip-comments',
+        '--inline-css',
+        '--inline-scripts',
+        '--exclude',
+        'scripts/mobile.dart.js',
+        '--exclude',
+        'scripts/embed.dart.js',
+        '--exclude',
+        'scripts/main.dart.js',
+        '--exclude',
+        'scripts/codemirror.js',
+        '--exclude',
+        'scripts/embed_components.html',
+        '--exclude',
+        'scripts/mobile_components.html',
+        filepath
+      ],
+      workingDirectory: 'build/web');
   if (result.exitCode != 0) {
     fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
   }
@@ -112,12 +115,9 @@ vulcanize(String filepath) {
 vulcanizeNoExclusion(String filepath) {
   FilePath htmlFile = _buildDir.join('web', filepath);
   log('${htmlFile.path} original: ${_printSize(htmlFile)}');
-  ProcessResult result = Process.runSync('vulcanize', [
-    '--strip-comments',
-    '--inline-css',
-    '--inline-scripts',
-    filepath
-  ], workingDirectory: 'build/web');
+  ProcessResult result = Process.runSync('vulcanize',
+      ['--strip-comments', '--inline-css', '--inline-scripts', filepath],
+      workingDirectory: 'build/web');
   if (result.exitCode != 0) {
     fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
   }

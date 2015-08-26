@@ -17,7 +17,8 @@ import 'package:which/which.dart';
 Future<DriverFactory> createDriverFactory({String username, String accessKey}) {
   List<DriverFactory> factories = [
     new SauceLabsDriverFactory(),
-    new SauceConnectLocalDriverFactory(username: username, accessKey: accessKey),
+    new SauceConnectLocalDriverFactory(
+        username: username, accessKey: accessKey),
     new ChromeDriverFactory(),
     new PhantomJSDriverFactory(),
   ];
@@ -65,7 +66,8 @@ class SauceConnectLocalDriverFactory extends DriverFactory {
   final String username;
   final String accessKey;
 
-  SauceConnectLocalDriverFactory({this.username, this.accessKey}) : super('sauce_connect');
+  SauceConnectLocalDriverFactory({this.username, this.accessKey})
+      : super('sauce_connect');
 
   Map get _env => Platform.environment;
 
@@ -77,7 +79,8 @@ class SauceConnectLocalDriverFactory extends DriverFactory {
     Map caps = Capabilities.chrome;
 
     return createDriver(
-        uri: Uri.parse("http://${username}:${accessKey}@localhost:4445/wd/hub/"),
+        uri:
+            Uri.parse("http://${username}:${accessKey}@localhost:4445/wd/hub/"),
         desired: caps);
   }
 
@@ -89,11 +92,12 @@ class SauceLabsDriverFactory extends DriverFactory {
 
   Map get _env => Platform.environment;
 
-  bool get isAvailable =>
-      _env.containsKey('SAUCE_USERNAME') && _env.containsKey('SAUCE_ACCESS_KEY');
+  bool get isAvailable => _env.containsKey('SAUCE_USERNAME') &&
+      _env.containsKey('SAUCE_ACCESS_KEY');
 
-  Future startFactory() => isAvailable ?
-      new Future.value() : new Future.error('sauce_connect not available');
+  Future startFactory() => isAvailable
+      ? new Future.value()
+      : new Future.error('sauce_connect not available');
 
   Future<WebDriver> createWebDriver() {
     Map caps = Capabilities.chrome;
@@ -111,13 +115,11 @@ class SauceLabsDriverFactory extends DriverFactory {
       caps['tunnel-identifier'] = tunnelId;
     }
 
-    caps['browser'] = {
-      "username": username,
-      "accessKey": accessKey,
-    };
+    caps['browser'] = {"username": username, "accessKey": accessKey,};
 
     return createDriver(
-        uri: Uri.parse("http://${username}:${accessKey}@localhost:4445/wd/hub/"),
+        uri:
+            Uri.parse("http://${username}:${accessKey}@localhost:4445/wd/hub/"),
         desired: caps);
   }
 
@@ -184,8 +186,7 @@ class ChromeDriverFactory extends DriverFactory {
     }
 
     return createDriver(
-        uri: Uri.parse('http://127.0.0.1:9515/wd'),
-        desired: capabilities);
+        uri: Uri.parse('http://127.0.0.1:9515/wd'), desired: capabilities);
   }
 
   Future stopFactory() {

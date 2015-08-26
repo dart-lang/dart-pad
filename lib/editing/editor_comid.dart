@@ -69,15 +69,14 @@ class ComidFactory extends EditorFactory {
         'indentUnit': 2,
         'cursorHeight': 0.85,
         //'gutters': [_gutterId],
-        'extraKeys': { (mac ? "Cmd-/" : "Ctrl-/"): "toggleComment" },
+        'extraKeys': {(mac ? "Cmd-/" : "Ctrl-/"): "toggleComment"},
         //'lint': true,
         'theme': 'zenburn'
       };
     }
 
     CodeMirror.defaultCommands['autocomplete'] = showDartCompletions;
-    return new _CodeMirrorEditor._(this,
-        new CodeMirror(element, options));
+    return new _CodeMirrorEditor._(this, new CodeMirror(element, options));
   }
 
   hints.CompletionOptions options;
@@ -88,9 +87,7 @@ class ComidFactory extends EditorFactory {
 
   void registerCompleter(String mode, CodeCompleter codeCompleter) {
     options = new hints.CompletionOptions(
-        hint: computeProposals,
-        completeOnSingleClick: true,
-        async: true);
+        hint: computeProposals, completeOnSingleClick: true, async: true);
     completer = codeCompleter;
     completionMode = mode;
   }
@@ -99,83 +96,79 @@ class ComidFactory extends EditorFactory {
     if (cm.doc.mode.name == completionMode) {
       hints.showHint(cm, options);
     } else {
-      hints.showHint(cm, new hints.CompletionOptions(
-          hint: CodeMirror.getNamedHelper('hint', 'auto'),
-          completeOnSingleClick: true));
+      hints.showHint(
+          cm,
+          new hints.CompletionOptions(
+              hint: CodeMirror.getNamedHelper('hint', 'auto'),
+              completeOnSingleClick: true));
     }
   }
 
-  hints.ProposalList computeProposals( // rtn val only used in sync mode
+  hints.ProposalList computeProposals(
+      // rtn val only used in sync mode
       CodeMirror cm,
       hints.CompletionOptions options,
       [hints.ShowProposals displayProposals]) {
     assert(displayProposals != null); // ensure async
     _CodeMirrorEditor ed = new _CodeMirrorEditor._fromExisting(this, cm);
-    Future<CompletionResult> props = completer.complete(ed,
-        onlyShowFixes: ed._lookingForQuickFix);
+    Future<CompletionResult> props =
+        completer.complete(ed, onlyShowFixes: ed._lookingForQuickFix);
     Future futureProposals = props.then((CompletionResult result) {
       Doc doc = cm.getDoc();
-      var from =  doc.posFromIndex(result.replaceOffset);
+      var from = doc.posFromIndex(result.replaceOffset);
       var to = doc.posFromIndex(result.replaceOffset + result.replaceLength);
       String stringToReplace = doc.getValue().substring(
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
       List<Completion> completionList = result.completions;
       List<Proposal> list = completionList.map((Completion completion) {
-        return new Proposal(
-            completion.value,
+        return new Proposal(completion.value,
             displayText: completion.displayString,
-            className: completion.type,
-            hintApplier: (CodeMirror editor, hints.ProposalList list, Proposal hint) {
-              doc.replaceRange(hint.text, list.from, list.to);
-              if (completion.cursorOffset != null) {
-                int diff = hint.text.length - completion.cursorOffset;
-                doc.setCursor(new Pos(
-                    editor.getCursor().line, editor.getCursor().char - diff));
-              }
-              if (completion.type == "type-quick_fix") {
-                completion.quickFixes.forEach(
-                        (SourceEdit edit) => ed.document.applyEdit(edit));
-              }
-            },
-            hintRenderer: (html.Element element, list, hints.Proposal hint) {
-              var escapeHtml = new HtmlEscape().convert;
-              if (completion.type != "type-quick_fix") {
-                var escDispl = escapeHtml(completion.displayString);
-                var escRepl = escapeHtml(stringToReplace);
-                element.innerHtml =
-                    escDispl.replaceFirst(escRepl, "<em>${escRepl}</em>");
-              } else {
-                element.innerHtml = escapeHtml(completion.displayString);
-              }
-            }
-        );
+            className: completion.type, hintApplier:
+                (CodeMirror editor, hints.ProposalList list, Proposal hint) {
+          doc.replaceRange(hint.text, list.from, list.to);
+          if (completion.cursorOffset != null) {
+            int diff = hint.text.length - completion.cursorOffset;
+            doc.setCursor(new Pos(
+                editor.getCursor().line, editor.getCursor().char - diff));
+          }
+          if (completion.type == "type-quick_fix") {
+            completion.quickFixes
+                .forEach((SourceEdit edit) => ed.document.applyEdit(edit));
+          }
+        }, hintRenderer: (html.Element element, list, hints.Proposal hint) {
+          var escapeHtml = new HtmlEscape().convert;
+          if (completion.type != "type-quick_fix") {
+            var escDispl = escapeHtml(completion.displayString);
+            var escRepl = escapeHtml(stringToReplace);
+            element.innerHtml =
+                escDispl.replaceFirst(escRepl, "<em>${escRepl}</em>");
+          } else {
+            element.innerHtml = escapeHtml(completion.displayString);
+          }
+        });
       }).toList();
 
       if (list.isEmpty && ed._lookingForQuickFix) {
-        list.add(
-          new Proposal(
-              stringToReplace,
-              displayText: "No fixes available",
-              className: "type-no_suggestions")
-        );
+        list.add(new Proposal(stringToReplace,
+            displayText: "No fixes available",
+            className: "type-no_suggestions"));
       } else if (list.isEmpty &&
-          (ed.completionActive || (!ed.completionActive && !ed.completionAutoInvoked))) {
+          (ed.completionActive ||
+              (!ed.completionActive && !ed.completionAutoInvoked))) {
         // Only show 'no suggestions' if the completion was explicitly invoked
         // or if the popup was already active.
-        list.add(
-          new Proposal(
-              stringToReplace,
-              displayText: "No suggestions",
-              className: "type-no_suggestions")
-        );
+        list.add(new Proposal(stringToReplace,
+            displayText: "No suggestions", className: "type-no_suggestions"));
       }
 
       hints.ProposalList proposals;
       proposals = new hints.ProposalList(list: list, from: from, to: to);
       return proposals;
     });
-    futureProposals.then((proposals) { displayProposals(proposals); });
+    futureProposals.then((proposals) {
+      displayProposals(proposals);
+    });
     return null;
   }
 }
@@ -198,7 +191,7 @@ class _CodeMirrorEditor extends Editor {
     if (existing != null) {
       return existing;
     } else {
-      return new _CodeMirrorEditor._(fac,  cm);
+      return new _CodeMirrorEditor._(fac, cm);
     }
   }
 
@@ -297,11 +290,8 @@ class _CodeMirrorDocument extends Document {
   void markClean() => doc.markClean();
 
   void applyEdit(SourceEdit edit) {
-    doc.replaceRange(
-        edit.replacement,
-        _posToPos(posFromIndex(edit.offset)),
-        _posToPos(posFromIndex(edit.offset + edit.length))
-    );
+    doc.replaceRange(edit.replacement, _posToPos(posFromIndex(edit.offset)),
+        _posToPos(posFromIndex(edit.offset + edit.length)));
   }
 
   void setAnnotations(List<Annotation> annotations) {
@@ -343,17 +333,16 @@ class _CodeMirrorDocument extends Document {
 
   ed.Position posFromIndex(int index) => _posFromPos(doc.posFromIndex(index));
 
-  Pos _posToPos(ed.Position position) =>
-      new Pos(position.line, position.char);
+  Pos _posToPos(ed.Position position) => new Pos(position.line, position.char);
 
   ed.Position _posFromPos(Pos position) =>
       new ed.Position(position.line, position.char);
 
   Stream get onChange => doc.onEvent('change', 2).where((_) {
-      if (value != _lastSetValue) return true;
-      _lastSetValue = null;
-      return false;
-    });
+        if (value != _lastSetValue) return true;
+        _lastSetValue = null;
+        return false;
+      });
 
   /**
    * This method should be called if any events listeners were added to the

@@ -78,9 +78,10 @@ class Dependencies {
     _instances[type] = instance;
   }
 
-  dynamic operator[](Type type) => getDependency(type);
+  dynamic operator [](Type type) => getDependency(type);
 
-  void operator[]=(Type type, dynamic instance) => setDependency(type, instance);
+  void operator []=(Type type, dynamic instance) =>
+      setDependency(type, instance);
 
   /**
    * Return the [Type]s defined in this immediate [Dependencies] instance.

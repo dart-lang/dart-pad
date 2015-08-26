@@ -11,7 +11,6 @@ import 'dart:async';
 export 'dart:async' show Future;
 
 abstract class Module {
-
   /**
    * TODO:
    */
