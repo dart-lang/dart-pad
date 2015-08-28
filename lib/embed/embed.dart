@@ -107,6 +107,9 @@ class PlaygroundMobile {
       if (isLegalGistId(id)) {
         _showGist(id);
         _storePreviousResult();
+        if (url.queryParameters['run'] == 'true') {
+          _handleRun();
+        }
         return;
       }
     }
