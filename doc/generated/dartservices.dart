@@ -1251,6 +1251,8 @@ class VersionResponse {
    * semver string.
    */
   core.String sdkVersion;
+  /** The full Dart SDK version that DartServices is compatible with. */
+  core.String sdkVersionFull;
   /** The dart-services backend version. */
   core.String servicesVersion;
 
@@ -1265,6 +1267,9 @@ class VersionResponse {
     }
     if (_json.containsKey("sdkVersion")) {
       sdkVersion = _json["sdkVersion"];
+    }
+    if (_json.containsKey("sdkVersionFull")) {
+      sdkVersionFull = _json["sdkVersionFull"];
     }
     if (_json.containsKey("servicesVersion")) {
       servicesVersion = _json["servicesVersion"];
@@ -1281,6 +1286,9 @@ class VersionResponse {
     }
     if (sdkVersion != null) {
       _json["sdkVersion"] = sdkVersion;
+    }
+    if (sdkVersionFull != null) {
+      _json["sdkVersionFull"] = sdkVersionFull;
     }
     if (servicesVersion != null) {
       _json["servicesVersion"] = servicesVersion;

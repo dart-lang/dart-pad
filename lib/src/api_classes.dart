@@ -286,6 +286,10 @@ class VersionResponse {
   final String sdkVersion;
 
   @ApiProperty(
+      description: 'The full Dart SDK version that DartServices is compatible with.')
+  final String sdkVersionFull;
+
+  @ApiProperty(
       description: 'The Dart SDK version that the server is running on. This '
         'will start with a semver string, and have a space and other build '
         'details appended.')
@@ -299,6 +303,6 @@ class VersionResponse {
       description: 'The dart-services backend version.')
   final String servicesVersion;
 
-  VersionResponse({this.sdkVersion, this.runtimeVersion,
+  VersionResponse({this.sdkVersion, this.sdkVersionFull, this.runtimeVersion,
     this.appEngineVersion, this.servicesVersion});
 }
