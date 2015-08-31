@@ -27,7 +27,8 @@ class MockDartServicesModule extends Module {
 // Mock DataServicesApi server.
 class HttpServerMock extends BaseClient {
   Future<StreamedResponse> send(BaseRequest request) {
-    return request.finalize()
+    return request
+        .finalize()
         .transform(UTF8.decoder)
         .join('')
         .then((String jsonString) {
@@ -38,9 +39,7 @@ class HttpServerMock extends BaseClient {
         result = _apiHandler(request, JSON.decode(jsonString));
       }
       // Encode the result and return it as a StreamedResponse.
-      var h = {
-        "content-type" : "application/json; charset=utf-8",
-      };
+      var h = {"content-type": "application/json; charset=utf-8",};
       var encodedResult = UTF8.encode(JSON.encode(result));
       var stream = new Stream.fromIterable([encodedResult]);
       return new Future.delayed(new Duration(milliseconds: 500),
@@ -57,9 +56,9 @@ Map _apiHandler(BaseRequest request, dynamic json) {
     Lines lines = new Lines(source);
     List<AnalysisIssue> issues = 'todo'.allMatches(source).map((Match match) {
       return new AnalysisIssue()
-          ..kind = 'todo'
-          ..line = lines.getLineForOffset(match.start) + 1
-          ..message = 'found a todo';
+        ..kind = 'todo'
+        ..line = lines.getLineForOffset(match.start) + 1
+        ..message = 'found a todo';
     }).toList();
     response = new AnalysisResults()..issues = issues;
   } else if (request.url.path == '/api/dartservices/v1/compile') {

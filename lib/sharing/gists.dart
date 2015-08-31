@@ -82,12 +82,14 @@ class GistLoader {
 
   static GistFilterHook _defaultLoadHook = (Gist gist) {
     // Update files based on our preferred file names.
-    if (gist.getFile('body.html') != null && gist.getFile('index.html') == null) {
+    if (gist.getFile('body.html') != null &&
+        gist.getFile('index.html') == null) {
       GistFile file = gist.getFile('body.html');
       file.name = 'index.html';
     }
 
-    if (gist.getFile('style.css') != null && gist.getFile('styles.css') == null) {
+    if (gist.getFile('style.css') != null &&
+        gist.getFile('styles.css') == null) {
       GistFile file = gist.getFile('style.css');
       file.name = 'styles.css';
     }
@@ -108,12 +110,13 @@ class GistLoader {
   static GistFilterHook _defaultSaveHook = (Gist gist) {
     // Create a full html file on save.
     bool hasStyles = gist.getFile('styles.css') != null;
-    String styleRef = hasStyles ?
-        '    <link rel="stylesheet" href="styles.css">\n' : '';
+    String styleRef =
+        hasStyles ? '    <link rel="stylesheet" href="styles.css">\n' : '';
 
     bool hasDart = gist.getFile('main.dart') != null;
-    String dartRef = hasDart ?
-        '    <script type="application/dart" src="main.dart"></script>\n' : '';
+    String dartRef = hasDart
+        ? '    <script type="application/dart" src="main.dart"></script>\n'
+        : '';
 
     GistFile htmlFile = gist.getFile('index.html');
     if (htmlFile != null) {
@@ -150,8 +153,9 @@ ${styleRef}${dartRef}  </head>
 
   GistLoader({this.afterLoadHook, this.beforeSaveHook});
 
-  GistLoader.defaultFilters() :
-    afterLoadHook = _defaultLoadHook, beforeSaveHook = _defaultSaveHook;
+  GistLoader.defaultFilters()
+      : afterLoadHook = _defaultLoadHook,
+        beforeSaveHook = _defaultSaveHook;
 
   /// Load the gist with the given id.
   Future<Gist> loadGist(String gistId) {
@@ -174,8 +178,9 @@ ${styleRef}${dartRef}  </head>
       beforeSaveHook(gist);
     }
 
-    return HttpRequest.request(_apiUrl, method: 'POST',
-        sendData: gist.toJson()).then((HttpRequest request) {
+    return HttpRequest
+        .request(_apiUrl, method: 'POST', sendData: gist.toJson())
+        .then((HttpRequest request) {
       Gist gist = new Gist.fromMap(JSON.decode(request.responseText));
       if (afterLoadHook != null) {
         afterLoadHook(gist);
@@ -210,7 +215,7 @@ class Gist {
     files = f.keys.map((key) => new GistFile.fromMap(key, f[key])).toList();
   }
 
-  dynamic operator[](String key) {
+  dynamic operator [](String key) {
     if (key == 'id') return id;
     if (key == 'description') return description;
     if (key == 'html_url') return html_url;
@@ -241,9 +246,7 @@ class Gist {
     m['files'] = {};
     for (GistFile file in files) {
       if (file.hasContent) {
-        m['files'][file.name] = {
-          'content': file.content
-        };
+        m['files'][file.name] = {'content': file.content};
       }
     }
     return m;
@@ -293,7 +296,8 @@ class GistStorage {
 
   /// Return the id of the stored gist. This will return `null` if there is no
   /// gist stored.
-  String get storedId => _storedId == null || _storedId.isEmpty ? null : _storedId;
+  String get storedId =>
+      _storedId == null || _storedId.isEmpty ? null : _storedId;
 
   Gist getStoredGist() {
     String data = window.localStorage[_key];

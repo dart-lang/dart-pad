@@ -107,8 +107,8 @@ class _AceEditor extends Editor {
 
   Document createDocument({String content, String mode}) {
     if (content == null) content = '';
-    ace.EditSession session = ace.createEditSession(
-        content, new ace.Mode.named(mode));
+    ace.EditSession session =
+        ace.createEditSession(content, new ace.Mode.named(mode));
     session.tabSize = 2;
     session.useSoftTabs = true;
     session.useWorker = false;
@@ -117,7 +117,7 @@ class _AceEditor extends Editor {
   }
 
   // TODO: Implement execCommand for ace.
-  void execCommand(String name) { }
+  void execCommand(String name) {}
 
   // TODO: Implement completionActive for ace.
   bool get completionActive => false;
@@ -131,7 +131,7 @@ class _AceEditor extends Editor {
   }
 
   // TODO: Add an showCompletions method for ace.
-  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) { }
+  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false}) {}
 
   bool get hasFocus => editor.isFocused;
 
@@ -168,7 +168,6 @@ class _AceDocument extends Document {
 
   void select(Position start, [Position end]) {
     // TODO: Implement.
-
   }
 
   String get selection => _aceEditor.editor.copyText;
@@ -180,7 +179,7 @@ class _AceDocument extends Document {
   void markClean() => session.undoManager.markClean();
 
   // TODO: Add a applyEdit method for ace.
-  void applyEdit(SourceEdit edit) { }
+  void applyEdit(SourceEdit edit) {}
 
   void setAnnotations(List<Annotation> annotations) {
 //    if (markers.isNotEmpty) {
@@ -194,8 +193,10 @@ class _AceDocument extends Document {
     annotations.sort();
 
     session.setAnnotations(annotations.map((Annotation annotation) {
-      return new ace.Annotation(text: annotation.message,
-          type: annotation.type, row: annotation.line - 1);
+      return new ace.Annotation(
+          text: annotation.message,
+          type: annotation.type,
+          row: annotation.line - 1);
     }).toList());
 
 //    for (Annotation annotation in annotations) {

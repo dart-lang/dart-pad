@@ -26,7 +26,8 @@ class DartCompleter extends CodeCompleter {
 
   DartCompleter(this.servicesApi, this.document);
 
-  Future<CompletionResult> complete(Editor editor, {bool onlyShowFixes: false}) {
+  Future<CompletionResult> complete(Editor editor,
+      {bool onlyShowFixes: false}) {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 
@@ -54,8 +55,8 @@ class DartCompleter extends CodeCompleter {
                 quickFixes: fixes));
           }
         }
-        completer.complete(new CompletionResult(
-            completions, replaceOffset: offset, replaceLength: 0));
+        completer.complete(new CompletionResult(completions,
+            replaceOffset: offset, replaceLength: 0));
       });
     } else {
       servicesApi.complete(request).then((CompleteResponse response) {
@@ -64,18 +65,20 @@ class DartCompleter extends CodeCompleter {
         int replaceOffset = response.replacementOffset;
         int replaceLength = response.replacementLength;
 
-        String replacementString = editor.document.value.substring(
-            replaceOffset, replaceOffset + replaceLength);
+        String replacementString = editor.document.value
+            .substring(replaceOffset, replaceOffset + replaceLength);
 
-        List<AnalysisCompletion> analysisCompletions = response.completions.map(
-            (Map completion) {
-          return new AnalysisCompletion(replaceOffset, replaceLength, completion);
+        List<AnalysisCompletion> analysisCompletions =
+            response.completions.map((Map completion) {
+          return new AnalysisCompletion(
+              replaceOffset, replaceLength, completion);
         }).toList();
 
         List<Completion> completions = analysisCompletions.map((completion) {
           // TODO: Move to using a LabelProvider; decouple the data and rendering.
-          String displayString = completion.isMethod ?
-              '${completion.text}${completion.parameters}' : completion.text;
+          String displayString = completion.isMethod
+              ? '${completion.text}${completion.parameters}'
+              : completion.text;
           if (completion.isMethod && completion.returnType != null) {
             displayString += ' → ${completion.returnType}';
           }
@@ -96,8 +99,8 @@ class DartCompleter extends CodeCompleter {
           String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
 
           if (completion.type == null) {
-            return new Completion(text, displayString: displayString,
-            type: deprecatedClass);
+            return new Completion(text,
+                displayString: displayString, type: deprecatedClass);
           } else {
             int cursorPos = null;
 
@@ -105,7 +108,8 @@ class DartCompleter extends CodeCompleter {
               cursorPos = text.indexOf('(') + 1;
             }
 
-            return new Completion(text, displayString: displayString,
+            return new Completion(text,
+                displayString: displayString,
                 type: "type-${completion.type.toLowerCase()}${deprecatedClass}",
                 cursorOffset: cursorPos);
           }
@@ -123,10 +127,8 @@ class DartCompleter extends CodeCompleter {
           }
         }
 
-        completer.complete(new CompletionResult(
-            filterCompletions,
-            replaceOffset: replaceOffset,
-            replaceLength: replaceLength));
+        completer.complete(new CompletionResult(filterCompletions,
+            replaceOffset: replaceOffset, replaceLength: replaceLength));
       }).catchError((e) {
         completer.completeError(e);
       });
@@ -162,13 +164,13 @@ class AnalysisCompletion implements Comparable {
   bool get isMethod {
     var element = _map['element'];
     return element is Map
-        ? (element['kind'] == 'FUNCTION' || element['kind'] == 'METHOD') : false;
+        ? (element['kind'] == 'FUNCTION' || element['kind'] == 'METHOD')
+        : false;
   }
 
   String get parameters => isMethod ? _map['element']["parameters"] : null;
 
-  int get parameterCount =>
-    isMethod ? _map['parameterNames'].length : null;
+  int get parameterCount => isMethod ? _map['parameterNames'].length : null;
 
   String get text {
     String str = _map['completion'];
@@ -192,7 +194,8 @@ class AnalysisCompletion implements Comparable {
   int get selectionOffset => _int(_map['selectionOffset']);
 
   // FUNCTION, GETTER, CLASS, ...
-  String get type => _map.containsKey('element') ? _map['element']['kind'] : kind;
+  String get type =>
+      _map.containsKey('element') ? _map['element']['kind'] : kind;
 
   // TODO: Changed from `contains` to `startsWith`; see #211.
   bool matchesCompletionFragment(String completionFragment) =>

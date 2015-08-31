@@ -46,13 +46,11 @@ void init() {
   _playground = new PlaygroundMobile();
 }
 
-enum _FileType {
-  DART, CSS, HTML
-}
+enum _FileType { DART, CSS, HTML }
 
 class PlaygroundMobile {
   final String webURL = "https://dartpad.dartlang.org";
-  
+
   PaperFab _runButton;
   PaperIconButton _exportButton;
   PaperIconButton _cancelButton;
@@ -62,7 +60,7 @@ class PlaygroundMobile {
 
   Map<_FileType, String> _lastRun;
   Router _router;
-  
+
   CompileResponse _cachedCompile;
   Editor editor;
   PlaygroundContext _context;
@@ -109,6 +107,9 @@ class PlaygroundMobile {
       if (isLegalGistId(id)) {
         _showGist(id);
         _storePreviousResult();
+        if (url.queryParameters['run'] == 'true') {
+          _handleRun();
+        }
         return;
       }
     }
@@ -302,11 +303,14 @@ class PlaygroundMobile {
   void _export() {
     ga.sendEvent("embed", "exportAffirm");
     WindowBase exportWindow = window.open("", 'Export');
-    PadSaveObject exportObject = new PadSaveObject()..html = context.htmlSource
-        ..css = context.cssSource ..dart = context.dartSource;
+    PadSaveObject exportObject = new PadSaveObject()
+      ..html = context.htmlSource
+      ..css = context.cssSource
+      ..dart = context.dartSource;
     Future<UuidContainer> id = dartSupportServices.export(exportObject);
     id.then((UuidContainer container) {
-      exportWindow.location.href='$webURL/index.html?export=${container.uuid}';
+      exportWindow.location.href =
+          '$webURL/index.html?export=${container.uuid}';
     });
   }
 
@@ -339,6 +343,10 @@ class PlaygroundMobile {
       Timer.run(() {
         _performAnalysis();
       });
+      Uri url = Uri.parse(window.location.toString());
+      if (url.hasQuery && url.queryParameters['line'] != null) {
+        _jumpToLine(int.parse(url.queryParameters['line']));
+      }
     }).catchError((e) {
       print('Error loading gist ${gistId}.\n${e}');
       _showError('Error Loading Gist', '${gistId} - ${e}');
@@ -598,10 +606,13 @@ class PlaygroundMobile {
   }
 
   bool get _hasStoredRequest {
-    return (_lastRun != null && _lastRun[_FileType.DART] == context.dartSource && _lastRun[_FileType.CSS] == context.htmlSource 
-        &&  _lastRun[_FileType.CSS] == context.cssSource && _cachedCompile != null);
+    return (_lastRun != null &&
+        _lastRun[_FileType.DART] == context.dartSource &&
+        _lastRun[_FileType.CSS] == context.htmlSource &&
+        _lastRun[_FileType.CSS] == context.cssSource &&
+        _cachedCompile != null);
   }
- 
+
   void _storePreviousResult() {
     var input = new CompileRequest()..source = context.dartSource;
     _setLastRunCondition();
@@ -612,11 +623,11 @@ class PlaygroundMobile {
       _cachedCompile = response;
     });
   }
-  
+
   void _performAnalysis() {
     var input = new SourceRequest()..source = _context.dartSource;
     Lines lines = new Lines(input.source);
-    
+
     Future<AnalysisResults> request =
         dartServices.analyze(input).timeout(serviceCallTimeout);
 
@@ -631,17 +642,19 @@ class PlaygroundMobile {
 
       _displayIssues(result.issues);
 
-      _context.dartDocument.setAnnotations(result.issues
-          .map((AnalysisIssue issue) {
+      _context.dartDocument
+          .setAnnotations(result.issues.map((AnalysisIssue issue) {
         int startLine = lines.getLineForOffset(issue.charStart);
         int endLine =
             lines.getLineForOffset(issue.charStart + issue.charLength);
 
         Position start = new Position(
             startLine, issue.charStart - lines.offsetForLine(startLine));
-        Position end = new Position(endLine, issue.charStart +
-            issue.charLength -
-            lines.offsetForLine(startLine));
+        Position end = new Position(
+            endLine,
+            issue.charStart +
+                issue.charLength -
+                lines.offsetForLine(startLine));
 
         return new Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
@@ -677,7 +690,7 @@ class PlaygroundMobile {
 
   Future _pulsateConsole() async {
     $('#bottomPanel').classes.add('pulsate');
-    new Timer(new Duration(milliseconds:1000), () {
+    new Timer(new Duration(milliseconds: 1000), () {
       $('#bottomPanel').classes.remove('pulsate');
     });
   }
@@ -691,14 +704,14 @@ class PlaygroundMobile {
       e.text = description == null ? '' : description;
     }
   }
-  
-  void _setLastRunCondition () {
+
+  void _setLastRunCondition() {
     _lastRun = new Map<_FileType, String>();
     _lastRun[_FileType.DART] = context.dartSource;
     _lastRun[_FileType.HTML] = context.htmlSource;
     _lastRun[_FileType.CSS] = context.cssSource;
   }
-  
+
   void _setGistId(String id) {
     if (id == null || id.isEmpty) {
       _gistId = null;
@@ -765,6 +778,12 @@ class PlaygroundMobile {
         doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
     if (focus) editor.focus();
+  }
+
+  void _jumpToLine(int line) {
+    Document doc = editor.document;
+    doc.select(new Position(line, 0), new Position(line, 0));
+    editor.focus();
   }
 
   void _showError(String title, String message) {

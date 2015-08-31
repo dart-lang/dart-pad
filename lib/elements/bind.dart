@@ -79,7 +79,7 @@ class _StreamBinding implements Binding {
     _sub = stream.listen(_handleEvent);
   }
 
-  void flush() { }
+  void flush() {}
 
   void cancel() {
     _sub.cancel();
@@ -101,7 +101,7 @@ class _PropertyBinding implements Binding {
     if (stream != null) _sub = stream.listen(_handleEvent);
   }
 
-  void flush() =>_sendTo(target, property.get());
+  void flush() => _sendTo(target, property.get());
 
   void cancel() {
     if (_sub != null) _sub.cancel();

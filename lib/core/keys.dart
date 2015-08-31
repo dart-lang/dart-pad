@@ -30,8 +30,8 @@ class Keys {
    */
   void bind(List<String> keys, Function onInvoke, String description,
       {bool hidden: false}) {
-    keys.forEach(
-        (key) => _bindings[key] = new Action(onInvoke, description, hidden: hidden));
+    keys.forEach((key) =>
+        _bindings[key] = new Action(onInvoke, description, hidden: hidden));
   }
 
   void dispose() {
@@ -42,8 +42,10 @@ class Keys {
     try {
       KeyboardEvent k = event;
 
-      if (!k.altKey && !k.ctrlKey && !k.metaKey
-          && !(event.keyCode >= KeyCode.F1 && event.keyCode <= KeyCode.F12)) {
+      if (!k.altKey &&
+          !k.ctrlKey &&
+          !k.metaKey &&
+          !(event.keyCode >= KeyCode.F1 && event.keyCode <= KeyCode.F12)) {
         return;
       }
 
@@ -72,10 +74,8 @@ class Keys {
   }
 
   Map<Action, Set<String>> get inverseBindings {
-    return new Map.fromIterable(
-        _bindings.values.toSet(),
-        value: (v) => _bindings.keys.where((k) => _bindings[k] == v).toSet()
-    );
+    return new Map.fromIterable(_bindings.values.toSet(),
+        value: (v) => _bindings.keys.where((k) => _bindings[k] == v).toSet());
   }
 }
 
@@ -90,7 +90,8 @@ class Action {
 
   String toString() => description;
 
-  bool operator==(other) => other is Action && description == other.description;
+  bool operator ==(other) =>
+      other is Action && description == other.description;
 
   int get hashCode => description.hashCode;
 }
@@ -235,16 +236,16 @@ final Map _codeMap = {
 };
 
 final Map _unicodeMac = {
-    "macctrl" : "\u2303",
-    "alt" : "\u2325",
-    "shift" : "\u21E7",
-    "ctrl" : "\u2318",
-    "esc" : "\u238B",
-    "left" : "\u2190",
-    "enter" : "\u21A9",
-    "right" : "\u2192",
-    "caps_lock" : "\u21EA",
-    "tab" : "\u21E5",
-    "up" : "\u2191",
-    "space" : "Space"
+  "macctrl": "\u2303",
+  "alt": "\u2325",
+  "shift": "\u21E7",
+  "ctrl": "\u2318",
+  "esc": "\u238B",
+  "left": "\u2190",
+  "enter": "\u21A9",
+  "right": "\u2192",
+  "caps_lock": "\u21EA",
+  "tab": "\u21E5",
+  "up": "\u2191",
+  "space": "Space"
 };

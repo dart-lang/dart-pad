@@ -17,9 +17,10 @@ class PaperDrawerPanel extends PolymerElement {
   void forceNarrow() => toggleAttribute('forceNarrow');
 
   void makeDrawer(PolymerElement element) =>
-  element.toggleAttribute('drawer', true);
+      element.toggleAttribute('drawer', true);
 
-  void makeMain(PolymerElement element) => element.toggleAttribute('main', true);
+  void makeMain(PolymerElement element) =>
+      element.toggleAttribute('main', true);
 
   /// Toggles the panel open and closed.
   void togglePanel() => call('togglePanel');
@@ -80,7 +81,8 @@ class PaperDialog extends PaperDialogBase {
 }
 
 class PaperDialogBase extends IronOverlayBehavior {
-  PaperDialogBase([String tag]) : super(tag == null ? 'paper-dialog-base' : tag);
+  PaperDialogBase([String tag])
+      : super(tag == null ? 'paper-dialog-base' : tag);
   PaperDialogBase.from(HtmlElement element) : super.from(element);
 
   String get heading => attribute('heading');
@@ -108,8 +110,7 @@ class PaperIconButton extends PolymerElement {
 }
 
 class PaperItem extends PaperButtonBase {
-  PaperItem({String text, String icon}) :
-      super('paper-item', text: text) {
+  PaperItem({String text, String icon}) : super('paper-item', text: text) {
     if (icon != null) this.icon = icon;
   }
 

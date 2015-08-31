@@ -40,7 +40,7 @@ class Analytics {
   }
 
   void sendException(String description, {bool fatal}) {
-    Map m = { 'exDescription': description };
+    Map m = {'exDescription': description};
     if (fatal != null) m['exFatal'] = fatal;
     _ga2('send', 'exception', m);
   }

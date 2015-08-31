@@ -160,6 +160,7 @@ class Playground implements GistContainer, GistController {
           .version()
           .timeout(new Duration(seconds: 2))
           .then((VersionResponse ver) {
+        print("Dart SDK version ${ver.sdkVersion}; full version: ${ver.sdkVersionFull}");
         new AboutDialog(ver.sdkVersion)..show();
       }).catchError((e) {
         new AboutDialog()..show();
@@ -203,13 +204,14 @@ class Playground implements GistContainer, GistController {
         editableGist.setBackingGist(blankGist);
       });
     } else if (url.hasQuery && url.queryParameters['source'] != null) {
-      Future<UuidContainer> futureGistId = dartSupportServices
-          .retrieveGist(id: url.queryParameters['source']);
-      await futureGistId.then((UuidContainer gistId) => gistLoader.loadGist(gistId.uuid))
-        .then((Gist backing) {
-          editableGist.setBackingGist(backing);
-          router.go('gist', {'gist': backing.id});
-        });
+      Future<UuidContainer> futureGistId =
+          dartSupportServices.retrieveGist(id: url.queryParameters['source']);
+      await futureGistId
+          .then((UuidContainer gistId) => gistLoader.loadGist(gistId.uuid))
+          .then((Gist backing) {
+        editableGist.setBackingGist(backing);
+        router.go('gist', {'gist': backing.id});
+      });
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
@@ -235,6 +237,9 @@ class Playground implements GistContainer, GistController {
       _performAnalysis().then((bool result) {
         // Only auto-run if the static analysis comes back clean.
         if (result && !loadedFromSaved) _handleRun();
+        if (url.hasQuery && url.queryParameters['line'] != null) {
+          _jumpToLine(int.parse(url.queryParameters['line']));
+        }
       }).catchError((e) => null);
     });
   }
@@ -557,7 +562,6 @@ class Playground implements GistContainer, GistController {
     runButton.disabled = true;
     overlay.visible = true;
 
-
     Stopwatch compilationTimer = new Stopwatch()..start();
 
     var input = new CompileRequest()..source = context.dartSource;
@@ -796,6 +800,12 @@ class Playground implements GistContainer, GistController {
         doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
     if (focus) editor.focus();
+  }
+
+  void _jumpToLine(int line) {
+    Document doc = editor.document;
+    doc.select(new Position(line, 0), new Position(line, 0));
+    editor.focus();
   }
 }
 

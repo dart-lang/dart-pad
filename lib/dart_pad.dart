@@ -25,7 +25,8 @@ Context get context => deps[Context];
 
 DartservicesApi get dartServices => deps[DartservicesApi];
 
-P_dartpadsupportservicesApi get dartSupportServices => deps[P_dartpadsupportservicesApi];
+P_dartpadsupportservicesApi get dartSupportServices =>
+    deps[P_dartpadsupportservicesApi];
 
 EditorFactory get editorFactory => deps[EditorFactory];
 

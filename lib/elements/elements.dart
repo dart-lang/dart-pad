@@ -14,8 +14,7 @@ class DElement {
   final Element element;
 
   DElement(this.element);
-  DElement.tag(String tag, {String classes}) :
-    element = new Element.tag(tag) {
+  DElement.tag(String tag, {String classes}) : element = new Element.tag(tag) {
     if (classes != null) {
       element.classes.add(classes);
     }
@@ -29,7 +28,8 @@ class DElement {
 
   String getAttr(String name) => element.getAttribute(name);
 
-  void setAttr(String name, [String value = '']) => element.setAttribute(name, value);
+  void setAttr(String name, [String value = '']) =>
+      element.setAttribute(name, value);
 
   String clearAttr(String name) => element.attributes.remove(name);
 
@@ -83,8 +83,8 @@ class DElement {
 class DButton extends DElement {
   DButton(ButtonElement element) : super(element);
 
-  DButton.button({String text, String classes}) :
-      super.tag('button', classes: classes) {
+  DButton.button({String text, String classes})
+      : super.tag('button', classes: classes) {
     element.classes.add('button');
     if (text != null) {
       element.text = text;
@@ -110,16 +110,19 @@ class DSplitter extends DElement {
   StreamSubscription _moveSub;
   StreamSubscription _upSub;
 
-  DSplitter(Element element, {this.onDragStart, this.onDragEnd}) : super(element) {
+  DSplitter(Element element, {this.onDragStart, this.onDragEnd})
+      : super(element) {
     _init();
   }
 
-  DSplitter.createHorizontal({this.onDragStart, this.onDragEnd}) : super.tag('div') {
+  DSplitter.createHorizontal({this.onDragStart, this.onDragEnd})
+      : super.tag('div') {
     horizontal = true;
     _init();
   }
 
-  DSplitter.createVertical({this.onDragStart, this.onDragEnd}) : super.tag('div') {
+  DSplitter.createVertical({this.onDragStart, this.onDragEnd})
+      : super.tag('div') {
     vertical = true;
     _init();
   }
@@ -232,7 +235,7 @@ class DSplitter extends DElement {
   num get _targetSize {
     CssStyleDeclaration style = _target.getComputedStyle();
     String str = vertical ? style.width : style.height;
-    if (str.endsWith('px')) { 
+    if (str.endsWith('px')) {
       str = str.substring(0, str.length - 2);
       return num.parse(str);
     } else {
@@ -380,7 +383,9 @@ class DInput extends DElement {
 
 class DToast extends DElement {
   static void showMessage(String message) {
-    new DToast(message)..show()..hide();
+    new DToast(message)
+      ..show()
+      ..hide();
   }
 
   final String message;
@@ -462,7 +467,8 @@ abstract class DDialog extends DElement {
     add(new DElement.tag('div'))..flex();
 
     buttonArea = add(new DElement.tag('div', classes: 'buttons')
-        ..setAttr('layout')..setAttr('horizontal'));
+      ..setAttr('layout')
+      ..setAttr('horizontal'));
 
     if (title != null) {
       titleArea.add(new DElement.tag('h1')..text = title);
@@ -518,7 +524,8 @@ class _ElementTextProperty implements Property {
 }
 
 class TabController {
-  StreamController<TabElement> _selectedTabController = new StreamController.broadcast();
+  StreamController<TabElement> _selectedTabController =
+      new StreamController.broadcast();
 
   List<TabElement> tabs;
 
@@ -536,7 +543,8 @@ class TabController {
     tab.onClick.listen((_) => selectTab(tab.name));
   }
 
-  TabElement get selectedTab => tabs.firstWhere((tab) => tab.hasAttr("selected"));
+  TabElement get selectedTab =>
+      tabs.firstWhere((tab) => tab.hasAttr("selected"));
 
   /// This method will throw if the tabName is not the name of a current tab.
   void selectTab(String tabName) {
