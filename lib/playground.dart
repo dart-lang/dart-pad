@@ -160,6 +160,7 @@ class Playground implements GistContainer, GistController {
           .version()
           .timeout(new Duration(seconds: 2))
           .then((VersionResponse ver) {
+        print("Dart SDK version ${ver.sdkVersion}; full version: ${ver.sdkVersionFull}");
         new AboutDialog(ver.sdkVersion)..show();
       }).catchError((e) {
         new AboutDialog()..show();
