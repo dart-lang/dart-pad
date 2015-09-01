@@ -36,6 +36,8 @@ class Compiler {
   /// The version of the SDK this copy of dart2js is based on.
   String get version => compilerVersion.version;
 
+  String get versionFull => compilerVersion.versionLong;
+
   Future warmup([bool useHtml = false]) =>
       compile(useHtml ? sampleCodeWeb : sampleCode);
 

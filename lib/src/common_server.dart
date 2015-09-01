@@ -122,7 +122,7 @@ class CommonServer {
   Future<SummaryText> summarize(SourcesRequest request) {
     return _summarize(request.sources['dart'], request.sources['css'], request.sources['html']);
   }
-  
+
   @ApiMethod(method: 'GET', path: 'analyze')
   Future<AnalysisResults> analyzeGet({String source}) {
     return _analyze(source);
@@ -263,7 +263,7 @@ class CommonServer {
     }
     return _analyzeMulti({"main.dart" : source});
   }
-  
+
   Future<SummaryText> _summarize(String dart, String html, String css) async {
     if (dart == null || html == null || css == null) {
       throw new BadRequestError('Missing core source parameter.');
@@ -400,6 +400,7 @@ class CommonServer {
 
   VersionResponse _version() => new VersionResponse(
       sdkVersion: compiler.version,
+      sdkVersionFull: compiler.versionFull,
       runtimeVersion: vmVersion,
       servicesVersion: servicesVersion,
       appEngineVersion: container.version);

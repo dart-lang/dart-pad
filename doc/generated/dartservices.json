@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "0aa77a088adf1d0f493048752b9dabfab6f8bf54",
+ "etag": "ffc1ef3d5358d3edc9bdb221ad65d3989f5ffd3f",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -296,6 +296,10 @@
     "sdkVersion": {
      "type": "string",
      "description": "The Dart SDK version that DartServices is compatible with. This will be a semver string."
+    },
+    "sdkVersionFull": {
+     "type": "string",
+     "description": "The full Dart SDK version that DartServices is compatible with."
     },
     "runtimeVersion": {
      "type": "string",
