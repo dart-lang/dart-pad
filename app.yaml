@@ -1,4 +1,4 @@
-version: v112rc
+version: v-1-12-0
 runtime: custom
 vm: true
 api_version: 1
@@ -8,7 +8,7 @@ resources:
   memory_gb: 3
 
 automatic_scaling:
-  min_num_instances: 3
+  min_num_instances: 6
   max_num_instances: 12
   cool_down_period_sec: 60
   cpu_utilization:
