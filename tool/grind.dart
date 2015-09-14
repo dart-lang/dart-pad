@@ -32,7 +32,7 @@ testCli() => new TestRunner().testAsync(platformSelector: 'vm');
 testWeb() => new TestRunner().testAsync(platformSelector: 'chrome');
 
 @Task('Run bower')
-bower() => run('bower', arguments: ['install']);
+bower() => run('bower', arguments: ['install', '--force-latest']);
 
 @Task('Build the `web/index.html` entrypoint')
 @Depends(bower)

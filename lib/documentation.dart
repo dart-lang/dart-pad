@@ -16,6 +16,7 @@ import 'dart_pad.dart';
 import 'editing/editor.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
+import 'src/util.dart';
 
 class DocHandler {
   static const List cursorKeys = const [
@@ -28,9 +29,7 @@ class DocHandler {
   final Editor _editor;
   final Context _context;
 
-  final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
-    ..allowElement('a', attributes: ['href'])
-    ..allowElement('img', attributes: ['src']);
+  final NodeValidator _htmlValidator = new PermissiveNodeValidator();
 
   DocHandler(this._editor, this._context);
 
