@@ -356,6 +356,7 @@ div.toggle {
 }
 
 #documentation h1 {
+  margin-top: 0;
   font-size: 12pt;
   font-weight: bold;
   color: #eee;

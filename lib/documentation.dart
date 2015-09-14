@@ -64,7 +64,8 @@ class DocHandler {
       return _getHtmlTextFor(result).then((_DocResult docResult) {
         if (docResult.html == "") {
           docPanel.innerHtml =
-              "<div class='default-text-div layout horizontal center-center'><span class='default-text'>Documentation</span></div>";
+              "<div class='default-text-div layout horizontal center-center'>"
+              "<span class='default-text'>Documentation</span></div>";
           return;
         }
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
@@ -162,9 +163,10 @@ ${libraryName == null ? '' : apiLink }\n\n''';
       String _htmlDocs = markdown.markdownToHtml(_mdDocs,
           inlineSyntaxes: [new InlineBracketsColon(), new InlineBrackets()]);
 
-      // Append a 'launch' icon to the 'Open external docs' link.
-      _htmlDocs = _htmlDocs.replaceAll("external docs</a>",
-          "external docs <span class='launch-icon'></span></a>");
+      // Append a 'launch' icon to the 'Open library docs' link.
+      _htmlDocs = _htmlDocs.replaceAll(
+          "library docs</a>",
+          "library docs <span class='launch-icon'></span></a>");
 
       return new _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
     });
@@ -175,16 +177,20 @@ ${libraryName == null ? '' : apiLink }\n\n''';
     StringBuffer apiLink = new StringBuffer();
     if (libraryName != null) {
       if (libraryName.contains('dart:')) {
-        apiLink.write(
-            'https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/'
-            '${libraryName}');
-        memberName = '${memberName == null ? "" : "#id_${memberName}"}';
-        if (enclosingClassName == null) {
-          apiLink.write(memberName);
-        } else {
-          apiLink.write(".${enclosingClassName}${memberName}");
-        }
-        return '[Open external docs](${apiLink})';
+        libraryName = libraryName.replaceAll(':', '-');
+        apiLink.write('https://api.dartlang.org/stable/${libraryName}/${libraryName}-library.html');
+
+        // if (enclosingClassName == null && memberName == null) {
+        //   apiLink.write('${libraryName}-library.html');
+        // } else if (memberName == null) {
+        //   apiLink.write('${enclosingClassName}-class.html');
+        // } else if (enclosingClassName == null) {
+        //   apiLink.write('${memberName}.html');
+        // } else {
+        //   apiLink.write('${enclosingClassName}/${memberName}.html');
+        // }
+
+        return '[Open library docs](${apiLink})';
       }
     }
     return libraryName;
