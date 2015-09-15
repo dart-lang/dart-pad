@@ -356,6 +356,7 @@ div.toggle {
 }
 
 #documentation h1 {
+  margin-top: 0;
   font-size: 12pt;
   font-weight: bold;
   color: #eee;
@@ -510,7 +511,7 @@ div.toggle {
 
 .launch-icon {
   display: inline-block;
-  background: url('packages/dart_pad/elements/launch.svg') center no-repeat;
+  background: url('../packages/dart_pad/elements/launch.svg') center no-repeat;
   background-size: 100%;
   width: 16px;
   height: 14px;

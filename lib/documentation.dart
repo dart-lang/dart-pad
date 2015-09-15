@@ -16,6 +16,7 @@ import 'dart_pad.dart';
 import 'editing/editor.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
+import 'src/util.dart';
 
 class DocHandler {
   static const List cursorKeys = const [
@@ -28,9 +29,7 @@ class DocHandler {
   final Editor _editor;
   final Context _context;
 
-  final NodeValidatorBuilder _htmlValidator = new NodeValidatorBuilder.common()
-    ..allowElement('a', attributes: ['href'])
-    ..allowElement('img', attributes: ['src']);
+  final NodeValidator _htmlValidator = new PermissiveNodeValidator();
 
   DocHandler(this._editor, this._context);
 
@@ -64,7 +63,8 @@ class DocHandler {
       return _getHtmlTextFor(result).then((_DocResult docResult) {
         if (docResult.html == "") {
           docPanel.innerHtml =
-              "<div class='default-text-div layout horizontal center-center'><span class='default-text'>Documentation</span></div>";
+              "<div class='default-text-div layout horizontal center-center'>"
+              "<span class='default-text'>Documentation</span></div>";
           return;
         }
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
@@ -162,9 +162,10 @@ ${libraryName == null ? '' : apiLink }\n\n''';
       String _htmlDocs = markdown.markdownToHtml(_mdDocs,
           inlineSyntaxes: [new InlineBracketsColon(), new InlineBrackets()]);
 
-      // Append a 'launch' icon to the 'Open external docs' link.
-      _htmlDocs = _htmlDocs.replaceAll("external docs</a>",
-          "external docs <span class='launch-icon'></span></a>");
+      // Append a 'launch' icon to the 'Open library docs' link.
+      _htmlDocs = _htmlDocs.replaceAll(
+          "library docs</a>",
+          "library docs <span class='launch-icon'></span></a>");
 
       return new _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
     });
@@ -175,16 +176,10 @@ ${libraryName == null ? '' : apiLink }\n\n''';
     StringBuffer apiLink = new StringBuffer();
     if (libraryName != null) {
       if (libraryName.contains('dart:')) {
-        apiLink.write(
-            'https://api.dartlang.org/apidocs/channels/stable/dartdoc-viewer/'
-            '${libraryName}');
-        memberName = '${memberName == null ? "" : "#id_${memberName}"}';
-        if (enclosingClassName == null) {
-          apiLink.write(memberName);
-        } else {
-          apiLink.write(".${enclosingClassName}${memberName}");
-        }
-        return '[Open external docs](${apiLink})';
+        libraryName = libraryName.replaceAll(':', '-');
+        apiLink.write('https://api.dartlang.org/stable/${libraryName}/${libraryName}-library.html');
+
+        return '[Open library docs](${apiLink})';
       }
     }
     return libraryName;
