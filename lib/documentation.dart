@@ -179,16 +179,6 @@ ${libraryName == null ? '' : apiLink }\n\n''';
         libraryName = libraryName.replaceAll(':', '-');
         apiLink.write('https://api.dartlang.org/stable/${libraryName}/${libraryName}-library.html');
 
-        // if (enclosingClassName == null && memberName == null) {
-        //   apiLink.write('${libraryName}-library.html');
-        // } else if (memberName == null) {
-        //   apiLink.write('${enclosingClassName}-class.html');
-        // } else if (enclosingClassName == null) {
-        //   apiLink.write('${memberName}.html');
-        // } else {
-        //   apiLink.write('${enclosingClassName}/${memberName}.html');
-        // }
-
         return '[Open library docs](${apiLink})';
       }
     }
