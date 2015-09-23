@@ -18,7 +18,7 @@ Element queryId(String id) => querySelector('#${id}');
 Element $(String selectors) => querySelector(selectors);
 
 class WebElement {
-  final HtmlElement element;
+  final Element element;
 
   WebElement(String tag, {String text}) : element = new Element.tag(tag) {
     if (text != null) element.text = text;

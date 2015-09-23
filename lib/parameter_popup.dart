@@ -132,9 +132,10 @@ class ParameterPopup {
 
   void _showParameterPopup(String string, int methodOffset) {
     DivElement editorDiv = querySelector("#editpanel .CodeMirror");
-    var lineHeight =
+    String lineHeightStr =
         editorDiv.getComputedStyle().getPropertyValue('line-height');
-    lineHeight = int.parse(lineHeight.substring(0, lineHeight.indexOf("px")));
+    num lineHeight = int.parse(
+        lineHeightStr.substring(0, lineHeightStr.indexOf("px")));
     // var charWidth = editorDiv.getComputedStyle().getPropertyValue('letter-spacing');
     int charWidth = 8;
 

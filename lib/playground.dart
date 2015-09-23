@@ -204,14 +204,11 @@ class Playground implements GistContainer, GistController {
         editableGist.setBackingGist(blankGist);
       });
     } else if (url.hasQuery && url.queryParameters['source'] != null) {
-      Future<UuidContainer> futureGistId =
-          dartSupportServices.retrieveGist(id: url.queryParameters['source']);
-      await futureGistId
-          .then((UuidContainer gistId) => gistLoader.loadGist(gistId.uuid))
-          .then((Gist backing) {
-        editableGist.setBackingGist(backing);
-        router.go('gist', {'gist': backing.id});
-      });
+      UuidContainer gistId =
+          await dartSupportServices.retrieveGist(id: url.queryParameters['source']);
+      Gist backing = await gistLoader.loadGist(gistId.uuid);
+      editableGist.setBackingGist(backing);
+      router.go('gist', {'gist': backing.id});
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
