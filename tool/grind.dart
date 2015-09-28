@@ -24,6 +24,12 @@ analyze() {
   new PubApp.global('tuneup')..run(['check']);
 }
 
+@Task('Analyze the source code with the ddc compiler')
+ddc() {
+  PubApp ddc = new PubApp.global('dev_compiler');
+  ddc.run(['web/scripts/main.dart']);
+}
+
 @Task()
 testCli() => new TestRunner().testAsync(platformSelector: 'vm');
 
