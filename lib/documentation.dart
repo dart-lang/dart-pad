@@ -9,7 +9,7 @@ import 'dart:convert';
 import 'dart:html';
 import 'dart:math' as math;
 
-import 'package:markd/markdown.dart' as markdown;
+import 'package:markdown/markdown.dart' as markdown;
 
 import 'context.dart';
 import 'dart_pad.dart';
@@ -152,11 +152,12 @@ class DocHandler {
     }
 
     return mdnCheck.then((String mdnLink) {
+      var propagatedType = info['propagatedType'];
       String _mdDocs = '''# `${info['description']}`\n\n
 ${hasDartdoc ? info['dartdoc'] + "\n\n" : ''}
 ${mdnLink != null ? "## External resources:\n * ${mdnLink} at MDN" : ''}
 ${isVariable ? "${kind}\n\n" : ''}
-${isVariable ? "**Propagated type:** ${info["propagatedType"]}\n\n" : ''}
+${(isVariable && propagatedType != null)? "**Propagated type:** ${propagatedType}\n\n" : ''}
 ${libraryName == null ? '' : apiLink }\n\n''';
 
       String _htmlDocs = markdown.markdownToHtml(_mdDocs,
