@@ -7,8 +7,8 @@ library playground;
 import 'dart:async';
 import 'dart:html' hide Document;
 
+import 'package:frappe/frappe.dart' as frappe;
 import 'package:logging/logging.dart';
-import 'package:rate_limit/rate_limit.dart';
 import 'package:route_hierarchical/client.dart';
 
 import 'completion.dart';
@@ -26,9 +26,9 @@ import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'parameter_popup.dart';
+import 'services/_dartpadsupportservices.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
-import 'services/_dartpadsupportservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
@@ -142,8 +142,8 @@ class Playground implements GistContainer, GistController {
 
     // If there was a change, and the gist is dirty, write the gist's contents
     // to storage.
-    Throttler throttle = new Throttler(const Duration(milliseconds: 100));
-    mutableGist.onChanged.transform(throttle).listen((_) {
+    frappe.Property gistChanged = new frappe.Property.fromStream(mutableGist.onChanged);
+    gistChanged.debounce(new Duration(milliseconds: 100)).listen((_) {
       if (mutableGist.dirty) {
         _gistStorage.setStoredGist(mutableGist.createGist());
       }

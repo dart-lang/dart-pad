@@ -10,14 +10,14 @@ import 'dart:html' hide Document;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
-import '../dart_pad.dart';
 import '../context.dart';
 import '../core/dependencies.dart';
 import '../core/modules.dart';
+import '../dart_pad.dart';
 import '../editing/editor.dart';
 import '../modules/codemirror_module.dart';
-import '../modules/dartservices_module.dart';
 import '../modules/dart_pad_module.dart';
+import '../modules/dartservices_module.dart';
 import '../polymer/base.dart';
 import '../polymer/iron.dart';
 import '../polymer/paper.dart';
