@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-//Currently not in use
-
 library dart_pad.embed_ui;
 
 import 'dart:async';
@@ -13,23 +11,23 @@ import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
 import '../completion.dart';
-import '../elements/elements.dart';
-import '../dart_pad.dart';
-import '../documentation.dart';
 import '../context.dart';
 import '../core/dependencies.dart';
 import '../core/keys.dart';
 import '../core/modules.dart';
+import '../dart_pad.dart';
+import '../documentation.dart';
 import '../editing/editor.dart';
+import '../elements/elements.dart';
 import '../modules/codemirror_module.dart';
-import '../modules/dartservices_module.dart';
 import '../modules/dart_pad_module.dart';
+import '../modules/dartservices_module.dart';
 import '../polymer/base.dart';
 import '../polymer/iron.dart';
 import '../polymer/paper.dart';
+import '../services/_dartpadsupportservices.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
-import '../services/_dartpadsupportservices.dart';
 import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/ga.dart';
@@ -273,7 +271,7 @@ class PlaygroundMobile {
     }
   }
 
-  //Console must exist
+  // Console must exist.
   void registerConsole() {
     _output = new PolymerElement.from($("#console"));
   }

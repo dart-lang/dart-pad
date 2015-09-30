@@ -5,8 +5,6 @@
 import 'package:dart_pad/playground.dart' as playground;
 import 'package:logging/logging.dart';
 
-// TODO: create a hidden ping time counter - display it on a key combination
-
 void main() {
   Logger.root.onRecord.listen(print);
 
