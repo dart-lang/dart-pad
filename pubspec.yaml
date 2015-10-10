@@ -35,6 +35,4 @@ transformers:
     - test/all.dart
     - test/sauce.dart
     - test/web_integration.dart
-    - web/old/playground1.dart
-    - web/old/playground2.dart
     - web/packages/csslib/css.dart

@@ -95,9 +95,15 @@
   }
 
   #errorToast {
-    bottom: 2px;
+    max-height: 100px;
+    min-height: inherit;
+    overflow-y: auto;
+    bottom: 8px;
     left: auto;
     right: 8px;
+    margin-left: 8px;
+    padding: 8px;
+    z-index: 2;
   }
 
   .height-max {
@@ -131,6 +137,7 @@
   .splitter[horizontal] {
     cursor: row-resize;
     margin-left: 8px;
+    margin-right: 8px;
   }
 
   .splash {
@@ -203,10 +210,6 @@
     /*font-family: 'Montserrat', sans-serif;*/
   }
 
-  paper-toolbar /deep/ .toolbar-tools {
-    padding: 0;
-  }
-
   a:visited, a:link {
     color: var(--primary-text-color);
   }
@@ -265,10 +268,46 @@
     font-size: 18px;
   }
 
+  /* dartdoc panel styles */
+
+  #documentation,
+  #documentation p {
+    font-size: 15px;
+    line-height: 20px;
+  }
+
   #documentation h1 {
     margin-top: 0;
     font-size: 18px;
     line-height: 20px;
+    padding-bottom: 4px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+  }
+
+  #documentation h2 {
+    margin-top: 0;
+    font-size: 15px;
+    line-height: 20px;
+    margin-bottom: 0;
+  }
+
+  #documentation p {
+    margin-top: 0;
+  }
+
+  #documentation code {
+    font-family: 'Inconsolata', monospace;
+    font-size: 16px;
+    color: #999;
+  }
+
+  #documentation pre {
+    overflow-x: auto;
+  }
+
+  #documentation pre code {
+    white-space: inherit;
   }
 
   iframe {
@@ -325,12 +364,9 @@
   .issue .issuelabel {
     color: #222;
     display: inline-block;
-    border-radius: 0;
-    padding: 0 5px;
+    border-radius: 3px;
+    padding: 2px 5px;
     min-width: 53px;
-    text-align: right;
-    border-top-left-radius: 3px;
-    border-bottom-left-radius: 3px;
   }
 
   .issue .issuelabel.error {
@@ -348,5 +384,6 @@
   .issue .message {
     color: #eee;
     padding-left: 5px;
+    line-height: 20px;
   }
 </style>

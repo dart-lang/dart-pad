@@ -39,12 +39,21 @@
     <script src="packages/browser/dart.js" async></script>
     <script src="scripts/ga.js" async></script>
     <script src="scripts/polymerpatch.js" async></script>
+    <style>
+      horizontal-splitter.splitter {
+        margin-right: 0 !important;
+      }
+
+      dartpad-console {
+        margin-right: 0;
+      }
+    </style>
   </head>
 
   <body class="fullbleed vertical layout" unresolved>
-    <div id ="main" class="flex layout horizontal">
+    <div id="main" class="flex layout horizontal">
+      <paper-progress id="run-progress" class="bottom fit" hidden></paper-progress>
       <div id="leftPanel" class="relative vertical layout">
-        <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
         <dartpad-buttons></dartpad-buttons>
         <dartpad-editor id='topPanel' dart class="layout vertical"></dartpad-editor>
         <horizontal-splitter class="splitter" horizontal></horizontal-splitter>

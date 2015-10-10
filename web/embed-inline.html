@@ -21,8 +21,7 @@
     <link rel="import" href="scripts/imports.html"/>
     <link rel="import" href="scripts/embed_components.html"/>
 
-    <link href='text-fonts/inconsolata.css'
-          rel='stylesheet' type='text/css'>
+    <link href='text-fonts/inconsolata.css' rel='stylesheet' type='text/css'>
     <!--<link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
           rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">-->
@@ -33,26 +32,21 @@
     <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
     <link href="packages/dart_pad/editing/editor_codemirror.css"
-          rel="stylesheet" media="screen">
+        rel="stylesheet" media="screen">
     <script src="scripts/codemirror.js" defer></script>
     <script type="application/dart" src="scripts/embed.dart" defer></script>
     <script src="packages/browser/dart.js" async></script>
     <script src="scripts/ga.js" async></script>
     <script src="scripts/polymerpatch.js" async></script>
-    <style>
-      #main {
-        margin-right: 8px;
-      }
-    </style>
   </head>
 
   <body class="fullbleed vertical layout" unresolved>
     <div id="main" class="relative layout vertical">
-        <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
-        <dartpad-run-button></dartpad-run-button>
-        <dartpad-editor id='topPanel' dart class="layout vertical"></dartpad-editor>
-        <horizontal-splitter class="splitter" horizontal></horizontal-splitter>
-        <dartpad-console id='bottomPanel' class="flex layout vertical"></dartpad-console>
+      <paper-progress id="run-progress" class="bottom fit" hidden></paper-progress>
+      <dartpad-run-button></dartpad-run-button>
+      <dartpad-editor id="topPanel" dart class="layout vertical"></dartpad-editor>
+      <horizontal-splitter class="splitter" horizontal></horizontal-splitter>
+      <dartpad-console id='bottomPanel' class="flex layout vertical"></dartpad-console>
     </div>
     <paper-toast id="errorToast" text=""></paper-toast>
     <dartpad-dom-output hidden class="flex"></dartpad-dom-output>

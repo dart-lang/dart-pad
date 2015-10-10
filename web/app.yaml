@@ -3,7 +3,6 @@ version: dev
 runtime: python27
 api_version: 1
 threadsafe: yes
-
 default_expiration: "0d 3h"
 
 builtins:
@@ -27,9 +26,6 @@ handlers:
   script: main.app
 # Enable for version == prod.
 #  secure: always
-
-
-
 
 libraries:
 - name: webapp2

@@ -89,7 +89,7 @@ class Playground implements GistContainer, GistController {
       }));
     }
 
-    overlay = new DOverlay(querySelector('#frame_overlay'));
+    overlay = new DOverlay(querySelector('#frame-overlay'));
 
     sharingDialog = new SharingDialog(this, this);
 

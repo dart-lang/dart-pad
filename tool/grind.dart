@@ -50,7 +50,9 @@ build() {
   new FilePath('packages/codemirror/codemirror.js')
       .copy(_webDir.join('scripts'));
 
-  Pub.build(directories: ['web', 'test']);
+  // Speed up the build, from 140s to 100s.
+  //Pub.build(directories: ['web', 'test']);
+  Pub.build(directories: ['web']);
 
   FilePath mainFile = _buildDir.join('web', 'scripts/main.dart.js');
   log('${mainFile} compiled to ${_printSize(mainFile)}');
@@ -59,7 +61,7 @@ build() {
   log('${mobileFile.path} compiled to ${_printSize(mobileFile)}');
 
   FilePath testFile = _buildDir.join('test', 'web.dart.js');
-  log('${testFile.path} compiled to ${_printSize(testFile)}');
+  if (testFile.exists) log('${testFile.path} compiled to ${_printSize(testFile)}');
 
   FilePath embedFile = _buildDir.join('web', 'scripts/embed.dart.js');
   log('${mainFile} compiled to ${_printSize(embedFile)}');

@@ -71,7 +71,6 @@ header {
   min-width: 2em;
 }
 
-
 input {
   background-color: #333;
   color: #c6c6c6;
@@ -319,7 +318,7 @@ div.toggle {
   margin-right: 10px;
 }
 
-#frame_overlay {
+#frame-overlay {
   position: absolute;
   left: 0;
   right: 0;
@@ -328,20 +327,20 @@ div.toggle {
   background-color: #333;
   display: none;
   opacity: 0.75;
+  cursor: wait;
 }
 
-#frame_overlay.visible {
+#frame-overlay.visible {
   display: block;
 }
 
-#frame_overlay .overlay-progress {
+#frame-overlay .overlay-progress {
   position: absolute;
   left: 45%;
   top: 60px;
 }
 
-/* documentation and parameter info styling
-=========================================== */
+/* documentation and parameter info styling */
 
 #documentation {
   font-family: 'Roboto', sans-serif;
@@ -362,6 +361,10 @@ div.toggle {
   color: #eee;
 }
 
+#documentation h2 {
+  margin-bottom: 0;
+}
+
 #documentation h2,
 #documentation strong {
   font-weight: bold;
@@ -369,13 +372,8 @@ div.toggle {
   color: #cdcdcd; /* little bit brigher than normal text*/
 }
 
-#documentation a {
-  color: #66d9ef;
-}
-
-#documentation a:hover {
-  color: #66d9ef;
-  text-decoration: underline;
+#documentation p {
+  margin-top: 0;
 }
 
 #documentation a {
@@ -385,12 +383,32 @@ div.toggle {
 #documentation a:hover {
   color: #66d9ef;
   text-decoration: underline;
+}
+
+#documentation a {
+  color: #66d9ef;
+}
+
+#documentation a:hover {
+  color: #66d9ef;
+  text-decoration: underline;
+}
+
+#documentation pre {
+  overflow-x: auto;
+  margin: 1em;
+}
+
+#documentation pre code {
+  white-space: inherit;
+  word-wrap: normal;
 }
 
 #documentation code,
 .parameter-hints code {
   font-family: 'Inconsolata', monospace;
   font-size: 12pt;
+  color: #999;
 }
 
 #documentation code em {
@@ -496,7 +514,7 @@ div.toggle {
 
 .keyboard {
   display: inline-block;
-  background: url('../packages/dart_pad/elements/keyboard.svg') center no-repeat;
+  background: url('../pictures/keyboard.svg') center no-repeat;
   background-size: 100%;
   width: 22px;
   height: 18px;
@@ -511,7 +529,7 @@ div.toggle {
 
 .launch-icon {
   display: inline-block;
-  background: url('../packages/dart_pad/elements/launch.svg') center no-repeat;
+  background: url('../pictures/launch.svg') center no-repeat;
   background-size: 100%;
   width: 16px;
   height: 14px;

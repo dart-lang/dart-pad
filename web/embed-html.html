@@ -39,28 +39,35 @@
     <script src="packages/browser/dart.js" async></script>
     <script src="scripts/ga.js" async></script>
     <script src="scripts/polymerpatch.js" async></script>
+    <style>
+      horizontal-splitter.splitter {
+        margin-right: 0 !important;
+      }
+
+      dartpad-console {
+        margin-right: 0;
+      }
+    </style>
   </head>
 
   <body class="fullbleed vertical layout" unresolved>
     <menu-bar-icons></menu-bar-icons>
-    <div id ="main" class="flex layout horizontal">
+    <div id="main" class="flex layout horizontal">
       <div id="leftPanel" class="relative vertical layout">
-        <paper-progress id="edit-progress" class="bottom fit" hidden></paper-progress>
         <dartpad-run-button></dartpad-run-button>
-        <dartpad-editor id='topPanel' dart class="layout vertical"></dartpad-editor>
+        <dartpad-editor id="topPanel" dart class="layout vertical"></dartpad-editor>
         <horizontal-splitter class="splitter" horizontal></horizontal-splitter>
-        <dartpad-console id='bottomPanel' class="flex layout vertical"></dartpad-console>
+        <dartpad-console id="bottomPanel" class="flex layout vertical"></dartpad-console>
         <!--This buffer is needed due to different display settings in chrome/safari/firefix-->
         <div id="buffer"></div>
       </div>
       <vertical-splitter class="splitter layout horizontal" vertical></vertical-splitter>
-      <div id="rightPanel" class ="relative vertical layout flex">
+      <div id="rightPanel" class="relative vertical layout flex">
         <dartpad-dom-output class="flex layout horizontal"></dartpad-dom-output>
       </div>
     </div>
     <paper-toast id="errorToast" text=""></paper-toast>
     <reset-dialog></reset-dialog>
     <export-dialog></export-dialog>
-
   </body>
 </html>
