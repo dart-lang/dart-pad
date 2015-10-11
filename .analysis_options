@@ -1,0 +1,5 @@
+analyzer:
+  exclude:
+    - 'build/**'
+    - 'doc/api/**'
+    - 'lib/bower/**'

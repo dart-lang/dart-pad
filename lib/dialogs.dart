@@ -13,9 +13,8 @@ import 'sharing/mutable_gist.dart';
 import 'src/util.dart';
 
 /**
- * Show an OK / Cancel dialog, and return the option that the user selected.
+ * Show an OK / Cancel dialog and return the option that the user selected.
  */
-
 class OkCancelDialog extends DDialog {
   OkCancelDialog(String title, String message, Function okAction,
       {String okText: 'OK', String cancelText: 'Cancel'})
