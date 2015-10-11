@@ -133,7 +133,8 @@ class PlaygroundMobile {
     _messageToast = new PaperToast();
     document.body.children.add(_messageToast.element);
 
-    _errorsToast = new PaperToast()..duration = 100000;
+    _errorsToast = new PaperToast()..duration = 1000000;
+    _errorsToast.id = 'errorToast';
     document.body.children.add(_errorsToast.element);
 
     _messageDialog = new PaperDialog.from($("paper-dialog"));

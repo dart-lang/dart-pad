@@ -71,7 +71,7 @@ class PlaygroundMobile {
   PaperDialog _resetDialog;
   PaperDialog _exportDialog;
   PolymerElement _output;
-  PaperProgress _editProgress;
+  PaperProgress _runProgress;
 
   DivElement _docPanel;
 
@@ -148,7 +148,7 @@ class PlaygroundMobile {
     } else {
       _errorsToast = new PaperToast();
     }
-    _errorsToast.duration = 100000;
+    _errorsToast.duration = 1000000;
   }
 
   void registerResetToast() {
@@ -185,8 +185,12 @@ class PlaygroundMobile {
   void registerDocPanel() {
     if ($('#documentation') != null) {
       _docPanel = $('#documentation');
+
+      // TODO: This should be done using encapsulation in the Polymer element.
       _docPanel.innerHtml =
-          "<div class='default-text-div layout horizontal center-center'><span class='default-text'>Documentation</span></div>";
+          "<div class='default-text-div layout horizontal center-center'>"
+          "<span class='default-text'>Documentation</span>"
+          "</div>";
     } else {
       _docPanel = new DivElement();
     }
@@ -204,8 +208,8 @@ class PlaygroundMobile {
   }
 
   void registerEditProgress() {
-    if ($("#edit-progress") != null) {
-      _editProgress = new PaperProgress.from($("#edit-progress"));
+    if ($("#run-progress") != null) {
+      _runProgress = new PaperProgress.from($("#run-progress"));
     }
   }
 
@@ -555,9 +559,9 @@ class PlaygroundMobile {
     ga.sendEvent('embed', 'run');
     _runButton.disabled = true;
 
-    if (_editProgress != null) {
-      _editProgress.indeterminate = true;
-      _editProgress.hidden(false);
+    if (_runProgress != null) {
+      _runProgress.indeterminate = true;
+      _runProgress.hidden(false);
     }
 
     if (_hasStoredRequest) {
@@ -572,9 +576,9 @@ class PlaygroundMobile {
         _showError('Error compiling to JavaScript', '${e}');
       }
       _runButton.disabled = false;
-      if (_editProgress != null) {
-        _editProgress.hidden(true);
-        _editProgress.indeterminate = false;
+      if (_runProgress != null) {
+        _runProgress.hidden(true);
+        _runProgress.indeterminate = false;
       }
       return;
     }
@@ -596,9 +600,9 @@ class PlaygroundMobile {
       _showError('Error compiling to JavaScript', '${e}');
     }).whenComplete(() {
       _runButton.disabled = false;
-      if (_editProgress != null) {
-        _editProgress.hidden(true);
-        _editProgress.indeterminate = false;
+      if (_runProgress != null) {
+        _runProgress.hidden(true);
+        _runProgress.indeterminate = false;
       }
     });
   }
@@ -669,8 +673,12 @@ class PlaygroundMobile {
 
   void _clearOutput() {
     _output.text = '';
+
+    // TODO: This should be done using encapsulation in the Polymer element.
     _output.element.innerHtml =
-        "<div class='consoleTitle default-text-div layout horizontal center-center'><span class='default-text'>Console output</span></div>";
+        "<div class='consoleTitle default-text-div layout horizontal center-center'>"
+        "<span class='default-text'>Console output</span>"
+        "</div>";
   }
 
   void _showOutput(String message, {bool error: false}) {

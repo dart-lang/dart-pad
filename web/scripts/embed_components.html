@@ -153,8 +153,7 @@
 <dom-module id="dartpad-documentation">
   <style>
     :host {
-      padding-top: 8px;
-      padding-bottom: 8px;
+      padding: 8px 8px 8px 0;
     }
 
     #documentation {
@@ -221,29 +220,32 @@
       font-weight: 400;
     }
 
-    #edit-progress {
+    .relativePos {
+      position: relative;
+    }
+
+    #run-progress {
+      width: 100%;
       top: inherit;
     }
   </style>
   <template>
-    <div class="layout horizontal flex">
+    <div class="layout horizontal flex relativePos">
       <div id="toolbarLeftPanel" class="layout horizontal ">
-        <paper-tabs id="selector-tabs" class ="tabs relative flex" selected="0">
+        <paper-tabs id="selector-tabs" class="tabs relative flex" selected="0">
           <paper-tab name="dart">Dart</paper-tab>
           <paper-tab name="html">HTML</paper-tab>
           <paper-tab name="css">CSS</paper-tab>
         </paper-tabs>
-        <paper-progress id="edit-progress"  class="bottom fit" hidden></paper-progress>
       </div>
       <div id="toolbarRightPanel" class="layout horizontal flex">
         <paper-tabs selected="0" class="tabs flex">
-          <span class="flex"></span>
-          <div class="center-center horizontal layout">HTML Output</div>
           <span class="flex"></span>
           <paper-icon-button id="refresh" icon="refresh"></paper-icon-button>
           <paper-icon-button id="launch" icon="launch"></paper-icon-button>
         </paper-tabs>
       </div>
+      <paper-progress id="run-progress" class="bottom fit" hidden></paper-progress>
     </div>
   </template>
   <script>
@@ -372,7 +374,7 @@
 <dom-module id="dartpad-editor">
   <style>
     #editpanel {
-      margin: 8px 0 8px 8px;;
+      margin: 8px;
     }
   </style>
   <template>
@@ -432,7 +434,7 @@
 <dom-module id="dartpad-console">
   <style>
     :host {
-      margin: 0 0 8px 8px;
+      margin: 0 8px 8px 8px;
     }
 
     #console {
