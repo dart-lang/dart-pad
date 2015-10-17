@@ -59,6 +59,7 @@ class SharingDialog extends DDialog {
   ParagraphElement _text;
   TextAreaElement _textArea;
   DButton _cancelButton;
+  DButton _closeButton;
   DButton _shareButton;
   DElement _div;
   DElement _embedArea;
@@ -91,6 +92,8 @@ class SharingDialog extends DDialog {
     // About to share.
     _cancelButton = new DButton.button(text: 'Cancel');
     _cancelButton.onClick.listen((_) => hide());
+    _closeButton = new DButton.button(text: 'Close');
+    _closeButton.onClick.listen((_) => hide());
     _shareButton = new DButton.button(text: 'Share it!', classes: 'default');
     _shareButton.onClick.listen((_) => _performShare());
 
@@ -237,7 +240,7 @@ class SharingDialog extends DDialog {
       _embedHtmlRadio.checked = false;
       _embedDartRadio.checked = true;
       _embedToDart();
-      buttonArea.add(_cancelButton);
+      buttonArea.add(_closeButton);
       buttonArea.add(new SpanElement()..attributes['flex'] = '');
     }
   }
