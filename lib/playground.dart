@@ -405,7 +405,7 @@ class Playground implements GistContainer, GistController {
       docHandler.generateDoc(_docPanel);
     }, "Documentation");
 
-    keys.bind(['alt-enter', 'ctrl-1'], () {
+    keys.bind(['alt-enter'], () {
       editor.showCompletions(onlyShowFixes: true);
     }, "Quick fix");
 
