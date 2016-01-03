@@ -4,9 +4,9 @@
 
 library services.compiler_test;
 
+import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:services/src/common.dart';
 import 'package:services/src/compiler.dart';
-import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:unittest/unittest.dart';
 
 void defineTests() {
@@ -98,10 +98,7 @@ import 'dart:io';
 void main() { print ('foo'); }
 ''';
       return compiler.compile(code).then((CompilationResults result) {
-        expect(result.problems.length, greaterThan(10));
-        List<CompilationProblem> problems = result.problems;
-        expect(problems.any((p) => p.isOnSdk), true);
-        expect(problems.any((p) => !p.isOnCompileTarget), true);
+        expect(result.problems.length, 1);
       });
     });
   });

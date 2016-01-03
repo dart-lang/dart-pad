@@ -4,8 +4,8 @@
 
 library gaeDeployed_test;
 
-import 'package:services/src/common.dart' as common;
 import 'package:http/http.dart' as http;
+import 'package:services/src/common.dart' as common;
 import 'package:unittest/unittest.dart';
 
 final String serverUrl = "https://liftoff-dev.appspot.com";

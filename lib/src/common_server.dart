@@ -11,14 +11,14 @@ import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 
-import 'api_classes.dart';
+import '../version.dart';
 import 'analysis_server.dart';
 import 'analyzer.dart';
+import 'api_classes.dart';
 import 'common.dart';
 import 'compiler.dart';
 import 'pub.dart';
 import 'summarize.dart';
-import '../version.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
 final Logger _logger = new Logger('common_server');
@@ -75,7 +75,6 @@ class CommonServer {
     _logger.level = Level.ALL;
 
     pub = enablePackages ? new Pub() : new Pub.mock();
-
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath, pub);
     analysisServer = new AnalysisServerWrapper(sdkPath);

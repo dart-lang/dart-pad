@@ -17,7 +17,6 @@ import 'package:rpc/rpc.dart' as rpc;
 
 import 'src/common_server.dart';
 import 'src/dartpad_support_server.dart';
-
 import 'src/sharded_counter.dart' as counter;
 
 const String _API = '/api';
@@ -46,7 +45,7 @@ class GaeServer {
   rpc.ApiServer apiServer;
   CommonServer commonServer;
   FileRelayServer fileRelayServer;
-  
+
   GaeServer(this.sdkPath) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
@@ -60,9 +59,9 @@ class GaeServer {
         new GaeSourceRequestRecorder(),
         new GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
-    apiServer =
-        new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)..addApi(commonServer)
-        ..addApi(fileRelayServer);
+    apiServer = new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
+      ..addApi(commonServer)
+      ..addApi(fileRelayServer);
   }
 
   Future start() => ae.runAppEngine(requestHandler);
@@ -83,8 +82,7 @@ class GaeServer {
       } else {
         statusCode = io.HttpStatus.BAD_REQUEST;
       }
-      request.response..statusCode = statusCode
-                      ..close();
+      request.response..statusCode = statusCode..close();
       return;
     }
 
@@ -97,20 +95,20 @@ class GaeServer {
       // the _parseRequest method to determine content-type and dispatch to e.g.
       // a plain text handler if we want to support that.
       var apiRequest = new rpc.HttpApiRequest.fromHttpRequest(request);
-      apiServer.handleHttpApiRequest(apiRequest)
-        .then((rpc.HttpApiResponse apiResponse) {
-          return rpc.sendApiResponse(apiResponse, request.response);
+      apiServer.handleHttpApiRequest(apiRequest).then((rpc.HttpApiResponse apiResponse) {
+        return rpc.sendApiResponse(apiResponse, request.response);
       }).catchError((e) {
-          // This should only happen in the case where there is a bug in the
-          // rpc package. Otherwise it always returns an HttpApiResponse.
-          _logger.warning('Failed with error: $e when trying to call'
-            'method at \'${request.uri.path}\'.');
-          request.response..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
-                        ..close();
-          });
+        // This should only happen in the case where there is a bug in the rpc
+        // package. Otherwise it always returns an HttpApiResponse.
+        _logger.warning(
+          'Failed with error: $e when trying to call'
+          'method at \'${request.uri.path}\'.');
+        request.response..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
+            ..close();
+      });
     } else {
       request.response..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
-                       ..close();
+          ..close();
     }
   }
 }
@@ -151,7 +149,7 @@ class GaeSourceRequestRecorder implements SourceRequestRecorder {
         ms, verb, source, offset);
 
     return new Future.sync(() => db.dbService.commit(inserts: [record]))
-      .catchError((error, stackTrace) {
+        .catchError((error, stackTrace) {
       _logger.fine(
           'Soft-ERR SourceRequestRecorder.record failed (error: $error)',
             error, stackTrace);
@@ -173,7 +171,7 @@ class GaeCounter implements PersistentCounter {
 }
 
 /*
- * This is the schema for source code storage
+ * This is the schema for source code storage.
  */
 @db.Kind()
 class GaeSourceRecordBlob extends db.Model {

@@ -7,9 +7,9 @@ library services.dartpad_server_test;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:rpc/rpc.dart';
 import 'package:services/src/common.dart';
 import 'package:services/src/dartpad_support_server.dart';
-import 'package:rpc/rpc.dart';
 import 'package:unittest/unittest.dart';
 
 String quickFixesCode = r'''
@@ -44,16 +44,19 @@ void defineTests() {
     assert(apiServer != null);
     var uri = Uri.parse("/api/$path");
     var body = new Stream.fromIterable([UTF8.encode(JSON.encode(json))]);
-    var request = new HttpApiRequest('POST', uri, {}, body);
+    var request = new HttpApiRequest('POST', uri, {
+      'content-type': 'application/json; charset=utf-8'
+    }, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
   Future<HttpApiResponse> _sendGetRequest(String path, [String queryParams]) {
     assert(apiServer != null);
-    var uri = Uri
-        .parse(queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
+    var uri = Uri.parse(queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
     var body = new Stream.fromIterable([]);
-    var request = new HttpApiRequest('GET', uri, {}, body);
+    var request = new HttpApiRequest('GET', uri, {
+      'content-type': 'application/json; charset=utf-8'
+    }, body);
     return apiServer.handleHttpApiRequest(request);
   }
 

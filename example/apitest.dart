@@ -5,10 +5,12 @@
 library services_server.apitest;
 
 import 'dart:html';
+
+import 'package:codemirror/codemirror.dart';
+
 import '../doc/generated/_dartpadsupportservices.dart' as support;
 import '../doc/generated/dartservices.dart' as services;
 import 'services_utils.dart' as utils;
-import 'package:codemirror/codemirror.dart';
 
 utils.SanitizingBrowserClient client;
 services.DartservicesApi servicesApi;
