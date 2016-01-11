@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 
 import 'api_classes.dart' as api;
 import 'scheduler.dart' as scheduler;
@@ -31,7 +32,7 @@ bool dumpServerMessages = false;
 
 final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
 final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
-final _SERVER_PATH = "bin/_analysis_server_entry.dart";
+final _SERVER_PATH = "bin/snapshots/analysis_server.dart.snapshot";
 
 // Use very long timeouts to ensure that the server has enough time to restart.
 final _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 15);
@@ -455,12 +456,13 @@ class _Server {
       arguments.add('--observe');
       arguments.add('--pause-isolates-on-exit');
     }
-    if (Platform.packageRoot != null) {
-      _logger.info('Using package root ${Platform.packageRoot}');
-      arguments.add('--package-root=${Platform.packageRoot}');
-    }
+    // if (Platform.packageRoot != null) {
+    //   _logger.info('Using package root ${Platform.packageRoot}');
+    //   arguments.add('--package-root=${Platform.packageRoot}');
+    // }
 
-    arguments.add(_SERVER_PATH);
+    String snapshotPath = path.join(_sdkPath, _SERVER_PATH);
+    arguments.add(snapshotPath);
 
     arguments.add('--sdk');
     arguments.add(_sdkPath);

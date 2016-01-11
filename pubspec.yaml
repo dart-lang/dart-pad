@@ -8,11 +8,7 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 
 dependencies:
-  analysis_server:
-    git:
-      url: git://github.com/lukechurch/dart-analysis-server-temp-working.git
-      ref: v_1_12_rc0
-  analyzer: ^0.26.0
+  analyzer: ^0.27.0
   appengine: ^0.3.0
   archive: '>=1.0.19 <1.1.0'
   args: '>=0.12.0 <0.14.0'
