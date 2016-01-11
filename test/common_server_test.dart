@@ -8,9 +8,9 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:cli_util/cli_util.dart' as cli_util;
+import 'package:rpc/rpc.dart';
 import 'package:services/src/common.dart';
 import 'package:services/src/common_server.dart';
-import 'package:rpc/rpc.dart';
 import 'package:unittest/unittest.dart';
 
 import 'src/test_config.dart';
@@ -66,7 +66,9 @@ void defineTests() {
     assert(apiServer != null);
     var uri = Uri.parse("/api/$path");
     var body = new Stream.fromIterable([UTF8.encode(JSON.encode(json))]);
-    var request = new HttpApiRequest('POST', uri, {}, body);
+    var request = new HttpApiRequest('POST', uri, {
+      'content-type': 'application/json; charset=utf-8'
+    }, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
@@ -75,7 +77,9 @@ void defineTests() {
     var uri = Uri.parse(
         queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
     var body = new Stream.fromIterable([]);
-    var request = new HttpApiRequest('GET', uri, {}, body);
+    var request = new HttpApiRequest('GET', uri, {
+      'content-type': 'application/json; charset=utf-8'
+    }, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
@@ -123,9 +127,9 @@ void defineTests() {
     });
 
     test('analyze negative-test noSource', () async {
-       var json = {};
-       var response = await _sendPostRequest('dartservices/v1/analyze', json);
-       expect(response.status, 400);
+      var json = {};
+      var response = await _sendPostRequest('dartservices/v1/analyze', json);
+      expect(response.status, 400);
     });
 
     test('compile', () async {
@@ -146,9 +150,9 @@ void defineTests() {
     });
 
     test('compile negative-test noSource', () async {
-        var json = {};
-        var response = await _sendPostRequest('dartservices/v1/compile', json);
-        expect(response.status, 400);
+      var json = {};
+      var response = await _sendPostRequest('dartservices/v1/compile', json);
+      expect(response.status, 400);
      });
 
     test('complete', () async {

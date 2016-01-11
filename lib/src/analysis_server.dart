@@ -8,7 +8,7 @@ library services.analysis_server;
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:io' as io;
+import 'dart:io';
 
 import 'package:analysis_server/src/protocol.dart';
 import 'package:logging/logging.dart';
@@ -50,7 +50,7 @@ class AnalysisServerWrapper {
 
   AnalysisServerWrapper(this.sdkPath) {
     _logger.info("AnalysisServerWrapper ctor");
-    sourceDirectory = io.Directory.systemTemp.createTempSync('analysisServer');
+    sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
     mainPath = _getPathFromName("main.dart");
     serverConnection = new _Server(this.sdkPath);
     serverScheduler = new scheduler.TaskScheduler();
@@ -143,8 +143,7 @@ class AnalysisServerWrapper {
         await serverConnection.unloadSources(sources.keys);
         return ret;
       });
-    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
-        .catchError((e) {
+    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT)).catchError((e) {
       serverConnection.kill();
       throw e;
     });
@@ -168,8 +167,7 @@ class AnalysisServerWrapper {
       var fixes = await serverConnection.sendGetFixes(path, offset);
       await serverConnection.unloadSources(sources.keys.toList());
       return fixes;
-    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
-        .catchError((e) {
+    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT)).catchError((e) {
       serverConnection.kill();
       throw e;
     });
@@ -186,8 +184,7 @@ class AnalysisServerWrapper {
       var formatResult = await serverConnection.sendFormat(offset);
       await serverConnection.unloadSources([mainPath]);
       return formatResult;
-    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
-        .catchError((e) {
+    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT)).catchError((e) {
       serverConnection.kill();
       throw e;
     });
@@ -201,7 +198,7 @@ class AnalysisServerWrapper {
   }
 
   String _getPathFromName(String sourceName) =>
-      "${sourceDirectory.path}${io.Platform.pathSeparator}$sourceName";
+      "${sourceDirectory.path}${Platform.pathSeparator}$sourceName";
 
   /// Warm up the analysis server to be ready for use.
   Future warmup([bool useHtml = false]) =>
@@ -279,7 +276,7 @@ class _Server {
   /**
    * Server process object, or null if server hasn't been started yet.
    */
-  io.Process _process;
+  Process _process;
 
   /**
    * Commands that have been sent to the server but not yet acknowledged, and
@@ -441,15 +438,13 @@ class _Server {
     if (_process != null) throw new Exception('Process already started');
 
     _time.start();
-    String dartBinary = io.Platform.executable;
-    /*
-    String rootDir =
-        findRoot(io.Platform.script.toFilePath(windows: io.Platform.isWindows));
-    String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
-
-    String serverPath =
-        normalize(join(dirname(io.Platform.script.toFilePath()), 'analysis_server_server.dart'));
- */
+    String dartBinary = Platform.executable;
+    // String rootDir =
+    //     findRoot(Platform.script.toFilePath(windows: Platform.isWindows));
+    // String serverPath = normalize(join(rootDir, 'bin', 'server.dart'));
+    //
+    // String serverPath =
+    //     normalize(join(dirname(Platform.script.toFilePath()), 'analysis_server_server.dart'));
 
     List<String> arguments = [];
 
@@ -460,8 +455,9 @@ class _Server {
       arguments.add('--observe');
       arguments.add('--pause-isolates-on-exit');
     }
-    if (io.Platform.packageRoot.isNotEmpty) {
-      arguments.add('--package-root=${io.Platform.packageRoot}');
+    if (Platform.packageRoot != null) {
+      _logger.info('Using package root ${Platform.packageRoot}');
+      arguments.add('--package-root=${Platform.packageRoot}');
     }
 
     arguments.add(_SERVER_PATH);
@@ -472,8 +468,8 @@ class _Server {
     _logger.fine("Binary: $dartBinary");
     _logger.fine("Arguments: $arguments");
 
-    return io.Process.start(dartBinary, arguments).then((io.Process process) {
-      _logger.fine("io.Process.then returned");
+    return Process.start(dartBinary, arguments).then((Process process) {
+      _logger.fine("Process.start returned");
 
       _process = process;
       process.exitCode.then((int code) {

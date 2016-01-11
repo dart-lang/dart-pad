@@ -55,10 +55,11 @@ class Analyzer {
   void _reset() {
     _resolver = new MemoryResolver();
 
-    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(_sdkPath),
-    /*useDart2jsPaths*/ true);
+    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(_sdkPath), /*useDart2jsPaths*/ true);
     _context = AnalysisEngine.instance.createAnalysisContext();
-    _context.analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.cacheSize = 512;
+    _context.analysisOptions = options;
 
     List<UriResolver> resolvers = [
       new DartUriResolver(sdk),
@@ -189,10 +190,11 @@ class Analyzer {
 
     if (node is Expression) {
       Expression expression = node;
-      Map info = {};
+      Map<String, dynamic> info = {};
 
       // element
-      Element element = ElementLocator.locateWithOffset(expression, offset);
+      NodeLocator locator = new NodeLocator(offset);
+      Element element = ElementLocator.locate(locator.searchWithin(expression));
 
       if (element != null) {
         // variable, if synthetic accessor
@@ -239,7 +241,7 @@ class Analyzer {
               if (e.toString().startsWith("@DomName")) {
                 EvaluationResultImpl evaluationResult = e.evaluationResult;
                 if (evaluationResult != null && evaluationResult.value.fields["name"] != null) {
-                  info["DomName"] = evaluationResult.value.fields["name"].value;
+                  info["DomName"] = evaluationResult.value.fields["name"].toStringValue();
                 } else {
                   _logger.fine("WARNING: Unexpected null, aborting");
                 }

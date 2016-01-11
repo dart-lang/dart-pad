@@ -4,8 +4,8 @@
 
 library services.scheduler;
 
-import 'dart:collection';
 import 'dart:async';
+import 'dart:collection';
 
 class TaskScheduler {
   Queue<_Task> _taskQueue = new Queue();

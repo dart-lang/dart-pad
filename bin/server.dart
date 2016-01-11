@@ -4,6 +4,8 @@
 
 // To meet GAE needs this file must be called 'server.dart'.
 
+library appengine.services.bin;
+
 import 'package:services/services_gae.dart' as server;
 
 void main(List<String> args) => server.main(args);

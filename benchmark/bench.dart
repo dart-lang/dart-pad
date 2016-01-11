@@ -6,13 +6,12 @@ library services.bench;
 
 import 'dart:async';
 
+import 'package:grinder/grinder.dart' as grinder;
 import 'package:services/src/analysis_server.dart';
 import 'package:services/src/analyzer.dart';
 import 'package:services/src/bench.dart';
 import 'package:services/src/common.dart';
 import 'package:services/src/compiler.dart';
-
-import 'package:grinder/grinder.dart' as grinder;
 
 final String sdkPath = grinder.getSdkDir().path;
 

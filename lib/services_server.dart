@@ -20,9 +20,6 @@ import 'package:shelf_route/shelf_route.dart';
 import 'src/common_server.dart';
 import 'src/dartpad_support_server.dart';
 
-const Map _textPlainHeader = const {HttpHeaders.CONTENT_TYPE: 'text/plain'};
-const Map _jsonHeader = const {HttpHeaders.CONTENT_TYPE: 'application/json'};
-
 Logger _logger = new Logger('services');
 
 void main(List<String> args) {
@@ -46,26 +43,29 @@ void main(List<String> args) {
         "please start the server with the '--dart-sdk' option.");
     exit(1);
   }
-  
+
   printExit(String doc) {
     print(doc);
     exit(0);
   }
-  
+
   if (result['discovery']) {
     var serverUrl = result['server-url'];
     if (result['relay']) {
-      EndpointsServer.generateRelayDiscovery(sdkDir.path, serverUrl).then((doc)
-          => printExit(doc));
+      EndpointsServer.generateRelayDiscovery(sdkDir.path, serverUrl).then(
+        (doc) => printExit(doc));
     } else {
-      EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then((doc) 
-          => printExit(doc));
+      EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then(
+        (doc) => printExit(doc));
     }
     return;
   }
-  
+
   Logger.root.level = Level.ALL;
-  Logger.root.onRecord.listen((r) => print(r));
+  Logger.root.onRecord.listen((LogRecord record) {
+    print(record);
+    if (record.stackTrace != null) print(record.stackTrace);
+  });
 
   EndpointsServer.serve(sdkDir.path, port).then((EndpointsServer server) {
     _logger.info('Listening on port ${server.port}');
@@ -91,20 +91,16 @@ class EndpointsServer {
         new _Cache(),
         new _Recorder(),
         new _Counter());
-    var apiServer =
-        new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(commonServer);
+    var apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
+        ..addApi(commonServer);
     apiServer.enableDiscoveryApi();
 
     var uri = Uri.parse("/api/discovery/v1/apis/dartservices/v1/rest");
-
-    var request =
-        new HttpApiRequest('GET',
-                           uri,
-                           {}, new Stream.fromIterable([]));
+    var request = new HttpApiRequest('GET', uri, {}, new Stream.fromIterable([]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
     return UTF8.decode(await response.body.first);
   }
-  
+
   static Future<String> generateRelayDiscovery(String sdkPath,
                                             String serverUrl) async {
     var databaseServer = new FileRelayServer();
@@ -113,11 +109,7 @@ class EndpointsServer {
     apiServer.enableDiscoveryApi();
 
     var uri = Uri.parse("/api/discovery/v1/apis/_dartpadsupportservices/v1/rest");
-
-    var request =
-        new HttpApiRequest('GET',
-                           uri,
-                           {}, new Stream.fromIterable([]));
+    var request = new HttpApiRequest('GET', uri, {}, new Stream.fromIterable([]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
     return UTF8.decode(await response.body.first);
   }
@@ -141,16 +133,16 @@ class EndpointsServer {
         new _Cache(),
         new _Recorder(),
         new _Counter());
-    apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(commonServer);
+    apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
+      ..addApi(commonServer);
 
     pipeline = new Pipeline()
       .addMiddleware(logRequests())
       .addMiddleware(_createCustomCorsHeadersMiddleware());
 
     routes = router()
-        ..get('/', printUsage)
-        ..add('/api', ['GET', 'POST', 'OPTIONS'], _apiHandler,
-              exactMatch: false);
+      ..get('/', printUsage)
+      ..add('/api', ['GET', 'POST', 'OPTIONS'], _apiHandler, exactMatch: false);
     handler = pipeline.addHandler(routes.handler);
   }
 
@@ -159,17 +151,29 @@ class EndpointsServer {
       apiServer.enableDiscoveryApi();
       discoveryEnabled = true;
     }
-    // NOTE: We could read in the request body here and parse it similar to
-    // the _parseRequest method to determine content-type and dispatch to e.g.
-    // a plain text handler if we want to support that.
-    var apiRequest = new HttpApiRequest(request.method, request.url,
-                                        request.headers,
-                                        request.read());
-    return apiServer.handleHttpApiRequest(apiRequest)
-        .then((HttpApiResponse apiResponse) {
-          return new Response(apiResponse.status, body: apiResponse.body,
-                              headers: apiResponse.headers);})
-        .catchError((e) => printUsage(request));
+
+    // NOTE: We could read in the request body here and parse it similar to the
+    // _parseRequest method to determine content-type and dispatch to e.g. a
+    // plain text handler if we want to support that.
+    HttpApiRequest apiRequest = new HttpApiRequest(
+      request.method,
+      request.requestedUri,
+      request.headers,
+      request.read()
+    );
+
+    // Promote text/plain requests to application/json.
+    if (apiRequest.headers['content-type'] == 'text/plain; charset=utf-8') {
+      apiRequest.headers['content-type'] = 'application/json; charset=utf-8';
+    }
+
+    return apiServer.handleHttpApiRequest(apiRequest).then((HttpApiResponse apiResponse) {
+      return new Response(
+        apiResponse.status,
+        body: apiResponse.body,
+        headers: apiResponse.headers
+      );
+    }).catchError((e) => printUsage(request));
   }
 
   Response printUsage(Request request) {

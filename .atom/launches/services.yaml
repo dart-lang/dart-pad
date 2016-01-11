@@ -1,0 +1,8 @@
+# Cli launch configuration for bin/services.dart.
+type: cli
+path: bin/services.dart
+
+cli:
+  args: 
+  checked: true
+  debug: true
