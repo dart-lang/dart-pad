@@ -24,6 +24,11 @@ const String _API = '/api';
 final Logger _logger = new Logger('gae_server');
 
 void main(List<String> args) {
+  print ("main, $args");
+
+  int gaePort = 8080;
+  if (args.length > 0) gaePort = int.parse(args[0]);
+
   io.Directory sdkDir = cli_util.getSdkDir(args);
 
   if (sdkDir == null) {
@@ -35,7 +40,7 @@ void main(List<String> args) {
   // Change the log level to get more or less detailed logging.
   ae.useLoggingPackageAdaptor();
   //useLoggingPackageAdaptor();
-  server.start();
+  server.start(gaePort);
 }
 
 class GaeServer {
@@ -64,7 +69,8 @@ class GaeServer {
       ..addApi(fileRelayServer);
   }
 
-  Future start() => ae.runAppEngine(requestHandler);
+  Future start([int gaePort=8080]) =>
+    ae.runAppEngine(requestHandler, port: gaePort);
 
   void requestHandler(io.HttpRequest request) {
     request.response.headers.add('Access-Control-Allow-Methods',
