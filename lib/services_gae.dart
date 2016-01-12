@@ -24,8 +24,6 @@ const String _API = '/api';
 final Logger _logger = new Logger('gae_server');
 
 void main(List<String> args) {
-  print ("main, $args");
-
   int gaePort = 8080;
   if (args.length > 0) gaePort = int.parse(args[0]);
 
