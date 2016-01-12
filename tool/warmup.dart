@@ -9,7 +9,8 @@ import 'package:http/http.dart' as http;
 String uri;
 
 const BASE_URI = "dart-services.appspot.com/api/dartservices/v1/";
-//const BASE_URI = "http://localhost:8080/api/dartservices/v1/";
+// const BASE_URI = "dart-services-test.appspot.com/api/dartservices/v1/";
+// const BASE_URI = "localhost:8080/api/dartservices/v1/";
 const count = 100;
 
 main(List<String> args) async {
@@ -46,7 +47,9 @@ main(List<String> args) async {
 request(String verb, String postPayload) async {
   return http.post(
       Uri.parse(uri + verb),
-      body: postPayload).then((response) {
+      body: postPayload,
+      headers: {'content-type': 'application/json; charset=utf-8'}
+    ).then((response) {
     print("${response.statusCode}");
     print("${response.body}");
     return response.statusCode;

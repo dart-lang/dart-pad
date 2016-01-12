@@ -7,7 +7,7 @@ library services.api_classes;
 
 import 'dart:convert';
 
-import 'package:analysis_server/src/protocol.dart';
+import 'analysis_server_protocol/protocol.dart';
 import 'package:rpc/rpc.dart';
 
 class AnalysisResults {
