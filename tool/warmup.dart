@@ -48,7 +48,7 @@ request(String verb, String postPayload) async {
   return http.post(
       Uri.parse(uri + verb),
       body: postPayload,
-      headers: {'content-type': 'application/json; charset=utf-8'}
+       headers: {'content-type': 'text/plain; charset=utf-8'}
     ).then((response) {
     print("${response.statusCode}");
     print("${response.body}");

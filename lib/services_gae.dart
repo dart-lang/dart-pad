@@ -99,6 +99,17 @@ class GaeServer {
       // the _parseRequest method to determine content-type and dispatch to e.g.
       // a plain text handler if we want to support that.
       var apiRequest = new rpc.HttpApiRequest.fromHttpRequest(request);
+
+      // Dartpad sends data as plain text, we need to promote this to
+      // application/json to ensure that the rpc library processes it correctly
+      const TEXT_ENCODING = 'text/plain; charset=utf-8';
+      var contentType = apiRequest.headers['content-type'];
+
+      if (contentType == TEXT_ENCODING ||
+        (contentType is List && contentType.contains(TEXT_ENCODING))) {
+        apiRequest.headers['content-type'] = 'application/json; charset=utf-8';
+      }
+
       apiServer.handleHttpApiRequest(apiRequest).then((rpc.HttpApiResponse apiResponse) {
         return rpc.sendApiResponse(apiResponse, request.response);
       }).catchError((e) {
