@@ -37,10 +37,13 @@ coverage() {
   PubApp coveralls = new PubApp.global('dart_coveralls');
   coveralls.run([
     'report',
-    '--token', _env['REPO_TOKEN'],
-    '--retry', '2',
+    '--token',
+    _env['REPO_TOKEN'],
+    '--retry',
+    '2',
     '--exclude-test-files',
-    'test/all.dart']);
+    'test/all.dart'
+  ]);
 }
 
 @Task('Run the benchmarks on the build-bot; upload the data to librato.com')
@@ -61,8 +64,8 @@ bench() {
     fail('Missing env var: TRAVIS_COMMIT');
   }
 
-  ProcessResult result = Process.runSync(
-      'dart', ['benchmark/bench.dart', '--json']);
+  ProcessResult result =
+      Process.runSync('dart', ['benchmark/bench.dart', '--json']);
   if (result.exitCode != 0) {
     fail('benchmarks exit code: ${result.exitCode}');
   }
@@ -82,13 +85,10 @@ bench() {
 
   return librato.postStats(stats).then((_) {
     String commit = _env['TRAVIS_COMMIT'];
-    LibratoLink link = new LibratoLink(
-        'github',
+    LibratoLink link = new LibratoLink('github',
         'https://github.com/dart-lang/dart-services/commit/${commit}');
-    LibratoAnnotation annotation = new LibratoAnnotation(
-        commit,
-        description: 'Commit ${commit}',
-        links: [link]);
+    LibratoAnnotation annotation = new LibratoAnnotation(commit,
+        description: 'Commit ${commit}', links: [link]);
     return librato.createAnnotation('build_server', annotation);
   });
 }
@@ -99,8 +99,8 @@ void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')
 discovery() {
-  ProcessResult result = Process.runSync(
-      'dart', ['bin/services.dart', '--discovery']);
+  ProcessResult result =
+      Process.runSync('dart', ['bin/services.dart', '--discovery']);
 
   if (result.exitCode != 0) {
     throw 'Error generating the discovery document\n${result.stderr}';
@@ -111,12 +111,12 @@ discovery() {
   log('writing ${discoveryFile.path}');
   discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
 
-  ProcessResult resultDb = Process.runSync(
-        'dart', ['bin/services.dart', '--discovery', '--relay']);
+  ProcessResult resultDb =
+      Process.runSync('dart', ['bin/services.dart', '--discovery', '--relay']);
 
-    if (result.exitCode != 0) {
-      throw 'Error generating the discovery document\n${result.stderr}';
-    }
+  if (result.exitCode != 0) {
+    throw 'Error generating the discovery document\n${result.stderr}';
+  }
 
   File discoveryDbFile = new File('doc/generated/_dartpadsupportservices.json');
   discoveryDbFile.parent.createSync();
@@ -125,9 +125,6 @@ discovery() {
 
   // Generate the Dart library from the json discovery file.
   Pub.global.activate('discoveryapis_generator');
-  Pub.global.run('discoveryapis_generator:generate', arguments: [
-    'files',
-    '--input-dir=doc/generated',
-    '--output-dir=doc/generated'
-  ]);
+  Pub.global.run('discoveryapis_generator:generate', arguments:
+      ['files', '--input-dir=doc/generated', '--output-dir=doc/generated']);
 }

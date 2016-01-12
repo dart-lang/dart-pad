@@ -44,19 +44,18 @@ void defineTests() {
     assert(apiServer != null);
     var uri = Uri.parse("/api/$path");
     var body = new Stream.fromIterable([UTF8.encode(JSON.encode(json))]);
-    var request = new HttpApiRequest('POST', uri, {
-      'content-type': 'application/json; charset=utf-8'
-    }, body);
+    var request = new HttpApiRequest(
+        'POST', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
   Future<HttpApiResponse> _sendGetRequest(String path, [String queryParams]) {
     assert(apiServer != null);
-    var uri = Uri.parse(queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
+    var uri = Uri
+        .parse(queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
     var body = new Stream.fromIterable([]);
-    var request = new HttpApiRequest('GET', uri, {
-      'content-type': 'application/json; charset=utf-8'
-    }, body);
+    var request = new HttpApiRequest(
+        'GET', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
@@ -125,9 +124,9 @@ void defineTests() {
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['uuid'], isNotNull);
-      var json = {'gistId':gistId, 'internalId':data['uuid']};
-      var postResponse = await _sendPostRequest(
-          '_dartpadsupportservices/v1/storeGist', json);
+      var json = {'gistId': gistId, 'internalId': data['uuid']};
+      var postResponse =
+          await _sendPostRequest('_dartpadsupportservices/v1/storeGist', json);
       expect(postResponse.status, 200);
       var postData = JSON.decode(UTF8.decode(await postResponse.body.first));
       expect(postData['uuid'], gistId);
@@ -140,15 +139,15 @@ void defineTests() {
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['uuid'], isNotNull);
-      var json = {'gistId':gistId, 'internalId':data['uuid']};
-      var postResponse = await _sendPostRequest(
-          '_dartpadsupportservices/v1/storeGist', json);
+      var json = {'gistId': gistId, 'internalId': data['uuid']};
+      var postResponse =
+          await _sendPostRequest('_dartpadsupportservices/v1/storeGist', json);
       expect(postResponse.status, 200);
       var postData = JSON.decode(UTF8.decode(await postResponse.body.first));
       expect(postData['uuid'], gistId);
-      json = {'gistId':'failure', 'internalId':data['uuid']};
-      postResponse = await _sendPostRequest(
-          '_dartpadsupportservices/v1/storeGist', json);
+      json = {'gistId': 'failure', 'internalId': data['uuid']};
+      postResponse =
+          await _sendPostRequest('_dartpadsupportservices/v1/storeGist', json);
       expect(postResponse.status, 400);
     });
 
@@ -159,9 +158,9 @@ void defineTests() {
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data['uuid'], isNotNull);
-      var json = {'gistId':gistId, 'internalId':data['uuid']};
-      var postResponse = await _sendPostRequest(
-          '_dartpadsupportservices/v1/storeGist', json);
+      var json = {'gistId': gistId, 'internalId': data['uuid']};
+      var postResponse =
+          await _sendPostRequest('_dartpadsupportservices/v1/storeGist', json);
       expect(postResponse.status, 200);
       var postData = JSON.decode(UTF8.decode(await postResponse.body.first));
       expect(postData['uuid'], gistId);

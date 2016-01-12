@@ -28,8 +28,9 @@ void defineTests() {
     });
 
     test('sourcemap', () {
-      return compiler.compile(sampleCode, returnSourceMap: true).then(
-          (CompilationResults result) {
+      return compiler
+          .compile(sampleCode, returnSourceMap: true)
+          .then((CompilationResults result) {
         expect(result.success, true);
         expect(result.getOutput(), isNotEmpty);
         expect(result.getSourceMap(), isNotEmpty);
@@ -37,8 +38,9 @@ void defineTests() {
     });
 
     test('version', () {
-      return compiler.compile(sampleCode, returnSourceMap: true).then(
-          (CompilationResults result) {
+      return compiler
+          .compile(sampleCode, returnSourceMap: true)
+          .then((CompilationResults result) {
         expect(compiler.version, isNotNull);
         expect(compiler.version, startsWith('1.'));
         expect(result.getSourceMap(), isNotEmpty);
@@ -72,13 +74,17 @@ void defineTests() {
     });
 
     test('web async', () {
-      return compiler.compile(sampleCodeAsync).then((CompilationResults result) {
+      return compiler
+          .compile(sampleCodeAsync)
+          .then((CompilationResults result) {
         expect(result.success, true);
       });
     });
 
     test('errors', () {
-      return compiler.compile(sampleCodeError).then((CompilationResults result) {
+      return compiler
+          .compile(sampleCodeError)
+          .then((CompilationResults result) {
         expect(result.success, false);
         expect(result.problems.length, 1);
         expect(result.problems[0].toString(),
@@ -87,7 +93,9 @@ void defineTests() {
     });
 
     test('errors many', () {
-      return compiler.compile(sampleCodeErrors).then((CompilationResults result) {
+      return compiler
+          .compile(sampleCodeErrors)
+          .then((CompilationResults result) {
         expect(result.problems.length, 3);
       });
     });

@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 
 const POST_PAYLOAD =
-r'''{"source": "import 'dart:html'; void main() {var count = querySelector('#count');for (int i = 0; i < 4; i++) {count.text = '${i}';print('hello ${i}');}}''';
+    r'''{"source": "import 'dart:html'; void main() {var count = querySelector('#count');for (int i = 0; i < 4; i++) {count.text = '${i}';print('hello ${i}');}}''';
 const EPILOGUE = '"}';
 
 const URI = "https://dart-services.appspot.com/api/dartservices/v1/compile";
@@ -26,9 +26,7 @@ void main(List<String> args) {
   print("QPS: $qps, URI: $URI");
 
   int ms = (1000 / qps).floor();
-  new Timer.periodic(
-      new Duration(milliseconds: ms),
-      (t) => pingServer(t));
+  new Timer.periodic(new Duration(milliseconds: ms), (t) => pingServer(t));
 }
 
 pingServer(Timer t) {

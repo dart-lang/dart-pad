@@ -24,11 +24,14 @@ analyzeTest() {
   Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(
-    http.post(url, headers: headers, body: common.sampleCodeWeb).then((response) {
-      expect(response.statusCode, 200);
-      expect(response.body.trim(), "[]");
-      return true;
-  }), completion(equals(true)));
+      http
+          .post(url, headers: headers, body: common.sampleCodeWeb)
+          .then((response) {
+        expect(response.statusCode, 200);
+        expect(response.body.trim(), "[]");
+        return true;
+      }),
+      completion(equals(true)));
 }
 
 compileTest() {
@@ -36,9 +39,12 @@ compileTest() {
   Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(
-    http.post(url, headers: headers, body: common.sampleCodeWeb).then((response) {
-      expect(response.statusCode, 200);
-      expect(true, response.body.length > 100);
-      return true;
-  }), completion(equals(true)));
+      http
+          .post(url, headers: headers, body: common.sampleCodeWeb)
+          .then((response) {
+        expect(response.statusCode, 200);
+        expect(true, response.body.length > 100);
+        return true;
+      }),
+      completion(equals(true)));
 }

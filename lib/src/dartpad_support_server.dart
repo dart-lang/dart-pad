@@ -53,7 +53,8 @@ class FileRelayServer {
         }
       }
     } else {
-      var query = ae.context.services.db.query(dbClass)..filter(attribute, value);
+      var query = ae.context.services.db.query(dbClass)
+        ..filter(attribute, value);
       result = await query.run().toList();
     }
     return new Future.value(result);

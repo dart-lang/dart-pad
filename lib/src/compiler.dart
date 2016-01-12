@@ -65,14 +65,16 @@ class Compiler {
     }
 
     // --incremental-support, --disable-type-inference
-    return compiler.compile(
-        provider.getInitialUri(),
-        new Uri(scheme: 'sdk', path: '/'),
-        new Uri(scheme: 'package', path: '/'),
-        provider.inputProvider,
-        result._diagnosticHandler,
-        args,
-        result._getOutputProvider).then((_) {
+    return compiler
+        .compile(
+            provider.getInitialUri(),
+            new Uri(scheme: 'sdk', path: '/'),
+            new Uri(scheme: 'package', path: '/'),
+            provider.inputProvider,
+            result._diagnosticHandler,
+            args,
+            result._getOutputProvider)
+        .then((_) {
       result._problems.sort();
       return result;
     });
@@ -97,18 +99,19 @@ class CompilationResults {
   List<CompilationProblem> get problems => _problems;
 
   /// This is true if none of the reported problems were errors.
-  bool get success => !_problems.any((p) => p.severity == CompilationProblem.ERROR);
+  bool get success =>
+      !_problems.any((p) => p.severity == CompilationProblem.ERROR);
 
-  void _diagnosticHandler(Uri uri, int begin, int end, String message,
-      compiler.Diagnostic kind) {
+  void _diagnosticHandler(
+      Uri uri, int begin, int end, String message, compiler.Diagnostic kind) {
     // Convert dart2js crash types to our error type.
     if (kind == compiler.Diagnostic.CRASH) kind = compiler.Diagnostic.ERROR;
 
     if (kind == compiler.Diagnostic.ERROR ||
         kind == compiler.Diagnostic.WARNING ||
         kind == compiler.Diagnostic.HINT) {
-      _problems.add(new CompilationProblem._(
-          uri, begin, end, message, kind, _lines));
+      _problems.add(
+          new CompilationProblem._(uri, begin, end, message, kind, _lines));
     }
   }
 
@@ -160,7 +163,8 @@ class CompilationProblem implements Comparable {
 
   int compareTo(CompilationProblem other) {
     return severity == other.severity
-        ? line - other.line : other.severity - severity;
+        ? line - other.line
+        : other.severity - severity;
   }
 
   bool get isOnCompileTarget => uri != null && uri.scheme == 'resource';
@@ -180,9 +184,9 @@ class CompilationProblem implements Comparable {
 class _NullSink implements EventSink<String> {
   _NullSink();
 
-  add(String value) { }
-  void addError(Object error, [StackTrace stackTrace]) { }
-  void close() { }
+  add(String value) {}
+  void addError(Object error, [StackTrace stackTrace]) {}
+  void close() {}
 }
 
 /// Used to hold the output from dart2js.
@@ -192,8 +196,8 @@ class _StringSink implements EventSink<String> {
   _StringSink(this.buffer);
 
   add(String value) => buffer.write(value);
-  void addError(Object error, [StackTrace stackTrace]) { }
-  void close() { }
+  void addError(Object error, [StackTrace stackTrace]) {}
+  void close() {}
 }
 
 /// Instances of this class allow dart2js to resolve Uris to input sources.
@@ -220,7 +224,8 @@ class _CompilerProvider {
         return new Future.value(contents);
       }
     } else if (uri.scheme == 'package' && pubHelper != null) {
-      return pubHelper.getPackageContentsAsync('package:${uri.path.substring(1)}');
+      return pubHelper
+          .getPackageContentsAsync('package:${uri.path.substring(1)}');
     }
 
     return new Future.error('file not found');

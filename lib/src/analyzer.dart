@@ -55,7 +55,8 @@ class Analyzer {
   void _reset() {
     _resolver = new MemoryResolver();
 
-    DartSdk sdk = new DirectoryBasedDartSdk(new JavaFile(_sdkPath), /*useDart2jsPaths*/ true);
+    DartSdk sdk = new DirectoryBasedDartSdk(
+        new JavaFile(_sdkPath), /*useDart2jsPaths*/ true);
     _context = AnalysisEngine.instance.createAnalysisContext();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.cacheSize = 512;
@@ -75,7 +76,7 @@ class Analyzer {
       analyze(useHtml ? sampleCodeWeb : sampleCode);
 
   Future<AnalysisResults> analyze(String source) {
-    return analyzeMulti({"main.dart" : source});
+    return analyzeMulti({"main.dart": source});
   }
 
   Future<AnalysisResults> analyzeMulti(Map<String, String> sources) {
@@ -107,7 +108,8 @@ class Analyzer {
         return new AnalysisIssue.fromIssue(
             error.severityName, error.line, error.message,
             location: error.location,
-            charStart: error.offset, charLength: error.length,
+            charStart: error.offset,
+            charLength: error.length,
             sourceName: error.error.source.fullName,
             hasFixes: error.probablyHasFix);
       }).toList();
@@ -153,8 +155,6 @@ class Analyzer {
       result = context.performAnalysisTask();
     }
   }
-
-
 
   Future<Map<String, String>> dartdoc(String source, int offset) {
     try {
@@ -219,8 +219,7 @@ class Analyzer {
         if (element is ExecutableElement) {
           List<String> list = [];
           ExecutableElement el = element;
-          el.parameters.forEach((par)
-            => list.add('${_prettifyElement(par)}'));
+          el.parameters.forEach((par) => list.add('${_prettifyElement(par)}'));
           info['parameters'] = list;
         }
 
@@ -240,8 +239,10 @@ class Analyzer {
             for (ElementAnnotationImpl e in element.metadata) {
               if (e.toString().startsWith("@DomName")) {
                 EvaluationResultImpl evaluationResult = e.evaluationResult;
-                if (evaluationResult != null && evaluationResult.value.fields["name"] != null) {
-                  info["DomName"] = evaluationResult.value.fields["name"].toStringValue();
+                if (evaluationResult != null &&
+                    evaluationResult.value.fields["name"] != null) {
+                  info["DomName"] =
+                      evaluationResult.value.fields["name"].toStringValue();
                 } else {
                   _logger.fine("WARNING: Unexpected null, aborting");
                 }
@@ -274,7 +275,8 @@ class Analyzer {
   }
 
   /// Calculate the resolved imports for the given set of sources.
-  List<String> _calculateImports(AnalysisContext context, List<Source> sources) {
+  List<String> _calculateImports(
+      AnalysisContext context, List<Source> sources) {
     Set<String> imports = new Set();
 
     for (Source source in sources) {
@@ -322,7 +324,7 @@ class StringSource implements Source {
 
   int get modificationStamp => _modificationStamp;
 
-  bool operator==(Object object) {
+  bool operator ==(Object object) {
     if (object is StringSource) {
       StringSource ssObject = object;
       return ssObject._contents == _contents && ssObject.fullName == fullName;
@@ -332,7 +334,8 @@ class StringSource implements Source {
 
   bool exists() => true;
 
-  TimestampedData<String> get contents => new TimestampedData(modificationStamp, _contents);
+  TimestampedData<String> get contents =>
+      new TimestampedData(modificationStamp, _contents);
 
   String get encoding => 'utf-8';
 

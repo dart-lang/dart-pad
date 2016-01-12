@@ -68,12 +68,11 @@ class AnalysisServerBenchmark extends Benchmark {
   AnalysisServerWrapper analysisServer;
 
   AnalysisServerBenchmark(String name, this.source)
-    : super('completion.${name}') {
+      : super('completion.${name}') {
     analysisServer = new AnalysisServerWrapper(sdkPath);
   }
 
-  Future perform() =>
-    analysisServer.complete(source, 30);
+  Future perform() => analysisServer.complete(source, 30);
 
   Future tearDown() => analysisServer.shutdown();
 }

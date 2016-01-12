@@ -52,8 +52,9 @@ class BenchmarkHarness {
       });
     }).then((_) {
       if (json) {
-        print(JSON.encode(results.map(
-            (r) => {r.benchmark.name: r.averageMilliseconds()}).toList()));
+        print(JSON.encode(results
+            .map((r) => {r.benchmark.name: r.averageMilliseconds()})
+            .toList()));
       }
     });
   }
@@ -85,13 +86,15 @@ class BenchmarkHarness {
     return _time(benchmark, 10, 2000, 10000);
   }
 
-  Future<BenchMarkResult> _time(Benchmark benchmark,
-      int minIterations, int minMillis, [int maxMillis]) {
+  Future<BenchMarkResult> _time(
+      Benchmark benchmark, int minIterations, int minMillis,
+      [int maxMillis]) {
     BenchMarkResult result = new BenchMarkResult(benchmark);
     Stopwatch timer = new Stopwatch()..start();
 
     return Future.doWhile(() {
-      if (result.iteration >= minIterations && timer.elapsedMilliseconds >= minMillis) {
+      if (result.iteration >= minIterations &&
+          timer.elapsedMilliseconds >= minMillis) {
         return false;
       }
 
