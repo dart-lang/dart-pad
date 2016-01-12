@@ -35,7 +35,7 @@ final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
 final _SERVER_PATH = "bin/snapshots/analysis_server.dart.snapshot";
 
 // Use very long timeouts to ensure that the server has enough time to restart.
-final _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 15);
+final _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 35);
 final _COMPILE_TIMEOUT = new Duration(seconds: 25);
 final _ANALYZE_TIMEOUT = new Duration(seconds: 15);
 
