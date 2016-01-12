@@ -267,6 +267,10 @@ class CommonServer {
     if (dart == null || html == null || css == null) {
       throw new BadRequestError('Missing core source parameter.');
     }
+    String sourcesJson = new JsonEncoder().convert(
+      {"dart" : dart, "html": html, "css": css});
+    _logger.info("About to summarize: ${_hashSource(sourcesJson)}");
+
     SummaryText summaryString = await _analyzeMulti({"main.dart" : dart}).then((result) {
       Summarizer summarizer = new Summarizer(
           dart: dart,
@@ -283,7 +287,9 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'sources\'');
     }
     Stopwatch watch = new Stopwatch()..start();
-    srcRequestRecorder.record("ANALYZE-v1", new JsonEncoder().convert(sources));
+    String sourcesJson = new JsonEncoder().convert(sources);
+    srcRequestRecorder.record("ANALYZE-v1", sourcesJson);
+    _logger.info("About to ANALYZE-v1: ${_hashSource(sourcesJson)}");
     try {
       return analyzer.analyzeMulti(sources).then((AnalysisResults results) async {
         int lineCount = 0;
@@ -314,6 +320,7 @@ class CommonServer {
 
     srcRequestRecorder.record("COMPILE", source);
     String sourceHash = _hashSource(source);
+    _logger.info("About to COMPILE: ${sourceHash}");
 
     // TODO(lukechurch): Remove this hack after
     // https://github.com/dart-lang/rpc/issues/15 lands
@@ -379,6 +386,7 @@ class CommonServer {
     }
     Stopwatch watch = new Stopwatch()..start();
     srcRequestRecorder.record("DOCUMENT", source, offset);
+    _logger.info("About to DOCUMENT: ${_hashSource(source)}");
     try {
       return analyzer.dartdoc(source, offset)
         .then((Map<String, String> docInfo) async {
@@ -428,8 +436,10 @@ class CommonServer {
       }
 
       Stopwatch watch = new Stopwatch()..start();
+      String sourceJson = new JsonEncoder().convert(sources);
       srcRequestRecorder.record(
-        "COMPLETE-v1", new JsonEncoder().convert(sources), offset);
+        "COMPLETE-v1", sourceJson, offset);
+      _logger.info("About to COMPLETE-v1: ${_hashSource(sourceJson)}");
 
       counter.increment("Completions");
       var response = await analysisServer.completeMulti(sources,
@@ -461,8 +471,10 @@ class CommonServer {
     }
 
     Stopwatch watch = new Stopwatch()..start();
-    srcRequestRecorder.record("FIX-v1",
-      new JsonEncoder().convert(sources), offset);
+    String sourceJson = new JsonEncoder().convert(sources);
+    srcRequestRecorder.record("FIX-v1", sourceJson, offset);
+    _logger.info("About to FIX-v1: ${_hashSource(sourceJson)}");
+
     counter.increment("Fixes");
     var response = await analysisServer.getFixesMulti(sources,
       new Location()
@@ -479,6 +491,7 @@ class CommonServer {
     if (offset == null) offset = 0;
     Stopwatch watch = new Stopwatch()..start();
     srcRequestRecorder.record("FORMAT", source, offset);
+    _logger.info("About to FORMAT: ${_hashSource(source)}");
     counter.increment("Formats");
 
     // Guard against trying to format code with errors.
