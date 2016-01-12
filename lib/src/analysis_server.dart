@@ -10,12 +10,12 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/src/protocol.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'api_classes.dart' as api;
 import 'scheduler.dart' as scheduler;
+import 'analysis_server_protocol/protocol.dart';
 
 /**
  * Type of callbacks used to process notifications.
