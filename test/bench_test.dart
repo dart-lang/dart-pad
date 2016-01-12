@@ -26,7 +26,10 @@ void defineTests() {
 
     test('many', () {
       BenchmarkHarness harness = new BenchmarkHarness(json: true);
-      List<MockBenchmark> benchmarks = [new MockBenchmark(), new MockBenchmark()];
+      List<MockBenchmark> benchmarks = [
+        new MockBenchmark(),
+        new MockBenchmark()
+      ];
 
       return harness.benchmark(benchmarks).then((_) {
         expect(benchmarks[0].count, greaterThan(80));

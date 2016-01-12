@@ -130,21 +130,26 @@ class AnalysisServerWrapper {
     }
 
     return serverScheduler
-        .schedule(new scheduler.ClosureTask(() => new Future.sync(() async {
-      sources = _getOverlayMapWithPaths(sources);
-      String path = _getPathFromName(sourceName);
-      await serverConnection._ensureSetup();
-      await serverConnection.loadSources(sources);
-      await serverConnection.analysisComplete.first;
-      await serverConnection.sendCompletionGetSuggestions(path, offset);
+        .schedule(new scheduler.ClosureTask(
+            () => new Future.sync(() async {
+                  sources = _getOverlayMapWithPaths(sources);
+                  String path = _getPathFromName(sourceName);
+                  await serverConnection._ensureSetup();
+                  await serverConnection.loadSources(sources);
+                  await serverConnection.analysisComplete.first;
+                  await serverConnection.sendCompletionGetSuggestions(
+                      path, offset);
 
-      return serverConnection.completionResults
-              .handleError((error) => throw "Completion failed").first
-          .then((ret) async {
-        await serverConnection.unloadSources(sources.keys);
-        return ret;
-      });
-    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT)).catchError((e) {
+                  return serverConnection.completionResults
+                      .handleError((error) => throw "Completion failed")
+                      .first
+                      .then((ret) async {
+                    await serverConnection.unloadSources(sources.keys);
+                    return ret;
+                  });
+                }),
+            timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
+        .catchError((e) {
       serverConnection.kill();
       throw e;
     });
@@ -161,14 +166,17 @@ class AnalysisServerWrapper {
     }
 
     return serverScheduler
-        .schedule(new scheduler.ClosureTask(() => new Future.sync(() async {
-      await serverConnection._ensureSetup();
-      await serverConnection.loadSources(sources);
-      await serverConnection.analysisComplete.first;
-      var fixes = await serverConnection.sendGetFixes(path, offset);
-      await serverConnection.unloadSources(sources.keys.toList());
-      return fixes;
-    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT)).catchError((e) {
+        .schedule(new scheduler.ClosureTask(
+            () => new Future.sync(() async {
+                  await serverConnection._ensureSetup();
+                  await serverConnection.loadSources(sources);
+                  await serverConnection.analysisComplete.first;
+                  var fixes = await serverConnection.sendGetFixes(path, offset);
+                  await serverConnection.unloadSources(sources.keys.toList());
+                  return fixes;
+                }),
+            timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
+        .catchError((e) {
       serverConnection.kill();
       throw e;
     });
@@ -178,14 +186,17 @@ class AnalysisServerWrapper {
     _logger.fine("FormatImpl: Scheduler queue: ${serverScheduler.queueCount}");
 
     return serverScheduler
-        .schedule(new scheduler.ClosureTask(() => new Future.sync(() async {
-      await serverConnection._ensureSetup();
-      await serverConnection.loadSources({mainPath: src});
-      await serverConnection.analysisComplete.first;
-      var formatResult = await serverConnection.sendFormat(offset);
-      await serverConnection.unloadSources([mainPath]);
-      return formatResult;
-    }), timeoutDuration: _ANALYSIS_SERVER_TIMEOUT)).catchError((e) {
+        .schedule(new scheduler.ClosureTask(
+            () => new Future.sync(() async {
+                  await serverConnection._ensureSetup();
+                  await serverConnection.loadSources({mainPath: src});
+                  await serverConnection.analysisComplete.first;
+                  var formatResult = await serverConnection.sendFormat(offset);
+                  await serverConnection.unloadSources([mainPath]);
+                  return formatResult;
+                }),
+            timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
+        .catchError((e) {
       serverConnection.kill();
       throw e;
     });

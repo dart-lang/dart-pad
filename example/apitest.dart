@@ -38,7 +38,8 @@ void setupDartpadServices() {
 _setupClients() {
   client = new utils.SanitizingBrowserClient();
   servicesApi = new services.DartservicesApi(client, rootUrl: _uriBase);
-  _dartpadSupportApi = new support.P_dartpadsupportservicesApi(client, rootUrl: _uriBase);
+  _dartpadSupportApi =
+      new support.P_dartpadsupportservicesApi(client, rootUrl: _uriBase);
 }
 
 void setupSummary() {
@@ -71,12 +72,14 @@ void setupIdRetrieval() {
 }
 
 void setupGistStore() {
-  CodeMirror editor = createEditor(querySelector('#storeSection .editor'), defaultText: "Internal ID");
+  CodeMirror editor = createEditor(querySelector('#storeSection .editor'),
+      defaultText: "Internal ID");
   Element output = querySelector('#storeSection .output');
   ButtonElement button = querySelector('#storeSection button');
   button.onClick.listen((e) {
     String editorText = editor.getDoc().getValue();
-    support.GistToInternalIdMapping saveObject = new support.GistToInternalIdMapping();
+    support.GistToInternalIdMapping saveObject =
+        new support.GistToInternalIdMapping();
     saveObject.internalId = editorText;
     saveObject.gistId = "72d83fe97bfc8e735607"; //Solar
     Stopwatch sw = new Stopwatch()..start();
@@ -87,7 +90,8 @@ void setupGistStore() {
 }
 
 void setupGistRetrieval() {
-  CodeMirror editor = createEditor(querySelector('#gistSection .editor'), defaultText: "Internal ID");
+  CodeMirror editor = createEditor(querySelector('#gistSection .editor'),
+      defaultText: "Internal ID");
   Element output = querySelector('#gistSection .output');
   ButtonElement button = querySelector('#gistSection button');
   button.onClick.listen((e) {
@@ -222,8 +226,8 @@ void setupRetrieve() {
 
     Stopwatch sw = new Stopwatch()..start();
 
-    support.UuidContainer uuidContainer =
-      new support.UuidContainer()..uuid = uuid;
+    support.UuidContainer uuidContainer = new support.UuidContainer()
+      ..uuid = uuid;
 
     _dartpadSupportApi.pullExportContent(uuidContainer).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";

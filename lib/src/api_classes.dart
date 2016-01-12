@@ -16,7 +16,8 @@ class AnalysisResults {
   @ApiProperty(description: 'The package imports parsed from the source.')
   final List<String> packageImports;
 
-  @ApiProperty(description: 'The resolved imports - e.g. dart:async, dart:io, ...')
+  @ApiProperty(
+      description: 'The resolved imports - e.g. dart:async, dart:io, ...')
   final List<String> resolvedImports;
 
   AnalysisResults(this.issues, this.packageImports, this.resolvedImports);
@@ -39,8 +40,11 @@ class AnalysisIssue implements Comparable {
   final String location;
 
   AnalysisIssue.fromIssue(this.kind, this.line, this.message,
-      {this.charStart, this.charLength, this.location,
-      this.sourceName, this.hasFixes: false});
+      {this.charStart,
+      this.charLength,
+      this.location,
+      this.sourceName,
+      this.hasFixes: false});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};
@@ -58,24 +62,18 @@ class AnalysisIssue implements Comparable {
 }
 
 class SourceRequest {
-  @ApiProperty(
-      required: true,
-      description: 'The Dart source.')
+  @ApiProperty(required: true, description: 'The Dart source.')
   String source;
 
-  @ApiProperty(
-      description: 'An optional offset into the source code.')
+  @ApiProperty(description: 'An optional offset into the source code.')
   int offset;
 }
 
 class SourcesRequest {
-  @ApiProperty(
-      required: true,
-      description: 'Map of names to Sources.')
+  @ApiProperty(required: true, description: 'Map of names to Sources.')
   Map<String, String> sources;
 
-  @ApiProperty(
-      description: 'An optional location in the source code.')
+  @ApiProperty(description: 'An optional location in the source code.')
   Location location;
 }
 
@@ -85,18 +83,17 @@ class Location {
 }
 
 class CompileRequest {
-  @ApiProperty(
-      required: true,
-      description: 'The Dart source.')
+  @ApiProperty(required: true, description: 'The Dart source.')
   String source;
 
   @ApiProperty(
       description: 'Compile to code with checked mode checks; optional '
-        '(defaults to false).')
+          '(defaults to false).')
   bool useCheckedMode;
 
   @ApiProperty(
-      description: 'Return the Dart to JS source map; optional (defaults to false).')
+      description:
+          'Return the Dart to JS source map; optional (defaults to false).')
   bool returnSourceMap;
 }
 
@@ -125,7 +122,8 @@ class DocumentResponse {
 }
 
 class CompleteResponse {
-  @ApiProperty(description: 'The offset of the start of the text to be replaced.')
+  @ApiProperty(
+      description: 'The offset of the start of the text to be replaced.')
   final int replacementOffset;
 
   @ApiProperty(description: 'The length of the text to be replaced.')
@@ -134,8 +132,8 @@ class CompleteResponse {
   final List<Map<String, String>> completions;
 
   CompleteResponse(
-      this.replacementOffset, this.replacementLength, List<Map> completions) :
-    this.completions = _convert(completions);
+      this.replacementOffset, this.replacementLength, List<Map> completions)
+      : this.completions = _convert(completions);
 
   /**
    * Convert any non-string values from the contained maps.
@@ -159,8 +157,8 @@ class CompleteResponse {
 class FixesResponse {
   final List<ProblemAndFixes> fixes;
 
-  FixesResponse(List<AnalysisErrorFixes> analysisErrorFixes) :
-    this.fixes = _convert(analysisErrorFixes);
+  FixesResponse(List<AnalysisErrorFixes> analysisErrorFixes)
+      : this.fixes = _convert(analysisErrorFixes);
 
   /**
    * Convert between the Analysis Server type and the API protocol types.
@@ -171,7 +169,8 @@ class FixesResponse {
     return problemsAndFixes;
   }
 
-  static ProblemAndFixes _convertAnalysisErrorFix(AnalysisErrorFixes analysisFixes) {
+  static ProblemAndFixes _convertAnalysisErrorFix(
+      AnalysisErrorFixes analysisFixes) {
     String problemMessage = analysisFixes.error.message;
     int problemOffset = analysisFixes.error.location.offset;
     int problemLength = analysisFixes.error.location.length;
@@ -194,22 +193,17 @@ class FixesResponse {
 
         for (var sourceEdit in sourceFileEdit.edits) {
           edits.add(new SourceEdit.fromChanges(
-              sourceEdit.offset,
-              sourceEdit.length,
-              sourceEdit.replacement));
+              sourceEdit.offset, sourceEdit.length, sourceEdit.replacement));
         }
       }
       if (!invalidFix) {
-        CandidateFix possibleFix = new
-          CandidateFix.fromEdits(sourceChange.message, edits);
+        CandidateFix possibleFix =
+            new CandidateFix.fromEdits(sourceChange.message, edits);
         possibleFixes.add(possibleFix);
       }
     }
     return new ProblemAndFixes.fromList(
-        possibleFixes,
-        problemMessage,
-        problemOffset,
-        problemLength);
+        possibleFixes, problemMessage, problemOffset, problemLength);
   }
 }
 
@@ -282,27 +276,30 @@ class SourceEdit {
 class VersionResponse {
   @ApiProperty(
       description: 'The Dart SDK version that DartServices is compatible with. '
-        'This will be a semver string.')
+          'This will be a semver string.')
   final String sdkVersion;
 
   @ApiProperty(
-      description: 'The full Dart SDK version that DartServices is compatible with.')
+      description:
+          'The full Dart SDK version that DartServices is compatible with.')
   final String sdkVersionFull;
 
   @ApiProperty(
       description: 'The Dart SDK version that the server is running on. This '
-        'will start with a semver string, and have a space and other build '
-        'details appended.')
+          'will start with a semver string, and have a space and other build '
+          'details appended.')
   final String runtimeVersion;
 
-  @ApiProperty(
-      description: 'The App Engine version.')
+  @ApiProperty(description: 'The App Engine version.')
   final String appEngineVersion;
 
-  @ApiProperty(
-      description: 'The dart-services backend version.')
+  @ApiProperty(description: 'The dart-services backend version.')
   final String servicesVersion;
 
-  VersionResponse({this.sdkVersion, this.sdkVersionFull, this.runtimeVersion,
-    this.appEngineVersion, this.servicesVersion});
+  VersionResponse(
+      {this.sdkVersion,
+      this.sdkVersionFull,
+      this.runtimeVersion,
+      this.appEngineVersion,
+      this.servicesVersion});
 }

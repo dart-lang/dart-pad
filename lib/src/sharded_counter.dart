@@ -15,30 +15,30 @@ import 'package:gcloud/db.dart' as db;
 final SHARDS_COUNT = 20;
 
 class Counter {
-  static Future increment(String name, {int increment : 1 }) {
+  static Future increment(String name, {int increment: 1}) {
     db.DatastoreDB datastore = db.dbService;
     int shardId = new math.Random().nextInt(SHARDS_COUNT);
     return _getCounterShard(name, shardId, datastore).then((counter) {
-        counter.count++;
-        return datastore.withTransaction((transaction) {
-          return transaction.lookup([counter.key]).then((models) {
-            var model = models[0];
-            model.count += increment;
+      counter.count++;
+      return datastore.withTransaction((transaction) {
+        return transaction.lookup([counter.key]).then((models) {
+          var model = models[0];
+          model.count += increment;
 
-            transaction.queueMutations(inserts: [model]);
-            return transaction.commit();
-          });
+          transaction.queueMutations(inserts: [model]);
+          return transaction.commit();
         });
+      });
     });
   }
 
   static Future<int> getTotal(String name) {
     int total = 0;
     var query = db.dbService.query(_ShardedCounter)
-    ..filter("counterName =", name);
+      ..filter("counterName =", name);
 
     return query.run().toList().then((models) {
-      models.forEach((m) => total += m.count );
+      models.forEach((m) => total += m.count);
       return total;
     });
   }
@@ -51,26 +51,26 @@ class Counter {
     var results = query.run().toList();
 
     // Test whether we have been given an id.
-    return results.then((models){
+    return results.then((models) {
       if (models.length == 0) {
-        _ShardedCounter newCounter  = new _ShardedCounter()
-           ..counterName = name
-           ..count = 0
-           ..shardId = shardId;
+        _ShardedCounter newCounter = new _ShardedCounter()
+          ..counterName = name
+          ..count = 0
+          ..shardId = shardId;
 
         return datastore.commit(inserts: [newCounter]).then((result) {
-             return newCounter;
-           });
+          return newCounter;
+        });
       } else {
         return new Future.value(models[0]);
-    };
-  });
+      }
+      ;
+    });
   }
 }
 
 @db.Kind()
 class _ShardedCounter extends db.Model {
-
   @db.StringProperty()
   String counterName;
 

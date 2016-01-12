@@ -76,12 +76,14 @@ class Pub {
       pubspecFile.writeAsStringSync(specContents, flush: true);
 
       // Run pub.
-      return Process.run('pub', ['get'], workingDirectory: tempDir.path)
+      return Process
+          .run('pub', ['get'], workingDirectory: tempDir.path)
           .timeout(new Duration(seconds: 20))
           .then((ProcessResult result) {
         if (result.exitCode != 0) {
-          String message = result.stderr.isNotEmpty ?
-              result.stderr : 'failed to get pub packages: ${result.exitCode}';
+          String message = result.stderr.isNotEmpty
+              ? result.stderr
+              : 'failed to get pub packages: ${result.exitCode}';
           _logger.severe('Error running pub get: ${message}');
           return new Future.value(message);
         }
@@ -122,10 +124,11 @@ class Pub {
   }
 
   Future<PubHelper> createPubHelperForSource(String dartSource) {
-    Set<String> packageImports = filterSafePackagesFromImports(
-        getAllUnsafeImportsFor(dartSource));
+    Set<String> packageImports =
+        filterSafePackagesFromImports(getAllUnsafeImportsFor(dartSource));
 
-    return resolvePackages(packageImports.toList()).then((PackagesInfo packages) {
+    return resolvePackages(packageImports.toList())
+        .then((PackagesInfo packages) {
       return new PubHelper._(this, packages.packages);
     });
   }
@@ -171,8 +174,8 @@ class Pub {
   /**
    * Download the indicated package and expand it into the target directory.
    */
-  Future _populatePackage(PackageInfo package, Directory cacheDir,
-      Directory target) {
+  Future _populatePackage(
+      PackageInfo package, Directory cacheDir, Directory target) {
     final String base =
         'https://storage.googleapis.com/pub.dartlang.org/packages';
 
@@ -194,11 +197,12 @@ class Pub {
       tarArchive.decodeBytes(data);
 
       for (TarFile file in tarArchive.files) {
-        File f = new File(
-            '${target.path}${Platform.pathSeparator}${file.filename}');
+        File f =
+            new File('${target.path}${Platform.pathSeparator}${file.filename}');
         f.parent.createSync(recursive: true);
         f.writeAsBytesSync(file.content, flush: true);
-      };
+      }
+      ;
     });
   }
 }
@@ -216,13 +220,14 @@ class _MockPub implements Pub {
 
   PackagesInfo _parseLockContents(String lockContents) => null;
 
-  Future _populatePackage(PackageInfo package, Directory cacheDir, Directory target) =>
+  Future _populatePackage(
+          PackageInfo package, Directory cacheDir, Directory target) =>
       null;
 
   Future<PubHelper> createPubHelperForSource(String dartSource) =>
       new Future.value(new PubHelper._(this, []));
 
-  void flushCache() { }
+  void flushCache() {}
 
   Future<Directory> getPackageLibDir(PackageInfo packageInfo) =>
       new Future.value();
@@ -288,7 +293,8 @@ class PubHelper {
   }
 
   PackageInfo getPackage(String packageName) {
-    return packages.firstWhere((p) => p.name == packageName, orElse: () => null);
+    return packages.firstWhere((p) => p.name == packageName,
+        orElse: () => null);
   }
 }
 
@@ -315,7 +321,8 @@ class PackageInfo {
 
   PackageInfo(this.name, this.version) {
     if (!nameRegex.hasMatch(name)) throw 'invalid package name: ${name}';
-    if (!versionRegex.hasMatch(version)) throw 'invalid package version: ${version}';
+    if (!versionRegex
+        .hasMatch(version)) throw 'invalid package version: ${version}';
   }
 
   String toString() => '[${name}: ${version}]';
@@ -324,10 +331,8 @@ class PackageInfo {
 Set<String> getAllUnsafeImportsFor(String dartSource) {
   if (dartSource == null) return new Set();
 
-  Scanner scanner = new Scanner(
-      new StringSource(dartSource, 'main.dart'),
-      new CharSequenceReader(dartSource),
-      AnalysisErrorListener.NULL_LISTENER);
+  Scanner scanner = new Scanner(new StringSource(dartSource, 'main.dart'),
+      new CharSequenceReader(dartSource), AnalysisErrorListener.NULL_LISTENER);
   Token token = scanner.tokenize();
 
   Set imports = new Set();

@@ -66,11 +66,8 @@ class CommonServer {
   Compiler compiler;
   AnalysisServerWrapper analysisServer;
 
-  CommonServer(String sdkPath,
-      this.container,
-      this.cache,
-      this.srcRequestRecorder,
-      this.counter) {
+  CommonServer(String sdkPath, this.container, this.cache,
+      this.srcRequestRecorder, this.counter) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
 
@@ -98,8 +95,9 @@ class CommonServer {
   @ApiMethod(
       method: 'POST',
       path: 'analyze',
-      description: 'Analyze the given Dart source code and return any resulting '
-        'analysis errors or warnings.')
+      description:
+          'Analyze the given Dart source code and return any resulting '
+          'analysis errors or warnings.')
   Future<AnalysisResults> analyze(SourceRequest request) {
     return _analyze(request.source);
   }
@@ -107,8 +105,9 @@ class CommonServer {
   @ApiMethod(
       method: 'POST',
       path: 'analyzeMulti',
-      description: 'Analyze the given Dart source code and return any resulting '
-      'analysis errors or warnings.')
+      description:
+          'Analyze the given Dart source code and return any resulting '
+          'analysis errors or warnings.')
   Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
     return _analyzeMulti(request.sources);
   }
@@ -116,10 +115,12 @@ class CommonServer {
   @ApiMethod(
       method: 'POST',
       path: 'summarize',
-      description: 'Summarize the given Dart source code and return any resulting '
-        'analysis errors or warnings.')
+      description:
+          'Summarize the given Dart source code and return any resulting '
+          'analysis errors or warnings.')
   Future<SummaryText> summarize(SourcesRequest request) {
-    return _summarize(request.sources['dart'], request.sources['css'], request.sources['html']);
+    return _summarize(request.sources['dart'], request.sources['css'],
+        request.sources['html']);
   }
 
   @ApiMethod(method: 'GET', path: 'analyze')
@@ -131,10 +132,10 @@ class CommonServer {
       method: 'POST',
       path: 'compile',
       description: 'Compile the given Dart source code and return the '
-        'resulting JavaScript.')
+          'resulting JavaScript.')
   Future<CompileResponse> compile(CompileRequest request) =>
-      _compile(
-          request.source, useCheckedMode: request.useCheckedMode,
+      _compile(request.source,
+          useCheckedMode: request.useCheckedMode,
           returnSourceMap: request.returnSourceMap);
 
   @ApiMethod(method: 'GET', path: 'compile')
@@ -143,7 +144,8 @@ class CommonServer {
   @ApiMethod(
       method: 'POST',
       path: 'complete',
-      description: 'Get the valid code completion results for the given offset.')
+      description:
+          'Get the valid code completion results for the given offset.')
   Future<CompleteResponse> complete(SourceRequest request) {
     if (request.offset == null) {
       throw new BadRequestError('Missing parameter: \'offset\'');
@@ -155,7 +157,8 @@ class CommonServer {
   @ApiMethod(
       method: 'POST',
       path: 'completeMulti',
-      description: 'Get the valid code completion results for the given offset.')
+      description:
+          'Get the valid code completion results for the given offset.')
   Future<CompleteResponse> completeMulti(SourcesRequest request) {
     if (request.location == null) {
       throw new BadRequestError('Missing parameter: \'location\'');
@@ -221,8 +224,8 @@ class CommonServer {
       method: 'POST',
       path: 'format',
       description: 'Format the given Dart source code and return the results. '
-        'If an offset is supplied in the request, the new position for that '
-        'offset in the formatted code will be returned.')
+          'If an offset is supplied in the request, the new position for that '
+          'offset in the formatted code will be returned.')
   Future<FormatResponse> format(SourceRequest request) {
     return _format(request.source, offset: request.offset);
   }
@@ -240,7 +243,7 @@ class CommonServer {
       method: 'POST',
       path: 'document',
       description: 'Return the relevant dartdoc information for the element at '
-        'the given offset.')
+          'the given offset.')
   Future<DocumentResponse> document(SourceRequest request) {
     return _document(request.source, request.offset);
   }
@@ -260,23 +263,21 @@ class CommonServer {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
-    return _analyzeMulti({"main.dart" : source});
+    return _analyzeMulti({"main.dart": source});
   }
 
   Future<SummaryText> _summarize(String dart, String html, String css) async {
     if (dart == null || html == null || css == null) {
       throw new BadRequestError('Missing core source parameter.');
     }
-    String sourcesJson = new JsonEncoder().convert(
-      {"dart" : dart, "html": html, "css": css});
+    String sourcesJson =
+        new JsonEncoder().convert({"dart": dart, "html": html, "css": css});
     _logger.info("About to summarize: ${_hashSource(sourcesJson)}");
 
-    SummaryText summaryString = await _analyzeMulti({"main.dart" : dart}).then((result) {
-      Summarizer summarizer = new Summarizer(
-          dart: dart,
-          html: html,
-          css: css,
-          analysis: result);
+    SummaryText summaryString =
+        await _analyzeMulti({"main.dart": dart}).then((result) {
+      Summarizer summarizer =
+          new Summarizer(dart: dart, html: html, css: css, analysis: result);
       return new SummaryText.fromString(summarizer.returnAsSimpleSummary());
     });
     return new Future.value(summaryString);
@@ -291,10 +292,12 @@ class CommonServer {
     srcRequestRecorder.record("ANALYZE-v1", sourcesJson);
     _logger.info("About to ANALYZE-v1: ${_hashSource(sourcesJson)}");
     try {
-      return analyzer.analyzeMulti(sources).then((AnalysisResults results) async {
+      return analyzer
+          .analyzeMulti(sources)
+          .then((AnalysisResults results) async {
         int lineCount = 0;
-        sources.values.forEach(
-          (String source) => lineCount += source.split('\n').length);
+        sources.values
+            .forEach((String source) => lineCount += source.split('\n').length);
         int ms = watch.elapsedMilliseconds;
         _logger.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
         counter.increment("Analyses");
@@ -328,10 +331,9 @@ class CommonServer {
     bool suppressCache = trimSrc.endsWith("/** Supress-Memcache **/") ||
         trimSrc.endsWith("/** Suppress-Memcache **/");
 
-    String memCacheKey =
-      "%%COMPILE:v0:useCheckedMode:$useCheckedMode"
-      "returnSourceMap:$returnSourceMap:"
-      "source:$sourceHash";
+    String memCacheKey = "%%COMPILE:v0:useCheckedMode:$useCheckedMode"
+        "returnSourceMap:$returnSourceMap:"
+        "source:$sourceHash";
 
     return checkCache(memCacheKey).then((String result) {
       if (!suppressCache && result != null) {
@@ -343,24 +345,24 @@ class CommonServer {
         _logger.info("CACHE: MISS, forced: $suppressCache");
         Stopwatch watch = new Stopwatch()..start();
 
-        return compiler.compile(source, useCheckedMode: useCheckedMode,
-            returnSourceMap: returnSourceMap).then((CompilationResults results) async {
+        return compiler
+            .compile(source,
+                useCheckedMode: useCheckedMode,
+                returnSourceMap: returnSourceMap)
+            .then((CompilationResults results) async {
           if (results.hasOutput) {
             int lineCount = source.split('\n').length;
             int outputSize = (results.getOutput().length + 512) ~/ 1024;
             int ms = watch.elapsedMilliseconds;
-            _logger.info(
-              'PERF: Compiled ${lineCount} lines of Dart into '
-              '${outputSize}kb of JavaScript in ${ms}ms.');
+            _logger.info('PERF: Compiled ${lineCount} lines of Dart into '
+                '${outputSize}kb of JavaScript in ${ms}ms.');
             counter.increment("Compilations");
             counter.increment("Compiled-Lines", increment: lineCount);
             String out = results.getOutput();
             String sourceMap = returnSourceMap ? results.getSourceMap() : null;
 
-            String cachedResult = new JsonEncoder().convert({
-              "output" : out,
-              "sourceMap" : sourceMap
-            });
+            String cachedResult = new JsonEncoder()
+                .convert({"output": out, "sourceMap": sourceMap});
             await setCache(memCacheKey, cachedResult);
             return new CompileResponse(out, sourceMap);
           } else {
@@ -388,17 +390,18 @@ class CommonServer {
     srcRequestRecorder.record("DOCUMENT", source, offset);
     _logger.info("About to DOCUMENT: ${_hashSource(source)}");
     try {
-      return analyzer.dartdoc(source, offset)
-        .then((Map<String, String> docInfo) async {
-          if (docInfo == null) docInfo = {};
-          _logger.info(
-            'PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-          counter.increment("DartDocs");
-          return new DocumentResponse(docInfo);
-        }).catchError((e, st) {
-          _logger.severe('Error during dartdoc: ${e}\n${st}');
-          throw e;
-        });
+      return analyzer
+          .dartdoc(source, offset)
+          .then((Map<String, String> docInfo) async {
+        if (docInfo == null) docInfo = {};
+        _logger
+            .info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
+        counter.increment("DartDocs");
+        return new DocumentResponse(docInfo);
+      }).catchError((e, st) {
+        _logger.severe('Error during dartdoc: ${e}\n${st}');
+        throw e;
+      });
     } catch (e, st) {
       _logger.severe('Error during dartdoc: ${e}\n${st}');
       throw e;
@@ -420,34 +423,33 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _completeMulti({"main.dart" : source}, "main.dart", offset);
+    return _completeMulti({"main.dart": source}, "main.dart", offset);
   }
 
-  Future<CompleteResponse> _completeMulti(Map<String, String> sources,
-    String sourceName, int offset) async {
-      if (sources == null) {
-        throw new BadRequestError('Missing parameter: \'source\'');
-      }
-      if (sourceName == null) {
-        throw new BadRequestError('Missing parameter: \'name\'');
-      }
-      if (offset == null) {
-        throw new BadRequestError('Missing parameter: \'offset\'');
-      }
+  Future<CompleteResponse> _completeMulti(
+      Map<String, String> sources, String sourceName, int offset) async {
+    if (sources == null) {
+      throw new BadRequestError('Missing parameter: \'source\'');
+    }
+    if (sourceName == null) {
+      throw new BadRequestError('Missing parameter: \'name\'');
+    }
+    if (offset == null) {
+      throw new BadRequestError('Missing parameter: \'offset\'');
+    }
 
-      Stopwatch watch = new Stopwatch()..start();
-      String sourceJson = new JsonEncoder().convert(sources);
-      srcRequestRecorder.record(
-        "COMPLETE-v1", sourceJson, offset);
-      _logger.info("About to COMPLETE-v1: ${_hashSource(sourceJson)}");
+    Stopwatch watch = new Stopwatch()..start();
+    String sourceJson = new JsonEncoder().convert(sources);
+    srcRequestRecorder.record("COMPLETE-v1", sourceJson, offset);
+    _logger.info("About to COMPLETE-v1: ${_hashSource(sourceJson)}");
 
-      counter.increment("Completions");
-      var response = await analysisServer.completeMulti(sources,
-        new Location()
-          ..sourceName = sourceName
-          ..offset = offset);
-      _logger.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
-      return response;
+    counter.increment("Completions");
+    var response = await analysisServer.completeMulti(sources, new Location()
+      ..sourceName = sourceName
+      ..offset = offset);
+    _logger
+        .info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
+    return response;
   }
 
   Future<FixesResponse> _fixes(String source, int offset) async {
@@ -458,11 +460,11 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _fixesMulti({"main.dart" : source}, "main.dart", offset);
+    return _fixesMulti({"main.dart": source}, "main.dart", offset);
   }
 
-  Future<FixesResponse> _fixesMulti(Map<String, String> sources,
-    String sourceName, int offset) async {
+  Future<FixesResponse> _fixesMulti(
+      Map<String, String> sources, String sourceName, int offset) async {
     if (sources == null) {
       throw new BadRequestError('Missing parameter: \'sources\'');
     }
@@ -476,10 +478,9 @@ class CommonServer {
     _logger.info("About to FIX-v1: ${_hashSource(sourceJson)}");
 
     counter.increment("Fixes");
-    var response = await analysisServer.getFixesMulti(sources,
-      new Location()
-        ..sourceName = sourceName
-        ..offset = offset);
+    var response = await analysisServer.getFixesMulti(sources, new Location()
+      ..sourceName = sourceName
+      ..offset = offset);
     _logger.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
@@ -498,11 +499,11 @@ class CommonServer {
     AnalysisResults analysisResults = await analyzer.analyze(source);
 
     var response;
-    if (analysisResults.issues.where(
-        (issue) => issue.kind == "error").length > 0) {
+    if (analysisResults.issues.where((issue) => issue.kind == "error").length >
+        0) {
       response = new FormatResponse(source, offset);
       _logger.info('PERF: Format aborted due to analysis errors in'
-        ' ${watch.elapsedMilliseconds}ms.');
+          ' ${watch.elapsedMilliseconds}ms.');
       return response;
     }
     response = await analysisServer.format(source, offset);
@@ -516,7 +517,8 @@ class CommonServer {
       cache.set(query, result, expiration: _standardExpiration);
 }
 
-List<CompilationProblem> _filterCompileProblems(List<CompilationProblem> problems) {
+List<CompilationProblem> _filterCompileProblems(
+    List<CompilationProblem> problems) {
   return problems.where((p) => !p.isHint && p.isOnCompileTarget).toList();
 }
 

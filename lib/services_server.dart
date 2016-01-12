@@ -38,8 +38,7 @@ void main(List<String> args) {
 
   Directory sdkDir = cli_util.getSdkDir(args);
   if (sdkDir == null) {
-    stdout.writeln(
-        "Could not locate the SDK; "
+    stdout.writeln("Could not locate the SDK; "
         "please start the server with the '--dart-sdk' option.");
     exit(1);
   }
@@ -52,11 +51,13 @@ void main(List<String> args) {
   if (result['discovery']) {
     var serverUrl = result['server-url'];
     if (result['relay']) {
-      EndpointsServer.generateRelayDiscovery(sdkDir.path, serverUrl).then(
-        (doc) => printExit(doc));
+      EndpointsServer
+          .generateRelayDiscovery(sdkDir.path, serverUrl)
+          .then((doc) => printExit(doc));
     } else {
-      EndpointsServer.generateDiscovery(sdkDir.path, serverUrl).then(
-        (doc) => printExit(doc));
+      EndpointsServer
+          .generateDiscovery(sdkDir.path, serverUrl)
+          .then((doc) => printExit(doc));
     }
     return;
   }
@@ -76,40 +77,40 @@ class EndpointsServer {
   static Future<EndpointsServer> serve(String sdkPath, int port) {
     EndpointsServer endpointsServer = new EndpointsServer._(sdkPath, port);
 
-    return shelf.serve(
-        endpointsServer.handler, InternetAddress.ANY_IP_V4, port).then((server) {
+    return shelf
+        .serve(endpointsServer.handler, InternetAddress.ANY_IP_V4, port)
+        .then((server) {
       endpointsServer.server = server;
       return endpointsServer;
     });
   }
 
-  static Future<String> generateDiscovery(String sdkPath,
-                                          String serverUrl) async {
-    var commonServer = new CommonServer(
-        sdkPath,
-        new _ServerContainer(),
-        new _Cache(),
-        new _Recorder(),
-        new _Counter());
+  static Future<String> generateDiscovery(
+      String sdkPath, String serverUrl) async {
+    var commonServer = new CommonServer(sdkPath, new _ServerContainer(),
+        new _Cache(), new _Recorder(), new _Counter());
     var apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
-        ..addApi(commonServer);
+      ..addApi(commonServer);
     apiServer.enableDiscoveryApi();
 
     var uri = Uri.parse("/api/discovery/v1/apis/dartservices/v1/rest");
-    var request = new HttpApiRequest('GET', uri, {}, new Stream.fromIterable([]));
+    var request =
+        new HttpApiRequest('GET', uri, {}, new Stream.fromIterable([]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
     return UTF8.decode(await response.body.first);
   }
 
-  static Future<String> generateRelayDiscovery(String sdkPath,
-                                            String serverUrl) async {
+  static Future<String> generateRelayDiscovery(
+      String sdkPath, String serverUrl) async {
     var databaseServer = new FileRelayServer();
-    var apiServer =
-        new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(databaseServer);
+    var apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
+      ..addApi(databaseServer);
     apiServer.enableDiscoveryApi();
 
-    var uri = Uri.parse("/api/discovery/v1/apis/_dartpadsupportservices/v1/rest");
-    var request = new HttpApiRequest('GET', uri, {}, new Stream.fromIterable([]));
+    var uri =
+        Uri.parse("/api/discovery/v1/apis/_dartpadsupportservices/v1/rest");
+    var request =
+        new HttpApiRequest('GET', uri, {}, new Stream.fromIterable([]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
     return UTF8.decode(await response.body.first);
   }
@@ -127,18 +128,14 @@ class EndpointsServer {
 
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
-    commonServer = new CommonServer(
-        sdkPath,
-        new _ServerContainer(),
-        new _Cache(),
-        new _Recorder(),
-        new _Counter());
+    commonServer = new CommonServer(sdkPath, new _ServerContainer(),
+        new _Cache(), new _Recorder(), new _Counter());
     apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
 
     pipeline = new Pipeline()
-      .addMiddleware(logRequests())
-      .addMiddleware(_createCustomCorsHeadersMiddleware());
+        .addMiddleware(logRequests())
+        .addMiddleware(_createCustomCorsHeadersMiddleware());
 
     routes = router()
       ..get('/', printUsage)
@@ -156,23 +153,18 @@ class EndpointsServer {
     // _parseRequest method to determine content-type and dispatch to e.g. a
     // plain text handler if we want to support that.
     HttpApiRequest apiRequest = new HttpApiRequest(
-      request.method,
-      request.requestedUri,
-      request.headers,
-      request.read()
-    );
+        request.method, request.requestedUri, request.headers, request.read());
 
     // Promote text/plain requests to application/json.
     if (apiRequest.headers['content-type'] == 'text/plain; charset=utf-8') {
       apiRequest.headers['content-type'] = 'application/json; charset=utf-8';
     }
 
-    return apiServer.handleHttpApiRequest(apiRequest).then((HttpApiResponse apiResponse) {
-      return new Response(
-        apiResponse.status,
-        body: apiResponse.body,
-        headers: apiResponse.headers
-      );
+    return apiServer
+        .handleHttpApiRequest(apiRequest)
+        .then((HttpApiResponse apiResponse) {
+      return new Response(apiResponse.status,
+          body: apiResponse.body, headers: apiResponse.headers);
     }).catchError((e) => printUsage(request));
   }
 
@@ -188,7 +180,8 @@ View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
     return shelf_cors.createCorsHeadersMiddleware(corsHeaders: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
+      'Access-Control-Allow-Headers':
+          'Origin, X-Requested-With, Content-Type, Accept'
     });
   }
 }
@@ -226,7 +219,7 @@ class _Counter implements PersistentCounter {
   }
 
   @override
-  Future increment(String name, {int increment : 1}) {
+  Future increment(String name, {int increment: 1}) {
     _map.putIfAbsent(name, () => 0);
     _map[name]++;
     return new Future.value();

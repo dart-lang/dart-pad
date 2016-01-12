@@ -22,8 +22,8 @@ import 'package:services/src/compiler.dart' as comp;
 import 'package:services/src/common_server.dart';
 import 'package:rpc/rpc.dart';
 
-bool _PERF_DUMP = false;
-bool _SERVER_BASED_CALL = false;
+bool _PERF_DUMP = true;
+bool _SERVER_BASED_CALL = true;
 
 CommonServer server;
 ApiServer apiServer;
@@ -44,9 +44,9 @@ bool dumpServerComms = false;
 OperationType lastExecuted;
 int lastOffset;
 
-main (List<String> args) async {
+main(List<String> args) async {
   if (args.length == 0) {
-    print ('''
+    print('''
 Usage: slow_test path_to_test_collection
     [seed = 0]
     [mutations per iteration = 2]
@@ -73,7 +73,7 @@ Usage: slow_test path_to_test_collection
     io.Directory dir = new io.Directory(testCollectionRoot);
     fileEntities = dir.listSync(recursive: true);
   } else {
-    fileEntities = [ new io.File(testCollectionRoot) ];
+    fileEntities = [new io.File(testCollectionRoot)];
   }
 
   analysis_server.dumpServerMessages = false;
@@ -81,8 +81,13 @@ Usage: slow_test path_to_test_collection
   int counter = 0;
   Stopwatch sw = new Stopwatch()..start();
 
+  print("About to setuptools");
+  print(sdkDir.path);
+
   // Warm up the services.
   await setupTools(sdkDir.path);
+
+  print("Setup tools done");
 
   // Main testing loop.
   for (var fse in fileEntities) {
@@ -90,17 +95,16 @@ Usage: slow_test path_to_test_collection
     if (!fse.path.endsWith('.dart')) continue;
 
     try {
-      print ("Seed: $seed, "
-        "${((counter/fileEntities.length)*100).toStringAsFixed(2)}%, "
-        "Elapsed: ${sw.elapsed}");
+      print("Seed: $seed, "
+          "${((counter/fileEntities.length)*100).toStringAsFixed(2)}%, "
+          "Elapsed: ${sw.elapsed}");
 
       random = new Random(seed);
       seed++;
       await testPath(fse.path, analysisServer, analyzer, compiler);
-
     } catch (e) {
-      print (e);
-      print ("FAILED: ${fse.path}");
+      print(e);
+      print("FAILED: ${fse.path}");
 
       // Try and re-cycle the services for the next test after the crash
       await setupTools(sdkDir.path);
@@ -112,7 +116,7 @@ Usage: slow_test path_to_test_collection
  * Init the tools, and warm them up
  */
 setupTools(String sdkPath) async {
-  print ("Executing setupTools");
+  print("Executing setupTools");
   if (analysisServer != null) await analysisServer.kill();
 
   container = new MockContainer();
@@ -120,28 +124,30 @@ setupTools(String sdkPath) async {
   recorder = new MockRequestRecorder();
   counter = new MockCounter();
   server = new CommonServer(sdkPath, container, cache, recorder, counter);
-  apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
+  apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
+    ..addApi(server);
 
   analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
+
+  print("Warming up analysis server");
   await analysisServer.warmup();
 
+  print("Warming up analyzer");
   analyzer = new ana.Analyzer(sdkPath);
   await analyzer.warmup();
 
+  print("Warming up compiler");
   compiler = new comp.Compiler(sdkPath);
   await compiler.warmup();
 }
 
-testPath(String path,
-         analysis_server.AnalysisServerWrapper wrapper,
-         ana.Analyzer analyzer,
-         comp.Compiler compiler) async {
+testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
+    ana.Analyzer analyzer, comp.Compiler compiler) async {
   var f = new io.File(path);
   String src = f.readAsStringSync();
 
-  print (
-    'Path, Compilation/ms, Analysis/ms, '
-    'Completion/ms, Document/ms, Fixes/ms, Format/ms');
+  print('Path, Compilation/ms, Analysis/ms, '
+      'Completion/ms, Document/ms, Fixes/ms, Format/ms');
 
   for (int i = 0; i < iterations; i++) {
     // Run once for each file without mutation.
@@ -189,27 +195,24 @@ testPath(String path,
         default:
           throw "Unknown command";
       }
-    } catch(e, stacktrace) {
-
-      print ("===== FAILING OP: $lastExecuted, offset: $lastOffset  =====");
-      print (src);
-      print ("=====                                                 =====");
-      print (e);
-      print (stacktrace);
-      print ("===========================================================");
+    } catch (e, stacktrace) {
+      print("===== FAILING OP: $lastExecuted, offset: $lastOffset  =====");
+      print(src);
+      print("=====                                                 =====");
+      print(e);
+      print(stacktrace);
+      print("===========================================================");
 
       throw e;
     }
 
-    print (
-        "$path-$i, "
+    print("$path-$i, "
         "${averageCompilationTime.toStringAsFixed(2)}, "
         "${averageAnalysisTime.toStringAsFixed(2)}, "
         "${averageCompletionTime.toStringAsFixed(2)}, "
         "${averageDocumentTime.toStringAsFixed(2)}, "
         "${averageFixesTime.toStringAsFixed(2)}, "
-        "${averageFormatTime.toStringAsFixed(2)}"
-    );
+        "${averageFormatTime.toStringAsFixed(2)}");
 
     if (maxMutations == 0) break;
 
@@ -230,7 +233,7 @@ Future<num> testAnalysis(String src, ana.Analyzer analyzer) async {
   if (_SERVER_BASED_CALL) await withTimeOut(server.analyzeGet(source: src));
   else await withTimeOut(analyzer.analyze(src));
 
-  if (_PERF_DUMP) print ("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
+  if (_PERF_DUMP) print("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds;
 }
 
@@ -242,7 +245,7 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
   if (_SERVER_BASED_CALL) await withTimeOut(server.compileGet(source: src));
   else await withTimeOut(compiler.compile(src));
 
-  if (_PERF_DUMP) print ("PERF: COMPILATION: ${sw.elapsedMilliseconds}");
+  if (_PERF_DUMP) print("PERF: COMPILATION: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds;
 }
 
@@ -259,7 +262,7 @@ Future<num> testDocument(String src, ana.Analyzer analyzer) async {
     } else {
       await withTimeOut(analyzer.dartdoc(src, i));
     }
-    if (_PERF_DUMP) print ("PERF: DOCUMENT: ${sw2.elapsedMilliseconds}");
+    if (_PERF_DUMP) print("PERF: DOCUMENT: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -273,9 +276,10 @@ Future<num> testCompletions(
 
     if (i % 1000 == 0 && i > 0) print("INC: $i completes");
     lastOffset = i;
-    if (_SERVER_BASED_CALL) await withTimeOut(server.completeGet(source: src, offset: i));
+    if (_SERVER_BASED_CALL) await withTimeOut(
+        server.completeGet(source: src, offset: i));
     else await withTimeOut(wrapper.complete(src, i));
-    if (_PERF_DUMP) print ("PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}");
+    if (_PERF_DUMP) print("PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -294,7 +298,7 @@ Future<num> testFixes(
     } else {
       await withTimeOut(wrapper.getFixes(src, i));
     }
-    if (_PERF_DUMP) print ("PERF: FIXES: ${sw2.elapsedMilliseconds}");
+    if (_PERF_DUMP) print("PERF: FIXES: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -309,13 +313,39 @@ Future<num> testFormat(String src) async {
 }
 
 Future withTimeOut(Future f) {
-  return f.timeout(new Duration (seconds: 30));
+  return f.timeout(new Duration(seconds: 30));
 }
 
 String mutate(String src) {
-  var chars = ["{", "}", "[", "]", "'", ",", "!", "@", "#", "\$", "%",
-  "^", "&", " ", "(", ")", "null ", "class ", "for ", "void ", "var ",
-  "dynamic ", ";", "as ", "is ", ".", "import "];
+  var chars = [
+    "{",
+    "}",
+    "[",
+    "]",
+    "'",
+    ",",
+    "!",
+    "@",
+    "#",
+    "\$",
+    "%",
+    "^",
+    "&",
+    " ",
+    "(",
+    ")",
+    "null ",
+    "class ",
+    "for ",
+    "void ",
+    "var ",
+    "dynamic ",
+    ";",
+    "as ",
+    "is ",
+    ".",
+    "import "
+  ];
   String s = chars[random.nextInt(chars.length)];
   int i = random.nextInt(src.length);
   if (i == 0) i = 1;
@@ -330,12 +360,11 @@ class MockContainer implements ServerContainer {
 class MockCache implements ServerCache {
   Future<String> get(String key) => new Future.value(null);
   Future set(String key, String value, {Duration expiration}) =>
-  new Future.value();
+      new Future.value();
   Future remove(String key) => new Future.value();
 }
 
 class MockRequestRecorder implements SourceRequestRecorder {
-
   @override
   Future record(String verb, String source, [int offset]) {
     return new Future.value();
@@ -352,7 +381,7 @@ class MockCounter implements PersistentCounter {
   }
 
   @override
-  Future increment(String name, {int increment : 1}) {
+  Future increment(String name, {int increment: 1}) {
     counter.putIfAbsent(name, () => 0);
     return new Future.value(counter[name]++);
   }

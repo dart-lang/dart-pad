@@ -24,23 +24,20 @@ void main() {
 }
 ''';
 
-String quickFixesCode =
-r'''
+String quickFixesCode = r'''
 void main() {
   int i = 0
 }
 ''';
 
-String badFormatCode =
-r'''
+String badFormatCode = r'''
 void main()
 {
 int i = 0;
 }
 ''';
 
-String formattedCode =
-r'''
+String formattedCode = r'''
 void main() {
   int i = 0;
 }
@@ -58,8 +55,9 @@ void defineTests() {
 
     test('simple_completion', () {
       //Just after i.
-      return analysisServer.complete(completionCode, 32).then(
-          (CompleteResponse results) {
+      return analysisServer
+          .complete(completionCode, 32)
+          .then((CompleteResponse results) {
         expect(results.replacementLength, 0);
         expect(results.replacementOffset, 32);
         expect(completionsContains(results, "abs"), true);
@@ -69,11 +67,12 @@ void defineTests() {
 
     test('repro #126 - completions polluted on second request', () {
       // https://github.com/dart-lang/dart-services/issues/126
-      return analysisServer.complete(completionFilterCode, 17).then(
-          (CompleteResponse results) {
-
-        return analysisServer.complete(completionFilterCode, 17).then(
-            (CompleteResponse results) {
+      return analysisServer
+          .complete(completionFilterCode, 17)
+          .then((CompleteResponse results) {
+        return analysisServer
+            .complete(completionFilterCode, 17)
+            .then((CompleteResponse results) {
           expect(results.replacementLength, 2);
           expect(results.replacementOffset, 16);
           expect(completionsContains(results, "print"), true);
@@ -84,8 +83,9 @@ void defineTests() {
 
     test('simple_quickFix', () {
       //Just after i.
-      return analysisServer.getFixes(quickFixesCode, 25).then(
-          (FixesResponse results) {
+      return analysisServer
+          .getFixes(quickFixesCode, 25)
+          .then((FixesResponse results) {
         expect(results.fixes.length, 1);
         expect(results.fixes[0].offset, 24);
         expect(results.fixes[0].length, 1); //we need an insertion
@@ -101,8 +101,9 @@ void defineTests() {
     });
 
     test('simple_format', () {
-      return analysisServer.format(badFormatCode, 0).then(
-          (FormatResponse results) {
+      return analysisServer
+          .format(badFormatCode, 0)
+          .then((FormatResponse results) {
         expect(results.newString, formattedCode);
       });
     });
