@@ -100,13 +100,7 @@ class GaeServer {
 
       // Dartpad sends data as plain text, we need to promote this to
       // application/json to ensure that the rpc library processes it correctly
-      const TEXT_ENCODING = 'text/plain; charset=utf-8';
-      var contentType = apiRequest.headers['content-type'];
-
-      if (contentType == TEXT_ENCODING ||
-          (contentType is List && contentType.contains(TEXT_ENCODING))) {
-        apiRequest.headers['content-type'] = 'application/json; charset=utf-8';
-      }
+      apiRequest.headers['content-type'] = 'application/json; charset=utf-8';
 
       apiServer
           .handleHttpApiRequest(apiRequest)
