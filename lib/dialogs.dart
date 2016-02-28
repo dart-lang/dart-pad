@@ -51,7 +51,7 @@ class AboutDialog extends DDialog {
 
 class SharingDialog extends DDialog {
   final String home = 'dartpad.dartlang.org';
-  final String _docThumbnail = 'pictures/embed-dart.png';
+  final String _dartThumbnail = 'pictures/embed-dart.png';
   final String _htmlThumbnail = 'pictures/embed-html.png';
   final GistContainer gistContainer;
   final GistController gistController;
@@ -67,7 +67,7 @@ class SharingDialog extends DDialog {
   DInput _padUrl;
   DInput _gistUrl;
   DInput _embedUrl;
-  String _summary;
+  GistSummary _gistSummary;
 
   ImageElement _embedPicture;
 
@@ -75,11 +75,9 @@ class SharingDialog extends DDialog {
   RadioButtonInputElement _embedHtmlRadio;
 
   SharingDialog(
-      GistContainer this.gistContainer, GistController this.gistController,
-      {String summary: ""})
+      GistContainer this.gistContainer, GistController this.gistController)
       : super(title: 'Sharing') {
     element.classes.toggle('sharing-dialog', true);
-    _summary = summary;
 
     content.setAttr('layout');
     content.setAttr('vertical');
@@ -130,7 +128,8 @@ class SharingDialog extends DDialog {
       ..flex()
       ..readonly()
       ..value =
-          "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}' style='height:300px;width:100%;' frameborder='0'></iframe>";
+          "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}' "
+          "style='height:300px;width:100%;' frameborder='0'></iframe>";
     _embedUrl.onClick.listen((_) => _embedUrl.selectAll());
     div = _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
     _embedArea = div.add(new DElement.tag('div'))
@@ -161,21 +160,17 @@ class SharingDialog extends DDialog {
       ..style.paddingLeft = '8px');
     _embedDartRadio.checked = true;
     _embedPicture = _rightArea
-        .add(new ImageElement(src: _docThumbnail, height: 100, width: 300)
+        .add(new ImageElement(src: _dartThumbnail, height: 100)
           ..alt = "Embed-dart"
           ..style.paddingLeft = "16px");
     _embedDartRadio.onClick.listen((_) => _embedToDart());
     _embedHtmlRadio.onClick.listen((_) => _embedToHtml());
-    _info = _leftArea.add(new DElement.tag('div')
-      ..layoutHorizontal()
-      ..flex());
+    _info = _leftArea.add(new DElement.tag('div')..layoutHorizontal());
     _info.add(new SpanElement()
-      ..text = 'Check out our '
-      ..style.textAlign = 'center'
-      ..style.width = '100%'
+      ..text = 'Check out our embedding '
       ..style.marginTop = '5px'
       ..append(new SpanElement()
-        ..text = 'embedding guide'
+        ..text = 'guide'
         ..attributes['onClick'] =
             "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
         ..style.cursor = "pointer"
@@ -184,21 +179,23 @@ class SharingDialog extends DDialog {
   }
 
   void _embedToDart() {
-    _embedPicture.src = _docThumbnail;
+    _embedPicture.src = _dartThumbnail;
     _embedPicture.alt = "Embed-dart";
     _embedUrl.value =
-        "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}' style='height:300px;width:100%;' frameborder='0'></iframe>";
+        "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}' "
+        "style='height:300px;width:100%;' frameborder='0'></iframe>";
   }
 
   void _embedToHtml() {
     _embedPicture.src = _htmlThumbnail;
     _embedPicture.alt = "Embed-html";
     _embedUrl.value =
-        "<iframe src='https://${home}/embed-html.html?id=${gistContainer.mutableGist.id}' style='height:300px;width:100%;' frameborder='0'></iframe>";
+        "<iframe src='https://${home}/embed-html.html?id=${gistContainer.mutableGist.id}' "
+        "style='height:300px;width:100%;' frameborder='0'></iframe>";
   }
 
-  void showWithSummary(String summary) {
-    this._summary = summary;
+  void showWithSummary(GistSummary summary) {
+    this._gistSummary = summary;
     show();
   }
 
@@ -222,7 +219,7 @@ class SharingDialog extends DDialog {
       // Show 'about to share'.
       _text.text = 'Sharing this pad will create a permanent, publicly visible '
           'copy on gist.github.com.';
-      _textArea.defaultValue = _summary == null ? '' : _summary;
+      _textArea.text = _gistSummary != null ? _gistSummary.summaryText : '';
       _textArea.style.display = 'block';
 
       buttonArea.add(_cancelButton);
@@ -231,7 +228,7 @@ class SharingDialog extends DDialog {
     } else {
       // Show the existing sharing info.
       _text.text =
-          'Share the DartPad link or view the source at gist.github.com.';
+          'Share the DartPad link or view the source at gist.github.com:';
       _textArea.style.display = 'none';
       MutableGist gist = gistContainer.mutableGist;
       content.add(_div);
@@ -248,8 +245,10 @@ class SharingDialog extends DDialog {
   void _performShare() {
     _shareButton.disabled = true;
 
-    // TODO: Show a spinner.
-    gistController.shareAnon(summary: _textArea.value).then((_) {
+    String text = _textArea.value;
+    if (_gistSummary != null) text += '\n\n${_gistSummary.linkText}';
+
+    gistController.shareAnon(summary: text).then((_) {
       _switchTo(aboutToShare: false);
     }).whenComplete(() {
       _shareButton.disabled = false;

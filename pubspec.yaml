@@ -16,12 +16,12 @@ dependencies:
   frappe: ^0.4.0
   http: '>=0.11.1 <0.12.0'
   logging: '>=0.9.0 <0.12.0'
-  markdown: '>=0.8.0 <0.9.0'
+  markdown: ^0.9.0
   route_hierarchical: '>=0.6.0 <0.6.2'
 dev_dependencies:
   dart_to_js_script_rewriter: any
   git: any
-  grinder: ^0.7.0
+  grinder: ^0.8.0
   http_server: ^0.9.0
   librato: '>=0.0.1 <0.1.0'
   test: ^0.12.0

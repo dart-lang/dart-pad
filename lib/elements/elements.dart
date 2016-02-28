@@ -96,7 +96,9 @@ class DButton extends DElement {
   ButtonElement get belement => element;
 
   bool get disabled => belement.disabled;
-  set disabled(bool value) => belement.disabled = value;
+  set disabled(bool value) {
+    belement.disabled = value;
+  }
 }
 
 class DSplitter extends DElement {

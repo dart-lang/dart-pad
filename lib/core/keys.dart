@@ -30,7 +30,7 @@ class Keys {
    */
   void bind(List<String> keys, Function onInvoke, String description,
       {bool hidden: false}) {
-    keys.forEach((key) =>
+    keys.forEach((String key) =>
         _bindings[key] = new Action(onInvoke, description, hidden: hidden));
   }
 

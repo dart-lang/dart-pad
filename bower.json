@@ -18,16 +18,13 @@
   ],
   "dependencies": {
     "polymer": "Polymer/polymer#~1.0.2",
-
     "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.0.0",
     "iron-icon": "PolymerElements/iron-icon#^1.0.0",
     "iron-icons": "PolymerElements/iron-icons#^1.0.0",
     "iron-iconset": "PolymerElements/iron-iconset#^1.0.0",
     "iron-iconset-svg": "PolymerElements/iron-iconset-svg#^1.0.0",
     "iron-pages": "PolymerElements/iron-pages#^1.0.0",
-
     "neon-animation": "PolymerElements/neon-animation#^1.0.0",
-
     "paper-button": "PolymerElements/paper-button#^1.0.0",
     "paper-dialog": "PolymerElements/paper-dialog#^1.0.0",
     "paper-dialog-behavior": "PolymerElements/paper-dialog-behavior#^1.0.0",
@@ -44,5 +41,8 @@
     "paper-toast": "PolymerElements/paper-toast#^1.0.0",
     "paper-toggle-button": "PolymerElements/paper-toggle-button#^1.0.0",
     "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0"
+  },
+  "resolutions": {
+    "polymer": "^1.2.4"
   }
 }

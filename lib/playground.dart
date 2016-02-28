@@ -114,8 +114,8 @@ class Playground implements GistContainer, GistController {
     });
 
     DButton shareButton = new DButton(querySelector('#sharebutton'));
-    shareButton.onClick.listen((e) => _createSummary()
-        .then((String sum) => sharingDialog.showWithSummary(sum)));
+    shareButton.onClick.listen((Event e) => _createSummary()
+        .then((GistSummary summary) => sharingDialog.showWithSummary(summary)));
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
       _handleRun();
@@ -611,7 +611,7 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  Future<String> _createSummary() {
+  Future<GistSummary> _createSummary() {
     return dartSupportServices.getUnusedMappingId().then((UuidContainer id) {
       _mappingId = id.uuid;
       SourcesRequest input = new SourcesRequest()
@@ -622,7 +622,10 @@ class Playground implements GistContainer, GistController {
         };
       return dartServices.summarize(input);
     }).then((SummaryText summary) {
-      return '${summary.text}\n\nFind this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).';
+      return new GistSummary(
+        summary.text,
+        'Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).'
+      );
     }).catchError((e) {
       _logger.severe(e);
     });

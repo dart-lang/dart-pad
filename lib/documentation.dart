@@ -70,7 +70,9 @@ class DocHandler {
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
         docPanel
             .querySelectorAll("a")
-            .forEach((AnchorElement a) => a.target = "docs");
+            .forEach((Element a) {
+              if (a is AnchorElement) a.target = "docs";
+            });
         docPanel
             .querySelectorAll("h1")
             .forEach((h) => h.classes.add("type-${docResult.entitykind}"));
@@ -109,7 +111,9 @@ class DocHandler {
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
         docPanel
             .querySelectorAll("a")
-            .forEach((AnchorElement a) => a.target = "docs");
+            .forEach((Element a) {
+              if (a is AnchorElement) a.target = "docs";
+            });
         docPanel
             .querySelectorAll("h1")
             .forEach((h) => h.classes.add("type-${docResult.entitykind}"));
