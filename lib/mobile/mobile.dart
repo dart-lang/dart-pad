@@ -295,7 +295,7 @@ class PlaygroundMobile {
       // Clear the splash.
       Element splash = querySelector('div.splash');
       splash.onTransitionEnd
-          .listen((_) => splash.parent.children.remove(splash));
+          .listen((TransitionEvent _) => splash.parent.children.remove(splash));
       splash.classes.toggle('hide', true);
     });
 

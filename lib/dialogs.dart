@@ -246,8 +246,6 @@ class SharingDialog extends DDialog {
 
   void _performShare() {
     _shareButton.disabled = true;
-
-    // TODO: Show a spinner.
     gistController.shareAnon(summary: _textArea.value).then((_) {
       _switchTo(aboutToShare: false);
     }).whenComplete(() {

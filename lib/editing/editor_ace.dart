@@ -123,7 +123,9 @@ class _AceEditor extends Editor {
   bool get completionActive => false;
 
   String get mode => _document.session.mode.name;
-  set mode(String str) => _document.session.mode = new ace.Mode.named(str);
+  set mode(String str) {
+    _document.session.mode = new ace.Mode.named(str);
+  }
 
   String get theme => editor.theme.name;
   set theme(String str) {
@@ -139,7 +141,7 @@ class _AceEditor extends Editor {
   Point getCursorCoords({Position position}) => null;
 
   // TODO: Add a onMouseDown getter for ace.
-  Stream get onMouseDown => null;
+  Stream<html.MouseEvent> get onMouseDown => null;
 
   void focus() => editor.focus();
   void resize() => editor.resize(true);
