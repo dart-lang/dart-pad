@@ -622,7 +622,7 @@ class Playground implements GistContainer, GistController {
         };
       return dartServices.summarize(input);
     }).then((SummaryText summary) {
-      return '${summary.text}\n\nFind this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).';
+      return summary.text;
     }).catchError((e) {
       _logger.severe(e);
     });
