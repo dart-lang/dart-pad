@@ -315,6 +315,13 @@ class GistStorage {
   }
 }
 
+class GistSummary {
+  final String summaryText;
+  final String linkText;
+
+  GistSummary(this.summaryText, this.linkText);
+}
+
 String _createReadmeContents({String title, String summary, String withLink}) {
   String str = "# ${title}\n";
 

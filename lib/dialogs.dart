@@ -67,7 +67,7 @@ class SharingDialog extends DDialog {
   DInput _padUrl;
   DInput _gistUrl;
   DInput _embedUrl;
-  String _summary;
+  GistSummary _gistSummary;
 
   ImageElement _embedPicture;
 
@@ -75,11 +75,9 @@ class SharingDialog extends DDialog {
   RadioButtonInputElement _embedHtmlRadio;
 
   SharingDialog(
-      GistContainer this.gistContainer, GistController this.gistController,
-      {String summary: ""})
+      GistContainer this.gistContainer, GistController this.gistController)
       : super(title: 'Sharing') {
     element.classes.toggle('sharing-dialog', true);
-    _summary = summary;
 
     content.setAttr('layout');
     content.setAttr('vertical');
@@ -196,8 +194,8 @@ class SharingDialog extends DDialog {
         "style='height:300px;width:100%;' frameborder='0'></iframe>";
   }
 
-  void showWithSummary(String summary) {
-    this._summary = summary;
+  void showWithSummary(GistSummary summary) {
+    this._gistSummary = summary;
     show();
   }
 
@@ -221,7 +219,7 @@ class SharingDialog extends DDialog {
       // Show 'about to share'.
       _text.text = 'Sharing this pad will create a permanent, publicly visible '
           'copy on gist.github.com.';
-      _textArea.defaultValue = _summary == null ? '' : _summary;
+      _textArea.text = _gistSummary != null ? _gistSummary.summaryText : '';
       _textArea.style.display = 'block';
 
       buttonArea.add(_cancelButton);
@@ -246,7 +244,11 @@ class SharingDialog extends DDialog {
 
   void _performShare() {
     _shareButton.disabled = true;
-    gistController.shareAnon(summary: _textArea.value).then((_) {
+
+    String text = _textArea.value;
+    if (_gistSummary != null) text += '\n\n${_gistSummary.linkText}';
+
+    gistController.shareAnon(summary: text).then((_) {
       _switchTo(aboutToShare: false);
     }).whenComplete(() {
       _shareButton.disabled = false;
