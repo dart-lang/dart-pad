@@ -235,10 +235,13 @@ class Analyzer {
               info['libraryName'] = library.name;
             }
           }
+
           if (library.location.toString() == "dart:html") {
-            for (ElementAnnotationImpl e in element.metadata) {
-              if (e.toString().startsWith("@DomName")) {
-                EvaluationResultImpl evaluationResult = e.evaluationResult;
+            for (ElementAnnotationImpl annotationElement in element.metadata) {
+              if (annotationElement.toString().startsWith("@DomName")) {
+                // In order for this to reliably return a result, the compilation
+                // unit would need to be resolved.
+                EvaluationResultImpl evaluationResult = annotationElement.evaluationResult;
                 if (evaluationResult != null &&
                     evaluationResult.value.fields["name"] != null) {
                   info["DomName"] =
@@ -250,11 +253,10 @@ class Analyzer {
               }
             }
           }
-          //info['libraryPath'] = library.source.shortName;
         }
 
         // documentation
-        String dartDoc = element.computeDocumentationComment();
+        String dartDoc = element.documentationComment;
         dartDoc = cleanDartDoc(dartDoc);
         if (dartDoc != null) info['dartdoc'] = dartDoc;
       }
