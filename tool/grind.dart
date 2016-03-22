@@ -67,6 +67,8 @@ bench() {
   ProcessResult result =
       Process.runSync('dart', ['benchmark/bench.dart', '--json']);
   if (result.exitCode != 0) {
+    log(result.stdout);
+    log(result.stderr);
     fail('benchmarks exit code: ${result.exitCode}');
   }
 
