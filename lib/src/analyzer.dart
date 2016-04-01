@@ -16,6 +16,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:logging/logging.dart';
 
 import 'api_classes.dart';
@@ -241,10 +242,13 @@ class Analyzer {
               info['libraryName'] = library.name;
             }
           }
+
           if (library.location.toString() == "dart:html") {
-            for (ElementAnnotationImpl e in element.metadata) {
-              if (e.toString().startsWith("@DomName")) {
-                EvaluationResultImpl evaluationResult = e.evaluationResult;
+            for (ElementAnnotationImpl annotationElement in element.metadata) {
+              if (annotationElement.toString().startsWith("@DomName")) {
+                // In order for this to reliably return a result, the compilation
+                // unit would need to be resolved.
+                EvaluationResultImpl evaluationResult = annotationElement.evaluationResult;
                 if (evaluationResult != null &&
                     evaluationResult.value.fields["name"] != null) {
                   info["DomName"] =
@@ -256,7 +260,6 @@ class Analyzer {
               }
             }
           }
-          //info['libraryPath'] = library.source.shortName;
         }
 
         // documentation
@@ -311,60 +314,6 @@ class Analyzer {
     returnString = returnString.replaceAll("Future<dynamic>", "Future");
     return returnString;
   }
-}
-
-/// An implementation of [Source] that is based on an in-memory string.
-class StringSource implements Source {
-  final String fullName;
-
-  int _modificationStamp;
-  String _contents;
-
-  StringSource(this._contents, this.fullName)
-      : _modificationStamp = new DateTime.now().millisecondsSinceEpoch;
-
-  void updateSource(String newSource) {
-    _contents = newSource;
-    _modificationStamp = new DateTime.now().millisecondsSinceEpoch;
-  }
-
-  int get modificationStamp => _modificationStamp;
-
-  bool operator ==(Object object) {
-    if (object is StringSource) {
-      StringSource ssObject = object;
-      return ssObject._contents == _contents && ssObject.fullName == fullName;
-    }
-    return false;
-  }
-
-  bool exists() => true;
-
-  TimestampedData<String> get contents =>
-      new TimestampedData(modificationStamp, _contents);
-
-  String get encoding => 'utf-8';
-
-  String get shortName => fullName;
-
-  UriKind get uriKind => UriKind.FILE_URI;
-
-  int get hashCode => fullName.hashCode;
-
-  bool get isInSystemLibrary => false;
-
-  Uri get uri {
-    throw new UnsupportedError("StringSource doesn't support uri.");
-  }
-
-  // TODO: I don't think this is generally sufficent, but it meets our purposes
-  // here.
-  Uri resolveRelativeUri(Uri relativeUri) {
-    return relativeUri;
-  }
-
-  @override
-  Source get source => this;
 }
 
 class _Error {
