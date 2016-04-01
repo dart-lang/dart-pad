@@ -19,8 +19,8 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
+import 'package:analyzer/src/string_source.dart';
 
-import 'analyzer.dart';
 import 'common.dart';
 
 Logger _logger = new Logger('pub');
