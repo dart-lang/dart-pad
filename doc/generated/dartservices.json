@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "ffc1ef3d5358d3edc9bdb221ad65d3989f5ffd3f",
+ "etag": "72a6d262af61307d87c36f58a6adab2df709a1d4",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -36,6 +36,10 @@
      "type": "integer",
      "description": "An optional offset into the source code.",
      "format": "int32"
+    },
+    "strongMode": {
+     "type": "boolean",
+     "description": "An optional signal whether the source should be processed in strong mode"
     }
    }
   },
@@ -114,6 +118,10 @@
     "location": {
      "$ref": "Location",
      "description": "An optional location in the source code."
+    },
+    "strongMode": {
+     "type": "boolean",
+     "description": "An optional signal whether the source should be processed in strong mode"
     }
    }
   },
@@ -384,6 +392,12 @@
     "source": {
      "type": "string",
      "description": "Query parameter: 'source'.",
+     "required": false,
+     "location": "query"
+    },
+    "strongMode": {
+     "type": "boolean",
+     "description": "Query parameter: 'strongMode'.",
      "required": false,
      "location": "query"
     }

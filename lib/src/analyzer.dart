@@ -43,11 +43,15 @@ class MemoryResolver extends UriResolver {
 
 class Analyzer {
   final Pub pub;
+  bool strongMode;
   AnalysisContext _context;
   MemoryResolver _resolver;
   String _sdkPath;
 
-  Analyzer(this._sdkPath, [this.pub]) {
+  Analyzer(this._sdkPath, {
+    this.pub,
+    this.strongMode: false
+  }) {
     _reset();
     analyze('');
   }
@@ -60,6 +64,8 @@ class Analyzer {
     _context = AnalysisEngine.instance.createAnalysisContext();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.cacheSize = 512;
+    options.strongMode = strongMode;
+
     _context.analysisOptions = options;
 
     List<UriResolver> resolvers = [
@@ -254,7 +260,7 @@ class Analyzer {
         }
 
         // documentation
-        String dartDoc = element.computeDocumentationComment();
+        String dartDoc = element.documentationComment;
         dartDoc = cleanDartDoc(dartDoc);
         if (dartDoc != null) info['dartdoc'] = dartDoc;
       }

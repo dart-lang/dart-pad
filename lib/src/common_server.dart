@@ -62,7 +62,9 @@ class CommonServer {
   final PersistentCounter counter;
 
   Pub pub;
+  Analyzer strongModeAnalyzer;
   Analyzer analyzer;
+
   Compiler compiler;
   AnalysisServerWrapper analysisServer;
 
@@ -72,6 +74,7 @@ class CommonServer {
     _logger.level = Level.ALL;
 
     pub = enablePackages ? new Pub() : new Pub.mock();
+    strongModeAnalyzer = new Analyzer(sdkPath, strongMode: true);
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath, pub);
     analysisServer = new AnalysisServerWrapper(sdkPath);
@@ -79,6 +82,7 @@ class CommonServer {
 
   Future warmup([bool useHtml = false]) async {
     await analyzer.warmup(useHtml);
+    await strongModeAnalyzer.warmup(useHtml);
     await compiler.warmup(useHtml);
     await analysisServer.warmup(useHtml);
   }
@@ -99,7 +103,7 @@ class CommonServer {
           'Analyze the given Dart source code and return any resulting '
           'analysis errors or warnings.')
   Future<AnalysisResults> analyze(SourceRequest request) {
-    return _analyze(request.source);
+    return _analyze(request.source, request.strongMode);
   }
 
   @ApiMethod(
@@ -109,7 +113,7 @@ class CommonServer {
           'Analyze the given Dart source code and return any resulting '
           'analysis errors or warnings.')
   Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
-    return _analyzeMulti(request.sources);
+    return _analyzeMulti(request.sources, request.strongMode);
   }
 
   @ApiMethod(
@@ -124,8 +128,8 @@ class CommonServer {
   }
 
   @ApiMethod(method: 'GET', path: 'analyze')
-  Future<AnalysisResults> analyzeGet({String source}) {
-    return _analyze(source);
+  Future<AnalysisResults> analyzeGet({String source, bool strongMode: false}) {
+    return _analyze(source, strongMode);
   }
 
   @ApiMethod(
@@ -259,11 +263,11 @@ class CommonServer {
       description: 'Return the current SDK version for DartServices.')
   Future<VersionResponse> version() => new Future.value(_version());
 
-  Future<AnalysisResults> _analyze(String source) async {
+  Future<AnalysisResults> _analyze(String source, bool strongMode) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
-    return _analyzeMulti({"main.dart": source});
+    return _analyzeMulti({"main.dart": source}, strongMode);
   }
 
   Future<SummaryText> _summarize(String dart, String html, String css) async {
@@ -275,7 +279,7 @@ class CommonServer {
     _logger.info("About to summarize: ${_hashSource(sourcesJson)}");
 
     SummaryText summaryString =
-        await _analyzeMulti({"main.dart": dart}).then((result) {
+        await _analyzeMulti({"main.dart": dart}, false).then((result) {
       Summarizer summarizer =
           new Summarizer(dart: dart, html: html, css: css, analysis: result);
       return new SummaryText.fromString(summarizer.returnAsSimpleSummary());
@@ -283,7 +287,8 @@ class CommonServer {
     return new Future.value(summaryString);
   }
 
-  Future<AnalysisResults> _analyzeMulti(Map<String, String> sources) async {
+  Future<AnalysisResults> _analyzeMulti(Map<String, String> sources,
+    bool strongMode) async {
     if (sources == null) {
       throw new BadRequestError('Missing parameter: \'sources\'');
     }
@@ -291,8 +296,11 @@ class CommonServer {
     String sourcesJson = new JsonEncoder().convert(sources);
     srcRequestRecorder.record("ANALYZE-v1", sourcesJson);
     _logger.info("About to ANALYZE-v1: ${_hashSource(sourcesJson)}");
+
+    // Select the right analyzer
+    Analyzer selectedAnalyzer = strongMode ? strongModeAnalyzer : analyzer;
     try {
-      return analyzer
+      return selectedAnalyzer
           .analyzeMulti(sources)
           .then((AnalysisResults results) async {
         int lineCount = 0;
@@ -444,9 +452,11 @@ class CommonServer {
     _logger.info("About to COMPLETE-v1: ${_hashSource(sourceJson)}");
 
     counter.increment("Completions");
-    var response = await analysisServer.completeMulti(sources, new Location()
-      ..sourceName = sourceName
-      ..offset = offset);
+    var response = await analysisServer.completeMulti(
+        sources,
+        new Location()
+          ..sourceName = sourceName
+          ..offset = offset);
     _logger
         .info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
     return response;
@@ -478,9 +488,11 @@ class CommonServer {
     _logger.info("About to FIX-v1: ${_hashSource(sourceJson)}");
 
     counter.increment("Fixes");
-    var response = await analysisServer.getFixesMulti(sources, new Location()
-      ..sourceName = sourceName
-      ..offset = offset);
+    var response = await analysisServer.getFixesMulti(
+        sources,
+        new Location()
+          ..sourceName = sourceName
+          ..offset = offset);
     _logger.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
