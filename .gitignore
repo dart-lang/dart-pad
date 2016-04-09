@@ -4,7 +4,6 @@ packages
 .buildlog
 .packages
 .pub/
-pubspec.lock
 
 # Or the files created by dart2js.
 *.dart.js
@@ -23,3 +22,5 @@ lib/bower/
 web/mdetect.py
 
 web/scripts/codemirror.js
+
+last_prod/

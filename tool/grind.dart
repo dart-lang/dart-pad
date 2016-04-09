@@ -41,7 +41,6 @@ testWeb() => new TestRunner().testAsync(platformSelector: 'chrome');
 bower() => run('bower', arguments: ['install', '--force-latest']);
 
 @Task('Build the `web/index.html` entrypoint')
-@Depends(bower)
 build() {
   // Copy our third party python code into web/.
   new FilePath('third_party/mdetect/mdetect.py').copy(_webDir);
@@ -73,8 +72,22 @@ build() {
   // cp -R -L packages build/web/packages
   run('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
 
+  // Remove .dart files.
+  int count = 0;
+
+  for (FileSystemEntity entity in getDir('build/web/packages').listSync(
+    recursive: true, followLinks: false
+  )) {
+    if (entity is! File) continue;
+    if (!entity.path.endsWith('.dart')) continue;
+    count++;
+    entity.deleteSync();
+  }
+
+  print('Removed $count Dart files');
+
   // Run vulcanize.
-  //Imports vulcanized, not inlined for IE support
+  // Imports vulcanized, not inlined for IE support
   vulcanizeNoExclusion('scripts/imports.html');
   vulcanize('mobile.html');
   vulcanize('index.html');
@@ -86,7 +99,7 @@ build() {
       mainFile.asFile.lengthSync(), mobileFile.asFile.lengthSync());
 }
 
-//Run vulcanize
+// Run vulcanize
 vulcanize(String filepath) {
   FilePath htmlFile = _buildDir.join('web', filepath);
   log('${htmlFile.path} original: ${_printSize(htmlFile)}');
@@ -198,7 +211,7 @@ deploy() {
     }
 
     if (branch == 'master') {
-      if (version != 'dev') {
+      if (version != 'dev' && !version.startsWith('dev-')) {
         fail('Trying to deploy non-dev version from the master branch');
       }
     }

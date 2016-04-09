@@ -14,13 +14,15 @@ import 'package:haikunator/haikunator.dart';
 final String _dartpadLink =
     "[dartpad.dartlang.org](https://dartpad.dartlang.org)";
 
+final RegExp _gistRegex = new RegExp(r'^[0-9a-f]+$');
+
 /**
  * Return whether the given string is a valid github gist ID.
  */
 bool isLegalGistId(String id) {
   if (id == null) return false;
-  final RegExp regex = new RegExp(r'^[0-9a-f]+$');
-  return regex.hasMatch(id) && id.length >= 5 && id.length <= 22;
+  // 4/8/2016: Github gist ids changed from 20 to 32 characters long.
+  return _gistRegex.hasMatch(id) && id.length >= 5 && id.length <= 40;
 }
 
 /**
