@@ -165,16 +165,16 @@ class DSplitter extends DElement {
       if (onDragEnd != null) onDragEnd();
     };
 
-    element.onMouseDown.listen((e) {
-      if (e.which != 1) return;
+    element.onMouseDown.listen((MouseEvent e) {
+      if (e.button != 0) return;
 
       e.preventDefault();
       _offset = e.offset;
 
       if (onDragStart != null) onDragStart();
 
-      _moveSub = document.onMouseMove.listen((e) {
-        if (e.which != 1) {
+      _moveSub = document.onMouseMove.listen((MouseEvent e) {
+        if (e.button != 0) {
           cancel();
         } else {
           Point current = e.client - element.parent.client.topLeft - _offset;
@@ -542,7 +542,12 @@ class TabController {
 
   void registerTab(TabElement tab) {
     tabs.add(tab);
-    tab.onClick.listen((_) => selectTab(tab.name));
+
+    try {
+      tab.onClick.listen((_) => selectTab(tab.name));
+    } catch (e, st) {
+      print('Error from registerTab: ${e}\n${st}');
+    }
   }
 
   TabElement get selectedTab =>
