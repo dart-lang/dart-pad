@@ -11,8 +11,6 @@ packages
 *.js.map
 
 .settings/
-
-lib/bower/
 .DS_Store
 
 # Python generated files
