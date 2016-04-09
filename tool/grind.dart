@@ -84,7 +84,7 @@ build() {
     entity.deleteSync();
   }
 
-  print('Removed $count Dart files');
+  log('Removed $count Dart files');
 
   // Run vulcanize.
   // Imports vulcanized, not inlined for IE support
