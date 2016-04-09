@@ -47,7 +47,7 @@ class Analytics {
 
   void _ga(String method, [Map args]) {
     if (isAvailable) {
-      List params = [method];
+      List params = <dynamic>[method];
       if (args != null) params.add(new JsObject.jsify(args));
       _gaFunction.apply(params);
     }
@@ -55,7 +55,7 @@ class Analytics {
 
   void _ga2(String method, String type, [Map args]) {
     if (isAvailable) {
-      List params = [method, type];
+      List params = <dynamic>[method, type];
       if (args != null) params.add(new JsObject.jsify(args));
       _gaFunction.apply(params);
     }

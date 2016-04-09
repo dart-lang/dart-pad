@@ -17,7 +17,7 @@ final FilePath _webDir = new FilePath('web');
 
 Map get _env => Platform.environment;
 
-main(List args) => grind(args);
+main(List<String> args) => grind(args);
 
 @Task()
 analyze() {
