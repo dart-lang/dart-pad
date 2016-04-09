@@ -160,7 +160,7 @@ class Playground implements GistContainer, GistController {
           .version()
           .timeout(new Duration(seconds: 2))
           .then((VersionResponse ver) {
-        print("Dart SDK version ${ver.sdkVersion}; full version: ${ver.sdkVersionFull}");
+        print("Dart SDK version ${ver.sdkVersion} (${ver.sdkVersionFull})");
         new AboutDialog(ver.sdkVersion)..show();
       }).catchError((e) {
         new AboutDialog()..show();
@@ -187,6 +187,7 @@ class Playground implements GistContainer, GistController {
     // have halting issues (#384).
     bool loadedFromSaved = false;
     Uri url = Uri.parse(window.location.toString());
+
     if (url.hasQuery &&
         url.queryParameters['id'] != null &&
         isLegalGistId(url.queryParameters['id'])) {
@@ -243,6 +244,7 @@ class Playground implements GistContainer, GistController {
 
   void showGist(RouteEnterEvent event) {
     String gistId = event.parameters['gist'];
+
     _clearOutput();
 
     if (!isLegalGistId(gistId)) {
