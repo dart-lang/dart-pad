@@ -9,6 +9,8 @@ import '../core/dependencies.dart';
 import '../editing/editor_codemirror.dart';
 
 class CodeMirrorModule extends Module {
+  static String get version => codeMirrorFactory.version;
+
   Future init() {
     deps[EditorFactory] = codeMirrorFactory;
 

@@ -361,7 +361,6 @@ class PlaygroundMobile {
     //modules.register(new MockCompilerModule());
     modules.register(new DartServicesModule());
     modules.register(new DartSupportServicesModule());
-    //modules.register(new AceModule());
     modules.register(new CodeMirrorModule());
 
     return modules.start();
