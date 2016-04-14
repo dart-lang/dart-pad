@@ -33,9 +33,9 @@ class Scriptable implements IsScriptable {
    */
   List<Scriptable> getReferencedScriptables() {
     return properties
-        .map((property) => property.value)
-        .where((value) => value is IsScriptable)
-        .map((value) => value.getScriptable())
+        .map((ScriptableProperty property) => property.value)
+        .where((dynamic value) => value is IsScriptable)
+        .map((IsScriptable value) => value.scriptable)
         .toList();
   }
 

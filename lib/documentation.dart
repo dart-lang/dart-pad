@@ -200,14 +200,16 @@ Future<String> createMdnMarkdownLink(String domName) {
       ? domName.substring(0, domName.indexOf("."))
       : null;
 
-  return _urlExists('$baseUrl$domName').then((exists) {
+  return _urlExists('$baseUrl$domName').then((bool exists) {
     if (exists) return '[$domName]($baseUrl$domName)';
 
     if (domClassName != null) {
-      return _urlExists('$baseUrl$domClassName').then((exists) {
-        if (exists) return '[$domClassName]($baseUrl$domClassName)';
+      return _urlExists('$baseUrl$domClassName').then((bool exists) {
+        return exists ? '[$domClassName]($baseUrl$domClassName)' : null;
       });
     }
+
+    return null;
   });
 
   // Avoid searching for now.
