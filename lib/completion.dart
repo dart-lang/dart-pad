@@ -26,8 +26,7 @@ class DartCompleter extends CodeCompleter {
 
   DartCompleter(this.servicesApi, this.document);
 
-  Future<CompletionResult> complete(Editor editor,
-      {bool onlyShowFixes: false}) {
+  Future<CompletionResult> complete(Editor editor, { bool onlyShowFixes: false }) {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 
@@ -37,7 +36,7 @@ class DartCompleter extends CodeCompleter {
       ..source = editor.document.value
       ..offset = offset;
 
-    CancellableCompleter completer = new CancellableCompleter();
+    CancellableCompleter<CompletionResult> completer = new CancellableCompleter<CompletionResult>();
     _lastCompleter = completer;
 
     if (onlyShowFixes) {

@@ -20,10 +20,8 @@ dev_dependencies:
   dart_to_js_script_rewriter: any
   git: any
   grinder: ^0.8.0
-  http_server: ^0.9.0
   librato: '>=0.0.1 <0.1.0'
   test: ^0.12.0
-  webdriver: 0.10.0-pre.10
   which: ^0.1.0
   yaml: any
 transformers:
