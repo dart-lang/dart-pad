@@ -161,6 +161,7 @@ class Playground implements GistContainer, GistController {
           .timeout(new Duration(seconds: 2))
           .then((VersionResponse ver) {
         print("Dart SDK version ${ver.sdkVersion} (${ver.sdkVersionFull})");
+        print('CodeMirror: ${CodeMirrorModule.version}');
         new AboutDialog(ver.sdkVersion)..show();
       }).catchError((e) {
         new AboutDialog()..show();
@@ -350,7 +351,6 @@ class Playground implements GistContainer, GistController {
     //modules.register(new MockDartServicesModule());
     modules.register(new DartServicesModule());
     modules.register(new DartSupportServicesModule());
-    //modules.register(new AceModule());
     modules.register(new CodeMirrorModule());
 
     return modules.start();

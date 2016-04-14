@@ -21,13 +21,15 @@ export 'editor.dart';
 
 final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
 
-final _gutterId = 'CodeMirror-lint-markers';
+final String _gutterId = 'CodeMirror-lint-markers';
 
 class CodeMirrorFactory extends EditorFactory {
   //static final String cssRef = 'packages/dart_pad/editing/editor_codemirror.css';
   //static final String jsRef = 'packages/codemirror/codemirror.js';
 
   CodeMirrorFactory._();
+
+  String get version => CodeMirror.version;
 
   List<String> get modes => CodeMirror.MODES;
   List<String> get themes => CodeMirror.THEMES;
@@ -82,7 +84,7 @@ class CodeMirrorFactory extends EditorFactory {
     }
 
     CodeMirror editor = new CodeMirror.fromElement(element, options: options);
-    editor.addCommand('goLineLeft', _handleGoLineLeft);
+    CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
     return new _CodeMirrorEditor._(this, editor);
   }
 

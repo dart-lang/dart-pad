@@ -7,12 +7,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.3"
-  ace:
-    description:
-      name: ace
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.5.10+20.12.14"
   analyzer:
     description:
       name: analyzer
@@ -78,19 +72,13 @@ packages:
       name: codemirror
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.2+5.8.0"
+    version: "0.4.1+5.13.4"
   collection:
     description:
       name: collection
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.5.1"
-  comid:
-    description:
-      name: comid
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.4+5.2.1"
   convert:
     description:
       name: convert

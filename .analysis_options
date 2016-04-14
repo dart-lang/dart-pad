@@ -5,3 +5,8 @@ analyzer:
     - 'doc/api/**'
     - 'lib/bower/**'
     - 'last_prod/**'
+
+linter:
+  rules:
+    # - always_declare_return_types
+    # - always_specify_types
