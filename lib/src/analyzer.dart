@@ -25,7 +25,7 @@ import 'pub.dart';
 
 Logger _logger = new Logger('analyzer');
 
-final Duration _MAX_ANALYSIS_DURATION = new Duration(seconds: 5);
+final Duration _MAX_ANALYSIS_DURATION = new Duration(seconds: 10);
 
 class MemoryResolver extends UriResolver {
   Map<String, Source> sources = {};

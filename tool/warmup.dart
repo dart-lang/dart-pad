@@ -11,7 +11,7 @@ String uri;
 const BASE_URI = "dart-services.appspot.com/api/dartservices/v1/";
 // const BASE_URI = "dart-services-test.appspot.com/api/dartservices/v1/";
 // const BASE_URI = "localhost:8080/api/dartservices/v1/";
-const count = 20;
+const count = 100;
 
 main(List<String> args) async {
   String appPrefix;
@@ -44,8 +44,6 @@ main(List<String> args) async {
     await request("complete", strongPostPayload);
     await request("analyze", strongPostPayload);
     await request("compile", strongPostPayload);
-
-
   }
 }
 
@@ -60,8 +58,7 @@ request(String verb, String postPayload) async {
           int status = response.statusCode;
 
     if (status != 200) {
-      print("$status");
-      print("${response.body}");
+      print("$verb \t $status \t ${response.body} ${response.headers}");
     } else {
       print("$verb \t ${sw.elapsedMilliseconds} \t $status");
     }
