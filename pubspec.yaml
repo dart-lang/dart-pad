@@ -8,13 +8,13 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 
 dependencies:
-  analyzer: 0.27.3-alpha.6
+  analyzer: ^0.27.3
   appengine: ^0.3.0
   archive: '>=1.0.19 <1.1.0'
   args: '>=0.12.0 <0.14.0'
   cli_util: ^0.0.1
   # `compiler_unsupported` needs to be pegged to a specific version.
-  compiler_unsupported: 1.13.1
+  compiler_unsupported: 1.15.0
   crypto: ^0.9.0
   librato: '>=0.0.1 <0.1.0'
   logging: '>=0.9.0 <0.12.0'
