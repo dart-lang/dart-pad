@@ -168,6 +168,10 @@ class Playground implements GistContainer, GistController {
       });
     });
 
+    querySelector('#strongmode').onChange.listen((e) {
+      _performAnalysis();
+    });
+
     _initModules().then((_) {
       _initPlayground();
     });
@@ -636,7 +640,12 @@ class Playground implements GistContainer, GistController {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
-    SourceRequest input = new SourceRequest()..source = _context.dartSource;
+    bool strongMode = (querySelector('#strongmode') as InputElement).checked;
+
+    SourceRequest input =
+      new SourceRequest()..source = _context.dartSource
+      ..strongMode = strongMode;
+
     Lines lines = new Lines(input.source);
 
     Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
