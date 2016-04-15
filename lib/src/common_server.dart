@@ -292,6 +292,8 @@ class CommonServer {
     if (sources == null) {
       throw new BadRequestError('Missing parameter: \'sources\'');
     }
+    strongMode ??= false;
+    
     Stopwatch watch = new Stopwatch()..start();
     String sourcesJson = new JsonEncoder().convert(sources);
     srcRequestRecorder.record("ANALYZE-v2-$strongMode", sourcesJson);
