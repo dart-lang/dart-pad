@@ -294,7 +294,7 @@ class CommonServer {
     }
     Stopwatch watch = new Stopwatch()..start();
     String sourcesJson = new JsonEncoder().convert(sources);
-    srcRequestRecorder.record("ANALYZE-v1", sourcesJson);
+    srcRequestRecorder.record("ANALYZE-v2-$strongMode", sourcesJson);
     _logger.info("About to ANALYZE-v1: ${_hashSource(sourcesJson)}");
 
     // Select the right analyzer
