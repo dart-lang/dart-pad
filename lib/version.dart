@@ -6,4 +6,4 @@
 // task that will stamp the source file as part of a deploy, or a milestone task.
 
 /// The version of the dart-services backend.
-const String servicesVersion = "M1.0";
+const String servicesVersion = "M1.1";

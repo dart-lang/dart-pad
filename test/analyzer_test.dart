@@ -14,21 +14,66 @@ String sdkPath = cli_util.getSdkDir([]).path;
 
 void defineTests() {
   Analyzer analyzer;
+  Analyzer strongModeAnalyzer;
 
   group('analyzer.analyze', () {
     setUp(() {
       analyzer = new Analyzer(sdkPath);
+      strongModeAnalyzer = new Analyzer(sdkPath, strongMode: true);
     });
 
     test('simple', () {
       return analyzer.analyze(sampleCode).then((AnalysisResults results) {
         expect(results.issues, isEmpty);
+        return strongModeAnalyzer
+            .analyze(sampleCode)
+            .then((AnalysisResults strongResults) {
+          expect(strongResults.issues, isEmpty);
+        });
       });
     });
 
-    test('simple', () {
+    test('simple web', () {
       return analyzer.analyze(sampleCodeWeb).then((AnalysisResults results) {
         expect(results.issues, isEmpty);
+        return strongModeAnalyzer
+            .analyze(sampleCodeWeb)
+            .then((AnalysisResults strongResults) {
+          expect(strongResults.issues, isEmpty);
+        });
+      });
+    });
+
+    test('strong mode', () {
+      final String sample = '''
+import 'dart:collection';
+
+void info(List<int> list) {
+  var length = list.length;
+  if (length != 0) print(length + list[0]);
+}
+
+class MyList extends ListBase<int> implements List {
+   Object length;
+
+   MyList(this.length);
+
+   operator[](index) => "world";
+   operator[]=(index, value) {}
+}
+
+void main() {
+   List<int> list = new MyList("hello");
+   info(list);
+}
+''';
+      return analyzer.analyze(sample).then((AnalysisResults results) {
+        expect(results.issues, isEmpty);
+        return strongModeAnalyzer
+            .analyze(sample)
+            .then((AnalysisResults strongResults) {
+          expect(strongResults.issues, isNotEmpty);
+        });
       });
     });
 

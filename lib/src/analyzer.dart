@@ -25,7 +25,7 @@ import 'pub.dart';
 
 Logger _logger = new Logger('analyzer');
 
-final Duration _MAX_ANALYSIS_DURATION = new Duration(seconds: 5);
+final Duration _MAX_ANALYSIS_DURATION = new Duration(seconds: 10);
 
 class MemoryResolver extends UriResolver {
   Map<String, Source> sources = {};
@@ -44,11 +44,15 @@ class MemoryResolver extends UriResolver {
 
 class Analyzer {
   final Pub pub;
+  bool strongMode;
   AnalysisContext _context;
   MemoryResolver _resolver;
   String _sdkPath;
 
-  Analyzer(this._sdkPath, [this.pub]) {
+  Analyzer(this._sdkPath, {
+    this.pub,
+    this.strongMode: false
+  }) {
     _reset();
     analyze('');
   }
@@ -61,6 +65,8 @@ class Analyzer {
     _context = AnalysisEngine.instance.createAnalysisContext();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.cacheSize = 512;
+    options.strongMode = strongMode;
+
     _context.analysisOptions = options;
 
     List<UriResolver> resolvers = [

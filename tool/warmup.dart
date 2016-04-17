@@ -32,23 +32,35 @@ main(List<String> args) async {
 
   for (int j = 0; j < count; j++) {
     var data = {"offset": 17, "source": source};
+    var strongData = {"offset": 17, "source": source, "strongMode": true};
 
     String postPayload = convert.JSON.encode(data);
+    String strongPostPayload = convert.JSON.encode(strongData);
 
     await request("complete", postPayload);
     await request("analyze", postPayload);
     await request("compile", postPayload);
+
+    await request("complete", strongPostPayload);
+    await request("analyze", strongPostPayload);
+    await request("compile", strongPostPayload);
   }
 }
 
 request(String verb, String postPayload) async {
-  return http
+  Stopwatch sw = new Stopwatch()..start();
+
+  var response = await http
       .post(Uri.parse(uri + verb),
           body: postPayload,
-          headers: {'content-type': 'text/plain; charset=utf-8'})
-      .then((response) {
-    print("${response.statusCode}");
-    print("${response.body}");
+          headers: {'content-type': 'text/plain; charset=utf-8'});
+
+          int status = response.statusCode;
+
+    if (status != 200) {
+      print("$verb \t $status \t ${response.body} ${response.headers}");
+    } else {
+      print("$verb \t ${sw.elapsedMilliseconds} \t $status");
+    }
     return response.statusCode;
-  });
 }

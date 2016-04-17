@@ -66,6 +66,8 @@ class DartservicesApi {
    *
    * [source] - Query parameter: 'source'.
    *
+   * [strongMode] - Query parameter: 'strongMode'.
+   *
    * Completes with a [AnalysisResults].
    *
    * Completes with a [commons.ApiRequestError] if the API endpoint returned an
@@ -74,7 +76,7 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  async.Future<AnalysisResults> analyzeGet({core.String source}) {
+  async.Future<AnalysisResults> analyzeGet({core.String source, core.bool strongMode}) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -84,6 +86,9 @@ class DartservicesApi {
 
     if (source != null) {
       _queryParams["source"] = [source];
+    }
+    if (strongMode != null) {
+      _queryParams["strongMode"] = ["${strongMode}"];
     }
 
     _url = 'analyze';
@@ -1165,6 +1170,10 @@ class SourceRequest {
   core.int offset;
   /** The Dart source. */
   core.String source;
+  /**
+   * An optional signal whether the source should be processed in strong mode
+   */
+  core.bool strongMode;
 
   SourceRequest();
 
@@ -1174,6 +1183,9 @@ class SourceRequest {
     }
     if (_json.containsKey("source")) {
       source = _json["source"];
+    }
+    if (_json.containsKey("strongMode")) {
+      strongMode = _json["strongMode"];
     }
   }
 
@@ -1185,6 +1197,9 @@ class SourceRequest {
     if (source != null) {
       _json["source"] = source;
     }
+    if (strongMode != null) {
+      _json["strongMode"] = strongMode;
+    }
     return _json;
   }
 }
@@ -1194,6 +1209,10 @@ class SourcesRequest {
   Location location;
   /** Map of names to Sources. */
   core.Map<core.String, core.String> sources;
+  /**
+   * An optional signal whether the source should be processed in strong mode
+   */
+  core.bool strongMode;
 
   SourcesRequest();
 
@@ -1204,6 +1223,9 @@ class SourcesRequest {
     if (_json.containsKey("sources")) {
       sources = _json["sources"];
     }
+    if (_json.containsKey("strongMode")) {
+      strongMode = _json["strongMode"];
+    }
   }
 
   core.Map toJson() {
@@ -1213,6 +1235,9 @@ class SourcesRequest {
     }
     if (sources != null) {
       _json["sources"] = sources;
+    }
+    if (strongMode != null) {
+      _json["strongMode"] = strongMode;
     }
     return _json;
   }
