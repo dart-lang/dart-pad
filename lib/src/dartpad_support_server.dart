@@ -297,11 +297,9 @@ class _GistMapping extends db.Model {
 }
 
 String _computeSHA1(_GaePadSaveObject record) {
-  crypto.SHA1 sha1 = new crypto.SHA1();
   convert.Utf8Encoder utf8 = new convert.Utf8Encoder();
-  sha1.add(utf8.convert(
-      "blob  'n ${record.getDart} ${record.getHtml} ${record.getCss}"));
-  return crypto.CryptoUtils.bytesToHex(sha1.close());
+  return crypto.sha1.convert(utf8.convert(
+      "blob  'n ${record.getDart} ${record.getHtml} ${record.getCss}")).toString();
 }
 
 List<int> _gzipEncode(String input) =>

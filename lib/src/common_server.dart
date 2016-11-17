@@ -293,7 +293,7 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'sources\'');
     }
     strongMode ??= false;
-    
+
     Stopwatch watch = new Stopwatch()..start();
     String sourcesJson = new JsonEncoder().convert(sources);
     srcRequestRecorder.record("ANALYZE-v2-$strongMode", sourcesJson);
@@ -545,7 +545,5 @@ String _printCompileProblem(CompilationProblem problem) {
 }
 
 String _hashSource(String str) {
-  SHA1 sha1 = new SHA1();
-  sha1.add(str.codeUnits);
-  return CryptoUtils.bytesToHex(sha1.close());
+  sha1.convert(str.codeUnits).toString();
 }
