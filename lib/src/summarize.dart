@@ -85,9 +85,7 @@ class Summarizer {
 
   Summarizer({this.dart, this.html, this.css, this.analysis}) {
     if (dart == null) throw new ArgumentError('Input cannot be null.');
-    MD5 md5 = new MD5();
-    md5.add(dart.codeUnits);
-    _randomizer = _sumList(md5.close());
+    _randomizer = _sumList(md5.convert(dart.codeUnits).bytes);
     storage = new _SummarizeToken(dart, analysis: analysis);
   }
 
