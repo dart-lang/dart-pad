@@ -16,7 +16,6 @@ dependencies:
   # `compiler_unsupported` needs to be pegged to a specific version.
   compiler_unsupported: 1.16.0
   crypto: ^0.9.0
-  librato: '>=0.0.1 <0.1.0'
   logging: '>=0.9.0 <0.12.0'
   path: ^1.3.0
   shelf: ^0.6.0

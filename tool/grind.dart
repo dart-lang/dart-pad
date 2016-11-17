@@ -9,7 +9,6 @@ import 'dart:convert' show JSON;
 import 'dart:io';
 
 import 'package:grinder/grinder.dart';
-import 'package:librato/librato.dart';
 
 Map get _env => Platform.environment;
 
@@ -46,57 +45,8 @@ coverage() {
   ]);
 }
 
-@Task('Run the benchmarks on the build-bot; upload the data to librato.com')
-bench() {
-  Librato librato;
-
-  try {
-    librato = new Librato.fromEnvVars();
-  } catch (e) {
-    // If there's no librato auth info set, don't try and uplaod the stats data.
-    log("env var 'LIBRATO_USER' not found");
-    return new Future.value();
-  }
-
-  log('Running benchmarks...');
-
-  if (_env['TRAVIS_COMMIT'] == null) {
-    fail('Missing env var: TRAVIS_COMMIT');
-  }
-
-  ProcessResult result =
-      Process.runSync('dart', ['benchmark/bench.dart', '--json']);
-  if (result.exitCode != 0) {
-    log(result.stdout);
-    log(result.stderr);
-    fail('benchmarks exit code: ${result.exitCode}');
-  }
-
-  List results = JSON.decode(result.stdout);
-  List<LibratoStat> stats = [];
-
-  results.forEach((Map result) {
-    log('${result}');
-
-    String key = result.keys.first;
-    stats.add(new LibratoStat(key, result[key]));
-  });
-
-  log('Uploading stats to ${librato.baseUrl}');
-  log('${stats}');
-
-  return librato.postStats(stats).then((_) {
-    String commit = _env['TRAVIS_COMMIT'];
-    LibratoLink link = new LibratoLink('github',
-        'https://github.com/dart-lang/dart-services/commit/${commit}');
-    LibratoAnnotation annotation = new LibratoAnnotation(commit,
-        description: 'Commit ${commit}', links: [link]);
-    return librato.createAnnotation('build_server', annotation);
-  });
-}
-
 @Task()
-@Depends(analyze, test, bench, coverage)
+@Depends(analyze, test, coverage)
 void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')
