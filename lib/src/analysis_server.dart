@@ -144,7 +144,7 @@ class AnalysisServerWrapper {
                       .handleError((error) => throw "Completion failed")
                       .first
                       .then((ret) async {
-                    await serverConnection.unloadSources(sources.keys);
+                    await serverConnection.unloadSources(sources.keys.toList());
                     return ret;
                   });
                 }),
