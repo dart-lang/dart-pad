@@ -57,7 +57,7 @@ Usage: slow_test path_to_test_collection
     io.exit(1);
   }
 
-  // TODO: Replace this with args pxackage.
+  // TODO: Replace this with args package.
   int seed = 0;
   String testCollectionRoot = args[0];
   if (args.length >= 2) seed = int.parse(args[1]);
