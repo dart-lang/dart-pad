@@ -64,7 +64,6 @@ class Counter {
       } else {
         return new Future.value(models[0]);
       }
-      ;
     });
   }
 }

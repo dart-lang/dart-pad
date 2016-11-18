@@ -22,7 +22,7 @@ import 'package:services/src/compiler.dart' as comp;
 import 'package:services/src/common_server.dart';
 import 'package:rpc/rpc.dart';
 
-bool _PERF_DUMP = true;
+bool _PERF_DUMP = false;
 bool _SERVER_BASED_CALL = true;
 
 CommonServer server;
@@ -119,6 +119,8 @@ setupTools(String sdkPath) async {
   print("Executing setupTools");
   if (analysisServer != null) await analysisServer.kill();
 
+  print ("SdKPath: $sdkPath");
+
   container = new MockContainer();
   cache = new MockCache();
   recorder = new MockRequestRecorder();
@@ -139,6 +141,7 @@ setupTools(String sdkPath) async {
   print("Warming up compiler");
   compiler = new comp.Compiler(sdkPath);
   await compiler.warmup();
+  print ("SetupTools done");
 }
 
 testPath(String path, analysis_server.AnalysisServerWrapper wrapper,

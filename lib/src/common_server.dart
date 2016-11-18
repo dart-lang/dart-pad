@@ -545,5 +545,5 @@ String _printCompileProblem(CompilationProblem problem) {
 }
 
 String _hashSource(String str) {
-  sha1.convert(str.codeUnits).toString();
+  return sha1.convert(str.codeUnits).toString();
 }
