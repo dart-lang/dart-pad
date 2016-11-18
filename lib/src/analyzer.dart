@@ -64,7 +64,6 @@ class Analyzer {
         new JavaFile(_sdkPath), /*useDart2jsPaths*/ true);
     _context = AnalysisEngine.instance.createAnalysisContext();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.cacheSize = 512;
     options.strongMode = strongMode;
 
     _context.analysisOptions = options;

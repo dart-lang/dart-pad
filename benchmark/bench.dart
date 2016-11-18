@@ -6,14 +6,14 @@ library services.bench;
 
 import 'dart:async';
 
-import 'package:grinder/grinder.dart' as grinder;
 import 'package:services/src/analysis_server.dart';
 import 'package:services/src/analyzer.dart';
 import 'package:services/src/bench.dart';
 import 'package:services/src/common.dart';
 import 'package:services/src/compiler.dart';
+import 'package:cli_util/cli_util.dart';
 
-final String sdkPath = grinder.getSdkDir().path;
+final String sdkPath = getSdkDir().path;
 
 void main(List<String> args) {
   bool json = args.contains('--json');
