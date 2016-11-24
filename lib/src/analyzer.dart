@@ -7,16 +7,15 @@ library services.analyzer;
 import 'dart:async';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' hide Logger;
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:logging/logging.dart';
 
 import 'api_classes.dart';
@@ -60,8 +59,10 @@ class Analyzer {
   void _reset() {
     _resolver = new MemoryResolver();
 
-    DartSdk sdk = new DirectoryBasedDartSdk(
-        new JavaFile(_sdkPath), /*useDart2jsPaths*/ true);
+    PhysicalResourceProvider resourceProvider =
+            PhysicalResourceProvider.INSTANCE;
+    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+            resourceProvider, resourceProvider.getFolder(_sdkPath));
     _context = AnalysisEngine.instance.createAnalysisContext();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.strongMode = strongMode;
