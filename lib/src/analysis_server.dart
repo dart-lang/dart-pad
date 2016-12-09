@@ -16,6 +16,7 @@ import 'package:path/path.dart' as path;
 import 'api_classes.dart' as api;
 import 'scheduler.dart' as scheduler;
 import 'analysis_server_protocol/protocol.dart';
+import 'analysis_server_protocol/protocol_internal.dart';
 
 /**
  * Type of callbacks used to process notifications.

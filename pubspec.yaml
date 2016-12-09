@@ -14,7 +14,7 @@ dependencies:
   args: '>=0.12.0 <0.14.0'
   cli_util: ^0.0.1
   # `compiler_unsupported` needs to be pegged to a specific version.
-  compiler_unsupported: 1.20.0
+  compiler_unsupported: 1.21.0
   crypto: ^2.0.0
   logging: '>=0.9.0 <0.12.0'
   path: ^1.3.0
@@ -33,8 +33,8 @@ dev_dependencies:
   http: any
   unittest: ^0.11.0
 
-dependency_overrides:
-  analyzer: '0.29.0'
+# dependency_overrides:
+  # analyzer: '0.29.0'
 
 executables:
   services: null

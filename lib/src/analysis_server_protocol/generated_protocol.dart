@@ -6,9 +6,12 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-part of protocol;
+part of analysis_server.plugin.protocol.protocol;
+
 /**
  * server.getVersion params
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerGetVersionParams {
   Request toRequest(String id) {
@@ -35,6 +38,8 @@ class ServerGetVersionParams {
  * {
  *   "version": String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerGetVersionResult implements HasToJson {
   String _version;
@@ -63,7 +68,7 @@ class ServerGetVersionResult implements HasToJson {
     if (json is Map) {
       String version;
       if (json.containsKey("version")) {
-        version = jsonDecoder._decodeString(jsonPath + ".version", json["version"]);
+        version = jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "version");
       }
@@ -102,12 +107,14 @@ class ServerGetVersionResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, version.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, version.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * server.shutdown params
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerShutdownParams {
   Request toRequest(String id) {
@@ -129,6 +136,8 @@ class ServerShutdownParams {
 }
 /**
  * server.shutdown result
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerShutdownResult {
   Response toResponse(String id) {
@@ -155,6 +164,8 @@ class ServerShutdownResult {
  * {
  *   "subscriptions": List<ServerService>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerSetSubscriptionsParams implements HasToJson {
   List<ServerService> _subscriptions;
@@ -183,7 +194,7 @@ class ServerSetSubscriptionsParams implements HasToJson {
     if (json is Map) {
       List<ServerService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ServerService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ServerService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -214,7 +225,7 @@ class ServerSetSubscriptionsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ServerSetSubscriptionsParams) {
-      return _listEqual(subscriptions, other.subscriptions, (ServerService a, ServerService b) => a == b);
+      return listEqual(subscriptions, other.subscriptions, (ServerService a, ServerService b) => a == b);
     }
     return false;
   }
@@ -222,12 +233,14 @@ class ServerSetSubscriptionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * server.setSubscriptions result
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerSetSubscriptionsResult {
   Response toResponse(String id) {
@@ -253,10 +266,18 @@ class ServerSetSubscriptionsResult {
  *
  * {
  *   "version": String
+ *   "pid": int
+ *   "sessionId": optional String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerConnectedParams implements HasToJson {
   String _version;
+
+  int _pid;
+
+  String _sessionId;
 
   /**
    * The version number of the analysis server.
@@ -271,8 +292,35 @@ class ServerConnectedParams implements HasToJson {
     this._version = value;
   }
 
-  ServerConnectedParams(String version) {
+  /**
+   * The process id of the analysis server process.
+   */
+  int get pid => _pid;
+
+  /**
+   * The process id of the analysis server process.
+   */
+  void set pid(int value) {
+    assert(value != null);
+    this._pid = value;
+  }
+
+  /**
+   * The session id for this session.
+   */
+  String get sessionId => _sessionId;
+
+  /**
+   * The session id for this session.
+   */
+  void set sessionId(String value) {
+    this._sessionId = value;
+  }
+
+  ServerConnectedParams(String version, int pid, {String sessionId}) {
     this.version = version;
+    this.pid = pid;
+    this.sessionId = sessionId;
   }
 
   factory ServerConnectedParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -282,11 +330,21 @@ class ServerConnectedParams implements HasToJson {
     if (json is Map) {
       String version;
       if (json.containsKey("version")) {
-        version = jsonDecoder._decodeString(jsonPath + ".version", json["version"]);
+        version = jsonDecoder.decodeString(jsonPath + ".version", json["version"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "version");
       }
-      return new ServerConnectedParams(version);
+      int pid;
+      if (json.containsKey("pid")) {
+        pid = jsonDecoder.decodeInt(jsonPath + ".pid", json["pid"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "pid");
+      }
+      String sessionId;
+      if (json.containsKey("sessionId")) {
+        sessionId = jsonDecoder.decodeString(jsonPath + ".sessionId", json["sessionId"]);
+      }
+      return new ServerConnectedParams(version, pid, sessionId: sessionId);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "server.connected params", json);
     }
@@ -300,6 +358,10 @@ class ServerConnectedParams implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["version"] = version;
+    result["pid"] = pid;
+    if (sessionId != null) {
+      result["sessionId"] = sessionId;
+    }
     return result;
   }
 
@@ -313,7 +375,9 @@ class ServerConnectedParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ServerConnectedParams) {
-      return version == other.version;
+      return version == other.version &&
+          pid == other.pid &&
+          sessionId == other.sessionId;
     }
     return false;
   }
@@ -321,8 +385,10 @@ class ServerConnectedParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, version.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, version.hashCode);
+    hash = JenkinsSmiHash.combine(hash, pid.hashCode);
+    hash = JenkinsSmiHash.combine(hash, sessionId.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -334,6 +400,8 @@ class ServerConnectedParams implements HasToJson {
  *   "message": String
  *   "stackTrace": String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerErrorParams implements HasToJson {
   bool _isFatal;
@@ -398,19 +466,19 @@ class ServerErrorParams implements HasToJson {
     if (json is Map) {
       bool isFatal;
       if (json.containsKey("isFatal")) {
-        isFatal = jsonDecoder._decodeBool(jsonPath + ".isFatal", json["isFatal"]);
+        isFatal = jsonDecoder.decodeBool(jsonPath + ".isFatal", json["isFatal"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isFatal");
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
       String stackTrace;
       if (json.containsKey("stackTrace")) {
-        stackTrace = jsonDecoder._decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
+        stackTrace = jsonDecoder.decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "stackTrace");
       }
@@ -453,10 +521,10 @@ class ServerErrorParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, isFatal.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, stackTrace.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, isFatal.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, stackTrace.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -467,6 +535,8 @@ class ServerErrorParams implements HasToJson {
  *   "analysis": optional AnalysisStatus
  *   "pub": optional PubStatus
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerStatusParams implements HasToJson {
   AnalysisStatus _analysis;
@@ -560,9 +630,9 @@ class ServerStatusParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, analysis.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, pub.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, analysis.hashCode);
+    hash = JenkinsSmiHash.combine(hash, pub.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -572,6 +642,8 @@ class ServerStatusParams implements HasToJson {
  * {
  *   "file": FilePath
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetErrorsParams implements HasToJson {
   String _file;
@@ -600,7 +672,7 @@ class AnalysisGetErrorsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -639,8 +711,8 @@ class AnalysisGetErrorsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -650,6 +722,8 @@ class AnalysisGetErrorsParams implements HasToJson {
  * {
  *   "errors": List<AnalysisError>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetErrorsResult implements HasToJson {
   List<AnalysisError> _errors;
@@ -678,7 +752,7 @@ class AnalysisGetErrorsResult implements HasToJson {
     if (json is Map) {
       List<AnalysisError> errors;
       if (json.containsKey("errors")) {
-        errors = jsonDecoder._decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+        errors = jsonDecoder.decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "errors");
       }
@@ -709,7 +783,7 @@ class AnalysisGetErrorsResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisGetErrorsResult) {
-      return _listEqual(errors, other.errors, (AnalysisError a, AnalysisError b) => a == b);
+      return listEqual(errors, other.errors, (AnalysisError a, AnalysisError b) => a == b);
     }
     return false;
   }
@@ -717,8 +791,8 @@ class AnalysisGetErrorsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, errors.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, errors.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -729,6 +803,8 @@ class AnalysisGetErrorsResult implements HasToJson {
  *   "file": FilePath
  *   "offset": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetHoverParams implements HasToJson {
   String _file;
@@ -773,13 +849,13 @@ class AnalysisGetHoverParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
@@ -820,9 +896,9 @@ class AnalysisGetHoverParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -832,6 +908,8 @@ class AnalysisGetHoverParams implements HasToJson {
  * {
  *   "hovers": List<HoverInformation>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetHoverResult implements HasToJson {
   List<HoverInformation> _hovers;
@@ -868,7 +946,7 @@ class AnalysisGetHoverResult implements HasToJson {
     if (json is Map) {
       List<HoverInformation> hovers;
       if (json.containsKey("hovers")) {
-        hovers = jsonDecoder._decodeList(jsonPath + ".hovers", json["hovers"], (String jsonPath, Object json) => new HoverInformation.fromJson(jsonDecoder, jsonPath, json));
+        hovers = jsonDecoder.decodeList(jsonPath + ".hovers", json["hovers"], (String jsonPath, Object json) => new HoverInformation.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "hovers");
       }
@@ -899,7 +977,7 @@ class AnalysisGetHoverResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisGetHoverResult) {
-      return _listEqual(hovers, other.hovers, (HoverInformation a, HoverInformation b) => a == b);
+      return listEqual(hovers, other.hovers, (HoverInformation a, HoverInformation b) => a == b);
     }
     return false;
   }
@@ -907,12 +985,184 @@ class AnalysisGetHoverResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, hovers.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, hovers.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.getReachableSources params
+ *
+ * {
+ *   "file": FilePath
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetReachableSourcesParams implements HasToJson {
+  String _file;
+
+  /**
+   * The file for which reachable source information is being requested.
+   */
+  String get file => _file;
+
+  /**
+   * The file for which reachable source information is being requested.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  AnalysisGetReachableSourcesParams(String file) {
+    this.file = file;
+  }
+
+  factory AnalysisGetReachableSourcesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      return new AnalysisGetReachableSourcesParams(file);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getReachableSources params", json);
+    }
+  }
+
+  factory AnalysisGetReachableSourcesParams.fromRequest(Request request) {
+    return new AnalysisGetReachableSourcesParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "analysis.getReachableSources", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisGetReachableSourcesParams) {
+      return file == other.file;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.getReachableSources result
+ *
+ * {
+ *   "sources": Map<String, List<String>>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisGetReachableSourcesResult implements HasToJson {
+  Map<String, List<String>> _sources;
+
+  /**
+   * A mapping from source URIs to directly reachable source URIs. For example,
+   * a file "foo.dart" that imports "bar.dart" would have the corresponding
+   * mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
+   * further imports (or exports) there will be a mapping from the URI
+   * "file:///bar.dart" to them. To check if a specific URI is reachable from a
+   * given file, clients can check for its presence in the resulting key set.
+   */
+  Map<String, List<String>> get sources => _sources;
+
+  /**
+   * A mapping from source URIs to directly reachable source URIs. For example,
+   * a file "foo.dart" that imports "bar.dart" would have the corresponding
+   * mapping { "file:///foo.dart" : ["file:///bar.dart"] }. If "bar.dart" has
+   * further imports (or exports) there will be a mapping from the URI
+   * "file:///bar.dart" to them. To check if a specific URI is reachable from a
+   * given file, clients can check for its presence in the resulting key set.
+   */
+  void set sources(Map<String, List<String>> value) {
+    assert(value != null);
+    this._sources = value;
+  }
+
+  AnalysisGetReachableSourcesResult(Map<String, List<String>> sources) {
+    this.sources = sources;
+  }
+
+  factory AnalysisGetReachableSourcesResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      Map<String, List<String>> sources;
+      if (json.containsKey("sources")) {
+        sources = jsonDecoder.decodeMap(jsonPath + ".sources", json["sources"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "sources");
+      }
+      return new AnalysisGetReachableSourcesResult(sources);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.getReachableSources result", json);
+    }
+  }
+
+  factory AnalysisGetReachableSourcesResult.fromResponse(Response response) {
+    return new AnalysisGetReachableSourcesResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["sources"] = sources;
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisGetReachableSourcesResult) {
+      return mapEqual(sources, other.sources, (List<String> a, List<String> b) => listEqual(a, b, (String a, String b) => a == b));
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, sources.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.getLibraryDependencies params
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetLibraryDependenciesParams {
   Request toRequest(String id) {
@@ -940,6 +1190,8 @@ class AnalysisGetLibraryDependenciesParams {
  *   "libraries": List<FilePath>
  *   "packageMap": Map<String, Map<String, List<FilePath>>>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetLibraryDependenciesResult implements HasToJson {
   List<String> _libraries;
@@ -988,13 +1240,13 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
     if (json is Map) {
       List<String> libraries;
       if (json.containsKey("libraries")) {
-        libraries = jsonDecoder._decodeList(jsonPath + ".libraries", json["libraries"], jsonDecoder._decodeString);
+        libraries = jsonDecoder.decodeList(jsonPath + ".libraries", json["libraries"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "libraries");
       }
       Map<String, Map<String, List<String>>> packageMap;
       if (json.containsKey("packageMap")) {
-        packageMap = jsonDecoder._decodeMap(jsonPath + ".packageMap", json["packageMap"], valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeMap(jsonPath, json, valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeList(jsonPath, json, jsonDecoder._decodeString)));
+        packageMap = jsonDecoder.decodeMap(jsonPath + ".packageMap", json["packageMap"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeMap(jsonPath, json, valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString)));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "packageMap");
       }
@@ -1026,8 +1278,8 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisGetLibraryDependenciesResult) {
-      return _listEqual(libraries, other.libraries, (String a, String b) => a == b) &&
-          _mapEqual(packageMap, other.packageMap, (Map<String, List<String>> a, Map<String, List<String>> b) => _mapEqual(a, b, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b)));
+      return listEqual(libraries, other.libraries, (String a, String b) => a == b) &&
+          mapEqual(packageMap, other.packageMap, (Map<String, List<String>> a, Map<String, List<String>> b) => mapEqual(a, b, (List<String> a, List<String> b) => listEqual(a, b, (String a, String b) => a == b)));
     }
     return false;
   }
@@ -1035,9 +1287,9 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, libraries.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, packageMap.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, libraries.hashCode);
+    hash = JenkinsSmiHash.combine(hash, packageMap.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -1049,6 +1301,8 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetNavigationParams implements HasToJson {
   String _file;
@@ -1113,19 +1367,19 @@ class AnalysisGetNavigationParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -1168,10 +1422,10 @@ class AnalysisGetNavigationParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -1183,6 +1437,8 @@ class AnalysisGetNavigationParams implements HasToJson {
  *   "targets": List<NavigationTarget>
  *   "regions": List<NavigationRegion>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisGetNavigationResult implements HasToJson {
   List<String> _files;
@@ -1247,19 +1503,19 @@ class AnalysisGetNavigationResult implements HasToJson {
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder._decodeList(jsonPath + ".files", json["files"], jsonDecoder._decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
       List<NavigationTarget> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder._decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "targets");
       }
       List<NavigationRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder._decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
@@ -1292,9 +1548,9 @@ class AnalysisGetNavigationResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisGetNavigationResult) {
-      return _listEqual(files, other.files, (String a, String b) => a == b) &&
-          _listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
-          _listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b);
+      return listEqual(files, other.files, (String a, String b) => a == b) &&
+          listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
+          listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b);
     }
     return false;
   }
@@ -1302,10 +1558,10 @@ class AnalysisGetNavigationResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, targets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -1315,6 +1571,8 @@ class AnalysisGetNavigationResult implements HasToJson {
  * {
  *   "roots": optional List<FilePath>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisReanalyzeParams implements HasToJson {
   List<String> _roots;
@@ -1342,7 +1600,7 @@ class AnalysisReanalyzeParams implements HasToJson {
     if (json is Map) {
       List<String> roots;
       if (json.containsKey("roots")) {
-        roots = jsonDecoder._decodeList(jsonPath + ".roots", json["roots"], jsonDecoder._decodeString);
+        roots = jsonDecoder.decodeList(jsonPath + ".roots", json["roots"], jsonDecoder.decodeString);
       }
       return new AnalysisReanalyzeParams(roots: roots);
     } else {
@@ -1373,7 +1631,7 @@ class AnalysisReanalyzeParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisReanalyzeParams) {
-      return _listEqual(roots, other.roots, (String a, String b) => a == b);
+      return listEqual(roots, other.roots, (String a, String b) => a == b);
     }
     return false;
   }
@@ -1381,12 +1639,14 @@ class AnalysisReanalyzeParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, roots.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, roots.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.reanalyze result
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisReanalyzeResult {
   Response toResponse(String id) {
@@ -1415,6 +1675,8 @@ class AnalysisReanalyzeResult {
  *   "excluded": List<FilePath>
  *   "packageRoots": optional Map<FilePath, FilePath>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetAnalysisRootsParams implements HasToJson {
   List<String> _included;
@@ -1452,12 +1714,19 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   }
 
   /**
-   * A mapping from source directories to target directories that should
-   * override the normal package: URI resolution mechanism. The analyzer will
-   * behave as though each source directory in the map contains a special
-   * pubspec.yaml file which resolves any package: URI to the corresponding
-   * path within the target directory. The effect is the same as specifying the
-   * target directory as a "--package_root" parameter to the Dart VM when
+   * A mapping from source directories to package roots that should override
+   * the normal package: URI resolution mechanism.
+   *
+   * If a package root is a directory, then the analyzer will behave as though
+   * the associated source directory in the map contains a special pubspec.yaml
+   * file which resolves any package: URI to the corresponding path within that
+   * package root directory. The effect is the same as specifying the package
+   * root directory as a "--package_root" parameter to the Dart VM when
+   * executing any Dart file inside the source directory.
+   *
+   * If a package root is a file, then the analyzer will behave as though that
+   * file is a ".packages" file in the source directory. The effect is the same
+   * as specifying the file as a "--packages" parameter to the Dart VM when
    * executing any Dart file inside the source directory.
    *
    * Files in any directories that are not overridden by this mapping have
@@ -1468,12 +1737,19 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   Map<String, String> get packageRoots => _packageRoots;
 
   /**
-   * A mapping from source directories to target directories that should
-   * override the normal package: URI resolution mechanism. The analyzer will
-   * behave as though each source directory in the map contains a special
-   * pubspec.yaml file which resolves any package: URI to the corresponding
-   * path within the target directory. The effect is the same as specifying the
-   * target directory as a "--package_root" parameter to the Dart VM when
+   * A mapping from source directories to package roots that should override
+   * the normal package: URI resolution mechanism.
+   *
+   * If a package root is a directory, then the analyzer will behave as though
+   * the associated source directory in the map contains a special pubspec.yaml
+   * file which resolves any package: URI to the corresponding path within that
+   * package root directory. The effect is the same as specifying the package
+   * root directory as a "--package_root" parameter to the Dart VM when
+   * executing any Dart file inside the source directory.
+   *
+   * If a package root is a file, then the analyzer will behave as though that
+   * file is a ".packages" file in the source directory. The effect is the same
+   * as specifying the file as a "--packages" parameter to the Dart VM when
    * executing any Dart file inside the source directory.
    *
    * Files in any directories that are not overridden by this mapping have
@@ -1498,19 +1774,19 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
     if (json is Map) {
       List<String> included;
       if (json.containsKey("included")) {
-        included = jsonDecoder._decodeList(jsonPath + ".included", json["included"], jsonDecoder._decodeString);
+        included = jsonDecoder.decodeList(jsonPath + ".included", json["included"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "included");
       }
       List<String> excluded;
       if (json.containsKey("excluded")) {
-        excluded = jsonDecoder._decodeList(jsonPath + ".excluded", json["excluded"], jsonDecoder._decodeString);
+        excluded = jsonDecoder.decodeList(jsonPath + ".excluded", json["excluded"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "excluded");
       }
       Map<String, String> packageRoots;
       if (json.containsKey("packageRoots")) {
-        packageRoots = jsonDecoder._decodeMap(jsonPath + ".packageRoots", json["packageRoots"], valueDecoder: jsonDecoder._decodeString);
+        packageRoots = jsonDecoder.decodeMap(jsonPath + ".packageRoots", json["packageRoots"], valueDecoder: jsonDecoder.decodeString);
       }
       return new AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: packageRoots);
     } else {
@@ -1543,9 +1819,9 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisSetAnalysisRootsParams) {
-      return _listEqual(included, other.included, (String a, String b) => a == b) &&
-          _listEqual(excluded, other.excluded, (String a, String b) => a == b) &&
-          _mapEqual(packageRoots, other.packageRoots, (String a, String b) => a == b);
+      return listEqual(included, other.included, (String a, String b) => a == b) &&
+          listEqual(excluded, other.excluded, (String a, String b) => a == b) &&
+          mapEqual(packageRoots, other.packageRoots, (String a, String b) => a == b);
     }
     return false;
   }
@@ -1553,14 +1829,16 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, included.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, excluded.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, packageRoots.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, included.hashCode);
+    hash = JenkinsSmiHash.combine(hash, excluded.hashCode);
+    hash = JenkinsSmiHash.combine(hash, packageRoots.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.setAnalysisRoots result
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetAnalysisRootsResult {
   Response toResponse(String id) {
@@ -1587,6 +1865,8 @@ class AnalysisSetAnalysisRootsResult {
  * {
  *   "subscriptions": List<GeneralAnalysisService>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
   List<GeneralAnalysisService> _subscriptions;
@@ -1615,7 +1895,7 @@ class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
     if (json is Map) {
       List<GeneralAnalysisService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -1646,7 +1926,7 @@ class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisSetGeneralSubscriptionsParams) {
-      return _listEqual(subscriptions, other.subscriptions, (GeneralAnalysisService a, GeneralAnalysisService b) => a == b);
+      return listEqual(subscriptions, other.subscriptions, (GeneralAnalysisService a, GeneralAnalysisService b) => a == b);
     }
     return false;
   }
@@ -1654,12 +1934,14 @@ class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.setGeneralSubscriptions result
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetGeneralSubscriptionsResult {
   Response toResponse(String id) {
@@ -1686,6 +1968,8 @@ class AnalysisSetGeneralSubscriptionsResult {
  * {
  *   "files": List<FilePath>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetPriorityFilesParams implements HasToJson {
   List<String> _files;
@@ -1714,7 +1998,7 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder._decodeList(jsonPath + ".files", json["files"], jsonDecoder._decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -1745,7 +2029,7 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisSetPriorityFilesParams) {
-      return _listEqual(files, other.files, (String a, String b) => a == b);
+      return listEqual(files, other.files, (String a, String b) => a == b);
     }
     return false;
   }
@@ -1753,12 +2037,14 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.setPriorityFiles result
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetPriorityFilesResult {
   Response toResponse(String id) {
@@ -1785,6 +2071,8 @@ class AnalysisSetPriorityFilesResult {
  * {
  *   "subscriptions": Map<AnalysisService, List<FilePath>>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetSubscriptionsParams implements HasToJson {
   Map<AnalysisService, List<String>> _subscriptions;
@@ -1815,7 +2103,7 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder._decodeMap(jsonPath + ".subscriptions", json["subscriptions"], keyDecoder: (String jsonPath, Object json) => new AnalysisService.fromJson(jsonDecoder, jsonPath, json), valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeList(jsonPath, json, jsonDecoder._decodeString));
+        subscriptions = jsonDecoder.decodeMap(jsonPath + ".subscriptions", json["subscriptions"], keyDecoder: (String jsonPath, Object json) => new AnalysisService.fromJson(jsonDecoder, jsonPath, json), valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -1846,7 +2134,7 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisSetSubscriptionsParams) {
-      return _mapEqual(subscriptions, other.subscriptions, (List<String> a, List<String> b) => _listEqual(a, b, (String a, String b) => a == b));
+      return mapEqual(subscriptions, other.subscriptions, (List<String> a, List<String> b) => listEqual(a, b, (String a, String b) => a == b));
     }
     return false;
   }
@@ -1854,12 +2142,14 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.setSubscriptions result
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisSetSubscriptionsResult {
   Response toResponse(String id) {
@@ -1886,6 +2176,8 @@ class AnalysisSetSubscriptionsResult {
  * {
  *   "files": Map<FilePath, AddContentOverlay | ChangeContentOverlay | RemoveContentOverlay>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisUpdateContentParams implements HasToJson {
   Map<String, dynamic> _files;
@@ -1916,7 +2208,7 @@ class AnalysisUpdateContentParams implements HasToJson {
     if (json is Map) {
       Map<String, dynamic> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder._decodeMap(jsonPath + ".files", json["files"], valueDecoder: (String jsonPath, Object json) => jsonDecoder._decodeUnion(jsonPath, json, "type", {"add": (String jsonPath, Object json) => new AddContentOverlay.fromJson(jsonDecoder, jsonPath, json), "change": (String jsonPath, Object json) => new ChangeContentOverlay.fromJson(jsonDecoder, jsonPath, json), "remove": (String jsonPath, Object json) => new RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)}));
+        files = jsonDecoder.decodeMap(jsonPath + ".files", json["files"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeUnion(jsonPath, json, "type", {"add": (String jsonPath, Object json) => new AddContentOverlay.fromJson(jsonDecoder, jsonPath, json), "change": (String jsonPath, Object json) => new ChangeContentOverlay.fromJson(jsonDecoder, jsonPath, json), "remove": (String jsonPath, Object json) => new RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)}));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -1947,7 +2239,7 @@ class AnalysisUpdateContentParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisUpdateContentParams) {
-      return _mapEqual(files, other.files, (dynamic a, dynamic b) => a == b);
+      return mapEqual(files, other.files, (dynamic a, dynamic b) => a == b);
     }
     return false;
   }
@@ -1955,8 +2247,8 @@ class AnalysisUpdateContentParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -1965,6 +2257,8 @@ class AnalysisUpdateContentParams implements HasToJson {
  *
  * {
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisUpdateContentResult implements HasToJson {
   AnalysisUpdateContentResult();
@@ -2008,7 +2302,7 @@ class AnalysisUpdateContentResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    return _JenkinsSmiHash.finish(hash);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2018,6 +2312,8 @@ class AnalysisUpdateContentResult implements HasToJson {
  * {
  *   "options": AnalysisOptions
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisUpdateOptionsParams implements HasToJson {
   AnalysisOptions _options;
@@ -2085,12 +2381,14 @@ class AnalysisUpdateOptionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, options.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, options.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * analysis.updateOptions result
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisUpdateOptionsResult {
   Response toResponse(String id) {
@@ -2117,6 +2415,8 @@ class AnalysisUpdateOptionsResult {
  * {
  *   "directories": List<FilePath>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisAnalyzedFilesParams implements HasToJson {
   List<String> _directories;
@@ -2145,7 +2445,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
     if (json is Map) {
       List<String> directories;
       if (json.containsKey("directories")) {
-        directories = jsonDecoder._decodeList(jsonPath + ".directories", json["directories"], jsonDecoder._decodeString);
+        directories = jsonDecoder.decodeList(jsonPath + ".directories", json["directories"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "directories");
       }
@@ -2176,7 +2476,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisAnalyzedFilesParams) {
-      return _listEqual(directories, other.directories, (String a, String b) => a == b);
+      return listEqual(directories, other.directories, (String a, String b) => a == b);
     }
     return false;
   }
@@ -2184,8 +2484,8 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, directories.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, directories.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2196,6 +2496,8 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
  *   "file": FilePath
  *   "errors": List<AnalysisError>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorsParams implements HasToJson {
   String _file;
@@ -2240,13 +2542,13 @@ class AnalysisErrorsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<AnalysisError> errors;
       if (json.containsKey("errors")) {
-        errors = jsonDecoder._decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+        errors = jsonDecoder.decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "errors");
       }
@@ -2279,7 +2581,7 @@ class AnalysisErrorsParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisErrorsParams) {
       return file == other.file &&
-          _listEqual(errors, other.errors, (AnalysisError a, AnalysisError b) => a == b);
+          listEqual(errors, other.errors, (AnalysisError a, AnalysisError b) => a == b);
     }
     return false;
   }
@@ -2287,9 +2589,9 @@ class AnalysisErrorsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, errors.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, errors.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2299,6 +2601,8 @@ class AnalysisErrorsParams implements HasToJson {
  * {
  *   "files": List<FilePath>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisFlushResultsParams implements HasToJson {
   List<String> _files;
@@ -2327,7 +2631,7 @@ class AnalysisFlushResultsParams implements HasToJson {
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder._decodeList(jsonPath + ".files", json["files"], jsonDecoder._decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -2358,7 +2662,7 @@ class AnalysisFlushResultsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is AnalysisFlushResultsParams) {
-      return _listEqual(files, other.files, (String a, String b) => a == b);
+      return listEqual(files, other.files, (String a, String b) => a == b);
     }
     return false;
   }
@@ -2366,8 +2670,8 @@ class AnalysisFlushResultsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2378,6 +2682,8 @@ class AnalysisFlushResultsParams implements HasToJson {
  *   "file": FilePath
  *   "regions": List<FoldingRegion>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisFoldingParams implements HasToJson {
   String _file;
@@ -2422,13 +2728,13 @@ class AnalysisFoldingParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<FoldingRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder._decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
@@ -2461,7 +2767,7 @@ class AnalysisFoldingParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisFoldingParams) {
       return file == other.file &&
-          _listEqual(regions, other.regions, (FoldingRegion a, FoldingRegion b) => a == b);
+          listEqual(regions, other.regions, (FoldingRegion a, FoldingRegion b) => a == b);
     }
     return false;
   }
@@ -2469,9 +2775,9 @@ class AnalysisFoldingParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2482,6 +2788,8 @@ class AnalysisFoldingParams implements HasToJson {
  *   "file": FilePath
  *   "regions": List<HighlightRegion>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisHighlightsParams implements HasToJson {
   String _file;
@@ -2534,13 +2842,13 @@ class AnalysisHighlightsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<HighlightRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder._decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
@@ -2573,7 +2881,7 @@ class AnalysisHighlightsParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisHighlightsParams) {
       return file == other.file &&
-          _listEqual(regions, other.regions, (HighlightRegion a, HighlightRegion b) => a == b);
+          listEqual(regions, other.regions, (HighlightRegion a, HighlightRegion b) => a == b);
     }
     return false;
   }
@@ -2581,9 +2889,141 @@ class AnalysisHighlightsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * analysis.implemented params
+ *
+ * {
+ *   "file": FilePath
+ *   "classes": List<ImplementedClass>
+ *   "members": List<ImplementedMember>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class AnalysisImplementedParams implements HasToJson {
+  String _file;
+
+  List<ImplementedClass> _classes;
+
+  List<ImplementedMember> _members;
+
+  /**
+   * The file with which the implementations are associated.
+   */
+  String get file => _file;
+
+  /**
+   * The file with which the implementations are associated.
+   */
+  void set file(String value) {
+    assert(value != null);
+    this._file = value;
+  }
+
+  /**
+   * The classes defined in the file that are implemented or extended.
+   */
+  List<ImplementedClass> get classes => _classes;
+
+  /**
+   * The classes defined in the file that are implemented or extended.
+   */
+  void set classes(List<ImplementedClass> value) {
+    assert(value != null);
+    this._classes = value;
+  }
+
+  /**
+   * The member defined in the file that are implemented or overridden.
+   */
+  List<ImplementedMember> get members => _members;
+
+  /**
+   * The member defined in the file that are implemented or overridden.
+   */
+  void set members(List<ImplementedMember> value) {
+    assert(value != null);
+    this._members = value;
+  }
+
+  AnalysisImplementedParams(String file, List<ImplementedClass> classes, List<ImplementedMember> members) {
+    this.file = file;
+    this.classes = classes;
+    this.members = members;
+  }
+
+  factory AnalysisImplementedParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String file;
+      if (json.containsKey("file")) {
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      List<ImplementedClass> classes;
+      if (json.containsKey("classes")) {
+        classes = jsonDecoder.decodeList(jsonPath + ".classes", json["classes"], (String jsonPath, Object json) => new ImplementedClass.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "classes");
+      }
+      List<ImplementedMember> members;
+      if (json.containsKey("members")) {
+        members = jsonDecoder.decodeList(jsonPath + ".members", json["members"], (String jsonPath, Object json) => new ImplementedMember.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "members");
+      }
+      return new AnalysisImplementedParams(file, classes, members);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.implemented params", json);
+    }
+  }
+
+  factory AnalysisImplementedParams.fromNotification(Notification notification) {
+    return new AnalysisImplementedParams.fromJson(
+        new ResponseDecoder(null), "params", notification._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["file"] = file;
+    result["classes"] = classes.map((ImplementedClass value) => value.toJson()).toList();
+    result["members"] = members.map((ImplementedMember value) => value.toJson()).toList();
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.implemented", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisImplementedParams) {
+      return file == other.file &&
+          listEqual(classes, other.classes, (ImplementedClass a, ImplementedClass b) => a == b) &&
+          listEqual(members, other.members, (ImplementedMember a, ImplementedMember b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, classes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, members.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2596,6 +3036,8 @@ class AnalysisHighlightsParams implements HasToJson {
  *   "length": int
  *   "delta": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisInvalidateParams implements HasToJson {
   String _file;
@@ -2676,25 +3118,25 @@ class AnalysisInvalidateParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       int delta;
       if (json.containsKey("delta")) {
-        delta = jsonDecoder._decodeInt(jsonPath + ".delta", json["delta"]);
+        delta = jsonDecoder.decodeInt(jsonPath + ".delta", json["delta"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "delta");
       }
@@ -2739,11 +3181,11 @@ class AnalysisInvalidateParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, delta.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, delta.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2756,6 +3198,8 @@ class AnalysisInvalidateParams implements HasToJson {
  *   "targets": List<NavigationTarget>
  *   "files": List<FilePath>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisNavigationParams implements HasToJson {
   String _file;
@@ -2848,25 +3292,25 @@ class AnalysisNavigationParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<NavigationRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder._decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
       List<NavigationTarget> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder._decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "targets");
       }
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder._decodeList(jsonPath + ".files", json["files"], jsonDecoder._decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -2901,9 +3345,9 @@ class AnalysisNavigationParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisNavigationParams) {
       return file == other.file &&
-          _listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b) &&
-          _listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
-          _listEqual(files, other.files, (String a, String b) => a == b);
+          listEqual(regions, other.regions, (NavigationRegion a, NavigationRegion b) => a == b) &&
+          listEqual(targets, other.targets, (NavigationTarget a, NavigationTarget b) => a == b) &&
+          listEqual(files, other.files, (String a, String b) => a == b);
     }
     return false;
   }
@@ -2911,11 +3355,11 @@ class AnalysisNavigationParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, regions.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, targets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, files.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, regions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, files.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -2926,6 +3370,8 @@ class AnalysisNavigationParams implements HasToJson {
  *   "file": FilePath
  *   "occurrences": List<Occurrences>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisOccurrencesParams implements HasToJson {
   String _file;
@@ -2970,13 +3416,13 @@ class AnalysisOccurrencesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<Occurrences> occurrences;
       if (json.containsKey("occurrences")) {
-        occurrences = jsonDecoder._decodeList(jsonPath + ".occurrences", json["occurrences"], (String jsonPath, Object json) => new Occurrences.fromJson(jsonDecoder, jsonPath, json));
+        occurrences = jsonDecoder.decodeList(jsonPath + ".occurrences", json["occurrences"], (String jsonPath, Object json) => new Occurrences.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "occurrences");
       }
@@ -3009,7 +3455,7 @@ class AnalysisOccurrencesParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisOccurrencesParams) {
       return file == other.file &&
-          _listEqual(occurrences, other.occurrences, (Occurrences a, Occurrences b) => a == b);
+          listEqual(occurrences, other.occurrences, (Occurrences a, Occurrences b) => a == b);
     }
     return false;
   }
@@ -3017,9 +3463,9 @@ class AnalysisOccurrencesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, occurrences.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3028,11 +3474,19 @@ class AnalysisOccurrencesParams implements HasToJson {
  *
  * {
  *   "file": FilePath
+ *   "kind": FileKind
+ *   "libraryName": optional String
  *   "outline": Outline
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisOutlineParams implements HasToJson {
   String _file;
+
+  FileKind _kind;
+
+  String _libraryName;
 
   Outline _outline;
 
@@ -3050,6 +3504,39 @@ class AnalysisOutlineParams implements HasToJson {
   }
 
   /**
+   * The kind of the file.
+   */
+  FileKind get kind => _kind;
+
+  /**
+   * The kind of the file.
+   */
+  void set kind(FileKind value) {
+    assert(value != null);
+    this._kind = value;
+  }
+
+  /**
+   * The name of the library defined by the file using a "library" directive,
+   * or referenced by a "part of" directive. If both "library" and "part of"
+   * directives are present, then the "library" directive takes precedence.
+   * This field will be omitted if the file has neither "library" nor "part of"
+   * directives.
+   */
+  String get libraryName => _libraryName;
+
+  /**
+   * The name of the library defined by the file using a "library" directive,
+   * or referenced by a "part of" directive. If both "library" and "part of"
+   * directives are present, then the "library" directive takes precedence.
+   * This field will be omitted if the file has neither "library" nor "part of"
+   * directives.
+   */
+  void set libraryName(String value) {
+    this._libraryName = value;
+  }
+
+  /**
    * The outline associated with the file.
    */
   Outline get outline => _outline;
@@ -3062,8 +3549,10 @@ class AnalysisOutlineParams implements HasToJson {
     this._outline = value;
   }
 
-  AnalysisOutlineParams(String file, Outline outline) {
+  AnalysisOutlineParams(String file, FileKind kind, Outline outline, {String libraryName}) {
     this.file = file;
+    this.kind = kind;
+    this.libraryName = libraryName;
     this.outline = outline;
   }
 
@@ -3074,9 +3563,19 @@ class AnalysisOutlineParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
+      }
+      FileKind kind;
+      if (json.containsKey("kind")) {
+        kind = new FileKind.fromJson(jsonDecoder, jsonPath + ".kind", json["kind"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "kind");
+      }
+      String libraryName;
+      if (json.containsKey("libraryName")) {
+        libraryName = jsonDecoder.decodeString(jsonPath + ".libraryName", json["libraryName"]);
       }
       Outline outline;
       if (json.containsKey("outline")) {
@@ -3084,7 +3583,7 @@ class AnalysisOutlineParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "outline");
       }
-      return new AnalysisOutlineParams(file, outline);
+      return new AnalysisOutlineParams(file, kind, outline, libraryName: libraryName);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "analysis.outline params", json);
     }
@@ -3098,6 +3597,10 @@ class AnalysisOutlineParams implements HasToJson {
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
     result["file"] = file;
+    result["kind"] = kind.toJson();
+    if (libraryName != null) {
+      result["libraryName"] = libraryName;
+    }
     result["outline"] = outline.toJson();
     return result;
   }
@@ -3113,6 +3616,8 @@ class AnalysisOutlineParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisOutlineParams) {
       return file == other.file &&
+          kind == other.kind &&
+          libraryName == other.libraryName &&
           outline == other.outline;
     }
     return false;
@@ -3121,9 +3626,11 @@ class AnalysisOutlineParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, outline.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, libraryName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, outline.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3134,6 +3641,8 @@ class AnalysisOutlineParams implements HasToJson {
  *   "file": FilePath
  *   "overrides": List<Override>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisOverridesParams implements HasToJson {
   String _file;
@@ -3178,13 +3687,13 @@ class AnalysisOverridesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       List<Override> overrides;
       if (json.containsKey("overrides")) {
-        overrides = jsonDecoder._decodeList(jsonPath + ".overrides", json["overrides"], (String jsonPath, Object json) => new Override.fromJson(jsonDecoder, jsonPath, json));
+        overrides = jsonDecoder.decodeList(jsonPath + ".overrides", json["overrides"], (String jsonPath, Object json) => new Override.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "overrides");
       }
@@ -3217,7 +3726,7 @@ class AnalysisOverridesParams implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisOverridesParams) {
       return file == other.file &&
-          _listEqual(overrides, other.overrides, (Override a, Override b) => a == b);
+          listEqual(overrides, other.overrides, (Override a, Override b) => a == b);
     }
     return false;
   }
@@ -3225,9 +3734,9 @@ class AnalysisOverridesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, overrides.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, overrides.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3238,6 +3747,8 @@ class AnalysisOverridesParams implements HasToJson {
  *   "file": FilePath
  *   "offset": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionGetSuggestionsParams implements HasToJson {
   String _file;
@@ -3282,13 +3793,13 @@ class CompletionGetSuggestionsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
@@ -3329,9 +3840,9 @@ class CompletionGetSuggestionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3341,6 +3852,8 @@ class CompletionGetSuggestionsParams implements HasToJson {
  * {
  *   "id": CompletionId
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionGetSuggestionsResult implements HasToJson {
   String _id;
@@ -3369,7 +3882,7 @@ class CompletionGetSuggestionsResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -3408,8 +3921,8 @@ class CompletionGetSuggestionsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3423,6 +3936,8 @@ class CompletionGetSuggestionsResult implements HasToJson {
  *   "results": List<CompletionSuggestion>
  *   "isLast": bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionResultsParams implements HasToJson {
   String _id;
@@ -3535,31 +4050,31 @@ class CompletionResultsParams implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
       int replacementOffset;
       if (json.containsKey("replacementOffset")) {
-        replacementOffset = jsonDecoder._decodeInt(jsonPath + ".replacementOffset", json["replacementOffset"]);
+        replacementOffset = jsonDecoder.decodeInt(jsonPath + ".replacementOffset", json["replacementOffset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "replacementOffset");
       }
       int replacementLength;
       if (json.containsKey("replacementLength")) {
-        replacementLength = jsonDecoder._decodeInt(jsonPath + ".replacementLength", json["replacementLength"]);
+        replacementLength = jsonDecoder.decodeInt(jsonPath + ".replacementLength", json["replacementLength"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "replacementLength");
       }
       List<CompletionSuggestion> results;
       if (json.containsKey("results")) {
-        results = jsonDecoder._decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+        results = jsonDecoder.decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "results");
       }
       bool isLast;
       if (json.containsKey("isLast")) {
-        isLast = jsonDecoder._decodeBool(jsonPath + ".isLast", json["isLast"]);
+        isLast = jsonDecoder.decodeBool(jsonPath + ".isLast", json["isLast"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isLast");
       }
@@ -3597,7 +4112,7 @@ class CompletionResultsParams implements HasToJson {
       return id == other.id &&
           replacementOffset == other.replacementOffset &&
           replacementLength == other.replacementLength &&
-          _listEqual(results, other.results, (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
+          listEqual(results, other.results, (CompletionSuggestion a, CompletionSuggestion b) => a == b) &&
           isLast == other.isLast;
     }
     return false;
@@ -3606,12 +4121,12 @@ class CompletionResultsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, replacementOffset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, replacementLength.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, results.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isLast.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, replacementOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, replacementLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, results.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isLast.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3623,6 +4138,8 @@ class CompletionResultsParams implements HasToJson {
  *   "offset": int
  *   "includePotential": bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindElementReferencesParams implements HasToJson {
   String _file;
@@ -3687,19 +4204,19 @@ class SearchFindElementReferencesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       bool includePotential;
       if (json.containsKey("includePotential")) {
-        includePotential = jsonDecoder._decodeBool(jsonPath + ".includePotential", json["includePotential"]);
+        includePotential = jsonDecoder.decodeBool(jsonPath + ".includePotential", json["includePotential"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "includePotential");
       }
@@ -3742,10 +4259,10 @@ class SearchFindElementReferencesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, includePotential.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, includePotential.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3756,6 +4273,8 @@ class SearchFindElementReferencesParams implements HasToJson {
  *   "id": optional SearchId
  *   "element": optional Element
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindElementReferencesResult implements HasToJson {
   String _id;
@@ -3810,7 +4329,7 @@ class SearchFindElementReferencesResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       }
       Element element;
       if (json.containsKey("element")) {
@@ -3857,9 +4376,9 @@ class SearchFindElementReferencesResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3869,6 +4388,8 @@ class SearchFindElementReferencesResult implements HasToJson {
  * {
  *   "name": String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindMemberDeclarationsParams implements HasToJson {
   String _name;
@@ -3897,7 +4418,7 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
@@ -3936,8 +4457,8 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -3947,6 +4468,8 @@ class SearchFindMemberDeclarationsParams implements HasToJson {
  * {
  *   "id": SearchId
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindMemberDeclarationsResult implements HasToJson {
   String _id;
@@ -3975,7 +4498,7 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -4014,8 +4537,8 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4025,6 +4548,8 @@ class SearchFindMemberDeclarationsResult implements HasToJson {
  * {
  *   "name": String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindMemberReferencesParams implements HasToJson {
   String _name;
@@ -4053,7 +4578,7 @@ class SearchFindMemberReferencesParams implements HasToJson {
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
@@ -4092,8 +4617,8 @@ class SearchFindMemberReferencesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4103,6 +4628,8 @@ class SearchFindMemberReferencesParams implements HasToJson {
  * {
  *   "id": SearchId
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindMemberReferencesResult implements HasToJson {
   String _id;
@@ -4131,7 +4658,7 @@ class SearchFindMemberReferencesResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -4170,8 +4697,8 @@ class SearchFindMemberReferencesResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4181,6 +4708,8 @@ class SearchFindMemberReferencesResult implements HasToJson {
  * {
  *   "pattern": String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindTopLevelDeclarationsParams implements HasToJson {
   String _pattern;
@@ -4211,7 +4740,7 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
     if (json is Map) {
       String pattern;
       if (json.containsKey("pattern")) {
-        pattern = jsonDecoder._decodeString(jsonPath + ".pattern", json["pattern"]);
+        pattern = jsonDecoder.decodeString(jsonPath + ".pattern", json["pattern"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "pattern");
       }
@@ -4250,8 +4779,8 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, pattern.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, pattern.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4261,6 +4790,8 @@ class SearchFindTopLevelDeclarationsParams implements HasToJson {
  * {
  *   "id": SearchId
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchFindTopLevelDeclarationsResult implements HasToJson {
   String _id;
@@ -4289,7 +4820,7 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -4328,8 +4859,8 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4339,12 +4870,17 @@ class SearchFindTopLevelDeclarationsResult implements HasToJson {
  * {
  *   "file": FilePath
  *   "offset": int
+ *   "superOnly": optional bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchGetTypeHierarchyParams implements HasToJson {
   String _file;
 
   int _offset;
+
+  bool _superOnly;
 
   /**
    * The file containing the declaration or reference to the type for which a
@@ -4374,9 +4910,24 @@ class SearchGetTypeHierarchyParams implements HasToJson {
     this._offset = value;
   }
 
-  SearchGetTypeHierarchyParams(String file, int offset) {
+  /**
+   * True if the client is only requesting superclasses and interfaces
+   * hierarchy.
+   */
+  bool get superOnly => _superOnly;
+
+  /**
+   * True if the client is only requesting superclasses and interfaces
+   * hierarchy.
+   */
+  void set superOnly(bool value) {
+    this._superOnly = value;
+  }
+
+  SearchGetTypeHierarchyParams(String file, int offset, {bool superOnly}) {
     this.file = file;
     this.offset = offset;
+    this.superOnly = superOnly;
   }
 
   factory SearchGetTypeHierarchyParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -4386,17 +4937,21 @@ class SearchGetTypeHierarchyParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
-      return new SearchGetTypeHierarchyParams(file, offset);
+      bool superOnly;
+      if (json.containsKey("superOnly")) {
+        superOnly = jsonDecoder.decodeBool(jsonPath + ".superOnly", json["superOnly"]);
+      }
+      return new SearchGetTypeHierarchyParams(file, offset, superOnly: superOnly);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "search.getTypeHierarchy params", json);
     }
@@ -4411,6 +4966,9 @@ class SearchGetTypeHierarchyParams implements HasToJson {
     Map<String, dynamic> result = {};
     result["file"] = file;
     result["offset"] = offset;
+    if (superOnly != null) {
+      result["superOnly"] = superOnly;
+    }
     return result;
   }
 
@@ -4425,7 +4983,8 @@ class SearchGetTypeHierarchyParams implements HasToJson {
   bool operator==(other) {
     if (other is SearchGetTypeHierarchyParams) {
       return file == other.file &&
-          offset == other.offset;
+          offset == other.offset &&
+          superOnly == other.superOnly;
     }
     return false;
   }
@@ -4433,9 +4992,10 @@ class SearchGetTypeHierarchyParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, superOnly.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4445,6 +5005,8 @@ class SearchGetTypeHierarchyParams implements HasToJson {
  * {
  *   "hierarchyItems": optional List<TypeHierarchyItem>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchGetTypeHierarchyResult implements HasToJson {
   List<TypeHierarchyItem> _hierarchyItems;
@@ -4488,7 +5050,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
     if (json is Map) {
       List<TypeHierarchyItem> hierarchyItems;
       if (json.containsKey("hierarchyItems")) {
-        hierarchyItems = jsonDecoder._decodeList(jsonPath + ".hierarchyItems", json["hierarchyItems"], (String jsonPath, Object json) => new TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
+        hierarchyItems = jsonDecoder.decodeList(jsonPath + ".hierarchyItems", json["hierarchyItems"], (String jsonPath, Object json) => new TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
       }
       return new SearchGetTypeHierarchyResult(hierarchyItems: hierarchyItems);
     } else {
@@ -4519,7 +5081,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is SearchGetTypeHierarchyResult) {
-      return _listEqual(hierarchyItems, other.hierarchyItems, (TypeHierarchyItem a, TypeHierarchyItem b) => a == b);
+      return listEqual(hierarchyItems, other.hierarchyItems, (TypeHierarchyItem a, TypeHierarchyItem b) => a == b);
     }
     return false;
   }
@@ -4527,8 +5089,8 @@ class SearchGetTypeHierarchyResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, hierarchyItems.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, hierarchyItems.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4540,6 +5102,8 @@ class SearchGetTypeHierarchyResult implements HasToJson {
  *   "results": List<SearchResult>
  *   "isLast": bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchResultsParams implements HasToJson {
   String _id;
@@ -4602,19 +5166,19 @@ class SearchResultsParams implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
       List<SearchResult> results;
       if (json.containsKey("results")) {
-        results = jsonDecoder._decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new SearchResult.fromJson(jsonDecoder, jsonPath, json));
+        results = jsonDecoder.decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new SearchResult.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "results");
       }
       bool isLast;
       if (json.containsKey("isLast")) {
-        isLast = jsonDecoder._decodeBool(jsonPath + ".isLast", json["isLast"]);
+        isLast = jsonDecoder.decodeBool(jsonPath + ".isLast", json["isLast"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isLast");
       }
@@ -4648,7 +5212,7 @@ class SearchResultsParams implements HasToJson {
   bool operator==(other) {
     if (other is SearchResultsParams) {
       return id == other.id &&
-          _listEqual(results, other.results, (SearchResult a, SearchResult b) => a == b) &&
+          listEqual(results, other.results, (SearchResult a, SearchResult b) => a == b) &&
           isLast == other.isLast;
     }
     return false;
@@ -4657,10 +5221,10 @@ class SearchResultsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, results.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isLast.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, results.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isLast.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4673,6 +5237,8 @@ class SearchResultsParams implements HasToJson {
  *   "selectionLength": int
  *   "lineLength": optional int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditFormatParams implements HasToJson {
   String _file;
@@ -4748,25 +5314,25 @@ class EditFormatParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
-        selectionOffset = jsonDecoder._decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
+        selectionOffset = jsonDecoder.decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionOffset");
       }
       int selectionLength;
       if (json.containsKey("selectionLength")) {
-        selectionLength = jsonDecoder._decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
+        selectionLength = jsonDecoder.decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionLength");
       }
       int lineLength;
       if (json.containsKey("lineLength")) {
-        lineLength = jsonDecoder._decodeInt(jsonPath + ".lineLength", json["lineLength"]);
+        lineLength = jsonDecoder.decodeInt(jsonPath + ".lineLength", json["lineLength"]);
       }
       return new EditFormatParams(file, selectionOffset, selectionLength, lineLength: lineLength);
     } else {
@@ -4811,11 +5377,11 @@ class EditFormatParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionLength.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, lineLength.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lineLength.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4827,6 +5393,8 @@ class EditFormatParams implements HasToJson {
  *   "selectionOffset": int
  *   "selectionLength": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditFormatResult implements HasToJson {
   List<SourceEdit> _edits;
@@ -4889,19 +5457,19 @@ class EditFormatResult implements HasToJson {
     if (json is Map) {
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
-        selectionOffset = jsonDecoder._decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
+        selectionOffset = jsonDecoder.decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionOffset");
       }
       int selectionLength;
       if (json.containsKey("selectionLength")) {
-        selectionLength = jsonDecoder._decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
+        selectionLength = jsonDecoder.decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionLength");
       }
@@ -4934,7 +5502,7 @@ class EditFormatResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditFormatResult) {
-      return _listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b) &&
+      return listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b) &&
           selectionOffset == other.selectionOffset &&
           selectionLength == other.selectionLength;
     }
@@ -4944,10 +5512,10 @@ class EditFormatResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionLength.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -4959,6 +5527,8 @@ class EditFormatResult implements HasToJson {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetAssistsParams implements HasToJson {
   String _file;
@@ -5019,19 +5589,19 @@ class EditGetAssistsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -5074,10 +5644,10 @@ class EditGetAssistsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5087,6 +5657,8 @@ class EditGetAssistsParams implements HasToJson {
  * {
  *   "assists": List<SourceChange>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetAssistsResult implements HasToJson {
   List<SourceChange> _assists;
@@ -5115,7 +5687,7 @@ class EditGetAssistsResult implements HasToJson {
     if (json is Map) {
       List<SourceChange> assists;
       if (json.containsKey("assists")) {
-        assists = jsonDecoder._decodeList(jsonPath + ".assists", json["assists"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+        assists = jsonDecoder.decodeList(jsonPath + ".assists", json["assists"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "assists");
       }
@@ -5146,7 +5718,7 @@ class EditGetAssistsResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetAssistsResult) {
-      return _listEqual(assists, other.assists, (SourceChange a, SourceChange b) => a == b);
+      return listEqual(assists, other.assists, (SourceChange a, SourceChange b) => a == b);
     }
     return false;
   }
@@ -5154,8 +5726,8 @@ class EditGetAssistsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, assists.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, assists.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5167,6 +5739,8 @@ class EditGetAssistsResult implements HasToJson {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetAvailableRefactoringsParams implements HasToJson {
   String _file;
@@ -5227,19 +5801,19 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -5282,10 +5856,10 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5295,6 +5869,8 @@ class EditGetAvailableRefactoringsParams implements HasToJson {
  * {
  *   "kinds": List<RefactoringKind>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetAvailableRefactoringsResult implements HasToJson {
   List<RefactoringKind> _kinds;
@@ -5323,7 +5899,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
     if (json is Map) {
       List<RefactoringKind> kinds;
       if (json.containsKey("kinds")) {
-        kinds = jsonDecoder._decodeList(jsonPath + ".kinds", json["kinds"], (String jsonPath, Object json) => new RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
+        kinds = jsonDecoder.decodeList(jsonPath + ".kinds", json["kinds"], (String jsonPath, Object json) => new RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "kinds");
       }
@@ -5354,7 +5930,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetAvailableRefactoringsResult) {
-      return _listEqual(kinds, other.kinds, (RefactoringKind a, RefactoringKind b) => a == b);
+      return listEqual(kinds, other.kinds, (RefactoringKind a, RefactoringKind b) => a == b);
     }
     return false;
   }
@@ -5362,8 +5938,8 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kinds.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kinds.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5374,6 +5950,8 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
  *   "file": FilePath
  *   "offset": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetFixesParams implements HasToJson {
   String _file;
@@ -5418,13 +5996,13 @@ class EditGetFixesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
@@ -5465,9 +6043,9 @@ class EditGetFixesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5477,6 +6055,8 @@ class EditGetFixesParams implements HasToJson {
  * {
  *   "fixes": List<AnalysisErrorFixes>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetFixesResult implements HasToJson {
   List<AnalysisErrorFixes> _fixes;
@@ -5505,7 +6085,7 @@ class EditGetFixesResult implements HasToJson {
     if (json is Map) {
       List<AnalysisErrorFixes> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fixes");
       }
@@ -5536,7 +6116,7 @@ class EditGetFixesResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetFixesResult) {
-      return _listEqual(fixes, other.fixes, (AnalysisErrorFixes a, AnalysisErrorFixes b) => a == b);
+      return listEqual(fixes, other.fixes, (AnalysisErrorFixes a, AnalysisErrorFixes b) => a == b);
     }
     return false;
   }
@@ -5544,8 +6124,8 @@ class EditGetFixesResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, fixes.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5560,6 +6140,8 @@ class EditGetFixesResult implements HasToJson {
  *   "validateOnly": bool
  *   "options": optional RefactoringOptions
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetRefactoringParams implements HasToJson {
   RefactoringKind _kind;
@@ -5683,25 +6265,25 @@ class EditGetRefactoringParams implements HasToJson {
       }
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       bool validateOnly;
       if (json.containsKey("validateOnly")) {
-        validateOnly = jsonDecoder._decodeBool(jsonPath + ".validateOnly", json["validateOnly"]);
+        validateOnly = jsonDecoder.decodeBool(jsonPath + ".validateOnly", json["validateOnly"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "validateOnly");
       }
@@ -5758,13 +6340,13 @@ class EditGetRefactoringParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, validateOnly.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, options.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, validateOnly.hashCode);
+    hash = JenkinsSmiHash.combine(hash, options.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -5779,6 +6361,8 @@ class EditGetRefactoringParams implements HasToJson {
  *   "change": optional SourceChange
  *   "potentialEdits": optional List<String>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditGetRefactoringResult implements HasToJson {
   List<RefactoringProblem> _initialProblems;
@@ -5918,19 +6502,19 @@ class EditGetRefactoringResult implements HasToJson {
     if (json is Map) {
       List<RefactoringProblem> initialProblems;
       if (json.containsKey("initialProblems")) {
-        initialProblems = jsonDecoder._decodeList(jsonPath + ".initialProblems", json["initialProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        initialProblems = jsonDecoder.decodeList(jsonPath + ".initialProblems", json["initialProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "initialProblems");
       }
       List<RefactoringProblem> optionsProblems;
       if (json.containsKey("optionsProblems")) {
-        optionsProblems = jsonDecoder._decodeList(jsonPath + ".optionsProblems", json["optionsProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        optionsProblems = jsonDecoder.decodeList(jsonPath + ".optionsProblems", json["optionsProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "optionsProblems");
       }
       List<RefactoringProblem> finalProblems;
       if (json.containsKey("finalProblems")) {
-        finalProblems = jsonDecoder._decodeList(jsonPath + ".finalProblems", json["finalProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        finalProblems = jsonDecoder.decodeList(jsonPath + ".finalProblems", json["finalProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "finalProblems");
       }
@@ -5944,7 +6528,7 @@ class EditGetRefactoringResult implements HasToJson {
       }
       List<String> potentialEdits;
       if (json.containsKey("potentialEdits")) {
-        potentialEdits = jsonDecoder._decodeList(jsonPath + ".potentialEdits", json["potentialEdits"], jsonDecoder._decodeString);
+        potentialEdits = jsonDecoder.decodeList(jsonPath + ".potentialEdits", json["potentialEdits"], jsonDecoder.decodeString);
       }
       return new EditGetRefactoringResult(initialProblems, optionsProblems, finalProblems, feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
@@ -5984,12 +6568,12 @@ class EditGetRefactoringResult implements HasToJson {
   @override
   bool operator==(other) {
     if (other is EditGetRefactoringResult) {
-      return _listEqual(initialProblems, other.initialProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
-          _listEqual(optionsProblems, other.optionsProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
-          _listEqual(finalProblems, other.finalProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+      return listEqual(initialProblems, other.initialProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+          listEqual(optionsProblems, other.optionsProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
+          listEqual(finalProblems, other.finalProblems, (RefactoringProblem a, RefactoringProblem b) => a == b) &&
           feedback == other.feedback &&
           change == other.change &&
-          _listEqual(potentialEdits, other.potentialEdits, (String a, String b) => a == b);
+          listEqual(potentialEdits, other.potentialEdits, (String a, String b) => a == b);
     }
     return false;
   }
@@ -5997,13 +6581,13 @@ class EditGetRefactoringResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, initialProblems.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, optionsProblems.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, finalProblems.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, feedback.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, change.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, potentialEdits.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, initialProblems.hashCode);
+    hash = JenkinsSmiHash.combine(hash, optionsProblems.hashCode);
+    hash = JenkinsSmiHash.combine(hash, finalProblems.hashCode);
+    hash = JenkinsSmiHash.combine(hash, feedback.hashCode);
+    hash = JenkinsSmiHash.combine(hash, change.hashCode);
+    hash = JenkinsSmiHash.combine(hash, potentialEdits.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6013,6 +6597,8 @@ class EditGetRefactoringResult implements HasToJson {
  * {
  *   "file": FilePath
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditSortMembersParams implements HasToJson {
   String _file;
@@ -6041,7 +6627,7 @@ class EditSortMembersParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -6080,8 +6666,8 @@ class EditSortMembersParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6091,6 +6677,8 @@ class EditSortMembersParams implements HasToJson {
  * {
  *   "edit": SourceFileEdit
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditSortMembersResult implements HasToJson {
   SourceFileEdit _edit;
@@ -6160,8 +6748,8 @@ class EditSortMembersResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, edit.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, edit.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6171,6 +6759,8 @@ class EditSortMembersResult implements HasToJson {
  * {
  *   "file": FilePath
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditOrganizeDirectivesParams implements HasToJson {
   String _file;
@@ -6199,7 +6789,7 @@ class EditOrganizeDirectivesParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -6238,8 +6828,8 @@ class EditOrganizeDirectivesParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6249,6 +6839,8 @@ class EditOrganizeDirectivesParams implements HasToJson {
  * {
  *   "edit": SourceFileEdit
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class EditOrganizeDirectivesResult implements HasToJson {
   SourceFileEdit _edit;
@@ -6318,8 +6910,8 @@ class EditOrganizeDirectivesResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, edit.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, edit.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6329,6 +6921,8 @@ class EditOrganizeDirectivesResult implements HasToJson {
  * {
  *   "contextRoot": FilePath
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionCreateContextParams implements HasToJson {
   String _contextRoot;
@@ -6359,7 +6953,7 @@ class ExecutionCreateContextParams implements HasToJson {
     if (json is Map) {
       String contextRoot;
       if (json.containsKey("contextRoot")) {
-        contextRoot = jsonDecoder._decodeString(jsonPath + ".contextRoot", json["contextRoot"]);
+        contextRoot = jsonDecoder.decodeString(jsonPath + ".contextRoot", json["contextRoot"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "contextRoot");
       }
@@ -6398,8 +6992,8 @@ class ExecutionCreateContextParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, contextRoot.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, contextRoot.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6409,6 +7003,8 @@ class ExecutionCreateContextParams implements HasToJson {
  * {
  *   "id": ExecutionContextId
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionCreateContextResult implements HasToJson {
   String _id;
@@ -6437,7 +7033,7 @@ class ExecutionCreateContextResult implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -6476,8 +7072,8 @@ class ExecutionCreateContextResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6487,6 +7083,8 @@ class ExecutionCreateContextResult implements HasToJson {
  * {
  *   "id": ExecutionContextId
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionDeleteContextParams implements HasToJson {
   String _id;
@@ -6515,7 +7113,7 @@ class ExecutionDeleteContextParams implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
@@ -6554,12 +7152,14 @@ class ExecutionDeleteContextParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * execution.deleteContext result
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionDeleteContextResult {
   Response toResponse(String id) {
@@ -6588,6 +7188,8 @@ class ExecutionDeleteContextResult {
  *   "file": optional FilePath
  *   "uri": optional String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionMapUriParams implements HasToJson {
   String _id;
@@ -6646,17 +7248,17 @@ class ExecutionMapUriParams implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "id");
       }
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       }
       String uri;
       if (json.containsKey("uri")) {
-        uri = jsonDecoder._decodeString(jsonPath + ".uri", json["uri"]);
+        uri = jsonDecoder.decodeString(jsonPath + ".uri", json["uri"]);
       }
       return new ExecutionMapUriParams(id, file: file, uri: uri);
     } else {
@@ -6701,10 +7303,10 @@ class ExecutionMapUriParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, uri.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6715,6 +7317,8 @@ class ExecutionMapUriParams implements HasToJson {
  *   "file": optional FilePath
  *   "uri": optional String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionMapUriResult implements HasToJson {
   String _file;
@@ -6761,11 +7365,11 @@ class ExecutionMapUriResult implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       }
       String uri;
       if (json.containsKey("uri")) {
-        uri = jsonDecoder._decodeString(jsonPath + ".uri", json["uri"]);
+        uri = jsonDecoder.decodeString(jsonPath + ".uri", json["uri"]);
       }
       return new ExecutionMapUriResult(file: file, uri: uri);
     } else {
@@ -6808,9 +7412,9 @@ class ExecutionMapUriResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, uri.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, uri.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -6820,6 +7424,8 @@ class ExecutionMapUriResult implements HasToJson {
  * {
  *   "subscriptions": List<ExecutionService>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionSetSubscriptionsParams implements HasToJson {
   List<ExecutionService> _subscriptions;
@@ -6848,7 +7454,7 @@ class ExecutionSetSubscriptionsParams implements HasToJson {
     if (json is Map) {
       List<ExecutionService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ExecutionService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ExecutionService.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -6879,7 +7485,7 @@ class ExecutionSetSubscriptionsParams implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ExecutionSetSubscriptionsParams) {
-      return _listEqual(subscriptions, other.subscriptions, (ExecutionService a, ExecutionService b) => a == b);
+      return listEqual(subscriptions, other.subscriptions, (ExecutionService a, ExecutionService b) => a == b);
     }
     return false;
   }
@@ -6887,12 +7493,14 @@ class ExecutionSetSubscriptionsParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, subscriptions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * execution.setSubscriptions result
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionSetSubscriptionsResult {
   Response toResponse(String id) {
@@ -6921,6 +7529,8 @@ class ExecutionSetSubscriptionsResult {
  *   "kind": optional ExecutableKind
  *   "referencedFiles": optional List<FilePath>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionLaunchDataParams implements HasToJson {
   String _file;
@@ -6985,7 +7595,7 @@ class ExecutionLaunchDataParams implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -6995,7 +7605,7 @@ class ExecutionLaunchDataParams implements HasToJson {
       }
       List<String> referencedFiles;
       if (json.containsKey("referencedFiles")) {
-        referencedFiles = jsonDecoder._decodeList(jsonPath + ".referencedFiles", json["referencedFiles"], jsonDecoder._decodeString);
+        referencedFiles = jsonDecoder.decodeList(jsonPath + ".referencedFiles", json["referencedFiles"], jsonDecoder.decodeString);
       }
       return new ExecutionLaunchDataParams(file, kind: kind, referencedFiles: referencedFiles);
     } else {
@@ -7032,7 +7642,7 @@ class ExecutionLaunchDataParams implements HasToJson {
     if (other is ExecutionLaunchDataParams) {
       return file == other.file &&
           kind == other.kind &&
-          _listEqual(referencedFiles, other.referencedFiles, (String a, String b) => a == b);
+          listEqual(referencedFiles, other.referencedFiles, (String a, String b) => a == b);
     }
     return false;
   }
@@ -7040,10 +7650,113 @@ class ExecutionLaunchDataParams implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, referencedFiles.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, referencedFiles.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+/**
+ * diagnostic.getDiagnostics params
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DiagnosticGetDiagnosticsParams {
+  Request toRequest(String id) {
+    return new Request(id, "diagnostic.getDiagnostics", null);
+  }
+
+  @override
+  bool operator==(other) {
+    if (other is DiagnosticGetDiagnosticsParams) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 587526202;
+  }
+}
+
+/**
+ * diagnostic.getDiagnostics result
+ *
+ * {
+ *   "contexts": List<ContextData>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class DiagnosticGetDiagnosticsResult implements HasToJson {
+  List<ContextData> _contexts;
+
+  /**
+   * The list of analysis contexts.
+   */
+  List<ContextData> get contexts => _contexts;
+
+  /**
+   * The list of analysis contexts.
+   */
+  void set contexts(List<ContextData> value) {
+    assert(value != null);
+    this._contexts = value;
+  }
+
+  DiagnosticGetDiagnosticsResult(List<ContextData> contexts) {
+    this.contexts = contexts;
+  }
+
+  factory DiagnosticGetDiagnosticsResult.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<ContextData> contexts;
+      if (json.containsKey("contexts")) {
+        contexts = jsonDecoder.decodeList(jsonPath + ".contexts", json["contexts"], (String jsonPath, Object json) => new ContextData.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "contexts");
+      }
+      return new DiagnosticGetDiagnosticsResult(contexts);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "diagnostic.getDiagnostics result", json);
+    }
+  }
+
+  factory DiagnosticGetDiagnosticsResult.fromResponse(Response response) {
+    return new DiagnosticGetDiagnosticsResult.fromJson(
+        new ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)), "result", response._result);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["contexts"] = contexts.map((ContextData value) => value.toJson()).toList();
+    return result;
+  }
+
+  Response toResponse(String id) {
+    return new Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is DiagnosticGetDiagnosticsResult) {
+      return listEqual(contexts, other.contexts, (ContextData a, ContextData b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, contexts.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7054,6 +7767,8 @@ class ExecutionLaunchDataParams implements HasToJson {
  *   "type": "add"
  *   "content": String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AddContentOverlay implements HasToJson {
   String _content;
@@ -7085,7 +7800,7 @@ class AddContentOverlay implements HasToJson {
       }
       String content;
       if (json.containsKey("content")) {
-        content = jsonDecoder._decodeString(jsonPath + ".content", json["content"]);
+        content = jsonDecoder.decodeString(jsonPath + ".content", json["content"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "content");
       }
@@ -7116,9 +7831,9 @@ class AddContentOverlay implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, 704418402);
-    hash = _JenkinsSmiHash.combine(hash, content.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, 704418402);
+    hash = JenkinsSmiHash.combine(hash, content.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7131,7 +7846,11 @@ class AddContentOverlay implements HasToJson {
  *   "location": Location
  *   "message": String
  *   "correction": optional String
+ *   "code": String
+ *   "hasFix": optional bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisError implements HasToJson {
   AnalysisErrorSeverity _severity;
@@ -7143,6 +7862,10 @@ class AnalysisError implements HasToJson {
   String _message;
 
   String _correction;
+
+  String _code;
+
+  bool _hasFix;
 
   /**
    * The severity of the error.
@@ -7214,12 +7937,53 @@ class AnalysisError implements HasToJson {
     this._correction = value;
   }
 
-  AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type, Location location, String message, {String correction}) {
+  /**
+   * The name, as a string, of the error code associated with this error.
+   */
+  String get code => _code;
+
+  /**
+   * The name, as a string, of the error code associated with this error.
+   */
+  void set code(String value) {
+    assert(value != null);
+    this._code = value;
+  }
+
+  /**
+   * A hint to indicate to interested clients that this error has an associated
+   * fix (or fixes). The absence of this field implies there are not known to
+   * be fixes. Note that since the operation to calculate whether fixes apply
+   * needs to be performant it is possible that complicated tests will be
+   * skipped and a false negative returned. For this reason, this attribute
+   * should be treated as a "hint". Despite the possibility of false negatives,
+   * no false positives should be returned. If a client sees this flag set they
+   * can proceed with the confidence that there are in fact associated fixes.
+   */
+  bool get hasFix => _hasFix;
+
+  /**
+   * A hint to indicate to interested clients that this error has an associated
+   * fix (or fixes). The absence of this field implies there are not known to
+   * be fixes. Note that since the operation to calculate whether fixes apply
+   * needs to be performant it is possible that complicated tests will be
+   * skipped and a false negative returned. For this reason, this attribute
+   * should be treated as a "hint". Despite the possibility of false negatives,
+   * no false positives should be returned. If a client sees this flag set they
+   * can proceed with the confidence that there are in fact associated fixes.
+   */
+  void set hasFix(bool value) {
+    this._hasFix = value;
+  }
+
+  AnalysisError(AnalysisErrorSeverity severity, AnalysisErrorType type, Location location, String message, String code, {String correction, bool hasFix}) {
     this.severity = severity;
     this.type = type;
     this.location = location;
     this.message = message;
     this.correction = correction;
+    this.code = code;
+    this.hasFix = hasFix;
   }
 
   factory AnalysisError.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -7247,15 +8011,25 @@ class AnalysisError implements HasToJson {
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
       String correction;
       if (json.containsKey("correction")) {
-        correction = jsonDecoder._decodeString(jsonPath + ".correction", json["correction"]);
+        correction = jsonDecoder.decodeString(jsonPath + ".correction", json["correction"]);
       }
-      return new AnalysisError(severity, type, location, message, correction: correction);
+      String code;
+      if (json.containsKey("code")) {
+        code = jsonDecoder.decodeString(jsonPath + ".code", json["code"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "code");
+      }
+      bool hasFix;
+      if (json.containsKey("hasFix")) {
+        hasFix = jsonDecoder.decodeBool(jsonPath + ".hasFix", json["hasFix"]);
+      }
+      return new AnalysisError(severity, type, location, message, code, correction: correction, hasFix: hasFix);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisError", json);
     }
@@ -7270,6 +8044,10 @@ class AnalysisError implements HasToJson {
     if (correction != null) {
       result["correction"] = correction;
     }
+    result["code"] = code;
+    if (hasFix != null) {
+      result["hasFix"] = hasFix;
+    }
     return result;
   }
 
@@ -7283,7 +8061,9 @@ class AnalysisError implements HasToJson {
           type == other.type &&
           location == other.location &&
           message == other.message &&
-          correction == other.correction;
+          correction == other.correction &&
+          code == other.code &&
+          hasFix == other.hasFix;
     }
     return false;
   }
@@ -7291,12 +8071,14 @@ class AnalysisError implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, severity.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, location.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, correction.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, severity.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, correction.hashCode);
+    hash = JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = JenkinsSmiHash.combine(hash, hasFix.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7307,6 +8089,8 @@ class AnalysisError implements HasToJson {
  *   "error": AnalysisError
  *   "fixes": List<SourceChange>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorFixes implements HasToJson {
   AnalysisError _error;
@@ -7361,7 +8145,7 @@ class AnalysisErrorFixes implements HasToJson {
       }
       List<SourceChange> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder._decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fixes");
       }
@@ -7385,7 +8169,7 @@ class AnalysisErrorFixes implements HasToJson {
   bool operator==(other) {
     if (other is AnalysisErrorFixes) {
       return error == other.error &&
-          _listEqual(fixes, other.fixes, (SourceChange a, SourceChange b) => a == b);
+          listEqual(fixes, other.fixes, (SourceChange a, SourceChange b) => a == b);
     }
     return false;
   }
@@ -7393,9 +8177,9 @@ class AnalysisErrorFixes implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, error.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, fixes.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, error.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fixes.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7407,13 +8191,15 @@ class AnalysisErrorFixes implements HasToJson {
  *   WARNING
  *   ERROR
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorSeverity implements Enum {
-  static const INFO = const AnalysisErrorSeverity._("INFO");
+  static const AnalysisErrorSeverity INFO = const AnalysisErrorSeverity._("INFO");
 
-  static const WARNING = const AnalysisErrorSeverity._("WARNING");
+  static const AnalysisErrorSeverity WARNING = const AnalysisErrorSeverity._("WARNING");
 
-  static const ERROR = const AnalysisErrorSeverity._("ERROR");
+  static const AnalysisErrorSeverity ERROR = const AnalysisErrorSeverity._("ERROR");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -7466,23 +8252,25 @@ class AnalysisErrorSeverity implements Enum {
  *   SYNTACTIC_ERROR
  *   TODO
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisErrorType implements Enum {
-  static const CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
+  static const AnalysisErrorType CHECKED_MODE_COMPILE_TIME_ERROR = const AnalysisErrorType._("CHECKED_MODE_COMPILE_TIME_ERROR");
 
-  static const COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
+  static const AnalysisErrorType COMPILE_TIME_ERROR = const AnalysisErrorType._("COMPILE_TIME_ERROR");
 
-  static const HINT = const AnalysisErrorType._("HINT");
+  static const AnalysisErrorType HINT = const AnalysisErrorType._("HINT");
 
-  static const LINT = const AnalysisErrorType._("LINT");
+  static const AnalysisErrorType LINT = const AnalysisErrorType._("LINT");
 
-  static const STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
+  static const AnalysisErrorType STATIC_TYPE_WARNING = const AnalysisErrorType._("STATIC_TYPE_WARNING");
 
-  static const STATIC_WARNING = const AnalysisErrorType._("STATIC_WARNING");
+  static const AnalysisErrorType STATIC_WARNING = const AnalysisErrorType._("STATIC_WARNING");
 
-  static const SYNTACTIC_ERROR = const AnalysisErrorType._("SYNTACTIC_ERROR");
+  static const AnalysisErrorType SYNTACTIC_ERROR = const AnalysisErrorType._("SYNTACTIC_ERROR");
 
-  static const TODO = const AnalysisErrorType._("TODO");
+  static const AnalysisErrorType TODO = const AnalysisErrorType._("TODO");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -7540,10 +8328,13 @@ class AnalysisErrorType implements Enum {
  *   "enableDeferredLoading": optional bool
  *   "enableEnums": optional bool
  *   "enableNullAwareOperators": optional bool
+ *   "enableSuperMixins": optional bool
  *   "generateDart2jsHints": optional bool
  *   "generateHints": optional bool
  *   "generateLints": optional bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisOptions implements HasToJson {
   bool _enableAsync;
@@ -7553,6 +8344,8 @@ class AnalysisOptions implements HasToJson {
   bool _enableEnums;
 
   bool _enableNullAwareOperators;
+
+  bool _enableSuperMixins;
 
   bool _generateDart2jsHints;
 
@@ -7629,6 +8422,20 @@ class AnalysisOptions implements HasToJson {
   }
 
   /**
+   * True if the client wants to enable support for the proposed "less
+   * restricted mixins" proposal (DEP 34).
+   */
+  bool get enableSuperMixins => _enableSuperMixins;
+
+  /**
+   * True if the client wants to enable support for the proposed "less
+   * restricted mixins" proposal (DEP 34).
+   */
+  void set enableSuperMixins(bool value) {
+    this._enableSuperMixins = value;
+  }
+
+  /**
    * True if hints that are specific to dart2js should be generated. This
    * option is ignored if generateHints is false.
    */
@@ -7670,11 +8477,12 @@ class AnalysisOptions implements HasToJson {
     this._generateLints = value;
   }
 
-  AnalysisOptions({bool enableAsync, bool enableDeferredLoading, bool enableEnums, bool enableNullAwareOperators, bool generateDart2jsHints, bool generateHints, bool generateLints}) {
+  AnalysisOptions({bool enableAsync, bool enableDeferredLoading, bool enableEnums, bool enableNullAwareOperators, bool enableSuperMixins, bool generateDart2jsHints, bool generateHints, bool generateLints}) {
     this.enableAsync = enableAsync;
     this.enableDeferredLoading = enableDeferredLoading;
     this.enableEnums = enableEnums;
     this.enableNullAwareOperators = enableNullAwareOperators;
+    this.enableSuperMixins = enableSuperMixins;
     this.generateDart2jsHints = generateDart2jsHints;
     this.generateHints = generateHints;
     this.generateLints = generateLints;
@@ -7687,33 +8495,37 @@ class AnalysisOptions implements HasToJson {
     if (json is Map) {
       bool enableAsync;
       if (json.containsKey("enableAsync")) {
-        enableAsync = jsonDecoder._decodeBool(jsonPath + ".enableAsync", json["enableAsync"]);
+        enableAsync = jsonDecoder.decodeBool(jsonPath + ".enableAsync", json["enableAsync"]);
       }
       bool enableDeferredLoading;
       if (json.containsKey("enableDeferredLoading")) {
-        enableDeferredLoading = jsonDecoder._decodeBool(jsonPath + ".enableDeferredLoading", json["enableDeferredLoading"]);
+        enableDeferredLoading = jsonDecoder.decodeBool(jsonPath + ".enableDeferredLoading", json["enableDeferredLoading"]);
       }
       bool enableEnums;
       if (json.containsKey("enableEnums")) {
-        enableEnums = jsonDecoder._decodeBool(jsonPath + ".enableEnums", json["enableEnums"]);
+        enableEnums = jsonDecoder.decodeBool(jsonPath + ".enableEnums", json["enableEnums"]);
       }
       bool enableNullAwareOperators;
       if (json.containsKey("enableNullAwareOperators")) {
-        enableNullAwareOperators = jsonDecoder._decodeBool(jsonPath + ".enableNullAwareOperators", json["enableNullAwareOperators"]);
+        enableNullAwareOperators = jsonDecoder.decodeBool(jsonPath + ".enableNullAwareOperators", json["enableNullAwareOperators"]);
+      }
+      bool enableSuperMixins;
+      if (json.containsKey("enableSuperMixins")) {
+        enableSuperMixins = jsonDecoder.decodeBool(jsonPath + ".enableSuperMixins", json["enableSuperMixins"]);
       }
       bool generateDart2jsHints;
       if (json.containsKey("generateDart2jsHints")) {
-        generateDart2jsHints = jsonDecoder._decodeBool(jsonPath + ".generateDart2jsHints", json["generateDart2jsHints"]);
+        generateDart2jsHints = jsonDecoder.decodeBool(jsonPath + ".generateDart2jsHints", json["generateDart2jsHints"]);
       }
       bool generateHints;
       if (json.containsKey("generateHints")) {
-        generateHints = jsonDecoder._decodeBool(jsonPath + ".generateHints", json["generateHints"]);
+        generateHints = jsonDecoder.decodeBool(jsonPath + ".generateHints", json["generateHints"]);
       }
       bool generateLints;
       if (json.containsKey("generateLints")) {
-        generateLints = jsonDecoder._decodeBool(jsonPath + ".generateLints", json["generateLints"]);
+        generateLints = jsonDecoder.decodeBool(jsonPath + ".generateLints", json["generateLints"]);
       }
-      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, enableNullAwareOperators: enableNullAwareOperators, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
+      return new AnalysisOptions(enableAsync: enableAsync, enableDeferredLoading: enableDeferredLoading, enableEnums: enableEnums, enableNullAwareOperators: enableNullAwareOperators, enableSuperMixins: enableSuperMixins, generateDart2jsHints: generateDart2jsHints, generateHints: generateHints, generateLints: generateLints);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "AnalysisOptions", json);
     }
@@ -7732,6 +8544,9 @@ class AnalysisOptions implements HasToJson {
     }
     if (enableNullAwareOperators != null) {
       result["enableNullAwareOperators"] = enableNullAwareOperators;
+    }
+    if (enableSuperMixins != null) {
+      result["enableSuperMixins"] = enableSuperMixins;
     }
     if (generateDart2jsHints != null) {
       result["generateDart2jsHints"] = generateDart2jsHints;
@@ -7755,6 +8570,7 @@ class AnalysisOptions implements HasToJson {
           enableDeferredLoading == other.enableDeferredLoading &&
           enableEnums == other.enableEnums &&
           enableNullAwareOperators == other.enableNullAwareOperators &&
+          enableSuperMixins == other.enableSuperMixins &&
           generateDart2jsHints == other.generateDart2jsHints &&
           generateHints == other.generateHints &&
           generateLints == other.generateLints;
@@ -7765,14 +8581,15 @@ class AnalysisOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, enableAsync.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, enableDeferredLoading.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, enableEnums.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, enableNullAwareOperators.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, generateDart2jsHints.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, generateHints.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, generateLints.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, enableAsync.hashCode);
+    hash = JenkinsSmiHash.combine(hash, enableDeferredLoading.hashCode);
+    hash = JenkinsSmiHash.combine(hash, enableEnums.hashCode);
+    hash = JenkinsSmiHash.combine(hash, enableNullAwareOperators.hashCode);
+    hash = JenkinsSmiHash.combine(hash, enableSuperMixins.hashCode);
+    hash = JenkinsSmiHash.combine(hash, generateDart2jsHints.hashCode);
+    hash = JenkinsSmiHash.combine(hash, generateHints.hashCode);
+    hash = JenkinsSmiHash.combine(hash, generateLints.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7782,36 +8599,41 @@ class AnalysisOptions implements HasToJson {
  * enum {
  *   FOLDING
  *   HIGHLIGHTS
+ *   IMPLEMENTED
  *   INVALIDATE
  *   NAVIGATION
  *   OCCURRENCES
  *   OUTLINE
  *   OVERRIDES
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisService implements Enum {
-  static const FOLDING = const AnalysisService._("FOLDING");
+  static const AnalysisService FOLDING = const AnalysisService._("FOLDING");
 
-  static const HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
+  static const AnalysisService HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
+
+  static const AnalysisService IMPLEMENTED = const AnalysisService._("IMPLEMENTED");
 
   /**
    * This service is not currently implemented and will become a
    * GeneralAnalysisService in a future release.
    */
-  static const INVALIDATE = const AnalysisService._("INVALIDATE");
+  static const AnalysisService INVALIDATE = const AnalysisService._("INVALIDATE");
 
-  static const NAVIGATION = const AnalysisService._("NAVIGATION");
+  static const AnalysisService NAVIGATION = const AnalysisService._("NAVIGATION");
 
-  static const OCCURRENCES = const AnalysisService._("OCCURRENCES");
+  static const AnalysisService OCCURRENCES = const AnalysisService._("OCCURRENCES");
 
-  static const OUTLINE = const AnalysisService._("OUTLINE");
+  static const AnalysisService OUTLINE = const AnalysisService._("OUTLINE");
 
-  static const OVERRIDES = const AnalysisService._("OVERRIDES");
+  static const AnalysisService OVERRIDES = const AnalysisService._("OVERRIDES");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<AnalysisService> VALUES = const <AnalysisService>[FOLDING, HIGHLIGHTS, INVALIDATE, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
+  static const List<AnalysisService> VALUES = const <AnalysisService>[FOLDING, HIGHLIGHTS, IMPLEMENTED, INVALIDATE, NAVIGATION, OCCURRENCES, OUTLINE, OVERRIDES];
 
   final String name;
 
@@ -7823,6 +8645,8 @@ class AnalysisService implements Enum {
         return FOLDING;
       case "HIGHLIGHTS":
         return HIGHLIGHTS;
+      case "IMPLEMENTED":
+        return IMPLEMENTED;
       case "INVALIDATE":
         return INVALIDATE;
       case "NAVIGATION":
@@ -7861,6 +8685,8 @@ class AnalysisService implements Enum {
  *   "isAnalyzing": bool
  *   "analysisTarget": optional String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class AnalysisStatus implements HasToJson {
   bool _isAnalyzing;
@@ -7906,13 +8732,13 @@ class AnalysisStatus implements HasToJson {
     if (json is Map) {
       bool isAnalyzing;
       if (json.containsKey("isAnalyzing")) {
-        isAnalyzing = jsonDecoder._decodeBool(jsonPath + ".isAnalyzing", json["isAnalyzing"]);
+        isAnalyzing = jsonDecoder.decodeBool(jsonPath + ".isAnalyzing", json["isAnalyzing"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isAnalyzing");
       }
       String analysisTarget;
       if (json.containsKey("analysisTarget")) {
-        analysisTarget = jsonDecoder._decodeString(jsonPath + ".analysisTarget", json["analysisTarget"]);
+        analysisTarget = jsonDecoder.decodeString(jsonPath + ".analysisTarget", json["analysisTarget"]);
       }
       return new AnalysisStatus(isAnalyzing, analysisTarget: analysisTarget);
     } else {
@@ -7944,9 +8770,9 @@ class AnalysisStatus implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, analysisTarget.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, isAnalyzing.hashCode);
+    hash = JenkinsSmiHash.combine(hash, analysisTarget.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7957,6 +8783,8 @@ class AnalysisStatus implements HasToJson {
  *   "type": "change"
  *   "edits": List<SourceEdit>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ChangeContentOverlay implements HasToJson {
   List<SourceEdit> _edits;
@@ -7988,7 +8816,7 @@ class ChangeContentOverlay implements HasToJson {
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
@@ -8011,7 +8839,7 @@ class ChangeContentOverlay implements HasToJson {
   @override
   bool operator==(other) {
     if (other is ChangeContentOverlay) {
-      return _listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
+      return listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
     }
     return false;
   }
@@ -8019,9 +8847,9 @@ class ChangeContentOverlay implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, 873118866);
-    hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, 873118866);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -8049,6 +8877,8 @@ class ChangeContentOverlay implements HasToJson {
  *   "parameterType": optional String
  *   "importUri": optional String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionSuggestion implements HasToJson {
   CompletionSuggestionKind _kind;
@@ -8401,51 +9231,51 @@ class CompletionSuggestion implements HasToJson {
       }
       int relevance;
       if (json.containsKey("relevance")) {
-        relevance = jsonDecoder._decodeInt(jsonPath + ".relevance", json["relevance"]);
+        relevance = jsonDecoder.decodeInt(jsonPath + ".relevance", json["relevance"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "relevance");
       }
       String completion;
       if (json.containsKey("completion")) {
-        completion = jsonDecoder._decodeString(jsonPath + ".completion", json["completion"]);
+        completion = jsonDecoder.decodeString(jsonPath + ".completion", json["completion"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "completion");
       }
       int selectionOffset;
       if (json.containsKey("selectionOffset")) {
-        selectionOffset = jsonDecoder._decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
+        selectionOffset = jsonDecoder.decodeInt(jsonPath + ".selectionOffset", json["selectionOffset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionOffset");
       }
       int selectionLength;
       if (json.containsKey("selectionLength")) {
-        selectionLength = jsonDecoder._decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
+        selectionLength = jsonDecoder.decodeInt(jsonPath + ".selectionLength", json["selectionLength"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionLength");
       }
       bool isDeprecated;
       if (json.containsKey("isDeprecated")) {
-        isDeprecated = jsonDecoder._decodeBool(jsonPath + ".isDeprecated", json["isDeprecated"]);
+        isDeprecated = jsonDecoder.decodeBool(jsonPath + ".isDeprecated", json["isDeprecated"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isDeprecated");
       }
       bool isPotential;
       if (json.containsKey("isPotential")) {
-        isPotential = jsonDecoder._decodeBool(jsonPath + ".isPotential", json["isPotential"]);
+        isPotential = jsonDecoder.decodeBool(jsonPath + ".isPotential", json["isPotential"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isPotential");
       }
       String docSummary;
       if (json.containsKey("docSummary")) {
-        docSummary = jsonDecoder._decodeString(jsonPath + ".docSummary", json["docSummary"]);
+        docSummary = jsonDecoder.decodeString(jsonPath + ".docSummary", json["docSummary"]);
       }
       String docComplete;
       if (json.containsKey("docComplete")) {
-        docComplete = jsonDecoder._decodeString(jsonPath + ".docComplete", json["docComplete"]);
+        docComplete = jsonDecoder.decodeString(jsonPath + ".docComplete", json["docComplete"]);
       }
       String declaringType;
       if (json.containsKey("declaringType")) {
-        declaringType = jsonDecoder._decodeString(jsonPath + ".declaringType", json["declaringType"]);
+        declaringType = jsonDecoder.decodeString(jsonPath + ".declaringType", json["declaringType"]);
       }
       Element element;
       if (json.containsKey("element")) {
@@ -8453,35 +9283,35 @@ class CompletionSuggestion implements HasToJson {
       }
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
       }
       List<String> parameterNames;
       if (json.containsKey("parameterNames")) {
-        parameterNames = jsonDecoder._decodeList(jsonPath + ".parameterNames", json["parameterNames"], jsonDecoder._decodeString);
+        parameterNames = jsonDecoder.decodeList(jsonPath + ".parameterNames", json["parameterNames"], jsonDecoder.decodeString);
       }
       List<String> parameterTypes;
       if (json.containsKey("parameterTypes")) {
-        parameterTypes = jsonDecoder._decodeList(jsonPath + ".parameterTypes", json["parameterTypes"], jsonDecoder._decodeString);
+        parameterTypes = jsonDecoder.decodeList(jsonPath + ".parameterTypes", json["parameterTypes"], jsonDecoder.decodeString);
       }
       int requiredParameterCount;
       if (json.containsKey("requiredParameterCount")) {
-        requiredParameterCount = jsonDecoder._decodeInt(jsonPath + ".requiredParameterCount", json["requiredParameterCount"]);
+        requiredParameterCount = jsonDecoder.decodeInt(jsonPath + ".requiredParameterCount", json["requiredParameterCount"]);
       }
       bool hasNamedParameters;
       if (json.containsKey("hasNamedParameters")) {
-        hasNamedParameters = jsonDecoder._decodeBool(jsonPath + ".hasNamedParameters", json["hasNamedParameters"]);
+        hasNamedParameters = jsonDecoder.decodeBool(jsonPath + ".hasNamedParameters", json["hasNamedParameters"]);
       }
       String parameterName;
       if (json.containsKey("parameterName")) {
-        parameterName = jsonDecoder._decodeString(jsonPath + ".parameterName", json["parameterName"]);
+        parameterName = jsonDecoder.decodeString(jsonPath + ".parameterName", json["parameterName"]);
       }
       String parameterType;
       if (json.containsKey("parameterType")) {
-        parameterType = jsonDecoder._decodeString(jsonPath + ".parameterType", json["parameterType"]);
+        parameterType = jsonDecoder.decodeString(jsonPath + ".parameterType", json["parameterType"]);
       }
       String importUri;
       if (json.containsKey("importUri")) {
-        importUri = jsonDecoder._decodeString(jsonPath + ".importUri", json["importUri"]);
+        importUri = jsonDecoder.decodeString(jsonPath + ".importUri", json["importUri"]);
       }
       return new CompletionSuggestion(kind, relevance, completion, selectionOffset, selectionLength, isDeprecated, isPotential, docSummary: docSummary, docComplete: docComplete, declaringType: declaringType, element: element, returnType: returnType, parameterNames: parameterNames, parameterTypes: parameterTypes, requiredParameterCount: requiredParameterCount, hasNamedParameters: hasNamedParameters, parameterName: parameterName, parameterType: parameterType, importUri: importUri);
     } else {
@@ -8555,8 +9385,8 @@ class CompletionSuggestion implements HasToJson {
           declaringType == other.declaringType &&
           element == other.element &&
           returnType == other.returnType &&
-          _listEqual(parameterNames, other.parameterNames, (String a, String b) => a == b) &&
-          _listEqual(parameterTypes, other.parameterTypes, (String a, String b) => a == b) &&
+          listEqual(parameterNames, other.parameterNames, (String a, String b) => a == b) &&
+          listEqual(parameterTypes, other.parameterTypes, (String a, String b) => a == b) &&
           requiredParameterCount == other.requiredParameterCount &&
           hasNamedParameters == other.hasNamedParameters &&
           parameterName == other.parameterName &&
@@ -8569,26 +9399,26 @@ class CompletionSuggestion implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, relevance.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, completion.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selectionLength.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isPotential.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, docSummary.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, docComplete.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, declaringType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameterNames.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, requiredParameterCount.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, hasNamedParameters.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameterName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameterType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, importUri.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, relevance.hashCode);
+    hash = JenkinsSmiHash.combine(hash, completion.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selectionLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isPotential.hashCode);
+    hash = JenkinsSmiHash.combine(hash, docSummary.hashCode);
+    hash = JenkinsSmiHash.combine(hash, docComplete.hashCode);
+    hash = JenkinsSmiHash.combine(hash, declaringType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterNames.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterTypes.hashCode);
+    hash = JenkinsSmiHash.combine(hash, requiredParameterCount.hashCode);
+    hash = JenkinsSmiHash.combine(hash, hasNamedParameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameterType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, importUri.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -8605,6 +9435,8 @@ class CompletionSuggestion implements HasToJson {
  *   OPTIONAL_ARGUMENT
  *   PARAMETER
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class CompletionSuggestionKind implements Enum {
   /**
@@ -8613,9 +9445,9 @@ class CompletionSuggestionKind implements Enum {
    * the invocation and the parameterNames, parameterTypes, and
    * requiredParameterCount attributes are defined.
    */
-  static const ARGUMENT_LIST = const CompletionSuggestionKind._("ARGUMENT_LIST");
+  static const CompletionSuggestionKind ARGUMENT_LIST = const CompletionSuggestionKind._("ARGUMENT_LIST");
 
-  static const IMPORT = const CompletionSuggestionKind._("IMPORT");
+  static const CompletionSuggestionKind IMPORT = const CompletionSuggestionKind._("IMPORT");
 
   /**
    * The element identifier should be inserted at the completion location. For
@@ -8623,7 +9455,7 @@ class CompletionSuggestionKind implements Enum {
    * suggestions of this kind, the element attribute is defined and the
    * completion field is the element's identifier.
    */
-  static const IDENTIFIER = const CompletionSuggestionKind._("IDENTIFIER");
+  static const CompletionSuggestionKind IDENTIFIER = const CompletionSuggestionKind._("IDENTIFIER");
 
   /**
    * The element is being invoked at the completion location. For example,
@@ -8631,24 +9463,24 @@ class CompletionSuggestionKind implements Enum {
    * element attribute is defined and the completion field is the element's
    * identifier.
    */
-  static const INVOCATION = const CompletionSuggestionKind._("INVOCATION");
+  static const CompletionSuggestionKind INVOCATION = const CompletionSuggestionKind._("INVOCATION");
 
   /**
    * A keyword is being suggested. For suggestions of this kind, the completion
    * is the keyword.
    */
-  static const KEYWORD = const CompletionSuggestionKind._("KEYWORD");
+  static const CompletionSuggestionKind KEYWORD = const CompletionSuggestionKind._("KEYWORD");
 
   /**
    * A named argument for the current callsite is being suggested. For
    * suggestions of this kind, the completion is the named argument identifier
    * including a trailing ':' and space.
    */
-  static const NAMED_ARGUMENT = const CompletionSuggestionKind._("NAMED_ARGUMENT");
+  static const CompletionSuggestionKind NAMED_ARGUMENT = const CompletionSuggestionKind._("NAMED_ARGUMENT");
 
-  static const OPTIONAL_ARGUMENT = const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
+  static const CompletionSuggestionKind OPTIONAL_ARGUMENT = const CompletionSuggestionKind._("OPTIONAL_ARGUMENT");
 
-  static const PARAMETER = const CompletionSuggestionKind._("PARAMETER");
+  static const CompletionSuggestionKind PARAMETER = const CompletionSuggestionKind._("PARAMETER");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -8699,6 +9531,181 @@ class CompletionSuggestionKind implements Enum {
 }
 
 /**
+ * ContextData
+ *
+ * {
+ *   "name": String
+ *   "explicitFileCount": int
+ *   "implicitFileCount": int
+ *   "workItemQueueLength": int
+ *   "cacheEntryExceptions": List<String>
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ContextData implements HasToJson {
+  String _name;
+
+  int _explicitFileCount;
+
+  int _implicitFileCount;
+
+  int _workItemQueueLength;
+
+  List<String> _cacheEntryExceptions;
+
+  /**
+   * The name of the context.
+   */
+  String get name => _name;
+
+  /**
+   * The name of the context.
+   */
+  void set name(String value) {
+    assert(value != null);
+    this._name = value;
+  }
+
+  /**
+   * Explicitly analyzed files.
+   */
+  int get explicitFileCount => _explicitFileCount;
+
+  /**
+   * Explicitly analyzed files.
+   */
+  void set explicitFileCount(int value) {
+    assert(value != null);
+    this._explicitFileCount = value;
+  }
+
+  /**
+   * Implicitly analyzed files.
+   */
+  int get implicitFileCount => _implicitFileCount;
+
+  /**
+   * Implicitly analyzed files.
+   */
+  void set implicitFileCount(int value) {
+    assert(value != null);
+    this._implicitFileCount = value;
+  }
+
+  /**
+   * The number of work items in the queue.
+   */
+  int get workItemQueueLength => _workItemQueueLength;
+
+  /**
+   * The number of work items in the queue.
+   */
+  void set workItemQueueLength(int value) {
+    assert(value != null);
+    this._workItemQueueLength = value;
+  }
+
+  /**
+   * Exceptions associated with cache entries.
+   */
+  List<String> get cacheEntryExceptions => _cacheEntryExceptions;
+
+  /**
+   * Exceptions associated with cache entries.
+   */
+  void set cacheEntryExceptions(List<String> value) {
+    assert(value != null);
+    this._cacheEntryExceptions = value;
+  }
+
+  ContextData(String name, int explicitFileCount, int implicitFileCount, int workItemQueueLength, List<String> cacheEntryExceptions) {
+    this.name = name;
+    this.explicitFileCount = explicitFileCount;
+    this.implicitFileCount = implicitFileCount;
+    this.workItemQueueLength = workItemQueueLength;
+    this.cacheEntryExceptions = cacheEntryExceptions;
+  }
+
+  factory ContextData.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      String name;
+      if (json.containsKey("name")) {
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "name");
+      }
+      int explicitFileCount;
+      if (json.containsKey("explicitFileCount")) {
+        explicitFileCount = jsonDecoder.decodeInt(jsonPath + ".explicitFileCount", json["explicitFileCount"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "explicitFileCount");
+      }
+      int implicitFileCount;
+      if (json.containsKey("implicitFileCount")) {
+        implicitFileCount = jsonDecoder.decodeInt(jsonPath + ".implicitFileCount", json["implicitFileCount"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "implicitFileCount");
+      }
+      int workItemQueueLength;
+      if (json.containsKey("workItemQueueLength")) {
+        workItemQueueLength = jsonDecoder.decodeInt(jsonPath + ".workItemQueueLength", json["workItemQueueLength"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "workItemQueueLength");
+      }
+      List<String> cacheEntryExceptions;
+      if (json.containsKey("cacheEntryExceptions")) {
+        cacheEntryExceptions = jsonDecoder.decodeList(jsonPath + ".cacheEntryExceptions", json["cacheEntryExceptions"], jsonDecoder.decodeString);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "cacheEntryExceptions");
+      }
+      return new ContextData(name, explicitFileCount, implicitFileCount, workItemQueueLength, cacheEntryExceptions);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ContextData", json);
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["name"] = name;
+    result["explicitFileCount"] = explicitFileCount;
+    result["implicitFileCount"] = implicitFileCount;
+    result["workItemQueueLength"] = workItemQueueLength;
+    result["cacheEntryExceptions"] = cacheEntryExceptions;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is ContextData) {
+      return name == other.name &&
+          explicitFileCount == other.explicitFileCount &&
+          implicitFileCount == other.implicitFileCount &&
+          workItemQueueLength == other.workItemQueueLength &&
+          listEqual(cacheEntryExceptions, other.cacheEntryExceptions, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, explicitFileCount.hashCode);
+    hash = JenkinsSmiHash.combine(hash, implicitFileCount.hashCode);
+    hash = JenkinsSmiHash.combine(hash, workItemQueueLength.hashCode);
+    hash = JenkinsSmiHash.combine(hash, cacheEntryExceptions.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
  * Element
  *
  * {
@@ -8710,6 +9717,8 @@ class CompletionSuggestionKind implements Enum {
  *   "returnType": optional String
  *   "typeParameters": optional String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class Element implements HasToJson {
   static const int FLAG_ABSTRACT = 0x01;
@@ -8884,7 +9893,7 @@ class Element implements HasToJson {
       }
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
@@ -8894,21 +9903,21 @@ class Element implements HasToJson {
       }
       int flags;
       if (json.containsKey("flags")) {
-        flags = jsonDecoder._decodeInt(jsonPath + ".flags", json["flags"]);
+        flags = jsonDecoder.decodeInt(jsonPath + ".flags", json["flags"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "flags");
       }
       String parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder._decodeString(jsonPath + ".parameters", json["parameters"]);
+        parameters = jsonDecoder.decodeString(jsonPath + ".parameters", json["parameters"]);
       }
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
       }
       String typeParameters;
       if (json.containsKey("typeParameters")) {
-        typeParameters = jsonDecoder._decodeString(jsonPath + ".typeParameters", json["typeParameters"]);
+        typeParameters = jsonDecoder.decodeString(jsonPath + ".typeParameters", json["typeParameters"]);
       }
       return new Element(kind, name, flags, location: location, parameters: parameters, returnType: returnType, typeParameters: typeParameters);
     } else {
@@ -8963,14 +9972,14 @@ class Element implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, location.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, flags.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, typeParameters.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    hash = JenkinsSmiHash.combine(hash, flags.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, typeParameters.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -8985,6 +9994,7 @@ class Element implements HasToJson {
  *   ENUM
  *   ENUM_CONSTANT
  *   FIELD
+ *   FILE
  *   FUNCTION
  *   FUNCTION_TYPE_ALIAS
  *   GETTER
@@ -9001,56 +10011,66 @@ class Element implements HasToJson {
  *   UNIT_TEST_TEST
  *   UNKNOWN
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ElementKind implements Enum {
-  static const CLASS = const ElementKind._("CLASS");
+  static const ElementKind CLASS = const ElementKind._("CLASS");
 
-  static const CLASS_TYPE_ALIAS = const ElementKind._("CLASS_TYPE_ALIAS");
+  static const ElementKind CLASS_TYPE_ALIAS = const ElementKind._("CLASS_TYPE_ALIAS");
 
-  static const COMPILATION_UNIT = const ElementKind._("COMPILATION_UNIT");
+  static const ElementKind COMPILATION_UNIT = const ElementKind._("COMPILATION_UNIT");
 
-  static const CONSTRUCTOR = const ElementKind._("CONSTRUCTOR");
+  static const ElementKind CONSTRUCTOR = const ElementKind._("CONSTRUCTOR");
 
-  static const ENUM = const ElementKind._("ENUM");
+  static const ElementKind ENUM = const ElementKind._("ENUM");
 
-  static const ENUM_CONSTANT = const ElementKind._("ENUM_CONSTANT");
+  static const ElementKind ENUM_CONSTANT = const ElementKind._("ENUM_CONSTANT");
 
-  static const FIELD = const ElementKind._("FIELD");
+  static const ElementKind FIELD = const ElementKind._("FIELD");
 
-  static const FUNCTION = const ElementKind._("FUNCTION");
+  static const ElementKind FILE = const ElementKind._("FILE");
 
-  static const FUNCTION_TYPE_ALIAS = const ElementKind._("FUNCTION_TYPE_ALIAS");
+  static const ElementKind FUNCTION = const ElementKind._("FUNCTION");
 
-  static const GETTER = const ElementKind._("GETTER");
+  static const ElementKind FUNCTION_TYPE_ALIAS = const ElementKind._("FUNCTION_TYPE_ALIAS");
 
-  static const LABEL = const ElementKind._("LABEL");
+  static const ElementKind GETTER = const ElementKind._("GETTER");
 
-  static const LIBRARY = const ElementKind._("LIBRARY");
+  static const ElementKind LABEL = const ElementKind._("LABEL");
 
-  static const LOCAL_VARIABLE = const ElementKind._("LOCAL_VARIABLE");
+  static const ElementKind LIBRARY = const ElementKind._("LIBRARY");
 
-  static const METHOD = const ElementKind._("METHOD");
+  static const ElementKind LOCAL_VARIABLE = const ElementKind._("LOCAL_VARIABLE");
 
-  static const PARAMETER = const ElementKind._("PARAMETER");
+  static const ElementKind METHOD = const ElementKind._("METHOD");
 
-  static const PREFIX = const ElementKind._("PREFIX");
+  static const ElementKind PARAMETER = const ElementKind._("PARAMETER");
 
-  static const SETTER = const ElementKind._("SETTER");
+  static const ElementKind PREFIX = const ElementKind._("PREFIX");
 
-  static const TOP_LEVEL_VARIABLE = const ElementKind._("TOP_LEVEL_VARIABLE");
+  static const ElementKind SETTER = const ElementKind._("SETTER");
 
-  static const TYPE_PARAMETER = const ElementKind._("TYPE_PARAMETER");
+  static const ElementKind TOP_LEVEL_VARIABLE = const ElementKind._("TOP_LEVEL_VARIABLE");
 
-  static const UNIT_TEST_GROUP = const ElementKind._("UNIT_TEST_GROUP");
+  static const ElementKind TYPE_PARAMETER = const ElementKind._("TYPE_PARAMETER");
 
-  static const UNIT_TEST_TEST = const ElementKind._("UNIT_TEST_TEST");
+  /**
+   * Deprecated: support for tests was removed.
+   */
+  static const ElementKind UNIT_TEST_GROUP = const ElementKind._("UNIT_TEST_GROUP");
 
-  static const UNKNOWN = const ElementKind._("UNKNOWN");
+  /**
+   * Deprecated: support for tests was removed.
+   */
+  static const ElementKind UNIT_TEST_TEST = const ElementKind._("UNIT_TEST_TEST");
+
+  static const ElementKind UNKNOWN = const ElementKind._("UNKNOWN");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<ElementKind> VALUES = const <ElementKind>[CLASS, CLASS_TYPE_ALIAS, COMPILATION_UNIT, CONSTRUCTOR, ENUM, ENUM_CONSTANT, FIELD, FUNCTION, FUNCTION_TYPE_ALIAS, GETTER, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_PARAMETER, UNIT_TEST_GROUP, UNIT_TEST_TEST, UNKNOWN];
+  static const List<ElementKind> VALUES = const <ElementKind>[CLASS, CLASS_TYPE_ALIAS, COMPILATION_UNIT, CONSTRUCTOR, ENUM, ENUM_CONSTANT, FIELD, FILE, FUNCTION, FUNCTION_TYPE_ALIAS, GETTER, LABEL, LIBRARY, LOCAL_VARIABLE, METHOD, PARAMETER, PREFIX, SETTER, TOP_LEVEL_VARIABLE, TYPE_PARAMETER, UNIT_TEST_GROUP, UNIT_TEST_TEST, UNKNOWN];
 
   final String name;
 
@@ -9072,6 +10092,8 @@ class ElementKind implements Enum {
         return ENUM_CONSTANT;
       case "FIELD":
         return FIELD;
+      case "FILE":
+        return FILE;
       case "FUNCTION":
         return FUNCTION;
       case "FUNCTION_TYPE_ALIAS":
@@ -9130,6 +10152,8 @@ class ElementKind implements Enum {
  *   "file": FilePath
  *   "kind": ExecutableKind
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutableFile implements HasToJson {
   String _file;
@@ -9174,7 +10198,7 @@ class ExecutableFile implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
@@ -9212,9 +10236,9 @@ class ExecutableFile implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -9227,15 +10251,17 @@ class ExecutableFile implements HasToJson {
  *   NOT_EXECUTABLE
  *   SERVER
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutableKind implements Enum {
-  static const CLIENT = const ExecutableKind._("CLIENT");
+  static const ExecutableKind CLIENT = const ExecutableKind._("CLIENT");
 
-  static const EITHER = const ExecutableKind._("EITHER");
+  static const ExecutableKind EITHER = const ExecutableKind._("EITHER");
 
-  static const NOT_EXECUTABLE = const ExecutableKind._("NOT_EXECUTABLE");
+  static const ExecutableKind NOT_EXECUTABLE = const ExecutableKind._("NOT_EXECUTABLE");
 
-  static const SERVER = const ExecutableKind._("SERVER");
+  static const ExecutableKind SERVER = const ExecutableKind._("SERVER");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -9283,9 +10309,11 @@ class ExecutableKind implements Enum {
  * enum {
  *   LAUNCH_DATA
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExecutionService implements Enum {
-  static const LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
+  static const ExecutionService LAUNCH_DATA = const ExecutionService._("LAUNCH_DATA");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -9322,6 +10350,57 @@ class ExecutionService implements Enum {
 }
 
 /**
+ * FileKind
+ *
+ * enum {
+ *   LIBRARY
+ *   PART
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class FileKind implements Enum {
+  static const FileKind LIBRARY = const FileKind._("LIBRARY");
+
+  static const FileKind PART = const FileKind._("PART");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<FileKind> VALUES = const <FileKind>[LIBRARY, PART];
+
+  final String name;
+
+  const FileKind._(this.name);
+
+  factory FileKind(String name) {
+    switch (name) {
+      case "LIBRARY":
+        return LIBRARY;
+      case "PART":
+        return PART;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory FileKind.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new FileKind(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "FileKind", json);
+  }
+
+  @override
+  String toString() => "FileKind.$name";
+
+  String toJson() => name;
+}
+
+/**
  * FoldingKind
  *
  * enum {
@@ -9331,17 +10410,19 @@ class ExecutionService implements Enum {
  *   DOCUMENTATION_COMMENT
  *   TOP_LEVEL_DECLARATION
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class FoldingKind implements Enum {
-  static const COMMENT = const FoldingKind._("COMMENT");
+  static const FoldingKind COMMENT = const FoldingKind._("COMMENT");
 
-  static const CLASS_MEMBER = const FoldingKind._("CLASS_MEMBER");
+  static const FoldingKind CLASS_MEMBER = const FoldingKind._("CLASS_MEMBER");
 
-  static const DIRECTIVES = const FoldingKind._("DIRECTIVES");
+  static const FoldingKind DIRECTIVES = const FoldingKind._("DIRECTIVES");
 
-  static const DOCUMENTATION_COMMENT = const FoldingKind._("DOCUMENTATION_COMMENT");
+  static const FoldingKind DOCUMENTATION_COMMENT = const FoldingKind._("DOCUMENTATION_COMMENT");
 
-  static const TOP_LEVEL_DECLARATION = const FoldingKind._("TOP_LEVEL_DECLARATION");
+  static const FoldingKind TOP_LEVEL_DECLARATION = const FoldingKind._("TOP_LEVEL_DECLARATION");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -9393,6 +10474,8 @@ class FoldingKind implements Enum {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class FoldingRegion implements HasToJson {
   FoldingKind _kind;
@@ -9459,13 +10542,13 @@ class FoldingRegion implements HasToJson {
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -9499,10 +10582,10 @@ class FoldingRegion implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -9512,9 +10595,11 @@ class FoldingRegion implements HasToJson {
  * enum {
  *   ANALYZED_FILES
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class GeneralAnalysisService implements Enum {
-  static const ANALYZED_FILES = const GeneralAnalysisService._("ANALYZED_FILES");
+  static const GeneralAnalysisService ANALYZED_FILES = const GeneralAnalysisService._("ANALYZED_FILES");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -9558,6 +10643,8 @@ class GeneralAnalysisService implements Enum {
  *   "offset": int
  *   "length": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class HighlightRegion implements HasToJson {
   HighlightRegionType _type;
@@ -9624,13 +10711,13 @@ class HighlightRegion implements HasToJson {
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -9664,10 +10751,10 @@ class HighlightRegion implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -9749,300 +10836,302 @@ class HighlightRegion implements HasToJson {
  *   UNRESOLVED_INSTANCE_MEMBER_REFERENCE
  *   VALID_STRING_ESCAPE
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class HighlightRegionType implements Enum {
-  static const ANNOTATION = const HighlightRegionType._("ANNOTATION");
+  static const HighlightRegionType ANNOTATION = const HighlightRegionType._("ANNOTATION");
 
-  static const BUILT_IN = const HighlightRegionType._("BUILT_IN");
+  static const HighlightRegionType BUILT_IN = const HighlightRegionType._("BUILT_IN");
 
-  static const CLASS = const HighlightRegionType._("CLASS");
+  static const HighlightRegionType CLASS = const HighlightRegionType._("CLASS");
 
-  static const COMMENT_BLOCK = const HighlightRegionType._("COMMENT_BLOCK");
+  static const HighlightRegionType COMMENT_BLOCK = const HighlightRegionType._("COMMENT_BLOCK");
 
-  static const COMMENT_DOCUMENTATION = const HighlightRegionType._("COMMENT_DOCUMENTATION");
+  static const HighlightRegionType COMMENT_DOCUMENTATION = const HighlightRegionType._("COMMENT_DOCUMENTATION");
 
-  static const COMMENT_END_OF_LINE = const HighlightRegionType._("COMMENT_END_OF_LINE");
+  static const HighlightRegionType COMMENT_END_OF_LINE = const HighlightRegionType._("COMMENT_END_OF_LINE");
 
-  static const CONSTRUCTOR = const HighlightRegionType._("CONSTRUCTOR");
+  static const HighlightRegionType CONSTRUCTOR = const HighlightRegionType._("CONSTRUCTOR");
 
-  static const DIRECTIVE = const HighlightRegionType._("DIRECTIVE");
-
-  /**
-   * Only for version 1 of highlight.
-   */
-  static const DYNAMIC_TYPE = const HighlightRegionType._("DYNAMIC_TYPE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const DYNAMIC_LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const DYNAMIC_LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const DYNAMIC_PARAMETER_DECLARATION = const HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const DYNAMIC_PARAMETER_REFERENCE = const HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
-
-  static const ENUM = const HighlightRegionType._("ENUM");
-
-  static const ENUM_CONSTANT = const HighlightRegionType._("ENUM_CONSTANT");
+  static const HighlightRegionType DIRECTIVE = const HighlightRegionType._("DIRECTIVE");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const FIELD = const HighlightRegionType._("FIELD");
+  static const HighlightRegionType DYNAMIC_TYPE = const HighlightRegionType._("DYNAMIC_TYPE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType DYNAMIC_LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("DYNAMIC_LOCAL_VARIABLE_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType DYNAMIC_PARAMETER_DECLARATION = const HighlightRegionType._("DYNAMIC_PARAMETER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType DYNAMIC_PARAMETER_REFERENCE = const HighlightRegionType._("DYNAMIC_PARAMETER_REFERENCE");
+
+  static const HighlightRegionType ENUM = const HighlightRegionType._("ENUM");
+
+  static const HighlightRegionType ENUM_CONSTANT = const HighlightRegionType._("ENUM_CONSTANT");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const FIELD_STATIC = const HighlightRegionType._("FIELD_STATIC");
+  static const HighlightRegionType FIELD = const HighlightRegionType._("FIELD");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const FUNCTION = const HighlightRegionType._("FUNCTION");
+  static const HighlightRegionType FIELD_STATIC = const HighlightRegionType._("FIELD_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const FUNCTION_DECLARATION = const HighlightRegionType._("FUNCTION_DECLARATION");
-
-  static const FUNCTION_TYPE_ALIAS = const HighlightRegionType._("FUNCTION_TYPE_ALIAS");
+  static const HighlightRegionType FUNCTION = const HighlightRegionType._("FUNCTION");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const GETTER_DECLARATION = const HighlightRegionType._("GETTER_DECLARATION");
+  static const HighlightRegionType FUNCTION_DECLARATION = const HighlightRegionType._("FUNCTION_DECLARATION");
 
-  static const IDENTIFIER_DEFAULT = const HighlightRegionType._("IDENTIFIER_DEFAULT");
-
-  static const IMPORT_PREFIX = const HighlightRegionType._("IMPORT_PREFIX");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_FIELD_DECLARATION = const HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_FIELD_REFERENCE = const HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_GETTER_DECLARATION = const HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_GETTER_REFERENCE = const HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_METHOD_DECLARATION = const HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_METHOD_REFERENCE = const HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_SETTER_DECLARATION = const HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INSTANCE_SETTER_REFERENCE = const HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const INVALID_STRING_ESCAPE = const HighlightRegionType._("INVALID_STRING_ESCAPE");
-
-  static const KEYWORD = const HighlightRegionType._("KEYWORD");
-
-  static const LABEL = const HighlightRegionType._("LABEL");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const LIBRARY_NAME = const HighlightRegionType._("LIBRARY_NAME");
-
-  static const LITERAL_BOOLEAN = const HighlightRegionType._("LITERAL_BOOLEAN");
-
-  static const LITERAL_DOUBLE = const HighlightRegionType._("LITERAL_DOUBLE");
-
-  static const LITERAL_INTEGER = const HighlightRegionType._("LITERAL_INTEGER");
-
-  static const LITERAL_LIST = const HighlightRegionType._("LITERAL_LIST");
-
-  static const LITERAL_MAP = const HighlightRegionType._("LITERAL_MAP");
-
-  static const LITERAL_STRING = const HighlightRegionType._("LITERAL_STRING");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const LOCAL_FUNCTION_DECLARATION = const HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const LOCAL_FUNCTION_REFERENCE = const HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
+  static const HighlightRegionType FUNCTION_TYPE_ALIAS = const HighlightRegionType._("FUNCTION_TYPE_ALIAS");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const LOCAL_VARIABLE = const HighlightRegionType._("LOCAL_VARIABLE");
+  static const HighlightRegionType GETTER_DECLARATION = const HighlightRegionType._("GETTER_DECLARATION");
 
-  static const LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
+  static const HighlightRegionType IDENTIFIER_DEFAULT = const HighlightRegionType._("IDENTIFIER_DEFAULT");
+
+  static const HighlightRegionType IMPORT_PREFIX = const HighlightRegionType._("IMPORT_PREFIX");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
+  static const HighlightRegionType INSTANCE_FIELD_DECLARATION = const HighlightRegionType._("INSTANCE_FIELD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_FIELD_REFERENCE = const HighlightRegionType._("INSTANCE_FIELD_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_GETTER_DECLARATION = const HighlightRegionType._("INSTANCE_GETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_GETTER_REFERENCE = const HighlightRegionType._("INSTANCE_GETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_METHOD_DECLARATION = const HighlightRegionType._("INSTANCE_METHOD_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_METHOD_REFERENCE = const HighlightRegionType._("INSTANCE_METHOD_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_SETTER_DECLARATION = const HighlightRegionType._("INSTANCE_SETTER_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INSTANCE_SETTER_REFERENCE = const HighlightRegionType._("INSTANCE_SETTER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType INVALID_STRING_ESCAPE = const HighlightRegionType._("INVALID_STRING_ESCAPE");
+
+  static const HighlightRegionType KEYWORD = const HighlightRegionType._("KEYWORD");
+
+  static const HighlightRegionType LABEL = const HighlightRegionType._("LABEL");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType LIBRARY_NAME = const HighlightRegionType._("LIBRARY_NAME");
+
+  static const HighlightRegionType LITERAL_BOOLEAN = const HighlightRegionType._("LITERAL_BOOLEAN");
+
+  static const HighlightRegionType LITERAL_DOUBLE = const HighlightRegionType._("LITERAL_DOUBLE");
+
+  static const HighlightRegionType LITERAL_INTEGER = const HighlightRegionType._("LITERAL_INTEGER");
+
+  static const HighlightRegionType LITERAL_LIST = const HighlightRegionType._("LITERAL_LIST");
+
+  static const HighlightRegionType LITERAL_MAP = const HighlightRegionType._("LITERAL_MAP");
+
+  static const HighlightRegionType LITERAL_STRING = const HighlightRegionType._("LITERAL_STRING");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType LOCAL_FUNCTION_DECLARATION = const HighlightRegionType._("LOCAL_FUNCTION_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType LOCAL_FUNCTION_REFERENCE = const HighlightRegionType._("LOCAL_FUNCTION_REFERENCE");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const METHOD = const HighlightRegionType._("METHOD");
+  static const HighlightRegionType LOCAL_VARIABLE = const HighlightRegionType._("LOCAL_VARIABLE");
+
+  static const HighlightRegionType LOCAL_VARIABLE_DECLARATION = const HighlightRegionType._("LOCAL_VARIABLE_DECLARATION");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType LOCAL_VARIABLE_REFERENCE = const HighlightRegionType._("LOCAL_VARIABLE_REFERENCE");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const METHOD_DECLARATION = const HighlightRegionType._("METHOD_DECLARATION");
+  static const HighlightRegionType METHOD = const HighlightRegionType._("METHOD");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const METHOD_DECLARATION_STATIC = const HighlightRegionType._("METHOD_DECLARATION_STATIC");
+  static const HighlightRegionType METHOD_DECLARATION = const HighlightRegionType._("METHOD_DECLARATION");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const METHOD_STATIC = const HighlightRegionType._("METHOD_STATIC");
+  static const HighlightRegionType METHOD_DECLARATION_STATIC = const HighlightRegionType._("METHOD_DECLARATION_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const PARAMETER = const HighlightRegionType._("PARAMETER");
+  static const HighlightRegionType METHOD_STATIC = const HighlightRegionType._("METHOD_STATIC");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const SETTER_DECLARATION = const HighlightRegionType._("SETTER_DECLARATION");
+  static const HighlightRegionType PARAMETER = const HighlightRegionType._("PARAMETER");
 
   /**
    * Only for version 1 of highlight.
    */
-  static const TOP_LEVEL_VARIABLE = const HighlightRegionType._("TOP_LEVEL_VARIABLE");
+  static const HighlightRegionType SETTER_DECLARATION = const HighlightRegionType._("SETTER_DECLARATION");
+
+  /**
+   * Only for version 1 of highlight.
+   */
+  static const HighlightRegionType TOP_LEVEL_VARIABLE = const HighlightRegionType._("TOP_LEVEL_VARIABLE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const PARAMETER_DECLARATION = const HighlightRegionType._("PARAMETER_DECLARATION");
+  static const HighlightRegionType PARAMETER_DECLARATION = const HighlightRegionType._("PARAMETER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const PARAMETER_REFERENCE = const HighlightRegionType._("PARAMETER_REFERENCE");
+  static const HighlightRegionType PARAMETER_REFERENCE = const HighlightRegionType._("PARAMETER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_FIELD_DECLARATION = const HighlightRegionType._("STATIC_FIELD_DECLARATION");
+  static const HighlightRegionType STATIC_FIELD_DECLARATION = const HighlightRegionType._("STATIC_FIELD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_GETTER_DECLARATION = const HighlightRegionType._("STATIC_GETTER_DECLARATION");
+  static const HighlightRegionType STATIC_GETTER_DECLARATION = const HighlightRegionType._("STATIC_GETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_GETTER_REFERENCE = const HighlightRegionType._("STATIC_GETTER_REFERENCE");
+  static const HighlightRegionType STATIC_GETTER_REFERENCE = const HighlightRegionType._("STATIC_GETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_METHOD_DECLARATION = const HighlightRegionType._("STATIC_METHOD_DECLARATION");
+  static const HighlightRegionType STATIC_METHOD_DECLARATION = const HighlightRegionType._("STATIC_METHOD_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_METHOD_REFERENCE = const HighlightRegionType._("STATIC_METHOD_REFERENCE");
+  static const HighlightRegionType STATIC_METHOD_REFERENCE = const HighlightRegionType._("STATIC_METHOD_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_SETTER_DECLARATION = const HighlightRegionType._("STATIC_SETTER_DECLARATION");
+  static const HighlightRegionType STATIC_SETTER_DECLARATION = const HighlightRegionType._("STATIC_SETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const STATIC_SETTER_REFERENCE = const HighlightRegionType._("STATIC_SETTER_REFERENCE");
+  static const HighlightRegionType STATIC_SETTER_REFERENCE = const HighlightRegionType._("STATIC_SETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_FUNCTION_DECLARATION = const HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_FUNCTION_DECLARATION = const HighlightRegionType._("TOP_LEVEL_FUNCTION_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_FUNCTION_REFERENCE = const HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
+  static const HighlightRegionType TOP_LEVEL_FUNCTION_REFERENCE = const HighlightRegionType._("TOP_LEVEL_FUNCTION_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_GETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_GETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_GETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_GETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
+  static const HighlightRegionType TOP_LEVEL_GETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_GETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_SETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_SETTER_DECLARATION = const HighlightRegionType._("TOP_LEVEL_SETTER_DECLARATION");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_SETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
+  static const HighlightRegionType TOP_LEVEL_SETTER_REFERENCE = const HighlightRegionType._("TOP_LEVEL_SETTER_REFERENCE");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const TOP_LEVEL_VARIABLE_DECLARATION = const HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
+  static const HighlightRegionType TOP_LEVEL_VARIABLE_DECLARATION = const HighlightRegionType._("TOP_LEVEL_VARIABLE_DECLARATION");
 
-  static const TYPE_NAME_DYNAMIC = const HighlightRegionType._("TYPE_NAME_DYNAMIC");
+  static const HighlightRegionType TYPE_NAME_DYNAMIC = const HighlightRegionType._("TYPE_NAME_DYNAMIC");
 
-  static const TYPE_PARAMETER = const HighlightRegionType._("TYPE_PARAMETER");
-
-  /**
-   * Only for version 2 of highlight.
-   */
-  static const UNRESOLVED_INSTANCE_MEMBER_REFERENCE = const HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
+  static const HighlightRegionType TYPE_PARAMETER = const HighlightRegionType._("TYPE_PARAMETER");
 
   /**
    * Only for version 2 of highlight.
    */
-  static const VALID_STRING_ESCAPE = const HighlightRegionType._("VALID_STRING_ESCAPE");
+  static const HighlightRegionType UNRESOLVED_INSTANCE_MEMBER_REFERENCE = const HighlightRegionType._("UNRESOLVED_INSTANCE_MEMBER_REFERENCE");
+
+  /**
+   * Only for version 2 of highlight.
+   */
+  static const HighlightRegionType VALID_STRING_ESCAPE = const HighlightRegionType._("VALID_STRING_ESCAPE");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -10234,10 +11323,13 @@ class HighlightRegionType implements Enum {
  *   "dartdoc": optional String
  *   "elementDescription": optional String
  *   "elementKind": optional String
+ *   "isDeprecated": optional bool
  *   "parameter": optional String
  *   "propagatedType": optional String
  *   "staticType": optional String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class HoverInformation implements HasToJson {
   int _offset;
@@ -10256,6 +11348,8 @@ class HoverInformation implements HasToJson {
 
   String _elementKind;
 
+  bool _isDeprecated;
+
   String _parameter;
 
   String _propagatedType;
@@ -10263,13 +11357,13 @@ class HoverInformation implements HasToJson {
   String _staticType;
 
   /**
-   * The offset of the range of characters that encompases the cursor position
+   * The offset of the range of characters that encompasses the cursor position
    * and has the same hover information as the cursor position.
    */
   int get offset => _offset;
 
   /**
-   * The offset of the range of characters that encompases the cursor position
+   * The offset of the range of characters that encompasses the cursor position
    * and has the same hover information as the cursor position.
    */
   void set offset(int value) {
@@ -10278,13 +11372,13 @@ class HoverInformation implements HasToJson {
   }
 
   /**
-   * The length of the range of characters that encompases the cursor position
+   * The length of the range of characters that encompasses the cursor position
    * and has the same hover information as the cursor position.
    */
   int get length => _length;
 
   /**
-   * The length of the range of characters that encompases the cursor position
+   * The length of the range of characters that encompasses the cursor position
    * and has the same hover information as the cursor position.
    */
   void set length(int value) {
@@ -10389,6 +11483,18 @@ class HoverInformation implements HasToJson {
   }
 
   /**
+   * True if the referenced element is deprecated.
+   */
+  bool get isDeprecated => _isDeprecated;
+
+  /**
+   * True if the referenced element is deprecated.
+   */
+  void set isDeprecated(bool value) {
+    this._isDeprecated = value;
+  }
+
+  /**
    * A human-readable description of the parameter corresponding to the
    * expression being hovered over. This data is omitted if the location is not
    * in an argument to a function.
@@ -10434,7 +11540,7 @@ class HoverInformation implements HasToJson {
     this._staticType = value;
   }
 
-  HoverInformation(int offset, int length, {String containingLibraryPath, String containingLibraryName, String containingClassDescription, String dartdoc, String elementDescription, String elementKind, String parameter, String propagatedType, String staticType}) {
+  HoverInformation(int offset, int length, {String containingLibraryPath, String containingLibraryName, String containingClassDescription, String dartdoc, String elementDescription, String elementKind, bool isDeprecated, String parameter, String propagatedType, String staticType}) {
     this.offset = offset;
     this.length = length;
     this.containingLibraryPath = containingLibraryPath;
@@ -10443,6 +11549,7 @@ class HoverInformation implements HasToJson {
     this.dartdoc = dartdoc;
     this.elementDescription = elementDescription;
     this.elementKind = elementKind;
+    this.isDeprecated = isDeprecated;
     this.parameter = parameter;
     this.propagatedType = propagatedType;
     this.staticType = staticType;
@@ -10455,53 +11562,57 @@ class HoverInformation implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       String containingLibraryPath;
       if (json.containsKey("containingLibraryPath")) {
-        containingLibraryPath = jsonDecoder._decodeString(jsonPath + ".containingLibraryPath", json["containingLibraryPath"]);
+        containingLibraryPath = jsonDecoder.decodeString(jsonPath + ".containingLibraryPath", json["containingLibraryPath"]);
       }
       String containingLibraryName;
       if (json.containsKey("containingLibraryName")) {
-        containingLibraryName = jsonDecoder._decodeString(jsonPath + ".containingLibraryName", json["containingLibraryName"]);
+        containingLibraryName = jsonDecoder.decodeString(jsonPath + ".containingLibraryName", json["containingLibraryName"]);
       }
       String containingClassDescription;
       if (json.containsKey("containingClassDescription")) {
-        containingClassDescription = jsonDecoder._decodeString(jsonPath + ".containingClassDescription", json["containingClassDescription"]);
+        containingClassDescription = jsonDecoder.decodeString(jsonPath + ".containingClassDescription", json["containingClassDescription"]);
       }
       String dartdoc;
       if (json.containsKey("dartdoc")) {
-        dartdoc = jsonDecoder._decodeString(jsonPath + ".dartdoc", json["dartdoc"]);
+        dartdoc = jsonDecoder.decodeString(jsonPath + ".dartdoc", json["dartdoc"]);
       }
       String elementDescription;
       if (json.containsKey("elementDescription")) {
-        elementDescription = jsonDecoder._decodeString(jsonPath + ".elementDescription", json["elementDescription"]);
+        elementDescription = jsonDecoder.decodeString(jsonPath + ".elementDescription", json["elementDescription"]);
       }
       String elementKind;
       if (json.containsKey("elementKind")) {
-        elementKind = jsonDecoder._decodeString(jsonPath + ".elementKind", json["elementKind"]);
+        elementKind = jsonDecoder.decodeString(jsonPath + ".elementKind", json["elementKind"]);
+      }
+      bool isDeprecated;
+      if (json.containsKey("isDeprecated")) {
+        isDeprecated = jsonDecoder.decodeBool(jsonPath + ".isDeprecated", json["isDeprecated"]);
       }
       String parameter;
       if (json.containsKey("parameter")) {
-        parameter = jsonDecoder._decodeString(jsonPath + ".parameter", json["parameter"]);
+        parameter = jsonDecoder.decodeString(jsonPath + ".parameter", json["parameter"]);
       }
       String propagatedType;
       if (json.containsKey("propagatedType")) {
-        propagatedType = jsonDecoder._decodeString(jsonPath + ".propagatedType", json["propagatedType"]);
+        propagatedType = jsonDecoder.decodeString(jsonPath + ".propagatedType", json["propagatedType"]);
       }
       String staticType;
       if (json.containsKey("staticType")) {
-        staticType = jsonDecoder._decodeString(jsonPath + ".staticType", json["staticType"]);
+        staticType = jsonDecoder.decodeString(jsonPath + ".staticType", json["staticType"]);
       }
-      return new HoverInformation(offset, length, containingLibraryPath: containingLibraryPath, containingLibraryName: containingLibraryName, containingClassDescription: containingClassDescription, dartdoc: dartdoc, elementDescription: elementDescription, elementKind: elementKind, parameter: parameter, propagatedType: propagatedType, staticType: staticType);
+      return new HoverInformation(offset, length, containingLibraryPath: containingLibraryPath, containingLibraryName: containingLibraryName, containingClassDescription: containingClassDescription, dartdoc: dartdoc, elementDescription: elementDescription, elementKind: elementKind, isDeprecated: isDeprecated, parameter: parameter, propagatedType: propagatedType, staticType: staticType);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "HoverInformation", json);
     }
@@ -10529,6 +11640,9 @@ class HoverInformation implements HasToJson {
     if (elementKind != null) {
       result["elementKind"] = elementKind;
     }
+    if (isDeprecated != null) {
+      result["isDeprecated"] = isDeprecated;
+    }
     if (parameter != null) {
       result["parameter"] = parameter;
     }
@@ -10555,6 +11669,7 @@ class HoverInformation implements HasToJson {
           dartdoc == other.dartdoc &&
           elementDescription == other.elementDescription &&
           elementKind == other.elementKind &&
+          isDeprecated == other.isDeprecated &&
           parameter == other.parameter &&
           propagatedType == other.propagatedType &&
           staticType == other.staticType;
@@ -10565,18 +11680,213 @@ class HoverInformation implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, containingLibraryPath.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, containingLibraryName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, containingClassDescription.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, dartdoc.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, elementDescription.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, elementKind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameter.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, propagatedType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, staticType.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, containingLibraryPath.hashCode);
+    hash = JenkinsSmiHash.combine(hash, containingLibraryName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, containingClassDescription.hashCode);
+    hash = JenkinsSmiHash.combine(hash, dartdoc.hashCode);
+    hash = JenkinsSmiHash.combine(hash, elementDescription.hashCode);
+    hash = JenkinsSmiHash.combine(hash, elementKind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isDeprecated.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, propagatedType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, staticType.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * ImplementedClass
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ImplementedClass implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  /**
+   * The offset of the name of the implemented class.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the name of the implemented class.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The length of the name of the implemented class.
+   */
+  int get length => _length;
+
+  /**
+   * The length of the name of the implemented class.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  ImplementedClass(int offset, int length) {
+    this.offset = offset;
+    this.length = length;
+  }
+
+  factory ImplementedClass.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "length");
+      }
+      return new ImplementedClass(offset, length);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ImplementedClass", json);
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["offset"] = offset;
+    result["length"] = length;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is ImplementedClass) {
+      return offset == other.offset &&
+          length == other.length;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
+  }
+}
+
+/**
+ * ImplementedMember
+ *
+ * {
+ *   "offset": int
+ *   "length": int
+ * }
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class ImplementedMember implements HasToJson {
+  int _offset;
+
+  int _length;
+
+  /**
+   * The offset of the name of the implemented member.
+   */
+  int get offset => _offset;
+
+  /**
+   * The offset of the name of the implemented member.
+   */
+  void set offset(int value) {
+    assert(value != null);
+    this._offset = value;
+  }
+
+  /**
+   * The length of the name of the implemented member.
+   */
+  int get length => _length;
+
+  /**
+   * The length of the name of the implemented member.
+   */
+  void set length(int value) {
+    assert(value != null);
+    this._length = value;
+  }
+
+  ImplementedMember(int offset, int length) {
+    this.offset = offset;
+    this.length = length;
+  }
+
+  factory ImplementedMember.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      int offset;
+      if (json.containsKey("offset")) {
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "offset");
+      }
+      int length;
+      if (json.containsKey("length")) {
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "length");
+      }
+      return new ImplementedMember(offset, length);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "ImplementedMember", json);
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["offset"] = offset;
+    result["length"] = length;
+    return result;
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is ImplementedMember) {
+      return offset == other.offset &&
+          length == other.length;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -10588,6 +11898,8 @@ class HoverInformation implements HasToJson {
  *   "length": int
  *   "suggestions": List<LinkedEditSuggestion>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class LinkedEditGroup implements HasToJson {
   List<Position> _positions;
@@ -10650,19 +11962,19 @@ class LinkedEditGroup implements HasToJson {
     if (json is Map) {
       List<Position> positions;
       if (json.containsKey("positions")) {
-        positions = jsonDecoder._decodeList(jsonPath + ".positions", json["positions"], (String jsonPath, Object json) => new Position.fromJson(jsonDecoder, jsonPath, json));
+        positions = jsonDecoder.decodeList(jsonPath + ".positions", json["positions"], (String jsonPath, Object json) => new Position.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "positions");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       List<LinkedEditSuggestion> suggestions;
       if (json.containsKey("suggestions")) {
-        suggestions = jsonDecoder._decodeList(jsonPath + ".suggestions", json["suggestions"], (String jsonPath, Object json) => new LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
+        suggestions = jsonDecoder.decodeList(jsonPath + ".suggestions", json["suggestions"], (String jsonPath, Object json) => new LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "suggestions");
       }
@@ -10706,9 +12018,9 @@ class LinkedEditGroup implements HasToJson {
   @override
   bool operator==(other) {
     if (other is LinkedEditGroup) {
-      return _listEqual(positions, other.positions, (Position a, Position b) => a == b) &&
+      return listEqual(positions, other.positions, (Position a, Position b) => a == b) &&
           length == other.length &&
-          _listEqual(suggestions, other.suggestions, (LinkedEditSuggestion a, LinkedEditSuggestion b) => a == b);
+          listEqual(suggestions, other.suggestions, (LinkedEditSuggestion a, LinkedEditSuggestion b) => a == b);
     }
     return false;
   }
@@ -10716,10 +12028,10 @@ class LinkedEditGroup implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, positions.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, suggestions.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, positions.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, suggestions.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -10730,6 +12042,8 @@ class LinkedEditGroup implements HasToJson {
  *   "value": String
  *   "kind": LinkedEditSuggestionKind
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class LinkedEditSuggestion implements HasToJson {
   String _value;
@@ -10774,7 +12088,7 @@ class LinkedEditSuggestion implements HasToJson {
     if (json is Map) {
       String value;
       if (json.containsKey("value")) {
-        value = jsonDecoder._decodeString(jsonPath + ".value", json["value"]);
+        value = jsonDecoder.decodeString(jsonPath + ".value", json["value"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "value");
       }
@@ -10812,9 +12126,9 @@ class LinkedEditSuggestion implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, value.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, value.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -10827,15 +12141,17 @@ class LinkedEditSuggestion implements HasToJson {
  *   TYPE
  *   VARIABLE
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class LinkedEditSuggestionKind implements Enum {
-  static const METHOD = const LinkedEditSuggestionKind._("METHOD");
+  static const LinkedEditSuggestionKind METHOD = const LinkedEditSuggestionKind._("METHOD");
 
-  static const PARAMETER = const LinkedEditSuggestionKind._("PARAMETER");
+  static const LinkedEditSuggestionKind PARAMETER = const LinkedEditSuggestionKind._("PARAMETER");
 
-  static const TYPE = const LinkedEditSuggestionKind._("TYPE");
+  static const LinkedEditSuggestionKind TYPE = const LinkedEditSuggestionKind._("TYPE");
 
-  static const VARIABLE = const LinkedEditSuggestionKind._("VARIABLE");
+  static const LinkedEditSuggestionKind VARIABLE = const LinkedEditSuggestionKind._("VARIABLE");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -10887,6 +12203,8 @@ class LinkedEditSuggestionKind implements Enum {
  *   "startLine": int
  *   "startColumn": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class Location implements HasToJson {
   String _file;
@@ -10983,31 +12301,31 @@ class Location implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       int startLine;
       if (json.containsKey("startLine")) {
-        startLine = jsonDecoder._decodeInt(jsonPath + ".startLine", json["startLine"]);
+        startLine = jsonDecoder.decodeInt(jsonPath + ".startLine", json["startLine"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "startLine");
       }
       int startColumn;
       if (json.containsKey("startColumn")) {
-        startColumn = jsonDecoder._decodeInt(jsonPath + ".startColumn", json["startColumn"]);
+        startColumn = jsonDecoder.decodeInt(jsonPath + ".startColumn", json["startColumn"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "startColumn");
       }
@@ -11045,12 +12363,12 @@ class Location implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, startLine.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, startColumn.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
+    hash = JenkinsSmiHash.combine(hash, startColumn.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11062,6 +12380,8 @@ class Location implements HasToJson {
  *   "length": int
  *   "targets": List<int>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class NavigationRegion implements HasToJson {
   int _offset;
@@ -11099,14 +12419,14 @@ class NavigationRegion implements HasToJson {
   /**
    * The indexes of the targets (in the enclosing navigation response) to which
    * the given region is bound. By opening the target, clients can implement
-   * one form of navigation.
+   * one form of navigation. This list cannot be empty.
    */
   List<int> get targets => _targets;
 
   /**
    * The indexes of the targets (in the enclosing navigation response) to which
    * the given region is bound. By opening the target, clients can implement
-   * one form of navigation.
+   * one form of navigation. This list cannot be empty.
    */
   void set targets(List<int> value) {
     assert(value != null);
@@ -11126,19 +12446,19 @@ class NavigationRegion implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       List<int> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder._decodeList(jsonPath + ".targets", json["targets"], jsonDecoder._decodeInt);
+        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "targets");
       }
@@ -11164,7 +12484,7 @@ class NavigationRegion implements HasToJson {
     if (other is NavigationRegion) {
       return offset == other.offset &&
           length == other.length &&
-          _listEqual(targets, other.targets, (int a, int b) => a == b);
+          listEqual(targets, other.targets, (int a, int b) => a == b);
     }
     return false;
   }
@@ -11172,10 +12492,10 @@ class NavigationRegion implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, targets.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, targets.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11190,6 +12510,8 @@ class NavigationRegion implements HasToJson {
  *   "startLine": int
  *   "startColumn": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class NavigationTarget implements HasToJson {
   ElementKind _kind;
@@ -11310,31 +12632,31 @@ class NavigationTarget implements HasToJson {
       }
       int fileIndex;
       if (json.containsKey("fileIndex")) {
-        fileIndex = jsonDecoder._decodeInt(jsonPath + ".fileIndex", json["fileIndex"]);
+        fileIndex = jsonDecoder.decodeInt(jsonPath + ".fileIndex", json["fileIndex"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fileIndex");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       int startLine;
       if (json.containsKey("startLine")) {
-        startLine = jsonDecoder._decodeInt(jsonPath + ".startLine", json["startLine"]);
+        startLine = jsonDecoder.decodeInt(jsonPath + ".startLine", json["startLine"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "startLine");
       }
       int startColumn;
       if (json.containsKey("startColumn")) {
-        startColumn = jsonDecoder._decodeInt(jsonPath + ".startColumn", json["startColumn"]);
+        startColumn = jsonDecoder.decodeInt(jsonPath + ".startColumn", json["startColumn"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "startColumn");
       }
@@ -11374,13 +12696,13 @@ class NavigationTarget implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, fileIndex.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, startLine.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, startColumn.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fileIndex.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, startLine.hashCode);
+    hash = JenkinsSmiHash.combine(hash, startColumn.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11392,6 +12714,8 @@ class NavigationTarget implements HasToJson {
  *   "offsets": List<int>
  *   "length": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class Occurrences implements HasToJson {
   Element _element;
@@ -11458,13 +12782,13 @@ class Occurrences implements HasToJson {
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder._decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder._decodeInt);
+        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offsets");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -11489,7 +12813,7 @@ class Occurrences implements HasToJson {
   bool operator==(other) {
     if (other is Occurrences) {
       return element == other.element &&
-          _listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
+          listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
           length == other.length;
     }
     return false;
@@ -11498,10 +12822,10 @@ class Occurrences implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offsets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offsets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11514,6 +12838,8 @@ class Occurrences implements HasToJson {
  *   "length": int
  *   "children": optional List<Outline>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class Outline implements HasToJson {
   Element _element;
@@ -11603,19 +12929,19 @@ class Outline implements HasToJson {
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       List<Outline> children;
       if (json.containsKey("children")) {
-        children = jsonDecoder._decodeList(jsonPath + ".children", json["children"], (String jsonPath, Object json) => new Outline.fromJson(jsonDecoder, jsonPath, json));
+        children = jsonDecoder.decodeList(jsonPath + ".children", json["children"], (String jsonPath, Object json) => new Outline.fromJson(jsonDecoder, jsonPath, json));
       }
       return new Outline(element, offset, length, children: children);
     } else {
@@ -11643,7 +12969,7 @@ class Outline implements HasToJson {
       return element == other.element &&
           offset == other.offset &&
           length == other.length &&
-          _listEqual(children, other.children, (Outline a, Outline b) => a == b);
+          listEqual(children, other.children, (Outline a, Outline b) => a == b);
     }
     return false;
   }
@@ -11651,11 +12977,11 @@ class Outline implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, children.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, children.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11668,6 +12994,8 @@ class Outline implements HasToJson {
  *   "superclassMember": optional OverriddenMember
  *   "interfaceMembers": optional List<OverriddenMember>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class Override implements HasToJson {
   int _offset;
@@ -11750,13 +13078,13 @@ class Override implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
@@ -11766,7 +13094,7 @@ class Override implements HasToJson {
       }
       List<OverriddenMember> interfaceMembers;
       if (json.containsKey("interfaceMembers")) {
-        interfaceMembers = jsonDecoder._decodeList(jsonPath + ".interfaceMembers", json["interfaceMembers"], (String jsonPath, Object json) => new OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
+        interfaceMembers = jsonDecoder.decodeList(jsonPath + ".interfaceMembers", json["interfaceMembers"], (String jsonPath, Object json) => new OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
       }
       return new Override(offset, length, superclassMember: superclassMember, interfaceMembers: interfaceMembers);
     } else {
@@ -11796,7 +13124,7 @@ class Override implements HasToJson {
       return offset == other.offset &&
           length == other.length &&
           superclassMember == other.superclassMember &&
-          _listEqual(interfaceMembers, other.interfaceMembers, (OverriddenMember a, OverriddenMember b) => a == b);
+          listEqual(interfaceMembers, other.interfaceMembers, (OverriddenMember a, OverriddenMember b) => a == b);
     }
     return false;
   }
@@ -11804,11 +13132,11 @@ class Override implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, superclassMember.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, interfaceMembers.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, superclassMember.hashCode);
+    hash = JenkinsSmiHash.combine(hash, interfaceMembers.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11819,6 +13147,8 @@ class Override implements HasToJson {
  *   "element": Element
  *   "className": String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class OverriddenMember implements HasToJson {
   Element _element;
@@ -11869,7 +13199,7 @@ class OverriddenMember implements HasToJson {
       }
       String className;
       if (json.containsKey("className")) {
-        className = jsonDecoder._decodeString(jsonPath + ".className", json["className"]);
+        className = jsonDecoder.decodeString(jsonPath + ".className", json["className"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "className");
       }
@@ -11901,9 +13231,9 @@ class OverriddenMember implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, element.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, className.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, element.hashCode);
+    hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -11914,6 +13244,8 @@ class OverriddenMember implements HasToJson {
  *   "file": FilePath
  *   "offset": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class Position implements HasToJson {
   String _file;
@@ -11958,13 +13290,13 @@ class Position implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
@@ -11996,9 +13328,9 @@ class Position implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12008,6 +13340,8 @@ class Position implements HasToJson {
  * {
  *   "isListingPackageDirs": bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class PubStatus implements HasToJson {
   bool _isListingPackageDirs;
@@ -12038,7 +13372,7 @@ class PubStatus implements HasToJson {
     if (json is Map) {
       bool isListingPackageDirs;
       if (json.containsKey("isListingPackageDirs")) {
-        isListingPackageDirs = jsonDecoder._decodeBool(jsonPath + ".isListingPackageDirs", json["isListingPackageDirs"]);
+        isListingPackageDirs = jsonDecoder.decodeBool(jsonPath + ".isListingPackageDirs", json["isListingPackageDirs"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isListingPackageDirs");
       }
@@ -12068,8 +13402,8 @@ class PubStatus implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, isListingPackageDirs.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, isListingPackageDirs.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12087,25 +13421,27 @@ class PubStatus implements HasToJson {
  *   RENAME
  *   SORT_MEMBERS
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringKind implements Enum {
-  static const CONVERT_GETTER_TO_METHOD = const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
+  static const RefactoringKind CONVERT_GETTER_TO_METHOD = const RefactoringKind._("CONVERT_GETTER_TO_METHOD");
 
-  static const CONVERT_METHOD_TO_GETTER = const RefactoringKind._("CONVERT_METHOD_TO_GETTER");
+  static const RefactoringKind CONVERT_METHOD_TO_GETTER = const RefactoringKind._("CONVERT_METHOD_TO_GETTER");
 
-  static const EXTRACT_LOCAL_VARIABLE = const RefactoringKind._("EXTRACT_LOCAL_VARIABLE");
+  static const RefactoringKind EXTRACT_LOCAL_VARIABLE = const RefactoringKind._("EXTRACT_LOCAL_VARIABLE");
 
-  static const EXTRACT_METHOD = const RefactoringKind._("EXTRACT_METHOD");
+  static const RefactoringKind EXTRACT_METHOD = const RefactoringKind._("EXTRACT_METHOD");
 
-  static const INLINE_LOCAL_VARIABLE = const RefactoringKind._("INLINE_LOCAL_VARIABLE");
+  static const RefactoringKind INLINE_LOCAL_VARIABLE = const RefactoringKind._("INLINE_LOCAL_VARIABLE");
 
-  static const INLINE_METHOD = const RefactoringKind._("INLINE_METHOD");
+  static const RefactoringKind INLINE_METHOD = const RefactoringKind._("INLINE_METHOD");
 
-  static const MOVE_FILE = const RefactoringKind._("MOVE_FILE");
+  static const RefactoringKind MOVE_FILE = const RefactoringKind._("MOVE_FILE");
 
-  static const RENAME = const RefactoringKind._("RENAME");
+  static const RefactoringKind RENAME = const RefactoringKind._("RENAME");
 
-  static const SORT_MEMBERS = const RefactoringKind._("SORT_MEMBERS");
+  static const RefactoringKind SORT_MEMBERS = const RefactoringKind._("SORT_MEMBERS");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -12167,6 +13503,8 @@ class RefactoringKind implements Enum {
  *   "name": String
  *   "parameters": optional String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringMethodParameter implements HasToJson {
   String _id;
@@ -12265,7 +13603,7 @@ class RefactoringMethodParameter implements HasToJson {
     if (json is Map) {
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       }
       RefactoringMethodParameterKind kind;
       if (json.containsKey("kind")) {
@@ -12275,19 +13613,19 @@ class RefactoringMethodParameter implements HasToJson {
       }
       String type;
       if (json.containsKey("type")) {
-        type = jsonDecoder._decodeString(jsonPath + ".type", json["type"]);
+        type = jsonDecoder.decodeString(jsonPath + ".type", json["type"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "type");
       }
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
       String parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder._decodeString(jsonPath + ".parameters", json["parameters"]);
+        parameters = jsonDecoder.decodeString(jsonPath + ".parameters", json["parameters"]);
       }
       return new RefactoringMethodParameter(kind, type, name, id: id, parameters: parameters);
     } else {
@@ -12327,12 +13665,12 @@ class RefactoringMethodParameter implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, type.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, type.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12341,12 +13679,14 @@ class RefactoringMethodParameter implements HasToJson {
  *
  * {
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringFeedback implements HasToJson {
   RefactoringFeedback();
 
   factory RefactoringFeedback.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json, Map responseJson) {
-    return _refactoringFeedbackFromJson(jsonDecoder, jsonPath, json, responseJson);
+    return refactoringFeedbackFromJson(jsonDecoder, jsonPath, json, responseJson);
   }
 
   Map<String, dynamic> toJson() {
@@ -12368,7 +13708,7 @@ class RefactoringFeedback implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    return _JenkinsSmiHash.finish(hash);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12377,12 +13717,14 @@ class RefactoringFeedback implements HasToJson {
  *
  * {
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringOptions implements HasToJson {
   RefactoringOptions();
 
   factory RefactoringOptions.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json, RefactoringKind kind) {
-    return _refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
+    return refactoringOptionsFromJson(jsonDecoder, jsonPath, json, kind);
   }
 
   Map<String, dynamic> toJson() {
@@ -12404,7 +13746,7 @@ class RefactoringOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    return _JenkinsSmiHash.finish(hash);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12416,13 +13758,15 @@ class RefactoringOptions implements HasToJson {
  *   POSITIONAL
  *   NAMED
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringMethodParameterKind implements Enum {
-  static const REQUIRED = const RefactoringMethodParameterKind._("REQUIRED");
+  static const RefactoringMethodParameterKind REQUIRED = const RefactoringMethodParameterKind._("REQUIRED");
 
-  static const POSITIONAL = const RefactoringMethodParameterKind._("POSITIONAL");
+  static const RefactoringMethodParameterKind POSITIONAL = const RefactoringMethodParameterKind._("POSITIONAL");
 
-  static const NAMED = const RefactoringMethodParameterKind._("NAMED");
+  static const RefactoringMethodParameterKind NAMED = const RefactoringMethodParameterKind._("NAMED");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -12470,6 +13814,8 @@ class RefactoringMethodParameterKind implements Enum {
  *   "message": String
  *   "location": optional Location
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringProblem implements HasToJson {
   RefactoringProblemSeverity _severity;
@@ -12539,7 +13885,7 @@ class RefactoringProblem implements HasToJson {
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
@@ -12579,10 +13925,10 @@ class RefactoringProblem implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, severity.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, location.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, severity.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12595,15 +13941,42 @@ class RefactoringProblem implements HasToJson {
  *   ERROR
  *   FATAL
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RefactoringProblemSeverity implements Enum {
-  static const INFO = const RefactoringProblemSeverity._("INFO");
+  /**
+   * A minor code problem. No example, because it is not used yet.
+   */
+  static const RefactoringProblemSeverity INFO = const RefactoringProblemSeverity._("INFO");
 
-  static const WARNING = const RefactoringProblemSeverity._("WARNING");
+  /**
+   * A minor code problem. For example names of local variables should be camel
+   * case and start with a lower case letter. Staring the name of a variable
+   * with an upper case is OK from the language point of view, but it is nice
+   * to warn the user.
+   */
+  static const RefactoringProblemSeverity WARNING = const RefactoringProblemSeverity._("WARNING");
 
-  static const ERROR = const RefactoringProblemSeverity._("ERROR");
+  /**
+   * The refactoring technically can be performed, but there is a logical
+   * problem. For example the name of a local variable being extracted
+   * conflicts with another name in the scope, or duplicate parameter names in
+   * the method being extracted, or a conflict between a parameter name and a
+   * local variable, etc. In some cases the location of the problem is also
+   * provided, so the IDE can show user the location and the problem, and let
+   * the user decide whether she wants to perform the refactoring. For example
+   * the name conflict might be expected, and the user wants to fix it
+   * afterwards.
+   */
+  static const RefactoringProblemSeverity ERROR = const RefactoringProblemSeverity._("ERROR");
 
-  static const FATAL = const RefactoringProblemSeverity._("FATAL");
+  /**
+   * A fatal error, which prevents performing the refactoring. For example the
+   * name of a local variable being extracted is not a valid identifier, or
+   * selection is not a valid expression.
+   */
+  static const RefactoringProblemSeverity FATAL = const RefactoringProblemSeverity._("FATAL");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -12643,7 +14016,7 @@ class RefactoringProblemSeverity implements Enum {
    * Returns the [RefactoringProblemSeverity] with the maximal severity.
    */
   static RefactoringProblemSeverity max(RefactoringProblemSeverity a, RefactoringProblemSeverity b) =>
-      _maxRefactoringProblemSeverity(a, b);
+      maxRefactoringProblemSeverity(a, b);
 
   @override
   String toString() => "RefactoringProblemSeverity.$name";
@@ -12657,6 +14030,8 @@ class RefactoringProblemSeverity implements Enum {
  * {
  *   "type": "remove"
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RemoveContentOverlay implements HasToJson {
   RemoveContentOverlay();
@@ -12695,8 +14070,8 @@ class RemoveContentOverlay implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, 114870849);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, 114870849);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12708,6 +14083,8 @@ class RemoveContentOverlay implements HasToJson {
  *   "message": String
  *   "stackTrace": optional String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RequestError implements HasToJson {
   RequestErrorCode _code;
@@ -12775,13 +14152,13 @@ class RequestError implements HasToJson {
       }
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
       String stackTrace;
       if (json.containsKey("stackTrace")) {
-        stackTrace = jsonDecoder._decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
+        stackTrace = jsonDecoder.decodeString(jsonPath + ".stackTrace", json["stackTrace"]);
       }
       return new RequestError(code, message, stackTrace: stackTrace);
     } else {
@@ -12815,10 +14192,10 @@ class RequestError implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, code.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, stackTrace.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, code.hashCode);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, stackTrace.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -12832,8 +14209,10 @@ class RequestError implements HasToJson {
  *   FORMAT_WITH_ERRORS
  *   GET_ERRORS_INVALID_FILE
  *   GET_NAVIGATION_INVALID_FILE
+ *   GET_REACHABLE_SOURCES_INVALID_FILE
  *   INVALID_ANALYSIS_ROOT
  *   INVALID_EXECUTION_CONTEXT
+ *   INVALID_FILE_PATH_FORMAT
  *   INVALID_OVERLAY_CHANGE
  *   INVALID_PARAMETER
  *   INVALID_REQUEST
@@ -12849,6 +14228,8 @@ class RequestError implements HasToJson {
  *   UNKNOWN_SOURCE
  *   UNSUPPORTED_FEATURE
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RequestErrorCode implements Enum {
   /**
@@ -12856,81 +14237,93 @@ class RequestErrorCode implements Enum {
    * satisfied because the content of the file changed before the requested
    * results could be computed.
    */
-  static const CONTENT_MODIFIED = const RequestErrorCode._("CONTENT_MODIFIED");
+  static const RequestErrorCode CONTENT_MODIFIED = const RequestErrorCode._("CONTENT_MODIFIED");
 
   /**
    * A request specified a FilePath which does not match a file in an analysis
    * root, or the requested operation is not available for the file.
    */
-  static const FILE_NOT_ANALYZED = const RequestErrorCode._("FILE_NOT_ANALYZED");
+  static const RequestErrorCode FILE_NOT_ANALYZED = const RequestErrorCode._("FILE_NOT_ANALYZED");
 
   /**
    * An "edit.format" request specified a FilePath which does not match a Dart
    * file in an analysis root.
    */
-  static const FORMAT_INVALID_FILE = const RequestErrorCode._("FORMAT_INVALID_FILE");
+  static const RequestErrorCode FORMAT_INVALID_FILE = const RequestErrorCode._("FORMAT_INVALID_FILE");
 
   /**
    * An "edit.format" request specified a file that contains syntax errors.
    */
-  static const FORMAT_WITH_ERRORS = const RequestErrorCode._("FORMAT_WITH_ERRORS");
+  static const RequestErrorCode FORMAT_WITH_ERRORS = const RequestErrorCode._("FORMAT_WITH_ERRORS");
 
   /**
    * An "analysis.getErrors" request specified a FilePath which does not match
    * a file currently subject to analysis.
    */
-  static const GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
+  static const RequestErrorCode GET_ERRORS_INVALID_FILE = const RequestErrorCode._("GET_ERRORS_INVALID_FILE");
 
   /**
    * An "analysis.getNavigation" request specified a FilePath which does not
    * match a file currently subject to analysis.
    */
-  static const GET_NAVIGATION_INVALID_FILE = const RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
+  static const RequestErrorCode GET_NAVIGATION_INVALID_FILE = const RequestErrorCode._("GET_NAVIGATION_INVALID_FILE");
+
+  /**
+   * An "analysis.getReachableSources" request specified a FilePath which does
+   * not match a file currently subject to analysis.
+   */
+  static const RequestErrorCode GET_REACHABLE_SOURCES_INVALID_FILE = const RequestErrorCode._("GET_REACHABLE_SOURCES_INVALID_FILE");
 
   /**
    * A path passed as an argument to a request (such as analysis.reanalyze) is
    * required to be an analysis root, but isn't.
    */
-  static const INVALID_ANALYSIS_ROOT = const RequestErrorCode._("INVALID_ANALYSIS_ROOT");
+  static const RequestErrorCode INVALID_ANALYSIS_ROOT = const RequestErrorCode._("INVALID_ANALYSIS_ROOT");
 
   /**
    * The context root used to create an execution context does not exist.
    */
-  static const INVALID_EXECUTION_CONTEXT = const RequestErrorCode._("INVALID_EXECUTION_CONTEXT");
+  static const RequestErrorCode INVALID_EXECUTION_CONTEXT = const RequestErrorCode._("INVALID_EXECUTION_CONTEXT");
+
+  /**
+   * The format of the given file path is invalid, e.g. is not absolute and
+   * normalized.
+   */
+  static const RequestErrorCode INVALID_FILE_PATH_FORMAT = const RequestErrorCode._("INVALID_FILE_PATH_FORMAT");
 
   /**
    * An "analysis.updateContent" request contained a ChangeContentOverlay
    * object which can't be applied, due to an edit having an offset or length
    * that is out of range.
    */
-  static const INVALID_OVERLAY_CHANGE = const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
+  static const RequestErrorCode INVALID_OVERLAY_CHANGE = const RequestErrorCode._("INVALID_OVERLAY_CHANGE");
 
   /**
    * One of the method parameters was invalid.
    */
-  static const INVALID_PARAMETER = const RequestErrorCode._("INVALID_PARAMETER");
+  static const RequestErrorCode INVALID_PARAMETER = const RequestErrorCode._("INVALID_PARAMETER");
 
   /**
    * A malformed request was received.
    */
-  static const INVALID_REQUEST = const RequestErrorCode._("INVALID_REQUEST");
+  static const RequestErrorCode INVALID_REQUEST = const RequestErrorCode._("INVALID_REQUEST");
 
   /**
    * The "--no-index" flag was passed when the analysis server created, but
    * this API call requires an index to have been generated.
    */
-  static const NO_INDEX_GENERATED = const RequestErrorCode._("NO_INDEX_GENERATED");
+  static const RequestErrorCode NO_INDEX_GENERATED = const RequestErrorCode._("NO_INDEX_GENERATED");
 
   /**
    * An "edit.organizeDirectives" request specified a Dart file that cannot be
    * analyzed. The reason is described in the message.
    */
-  static const ORGANIZE_DIRECTIVES_ERROR = const RequestErrorCode._("ORGANIZE_DIRECTIVES_ERROR");
+  static const RequestErrorCode ORGANIZE_DIRECTIVES_ERROR = const RequestErrorCode._("ORGANIZE_DIRECTIVES_ERROR");
 
   /**
    * Another refactoring request was received during processing of this one.
    */
-  static const REFACTORING_REQUEST_CANCELLED = const RequestErrorCode._("REFACTORING_REQUEST_CANCELLED");
+  static const RequestErrorCode REFACTORING_REQUEST_CANCELLED = const RequestErrorCode._("REFACTORING_REQUEST_CANCELLED");
 
   /**
    * The analysis server has already been started (and hence won't accept new
@@ -12940,25 +14333,25 @@ class RequestErrorCode implements Enum {
    * server can only speak to one client at a time so this error will never
    * occur.
    */
-  static const SERVER_ALREADY_STARTED = const RequestErrorCode._("SERVER_ALREADY_STARTED");
+  static const RequestErrorCode SERVER_ALREADY_STARTED = const RequestErrorCode._("SERVER_ALREADY_STARTED");
 
   /**
    * An internal error occurred in the analysis server. Also see the
    * server.error notification.
    */
-  static const SERVER_ERROR = const RequestErrorCode._("SERVER_ERROR");
+  static const RequestErrorCode SERVER_ERROR = const RequestErrorCode._("SERVER_ERROR");
 
   /**
    * An "edit.sortMembers" request specified a FilePath which does not match a
    * Dart file in an analysis root.
    */
-  static const SORT_MEMBERS_INVALID_FILE = const RequestErrorCode._("SORT_MEMBERS_INVALID_FILE");
+  static const RequestErrorCode SORT_MEMBERS_INVALID_FILE = const RequestErrorCode._("SORT_MEMBERS_INVALID_FILE");
 
   /**
    * An "edit.sortMembers" request specified a Dart file that has scan or parse
    * errors.
    */
-  static const SORT_MEMBERS_PARSE_ERRORS = const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
+  static const RequestErrorCode SORT_MEMBERS_PARSE_ERRORS = const RequestErrorCode._("SORT_MEMBERS_PARSE_ERRORS");
 
   /**
    * An "analysis.setPriorityFiles" request includes one or more files that are
@@ -12967,19 +14360,19 @@ class RequestErrorCode implements Enum {
    * This is a legacy error; it will be removed before the API reaches version
    * 1.0.
    */
-  static const UNANALYZED_PRIORITY_FILES = const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
+  static const RequestErrorCode UNANALYZED_PRIORITY_FILES = const RequestErrorCode._("UNANALYZED_PRIORITY_FILES");
 
   /**
    * A request was received which the analysis server does not recognize, or
-   * cannot handle in its current configuation.
+   * cannot handle in its current configuration.
    */
-  static const UNKNOWN_REQUEST = const RequestErrorCode._("UNKNOWN_REQUEST");
+  static const RequestErrorCode UNKNOWN_REQUEST = const RequestErrorCode._("UNKNOWN_REQUEST");
 
   /**
    * The analysis server was requested to perform an action on a source that
    * does not exist.
    */
-  static const UNKNOWN_SOURCE = const RequestErrorCode._("UNKNOWN_SOURCE");
+  static const RequestErrorCode UNKNOWN_SOURCE = const RequestErrorCode._("UNKNOWN_SOURCE");
 
   /**
    * The analysis server was requested to perform an action which is not
@@ -12988,12 +14381,12 @@ class RequestErrorCode implements Enum {
    * This is a legacy error; it will be removed before the API reaches version
    * 1.0.
    */
-  static const UNSUPPORTED_FEATURE = const RequestErrorCode._("UNSUPPORTED_FEATURE");
+  static const RequestErrorCode UNSUPPORTED_FEATURE = const RequestErrorCode._("UNSUPPORTED_FEATURE");
 
   /**
    * A list containing all of the enum values that are defined.
    */
-  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FILE_NOT_ANALYZED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, ORGANIZE_DIRECTIVES_ERROR, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
+  static const List<RequestErrorCode> VALUES = const <RequestErrorCode>[CONTENT_MODIFIED, FILE_NOT_ANALYZED, FORMAT_INVALID_FILE, FORMAT_WITH_ERRORS, GET_ERRORS_INVALID_FILE, GET_NAVIGATION_INVALID_FILE, GET_REACHABLE_SOURCES_INVALID_FILE, INVALID_ANALYSIS_ROOT, INVALID_EXECUTION_CONTEXT, INVALID_FILE_PATH_FORMAT, INVALID_OVERLAY_CHANGE, INVALID_PARAMETER, INVALID_REQUEST, NO_INDEX_GENERATED, ORGANIZE_DIRECTIVES_ERROR, REFACTORING_REQUEST_CANCELLED, SERVER_ALREADY_STARTED, SERVER_ERROR, SORT_MEMBERS_INVALID_FILE, SORT_MEMBERS_PARSE_ERRORS, UNANALYZED_PRIORITY_FILES, UNKNOWN_REQUEST, UNKNOWN_SOURCE, UNSUPPORTED_FEATURE];
 
   final String name;
 
@@ -13013,10 +14406,14 @@ class RequestErrorCode implements Enum {
         return GET_ERRORS_INVALID_FILE;
       case "GET_NAVIGATION_INVALID_FILE":
         return GET_NAVIGATION_INVALID_FILE;
+      case "GET_REACHABLE_SOURCES_INVALID_FILE":
+        return GET_REACHABLE_SOURCES_INVALID_FILE;
       case "INVALID_ANALYSIS_ROOT":
         return INVALID_ANALYSIS_ROOT;
       case "INVALID_EXECUTION_CONTEXT":
         return INVALID_EXECUTION_CONTEXT;
+      case "INVALID_FILE_PATH_FORMAT":
+        return INVALID_FILE_PATH_FORMAT;
       case "INVALID_OVERLAY_CHANGE":
         return INVALID_OVERLAY_CHANGE;
       case "INVALID_PARAMETER":
@@ -13075,6 +14472,8 @@ class RequestErrorCode implements Enum {
  *   "isPotential": bool
  *   "path": List<Element>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchResult implements HasToJson {
   Location _location;
@@ -13173,13 +14572,13 @@ class SearchResult implements HasToJson {
       }
       bool isPotential;
       if (json.containsKey("isPotential")) {
-        isPotential = jsonDecoder._decodeBool(jsonPath + ".isPotential", json["isPotential"]);
+        isPotential = jsonDecoder.decodeBool(jsonPath + ".isPotential", json["isPotential"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isPotential");
       }
       List<Element> path;
       if (json.containsKey("path")) {
-        path = jsonDecoder._decodeList(jsonPath + ".path", json["path"], (String jsonPath, Object json) => new Element.fromJson(jsonDecoder, jsonPath, json));
+        path = jsonDecoder.decodeList(jsonPath + ".path", json["path"], (String jsonPath, Object json) => new Element.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "path");
       }
@@ -13207,7 +14606,7 @@ class SearchResult implements HasToJson {
       return location == other.location &&
           kind == other.kind &&
           isPotential == other.isPotential &&
-          _listEqual(path, other.path, (Element a, Element b) => a == b);
+          listEqual(path, other.path, (Element a, Element b) => a == b);
     }
     return false;
   }
@@ -13215,11 +14614,11 @@ class SearchResult implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, location.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, kind.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isPotential.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, path.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, location.hashCode);
+    hash = JenkinsSmiHash.combine(hash, kind.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isPotential.hashCode);
+    hash = JenkinsSmiHash.combine(hash, path.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -13235,43 +14634,45 @@ class SearchResult implements HasToJson {
  *   UNKNOWN
  *   WRITE
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SearchResultKind implements Enum {
   /**
    * The declaration of an element.
    */
-  static const DECLARATION = const SearchResultKind._("DECLARATION");
+  static const SearchResultKind DECLARATION = const SearchResultKind._("DECLARATION");
 
   /**
    * The invocation of a function or method.
    */
-  static const INVOCATION = const SearchResultKind._("INVOCATION");
+  static const SearchResultKind INVOCATION = const SearchResultKind._("INVOCATION");
 
   /**
    * A reference to a field, parameter or variable where it is being read.
    */
-  static const READ = const SearchResultKind._("READ");
+  static const SearchResultKind READ = const SearchResultKind._("READ");
 
   /**
    * A reference to a field, parameter or variable where it is being read and
    * written.
    */
-  static const READ_WRITE = const SearchResultKind._("READ_WRITE");
+  static const SearchResultKind READ_WRITE = const SearchResultKind._("READ_WRITE");
 
   /**
    * A reference to an element.
    */
-  static const REFERENCE = const SearchResultKind._("REFERENCE");
+  static const SearchResultKind REFERENCE = const SearchResultKind._("REFERENCE");
 
   /**
    * Some other kind of search result.
    */
-  static const UNKNOWN = const SearchResultKind._("UNKNOWN");
+  static const SearchResultKind UNKNOWN = const SearchResultKind._("UNKNOWN");
 
   /**
    * A reference to a field, parameter or variable where it is being written.
    */
-  static const WRITE = const SearchResultKind._("WRITE");
+  static const SearchResultKind WRITE = const SearchResultKind._("WRITE");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -13325,9 +14726,11 @@ class SearchResultKind implements Enum {
  * enum {
  *   STATUS
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ServerService implements Enum {
-  static const STATUS = const ServerService._("STATUS");
+  static const ServerService STATUS = const ServerService._("STATUS");
 
   /**
    * A list containing all of the enum values that are defined.
@@ -13372,6 +14775,8 @@ class ServerService implements Enum {
  *   "linkedEditGroups": List<LinkedEditGroup>
  *   "selection": optional Position
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SourceChange implements HasToJson {
   String _message;
@@ -13457,19 +14862,19 @@ class SourceChange implements HasToJson {
     if (json is Map) {
       String message;
       if (json.containsKey("message")) {
-        message = jsonDecoder._decodeString(jsonPath + ".message", json["message"]);
+        message = jsonDecoder.decodeString(jsonPath + ".message", json["message"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "message");
       }
       List<SourceFileEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
       List<LinkedEditGroup> linkedEditGroups;
       if (json.containsKey("linkedEditGroups")) {
-        linkedEditGroups = jsonDecoder._decodeList(jsonPath + ".linkedEditGroups", json["linkedEditGroups"], (String jsonPath, Object json) => new LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
+        linkedEditGroups = jsonDecoder.decodeList(jsonPath + ".linkedEditGroups", json["linkedEditGroups"], (String jsonPath, Object json) => new LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "linkedEditGroups");
       }
@@ -13498,7 +14903,7 @@ class SourceChange implements HasToJson {
    * Adds [edit] to the [FileEdit] for the given [file].
    */
   void addEdit(String file, int fileStamp, SourceEdit edit) =>
-      _addEditToSourceChange(this, file, fileStamp, edit);
+      addEditToSourceChange(this, file, fileStamp, edit);
 
   /**
    * Adds the given [FileEdit].
@@ -13518,7 +14923,7 @@ class SourceChange implements HasToJson {
    * Returns the [FileEdit] for the given [file], maybe `null`.
    */
   SourceFileEdit getFileEdit(String file) =>
-      _getChangeFileEdit(this, file);
+      getChangeFileEdit(this, file);
 
   @override
   String toString() => JSON.encode(toJson());
@@ -13527,8 +14932,8 @@ class SourceChange implements HasToJson {
   bool operator==(other) {
     if (other is SourceChange) {
       return message == other.message &&
-          _listEqual(edits, other.edits, (SourceFileEdit a, SourceFileEdit b) => a == b) &&
-          _listEqual(linkedEditGroups, other.linkedEditGroups, (LinkedEditGroup a, LinkedEditGroup b) => a == b) &&
+          listEqual(edits, other.edits, (SourceFileEdit a, SourceFileEdit b) => a == b) &&
+          listEqual(linkedEditGroups, other.linkedEditGroups, (LinkedEditGroup a, LinkedEditGroup b) => a == b) &&
           selection == other.selection;
     }
     return false;
@@ -13537,11 +14942,11 @@ class SourceChange implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, message.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, linkedEditGroups.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, selection.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, message.hashCode);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    hash = JenkinsSmiHash.combine(hash, linkedEditGroups.hashCode);
+    hash = JenkinsSmiHash.combine(hash, selection.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -13554,6 +14959,8 @@ class SourceChange implements HasToJson {
  *   "replacement": String
  *   "id": optional String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SourceEdit implements HasToJson {
   /**
@@ -13561,7 +14968,7 @@ class SourceEdit implements HasToJson {
    * applied in the order they appear in [edits].
    */
   static String applySequence(String code, Iterable<SourceEdit> edits) =>
-      _applySequence(code, edits);
+      applySequenceOfEdits(code, edits);
 
   int _offset;
 
@@ -13650,25 +15057,25 @@ class SourceEdit implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       String replacement;
       if (json.containsKey("replacement")) {
-        replacement = jsonDecoder._decodeString(jsonPath + ".replacement", json["replacement"]);
+        replacement = jsonDecoder.decodeString(jsonPath + ".replacement", json["replacement"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "replacement");
       }
       String id;
       if (json.containsKey("id")) {
-        id = jsonDecoder._decodeString(jsonPath + ".id", json["id"]);
+        id = jsonDecoder.decodeString(jsonPath + ".id", json["id"]);
       }
       return new SourceEdit(offset, length, replacement, id: id);
     } else {
@@ -13695,7 +15102,7 @@ class SourceEdit implements HasToJson {
   /**
    * Get the result of applying the edit to the given [code].
    */
-  String apply(String code) => _applyEdit(code, this);
+  String apply(String code) => applyEdit(code, this);
 
   @override
   String toString() => JSON.encode(toJson());
@@ -13714,11 +15121,11 @@ class SourceEdit implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, replacement.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, id.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, replacement.hashCode);
+    hash = JenkinsSmiHash.combine(hash, id.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -13730,6 +15137,8 @@ class SourceEdit implements HasToJson {
  *   "fileStamp": long
  *   "edits": List<SourceEdit>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class SourceFileEdit implements HasToJson {
   String _file;
@@ -13802,19 +15211,19 @@ class SourceFileEdit implements HasToJson {
     if (json is Map) {
       String file;
       if (json.containsKey("file")) {
-        file = jsonDecoder._decodeString(jsonPath + ".file", json["file"]);
+        file = jsonDecoder.decodeString(jsonPath + ".file", json["file"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "file");
       }
       int fileStamp;
       if (json.containsKey("fileStamp")) {
-        fileStamp = jsonDecoder._decodeInt(jsonPath + ".fileStamp", json["fileStamp"]);
+        fileStamp = jsonDecoder.decodeInt(jsonPath + ".fileStamp", json["fileStamp"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fileStamp");
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder._decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
@@ -13835,13 +15244,13 @@ class SourceFileEdit implements HasToJson {
   /**
    * Adds the given [Edit] to the list.
    */
-  void add(SourceEdit edit) => _addEditForSource(this, edit);
+  void add(SourceEdit edit) => addEditForSource(this, edit);
 
   /**
    * Adds the given [Edit]s.
    */
   void addAll(Iterable<SourceEdit> edits) =>
-      _addAllEditsForSource(this, edits);
+      addAllEditsForSource(this, edits);
 
   @override
   String toString() => JSON.encode(toJson());
@@ -13851,7 +15260,7 @@ class SourceFileEdit implements HasToJson {
     if (other is SourceFileEdit) {
       return file == other.file &&
           fileStamp == other.fileStamp &&
-          _listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
+          listEqual(edits, other.edits, (SourceEdit a, SourceEdit b) => a == b);
     }
     return false;
   }
@@ -13859,10 +15268,10 @@ class SourceFileEdit implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, file.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, fileStamp.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, edits.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, file.hashCode);
+    hash = JenkinsSmiHash.combine(hash, fileStamp.hashCode);
+    hash = JenkinsSmiHash.combine(hash, edits.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -13878,6 +15287,8 @@ class SourceFileEdit implements HasToJson {
  *   "mixins": List<int>
  *   "subclasses": List<int>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class TypeHierarchyItem implements HasToJson {
   Element _classElement;
@@ -14039,7 +15450,7 @@ class TypeHierarchyItem implements HasToJson {
       }
       String displayName;
       if (json.containsKey("displayName")) {
-        displayName = jsonDecoder._decodeString(jsonPath + ".displayName", json["displayName"]);
+        displayName = jsonDecoder.decodeString(jsonPath + ".displayName", json["displayName"]);
       }
       Element memberElement;
       if (json.containsKey("memberElement")) {
@@ -14047,23 +15458,23 @@ class TypeHierarchyItem implements HasToJson {
       }
       int superclass;
       if (json.containsKey("superclass")) {
-        superclass = jsonDecoder._decodeInt(jsonPath + ".superclass", json["superclass"]);
+        superclass = jsonDecoder.decodeInt(jsonPath + ".superclass", json["superclass"]);
       }
       List<int> interfaces;
       if (json.containsKey("interfaces")) {
-        interfaces = jsonDecoder._decodeList(jsonPath + ".interfaces", json["interfaces"], jsonDecoder._decodeInt);
+        interfaces = jsonDecoder.decodeList(jsonPath + ".interfaces", json["interfaces"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "interfaces");
       }
       List<int> mixins;
       if (json.containsKey("mixins")) {
-        mixins = jsonDecoder._decodeList(jsonPath + ".mixins", json["mixins"], jsonDecoder._decodeInt);
+        mixins = jsonDecoder.decodeList(jsonPath + ".mixins", json["mixins"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "mixins");
       }
       List<int> subclasses;
       if (json.containsKey("subclasses")) {
-        subclasses = jsonDecoder._decodeList(jsonPath + ".subclasses", json["subclasses"], jsonDecoder._decodeInt);
+        subclasses = jsonDecoder.decodeList(jsonPath + ".subclasses", json["subclasses"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subclasses");
       }
@@ -14101,9 +15512,9 @@ class TypeHierarchyItem implements HasToJson {
           displayName == other.displayName &&
           memberElement == other.memberElement &&
           superclass == other.superclass &&
-          _listEqual(interfaces, other.interfaces, (int a, int b) => a == b) &&
-          _listEqual(mixins, other.mixins, (int a, int b) => a == b) &&
-          _listEqual(subclasses, other.subclasses, (int a, int b) => a == b);
+          listEqual(interfaces, other.interfaces, (int a, int b) => a == b) &&
+          listEqual(mixins, other.mixins, (int a, int b) => a == b) &&
+          listEqual(subclasses, other.subclasses, (int a, int b) => a == b);
     }
     return false;
   }
@@ -14111,18 +15522,20 @@ class TypeHierarchyItem implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, classElement.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, displayName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, memberElement.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, superclass.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, interfaces.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, mixins.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, subclasses.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, classElement.hashCode);
+    hash = JenkinsSmiHash.combine(hash, displayName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, memberElement.hashCode);
+    hash = JenkinsSmiHash.combine(hash, superclass.hashCode);
+    hash = JenkinsSmiHash.combine(hash, interfaces.hashCode);
+    hash = JenkinsSmiHash.combine(hash, mixins.hashCode);
+    hash = JenkinsSmiHash.combine(hash, subclasses.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * convertGetterToMethod feedback
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ConvertGetterToMethodFeedback {
   @override
@@ -14140,6 +15553,8 @@ class ConvertGetterToMethodFeedback {
 }
 /**
  * convertGetterToMethod options
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ConvertGetterToMethodOptions {
   @override
@@ -14157,6 +15572,8 @@ class ConvertGetterToMethodOptions {
 }
 /**
  * convertMethodToGetter feedback
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ConvertMethodToGetterFeedback {
   @override
@@ -14174,6 +15591,8 @@ class ConvertMethodToGetterFeedback {
 }
 /**
  * convertMethodToGetter options
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ConvertMethodToGetterOptions {
   @override
@@ -14194,17 +15613,53 @@ class ConvertMethodToGetterOptions {
  * extractLocalVariable feedback
  *
  * {
+ *   "coveringExpressionOffsets": optional List<int>
+ *   "coveringExpressionLengths": optional List<int>
  *   "names": List<String>
  *   "offsets": List<int>
  *   "lengths": List<int>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
+  List<int> _coveringExpressionOffsets;
+
+  List<int> _coveringExpressionLengths;
+
   List<String> _names;
 
   List<int> _offsets;
 
   List<int> _lengths;
+
+  /**
+   * The offsets of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  List<int> get coveringExpressionOffsets => _coveringExpressionOffsets;
+
+  /**
+   * The offsets of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  void set coveringExpressionOffsets(List<int> value) {
+    this._coveringExpressionOffsets = value;
+  }
+
+  /**
+   * The lengths of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  List<int> get coveringExpressionLengths => _coveringExpressionLengths;
+
+  /**
+   * The lengths of the expressions that cover the specified selection, from
+   * the down most to the up most.
+   */
+  void set coveringExpressionLengths(List<int> value) {
+    this._coveringExpressionLengths = value;
+  }
 
   /**
    * The proposed names for the local variable.
@@ -14253,7 +15708,9 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
     this._lengths = value;
   }
 
-  ExtractLocalVariableFeedback(List<String> names, List<int> offsets, List<int> lengths) {
+  ExtractLocalVariableFeedback(List<String> names, List<int> offsets, List<int> lengths, {List<int> coveringExpressionOffsets, List<int> coveringExpressionLengths}) {
+    this.coveringExpressionOffsets = coveringExpressionOffsets;
+    this.coveringExpressionLengths = coveringExpressionLengths;
     this.names = names;
     this.offsets = offsets;
     this.lengths = lengths;
@@ -14264,25 +15721,33 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
       json = {};
     }
     if (json is Map) {
+      List<int> coveringExpressionOffsets;
+      if (json.containsKey("coveringExpressionOffsets")) {
+        coveringExpressionOffsets = jsonDecoder.decodeList(jsonPath + ".coveringExpressionOffsets", json["coveringExpressionOffsets"], jsonDecoder.decodeInt);
+      }
+      List<int> coveringExpressionLengths;
+      if (json.containsKey("coveringExpressionLengths")) {
+        coveringExpressionLengths = jsonDecoder.decodeList(jsonPath + ".coveringExpressionLengths", json["coveringExpressionLengths"], jsonDecoder.decodeInt);
+      }
       List<String> names;
       if (json.containsKey("names")) {
-        names = jsonDecoder._decodeList(jsonPath + ".names", json["names"], jsonDecoder._decodeString);
+        names = jsonDecoder.decodeList(jsonPath + ".names", json["names"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "names");
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder._decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder._decodeInt);
+        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offsets");
       }
       List<int> lengths;
       if (json.containsKey("lengths")) {
-        lengths = jsonDecoder._decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder._decodeInt);
+        lengths = jsonDecoder.decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
-      return new ExtractLocalVariableFeedback(names, offsets, lengths);
+      return new ExtractLocalVariableFeedback(names, offsets, lengths, coveringExpressionOffsets: coveringExpressionOffsets, coveringExpressionLengths: coveringExpressionLengths);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "extractLocalVariable feedback", json);
     }
@@ -14290,6 +15755,12 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
 
   Map<String, dynamic> toJson() {
     Map<String, dynamic> result = {};
+    if (coveringExpressionOffsets != null) {
+      result["coveringExpressionOffsets"] = coveringExpressionOffsets;
+    }
+    if (coveringExpressionLengths != null) {
+      result["coveringExpressionLengths"] = coveringExpressionLengths;
+    }
     result["names"] = names;
     result["offsets"] = offsets;
     result["lengths"] = lengths;
@@ -14302,9 +15773,11 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
   @override
   bool operator==(other) {
     if (other is ExtractLocalVariableFeedback) {
-      return _listEqual(names, other.names, (String a, String b) => a == b) &&
-          _listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
-          _listEqual(lengths, other.lengths, (int a, int b) => a == b);
+      return listEqual(coveringExpressionOffsets, other.coveringExpressionOffsets, (int a, int b) => a == b) &&
+          listEqual(coveringExpressionLengths, other.coveringExpressionLengths, (int a, int b) => a == b) &&
+          listEqual(names, other.names, (String a, String b) => a == b) &&
+          listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
+          listEqual(lengths, other.lengths, (int a, int b) => a == b);
     }
     return false;
   }
@@ -14312,10 +15785,12 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, names.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offsets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, lengths.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, coveringExpressionOffsets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, coveringExpressionLengths.hashCode);
+    hash = JenkinsSmiHash.combine(hash, names.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offsets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lengths.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -14326,6 +15801,8 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
  *   "name": String
  *   "extractAll": bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJson {
   String _name;
@@ -14376,13 +15853,13 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
       bool extractAll;
       if (json.containsKey("extractAll")) {
-        extractAll = jsonDecoder._decodeBool(jsonPath + ".extractAll", json["extractAll"]);
+        extractAll = jsonDecoder.decodeBool(jsonPath + ".extractAll", json["extractAll"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "extractAll");
       }
@@ -14419,9 +15896,9 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, extractAll.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, extractAll.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -14438,6 +15915,8 @@ class ExtractLocalVariableOptions extends RefactoringOptions implements HasToJso
  *   "offsets": List<int>
  *   "lengths": List<int>
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
   int _offset;
@@ -14592,49 +16071,49 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "returnType");
       }
       List<String> names;
       if (json.containsKey("names")) {
-        names = jsonDecoder._decodeList(jsonPath + ".names", json["names"], jsonDecoder._decodeString);
+        names = jsonDecoder.decodeList(jsonPath + ".names", json["names"], jsonDecoder.decodeString);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "names");
       }
       bool canCreateGetter;
       if (json.containsKey("canCreateGetter")) {
-        canCreateGetter = jsonDecoder._decodeBool(jsonPath + ".canCreateGetter", json["canCreateGetter"]);
+        canCreateGetter = jsonDecoder.decodeBool(jsonPath + ".canCreateGetter", json["canCreateGetter"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "canCreateGetter");
       }
       List<RefactoringMethodParameter> parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder._decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
+        parameters = jsonDecoder.decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "parameters");
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder._decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder._decodeInt);
+        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offsets");
       }
       List<int> lengths;
       if (json.containsKey("lengths")) {
-        lengths = jsonDecoder._decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder._decodeInt);
+        lengths = jsonDecoder.decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
@@ -14666,11 +16145,11 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
       return offset == other.offset &&
           length == other.length &&
           returnType == other.returnType &&
-          _listEqual(names, other.names, (String a, String b) => a == b) &&
+          listEqual(names, other.names, (String a, String b) => a == b) &&
           canCreateGetter == other.canCreateGetter &&
-          _listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
-          _listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
-          _listEqual(lengths, other.lengths, (int a, int b) => a == b);
+          listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
+          listEqual(offsets, other.offsets, (int a, int b) => a == b) &&
+          listEqual(lengths, other.lengths, (int a, int b) => a == b);
     }
     return false;
   }
@@ -14678,15 +16157,15 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, names.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, canCreateGetter.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, offsets.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, lengths.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, names.hashCode);
+    hash = JenkinsSmiHash.combine(hash, canCreateGetter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, offsets.hashCode);
+    hash = JenkinsSmiHash.combine(hash, lengths.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -14700,6 +16179,8 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
  *   "parameters": List<RefactoringMethodParameter>
  *   "extractAll": bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
   String _returnType;
@@ -14816,31 +16297,31 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
     if (json is Map) {
       String returnType;
       if (json.containsKey("returnType")) {
-        returnType = jsonDecoder._decodeString(jsonPath + ".returnType", json["returnType"]);
+        returnType = jsonDecoder.decodeString(jsonPath + ".returnType", json["returnType"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "returnType");
       }
       bool createGetter;
       if (json.containsKey("createGetter")) {
-        createGetter = jsonDecoder._decodeBool(jsonPath + ".createGetter", json["createGetter"]);
+        createGetter = jsonDecoder.decodeBool(jsonPath + ".createGetter", json["createGetter"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "createGetter");
       }
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
       List<RefactoringMethodParameter> parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder._decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
+        parameters = jsonDecoder.decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
       } else {
         throw jsonDecoder.missingKey(jsonPath, "parameters");
       }
       bool extractAll;
       if (json.containsKey("extractAll")) {
-        extractAll = jsonDecoder._decodeBool(jsonPath + ".extractAll", json["extractAll"]);
+        extractAll = jsonDecoder.decodeBool(jsonPath + ".extractAll", json["extractAll"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "extractAll");
       }
@@ -14874,7 +16355,7 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
       return returnType == other.returnType &&
           createGetter == other.createGetter &&
           name == other.name &&
-          _listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
+          listEqual(parameters, other.parameters, (RefactoringMethodParameter a, RefactoringMethodParameter b) => a == b) &&
           extractAll == other.extractAll;
     }
     return false;
@@ -14883,12 +16364,12 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, returnType.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, createGetter.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, parameters.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, extractAll.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, returnType.hashCode);
+    hash = JenkinsSmiHash.combine(hash, createGetter.hashCode);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, parameters.hashCode);
+    hash = JenkinsSmiHash.combine(hash, extractAll.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -14899,6 +16380,8 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
  *   "name": String
  *   "occurrences": int
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJson {
   String _name;
@@ -14943,13 +16426,13 @@ class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJs
     if (json is Map) {
       String name;
       if (json.containsKey("name")) {
-        name = jsonDecoder._decodeString(jsonPath + ".name", json["name"]);
+        name = jsonDecoder.decodeString(jsonPath + ".name", json["name"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "name");
       }
       int occurrences;
       if (json.containsKey("occurrences")) {
-        occurrences = jsonDecoder._decodeInt(jsonPath + ".occurrences", json["occurrences"]);
+        occurrences = jsonDecoder.decodeInt(jsonPath + ".occurrences", json["occurrences"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "occurrences");
       }
@@ -14981,13 +16464,15 @@ class InlineLocalVariableFeedback extends RefactoringFeedback implements HasToJs
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, name.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, occurrences.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, name.hashCode);
+    hash = JenkinsSmiHash.combine(hash, occurrences.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * inlineLocalVariable options
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class InlineLocalVariableOptions {
   @override
@@ -15012,6 +16497,8 @@ class InlineLocalVariableOptions {
  *   "methodName": String
  *   "isDeclaration": bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
   String _className;
@@ -15075,17 +16562,17 @@ class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
     if (json is Map) {
       String className;
       if (json.containsKey("className")) {
-        className = jsonDecoder._decodeString(jsonPath + ".className", json["className"]);
+        className = jsonDecoder.decodeString(jsonPath + ".className", json["className"]);
       }
       String methodName;
       if (json.containsKey("methodName")) {
-        methodName = jsonDecoder._decodeString(jsonPath + ".methodName", json["methodName"]);
+        methodName = jsonDecoder.decodeString(jsonPath + ".methodName", json["methodName"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "methodName");
       }
       bool isDeclaration;
       if (json.containsKey("isDeclaration")) {
-        isDeclaration = jsonDecoder._decodeBool(jsonPath + ".isDeclaration", json["isDeclaration"]);
+        isDeclaration = jsonDecoder.decodeBool(jsonPath + ".isDeclaration", json["isDeclaration"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "isDeclaration");
       }
@@ -15121,10 +16608,10 @@ class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, className.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, methodName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, isDeclaration.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, className.hashCode);
+    hash = JenkinsSmiHash.combine(hash, methodName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, isDeclaration.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -15135,6 +16622,8 @@ class InlineMethodFeedback extends RefactoringFeedback implements HasToJson {
  *   "deleteSource": bool
  *   "inlineAll": bool
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class InlineMethodOptions extends RefactoringOptions implements HasToJson {
   bool _deleteSource;
@@ -15183,13 +16672,13 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
     if (json is Map) {
       bool deleteSource;
       if (json.containsKey("deleteSource")) {
-        deleteSource = jsonDecoder._decodeBool(jsonPath + ".deleteSource", json["deleteSource"]);
+        deleteSource = jsonDecoder.decodeBool(jsonPath + ".deleteSource", json["deleteSource"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "deleteSource");
       }
       bool inlineAll;
       if (json.containsKey("inlineAll")) {
-        inlineAll = jsonDecoder._decodeBool(jsonPath + ".inlineAll", json["inlineAll"]);
+        inlineAll = jsonDecoder.decodeBool(jsonPath + ".inlineAll", json["inlineAll"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "inlineAll");
       }
@@ -15226,13 +16715,15 @@ class InlineMethodOptions extends RefactoringOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, deleteSource.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, inlineAll.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, deleteSource.hashCode);
+    hash = JenkinsSmiHash.combine(hash, inlineAll.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 /**
  * moveFile feedback
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class MoveFileFeedback {
   @override
@@ -15255,6 +16746,8 @@ class MoveFileFeedback {
  * {
  *   "newFile": FilePath
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class MoveFileOptions extends RefactoringOptions implements HasToJson {
   String _newFile;
@@ -15283,7 +16776,7 @@ class MoveFileOptions extends RefactoringOptions implements HasToJson {
     if (json is Map) {
       String newFile;
       if (json.containsKey("newFile")) {
-        newFile = jsonDecoder._decodeString(jsonPath + ".newFile", json["newFile"]);
+        newFile = jsonDecoder.decodeString(jsonPath + ".newFile", json["newFile"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "newFile");
       }
@@ -15318,8 +16811,8 @@ class MoveFileOptions extends RefactoringOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, newFile.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, newFile.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -15332,6 +16825,8 @@ class MoveFileOptions extends RefactoringOptions implements HasToJson {
  *   "elementKindName": String
  *   "oldName": String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RenameFeedback extends RefactoringFeedback implements HasToJson {
   int _offset;
@@ -15410,25 +16905,25 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
     if (json is Map) {
       int offset;
       if (json.containsKey("offset")) {
-        offset = jsonDecoder._decodeInt(jsonPath + ".offset", json["offset"]);
+        offset = jsonDecoder.decodeInt(jsonPath + ".offset", json["offset"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offset");
       }
       int length;
       if (json.containsKey("length")) {
-        length = jsonDecoder._decodeInt(jsonPath + ".length", json["length"]);
+        length = jsonDecoder.decodeInt(jsonPath + ".length", json["length"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "length");
       }
       String elementKindName;
       if (json.containsKey("elementKindName")) {
-        elementKindName = jsonDecoder._decodeString(jsonPath + ".elementKindName", json["elementKindName"]);
+        elementKindName = jsonDecoder.decodeString(jsonPath + ".elementKindName", json["elementKindName"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "elementKindName");
       }
       String oldName;
       if (json.containsKey("oldName")) {
-        oldName = jsonDecoder._decodeString(jsonPath + ".oldName", json["oldName"]);
+        oldName = jsonDecoder.decodeString(jsonPath + ".oldName", json["oldName"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "oldName");
       }
@@ -15464,11 +16959,11 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, offset.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, length.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, elementKindName.hashCode);
-    hash = _JenkinsSmiHash.combine(hash, oldName.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, offset.hashCode);
+    hash = JenkinsSmiHash.combine(hash, length.hashCode);
+    hash = JenkinsSmiHash.combine(hash, elementKindName.hashCode);
+    hash = JenkinsSmiHash.combine(hash, oldName.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -15478,6 +16973,8 @@ class RenameFeedback extends RefactoringFeedback implements HasToJson {
  * {
  *   "newName": String
  * }
+ *
+ * Clients may not extend, implement or mix-in this class.
  */
 class RenameOptions extends RefactoringOptions implements HasToJson {
   String _newName;
@@ -15506,7 +17003,7 @@ class RenameOptions extends RefactoringOptions implements HasToJson {
     if (json is Map) {
       String newName;
       if (json.containsKey("newName")) {
-        newName = jsonDecoder._decodeString(jsonPath + ".newName", json["newName"]);
+        newName = jsonDecoder.decodeString(jsonPath + ".newName", json["newName"]);
       } else {
         throw jsonDecoder.missingKey(jsonPath, "newName");
       }
@@ -15541,7 +17038,7 @@ class RenameOptions extends RefactoringOptions implements HasToJson {
   @override
   int get hashCode {
     int hash = 0;
-    hash = _JenkinsSmiHash.combine(hash, newName.hashCode);
-    return _JenkinsSmiHash.finish(hash);
+    hash = JenkinsSmiHash.combine(hash, newName.hashCode);
+    return JenkinsSmiHash.finish(hash);
   }
 }
