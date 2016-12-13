@@ -99,9 +99,9 @@ class PlaygroundMobile {
   /**
    * Return if strong mode should be enabled
    */
-  bool _isStrongMode(String strong) {
-    if (strong == null) return false;
-    return !(strong == 'false' || strong == 'f');
+  bool _parseStrongModeParam(String strongModeValueString) {
+    if (strongModeValueString == null) return false;
+    return (strongModeValueString == 'true' || strongModeValueString == 't');
   }
 
   /**
@@ -110,12 +110,9 @@ class PlaygroundMobile {
   void showStrong() {
     Uri url = Uri.parse(window.location.toString());
     String strong = url.queryParameters['strong'];
-    if (_isStrongMode(strong)) {
+    if (_parseStrongModeParam(strong)) {
       (querySelector('#strongmode') as InputElement).checked = true;
     }
-    querySelector('#strongmode').onChange.listen((e) {
-      _performAnalysis();
-    });
   }
 
   void showHome(RouteEnterEvent event) {
@@ -157,6 +154,13 @@ class PlaygroundMobile {
 
     _showGist(gistId, run: page == 'run');
     _storePreviousResult();
+  }
+
+  void registerStrongMode() {
+    showStrong();
+    querySelector('#strongmode').onChange.listen((e) {
+      _performAnalysis();
+    });
   }
 
   void registerMessageToast() {
@@ -320,7 +324,7 @@ class PlaygroundMobile {
     registerCancelExportButton();
     registerAffirmExportButton();
     registerConsole();
-    showStrong();
+    registerStrongMode();
     _clearOutput();
   }
 
