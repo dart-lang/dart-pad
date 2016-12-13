@@ -96,6 +96,25 @@ class PlaygroundMobile {
     });
   }
 
+  /**
+   * Return if strong mode should be enabled
+   */
+  bool _isStrongMode(String strong) {
+    if (strong == null) return false;
+    return !(strong == 'false' || strong == 'f');
+  }
+
+  /**
+   * Check query parameters for strong mode
+   */
+  void showStrong() {
+    Uri url = Uri.parse(window.location.toString());
+    String strong = url.queryParameters['strong'];
+    if (_isStrongMode(strong)) {
+      (querySelector('#strongmode') as InputElement).checked = true;
+    }
+  }
+
   void showHome(RouteEnterEvent event) {
     _logger.info('routed to showHome, ${window.location}, ${event.parameters}');
 
@@ -298,7 +317,7 @@ class PlaygroundMobile {
     registerCancelExportButton();
     registerAffirmExportButton();
     registerConsole();
-
+    showStrong();
     _clearOutput();
   }
 

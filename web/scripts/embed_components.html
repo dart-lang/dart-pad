@@ -449,8 +449,28 @@
     #console .errorOutput {
       color: #F7977A;
     }
+
+    #strong .errorOutput {
+        color: #F7977A;
+    }
+
+    #strongmode_container {
+        position:absolute;
+        right: 5px;
+        font-size: 10px;
+        z-index: 1;
+    }
+
+    #strongmode_container a {
+        color: #F7977A;
+    }
   </style>
   <template>
+      <div id = "strongmode_container">
+      <input type="checkbox" id="strongmode"> Strong mode</input>
+      (<a href="https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md"
+          target="_blank">?</a>)
+      </div>
     <div id="console" class="relative flex"></div>
   </template>
   <script>
