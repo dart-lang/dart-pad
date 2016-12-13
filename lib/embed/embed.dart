@@ -105,7 +105,7 @@ class PlaygroundMobile {
   }
 
   /**
-   * Check query parameters for strong mode
+   * Update query parameters for strong mode
    */
   void showStrong() {
     Uri url = Uri.parse(window.location.toString());
@@ -113,6 +113,9 @@ class PlaygroundMobile {
     if (_isStrongMode(strong)) {
       (querySelector('#strongmode') as InputElement).checked = true;
     }
+    querySelector('#strongmode').onChange.listen((e) {
+      _performAnalysis();
+    });
   }
 
   void showHome(RouteEnterEvent event) {
@@ -645,7 +648,10 @@ class PlaygroundMobile {
   }
 
   void _performAnalysis() {
-    var input = new SourceRequest()..source = _context.dartSource;
+    bool strongMode = (querySelector('#strongmode') as InputElement).checked;
+    var input = new SourceRequest()..source = _context.dartSource
+      ..strongMode = strongMode;
+
     Lines lines = new Lines(input.source);
 
     Future<AnalysisResults> request =
