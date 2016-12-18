@@ -96,6 +96,25 @@ class PlaygroundMobile {
     });
   }
 
+  /**
+   * Return if strong mode should be enabled
+   */
+  bool _parseStrongModeParam(String strongModeValueString) {
+    if (strongModeValueString == null) return false;
+    return (strongModeValueString == 'true' || strongModeValueString == 't');
+  }
+
+  /**
+   * Update query parameters for strong mode
+   */
+  void showStrong() {
+    Uri url = Uri.parse(window.location.toString());
+    String strong = url.queryParameters['strong'];
+    if (_parseStrongModeParam(strong)) {
+      (querySelector('#strongmode') as InputElement).checked = true;
+    }
+  }
+
   void showHome(RouteEnterEvent event) {
     _logger.info('routed to showHome, ${window.location}, ${event.parameters}');
 
@@ -135,6 +154,13 @@ class PlaygroundMobile {
 
     _showGist(gistId, run: page == 'run');
     _storePreviousResult();
+  }
+
+  void registerStrongMode() {
+    showStrong();
+    querySelector('#strongmode').onChange.listen((e) {
+      _performAnalysis();
+    });
   }
 
   void registerMessageToast() {
@@ -298,7 +324,7 @@ class PlaygroundMobile {
     registerCancelExportButton();
     registerAffirmExportButton();
     registerConsole();
-
+    registerStrongMode();
     _clearOutput();
   }
 
@@ -626,7 +652,10 @@ class PlaygroundMobile {
   }
 
   void _performAnalysis() {
-    var input = new SourceRequest()..source = _context.dartSource;
+    bool strongMode = (querySelector('#strongmode') as InputElement).checked;
+    var input = new SourceRequest()..source = _context.dartSource
+      ..strongMode = strongMode;
+
     Lines lines = new Lines(input.source);
 
     Future<AnalysisResults> request =
