@@ -77,6 +77,26 @@ void main() {
       });
     });
 
+    test('generic method', () {
+      final String sample = '''
+class Y<A, B> {}
+
+class Z {
+
+  void foo<T>(final int a) {
+    print(a);
+  }
+
+  void bar() {
+    this.foo<Y<int, int>>(5); // <=== compile time error here: ; expected, got ,
+  }
+
+}''';
+      return analyzer.analyze(sample).then((AnalysisResults results) {
+        expect(results.issues, isEmpty);
+      });
+    });
+
     test('async', () {
       return analyzer.analyze(sampleCodeAsync).then((AnalysisResults results) {
         expect(results.issues, isEmpty);
