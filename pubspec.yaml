@@ -8,7 +8,7 @@ environment:
   sdk: '>=1.0.0 <2.0.0'
 
 dependencies:
-  analyzer: any
+  analyzer: 0.29.5
   appengine: ^0.3.0
   archive: '>=1.0.19 <1.1.0'
   args: '>=0.12.0 <0.14.0'
@@ -32,9 +32,6 @@ dev_dependencies:
   grinder: ^0.8.0
   http: any
   unittest: ^0.11.0
-
-# dependency_overrides:
-  # analyzer: '0.29.0'
 
 executables:
   services: null
