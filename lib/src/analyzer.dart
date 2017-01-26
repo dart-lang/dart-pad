@@ -65,6 +65,7 @@ class Analyzer {
             resourceProvider, resourceProvider.getFolder(_sdkPath));
     _context = AnalysisEngine.instance.createAnalysisContext();
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableGenericMethods = true;
     options.strongMode = strongMode;
 
     _context.analysisOptions = options;
