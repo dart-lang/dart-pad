@@ -22,8 +22,11 @@ import 'package:services/src/compiler.dart' as comp;
 import 'package:services/src/common_server.dart';
 import 'package:rpc/rpc.dart';
 
-bool _PERF_DUMP = false;
-bool _SERVER_BASED_CALL = true;
+bool _SERVER_BASED_CALL = false;
+bool _VERBOSE = true;
+bool _DUMP_SRC = false;
+bool _DUMP_PERF = false;
+bool _DUMP_DELTA = true;
 
 CommonServer server;
 ApiServer apiServer;
@@ -160,6 +163,7 @@ testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
     var averageDocumentTime = 0;
     var averageFixesTime = 0;
     var averageFormatTime = 0;
+    if (_DUMP_SRC) print(src);
 
     try {
       switch (commandToRun.toLowerCase()) {
@@ -236,7 +240,7 @@ Future<num> testAnalysis(String src, ana.Analyzer analyzer) async {
   if (_SERVER_BASED_CALL) await withTimeOut(server.analyzeGet(source: src));
   else await withTimeOut(analyzer.analyze(src));
 
-  if (_PERF_DUMP) print("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
+  if (_DUMP_PERF) print("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds;
 }
 
@@ -248,7 +252,7 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
   if (_SERVER_BASED_CALL) await withTimeOut(server.compileGet(source: src));
   else await withTimeOut(compiler.compile(src));
 
-  if (_PERF_DUMP) print("PERF: COMPILATION: ${sw.elapsedMilliseconds}");
+  if (_DUMP_PERF) print("PERF: COMPILATION: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds;
 }
 
@@ -261,11 +265,11 @@ Future<num> testDocument(String src, ana.Analyzer analyzer) async {
     if (i % 1000 == 0 && i > 0) print("INC: $i docs completed");
     lastOffset = i;
     if (_SERVER_BASED_CALL) {
-      await withTimeOut(server.documentGet(source: src, offset: i));
+      log(await withTimeOut(server.documentGet(source: src, offset: i)));
     } else {
-      await withTimeOut(analyzer.dartdoc(src, i));
+      log(await withTimeOut(analyzer.dartdoc(src, i)));
     }
-    if (_PERF_DUMP) print("PERF: DOCUMENT: ${sw2.elapsedMilliseconds}");
+    if (_DUMP_PERF) print("PERF: DOCUMENT: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -282,7 +286,7 @@ Future<num> testCompletions(
     if (_SERVER_BASED_CALL) await withTimeOut(
         server.completeGet(source: src, offset: i));
     else await withTimeOut(wrapper.complete(src, i));
-    if (_PERF_DUMP) print("PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}");
+    if (_DUMP_PERF) print("PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -301,7 +305,7 @@ Future<num> testFixes(
     } else {
       await withTimeOut(wrapper.getFixes(src, i));
     }
-    if (_PERF_DUMP) print("PERF: FIXES: ${sw2.elapsedMilliseconds}");
+    if (_DUMP_PERF) print("PERF: FIXES: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -311,7 +315,7 @@ Future<num> testFormat(String src) async {
   Stopwatch sw = new Stopwatch()..start();
   int i = 0;
   lastOffset = i;
-  await withTimeOut(server.formatGet(source: src, offset: i));
+  log(await withTimeOut(server.formatGet(source: src, offset: i)));
   return sw.elapsedMilliseconds;
 }
 
@@ -352,6 +356,10 @@ String mutate(String src) {
   String s = chars[random.nextInt(chars.length)];
   int i = random.nextInt(src.length);
   if (i == 0) i = 1;
+
+  if (_DUMP_DELTA) {
+    log ("Delta: $s");
+  }
   String newStr = src.substring(0, i - 1) + s + src.substring(i);
   return newStr;
 }
@@ -397,4 +405,10 @@ enum OperationType {
   Document,
   Fixes,
   Format
+}
+
+log(dynamic str) {
+  if (_VERBOSE) {
+    print ("${new DateTime.now()} $str");
+  }
 }
