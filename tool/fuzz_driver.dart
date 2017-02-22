@@ -26,7 +26,7 @@ bool _SERVER_BASED_CALL = false;
 bool _VERBOSE = true;
 bool _DUMP_SRC = false;
 bool _DUMP_PERF = false;
-bool _DUMP_DELTA = true;
+bool _DUMP_DELTA = false;
 
 CommonServer server;
 ApiServer apiServer;
@@ -36,6 +36,8 @@ MockRequestRecorder recorder;
 MockCounter counter;
 analysis_server.AnalysisServerWrapper analysisServer;
 ana.Analyzer analyzer;
+ana.Analyzer strongAnalyzer;
+
 comp.Compiler compiler;
 
 var random = new Random(0);
@@ -104,7 +106,7 @@ Usage: slow_test path_to_test_collection
 
       random = new Random(seed);
       seed++;
-      await testPath(fse.path, analysisServer, analyzer, compiler);
+      await testPath(fse.path, analysisServer, analyzer, strongAnalyzer, compiler);
     } catch (e) {
       print(e);
       print("FAILED: ${fse.path}");
@@ -141,6 +143,10 @@ setupTools(String sdkPath) async {
   analyzer = new ana.Analyzer(sdkPath);
   await analyzer.warmup();
 
+  print("Warming up strong analyzer");
+  strongAnalyzer = new ana.Analyzer(sdkPath, strongMode: true);
+  await strongAnalyzer.warmup();
+
   print("Warming up compiler");
   compiler = new comp.Compiler(sdkPath);
   await compiler.warmup();
@@ -148,7 +154,8 @@ setupTools(String sdkPath) async {
 }
 
 testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
-    ana.Analyzer analyzer, comp.Compiler compiler) async {
+    ana.Analyzer analyzer, ana.Analyzer strongAnalyzer,
+    comp.Compiler compiler) async {
   var f = new io.File(path);
   String src = f.readAsStringSync();
 
@@ -170,7 +177,7 @@ testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
         case "all":
           averageCompilationTime = await testCompilation(src, compiler);
           averageCompletionTime = await testCompletions(src, wrapper);
-          averageAnalysisTime = await testAnalysis(src, analyzer);
+          averageAnalysisTime = await testAnalysis(src, analyzer, strongAnalyzer);
           averageDocumentTime = await testDocument(src, analyzer);
           averageFixesTime = await testFixes(src, wrapper);
           averageFormatTime = await testFormat(src);
@@ -180,7 +187,7 @@ testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
           averageCompletionTime = await testCompletions(src, wrapper);
           break;
         case "analyze":
-          averageAnalysisTime = await testAnalysis(src, analyzer);
+          averageAnalysisTime = await testAnalysis(src, analyzer, strongAnalyzer);
           break;
 
         case "document":
@@ -232,7 +239,7 @@ testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
   }
 }
 
-Future<num> testAnalysis(String src, ana.Analyzer analyzer) async {
+Future<num> testAnalysis(String src, ana.Analyzer analyzer, ana.Analyzer strongAnalyzer) async {
   lastExecuted = OperationType.Analysis;
   Stopwatch sw = new Stopwatch()..start();
 
@@ -240,8 +247,11 @@ Future<num> testAnalysis(String src, ana.Analyzer analyzer) async {
   if (_SERVER_BASED_CALL) await withTimeOut(server.analyzeGet(source: src));
   else await withTimeOut(analyzer.analyze(src));
 
+  if (_SERVER_BASED_CALL) await withTimeOut(server.analyzeGet(source: src, strongMode: true));
+  else await withTimeOut(strongAnalyzer.analyze(src));
+
   if (_DUMP_PERF) print("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
-  return sw.elapsedMilliseconds;
+  return sw.elapsedMilliseconds / 2.0;
 }
 
 Future<num> testCompilation(String src, comp.Compiler compiler) async {
