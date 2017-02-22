@@ -251,7 +251,7 @@ Future<num> testAnalysis(String src, ana.Analyzer analyzer, ana.Analyzer strongA
   else await withTimeOut(strongAnalyzer.analyze(src));
 
   if (_DUMP_PERF) print("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
-  return sw.elapsedMilliseconds;
+  return sw.elapsedMilliseconds / 2.0;
 }
 
 Future<num> testCompilation(String src, comp.Compiler compiler) async {
