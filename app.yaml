@@ -1,6 +1,5 @@
 runtime: custom
-vm: true
-api_version: 1
+env: flex
 
 resources:
   cpu: 1
@@ -14,6 +13,4 @@ automatic_scaling:
     target_utilization: 0.5
 
 skip_files:
-- ^.*/packages.*$
-- ^.*\.dart$
 - ^\.git/.*$
