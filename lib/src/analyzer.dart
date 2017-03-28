@@ -19,7 +19,6 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
 
 import 'package:logging/logging.dart';
 
