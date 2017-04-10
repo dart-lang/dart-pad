@@ -143,7 +143,7 @@ void main() {
         expect(results.issues.length, 2);
         int _missingSemiC = 0;
         results.issues
-            .where((issue) => issue.message == "Expected to find ';'")
+            .where((issue) => issue.message.contains("Expected to find ';'"))
             .forEach((issue) {
           _missingSemiC++;
           expect(issue.hasFixes, true);

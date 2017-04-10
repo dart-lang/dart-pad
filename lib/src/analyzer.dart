@@ -72,9 +72,11 @@ class Analyzer {
     PhysicalResourceProvider physicalResourceProvider =
               PhysicalResourceProvider.INSTANCE;
 
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableGenericMethods = true;
-    options.strongMode = strongMode;
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.strongMode = strongMode;
+
+    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    builderOptions.defaultOptions = analysisOptions;
 
     // var sdkCreator = gen_sdk.SdkCreator(options);
 
@@ -85,9 +87,9 @@ class Analyzer {
     });
 
     // MemoryResourceProvider memResourceProvider = new MemoryResourceProvider();
-    var builder = new ContextBuilder(physicalResourceProvider, sdkManager, cache);
+    var builder = new ContextBuilder(
+        physicalResourceProvider, sdkManager, cache, options: builderOptions);
 
-    builder.defaultOptions = options;
     // builder.fileResolverProvider = (folder) {
     //   print (folder);
     //   return _resolver;
