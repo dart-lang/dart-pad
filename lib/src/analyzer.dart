@@ -119,10 +119,11 @@ class Analyzer {
 
   Future<AnalysisResults> analyzeMulti(Map<String, String> sources) {
     try {
+      String pathPrefix = Directory.current.path;
       List<StringSource> sourcesList = <StringSource>[];
       for (String name in sources.keys) {
-        StringSource src = new StringSource(
-            sources[name], new File(name).absolute.path);
+        String path = name.startsWith('/') ? name : '$pathPrefix/$name';
+        StringSource src = new StringSource(sources[name], path);
         // _resolver.addFileToMap(src);
         sourcesList.add(src);
       }
