@@ -121,13 +121,17 @@ class Analyzer {
     try {
       List<StringSource> sourcesList = <StringSource>[];
       for (String name in sources.keys) {
-        StringSource src = new StringSource(sources[name], name);
+        StringSource src = new StringSource(
+            sources[name], new File(name).absolute.path);
         // _resolver.addFileToMap(src);
         sourcesList.add(src);
       }
 
       ChangeSet changeSet = new ChangeSet();
-      sourcesList.forEach((s) => changeSet.addedSource(s));
+      sourcesList.forEach((s) {
+        changeSet.addedSource(s);
+        changeSet.changedContent(s, s.contents.data);
+      });
       _context.applyChanges(changeSet);
       _ensureAnalysisDone(_context, _MAX_ANALYSIS_DURATION);
 

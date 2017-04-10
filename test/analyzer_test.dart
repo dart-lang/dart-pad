@@ -249,8 +249,8 @@ main() {
       sourceMap.putIfAbsent("main.dart", () => sampleCodeError);
 
       return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
-        expect(results.issues, isNotEmpty);
-        expect(results.issues[0].sourceName, "main.dart");
+        expect(results.issues, hasLength(1));
+        expect(results.issues[0].sourceName, endsWith("main.dart"));
       });
     });
 
@@ -260,7 +260,7 @@ main() {
 
       return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
         expect(results.issues, isNotEmpty);
-        expect(results.issues[0].sourceName, "foo.dart");
+        expect(results.issues[0].sourceName, endsWith("foo.dart"));
       });
     });
 
