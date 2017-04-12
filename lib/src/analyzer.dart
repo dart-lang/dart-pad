@@ -51,6 +51,7 @@ class Analyzer {
   AnalysisContext _context;
   // MemoryResolver _resolver;
   String _sdkPath;
+  Directory _sourceDirectory;
 
   ContentCache cache;
 
@@ -66,7 +67,7 @@ class Analyzer {
 
     this.cache = new ContentCache();
 
-    var sourceDirectory = Directory.systemTemp.createTempSync('analyzer');
+    _sourceDirectory = Directory.systemTemp.createTempSync('analyzer');
     // _resolver = new MemoryResolver();
 
     PhysicalResourceProvider physicalResourceProvider =
@@ -95,7 +96,7 @@ class Analyzer {
     //   return _resolver;
     // };
     
-    _context = builder.buildContext(sourceDirectory.path);
+    _context = builder.buildContext(_sourceDirectory.path);
 
 
     // _context.analysisOptions = options;
@@ -119,7 +120,7 @@ class Analyzer {
 
   Future<AnalysisResults> analyzeMulti(Map<String, String> sources) {
     try {
-      String pathPrefix = Directory.current.path;
+      String pathPrefix = _sourceDirectory.path;
       List<StringSource> sourcesList = <StringSource>[];
       for (String name in sources.keys) {
         String path = name.startsWith('/') ? name : '$pathPrefix/$name';
