@@ -660,6 +660,9 @@ class Playground implements GistContainer, GistController {
 
       busyLight.reset();
 
+      if (result.issues.length == 0)
+        _handleRun();
+
       _displayIssues(result.issues);
 
       _context.dartDocument
