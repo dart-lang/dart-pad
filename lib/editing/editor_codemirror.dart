@@ -25,7 +25,7 @@ final String _gutterId = 'CodeMirror-lint-markers';
 
 class CodeMirrorFactory extends EditorFactory {
   //static final String cssRef = 'packages/dart_pad/editing/editor_codemirror.css';
-  //static final String jsRef = 'packages/codemirror/codemirror.js';
+  static final String jsRef = 'packages/codemirror/codemirror.js';
 
   CodeMirrorFactory._();
 
@@ -35,9 +35,8 @@ class CodeMirrorFactory extends EditorFactory {
   List<String> get themes => CodeMirror.THEMES;
 
   bool get inited {
-    return true;
-//    List scripts = html.querySelectorAll('head script');
-//    return scripts.any((script) => script.src == jsRef);
+    List scripts = html.querySelectorAll('head script');
+    return scripts.any((script) => script.src == jsRef);
   }
 
   Future init() {
