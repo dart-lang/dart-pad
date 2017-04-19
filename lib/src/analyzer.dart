@@ -95,7 +95,7 @@ class Analyzer {
     //   print (folder);
     //   return _resolver;
     // };
-    
+
     _context = builder.buildContext(_sourceDirectory.path);
 
 
@@ -170,7 +170,12 @@ class Analyzer {
 
       // Delete the files
       changeSet = new ChangeSet();
-      sourcesList.forEach((s) => changeSet.removedSource(s));
+      sourcesList.forEach((s) {
+        changeSet.changedContent(s, null);
+        changeSet.removedSource(s);
+      });
+      // Remove sources implicitly created by imports of non-existing files
+      changeSet.removedContainer(new _SourceContainer(pathPrefix));
       // _resolver.clear();
       _context.applyChanges(changeSet);
       _ensureAnalysisDone(_context, _MAX_ANALYSIS_DURATION);
@@ -351,6 +356,15 @@ class Analyzer {
     returnString = returnString.replaceAll("Future<dynamic>", "Future");
     return returnString;
   }
+}
+
+class _SourceContainer implements SourceContainer {
+  final String pathPrefix;
+
+  _SourceContainer(this.pathPrefix);
+
+  @override
+  bool contains(Source source) => source.fullName.startsWith(pathPrefix);
 }
 
 class _Error {
