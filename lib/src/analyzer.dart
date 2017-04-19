@@ -51,6 +51,7 @@ class Analyzer {
   AnalysisContext _context;
   // MemoryResolver _resolver;
   String _sdkPath;
+  Directory _sourceDirectory;
 
   ContentCache cache;
 
@@ -66,7 +67,7 @@ class Analyzer {
 
     this.cache = new ContentCache();
 
-    var sourceDirectory = Directory.systemTemp.createTempSync('analyzer');
+    _sourceDirectory = Directory.systemTemp.createTempSync('analyzer');
     // _resolver = new MemoryResolver();
 
     PhysicalResourceProvider physicalResourceProvider =
@@ -94,8 +95,8 @@ class Analyzer {
     //   print (folder);
     //   return _resolver;
     // };
-    
-    _context = builder.buildContext(sourceDirectory.path);
+
+    _context = builder.buildContext(_sourceDirectory.path);
 
 
     // _context.analysisOptions = options;
@@ -119,7 +120,7 @@ class Analyzer {
 
   Future<AnalysisResults> analyzeMulti(Map<String, String> sources) {
     try {
-      String pathPrefix = Directory.current.path;
+      String pathPrefix = _sourceDirectory.path;
       List<StringSource> sourcesList = <StringSource>[];
       for (String name in sources.keys) {
         String path = name.startsWith('/') ? name : '$pathPrefix/$name';
@@ -169,7 +170,12 @@ class Analyzer {
 
       // Delete the files
       changeSet = new ChangeSet();
-      sourcesList.forEach((s) => changeSet.removedSource(s));
+      sourcesList.forEach((s) {
+        changeSet.changedContent(s, null);
+        changeSet.removedSource(s);
+      });
+      // Remove sources implicitly created by imports of non-existing files
+      changeSet.removedContainer(new _SourceContainer(pathPrefix));
       // _resolver.clear();
       _context.applyChanges(changeSet);
       _ensureAnalysisDone(_context, _MAX_ANALYSIS_DURATION);
@@ -350,6 +356,15 @@ class Analyzer {
     returnString = returnString.replaceAll("Future<dynamic>", "Future");
     return returnString;
   }
+}
+
+class _SourceContainer implements SourceContainer {
+  final String pathPrefix;
+
+  _SourceContainer(this.pathPrefix);
+
+  @override
+  bool contains(Source source) => source.fullName.startsWith(pathPrefix);
 }
 
 class _Error {
