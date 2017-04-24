@@ -347,7 +347,7 @@ abstract class JsonDecoder {
         if (keyDecoder != null) {
           decodedKey = keyDecoder('$jsonPath.key', key);
         } else {
-          decodedKey = key as Object/*=K*/;
+          decodedKey = key;
         }
         if (valueDecoder != null) {
           value = valueDecoder('$jsonPath[${JSON.encode(key)}]', value);

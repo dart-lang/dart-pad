@@ -5,9 +5,12 @@
 library services.analyzer;
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
+import 'package:analyzer/src/generated/sdk.dart' as gen_sdk;
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart' hide Logger;
@@ -16,6 +19,7 @@ import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+
 import 'package:logging/logging.dart';
 
 import 'api_classes.dart';
@@ -26,27 +30,30 @@ Logger _logger = new Logger('analyzer');
 
 final Duration _MAX_ANALYSIS_DURATION = new Duration(seconds: 10);
 
-class MemoryResolver extends UriResolver {
-  Map<String, Source> sources = {};
+// class MemoryResolver extends UriResolver {
+//   Map<String, Source> sources = {};
 
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    return sources[uri.toString()];
-  }
+//   @override
+//   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+//     return sources[uri.toString()];
+//   }
 
-  void addFileToMap(StringSource file) {
-    sources[file.fullName] = file;
-  }
+//   void addFileToMap(StringSource file) {
+//     sources[file.fullName] = file;
+//   }
 
-  void clear() => sources.clear();
-}
+//   void clear() => sources.clear();
+// }
 
 class Analyzer {
   final Pub pub;
   bool strongMode;
   AnalysisContext _context;
-  MemoryResolver _resolver;
+  // MemoryResolver _resolver;
   String _sdkPath;
+  Directory _sourceDirectory;
+
+  ContentCache cache;
 
   Analyzer(this._sdkPath, {
     this.pub,
@@ -57,26 +64,50 @@ class Analyzer {
   }
 
   void _reset() {
-    _resolver = new MemoryResolver();
 
-    PhysicalResourceProvider resourceProvider =
-            PhysicalResourceProvider.INSTANCE;
-    FolderBasedDartSdk sdk = new FolderBasedDartSdk(
-            resourceProvider, resourceProvider.getFolder(_sdkPath));
-    _context = AnalysisEngine.instance.createAnalysisContext();
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableGenericMethods = true;
-    options.strongMode = strongMode;
+    this.cache = new ContentCache();
 
-    _context.analysisOptions = options;
+    _sourceDirectory = Directory.systemTemp.createTempSync('analyzer');
+    // _resolver = new MemoryResolver();
 
-    List<UriResolver> resolvers = [
-      new DartUriResolver(sdk),
-      _resolver
-      // TODO: Create a new UriResolver.
-      //new PackageUriResolver([new JavaFile(project.packagePath)
-    ];
-    _context.sourceFactory = new SourceFactory(resolvers);
+    PhysicalResourceProvider physicalResourceProvider =
+              PhysicalResourceProvider.INSTANCE;
+
+    AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
+    analysisOptions.strongMode = strongMode;
+
+    ContextBuilderOptions builderOptions = new ContextBuilderOptions();
+    builderOptions.defaultOptions = analysisOptions;
+
+    // var sdkCreator = gen_sdk.SdkCreator(options);
+
+    var sdkManager = new gen_sdk.DartSdkManager(_sdkPath, true, (AnalysisOptions options) {
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+              physicalResourceProvider, physicalResourceProvider.getFolder(_sdkPath));
+      sdk.analysisOptions = options;
+    });
+
+    // MemoryResourceProvider memResourceProvider = new MemoryResourceProvider();
+    var builder = new ContextBuilder(
+        physicalResourceProvider, sdkManager, cache, options: builderOptions);
+
+    // builder.fileResolverProvider = (folder) {
+    //   print (folder);
+    //   return _resolver;
+    // };
+
+    _context = builder.buildContext(_sourceDirectory.path);
+
+
+    // _context.analysisOptions = options;
+
+    // List<UriResolver> resolvers = [
+    //   new DartUriResolver(sdk),
+    //   _resolver
+    //   // TODO: Create a new UriResolver.
+    //   //new PackageUriResolver([new JavaFile(project.packagePath)
+    // ];
+    // _context.sourceFactory = new SourceFactory(resolvers);
     AnalysisEngine.instance.logger = new NullLogger();
   }
 
@@ -89,15 +120,20 @@ class Analyzer {
 
   Future<AnalysisResults> analyzeMulti(Map<String, String> sources) {
     try {
+      String pathPrefix = _sourceDirectory.path;
       List<StringSource> sourcesList = <StringSource>[];
       for (String name in sources.keys) {
-        StringSource src = new StringSource(sources[name], name);
-        _resolver.addFileToMap(src);
+        String path = name.startsWith('/') ? name : '$pathPrefix/$name';
+        StringSource src = new StringSource(sources[name], path);
+        // _resolver.addFileToMap(src);
         sourcesList.add(src);
       }
 
       ChangeSet changeSet = new ChangeSet();
-      sourcesList.forEach((s) => changeSet.addedSource(s));
+      sourcesList.forEach((s) {
+        changeSet.addedSource(s);
+        changeSet.changedContent(s, s.contents.data);
+      });
       _context.applyChanges(changeSet);
       _ensureAnalysisDone(_context, _MAX_ANALYSIS_DURATION);
 
@@ -134,8 +170,13 @@ class Analyzer {
 
       // Delete the files
       changeSet = new ChangeSet();
-      sourcesList.forEach((s) => changeSet.removedSource(s));
-      _resolver.clear();
+      sourcesList.forEach((s) {
+        changeSet.changedContent(s, null);
+        changeSet.removedSource(s);
+      });
+      // Remove sources implicitly created by imports of non-existing files
+      changeSet.removedContainer(new _SourceContainer(pathPrefix));
+      // _resolver.clear();
       _context.applyChanges(changeSet);
       _ensureAnalysisDone(_context, _MAX_ANALYSIS_DURATION);
 
@@ -315,6 +356,15 @@ class Analyzer {
     returnString = returnString.replaceAll("Future<dynamic>", "Future");
     return returnString;
   }
+}
+
+class _SourceContainer implements SourceContainer {
+  final String pathPrefix;
+
+  _SourceContainer(this.pathPrefix);
+
+  @override
+  bool contains(Source source) => source.fullName.startsWith(pathPrefix);
 }
 
 class _Error {

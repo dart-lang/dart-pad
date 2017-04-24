@@ -268,8 +268,8 @@ class _Server {
 
     _logger.fine("Server Set Subscriptions completed");
 
+    await sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
     await sendAddOverlays({mainPath: _WARMUP_SRC});
-    sendAnalysisSetAnalysisRoots([sourceDirectory.path], []);
     isSettingUp = false;
     isSetup = true;
 
