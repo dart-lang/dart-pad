@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   analyzer: 0.30.0-alpha.3
-  appengine: ^0.3.0
+  appengine: 0.4.0-flex.alpha.0+3
   archive: '>=1.0.19 <1.1.0'
   args: '>=0.12.0 <0.14.0'
   cli_util: ^0.0.1

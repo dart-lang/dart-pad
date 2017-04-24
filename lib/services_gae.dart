@@ -124,7 +124,7 @@ class GaeServer {
 }
 
 class GaeServerContainer implements ServerContainer {
-  String get version => ae.context.services.modules.currentVersion;
+  String get version => io.Platform.version;
 }
 
 class GaeCache implements ServerCache {
