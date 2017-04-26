@@ -376,8 +376,7 @@ class CommonServer {
             await setCache(memCacheKey, cachedResult);
             return new CompileResponse(out, sourceMap);
           } else {
-            List problems = _filterCompileProblems(results.problems);
-            if (problems.isEmpty) problems = results.problems;
+            List problems = results.problems;
             String errors = problems.map(_printCompileProblem).join('\n');
             throw new BadRequestError(errors);
           }
@@ -531,18 +530,7 @@ class CommonServer {
       cache.set(query, result, expiration: _standardExpiration);
 }
 
-List<CompilationProblem> _filterCompileProblems(
-    List<CompilationProblem> problems) {
-  return problems.where((p) => !p.isHint && p.isOnCompileTarget).toList();
-}
-
-String _printCompileProblem(CompilationProblem problem) {
-  if (problem.isOnCompileTarget) {
-    return '[${problem.kind} on line ${problem.line}] ${problem.message}';
-  } else {
-    return '[${problem.kind}] ${problem.message}';
-  }
-}
+String _printCompileProblem(CompilationProblem problem) => problem.message;
 
 String _hashSource(String str) {
   return sha1.convert(str.codeUnits).toString();

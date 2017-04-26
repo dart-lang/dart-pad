@@ -11,9 +11,6 @@ import 'package:services/src/analyzer.dart';
 import 'package:services/src/bench.dart';
 import 'package:services/src/common.dart';
 import 'package:services/src/compiler.dart';
-import 'package:cli_util/cli_util.dart';
-
-final String sdkPath = getSdkDir().path;
 
 void main(List<String> args) {
   bool json = args.contains('--json');
@@ -42,7 +39,7 @@ class AnalyzerBenchmark extends Benchmark {
   Analyzer analyzer;
 
   AnalyzerBenchmark(String name, this.source) : super('analyzer.${name}') {
-    analyzer = new Analyzer(sdkPath);
+    analyzer = new Analyzer(getSdkPath());
   }
 
   Future perform() => analyzer.analyze(source);
@@ -53,7 +50,7 @@ class Dart2jsBenchmark extends Benchmark {
   Compiler compiler;
 
   Dart2jsBenchmark(String name, this.source) : super('dart2js.${name}') {
-    compiler = new Compiler(sdkPath);
+    compiler = new Compiler(getSdkPath());
   }
 
   Future perform() {
@@ -69,7 +66,7 @@ class AnalysisServerBenchmark extends Benchmark {
 
   AnalysisServerBenchmark(String name, this.source)
       : super('completion.${name}') {
-    analysisServer = new AnalysisServerWrapper(sdkPath);
+    analysisServer = new AnalysisServerWrapper(getSdkPath());
   }
 
   Future perform() => analysisServer.complete(source, 30);

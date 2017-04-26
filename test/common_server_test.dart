@@ -138,7 +138,7 @@ void defineTests() {
       expect(response.status, 400);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data, isNotEmpty);
-      expect(data['error']['message'], contains('[error on line 2] Expected'));
+      expect(data['error']['message'], contains('Error: Expected'));
     });
 
     test('compile negative-test noSource', () async {

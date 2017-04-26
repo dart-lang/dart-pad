@@ -9,6 +9,8 @@ import 'package:services/src/common.dart';
 import 'package:services/src/compiler.dart';
 import 'package:unittest/unittest.dart';
 
+void main() => defineTests();
+
 void defineTests() {
   Compiler compiler;
 
@@ -87,8 +89,7 @@ void defineTests() {
           .then((CompilationResults result) {
         expect(result.success, false);
         expect(result.problems.length, 1);
-        expect(result.problems[0].toString(),
-            startsWith("[error] Expected ';' after this"));
+        expect(result.problems[0].toString(), contains("Error: Expected"));
       });
     });
 
@@ -96,13 +97,14 @@ void defineTests() {
       return compiler
           .compile(sampleCodeErrors)
           .then((CompilationResults result) {
-        expect(result.problems.length, 3);
+        expect(result.problems.first.message.split('\n'),
+            hasLength(greaterThanOrEqualTo(3)));
       });
     });
 
     test('transitive errors', () {
       final String code = '''
-import 'dart:io';
+import 'dart:foo';
 void main() { print ('foo'); }
 ''';
       return compiler.compile(code).then((CompilationResults result) {
