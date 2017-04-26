@@ -19,7 +19,8 @@ class Options {
   final String namespace;
 
   Map<String, String> values = {};
-  StreamController<OptionChangedEvent> _controller = new StreamController.broadcast();
+  StreamController<OptionChangedEvent> _controller =
+      new StreamController.broadcast();
 
   Options({this.namespace: 'dartpad'});
 

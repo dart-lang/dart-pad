@@ -142,7 +142,8 @@ class Playground implements GistContainer, GistController {
 
     // If there was a change, and the gist is dirty, write the gist's contents
     // to storage.
-    frappe.Property gistChanged = new frappe.Property.fromStream(mutableGist.onChanged);
+    frappe.Property gistChanged =
+        new frappe.Property.fromStream(mutableGist.onChanged);
     gistChanged.debounce(new Duration(milliseconds: 100)).listen((_) {
       if (mutableGist.dirty) {
         _gistStorage.setStoredGist(mutableGist.createGist());
@@ -210,8 +211,8 @@ class Playground implements GistContainer, GistController {
         editableGist.setBackingGist(blankGist);
       });
     } else if (url.hasQuery && url.queryParameters['source'] != null) {
-      UuidContainer gistId =
-          await dartSupportServices.retrieveGist(id: url.queryParameters['source']);
+      UuidContainer gistId = await dartSupportServices.retrieveGist(
+          id: url.queryParameters['source']);
       Gist backing = await gistLoader.loadGist(gistId.uuid);
       editableGist.setBackingGist(backing);
       router.go('gist', {'gist': backing.id});
@@ -628,10 +629,8 @@ class Playground implements GistContainer, GistController {
         };
       return dartServices.summarize(input);
     }).then((SummaryText summary) {
-      return new GistSummary(
-        summary.text,
-        'Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).'
-      );
+      return new GistSummary(summary.text,
+          'Find this at [dartpad.dartlang.org/?source=${_mappingId}](https://dartpad.dartlang.org/?source=${_mappingId}).');
     }).catchError((e) {
       _logger.severe(e);
     });
@@ -642,8 +641,8 @@ class Playground implements GistContainer, GistController {
   Future<bool> _performAnalysis() {
     bool strongMode = (querySelector('#strongmode') as InputElement).checked;
 
-    SourceRequest input =
-      new SourceRequest()..source = _context.dartSource
+    SourceRequest input = new SourceRequest()
+      ..source = _context.dartSource
       ..strongMode = strongMode;
 
     Lines lines = new Lines(input.source);

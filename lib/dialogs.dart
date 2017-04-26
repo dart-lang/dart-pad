@@ -159,8 +159,8 @@ class SharingDialog extends DDialog {
       ..text = 'Dart + HTML'
       ..style.paddingLeft = '8px');
     _embedDartRadio.checked = true;
-    _embedPicture = _rightArea
-        .add(new ImageElement(src: _dartThumbnail, height: 100)
+    _embedPicture =
+        _rightArea.add(new ImageElement(src: _dartThumbnail, height: 100)
           ..alt = "Embed-dart"
           ..style.paddingLeft = "16px");
     _embedDartRadio.onClick.listen((_) => _embedToDart());

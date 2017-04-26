@@ -68,11 +68,9 @@ class DocHandler {
           return;
         }
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-        docPanel
-            .querySelectorAll("a")
-            .forEach((Element a) {
-              if (a is AnchorElement) a.target = "docs";
-            });
+        docPanel.querySelectorAll("a").forEach((Element a) {
+          if (a is AnchorElement) a.target = "docs";
+        });
         docPanel
             .querySelectorAll("h1")
             .forEach((h) => h.classes.add("type-${docResult.entitykind}"));
@@ -109,11 +107,9 @@ class DocHandler {
         .then((DocumentResponse result) {
       return _getHtmlTextFor(result).then((_DocResult docResult) {
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-        docPanel
-            .querySelectorAll("a")
-            .forEach((Element a) {
-              if (a is AnchorElement) a.target = "docs";
-            });
+        docPanel.querySelectorAll("a").forEach((Element a) {
+          if (a is AnchorElement) a.target = "docs";
+        });
         docPanel
             .querySelectorAll("h1")
             .forEach((h) => h.classes.add("type-${docResult.entitykind}"));
@@ -168,8 +164,7 @@ ${libraryName == null ? '' : apiLink }\n\n''';
           inlineSyntaxes: [new InlineBracketsColon(), new InlineBrackets()]);
 
       // Append a 'launch' icon to the 'Open library docs' link.
-      _htmlDocs = _htmlDocs.replaceAll(
-          "library docs</a>",
+      _htmlDocs = _htmlDocs.replaceAll("library docs</a>",
           "library docs <span class='launch-icon'></span></a>");
 
       return new _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
@@ -182,7 +177,8 @@ ${libraryName == null ? '' : apiLink }\n\n''';
     if (libraryName != null) {
       if (libraryName.contains('dart:')) {
         libraryName = libraryName.replaceAll(':', '-');
-        apiLink.write('https://api.dartlang.org/stable/${libraryName}/${libraryName}-library.html');
+        apiLink.write(
+            'https://api.dartlang.org/stable/${libraryName}/${libraryName}-library.html');
 
         return '[Open library docs](${apiLink})';
       }

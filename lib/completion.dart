@@ -26,7 +26,8 @@ class DartCompleter extends CodeCompleter {
 
   DartCompleter(this.servicesApi, this.document);
 
-  Future<CompletionResult> complete(Editor editor, { bool onlyShowFixes: false }) {
+  Future<CompletionResult> complete(Editor editor,
+      {bool onlyShowFixes: false}) {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 
@@ -36,7 +37,8 @@ class DartCompleter extends CodeCompleter {
       ..source = editor.document.value
       ..offset = offset;
 
-    CancellableCompleter<CompletionResult> completer = new CancellableCompleter<CompletionResult>();
+    CancellableCompleter<CompletionResult> completer =
+        new CancellableCompleter<CompletionResult>();
     _lastCompleter = completer;
 
     if (onlyShowFixes) {
@@ -73,46 +75,51 @@ class DartCompleter extends CodeCompleter {
               replaceOffset, replaceLength, completion);
         }).toList();
 
-        List<Completion> completions = analysisCompletions.map((completion) {
-          // TODO: Move to using a LabelProvider; decouple the data and rendering.
-          String displayString = completion.isMethod
-              ? '${completion.text}${completion.parameters}'
-              : completion.text;
-          if (completion.isMethod && completion.returnType != null) {
-            displayString += ' → ${completion.returnType}';
-          }
+        List<Completion> completions = analysisCompletions
+            .map((completion) {
+              // TODO: Move to using a LabelProvider; decouple the data and rendering.
+              String displayString = completion.isMethod
+                  ? '${completion.text}${completion.parameters}'
+                  : completion.text;
+              if (completion.isMethod && completion.returnType != null) {
+                displayString += ' → ${completion.returnType}';
+              }
 
-          // Filter unmatching completions.
-          // TODO: This is temporary; tracking issue here:
-          // https://github.com/dart-lang/dart-services/issues/87.
-          if (replacementString.isNotEmpty) {
-            if (!completion.matchesCompletionFragment(replacementString)) {
-              return null;
-            }
-          }
+              // Filter unmatching completions.
+              // TODO: This is temporary; tracking issue here:
+              // https://github.com/dart-lang/dart-services/issues/87.
+              if (replacementString.isNotEmpty) {
+                if (!completion.matchesCompletionFragment(replacementString)) {
+                  return null;
+                }
+              }
 
-          String text = completion.text;
+              String text = completion.text;
 
-          if (completion.isMethod) text += "()";
+              if (completion.isMethod) text += "()";
 
-          String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
+              String deprecatedClass =
+                  completion.isDeprecated ? ' deprecated' : '';
 
-          if (completion.type == null) {
-            return new Completion(text,
-                displayString: displayString, type: deprecatedClass);
-          } else {
-            int cursorPos = null;
+              if (completion.type == null) {
+                return new Completion(text,
+                    displayString: displayString, type: deprecatedClass);
+              } else {
+                int cursorPos = null;
 
-            if (completion.isMethod && completion.parameterCount > 0) {
-              cursorPos = text.indexOf('(') + 1;
-            }
+                if (completion.isMethod && completion.parameterCount > 0) {
+                  cursorPos = text.indexOf('(') + 1;
+                }
 
-            return new Completion(text,
-                displayString: displayString,
-                type: "type-${completion.type.toLowerCase()}${deprecatedClass}",
-                cursorOffset: cursorPos);
-          }
-        }).where((x) => x != null).toList();
+                return new Completion(text,
+                    displayString: displayString,
+                    type:
+                        "type-${completion.type.toLowerCase()}${deprecatedClass}",
+                    cursorOffset: cursorPos);
+              }
+            })
+            .where((x) => x != null)
+            .toList();
 
         List<Completion> filterCompletions = new List.from(completions);
 
