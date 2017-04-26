@@ -11,9 +11,9 @@ import 'package:http/http.dart';
 
 import '../core/dependencies.dart';
 import '../core/modules.dart';
+import '../services/_dartpadsupportservices.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
-import '../services/_dartpadsupportservices.dart';
 
 // When sending requests from a browser we sanitize the headers to avoid
 // client side warnings for any blacklisted headers.

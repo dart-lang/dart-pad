@@ -7,9 +7,8 @@ library docs_sample;
 import 'dart:async';
 import 'dart:html';
 
-import 'core/event_bus.dart';
-
 import 'core/dependencies.dart';
+import 'core/event_bus.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'modules/dart_pad_module.dart';

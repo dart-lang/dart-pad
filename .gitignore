@@ -22,3 +22,6 @@ web/mdetect.py
 web/scripts/codemirror.js
 
 last_prod/
+
+.idea/
+dart-pad.iml
