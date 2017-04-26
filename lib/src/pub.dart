@@ -11,15 +11,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:archive/archive.dart';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart' as yaml;
-import 'package:analyzer/src/string_source.dart';
 
 import 'common.dart';
 

@@ -9,18 +9,17 @@
  */
 library services.fuzz_driver;
 
+import 'dart:async';
 import 'dart:io' as io;
 import 'dart:math';
-import 'dart:async';
 
 import 'package:cli_util/cli_util.dart' as cli_util;
+import 'package:rpc/rpc.dart';
 import 'package:services/src/analysis_server.dart' as analysis_server;
 import 'package:services/src/analyzer.dart' as ana;
 import 'package:services/src/common.dart';
-import 'package:services/src/compiler.dart' as comp;
-
 import 'package:services/src/common_server.dart';
-import 'package:rpc/rpc.dart';
+import 'package:services/src/compiler.dart' as comp;
 
 bool _SERVER_BASED_CALL = false;
 bool _VERBOSE = true;

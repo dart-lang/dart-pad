@@ -335,15 +335,15 @@ abstract class JsonDecoder {
    * Decode a JSON object that is expected to be a Map.  [keyDecoder] is used
    * to decode the keys, and [valueDecoder] is used to decode the values.
    */
-  Map/*<K, V>*/ decodeMap/*<K, V>*/(String jsonPath, Object json,
-      {JsonDecoderCallback/*<K>*/ keyDecoder,
-      JsonDecoderCallback/*<V>*/ valueDecoder}) {
+  Map<K, V> decodeMap<K, V>(String jsonPath, Object json,
+      {JsonDecoderCallback<K> keyDecoder,
+      JsonDecoderCallback<V> valueDecoder}) {
     if (json == null) {
       return {};
     } else if (json is Map) {
-      Map/*<K, V>*/ result = /*<K, V>*/ {};
+      Map<K, V> result = <K, V> {};
       json.forEach((String key, value) {
-        Object/*=K*/ decodedKey;
+        Object decodedKey;
         if (keyDecoder != null) {
           decodedKey = keyDecoder('$jsonPath.key', key);
         } else {

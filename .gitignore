@@ -16,3 +16,4 @@ pubspec.lock
 .settings/
 
 .atom/
+.idea/

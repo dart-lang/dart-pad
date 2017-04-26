@@ -7,8 +7,9 @@ library services.api_classes;
 
 import 'dart:convert';
 
-import 'analysis_server_protocol/protocol.dart';
 import 'package:rpc/rpc.dart';
+
+import 'analysis_server_protocol/protocol.dart';
 
 class AnalysisResults {
   final List<AnalysisIssue> issues;
@@ -23,7 +24,7 @@ class AnalysisResults {
   AnalysisResults(this.issues, this.packageImports, this.resolvedImports);
 }
 
-class AnalysisIssue implements Comparable {
+class AnalysisIssue implements Comparable<AnalysisIssue> {
   final String kind;
   final int line;
   final String message;
