@@ -5,10 +5,10 @@
 library editor.codemirror;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html' as html;
 import 'dart:js';
 import 'dart:math';
-import 'dart:convert';
 
 import 'package:codemirror/codemirror.dart' hide Position;
 import 'package:codemirror/codemirror.dart' as pos show Position;
@@ -41,7 +41,7 @@ class CodeMirrorFactory extends EditorFactory {
   }
 
   Future init() {
-    List futures = [];
+    List<Future> futures = [];
     //html.Element head = html.querySelector('html head');
 
 //    // <link href="packages/dart_pad/editing/editor_codemirror.css"

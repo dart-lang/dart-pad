@@ -9,7 +9,7 @@ import 'dart:html';
 
 import '../src/util.dart';
 
-final _isMac = window.navigator.appVersion.toLowerCase().contains('macintosh');
+final bool _isMac = window.navigator.appVersion.toLowerCase().contains('macintosh');
 
 /**
  * Map key events into commands.

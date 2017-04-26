@@ -109,7 +109,7 @@ abstract class Document {
   Stream get onChange;
 }
 
-class Annotation implements Comparable {
+class Annotation implements Comparable<Annotation> {
   static int _errorValue(String type) {
     if (type == 'error') return 2;
     if (type == 'warning') return 1;

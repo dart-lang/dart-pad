@@ -1,5 +1,5 @@
 analyzer:
-  # strong-mode: true
+  strong-mode: true
   exclude:
     - 'build/**'
     - 'doc/api/**'
@@ -8,5 +8,4 @@ analyzer:
 
 linter:
   rules:
-    # - always_declare_return_types
-    # - always_specify_types
+    - directives_ordering

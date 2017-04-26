@@ -4,8 +4,8 @@
 
 library codemirror_module;
 
-import '../core/modules.dart';
 import '../core/dependencies.dart';
+import '../core/modules.dart';
 import '../editing/editor_codemirror.dart';
 
 class CodeMirrorModule extends Module {
