@@ -123,7 +123,7 @@ class CompilationResults {
 }
 
 /// An error, warning, hint, or into associated with a [CompilationResults].
-class CompilationProblem implements Comparable {
+class CompilationProblem implements Comparable<CompilationProblem> {
   static const int INFO = 0;
   static const int WARNING = 1;
   static const int ERROR = 2;

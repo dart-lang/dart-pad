@@ -6,17 +6,16 @@
 library services.analysis_server;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
-import 'api_classes.dart' as api;
-import 'scheduler.dart' as scheduler;
 import 'analysis_server_protocol/protocol.dart';
 import 'analysis_server_protocol/protocol_internal.dart';
+import 'api_classes.dart' as api;
+import 'scheduler.dart' as scheduler;
 
 /**
  * Type of callbacks used to process notifications.
@@ -296,7 +295,7 @@ class _Server {
    * the [Completer] objects which should be completed when acknowledgement is
    * received.
    */
-  final HashMap<String, Completer> _pendingCommands = <String, Completer>{};
+  final Map<String, Completer> _pendingCommands = <String, Completer>{};
 
   /**
    * Number which should be used to compute the 'id' to send in the next command

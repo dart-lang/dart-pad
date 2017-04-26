@@ -8,18 +8,18 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/sdk.dart' as gen_sdk;
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/element.dart' show ElementAnnotationImpl; // ignore: deprecated_member_use
 import 'package:analyzer/src/generated/engine.dart' hide Logger;
-import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/sdk.dart' as gen_sdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
-
 import 'package:logging/logging.dart';
 
 import 'api_classes.dart';

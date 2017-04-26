@@ -21,8 +21,8 @@ class Counter {
     return _getCounterShard(name, shardId, datastore).then((counter) {
       counter.count++;
       return datastore.withTransaction((transaction) {
-        return transaction.lookup([counter.key]).then((models) {
-          var model = models[0];
+        return transaction.lookup([counter.key]).then((List<db.Model> models) {
+          _ShardedCounter model = models[0];
           model.count += increment;
 
           transaction.queueMutations(inserts: [model]);
@@ -37,8 +37,8 @@ class Counter {
     var query = db.dbService.query(_ShardedCounter)
       ..filter("counterName =", name);
 
-    return query.run().toList().then((models) {
-      models.forEach((m) => total += m.count);
+    return query.run().toList().then((List<db.Model> models) {
+      models.forEach((db.Model m) => total += (m as _ShardedCounter).count);
       return total;
     });
   }
@@ -48,10 +48,10 @@ class Counter {
     var query = datastore.query(_ShardedCounter)
       ..filter("counterName =", name)
       ..filter("shardId =", shardId);
-    var results = query.run().toList();
+    Future<List<db.Model>> results = query.run().toList();
 
     // Test whether we have been given an id.
-    return results.then((models) {
+    return results.then((List<db.Model> models) {
       if (models.length == 0) {
         _ShardedCounter newCounter = new _ShardedCounter()
           ..counterName = name
@@ -62,7 +62,7 @@ class Counter {
           return newCounter;
         });
       } else {
-        return new Future.value(models[0]);
+        return new Future.value(models[0] as _ShardedCounter);
       }
     });
   }
