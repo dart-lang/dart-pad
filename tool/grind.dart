@@ -60,7 +60,8 @@ build() {
   log('${mobileFile.path} compiled to ${_printSize(mobileFile)}');
 
   FilePath testFile = _buildDir.join('test', 'web.dart.js');
-  if (testFile.exists) log('${testFile.path} compiled to ${_printSize(testFile)}');
+  if (testFile.exists)
+    log('${testFile.path} compiled to ${_printSize(testFile)}');
 
   FilePath embedFile = _buildDir.join('web', 'scripts/embed.dart.js');
   log('${mainFile} compiled to ${_printSize(embedFile)}');
@@ -75,9 +76,8 @@ build() {
   // Remove .dart files.
   int count = 0;
 
-  for (FileSystemEntity entity in getDir('build/web/packages').listSync(
-    recursive: true, followLinks: false
-  )) {
+  for (FileSystemEntity entity in getDir('build/web/packages')
+      .listSync(recursive: true, followLinks: false)) {
     if (entity is! File) continue;
     if (!entity.path.endsWith('.dart')) continue;
     count++;

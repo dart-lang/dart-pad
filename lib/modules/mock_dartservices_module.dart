@@ -39,7 +39,9 @@ class HttpServerMock extends BaseClient {
         result = _apiHandler(request, JSON.decode(jsonString));
       }
       // Encode the result and return it as a StreamedResponse.
-      var h = {"content-type": "application/json; charset=utf-8",};
+      var h = {
+        "content-type": "application/json; charset=utf-8",
+      };
       var encodedResult = UTF8.encode(JSON.encode(result));
       var stream = new Stream.fromIterable([encodedResult]);
       return new Future.delayed(new Duration(milliseconds: 500),

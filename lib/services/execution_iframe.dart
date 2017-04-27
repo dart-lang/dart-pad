@@ -12,8 +12,10 @@ import 'execution.dart';
 export 'execution.dart';
 
 class ExecutionServiceIFrame implements ExecutionService {
-  final StreamController<String> _stdoutController = new StreamController<String>.broadcast();
-  final StreamController<String> _stderrController = new StreamController<String>.broadcast();
+  final StreamController<String> _stdoutController =
+      new StreamController<String>.broadcast();
+  final StreamController<String> _stderrController =
+      new StreamController<String>.broadcast();
 
   IFrameElement _frame;
   String _frameSrc;

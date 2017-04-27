@@ -186,7 +186,7 @@ class Completion {
 
   bool isSetterAndMatchesGetter(Completion other) =>
       displayString == other.displayString &&
-          (type == "type-getter" && other.type == "type-setter");
+      (type == "type-getter" && other.type == "type-setter");
 }
 
 class SourceEdit {

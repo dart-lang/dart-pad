@@ -22,7 +22,8 @@ class NewPadAction {
 
   void _handleButtonPress() {
     new OkCancelDialog('Create New Pad', 'Discard changes to the current pad?',
-        _gistController.createNewGist,
-        okText: 'Discard').show();
+            _gistController.createNewGist,
+            okText: 'Discard')
+        .show();
   }
 }

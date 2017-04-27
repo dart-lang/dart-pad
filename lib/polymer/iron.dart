@@ -161,10 +161,14 @@ class PolymerElement extends WebElement {
     toggleAttribute('flex', true);
 
     if (flexAmount != null) {
-      if (flexAmount == 1) toggleAttribute('one', true);
-      else if (flexAmount == 2) toggleAttribute('two', true);
-      else if (flexAmount == 3) toggleAttribute('three', true);
-      else if (flexAmount == 4) toggleAttribute('four', true);
+      if (flexAmount == 1)
+        toggleAttribute('one', true);
+      else if (flexAmount == 2)
+        toggleAttribute('two', true);
+      else if (flexAmount == 3)
+        toggleAttribute('three', true);
+      else if (flexAmount == 4)
+        toggleAttribute('four', true);
       else if (flexAmount == 5) toggleAttribute('five', true);
     }
   }
@@ -200,16 +204,16 @@ class PolymerElement extends WebElement {
       throw new ArgumentError('child must be a WebElement or an Element');
     }
     //Polymer.dom(this).appendChild(child);
-    context["Polymer"]
-        .callMethod("dom", [new JsObject.fromBrowserObject(element)])
-        .callMethod("appendChild", [new JsObject.fromBrowserObject(child)]);
+    context["Polymer"].callMethod("dom", [
+      new JsObject.fromBrowserObject(element)
+    ]).callMethod("appendChild", [new JsObject.fromBrowserObject(child)]);
   }
 
   dynamic selectorAll(String selector) {
     //Polymer.dom(this).childNodes;
-    return context["Polymer"]
-        .callMethod("dom", [new JsObject.fromBrowserObject(element)])
-        .callMethod("querySelectorAll", [selector]);
+    return context["Polymer"].callMethod("dom", [
+      new JsObject.fromBrowserObject(element)
+    ]).callMethod("querySelectorAll", [selector]);
   }
 }
 

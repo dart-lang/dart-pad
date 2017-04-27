@@ -653,7 +653,8 @@ class PlaygroundMobile {
 
   void _performAnalysis() {
     bool strongMode = (querySelector('#strongmode') as InputElement).checked;
-    var input = new SourceRequest()..source = _context.dartSource
+    var input = new SourceRequest()
+      ..source = _context.dartSource
       ..strongMode = strongMode;
 
     Lines lines = new Lines(input.source);

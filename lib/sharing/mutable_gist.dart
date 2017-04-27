@@ -17,7 +17,8 @@ class MutableGist implements PropertyOwner {
 
   Map<String, MutableGistFile> _files = {};
 
-  StreamController<bool> _dirtyChangedController = new StreamController<bool>.broadcast();
+  StreamController<bool> _dirtyChangedController =
+      new StreamController<bool>.broadcast();
   StreamController _changedController = new StreamController.broadcast();
 
   MutableGist(this._backingGist);
