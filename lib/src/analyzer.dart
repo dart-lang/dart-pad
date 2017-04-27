@@ -14,8 +14,7 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/context/builder.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/constant.dart';
-// ignore: deprecated_member_use
-import 'package:analyzer/src/generated/element.dart' show ElementAnnotationImpl;
+import 'package:analyzer/src/generated/element.dart' show ElementAnnotationImpl; // ignore: deprecated_member_use
 import 'package:analyzer/src/generated/engine.dart' hide Logger;
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/sdk.dart' as gen_sdk;
@@ -56,19 +55,23 @@ class Analyzer {
 
   ContentCache cache;
 
-  Analyzer(this._sdkPath, {this.pub, this.strongMode: false}) {
+  Analyzer(this._sdkPath, {
+    this.pub,
+    this.strongMode: false
+  }) {
     _reset();
     analyze('');
   }
 
   void _reset() {
+
     this.cache = new ContentCache();
 
     _sourceDirectory = Directory.systemTemp.createTempSync('analyzer');
     // _resolver = new MemoryResolver();
 
     PhysicalResourceProvider physicalResourceProvider =
-        PhysicalResourceProvider.INSTANCE;
+              PhysicalResourceProvider.INSTANCE;
 
     AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
     analysisOptions.strongMode = strongMode;
@@ -78,17 +81,15 @@ class Analyzer {
 
     // var sdkCreator = gen_sdk.SdkCreator(options);
 
-    var sdkManager =
-        new gen_sdk.DartSdkManager(_sdkPath, true, (AnalysisOptions options) {
-      FolderBasedDartSdk sdk = new FolderBasedDartSdk(physicalResourceProvider,
-          physicalResourceProvider.getFolder(_sdkPath));
+    var sdkManager = new gen_sdk.DartSdkManager(_sdkPath, true, (AnalysisOptions options) {
+      FolderBasedDartSdk sdk = new FolderBasedDartSdk(
+              physicalResourceProvider, physicalResourceProvider.getFolder(_sdkPath));
       sdk.analysisOptions = options;
     });
 
     // MemoryResourceProvider memResourceProvider = new MemoryResourceProvider();
     var builder = new ContextBuilder(
-        physicalResourceProvider, sdkManager, cache,
-        options: builderOptions);
+        physicalResourceProvider, sdkManager, cache, options: builderOptions);
 
     // builder.fileResolverProvider = (folder) {
     //   print (folder);
@@ -96,6 +97,7 @@ class Analyzer {
     // };
 
     _context = builder.buildContext(_sourceDirectory.path);
+
 
     // _context.analysisOptions = options;
 
@@ -141,12 +143,9 @@ class Analyzer {
         errorInfos.add(_context.getErrors(s));
       });
 
-      List<_Error> errors = errorInfos
-          .expand((AnalysisErrorInfo info) {
-            return info.errors.map((error) => new _Error(error, info.lineInfo));
-          })
-          .where((_Error error) => error.errorType != ErrorType.TODO)
-          .toList();
+      List<_Error> errors = errorInfos.expand((AnalysisErrorInfo info) {
+        return info.errors.map((error) => new _Error(error, info.lineInfo));
+      }).where((_Error error) => error.errorType != ErrorType.TODO).toList();
 
       // Calculate the issues.
       List<AnalysisIssue> issues = errors.map((_Error error) {
@@ -291,8 +290,7 @@ class Analyzer {
               if (annotationElement.toString().startsWith("@DomName")) {
                 // In order for this to reliably return a result, the compilation
                 // unit would need to be resolved.
-                EvaluationResultImpl evaluationResult =
-                    annotationElement.evaluationResult;
+                EvaluationResultImpl evaluationResult = annotationElement.evaluationResult;
                 if (evaluationResult != null &&
                     evaluationResult.value.fields["name"] != null) {
                   info["DomName"] =
