@@ -341,7 +341,7 @@ abstract class JsonDecoder {
     if (json == null) {
       return {};
     } else if (json is Map) {
-      Map<K, V> result = <K, V> {};
+      Map<K, V> result = <K, V>{};
       json.forEach((String key, value) {
         Object decodedKey;
         if (keyDecoder != null) {

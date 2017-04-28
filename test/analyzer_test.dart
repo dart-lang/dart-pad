@@ -274,7 +274,9 @@ main() {
         return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
           expect(results.issues, isEmpty);
           sourceMap.remove("bar.dart");
-          return analyzer.analyzeMulti(sourceMap).then((AnalysisResults results) {
+          return analyzer
+              .analyzeMulti(sourceMap)
+              .then((AnalysisResults results) {
             expect((results.issues), isNotEmpty);
           });
         });

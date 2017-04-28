@@ -75,6 +75,9 @@ discovery() {
 
   // Generate the Dart library from the json discovery file.
   Pub.global.activate('discoveryapis_generator');
-  Pub.global.run('discoveryapis_generator:generate', arguments:
-      ['files', '--input-dir=doc/generated', '--output-dir=doc/generated']);
+  Pub.global.run('discoveryapis_generator:generate', arguments: [
+    'files',
+    '--input-dir=doc/generated',
+    '--output-dir=doc/generated'
+  ]);
 }

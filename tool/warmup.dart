@@ -50,17 +50,16 @@ main(List<String> args) async {
 request(String verb, String postPayload) async {
   Stopwatch sw = new Stopwatch()..start();
 
-  var response = await http
-      .post(Uri.parse(uri + verb),
-          body: postPayload,
-          headers: {'content-type': 'text/plain; charset=utf-8'});
+  var response = await http.post(Uri.parse(uri + verb),
+      body: postPayload,
+      headers: {'content-type': 'text/plain; charset=utf-8'});
 
-          int status = response.statusCode;
+  int status = response.statusCode;
 
-    if (status != 200) {
-      print("$verb \t $status \t ${response.body} ${response.headers}");
-    } else {
-      print("$verb \t ${sw.elapsedMilliseconds} \t $status");
-    }
-    return response.statusCode;
+  if (status != 200) {
+    print("$verb \t $status \t ${response.body} ${response.headers}");
+  } else {
+    print("$verb \t ${sw.elapsedMilliseconds} \t $status");
+  }
+  return response.statusCode;
 }

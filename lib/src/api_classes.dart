@@ -69,8 +69,9 @@ class SourceRequest {
   @ApiProperty(description: 'An optional offset into the source code.')
   int offset;
 
-  @ApiProperty(description:
-    'An optional signal whether the source should be processed in strong mode')
+  @ApiProperty(
+      description:
+          'An optional signal whether the source should be processed in strong mode')
   bool strongMode;
 }
 
@@ -81,8 +82,9 @@ class SourcesRequest {
   @ApiProperty(description: 'An optional location in the source code.')
   Location location;
 
-  @ApiProperty(description:
-    'An optional signal whether the source should be processed in strong mode')
+  @ApiProperty(
+      description:
+          'An optional signal whether the source should be processed in strong mode')
   bool strongMode;
 }
 
