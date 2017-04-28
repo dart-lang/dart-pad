@@ -56,7 +56,6 @@ class Compiler {
       List<String> arguments = [
         '--suppress-hints',
         '--terse',
-        '--fatal-warnings',
       ];
 
       if (useCheckedMode) arguments.add('--checked');
@@ -88,6 +87,7 @@ class Compiler {
       }
     } finally {
       temp.deleteSync(recursive: true);
+      _logger.info('temp file removed: ${temp.path}');
     }
   }
 }
