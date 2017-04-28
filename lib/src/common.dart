@@ -6,6 +6,12 @@ library services.common;
 
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+
+String getSdkPath() {
+  return path.dirname(path.dirname(Platform.resolvedExecutable));
+}
+
 final String sampleCode = """
 void main() {
   print("hello");

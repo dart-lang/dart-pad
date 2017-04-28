@@ -9,6 +9,8 @@ import 'package:services/src/common.dart';
 import 'package:services/src/compiler.dart';
 import 'package:unittest/unittest.dart';
 
+void main() => defineTests();
+
 void defineTests() {
   Compiler compiler;
 
@@ -47,25 +49,18 @@ void defineTests() {
       });
     });
 
-    // TODO: How to get different source when compiling with --checked?
-//    test('checked', () {
-//      final String sampleCodeChecked = '''
-//main() { foo(1); }
-//void foo(String bar) { print(bar); }
-//''';
-//
-//      String normal;
-//      String checked;
-//
-//      return compiler.compile(sampleCodeChecked).then((result) {
-//        normal = result.getOutput();
-//        return compiler.compile(sampleCodeChecked, useCheckedMode: true).then((result) {
-//          checked = result.getOutput();
-//
-//          expect(true, checked != normal);
-//        });
-//      });
-//    });
+    test('checked', () async {
+      final String sampleCodeChecked = '''
+main() { foo(1); }
+void foo(String bar) { print(bar); }
+''';
+
+      CompilationResults normal = await compiler.compile(sampleCodeChecked);
+      CompilationResults checked =
+          await compiler.compile(sampleCodeChecked, useCheckedMode: true);
+
+      expect(true, normal.getOutput() != checked.getOutput());
+    });
 
     test('simple web', () {
       return compiler.compile(sampleCodeWeb).then((CompilationResults result) {
@@ -87,22 +82,18 @@ void defineTests() {
           .then((CompilationResults result) {
         expect(result.success, false);
         expect(result.problems.length, 1);
-        expect(result.problems[0].toString(),
-            startsWith("[error] Expected ';' after this"));
+        expect(result.problems[0].toString(), contains("Error: Expected"));
       });
     });
 
-    test('errors many', () {
-      return compiler
-          .compile(sampleCodeErrors)
-          .then((CompilationResults result) {
-        expect(result.problems.length, 3);
-      });
+    test('allow complier warnings', () async {
+      CompilationResults result = await compiler.compile(sampleCodeErrors);
+      expect(result.success, true);
     });
 
     test('transitive errors', () {
       final String code = '''
-import 'dart:io';
+import 'dart:foo';
 void main() { print ('foo'); }
 ''';
       return compiler.compile(code).then((CompilationResults result) {
