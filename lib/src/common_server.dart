@@ -287,8 +287,8 @@ class CommonServer {
     return new Future.value(summaryString);
   }
 
-  Future<AnalysisResults> _analyzeMulti(Map<String, String> sources,
-    bool strongMode) async {
+  Future<AnalysisResults> _analyzeMulti(
+      Map<String, String> sources, bool strongMode) async {
     if (sources == null) {
       throw new BadRequestError('Missing parameter: \'sources\'');
     }

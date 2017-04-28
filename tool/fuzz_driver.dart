@@ -105,7 +105,8 @@ Usage: slow_test path_to_test_collection
 
       random = new Random(seed);
       seed++;
-      await testPath(fse.path, analysisServer, analyzer, strongAnalyzer, compiler);
+      await testPath(
+          fse.path, analysisServer, analyzer, strongAnalyzer, compiler);
     } catch (e) {
       print(e);
       print("FAILED: ${fse.path}");
@@ -123,7 +124,7 @@ setupTools(String sdkPath) async {
   print("Executing setupTools");
   if (analysisServer != null) await analysisServer.kill();
 
-  print ("SdKPath: $sdkPath");
+  print("SdKPath: $sdkPath");
 
   container = new MockContainer();
   cache = new MockCache();
@@ -149,11 +150,14 @@ setupTools(String sdkPath) async {
   print("Warming up compiler");
   compiler = new comp.Compiler(sdkPath);
   await compiler.warmup();
-  print ("SetupTools done");
+  print("SetupTools done");
 }
 
-testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
-    ana.Analyzer analyzer, ana.Analyzer strongAnalyzer,
+testPath(
+    String path,
+    analysis_server.AnalysisServerWrapper wrapper,
+    ana.Analyzer analyzer,
+    ana.Analyzer strongAnalyzer,
     comp.Compiler compiler) async {
   var f = new io.File(path);
   String src = f.readAsStringSync();
@@ -176,7 +180,8 @@ testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
         case "all":
           averageCompilationTime = await testCompilation(src, compiler);
           averageCompletionTime = await testCompletions(src, wrapper);
-          averageAnalysisTime = await testAnalysis(src, analyzer, strongAnalyzer);
+          averageAnalysisTime =
+              await testAnalysis(src, analyzer, strongAnalyzer);
           averageDocumentTime = await testDocument(src, analyzer);
           averageFixesTime = await testFixes(src, wrapper);
           averageFormatTime = await testFormat(src);
@@ -186,7 +191,8 @@ testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
           averageCompletionTime = await testCompletions(src, wrapper);
           break;
         case "analyze":
-          averageAnalysisTime = await testAnalysis(src, analyzer, strongAnalyzer);
+          averageAnalysisTime =
+              await testAnalysis(src, analyzer, strongAnalyzer);
           break;
 
         case "document":
@@ -238,16 +244,21 @@ testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
   }
 }
 
-Future<num> testAnalysis(String src, ana.Analyzer analyzer, ana.Analyzer strongAnalyzer) async {
+Future<num> testAnalysis(
+    String src, ana.Analyzer analyzer, ana.Analyzer strongAnalyzer) async {
   lastExecuted = OperationType.Analysis;
   Stopwatch sw = new Stopwatch()..start();
 
   lastOffset = null;
-  if (_SERVER_BASED_CALL) await withTimeOut(server.analyzeGet(source: src));
-  else await withTimeOut(analyzer.analyze(src));
+  if (_SERVER_BASED_CALL)
+    await withTimeOut(server.analyzeGet(source: src));
+  else
+    await withTimeOut(analyzer.analyze(src));
 
-  if (_SERVER_BASED_CALL) await withTimeOut(server.analyzeGet(source: src, strongMode: true));
-  else await withTimeOut(strongAnalyzer.analyze(src));
+  if (_SERVER_BASED_CALL)
+    await withTimeOut(server.analyzeGet(source: src, strongMode: true));
+  else
+    await withTimeOut(strongAnalyzer.analyze(src));
 
   if (_DUMP_PERF) print("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds / 2.0;
@@ -258,8 +269,10 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
   Stopwatch sw = new Stopwatch()..start();
 
   lastOffset = null;
-  if (_SERVER_BASED_CALL) await withTimeOut(server.compileGet(source: src));
-  else await withTimeOut(compiler.compile(src));
+  if (_SERVER_BASED_CALL)
+    await withTimeOut(server.compileGet(source: src));
+  else
+    await withTimeOut(compiler.compile(src));
 
   if (_DUMP_PERF) print("PERF: COMPILATION: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds;
@@ -292,9 +305,10 @@ Future<num> testCompletions(
 
     if (i % 1000 == 0 && i > 0) print("INC: $i completes");
     lastOffset = i;
-    if (_SERVER_BASED_CALL) await withTimeOut(
-        server.completeGet(source: src, offset: i));
-    else await withTimeOut(wrapper.complete(src, i));
+    if (_SERVER_BASED_CALL)
+      await withTimeOut(server.completeGet(source: src, offset: i));
+    else
+      await withTimeOut(wrapper.complete(src, i));
     if (_DUMP_PERF) print("PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}");
   }
   return sw.elapsedMilliseconds / src.length;
@@ -367,7 +381,7 @@ String mutate(String src) {
   if (i == 0) i = 1;
 
   if (_DUMP_DELTA) {
-    log ("Delta: $s");
+    log("Delta: $s");
   }
   String newStr = src.substring(0, i - 1) + s + src.substring(i);
   return newStr;
@@ -418,6 +432,6 @@ enum OperationType {
 
 log(dynamic str) {
   if (_VERBOSE) {
-    print ("${new DateTime.now()} $str");
+    print("${new DateTime.now()} $str");
   }
 }

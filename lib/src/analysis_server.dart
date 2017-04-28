@@ -58,9 +58,11 @@ class AnalysisServerWrapper {
   }
 
   Future<api.CompleteResponse> complete(String src, int offset) async {
-    return completeMulti({"main.dart": src}, new api.Location()
-      ..sourceName = "main.dart"
-      ..offset = offset);
+    return completeMulti(
+        {"main.dart": src},
+        new api.Location()
+          ..sourceName = "main.dart"
+          ..offset = offset);
   }
 
   Future<api.CompleteResponse> completeMulti(
@@ -91,9 +93,11 @@ class AnalysisServerWrapper {
   }
 
   Future<api.FixesResponse> getFixes(String src, int offset) async {
-    return getFixesMulti({"main.dart": src}, new api.Location()
-      ..sourceName = "main.dart"
-      ..offset = offset);
+    return getFixesMulti(
+        {"main.dart": src},
+        new api.Location()
+          ..sourceName = "main.dart"
+          ..offset = offset);
   }
 
   Future<api.FixesResponse> getFixesMulti(
@@ -528,8 +532,9 @@ class _Server {
 
   Future<EditFormatResult> sendFormat(int selectionOffset,
       [int selectionLength = 0]) {
-    var params = new EditFormatParams(
-        mainPath, selectionOffset, selectionLength).toJson();
+    var params =
+        new EditFormatParams(mainPath, selectionOffset, selectionLength)
+            .toJson();
 
     return send("edit.format", params).then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
@@ -584,7 +589,8 @@ class _Server {
       List<String> included, List<String> excluded,
       {Map<String, String> packageRoots}) {
     var params = new AnalysisSetAnalysisRootsParams(included, excluded,
-        packageRoots: packageRoots).toJson();
+            packageRoots: packageRoots)
+        .toJson();
     return send("analysis.setAnalysisRoots", params);
   }
 

@@ -323,8 +323,8 @@ class PackageInfo {
 
   PackageInfo(this.name, this.version) {
     if (!nameRegex.hasMatch(name)) throw 'invalid package name: ${name}';
-    if (!versionRegex
-        .hasMatch(version)) throw 'invalid package version: ${version}';
+    if (!versionRegex.hasMatch(version))
+      throw 'invalid package version: ${version}';
   }
 
   String toString() => '[${name}: ${version}]';
