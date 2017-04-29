@@ -25,7 +25,7 @@ typedef void NotificationProcessor(String event, params);
 final Logger _logger = new Logger('analysis_server');
 
 /**
- * Flag to determine wheter we should dump the communication
+ * Flag to determine whether we should dump the communication
  * with the server to stdout.
  */
 bool dumpServerMessages = false;
@@ -103,7 +103,8 @@ class AnalysisServerWrapper {
   Future<api.FixesResponse> getFixesMulti(
       Map<String, String> sources, api.Location location) async {
     var results = _getFixesImpl(sources, location.sourceName, location.offset);
-    return results.then((fixes) => new api.FixesResponse(fixes.fixes));
+    return results.then((fixes) =>
+        new api.FixesResponse(_convertAnalysisErrorFixes(fixes.fixes)));
   }
 
   Future<api.FormatResponse> format(String src, int offset) async {
@@ -118,6 +119,49 @@ class AnalysisServerWrapper {
       }
       return new api.FormatResponse(editSrc, editResult.selectionOffset);
     });
+  }
+
+  /// Convert between the Analysis Server type and the API protocol types.
+  static List<api.ProblemAndFixes> _convertAnalysisErrorFixes(
+      List<AnalysisErrorFixes> list) {
+    return list.map(_convertAnalysisErrorFix).toList();
+  }
+
+  static api.ProblemAndFixes _convertAnalysisErrorFix(
+      AnalysisErrorFixes analysisFixes) {
+    String problemMessage = analysisFixes.error.message;
+    int problemOffset = analysisFixes.error.location.offset;
+    int problemLength = analysisFixes.error.location.length;
+
+    List<api.CandidateFix> possibleFixes = new List<api.CandidateFix>();
+
+    for (var sourceChange in analysisFixes.fixes) {
+      List<api.SourceEdit> edits = new List<api.SourceEdit>();
+
+      // A fix that tries to modify other files is considered invalid.
+
+      bool invalidFix = false;
+      for (var sourceFileEdit in sourceChange.edits) {
+        // TODO(lukechurch): replace this with a more reliable test based on the
+        // psuedo file name in Analysis Server
+        if (!sourceFileEdit.file.endsWith("/main.dart")) {
+          invalidFix = true;
+          break;
+        }
+
+        for (var sourceEdit in sourceFileEdit.edits) {
+          edits.add(new api.SourceEdit.fromChanges(
+              sourceEdit.offset, sourceEdit.length, sourceEdit.replacement));
+        }
+      }
+      if (!invalidFix) {
+        api.CandidateFix possibleFix =
+            new api.CandidateFix.fromEdits(sourceChange.message, edits);
+        possibleFixes.add(possibleFix);
+      }
+    }
+    return new api.ProblemAndFixes.fromList(
+        possibleFixes, problemMessage, problemOffset, problemLength);
   }
 
   /// Cleanly shutdown the Analysis Server.

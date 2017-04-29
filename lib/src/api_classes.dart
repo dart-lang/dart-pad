@@ -9,8 +9,6 @@ import 'dart:convert';
 
 import 'package:rpc/rpc.dart';
 
-import 'analysis_server_protocol/protocol.dart';
-
 class AnalysisResults {
   final List<AnalysisIssue> issues;
 
@@ -168,54 +166,7 @@ class CompleteResponse {
 class FixesResponse {
   final List<ProblemAndFixes> fixes;
 
-  FixesResponse(List<AnalysisErrorFixes> analysisErrorFixes)
-      : this.fixes = _convert(analysisErrorFixes);
-
-  /**
-   * Convert between the Analysis Server type and the API protocol types.
-   */
-  static List<ProblemAndFixes> _convert(List<AnalysisErrorFixes> list) {
-    var problemsAndFixes = new List<ProblemAndFixes>();
-    list.forEach((fix) => problemsAndFixes.add(_convertAnalysisErrorFix(fix)));
-    return problemsAndFixes;
-  }
-
-  static ProblemAndFixes _convertAnalysisErrorFix(
-      AnalysisErrorFixes analysisFixes) {
-    String problemMessage = analysisFixes.error.message;
-    int problemOffset = analysisFixes.error.location.offset;
-    int problemLength = analysisFixes.error.location.length;
-
-    List<CandidateFix> possibleFixes = new List<CandidateFix>();
-
-    for (var sourceChange in analysisFixes.fixes) {
-      List<SourceEdit> edits = new List<SourceEdit>();
-
-      // A fix that tries to modify other files is considered invalid.
-
-      bool invalidFix = false;
-      for (var sourceFileEdit in sourceChange.edits) {
-        // TODO(lukechurch): replace this with a more reliable test based on the
-        // psuedo file name in Analysis Server
-        if (!sourceFileEdit.file.endsWith("/main.dart")) {
-          invalidFix = true;
-          break;
-        }
-
-        for (var sourceEdit in sourceFileEdit.edits) {
-          edits.add(new SourceEdit.fromChanges(
-              sourceEdit.offset, sourceEdit.length, sourceEdit.replacement));
-        }
-      }
-      if (!invalidFix) {
-        CandidateFix possibleFix =
-            new CandidateFix.fromEdits(sourceChange.message, edits);
-        possibleFixes.add(possibleFix);
-      }
-    }
-    return new ProblemAndFixes.fromList(
-        possibleFixes, problemMessage, problemOffset, problemLength);
-  }
+  FixesResponse(this.fixes);
 }
 
 /**
