@@ -18,7 +18,7 @@ analyze() {
 }
 
 @Task()
-test() => Dart.runAsync('test/all.dart');
+test() => new TestRunner().testAsync();
 
 @DefaultTask()
 @Depends(analyze, test)

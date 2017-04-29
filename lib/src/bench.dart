@@ -11,8 +11,6 @@ library services.bench;
 import 'dart:async';
 import 'dart:convert' show JSON;
 
-// TODO: refactor into a benchmark model, runner, and reporter
-
 // TODO: add in mean, % error
 
 abstract class Benchmark {
@@ -28,17 +26,19 @@ abstract class Benchmark {
   String toString() => name;
 }
 
+typedef void BenchmarkLogger(String str);
+
 class BenchmarkHarness {
   final bool json;
+  final BenchmarkLogger logger;
 
-  BenchmarkHarness({this.json});
+  BenchmarkHarness({this.json, this.logger: print});
 
   Future benchmark(List<Benchmark> benchmarks) {
     if (isCheckedMode()) {
-      print(
-          'WARNING: You are running in checked mode. Benchmarks should be run '
-          'in unchecked,\nnon-debug mode. I.e., run this from the command-line, '
-          'not the Editor.\nSee also www.dartlang.org/articles/benchmarking.\n');
+      logger(
+          'WARNING: You are running in checked mode. Benchmarks should be run in unchecked,\n'
+          'non-debug mode. See also www.dartlang.org/articles/benchmarking.\n');
     }
 
     log('Running ${benchmarks.length} benchmarks.');
@@ -52,7 +52,7 @@ class BenchmarkHarness {
       });
     }).then((_) {
       if (json) {
-        print(JSON.encode(results
+        logger(JSON.encode(results
             .map((r) => {r.benchmark.name: r.averageMilliseconds()})
             .toList()));
       }
@@ -71,11 +71,11 @@ class BenchmarkHarness {
   }
 
   void log(String message) {
-    if (!json) print(message);
+    if (!json) logger(message);
   }
 
   void logResult(BenchMarkResult result) {
-    if (!json) print(result);
+    if (!json) logger(result.toString());
   }
 
   Future _warmup(Benchmark benchmark) {
@@ -120,8 +120,6 @@ class BenchMarkResult {
   BenchMarkResult(this.benchmark);
 
   double averageMilliseconds() => (microseconds / iteration) / 1000.0;
-
-  //double _averageMicroseconds() => microseconds / iteration;
 
   String toString() => '[${benchmark.name.padRight(20)}: '
       '${averageMilliseconds().toStringAsFixed(3).padLeft(8)}ms]';

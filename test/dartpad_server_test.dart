@@ -10,7 +10,7 @@ import 'dart:convert';
 import 'package:rpc/rpc.dart';
 import 'package:services/src/common.dart';
 import 'package:services/src/dartpad_support_server.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 String quickFixesCode = r'''
 import 'dart:async';
@@ -31,6 +31,8 @@ void main() {
   int i = 0;
 }
 ''';
+
+void main() => defineTests();
 
 void defineTests() {
   FileRelayServer server;

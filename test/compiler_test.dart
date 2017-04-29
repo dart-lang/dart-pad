@@ -7,7 +7,7 @@ library services.compiler_test;
 import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:services/src/common.dart';
 import 'package:services/src/compiler.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 void main() => defineTests();
 

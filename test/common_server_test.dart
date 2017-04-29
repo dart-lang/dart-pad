@@ -11,9 +11,7 @@ import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:rpc/rpc.dart';
 import 'package:services/src/common.dart';
 import 'package:services/src/common_server.dart';
-import 'package:unittest/unittest.dart';
-
-import 'src/test_config.dart';
+import 'package:test/test.dart';
 
 String quickFixesCode = r'''
 import 'dart:async';
@@ -35,6 +33,8 @@ void main() {
 }
 ''';
 
+void main() => defineTests();
+
 void defineTests() {
   CommonServer server;
   ApiServer apiServer;
@@ -45,19 +45,6 @@ void defineTests() {
   MockCounter counter;
 
   String sdkPath = cli_util.getSdkDir([]).path;
-
-  container = new MockContainer();
-  cache = new MockCache();
-  recorder = new MockRequestRecorder();
-  counter = new MockCounter();
-
-  server = new CommonServer(sdkPath, container, cache, recorder, counter);
-  apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
-  apiServer.addApi(server);
-
-  onTestsFinished(() {
-    server.shutdown();
-  });
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
@@ -79,6 +66,21 @@ void defineTests() {
   }
 
   group('CommonServer', () {
+    setUpAll(() {
+      container = new MockContainer();
+      cache = new MockCache();
+      recorder = new MockRequestRecorder();
+      counter = new MockCounter();
+
+      server = new CommonServer(sdkPath, container, cache, recorder, counter);
+      apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
+      apiServer.addApi(server);
+    });
+
+    tearDownAll(() {
+      return server.shutdown();
+    });
+
     setUp(() {
       counter.reset();
     });
@@ -105,7 +107,7 @@ void defineTests() {
             "kind": "error",
             "line": 2,
             "sourceName": "main.dart",
-            "message": "Expected to find \';\'",
+            "message": "Expected to find \';\'.",
             "hasFixes": true,
             "charStart": 29,
             "charLength": 1,
@@ -262,7 +264,6 @@ void defineTests() {
       var response = await _sendGetRequest('dartservices/v1/version');
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
-      print(data);
       expect(data['sdkVersion'], isNotNull);
       expect(data['runtimeVersion'], isNotNull);
     });

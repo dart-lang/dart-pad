@@ -5,7 +5,9 @@
 library services.api_classes_test;
 
 import 'package:services/src/api_classes.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+
+void main() => defineTests();
 
 void defineTests() {
   group('AnalysisIssue', () {
