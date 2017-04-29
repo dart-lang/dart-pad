@@ -13,7 +13,6 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:math';
 
-import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:rpc/rpc.dart';
 import 'package:services/src/analysis_server.dart' as analysis_server;
 import 'package:services/src/analyzer.dart' as ana;
@@ -69,7 +68,7 @@ Usage: slow_test path_to_test_collection
   if (args.length >= 4) iterations = int.parse(args[3]);
   if (args.length >= 5) commandToRun = args[4];
   if (args.length >= 6) dumpServerComms = args[5].toLowerCase() == "true";
-  io.Directory sdkDir = cli_util.getSdkDir([]);
+  String sdk = getSdkPath();
 
   // Load the list of files.
   var fileEntities = [];
@@ -86,10 +85,10 @@ Usage: slow_test path_to_test_collection
   Stopwatch sw = new Stopwatch()..start();
 
   print("About to setuptools");
-  print(sdkDir.path);
+  print(sdk);
 
   // Warm up the services.
-  await setupTools(sdkDir.path);
+  await setupTools(sdk);
 
   print("Setup tools done");
 
@@ -112,7 +111,7 @@ Usage: slow_test path_to_test_collection
       print("FAILED: ${fse.path}");
 
       // Try and re-cycle the services for the next test after the crash
-      await setupTools(sdkDir.path);
+      await setupTools(sdk);
     }
   }
 }

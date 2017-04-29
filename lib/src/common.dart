@@ -8,10 +8,6 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-String getSdkPath() {
-  return path.dirname(path.dirname(Platform.resolvedExecutable));
-}
-
 final String sampleCode = """
 void main() {
   print("hello");
@@ -105,4 +101,19 @@ String stripMatchingQuotes(String str) {
     str = str.substring(1, str.length - 1);
   }
   return str;
+}
+
+String getSdkPath([List<String> args]) {
+  // Look for --dart-sdk on the command line.
+  if (args != null && args.contains('--dart-sdk')) {
+    return args[args.indexOf('--dart-sdk') + 1];
+  }
+
+  // Look in $DART_SDK.
+  if (Platform.environment['DART_SDK'] != null) {
+    return Platform.environment['DART_SDK'];
+  }
+
+  // Look relative to the dart executable.
+  return path.dirname(path.dirname(Platform.resolvedExecutable));
 }

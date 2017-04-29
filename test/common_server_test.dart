@@ -7,7 +7,6 @@ library services.common_server_test;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:rpc/rpc.dart';
 import 'package:services/src/common.dart';
 import 'package:services/src/common_server.dart';
@@ -44,7 +43,7 @@ void defineTests() {
   MockRequestRecorder recorder;
   MockCounter counter;
 
-  String sdkPath = cli_util.getSdkDir([]).path;
+  String sdkPath = getSdkPath();
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);

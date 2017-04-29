@@ -9,7 +9,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
-import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 import 'package:shelf/shelf.dart';
@@ -17,6 +16,7 @@ import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 import 'package:shelf_route/shelf_route.dart';
 
+import 'src/common.dart';
 import 'src/common_server.dart';
 import 'src/dartpad_support_server.dart';
 
@@ -36,8 +36,8 @@ void main(List<String> args) {
     exit(1);
   });
 
-  Directory sdkDir = cli_util.getSdkDir(args);
-  if (sdkDir == null) {
+  String sdk = getSdkPath(args);
+  if (sdk == null) {
     stdout.writeln("Could not locate the SDK; "
         "please start the server with the '--dart-sdk' option.");
     exit(1);
@@ -52,11 +52,11 @@ void main(List<String> args) {
     var serverUrl = result['server-url'];
     if (result['relay']) {
       EndpointsServer
-          .generateRelayDiscovery(sdkDir.path, serverUrl)
+          .generateRelayDiscovery(sdk, serverUrl)
           .then((doc) => printExit(doc));
     } else {
       EndpointsServer
-          .generateDiscovery(sdkDir.path, serverUrl)
+          .generateDiscovery(sdk, serverUrl)
           .then((doc) => printExit(doc));
     }
     return;
@@ -68,7 +68,7 @@ void main(List<String> args) {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  EndpointsServer.serve(sdkDir.path, port).then((EndpointsServer server) {
+  EndpointsServer.serve(sdk, port).then((EndpointsServer server) {
     _logger.info('Listening on port ${server.port}');
   });
 }

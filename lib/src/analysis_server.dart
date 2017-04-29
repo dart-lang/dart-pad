@@ -39,8 +39,8 @@ final _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 35);
 final _COMPILE_TIMEOUT = new Duration(seconds: 25);
 final _ANALYZE_TIMEOUT = new Duration(seconds: 15);
 
-var sourceDirectory;
-var mainPath;
+Directory sourceDirectory;
+String mainPath;
 
 class AnalysisServerWrapper {
   final String sdkPath;

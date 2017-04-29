@@ -4,13 +4,12 @@
 
 library services.analyzer_test;
 
-import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:services/src/analyzer.dart';
 import 'package:services/src/api_classes.dart';
 import 'package:services/src/common.dart';
 import 'package:test/test.dart';
 
-String sdkPath = cli_util.getSdkDir([]).path;
+String sdkPath = getSdkPath();
 
 void main() => defineTests();
 
