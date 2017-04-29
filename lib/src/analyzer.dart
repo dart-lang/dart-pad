@@ -22,6 +22,7 @@ import 'package:analyzer/src/generated/sdk.dart' as gen_sdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 
 import 'api_classes.dart';
 import 'common.dart';
@@ -152,10 +153,10 @@ class Analyzer {
       List<AnalysisIssue> issues = errors.map((_Error error) {
         return new AnalysisIssue.fromIssue(
             error.severityName, error.line, error.message,
-            location: error.location,
+            location: path.basename(error.location),
             charStart: error.offset,
             charLength: error.length,
-            sourceName: error.error.source.fullName,
+            sourceName: path.basename(error.error.source.fullName),
             hasFixes: error.probablyHasFix);
       }).toList();
       issues.sort();

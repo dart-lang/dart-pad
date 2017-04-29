@@ -104,8 +104,8 @@ void defineTests() {
           {
             "kind": "error",
             "line": 2,
+            "message": "Expected to find \';\'.",
             "sourceName": "main.dart",
-            "message": "Expected to find \';\'",
             "hasFixes": true,
             "charStart": 29,
             "charLength": 1,
