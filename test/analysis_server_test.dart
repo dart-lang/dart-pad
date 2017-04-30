@@ -43,6 +43,10 @@ void main() {
 }
 ''';
 
+String formatWithIssues = '''
+void main() { foo() }
+''';
+
 void main() => defineTests();
 
 void defineTests() {
@@ -102,12 +106,20 @@ void defineTests() {
       });
     });
 
-    test('simple_format', () {
-      return analysisServer
-          .format(badFormatCode, 0)
-          .then((FormatResponse results) {
-        expect(results.newString, formattedCode);
-      });
+    test('simple_format', () async {
+      FormatResponse results = await analysisServer.format(badFormatCode, 0);
+      expect(results.newString, formattedCode);
+    });
+
+    test('format good code', () async {
+      FormatResponse results =
+          await analysisServer.format(formattedCode.replaceAll('\n', ' '), 0);
+      expect(results.newString, formattedCode);
+    });
+
+    test('format with issues', () async {
+      FormatResponse results = await analysisServer.format(formatWithIssues, 0);
+      expect(results.newString, formatWithIssues);
     });
   });
 }

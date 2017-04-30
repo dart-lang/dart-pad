@@ -32,26 +32,10 @@ Logger _logger = new Logger('analyzer');
 
 final Duration _MAX_ANALYSIS_DURATION = new Duration(seconds: 10);
 
-// class MemoryResolver extends UriResolver {
-//   Map<String, Source> sources = {};
-
-//   @override
-//   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-//     return sources[uri.toString()];
-//   }
-
-//   void addFileToMap(StringSource file) {
-//     sources[file.fullName] = file;
-//   }
-
-//   void clear() => sources.clear();
-// }
-
 class Analyzer {
   final Pub pub;
   bool strongMode;
   AnalysisContext _context;
-  // MemoryResolver _resolver;
   String _sdkPath;
   Directory _sourceDirectory;
 
@@ -66,7 +50,6 @@ class Analyzer {
     this.cache = new ContentCache();
 
     _sourceDirectory = Directory.systemTemp.createTempSync('analyzer');
-    // _resolver = new MemoryResolver();
 
     PhysicalResourceProvider physicalResourceProvider =
         PhysicalResourceProvider.INSTANCE;
@@ -76,8 +59,6 @@ class Analyzer {
 
     ContextBuilderOptions builderOptions = new ContextBuilderOptions();
     builderOptions.defaultOptions = analysisOptions;
-
-    // var sdkCreator = gen_sdk.SdkCreator(options);
 
     var sdkManager =
         new gen_sdk.DartSdkManager(_sdkPath, true, (AnalysisOptions options) {
@@ -110,11 +91,11 @@ class Analyzer {
     AnalysisEngine.instance.logger = new NullLogger();
   }
 
-  Future warmup([bool useHtml = false]) =>
+  Future warmup({bool useHtml: false}) =>
       analyze(useHtml ? sampleCodeWeb : sampleCode);
 
   Future<AnalysisResults> analyze(String source) {
-    return analyzeMulti({"main.dart": source});
+    return analyzeMulti({kMainDart: source});
   }
 
   Future<AnalysisResults> analyzeMulti(Map<String, String> sources) {
@@ -153,7 +134,6 @@ class Analyzer {
       List<AnalysisIssue> issues = errors.map((_Error error) {
         return new AnalysisIssue.fromIssue(
             error.severityName, error.line, error.message,
-            location: path.basename(error.location),
             charStart: error.offset,
             charLength: error.length,
             sourceName: path.basename(error.error.source.fullName),
@@ -209,7 +189,7 @@ class Analyzer {
 
   Future<Map<String, String>> dartdoc(String source, int offset) {
     try {
-      var _source = new StringSource(source, "main.dart");
+      var _source = new StringSource(source, kMainDart);
 
       ChangeSet changeSet = new ChangeSet();
       changeSet.addedSource(_source);
@@ -348,17 +328,11 @@ class Analyzer {
   }
 
   // TODO(lukechurch): Determine whether we can change this in the Analyzer.
-  static String _prettifyElement(Element e) {
-    String returnString = "${e}";
-    returnString = returnString.replaceAll("Future<dynamic>", "Future");
-    return returnString;
-  }
+  static String _prettifyElement(Element element) =>
+      '$element'.replaceAll("Future<dynamic>", "Future");
 
-  static String _prettifyType(DartType dt) {
-    String returnString = "${dt}";
-    returnString = returnString.replaceAll("Future<dynamic>", "Future");
-    return returnString;
-  }
+  static String _prettifyType(DartType type) =>
+      '$type'.replaceAll("Future<dynamic>", "Future");
 }
 
 class _SourceContainer implements SourceContainer {
@@ -394,7 +368,7 @@ class _Error {
 
   String get location => error.source.fullName;
 
-  /// Heurestic for whether there is going to be a fix offered for this
+  /// Heuristic for whether there is going to be a fix offered for this
   /// issue
   bool get probablyHasFix => _HAS_FIXES_WHITELIST.contains(error.errorCode);
 

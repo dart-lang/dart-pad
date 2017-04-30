@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 import 'analysis_server_protocol/protocol.dart';
 import 'analysis_server_protocol/protocol_internal.dart';
 import 'api_classes.dart' as api;
+import 'common.dart';
 import 'scheduler.dart' as scheduler;
 
 /**
@@ -35,9 +36,7 @@ final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
 final _SERVER_PATH = "bin/snapshots/analysis_server.dart.snapshot";
 
 // Use very long timeouts to ensure that the server has enough time to restart.
-final _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 35);
-final _COMPILE_TIMEOUT = new Duration(seconds: 25);
-final _ANALYZE_TIMEOUT = new Duration(seconds: 15);
+final Duration _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 35);
 
 Directory sourceDirectory;
 String mainPath;
@@ -52,16 +51,16 @@ class AnalysisServerWrapper {
   AnalysisServerWrapper(this.sdkPath) {
     _logger.info("AnalysisServerWrapper ctor");
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
-    mainPath = _getPathFromName("main.dart");
+    mainPath = _getPathFromName(kMainDart);
     serverConnection = new _Server(this.sdkPath);
     serverScheduler = new scheduler.TaskScheduler();
   }
 
   Future<api.CompleteResponse> complete(String src, int offset) async {
     return completeMulti(
-        {"main.dart": src},
+        {kMainDart: src},
         new api.Location()
-          ..sourceName = "main.dart"
+          ..sourceName = kMainDart
           ..offset = offset);
   }
 
@@ -94,39 +93,32 @@ class AnalysisServerWrapper {
 
   Future<api.FixesResponse> getFixes(String src, int offset) async {
     return getFixesMulti(
-        {"main.dart": src},
-        new api.Location()
-          ..sourceName = "main.dart"
-          ..offset = offset);
+        {kMainDart: src}, new api.Location.from(kMainDart, offset));
   }
 
   Future<api.FixesResponse> getFixesMulti(
       Map<String, String> sources, api.Location location) async {
-    var results = _getFixesImpl(sources, location.sourceName, location.offset);
-    return results.then((fixes) =>
-        new api.FixesResponse(_convertAnalysisErrorFixes(fixes.fixes)));
+    EditGetFixesResult results =
+        await _getFixesImpl(sources, location.sourceName, location.offset);
+    return new api.FixesResponse(
+        results.fixes.map(_convertAnalysisErrorFix).toList());
   }
 
   Future<api.FormatResponse> format(String src, int offset) async {
-    var results = _formatImpl(src, offset);
-    return results.then((EditFormatResult editResult) {
-      String editSrc = src;
+    return _formatImpl(src, offset).then((EditFormatResult editResult) {
       List<SourceEdit> edits = editResult.edits;
       edits.sort((e1, e2) => -1 * e1.offset.compareTo(e2.offset));
 
-      for (var edit in edits) {
+      String editSrc = src;
+      for (SourceEdit edit in edits) {
         editSrc = edit.apply(editSrc);
       }
+
       return new api.FormatResponse(editSrc, editResult.selectionOffset);
     });
   }
 
   /// Convert between the Analysis Server type and the API protocol types.
-  static List<api.ProblemAndFixes> _convertAnalysisErrorFixes(
-      List<AnalysisErrorFixes> list) {
-    return list.map(_convertAnalysisErrorFix).toList();
-  }
-
   static api.ProblemAndFixes _convertAnalysisErrorFix(
       AnalysisErrorFixes analysisFixes) {
     String problemMessage = analysisFixes.error.message;
@@ -233,21 +225,13 @@ class AnalysisServerWrapper {
   Future<EditFormatResult> _formatImpl(String src, int offset) async {
     _logger.fine("FormatImpl: Scheduler queue: ${serverScheduler.queueCount}");
 
-    return serverScheduler
-        .schedule(new scheduler.ClosureTask(
-            () => new Future.sync(() async {
-                  await serverConnection._ensureSetup();
-                  await serverConnection.loadSources({mainPath: src});
-                  await serverConnection.analysisComplete.first;
-                  var formatResult = await serverConnection.sendFormat(offset);
-                  await serverConnection.unloadSources([mainPath]);
-                  return formatResult;
-                }),
-            timeoutDuration: _ANALYSIS_SERVER_TIMEOUT))
-        .catchError((e) {
-      serverConnection.kill();
-      throw e;
-    });
+    return serverScheduler.schedule(new scheduler.ClosureTask(() async {
+      await serverConnection._ensureSetup();
+      await serverConnection.loadSources({mainPath: src});
+      EditFormatResult result = await serverConnection.sendFormat(offset);
+      await serverConnection.unloadSources([mainPath]);
+      return result;
+    }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
   }
 
   Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {
@@ -261,7 +245,7 @@ class AnalysisServerWrapper {
       "${sourceDirectory.path}${Platform.pathSeparator}$sourceName";
 
   /// Warm up the analysis server to be ready for use.
-  Future warmup([bool useHtml = false]) =>
+  Future warmup({bool useHtml = false}) =>
       complete(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
 }
 
@@ -410,19 +394,17 @@ class _Server {
       Map messageAsMap = message;
       if (messageAsMap.containsKey('id')) {
         String id = message['id'];
-        Completer completer = _pendingCommands[id];
+        Completer completer = _pendingCommands.remove(id);
+
         if (completer == null) {
           print('Unexpected response from server: id=$id');
         } else {
-          _pendingCommands.remove(id);
-        }
-        if (messageAsMap.containsKey('error')) {
-          // TODO(paulberry): propagate the error info to the completer.
-          kill();
-          completer.completeError(new UnimplementedError(
-              'Server responded with an error: ${JSON.encode(message)}'));
-        } else {
-          completer.complete(messageAsMap['result']);
+          if (messageAsMap.containsKey('error')) {
+            completer
+                .completeError(new ErrorResponse.from(messageAsMap['error']));
+          } else {
+            completer.complete(messageAsMap['result']);
+          }
         }
         // Check that the message is well-formed.  We do this after calling
         // completer.complete() or completer.completeError() so that we don't
@@ -575,7 +557,8 @@ class _Server {
   }
 
   Future<EditFormatResult> sendFormat(int selectionOffset,
-      [int selectionLength = 0]) {
+      [int selectionLength]) {
+    selectionLength ??= 0;
     var params =
         new EditFormatParams(mainPath, selectionOffset, selectionLength)
             .toJson();
@@ -583,6 +566,10 @@ class _Server {
     return send("edit.format", params).then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);
       return new EditFormatResult.fromJson(decoder, 'result', result);
+    }).catchError((error) {
+      _logger.fine("sendFormat: $error");
+      return new EditFormatResult(
+          <SourceEdit>[], selectionOffset, selectionLength);
     });
   }
 
@@ -670,4 +657,15 @@ class _Server {
   void _logStdio(String line) {
     if (dumpServerMessages) print(line);
   }
+}
+
+class ErrorResponse {
+  Map<String, dynamic> map;
+
+  ErrorResponse.from(this.map);
+
+  String get code => map['code'];
+  String get message => map['message'];
+
+  String toString() => '$code: $message';
 }

@@ -32,6 +32,13 @@ void main() {
 }
 ''';
 
+String formatBadCode = r'''
+void main()
+{
+  print('foo')
+}
+''';
+
 void main() => defineTests();
 
 void defineTests() {
@@ -109,8 +116,7 @@ void defineTests() {
             "message": "Expected to find \';\'.",
             "hasFixes": true,
             "charStart": 29,
-            "charLength": 1,
-            "location": "main.dart"
+            "charLength": 1
           }
         ],
         'packageImports': [],
@@ -237,6 +243,14 @@ void defineTests() {
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data["newString"], postFormattedCode);
+    });
+
+    test('format bad code', () async {
+      var json = {'source': formatBadCode};
+      var response = await _sendPostRequest('dartservices/v1/format', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data["newString"], formatBadCode);
     });
 
     test('format position', () async {

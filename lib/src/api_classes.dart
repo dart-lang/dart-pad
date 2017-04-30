@@ -32,16 +32,10 @@ class AnalysisIssue implements Comparable<AnalysisIssue> {
 
   final int charStart;
   final int charLength;
-  // TODO: Once all clients have started using fullName, we should remove the
-  // location field.
-  @Deprecated('use sourceName instead')
-  @ApiProperty(description: 'deprecated - see `sourceName`')
-  final String location;
 
   AnalysisIssue.fromIssue(this.kind, this.line, this.message,
       {this.charStart,
       this.charLength,
-      this.location,
       this.sourceName,
       this.hasFixes: false});
 
@@ -89,6 +83,9 @@ class SourcesRequest {
 class Location {
   String sourceName;
   int offset;
+
+  Location();
+  Location.from(this.sourceName, this.offset);
 }
 
 class CompileRequest {

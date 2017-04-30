@@ -8,6 +8,8 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
+final String kMainDart = 'main.dart';
+
 final String sampleCode = """
 void main() {
   print("hello");
@@ -107,11 +109,6 @@ String getSdkPath([List<String> args]) {
   // Look for --dart-sdk on the command line.
   if (args != null && args.contains('--dart-sdk')) {
     return args[args.indexOf('--dart-sdk') + 1];
-  }
-
-  // Look in $DART_SDK.
-  if (Platform.environment['DART_SDK'] != null) {
-    return Platform.environment['DART_SDK'];
   }
 
   // Look relative to the dart executable.
