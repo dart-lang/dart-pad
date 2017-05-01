@@ -80,6 +80,8 @@ class CommonServer {
     analysisServer = new AnalysisServerWrapper(sdkPath);
   }
 
+  Future init() => analysisServer.init();
+
   Future warmup({bool useHtml: false}) async {
     await analyzer.warmup(useHtml: useHtml);
     await strongModeAnalyzer.warmup(useHtml: useHtml);

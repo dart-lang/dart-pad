@@ -89,6 +89,7 @@ class EndpointsServer {
       String sdkPath, String serverUrl) async {
     var commonServer = new CommonServer(sdkPath, new _ServerContainer(),
         new _Cache(), new _Recorder(), new _Counter());
+    await commonServer.init();
     var apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
     apiServer.enableDiscoveryApi();
@@ -130,6 +131,7 @@ class EndpointsServer {
     discoveryEnabled = false;
     commonServer = new CommonServer(sdkPath, new _ServerContainer(),
         new _Cache(), new _Recorder(), new _Counter());
+    commonServer.init();
     apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
 

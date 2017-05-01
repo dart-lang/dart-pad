@@ -72,13 +72,15 @@ void defineTests() {
   }
 
   group('CommonServer', () {
-    setUpAll(() {
+    setUpAll(() async {
       container = new MockContainer();
       cache = new MockCache();
       recorder = new MockRequestRecorder();
       counter = new MockCounter();
 
       server = new CommonServer(sdkPath, container, cache, recorder, counter);
+      await server.init();
+
       apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
       apiServer.addApi(server);
     });

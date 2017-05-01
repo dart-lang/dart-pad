@@ -53,8 +53,9 @@ void defineTests() {
   AnalysisServerWrapper analysisServer;
 
   group('analysis_server', () {
-    setUp(() {
+    setUp(() async {
       analysisServer = new AnalysisServerWrapper(sdkPath);
+      await analysisServer.init();
     });
 
     tearDown(() => analysisServer.shutdown());

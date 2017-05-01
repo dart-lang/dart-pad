@@ -121,7 +121,7 @@ Usage: slow_test path_to_test_collection
  */
 setupTools(String sdkPath) async {
   print("Executing setupTools");
-  if (analysisServer != null) await analysisServer.kill();
+  if (analysisServer != null) await analysisServer.shutdown();
 
   print("SdKPath: $sdkPath");
 
@@ -130,10 +130,13 @@ setupTools(String sdkPath) async {
   recorder = new MockRequestRecorder();
   counter = new MockCounter();
   server = new CommonServer(sdkPath, container, cache, recorder, counter);
+  await server.init();
+
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
     ..addApi(server);
 
   analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
+  await analysisServer.init();
 
   print("Warming up analysis server");
   await analysisServer.warmup();

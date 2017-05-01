@@ -18,6 +18,8 @@ abstract class Benchmark {
 
   Benchmark(this.name);
 
+  Future init() => new Future.value();
+
   Future perform();
 
   /// Called once when this benchmark will no longer be used.
@@ -34,7 +36,7 @@ class BenchmarkHarness {
 
   BenchmarkHarness({this.json, this.logger: print});
 
-  Future benchmark(List<Benchmark> benchmarks) {
+  Future benchmark(List<Benchmark> benchmarks) async {
     if (isCheckedMode()) {
       logger(
           'WARNING: You are running in checked mode. Benchmarks should be run in unchecked,\n'
@@ -45,6 +47,8 @@ class BenchmarkHarness {
     log('');
 
     List<BenchMarkResult> results = [];
+
+    await Future.forEach(benchmarks, (Benchmark benchmark) => benchmark.init());
 
     return Future.forEach(benchmarks, (benchmark) {
       return benchmarkSingle(benchmark).then((result) {

@@ -63,8 +63,10 @@ class GaeServer {
       ..addApi(fileRelayServer);
   }
 
-  Future start([int gaePort = 8080]) =>
-      ae.runAppEngine(requestHandler, port: gaePort);
+  Future start([int gaePort = 8080]) async {
+    await commonServer.init();
+    return ae.runAppEngine(requestHandler, port: gaePort);
+  }
 
   void requestHandler(io.HttpRequest request) {
     request.response.headers
