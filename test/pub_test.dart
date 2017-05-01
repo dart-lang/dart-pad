@@ -7,7 +7,9 @@ library services.pub_test;
 import 'dart:io';
 
 import 'package:services/src/pub.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+
+void main() => defineTests();
 
 void defineTests() {
   Pub pub = new Pub();
@@ -55,7 +57,6 @@ void defineTests() {
     test('flushCache', () {
       expect(pub.cacheDir.listSync(), isNotEmpty);
       pub.flushCache();
-      print(pub.cacheDir);
       expect(pub.cacheDir.listSync(), isEmpty);
     });
 

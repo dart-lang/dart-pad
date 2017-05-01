@@ -7,7 +7,9 @@ library services.bench_test;
 import 'dart:async';
 
 import 'package:services/src/bench.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+
+void main() => defineTests();
 
 void defineTests() {
   group('BenchmarkHarness', () {
@@ -25,7 +27,8 @@ void defineTests() {
     });
 
     test('many', () {
-      BenchmarkHarness harness = new BenchmarkHarness(json: true);
+      BenchmarkHarness harness =
+          new BenchmarkHarness(json: true, logger: (_) => null);
       List<MockBenchmark> benchmarks = [
         new MockBenchmark(),
         new MockBenchmark()

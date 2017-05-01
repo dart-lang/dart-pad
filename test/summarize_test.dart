@@ -2,11 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// These tests serve to determine the functionality of the summarization tool.
 library services.summarize_test;
 
 import 'package:services/src/summarize.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+
+void main() => defineTests();
 
 void defineTests() {
   group('Summarizer helpers', () {

@@ -5,7 +5,9 @@
 library services.common_test;
 
 import 'package:services/src/common.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+
+void main() => defineTests();
 
 void defineTests() {
   group('Lines', () {

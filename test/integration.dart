@@ -11,5 +11,5 @@ library services.integration;
 import 'gae_deployed_test.dart' as gaeTest_test;
 
 void main() {
-  gaeTest_test.defineTests();
+  gaeTest_test.defineTests(skip: false);
 }

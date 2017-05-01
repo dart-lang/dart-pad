@@ -13,12 +13,9 @@ import 'common_test.dart' as common_test;
 import 'compiler_test.dart' as compiler_test;
 import 'dartpad_server_test.dart' as dartpad_server_test;
 import 'pub_test.dart' as pub_test;
-import 'src/test_config.dart';
 import 'summarize_test.dart' as summarize_test;
 
 void main() {
-  setupTestConfiguration();
-
   analyzer_test.defineTests();
   analysis_server_test.defineTests();
   api_classes_test.defineTests();
