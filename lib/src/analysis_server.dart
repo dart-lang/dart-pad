@@ -19,7 +19,7 @@ final Logger _logger = new Logger('analysis_server');
 
 /// Flag to determine whether we should dump the communication with the server
 /// to stdout.
-bool dumpServerMessages = false; // TODO: implement
+bool dumpServerMessages = false;
 
 final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
 final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
@@ -47,26 +47,37 @@ class AnalysisServerWrapper {
 
   Future init() {
     if (_init == null) {
-      _init = Server.createFromDefaults().then((Server server) async {
+      void onRead(String str) {
+        if (dumpServerMessages) _logger.info('<-- $str');
+      }
+
+      void onWrite(String str) {
+        if (dumpServerMessages) _logger.info('--> $str');
+      }
+
+      _init = Server
+          .createFromDefaults(onRead: onRead, onWrite: onWrite)
+          .then((Server server) async {
         analysisServer = server;
-        analysisServer.server.setSubscriptions(['STATUS']);
+        await analysisServer.server.onConnected.first;
+        await analysisServer.server.setSubscriptions(['STATUS']);
+        _startListeningForCompletions();
         await analysisServer.analysis
             .setAnalysisRoots([sourceDirectory.path], []);
         await _sendAddOverlays({mainPath: _WARMUP_SRC});
         await _analysisComplete();
-        return _unloadSources();
+        await _sendRemoveOverlays();
       });
     }
 
     return _init;
   }
 
-  Future<api.CompleteResponse> complete(String src, int offset) async {
+  Future<api.CompleteResponse> complete(String src, int offset) {
     return completeMulti(
-        {kMainDart: src},
-        new api.Location()
-          ..sourceName = kMainDart
-          ..offset = offset);
+      {kMainDart: src},
+      new api.Location.from(kMainDart, offset),
+    );
   }
 
   Future<api.CompleteResponse> completeMulti(
@@ -92,7 +103,7 @@ class AnalysisServerWrapper {
     return new api.CompleteResponse(
       results.replacementOffset,
       results.replacementLength,
-      suggestions.map((CompletionSuggestion c) => c.originalMap).toList(),
+      suggestions.map((CompletionSuggestion c) => c.toMap()).toList(),
     );
   }
 
@@ -185,15 +196,14 @@ class AnalysisServerWrapper {
 
     return serverScheduler.schedule(new ClosureTask(() async {
       sources = _getOverlayMapWithPaths(sources);
-      String path = _getPathFromName(sourceName);
       await _loadSources(sources);
-      SuggestionsResult results =
-          await analysisServer.completion.getSuggestions(path, offset);
-      return _gatherCompletionResults(results.id)
-          .then((CompletionResults ret) async {
-        await _unloadSources();
-        return ret;
-      });
+      SuggestionsResult id = await analysisServer.completion.getSuggestions(
+        _getPathFromName(sourceName),
+        offset,
+      );
+      CompletionResults results = await _getCompletionResults(id.id);
+      await _unloadSources();
+      return results;
     }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
   }
 
@@ -248,7 +258,7 @@ class AnalysisServerWrapper {
     sub = analysisServer.server.onStatus.listen((ServerStatus status) {
       if (status.analysis != null && !status.analysis.isAnalyzing) {
         // notify finished
-        completer.complete(true);
+        completer.complete();
         sub.cancel();
       }
     });
@@ -299,18 +309,22 @@ class AnalysisServerWrapper {
     return analysisServer.analysis.updateContent(params);
   }
 
-  Future<CompletionResults> _gatherCompletionResults(String id) {
-    Completer<CompletionResults> completer = new Completer();
-    StreamSubscription sub;
+  Map<String, Completer<CompletionResults>> _completionCompleters = {};
 
-    sub =
-        analysisServer.completion.onResults.listen((CompletionResults results) {
-      if (results.id == id && results.isLast) {
-        sub.cancel();
-        completer.complete(results);
+  void _startListeningForCompletions() {
+    analysisServer.completion.onResults.listen((CompletionResults result) {
+      if (result.isLast) {
+        Completer<CompletionResults> completer =
+            _completionCompleters.remove(result.id);
+        if (completer != null) {
+          completer.complete(result);
+        }
       }
     });
+  }
 
-    return completer.future;
+  Future<CompletionResults> _getCompletionResults(String id) {
+    _completionCompleters[id] = new Completer<CompletionResults>();
+    return _completionCompleters[id].future;
   }
 }
