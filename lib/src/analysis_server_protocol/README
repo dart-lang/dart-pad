@@ -1,2 +1,0 @@
-The files in this folder are inlined from the SDK to allow easy communication
-with the Analysis Server (analysis_server/src/protocol.dart).
