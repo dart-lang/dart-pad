@@ -37,5 +37,5 @@ executables:
 dependency_overrides:
   # package:test's version constraint does not include analyzer 0.30.0 alpha
   analyzer: 0.30.0-alpha.3
-  # package:shelf_route's version constraint doesn't not include matcher 0.12.0
+  # package:shelf_route's version constraint does not include matcher 0.12.0
   matcher: 0.12.0+2
