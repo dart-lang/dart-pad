@@ -116,6 +116,10 @@ class Playground implements GistContainer, GistController {
     DButton shareButton = new DButton(querySelector('#sharebutton'));
     shareButton.onClick.listen((Event e) => _createSummary()
         .then((GistSummary summary) => sharingDialog.showWithSummary(summary)));
+    
+    DButton formatButton = new DButton(querySelector('#formatbutton'));
+    formatButton.onClick.listen((Event e) => print("Format button clicked!"));
+
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
       _handleRun();
