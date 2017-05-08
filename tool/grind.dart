@@ -45,9 +45,8 @@ build() {
   // Copy our third party python code into web/.
   new FilePath('third_party/mdetect/mdetect.py').copy(_webDir);
 
-  // Copy the codemirror javascript into web/scripts.
-  new FilePath('packages/codemirror/codemirror.js')
-      .copy(_webDir.join('scripts'));
+  // Copy the codemirror script into web/scripts.
+  new FilePath(_getCodeMirrorScriptPath()).copy(_webDir.join('scripts'));
 
   // Speed up the build, from 140s to 100s.
   //Pub.build(directories: ['web', 'test']);
@@ -97,6 +96,17 @@ build() {
 
   return _uploadCompiledStats(
       mainFile.asFile.lengthSync(), mobileFile.asFile.lengthSync());
+}
+
+/// Return the path for `packages/codemirror/codemirror.js`.
+String _getCodeMirrorScriptPath() {
+  Map<String, String> packageToUri = {};
+  for (String line in new File('.packages').readAsLinesSync()) {
+    int index = line.indexOf(':');
+    packageToUri[line.substring(0, index)] = line.substring(index + 1);
+  }
+  String packagePath = Uri.parse(packageToUri['codemirror']).path;
+  return '${packagePath}codemirror.js';
 }
 
 // Run vulcanize
