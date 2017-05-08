@@ -118,7 +118,7 @@ class Playground implements GistContainer, GistController {
         .then((GistSummary summary) => sharingDialog.showWithSummary(summary)));
     
     DButton formatButton = new DButton(querySelector('#formatbutton'));
-    formatButton.onClick.listen((Event e) => print("Format button clicked!"));
+    formatButton.onClick.listen((Event e) => _format());
 
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
@@ -691,6 +691,25 @@ class Playground implements GistContainer, GistController {
       return hasErrors == false && hasWarnings == false;
     }).catchError((e) {
       _context.dartDocument.setAnnotations([]);
+      busyLight.reset();
+      _updateRunButton();
+      _logger.severe(e);
+    });
+  }
+
+  Future _format() {
+
+    SourceRequest input = new SourceRequest()
+      ..source = _context.dartSource;
+
+    Future request = dartServices.format(input).timeout(serviceCallTimeout);
+    return request.then((FormatResponse result) {
+      busyLight.reset();
+      if (result.newString != null && result.newString.isNotEmpty) {
+        _context.dartSource = result.newString;
+      }
+    }).catchError((e) {
+      // _context.dartDocument.setAnnotations([]);
       busyLight.reset();
       _updateRunButton();
       _logger.severe(e);
