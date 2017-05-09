@@ -53,6 +53,7 @@ class Playground implements GistContainer, GistController {
   DivElement get _docPanel => querySelector('#documentation');
 
   DButton runButton;
+  DButton formatButton;
   DOverlay overlay;
   DBusyLight busyLight;
   DBusyLight consoleBusyLight;
@@ -117,7 +118,7 @@ class Playground implements GistContainer, GistController {
     shareButton.onClick.listen((Event e) => _createSummary()
         .then((GistSummary summary) => sharingDialog.showWithSummary(summary)));
     
-    DButton formatButton = new DButton(querySelector('#formatbutton'));
+    formatButton = new DButton(querySelector('#formatbutton'));
     formatButton.onClick.listen((Event e) => _format());
 
     runButton = new DButton(querySelector('#runbutton'));
@@ -457,6 +458,13 @@ class Playground implements GistContainer, GistController {
       }));
 
     _context = new PlaygroundContext(editor);
+    _context.onModeChange.listen((_) {
+      if (_context.activeMode == "dart") {
+        formatButton.disabled = false;
+      } else {
+          formatButton.disabled = true;
+        }
+    });
     deps[Context] = _context;
 
     editorFactory.registerCompleter(
