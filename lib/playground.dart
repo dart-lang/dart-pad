@@ -117,7 +117,7 @@ class Playground implements GistContainer, GistController {
     DButton shareButton = new DButton(querySelector('#sharebutton'));
     shareButton.onClick.listen((Event e) => _createSummary()
         .then((GistSummary summary) => sharingDialog.showWithSummary(summary)));
-    
+
     formatButton = new DButton(querySelector('#formatbutton'));
     formatButton.onClick.listen((Event e) => _format());
 
@@ -462,8 +462,8 @@ class Playground implements GistContainer, GistController {
       if (_context.activeMode == "dart") {
         formatButton.disabled = false;
       } else {
-          formatButton.disabled = true;
-        }
+        formatButton.disabled = true;
+      }
     });
     deps[Context] = _context;
 
@@ -706,8 +706,7 @@ class Playground implements GistContainer, GistController {
   }
 
   Future _format() {
-    SourceRequest input = new SourceRequest()
-      ..source = _context.dartSource;
+    SourceRequest input = new SourceRequest()..source = _context.dartSource;
 
     Future request = dartServices.format(input).timeout(serviceCallTimeout);
     return request.then((FormatResponse result) {
