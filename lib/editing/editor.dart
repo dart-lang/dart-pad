@@ -86,6 +86,10 @@ abstract class Document {
   String get value;
   set value(String str);
 
+  /// Update the value on behalf of a user action, performing
+  /// save, etc.
+  updateValue(String str);
+
   Position get cursor;
 
   void select(Position start, [Position end]);

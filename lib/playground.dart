@@ -698,7 +698,6 @@ class Playground implements GistContainer, GistController {
   }
 
   Future _format() {
-
     SourceRequest input = new SourceRequest()
       ..source = _context.dartSource;
 
@@ -706,10 +705,9 @@ class Playground implements GistContainer, GistController {
     return request.then((FormatResponse result) {
       busyLight.reset();
       if (result.newString != null && result.newString.isNotEmpty) {
-        _context.dartSource = result.newString;
+        editor.document.updateValue(result.newString);
       }
     }).catchError((e) {
-      // _context.dartDocument.setAnnotations([]);
       busyLight.reset();
       _updateRunButton();
       _logger.severe(e);
