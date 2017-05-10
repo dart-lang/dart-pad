@@ -14,7 +14,6 @@ import 'package:rpc/rpc.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
-import 'package:shelf_route/shelf_route.dart';
 
 import 'src/common.dart';
 import 'src/common_server.dart';
@@ -79,7 +78,7 @@ class EndpointsServer {
 
     return shelf
         .serve(endpointsServer.handler, InternetAddress.ANY_IP_V4, port)
-        .then((server) {
+        .then((HttpServer server) {
       endpointsServer.server = server;
       return endpointsServer;
     });
@@ -120,7 +119,6 @@ class EndpointsServer {
   HttpServer server;
 
   Pipeline pipeline;
-  Router routes;
   Handler handler;
 
   ApiServer apiServer;
@@ -139,10 +137,7 @@ class EndpointsServer {
         .addMiddleware(logRequests())
         .addMiddleware(_createCustomCorsHeadersMiddleware());
 
-    routes = router()
-      ..get('/', printUsage)
-      ..add('/api', ['GET', 'POST', 'OPTIONS'], _apiHandler, exactMatch: false);
-    handler = pipeline.addHandler(routes.handler);
+    handler = pipeline.addHandler(_apiHandler);
   }
 
   Future<Response> _apiHandler(Request request) {

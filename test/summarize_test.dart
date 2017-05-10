@@ -4,7 +4,7 @@
 
 library services.summarize_test;
 
-import 'package:services/src/summarize.dart';
+import 'package:dart_services/src/summarize.dart';
 import 'package:test/test.dart';
 
 void main() => defineTests();

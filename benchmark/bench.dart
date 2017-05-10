@@ -6,11 +6,11 @@ library services.bench;
 
 import 'dart:async';
 
-import 'package:services/src/analysis_server.dart';
-import 'package:services/src/analyzer.dart';
-import 'package:services/src/bench.dart';
-import 'package:services/src/common.dart';
-import 'package:services/src/compiler.dart';
+import 'package:dart_services/src/analysis_server.dart';
+import 'package:dart_services/src/analyzer.dart';
+import 'package:dart_services/src/bench.dart';
+import 'package:dart_services/src/common.dart';
+import 'package:dart_services/src/compiler.dart';
 
 void main(List<String> args) {
   bool json = args.contains('--json');

@@ -6,7 +6,7 @@ library services.pub_test;
 
 import 'dart:io';
 
-import 'package:services/src/pub.dart';
+import 'package:dart_services/src/pub.dart';
 import 'package:test/test.dart';
 
 void main() => defineTests();

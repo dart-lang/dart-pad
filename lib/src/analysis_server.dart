@@ -8,9 +8,9 @@ library services.analysis_server;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:logging/logging.dart';
 
-import 'analysis_server_lib.dart';
 import 'api_classes.dart' as api;
 import 'common.dart';
 import 'scheduler.dart';
@@ -36,7 +36,7 @@ class AnalysisServerWrapper {
   TaskScheduler serverScheduler;
 
   /// Instance to handle communication with the server.
-  Server analysisServer;
+  AnalysisServer analysisServer;
 
   AnalysisServerWrapper(this.sdkPath) {
     _logger.info("AnalysisServerWrapper ctor");
@@ -55,9 +55,9 @@ class AnalysisServerWrapper {
         if (dumpServerMessages) _logger.info('--> $str');
       }
 
-      _init = Server
-          .createFromDefaults(onRead: onRead, onWrite: onWrite)
-          .then((Server server) async {
+      _init = AnalysisServer
+          .create(onRead: onRead, onWrite: onWrite)
+          .then((AnalysisServer server) async {
         analysisServer = server;
         await analysisServer.server.onConnected.first;
         await analysisServer.server.setSubscriptions(['STATUS']);

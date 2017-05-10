@@ -7,9 +7,9 @@ library services.common_server_test;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:dart_services/src/common.dart';
+import 'package:dart_services/src/common_server.dart';
 import 'package:rpc/rpc.dart';
-import 'package:services/src/common.dart';
-import 'package:services/src/common_server.dart';
 import 'package:test/test.dart';
 
 String quickFixesCode = r'''

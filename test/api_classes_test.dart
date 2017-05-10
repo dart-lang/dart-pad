@@ -4,7 +4,7 @@
 
 library services.api_classes_test;
 
-import 'package:services/src/api_classes.dart';
+import 'package:dart_services/src/api_classes.dart';
 import 'package:test/test.dart';
 
 void main() => defineTests();

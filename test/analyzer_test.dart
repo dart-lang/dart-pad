@@ -4,9 +4,9 @@
 
 library services.analyzer_test;
 
-import 'package:services/src/analyzer.dart';
-import 'package:services/src/api_classes.dart';
-import 'package:services/src/common.dart';
+import 'package:dart_services/src/analyzer.dart';
+import 'package:dart_services/src/api_classes.dart';
+import 'package:dart_services/src/common.dart';
 import 'package:test/test.dart';
 
 String sdkPath = getSdkPath();

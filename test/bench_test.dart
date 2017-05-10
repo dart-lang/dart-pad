@@ -6,7 +6,7 @@ library services.bench_test;
 
 import 'dart:async';
 
-import 'package:services/src/bench.dart';
+import 'package:dart_services/src/bench.dart';
 import 'package:test/test.dart';
 
 void main() => defineTests();
