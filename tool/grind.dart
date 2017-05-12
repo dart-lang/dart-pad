@@ -65,13 +65,6 @@ build() {
   FilePath embedFile = _buildDir.join('web', 'scripts/embed.dart.js');
   log('${mainFile} compiled to ${_printSize(embedFile)}');
 
-  // Delete the build/web/packages directory.
-  delete(getDir('build/web/packages'));
-
-  // Reify the symlinks.
-  // cp -R -L packages build/web/packages
-  run('cp', arguments: ['-R', '-L', 'packages', 'build/web/packages']);
-
   // Remove .dart files.
   int count = 0;
 

@@ -53,6 +53,7 @@ class Playground implements GistContainer, GistController {
   DivElement get _docPanel => querySelector('#documentation');
 
   DButton runButton;
+  DButton formatButton;
   DOverlay overlay;
   DBusyLight busyLight;
   DBusyLight consoleBusyLight;
@@ -116,6 +117,10 @@ class Playground implements GistContainer, GistController {
     DButton shareButton = new DButton(querySelector('#sharebutton'));
     shareButton.onClick.listen((Event e) => _createSummary()
         .then((GistSummary summary) => sharingDialog.showWithSummary(summary)));
+
+    formatButton = new DButton(querySelector('#formatbutton'));
+    formatButton.onClick.listen((Event e) => _format());
+
     runButton = new DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
       _handleRun();
@@ -453,6 +458,9 @@ class Playground implements GistContainer, GistController {
       }));
 
     _context = new PlaygroundContext(editor);
+    _context.onModeChange.listen((_) {
+      formatButton.disabled = _context.activeMode != 'dart';
+    });
     deps[Context] = _context;
 
     editorFactory.registerCompleter(
@@ -689,6 +697,34 @@ class Playground implements GistContainer, GistController {
       _context.dartDocument.setAnnotations([]);
       busyLight.reset();
       _updateRunButton();
+      _logger.severe(e);
+    });
+  }
+
+  Future _format() {
+    String originalSource = _context.dartSource;
+    SourceRequest input = new SourceRequest()..source = originalSource;
+    formatButton.disabled = true;
+
+    Future request = dartServices.format(input).timeout(serviceCallTimeout);
+    return request.then((FormatResponse result) {
+      busyLight.reset();
+      formatButton.disabled = false;
+
+      if (result.newString == null || result.newString.isEmpty) {
+        _logger.fine("Format returned null/empty result");
+        return;
+      }
+
+      if (originalSource != result.newString) {
+        editor.document.updateValue(result.newString);
+        DToast.showMessage("Format successful.");
+      } else {
+        DToast.showMessage("No formatting changes.");
+      }
+    }).catchError((e) {
+      busyLight.reset();
+      formatButton.disabled = false;
       _logger.severe(e);
     });
   }

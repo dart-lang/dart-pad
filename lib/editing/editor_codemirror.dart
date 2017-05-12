@@ -285,6 +285,10 @@ class _CodeMirrorDocument extends Document {
     doc.jsProxy.callMethod('clearHistory');
   }
 
+  void updateValue(String str) {
+    doc.setValue(str);
+  }
+
   ed.Position get cursor => _posFromPos(doc.getCursor());
 
   void select(ed.Position start, [ed.Position end]) {
