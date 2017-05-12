@@ -1,5 +1,5 @@
 application: dart-pad
-version: dev
+version: prod
 runtime: python27
 api_version: 1
 threadsafe: yes
@@ -25,7 +25,7 @@ handlers:
 - url: .*
   script: main.app
 # Enable for version == prod.
-#  secure: always
+  secure: always
 
 libraries:
 - name: webapp2
