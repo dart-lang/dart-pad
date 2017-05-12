@@ -285,7 +285,7 @@ class _CodeMirrorDocument extends Document {
     doc.jsProxy.callMethod('clearHistory');
   }
 
-  updateValue(String str) {
+  void updateValue(String str) {
     doc.setValue(str);
   }
 

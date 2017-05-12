@@ -459,11 +459,7 @@ class Playground implements GistContainer, GistController {
 
     _context = new PlaygroundContext(editor);
     _context.onModeChange.listen((_) {
-      if (_context.activeMode == "dart") {
-        formatButton.disabled = false;
-      } else {
-        formatButton.disabled = true;
-      }
+      formatButton.disabled = _context.activeMode != 'dart';
     });
     deps[Context] = _context;
 
@@ -706,17 +702,29 @@ class Playground implements GistContainer, GistController {
   }
 
   Future _format() {
-    SourceRequest input = new SourceRequest()..source = _context.dartSource;
+    String originalSource = _context.dartSource;
+    SourceRequest input = new SourceRequest()..source = originalSource;
+    formatButton.disabled = true;
 
     Future request = dartServices.format(input).timeout(serviceCallTimeout);
     return request.then((FormatResponse result) {
       busyLight.reset();
-      if (result.newString != null && result.newString.isNotEmpty) {
+      formatButton.disabled = false;
+
+      if (result.newString == null || result.newString.isEmpty) {
+        _logger.fine("Format returned null/empty result");
+        return;
+      }
+
+      if (originalSource != result.newString) {
         editor.document.updateValue(result.newString);
+        DToast.showMessage("Format successful.");
+      } else {
+        DToast.showMessage("No formatting changes.");
       }
     }).catchError((e) {
       busyLight.reset();
-      _updateRunButton();
+      formatButton.disabled = false;
       _logger.severe(e);
     });
   }

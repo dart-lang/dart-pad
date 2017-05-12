@@ -88,7 +88,7 @@ abstract class Document {
 
   /// Update the value on behalf of a user action, performing
   /// save, etc.
-  updateValue(String str);
+  void updateValue(String str);
 
   Position get cursor;
 
