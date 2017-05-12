@@ -6,6 +6,7 @@ library services.common_server;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -80,7 +81,16 @@ class CommonServer {
     analysisServer = new AnalysisServerWrapper(sdkPath);
   }
 
-  Future init() => analysisServer.init();
+  Future init() {
+    return analysisServer.init().then((_) {
+      // If the analysis server dies, we exit with the same code.
+      analysisServer.onExit.then((int code) {
+        if (code != 0) {
+          exit(code);
+        }
+      });
+    });
+  }
 
   Future warmup({bool useHtml: false}) async {
     await analyzer.warmup(useHtml: useHtml);

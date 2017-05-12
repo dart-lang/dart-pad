@@ -23,7 +23,6 @@ bool dumpServerMessages = false;
 
 final _WARMUP_SRC_HTML = "import 'dart:html'; main() { int b = 2;  b++;   b. }";
 final _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
-final _SERVER_PATH = "bin/snapshots/analysis_server.dart.snapshot";
 
 // Use very long timeouts to ensure that the server has enough time to restart.
 final Duration _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 35);
@@ -59,6 +58,10 @@ class AnalysisServerWrapper {
           .create(onRead: onRead, onWrite: onWrite)
           .then((AnalysisServer server) async {
         analysisServer = server;
+        analysisServer.server.onError.listen((ServerError error) {
+          _logger.severe('server error${error.isFatal ? ' (fatal)' : ''}',
+              error.message, new StackTrace.fromString(error.stackTrace));
+        });
         await analysisServer.server.onConnected.first;
         await analysisServer.server.setSubscriptions(['STATUS']);
         _startListeningForCompletions();
@@ -71,6 +74,16 @@ class AnalysisServerWrapper {
     }
 
     return _init;
+  }
+
+  Future<int> get onExit {
+    // Return when the analysis server exits. We introduce a delay so that
+    // when we terminate the analysis server we can exit normally.
+    return analysisServer.processCompleter.future.then((int code) {
+      return new Future.delayed(new Duration(seconds: 1), () {
+        return code;
+      });
+    });
   }
 
   Future<api.CompleteResponse> complete(String src, int offset) {
