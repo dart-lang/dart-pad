@@ -8,7 +8,7 @@
 set -e
 
 # Install the bower and vulcanize.
-npm install -g bower
+# npm install -g bower
 # npm install -g vulcanize
 
 # Run the analyze/test/build script.
