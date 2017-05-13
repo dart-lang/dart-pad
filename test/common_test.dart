@@ -4,7 +4,7 @@
 
 library services.common_test;
 
-import 'package:services/src/common.dart';
+import 'package:dart_services/src/common.dart';
 import 'package:test/test.dart';
 
 void main() => defineTests();

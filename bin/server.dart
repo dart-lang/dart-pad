@@ -6,6 +6,6 @@
 
 library appengine.services.bin;
 
-import 'package:services/services_gae.dart' as server;
+import 'package:dart_services/services_gae.dart' as server;
 
 void main(List<String> args) => server.main(args);

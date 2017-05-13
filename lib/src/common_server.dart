@@ -6,6 +6,7 @@ library services.common_server;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -80,11 +81,22 @@ class CommonServer {
     analysisServer = new AnalysisServerWrapper(sdkPath);
   }
 
-  Future warmup([bool useHtml = false]) async {
-    await analyzer.warmup(useHtml);
-    await strongModeAnalyzer.warmup(useHtml);
-    await compiler.warmup(useHtml);
-    await analysisServer.warmup(useHtml);
+  Future init() {
+    return analysisServer.init().then((_) {
+      // If the analysis server dies, we exit with the same code.
+      analysisServer.onExit.then((int code) {
+        if (code != 0) {
+          exit(code);
+        }
+      });
+    });
+  }
+
+  Future warmup({bool useHtml: false}) async {
+    await analyzer.warmup(useHtml: useHtml);
+    await strongModeAnalyzer.warmup(useHtml: useHtml);
+    await compiler.warmup(useHtml: useHtml);
+    await analysisServer.warmup(useHtml: useHtml);
   }
 
   Future shutdown() => analysisServer.shutdown();
@@ -502,24 +514,14 @@ class CommonServer {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
-    if (offset == null) offset = 0;
+    offset ??= 0;
+
     Stopwatch watch = new Stopwatch()..start();
     srcRequestRecorder.record("FORMAT", source, offset);
     _logger.info("About to FORMAT: ${_hashSource(source)}");
     counter.increment("Formats");
 
-    // Guard against trying to format code with errors.
-    AnalysisResults analysisResults = await analyzer.analyze(source);
-
-    var response;
-    if (analysisResults.issues.where((issue) => issue.kind == "error").length >
-        0) {
-      response = new FormatResponse(source, offset);
-      _logger.info('PERF: Format aborted due to analysis errors in'
-          ' ${watch.elapsedMilliseconds}ms.');
-      return response;
-    }
-    response = await analysisServer.format(source, offset);
+    var response = await analysisServer.format(source, offset);
     _logger.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
     return response;
   }

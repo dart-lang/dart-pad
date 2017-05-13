@@ -38,7 +38,7 @@ class Compiler {
   String get versionFull =>
       new File(path.join(sdkPath, 'version')).readAsStringSync().trim();
 
-  Future warmup([bool useHtml = false]) =>
+  Future warmup({bool useHtml: false}) =>
       compile(useHtml ? sampleCodeWeb : sampleCode);
 
   /// Compile the given string and return the resulting [CompilationResults].
@@ -61,14 +61,14 @@ class Compiler {
       if (useCheckedMode) arguments.add('--checked');
       if (!returnSourceMap) arguments.add('--no-source-maps');
 
-      arguments.add('-omain.js');
-      arguments.add('main.dart');
+      arguments.add('-o${kMainDart}.js');
+      arguments.add(kMainDart);
 
-      File mainDart = new File(path.join(temp.path, 'main.dart'));
+      File mainDart = new File(path.join(temp.path, kMainDart));
       mainDart.writeAsStringSync(input);
 
-      File mainJs = new File(path.join(temp.path, 'main.js'));
-      File mainSourceMap = new File(path.join(temp.path, 'main.js.map'));
+      File mainJs = new File(path.join(temp.path, '${kMainDart}.js'));
+      File mainSourceMap = new File(path.join(temp.path, '${kMainDart}.js.map'));
 
       ProcessResult result = Process.runSync(
           path.join(sdkPath, 'bin', 'dart2js'), arguments,

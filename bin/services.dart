@@ -4,6 +4,6 @@
 
 library services.bin;
 
-import 'package:services/services_server.dart' as server;
+import 'package:dart_services/services_server.dart' as server;
 
 void main(List<String> args) => server.main(args);

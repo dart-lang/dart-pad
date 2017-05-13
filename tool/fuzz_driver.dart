@@ -13,13 +13,12 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:math';
 
-import 'package:cli_util/cli_util.dart' as cli_util;
+import 'package:dart_services/src/analysis_server.dart' as analysis_server;
+import 'package:dart_services/src/analyzer.dart' as ana;
+import 'package:dart_services/src/common.dart';
+import 'package:dart_services/src/common_server.dart';
+import 'package:dart_services/src/compiler.dart' as comp;
 import 'package:rpc/rpc.dart';
-import 'package:services/src/analysis_server.dart' as analysis_server;
-import 'package:services/src/analyzer.dart' as ana;
-import 'package:services/src/common.dart';
-import 'package:services/src/common_server.dart';
-import 'package:services/src/compiler.dart' as comp;
 
 bool _SERVER_BASED_CALL = false;
 bool _VERBOSE = true;
@@ -69,7 +68,7 @@ Usage: slow_test path_to_test_collection
   if (args.length >= 4) iterations = int.parse(args[3]);
   if (args.length >= 5) commandToRun = args[4];
   if (args.length >= 6) dumpServerComms = args[5].toLowerCase() == "true";
-  io.Directory sdkDir = cli_util.getSdkDir([]);
+  String sdk = getSdkPath();
 
   // Load the list of files.
   var fileEntities = [];
@@ -86,10 +85,10 @@ Usage: slow_test path_to_test_collection
   Stopwatch sw = new Stopwatch()..start();
 
   print("About to setuptools");
-  print(sdkDir.path);
+  print(sdk);
 
   // Warm up the services.
-  await setupTools(sdkDir.path);
+  await setupTools(sdk);
 
   print("Setup tools done");
 
@@ -112,7 +111,7 @@ Usage: slow_test path_to_test_collection
       print("FAILED: ${fse.path}");
 
       // Try and re-cycle the services for the next test after the crash
-      await setupTools(sdkDir.path);
+      await setupTools(sdk);
     }
   }
 }
@@ -122,7 +121,7 @@ Usage: slow_test path_to_test_collection
  */
 setupTools(String sdkPath) async {
   print("Executing setupTools");
-  if (analysisServer != null) await analysisServer.kill();
+  if (analysisServer != null) await analysisServer.shutdown();
 
   print("SdKPath: $sdkPath");
 
@@ -131,10 +130,13 @@ setupTools(String sdkPath) async {
   recorder = new MockRequestRecorder();
   counter = new MockCounter();
   server = new CommonServer(sdkPath, container, cache, recorder, counter);
+  await server.init();
+
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
     ..addApi(server);
 
   analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
+  await analysisServer.init();
 
   print("Warming up analysis server");
   await analysisServer.warmup();

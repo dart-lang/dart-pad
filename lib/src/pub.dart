@@ -333,7 +333,7 @@ class PackageInfo {
 Set<String> getAllUnsafeImportsFor(String dartSource) {
   if (dartSource == null) return new Set();
 
-  Scanner scanner = new Scanner(new StringSource(dartSource, 'main.dart'),
+  Scanner scanner = new Scanner(new StringSource(dartSource, kMainDart),
       new CharSequenceReader(dartSource), AnalysisErrorListener.NULL_LISTENER);
   Token token = scanner.tokenize();
 

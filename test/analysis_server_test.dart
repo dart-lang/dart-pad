@@ -4,12 +4,12 @@
 
 library services.analyzer_server_test;
 
-import 'package:cli_util/cli_util.dart' as cli_util;
-import 'package:services/src/analysis_server.dart';
-import 'package:services/src/api_classes.dart';
+import 'package:dart_services/src/analysis_server.dart';
+import 'package:dart_services/src/api_classes.dart';
+import 'package:dart_services/src/common.dart';
 import 'package:test/test.dart';
 
-String sdkPath = cli_util.getSdkDir([]).path;
+String sdkPath = getSdkPath();
 
 String completionCode = r'''
 void main() {
@@ -43,14 +43,19 @@ void main() {
 }
 ''';
 
+String formatWithIssues = '''
+void main() { foo() }
+''';
+
 void main() => defineTests();
 
 void defineTests() {
   AnalysisServerWrapper analysisServer;
 
   group('analysis_server', () {
-    setUp(() {
+    setUp(() async {
       analysisServer = new AnalysisServerWrapper(sdkPath);
+      await analysisServer.init();
     });
 
     tearDown(() => analysisServer.shutdown());
@@ -102,12 +107,20 @@ void defineTests() {
       });
     });
 
-    test('simple_format', () {
-      return analysisServer
-          .format(badFormatCode, 0)
-          .then((FormatResponse results) {
-        expect(results.newString, formattedCode);
-      });
+    test('simple_format', () async {
+      FormatResponse results = await analysisServer.format(badFormatCode, 0);
+      expect(results.newString, formattedCode);
+    });
+
+    test('format good code', () async {
+      FormatResponse results =
+          await analysisServer.format(formattedCode.replaceAll('\n', ' '), 0);
+      expect(results.newString, formattedCode);
+    });
+
+    test('format with issues', () async {
+      FormatResponse results = await analysisServer.format(formatWithIssues, 0);
+      expect(results.newString, formatWithIssues);
     });
   });
 }

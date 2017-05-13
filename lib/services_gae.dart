@@ -9,12 +9,12 @@ import 'dart:convert' as convert;
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart' as ae;
-import 'package:cli_util/cli_util.dart' as cli_util;
 import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
 
+import 'src/common.dart';
 import 'src/common_server.dart';
 import 'src/dartpad_support_server.dart';
 import 'src/sharded_counter.dart' as counter;
@@ -27,13 +27,13 @@ void main(List<String> args) {
   int gaePort = 8080;
   if (args.length > 0) gaePort = int.parse(args[0]);
 
-  io.Directory sdkDir = cli_util.getSdkDir(args);
+  String sdk = getSdkPath(args);
 
-  if (sdkDir == null) {
+  if (sdk == null) {
     throw 'No Dart SDK is available; set the DART_SDK env var.';
   }
 
-  GaeServer server = new GaeServer(sdkDir.path);
+  GaeServer server = new GaeServer(sdk);
 
   // Change the log level to get more or less detailed logging.
   ae.useLoggingPackageAdaptor();
@@ -63,8 +63,10 @@ class GaeServer {
       ..addApi(fileRelayServer);
   }
 
-  Future start([int gaePort = 8080]) =>
-      ae.runAppEngine(requestHandler, port: gaePort);
+  Future start([int gaePort = 8080]) async {
+    await commonServer.init();
+    return ae.runAppEngine(requestHandler, port: gaePort);
+  }
 
   void requestHandler(io.HttpRequest request) {
     request.response.headers

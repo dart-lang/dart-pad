@@ -7,10 +7,9 @@ library services.common_server_test;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cli_util/cli_util.dart' as cli_util;
+import 'package:dart_services/src/common.dart';
+import 'package:dart_services/src/common_server.dart';
 import 'package:rpc/rpc.dart';
-import 'package:services/src/common.dart';
-import 'package:services/src/common_server.dart';
 import 'package:test/test.dart';
 
 String quickFixesCode = r'''
@@ -33,6 +32,13 @@ void main() {
 }
 ''';
 
+String formatBadCode = r'''
+void main()
+{
+  print('foo')
+}
+''';
+
 void main() => defineTests();
 
 void defineTests() {
@@ -44,7 +50,7 @@ void defineTests() {
   MockRequestRecorder recorder;
   MockCounter counter;
 
-  String sdkPath = cli_util.getSdkDir([]).path;
+  String sdkPath = getSdkPath();
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
@@ -66,13 +72,15 @@ void defineTests() {
   }
 
   group('CommonServer', () {
-    setUpAll(() {
+    setUpAll(() async {
       container = new MockContainer();
       cache = new MockCache();
       recorder = new MockRequestRecorder();
       counter = new MockCounter();
 
       server = new CommonServer(sdkPath, container, cache, recorder, counter);
+      await server.init();
+
       apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
       apiServer.addApi(server);
     });
@@ -110,8 +118,7 @@ void defineTests() {
             "message": "Expected to find \';\'.",
             "hasFixes": true,
             "charStart": 29,
-            "charLength": 1,
-            "location": "main.dart"
+            "charLength": 1
           }
         ],
         'packageImports': [],
@@ -238,6 +245,14 @@ void defineTests() {
       expect(response.status, 200);
       var data = JSON.decode(UTF8.decode(await response.body.first));
       expect(data["newString"], postFormattedCode);
+    });
+
+    test('format bad code', () async {
+      var json = {'source': formatBadCode};
+      var response = await _sendPostRequest('dartservices/v1/format', json);
+      expect(response.status, 200);
+      var data = JSON.decode(UTF8.decode(await response.body.first));
+      expect(data["newString"], formatBadCode);
     });
 
     test('format position', () async {

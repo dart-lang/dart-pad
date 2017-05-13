@@ -6,11 +6,11 @@ library services.bench;
 
 import 'dart:async';
 
-import 'package:services/src/analysis_server.dart';
-import 'package:services/src/analyzer.dart';
-import 'package:services/src/bench.dart';
-import 'package:services/src/common.dart';
-import 'package:services/src/compiler.dart';
+import 'package:dart_services/src/analysis_server.dart';
+import 'package:dart_services/src/analyzer.dart';
+import 'package:dart_services/src/bench.dart';
+import 'package:dart_services/src/common.dart';
+import 'package:dart_services/src/compiler.dart';
 
 void main(List<String> args) {
   bool json = args.contains('--json');
@@ -22,9 +22,9 @@ void main(List<String> args) {
     new AnalyzerBenchmark('hellohtml', sampleCodeWeb),
     new AnalyzerBenchmark('sunflower', _sunflower),
 
-    /*new AnalysisServerBenchmark('hello', sampleCode),
+    new AnalysisServerBenchmark('hello', sampleCode),
     new AnalysisServerBenchmark('hellohtml', sampleCodeWeb),
-    new AnalysisServerBenchmark('sunflower', _sunflower),*/
+    new AnalysisServerBenchmark('sunflower', _sunflower),
 
     new Dart2jsBenchmark('hello', sampleCode),
     new Dart2jsBenchmark('hellohtml', sampleCodeWeb),
@@ -68,6 +68,8 @@ class AnalysisServerBenchmark extends Benchmark {
       : super('completion.${name}') {
     analysisServer = new AnalysisServerWrapper(getSdkPath());
   }
+
+  Future init() => analysisServer.init();
 
   Future perform() => analysisServer.complete(source, 30);
 
