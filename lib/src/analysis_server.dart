@@ -40,6 +40,8 @@ class AnalysisServerWrapper {
   AnalysisServerWrapper(this.sdkPath) {
     _logger.info("AnalysisServerWrapper ctor");
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
+    // TODO: We should write an analysis_options.yaml file here with strong mode
+    // enabled.
     mainPath = _getPathFromName(kMainDart);
     serverScheduler = new TaskScheduler();
   }
@@ -65,10 +67,13 @@ class AnalysisServerWrapper {
         await analysisServer.server.onConnected.first;
         await analysisServer.server.setSubscriptions(['STATUS']);
         _startListeningForCompletions();
+        _startListeningForAnalysisComplete();
+
+        Completer analysisComplete = getAnalysisCompleteCompleter();
         await analysisServer.analysis
             .setAnalysisRoots([sourceDirectory.path], []);
         await _sendAddOverlays({mainPath: _WARMUP_SRC});
-        await _analysisComplete();
+        await analysisComplete.future;
         await _sendRemoveOverlays();
       });
     }
@@ -152,6 +157,46 @@ class AnalysisServerWrapper {
     });
   }
 
+  Future<Map<String, String>> dartdoc(String source, int offset) async {
+    _logger.fine("FormatImpl: Scheduler queue: ${serverScheduler.queueCount}");
+
+    return serverScheduler.schedule(new ClosureTask(() async {
+      Completer analysisCompleter = getAnalysisCompleteCompleter();
+      await _loadSources({mainPath: source});
+      await analysisCompleter.future;
+
+      HoverResult result =
+          await analysisServer.analysis.getHover(mainPath, offset);
+      await _unloadSources();
+
+      if (result.hovers.isEmpty) {
+        return null;
+      }
+
+      HoverInformation info = result.hovers.first;
+      Map<String, String> m = {};
+
+      m['description'] = info.elementDescription;
+      m['kind'] = info.elementKind;
+      m['dartdoc'] = info.dartdoc;
+
+      m['enclosingClassName'] = info.containingClassDescription;
+      m['libraryName'] = info.containingLibraryName;
+
+      m['deprecated'] = info.parameter;
+      if (info.isDeprecated != null) m['deprecated'] = '${info.isDeprecated}';
+
+      m['staticType'] = info.staticType;
+      m['propagatedType'] = info.propagatedType;
+
+      for (String key in m.keys.toList()) {
+        if (m[key] == null) m.remove(key);
+      }
+
+      return m;
+    }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
+  }
+
   /// Convert between the Analysis Server type and the API protocol types.
   static api.ProblemAndFixes _convertAnalysisErrorFix(
       AnalysisErrorFixes analysisFixes) {
@@ -231,8 +276,9 @@ class AnalysisServerWrapper {
     }
 
     return serverScheduler.schedule(new ClosureTask(() async {
+      Completer analysisCompleter = getAnalysisCompleteCompleter();
       await _loadSources(sources);
-      await _analysisComplete();
+      await analysisCompleter.future;
       FixesResult fixes = await analysisServer.edit.getFixes(path, offset);
       await _unloadSources();
       return fixes;
@@ -264,19 +310,6 @@ class AnalysisServerWrapper {
   /// Warm up the analysis server to be ready for use.
   Future warmup({bool useHtml = false}) =>
       complete(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
-
-  Future _analysisComplete() {
-    Completer completer = new Completer();
-    StreamSubscription sub;
-    sub = analysisServer.server.onStatus.listen((ServerStatus status) {
-      if (status.analysis != null && !status.analysis.isAnalyzing) {
-        // notify finished
-        completer.complete();
-        sub.cancel();
-      }
-    });
-    return completer.future;
-  }
 
   Set<String> _overlayPaths = new Set();
 
@@ -339,5 +372,27 @@ class AnalysisServerWrapper {
   Future<CompletionResults> _getCompletionResults(String id) {
     _completionCompleters[id] = new Completer<CompletionResults>();
     return _completionCompleters[id].future;
+  }
+
+  List<Completer> _analysisCompleters = [];
+
+  void _startListeningForAnalysisComplete() {
+    analysisServer.server.onStatus.listen((ServerStatus status) {
+      if (status.analysis == null) return;
+
+      if (!status.analysis.isAnalyzing) {
+        for (Completer completer in _analysisCompleters) {
+          completer.complete();
+        }
+
+        _analysisCompleters.clear();
+      }
+    });
+  }
+
+  Completer getAnalysisCompleteCompleter() {
+    Completer completer = new Completer();
+    _analysisCompleters.add(completer);
+    return completer;
   }
 }

@@ -184,7 +184,7 @@ testPath(
           averageCompletionTime = await testCompletions(src, wrapper);
           averageAnalysisTime =
               await testAnalysis(src, analyzer, strongAnalyzer);
-          averageDocumentTime = await testDocument(src, analyzer);
+          averageDocumentTime = await testDocument(src, wrapper);
           averageFixesTime = await testFixes(src, wrapper);
           averageFormatTime = await testFormat(src);
           break;
@@ -198,7 +198,7 @@ testPath(
           break;
 
         case "document":
-          averageDocumentTime = await testDocument(src, analyzer);
+          averageDocumentTime = await testDocument(src, wrapper);
           break;
 
         case "compile":
@@ -280,7 +280,10 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
   return sw.elapsedMilliseconds;
 }
 
-Future<num> testDocument(String src, ana.Analyzer analyzer) async {
+Future<num> testDocument(
+  String src,
+  analysis_server.AnalysisServerWrapper analysisServer,
+) async {
   lastExecuted = OperationType.Document;
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
@@ -291,7 +294,7 @@ Future<num> testDocument(String src, ana.Analyzer analyzer) async {
     if (_SERVER_BASED_CALL) {
       log(await withTimeOut(server.documentGet(source: src, offset: i)));
     } else {
-      log(await withTimeOut(analyzer.dartdoc(src, i)));
+      log(await withTimeOut(analysisServer.dartdoc(src, i)));
     }
     if (_DUMP_PERF) print("PERF: DOCUMENT: ${sw2.elapsedMilliseconds}");
   }
@@ -432,8 +435,14 @@ enum OperationType {
   Format
 }
 
-log(dynamic str) {
+final int termWidth = io.stdout.hasTerminal ? io.stdout.terminalColumns : 200;
+
+log(dynamic obj) {
   if (_VERBOSE) {
-    print("${new DateTime.now()} $str");
+    String str = '${new DateTime.now()} $obj';
+    if (str.length > termWidth) {
+      str = str.substring(0, termWidth - 4) + '...';
+    }
+    print(str);
   }
 }

@@ -167,6 +167,7 @@ void main() {
     });
 
     test('simple', () {
+      // ignore: deprecated_member_use
       return analyzer.dartdoc(sampleCode, 17).then((Map m) {
         expect(m['name'], 'print');
         expect(m['dartdoc'], isNotEmpty);
@@ -181,6 +182,7 @@ void main() {
 }
 ''';
 
+      // ignore: deprecated_member_use
       return analyzer.dartdoc(source, 47).then((Map m) {
         expect(m['name'], 'foo');
         expect(m['propagatedType'], 'String');
@@ -198,6 +200,7 @@ void main() {
 Future foo() => new Future.value(4);
 ''';
 
+      // ignore: deprecated_member_use
       return analyzer.dartdoc(source, 39).then((Map m) {
         expect(m['name'], 'foo');
         expect(m['description'], 'foo() → Future');
@@ -214,6 +217,7 @@ void main() {
 }
 ''';
 
+      // ignore: deprecated_member_use
       return analyzer.dartdoc(source, 44).then((Map m) {
         expect(m['name'], 'DivElement');
         expect(m['libraryName'], 'dart:html');
@@ -228,6 +232,7 @@ main() {
   f.then((x) => x);
 }''';
 
+      // ignore: deprecated_member_use
       return analyzer.dartdoc(source, 84).then((Map m) {
         expect(m, null);
       });

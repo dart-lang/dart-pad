@@ -187,6 +187,7 @@ class Analyzer {
     }
   }
 
+  @deprecated
   Future<Map<String, String>> dartdoc(String source, int offset) {
     try {
       var _source = new StringSource(source, kMainDart);
@@ -242,8 +243,6 @@ class Analyzer {
         // Only defined if there is an enclosing class.
         if (element.enclosingElement is ClassElement) {
           info['enclosingClassName'] = '${element.enclosingElement}';
-        } else {
-          info['enclosingClassName'] = null;
         }
 
         // Parameters for functions and methods.

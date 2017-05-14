@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services;
+/// A dev-time only server.
+library services_dev;
 
 import 'dart:async';
 import 'dart:convert';
@@ -36,11 +37,6 @@ void main(List<String> args) {
   });
 
   String sdk = getSdkPath(args);
-  if (sdk == null) {
-    stdout.writeln("Could not locate the SDK; "
-        "please start the server with the '--dart-sdk' option.");
-    exit(1);
-  }
 
   printExit(String doc) {
     print(doc);

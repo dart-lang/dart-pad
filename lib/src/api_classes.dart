@@ -34,10 +34,7 @@ class AnalysisIssue implements Comparable<AnalysisIssue> {
   final int charLength;
 
   AnalysisIssue.fromIssue(this.kind, this.line, this.message,
-      {this.charStart,
-      this.charLength,
-      this.sourceName,
-      this.hasFixes: false});
+      {this.charStart, this.charLength, this.sourceName, this.hasFixes: false});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};

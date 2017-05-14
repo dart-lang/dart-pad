@@ -411,21 +411,14 @@ class CommonServer {
     srcRequestRecorder.record("DOCUMENT", source, offset);
     _logger.info("About to DOCUMENT: ${_hashSource(source)}");
     try {
-      return analyzer
-          .dartdoc(source, offset)
-          .then((Map<String, String> docInfo) async {
-        if (docInfo == null) docInfo = {};
-        _logger
-            .info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-        counter.increment("DartDocs");
-        return new DocumentResponse(docInfo);
-      }).catchError((e, st) {
-        _logger.severe('Error during dartdoc: ${e}\n${st}');
-        throw e;
-      });
+      Map<String, String> docInfo = await analysisServer.dartdoc(source, offset);
+      docInfo ??= {};
+      _logger.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
+      counter.increment("DartDocs");
+      return new DocumentResponse(docInfo);
     } catch (e, st) {
-      _logger.severe('Error during dartdoc: ${e}\n${st}');
-      throw e;
+      _logger.severe('Error during dartdoc', e, st);
+      rethrow;
     }
   }
 
