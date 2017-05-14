@@ -198,8 +198,8 @@ class _Recorder implements SourceRequestRecorder {
 }
 
 /**
- * This is a mock implementation of a counter, it doesn't use
- * a proper persistent store.
+ * This is a mock implementation of a counter, it doesn't use a proper
+ * persistent store.
  */
 class _Counter implements PersistentCounter {
   final Map<String, int> _map = {};

@@ -214,7 +214,7 @@ class Pub {
  * support without having to change the code using the `Pub` class.
  */
 class _MockPub implements Pub {
-  Directory _cacheDir = null;
+  Directory _cacheDir;
 
   _MockPub();
 
