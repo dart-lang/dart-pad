@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "72a6d262af61307d87c36f58a6adab2df709a1d4",
+ "etag": "346d056e776eb948fc9790c24393ea4ccf6e46e9",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -59,13 +59,6 @@
      "items": {
       "type": "string"
      }
-    },
-    "resolvedImports": {
-     "type": "array",
-     "description": "The resolved imports - e.g. dart:async, dart:io, ...",
-     "items": {
-      "type": "string"
-     }
     }
    }
   },
@@ -96,10 +89,6 @@
     "charLength": {
      "type": "integer",
      "format": "int32"
-    },
-    "location": {
-     "type": "string",
-     "description": "deprecated - see `sourceName`"
     }
    }
   },

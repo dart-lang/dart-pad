@@ -1,10 +1,10 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library services.dartservices.v1;
+library dart_services.dartservices.v1;
 
+import 'dart:core' as core;
 import 'dart:async' as async;
 import 'dart:convert' as convert;
-import 'dart:core' as core;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as commons;
 import 'package:http/http.dart' as http;
@@ -745,8 +745,6 @@ class AnalysisIssue {
   core.bool hasFixes;
   core.String kind;
   core.int line;
-  /** deprecated - see `sourceName` */
-  core.String location;
   core.String message;
   core.String sourceName;
 
@@ -767,9 +765,6 @@ class AnalysisIssue {
     }
     if (_json.containsKey("line")) {
       line = _json["line"];
-    }
-    if (_json.containsKey("location")) {
-      location = _json["location"];
     }
     if (_json.containsKey("message")) {
       message = _json["message"];
@@ -796,9 +791,6 @@ class AnalysisIssue {
     if (line != null) {
       _json["line"] = line;
     }
-    if (location != null) {
-      _json["location"] = location;
-    }
     if (message != null) {
       _json["message"] = message;
     }
@@ -813,8 +805,6 @@ class AnalysisResults {
   core.List<AnalysisIssue> issues;
   /** The package imports parsed from the source. */
   core.List<core.String> packageImports;
-  /** The resolved imports - e.g. dart:async, dart:io, ... */
-  core.List<core.String> resolvedImports;
 
   AnalysisResults();
 
@@ -825,9 +815,6 @@ class AnalysisResults {
     if (_json.containsKey("packageImports")) {
       packageImports = _json["packageImports"];
     }
-    if (_json.containsKey("resolvedImports")) {
-      resolvedImports = _json["resolvedImports"];
-    }
   }
 
   core.Map toJson() {
@@ -837,9 +824,6 @@ class AnalysisResults {
     }
     if (packageImports != null) {
       _json["packageImports"] = packageImports;
-    }
-    if (resolvedImports != null) {
-      _json["resolvedImports"] = resolvedImports;
     }
     return _json;
   }

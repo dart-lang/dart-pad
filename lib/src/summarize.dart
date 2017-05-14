@@ -245,7 +245,6 @@ class Summarizer {
       summary += '${_featureList(_codeSearch())}';
       summary += '${_htmlCSS()}';
       summary += '${_packageList(storage.packageImports, source: 'packages')}';
-      summary += '${_packageList(storage.resolvedImports)}';
       summary += '${_additionList(_additionSearch())}';
       return summary.trim();
     } else {
@@ -269,7 +268,6 @@ class Summarizer {
 class _SummarizeToken {
   int linesCode;
   int packageCount;
-  int resolvedCount;
   int errorCount;
   int warningCount;
 
@@ -277,7 +275,6 @@ class _SummarizeToken {
   bool warningPresent;
 
   List<String> packageImports;
-  List<String> resolvedImports;
 
   List<AnalysisIssue> errors;
 
@@ -287,9 +284,7 @@ class _SummarizeToken {
       errorPresent = analysis.issues.any((issue) => issue.kind == 'error');
       warningPresent = analysis.issues.any((issue) => issue.kind == 'warning');
       packageCount = analysis.packageImports.length;
-      resolvedCount = analysis.resolvedImports.length;
       packageImports = analysis.packageImports;
-      resolvedImports = analysis.resolvedImports;
       errors = analysis.issues;
       errorCount = errors.length;
     }

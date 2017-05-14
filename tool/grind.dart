@@ -50,7 +50,7 @@ void buildbot() => null;
 @Task('Generate the discovery doc and Dart library from the annotated API')
 discovery() {
   ProcessResult result =
-      Process.runSync('dart', ['bin/services.dart', '--discovery']);
+      Process.runSync('dart', ['bin/server_dev.dart', '--discovery']);
 
   if (result.exitCode != 0) {
     throw 'Error generating the discovery document\n${result.stderr}';
@@ -62,7 +62,7 @@ discovery() {
   discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
 
   ProcessResult resultDb =
-      Process.runSync('dart', ['bin/services.dart', '--discovery', '--relay']);
+      Process.runSync('dart', ['bin/server_dev.dart', '--discovery', '--relay']);
 
   if (result.exitCode != 0) {
     throw 'Error generating the discovery document\n${result.stderr}';

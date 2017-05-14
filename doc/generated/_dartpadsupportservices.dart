@@ -1,6 +1,6 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library services.P_dartpadsupportservices.v1;
+library dart_services.P_dartpadsupportservices.v1;
 
 import 'dart:core' as core;
 import 'dart:async' as async;

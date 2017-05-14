@@ -39,7 +39,7 @@ http://dart-services.appspot.com/api/discovery/v1/apis/dartservices/v1/rest.
 
 To run the server, run:
 
-    dart bin/services.dart --port 8082
+    dart bin/server_dev.dart --port 8082
 
 The server will run from port 8082 and export several JSON APIs, like
 `/api/compile` and `/api/analyze`.
