@@ -9,17 +9,19 @@ import 'dart:convert' as convert;
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as commons;
 import 'package:http/http.dart' as http;
 
-export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
-    ApiRequestError, DetailedApiRequestError;
+export 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
+    show ApiRequestError, DetailedApiRequestError;
 
 const core.String USER_AGENT = 'dart-api-client _dartpadsupportservices/v1';
 
 class P_dartpadsupportservicesApi {
-
   final commons.ApiRequester _requester;
 
-  P_dartpadsupportservicesApi(http.Client client, {core.String rootUrl: "/", core.String servicePath: "api/_dartpadsupportservices/v1/"}) :
-      _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
+  P_dartpadsupportservicesApi(http.Client client,
+      {core.String rootUrl: "/",
+      core.String servicePath: "api/_dartpadsupportservices/v1/"})
+      : _requester =
+            new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
    * Store a gist dataset to be retrieved.
@@ -50,13 +52,12 @@ class P_dartpadsupportservicesApi {
 
     _url = 'export';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new UuidContainer.fromJson(data));
   }
 
@@ -79,16 +80,14 @@ class P_dartpadsupportservicesApi {
     var _downloadOptions = commons.DownloadOptions.Metadata;
     var _body = null;
 
-
     _url = 'getUnusedMappingId';
 
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "GET",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new UuidContainer.fromJson(data));
   }
 
@@ -121,13 +120,12 @@ class P_dartpadsupportservicesApi {
 
     _url = 'pullExportData';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new PadSaveObject.fromJson(data));
   }
 
@@ -158,13 +156,12 @@ class P_dartpadsupportservicesApi {
 
     _url = 'retrieveGist';
 
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "GET",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new UuidContainer.fromJson(data));
   }
 
@@ -195,19 +192,15 @@ class P_dartpadsupportservicesApi {
 
     _url = 'storeGist';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new UuidContainer.fromJson(data));
   }
-
 }
-
-
 
 class GistToInternalIdMapping {
   core.String gistId;
