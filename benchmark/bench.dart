@@ -7,7 +7,6 @@ library services.bench;
 import 'dart:async';
 
 import 'package:dart_services/src/analysis_server.dart';
-import 'package:dart_services/src/analyzer.dart';
 import 'package:dart_services/src/bench.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
@@ -21,11 +20,9 @@ void main(List<String> args) {
     new AnalyzerBenchmark('hello', sampleCode),
     new AnalyzerBenchmark('hellohtml', sampleCodeWeb),
     new AnalyzerBenchmark('sunflower', _sunflower),
-
     new AnalysisServerBenchmark('hello', sampleCode),
     new AnalysisServerBenchmark('hellohtml', sampleCodeWeb),
     new AnalysisServerBenchmark('sunflower', _sunflower),
-
     new Dart2jsBenchmark('hello', sampleCode),
     new Dart2jsBenchmark('hellohtml', sampleCodeWeb),
     new Dart2jsBenchmark('sunflower', _sunflower),
@@ -36,13 +33,17 @@ void main(List<String> args) {
 
 class AnalyzerBenchmark extends Benchmark {
   final String source;
-  Analyzer analyzer;
+  AnalysisServerWrapper analysisServer;
 
   AnalyzerBenchmark(String name, this.source) : super('analyzer.${name}') {
-    analyzer = new Analyzer(getSdkPath());
+    analysisServer = new AnalysisServerWrapper(getSdkPath());
   }
 
-  Future perform() => analyzer.analyze(source);
+  Future init() => analysisServer.init();
+
+  Future perform() => analysisServer.analyze(source);
+
+  Future tearDown() => analysisServer.shutdown();
 }
 
 class Dart2jsBenchmark extends Benchmark {

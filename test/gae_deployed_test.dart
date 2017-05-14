@@ -19,7 +19,7 @@ void defineTests({bool skip: true}) {
   });
 }
 
-analyzeTest() {
+void analyzeTest() {
   final String url = '${serverUrl}/api/analyze';
   Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
@@ -34,7 +34,7 @@ analyzeTest() {
       completion(equals(true)));
 }
 
-compileTest() {
+void compileTest() {
   final String url = '${serverUrl}/api/compile';
   Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 

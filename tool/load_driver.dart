@@ -29,7 +29,7 @@ void main(List<String> args) {
   new Timer.periodic(new Duration(milliseconds: ms), (t) => pingServer(t));
 }
 
-pingServer(Timer t) {
+void pingServer(Timer t) {
   count++;
 
   if (count > 1000) {

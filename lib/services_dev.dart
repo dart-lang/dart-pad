@@ -38,7 +38,7 @@ void main(List<String> args) {
 
   String sdk = getSdkPath(args);
 
-  printExit(String doc) {
+  void printExit(String doc) {
     print(doc);
     exit(0);
   }

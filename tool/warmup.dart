@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert' as convert;
 
 import 'package:http/http.dart' as http;
@@ -13,7 +14,7 @@ const BASE_URI = "dart-services.appspot.com/api/dartservices/v1/";
 // const BASE_URI = "localhost:8080/api/dartservices/v1/";
 const count = 100;
 
-main(List<String> args) async {
+Future main(List<String> args) async {
   String appPrefix;
   if (args.length > 0) {
     appPrefix = "${args[0]}.";
@@ -47,7 +48,7 @@ main(List<String> args) async {
   }
 }
 
-request(String verb, String postPayload) async {
+Future request(String verb, String postPayload) async {
   Stopwatch sw = new Stopwatch()..start();
 
   var response = await http.post(Uri.parse(uri + verb),

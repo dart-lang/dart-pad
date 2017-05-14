@@ -4,28 +4,29 @@
 
 library services.grind;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:grinder/grinder.dart';
 
 Map get _env => Platform.environment;
 
-main(List<String> args) => grind(args);
+Future main(List<String> args) => grind(args);
 
 @Task()
-analyze() {
+void analyze() {
   new PubApp.global('tuneup')..run(['check']);
 }
 
 @Task()
-test() => new TestRunner().testAsync();
+Future test() => new TestRunner().testAsync();
 
 @DefaultTask()
 @Depends(analyze, test)
-analyzeTest() => null;
+void analyzeTest() => null;
 
 @Task()
-coverage() {
+void coverage() {
   if (!_env.containsKey('REPO_TOKEN')) {
     log("env var 'REPO_TOKEN' not found");
     return;
@@ -48,7 +49,7 @@ coverage() {
 void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')
-discovery() {
+void discovery() {
   ProcessResult result =
       Process.runSync('dart', ['bin/server_dev.dart', '--discovery']);
 
@@ -61,8 +62,8 @@ discovery() {
   log('writing ${discoveryFile.path}');
   discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
 
-  ProcessResult resultDb =
-      Process.runSync('dart', ['bin/server_dev.dart', '--discovery', '--relay']);
+  ProcessResult resultDb = Process
+      .runSync('dart', ['bin/server_dev.dart', '--discovery', '--relay']);
 
   if (result.exitCode != 0) {
     throw 'Error generating the discovery document\n${result.stderr}';

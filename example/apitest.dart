@@ -35,7 +35,7 @@ void setupDartpadServices() {
   setupGistRetrieval();
 }
 
-_setupClients() {
+void _setupClients() {
   client = new utils.SanitizingBrowserClient();
   servicesApi = new services.DartservicesApi(client, rootUrl: _uriBase);
   _dartpadSupportApi =

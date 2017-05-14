@@ -43,7 +43,6 @@ class Analyzer {
 
   Analyzer(this._sdkPath, {this.pub, this.strongMode: false}) {
     _reset();
-    analyze('');
   }
 
   void _reset() {

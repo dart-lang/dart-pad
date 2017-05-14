@@ -279,7 +279,7 @@ class CommonServer {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
-    return _analyzeMulti({"main.dart": source}, strongMode);
+    return _analyzeMulti({kMainDart: source}, strongMode);
   }
 
   Future<SummaryText> _summarize(String dart, String html, String css) async {
@@ -291,7 +291,7 @@ class CommonServer {
     _logger.info("About to summarize: ${_hashSource(sourcesJson)}");
 
     SummaryText summaryString =
-        await _analyzeMulti({"main.dart": dart}, false).then((result) {
+        await _analyzeMulti({kMainDart: dart}, false).then((result) {
       Summarizer summarizer =
           new Summarizer(dart: dart, html: html, css: css, analysis: result);
       return new SummaryText.fromString(summarizer.returnAsSimpleSummary());
@@ -311,26 +311,20 @@ class CommonServer {
     srcRequestRecorder.record("ANALYZE-v2-$strongMode", sourcesJson);
     _logger.info("About to ANALYZE-v1: ${_hashSource(sourcesJson)}");
 
-    // Select the right analyzer
-    Analyzer selectedAnalyzer = strongMode ? strongModeAnalyzer : analyzer;
     try {
-      return selectedAnalyzer
-          .analyzeMulti(sources)
-          .then((AnalysisResults results) async {
-        int lineCount = 0;
-        sources.values
-            .forEach((String source) => lineCount += source.split('\n').length);
-        int ms = watch.elapsedMilliseconds;
-        _logger.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
-        counter.increment("Analyses");
-        counter.increment("Analyzed-Lines", increment: lineCount);
-        return results;
-      }).catchError((e) {
-        _logger.severe('Error during analyze: ${e}');
-        throw e;
-      });
+      // TODO: We're not using the strongMode param - I suspect we should just
+      // go fully strong.
+      AnalysisResults results = await analysisServer.analyzeMulti(sources);
+      int lineCount = sources.values
+          .map((s) => s.split('\n').length)
+          .fold(0, (a, b) => a + b);
+      int ms = watch.elapsedMilliseconds;
+      _logger.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
+      counter.increment("Analyses");
+      counter.increment("Analyzed-Lines", increment: lineCount);
+      return results;
     } catch (e, st) {
-      _logger.severe('Error during analyze: ${e}\n${st}');
+      _logger.severe('Error during analyze', e, st);
       throw e;
     }
   }
@@ -411,7 +405,8 @@ class CommonServer {
     srcRequestRecorder.record("DOCUMENT", source, offset);
     _logger.info("About to DOCUMENT: ${_hashSource(source)}");
     try {
-      Map<String, String> docInfo = await analysisServer.dartdoc(source, offset);
+      Map<String, String> docInfo =
+          await analysisServer.dartdoc(source, offset);
       docInfo ??= {};
       _logger.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
       counter.increment("DartDocs");
@@ -437,7 +432,7 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _completeMulti({"main.dart": source}, "main.dart", offset);
+    return _completeMulti({kMainDart: source}, kMainDart, offset);
   }
 
   Future<CompleteResponse> _completeMulti(
@@ -476,7 +471,7 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _fixesMulti({"main.dart": source}, "main.dart", offset);
+    return _fixesMulti({kMainDart: source}, kMainDart, offset);
   }
 
   Future<FixesResponse> _fixesMulti(

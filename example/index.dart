@@ -5,7 +5,7 @@
 import "dart:convert";
 import "dart:html";
 
-main() {
+void main() {
   querySelector('#sendButton').onClick.listen((e) {
     String code = querySelector('#code').text;
     var json = {'source': code};
