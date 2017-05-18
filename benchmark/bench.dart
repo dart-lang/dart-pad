@@ -36,7 +36,7 @@ class AnalyzerBenchmark extends Benchmark {
   AnalysisServerWrapper analysisServer;
 
   AnalyzerBenchmark(String name, this.source) : super('analyzer.${name}') {
-    analysisServer = new AnalysisServerWrapper(getSdkPath());
+    analysisServer = new AnalysisServerWrapper(getSdkPath(), true);
   }
 
   Future init() => analysisServer.init();
@@ -67,7 +67,7 @@ class AnalysisServerBenchmark extends Benchmark {
 
   AnalysisServerBenchmark(String name, this.source)
       : super('completion.${name}') {
-    analysisServer = new AnalysisServerWrapper(getSdkPath());
+    analysisServer = new AnalysisServerWrapper(getSdkPath(), true);
   }
 
   Future init() => analysisServer.init();

@@ -68,6 +68,7 @@ class CommonServer {
 
   Compiler compiler;
   AnalysisServerWrapper analysisServer;
+  AnalysisServerWrapper analysisServerStrong;
 
   CommonServer(String sdkPath, this.container, this.cache,
       this.srcRequestRecorder, this.counter) {
@@ -78,17 +79,24 @@ class CommonServer {
     strongModeAnalyzer = new Analyzer(sdkPath, strongMode: true);
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath, pub);
-    analysisServer = new AnalysisServerWrapper(sdkPath);
+    analysisServer = new AnalysisServerWrapper(sdkPath, false);
+    analysisServerStrong = new AnalysisServerWrapper(sdkPath, true);
   }
 
-  Future init() {
-    return analysisServer.init().then((_) {
-      // If the analysis server dies, we exit with the same code.
-      analysisServer.onExit.then((int code) {
-        if (code != 0) {
-          exit(code);
-        }
-      });
+  Future init() async {
+    await analysisServer.init();
+    // If the analysis server dies, we exit with the same code.
+    analysisServer.onExit.then((int code) {
+      if (code != 0) {
+        exit(code);
+      }
+    });
+
+    await analysisServerStrong.init();
+    analysisServerStrong.onExit.then((int code) {
+      if (code != 0) {
+        exit(code);
+      }
     });
   }
 
@@ -97,9 +105,15 @@ class CommonServer {
     await strongModeAnalyzer.warmup(useHtml: useHtml);
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
+    await analysisServerStrong.warmup(useHtml: useHtml);
   }
 
-  Future shutdown() => analysisServer.shutdown();
+  Future shutdown() {
+    return Future.wait([
+      analysisServer.shutdown(),
+      analysisServerStrong.shutdown()
+    ]);
+  }
 
   @ApiMethod(method: 'GET', path: 'counter')
   Future<CounterResponse> counterGet({String name}) {
@@ -312,9 +326,8 @@ class CommonServer {
     _logger.info("About to ANALYZE-v1: ${_hashSource(sourcesJson)}");
 
     try {
-      // TODO: We're not using the strongMode param - I suspect we should just
-      // go fully strong.
-      AnalysisResults results = await analysisServer.analyzeMulti(sources);
+      AnalysisServerWrapper server = strongMode ? analysisServer : analysisServerStrong;
+      AnalysisResults results = await server.analyzeMulti(sources);
       int lineCount = sources.values
           .map((s) => s.split('\n').length)
           .fold(0, (a, b) => a + b);
@@ -406,7 +419,7 @@ class CommonServer {
     _logger.info("About to DOCUMENT: ${_hashSource(source)}");
     try {
       Map<String, String> docInfo =
-          await analysisServer.dartdoc(source, offset);
+          await analysisServerStrong.dartdoc(source, offset);
       docInfo ??= {};
       _logger.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
       counter.increment("DartDocs");
@@ -453,7 +466,7 @@ class CommonServer {
     _logger.info("About to COMPLETE-v1: ${_hashSource(sourceJson)}");
 
     counter.increment("Completions");
-    var response = await analysisServer.completeMulti(
+    var response = await analysisServerStrong.completeMulti(
         sources,
         new Location()
           ..sourceName = sourceName
@@ -489,7 +502,7 @@ class CommonServer {
     _logger.info("About to FIX-v1: ${_hashSource(sourceJson)}");
 
     counter.increment("Fixes");
-    var response = await analysisServer.getFixesMulti(
+    var response = await analysisServerStrong.getFixesMulti(
         sources,
         new Location()
           ..sourceName = sourceName
@@ -509,7 +522,7 @@ class CommonServer {
     _logger.info("About to FORMAT: ${_hashSource(source)}");
     counter.increment("Formats");
 
-    var response = await analysisServer.format(source, offset);
+    var response = await analysisServerStrong.format(source, offset);
     _logger.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
     return response;
   }

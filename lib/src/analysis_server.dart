@@ -39,7 +39,7 @@ class AnalysisServerWrapper {
   /// Instance to handle communication with the server.
   AnalysisServer analysisServer;
 
-  AnalysisServerWrapper(this.sdkPath) {
+  AnalysisServerWrapper(this.sdkPath, bool useStrongMode) {
     _logger.info("AnalysisServerWrapper ctor");
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
     mainPath = _getPathFromName(kMainDart);
@@ -48,7 +48,7 @@ class AnalysisServerWrapper {
 
     // Write an analysis_options.yaml file with strong mode enabled.
     File optionsFile = new File(_getPathFromName('analysis_options.yaml'));
-    optionsFile.writeAsStringSync('analyzer:\n  strong-mode: true\n');
+    optionsFile.writeAsStringSync('analyzer:\n  strong-mode: ${useStrongMode}\n');
   }
 
   Future init() {

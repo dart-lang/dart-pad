@@ -64,6 +64,16 @@ void main() {
 }
 """;
 
+final String sampleStrongError = """
+void main() {
+  foo('whoops');
+}
+
+void foo(int i) {
+  print(i);
+}
+""";
+
 class Lines {
   List<int> _starts = [];
 

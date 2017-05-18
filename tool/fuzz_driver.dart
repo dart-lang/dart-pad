@@ -135,7 +135,7 @@ Future setupTools(String sdkPath) async {
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
     ..addApi(server);
 
-  analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
+  analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath, true);
   await analysisServer.init();
 
   print("Warming up analysis server");
