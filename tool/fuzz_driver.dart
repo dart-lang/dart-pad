@@ -14,7 +14,6 @@ import 'dart:io' as io;
 import 'dart:math';
 
 import 'package:dart_services/src/analysis_server.dart' as analysis_server;
-import 'package:dart_services/src/analyzer.dart' as ana;
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server.dart';
 import 'package:dart_services/src/compiler.dart' as comp;
@@ -33,8 +32,6 @@ MockCache cache;
 MockRequestRecorder recorder;
 MockCounter counter;
 analysis_server.AnalysisServerWrapper analysisServer;
-ana.Analyzer analyzer;
-ana.Analyzer strongAnalyzer;
 
 comp.Compiler compiler;
 
@@ -105,7 +102,7 @@ Usage: slow_test path_to_test_collection
       random = new Random(seed);
       seed++;
       await testPath(
-          fse.path, analysisServer, analyzer, strongAnalyzer, compiler);
+          fse.path, analysisServer, compiler);
     } catch (e) {
       print(e);
       print("FAILED: ${fse.path}");
@@ -135,20 +132,12 @@ Future setupTools(String sdkPath) async {
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
     ..addApi(server);
 
-  // TODO: We should driver both strong and non-strong modes in the fuzzer.
+  // TODO: We should drive both strong and non-strong modes in the fuzzer.
   analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
   await analysisServer.init();
 
   print("Warming up analysis server");
   await analysisServer.warmup();
-
-  print("Warming up analyzer");
-  analyzer = new ana.Analyzer(sdkPath);
-  await analyzer.warmup();
-
-  print("Warming up strong analyzer");
-  strongAnalyzer = new ana.Analyzer(sdkPath, strongMode: true);
-  await strongAnalyzer.warmup();
 
   print("Warming up compiler");
   compiler = new comp.Compiler(sdkPath);
@@ -159,8 +148,6 @@ Future setupTools(String sdkPath) async {
 Future testPath(
     String path,
     analysis_server.AnalysisServerWrapper wrapper,
-    ana.Analyzer analyzer,
-    ana.Analyzer strongAnalyzer,
     comp.Compiler compiler) async {
   var f = new io.File(path);
   String src = f.readAsStringSync();

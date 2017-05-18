@@ -14,7 +14,6 @@ import 'package:rpc/rpc.dart';
 
 import '../version.dart';
 import 'analysis_server.dart';
-import 'analyzer.dart';
 import 'api_classes.dart';
 import 'common.dart';
 import 'compiler.dart';
@@ -63,8 +62,6 @@ class CommonServer {
   final PersistentCounter counter;
 
   Pub pub;
-  Analyzer strongModeAnalyzer;
-  Analyzer analyzer;
 
   Compiler compiler;
   AnalysisServerWrapper analysisServer;
@@ -76,8 +73,6 @@ class CommonServer {
     _logger.level = Level.ALL;
 
     pub = enablePackages ? new Pub() : new Pub.mock();
-    strongModeAnalyzer = new Analyzer(sdkPath, strongMode: true);
-    analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath, pub);
     analysisServer = new AnalysisServerWrapper(sdkPath, strongMode: false);
     analysisServerStrong = new AnalysisServerWrapper(sdkPath);
@@ -101,18 +96,14 @@ class CommonServer {
   }
 
   Future warmup({bool useHtml: false}) async {
-    await analyzer.warmup(useHtml: useHtml);
-    await strongModeAnalyzer.warmup(useHtml: useHtml);
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
     await analysisServerStrong.warmup(useHtml: useHtml);
   }
 
   Future shutdown() {
-    return Future.wait([
-      analysisServer.shutdown(),
-      analysisServerStrong.shutdown()
-    ]);
+    return Future
+        .wait([analysisServer.shutdown(), analysisServerStrong.shutdown()]);
   }
 
   @ApiMethod(method: 'GET', path: 'counter')
@@ -326,7 +317,8 @@ class CommonServer {
     _logger.info("About to ANALYZE-v1: ${_hashSource(sourcesJson)}");
 
     try {
-      AnalysisServerWrapper server = strongMode ? analysisServer : analysisServerStrong;
+      AnalysisServerWrapper server =
+          strongMode ? analysisServer : analysisServerStrong;
       AnalysisResults results = await server.analyzeMulti(sources);
       int lineCount = sources.values
           .map((s) => s.split('\n').length)
