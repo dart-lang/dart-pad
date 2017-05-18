@@ -122,6 +122,35 @@ void defineTests() {
       FormatResponse results = await analysisServer.format(formatWithIssues, 0);
       expect(results.newString, formatWithIssues);
     });
+
+    test('analyze', () async {
+      AnalysisResults results = await analysisServer.analyze(sampleCode);
+      expect(results.issues, isEmpty);
+    });
+
+    test('analyze with errors', () async {
+      AnalysisResults results = await analysisServer.analyze(sampleCodeError);
+      expect(results.issues, hasLength(1));
+    });
+
+    test('analyze strong', () async {
+      AnalysisResults results = await analysisServer.analyze(sampleStrongError);
+      expect(results.issues, hasLength(1));
+      AnalysisIssue issue = results.issues.first;
+      expect(issue.kind, 'error');
+    });
+
+    test('analyze non strong', () async {
+      await analysisServer.shutdown();
+
+      analysisServer = new AnalysisServerWrapper(sdkPath, strongMode: false);
+      await analysisServer.init();
+
+      AnalysisResults results = await analysisServer.analyze(sampleStrongError);
+      expect(results.issues, hasLength(1));
+      AnalysisIssue issue = results.issues.first;
+      expect(issue.kind, 'warning');
+    });
   });
 }
 

@@ -68,7 +68,8 @@ class Compiler {
       mainDart.writeAsStringSync(input);
 
       File mainJs = new File(path.join(temp.path, '${kMainDart}.js'));
-      File mainSourceMap = new File(path.join(temp.path, '${kMainDart}.js.map'));
+      File mainSourceMap =
+          new File(path.join(temp.path, '${kMainDart}.js.map'));
 
       ProcessResult result = Process.runSync(
           path.join(sdkPath, 'bin', 'dart2js'), arguments,

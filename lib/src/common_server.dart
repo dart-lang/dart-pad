@@ -68,6 +68,7 @@ class CommonServer {
 
   Compiler compiler;
   AnalysisServerWrapper analysisServer;
+  AnalysisServerWrapper analysisServerStrong;
 
   CommonServer(String sdkPath, this.container, this.cache,
       this.srcRequestRecorder, this.counter) {
@@ -78,17 +79,24 @@ class CommonServer {
     strongModeAnalyzer = new Analyzer(sdkPath, strongMode: true);
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath, pub);
-    analysisServer = new AnalysisServerWrapper(sdkPath);
+    analysisServer = new AnalysisServerWrapper(sdkPath, strongMode: false);
+    analysisServerStrong = new AnalysisServerWrapper(sdkPath);
   }
 
-  Future init() {
-    return analysisServer.init().then((_) {
-      // If the analysis server dies, we exit with the same code.
-      analysisServer.onExit.then((int code) {
-        if (code != 0) {
-          exit(code);
-        }
-      });
+  Future init() async {
+    await analysisServer.init();
+    // If the analysis server dies, we exit with the same code.
+    analysisServer.onExit.then((int code) {
+      if (code != 0) {
+        exit(code);
+      }
+    });
+
+    await analysisServerStrong.init();
+    analysisServerStrong.onExit.then((int code) {
+      if (code != 0) {
+        exit(code);
+      }
     });
   }
 
@@ -97,9 +105,15 @@ class CommonServer {
     await strongModeAnalyzer.warmup(useHtml: useHtml);
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
+    await analysisServerStrong.warmup(useHtml: useHtml);
   }
 
-  Future shutdown() => analysisServer.shutdown();
+  Future shutdown() {
+    return Future.wait([
+      analysisServer.shutdown(),
+      analysisServerStrong.shutdown()
+    ]);
+  }
 
   @ApiMethod(method: 'GET', path: 'counter')
   Future<CounterResponse> counterGet({String name}) {
@@ -279,7 +293,7 @@ class CommonServer {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
-    return _analyzeMulti({"main.dart": source}, strongMode);
+    return _analyzeMulti({kMainDart: source}, strongMode);
   }
 
   Future<SummaryText> _summarize(String dart, String html, String css) async {
@@ -291,7 +305,7 @@ class CommonServer {
     _logger.info("About to summarize: ${_hashSource(sourcesJson)}");
 
     SummaryText summaryString =
-        await _analyzeMulti({"main.dart": dart}, false).then((result) {
+        await _analyzeMulti({kMainDart: dart}, false).then((result) {
       Summarizer summarizer =
           new Summarizer(dart: dart, html: html, css: css, analysis: result);
       return new SummaryText.fromString(summarizer.returnAsSimpleSummary());
@@ -311,26 +325,19 @@ class CommonServer {
     srcRequestRecorder.record("ANALYZE-v2-$strongMode", sourcesJson);
     _logger.info("About to ANALYZE-v1: ${_hashSource(sourcesJson)}");
 
-    // Select the right analyzer
-    Analyzer selectedAnalyzer = strongMode ? strongModeAnalyzer : analyzer;
     try {
-      return selectedAnalyzer
-          .analyzeMulti(sources)
-          .then((AnalysisResults results) async {
-        int lineCount = 0;
-        sources.values
-            .forEach((String source) => lineCount += source.split('\n').length);
-        int ms = watch.elapsedMilliseconds;
-        _logger.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
-        counter.increment("Analyses");
-        counter.increment("Analyzed-Lines", increment: lineCount);
-        return results;
-      }).catchError((e) {
-        _logger.severe('Error during analyze: ${e}');
-        throw e;
-      });
+      AnalysisServerWrapper server = strongMode ? analysisServer : analysisServerStrong;
+      AnalysisResults results = await server.analyzeMulti(sources);
+      int lineCount = sources.values
+          .map((s) => s.split('\n').length)
+          .fold(0, (a, b) => a + b);
+      int ms = watch.elapsedMilliseconds;
+      _logger.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
+      counter.increment("Analyses");
+      counter.increment("Analyzed-Lines", increment: lineCount);
+      return results;
     } catch (e, st) {
-      _logger.severe('Error during analyze: ${e}\n${st}');
+      _logger.severe('Error during analyze', e, st);
       throw e;
     }
   }
@@ -411,21 +418,15 @@ class CommonServer {
     srcRequestRecorder.record("DOCUMENT", source, offset);
     _logger.info("About to DOCUMENT: ${_hashSource(source)}");
     try {
-      return analyzer
-          .dartdoc(source, offset)
-          .then((Map<String, String> docInfo) async {
-        if (docInfo == null) docInfo = {};
-        _logger
-            .info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-        counter.increment("DartDocs");
-        return new DocumentResponse(docInfo);
-      }).catchError((e, st) {
-        _logger.severe('Error during dartdoc: ${e}\n${st}');
-        throw e;
-      });
+      Map<String, String> docInfo =
+          await analysisServerStrong.dartdoc(source, offset);
+      docInfo ??= {};
+      _logger.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
+      counter.increment("DartDocs");
+      return new DocumentResponse(docInfo);
     } catch (e, st) {
-      _logger.severe('Error during dartdoc: ${e}\n${st}');
-      throw e;
+      _logger.severe('Error during dartdoc', e, st);
+      rethrow;
     }
   }
 
@@ -444,7 +445,7 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _completeMulti({"main.dart": source}, "main.dart", offset);
+    return _completeMulti({kMainDart: source}, kMainDart, offset);
   }
 
   Future<CompleteResponse> _completeMulti(
@@ -465,7 +466,7 @@ class CommonServer {
     _logger.info("About to COMPLETE-v1: ${_hashSource(sourceJson)}");
 
     counter.increment("Completions");
-    var response = await analysisServer.completeMulti(
+    var response = await analysisServerStrong.completeMulti(
         sources,
         new Location()
           ..sourceName = sourceName
@@ -483,7 +484,7 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _fixesMulti({"main.dart": source}, "main.dart", offset);
+    return _fixesMulti({kMainDart: source}, kMainDart, offset);
   }
 
   Future<FixesResponse> _fixesMulti(
@@ -501,7 +502,7 @@ class CommonServer {
     _logger.info("About to FIX-v1: ${_hashSource(sourceJson)}");
 
     counter.increment("Fixes");
-    var response = await analysisServer.getFixesMulti(
+    var response = await analysisServerStrong.getFixesMulti(
         sources,
         new Location()
           ..sourceName = sourceName
@@ -521,7 +522,7 @@ class CommonServer {
     _logger.info("About to FORMAT: ${_hashSource(source)}");
     counter.increment("Formats");
 
-    var response = await analysisServer.format(source, offset);
+    var response = await analysisServerStrong.format(source, offset);
     _logger.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
     return response;
   }

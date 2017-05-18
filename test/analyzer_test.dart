@@ -117,31 +117,28 @@ void main() {
 ''';
 
       return analyzer.analyze(sample).then((AnalysisResults results) {
-        expect(results.packageImports.length, 2);
+        expect(results.packageImports, hasLength(2));
         expect(results.packageImports[0], 'bar');
         expect(results.packageImports[1], 'baz');
-        // expect(results.resolvedImports.length, 2);
-        expect(results.resolvedImports[0], 'dart:async');
-        expect(results.resolvedImports[1], 'dart:io');
       });
     });
 
     test('errors', () {
       return analyzer.analyze(sampleCodeError).then((AnalysisResults results) {
-        expect(results.issues.length, 1);
+        expect(results.issues, hasLength(1));
       });
     });
 
     test('errors many', () {
       return analyzer.analyze(sampleCodeErrors).then((AnalysisResults results) {
-        expect(results.issues.length, 3);
+        expect(results.issues, hasLength(3));
       });
     });
 
     test('missing ;', () {
       final String sample = "void main() {\n  int i = 55\n}";
       return analyzer.analyze(sample).then((AnalysisResults results) {
-        expect(results.issues.length, 2);
+        expect(results.issues, hasLength(2));
         int _missingSemiC = 0;
         results.issues
             .where((issue) => issue.message.contains("Expected to find ';'"))
@@ -167,6 +164,7 @@ void main() {
     });
 
     test('simple', () {
+      // ignore: deprecated_member_use
       return analyzer.dartdoc(sampleCode, 17).then((Map m) {
         expect(m['name'], 'print');
         expect(m['dartdoc'], isNotEmpty);
@@ -181,6 +179,7 @@ void main() {
 }
 ''';
 
+      // ignore: deprecated_member_use
       return analyzer.dartdoc(source, 47).then((Map m) {
         expect(m['name'], 'foo');
         expect(m['propagatedType'], 'String');
@@ -198,6 +197,7 @@ void main() {
 Future foo() => new Future.value(4);
 ''';
 
+      // ignore: deprecated_member_use
       return analyzer.dartdoc(source, 39).then((Map m) {
         expect(m['name'], 'foo');
         expect(m['description'], 'foo() → Future');
@@ -214,6 +214,7 @@ void main() {
 }
 ''';
 
+      // ignore: deprecated_member_use
       return analyzer.dartdoc(source, 44).then((Map m) {
         expect(m['name'], 'DivElement');
         expect(m['libraryName'], 'dart:html');
@@ -228,6 +229,7 @@ main() {
   f.then((x) => x);
 }''';
 
+      // ignore: deprecated_member_use
       return analyzer.dartdoc(source, 84).then((Map m) {
         expect(m, null);
       });

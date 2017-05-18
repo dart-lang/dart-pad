@@ -1,25 +1,27 @@
 // This is a generated file (see the discoveryapis_generator project).
 
-library services.dartservices.v1;
+library dart_services.dartservices.v1;
 
+import 'dart:core' as core;
 import 'dart:async' as async;
 import 'dart:convert' as convert;
-import 'dart:core' as core;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as commons;
 import 'package:http/http.dart' as http;
 
-export 'package:_discoveryapis_commons/_discoveryapis_commons.dart' show
-    ApiRequestError, DetailedApiRequestError;
+export 'package:_discoveryapis_commons/_discoveryapis_commons.dart'
+    show ApiRequestError, DetailedApiRequestError;
 
 const core.String USER_AGENT = 'dart-api-client dartservices/v1';
 
 class DartservicesApi {
-
   final commons.ApiRequester _requester;
 
-  DartservicesApi(http.Client client, {core.String rootUrl: "/", core.String servicePath: "api/dartservices/v1/"}) :
-      _requester = new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
+  DartservicesApi(http.Client client,
+      {core.String rootUrl: "/",
+      core.String servicePath: "api/dartservices/v1/"})
+      : _requester =
+            new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
    * Analyze the given Dart source code and return any resulting analysis errors
@@ -51,13 +53,12 @@ class DartservicesApi {
 
     _url = 'analyze';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new AnalysisResults.fromJson(data));
   }
 
@@ -76,7 +77,8 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  async.Future<AnalysisResults> analyzeGet({core.String source, core.bool strongMode}) {
+  async.Future<AnalysisResults> analyzeGet(
+      {core.String source, core.bool strongMode}) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -93,13 +95,12 @@ class DartservicesApi {
 
     _url = 'analyze';
 
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "GET",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new AnalysisResults.fromJson(data));
   }
 
@@ -133,13 +134,12 @@ class DartservicesApi {
 
     _url = 'analyzeMulti';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new AnalysisResults.fromJson(data));
   }
 
@@ -172,13 +172,12 @@ class DartservicesApi {
 
     _url = 'compile';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new CompileResponse.fromJson(data));
   }
 
@@ -209,13 +208,12 @@ class DartservicesApi {
 
     _url = 'compile';
 
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "GET",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new CompileResponse.fromJson(data));
   }
 
@@ -248,13 +246,12 @@ class DartservicesApi {
 
     _url = 'complete';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new CompleteResponse.fromJson(data));
   }
 
@@ -273,7 +270,8 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  async.Future<CompleteResponse> completeGet({core.String source, core.int offset}) {
+  async.Future<CompleteResponse> completeGet(
+      {core.String source, core.int offset}) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -290,13 +288,12 @@ class DartservicesApi {
 
     _url = 'complete';
 
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "GET",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new CompleteResponse.fromJson(data));
   }
 
@@ -329,13 +326,12 @@ class DartservicesApi {
 
     _url = 'completeMulti';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new CompleteResponse.fromJson(data));
   }
 
@@ -366,13 +362,12 @@ class DartservicesApi {
 
     _url = 'counter';
 
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "GET",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new CounterResponse.fromJson(data));
   }
 
@@ -406,13 +401,12 @@ class DartservicesApi {
 
     _url = 'document';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new DocumentResponse.fromJson(data));
   }
 
@@ -431,7 +425,8 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  async.Future<DocumentResponse> documentGet({core.String source, core.int offset}) {
+  async.Future<DocumentResponse> documentGet(
+      {core.String source, core.int offset}) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -448,13 +443,12 @@ class DartservicesApi {
 
     _url = 'document';
 
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "GET",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new DocumentResponse.fromJson(data));
   }
 
@@ -487,13 +481,12 @@ class DartservicesApi {
 
     _url = 'fixes';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new FixesResponse.fromJson(data));
   }
 
@@ -529,13 +522,12 @@ class DartservicesApi {
 
     _url = 'fixes';
 
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "GET",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new FixesResponse.fromJson(data));
   }
 
@@ -568,13 +560,12 @@ class DartservicesApi {
 
     _url = 'fixesMulti';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new FixesResponse.fromJson(data));
   }
 
@@ -609,13 +600,12 @@ class DartservicesApi {
 
     _url = 'format';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new FormatResponse.fromJson(data));
   }
 
@@ -634,7 +624,8 @@ class DartservicesApi {
    * If the used [http.Client] completes with an error when making a REST call,
    * this method will complete with the same error.
    */
-  async.Future<FormatResponse> formatGet({core.String source, core.int offset}) {
+  async.Future<FormatResponse> formatGet(
+      {core.String source, core.int offset}) {
     var _url = null;
     var _queryParams = new core.Map();
     var _uploadMedia = null;
@@ -651,13 +642,12 @@ class DartservicesApi {
 
     _url = 'format';
 
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "GET",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new FormatResponse.fromJson(data));
   }
 
@@ -691,13 +681,12 @@ class DartservicesApi {
 
     _url = 'summarize';
 
-    var _response = _requester.request(_url,
-                                       "POST",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new SummaryText.fromJson(data));
   }
 
@@ -722,22 +711,17 @@ class DartservicesApi {
     var _downloadOptions = commons.DownloadOptions.Metadata;
     var _body = null;
 
-
     _url = 'version';
 
-    var _response = _requester.request(_url,
-                                       "GET",
-                                       body: _body,
-                                       queryParams: _queryParams,
-                                       uploadOptions: _uploadOptions,
-                                       uploadMedia: _uploadMedia,
-                                       downloadOptions: _downloadOptions);
+    var _response = _requester.request(_url, "GET",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
     return _response.then((data) => new VersionResponse.fromJson(data));
   }
-
 }
-
-
 
 class AnalysisIssue {
   core.int charLength;
@@ -745,8 +729,6 @@ class AnalysisIssue {
   core.bool hasFixes;
   core.String kind;
   core.int line;
-  /** deprecated - see `sourceName` */
-  core.String location;
   core.String message;
   core.String sourceName;
 
@@ -767,9 +749,6 @@ class AnalysisIssue {
     }
     if (_json.containsKey("line")) {
       line = _json["line"];
-    }
-    if (_json.containsKey("location")) {
-      location = _json["location"];
     }
     if (_json.containsKey("message")) {
       message = _json["message"];
@@ -796,9 +775,6 @@ class AnalysisIssue {
     if (line != null) {
       _json["line"] = line;
     }
-    if (location != null) {
-      _json["location"] = location;
-    }
     if (message != null) {
       _json["message"] = message;
     }
@@ -813,20 +789,17 @@ class AnalysisResults {
   core.List<AnalysisIssue> issues;
   /** The package imports parsed from the source. */
   core.List<core.String> packageImports;
-  /** The resolved imports - e.g. dart:async, dart:io, ... */
-  core.List<core.String> resolvedImports;
 
   AnalysisResults();
 
   AnalysisResults.fromJson(core.Map _json) {
     if (_json.containsKey("issues")) {
-      issues = _json["issues"].map((value) => new AnalysisIssue.fromJson(value)).toList();
+      issues = _json["issues"]
+          .map((value) => new AnalysisIssue.fromJson(value))
+          .toList();
     }
     if (_json.containsKey("packageImports")) {
       packageImports = _json["packageImports"];
-    }
-    if (_json.containsKey("resolvedImports")) {
-      resolvedImports = _json["resolvedImports"];
     }
   }
 
@@ -837,9 +810,6 @@ class AnalysisResults {
     }
     if (packageImports != null) {
       _json["packageImports"] = packageImports;
-    }
-    if (resolvedImports != null) {
-      _json["resolvedImports"] = resolvedImports;
     }
     return _json;
   }
@@ -853,7 +823,9 @@ class CandidateFix {
 
   CandidateFix.fromJson(core.Map _json) {
     if (_json.containsKey("edits")) {
-      edits = _json["edits"].map((value) => new SourceEdit.fromJson(value)).toList();
+      edits = _json["edits"]
+          .map((value) => new SourceEdit.fromJson(value))
+          .toList();
     }
     if (_json.containsKey("message")) {
       message = _json["message"];
@@ -1021,7 +993,9 @@ class FixesResponse {
 
   FixesResponse.fromJson(core.Map _json) {
     if (_json.containsKey("fixes")) {
-      fixes = _json["fixes"].map((value) => new ProblemAndFixes.fromJson(value)).toList();
+      fixes = _json["fixes"]
+          .map((value) => new ProblemAndFixes.fromJson(value))
+          .toList();
     }
   }
 
@@ -1100,7 +1074,9 @@ class ProblemAndFixes {
 
   ProblemAndFixes.fromJson(core.Map _json) {
     if (_json.containsKey("fixes")) {
-      fixes = _json["fixes"].map((value) => new CandidateFix.fromJson(value)).toList();
+      fixes = _json["fixes"]
+          .map((value) => new CandidateFix.fromJson(value))
+          .toList();
     }
     if (_json.containsKey("length")) {
       length = _json["length"];

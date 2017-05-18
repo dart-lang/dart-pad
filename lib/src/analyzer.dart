@@ -43,7 +43,6 @@ class Analyzer {
 
   Analyzer(this._sdkPath, {this.pub, this.strongMode: false}) {
     _reset();
-    analyze('');
   }
 
   void _reset() {
@@ -148,7 +147,6 @@ class Analyzer {
         packageImports.addAll(
             filterSafePackagesFromImports(getAllUnsafeImportsFor(source)));
       }
-      List<String> resolvedImports = _calculateImports(_context, sourcesList);
 
       // Delete the files
       changeSet = new ChangeSet();
@@ -162,8 +160,8 @@ class Analyzer {
       _context.applyChanges(changeSet);
       _ensureAnalysisDone(_context, _MAX_ANALYSIS_DURATION);
 
-      return new Future.value(new AnalysisResults(
-          issues, packageImports.toList(), resolvedImports));
+      return new Future.value(
+          new AnalysisResults(issues, packageImports.toList()));
     } catch (e, st) {
       _reset();
       return new Future.error(e, st);
@@ -187,6 +185,7 @@ class Analyzer {
     }
   }
 
+  @deprecated
   Future<Map<String, String>> dartdoc(String source, int offset) {
     try {
       var _source = new StringSource(source, kMainDart);
@@ -242,8 +241,6 @@ class Analyzer {
         // Only defined if there is an enclosing class.
         if (element.enclosingElement is ClassElement) {
           info['enclosingClassName'] = '${element.enclosingElement}';
-        } else {
-          info['enclosingClassName'] = null;
         }
 
         // Parameters for functions and methods.
@@ -306,25 +303,6 @@ class Analyzer {
     }
 
     return null;
-  }
-
-  /// Calculate the resolved imports for the given set of sources.
-  List<String> _calculateImports(
-      AnalysisContext context, List<Source> sources) {
-    Set<String> imports = new Set();
-
-    for (Source source in sources) {
-      LibraryElement element = context.getLibraryElement(source);
-
-      if (element != null) {
-        element.imports.forEach((ImportElement import) {
-          // The dart:core implicit import has a null uri.
-          if (import.uri != null) imports.add(import.uri);
-        });
-      }
-    }
-
-    return imports.toList();
   }
 
   // TODO(lukechurch): Determine whether we can change this in the Analyzer.

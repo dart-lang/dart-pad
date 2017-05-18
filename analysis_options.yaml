@@ -2,4 +2,10 @@ analyzer:
   strong-mode: true
 linter:
   rules:
+    - always_declare_return_types
+    # - annotate_overrides
+    - avoid_init_to_null
     - directives_ordering
+    - no_adjacent_strings_in_list
+    - package_api_docs
+    # - slash_for_doc_comments

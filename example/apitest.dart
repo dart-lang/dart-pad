@@ -35,7 +35,7 @@ void setupDartpadServices() {
   setupGistRetrieval();
 }
 
-_setupClients() {
+void _setupClients() {
   client = new utils.SanitizingBrowserClient();
   servicesApi = new services.DartservicesApi(client, rootUrl: _uriBase);
   _dartpadSupportApi =
@@ -250,10 +250,6 @@ CodeMirror createEditor(Element element, {String defaultText}) {
   editor.refresh();
   return editor;
 }
-//
-//String _printHeaders(Map m) {
-//  return m.keys.map((k) => '${k}: ${m[k]}').join('\n');
-//}
 
 String _formatTiming(Stopwatch sw) => "${sw.elapsedMilliseconds}ms\n";
 

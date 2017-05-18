@@ -47,7 +47,7 @@ bool dumpServerComms = false;
 OperationType lastExecuted;
 int lastOffset;
 
-main(List<String> args) async {
+Future main(List<String> args) async {
   if (args.length == 0) {
     print('''
 Usage: slow_test path_to_test_collection
@@ -119,7 +119,7 @@ Usage: slow_test path_to_test_collection
 /**
  * Init the tools, and warm them up
  */
-setupTools(String sdkPath) async {
+Future setupTools(String sdkPath) async {
   print("Executing setupTools");
   if (analysisServer != null) await analysisServer.shutdown();
 
@@ -135,6 +135,7 @@ setupTools(String sdkPath) async {
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
     ..addApi(server);
 
+  // TODO: We should driver both strong and non-strong modes in the fuzzer.
   analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
   await analysisServer.init();
 
@@ -155,7 +156,7 @@ setupTools(String sdkPath) async {
   print("SetupTools done");
 }
 
-testPath(
+Future testPath(
     String path,
     analysis_server.AnalysisServerWrapper wrapper,
     ana.Analyzer analyzer,
@@ -182,9 +183,8 @@ testPath(
         case "all":
           averageCompilationTime = await testCompilation(src, compiler);
           averageCompletionTime = await testCompletions(src, wrapper);
-          averageAnalysisTime =
-              await testAnalysis(src, analyzer, strongAnalyzer);
-          averageDocumentTime = await testDocument(src, analyzer);
+          averageAnalysisTime = await testAnalysis(src, wrapper);
+          averageDocumentTime = await testDocument(src, wrapper);
           averageFixesTime = await testFixes(src, wrapper);
           averageFormatTime = await testFormat(src);
           break;
@@ -193,12 +193,11 @@ testPath(
           averageCompletionTime = await testCompletions(src, wrapper);
           break;
         case "analyze":
-          averageAnalysisTime =
-              await testAnalysis(src, analyzer, strongAnalyzer);
+          averageAnalysisTime = await testAnalysis(src, wrapper);
           break;
 
         case "document":
-          averageDocumentTime = await testDocument(src, analyzer);
+          averageDocumentTime = await testDocument(src, wrapper);
           break;
 
         case "compile":
@@ -247,7 +246,7 @@ testPath(
 }
 
 Future<num> testAnalysis(
-    String src, ana.Analyzer analyzer, ana.Analyzer strongAnalyzer) async {
+    String src, analysis_server.AnalysisServerWrapper analysisServer) async {
   lastExecuted = OperationType.Analysis;
   Stopwatch sw = new Stopwatch()..start();
 
@@ -255,12 +254,12 @@ Future<num> testAnalysis(
   if (_SERVER_BASED_CALL)
     await withTimeOut(server.analyzeGet(source: src));
   else
-    await withTimeOut(analyzer.analyze(src));
+    await withTimeOut(analysisServer.analyze(src));
 
   if (_SERVER_BASED_CALL)
     await withTimeOut(server.analyzeGet(source: src, strongMode: true));
   else
-    await withTimeOut(strongAnalyzer.analyze(src));
+    await withTimeOut(analysisServer.analyze(src));
 
   if (_DUMP_PERF) print("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds / 2.0;
@@ -280,7 +279,8 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
   return sw.elapsedMilliseconds;
 }
 
-Future<num> testDocument(String src, ana.Analyzer analyzer) async {
+Future<num> testDocument(
+    String src, analysis_server.AnalysisServerWrapper analysisServer) async {
   lastExecuted = OperationType.Document;
   Stopwatch sw = new Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
@@ -291,7 +291,7 @@ Future<num> testDocument(String src, ana.Analyzer analyzer) async {
     if (_SERVER_BASED_CALL) {
       log(await withTimeOut(server.documentGet(source: src, offset: i)));
     } else {
-      log(await withTimeOut(analyzer.dartdoc(src, i)));
+      log(await withTimeOut(analysisServer.dartdoc(src, i)));
     }
     if (_DUMP_PERF) print("PERF: DOCUMENT: ${sw2.elapsedMilliseconds}");
   }
@@ -432,8 +432,10 @@ enum OperationType {
   Format
 }
 
-log(dynamic str) {
+final int termWidth = io.stdout.hasTerminal ? io.stdout.terminalColumns : 200;
+
+void log(dynamic obj) {
   if (_VERBOSE) {
-    print("${new DateTime.now()} $str");
+    print("${new DateTime.now()} $obj");
   }
 }

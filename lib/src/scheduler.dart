@@ -44,7 +44,7 @@ class TaskScheduler {
 
 // Internal unit of scheduling.
 class _Task {
-  final task;
+  final Task task;
   final Completer taskResult;
   _Task(this.task, this.taskResult);
 }

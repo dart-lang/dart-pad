@@ -15,11 +15,7 @@ class AnalysisResults {
   @ApiProperty(description: 'The package imports parsed from the source.')
   final List<String> packageImports;
 
-  @ApiProperty(
-      description: 'The resolved imports - e.g. dart:async, dart:io, ...')
-  final List<String> resolvedImports;
-
-  AnalysisResults(this.issues, this.packageImports, this.resolvedImports);
+  AnalysisResults(this.issues, this.packageImports);
 }
 
 class AnalysisIssue implements Comparable<AnalysisIssue> {
@@ -34,10 +30,7 @@ class AnalysisIssue implements Comparable<AnalysisIssue> {
   final int charLength;
 
   AnalysisIssue.fromIssue(this.kind, this.line, this.message,
-      {this.charStart,
-      this.charLength,
-      this.sourceName,
-      this.hasFixes: false});
+      {this.charStart, this.charLength, this.sourceName, this.hasFixes: false});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};

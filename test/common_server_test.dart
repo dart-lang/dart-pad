@@ -98,8 +98,8 @@ void defineTests() {
       var response = await _sendPostRequest('dartservices/v1/analyze', json);
       expect(response.status, 200);
       var data = await response.body.first;
-      expect(JSON.decode(UTF8.decode(data)),
-          {'issues': [], 'packageImports': [], 'resolvedImports': []});
+      expect(
+          JSON.decode(UTF8.decode(data)), {'issues': [], 'packageImports': []});
     });
 
     test('analyze errors', () async {
@@ -121,8 +121,7 @@ void defineTests() {
             "charLength": 1
           }
         ],
-        'packageImports': [],
-        'resolvedImports': []
+        'packageImports': []
       };
       expect(JSON.decode(UTF8.decode(data)), expectedJson);
     });
