@@ -143,8 +143,7 @@ class DocHandler {
 
     String apiLink = _dartApiLink(
         libraryName: libraryName,
-        enclosingClassName: info['enclosingClassName'],
-        memberName: info['name']);
+        enclosingClassName: info['enclosingClassName']);
 
     Future mdnCheck = new Future.value();
     if (!hasDartdoc && isHtmlLib && domName != null) {
@@ -171,8 +170,7 @@ ${libraryName == null ? '' : apiLink }\n\n''';
     });
   }
 
-  String _dartApiLink(
-      {String libraryName, String enclosingClassName, String memberName}) {
+  String _dartApiLink({String libraryName, String enclosingClassName}) {
     StringBuffer apiLink = new StringBuffer();
     if (libraryName != null) {
       if (libraryName.contains('dart:')) {
