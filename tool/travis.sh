@@ -8,8 +8,8 @@
 set -e
 
 # Install the bower and vulcanize.
-npm install -g bower
-npm install -g vulcanize
+# npm install -g bower
+# npm install -g vulcanize
 
 # Run the analyze/test/build script.
 dart tool/grind.dart buildbot
