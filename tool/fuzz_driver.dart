@@ -135,7 +135,8 @@ Future setupTools(String sdkPath) async {
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
     ..addApi(server);
 
-  analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath, true);
+  // TODO: We should driver both strong and non-strong modes in the fuzzer.
+  analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
   await analysisServer.init();
 
   print("Warming up analysis server");
@@ -435,10 +436,6 @@ final int termWidth = io.stdout.hasTerminal ? io.stdout.terminalColumns : 200;
 
 void log(dynamic obj) {
   if (_VERBOSE) {
-    String str = '${new DateTime.now()} $obj';
-    if (str.length > termWidth) {
-      str = str.substring(0, termWidth - 4) + '...';
-    }
-    print(str);
+    print("${new DateTime.now()} $obj");
   }
 }

@@ -79,8 +79,8 @@ class CommonServer {
     strongModeAnalyzer = new Analyzer(sdkPath, strongMode: true);
     analyzer = new Analyzer(sdkPath);
     compiler = new Compiler(sdkPath, pub);
-    analysisServer = new AnalysisServerWrapper(sdkPath, false);
-    analysisServerStrong = new AnalysisServerWrapper(sdkPath, true);
+    analysisServer = new AnalysisServerWrapper(sdkPath, strongMode: false);
+    analysisServerStrong = new AnalysisServerWrapper(sdkPath);
   }
 
   Future init() async {

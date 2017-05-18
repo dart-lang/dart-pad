@@ -54,7 +54,7 @@ void defineTests() {
 
   group('analysis_server', () {
     setUp(() async {
-      analysisServer = new AnalysisServerWrapper(sdkPath, true);
+      analysisServer = new AnalysisServerWrapper(sdkPath);
       await analysisServer.init();
     });
 
@@ -143,7 +143,7 @@ void defineTests() {
     test('analyze non strong', () async {
       await analysisServer.shutdown();
 
-      analysisServer = new AnalysisServerWrapper(sdkPath, false);
+      analysisServer = new AnalysisServerWrapper(sdkPath, strongMode: false);
       await analysisServer.init();
 
       AnalysisResults results = await analysisServer.analyze(sampleStrongError);
