@@ -20,7 +20,7 @@ import 'package:dart_services/src/compiler.dart' as comp;
 import 'package:rpc/rpc.dart';
 
 bool _SERVER_BASED_CALL = false;
-bool _VERBOSE = true;
+bool _VERBOSE = false;
 bool _DUMP_SRC = false;
 bool _DUMP_PERF = false;
 bool _DUMP_DELTA = false;
@@ -111,6 +111,11 @@ Usage: slow_test path_to_test_collection
       await setupTools(sdk);
     }
   }
+
+  print ("Shutting down");
+
+  await analysisServer.shutdown();
+  await server.shutdown();
 }
 
 /**
