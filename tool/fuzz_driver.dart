@@ -32,6 +32,7 @@ MockCache cache;
 MockRequestRecorder recorder;
 MockCounter counter;
 analysis_server.AnalysisServerWrapper analysisServer;
+analysis_server.AnalysisServerWrapper strongAnalysisServer;
 
 comp.Compiler compiler;
 
@@ -115,6 +116,7 @@ Usage: slow_test path_to_test_collection
   print ("Shutting down");
 
   await analysisServer.shutdown();
+  await strongAnalysisServer.shutdown();  
   await server.shutdown();
 }
 
@@ -123,7 +125,8 @@ Usage: slow_test path_to_test_collection
  */
 Future setupTools(String sdkPath) async {
   print("Executing setupTools");
-  if (analysisServer != null) await analysisServer.shutdown();
+  analysisServer?.shutdown();
+  strongAnalysisServer?.shutdown();
 
   print("SdKPath: $sdkPath");
 
@@ -137,12 +140,15 @@ Future setupTools(String sdkPath) async {
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
     ..addApi(server);
 
-  // TODO: We should drive both strong and non-strong modes in the fuzzer.
-  analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
+  analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath, strongMode: false);
+  strongAnalysisServer = new analysis_server.AnalysisServerWrapper(sdkPath, strongMode: true);
   await analysisServer.init();
+  await strongAnalysisServer.init();
 
   print("Warming up analysis server");
   await analysisServer.warmup();
+  await strongAnalysisServer.warmup();
+
 
   print("Warming up compiler");
   compiler = new comp.Compiler(sdkPath);
@@ -243,15 +249,13 @@ Future<num> testAnalysis(
   Stopwatch sw = new Stopwatch()..start();
 
   lastOffset = null;
-  if (_SERVER_BASED_CALL)
+  if (_SERVER_BASED_CALL) {
     await withTimeOut(server.analyzeGet(source: src));
-  else
-    await withTimeOut(analysisServer.analyze(src));
-
-  if (_SERVER_BASED_CALL)
     await withTimeOut(server.analyzeGet(source: src, strongMode: true));
-  else
+  } else {
     await withTimeOut(analysisServer.analyze(src));
+    await withTimeOut(strongAnalysisServer.analyze(src));
+  }
 
   if (_DUMP_PERF) print("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds / 2.0;
