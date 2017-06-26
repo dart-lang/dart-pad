@@ -318,7 +318,7 @@ class CommonServer {
 
     try {
       AnalysisServerWrapper server =
-          strongMode ? analysisServer : analysisServerStrong;
+          strongMode ?  analysisServerStrong : analysisServer;
       AnalysisResults results = await server.analyzeMulti(sources);
       int lineCount = sources.values
           .map((s) => s.split('\n').length)
