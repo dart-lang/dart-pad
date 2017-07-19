@@ -5,7 +5,7 @@ description: The server backend for a web based interactive Dart service.
 homepage: https://github.com/dart-lang/dart-services
 
 environment:
-  sdk: '>=1.0.0 <2.0.0'
+  sdk: '>=1.0.0 <2.0.0-dev.infinity'
 
 dependencies:
   analysis_server_lib: ^0.1.0
