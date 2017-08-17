@@ -36,7 +36,7 @@ class AnalyzerBenchmark extends Benchmark {
   AnalysisServerWrapper analysisServer;
 
   AnalyzerBenchmark(String name, this.source) : super('analyzer.${name}') {
-    analysisServer = new AnalysisServerWrapper(getSdkPath());
+    analysisServer = new AnalysisServerWrapper(sdkPath);
   }
 
   Future init() => analysisServer.init();
@@ -51,7 +51,7 @@ class Dart2jsBenchmark extends Benchmark {
   Compiler compiler;
 
   Dart2jsBenchmark(String name, this.source) : super('dart2js.${name}') {
-    compiler = new Compiler(getSdkPath());
+    compiler = new Compiler(sdkPath);
   }
 
   Future perform() {
@@ -67,7 +67,7 @@ class AnalysisServerBenchmark extends Benchmark {
 
   AnalysisServerBenchmark(String name, this.source)
       : super('completion.${name}') {
-    analysisServer = new AnalysisServerWrapper(getSdkPath());
+    analysisServer = new AnalysisServerWrapper(sdkPath);
   }
 
   Future init() => analysisServer.init();

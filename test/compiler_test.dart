@@ -14,8 +14,6 @@ void defineTests() {
   Compiler compiler;
 
   group('compiler', () {
-    String sdkPath = getSdkPath();
-
     setUp(() {
       compiler = new Compiler(sdkPath);
     });

@@ -5,6 +5,13 @@
 /// A dev-time only server; see `bin/server.dart` for the GAE server.
 library services.bin;
 
-import 'package:dart_services/services_dev.dart' as services_dev;
+import 'dart:async';
 
-void main(List<String> args) => services_dev.main(args);
+import 'package:dart_services/services_dev.dart' as services_dev;
+import 'package:dart_services/src/sdk_manager.dart';
+
+Future main(List<String> args) async {
+  await SdkManager.sdk.init();
+
+  services_dev.main(args);
+}

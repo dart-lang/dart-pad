@@ -50,8 +50,6 @@ void defineTests() {
   MockRequestRecorder recorder;
   MockCounter counter;
 
-  String sdkPath = getSdkPath();
-
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
     assert(apiServer != null);
     var uri = Uri.parse("/api/$path");

@@ -27,7 +27,7 @@ void main(List<String> args) {
   int gaePort = 8080;
   if (args.length > 0) gaePort = int.parse(args[0]);
 
-  String sdk = getSdkPath(args);
+  String sdk = sdkPath;
 
   if (sdk == null) {
     throw 'No Dart SDK is available; set the DART_SDK env var.';

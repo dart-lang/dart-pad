@@ -9,8 +9,6 @@ import 'package:dart_services/src/api_classes.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:test/test.dart';
 
-String sdkPath = getSdkPath();
-
 String completionCode = r'''
 void main() {
   int i = 0;

@@ -1,5 +1,7 @@
 analyzer:
   strong-mode: true
+  exclude:
+    - 'dart-sdk/**'
 linter:
   rules:
     - always_declare_return_types
