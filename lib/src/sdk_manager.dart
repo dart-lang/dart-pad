@@ -76,8 +76,13 @@ class DownloadingSdk extends Sdk {
       throw 'curl failed: ${result.exitCode}\n${result.stdout}\n${result
           .stderr}';
     }
+
+    Directory destDir = new Directory(path.dirname(sdkPath));
+    if (!destDir.existsSync()) {
+      destDir.createSync(recursive: true);
+    }
     result = await Process
-        .run('unzip', ['-o', '-q', destFile.path, '-d', path.dirname(sdkPath)]);
+        .run('unzip', ['-o', '-q', destFile.path, '-d', destDir.path]);
     if (result.exitCode != 0) {
       throw 'unzip failed: ${result.exitCode}\n${result.stdout}\n${result
           .stderr}';
