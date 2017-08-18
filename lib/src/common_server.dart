@@ -67,21 +67,24 @@ class CommonServer {
   AnalysisServerWrapper analysisServer;
   AnalysisServerWrapper analysisServerStrong;
 
-  CommonServer(String sdkPath, this.container, this.cache,
+  String sdkPath;
+
+  CommonServer(String this.sdkPath, this.container, this.cache,
       this.srcRequestRecorder, this.counter) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
+  }
 
+  Future init() async {
     pub = enablePackages ? new Pub() : new Pub.mock();
     compiler = new Compiler(sdkPath, pub);
     analysisServer = new AnalysisServerWrapper(sdkPath, strongMode: false);
     analysisServerStrong = new AnalysisServerWrapper(sdkPath);
-  }
 
-  Future init() async {
     await analysisServer.init();
     // If the analysis server dies, we exit with the same code.
     analysisServer.onExit.then((int code) {
+      _logger.severe('analysisServerStrong exited, code: $code');
       if (code != 0) {
         exit(code);
       }
@@ -89,6 +92,7 @@ class CommonServer {
 
     await analysisServerStrong.init();
     analysisServerStrong.onExit.then((int code) {
+      _logger.severe('analysisServerStrong exited, code: $code');
       if (code != 0) {
         exit(code);
       }
@@ -99,6 +103,17 @@ class CommonServer {
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
     await analysisServerStrong.warmup(useHtml: useHtml);
+  }
+
+  Future restart() async {
+    _logger.warning('Restarting CommonServer');
+    await shutdown();
+    _logger.info('Analysis Servers shutdown');
+
+    await init();
+    await warmup();
+
+    _logger.warning('Restart complete');
   }
 
   Future shutdown() {
@@ -318,7 +333,7 @@ class CommonServer {
 
     try {
       AnalysisServerWrapper server =
-          strongMode ?  analysisServerStrong : analysisServer;
+          strongMode ? analysisServerStrong : analysisServer;
       AnalysisResults results = await server.analyzeMulti(sources);
       int lineCount = sources.values
           .map((s) => s.split('\n').length)
@@ -330,6 +345,7 @@ class CommonServer {
       return results;
     } catch (e, st) {
       _logger.severe('Error during analyze', e, st);
+      await restart();
       throw e;
     }
   }
@@ -418,6 +434,7 @@ class CommonServer {
       return new DocumentResponse(docInfo);
     } catch (e, st) {
       _logger.severe('Error during dartdoc', e, st);
+      await restart();
       rethrow;
     }
   }
@@ -458,14 +475,20 @@ class CommonServer {
     _logger.info("About to COMPLETE-v1: ${_hashSource(sourceJson)}");
 
     counter.increment("Completions");
-    var response = await analysisServerStrong.completeMulti(
-        sources,
-        new Location()
-          ..sourceName = sourceName
-          ..offset = offset);
-    _logger
-        .info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
-    return response;
+    try {
+      var response = await analysisServerStrong.completeMulti(
+          sources,
+          new Location()
+            ..sourceName = sourceName
+            ..offset = offset);
+      _logger.info(
+          'PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
+      return response;
+    } catch (e, st) {
+      _logger.severe('Error during _complete', e, st);
+      await restart();
+      rethrow;
+    }
   }
 
   Future<FixesResponse> _fixes(String source, int offset) async {
