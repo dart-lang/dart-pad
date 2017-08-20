@@ -18,6 +18,7 @@ import 'api_classes.dart';
 import 'common.dart';
 import 'compiler.dart';
 import 'pub.dart';
+import 'sdk_manager.dart';
 import 'summarize.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
@@ -28,7 +29,9 @@ final bool enablePackages = false;
 
 abstract class ServerCache {
   Future<String> get(String key);
+
   Future set(String key, String value, {Duration expiration});
+
   Future remove(String key);
 }
 
@@ -37,7 +40,7 @@ abstract class ServerContainer {
 }
 
 /**
- * Define a seperate class for source recording to provide a clearly
+ * Define a separate class for source recording to provide a clearly
  * defined schema
  */
 abstract class SourceRequestRecorder {
@@ -46,11 +49,13 @@ abstract class SourceRequestRecorder {
 
 class SummaryText {
   String text;
+
   SummaryText.fromString(String this.text);
 }
 
 abstract class PersistentCounter {
   Future increment(String name, {int increment: 1});
+
   Future<int> getTotal(String name);
 }
 
@@ -318,7 +323,7 @@ class CommonServer {
 
     try {
       AnalysisServerWrapper server =
-          strongMode ?  analysisServerStrong : analysisServer;
+          strongMode ? analysisServerStrong : analysisServer;
       AnalysisResults results = await server.analyzeMulti(sources);
       int lineCount = sources.values
           .map((s) => s.split('\n').length)
@@ -423,8 +428,8 @@ class CommonServer {
   }
 
   VersionResponse _version() => new VersionResponse(
-      sdkVersion: compiler.version,
-      sdkVersionFull: compiler.versionFull,
+      sdkVersion: SdkManager.sdk.version,
+      sdkVersionFull: SdkManager.sdk.versionFull,
       runtimeVersion: vmVersion,
       servicesVersion: servicesVersion,
       appEngineVersion: container.version);
