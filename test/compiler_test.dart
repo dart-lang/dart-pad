@@ -85,6 +85,41 @@ void foo(String bar) { print(bar); }
       });
     });
 
+    test('good import', () {
+      final String code = '''
+import 'dart:html';
+
+void main() {
+  var count = querySelector('#count');
+  print('hello');
+}
+
+''';
+      return compiler.compile(code).then((CompilationResults result) {
+        expect(result.problems.length, 0);
+      });
+    });
+
+    test('bad import - local', () {
+      final String code = '''
+import 'foo.dart';
+void main() { missingMethod ('foo'); }
+''';
+      return compiler.compile(code).then((CompilationResults result) {
+        expect(result.problems.first.message == BAD_IMPORT_ERROR_MSG, true);
+      });
+    });
+
+    test('bad import - http', () {
+      final String code = '''
+import 'http://example.com';
+void main() { missingMethod ('foo'); }
+''';
+      return compiler.compile(code).then((CompilationResults result) {
+        expect(result.problems.first.message == BAD_IMPORT_ERROR_MSG, true);
+      });
+    });
+
     test('allow complier warnings', () async {
       CompilationResults result = await compiler.compile(sampleCodeErrors);
       expect(result.success, true);
