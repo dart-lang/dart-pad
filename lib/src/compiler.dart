@@ -18,6 +18,9 @@ import 'pub.dart';
 
 Logger _logger = new Logger('compiler');
 
+const BAD_IMPORT_ERROR_MSG =
+    "Imports other than dart: are not supported on Dartpad";
+
 /**
  * An interface to the dart2js compiler. A compiler object can process one
  * compile at a time.
@@ -27,6 +30,11 @@ class Compiler {
   final Pub pub;
 
   Compiler(this.sdkPath, [this.pub]);
+
+  bool importsOkForCompile(String dartSource) {
+    Set<String> imports = getAllUnsafeImportsFor(dartSource);
+    return imports.every((import) => import.startsWith("dart:"));
+  }
 
   /// The version of the SDK this copy of dart2js is based on.
   String get version {
@@ -44,6 +52,13 @@ class Compiler {
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(String input,
       {bool useCheckedMode: false, bool returnSourceMap: false}) async {
+    if (!importsOkForCompile(input)) {
+      var failedResults = new CompilationResults();
+      failedResults.problems
+          .add(new CompilationProblem._(BAD_IMPORT_ERROR_MSG));
+      return new Future.value(failedResults);
+    }
+
     // ignore: unused_local_variable
     PubHelper pubHelper;
     if (pub != null) {
