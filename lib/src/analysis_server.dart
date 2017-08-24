@@ -31,6 +31,7 @@ final Duration _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 35);
 
 class AnalysisServerWrapper {
   final String sdkPath;
+
   Future _init;
   Directory sourceDirectory;
   String mainPath;
@@ -61,9 +62,11 @@ class AnalysisServerWrapper {
         if (dumpServerMessages) _logger.info('--> $str');
       }
 
-      _init = AnalysisServer
-          .create(onRead: onRead, onWrite: onWrite)
-          .then((AnalysisServer server) async {
+      _init = AnalysisServer.create(
+        onRead: onRead,
+        onWrite: onWrite,
+        serverArgs: ['--client-id=DartPad', '--client-version=${_sdkVersion}'],
+      ).then((AnalysisServer server) async {
         analysisServer = server;
         analysisServer.server.onError.listen((ServerError error) {
           _logger.severe('server error${error.isFatal ? ' (fatal)' : ''}',
@@ -86,6 +89,10 @@ class AnalysisServerWrapper {
     }
 
     return _init;
+  }
+
+  String get _sdkVersion {
+    return new File(path.join(sdkPath, 'version')).readAsStringSync().trim();
   }
 
   Future<int> get onExit {
