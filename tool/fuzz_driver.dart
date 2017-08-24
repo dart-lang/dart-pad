@@ -66,7 +66,7 @@ Usage: slow_test path_to_test_collection
   if (args.length >= 4) iterations = int.parse(args[3]);
   if (args.length >= 5) commandToRun = args[4];
   if (args.length >= 6) dumpServerComms = args[5].toLowerCase() == "true";
-  String sdk = getSdkPath();
+  String sdk = sdkPath;
 
   // Load the list of files.
   var fileEntities = [];

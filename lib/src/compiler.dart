@@ -37,13 +37,7 @@ class Compiler {
   }
 
   /// The version of the SDK this copy of dart2js is based on.
-  String get version {
-    String ver = versionFull;
-    if (ver.contains('-')) ver = ver.substring(0, ver.indexOf('-'));
-    return ver;
-  }
-
-  String get versionFull =>
+  String get version =>
       new File(path.join(sdkPath, 'version')).readAsStringSync().trim();
 
   Future warmup({bool useHtml: false}) =>

@@ -19,6 +19,10 @@ void analyze() {
 }
 
 @Task()
+void init() => Dart.run('bin/update_sdk.dart');
+
+@Task()
+@Depends(init)
 Future test() => new TestRunner().testAsync();
 
 @DefaultTask()

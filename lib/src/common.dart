@@ -6,7 +6,7 @@ library services.common;
 
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
+import 'sdk_manager.dart';
 
 final String kMainDart = 'main.dart';
 
@@ -115,12 +115,4 @@ String stripMatchingQuotes(String str) {
   return str;
 }
 
-String getSdkPath([List<String> args]) {
-  // Look for --dart-sdk on the command line.
-  if (args != null && args.contains('--dart-sdk')) {
-    return args[args.indexOf('--dart-sdk') + 1];
-  }
-
-  // Look relative to the dart executable.
-  return path.dirname(path.dirname(Platform.resolvedExecutable));
-}
+String get sdkPath => SdkManager.sdk.sdkPath;

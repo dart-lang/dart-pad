@@ -25,7 +25,6 @@ Logger _logger = new Logger('services');
 void main(List<String> args) {
   var parser = new ArgParser();
   parser.addOption('port', abbr: 'p', defaultsTo: '8080');
-  parser.addOption('dart-sdk');
   parser.addFlag('discovery');
   parser.addFlag('relay');
   parser.addOption('server-url', defaultsTo: 'http://localhost');
@@ -36,7 +35,7 @@ void main(List<String> args) {
     exit(1);
   });
 
-  String sdk = getSdkPath(args);
+  String sdk = sdkPath;
 
   void printExit(String doc) {
     print(doc);
