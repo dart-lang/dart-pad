@@ -4,6 +4,7 @@ FROM google/dart-runtime:1.24.2
 # docker image diff small.
 RUN apt-get update && \
     apt-get install -y memcached && \
+    apt-get install -y unzip && \
     rm -rf /var/lib/apt/lists/*
 
 # Clear out any arguments the base images might have set and ensure we start
