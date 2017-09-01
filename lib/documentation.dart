@@ -145,7 +145,7 @@ class DocHandler {
         libraryName: libraryName,
         enclosingClassName: info['enclosingClassName']);
 
-    Future mdnCheck = new Future.value();
+    Future<String> mdnCheck = new Future.value();
     if (!hasDartdoc && isHtmlLib && domName != null) {
       mdnCheck = createMdnMarkdownLink(domName);
     }

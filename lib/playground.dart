@@ -655,7 +655,7 @@ class Playground implements GistContainer, GistController {
 
     Lines lines = new Lines(input.source);
 
-    Future request = dartServices.analyze(input).timeout(serviceCallTimeout);
+    Future<AnalysisResults> request = dartServices.analyze(input).timeout(serviceCallTimeout);
     _analysisRequest = request;
 
     return request.then((AnalysisResults result) {
@@ -706,7 +706,7 @@ class Playground implements GistContainer, GistController {
     SourceRequest input = new SourceRequest()..source = originalSource;
     formatButton.disabled = true;
 
-    Future request = dartServices.format(input).timeout(serviceCallTimeout);
+    Future<FormatResponse> request = dartServices.format(input).timeout(serviceCallTimeout);
     return request.then((FormatResponse result) {
       busyLight.reset();
       formatButton.disabled = false;

@@ -7,9 +7,9 @@
 # Fast fail the script on failures.
 set -e
 
-# Install the bower and vulcanize.
+# Install bower and vulcanize.
 # npm install -g bower
-# npm install -g vulcanize
+npm install -g vulcanize
 
 # Run the analyze/test/build script.
 dart tool/grind.dart buildbot
