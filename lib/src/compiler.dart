@@ -101,7 +101,6 @@ class Compiler {
       if (result.exitCode != 0) {
         CompilationResults results = new CompilationResults();
         results._problems.add(new CompilationProblem._(result.stdout));
-        results._problems.add(new CompilationProblem._(result.stderr));
         return results;
       } else {
         CompilationResults results = new CompilationResults();
