@@ -80,12 +80,12 @@ build() {
 
   // Run vulcanize.
   // Imports vulcanized, not inlined for IE support
-  vulcanizeNoExclusion('scripts/imports.html');
+/*  vulcanizeNoExclusion('scripts/imports.html');
   vulcanize('mobile.html');
   vulcanize('index.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
-  vulcanize('embed-inline.html');
+  vulcanize('embed-inline.html'); */
 
   return _uploadCompiledStats(
       mainFile.asFile.lengthSync(), mobileFile.asFile.lengthSync());
