@@ -203,7 +203,6 @@ class AnalysisCompletion implements Comparable {
   String get type =>
       _map.containsKey('element') ? _map['element']['kind'] : kind;
 
-  // TODO: Changed from `contains` to `startsWith`; see #211.
   bool matchesCompletionFragment(String completionFragment) =>
       text.toLowerCase().startsWith(completionFragment.toLowerCase());
 

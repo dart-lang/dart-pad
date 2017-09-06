@@ -147,7 +147,6 @@ ${styleRef}${dartRef}  </head>
             summary: gist.summary,
             withLink: _dartpadLink));
     gist.files.add(readmeFile);
-    // TODO: Write out a reasonable pubspec.yaml for this gist.
   };
 
   final GistFilterHook afterLoadHook;

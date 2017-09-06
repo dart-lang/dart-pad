@@ -313,10 +313,6 @@ class _CodeMirrorDocument extends Document {
   }
 
   void setAnnotations(List<Annotation> annotations) {
-    // TODO: Codemirror lint has no support for info markers - contribute some?
-//    CodeMirror cm = parent.cm;
-//    cm.clearGutter(_gutterId);
-
     for (TextMarker marker in doc.getAllMarks()) {
       marker.clear();
     }
