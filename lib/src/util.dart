@@ -34,15 +34,14 @@ class PermissiveNodeValidator implements NodeValidator {
  * 'About DartPad' (or equivalent).
  */
 final String privacyText = '''
-DartPad is a free, open-source service to help developers learn about the Dart
-language and libraries. Source code entered into DartPad may be sent to servers
-running in Google Cloud Platform to be analyzed for errors/warnings, compiled to
-JavaScript, and returned to the browser.
+DartPad is a free, open-source service to help developers learn about the Dart 
+language and libraries. Source code entered into DartPad may be sent to servers 
+running in Google Cloud Platform to be analyzed for errors/warnings, compiled 
+to JavaScript, and returned to the browser.
 <br><br>
-Source code entered into DartPad may be stored, processed, and aggregated in
-order to improve the user experience of DartPad and other Dart tools. For
-example, we may use the source code to help offer better code completion
-suggestions. The raw source code is deleted after 6 months.
+Source code entered into DartPad may be stored indefinitely, processed, and 
+aggregated in order to improve the user experience. For example, we may use 
+the source code to help offer better code completion suggestions.
 <br><br>
 Learn more about Google's
 <a href="http://www.google.com/policies/privacy/" target="policy">privacy policy</a>.
