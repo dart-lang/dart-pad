@@ -83,6 +83,7 @@ class Compiler {
 
       // Due to an issue with the VM we need to use the Dart2JS instance from
       // the image, not from the downloaded SDK
+      // TODO(#327): Use the compiler from the downloaded SDK
 
       final dartPath =  Platform.resolvedExecutable;
 
