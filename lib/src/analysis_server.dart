@@ -62,7 +62,7 @@ class AnalysisServerWrapper {
         if (dumpServerMessages) _logger.info('--> $str');
       }
 
-      final serverArgs = [
+      List<String> serverArgs = <String>[
         '--dartpad',
         '--client-id=DartPad',
         '--client-version=${_sdkVersion}'
