@@ -62,11 +62,21 @@ class AnalysisServerWrapper {
         if (dumpServerMessages) _logger.info('--> $str');
       }
 
-      _init = AnalysisServer.create(
+      List<String> serverArgs = <String>[
+        '--dartpad',
+        '--client-id=DartPad',
+        '--client-version=${_sdkVersion}'
+      ];
+      _logger.info("About to start with server with args: $serverArgs");
+
+      _init = AnalysisServer
+          .create(
         onRead: onRead,
         onWrite: onWrite,
-        serverArgs: ['--client-id=DartPad', '--client-version=${_sdkVersion}'],
-      ).then((AnalysisServer server) async {
+        sdkPath: sdkPath,
+        serverArgs: serverArgs,
+      )
+          .then((AnalysisServer server) async {
         analysisServer = server;
         analysisServer.server.onError.listen((ServerError error) {
           _logger.severe('server error${error.isFatal ? ' (fatal)' : ''}',
