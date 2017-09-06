@@ -73,19 +73,35 @@ class Compiler {
       arguments.add('-o${kMainDart}.js');
       arguments.add(kMainDart);
 
-      File mainDart = new File(path.join(temp.path, kMainDart));
+      String compileTarget = path.join(temp.path, kMainDart);
+      File mainDart = new File(compileTarget);
       mainDart.writeAsStringSync(input);
 
       File mainJs = new File(path.join(temp.path, '${kMainDart}.js'));
       File mainSourceMap =
           new File(path.join(temp.path, '${kMainDart}.js.map'));
 
+      // Due to an issue with the VM we need to use the Dart2JS instance from
+      // the image, not from the downloaded SDK
+
+      final dartPath =  Platform.resolvedExecutable;
+
+      // dart2js is next to dart
+      List<String> dart2JsPathParts = path.split(dartPath)
+        ..removeLast()
+        ..add("dart2js");
+
+      final dart2JSPath = path.joinAll(dart2JsPathParts);
+      _logger.info('About to exec: $dart2JSPath $arguments');
+
       ProcessResult result = Process.runSync(
-          path.join(sdkPath, 'bin', 'dart2js'), arguments,
+          dart2JSPath, arguments,
           workingDirectory: temp.path);
+
       if (result.exitCode != 0) {
         CompilationResults results = new CompilationResults();
         results._problems.add(new CompilationProblem._(result.stdout));
+        results._problems.add(new CompilationProblem._(result.stderr));
         return results;
       } else {
         CompilationResults results = new CompilationResults();
@@ -95,9 +111,11 @@ class Compiler {
         }
         return results;
       }
+    } catch (e, st) {
+      _logger.warning("Compiler failed: $e /n $st");
     } finally {
       temp.deleteSync(recursive: true);
-      _logger.info('temp file removed: ${temp.path}');
+      _logger.info('temp folder removed: ${temp.path}');
     }
   }
 }
