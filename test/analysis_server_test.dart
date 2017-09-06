@@ -86,6 +86,30 @@ void defineTests() {
       });
     });
 
+    test('import_test', () {
+      String testCode = "import '/'; main() { int a = 0; a. }";
+
+      //Just after i.
+      return analysisServer
+          .complete(testCode, 9)
+          .then((CompleteResponse results) {
+        expect(results.completions.every((Map<String, String> completion) {
+          return completion["completion"].startsWith("dart:");
+        }), true);
+      });
+    });
+
+    test('import_and_other_test', () {
+      String testCode = "import '/'; main() { int a = 0; a. }";
+
+      //Just after i.
+      return analysisServer
+          .complete(testCode, 34)
+          .then((CompleteResponse results) {
+        expect(completionsContains(results, "abs"), true);
+      });
+    });
+
     test('simple_quickFix', () {
       //Just after i.
       return analysisServer
