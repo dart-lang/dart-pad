@@ -408,7 +408,7 @@ class CommonServer {
             await setCache(memCacheKey, cachedResult);
             return new CompileResponse(out, sourceMap);
           } else {
-            List problems = results.problems;
+            List<CompilationProblem> problems = results.problems;
             String errors = problems.map(_printCompileProblem).join('\n');
             throw new BadRequestError(errors);
           }
