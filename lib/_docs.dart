@@ -19,8 +19,6 @@ import 'services/execution_iframe.dart';
 EventBus _bus = new EventBus();
 ModuleManager modules = new ModuleManager();
 
-// TODO: add an 'explore' button
-
 Future _initModules() {
   modules.register(new DartPadModule());
   modules.register(new DartServicesModule());
