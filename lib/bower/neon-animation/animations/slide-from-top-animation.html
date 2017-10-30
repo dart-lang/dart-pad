@@ -13,15 +13,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../web-animations.html">
 
 <!--
-`<scale-down-animation>` animates the scale transform of an element from 1 to 0. By default it
-scales in both the x and y axes.
+`<slide-from-top-animation>` animates the transform of an element from `translateY(-100%)` to
+`none`. The `transformOrigin` defaults to `50% 0`.
 
 Configuration:
 ```
 {
-  name: 'scale-down-animation',
+  name: 'slide-from-top-animation',
   node: <node>,
-  axis: 'x' | 'y' | '',
   transformOrigin: <transform-origin>,
   timing: <animation-timing>
 }
@@ -32,7 +31,7 @@ Configuration:
 
   Polymer({
 
-    is: 'scale-down-animation',
+    is: 'slide-from-top-animation',
 
     behaviors: [
       Polymer.NeonAnimationBehavior
@@ -41,20 +40,15 @@ Configuration:
     configure: function(config) {
       var node = config.node;
 
-      var scaleProperty = 'scale(0, 0)';
-      if (config.axis === 'x') {
-        scaleProperty = 'scale(0, 1)';
-      } else if (config.axis === 'y') {
-        scaleProperty = 'scale(1, 0)';
-      }
-
       this._effect = new KeyframeEffect(node, [
-        {'transform': 'scale(1,1)'},
-        {'transform': scaleProperty}
+        {'transform': 'translateY(-100%)'},
+        {'transform': 'translateY(0%)'}
       ], this.timingFromConfig(config));
 
       if (config.transformOrigin) {
         this.setPrefixedProperty(node, 'transformOrigin', config.transformOrigin);
+      } else {
+        this.setPrefixedProperty(node, 'transformOrigin', '50% 0');
       }
 
       return this._effect;

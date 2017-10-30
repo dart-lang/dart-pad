@@ -44,15 +44,20 @@
     paper-fab + paper-fab {
       margin-left: 8px;
     }
+
+    .red {
+      background-color: #f44336;
+    }
   </style>
   <style is="custom-style">
-    paper-fab.grey {
+    .grey {
       --paper-fab-background: var(--paper-grey-500);
       --paper-fab-keyboard-focus-background: var(--paper-grey-900);
     }
-    paper-fab.red {
+    .red {
       --paper-fab-background: var(--paper-red-500);
       --paper-fab-keyboard-focus-background: var(--paper-red-900);
+      --paper-fab-disabled-background: var(--paper-red-500);
     }
   </style>
   <template>
@@ -81,11 +86,16 @@
     paper-fab + paper-fab {
       margin-left: 8px;
     }
+
+    .red {
+      background-color: #f44336;
+    }
   </style>
   <style is="custom-style">
-    paper-fab.red {
+    .red {
       --paper-fab-background: var(--paper-red-500);
       --paper-fab-keyboard-focus-background: var(--paper-red-900);
+      --paper-fab-disabled-background: var(--paper-red-500);
     }
   </style>
   <template>
@@ -261,6 +271,7 @@
     }
 
     #exportDialog {
+      max-height: fit-content;
       background-color: #333;
       color: #c6c6c6;
     }
@@ -277,14 +288,11 @@
   <template>
     <paper-dialog id="exportDialog" heading="Export" entry-animation="scale-up-animation" exit-animation="fade-out-animation">
       <h2>Open in DartPad</h2>
-      <br>
-      <paper-dialog-scrollable>
-        <div class="guide-text">
-          Open this sample in DartPad? View our export
-          <a id="export-guide" onclick="window.open('https://github.com/dart-lang/dart-pad/wiki/Exporting-Guide');">guide</a>
-          for help.
-        </div>
-      </paper-dialog-scrollable>
+      <p>
+        Open this sample in DartPad? View our export
+        <a id="export-guide" onclick="window.open('https://github.com/dart-lang/dart-pad/wiki/Exporting-Guide');">guide</a>
+        for help.
+      </p>
 
       <div class="buttons">
         <paper-button dialog-dismiss id="cancelExportButton">Cancel</paper-button>
