@@ -337,8 +337,9 @@ class PlaygroundMobile {
       ..dart = context.dartSource;
     Future<UuidContainer> id = dartSupportServices.export(exportObject);
     id.then((UuidContainer container) {
+      bool strongMode = (querySelector('#strongmode') as InputElement).checked;
       exportWindow.location.href =
-          '$webURL/index.html?export=${container.uuid}';
+          '$webURL/index.html?export=${container.uuid}&strong=${strongMode}';
     });
   }
 
