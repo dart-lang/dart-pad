@@ -97,7 +97,7 @@ class PlaygroundMobile {
   }
 
   /**
-   * Return if strong mode should be enabled
+   * Return true if strong mode should be enabled
    */
   bool _parseStrongModeParam(String strongModeValueString) {
     if (strongModeValueString == null) return false;
@@ -107,7 +107,7 @@ class PlaygroundMobile {
   /**
    * Update query parameters for strong mode
    */
-  void showStrong() {
+  void setStrongModeFromUri() {
     Uri url = Uri.parse(window.location.toString());
     String strong = url.queryParameters['strong'];
     if (_parseStrongModeParam(strong)) {
@@ -157,7 +157,7 @@ class PlaygroundMobile {
   }
 
   void registerStrongMode() {
-    showStrong();
+    setStrongModeFromUri();
     querySelector('#strongmode').onChange.listen((e) {
       _performAnalysis();
     });
