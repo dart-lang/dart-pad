@@ -174,9 +174,7 @@ class Playground implements GistContainer, GistController {
       });
     });
 
-    querySelector('#strongmode').onChange.listen((e) {
-      _performAnalysis();
-    });
+    registerStrongMode();
 
     _initModules().then((_) {
       _initPlayground();
@@ -191,6 +189,32 @@ class Playground implements GistContainer, GistController {
     // the Dart source from).
     Timer.run(() => _performAnalysis());
     _clearOutput();
+  }
+
+  /**
+   * Return true if strong mode should be enabled
+   */
+  bool _parseStrongModeParam(String strongModeValueString) {
+    if (strongModeValueString == null) return false;
+    return (strongModeValueString == 'true' || strongModeValueString == 't');
+  }
+
+  /**
+   * Update query parameters for strong mode
+   */
+  void setStrongModeFromUri() {
+    Uri url = Uri.parse(window.location.toString());
+    String strong = url.queryParameters['strong'];
+    if (_parseStrongModeParam(strong)) {
+      (querySelector('#strongmode') as InputElement).checked = true;
+    }
+  }
+
+  void registerStrongMode() {
+    setStrongModeFromUri();
+    querySelector('#strongmode').onChange.listen((e) {
+      _performAnalysis();
+    });
   }
 
   Future showHome(RouteEnterEvent event) async {
