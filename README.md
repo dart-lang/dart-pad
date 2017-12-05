@@ -1,6 +1,6 @@
 # Dart Services
 
-A server backend to support interactive Dart services.
+A server backend to support DartPad.
 
 [![Build Status](https://travis-ci.org/dart-lang/dart-services.svg?branch=master)](https://travis-ci.org/dart-lang/dart-services)
 [![Coverage Status](https://coveralls.io/repos/dart-lang/dart-services/badge.svg?branch=master)](https://coveralls.io/r/dart-lang/dart-services?branch=master)
@@ -8,32 +8,10 @@ A server backend to support interactive Dart services.
 
 ## What is it? What does it do?
 
-This project is a small, stateless Dart server, which exposes a RESTful API.
-The API provides services to:
-
-- analyze Dart code for errors and warnings (`/api/dartservices/v1/analyze`)
-- compile Dart code (`/api/dartservices/v1/compile`)
-- perform code completion for a snippet of Dart code (`/api/dartservices/v1/complete`)
-- get dartdoc tooltip information for a snippet of Dart code (`/api/dartservices/v1/document`)
-- format Dart code (`/api/dartservices/v1/format`)
-- get quick fixes for problems in code (`/api/dartservices/v1/fixes`)
-
-## Try it!
-
-A simple DartPad example of how to use the library is here:
-https://dartpad.dartlang.org/2a7fd9328e0a567ee79b
-
-## Project status
-
-The services APIs are running and available to use. Please give it a try! We may
-still amend them from time to time in a way that causes breaking changes. If you
-would like to make sure we discuss this with you first, please get in touch to
-let us know.
-
-## The API
-
-The discovery doc for the server's REST API is available here:
-http://dart-services.appspot.com/api/discovery/v1/apis/dartservices/v1/rest.
+This project is a small, stateless Dart server, which powers the front-end of DartPad.
+It provides many of DartPad's features, including static analysis (errors and warnings),
+compilation to JavaScript, code completion, dartdoc information, code formatting, and
+quick fixes for issues.
 
 ## Running
 
