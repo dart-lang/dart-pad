@@ -85,7 +85,7 @@ class Compiler {
       // the image, not from the downloaded SDK
       // TODO(#327): Use the compiler from the downloaded SDK
 
-      final dartPath =  Platform.resolvedExecutable;
+      final dartPath = Platform.resolvedExecutable;
 
       // dart2js is next to dart
       List<String> dart2JsPathParts = path.split(dartPath)
@@ -95,9 +95,8 @@ class Compiler {
       final dart2JSPath = path.joinAll(dart2JsPathParts);
       _logger.info('About to exec: $dart2JSPath $arguments');
 
-      ProcessResult result = Process.runSync(
-          dart2JSPath, arguments,
-          workingDirectory: temp.path);
+      ProcessResult result =
+          Process.runSync(dart2JSPath, arguments, workingDirectory: temp.path);
 
       if (result.exitCode != 0) {
         CompilationResults results = new CompilationResults();

@@ -178,8 +178,7 @@ class Pub {
    */
   Future _populatePackage(
       PackageInfo package, Directory cacheDir, Directory target) {
-    final String base =
-        'https://storage.googleapis.com/pub-packages/packages';
+    final String base = 'https://storage.googleapis.com/pub-packages/packages';
 
     // tuneup-0.0.1.tar.gz
     String tgzName = '${package.name}-${package.version}.tar.gz';

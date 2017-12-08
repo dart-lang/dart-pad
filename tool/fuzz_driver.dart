@@ -102,8 +102,7 @@ Usage: slow_test path_to_test_collection
 
       random = new Random(seed);
       seed++;
-      await testPath(
-          fse.path, analysisServer, compiler);
+      await testPath(fse.path, analysisServer, compiler);
     } catch (e) {
       print(e);
       print("FAILED: ${fse.path}");
@@ -113,10 +112,10 @@ Usage: slow_test path_to_test_collection
     }
   }
 
-  print ("Shutting down");
+  print("Shutting down");
 
   await analysisServer.shutdown();
-  await strongAnalysisServer.shutdown();  
+  await strongAnalysisServer.shutdown();
   await server.shutdown();
 }
 
@@ -140,8 +139,10 @@ Future setupTools(String sdkPath) async {
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
     ..addApi(server);
 
-  analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath, strongMode: false);
-  strongAnalysisServer = new analysis_server.AnalysisServerWrapper(sdkPath, strongMode: true);
+  analysisServer =
+      new analysis_server.AnalysisServerWrapper(sdkPath, strongMode: false);
+  strongAnalysisServer =
+      new analysis_server.AnalysisServerWrapper(sdkPath, strongMode: true);
   await analysisServer.init();
   await strongAnalysisServer.init();
 
@@ -149,16 +150,13 @@ Future setupTools(String sdkPath) async {
   await analysisServer.warmup();
   await strongAnalysisServer.warmup();
 
-
   print("Warming up compiler");
   compiler = new comp.Compiler(sdkPath);
   await compiler.warmup();
   print("SetupTools done");
 }
 
-Future testPath(
-    String path,
-    analysis_server.AnalysisServerWrapper wrapper,
+Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
     comp.Compiler compiler) async {
   var f = new io.File(path);
   String src = f.readAsStringSync();
