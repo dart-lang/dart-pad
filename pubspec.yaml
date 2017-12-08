@@ -1,5 +1,4 @@
 name: dart_services
-version: 0.0.1
 author: Dart Team <misc@dartlang.org>
 description: The server backend for a web based interactive Dart service.
 homepage: https://github.com/dart-lang/dart-services
