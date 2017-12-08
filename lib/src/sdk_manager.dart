@@ -52,11 +52,14 @@ class HostSdk extends Sdk {
 class DownloadingSdk extends Sdk {
   static const String kSdkPathName = 'dart-sdk';
 
-  String _versionFull;
+  final String _versionFull;
 
-  DownloadingSdk() {
-    _versionFull = new File('dart-sdk.version').readAsStringSync().trim();
-  }
+  DownloadingSdk()
+      : _versionFull = new File('dart-sdk.version')
+            .readAsLinesSync()
+            .map((line) => line.trim())
+            .where((line) => line.isNotEmpty && !line.startsWith('#'))
+            .single;
 
   Future init() async {
     File file = new File(path.join(sdkPath, 'version'));
@@ -79,7 +82,9 @@ class DownloadingSdk extends Sdk {
     }
 
     String url = 'https://storage.googleapis.com/dart-archive/channels/'
-        '$channel/raw/$_versionFull/sdk/$zipName';
+        '$channel/release/$_versionFull/sdk/$zipName';
+
+    _logger.info('Downloading from $url');
 
     File destFile = new File(path.join(Directory.systemTemp.path, zipName));
 

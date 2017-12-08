@@ -1,8 +1,6 @@
 # Don’t commit the following directories created by pub.
 build/
 dart-sdk/
-packages
-.buildlog
 .packages
 .pub/
 
@@ -13,8 +11,3 @@ packages
 
 # Other files.
 pubspec.lock
-.DS_Store
-.settings/
-
-.atom/
-.idea/
