@@ -97,11 +97,11 @@ class PlaygroundMobile {
   }
 
   /**
-   * Return true if strong mode should be enabled
+   * Return true if strong mode should be enabled. Defaults to true.
    */
   bool _parseStrongModeParam(String strongModeValueString) {
-    if (strongModeValueString == null) return false;
-    return (strongModeValueString == 'true' || strongModeValueString == 't');
+    if (strongModeValueString == null) return true;
+    return !(strongModeValueString == 'f' || strongModeValueString == 'false');
   }
 
   /**
@@ -112,6 +112,8 @@ class PlaygroundMobile {
     String strong = url.queryParameters['strong'];
     if (_parseStrongModeParam(strong)) {
       (querySelector('#strongmode') as InputElement).checked = true;
+    } else {
+      (querySelector('#strongmode') as InputElement).checked = false;
     }
   }
 
