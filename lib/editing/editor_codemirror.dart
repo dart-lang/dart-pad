@@ -21,8 +21,6 @@ export 'editor.dart';
 
 final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
 
-// final String _gutterId = 'CodeMirror-lint-markers';
-
 class CodeMirrorFactory extends EditorFactory {
   //static final String cssRef = 'packages/dart_pad/editing/editor_codemirror.css';
   //static final String jsRef = 'packages/codemirror/codemirror.js';
