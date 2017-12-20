@@ -195,8 +195,7 @@ class Playground implements GistContainer, GistController {
    * Return true if strong mode should be enabled. Defaults to true.
    */
   bool _parseStrongModeParam(String strongModeValueString) {
-    if (strongModeValueString == null) return true;
-    return !(strongModeValueString == 'f' || strongModeValueString == 'false');
+    return strongModeValueString != 'false';
   }
 
   /**
