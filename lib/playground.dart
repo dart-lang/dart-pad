@@ -192,11 +192,10 @@ class Playground implements GistContainer, GistController {
   }
 
   /**
-   * Return true if strong mode should be enabled
+   * Return true if strong mode should be enabled. Defaults to true.
    */
   bool _parseStrongModeParam(String strongModeValueString) {
-    if (strongModeValueString == null) return false;
-    return (strongModeValueString == 'true' || strongModeValueString == 't');
+    return strongModeValueString != 'false';
   }
 
   /**
@@ -205,9 +204,7 @@ class Playground implements GistContainer, GistController {
   void setStrongModeFromUri() {
     Uri url = Uri.parse(window.location.toString());
     String strong = url.queryParameters['strong'];
-    if (_parseStrongModeParam(strong)) {
-      (querySelector('#strongmode') as InputElement).checked = true;
-    }
+    (querySelector('#strongmode') as InputElement).checked = _parseStrongModeParam(strong);
   }
 
   void registerStrongMode() {

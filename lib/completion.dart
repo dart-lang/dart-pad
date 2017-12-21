@@ -7,13 +7,9 @@ library dartpad.completion;
 import 'dart:async';
 import 'dart:convert' show JSON;
 
-import 'package:logging/logging.dart';
-
 import 'editing/editor.dart';
 import 'services/dartservices.dart' hide SourceEdit;
 import 'src/util.dart';
-
-Logger _logger = new Logger('completion');
 
 // TODO: For CodeMirror, we get a request each time the user hits a key when the
 // completion popup is open. We need to cache the results when appropriate.
