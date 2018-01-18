@@ -55,9 +55,6 @@ build() {
   FilePath mainFile = _buildDir.join('web', 'scripts/main.dart.js');
   log('${mainFile} compiled to ${_printSize(mainFile)}');
 
-  FilePath mobileFile = _buildDir.join('web', 'scripts/mobile.dart.js');
-  log('${mobileFile.path} compiled to ${_printSize(mobileFile)}');
-
   FilePath testFile = _buildDir.join('test', 'web.dart.js');
   if (testFile.exists)
     log('${testFile.path} compiled to ${_printSize(testFile)}');
@@ -81,14 +78,13 @@ build() {
   // Run vulcanize.
   // Imports vulcanized, not inlined for IE support
   vulcanizeNoExclusion('scripts/imports.html');
-  vulcanize('mobile.html');
   vulcanize('index.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
   vulcanize('embed-inline.html');
 
   return _uploadCompiledStats(
-      mainFile.asFile.lengthSync(), mobileFile.asFile.lengthSync());
+      mainFile.asFile.lengthSync());
 }
 
 /// Return the path for `packages/codemirror/codemirror.js`.
@@ -113,8 +109,6 @@ vulcanize(String filepath) {
         '--inline-css',
         '--inline-scripts',
         '--exclude',
-        'scripts/mobile.dart.js',
-        '--exclude',
         'scripts/embed.dart.js',
         '--exclude',
         'scripts/main.dart.js',
@@ -122,8 +116,6 @@ vulcanize(String filepath) {
         'scripts/codemirror.js',
         '--exclude',
         'scripts/embed_components.html',
-        '--exclude',
-        'scripts/mobile_components.html',
         filepath
       ],
       workingDirectory: 'build/web');
@@ -238,16 +230,14 @@ deploy() {
 @Task()
 clean() => defaultClean();
 
-Future _uploadCompiledStats(num mainLength, int mobileLength) {
+Future _uploadCompiledStats(num mainLength) {
   Map env = Platform.environment;
 
   if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
     Librato librato = new Librato.fromEnvVars();
     log('Uploading stats to ${librato.baseUrl}');
     LibratoStat mainSize = new LibratoStat('main.dart.js', mainLength);
-    LibratoStat mobileSize =
-        new LibratoStat('mobileSize.dart.js', mobileLength);
-    return librato.postStats([mainSize, mobileSize]).then((_) {
+    return librato.postStats([mainSize]).then((_) {
       String commit = env['TRAVIS_COMMIT'];
       LibratoLink link = new LibratoLink(
           'github', 'https://github.com/dart-lang/dart-pad/commit/${commit}');

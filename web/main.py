@@ -12,8 +12,7 @@ class WhiteListEntry(ndb.Model):
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         uagent = UAgentInfo(str(self.request.user_agent), str(self.request.accept))
-        isMobile = uagent.detectMobileLong() or uagent.detectTierTablet()
-        mainPage = 'mobile.html' if isMobile else 'index.html'
+        mainPage = 'index.html'
 
         if self.request.uri.find("try.dartlang.org") > 0:
             self.redirect("https://dartpad.dartlang.org")
