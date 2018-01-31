@@ -158,31 +158,3 @@ class GaeCounter implements PersistentCounter {
     return counter.Counter.increment(name, increment: increment);
   }
 }
-
-/*
- * This is the schema for source code storage.
- */
-@db.Kind()
-class GaeSourceRecordBlob extends db.Model {
-  @db.StringProperty()
-  String verb;
-
-  @db.BlobProperty()
-  List<int> source;
-
-  @db.IntProperty()
-  int offset;
-
-  @db.IntProperty()
-  int epochTime;
-
-  GaeSourceRecordBlob();
-
-  GaeSourceRecordBlob.fromData(
-      int epochTime, String verb, String source, int offset) {
-    this.epochTime = epochTime;
-    this.verb = verb;
-    this.source = io.GZIP.encode(convert.UTF8.encode(source));
-    this.offset = offset;
-  }
-}
