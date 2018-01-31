@@ -47,7 +47,6 @@ void defineTests() {
 
   MockContainer container;
   MockCache cache;
-  MockRequestRecorder recorder;
   MockCounter counter;
 
   Future<HttpApiResponse> _sendPostRequest(String path, json) {
@@ -73,10 +72,9 @@ void defineTests() {
     setUpAll(() async {
       container = new MockContainer();
       cache = new MockCache();
-      recorder = new MockRequestRecorder();
       counter = new MockCounter();
 
-      server = new CommonServer(sdkPath, container, cache, recorder, counter);
+      server = new CommonServer(sdkPath, container, cache, counter);
       await server.init();
 
       apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
@@ -320,13 +318,6 @@ class MockCache implements ServerCache {
   Future set(String key, String value, {Duration expiration}) =>
       new Future.value();
   Future remove(String key) => new Future.value();
-}
-
-class MockRequestRecorder implements SourceRequestRecorder {
-  @override
-  Future record(String verb, String source, [int offset]) {
-    return new Future.value();
-  }
 }
 
 class MockCounter implements PersistentCounter {

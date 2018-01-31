@@ -56,7 +56,7 @@ class GaeServer {
     discoveryEnabled = false;
     fileRelayServer = new FileRelayServer();
     commonServer = new CommonServer(sdkPath, new GaeServerContainer(),
-        new GaeCache(), new GaeSourceRequestRecorder(), new GaeCounter());
+        new GaeCache(), new GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
     apiServer = new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer)
@@ -143,30 +143,6 @@ class GaeCache implements ServerCache {
     return f.catchError((error, stackTrace) {
       _logger.fine(
           'Soft-ERR memcache API call (error: $error)', error, stackTrace);
-    });
-  }
-}
-
-class GaeSourceRequestRecorder implements SourceRequestRecorder {
-  @override
-  Future record(String verb, String source,
-      [int offset = -99, maxRetries = 3]) {
-    if (maxRetries < 0) {
-      _logger.warning("Soft-ERR: Max retries exceeded in SourceRequest.record");
-      return new Future.value(null);
-    }
-
-    int ms = new DateTime.now().millisecondsSinceEpoch;
-    GaeSourceRecordBlob record =
-        new GaeSourceRecordBlob.fromData(ms, verb, source, offset);
-
-    return new Future.sync(() => db.dbService.commit(inserts: [record]))
-        .catchError((error, stackTrace) {
-      _logger.fine(
-          'Soft-ERR SourceRequestRecorder.record failed (error: $error)',
-          error,
-          stackTrace);
-      return this.record(verb, source, offset, maxRetries - 1);
     });
   }
 }
