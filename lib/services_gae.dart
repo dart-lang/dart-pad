@@ -5,11 +5,9 @@
 library services_gae;
 
 import 'dart:async';
-import 'dart:convert' as convert;
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart' as ae;
-import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
