@@ -39,14 +39,6 @@ abstract class ServerContainer {
   String get version;
 }
 
-/**
- * Define a separate class for source recording to provide a clearly
- * defined schema
- */
-abstract class SourceRequestRecorder {
-  Future record(String verb, String source, [int offset]);
-}
-
 class SummaryText {
   String text;
 
@@ -63,7 +55,6 @@ abstract class PersistentCounter {
 class CommonServer {
   final ServerContainer container;
   final ServerCache cache;
-  final SourceRequestRecorder srcRequestRecorder;
   final PersistentCounter counter;
 
   Pub pub;
@@ -75,7 +66,7 @@ class CommonServer {
   String sdkPath;
 
   CommonServer(String this.sdkPath, this.container, this.cache,
-      this.srcRequestRecorder, this.counter) {
+      this.counter) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
   }
@@ -332,10 +323,6 @@ class CommonServer {
     strongMode ??= false;
 
     Stopwatch watch = new Stopwatch()..start();
-    String sourcesJson = new JsonEncoder().convert(sources);
-    srcRequestRecorder.record("ANALYZE-v2-$strongMode", sourcesJson);
-    _logger.info("About to ANALYZE-v1: ${_hashSource(sourcesJson)}");
-
     try {
       AnalysisServerWrapper server =
           strongMode ? analysisServerStrong : analysisServer;
@@ -363,9 +350,7 @@ class CommonServer {
     if (useCheckedMode == null) useCheckedMode = false;
     if (returnSourceMap == null) returnSourceMap = false;
 
-    srcRequestRecorder.record("COMPILE", source);
     String sourceHash = _hashSource(source);
-    _logger.info("About to COMPILE: ${sourceHash}");
 
     // TODO(lukechurch): Remove this hack after
     // https://github.com/dart-lang/rpc/issues/15 lands
@@ -428,8 +413,6 @@ class CommonServer {
       throw new BadRequestError('Missing parameter: \'offset\'');
     }
     Stopwatch watch = new Stopwatch()..start();
-    srcRequestRecorder.record("DOCUMENT", source, offset);
-    _logger.info("About to DOCUMENT: ${_hashSource(source)}");
     try {
       Map<String, String> docInfo =
           await analysisServerStrong.dartdoc(source, offset);
@@ -475,10 +458,6 @@ class CommonServer {
     }
 
     Stopwatch watch = new Stopwatch()..start();
-    String sourceJson = new JsonEncoder().convert(sources);
-    srcRequestRecorder.record("COMPLETE-v1", sourceJson, offset);
-    _logger.info("About to COMPLETE-v1: ${_hashSource(sourceJson)}");
-
     counter.increment("Completions");
     try {
       var response = await analysisServerStrong.completeMulti(
@@ -517,10 +496,6 @@ class CommonServer {
     }
 
     Stopwatch watch = new Stopwatch()..start();
-    String sourceJson = new JsonEncoder().convert(sources);
-    srcRequestRecorder.record("FIX-v1", sourceJson, offset);
-    _logger.info("About to FIX-v1: ${_hashSource(sourceJson)}");
-
     counter.increment("Fixes");
     var response = await analysisServerStrong.getFixesMulti(
         sources,
@@ -538,8 +513,6 @@ class CommonServer {
     offset ??= 0;
 
     Stopwatch watch = new Stopwatch()..start();
-    srcRequestRecorder.record("FORMAT", source, offset);
-    _logger.info("About to FORMAT: ${_hashSource(source)}");
     counter.increment("Formats");
 
     var response = await analysisServerStrong.format(source, offset);

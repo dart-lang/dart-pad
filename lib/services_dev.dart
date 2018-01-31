@@ -82,7 +82,7 @@ class EndpointsServer {
   static Future<String> generateDiscovery(
       String sdkPath, String serverUrl) async {
     var commonServer = new CommonServer(sdkPath, new _ServerContainer(),
-        new _Cache(), new _Recorder(), new _Counter());
+        new _Cache(), new _Counter());
     await commonServer.init();
     var apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
@@ -123,7 +123,7 @@ class EndpointsServer {
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
     commonServer = new CommonServer(sdkPath, new _ServerContainer(),
-        new _Cache(), new _Recorder(), new _Counter());
+        new _Cache(), new _Counter());
     commonServer.init();
     apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
@@ -187,13 +187,6 @@ class _Cache implements ServerCache {
   Future set(String key, String value, {Duration expiration}) =>
       new Future.value();
   Future remove(String key) => new Future.value();
-}
-
-class _Recorder implements SourceRequestRecorder {
-  Future record(String verb, String source, [int offset = -99]) {
-    _logger.fine("$verb, $offset, $source");
-    return new Future.value();
-  }
 }
 
 /**

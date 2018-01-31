@@ -5,11 +5,9 @@
 library services_gae;
 
 import 'dart:async';
-import 'dart:convert' as convert;
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart' as ae;
-import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
 import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
@@ -56,7 +54,7 @@ class GaeServer {
     discoveryEnabled = false;
     fileRelayServer = new FileRelayServer();
     commonServer = new CommonServer(sdkPath, new GaeServerContainer(),
-        new GaeCache(), new GaeSourceRequestRecorder(), new GaeCounter());
+        new GaeCache(), new GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
     apiServer = new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer)
@@ -147,30 +145,6 @@ class GaeCache implements ServerCache {
   }
 }
 
-class GaeSourceRequestRecorder implements SourceRequestRecorder {
-  @override
-  Future record(String verb, String source,
-      [int offset = -99, maxRetries = 3]) {
-    if (maxRetries < 0) {
-      _logger.warning("Soft-ERR: Max retries exceeded in SourceRequest.record");
-      return new Future.value(null);
-    }
-
-    int ms = new DateTime.now().millisecondsSinceEpoch;
-    GaeSourceRecordBlob record =
-        new GaeSourceRecordBlob.fromData(ms, verb, source, offset);
-
-    return new Future.sync(() => db.dbService.commit(inserts: [record]))
-        .catchError((error, stackTrace) {
-      _logger.fine(
-          'Soft-ERR SourceRequestRecorder.record failed (error: $error)',
-          error,
-          stackTrace);
-      return this.record(verb, source, offset, maxRetries - 1);
-    });
-  }
-}
-
 class GaeCounter implements PersistentCounter {
   @override
   Future<int> getTotal(String name) {
@@ -180,33 +154,5 @@ class GaeCounter implements PersistentCounter {
   @override
   Future increment(String name, {int increment: 1}) {
     return counter.Counter.increment(name, increment: increment);
-  }
-}
-
-/*
- * This is the schema for source code storage.
- */
-@db.Kind()
-class GaeSourceRecordBlob extends db.Model {
-  @db.StringProperty()
-  String verb;
-
-  @db.BlobProperty()
-  List<int> source;
-
-  @db.IntProperty()
-  int offset;
-
-  @db.IntProperty()
-  int epochTime;
-
-  GaeSourceRecordBlob();
-
-  GaeSourceRecordBlob.fromData(
-      int epochTime, String verb, String source, int offset) {
-    this.epochTime = epochTime;
-    this.verb = verb;
-    this.source = io.GZIP.encode(convert.UTF8.encode(source));
-    this.offset = offset;
   }
 }
