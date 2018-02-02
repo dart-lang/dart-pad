@@ -132,7 +132,7 @@ footer {
 .view {
   position: relative;
   margin: 0 0;
-  min-width: 240px;
+  min-width: 260px;
   min-height: 50px;
 }
 
@@ -540,4 +540,22 @@ div.toggle {
 
 #samples {
   width: 100px;
+}
+
+@media screen and (max-width: 500px) {
+  #newbutton {
+    display: none;
+  }
+
+  #formatbutton {
+    display: none;
+  }
+
+  #sharebutton {
+    display: none;
+  }
+
+  #keyboard-button {
+    display: none;
+  }
 }
