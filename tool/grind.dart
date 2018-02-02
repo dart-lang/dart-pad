@@ -83,8 +83,7 @@ build() {
   vulcanize('embed-html.html');
   vulcanize('embed-inline.html');
 
-  return _uploadCompiledStats(
-      mainFile.asFile.lengthSync());
+  return _uploadCompiledStats(mainFile.asFile.lengthSync());
 }
 
 /// Return the path for `packages/codemirror/codemirror.js`.
