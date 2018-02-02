@@ -1,9 +1,7 @@
 from urlparse import urlparse
-from google.appengine.api import users
 from google.appengine.ext import ndb
 import os
 import webapp2
-from mdetect import UAgentInfo
 
 class WhiteListEntry(ndb.Model):
     emailAddress = ndb.StringProperty()
@@ -11,15 +9,13 @@ class WhiteListEntry(ndb.Model):
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
-        uagent = UAgentInfo(str(self.request.user_agent), str(self.request.accept))
-        isMobile = uagent.detectMobileLong() or uagent.detectTierTablet()
-        mainPage = 'mobile.html' if isMobile else 'index.html'
+        mainPage = 'index.html'
 
         if self.request.uri.find("try.dartlang.org") > 0:
             self.redirect("https://dartpad.dartlang.org")
 
         parsedURL = urlparse(self.request.uri)
-        path = parsedURL.path;
+        path = parsedURL.path
         targetSplits = path.split('/')
 
         if os.path.isfile(path):

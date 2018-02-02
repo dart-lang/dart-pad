@@ -4,112 +4,13 @@
      for details. All rights reserved. Use of this source code is governed by a
      BSD-style license that can be found in the LICENSE file. -->
 
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="scaffolded-by" content="https://github.com/google/stagehand">
-    <title>DartPad</title>
-
-    <script src="packages/dart_pad/bower/webcomponentsjs/webcomponents-lite.min.js"></script>
-
-    <link rel="import" href="scripts/mobile_components.html">
-
-    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
-          rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
-    <!-- codemirror -->
-    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
-    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
-    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
-    <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
-    <link href="packages/dart_pad/editing/editor_codemirror.css"
-          rel="stylesheet" media="screen">
-    <style>
-      div#drawer.paper-drawer-panel {
-        z-index: 100;
-      }
-    </style>
-    <!-- scripts -->
-    <script src="scripts/codemirror.js" defer></script>
-    <script type="application/dart" src="scripts/mobile.dart" defer></script>
-    <script src="packages/browser/dart.js" defer></script>
-    <script src="scripts/ga.js" defer></script>
-    <script src="scripts/polymerpatch.js" defer></script>
-  </head>
-
-  <body class="fullbleed vertical layout" unresolved>
-    <div class="splash"></div>
-    <iron-pages selected="0" class="flex">
-      <section id="edit-section">
-        <paper-drawer-panel force-narrow>
-          <paper-header-panel drawer>
-            <paper-toolbar id="nav-header">
-              <span>DartPad</span>
-            </paper-toolbar>
-            <paper-menu>
-              <paper-item name="b51ea7c04322042b582a">Bootstrap</paper-item>
-              <paper-item name="74e990d984faad26dea0">Fibonacci</paper-item>
-              <paper-item name="33706e19df021e52d98c">Hello World</paper-item>
-              <paper-item name="9126d5d48ebabf5bf547">Hello World HTML</paper-item>
-              <paper-item name="72d83fe97bfc8e735607">Solar</paper-item>
-              <paper-item name="9e42aabfcc15c81a0406">Spirodraw</paper-item>
-              <paper-item name="9d2dd2ce17981ecacadd">Sunflower</paper-item>
-              <paper-item name="479ecba5a56fd706b648">WebSockets</paper-item>
-            </paper-menu>
-          </paper-header-panel>
-          <paper-header-panel main>
-            <paper-toolbar id="menu-toolbar">
-              <paper-icon-button id="nav-button" icon="menu"></paper-icon-button>
-              <div title class="flex sample-titles"></div>
-              <paper-icon-button icon="more-vert"
-                                 id="more-button"></paper-icon-button>
-              <paper-tabs selected="0" class="bottom fit">
-                <paper-tab name="dart">Dart</paper-tab>
-                <paper-tab name="html">HTML</paper-tab>
-                <paper-tab name="css">CSS</paper-tab>
-              </paper-tabs>
-              <paper-progress id="edit-progress" class="bottom fit" hidden>
-              </paper-progress>
-            </paper-toolbar>
-            <div id="editpanel" class="fit editor"></div>
-            <paper-fab id="run-button" icon="av:play-arrow"></paper-fab>
-          </paper-header-panel>
-        </paper-drawer-panel>
-      </section>
-      <section id="executable-section">
-        <paper-header-panel class="fit">
-          <paper-toolbar>
-            <paper-fab icon="arrow-back" id="back-button" mini></paper-fab>
-            <div title class="flex"></div>
-            <paper-toggle-button checked></paper-toggle-button>
-            <paper-icon-button icon="refresh"></paper-icon-button>
-            <paper-progress id="run-progress" class="bottom fit" hidden>
-            </paper-progress>
-          </paper-toolbar>
-          <div class="fit layout vertical">
-            <div id="frameContainer" class="flex-2 layout vertical">
-              <iframe class="flex" id="frame" sandbox="allow-scripts" src="scripts/frame.html">
-              </iframe>
-            </div>
-            <div id="console" class="flex-1"></div>
-          </div>
-        </paper-header-panel>
-      </section>
-    </iron-pages>
-
-    <!--hidden elements-->
-
-    <animated-dropdown id="dropdown">
-      <paper-menu selected-class="">
-        <paper-item id="about-item">About</paper-item>
-        <paper-item id="dartlang-item">dartlang.org</paper-item>
-      </paper-menu>
-    </animated-dropdown>
-
-    <about-dialog></about-dialog>
+<html>    
+  <head>      
+  	<title>DartPad</title>    
+    <meta http-equiv="refresh" content="0;URL='https://dartpad.dartlang.org/index.html'" />    
+  </head>    
+  <body> 
+    <p>This page has moved to a <a href="https://dartpad.dartlang.org/index.html">
+      https://dartpad.dartlang.org/</a>.</p> 
   </body>
 </html>
