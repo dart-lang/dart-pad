@@ -23,7 +23,7 @@ handlers:
 - url: .*
   script: main.app
 # Enable for version == prod.
-#  secure: always
+  secure: always
 
 libraries:
 - name: webapp2
