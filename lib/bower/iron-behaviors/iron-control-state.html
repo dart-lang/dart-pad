@@ -72,14 +72,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // handled). In either case, we can disregard `event.path`.
 
       if (event.target === this) {
-        var focused = event.type === 'focus';
-        this._setFocused(focused);
+        this._setFocused(event.type === 'focus');
       } else if (!this.shadowRoot) {
-        this.fire(event.type, {sourceEvent: event}, {
-          node: this,
-          bubbles: event.bubbles,
-          cancelable: event.cancelable
-        });
+        var target = /** @type {Node} */(Polymer.dom(event).localTarget);
+        if (!this.isLightDescendant(target)) {
+          this.fire(event.type, {sourceEvent: event}, {
+            node: this,
+            bubbles: event.bubbles,
+            cancelable: event.cancelable
+          });
+        }
       }
     },
 
@@ -88,8 +90,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       this.style.pointerEvents = disabled ? 'none' : '';
       if (disabled) {
         this._oldTabIndex = this.tabIndex;
-        this.focused = false;
+        this._setFocused(false);
         this.tabIndex = -1;
+        this.blur();
       } else if (this._oldTabIndex !== undefined) {
         this.tabIndex = this._oldTabIndex;
       }
