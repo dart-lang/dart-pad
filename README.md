@@ -4,7 +4,6 @@ The UI client for a web based interactive Dart service.
 
 [![Build Status](https://travis-ci.org/dart-lang/dart-pad.svg?branch=master)](https://travis-ci.org/dart-lang/dart-pad)
 [![Project Metrics](https://img.shields.io/badge/metrics-librato-blue.svg)](https://metrics.librato.com/share/dashboards/jr4dyv0j?duration=604800)
-[![Join the chat at https://gitter.im/dart-lang/dart-pad](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/dart-lang/dart-pad?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ![](https://github.com/dart-lang/dart-pad/blob/master/doc/images/codepad_ss.jpg)
 
