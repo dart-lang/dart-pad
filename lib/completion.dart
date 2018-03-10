@@ -5,7 +5,7 @@
 library dartpad.completion;
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
 import 'editing/editor.dart';
 import 'services/dartservices.dart' hide SourceEdit;
@@ -157,7 +157,7 @@ class AnalysisCompletion implements Comparable {
 
   // Convert maps and lists that have been passed as json.
   void _convert(String key) {
-    if (_map[key] is String) _map[key] = JSON.decode(_map[key]);
+    if (_map[key] is String) _map[key] = json.decode(_map[key]);
   }
 
   // KEYWORD, INVOCATION, ...

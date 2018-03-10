@@ -1,6 +1,8 @@
 language: dart
 sudo: false
 script: ./tool/travis.sh
+dart:
+- dev
 
 # Saucelabs setup.
 env:

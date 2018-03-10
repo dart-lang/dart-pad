@@ -5,7 +5,7 @@
 library gists;
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:html';
 
 import 'package:dart_pad/src/sample.dart' as sample;
@@ -163,7 +163,7 @@ ${styleRef}${dartRef}  </head>
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
     return HttpRequest.getString('${_apiUrl}/${gistId}').then((data) {
-      Gist gist = new Gist.fromMap(JSON.decode(data));
+      Gist gist = new Gist.fromMap(json.decode(data));
       if (afterLoadHook != null) {
         afterLoadHook(gist);
       }
@@ -182,7 +182,7 @@ ${styleRef}${dartRef}  </head>
     return HttpRequest
         .request(_apiUrl, method: 'POST', sendData: gist.toJson())
         .then((HttpRequest request) {
-      Gist gist = new Gist.fromMap(JSON.decode(request.responseText));
+      Gist gist = new Gist.fromMap(json.decode(request.responseText));
       if (afterLoadHook != null) {
         afterLoadHook(gist);
       }
@@ -253,9 +253,9 @@ class Gist {
     return m;
   }
 
-  String toJson() => JSON.encode(toMap());
+  String toJson() => json.encode(toMap());
 
-  Gist clone() => new Gist.fromMap(JSON.decode(toJson()));
+  Gist clone() => new Gist.fromMap(json.decode(toJson()));
 
   String toString() => id;
 }
@@ -302,7 +302,7 @@ class GistStorage {
 
   Gist getStoredGist() {
     String data = window.localStorage[_key];
-    return data == null ? null : new Gist.fromMap(JSON.decode(data));
+    return data == null ? null : new Gist.fromMap(json.decode(data));
   }
 
   void setStoredGist(Gist gist) {

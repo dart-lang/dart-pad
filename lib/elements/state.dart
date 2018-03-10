@@ -8,7 +8,7 @@
  */
 library dart_pad.state;
 
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 import 'dart:html';
 
 abstract class State {
@@ -22,7 +22,7 @@ class HtmlState implements State {
 
   HtmlState(this.id) {
     if (window.localStorage.containsKey(id)) {
-      _values = JSON.decode(window.localStorage[id]);
+      _values = json.decode(window.localStorage[id]);
     }
   }
 
@@ -30,6 +30,6 @@ class HtmlState implements State {
 
   void operator []=(String key, dynamic value) {
     _values[key] = value;
-    window.localStorage[id] = JSON.encode(_values);
+    window.localStorage[id] = json.encode(_values);
   }
 }

@@ -19,9 +19,9 @@ class P_dartpadsupportservicesApi {
 
   P_dartpadsupportservicesApi(http.Client client,
       {core.String rootUrl: "/",
-        core.String servicePath: "api/_dartpadsupportservices/v1/"})
+      core.String servicePath: "api/_dartpadsupportservices/v1/"})
       : _requester =
-  new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
+            new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
    * Store a gist dataset to be retrieved.
@@ -47,7 +47,7 @@ class P_dartpadsupportservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'export';
@@ -115,7 +115,7 @@ class P_dartpadsupportservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'pullExportData';
@@ -187,7 +187,7 @@ class P_dartpadsupportservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'storeGist';

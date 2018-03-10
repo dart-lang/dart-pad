@@ -5,7 +5,7 @@
 library dartpad.documentation;
 
 import 'dart:async';
-import 'dart:convert';
+import 'dart:convert' as convert show htmlEscape;
 import 'dart:html';
 import 'dart:math' as math;
 
@@ -225,7 +225,7 @@ class _DocResult {
 class InlineBracketsColon extends markdown.InlineSyntax {
   InlineBracketsColon() : super(r'\[:\s?((?:.|\n)*?)\s?:\]');
 
-  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
+  String htmlEscape(String text) => convert.htmlEscape.convert(text);
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
@@ -245,7 +245,7 @@ class InlineBrackets extends markdown.InlineSyntax {
   // <code>text</code> (http://www.example.com)
   InlineBrackets() : super(r'\[\s?((?:.|\n)*?)\s?\](?!\s?\()');
 
-  String htmlEscape(String text) => HTML_ESCAPE.convert(text);
+  String htmlEscape(String text) => convert.htmlEscape.convert(text);
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {

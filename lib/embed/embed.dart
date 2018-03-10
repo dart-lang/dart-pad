@@ -109,7 +109,8 @@ class PlaygroundMobile {
   void setStrongModeFromUri() {
     Uri url = Uri.parse(window.location.toString());
     String strong = url.queryParameters['strong'];
-    (querySelector('#strongmode') as InputElement).checked = _parseStrongModeParam(strong);
+    (querySelector('#strongmode') as InputElement).checked =
+        _parseStrongModeParam(strong);
   }
 
   void showHome(RouteEnterEvent event) {
