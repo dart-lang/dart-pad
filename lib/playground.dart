@@ -174,8 +174,6 @@ class Playground implements GistContainer, GistController {
       });
     });
 
-    registerStrongMode();
-
     _initModules().then((_) {
       _initPlayground();
     });
@@ -189,30 +187,6 @@ class Playground implements GistContainer, GistController {
     // the Dart source from).
     Timer.run(() => _performAnalysis());
     _clearOutput();
-  }
-
-  /**
-   * Return true if strong mode should be enabled. Defaults to true.
-   */
-  bool _parseStrongModeParam(String strongModeValueString) {
-    return strongModeValueString != 'false';
-  }
-
-  /**
-   * Update query parameters for strong mode
-   */
-  void setStrongModeFromUri() {
-    Uri url = Uri.parse(window.location.toString());
-    String strong = url.queryParameters['strong'];
-    (querySelector('#strongmode') as InputElement).checked =
-        _parseStrongModeParam(strong);
-  }
-
-  void registerStrongMode() {
-    setStrongModeFromUri();
-    querySelector('#strongmode').onChange.listen((e) {
-      _performAnalysis();
-    });
   }
 
   Future showHome(RouteEnterEvent event) async {
@@ -669,11 +643,9 @@ class Playground implements GistContainer, GistController {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
-    bool strongMode = (querySelector('#strongmode') as InputElement).checked;
-
     SourceRequest input = new SourceRequest()
       ..source = _context.dartSource
-      ..strongMode = strongMode;
+      ..strongMode = strongModeDefault;
 
     Lines lines = new Lines(input.source);
 
