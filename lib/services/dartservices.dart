@@ -19,9 +19,9 @@ class DartservicesApi {
 
   DartservicesApi(http.Client client,
       {core.String rootUrl: "/",
-        core.String servicePath: "api/dartservices/v1/"})
+      core.String servicePath: "api/dartservices/v1/"})
       : _requester =
-  new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
+            new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /**
    * Analyze the given Dart source code and return any resulting analysis errors
@@ -48,7 +48,7 @@ class DartservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'analyze';
@@ -129,7 +129,7 @@ class DartservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'analyzeMulti';
@@ -167,7 +167,7 @@ class DartservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'compile';
@@ -241,7 +241,7 @@ class DartservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'complete';
@@ -321,7 +321,7 @@ class DartservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'completeMulti';
@@ -396,7 +396,7 @@ class DartservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'document';
@@ -476,7 +476,7 @@ class DartservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'fixes';
@@ -555,7 +555,7 @@ class DartservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'fixesMulti';
@@ -595,7 +595,7 @@ class DartservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'format';
@@ -676,7 +676,7 @@ class DartservicesApi {
     var _body = null;
 
     if (request != null) {
-      _body = convert.JSON.encode((request).toJson());
+      _body = convert.json.encode((request).toJson());
     }
 
     _url = 'summarize';

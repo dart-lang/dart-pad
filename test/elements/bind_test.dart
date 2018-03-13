@@ -56,7 +56,7 @@ void defineTests() {
       from.set('foo');
       binding.cancel();
       from.set('bar');
-      return new Future.delayed(Duration.ZERO, () {
+      return new Future.delayed(Duration.zero, () {
         expect(to.value, 'foo');
       });
     });

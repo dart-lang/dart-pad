@@ -29,20 +29,20 @@ class HttpServerMock extends BaseClient {
   Future<StreamedResponse> send(BaseRequest request) {
     return request
         .finalize()
-        .transform(UTF8.decoder)
+        .transform(utf8.decoder)
         .join('')
         .then((String jsonString) {
       var result;
       if (jsonString.isEmpty) {
         result = _apiHandler(request, null);
       } else {
-        result = _apiHandler(request, JSON.decode(jsonString));
+        result = _apiHandler(request, json.decode(jsonString));
       }
       // Encode the result and return it as a StreamedResponse.
       var h = {
         "content-type": "application/json; charset=utf-8",
       };
-      var encodedResult = UTF8.encode(JSON.encode(result));
+      var encodedResult = utf8.encode(json.encode(result));
       var stream = new Stream.fromIterable([encodedResult]);
       return new Future.delayed(new Duration(milliseconds: 500),
           () => new StreamedResponse(stream, 200, headers: h));

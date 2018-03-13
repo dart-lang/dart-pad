@@ -96,22 +96,6 @@ class PlaygroundMobile {
     });
   }
 
-  /**
-   * Return true if strong mode should be enabled. Defaults to true.
-   */
-  bool _parseStrongModeParam(String strongModeValueString) {
-    return strongModeValueString != 'false';
-  }
-
-  /**
-   * Update query parameters for strong mode
-   */
-  void setStrongModeFromUri() {
-    Uri url = Uri.parse(window.location.toString());
-    String strong = url.queryParameters['strong'];
-    (querySelector('#strongmode') as InputElement).checked = _parseStrongModeParam(strong);
-  }
-
   void showHome(RouteEnterEvent event) {
     _logger.info('routed to showHome, ${window.location}, ${event.parameters}');
 
@@ -151,13 +135,6 @@ class PlaygroundMobile {
 
     _showGist(gistId, run: page == 'run');
     _storePreviousResult();
-  }
-
-  void registerStrongMode() {
-    setStrongModeFromUri();
-    querySelector('#strongmode').onChange.listen((e) {
-      _performAnalysis();
-    });
   }
 
   void registerMessageToast() {
@@ -321,7 +298,6 @@ class PlaygroundMobile {
     registerCancelExportButton();
     registerAffirmExportButton();
     registerConsole();
-    registerStrongMode();
     _clearOutput();
   }
 
@@ -334,9 +310,8 @@ class PlaygroundMobile {
       ..dart = context.dartSource;
     Future<UuidContainer> id = dartSupportServices.export(exportObject);
     id.then((UuidContainer container) {
-      bool strongMode = (querySelector('#strongmode') as InputElement).checked;
       exportWindow.location.href =
-          '$webURL/index.html?export=${container.uuid}&strong=${strongMode}';
+          '$webURL/index.html?export=${container.uuid}';
     });
   }
 
@@ -650,10 +625,9 @@ class PlaygroundMobile {
   }
 
   void _performAnalysis() {
-    bool strongMode = (querySelector('#strongmode') as InputElement).checked;
     var input = new SourceRequest()
       ..source = _context.dartSource
-      ..strongMode = strongMode;
+      ..strongMode = strongModeDefault;
 
     Lines lines = new Lines(input.source);
 
