@@ -115,8 +115,14 @@ class Playground implements GistContainer, GistController {
     });
 
     DButton shareButton = new DButton(querySelector('#sharebutton'));
-    shareButton.onClick.listen((Event e) => _createSummary()
-        .then((GistSummary summary) => sharingDialog.showWithSummary(summary)));
+
+    shareButton.onClick.listen((Event e) => window.open(
+        "https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide",
+        '_sharing'));
+
+    // Sharing is currently disabled pending establishing OAuth2 configurations with Github.
+    // shareButton.onClick.listen((Event e) => _createSummary()
+    //    .then((GistSummary summary) => sharingDialog.showWithSummary(summary)));
 
     formatButton = new DButton(querySelector('#formatbutton'));
     formatButton.onClick.listen((Event e) => _format());
@@ -622,7 +628,7 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  Future<GistSummary> _createSummary() {
+  /* Future<GistSummary> _createSummary() {
     return dartSupportServices.getUnusedMappingId().then((UuidContainer id) {
       _mappingId = id.uuid;
       SourcesRequest input = new SourcesRequest()
@@ -638,7 +644,7 @@ class Playground implements GistContainer, GistController {
     }).catchError((e) {
       _logger.severe(e);
     });
-  }
+  } */
 
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
