@@ -167,16 +167,13 @@ void buildbot() => null;
 @Task('Prepare the app for deployment')
 @Depends(buildbot)
 deploy() {
-  // Validate the deploy. This means that we're using version `dev` on the
-  // master branch and version `prod` on the prod branch. We only deploy prod
-  // from the prod branch. Other versions are possible but not verified.
+  // Validate the deploy.
 
   // `dev` is served from dev.dart-pad.appspot.com
   // `prod` is served from prod.dart-pad.appspot.com and from dartpad.dartlang.org.
 
   Map app = yaml.loadYaml(new File('web/app.yaml').readAsStringSync());
 
-  final String version = app['version'];
   List handlers = app['handlers'];
   bool isSecure = false;
 
@@ -192,37 +189,14 @@ deploy() {
     final String branch = branchRef.branchName;
 
     log('branch: ${branch}');
-    log('version: ${version}');
 
     if (branch == 'prod') {
-      if (version != 'prod') {
-        fail('Trying to deploy non-prod version from the prod branch');
-      }
-
       if (!isSecure) {
         fail('The prod branch must have `secure: always`.');
       }
     }
 
-    if (branch == 'master') {
-      if (version != 'dev' && !version.startsWith('dev-')) {
-        fail('Trying to deploy non-dev version from the master branch');
-      }
-    }
-
-    if (version == 'prod') {
-      if (branch != 'prod') {
-        fail('The prod version can only be deployed from the prod branch');
-      }
-    }
-
-    if (version != 'prod') {
-      if (isSecure) {
-        fail('The ${version} version should not have `secure: always` set');
-      }
-    }
-
-    log('\nexecute: `appcfg.py update build/web`');
+    log('\nexecute: `gcloud app deploy build/web/app.yaml --project=dart-pad --no-promote`');
   });
 }
 
