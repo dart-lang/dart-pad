@@ -10,7 +10,7 @@ import 'dart:html';
 import 'package:dart_pad/core/keys.dart';
 import 'package:test/test.dart';
 
-main() => defineTests();
+void main() => defineTests();
 
 void defineTests() {
   group('keys', () {

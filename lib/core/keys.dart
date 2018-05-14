@@ -87,7 +87,7 @@ class Action {
 
   Action(this.function, this.description, {this.hidden: false});
 
-  call() => function();
+  dynamic call() => function();
 
   String toString() => description;
 

@@ -8,7 +8,7 @@ library dartpad.documentation_test;
 import 'package:dart_pad/documentation.dart';
 import 'package:test/test.dart';
 
-main() => defineTests();
+void main() => defineTests();
 
 void defineTests() {
   group('documentation', () {

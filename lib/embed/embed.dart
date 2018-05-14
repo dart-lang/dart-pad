@@ -69,6 +69,7 @@ class PlaygroundMobile {
   PaperToast _errorsToast;
   PaperDialog _messageDialog;
   PaperDialog _resetDialog;
+
   // PaperDialog _exportDialog;
   PolymerElement _output;
   PaperProgress _runProgress;
@@ -80,14 +81,8 @@ class PlaygroundMobile {
 
   bool get _isCompletionActive => editor.completionActive;
 
-  Future createNewGist() {
-    return null;
-  }
-
-  ModuleManager modules = new ModuleManager();
-
   PlaygroundMobile() {
-    //Asyncronous processing to load UI faster in parallel
+    // Asynchronous processing to load UI faster in parallel
     Timer.run(() {
       _createUi();
     });
@@ -357,6 +352,8 @@ class PlaygroundMobile {
   }
 
   Future _initModules() {
+    ModuleManager modules = new ModuleManager();
+
     modules.register(new DartPadModule());
     modules.register(new DartServicesModule());
     modules.register(new DartSupportServicesModule());
@@ -508,7 +505,7 @@ class PlaygroundMobile {
     _finishedInit();
   }
 
-  _finishedInit() {
+  void _finishedInit() {
     Timer.run(() {
       editor.resize();
     });
@@ -519,33 +516,24 @@ class PlaygroundMobile {
       ..listen();
   }
 
-  _handleAutoCompletion(KeyboardEvent e) {
+  final RegExp cssSymbolRegexp = new RegExp(r"[A-Z]");
+
+  void _handleAutoCompletion(KeyboardEvent e) {
     if (context.focusedEditor == 'dart' && editor.hasFocus) {
       if (e.keyCode == KeyCode.PERIOD) {
         editor.showCompletions(autoInvoked: true);
       }
     }
 
-    if (!options.getValueBool('autopopup_code_completion') ||
-        _isCompletionActive ||
-        !editor.hasFocus) {
-      return;
-    }
-
-    if (context.focusedEditor == 'dart') {
-      RegExp exp = new RegExp(r"[A-Z]");
-      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-        editor.showCompletions(autoInvoked: true);
-      }
-    } else if (context.focusedEditor == "html") {
-      // TODO: Autocompletion for attributes.
-      if (printKeyEvent(e) == "shift-,") {
-        editor.showCompletions(autoInvoked: true);
-      }
-    } else if (context.focusedEditor == "css") {
-      RegExp exp = new RegExp(r"[A-Z]");
-      if (exp.hasMatch(new String.fromCharCode(e.keyCode))) {
-        editor.showCompletions(autoInvoked: true);
+    if (!_isCompletionActive && editor.hasFocus) {
+      if (context.focusedEditor == "html") {
+        if (printKeyEvent(e) == "shift-,") {
+          editor.showCompletions(autoInvoked: true);
+        }
+      } else if (context.focusedEditor == "css") {
+        if (cssSymbolRegexp.hasMatch(new String.fromCharCode(e.keyCode))) {
+          editor.showCompletions(autoInvoked: true);
+        }
       }
     }
   }
@@ -840,16 +828,19 @@ class PlaygroundContext extends Context {
   Document get dartDocument => _dartDoc;
 
   String get dartSource => _dartDoc.value;
+
   set dartSource(String value) {
     _dartDoc.value = value;
   }
 
   String get htmlSource => _htmlDoc.value;
+
   set htmlSource(String value) {
     _htmlDoc.value = value;
   }
 
   String get cssSource => _cssDoc.value;
+
   set cssSource(String value) {
     _cssDoc.value = value;
   }
@@ -882,15 +873,21 @@ class PlaygroundContext extends Context {
   }
 
   Stream get onCssDirty => _cssDirtyController.stream;
+
   Stream get onDartDirty => _dartDirtyController.stream;
+
   Stream get onHtmlDirty => _htmlDirtyController.stream;
 
   Stream get onCssReconcile => _cssReconcileController.stream;
+
   Stream get onDartReconcile => _dartReconcileController.stream;
+
   Stream get onHtmlReconcile => _htmlReconcileController.stream;
 
   void markCssClean() => _cssDoc.markClean();
+
   void markDartClean() => _dartDoc.markClean();
+
   void markHtmlClean() => _htmlDoc.markClean();
 
   /**
@@ -916,40 +913,4 @@ class PlaygroundContext extends Context {
     String char = str[index];
     return char != char.trim();
   }
-}
-
-/**
- * A simple element that can display a lightbulb, with fade in and out and a
- * built in counter.
- */
-class BusyLight {
-  static final Duration _delay = const Duration(milliseconds: 150);
-
-  final Element element;
-  int _count = 0;
-
-  BusyLight(this.element);
-
-  void on() {
-    _count++;
-    _reconcile();
-  }
-
-  void off() {
-    _count--;
-    if (_count < 0) _count = 0;
-    _reconcile();
-  }
-
-  void flash() {
-    on();
-    new Future.delayed(_delay, off);
-  }
-
-  void reset() {
-    _count = 0;
-    _reconcile();
-  }
-
-  _reconcile() => element.classes.toggle('busy', _count > 0);
 }

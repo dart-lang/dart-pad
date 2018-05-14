@@ -7,7 +7,7 @@ library dart_pad.common_test;
 import 'package:dart_pad/services/common.dart';
 import 'package:test/test.dart';
 
-main() => defineTests();
+void main() => defineTests();
 
 void defineTests() {
   group('Lines', () {
