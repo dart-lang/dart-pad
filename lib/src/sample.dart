@@ -11,7 +11,3 @@ void main() {
   }
 }
 ''';
-
-final String htmlCode = '\n';
-
-final String cssCode = '\n';

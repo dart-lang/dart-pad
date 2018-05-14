@@ -117,8 +117,8 @@ class PlaygroundMobile {
     _setGistId(null);
 
     context.dartSource = sample.dartCode;
-    context.htmlSource = sample.htmlCode;
-    context.cssSource = sample.cssCode;
+    context.htmlSource = '\n';
+    context.cssSource = '\n';
     _storePreviousResult();
   }
 
@@ -358,8 +358,6 @@ class PlaygroundMobile {
 
   Future _initModules() {
     modules.register(new DartPadModule());
-    //modules.register(new MockAnalysisModule());
-    //modules.register(new MockCompilerModule());
     modules.register(new DartServicesModule());
     modules.register(new DartSupportServicesModule());
     modules.register(new CodeMirrorModule());

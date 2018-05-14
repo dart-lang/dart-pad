@@ -4,12 +4,10 @@
 
 library dart_pad.grind;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:git/git.dart';
 import 'package:grinder/grinder.dart';
-import 'package:librato/librato.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 final FilePath _buildDir = new FilePath('build');
@@ -48,9 +46,20 @@ build() {
   // Copy the codemirror script into web/scripts.
   new FilePath(_getCodeMirrorScriptPath()).copy(_webDir.join('scripts'));
 
-  // Speed up the build, from 140s to 100s.
-  //Pub.build(directories: ['web', 'test']);
-  Pub.build(directories: ['web']);
+  // copy web/ resources
+  copyDirectory(webDir, joinDir(buildDir, ['web']));
+
+  // copy lib/ resources
+  copyDirectory(libDir, joinDir(buildDir, ['web', 'packages', 'dart_pad']));
+
+  // copy other package resources
+  copyPackageResources('codemirror', joinDir(buildDir, ['web']));
+
+  // Compile main scripts.
+  Dart2js.compile(joinFile(webDir, ['scripts', 'main.dart']),
+      outDir: joinDir(buildDir, ['web', 'scripts']), minify: true);
+  Dart2js.compile(joinFile(webDir, ['scripts', 'embed.dart']),
+      outDir: joinDir(buildDir, ['web', 'scripts']), minify: true);
 
   FilePath mainFile = _buildDir.join('web', 'scripts/main.dart.js');
   log('${mainFile} compiled to ${_printSize(mainFile)}');
@@ -82,8 +91,28 @@ build() {
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
   vulcanize('embed-inline.html');
+}
 
-  return _uploadCompiledStats(mainFile.asFile.lengthSync());
+void copyPackageResources(String packageName, Directory destDir) {
+  String text = new File('.packages').readAsStringSync();
+  for (String line in text.split('\n')) {
+    line = line.trim();
+    if (line.isEmpty) {
+      continue;
+    }
+    int index = line.indexOf(':');
+    String name = line.substring(0, index);
+    String location = line.substring(index + 1);
+    if (name == packageName && location.startsWith('file:')) {
+      Uri uri = Uri.parse(location);
+
+      copyDirectory(new Directory.fromUri(uri),
+          joinDir(destDir, ['packages', packageName]));
+      return;
+    }
+  }
+
+  fail('package $packageName not found in .packages file');
 }
 
 /// Return the path for `packages/codemirror/codemirror.js`.
@@ -202,26 +231,6 @@ deploy() {
 
 @Task()
 clean() => defaultClean();
-
-Future _uploadCompiledStats(num mainLength) {
-  Map env = Platform.environment;
-
-  if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
-    Librato librato = new Librato.fromEnvVars();
-    log('Uploading stats to ${librato.baseUrl}');
-    LibratoStat mainSize = new LibratoStat('main.dart.js', mainLength);
-    return librato.postStats([mainSize]).then((_) {
-      String commit = env['TRAVIS_COMMIT'];
-      LibratoLink link = new LibratoLink(
-          'github', 'https://github.com/dart-lang/dart-pad/commit/${commit}');
-      LibratoAnnotation annotation = new LibratoAnnotation(commit,
-          description: 'Commit ${commit}', links: [link]);
-      return librato.createAnnotation('build_ui', annotation);
-    });
-  } else {
-    return new Future.value();
-  }
-}
 
 String _printSize(FilePath file) =>
     '${(file.asFile.lengthSync() + 1023) ~/ 1024}k';
