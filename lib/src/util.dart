@@ -113,7 +113,7 @@ Stream<T> debounceStream<T>(Stream<T> stream, Duration duration) {
   Timer timer;
 
   stream.listen((T event) {
-    timer.cancel();
+    timer?.cancel();
     timer = new Timer(duration, () {
       controller.add(event);
     });
