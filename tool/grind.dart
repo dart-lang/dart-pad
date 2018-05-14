@@ -4,12 +4,10 @@
 
 library dart_pad.grind;
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:git/git.dart';
 import 'package:grinder/grinder.dart';
-import 'package:librato/librato.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 final FilePath _buildDir = new FilePath('build');
@@ -82,8 +80,6 @@ build() {
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
   vulcanize('embed-inline.html');
-
-  return _uploadCompiledStats(mainFile.asFile.lengthSync());
 }
 
 /// Return the path for `packages/codemirror/codemirror.js`.
@@ -202,26 +198,6 @@ deploy() {
 
 @Task()
 clean() => defaultClean();
-
-Future _uploadCompiledStats(num mainLength) {
-  Map env = Platform.environment;
-
-  if (env.containsKey('LIBRATO_USER') && env.containsKey('TRAVIS_COMMIT')) {
-    Librato librato = new Librato.fromEnvVars();
-    log('Uploading stats to ${librato.baseUrl}');
-    LibratoStat mainSize = new LibratoStat('main.dart.js', mainLength);
-    return librato.postStats([mainSize]).then((_) {
-      String commit = env['TRAVIS_COMMIT'];
-      LibratoLink link = new LibratoLink(
-          'github', 'https://github.com/dart-lang/dart-pad/commit/${commit}');
-      LibratoAnnotation annotation = new LibratoAnnotation(commit,
-          description: 'Commit ${commit}', links: [link]);
-      return librato.createAnnotation('build_ui', annotation);
-    });
-  } else {
-    return new Future.value();
-  }
-}
 
 String _printSize(FilePath file) =>
     '${(file.asFile.lengthSync() + 1023) ~/ 1024}k';

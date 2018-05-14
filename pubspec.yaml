@@ -9,7 +9,6 @@ dependencies:
   browser: ^0.10.0+2
   codemirror: ^0.4.1
   haikunator: ^0.1.0
-  frappe: ^0.4.0
   http: '>=0.11.1 <0.12.0'
   logging: '>=0.9.0 <0.12.0'
   markdown: ^2.0.0
@@ -18,9 +17,7 @@ dev_dependencies:
   dart_to_js_script_rewriter: any
   git: any
   grinder: ^0.8.0
-  librato: ^0.1.0
   test: ^0.12.0
-  which: ^0.1.0
   yaml: any
 transformers:
 - dart_to_js_script_rewriter

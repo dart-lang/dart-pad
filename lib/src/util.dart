@@ -24,6 +24,7 @@ bool isMobile() {
  */
 class PermissiveNodeValidator implements NodeValidator {
   bool allowsElement(Element element) => true;
+
   bool allowsAttribute(Element element, String attributeName, String value) {
     return true;
   }
@@ -102,4 +103,21 @@ String capitalize(String s) {
   } else {
     return '${s[0].toUpperCase()}${s.substring(1)}';
   }
+}
+
+/// Wait [duration] time after an event to fire on the returned stream, and
+/// reset that time if a new event arrives.
+Stream<T> debounceStream<T>(Stream<T> stream, Duration duration) {
+  StreamController<T> controller = new StreamController<T>.broadcast();
+
+  Timer timer;
+
+  stream.listen((T event) {
+    timer.cancel();
+    timer = new Timer(duration, () {
+      controller.add(event);
+    });
+  });
+
+  return controller.stream;
 }

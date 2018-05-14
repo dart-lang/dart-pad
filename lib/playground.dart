@@ -7,7 +7,6 @@ library playground;
 import 'dart:async';
 import 'dart:html' hide Document;
 
-import 'package:frappe/frappe.dart' as frappe;
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
@@ -153,9 +152,7 @@ class Playground implements GistContainer, GistController {
 
     // If there was a change, and the gist is dirty, write the gist's contents
     // to storage.
-    frappe.Property gistChanged =
-        new frappe.Property.fromStream(mutableGist.onChanged);
-    gistChanged.debounce(new Duration(milliseconds: 100)).listen((_) {
+    debounceStream(mutableGist.onChanged, new Duration(milliseconds: 100)).listen((_) {
       if (mutableGist.dirty) {
         _gistStorage.setStoredGist(mutableGist.createGist());
       }

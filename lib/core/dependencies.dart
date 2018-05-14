@@ -85,7 +85,7 @@ class Dependencies {
   /**
    * Execute the given function in a new Zone. That zone is populated with the
    * dependencies of this object. Any requests for dependencies are first
-   * satisfied with thie [Dependencies] object, and then delegate up to
+   * satisfied with this [Dependencies] object, and then delegate up to
    * [Dependencies] for parent Zones.
    */
   void runInZone(Function function) {
