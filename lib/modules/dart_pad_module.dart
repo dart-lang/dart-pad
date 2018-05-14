@@ -7,7 +7,6 @@ library dart_pad_module;
 import 'dart:async';
 
 import '../core/dependencies.dart';
-import '../core/event_bus.dart';
 import '../core/keys.dart';
 import '../core/modules.dart';
 import '../elements/state.dart';
@@ -19,7 +18,6 @@ class DartPadModule extends Module {
       Dependencies.setGlobalInstance(new Dependencies());
     }
 
-    deps[EventBus] = new EventBus();
     deps[Keys] = new Keys();
     deps[State] = new HtmlState('dart_pad');
     deps[Options] = new Options()..installIntoJsContext();

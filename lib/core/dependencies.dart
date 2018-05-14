@@ -2,16 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A simple dependency manager.
- */
+/// A simple dependency manager.
 library core.dependencies;
 
 import 'dart:async';
-
-// TODO: add dependencies by name
-
-// TODO: rename to deps?
 
 Dependencies get deps => Dependencies.instance;
 

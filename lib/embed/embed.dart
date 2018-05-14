@@ -358,8 +358,6 @@ class PlaygroundMobile {
 
   Future _initModules() {
     modules.register(new DartPadModule());
-    //modules.register(new MockAnalysisModule());
-    //modules.register(new MockCompilerModule());
     modules.register(new DartServicesModule());
     modules.register(new DartSupportServicesModule());
     modules.register(new CodeMirrorModule());

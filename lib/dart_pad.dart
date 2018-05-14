@@ -8,7 +8,6 @@ import 'package:route_hierarchical/client.dart';
 
 import 'context.dart';
 import 'core/dependencies.dart';
-import 'core/event_bus.dart';
 import 'core/keys.dart';
 import 'editing/editor.dart';
 import 'elements/state.dart';
@@ -31,8 +30,6 @@ P_dartpadsupportservicesApi get dartSupportServices =>
     deps[P_dartpadsupportservicesApi];
 
 EditorFactory get editorFactory => deps[EditorFactory];
-
-EventBus get eventBus => deps[EventBus];
 
 ExecutionService get executionService => deps[ExecutionService];
 

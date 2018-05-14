@@ -360,7 +360,6 @@ class Playground implements GistContainer, GistController {
 
   Future _initModules() {
     modules.register(new DartPadModule());
-    //modules.register(new MockDartServicesModule());
     modules.register(new DartServicesModule());
     modules.register(new DartSupportServicesModule());
     modules.register(new CodeMirrorModule());
