@@ -16,7 +16,6 @@ import 'services/dartservices.dart';
 import 'services/execution.dart';
 import 'sharing/gists.dart';
 import 'src/ga.dart';
-import 'src/options.dart';
 
 const bool strongModeDefault = true;
 
@@ -40,5 +39,3 @@ Keys get keys => deps[Keys];
 Router get router => deps[Router];
 
 State get state => deps[State];
-
-Options get options => deps[Options];

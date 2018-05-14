@@ -8,7 +8,7 @@ library dart_pad.gists_test;
 import 'package:dart_pad/sharing/gists.dart';
 import 'package:test/test.dart';
 
-main() => defineTests();
+void main() => defineTests();
 
 void defineTests() {
   group('gists', () {

@@ -40,7 +40,7 @@ Dependencies get deps => Dependencies.instance;
 class Dependencies {
   static Dependencies _global;
 
-  static setGlobalInstance(Dependencies deps) {
+  static void setGlobalInstance(Dependencies deps) {
     _global = deps;
   }
 

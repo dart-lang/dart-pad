@@ -7,7 +7,7 @@ library dart_pad.dependencies_test;
 import 'package:dart_pad/core/dependencies.dart';
 import 'package:test/test.dart';
 
-main() => defineTests();
+void main() => defineTests();
 
 void defineTests() {
   group('dependencies', () {

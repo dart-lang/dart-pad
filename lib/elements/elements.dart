@@ -515,7 +515,7 @@ class _ElementTextProperty implements Property {
 
   _ElementTextProperty(this.element);
 
-  get() => element.text;
+  String get() => element.text;
 
   void set(value) {
     element.text = value == null ? '' : value.toString();

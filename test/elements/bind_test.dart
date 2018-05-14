@@ -9,7 +9,7 @@ import 'dart:async';
 import 'package:dart_pad/elements/bind.dart';
 import 'package:test/test.dart';
 
-main() => defineTests();
+void main() => defineTests();
 
 void defineTests() {
   group('bind', () {
