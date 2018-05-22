@@ -11,4 +11,5 @@ dart-sdk/
 *.js.map
 
 # Other files.
+*.iml
 pubspec.lock
