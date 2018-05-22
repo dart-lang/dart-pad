@@ -542,6 +542,10 @@ div.toggle {
   width: 100px;
 }
 
+#dartpad_version {
+  cursor: pointer;
+}
+
 @media screen and (max-width: 500px) {
   #newbutton {
     display: none;

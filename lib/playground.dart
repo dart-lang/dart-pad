@@ -166,21 +166,30 @@ class Playground implements GistContainer, GistController {
     // Show the about box on title clicks.
     querySelector('div.header-title').onClick.listen((e) {
       e.preventDefault();
+      _showAboutBox();
+    });
 
-      dartServices
-          .version()
-          .timeout(new Duration(seconds: 2))
-          .then((VersionResponse ver) {
-        print("Dart SDK version ${ver.sdkVersion} (${ver.sdkVersionFull})");
-        print('CodeMirror: ${CodeMirrorModule.version}');
-        new AboutDialog(ver.sdkVersion)..show();
-      }).catchError((e) {
-        new AboutDialog()..show();
-      });
+    // Show the about box on version text clicks.
+    querySelector('#dartpad_version').onClick.listen((e) {
+      e.preventDefault();
+      _showAboutBox();
     });
 
     _initModules().then((_) {
       _initPlayground();
+    });
+  }
+
+  void _showAboutBox() {
+    dartServices
+        .version()
+        .timeout(new Duration(seconds: 2))
+        .then((VersionResponse ver) {
+      print("Dart SDK version ${ver.sdkVersion} (${ver.sdkVersionFull})");
+      print('CodeMirror: ${CodeMirrorModule.version}');
+      new AboutDialog(ver.sdkVersionFull)..show();
+    }).catchError((e) {
+      new AboutDialog()..show();
     });
   }
 
@@ -522,6 +531,12 @@ class Playground implements GistContainer, GistController {
     router.listen();
 
     docHandler = new DocHandler(editor, _context);
+
+    dartServices.version().then((VersionResponse version) {
+      // "Based on Dart SDK 1.25.0-dev"
+      String versionText = "Based on Dart SDK ${version.sdkVersionFull}";
+      querySelector('#dartpad_version').text = versionText;
+    }).catchError((e) => null);
 
     _finishedInit();
   }
