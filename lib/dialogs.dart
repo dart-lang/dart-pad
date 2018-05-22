@@ -36,10 +36,10 @@ class OkCancelDialog extends DDialog {
 }
 
 class AboutDialog extends DDialog {
-  AboutDialog([String version]) : super(title: 'About DartPad') {
+  AboutDialog([String versionText]) : super(title: 'About DartPad') {
     ParagraphElement p = content.add(new ParagraphElement());
     String text = privacyText;
-    if (version != null) text += " Based on Dart SDK ${version}.";
+    if (versionText != null) text += " Based on Dart SDK ${versionText}.";
     p.setInnerHtml(text, validator: new PermissiveNodeValidator());
 
     buttonArea.add(new SpanElement()..attributes['flex'] = '');
