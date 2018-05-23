@@ -84,6 +84,7 @@ class FileRelayServer {
       path: 'export',
       description: 'Store a gist dataset to be retrieved.')
   Future<UuidContainer> export(PadSaveObject data) {
+    print ('hello there');
     _GaePadSaveObject record = new _GaePadSaveObject.fromDSO(data);
     String randomUuid = new uuid_tools.Uuid().v4();
     record.uuid = "${_computeSHA1(record)}-$randomUuid";
@@ -305,6 +306,6 @@ String _computeSHA1(_GaePadSaveObject record) {
 }
 
 List<int> _gzipEncode(String input) =>
-    io.GZIP.encode(convert.UTF8.encode(input));
+    io.gzip.encode(convert.utf8.encode(input));
 String _gzipDecode(List<int> input) =>
-    convert.UTF8.decode(io.GZIP.decode(input));
+    convert.utf8.decode(io.gzip.decode(input));

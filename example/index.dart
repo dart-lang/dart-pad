@@ -8,13 +8,13 @@ import "dart:html";
 void main() {
   querySelector('#sendButton').onClick.listen((e) {
     String code = querySelector('#code').text;
-    var json = {'source': code};
+    var jsonData = {'source': code};
     //var foo = querySelector('#apiEndPoint');
     String api = (querySelector('#apiEndPoint') as InputElement).value;
 
     Stopwatch sw = new Stopwatch()..start();
     HttpRequest
-        .request(api, method: 'POST', sendData: JSON.encode(json))
+        .request(api, method: 'POST', sendData: json.encode(jsonData))
         .then((HttpRequest request) {
       sw.stop();
       querySelector('#perf').text = "${sw.elapsedMilliseconds}ms";

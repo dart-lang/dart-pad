@@ -14,7 +14,7 @@ import 'package:dart_services/src/compiler.dart';
 void main(List<String> args) {
   bool json = args.contains('--json');
 
-  BenchmarkHarness harness = new BenchmarkHarness(json: json);
+  BenchmarkHarness harness = new BenchmarkHarness(asJson: json);
 
   List<Benchmark> benchmarks = [
     new AnalyzerBenchmark('hello', sampleCode),

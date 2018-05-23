@@ -116,7 +116,7 @@ void defineTests() {
     test('no-op impls', () {
       Pub pub = new Pub.mock();
       expect(pub.cacheDir, isNull);
-      expect(pub.flushCache(), null);
+      pub.flushCache();
       expect(pub.getVersion(), null);
 
       return pub

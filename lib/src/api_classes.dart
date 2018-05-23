@@ -144,7 +144,7 @@ class CompleteResponse {
         var data = m[key];
         // TODO: Properly support Lists, Maps (this is a hack).
         if (data is Map || data is List) {
-          data = JSON.encode(data);
+          data = json.encode(data);
         }
         newMap[key] = '${data}';
       }

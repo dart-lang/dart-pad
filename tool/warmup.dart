@@ -10,7 +10,6 @@ import 'package:http/http.dart' as http;
 String uri;
 
 const BASE_URI = "dart-services.appspot.com/api/dartservices/v1/";
-// const BASE_URI = "dart-services-test.appspot.com/api/dartservices/v1/";
 // const BASE_URI = "localhost:8080/api/dartservices/v1/";
 const count = 100;
 
@@ -35,8 +34,8 @@ Future main(List<String> args) async {
     var data = {"offset": 17, "source": source};
     var strongData = {"offset": 17, "source": source, "strongMode": true};
 
-    String postPayload = convert.JSON.encode(data);
-    String strongPostPayload = convert.JSON.encode(strongData);
+    String postPayload = convert.json.encode(data);
+    String strongPostPayload = convert.json.encode(strongData);
 
     await request("complete", postPayload);
     await request("analyze", postPayload);
