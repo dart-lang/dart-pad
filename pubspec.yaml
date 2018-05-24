@@ -13,6 +13,7 @@ dependencies:
   markdown: ^2.0.0
   route_hierarchical: ^0.7.0
 dev_dependencies:
+  dhttpd: any
   git: any
   grinder: ^0.8.0
   test: ^0.12.0

@@ -40,6 +40,12 @@ testWeb() => new TestRunner().testAsync(platformSelector: 'chrome');
 @Task('Run bower')
 bower() => run('bower', arguments: ['install', '--force-latest']);
 
+@Task('Serve locally on port 8000')
+@Depends(build)
+serve() {
+  run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build/web']);
+}
+
 @Task('Build the `web/index.html` entrypoint')
 build() {
   // Copy our third party python code into web/.
