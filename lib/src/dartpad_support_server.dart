@@ -84,7 +84,6 @@ class FileRelayServer {
       path: 'export',
       description: 'Store a gist dataset to be retrieved.')
   Future<UuidContainer> export(PadSaveObject data) {
-    print ('hello there');
     _GaePadSaveObject record = new _GaePadSaveObject.fromDSO(data);
     String randomUuid = new uuid_tools.Uuid().v4();
     record.uuid = "${_computeSHA1(record)}-$randomUuid";

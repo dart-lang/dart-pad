@@ -47,7 +47,7 @@ void defineTests() {
     var uri = Uri.parse("/api/$path");
     var body = new Stream.fromIterable([utf8.encode(json.encode(jsonData))]);
     var request = new HttpApiRequest(
-        'POST', uri, {'content-type': 'application/jsonData; charset=utf-8'}, body);
+        'POST', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
@@ -57,7 +57,7 @@ void defineTests() {
         .parse(queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
     var body = new Stream.fromIterable([]);
     var request = new HttpApiRequest(
-        'GET', uri, {'content-type': 'application/jsonData; charset=utf-8'}, body);
+        'GET', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 

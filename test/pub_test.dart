@@ -18,7 +18,7 @@ void defineTests() {
     test('version', () {
       String ver = pub.getVersion().toLowerCase();
       expect(ver, isNotEmpty);
-      expect(ver, startsWith('pub 1.'));
+      expect(ver, startsWith('pub 2.'));
     });
 
     test('resolvePackages simple', () {
