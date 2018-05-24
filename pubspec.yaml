@@ -3,7 +3,7 @@ author: Dart Team <misc@dartlang.org>
 description: The UI client for a web based interactive Dart service.
 homepage: https://github.com/dart-lang/dart-pad
 environment:
-  sdk: '>=1.13.0 <2.0.0'
+  sdk: '>=2.0.0-dev.17.0 <2.0.0'
 dependencies:
   _discoveryapis_commons: '>=0.1.0 <0.2.0'
   codemirror: ^0.4.1
