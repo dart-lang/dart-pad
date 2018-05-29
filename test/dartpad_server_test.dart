@@ -127,8 +127,8 @@ void defineTests() {
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data['uuid'], isNotNull);
       var jsonData = {'gistId': gistId, 'internalId': data['uuid']};
-      var postResponse =
-          await _sendPostRequest('_dartpadsupportservices/v1/storeGist', jsonData);
+      var postResponse = await _sendPostRequest(
+          '_dartpadsupportservices/v1/storeGist', jsonData);
       expect(postResponse.status, 200);
       var postData = json.decode(utf8.decode(await postResponse.body.first));
       expect(postData['uuid'], gistId);
@@ -142,14 +142,14 @@ void defineTests() {
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data['uuid'], isNotNull);
       var jsonData = {'gistId': gistId, 'internalId': data['uuid']};
-      var postResponse =
-          await _sendPostRequest('_dartpadsupportservices/v1/storeGist', jsonData);
+      var postResponse = await _sendPostRequest(
+          '_dartpadsupportservices/v1/storeGist', jsonData);
       expect(postResponse.status, 200);
       var postData = json.decode(utf8.decode(await postResponse.body.first));
       expect(postData['uuid'], gistId);
       jsonData = {'gistId': 'failure', 'internalId': data['uuid']};
-      postResponse =
-          await _sendPostRequest('_dartpadsupportservices/v1/storeGist', jsonData);
+      postResponse = await _sendPostRequest(
+          '_dartpadsupportservices/v1/storeGist', jsonData);
       expect(postResponse.status, 400);
     });
 
@@ -161,8 +161,8 @@ void defineTests() {
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data['uuid'], isNotNull);
       var jsonData = {'gistId': gistId, 'internalId': data['uuid']};
-      var postResponse =
-          await _sendPostRequest('_dartpadsupportservices/v1/storeGist', jsonData);
+      var postResponse = await _sendPostRequest(
+          '_dartpadsupportservices/v1/storeGist', jsonData);
       expect(postResponse.status, 200);
       var postData = json.decode(utf8.decode(await postResponse.body.first));
       expect(postData['uuid'], gistId);

@@ -74,6 +74,16 @@ void foo(int i) {
 }
 """;
 
+final String samplePreviewDart2OK = """
+class Foo {
+  String toString() => 'hello';
+}
+
+void main(List<String> argv) {
+  print (Foo());
+}
+""";
+
 class Lines {
   List<int> _starts = [];
 

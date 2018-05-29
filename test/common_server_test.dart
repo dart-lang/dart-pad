@@ -91,7 +91,8 @@ void defineTests() {
 
     test('analyze', () async {
       var jsonData = {'source': sampleCode};
-      var response = await _sendPostRequest('dartservices/v1/analyze', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/analyze', jsonData);
       expect(response.status, 200);
       var data = await response.body.first;
       expect(
@@ -100,7 +101,8 @@ void defineTests() {
 
     test('analyze errors', () async {
       var jsonData = {'source': sampleCodeError};
-      var response = await _sendPostRequest('dartservices/v1/analyze', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/analyze', jsonData);
       expect(response.status, 200);
       expect(
           response.headers['content-type'], 'application/json; charset=utf-8');
@@ -124,13 +126,15 @@ void defineTests() {
 
     test('analyze negative-test noSource', () async {
       var jsonData = {};
-      var response = await _sendPostRequest('dartservices/v1/analyze', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/analyze', jsonData);
       expect(response.status, 400);
     });
 
     test('compile', () async {
       var jsonData = {'source': sampleCode};
-      var response = await _sendPostRequest('dartservices/v1/compile', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/compile', jsonData);
       expect(response.status, 200);
       var data = await response.body.first;
       expect(json.decode(utf8.decode(data)), isNotEmpty);
@@ -138,7 +142,8 @@ void defineTests() {
 
     test('compile error', () async {
       var jsonData = {'source': sampleCodeError};
-      var response = await _sendPostRequest('dartservices/v1/compile', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/compile', jsonData);
       expect(response.status, 400);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data, isNotEmpty);
@@ -147,13 +152,15 @@ void defineTests() {
 
     test('compile negative-test noSource', () async {
       var jsonData = {};
-      var response = await _sendPostRequest('dartservices/v1/compile', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/compile', jsonData);
       expect(response.status, 400);
     });
 
     test('complete', () async {
       var jsonData = {'source': 'void main() {print("foo");}', 'offset': 1};
-      var response = await _sendPostRequest('dartservices/v1/complete', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/complete', jsonData);
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data, isNotEmpty);
@@ -166,13 +173,15 @@ void defineTests() {
 
     test('complete param missing', () async {
       var jsonData = {'offset': 1};
-      var response = await _sendPostRequest('dartservices/v1/complete', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/complete', jsonData);
       expect(response.status, 400);
     });
 
     test('complete param missing 2', () async {
       var jsonData = {'source': 'void main() {print("foo");}'};
-      var response = await _sendPostRequest('dartservices/v1/complete', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/complete', jsonData);
       expect(response.status, 400);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data['error']['message'], 'Missing parameter: \'offset\'');
@@ -180,7 +189,8 @@ void defineTests() {
 
     test('document', () async {
       var jsonData = {'source': 'void main() {print("foo");}', 'offset': 17};
-      var response = await _sendPostRequest('dartservices/v1/document', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data, isNotEmpty);
@@ -188,7 +198,8 @@ void defineTests() {
 
     test('document little data', () async {
       var jsonData = {'source': 'void main() {print("foo");}', 'offset': 2};
-      var response = await _sendPostRequest('dartservices/v1/document', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data, {
@@ -198,7 +209,8 @@ void defineTests() {
 
     test('document no data', () async {
       var jsonData = {'source': 'void main() {print("foo");}', 'offset': 12};
-      var response = await _sendPostRequest('dartservices/v1/document', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data, {"info": {}});
@@ -206,13 +218,15 @@ void defineTests() {
 
     test('document negative-test noSource', () async {
       var jsonData = {'offset': 12};
-      var response = await _sendPostRequest('dartservices/v1/document', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 400);
     });
 
     test('document negative-test noOffset', () async {
       var jsonData = {'source': 'void main() {print("foo");}'};
-      var response = await _sendPostRequest('dartservices/v1/document', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 400);
     });
 
@@ -282,7 +296,8 @@ void defineTests() {
       var jsonData = {
         'sources': {'dart': sampleCode, 'html': '', 'css': ''}
       };
-      var response = await _sendPostRequest('dartservices/v1/summarize', jsonData);
+      var response =
+          await _sendPostRequest('dartservices/v1/summarize', jsonData);
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data['text'], isNotNull);
@@ -292,7 +307,8 @@ void defineTests() {
       var jsonOne = {
         'sources': {'dart': sampleCode, 'html': '', 'css': ''}
       };
-      var response = await _sendPostRequest('dartservices/v1/summarize', jsonOne);
+      var response =
+          await _sendPostRequest('dartservices/v1/summarize', jsonOne);
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data['text'], isNotNull);

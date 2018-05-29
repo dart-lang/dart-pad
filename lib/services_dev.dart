@@ -32,9 +32,10 @@ void main(List<String> args) {
   var result = parser.parse(args);
   var port = int.tryParse(result['port']);
   if (port == null) {
-    stdout.writeln('Could not parse port value "${result['port']}" into a number.');
+    stdout.writeln(
+        'Could not parse port value "${result['port']}" into a number.');
     exit(1);
-  };
+  }
 
   String sdk = sdkPath;
 
@@ -82,8 +83,8 @@ class EndpointsServer {
 
   static Future<String> generateDiscovery(
       String sdkPath, String serverUrl) async {
-    var commonServer = new CommonServer(sdkPath, new _ServerContainer(),
-        new _Cache(), new _Counter());
+    var commonServer = new CommonServer(
+        sdkPath, new _ServerContainer(), new _Cache(), new _Counter());
     await commonServer.init();
     var apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
@@ -123,8 +124,8 @@ class EndpointsServer {
 
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
-    commonServer = new CommonServer(sdkPath, new _ServerContainer(),
-        new _Cache(), new _Counter());
+    commonServer = new CommonServer(
+        sdkPath, new _ServerContainer(), new _Cache(), new _Counter());
     commonServer.init();
     apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);

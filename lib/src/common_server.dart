@@ -65,8 +65,7 @@ class CommonServer {
 
   String sdkPath;
 
-  CommonServer(String this.sdkPath, this.container, this.cache,
-      this.counter) {
+  CommonServer(String this.sdkPath, this.container, this.cache, this.counter) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
   }
@@ -75,12 +74,13 @@ class CommonServer {
     pub = enablePackages ? new Pub() : new Pub.mock();
     compiler = new Compiler(sdkPath, pub);
     analysisServer = new AnalysisServerWrapper(sdkPath, strongMode: false);
-    analysisServerStrong = new AnalysisServerWrapper(sdkPath);
+    analysisServerStrong =
+        new AnalysisServerWrapper(sdkPath, previewDart2: true);
 
     await analysisServer.init();
     // If the analysis server dies, we exit with the same code.
     analysisServer.onExit.then((int code) {
-      _logger.severe('analysisServerStrong exited, code: $code');
+      _logger.severe('analysisServer exited, code: $code');
       if (code != 0) {
         exit(code);
       }

@@ -41,7 +41,7 @@ void defineTests() {
           .compile(sampleCode, returnSourceMap: true)
           .then((CompilationResults result) {
         expect(compiler.version, isNotNull);
-        expect(compiler.version, startsWith('1.'));
+        expect(compiler.version, startsWith('2.'));
         expect(result.getSourceMap(), isNotEmpty);
       });
     });
@@ -130,6 +130,22 @@ void main() { print ('foo'); }
 ''';
       return compiler.compile(code).then((CompilationResults result) {
         expect(result.problems.length, 1);
+      });
+    });
+
+    test('errors without previewDart2', () {
+      return compiler
+          .compile(samplePreviewDart2OK, previewDart2: false)
+          .then((CompilationResults result) {
+        expect(result.problems.length, 1);
+      });
+    }, skip: 'no negatable flag, we are always preview-dart-2');
+
+    test('pass on previewDart2', () {
+      return compiler
+          .compile(samplePreviewDart2OK, previewDart2: true)
+          .then((CompilationResults result) {
+        expect(result.success, true);
       });
     });
   });

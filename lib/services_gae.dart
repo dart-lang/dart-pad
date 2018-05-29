@@ -53,8 +53,8 @@ class GaeServer {
 
     discoveryEnabled = false;
     fileRelayServer = new FileRelayServer();
-    commonServer = new CommonServer(sdkPath, new GaeServerContainer(),
-        new GaeCache(), new GaeCounter());
+    commonServer = new CommonServer(
+        sdkPath, new GaeServerContainer(), new GaeCache(), new GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
     apiServer = new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer)
