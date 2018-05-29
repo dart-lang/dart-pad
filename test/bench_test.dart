@@ -14,7 +14,7 @@ void main() => defineTests();
 void defineTests() {
   group('BenchmarkHarness', () {
     test('single', () {
-      BenchmarkHarness harness = new BenchmarkHarness(json: true);
+      BenchmarkHarness harness = new BenchmarkHarness(asJson: true);
       MockBenchmark benchmark = new MockBenchmark();
 
       return harness.benchmarkSingle(benchmark).then((BenchMarkResult result) {
@@ -28,7 +28,7 @@ void defineTests() {
 
     test('many', () {
       BenchmarkHarness harness =
-          new BenchmarkHarness(json: true, logger: (_) => null);
+          new BenchmarkHarness(asJson: true, logger: (_) => null);
       List<MockBenchmark> benchmarks = [
         new MockBenchmark(),
         new MockBenchmark()

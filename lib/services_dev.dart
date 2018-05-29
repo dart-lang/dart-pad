@@ -30,10 +30,11 @@ void main(List<String> args) {
   parser.addOption('server-url', defaultsTo: 'http://localhost');
 
   var result = parser.parse(args);
-  var port = int.parse(result['port'], onError: (val) {
-    stdout.writeln('Could not parse port value "$val" into a number.');
+  var port = int.tryParse(result['port']);
+  if (port == null) {
+    stdout.writeln('Could not parse port value "${result['port']}" into a number.');
     exit(1);
-  });
+  };
 
   String sdk = sdkPath;
 
@@ -72,7 +73,7 @@ class EndpointsServer {
     EndpointsServer endpointsServer = new EndpointsServer._(sdkPath, port);
 
     return shelf
-        .serve(endpointsServer.handler, InternetAddress.ANY_IP_V4, port)
+        .serve(endpointsServer.handler, InternetAddress.anyIPv4, port)
         .then((HttpServer server) {
       endpointsServer.server = server;
       return endpointsServer;
@@ -92,7 +93,7 @@ class EndpointsServer {
     var request =
         new HttpApiRequest('GET', uri, {}, new Stream.fromIterable([]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
-    return UTF8.decode(await response.body.first);
+    return utf8.decode(await response.body.first);
   }
 
   static Future<String> generateRelayDiscovery(
@@ -107,7 +108,7 @@ class EndpointsServer {
     var request =
         new HttpApiRequest('GET', uri, {}, new Stream.fromIterable([]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
-    return UTF8.decode(await response.body.first);
+    return utf8.decode(await response.body.first);
   }
 
   final int port;

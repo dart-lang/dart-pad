@@ -305,6 +305,6 @@ String _computeSHA1(_GaePadSaveObject record) {
 }
 
 List<int> _gzipEncode(String input) =>
-    io.GZIP.encode(convert.UTF8.encode(input));
+    io.gzip.encode(convert.utf8.encode(input));
 String _gzipDecode(List<int> input) =>
-    convert.UTF8.decode(io.GZIP.decode(input));
+    convert.utf8.decode(io.gzip.decode(input));

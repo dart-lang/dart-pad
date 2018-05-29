@@ -18,7 +18,7 @@ void defineTests() {
     test('version', () {
       String ver = pub.getVersion().toLowerCase();
       expect(ver, isNotEmpty);
-      expect(ver, startsWith('pub 1.'));
+      expect(ver, startsWith('pub 2.'));
     });
 
     test('resolvePackages simple', () {
@@ -116,7 +116,7 @@ void defineTests() {
     test('no-op impls', () {
       Pub pub = new Pub.mock();
       expect(pub.cacheDir, isNull);
-      expect(pub.flushCache(), null);
+      pub.flushCache();
       expect(pub.getVersion(), null);
 
       return pub

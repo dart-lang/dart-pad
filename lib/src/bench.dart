@@ -9,7 +9,7 @@
 library services.bench;
 
 import 'dart:async';
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
 // TODO: add in mean, % error
 
@@ -31,10 +31,10 @@ abstract class Benchmark {
 typedef void BenchmarkLogger(String str);
 
 class BenchmarkHarness {
-  final bool json;
+  final bool asJson;
   final BenchmarkLogger logger;
 
-  BenchmarkHarness({this.json, this.logger: print});
+  BenchmarkHarness({this.asJson, this.logger: print});
 
   Future benchmark(List<Benchmark> benchmarks) async {
     if (isCheckedMode()) {
@@ -55,8 +55,8 @@ class BenchmarkHarness {
         results.add(result);
       });
     }).then((_) {
-      if (json) {
-        logger(JSON.encode(results
+      if (asJson) {
+        logger(json.encode(results
             .map((r) => {r.benchmark.name: r.averageMilliseconds()})
             .toList()));
       }
@@ -75,11 +75,11 @@ class BenchmarkHarness {
   }
 
   void log(String message) {
-    if (!json) logger(message);
+    if (!asJson) logger(message);
   }
 
   void logResult(BenchMarkResult result) {
-    if (!json) logger(result.toString());
+    if (!asJson) logger(result.toString());
   }
 
   Future _warmup(Benchmark benchmark) {

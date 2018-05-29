@@ -52,6 +52,6 @@ void defineTests() {
 
   test('vmVersion', () {
     expect(vmVersion, isNotNull);
-    expect(vmVersion, startsWith('1.'));
+    expect(vmVersion, startsWith('2.'));
   });
 }
