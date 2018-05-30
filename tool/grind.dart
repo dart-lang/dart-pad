@@ -33,7 +33,7 @@ void analyzeTest() => null;
 @Depends(init)
 void serve() {
   ProcessResult result =
-          Process.runSync('dart', ['bin/server_dev.dart', '--port', '8082']);
+      Process.runSync('dart', ['bin/server_dev.dart', '--port', '8082']);
 }
 
 @Task()

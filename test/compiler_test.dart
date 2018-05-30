@@ -52,9 +52,10 @@ main() { foo(1); }
 void foo(String bar) { print(bar); }
 ''';
 
-      CompilationResults normal = await compiler.compile(sampleCodeChecked, previewDart2: false);
-      CompilationResults checked =
-          await compiler.compile(sampleCodeChecked, previewDart2: false, useCheckedMode: true);
+      CompilationResults normal =
+          await compiler.compile(sampleCodeChecked, previewDart2: false);
+      CompilationResults checked = await compiler.compile(sampleCodeChecked,
+          previewDart2: false, useCheckedMode: true);
 
       expect(true, normal.getOutput() != checked.getOutput());
     });
