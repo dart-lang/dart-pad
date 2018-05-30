@@ -46,7 +46,7 @@ class Compiler {
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(String input,
       {bool useCheckedMode: false,
-      bool previewDart2: false,
+      bool previewDart2: true,
       bool returnSourceMap: false}) async {
     if (!importsOkForCompile(input)) {
       var failedResults = new CompilationResults();
@@ -68,7 +68,6 @@ class Compiler {
         '--suppress-hints',
         '--terse',
       ];
-      // TODO(jcollins-g): negatable flag?
       if (previewDart2) arguments.add('--preview-dart-2');
       if (useCheckedMode) arguments.add('--checked');
       if (!returnSourceMap) arguments.add('--no-source-maps');

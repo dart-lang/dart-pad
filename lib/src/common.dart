@@ -84,6 +84,19 @@ void main(List<String> argv) {
 }
 """;
 
+final String samplePreviewDart2Error = """
+class Foo {
+  final bool isAlwaysNull;
+  Foo(this.isAlwaysNull) {}
+}
+
+void main(List<String> argv) {
+  var x = new Foo(null);
+  var y = 1;
+  y = x;
+}
+""";
+
 class Lines {
   List<int> _starts = [];
 

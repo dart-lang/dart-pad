@@ -52,9 +52,9 @@ main() { foo(1); }
 void foo(String bar) { print(bar); }
 ''';
 
-      CompilationResults normal = await compiler.compile(sampleCodeChecked);
+      CompilationResults normal = await compiler.compile(sampleCodeChecked, previewDart2: false);
       CompilationResults checked =
-          await compiler.compile(sampleCodeChecked, useCheckedMode: true);
+          await compiler.compile(sampleCodeChecked, previewDart2: false, useCheckedMode: true);
 
       expect(true, normal.getOutput() != checked.getOutput());
     });
@@ -118,9 +118,9 @@ void main() { missingMethod ('foo'); }
       });
     });
 
-    test('allow complier warnings', () async {
+    test('disallow compiler warnings', () async {
       CompilationResults result = await compiler.compile(sampleCodeErrors);
-      expect(result.success, true);
+      expect(result.success, false);
     });
 
     test('transitive errors', () {
@@ -133,19 +133,19 @@ void main() { print ('foo'); }
       });
     });
 
-    test('errors without previewDart2', () {
+    test('OK without previewDart2', () {
       return compiler
-          .compile(samplePreviewDart2OK, previewDart2: false)
-          .then((CompilationResults result) {
-        expect(result.problems.length, 1);
-      });
-    }, skip: 'no negatable flag, we are always preview-dart-2');
-
-    test('pass on previewDart2', () {
-      return compiler
-          .compile(samplePreviewDart2OK, previewDart2: true)
+          .compile(samplePreviewDart2Error, previewDart2: false)
           .then((CompilationResults result) {
         expect(result.success, true);
+      });
+    });
+
+    test('errors on previewDart2', () {
+      return compiler
+          .compile(samplePreviewDart2Error, previewDart2: true)
+          .then((CompilationResults result) {
+        expect(result.problems.length, 1);
       });
     });
   });
