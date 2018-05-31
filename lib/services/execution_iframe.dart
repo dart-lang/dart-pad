@@ -55,9 +55,9 @@ function dartPrint(message) {
 ''';
 
     final String exceptionHandler = '''
-window.onerror = function(message, url, lineNumber) {
+window.onerror = function(message, url, lineNumber, columnNumber, errorObject) {
   parent.postMessage(
-    {'sender': 'frame', 'type': 'stderr', 'message': message}, '*');
+    {'sender': 'frame', 'type': 'stderr', 'message': message + errorObject}, '*');
 };
 ''';
 
