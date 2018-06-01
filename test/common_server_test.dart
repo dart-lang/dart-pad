@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server.dart';
+import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 import 'package:test/test.dart';
 
@@ -87,6 +88,13 @@ void defineTests() {
 
     setUp(() {
       counter.reset();
+      log.onRecord.listen((LogRecord rec) {
+        print('${rec.level.name}: ${rec.time}: ${rec.message}');
+      });
+    });
+
+    tearDown(() {
+      log.clearListeners();
     });
 
     test('analyze', () async {

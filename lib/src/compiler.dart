@@ -45,7 +45,7 @@ class Compiler {
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(String input,
-      {bool useCheckedMode: false,
+      {bool useCheckedMode: true,
       bool previewDart2: true,
       bool returnSourceMap: false}) async {
     if (!importsOkForCompile(input)) {
@@ -69,7 +69,7 @@ class Compiler {
         '--terse',
       ];
       if (previewDart2) arguments.add('--preview-dart-2');
-      if (useCheckedMode) arguments.add('--checked');
+      if (useCheckedMode) arguments.add('--enable-asserts');
       if (!returnSourceMap) arguments.add('--no-source-maps');
 
       arguments.add('-o${kMainDart}.js');

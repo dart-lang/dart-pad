@@ -86,8 +86,9 @@ class CompileRequest {
   String source;
 
   @ApiProperty(
-      description: 'Compile to code with checked mode checks; optional '
-          '(defaults to false).')
+      description:
+          'Ignored. (server always assumes checked mode/asserts enabled)')
+  @deprecated
   bool useCheckedMode;
 
   @ApiProperty(

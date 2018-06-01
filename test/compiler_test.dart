@@ -46,7 +46,7 @@ void defineTests() {
       });
     });
 
-    test('checked', () async {
+    test('verify asserts always enabled', () async {
       final String sampleCodeChecked = '''
 main() { foo(1); }
 void foo(String bar) { print(bar); }
@@ -57,7 +57,7 @@ void foo(String bar) { print(bar); }
       CompilationResults checked = await compiler.compile(sampleCodeChecked,
           previewDart2: false, useCheckedMode: true);
 
-      expect(true, normal.getOutput() != checked.getOutput());
+      expect(normal.getOutput(), equals(checked.getOutput()));
     });
 
     test('simple web', () {
