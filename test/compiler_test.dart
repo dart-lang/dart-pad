@@ -41,22 +41,23 @@ void defineTests() {
           .compile(sampleCode, returnSourceMap: true)
           .then((CompilationResults result) {
         expect(compiler.version, isNotNull);
-        expect(compiler.version, startsWith('1.'));
+        expect(compiler.version, startsWith('2.'));
         expect(result.getSourceMap(), isNotEmpty);
       });
     });
 
-    test('checked', () async {
+    test('verify asserts always enabled', () async {
       final String sampleCodeChecked = '''
 main() { foo(1); }
 void foo(String bar) { print(bar); }
 ''';
 
-      CompilationResults normal = await compiler.compile(sampleCodeChecked);
-      CompilationResults checked =
-          await compiler.compile(sampleCodeChecked, useCheckedMode: true);
+      CompilationResults normal =
+          await compiler.compile(sampleCodeChecked, previewDart2: false);
+      CompilationResults checked = await compiler.compile(sampleCodeChecked,
+          previewDart2: false, useCheckedMode: true);
 
-      expect(true, normal.getOutput() != checked.getOutput());
+      expect(normal.getOutput(), equals(checked.getOutput()));
     });
 
     test('simple web', () {
@@ -118,9 +119,9 @@ void main() { missingMethod ('foo'); }
       });
     });
 
-    test('allow complier warnings', () async {
+    test('disallow compiler warnings', () async {
       CompilationResults result = await compiler.compile(sampleCodeErrors);
-      expect(result.success, true);
+      expect(result.success, false);
     });
 
     test('transitive errors', () {
@@ -129,6 +130,22 @@ import 'dart:foo';
 void main() { print ('foo'); }
 ''';
       return compiler.compile(code).then((CompilationResults result) {
+        expect(result.problems.length, 1);
+      });
+    });
+
+    test('OK without previewDart2', () {
+      return compiler
+          .compile(samplePreviewDart2Error, previewDart2: false)
+          .then((CompilationResults result) {
+        expect(result.success, true);
+      });
+    });
+
+    test('errors on previewDart2', () {
+      return compiler
+          .compile(samplePreviewDart2Error, previewDart2: true)
+          .then((CompilationResults result) {
         expect(result.problems.length, 1);
       });
     });

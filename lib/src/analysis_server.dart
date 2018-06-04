@@ -32,6 +32,7 @@ final Duration _ANALYSIS_SERVER_TIMEOUT = new Duration(seconds: 35);
 class AnalysisServerWrapper {
   final String sdkPath;
 
+  final bool previewDart2;
   Future _init;
   Directory sourceDirectory;
   String mainPath;
@@ -40,8 +41,11 @@ class AnalysisServerWrapper {
   /// Instance to handle communication with the server.
   AnalysisServer analysisServer;
 
-  AnalysisServerWrapper(this.sdkPath, {bool strongMode: true}) {
-    _logger.info('AnalysisServerWrapper ctor, strong mode: $strongMode');
+  AnalysisServerWrapper(this.sdkPath,
+      {bool strongMode: true, this.previewDart2: false}) {
+    if (previewDart2 == true) strongMode = true;
+    _logger.info(
+        'AnalysisServerWrapper ctor, strong mode: $strongMode, previewDart2: $previewDart2');
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
     mainPath = _getPathFromName(kMainDart);
 
@@ -49,7 +53,7 @@ class AnalysisServerWrapper {
 
     // Write an analysis_options.yaml file with strong mode enabled.
     File optionsFile = new File(_getPathFromName('analysis_options.yaml'));
-    optionsFile.writeAsStringSync('analyzer:\n  strong-mode: ${strongMode}\n');
+    optionsFile.writeAsStringSync('analyzer:\n  strong-mode: $strongMode\n');
   }
 
   Future init() {
@@ -63,6 +67,7 @@ class AnalysisServerWrapper {
       }
 
       List<String> serverArgs = <String>[
+        '--${previewDart2 ? '' : 'no-'}preview-dart-2',
         '--dartpad',
         '--client-id=DartPad',
         '--client-version=${_sdkVersion}'

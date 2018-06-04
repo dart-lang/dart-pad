@@ -173,6 +173,28 @@ void defineTests() {
       AnalysisIssue issue = results.issues.first;
       expect(issue.kind, 'warning');
     });
+
+    test('analyze preview-dart-2', () async {
+      await analysisServer.shutdown();
+
+      analysisServer = new AnalysisServerWrapper(sdkPath, previewDart2: true);
+      await analysisServer.init();
+      AnalysisResults results =
+          await analysisServer.analyze(samplePreviewDart2OK);
+      expect(results.issues, hasLength(0));
+    });
+
+    test('analyze no-preview-dart-2', () async {
+      await analysisServer.shutdown();
+
+      analysisServer = new AnalysisServerWrapper(sdkPath, previewDart2: false);
+      await analysisServer.init();
+      AnalysisResults results =
+          await analysisServer.analyze(samplePreviewDart2OK);
+      expect(results.issues, hasLength(1));
+      AnalysisIssue issue = results.issues.first;
+      expect(issue.kind, 'error');
+    });
   });
 }
 

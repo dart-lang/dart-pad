@@ -30,6 +30,12 @@ Future test() => new TestRunner().testAsync();
 void analyzeTest() => null;
 
 @Task()
+@Depends(init)
+void serve() {
+  Process.runSync('dart', ['bin/server_dev.dart', '--port', '8082']);
+}
+
+@Task()
 void coverage() {
   if (!_env.containsKey('REPO_TOKEN')) {
     log("env var 'REPO_TOKEN' not found");

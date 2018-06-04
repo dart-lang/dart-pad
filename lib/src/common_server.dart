@@ -22,7 +22,7 @@ import 'sdk_manager.dart';
 import 'summarize.dart';
 
 final Duration _standardExpiration = new Duration(hours: 1);
-final Logger _logger = new Logger('common_server');
+final Logger log = new Logger('common_server');
 
 /// Toggle to on to enable `package:` support.
 final bool enablePackages = false;
@@ -65,22 +65,22 @@ class CommonServer {
 
   String sdkPath;
 
-  CommonServer(String this.sdkPath, this.container, this.cache,
-      this.counter) {
+  CommonServer(String this.sdkPath, this.container, this.cache, this.counter) {
     hierarchicalLoggingEnabled = true;
-    _logger.level = Level.ALL;
+    log.level = Level.ALL;
   }
 
   Future init() async {
     pub = enablePackages ? new Pub() : new Pub.mock();
     compiler = new Compiler(sdkPath, pub);
     analysisServer = new AnalysisServerWrapper(sdkPath, strongMode: false);
-    analysisServerStrong = new AnalysisServerWrapper(sdkPath);
+    analysisServerStrong =
+        new AnalysisServerWrapper(sdkPath, previewDart2: true);
 
     await analysisServer.init();
     // If the analysis server dies, we exit with the same code.
     analysisServer.onExit.then((int code) {
-      _logger.severe('analysisServerStrong exited, code: $code');
+      log.severe('analysisServer exited, code: $code');
       if (code != 0) {
         exit(code);
       }
@@ -88,7 +88,7 @@ class CommonServer {
 
     await analysisServerStrong.init();
     analysisServerStrong.onExit.then((int code) {
-      _logger.severe('analysisServerStrong exited, code: $code');
+      log.severe('analysisServerStrong exited, code: $code');
       if (code != 0) {
         exit(code);
       }
@@ -102,14 +102,14 @@ class CommonServer {
   }
 
   Future restart() async {
-    _logger.warning('Restarting CommonServer');
+    log.warning('Restarting CommonServer');
     await shutdown();
-    _logger.info('Analysis Servers shutdown');
+    log.info('Analysis Servers shutdown');
 
     await init();
     await warmup();
 
-    _logger.warning('Restart complete');
+    log.warning('Restart complete');
   }
 
   Future shutdown() {
@@ -167,8 +167,8 @@ class CommonServer {
           'resulting JavaScript.')
   Future<CompileResponse> compile(CompileRequest request) =>
       _compile(request.source,
-          useCheckedMode: request.useCheckedMode,
-          returnSourceMap: request.returnSourceMap);
+          useCheckedMode: true,
+          returnSourceMap: request.returnSourceMap ?? false);
 
   @ApiMethod(method: 'GET', path: 'compile')
   Future<CompileResponse> compileGet({String source}) => _compile(source);
@@ -304,7 +304,7 @@ class CommonServer {
     }
     String sourcesJson =
         new JsonEncoder().convert({"dart": dart, "html": html, "css": css});
-    _logger.info("About to summarize: ${_hashSource(sourcesJson)}");
+    log.info("About to summarize: ${_hashSource(sourcesJson)}");
 
     SummaryText summaryString =
         await _analyzeMulti({kMainDart: dart}, false).then((result) {
@@ -331,25 +331,22 @@ class CommonServer {
           .map((s) => s.split('\n').length)
           .fold(0, (a, b) => a + b);
       int ms = watch.elapsedMilliseconds;
-      _logger.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
+      log.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
       counter.increment("Analyses");
       counter.increment("Analyzed-Lines", increment: lineCount);
       return results;
     } catch (e, st) {
-      _logger.severe('Error during analyze', e, st);
+      log.severe('Error during analyze', e, st);
       await restart();
       throw e;
     }
   }
 
   Future<CompileResponse> _compile(String source,
-      {bool useCheckedMode, bool returnSourceMap}) async {
+      {bool useCheckedMode: true, bool returnSourceMap: false}) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
-    if (useCheckedMode == null) useCheckedMode = false;
-    if (returnSourceMap == null) returnSourceMap = false;
-
     String sourceHash = _hashSource(source);
 
     // TODO(lukechurch): Remove this hack after
@@ -364,12 +361,12 @@ class CommonServer {
 
     return checkCache(memCacheKey).then((String result) {
       if (!suppressCache && result != null) {
-        _logger.info("CACHE: Cache hit for compile");
+        log.info("CACHE: Cache hit for compile");
         var resultObj = new JsonDecoder().convert(result);
         return new CompileResponse(resultObj["output"],
             returnSourceMap ? resultObj["sourceMap"] : null);
       } else {
-        _logger.info("CACHE: MISS, forced: $suppressCache");
+        log.info("CACHE: MISS, forced: $suppressCache");
         Stopwatch watch = new Stopwatch()..start();
 
         return compiler
@@ -381,7 +378,7 @@ class CommonServer {
             int lineCount = source.split('\n').length;
             int outputSize = (results.getOutput().length + 512) ~/ 1024;
             int ms = watch.elapsedMilliseconds;
-            _logger.info('PERF: Compiled ${lineCount} lines of Dart into '
+            log.info('PERF: Compiled ${lineCount} lines of Dart into '
                 '${outputSize}kb of JavaScript in ${ms}ms.');
             counter.increment("Compilations");
             counter.increment("Compiled-Lines", increment: lineCount);
@@ -398,7 +395,7 @@ class CommonServer {
             throw new BadRequestError(errors);
           }
         }).catchError((e, st) {
-          _logger.severe('Error during compile: ${e}\n${st}');
+          log.severe('Error during compile: ${e}\n${st}');
           throw e;
         });
       }
@@ -417,11 +414,11 @@ class CommonServer {
       Map<String, String> docInfo =
           await analysisServerStrong.dartdoc(source, offset);
       docInfo ??= {};
-      _logger.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
+      log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
       counter.increment("DartDocs");
       return new DocumentResponse(docInfo);
     } catch (e, st) {
-      _logger.severe('Error during dartdoc', e, st);
+      log.severe('Error during dartdoc', e, st);
       await restart();
       rethrow;
     }
@@ -465,11 +462,10 @@ class CommonServer {
           new Location()
             ..sourceName = sourceName
             ..offset = offset);
-      _logger.info(
-          'PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
+      log.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
       return response;
     } catch (e, st) {
-      _logger.severe('Error during _complete', e, st);
+      log.severe('Error during _complete', e, st);
       await restart();
       rethrow;
     }
@@ -502,7 +498,7 @@ class CommonServer {
         new Location()
           ..sourceName = sourceName
           ..offset = offset);
-    _logger.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
+    log.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
 
@@ -516,7 +512,7 @@ class CommonServer {
     counter.increment("Formats");
 
     var response = await analysisServerStrong.format(source, offset);
-    _logger.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
+    log.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
 
