@@ -54,14 +54,19 @@ function dartPrint(message) {
 }
 ''';
 
-    final String exceptionHandler = '''
-window.onerror = function(message, url, lineNumber) {
-  parent.postMessage(
-    {'sender': 'frame', 'type': 'stderr', 'message': message}, '*');
-};
+    final String dartMainRunner = '''
+function dartMainRunner(main, args) {
+  try {
+    main(args);
+  } catch(error) {
+    parent.postMessage(
+      {'sender': 'frame', 'type': 'stderr', 'message': "Uncaught exception:\\n" + error.message}, '*');
+    throw error;
+  }
+}
 ''';
 
-    return '${postMessagePrint}\n${exceptionHandler}\n${javaScript}';
+    return '${postMessagePrint}\n${dartMainRunner}\n${javaScript}';
   }
 
   Stream<String> get onStdout => _stdoutController.stream;
