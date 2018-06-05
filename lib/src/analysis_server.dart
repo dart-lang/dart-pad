@@ -54,7 +54,7 @@ class AnalysisServerWrapper {
     // remove this hack.
     File optionsFile = new File(_getPathFromName('analysis_options.yaml'));
     optionsFile.writeAsStringSync(
-        'analyzer:\n  strong-mode: true\n  enablePreviewDart2: $previewDart2');
+        'analyzer:\n  strong-mode: true\n  enablePreviewDart2: $previewDart2\n');
   }
 
   Future init() {
