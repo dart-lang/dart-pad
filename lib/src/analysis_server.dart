@@ -48,6 +48,10 @@ class AnalysisServerWrapper {
     mainPath = _getPathFromName(kMainDart);
 
     serverScheduler = new TaskScheduler();
+
+    // Write an analysis_options.yaml file with strong mode enabled.
+    File optionsFile = new File(_getPathFromName('analysis_options.yaml'));
+    optionsFile.writeAsStringSync('analyzer:\n  strong-mode: true\n');
   }
 
   Future init() {
