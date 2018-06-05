@@ -32,7 +32,35 @@ void analyzeTest() => null;
 @Task()
 @Depends(init)
 void serve() {
-  Process.runSync('dart', ['bin/server_dev.dart', '--port', '8082']);
+  Process
+      .runSync(Platform.executable, ['bin/server_dev.dart', '--port', '8082']);
+}
+
+final _dockerVersionMatcher = new RegExp(r'^FROM google/dart-runtime:(.*)$');
+@Task('verify we are testing with what we will deploy')
+void checkDockerVersion() {
+  var dockerImageLine = new File('Dockerfile')
+      .readAsLinesSync()
+      .firstWhere((String s) => s.contains(_dockerVersionMatcher));
+  print('dockerImageLine: "${dockerImageLine}"');
+  var dockerImageVersion =
+      _dockerVersionMatcher.firstMatch(dockerImageLine).group(1);
+  var platformVersion = Platform.version.split(' ').first;
+  if (dockerImageVersion != platformVersion) {
+    throw 'Dockerfile image version (${dockerImageVersion}) does not match current Dart version: ${platformVersion}';
+  }
+}
+
+@Task()
+@Depends(init)
+void fuzz() {
+  log('warning: fuzz testing is a noop, see #301');
+}
+
+@Task('Update discovery files and run all checks prior to deployment')
+@Depends(checkDockerVersion, init, discovery, analyze, test, fuzz)
+void deploy() {
+  log('Run:  gcloud app deploy --project=dart-services --no-promote');
 }
 
 @Task()
@@ -60,8 +88,8 @@ void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')
 void discovery() {
-  ProcessResult result =
-      Process.runSync('dart', ['bin/server_dev.dart', '--discovery']);
+  ProcessResult result = Process
+      .runSync(Platform.executable, ['bin/server_dev.dart', '--discovery']);
 
   if (result.exitCode != 0) {
     throw 'Error generating the discovery document\n${result.stderr}';
@@ -72,8 +100,8 @@ void discovery() {
   log('writing ${discoveryFile.path}');
   discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
 
-  ProcessResult resultDb = Process
-      .runSync('dart', ['bin/server_dev.dart', '--discovery', '--relay']);
+  ProcessResult resultDb = Process.runSync(
+      Platform.executable, ['bin/server_dev.dart', '--discovery', '--relay']);
 
   if (result.exitCode != 0) {
     throw 'Error generating the discovery document\n${result.stderr}';

@@ -20,5 +20,5 @@ Future main() async {
   DownloadingSdk sdk = new DownloadingSdk();
   await sdk.init();
 
-  _logger.info('Dart SDK ${sdk.version} available at ${sdk.sdkPath}');
+  _logger.info('Dart SDK ${sdk.versionFull} available at ${sdk.sdkPath}');
 }

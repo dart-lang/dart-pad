@@ -162,18 +162,6 @@ void defineTests() {
       expect(issue.kind, 'error');
     });
 
-    test('analyze non strong', () async {
-      await analysisServer.shutdown();
-
-      analysisServer = new AnalysisServerWrapper(sdkPath, strongMode: false);
-      await analysisServer.init();
-
-      AnalysisResults results = await analysisServer.analyze(sampleStrongError);
-      expect(results.issues, hasLength(1));
-      AnalysisIssue issue = results.issues.first;
-      expect(issue.kind, 'warning');
-    });
-
     test('analyze preview-dart-2', () async {
       await analysisServer.shutdown();
 

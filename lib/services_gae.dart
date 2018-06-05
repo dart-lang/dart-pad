@@ -35,7 +35,6 @@ void main(List<String> args) {
 
   // Change the log level to get more or less detailed logging.
   ae.useLoggingPackageAdaptor();
-  //useLoggingPackageAdaptor();
   server.start(gaePort);
 }
 

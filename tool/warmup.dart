@@ -11,7 +11,7 @@ String uri;
 
 const BASE_URI = "dart-services.appspot.com/api/dartservices/v1/";
 // const BASE_URI = "localhost:8080/api/dartservices/v1/";
-const count = 100;
+const count = 200;
 
 Future main(List<String> args) async {
   String appPrefix;
@@ -32,18 +32,12 @@ Future main(List<String> args) async {
 
   for (int j = 0; j < count; j++) {
     var data = {"offset": 17, "source": source};
-    var strongData = {"offset": 17, "source": source, "strongMode": true};
 
     String postPayload = convert.json.encode(data);
-    String strongPostPayload = convert.json.encode(strongData);
 
     await request("complete", postPayload);
     await request("analyze", postPayload);
     await request("compile", postPayload);
-
-    await request("complete", strongPostPayload);
-    await request("analyze", strongPostPayload);
-    await request("compile", strongPostPayload);
   }
 }
 
