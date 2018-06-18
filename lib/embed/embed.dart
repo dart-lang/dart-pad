@@ -98,11 +98,13 @@ class PlaygroundMobile {
     if (url.hasQuery) {
       String id = url.queryParameters['id'];
       if (isLegalGistId(id)) {
-        _showGist(id);
-        _storePreviousResult();
-        if (url.queryParameters['run'] == 'true') {
-          _handleRun();
-        }
+        _showGist(id).then((_) {
+          _storePreviousResult().then((_) {
+            if (url.queryParameters['run'] == 'true') {
+              _handleRun();
+            }
+          });
+        });
         return;
       }
     }
@@ -128,8 +130,9 @@ class PlaygroundMobile {
       return;
     }
 
-    _showGist(gistId, run: page == 'run');
-    _storePreviousResult();
+    _showGist(gistId, run: page == 'run').then((_) {
+      _storePreviousResult();
+    });
   }
 
   void registerMessageToast() {
@@ -322,8 +325,8 @@ class PlaygroundMobile {
     _clearOutput();
   }
 
-  void _showGist(String gistId, {bool run: false}) {
-    gistLoader.loadGist(gistId).then((Gist gist) {
+  Future<void> _showGist(String gistId, {bool run: false}) {
+    return gistLoader.loadGist(gistId).then((Gist gist) {
       _setGistDescription(gist.description);
       _setGistId(gist.id);
 
@@ -509,7 +512,6 @@ class PlaygroundMobile {
     Timer.run(() {
       editor.resize();
     });
-
     _router = new Router()
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
@@ -601,10 +603,10 @@ class PlaygroundMobile {
         _cachedCompile != null);
   }
 
-  void _storePreviousResult() {
+  Future<void> _storePreviousResult() {
     var input = new CompileRequest()..source = context.dartSource;
     _setLastRunCondition();
-    dartServices
+    return dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
