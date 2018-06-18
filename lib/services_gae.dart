@@ -77,9 +77,9 @@ class GaeServer {
           request.headers.value('access-control-request-method');
       var statusCode;
       if (requestedMethod != null && requestedMethod.toUpperCase() == 'POST') {
-        statusCode = io.HttpStatus.OK;
+        statusCode = io.HttpStatus.ok;
       } else {
-        statusCode = io.HttpStatus.BAD_REQUEST;
+        statusCode = io.HttpStatus.badRequest;
       }
       request.response
         ..statusCode = statusCode
@@ -110,12 +110,12 @@ class GaeServer {
         _logger.warning('Failed with error: $e when trying to call'
             'method at \'${request.uri.path}\'.');
         request.response
-          ..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
+          ..statusCode = io.HttpStatus.internalServerError
           ..close();
       });
     } else {
       request.response
-        ..statusCode = io.HttpStatus.INTERNAL_SERVER_ERROR
+        ..statusCode = io.HttpStatus.internalServerError
         ..close();
     }
   }
