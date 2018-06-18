@@ -61,7 +61,6 @@ class CommonServer {
 
   Compiler compiler;
   AnalysisServerWrapper analysisServer;
-  AnalysisServerWrapper analysisServerStrong;
 
   String sdkPath;
 
@@ -73,22 +72,11 @@ class CommonServer {
   Future init() async {
     pub = enablePackages ? new Pub() : new Pub.mock();
     compiler = new Compiler(sdkPath, pub);
-    analysisServer = new AnalysisServerWrapper(sdkPath, strongMode: false);
-    analysisServerStrong =
-        new AnalysisServerWrapper(sdkPath, previewDart2: true);
+    analysisServer = new AnalysisServerWrapper(sdkPath, previewDart2: true);
 
     await analysisServer.init();
-    // If the analysis server dies, we exit with the same code.
     analysisServer.onExit.then((int code) {
       log.severe('analysisServer exited, code: $code');
-      if (code != 0) {
-        exit(code);
-      }
-    });
-
-    await analysisServerStrong.init();
-    analysisServerStrong.onExit.then((int code) {
-      log.severe('analysisServerStrong exited, code: $code');
       if (code != 0) {
         exit(code);
       }
@@ -98,7 +86,6 @@ class CommonServer {
   Future warmup({bool useHtml: false}) async {
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
-    await analysisServerStrong.warmup(useHtml: useHtml);
   }
 
   Future restart() async {
@@ -113,8 +100,7 @@ class CommonServer {
   }
 
   Future shutdown() {
-    return Future
-        .wait([analysisServer.shutdown(), analysisServerStrong.shutdown()]);
+    return Future.wait([analysisServer.shutdown()]);
   }
 
   @ApiMethod(method: 'GET', path: 'counter')
@@ -131,7 +117,7 @@ class CommonServer {
           'Analyze the given Dart source code and return any resulting '
           'analysis errors or warnings.')
   Future<AnalysisResults> analyze(SourceRequest request) {
-    return _analyze(request.source, request.strongMode);
+    return _analyze(request.source);
   }
 
   @ApiMethod(
@@ -141,7 +127,7 @@ class CommonServer {
           'Analyze the given Dart source code and return any resulting '
           'analysis errors or warnings.')
   Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
-    return _analyzeMulti(request.sources, request.strongMode);
+    return _analyzeMulti(request.sources);
   }
 
   @ApiMethod(
@@ -156,8 +142,8 @@ class CommonServer {
   }
 
   @ApiMethod(method: 'GET', path: 'analyze')
-  Future<AnalysisResults> analyzeGet({String source, bool strongMode: false}) {
-    return _analyze(source, strongMode);
+  Future<AnalysisResults> analyzeGet({String source}) {
+    return _analyze(source);
   }
 
   @ApiMethod(
@@ -291,11 +277,11 @@ class CommonServer {
       description: 'Return the current SDK version for DartServices.')
   Future<VersionResponse> version() => new Future.value(_version());
 
-  Future<AnalysisResults> _analyze(String source, bool strongMode) async {
+  Future<AnalysisResults> _analyze(String source) async {
     if (source == null) {
       throw new BadRequestError('Missing parameter: \'source\'');
     }
-    return _analyzeMulti({kMainDart: source}, strongMode);
+    return _analyzeMulti({kMainDart: source});
   }
 
   Future<SummaryText> _summarize(String dart, String html, String css) async {
@@ -307,7 +293,7 @@ class CommonServer {
     log.info("About to summarize: ${_hashSource(sourcesJson)}");
 
     SummaryText summaryString =
-        await _analyzeMulti({kMainDart: dart}, false).then((result) {
+        await _analyzeMulti({kMainDart: dart}).then((result) {
       Summarizer summarizer =
           new Summarizer(dart: dart, html: html, css: css, analysis: result);
       return new SummaryText.fromString(summarizer.returnAsSimpleSummary());
@@ -315,17 +301,14 @@ class CommonServer {
     return new Future.value(summaryString);
   }
 
-  Future<AnalysisResults> _analyzeMulti(
-      Map<String, String> sources, bool strongMode) async {
+  Future<AnalysisResults> _analyzeMulti(Map<String, String> sources) async {
     if (sources == null) {
       throw new BadRequestError('Missing parameter: \'sources\'');
     }
-    strongMode ??= false;
 
     Stopwatch watch = new Stopwatch()..start();
     try {
-      AnalysisServerWrapper server =
-          strongMode ? analysisServerStrong : analysisServer;
+      AnalysisServerWrapper server = analysisServer;
       AnalysisResults results = await server.analyzeMulti(sources);
       int lineCount = sources.values
           .map((s) => s.split('\n').length)
@@ -412,7 +395,7 @@ class CommonServer {
     Stopwatch watch = new Stopwatch()..start();
     try {
       Map<String, String> docInfo =
-          await analysisServerStrong.dartdoc(source, offset);
+          await analysisServer.dartdoc(source, offset);
       docInfo ??= {};
       log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
       counter.increment("DartDocs");
@@ -457,7 +440,7 @@ class CommonServer {
     Stopwatch watch = new Stopwatch()..start();
     counter.increment("Completions");
     try {
-      var response = await analysisServerStrong.completeMulti(
+      var response = await analysisServer.completeMulti(
           sources,
           new Location()
             ..sourceName = sourceName
@@ -493,7 +476,7 @@ class CommonServer {
 
     Stopwatch watch = new Stopwatch()..start();
     counter.increment("Fixes");
-    var response = await analysisServerStrong.getFixesMulti(
+    var response = await analysisServer.getFixesMulti(
         sources,
         new Location()
           ..sourceName = sourceName
@@ -511,7 +494,7 @@ class CommonServer {
     Stopwatch watch = new Stopwatch()..start();
     counter.increment("Formats");
 
-    var response = await analysisServerStrong.format(source, offset);
+    var response = await analysisServer.format(source, offset);
     log.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
     return response;
   }

@@ -41,19 +41,20 @@ class AnalysisServerWrapper {
   /// Instance to handle communication with the server.
   AnalysisServer analysisServer;
 
-  AnalysisServerWrapper(this.sdkPath,
-      {bool strongMode: true, this.previewDart2: false}) {
-    if (previewDart2 == true) strongMode = true;
-    _logger.info(
-        'AnalysisServerWrapper ctor, strong mode: $strongMode, previewDart2: $previewDart2');
+  AnalysisServerWrapper(this.sdkPath, {this.previewDart2: false}) {
+    if (previewDart2 == true) ;
+    _logger.info('AnalysisServerWrapper ctor, previewDart2: $previewDart2');
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
     mainPath = _getPathFromName(kMainDart);
 
     serverScheduler = new TaskScheduler();
 
     // Write an analysis_options.yaml file with strong mode enabled.
+    // TODO(jcollins-g): this is only required for Travis.  Find out why, then
+    // remove this hack.
     File optionsFile = new File(_getPathFromName('analysis_options.yaml'));
-    optionsFile.writeAsStringSync('analyzer:\n  strong-mode: $strongMode\n');
+    optionsFile.writeAsStringSync(
+        'analyzer:\n  strong-mode: true\n  enablePreviewDart2: $previewDart2\n');
   }
 
   Future init() {

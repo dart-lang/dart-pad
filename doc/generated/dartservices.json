@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "346d056e776eb948fc9790c24393ea4ccf6e46e9",
+ "etag": "c3399a28992edabca836fab215a7ba2bf0f3bb09",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -39,7 +39,7 @@
     },
     "strongMode": {
      "type": "boolean",
-     "description": "An optional signal whether the source should be processed in strong mode"
+     "description": "Ignored: always treated as true."
     }
    }
   },
@@ -110,7 +110,7 @@
     },
     "strongMode": {
      "type": "boolean",
-     "description": "An optional signal whether the source should be processed in strong mode"
+     "description": "Ignored: always treated as true."
     }
    }
   },
@@ -147,7 +147,7 @@
     },
     "useCheckedMode": {
      "type": "boolean",
-     "description": "Compile to code with checked mode checks; optional (defaults to false)."
+     "description": "Ignored. (server always assumes checked mode/asserts enabled)"
     },
     "returnSourceMap": {
      "type": "boolean",
@@ -381,12 +381,6 @@
     "source": {
      "type": "string",
      "description": "Query parameter: 'source'.",
-     "required": false,
-     "location": "query"
-    },
-    "strongMode": {
-     "type": "boolean",
-     "description": "Query parameter: 'strongMode'.",
      "required": false,
      "location": "query"
     }

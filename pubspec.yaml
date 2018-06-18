@@ -22,11 +22,11 @@ dependencies:
   yaml: ^2.0.0
 
 dev_dependencies:
-  _discoveryapis_commons: any
+  _discoveryapis_commons: '>=0.1.0 <0.2.0'
   browser: any
   codemirror: ^0.4.0
   grinder: ^0.8.0
-  http: any
+  http: '>=0.11.1 <0.12.0'
   test: ^0.12.0
 
 executables:

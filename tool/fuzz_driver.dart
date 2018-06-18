@@ -31,7 +31,6 @@ MockContainer container;
 MockCache cache;
 MockCounter counter;
 analysis_server.AnalysisServerWrapper analysisServer;
-analysis_server.AnalysisServerWrapper strongAnalysisServer;
 
 comp.Compiler compiler;
 
@@ -114,7 +113,6 @@ Usage: slow_test path_to_test_collection
   print("Shutting down");
 
   await analysisServer.shutdown();
-  await strongAnalysisServer.shutdown();
   await server.shutdown();
 }
 
@@ -124,7 +122,6 @@ Usage: slow_test path_to_test_collection
 Future setupTools(String sdkPath) async {
   print("Executing setupTools");
   analysisServer?.shutdown();
-  strongAnalysisServer?.shutdown();
 
   print("SdKPath: $sdkPath");
 
@@ -137,16 +134,11 @@ Future setupTools(String sdkPath) async {
   apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
     ..addApi(server);
 
-  analysisServer =
-      new analysis_server.AnalysisServerWrapper(sdkPath, strongMode: false);
-  strongAnalysisServer =
-      new analysis_server.AnalysisServerWrapper(sdkPath, strongMode: true);
+  analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
   await analysisServer.init();
-  await strongAnalysisServer.init();
 
   print("Warming up analysis server");
   await analysisServer.warmup();
-  await strongAnalysisServer.warmup();
 
   print("Warming up compiler");
   compiler = new comp.Compiler(sdkPath);
@@ -247,10 +239,10 @@ Future<num> testAnalysis(
   lastOffset = null;
   if (_SERVER_BASED_CALL) {
     await withTimeOut(server.analyzeGet(source: src));
-    await withTimeOut(server.analyzeGet(source: src, strongMode: true));
+    await withTimeOut(server.analyzeGet(source: src));
   } else {
     await withTimeOut(analysisServer.analyze(src));
-    await withTimeOut(strongAnalysisServer.analyze(src));
+    await withTimeOut(analysisServer.analyze(src));
   }
 
   if (_DUMP_PERF) print("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
