@@ -65,9 +65,9 @@ build() {
 
   // Compile main scripts.
   Dart2js.compile(joinFile(webDir, ['scripts', 'main.dart']),
-      outDir: joinDir(buildDir, ['web', 'scripts']), minify: true);
+      outDir: joinDir(buildDir, ['web', 'scripts']), minify: false, extraArgs: ['--enable-asserts']);
   Dart2js.compile(joinFile(webDir, ['scripts', 'embed.dart']),
-      outDir: joinDir(buildDir, ['web', 'scripts']), minify: true);
+      outDir: joinDir(buildDir, ['web', 'scripts']), minify: false, extraArgs: ['--enable-asserts']);
 
   FilePath mainFile = _buildDir.join('web', 'scripts/main.dart.js');
   log('${mainFile} compiled to ${_printSize(mainFile)}');
@@ -111,11 +111,16 @@ void copyPackageResources(String packageName, Directory destDir) {
     int index = line.indexOf(':');
     String name = line.substring(0, index);
     String location = line.substring(index + 1);
-    if (name == packageName && location.startsWith('file:')) {
-      Uri uri = Uri.parse(location);
+    if (name == packageName) {
+      if (location.startsWith('file:')) {
+        Uri uri = Uri.parse(location);
 
-      copyDirectory(new Directory.fromUri(uri),
-          joinDir(destDir, ['packages', packageName]));
+        copyDirectory(new Directory.fromUri(uri),
+            joinDir(destDir, ['packages', packageName]));
+      } else {
+        copyDirectory(new Directory(location),
+            joinDir(destDir, ['pacakges', packageName]));
+      }
       return;
     }
   }
