@@ -79,10 +79,11 @@ build() {
   copyPackageResources('codemirror', joinDir(buildDir, ['web']));
 
   // Compile main scripts.
+  // Debugging: minify: false, extraArgs: ['--enable-asserts']
   Dart2js.compile(joinFile(webDir, ['scripts', 'main.dart']),
-      outDir: joinDir(buildDir, ['web', 'scripts']), minify: false, extraArgs: ['--enable-asserts']);
+      outDir: joinDir(buildDir, ['web', 'scripts']), minify: true);
   Dart2js.compile(joinFile(webDir, ['scripts', 'embed.dart']),
-      outDir: joinDir(buildDir, ['web', 'scripts']), minify: false, extraArgs: ['--enable-asserts']);
+      outDir: joinDir(buildDir, ['web', 'scripts']), minify: true);
 
   FilePath mainFile = _buildDir.join('web', 'scripts/main.dart.js');
   log('${mainFile} compiled to ${_printSize(mainFile)}');
