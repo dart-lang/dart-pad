@@ -277,7 +277,7 @@ packages:
   route_hierarchical:
     dependency: "direct main"
     description:
-      path: "../route.dart"
+      path: "third_party/pkg/route.dart"
       relative: true
     source: path
     version: "0.7.1-dev"

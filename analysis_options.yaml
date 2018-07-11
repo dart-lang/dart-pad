@@ -4,6 +4,7 @@ analyzer:
     - 'doc/api/**'
     - 'lib/bower/**'
     - 'last_prod/**'
+    - 'third_party/pkg/**'
 
 linter:
   rules:

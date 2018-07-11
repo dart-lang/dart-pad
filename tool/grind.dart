@@ -14,10 +14,20 @@ import 'package:yaml/yaml.dart' as yaml;
 
 final FilePath _buildDir = new FilePath('build');
 final FilePath _webDir = new FilePath('web');
+final FilePath _pkgDir = new FilePath('third_party/pkg');
+final FilePath _routeDir = new FilePath('third_party/pkg/route.dart');
 
 Map get _env => Platform.environment;
 
 main(List<String> args) => grind(args);
+
+@Task('Copy the included route.dart package in.')
+updateRouteDart() {
+  run('rm', arguments: ['-rf', _routeDir.path]);
+  new Directory(_pkgDir.path).createSync(recursive: true);
+  run('git', arguments: ['clone', '--branch', 'dart2-route', '--depth=1', 'git@github.com:jcollins-g/route.dart.git', _routeDir.path]);
+  run('rm', workingDirectory: _routeDir.path, arguments: ['-rf', '.git']);
+}
 
 @Task()
 analyze() {
@@ -31,11 +41,16 @@ ddc() {
 }
 
 @Task()
-testCli() => new TestRunner().testAsync(platformSelector: 'vm');
+testCli() async => await new TestRunner().testAsync(platformSelector: 'vm');
 
 // This task require a frame buffer to run.
 @Task()
-testWeb() => new TestRunner().testAsync(platformSelector: 'chrome');
+testWeb() async {
+  await new TestRunner().testAsync(platformSelector: 'chrome');
+  log('Running route.dart tests...');
+  run('pub', arguments: ['get'], workingDirectory: _routeDir.path);
+  run('pub', arguments: ['run', 'test:test', '--platform=chrome'], workingDirectory: _routeDir.path);
+}
 
 @Task('Run bower')
 bower() => run('bower', arguments: ['install', '--force-latest']);

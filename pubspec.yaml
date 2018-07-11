@@ -12,7 +12,7 @@ dependencies:
   logging: '>=0.9.0 <0.12.0'
   markdown: ^2.0.0
   route_hierarchical:
-    path: ../route.dart/
+    path: third_party/pkg/route.dart/
 dev_dependencies:
   collection: ^1.14.10
   front_end: ^0.1.3

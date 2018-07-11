@@ -1,0 +1,27 @@
+{
+  "name": "route.dart",
+  "branchVersion": "0.5.*",
+  "cdnVersion": "0.4.15",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/angular/route.dart.git"
+  },
+  "devDependencies": {
+    "karma" : "~0.12.0",
+    "karma-dart" : "~0.2.6",
+    "karma-sauce-launcher": "^0.2.3",
+    "karma-script-launcher": "*",
+    "karma-chrome-launcher": "~0.1.3",
+    "karma-firefox-launcher": "*",
+    "karma-junit-reporter": "~0.2.1",
+    "jasmine-node": "*",
+    "qq": "*"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/angular/route.dart/blob/master/LICENSE"
+    }
+  ],
+  "dependencies": {}
+}

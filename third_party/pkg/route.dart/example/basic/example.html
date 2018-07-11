@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>example</title>
+    <style>
+      section {
+        display: none;
+        width: 600px;
+        height: 400px;
+        border: solid 1px #888;
+      }
+
+      section.selected {
+        display: block;
+      }
+
+      .warning {
+        color: red;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>route.dart demo</h1>
+    <p>This demo requires a server to be truly useful. Coming soon!</p>
+    <div id="warning">Dart is not running</div>
+
+    <nav>
+      <a href="#" id="linkOne" title="Section One">One</a>
+      <a href="#" id="linkTwo" title="Section Two">Two</a>
+    </nav>
+
+    <section id="one">
+      <h2>Section One</h2>
+    </section>
+    <section id="two">
+      <h2>Section Two</h2>
+    </section>
+
+    <script type="application/dart" src="example.dart"></script>
+    <script src="packages/browser/dart.js"></script>
+  </body>
+</html>
