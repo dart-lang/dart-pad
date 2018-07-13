@@ -9,5 +9,4 @@ build/
 dart-sdk
 dartium
 .packages
-.analysis_options
 .pub
