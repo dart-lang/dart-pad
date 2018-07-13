@@ -81,9 +81,9 @@ build() {
   // Compile main scripts.
   // Debugging: minify: false, extraArgs: ['--enable-asserts']
   Dart2js.compile(joinFile(webDir, ['scripts', 'main.dart']),
-      outDir: joinDir(buildDir, ['web', 'scripts']), minify: true);
+      outDir: joinDir(buildDir, ['web', 'scripts']), minify: false);
   Dart2js.compile(joinFile(webDir, ['scripts', 'embed.dart']),
-      outDir: joinDir(buildDir, ['web', 'scripts']), minify: true);
+      outDir: joinDir(buildDir, ['web', 'scripts']), minify: false);
 
   FilePath mainFile = _buildDir.join('web', 'scripts/main.dart.js');
   log('${mainFile} compiled to ${_printSize(mainFile)}');
@@ -219,7 +219,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(analyze, testCli, coverage, build)
+@Depends(analyze, testCli, testWeb, coverage, build)
 void buildbot() => null;
 
 @Task('Prepare the app for deployment')

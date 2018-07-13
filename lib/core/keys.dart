@@ -121,16 +121,18 @@ String printKeyEvent(KeyboardEvent event) {
 String makeKeyPresentable(String key) {
   List<String> keyAsList = key.split("-");
   if (isMac()) {
+    throw new Exception('hello there');
     if (keyAsList.any((s) => s == "meta")) {
       return null;
     }
+
     keyAsList = keyAsList.map((s) {
       if (_unicodeMac.containsKey(s)) {
         return _unicodeMac[s];
       } else {
         return capitalize(s);
       }
-    }).toList();
+    }).cast<String>().toList();
     return keyAsList.join("&thinsp;");
   } else {
     if (keyAsList.any((s) => s == "macctrl")) {
