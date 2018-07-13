@@ -796,10 +796,11 @@ class AnalysisResults {
     if (_json.containsKey("issues")) {
       issues = _json["issues"]
           .map((value) => new AnalysisIssue.fromJson(value))
+          .cast<AnalysisIssue>()
           .toList();
     }
     if (_json.containsKey("packageImports")) {
-      packageImports = _json["packageImports"];
+      packageImports = _json["packageImports"].cast<core.String>();
     }
   }
 
@@ -825,6 +826,7 @@ class CandidateFix {
     if (_json.containsKey("edits")) {
       edits = _json["edits"]
           .map((value) => new SourceEdit.fromJson(value))
+          .cast<SourceEdit>()
           .toList();
     }
     if (_json.containsKey("message")) {
@@ -973,7 +975,7 @@ class DocumentResponse {
 
   DocumentResponse.fromJson(core.Map _json) {
     if (_json.containsKey("info")) {
-      info = _json["info"];
+      info = new core.Map<core.String, core.String>.from(_json["info"]);
     }
   }
 
@@ -995,6 +997,7 @@ class FixesResponse {
     if (_json.containsKey("fixes")) {
       fixes = _json["fixes"]
           .map((value) => new ProblemAndFixes.fromJson(value))
+          .cast<ProblemAndFixes>()
           .toList();
     }
   }
@@ -1076,6 +1079,7 @@ class ProblemAndFixes {
     if (_json.containsKey("fixes")) {
       fixes = _json["fixes"]
           .map((value) => new CandidateFix.fromJson(value))
+          .cast<CandidateFix>()
           .toList();
     }
     if (_json.containsKey("length")) {

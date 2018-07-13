@@ -1,7 +1,9 @@
 language: dart
 dart:
   - dev
-sudo: false
+sudo: required
+addons:
+  chrome: stable
 script: ./tool/travis.sh
 
 # Saucelabs setup.

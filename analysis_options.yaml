@@ -1,10 +1,10 @@
 analyzer:
-  strong-mode: true
   exclude:
     - 'build/**'
     - 'doc/api/**'
     - 'lib/bower/**'
     - 'last_prod/**'
+    - 'third_party/pkg/**'
 
 linter:
   rules:
