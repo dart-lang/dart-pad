@@ -121,11 +121,9 @@ String printKeyEvent(KeyboardEvent event) {
 String makeKeyPresentable(String key) {
   List<String> keyAsList = key.split("-");
   if (isMac()) {
-    throw new Exception('hello there');
     if (keyAsList.any((s) => s == "meta")) {
       return null;
     }
-
     keyAsList = keyAsList.map((s) {
       if (_unicodeMac.containsKey(s)) {
         return _unicodeMac[s];
