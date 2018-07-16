@@ -124,13 +124,13 @@ String makeKeyPresentable(String key) {
     if (keyAsList.any((s) => s == "meta")) {
       return null;
     }
-    keyAsList = keyAsList.map((s) {
+    keyAsList = keyAsList.map<String>((s) {
       if (_unicodeMac.containsKey(s)) {
         return _unicodeMac[s];
       } else {
         return capitalize(s);
       }
-    }).cast<String>().toList();
+    }).toList();
     return keyAsList.join("&thinsp;");
   } else {
     if (keyAsList.any((s) => s == "macctrl")) {
