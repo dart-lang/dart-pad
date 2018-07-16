@@ -13,7 +13,3 @@ npm install -g vulcanize
 
 # Run the analyze/test/build script.
 dart tool/grind.dart buildbot
-
-# Run the UI/web tests as well.
-# TODO: Our bot is flakey...
-dart tool/grind.dart test-web

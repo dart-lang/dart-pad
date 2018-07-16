@@ -219,7 +219,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(analyze, testCli, coverage, build)
+@Depends(analyze, testCli, testWeb, coverage, build)
 void buildbot() => null;
 
 @Task('Prepare the app for deployment')
