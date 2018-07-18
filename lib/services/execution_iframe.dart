@@ -62,7 +62,8 @@ function dartPrint(message) {
     ///
     /// To avoid duplicating error messages on the DartPad console, we signal to
     /// window.onerror that we've already sent a dartMainRunner message by
-    /// flipping _thrownDartMainRunner to true.
+    /// flipping _thrownDartMainRunner to true.  Some platforms don't populate
+    /// error so avoid using it if it is null.
     ///
     /// This seems to produce both the stack traces we expect in inspector
     /// and the right error messages on the console.
@@ -81,8 +82,12 @@ function dartMainRunner(main, args) {
 
 window.onerror = function(message, url, lineNumber, colno, error) {
   if (!_thrownDartMainRunner) {
+    var errorMessage = '';
+    if (error != null) {
+      errorMessage = 'Error: ' + error;
+    } 
     parent.postMessage(
-      {'sender': 'frame', 'type': 'stderr', 'message': message + "Error: " + error}, '*');
+      {'sender': 'frame', 'type': 'stderr', 'message': message + errorMessage}, '*');
   }
   _thrownDartMainRunner = false;
 };
