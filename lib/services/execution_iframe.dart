@@ -82,7 +82,7 @@ function dartMainRunner(main, args) {
 window.onerror = function(message, url, lineNumber, colno, error) {
   if (!_thrownDartMainRunner) {
     parent.postMessage(
-      {'sender': 'frame', 'type': 'stderr', 'message': message + "Error: " + error.message}, '*');
+      {'sender': 'frame', 'type': 'stderr', 'message': message + "Error: " + error}, '*');
   }
   _thrownDartMainRunner = false;
 };
