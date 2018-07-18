@@ -8,26 +8,31 @@ environment:
 
 dependencies:
   analysis_server_lib: ^0.1.2+2
-  appengine: 0.4.0-flex.alpha.0+3
+  appengine: '^0.4.0'
   archive: '>=1.0.19 <1.1.0'
-  args: '>=0.12.0 <0.14.0'
+  args: '^1.4.1'
   crypto: ^2.0.0
   front_end: '>=0.1.0-alpha.4.1'
   logging: '>=0.9.0 <0.12.0'
   path: ^1.3.0
-  shelf: ^0.6.0
-  shelf_cors: ^0.2.0
-  rpc: ^0.5.0
+  shelf: ^0.7.0
+  #shelf_cors: ^0.2.0
+  shelf_cors:
+    path: '../dart-shelf_cors'
+  #rpc: ^0.5.0
+  rpc:
+    path: '../rpc'
   uuid: ^0.5.0
   yaml: ^2.0.0
 
 dev_dependencies:
-  _discoveryapis_commons: '>=0.1.0 <0.2.0'
+  discoveryapis_generator: ^0.9.8
+  async: '>1.13.3'
   browser: any
   codemirror: ^0.4.0
   grinder: ^0.8.0
-  http: '>=0.11.1 <0.12.0'
-  test: ^0.12.0
+  http: any
+  test: '>=1.2.0'
 
 executables:
   services: null

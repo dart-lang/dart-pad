@@ -137,8 +137,8 @@ class CompleteResponse {
    * Convert any non-string values from the contained maps.
    */
   static List<Map<String, String>> _convert(List<Map> list) {
-    return list.map((m) {
-      Map newMap = {};
+    return list.map<Map<String, String>>((m) {
+      Map<String, String> newMap = {};
       for (String key in m.keys) {
         var data = m[key];
         // TODO: Properly support Lists, Maps (this is a hack).

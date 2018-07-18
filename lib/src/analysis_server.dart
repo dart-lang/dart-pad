@@ -405,7 +405,7 @@ class AnalysisServerWrapper {
   }
 
   Future _sendAddOverlays(Map<String, String> overlays) {
-    Map<String, dynamic> params = {};
+    Map<String, ContentOverlayType> params = {};
     for (String overlayPath in overlays.keys) {
       params[overlayPath] = new AddContentOverlay(overlays[overlayPath]);
     }
@@ -422,7 +422,7 @@ class AnalysisServerWrapper {
     _logger.fine("About to send analysis.updateContent remove overlays:");
     _logger.fine("  $_overlayPaths");
 
-    Map<String, dynamic> params = {};
+    Map<String, ContentOverlayType> params = {};
     for (String overlayPath in _overlayPaths) {
       params[overlayPath] = new RemoveContentOverlay();
     }

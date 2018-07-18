@@ -81,18 +81,18 @@ class Pub {
       return Process
           .run('pub', ['get'], workingDirectory: tempDir.path)
           .timeout(new Duration(seconds: 20))
-          .then((ProcessResult result) {
+          .then<PackagesInfo>((ProcessResult result) {
         if (result.exitCode != 0) {
           String message = result.stderr.isNotEmpty
               ? result.stderr
               : 'failed to get pub packages: ${result.exitCode}';
           _logger.severe('Error running pub get: ${message}');
-          return new Future.value(message);
+          return new Future<PackagesInfo>.value(new PackagesInfo([]));
         }
 
         // Parse the lock file.
         File pubspecLock = new File(path.join(tempDir.path, 'pubspec.lock'));
-        return new Future.value(
+        return new Future<PackagesInfo>.value(
             _parseLockContents(pubspecLock.readAsStringSync()));
       }).whenComplete(() {
         tempDir.deleteSync(recursive: true);
@@ -158,7 +158,7 @@ class Pub {
     Map m = root.value;
     Map packages = m['packages'];
 
-    List results = [];
+    List results = <PackageInfo>[];
 
     for (var key in packages.keys) {
       results.add(new PackageInfo(key, packages[key]['version']));
@@ -336,7 +336,7 @@ Set<String> getAllUnsafeImportsFor(String dartSource) {
       new CharSequenceReader(dartSource), AnalysisErrorListener.NULL_LISTENER);
   Token token = scanner.tokenize();
 
-  Set imports = new Set();
+  var imports = new Set<String>();
 
   while (token.type != TokenType.EOF) {
     if (_isLibrary(token)) {
@@ -377,11 +377,11 @@ Set<String> filterSafePackagesFromImports(Set<String> allImports) {
 }
 
 bool _isLibrary(Token token) {
-  return token.type == TokenType.KEYWORD && token.lexeme == 'library';
+  return token.isKeyword && token.lexeme == 'library';
 }
 
 bool _isImport(Token token) {
-  return token.type == TokenType.KEYWORD && token.lexeme == 'import';
+  return token.isKeyword && token.lexeme == 'import';
 }
 
 Token _consumeSemi(Token token) {
