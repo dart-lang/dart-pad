@@ -179,8 +179,7 @@ ${styleRef}${dartRef}  </head>
       beforeSaveHook(gist);
     }
 
-    return HttpRequest
-        .request(_apiUrl, method: 'POST', sendData: gist.toJson())
+    return HttpRequest.request(_apiUrl, method: 'POST', sendData: gist.toJson())
         .then((HttpRequest request) {
       Gist gist = new Gist.fromMap(json.decode(request.responseText));
       if (afterLoadHook != null) {

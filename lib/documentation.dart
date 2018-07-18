@@ -156,8 +156,8 @@ class DocHandler {
 ${hasDartdoc ? info['dartdoc'] + "\n\n" : ''}
 ${mdnLink != null ? "## External resources:\n * ${mdnLink} at MDN" : ''}
 ${isVariable ? "${kind}\n\n" : ''}
-${(isVariable && propagatedType != null)? "**Propagated type:** ${propagatedType}\n\n" : ''}
-${libraryName == null ? '' : apiLink }\n\n''';
+${(isVariable && propagatedType != null) ? "**Propagated type:** ${propagatedType}\n\n" : ''}
+${libraryName == null ? '' : apiLink}\n\n''';
 
       String _htmlDocs = markdown.markdownToHtml(_mdDocs,
           inlineSyntaxes: [new InlineBracketsColon(), new InlineBrackets()]);
