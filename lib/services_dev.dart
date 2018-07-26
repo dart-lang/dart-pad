@@ -14,11 +14,11 @@ import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
-import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 
 import 'src/common.dart';
 import 'src/common_server.dart';
 import 'src/dartpad_support_server.dart';
+import 'src/shelf_cors.dart' as shelf_cors;
 
 Logger _logger = new Logger('services');
 

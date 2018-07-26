@@ -16,6 +16,7 @@ import 'common_test.dart' as common_test;
 import 'compiler_test.dart' as compiler_test;
 import 'dartpad_server_test.dart' as dartpad_server_test;
 import 'pub_test.dart' as pub_test;
+import 'shelf_cors_test.dart' as shelf_cors_test;
 import 'summarize_test.dart' as summarize_test;
 
 Future main() async {
@@ -29,5 +30,6 @@ Future main() async {
   compiler_test.defineTests();
   dartpad_server_test.defineTests();
   pub_test.defineTests();
+  shelf_cors_test.defineTests();
   summarize_test.defineTests();
 }

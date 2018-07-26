@@ -1,11 +1,11 @@
-library flare.html_optimizer.test;
-
-import 'package:unittest/unittest.dart';
 import 'package:shelf/shelf.dart' as shelf;
+import 'package:test/test.dart';
 
-import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
+import 'package:dart_services/src/shelf_cors.dart' as shelf_cors;
 
-main() {
+void main() => defineTests();
+
+void defineTests() {
   shelf.Response handleAll(shelf.Request request) {
     return new shelf.Response.ok("OK");
   }

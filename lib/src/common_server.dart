@@ -499,9 +499,9 @@ class CommonServer {
     return response;
   }
 
-  Future checkCache(String query) => cache.get(query);
+  Future<T> checkCache<T>(String query) => cache.get(query);
 
-  Future setCache(String query, String result) =>
+  Future<T> setCache<T>(String query, String result) =>
       cache.set(query, result, expiration: _standardExpiration);
 }
 

@@ -1,4 +1,4 @@
-library shelf.middleware.cors;
+library shelf_cors;
 
 import 'package:shelf/shelf.dart';
 
