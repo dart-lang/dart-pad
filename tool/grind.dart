@@ -39,32 +39,6 @@ void serve() {
 
 final _dockerVersionMatcher = new RegExp(r'^FROM google/dart:(.*)$');
 final _dartSdkVersionMatcher = new RegExp(r'(^\d+[.]\d+[.]\d+.*)');
-@Task('verify we are testing with what we will deploy')
-void checkDockerVersion() {
-  var dockerImageLine = new File('Dockerfile')
-      .readAsLinesSync()
-      .firstWhere((String s) => s.contains(_dockerVersionMatcher));
-  print('dockerImageLine: "${dockerImageLine}"');
-  var dockerImageVersion =
-      _dockerVersionMatcher.firstMatch(dockerImageLine).group(1);
-
-  var dartSdkVersionLine = new File('dart-sdk.version')
-      .readAsLinesSync()
-      .firstWhere((String s) => s.contains(_dartSdkVersionMatcher));
-  print('dartSdkVersionLine: ${dartSdkVersionLine}');
-  var dartSdkVersion =
-      _dartSdkVersionMatcher.firstMatch(dartSdkVersionLine).group(1);
-
-  var platformVersion = Platform.version.split(' ').first;
-  if (dockerImageVersion != platformVersion) {
-    throw 'Dockerfile image version (${dockerImageVersion}) does not match current Dart version: ${platformVersion}';
-  }
-
-  if (dartSdkVersion != platformVersion) {
-    throw ('dart-sdk.version (${dartSdkVersion}) does not match current Dart version: ${platformVersion}');
-  }
-}
-
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
   var platformVersion = Platform.version.split(' ').first;
@@ -75,7 +49,7 @@ void updateDockerVersion() {
           return 'FROM google/dart:${platformVersion}';
         }
         return s;
-      });
+      }).toList()..add('');
   new File('Dockerfile').writeAsStringSync(dockerImageLines.join('\n'));
 
   var dartSdkVersionLines = new File('dart-sdk.version')
@@ -85,7 +59,7 @@ void updateDockerVersion() {
           return platformVersion;
         }
         return s;
-  });
+      }).toList()..add('');
   new File('dart-sdk.version').writeAsStringSync(dartSdkVersionLines.join('\n'));
 }
 
@@ -97,7 +71,7 @@ void fuzz() {
 }
 
 @Task('Update discovery files and run all checks prior to deployment')
-@Depends(checkDockerVersion, init, discovery, analyze, test, fuzz)
+@Depends(updateDockerVersion, init, discovery, analyze, test, fuzz)
 void deploy() {
   log('Run:  gcloud app deploy --project=dart-services --no-promote');
 }
@@ -122,7 +96,7 @@ void coverage() {
 }
 
 @Task()
-@Depends(init, discovery, analyze, test, fuzz, coverage)
+@Depends(updateDockerVersion, init, discovery, analyze, test, fuzz, coverage)
 void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')
