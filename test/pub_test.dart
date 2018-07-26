@@ -104,7 +104,8 @@ void defineTests() {
     });
 
     test('does not resolve', () {
-      final String source = "import moofmilker and package:path/path.dart; void main() { }";
+      final String source =
+          "import moofmilker and package:path/path.dart; void main() { }";
 
       return pub.createPubHelperForSource(source).then((PubHelper helper) {
         expect(helper.hasPackages, false);

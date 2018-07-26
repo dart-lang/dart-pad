@@ -78,8 +78,7 @@ class Pub {
       pubspecFile.writeAsStringSync(specContents, flush: true);
 
       // Run pub.
-      return Process
-          .run('pub', ['get'], workingDirectory: tempDir.path)
+      return Process.run('pub', ['get'], workingDirectory: tempDir.path)
           .timeout(new Duration(seconds: 20))
           .then<PackagesInfo>((ProcessResult result) {
         if (result.exitCode != 0) {

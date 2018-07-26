@@ -32,37 +32,36 @@ void analyzeTest() => null;
 @Task()
 @Depends(init)
 void serve() {
-  Process
-      .runSync(Platform.executable, ['bin/server_dev.dart', '--port', '8082']);
+  Process.runSync(
+      Platform.executable, ['bin/server_dev.dart', '--port', '8082']);
 }
-
 
 final _dockerVersionMatcher = new RegExp(r'^FROM google/dart:(.*)$');
 final _dartSdkVersionMatcher = new RegExp(r'(^\d+[.]\d+[.]\d+.*)');
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
   var platformVersion = Platform.version.split(' ').first;
-  var dockerImageLines = new File('Dockerfile')
-      .readAsLinesSync()
-      .map((String s) {
-        if (s.contains(_dockerVersionMatcher)) {
-          return 'FROM google/dart:${platformVersion}';
-        }
-        return s;
-      }).toList()..add('');
+  var dockerImageLines =
+      new File('Dockerfile').readAsLinesSync().map((String s) {
+    if (s.contains(_dockerVersionMatcher)) {
+      return 'FROM google/dart:${platformVersion}';
+    }
+    return s;
+  }).toList()
+        ..add('');
   new File('Dockerfile').writeAsStringSync(dockerImageLines.join('\n'));
 
-  var dartSdkVersionLines = new File('dart-sdk.version')
-      .readAsLinesSync()
-      .map((String s) {
-        if (s.contains(_dartSdkVersionMatcher)) {
-          return platformVersion;
-        }
-        return s;
-      }).toList()..add('');
-  new File('dart-sdk.version').writeAsStringSync(dartSdkVersionLines.join('\n'));
+  var dartSdkVersionLines =
+      new File('dart-sdk.version').readAsLinesSync().map((String s) {
+    if (s.contains(_dartSdkVersionMatcher)) {
+      return platformVersion;
+    }
+    return s;
+  }).toList()
+        ..add('');
+  new File('dart-sdk.version')
+      .writeAsStringSync(dartSdkVersionLines.join('\n'));
 }
-
 
 @Task()
 @Depends(init)
@@ -101,8 +100,8 @@ void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')
 void discovery() {
-  ProcessResult result = Process
-      .runSync(Platform.executable, ['bin/server_dev.dart', '--discovery']);
+  ProcessResult result = Process.runSync(
+      Platform.executable, ['bin/server_dev.dart', '--discovery']);
 
   if (result.exitCode != 0) {
     throw 'Error generating the discovery document\n${result.stderr}';

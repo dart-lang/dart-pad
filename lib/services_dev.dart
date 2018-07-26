@@ -47,12 +47,10 @@ void main(List<String> args) {
   if (result['discovery']) {
     var serverUrl = result['server-url'];
     if (result['relay']) {
-      EndpointsServer
-          .generateRelayDiscovery(sdk, serverUrl)
+      EndpointsServer.generateRelayDiscovery(sdk, serverUrl)
           .then((doc) => printExit(doc));
     } else {
-      EndpointsServer
-          .generateDiscovery(sdk, serverUrl)
+      EndpointsServer.generateDiscovery(sdk, serverUrl)
           .then((doc) => printExit(doc));
     }
     return;
@@ -159,7 +157,8 @@ class EndpointsServer {
         .then((HttpApiResponse apiResponse) {
       // TODO(jcollins-g): use sendApiResponse helper?
       return new Response(apiResponse.status,
-          body: apiResponse.body, headers: new Map<String, String>.from(apiResponse.headers));
+          body: apiResponse.body,
+          headers: new Map<String, String>.from(apiResponse.headers));
     });
   }
 

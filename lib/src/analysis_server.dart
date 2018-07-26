@@ -75,14 +75,12 @@ class AnalysisServerWrapper {
       ];
       _logger.info("About to start with server with args: $serverArgs");
 
-      _init = AnalysisServer
-          .create(
+      _init = AnalysisServer.create(
         onRead: onRead,
         onWrite: onWrite,
         sdkPath: sdkPath,
         serverArgs: serverArgs,
-      )
-          .then((AnalysisServer server) async {
+      ).then((AnalysisServer server) async {
         analysisServer = server;
         analysisServer.server.onError.listen((ServerError error) {
           _logger.severe('server error${error.isFatal ? ' (fatal)' : ''}',

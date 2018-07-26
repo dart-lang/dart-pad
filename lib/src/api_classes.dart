@@ -218,7 +218,7 @@ class SourceEdit {
     }
 
     String pre = "${target.substring(0, offset)}";
-    String post = "${target.substring(offset+length)}";
+    String post = "${target.substring(offset + length)}";
     return "$pre$replacement$post";
   }
 }

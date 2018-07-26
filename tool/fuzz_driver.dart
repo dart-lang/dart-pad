@@ -95,7 +95,7 @@ Usage: slow_test path_to_test_collection
 
     try {
       print("Seed: $seed, "
-          "${((counter/fileEntities.length)*100).toStringAsFixed(2)}%, "
+          "${((counter / fileEntities.length) * 100).toStringAsFixed(2)}%, "
           "Elapsed: ${sw.elapsed}");
 
       random = new Random(seed);

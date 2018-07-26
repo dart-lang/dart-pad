@@ -91,19 +91,17 @@ class DownloadingSdk extends Sdk {
     ProcessResult result =
         await _curl('Dart SDK $version', url, destFile, retryCount: 2);
     if (result.exitCode != 0) {
-      throw 'curl failed: ${result.exitCode}\n${result.stdout}\n${result
-          .stderr}';
+      throw 'curl failed: ${result.exitCode}\n${result.stdout}\n${result.stderr}';
     }
 
     Directory destDir = new Directory(path.dirname(sdkPath));
     if (!destDir.existsSync()) {
       destDir.createSync(recursive: true);
     }
-    result = await Process
-        .run('unzip', ['-o', '-q', destFile.path, '-d', destDir.path]);
+    result = await Process.run(
+        'unzip', ['-o', '-q', destFile.path, '-d', destDir.path]);
     if (result.exitCode != 0) {
-      throw 'unzip failed: ${result.exitCode}\n${result.stdout}\n${result
-          .stderr}';
+      throw 'unzip failed: ${result.exitCode}\n${result.stdout}\n${result.stderr}';
     }
     _logger.info('SDK available at $sdkPath');
   }

@@ -13,8 +13,7 @@ void main() {
     String api = (querySelector('#apiEndPoint') as InputElement).value;
 
     Stopwatch sw = new Stopwatch()..start();
-    HttpRequest
-        .request(api, method: 'POST', sendData: json.encode(jsonData))
+    HttpRequest.request(api, method: 'POST', sendData: json.encode(jsonData))
         .then((HttpRequest request) {
       sw.stop();
       querySelector('#perf').text = "${sw.elapsedMilliseconds}ms";
