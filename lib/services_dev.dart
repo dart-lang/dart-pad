@@ -157,16 +157,20 @@ class EndpointsServer {
     return apiServer
         .handleHttpApiRequest(apiRequest)
         .then((HttpApiResponse apiResponse) {
+      // TODO(jcollins-g): use sendApiResponse helper?
       return new Response(apiResponse.status,
-          body: apiResponse.body, headers: apiResponse.headers);
-    }).catchError((e) => printUsage(request));
+          body: apiResponse.body, headers: new Map<String, String>.from(apiResponse.headers));
+    });
   }
 
-  Response printUsage(Request request) {
+  Response printUsage(Request request, dynamic e, StackTrace stackTrace) {
     return new Response.ok('''
 Dart Services server
 
 View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
+
+Error: ${e}
+Stack Trace: ${stackTrace.toString()}
 ''');
   }
 

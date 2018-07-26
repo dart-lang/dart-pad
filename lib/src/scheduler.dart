@@ -55,15 +55,15 @@ abstract class Task {
   Duration timeoutDuration;
 }
 
-class ClosureTask extends Task {
-  var _closure;
+class ClosureTask<T> extends Task {
+  Future<T> Function() _closure;
 
   ClosureTask(this._closure, {Duration timeoutDuration}) {
     this.timeoutDuration = timeoutDuration;
   }
 
   @override
-  Future perform() {
+  Future<T> perform() {
     return _closure();
   }
 }

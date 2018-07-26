@@ -4,7 +4,7 @@ description: The server backend for a web based interactive Dart service.
 homepage: https://github.com/dart-lang/dart-services
 
 environment:
-  sdk: '>=2.0.0-dev.59 <2.0.0'
+  sdk: '>=2.0.0-dev.64.1 <2.0.0'
 
 dependencies:
   analysis_server_lib: ^0.1.2+2
@@ -18,10 +18,8 @@ dependencies:
   shelf: ^0.7.0
   #shelf_cors: ^0.2.0
   shelf_cors:
-    path: '../dart-shelf_cors'
-  #rpc: ^0.5.0
-  rpc:
-    path: '../rpc'
+    path: 'third_party/pkg/dart-shelf_cors'
+  rpc: '>=0.6.0-dev.0'
   uuid: ^0.5.0
   yaml: ^2.0.0
 

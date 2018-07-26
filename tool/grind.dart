@@ -36,7 +36,9 @@ void serve() {
       .runSync(Platform.executable, ['bin/server_dev.dart', '--port', '8082']);
 }
 
-final _dockerVersionMatcher = new RegExp(r'^FROM google/dart-runtime:(.*)$');
+
+final _dockerVersionMatcher = new RegExp(r'^FROM google/dart:(.*)$');
+final _dartSdkVersionMatcher = new RegExp(r'(^\d+[.]\d+[.]\d+.*)');
 @Task('verify we are testing with what we will deploy')
 void checkDockerVersion() {
   var dockerImageLine = new File('Dockerfile')
@@ -45,11 +47,48 @@ void checkDockerVersion() {
   print('dockerImageLine: "${dockerImageLine}"');
   var dockerImageVersion =
       _dockerVersionMatcher.firstMatch(dockerImageLine).group(1);
+
+  var dartSdkVersionLine = new File('dart-sdk.version')
+      .readAsLinesSync()
+      .firstWhere((String s) => s.contains(_dartSdkVersionMatcher));
+  print('dartSdkVersionLine: ${dartSdkVersionLine}');
+  var dartSdkVersion =
+      _dartSdkVersionMatcher.firstMatch(dartSdkVersionLine).group(1);
+
   var platformVersion = Platform.version.split(' ').first;
   if (dockerImageVersion != platformVersion) {
     throw 'Dockerfile image version (${dockerImageVersion}) does not match current Dart version: ${platformVersion}';
   }
+
+  if (dartSdkVersion != platformVersion) {
+    throw ('dart-sdk.version (${dartSdkVersion}) does not match current Dart version: ${platformVersion}');
+  }
 }
+
+@Task('Update the docker and SDK versions')
+void updateDockerVersion() {
+  var platformVersion = Platform.version.split(' ').first;
+  var dockerImageLines = new File('Dockerfile')
+      .readAsLinesSync()
+      .map((String s) {
+        if (s.contains(_dockerVersionMatcher)) {
+          return 'FROM google/dart:${platformVersion}';
+        }
+        return s;
+      });
+  new File('Dockerfile').writeAsStringSync(dockerImageLines.join('\n'));
+
+  var dartSdkVersionLines = new File('dart-sdk.version')
+      .readAsLinesSync()
+      .map((String s) {
+        if (s.contains(_dartSdkVersionMatcher)) {
+          return platformVersion;
+        }
+        return s;
+  });
+  new File('dart-sdk.version').writeAsStringSync(dartSdkVersionLines.join('\n'));
+}
+
 
 @Task()
 @Depends(init)
@@ -83,7 +122,7 @@ void coverage() {
 }
 
 @Task()
-@Depends(analyze, test, coverage)
+@Depends(init, discovery, analyze, test, fuzz, coverage)
 void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')

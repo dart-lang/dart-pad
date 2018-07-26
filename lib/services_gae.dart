@@ -107,7 +107,7 @@ class GaeServer {
       }).catchError((e) {
         // This should only happen in the case where there is a bug in the rpc
         // package. Otherwise it always returns an HttpApiResponse.
-        _logger.warning('Failed with error: $e when trying to call'
+        _logger.warning('Failed with error: $e when trying to call '
             'method at \'${request.uri.path}\'.');
         request.response
           ..statusCode = io.HttpStatus.internalServerError
@@ -128,7 +128,7 @@ class GaeServerContainer implements ServerContainer {
 class GaeCache implements ServerCache {
   Memcache get _memcache => ae.context.services.memcache;
 
-  Future<String> get(String key) => _ignoreErrors(_memcache.get(key));
+  Future get(String key) => _ignoreErrors(_memcache.get(key));
 
   Future set(String key, String value, {Duration expiration}) =>
       _ignoreErrors(_memcache.set(key, value, expiration: expiration));

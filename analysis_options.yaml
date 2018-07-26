@@ -1,6 +1,7 @@
 analyzer:
   exclude:
     - 'dart-sdk/**'
+    - 'third_party/pkg/**'
 linter:
   rules:
     - always_declare_return_types
