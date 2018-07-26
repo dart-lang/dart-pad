@@ -134,14 +134,6 @@ void main() { print ('foo'); }
       });
     });
 
-    test('OK without previewDart2', () {
-      return compiler
-          .compile(samplePreviewDart2Error, previewDart2: false)
-          .then((CompilationResults result) {
-        expect(result.success, true);
-      });
-    });
-
     test('errors on previewDart2', () {
       return compiler
           .compile(samplePreviewDart2Error, previewDart2: true)

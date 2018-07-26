@@ -61,9 +61,9 @@ void defineTests() {
 
   Future<HttpApiResponse> _sendGetRequest(String path, [String queryParams]) {
     assert(apiServer != null);
-    var uri = Uri
-        .parse(queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
-    var body = new Stream.fromIterable([]);
+    var uri = Uri.parse(
+        queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
+    var body = new Stream<List<int>>.fromIterable([]);
     var request = new HttpApiRequest(
         'GET', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);

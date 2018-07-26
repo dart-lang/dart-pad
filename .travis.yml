@@ -1,5 +1,4 @@
 language: dart
 dart:
-  # Keep this in sync with the value in dart-sdk.version
-  - dev/release/2.0.0-dev.63.0
+  - dev
 script: dart tool/grind.dart buildbot

@@ -28,7 +28,7 @@ final Logger log = new Logger('common_server');
 final bool enablePackages = false;
 
 abstract class ServerCache {
-  Future<String> get(String key);
+  Future get(String key);
 
   Future set(String key, String value, {Duration expiration});
 
@@ -342,7 +342,7 @@ class CommonServer {
         "returnSourceMap:$returnSourceMap:"
         "source:$sourceHash";
 
-    return checkCache(memCacheKey).then((String result) {
+    return checkCache(memCacheKey).then((dynamic result) {
       if (!suppressCache && result != null) {
         log.info("CACHE: Cache hit for compile");
         var resultObj = new JsonDecoder().convert(result);
@@ -499,9 +499,9 @@ class CommonServer {
     return response;
   }
 
-  Future<String> checkCache(String query) => cache.get(query);
+  Future<T> checkCache<T>(String query) => cache.get(query);
 
-  Future setCache(String query, String result) =>
+  Future<T> setCache<T>(String query, String result) =>
       cache.set(query, result, expiration: _standardExpiration);
 }
 

@@ -14,11 +14,11 @@ import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
-import 'package:shelf_cors/shelf_cors.dart' as shelf_cors;
 
 import 'src/common.dart';
 import 'src/common_server.dart';
 import 'src/dartpad_support_server.dart';
+import 'src/shelf_cors.dart' as shelf_cors;
 
 Logger _logger = new Logger('services');
 
@@ -47,12 +47,10 @@ void main(List<String> args) {
   if (result['discovery']) {
     var serverUrl = result['server-url'];
     if (result['relay']) {
-      EndpointsServer
-          .generateRelayDiscovery(sdk, serverUrl)
+      EndpointsServer.generateRelayDiscovery(sdk, serverUrl)
           .then((doc) => printExit(doc));
     } else {
-      EndpointsServer
-          .generateDiscovery(sdk, serverUrl)
+      EndpointsServer.generateDiscovery(sdk, serverUrl)
           .then((doc) => printExit(doc));
     }
     return;
@@ -157,16 +155,21 @@ class EndpointsServer {
     return apiServer
         .handleHttpApiRequest(apiRequest)
         .then((HttpApiResponse apiResponse) {
+      // TODO(jcollins-g): use sendApiResponse helper?
       return new Response(apiResponse.status,
-          body: apiResponse.body, headers: apiResponse.headers);
-    }).catchError((e) => printUsage(request));
+          body: apiResponse.body,
+          headers: new Map<String, String>.from(apiResponse.headers));
+    });
   }
 
-  Response printUsage(Request request) {
+  Response printUsage(Request request, dynamic e, StackTrace stackTrace) {
     return new Response.ok('''
 Dart Services server
 
 View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
+
+Error: ${e}
+Stack Trace: ${stackTrace.toString()}
 ''');
   }
 
