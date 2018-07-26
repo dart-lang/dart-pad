@@ -40,8 +40,8 @@ final _dockerVersionMatcher = new RegExp(r'^FROM google/dart:(.*)$');
 final _dartSdkVersionMatcher = new RegExp(r'(^\d+[.]\d+[.]\d+.*)');
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
-  var platformVersion = Platform.version.split(' ').first;
-  var dockerImageLines =
+  String platformVersion = Platform.version.split(' ').first;
+  List<String> dockerImageLines =
       new File('Dockerfile').readAsLinesSync().map((String s) {
     if (s.contains(_dockerVersionMatcher)) {
       return 'FROM google/dart:${platformVersion}';
@@ -51,7 +51,7 @@ void updateDockerVersion() {
         ..add('');
   new File('Dockerfile').writeAsStringSync(dockerImageLines.join('\n'));
 
-  var dartSdkVersionLines =
+  List<String> dartSdkVersionLines =
       new File('dart-sdk.version').readAsLinesSync().map((String s) {
     if (s.contains(_dartSdkVersionMatcher)) {
       return platformVersion;
