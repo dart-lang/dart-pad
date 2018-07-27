@@ -44,7 +44,7 @@ void updateDockerVersion() {
   List<String> dockerImageLines =
       new File('Dockerfile').readAsLinesSync().map((String s) {
     if (s.contains(_dockerVersionMatcher)) {
-      return 'FROM google/dart:${platformVersion}';
+      return 'FROM google/dart-runtime:${platformVersion}';
     }
     return s;
   }).toList()
