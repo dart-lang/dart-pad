@@ -156,12 +156,12 @@ Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
 
   for (int i = 0; i < iterations; i++) {
     // Run once for each file without mutation.
-    var averageCompilationTime = 0;
-    var averageAnalysisTime = 0;
-    var averageCompletionTime = 0;
-    var averageDocumentTime = 0;
-    var averageFixesTime = 0;
-    var averageFormatTime = 0;
+    num averageCompilationTime = 0;
+    num averageAnalysisTime = 0;
+    num averageCompletionTime = 0;
+    num averageDocumentTime = 0;
+    num averageFixesTime = 0;
+    num averageFormatTime = 0;
     if (_DUMP_SRC) print(src);
 
     try {
@@ -328,7 +328,7 @@ Future<num> testFormat(String src) async {
   return sw.elapsedMilliseconds;
 }
 
-Future withTimeOut(Future f) {
+Future<T> withTimeOut<T>(Future<T> f) {
   return f.timeout(new Duration(seconds: 30));
 }
 
