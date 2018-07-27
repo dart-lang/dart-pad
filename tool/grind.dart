@@ -36,7 +36,7 @@ void serve() {
       Platform.executable, ['bin/server_dev.dart', '--port', '8082']);
 }
 
-final _dockerVersionMatcher = new RegExp(r'^FROM google/dart:(.*)$');
+final _dockerVersionMatcher = new RegExp(r'^FROM google/dart-runtime:(.*)$');
 final _dartSdkVersionMatcher = new RegExp(r'(^\d+[.]\d+[.]\d+.*)');
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
@@ -44,7 +44,7 @@ void updateDockerVersion() {
   List<String> dockerImageLines =
       new File('Dockerfile').readAsLinesSync().map((String s) {
     if (s.contains(_dockerVersionMatcher)) {
-      return 'FROM google/dart:${platformVersion}';
+      return 'FROM google/dart-runtime:${platformVersion}';
     }
     return s;
   }).toList()

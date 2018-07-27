@@ -8,12 +8,12 @@ import 'dart:async';
 import 'dart:collection';
 
 class TaskScheduler {
-  Queue<_Task> _taskQueue = new Queue();
+  Queue<_Task<dynamic>> _taskQueue = new Queue();
   bool _isActive = false;
 
   int get queueCount => _taskQueue.length;
 
-  Future _performTask(Task task) {
+  Future<T> _performTask<T>(Task<T> task) {
     if (task.timeoutDuration != null) {
       return task.perform().timeout(task.timeoutDuration);
     } else {
@@ -21,13 +21,13 @@ class TaskScheduler {
     }
   }
 
-  Future schedule(Task task) {
+  Future<T> schedule<T>(Task<T> task) {
     if (!_isActive) {
       _isActive = true;
       return _performTask(task).whenComplete(_next);
     }
-    Completer taskResult = new Completer();
-    _taskQueue.add(new _Task(task, taskResult));
+    Completer taskResult = new Completer<T>();
+    _taskQueue.add(new _Task<T>(task, taskResult));
     return taskResult.future;
   }
 
@@ -43,19 +43,19 @@ class TaskScheduler {
 }
 
 // Internal unit of scheduling.
-class _Task {
-  final Task task;
-  final Completer taskResult;
+class _Task<T> {
+  final Task<T> task;
+  final Completer<T> taskResult;
   _Task(this.task, this.taskResult);
 }
 
 // Public working data structure.
-abstract class Task {
-  Future perform();
+abstract class Task<T> {
+  Future<T> perform();
   Duration timeoutDuration;
 }
 
-class ClosureTask<T> extends Task {
+class ClosureTask<T> extends Task<T> {
   Future<T> Function() _closure;
 
   ClosureTask(this._closure, {Duration timeoutDuration}) {
