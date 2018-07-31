@@ -28,16 +28,19 @@ Future main(List<String> args) async {
   print("Target URI\n$uri");
 
   String source =
-      "import 'dart:html'; void main() { var a = 3; var b = a.abs(); }";
+      "import 'dart:html'; void main() { var a = 3; var b = a.abs(); int c = 7;}";
 
   for (int j = 0; j < count; j++) {
     var data = {"offset": 17, "source": source};
+    var dartdocData = {"offset": 84, "source": source};
 
     String postPayload = convert.json.encode(data);
+    String postPayloadDartdoc = convert.json.encode(dartdocData);
 
     await request("complete", postPayload);
     await request("analyze", postPayload);
     await request("compile", postPayload);
+    await request("document", postPayloadDartdoc);
   }
 }
 
