@@ -77,9 +77,24 @@ void defineTests() {
 
       server = new CommonServer(sdkPath, container, cache, counter);
       await server.init();
+      await server.warmup();
 
       apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
       apiServer.addApi(server);
+
+      {
+        var decodedJson = {};
+        var jsonData = {'source': sampleCodeError};
+        while (decodedJson.isEmpty) {
+          var response =
+              await _sendPostRequest('dartservices/v1/analyze', jsonData);
+          expect(response.status, 200);
+          expect(response.headers['content-type'],
+              'application/json; charset=utf-8');
+          var data = await response.body.first;
+          decodedJson = json.decode(utf8.decode(data));
+        }
+      }
     });
 
     tearDownAll(() {

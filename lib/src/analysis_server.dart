@@ -48,13 +48,6 @@ class AnalysisServerWrapper {
     mainPath = _getPathFromName(kMainDart);
 
     serverScheduler = new TaskScheduler();
-
-    // Write an analysis_options.yaml file with strong mode enabled.
-    // TODO(jcollins-g): this is only required for Travis.  Find out why, then
-    // remove this hack.
-    File optionsFile = new File(_getPathFromName('analysis_options.yaml'));
-    optionsFile.writeAsStringSync(
-        'analyzer:\n  strong-mode: true\n  enablePreviewDart2: $previewDart2\n');
   }
 
   Future init() {
