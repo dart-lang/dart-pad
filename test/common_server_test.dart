@@ -82,6 +82,11 @@ void defineTests() {
       apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
       apiServer.addApi(server);
 
+      // Some piece of initialization doesn't always happen fast enough for
+      // this request to work in time for the test.  So try it here until the
+      // server returns something valid.
+      // TODO(jcollins-g): determine which piece of initialization isn't
+      // happening and deal with that in warmup/init.
       {
         var decodedJson = {};
         var jsonData = {'source': sampleCodeError};
