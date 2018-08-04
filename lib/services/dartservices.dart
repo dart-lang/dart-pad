@@ -41,7 +41,6 @@ class DartservicesApi {
    */
   async.Future<AnalysisResults> analyze(SourceRequest request) {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -55,7 +54,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "POST",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -80,7 +78,7 @@ class DartservicesApi {
   async.Future<AnalysisResults> analyzeGet(
       {core.String source, core.bool strongMode}) {
     var _url = null;
-    var _queryParams = new core.Map();
+    var _queryParams = new core.Map<core.String, core.List<core.String>>();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -122,7 +120,6 @@ class DartservicesApi {
    */
   async.Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -136,7 +133,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "POST",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -160,7 +156,6 @@ class DartservicesApi {
    */
   async.Future<CompileResponse> compile(CompileRequest request) {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -174,7 +169,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "POST",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -196,7 +190,7 @@ class DartservicesApi {
    */
   async.Future<CompileResponse> compileGet({core.String source}) {
     var _url = null;
-    var _queryParams = new core.Map();
+    var _queryParams = new core.Map<core.String, core.List<core.String>>();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -234,7 +228,6 @@ class DartservicesApi {
    */
   async.Future<CompleteResponse> complete(SourceRequest request) {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -248,7 +241,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "POST",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -273,7 +265,7 @@ class DartservicesApi {
   async.Future<CompleteResponse> completeGet(
       {core.String source, core.int offset}) {
     var _url = null;
-    var _queryParams = new core.Map();
+    var _queryParams = new core.Map<core.String, core.List<core.String>>();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -314,7 +306,6 @@ class DartservicesApi {
    */
   async.Future<CompleteResponse> completeMulti(SourcesRequest request) {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -328,7 +319,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "POST",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -350,7 +340,7 @@ class DartservicesApi {
    */
   async.Future<CounterResponse> counterGet({core.String name}) {
     var _url = null;
-    var _queryParams = new core.Map();
+    var _queryParams = new core.Map<core.String, core.List<core.String>>();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -389,7 +379,6 @@ class DartservicesApi {
    */
   async.Future<DocumentResponse> document(SourceRequest request) {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -403,7 +392,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "POST",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -428,7 +416,7 @@ class DartservicesApi {
   async.Future<DocumentResponse> documentGet(
       {core.String source, core.int offset}) {
     var _url = null;
-    var _queryParams = new core.Map();
+    var _queryParams = new core.Map<core.String, core.List<core.String>>();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -469,7 +457,6 @@ class DartservicesApi {
    */
   async.Future<FixesResponse> fixes(SourceRequest request) {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -483,7 +470,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "POST",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -507,7 +493,7 @@ class DartservicesApi {
    */
   async.Future<FixesResponse> fixesGet({core.String source, core.int offset}) {
     var _url = null;
-    var _queryParams = new core.Map();
+    var _queryParams = new core.Map<core.String, core.List<core.String>>();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -548,7 +534,6 @@ class DartservicesApi {
    */
   async.Future<FixesResponse> fixesMulti(SourcesRequest request) {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -562,7 +547,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "POST",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -588,7 +572,6 @@ class DartservicesApi {
    */
   async.Future<FormatResponse> format(SourceRequest request) {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -602,7 +585,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "POST",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -627,7 +609,7 @@ class DartservicesApi {
   async.Future<FormatResponse> formatGet(
       {core.String source, core.int offset}) {
     var _url = null;
-    var _queryParams = new core.Map();
+    var _queryParams = new core.Map<core.String, core.List<core.String>>();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -669,7 +651,6 @@ class DartservicesApi {
    */
   async.Future<SummaryText> summarize(SourcesRequest request) {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -683,7 +664,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "POST",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -705,7 +685,6 @@ class DartservicesApi {
    */
   async.Future<VersionResponse> version() {
     var _url = null;
-    var _queryParams = new core.Map();
     var _uploadMedia = null;
     var _uploadOptions = null;
     var _downloadOptions = commons.DownloadOptions.Metadata;
@@ -715,7 +694,6 @@ class DartservicesApi {
 
     var _response = _requester.request(_url, "GET",
         body: _body,
-        queryParams: _queryParams,
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
@@ -787,6 +765,7 @@ class AnalysisIssue {
 
 class AnalysisResults {
   core.List<AnalysisIssue> issues;
+
   /** The package imports parsed from the source. */
   core.List<core.String> packageImports;
 
@@ -849,8 +828,10 @@ class CandidateFix {
 class CompileRequest {
   /** Return the Dart to JS source map; optional (defaults to false). */
   core.bool returnSourceMap;
+
   /** The Dart source. */
   core.String source;
+
   /**
    * Compile to code with checked mode checks; optional (defaults to false).
    */
@@ -914,8 +895,10 @@ class CompileResponse {
 
 class CompleteResponse {
   core.List<core.Map<core.String, core.String>> completions;
+
   /** The length of the text to be replaced. */
   core.int replacementLength;
+
   /** The offset of the start of the text to be replaced. */
   core.int replacementOffset;
 
@@ -923,7 +906,9 @@ class CompleteResponse {
 
   CompleteResponse.fromJson(core.Map _json) {
     if (_json.containsKey("completions")) {
-      completions = _json["completions"];
+      completions = (_json["completions"] as core.List).map((item) {
+        return new core.Map<core.String, core.String>.from(item);
+      }).toList();
     }
     if (_json.containsKey("replacementLength")) {
       replacementLength = _json["replacementLength"];
@@ -1014,6 +999,7 @@ class FixesResponse {
 class FormatResponse {
   /** The formatted source code. */
   core.String newString;
+
   /** The (optional) new offset of the cursor; can be `null`. */
   core.int offset;
 
@@ -1148,8 +1134,10 @@ class SourceEdit {
 class SourceRequest {
   /** An optional offset into the source code. */
   core.int offset;
+
   /** The Dart source. */
   core.String source;
+
   /**
    * An optional signal whether the source should be processed in strong mode
    */
@@ -1187,8 +1175,10 @@ class SourceRequest {
 class SourcesRequest {
   /** An optional location in the source code. */
   Location location;
+
   /** Map of names to Sources. */
   core.Map<core.String, core.String> sources;
+
   /**
    * An optional signal whether the source should be processed in strong mode
    */
@@ -1246,18 +1236,22 @@ class SummaryText {
 class VersionResponse {
   /** The App Engine version. */
   core.String appEngineVersion;
+
   /**
    * The Dart SDK version that the server is running on. This will start with a
    * semver string, and have a space and other build details appended.
    */
   core.String runtimeVersion;
+
   /**
    * The Dart SDK version that DartServices is compatible with. This will be a
    * semver string.
    */
   core.String sdkVersion;
+
   /** The full Dart SDK version that DartServices is compatible with. */
   core.String sdkVersionFull;
+
   /** The dart-services backend version. */
   core.String servicesVersion;
 

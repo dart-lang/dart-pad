@@ -236,7 +236,7 @@ final Map _codeMap = {
   KeyCode.SHIFT: "", //
 };
 
-final Map _unicodeMac = {
+final Map<String, String> _unicodeMac = {
   "macctrl": "\u2303",
   "alt": "\u2325",
   "shift": "\u21E7",
