@@ -5,7 +5,7 @@
 library dartpad.completion;
 
 import 'dart:async';
-import 'dart:convert' show json;
+import 'dart:convert' show jsonDecode;
 
 import 'editing/editor.dart';
 import 'services/dartservices.dart' hide SourceEdit;
@@ -144,9 +144,11 @@ class AnalysisCompletion implements Comparable {
   final int offset;
   final int length;
 
-  final Map _map;
+  Map _map;
 
-  AnalysisCompletion(this.offset, this.length, this._map) {
+  AnalysisCompletion(this.offset, this.length, Map<String, dynamic> map) {
+    _map = new Map<String, dynamic>.from(map);
+
     // TODO: We need to pass this completion info better.
     _convert('element');
     _convert('parameterNames');
@@ -157,7 +159,9 @@ class AnalysisCompletion implements Comparable {
 
   // Convert maps and lists that have been passed as json.
   void _convert(String key) {
-    if (_map[key] is String) _map[key] = json.decode(_map[key]);
+    if (_map[key] is String) {
+      _map[key] = jsonDecode(_map[key]);
+    }
   }
 
   // KEYWORD, INVOCATION, ...
