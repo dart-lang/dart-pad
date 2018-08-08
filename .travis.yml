@@ -1,4 +1,5 @@
 language: dart
 dart:
+  - stable
   - dev
 script: dart tool/grind.dart buildbot

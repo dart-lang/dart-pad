@@ -34,7 +34,7 @@ class Counter {
 
   static Future<int> getTotal(String name) {
     int total = 0;
-    var query = db.dbService.query(_ShardedCounter)
+    var query = db.dbService.query<_ShardedCounter>()
       ..filter("counterName =", name);
 
     return query.run().toList().then((List<db.Model> models) {
@@ -45,7 +45,7 @@ class Counter {
 
   static Future<_ShardedCounter> _getCounterShard(
       String name, int shardId, db.DatastoreDB datastore) {
-    var query = datastore.query(_ShardedCounter)
+    var query = datastore.query<_ShardedCounter>()
       ..filter("counterName =", name)
       ..filter("shardId =", shardId);
     Future<List<db.Model>> results = query.run().toList();
