@@ -23,7 +23,7 @@ main() {
       onHashChangeController = new StreamController<Event>();
       when(mockWindow.location.host).thenReturn(window.location.host);
       when(mockWindow.location.hash).thenReturn('');
-      when(mockWindow.onHashChange).thenReturn(onHashChangeController.stream);
+      when(mockWindow.onHashChange).thenAnswer((_) => onHashChangeController.stream);
       router = new MockRouter();
       root = new DivElement();
       document.body.append(root);
@@ -55,7 +55,7 @@ main() {
       MockMouseEvent mockMouseEvent =
           _createMockMouseEvent(anchorHref: '#test');
       linkHandler(mockMouseEvent);
-      var result = verify(router.gotoUrl(typed<String>(captureAny)));
+      var result = verify(router.gotoUrl(captureAny));
       result.called(1);
       expect(result.captured.first, "test");
     });
@@ -80,7 +80,7 @@ main() {
       linkHandler(mockMouseEvent);
 
       // We expect 0 calls to router.gotoUrl
-      verifyNever(router.gotoUrl(typed<String>(any)));
+      verifyNever(router.gotoUrl(any));
     });
 
     test('should process AnchorElements which has a child', () {
@@ -95,7 +95,7 @@ main() {
       when(mockMouseEvent.path).thenReturn([anchorChild, anchor]);
 
       linkHandler(mockMouseEvent);
-      var result = verify(router.gotoUrl(typed<String>(captureAny)));
+      var result = verify(router.gotoUrl(captureAny));
       result.called(1);
       expect(result.captured.first, "test");
     });

@@ -16,14 +16,16 @@ final FilePath _buildDir = new FilePath('build');
 final FilePath _webDir = new FilePath('web');
 final FilePath _pkgDir = new FilePath('third_party/pkg');
 final FilePath _routeDir = new FilePath('third_party/pkg/route.dart');
+final FilePath _haikunatorDir = new FilePath('third_party/pkg/haikunatordart');
 
 Map get _env => Platform.environment;
 
 main(List<String> args) => grind(args);
 
-@Task('Copy the included route.dart package in.')
-updateRouteDart() {
+@Task('Copy the included route.dart/haikunator package in.')
+updateThirdParty() {
   run('rm', arguments: ['-rf', _routeDir.path]);
+  run('rm', arguments: ['-rf', _haikunatorDir.path]);
   new Directory(_pkgDir.path).createSync(recursive: true);
   run('git', arguments: [
     'clone',
@@ -33,17 +35,26 @@ updateRouteDart() {
     'git@github.com:jcollins-g/route.dart.git',
     _routeDir.path
   ]);
+  run('git', arguments: [
+    'clone',
+    '--branch',
+    'dart2-stable',
+    '--depth=1',
+    'git@github.com:jcollins-g/haikunatordart.git',
+    _haikunatorDir.path
+  ]);
   run('rm', workingDirectory: _routeDir.path, arguments: ['-rf', '.git']);
+  run('rm', workingDirectory: _haikunatorDir.path, arguments: ['-rf', '.git']);
 }
 
 @Task()
 analyze() {
-  new PubApp.global('tuneup')..run(['check']);
+  new PubApp.local('tuneup')..run(['check']);
 }
 
 @Task('Analyze the source code with the ddc compiler')
 ddc() {
-  PubApp ddc = new PubApp.global('dev_compiler');
+  PubApp ddc = new PubApp.local('dev_compiler');
   ddc.run(['web/scripts/main.dart']);
 }
 

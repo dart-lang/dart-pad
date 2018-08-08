@@ -1054,16 +1054,16 @@ main() {
       router.go('articles', {}).then(expectAsync1((_) {
         var mockLocation = mockWindow.location;
 
-        var result = verify(mockLocation.assign(typed<String>(captureAny)));
+        var result = verify(mockLocation.assign(captureAny));
         result.called(1);
         expect(result.captured.first, '#/articles');
-        verifyNever(mockLocation.replace(typed<String>(any)));
+        verifyNever(mockLocation.replace(any));
 
         router.go('articles', {}, replace: true).then(expectAsync1((_) {
-          var result = verify(mockLocation.replace(typed<String>(captureAny)));
+          var result = verify(mockLocation.replace(captureAny));
           result.called(1);
           expect(result.captured.first, '#/articles');
-          verifyNever(mockLocation.assign(typed<String>(any)));
+          verifyNever(mockLocation.assign(any));
         }));
       }));
     });
@@ -1079,19 +1079,19 @@ main() {
         var mockHistory = mockWindow.history;
 
         var result = verify(mockHistory.pushState(
-            captureAny, typed<String>(captureAny), typed<String>(captureAny)));
+            captureAny, captureAny, captureAny));
         result.called(1);
         expect(result.captured, [null, 'page title', '/articles']);
         verifyNever(mockHistory.replaceState(
-            any, typed<String>(any), typed<String>(any)));
+            any, any, any));
 
         router.go('articles', {}, replace: true).then(expectAsync1((_) {
           var result = verify(mockHistory.replaceState(captureAny,
-              typed<String>(captureAny), typed<String>(captureAny)));
+              captureAny, captureAny));
           result.called(1);
           expect(result.captured, [null, 'page title', '/articles']);
           verifyNever(mockHistory.pushState(
-              any, typed<String>(any), typed<String>(any)));
+              any, any, any));
         }));
       }));
     });
@@ -1110,12 +1110,12 @@ main() {
         var mockHistory = mockWindow.history;
 
         var result = verify(mockHistory.pushState(
-            captureAny, typed<String>(captureAny), typed<String>(captureAny)));
+            captureAny, captureAny, captureAny));
         result.called(1);
         expect(result.captured,
             [null, 'page title', '/articles?foo=foo%20bar&bar=%25baz%2Baux']);
         verifyNever(mockHistory.replaceState(
-            any, typed<String>(any), typed<String>(any)));
+            any, any, any));
       }));
     });
 
@@ -1136,13 +1136,13 @@ main() {
         var mockHistory = mockWindow.history;
 
         var result = verify(mockHistory.pushState(
-            captureAny, typed<String>(captureAny), typed<String>(captureAny)));
+            captureAny, captureAny, captureAny));
         result.called(1);
         expect(result.captured, [null, 'page title', '/null/null']);
 
         router.go('a.b', {'foo': 'aaaa', 'bar': 'bbbb'}).then(expectAsync1((_) {
           var result = verify(mockHistory.pushState(captureAny,
-              typed<String>(captureAny), typed<String>(captureAny)));
+              captureAny, captureAny));
           result.called(1);
           expect(result.captured, [null, 'page title', '/aaaa/bbbb']);
 
@@ -1150,7 +1150,7 @@ main() {
               .go('b', {'bar': 'bbbb'}, startingFrom: routeA)
               .then(expectAsync1((_) {
             var result = verify(mockHistory.pushState(captureAny,
-                typed<String>(captureAny), typed<String>(captureAny)));
+                captureAny, captureAny));
             // Note: These were cumulative with mock but get reset with each
             // call to mockito.verify(), so 3 became 1 here.
             result.called(1);
@@ -1190,8 +1190,8 @@ main() {
         return router.go('b', {'bar': 'bbb'}, startingFrom: routeA).then((_) {
           var mockHistory = mockWindow.history;
 
-          var result = verify(mockHistory.pushState(typed<String>(captureAny),
-              typed<String>(captureAny), typed<String>(captureAny)));
+          var result = verify(mockHistory.pushState(captureAny,
+              captureAny, captureAny));
           result.called(1);
           expect(result.captured, [null, 'page title', '/null/bbb']);
         });
@@ -1235,7 +1235,7 @@ main() {
 
       router.go('foo', {}).then(expectAsync1((_) {
         var mockHistory = mockWindow.history;
-        verify((mockWindow.document as HtmlDocument).title = typed<String>(any))
+        verify((mockWindow.document as HtmlDocument).title = any)
             .called(1);
         verify(mockHistory.pushState(null, 'Foo', '/foo')).called(1);
       }));
@@ -1655,7 +1655,7 @@ main() {
         var mockHashChangeController = new StreamController<Event>(sync: true);
 
         when(mockWindow.onHashChange)
-            .thenReturn(mockHashChangeController.stream);
+            .thenAnswer((_) => mockHashChangeController.stream);
         when(mockWindow.location.hash).thenReturn('#/foo');
         var router = new Router(useFragment: true, windowImpl: mockWindow);
         router.root.addRoute(name: 'foo', path: '/foo');
@@ -1689,7 +1689,7 @@ main() {
         var mockWindow = new MockWindow();
         var mockPopStateController =
             new StreamController<PopStateEvent>(sync: true);
-        when(mockWindow.onPopState).thenReturn(mockPopStateController.stream);
+        when(mockWindow.onPopState).thenAnswer((_) => mockPopStateController.stream);
         testInit(mockWindow, 2);
         mockPopStateController.add(null);
       });
@@ -1698,7 +1698,7 @@ main() {
         var mockWindow = new MockWindow();
         var mockPopStateController =
             new StreamController<PopStateEvent>(sync: true);
-        when(mockWindow.onPopState).thenReturn(mockPopStateController.stream);
+        when(mockWindow.onPopState).thenAnswer((_) => mockPopStateController.stream);
         testInit(mockWindow);
       });
     });
@@ -1722,7 +1722,7 @@ main() {
         var mockHashChangeController = new StreamController<Event>(sync: true);
 
         when(mockWindow.onHashChange)
-            .thenReturn(mockHashChangeController.stream);
+            .thenAnswer((_) => mockHashChangeController.stream);
         when(mockWindow.location.hash).thenReturn('#/foo');
         when(mockWindow.location.host).thenReturn(window.location.host);
 
@@ -1749,7 +1749,7 @@ main() {
         var mockHashChangeController = new StreamController<Event>(sync: true);
 
         when(mockWindow.onHashChange)
-            .thenReturn(mockHashChangeController.stream);
+            .thenAnswer((_) => mockHashChangeController.stream);
         when(mockWindow.location.hash).thenReturn('#/foo');
         when(mockWindow.location.host).thenReturn(window.location.host);
 
