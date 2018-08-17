@@ -182,7 +182,7 @@ void defineTests() {
       expect(results.issues, hasLength(1));
       AnalysisIssue issue = results.issues.first;
       expect(issue.kind, 'error');
-    });
+    }, skip: 'no-preview-dart-2 support needs to be removed entirely');
   });
 }
 

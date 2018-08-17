@@ -38,7 +38,8 @@ class FileRelayServer {
     }
   }
 
-  Future<List> _databaseQuery<T extends db.Model>(String attribute, var value) async {
+  Future<List> _databaseQuery<T extends db.Model>(
+      String attribute, var value) async {
     List result = new List();
     if (test) {
       List dataList = database[getClass(T)];
@@ -53,8 +54,7 @@ class FileRelayServer {
         }
       }
     } else {
-      var query = ae.context.services.db.query<T>()
-        ..filter(attribute, value);
+      var query = ae.context.services.db.query<T>()..filter(attribute, value);
       result = await query.run().toList();
     }
     return new Future.value(result);

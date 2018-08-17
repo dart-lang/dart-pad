@@ -15,9 +15,7 @@ Future main(List<String> args) => grind(args);
 
 @Task()
 void analyze() {
-  Pub.run('tuneup', arguments: [
-    'check'
-  ]);
+  Pub.run('tuneup', arguments: ['check']);
 }
 
 @Task()
