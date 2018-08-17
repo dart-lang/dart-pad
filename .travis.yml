@@ -2,4 +2,6 @@ language: dart
 dart:
   - stable
   - dev
+branches:
+  only: [master]
 script: dart tool/grind.dart buildbot
