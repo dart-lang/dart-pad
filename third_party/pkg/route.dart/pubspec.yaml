@@ -6,10 +6,9 @@ authors:
 description: A client routing library for Dart, modified for Dart 2.
 homepage: https://github.com/angular/route.dart
 environment:
-  sdk: '>=2.0.0-dev.67.0 <2.0.0'
+  sdk: '>=2.0.0-dev.67.0 <3.0.0'
 dependencies:
   logging: any
 dev_dependencies:
-  browser: any
-  mockito: ^2.2.3
+  mockito: ^3.0.0
   test: any

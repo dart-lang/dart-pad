@@ -1,0 +1,10 @@
+name: haikunator
+version: 0.1.1
+author: Atrox <mail@atrox.me>
+description: Generate Heroku-like random names to use in your dart applications.
+homepage: https://github.com/Atrox/haikunatordart
+documentation: https://github.com/Atrox/haikunatordart
+environment:
+  sdk: ">=2.0.0-dev.63.0 <=3.0.0"
+dev_dependencies:
+  test: any

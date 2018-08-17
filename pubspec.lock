@@ -8,6 +8,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.6+1"
+  analysis_server_lib:
+    dependency: transitive
+    description:
+      name: analysis_server_lib
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.4+2"
   analyzer:
     dependency: transitive
     description:
@@ -176,6 +183,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.14.4+1"
+  dart2_constant:
+    dependency: transitive
+    description:
+      name: dart2_constant
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.0.2+dart2"
   dart_style:
     dependency: transitive
     description:
@@ -235,10 +249,10 @@ packages:
   haikunator:
     dependency: "direct main"
     description:
-      name: haikunator
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.0"
+      path: "third_party/pkg/haikunatordart"
+      relative: true
+    source: path
+    version: "0.1.1"
   html:
     dependency: transitive
     description:
@@ -267,6 +281,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.1.3"
+  intl:
+    dependency: transitive
+    description:
+      name: intl
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.15.7"
   io:
     dependency: transitive
     description:
@@ -413,7 +434,7 @@ packages:
       name: quiver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.0+1"
+    version: "0.29.0+2"
   route_hierarchical:
     dependency: "direct main"
     description:
@@ -519,6 +540,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.3.0"
+  tuneup:
+    dependency: "direct dev"
+    description:
+      name: tuneup
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.6"
   typed_data:
     dependency: transitive
     description:
@@ -562,4 +590,4 @@ packages:
     source: hosted
     version: "2.1.15"
 sdks:
-  dart: ">=2.0.0-dev.67.0 <=2.0.0-dev.69.5"
+  dart: ">=2.0.0-dev.67.0 <3.0.0"
