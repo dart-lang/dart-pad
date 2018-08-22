@@ -38,10 +38,11 @@ class FileRelayServer {
     }
   }
 
-  Future<List> _databaseQuery(var dbClass, String attribute, var value) async {
+  Future<List> _databaseQuery<T extends db.Model>(
+      String attribute, var value) async {
     List result = new List();
     if (test) {
-      List dataList = database[getClass(dbClass)];
+      List dataList = database[getClass(T)];
       if (dataList != null) {
         for (var dataObject in dataList) {
           mirrors.InstanceMirror dataObjectMirror = mirrors.reflect(dataObject);
@@ -53,8 +54,7 @@ class FileRelayServer {
         }
       }
     } else {
-      var query = ae.context.services.db.query(dbClass)
-        ..filter(attribute, value);
+      var query = ae.context.services.db.query<T>()..filter(attribute, value);
       result = await query.run().toList();
     }
     return new Future.value(result);
@@ -101,7 +101,7 @@ class FileRelayServer {
       description: 'Retrieve a stored gist data set.')
   Future<PadSaveObject> pullExportContent(UuidContainer uuidContainer) async {
     List result =
-        await _databaseQuery(_GaePadSaveObject, 'uuid =', uuidContainer.uuid);
+        await _databaseQuery<_GaePadSaveObject>('uuid =', uuidContainer.uuid);
     if (result.isEmpty) {
       _logger
           .severe("Export with UUID ${uuidContainer.uuid} could not be found.");
@@ -126,7 +126,7 @@ class FileRelayServer {
     List result;
     do {
       randomUuid = new uuid_tools.Uuid().v4();
-      result = await _databaseQuery(_GistMapping, 'internalId =', randomUuid);
+      result = await _databaseQuery<_GistMapping>('internalId =', randomUuid);
       attemptCount++;
       if (!result.isEmpty) {
         _logger.info("Collision in retrieving mapping id ${randomUuid}.");
@@ -143,7 +143,7 @@ class FileRelayServer {
   @ApiMethod(method: 'POST', path: 'storeGist')
   Future<UuidContainer> storeGist(GistToInternalIdMapping map) async {
     List result =
-        await _databaseQuery(_GistMapping, 'internalId =', map.internalId);
+        await _databaseQuery<_GistMapping>('internalId =', map.internalId);
     if (!result.isEmpty) {
       _logger.severe("Collision with mapping of Id ${map.gistId}.");
       throw new BadRequestError("Mapping invalid.");
@@ -164,7 +164,7 @@ class FileRelayServer {
     if (id == null) {
       throw new BadRequestError('Missing parameter: \'id\'');
     }
-    List result = await _databaseQuery(_GistMapping, 'internalId =', id);
+    List result = await _databaseQuery<_GistMapping>('internalId =', id);
     if (result.isEmpty) {
       _logger.severe("Missing mapping for Id ${id}.");
       throw new BadRequestError("Missing mapping for Id ${id}");
