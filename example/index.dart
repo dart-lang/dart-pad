@@ -12,7 +12,7 @@ void main() {
     //var foo = querySelector('#apiEndPoint');
     String api = (querySelector('#apiEndPoint') as InputElement).value;
 
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     HttpRequest.request(api, method: 'POST', sendData: json.encode(jsonData))
         .then((HttpRequest request) {
       sw.stop();

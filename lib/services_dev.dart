@@ -20,10 +20,10 @@ import 'src/common_server.dart';
 import 'src/dartpad_support_server.dart';
 import 'src/shelf_cors.dart' as shelf_cors;
 
-Logger _logger = new Logger('services');
+Logger _logger = Logger('services');
 
 void main(List<String> args) {
-  var parser = new ArgParser();
+  var parser = ArgParser();
   parser.addOption('port', abbr: 'p', defaultsTo: '8080');
   parser.addFlag('discovery');
   parser.addFlag('relay');
@@ -69,7 +69,7 @@ void main(List<String> args) {
 
 class EndpointsServer {
   static Future<EndpointsServer> serve(String sdkPath, int port) {
-    EndpointsServer endpointsServer = new EndpointsServer._(sdkPath, port);
+    EndpointsServer endpointsServer = EndpointsServer._(sdkPath, port);
 
     return shelf
         .serve(endpointsServer.handler, InternetAddress.anyIPv4, port)
@@ -81,31 +81,29 @@ class EndpointsServer {
 
   static Future<String> generateDiscovery(
       String sdkPath, String serverUrl) async {
-    var commonServer = new CommonServer(
-        sdkPath, new _ServerContainer(), new _Cache(), new _Counter());
+    var commonServer =
+        CommonServer(sdkPath, _ServerContainer(), _Cache(), _Counter());
     await commonServer.init();
-    var apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
+    var apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
     apiServer.enableDiscoveryApi();
 
     var uri = Uri.parse("/api/discovery/v1/apis/dartservices/v1/rest");
-    var request =
-        new HttpApiRequest('GET', uri, {}, new Stream.fromIterable([]));
+    var request = HttpApiRequest('GET', uri, {}, Stream.fromIterable([]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
     return utf8.decode(await response.body.first);
   }
 
   static Future<String> generateRelayDiscovery(
       String sdkPath, String serverUrl) async {
-    var databaseServer = new FileRelayServer();
-    var apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
+    var databaseServer = FileRelayServer();
+    var apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(databaseServer);
     apiServer.enableDiscoveryApi();
 
     var uri =
         Uri.parse("/api/discovery/v1/apis/_dartpadsupportservices/v1/rest");
-    var request =
-        new HttpApiRequest('GET', uri, {}, new Stream.fromIterable([]));
+    var request = HttpApiRequest('GET', uri, {}, Stream.fromIterable([]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
     return utf8.decode(await response.body.first);
   }
@@ -122,13 +120,13 @@ class EndpointsServer {
 
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
-    commonServer = new CommonServer(
-        sdkPath, new _ServerContainer(), new _Cache(), new _Counter());
+    commonServer =
+        CommonServer(sdkPath, _ServerContainer(), _Cache(), _Counter());
     commonServer.init();
-    apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
+    apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
 
-    pipeline = new Pipeline()
+    pipeline = Pipeline()
         .addMiddleware(logRequests())
         .addMiddleware(_createCustomCorsHeadersMiddleware());
 
@@ -144,7 +142,7 @@ class EndpointsServer {
     // NOTE: We could read in the request body here and parse it similar to the
     // _parseRequest method to determine content-type and dispatch to e.g. a
     // plain text handler if we want to support that.
-    HttpApiRequest apiRequest = new HttpApiRequest(
+    HttpApiRequest apiRequest = HttpApiRequest(
         request.method, request.requestedUri, request.headers, request.read());
 
     // Promote text/plain requests to application/json.
@@ -156,14 +154,14 @@ class EndpointsServer {
         .handleHttpApiRequest(apiRequest)
         .then((HttpApiResponse apiResponse) {
       // TODO(jcollins-g): use sendApiResponse helper?
-      return new Response(apiResponse.status,
+      return Response(apiResponse.status,
           body: apiResponse.body,
-          headers: new Map<String, String>.from(apiResponse.headers));
+          headers: Map<String, String>.from(apiResponse.headers));
     });
   }
 
   Response printUsage(Request request, dynamic e, StackTrace stackTrace) {
-    return new Response.ok('''
+    return Response.ok('''
 Dart Services server
 
 View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
@@ -188,16 +186,13 @@ class _ServerContainer implements ServerContainer {
 }
 
 class _Cache implements ServerCache {
-  Future<String> get(String key) => new Future.value(null);
-  Future set(String key, String value, {Duration expiration}) =>
-      new Future.value();
-  Future remove(String key) => new Future.value();
+  Future<String> get(String key) => Future.value(null);
+  Future set(String key, String value, {Duration expiration}) => Future.value();
+  Future remove(String key) => Future.value();
 }
 
-/**
- * This is a mock implementation of a counter, it doesn't use a proper
- * persistent store.
- */
+/// This is a mock implementation of a counter, it doesn't use a proper
+/// persistent store.
 class _Counter implements PersistentCounter {
   final Map<String, int> _map = {};
 
@@ -205,13 +200,13 @@ class _Counter implements PersistentCounter {
   Future<int> getTotal(String name) {
     _map.putIfAbsent(name, () => 0);
 
-    return new Future.value(_map[name]);
+    return Future.value(_map[name]);
   }
 
   @override
-  Future increment(String name, {int increment: 1}) {
+  Future increment(String name, {int increment = 1}) {
     _map.putIfAbsent(name, () => 0);
     _map[name]++;
-    return new Future.value();
+    return Future.value();
   }
 }

@@ -8,7 +8,7 @@ import 'dart:async';
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:logging/logging.dart';
 
-Logger _logger = new Logger('update_sdk');
+Logger _logger = Logger('update_sdk');
 
 Future main() async {
   Logger.root.level = Level.ALL;
@@ -17,7 +17,7 @@ Future main() async {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  DownloadingSdk sdk = new DownloadingSdk();
+  DownloadingSdk sdk = DownloadingSdk();
   await sdk.init();
 
   _logger.info('Dart SDK ${sdk.versionFull} available at ${sdk.sdkPath}');

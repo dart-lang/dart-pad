@@ -5,8 +5,23 @@ linter:
   rules:
     - always_declare_return_types
     # - annotate_overrides
-    - avoid_init_to_null
-    - directives_ordering
+    - avoid_empty_else
+    #- avoid_init_to_null
+    - avoid_relative_lib_imports
+    - avoid_return_types_on_setters
+    - avoid_types_as_parameter_names
+    # - directives_ordering
     - no_adjacent_strings_in_list
+    - no_duplicate_case_values
     - package_api_docs
-    # - slash_for_doc_comments
+    - prefer_contains
+    # - prefer_equal_for_default_values
+    - prefer_is_not_empty
+    - recursive_getters
+    - slash_for_doc_comments
+    - unnecessary_const
+    # - unnecessary_new
+    - unrelated_type_equality_checks
+    - use_rethrow_when_possible
+    # - unawaited_futures
+    - valid_regexps

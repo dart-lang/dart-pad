@@ -19,7 +19,7 @@ import 'src/sharded_counter.dart' as counter;
 
 const String _API = '/api';
 
-final Logger _logger = new Logger('gae_server');
+final Logger _logger = Logger('gae_server');
 
 void main(List<String> args) {
   int gaePort = 8080;
@@ -31,7 +31,7 @@ void main(List<String> args) {
     throw 'No Dart SDK is available; set the DART_SDK env var.';
   }
 
-  GaeServer server = new GaeServer(sdk);
+  GaeServer server = GaeServer(sdk);
 
   // Change the log level to get more or less detailed logging.
   ae.useLoggingPackageAdaptor();
@@ -51,11 +51,11 @@ class GaeServer {
     _logger.level = Level.ALL;
 
     discoveryEnabled = false;
-    fileRelayServer = new FileRelayServer();
-    commonServer = new CommonServer(
-        sdkPath, new GaeServerContainer(), new GaeCache(), new GaeCounter());
+    fileRelayServer = FileRelayServer();
+    commonServer =
+        CommonServer(sdkPath, GaeServerContainer(), GaeCache(), GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
-    apiServer = new rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
+    apiServer = rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer)
       ..addApi(fileRelayServer);
   }
@@ -95,7 +95,7 @@ class GaeServer {
       // NOTE: We could read in the request body here and parse it similar to
       // the _parseRequest method to determine content-type and dispatch to e.g.
       // a plain text handler if we want to support that.
-      var apiRequest = new rpc.HttpApiRequest.fromHttpRequest(request);
+      var apiRequest = rpc.HttpApiRequest.fromHttpRequest(request);
 
       // Dartpad sends data as plain text, we need to promote this to
       // application/json to ensure that the rpc library processes it correctly
@@ -150,7 +150,7 @@ class GaeCounter implements PersistentCounter {
   }
 
   @override
-  Future increment(String name, {int increment: 1}) {
+  Future increment(String name, {int increment = 1}) {
     return counter.Counter.increment(name, increment: increment);
   }
 }

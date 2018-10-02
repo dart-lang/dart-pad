@@ -36,10 +36,10 @@ void setupDartpadServices() {
 }
 
 void _setupClients() {
-  client = new utils.SanitizingBrowserClient();
-  servicesApi = new services.DartservicesApi(client, rootUrl: _uriBase);
+  client = utils.SanitizingBrowserClient();
+  servicesApi = services.DartservicesApi(client, rootUrl: _uriBase);
   _dartpadSupportApi =
-      new support.P_dartpadsupportservicesApi(client, rootUrl: _uriBase);
+      support.P_dartpadsupportservicesApi(client, rootUrl: _uriBase);
 }
 
 void setupSummary() {
@@ -48,12 +48,12 @@ void setupSummary() {
   ButtonElement button = querySelector('#summarySection button');
   button.onClick.listen((e) {
     _setupClients();
-    services.SourcesRequest input = new services.SourcesRequest();
-    input.sources = new Map<String, String>();
+    services.SourcesRequest input = services.SourcesRequest();
+    input.sources = Map<String, String>();
     input.sources['dart'] = editor.getDoc().getValue();
     input.sources['css'] = "";
     input.sources['html'] = "";
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     servicesApi.summarize(input).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -64,7 +64,7 @@ void setupIdRetrieval() {
   Element output = querySelector('#idSection .output');
   ButtonElement button = querySelector('#idSection button');
   button.onClick.listen((e) {
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     _dartpadSupportApi.getUnusedMappingId().then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -79,10 +79,10 @@ void setupGistStore() {
   button.onClick.listen((e) {
     String editorText = editor.getDoc().getValue();
     support.GistToInternalIdMapping saveObject =
-        new support.GistToInternalIdMapping();
+        support.GistToInternalIdMapping();
     saveObject.internalId = editorText;
     saveObject.gistId = "72d83fe97bfc8e735607"; //Solar
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     _dartpadSupportApi.storeGist(saveObject).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -96,7 +96,7 @@ void setupGistRetrieval() {
   ButtonElement button = querySelector('#gistSection button');
   button.onClick.listen((e) {
     String editorText = editor.getDoc().getValue();
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     _dartpadSupportApi.retrieveGist(id: editorText).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -109,9 +109,9 @@ void setupAnalyze() {
   ButtonElement button = querySelector('#analyzeSection button');
   button.onClick.listen((e) {
     _setupClients();
-    services.SourceRequest srcRequest = new services.SourceRequest()
+    services.SourceRequest srcRequest = services.SourceRequest()
       ..source = editor.getDoc().getValue();
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     servicesApi.analyze(srcRequest).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -126,10 +126,10 @@ void setupCompile() {
     String source = editor.getDoc().getValue();
 
     _setupClients();
-    services.CompileRequest compileRequest = new services.CompileRequest();
+    services.CompileRequest compileRequest = services.CompileRequest();
     compileRequest.source = source;
 
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     servicesApi.compile(compileRequest).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -143,7 +143,7 @@ void setupComplete() {
   ButtonElement button = querySelector('#completeSection button');
   button.onClick.listen((e) {
     var sourceRequest = _getSourceRequest(editor);
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     servicesApi.complete(sourceRequest).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -161,7 +161,7 @@ void setupDocument() {
   ButtonElement button = querySelector('#documentSection button');
   button.onClick.listen((e) {
     var sourceRequest = _getSourceRequest(editor);
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     servicesApi.document(sourceRequest).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -179,7 +179,7 @@ void setupFixes() {
   ButtonElement button = querySelector('#fixesSection button');
   button.onClick.listen((e) {
     var sourceRequest = _getSourceRequest(editor);
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     servicesApi.fixes(sourceRequest).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -195,7 +195,7 @@ void setupVersion() {
   Element output = querySelector('#versionSection .output');
   ButtonElement button = querySelector('#versionSection button');
   button.onClick.listen((e) {
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     servicesApi.version().then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -207,9 +207,9 @@ void setupExport() {
   Element output = querySelector('#exportSection .output');
   ButtonElement button = querySelector('#exportSection button');
   button.onClick.listen((e) {
-    support.PadSaveObject saveObject = new support.PadSaveObject();
+    support.PadSaveObject saveObject = support.PadSaveObject();
     saveObject.dart = editor.getDoc().getValue();
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
     _dartpadSupportApi.export(saveObject).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
     });
@@ -224,10 +224,9 @@ void setupRetrieve() {
   button.onClick.listen((e) {
     String uuid = editor.getDoc().getValue();
 
-    Stopwatch sw = new Stopwatch()..start();
+    Stopwatch sw = Stopwatch()..start();
 
-    support.UuidContainer uuidContainer = new support.UuidContainer()
-      ..uuid = uuid;
+    support.UuidContainer uuidContainer = support.UuidContainer()..uuid = uuid;
 
     _dartpadSupportApi.pullExportContent(uuidContainer).then((results) {
       output.text = "${_formatTiming(sw)}${results.toJson()}";
@@ -246,7 +245,7 @@ CodeMirror createEditor(Element element, {String defaultText}) {
     'value': defaultText == null ? _text : defaultText
   };
 
-  CodeMirror editor = new CodeMirror.fromElement(element, options: options);
+  CodeMirror editor = CodeMirror.fromElement(element, options: options);
   editor.refresh();
   return editor;
 }
@@ -262,7 +261,7 @@ int _getOffset(CodeMirror editor) {
 }
 
 services.SourceRequest _getSourceRequest(CodeMirror editor) {
-  var srcRequest = new services.SourceRequest()
+  var srcRequest = services.SourceRequest()
     ..source = editor.getDoc().getValue()
     ..offset = _getOffset(editor);
   return srcRequest;

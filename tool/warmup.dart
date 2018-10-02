@@ -45,7 +45,7 @@ Future main(List<String> args) async {
 }
 
 Future request(String verb, String postPayload) async {
-  Stopwatch sw = new Stopwatch()..start();
+  Stopwatch sw = Stopwatch()..start();
 
   var response = await http.post(Uri.parse(uri + verb),
       body: postPayload,

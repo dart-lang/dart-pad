@@ -23,7 +23,7 @@ void init() => Dart.run('bin/update_sdk.dart');
 
 @Task()
 @Depends(init)
-Future test() => new TestRunner().testAsync();
+Future test() => TestRunner().testAsync();
 
 @DefaultTask()
 @Depends(analyze, test)
@@ -36,31 +36,30 @@ void serve() {
       Platform.executable, ['bin/server_dev.dart', '--port', '8082']);
 }
 
-final _dockerVersionMatcher = new RegExp(r'^FROM google/dart-runtime:(.*)$');
-final _dartSdkVersionMatcher = new RegExp(r'(^\d+[.]\d+[.]\d+.*)');
+final _dockerVersionMatcher = RegExp(r'^FROM google/dart-runtime:(.*)$');
+final _dartSdkVersionMatcher = RegExp(r'(^\d+[.]\d+[.]\d+.*)');
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
   String platformVersion = Platform.version.split(' ').first;
   List<String> dockerImageLines =
-      new File('Dockerfile').readAsLinesSync().map((String s) {
+      File('Dockerfile').readAsLinesSync().map((String s) {
     if (s.contains(_dockerVersionMatcher)) {
       return 'FROM google/dart-runtime:${platformVersion}';
     }
     return s;
   }).toList()
         ..add('');
-  new File('Dockerfile').writeAsStringSync(dockerImageLines.join('\n'));
+  File('Dockerfile').writeAsStringSync(dockerImageLines.join('\n'));
 
   List<String> dartSdkVersionLines =
-      new File('dart-sdk.version').readAsLinesSync().map((String s) {
+      File('dart-sdk.version').readAsLinesSync().map((String s) {
     if (s.contains(_dartSdkVersionMatcher)) {
       return platformVersion;
     }
     return s;
   }).toList()
         ..add('');
-  new File('dart-sdk.version')
-      .writeAsStringSync(dartSdkVersionLines.join('\n'));
+  File('dart-sdk.version').writeAsStringSync(dartSdkVersionLines.join('\n'));
 }
 
 @Task()
@@ -82,7 +81,7 @@ void coverage() {
     return;
   }
 
-  PubApp coveralls = new PubApp.global('dart_coveralls');
+  PubApp coveralls = PubApp.global('dart_coveralls');
   coveralls.run([
     'report',
     '--token',
@@ -107,7 +106,7 @@ void discovery() {
     throw 'Error generating the discovery document\n${result.stderr}';
   }
 
-  File discoveryFile = new File('doc/generated/dartservices.json');
+  File discoveryFile = File('doc/generated/dartservices.json');
   discoveryFile.parent.createSync();
   log('writing ${discoveryFile.path}');
   discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
@@ -119,7 +118,7 @@ void discovery() {
     throw 'Error generating the discovery document\n${result.stderr}';
   }
 
-  File discoveryDbFile = new File('doc/generated/_dartpadsupportservices.json');
+  File discoveryDbFile = File('doc/generated/_dartpadsupportservices.json');
   discoveryDbFile.parent.createSync();
   log('writing ${discoveryDbFile.path}');
   discoveryDbFile.writeAsStringSync(resultDb.stdout.trim() + '\n');

@@ -14,18 +14,18 @@ import 'package:dart_services/src/compiler.dart';
 void main(List<String> args) {
   bool json = args.contains('--json');
 
-  BenchmarkHarness harness = new BenchmarkHarness(asJson: json);
+  BenchmarkHarness harness = BenchmarkHarness(asJson: json);
 
   List<Benchmark> benchmarks = [
-    new AnalyzerBenchmark('hello', sampleCode),
-    new AnalyzerBenchmark('hellohtml', sampleCodeWeb),
-    new AnalyzerBenchmark('sunflower', _sunflower),
-    new AnalysisServerBenchmark('hello', sampleCode),
-    new AnalysisServerBenchmark('hellohtml', sampleCodeWeb),
-    new AnalysisServerBenchmark('sunflower', _sunflower),
-    new Dart2jsBenchmark('hello', sampleCode),
-    new Dart2jsBenchmark('hellohtml', sampleCodeWeb),
-    new Dart2jsBenchmark('sunflower', _sunflower),
+    AnalyzerBenchmark('hello', sampleCode),
+    AnalyzerBenchmark('hellohtml', sampleCodeWeb),
+    AnalyzerBenchmark('sunflower', _sunflower),
+    AnalysisServerBenchmark('hello', sampleCode),
+    AnalysisServerBenchmark('hellohtml', sampleCodeWeb),
+    AnalysisServerBenchmark('sunflower', _sunflower),
+    Dart2jsBenchmark('hello', sampleCode),
+    Dart2jsBenchmark('hellohtml', sampleCodeWeb),
+    Dart2jsBenchmark('sunflower', _sunflower),
   ];
 
   harness.benchmark(benchmarks);
@@ -36,7 +36,7 @@ class AnalyzerBenchmark extends Benchmark {
   AnalysisServerWrapper analysisServer;
 
   AnalyzerBenchmark(String name, this.source) : super('analyzer.${name}') {
-    analysisServer = new AnalysisServerWrapper(sdkPath);
+    analysisServer = AnalysisServerWrapper(sdkPath);
   }
 
   Future init() => analysisServer.init();
@@ -48,11 +48,11 @@ class AnalyzerBenchmark extends Benchmark {
 
 class Dart2jsBenchmark extends Benchmark {
   final String source;
-  Compiler compiler;
+  final Compiler compiler;
 
-  Dart2jsBenchmark(String name, this.source) : super('dart2js.${name}') {
-    compiler = new Compiler(sdkPath);
-  }
+  Dart2jsBenchmark(String name, this.source)
+      : compiler = Compiler(sdkPath),
+        super('dart2js.${name}');
 
   Future perform() {
     return compiler.compile(source).then((CompilationResults result) {
@@ -63,12 +63,11 @@ class Dart2jsBenchmark extends Benchmark {
 
 class AnalysisServerBenchmark extends Benchmark {
   final String source;
-  AnalysisServerWrapper analysisServer;
+  final AnalysisServerWrapper analysisServer;
 
   AnalysisServerBenchmark(String name, this.source)
-      : super('completion.${name}') {
-    analysisServer = new AnalysisServerWrapper(sdkPath);
-  }
+      : analysisServer = AnalysisServerWrapper(sdkPath),
+        super('completion.${name}');
 
   Future init() => analysisServer.init();
 

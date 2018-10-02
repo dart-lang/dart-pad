@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This tool drives the services API with a large number of files and fuzz
- * test variations. This should be run over all of the co19 tests in the SDK
- * prior to each deployment of the server.
- */
+/// This tool drives the services API with a large number of files and fuzz
+/// test variations. This should be run over all of the co19 tests in the SDK
+/// prior to each deployment of the server.
 library services.fuzz_driver;
 
 import 'dart:async';
@@ -34,7 +32,7 @@ analysis_server.AnalysisServerWrapper analysisServer;
 
 comp.Compiler compiler;
 
-var random = new Random(0);
+var random = Random(0);
 var maxMutations = 2;
 var iterations = 5;
 String commandToRun = "ALL";
@@ -69,16 +67,16 @@ Usage: slow_test path_to_test_collection
   // Load the list of files.
   var fileEntities = [];
   if (io.FileSystemEntity.isDirectorySync(testCollectionRoot)) {
-    io.Directory dir = new io.Directory(testCollectionRoot);
+    io.Directory dir = io.Directory(testCollectionRoot);
     fileEntities = dir.listSync(recursive: true);
   } else {
-    fileEntities = [new io.File(testCollectionRoot)];
+    fileEntities = [io.File(testCollectionRoot)];
   }
 
   analysis_server.dumpServerMessages = false;
 
   int counter = 0;
-  Stopwatch sw = new Stopwatch()..start();
+  Stopwatch sw = Stopwatch()..start();
 
   print("About to setuptools");
   print(sdk);
@@ -98,7 +96,7 @@ Usage: slow_test path_to_test_collection
           "${((counter / fileEntities.length) * 100).toStringAsFixed(2)}%, "
           "Elapsed: ${sw.elapsed}");
 
-      random = new Random(seed);
+      random = Random(seed);
       seed++;
       await testPath(fse.path, analysisServer, compiler);
     } catch (e) {
@@ -116,39 +114,36 @@ Usage: slow_test path_to_test_collection
   await server.shutdown();
 }
 
-/**
- * Init the tools, and warm them up
- */
+/// Init the tools, and warm them up
 Future setupTools(String sdkPath) async {
   print("Executing setupTools");
   analysisServer?.shutdown();
 
   print("SdKPath: $sdkPath");
 
-  container = new MockContainer();
-  cache = new MockCache();
-  counter = new MockCounter();
-  server = new CommonServer(sdkPath, container, cache, counter);
+  container = MockContainer();
+  cache = MockCache();
+  counter = MockCounter();
+  server = CommonServer(sdkPath, container, cache, counter);
   await server.init();
 
-  apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true)
-    ..addApi(server);
+  apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
 
-  analysisServer = new analysis_server.AnalysisServerWrapper(sdkPath);
+  analysisServer = analysis_server.AnalysisServerWrapper(sdkPath);
   await analysisServer.init();
 
   print("Warming up analysis server");
   await analysisServer.warmup();
 
   print("Warming up compiler");
-  compiler = new comp.Compiler(sdkPath);
+  compiler = comp.Compiler(sdkPath);
   await compiler.warmup();
   print("SetupTools done");
 }
 
 Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
     comp.Compiler compiler) async {
-  var f = new io.File(path);
+  var f = io.File(path);
   String src = f.readAsStringSync();
 
   print('Path, Compilation/ms, Analysis/ms, '
@@ -209,7 +204,7 @@ Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
       print(stacktrace);
       print("===========================================================");
 
-      throw e;
+      rethrow;
     }
 
     print("$path-$i, "
@@ -234,7 +229,7 @@ Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
 Future<num> testAnalysis(
     String src, analysis_server.AnalysisServerWrapper analysisServer) async {
   lastExecuted = OperationType.Analysis;
-  Stopwatch sw = new Stopwatch()..start();
+  Stopwatch sw = Stopwatch()..start();
 
   lastOffset = null;
   if (_SERVER_BASED_CALL) {
@@ -251,7 +246,7 @@ Future<num> testAnalysis(
 
 Future<num> testCompilation(String src, comp.Compiler compiler) async {
   lastExecuted = OperationType.Compilation;
-  Stopwatch sw = new Stopwatch()..start();
+  Stopwatch sw = Stopwatch()..start();
 
   lastOffset = null;
   if (_SERVER_BASED_CALL)
@@ -266,9 +261,9 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
 Future<num> testDocument(
     String src, analysis_server.AnalysisServerWrapper analysisServer) async {
   lastExecuted = OperationType.Document;
-  Stopwatch sw = new Stopwatch()..start();
+  Stopwatch sw = Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
-    Stopwatch sw2 = new Stopwatch()..start();
+    Stopwatch sw2 = Stopwatch()..start();
 
     if (i % 1000 == 0 && i > 0) print("INC: $i docs completed");
     lastOffset = i;
@@ -285,9 +280,9 @@ Future<num> testDocument(
 Future<num> testCompletions(
     String src, analysis_server.AnalysisServerWrapper wrapper) async {
   lastExecuted = OperationType.Completion;
-  Stopwatch sw = new Stopwatch()..start();
+  Stopwatch sw = Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
-    Stopwatch sw2 = new Stopwatch()..start();
+    Stopwatch sw2 = Stopwatch()..start();
 
     if (i % 1000 == 0 && i > 0) print("INC: $i completes");
     lastOffset = i;
@@ -303,9 +298,9 @@ Future<num> testCompletions(
 Future<num> testFixes(
     String src, analysis_server.AnalysisServerWrapper wrapper) async {
   lastExecuted = OperationType.Fixes;
-  Stopwatch sw = new Stopwatch()..start();
+  Stopwatch sw = Stopwatch()..start();
   for (int i = 0; i < src.length; i++) {
-    Stopwatch sw2 = new Stopwatch()..start();
+    Stopwatch sw2 = Stopwatch()..start();
 
     if (i % 1000 == 0 && i > 0) print("INC: $i fixes");
     lastOffset = i;
@@ -321,7 +316,7 @@ Future<num> testFixes(
 
 Future<num> testFormat(String src) async {
   lastExecuted = OperationType.Format;
-  Stopwatch sw = new Stopwatch()..start();
+  Stopwatch sw = Stopwatch()..start();
   int i = 0;
   lastOffset = i;
   log(await withTimeOut(server.formatGet(source: src, offset: i)));
@@ -329,7 +324,7 @@ Future<num> testFormat(String src) async {
 }
 
 Future<T> withTimeOut<T>(Future<T> f) {
-  return f.timeout(new Duration(seconds: 30));
+  return f.timeout(Duration(seconds: 30));
 }
 
 String mutate(String src) {
@@ -378,10 +373,9 @@ class MockContainer implements ServerContainer {
 }
 
 class MockCache implements ServerCache {
-  Future<String> get(String key) => new Future.value(null);
-  Future set(String key, String value, {Duration expiration}) =>
-      new Future.value();
-  Future remove(String key) => new Future.value();
+  Future<String> get(String key) => Future.value(null);
+  Future set(String key, String value, {Duration expiration}) => Future.value();
+  Future remove(String key) => Future.value();
 }
 
 class MockCounter implements PersistentCounter {
@@ -390,13 +384,13 @@ class MockCounter implements PersistentCounter {
   @override
   Future<int> getTotal(String name) {
     counter.putIfAbsent(name, () => 0);
-    return new Future.value(counter[name]);
+    return Future.value(counter[name]);
   }
 
   @override
-  Future increment(String name, {int increment: 1}) {
+  Future increment(String name, {int increment = 1}) {
     counter.putIfAbsent(name, () => 0);
-    return new Future.value(counter[name]++);
+    return Future.value(counter[name]++);
   }
 }
 
@@ -413,6 +407,6 @@ final int termWidth = io.stdout.hasTerminal ? io.stdout.terminalColumns : 200;
 
 void log(dynamic obj) {
   if (_VERBOSE) {
-    print("${new DateTime.now()} $obj");
+    print("${DateTime.now()} $obj");
   }
 }

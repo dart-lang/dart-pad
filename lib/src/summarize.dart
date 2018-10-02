@@ -84,9 +84,9 @@ class Summarizer {
   };
 
   Summarizer({this.dart, this.html, this.css, this.analysis}) {
-    if (dart == null) throw new ArgumentError('Input cannot be null.');
+    if (dart == null) throw ArgumentError('Input cannot be null.');
     _randomizer = _sumList(md5.convert(dart.codeUnits).bytes);
-    storage = new _SummarizeToken(dart, analysis: analysis);
+    storage = _SummarizeToken(dart, analysis: analysis);
   }
 
   bool get hasAnalysisResults => analysis != null;
@@ -143,7 +143,7 @@ class Summarizer {
   bool _usedInDartSource(String feature) => dart.contains(feature);
 
   List<String> _additionSearch() {
-    List<String> features = new List<String>();
+    List<String> features = List<String>();
     for (String feature in additionKeyWords.keys) {
       if (_usedInDartSource(feature)) features.add(additionKeyWords[feature]);
     }
@@ -151,7 +151,7 @@ class Summarizer {
   }
 
   List<String> _codeSearch() {
-    List<String> features = new List<String>();
+    List<String> features = List<String>();
     for (String feature in codeKeyWords.keys) {
       if (_usedInDartSource(feature)) features.add(codeKeyWords[feature]);
     }

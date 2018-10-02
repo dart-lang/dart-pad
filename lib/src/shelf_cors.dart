@@ -16,7 +16,7 @@ Middleware createCorsHeadersMiddleware({Map<String, String> corsHeaders}) {
   // response.
   Response handleOptionsRequest(Request request) {
     if (request.method == 'OPTIONS') {
-      return new Response.ok(null, headers: corsHeaders);
+      return Response.ok(null, headers: corsHeaders);
     } else {
       return null;
     }

@@ -52,7 +52,7 @@ void defineTests() {
 
   group('analysis_server', () {
     setUp(() async {
-      analysisServer = new AnalysisServerWrapper(sdkPath);
+      analysisServer = AnalysisServerWrapper(sdkPath);
       await analysisServer.init();
     });
 
@@ -165,7 +165,7 @@ void defineTests() {
     test('analyze preview-dart-2', () async {
       await analysisServer.shutdown();
 
-      analysisServer = new AnalysisServerWrapper(sdkPath, previewDart2: true);
+      analysisServer = AnalysisServerWrapper(sdkPath, previewDart2: true);
       await analysisServer.init();
       AnalysisResults results =
           await analysisServer.analyze(samplePreviewDart2OK);
@@ -175,7 +175,7 @@ void defineTests() {
     test('analyze no-preview-dart-2', () async {
       await analysisServer.shutdown();
 
-      analysisServer = new AnalysisServerWrapper(sdkPath, previewDart2: false);
+      analysisServer = AnalysisServerWrapper(sdkPath, previewDart2: false);
       await analysisServer.init();
       AnalysisResults results =
           await analysisServer.analyze(samplePreviewDart2OK);

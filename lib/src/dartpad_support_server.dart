@@ -16,7 +16,7 @@ import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 import 'package:uuid/uuid.dart' as uuid_tools;
 
-final Logger _logger = new Logger('dartpad_support_server');
+final Logger _logger = Logger('dartpad_support_server');
 
 // This class defines the interface that the server provides.
 @ApiClass(name: '_dartpadsupportservices', version: 'v1')
@@ -30,24 +30,24 @@ class FileRelayServer {
   String getClass(obj) =>
       mirrors.MirrorSystem.getName(mirrors.reflectClass(obj).simpleName);
 
-  FileRelayServer({this.test: false}) {
+  FileRelayServer({this.test = false}) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
     if (this.test) {
-      database = new Map();
+      database = Map();
     }
   }
 
   Future<List> _databaseQuery<T extends db.Model>(
       String attribute, var value) async {
-    List result = new List();
+    List result = List();
     if (test) {
       List dataList = database[getClass(T)];
       if (dataList != null) {
         for (var dataObject in dataList) {
           mirrors.InstanceMirror dataObjectMirror = mirrors.reflect(dataObject);
           mirrors.InstanceMirror futureValue =
-              dataObjectMirror.getField(new Symbol(attribute.split(' ')[0]));
+              dataObjectMirror.getField(Symbol(attribute.split(' ')[0]));
           if (futureValue.hasReflectee && futureValue.reflectee == value) {
             result.add(dataObject);
           }
@@ -57,7 +57,7 @@ class FileRelayServer {
       var query = ae.context.services.db.query<T>()..filter(attribute, value);
       result = await query.run().toList();
     }
-    return new Future.value(result);
+    return Future.value(result);
   }
 
   Future _databaseCommit({List inserts, List deletes}) {
@@ -65,7 +65,7 @@ class FileRelayServer {
       if (inserts != null) {
         for (var insertObject in inserts) {
           if (!database.containsKey(getTypeName(insertObject))) {
-            database[getTypeName(insertObject)] = new List();
+            database[getTypeName(insertObject)] = List();
           }
           database[getTypeName(insertObject)].add(insertObject);
         }
@@ -76,7 +76,7 @@ class FileRelayServer {
     } else {
       ae.context.services.db.commit(inserts: inserts, deletes: deletes);
     }
-    return new Future.value(null);
+    return Future.value(null);
   }
 
   @ApiMethod(
@@ -84,15 +84,15 @@ class FileRelayServer {
       path: 'export',
       description: 'Store a gist dataset to be retrieved.')
   Future<UuidContainer> export(PadSaveObject data) {
-    _GaePadSaveObject record = new _GaePadSaveObject.fromDSO(data);
-    String randomUuid = new uuid_tools.Uuid().v4();
+    _GaePadSaveObject record = _GaePadSaveObject.fromDSO(data);
+    String randomUuid = uuid_tools.Uuid().v4();
     record.uuid = "${_computeSHA1(record)}-$randomUuid";
     _databaseCommit(inserts: [record]).catchError((e) {
       _logger.severe("Error while recording export ${e}");
       throw e;
     });
     _logger.info("Recorded Export with ID ${record.uuid}");
-    return new Future.value(new UuidContainer.fromUuid(record.uuid));
+    return Future.value(UuidContainer.fromUuid(record.uuid));
   }
 
   @ApiMethod(
@@ -105,7 +105,7 @@ class FileRelayServer {
     if (result.isEmpty) {
       _logger
           .severe("Export with UUID ${uuidContainer.uuid} could not be found.");
-      throw new BadRequestError("Nothing of correct uuid could be found.");
+      throw BadRequestError("Nothing of correct uuid could be found.");
     }
     _GaePadSaveObject record = result.first;
     if (!test) {
@@ -115,7 +115,7 @@ class FileRelayServer {
       });
       _logger.info("Deleted Export with ID ${record.uuid}");
     }
-    return new Future.value(new PadSaveObject.fromRecordSource(record));
+    return Future.value(PadSaveObject.fromRecordSource(record));
   }
 
   @ApiMethod(method: 'GET', path: 'getUnusedMappingId')
@@ -125,60 +125,58 @@ class FileRelayServer {
     String randomUuid;
     List result;
     do {
-      randomUuid = new uuid_tools.Uuid().v4();
+      randomUuid = uuid_tools.Uuid().v4();
       result = await _databaseQuery<_GistMapping>('internalId =', randomUuid);
       attemptCount++;
-      if (!result.isEmpty) {
+      if (result.isNotEmpty) {
         _logger.info("Collision in retrieving mapping id ${randomUuid}.");
       }
-    } while (!result.isEmpty && attemptCount < limit);
-    if (!result.isEmpty) {
+    } while (result.isNotEmpty && attemptCount < limit);
+    if (result.isNotEmpty) {
       _logger.severe("Could not generate valid ID.");
-      throw new InternalServerError("Could not generate ID.");
+      throw InternalServerError("Could not generate ID.");
     }
     _logger.info("Valid ID ${randomUuid} retrieved.");
-    return new Future.value(new UuidContainer.fromUuid(randomUuid));
+    return Future.value(UuidContainer.fromUuid(randomUuid));
   }
 
   @ApiMethod(method: 'POST', path: 'storeGist')
   Future<UuidContainer> storeGist(GistToInternalIdMapping map) async {
     List result =
         await _databaseQuery<_GistMapping>('internalId =', map.internalId);
-    if (!result.isEmpty) {
+    if (result.isNotEmpty) {
       _logger.severe("Collision with mapping of Id ${map.gistId}.");
-      throw new BadRequestError("Mapping invalid.");
+      throw BadRequestError("Mapping invalid.");
     } else {
-      _GistMapping entry = new _GistMapping.fromMap(map);
+      _GistMapping entry = _GistMapping.fromMap(map);
       _databaseCommit(inserts: [entry]).catchError((e) {
         _logger.severe(
             "Error while recording mapping with Id ${map.gistId}. Error ${e}");
         throw e;
       });
       _logger.info("Mapping with ID ${map.gistId} stored.");
-      return new Future.value(new UuidContainer.fromUuid(map.gistId));
+      return Future.value(UuidContainer.fromUuid(map.gistId));
     }
   }
 
   @ApiMethod(method: 'GET', path: 'retrieveGist')
   Future<UuidContainer> retrieveGist({String id}) async {
     if (id == null) {
-      throw new BadRequestError('Missing parameter: \'id\'');
+      throw BadRequestError('Missing parameter: \'id\'');
     }
     List result = await _databaseQuery<_GistMapping>('internalId =', id);
     if (result.isEmpty) {
       _logger.severe("Missing mapping for Id ${id}.");
-      throw new BadRequestError("Missing mapping for Id ${id}");
+      throw BadRequestError("Missing mapping for Id ${id}");
     } else {
       _GistMapping entry = result.first;
       _logger.info("Mapping with ID ${id} retrieved.");
-      return new Future.value(new UuidContainer.fromUuid(entry.gistId));
+      return Future.value(UuidContainer.fromUuid(entry.gistId));
     }
   }
 }
 
-/**
- * Public interface object for storage of pads.
- */
+/// Public interface object for storage of pads.
 class PadSaveObject {
   String dart;
   String html;
@@ -201,9 +199,7 @@ class PadSaveObject {
   }
 }
 
-/**
- * String container for IDs
- */
+/// String container for IDs
 class UuidContainer {
   String uuid;
   UuidContainer();
@@ -212,9 +208,7 @@ class UuidContainer {
   }
 }
 
-/**
- * Map from id to id
- */
+/// Map from id to id
 class GistToInternalIdMapping {
   String gistId;
   String internalId;
@@ -225,9 +219,7 @@ class GistToInternalIdMapping {
   }
 }
 
-/**
- * Internal storage representation for storage of pads.
- */
+/// Internal storage representation for storage of pads.
 @db.Kind()
 class _GaePadSaveObject extends db.Model {
   @db.BlobProperty()
@@ -246,7 +238,7 @@ class _GaePadSaveObject extends db.Model {
   String uuid;
 
   _GaePadSaveObject() {
-    this.epochTime = new DateTime.now().millisecondsSinceEpoch;
+    this.epochTime = DateTime.now().millisecondsSinceEpoch;
   }
 
   _GaePadSaveObject.fromData(String dart, String html, String css,
@@ -255,7 +247,7 @@ class _GaePadSaveObject extends db.Model {
     this.html = _gzipEncode(html);
     this.css = _gzipEncode(css);
     this.uuid = uuid;
-    this.epochTime = new DateTime.now().millisecondsSinceEpoch;
+    this.epochTime = DateTime.now().millisecondsSinceEpoch;
   }
 
   _GaePadSaveObject.fromDSO(PadSaveObject pso) {
@@ -263,7 +255,7 @@ class _GaePadSaveObject extends db.Model {
     this.html = _gzipEncode(pso.html != null ? pso.html : "");
     this.css = _gzipEncode(pso.css != null ? pso.css : "");
     this.uuid = pso.uuid;
-    this.epochTime = new DateTime.now().millisecondsSinceEpoch;
+    this.epochTime = DateTime.now().millisecondsSinceEpoch;
   }
 
   String get getDart => _gzipDecode(this.dart);
@@ -271,9 +263,7 @@ class _GaePadSaveObject extends db.Model {
   String get getCss => _gzipDecode(this.css);
 }
 
-/**
- * Internal storage representation for gist id mapping.
- */
+/// Internal storage representation for gist id mapping.
 @db.Kind()
 class _GistMapping extends db.Model {
   @db.StringProperty()
@@ -286,18 +276,18 @@ class _GistMapping extends db.Model {
   int epochTime;
 
   _GistMapping() {
-    this.epochTime = new DateTime.now().millisecondsSinceEpoch;
+    this.epochTime = DateTime.now().millisecondsSinceEpoch;
   }
 
   _GistMapping.fromMap(GistToInternalIdMapping map) {
     this.internalId = map.internalId;
     this.gistId = map.gistId;
-    this.epochTime = new DateTime.now().millisecondsSinceEpoch;
+    this.epochTime = DateTime.now().millisecondsSinceEpoch;
   }
 }
 
 String _computeSHA1(_GaePadSaveObject record) {
-  convert.Utf8Encoder utf8 = new convert.Utf8Encoder();
+  convert.Utf8Encoder utf8 = convert.Utf8Encoder();
   return crypto.sha1
       .convert(utf8.convert(
           "blob  'n ${record.getDart} ${record.getHtml} ${record.getCss}"))
