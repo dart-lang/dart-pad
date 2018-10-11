@@ -40,12 +40,8 @@ language and libraries. Source code entered into DartPad may be sent to servers
 running in Google Cloud Platform to be analyzed for errors/warnings, compiled 
 to JavaScript, and returned to the browser.
 <br><br>
-Source code entered into DartPad may be stored indefinitely, processed, and 
-aggregated in order to improve the user experience. For example, we may use 
-the source code to help offer better code completion suggestions.
-<br><br>
-Learn more about Google's
-<a href="http://www.google.com/policies/privacy/" target="policy">privacy policy</a>.
+Learn more about how DartPad stores your data in our
+<a href="https://www.dartlang.org/tools/dartpad/privacy">privacy notice</a>.
 We look forward to your
 <a href="https://github.com/dart-lang/dart-pad/issues" target="feedback">feedback</a>.
 <br><br>
