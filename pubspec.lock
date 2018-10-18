@@ -212,7 +212,7 @@ packages:
     source: hosted
     version: "0.10.8"
   front_end:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: front_end
       url: "https://pub.dartlang.org"
