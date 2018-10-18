@@ -15,7 +15,7 @@ void defineTests() {
 
   group('compiler', () {
     setUp(() {
-      compiler = new Compiler(sdkPath);
+      compiler = Compiler(sdkPath);
     });
 
     test('simple', () {

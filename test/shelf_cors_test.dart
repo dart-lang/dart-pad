@@ -7,11 +7,11 @@ void main() => defineTests();
 
 void defineTests() {
   shelf.Response handleAll(shelf.Request request) {
-    return new shelf.Response.ok("OK");
+    return shelf.Response.ok("OK");
   }
 
   final request =
-      new shelf.Request('GET', Uri.parse('http://example.com/index.html'));
+      shelf.Request('GET', Uri.parse('http://example.com/index.html'));
 
   group("The corsHeaders middleware", () {
     test("adds default CORS headers to the response", () async {

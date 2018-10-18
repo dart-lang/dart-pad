@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This library is a wrapper around the Dart to JavaScript (dart2js) compiler.
- */
+/// This library is a wrapper around the Dart to JavaScript (dart2js) compiler.
 library services.compiler;
 
 import 'dart:async';
@@ -16,15 +14,13 @@ import 'package:path/path.dart' as path;
 import 'common.dart';
 import 'pub.dart';
 
-Logger _logger = new Logger('compiler');
+Logger _logger = Logger('compiler');
 
 const BAD_IMPORT_ERROR_MSG =
     "Imports other than dart: are not supported on Dartpad";
 
-/**
- * An interface to the dart2js compiler. A compiler object can process one
- * compile at a time.
- */
+/// An interface to the dart2js compiler. A compiler object can process one
+/// compile at a time.
 class Compiler {
   final String sdkPath;
   final Pub pub;
@@ -38,21 +34,20 @@ class Compiler {
 
   /// The version of the SDK this copy of dart2js is based on.
   String get version =>
-      new File(path.join(sdkPath, 'version')).readAsStringSync().trim();
+      File(path.join(sdkPath, 'version')).readAsStringSync().trim();
 
-  Future warmup({bool useHtml: false}) =>
+  Future warmup({bool useHtml = false}) =>
       compile(useHtml ? sampleCodeWeb : sampleCode);
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(String input,
-      {bool useCheckedMode: true,
-      bool previewDart2: true,
-      bool returnSourceMap: false}) async {
+      {bool useCheckedMode = true,
+      bool previewDart2 = true,
+      bool returnSourceMap = false}) async {
     if (!importsOkForCompile(input)) {
-      var failedResults = new CompilationResults();
-      failedResults.problems
-          .add(new CompilationProblem._(BAD_IMPORT_ERROR_MSG));
-      return new Future.value(failedResults);
+      var failedResults = CompilationResults();
+      failedResults.problems.add(CompilationProblem._(BAD_IMPORT_ERROR_MSG));
+      return Future.value(failedResults);
     }
 
     // ignore: unused_local_variable
@@ -76,12 +71,11 @@ class Compiler {
       arguments.add(kMainDart);
 
       String compileTarget = path.join(temp.path, kMainDart);
-      File mainDart = new File(compileTarget);
+      File mainDart = File(compileTarget);
       mainDart.writeAsStringSync(input);
 
-      File mainJs = new File(path.join(temp.path, '${kMainDart}.js'));
-      File mainSourceMap =
-          new File(path.join(temp.path, '${kMainDart}.js.map'));
+      File mainJs = File(path.join(temp.path, '${kMainDart}.js'));
+      File mainSourceMap = File(path.join(temp.path, '${kMainDart}.js.map'));
 
       // Due to an issue with the VM we need to use the Dart2JS instance from
       // the image, not from the downloaded SDK
@@ -101,11 +95,11 @@ class Compiler {
           Process.runSync(dart2JSPath, arguments, workingDirectory: temp.path);
 
       if (result.exitCode != 0) {
-        CompilationResults results = new CompilationResults();
-        results._problems.add(new CompilationProblem._(result.stdout));
+        CompilationResults results = CompilationResults();
+        results._problems.add(CompilationProblem._(result.stdout));
         return results;
       } else {
-        CompilationResults results = new CompilationResults();
+        CompilationResults results = CompilationResults();
         results._compiledJS.write(mainJs.readAsStringSync());
         if (returnSourceMap && mainSourceMap.existsSync()) {
           results._sourceMap.write(mainSourceMap.readAsStringSync());
@@ -124,8 +118,8 @@ class Compiler {
 
 /// The result of a dart2js compile.
 class CompilationResults {
-  final StringBuffer _compiledJS = new StringBuffer();
-  final StringBuffer _sourceMap = new StringBuffer();
+  final StringBuffer _compiledJS = StringBuffer();
+  final StringBuffer _sourceMap = StringBuffer();
   final List<CompilationProblem> _problems = [];
 
   CompilationResults();

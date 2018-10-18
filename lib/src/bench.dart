@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * A benchmark library. This library supports running benchmarks which can
- * run asynchronously.
- */
+/// A benchmark library. This library supports running benchmarks which can
+/// run asynchronously.
 library services.bench;
 
 import 'dart:async';
@@ -18,12 +16,12 @@ abstract class Benchmark {
 
   Benchmark(this.name);
 
-  Future init() => new Future.value();
+  Future init() => Future.value();
 
   Future perform();
 
   /// Called once when this benchmark will no longer be used.
-  Future tearDown() => new Future.value();
+  Future tearDown() => Future.value();
 
   String toString() => name;
 }
@@ -34,7 +32,7 @@ class BenchmarkHarness {
   final bool asJson;
   final BenchmarkLogger logger;
 
-  BenchmarkHarness({this.asJson, this.logger: print});
+  BenchmarkHarness({this.asJson, this.logger = print});
 
   Future benchmark(List<Benchmark> benchmarks) async {
     if (isCheckedMode()) {
@@ -93,8 +91,8 @@ class BenchmarkHarness {
   Future<BenchMarkResult> _time(
       Benchmark benchmark, int minIterations, int minMillis,
       [int maxMillis]) {
-    BenchMarkResult result = new BenchMarkResult(benchmark);
-    Stopwatch timer = new Stopwatch()..start();
+    BenchMarkResult result = BenchMarkResult(benchmark);
+    Stopwatch timer = Stopwatch()..start();
 
     return Future.doWhile(() {
       if (result.iteration >= minIterations &&

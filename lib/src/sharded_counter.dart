@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * This library is basic implementation of a sharded counter
- */
+/// This library is basic implementation of a sharded counter
 library services.counter;
 
 import 'dart:async';
@@ -15,9 +13,9 @@ import 'package:gcloud/db.dart' as db;
 final SHARDS_COUNT = 20;
 
 class Counter {
-  static Future increment(String name, {int increment: 1}) {
+  static Future increment(String name, {int increment = 1}) {
     db.DatastoreDB datastore = db.dbService;
-    int shardId = new math.Random().nextInt(SHARDS_COUNT);
+    int shardId = math.Random().nextInt(SHARDS_COUNT);
     return _getCounterShard(name, shardId, datastore).then((counter) {
       counter.count++;
       return datastore.withTransaction((transaction) {
@@ -53,7 +51,7 @@ class Counter {
     // Test whether we have been given an id.
     return results.then((List<db.Model> models) {
       if (models.length == 0) {
-        _ShardedCounter newCounter = new _ShardedCounter()
+        _ShardedCounter newCounter = _ShardedCounter()
           ..counterName = name
           ..count = 0
           ..shardId = shardId;
@@ -62,7 +60,7 @@ class Counter {
           return newCounter;
         });
       } else {
-        return new Future.value(models[0] as _ShardedCounter);
+        return Future.value(models[0] as _ShardedCounter);
       }
     });
   }

@@ -8,11 +8,11 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
-Logger _logger = new Logger('sdk_manager');
+Logger _logger = Logger('sdk_manager');
 
 /// Generally, this should be a singleton instance (it's a heavy-weight object).
 class SdkManager {
-  static Sdk get sdk => _sdk ?? (_sdk = new DownloadingSdk());
+  static Sdk get sdk => _sdk ?? (_sdk = DownloadingSdk());
 
   static void setSdk(Sdk value) {
     _sdk = sdk;
@@ -41,7 +41,7 @@ abstract class Sdk {
 }
 
 class HostSdk extends Sdk {
-  Future init() => new Future.value();
+  Future init() => Future.value();
 
   String get versionFull => Platform.version;
 
@@ -55,14 +55,14 @@ class DownloadingSdk extends Sdk {
   final String _versionFull;
 
   DownloadingSdk()
-      : _versionFull = new File('dart-sdk.version')
+      : _versionFull = File('dart-sdk.version')
             .readAsLinesSync()
             .map((line) => line.trim())
             .where((line) => line.isNotEmpty && !line.startsWith('#'))
             .single;
 
   Future init() async {
-    File file = new File(path.join(sdkPath, 'version'));
+    File file = File(path.join(sdkPath, 'version'));
     if (file.existsSync() && file.readAsStringSync().trim() == _versionFull) {
       return;
     }
@@ -86,7 +86,7 @@ class DownloadingSdk extends Sdk {
 
     _logger.info('Downloading from $url');
 
-    File destFile = new File(path.join(Directory.systemTemp.path, zipName));
+    File destFile = File(path.join(Directory.systemTemp.path, zipName));
 
     ProcessResult result =
         await _curl('Dart SDK $version', url, destFile, retryCount: 2);
@@ -94,7 +94,7 @@ class DownloadingSdk extends Sdk {
       throw 'curl failed: ${result.exitCode}\n${result.stdout}\n${result.stderr}';
     }
 
-    Directory destDir = new Directory(path.dirname(sdkPath));
+    Directory destDir = Directory(path.dirname(sdkPath));
     if (!destDir.existsSync()) {
       destDir.createSync(recursive: true);
     }
@@ -115,7 +115,7 @@ Future<ProcessResult> _curl(
   String message,
   String url,
   File destFile, {
-  int retryCount: 1,
+  int retryCount = 1,
 }) async {
   int count = 0;
   ProcessResult result;

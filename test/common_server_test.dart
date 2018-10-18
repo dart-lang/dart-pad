@@ -53,8 +53,8 @@ void defineTests() {
   Future<HttpApiResponse> _sendPostRequest(String path, jsonData) {
     assert(apiServer != null);
     var uri = Uri.parse("/api/$path");
-    var body = new Stream.fromIterable([utf8.encode(json.encode(jsonData))]);
-    var request = new HttpApiRequest(
+    var body = Stream.fromIterable([utf8.encode(json.encode(jsonData))]);
+    var request = HttpApiRequest(
         'POST', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
@@ -63,23 +63,23 @@ void defineTests() {
     assert(apiServer != null);
     var uri = Uri.parse(
         queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
-    var body = new Stream<List<int>>.fromIterable([]);
-    var request = new HttpApiRequest(
+    var body = Stream<List<int>>.fromIterable([]);
+    var request = HttpApiRequest(
         'GET', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
   group('CommonServer', () {
     setUpAll(() async {
-      container = new MockContainer();
-      cache = new MockCache();
-      counter = new MockCounter();
+      container = MockContainer();
+      cache = MockCache();
+      counter = MockCounter();
 
-      server = new CommonServer(sdkPath, container, cache, counter);
+      server = CommonServer(sdkPath, container, cache, counter);
       await server.init();
       await server.warmup();
 
-      apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
+      apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true);
       apiServer.addApi(server);
 
       // Some piece of initialization doesn't always happen fast enough for
@@ -358,10 +358,9 @@ class MockContainer implements ServerContainer {
 }
 
 class MockCache implements ServerCache {
-  Future<String> get(String key) => new Future.value(null);
-  Future set(String key, String value, {Duration expiration}) =>
-      new Future.value();
-  Future remove(String key) => new Future.value();
+  Future<String> get(String key) => Future.value(null);
+  Future set(String key, String value, {Duration expiration}) => Future.value();
+  Future remove(String key) => Future.value();
 }
 
 class MockCounter implements PersistentCounter {
@@ -370,13 +369,13 @@ class MockCounter implements PersistentCounter {
   @override
   Future<int> getTotal(String name) {
     counter.putIfAbsent(name, () => 0);
-    return new Future.value(counter[name]);
+    return Future.value(counter[name]);
   }
 
   @override
-  Future increment(String name, {int increment: 1}) {
+  Future increment(String name, {int increment = 1}) {
     counter.putIfAbsent(name, () => 0);
-    return new Future.value(counter[name]++);
+    return Future.value(counter[name]++);
   }
 
   void reset() => counter.clear();

@@ -12,7 +12,7 @@ final String serverUrl = "https://liftoff-dev.appspot.com";
 
 void main() => defineTests();
 
-void defineTests({bool skip: true}) {
+void defineTests({bool skip = true}) {
   group('gae deployed tests', () {
     test('analyze end point', analyzeTest, skip: skip);
     test('compile end point', compileTest, skip: skip);

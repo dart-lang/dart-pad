@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 void main() => defineTests();
 
 void defineTests() {
-  Pub pub = new Pub();
+  Pub pub = Pub();
 
   group('pub', () {
     test('version', () {
@@ -40,7 +40,7 @@ void defineTests() {
     });
 
     test('getPackageLibDir', () {
-      PackageInfo packageInfo = new PackageInfo('which', '0.1.2');
+      PackageInfo packageInfo = PackageInfo('which', '0.1.2');
       return pub.getPackageLibDir(packageInfo).then((Directory libDir) {
         expect(libDir, isNotNull);
         expect(libDir.path, endsWith('lib'));
@@ -61,9 +61,9 @@ void defineTests() {
     });
 
     test('PackageInfo name', () {
-      new PackageInfo('foo', '1');
-      new PackageInfo('foo_bar', '1');
-      new PackageInfo('foo_bar2', '1');
+      PackageInfo('foo', '1');
+      PackageInfo('foo_bar', '1');
+      PackageInfo('foo_bar2', '1');
     });
 
     test('PackageInfo name bad', () {
@@ -73,9 +73,9 @@ void defineTests() {
     });
 
     test('PackageInfo version', () {
-      new PackageInfo('foo', '1.1.0');
-      new PackageInfo('foo', '1.1.0-dev23');
-      new PackageInfo('foo', '1.2.3+324bar');
+      PackageInfo('foo', '1.1.0');
+      PackageInfo('foo', '1.1.0-dev23');
+      PackageInfo('foo', '1.2.3+324bar');
     });
 
     test('PackageInfo version bad', () {
@@ -115,7 +115,7 @@ void defineTests() {
 
   group('MockPub', () {
     test('no-op impls', () {
-      Pub pub = new Pub.mock();
+      Pub pub = Pub.mock();
       expect(pub.cacheDir, isNull);
       pub.flushCache();
       expect(pub.getVersion(), null);
@@ -249,7 +249,7 @@ import '../foo.dart';
 
 void ensureBad(String packageName, String packageVersion) {
   try {
-    /*PackageInfo info =*/ new PackageInfo(packageName, packageVersion);
+    /*PackageInfo info =*/ PackageInfo(packageName, packageVersion);
     fail('${packageName}, ${packageVersion} should have failed');
   } catch (e) {
     // expected -

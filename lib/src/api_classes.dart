@@ -30,7 +30,10 @@ class AnalysisIssue implements Comparable<AnalysisIssue> {
   final int charLength;
 
   AnalysisIssue.fromIssue(this.kind, this.line, this.message,
-      {this.charStart, this.charLength, this.sourceName, this.hasFixes: false});
+      {this.charStart,
+      this.charLength,
+      this.sourceName,
+      this.hasFixes = false});
 
   Map toMap() {
     Map m = {'kind': kind, 'line': line, 'message': message};
@@ -133,9 +136,7 @@ class CompleteResponse {
       this.replacementOffset, this.replacementLength, List<Map> completions)
       : this.completions = _convert(completions);
 
-  /**
-   * Convert any non-string values from the contained maps.
-   */
+  /// Convert any non-string values from the contained maps.
   static List<Map<String, String>> _convert(List<Map> list) {
     return list.map<Map<String, String>>((m) {
       Map<String, String> newMap = {};
@@ -158,10 +159,8 @@ class FixesResponse {
   FixesResponse(this.fixes);
 }
 
-/**
- * Represents a problem detected during analysis, and a set of possible
- * ways of resolving the problem.
- */
+/// Represents a problem detected during analysis, and a set of possible
+/// ways of resolving the problem.
 class ProblemAndFixes {
   //TODO(lukechurch): consider consolidating this with [AnalysisIssue]
   final List<CandidateFix> fixes;
@@ -174,9 +173,7 @@ class ProblemAndFixes {
       [this.fixes, this.problemMessage, this.offset, this.length]);
 }
 
-/**
- * Represents a possible way of solving an Analysis Problem.
- */
+/// Represents a possible way of solving an Analysis Problem.
 class CandidateFix {
   final String message;
   final List<SourceEdit> edits;
@@ -185,9 +182,7 @@ class CandidateFix {
   CandidateFix.fromEdits([this.message, this.edits]);
 }
 
-/**
- * Represents a reformatting of the code.
- */
+/// Represents a reformatting of the code.
 class FormatResponse {
   @ApiProperty(description: 'The formatted source code.')
   final String newString;
@@ -199,9 +194,7 @@ class FormatResponse {
   FormatResponse(this.newString, [this.offset = 0]);
 }
 
-/**
- * Represents a single edit-point change to a source file.
- */
+/// Represents a single edit-point change to a source file.
 class SourceEdit {
   final int offset;
   final int length;

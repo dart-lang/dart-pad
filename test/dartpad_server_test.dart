@@ -38,15 +38,15 @@ void defineTests() {
   FileRelayServer server;
   ApiServer apiServer;
 
-  server = new FileRelayServer(test: true);
-  apiServer = new ApiServer(apiPrefix: '/api', prettyPrint: true);
+  server = FileRelayServer(test: true);
+  apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true);
   apiServer.addApi(server);
 
   Future<HttpApiResponse> _sendPostRequest(String path, jsonData) {
     assert(apiServer != null);
     var uri = Uri.parse("/api/$path");
-    var body = new Stream.fromIterable([utf8.encode(json.encode(jsonData))]);
-    var request = new HttpApiRequest(
+    var body = Stream.fromIterable([utf8.encode(json.encode(jsonData))]);
+    var request = HttpApiRequest(
         'POST', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
@@ -55,8 +55,8 @@ void defineTests() {
     assert(apiServer != null);
     var uri = Uri.parse(
         queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
-    var body = new Stream<List<int>>.fromIterable([]);
-    var request = new HttpApiRequest(
+    var body = Stream<List<int>>.fromIterable([]);
+    var request = HttpApiRequest(
         'GET', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
