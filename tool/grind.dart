@@ -75,13 +75,14 @@ serve() {
   run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build/web']);
 }
 
-@Task('Serve locally on port 8000 and use backend from DARTPAD_BACKEND environment variable')
+const String backendVariable = 'DARTPAD_BACKEND';
+@Task('Serve locally on port 8000 and use backend from ${backendVariable} environment variable')
 @Depends(build)
 serveCustomBackend() {
-  if (!Platform.environment.containsKey('DARTPAD_BACKEND')) {
-    throw GrinderException('DARTPAD_BACKEND must be specified as [http|https]://host[:port]');
+  if (!Platform.environment.containsKey(backendVariable)) {
+    throw GrinderException('${backendVariable} must be specified as [http|https]://host[:port]');
   }
-  run('sed', arguments: ['-i', 's,https://dart-services.appspot.com,${Platform.environment["DARTPAD_BACKEND"]},g', 'build/web/scripts/main.dart.js', 'build/web/scripts/embed.dart.js']);
+  run('sed', arguments: ['-i', 's,https://dart-services.appspot.com,${Platform.environment[backendVariable]},g', 'build/web/scripts/main.dart.js', 'build/web/scripts/embed.dart.js']);
   run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build/web']);
 }
 
