@@ -37,3 +37,30 @@ Contributions made by corporations are covered by a different agreement than the
  
 3) Add or change sample Gist IDs to the [index file](https://github.com/dart-lang/dart-pad/blob/master/web/index.html#L54),
    and submit a PR for review.
+
+## How to run DartPad locally
+
+1) To run the DartPad against the regular serving backend:  `grind serve`.  This serves the
+DartPad frontend locally on port 8000.
+
+2) To run DartPad against a local version of the dart-services backend:
+```bash
+pub global activate grinder
+cd ..
+git clone git@github.com:dart-lang/dart-services.git
+cd dart-services
+pub get
+# Change the SDK version dart-services serves to the one you currently have installed
+grind update-docker-version
+# Begin serving the backend locally on port 8002.
+grind serve &
+
+cd ../dart-pad
+# Begin serving the front-end locally on port 8000, with the given backend
+export DARTPAD_BACKEND=http://localhost:8002 
+grind serve-custom-backend
+```
+
+You can run against a local backend (as demonstrated here) using a different version of the SDK
+by cloning the [dart-services repo](https://github.com/dart-lang/dart-services), and using `grind serve`
+in that repo.  Then follow up with `grind serve-custom-backend` as above.
