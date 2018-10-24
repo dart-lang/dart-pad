@@ -36,12 +36,12 @@ import '../src/sample.dart' as sample;
 PlaygroundMobile get playground => _playground;
 
 PlaygroundMobile _playground;
-Analytics ga = new Analytics();
+Analytics ga = Analytics();
 
-Logger _logger = new Logger('mobile');
+Logger _logger = Logger('mobile');
 
 void init() {
-  _playground = new PlaygroundMobile();
+  _playground = PlaygroundMobile();
 }
 
 enum _FileType { DART, CSS, HTML }
@@ -136,39 +136,39 @@ class PlaygroundMobile {
   }
 
   void registerMessageToast() {
-    _messageToast = new PaperToast();
+    _messageToast = PaperToast();
     document.body.children.add(_messageToast.element);
   }
 
   void registerErrorToast() {
     if ($('#errorToast') != null) {
-      _errorsToast = new PaperToast.from($('#errorToast'));
+      _errorsToast = PaperToast.from($('#errorToast'));
     } else {
-      _errorsToast = new PaperToast();
+      _errorsToast = PaperToast();
     }
     _errorsToast.duration = 1000000;
   }
 
   void registerResetToast() {
     if ($('#resetToast') != null) {
-      _resetToast = new PaperToast.from($('#resetToast'));
+      _resetToast = PaperToast.from($('#resetToast'));
     } else {
-      _resetToast = new PaperToast();
+      _resetToast = PaperToast();
     }
     _resetToast.duration = 3000;
   }
 
   void registerMessageDialog() {
     if ($("#messageDialog") != null) {
-      _messageDialog = new PaperDialog.from($("#messageDialog"));
+      _messageDialog = PaperDialog.from($("#messageDialog"));
     }
   }
 
   void registerResetDialog() {
     if ($("#resetDialog") != null) {
-      _resetDialog = new PaperDialog.from($("#resetDialog"));
+      _resetDialog = PaperDialog.from($("#resetDialog"));
     } else {
-      _resetDialog = new PaperDialog();
+      _resetDialog = PaperDialog();
     }
   }
 
@@ -190,13 +190,13 @@ class PlaygroundMobile {
           "<span class='default-text'>Documentation</span>"
           "</div>";
     } else {
-      _docPanel = new DivElement();
+      _docPanel = DivElement();
     }
   }
 
   void registerSelectorTabs() {
     if ($("#selector-tabs") != null) {
-      _tabs = new PaperTabs.from($("#selector-tabs"));
+      _tabs = PaperTabs.from($("#selector-tabs"));
       _tabs.ironSelect.listen((_) {
         String name = _tabs.selectedName;
         ga.sendEvent('edit', name);
@@ -207,19 +207,19 @@ class PlaygroundMobile {
 
   void registerEditProgress() {
     if ($("#run-progress") != null) {
-      _runProgress = new PaperProgress.from($("#run-progress"));
+      _runProgress = PaperProgress.from($("#run-progress"));
     }
   }
 
   void registerRunButton() {
-    _runButton = new PaperFab.from($("#run-button"));
-    _runButton = _runButton != null ? _runButton : new PaperFab();
+    _runButton = PaperFab.from($("#run-button"));
+    _runButton = _runButton != null ? _runButton : PaperFab();
     _runButton.clickAction(_handleRun);
   }
 
   void registerExportButton() {
     if ($('[icon="launch"]') != null) {
-      _exportButton = new PaperIconButton.from($('[icon="launch"]'));
+      _exportButton = PaperIconButton.from($('[icon="launch"]'));
       _exportButton.clickAction(() {
         // Sharing is currently disabled pending establishing OAuth2 configurations with Github.
         //_exportDialog.open();
@@ -231,7 +231,7 @@ class PlaygroundMobile {
 
   void registerResetButton() {
     if ($('[icon="refresh"]') != null) {
-      _resetButton = new PaperIconButton.from($('[icon="refresh"]'));
+      _resetButton = PaperIconButton.from($('[icon="refresh"]'));
       _resetButton.clickAction(() {
         _resetDialog.open();
         ga.sendEvent("embed", "reset");
@@ -241,7 +241,7 @@ class PlaygroundMobile {
 
   void registerCancelRefreshButton() {
     if ($('#cancelButton') != null) {
-      _cancelButton = new PaperIconButton.from($('#cancelButton'));
+      _cancelButton = PaperIconButton.from($('#cancelButton'));
       _cancelButton.clickAction(() {
         ga.sendEvent("embed", "resetCancel");
       });
@@ -250,7 +250,7 @@ class PlaygroundMobile {
 
   void registerAffirmRefreshButton() {
     if ($('#affirmButton') != null) {
-      _affirmButton = new PaperIconButton.from($('#affirmButton'));
+      _affirmButton = PaperIconButton.from($('#affirmButton'));
       _affirmButton.clickAction(() {
         _reset();
       });
@@ -259,7 +259,7 @@ class PlaygroundMobile {
 
   void registerCancelExportButton() {
     if ($('#cancelExportButton') != null) {
-      _cancelButton = new PaperIconButton.from($('#cancelExportButton'));
+      _cancelButton = PaperIconButton.from($('#cancelExportButton'));
       _cancelButton.clickAction(() {
         ga.sendEvent("embed", "exportCancel");
       });
@@ -268,7 +268,7 @@ class PlaygroundMobile {
 
   void registerAffirmExportButton() {
     if ($('#affirmExportButton') != null) {
-      _affirmButton = new PaperIconButton.from($('#affirmExportButton'));
+      _affirmButton = PaperIconButton.from($('#affirmExportButton'));
       _affirmButton.clickAction(() {
         _export();
       });
@@ -277,7 +277,7 @@ class PlaygroundMobile {
 
   // Console must exist.
   void registerConsole() {
-    _output = new PolymerElement.from($("#console"));
+    _output = PolymerElement.from($("#console"));
   }
 
   void _createUi() {
@@ -304,7 +304,7 @@ class PlaygroundMobile {
   void _export() {
     ga.sendEvent("embed", "exportAffirm");
     WindowBase exportWindow = window.open("", 'Export');
-    PadSaveObject exportObject = new PadSaveObject()
+    PadSaveObject exportObject = PadSaveObject()
       ..html = context.htmlSource
       ..css = context.cssSource
       ..dart = context.dartSource;
@@ -317,7 +317,7 @@ class PlaygroundMobile {
 
   void _reset() {
     ga.sendEvent("embed", "resetAffirm");
-    _router = new Router();
+    _router = Router();
     _router
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
@@ -355,21 +355,21 @@ class PlaygroundMobile {
   }
 
   Future _initModules() {
-    ModuleManager modules = new ModuleManager();
+    ModuleManager modules = ModuleManager();
 
-    modules.register(new DartPadModule());
-    modules.register(new DartServicesModule());
-    modules.register(new DartSupportServicesModule());
-    modules.register(new CodeMirrorModule());
+    modules.register(DartPadModule());
+    modules.register(DartServicesModule());
+    modules.register(DartSupportServicesModule());
+    modules.register(CodeMirrorModule());
 
     return modules.start();
   }
 
   void registerExecutionService() {
     if ($('#frame') != null) {
-      deps[ExecutionService] = new ExecutionServiceIFrame($('#frame'));
+      deps[ExecutionService] = ExecutionServiceIFrame($('#frame'));
     } else {
-      deps[ExecutionService] = new ExecutionServiceIFrame(new IFrameElement());
+      deps[ExecutionService] = ExecutionServiceIFrame(IFrameElement());
     }
   }
 
@@ -417,7 +417,7 @@ class PlaygroundMobile {
       });
     });
 
-    _context = new PlaygroundContext(editor);
+    _context = PlaygroundContext(editor);
     deps[Context] = _context;
 
     context.onModeChange
@@ -452,10 +452,10 @@ class PlaygroundMobile {
     });
 
     editorFactory.registerCompleter(
-        'dart', new DartCompleter(dartServices, _context._dartDoc));
+        'dart', DartCompleter(dartServices, _context._dartDoc));
     // Set up the gist loader.
     // TODO: Move to using the defaultFilters().
-    deps[GistLoader] = new GistLoader();
+    deps[GistLoader] = GistLoader();
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
@@ -463,7 +463,7 @@ class PlaygroundMobile {
         docHandler.generateDocWithText(_docPanel);
       }
     });
-    docHandler = new DocHandler(editor, _context);
+    docHandler = DocHandler(editor, _context);
 
     // Set up the splitters.
     Uri url = Uri.parse(window.location.toString());
@@ -493,7 +493,7 @@ class PlaygroundMobile {
     };
     if ($('vertical-splitter') != null) {
       _syncToolbar();
-      DSplitter verticalSplitter = new DSplitter($('vertical-splitter'),
+      DSplitter verticalSplitter = DSplitter($('vertical-splitter'),
           onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
       verticalSplitter.onPositionChanged.listen((pos) {
         editor.resize();
@@ -501,7 +501,7 @@ class PlaygroundMobile {
       });
     }
     if ($('horizontal-splitter') != null) {
-      new DSplitter($('horizontal-splitter'),
+      DSplitter($('horizontal-splitter'),
           onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     }
 
@@ -512,13 +512,13 @@ class PlaygroundMobile {
     Timer.run(() {
       editor.resize();
     });
-    _router = new Router()
+    _router = Router()
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
       ..root.addRoute(name: 'gist', path: '/:gist', enter: showGist)
       ..listen();
   }
 
-  final RegExp cssSymbolRegexp = new RegExp(r"[A-Z]");
+  final RegExp cssSymbolRegexp = RegExp(r"[A-Z]");
 
   void _handleAutoCompletion(KeyboardEvent e) {
     if (context.focusedEditor == 'dart' && editor.hasFocus) {
@@ -533,7 +533,7 @@ class PlaygroundMobile {
           editor.showCompletions(autoInvoked: true);
         }
       } else if (context.focusedEditor == "css") {
-        if (cssSymbolRegexp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        if (cssSymbolRegexp.hasMatch(String.fromCharCode(e.keyCode))) {
           editor.showCompletions(autoInvoked: true);
         }
       }
@@ -571,7 +571,7 @@ class PlaygroundMobile {
       return;
     }
 
-    var input = new CompileRequest()..source = context.dartSource;
+    var input = CompileRequest()..source = context.dartSource;
     _setLastRunCondition();
     _cachedCompile = null;
     dartServices
@@ -604,7 +604,7 @@ class PlaygroundMobile {
   }
 
   Future<void> _storePreviousResult() {
-    var input = new CompileRequest()..source = context.dartSource;
+    var input = CompileRequest()..source = context.dartSource;
     _setLastRunCondition();
     return dartServices
         .compile(input)
@@ -615,11 +615,11 @@ class PlaygroundMobile {
   }
 
   void _performAnalysis() {
-    var input = new SourceRequest()
+    var input = SourceRequest()
       ..source = _context.dartSource
       ..strongMode = strongModeDefault;
 
-    Lines lines = new Lines(input.source);
+    Lines lines = Lines(input.source);
 
     Future<AnalysisResults> request =
         dartServices.analyze(input).timeout(serviceCallTimeout);
@@ -641,15 +641,15 @@ class PlaygroundMobile {
         int endLine =
             lines.getLineForOffset(issue.charStart + issue.charLength);
 
-        Position start = new Position(
+        Position start = Position(
             startLine, issue.charStart - lines.offsetForLine(startLine));
-        Position end = new Position(
+        Position end = Position(
             endLine,
             issue.charStart +
                 issue.charLength -
                 lines.offsetForLine(startLine));
 
-        return new Annotation(issue.kind, issue.message, issue.line,
+        return Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
       }).toList());
     }).catchError((e) {
@@ -677,8 +677,8 @@ class PlaygroundMobile {
     if (message == null) return;
     Element title = $('.consoleTitle');
     if (title != null) title.hidden = true;
-    message = message + '\n';
-    SpanElement span = new SpanElement();
+    message = '$message\n';
+    SpanElement span = SpanElement();
     span.classes.add(error ? 'errorOutput' : 'normal');
     span.text = message;
     _output.add(span);
@@ -687,7 +687,7 @@ class PlaygroundMobile {
 
   Future _pulsateConsole() async {
     $('#bottomPanel').classes.add('pulsate');
-    new Timer(new Duration(milliseconds: 1000), () {
+    Timer(Duration(milliseconds: 1000), () {
       $('#bottomPanel').classes.remove('pulsate');
     });
   }
@@ -703,7 +703,7 @@ class PlaygroundMobile {
   }
 
   void _setLastRunCondition() {
-    _lastRun = new Map<_FileType, String>();
+    _lastRun = Map<_FileType, String>();
     _lastRun[_FileType.DART] = context.dartSource;
     _lastRun[_FileType.HTML] = context.htmlSource;
     _lastRun[_FileType.CSS] = context.cssSource;
@@ -729,7 +729,7 @@ class PlaygroundMobile {
 
       // Create an item for each issue.
       for (AnalysisIssue issue in issues) {
-        DivElement error = new DivElement();
+        DivElement error = DivElement();
         error.classes.add('issue');
         error.classes.add('layout');
         error.classes.add('horizontal');
@@ -738,12 +738,12 @@ class PlaygroundMobile {
           _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
         });
 
-        SpanElement typeSpan = new SpanElement();
+        SpanElement typeSpan = SpanElement();
         typeSpan.classes.addAll([issue.kind, 'issuelabel']);
         typeSpan.text = issue.kind;
         error.children.add(typeSpan);
 
-        SpanElement messageSpan = new SpanElement();
+        SpanElement messageSpan = SpanElement();
         messageSpan.classes.add('message');
         messageSpan.classes.add('flex');
         messageSpan.text = issue.message;
@@ -779,7 +779,7 @@ class PlaygroundMobile {
 
   void _jumpToLine(int line) {
     Document doc = editor.document;
-    doc.select(new Position(line, 0), new Position(line, 0));
+    doc.select(Position(line, 0), Position(line, 0));
     editor.focus();
   }
 
@@ -798,19 +798,19 @@ class PlaygroundMobile {
 class PlaygroundContext extends Context {
   final Editor editor;
 
-  StreamController<String> _modeController = new StreamController.broadcast();
+  StreamController<String> _modeController = StreamController.broadcast();
 
   Document _dartDoc;
   Document _htmlDoc;
   Document _cssDoc;
 
-  StreamController _cssDirtyController = new StreamController.broadcast();
-  StreamController _dartDirtyController = new StreamController.broadcast();
-  StreamController _htmlDirtyController = new StreamController.broadcast();
+  StreamController _cssDirtyController = StreamController.broadcast();
+  StreamController _dartDirtyController = StreamController.broadcast();
+  StreamController _htmlDirtyController = StreamController.broadcast();
 
-  StreamController _cssReconcileController = new StreamController.broadcast();
-  StreamController _dartReconcileController = new StreamController.broadcast();
-  StreamController _htmlReconcileController = new StreamController.broadcast();
+  StreamController _cssReconcileController = StreamController.broadcast();
+  StreamController _dartReconcileController = StreamController.broadcast();
+  StreamController _htmlReconcileController = StreamController.broadcast();
 
   PlaygroundContext(this.editor) {
     editor.mode = 'dart';
@@ -892,16 +892,14 @@ class PlaygroundContext extends Context {
 
   void markHtmlClean() => _htmlDoc.markClean();
 
-  /**
-   * Restore the focus to the last focused editor.
-   */
+  /// Restore the focus to the last focused editor.
   void focus() => editor.focus();
 
   void _createReconciler(Document doc, StreamController controller, int delay) {
     Timer timer;
     doc.onChange.listen((_) {
       if (timer != null) timer.cancel();
-      timer = new Timer(new Duration(milliseconds: delay), () {
+      timer = Timer(Duration(milliseconds: delay), () {
         controller.add(null);
       });
     });

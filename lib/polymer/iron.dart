@@ -31,21 +31,15 @@ class IronOverlayBehavior extends PolymerElement {
   IronOverlayBehavior([String tag]) : super(tag == null ? 'core-overlay' : tag);
   IronOverlayBehavior.from(HtmlElement element) : super.from(element);
 
-  /**
-   * Toggle the opened state of the overlay.
-   */
+  /// Toggle the opened state of the overlay.
   void toggle() => call('toggle');
 
-  /**
-   * Open the overlay. This is equivalent to setting the opened property to
-   * true.
-   */
+  /// Open the overlay. This is equivalent to setting the opened property to
+  /// true.
   void open() => call('open');
 
-  /**
-   * Close the overlay. This is equivalent to setting the opened property to
-   * false.
-   */
+  /// Close the overlay. This is equivalent to setting the opened property to
+  /// false.
   void close() => call('close');
 }
 
@@ -64,21 +58,15 @@ abstract class IronSelectableBehavior extends PolymerElement {
 
   Object get selectedItem => property('selectedItem');
 
-  /**
-   * Selects the previous item.
-   */
+  /// Selects the previous item.
   void selectPrevious() => call('selectPrevious');
 
-  /**
-   * Selects the next item.
-   */
+  /// Selects the next item.
   void selectNext() => call('selectNext');
 
-  /**
-   *   The event that fires from items when they are selected.
-   *   Selectable will listen for this event from items and update
-   *   the selection state. Set to empty string to listen to no events.
-   */
+  ///   The event that fires from items when they are selected.
+  ///   Selectable will listen for this event from items and update
+  ///   the selection state. Set to empty string to listen to no events.
   Stream get ironActivate => listen('iron-activate');
 
   Stream get ironSelect => listen('iron-select');
@@ -88,30 +76,22 @@ class CoreSplitter extends PolymerElement {
   CoreSplitter() : super('core-splitter');
   CoreSplitter.from(HtmlElement element) : super.from(element);
 
-  /**
-   * Possible values are left, right, up and down.
-   */
+  /// Possible values are left, right, up and down.
   String get direction => attribute('direction');
   set direction(String value) => setAttribute('direction', value);
 
-  /**
-   * Minimum width to which the splitter target can be sized, e.g.
-   * minSize="100px".
-   */
+  /// Minimum width to which the splitter target can be sized, e.g.
+  /// minSize="100px".
   String get minSize => attribute('minSize');
   set minSize(String value) => setAttribute('minSize', value);
 
-  /**
-   * Locks the split bar so it can't be dragged.
-   */
+  /// Locks the split bar so it can't be dragged.
   bool get locked => hasAttribute('locked');
   set locked(bool value) => toggleAttribute('locked', value);
 
-  /**
-   * By default the parent and siblings of the splitter are set to overflow
-   * hidden. This helps avoid elements bleeding outside the splitter regions.
-   * Set this property to true to allow these elements to overflow.
-   */
+  /// By default the parent and siblings of the splitter are set to overflow
+  /// hidden. This helps avoid elements bleeding outside the splitter regions.
+  /// Set this property to true to allow these elements to overflow.
   bool get allowOverflow => hasAttribute('allowOverflow');
   set allowOverflow(bool value) => toggleAttribute('allowOverflow', value);
 }
@@ -122,11 +102,11 @@ class PaperToolbar extends PolymerElement {
 }
 
 class PolymerElement extends WebElement {
-  static PolymerElement div() => new PolymerElement('div');
-  static PolymerElement p([String text]) => new PolymerElement('p', text: text);
-  static PolymerElement section() => new PolymerElement('section');
+  static PolymerElement div() => PolymerElement('div');
+  static PolymerElement p([String text]) => PolymerElement('p', text: text);
+  static PolymerElement section() => PolymerElement('section');
   static PolymerElement span([String text]) =>
-      new PolymerElement('span', text: text);
+      PolymerElement('span', text: text);
 
   JsObject _proxy;
   Map<String, Stream> _eventStreams = {};
@@ -174,18 +154,18 @@ class PolymerElement extends WebElement {
   }
 
   dynamic call(String methodName, [List args]) {
-    if (_proxy == null) _proxy = new JsObject.fromBrowserObject(element);
+    _proxy ??= JsObject.fromBrowserObject(element);
     return _proxy.callMethod(methodName, args);
   }
 
   dynamic property(String name) {
-    if (_proxy == null) _proxy = new JsObject.fromBrowserObject(element);
+    _proxy ??= JsObject.fromBrowserObject(element);
     return _proxy[name];
   }
 
   Stream listen(String eventName, {Function converter, bool sync = false}) {
     if (!_eventStreams.containsKey(eventName)) {
-      StreamController controller = new StreamController.broadcast(sync: sync);
+      StreamController controller = StreamController.broadcast(sync: sync);
       _eventStreams[eventName] = controller.stream;
       element.on[eventName].listen((e) {
         controller.add(converter == null ? e : converter(e));
@@ -201,19 +181,19 @@ class PolymerElement extends WebElement {
     } else if (child is Element) {
       child = child;
     } else {
-      throw new ArgumentError('child must be a WebElement or an Element');
+      throw ArgumentError('child must be a WebElement or an Element');
     }
     //Polymer.dom(this).appendChild(child);
-    context["Polymer"].callMethod("dom", [
-      new JsObject.fromBrowserObject(element)
-    ]).callMethod("appendChild", [new JsObject.fromBrowserObject(child)]);
+    context["Polymer"]
+        .callMethod("dom", [JsObject.fromBrowserObject(element)]).callMethod(
+            "appendChild", [JsObject.fromBrowserObject(child)]);
   }
 
   dynamic selectorAll(String selector) {
     //Polymer.dom(this).childNodes;
-    return context["Polymer"].callMethod("dom", [
-      new JsObject.fromBrowserObject(element)
-    ]).callMethod("querySelectorAll", [selector]);
+    return context["Polymer"]
+        .callMethod("dom", [JsObject.fromBrowserObject(element)]).callMethod(
+            "querySelectorAll", [selector]);
   }
 }
 

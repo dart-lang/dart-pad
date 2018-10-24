@@ -46,8 +46,8 @@ class PaperMenu extends IronSelectableBehavior {
   }
 
   String get selectedName {
-    int index = new JsObject.fromBrowserObject(element)["selected"];
-    return new PaperItem.from(selectorAll("paper-item")[index]).name;
+    int index = JsObject.fromBrowserObject(element)["selected"];
+    return PaperItem.from(selectorAll("paper-item")[index]).name;
   }
 }
 
@@ -139,7 +139,7 @@ class PaperTabs extends IronSelectableBehavior {
   PaperTabs.from(HtmlElement element) : super.from(element);
 
   String get selectedName {
-    return new PaperTab.from(property("focusedItem")).name;
+    return PaperTab.from(property("focusedItem")).name;
   }
 }
 
@@ -166,9 +166,7 @@ class PaperToast extends PolymerElement {
   String get text => attribute('text');
   set text(String value) => setAttribute('text', value);
 
-  /**
-   * The duration in milliseconds to show the toast (this defaults to 3000ms).
-   */
+  /// The duration in milliseconds to show the toast (this defaults to 3000ms).
   // TODO: set the JS property
   set duration(int value) => setAttribute('duration', '${value}');
 
@@ -196,14 +194,10 @@ class PaperToggleButton extends PolymerElement {
   bool get disabled => hasAttribute('disabled');
   set disabled(bool value) => toggleAttribute('disabled', value);
 
-  /**
-   * Fired when the checked state changes due to user interaction.
-   */
+  /// Fired when the checked state changes due to user interaction.
   Stream get onChange => listen('change');
 
-  /**
-   * Fired when the checked state changes.
-   */
+  /// Fired when the checked state changes.
   Stream get onIronChange => listen('iron-change');
 }
 

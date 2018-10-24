@@ -29,12 +29,12 @@ class DartCompleter extends CodeCompleter {
 
     int offset = editor.document.indexFromPos(editor.document.cursor);
 
-    var request = new SourceRequest()
+    var request = SourceRequest()
       ..source = editor.document.value
       ..offset = offset;
 
     CancellableCompleter<CompletionResult> completer =
-        new CancellableCompleter<CompletionResult>();
+        CancellableCompleter<CompletionResult>();
     _lastCompleter = completer;
 
     if (onlyShowFixes) {
@@ -43,16 +43,16 @@ class DartCompleter extends CodeCompleter {
         for (ProblemAndFixes problemFix in response.fixes) {
           for (CandidateFix fix in problemFix.fixes) {
             List<SourceEdit> fixes = fix.edits.map((edit) {
-              return new SourceEdit(edit.length, edit.offset, edit.replacement);
+              return SourceEdit(edit.length, edit.offset, edit.replacement);
             }).toList();
 
-            completions.add(new Completion("",
+            completions.add(Completion("",
                 displayString: fix.message,
                 type: "type-quick_fix",
                 quickFixes: fixes));
           }
         }
-        completer.complete(new CompletionResult(completions,
+        completer.complete(CompletionResult(completions,
             replaceOffset: offset, replaceLength: 0));
       });
     } else {
@@ -67,8 +67,7 @@ class DartCompleter extends CodeCompleter {
 
         List<AnalysisCompletion> analysisCompletions =
             response.completions.map((Map completion) {
-          return new AnalysisCompletion(
-              replaceOffset, replaceLength, completion);
+          return AnalysisCompletion(replaceOffset, replaceLength, completion);
         }).toList();
 
         List<Completion> completions = analysisCompletions
@@ -98,7 +97,7 @@ class DartCompleter extends CodeCompleter {
                   completion.isDeprecated ? ' deprecated' : '';
 
               if (completion.type == null) {
-                return new Completion(text,
+                return Completion(text,
                     displayString: displayString, type: deprecatedClass);
               } else {
                 int cursorPos = null;
@@ -107,7 +106,7 @@ class DartCompleter extends CodeCompleter {
                   cursorPos = text.indexOf('(') + 1;
                 }
 
-                return new Completion(text,
+                return Completion(text,
                     displayString: displayString,
                     type:
                         "type-${completion.type.toLowerCase()}${deprecatedClass}",
@@ -117,7 +116,7 @@ class DartCompleter extends CodeCompleter {
             .where((x) => x != null)
             .toList();
 
-        List<Completion> filterCompletions = new List.from(completions);
+        List<Completion> filterCompletions = List.from(completions);
 
         // Removes duplicates when a completion is both a getter and a setter.
         for (Completion completion in completions) {
@@ -129,7 +128,7 @@ class DartCompleter extends CodeCompleter {
           }
         }
 
-        completer.complete(new CompletionResult(filterCompletions,
+        completer.complete(CompletionResult(filterCompletions,
             replaceOffset: replaceOffset, replaceLength: replaceLength));
       }).catchError((e) {
         completer.completeError(e);
@@ -147,7 +146,7 @@ class AnalysisCompletion implements Comparable {
   Map _map;
 
   AnalysisCompletion(this.offset, this.length, Map<String, dynamic> map) {
-    _map = new Map<String, dynamic>.from(map);
+    _map = Map<String, dynamic>.from(map);
 
     // TODO: We need to pass this completion info better.
     _convert('element');

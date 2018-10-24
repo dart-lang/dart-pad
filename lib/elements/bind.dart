@@ -10,17 +10,17 @@ import 'dart:async';
 /// [Property]. `to` can be a [Function] or a [Property].
 Binding bind(from, to) {
   if (to is! Function && to is! Property) {
-    throw new ArgumentError('`to` must be a Function or a Property');
+    throw ArgumentError('`to` must be a Function or a Property');
   }
 
   // TODO: handle a Function - use polling (and the browser tick event?)
 
   if (from is Stream) {
-    return new _StreamBinding(from, to);
+    return _StreamBinding(from, to);
   } else if (from is Property) {
-    return new _PropertyBinding(from, to);
+    return _PropertyBinding(from, to);
   } else {
-    throw new ArgumentError('`from` must be a Stream or a Property');
+    throw ArgumentError('`from` must be a Stream or a Property');
   }
 }
 

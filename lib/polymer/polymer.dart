@@ -8,19 +8,15 @@ import 'dart:async';
 import 'dart:html';
 import 'dart:js';
 
-/**
- * Access to basic polymer functionality.
- */
+/// Access to basic polymer functionality.
 class Polymer {
   //static JsObject _polymer = context['Polymer'];
   static JsObject _htmlImports = context['HTMLImports'];
 
-  /**
-   * Return a `Future` that completes when Polymer element registration is
-   * finished.
-   */
+  /// Return a `Future` that completes when Polymer element registration is
+  /// finished.
   static Future whenReady() {
-    Completer completer = new Completer();
+    Completer completer = Completer();
     _htmlImports.callMethod('whenReady', [completer.complete]);
     return completer.future;
   }
@@ -52,12 +48,10 @@ class Polymer {
 //    return completer.future;
 //  }
 
-  /**
-   * Check for and return any elements that have not been upgraded. This is
-   * normally a result of forgetting an html import.
-   */
+  /// Check for and return any elements that have not been upgraded. This is
+  /// normally a result of forgetting an html import.
   static List<String> checkForUnresolvedElements({bool logToConsole = false}) {
-    Set<String> result = new Set();
+    Set<String> result = Set();
 
     _accept(result, document.body);
 

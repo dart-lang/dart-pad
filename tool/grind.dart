@@ -12,11 +12,11 @@ import 'package:git/git.dart';
 import 'package:grinder/grinder.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
-final FilePath _buildDir = new FilePath('build');
-final FilePath _webDir = new FilePath('web');
-final FilePath _pkgDir = new FilePath('third_party/pkg');
-final FilePath _routeDir = new FilePath('third_party/pkg/route.dart');
-final FilePath _haikunatorDir = new FilePath('third_party/pkg/haikunatordart');
+final FilePath _buildDir = FilePath('build');
+final FilePath _webDir = FilePath('web');
+final FilePath _pkgDir = FilePath('third_party/pkg');
+final FilePath _routeDir = FilePath('third_party/pkg/route.dart');
+final FilePath _haikunatorDir = FilePath('third_party/pkg/haikunatordart');
 
 Map get _env => Platform.environment;
 
@@ -26,7 +26,7 @@ main(List<String> args) => grind(args);
 updateThirdParty() {
   run('rm', arguments: ['-rf', _routeDir.path]);
   run('rm', arguments: ['-rf', _haikunatorDir.path]);
-  new Directory(_pkgDir.path).createSync(recursive: true);
+  Directory(_pkgDir.path).createSync(recursive: true);
   run('git', arguments: [
     'clone',
     '--branch',
@@ -49,16 +49,16 @@ updateThirdParty() {
 
 @Task()
 analyze() {
-  new PubApp.local('tuneup')..run(['check']);
+  PubApp.local('tuneup')..run(['check']);
 }
 
 @Task()
-testCli() async => await new TestRunner().testAsync(platformSelector: 'vm');
+testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
 
 // This task require a frame buffer to run.
 @Task()
 testWeb() async {
-  await new TestRunner().testAsync(platformSelector: 'chrome');
+  await TestRunner().testAsync(platformSelector: 'chrome');
   log('Running route.dart tests...');
   run('pub', arguments: ['get'], workingDirectory: _routeDir.path);
   run('pub',
@@ -96,10 +96,10 @@ serveCustomBackend() {
 @Task('Build the `web/index.html` entrypoint')
 build() {
   // Copy our third party python code into web/.
-  new FilePath('third_party/mdetect/mdetect.py').copy(_webDir);
+  FilePath('third_party/mdetect/mdetect.py').copy(_webDir);
 
   // Copy the codemirror script into web/scripts.
-  new FilePath(_getCodeMirrorScriptPath()).copy(_webDir.join('scripts'));
+  FilePath(_getCodeMirrorScriptPath()).copy(_webDir.join('scripts'));
 
   // copy web/ resources
   copyDirectory(webDir, joinDir(buildDir, ['web']));
@@ -150,7 +150,7 @@ build() {
 }
 
 void copyPackageResources(String packageName, Directory destDir) {
-  String text = new File('.packages').readAsStringSync();
+  String text = File('.packages').readAsStringSync();
   for (String line in text.split('\n')) {
     line = line.trim();
     if (line.isEmpty) {
@@ -163,11 +163,11 @@ void copyPackageResources(String packageName, Directory destDir) {
       if (location.startsWith('file:')) {
         Uri uri = Uri.parse(location);
 
-        copyDirectory(new Directory.fromUri(uri),
+        copyDirectory(Directory.fromUri(uri),
             joinDir(destDir, ['packages', packageName]));
       } else {
-        copyDirectory(new Directory(location),
-            joinDir(destDir, ['pacakges', packageName]));
+        copyDirectory(
+            Directory(location), joinDir(destDir, ['pacakges', packageName]));
       }
       return;
     }
@@ -179,7 +179,7 @@ void copyPackageResources(String packageName, Directory destDir) {
 /// Return the path for `packages/codemirror/codemirror.js`.
 String _getCodeMirrorScriptPath() {
   Map<String, String> packageToUri = {};
-  for (String line in new File('.packages').readAsLinesSync()) {
+  for (String line in File('.packages').readAsLinesSync()) {
     int index = line.indexOf(':');
     packageToUri[line.substring(0, index)] = line.substring(index + 1);
   }
@@ -238,7 +238,7 @@ coverage() {
     return;
   }
 
-  PubApp coveralls = new PubApp.global('dart_coveralls');
+  PubApp coveralls = PubApp.global('dart_coveralls');
   coveralls.run([
     'report',
     '--token',
@@ -262,7 +262,7 @@ deploy() {
   // `dev` is served from dev.dart-pad.appspot.com
   // `prod` is served from prod.dart-pad.appspot.com and from dartpad.dartlang.org.
 
-  Map app = yaml.loadYaml(new File('web/app.yaml').readAsStringSync());
+  Map app = yaml.loadYaml(File('web/app.yaml').readAsStringSync());
 
   List handlers = app['handlers'];
   bool isSecure = false;

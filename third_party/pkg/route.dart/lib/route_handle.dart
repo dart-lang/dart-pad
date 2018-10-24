@@ -1,9 +1,7 @@
 part of route.client;
 
-/**
- * A helper Router handle that scopes all route event subscriptions to it's
- * instance and provides an convenience [discard] method.
- */
+/// A helper Router handle that scopes all route event subscriptions to it's
+/// instance and provides an convenience [discard] method.
 class RouteHandle implements Route {
   Route _route;
   final StreamController<RoutePreEnterEvent> _onPreEnterController;
@@ -31,13 +29,13 @@ class RouteHandle implements Route {
 
   RouteHandle._new(this._route)
       : _onEnterController =
-            new StreamController<RouteEnterEvent>.broadcast(sync: true),
+            StreamController<RouteEnterEvent>.broadcast(sync: true),
         _onPreEnterController =
-            new StreamController<RoutePreEnterEvent>.broadcast(sync: true),
+            StreamController<RoutePreEnterEvent>.broadcast(sync: true),
         _onPreLeaveController =
-            new StreamController<RoutePreLeaveEvent>.broadcast(sync: true),
+            StreamController<RoutePreLeaveEvent>.broadcast(sync: true),
         _onLeaveController =
-            new StreamController<RouteLeaveEvent>.broadcast(sync: true) {
+            StreamController<RouteLeaveEvent>.broadcast(sync: true) {
     _onEnterSubscription = _route.onEnter.listen(_onEnterController.add);
     _onPreEnterSubscription =
         _route.onPreEnter.listen(_onPreEnterController.add);
@@ -77,7 +75,7 @@ class RouteHandle implements Route {
       dontLeaveOnParamChanges = false,
       String pageTitle,
       List<Pattern> watchQueryParameters}) {
-    throw new UnsupportedError('addRoute is not supported in handle');
+    throw UnsupportedError('addRoute is not supported in handle');
   }
 
   @override
@@ -93,18 +91,16 @@ class RouteHandle implements Route {
     return handle;
   }
 
-  /**
-   * Create an return a new [RouteHandle] for this route.
-   */
+  /// Create an return a new [RouteHandle] for this route.
   @override
   RouteHandle newHandle() {
     _logger.finest('newHandle for $this');
-    return new RouteHandle._new(_getHost(_route));
+    return RouteHandle._new(_getHost(_route));
   }
 
   Route _getHost(Route r) {
     _assertState();
-    if (r == null) throw new StateError('Oops?!');
+    if (r == null) throw StateError('Oops?!');
     if ((r is Route) && (r is! RouteHandle)) return r;
     RouteHandle rh = r;
     return rh._getHost(rh._route);
@@ -112,7 +108,7 @@ class RouteHandle implements Route {
 
   dynamic _assertState([f()]) {
     if (_route == null) {
-      throw new StateError('This route handle is already discarded.');
+      throw StateError('This route handle is already discarded.');
     }
     return f == null ? null : f();
   }

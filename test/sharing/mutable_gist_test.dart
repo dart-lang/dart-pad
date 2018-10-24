@@ -14,16 +14,16 @@ void main() => defineTests();
 void defineTests() {
   group('MutableGist', () {
     test('mutation causes dirty', () {
-      Gist gist = new Gist(description: 'foo');
-      MutableGist mgist = new MutableGist(gist);
+      Gist gist = Gist(description: 'foo');
+      MutableGist mgist = MutableGist(gist);
       expect(mgist.dirty, false);
       mgist.description = 'bar';
       expect(mgist.dirty, true);
     });
 
     test('undoing mutation clear dirty', () {
-      Gist gist = new Gist(description: 'foo');
-      MutableGist mgist = new MutableGist(gist);
+      Gist gist = Gist(description: 'foo');
+      MutableGist mgist = MutableGist(gist);
       expect(mgist.dirty, false);
       mgist.description = 'bar';
       expect(mgist.dirty, true);
@@ -32,8 +32,8 @@ void defineTests() {
     });
 
     test('setBackingGist', () {
-      Gist gist = new Gist(description: 'foo');
-      MutableGist mgist = new MutableGist(gist);
+      Gist gist = Gist(description: 'foo');
+      MutableGist mgist = MutableGist(gist);
       expect(mgist.dirty, false);
       mgist.description = 'bar';
       expect(mgist.dirty, true);
@@ -42,8 +42,8 @@ void defineTests() {
     });
 
     test('createGist', () {
-      Gist gist = new Gist(description: 'foo');
-      MutableGist mgist = new MutableGist(gist);
+      Gist gist = Gist(description: 'foo');
+      MutableGist mgist = MutableGist(gist);
       mgist.description = 'bar';
       Gist newGist = mgist.createGist();
       expect(newGist.description, 'bar');

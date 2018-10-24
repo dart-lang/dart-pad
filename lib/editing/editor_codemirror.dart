@@ -19,7 +19,7 @@ import 'editor.dart' as ed show Position;
 
 export 'editor.dart';
 
-final CodeMirrorFactory codeMirrorFactory = new CodeMirrorFactory._();
+final CodeMirrorFactory codeMirrorFactory = CodeMirrorFactory._();
 
 class CodeMirrorFactory extends EditorFactory {
   //static final String cssRef = 'packages/dart_pad/editing/editor_codemirror.css';
@@ -58,32 +58,30 @@ class CodeMirrorFactory extends EditorFactory {
   }
 
   Editor createFromElement(html.Element element, {Map options}) {
-    if (options == null) {
-      options = {
-        'continueComments': {'continueLineComment': false},
-        'autofocus': false,
-        // Removing this - with this enabled you can't type a forward slash.
-        //'autoCloseTags': true,
-        'autoCloseBrackets': true,
-        'matchBrackets': true,
-        'tabSize': 2,
-        'lineWrapping': true,
-        'indentUnit': 2,
-        'cursorHeight': 0.85,
-        // Increase the number of lines that are rendered above and before
-        // what's visible.
-        'viewportMargin': 100,
-        //'gutters': [_gutterId],
-        'extraKeys': {'Cmd-/': 'toggleComment', 'Ctrl-/': 'toggleComment'},
-        'hintOptions': {'completeSingle': false},
-        //'lint': true,
-        'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
-      };
-    }
+    options ??= {
+      'continueComments': {'continueLineComment': false},
+      'autofocus': false,
+      // Removing this - with this enabled you can't type a forward slash.
+      //'autoCloseTags': true,
+      'autoCloseBrackets': true,
+      'matchBrackets': true,
+      'tabSize': 2,
+      'lineWrapping': true,
+      'indentUnit': 2,
+      'cursorHeight': 0.85,
+      // Increase the number of lines that are rendered above and before
+      // what's visible.
+      'viewportMargin': 100,
+      //'gutters': [_gutterId],
+      'extraKeys': {'Cmd-/': 'toggleComment', 'Ctrl-/': 'toggleComment'},
+      'hintOptions': {'completeSingle': false},
+      //'lint': true,
+      'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
+    };
 
-    CodeMirror editor = new CodeMirror.fromElement(element, options: options);
+    CodeMirror editor = CodeMirror.fromElement(element, options: options);
     CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
-    return new _CodeMirrorEditor._(this, editor);
+    return _CodeMirrorEditor._(this, editor);
   }
 
   bool get supportsCompletionPositioning => true;
@@ -102,7 +100,7 @@ class CodeMirrorFactory extends EditorFactory {
 
   Future<HintResults> _completionHelper(
       CodeMirror editor, CodeCompleter completer, HintsOptions options) {
-    _CodeMirrorEditor ed = new _CodeMirrorEditor._fromExisting(this, editor);
+    _CodeMirrorEditor ed = _CodeMirrorEditor._fromExisting(this, editor);
 
     return completer
         .complete(ed, onlyShowFixes: ed._lookingForQuickFix)
@@ -115,14 +113,14 @@ class CodeMirrorFactory extends EditorFactory {
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
       List<HintResult> hints = result.completions.map((Completion completion) {
-        return new HintResult(completion.value,
+        return HintResult(completion.value,
             displayText: completion.displayString,
             className: completion.type, hintApplier: (CodeMirror editor,
                 HintResult hint, pos.Position from, pos.Position to) {
           doc.replaceRange(hint.text, from, to);
           if (completion.cursorOffset != null) {
             int diff = hint.text.length - completion.cursorOffset;
-            doc.setCursor(new pos.Position(
+            doc.setCursor(pos.Position(
                 editor.getCursor().line, editor.getCursor().ch - diff));
           }
           if (completion.type == "type-quick_fix") {
@@ -130,7 +128,7 @@ class CodeMirrorFactory extends EditorFactory {
                 .forEach((SourceEdit edit) => ed.document.applyEdit(edit));
           }
         }, hintRenderer: (html.Element element, HintResult hint) {
-          var escapeHtml = new HtmlEscape().convert;
+          var escapeHtml = HtmlEscape().convert;
           if (completion.type != "type-quick_fix") {
             element.innerHtml = escapeHtml(completion.displayString)
                 .replaceFirst(escapeHtml(stringToReplace),
@@ -143,7 +141,7 @@ class CodeMirrorFactory extends EditorFactory {
 
       if (hints.isEmpty && ed._lookingForQuickFix) {
         hints = [
-          new HintResult(stringToReplace,
+          HintResult(stringToReplace,
               displayText: "No fixes available",
               className: "type-no_suggestions")
         ];
@@ -153,12 +151,12 @@ class CodeMirrorFactory extends EditorFactory {
         // Only show 'no suggestions' if the completion was explicitly invoked
         // or if the popup was already active.
         hints = [
-          new HintResult(stringToReplace,
+          HintResult(stringToReplace,
               displayText: "No suggestions", className: "type-no_suggestions")
         ];
       }
 
-      return new HintResults.fromHints(hints, from, to);
+      return HintResults.fromHints(hints, from, to);
     });
   }
 }
@@ -174,7 +172,7 @@ class _CodeMirrorEditor extends Editor {
   bool _lookingForQuickFix;
 
   _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
-    _document = new _CodeMirrorDocument._(this, cm.getDoc());
+    _document = _CodeMirrorDocument._(this, cm.getDoc());
     _instances[cm.jsProxy] = this;
   }
 
@@ -186,7 +184,7 @@ class _CodeMirrorEditor extends Editor {
     if (_instances.containsKey(cm.jsProxy)) {
       return _instances[cm.jsProxy];
     } else {
-      return new _CodeMirrorEditor._(factory, cm);
+      return _CodeMirrorEditor._(factory, cm);
     }
   }
 
@@ -194,10 +192,10 @@ class _CodeMirrorEditor extends Editor {
 
   Document createDocument({String content, String mode}) {
     if (mode == 'html') mode = 'text/html';
-    if (content == null) content = '';
+    content ??= '';
 
     // TODO: For `html`, enable and disable the 'autoCloseTags' option.
-    return new _CodeMirrorDocument._(this, new Doc(content, mode));
+    return _CodeMirrorDocument._(this, Doc(content, mode));
   }
 
   void execCommand(String name) => cm.execCommand(name);
@@ -241,7 +239,7 @@ class _CodeMirrorEditor extends Editor {
     } else {
       js = cm.callArg("cursorCoords", _document._posToPos(position).toProxy());
     }
-    return new Point(js["left"], js["top"]);
+    return Point(js["left"], js["top"]);
   }
 
   void focus() => cm.focus();
@@ -263,10 +261,8 @@ class _CodeMirrorDocument extends Document {
   final List<LineWidget> widgets = [];
   final List<html.DivElement> nodes = [];
 
-  /**
-   * We use `_lastSetValue` here to avoid a change notification when we
-   * programatically change the `value` field.
-   */
+  /// We use `_lastSetValue` here to avoid a change notification when we
+  /// programatically change the `value` field.
   String _lastSetValue;
 
   _CodeMirrorDocument._(_CodeMirrorEditor editor, this.doc) : super(editor);
@@ -360,10 +356,10 @@ class _CodeMirrorDocument extends Document {
   ed.Position posFromIndex(int index) => _posFromPos(doc.posFromIndex(index));
 
   pos.Position _posToPos(ed.Position position) =>
-      new pos.Position(position.line, position.char);
+      pos.Position(position.line, position.char);
 
   ed.Position _posFromPos(pos.Position position) =>
-      new ed.Position(position.line, position.ch);
+      ed.Position(position.line, position.ch);
 
 //  html.Element _makeMarker(String severity, String tooltip, ed.Position start,
 //      ed.Position end) {

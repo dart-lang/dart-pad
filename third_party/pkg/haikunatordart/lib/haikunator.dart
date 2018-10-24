@@ -9,7 +9,7 @@ library haikunator;
 import 'dart:math' show Random;
 
 class Haikunator {
-  static final Random rndm = new Random();
+  static final Random rndm = Random();
   static final adjectives = [
     "autumn",
     "hidden",

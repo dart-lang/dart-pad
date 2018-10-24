@@ -19,7 +19,7 @@ import 'services/dartservices.dart';
 import 'src/util.dart';
 
 class DocHandler {
-  static const List cursorKeys = const [
+  static const List cursorKeys = [
     KeyCode.LEFT,
     KeyCode.RIGHT,
     KeyCode.UP,
@@ -29,7 +29,7 @@ class DocHandler {
   final Editor _editor;
   final Context _context;
 
-  final NodeValidator _htmlValidator = new PermissiveNodeValidator();
+  final NodeValidator _htmlValidator = PermissiveNodeValidator();
 
   DocHandler(this._editor, this._context);
 
@@ -44,7 +44,7 @@ class DocHandler {
 
     int offset = _editor.document.indexFromPos(_editor.document.cursor);
 
-    SourceRequest request = new SourceRequest()..offset = offset;
+    SourceRequest request = SourceRequest()..offset = offset;
 
     if (_editor.completionActive) {
       // If the completion popup is open we create a new source as if the
@@ -89,7 +89,7 @@ class DocHandler {
 
     int offset = _editor.document.indexFromPos(_editor.document.cursor);
 
-    SourceRequest request = new SourceRequest()..offset = offset;
+    SourceRequest request = SourceRequest()..offset = offset;
 
     if (_editor.completionActive) {
       // If the completion popup is open we create a new source as if the
@@ -131,7 +131,7 @@ class DocHandler {
     Map info = result.info;
 
     if (info['description'] == null && info['dartdoc'] == null) {
-      return new Future.value(new _DocResult(""));
+      return Future.value(_DocResult(""));
     }
 
     String libraryName = info['libraryName'];
@@ -145,7 +145,7 @@ class DocHandler {
         libraryName: libraryName,
         enclosingClassName: info['enclosingClassName']);
 
-    Future<String> mdnCheck = new Future.value();
+    Future<String> mdnCheck = Future.value();
     if (!hasDartdoc && isHtmlLib && domName != null) {
       mdnCheck = createMdnMarkdownLink(domName);
     }
@@ -153,25 +153,25 @@ class DocHandler {
     return mdnCheck.then((String mdnLink) {
       var propagatedType = info['propagatedType'];
       String _mdDocs = '''# `${info['description']}`\n\n
-${hasDartdoc ? info['dartdoc'] + "\n\n" : ''}
+${hasDartdoc ? "${info['dartdoc']}\n\n" : ''}
 ${mdnLink != null ? "## External resources:\n * ${mdnLink} at MDN" : ''}
 ${isVariable ? "${kind}\n\n" : ''}
 ${(isVariable && propagatedType != null) ? "**Propagated type:** ${propagatedType}\n\n" : ''}
 ${libraryName == null ? '' : apiLink}\n\n''';
 
       String _htmlDocs = markdown.markdownToHtml(_mdDocs,
-          inlineSyntaxes: [new InlineBracketsColon(), new InlineBrackets()]);
+          inlineSyntaxes: [InlineBracketsColon(), InlineBrackets()]);
 
       // Append a 'launch' icon to the 'Open library docs' link.
       _htmlDocs = _htmlDocs.replaceAll("library docs</a>",
           "library docs <span class='launch-icon'></span></a>");
 
-      return new _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
+      return _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
     });
   }
 
   String _dartApiLink({String libraryName, String enclosingClassName}) {
-    StringBuffer apiLink = new StringBuffer();
+    StringBuffer apiLink = StringBuffer();
     if (libraryName != null) {
       if (libraryName.contains('dart:')) {
         libraryName = libraryName.replaceAll(':', '-');
@@ -190,9 +190,8 @@ ${libraryName == null ? '' : apiLink}\n\n''';
 Future<String> createMdnMarkdownLink(String domName) {
   final String baseUrl = "https://developer.mozilla.org/en-US/docs/Web/API/";
 
-  String domClassName = domName.contains(".")
-      ? domName.substring(0, domName.indexOf("."))
-      : null;
+  String domClassName =
+      domName.contains(".") ? domName.substring(0, domName.indexOf(".")) : null;
 
   return _urlExists('$baseUrl$domName').then((bool exists) {
     if (exists) return '[$domName]($baseUrl$domName)';
@@ -229,7 +228,7 @@ class InlineBracketsColon extends markdown.InlineSyntax {
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
-    var element = new markdown.Element.text('code', htmlEscape(match[1]));
+    var element = markdown.Element.text('code', htmlEscape(match[1]));
     parser.addNode(element);
     return true;
   }
@@ -250,7 +249,7 @@ class InlineBrackets extends markdown.InlineSyntax {
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
     var element =
-        new markdown.Element.text('code', "<em>${htmlEscape(match[1])}</em>");
+        markdown.Element.text('code', "<em>${htmlEscape(match[1])}</em>");
     parser.addNode(element);
     return true;
   }

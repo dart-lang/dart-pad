@@ -6,13 +6,13 @@ import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
 main() {
-  new Logger('')
+  Logger('')
     ..level = Level.FINEST
     ..onRecord.listen((r) => print('[${r.level}] ${r.message}'));
 
   querySelector('#warning').remove();
 
-  var router = new Router(useFragment: true);
+  var router = Router(useFragment: true);
 
   router.root
     ..addRoute(name: 'one', defaultRoute: true, path: '/one', enter: showOne)

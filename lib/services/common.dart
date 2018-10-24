@@ -8,9 +8,9 @@ final String serverURL = 'https://dart-services.appspot.com/';
 //final String serverURL = 'http://127.0.0.1:8082/';
 //final String serverURL = 'https://dart2-test-dot-dart-services.appspot.com/';
 
-final Duration serviceCallTimeout = new Duration(seconds: 10);
-final Duration shortServiceCallTimeout = new Duration(seconds: 4);
-final Duration longServiceCallTimeout = new Duration(seconds: 20);
+final Duration serviceCallTimeout = Duration(seconds: 10);
+final Duration shortServiceCallTimeout = Duration(seconds: 4);
+final Duration longServiceCallTimeout = Duration(seconds: 20);
 
 class StringTextProvider {
   final String _text;

@@ -14,7 +14,7 @@ class DElement {
   final Element element;
 
   DElement(this.element);
-  DElement.tag(String tag, {String classes}) : element = new Element.tag(tag) {
+  DElement.tag(String tag, {String classes}) : element = Element.tag(tag) {
     if (classes != null) {
       element.classes.add(classes);
     }
@@ -39,7 +39,7 @@ class DElement {
     element.text = value;
   }
 
-  Property get textProperty => new _ElementTextProperty(element);
+  Property get textProperty => _ElementTextProperty(element);
 
   void layoutHorizontal() {
     setAttr('layout');
@@ -102,12 +102,12 @@ class DButton extends DElement {
 }
 
 class DSplitter extends DElement {
-  StreamController<num> _controller = new StreamController.broadcast();
+  StreamController<num> _controller = StreamController.broadcast();
 
   final Function onDragStart;
   final Function onDragEnd;
 
-  Point _offset = new Point(0, 0);
+  Point _offset = Point(0, 0);
 
   StreamSubscription _moveSub;
   StreamSubscription _upSub;
@@ -154,7 +154,7 @@ class DSplitter extends DElement {
     if (!horizontal && !vertical) horizontal = true;
 
     if (element.querySelector('div.inner') == null) {
-      Element e = new DivElement();
+      Element e = DivElement();
       e.classes.add('inner');
       element.children.add(e);
     }
@@ -206,7 +206,7 @@ class DSplitter extends DElement {
 
       e.preventDefault();
 
-      if (touchOffset == null) touchOffset = new Point(0, 0);
+      touchOffset ??= Point(0, 0);
 
       Point current = e.targetTouches.first.client;
       current -= _target.marginEdge.topLeft - touchOffset;
@@ -278,10 +278,8 @@ class DSplash extends DElement {
   }
 }
 
-/**
- * A simple element that can display a lightbulb, with fade in and out and a
- * built in counter.
- */
+/// A simple element that can display a lightbulb, with fade in and out and a
+/// built in counter.
 class DBusyLight extends DElement {
   static final Duration _delay = const Duration(milliseconds: 150);
 
@@ -302,7 +300,7 @@ class DBusyLight extends DElement {
 
   void flash() {
     on();
-    new Future.delayed(_delay, off);
+    Future.delayed(_delay, off);
   }
 
   void reset() {
@@ -366,7 +364,7 @@ class DContentEditable extends DElement {
 }
 
 class DInput extends DElement {
-  DInput.input({String type}) : super(new InputElement(type: type));
+  DInput.input({String type}) : super(InputElement(type: type));
 
   InputElement get inputElement => element;
 
@@ -385,7 +383,7 @@ class DInput extends DElement {
 
 class DToast extends DElement {
   static void showMessage(String message) {
-    new DToast(message)
+    DToast(message)
       ..show()
       ..hide();
   }
@@ -401,14 +399,14 @@ class DToast extends DElement {
     // Add to the DOM, start a timer, make it visible.
     document.body.children.add(element);
 
-    new Timer(new Duration(milliseconds: 16), () {
+    Timer(Duration(milliseconds: 16), () {
       element.classes.toggle('showing', true);
     });
   }
 
   void hide([Duration delay = const Duration(seconds: 4)]) {
     // Start a timer, hide, remove from dom.
-    new Timer(delay, () {
+    Timer(delay, () {
       element.classes.toggle('showing', false);
       element.onTransitionEnd.first.then((event) {
         dispose();
@@ -418,7 +416,7 @@ class DToast extends DElement {
 }
 
 class GlassPane extends DElement {
-  StreamController _controller = new StreamController.broadcast();
+  StreamController _controller = StreamController.broadcast();
 
   GlassPane() : super.tag('div') {
     element.classes.toggle('glass-pane', true);
@@ -448,7 +446,7 @@ class GlassPane extends DElement {
 }
 
 abstract class DDialog extends DElement {
-  GlassPane pane = new GlassPane();
+  GlassPane pane = GlassPane();
 
   DElement titleArea;
   DElement content;
@@ -462,19 +460,19 @@ abstract class DDialog extends DElement {
       if (isShowing) hide();
     });
 
-    titleArea = add(new DElement.tag('div', classes: 'title'));
-    content = add(new DElement.tag('div', classes: 'content'));
+    titleArea = add(DElement.tag('div', classes: 'title'));
+    content = add(DElement.tag('div', classes: 'content'));
 
     // padding
-    add(new DElement.tag('div'))..flex();
+    add(DElement.tag('div'))..flex();
 
-    buttonArea = add(new DElement.tag('div', classes: 'buttons')
+    buttonArea = add(DElement.tag('div', classes: 'buttons')
       ..setAttr('layout')
       ..setAttr('horizontal'));
 
     if (title != null) {
-      titleArea.add(new DElement.tag('h1')..text = title);
-      titleArea.add(new DButton.close()..onClick.listen((e) => hide()));
+      titleArea.add(DElement.tag('h1')..text = title);
+      titleArea.add(DButton.close()..onClick.listen((e) => hide()));
     }
   }
 
@@ -484,7 +482,7 @@ abstract class DDialog extends DElement {
     // Add to the DOM, start a timer, make it visible.
     document.body.children.add(element);
 
-    new Timer(new Duration(milliseconds: 16), () {
+    Timer(Duration(milliseconds: 16), () {
       element.classes.toggle('showing', true);
     });
   }
@@ -495,7 +493,7 @@ abstract class DDialog extends DElement {
     pane.hide();
 
     // Start a timer, hide, remove from dom.
-    new Timer(new Duration(milliseconds: 16), () {
+    Timer(Duration(milliseconds: 16), () {
       element.classes.toggle('showing', false);
       element.onTransitionEnd.first.then((event) {
         dispose();
@@ -527,12 +525,12 @@ class _ElementTextProperty implements Property {
 
 class TabController {
   StreamController<TabElement> _selectedTabController =
-      new StreamController.broadcast();
+      StreamController.broadcast();
 
   List<TabElement> tabs;
 
   TabController({this.tabs}) {
-    if (tabs == null) tabs = [];
+    tabs ??= [];
     tabs.forEach((tab) => registerTab(tab));
 
     if (tabs.isNotEmpty && selectedTab == null) {

@@ -14,28 +14,24 @@ import 'package:haikunator/haikunator.dart';
 final String _dartpadLink =
     "[dartpad.dartlang.org](https://dartpad.dartlang.org)";
 
-final RegExp _gistRegex = new RegExp(r'^[0-9a-f]+$');
+final RegExp _gistRegex = RegExp(r'^[0-9a-f]+$');
 
-/**
- * Return whether the given string is a valid github gist ID.
- */
+/// Return whether the given string is a valid github gist ID.
 bool isLegalGistId(String id) {
   if (id == null) return false;
   // 4/8/2016: Github gist ids changed from 20 to 32 characters long.
   return _gistRegex.hasMatch(id) && id.length >= 5 && id.length <= 40;
 }
 
-/**
- * Given either partial html text, or a full html document, extract out the
- * `<body>` tag.
- */
+/// Given either partial html text, or a full html document, extract out the
+/// `<body>` tag.
 String extractHtmlBody(String html) {
   if (html == null || !html.contains('<html')) {
     return html;
   } else {
     var body = r'body(?:\s[^>]*)?'; // Body tag with its attributes
     var any = r'[\s\S]'; // Any character including new line
-    var bodyRegExp = new RegExp("<$body>($any*)</$body>(?:(?!</$body>)$any)*",
+    var bodyRegExp = RegExp("<$body>($any*)</$body>(?:(?!</$body>)$any)*",
         multiLine: true, caseSensitive: false);
     var match = bodyRegExp.firstMatch(html);
     return match == null ? '' : match.group(1).trim();
@@ -43,23 +39,21 @@ String extractHtmlBody(String html) {
 }
 
 Gist createSampleGist() {
-  Gist gist = new Gist();
+  Gist gist = Gist();
   // "wispy-dust-1337", "patient-king-8872", "purple-breeze-9817"
   gist.description = Haikunator.haikunate();
-  gist.files.add(new GistFile(name: 'main.dart', content: sample.dartCode));
-  gist.files.add(new GistFile(name: 'index.html', content: '\n'));
-  gist.files.add(new GistFile(name: 'styles.css', content: '\n'));
-  gist.files.add(new GistFile(
+  gist.files.add(GistFile(name: 'main.dart', content: sample.dartCode));
+  gist.files.add(GistFile(name: 'index.html', content: '\n'));
+  gist.files.add(GistFile(name: 'styles.css', content: '\n'));
+  gist.files.add(GistFile(
       name: 'readme.md',
       content: _createReadmeContents(
           title: gist.description, withLink: _dartpadLink)));
   return gist;
 }
 
-/**
- * Find the best match for the given file names in the gist file info; return
- * the file (or `null` if no match is found).
- */
+/// Find the best match for the given file names in the gist file info; return
+/// the file (or `null` if no match is found).
 GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
   List<GistFile> files = gist.files;
 
@@ -140,7 +134,7 @@ ${styleRef}${dartRef}  </head>
     }
 
     // Update the readme for this gist.
-    GistFile readmeFile = new GistFile(
+    GistFile readmeFile = GistFile(
         name: 'readme.md',
         content: _createReadmeContents(
             title: gist.description,
@@ -163,7 +157,7 @@ ${styleRef}${dartRef}  </head>
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
     return HttpRequest.getString('${_apiUrl}/${gistId}').then((data) {
-      Gist gist = new Gist.fromMap(json.decode(data));
+      Gist gist = Gist.fromMap(json.decode(data));
       if (afterLoadHook != null) {
         afterLoadHook(gist);
       }
@@ -181,7 +175,7 @@ ${styleRef}${dartRef}  </head>
 
     return HttpRequest.request(_apiUrl, method: 'POST', sendData: gist.toJson())
         .then((HttpRequest request) {
-      Gist gist = new Gist.fromMap(json.decode(request.responseText));
+      Gist gist = Gist.fromMap(json.decode(request.responseText));
       if (afterLoadHook != null) {
         afterLoadHook(gist);
       }
@@ -202,7 +196,7 @@ class Gist {
   List<GistFile> files;
 
   Gist({this.id, this.description, this.public = true, this.files}) {
-    if (files == null) files = [];
+    files ??= [];
   }
 
   Gist.fromMap(Map map) {
@@ -212,7 +206,7 @@ class Gist {
     html_url = map['html_url'];
     summary = map['summary'];
     Map f = map['files'];
-    files = f.keys.map((key) => new GistFile.fromMap(key, f[key])).toList();
+    files = f.keys.map((key) => GistFile.fromMap(key, f[key])).toList();
   }
 
   dynamic operator [](String key) {
@@ -254,7 +248,7 @@ class Gist {
 
   String toJson() => json.encode(toMap());
 
-  Gist clone() => new Gist.fromMap(json.decode(toJson()));
+  Gist clone() => Gist.fromMap(json.decode(toJson()));
 
   String toString() => id;
 }
@@ -301,7 +295,7 @@ class GistStorage {
 
   Gist getStoredGist() {
     String data = window.localStorage[_key];
-    return data == null ? null : new Gist.fromMap(json.decode(data));
+    return data == null ? null : Gist.fromMap(json.decode(data));
   }
 
   void setStoredGist(Gist gist) {

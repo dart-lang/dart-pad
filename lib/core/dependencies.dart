@@ -9,34 +9,32 @@ import 'dart:async';
 
 Dependencies get deps => Dependencies.instance;
 
-/**
- * A simple dependency manager. This class manages a collection of singletons.
- * You can create separate `Dependency` instances to manage separate sets of
- * collections (for instance, one for testing). Or, you can use the single
- * [dependency] instance defined in this library to set up all the singletons
- * for your application.
- *
- *     Dependencies dependencies = new Dependencies();
- *     dependencies.setDependency(CatManager, catManager);
- *     dependencies.setDependency(DogManager, dogs);
- *
- *     ...
- *
- *     CatManager cats = dependencies[CatManager];
- *     cats.corale();
- *
- * When you want to set up a new series of services, for doing something like
- * executing tests with mocked out providers, you can use [runInZone]. So:
- *
- *     Dependencies dependencies = new Dependencies();
- *     dependencies.setDependency(CatManager, new MockCatManager());
- *     dependencies.setDependency(DogManager, new MockDogManager());
- *     dependencies.runInZone(executeTests);
- *
- * It will execute the method [executeTests] in a new Zone. Any queries to
- * [Dependencies.instance] will return the new dependencies set up for that
- * zone.
- */
+/// A simple dependency manager. This class manages a collection of singletons.
+/// You can create separate `Dependency` instances to manage separate sets of
+/// collections (for instance, one for testing). Or, you can use the single
+/// [dependency] instance defined in this library to set up all the singletons
+/// for your application.
+///
+///     Dependencies dependencies = new Dependencies();
+///     dependencies.setDependency(CatManager, catManager);
+///     dependencies.setDependency(DogManager, dogs);
+///
+///     ...
+///
+///     CatManager cats = dependencies[CatManager];
+///     cats.corale();
+///
+/// When you want to set up a new series of services, for doing something like
+/// executing tests with mocked out providers, you can use [runInZone]. So:
+///
+///     Dependencies dependencies = new Dependencies();
+///     dependencies.setDependency(CatManager, new MockCatManager());
+///     dependencies.setDependency(DogManager, new MockDogManager());
+///     dependencies.runInZone(executeTests);
+///
+/// It will execute the method [executeTests] in a new Zone. Any queries to
+/// [Dependencies.instance] will return the new dependencies set up for that
+/// zone.
 class Dependencies {
   static Dependencies _global;
 
@@ -44,10 +42,8 @@ class Dependencies {
     _global = deps;
   }
 
-  /**
-   * Get the current logical instance. This is the instance associated with the
-   * current Zone, parent Zones, or the global instance.
-   */
+  /// Get the current logical instance. This is the instance associated with the
+  /// current Zone, parent Zones, or the global instance.
   static Dependencies get instance {
     Dependencies deps = Zone.current['dependencies'];
     return deps != null ? deps : _global;
@@ -77,26 +73,20 @@ class Dependencies {
   void operator []=(Type type, dynamic instance) =>
       setDependency(type, instance);
 
-  /**
-   * Return the [Type]s defined in this immediate [Dependencies] instance.
-   */
+  /// Return the [Type]s defined in this immediate [Dependencies] instance.
   Iterable<Type> get types => _instances.keys;
 
-  /**
-   * Execute the given function in a new Zone. That zone is populated with the
-   * dependencies of this object. Any requests for dependencies are first
-   * satisfied with this [Dependencies] object, and then delegate up to
-   * [Dependencies] for parent Zones.
-   */
+  /// Execute the given function in a new Zone. That zone is populated with the
+  /// dependencies of this object. Any requests for dependencies are first
+  /// satisfied with this [Dependencies] object, and then delegate up to
+  /// [Dependencies] for parent Zones.
   void runInZone(Function function) {
     Zone zone = Zone.current.fork(zoneValues: {'dependencies': this});
     zone.run(function);
   }
 
-  /**
-   * Determine the [Dependencies] instance that is the logical parent of the
-   * [Dependencies] for the given [Zone].
-   */
+  /// Determine the [Dependencies] instance that is the logical parent of the
+  /// [Dependencies] for the given [Zone].
   Dependencies _calcParent(Zone zone) {
     if (this == _global) return null;
 

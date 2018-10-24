@@ -12,22 +12,20 @@ import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/util.dart';
 
-/**
- * Show an OK / Cancel dialog and return the option that the user selected.
- */
+/// Show an OK / Cancel dialog and return the option that the user selected.
 class OkCancelDialog extends DDialog {
   OkCancelDialog(String title, String message, Function okAction,
       {String okText = 'OK', String cancelText = 'Cancel'})
       : super(title: title) {
     element.classes.toggle('sharing-dialog', true);
-    content.add(new ParagraphElement())..text = message;
+    content.add(ParagraphElement())..text = message;
 
-    DButton cancelButton = buttonArea.add(new DButton.button(text: cancelText));
-    buttonArea.add(new SpanElement()..attributes['flex'] = '');
+    DButton cancelButton = buttonArea.add(DButton.button(text: cancelText));
+    buttonArea.add(SpanElement()..attributes['flex'] = '');
     cancelButton.onClick.listen((_) => hide());
 
     DButton okButton =
-        buttonArea.add(new DButton.button(text: okText, classes: 'default'));
+        buttonArea.add(DButton.button(text: okText, classes: 'default'));
     okButton.onClick.listen((_) {
       okAction();
       hide();
@@ -37,14 +35,14 @@ class OkCancelDialog extends DDialog {
 
 class AboutDialog extends DDialog {
   AboutDialog([String versionText]) : super(title: 'About DartPad') {
-    ParagraphElement p = content.add(new ParagraphElement());
+    ParagraphElement p = content.add(ParagraphElement());
     String text = privacyText;
     if (versionText != null) text += " Based on Dart SDK ${versionText}.";
-    p.setInnerHtml(text, validator: new PermissiveNodeValidator());
+    p.setInnerHtml(text, validator: PermissiveNodeValidator());
 
-    buttonArea.add(new SpanElement()..attributes['flex'] = '');
+    buttonArea.add(SpanElement()..attributes['flex'] = '');
     DButton okButton =
-        buttonArea.add(new DButton.button(text: "OK", classes: 'default'));
+        buttonArea.add(DButton.button(text: "OK", classes: 'default'));
     okButton.onClick.listen((_) => hide());
   }
 }
@@ -74,108 +72,106 @@ class SharingDialog extends DDialog {
   RadioButtonInputElement _embedDartRadio;
   RadioButtonInputElement _embedHtmlRadio;
 
-  SharingDialog(
-      GistContainer this.gistContainer, GistController this.gistController)
+  SharingDialog(this.gistContainer, this.gistController)
       : super(title: 'Sharing') {
     element.classes.toggle('sharing-dialog', true);
 
     content.setAttr('layout');
     content.setAttr('vertical');
 
-    _text = content.add(new ParagraphElement());
-    _textArea = content.add(new TextAreaElement());
+    _text = content.add(ParagraphElement());
+    _textArea = content.add(TextAreaElement());
     _textArea.className = 'sharingSummaryText';
     _textArea.setAttribute('flex', '');
 
     // About to share.
-    _cancelButton = new DButton.button(text: 'Cancel');
+    _cancelButton = DButton.button(text: 'Cancel');
     _cancelButton.onClick.listen((_) => hide());
-    _closeButton = new DButton.button(text: 'Close');
+    _closeButton = DButton.button(text: 'Close');
     _closeButton.onClick.listen((_) => hide());
-    _shareButton = new DButton.button(text: 'Share it!', classes: 'default');
+    _shareButton = DButton.button(text: 'Share it!', classes: 'default');
     _shareButton.onClick.listen((_) => _performShare());
 
     // Already sharing.
-    _div = new DElement.tag('div')..layoutVertical();
+    _div = DElement.tag('div')..layoutVertical();
     DElement div =
-        _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
-    div.add(new DElement.tag('span', classes: 'sharinglabel'))
-      ..text = 'DartPad:';
-    DElement inputGroup = div.add(new DElement.tag('div'))
+        _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
+    div.add(DElement.tag('span', classes: 'sharinglabel'))..text = 'DartPad:';
+    DElement inputGroup = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
-    _padUrl = inputGroup.add(new DInput.input(type: 'text'))
+    _padUrl = inputGroup.add(DInput.input(type: 'text'))
       ..flex()
       ..readonly();
     _padUrl.onClick.listen((_) => _padUrl.selectAll());
 
-    div = _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
-    div.add(new DElement.tag('span', classes: 'sharinglabel'))
+    div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
+    div.add(DElement.tag('span', classes: 'sharinglabel'))
       ..text = 'gist.github.com:';
-    inputGroup = div.add(new DElement.tag('div'))
+    inputGroup = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
-    _gistUrl = inputGroup.add(new DInput.input(type: 'text'))
+    _gistUrl = inputGroup.add(DInput.input(type: 'text'))
       ..flex()
       ..readonly();
     _gistUrl.onClick.listen((_) => _gistUrl.selectAll());
-    div = _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
-    div.add(new DElement.tag('span', classes: 'sharinglabel'))..text = 'Embed:';
-    inputGroup = div.add(new DElement.tag('div'))
+    div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
+    div.add(DElement.tag('span', classes: 'sharinglabel'))..text = 'Embed:';
+    inputGroup = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
-    _embedUrl = inputGroup.add(new DInput.input(type: 'text'))
+    _embedUrl = inputGroup.add(DInput.input(type: 'text'))
       ..flex()
       ..readonly()
       ..value =
           "<iframe src='https://${home}/embed-dart.html?id=${gistContainer.mutableGist.id}' "
           "style='height:300px;width:100%;' frameborder='0'></iframe>";
     _embedUrl.onClick.listen((_) => _embedUrl.selectAll());
-    div = _div.add(new DElement.tag('div', classes: 'row')..layoutHorizontal());
-    _embedArea = div.add(new DElement.tag('div'))
+    div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
+    _embedArea = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
-    DElement _leftArea = _embedArea.add(new DElement.tag('div')
+    DElement _leftArea = _embedArea.add(DElement.tag('div')
       ..layoutVertical()
       ..flex()
       ..element.style.paddingLeft = "16px");
-    DElement _rightArea = _embedArea.add(new DElement.tag('div'));
+    DElement _rightArea = _embedArea.add(DElement.tag('div'));
     DElement _embedDartArea =
-        _leftArea.add(new DElement.tag('div')..layoutHorizontal());
+        _leftArea.add(DElement.tag('div')..layoutHorizontal());
     DElement _embedHtmlArea =
-        _leftArea.add(new DElement.tag('div')..layoutHorizontal());
-    _embedDartRadio = _embedDartArea.add(new RadioButtonInputElement()
+        _leftArea.add(DElement.tag('div')..layoutHorizontal());
+    _embedDartRadio = _embedDartArea.add(RadioButtonInputElement()
       ..name = "embed"
       ..id = "dart-radio");
-    _embedDartArea.add(new LabelElement()
+    _embedDartArea.add(LabelElement()
       ..htmlFor = 'dart-radio'
       ..text = 'Dart + documentation'
       ..style.paddingLeft = '8px');
-    _embedHtmlRadio = _embedHtmlArea.add(new RadioButtonInputElement()
+    _embedHtmlRadio = _embedHtmlArea.add(RadioButtonInputElement()
       ..name = "embed"
       ..id = "html-radio");
-    _embedHtmlArea.add(new LabelElement()
+    _embedHtmlArea.add(LabelElement()
       ..htmlFor = 'html-radio'
       ..text = 'Dart + HTML'
       ..style.paddingLeft = '8px');
     _embedDartRadio.checked = true;
     _embedPicture =
-        _rightArea.add(new ImageElement(src: _dartThumbnail, height: 100)
+        _rightArea.add(ImageElement(src: _dartThumbnail, height: 100)
           ..alt = "Embed-dart"
           ..style.paddingLeft = "16px");
     _embedDartRadio.onClick.listen((_) => _embedToDart());
     _embedHtmlRadio.onClick.listen((_) => _embedToHtml());
-    _info = _leftArea.add(new DElement.tag('div')..layoutHorizontal());
-    _info.add(new SpanElement()
+    _info = _leftArea.add(DElement.tag('div')..layoutHorizontal());
+    _info.add(SpanElement()
       ..text = 'Check out our embedding '
       ..style.marginTop = '5px'
-      ..append(new SpanElement()
+      ..append(SpanElement()
         ..text = 'guide'
         ..attributes['onClick'] =
             "window.open('https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide')"
         ..style.cursor = "pointer"
         ..style.textDecoration = "underline")
-      ..append(new SpanElement()..text = '.'));
+      ..append(SpanElement()..text = '.'));
   }
 
   void _embedToDart() {
@@ -195,7 +191,7 @@ class SharingDialog extends DDialog {
   }
 
   void showWithSummary(GistSummary summary) {
-    this._gistSummary = summary;
+    _gistSummary = summary;
     show();
   }
 
@@ -223,7 +219,7 @@ class SharingDialog extends DDialog {
       _textArea.style.display = 'block';
 
       buttonArea.add(_cancelButton);
-      buttonArea.add(new SpanElement()..attributes['flex'] = '');
+      buttonArea.add(SpanElement()..attributes['flex'] = '');
       buttonArea.add(_shareButton);
     } else {
       // Show the existing sharing info.
@@ -238,7 +234,7 @@ class SharingDialog extends DDialog {
       _embedDartRadio.checked = true;
       _embedToDart();
       buttonArea.add(_closeButton);
-      buttonArea.add(new SpanElement()..attributes['flex'] = '');
+      buttonArea.add(SpanElement()..attributes['flex'] = '');
     }
   }
 
@@ -265,7 +261,7 @@ class KeysDialog extends DDialog {
   }
 
   DListElement get keyMapToHtml {
-    DListElement dl = new DListElement();
+    DListElement dl = DListElement();
     keyMap.forEach((Action action, Set<String> keys) {
       if (!action.hidden) {
         String string = "";

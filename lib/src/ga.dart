@@ -6,10 +6,8 @@ library dart_pad.ga;
 
 import 'dart:js';
 
-/**
- * Very lightweight Google Analytics integration. This class depends on having
- * the JavaScript GA library available.
- */
+/// Very lightweight Google Analytics integration. This class depends on having
+/// the JavaScript GA library available.
 class Analytics {
   Analytics();
 
@@ -48,7 +46,7 @@ class Analytics {
   void _ga(String method, [Map args]) {
     if (isAvailable) {
       List params = <dynamic>[method];
-      if (args != null) params.add(new JsObject.jsify(args));
+      if (args != null) params.add(JsObject.jsify(args));
       _gaFunction.apply(params);
     }
   }
@@ -56,7 +54,7 @@ class Analytics {
   void _ga2(String method, String type, [Map args]) {
     if (isAvailable) {
       List params = <dynamic>[method, type];
-      if (args != null) params.add(new JsObject.jsify(args));
+      if (args != null) params.add(JsObject.jsify(args));
       _gaFunction.apply(params);
     }
   }

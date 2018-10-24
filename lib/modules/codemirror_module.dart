@@ -17,7 +17,7 @@ class CodeMirrorModule extends Module {
     if (!codeMirrorFactory.inited) {
       return codeMirrorFactory.init();
     } else {
-      return new Future.value();
+      return Future.value();
     }
   }
 }
