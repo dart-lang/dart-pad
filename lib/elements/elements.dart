@@ -270,7 +270,7 @@ class DSplitter extends DElement {
 class DSplash extends DElement {
   DSplash(Element element) : super(element);
 
-  void hide({bool removeOnHide: true}) {
+  void hide({bool removeOnHide = true}) {
     if (removeOnHide) {
       element.onTransitionEnd.listen((_) => dispose());
     }

@@ -325,7 +325,7 @@ class PlaygroundMobile {
     _clearOutput();
   }
 
-  Future<void> _showGist(String gistId, {bool run: false}) {
+  Future<void> _showGist(String gistId, {bool run = false}) {
     return gistLoader.loadGist(gistId).then((Gist gist) {
       _setGistDescription(gist.description);
       _setGistId(gist.id);
@@ -672,7 +672,7 @@ class PlaygroundMobile {
         "</div>";
   }
 
-  void _showOutput(String message, {bool error: false}) {
+  void _showOutput(String message, {bool error = false}) {
     _pulsateConsole();
     if (message == null) return;
     Element title = $('.consoleTitle');
@@ -768,7 +768,7 @@ class PlaygroundMobile {
     }
   }
 
-  void _jumpTo(int line, int charStart, int charLength, {bool focus: false}) {
+  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
     Document doc = editor.document;
 
     doc.select(

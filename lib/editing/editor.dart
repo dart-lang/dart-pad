@@ -39,7 +39,7 @@ abstract class Editor {
    */
   void execCommand(String name);
 
-  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false});
+  void showCompletions({bool autoInvoked = false, bool onlyShowFixes = false});
 
   /**
    * Checks if the completion popup is displayed. Only implemented for
@@ -151,7 +151,8 @@ class Position {
 }
 
 abstract class CodeCompleter {
-  Future<CompletionResult> complete(Editor editor, {bool onlyShowFixes: false});
+  Future<CompletionResult> complete(Editor editor,
+      {bool onlyShowFixes = false});
 }
 
 class CompletionResult {

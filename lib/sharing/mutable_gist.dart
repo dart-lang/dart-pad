@@ -53,7 +53,7 @@ class MutableGist implements PropertyOwner {
 
   Gist get backingGist => _backingGist;
 
-  void setBackingGist(Gist newGist, {bool wipeState: true}) {
+  void setBackingGist(Gist newGist, {bool wipeState = true}) {
     bool wasDirty = dirty;
     if (wipeState) _localValues.clear();
     _backingGist = newGist;

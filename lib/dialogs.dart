@@ -17,7 +17,7 @@ import 'src/util.dart';
  */
 class OkCancelDialog extends DDialog {
   OkCancelDialog(String title, String message, Function okAction,
-      {String okText: 'OK', String cancelText: 'Cancel'})
+      {String okText = 'OK', String cancelText = 'Cancel'})
       : super(title: title) {
     element.classes.toggle('sharing-dialog', true);
     content.add(new ParagraphElement())..text = message;
@@ -212,7 +212,7 @@ class SharingDialog extends DDialog {
     }
   }
 
-  void _switchTo({bool aboutToShare: true}) {
+  void _switchTo({bool aboutToShare = true}) {
     buttonArea.element.children.clear();
     _div.dispose();
     if (aboutToShare) {

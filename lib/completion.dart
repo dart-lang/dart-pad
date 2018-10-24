@@ -23,7 +23,7 @@ class DartCompleter extends CodeCompleter {
   DartCompleter(this.servicesApi, this.document);
 
   Future<CompletionResult> complete(Editor editor,
-      {bool onlyShowFixes: false}) {
+      {bool onlyShowFixes = false}) {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
 

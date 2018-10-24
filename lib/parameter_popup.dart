@@ -98,7 +98,7 @@ class ParameterPopup {
 
       List parameterInfo = result.info["parameters"] as List;
       String outputString = "";
-      if (parameterInfo.length == 0) {
+      if (parameterInfo.isEmpty) {
         outputString += "<code>&lt;no parameters&gt;</code>";
       } else if (parameterInfo.length < parameterIndex + 1) {
         outputString += "<code>too many parameters listed</code>";

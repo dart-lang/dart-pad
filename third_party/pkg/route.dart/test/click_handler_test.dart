@@ -23,7 +23,8 @@ main() {
       onHashChangeController = new StreamController<Event>();
       when(mockWindow.location.host).thenReturn(window.location.host);
       when(mockWindow.location.hash).thenReturn('');
-      when(mockWindow.onHashChange).thenAnswer((_) => onHashChangeController.stream);
+      when(mockWindow.onHashChange)
+          .thenAnswer((_) => onHashChangeController.stream);
       router = new MockRouter();
       root = new DivElement();
       document.body.append(root);

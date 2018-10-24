@@ -230,7 +230,7 @@ class Playground implements GistContainer, GistController {
           id: url.queryParameters['source']);
       Gist backing = await gistLoader.loadGist(gistId.uuid);
       editableGist.setBackingGist(backing);
-      router.go('gist', {'gist': backing.id});
+      await router.go('gist', {'gist': backing.id});
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
@@ -294,7 +294,7 @@ class Playground implements GistContainer, GistController {
     return new Future.value();
   }
 
-  Future shareAnon({String summary: ""}) {
+  Future shareAnon({String summary = ""}) {
     return gistLoader
         .createAnon(mutableGist.createGist(summary: summary))
         .then((Gist newGist) {
@@ -738,7 +738,7 @@ class Playground implements GistContainer, GistController {
   List<SpanElement> _bufferedOutput = [];
   Duration _outputDuration = new Duration(milliseconds: 32);
 
-  void _showOuput(String message, {bool error: false}) {
+  void _showOuput(String message, {bool error = false}) {
     consoleBusyLight.flash();
 
     SpanElement span = new SpanElement()..text = message + '\n';
@@ -826,7 +826,7 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  void _updateRunButton({bool hasErrors: false, bool hasWarnings: false}) {
+  void _updateRunButton({bool hasErrors = false, bool hasWarnings = false}) {
     const alertSVGIcon =
         "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,"
         "1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
@@ -839,7 +839,7 @@ class Playground implements GistContainer, GistController {
     path.parent.classes.toggle("warning", hasWarnings && !hasErrors);
   }
 
-  void _jumpTo(int line, int charStart, int charLength, {bool focus: false}) {
+  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
     Document doc = editor.document;
 
     doc.select(

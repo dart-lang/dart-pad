@@ -68,13 +68,13 @@ class RouteHandle implements Route {
   void addRoute(
       {String name,
       Pattern path,
-      bool defaultRoute: false,
+      bool defaultRoute = false,
       RouteEnterEventHandler enter,
       RoutePreEnterEventHandler preEnter,
       RoutePreLeaveEventHandler preLeave,
       RouteLeaveEventHandler leave,
       mount,
-      dontLeaveOnParamChanges: false,
+      dontLeaveOnParamChanges = false,
       String pageTitle,
       List<Pattern> watchQueryParameters}) {
     throw new UnsupportedError('addRoute is not supported in handle');

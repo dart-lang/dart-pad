@@ -1078,20 +1078,18 @@ main() {
       router.go('articles', {}).then(expectAsync1((_) {
         var mockHistory = mockWindow.history;
 
-        var result = verify(mockHistory.pushState(
-            captureAny, captureAny, captureAny));
+        var result =
+            verify(mockHistory.pushState(captureAny, captureAny, captureAny));
         result.called(1);
         expect(result.captured, [null, 'page title', '/articles']);
-        verifyNever(mockHistory.replaceState(
-            any, any, any));
+        verifyNever(mockHistory.replaceState(any, any, any));
 
         router.go('articles', {}, replace: true).then(expectAsync1((_) {
-          var result = verify(mockHistory.replaceState(captureAny,
-              captureAny, captureAny));
+          var result = verify(
+              mockHistory.replaceState(captureAny, captureAny, captureAny));
           result.called(1);
           expect(result.captured, [null, 'page title', '/articles']);
-          verifyNever(mockHistory.pushState(
-              any, any, any));
+          verifyNever(mockHistory.pushState(any, any, any));
         }));
       }));
     });
@@ -1109,13 +1107,12 @@ main() {
           .then(expectAsync1((_) {
         var mockHistory = mockWindow.history;
 
-        var result = verify(mockHistory.pushState(
-            captureAny, captureAny, captureAny));
+        var result =
+            verify(mockHistory.pushState(captureAny, captureAny, captureAny));
         result.called(1);
         expect(result.captured,
             [null, 'page title', '/articles?foo=foo%20bar&bar=%25baz%2Baux']);
-        verifyNever(mockHistory.replaceState(
-            any, any, any));
+        verifyNever(mockHistory.replaceState(any, any, any));
       }));
     });
 
@@ -1135,22 +1132,22 @@ main() {
       router.go('a.b', {}).then(expectAsync1((_) {
         var mockHistory = mockWindow.history;
 
-        var result = verify(mockHistory.pushState(
-            captureAny, captureAny, captureAny));
+        var result =
+            verify(mockHistory.pushState(captureAny, captureAny, captureAny));
         result.called(1);
         expect(result.captured, [null, 'page title', '/null/null']);
 
         router.go('a.b', {'foo': 'aaaa', 'bar': 'bbbb'}).then(expectAsync1((_) {
-          var result = verify(mockHistory.pushState(captureAny,
-              captureAny, captureAny));
+          var result =
+              verify(mockHistory.pushState(captureAny, captureAny, captureAny));
           result.called(1);
           expect(result.captured, [null, 'page title', '/aaaa/bbbb']);
 
           router
               .go('b', {'bar': 'bbbb'}, startingFrom: routeA)
               .then(expectAsync1((_) {
-            var result = verify(mockHistory.pushState(captureAny,
-                captureAny, captureAny));
+            var result = verify(
+                mockHistory.pushState(captureAny, captureAny, captureAny));
             // Note: These were cumulative with mock but get reset with each
             // call to mockito.verify(), so 3 became 1 here.
             result.called(1);
@@ -1190,8 +1187,8 @@ main() {
         return router.go('b', {'bar': 'bbb'}, startingFrom: routeA).then((_) {
           var mockHistory = mockWindow.history;
 
-          var result = verify(mockHistory.pushState(captureAny,
-              captureAny, captureAny));
+          var result =
+              verify(mockHistory.pushState(captureAny, captureAny, captureAny));
           result.called(1);
           expect(result.captured, [null, 'page title', '/null/bbb']);
         });
@@ -1235,8 +1232,7 @@ main() {
 
       router.go('foo', {}).then(expectAsync1((_) {
         var mockHistory = mockWindow.history;
-        verify((mockWindow.document as HtmlDocument).title = any)
-            .called(1);
+        verify((mockWindow.document as HtmlDocument).title = any).called(1);
         verify(mockHistory.pushState(null, 'Foo', '/foo')).called(1);
       }));
     });
@@ -1689,7 +1685,8 @@ main() {
         var mockWindow = new MockWindow();
         var mockPopStateController =
             new StreamController<PopStateEvent>(sync: true);
-        when(mockWindow.onPopState).thenAnswer((_) => mockPopStateController.stream);
+        when(mockWindow.onPopState)
+            .thenAnswer((_) => mockPopStateController.stream);
         testInit(mockWindow, 2);
         mockPopStateController.add(null);
       });
@@ -1698,7 +1695,8 @@ main() {
         var mockWindow = new MockWindow();
         var mockPopStateController =
             new StreamController<PopStateEvent>(sync: true);
-        when(mockWindow.onPopState).thenAnswer((_) => mockPopStateController.stream);
+        when(mockWindow.onPopState)
+            .thenAnswer((_) => mockPopStateController.stream);
         testInit(mockWindow);
       });
     });

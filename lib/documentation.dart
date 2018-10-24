@@ -190,7 +190,7 @@ ${libraryName == null ? '' : apiLink}\n\n''';
 Future<String> createMdnMarkdownLink(String domName) {
   final String baseUrl = "https://developer.mozilla.org/en-US/docs/Web/API/";
 
-  String domClassName = domName.indexOf(".") != -1
+  String domClassName = domName.contains(".")
       ? domName.substring(0, domName.indexOf("."))
       : null;
 

@@ -201,7 +201,7 @@ class Gist {
 
   List<GistFile> files;
 
-  Gist({this.id, this.description, this.public: true, this.files}) {
+  Gist({this.id, this.description, this.public = true, this.files}) {
     if (files == null) files = [];
   }
 
@@ -227,7 +227,7 @@ class Gist {
     return null;
   }
 
-  GistFile getFile(String name, {bool ignoreCase: false}) {
+  GistFile getFile(String name, {bool ignoreCase = false}) {
     if (ignoreCase) {
       name = name.toLowerCase();
       return files.firstWhere((f) => f.name.toLowerCase() == name,

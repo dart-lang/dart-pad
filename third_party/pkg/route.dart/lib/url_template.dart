@@ -107,7 +107,7 @@ class UrlTemplate implements UrlMatcher {
     return new UrlMatch(match[0], tail, parameters);
   }
 
-  String reverse({Map parameters, String tail: ''}) {
+  String reverse({Map parameters, String tail = ''}) {
     if (parameters == null) {
       parameters = const {};
     }

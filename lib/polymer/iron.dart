@@ -183,7 +183,7 @@ class PolymerElement extends WebElement {
     return _proxy[name];
   }
 
-  Stream listen(String eventName, {Function converter, bool sync: false}) {
+  Stream listen(String eventName, {Function converter, bool sync = false}) {
     if (!_eventStreams.containsKey(eventName)) {
       StreamController controller = new StreamController.broadcast(sync: sync);
       _eventStreams[eventName] = controller.stream;

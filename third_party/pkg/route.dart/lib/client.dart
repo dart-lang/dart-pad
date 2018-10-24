@@ -125,13 +125,13 @@ abstract class Route {
   void addRoute(
       {String name,
       Pattern path,
-      bool defaultRoute: false,
+      bool defaultRoute = false,
       RouteEnterEventHandler enter,
       RoutePreEnterEventHandler preEnter,
       RoutePreLeaveEventHandler preLeave,
       RouteLeaveEventHandler leave,
       mount,
-      dontLeaveOnParamChanges: false,
+      dontLeaveOnParamChanges = false,
       String pageTitle,
       List<Pattern> watchQueryParameters});
 
@@ -215,7 +215,7 @@ class RouteImpl extends Route {
       {this.name,
       this.path,
       this.parent,
-      this.dontLeaveOnParamChanges: false,
+      this.dontLeaveOnParamChanges = false,
       this.pageTitle,
       List<Pattern> watchQueryParameters})
       : _onEnterController =
@@ -232,13 +232,13 @@ class RouteImpl extends Route {
   void addRoute(
       {String name,
       Pattern path,
-      bool defaultRoute: false,
+      bool defaultRoute = false,
       RouteEnterEventHandler enter,
       RoutePreEnterEventHandler preEnter,
       RoutePreLeaveEventHandler preLeave,
       RouteLeaveEventHandler leave,
       mount,
-      dontLeaveOnParamChanges: false,
+      dontLeaveOnParamChanges = false,
       String pageTitle,
       List<Pattern> watchQueryParameters}) {
     if (name == null) {
@@ -488,7 +488,7 @@ class Router {
   Router(
       {bool useFragment,
       Window windowImpl,
-      bool sortRoutes: true,
+      bool sortRoutes = true,
       RouterLinkMatcher linkMatcher,
       WindowClickHandler clickHandler})
       : this._init(null,
@@ -540,7 +540,7 @@ class Router {
    * changed.
    */
   Future<bool> route(String path,
-      {Route startingFrom, bool forceReload: false}) {
+      {Route startingFrom, bool forceReload = false}) {
     _logger.finest('route path=$path startingFrom=$startingFrom '
         'forceReload=$forceReload');
     var baseRoute;
@@ -754,9 +754,9 @@ class Router {
   /// Navigates to a given relative route path, and parameters.
   Future<bool> go(String routePath, Map parameters,
       {Route startingFrom,
-      bool replace: false,
+      bool replace = false,
       Map queryParameters,
-      bool forceReload: false}) {
+      bool forceReload = false}) {
     RouteImpl baseRoute = startingFrom == null ? root : _dehandle(startingFrom);
     var routeToGo = _findRoute(baseRoute, routePath);
     var newTail = baseRoute._getTailUrl(routeToGo, parameters) +
@@ -850,7 +850,7 @@ class Router {
    * Listens for window history events and invokes the router. On older
    * browsers the hashChange event is used instead.
    */
-  void listen({bool ignoreClick: false, Element appRoot}) {
+  void listen({bool ignoreClick = false, Element appRoot}) {
     _logger.finest('listen ignoreClick=$ignoreClick');
     if (_listen) {
       throw new StateError('listen can only be called once');

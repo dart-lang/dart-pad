@@ -20,8 +20,8 @@ class DartservicesApi {
   final commons.ApiRequester _requester;
 
   DartservicesApi(http.Client client,
-      {core.String rootUrl: "/",
-      core.String servicePath: "api/dartservices/v1/"})
+      {core.String rootUrl = "/",
+      core.String servicePath = "api/dartservices/v1/"})
       : _requester =
             new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 

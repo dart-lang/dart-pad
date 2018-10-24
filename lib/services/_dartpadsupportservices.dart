@@ -20,8 +20,8 @@ class P_dartpadsupportservicesApi {
   final commons.ApiRequester _requester;
 
   P_dartpadsupportservicesApi(http.Client client,
-      {core.String rootUrl: "/",
-      core.String servicePath: "api/_dartpadsupportservices/v1/"})
+      {core.String rootUrl = "/",
+      core.String servicePath = "api/_dartpadsupportservices/v1/"})
       : _requester =
             new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 

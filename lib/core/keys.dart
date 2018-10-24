@@ -30,7 +30,7 @@ class Keys {
    *     `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
    */
   void bind(List<String> keys, Function onInvoke, String description,
-      {bool hidden: false}) {
+      {bool hidden = false}) {
     keys.forEach((String key) =>
         _bindings[key] = new Action(onInvoke, description, hidden: hidden));
   }
@@ -85,7 +85,7 @@ class Action {
   final String description;
   final bool hidden;
 
-  Action(this.function, this.description, {this.hidden: false});
+  Action(this.function, this.description, {this.hidden = false});
 
   dynamic call() => function();
 
