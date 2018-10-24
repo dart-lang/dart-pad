@@ -109,7 +109,7 @@ class PolymerElement extends WebElement {
       PolymerElement('span', text: text);
 
   JsObject _proxy;
-  Map<String, Stream> _eventStreams = {};
+  final _eventStreams = <String, Stream>{};
 
   PolymerElement(String tag, {String text}) : super(tag, text: text);
   PolymerElement.from(HtmlElement element) : super.from(element);

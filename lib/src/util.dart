@@ -56,7 +56,7 @@ class CancellationException implements Exception {
 }
 
 class CancellableCompleter<T> implements Completer {
-  Completer<T> _completer = Completer<T>();
+  final _completer = Completer<T>();
   bool _cancelled = false;
 
   CancellableCompleter();

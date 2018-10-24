@@ -64,7 +64,7 @@ void defineTests() {
 }
 
 class TestProperty implements Property {
-  StreamController _controller = StreamController(sync: true);
+  final _controller = StreamController(sync: true);
   Object value;
   int changedCount = 0;
 

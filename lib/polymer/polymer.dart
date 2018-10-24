@@ -11,7 +11,7 @@ import 'dart:js';
 /// Access to basic polymer functionality.
 class Polymer {
   //static JsObject _polymer = context['Polymer'];
-  static JsObject _htmlImports = context['HTMLImports'];
+  static final JsObject _htmlImports = context['HTMLImports'];
 
   /// Return a `Future` that completes when Polymer element registration is
   /// finished.

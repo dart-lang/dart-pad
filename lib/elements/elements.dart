@@ -102,7 +102,7 @@ class DButton extends DElement {
 }
 
 class DSplitter extends DElement {
-  StreamController<num> _controller = StreamController.broadcast();
+  final _controller = StreamController<num>.broadcast();
 
   final Function onDragStart;
   final Function onDragEnd;
@@ -416,7 +416,7 @@ class DToast extends DElement {
 }
 
 class GlassPane extends DElement {
-  StreamController _controller = StreamController.broadcast();
+  final _controller = StreamController.broadcast();
 
   GlassPane() : super.tag('div') {
     element.classes.toggle('glass-pane', true);
@@ -524,19 +524,9 @@ class _ElementTextProperty implements Property {
 }
 
 class TabController {
-  StreamController<TabElement> _selectedTabController =
-      StreamController.broadcast();
+  final _selectedTabController = StreamController<TabElement>.broadcast();
 
-  List<TabElement> tabs;
-
-  TabController({this.tabs}) {
-    tabs ??= [];
-    tabs.forEach((tab) => registerTab(tab));
-
-    if (tabs.isNotEmpty && selectedTab == null) {
-      selectTab(tabs.first.name);
-    }
-  }
+  final tabs = <TabElement>[];
 
   void registerTab(TabElement tab) {
     tabs.add(tab);

@@ -37,7 +37,7 @@ Playground get playground => _playground;
 
 Playground _playground;
 
-Logger _logger = Logger('dartpad');
+final _logger = Logger('dartpad');
 
 void init() {
   _playground = Playground();
@@ -63,7 +63,7 @@ class Playground implements GistContainer, GistController {
   PlaygroundContext _context;
   Future _analysisRequest;
   MutableGist editableGist = MutableGist(Gist());
-  GistStorage _gistStorage = GistStorage();
+  final _gistStorage = GistStorage();
   DContentEditable titleEditable;
 
   TabController sourceTabController;
@@ -729,8 +729,8 @@ class Playground implements GistContainer, GistController {
     _outputpanel.text = '';
   }
 
-  List<SpanElement> _bufferedOutput = [];
-  Duration _outputDuration = Duration(milliseconds: 32);
+  final _bufferedOutput = <SpanElement>[];
+  final _outputDuration = Duration(milliseconds: 32);
 
   void _showOuput(String message, {bool error = false}) {
     consoleBusyLight.flash();
@@ -852,19 +852,19 @@ class Playground implements GistContainer, GistController {
 class PlaygroundContext extends Context {
   final Editor editor;
 
-  StreamController<String> _modeController = StreamController.broadcast();
+  final _modeController = StreamController<String>.broadcast();
 
   Document _dartDoc;
   Document _htmlDoc;
   Document _cssDoc;
 
-  StreamController _cssDirtyController = StreamController.broadcast();
-  StreamController _dartDirtyController = StreamController.broadcast();
-  StreamController _htmlDirtyController = StreamController.broadcast();
+  final _cssDirtyController = StreamController.broadcast();
+  final _dartDirtyController = StreamController.broadcast();
+  final _htmlDirtyController = StreamController.broadcast();
 
-  StreamController _cssReconcileController = StreamController.broadcast();
-  StreamController _dartReconcileController = StreamController.broadcast();
-  StreamController _htmlReconcileController = StreamController.broadcast();
+  final _cssReconcileController = StreamController.broadcast();
+  final _dartReconcileController = StreamController.broadcast();
+  final _htmlReconcileController = StreamController.broadcast();
 
   PlaygroundContext(this.editor) {
     editor.mode = 'dart';

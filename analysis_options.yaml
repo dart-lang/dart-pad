@@ -51,7 +51,7 @@ linter:
   - prefer_conditional_assignment
   - prefer_contains
   - prefer_equal_for_default_values
-  #- prefer_final_fields
+  - prefer_final_fields
   - prefer_initializing_formals
   - prefer_interpolation_to_compose_strings
   - prefer_is_empty

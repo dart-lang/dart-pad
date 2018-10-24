@@ -163,7 +163,7 @@ class CodeMirrorFactory extends EditorFactory {
 
 class _CodeMirrorEditor extends Editor {
   // Map from JsObject codemirror instances to existing dartpad wrappers.
-  static Map<dynamic, _CodeMirrorEditor> _instances = {};
+  static final Map _instances = <dynamic, _CodeMirrorEditor>{};
 
   final CodeMirror cm;
 

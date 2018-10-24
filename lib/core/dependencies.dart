@@ -49,7 +49,7 @@ class Dependencies {
     return deps != null ? deps : _global;
   }
 
-  Map<Type, dynamic> _instances = {};
+  final _instances = <Type, dynamic>{};
 
   Dependencies();
 

@@ -14,7 +14,7 @@ final bool _isMac =
 
 /// Map key events into commands.
 class Keys {
-  Map<String, Action> _bindings = {};
+  final _bindings = <String, Action>{};
   StreamSubscription _sub;
   bool _loggedException = false;
 

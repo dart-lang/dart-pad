@@ -13,13 +13,12 @@ import 'gists.dart';
 /// state, and can have dirty state listeners.
 class MutableGist implements PropertyOwner {
   Gist _backingGist;
-  Map<String, String> _localValues = <String, String>{};
+  final _localValues = <String, String>{};
 
-  Map<String, MutableGistFile> _files = {};
+  final _files = <String, MutableGistFile>{};
 
-  StreamController<bool> _dirtyChangedController =
-      StreamController<bool>.broadcast();
-  StreamController _changedController = StreamController.broadcast();
+  final _dirtyChangedController = StreamController<bool>.broadcast();
+  final _changedController = StreamController.broadcast();
 
   MutableGist(this._backingGist);
 
@@ -140,7 +139,7 @@ class _MutableGistProperty implements Property {
   final MutableGist mutableGist;
   final String name;
 
-  StreamController _changedController = StreamController.broadcast(sync: true);
+  final _changedController = StreamController.broadcast(sync: true);
   dynamic _value;
 
   _MutableGistProperty(this.mutableGist, this.name) {

@@ -18,7 +18,7 @@ abstract class Module {
 /// Maintains a list of active modules.
 class ModuleManager {
   List<Module> modules = [];
-  List<Module> _inited = [];
+  final _inited = <Module>[];
 
   bool _started = false;
 

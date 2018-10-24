@@ -798,19 +798,19 @@ class PlaygroundMobile {
 class PlaygroundContext extends Context {
   final Editor editor;
 
-  StreamController<String> _modeController = StreamController.broadcast();
+  final _modeController = StreamController<String>.broadcast();
 
   Document _dartDoc;
   Document _htmlDoc;
   Document _cssDoc;
 
-  StreamController _cssDirtyController = StreamController.broadcast();
-  StreamController _dartDirtyController = StreamController.broadcast();
-  StreamController _htmlDirtyController = StreamController.broadcast();
+  final _cssDirtyController = StreamController.broadcast();
+  final _dartDirtyController = StreamController.broadcast();
+  final _htmlDirtyController = StreamController.broadcast();
 
-  StreamController _cssReconcileController = StreamController.broadcast();
-  StreamController _dartReconcileController = StreamController.broadcast();
-  StreamController _htmlReconcileController = StreamController.broadcast();
+  final _cssReconcileController = StreamController.broadcast();
+  final _dartReconcileController = StreamController.broadcast();
+  final _htmlReconcileController = StreamController.broadcast();
 
   PlaygroundContext(this.editor) {
     editor.mode = 'dart';

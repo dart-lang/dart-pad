@@ -76,7 +76,7 @@ typedef void GistFilterHook(Gist gist);
 class GistLoader {
   static final String _apiUrl = 'https://api.github.com/gists';
 
-  static GistFilterHook _defaultLoadHook = (Gist gist) {
+  static final GistFilterHook _defaultLoadHook = (Gist gist) {
     // Update files based on our preferred file names.
     if (gist.getFile('body.html') != null &&
         gist.getFile('index.html') == null) {
@@ -103,7 +103,7 @@ class GistLoader {
     }
   };
 
-  static GistFilterHook _defaultSaveHook = (Gist gist) {
+  static final GistFilterHook _defaultSaveHook = (Gist gist) {
     // Create a full html file on save.
     bool hasStyles = gist.getFile('styles.css') != null;
     String styleRef =

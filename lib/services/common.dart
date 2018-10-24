@@ -19,7 +19,7 @@ class StringTextProvider {
 }
 
 class Lines {
-  List<int> _starts = [];
+  final _starts = <int>[];
 
   Lines(String source) {
     List<int> units = source.codeUnits;
