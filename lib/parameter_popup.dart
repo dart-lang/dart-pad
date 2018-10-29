@@ -15,7 +15,7 @@ import 'services/common.dart';
 import 'services/dartservices.dart';
 
 class ParameterPopup {
-  static const List parKeys = const [
+  static const List parKeys = [
     KeyCode.COMMA,
     KeyCode.NINE,
     KeyCode.ZERO,
@@ -83,7 +83,7 @@ class ParameterPopup {
     offset = openingParenIndex - 1;
 
     // We request documentation info of what is before the parenthesis.
-    SourceRequest input = new SourceRequest()
+    SourceRequest input = SourceRequest()
       ..source = source
       ..offset = offset;
 
@@ -98,7 +98,7 @@ class ParameterPopup {
 
       List parameterInfo = result.info["parameters"] as List;
       String outputString = "";
-      if (parameterInfo.length == 0) {
+      if (parameterInfo.isEmpty) {
         outputString += "<code>&lt;no parameters&gt;</code>";
       } else if (parameterInfo.length < parameterIndex + 1) {
         outputString += "<code>too many parameters listed</code>";
@@ -144,7 +144,7 @@ class ParameterPopup {
     Point methodCoords = editor.getCursorCoords(position: methodPosition);
     int heightOfMethod = (methodCoords.y - lineHeight - 5).round();
 
-    var parameterPopup;
+    DivElement parameterPopup;
     if (parPopupActive) {
       var parameterHint = querySelector(".parameter-hint");
       parameterHint.innerHtml = string;
@@ -156,19 +156,20 @@ class ParameterPopup {
 
       parameterPopup = querySelector(".parameter-hints")
         ..style.top = "${heightOfMethod}px";
-      var oldLeft = parameterPopup.style.left;
-      oldLeft = int.parse(oldLeft.substring(0, oldLeft.indexOf("px")));
+      var oldLeftString = parameterPopup.style.left;
+      var oldLeft =
+          int.parse(oldLeftString.substring(0, oldLeftString.indexOf("px")));
       if ((newLeft - oldLeft).abs() > 50) {
         parameterPopup.style.left = "${newLeft}px";
       }
     } else {
-      var parameterHint = new SpanElement()
+      var parameterHint = SpanElement()
         ..innerHtml = string
         ..classes.add("parameter-hint");
       int left = math
           .max(cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22)
           .round();
-      parameterPopup = new DivElement()
+      parameterPopup = DivElement()
         ..classes.add("parameter-hints")
         ..style.left = "${left}px"
         ..style.top = "${heightOfMethod}px"

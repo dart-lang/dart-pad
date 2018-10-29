@@ -13,13 +13,13 @@ export 'execution.dart';
 
 class ExecutionServiceIFrame implements ExecutionService {
   final StreamController<String> _stdoutController =
-      new StreamController<String>.broadcast();
+      StreamController<String>.broadcast();
   final StreamController<String> _stderrController =
-      new StreamController<String>.broadcast();
+      StreamController<String>.broadcast();
 
   IFrameElement _frame;
   String _frameSrc;
-  Completer _readyCompleter = new Completer();
+  Completer _readyCompleter = Completer();
 
   ExecutionServiceIFrame(this._frame) {
     _frameSrc = _frame.src;
@@ -103,13 +103,13 @@ window.onerror = function(message, url, lineNumber, colno, error) {
     Map m = {'command': command};
     m.addAll(params);
     frame.contentWindow.postMessage(m, '*');
-    return new Future.value();
+    return Future.value();
   }
 
   /// Destroy and re-load the iframe.
   Future _reset() {
     if (frame.parent != null) {
-      _readyCompleter = new Completer();
+      _readyCompleter = Completer();
 
       IFrameElement clone = _frame.clone(false);
       clone.src = _frameSrc;
@@ -121,14 +121,13 @@ window.onerror = function(message, url, lineNumber, colno, error) {
       _frame = clone;
     }
 
-    return _readyCompleter.future.timeout(new Duration(seconds: 1),
-        onTimeout: () {
+    return _readyCompleter.future.timeout(Duration(seconds: 1), onTimeout: () {
       if (!_readyCompleter.isCompleted) _readyCompleter.complete();
     });
   }
 
   void _initListener() {
-    context['dartMessageListener'] = new JsFunction.withThis((_this, data) {
+    context['dartMessageListener'] = JsFunction.withThis((_this, data) {
       String type = data['type'];
 
       if (type == 'stderr') {

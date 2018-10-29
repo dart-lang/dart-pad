@@ -16,12 +16,12 @@ class NewPadAction {
   final GistController _gistController;
 
   NewPadAction(Element element, this._gistController)
-      : _button = new DButton(element) {
+      : _button = DButton(element) {
     _button.onClick.listen((e) => _handleButtonPress());
   }
 
   void _handleButtonPress() {
-    new OkCancelDialog('Create New Pad', 'Discard changes to the current pad?',
+    OkCancelDialog('Create New Pad', 'Discard changes to the current pad?',
             _gistController.createNewGist,
             okText: 'Discard')
         .show();

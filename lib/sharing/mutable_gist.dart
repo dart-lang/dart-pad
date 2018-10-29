@@ -13,13 +13,12 @@ import 'gists.dart';
 /// state, and can have dirty state listeners.
 class MutableGist implements PropertyOwner {
   Gist _backingGist;
-  Map<String, String> _localValues = <String, String>{};
+  final _localValues = <String, String>{};
 
-  Map<String, MutableGistFile> _files = {};
+  final _files = <String, MutableGistFile>{};
 
-  StreamController<bool> _dirtyChangedController =
-      new StreamController<bool>.broadcast();
-  StreamController _changedController = new StreamController.broadcast();
+  final _dirtyChangedController = StreamController<bool>.broadcast();
+  final _changedController = StreamController.broadcast();
 
   MutableGist(this._backingGist);
 
@@ -41,7 +40,7 @@ class MutableGist implements PropertyOwner {
 
   MutableGistFile getGistFile(String name) {
     if (_files[name] == null) {
-      _files[name] = new MutableGistFile._(this, name);
+      _files[name] = MutableGistFile._(this, name);
     }
     return _files[name];
   }
@@ -53,7 +52,7 @@ class MutableGist implements PropertyOwner {
 
   Gist get backingGist => _backingGist;
 
-  void setBackingGist(Gist newGist, {bool wipeState: true}) {
+  void setBackingGist(Gist newGist, {bool wipeState = true}) {
     bool wasDirty = dirty;
     if (wipeState) _localValues.clear();
     _backingGist = newGist;
@@ -66,7 +65,7 @@ class MutableGist implements PropertyOwner {
   Stream get onChanged => _changedController.stream;
 
   List<String> get propertyNames {
-    Set<String> set = new Set<String>();
+    Set<String> set = Set<String>();
     set.add('id');
     set.add('description');
     set.add('html_url');
@@ -76,13 +75,13 @@ class MutableGist implements PropertyOwner {
     return set.toList();
   }
 
-  Property property(String name) => new _MutableGistProperty(this, name);
+  Property property(String name) => _MutableGistProperty(this, name);
 
   Gist createGist({String summary}) {
-    Gist gist = new Gist(description: description, id: id, public: public);
+    Gist gist = Gist(description: description, id: id, public: public);
     gist.html_url = html_url;
     for (MutableGistFile file in getFiles()) {
-      gist.files.add(new GistFile(name: file.name, content: file.content));
+      gist.files.add(GistFile(name: file.name, content: file.content));
     }
     if (summary != null) gist.summary = summary;
     return gist;
@@ -140,8 +139,7 @@ class _MutableGistProperty implements Property {
   final MutableGist mutableGist;
   final String name;
 
-  StreamController _changedController =
-      new StreamController.broadcast(sync: true);
+  final _changedController = StreamController.broadcast(sync: true);
   dynamic _value;
 
   _MutableGistProperty(this.mutableGist, this.name) {

@@ -14,8 +14,8 @@ void main() => defineTests();
 void defineTests() {
   group('bind', () {
     test('get stream changes', () {
-      StreamController fromController = new StreamController.broadcast();
-      TestProperty to = new TestProperty();
+      StreamController fromController = StreamController.broadcast();
+      TestProperty to = TestProperty();
       bind(fromController.stream, to);
       fromController.add('foo');
       return to.onChanged.first.then((_) {
@@ -24,8 +24,8 @@ void defineTests() {
     });
 
     test('get property changes', () {
-      TestProperty from = new TestProperty('foo');
-      TestProperty to = new TestProperty();
+      TestProperty from = TestProperty('foo');
+      TestProperty to = TestProperty();
       bind(from, to).flush();
       return to.onChanged.first.then((_) {
         expect(to.value, from.value);
@@ -33,16 +33,16 @@ void defineTests() {
     });
 
     test('target functions', () {
-      TestProperty from = new TestProperty('foo');
-      var val;
+      TestProperty from = TestProperty('foo');
+      Object val;
       var to = (_val) => val = _val;
       bind(from, to).flush();
       expect(val, from.value);
     });
 
     test('target properties', () {
-      TestProperty from = new TestProperty('foo');
-      TestProperty to = new TestProperty();
+      TestProperty from = TestProperty('foo');
+      TestProperty to = TestProperty();
       bind(from, to).flush();
       return to.onChanged.first.then((_) {
         expect(to.value, from.value);
@@ -50,13 +50,13 @@ void defineTests() {
     });
 
     test('can cancel', () {
-      TestProperty from = new TestProperty();
-      TestProperty to = new TestProperty();
+      TestProperty from = TestProperty();
+      TestProperty to = TestProperty();
       Binding binding = bind(from, to);
       from.set('foo');
       binding.cancel();
       from.set('bar');
-      return new Future.delayed(Duration.zero, () {
+      return Future.delayed(Duration.zero, () {
         expect(to.value, 'foo');
       });
     });
@@ -64,8 +64,8 @@ void defineTests() {
 }
 
 class TestProperty implements Property {
-  StreamController _controller = new StreamController(sync: true);
-  var value;
+  final _controller = StreamController(sync: true);
+  Object value;
   int changedCount = 0;
 
   TestProperty([this.value]);

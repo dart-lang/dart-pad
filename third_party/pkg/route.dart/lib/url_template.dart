@@ -2,14 +2,12 @@ library url_template;
 
 import 'url_matcher.dart';
 
-final _specialChars = new RegExp(r'[\\()$^.+[\]{}|]');
+final _specialChars = RegExp(r'[\\()$^.+[\]{}|]');
 final _paramPattern = r'([^/?]+)';
 final _paramWithSlashesPattern = r'([^?]+)';
 
-/**
- * A reversible URL template class that can match/parse and reverse URL
- * templates like: /foo/:bar/baz
- */
+/// A reversible URL template class that can match/parse and reverse URL
+/// templates like: /foo/:bar/baz
 class UrlTemplate implements UrlMatcher {
   // Parameter names of the template ie  `['bar']` for `/foo/:bar/baz`
   List<String> _fields;
@@ -17,16 +15,14 @@ class UrlTemplate implements UrlMatcher {
   // The compiled template
   RegExp _pattern;
 
-  /**
-   * The template exploded as parts
-   * - even indexes contain text
-   * - odd indexes contain closures that return the parameter value
-   *
-   * `/foo/:bar/baz` produces:
-   * - [0] = `/foo/`
-   * - [1] = `(p) => p['bar']`
-   * - [2] = `/baz`
-   */
+  /// The template exploded as parts
+  /// - even indexes contain text
+  /// - odd indexes contain closures that return the parameter value
+  ///
+  /// `/foo/:bar/baz` produces:
+  /// - [0] = `/foo/`
+  /// - [1] = `(p) => p['bar']`
+  /// - [2] = `/baz`
   List _chunks;
 
   String toString() => 'UrlTemplate($_pattern)';
@@ -69,8 +65,8 @@ class UrlTemplate implements UrlMatcher {
     template = template.replaceAllMapped(_specialChars, (m) => r'\' + m[0]);
     _fields = <String>[];
     _chunks = [];
-    var exp = new RegExp(r':(\w+\*?)');
-    StringBuffer sb = new StringBuffer('^');
+    var exp = RegExp(r':(\w+\*?)');
+    StringBuffer sb = StringBuffer('^');
     int start = 0;
     exp.allMatches(template).forEach((Match m) {
       var paramName = m[1];
@@ -91,7 +87,7 @@ class UrlTemplate implements UrlMatcher {
       sb.write(txt);
       _chunks.add(txt);
     }
-    _pattern = new RegExp(sb.toString());
+    _pattern = RegExp(sb.toString());
   }
 
   UrlMatch match(String url) {
@@ -99,15 +95,15 @@ class UrlTemplate implements UrlMatcher {
     if (match == null) {
       return null;
     }
-    var parameters = new Map();
+    var parameters = Map();
     for (var i = 0; i < match.groupCount; i++) {
       parameters[_fields[i]] = match[i + 1];
     }
     var tail = url.substring(match[0].length);
-    return new UrlMatch(match[0], tail, parameters);
+    return UrlMatch(match[0], tail, parameters);
   }
 
-  String reverse({Map parameters, String tail: ''}) {
+  String reverse({Map parameters, String tail = ''}) {
     if (parameters == null) {
       parameters = const {};
     }

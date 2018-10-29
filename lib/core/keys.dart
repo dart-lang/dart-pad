@@ -12,11 +12,9 @@ import '../src/util.dart';
 final bool _isMac =
     window.navigator.appVersion.toLowerCase().contains('macintosh');
 
-/**
- * Map key events into commands.
- */
+/// Map key events into commands.
 class Keys {
-  Map<String, Action> _bindings = {};
+  final _bindings = <String, Action>{};
   StreamSubscription _sub;
   bool _loggedException = false;
 
@@ -24,15 +22,13 @@ class Keys {
     _sub = document.onKeyDown.listen(_handleKeyEvent);
   }
 
-  /**
-   * Bind a list of keys to an action. The key is a string, with a specific
-   * format. Some examples of this format:
-   *     `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
-   */
+  /// Bind a list of keys to an action. The key is a string, with a specific
+  /// format. Some examples of this format:
+  ///     `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
   void bind(List<String> keys, Function onInvoke, String description,
-      {bool hidden: false}) {
+      {bool hidden = false}) {
     keys.forEach((String key) =>
-        _bindings[key] = new Action(onInvoke, description, hidden: hidden));
+        _bindings[key] = Action(onInvoke, description, hidden: hidden));
   }
 
   void dispose() {
@@ -75,7 +71,7 @@ class Keys {
   }
 
   Map<Action, Set<String>> get inverseBindings {
-    return new Map.fromIterable(_bindings.values.toSet(),
+    return Map.fromIterable(_bindings.values.toSet(),
         value: (v) => _bindings.keys.where((k) => _bindings[k] == v).toSet());
   }
 }
@@ -85,7 +81,7 @@ class Action {
   final String description;
   final bool hidden;
 
-  Action(this.function, this.description, {this.hidden: false});
+  Action(this.function, this.description, {this.hidden = false});
 
   dynamic call() => function();
 
@@ -97,11 +93,9 @@ class Action {
   int get hashCode => description.hashCode;
 }
 
-/**
- * Convert [event] into a string (e.g., `ctrl-s`).
- */
+/// Convert [event] into a string (e.g., `ctrl-s`).
 String printKeyEvent(KeyboardEvent event) {
-  StringBuffer buf = new StringBuffer();
+  StringBuffer buf = StringBuffer();
 
   // shift ctrl alt
   if (event.shiftKey) buf.write('shift-');

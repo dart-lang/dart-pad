@@ -6,12 +6,12 @@ import 'package:route_hierarchical/link_matcher.dart';
 
 main() {
   group('DefaultRouterLinkMatcher', () {
-    RouterLinkMatcher linkMatcher = new DefaultRouterLinkMatcher();
+    RouterLinkMatcher linkMatcher = DefaultRouterLinkMatcher();
 
     test(
         'should not match anchor element which has target set to _blank, _top, _parent or _self',
         () {
-      AnchorElement anchor = new AnchorElement();
+      AnchorElement anchor = AnchorElement();
 
       anchor.target = '_blank';
       expect(linkMatcher.matches(anchor), isFalse);

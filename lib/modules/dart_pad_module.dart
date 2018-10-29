@@ -14,12 +14,12 @@ import '../elements/state.dart';
 class DartPadModule extends Module {
   Future init() {
     if (Dependencies.instance == null) {
-      Dependencies.setGlobalInstance(new Dependencies());
+      Dependencies.setGlobalInstance(Dependencies());
     }
 
-    deps[Keys] = new Keys();
-    deps[State] = new HtmlState('dart_pad');
+    deps[Keys] = Keys();
+    deps[State] = HtmlState('dart_pad');
 
-    return new Future.value();
+    return Future.value();
   }
 }

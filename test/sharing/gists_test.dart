@@ -105,7 +105,7 @@ void defineTests() {
     });
 
     test('clone', () {
-      Gist gist = new Gist(id: '2342jh2jh3g4', description: 'test gist');
+      Gist gist = Gist(id: '2342jh2jh3g4', description: 'test gist');
       Gist clone = gist.clone();
       expect(clone.id, gist.id);
       expect(clone.description, gist.description);
@@ -114,7 +114,7 @@ void defineTests() {
 
   group('GistStorage', () {
     test('store', () {
-      GistStorage storage = new GistStorage();
+      GistStorage storage = GistStorage();
       storage.setStoredGist(createSampleGist());
       expect(storage.hasStoredGist, true);
       expect(storage.getStoredGist(), isNotNull);
@@ -122,7 +122,7 @@ void defineTests() {
     });
 
     test('clear', () {
-      GistStorage storage = new GistStorage();
+      GistStorage storage = GistStorage();
       storage.setStoredGist(createSampleGist());
       expect(storage.hasStoredGist, true);
       storage.clearStoredGist();

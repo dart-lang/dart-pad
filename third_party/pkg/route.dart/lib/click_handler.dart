@@ -7,21 +7,17 @@ import 'client.dart';
 
 typedef String _HashNormalizer(String s);
 
-/**
- * WindowClickHandler can be used as a hook into [Router] to
- * modify behavior right after user clicks on an element, and
- * before the URL in the browser changes.
- */
+/// WindowClickHandler can be used as a hook into [Router] to
+/// modify behavior right after user clicks on an element, and
+/// before the URL in the browser changes.
 typedef WindowClickHandler(Event e);
 
-/**
- * This is default behavior used by [Router] to handle clicks on elements.
- *
- * The default behavior finds first anchor element. It then uses
- * [RouteLinkMatcher] to decided if it should handle the link or not.
- * See [RouterLinkMatcher] and [DefaultRouterLinkMatcher] for details
- * on deciding if a link should be handled or not.
- */
+/// This is default behavior used by [Router] to handle clicks on elements.
+///
+/// The default behavior finds first anchor element. It then uses
+/// [RouteLinkMatcher] to decided if it should handle the link or not.
+/// See [RouterLinkMatcher] and [DefaultRouterLinkMatcher] for details
+/// on deciding if a link should be handled or not.
 class DefaultWindowClickHandler {
   final RouterLinkMatcher _linkMatcher;
   final Router _router;

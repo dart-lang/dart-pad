@@ -11,18 +11,14 @@ import 'dart:async';
 export 'dart:async' show Future;
 
 abstract class Module {
-  /**
-   * TODO:
-   */
+  /// TODO:
   Future init();
 }
 
-/**
- * Maintains a list of active modules.
- */
+/// Maintains a list of active modules.
 class ModuleManager {
   List<Module> modules = [];
-  List<Module> _inited = [];
+  final _inited = <Module>[];
 
   bool _started = false;
 
@@ -39,7 +35,7 @@ class ModuleManager {
   bool get started => _started;
 
   Future start() {
-    if (_started) return new Future.value();
+    if (_started) return Future.value();
 
     _started = true;
 

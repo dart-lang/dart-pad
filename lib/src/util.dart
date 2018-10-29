@@ -7,9 +7,7 @@ library dart_pad.util;
 import 'dart:async';
 import 'dart:html';
 
-/**
- * Return whether we are running on a mobile device.
- */
+/// Return whether we are running on a mobile device.
 bool isMobile() {
   final int mobileSize = 610;
 
@@ -19,9 +17,7 @@ bool isMobile() {
   return width <= mobileSize || height <= mobileSize;
 }
 
-/**
- * A [NodeValidator] which allows everything.
- */
+/// A [NodeValidator] which allows everything.
 class PermissiveNodeValidator implements NodeValidator {
   bool allowsElement(Element element) => true;
 
@@ -30,10 +26,8 @@ class PermissiveNodeValidator implements NodeValidator {
   }
 }
 
-/**
- * Text to be displayed to DartPad users. The associated title should be
- * 'About DartPad' (or equivalent).
- */
+/// Text to be displayed to DartPad users. The associated title should be
+/// 'About DartPad' (or equivalent).
 final String privacyText = '''
 DartPad is a free, open-source service to help developers learn about the Dart 
 language and libraries. Source code entered into DartPad may be sent to servers 
@@ -48,9 +42,7 @@ We look forward to your
 Made with &lt;3 by Google.
 ''';
 
-/**
- * Thrown when a cancellation occurs whilst waiting for a result.
- */
+/// Thrown when a cancellation occurs whilst waiting for a result.
 class CancellationException implements Exception {
   final String reason;
 
@@ -64,7 +56,7 @@ class CancellationException implements Exception {
 }
 
 class CancellableCompleter<T> implements Completer {
-  Completer<T> _completer = new Completer<T>();
+  final _completer = Completer<T>();
   bool _cancelled = false;
 
   CancellableCompleter();
@@ -81,9 +73,9 @@ class CancellableCompleter<T> implements Completer {
 
   bool get isCompleted => _completer.isCompleted;
 
-  void cancel({String reason: "cancelled"}) {
+  void cancel({String reason = "cancelled"}) {
     if (!_cancelled) {
-      if (!isCompleted) completeError(new CancellationException(reason));
+      if (!isCompleted) completeError(CancellationException(reason));
       _cancelled = true;
     }
   }
@@ -104,13 +96,13 @@ String capitalize(String s) {
 /// Wait [duration] time after an event to fire on the returned stream, and
 /// reset that time if a new event arrives.
 Stream<T> debounceStream<T>(Stream<T> stream, Duration duration) {
-  StreamController<T> controller = new StreamController<T>.broadcast();
+  StreamController<T> controller = StreamController<T>.broadcast();
 
   Timer timer;
 
   stream.listen((T event) {
     timer?.cancel();
-    timer = new Timer(duration, () {
+    timer = Timer(duration, () {
       controller.add(event);
     });
   });

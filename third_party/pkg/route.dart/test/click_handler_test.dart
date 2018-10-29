@@ -19,16 +19,17 @@ main() {
     StreamController onHashChangeController;
 
     setUp(() {
-      mockWindow = new MockWindow();
-      onHashChangeController = new StreamController<Event>();
+      mockWindow = MockWindow();
+      onHashChangeController = StreamController<Event>();
       when(mockWindow.location.host).thenReturn(window.location.host);
       when(mockWindow.location.hash).thenReturn('');
-      when(mockWindow.onHashChange).thenAnswer((_) => onHashChangeController.stream);
-      router = new MockRouter();
-      root = new DivElement();
+      when(mockWindow.onHashChange)
+          .thenAnswer((_) => onHashChangeController.stream);
+      router = MockRouter();
+      root = DivElement();
       document.body.append(root);
-      linkHandler = new DefaultWindowClickHandler(
-          new DefaultRouterLinkMatcher(),
+      linkHandler = DefaultWindowClickHandler(
+          DefaultRouterLinkMatcher(),
           router,
           true,
           mockWindow,
@@ -41,11 +42,11 @@ main() {
     });
 
     MouseEvent _createMockMouseEvent({String anchorTarget, String anchorHref}) {
-      AnchorElement anchor = new AnchorElement();
+      AnchorElement anchor = AnchorElement();
       if (anchorHref != null) anchor.href = anchorHref;
       if (anchorTarget != null) anchor.target = anchorTarget;
 
-      MockMouseEvent mockMouseEvent = new MockMouseEvent();
+      MockMouseEvent mockMouseEvent = MockMouseEvent();
       when(mockMouseEvent.target).thenReturn(anchor);
       when(mockMouseEvent.path).thenReturn([anchor]);
       return mockMouseEvent;
@@ -84,13 +85,13 @@ main() {
     });
 
     test('should process AnchorElements which has a child', () {
-      Element anchorChild = new DivElement();
+      Element anchorChild = DivElement();
 
-      AnchorElement anchor = new AnchorElement();
+      AnchorElement anchor = AnchorElement();
       anchor.href = '#test';
       anchor.append(anchorChild);
 
-      MockMouseEvent mockMouseEvent = new MockMouseEvent();
+      MockMouseEvent mockMouseEvent = MockMouseEvent();
       when(mockMouseEvent.target).thenReturn(anchorChild);
       when(mockMouseEvent.path).thenReturn([anchorChild, anchor]);
 
@@ -101,29 +102,29 @@ main() {
     });
 
     test('should be called if event triggerd on anchor element', () {
-      AnchorElement anchor = new AnchorElement();
+      AnchorElement anchor = AnchorElement();
       anchor.href = '#test';
       root.append(anchor);
 
-      var router = new Router(
+      var router = Router(
           useFragment: true,
 //          TODO Understand why adding the following line causes failure
 //          clickHandler: expectAsync((e) {}) as WindowClickHandler,
           windowImpl: mockWindow);
       router.listen(appRoot: root);
       // Trigger handle method in linkHandler
-      anchor.dispatchEvent(new MouseEvent('click'));
+      anchor.dispatchEvent(MouseEvent('click'));
     });
 
     test('should be called if event triggerd on child of an anchor element',
         () {
-      Element anchorChild = new DivElement();
-      AnchorElement anchor = new AnchorElement();
+      Element anchorChild = DivElement();
+      AnchorElement anchor = AnchorElement();
       anchor.href = '#test';
       anchor.append(anchorChild);
       root.append(anchor);
 
-      var router = new Router(
+      var router = Router(
           useFragment: true,
 //          TODO Understand why adding the following line causes failure
 //          clickHandler: expectAsync((e) {}) as WindowClickHandler,
@@ -131,7 +132,7 @@ main() {
       router.listen(appRoot: root);
 
       // Trigger handle method in linkHandler
-      anchorChild.dispatchEvent(new MouseEvent('click'));
+      anchorChild.dispatchEvent(MouseEvent('click'));
     });
   });
 }

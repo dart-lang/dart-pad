@@ -20,7 +20,7 @@ import '../services/dartservices.dart';
 class SanitizingBrowserClient extends BrowserClient {
   // The below list of disallowed browser headers is based on list at:
   // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
-  static const List<String> disallowedHeaders = const [
+  static const List<String> disallowedHeaders = [
     'accept-charset',
     'accept-encoding',
     'access-control-request-headers',
@@ -61,17 +61,17 @@ class SanitizingBrowserClient extends BrowserClient {
 
 class DartServicesModule extends Module {
   Future init() {
-    var client = new SanitizingBrowserClient();
-    deps[DartservicesApi] = new DartservicesApi(client, rootUrl: serverURL);
-    return new Future.value();
+    var client = SanitizingBrowserClient();
+    deps[DartservicesApi] = DartservicesApi(client, rootUrl: serverURL);
+    return Future.value();
   }
 }
 
 class DartSupportServicesModule extends Module {
   Future init() {
-    var client = new SanitizingBrowserClient();
+    var client = SanitizingBrowserClient();
     deps[P_dartpadsupportservicesApi] =
-        new P_dartpadsupportservicesApi(client, rootUrl: serverURL);
-    return new Future.value();
+        P_dartpadsupportservicesApi(client, rootUrl: serverURL);
+    return Future.value();
   }
 }

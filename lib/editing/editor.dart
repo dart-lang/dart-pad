@@ -33,18 +33,14 @@ abstract class Editor {
 
   Document get document;
 
-  /**
-   * Runs the command with the given name on the editor. Only implemented for
-   * codemirror and comid; returns `null` for ace editor.
-   */
+  /// Runs the command with the given name on the editor. Only implemented for
+  /// codemirror and comid; returns `null` for ace editor.
   void execCommand(String name);
 
-  void showCompletions({bool autoInvoked: false, bool onlyShowFixes: false});
+  void showCompletions({bool autoInvoked = false, bool onlyShowFixes = false});
 
-  /**
-   * Checks if the completion popup is displayed. Only implemented for
-   * codemirror; returns `null` for ace editor and comid.
-   */
+  /// Checks if the completion popup is displayed. Only implemented for
+  /// codemirror; returns `null` for ace editor and comid.
   bool get completionActive;
 
   String get mode;
@@ -53,20 +49,16 @@ abstract class Editor {
   String get theme;
   set theme(String str);
 
-  /**
-   * Returns the cursor coordinates in pixels. cursorCoords.x corresponds to
-   * left and cursorCoords.y corresponds to top. Only implemented for
-   * codemirror, returns `null` for ace editor and comid.
-   */
+  /// Returns the cursor coordinates in pixels. cursorCoords.x corresponds to
+  /// left and cursorCoords.y corresponds to top. Only implemented for
+  /// codemirror, returns `null` for ace editor and comid.
   Point getCursorCoords({Position position});
 
   bool get hasFocus;
 
-  /**
-   * Fired when a mouse is clicked. You can preventDefault the event to signal
-   * that the editor should do no further handling.  Only implemented for
-   * codemirror, returns `null` for ace editor and comid.
-   */
+  /// Fired when a mouse is clicked. You can preventDefault the event to signal
+  /// that the editor should do no further handling.  Only implemented for
+  /// codemirror, returns `null` for ace editor and comid.
   Stream<html.MouseEvent> get onMouseDown;
 
   void resize();
@@ -151,7 +143,8 @@ class Position {
 }
 
 abstract class CodeCompleter {
-  Future<CompletionResult> complete(Editor editor, {bool onlyShowFixes: false});
+  Future<CompletionResult> complete(Editor editor,
+      {bool onlyShowFixes = false});
 }
 
 class CompletionResult {

@@ -7,20 +7,16 @@ library base;
 import 'dart:async';
 import 'dart:html';
 
-/**
- * Finds the first descendant element of this document with the given id.
- */
+/// Finds the first descendant element of this document with the given id.
 Element queryId(String id) => querySelector('#${id}');
 
-/**
- * Finds the first descendant element of this document that matches the specified group of selectors.
- */
+/// Finds the first descendant element of this document that matches the specified group of selectors.
 Element $(String selectors) => querySelector(selectors);
 
 class WebElement {
   final Element element;
 
-  WebElement(String tag, {String text}) : element = new Element.tag(tag) {
+  WebElement(String tag, {String text}) : element = Element.tag(tag) {
     if (text != null) element.text = text;
   }
 
@@ -34,7 +30,7 @@ class WebElement {
   bool hasAttribute(String name) => element.attributes.containsKey(name);
 
   void toggleAttribute(String name, [bool value]) {
-    if (value == null) value = !element.attributes.containsKey(name);
+    value ??= !element.attributes.containsKey(name);
 
     if (value) {
       setAttribute(name);
@@ -44,7 +40,7 @@ class WebElement {
   }
 
   void clickAction(Function f) {
-    this.onClick.listen((e) {
+    onClick.listen((e) {
       e.stopPropagation();
       e.stopImmediatePropagation();
       f();
@@ -60,7 +56,7 @@ class WebElement {
 
   void clazz(String _class) {
     if (_class.contains(' ')) {
-      throw new ArgumentError('spaces not allowed in class names');
+      throw ArgumentError('spaces not allowed in class names');
     }
     element.classes.add(_class);
   }
@@ -69,17 +65,15 @@ class WebElement {
     element.text = value;
   }
 
-  /**
-   * Add the given child to this element's list of children. [child] must be
-   * either a `WebElement` or an `Element`.
-   */
+  /// Add the given child to this element's list of children. [child] must be
+  /// either a `WebElement` or an `Element`.
   void add(dynamic child) {
     if (child is WebElement) {
       element.children.add(child.element);
     } else if (child is Element) {
       element.children.add(child);
     } else {
-      throw new ArgumentError('child must be a WebElement or an Element');
+      throw ArgumentError('child must be a WebElement or an Element');
     }
   }
 

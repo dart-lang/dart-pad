@@ -20,7 +20,7 @@ import 'url_template.dart';
 
 part 'route_handle.dart';
 
-final _logger = new Logger('route');
+final _logger = Logger('route');
 const _PATH_SEPARATOR = '.';
 
 typedef void RoutePreEnterEventHandler(RoutePreEnterEvent event);
@@ -28,148 +28,112 @@ typedef void RouteEnterEventHandler(RouteEnterEvent event);
 typedef void RoutePreLeaveEventHandler(RoutePreLeaveEvent event);
 typedef void RouteLeaveEventHandler(RouteLeaveEvent event);
 
-/**
- * [Route] represents a node in the route tree.
- */
+/// [Route] represents a node in the route tree.
 abstract class Route {
-  /**
-   * Name of the route. Used when querying routes.
-   */
+  /// Name of the route. Used when querying routes.
   String get name;
 
-  /**
-   * A path fragment [UrlMatcher] for this route.
-   */
+  /// A path fragment [UrlMatcher] for this route.
   UrlMatcher get path;
 
-  /**
-   * Parent route in the route tree.
-   */
+  /// Parent route in the route tree.
   Route get parent;
 
-  /**
-   * Indicates whether this route is currently active. Root route is always
-   * active.
-   */
+  /// Indicates whether this route is currently active. Root route is always
+  /// active.
   bool get isActive;
 
-  /**
-   * Returns parameters for the currently active route. If the route is not
-   * active the getter returns null.
-   */
+  /// Returns parameters for the currently active route. If the route is not
+  /// active the getter returns null.
   Map get parameters;
 
-  /**
-   * Returns query parameters for the currently active route. If the route is
-   * not active the getter returns null.
-   */
+  /// Returns query parameters for the currently active route. If the route is
+  /// not active the getter returns null.
   Map get queryParameters;
 
-  /**
-   * Whether to trigger the leave event when only the parameters change.
-   */
+  /// Whether to trigger the leave event when only the parameters change.
   bool get dontLeaveOnParamChanges;
 
-  /**
-   * Used to set page title when the route [isActive].
-   */
+  /// Used to set page title when the route [isActive].
   String get pageTitle;
 
-  /**
-   * Returns a stream of [RouteEnterEvent] events. The [RouteEnterEvent] event
-   * is fired when route has already been made active, but before subroutes
-   * are entered. The event starts at the root and propagates from parent to
-   * child routes.
-   */
+  /// Returns a stream of [RouteEnterEvent] events. The [RouteEnterEvent] event
+  /// is fired when route has already been made active, but before subroutes
+  /// are entered. The event starts at the root and propagates from parent to
+  /// child routes.
   @Deprecated("use [onEnter] instead.")
   Stream<RouteEnterEvent> get onRoute;
 
-  /**
-   * Returns a stream of [RoutePreEnterEvent] events. The [RoutePreEnterEvent]
-   * event is fired when the route is matched during the routing, but before
-   * any previous routes were left, or any new routes were entered. The event
-   * starts at the root and propagates from parent to child routes.
-   *
-   * At this stage it's possible to veto entering of the route by calling
-   * [RoutePreEnterEvent.allowEnter] with a [Future] returns a boolean value
-   * indicating whether enter is permitted (true) or not (false).
-   */
+  /// Returns a stream of [RoutePreEnterEvent] events. The [RoutePreEnterEvent]
+  /// event is fired when the route is matched during the routing, but before
+  /// any previous routes were left, or any new routes were entered. The event
+  /// starts at the root and propagates from parent to child routes.
+  ///
+  /// At this stage it's possible to veto entering of the route by calling
+  /// [RoutePreEnterEvent.allowEnter] with a [Future] returns a boolean value
+  /// indicating whether enter is permitted (true) or not (false).
   Stream<RoutePreEnterEvent> get onPreEnter;
 
-  /**
-   * Returns a stream of [RoutePreLeaveEvent] events. The [RoutePreLeaveEvent]
-   * event is fired when the route is NOT matched during the routing, but before
-   * any routes are actually left, or any new routes were entered.
-   *
-   * At this stage it's possible to veto leaving of the route by calling
-   * [RoutePreLeaveEvent.allowLeave] with a [Future] returns a boolean value
-   * indicating whether enter is permitted (true) or not (false).
-   */
+  /// Returns a stream of [RoutePreLeaveEvent] events. The [RoutePreLeaveEvent]
+  /// event is fired when the route is NOT matched during the routing, but before
+  /// any routes are actually left, or any new routes were entered.
+  ///
+  /// At this stage it's possible to veto leaving of the route by calling
+  /// [RoutePreLeaveEvent.allowLeave] with a [Future] returns a boolean value
+  /// indicating whether enter is permitted (true) or not (false).
   Stream<RoutePreLeaveEvent> get onPreLeave;
 
-  /**
-   * Returns a stream of [RouteLeaveEvent] events. The [RouteLeaveEvent]
-   * event is fired when the route is being left. The event starts at the leaf
-   * route and propagates from child to parent routes.
-   */
+  /// Returns a stream of [RouteLeaveEvent] events. The [RouteLeaveEvent]
+  /// event is fired when the route is being left. The event starts at the leaf
+  /// route and propagates from child to parent routes.
   Stream<RouteLeaveEvent> get onLeave;
 
-  /**
-   * Returns a stream of [RouteEnterEvent] events. The [RouteEnterEvent] event
-   * is fired when route has already been made active, but before subroutes
-   * are entered.  The event starts at the root and propagates from parent
-   * to child routes.
-   */
+  /// Returns a stream of [RouteEnterEvent] events. The [RouteEnterEvent] event
+  /// is fired when route has already been made active, but before subroutes
+  /// are entered.  The event starts at the root and propagates from parent
+  /// to child routes.
   Stream<RouteEnterEvent> get onEnter;
 
   void addRoute(
       {String name,
       Pattern path,
-      bool defaultRoute: false,
+      bool defaultRoute = false,
       RouteEnterEventHandler enter,
       RoutePreEnterEventHandler preEnter,
       RoutePreLeaveEventHandler preLeave,
       RouteLeaveEventHandler leave,
       mount,
-      dontLeaveOnParamChanges: false,
+      dontLeaveOnParamChanges = false,
       String pageTitle,
       List<Pattern> watchQueryParameters});
 
-  /**
-   * Queries sub-routes using the [routePath] and returns the matching [Route].
-   *
-   * [routePath] is a dot-separated list of route names. Ex: foo.bar.baz, which
-   * means that current route should contain route named 'foo', the 'foo' route
-   * should contain route named 'bar', and so on.
-   *
-   * If no match is found then null is returned.
-   */
+  /// Queries sub-routes using the [routePath] and returns the matching [Route].
+  ///
+  /// [routePath] is a dot-separated list of route names. Ex: foo.bar.baz, which
+  /// means that current route should contain route named 'foo', the 'foo' route
+  /// should contain route named 'bar', and so on.
+  ///
+  /// If no match is found then null is returned.
   @Deprecated("use [findRoute] instead.")
   Route getRoute(String routePath);
 
-  /**
-   * Queries sub-routes using the [routePath] and returns the matching [Route].
-   *
-   * [routePath] is a dot-separated list of route names. Ex: foo.bar.baz, which
-   * means that current route should contain route named 'foo', the 'foo' route
-   * should contain route named 'bar', and so on.
-   *
-   * If no match is found then null is returned.
-   */
+  /// Queries sub-routes using the [routePath] and returns the matching [Route].
+  ///
+  /// [routePath] is a dot-separated list of route names. Ex: foo.bar.baz, which
+  /// means that current route should contain route named 'foo', the 'foo' route
+  /// should contain route named 'bar', and so on.
+  ///
+  /// If no match is found then null is returned.
   Route findRoute(String routePath);
 
-  /**
-   * Create an return a new [RouteHandle] for this route.
-   */
+  /// Create an return a new [RouteHandle] for this route.
   RouteHandle newHandle();
 
   String toString() => '[Route: $name]';
 }
 
-/**
- * Route is a node in the tree of routes. The edge leading to the route is
- * defined by path.
- */
+/// Route is a node in the tree of routes. The edge leading to the route is
+/// defined by path.
 class RouteImpl extends Route {
   @override
   final String name;
@@ -215,45 +179,45 @@ class RouteImpl extends Route {
       {this.name,
       this.path,
       this.parent,
-      this.dontLeaveOnParamChanges: false,
+      this.dontLeaveOnParamChanges = false,
       this.pageTitle,
       List<Pattern> watchQueryParameters})
       : _onEnterController =
-            new StreamController<RouteEnterEvent>.broadcast(sync: true),
+            StreamController<RouteEnterEvent>.broadcast(sync: true),
         _onPreEnterController =
-            new StreamController<RoutePreEnterEvent>.broadcast(sync: true),
+            StreamController<RoutePreEnterEvent>.broadcast(sync: true),
         _onPreLeaveController =
-            new StreamController<RoutePreLeaveEvent>.broadcast(sync: true),
+            StreamController<RoutePreLeaveEvent>.broadcast(sync: true),
         _onLeaveController =
-            new StreamController<RouteLeaveEvent>.broadcast(sync: true),
+            StreamController<RouteLeaveEvent>.broadcast(sync: true),
         _watchQueryParameters = watchQueryParameters;
 
   @override
   void addRoute(
       {String name,
       Pattern path,
-      bool defaultRoute: false,
+      bool defaultRoute = false,
       RouteEnterEventHandler enter,
       RoutePreEnterEventHandler preEnter,
       RoutePreLeaveEventHandler preLeave,
       RouteLeaveEventHandler leave,
       mount,
-      dontLeaveOnParamChanges: false,
+      dontLeaveOnParamChanges = false,
       String pageTitle,
       List<Pattern> watchQueryParameters}) {
     if (name == null) {
-      throw new ArgumentError('name is required for all routes');
+      throw ArgumentError('name is required for all routes');
     }
     if (name.contains(_PATH_SEPARATOR)) {
-      throw new ArgumentError('name cannot contain dot.');
+      throw ArgumentError('name cannot contain dot.');
     }
     if (_routes.containsKey(name)) {
-      throw new ArgumentError('Route $name already exists');
+      throw ArgumentError('Route $name already exists');
     }
 
-    var matcher = path is UrlMatcher ? path : new UrlTemplate(path.toString());
+    var matcher = path is UrlMatcher ? path : UrlTemplate(path.toString());
 
-    var route = new RouteImpl._new(
+    var route = RouteImpl._new(
         name: name,
         path: matcher,
         parent: this,
@@ -277,7 +241,7 @@ class RouteImpl extends Route {
 
     if (defaultRoute) {
       if (_defaultRoute != null) {
-        throw new StateError('Only one default route can be added.');
+        throw StateError('Only one default route can be added.');
       }
       _defaultRoute = route;
     }
@@ -306,8 +270,7 @@ class RouteImpl extends Route {
     for (RouteImpl route = this; route.parent != null; route = route.parent) {
       var currentRoute = route.parent._currentRoute;
       if (currentRoute == null) {
-        throw new StateError(
-            'Route ${route.parent.name} has no current route.');
+        throw StateError('Route ${route.parent.name} has no current route.');
       }
 
       tail = currentRoute._reverse(tail);
@@ -328,66 +291,52 @@ class RouteImpl extends Route {
   }
 
   Map _joinParams(Map parameters, RouteEvent lastEvent) =>
-      lastEvent == null ? parameters : new Map.from(lastEvent.parameters)
+      lastEvent == null ? parameters : Map.from(lastEvent.parameters)
         ..addAll(parameters);
 
-  /**
-   * Returns a URL for this route. The tail (url generated by the child path)
-   * will be passes to the UrlMatcher to be properly appended in the
-   * right place.
-   */
+  /// Returns a URL for this route. The tail (url generated by the child path)
+  /// will be passes to the UrlMatcher to be properly appended in the
+  /// right place.
   String _reverse(String tail) =>
       path.reverse(parameters: _lastEvent.parameters, tail: tail);
 
-  /**
-   * Create an return a new [RouteHandle] for this route.
-   */
+  /// Create an return a new [RouteHandle] for this route.
   @override
   RouteHandle newHandle() {
     _logger.finest('newHandle for $this');
-    return new RouteHandle._new(this);
+    return RouteHandle._new(this);
   }
 
-  /**
-   * Indicates whether this route is currently active. Root route is always
-   * active.
-   */
+  /// Indicates whether this route is currently active. Root route is always
+  /// active.
   @override
   bool get isActive =>
       parent == null ? true : identical(parent._currentRoute, this);
 
-  /**
-   * Returns parameters for the currently active route. If the route is not
-   * active the getter returns null.
-   */
+  /// Returns parameters for the currently active route. If the route is not
+  /// active the getter returns null.
   @override
   Map get parameters {
     if (isActive) {
-      return _lastEvent == null
-          ? const {}
-          : new Map.from(_lastEvent.parameters);
+      return _lastEvent == null ? const {} : Map.from(_lastEvent.parameters);
     }
     return null;
   }
 
-  /**
-   * Returns parameters for the currently active route. If the route is not
-   * active the getter returns null.
-   */
+  /// Returns parameters for the currently active route. If the route is not
+  /// active the getter returns null.
   @override
   Map get queryParameters {
     if (isActive) {
       return _lastEvent == null
           ? const {}
-          : new Map.from(_lastEvent.queryParameters);
+          : Map.from(_lastEvent.queryParameters);
     }
     return null;
   }
 }
 
-/**
- * Route enter or leave event.
- */
+/// Route enter or leave event.
 abstract class RouteEvent {
   final String path;
   final Map parameters;
@@ -406,10 +355,8 @@ class RoutePreEnterEvent extends RouteEvent {
   RoutePreEnterEvent._fromMatch(_Match m)
       : this(m.urlMatch.tail, m.urlMatch.parameters, {}, m.route);
 
-  /**
-   * Can be called with a future which will complete with a boolean
-   * value allowing (true) or disallowing (false) the current navigation.
-   */
+  /// Can be called with a future which will complete with a boolean
+  /// value allowing (true) or disallowing (false) the current navigation.
   void allowEnter(Future<bool> allow) {
     _allowEnterFutures.add(allow);
   }
@@ -433,28 +380,20 @@ class RoutePreLeaveEvent extends RouteEvent {
 
   RoutePreLeaveEvent(route) : super('', {}, {}, route);
 
-  /**
-   * Can be called with a future which will complete with a boolean
-   * value allowing (true) or disallowing (false) the current navigation.
-   */
+  /// Can be called with a future which will complete with a boolean
+  /// value allowing (true) or disallowing (false) the current navigation.
   void allowLeave(Future<bool> allow) {
     _allowLeaveFutures.add(allow);
   }
 }
 
-/**
- * Event emitted when routing starts.
- */
+/// Event emitted when routing starts.
 class RouteStartEvent {
-  /**
-   * URI that was passed to [Router.route].
-   */
+  /// URI that was passed to [Router.route].
   final String uri;
 
-  /**
-   * Future that completes to a boolean value of whether the routing was
-   * successful.
-   */
+  /// Future that completes to a boolean value of whether the routing was
+  /// successful.
   final Future<bool> completed;
 
   RouteStartEvent._new(this.uri, this.completed);
@@ -464,31 +403,26 @@ abstract class Routable {
   void configureRoute(Route router);
 }
 
-/**
- * Stores a set of [UrlPattern] to [Handler] associations and provides methods
- * for calling a handler for a URL path, listening to [Window] history events,
- * and creating HTML event handlers that navigate to a URL.
- */
+/// Stores a set of [UrlPattern] to [Handler] associations and provides methods
+/// for calling a handler for a URL path, listening to [Window] history events,
+/// and creating HTML event handlers that navigate to a URL.
 class Router {
   final bool _useFragment;
   final Window _window;
   final Route root;
-  final _onRouteStart =
-      new StreamController<RouteStartEvent>.broadcast(sync: true);
+  final _onRouteStart = StreamController<RouteStartEvent>.broadcast(sync: true);
   final bool sortRoutes;
   bool _listen = false;
   WindowClickHandler _clickHandler;
 
-  /**
-   * [useFragment] determines whether this Router uses pure paths with
-   * [History.pushState] or paths + fragments and [Location.assign]. The default
-   * value is null which then determines the behavior based on
-   * [History.supportsState].
-   */
+  /// [useFragment] determines whether this Router uses pure paths with
+  /// [History.pushState] or paths + fragments and [Location.assign]. The default
+  /// value is null which then determines the behavior based on
+  /// [History.supportsState].
   Router(
       {bool useFragment,
       Window windowImpl,
-      bool sortRoutes: true,
+      bool sortRoutes = true,
       RouterLinkMatcher linkMatcher,
       WindowClickHandler clickHandler})
       : this._init(null,
@@ -507,40 +441,36 @@ class Router {
       : _useFragment =
             (useFragment == null) ? !History.supportsState : useFragment,
         _window = (windowImpl == null) ? window : windowImpl,
-        root = new RouteImpl._new() {
+        root = RouteImpl._new() {
     if (clickHandler == null) {
       if (linkMatcher == null) {
-        linkMatcher = new DefaultRouterLinkMatcher();
+        linkMatcher = DefaultRouterLinkMatcher();
       }
-      _clickHandler = new DefaultWindowClickHandler(
+      _clickHandler = DefaultWindowClickHandler(
           linkMatcher, this, _useFragment, _window, _normalizeHash);
     } else {
       _clickHandler = clickHandler;
     }
   }
 
-  /**
-   * A stream of route calls.
-   */
+  /// A stream of route calls.
   Stream<RouteStartEvent> get onRouteStart => _onRouteStart.stream;
 
-  /**
-   * Finds a matching [Route] added with [addRoute], parses the path
-   * and invokes the associated callback. Search for the matching route starts
-   * at [startingFrom] route or the root [Route] if not specified. By default
-   * the common path from [startingFrom] to the current active path and target
-   * path will be ignored (i.e. no leave or enter will be executed on them).
-   *
-   * This method does not perform any navigation, [go] should be used for that.
-   * This method is used to invoke a handler after some other code navigates the
-   * window, such as [listen].
-   *
-   * Setting [forceReload] to true (default false) will force the matched routes
-   * to reload, even if they are already active and none of the parameters
-   * changed.
-   */
+  /// Finds a matching [Route] added with [addRoute], parses the path
+  /// and invokes the associated callback. Search for the matching route starts
+  /// at [startingFrom] route or the root [Route] if not specified. By default
+  /// the common path from [startingFrom] to the current active path and target
+  /// path will be ignored (i.e. no leave or enter will be executed on them).
+  ///
+  /// This method does not perform any navigation, [go] should be used for that.
+  /// This method is used to invoke a handler after some other code navigates the
+  /// window, such as [listen].
+  ///
+  /// Setting [forceReload] to true (default false) will force the matched routes
+  /// to reload, even if they are already active and none of the parameters
+  /// changed.
   Future<bool> route(String path,
-      {Route startingFrom, bool forceReload: false}) {
+      {Route startingFrom, bool forceReload = false}) {
     _logger.finest('route path=$path startingFrom=$startingFrom '
         'forceReload=$forceReload');
     var baseRoute;
@@ -557,18 +487,16 @@ class Router {
     // Figure out the list of routes that will be leaved
     var future =
         _preLeave(path, treePath, trimmedActivePath, baseRoute, forceReload);
-    _onRouteStart.add(new RouteStartEvent._new(path, future));
+    _onRouteStart.add(RouteStartEvent._new(path, future));
     return future;
   }
 
-  /**
-   * Called before leaving the current route.
-   *
-   * If none of the preLeave listeners veto the leave, chain call [_preEnter].
-   *
-   * If at least one preLeave listeners veto the leave, returns a Future that
-   * will resolve to false. The current route will not change.
-   */
+  /// Called before leaving the current route.
+  ///
+  /// If none of the preLeave listeners veto the leave, chain call [_preEnter].
+  ///
+  /// If at least one preLeave listeners veto the leave, returns a Future that
+  /// will resolve to false. The current route will not change.
   Future<bool> _preLeave(String path, List<_Match> treePath,
       List<RouteImpl> activePath, RouteImpl baseRoute, bool forceReload) {
     Iterable<RouteImpl> mustLeave = activePath;
@@ -589,7 +517,7 @@ class Router {
 
     var preLeaving = <Future<bool>>[];
     mustLeave.forEach((toLeave) {
-      var event = new RoutePreLeaveEvent(toLeave);
+      var event = RoutePreLeaveEvent(toLeave);
       toLeave._onPreLeaveController.add(event);
       preLeaving.addAll(event._allowLeaveFutures);
     });
@@ -599,13 +527,13 @@ class Router {
         return _preEnter(
             path, treePath, activePath, baseRoute, leaveFn, forceReload);
       }
-      return new Future.value(false);
+      return Future.value(false);
     });
   }
 
   void _leave(Iterable<Route> mustLeave, Route leaveBase) {
     mustLeave.forEach((toLeave) {
-      var event = new RouteLeaveEvent(toLeave);
+      var event = RouteLeaveEvent(toLeave);
       (toLeave as dynamic)._onLeaveController.add(event);
     });
     if (!mustLeave.isEmpty) {
@@ -642,12 +570,12 @@ class Router {
     }
     if (toEnter.isEmpty) {
       leaveFn();
-      return new Future.value(true);
+      return Future.value(true);
     }
 
     var preEnterFutures = <Future<bool>>[];
     toEnter.forEach((_Match matchedRoute) {
-      var preEnterEvent = new RoutePreEnterEvent._fromMatch(matchedRoute);
+      var preEnterEvent = RoutePreEnterEvent._fromMatch(matchedRoute);
       matchedRoute.route._onPreEnterController.add(preEnterEvent);
       preEnterFutures.addAll(preEnterEvent._allowEnterFutures);
     });
@@ -655,16 +583,16 @@ class Router {
       if (!results.any((v) => v == false)) {
         leaveFn();
         _enter(enterBase, toEnter, tail);
-        return new Future.value(true);
+        return Future.value(true);
       }
-      return new Future.value(false);
+      return Future.value(false);
     });
   }
 
   void _enter(RouteImpl startingFrom, Iterable<_Match> treePath, String path) {
     var base = startingFrom;
     treePath.forEach((_Match matchedRoute) {
-      var event = new RouteEnterEvent._fromMatch(matchedRoute);
+      var event = RouteEnterEvent._fromMatch(matchedRoute);
       base._currentRoute = matchedRoute.route;
       base._currentRoute._lastEvent = event;
       matchedRoute.route._onEnterController.add(event);
@@ -754,9 +682,9 @@ class Router {
   /// Navigates to a given relative route path, and parameters.
   Future<bool> go(String routePath, Map parameters,
       {Route startingFrom,
-      bool replace: false,
+      bool replace = false,
       Map queryParameters,
-      bool forceReload: false}) {
+      bool forceReload = false}) {
     RouteImpl baseRoute = startingFrom == null ? root : _dehandle(startingFrom);
     var routeToGo = _findRoute(baseRoute, routePath);
     var newTail = baseRoute._getTailUrl(routeToGo, parameters) +
@@ -789,7 +717,7 @@ class Router {
   Route _findRoute(Route baseRoute, String routePath) {
     var route = baseRoute.findRoute(routePath);
     if (route == null) {
-      throw new StateError('Invalid route path: $routePath');
+      throw StateError('Invalid route path: $routePath');
     }
     return route;
   }
@@ -811,9 +739,9 @@ class Router {
     var match = route.path.match(path);
     // default route
     if (match == null) {
-      return new _Match(route, new UrlMatch('', '', {}), {});
+      return _Match(route, UrlMatch('', '', {}), {});
     }
-    return new _Match(route, match, _parseQuery(route, path));
+    return _Match(route, match, _parseQuery(route, path));
   }
 
   /// Parse the query string to a parameter `Map`
@@ -831,10 +759,8 @@ class Router {
     return params;
   }
 
-  /**
-   * Parse a key value pair (`"key=value"`) and returns a list of
-   * `["key", "value"]`.
-   */
+  /// Parse a key value pair (`"key=value"`) and returns a list of
+  /// `["key", "value"]`.
   List<String> _parseKeyVal(String kvPair) {
     if (kvPair.isEmpty) {
       return const ['', ''];
@@ -846,14 +772,12 @@ class Router {
         : [kvPair.substring(0, splitPoint), kvPair.substring(splitPoint + 1)];
   }
 
-  /**
-   * Listens for window history events and invokes the router. On older
-   * browsers the hashChange event is used instead.
-   */
-  void listen({bool ignoreClick: false, Element appRoot}) {
+  /// Listens for window history events and invokes the router. On older
+  /// browsers the hashChange event is used instead.
+  void listen({bool ignoreClick = false, Element appRoot}) {
     _logger.finest('listen ignoreClick=$ignoreClick');
     if (_listen) {
-      throw new StateError('listen can only be called once');
+      throw StateError('listen can only be called once');
     }
     _listen = true;
     if (_useFragment) {
@@ -894,13 +818,11 @@ class Router {
 
   String _normalizeHash(String hash) => hash.isEmpty ? '' : hash.substring(1);
 
-  /**
-   * Navigates the browser to the path produced by [url] with [args] by calling
-   * [History.pushState], then invokes the handler associated with [url].
-   *
-   * On older browsers [Location.assign] is used instead with the fragment
-   * version of the UrlPattern.
-   */
+  /// Navigates the browser to the path produced by [url] with [args] by calling
+  /// [History.pushState], then invokes the handler associated with [url].
+  ///
+  /// On older browsers [Location.assign] is used instead with the fragment
+  /// version of the UrlPattern.
   Future<bool> gotoUrl(String url) => route(url).then((success) {
         if (success) {
           _go(url, null, false);
@@ -929,10 +851,8 @@ class Router {
     }
   }
 
-  /**
-   * Returns the current active route path in the route tree.
-   * Excludes the root path.
-   */
+  /// Returns the current active route path in the route tree.
+  /// Excludes the root path.
   List<Route> get activePath {
     var res = <RouteImpl>[];
     dynamic route = root;
@@ -943,9 +863,7 @@ class Router {
     return res;
   }
 
-  /**
-   * A shortcut for router.root.findRoute().
-   */
+  /// A shortcut for router.root.findRoute().
   Route findRoute(String routePath) => root.findRoute(routePath);
 }
 

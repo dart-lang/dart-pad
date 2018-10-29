@@ -37,10 +37,10 @@ Playground get playground => _playground;
 
 Playground _playground;
 
-Logger _logger = new Logger('dartpad');
+final _logger = Logger('dartpad');
 
 void init() {
-  _playground = new Playground();
+  _playground = Playground();
 }
 
 class Playground implements GistContainer, GistController {
@@ -62,8 +62,8 @@ class Playground implements GistContainer, GistController {
   Editor editor;
   PlaygroundContext _context;
   Future _analysisRequest;
-  MutableGist editableGist = new MutableGist(new Gist());
-  GistStorage _gistStorage = new GistStorage();
+  MutableGist editableGist = MutableGist(Gist());
+  final _gistStorage = GistStorage();
   DContentEditable titleEditable;
 
   TabController sourceTabController;
@@ -78,11 +78,10 @@ class Playground implements GistContainer, GistController {
   String _mappingId;
 
   Playground() {
-    sourceTabController = new TabController();
+    sourceTabController = TabController();
     for (String name in ['dart', 'html', 'css']) {
       sourceTabController.registerTab(
-          new TabElement(querySelector('#${name}tab'), name: name,
-              onSelect: () {
+          TabElement(querySelector('#${name}tab'), name: name, onSelect: () {
         Element issuesElement = querySelector('#issues');
         issuesElement.style.display = name == 'dart' ? 'block' : 'none';
         ga.sendEvent('edit', name);
@@ -90,20 +89,20 @@ class Playground implements GistContainer, GistController {
       }));
     }
 
-    overlay = new DOverlay(querySelector('#frame-overlay'));
+    overlay = DOverlay(querySelector('#frame-overlay'));
 
-    sharingDialog = new SharingDialog(this, this);
+    sharingDialog = SharingDialog(this, this);
 
-    DButton newButton = new DButton(querySelector('#newbutton'));
-    OkCancelDialog newDialog = new OkCancelDialog('Create New Pad',
-        'Discard changes to the current pad?', this.createNewGist,
+    DButton newButton = DButton(querySelector('#newbutton'));
+    OkCancelDialog newDialog = OkCancelDialog(
+        'Create New Pad', 'Discard changes to the current pad?', createNewGist,
         okText: 'Discard');
     newButton.onClick.listen((_) {
       newDialog.show();
     });
 
-    DButton resetButton = new DButton(querySelector('#resetbutton'));
-    OkCancelDialog resetDialog = new OkCancelDialog(
+    DButton resetButton = DButton(querySelector('#resetbutton'));
+    OkCancelDialog resetDialog = OkCancelDialog(
         'Reset Pad', 'Discard changes to the current pad?', _resetGists,
         okText: 'Discard', cancelText: 'Cancel');
     resetButton.onClick.listen((_) {
@@ -114,7 +113,7 @@ class Playground implements GistContainer, GistController {
       resetButton.disabled = !val;
     });
 
-    DButton shareButton = new DButton(querySelector('#sharebutton'));
+    DButton shareButton = DButton(querySelector('#sharebutton'));
 
     shareButton.onClick.listen((Event e) => window.open(
         "https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide",
@@ -124,10 +123,10 @@ class Playground implements GistContainer, GistController {
     // shareButton.onClick.listen((Event e) => _createSummary()
     //    .then((GistSummary summary) => sharingDialog.showWithSummary(summary)));
 
-    formatButton = new DButton(querySelector('#formatbutton'));
+    formatButton = DButton(querySelector('#formatbutton'));
     formatButton.onClick.listen((Event e) => _format());
 
-    runButton = new DButton(querySelector('#runbutton'));
+    runButton = DButton(querySelector('#runbutton'));
     runButton.onClick.listen((e) {
       _handleRun();
 
@@ -139,12 +138,11 @@ class Playground implements GistContainer, GistController {
     // Listen for the keyboard button.
     querySelector('#keyboard-button').onClick.listen((_) => settings.show());
 
-    busyLight = new DBusyLight(querySelector('#dartbusy'));
-    consoleBusyLight = new DBusyLight(querySelector('#consolebusy'));
+    busyLight = DBusyLight(querySelector('#dartbusy'));
+    consoleBusyLight = DBusyLight(querySelector('#consolebusy'));
 
     // Update the title on changes.
-    titleEditable =
-        new DContentEditable(querySelector('header .header-gist-name'));
+    titleEditable = DContentEditable(querySelector('header .header-gist-name'));
     bind(titleEditable.onChanged, editableGist.property('description'));
     bind(editableGist.property('description'), titleEditable.textProperty);
     editableGist.onDirtyChanged.listen((val) {
@@ -153,7 +151,7 @@ class Playground implements GistContainer, GistController {
 
     // If there was a change, and the gist is dirty, write the gist's contents
     // to storage.
-    debounceStream(mutableGist.onChanged, new Duration(milliseconds: 100))
+    debounceStream(mutableGist.onChanged, Duration(milliseconds: 100))
         .listen((_) {
       if (mutableGist.dirty) {
         _gistStorage.setStoredGist(mutableGist.createGist());
@@ -183,13 +181,13 @@ class Playground implements GistContainer, GistController {
   void _showAboutBox() {
     dartServices
         .version()
-        .timeout(new Duration(seconds: 2))
+        .timeout(Duration(seconds: 2))
         .then((VersionResponse ver) {
       print("Dart SDK version ${ver.sdkVersion} (${ver.sdkVersionFull})");
       print('CodeMirror: ${CodeMirrorModule.version}');
-      new AboutDialog(ver.sdkVersionFull)..show();
+      AboutDialog(ver.sdkVersionFull)..show();
     }).catchError((e) {
-      new AboutDialog()..show();
+      AboutDialog()..show();
     });
   }
 
@@ -214,7 +212,7 @@ class Playground implements GistContainer, GistController {
         isLegalGistId(url.queryParameters['id'])) {
       _showGist(url.queryParameters['id']);
     } else if (url.hasQuery && url.queryParameters['export'] != null) {
-      UuidContainer requestId = new UuidContainer()
+      UuidContainer requestId = UuidContainer()
         ..uuid = url.queryParameters['export'];
       Future<PadSaveObject> exportPad =
           dartSupportServices.pullExportContent(requestId);
@@ -230,11 +228,11 @@ class Playground implements GistContainer, GistController {
           id: url.queryParameters['source']);
       Gist backing = await gistLoader.loadGist(gistId.uuid);
       editableGist.setBackingGist(backing);
-      router.go('gist', {'gist': backing.id});
+      await router.go('gist', {'gist': backing.id});
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
-      Gist blankGist = new Gist();
+      Gist blankGist = Gist();
       editableGist.setBackingGist(blankGist);
 
       Gist storedGist = _gistStorage.getStoredGist();
@@ -291,24 +289,24 @@ class Playground implements GistContainer, GistController {
     DToast.showMessage('New pad created');
     router.go('gist', {'gist': ''}, forceReload: true);
 
-    return new Future.value();
+    return Future.value();
   }
 
-  Future shareAnon({String summary: ""}) {
+  Future shareAnon({String summary = ""}) {
     return gistLoader
         .createAnon(mutableGist.createGist(summary: summary))
         .then((Gist newGist) {
       editableGist.setBackingGist(newGist);
       overrideNextRoute(newGist);
       router.go('gist', {'gist': newGist.id});
-      var toast = new DToast('Created ${newGist.id}')
+      var toast = DToast('Created ${newGist.id}')
         ..show()
         ..hide();
       toast.element
         ..style.cursor = "pointer"
         ..onClick.listen((e) => window.open(
             "https://gist.github.com/anonymous/${newGist.id}", '_blank'));
-      GistToInternalIdMapping mapping = new GistToInternalIdMapping()
+      GistToInternalIdMapping mapping = GistToInternalIdMapping()
         ..gistId = newGist.id
         ..internalId = _mappingId;
       dartSupportServices.storeGist(mapping);
@@ -367,12 +365,12 @@ class Playground implements GistContainer, GistController {
   }
 
   Future _initModules() {
-    ModuleManager modules = new ModuleManager();
+    ModuleManager modules = ModuleManager();
 
-    modules.register(new DartPadModule());
-    modules.register(new DartServicesModule());
-    modules.register(new DartSupportServicesModule());
-    modules.register(new CodeMirrorModule());
+    modules.register(DartPadModule());
+    modules.register(DartServicesModule());
+    modules.register(DartSupportServicesModule());
+    modules.register(CodeMirrorModule());
 
     return modules.start();
   }
@@ -386,7 +384,7 @@ class Playground implements GistContainer, GistController {
     };
 
     // TODO: Set up some automatic value bindings.
-    DSplitter editorSplitter = new DSplitter(querySelector('#editor_split'),
+    DSplitter editorSplitter = DSplitter(querySelector('#editor_split'),
         onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     editorSplitter.onPositionChanged.listen((pos) {
       state['editor_split'] = pos;
@@ -396,7 +394,7 @@ class Playground implements GistContainer, GistController {
       editorSplitter.position = state['editor_split'];
     }
 
-    DSplitter outputSplitter = new DSplitter(querySelector('#output_split'),
+    DSplitter outputSplitter = DSplitter(querySelector('#output_split'),
         onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     outputSplitter.onPositionChanged.listen((pos) {
       state['output_split'] = pos;
@@ -406,15 +404,15 @@ class Playground implements GistContainer, GistController {
     }
 
     // Set up the iframe.
-    deps[ExecutionService] = new ExecutionServiceIFrame(_frame);
+    deps[ExecutionService] = ExecutionServiceIFrame(_frame);
     executionService.onStdout.listen(_showOuput);
     executionService.onStderr.listen((m) => _showOuput(m, error: true));
 
     // Set up Google Analytics.
-    deps[Analytics] = new Analytics();
+    deps[Analytics] = Analytics();
 
     // Set up the gist loader.
-    deps[GistLoader] = new GistLoader.defaultFilters();
+    deps[GistLoader] = GistLoader.defaultFilters();
 
     // Set up the editing area.
     editor = editorFactory.createFromElement(_editpanel);
@@ -444,7 +442,7 @@ class Playground implements GistContainer, GistController {
       }
     }, "Shortcuts");
 
-    settings = new KeysDialog(keys.inverseBindings);
+    settings = KeysDialog(keys.inverseBindings);
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
@@ -454,28 +452,28 @@ class Playground implements GistContainer, GistController {
       _handleAutoCompletion(e);
     });
 
-    outputTabController = new TabController()
-      ..registerTab(new TabElement(querySelector('#resulttab'), name: "result",
-          onSelect: () {
+    outputTabController = TabController()
+      ..registerTab(
+          TabElement(querySelector('#resulttab'), name: "result", onSelect: () {
         ga.sendEvent('view', "result");
         querySelector('#frame').style.visibility = "visible";
         querySelector('#output').style.visibility = "hidden";
       }))
-      ..registerTab(new TabElement(querySelector('#consoletab'),
-          name: "console", onSelect: () {
+      ..registerTab(TabElement(querySelector('#consoletab'), name: "console",
+          onSelect: () {
         ga.sendEvent('view', "console");
         querySelector('#output').style.visibility = "visible";
         querySelector('#frame').style.visibility = "hidden";
       }));
 
-    _context = new PlaygroundContext(editor);
+    _context = PlaygroundContext(editor);
     _context.onModeChange.listen((_) {
       formatButton.disabled = _context.activeMode != 'dart';
     });
     deps[Context] = _context;
 
     editorFactory.registerCompleter(
-        'dart', new DartCompleter(dartServices, _context._dartDoc));
+        'dart', DartCompleter(dartServices, _context._dartDoc));
 
     _context.onHtmlDirty.listen((_) => busyLight.on());
     _context.onHtmlReconcile.listen((_) {
@@ -505,32 +503,28 @@ class Playground implements GistContainer, GistController {
 
     // Bind the editable files to the gist.
     Property htmlFile =
-        new GistFileProperty(editableGist.getGistFile('index.html'));
-    Property htmlDoc =
-        new EditorDocumentProperty(_context.htmlDocument, 'html');
+        GistFileProperty(editableGist.getGistFile('index.html'));
+    Property htmlDoc = EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
-    Property cssFile =
-        new GistFileProperty(editableGist.getGistFile('styles.css'));
-    Property cssDoc = new EditorDocumentProperty(_context.cssDocument, 'css');
+    Property cssFile = GistFileProperty(editableGist.getGistFile('styles.css'));
+    Property cssDoc = EditorDocumentProperty(_context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
-    Property dartFile =
-        new GistFileProperty(editableGist.getGistFile('main.dart'));
-    Property dartDoc =
-        new EditorDocumentProperty(_context.dartDocument, 'dart');
+    Property dartFile = GistFileProperty(editableGist.getGistFile('main.dart'));
+    Property dartDoc = EditorDocumentProperty(_context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
     // Set up the router.
-    deps[Router] = new Router();
+    deps[Router] = Router();
     router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
     router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
     router.listen();
 
-    docHandler = new DocHandler(editor, _context);
+    docHandler = DocHandler(editor, _context);
 
     dartServices.version().then((VersionResponse version) {
       // "Based on Dart SDK 1.25.0-dev"
@@ -543,11 +537,11 @@ class Playground implements GistContainer, GistController {
 
   void _finishedInit() {
     // Clear the splash.
-    DSplash splash = new DSplash(querySelector('div.splash'));
+    DSplash splash = DSplash(querySelector('div.splash'));
     splash.hide();
   }
 
-  final RegExp cssSymbolRegexp = new RegExp(r"[A-Z]");
+  final RegExp cssSymbolRegexp = RegExp(r"[A-Z]");
 
   void _handleAutoCompletion(KeyboardEvent e) {
     if (context.focusedEditor == 'dart' && editor.hasFocus) {
@@ -562,7 +556,7 @@ class Playground implements GistContainer, GistController {
           editor.showCompletions(autoInvoked: true);
         }
       } else if (context.focusedEditor == "css") {
-        if (cssSymbolRegexp.hasMatch(new String.fromCharCode(e.keyCode))) {
+        if (cssSymbolRegexp.hasMatch(String.fromCharCode(e.keyCode))) {
           editor.showCompletions(autoInvoked: true);
         }
       }
@@ -574,9 +568,9 @@ class Playground implements GistContainer, GistController {
     runButton.disabled = true;
     overlay.visible = true;
 
-    Stopwatch compilationTimer = new Stopwatch()..start();
+    Stopwatch compilationTimer = Stopwatch()..start();
 
-    var input = new CompileRequest()..source = context.dartSource;
+    var input = CompileRequest()..source = context.dartSource;
     dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
@@ -647,11 +641,11 @@ class Playground implements GistContainer, GistController {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
-    SourceRequest input = new SourceRequest()
+    SourceRequest input = SourceRequest()
       ..source = _context.dartSource
       ..strongMode = strongModeDefault;
 
-    Lines lines = new Lines(input.source);
+    Lines lines = Lines(input.source);
 
     Future<AnalysisResults> request =
         dartServices.analyze(input).timeout(serviceCallTimeout);
@@ -674,15 +668,15 @@ class Playground implements GistContainer, GistController {
         int endLine =
             lines.getLineForOffset(issue.charStart + issue.charLength);
 
-        Position start = new Position(
+        Position start = Position(
             startLine, issue.charStart - lines.offsetForLine(startLine));
-        Position end = new Position(
+        Position end = Position(
             endLine,
             issue.charStart +
                 issue.charLength -
                 lines.offsetForLine(startLine));
 
-        return new Annotation(issue.kind, issue.message, issue.line,
+        return Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
       }).toList());
 
@@ -702,7 +696,7 @@ class Playground implements GistContainer, GistController {
 
   Future _format() {
     String originalSource = _context.dartSource;
-    SourceRequest input = new SourceRequest()..source = originalSource;
+    SourceRequest input = SourceRequest()..source = originalSource;
     formatButton.disabled = true;
 
     Future<FormatResponse> request =
@@ -735,13 +729,13 @@ class Playground implements GistContainer, GistController {
     _outputpanel.text = '';
   }
 
-  List<SpanElement> _bufferedOutput = [];
-  Duration _outputDuration = new Duration(milliseconds: 32);
+  final _bufferedOutput = <SpanElement>[];
+  final _outputDuration = Duration(milliseconds: 32);
 
-  void _showOuput(String message, {bool error: false}) {
+  void _showOuput(String message, {bool error = false}) {
     consoleBusyLight.flash();
 
-    SpanElement span = new SpanElement()..text = message + '\n';
+    SpanElement span = SpanElement()..text = '$message\n';
     span.classes.add(error ? 'errorOutput' : 'normal');
 
     // Buffer the console output so that heavy writing to stdout does not starve
@@ -749,7 +743,7 @@ class Playground implements GistContainer, GistController {
     _bufferedOutput.add(span);
 
     if (_bufferedOutput.length == 1) {
-      new Timer(_outputDuration, () {
+      Timer(_outputDuration, () {
         _outputpanel.children.addAll(_bufferedOutput);
         _outputpanel.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
         _bufferedOutput.clear();
@@ -788,7 +782,7 @@ class Playground implements GistContainer, GistController {
 
       // Create an item for each issue.
       for (AnalysisIssue issue in issues) {
-        DivElement e = new DivElement();
+        DivElement e = DivElement();
         e.classes.add('issue');
         e.attributes['layout'] = '';
         e.attributes['horizontal'] = '';
@@ -797,12 +791,12 @@ class Playground implements GistContainer, GistController {
           _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
         });
 
-        SpanElement typeSpan = new SpanElement();
+        SpanElement typeSpan = SpanElement();
         typeSpan.classes.addAll([issue.kind, 'issuelabel']);
         typeSpan.text = issue.kind;
         e.children.add(typeSpan);
 
-        SpanElement messageSpan = new SpanElement();
+        SpanElement messageSpan = SpanElement();
         messageSpan.classes.add('message');
         messageSpan.attributes['flex'] = '';
         messageSpan.text = issue.message;
@@ -826,7 +820,7 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  void _updateRunButton({bool hasErrors: false, bool hasWarnings: false}) {
+  void _updateRunButton({bool hasErrors = false, bool hasWarnings = false}) {
     const alertSVGIcon =
         "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,"
         "1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
@@ -839,7 +833,7 @@ class Playground implements GistContainer, GistController {
     path.parent.classes.toggle("warning", hasWarnings && !hasErrors);
   }
 
-  void _jumpTo(int line, int charStart, int charLength, {bool focus: false}) {
+  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
     Document doc = editor.document;
 
     doc.select(
@@ -850,7 +844,7 @@ class Playground implements GistContainer, GistController {
 
   void _jumpToLine(int line) {
     Document doc = editor.document;
-    doc.select(new Position(line, 0), new Position(line, 0));
+    doc.select(Position(line, 0), Position(line, 0));
     editor.focus();
   }
 }
@@ -858,19 +852,19 @@ class Playground implements GistContainer, GistController {
 class PlaygroundContext extends Context {
   final Editor editor;
 
-  StreamController<String> _modeController = new StreamController.broadcast();
+  final _modeController = StreamController<String>.broadcast();
 
   Document _dartDoc;
   Document _htmlDoc;
   Document _cssDoc;
 
-  StreamController _cssDirtyController = new StreamController.broadcast();
-  StreamController _dartDirtyController = new StreamController.broadcast();
-  StreamController _htmlDirtyController = new StreamController.broadcast();
+  final _cssDirtyController = StreamController.broadcast();
+  final _dartDirtyController = StreamController.broadcast();
+  final _htmlDirtyController = StreamController.broadcast();
 
-  StreamController _cssReconcileController = new StreamController.broadcast();
-  StreamController _dartReconcileController = new StreamController.broadcast();
-  StreamController _htmlReconcileController = new StreamController.broadcast();
+  final _cssReconcileController = StreamController.broadcast();
+  final _dartReconcileController = StreamController.broadcast();
+  final _htmlReconcileController = StreamController.broadcast();
 
   PlaygroundContext(this.editor) {
     editor.mode = 'dart';
@@ -955,16 +949,14 @@ class PlaygroundContext extends Context {
 
   void markHtmlClean() => _htmlDoc.markClean();
 
-  /**
-   * Restore the focus to the last focused editor.
-   */
+  /// Restore the focus to the last focused editor.
   void focus() => editor.focus();
 
   void _createReconciler(Document doc, StreamController controller, int delay) {
     Timer timer;
     doc.onChange.listen((_) {
       if (timer != null) timer.cancel();
-      timer = new Timer(new Duration(milliseconds: delay), () {
+      timer = Timer(Duration(milliseconds: delay), () {
         controller.add(null);
       });
     });

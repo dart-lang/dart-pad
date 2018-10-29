@@ -15,7 +15,7 @@ import 'util/mocks.dart';
 
 main() {
   test('paths are routed to routes added with addRoute', () {
-    var router = new Router();
+    var router = Router();
     router.root.addRoute(
         name: 'foo',
         path: '/foo',
@@ -28,7 +28,7 @@ main() {
 
   group('use a longer path first', () {
     test('add a longer path first', () {
-      Router router = new Router();
+      Router router = Router();
       router.root
         ..addRoute(
             name: 'foobar',
@@ -45,7 +45,7 @@ main() {
     });
 
     test('add a longer path last', () {
-      Router router = new Router();
+      Router router = Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -62,7 +62,7 @@ main() {
     });
 
     test('add paths with a param', () {
-      Router router = new Router();
+      Router router = Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -79,7 +79,7 @@ main() {
     });
 
     test('add paths with a parametalized parent', () {
-      Router router = new Router();
+      Router router = Router();
       router.root
         ..addRoute(
             name: 'paramaddress',
@@ -96,7 +96,7 @@ main() {
     });
 
     test('add paths with a first param and one without', () {
-      Router router = new Router();
+      Router router = Router();
       router.root
         ..addRoute(
             name: 'fooparam',
@@ -113,7 +113,7 @@ main() {
     });
 
     test('add paths with a first param and one without 2', () {
-      Router router = new Router();
+      Router router = Router();
       router.root
         ..addRoute(
             name: 'paramfoo',
@@ -130,7 +130,7 @@ main() {
     });
 
     test('add paths with a second param and one without', () {
-      Router router = new Router();
+      Router router = Router();
       router.root
         ..addRoute(
             name: 'bazparamfoo',
@@ -147,7 +147,7 @@ main() {
     });
 
     test('add paths with a first param and a second param', () {
-      Router router = new Router();
+      Router router = Router();
       router.root
         ..addRoute(
             name: 'parambarfoo',
@@ -164,7 +164,7 @@ main() {
     });
 
     test('add paths with two params and a param', () {
-      Router router = new Router();
+      Router router = Router();
       router.root
         ..addRoute(
             name: 'param1param2foo',
@@ -184,7 +184,7 @@ main() {
   group('hierarchical routing', () {
     void _testParentChild(Pattern parentPath, Pattern childPath,
         String expectedParentPath, String expectedChildPath, String testPath) {
-      var router = new Router();
+      var router = Router();
       router.root.addRoute(
           name: 'parent',
           path: parentPath,
@@ -211,7 +211,7 @@ main() {
 
   group('reload', () {
     test('should not reload when no active path', () {
-      var router = new Router();
+      var router = Router();
       var counters = {
         'fooLeave': 0,
         'fooEnter': 0,
@@ -232,7 +232,7 @@ main() {
     });
 
     test('should reload currently active route', () {
-      var router = new Router();
+      var router = Router();
       var counters = {
         'fooLeave': 0,
         'fooEnter': 0,
@@ -271,7 +271,7 @@ main() {
     });
 
     test('should reload currently active route from startingFrom', () {
-      var router = new Router();
+      var router = Router();
       var counters = {
         'fooLeave': 0,
         'fooEnter': 0,
@@ -311,7 +311,7 @@ main() {
     });
 
     test('should preserve param values on reload', () {
-      var router = new Router();
+      var router = Router();
       var counters = {
         'fooLeave': 0,
         'fooEnter': 0,
@@ -351,7 +351,7 @@ main() {
     });
 
     test('should preserve query param values on reload', () {
-      var router = new Router();
+      var router = Router();
       var counters = {
         'fooLeave': 0,
         'fooEnter': 0,
@@ -382,7 +382,7 @@ main() {
     });
 
     test('should preserve query param values on reload from the middle', () {
-      var router = new Router();
+      var router = Router();
       var counters = {
         'fooLeave': 0,
         'fooEnter': 0,
@@ -446,7 +446,7 @@ main() {
         'bazEnter': 0,
         'bazLeave': 0
       };
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             path: '/foo',
@@ -549,7 +549,7 @@ main() {
 
       ;
 
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             path: '/foo',
@@ -577,7 +577,7 @@ main() {
 
     test('should leave active child route when routed to parent route only',
         () {
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             path: '/foo',
@@ -593,11 +593,11 @@ main() {
     });
 
     void _testAllowLeave(bool allowLeave) {
-      var completer = new Completer<bool>();
+      var completer = Completer<bool>();
       bool barEntered = false;
       bool bazEntered = false;
 
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -635,10 +635,10 @@ main() {
 
   group('preEnter', () {
     void _testAllowEnter(bool allowEnter) {
-      var completer = new Completer<bool>();
+      var completer = Completer<bool>();
       bool barEntered = false;
 
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -678,7 +678,7 @@ main() {
         'barEnter': 0,
         'barLeave': 0
       };
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             path: r'/foo/:param',
@@ -774,7 +774,7 @@ main() {
         'barEnter': 0,
         'barLeave': 0
       };
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             path: r'/foo/:param',
@@ -867,7 +867,7 @@ main() {
         'barEnter': 0,
         'barLeave': 0
       };
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             path: r'/foo',
@@ -881,7 +881,7 @@ main() {
             name: 'bar',
             preEnter: (RoutePreEnterEvent e) {
               counters['barPreEnter']++;
-              e.allowEnter(new Future<bool>.value(false));
+              e.allowEnter(Future<bool>.value(false));
             },
             preLeave: (_) => counters['barPreLeave']++,
             enter: (_) => counters['barEnter']++,
@@ -928,7 +928,7 @@ main() {
 
   group('Default route', () {
     void _testHeadTail(String path, String expectFoo, String expectBar) {
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -976,7 +976,7 @@ main() {
         'article_123_edit_entered': 0
       };
 
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'articles',
@@ -1047,8 +1047,8 @@ main() {
     });
 
     test('should use location.assign/.replace when useFragment=true', () {
-      var mockWindow = new MockWindow();
-      var router = new Router(useFragment: true, windowImpl: mockWindow);
+      var mockWindow = MockWindow();
+      var router = Router(useFragment: true, windowImpl: mockWindow);
       router.root.addRoute(name: 'articles', path: '/articles');
 
       router.go('articles', {}).then(expectAsync1((_) {
@@ -1069,8 +1069,8 @@ main() {
     });
 
     test('should use history.push/.replaceState when useFragment=false', () {
-      var mockWindow = new MockWindow();
-      var router = new Router(useFragment: false, windowImpl: mockWindow);
+      var mockWindow = MockWindow();
+      var router = Router(useFragment: false, windowImpl: mockWindow);
       router.root.addRoute(name: 'articles', path: '/articles');
       when((mockWindow.document as HtmlDocument).title)
           .thenReturn('page title');
@@ -1078,27 +1078,25 @@ main() {
       router.go('articles', {}).then(expectAsync1((_) {
         var mockHistory = mockWindow.history;
 
-        var result = verify(mockHistory.pushState(
-            captureAny, captureAny, captureAny));
+        var result =
+            verify(mockHistory.pushState(captureAny, captureAny, captureAny));
         result.called(1);
         expect(result.captured, [null, 'page title', '/articles']);
-        verifyNever(mockHistory.replaceState(
-            any, any, any));
+        verifyNever(mockHistory.replaceState(any, any, any));
 
         router.go('articles', {}, replace: true).then(expectAsync1((_) {
-          var result = verify(mockHistory.replaceState(captureAny,
-              captureAny, captureAny));
+          var result = verify(
+              mockHistory.replaceState(captureAny, captureAny, captureAny));
           result.called(1);
           expect(result.captured, [null, 'page title', '/articles']);
-          verifyNever(mockHistory.pushState(
-              any, any, any));
+          verifyNever(mockHistory.pushState(any, any, any));
         }));
       }));
     });
 
     test('should encode query parameters in the URL', () {
-      var mockWindow = new MockWindow();
-      var router = new Router(useFragment: false, windowImpl: mockWindow);
+      var mockWindow = MockWindow();
+      var router = Router(useFragment: false, windowImpl: mockWindow);
       router.root.addRoute(name: 'articles', path: '/articles');
       when((mockWindow.document as HtmlDocument).title)
           .thenReturn('page title');
@@ -1109,21 +1107,20 @@ main() {
           .then(expectAsync1((_) {
         var mockHistory = mockWindow.history;
 
-        var result = verify(mockHistory.pushState(
-            captureAny, captureAny, captureAny));
+        var result =
+            verify(mockHistory.pushState(captureAny, captureAny, captureAny));
         result.called(1);
         expect(result.captured,
             [null, 'page title', '/articles?foo=foo%20bar&bar=%25baz%2Baux']);
-        verifyNever(mockHistory.replaceState(
-            any, any, any));
+        verifyNever(mockHistory.replaceState(any, any, any));
       }));
     });
 
     test('should work with hierarchical go', () {
-      var mockWindow = new MockWindow();
+      var mockWindow = MockWindow();
       when((mockWindow.document as HtmlDocument).title)
           .thenReturn('page title');
-      var router = new Router(windowImpl: mockWindow);
+      var router = Router(windowImpl: mockWindow);
       router.root
         ..addRoute(
             name: 'a',
@@ -1135,22 +1132,22 @@ main() {
       router.go('a.b', {}).then(expectAsync1((_) {
         var mockHistory = mockWindow.history;
 
-        var result = verify(mockHistory.pushState(
-            captureAny, captureAny, captureAny));
+        var result =
+            verify(mockHistory.pushState(captureAny, captureAny, captureAny));
         result.called(1);
         expect(result.captured, [null, 'page title', '/null/null']);
 
         router.go('a.b', {'foo': 'aaaa', 'bar': 'bbbb'}).then(expectAsync1((_) {
-          var result = verify(mockHistory.pushState(captureAny,
-              captureAny, captureAny));
+          var result =
+              verify(mockHistory.pushState(captureAny, captureAny, captureAny));
           result.called(1);
           expect(result.captured, [null, 'page title', '/aaaa/bbbb']);
 
           router
               .go('b', {'bar': 'bbbb'}, startingFrom: routeA)
               .then(expectAsync1((_) {
-            var result = verify(mockHistory.pushState(captureAny,
-                captureAny, captureAny));
+            var result = verify(
+                mockHistory.pushState(captureAny, captureAny, captureAny));
             // Note: These were cumulative with mock but get reset with each
             // call to mockito.verify(), so 3 became 1 here.
             result.called(1);
@@ -1163,11 +1160,11 @@ main() {
     test('should attempt to reverse default routes', () {
       var counters = <String, int>{'aEnter': 0, 'bEnter': 0};
 
-      var mockWindow = new MockWindow();
+      var mockWindow = MockWindow();
 
       when((mockWindow.document as HtmlDocument).title)
           .thenReturn('page title');
-      var router = new Router(windowImpl: mockWindow);
+      var router = Router(windowImpl: mockWindow);
       router.root
         ..addRoute(
             name: 'a',
@@ -1190,8 +1187,8 @@ main() {
         return router.go('b', {'bar': 'bbb'}, startingFrom: routeA).then((_) {
           var mockHistory = mockWindow.history;
 
-          var result = verify(mockHistory.pushState(captureAny,
-              captureAny, captureAny));
+          var result =
+              verify(mockHistory.pushState(captureAny, captureAny, captureAny));
           result.called(1);
           expect(result.captured, [null, 'page title', '/null/bbb']);
         });
@@ -1201,10 +1198,10 @@ main() {
     test('should force reload already active routes', () {
       var counters = <String, int>{'aEnter': 0, 'bEnter': 0};
 
-      var mockWindow = new MockWindow();
+      var mockWindow = MockWindow();
       when((mockWindow.document as HtmlDocument).title)
           .thenReturn('page title');
-      var router = new Router(windowImpl: mockWindow);
+      var router = Router(windowImpl: mockWindow);
       router.root
         ..addRoute(
             name: 'a',
@@ -1229,23 +1226,22 @@ main() {
     });
 
     test('should update page title if the title property is set', () {
-      var mockWindow = new MockWindow();
-      var router = new Router(useFragment: false, windowImpl: mockWindow);
+      var mockWindow = MockWindow();
+      var router = Router(useFragment: false, windowImpl: mockWindow);
       router.root.addRoute(name: 'foo', path: '/foo', pageTitle: 'Foo');
 
       router.go('foo', {}).then(expectAsync1((_) {
         var mockHistory = mockWindow.history;
-        verify((mockWindow.document as HtmlDocument).title = any)
-            .called(1);
+        verify((mockWindow.document as HtmlDocument).title = any).called(1);
         verify(mockHistory.pushState(null, 'Foo', '/foo')).called(1);
       }));
     });
 
     test('should not change page title if the title property is not set', () {
-      var mockWindow = new MockWindow();
+      var mockWindow = MockWindow();
       when((mockWindow.document as HtmlDocument).title)
           .thenReturn('page title');
-      var router = new Router(useFragment: false, windowImpl: mockWindow);
+      var router = Router(useFragment: false, windowImpl: mockWindow);
       router.root.addRoute(name: 'foo', path: '/foo');
 
       router.go('foo', {}).then(expectAsync1((_) {
@@ -1257,8 +1253,8 @@ main() {
 
   group('url', () {
     test('should reconstruct url', () {
-      var mockWindow = new MockWindow();
-      var router = new Router(windowImpl: mockWindow);
+      var mockWindow = MockWindow();
+      var router = Router(windowImpl: mockWindow);
       router.root
         ..addRoute(
             name: 'a',
@@ -1303,7 +1299,7 @@ main() {
     test('should return correct routes', () {
       Route routeFoo, routeBar, routeBaz, routeQux, routeAux;
 
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -1343,7 +1339,7 @@ main() {
   group('route', () {
     group('query params', () {
       test('should parse query', () {
-        var router = new Router();
+        var router = Router();
         router.root
           ..addRoute(
               name: 'foo',
@@ -1359,7 +1355,7 @@ main() {
       });
 
       test('should not reload when unwatched query param changes', () {
-        var router = new Router();
+        var router = Router();
         var counters = {
           'fooLeave': 0,
           'fooEnter': 0,
@@ -1387,7 +1383,7 @@ main() {
       });
 
       test('should reload when watched query param changes', () {
-        var router = new Router();
+        var router = Router();
         var counters = {
           'fooLeave': 0,
           'fooEnter': 0,
@@ -1415,7 +1411,7 @@ main() {
       });
 
       test('should match pattern for watched query params', () {
-        var router = new Router();
+        var router = Router();
         var counters = {
           'fooLeave': 0,
           'fooEnter': 0,
@@ -1424,7 +1420,7 @@ main() {
           ..addRoute(
               name: 'foo',
               path: '/:foo',
-              watchQueryParameters: [new RegExp(r'^foo$')],
+              watchQueryParameters: [RegExp(r'^foo$')],
               leave: (_) => counters['fooLeave']++,
               enter: (_) => counters['fooEnter']++);
 
@@ -1445,7 +1441,7 @@ main() {
 
     group('isActive', () {
       test('should currectly identify active/inactive routes', () {
-        var router = new Router();
+        var router = Router();
         router.root
           ..addRoute(
               name: 'foo',
@@ -1494,7 +1490,7 @@ main() {
 
     group('parameters', () {
       test('should return path parameters for routes', () {
-        var router = new Router();
+        var router = Router();
         router.root
           ..addRoute(
               name: 'foo',
@@ -1536,7 +1532,7 @@ main() {
 
   group('activePath', () {
     test('should currectly identify active path', () {
-      var router = new Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -1574,8 +1570,8 @@ main() {
     });
 
     test('should currectly identify active path after relative go', () {
-      var mockWindow = new MockWindow();
-      var router = new Router(windowImpl: mockWindow);
+      var mockWindow = MockWindow();
+      var router = Router(windowImpl: mockWindow);
       router.root
         ..addRoute(
             name: 'foo',
@@ -1612,8 +1608,8 @@ main() {
     test(
         'should currectly identify active path after relative go from deeper active path',
         () {
-      var mockWindow = new MockWindow();
-      var router = new Router(windowImpl: mockWindow);
+      var mockWindow = MockWindow();
+      var router = Router(windowImpl: mockWindow);
       router.root
         ..addRoute(
             name: 'foo',
@@ -1651,13 +1647,13 @@ main() {
   group('listen', () {
     group('fragment', () {
       test('shoud route current hash on listen', () {
-        var mockWindow = new MockWindow();
-        var mockHashChangeController = new StreamController<Event>(sync: true);
+        var mockWindow = MockWindow();
+        var mockHashChangeController = StreamController<Event>(sync: true);
 
         when(mockWindow.onHashChange)
             .thenAnswer((_) => mockHashChangeController.stream);
         when(mockWindow.location.hash).thenReturn('#/foo');
-        var router = new Router(useFragment: true, windowImpl: mockWindow);
+        var router = Router(useFragment: true, windowImpl: mockWindow);
         router.root.addRoute(name: 'foo', path: '/foo');
         router.onRouteStart.listen(expectAsync1((RouteStartEvent start) {
           start.completed.then(expectAsync1((_) {
@@ -1673,7 +1669,7 @@ main() {
         when(mockWindow.location.hash).thenReturn('');
         when(mockWindow.location.pathname).thenReturn('/hello');
         when(mockWindow.location.search).thenReturn('?foo=bar&baz=bat');
-        var router = new Router(useFragment: false, windowImpl: mockWindow);
+        var router = Router(useFragment: false, windowImpl: mockWindow);
         router.root.addRoute(name: 'hello', path: '/hello');
         router.onRouteStart.listen(expectAsync1((RouteStartEvent start) {
           start.completed.then(expectAsync1((_) {
@@ -1686,19 +1682,21 @@ main() {
       }
 
       test('should route current path on listen with pop', () {
-        var mockWindow = new MockWindow();
+        var mockWindow = MockWindow();
         var mockPopStateController =
-            new StreamController<PopStateEvent>(sync: true);
-        when(mockWindow.onPopState).thenAnswer((_) => mockPopStateController.stream);
+            StreamController<PopStateEvent>(sync: true);
+        when(mockWindow.onPopState)
+            .thenAnswer((_) => mockPopStateController.stream);
         testInit(mockWindow, 2);
         mockPopStateController.add(null);
       });
 
       test('shoud route current path on listen without pop', () {
-        var mockWindow = new MockWindow();
+        var mockWindow = MockWindow();
         var mockPopStateController =
-            new StreamController<PopStateEvent>(sync: true);
-        when(mockWindow.onPopState).thenAnswer((_) => mockPopStateController.stream);
+            StreamController<PopStateEvent>(sync: true);
+        when(mockWindow.onPopState)
+            .thenAnswer((_) => mockPopStateController.stream);
         testInit(mockWindow);
       });
     });
@@ -1714,19 +1712,19 @@ main() {
       });
 
       test('it should be called if event triggered on anchor element', () {
-        AnchorElement anchor = new AnchorElement();
+        AnchorElement anchor = AnchorElement();
         anchor.href = '#test1';
         document.body.append(toRemove = anchor);
 
-        var mockWindow = new MockWindow();
-        var mockHashChangeController = new StreamController<Event>(sync: true);
+        var mockWindow = MockWindow();
+        var mockHashChangeController = StreamController<Event>(sync: true);
 
         when(mockWindow.onHashChange)
             .thenAnswer((_) => mockHashChangeController.stream);
         when(mockWindow.location.hash).thenReturn('#/foo');
         when(mockWindow.location.host).thenReturn(window.location.host);
 
-        var router = new Router(useFragment: true, windowImpl: mockWindow);
+        var router = Router(useFragment: true, windowImpl: mockWindow);
         router.listen(appRoot: anchor);
 
         router.onRouteStart.listen(expectAsync1((RouteStartEvent e) {
@@ -1739,21 +1737,21 @@ main() {
       test(
           'it should be called if event triggered on child of an anchor element',
           () {
-        Element anchorChild = new DivElement();
-        AnchorElement anchor = new AnchorElement();
+        Element anchorChild = DivElement();
+        AnchorElement anchor = AnchorElement();
         anchor.href = '#test2';
         anchor.append(anchorChild);
         document.body.append(toRemove = anchor);
 
-        var mockWindow = new MockWindow();
-        var mockHashChangeController = new StreamController<Event>(sync: true);
+        var mockWindow = MockWindow();
+        var mockHashChangeController = StreamController<Event>(sync: true);
 
         when(mockWindow.onHashChange)
             .thenAnswer((_) => mockHashChangeController.stream);
         when(mockWindow.location.hash).thenReturn('#/foo');
         when(mockWindow.location.host).thenReturn(window.location.host);
 
-        var router = new Router(useFragment: true, windowImpl: mockWindow);
+        var router = Router(useFragment: true, windowImpl: mockWindow);
         router.listen(appRoot: anchor);
 
         router.onRouteStart.listen(expectAsync1((RouteStartEvent e) {
