@@ -66,9 +66,6 @@ testWeb() async {
       workingDirectory: _routeDir.path);
 }
 
-@Task('Run bower')
-bower() => run('bower', arguments: ['install', '--force-latest']);
-
 @Task('Serve locally on port 8000')
 @Depends(build)
 serve() {

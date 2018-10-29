@@ -40,12 +40,19 @@ Contributions made by corporations are covered by a different agreement than the
 
 ## How to run DartPad locally
 
-* To run the DartPad against the regular serving backend:  `grind serve`.  This serves the
-DartPad frontend locally on port 8000.
+DartPad requires npm v5 or higher and vulcanize to be installed.
+
+* To run the DartPad against the regular serving backend:
+
+```bash
+pub global activate grinder
+grind serve
+```
+This serves the DartPad frontend locally on port 8000.
 
 * To run DartPad against a local version of the dart-services backend:
 ```bash
-pub global activate grinder
+
 cd ..
 git clone git@github.com:dart-lang/dart-services.git
 cd dart-services
