@@ -43,6 +43,6 @@
     "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0"
   },
   "resolutions": {
-    "polymer": "^1.2.4"
+    "polymer": "^1.11.3"
   }
 }
