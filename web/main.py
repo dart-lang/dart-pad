@@ -78,7 +78,7 @@ def _serve(resp, path):
     if path.endswith('.ico'):
         resp.content_type = 'image/x-icon'
     if path.endswith('.html'):
-        resp.content_type = 'text/html '
+        resp.content_type = 'text/html'
     if path.endswith('.png'):
            resp.content_type = 'image/png'
 
