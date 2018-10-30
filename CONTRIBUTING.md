@@ -37,3 +37,37 @@ Contributions made by corporations are covered by a different agreement than the
  
 3) Add or change sample Gist IDs to the [index file](https://github.com/dart-lang/dart-pad/blob/master/web/index.html#L54),
    and submit a PR for review.
+
+## How to run DartPad locally
+
+DartPad requires npm v5 or higher and vulcanize to be installed.
+
+* To run the DartPad against the regular serving backend:
+
+```bash
+pub global activate grinder
+grind serve
+```
+This serves the DartPad frontend locally on port 8000.
+
+* To run DartPad against a local version of the dart-services backend:
+```bash
+
+cd ..
+git clone git@github.com:dart-lang/dart-services.git
+cd dart-services
+pub get
+# Change the SDK version dart-services serves to the one you currently have installed
+grind update-docker-version
+# Begin serving the backend locally on port 8002.
+grind serve &
+
+cd ../dart-pad
+# Begin serving the front-end locally on port 8000, with the given backend
+export DARTPAD_BACKEND=http://localhost:8002 
+grind serve-custom-backend
+```
+
+You can adjust the DARTPAD_BACKEND variable to match different versions of the dart-pad backend
+serving on AppEngine for test purposes as well, e.g.:
+`DARTPAD_BACKEND=https://20180822t110058-dot-dart-services.appspot.com/`
