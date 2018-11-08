@@ -321,8 +321,8 @@ void defineTests() {
     });
 
     test('summarize', () async {
-      var jsonData = {
-        'sources': {'dart': sampleCode, 'html': '', 'css': ''}
+      Map<String, dynamic> jsonData = {
+        'sources': <String, String>{'dart': sampleCode, 'html': '', 'css': ''}
       };
       var response =
           await _sendPostRequest('dartservices/v1/summarize', jsonData);
