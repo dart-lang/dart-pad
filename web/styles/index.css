@@ -79,12 +79,15 @@ input {
   resize: none;
   border: 1px solid #555;
   padding: 0.5em;
-  margin: 0 0 8px 0;
 }
 
 textarea, input {
   font-family: 'Roboto', sans-serif;
   font-size: 14px;
+}
+
+label {
+  user-select: none;
 }
 
 .sharingSummaryText {

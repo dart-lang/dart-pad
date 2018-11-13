@@ -57,7 +57,7 @@ abstract class PropertyOwner {
 }
 
 /// An instantiation of a binding from one element to another. [Binding]s can be
-/// cancelled, so changes are no longer propogated from the source to the
+/// cancelled, so changes are no longer propagated from the source to the
 /// target.
 abstract class Binding {
   /// Explicitly push the value from the source to the target. This might be a

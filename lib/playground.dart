@@ -194,7 +194,7 @@ class Playground implements GistContainer, GistController {
   void _resetGists() {
     _gistStorage.clearStoredGist();
     editableGist.reset();
-    // Delay to give time for the model change event to propogate through
+    // Delay to give time for the model change event to propagate through
     // to the editor component (which is where `_performAnalysis()` pulls
     // the Dart source from).
     Timer.run(() => _performAnalysis());
@@ -346,9 +346,18 @@ class Playground implements GistContainer, GistController {
       }
 
       _clearOutput();
+
       // We delay this because of the latency in populating the editors from the
       // gist data.
       Timer.run(_autoSwitchSourceTab);
+
+      if (isWebContentShowing != gist.hasWebContent()) {
+        if (gist.hasWebContent()) {
+          showWebContent();
+        } else {
+          hideWebContent();
+        }
+      }
 
       // Analyze and run it.
       Timer.run(() {
@@ -383,7 +392,6 @@ class Playground implements GistContainer, GistController {
       _frame.style.pointerEvents = "inherit";
     };
 
-    // TODO: Set up some automatic value bindings.
     DSplitter editorSplitter = DSplitter(querySelector('#editor_split'),
         onDragStart: disablePointerEvents, onDragEnd: enablePointerEvents);
     editorSplitter.onPositionChanged.listen((pos) {
@@ -501,6 +509,37 @@ class Playground implements GistContainer, GistController {
     });
     context.onModeChange.listen((_) => docHandler.generateDoc(_docPanel));
 
+    // Listen for clicks on the 'Show web content' checkbox.
+    showWebContentInputElement.onClick.listen((MouseEvent event) {
+      event.preventDefault();
+
+      // Delay a bit as it looks like we can't programmatically change the value
+      // of a checkbox in an event handler.
+      Timer(const Duration(milliseconds: 100), () {
+        final bool isChecked = showWebContentInputElement.checked;
+
+        if (isChecked) {
+          if (_context.hasWebContent()) {
+            final OkCancelDialog dialog = OkCancelDialog(
+              'Hide web content',
+              'Discard the contents of the HTML and CSS tabs?',
+              () {
+                _context.htmlSource = '';
+                _context.cssSource = '';
+                hideWebContent();
+              },
+              okText: 'Discard',
+            );
+            dialog.show();
+          } else {
+            hideWebContent();
+          }
+        } else {
+          showWebContent();
+        }
+      });
+    });
+
     // Bind the editable files to the gist.
     Property htmlFile =
         GistFileProperty(editableGist.getGistFile('index.html'));
@@ -607,6 +646,10 @@ class Playground implements GistContainer, GistController {
   /// Switch to the console or html results tab depending on whether the sample
   /// has html content or not.
   void _autoSwitchOutputTab() {
+    if (!isWebContentShowing) {
+      return;
+    }
+
     String htmlSrc = _context.htmlSource.trim();
     String dartSrc = _context.dartSource.trim();
 
@@ -727,6 +770,34 @@ class Playground implements GistContainer, GistController {
 
   void _clearOutput() {
     _outputpanel.text = '';
+  }
+
+  InputElement get showWebContentInputElement =>
+      querySelector('#show-web-content');
+
+  bool get isWebContentShowing =>
+      querySelector('#htmltab').style.visibility != 'hidden';
+
+  void showWebContent() {
+    showWebContentInputElement.checked = true;
+
+    querySelector('#htmltab').style.visibility = 'initial';
+    querySelector('#csstab').style.visibility = 'initial';
+
+    querySelector('#resulttab').style.visibility = 'initial';
+  }
+
+  void hideWebContent() {
+    showWebContentInputElement.checked = false;
+
+    // Switch to dart tab, and the console output tab.
+    sourceTabController.selectTab('dart');
+    outputTabController.selectTab('console');
+
+    querySelector('#htmltab').style.visibility = 'hidden';
+    querySelector('#csstab').style.visibility = 'hidden';
+
+    querySelector('#resulttab').style.visibility = 'hidden';
   }
 
   final _bufferedOutput = <SpanElement>[];
@@ -868,6 +939,7 @@ class PlaygroundContext extends Context {
 
   PlaygroundContext(this.editor) {
     editor.mode = 'dart';
+
     _dartDoc = editor.document;
     _htmlDoc = editor.createDocument(content: '', mode: 'html');
     _cssDoc = editor.createDocument(content: '', mode: 'css');
@@ -908,6 +980,10 @@ class PlaygroundContext extends Context {
   String get activeMode => editor.mode;
 
   Stream<String> get onModeChange => _modeController.stream;
+
+  bool hasWebContent() {
+    return htmlSource.trim().isNotEmpty || cssSource.trim().isNotEmpty;
+  }
 
   void switchTo(String name) {
     String oldMode = activeMode;
