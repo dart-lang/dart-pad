@@ -68,8 +68,8 @@
       <div class="view" flex three layout vertical>
         <div class="header" layout horizontal wrap>
           <li><a id="darttab" selected class="arrow_box"><span>Dart</span></a></li>
-          <li><a id="htmltab"><span>HTML</span></a></li>
-          <li><a id="csstab"><span>CSS</span></a></li>
+          <li><a id="htmltab" style="visibility: hidden;"><span>HTML</span></a></li>
+          <li><a id="csstab" style="visibility: hidden;"><span>CSS</span></a></li>
           <div flex></div>
           <div id="dartbusy" class="busylight"></div>
           <div>
@@ -96,7 +96,7 @@
           <div id="frame-overlay"></div>
           <div class="header" layout horizontal wrap>
             <div flex></div>
-            <li><a id="resulttab"><span>HTML Output</span></a></li>
+            <li><a id="resulttab" style="visibility: hidden;"><span>HTML Output</span></a></li>
             <li><a id="consoletab" selected last><span>Console</span></a></li>
             <div id="consolebusy" class="busylight"></div>
           </div>
@@ -125,6 +125,10 @@
             target="repo">Send feedback</a>
       </div>
       <div flex></div>
+
+      <input type="checkbox" id="show-web-content" class="footer-items">
+      <label for="show-web-content" class="footer-item">Show web content</label>
+
       <div id="dartpad_version"> </div>
     </footer>
   </body>

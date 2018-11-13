@@ -1,3 +1,5 @@
+.DS_Store
+
 # Don’t commit the following directories created by pub.
 build/
 .buildlog

@@ -231,6 +231,14 @@ class Gist {
     }
   }
 
+  bool hasWebContent() {
+    return files.any((GistFile file) {
+      final bool isWebFile =
+          file.name.endsWith('.html') || file.name.endsWith('.css');
+      return isWebFile && file.content.trim().isNotEmpty;
+    });
+  }
+
   Map toMap() {
     Map m = {};
     if (id != null) m['id'] = id;
@@ -270,6 +278,7 @@ class GistFile {
 
 abstract class GistController {
   Future createNewGist();
+
   Future shareAnon({String summary});
 }
 
