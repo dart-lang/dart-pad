@@ -40,10 +40,10 @@
     "paper-tabs": "PolymerElements/paper-tabs#^1.0.0",
     "paper-toast": "PolymerElements/paper-toast#^1.0.0",
     "paper-toggle-button": "PolymerElements/paper-toggle-button#^1.0.0",
-    "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0"
+    "paper-toolbar": "PolymerElements/paper-toolbar#^1.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
   },
   "resolutions": {
-    "webcomponentsjs": "^v1.1.0",
     "polymer": "^2.0.0"
   }
 }
