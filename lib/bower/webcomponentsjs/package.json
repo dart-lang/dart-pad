@@ -1,11 +1,17 @@
 {
-  "name": "webcomponents.js",
-  "version": "0.7.24",
-  "description": "webcomponents.js",
-  "main": "webcomponents.js",
+  "name": "@webcomponents/webcomponentsjs",
+  "version": "1.2.7",
+  "description": "Web Components Polyfills",
+  "main": "webcomponents-lite.js",
   "directories": {
     "test": "tests"
   },
+  "keywords": [
+    "webcomponents",
+    "web-components",
+    "polyfill",
+    "shim"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/webcomponents/webcomponentsjs.git"
@@ -16,16 +22,36 @@
     "url": "https://github.com/webcomponents/webcomponentsjs/issues"
   },
   "scripts": {
+    "build": "gulp",
     "test": "wct"
   },
-  "homepage": "http://webcomponents.org",
+  "homepage": "https://webcomponents.org/polyfills",
   "devDependencies": {
+    "@webcomponents/custom-elements": "^1.2.0",
+    "@webcomponents/html-imports": "^1.2.0",
+    "@webcomponents/shadycss": "^1.5.2",
+    "@webcomponents/shadydom": "^1.2.0",
+    "@webcomponents/template": "^1.4.0",
+    "@webcomponents/webcomponents-platform": "^1.0.0",
+    "babel-preset-minify": "^0.2.0",
+    "del": "^3.0.0",
+    "eslint": "^4.19.1",
+    "google-closure-compiler": "^20180805.0.0",
     "gulp": "^3.8.8",
-    "gulp-audit": "^1.0.0",
-    "gulp-concat": "^2.4.1",
-    "gulp-header": "^1.1.1",
-    "gulp-uglify": "^1.0.1",
-    "run-sequence": "^1.0.1",
-    "web-component-tester": "^4.0.1"
+    "gulp-add-src": "^0.2.0",
+    "gulp-header": "^1.8.12",
+    "gulp-rename": "^1.4.0",
+    "gulp-sourcemaps": "^2.6.4",
+    "promise-polyfill": "^8.1.0",
+    "rollup-plugin-babel": "^2.7.1",
+    "rollup-plugin-license": "^0.6.0",
+    "rollup-stream": "=1.23",
+    "run-sequence": "^2.2.1",
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^1.1.2",
+    "web-component-tester": "^6.8.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

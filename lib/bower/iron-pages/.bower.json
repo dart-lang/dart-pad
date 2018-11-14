@@ -1,6 +1,6 @@
 {
   "name": "iron-pages",
-  "version": "1.0.9",
+  "version": "2.1.1",
   "license": "http://polymer.github.io/LICENSE.txt",
   "description": "Organizes a set of pages and shows one at a time",
   "main": "iron-pages.html",
@@ -18,27 +18,48 @@
     "container"
   ],
   "dependencies": {
-    "iron-resizable-behavior": "polymerelements/iron-resizable-behavior#^1.0.0",
-    "iron-selector": "polymerelements/iron-selector#^1.0.0",
-    "polymer": "Polymer/polymer#^1.1.0"
+    "iron-resizable-behavior": "PolymerElements/iron-resizable-behavior#1 - 2",
+    "iron-selector": "PolymerElements/iron-selector#1 - 2",
+    "polymer": "Polymer/polymer#1.9 - 2"
   },
   "devDependencies": {
-    "iron-component-page": "polymerelements/iron-component-page#^1.0.0",
-    "iron-demo-helpers": "polymerelements/iron-demo-helpers#^1.0.0",
-    "paper-styles": "polymerelements/paper-styles#^1.0.2",
-    "test-fixture": "polymerelements/test-fixture#^1.0.0",
-    "web-component-tester": "^4.0.0",
-    "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+    "iron-component-page": "polymerelements/iron-component-page#1 - 2",
+    "iron-demo-helpers": "PolymerElements/iron-demo-helpers#1 - 2",
+    "paper-styles": "PolymerElements/paper-styles#1 - 2",
+    "web-component-tester": "^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  },
+  "variants": {
+    "1.x": {
+      "dependencies": {
+        "iron-resizable-behavior": "polymerelements/iron-resizable-behavior#^1.0.0",
+        "iron-selector": "polymerelements/iron-selector#^1.0.0",
+        "polymer": "Polymer/polymer#^1.9"
+      },
+      "devDependencies": {
+        "iron-component-page": "polymerelements/iron-component-page#^1.0.0",
+        "iron-demo-helpers": "polymerelements/iron-demo-helpers#^1.0.0",
+        "paper-styles": "polymerelements/paper-styles#^1.0.2",
+        "web-component-tester": "^4.0.0",
+        "webcomponentsjs": "webcomponents/webcomponentsjs#^0.7.0"
+      },
+      "resolutions": {
+        "webcomponentsjs": "^0.7"
+      }
+    }
   },
   "ignore": [],
+  "resolutions": {
+    "webcomponentsjs": "^1.0.0"
+  },
   "homepage": "https://github.com/PolymerElements/iron-pages",
-  "_release": "1.0.9",
+  "_release": "2.1.1",
   "_resolution": {
     "type": "version",
-    "tag": "v1.0.9",
-    "commit": "fffb343259d2b381bebfdb13cbe08ec1d0d2b4db"
+    "tag": "v2.1.1",
+    "commit": "a008884eb2c7f333ca3286a4e768357ef4602c97"
   },
   "_source": "https://github.com/PolymerElements/iron-pages.git",
-  "_target": "^1.0.0",
+  "_target": "^2.0.0",
   "_originalSource": "PolymerElements/iron-pages"
 }

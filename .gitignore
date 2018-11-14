@@ -20,3 +20,6 @@ web/mdetect.py
 web/scripts/codemirror.js
 
 last_prod/
+
+# Editor config
+.vscode/
