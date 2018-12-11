@@ -1,0 +1,214 @@
+void main() {
+  // let the compiler figure that it's a 			string
+  var man = 'Bob';
+  print(man);
+
+  // define it as a String
+  String woman = 'Carla';
+  print(woman);
+
+  // if Uninitialized .. null because 			 it's an object
+  int speed;
+  print(speed);
+
+  // const cannot be changed
+  // final can only be set once
+  const name = 'Bob';
+  final String nickname = ' Bobby';
+  print(name + nickname);
+
+  // integer
+  var x = 1;
+  int y = 30;
+  // double
+  var z = 2.9;
+  double exponent = 1.9e-2;
+  double w = 3; // = 3.0
+
+  // String
+  var s1 = "Double quote string";
+  var s2 = "Single quote string";
+  var s3 = "Escape string delimiter";
+  print(s3);
+
+  // bool
+  bool dead = true;
+  print(!dead);
+
+  // Lists
+  var list = [1, 3, 6, 'me', 4.7];
+  print(list[4]);
+  print(list[3]);
+
+  // If Else
+
+  int n = -1;
+  if (n == 0) {
+    print("N equal to Zero");
+  } else {
+    print("N is not equal to Zero");
+  }
+
+  // built-in methods "is"
+  print(n is int);
+  print(n is String);
+  print(n is! String);
+
+  // loops
+  for (int x = 10; x > 0; x--) {
+    print("Number: $x");
+    // or ${x}
+  }
+
+  for (var i = 0; i < 10; i++) {
+    print("Lucky number : ${i * i - i}");
+  }
+
+  int xx = 10;
+  while (xx != 0) {
+    print(xx);
+    xx--;
+  }
+
+  // switch
+  int salary = 3587;
+  switch (salary) {
+    case 1000:
+      print("Your salary is 1000");
+      break;
+    case 4000:
+      print("Your salary is 4000");
+      break;
+    case 6000:
+      print("Your salary is 6000");
+      break;
+    case 8000:
+      print("Your salary is 8000");
+      break;
+    default:
+      print("What the Fuck !");
+      break;
+  }
+
+  // functions
+
+  // withouth saying void
+  myFunction("Hello from myFunction");
+
+  print(product(4, 5));
+
+  int fk = product(5, 9);
+  print(fk);
+  print("5 times 9 is ${product(5, 9)}");
+
+  print(isInteget("gf"));
+  print(isInteget(55));
+
+  var car1 = new Car("Ferrari", "JGOS30KD", 4.9, 42, 30);
+  car1.name = "Porsche";
+  car1.plateNumber = "HGL310F";
+  car1.xLocation = -3;
+  car1.yLocation = 4.032;
+  car1.speed = 40;
+
+  car1.setPlateNumber = "35KF4L4";
+
+  print(car1.getPlateNumber);
+  car1.move();
+  car1.accelerate();
+  car1.park();
+
+  Person p = new Person("Majed");
+  p.printPerson();
+
+  Student s = new Student("Kamal", true);
+  s.printPerson();
+
+  Person p1 = new Person.Initialize("Ahmed");
+  p1.printPerson();
+
+  Square square = new Square(4, 7, 4, 'red');
+  print("Area of the square is ${square.getArea()}");
+}
+
+// saying void
+void myFunction(String s) {
+  print(s);
+}
+
+int product(int x, int y) => x * y;
+
+bool isInteget(var j) => j is int;
+
+// optional parameters
+// add [int x, String s] .. means x and s are optional
+
+class Car {
+  String name;
+  String plateNumber;
+  double xLocation;
+  double yLocation;
+  double speed;
+
+  Car(this.name, this.plateNumber, this.xLocation, this.yLocation, this.speed);
+
+  // getters and setters
+  set setPlateNumber(String value) => plateNumber = value;
+  String get getPlateNumber => plateNumber;
+
+  move() {
+    print("${name} is moving");
+  }
+
+  park() {
+    print("${name} is parking");
+  }
+
+  accelerate() {
+    print("${name} is accelerating");
+  }
+}
+
+class Person {
+  String name;
+  // in the same time Zero argument constructor and 1 argument constructor
+  Person([this.name]);
+  // named Constructor
+  Person.Initialize(this.name);
+
+  printPerson() {
+    print("Person name : $name");
+  }
+}
+
+class Student extends Person {
+  bool isStudying;
+
+  // [] optional argument + overriding constructors
+  Student(String name, [this.isStudying]) : super(name);
+
+  // overriding methods from super class
+  @override
+  printPerson() {
+    print("Student : $name $isStudying");
+  }
+}
+
+class Polygon {
+  int numberOfVertices;
+  String color;
+
+  Polygon(this.numberOfVertices, this.color);
+}
+
+class Square extends Polygon implements GeometryCalculations {
+  double x, y;
+
+  Square(this.x, this.y, numberOfVertices, color)
+      : super(numberOfVertices, color);
+  getArea() => x * y;
+}
+
+abstract class GeometryCalculations {
+  double getArea();
+}
