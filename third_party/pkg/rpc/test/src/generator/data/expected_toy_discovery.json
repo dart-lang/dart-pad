@@ -1,0 +1,581 @@
+{
+ "kind": "discovery#restDescription",
+ "etag": "bd57602b54f8234a0bb9945050885647eb292c11",
+ "discoveryVersion": "v1",
+ "id": "toyApi:0.1",
+ "name": "toyApi",
+ "version": "0.1",
+ "revision": "0",
+ "protocol": "rest",
+ "baseUrl": "http://localhost:8080/toyApi/0.1/",
+ "basePath": "/toyApi/0.1/",
+ "rootUrl": "http://localhost:8080/",
+ "servicePath": "toyApi/0.1/",
+ "parameters": {},
+ "schemas": {
+  "ToyResourceResponse": {
+   "id": "ToyResourceResponse",
+   "type": "object",
+   "properties": {
+    "result": {
+     "type": "string"
+    }
+   }
+  },
+  "ToyResponse": {
+   "id": "ToyResponse",
+   "type": "object",
+   "properties": {
+    "result": {
+     "type": "string"
+    }
+   }
+  },
+  "ToyRequest": {
+   "id": "ToyRequest",
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string",
+     "required": true
+    },
+    "age": {
+     "type": "integer",
+     "default": "1000",
+     "format": "int32"
+    }
+   }
+  },
+  "ToyAgeRequest": {
+   "id": "ToyAgeRequest",
+   "type": "object",
+   "properties": {
+    "age": {
+     "type": "integer",
+     "default": "1000",
+     "format": "int32"
+    }
+   }
+  },
+  "ToyMapResponse": {
+   "id": "ToyMapResponse",
+   "type": "object",
+   "properties": {
+    "result": {
+     "type": "string"
+    },
+    "mapResult": {
+     "type": "object",
+     "additionalProperties": {
+      "$ref": "NestedResponse"
+     }
+    }
+   }
+  },
+  "NestedResponse": {
+   "id": "NestedResponse",
+   "type": "object",
+   "properties": {
+    "nestedResult": {
+     "type": "string"
+    }
+   }
+  },
+  "ListOfString": {
+   "id": "ListOfString",
+   "type": "array",
+   "items": {
+    "type": "string"
+   }
+  },
+  "MapOfint": {
+   "id": "MapOfint",
+   "type": "object",
+   "additionalProperties": {
+    "type": "integer",
+    "format": "int32"
+   }
+  },
+  "MapOfMapOfint": {
+   "id": "MapOfMapOfint",
+   "type": "object",
+   "additionalProperties": {
+    "type": "object",
+    "additionalProperties": {
+     "type": "integer",
+     "format": "int32"
+    }
+   }
+  },
+  "MapOfMapOfbool": {
+   "id": "MapOfMapOfbool",
+   "type": "object",
+   "additionalProperties": {
+    "type": "object",
+    "additionalProperties": {
+     "type": "boolean"
+    }
+   }
+  },
+  "ListOfListOfint": {
+   "id": "ListOfListOfint",
+   "type": "array",
+   "items": {
+    "type": "array",
+    "items": {
+     "type": "integer",
+     "format": "int32"
+    }
+   }
+  },
+  "ListOfListOfString": {
+   "id": "ListOfListOfString",
+   "type": "array",
+   "items": {
+    "type": "array",
+    "items": {
+     "type": "string"
+    }
+   }
+  },
+  "MapOfListOfMapOfint": {
+   "id": "MapOfListOfMapOfint",
+   "type": "object",
+   "additionalProperties": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "integer",
+      "format": "int32"
+     }
+    }
+   }
+  },
+  "MapOfListOfMapOfbool": {
+   "id": "MapOfListOfMapOfbool",
+   "type": "object",
+   "additionalProperties": {
+    "type": "array",
+    "items": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "boolean"
+     }
+    }
+   }
+  },
+  "ListOfMapOfListOfint": {
+   "id": "ListOfMapOfListOfint",
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": {
+     "type": "array",
+     "items": {
+      "type": "integer",
+      "format": "int32"
+     }
+    }
+   }
+  },
+  "ListOfMapOfListOfString": {
+   "id": "ListOfMapOfListOfString",
+   "type": "array",
+   "items": {
+    "type": "object",
+    "additionalProperties": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
+    }
+   }
+  },
+  "ListOfToyRequest": {
+   "id": "ListOfToyRequest",
+   "type": "array",
+   "items": {
+    "$ref": "ToyRequest"
+   }
+  },
+  "MapOfToyResponse": {
+   "id": "MapOfToyResponse",
+   "type": "object",
+   "additionalProperties": {
+    "$ref": "ToyResponse"
+   }
+  },
+  "ListOfListOfToyRequest": {
+   "id": "ListOfListOfToyRequest",
+   "type": "array",
+   "items": {
+    "type": "array",
+    "items": {
+     "$ref": "ToyRequest"
+    }
+   }
+  }
+ },
+ "methods": {
+  "noop": {
+   "id": "ToyApi.noop",
+   "path": "noop",
+   "httpMethod": "GET",
+   "parameters": {},
+   "parameterOrder": []
+  },
+  "failing": {
+   "id": "ToyApi.failing",
+   "path": "failing",
+   "httpMethod": "GET",
+   "parameters": {},
+   "parameterOrder": []
+  },
+  "hello": {
+   "id": "ToyApi.hello",
+   "path": "hello",
+   "httpMethod": "GET",
+   "parameters": {},
+   "parameterOrder": [],
+   "response": {
+    "$ref": "ToyResponse"
+   }
+  },
+  "helloReturnNull": {
+   "id": "ToyApi.helloReturnNull",
+   "path": "helloReturnNull",
+   "httpMethod": "GET",
+   "parameters": {},
+   "parameterOrder": [],
+   "response": {
+    "$ref": "ToyResponse"
+   }
+  },
+  "helloNameAge": {
+   "id": "ToyApi.helloNameAge",
+   "path": "hello/{name}/age/{age}",
+   "httpMethod": "GET",
+   "parameters": {
+    "name": {
+     "type": "string",
+     "description": "Path parameter: 'name'.",
+     "required": true,
+     "location": "path"
+    },
+    "age": {
+     "type": "integer",
+     "description": "Path parameter: 'age'.",
+     "required": true,
+     "location": "path"
+    }
+   },
+   "parameterOrder": [
+    "name",
+    "age"
+   ],
+   "response": {
+    "$ref": "ToyResponse"
+   }
+  },
+  "helloHeroWithBoolean": {
+   "id": "ToyApi.helloHeroWithBoolean",
+   "path": "hero/{name}/{isHero}",
+   "httpMethod": "GET",
+   "parameters": {
+    "name": {
+     "type": "string",
+     "description": "Path parameter: 'name'.",
+     "required": true,
+     "location": "path"
+    },
+    "isHero": {
+     "type": "boolean",
+     "description": "Path parameter: 'isHero'.",
+     "required": true,
+     "location": "path"
+    },
+    "fromComics": {
+     "type": "boolean",
+     "description": "Query parameter: 'fromComics'.",
+     "required": false,
+     "location": "query"
+    }
+   },
+   "parameterOrder": [
+    "name",
+    "isHero"
+   ],
+   "response": {
+    "$ref": "ToyResponse"
+   }
+  },
+  "helloPost": {
+   "id": "ToyApi.helloPost",
+   "path": "helloPost",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "ToyRequest"
+   },
+   "response": {
+    "$ref": "ToyResponse"
+   }
+  },
+  "helloPostWithAsync": {
+   "id": "ToyApi.helloPostWithAsync",
+   "path": "helloPostWithAsync",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "ToyRequest"
+   },
+   "response": {
+    "$ref": "ToyResponse"
+   }
+  },
+  "helloVoid": {
+   "id": "ToyApi.helloVoid",
+   "path": "helloVoid",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "response": {
+    "$ref": "ToyResponse"
+   }
+  },
+  "helloNamePostAge": {
+   "id": "ToyApi.helloNamePostAge",
+   "path": "helloPost/{name}",
+   "httpMethod": "POST",
+   "parameters": {
+    "name": {
+     "type": "string",
+     "description": "Path parameter: 'name'.",
+     "required": true,
+     "location": "path"
+    }
+   },
+   "parameterOrder": [
+    "name"
+   ],
+   "request": {
+    "$ref": "ToyAgeRequest"
+   },
+   "response": {
+    "$ref": "ToyResponse"
+   }
+  },
+  "helloNestedMap": {
+   "id": "ToyApi.helloNestedMap",
+   "path": "helloNestedMap",
+   "httpMethod": "GET",
+   "parameters": {},
+   "parameterOrder": [],
+   "response": {
+    "$ref": "ToyMapResponse"
+   }
+  },
+  "helloNameQueryAgeFoo": {
+   "id": "ToyApi.helloNameQueryAgeFoo",
+   "path": "helloQuery/{name}",
+   "httpMethod": "GET",
+   "parameters": {
+    "name": {
+     "type": "string",
+     "description": "Path parameter: 'name'.",
+     "required": true,
+     "location": "path"
+    },
+    "foo": {
+     "type": "string",
+     "description": "Query parameter: 'foo'.",
+     "required": false,
+     "location": "query"
+    },
+    "age": {
+     "type": "integer",
+     "description": "Query parameter: 'age'.",
+     "required": false,
+     "location": "query"
+    }
+   },
+   "parameterOrder": [
+    "name"
+   ],
+   "response": {
+    "$ref": "ToyResponse"
+   }
+  },
+  "reverseList": {
+   "id": "ToyApi.reverseList",
+   "path": "reverseList",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "ListOfString"
+   },
+   "response": {
+    "$ref": "ListOfString"
+   }
+  },
+  "helloMap": {
+   "id": "ToyApi.helloMap",
+   "path": "helloMap",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "MapOfint"
+   },
+   "response": {
+    "$ref": "MapOfint"
+   }
+  },
+  "helloNestedMapMap": {
+   "id": "ToyApi.helloNestedMapMap",
+   "path": "helloNestedMapMap",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "MapOfMapOfint"
+   },
+   "response": {
+    "$ref": "MapOfMapOfbool"
+   }
+  },
+  "helloNestedListList": {
+   "id": "ToyApi.helloNestedListList",
+   "path": "helloNestedListList",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "ListOfListOfint"
+   },
+   "response": {
+    "$ref": "ListOfListOfString"
+   }
+  },
+  "helloNestedMapListMap": {
+   "id": "ToyApi.helloNestedMapListMap",
+   "path": "helloNestedMapListMap",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "MapOfListOfMapOfint"
+   },
+   "response": {
+    "$ref": "MapOfListOfMapOfbool"
+   }
+  },
+  "helloNestedListMapList": {
+   "id": "ToyApi.helloNestedListMapList",
+   "path": "helloNestedListMapList",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "ListOfMapOfListOfint"
+   },
+   "response": {
+    "$ref": "ListOfMapOfListOfString"
+   }
+  },
+  "helloListOfClass": {
+   "id": "ToyApi.helloListOfClass",
+   "path": "helloListOfClass",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "ListOfToyRequest"
+   },
+   "response": {
+    "$ref": "MapOfToyResponse"
+   }
+  },
+  "helloListOfListOfClass": {
+   "id": "ToyApi.helloListOfListOfClass",
+   "path": "helloListOfListOfClass",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "ListOfListOfToyRequest"
+   },
+   "response": {
+    "$ref": "MapOfToyResponse"
+   }
+  }
+ },
+ "resources": {
+  "compute": {
+   "methods": {
+    "get": {
+     "id": "ToyApi.compute.get",
+     "path": "toyresource/{resource}/compute/{compute}",
+     "httpMethod": "GET",
+     "parameters": {
+      "resource": {
+       "type": "string",
+       "description": "Path parameter: 'resource'.",
+       "required": true,
+       "location": "path"
+      },
+      "compute": {
+       "type": "string",
+       "description": "Path parameter: 'compute'.",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resource",
+      "compute"
+     ],
+     "response": {
+      "$ref": "ToyResourceResponse"
+     }
+    }
+   },
+   "resources": {}
+  },
+  "storage": {
+   "methods": {
+    "get": {
+     "id": "ToyApi.storage.get",
+     "path": "toyresource/{resource}/storage/{storage}",
+     "httpMethod": "GET",
+     "parameters": {
+      "resource": {
+       "type": "string",
+       "description": "Path parameter: 'resource'.",
+       "required": true,
+       "location": "path"
+      },
+      "storage": {
+       "type": "string",
+       "description": "Path parameter: 'storage'.",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "resource",
+      "storage"
+     ],
+     "response": {
+      "$ref": "ToyResourceResponse"
+     }
+    }
+   },
+   "resources": {}
+  }
+ }
+}
