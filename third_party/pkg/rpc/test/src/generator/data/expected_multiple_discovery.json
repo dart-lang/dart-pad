@@ -1,0 +1,217 @@
+{
+ "kind": "discovery#restDescription",
+ "etag": "ea286480a7872cfb044b5ca4fe4817ef596b5bbc",
+ "discoveryVersion": "v1",
+ "id": "apiTwoApi:0.1",
+ "name": "apiTwoApi",
+ "version": "0.1",
+ "revision": "0",
+ "protocol": "rest",
+ "baseUrl": "http://localhost:8080/apiTwoApi/0.1/",
+ "basePath": "/apiTwoApi/0.1/",
+ "rootUrl": "http://localhost:8080/",
+ "servicePath": "apiTwoApi/0.1/",
+ "parameters": {},
+ "schemas": {
+  "ApiTwoResponse": {
+   "id": "ApiTwoResponse",
+   "type": "object",
+   "properties": {
+    "result": {
+     "type": "string"
+    }
+   }
+  },
+  "ApiTwoRequest": {
+   "id": "ApiTwoRequest",
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string"
+    },
+    "age": {
+     "type": "integer",
+     "default": "2000",
+     "format": "int32"
+    }
+   }
+  }
+ },
+ "methods": {
+  "hello": {
+   "id": "ApiTwoApi.hello",
+   "path": "apitwo",
+   "httpMethod": "GET",
+   "parameters": {},
+   "parameterOrder": [],
+   "response": {
+    "$ref": "ApiTwoResponse"
+   }
+  },
+  "apiTwoGetWithParams": {
+   "id": "ApiTwoApi.apiTwoGetWithParams",
+   "path": "apitwo/{name}/age/{age}",
+   "httpMethod": "GET",
+   "parameters": {
+    "name": {
+     "type": "string",
+     "description": "Path parameter: 'name'.",
+     "required": true,
+     "location": "path"
+    },
+    "age": {
+     "type": "integer",
+     "description": "Path parameter: 'age'.",
+     "required": true,
+     "location": "path"
+    }
+   },
+   "parameterOrder": [
+    "name",
+    "age"
+   ],
+   "response": {
+    "$ref": "ApiTwoResponse"
+   }
+  },
+  "apiTwoPut": {
+   "id": "ApiTwoApi.apiTwoPut",
+   "path": "apitwo/put",
+   "httpMethod": "PUT",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "ApiTwoRequest"
+   },
+   "response": {
+    "$ref": "ApiTwoResponse"
+   }
+  },
+  "apiTwoDelete": {
+   "id": "ApiTwoApi.apiTwoDelete",
+   "path": "apitwo/delete",
+   "httpMethod": "DELETE",
+   "parameters": {},
+   "parameterOrder": []
+  }
+ },
+ "resources": {
+  "aResource": {
+   "methods": {
+    "apiTwoGetWithParams": {
+     "id": "ApiTwoApi.aResource.apiTwoGetWithParams",
+     "path": "apitwo/resource/{name}",
+     "httpMethod": "GET",
+     "parameters": {
+      "name": {
+       "type": "string",
+       "description": "Path parameter: 'name'.",
+       "required": true,
+       "location": "path"
+      }
+     },
+     "parameterOrder": [
+      "name"
+     ],
+     "response": {
+      "$ref": "ApiTwoResponse"
+     }
+    }
+   },
+   "resources": {}
+  }
+ }
+}
+{
+ "kind": "discovery#restDescription",
+ "etag": "bc6c611d2f433534faf5577b43f10c010f2abd06",
+ "discoveryVersion": "v1",
+ "id": "apiOneApi:0.1",
+ "name": "apiOneApi",
+ "version": "0.1",
+ "revision": "0",
+ "protocol": "rest",
+ "baseUrl": "http://localhost:8080/apiOneApi/0.1/",
+ "basePath": "/apiOneApi/0.1/",
+ "rootUrl": "http://localhost:8080/",
+ "servicePath": "apiOneApi/0.1/",
+ "parameters": {},
+ "schemas": {
+  "ApiOneResponse": {
+   "id": "ApiOneResponse",
+   "type": "object",
+   "properties": {
+    "result": {
+     "type": "string"
+    }
+   }
+  },
+  "ApiOneRequest": {
+   "id": "ApiOneRequest",
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string",
+     "required": true
+    },
+    "age": {
+     "type": "integer",
+     "default": "1000",
+     "format": "int32"
+    }
+   }
+  }
+ },
+ "methods": {
+  "hello": {
+   "id": "ApiOneApi.hello",
+   "path": "apione",
+   "httpMethod": "GET",
+   "parameters": {},
+   "parameterOrder": [],
+   "response": {
+    "$ref": "ApiOneResponse"
+   }
+  },
+  "apiOneGetWithParams": {
+   "id": "ApiOneApi.apiOneGetWithParams",
+   "path": "apione/{name}/age/{age}",
+   "httpMethod": "GET",
+   "parameters": {
+    "name": {
+     "type": "string",
+     "description": "Path parameter: 'name'.",
+     "required": true,
+     "location": "path"
+    },
+    "age": {
+     "type": "integer",
+     "description": "Path parameter: 'age'.",
+     "required": true,
+     "location": "path"
+    }
+   },
+   "parameterOrder": [
+    "name",
+    "age"
+   ],
+   "response": {
+    "$ref": "ApiOneResponse"
+   }
+  },
+  "apiOnePost": {
+   "id": "ApiOneApi.apiOnePost",
+   "path": "apione/post",
+   "httpMethod": "POST",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "ApiOneRequest"
+   },
+   "response": {
+    "$ref": "ApiOneResponse"
+   }
+  }
+ },
+ "resources": {}
+}
