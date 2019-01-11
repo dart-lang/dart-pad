@@ -182,12 +182,16 @@ Stack Trace: ${stackTrace.toString()}
 }
 
 class _ServerContainer implements ServerContainer {
+  @override
   String get version => '1.0';
 }
 
 class _Cache implements ServerCache {
+  @override
   Future<String> get(String key) => Future.value(null);
+  @override
   Future set(String key, String value, {Duration expiration}) => Future.value();
+  @override
   Future remove(String key) => Future.value();
 }
 

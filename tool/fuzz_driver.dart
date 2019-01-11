@@ -369,12 +369,16 @@ String mutate(String src) {
 }
 
 class MockContainer implements ServerContainer {
+  @override
   String get version => vmVersion;
 }
 
 class MockCache implements ServerCache {
+  @override
   Future<String> get(String key) => Future.value(null);
+  @override
   Future set(String key, String value, {Duration expiration}) => Future.value();
+  @override
   Future remove(String key) => Future.value();
 }
 

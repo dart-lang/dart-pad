@@ -102,7 +102,7 @@ void defineTests() {
       expect(pullData['css'], '');
       expect(pullData['uuid'], data['uuid']);
     });
-    //TODO: Test delete functionality
+    // TODO: Test delete functionality
   });
 
   group('GistMapping', () {

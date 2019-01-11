@@ -198,27 +198,37 @@ class Pub {
 /// A no-op version of the [Pub] class. This is used to disable `package:`
 /// support without having to change the code using the `Pub` class.
 class _MockPub implements Pub {
+  @override
   Directory _cacheDir;
 
   _MockPub();
 
+  @override
   Directory get cacheDir => _cacheDir;
 
+  @override
   PackagesInfo _parseLockContents(String lockContents) => null;
 
+  @override
   Future _populatePackage(
-          PackageInfo package, Directory cacheDir, Directory target) =>
-      null;
+      PackageInfo package, Directory cacheDir, Directory target) {
+    return null;
+  }
 
+  @override
   Future<PubHelper> createPubHelperForSource(String dartSource) =>
       Future.value(PubHelper._(this, []));
 
+  @override
   void flushCache() {}
 
+  @override
   Future<Directory> getPackageLibDir(PackageInfo packageInfo) => Future.value();
 
+  @override
   String getVersion() => null;
 
+  @override
   Future<PackagesInfo> resolvePackages(List<String> packages) =>
       Future.value(PackagesInfo([]));
 }
@@ -285,6 +295,7 @@ class PackagesInfo {
 
   PackagesInfo(this.packages);
 
+  @override
   String toString() => '${packages}';
 }
 
@@ -302,6 +313,7 @@ class PackageInfo {
       throw 'invalid package version: ${version}';
   }
 
+  @override
   String toString() => '[${name}: ${version}]';
 }
 

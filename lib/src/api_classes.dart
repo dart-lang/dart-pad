@@ -45,8 +45,10 @@ class AnalysisIssue implements Comparable<AnalysisIssue> {
     return m;
   }
 
+  @override
   int compareTo(AnalysisIssue other) => line - other.line;
 
+  @override
   String toString() => '${kind}: ${message} [${line}]';
 }
 
@@ -162,7 +164,7 @@ class FixesResponse {
 /// Represents a problem detected during analysis, and a set of possible
 /// ways of resolving the problem.
 class ProblemAndFixes {
-  //TODO(lukechurch): consider consolidating this with [AnalysisIssue]
+  // TODO(lukechurch): consider consolidating this with [AnalysisIssue]
   final List<CandidateFix> fixes;
   final String problemMessage;
   final int offset;
