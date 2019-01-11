@@ -35,7 +35,6 @@ Logger _logger = Logger('pub');
 /// package+version from pub.dartlang.org and store it in a disk cache. As the
 /// cache is populated the cost of asking for a package's `lib/` folder contents
 /// will go to zero.
-///
 class Pub {
   Directory _cacheDir;
 

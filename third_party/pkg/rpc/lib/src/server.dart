@@ -9,12 +9,12 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'config.dart';
+import 'discovery/api.dart';
+import 'discovery/config.dart';
 import 'errors.dart';
 import 'message.dart';
 import 'parser.dart';
 import 'utils.dart';
-import 'discovery/api.dart';
-import 'discovery/config.dart';
 
 typedef Future HttpRequestHandler(io.HttpRequest request);
 

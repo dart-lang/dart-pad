@@ -40,17 +40,6 @@ abstract class Sdk {
   String get sdkPath;
 }
 
-class HostSdk extends Sdk {
-  @override
-  Future init() => Future.value();
-
-  @override
-  String get versionFull => Platform.version;
-
-  @override
-  String get sdkPath => path.dirname(path.dirname(Platform.resolvedExecutable));
-}
-
 /// For this class, the cwd should be the root of the project.
 class DownloadingSdk extends Sdk {
   static const String kSdkPathName = 'dart-sdk';
