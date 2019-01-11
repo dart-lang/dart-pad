@@ -44,6 +44,7 @@ class MockBenchmark extends Benchmark {
 
   MockBenchmark() : super('mock');
 
+  @override
   Future perform() {
     count++;
     return Future.delayed(Duration(milliseconds: 10));

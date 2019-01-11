@@ -122,17 +122,21 @@ class GaeServer {
 }
 
 class GaeServerContainer implements ServerContainer {
+  @override
   String get version => io.Platform.version;
 }
 
 class GaeCache implements ServerCache {
   Memcache get _memcache => ae.context.services.memcache;
 
+  @override
   Future get(String key) => _ignoreErrors(_memcache.get(key));
 
+  @override
   Future set(String key, String value, {Duration expiration}) =>
       _ignoreErrors(_memcache.set(key, value, expiration: expiration));
 
+  @override
   Future remove(String key) => _ignoreErrors(_memcache.remove(key));
 
   Future _ignoreErrors(Future f) {

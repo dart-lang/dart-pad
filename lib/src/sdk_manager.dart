@@ -41,10 +41,13 @@ abstract class Sdk {
 }
 
 class HostSdk extends Sdk {
+  @override
   Future init() => Future.value();
 
+  @override
   String get versionFull => Platform.version;
 
+  @override
   String get sdkPath => path.dirname(path.dirname(Platform.resolvedExecutable));
 }
 
@@ -61,6 +64,7 @@ class DownloadingSdk extends Sdk {
             .where((line) => line.isNotEmpty && !line.startsWith('#'))
             .single;
 
+  @override
   Future init() async {
     File file = File(path.join(sdkPath, 'version'));
     if (file.existsSync() && file.readAsStringSync().trim() == _versionFull) {
@@ -106,8 +110,10 @@ class DownloadingSdk extends Sdk {
     _logger.info('SDK available at $sdkPath');
   }
 
+  @override
   String get versionFull => _versionFull;
 
+  @override
   String get sdkPath => path.join(Directory.current.path, kSdkPathName);
 }
 
