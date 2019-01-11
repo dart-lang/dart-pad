@@ -39,10 +39,13 @@ class AnalyzerBenchmark extends Benchmark {
     analysisServer = AnalysisServerWrapper(sdkPath);
   }
 
+  @override
   Future init() => analysisServer.init();
 
+  @override
   Future perform() => analysisServer.analyze(source);
 
+  @override
   Future tearDown() => analysisServer.shutdown();
 }
 
@@ -54,6 +57,7 @@ class Dart2jsBenchmark extends Benchmark {
       : compiler = Compiler(sdkPath),
         super('dart2js.${name}');
 
+  @override
   Future perform() {
     return compiler.compile(source).then((CompilationResults result) {
       if (!result.success) throw result;
@@ -69,10 +73,13 @@ class AnalysisServerBenchmark extends Benchmark {
       : analysisServer = AnalysisServerWrapper(sdkPath),
         super('completion.${name}');
 
+  @override
   Future init() => analysisServer.init();
 
+  @override
   Future perform() => analysisServer.complete(source, 30);
 
+  @override
   Future tearDown() => analysisServer.shutdown();
 }
 

@@ -9,8 +9,6 @@ library services.bench;
 import 'dart:async';
 import 'dart:convert' show json;
 
-// TODO: add in mean, % error
-
 abstract class Benchmark {
   final String name;
 
@@ -23,6 +21,7 @@ abstract class Benchmark {
   /// Called once when this benchmark will no longer be used.
   Future tearDown() => Future.value();
 
+  @override
   String toString() => name;
 }
 
@@ -123,6 +122,7 @@ class BenchMarkResult {
 
   double averageMilliseconds() => (microseconds / iteration) / 1000.0;
 
+  @override
   String toString() => '[${benchmark.name.padRight(20)}: '
       '${averageMilliseconds().toStringAsFixed(3).padLeft(8)}ms]';
 }

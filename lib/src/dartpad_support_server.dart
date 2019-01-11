@@ -71,7 +71,7 @@ class FileRelayServer {
         }
       }
       if (deletes != null) {
-        //TODO: Implement delete
+        // TODO: Implement delete
       }
     } else {
       ae.context.services.db.commit(inserts: inserts, deletes: deletes);
