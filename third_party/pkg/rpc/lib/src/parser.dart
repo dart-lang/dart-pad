@@ -543,7 +543,7 @@ class ApiParser {
             'arguments.');
       }
     }
-    schemaConfig = new ApiConfigSchema(name, schemaClass, isRequest);
+    schemaConfig = new ConfigSchema(name, schemaClass, isRequest);
 
     // We put in the schema before parsing properties to detect cycles.
     apiSchemas[name] = schemaConfig;
@@ -590,7 +590,8 @@ class ApiParser {
         return existingSchemaConfig;
       }
     }
-    var schemaConfig = new NamedListSchema(name, schemaClass, isRequest);
+    ClassMirror namedListSchema = reflectType(NamedListSchema, [schemaClass.typeArguments[0].reflectedType]);
+    var schemaConfig = namedListSchema.newInstance(const Symbol(''), [name, schemaClass, isRequest]).reflectee;
     // We put in the schema before parsing properties to detect cycles.
     apiSchemas[name] = schemaConfig;
     var itemsProperty = parseProperty(
@@ -633,7 +634,8 @@ class ApiParser {
       }
     }
 
-    var schemaConfig = new NamedMapSchema(name, schemaClass, isRequest);
+    ClassMirror namedMapSchema = reflectType(NamedMapSchema, [schemaClass.typeArguments[1].reflectedType]);
+    var schemaConfig = namedMapSchema.newInstance(const Symbol(''), [name, schemaClass, isRequest]).reflectee;
     // We put in the schema before parsing properties to detect cycles.
     apiSchemas[name] = schemaConfig;
     var additionalProperty = parseProperty(
@@ -989,8 +991,6 @@ class ApiParser {
     var schema = parseSchema(schemaTypeMirror, isRequest);
     ClassMirror schemaProperty = reflectType(SchemaProperty, [schemaTypeMirror.reflectedType]);
     return schemaProperty.newInstance(const Symbol(''), [propertyName, metadata.description, metadata.required, schema]).reflectee;
-    //return new SchemaProperty(
-    //    propertyName, metadata.description, metadata.required, schema);
   }
 
   /// Return the type arguments for the given class [T], which is or is a
@@ -1005,17 +1005,16 @@ class ApiParser {
 
   ListProperty parseListProperty(String propertyName, ApiProperty metadata,
       ClassMirror listPropertyType, bool isRequest) {
-    var listTypeArguments = _TypeArgumentsForBaseClass<List>(listPropertyType);
-    /*
     // If List<T> is a superclass, the way to get T is different.
+    var listTypeArguments;
     if (listPropertyType.originalDeclaration != reflectClass(List)) {
       listTypeArguments = listPropertyType.superinterfaces
           .firstWhere((interface) =>
               interface.originalDeclaration == reflectClass(List))
           .typeArguments;
     } else {
-      listTypeArguments = listPropertyType.typeArguments;
-    }*/
+      listTypeArguments = _TypeArgumentsForBaseClass<List>(listPropertyType);
+    }
     assert(listTypeArguments.length == 1);
     assert(metadata != null);
     var listTypeName = MirrorSystem.getName(listTypeArguments[0].simpleName);
@@ -1023,13 +1022,8 @@ class ApiParser {
     // TODO: Figure out what to do about metadata for the items property.
     var listItemsProperty = parseProperty(
         listTypeArguments[0], propertyName, new ApiProperty(), isRequest);
-
-    ClassMirror listItemsPropertyMirror = reflect(listItemsProperty).type;
-    // Pull the Dart type of the listItemsProperty and add it to the ListProperty's type parameters, then instantiate a new instance.
     ClassMirror listProperty = reflectType(ListProperty, [listTypeArguments.map<Type>((TypeMirror tm) => tm.reflectedType).first]);
     return listProperty.newInstance(const Symbol(''), [propertyName, metadata.description, metadata.required, listItemsProperty]).reflectee;
-    //return new ListProperty(propertyName, metadata.description,
-    //    metadata.required, listItemsProperty);
   }
 
   MapProperty parseMapProperty(String propertyName, ApiProperty metadata,
@@ -1047,8 +1041,9 @@ class ApiParser {
     // TODO: Figure out what to do about metadata for the additional property.
     var additionalProperty = parseProperty(
         mapTypeArguments[1], propertyName, new ApiProperty(), isRequest);
-    return new MapProperty(propertyName, metadata.description,
-        metadata.required, additionalProperty);
+    ClassMirror mapProperty = reflectType(MapProperty, [mapTypeArguments.map<Type>((TypeMirror tm) => tm.reflectedType).last]);
+    return mapProperty.newInstance(const Symbol(''), [propertyName, metadata.description,
+        metadata.required, additionalProperty]).reflectee;
   }
 
   // Helper method to check that a field annotated with an ApiProperty is using

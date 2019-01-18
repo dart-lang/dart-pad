@@ -5,7 +5,7 @@
 part of rpc.config;
 
 /// [D] is the type used in Dart code.  [J] is the type used in JSON.
-class ApiConfigSchemaProperty<D, J> {
+abstract class ApiConfigSchemaProperty<D, J> {
   final String name;
   final String description;
   final bool required;
@@ -359,9 +359,8 @@ class ListProperty<D> extends ApiConfigSchemaProperty<List<D>, List> {
   }
 }
 
-class MapProperty extends ApiConfigSchemaProperty<Map<String, dynamic>,
-    Map<String, dynamic>> {
-  final dynamic _additionalProperty;
+class MapProperty<D> extends ApiConfigSchemaProperty<Map<String, D>, Map> {
+  final ApiConfigSchemaProperty _additionalProperty;
 
   MapProperty(
       String name, String description, bool required, this._additionalProperty)
@@ -373,18 +372,18 @@ class MapProperty extends ApiConfigSchemaProperty<Map<String, dynamic>,
   discovery.JsonSchema get asDiscovery =>
       super.asDiscovery..additionalProperties = _additionalProperty.asDiscovery;
 
-  Map<String, dynamic> _toResponse(Map<String, dynamic> mapObject) {
-    var result = <String, dynamic>{};
-    mapObject.forEach((String key, object) {
+  Map _toResponse(Map<String, D> mapObject) {
+    var result = {};
+    mapObject.forEach((String key, D object) {
       result[key] = _additionalProperty._toResponse(object);
     });
     return result;
   }
 
-  Map<String, dynamic> _fromRequest(Map<String, dynamic> encodedMap) {
+  Map<String, D> _fromRequest(Map encodedMap) {
     // Map from String to the type of the additional property.
-    var result = <String, dynamic>{};
-    encodedMap.forEach((String key, encodedObject) {
+    var result = <String, D>{};
+    encodedMap.forEach((key, encodedObject) {
       result[key] = _additionalProperty._fromRequest(encodedObject);
     });
     return result;

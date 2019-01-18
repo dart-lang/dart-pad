@@ -4,7 +4,8 @@
 
 part of rpc.config;
 
-class ApiConfigSchema {
+/// [D] is the type used in Dart code.  [J] is the type used in JSON.
+abstract class ApiConfigSchema<D, J> {
   final String schemaName;
   final ClassMirror schemaClass;
   final Map<Symbol, ApiConfigSchemaProperty> _properties = {};
@@ -39,49 +40,57 @@ class ApiConfigSchema {
     return schema;
   }
 
-  fromRequest(request) {
-    if (request is! Map) {
-      throw new BadRequestError(
-          'Invalid parameter: \'$request\', should be an instance of type '
-          '\'$schemaName\'.');
-    }
-    InstanceMirror schema = schemaClass.newInstance(new Symbol(''), []);
-    for (Symbol sym in _properties.keys) {
-      final ApiConfigSchemaProperty prop = _properties[sym];
-      //try {
-        if (request.containsKey(prop.name)) {
-          // MediaMessage special case
-          if (request[prop.name] is MediaMessage ||
-              request[prop.name] is List<MediaMessage>) {
-            // If in form, there is an (input[type="file"] multiple) and the user
-            // put only one file. It's not an error and it should be accept.
-            // Maybe it cans be optimized.
-            if (schema.type.instanceMembers[sym].returnType.reflectedType
-                        .toString() ==
-                    'List<MediaMessage>' &&
-                request[prop.name] is MediaMessage) {
-              schema.setField(sym, [request[prop.name]]);
-            } else if (request[prop.name] is List) {
-              schema.setField(sym, prop.fromRequest(request[prop.name]));
+  D fromRequest(J request);
+  J toResponse(D result);
+}
+
+// TODO(jcollins-g): consider `J extends Map`
+class ConfigSchema<D, J> extends ApiConfigSchema<D, J> {
+  ConfigSchema(String schemaName, ClassMirror schemaClass, bool isRequest)
+      : super(schemaName, schemaClass, isRequest);
+
+  D fromRequest(J request) {
+    if (request is Map) {
+      InstanceMirror schema = schemaClass.newInstance(new Symbol(''), []);
+      for (Symbol sym in _properties.keys) {
+        final ApiConfigSchemaProperty prop = _properties[sym];
+        try {
+          if (request.containsKey(prop.name)) {
+            final requestForSymbol = request[prop.name];
+            // MediaMessage special case
+            if (requestForSymbol is MediaMessage ||
+                requestForSymbol is List<MediaMessage>) {
+              // If in form, there is an (input[type="file"] multiple) and the user
+              // put only one file. It's not an error and it should be accept.
+              // Maybe it cans be optimized.
+              if (schema.type.instanceMembers[sym].returnType.reflectedType is List<MediaMessage> &&
+                  requestForSymbol is MediaMessage) {
+                schema.setField(sym, [requestForSymbol]);
+              } else if (requestForSymbol is List) {
+                schema.setField(sym, prop.fromRequest(requestForSymbol));
+              } else {
+                schema.setField(sym, requestForSymbol);
+              }
             } else {
-              schema.setField(sym, request[prop.name]);
+              schema.setField(sym, prop.fromRequest(requestForSymbol));
             }
-          } else {
-            schema.setField(sym, prop.fromRequest(request[prop.name]));
+          } else if (prop.hasDefault) {
+            schema.setField(sym, prop.fromRequest(prop.defaultValue));
+          } else if (prop.required) {
+            throw new BadRequestError('Required field ${prop.name} is missing');
           }
-        } else if (prop.hasDefault) {
-          schema.setField(sym, prop.fromRequest(prop.defaultValue));
-        } else if (prop.required) {
-          throw new BadRequestError('Required field ${prop.name} is missing');
+        } on TypeError catch (e) {
+          throw BadRequestError('Field ${prop.name} has wrong type:  ${e}');
         }
-      /*} on TypeError catch (e) {
-        throw BadRequestError('Field ${prop.name} has wrong type:  ${e}');
-      }*/
+      }
+      return schema.reflectee;
     }
-    return schema.reflectee;
+    throw new BadRequestError(
+        'Invalid parameter: \'$request\', should be an instance of type '
+            '\'$schemaName\'.');
   }
 
-  toResponse(result) {
+  J toResponse(D result) {
     var response = {};
     InstanceMirror mirror = reflect(result);
     _properties.forEach((sym, prop) {
@@ -90,13 +99,13 @@ class ApiConfigSchema {
         response[prop.name] = value;
       }
     });
-    return response;
+    return response as J;
   }
 }
 
 // Schema for explicitly handling List<'some value'> as either return
 // or argument type. For the arguments it is only supported for POST requests.
-class NamedListSchema extends ApiConfigSchema {
+class NamedListSchema<D> extends ApiConfigSchema<List<D>, List> {
   ApiConfigSchemaProperty _itemsProperty;
 
   NamedListSchema(String schemaName, ClassMirror schemaClass, bool isRequest)
@@ -118,25 +127,20 @@ class NamedListSchema extends ApiConfigSchema {
     return schema;
   }
 
-  fromRequest(request) {
-    if (request is! List) {
-      throw new BadRequestError(
-          'Invalid parameter: \'$request\', should be an instance of type '
-          '\'$schemaName\'.');
-    }
+  List<D> fromRequest(List request) {
     // TODO: Performance optimization, we don't need to decode a list of
     // primitive-type since it is already the correct list.
-    return request.map(_itemsProperty.fromRequest).toList();
+    return request.map(_itemsProperty.fromRequest as D Function(Object)).toList();
   }
 
   // TODO: Performance optimization, we don't need to encode a list of
   // primitive-type since it is already the correct list.
-  toResponse(result) => result.map(_itemsProperty.toResponse).toList();
+  List toResponse(List<D> result) => result.map(_itemsProperty.toResponse).toList();
 }
 
 // Schema for explicitly handling Map<String, 'some value'> as either return
 // or argument type. For the arguments it is only supported for POST requests.
-class NamedMapSchema extends ApiConfigSchema {
+class NamedMapSchema<D> extends ApiConfigSchema<Map<String, D>, Map> {
   ApiConfigSchemaProperty _additionalProperty;
 
   NamedMapSchema(String schemaName, ClassMirror schemaClass, bool isRequest)
@@ -158,27 +162,22 @@ class NamedMapSchema extends ApiConfigSchema {
     return schema;
   }
 
-  fromRequest(request) {
-    if (request is! Map) {
-      throw new BadRequestError(
-          'Invalid parameter: \'$request\', must be an instance of type '
-          '\'$schemaName\'.');
-    }
+  Map<String, D> fromRequest(Map request) {
     // Map from String to the type of the additional property.
-    var decodedRequest = {};
+    var decodedRequest = <String, D>{};
     // TODO: Performance optimization, we don't need to decode a map from
     // <String, primitive-type> since it is already the correct map.
-    request.forEach((String key, value) {
+    request.forEach((key, value) {
       decodedRequest[key] = _additionalProperty.fromRequest(value);
     });
     return decodedRequest;
   }
 
-  toResponse(result) {
+  Map toResponse(Map<String, D> result) {
     var encodedResult = {};
     // TODO: Performance optimization, we don't need to encode a map from
     // <String, primitive-type> since it is already the correct map.
-    (result as Map<dynamic, dynamic>).forEach((key, value) {
+    result.forEach((key, value) {
       encodedResult[key] = _additionalProperty.toResponse(value);
     });
     return encodedResult;

@@ -1,3 +1,7 @@
+## 0.6.1
+
+- Support strong-mode mirrors (https://github.com/dart-lang/sdk/issues/35611).
+
 ## 0.6.0
 
 - Support latest `package:gcloud`.
