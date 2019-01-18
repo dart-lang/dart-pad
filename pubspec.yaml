@@ -34,4 +34,4 @@ executables:
   services: null
 
 dependency_overrides:
-    rpc: { path: 'third_party/pkg/rpc' }
+    rpc: { path: '../rpc' }
