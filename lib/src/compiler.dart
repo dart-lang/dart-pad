@@ -77,18 +77,7 @@ class Compiler {
       File mainJs = File(path.join(temp.path, '${kMainDart}.js'));
       File mainSourceMap = File(path.join(temp.path, '${kMainDart}.js.map'));
 
-      // Due to an issue with the VM we need to use the Dart2JS instance from
-      // the image, not from the downloaded SDK
-      // TODO(#327): Use the compiler from the downloaded SDK
-
-      final dartPath = Platform.resolvedExecutable;
-
-      // dart2js is next to dart
-      List<String> dart2JsPathParts = path.split(dartPath)
-        ..removeLast()
-        ..add("dart2js");
-
-      final dart2JSPath = path.joinAll(dart2JsPathParts);
+      final dart2JSPath = path.join(sdkPath, 'bin', 'dart2js');
       _logger.info('About to exec: $dart2JSPath $arguments');
 
       ProcessResult result =
