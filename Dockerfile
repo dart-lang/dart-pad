@@ -1,7 +1,7 @@
 FROM google/dart:2.1.1-dev.0.0
 
 WORKDIR /app
- ADD tool/dart_run.sh /dart_runtime/
+ADD tool/dart_run.sh /dart_runtime/
 RUN chmod 755 /dart_runtime/dart_run.sh && \
   chown root:root /dart_runtime/dart_run.sh
 ADD pubspec.* /app/
@@ -11,17 +11,16 @@ RUN pub get
 ADD . /app
 RUN pub get --offline
 
-# We install memcached and remove the apt-index again to keep the
+# We install unzip and remove the apt-index again to keep the
 # docker image diff small.
 RUN apt-get update && \
-    apt-get install -y memcached && \
-    apt-get install -y unzip && \
-    cp -a third_party/pkg ../pkg && \
-    rm -rf /var/lib/apt/lists/*
+  apt-get install -y unzip && \
+  cp -a third_party/pkg ../pkg && \
+  rm -rf /var/lib/apt/lists/*
 
 EXPOSE 8080 8181 5858
 
 # Clear out any arguments the base images might have set and ensure we start
-# memcached and wait for it to come up before running the Dart app.
+# the Dart app using custom script enabling debug modes.
 CMD []
-ENTRYPOINT service memcached start && sleep 1 && /bin/bash /dart_runtime/dart_run.sh
+ENTRYPOINT /bin/bash /dart_runtime/dart_run.sh

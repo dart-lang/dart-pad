@@ -8,7 +8,7 @@ dependencies:
   _discoveryapis_commons: ^0.1.8
   analyzer: ^0.34.0
   analysis_server_lib: ^0.1.4
-  appengine: ^0.5.1
+  appengine: ^0.6.0
   archive: ^2.0.0
   args: ^1.4.1
   crypto: ^2.0.0
@@ -19,6 +19,7 @@ dependencies:
   rpc: ^0.6.0-dev.1
   uuid: 2.0.0-rc1
   yaml: ^2.0.0
+  quiver: ^2.0.1
 
 dev_dependencies:
   discoveryapis_generator: ^0.9.9

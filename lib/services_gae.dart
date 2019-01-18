@@ -9,7 +9,6 @@ import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart' as ae;
 import 'package:logging/logging.dart';
-import 'package:memcache/memcache.dart';
 import 'package:rpc/rpc.dart' as rpc;
 
 import 'src/common.dart';
@@ -52,8 +51,8 @@ class GaeServer {
 
     discoveryEnabled = false;
     fileRelayServer = FileRelayServer();
-    commonServer =
-        CommonServer(sdkPath, GaeServerContainer(), GaeCache(), GaeCounter());
+    commonServer = CommonServer(
+        sdkPath, GaeServerContainer(), InmemoryCache(), GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
     apiServer = rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer)
@@ -124,27 +123,6 @@ class GaeServer {
 class GaeServerContainer implements ServerContainer {
   @override
   String get version => io.Platform.version;
-}
-
-class GaeCache implements ServerCache {
-  Memcache get _memcache => ae.context.services.memcache;
-
-  @override
-  Future get(String key) => _ignoreErrors(_memcache.get(key));
-
-  @override
-  Future set(String key, String value, {Duration expiration}) =>
-      _ignoreErrors(_memcache.set(key, value, expiration: expiration));
-
-  @override
-  Future remove(String key) => _ignoreErrors(_memcache.remove(key));
-
-  Future _ignoreErrors(Future f) {
-    return f.catchError((error, stackTrace) {
-      _logger.fine(
-          'Soft-ERR memcache API call (error: $error)', error, stackTrace);
-    });
-  }
 }
 
 class GaeCounter implements PersistentCounter {
