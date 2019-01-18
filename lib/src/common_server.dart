@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
+import 'package:quiver/cache.dart';
 
 import '../version.dart';
 import 'analysis_server.dart';
@@ -49,6 +50,23 @@ abstract class PersistentCounter {
   Future increment(String name, {int increment = 1});
 
   Future<int> getTotal(String name);
+}
+
+/// An in-memory implementation of [ServerCache] which doesn't support
+/// expiration of entries based on time.
+class InmemoryCache implements ServerCache {
+  /// Wrapping an internal cache with a maximum size of 512 entries.
+  final Cache<String, String> _lru = MapCache.lru(maximumSize: 512);
+
+  @override
+  Future get(String key) async => _lru.get(key);
+
+  @override
+  Future set(String key, String value, {Duration expiration}) async =>
+      _lru.set(key, value);
+
+  @override
+  Future remove(String key) async => _lru.invalidate(key);
 }
 
 @ApiClass(name: 'dartservices', version: 'v1')
