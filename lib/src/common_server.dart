@@ -10,8 +10,9 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
-import 'package:rpc/rpc.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:quiver/cache.dart';
+import 'package:rpc/rpc.dart';
 
 import '../version.dart';
 import 'analysis_server.dart';
@@ -93,12 +94,12 @@ class CommonServer {
     analysisServer = AnalysisServerWrapper(sdkPath, previewDart2: true);
 
     await analysisServer.init();
-    analysisServer.onExit.then((int code) {
+    unawaited(analysisServer.onExit.then((int code) {
       log.severe('analysisServer exited, code: $code');
       if (code != 0) {
         exit(code);
       }
-    });
+    }));
   }
 
   Future warmup({bool useHtml = false}) async {
@@ -333,8 +334,8 @@ class CommonServer {
           .fold(0, (a, b) => a + b);
       int ms = watch.elapsedMilliseconds;
       log.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
-      counter.increment("Analyses");
-      counter.increment("Analyzed-Lines", increment: lineCount);
+      unawaited(counter.increment("Analyses"));
+      unawaited(counter.increment("Analyzed-Lines", increment: lineCount));
       return results;
     } catch (e, st) {
       log.severe('Error during analyze', e, st);
@@ -381,8 +382,9 @@ class CommonServer {
             int ms = watch.elapsedMilliseconds;
             log.info('PERF: Compiled ${lineCount} lines of Dart into '
                 '${outputSize}kb of JavaScript in ${ms}ms.');
-            counter.increment("Compilations");
-            counter.increment("Compiled-Lines", increment: lineCount);
+            unawaited(counter.increment("Compilations"));
+            unawaited(
+                counter.increment("Compiled-Lines", increment: lineCount));
             String out = results.getOutput();
             String sourceMap = returnSourceMap ? results.getSourceMap() : null;
 
@@ -416,7 +418,7 @@ class CommonServer {
           await analysisServer.dartdoc(source, offset);
       docInfo ??= {};
       log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-      counter.increment("DartDocs");
+      unawaited(counter.increment("DartDocs"));
       return DocumentResponse(docInfo);
     } catch (e, st) {
       log.severe('Error during dartdoc', e, st);
@@ -456,7 +458,7 @@ class CommonServer {
     }
 
     Stopwatch watch = Stopwatch()..start();
-    counter.increment("Completions");
+    unawaited(counter.increment("Completions"));
     try {
       var response = await analysisServer.completeMulti(
           sources,
@@ -493,7 +495,7 @@ class CommonServer {
     }
 
     Stopwatch watch = Stopwatch()..start();
-    counter.increment("Fixes");
+    unawaited(counter.increment("Fixes"));
     var response = await analysisServer.getFixesMulti(
         sources,
         Location()
@@ -510,7 +512,7 @@ class CommonServer {
     offset ??= 0;
 
     Stopwatch watch = Stopwatch()..start();
-    counter.increment("Formats");
+    unawaited(counter.increment("Formats"));
 
     var response = await analysisServer.format(source, offset);
     log.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');

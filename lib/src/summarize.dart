@@ -123,7 +123,7 @@ class Summarizer {
   }
 
   String _additionList(List<String> list) {
-    if (list.length == 0) return '';
+    if (list.isEmpty) return '';
     String englishList = ' Also, mentions ';
     for (int i = 0; i < list.length; i++) {
       englishList += list[i];
@@ -159,7 +159,7 @@ class Summarizer {
   }
 
   String _featureList(List<String> list) {
-    if (list.length == 0) return '. ';
+    if (list.isEmpty) return '. ';
     String englishList = ', and ${_sentenceFiller('use')} use of ';
     for (int i = 0; i < list.length; i++) {
       englishList += list[i];
@@ -174,7 +174,7 @@ class Summarizer {
   }
 
   String _packageList(List<String> list, {String source}) {
-    if (list.length == 0) {
+    if (list.isEmpty) {
       return source == null ? '' : '. ';
     }
 
