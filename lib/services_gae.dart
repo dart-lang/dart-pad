@@ -22,7 +22,7 @@ final Logger _logger = Logger('gae_server');
 
 void main(List<String> args) {
   int gaePort = 8080;
-  if (args.length > 0) gaePort = int.parse(args[0]);
+  if (args.isNotEmpty) gaePort = int.parse(args[0]);
 
   String sdk = sdkPath;
 

@@ -42,7 +42,7 @@ OperationType lastExecuted;
 int lastOffset;
 
 Future main(List<String> args) async {
-  if (args.length == 0) {
+  if (args.isEmpty) {
     print('''
 Usage: slow_test path_to_test_collection
     [seed = 0]
@@ -117,7 +117,7 @@ Usage: slow_test path_to_test_collection
 /// Init the tools, and warm them up
 Future setupTools(String sdkPath) async {
   print("Executing setupTools");
-  analysisServer?.shutdown();
+  await analysisServer?.shutdown();
 
   print("SdKPath: $sdkPath");
 

@@ -13,6 +13,7 @@ import 'package:appengine/appengine.dart' as ae;
 import 'package:crypto/crypto.dart' as crypto;
 import 'package:gcloud/db.dart' as db;
 import 'package:logging/logging.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:rpc/rpc.dart';
 import 'package:uuid/uuid.dart' as uuid_tools;
 
@@ -109,10 +110,10 @@ class FileRelayServer {
     }
     _GaePadSaveObject record = result.first;
     if (!test) {
-      _databaseCommit(deletes: [record.key]).catchError((e) {
+      unawaited(_databaseCommit(deletes: [record.key]).catchError((e) {
         _logger.severe("Error while deleting export ${e}");
         throw (e);
-      });
+      }));
       _logger.info("Deleted Export with ID ${record.uuid}");
     }
     return Future.value(PadSaveObject.fromRecordSource(record));
@@ -149,11 +150,11 @@ class FileRelayServer {
       throw BadRequestError("Mapping invalid.");
     } else {
       _GistMapping entry = _GistMapping.fromMap(map);
-      _databaseCommit(inserts: [entry]).catchError((e) {
+      unawaited(_databaseCommit(inserts: [entry]).catchError((e) {
         _logger.severe(
             "Error while recording mapping with Id ${map.gistId}. Error ${e}");
         throw e;
-      });
+      }));
       _logger.info("Mapping with ID ${map.gistId} stored.");
       return Future.value(UuidContainer.fromUuid(map.gistId));
     }
@@ -182,6 +183,7 @@ class PadSaveObject {
   String html;
   String css;
   String uuid;
+
   PadSaveObject();
 
   PadSaveObject.fromData(String dart, String html, String css, {String uuid}) {
@@ -202,7 +204,9 @@ class PadSaveObject {
 /// String container for IDs
 class UuidContainer {
   String uuid;
+
   UuidContainer();
+
   UuidContainer.fromUuid(String uuid) {
     this.uuid = uuid;
   }
@@ -212,7 +216,9 @@ class UuidContainer {
 class GistToInternalIdMapping {
   String gistId;
   String internalId;
+
   GistToInternalIdMapping();
+
   GistToInternalIdMapping.fromIds(String gistId, String internalId) {
     this.gistId = gistId;
     this.internalId = internalId;
@@ -259,7 +265,9 @@ class _GaePadSaveObject extends db.Model {
   }
 
   String get getDart => _gzipDecode(this.dart);
+
   String get getHtml => _gzipDecode(this.html);
+
   String get getCss => _gzipDecode(this.css);
 }
 
@@ -296,5 +304,6 @@ String _computeSHA1(_GaePadSaveObject record) {
 
 List<int> _gzipEncode(String input) =>
     io.gzip.encode(convert.utf8.encode(input));
+
 String _gzipDecode(List<int> input) =>
     convert.utf8.decode(io.gzip.decode(input));

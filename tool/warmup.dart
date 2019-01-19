@@ -15,7 +15,7 @@ const count = 200;
 
 Future main(List<String> args) async {
   String appPrefix;
-  if (args.length > 0) {
+  if (args.isNotEmpty) {
     appPrefix = "${args[0]}.";
   } else {
     appPrefix = "";

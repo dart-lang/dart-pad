@@ -25,7 +25,7 @@ abstract class Benchmark {
   String toString() => name;
 }
 
-typedef void BenchmarkLogger(String str);
+typedef BenchmarkLogger = void Function(String str);
 
 class BenchmarkHarness {
   final bool asJson;
