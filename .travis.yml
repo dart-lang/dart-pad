@@ -8,5 +8,3 @@ dart:
 branches:
   only: [master]
 script: ./tool/travis.sh
-after_success:
-  - coveralls-lcov lcov.info

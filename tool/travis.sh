@@ -10,9 +10,6 @@ set -e
 # Run pub get to fetch packages.
 pub get
 
-# Run everything except the unit tests.
-#pub run grinder buildbot
-
 # Gather coverage and upload to Coveralls.
 if [ "$REPO_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "dev" ]; then
   OBS_PORT=9292
@@ -38,6 +35,8 @@ if [ "$REPO_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "dev" ]; then
     --out=lcov.info \
     --packages=.packages \
     --report-on=lib
+
+  coveralls-lcov --repo-token="${REPO_TOKEN}" lcov.info
 else
   dart test/all.dart
 fi
