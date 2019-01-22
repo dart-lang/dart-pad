@@ -11,7 +11,7 @@ set -e
 pub get
 
 # Prepare to run unit tests (but do not actually run tests).
-pub run buildbot
+pub run grinder buildbot
 
 # Gather coverage and upload to Coveralls.
 if [ "$REPO_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "dev" ]; then
