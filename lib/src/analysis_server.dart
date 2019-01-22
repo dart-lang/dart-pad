@@ -303,11 +303,12 @@ class AnalysisServerWrapper {
 
   /// Cleanly shutdown the Analysis Server.
   Future shutdown() {
+    // TODO(jcollins-g): calling dispose() sometimes prevents
+    // --pause-isolates-on-exit from working.  Fix.
     return analysisServer.server
         .shutdown()
         .timeout(Duration(seconds: 1))
-        .catchError((e) => null)
-        .whenComplete(() => analysisServer.dispose());
+        .catchError((e) => null);
   }
 
   /// Internal implementation of the completion mechanism.

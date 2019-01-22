@@ -102,8 +102,8 @@ void defineTests() {
       }
     });
 
-    tearDownAll(() {
-      return server.shutdown();
+    tearDownAll(() async {
+      await server.shutdown();
     });
 
     setUp(() {
@@ -116,7 +116,6 @@ void defineTests() {
     tearDown(() {
       log.clearListeners();
     });
-
     test('analyze', () async {
       var jsonData = {'source': sampleCode};
       var response =
