@@ -328,7 +328,7 @@ void defineTests() {
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data['text'], isNotNull);
-    }, skip: 'Disable until rpc fix is available');
+    });
 
     test('summarizeDifferent', () async {
       var jsonOne = {
@@ -348,7 +348,7 @@ void defineTests() {
       var dataTwo = json.decode(utf8.decode(await responseTwo.body.first));
       expect(dataTwo['text'], isNotNull);
       expect(dataTwo['text'] == data['text'], false);
-    }, skip: 'Disable until rpc fix is available');
+    });
   });
 }
 
