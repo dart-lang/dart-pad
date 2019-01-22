@@ -10,6 +10,9 @@ set -e
 # Run pub get to fetch packages.
 pub get
 
+# Fetch sdk.
+pub run init
+
 # Gather coverage and upload to Coveralls.
 if [ "$REPO_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "dev" ]; then
   OBS_PORT=9292
