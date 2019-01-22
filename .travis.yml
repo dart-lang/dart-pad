@@ -1,5 +1,4 @@
 language: dart
-
 install:
     - gem install coveralls-lcov
 dart:
