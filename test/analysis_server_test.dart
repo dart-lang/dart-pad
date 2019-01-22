@@ -59,7 +59,7 @@ void defineTests() {
     tearDown(() => analysisServer.shutdown());
 
     test('simple_completion', () {
-      //Just after i.
+      // Just after i.
       return analysisServer
           .complete(completionCode, 32)
           .then((CompleteResponse results) {

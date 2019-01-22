@@ -75,26 +75,7 @@ void deploy() {
 }
 
 @Task()
-void coverage() {
-  if (!_env.containsKey('REPO_TOKEN')) {
-    log("env var 'REPO_TOKEN' not found");
-    return;
-  }
-
-  PubApp coveralls = PubApp.global('dart_coveralls');
-  coveralls.run([
-    'report',
-    '--token',
-    _env['REPO_TOKEN'],
-    '--retry',
-    '2',
-    '--exclude-test-files',
-    'test/all.dart'
-  ]);
-}
-
-@Task()
-@Depends(updateDockerVersion, init, discovery, analyze, test, fuzz, coverage)
+@Depends(updateDockerVersion, init, discovery, analyze, fuzz)
 void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')

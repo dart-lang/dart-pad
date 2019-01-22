@@ -102,9 +102,13 @@ void defineTests() {
       }
     });
 
-    tearDownAll(() {
-      return server.shutdown();
+    // TODO(jcollins-g): calling shutdown sometimes prevents
+    // --pause-isolates-on-exit from working.  Fix.
+    /*
+    tearDownAll(() async {
+      await server.shutdown();
     });
+    */
 
     setUp(() {
       counter.reset();
@@ -116,7 +120,6 @@ void defineTests() {
     tearDown(() {
       log.clearListeners();
     });
-
     test('analyze', () async {
       var jsonData = {'source': sampleCode};
       var response =

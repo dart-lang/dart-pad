@@ -1,7 +1,12 @@
 language: dart
+
+install:
+    - gem install coveralls-lcov
 dart:
   - stable
   - dev
 branches:
   only: [master]
-script: dart tool/grind.dart buildbot
+script: ./tool/travis.sh
+after_success:
+  - coveralls-lcov lcov.info
