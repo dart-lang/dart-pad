@@ -102,13 +102,9 @@ void defineTests() {
       }
     });
 
-    // TODO(jcollins-g): calling shutdown sometimes prevents
-    // --pause-isolates-on-exit from working.  Fix.
-    /*
     tearDownAll(() async {
       await server.shutdown();
     });
-    */
 
     setUp(() {
       counter.reset();
