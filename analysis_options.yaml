@@ -1,3 +1,5 @@
+include: package:pedantic/analysis_options.yaml
+
 analyzer:
   exclude:
     - 'dart-sdk/**'
@@ -17,6 +19,7 @@ linter:
     - package_api_docs
     - prefer_contains
     # - prefer_equal_for_default_values
+    - prefer_generic_function_type_aliases
     - prefer_is_not_empty
     - recursive_getters
     - slash_for_doc_comments

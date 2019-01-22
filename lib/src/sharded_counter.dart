@@ -50,7 +50,7 @@ class Counter {
 
     // Test whether we have been given an id.
     return results.then((List<db.Model> models) {
-      if (models.length == 0) {
+      if (models.isEmpty) {
         _ShardedCounter newCounter = _ShardedCounter()
           ..counterName = name
           ..count = 0
