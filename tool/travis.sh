@@ -10,8 +10,8 @@ set -e
 # Run pub get to fetch packages.
 pub get
 
-# Fetch sdk.
-pub run init
+# Prepare to run unit tests (but do not actually run tests).
+pub run buildbot
 
 # Gather coverage and upload to Coveralls.
 if [ "$REPO_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "dev" ]; then
