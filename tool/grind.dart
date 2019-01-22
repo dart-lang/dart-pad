@@ -9,8 +9,6 @@ import 'dart:io';
 
 import 'package:grinder/grinder.dart';
 
-Map get _env => Platform.environment;
-
 Future main(List<String> args) => grind(args);
 
 @Task()
