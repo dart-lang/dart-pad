@@ -252,7 +252,7 @@ deploy() {
       }
     }
 
-    log('\nexecute: `gcloud app deploy build/web/app.yaml --project=dart-pad --no-promote`');
+    log('\nexecute: `gcloud app deploy build/app.yaml --project=dart-pad --no-promote`');
   });
 }
 
