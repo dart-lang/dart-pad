@@ -100,7 +100,7 @@ class DartCompleter extends CodeCompleter {
                 return Completion(text,
                     displayString: displayString, type: deprecatedClass);
               } else {
-                int cursorPos = null;
+                int cursorPos;
 
                 if (completion.isMethod && completion.parameterCount > 0) {
                   cursorPos = text.indexOf('(') + 1;
