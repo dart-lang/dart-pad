@@ -224,7 +224,12 @@ class PlaygroundMobile {
         // Sharing is currently disabled pending establishing OAuth2 configurations with Github.
         //_exportDialog.open();
         ga.sendEvent("embed", "export");
-        window.open("/${_gistId}", "_export");
+
+        if (_gistId == null) {
+          window.open("/", "_export");
+        } else {
+          window.open("/$_gistId", "_export");
+        }
       });
     }
   }
