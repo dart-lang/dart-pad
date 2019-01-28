@@ -13,7 +13,6 @@ import 'package:grinder/grinder.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 final FilePath _buildDir = FilePath('build');
-final FilePath _webDir = FilePath('web');
 final FilePath _pkgDir = FilePath('third_party/pkg');
 final FilePath _routeDir = FilePath('third_party/pkg/route.dart');
 final FilePath _haikunatorDir = FilePath('third_party/pkg/haikunatordart');
@@ -69,7 +68,7 @@ testWeb() async {
 @Task('Serve locally on port 8000')
 @Depends(build)
 serve() {
-  run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build/web']);
+  run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build']);
 }
 
 const String backendVariable = 'DARTPAD_BACKEND';
@@ -84,50 +83,30 @@ serveCustomBackend() {
   run('sed', arguments: [
     '-i',
     's,https://dart-services.appspot.com,${Platform.environment[backendVariable]},g',
-    'build/web/scripts/main.dart.js',
-    'build/web/scripts/embed.dart.js'
+    'build/scripts/main.dart.js',
+    'build/scripts/embed.dart.js'
   ]);
-  run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build/web']);
+  run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build']);
 }
 
 @Task('Build the `web/index.html` entrypoint')
 build() {
-  // Copy our third party python code into web/.
-  FilePath('third_party/mdetect/mdetect.py').copy(_webDir);
+  PubApp.local('build_runner').run(['build', '-r', '-o', 'web:build']);
 
-  // Copy the codemirror script into web/scripts.
-  FilePath(_getCodeMirrorScriptPath()).copy(_webDir.join('scripts'));
-
-  // copy web/ resources
-  copyDirectory(webDir, joinDir(buildDir, ['web']));
-
-  // copy lib/ resources
-  copyDirectory(libDir, joinDir(buildDir, ['web', 'packages', 'dart_pad']));
-
-  // copy other package resources
-  copyPackageResources('codemirror', joinDir(buildDir, ['web']));
-
-  // Compile main scripts.
-  // Debugging: minify: false, extraArgs: ['--enable-asserts']
-  Dart2js.compile(joinFile(webDir, ['scripts', 'main.dart']),
-      outDir: joinDir(buildDir, ['web', 'scripts']), minify: true);
-  Dart2js.compile(joinFile(webDir, ['scripts', 'embed.dart']),
-      outDir: joinDir(buildDir, ['web', 'scripts']), minify: true);
-
-  FilePath mainFile = _buildDir.join('web', 'scripts/main.dart.js');
+  FilePath mainFile = _buildDir.join('scripts/main.dart.js');
   log('${mainFile} compiled to ${_printSize(mainFile)}');
 
   FilePath testFile = _buildDir.join('test', 'web.dart.js');
   if (testFile.exists)
     log('${testFile.path} compiled to ${_printSize(testFile)}');
 
-  FilePath embedFile = _buildDir.join('web', 'scripts/embed.dart.js');
+  FilePath embedFile = _buildDir.join('scripts/embed.dart.js');
   log('${mainFile} compiled to ${_printSize(embedFile)}');
 
   // Remove .dart files.
   int count = 0;
 
-  for (FileSystemEntity entity in getDir('build/web/packages')
+  for (FileSystemEntity entity in getDir('build/packages')
       .listSync(recursive: true, followLinks: false)) {
     if (entity is! File) continue;
     if (!entity.path.endsWith('.dart')) continue;
@@ -173,20 +152,9 @@ void copyPackageResources(String packageName, Directory destDir) {
   fail('package $packageName not found in .packages file');
 }
 
-/// Return the path for `packages/codemirror/codemirror.js`.
-String _getCodeMirrorScriptPath() {
-  Map<String, String> packageToUri = {};
-  for (String line in File('.packages').readAsLinesSync()) {
-    int index = line.indexOf(':');
-    packageToUri[line.substring(0, index)] = line.substring(index + 1);
-  }
-  String packagePath = Uri.parse(packageToUri['codemirror']).path;
-  return '${packagePath}codemirror.js';
-}
-
 // Run vulcanize
 vulcanize(String filepath) {
-  FilePath htmlFile = _buildDir.join('web', filepath);
+  FilePath htmlFile = _buildDir.join(filepath);
   log('${htmlFile.path} original: ${_printSize(htmlFile)}');
   ProcessResult result = Process.runSync(
       'vulcanize',
@@ -202,9 +170,9 @@ vulcanize(String filepath) {
         'scripts/codemirror.js',
         '--exclude',
         'scripts/embed_components.html',
-        filepath
+        filepath,
       ],
-      workingDirectory: 'build/web');
+      workingDirectory: _buildDir.path);
   if (result.exitCode != 0) {
     fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
   }
@@ -215,11 +183,11 @@ vulcanize(String filepath) {
 
 //Run vulcanize with no exclusions
 vulcanizeNoExclusion(String filepath) {
-  FilePath htmlFile = _buildDir.join('web', filepath);
+  FilePath htmlFile = _buildDir.join(filepath);
   log('${htmlFile.path} original: ${_printSize(htmlFile)}');
   ProcessResult result = Process.runSync('vulcanize',
       ['--strip-comments', '--inline-css', '--inline-scripts', filepath],
-      workingDirectory: 'build/web');
+      workingDirectory: _buildDir.path);
   if (result.exitCode != 0) {
     fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
   }
@@ -283,7 +251,7 @@ deploy() {
       }
     }
 
-    log('\nexecute: `gcloud app deploy build/web/app.yaml --project=dart-pad --no-promote`');
+    log('\nexecute: `gcloud app deploy build/app.yaml --project=dart-pad --no-promote`');
   });
 }
 
