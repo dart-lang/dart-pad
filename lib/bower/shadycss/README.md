@@ -349,10 +349,35 @@ ShadyCSS.styleSubtree(el, {'--content-color' : 'red'});
 
 ### Selector scoping
 
-You must have a selector for ascendants of the `<slot>` element when using the `::slotted`
-pseudo-element.
+To use the `::slotted` pseudo-element, you must select it as a descendant of some context element.
+```css
+/* Bad */
+::slotted() {}
 
-You cannot use any selector for the `<slot>` element. Rules like `.foo .bar::slotted(*)` are not supported.
+/* Good */
+.context ::slotted() {}
+```
+
+Since ShadyCSS removes all `<slot>` elements, you cannot select them directly or use any other selectors along with the `::slotted` pseudo-element selector.
+```html
+<!-- Bad -->
+<style>
+  .foo .bar::slotted(*) {}
+</style>
+<span class="foo">
+  <slot class="bar"></slot>
+</span>
+``` 
+
+```html
+<!-- Good -->
+<style>
+  .foo ::slotted(*) {}
+</style>
+<span class="foo">
+  <slot></slot>
+</span>
+``` 
 
 ### Custom properties and `@apply`
 

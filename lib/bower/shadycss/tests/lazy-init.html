@@ -20,7 +20,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <script src="../scoping-shim.min.js"></script>
 <script src="../apply-shim.min.js"></script>
 <script src="../custom-style-interface.min.js"></script>
-<template id="x-foo">
+<template id="eager-host">
   <style>
     :host {
       display: block;
@@ -28,13 +28,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       background-color: blue;
     }
 
-    :host > x-bar {
+    :host > late-client {
       --foo: rgb(255, 0, 0);
     }
   </style>
-  <x-bar></x-bar>
+  <late-client></late-client>
 </template>
-<template id="x-bar">
+<template id="late-client">
   <style>
     :host {
       display: block;
@@ -48,8 +48,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   </style>
   <div>Hello!</div>
 </template>
+
+<template id="x-parent">
+  <style>
+    :host {
+      --property: 10px solid black;
+    }
+  </style>
+  <x-child></x-child>
+</template>
+<template id="x-child">
+  <style>
+    div {
+      border: var(--property);
+    }
+  </style>
+  <div></div>
+</template>
+
 <script>
-  class LazyElement extends HTMLElement {
+  class LateClient extends HTMLElement {
     constructor() {
       super();
       this.initialized = false;
@@ -75,7 +93,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     }
   }
 
-  class EagerElement extends HTMLElement {
+  class EagerHost extends HTMLElement {
     constructor() {
       super();
       this.template = document.querySelector(`template#${this.localName}`);
@@ -93,19 +111,47 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     }
   }
 
+  class StampBeforeStyle extends HTMLElement {
+    constructor() {
+      super();
+      this.template = document.querySelector(`template#${this.localName}`);
+      if (!this.template.initialized) {
+        this.template.initialized = true;
+        window.ShadyCSS.prepareTemplate(this.template, this.localName);
+      }
+    }
+    connectedCallback() {
+      if (this.template && !this.shadowRoot) {
+        this.attachShadow({ mode: 'open' });
+        this.shadowRoot.appendChild(this.template.content.cloneNode(true));
+      }
+      window.ShadyCSS.styleElement(this);
+    }
+  }
+
   suite('Lazy Initialization', function() {
-    test('Lazy element is eventually correct', function() {
-      customElements.define('x-bar', class extends LazyElement{});
-      customElements.define('x-foo', class extends EagerElement{});
-      const host = document.createElement('x-foo');
+    test('Late child element is eventually correct', function() {
+      customElements.define('late-client', class extends LateClient{});
+      customElements.define('eager-host', class extends EagerHost{});
+      const host = document.createElement('eager-host');
       document.body.appendChild(host);
       window.ShadyCSS.styleDocument();
-      const inner = host.shadowRoot.querySelector('x-bar');
+      const inner = host.shadowRoot.querySelector('late-client');
       if (inner.init) {
         inner.init();
       }
       const div = inner.shadowRoot.querySelector('div');
       assert.equal(getComputedStyle(div).getPropertyValue('border-color').trim(), 'rgb(255, 0, 0)');
+    });
+
+    test('Custom Property Shim can force unprepared parent to evaluate', function() {
+      customElements.define('x-child', class extends StampBeforeStyle {});
+      customElements.define('x-parent', class extends StampBeforeStyle {});
+      const host = document.createElement('x-parent');
+      document.body.appendChild(host);
+      const inner = host.shadowRoot.querySelector('x-child');
+      const div = inner.shadowRoot.querySelector('div');
+      assert.equal(getComputedStyle(div).getPropertyValue('border-top-width').trim(), '10px');
     });
   });
 </script>

@@ -87,6 +87,30 @@ WCT = {waitFor: function (cb) {HTMLImports.whenReady(cb)}}
   </style>
 </template>
 
+<template id="attribute-style">
+  <style>
+    [foo="foo:bar"] {
+      background-color: blue;
+    }
+  </style>
+</template>
+
+<template id="nested-attribute-style">
+  <style>
+    [foo="foo:bar"] [foo="foo:bar"] {
+      background-color: blue;
+    }
+  </style>
+</template>
+
+<template id="prepended-attribute-style">
+  <style>
+    foo[foo="foo:bar"] {
+      background-color: blue;
+    }
+  </style>
+</template>
+
 <script>
 function processTemplate(templateName, elementName) {
   var template = document.querySelector('template#' + templateName);
@@ -203,6 +227,72 @@ suite('Style Transformer', function() {
     test('ShadyDOM', function() {
       window.StyleTransformer.documentRule(rule);
       assert.equal(rule.selector, 'html:not(.style-scope)');
+    });
+  });
+
+  suite('attribute selectors', function() {
+
+    suite('simple', function() {
+      let rule;
+
+      setup(function() {
+        const template = document.querySelector('template#attribute-style');
+        const style = template.content.querySelector('style').cloneNode(true);
+        const ast = window.ShadyCSS.ScopingShim.getStyleAst(style);
+        rule = ast.rules[0];
+      });
+
+      test('native ShadowDOM', function() {
+        window.StyleTransformer.normalizeRootSelector(rule);
+        assert.equal(rule.selector, '[foo="foo:bar"]');
+      });
+
+      test('ShadyDOM', function() {
+        window.StyleTransformer.documentRule(rule);
+        assert.equal(rule.selector, ':not(.style-scope)[foo="foo:bar"]');
+      });
+    });
+
+    suite('nested', function() {
+      let rule;
+
+      setup(function() {
+        const template = document.querySelector('template#nested-attribute-style');
+        const style = template.content.querySelector('style').cloneNode(true);
+        const ast = window.ShadyCSS.ScopingShim.getStyleAst(style);
+        rule = ast.rules[0];
+      });
+
+      test('native ShadowDOM', function() {
+        window.StyleTransformer.normalizeRootSelector(rule);
+        assert.equal(rule.selector, '[foo="foo:bar"] [foo="foo:bar"]');
+      });
+
+      test('ShadyDOM', function() {
+        window.StyleTransformer.documentRule(rule);
+        assert.equal(rule.selector, ':not(.style-scope)[foo="foo:bar"] :not(.style-scope)[foo="foo:bar"]');
+      });
+    });
+
+    suite('prepended', function() {
+      let rule;
+
+      setup(function() {
+        const template = document.querySelector('template#prepended-attribute-style');
+        const style = template.content.querySelector('style').cloneNode(true);
+        const ast = window.ShadyCSS.ScopingShim.getStyleAst(style);
+        rule = ast.rules[0];
+      });
+
+      test('native ShadowDOM', function() {
+        window.StyleTransformer.normalizeRootSelector(rule);
+        assert.equal(rule.selector, 'foo[foo="foo:bar"]');
+      });
+
+      test('ShadyDOM', function() {
+        window.StyleTransformer.documentRule(rule);
+        assert.equal(rule.selector, 'foo:not(.style-scope)[foo="foo:bar"]');
+      });
     });
   });
 });
