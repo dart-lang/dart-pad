@@ -4,9 +4,9 @@
 
 library dart_services.P_dartpadsupportservices.v1;
 
-import 'dart:core' as core;
 import 'dart:async' as async;
 import 'dart:convert' as convert;
+import 'dart:core' as core;
 
 import 'package:_discoveryapis_commons/_discoveryapis_commons.dart' as commons;
 import 'package:http/http.dart' as http;
@@ -20,10 +20,10 @@ class P_dartpadsupportservicesApi {
   final commons.ApiRequester _requester;
 
   P_dartpadsupportservicesApi(http.Client client,
-      {core.String rootUrl: "/",
-      core.String servicePath: "api/_dartpadsupportservices/v1/"})
+      {core.String rootUrl = "/",
+      core.String servicePath = "api/_dartpadsupportservices/v1/"})
       : _requester =
-            new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
+            commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /// Store a gist dataset to be retrieved.
   ///
@@ -39,12 +39,12 @@ class P_dartpadsupportservicesApi {
   /// If the used [http.Client] completes with an error when making a REST call,
   /// this method will complete with the same error.
   async.Future<UuidContainer> export(PadSaveObject request) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
+    core.String _url;
+    var _queryParams = core.Map<core.String, core.List<core.String>>();
+    commons.Media _uploadMedia;
+    commons.UploadOptions _uploadOptions;
     var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
+    core.String _body;
 
     if (request != null) {
       _body = convert.json.encode((request).toJson());
@@ -58,7 +58,7 @@ class P_dartpadsupportservicesApi {
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
-    return _response.then((data) => new UuidContainer.fromJson(data));
+    return _response.then((data) => UuidContainer.fromJson(data));
   }
 
   /// Request parameters:
@@ -71,12 +71,12 @@ class P_dartpadsupportservicesApi {
   /// If the used [http.Client] completes with an error when making a REST call,
   /// this method will complete with the same error.
   async.Future<UuidContainer> getUnusedMappingId() {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
+    core.String _url;
+    var _queryParams = core.Map<core.String, core.List<core.String>>();
+    commons.Media _uploadMedia;
+    commons.UploadOptions _uploadOptions;
     var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
+    core.String _body;
 
     _url = 'getUnusedMappingId';
 
@@ -86,7 +86,7 @@ class P_dartpadsupportservicesApi {
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
-    return _response.then((data) => new UuidContainer.fromJson(data));
+    return _response.then((data) => UuidContainer.fromJson(data));
   }
 
   /// Retrieve a stored gist data set.
@@ -103,12 +103,12 @@ class P_dartpadsupportservicesApi {
   /// If the used [http.Client] completes with an error when making a REST call,
   /// this method will complete with the same error.
   async.Future<PadSaveObject> pullExportContent(UuidContainer request) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
+    core.String _url;
+    var _queryParams = core.Map<core.String, core.List<core.String>>();
+    commons.Media _uploadMedia;
+    commons.UploadOptions _uploadOptions;
     var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
+    core.String _body;
 
     if (request != null) {
       _body = convert.json.encode((request).toJson());
@@ -122,7 +122,7 @@ class P_dartpadsupportservicesApi {
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
-    return _response.then((data) => new PadSaveObject.fromJson(data));
+    return _response.then((data) => PadSaveObject.fromJson(data));
   }
 
   /// Request parameters:
@@ -137,12 +137,12 @@ class P_dartpadsupportservicesApi {
   /// If the used [http.Client] completes with an error when making a REST call,
   /// this method will complete with the same error.
   async.Future<UuidContainer> retrieveGist({core.String id}) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
+    core.String _url;
+    var _queryParams = core.Map<core.String, core.List<core.String>>();
+    commons.Media _uploadMedia;
+    commons.UploadOptions _uploadOptions;
     var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
+    core.String _body;
 
     if (id != null) {
       _queryParams["id"] = [id];
@@ -156,7 +156,7 @@ class P_dartpadsupportservicesApi {
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
-    return _response.then((data) => new UuidContainer.fromJson(data));
+    return _response.then((data) => UuidContainer.fromJson(data));
   }
 
   /// [request] - The metadata request object.
@@ -171,12 +171,12 @@ class P_dartpadsupportservicesApi {
   /// If the used [http.Client] completes with an error when making a REST call,
   /// this method will complete with the same error.
   async.Future<UuidContainer> storeGist(GistToInternalIdMapping request) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
+    core.String _url;
+    var _queryParams = core.Map<core.String, core.List<core.String>>();
+    commons.Media _uploadMedia;
+    commons.UploadOptions _uploadOptions;
     var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
+    core.String _body;
 
     if (request != null) {
       _body = convert.json.encode((request).toJson());
@@ -190,7 +190,7 @@ class P_dartpadsupportservicesApi {
         uploadOptions: _uploadOptions,
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
-    return _response.then((data) => new UuidContainer.fromJson(data));
+    return _response.then((data) => UuidContainer.fromJson(data));
   }
 }
 
@@ -210,8 +210,7 @@ class GistToInternalIdMapping {
   }
 
   core.Map<core.String, core.Object> toJson() {
-    final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    final core.Map<core.String, core.Object> _json = {};
     if (gistId != null) {
       _json["gistId"] = gistId;
     }
@@ -246,8 +245,7 @@ class PadSaveObject {
   }
 
   core.Map<core.String, core.Object> toJson() {
-    final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    final core.Map<core.String, core.Object> _json = {};
     if (css != null) {
       _json["css"] = css;
     }
@@ -276,8 +274,7 @@ class UuidContainer {
   }
 
   core.Map<core.String, core.Object> toJson() {
-    final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    final core.Map<core.String, core.Object> _json = {};
     if (uuid != null) {
       _json["uuid"] = uuid;
     }
