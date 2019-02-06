@@ -7,6 +7,7 @@ library core.modules;
 // TODO: test
 
 import 'dart:async';
+import 'package:logging/logging.dart';
 
 export 'dart:async' show Future;
 
@@ -44,8 +45,7 @@ class ModuleManager {
 
   Future _startModule(Module module) {
     return module.init().catchError((e) {
-      // TODO: log
-      print(e);
+      Logger('ModuleManager').severe(e);
     }).whenComplete(() {
       _inited.add(module);
     });

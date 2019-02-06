@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Currently not in use
-
 import 'package:dart_pad/embed/embed.dart' as embed;
+import 'package:logging/logging.dart';
 import 'package:dart_pad/polymer/polymer.dart';
 
 void main() {
+  Logger.root.onRecord.listen(print);
   Polymer.whenReady().then((_) {
     embed.init();
   });
