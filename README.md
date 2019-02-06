@@ -41,7 +41,7 @@ See also the [dart-pad](https://github.com/dart-lang/dart-pad) repo.
 ## Issues and bugs
 
 Please file reports on the
-[GitHub Issue Tracker](https://github.com/dart-lang/dart-services/issues).
+[GitHub Issue Tracker for DartPad](https://github.com/dart-lang/dart-pad/issues).
 
 ## License and Contributing
 
