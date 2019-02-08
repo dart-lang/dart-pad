@@ -104,8 +104,8 @@ build() {
   FilePath embedFile = _buildDir.join('scripts/embed.dart.js');
   log('${embedFile} compiled to ${_printSize(embedFile)}');
 
-  FilePath embedNewFile = _buildDir.join('scripts/new_embed.dart.js');
-  log('${embedNewFile} compiled to ${_printSize(embedNewFile)}');
+  FilePath newEmbedFile = _buildDir.join('scripts/new_embed.dart.js');
+  log('${newEmbedFile} compiled to ${_printSize(newEmbedFile)}');
 
   // Remove .dart files.
   int count = 0;
