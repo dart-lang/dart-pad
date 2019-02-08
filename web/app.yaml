@@ -30,6 +30,4 @@ libraries:
   version: "2.5.2"
 
 skip_files:
-  - ^\scripts\new_embed.dart.js$
-  - ^\embed-new.html$
-  - ^\new_embeddings_demo.html$
+- experimental/
