@@ -11,13 +11,7 @@ import '../editing/editor_codemirror.dart';
 class CodeMirrorModule extends Module {
   static String get version => codeMirrorFactory.version;
 
-  Future init() {
+  Future init() async {
     deps[EditorFactory] = codeMirrorFactory;
-
-    if (!codeMirrorFactory.inited) {
-      return codeMirrorFactory.init();
-    } else {
-      return Future.value();
-    }
   }
 }

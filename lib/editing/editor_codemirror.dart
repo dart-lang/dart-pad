@@ -22,40 +22,13 @@ export 'editor.dart';
 final CodeMirrorFactory codeMirrorFactory = CodeMirrorFactory._();
 
 class CodeMirrorFactory extends EditorFactory {
-  //static final String cssRef = 'packages/dart_pad/editing/editor_codemirror.css';
-  //static final String jsRef = 'packages/codemirror/codemirror.js';
-
   CodeMirrorFactory._();
 
   String get version => CodeMirror.version;
 
   List<String> get modes => CodeMirror.MODES;
+
   List<String> get themes => CodeMirror.THEMES;
-
-  bool get inited {
-    return true;
-//    List scripts = html.querySelectorAll('head script');
-//    return scripts.any((script) => script.src == jsRef);
-  }
-
-  Future init() {
-    List<Future> futures = [];
-    //html.Element head = html.querySelector('html head');
-
-//    // <link href="packages/dart_pad/editing/editor_codemirror.css"
-//    //   rel="stylesheet">
-//    html.LinkElement link = new html.LinkElement();
-//    link.rel = 'stylesheet';
-//    link.href = cssRef;
-//    futures.add(_appendNode(head, link));
-
-//    // <script src="packages/codemirror/codemirror.js"></script>
-//    html.ScriptElement script = new html.ScriptElement();
-//    script.src = jsRef;
-//    futures.add(_appendNode(head, script));
-
-    return Future.wait(futures);
-  }
 
   Editor createFromElement(html.Element element, {Map options}) {
     options ??= {
@@ -83,8 +56,6 @@ class CodeMirrorFactory extends EditorFactory {
     CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
     return _CodeMirrorEditor._(this, editor);
   }
-
-  bool get supportsCompletionPositioning => true;
 
   void registerCompleter(String mode, CodeCompleter completer) {
     Hints.registerHintsHelperAsync(mode, (CodeMirror editor,
@@ -223,9 +194,11 @@ class _CodeMirrorEditor extends Editor {
   }
 
   String get mode => cm.getMode();
+
   set mode(String str) => cm.setMode(str);
 
   String get theme => cm.getTheme();
+
   set theme(String str) => cm.setTheme(str);
 
   bool get hasFocus => cm.jsProxy['state']['focused'];
@@ -243,6 +216,7 @@ class _CodeMirrorEditor extends Editor {
   }
 
   void focus() => cm.focus();
+
   void resize() => cm.refresh();
 
   void swapDocument(Document document) {
@@ -262,7 +236,7 @@ class _CodeMirrorDocument extends Document {
   final List<html.DivElement> nodes = [];
 
   /// We use `_lastSetValue` here to avoid a change notification when we
-  /// programatically change the `value` field.
+  /// programmatically change the `value` field.
   String _lastSetValue;
 
   _CodeMirrorDocument._(_CodeMirrorEditor editor, this.doc) : super(editor);
@@ -275,8 +249,7 @@ class _CodeMirrorDocument extends Document {
     _lastSetValue = str;
     doc.setValue(str);
     doc.markClean();
-    // TODO: Switch over to non-JS interop when this method is exposed.
-    doc.jsProxy.callMethod('clearHistory');
+    doc.clearHistory();
   }
 
   void updateValue(String str) {
@@ -334,19 +307,6 @@ class _CodeMirrorDocument extends Document {
       // Create markers in the margin.
       if (lastLine == an.line) continue;
       lastLine = an.line;
-
-//      html.DivElement node = new html.DivElement();
-//      //node.style.position = 'absolute';
-//      node.text = an.message;
-//      node.style.backgroundColor = '#444';
-//      //node.style.height = '40px';
-//      //nodes.add(node);
-//      //(editor as _CodeMirrorEditor).cm.addWidget(_posToPos(an.start), node);
-//      widgets.add(
-//          (editor as _CodeMirrorEditor).cm.addLineWidget(an.line - 1, node));
-//
-////      cm.setGutterMarker(an.line - 1, _gutterId,
-////          _makeMarker(an.type, an.message, an.start, an.end));
     }
   }
 
@@ -361,34 +321,15 @@ class _CodeMirrorDocument extends Document {
   ed.Position _posFromPos(pos.Position position) =>
       ed.Position(position.line, position.ch);
 
-//  html.Element _makeMarker(String severity, String tooltip, ed.Position start,
-//      ed.Position end) {
-//    html.Element marker = new html.DivElement();
-//    marker.className = "CodeMirror-lint-marker-" + severity;
-//    if (tooltip != null) marker.title = tooltip;
-//    marker.onClick.listen((_) {
-//      doc.setSelection(new pos.Position(start.line, start.char),
-//          head: new pos.Position(end.line, end.char));
-//    });
-//    return marker;
-//  }
-
-  Stream get onChange => doc.onChange.where((_) {
-        if (value != _lastSetValue) {
-          _lastSetValue = null;
-          return true;
-        } else {
-          //_lastSetValue = null;
-          return false;
-        }
-      });
+  Stream get onChange {
+    return doc.onChange.where((_) {
+      if (value != _lastSetValue) {
+        _lastSetValue = null;
+        return true;
+      } else {
+        //_lastSetValue = null;
+        return false;
+      }
+    });
+  }
 }
-
-//Future _appendNode(html.Element parent, html.Element child) {
-//  Completer completer = new Completer();
-//  child.onLoad.listen((e) {
-//    completer.complete();
-//  });
-//  parent.nodes.add(child);
-//  return completer.future;
-//}

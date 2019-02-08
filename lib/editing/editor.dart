@@ -10,14 +10,10 @@ import 'dart:math';
 
 abstract class EditorFactory {
   List<String> get modes;
+
   List<String> get themes;
 
-  bool get inited;
-  Future init();
-
   Editor createFromElement(html.Element element);
-
-  bool get supportsCompletionPositioning;
 
   void registerCompleter(String mode, CodeCompleter completer);
 }
@@ -33,35 +29,34 @@ abstract class Editor {
 
   Document get document;
 
-  /// Runs the command with the given name on the editor. Only implemented for
-  /// codemirror and comid; returns `null` for ace editor.
+  /// Runs the command with the given name on the editor.
   void execCommand(String name);
 
   void showCompletions({bool autoInvoked = false, bool onlyShowFixes = false});
 
-  /// Checks if the completion popup is displayed. Only implemented for
-  /// codemirror; returns `null` for ace editor and comid.
+  /// Checks if the completion popup is displayed.
   bool get completionActive;
 
   String get mode;
+
   set mode(String str);
 
   String get theme;
+
   set theme(String str);
 
   /// Returns the cursor coordinates in pixels. cursorCoords.x corresponds to
-  /// left and cursorCoords.y corresponds to top. Only implemented for
-  /// codemirror, returns `null` for ace editor and comid.
+  /// left and cursorCoords.y corresponds to top.
   Point getCursorCoords({Position position});
 
   bool get hasFocus;
 
   /// Fired when a mouse is clicked. You can preventDefault the event to signal
-  /// that the editor should do no further handling.  Only implemented for
-  /// codemirror, returns `null` for ace editor and comid.
+  /// that the editor should do no further handling.
   Stream<html.MouseEvent> get onMouseDown;
 
   void resize();
+
   void focus();
 
   void swapDocument(Document document);
@@ -76,6 +71,7 @@ abstract class Document {
   Document(this.editor);
 
   String get value;
+
   set value(String str);
 
   /// Update the value on behalf of a user action, performing
@@ -92,12 +88,15 @@ abstract class Document {
   String get mode;
 
   bool get isClean;
+
   void markClean();
 
   void setAnnotations(List<Annotation> annotations);
+
   void clearAnnotations() => setAnnotations([]);
 
   int indexFromPos(Position pos);
+
   Position posFromIndex(int index);
 
   void applyEdit(SourceEdit edit);
@@ -166,14 +165,12 @@ class Completion {
   /// An optional string that is displayed during auto-completion if specified.
   final String displayString;
 
-  /// The css class type for the completion. This may not be supported by all
-  /// completors.
+  /// The css class type for the completion.
   String type;
 
   /// The (optional) offset to display the cursor at after completion. This is
   /// relative to the insertion location, not the absolute position in the file.
-  /// This may be `null`, and cursor re-positioning may not be supported by all
-  /// completors. See [EditorFactory.supportsCompletionPositioning].
+  /// This can be `null`.
   final int cursorOffset;
 
   List<SourceEdit> quickFixes = [];
