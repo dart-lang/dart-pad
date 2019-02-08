@@ -85,7 +85,7 @@ serveCustomBackend() {
     's,https://dart-services.appspot.com,${Platform.environment[backendVariable]},g',
     'build/scripts/main.dart.js',
     'build/scripts/embed.dart.js',
-    'build/scripts/new_embed.dart.js'
+    'build/scripts/experimental/new_embed.dart.js',
   ]);
   run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build']);
 }
@@ -104,7 +104,7 @@ build() {
   FilePath embedFile = _buildDir.join('scripts/embed.dart.js');
   log('${embedFile} compiled to ${_printSize(embedFile)}');
 
-  FilePath newEmbedFile = _buildDir.join('scripts/new_embed.dart.js');
+  FilePath newEmbedFile = _buildDir.join('experimental/new_embed.dart.js');
   log('${newEmbedFile} compiled to ${_printSize(newEmbedFile)}');
 
   // Remove .dart files.
@@ -126,7 +126,7 @@ build() {
   vulcanize('index.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
-  vulcanize('embed-new.html');
+  vulcanize('experimental/embed-new.html');
   vulcanize('embed-inline.html');
 }
 
@@ -170,7 +170,7 @@ vulcanize(String filepath) {
         '--exclude',
         'scripts/embed.dart.js',
         '--exclude',
-        'scripts/new_embed.dart.js',
+        ' experimental/new_embed.dart.js',
         '--exclude',
         'scripts/main.dart.js',
         '--exclude',

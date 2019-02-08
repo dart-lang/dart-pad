@@ -2,22 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library newembed;
-
+import 'package:dart_pad/experimental/new_embed.dart' as new_embed;
 import 'package:logging/logging.dart';
 
-NewEmbed get playground => _playground;
+void main() {
+  print('main() in web script');
 
-NewEmbed _playground;
+  Logger.root.onRecord.listen(print);
 
-final _logger = Logger('dartpad');
-
-void init() {
-  _playground = NewEmbed();
-}
-
-class NewEmbed {
-  NewEmbed() {
-    print('Created a NewEmbed.');
-  }
+  new_embed.init();
 }
