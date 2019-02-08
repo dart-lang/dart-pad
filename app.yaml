@@ -12,5 +12,8 @@ automatic_scaling:
   cpu_utilization:
     target_utilization: 0.5
 
+network:
+  name: vpc-dart-services
+
 skip_files:
 - ^\.git/.*$
