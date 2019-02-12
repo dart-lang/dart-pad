@@ -1,6 +1,7 @@
 language: dart
 install:
-    - gem install coveralls-lcov
+  - sudo apt-get install redis-server
+  - gem install coveralls-lcov
 dart:
   - stable
   - dev

@@ -45,6 +45,7 @@ void main(List<String> args) {
     port: ${gaePort}
     sdkPath: ${sdkPath}
     REDIS_SERVER_URI: ${Platform.environment['REDIS_SERVER_URI']}
+    GAE_VERSION: ${Platform.environment['GAE_VERSION']}
   ''');
 
   GaeServer server = GaeServer(sdk, Platform.environment['REDIS_SERVER_URI']);
