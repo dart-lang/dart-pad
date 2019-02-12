@@ -65,7 +65,7 @@ class RedisCache implements ServerCache {
   // Version of the server to add with keys.
   final String serverVersion;
   // pseudo-random is good enough.
-  Random randomSource = Random();
+  final Random randomSource = Random();
   static const int _connectionRetryBaseMs = 250;
   static const int _connectionRetryMaxMs = 60000;
   static const Duration _cacheOperationTimeout = Duration(milliseconds: 10000);

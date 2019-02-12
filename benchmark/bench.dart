@@ -12,11 +12,11 @@ import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
 
 void main(List<String> args) {
-  bool json = args.contains('--json');
+  final bool json = args.contains('--json');
 
-  BenchmarkHarness harness = BenchmarkHarness(asJson: json);
+  final BenchmarkHarness harness = BenchmarkHarness(asJson: json);
 
-  List<Benchmark> benchmarks = [
+  final List<Benchmark> benchmarks = [
     AnalyzerBenchmark('hello', sampleCode),
     AnalyzerBenchmark('hellohtml', sampleCodeWeb),
     AnalyzerBenchmark('sunflower', _sunflower),

@@ -6,7 +6,6 @@ library services_gae;
 
 import 'dart:async';
 import 'dart:io' as io;
-import 'dart:io';
 
 import 'package:appengine/appengine.dart' as ae;
 import 'package:logging/logging.dart';
@@ -36,19 +35,19 @@ void main(List<String> args) {
   _logger.onRecord.listen((LogRecord rec) {
     String out = ('${rec.level.name}: ${rec.time}: ${rec.message}\n');
     if (rec.level > Level.INFO) {
-      stderr.write(out);
+      io.stderr.write(out);
     } else {
-      stdout.write(out);
+      io.stdout.write(out);
     }
   });
   log.info('''Initializing dart-services: 
     port: ${gaePort}
     sdkPath: ${sdkPath}
-    REDIS_SERVER_URI: ${Platform.environment['REDIS_SERVER_URI']}
-    GAE_VERSION: ${Platform.environment['GAE_VERSION']}
+    REDIS_SERVER_URI: ${io.Platform.environment['REDIS_SERVER_URI']}
+    GAE_VERSION: ${io.Platform.environment['GAE_VERSION']}
   ''');
 
-  GaeServer server = GaeServer(sdk, Platform.environment['REDIS_SERVER_URI']);
+  GaeServer server = GaeServer(sdk, io.Platform.environment['REDIS_SERVER_URI']);
   server.start(gaePort);
 }
 
@@ -68,7 +67,7 @@ class GaeServer {
     discoveryEnabled = false;
     fileRelayServer = FileRelayServer();
     commonServer = CommonServer(
-        sdkPath, GaeServerContainer(), redisServerUri == null ? InmemoryCache() : RedisCache(redisServerUri, Platform.environment['GAE_VERSION']), GaeCounter());
+        sdkPath, GaeServerContainer(), redisServerUri == null ? InmemoryCache() : RedisCache(redisServerUri, io.Platform.environment['GAE_VERSION']), GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
     apiServer = rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer)
