@@ -31,10 +31,23 @@ void main(List<String> args) {
     throw 'No Dart SDK is available; set the DART_SDK env var.';
   }
 
-  GaeServer server = GaeServer(sdk, Platform.environment['REDIS_SERVER_URI']);
+  // Log to stdout/stderr.  AppEngine's logging package is disabled in 0.6.0
+  // and AppEngine copies stdout/stderr to the dashboards.
+  _logger.onRecord.listen((LogRecord rec) {
+    String out = ('${rec.level.name}: ${rec.time}: ${rec.message}\n');
+    if (rec.level > Level.INFO) {
+      stderr.write(out);
+    } else {
+      stdout.write(out);
+    }
+  });
+  log.info('''Initializing dart-services: 
+    port: ${gaePort}
+    sdkPath: ${sdkPath}
+    REDIS_SERVER_URI: ${Platform.environment['REDIS_SERVER_URI']}
+  ''');
 
-  // Change the log level to get more or less detailed logging.
-  ae.useLoggingPackageAdaptor();
+  GaeServer server = GaeServer(sdk, Platform.environment['REDIS_SERVER_URI']);
   server.start(gaePort);
 }
 
