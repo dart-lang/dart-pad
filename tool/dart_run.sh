@@ -13,7 +13,6 @@ fi
  if [ -n "$DART_VM_OPTIONS" ]; then
   echo "Starting Dart with additional options $DART_VM_OPTIONS"
 fi
-export REDIS_SERVER_URI='redis://10.0.0.4:6379'
 exec /usr/bin/dart \
      ${DBG_OPTION} \
      --enable-vm-service:8181/0.0.0.0 \
