@@ -22,6 +22,19 @@ To run the server, run:
 The server will run from port 8082 and export several JSON APIs, like
 `/api/compile` and `/api/analyze`.
 
+## Testing
+
+To run tests:
+
+`grind test` for unit tests
+
+or:
+
+`grind deploy` for all tests and checks.
+
+dart-services requires the `redis` package, including the `redis-server` binary,
+to be installed to run tests.
+
 ## Deploying
 
 To deploy the server to Dart on AppEngine, follow the instructions [here](https://www.dartlang.org/server/google-cloud-platform/app-engine/).
