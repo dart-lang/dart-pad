@@ -6,6 +6,7 @@ library services_gae;
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:io';
 
 import 'package:appengine/appengine.dart' as ae;
 import 'package:logging/logging.dart';
@@ -30,7 +31,7 @@ void main(List<String> args) {
     throw 'No Dart SDK is available; set the DART_SDK env var.';
   }
 
-  GaeServer server = GaeServer(sdk);
+  GaeServer server = GaeServer(sdk, Platform.environment['REDIS_SERVER_URI']);
 
   // Change the log level to get more or less detailed logging.
   ae.useLoggingPackageAdaptor();
@@ -39,20 +40,21 @@ void main(List<String> args) {
 
 class GaeServer {
   final String sdkPath;
+  final String redisServerUri;
 
   bool discoveryEnabled;
   rpc.ApiServer apiServer;
   CommonServer commonServer;
   FileRelayServer fileRelayServer;
 
-  GaeServer(this.sdkPath) {
+  GaeServer(this.sdkPath, this.redisServerUri) {
     hierarchicalLoggingEnabled = true;
     _logger.level = Level.ALL;
 
     discoveryEnabled = false;
     fileRelayServer = FileRelayServer();
     commonServer = CommonServer(
-        sdkPath, GaeServerContainer(), InmemoryCache(), GaeCounter());
+        sdkPath, GaeServerContainer(), redisServerUri == null ? InmemoryCache() : RedisCache(redisServerUri, Platform.environment['GAE_VERSION']), GaeCounter());
     // Enabled pretty printing of returned json for debuggability.
     apiServer = rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer)

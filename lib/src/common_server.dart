@@ -7,8 +7,10 @@ library services.common_server;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:dartis/dartis.dart' as redis;
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:quiver/cache.dart';
@@ -51,6 +53,148 @@ abstract class PersistentCounter {
   Future increment(String name, {int increment = 1});
 
   Future<int> getTotal(String name);
+}
+
+/// A redis-backed implementation of [ServerCache].
+class RedisCache implements ServerCache {
+  redis.Client redisClient;
+  redis.Connection _connection;
+
+  final String redisUriString;
+
+  // Version of the server to add with keys.
+  final String serverVersion;
+  // pseudo-random is good enough.
+  Random randomSource = Random();
+  static const int _connectionRetryBaseMs = 250;
+  static const int _connectionRetryMaxMs = 60000;
+  static const Duration _cacheOperationTimeout = Duration(milliseconds: 10000);
+
+  RedisCache(this.redisUriString, this.serverVersion) {
+    _reconnect();
+  }
+
+  var _connectedOnce = new Completer<void>();
+  /// Completes when and if the redis server connects for the first time.
+  /// Mostly useful for testing.
+  Future get connectedOnce => _connectedOnce.future;
+
+  String __logPrefix;
+  String get _logPrefix => __logPrefix ??= 'RedisCache [${redisUriString}] (${serverVersion})';
+
+  bool _isConnected() => redisClient != null && !_isShutdown;
+  bool _isShutdown = false;
+
+  /// If you will no longer be using the [RedisCache] instance, call this to
+  /// prevent reconnection attempts.  All calls to get/remove/set on this object
+  /// will return null after this.
+  void shutdown() {
+    log.info('${_logPrefix}: shutting down...');
+    _isShutdown = true;
+    redisClient?.disconnect();
+  }
+
+  /// Begin a reconnection loop asynchronously to maintain a connection to the
+  /// redis server.  Never stops trying until shutdown() is called.
+  void _reconnect([int retryTimeoutMs = _connectionRetryBaseMs])  {
+    if (_isShutdown) {
+      return;
+    }
+    log.info('${_logPrefix}: reconnecting to ${redisUriString}...');
+    int nextRetryMs = retryTimeoutMs;
+    if (retryTimeoutMs < _connectionRetryMaxMs / 2) {
+      // 1 <= (randomSource.nextDouble() + 1) < 2
+      nextRetryMs = (retryTimeoutMs * (randomSource.nextDouble() + 1)).toInt();
+    }
+    redis.Connection.connect(redisUriString).then((redis.Connection newConnection) {
+      log.info('${_logPrefix}: Connected to redis server');
+      if (!_connectedOnce.isCompleted) _connectedOnce.complete();
+      _connection = newConnection;
+      redisClient = redis.Client(_connection);
+      // If the client disconnects, discard the client and try to connect again.
+      newConnection.done.then((_) {
+        _connection = null;
+        redisClient = null;
+        log.warning('${_logPrefix}: connection terminated, reconnecting');
+        _reconnect();
+      }).catchError((e) {
+        _connection = null;
+        redisClient = null;
+        log.warning('${_logPrefix}: connection terminated with error ${e}, reconnecting');
+        _reconnect();
+      });
+    }).timeout(Duration(milliseconds: _connectionRetryMaxMs)).catchError((_) {
+      log.severe('${_logPrefix}: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...');
+      Future.delayed(Duration(milliseconds: nextRetryMs)).then((_) {
+        _reconnect(nextRetryMs);
+      });
+    });
+  }
+
+  /// Build a key that includes the server version.
+  ///
+  /// We don't use the existing key directly so that different AppEngine versions
+  /// using the same redis cache do not have collisions.
+  String _genKey(String key) => '${serverVersion}+${key}';
+
+  @override
+  Future get(String key) async {
+    String value;
+    key = _genKey(key);
+    if (!_isConnected()) {
+      log.warning('${_logPrefix}: no cache available when getting key ${key}');
+    } else {
+      final commands = redisClient.asCommands<String, String>();
+      value = await commands.get(key).timeout(_cacheOperationTimeout, onTimeout: () {
+        log.warning('${_logPrefix}: timeout on get operation for key ${key}');
+        redisClient.disconnect();
+      }).catchError((e) {
+        log.warning('${_logPrefix}: error on del operation for key ${key}: ${e}');
+      });
+    }
+    return value;
+  }
+
+  @override
+  Future remove(String key) async {
+    key = _genKey(key);
+    if (!_isConnected()) {
+      log.warning('${_logPrefix}: no cache available when deleting key ${key}');
+      return null;
+    }
+
+    final commands = redisClient.asCommands<String, String>();
+    return commands.del(key: key).timeout(_cacheOperationTimeout, onTimeout: () {
+      log.warning('${_logPrefix}: timeout on del operation for key ${key}');
+      redisClient.disconnect();
+    }).catchError((e) {
+      log.warning('${_logPrefix}: error on del operation for key ${key}: ${e}');
+    });
+  }
+
+  @override
+  Future set(String key, String value, {Duration expiration}) async {
+    key = _genKey(key);
+    if (!_isConnected()) {
+      log.warning('${_logPrefix}: no cache available when setting key ${key}');
+      return null;
+    }
+
+    final commands = redisClient.asCommands<String, String>();
+    return Future.sync(() async {
+      await commands.multi();
+      unawaited(commands.set(key, value));
+      if (expiration != null) {
+        unawaited(commands.pexpire(key, expiration.inMilliseconds));
+      }
+      await commands.exec();
+    }).timeout(_cacheOperationTimeout, onTimeout: () {
+      log.warning('${_logPrefix}: timeout on set operation for key ${key}');
+      redisClient.disconnect();
+    }).catchError((e) {
+      log.warning('${_logPrefix}: error on set operation for key ${key}: ${e}');
+    });
+  }
 }
 
 /// An in-memory implementation of [ServerCache] which doesn't support

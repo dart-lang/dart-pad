@@ -6,10 +6,13 @@ library services.common_server_test;
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server.dart';
 import 'package:logging/logging.dart';
+import 'package:pedantic/pedantic.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:rpc/rpc.dart';
 import 'package:test/test.dart';
 
@@ -68,6 +71,158 @@ void defineTests() {
         'GET', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
+
+  /// Integration tests for the RedisCache implementation.
+  group('RedisCache', () {
+    // Note: all caches share values between them.
+    RedisCache redisCache, redisCacheAlt;
+    Process redisProcess, redisAltProcess;
+    List<String> logMessages = [];
+    Lock singleTestOnly = Lock();
+
+    setUpAll(() async {
+      redisProcess = await Process.start('redis-server', ['--port', '9501']);
+      unawaited(stdout.addStream(redisProcess.stdout));
+      unawaited(stderr.addStream(redisProcess.stderr));
+      log.onRecord.listen((LogRecord rec) {
+        logMessages.add('${rec.level.name}: ${rec.time}: ${rec.message}');
+        print(logMessages.last);
+      });
+      redisCache = RedisCache('redis://localhost:9501', 'aversion');
+      redisCacheAlt = RedisCache('redis://localhost:9501', 'bversion');
+      await Future.wait([redisCache.connectedOnce, redisCacheAlt.connectedOnce]);
+    });
+
+    tearDown(() async {
+      if (redisAltProcess != null) {
+        redisAltProcess.kill();
+        await redisAltProcess.exitCode;
+        redisAltProcess = null;
+      }
+    });
+
+    tearDownAll(() async {
+      log.clearListeners();
+      redisCache?.shutdown();
+      redisCacheAlt?.shutdown();
+      redisProcess.kill();
+      await redisProcess.exitCode;
+    });
+
+    test('Verify basic operation of RedisCache', () async {
+      await singleTestOnly.synchronized(() async {
+        logMessages = [];
+        await expectLater(await redisCache.get('unknownkey'), isNull);
+        await redisCache.set('unknownkey', 'value');
+        await expectLater(await redisCache.get('unknownkey'), equals('value'));
+        expect(logMessages, isEmpty);
+      });
+    });
+
+    test('Verify values expire', () async {
+      await singleTestOnly.synchronized(() async {
+        logMessages = [];
+        await redisCache.set('expiringkey', 'expiringValue', expiration: Duration(milliseconds: 1));
+        await Future.delayed(Duration(milliseconds: 1));
+        await expectLater(await redisCache.get('expiringkey'), isNull);
+        expect(logMessages, isEmpty);
+      });
+    });
+
+    test('Verify two caches with different versions give different results for keys', () async {
+      await singleTestOnly.synchronized(() async {
+        logMessages = [];
+        await redisCache.set('differentVersionKey', 'value1');
+        await redisCacheAlt.set('differentVersionKey', 'value2');
+        await expectLater(await redisCache.get('differentVersionKey'), 'value1');
+        await expectLater(await redisCacheAlt.get('differentVersionKey'), 'value2');
+        expect(logMessages, isEmpty);
+      });
+    });
+
+    test('Verify disconnected cache logs errors and returns nulls', () async {
+      await singleTestOnly.synchronized(() async {
+        logMessages = [];
+        RedisCache redisCacheBroken = RedisCache('redis://localhost:9502', 'cversion');
+        try {
+          await redisCacheBroken.set('aKey', 'value');
+          await expectLater(await redisCacheBroken.get('aKey'), isNull);
+          expect(logMessages.join('\n'), stringContainsInOrder([
+            'no cache available when setting key cversion+aKey',
+            'no cache available when getting key cversion+aKey',
+          ]));
+        } finally {
+          redisCacheBroken.shutdown();
+        }
+      });
+    });
+
+    test('Verify cache that starts out disconnected retries and works (slow)', () async {
+      await singleTestOnly.synchronized(() async {
+        logMessages = [];
+        RedisCache redisCacheRepairable = RedisCache('redis://localhost:9503', 'cversion');
+        try {
+          // Wait for a retry message.
+          while(logMessages.length < 2) {
+            await(Future.delayed(Duration(milliseconds: 50)));
+          }
+          expect(logMessages.join('\n'), stringContainsInOrder([
+            'reconnecting to redis://localhost:9503...\n',
+            'Unable to connect to redis server, reconnecting in',
+          ]));
+
+          // Start a redis server.
+          redisProcess = await Process.start('redis-server', ['--port', '9503']);
+
+          // Wait for connection.
+          await redisCacheRepairable.connectedOnce;
+          expect(logMessages.join('\n'), stringContainsInOrder([
+            'Connected to "redis://localhost:9503"',
+            'Connected to redis server',
+          ]));
+        } finally {
+          redisCacheRepairable.shutdown();
+        }
+      });
+    });
+
+    test('Verify cache that starts out connected but breaks retries until reconnection (slow)', () async {
+      await singleTestOnly.synchronized(() async {
+        logMessages = [];
+        redisAltProcess = await Process.start('redis-server', ['--port', '9504']);
+        RedisCache redisCacheHealing = RedisCache('redis://localhost:9504', 'cversion');
+        await redisCacheHealing.connectedOnce;
+
+        await redisCacheHealing.set('missingKey', 'value');
+
+        // Kill process out from under the cache.
+        redisAltProcess.kill();
+        await redisAltProcess.exitCode;
+        redisAltProcess = null;
+
+        // Try to talk to the cache and get an error.
+        await expectLater(await redisCacheHealing.get('missingKey'), isNull);
+
+        while (logMessages.length < 7) {
+          await Future.delayed(Duration(milliseconds: 50));
+        }
+
+        expect(logMessages.join('\n'), stringContainsInOrder([
+          'Connected to redis server',
+          'connection terminated with error SocketException',
+          'reconnecting to redis://localhost:9504',
+        ]));
+
+        redisAltProcess = await Process.start('redis-server', ['--port', '9504']);
+
+        while (!logMessages.last.contains('Connected to redis server')) {
+          await Future.delayed(Duration(milliseconds: 50));
+        }
+      });
+    });
+
+
+  });
 
   group('CommonServer', () {
     setUpAll(() async {
