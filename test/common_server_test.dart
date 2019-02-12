@@ -176,10 +176,7 @@ void defineTests() {
 
           // Wait for connection.
           await redisCacheRepairable.connectedOnce;
-          expect(logMessages.join('\n'), stringContainsInOrder([
-            'Connected to "redis://localhost:9503"',
-            'Connected to redis server',
-          ]));
+          expect(logMessages.join('\n'), contains('Connected to redis server'));
         } finally {
           redisCacheRepairable.shutdown();
         }
