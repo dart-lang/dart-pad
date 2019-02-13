@@ -73,11 +73,16 @@ void defineTests() {
   }
 
   /// Integration tests for the RedisCache implementation.
+  ///
+  /// We basically assume that redis and dartis work correctly -- this is
+  /// exercising the connection maintenance and exception handling.
   group('RedisCache', () {
     // Note: all caches share values between them.
     RedisCache redisCache, redisCacheAlt;
     Process redisProcess, redisAltProcess;
     List<String> logMessages = [];
+    // Critical section handling -- do not run more than one test at a time
+    // since they talk to the same redis instances.
     Lock singleTestOnly = Lock();
 
     setUpAll(() async {
@@ -90,7 +95,7 @@ void defineTests() {
       });
       redisCache = RedisCache('redis://localhost:9501', 'aversion');
       redisCacheAlt = RedisCache('redis://localhost:9501', 'bversion');
-      await Future.wait([redisCache.connectedOnce, redisCacheAlt.connectedOnce]);
+      await Future.wait([redisCache.connected, redisCacheAlt.connected]);
     });
 
     tearDown(() async {
@@ -115,6 +120,8 @@ void defineTests() {
         await expectLater(await redisCache.get('unknownkey'), isNull);
         await redisCache.set('unknownkey', 'value');
         await expectLater(await redisCache.get('unknownkey'), equals('value'));
+        await redisCache.remove('unknownkey');
+        await expectLater(await redisCache.get('unknownkey'), isNull);
         expect(logMessages, isEmpty);
       });
     });
@@ -147,9 +154,11 @@ void defineTests() {
         try {
           await redisCacheBroken.set('aKey', 'value');
           await expectLater(await redisCacheBroken.get('aKey'), isNull);
+          await redisCacheBroken.remove('aKey');
           expect(logMessages.join('\n'), stringContainsInOrder([
             'no cache available when setting key cversion+aKey',
             'no cache available when getting key cversion+aKey',
+            'no cache available when removing key cversion+aKey',
           ]));
         } finally {
           redisCacheBroken.shutdown();
@@ -172,10 +181,10 @@ void defineTests() {
           ]));
 
           // Start a redis server.
-          redisProcess = await Process.start('redis-server', ['--port', '9503']);
+          redisAltProcess = await Process.start('redis-server', ['--port', '9503']);
 
           // Wait for connection.
-          await redisCacheRepairable.connectedOnce;
+          await redisCacheRepairable.connected;
           expect(logMessages.join('\n'), contains('Connected to redis server'));
         } finally {
           redisCacheRepairable.shutdown();
@@ -183,12 +192,32 @@ void defineTests() {
       });
     });
 
+    test('Verify that cache that stops responding temporarily times out and can recover', () async {
+      await singleTestOnly.synchronized(() async {
+        logMessages = [];
+        await redisCache.set('beforeStop', 'truth');
+        redisProcess.kill(ProcessSignal.sigstop);
+        // Don't fail the test before sending sigcont.
+        var beforeStop = await redisCache.get('beforeStop');
+        await redisCache.disconnected;
+        redisProcess.kill(ProcessSignal.sigcont);
+        expect(beforeStop, isNull);
+        await redisCache.connected;
+        await expectLater(await redisCache.get('beforeStop'), equals('truth'));
+        expect(logMessages.join('\n'), stringContainsInOrder([
+          'timeout on get operation for key aversion+beforeStop',
+          '(aversion): reconnecting',
+          '(aversion): Connected to redis server',
+        ]));
+      });
+    }, onPlatform: {'windows': Skip('Windows does not have sigstop/sigcont')});
+
     test('Verify cache that starts out connected but breaks retries until reconnection (slow)', () async {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
         redisAltProcess = await Process.start('redis-server', ['--port', '9504']);
         RedisCache redisCacheHealing = RedisCache('redis://localhost:9504', 'cversion');
-        await redisCacheHealing.connectedOnce;
+        await redisCacheHealing.connected;
 
         await redisCacheHealing.set('missingKey', 'value');
 
@@ -197,24 +226,20 @@ void defineTests() {
         await redisAltProcess.exitCode;
         redisAltProcess = null;
 
-        // Try to talk to the cache and get an error.
+        // Try to talk to the cache and get an error.  Wait for the disconnect
+        // to be recognized.
         await expectLater(await redisCacheHealing.get('missingKey'), isNull);
+        await redisCacheHealing.disconnected;
 
-        while (logMessages.length < 7) {
-          await Future.delayed(Duration(milliseconds: 50));
-        }
-
+        // Start the server and verify we connect appropriately.
+        redisAltProcess = await Process.start('redis-server', ['--port', '9504']);
+        await redisCacheHealing.connected;
         expect(logMessages.join('\n'), stringContainsInOrder([
           'Connected to redis server',
           'connection terminated with error SocketException',
           'reconnecting to redis://localhost:9504',
         ]));
-
-        redisAltProcess = await Process.start('redis-server', ['--port', '9504']);
-
-        while (!logMessages.last.contains('Connected to redis server')) {
-          await Future.delayed(Duration(milliseconds: 50));
-        }
+        expect(logMessages.last, contains('Connected to redis server'));
       });
     });
   });

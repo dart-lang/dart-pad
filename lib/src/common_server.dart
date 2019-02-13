@@ -68,16 +68,21 @@ class RedisCache implements ServerCache {
   final Random randomSource = Random();
   static const int _connectionRetryBaseMs = 250;
   static const int _connectionRetryMaxMs = 60000;
-  static const Duration _cacheOperationTimeout = Duration(milliseconds: 10000);
+  static const Duration cacheOperationTimeout = Duration(milliseconds: 10000);
 
   RedisCache(this.redisUriString, this.serverVersion) {
     _reconnect();
   }
 
-  var _connectedOnce = new Completer<void>();
-  /// Completes when and if the redis server connects for the first time.
-  /// Mostly useful for testing.
-  Future get connectedOnce => _connectedOnce.future;
+  var _connected = Completer<void>();
+  /// Completes when and if the redis server connects.  This future is reset
+  /// on disconnection.  Mostly for testing.
+  Future get connected => _connected.future;
+
+  var _disconnected = Completer<void>()..complete();
+  /// Completes when the server is disconnected (begins completed).  This
+  /// future is reset on connection.  Mostly for testing.
+  Future get disconnected => _disconnected.future;
 
   String __logPrefix;
   String get _logPrefix => __logPrefix ??= 'RedisCache [${redisUriString}] (${serverVersion})';
@@ -94,6 +99,24 @@ class RedisCache implements ServerCache {
     redisClient?.disconnect();
   }
 
+  /// Call when an active connection has disconnected.
+  void _resetConnection() {
+    assert(_connected.isCompleted && !_disconnected.isCompleted);
+    _connected = Completer<void>();
+    _connection = null;
+    redisClient = null;
+    _disconnected.complete();
+  }
+
+  /// Call when a new connection is established.
+  void _setUpConnection(redis.Connection newConnection) {
+    assert(_disconnected.isCompleted && !_connected.isCompleted);
+    _disconnected = Completer<void>();
+    _connection = newConnection;
+    redisClient = redis.Client(_connection);
+    _connected.complete();
+  }
+
   /// Begin a reconnection loop asynchronously to maintain a connection to the
   /// redis server.  Never stops trying until shutdown() is called.
   void _reconnect([int retryTimeoutMs = _connectionRetryBaseMs])  {
@@ -108,18 +131,14 @@ class RedisCache implements ServerCache {
     }
     redis.Connection.connect(redisUriString).then((redis.Connection newConnection) {
       log.info('${_logPrefix}: Connected to redis server');
-      if (!_connectedOnce.isCompleted) _connectedOnce.complete();
-      _connection = newConnection;
-      redisClient = redis.Client(_connection);
+      _setUpConnection(newConnection);
       // If the client disconnects, discard the client and try to connect again.
       newConnection.done.then((_) {
-        _connection = null;
-        redisClient = null;
+        _resetConnection();
         log.warning('${_logPrefix}: connection terminated, reconnecting');
         _reconnect();
       }).catchError((e) {
-        _connection = null;
-        redisClient = null;
+        _resetConnection();
         log.warning('${_logPrefix}: connection terminated with error ${e}, reconnecting');
         _reconnect();
       });
@@ -145,12 +164,15 @@ class RedisCache implements ServerCache {
       log.warning('${_logPrefix}: no cache available when getting key ${key}');
     } else {
       final commands = redisClient.asCommands<String, String>();
-      value = await commands.get(key).timeout(_cacheOperationTimeout, onTimeout: () {
-        log.warning('${_logPrefix}: timeout on get operation for key ${key}');
-        redisClient.disconnect();
-      }).catchError((e) {
-        log.warning('${_logPrefix}: error on del operation for key ${key}: ${e}');
-      });
+      // commands can return errors synchronously in timeout cases.
+      try {
+        value = await commands.get(key).timeout(cacheOperationTimeout, onTimeout: () {
+          log.warning('${_logPrefix}: timeout on get operation for key ${key}');
+          redisClient?.disconnect();
+        });
+      } catch (e) {
+        log.warning('${_logPrefix}: error on get operation for key ${key}: ${e}');
+      }
     }
     return value;
   }
@@ -159,17 +181,20 @@ class RedisCache implements ServerCache {
   Future remove(String key) async {
     key = _genKey(key);
     if (!_isConnected()) {
-      log.warning('${_logPrefix}: no cache available when deleting key ${key}');
+      log.warning('${_logPrefix}: no cache available when removing key ${key}');
       return null;
     }
 
     final commands = redisClient.asCommands<String, String>();
-    return commands.del(key: key).timeout(_cacheOperationTimeout, onTimeout: () {
-      log.warning('${_logPrefix}: timeout on del operation for key ${key}');
-      redisClient.disconnect();
-    }).catchError((e) {
-      log.warning('${_logPrefix}: error on del operation for key ${key}: ${e}');
-    });
+    // commands can sometimes return errors synchronously in timeout cases.
+    try {
+      return commands.del(key: key).timeout(cacheOperationTimeout, onTimeout: () {
+        log.warning('${_logPrefix}: timeout on remove operation for key ${key}');
+        redisClient?.disconnect();
+      });
+    } catch (e) {
+      log.warning('${_logPrefix}: error on remove operation for key ${key}: ${e}');
+    }
   }
 
   @override
@@ -181,19 +206,22 @@ class RedisCache implements ServerCache {
     }
 
     final commands = redisClient.asCommands<String, String>();
-    return Future.sync(() async {
-      await commands.multi();
-      unawaited(commands.set(key, value));
-      if (expiration != null) {
-        unawaited(commands.pexpire(key, expiration.inMilliseconds));
-      }
-      await commands.exec();
-    }).timeout(_cacheOperationTimeout, onTimeout: () {
-      log.warning('${_logPrefix}: timeout on set operation for key ${key}');
-      redisClient.disconnect();
-    }).catchError((e) {
+    // commands can sometimes return errors synchronously in timeout cases.
+    try {
+      return Future.sync(() async {
+        await commands.multi();
+        unawaited(commands.set(key, value));
+        if (expiration != null) {
+          unawaited(commands.pexpire(key, expiration.inMilliseconds));
+        }
+        await commands.exec();
+      }).timeout(cacheOperationTimeout, onTimeout: () {
+        log.warning('${_logPrefix}: timeout on set operation for key ${key}');
+        redisClient?.disconnect();
+      });
+    } catch (e) {
       log.warning('${_logPrefix}: error on set operation for key ${key}: ${e}');
-    });
+    }
   }
 }
 
