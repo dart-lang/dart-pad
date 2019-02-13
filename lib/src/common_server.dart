@@ -562,7 +562,8 @@ class CommonServer {
 
             String cachedResult =
                 JsonEncoder().convert({"output": out, "sourceMap": sourceMap});
-            await setCache(memCacheKey, cachedResult);
+            // Don't block on cache set.
+            unawaited(setCache(memCacheKey, cachedResult));
             return CompileResponse(out, sourceMap);
           } else {
             List<CompilationProblem> problems = results.problems;
