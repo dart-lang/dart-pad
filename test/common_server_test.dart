@@ -85,10 +85,23 @@ void defineTests() {
     // since they talk to the same redis instances.
     Lock singleTestOnly = Lock();
 
+    // Prevent cases where we might try to reenter addStream for either
+    // stdout or stderr (which will throw a BadState).
+    Lock singleStreamOnly = Lock();
+
+    Future<Process> startRedisProcessAndDrainIO(int port) async {
+      Process newRedisProcess = await Process.start('redis-server', ['--port', port.toString()]);
+      unawaited(singleStreamOnly.synchronized(() async {
+        await stdout.addStream(newRedisProcess.stdout);
+      }));
+      unawaited(singleStreamOnly.synchronized(() async {
+        await stderr.addStream(newRedisProcess.stderr);
+      }));
+      return newRedisProcess;
+    }
+
     setUpAll(() async {
-      redisProcess = await Process.start('redis-server', ['--port', '9501']);
-      unawaited(stdout.addStream(redisProcess.stdout));
-      unawaited(stderr.addStream(redisProcess.stderr));
+      redisProcess = await startRedisProcessAndDrainIO(9501);
       log.onRecord.listen((LogRecord rec) {
         logMessages.add('${rec.level.name}: ${rec.time}: ${rec.message}');
         print(logMessages.last);
@@ -108,8 +121,7 @@ void defineTests() {
 
     tearDownAll(() async {
       log.clearListeners();
-      redisCache?.shutdown();
-      redisCacheAlt?.shutdown();
+      await Future.wait([redisCache.shutdown(), redisCacheAlt.shutdown()]);
       redisProcess.kill();
       await redisProcess.exitCode;
     });
@@ -130,7 +142,7 @@ void defineTests() {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
         await redisCache.set('expiringkey', 'expiringValue', expiration: Duration(milliseconds: 1));
-        await Future.delayed(Duration(milliseconds: 1));
+        await Future.delayed(Duration(milliseconds: 100));
         await expectLater(await redisCache.get('expiringkey'), isNull);
         expect(logMessages, isEmpty);
       });
@@ -161,7 +173,7 @@ void defineTests() {
             'no cache available when removing key cversion+aKey',
           ]));
         } finally {
-          redisCacheBroken.shutdown();
+          await redisCacheBroken.shutdown();
         }
       });
     });
@@ -181,13 +193,13 @@ void defineTests() {
           ]));
 
           // Start a redis server.
-          redisAltProcess = await Process.start('redis-server', ['--port', '9503']);
+          redisAltProcess = await startRedisProcessAndDrainIO(9503);
 
           // Wait for connection.
           await redisCacheRepairable.connected;
           expect(logMessages.join('\n'), contains('Connected to redis server'));
         } finally {
-          redisCacheRepairable.shutdown();
+          await redisCacheRepairable.shutdown();
         }
       });
     });
@@ -215,31 +227,34 @@ void defineTests() {
     test('Verify cache that starts out connected but breaks retries until reconnection (slow)', () async {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
-        redisAltProcess = await Process.start('redis-server', ['--port', '9504']);
+
+        redisAltProcess = await startRedisProcessAndDrainIO(9504);
         RedisCache redisCacheHealing = RedisCache('redis://localhost:9504', 'cversion');
-        await redisCacheHealing.connected;
+        try {
+          await redisCacheHealing.connected;
+          await redisCacheHealing.set('missingKey', 'value');
+          // Kill process out from under the cache.
+          redisAltProcess.kill();
+          await redisAltProcess.exitCode;
+          redisAltProcess = null;
 
-        await redisCacheHealing.set('missingKey', 'value');
+          // Try to talk to the cache and get an error.  Wait for the disconnect
+          // to be recognized.
+          await expectLater(await redisCacheHealing.get('missingKey'), isNull);
+          await redisCacheHealing.disconnected;
 
-        // Kill process out from under the cache.
-        redisAltProcess.kill();
-        await redisAltProcess.exitCode;
-        redisAltProcess = null;
-
-        // Try to talk to the cache and get an error.  Wait for the disconnect
-        // to be recognized.
-        await expectLater(await redisCacheHealing.get('missingKey'), isNull);
-        await redisCacheHealing.disconnected;
-
-        // Start the server and verify we connect appropriately.
-        redisAltProcess = await Process.start('redis-server', ['--port', '9504']);
-        await redisCacheHealing.connected;
-        expect(logMessages.join('\n'), stringContainsInOrder([
-          'Connected to redis server',
-          'connection terminated with error SocketException',
-          'reconnecting to redis://localhost:9504',
-        ]));
-        expect(logMessages.last, contains('Connected to redis server'));
+          // Start the server and verify we connect appropriately.
+          redisAltProcess = await startRedisProcessAndDrainIO(9504);
+          await redisCacheHealing.connected;
+          expect(logMessages.join('\n'), stringContainsInOrder([
+            'Connected to redis server',
+            'connection terminated with error SocketException',
+            'reconnecting to redis://localhost:9504',
+          ]));
+          expect(logMessages.last, contains('Connected to redis server'));
+        } finally {
+          await redisCacheHealing.shutdown();
+        }
       });
     });
   });
@@ -539,6 +554,8 @@ class MockCache implements ServerCache {
   Future set(String key, String value, {Duration expiration}) => Future.value();
   @override
   Future remove(String key) => Future.value();
+  @override
+  Future<void> shutdown() => Future.value();
 }
 
 class MockCounter implements PersistentCounter {

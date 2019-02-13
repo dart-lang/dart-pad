@@ -37,6 +37,8 @@ abstract class ServerCache {
   Future set(String key, String value, {Duration expiration});
 
   Future remove(String key);
+
+  Future<void> shutdown();
 }
 
 abstract class ServerContainer {
@@ -92,11 +94,13 @@ class RedisCache implements ServerCache {
 
   /// If you will no longer be using the [RedisCache] instance, call this to
   /// prevent reconnection attempts.  All calls to get/remove/set on this object
-  /// will return null after this.
-  void shutdown() {
+  /// will return null after this.  Future completes when disconnection is complete.
+  @override
+  Future<void> shutdown() {
     log.info('${_logPrefix}: shutting down...');
     _isShutdown = true;
     redisClient?.disconnect();
+    return disconnected;
   }
 
   /// Call when an active connection has disconnected.
@@ -240,6 +244,9 @@ class InmemoryCache implements ServerCache {
 
   @override
   Future remove(String key) async => _lru.invalidate(key);
+
+  @override
+  Future<void> shutdown() => Future.value();
 }
 
 @ApiClass(name: 'dartservices', version: 'v1')
@@ -291,7 +298,7 @@ class CommonServer {
   }
 
   Future shutdown() {
-    return Future.wait([analysisServer.shutdown()]);
+    return Future.wait([analysisServer.shutdown(), Future.sync(cache.shutdown)]);
   }
 
   @ApiMethod(method: 'GET', path: 'counter')

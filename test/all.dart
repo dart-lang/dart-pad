@@ -16,7 +16,7 @@ import 'pub_test.dart' as pub_test;
 import 'shelf_cors_test.dart' as shelf_cors_test;
 import 'summarize_test.dart' as summarize_test;
 
-void main() {
+void main() async {
   analysis_server_test.defineTests();
   api_classes_test.defineTests();
   bench_test.defineTests();
