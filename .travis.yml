@@ -1,6 +1,6 @@
 language: dart
 install:
-    - gem install coveralls-lcov
+  - gem install coveralls-lcov
 dart:
   - stable
   - dev

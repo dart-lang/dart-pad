@@ -380,6 +380,8 @@ class MockCache implements ServerCache {
   Future set(String key, String value, {Duration expiration}) => Future.value();
   @override
   Future remove(String key) => Future.value();
+  @override
+  Future<void> shutdown() => Future.value();
 }
 
 class MockCounter implements PersistentCounter {

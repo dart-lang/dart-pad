@@ -12,6 +12,9 @@ automatic_scaling:
   cpu_utilization:
     target_utilization: 0.5
 
+env_variables:
+  REDIS_SERVER_URI: 'redis://10.0.0.4:6379'
+
 network:
   name: vpc-dart-services
 
