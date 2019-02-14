@@ -12,6 +12,7 @@ import 'dart:io' as io;
 import 'dart:math';
 
 import 'package:dart_services/src/analysis_server.dart' as analysis_server;
+import 'package:dart_services/src/api_classes.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server.dart';
 import 'package:dart_services/src/compiler.dart' as comp;
@@ -233,8 +234,10 @@ Future<num> testAnalysis(
 
   lastOffset = null;
   if (_SERVER_BASED_CALL) {
-    await withTimeOut(server.analyzeGet(source: src));
-    await withTimeOut(server.analyzeGet(source: src));
+    SourceRequest request = SourceRequest();
+    request.source = src;
+    await withTimeOut(server.analyze(request));
+    await withTimeOut(server.analyze(request));
   } else {
     await withTimeOut(analysisServer.analyze(src));
     await withTimeOut(analysisServer.analyze(src));
@@ -249,10 +252,13 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
   Stopwatch sw = Stopwatch()..start();
 
   lastOffset = null;
-  if (_SERVER_BASED_CALL)
-    await withTimeOut(server.compileGet(source: src));
-  else
+  if (_SERVER_BASED_CALL) {
+    CompileRequest request = CompileRequest();
+    request.source = src;
+    await withTimeOut(server.compile(request));
+  } else {
     await withTimeOut(compiler.compile(src));
+  }
 
   if (_DUMP_PERF) print("PERF: COMPILATION: ${sw.elapsedMilliseconds}");
   return sw.elapsedMilliseconds;
@@ -268,7 +274,10 @@ Future<num> testDocument(
     if (i % 1000 == 0 && i > 0) print("INC: $i docs completed");
     lastOffset = i;
     if (_SERVER_BASED_CALL) {
-      log(await withTimeOut(server.documentGet(source: src, offset: i)));
+      SourceRequest request = SourceRequest();
+      request.source = src;
+      request.offset = i;
+      log(await withTimeOut(server.document(request)));
     } else {
       log(await withTimeOut(analysisServer.dartdoc(src, i)));
     }
@@ -305,7 +314,10 @@ Future<num> testFixes(
     if (i % 1000 == 0 && i > 0) print("INC: $i fixes");
     lastOffset = i;
     if (_SERVER_BASED_CALL) {
-      await withTimeOut(server.fixesGet(source: src, offset: i));
+      SourceRequest request = SourceRequest();
+      request.source = src;
+      request.offset = i;
+      await withTimeOut(server.fixes(request));
     } else {
       await withTimeOut(wrapper.getFixes(src, i));
     }
@@ -319,7 +331,10 @@ Future<num> testFormat(String src) async {
   Stopwatch sw = Stopwatch()..start();
   int i = 0;
   lastOffset = i;
-  log(await withTimeOut(server.formatGet(source: src, offset: i)));
+  SourceRequest request = SourceRequest();
+  request.source = src;
+  request.offset = i;
+  log(await withTimeOut(server.format(request)));
   return sw.elapsedMilliseconds;
 }
 

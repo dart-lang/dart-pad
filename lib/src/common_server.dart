@@ -123,6 +123,7 @@ class CommonServer {
   }
 
   @ApiMethod(method: 'GET', path: 'counter')
+  @deprecated
   Future<CounterResponse> counterGet({String name}) {
     return counter.getTotal(name).then((total) {
       return CounterResponse(total);
@@ -145,6 +146,7 @@ class CommonServer {
       description:
           'Analyze the given Dart source code and return any resulting '
           'analysis errors or warnings.')
+  @deprecated
   Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
     return _analyzeMulti(request.sources);
   }
@@ -155,12 +157,14 @@ class CommonServer {
       description:
           'Summarize the given Dart source code and return any resulting '
           'analysis errors or warnings.')
+  @deprecated
   Future<SummaryText> summarize(SourcesRequest request) {
     return _summarize(request.sources['dart'], request.sources['css'],
         request.sources['html']);
   }
 
   @ApiMethod(method: 'GET', path: 'analyze')
+  @deprecated
   Future<AnalysisResults> analyzeGet({String source}) {
     return _analyze(source);
   }
@@ -176,6 +180,7 @@ class CommonServer {
           returnSourceMap: request.returnSourceMap ?? false);
 
   @ApiMethod(method: 'GET', path: 'compile')
+  @deprecated
   Future<CompileResponse> compileGet({String source}) => _compile(source);
 
   @ApiMethod(
@@ -196,6 +201,7 @@ class CommonServer {
       path: 'completeMulti',
       description:
           'Get the valid code completion results for the given offset.')
+  @deprecated
   Future<CompleteResponse> completeMulti(SourcesRequest request) {
     if (request.location == null) {
       throw BadRequestError('Missing parameter: \'location\'');
@@ -233,6 +239,7 @@ class CommonServer {
       method: 'POST',
       path: 'fixesMulti',
       description: 'Get any quick fixes for the given source code location.')
+  @deprecated
   Future<FixesResponse> fixesMulti(SourcesRequest request) {
     if (request.location.sourceName == null) {
       throw BadRequestError('Missing parameter: \'fullName\'');
@@ -246,6 +253,7 @@ class CommonServer {
   }
 
   @ApiMethod(method: 'GET', path: 'fixes')
+  @deprecated
   Future<FixesResponse> fixesGet({String source, int offset}) {
     if (source == null) {
       throw BadRequestError('Missing parameter: \'source\'');
@@ -268,6 +276,7 @@ class CommonServer {
   }
 
   @ApiMethod(method: 'GET', path: 'format')
+  @deprecated
   Future<FormatResponse> formatGet({String source, int offset}) {
     if (source == null) {
       throw BadRequestError('Missing parameter: \'source\'');
@@ -286,6 +295,7 @@ class CommonServer {
   }
 
   @ApiMethod(method: 'GET', path: 'document')
+  @deprecated
   Future<DocumentResponse> documentGet({String source, int offset}) {
     return _document(source, offset);
   }
