@@ -17,7 +17,7 @@ Future main() async {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  DownloadingSdk sdk = DownloadingSdk();
+  final DownloadingSdk sdk = DownloadingSdk();
   await sdk.init();
 
   _logger.info('Dart SDK ${sdk.versionFull} available at ${sdk.sdkPath}');

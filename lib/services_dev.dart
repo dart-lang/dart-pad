@@ -193,6 +193,8 @@ class _Cache implements ServerCache {
   Future set(String key, String value, {Duration expiration}) => Future.value();
   @override
   Future remove(String key) => Future.value();
+  @override
+  Future<void> shutdown() => Future.value();
 }
 
 /// This is a mock implementation of a counter, it doesn't use a proper

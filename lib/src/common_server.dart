@@ -7,8 +7,10 @@ library services.common_server;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:dartis/dartis.dart' as redis;
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:quiver/cache.dart';
@@ -35,6 +37,8 @@ abstract class ServerCache {
   Future set(String key, String value, {Duration expiration});
 
   Future remove(String key);
+
+  Future<void> shutdown();
 }
 
 abstract class ServerContainer {
@@ -53,6 +57,178 @@ abstract class PersistentCounter {
   Future<int> getTotal(String name);
 }
 
+/// A redis-backed implementation of [ServerCache].
+class RedisCache implements ServerCache {
+  redis.Client redisClient;
+  redis.Connection _connection;
+
+  final String redisUriString;
+
+  // Version of the server to add with keys.
+  final String serverVersion;
+  // pseudo-random is good enough.
+  final Random randomSource = Random();
+  static const int _connectionRetryBaseMs = 250;
+  static const int _connectionRetryMaxMs = 60000;
+  static const Duration cacheOperationTimeout = Duration(milliseconds: 10000);
+
+  RedisCache(this.redisUriString, this.serverVersion) {
+    _reconnect();
+  }
+
+  var _connected = Completer<void>();
+  /// Completes when and if the redis server connects.  This future is reset
+  /// on disconnection.  Mostly for testing.
+  Future get connected => _connected.future;
+
+  var _disconnected = Completer<void>()..complete();
+  /// Completes when the server is disconnected (begins completed).  This
+  /// future is reset on connection.  Mostly for testing.
+  Future get disconnected => _disconnected.future;
+
+  String __logPrefix;
+  String get _logPrefix => __logPrefix ??= 'RedisCache [${redisUriString}] (${serverVersion})';
+
+  bool _isConnected() => redisClient != null && !_isShutdown;
+  bool _isShutdown = false;
+
+  /// If you will no longer be using the [RedisCache] instance, call this to
+  /// prevent reconnection attempts.  All calls to get/remove/set on this object
+  /// will return null after this.  Future completes when disconnection is complete.
+  @override
+  Future<void> shutdown() {
+    log.info('${_logPrefix}: shutting down...');
+    _isShutdown = true;
+    redisClient?.disconnect();
+    return disconnected;
+  }
+
+  /// Call when an active connection has disconnected.
+  void _resetConnection() {
+    assert(_connected.isCompleted && !_disconnected.isCompleted);
+    _connected = Completer<void>();
+    _connection = null;
+    redisClient = null;
+    _disconnected.complete();
+  }
+
+  /// Call when a new connection is established.
+  void _setUpConnection(redis.Connection newConnection) {
+    assert(_disconnected.isCompleted && !_connected.isCompleted);
+    _disconnected = Completer<void>();
+    _connection = newConnection;
+    redisClient = redis.Client(_connection);
+    _connected.complete();
+  }
+
+  /// Begin a reconnection loop asynchronously to maintain a connection to the
+  /// redis server.  Never stops trying until shutdown() is called.
+  void _reconnect([int retryTimeoutMs = _connectionRetryBaseMs])  {
+    if (_isShutdown) {
+      return;
+    }
+    log.info('${_logPrefix}: reconnecting to ${redisUriString}...');
+    int nextRetryMs = retryTimeoutMs;
+    if (retryTimeoutMs < _connectionRetryMaxMs / 2) {
+      // 1 <= (randomSource.nextDouble() + 1) < 2
+      nextRetryMs = (retryTimeoutMs * (randomSource.nextDouble() + 1)).toInt();
+    }
+    redis.Connection.connect(redisUriString).then((redis.Connection newConnection) {
+      log.info('${_logPrefix}: Connected to redis server');
+      _setUpConnection(newConnection);
+      // If the client disconnects, discard the client and try to connect again.
+      newConnection.done.then((_) {
+        _resetConnection();
+        log.warning('${_logPrefix}: connection terminated, reconnecting');
+        _reconnect();
+      }).catchError((e) {
+        _resetConnection();
+        log.warning('${_logPrefix}: connection terminated with error ${e}, reconnecting');
+        _reconnect();
+      });
+    }).timeout(Duration(milliseconds: _connectionRetryMaxMs)).catchError((_) {
+      log.severe('${_logPrefix}: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...');
+      Future.delayed(Duration(milliseconds: nextRetryMs)).then((_) {
+        _reconnect(nextRetryMs);
+      });
+    });
+  }
+
+  /// Build a key that includes the server version.
+  ///
+  /// We don't use the existing key directly so that different AppEngine versions
+  /// using the same redis cache do not have collisions.
+  String _genKey(String key) => '${serverVersion}+${key}';
+
+  @override
+  Future get(String key) async {
+    String value;
+    key = _genKey(key);
+    if (!_isConnected()) {
+      log.warning('${_logPrefix}: no cache available when getting key ${key}');
+    } else {
+      final commands = redisClient.asCommands<String, String>();
+      // commands can return errors synchronously in timeout cases.
+      try {
+        value = await commands.get(key).timeout(cacheOperationTimeout, onTimeout: () {
+          log.warning('${_logPrefix}: timeout on get operation for key ${key}');
+          redisClient?.disconnect();
+        });
+      } catch (e) {
+        log.warning('${_logPrefix}: error on get operation for key ${key}: ${e}');
+      }
+    }
+    return value;
+  }
+
+  @override
+  Future remove(String key) async {
+    key = _genKey(key);
+    if (!_isConnected()) {
+      log.warning('${_logPrefix}: no cache available when removing key ${key}');
+      return null;
+    }
+
+    final commands = redisClient.asCommands<String, String>();
+    // commands can sometimes return errors synchronously in timeout cases.
+    try {
+      return commands.del(key: key).timeout(cacheOperationTimeout, onTimeout: () {
+        log.warning('${_logPrefix}: timeout on remove operation for key ${key}');
+        redisClient?.disconnect();
+      });
+    } catch (e) {
+      log.warning('${_logPrefix}: error on remove operation for key ${key}: ${e}');
+    }
+  }
+
+  @override
+  Future set(String key, String value, {Duration expiration}) async {
+    key = _genKey(key);
+    if (!_isConnected()) {
+      log.warning('${_logPrefix}: no cache available when setting key ${key}');
+      return null;
+    }
+
+    final commands = redisClient.asCommands<String, String>();
+    // commands can sometimes return errors synchronously in timeout cases.
+    try {
+      return Future.sync(() async {
+        await commands.multi();
+        unawaited(commands.set(key, value));
+        if (expiration != null) {
+          unawaited(commands.pexpire(key, expiration.inMilliseconds));
+        }
+        await commands.exec();
+      }).timeout(cacheOperationTimeout, onTimeout: () {
+        log.warning('${_logPrefix}: timeout on set operation for key ${key}');
+        redisClient?.disconnect();
+      });
+    } catch (e) {
+      log.warning('${_logPrefix}: error on set operation for key ${key}: ${e}');
+    }
+  }
+}
+
 /// An in-memory implementation of [ServerCache] which doesn't support
 /// expiration of entries based on time.
 class InmemoryCache implements ServerCache {
@@ -68,6 +244,9 @@ class InmemoryCache implements ServerCache {
 
   @override
   Future remove(String key) async => _lru.invalidate(key);
+
+  @override
+  Future<void> shutdown() => Future.value();
 }
 
 @ApiClass(name: 'dartservices', version: 'v1')
@@ -119,7 +298,7 @@ class CommonServer {
   }
 
   Future shutdown() {
-    return Future.wait([analysisServer.shutdown()]);
+    return Future.wait([analysisServer.shutdown(), Future.sync(cache.shutdown)]);
   }
 
   @ApiMethod(method: 'GET', path: 'counter')
@@ -400,7 +579,8 @@ class CommonServer {
 
             String cachedResult =
                 JsonEncoder().convert({"output": out, "sourceMap": sourceMap});
-            await setCache(memCacheKey, cachedResult);
+            // Don't block on cache set.
+            unawaited(setCache(memCacheKey, cachedResult));
             return CompileResponse(out, sourceMap);
           } else {
             List<CompilationProblem> problems = results.problems;
