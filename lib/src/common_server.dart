@@ -91,7 +91,7 @@ class CommonServer {
   Future init() async {
     pub = enablePackages ? Pub() : Pub.mock();
     compiler = Compiler(sdkPath, pub);
-    analysisServer = AnalysisServerWrapper(sdkPath, previewDart2: true);
+    analysisServer = AnalysisServerWrapper(sdkPath);
 
     await analysisServer.init();
     unawaited(analysisServer.onExit.then((int code) {

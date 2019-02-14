@@ -162,27 +162,15 @@ void defineTests() {
       expect(issue.kind, 'error');
     });
 
-    test('analyze preview-dart-2', () async {
+    test('analyze dart-2', () async {
       await analysisServer.shutdown();
 
-      analysisServer = AnalysisServerWrapper(sdkPath, previewDart2: true);
+      analysisServer = AnalysisServerWrapper(sdkPath);
       await analysisServer.init();
       AnalysisResults results =
-          await analysisServer.analyze(samplePreviewDart2OK);
+          await analysisServer.analyze(sampleDart2OK);
       expect(results.issues, hasLength(0));
     });
-
-    test('analyze no-preview-dart-2', () async {
-      await analysisServer.shutdown();
-
-      analysisServer = AnalysisServerWrapper(sdkPath, previewDart2: false);
-      await analysisServer.init();
-      AnalysisResults results =
-          await analysisServer.analyze(samplePreviewDart2OK);
-      expect(results.issues, hasLength(1));
-      AnalysisIssue issue = results.issues.first;
-      expect(issue.kind, 'error');
-    }, skip: 'no-preview-dart-2 support needs to be removed entirely');
   });
 }
 
