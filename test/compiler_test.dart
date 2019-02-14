@@ -53,9 +53,9 @@ void foo(String bar) { print(bar); }
 ''';
 
       CompilationResults normal =
-          await compiler.compile(sampleCodeChecked, previewDart2: false);
+          await compiler.compile(sampleCodeChecked);
       CompilationResults checked = await compiler.compile(sampleCodeChecked,
-          previewDart2: false, useCheckedMode: true);
+          useCheckedMode: true);
 
       expect(normal.getOutput(), equals(checked.getOutput()));
     });
@@ -134,9 +134,9 @@ void main() { print ('foo'); }
       });
     });
 
-    test('errors on previewDart2', () {
+    test('errors for dart 2', () {
       return compiler
-          .compile(samplePreviewDart2Error, previewDart2: true)
+          .compile(sampleDart2Error)
           .then((CompilationResults result) {
         expect(result.problems.length, 1);
       });

@@ -74,7 +74,7 @@ void foo(int i) {
 }
 """;
 
-final String samplePreviewDart2OK = """
+final String sampleDart2OK = """
 class Foo {
   String toString() => 'hello';
 }
@@ -84,7 +84,7 @@ void main(List<String> argv) {
 }
 """;
 
-final String samplePreviewDart2Error = """
+final String sampleDart2Error = """
 class Foo {
   final bool isAlwaysNull;
   Foo(this.isAlwaysNull) {}

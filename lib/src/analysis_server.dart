@@ -32,7 +32,6 @@ final Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
 class AnalysisServerWrapper {
   final String sdkPath;
 
-  final bool previewDart2;
   Future _init;
   Directory sourceDirectory;
   String mainPath;
@@ -41,9 +40,8 @@ class AnalysisServerWrapper {
   /// Instance to handle communication with the server.
   AnalysisServer analysisServer;
 
-  AnalysisServerWrapper(this.sdkPath, {this.previewDart2 = false}) {
-    if (previewDart2 == true) ;
-    _logger.info('AnalysisServerWrapper ctor, previewDart2: $previewDart2');
+  AnalysisServerWrapper(this.sdkPath) {
+    _logger.info('AnalysisServerWrapper ctor');
     sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
     mainPath = _getPathFromName(kMainDart);
 
@@ -61,7 +59,6 @@ class AnalysisServerWrapper {
       }
 
       List<String> serverArgs = <String>[
-        '--${previewDart2 ? '' : 'no-'}preview-dart-2',
         '--dartpad',
         '--client-id=DartPad',
         '--client-version=${_sdkVersion}'
