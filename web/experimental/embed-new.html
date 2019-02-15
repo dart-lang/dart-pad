@@ -14,16 +14,33 @@ BSD-style license that can be found in the LICENSE file. -->
 
     <title>DartPad</title>
 
-<script defer src="new_embed.dart.js"></script>
+    <link rel="stylesheet" type="text/css" href="new_embed.css">
+    <script defer src="new_embed.dart.js"></script>
 </head>
 
 <body>
-    <header layout horizontal>
-        <div class="header-title">DartPad</div>
+    <header>
+        <div class="tab tab-active" id="editor-tab">
+            <a href="#">Editor</a>
+        </div>
+        <div class="tab" id="test-tab">
+            <a href="#">Test</a>
+        </div>
+        <div class="tab" id="console-tab">
+            <a href="#">Console</a>
+        </div>
+        <div id="head-space"></div>
+        <div class="button" id="test-code"><a href="#">Test</a></div>
+        <div class="button" id="run-code"><a href="#">Run</a></div>
     </header>
 
-    <section>
-        <div class="view"></div>
+    <section id="tab-container">
+        <textarea id="editor"></textarea>
+        <div id="test-view" class=tabview-hidden"></div>
+        <div id="console-view" class=tabview-hidden"></div>
     </section>
+
+    <iframe id="frame" sandbox="allow-scripts" flex src="../scripts/frame.html">
+    </iframe>
 </body>
 </html>

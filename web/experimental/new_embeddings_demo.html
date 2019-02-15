@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+<!-- Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
      for details. All rights reserved. Use of this source code is governed by a
      BSD-style license that can be found in the LICENSE file. -->
 
@@ -58,4 +58,11 @@
     <div class="col-md-2"></div>
 </div>
 </body>
+<script>
+    function changeOptions(){
+      var select = document.getElementById("choosePad");
+      var url = 'embed-dart.html?id='+select.options[select.selectedIndex].value;
+      document.getElementById("embed-dart").src = url;
+    }
+  </script>
 </html>

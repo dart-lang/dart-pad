@@ -91,7 +91,8 @@ serveCustomBackend() {
 
 @Task('Build the `web/index.html` entrypoint')
 build() {
-  PubApp.local('build_runner').run(['build', '-r', '-o', 'web:build']);
+//  PubApp.local('build_runner').run(['build', '-r', '-o', 'web:build']);
+  PubApp.local('build_runner').run(['build', '-o', 'web:build']);
 
   FilePath mainFile = _buildDir.join('scripts/main.dart.js');
   log('${mainFile} compiled to ${_printSize(mainFile)}');
