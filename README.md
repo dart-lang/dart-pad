@@ -33,7 +33,7 @@ or:
 `grind deploy` for all tests and checks.
 
 dart-services requires the `redis` package, including the `redis-server` binary,
-to be installed to run tests.  sudo apt-get install redis-server will install
+to be installed to run tests.  `sudo apt-get install redis-server` will install
 this on Ubuntu, but see https://redis.io/topics/quickstart for other platforms.
 
 ## Deploying
