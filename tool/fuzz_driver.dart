@@ -28,7 +28,6 @@ CommonServer server;
 ApiServer apiServer;
 MockContainer container;
 MockCache cache;
-MockCounter counter;
 analysis_server.AnalysisServerWrapper analysisServer;
 
 comp.Compiler compiler;
@@ -124,8 +123,7 @@ Future setupTools(String sdkPath) async {
 
   container = MockContainer();
   cache = MockCache();
-  counter = MockCounter();
-  server = CommonServer(sdkPath, container, cache, counter);
+  server = CommonServer(sdkPath, container, cache);
   await server.init();
 
   apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
@@ -397,22 +395,6 @@ class MockCache implements ServerCache {
   Future remove(String key) => Future.value();
   @override
   Future<void> shutdown() => Future.value();
-}
-
-class MockCounter implements PersistentCounter {
-  Map<String, int> counter = {};
-
-  @override
-  Future<int> getTotal(String name) {
-    counter.putIfAbsent(name, () => 0);
-    return Future.value(counter[name]);
-  }
-
-  @override
-  Future increment(String name, {int increment = 1}) {
-    counter.putIfAbsent(name, () => 0);
-    return Future.value(counter[name]++);
-  }
 }
 
 enum OperationType {

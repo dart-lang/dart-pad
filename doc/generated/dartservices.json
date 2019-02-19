@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "c3399a28992edabca836fab215a7ba2bf0f3bb09",
+ "etag": "8409030dfd68aba3d66fe912fea8f7a7e8fd5f2a",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -13,16 +13,6 @@
  "servicePath": "api/dartservices/v1/",
  "parameters": {},
  "schemas": {
-  "CounterResponse": {
-   "id": "CounterResponse",
-   "type": "object",
-   "properties": {
-    "count": {
-     "type": "integer",
-     "format": "int32"
-    }
-   }
-  },
   "SourceRequest": {
    "id": "SourceRequest",
    "type": "object",
@@ -314,23 +304,6 @@
   }
  },
  "methods": {
-  "counterGet": {
-   "id": "CommonServer.counterGet",
-   "path": "counter",
-   "httpMethod": "GET",
-   "parameters": {
-    "name": {
-     "type": "string",
-     "description": "Query parameter: 'name'.",
-     "required": false,
-     "location": "query"
-    }
-   },
-   "parameterOrder": [],
-   "response": {
-    "$ref": "CounterResponse"
-   }
-  },
   "analyze": {
    "id": "CommonServer.analyze",
    "path": "analyze",
