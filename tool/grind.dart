@@ -85,7 +85,6 @@ serveCustomBackend() {
     's,https://dart-services.appspot.com,${Platform.environment[backendVariable]},g',
     'build/scripts/main.dart.js',
     'build/scripts/embed.dart.js',
-    'build/scripts/experimental/new_embed.dart.js',
   ]);
   run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build']);
 }
