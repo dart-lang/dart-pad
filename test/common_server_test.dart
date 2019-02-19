@@ -444,24 +444,6 @@ void defineTests() {
       expect(response.status, 400);
     });
 
-    test('counter test', () async {
-      var response =
-          await _sendGetRequest('dartservices/v1/counter', "name=Analyses");
-      var data = json.decode(utf8.decode(await response.body.first));
-      expect(response.status, 200);
-      expect(data['count'], 0);
-
-      // Do an Analysis.
-      var jsonData = {'source': sampleCode};
-      response = await _sendPostRequest('dartservices/v1/analyze', jsonData);
-
-      response =
-          await _sendGetRequest('dartservices/v1/counter', "name=Analyses");
-      data = json.decode(utf8.decode(await response.body.first));
-      expect(response.status, 200);
-      expect(data['count'], 1);
-    });
-
     test('format', () async {
       var jsonData = {'source': preFormattedCode};
       var response = await _sendPostRequest('dartservices/v1/format', jsonData);
