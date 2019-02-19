@@ -51,7 +51,6 @@ void defineTests() {
 
   MockContainer container;
   MockCache cache;
-  MockCounter counter;
 
   Future<HttpApiResponse> _sendPostRequest(String path, jsonData) {
     assert(apiServer != null);
@@ -263,9 +262,8 @@ void defineTests() {
     setUpAll(() async {
       container = MockContainer();
       cache = MockCache();
-      counter = MockCounter();
 
-      server = CommonServer(sdkPath, container, cache, counter);
+      server = CommonServer(sdkPath, container, cache);
       await server.init();
       await server.warmup();
 
@@ -297,7 +295,6 @@ void defineTests() {
     });
 
     setUp(() {
-      counter.reset();
       log.onRecord.listen((LogRecord rec) {
         print('${rec.level.name}: ${rec.time}: ${rec.message}');
       });
@@ -556,22 +553,4 @@ class MockCache implements ServerCache {
   Future remove(String key) => Future.value();
   @override
   Future<void> shutdown() => Future.value();
-}
-
-class MockCounter implements PersistentCounter {
-  Map<String, int> counter = {};
-
-  @override
-  Future<int> getTotal(String name) {
-    counter.putIfAbsent(name, () => 0);
-    return Future.value(counter[name]);
-  }
-
-  @override
-  Future increment(String name, {int increment = 1}) {
-    counter.putIfAbsent(name, () => 0);
-    return Future.value(counter[name]++);
-  }
-
-  void reset() => counter.clear();
 }
