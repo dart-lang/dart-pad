@@ -82,7 +82,7 @@ class EndpointsServer {
   static Future<String> generateDiscovery(
       String sdkPath, String serverUrl) async {
     var commonServer =
-        CommonServer(sdkPath, _ServerContainer(), _Cache(), _Counter());
+        CommonServer(sdkPath, _ServerContainer(), _Cache());
     await commonServer.init();
     var apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
@@ -121,7 +121,7 @@ class EndpointsServer {
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
     commonServer =
-        CommonServer(sdkPath, _ServerContainer(), _Cache(), _Counter());
+        CommonServer(sdkPath, _ServerContainer(), _Cache());
     commonServer.init();
     apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
@@ -195,24 +195,4 @@ class _Cache implements ServerCache {
   Future remove(String key) => Future.value();
   @override
   Future<void> shutdown() => Future.value();
-}
-
-/// This is a mock implementation of a counter, it doesn't use a proper
-/// persistent store.
-class _Counter implements PersistentCounter {
-  final Map<String, int> _map = {};
-
-  @override
-  Future<int> getTotal(String name) {
-    _map.putIfAbsent(name, () => 0);
-
-    return Future.value(_map[name]);
-  }
-
-  @override
-  Future increment(String name, {int increment = 1}) {
-    _map.putIfAbsent(name, () => 0);
-    _map[name]++;
-    return Future.value();
-  }
 }

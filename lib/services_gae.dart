@@ -14,7 +14,6 @@ import 'package:rpc/rpc.dart' as rpc;
 import 'src/common.dart';
 import 'src/common_server.dart';
 import 'src/dartpad_support_server.dart';
-import 'src/sharded_counter.dart' as counter;
 
 const String _API = '/api';
 
@@ -67,7 +66,7 @@ class GaeServer {
     discoveryEnabled = false;
     fileRelayServer = FileRelayServer();
     commonServer = CommonServer(
-        sdkPath, GaeServerContainer(), redisServerUri == null ? InmemoryCache() : RedisCache(redisServerUri, io.Platform.environment['GAE_VERSION']), GaeCounter());
+        sdkPath, GaeServerContainer(), redisServerUri == null ? InmemoryCache() : RedisCache(redisServerUri, io.Platform.environment['GAE_VERSION']));
     // Enabled pretty printing of returned json for debuggability.
     apiServer = rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer)
@@ -138,16 +137,4 @@ class GaeServer {
 class GaeServerContainer implements ServerContainer {
   @override
   String get version => io.Platform.version;
-}
-
-class GaeCounter implements PersistentCounter {
-  @override
-  Future<int> getTotal(String name) {
-    return counter.Counter.getTotal(name);
-  }
-
-  @override
-  Future increment(String name, {int increment = 1}) {
-    return counter.Counter.increment(name, increment: increment);
-  }
 }

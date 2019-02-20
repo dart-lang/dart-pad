@@ -51,12 +51,6 @@ class SummaryText {
   SummaryText.fromString(String this.text);
 }
 
-abstract class PersistentCounter {
-  Future increment(String name, {int increment = 1});
-
-  Future<int> getTotal(String name);
-}
-
 /// A redis-backed implementation of [ServerCache].
 class RedisCache implements ServerCache {
   redis.Client redisClient;
@@ -253,7 +247,6 @@ class InmemoryCache implements ServerCache {
 class CommonServer {
   final ServerContainer container;
   final ServerCache cache;
-  final PersistentCounter counter;
 
   Pub pub;
 
@@ -262,7 +255,7 @@ class CommonServer {
 
   String sdkPath;
 
-  CommonServer(String this.sdkPath, this.container, this.cache, this.counter) {
+  CommonServer(String this.sdkPath, this.container, this.cache) {
     hierarchicalLoggingEnabled = true;
     log.level = Level.ALL;
   }
@@ -299,14 +292,6 @@ class CommonServer {
 
   Future shutdown() {
     return Future.wait([analysisServer.shutdown(), Future.sync(cache.shutdown)]);
-  }
-
-  @ApiMethod(method: 'GET', path: 'counter')
-  @deprecated
-  Future<CounterResponse> counterGet({String name}) {
-    return counter.getTotal(name).then((total) {
-      return CounterResponse(total);
-    });
   }
 
   @ApiMethod(
@@ -523,8 +508,6 @@ class CommonServer {
           .fold(0, (a, b) => a + b);
       int ms = watch.elapsedMilliseconds;
       log.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
-      unawaited(counter.increment("Analyses"));
-      unawaited(counter.increment("Analyzed-Lines", increment: lineCount));
       return results;
     } catch (e, st) {
       log.severe('Error during analyze', e, st);
@@ -571,9 +554,6 @@ class CommonServer {
             int ms = watch.elapsedMilliseconds;
             log.info('PERF: Compiled ${lineCount} lines of Dart into '
                 '${outputSize}kb of JavaScript in ${ms}ms.');
-            unawaited(counter.increment("Compilations"));
-            unawaited(
-                counter.increment("Compiled-Lines", increment: lineCount));
             String out = results.getOutput();
             String sourceMap = returnSourceMap ? results.getSourceMap() : null;
 
@@ -608,7 +588,6 @@ class CommonServer {
           await analysisServer.dartdoc(source, offset);
       docInfo ??= {};
       log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-      unawaited(counter.increment("DartDocs"));
       return DocumentResponse(docInfo);
     } catch (e, st) {
       log.severe('Error during dartdoc', e, st);
@@ -648,7 +627,6 @@ class CommonServer {
     }
 
     Stopwatch watch = Stopwatch()..start();
-    unawaited(counter.increment("Completions"));
     try {
       var response = await analysisServer.completeMulti(
           sources,
@@ -685,7 +663,6 @@ class CommonServer {
     }
 
     Stopwatch watch = Stopwatch()..start();
-    unawaited(counter.increment("Fixes"));
     var response = await analysisServer.getFixesMulti(
         sources,
         Location()
@@ -702,7 +679,6 @@ class CommonServer {
     offset ??= 0;
 
     Stopwatch watch = Stopwatch()..start();
-    unawaited(counter.increment("Formats"));
 
     var response = await analysisServer.format(source, offset);
     log.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
