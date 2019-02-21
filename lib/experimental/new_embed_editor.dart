@@ -41,17 +41,17 @@ class NewEmbedEditor extends Editor {
 
   @override
   void execCommand(String name) {
-    // TODO: implement execCommand
+    // TODO(redbrogdon): implement execCommand
   }
 
   @override
   void focus() {
-    // TODO: implement focus
+    // TODO(redbrogdon): implement focus
   }
 
   @override
   Point<num> getCursorCoords({ed.Position position}) {
-    // TODO: implement getCursorCoords
+    // TODO(redbrogdon): implement getCursorCoords
     return Point<num>(0, 0);
   }
 
@@ -63,7 +63,7 @@ class NewEmbedEditor extends Editor {
 
   @override
   void resize() {
-    // TODO: implement resize
+    // TODO(redbrogdon): implement resize
   }
 
   @override
@@ -89,7 +89,7 @@ class NewEmbedEditorFactory extends EditorFactory {
 
   @override
   void registerCompleter(String mode, CodeCompleter completer) {
-    // TODO: implement registerCompleter
+    // TODO(redbrogdon): implement registerCompleter
   }
 
   @override

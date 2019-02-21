@@ -125,10 +125,8 @@ String stringify(int x, int y) {
         .then((CompileResponse response) {
       executionSvc.execute('', '', response.result);
     }).catchError((e) {
-      // TODO(RedBrogdon): Implement error handling / reporting
+      // TODO(redbrogdon): Add logging and possibly output to UI.
       print(e);
-    }).whenComplete(() {
-      // TODO(RedBrogdon): Implement compilation completion UI
     });
   }
 
