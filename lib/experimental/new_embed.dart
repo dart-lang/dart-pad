@@ -92,7 +92,7 @@ class NewEmbed {
     testCodeButton.addEventListener('click', (e) => _handleRun());
   }
 
-  // To be removed when gist-loading is integrated.
+  // TODO(RedBrogdon): Remove when gist-loading is integrated.
   final testMain = '''
 void main() {
   final str = stringify(2, 3); 
@@ -108,7 +108,7 @@ void main() {
 }
 ''';
 
-  // To be removed when gist-loading is integrated.
+  // TODO(RedBrogdon): Remove when gist-loading is integrated.
   final initialCode = '''
 String stringify(int x, int y) {
   // Return a formatted string here
@@ -125,10 +125,10 @@ String stringify(int x, int y) {
         .then((CompileResponse response) {
       executionSvc.execute('', '', response.result);
     }).catchError((e) {
-      // TODO
+      // TODO(RedBrogdon): Implement error handling / reporting
       print(e);
     }).whenComplete(() {
-      // TODO
+      // TODO(RedBrogdon): Implement compilation completion UI
     });
   }
 
@@ -232,7 +232,7 @@ class NewEmbedContext {
 
   /// Return true if the current cursor position is in a whitespace char.
   bool cursorPositionIsWhitespace() {
-    // TODO
+    // TODO(DomesticMouse): implement with CodeMirror integration
     return false;
   }
 }
