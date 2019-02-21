@@ -4,8 +4,8 @@
 
 library dart_pad.common;
 
-//final String serverURL = 'https://dart-services.appspot.com/';
-final String serverURL = 'http://127.0.0.1:8082/';
+final String serverURL = 'https://dart-services.appspot.com/';
+//final String serverURL = 'http://127.0.0.1:8082/';
 //final String serverURL = 'https://dart2-test-dot-dart-services.appspot.com/';
 
 final Duration serviceCallTimeout = Duration(seconds: 10);
@@ -14,9 +14,7 @@ final Duration longServiceCallTimeout = Duration(seconds: 20);
 
 class StringTextProvider {
   final String _text;
-
   StringTextProvider(this._text);
-
   String getText() => _text;
 }
 
