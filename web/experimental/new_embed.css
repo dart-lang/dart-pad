@@ -32,6 +32,7 @@ header {
 }
 
 .tab {
+  cursor: pointer;
   margin-right: 10px;
   padding: 5px;
   background-color: #008;
@@ -41,11 +42,11 @@ header {
   color: #888;
 }
 
-.tab-active {
+.tab[selected] {
   background-color: #44b;
 }
 
-.tab-active a {
+.tab[selected] a {
   color: #fff;
 }
 
@@ -54,24 +55,19 @@ header {
 }
 
 .button {
+  cursor: pointer;
   padding: 5px;
   background-color: #080;
-}
-
-.button a {
   color: #888;
 }
 
 .button:hover {
   background-color: #4b4;
-}
-
-.button:hover a {
   color: #fff;
 }
 
-#run-button {
-  display: none
+#run-code {
+  display: none;
 }
 
 #tab-container {
@@ -80,8 +76,12 @@ header {
   flex-direction: row;
 }
 
-.tabview-hidden {
+.tabview {
   display: none;
+}
+
+.tabview[selected] {
+  display: block;
 }
 
 #editor {
@@ -90,6 +90,8 @@ header {
 
 #test-view {
   flex-grow: 1;
+  font-size: 8pt;
+  line-height: 12pt;
 }
 
 #console-view {
@@ -98,4 +100,13 @@ header {
 
 #frame {
   display: none;
+}
+
+.console-message {
+  padding: 5px;
+}
+
+.console-error {
+  padding: 5px;
+  color: #800;
 }

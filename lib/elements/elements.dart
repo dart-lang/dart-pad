@@ -63,6 +63,10 @@ class DElement {
     return child;
   }
 
+  void clearChildren() {
+    element.children.clear();
+  }
+
   Stream<Event> get onClick => element.onClick;
 
   void dispose() {

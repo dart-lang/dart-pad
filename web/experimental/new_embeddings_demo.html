@@ -31,6 +31,10 @@
         margin-bottom: 8px;
         float: right;
       }
+
+      .code {
+        font-family: monospace;
+      }
     </style>
 </head>
 
@@ -38,31 +42,53 @@
 <div class="container">
     <div class="row">
         <div class="col-md-2"></div>
-        <div class="col-md-8">
-            <h2>Embeddings Demo</h2>
+        < class="col-md-8">
+
+            <h2>Dart Cheat Sheet Codelab</h2>
             <p>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-                tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-                veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-                commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-                velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-                cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
-                id est laborum.
+                Dart is designed to be easy to learn for coders coming from other languages, but it
+                also has a few unique features that will be new to people learning it for the first
+                time. This short codelab will walk you through the most important ones, and can be a
+                handy place to return for a refresher as you grow your Dart skills.
+            </p>
+            <p>
+                In addition to explanations and examples, the codelab includes embedded editors with
+                partially completed code snippets. You can use these editors to test your knowledge
+                by completing the code and clicking the "test" button.
+            </p>
+            <h3>String interpolation</h3>
+            <p>
+                Dart offers string interpolation to simplify formatting variables and expressions
+                as strings:You can put the value of an expression inside a string by using
+                <span class="code">${expression}</span>. If the expression is an identifier, you can
+                skip the <span class="code">{}</span>.
+            </p>
+            <p>
+                Some examples:
+            </p>
+            <ul>
+                <li>
+                    <span class="code">'${3 + 2}'</span> becomes <span class="code">'5'</span>
+                </li>
+                <li>
+                    <span class="code">'${"word".toUpperCase()}'</span> becomes
+                    <span class="code">'WORD'</span>
+                </li>
+                <li>
+                    <span class="code">'$myObject'</span> becomes the value of
+                    <span class="code">myObject.toString()</span>
+                </li>
+            </ul>
+            <br />
+            <h4>Code example</h4>
+            <p>
+                The following function takes two integers as parameters. Add code to make it return
+                a string containing both numbers separated by a space (e.g. 2 and 3 become '2 3').
             </p>
             <iframe short src="embed-new.html"></iframe>
-            <p></p>
-            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-                tempor incididunt ut labore et dolore magna aliqua.</p>
         </div>
     </div>
     <div class="col-md-2"></div>
 </div>
 </body>
-<script>
-    function changeOptions(){
-      var select = document.getElementById("choosePad");
-      var url = 'embed-dart.html?id='+select.options[select.selectedIndex].value;
-      document.getElementById("embed-dart").src = url;
-    }
-  </script>
 </html>

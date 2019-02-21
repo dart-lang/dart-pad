@@ -1,11 +1,21 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:async';
 import 'dart:html' hide Document;
 
 import '../editing/editor.dart' hide Position;
 import '../editing/editor.dart' as ed show Position;
 
 class NewEmbedEditor extends Editor {
-  NewEmbedEditor(NewEmbedEditorFactory factory, this.textarea) : super(factory) {
-    _document = NewEmbedDocument(this, '');
+  NewEmbedEditor(NewEmbedEditorFactory factory, this.textarea)
+      : super(factory) {
+    _document = NewEmbedDocument(this, textarea.value);
+
+    textarea.addEventListener('input', (e) {
+      _document.updateValue(textarea.value);
+    });
   }
 
   final TextAreaElement textarea;
@@ -13,7 +23,7 @@ class NewEmbedEditor extends Editor {
   NewEmbedDocument _document;
 
   @override
-  String mode;
+  String mode = 'dart';
 
   @override
   String theme;
@@ -22,12 +32,12 @@ class NewEmbedEditor extends Editor {
   bool get completionActive => false;
 
   @override
+  Document get document => _document;
+
+  @override
   Document createDocument({String content, String mode}) {
     return NewEmbedDocument(this, content);
   }
-
-  @override
-  Document get document => _document;
 
   @override
   void execCommand(String name) {
@@ -41,6 +51,7 @@ class NewEmbedEditor extends Editor {
 
   @override
   Point<num> getCursorCoords({ed.Position position}) {
+    // TODO: implement getCursorCoords
     return Point<num>(0, 0);
   }
 
@@ -56,8 +67,8 @@ class NewEmbedEditor extends Editor {
   }
 
   @override
-  void showCompletions({bool autoInvoked = false, bool onlyShowFixes = false}) {
-  }
+  void showCompletions(
+      {bool autoInvoked = false, bool onlyShowFixes = false}) {}
 
   @override
   void swapDocument(Document document) {
@@ -89,6 +100,8 @@ class NewEmbedDocument extends Document {
   NewEmbedDocument(NewEmbedEditor editor, this.doc) : super(editor);
 
   NewEmbedEditor get parent => editor;
+
+  final _changeController = StreamController<String>.broadcast();
 
   String doc;
 
@@ -122,7 +135,5 @@ class NewEmbedDocument extends Document {
 
   ed.Position posFromIndex(int index) => null;
 
-  Stream get onChange {
-    return null;
-  }
+  Stream get onChange => _changeController.stream;
 }

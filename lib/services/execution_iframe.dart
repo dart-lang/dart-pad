@@ -12,10 +12,14 @@ import 'execution.dart';
 export 'execution.dart';
 
 class ExecutionServiceIFrame implements ExecutionService {
+  static const testKey = '__TESTRESULT__ ';
+
   final StreamController<String> _stdoutController =
       StreamController<String>.broadcast();
   final StreamController<String> _stderrController =
       StreamController<String>.broadcast();
+  final StreamController<TestResult> _testResultsController =
+      StreamController<TestResult>.broadcast();
 
   IFrameElement _frame;
   String _frameSrc;
@@ -46,11 +50,27 @@ class ExecutionServiceIFrame implements ExecutionService {
     _send('setCss', {'css': css});
   }
 
+  /// TODO(redbrogdon): Format message so internal double quotes are escaped.
+  String get testResultDecoration => '''
+  void _result(bool success, String message) {
+    print('$testKey{"success": \$success, "message": "\$message"}');
+  }
+''';
+
   String _decorateJavaScript(String javaScript) {
     final String postMessagePrint = '''
+const testKey = '$testKey';
+
 function dartPrint(message) {
-  parent.postMessage(
-    {'sender': 'frame', 'type': 'stdout', 'message': message.toString()}, '*');
+  if (message.startsWith(testKey)) {
+    var resultMsg = JSON.parse(message.substring(testKey.length));
+    resultMsg.sender = 'frame';
+    resultMsg.type = 'testResult';
+    parent.postMessage(resultMsg, '*');
+  } else {
+    parent.postMessage(
+      {'sender': 'frame', 'type': 'stdout', 'message': message.toString()}, '*');
+  }
 }
 ''';
 
@@ -99,6 +119,8 @@ window.onerror = function(message, url, lineNumber, colno, error) {
 
   Stream<String> get onStderr => _stderrController.stream;
 
+  Stream<TestResult> get testResults => _testResultsController.stream;
+
   Future _send(String command, Map params) {
     Map m = {'command': command};
     m.addAll(params);
@@ -130,7 +152,10 @@ window.onerror = function(message, url, lineNumber, colno, error) {
     context['dartMessageListener'] = JsFunction.withThis((_this, data) {
       String type = data['type'];
 
-      if (type == 'stderr') {
+      if (type == 'testResult') {
+        final result = TestResult(data['success'] == true, data['message']);
+        _testResultsController.add(result);
+      } else if (type == 'stderr') {
         // Ignore any exceptions before the iframe has completed initialization.
         if (_readyCompleter.isCompleted) {
           _stderrController.add(data['message']);
@@ -142,32 +167,35 @@ window.onerror = function(message, url, lineNumber, colno, error) {
       }
     });
 
-//    window.onMessage.listen((MessageEvent event) {
-//      Map data;
-//
-//      try {
-//        // TODO: This throws in Safari and FireFox with the polymer polyfills active.
-//        if (event.data is! Map) return;
-//        data = event.data;
-//        if (data['sender'] != 'frame') return;
-//      } catch (e) {
-//        print('${e}');
-//
-//        return;
-//      }
-//
-//      String type = data['type'];
-//
-//      if (type == 'stderr') {
-//        // Ignore any exceptions before the iframe has completed initialization.
-//        if (_readyCompleter.isCompleted) {
-//          _stderrController.add(data['message']);
-//        }
-//      } else if (type == 'ready' && !_readyCompleter.isCompleted) {
-//        _readyCompleter.complete();
-//      } else {
-//        _stdoutController.add(data['message']);
-//      }
-//    });
+    window.onMessage.listen((MessageEvent event) {
+      Map data;
+
+      try {
+        // TODO: This throws in Safari and FireFox with the polymer polyfills active.
+        if (event.data is! Map) return;
+        data = event.data;
+        if (data['sender'] != 'frame') return;
+      } catch (e) {
+        print('${e}');
+
+        return;
+      }
+
+      String type = data['type'];
+
+      if (type == 'testResult') {
+        final result = TestResult(data['success'] == true, data['message']);
+        _testResultsController.add(result);
+      } else if (type == 'stderr') {
+        // Ignore any exceptions before the iframe has completed initialization.
+        if (_readyCompleter.isCompleted) {
+          _stderrController.add(data['message']);
+        }
+      } else if (type == 'ready' && !_readyCompleter.isCompleted) {
+        _readyCompleter.complete();
+      } else {
+        _stdoutController.add(data['message']);
+      }
+    });
   }
 }

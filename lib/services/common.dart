@@ -14,12 +14,10 @@ final Duration longServiceCallTimeout = Duration(seconds: 20);
 
 class StringTextProvider {
   final String _text;
-  StringTextProvider(this._text);
-  String getText() => _text;
-}
 
-class MyClass {
-  final myBool = false;
+  StringTextProvider(this._text);
+
+  String getText() => _text;
 }
 
 class Lines {
