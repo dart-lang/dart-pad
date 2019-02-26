@@ -3,7 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dart_pad/experimental/new_embed.dart' as new_embed;
+import 'package:logging/logging.dart';
 
 void main() {
   new_embed.init();
+
+  Logger.root.onRecord.listen(print);
 }
