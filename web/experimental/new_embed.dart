@@ -6,9 +6,7 @@ import 'package:dart_pad/experimental/new_embed.dart' as new_embed;
 import 'package:logging/logging.dart';
 
 void main() {
-  print('main() in web script');
+  new_embed.init();
 
   Logger.root.onRecord.listen(print);
-
-  new_embed.init();
 }

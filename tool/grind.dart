@@ -16,6 +16,7 @@ final FilePath _buildDir = FilePath('build');
 final FilePath _pkgDir = FilePath('third_party/pkg');
 final FilePath _routeDir = FilePath('third_party/pkg/route.dart');
 final FilePath _haikunatorDir = FilePath('third_party/pkg/haikunatordart');
+final FilePath _experimentalTestDir = FilePath('test/experimental');
 
 Map get _env => Platform.environment;
 
@@ -65,6 +66,15 @@ testWeb() async {
       workingDirectory: _routeDir.path);
 }
 
+// This task also requires a frame buffer to run.
+@Task()
+testExperimental() async {
+  await TestRunner().testAsync(
+    files: _experimentalTestDir.path,
+    platformSelector: 'chrome',
+  );
+}
+
 @Task('Serve locally on port 8000')
 @Depends(build)
 serve() {
@@ -72,6 +82,7 @@ serve() {
 }
 
 const String backendVariable = 'DARTPAD_BACKEND';
+
 @Task(
     'Serve locally on port 8000 and use backend from ${backendVariable} environment variable')
 @Depends(build)
@@ -222,7 +233,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(analyze, testCli, testWeb, coverage, build)
+@Depends(analyze, testCli, testWeb, testExperimental, coverage, build)
 void buildbot() => null;
 
 @Task('Prepare the app for deployment')
