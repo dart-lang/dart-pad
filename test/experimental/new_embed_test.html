@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+for details. All rights reserved. Use of this source code is governed by a
+BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" href="/dart-64.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>DartPad</title>
+
+    <link rel="stylesheet" type="text/css" href="new_embed.css">
+
+    <!-- Test package stuff -->
+    <link rel="x-dart-test" href="new_embed_test.dart">
+    <script src="packages/test/dart.js"></script>
+
+<body>
+<header>
+    <div class="tab" selected id="editor-tab">
+        <a href="#">Editor</a>
+    </div>
+    <div class="tab" id="test-tab">
+        <a href="#">Test</a>
+    </div>
+    <div class="tab" id="console-tab">
+        <a href="#">Console</a>
+    </div>
+    <div id="head-space"></div>
+    <div class="button" id="test-code">Test</div>
+    <div class="button" id="run-code">Run</div>
+</header>
+
+<section id="tab-container">
+    <textarea class="tabview" id="editor" selected></textarea>
+    <div class="tabview" id="test-view"></div>
+    <div class="tabview" id="console-view"></div>
+</section>
+
+<iframe id="frame" sandbox="allow-scripts" flex src="../scripts/frame.html">
+</iframe>
+</body>
+</html>
