@@ -57,10 +57,16 @@ class NewEmbed {
     editorTextArea = querySelector('#editor');
     editorTabView = EditorTabView(DElement(editorTextArea));
     consoleTabView = ConsoleTabView(DElement(querySelector('#console-view')));
-    testTabView = TestTabView(DElement(querySelector('#test-view')));
+
+    // Right now the entire tab view is just the textarea, but that will not be
+    // the case going forward, hence the separate parameters.
+    testTabView = TestTabView(
+      DElement(querySelector('#test-view')),
+      querySelector('#test-view'),
+    );
 
     // These two will ultimately be loaded from GitHub.
-    testTabView.setTestCode(testMain);
+    testTabView.testMethod = initialTest;
     editorTextArea.value = initialCode;
 
     executionSvc = ExecutionServiceIFrame(querySelector('#frame'));
@@ -87,13 +93,13 @@ class NewEmbed {
 
   void _initNewEmbed() {
     context = NewEmbedContext(
-        NewEmbedEditorFactory().createFromElement(editorTextArea));
+        NewEmbedEditorFactory().createFromElement(editorTextArea), testTabView);
 
     testCodeButton.addEventListener('click', (e) => _handleRun());
   }
 
   // TODO(RedBrogdon): Remove when gist-loading is integrated.
-  final testMain = '''
+  final initialTest = '''
 void main() {
   final str = stringify(2, 3); 
   if (str == '2 3') {
@@ -117,7 +123,7 @@ String stringify(int x, int y) {
 
   void _handleRun() {
     final fullCode =
-        '${context.dartSource}\n$testMain\n${executionSvc.testResultDecoration}';
+        '${context.dartSource}\n${context.testMethod}\n${executionSvc.testResultDecoration}';
     var input = CompileRequest()..source = fullCode;
     deps[DartservicesApi]
         .compile(input)
@@ -176,24 +182,30 @@ class ConsoleTabView extends TabView {
 }
 
 class TestTabView extends TabView {
-  const TestTabView(DElement element) : super(element);
+  final TextAreaElement testEditor;
 
-  void setTestCode(String code) {
-    element.clearChildren();
-    element.add(PreElement()..text = code);
+  const TestTabView(DElement element, this.testEditor) : super(element);
+
+  String get testMethod => testEditor.value;
+
+  set testMethod(String v) {
+    testEditor.value = v;
   }
 }
 
 class NewEmbedContext {
   final NewEmbedEditor editor;
+  final TestTabView testView;
 
   Document _dartDoc;
+
+  String get testMethod => testView.testMethod;
 
   final _dartDirtyController = StreamController.broadcast();
 
   final _dartReconcileController = StreamController.broadcast();
 
-  NewEmbedContext(this.editor) {
+  NewEmbedContext(this.editor, this.testView) {
     _dartDoc = editor.document;
     _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
     _createReconciler(_dartDoc, _dartReconcileController, 1250);
