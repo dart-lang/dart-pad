@@ -166,36 +166,5 @@ window.onerror = function(message, url, lineNumber, colno, error) {
         _stdoutController.add(data['message']);
       }
     });
-
-    window.onMessage.listen((MessageEvent event) {
-      Map data;
-
-      try {
-        // TODO: This throws in Safari and FireFox with the polymer polyfills active.
-        if (event.data is! Map) return;
-        data = event.data;
-        if (data['sender'] != 'frame') return;
-      } catch (e) {
-        print('${e}');
-
-        return;
-      }
-
-      String type = data['type'];
-
-      if (type == 'testResult') {
-        final result = TestResult(data['success'] == true, data['message']);
-        _testResultsController.add(result);
-      } else if (type == 'stderr') {
-        // Ignore any exceptions before the iframe has completed initialization.
-        if (_readyCompleter.isCompleted) {
-          _stderrController.add(data['message']);
-        }
-      } else if (type == 'ready' && !_readyCompleter.isCompleted) {
-        _readyCompleter.complete();
-      } else {
-        _stdoutController.add(data['message']);
-      }
-    });
   }
 }
