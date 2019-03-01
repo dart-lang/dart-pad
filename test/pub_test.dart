@@ -85,55 +85,6 @@ void defineTests() {
     });
   });
 
-  group('PubHelper', () {
-    test('resolves content', () {
-      final String source = "import 'package:path/path.dart'; void main() { }";
-
-      return pub.createPubHelperForSource(source).then((PubHelper helper) {
-        expect(helper.hasPackages, true);
-        PackageInfo pInfo = helper.getPackage('path');
-        expect(pInfo, isNotNull);
-        expect(pInfo.name, 'path');
-        expect(pInfo.version, isNotNull);
-        return helper
-            .getPackageContentsAsync('package:path/path.dart')
-            .then((contents) {
-          expect(contents, isNotEmpty);
-        });
-      });
-    });
-
-    test('does not resolve', () {
-      final String source =
-          "import moofmilker and package:path/path.dart; void main() { }";
-
-      return pub.createPubHelperForSource(source).then((PubHelper helper) {
-        expect(helper.hasPackages, false);
-      });
-    });
-  });
-
-  group('MockPub', () {
-    test('no-op impls', () {
-      Pub pub = Pub.mock();
-      expect(pub.cacheDir, isNull);
-      pub.flushCache();
-      expect(pub.getVersion(), null);
-
-      return pub
-          .createPubHelperForSource("import 'package:foo/foo.dart';")
-          .then((helper) {
-        expect(helper, isNotNull);
-        return pub.resolvePackages(['foo', 'test']);
-      }).then((packagesInfo) {
-        expect(packagesInfo, isNotNull);
-        return pub.getPackageLibDir(null);
-      }).then((result) {
-        expect(result, isNull);
-      });
-    });
-  });
-
   group('getAllUnsafeImportsFor', () {
     test('null', () {
       expect(getAllUnsafeImportsFor(null), isEmpty);

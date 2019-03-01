@@ -59,7 +59,8 @@ class Pub {
     if (packages.isEmpty) return Future.value(PackagesInfo([]));
 
     Directory tempDir = Directory.systemTemp.createTempSync(
-        /* prefix: */ 'temp_package');
+        /* prefix: */
+        'temp_package');
 
     try {
       // Create pubspec file.
@@ -111,16 +112,6 @@ class Pub {
       _logger.severe('Error getting package ${packageInfo}: ${e}\n${st}');
       return Future.error(e);
     }
-  }
-
-  Future<PubHelper> createPubHelperForSource(String dartSource) {
-    Set<String> packageImports =
-        filterSafePackagesFromImports(getAllUnsafeImportsFor(dartSource));
-
-    return resolvePackages(packageImports.toList())
-        .then((PackagesInfo packages) {
-      return PubHelper._(this, packages.packages);
-    });
   }
 
   void flushCache() {
@@ -215,10 +206,6 @@ class _MockPub implements Pub {
   }
 
   @override
-  Future<PubHelper> createPubHelperForSource(String dartSource) =>
-      Future.value(PubHelper._(this, []));
-
-  @override
   void flushCache() {}
 
   @override
@@ -230,62 +217,6 @@ class _MockPub implements Pub {
   @override
   Future<PackagesInfo> resolvePackages(List<String> packages) =>
       Future.value(PackagesInfo([]));
-}
-
-/// A class with knowledge of a certain set of `package:` imports, and the
-/// ability to load the package data for those imports.
-class PubHelper {
-  final Pub pub;
-  final List<PackageInfo> packages;
-
-  PubHelper._(this.pub, this.packages);
-
-  bool get hasPackages => packages.isNotEmpty;
-
-  /// Given a package path fragment, return the contents for the package:
-  /// reference, or an error from the `Future` if the reference couldn't be
-  /// resolved.
-  Future<String> getPackageContentsAsync(String packageReference) {
-    if (!packageReference.startsWith('package:')) {
-      return Future.error('invalid package reference');
-    }
-
-    String pathFragment = packageReference.substring(8);
-
-    if (pathFragment == null || pathFragment.trim().isEmpty) {
-      return Future.error('invalid path');
-    }
-
-    int index = pathFragment.indexOf('/');
-
-    if (index == -1) {
-      return Future.error('invalid path');
-    }
-
-    String packageName = pathFragment.substring(0, index);
-    pathFragment = pathFragment.substring(index + 1);
-
-    PackageInfo package = getPackage(packageName);
-    if (package == null) {
-      return Future.error('package not found: ${packageName}');
-    }
-
-    return pub.getPackageLibDir(package).then((dir) {
-      _logger.fine('PACKAGE: reference to ${packageReference}');
-
-      File file = File(path.join(dir.path, pathFragment));
-      if (file.existsSync()) {
-        return file.readAsString();
-      } else {
-        return Future.error('not found: ${packageReference}');
-      }
-    });
-  }
-
-  PackageInfo getPackage(String packageName) {
-    return packages.firstWhere((p) => p.name == packageName,
-        orElse: () => null);
-  }
 }
 
 /// A set of packages.
