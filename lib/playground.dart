@@ -658,6 +658,8 @@ class Playground implements GistContainer, GistController {
     } else if (dartSrc.contains("'dart:html'") ||
         dartSrc.contains('"dart:html"')) {
       outputTabController.selectTab('result');
+    } else if (dartSrc.contains("package:flutter")) {
+      outputTabController.selectTab('result');
     } else {
       outputTabController.selectTab('console');
     }

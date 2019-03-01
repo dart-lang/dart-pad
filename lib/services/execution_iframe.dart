@@ -34,10 +34,11 @@ class ExecutionServiceIFrame implements ExecutionService {
   IFrameElement get frame => _frame;
 
   Future execute(String html, String css, String javaScript) {
-    return _reset().whenComplete(() {
+    // Don't reset on hot restart.
+    // return _reset().whenComplete(() {
       return _send('execute',
           {'html': html, 'css': css, 'js': _decorateJavaScript(javaScript)});
-    });
+    // });
   }
 
   Future tearDown() => _reset();
@@ -58,8 +59,9 @@ class ExecutionServiceIFrame implements ExecutionService {
 ''';
 
   String _decorateJavaScript(String javaScript) {
+    javaScript = javaScript.replaceFirst("define([", "define('app', [");
     final String postMessagePrint = '''
-const testKey = '$testKey';
+var testKey = '$testKey';
 
 function dartPrint(message) {
   if (message.startsWith(testKey)) {
@@ -72,6 +74,8 @@ function dartPrint(message) {
       {'sender': 'frame', 'type': 'stdout', 'message': message.toString()}, '*');
   }
 }
+// Unload previous version.
+require.undef('app');
 ''';
 
     /// The javascript exception handling for Dartpad catches both errors
@@ -89,16 +93,6 @@ function dartPrint(message) {
     /// and the right error messages on the console.
     final String exceptionHandler = '''
 var _thrownDartMainRunner = false;
-function dartMainRunner(main, args) {
-  try {
-    main(args);
-  } catch(error) {
-    parent.postMessage(
-      {'sender': 'frame', 'type': 'stderr', 'message': "Uncaught exception:\\n" + error.message}, '*');
-    _thrownDartMainRunner = true;
-    throw error;
-  }
-}
 
 window.onerror = function(message, url, lineNumber, colno, error) {
   if (!_thrownDartMainRunner) {
@@ -111,8 +105,31 @@ window.onerror = function(message, url, lineNumber, colno, error) {
   }
   _thrownDartMainRunner = false;
 };
+
+try {
+  require(['dart_sdk'],
+    function(sdk) {
+      'use strict';
+      sdk.developer._extensions.clear();
+      // TODO(vsm): Fix hotRestart bug in DDC.  Until then, clear fields directly.
+      //sdk.dart.hotRestart();
+      for (let f of sdk.dart._resetFields)
+        f();
+  });
+  require(['dart_sdk', 'app'],
+    function(sdk, app) {
+      'use strict';
+      app.main.main();
+  });
+} catch(error) {
+  parent.postMessage(
+    {'sender': 'frame', 'type': 'stderr', 'message': "Uncaught exception:\\n" + error.message}, '*');
+  _thrownDartMainRunner = true;
+  throw error;
+}
+
 ''';
-    return '${postMessagePrint}\n${exceptionHandler}\n${javaScript}';
+    return '${postMessagePrint}\n${javaScript}\n${exceptionHandler}';
   }
 
   Stream<String> get onStdout => _stdoutController.stream;

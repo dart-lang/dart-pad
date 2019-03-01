@@ -23,6 +23,7 @@
         margin-top: 0;
       }
     </style>
+    <script src="require.js"></script>
     <script>
 
 replaceJavaScript = function(value) {
@@ -36,18 +37,8 @@ replaceJavaScript = function(value) {
   var s = document.createElement('script');
   s.setAttribute('defer', 'true');
   s.text = value;
+  s.id = 'scriptId';
   document.head.appendChild(s);
-}
-
-retriggerJavaScriptScripts = function() {
-  var scripts = document.body.getElementsByTagName("script");
-  for (var i = 0; i < scripts.length; ++i) {
-    var oldScript = scripts[i];
-    var newScript = document.createElement('script');
-    if (oldScript.src) newScript.src = oldScript.src;
-    newScript.textContent = oldScript.textContent;
-    oldScript.parentNode.replaceChild(newScript, oldScript);
-  }
 }
 
 messageHandler = function(e) {
@@ -67,7 +58,6 @@ messageHandler = function(e) {
     document.getElementById('styleId').innerHTML = obj.css;
     setTimeout(function() {
       replaceJavaScript(obj.js);
-      retriggerJavaScriptScripts();
     }, 150);
   }
 }
