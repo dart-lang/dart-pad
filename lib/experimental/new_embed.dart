@@ -27,12 +27,12 @@ void init() {
 /// An embeddable DartPad UI that provides the ability to test the user's code
 /// snippet against a desired result.
 class NewEmbed {
-  DivElement testCodeButton;
-  DivElement runCodeButton;
-  TextAreaElement editorTextArea;
+  ExecuteCodeButton executeButton;
+  TestResultLabel testResultLabel;
 
   TabController tabController;
   EditorTabView editorTabView;
+  TextAreaElement editorTextArea;
   TestTabView testTabView;
   ConsoleTabView consoleTabView;
 
@@ -41,7 +41,7 @@ class NewEmbed {
   NewEmbedContext context;
 
   NewEmbed() {
-    tabController = TabController();
+    tabController = NewEmbedTabController();
     for (String name in ['editor', 'test', 'console']) {
       tabController.registerTab(
           TabElement(querySelector('#${name}-tab'), name: name, onSelect: () {
@@ -51,8 +51,9 @@ class NewEmbed {
       }));
     }
 
-    testCodeButton = querySelector('#test-code');
-    runCodeButton = querySelector('#run-code');
+    testResultLabel = TestResultLabel(querySelector('#test-result'));
+    executeButton =
+        ExecuteCodeButton(querySelector('#execute'), _handleExecute);
 
     editorTextArea = querySelector('#editor');
     editorTabView = EditorTabView(DElement(editorTextArea));
@@ -73,10 +74,7 @@ class NewEmbed {
     executionSvc.onStderr.listen((err) => consoleTabView.appendError(err));
     executionSvc.onStdout.listen((msg) => consoleTabView.appendMessage(msg));
     executionSvc.testResults.listen((result) {
-      consoleTabView.appendMessage(result.message);
-      if (result.success) {
-        _disableTestButton();
-      }
+      testResultLabel.setResult(result);
     });
 
     _initModules().then((_) => _initNewEmbed());
@@ -94,8 +92,6 @@ class NewEmbed {
   void _initNewEmbed() {
     context = NewEmbedContext(
         NewEmbedEditorFactory().createFromElement(editorTextArea), testTabView);
-
-    testCodeButton.addEventListener('click', (e) => _handleRun());
   }
 
   // TODO(RedBrogdon): Remove when gist-loading is integrated.
@@ -121,7 +117,8 @@ String stringify(int x, int y) {
 }
 ''';
 
-  void _handleRun() {
+  void _handleExecute() {
+    executeButton.ready = false;
     final fullCode =
         '${context.dartSource}\n${context.testMethod}\n${executionSvc.testResultDecoration}';
     var input = CompileRequest()..source = fullCode;
@@ -133,14 +130,30 @@ String stringify(int x, int y) {
     }).catchError((e) {
       // TODO(redbrogdon): Add logging and possibly output to UI.
       print(e);
+    }).whenComplete(() {
+      executeButton.ready = true;
     });
-  }
-
-  void _disableTestButton() {
-    testCodeButton.style.display = 'none';
   }
 }
 
+// Primer uses a class called "selected" for its navigation styling, rather than
+// an attribute. This class extends the tab controller code to also toggle that
+// class.
+class NewEmbedTabController extends TabController {
+  /// This method will throw if the tabName is not the name of a current tab.
+  @override
+  void selectTab(String tabName) {
+    TabElement tab = tabs.firstWhere((t) => t.name == tabName);
+
+    for (TabElement t in tabs) {
+      t.toggleClass('selected', t == tab);
+    }
+
+    super.selectTab(tabName);
+  }
+}
+
+/// A container underneath the tab strip that can show or hide itself as needed.
 abstract class TabView {
   final DElement element;
 
@@ -191,6 +204,69 @@ class TestTabView extends TabView {
   set testMethod(String v) {
     testEditor.value = v;
   }
+}
+
+/// A line of text next to the [ExecuteButton] that reports test result messages
+/// in red or green.
+class TestResultLabel {
+  TestResultLabel(this.element);
+
+  final DivElement element;
+
+  void setResult(TestResult result) {
+    element.text = result.message;
+
+    if (result.success) {
+      element.classes.add('text-green');
+      element.classes.remove('text-red');
+    } else {
+      element.classes.remove('text-green');
+      element.classes.add('text-red');
+    }
+  }
+}
+
+class ExecuteCodeButton {
+  /// This constructor will throw if the provided element has no child with a
+  /// CSS class that begins with "octicon-".
+  ExecuteCodeButton(this.element, VoidCallback onClick) {
+    final iconElement = element.children.firstWhere(Octicon.elementIsOcticon);
+    _icon = Octicon(iconElement);
+    element.addEventListener('click', (e) => onClick());
+  }
+
+  static const readyIconName = 'chevron-right';
+  static const waitingIconName = 'sync';
+
+  final AnchorElement element;
+
+  Octicon _icon;
+
+  bool get ready => _icon.iconName == readyIconName;
+
+  set ready(bool value) =>
+      _icon.iconName = value ? readyIconName : waitingIconName;
+}
+
+class Octicon {
+  static const prefix = 'octicon-';
+
+  Octicon(this.element);
+
+  final DivElement element;
+
+  String get iconName {
+    return element.classes
+        .firstWhere((s) => s.startsWith(prefix), orElse: () => '');
+  }
+
+  set iconName(String name) {
+    element.classes.removeWhere((s) => s.startsWith(prefix));
+    element.classes.add('$prefix$name');
+  }
+
+  static bool elementIsOcticon(Element el) =>
+      el.classes.any((s) => s.startsWith(prefix));
 }
 
 class NewEmbedContext {

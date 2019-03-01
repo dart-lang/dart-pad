@@ -33,6 +33,10 @@ class DElement {
 
   String clearAttr(String name) => element.attributes.remove(name);
 
+  void toggleClass(String name, bool value) {
+    value ? element.classes.add(name) : element.classes.remove(name);
+  }
+
   String get text => element.text;
 
   set text(String value) {
