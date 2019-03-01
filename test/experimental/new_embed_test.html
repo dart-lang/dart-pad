@@ -14,35 +14,49 @@ BSD-style license that can be found in the LICENSE file. -->
 
     <title>DartPad</title>
 
+    <link href='https://fonts.googleapis.com/css?family=Roboto'
+          rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+          rel='stylesheet' type='text/css'>
+
+    <link rel="stylesheet" type="text/css" href="../packages/octicons_css/octicons_4.4.0.css">
+    <link rel="stylesheet" type="text/css" href="../packages/primer_css/primer_11.0.0.css">
+
     <link rel="stylesheet" type="text/css" href="new_embed.css">
 
     <!-- Test package stuff -->
     <link rel="x-dart-test" href="new_embed_test.dart">
     <script src="packages/test/dart.js"></script>
 
-<body>
-<header>
-    <div class="tab" selected id="editor-tab">
-        <a href="#">Editor</a>
-    </div>
-    <div class="tab" id="test-tab">
-        <a href="#">Test</a>
-    </div>
-    <div class="tab" id="console-tab">
-        <a href="#">Console</a>
-    </div>
-    <div id="head-space"></div>
-    <div class="button" id="test-code">Test</div>
-    <div class="button" id="run-code">Run</div>
-</header>
+    <script defer src="../scripts/polymerpatch.js"></script>
+</head>
 
-<section id="tab-container">
-    <textarea class="tabview" id="editor" selected></textarea>
-    <textarea class="tabview" id="test-view"></textarea>
-    <div class="tabview" id="console-view"></div>
+<body class="d-flex flex-column">
+
+<nav class="UnderlineNav px-2">
+    <div class="UnderlineNav-body">
+        <a id="editor-tab" href="#" class="UnderlineNav-item selected" selected>Your code</a>
+        <a id="test-tab" href="#" class="UnderlineNav-item">Test</a>
+        <a id="console-tab" href="#" class="UnderlineNav-item">Console</a>
+    </div>
+    <div class="UnderlineNav-actions">
+        <div id="test-result" class="tabnav-extra pr-3"></div>
+        <a id="execute" class="btn btn-primary">
+            <div class="octicon medium-octicon octicon-chevron-right"></div>
+            Check code
+        </a>
+    </div>
+</nav>
+
+<section id="tab-container" class="flex-auto d-flex flex-column p-1">
+    <textarea class="tabview flex-auto" id="editor" selected spellcheck="false"></textarea>
+    <textarea class="tabview flex-auto" id="test-view" spellcheck="false"></textarea>
+    <div class="tabview flex-auto" id="console-view"></div>
 </section>
 
 <iframe id="frame" sandbox="allow-scripts" flex src="../scripts/frame.html">
 </iframe>
+
 </body>
+
 </html>
