@@ -31,3 +31,4 @@ libraries:
 
 skip_files:
 - experimental/
+- packages/(?!(?:codemirror|dart-pad))

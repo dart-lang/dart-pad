@@ -6,7 +6,7 @@ environment:
   sdk: '>=2.0.0-dev.67.0 <3.0.0'
 dependencies:
   _discoveryapis_commons: '>=0.1.0 <0.2.0'
-  codemirror: '^0.4.5+5.41.0'
+  codemirror: ^0.5.0+5.43.0
   # TODO(jcollins-g): return to haikunator pub package after it is
   # published with https://github.com/Atrox/haikunatordart/pull/1
   #haikunator: ^0.1.0
