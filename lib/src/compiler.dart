@@ -41,18 +41,11 @@ class Compiler {
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(String input,
-      {bool useCheckedMode = true,
-      bool returnSourceMap = false}) async {
+      {bool useCheckedMode = true, bool returnSourceMap = false}) async {
     if (!importsOkForCompile(input)) {
       var failedResults = CompilationResults();
       failedResults.problems.add(CompilationProblem._(BAD_IMPORT_ERROR_MSG));
       return Future.value(failedResults);
-    }
-
-    // ignore: unused_local_variable
-    PubHelper pubHelper;
-    if (pub != null) {
-      pubHelper = await pub.createPubHelperForSource(input);
     }
 
     Directory temp = Directory.systemTemp.createTempSync('dartpad');
