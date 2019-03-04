@@ -14,6 +14,7 @@ class DElement {
   final Element element;
 
   DElement(this.element);
+
   DElement.tag(String tag, {String classes}) : element = Element.tag(tag) {
     if (classes != null) {
       element.classes.add(classes);
@@ -36,6 +37,8 @@ class DElement {
   void toggleClass(String name, bool value) {
     value ? element.classes.add(name) : element.classes.remove(name);
   }
+
+  bool hasClass(String name) => element.classes.contains(name);
 
   String get text => element.text;
 
@@ -104,6 +107,7 @@ class DButton extends DElement {
   ButtonElement get belement => element;
 
   bool get disabled => belement.disabled;
+
   set disabled(bool value) {
     belement.disabled = value;
   }
@@ -138,12 +142,14 @@ class DSplitter extends DElement {
   }
 
   bool get horizontal => hasAttr('horizontal');
+
   set horizontal(bool value) {
     clearAttr(value ? 'vertical' : 'horizontal');
     setAttr(value ? 'horizontal' : 'vertical');
   }
 
   bool get vertical => hasAttr('vertical');
+
   set vertical(bool value) {
     clearAttr(value ? 'horizontal' : 'vertical');
     setAttr(value ? 'vertical' : 'horizontal');
@@ -351,6 +357,7 @@ class DOverlay extends DElement {
   DOverlay(Element element) : super(element);
 
   bool get visible => element.classes.contains('visible');
+
   set visible(bool value) {
     element.classes.toggle('visible', value);
   }

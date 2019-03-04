@@ -229,23 +229,32 @@ class TestResultLabel {
 class ExecuteCodeButton {
   /// This constructor will throw if the provided element has no child with a
   /// CSS class that begins with "octicon-".
-  ExecuteCodeButton(this.element, VoidCallback onClick) {
-    final iconElement = element.children.firstWhere(Octicon.elementIsOcticon);
+  ExecuteCodeButton(AnchorElement anchorElement, VoidCallback onClick)
+      : assert(anchorElement != null),
+        assert(onClick != null) {
+    final iconElement =
+        anchorElement.children.firstWhere(Octicon.elementIsOcticon);
     _icon = Octicon(iconElement);
-    element.addEventListener('click', (e) => onClick());
+    _element = DElement(anchorElement);
+    _element.onClick.listen((e) => onClick());
   }
 
-  static const readyIconName = 'chevron-right';
+  static const readyIconName = 'triangle-right';
   static const waitingIconName = 'sync';
+  static const disabledClassName = 'disabled';
 
-  final AnchorElement element;
+  DElement _element;
 
   Octicon _icon;
 
-  bool get ready => _icon.iconName == readyIconName;
+  // Both the icon and the disabled attribute are set at the same time, so
+  // checking one should be as good as checking both.
+  bool get ready => !_element.hasClass(disabledClassName);
 
-  set ready(bool value) =>
-      _icon.iconName = value ? readyIconName : waitingIconName;
+  set ready(bool value) {
+    _element.toggleClass(disabledClassName, !value);
+    _icon.iconName = value ? readyIconName : waitingIconName;
+  }
 }
 
 class Octicon {
