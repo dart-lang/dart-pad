@@ -32,7 +32,7 @@ class MutableGist implements PropertyOwner {
 
   set description(String value) => _setProperty('description', value);
 
-  String get html_url => _getProperty('html_url');
+  String get htmlUrl => _getProperty('html_url');
 
   String get summary => _getProperty('summary');
 
@@ -79,7 +79,7 @@ class MutableGist implements PropertyOwner {
 
   Gist createGist({String summary}) {
     Gist gist = Gist(description: description, id: id, public: public);
-    gist.html_url = html_url;
+    gist.htmlUrl = htmlUrl;
     for (MutableGistFile file in getFiles()) {
       gist.files.add(GistFile(name: file.name, content: file.content));
     }
