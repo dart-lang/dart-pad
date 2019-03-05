@@ -44,7 +44,7 @@ void init() {
   _playground = PlaygroundMobile();
 }
 
-enum _FileType { DART, CSS, HTML }
+enum _FileType { dart, css, html }
 
 class PlaygroundMobile {
   final String webURL = "https://dartpad.dartlang.org";
@@ -602,9 +602,9 @@ class PlaygroundMobile {
 
   bool get _hasStoredRequest {
     return (_lastRun != null &&
-        _lastRun[_FileType.DART] == context.dartSource &&
-        _lastRun[_FileType.CSS] == context.htmlSource &&
-        _lastRun[_FileType.CSS] == context.cssSource &&
+        _lastRun[_FileType.dart] == context.dartSource &&
+        _lastRun[_FileType.html] == context.htmlSource &&
+        _lastRun[_FileType.css] == context.cssSource &&
         _cachedCompile != null);
   }
 
@@ -709,9 +709,9 @@ class PlaygroundMobile {
 
   void _setLastRunCondition() {
     _lastRun = Map<_FileType, String>();
-    _lastRun[_FileType.DART] = context.dartSource;
-    _lastRun[_FileType.HTML] = context.htmlSource;
-    _lastRun[_FileType.CSS] = context.cssSource;
+    _lastRun[_FileType.dart] = context.dartSource;
+    _lastRun[_FileType.html] = context.htmlSource;
+    _lastRun[_FileType.css] = context.cssSource;
   }
 
   void _setGistId(String id) {
