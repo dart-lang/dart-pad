@@ -195,6 +195,7 @@ class SharingDialog extends DDialog {
     show();
   }
 
+  @override
   void show() {
     _configure(gistContainer.mutableGist);
     super.show();

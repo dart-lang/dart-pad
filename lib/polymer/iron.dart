@@ -175,6 +175,7 @@ class PolymerElement extends WebElement {
     return _eventStreams[eventName];
   }
 
+  @override
   void add(dynamic child) {
     if (child is WebElement) {
       child = child.element;

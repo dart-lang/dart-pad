@@ -30,6 +30,7 @@ abstract class ContextProvider {
 }
 
 class BaseContextProvider extends ContextProvider {
+  @override
   final Context context;
   BaseContextProvider(this.context);
 }

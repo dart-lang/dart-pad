@@ -33,6 +33,7 @@ class ExecutionServiceIFrame implements ExecutionService {
 
   IFrameElement get frame => _frame;
 
+  @override
   Future execute(String html, String css, String javaScript) {
     return _reset().whenComplete(() {
       return _send('execute',
@@ -40,17 +41,21 @@ class ExecutionServiceIFrame implements ExecutionService {
     });
   }
 
+  @override
   Future tearDown() => _reset();
 
+  @override
   void replaceHtml(String html) {
     _send('setHtml', {'html': html});
   }
 
+  @override
   void replaceCss(String css) {
     _send('setCss', {'css': css});
   }
 
   /// TODO(redbrogdon): Format message so internal double quotes are escaped.
+  @override
   String get testResultDecoration => '''
   void _result(bool success, String message) {
     print('$testKey{"success": \$success, "message": "\$message"}');
@@ -115,10 +120,13 @@ window.onerror = function(message, url, lineNumber, colno, error) {
     return '${postMessagePrint}\n${exceptionHandler}\n${javaScript}';
   }
 
+  @override
   Stream<String> get onStdout => _stdoutController.stream;
 
+  @override
   Stream<String> get onStderr => _stderrController.stream;
 
+  @override
   Stream<TestResult> get testResults => _testResultsController.stream;
 
   Future _send(String command, Map params) {
