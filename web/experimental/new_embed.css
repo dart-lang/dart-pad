@@ -3,15 +3,6 @@
 /* BSD-style license that can be found in the LICENSE file. */
 
 body {
-  margin: 0;
-  padding: 0;
-
-  background-color: #fff;
-  color: #111;
-
-  display: flex;
-  flex-direction: column;
-
   top: 0;
   bottom: 0;
   left: 0;
@@ -19,61 +10,7 @@ body {
 
   position: absolute;
 
-  font-family: 'Roboto', sans-serif;
-  font-size: 14px;
-  line-height: 20px;
-
   overflow: hidden;
-}
-
-header {
-  display: flex;
-  flex-direction: row;
-}
-
-.tab {
-  cursor: pointer;
-  margin-right: 10px;
-  padding: 5px;
-  background-color: #008;
-}
-
-.tab a {
-  color: #888;
-}
-
-.tab[selected] {
-  background-color: #44b;
-}
-
-.tab[selected] a {
-  color: #fff;
-}
-
-#head-space {
-    flex-grow: 1;
-}
-
-.button {
-  cursor: pointer;
-  padding: 5px;
-  background-color: #080;
-  color: #888;
-}
-
-.button:hover {
-  background-color: #4b4;
-  color: #fff;
-}
-
-#run-code {
-  display: none;
-}
-
-#tab-container {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: row;
 }
 
 .tabview {
@@ -84,29 +21,17 @@ header {
   display: block;
 }
 
-#editor {
-  flex-grow: 1;
-}
-
-#test-view {
-  flex-grow: 1;
-  font-size: 8pt;
-  line-height: 12pt;
-}
-
-#console-view {
-  flex-grow: 1;
-}
-
 #frame {
   display: none;
 }
 
-.console-message {
-  padding: 5px;
+textarea {
+  border: none;
+  resize: none;
+  font-family: 'Inconsolata', monospace;
+  font-size: 12pt;
 }
 
-.console-error {
-  padding: 5px;
-  color: #800;
+.medium-octicon {
+  font-size: 19px;
 }
