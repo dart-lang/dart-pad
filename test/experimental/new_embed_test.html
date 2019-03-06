@@ -24,6 +24,13 @@ BSD-style license that can be found in the LICENSE file. -->
 
     <link rel="stylesheet" type="text/css" href="new_embed.css">
 
+    <!-- codemirror -->
+    <link href="../packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
+    <link href="../packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
+    <link href="../packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
+    <link href="../packages/codemirror/theme/elegant.css" rel="stylesheet" media="screen">
+    <script src="../packages/codemirror/codemirror.js" defer></script>    
+
     <!-- Test package stuff -->
     <link rel="x-dart-test" href="new_embed_test.dart">
     <script src="packages/test/dart.js"></script>
@@ -49,7 +56,7 @@ BSD-style license that can be found in the LICENSE file. -->
 </nav>
 
 <section id="tab-container" class="flex-auto d-flex flex-column p-1">
-    <textarea class="tabview flex-auto" id="editor" selected spellcheck="false"></textarea>
+    <div class="tabview flex-auto" id="editor" selected spellcheck="false"></div>
     <textarea class="tabview flex-auto" id="test-view" spellcheck="false"></textarea>
     <div class="tabview flex-auto" id="console-view"></div>
 </section>
