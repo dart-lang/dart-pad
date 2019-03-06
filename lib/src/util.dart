@@ -19,8 +19,10 @@ bool isMobile() {
 
 /// A [NodeValidator] which allows everything.
 class PermissiveNodeValidator implements NodeValidator {
+  @override
   bool allowsElement(Element element) => true;
 
+  @override
   bool allowsAttribute(Element element, String attributeName, String value) {
     return true;
   }
@@ -48,6 +50,7 @@ class CancellationException implements Exception {
 
   CancellationException(this.reason);
 
+  @override
   String toString() {
     String result = "Request cancelled";
     if (reason != null) result = "$result due to: $reason";
@@ -61,16 +64,20 @@ class CancellableCompleter<T> implements Completer {
 
   CancellableCompleter();
 
+  @override
   void complete([value]) {
     if (!_cancelled) _completer.complete(value);
   }
 
+  @override
   void completeError(Object error, [StackTrace stackTrace]) {
     if (!_cancelled) _completer.completeError(error, stackTrace);
   }
 
+  @override
   Future<T> get future => _completer.future;
 
+  @override
   bool get isCompleted => _completer.isCompleted;
 
   void cancel({String reason = "cancelled"}) {

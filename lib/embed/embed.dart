@@ -44,7 +44,7 @@ void init() {
   _playground = PlaygroundMobile();
 }
 
-enum _FileType { DART, CSS, HTML }
+enum _FileType { dart, css, html }
 
 class PlaygroundMobile {
   final String webURL = "https://dartpad.dartlang.org";
@@ -602,9 +602,9 @@ class PlaygroundMobile {
 
   bool get _hasStoredRequest {
     return (_lastRun != null &&
-        _lastRun[_FileType.DART] == context.dartSource &&
-        _lastRun[_FileType.CSS] == context.htmlSource &&
-        _lastRun[_FileType.CSS] == context.cssSource &&
+        _lastRun[_FileType.dart] == context.dartSource &&
+        _lastRun[_FileType.html] == context.htmlSource &&
+        _lastRun[_FileType.css] == context.cssSource &&
         _cachedCompile != null);
   }
 
@@ -709,9 +709,9 @@ class PlaygroundMobile {
 
   void _setLastRunCondition() {
     _lastRun = Map<_FileType, String>();
-    _lastRun[_FileType.DART] = context.dartSource;
-    _lastRun[_FileType.HTML] = context.htmlSource;
-    _lastRun[_FileType.CSS] = context.cssSource;
+    _lastRun[_FileType.dart] = context.dartSource;
+    _lastRun[_FileType.html] = context.htmlSource;
+    _lastRun[_FileType.css] = context.cssSource;
   }
 
   void _setGistId(String id) {
@@ -834,28 +834,37 @@ class PlaygroundContext extends Context {
 
   Document get dartDocument => _dartDoc;
 
+  @override
   String get dartSource => _dartDoc.value;
 
+  @override
   set dartSource(String value) {
     _dartDoc.value = value;
   }
 
+  @override
   String get htmlSource => _htmlDoc.value;
 
+  @override
   set htmlSource(String value) {
     _htmlDoc.value = value;
   }
 
+  @override
   String get cssSource => _cssDoc.value;
 
+  @override
   set cssSource(String value) {
     _cssDoc.value = value;
   }
 
+  @override
   String get activeMode => editor.mode;
 
+  @override
   Stream<String> get onModeChange => _modeController.stream;
 
+  @override
   void switchTo(String name) {
     String oldMode = activeMode;
 
@@ -873,6 +882,7 @@ class PlaygroundContext extends Context {
     }
   }
 
+  @override
   String get focusedEditor {
     if (editor.document == _htmlDoc) return 'html';
     if (editor.document == _cssDoc) return 'css';
