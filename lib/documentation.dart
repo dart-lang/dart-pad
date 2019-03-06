@@ -68,12 +68,12 @@ class DocHandler {
           return;
         }
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-        docPanel.querySelectorAll("a").forEach((Element a) {
+        for (final a in docPanel.querySelectorAll("a")) {
           if (a is AnchorElement) a.target = "docs";
-        });
-        docPanel
-            .querySelectorAll("h1")
-            .forEach((h) => h.classes.add("type-${docResult.entitykind}"));
+        }
+        for (final h in docPanel.querySelectorAll("h1")) {
+          h.classes.add("type-${docResult.entitykind}");
+        }
       });
     });
   }
@@ -107,12 +107,12 @@ class DocHandler {
         .then((DocumentResponse result) {
       return _getHtmlTextFor(result).then((_DocResult docResult) {
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-        docPanel.querySelectorAll("a").forEach((Element a) {
+        for (final a in docPanel.querySelectorAll("a")) {
           if (a is AnchorElement) a.target = "docs";
-        });
-        docPanel
-            .querySelectorAll("h1")
-            .forEach((h) => h.classes.add("type-${docResult.entitykind}"));
+        }
+        for (final h in docPanel.querySelectorAll("h1")) {
+          h.classes.add("type-${docResult.entitykind}");
+        }
       });
     });
   }

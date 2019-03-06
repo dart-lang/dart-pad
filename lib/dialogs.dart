@@ -195,6 +195,7 @@ class SharingDialog extends DDialog {
     show();
   }
 
+  @override
   void show() {
     _configure(gistContainer.mutableGist);
     super.show();
@@ -265,11 +266,11 @@ class KeysDialog extends DDialog {
     keyMap.forEach((Action action, Set<String> keys) {
       if (!action.hidden) {
         String string = "";
-        keys.forEach((key) {
+        for (final key in keys) {
           if (makeKeyPresentable(key) != null) {
             string += "<span>${makeKeyPresentable(key)}</span>";
           }
-        });
+        }
         dl.innerHtml += "<dt>${action}</dt><dd>${string}</dd>";
       }
     });

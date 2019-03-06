@@ -22,6 +22,7 @@ class DartCompleter extends CodeCompleter {
 
   DartCompleter(this.servicesApi, this.document);
 
+  @override
   Future<CompletionResult> complete(Editor editor,
       {bool onlyShowFixes = false}) {
     // Cancel any open completion request.
@@ -205,11 +206,13 @@ class AnalysisCompletion implements Comparable {
   bool matchesCompletionFragment(String completionFragment) =>
       text.toLowerCase().startsWith(completionFragment.toLowerCase());
 
+  @override
   int compareTo(other) {
     if (other is! AnalysisCompletion) return -1;
     return text.compareTo(other.text);
   }
 
+  @override
   String toString() => text;
 
   int _int(String val) => val == null ? 0 : int.parse(val);

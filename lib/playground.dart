@@ -275,12 +275,15 @@ class Playground implements GistContainer, GistController {
   }
 
   // GistContainer interface
+  @override
   MutableGist get mutableGist => editableGist;
 
+  @override
   void overrideNextRoute(Gist gist) {
     _overrideNextRouteGist = gist;
   }
 
+  @override
   Future createNewGist() {
     _gistStorage.clearStoredGist();
 
@@ -292,6 +295,7 @@ class Playground implements GistContainer, GistController {
     return Future.value();
   }
 
+  @override
   Future shareAnon({String summary = ""}) {
     return gistLoader
         .createAnon(mutableGist.createGist(summary: summary))
@@ -959,32 +963,41 @@ class PlaygroundContext extends Context {
 
   Document get cssDocument => _cssDoc;
 
+  @override
   String get dartSource => _dartDoc.value;
 
+  @override
   set dartSource(String value) {
     _dartDoc.value = value;
   }
 
+  @override
   String get htmlSource => _htmlDoc.value;
 
+  @override
   set htmlSource(String value) {
     _htmlDoc.value = value;
   }
 
+  @override
   String get cssSource => _cssDoc.value;
 
+  @override
   set cssSource(String value) {
     _cssDoc.value = value;
   }
 
+  @override
   String get activeMode => editor.mode;
 
+  @override
   Stream<String> get onModeChange => _modeController.stream;
 
   bool hasWebContent() {
     return htmlSource.trim().isNotEmpty || cssSource.trim().isNotEmpty;
   }
 
+  @override
   void switchTo(String name) {
     String oldMode = activeMode;
 
@@ -1001,6 +1014,7 @@ class PlaygroundContext extends Context {
     editor.focus();
   }
 
+  @override
   String get focusedEditor {
     if (editor.document == _htmlDoc) return 'html';
     if (editor.document == _cssDoc) return 'css';
@@ -1054,14 +1068,17 @@ class GistFileProperty implements Property {
 
   GistFileProperty(this.file);
 
+  @override
   String get() => file.content;
 
+  @override
   void set(value) {
     if (file.content != value) {
       file.content = value;
     }
   }
 
+  @override
   Stream get onChanged => file.onChanged.map((value) => value);
 }
 
@@ -1071,11 +1088,14 @@ class EditorDocumentProperty implements Property {
 
   EditorDocumentProperty(this.document, [this.debugName]);
 
+  @override
   String get() => document.value;
 
+  @override
   void set(str) {
     document.value = str == null ? '' : str;
   }
 
+  @override
   Stream get onChanged => document.onChange.map((_) => get());
 }
