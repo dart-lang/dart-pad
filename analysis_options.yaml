@@ -12,9 +12,9 @@ analyzer:
 linter:
   rules:
   - always_declare_return_types
-  #- annotate_overrides
+  - annotate_overrides
   - avoid_empty_else
-  #- avoid_function_literals_in_foreach_calls
+  - avoid_function_literals_in_foreach_calls
   #- avoid_init_to_null
   - avoid_null_checks_in_equality_operators
   - avoid_relative_lib_imports
@@ -26,7 +26,7 @@ linter:
   #- camel_case_types
   - cancel_subscriptions
   #- comment_references
-  #- constant_identifier_names
+  - constant_identifier_names
   - control_flow_in_finally
   - directives_ordering
   - empty_catches

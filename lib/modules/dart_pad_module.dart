@@ -12,6 +12,7 @@ import '../core/modules.dart';
 import '../elements/state.dart';
 
 class DartPadModule extends Module {
+  @override
   Future init() {
     if (Dependencies.instance == null) {
       Dependencies.setGlobalInstance(Dependencies());
