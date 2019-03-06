@@ -46,7 +46,9 @@ class MutableGist implements PropertyOwner {
   }
 
   List<MutableGistFile> getFiles() {
-    _backingGist.files.forEach((GistFile f) => getGistFile(f.name));
+    for (final f in _backingGist.files) {
+      getGistFile(f.name);
+    }
     return _files.values.toList();
   }
 

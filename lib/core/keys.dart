@@ -27,8 +27,9 @@ class Keys {
   ///     `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
   void bind(List<String> keys, Function onInvoke, String description,
       {bool hidden = false}) {
-    keys.forEach((String key) =>
-        _bindings[key] = Action(onInvoke, description, hidden: hidden));
+    for (final key in keys) {
+      _bindings[key] = Action(onInvoke, description, hidden: hidden);
+    }
   }
 
   void dispose() {

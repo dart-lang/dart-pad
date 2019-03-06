@@ -99,8 +99,9 @@ class CodeMirrorFactory extends EditorFactory {
                 editor.getCursor().line, editor.getCursor().ch - diff));
           }
           if (completion.type == "type-quick_fix") {
-            completion.quickFixes
-                .forEach((SourceEdit edit) => ed.document.applyEdit(edit));
+            for (final edit in completion.quickFixes) {
+              ed.document.applyEdit(edit);
+            }
           }
         }, hintRenderer: (html.Element element, HintResult hint) {
           var escapeHtml = HtmlEscape().convert;
