@@ -12,7 +12,7 @@ analyzer:
 linter:
   rules:
   - always_declare_return_types
-  #- annotate_overrides
+  - annotate_overrides
   - avoid_empty_else
   #- avoid_function_literals_in_foreach_calls
   #- avoid_init_to_null

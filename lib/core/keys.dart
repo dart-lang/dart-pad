@@ -85,11 +85,14 @@ class Action {
 
   dynamic call() => function();
 
+  @override
   String toString() => description;
 
+  @override
   bool operator ==(other) =>
       other is Action && description == other.description;
 
+  @override
   int get hashCode => description.hashCode;
 }
 

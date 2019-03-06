@@ -40,13 +40,16 @@ class FunctionProperty implements Property {
 
   FunctionProperty(this.getter, this.setter);
 
+  @override
   dynamic get() => getter();
 
+  @override
   void set(value) {
     setter(value);
   }
 
   // TODO:
+  @override
   Stream get onChanged => null;
 }
 
@@ -79,8 +82,10 @@ class _StreamBinding implements Binding {
     _sub = stream.listen(_handleEvent);
   }
 
+  @override
   void flush() {}
 
+  @override
   void cancel() {
     _sub.cancel();
   }
@@ -101,8 +106,10 @@ class _PropertyBinding implements Binding {
     if (stream != null) _sub = stream.listen(_handleEvent);
   }
 
+  @override
   void flush() => _sendTo(target, property.get());
 
+  @override
   void cancel() {
     if (_sub != null) _sub.cancel();
   }

@@ -121,6 +121,7 @@ class Annotation implements Comparable<Annotation> {
 
   Annotation(this.type, this.message, this.line, {this.start, this.end});
 
+  @override
   int compareTo(Annotation other) {
     if (line == other.line) {
       return _errorValue(other.type) - _errorValue(type);
@@ -129,6 +130,7 @@ class Annotation implements Comparable<Annotation> {
     }
   }
 
+  @override
   String toString() => '${type}, line ${line}: ${message}';
 }
 
@@ -138,6 +140,7 @@ class Position {
 
   Position(this.line, this.char);
 
+  @override
   String toString() => '[${line},${char}]';
 }
 

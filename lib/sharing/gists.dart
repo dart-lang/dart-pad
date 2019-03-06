@@ -258,6 +258,7 @@ class Gist {
 
   Gist clone() => Gist.fromMap(json.decode(toJson()));
 
+  @override
   String toString() => id;
 }
 
@@ -273,6 +274,7 @@ class GistFile {
 
   bool get hasContent => content != null && content.trim().isNotEmpty;
 
+  @override
   String toString() => '[${name}, ${content.length} chars]';
 }
 

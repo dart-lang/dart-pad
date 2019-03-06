@@ -834,28 +834,37 @@ class PlaygroundContext extends Context {
 
   Document get dartDocument => _dartDoc;
 
+  @override
   String get dartSource => _dartDoc.value;
 
+  @override
   set dartSource(String value) {
     _dartDoc.value = value;
   }
 
+  @override
   String get htmlSource => _htmlDoc.value;
 
+  @override
   set htmlSource(String value) {
     _htmlDoc.value = value;
   }
 
+  @override
   String get cssSource => _cssDoc.value;
 
+  @override
   set cssSource(String value) {
     _cssDoc.value = value;
   }
 
+  @override
   String get activeMode => editor.mode;
 
+  @override
   Stream<String> get onModeChange => _modeController.stream;
 
+  @override
   void switchTo(String name) {
     String oldMode = activeMode;
 
@@ -873,6 +882,7 @@ class PlaygroundContext extends Context {
     }
   }
 
+  @override
   String get focusedEditor {
     if (editor.document == _htmlDoc) return 'html';
     if (editor.document == _cssDoc) return 'css';

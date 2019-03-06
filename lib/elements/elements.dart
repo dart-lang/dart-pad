@@ -88,6 +88,7 @@ class DElement {
     }
   }
 
+  @override
   String toString() => element.toString();
 }
 
@@ -528,13 +529,16 @@ class _ElementTextProperty implements Property {
 
   _ElementTextProperty(this.element);
 
+  @override
   String get() => element.text;
 
+  @override
   void set(value) {
     element.text = value == null ? '' : value.toString();
   }
 
   // TODO:
+  @override
   Stream get onChanged => null;
 }
 
@@ -582,5 +586,6 @@ class TabElement extends DElement {
     if (onSelect != null) onSelect();
   }
 
+  @override
   String toString() => name;
 }

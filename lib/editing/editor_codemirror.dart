@@ -26,10 +26,13 @@ class CodeMirrorFactory extends EditorFactory {
 
   String get version => CodeMirror.version;
 
+  @override
   List<String> get modes => CodeMirror.MODES;
 
+  @override
   List<String> get themes => CodeMirror.THEMES;
 
+  @override
   Editor createFromElement(html.Element element, {Map options}) {
     options ??= {
       'continueComments': {'continueLineComment': false},
@@ -57,6 +60,7 @@ class CodeMirrorFactory extends EditorFactory {
     return _CodeMirrorEditor._(this, editor);
   }
 
+  @override
   void registerCompleter(String mode, CodeCompleter completer) {
     Hints.registerHintsHelperAsync(mode, (CodeMirror editor,
         [HintsOptions options]) {
@@ -159,8 +163,10 @@ class _CodeMirrorEditor extends Editor {
     }
   }
 
+  @override
   Document get document => _document;
 
+  @override
   Document createDocument({String content, String mode}) {
     if (mode == 'html') mode = 'text/html';
     content ??= '';
@@ -169,8 +175,10 @@ class _CodeMirrorEditor extends Editor {
     return _CodeMirrorDocument._(this, Doc(content, mode));
   }
 
+  @override
   void execCommand(String name) => cm.execCommand(name);
 
+  @override
   void showCompletions({bool autoInvoked = false, bool onlyShowFixes = false}) {
     if (autoInvoked) {
       completionAutoInvoked = true;
@@ -185,6 +193,7 @@ class _CodeMirrorEditor extends Editor {
     execCommand("autocomplete");
   }
 
+  @override
   bool get completionActive {
     if (cm.jsProxy['state']['completionActive'] == null) {
       return false;
@@ -193,18 +202,25 @@ class _CodeMirrorEditor extends Editor {
     }
   }
 
+  @override
   String get mode => cm.getMode();
 
+  @override
   set mode(String str) => cm.setMode(str);
 
+  @override
   String get theme => cm.getTheme();
 
+  @override
   set theme(String str) => cm.setTheme(str);
 
+  @override
   bool get hasFocus => cm.jsProxy['state']['focused'];
 
+  @override
   Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
 
+  @override
   Point getCursorCoords({ed.Position position}) {
     JsObject js;
     if (position == null) {
@@ -215,15 +231,19 @@ class _CodeMirrorEditor extends Editor {
     return Point(js["left"], js["top"]);
   }
 
+  @override
   void focus() => cm.focus();
 
+  @override
   void resize() => cm.refresh();
 
+  @override
   void swapDocument(Document document) {
     _document = document;
     cm.swapDoc(_document.doc);
   }
 
+  @override
   void dispose() {
     _instances.remove(cm.jsProxy);
   }
@@ -243,8 +263,10 @@ class _CodeMirrorDocument extends Document {
 
   _CodeMirrorEditor get parent => editor;
 
+  @override
   String get value => doc.getValue();
 
+  @override
   set value(String str) {
     _lastSetValue = str;
     doc.setValue(str);
@@ -252,12 +274,15 @@ class _CodeMirrorDocument extends Document {
     doc.clearHistory();
   }
 
+  @override
   void updateValue(String str) {
     doc.setValue(str);
   }
 
+  @override
   ed.Position get cursor => _posFromPos(doc.getCursor());
 
+  @override
   void select(ed.Position start, [ed.Position end]) {
     if (end != null) {
       doc.setSelection(_posToPos(start), head: _posToPos(end));
@@ -266,19 +291,25 @@ class _CodeMirrorDocument extends Document {
     }
   }
 
+  @override
   String get selection => doc.getSelection(value);
 
+  @override
   String get mode => parent.mode;
 
+  @override
   bool get isClean => doc.isClean();
 
+  @override
   void markClean() => doc.markClean();
 
+  @override
   void applyEdit(SourceEdit edit) {
     doc.replaceRange(edit.replacement, _posToPos(posFromIndex(edit.offset)),
         _posToPos(posFromIndex(edit.offset + edit.length)));
   }
 
+  @override
   void setAnnotations(List<Annotation> annotations) {
     for (TextMarker marker in doc.getAllMarks()) {
       marker.clear();
@@ -310,9 +341,11 @@ class _CodeMirrorDocument extends Document {
     }
   }
 
+  @override
   int indexFromPos(ed.Position position) =>
       doc.indexFromPos(_posToPos(position));
 
+  @override
   ed.Position posFromIndex(int index) => _posFromPos(doc.posFromIndex(index));
 
   pos.Position _posToPos(ed.Position position) =>
@@ -321,6 +354,7 @@ class _CodeMirrorDocument extends Document {
   ed.Position _posFromPos(pos.Position position) =>
       ed.Position(position.line, position.ch);
 
+  @override
   Stream get onChange {
     return doc.onChange.where((_) {
       if (value != _lastSetValue) {

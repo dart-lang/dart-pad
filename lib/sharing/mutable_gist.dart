@@ -64,6 +64,7 @@ class MutableGist implements PropertyOwner {
 
   Stream get onChanged => _changedController.stream;
 
+  @override
   List<String> get propertyNames {
     Set<String> set = Set<String>();
     set.add('id');
@@ -75,6 +76,7 @@ class MutableGist implements PropertyOwner {
     return set.toList();
   }
 
+  @override
   Property property(String name) => _MutableGistProperty(this, name);
 
   Gist createGist({String summary}) {
@@ -107,6 +109,7 @@ class MutableGist implements PropertyOwner {
     _changedController.add(null);
   }
 
+  @override
   String toString() => _backingGist.toString();
 }
 
@@ -153,13 +156,17 @@ class _MutableGistProperty implements Property {
     });
   }
 
+  @override
   void set(value) {
     mutableGist._setProperty(name, value);
   }
 
+  @override
   dynamic get() => mutableGist._getProperty(name);
 
+  @override
   Stream get onChanged => _changedController.stream;
 
+  @override
   String toString() => name;
 }
