@@ -8,8 +8,8 @@ import 'dart:html' hide Document;
 import '../core/dependencies.dart';
 import '../core/modules.dart';
 import '../editing/editor.dart';
+import '../editing/editor_codemirror.dart';
 import '../elements/elements.dart';
-import '../experimental/new_embed_editor.dart';
 import '../modules/dart_pad_module.dart';
 import '../modules/dartservices_module.dart';
 import '../services/common.dart';
@@ -32,11 +32,12 @@ class NewEmbed {
 
   TabController tabController;
   EditorTabView editorTabView;
-  TextAreaElement editorTextArea;
   TestTabView testTabView;
   ConsoleTabView consoleTabView;
 
   ExecutionService executionSvc;
+
+  EditorFactory editorFactory = codeMirrorFactory;
 
   NewEmbedContext context;
 
@@ -55,8 +56,8 @@ class NewEmbed {
     executeButton =
         ExecuteCodeButton(querySelector('#execute'), _handleExecute);
 
-    editorTextArea = querySelector('#editor');
-    editorTabView = EditorTabView(DElement(editorTextArea));
+    editorTabView =
+        EditorTabView(DElement(querySelector('#editor')), editorFactory);
     consoleTabView = ConsoleTabView(DElement(querySelector('#console-view')));
 
     // Right now the entire tab view is just the textarea, but that will not be
@@ -68,7 +69,7 @@ class NewEmbed {
 
     // These two will ultimately be loaded from GitHub.
     testTabView.testMethod = initialTest;
-    editorTextArea.value = initialCode;
+    editorTabView.content = initialCode;
 
     executionSvc = ExecutionServiceIFrame(querySelector('#frame'));
     executionSvc.onStderr.listen((err) => consoleTabView.appendError(err));
@@ -90,8 +91,7 @@ class NewEmbed {
   }
 
   void _initNewEmbed() {
-    context = NewEmbedContext(
-        NewEmbedEditorFactory().createFromElement(editorTextArea), testTabView);
+    context = NewEmbedContext(editorTabView, testTabView);
   }
 
   // TODO(RedBrogdon): Remove when gist-loading is integrated.
@@ -169,7 +169,26 @@ abstract class TabView {
 }
 
 class EditorTabView extends TabView {
-  const EditorTabView(DElement element) : super(element);
+  EditorTabView(DElement element, EditorFactory editorFactory)
+      : _editor = editorFactory.createFromElement(element.element),
+        super(element) {
+    // Make sure the theme's css is included in /web/experimental/embed-new.html
+    _editor.theme = 'elegant';
+  }
+
+  final Editor _editor;
+
+  set content(String code) {
+    document.value = code;
+  }
+
+  String get content => document.value;
+
+  Document get document => _editor.document;
+
+  String get mode => _editor.mode;
+
+  void focus() => _editor.focus();
 }
 
 class ConsoleTabView extends TabView {
@@ -279,7 +298,7 @@ class Octicon {
 }
 
 class NewEmbedContext {
-  final NewEmbedEditor editor;
+  final EditorTabView editorTabView;
   final TestTabView testView;
 
   Document _dartDoc;
@@ -290,8 +309,8 @@ class NewEmbedContext {
 
   final _dartReconcileController = StreamController.broadcast();
 
-  NewEmbedContext(this.editor, this.testView) {
-    _dartDoc = editor.document;
+  NewEmbedContext(this.editorTabView, this.testView) {
+    _dartDoc = editorTabView.document;
     _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
     _createReconciler(_dartDoc, _dartReconcileController, 1250);
   }
@@ -304,7 +323,7 @@ class NewEmbedContext {
     _dartDoc.value = value;
   }
 
-  String get activeMode => editor.mode;
+  String get activeMode => editorTabView.mode;
 
   Stream get onDartDirty => _dartDirtyController.stream;
 
@@ -313,7 +332,7 @@ class NewEmbedContext {
   void markDartClean() => _dartDoc.markClean();
 
   /// Restore the focus to the last focused editor.
-  void focus() => editor.focus();
+  void focus() => editorTabView.focus();
 
   void _createReconciler(Document doc, StreamController controller, int delay) {
     Timer timer;
