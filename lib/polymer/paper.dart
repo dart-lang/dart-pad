@@ -164,6 +164,7 @@ class PaperToast extends PolymerElement {
   PaperToast.from(HtmlElement element) : super.from(element);
 
   String get text => attribute('text');
+  @override
   set text(String value) => setAttribute('text', value);
 
   /// The duration in milliseconds to show the toast (this defaults to 3000ms).
@@ -191,7 +192,9 @@ class PaperToggleButton extends PolymerElement {
   bool get checked => property('checked');
   set checked(bool value) => toggleAttribute('checked', value);
 
+  @override
   bool get disabled => hasAttribute('disabled');
+  @override
   set disabled(bool value) => toggleAttribute('disabled', value);
 
   /// Fired when the checked state changes due to user interaction.

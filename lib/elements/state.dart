@@ -24,8 +24,10 @@ class HtmlState implements State {
     }
   }
 
+  @override
   dynamic operator [](String key) => _values[key];
 
+  @override
   void operator []=(String key, dynamic value) {
     _values[key] = value;
     window.localStorage[id] = json.encode(_values);

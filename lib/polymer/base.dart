@@ -90,5 +90,6 @@ class WebElement {
     }
   }
 
+  @override
   String toString() => element.toString();
 }
