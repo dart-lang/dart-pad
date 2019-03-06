@@ -12,7 +12,7 @@ import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:haikunator/haikunator.dart';
 
 final String _dartpadLink =
-    "[dartpad.dartlang.org](https://dartpad.dartlang.org)";
+    '[dartpad.dartlang.org](https://dartpad.dartlang.org)';
 
 final RegExp _gistRegex = RegExp(r'^[0-9a-f]+$');
 
@@ -31,7 +31,7 @@ String extractHtmlBody(String html) {
   } else {
     var body = r'body(?:\s[^>]*)?'; // Body tag with its attributes
     var any = r'[\s\S]'; // Any character including new line
-    var bodyRegExp = RegExp("<$body>($any*)</$body>(?:(?!</$body>)$any)*",
+    var bodyRegExp = RegExp('<$body>($any*)</$body>(?:(?!</$body>)$any)*',
         multiLine: true, caseSensitive: false);
     var match = bodyRegExp.firstMatch(html);
     return match == null ? '' : match.group(1).trim();
@@ -328,14 +328,14 @@ class GistSummary {
 }
 
 String _createReadmeContents({String title, String summary, String withLink}) {
-  String str = "# ${title}\n";
+  String str = '# ${title}\n';
 
   if (summary != null) {
-    str += "\n${summary}\n";
+    str += '\n${summary}\n';
   }
 
   if (withLink != null) {
-    str += "\nCreated with <3 with ${withLink}.\n";
+    str += '\nCreated with <3 with ${withLink}.\n';
   }
 
   return str;

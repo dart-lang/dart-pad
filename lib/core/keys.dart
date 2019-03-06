@@ -117,9 +117,9 @@ String printKeyEvent(KeyboardEvent event) {
 }
 
 String makeKeyPresentable(String key) {
-  List<String> keyAsList = key.split("-");
+  List<String> keyAsList = key.split('-');
   if (isMac()) {
-    if (keyAsList.any((s) => s == "meta")) {
+    if (keyAsList.any((s) => s == 'meta')) {
       return null;
     }
     keyAsList = keyAsList.map<String>((s) {
@@ -129,13 +129,13 @@ String makeKeyPresentable(String key) {
         return capitalize(s);
       }
     }).toList();
-    return keyAsList.join("&thinsp;");
+    return keyAsList.join('&thinsp;');
   } else {
-    if (keyAsList.any((s) => s == "macctrl")) {
+    if (keyAsList.any((s) => s == 'macctrl')) {
       return null;
     }
     keyAsList = keyAsList.map((String s) => capitalize(s)).toList();
-    return keyAsList.join("+");
+    return keyAsList.join('+');
   }
 }
 
@@ -197,54 +197,54 @@ final Map _codeMap = {
   KeyCode.COMMA: ',', //
   KeyCode.SLASH: '/', //
   KeyCode.BACKSLASH: '\\', //
-  KeyCode.SEMICOLON: ";", //
-  KeyCode.DASH: "-", //
-  KeyCode.EQUALS: "=", //
-  KeyCode.APOSTROPHE: "`", //
+  KeyCode.SEMICOLON: ';', //
+  KeyCode.DASH: '-', //
+  KeyCode.EQUALS: '=', //
+  KeyCode.APOSTROPHE: '`', //
   KeyCode.SINGLE_QUOTE: "'", //
   KeyCode.ENTER: 'enter', //
   KeyCode.SPACE: 'space', //
-  KeyCode.TAB: "tab", //
+  KeyCode.TAB: 'tab', //
 
   KeyCode.OPEN_SQUARE_BRACKET: '[', //
   KeyCode.CLOSE_SQUARE_BRACKET: ']', //
 
   KeyCode.LEFT: 'left', //
   KeyCode.RIGHT: 'right', //
-  KeyCode.UP: "up", //
-  KeyCode.DOWN: "down", //
+  KeyCode.UP: 'up', //
+  KeyCode.DOWN: 'down', //
 
-  KeyCode.BACKSPACE: "backsapce", //
-  KeyCode.CAPS_LOCK: "caps_lock", //
-  KeyCode.DELETE: "delete", //
-  KeyCode.END: "end", //
-  KeyCode.ESC: "esc", //
-  KeyCode.HOME: "home", //
-  KeyCode.INSERT: "insert", //
-  KeyCode.NUMLOCK: "numlock", //
-  KeyCode.PAGE_DOWN: "page_down", //
-  KeyCode.PAGE_UP: "page_up", //
-  KeyCode.PAUSE: "pause", //
-  KeyCode.PRINT_SCREEN: "print_screen", //
+  KeyCode.BACKSPACE: 'backsapce', //
+  KeyCode.CAPS_LOCK: 'caps_lock', //
+  KeyCode.DELETE: 'delete', //
+  KeyCode.END: 'end', //
+  KeyCode.ESC: 'esc', //
+  KeyCode.HOME: 'home', //
+  KeyCode.INSERT: 'insert', //
+  KeyCode.NUMLOCK: 'numlock', //
+  KeyCode.PAGE_DOWN: 'page_down', //
+  KeyCode.PAGE_UP: 'page_up', //
+  KeyCode.PAUSE: 'pause', //
+  KeyCode.PRINT_SCREEN: 'print_screen', //
 
   // Already handled above.
   // If you press ctrl and nothing more, then `printKeyEvent` will print ctrl-.
-  KeyCode.CTRL: "", //
-  KeyCode.META: "", //
-  KeyCode.SHIFT: "", //
+  KeyCode.CTRL: '', //
+  KeyCode.META: '', //
+  KeyCode.SHIFT: '', //
 };
 
 final Map _unicodeMac = {
-  "macctrl": "\u2303",
-  "alt": "\u2325",
-  "shift": "\u21E7",
-  "ctrl": "\u2318",
-  "esc": "\u238B",
-  "left": "\u2190",
-  "enter": "\u21A9",
-  "right": "\u2192",
-  "caps_lock": "\u21EA",
-  "tab": "\u21E5",
-  "up": "\u2191",
-  "space": "Space"
+  'macctrl': '\u2303',
+  'alt': '\u2325',
+  'shift': '\u21E7',
+  'ctrl': '\u2318',
+  'esc': '\u238B',
+  'left': '\u2190',
+  'enter': '\u21A9',
+  'right': '\u2192',
+  'caps_lock': '\u21EA',
+  'tab': '\u21E5',
+  'up': '\u2191',
+  'space': 'Space'
 };

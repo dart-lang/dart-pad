@@ -103,7 +103,7 @@ class DButton extends DElement {
     }
   }
 
-  DButton.close() : super.tag('button', classes: "close");
+  DButton.close() : super.tag('button', classes: 'close');
 
   ButtonElement get belement => element;
 
@@ -558,7 +558,7 @@ class TabController {
   }
 
   TabElement get selectedTab =>
-      tabs.firstWhere((tab) => tab.hasAttr("selected"));
+      tabs.firstWhere((tab) => tab.hasAttr('selected'));
 
   /// This method will throw if the tabName is not the name of a current tab.
   void selectTab(String tabName) {
