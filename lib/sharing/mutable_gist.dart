@@ -68,7 +68,7 @@ class MutableGist implements PropertyOwner {
 
   @override
   List<String> get propertyNames {
-    Set<String> set = Set<String>();
+    final set = <String>{};
     set.add('id');
     set.add('description');
     set.add('html_url');
