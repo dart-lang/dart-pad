@@ -209,7 +209,7 @@ class Transitions {
 
   static void _add(PolymerElement element, String transitionId) {
     String t = element.transitions;
-    t = t == null ? transitionId : '${t} ${transitionId}';
+    t = t == null ? transitionId : '$t $transitionId';
     element.transitions = t;
   }
 }

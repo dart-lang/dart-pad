@@ -58,7 +58,7 @@ class Polymer {
     List<String> list = result.toList();
 
     if (logToConsole && list.isNotEmpty) {
-      window.console.error('Non-upgraded elements found: ${list}');
+      window.console.error('Non-upgraded elements found: $list');
     }
 
     return list;

@@ -553,7 +553,7 @@ class TabController {
     try {
       tab.onClick.listen((_) => selectTab(tab.name));
     } catch (e, st) {
-      print('Error from registerTab: ${e}\n${st}');
+      print('Error from registerTab: $e\n$st');
     }
   }
 

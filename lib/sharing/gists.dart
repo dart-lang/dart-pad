@@ -124,7 +124,7 @@ class GistLoader {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${gist.description}</title>
-${styleRef}${dartRef}  </head>
+$styleRef$dartRef  </head>
 
   <body>
     ${htmlFile.content}
@@ -156,7 +156,7 @@ ${styleRef}${dartRef}  </head>
   Future<Gist> loadGist(String gistId) {
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
-    return HttpRequest.getString('${_apiUrl}/${gistId}').then((data) {
+    return HttpRequest.getString('$_apiUrl/$gistId').then((data) {
       Gist gist = Gist.fromMap(json.decode(data));
       if (afterLoadHook != null) {
         afterLoadHook(gist);
@@ -275,7 +275,7 @@ class GistFile {
   bool get hasContent => content != null && content.trim().isNotEmpty;
 
   @override
-  String toString() => '[${name}, ${content.length} chars]';
+  String toString() => '[$name, ${content.length} chars]';
 }
 
 abstract class GistController {
@@ -328,14 +328,14 @@ class GistSummary {
 }
 
 String _createReadmeContents({String title, String summary, String withLink}) {
-  String str = "# ${title}\n";
+  String str = "# $title\n";
 
   if (summary != null) {
-    str += "\n${summary}\n";
+    str += "\n$summary\n";
   }
 
   if (withLink != null) {
-    str += "\nCreated with <3 with ${withLink}.\n";
+    str += "\nCreated with <3 with $withLink.\n";
   }
 
   return str;

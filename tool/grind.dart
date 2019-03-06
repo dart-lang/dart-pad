@@ -84,12 +84,12 @@ serve() {
 const String backendVariable = 'DARTPAD_BACKEND';
 
 @Task(
-    'Serve locally on port 8000 and use backend from ${backendVariable} environment variable')
+    'Serve locally on port 8000 and use backend from $backendVariable environment variable')
 @Depends(build)
 serveCustomBackend() {
   if (!Platform.environment.containsKey(backendVariable)) {
     throw GrinderException(
-        '${backendVariable} must be specified as [http|https]://host[:port]');
+        '$backendVariable must be specified as [http|https]://host[:port]');
   }
   run('sed', arguments: [
     '-i',
@@ -105,17 +105,17 @@ build() {
   PubApp.local('build_runner').run(['build', '-r', '-o', 'web:build']);
 
   FilePath mainFile = _buildDir.join('scripts/main.dart.js');
-  log('${mainFile} compiled to ${_printSize(mainFile)}');
+  log('$mainFile compiled to ${_printSize(mainFile)}');
 
   FilePath testFile = _buildDir.join('test', 'web.dart.js');
   if (testFile.exists)
     log('${testFile.path} compiled to ${_printSize(testFile)}');
 
   FilePath embedFile = _buildDir.join('scripts/embed.dart.js');
-  log('${embedFile} compiled to ${_printSize(embedFile)}');
+  log('$embedFile compiled to ${_printSize(embedFile)}');
 
   FilePath newEmbedFile = _buildDir.join('experimental/new_embed.dart.js');
-  log('${newEmbedFile} compiled to ${_printSize(newEmbedFile)}');
+  log('$newEmbedFile compiled to ${_printSize(newEmbedFile)}');
 
   // Remove .dart files.
   int count = 0;
@@ -260,7 +260,7 @@ deploy() {
   }).then((BranchReference branchRef) {
     final String branch = branchRef.branchName;
 
-    log('branch: ${branch}');
+    log('branch: $branch');
 
     if (branch == 'prod') {
       if (!isSecure) {
