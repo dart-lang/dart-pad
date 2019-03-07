@@ -88,6 +88,7 @@ class DElement {
     }
   }
 
+  @override
   String toString() => element.toString();
 }
 
@@ -102,7 +103,7 @@ class DButton extends DElement {
     }
   }
 
-  DButton.close() : super.tag('button', classes: "close");
+  DButton.close() : super.tag('button', classes: 'close');
 
   ButtonElement get belement => element;
 
@@ -528,13 +529,16 @@ class _ElementTextProperty implements Property {
 
   _ElementTextProperty(this.element);
 
+  @override
   String get() => element.text;
 
+  @override
   void set(value) {
     element.text = value == null ? '' : value.toString();
   }
 
   // TODO:
+  @override
   Stream get onChanged => null;
 }
 
@@ -549,12 +553,12 @@ class TabController {
     try {
       tab.onClick.listen((_) => selectTab(tab.name));
     } catch (e, st) {
-      print('Error from registerTab: ${e}\n${st}');
+      print('Error from registerTab: $e\n$st');
     }
   }
 
   TabElement get selectedTab =>
-      tabs.firstWhere((tab) => tab.hasAttr("selected"));
+      tabs.firstWhere((tab) => tab.hasAttr('selected'));
 
   /// This method will throw if the tabName is not the name of a current tab.
   void selectTab(String tabName) {
@@ -582,5 +586,6 @@ class TabElement extends DElement {
     if (onSelect != null) onSelect();
   }
 
+  @override
   String toString() => name;
 }

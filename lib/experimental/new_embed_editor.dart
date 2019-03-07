@@ -105,35 +105,49 @@ class NewEmbedDocument extends Document {
 
   String doc;
 
+  @override
   String get value => doc;
 
+  @override
   set value(String str) {
     doc = str;
   }
 
+  @override
   void updateValue(String str) {
     doc = str;
   }
 
+  @override
   ed.Position get cursor => ed.Position(0, 0);
 
+  @override
   void select(ed.Position start, [ed.Position end]) {}
 
+  @override
   String get selection => '';
 
+  @override
   String get mode => parent.mode;
 
+  @override
   bool get isClean => false;
 
+  @override
   void markClean() => () {};
 
+  @override
   void applyEdit(SourceEdit edit) {}
 
+  @override
   void setAnnotations(List<Annotation> annotations) {}
 
+  @override
   int indexFromPos(ed.Position position) => 0;
 
+  @override
   ed.Position posFromIndex(int index) => null;
 
+  @override
   Stream get onChange => _changeController.stream;
 }

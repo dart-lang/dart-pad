@@ -70,13 +70,16 @@ class TestProperty implements Property {
 
   TestProperty([this.value]);
 
+  @override
   dynamic get() => value;
 
+  @override
   void set(val) {
     value = val;
     changedCount++;
     _controller.add(value);
   }
 
+  @override
   Stream get onChanged => _controller.stream;
 }

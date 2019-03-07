@@ -32,7 +32,7 @@ class MutableGist implements PropertyOwner {
 
   set description(String value) => _setProperty('description', value);
 
-  String get html_url => _getProperty('html_url');
+  String get htmlUrl => _getProperty('html_url');
 
   String get summary => _getProperty('summary');
 
@@ -46,7 +46,9 @@ class MutableGist implements PropertyOwner {
   }
 
   List<MutableGistFile> getFiles() {
-    _backingGist.files.forEach((GistFile f) => getGistFile(f.name));
+    for (final f in _backingGist.files) {
+      getGistFile(f.name);
+    }
     return _files.values.toList();
   }
 
@@ -64,8 +66,9 @@ class MutableGist implements PropertyOwner {
 
   Stream get onChanged => _changedController.stream;
 
+  @override
   List<String> get propertyNames {
-    Set<String> set = Set<String>();
+    final set = <String>{};
     set.add('id');
     set.add('description');
     set.add('html_url');
@@ -75,11 +78,12 @@ class MutableGist implements PropertyOwner {
     return set.toList();
   }
 
+  @override
   Property property(String name) => _MutableGistProperty(this, name);
 
   Gist createGist({String summary}) {
     Gist gist = Gist(description: description, id: id, public: public);
-    gist.html_url = html_url;
+    gist.htmlUrl = htmlUrl;
     for (MutableGistFile file in getFiles()) {
       gist.files.add(GistFile(name: file.name, content: file.content));
     }
@@ -107,6 +111,7 @@ class MutableGist implements PropertyOwner {
     _changedController.add(null);
   }
 
+  @override
   String toString() => _backingGist.toString();
 }
 
@@ -153,13 +158,17 @@ class _MutableGistProperty implements Property {
     });
   }
 
+  @override
   void set(value) {
     mutableGist._setProperty(name, value);
   }
 
+  @override
   dynamic get() => mutableGist._getProperty(name);
 
+  @override
   Stream get onChanged => _changedController.stream;
 
+  @override
   String toString() => name;
 }

@@ -116,7 +116,7 @@ class Playground implements GistContainer, GistController {
     DButton shareButton = DButton(querySelector('#sharebutton'));
 
     shareButton.onClick.listen((Event e) => window.open(
-        "https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide",
+        'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
         '_sharing'));
 
     // Sharing is currently disabled pending establishing OAuth2 configurations with Github.
@@ -183,7 +183,7 @@ class Playground implements GistContainer, GistController {
         .version()
         .timeout(Duration(seconds: 2))
         .then((VersionResponse ver) {
-      print("Dart SDK version ${ver.sdkVersion} (${ver.sdkVersionFull})");
+      print('Dart SDK version ${ver.sdkVersion} (${ver.sdkVersionFull})');
       print('CodeMirror: ${CodeMirrorModule.version}');
       AboutDialog(ver.sdkVersionFull)..show();
     }).catchError((e) {
@@ -197,7 +197,7 @@ class Playground implements GistContainer, GistController {
     // Delay to give time for the model change event to propagate through
     // to the editor component (which is where `_performAnalysis()` pulls
     // the Dart source from).
-    Timer.run(() => _performAnalysis());
+    Timer.run(_performAnalysis);
     _clearOutput();
   }
 
@@ -275,12 +275,15 @@ class Playground implements GistContainer, GistController {
   }
 
   // GistContainer interface
+  @override
   MutableGist get mutableGist => editableGist;
 
+  @override
   void overrideNextRoute(Gist gist) {
     _overrideNextRouteGist = gist;
   }
 
+  @override
   Future createNewGist() {
     _gistStorage.clearStoredGist();
 
@@ -292,7 +295,8 @@ class Playground implements GistContainer, GistController {
     return Future.value();
   }
 
-  Future shareAnon({String summary = ""}) {
+  @override
+  Future shareAnon({String summary = ''}) {
     return gistLoader
         .createAnon(mutableGist.createGist(summary: summary))
         .then((Gist newGist) {
@@ -303,15 +307,15 @@ class Playground implements GistContainer, GistController {
         ..show()
         ..hide();
       toast.element
-        ..style.cursor = "pointer"
+        ..style.cursor = 'pointer'
         ..onClick.listen((e) => window.open(
-            "https://gist.github.com/anonymous/${newGist.id}", '_blank'));
+            'https://gist.github.com/anonymous/${newGist.id}', '_blank'));
       GistToInternalIdMapping mapping = GistToInternalIdMapping()
         ..gistId = newGist.id
         ..internalId = _mappingId;
       dartSupportServices.storeGist(mapping);
     }).catchError((e) {
-      String message = 'Error saving gist: ${e}';
+      String message = 'Error saving gist: $e';
       DToast.showMessage(message);
       ga.sendException('GistLoader.createAnon: failed to create gist');
     });
@@ -367,9 +371,9 @@ class Playground implements GistContainer, GistController {
         }).catchError((e) => null);
       });
     }).catchError((e) {
-      String message = 'Error loading gist ${gistId}.';
+      String message = 'Error loading gist $gistId.';
       DToast.showMessage(message);
-      _logger.severe('${message}: ${e}');
+      _logger.severe('$message: $e');
     });
   }
 
@@ -386,10 +390,10 @@ class Playground implements GistContainer, GistController {
 
   void _initPlayground() {
     var disablePointerEvents = () {
-      _frame.style.pointerEvents = "none";
+      _frame.style.pointerEvents = 'none';
     };
     var enablePointerEvents = () {
-      _frame.style.pointerEvents = "inherit";
+      _frame.style.pointerEvents = 'inherit';
     };
 
     DSplitter editorSplitter = DSplitter(querySelector('#editor_split'),
@@ -427,20 +431,20 @@ class Playground implements GistContainer, GistController {
     _editpanel.children.first.attributes['flex'] = '';
     editor.resize();
 
-    keys.bind(['ctrl-s'], _handleSave, "Save", hidden: true);
-    keys.bind(['ctrl-enter'], _handleRun, "Run");
+    keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
+    keys.bind(['ctrl-enter'], _handleRun, 'Run');
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
       docHandler.generateDoc(_docPanel);
-    }, "Documentation");
+    }, 'Documentation');
 
     keys.bind(['alt-enter'], () {
       editor.showCompletions(onlyShowFixes: true);
-    }, "Quick fix");
+    }, 'Quick fix');
 
     keys.bind(['ctrl-space', 'macctrl-space'], () {
       editor.showCompletions();
-    }, "Completion");
+    }, 'Completion');
 
     keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
       if (settings.isShowing) {
@@ -448,7 +452,7 @@ class Playground implements GistContainer, GistController {
       } else {
         settings.show();
       }
-    }, "Shortcuts");
+    }, 'Shortcuts');
 
     settings = KeysDialog(keys.inverseBindings);
 
@@ -462,16 +466,16 @@ class Playground implements GistContainer, GistController {
 
     outputTabController = TabController()
       ..registerTab(
-          TabElement(querySelector('#resulttab'), name: "result", onSelect: () {
-        ga.sendEvent('view', "result");
-        querySelector('#frame').style.visibility = "visible";
-        querySelector('#output').style.visibility = "hidden";
+          TabElement(querySelector('#resulttab'), name: 'result', onSelect: () {
+        ga.sendEvent('view', 'result');
+        querySelector('#frame').style.visibility = 'visible';
+        querySelector('#output').style.visibility = 'hidden';
       }))
-      ..registerTab(TabElement(querySelector('#consoletab'), name: "console",
+      ..registerTab(TabElement(querySelector('#consoletab'), name: 'console',
           onSelect: () {
-        ga.sendEvent('view', "console");
-        querySelector('#output').style.visibility = "visible";
-        querySelector('#frame').style.visibility = "hidden";
+        ga.sendEvent('view', 'console');
+        querySelector('#output').style.visibility = 'visible';
+        querySelector('#frame').style.visibility = 'hidden';
       }));
 
     _context = PlaygroundContext(editor);
@@ -567,7 +571,7 @@ class Playground implements GistContainer, GistController {
 
     dartServices.version().then((VersionResponse version) {
       // "Based on Dart SDK 1.25.0-dev"
-      String versionText = "Based on Dart SDK ${version.sdkVersionFull}";
+      String versionText = 'Based on Dart SDK ${version.sdkVersionFull}';
       querySelector('#dartpad_version').text = versionText;
     }).catchError((e) => null);
 
@@ -580,7 +584,7 @@ class Playground implements GistContainer, GistController {
     splash.hide();
   }
 
-  final RegExp cssSymbolRegexp = RegExp(r"[A-Z]");
+  final RegExp cssSymbolRegexp = RegExp(r'[A-Z]');
 
   void _handleAutoCompletion(KeyboardEvent e) {
     if (context.focusedEditor == 'dart' && editor.hasFocus) {
@@ -590,11 +594,11 @@ class Playground implements GistContainer, GistController {
     }
 
     if (!_isCompletionActive && editor.hasFocus) {
-      if (context.focusedEditor == "html") {
-        if (printKeyEvent(e) == "shift-,") {
+      if (context.focusedEditor == 'html') {
+        if (printKeyEvent(e) == 'shift-,') {
           editor.showCompletions(autoInvoked: true);
         }
-      } else if (context.focusedEditor == "css") {
+      } else if (context.focusedEditor == 'css') {
         if (cssSymbolRegexp.hasMatch(String.fromCharCode(e.keyCode))) {
           editor.showCompletions(autoInvoked: true);
         }
@@ -614,7 +618,7 @@ class Playground implements GistContainer, GistController {
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
-      ga.sendTiming('action-perf', "compilation-e2e",
+      ga.sendTiming('action-perf', 'compilation-e2e',
           compilationTimer.elapsedMilliseconds);
 
       _autoSwitchOutputTab();
@@ -623,10 +627,10 @@ class Playground implements GistContainer, GistController {
       return executionService.execute(
           _context.htmlSource, _context.cssSource, response.result);
     }).catchError((e) {
-      ga.sendException("${e.runtimeType}");
+      ga.sendException('${e.runtimeType}');
       if (e is DetailedApiRequestError) e = e.message;
       DToast.showMessage('Error compiling to JavaScript');
-      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
+      _showOuput('Error compiling to JavaScript:\n$e', error: true);
     }).whenComplete(() {
       runButton.disabled = false;
       overlay.visible = false;
@@ -749,15 +753,15 @@ class Playground implements GistContainer, GistController {
       formatButton.disabled = false;
 
       if (result.newString == null || result.newString.isEmpty) {
-        _logger.fine("Format returned null/empty result");
+        _logger.fine('Format returned null/empty result');
         return;
       }
 
       if (originalSource != result.newString) {
         editor.document.updateValue(result.newString);
-        DToast.showMessage("Format successful.");
+        DToast.showMessage('Format successful.');
       } else {
-        DToast.showMessage("No formatting changes.");
+        DToast.showMessage('No formatting changes.');
       }
     }).catchError((e) {
       busyLight.reset();
@@ -873,12 +877,12 @@ class Playground implements GistContainer, GistController {
         messageSpan.text = issue.message;
         e.children.add(messageSpan);
         if (issue.hasFixes) {
-          e.classes.add("hasFix");
+          e.classes.add('hasFix');
           e.onClick.listen((e) {
             // This is a bit of a hack to make sure quick fixes popup
             // is only shown if the wrench is clicked,
             // and not if the text or label is clicked.
-            if ((e.target as Element).className == "issue hasFix") {
+            if ((e.target as Element).className == 'issue hasFix') {
               // codemiror only shows completions if there is no selected text
               _jumpTo(issue.line, issue.charStart, 0, focus: true);
               editor.showCompletions(onlyShowFixes: true);
@@ -893,15 +897,15 @@ class Playground implements GistContainer, GistController {
 
   void _updateRunButton({bool hasErrors = false, bool hasWarnings = false}) {
     const alertSVGIcon =
-        "M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,"
-        "1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z";
+        'M5,3H19A2,2 0 0,1 21,5V19A2,2 0 0,1 19,21H5A2,2 0 0,1 3,19V5A2,2 0 0,'
+        '1 5,3M13,13V7H11V13H13M13,17V15H11V17H13Z';
 
-    var path = runButton.element.querySelector("path");
-    path.attributes["d"] =
-        (hasErrors || hasWarnings) ? alertSVGIcon : "M8 5v14l11-7z";
+    var path = runButton.element.querySelector('path');
+    path.attributes['d'] =
+        (hasErrors || hasWarnings) ? alertSVGIcon : 'M8 5v14l11-7z';
 
-    path.parent.classes.toggle("error", hasErrors);
-    path.parent.classes.toggle("warning", hasWarnings && !hasErrors);
+    path.parent.classes.toggle('error', hasErrors);
+    path.parent.classes.toggle('warning', hasWarnings && !hasErrors);
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
@@ -959,32 +963,41 @@ class PlaygroundContext extends Context {
 
   Document get cssDocument => _cssDoc;
 
+  @override
   String get dartSource => _dartDoc.value;
 
+  @override
   set dartSource(String value) {
     _dartDoc.value = value;
   }
 
+  @override
   String get htmlSource => _htmlDoc.value;
 
+  @override
   set htmlSource(String value) {
     _htmlDoc.value = value;
   }
 
+  @override
   String get cssSource => _cssDoc.value;
 
+  @override
   set cssSource(String value) {
     _cssDoc.value = value;
   }
 
+  @override
   String get activeMode => editor.mode;
 
+  @override
   Stream<String> get onModeChange => _modeController.stream;
 
   bool hasWebContent() {
     return htmlSource.trim().isNotEmpty || cssSource.trim().isNotEmpty;
   }
 
+  @override
   void switchTo(String name) {
     String oldMode = activeMode;
 
@@ -1001,6 +1014,7 @@ class PlaygroundContext extends Context {
     editor.focus();
   }
 
+  @override
   String get focusedEditor {
     if (editor.document == _htmlDoc) return 'html';
     if (editor.document == _cssDoc) return 'css';
@@ -1054,14 +1068,17 @@ class GistFileProperty implements Property {
 
   GistFileProperty(this.file);
 
+  @override
   String get() => file.content;
 
+  @override
   void set(value) {
     if (file.content != value) {
       file.content = value;
     }
   }
 
+  @override
   Stream get onChanged => file.onChanged.map((value) => value);
 }
 
@@ -1071,11 +1088,14 @@ class EditorDocumentProperty implements Property {
 
   EditorDocumentProperty(this.document, [this.debugName]);
 
+  @override
   String get() => document.value;
 
+  @override
   void set(str) {
     document.value = str == null ? '' : str;
   }
 
+  @override
   Stream get onChanged => document.onChange.map((_) => get());
 }
