@@ -700,7 +700,7 @@ class PlaygroundMobile {
   }
 
   void _setLastRunCondition() {
-    _lastRun = Map<_FileType, String>();
+    _lastRun = <_FileType, String>{};
     _lastRun[_FileType.dart] = context.dartSource;
     _lastRun[_FileType.html] = context.htmlSource;
     _lastRun[_FileType.css] = context.cssSource;

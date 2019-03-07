@@ -51,7 +51,7 @@ class Polymer {
   /// Check for and return any elements that have not been upgraded. This is
   /// normally a result of forgetting an html import.
   static List<String> checkForUnresolvedElements({bool logToConsole = false}) {
-    Set<String> result = Set();
+    final result = <String>{};
 
     _accept(result, document.body);
 
