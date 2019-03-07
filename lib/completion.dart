@@ -110,7 +110,7 @@ class DartCompleter extends CodeCompleter {
                 return Completion(text,
                     displayString: displayString,
                     type:
-                        'type-${completion.type.toLowerCase()}${deprecatedClass}',
+                        'type-${completion.type.toLowerCase()}$deprecatedClass',
                     cursorOffset: cursorPos);
               }
             })

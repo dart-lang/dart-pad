@@ -315,7 +315,7 @@ class Playground implements GistContainer, GistController {
         ..internalId = _mappingId;
       dartSupportServices.storeGist(mapping);
     }).catchError((e) {
-      String message = 'Error saving gist: ${e}';
+      String message = 'Error saving gist: $e';
       DToast.showMessage(message);
       ga.sendException('GistLoader.createAnon: failed to create gist');
     });
@@ -371,9 +371,9 @@ class Playground implements GistContainer, GistController {
         }).catchError((e) => null);
       });
     }).catchError((e) {
-      String message = 'Error loading gist ${gistId}.';
+      String message = 'Error loading gist $gistId.';
       DToast.showMessage(message);
-      _logger.severe('${message}: ${e}');
+      _logger.severe('$message: $e');
     });
   }
 
@@ -630,7 +630,7 @@ class Playground implements GistContainer, GistController {
       ga.sendException('${e.runtimeType}');
       if (e is DetailedApiRequestError) e = e.message;
       DToast.showMessage('Error compiling to JavaScript');
-      _showOuput('Error compiling to JavaScript:\n${e}', error: true);
+      _showOuput('Error compiling to JavaScript:\n$e', error: true);
     }).whenComplete(() {
       runButton.disabled = false;
       overlay.visible = false;

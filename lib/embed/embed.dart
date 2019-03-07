@@ -346,8 +346,8 @@ class PlaygroundMobile {
         _jumpToLine(int.parse(url.queryParameters['line']));
       }
     }).catchError((e) {
-      print('Error loading gist ${gistId}.\n${e}');
-      _showError('Error Loading Gist', '${gistId} - ${e}');
+      print('Error loading gist $gistId.\n$e');
+      _showError('Error Loading Gist', '$gistId - $e');
     });
   }
 
@@ -474,13 +474,13 @@ class PlaygroundMobile {
     Element bottomPanel = $('#bottomPanel');
     if (rightPanel != null && leftPanel != null) {
       num percent = validFlex(h) ? int.parse(h) : defaultVerticalRatio;
-      leftPanel.style.width = '${percent}%';
+      leftPanel.style.width = '$percent%';
       editor.resize();
       _syncToolbar();
     }
     if (topPanel != null && bottomPanel != null) {
       num percent = validFlex(v) ? int.parse(v) : defaultHorizontalRatio;
-      topPanel.style.height = '${percent}%';
+      topPanel.style.height = '$percent%';
     }
     var disablePointerEvents = () {
       if ($('#frame') != null) $('#frame').style.pointerEvents = 'none';
@@ -557,8 +557,8 @@ class PlaygroundMobile {
               _context.htmlSource, _context.cssSource, response.result);
         }
       } catch (e) {
-        _showOutput('Error compiling to JavaScript:\n${e}', error: true);
-        _showError('Error compiling to JavaScript', '${e}');
+        _showOutput('Error compiling to JavaScript:\n$e', error: true);
+        _showError('Error compiling to JavaScript', '$e');
       }
       _runButton.disabled = false;
       if (_runProgress != null) {
@@ -581,8 +581,8 @@ class PlaygroundMobile {
             _context.htmlSource, _context.cssSource, response.result);
       }
     }).catchError((e) {
-      _showOutput('Error compiling to JavaScript:\n${e}', error: true);
-      _showError('Error compiling to JavaScript', '${e}');
+      _showOutput('Error compiling to JavaScript:\n$e', error: true);
+      _showError('Error compiling to JavaScript', '$e');
     }).whenComplete(() {
       _runButton.disabled = false;
       if (_runProgress != null) {

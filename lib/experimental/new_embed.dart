@@ -44,7 +44,7 @@ class NewEmbed {
     tabController = NewEmbedTabController();
     for (String name in ['editor', 'test', 'console']) {
       tabController.registerTab(
-          TabElement(querySelector('#${name}-tab'), name: name, onSelect: () {
+          TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
         editorTabView.setSelected(name == 'editor');
         testTabView.setSelected(name == 'test');
         consoleTabView.setSelected(name == 'console');

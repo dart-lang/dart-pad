@@ -154,9 +154,9 @@ class DocHandler {
       var propagatedType = info['propagatedType'];
       String _mdDocs = '''# `${info['description']}`\n\n
 ${hasDartdoc ? "${info['dartdoc']}\n\n" : ''}
-${mdnLink != null ? "## External resources:\n * ${mdnLink} at MDN" : ''}
-${isVariable ? "${kind}\n\n" : ''}
-${(isVariable && propagatedType != null) ? "**Propagated type:** ${propagatedType}\n\n" : ''}
+${mdnLink != null ? "## External resources:\n * $mdnLink at MDN" : ''}
+${isVariable ? "$kind\n\n" : ''}
+${(isVariable && propagatedType != null) ? "**Propagated type:** $propagatedType\n\n" : ''}
 ${libraryName == null ? '' : apiLink}\n\n''';
 
       String _htmlDocs = markdown.markdownToHtml(_mdDocs,
@@ -176,9 +176,9 @@ ${libraryName == null ? '' : apiLink}\n\n''';
       if (libraryName.contains('dart:')) {
         libraryName = libraryName.replaceAll(':', '-');
         apiLink.write(
-            'https://api.dartlang.org/stable/${libraryName}/${libraryName}-library.html');
+            'https://api.dartlang.org/stable/$libraryName/$libraryName-library.html');
 
-        return '[Open library docs](${apiLink})';
+        return '[Open library docs]($apiLink)';
       }
     }
     return libraryName;

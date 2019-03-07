@@ -56,7 +56,7 @@ class Keys {
         _loggedException = true;
 
         // The polymer polyfills make any event handling code unhappy.
-        print('${e}');
+        print('$e');
       }
     }
   }

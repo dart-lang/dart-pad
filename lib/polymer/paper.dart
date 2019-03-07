@@ -169,7 +169,7 @@ class PaperToast extends PolymerElement {
 
   /// The duration in milliseconds to show the toast (this defaults to 3000ms).
   // TODO: set the JS property
-  set duration(int value) => setAttribute('duration', '${value}');
+  set duration(int value) => setAttribute('duration', '$value');
 
   /// True if the toast is currently visible.
   bool get visible => hasAttribute('visible');
