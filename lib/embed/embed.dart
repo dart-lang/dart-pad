@@ -83,9 +83,7 @@ class PlaygroundMobile {
 
   PlaygroundMobile() {
     // Asynchronous processing to load UI faster in parallel
-    Timer.run(() {
-      _createUi();
-    });
+    Timer.run(_createUi);
     Timer.run(() {
       _initModules().then((_) => _initPlayground());
     });
@@ -256,9 +254,7 @@ class PlaygroundMobile {
   void registerAffirmRefreshButton() {
     if ($('#affirmButton') != null) {
       _affirmButton = PaperIconButton.from($('#affirmButton'));
-      _affirmButton.clickAction(() {
-        _reset();
-      });
+      _affirmButton.clickAction(_reset);
     }
   }
 
@@ -274,9 +270,7 @@ class PlaygroundMobile {
   void registerAffirmExportButton() {
     if ($('#affirmExportButton') != null) {
       _affirmButton = PaperIconButton.from($('#affirmExportButton'));
-      _affirmButton.clickAction(() {
-        _export();
-      });
+      _affirmButton.clickAction(_export);
     }
   }
 
@@ -346,9 +340,7 @@ class PlaygroundMobile {
 
       _clearErrors();
       // Analyze and run it.
-      Timer.run(() {
-        _performAnalysis();
-      });
+      Timer.run(_performAnalysis);
       Uri url = Uri.parse(window.location.toString());
       if (url.hasQuery && url.queryParameters['line'] != null) {
         _jumpToLine(int.parse(url.queryParameters['line']));

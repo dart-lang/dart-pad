@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 
 void main() {
   group('new_embed', () {
-    setUp(() => new_embed.init());
+    setUp(new_embed.init);
 
     test('Editor tab is selected at init', () {
       final editorTab = querySelector('#editor-tab');

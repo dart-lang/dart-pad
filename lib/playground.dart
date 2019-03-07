@@ -197,7 +197,7 @@ class Playground implements GistContainer, GistController {
     // Delay to give time for the model change event to propagate through
     // to the editor component (which is where `_performAnalysis()` pulls
     // the Dart source from).
-    Timer.run(() => _performAnalysis());
+    Timer.run(_performAnalysis);
     _clearOutput();
   }
 

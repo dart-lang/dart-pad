@@ -36,12 +36,12 @@ linter:
   - implementation_imports
   - invariant_booleans
   - iterable_contains_unrelated_type
-  #- library_names
+  - library_names
   - library_prefixes
   - list_remove_unrelated_type
   - no_adjacent_strings_in_list
   - no_duplicate_case_values
-  #- non_constant_identifier_names
+  - non_constant_identifier_names
   #- omit_local_variable_types
   - only_throw_errors
   - overridden_fields
@@ -67,7 +67,7 @@ linter:
   - unawaited_futures
   #- unnecessary_brace_in_string_interps
   - unnecessary_getters_setters
-  #- unnecessary_lambdas
+  - unnecessary_lambdas
   - unnecessary_new
   - unnecessary_null_aware_assignments
   - unnecessary_statements

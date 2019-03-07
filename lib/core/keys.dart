@@ -134,7 +134,7 @@ String makeKeyPresentable(String key) {
     if (keyAsList.any((s) => s == 'macctrl')) {
       return null;
     }
-    keyAsList = keyAsList.map((String s) => capitalize(s)).toList();
+    keyAsList = keyAsList.map(capitalize).toList();
     return keyAsList.join('+');
   }
 }
