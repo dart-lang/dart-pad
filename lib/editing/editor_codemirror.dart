@@ -98,17 +98,17 @@ class CodeMirrorFactory extends EditorFactory {
             doc.setCursor(pos.Position(
                 editor.getCursor().line, editor.getCursor().ch - diff));
           }
-          if (completion.type == "type-quick_fix") {
+          if (completion.type == 'type-quick_fix') {
             for (final edit in completion.quickFixes) {
               ed.document.applyEdit(edit);
             }
           }
         }, hintRenderer: (html.Element element, HintResult hint) {
           var escapeHtml = HtmlEscape().convert;
-          if (completion.type != "type-quick_fix") {
+          if (completion.type != 'type-quick_fix') {
             element.innerHtml = escapeHtml(completion.displayString)
                 .replaceFirst(escapeHtml(stringToReplace),
-                    "<em>${escapeHtml(stringToReplace)}</em>");
+                    '<em>${escapeHtml(stringToReplace)}</em>');
           } else {
             element.innerHtml = escapeHtml(completion.displayString);
           }
@@ -118,8 +118,8 @@ class CodeMirrorFactory extends EditorFactory {
       if (hints.isEmpty && ed._lookingForQuickFix) {
         hints = [
           HintResult(stringToReplace,
-              displayText: "No fixes available",
-              className: "type-no_suggestions")
+              displayText: 'No fixes available',
+              className: 'type-no_suggestions')
         ];
       } else if (hints.isEmpty &&
           (ed.completionActive ||
@@ -128,7 +128,7 @@ class CodeMirrorFactory extends EditorFactory {
         // or if the popup was already active.
         hints = [
           HintResult(stringToReplace,
-              displayText: "No suggestions", className: "type-no_suggestions")
+              displayText: 'No suggestions', className: 'type-no_suggestions')
         ];
       }
 
@@ -191,7 +191,7 @@ class _CodeMirrorEditor extends Editor {
     } else {
       _lookingForQuickFix = false;
     }
-    execCommand("autocomplete");
+    execCommand('autocomplete');
   }
 
   @override
@@ -225,11 +225,11 @@ class _CodeMirrorEditor extends Editor {
   Point getCursorCoords({ed.Position position}) {
     JsObject js;
     if (position == null) {
-      js = cm.call("cursorCoords");
+      js = cm.call('cursorCoords');
     } else {
-      js = cm.callArg("cursorCoords", _document._posToPos(position).toProxy());
+      js = cm.callArg('cursorCoords', _document._posToPos(position).toProxy());
     }
-    return Point(js["left"], js["top"]);
+    return Point(js['left'], js['top']);
   }
 
   @override

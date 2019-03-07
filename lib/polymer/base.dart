@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:html';
 
 /// Finds the first descendant element of this document with the given id.
-Element queryId(String id) => querySelector('#${id}');
+Element queryId(String id) => querySelector('#$id');
 
 /// Finds the first descendant element of this document that matches the specified group of selectors.
 Element $(String selectors) => querySelector(selectors);

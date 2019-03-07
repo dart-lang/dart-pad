@@ -117,7 +117,7 @@ window.onerror = function(message, url, lineNumber, colno, error) {
   _thrownDartMainRunner = false;
 };
 ''';
-    return '${postMessagePrint}\n${exceptionHandler}\n${javaScript}';
+    return '$postMessagePrint\n$exceptionHandler\n$javaScript';
   }
 
   @override

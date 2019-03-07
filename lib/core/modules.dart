@@ -43,10 +43,8 @@ class ModuleManager {
   }
 
   Future _startModule(Module module) {
-    return module.init().catchError((e) {
-      // TODO: log
-      print(e);
-    }).whenComplete(() {
+    // TODO: log errors
+    return module.init().catchError(print).whenComplete(() {
       _inited.add(module);
     });
   }
