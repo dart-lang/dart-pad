@@ -185,16 +185,16 @@ class PolymerElement extends WebElement {
       throw ArgumentError('child must be a WebElement or an Element');
     }
     //Polymer.dom(this).appendChild(child);
-    context["Polymer"]
-        .callMethod("dom", [JsObject.fromBrowserObject(element)]).callMethod(
-            "appendChild", [JsObject.fromBrowserObject(child)]);
+    context['Polymer']
+        .callMethod('dom', [JsObject.fromBrowserObject(element)]).callMethod(
+            'appendChild', [JsObject.fromBrowserObject(child)]);
   }
 
   dynamic selectorAll(String selector) {
     //Polymer.dom(this).childNodes;
-    return context["Polymer"]
-        .callMethod("dom", [JsObject.fromBrowserObject(element)]).callMethod(
-            "querySelectorAll", [selector]);
+    return context['Polymer']
+        .callMethod('dom', [JsObject.fromBrowserObject(element)]).callMethod(
+            'querySelectorAll', [selector]);
   }
 }
 

@@ -42,12 +42,12 @@ class PaperMenu extends IronSelectableBehavior {
   PaperMenu.from(HtmlElement element) : super.from(element);
 
   void select(String value) {
-    call("select", [value]);
+    call('select', [value]);
   }
 
   String get selectedName {
-    int index = JsObject.fromBrowserObject(element)["selected"];
-    return PaperItem.from(selectorAll("paper-item")[index]).name;
+    int index = JsObject.fromBrowserObject(element)['selected'];
+    return PaperItem.from(selectorAll('paper-item')[index]).name;
   }
 }
 
@@ -116,7 +116,7 @@ class PaperItem extends PaperButtonBase {
 
   PaperItem.from(HtmlElement element) : super.from(element);
 
-  String get name => attribute("name");
+  String get name => attribute('name');
   set name(String value) => setAttribute('name', value);
 }
 
@@ -139,7 +139,7 @@ class PaperTabs extends IronSelectableBehavior {
   PaperTabs.from(HtmlElement element) : super.from(element);
 
   String get selectedName {
-    return PaperTab.from(property("focusedItem")).name;
+    return PaperTab.from(property('focusedItem')).name;
   }
 }
 
@@ -153,7 +153,7 @@ class PaperTab extends PolymerElement {
   }
 
   PaperTab.from(HtmlElement element) : super.from(element) {
-    name = attribute("name");
+    name = attribute('name');
   }
 }
 
