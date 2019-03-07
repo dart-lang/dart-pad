@@ -26,7 +26,7 @@ class DartCompleter extends CodeCompleter {
   Future<CompletionResult> complete(Editor editor,
       {bool onlyShowFixes = false}) {
     // Cancel any open completion request.
-    if (_lastCompleter != null) _lastCompleter.cancel(reason: "new request");
+    if (_lastCompleter != null) _lastCompleter.cancel(reason: 'new request');
 
     int offset = editor.document.indexFromPos(editor.document.cursor);
 
@@ -47,9 +47,9 @@ class DartCompleter extends CodeCompleter {
               return SourceEdit(edit.length, edit.offset, edit.replacement);
             }).toList();
 
-            completions.add(Completion("",
+            completions.add(Completion('',
                 displayString: fix.message,
-                type: "type-quick_fix",
+                type: 'type-quick_fix',
                 quickFixes: fixes));
           }
         }
@@ -92,7 +92,7 @@ class DartCompleter extends CodeCompleter {
 
               String text = completion.text;
 
-              if (completion.isMethod) text += "()";
+              if (completion.isMethod) text += '()';
 
               String deprecatedClass =
                   completion.isDeprecated ? ' deprecated' : '';
@@ -110,7 +110,7 @@ class DartCompleter extends CodeCompleter {
                 return Completion(text,
                     displayString: displayString,
                     type:
-                        "type-${completion.type.toLowerCase()}$deprecatedClass",
+                        'type-${completion.type.toLowerCase()}$deprecatedClass',
                     cursorOffset: cursorPos);
               }
             })
@@ -124,7 +124,7 @@ class DartCompleter extends CodeCompleter {
           for (Completion other in completions) {
             if (completion.isSetterAndMatchesGetter(other)) {
               filterCompletions.removeWhere((c) => completion == c);
-              other.type = "type-getter_and_setter";
+              other.type = 'type-getter_and_setter';
             }
           }
         }
@@ -174,13 +174,13 @@ class AnalysisCompletion implements Comparable {
         : false;
   }
 
-  String get parameters => isMethod ? _map['element']["parameters"] : null;
+  String get parameters => isMethod ? _map['element']['parameters'] : null;
 
   int get parameterCount => isMethod ? _map['parameterNames'].length : null;
 
   String get text {
     String str = _map['completion'];
-    if (str.startsWith("(") && str.endsWith(")")) {
+    if (str.startsWith('(') && str.endsWith(')')) {
       return str.substring(1, str.length - 1);
     } else {
       return str;

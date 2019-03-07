@@ -12,7 +12,7 @@ import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:haikunator/haikunator.dart';
 
 final String _dartpadLink =
-    "[dartpad.dartlang.org](https://dartpad.dartlang.org)";
+    '[dartpad.dartlang.org](https://dartpad.dartlang.org)';
 
 final RegExp _gistRegex = RegExp(r'^[0-9a-f]+$');
 
@@ -31,7 +31,7 @@ String extractHtmlBody(String html) {
   } else {
     var body = r'body(?:\s[^>]*)?'; // Body tag with its attributes
     var any = r'[\s\S]'; // Any character including new line
-    var bodyRegExp = RegExp("<$body>($any*)</$body>(?:(?!</$body>)$any)*",
+    var bodyRegExp = RegExp('<$body>($any*)</$body>(?:(?!</$body>)$any)*',
         multiLine: true, caseSensitive: false);
     var match = bodyRegExp.firstMatch(html);
     return match == null ? '' : match.group(1).trim();
@@ -188,7 +188,7 @@ $styleRef$dartRef  </head>
 class Gist {
   String id;
   String description;
-  String html_url;
+  String htmlUrl;
   String summary;
 
   bool public;
@@ -203,7 +203,7 @@ class Gist {
     id = map['id'];
     description = map['description'];
     public = map['public'];
-    html_url = map['html_url'];
+    htmlUrl = map['html_url'];
     summary = map['summary'];
     Map f = map['files'];
     files = f.keys.map((key) => GistFile.fromMap(key, f[key])).toList();
@@ -212,7 +212,7 @@ class Gist {
   dynamic operator [](String key) {
     if (key == 'id') return id;
     if (key == 'description') return description;
-    if (key == 'html_url') return html_url;
+    if (key == 'html_url') return htmlUrl;
     if (key == 'public') return public;
     if (key == 'summary') return summary;
     for (GistFile file in files) {
@@ -328,14 +328,14 @@ class GistSummary {
 }
 
 String _createReadmeContents({String title, String summary, String withLink}) {
-  String str = "# $title\n";
+  String str = '# $title\n';
 
   if (summary != null) {
-    str += "\n$summary\n";
+    str += '\n$summary\n';
   }
 
   if (withLink != null) {
-    str += "\nCreated with <3 with $withLink.\n";
+    str += '\nCreated with <3 with $withLink.\n';
   }
 
   return str;

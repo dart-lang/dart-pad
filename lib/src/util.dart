@@ -52,8 +52,8 @@ class CancellationException implements Exception {
 
   @override
   String toString() {
-    String result = "Request cancelled";
-    if (reason != null) result = "$result due to: $reason";
+    String result = 'Request cancelled';
+    if (reason != null) result = '$result due to: $reason';
     return result;
   }
 }
@@ -80,7 +80,7 @@ class CancellableCompleter<T> implements Completer {
   @override
   bool get isCompleted => _completer.isCompleted;
 
-  void cancel({String reason = "cancelled"}) {
+  void cancel({String reason = 'cancelled'}) {
     if (!_cancelled) {
       if (!isCompleted) completeError(CancellationException(reason));
       _cancelled = true;

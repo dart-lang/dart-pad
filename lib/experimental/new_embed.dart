@@ -126,13 +126,13 @@ String stringify(int x, int y) {
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
-      executionSvc.execute('', '', response.result);
-    }).catchError((e) {
-      // TODO(redbrogdon): Add logging and possibly output to UI.
-      print(e);
-    }).whenComplete(() {
-      executeButton.ready = true;
-    });
+          executionSvc.execute('', '', response.result);
+        })
+        // TODO(redbrogdon): Add logging and possibly output to UI.
+        .catchError(print)
+        .whenComplete(() {
+          executeButton.ready = true;
+        });
   }
 }
 

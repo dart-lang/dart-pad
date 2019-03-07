@@ -47,7 +47,7 @@ void init() {
 enum _FileType { dart, css, html }
 
 class PlaygroundMobile {
-  final String webURL = "https://dartpad.dartlang.org";
+  final String webURL = 'https://dartpad.dartlang.org';
 
   PaperFab _runButton;
   PaperIconButton _exportButton;
@@ -83,9 +83,7 @@ class PlaygroundMobile {
 
   PlaygroundMobile() {
     // Asynchronous processing to load UI faster in parallel
-    Timer.run(() {
-      _createUi();
-    });
+    Timer.run(_createUi);
     Timer.run(() {
       _initModules().then((_) => _initPlayground());
     });
@@ -159,14 +157,14 @@ class PlaygroundMobile {
   }
 
   void registerMessageDialog() {
-    if ($("#messageDialog") != null) {
-      _messageDialog = PaperDialog.from($("#messageDialog"));
+    if ($('#messageDialog') != null) {
+      _messageDialog = PaperDialog.from($('#messageDialog'));
     }
   }
 
   void registerResetDialog() {
-    if ($("#resetDialog") != null) {
-      _resetDialog = PaperDialog.from($("#resetDialog"));
+    if ($('#resetDialog') != null) {
+      _resetDialog = PaperDialog.from($('#resetDialog'));
     } else {
       _resetDialog = PaperDialog();
     }
@@ -188,15 +186,15 @@ class PlaygroundMobile {
       _docPanel.innerHtml =
           "<div class='default-text-div layout horizontal center-center'>"
           "<span class='default-text'>Documentation</span>"
-          "</div>";
+          '</div>';
     } else {
       _docPanel = DivElement();
     }
   }
 
   void registerSelectorTabs() {
-    if ($("#selector-tabs") != null) {
-      _tabs = PaperTabs.from($("#selector-tabs"));
+    if ($('#selector-tabs') != null) {
+      _tabs = PaperTabs.from($('#selector-tabs'));
       _tabs.ironSelect.listen((_) {
         String name = _tabs.selectedName;
         ga.sendEvent('edit', name);
@@ -206,13 +204,13 @@ class PlaygroundMobile {
   }
 
   void registerEditProgress() {
-    if ($("#run-progress") != null) {
-      _runProgress = PaperProgress.from($("#run-progress"));
+    if ($('#run-progress') != null) {
+      _runProgress = PaperProgress.from($('#run-progress'));
     }
   }
 
   void registerRunButton() {
-    _runButton = PaperFab.from($("#run-button"));
+    _runButton = PaperFab.from($('#run-button'));
     _runButton = _runButton != null ? _runButton : PaperFab();
     _runButton.clickAction(_handleRun);
   }
@@ -223,12 +221,12 @@ class PlaygroundMobile {
       _exportButton.clickAction(() {
         // Sharing is currently disabled pending establishing OAuth2 configurations with Github.
         //_exportDialog.open();
-        ga.sendEvent("embed", "export");
+        ga.sendEvent('embed', 'export');
 
         if (_gistId == null) {
-          window.open("/", "_export");
+          window.open('/', '_export');
         } else {
-          window.open("/$_gistId", "_export");
+          window.open('/$_gistId', '_export');
         }
       });
     }
@@ -239,7 +237,7 @@ class PlaygroundMobile {
       _resetButton = PaperIconButton.from($('[icon="refresh"]'));
       _resetButton.clickAction(() {
         _resetDialog.open();
-        ga.sendEvent("embed", "reset");
+        ga.sendEvent('embed', 'reset');
       });
     }
   }
@@ -248,7 +246,7 @@ class PlaygroundMobile {
     if ($('#cancelButton') != null) {
       _cancelButton = PaperIconButton.from($('#cancelButton'));
       _cancelButton.clickAction(() {
-        ga.sendEvent("embed", "resetCancel");
+        ga.sendEvent('embed', 'resetCancel');
       });
     }
   }
@@ -256,9 +254,7 @@ class PlaygroundMobile {
   void registerAffirmRefreshButton() {
     if ($('#affirmButton') != null) {
       _affirmButton = PaperIconButton.from($('#affirmButton'));
-      _affirmButton.clickAction(() {
-        _reset();
-      });
+      _affirmButton.clickAction(_reset);
     }
   }
 
@@ -266,7 +262,7 @@ class PlaygroundMobile {
     if ($('#cancelExportButton') != null) {
       _cancelButton = PaperIconButton.from($('#cancelExportButton'));
       _cancelButton.clickAction(() {
-        ga.sendEvent("embed", "exportCancel");
+        ga.sendEvent('embed', 'exportCancel');
       });
     }
   }
@@ -274,15 +270,13 @@ class PlaygroundMobile {
   void registerAffirmExportButton() {
     if ($('#affirmExportButton') != null) {
       _affirmButton = PaperIconButton.from($('#affirmExportButton'));
-      _affirmButton.clickAction(() {
-        _export();
-      });
+      _affirmButton.clickAction(_export);
     }
   }
 
   // Console must exist.
   void registerConsole() {
-    _output = PolymerElement.from($("#console"));
+    _output = PolymerElement.from($('#console'));
   }
 
   void _createUi() {
@@ -307,8 +301,8 @@ class PlaygroundMobile {
   }
 
   void _export() {
-    ga.sendEvent("embed", "exportAffirm");
-    WindowBase exportWindow = window.open("", 'Export');
+    ga.sendEvent('embed', 'exportAffirm');
+    WindowBase exportWindow = window.open('', 'Export');
     PadSaveObject exportObject = PadSaveObject()
       ..html = context.htmlSource
       ..css = context.cssSource
@@ -321,7 +315,7 @@ class PlaygroundMobile {
   }
 
   void _reset() {
-    ga.sendEvent("embed", "resetAffirm");
+    ga.sendEvent('embed', 'resetAffirm');
     _router = Router();
     _router
       ..root.addRoute(name: 'home', defaultRoute: true, enter: showHome)
@@ -346,9 +340,7 @@ class PlaygroundMobile {
 
       _clearErrors();
       // Analyze and run it.
-      Timer.run(() {
-        _performAnalysis();
-      });
+      Timer.run(_performAnalysis);
       Uri url = Uri.parse(window.location.toString());
       if (url.hasQuery && url.queryParameters['line'] != null) {
         _jumpToLine(int.parse(url.queryParameters['line']));
@@ -440,13 +432,13 @@ class PlaygroundMobile {
 
     keys.bind(['alt-enter', 'ctrl-1'], () {
       editor.showCompletions(onlyShowFixes: true);
-    }, "Quick fix");
+    }, 'Quick fix');
 
-    keys.bind(['ctrl-s'], _handleSave, "Save", hidden: true);
+    keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
 
     keys.bind(['ctrl-space', 'macctrl-space'], () {
       editor.showCompletions();
-    }, "Completion");
+    }, 'Completion');
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
@@ -491,10 +483,10 @@ class PlaygroundMobile {
       topPanel.style.height = '$percent%';
     }
     var disablePointerEvents = () {
-      if ($("#frame") != null) $("#frame").style.pointerEvents = "none";
+      if ($('#frame') != null) $('#frame').style.pointerEvents = 'none';
     };
     var enablePointerEvents = () {
-      if ($("#frame") != null) $("#frame").style.pointerEvents = "inherit";
+      if ($('#frame') != null) $('#frame').style.pointerEvents = 'inherit';
     };
     if ($('vertical-splitter') != null) {
       _syncToolbar();
@@ -523,7 +515,7 @@ class PlaygroundMobile {
       ..listen();
   }
 
-  final RegExp cssSymbolRegexp = RegExp(r"[A-Z]");
+  final RegExp cssSymbolRegexp = RegExp(r'[A-Z]');
 
   void _handleAutoCompletion(KeyboardEvent e) {
     if (context.focusedEditor == 'dart' && editor.hasFocus) {
@@ -533,11 +525,11 @@ class PlaygroundMobile {
     }
 
     if (!_isCompletionActive && editor.hasFocus) {
-      if (context.focusedEditor == "html") {
-        if (printKeyEvent(e) == "shift-,") {
+      if (context.focusedEditor == 'html') {
+        if (printKeyEvent(e) == 'shift-,') {
           editor.showCompletions(autoInvoked: true);
         }
-      } else if (context.focusedEditor == "css") {
+      } else if (context.focusedEditor == 'css') {
         if (cssSymbolRegexp.hasMatch(String.fromCharCode(e.keyCode))) {
           editor.showCompletions(autoInvoked: true);
         }
@@ -674,7 +666,7 @@ class PlaygroundMobile {
     _output.element.innerHtml =
         "<div class='consoleTitle default-text-div layout horizontal center-center'>"
         "<span class='default-text'>Console output</span>"
-        "</div>";
+        '</div>';
   }
 
   void _showOutput(String message, {bool error = false}) {
@@ -708,7 +700,7 @@ class PlaygroundMobile {
   }
 
   void _setLastRunCondition() {
-    _lastRun = Map<_FileType, String>();
+    _lastRun = <_FileType, String>{};
     _lastRun[_FileType.dart] = context.dartSource;
     _lastRun[_FileType.html] = context.htmlSource;
     _lastRun[_FileType.css] = context.cssSource;
@@ -754,12 +746,12 @@ class PlaygroundMobile {
         messageSpan.text = issue.message;
         error.children.add(messageSpan);
         if (issue.hasFixes) {
-          error.classes.add("hasFix");
+          error.classes.add('hasFix');
           error.onClick.listen((e) {
             // This is a bit of a hack to make sure quick fixes popup
             // is only shown if the wrench is clicked,
             // and not if the text or label is clicked.
-            if ((e.target as Element).className == "issue hasFix") {
+            if ((e.target as Element).className == 'issue hasFix') {
               // codemiror only shows completions if there is no selected text
               _jumpTo(issue.line, issue.charStart, 0, focus: true);
               editor.showCompletions(onlyShowFixes: true);

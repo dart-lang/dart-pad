@@ -35,7 +35,7 @@ class DocHandler {
 
   void generateDocWithText(DivElement docPanel) {
     if (_context.focusedEditor != 'dart') {
-      docPanel.innerHtml = "Documentation";
+      docPanel.innerHtml = 'Documentation';
       return;
     }
     if (!_editor.hasFocus || _editor.document.selection.isNotEmpty) {
@@ -61,18 +61,18 @@ class DocHandler {
         .timeout(serviceCallTimeout)
         .then((DocumentResponse result) {
       return _getHtmlTextFor(result).then((_DocResult docResult) {
-        if (docResult.html == "") {
+        if (docResult.html == '') {
           docPanel.innerHtml =
               "<div class='default-text-div layout horizontal center-center'>"
               "<span class='default-text'>Documentation</span></div>";
           return;
         }
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-        for (final a in docPanel.querySelectorAll("a")) {
-          if (a is AnchorElement) a.target = "docs";
+        for (final a in docPanel.querySelectorAll('a')) {
+          if (a is AnchorElement) a.target = 'docs';
         }
-        for (final h in docPanel.querySelectorAll("h1")) {
-          h.classes.add("type-${docResult.entitykind}");
+        for (final h in docPanel.querySelectorAll('h1')) {
+          h.classes.add('type-${docResult.entitykind}');
         }
       });
     });
@@ -80,7 +80,7 @@ class DocHandler {
 
   void generateDoc(DivElement docPanel) {
     if (_context.focusedEditor != 'dart') {
-      docPanel.innerHtml = "";
+      docPanel.innerHtml = '';
       return;
     }
     if (!_editor.hasFocus || _editor.document.selection.isNotEmpty) {
@@ -107,20 +107,20 @@ class DocHandler {
         .then((DocumentResponse result) {
       return _getHtmlTextFor(result).then((_DocResult docResult) {
         docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-        for (final a in docPanel.querySelectorAll("a")) {
-          if (a is AnchorElement) a.target = "docs";
+        for (final a in docPanel.querySelectorAll('a')) {
+          if (a is AnchorElement) a.target = 'docs';
         }
-        for (final h in docPanel.querySelectorAll("h1")) {
-          h.classes.add("type-${docResult.entitykind}");
+        for (final h in docPanel.querySelectorAll('h1')) {
+          h.classes.add('type-${docResult.entitykind}');
         }
       });
     });
   }
 
   String _sourceWithCompletionInserted(String source, int offset) {
-    String completionText = querySelector(".CodeMirror-hint-active").text;
-    int lastSpace = source.substring(0, offset).lastIndexOf(" ") + 1;
-    int lastDot = source.substring(0, offset).lastIndexOf(".") + 1;
+    String completionText = querySelector('.CodeMirror-hint-active').text;
+    int lastSpace = source.substring(0, offset).lastIndexOf(' ') + 1;
+    int lastDot = source.substring(0, offset).lastIndexOf('.') + 1;
     int insertOffset = math.max(lastSpace, lastDot);
     return _context.dartSource.substring(0, insertOffset) +
         completionText +
@@ -131,7 +131,7 @@ class DocHandler {
     Map info = result.info;
 
     if (info['description'] == null && info['dartdoc'] == null) {
-      return Future.value(_DocResult(""));
+      return Future.value(_DocResult(''));
     }
 
     String libraryName = info['libraryName'];
@@ -163,7 +163,7 @@ ${libraryName == null ? '' : apiLink}\n\n''';
           inlineSyntaxes: [InlineBracketsColon(), InlineBrackets()]);
 
       // Append a 'launch' icon to the 'Open library docs' link.
-      _htmlDocs = _htmlDocs.replaceAll("library docs</a>",
+      _htmlDocs = _htmlDocs.replaceAll('library docs</a>',
           "library docs <span class='launch-icon'></span></a>");
 
       return _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
@@ -188,10 +188,10 @@ ${libraryName == null ? '' : apiLink}\n\n''';
 /// Returns the markdown url link for the MDN documentation for the given DOM
 /// element name, or `null` if no documentation URL for that element exits.
 Future<String> createMdnMarkdownLink(String domName) {
-  final String baseUrl = "https://developer.mozilla.org/en-US/docs/Web/API/";
+  final String baseUrl = 'https://developer.mozilla.org/en-US/docs/Web/API/';
 
   String domClassName =
-      domName.contains(".") ? domName.substring(0, domName.indexOf(".")) : null;
+      domName.contains('.') ? domName.substring(0, domName.indexOf('.')) : null;
 
   return _urlExists('$baseUrl$domName').then((bool exists) {
     if (exists) return '[$domName]($baseUrl$domName)';
@@ -249,7 +249,7 @@ class InlineBrackets extends markdown.InlineSyntax {
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
     var element =
-        markdown.Element.text('code', "<em>${htmlEscape(match[1])}</em>");
+        markdown.Element.text('code', '<em>${htmlEscape(match[1])}</em>');
     parser.addNode(element);
     return true;
   }
