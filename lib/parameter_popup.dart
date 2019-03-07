@@ -31,8 +31,8 @@ class ParameterPopup {
   final HtmlEscape sanitizer = const HtmlEscape();
 
   ParameterPopup(this.context, this.editor) {
-    document.onKeyDown.listen((e) => _handleKeyDown(e));
-    document.onKeyUp.listen((e) => _handleKeyUp(e));
+    document.onKeyDown.listen(_handleKeyDown);
+    document.onKeyUp.listen(_handleKeyUp);
     document.onClick.listen((e) => _handleClick());
     editor.onMouseDown.listen((e) => _handleClick());
   }
