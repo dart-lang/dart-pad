@@ -230,7 +230,7 @@ class SharingDialog extends DDialog {
       MutableGist gist = gistContainer.mutableGist;
       content.add(_div);
       _padUrl.value = 'https://dartpad.dartlang.org/${gist.id}';
-      _gistUrl.value = gist.html_url;
+      _gistUrl.value = gist.htmlUrl;
       _embedHtmlRadio.checked = false;
       _embedDartRadio.checked = true;
       _embedToDart();

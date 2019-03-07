@@ -188,7 +188,7 @@ ${styleRef}${dartRef}  </head>
 class Gist {
   String id;
   String description;
-  String html_url;
+  String htmlUrl;
   String summary;
 
   bool public;
@@ -203,7 +203,7 @@ class Gist {
     id = map['id'];
     description = map['description'];
     public = map['public'];
-    html_url = map['html_url'];
+    htmlUrl = map['html_url'];
     summary = map['summary'];
     Map f = map['files'];
     files = f.keys.map((key) => GistFile.fromMap(key, f[key])).toList();
@@ -212,7 +212,7 @@ class Gist {
   dynamic operator [](String key) {
     if (key == 'id') return id;
     if (key == 'description') return description;
-    if (key == 'html_url') return html_url;
+    if (key == 'html_url') return htmlUrl;
     if (key == 'public') return public;
     if (key == 'summary') return summary;
     for (GistFile file in files) {
