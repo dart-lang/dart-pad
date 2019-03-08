@@ -23,7 +23,7 @@ linter:
   - avoid_types_as_parameter_names
   - avoid_unused_constructor_parameters
   - await_only_futures
-  #- camel_case_types
+  - camel_case_types
   - cancel_subscriptions
   #- comment_references
   - constant_identifier_names
