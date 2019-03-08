@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:html' hide Document;
 
+import 'package:dart_pad/sharing/gists.dart';
+
 import '../core/dependencies.dart';
 import '../core/modules.dart';
 import '../editing/editor.dart';
@@ -66,10 +68,6 @@ class NewEmbed {
       querySelector('#test-view'),
     );
 
-    // These two will ultimately be loaded from GitHub.
-    testTabView.testMethod = initialTest;
-    editorTextArea.value = initialCode;
-
     executionSvc = ExecutionServiceIFrame(querySelector('#frame'));
     executionSvc.onStderr.listen((err) => consoleTabView.appendError(err));
     executionSvc.onStdout.listen((msg) => consoleTabView.appendMessage(msg));
@@ -90,32 +88,26 @@ class NewEmbed {
   }
 
   void _initNewEmbed() {
+    deps[GistLoader] = GistLoader.defaultFilters();
+
     context = NewEmbedContext(
         NewEmbedEditorFactory().createFromElement(editorTextArea), testTabView);
+
+    Uri url = Uri.parse(window.location.toString());
+
+    if (url.hasQuery &&
+        url.queryParameters['id'] != null &&
+        isLegalGistId(url.queryParameters['id'])) {
+      _loadAndShowGist(url.queryParameters['id']);
+    }
   }
 
-  // TODO(RedBrogdon): Remove when gist-loading is integrated.
-  final initialTest = '''
-void main() {
-  final str = stringify(2, 3); 
-  if (str == '2 3') {
-    _result(true, 'Test passed. Great job!');
-  } else if (str == '23') {
-    _result(false, 'Test failed. It looks like you forgot the space!');
-  } else if (str == null) {
-    _result(false, 'Test failed. Did you forget to return a value?');
-  } else {
-    _result(false, 'That\\'s not quite right. Keep trying!');
+  Future<void> _loadAndShowGist(String id) async {
+    final GistLoader loader = deps[GistLoader];
+    final gist = await loader.loadGist(id);
+    context.dartSource = gist.getFile('main.dart')?.content ?? '';
+    context.testMethod = gist.getFile('test.dart')?.content ?? '';
   }
-}
-''';
-
-  // TODO(RedBrogdon): Remove when gist-loading is integrated.
-  final initialCode = '''
-String stringify(int x, int y) {
-  // Return a formatted string here
-}
-''';
 
   void _handleExecute() {
     executeButton.ready = false;
@@ -286,6 +278,10 @@ class NewEmbedContext {
 
   String get testMethod => testView.testMethod;
 
+  set testMethod(String value) {
+    testView.testMethod = value;
+  }
+
   final _dartDirtyController = StreamController.broadcast();
 
   final _dartReconcileController = StreamController.broadcast();
@@ -301,7 +297,7 @@ class NewEmbedContext {
   String get dartSource => _dartDoc.value;
 
   set dartSource(String value) {
-    _dartDoc.value = value;
+    editor.setContent(value);
   }
 
   String get activeMode => editor.mode;

@@ -34,6 +34,13 @@ class NewEmbedEditor extends Editor {
   @override
   Document get document => _document;
 
+  // TODO(brettmorgan): This is a temporary means to set the textarea contents
+  // and needs to be removed during the CodeMirror integration.
+  void setContent(String content) {
+    textarea.value = content;
+    _document.updateValue(content);
+  }
+
   @override
   Document createDocument({String content, String mode}) {
     return NewEmbedDocument(this, content);
