@@ -128,7 +128,7 @@ class GaeServer {
       });
     } else {
       request.response
-        ..statusCode = io.HttpStatus.internalServerError
+        ..statusCode = io.HttpStatus.notFound
         ..close();
     }
   }
