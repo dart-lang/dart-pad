@@ -131,7 +131,7 @@ class Annotation implements Comparable<Annotation> {
   }
 
   @override
-  String toString() => '${type}, line ${line}: ${message}';
+  String toString() => '$type, line $line: $message';
 }
 
 class Position {
@@ -141,7 +141,7 @@ class Position {
   Position(this.line, this.char);
 
   @override
-  String toString() => '[${line},${char}]';
+  String toString() => '[$line,$char]';
 }
 
 abstract class CodeCompleter {
@@ -183,7 +183,7 @@ class Completion {
 
   bool isSetterAndMatchesGetter(Completion other) =>
       displayString == other.displayString &&
-      (type == "type-getter" && other.type == "type-setter");
+      (type == 'type-getter' && other.type == 'type-setter');
 }
 
 class SourceEdit {
