@@ -70,7 +70,7 @@ packages:
       name: build_cli_annotations
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "1.1.0"
   build_config:
     dependency: transitive
     description:
@@ -168,7 +168,7 @@ packages:
       name: codemirror
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.2+5.44.0"
+    version: "0.5.3+5.44.0"
   collection:
     dependency: "direct dev"
     description:
