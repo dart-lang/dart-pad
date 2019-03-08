@@ -147,4 +147,3 @@ linter:
     - use_to_and_as_if_applicable
     - valid_regexps
     - void_checks
-    
