@@ -105,9 +105,8 @@ class NewEmbed {
   Future<void> _loadAndShowGist(String id) async {
     final GistLoader loader = deps[GistLoader];
     final gist = await loader.loadGist(id);
-    print(gist.getFile('main.dart')?.content);
-    context.dartSource = gist.getFile('main.dart')?.content;
-    context.testMethod = gist.getFile('test.dart')?.content;
+    context.dartSource = gist.getFile('main.dart')?.content ?? '';
+    context.testMethod = gist.getFile('test.dart')?.content ?? '';
   }
 
   void _handleExecute() {
