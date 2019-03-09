@@ -37,11 +37,13 @@ BSD-style license that can be found in the LICENSE file. -->
 
 <body class="d-flex flex-column">
 
-<nav class="UnderlineNav px-2">
+<nav class="UnderlineNav p-2">
     <div class="UnderlineNav-body">
-        <a id="editor-tab" href="#" class="UnderlineNav-item selected" selected>Your code</a>
-        <a id="test-tab" href="#" class="UnderlineNav-item">Test</a>
-        <a id="console-tab" href="#" class="UnderlineNav-item">Console</a>
+        <div class="BtnGroup mr-2">
+            <button id="editor-tab" class="btn BtnGroup-item selected" selected type="button">Your code</button>
+            <button id="test-tab" class="btn BtnGroup-item" type="button">Test</button>
+            <button id="console-tab" class="btn BtnGroup-item" type="button">Console</button>
+        </div>
     </div>
     <div class="UnderlineNav-actions">
         <div id="test-result" class="tabnav-extra pr-3"></div>
