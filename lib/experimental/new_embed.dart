@@ -66,7 +66,7 @@ class NewEmbed {
     // the case going forward, hence the separate parameters.
     testTabView = TestTabView(
       DElement(querySelector('#test-view')),
-      querySelector('#test-view'),
+      editorFactory,
     );
 
     executionSvc = ExecutionServiceIFrame(querySelector('#frame'));
@@ -206,14 +206,25 @@ class ConsoleTabView extends TabView {
 }
 
 class TestTabView extends TabView {
-  final TextAreaElement testEditor;
+  final Editor _testEditor;
 
-  const TestTabView(DElement element, this.testEditor) : super(element);
+  TestTabView(DElement element, EditorFactory editorFactory)
+      : _testEditor = editorFactory.createFromElement(element.element),
+        super(element);
 
-  String get testMethod => testEditor.value;
+  String get testMethod => _testEditor.document.value;
 
   set testMethod(String v) {
-    testEditor.value = v;
+    _testEditor.document.value = v;
+    Timer(const Duration(seconds: 0), _testEditor.resize);
+  }
+
+  @override
+  void setSelected(bool selected) {
+    super.setSelected(selected);
+    if(selected) {
+      Timer(const Duration(seconds: 0), _testEditor.resize);
+    }
   }
 }
 
