@@ -239,6 +239,14 @@ class _CodeMirrorEditor extends Editor {
   void resize() => cm.refresh();
 
   @override
+  bool get readOnly => cm.getReadOnly();
+
+  @override
+  set readOnly(bool ro) {
+    cm.setReadOnly(ro);
+  }
+
+  @override
   void swapDocument(Document document) {
     _document = document;
     cm.swapDoc(_document.doc);

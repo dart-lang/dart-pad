@@ -166,6 +166,7 @@ class EditorTabView extends TabView {
         super(element) {
     // Make sure the theme's css is included in /web/experimental/embed-new.html
     _editor.theme = 'elegant';
+    _editor.mode = 'dart';
   }
 
   final Editor _editor;
@@ -181,6 +182,14 @@ class EditorTabView extends TabView {
   String get mode => _editor.mode;
 
   void focus() => _editor.focus();
+
+  @override
+  void setSelected(bool selected) {
+    super.setSelected(selected);
+    if (selected) {
+      Timer(const Duration(seconds: 0), _editor.resize);
+    }
+  }
 }
 
 class ConsoleTabView extends TabView {
@@ -205,26 +214,17 @@ class ConsoleTabView extends TabView {
   }
 }
 
-class TestTabView extends TabView {
-  final Editor _testEditor;
-
+class TestTabView extends EditorTabView {
   TestTabView(DElement element, EditorFactory editorFactory)
-      : _testEditor = editorFactory.createFromElement(element.element),
-        super(element);
+      : super(element, editorFactory) {
+        // Tests probably shouldn't change...
+        _editor.readOnly = true;
+      }
 
-  String get testMethod => _testEditor.document.value;
+  String get testMethod => content;
 
   set testMethod(String v) {
-    _testEditor.document.value = v;
-    Timer(const Duration(seconds: 0), _testEditor.resize);
-  }
-
-  @override
-  void setSelected(bool selected) {
-    super.setSelected(selected);
-    if(selected) {
-      Timer(const Duration(seconds: 0), _testEditor.resize);
-    }
+    content = v;
   }
 }
 

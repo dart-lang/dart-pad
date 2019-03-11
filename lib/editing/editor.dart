@@ -59,6 +59,10 @@ abstract class Editor {
 
   void focus();
 
+  bool get readOnly;
+
+  set readOnly(bool ro);
+
   void swapDocument(Document document);
 
   /// Let the `Editor` instance know that it will no longer be used.
