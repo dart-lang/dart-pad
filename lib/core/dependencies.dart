@@ -61,7 +61,7 @@ class Dependencies {
     }
 
     Dependencies parent = _calcParent(Zone.current);
-    return parent != null ? parent.getDependency(type) : null;
+    return parent?.getDependency(type);
   }
 
   void setDependency(Type type, dynamic instance) {
