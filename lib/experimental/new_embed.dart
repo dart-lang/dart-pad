@@ -221,11 +221,6 @@ class TestTabView extends EditorTabView {
         _editor.readOnly = true;
       }
 
-  String get testMethod => content;
-
-  set testMethod(String v) {
-    content = v;
-  }
 }
 
 /// A line of text next to the [ExecuteButton] that reports test result messages
@@ -306,10 +301,10 @@ class NewEmbedContext {
 
   Document _dartDoc;
 
-  String get testMethod => testView.testMethod;
+  String get testMethod => testView.content;
 
   set testMethod(String value) {
-    testView.testMethod = value;
+    testView.content = value;
   }
 
   final _dartDirtyController = StreamController.broadcast();
