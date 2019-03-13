@@ -59,9 +59,11 @@ abstract class Editor {
 
   void focus();
 
-  bool get readOnly;
+  /// Whether to show line numbers to the left of the editor.
+  bool showLineNumbers;
 
-  set readOnly(bool ro);
+  /// Whether the editor is in read only mode.
+  bool readOnly;
 
   void swapDocument(Document document);
 
