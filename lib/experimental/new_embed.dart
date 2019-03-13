@@ -167,7 +167,7 @@ class EditorTabView extends TabView {
     // Make sure the theme's css is included in /web/experimental/embed-new.html
     _editor.theme = 'elegant';
     _editor.mode = 'dart';
-    _editor.lineNumbers = true;
+    _editor.showLineNumbers = true;
   }
 
   final Editor _editor;

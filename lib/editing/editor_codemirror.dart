@@ -245,10 +245,10 @@ class _CodeMirrorEditor extends Editor {
   set readOnly(bool ro) => cm.setReadOnly(ro);
 
   @override
-  bool get lineNumbers => cm.getLineNumbers();
+  bool get showLineNumbers => cm.getLineNumbers();
 
   @override
-  set lineNumbers(bool ln) => cm.setLineNumbers(ln);
+  set showLineNumbers(bool ln) => cm.setLineNumbers(ln);
 
   @override
   void swapDocument(Document document) {

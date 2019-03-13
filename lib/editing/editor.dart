@@ -60,7 +60,7 @@ abstract class Editor {
   void focus();
 
   /// Whether to show line numbers to the left of the editor.
-  bool lineNumbers;
+  bool showLineNumbers;
 
   /// Whether the editor is in read only mode.
   bool readOnly;
