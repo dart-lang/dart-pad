@@ -66,7 +66,7 @@ class NewEmbed {
     // the case going forward, hence the separate parameters.
     testTabView = TestTabView(
       DElement(querySelector('#test-view')),
-      querySelector('#test-view'),
+      editorFactory,
     );
 
     executionSvc = ExecutionServiceIFrame(querySelector('#frame'));
@@ -166,6 +166,7 @@ class EditorTabView extends TabView {
         super(element) {
     // Make sure the theme's css is included in /web/experimental/embed-new.html
     _editor.theme = 'elegant';
+    _editor.mode = 'dart';
   }
 
   final Editor _editor;
@@ -181,6 +182,14 @@ class EditorTabView extends TabView {
   String get mode => _editor.mode;
 
   void focus() => _editor.focus();
+
+  @override
+  void setSelected(bool selected) {
+    super.setSelected(selected);
+    if (selected) {
+      Timer(const Duration(seconds: 0), _editor.resize);
+    }
+  }
 }
 
 class ConsoleTabView extends TabView {
@@ -205,16 +214,13 @@ class ConsoleTabView extends TabView {
   }
 }
 
-class TestTabView extends TabView {
-  final TextAreaElement testEditor;
+class TestTabView extends EditorTabView {
+  TestTabView(DElement element, EditorFactory editorFactory)
+      : super(element, editorFactory) {
+        // Tests probably shouldn't change...
+        _editor.readOnly = true;
+      }
 
-  const TestTabView(DElement element, this.testEditor) : super(element);
-
-  String get testMethod => testEditor.value;
-
-  set testMethod(String v) {
-    testEditor.value = v;
-  }
 }
 
 /// A line of text next to the [ExecuteButton] that reports test result messages
@@ -295,10 +301,10 @@ class NewEmbedContext {
 
   Document _dartDoc;
 
-  String get testMethod => testView.testMethod;
+  String get testMethod => testView.content;
 
   set testMethod(String value) {
-    testView.testMethod = value;
+    testView.content = value;
   }
 
   final _dartDirtyController = StreamController.broadcast();
