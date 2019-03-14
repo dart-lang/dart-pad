@@ -41,10 +41,11 @@ class Compiler {
 
   /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(String input,
-      {bool useCheckedMode = true, bool returnSourceMap = false}) async {
+      {bool returnSourceMap = false}) async {
     if (!importsOkForCompile(input)) {
-      var failedResults = CompilationResults();
-      failedResults.problems.add(CompilationProblem._(BAD_IMPORT_ERROR_MSG));
+      CompilationResults failedResults = CompilationResults('', problems: [
+        CompilationProblem._(BAD_IMPORT_ERROR_MSG),
+      ]);
       return Future.value(failedResults);
     }
 
@@ -55,7 +56,6 @@ class Compiler {
         '--suppress-hints',
         '--terse',
       ];
-      if (useCheckedMode) arguments.add('--enable-asserts');
       if (!returnSourceMap) arguments.add('--no-source-maps');
 
       arguments.add('-o${kMainDart}.js');
@@ -75,15 +75,19 @@ class Compiler {
           Process.runSync(dart2JSPath, arguments, workingDirectory: temp.path);
 
       if (result.exitCode != 0) {
-        CompilationResults results = CompilationResults();
-        results._problems.add(CompilationProblem._(result.stdout));
+        final CompilationResults results = CompilationResults('', problems: [
+          CompilationProblem._(result.stdout),
+        ]);
         return results;
       } else {
-        CompilationResults results = CompilationResults();
-        results._compiledJS.write(mainJs.readAsStringSync());
+        String sourceMap;
         if (returnSourceMap && mainSourceMap.existsSync()) {
-          results._sourceMap.write(mainSourceMap.readAsStringSync());
+          sourceMap = mainSourceMap.readAsStringSync();
         }
+        final CompilationResults results = CompilationResults(
+          mainJs.readAsStringSync(),
+          sourceMap: sourceMap,
+        );
         return results;
       }
     } catch (e, st) {
@@ -98,22 +102,38 @@ class Compiler {
 
 /// The result of a dart2js compile.
 class CompilationResults {
-  final StringBuffer _compiledJS = StringBuffer();
-  final StringBuffer _sourceMap = StringBuffer();
-  final List<CompilationProblem> _problems = [];
+  final String compiledJS;
+  final String sourceMap;
+  final List<CompilationProblem> problems;
 
-  CompilationResults();
+  CompilationResults(
+    this.compiledJS, {
+    this.problems = const [],
+    this.sourceMap,
+  });
 
-  bool get hasOutput => _compiledJS.isNotEmpty;
-
-  String getOutput() => _compiledJS.toString();
-
-  String getSourceMap() => _sourceMap.toString();
-
-  List<CompilationProblem> get problems => _problems;
+  bool get hasOutput => compiledJS.isNotEmpty;
 
   /// This is true if there were no errors.
-  bool get success => _problems.isEmpty;
+  bool get success => problems.isEmpty;
+}
+
+// todo: support multi
+
+/// The result of a DDC compile.
+class DraftCompilationResults {
+  final String compiledJS;
+  final List<CompilationProblem> problems;
+
+  DraftCompilationResults(
+    this.compiledJS, {
+    this.problems = const [],
+  });
+
+  bool get hasOutput => compiledJS.isNotEmpty;
+
+  /// This is true if there were no errors.
+  bool get success => problems.isEmpty;
 }
 
 /// An issue associated with [CompilationResults].

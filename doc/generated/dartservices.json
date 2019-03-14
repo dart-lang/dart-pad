@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "8409030dfd68aba3d66fe912fea8f7a7e8fd5f2a",
+ "etag": "e7bd82adc33b47356475f8de3a60bca8d4a66a1c",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -134,10 +134,6 @@
      "type": "string",
      "description": "The Dart source.",
      "required": true
-    },
-    "useCheckedMode": {
-     "type": "boolean",
-     "description": "Ignored. (server always assumes checked mode/asserts enabled)"
     },
     "returnSourceMap": {
      "type": "boolean",

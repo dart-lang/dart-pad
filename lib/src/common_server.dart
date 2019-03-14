@@ -60,6 +60,7 @@ class RedisCache implements ServerCache {
 
   // Version of the server to add with keys.
   final String serverVersion;
+
   // pseudo-random is good enough.
   final Random randomSource = Random();
   static const int _connectionRetryBaseMs = 250;
@@ -71,17 +72,21 @@ class RedisCache implements ServerCache {
   }
 
   var _connected = Completer<void>();
+
   /// Completes when and if the redis server connects.  This future is reset
   /// on disconnection.  Mostly for testing.
   Future get connected => _connected.future;
 
   var _disconnected = Completer<void>()..complete();
+
   /// Completes when the server is disconnected (begins completed).  This
   /// future is reset on connection.  Mostly for testing.
   Future get disconnected => _disconnected.future;
 
   String __logPrefix;
-  String get _logPrefix => __logPrefix ??= 'RedisCache [${redisUriString}] (${serverVersion})';
+
+  String get _logPrefix =>
+      __logPrefix ??= 'RedisCache [${redisUriString}] (${serverVersion})';
 
   bool _isConnected() => redisClient != null && !_isShutdown;
   bool _isShutdown = false;
@@ -117,7 +122,7 @@ class RedisCache implements ServerCache {
 
   /// Begin a reconnection loop asynchronously to maintain a connection to the
   /// redis server.  Never stops trying until shutdown() is called.
-  void _reconnect([int retryTimeoutMs = _connectionRetryBaseMs])  {
+  void _reconnect([int retryTimeoutMs = _connectionRetryBaseMs]) {
     if (_isShutdown) {
       return;
     }
@@ -127,25 +132,30 @@ class RedisCache implements ServerCache {
       // 1 <= (randomSource.nextDouble() + 1) < 2
       nextRetryMs = (retryTimeoutMs * (randomSource.nextDouble() + 1)).toInt();
     }
-    redis.Connection.connect(redisUriString).then((redis.Connection newConnection) {
-      log.info('${_logPrefix}: Connected to redis server');
-      _setUpConnection(newConnection);
-      // If the client disconnects, discard the client and try to connect again.
-      newConnection.done.then((_) {
-        _resetConnection();
-        log.warning('${_logPrefix}: connection terminated, reconnecting');
-        _reconnect();
-      }).catchError((e) {
-        _resetConnection();
-        log.warning('${_logPrefix}: connection terminated with error ${e}, reconnecting');
-        _reconnect();
-      });
-    }).timeout(Duration(milliseconds: _connectionRetryMaxMs)).catchError((_) {
-      log.severe('${_logPrefix}: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...');
-      Future.delayed(Duration(milliseconds: nextRetryMs)).then((_) {
-        _reconnect(nextRetryMs);
-      });
-    });
+    redis.Connection.connect(redisUriString)
+        .then((redis.Connection newConnection) {
+          log.info('${_logPrefix}: Connected to redis server');
+          _setUpConnection(newConnection);
+          // If the client disconnects, discard the client and try to connect again.
+          newConnection.done.then((_) {
+            _resetConnection();
+            log.warning('${_logPrefix}: connection terminated, reconnecting');
+            _reconnect();
+          }).catchError((e) {
+            _resetConnection();
+            log.warning(
+                '${_logPrefix}: connection terminated with error ${e}, reconnecting');
+            _reconnect();
+          });
+        })
+        .timeout(Duration(milliseconds: _connectionRetryMaxMs))
+        .catchError((_) {
+          log.severe(
+              '${_logPrefix}: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...');
+          Future.delayed(Duration(milliseconds: nextRetryMs)).then((_) {
+            _reconnect(nextRetryMs);
+          });
+        });
   }
 
   /// Build a key that includes the server version.
@@ -164,12 +174,14 @@ class RedisCache implements ServerCache {
       final commands = redisClient.asCommands<String, String>();
       // commands can return errors synchronously in timeout cases.
       try {
-        value = await commands.get(key).timeout(cacheOperationTimeout, onTimeout: () {
+        value = await commands.get(key).timeout(cacheOperationTimeout,
+            onTimeout: () {
           log.warning('${_logPrefix}: timeout on get operation for key ${key}');
           redisClient?.disconnect();
         });
       } catch (e) {
-        log.warning('${_logPrefix}: error on get operation for key ${key}: ${e}');
+        log.warning(
+            '${_logPrefix}: error on get operation for key ${key}: ${e}');
       }
     }
     return value;
@@ -186,12 +198,15 @@ class RedisCache implements ServerCache {
     final commands = redisClient.asCommands<String, String>();
     // commands can sometimes return errors synchronously in timeout cases.
     try {
-      return commands.del(key: key).timeout(cacheOperationTimeout, onTimeout: () {
-        log.warning('${_logPrefix}: timeout on remove operation for key ${key}');
+      return commands.del(key: key).timeout(cacheOperationTimeout,
+          onTimeout: () {
+        log.warning(
+            '${_logPrefix}: timeout on remove operation for key ${key}');
         redisClient?.disconnect();
       });
     } catch (e) {
-      log.warning('${_logPrefix}: error on remove operation for key ${key}: ${e}');
+      log.warning(
+          '${_logPrefix}: error on remove operation for key ${key}: ${e}');
     }
   }
 
@@ -291,7 +306,8 @@ class CommonServer {
   }
 
   Future shutdown() {
-    return Future.wait([analysisServer.shutdown(), Future.sync(cache.shutdown)]);
+    return Future.wait(
+        [analysisServer.shutdown(), Future.sync(cache.shutdown)]);
   }
 
   @ApiMethod(
@@ -338,10 +354,10 @@ class CommonServer {
       path: 'compile',
       description: 'Compile the given Dart source code and return the '
           'resulting JavaScript.')
-  Future<CompileResponse> compile(CompileRequest request) =>
-      _compile(request.source,
-          useCheckedMode: true,
-          returnSourceMap: request.returnSourceMap ?? false);
+  Future<CompileResponse> compile(CompileRequest request) {
+    return _compile(request.source,
+        returnSourceMap: request.returnSourceMap ?? false);
+  }
 
   @ApiMethod(method: 'GET', path: 'compile')
   @deprecated
@@ -516,8 +532,10 @@ class CommonServer {
     }
   }
 
-  Future<CompileResponse> _compile(String source,
-      {bool useCheckedMode = true, bool returnSourceMap = false}) async {
+  Future<CompileResponse> _compile(
+    String source, {
+    bool returnSourceMap = false,
+  }) async {
     if (source == null) {
       throw BadRequestError('Missing parameter: \'source\'');
     }
@@ -529,9 +547,8 @@ class CommonServer {
     bool suppressCache = trimSrc.endsWith("/** Supress-Memcache **/") ||
         trimSrc.endsWith("/** Suppress-Memcache **/");
 
-    String memCacheKey = "%%COMPILE:v0:useCheckedMode:$useCheckedMode"
-        "returnSourceMap:$returnSourceMap:"
-        "source:$sourceHash";
+    String memCacheKey = "%%COMPILE:v0"
+        ":returnSourceMap:$returnSourceMap:source:$sourceHash";
 
     return checkCache(memCacheKey).then((dynamic result) {
       if (!suppressCache && result != null) {
@@ -544,18 +561,16 @@ class CommonServer {
         Stopwatch watch = Stopwatch()..start();
 
         return compiler
-            .compile(source,
-                useCheckedMode: useCheckedMode,
-                returnSourceMap: returnSourceMap)
+            .compile(source, returnSourceMap: returnSourceMap)
             .then((CompilationResults results) async {
           if (results.hasOutput) {
             int lineCount = source.split('\n').length;
-            int outputSize = (results.getOutput().length + 512) ~/ 1024;
+            int outputSize = (results.compiledJS.length + 512) ~/ 1024;
             int ms = watch.elapsedMilliseconds;
             log.info('PERF: Compiled ${lineCount} lines of Dart into '
                 '${outputSize}kb of JavaScript in ${ms}ms.');
-            String out = results.getOutput();
-            String sourceMap = returnSourceMap ? results.getSourceMap() : null;
+            String out = results.compiledJS;
+            String sourceMap = returnSourceMap ? results.sourceMap : null;
 
             String cachedResult =
                 JsonEncoder().convert({"output": out, "sourceMap": sourceMap});

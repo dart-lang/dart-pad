@@ -90,12 +90,6 @@ class CompileRequest {
 
   @ApiProperty(
       description:
-          'Ignored. (server always assumes checked mode/asserts enabled)')
-  @deprecated
-  bool useCheckedMode;
-
-  @ApiProperty(
-      description:
           'Return the Dart to JS source map; optional (defaults to false).')
   bool returnSourceMap;
 }

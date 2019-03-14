@@ -21,8 +21,8 @@ void defineTests() {
     test('simple', () {
       return compiler.compile(sampleCode).then((CompilationResults result) {
         expect(result.success, true);
-        expect(result.getOutput(), isNotEmpty);
-        expect(result.getSourceMap(), isEmpty);
+        expect(result.compiledJS, isNotEmpty);
+        expect(result.sourceMap, isEmpty);
       });
     });
 
@@ -31,8 +31,8 @@ void defineTests() {
           .compile(sampleCode, returnSourceMap: true)
           .then((CompilationResults result) {
         expect(result.success, true);
-        expect(result.getOutput(), isNotEmpty);
-        expect(result.getSourceMap(), isNotEmpty);
+        expect(result.compiledJS, isNotEmpty);
+        expect(result.sourceMap, isNotEmpty);
       });
     });
 
@@ -42,22 +42,8 @@ void defineTests() {
           .then((CompilationResults result) {
         expect(compiler.version, isNotNull);
         expect(compiler.version, startsWith('2.'));
-        expect(result.getSourceMap(), isNotEmpty);
+        expect(result.sourceMap, isNotEmpty);
       });
-    });
-
-    test('verify asserts always enabled', () async {
-      final String sampleCodeChecked = '''
-main() { foo(1); }
-void foo(String bar) { print(bar); }
-''';
-
-      CompilationResults normal =
-          await compiler.compile(sampleCodeChecked);
-      CompilationResults checked = await compiler.compile(sampleCodeChecked,
-          useCheckedMode: true);
-
-      expect(normal.getOutput(), equals(checked.getOutput()));
     });
 
     test('simple web', () {

@@ -782,9 +782,6 @@ class CompileRequest {
   /// The Dart source.
   core.String source;
 
-  /// Ignored. (server always assumes checked mode/asserts enabled)
-  core.bool useCheckedMode;
-
   CompileRequest();
 
   CompileRequest.fromJson(core.Map _json) {
@@ -793,9 +790,6 @@ class CompileRequest {
     }
     if (_json.containsKey("source")) {
       source = _json["source"];
-    }
-    if (_json.containsKey("useCheckedMode")) {
-      useCheckedMode = _json["useCheckedMode"];
     }
   }
 
@@ -807,9 +801,6 @@ class CompileRequest {
     }
     if (source != null) {
       _json["source"] = source;
-    }
-    if (useCheckedMode != null) {
-      _json["useCheckedMode"] = useCheckedMode;
     }
     return _json;
   }
