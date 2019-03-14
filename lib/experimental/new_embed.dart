@@ -161,6 +161,12 @@ abstract class TabView {
 }
 
 class EditorTabView extends TabView {
+  Timer _deduplicationTimer;
+
+  // TODO(RedBrogdon): Add UI Elements for errors and warnings indicators
+  bool hasErrors;
+  bool hasWarnings;
+
   EditorTabView(DElement element, EditorFactory editorFactory)
       : _editor = editorFactory.createFromElement(element.element),
         super(element) {
@@ -168,6 +174,7 @@ class EditorTabView extends TabView {
     _editor.theme = 'elegant';
     _editor.mode = 'dart';
     _editor.showLineNumbers = true;
+    _editor.document.onChange.listen(_performAnalysis);
   }
 
   final Editor _editor;
@@ -190,6 +197,49 @@ class EditorTabView extends TabView {
     if (selected) {
       Timer(const Duration(seconds: 0), _editor.resize);
     }
+  }
+
+  /// Perform static analysis of the source code.
+  void _performAnalysis(_) async {
+    if (_deduplicationTimer != null && _deduplicationTimer.isActive) {
+      _deduplicationTimer.cancel();
+    }
+    _deduplicationTimer = Timer(Duration(milliseconds: 250), () {
+      final dartServices = deps[DartservicesApi] as DartservicesApi;
+      final input = SourceRequest()..source = content;
+      final lines = Lines(input.source);
+      final request = dartServices.analyze(input).timeout(serviceCallTimeout);
+
+      request.then((AnalysisResults result) {
+        // Discard if the document has been mutated since we requested analysis.
+        if (input.source != content) return false;
+
+        document.setAnnotations(result.issues.map((AnalysisIssue issue) {
+          final startLine = lines.getLineForOffset(issue.charStart);
+          final endLine =
+              lines.getLineForOffset(issue.charStart + issue.charLength);
+
+          return Annotation(
+            issue.kind,
+            issue.message,
+            issue.line,
+            start: Position(
+              startLine,
+              issue.charStart - lines.offsetForLine(startLine),
+            ),
+            end: Position(
+              endLine,
+              issue.charStart +
+                  issue.charLength -
+                  lines.offsetForLine(startLine),
+            ),
+          );
+        }).toList());
+
+        hasErrors = result.issues.any((issue) => issue.kind == 'error');
+        hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
+      });
+    });
   }
 }
 
@@ -218,10 +268,9 @@ class ConsoleTabView extends TabView {
 class TestTabView extends EditorTabView {
   TestTabView(DElement element, EditorFactory editorFactory)
       : super(element, editorFactory) {
-        // Tests probably shouldn't change...
-        _editor.readOnly = true;
-      }
-
+    // Tests probably shouldn't change...
+    _editor.readOnly = true;
+  }
 }
 
 /// A line of text next to the [ExecuteButton] that reports test result messages
