@@ -35,3 +35,16 @@ textarea {
 .medium-octicon {
   font-size: 19px;
 }
+
+/* Code annotations */
+.squiggle-error {
+  border-bottom: 2px solid #F7977A;
+}
+
+.squiggle-warning {
+  border-bottom: 2px solid #FFF79A;
+}
+
+.squiggle-info {
+  border-bottom: 2px solid #7EA7D8;
+}
