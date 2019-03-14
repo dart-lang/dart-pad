@@ -161,7 +161,7 @@ abstract class TabView {
 }
 
 class EditorTabView extends TabView {
-  Timer _deduplicationTimer;
+  Timer _debounceTimer;
 
   // TODO(RedBrogdon): Add UI Elements for errors and warnings indicators
   bool hasErrors;
@@ -201,10 +201,10 @@ class EditorTabView extends TabView {
 
   /// Perform static analysis of the source code.
   void _performAnalysis(_) async {
-    if (_deduplicationTimer != null && _deduplicationTimer.isActive) {
-      _deduplicationTimer.cancel();
+    if (_debounceTimer != null && _debounceTimer.isActive) {
+      _debounceTimer.cancel();
     }
-    _deduplicationTimer = Timer(Duration(milliseconds: 250), () {
+    _debounceTimer = Timer(Duration(milliseconds: 250), () {
       final dartServices = deps[DartservicesApi] as DartservicesApi;
       final input = SourceRequest()..source = content;
       final lines = Lines(input.source);
