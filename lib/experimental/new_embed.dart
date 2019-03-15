@@ -17,6 +17,7 @@ import '../modules/dartservices_module.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
 import '../services/execution_iframe.dart';
+import '../src/util.dart';
 
 NewEmbed get newEmbed => _newEmbed;
 
@@ -161,7 +162,10 @@ abstract class TabView {
 }
 
 class EditorTabView extends TabView {
-  Timer _debounceTimer;
+  final _debounceTimer = DelayedTimer(
+    minDelay: Duration(milliseconds: 100),
+    maxDelay: Duration(milliseconds: 500),
+  );
 
   // TODO(RedBrogdon): Add UI Elements for errors and warnings indicators
   bool hasErrors;
@@ -201,10 +205,7 @@ class EditorTabView extends TabView {
 
   /// Perform static analysis of the source code.
   void _performAnalysis(_) async {
-    if (_debounceTimer != null && _debounceTimer.isActive) {
-      _debounceTimer.cancel();
-    }
-    _debounceTimer = Timer(Duration(milliseconds: 250), () {
+    _debounceTimer.invoke(() {
       final dartServices = deps[DartservicesApi] as DartservicesApi;
       final input = SourceRequest()..source = content;
       final lines = Lines(input.source);

@@ -6,6 +6,7 @@ library dart_pad.util;
 
 import 'dart:async';
 import 'dart:html';
+import 'package:meta/meta.dart';
 
 /// Return whether we are running on a mobile device.
 bool isMobile() {
@@ -115,4 +116,49 @@ Stream<T> debounceStream<T>(Stream<T> stream, Duration duration) {
   });
 
   return controller.stream;
+}
+
+/// A typedef to represent a function taking no arguments and with no return
+/// value.
+typedef VoidFunction = void Function();
+
+/// Batch up calls to the given closure. Repeated calls to [invoke] will
+/// overwrite the closure to be called. We'll delay at least [minDelay] before
+/// calling the closure, but will not delay more than [maxDelay].
+class DelayedTimer {
+  DelayedTimer({
+    @required this.minDelay,
+    @required this.maxDelay,
+  });
+
+  final Duration minDelay;
+  final Duration maxDelay;
+
+  VoidFunction _closure;
+
+  Timer _minTimer;
+  Timer _maxTimer;
+
+  void invoke(VoidFunction closure) {
+    _closure = closure;
+
+    if (_minTimer == null) {
+      _minTimer = Timer(minDelay, _fire);
+      _maxTimer = Timer(maxDelay, _fire);
+    } else {
+      _minTimer.cancel();
+      _minTimer = Timer(minDelay, _fire);
+    }
+  }
+
+  void _fire() {
+    _minTimer?.cancel();
+    _minTimer = null;
+
+    _maxTimer?.cancel();
+    _maxTimer = null;
+
+    _closure();
+    _closure = null;
+  }
 }
