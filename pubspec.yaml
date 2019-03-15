@@ -15,6 +15,7 @@ dependencies:
   http: '>=0.11.1 <0.13.0'
   logging: '>=0.9.0 <0.12.0'
   markdown: ^2.0.0
+  meta: ^1.1.7
   octicons_css: ^0.0.1
   primer_css: ^0.0.1
   route_hierarchical:
