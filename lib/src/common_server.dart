@@ -550,18 +550,11 @@ class CommonServer {
       throw BadRequestError('Missing parameter: \'source\'');
     }
     String sourceHash = _hashSource(source);
-
-    // TODO(lukechurch): Remove this hack after
-    // https://github.com/dart-lang/rpc/issues/15 lands
-    var trimSrc = source.trim();
-    bool suppressCache = trimSrc.endsWith("/** Supress-Memcache **/") ||
-        trimSrc.endsWith("/** Suppress-Memcache **/");
-
     String memCacheKey = "%%COMPILE:v0"
         ":returnSourceMap:$returnSourceMap:source:$sourceHash";
 
-    String result = await checkCache(memCacheKey);
-    if (!suppressCache && result != null) {
+    final String result = await checkCache(memCacheKey);
+    if (result != null) {
       log.info("CACHE: Cache hit for compile");
       var resultObj = JsonDecoder().convert(result);
       return CompileResponse(
@@ -570,7 +563,7 @@ class CommonServer {
       );
     }
 
-    log.info("CACHE: MISS for compileDart2js, forced: $suppressCache");
+    log.info("CACHE: MISS for compileDart2js");
     Stopwatch watch = Stopwatch()..start();
 
     return compiler
@@ -607,19 +600,12 @@ class CommonServer {
       throw BadRequestError('Missing parameter: \'source\'');
     }
     String sourceHash = _hashSource(source);
-
-    // TODO(lukechurch): Remove this hack after
-    // https://github.com/dart-lang/rpc/issues/15 lands
-    String trimSrc = source.trim();
-    bool suppressCache = trimSrc.endsWith("/** Supress-Memcache **/") ||
-        trimSrc.endsWith("/** Suppress-Memcache **/");
-
     // TODO(devoncarew): Include the version of referenced libraries in the
     // keys.
     String memCacheKey = "%%COMPILE_DDC:v0:source:$sourceHash";
 
-    String result = await checkCache(memCacheKey);
-    if (!suppressCache && result != null) {
+    final String result = await checkCache(memCacheKey);
+    if (result != null) {
       log.info("CACHE: Cache hit for compileDDC");
       var resultObj = JsonDecoder().convert(result);
       return CompileDDCResponse(
@@ -628,7 +614,7 @@ class CommonServer {
       );
     }
 
-    log.info("CACHE: MISS for compileDDC, forced: $suppressCache");
+    log.info("CACHE: MISS for compileDDC");
     Stopwatch watch = Stopwatch()..start();
 
     return compiler.compileDDC(source).then((DDCCompilationResults results) {
