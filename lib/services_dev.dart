@@ -81,8 +81,7 @@ class EndpointsServer {
 
   static Future<String> generateDiscovery(
       String sdkPath, String serverUrl) async {
-    var commonServer =
-        CommonServer(sdkPath, _ServerContainer(), _Cache());
+    var commonServer = CommonServer(sdkPath, _ServerContainer(), _Cache());
     await commonServer.init();
     var apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
@@ -120,8 +119,7 @@ class EndpointsServer {
 
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
-    commonServer =
-        CommonServer(sdkPath, _ServerContainer(), _Cache());
+    commonServer = CommonServer(sdkPath, _ServerContainer(), _Cache());
     commonServer.init();
     apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
@@ -189,10 +187,13 @@ class _ServerContainer implements ServerContainer {
 class _Cache implements ServerCache {
   @override
   Future<String> get(String key) => Future.value(null);
+
   @override
   Future set(String key, String value, {Duration expiration}) => Future.value();
+
   @override
   Future remove(String key) => Future.value();
+
   @override
   Future<void> shutdown() => Future.value();
 }

@@ -81,18 +81,13 @@ class Location {
   int offset;
 
   Location();
+
   Location.from(this.sourceName, this.offset);
 }
 
 class CompileRequest {
   @ApiProperty(required: true, description: 'The Dart source.')
   String source;
-
-  @ApiProperty(
-      description:
-          'Ignored. (server always assumes checked mode/asserts enabled)')
-  @deprecated
-  bool useCheckedMode;
 
   @ApiProperty(
       description:
@@ -105,6 +100,18 @@ class CompileResponse {
   final String sourceMap;
 
   CompileResponse(this.result, [this.sourceMap]);
+}
+
+class CompileDDCRequest {
+  @ApiProperty(required: true, description: 'The Dart source.')
+  String source;
+}
+
+class CompileDDCResponse {
+  final String result;
+  final List<String> staticScriptUris;
+
+  CompileDDCResponse(this.result, this.staticScriptUris);
 }
 
 class CounterRequest {
@@ -171,6 +178,7 @@ class ProblemAndFixes {
   final int length;
 
   ProblemAndFixes() : this.fromList([]);
+
   ProblemAndFixes.fromList(
       [this.fixes, this.problemMessage, this.offset, this.length]);
 }
@@ -181,6 +189,7 @@ class CandidateFix {
   final List<SourceEdit> edits;
 
   CandidateFix() : this.fromEdits();
+
   CandidateFix.fromEdits([this.message, this.edits]);
 }
 
@@ -203,6 +212,7 @@ class SourceEdit {
   final String replacement;
 
   SourceEdit() : this.fromChanges();
+
   SourceEdit.fromChanges([this.offset, this.length, this.replacement]);
 
   String applyTo(String target) {

@@ -12,8 +12,8 @@ import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
-import 'package:synchronized/synchronized.dart';
 import 'package:rpc/rpc.dart';
+import 'package:synchronized/synchronized.dart';
 import 'package:test/test.dart';
 
 String quickFixesCode = r'''
@@ -84,12 +84,13 @@ void defineTests() {
     // since they talk to the same redis instances.
     Lock singleTestOnly = Lock();
 
-    // Prevent cases where we might try to reenter addStream for either
-    // stdout or stderr (which will throw a BadState).
+    // Prevent cases where we might try to reenter addStream for either stdout
+    // or stderr (which will throw a BadState).
     Lock singleStreamOnly = Lock();
 
     Future<Process> startRedisProcessAndDrainIO(int port) async {
-      Process newRedisProcess = await Process.start('redis-server', ['--port', port.toString()]);
+      Process newRedisProcess =
+          await Process.start('redis-server', ['--port', port.toString()]);
       unawaited(singleStreamOnly.synchronized(() async {
         await stdout.addStream(newRedisProcess.stdout);
       }));
@@ -140,20 +141,25 @@ void defineTests() {
     test('Verify values expire', () async {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
-        await redisCache.set('expiringkey', 'expiringValue', expiration: Duration(milliseconds: 1));
+        await redisCache.set('expiringkey', 'expiringValue',
+            expiration: Duration(milliseconds: 1));
         await Future.delayed(Duration(milliseconds: 100));
         await expectLater(await redisCache.get('expiringkey'), isNull);
         expect(logMessages, isEmpty);
       });
     });
 
-    test('Verify two caches with different versions give different results for keys', () async {
+    test(
+        'Verify two caches with different versions give different results for keys',
+        () async {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
         await redisCache.set('differentVersionKey', 'value1');
         await redisCacheAlt.set('differentVersionKey', 'value2');
-        await expectLater(await redisCache.get('differentVersionKey'), 'value1');
-        await expectLater(await redisCacheAlt.get('differentVersionKey'), 'value2');
+        await expectLater(
+            await redisCache.get('differentVersionKey'), 'value1');
+        await expectLater(
+            await redisCacheAlt.get('differentVersionKey'), 'value2');
         expect(logMessages, isEmpty);
       });
     });
@@ -161,35 +167,42 @@ void defineTests() {
     test('Verify disconnected cache logs errors and returns nulls', () async {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
-        RedisCache redisCacheBroken = RedisCache('redis://localhost:9502', 'cversion');
+        RedisCache redisCacheBroken =
+            RedisCache('redis://localhost:9502', 'cversion');
         try {
           await redisCacheBroken.set('aKey', 'value');
           await expectLater(await redisCacheBroken.get('aKey'), isNull);
           await redisCacheBroken.remove('aKey');
-          expect(logMessages.join('\n'), stringContainsInOrder([
-            'no cache available when setting key cversion+aKey',
-            'no cache available when getting key cversion+aKey',
-            'no cache available when removing key cversion+aKey',
-          ]));
+          expect(
+              logMessages.join('\n'),
+              stringContainsInOrder([
+                'no cache available when setting key cversion+aKey',
+                'no cache available when getting key cversion+aKey',
+                'no cache available when removing key cversion+aKey',
+              ]));
         } finally {
           await redisCacheBroken.shutdown();
         }
       });
     });
 
-    test('Verify cache that starts out disconnected retries and works (slow)', () async {
+    test('Verify cache that starts out disconnected retries and works (slow)',
+        () async {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
-        RedisCache redisCacheRepairable = RedisCache('redis://localhost:9503', 'cversion');
+        RedisCache redisCacheRepairable =
+            RedisCache('redis://localhost:9503', 'cversion');
         try {
           // Wait for a retry message.
-          while(logMessages.length < 2) {
-            await(Future.delayed(Duration(milliseconds: 50)));
+          while (logMessages.length < 2) {
+            await (Future.delayed(Duration(milliseconds: 50)));
           }
-          expect(logMessages.join('\n'), stringContainsInOrder([
-            'reconnecting to redis://localhost:9503...\n',
-            'Unable to connect to redis server, reconnecting in',
-          ]));
+          expect(
+              logMessages.join('\n'),
+              stringContainsInOrder([
+                'reconnecting to redis://localhost:9503...\n',
+                'Unable to connect to redis server, reconnecting in',
+              ]));
 
           // Start a redis server.
           redisAltProcess = await startRedisProcessAndDrainIO(9503);
@@ -203,7 +216,9 @@ void defineTests() {
       });
     });
 
-    test('Verify that cache that stops responding temporarily times out and can recover', () async {
+    test(
+        'Verify that cache that stops responding temporarily times out and can recover',
+        () async {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
         await redisCache.set('beforeStop', 'truth');
@@ -215,20 +230,25 @@ void defineTests() {
         expect(beforeStop, isNull);
         await redisCache.connected;
         await expectLater(await redisCache.get('beforeStop'), equals('truth'));
-        expect(logMessages.join('\n'), stringContainsInOrder([
-          'timeout on get operation for key aversion+beforeStop',
-          '(aversion): reconnecting',
-          '(aversion): Connected to redis server',
-        ]));
+        expect(
+            logMessages.join('\n'),
+            stringContainsInOrder([
+              'timeout on get operation for key aversion+beforeStop',
+              '(aversion): reconnecting',
+              '(aversion): Connected to redis server',
+            ]));
       });
     }, onPlatform: {'windows': Skip('Windows does not have sigstop/sigcont')});
 
-    test('Verify cache that starts out connected but breaks retries until reconnection (slow)', () async {
+    test(
+        'Verify cache that starts out connected but breaks retries until reconnection (slow)',
+        () async {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
 
         redisAltProcess = await startRedisProcessAndDrainIO(9504);
-        RedisCache redisCacheHealing = RedisCache('redis://localhost:9504', 'cversion');
+        RedisCache redisCacheHealing =
+            RedisCache('redis://localhost:9504', 'cversion');
         try {
           await redisCacheHealing.connected;
           await redisCacheHealing.set('missingKey', 'value');
@@ -237,7 +257,7 @@ void defineTests() {
           await redisAltProcess.exitCode;
           redisAltProcess = null;
 
-          // Try to talk to the cache and get an error.  Wait for the disconnect
+          // Try to talk to the cache and get an error. Wait for the disconnect
           // to be recognized.
           await expectLater(await redisCacheHealing.get('missingKey'), isNull);
           await redisCacheHealing.disconnected;
@@ -245,11 +265,13 @@ void defineTests() {
           // Start the server and verify we connect appropriately.
           redisAltProcess = await startRedisProcessAndDrainIO(9504);
           await redisCacheHealing.connected;
-          expect(logMessages.join('\n'), stringContainsInOrder([
-            'Connected to redis server',
-            'connection terminated with error SocketException',
-            'reconnecting to redis://localhost:9504',
-          ]));
+          expect(
+              logMessages.join('\n'),
+              stringContainsInOrder([
+                'Connected to redis server',
+                'connection terminated with error SocketException',
+                'reconnecting to redis://localhost:9504',
+              ]));
           expect(logMessages.last, contains('Connected to redis server'));
         } finally {
           await redisCacheHealing.shutdown();
@@ -265,14 +287,13 @@ void defineTests() {
 
       server = CommonServer(sdkPath, container, cache);
       await server.init();
-      await server.warmup();
 
       apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true);
       apiServer.addApi(server);
 
-      // Some piece of initialization doesn't always happen fast enough for
-      // this request to work in time for the test.  So try it here until the
-      // server returns something valid.
+      // Some piece of initialization doesn't always happen fast enough for this
+      // request to work in time for the test. So try it here until the server
+      // returns something valid.
       // TODO(jcollins-g): determine which piece of initialization isn't
       // happening and deal with that in warmup/init.
       {
@@ -303,6 +324,7 @@ void defineTests() {
     tearDown(() {
       log.clearListeners();
     });
+
     test('analyze', () async {
       var jsonData = {'source': sampleCode};
       var response =
@@ -369,6 +391,15 @@ void defineTests() {
       var response =
           await _sendPostRequest('dartservices/v1/compile', jsonData);
       expect(response.status, 400);
+    });
+
+    test('compileDDC', () async {
+      var jsonData = {'source': sampleCode};
+      var response =
+          await _sendPostRequest('dartservices/v1/compileDDC', jsonData);
+      expect(response.status, 200);
+      var data = await response.body.first;
+      expect(json.decode(utf8.decode(data)), isNotEmpty);
     });
 
     test('complete', () async {
@@ -529,10 +560,13 @@ class MockContainer implements ServerContainer {
 class MockCache implements ServerCache {
   @override
   Future<String> get(String key) => Future.value(null);
+
   @override
   Future set(String key, String value, {Duration expiration}) => Future.value();
+
   @override
   Future remove(String key) => Future.value();
+
   @override
   Future<void> shutdown() => Future.value();
 }

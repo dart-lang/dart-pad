@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "8409030dfd68aba3d66fe912fea8f7a7e8fd5f2a",
+ "etag": "b14ca576dd86324239a5e2240e369506138b5066",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -135,10 +135,6 @@
      "description": "The Dart source.",
      "required": true
     },
-    "useCheckedMode": {
-     "type": "boolean",
-     "description": "Ignored. (server always assumes checked mode/asserts enabled)"
-    },
     "returnSourceMap": {
      "type": "boolean",
      "description": "Return the Dart to JS source map; optional (defaults to false)."
@@ -154,6 +150,21 @@
     },
     "sourceMap": {
      "type": "string"
+    }
+   }
+  },
+  "CompileDDCResponse": {
+   "id": "CompileDDCResponse",
+   "type": "object",
+   "properties": {
+    "result": {
+     "type": "string"
+    },
+    "staticScriptUris": {
+     "type": "array",
+     "items": {
+      "type": "string"
+     }
     }
    }
   },
@@ -367,7 +378,7 @@
    "id": "CommonServer.compile",
    "path": "compile",
    "httpMethod": "POST",
-   "description": "Compile the given Dart source code and return the resulting JavaScript.",
+   "description": "Compile the given Dart source code and return the resulting JavaScript; this uses the dart2js compiler.",
    "parameters": {},
    "parameterOrder": [],
    "request": {
@@ -392,6 +403,20 @@
    "parameterOrder": [],
    "response": {
     "$ref": "CompileResponse"
+   }
+  },
+  "compileDDC": {
+   "id": "CommonServer.compileDDC",
+   "path": "compileDDC",
+   "httpMethod": "POST",
+   "description": "Compile the given Dart source code and return the resulting JavaScript; this uses the DDC compiler.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "CompileRequest"
+   },
+   "response": {
+    "$ref": "CompileDDCResponse"
    }
   },
   "complete": {

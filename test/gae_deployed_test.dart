@@ -16,6 +16,7 @@ void defineTests({bool skip = true}) {
   group('gae deployed tests', () {
     test('analyze end point', analyzeTest, skip: skip);
     test('compile end point', compileTest, skip: skip);
+    test('compileDDC end point', compileDDCTest, skip: skip);
   });
 }
 
@@ -36,6 +37,21 @@ void analyzeTest() {
 
 void compileTest() {
   final String url = '${serverUrl}/api/compile';
+  Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
+
+  expect(
+      http
+          .post(url, headers: headers, body: common.sampleCodeWeb)
+          .then((response) {
+        expect(response.statusCode, 200);
+        expect(true, response.body.length > 100);
+        return true;
+      }),
+      completion(equals(true)));
+}
+
+void compileDDCTest() {
+  final String url = '${serverUrl}/api/compileDDC';
   Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(
