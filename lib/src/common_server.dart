@@ -636,7 +636,6 @@ class CommonServer {
         int ms = watch.elapsedMilliseconds;
         log.info('PERF: Compiled ${lineCount} lines of Dart into '
             '${outputSize}kb of JavaScript in ${ms}ms.');
-        // todo: include script uris
         String cachedResult = JsonEncoder().convert({
           'compiledJS': results.compiledJS,
           'staticScriptUris': results.staticScriptUris,
