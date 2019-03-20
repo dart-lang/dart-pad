@@ -33,20 +33,23 @@ class Compiler {
   }
 
   /// The version of the SDK this copy of dart2js is based on.
-  String get version =>
-      File(path.join(sdkPath, 'version')).readAsStringSync().trim();
+  String get version {
+    return File(path.join(sdkPath, 'version')).readAsStringSync().trim();
+  }
 
-  Future warmup({bool useHtml = false}) =>
-      compile(useHtml ? sampleCodeWeb : sampleCode);
+  Future warmup({bool useHtml = false}) {
+    return compile(useHtml ? sampleCodeWeb : sampleCode);
+  }
 
   /// Compile the given string and return the resulting [CompilationResults].
-  Future<CompilationResults> compile(String input,
-      {bool returnSourceMap = false}) async {
+  Future<CompilationResults> compile(
+    String input, {
+    bool returnSourceMap = false,
+  }) async {
     if (!importsOkForCompile(input)) {
-      CompilationResults failedResults = CompilationResults('', problems: [
+      return CompilationResults(problems: [
         CompilationProblem._(BAD_IMPORT_ERROR_MSG),
       ]);
-      return Future.value(failedResults);
     }
 
     Directory temp = Directory.systemTemp.createTempSync('dartpad');
@@ -75,7 +78,7 @@ class Compiler {
           Process.runSync(dart2JSPath, arguments, workingDirectory: temp.path);
 
       if (result.exitCode != 0) {
-        final CompilationResults results = CompilationResults('', problems: [
+        final CompilationResults results = CompilationResults(problems: [
           CompilationProblem._(result.stdout),
         ]);
         return results;
@@ -85,8 +88,62 @@ class Compiler {
           sourceMap = mainSourceMap.readAsStringSync();
         }
         final CompilationResults results = CompilationResults(
-          mainJs.readAsStringSync(),
+          compiledJS: mainJs.readAsStringSync(),
           sourceMap: sourceMap,
+        );
+        return results;
+      }
+    } catch (e, st) {
+      _logger.warning("Compiler failed: $e /n $st");
+      rethrow;
+    } finally {
+      temp.deleteSync(recursive: true);
+      _logger.info('temp folder removed: ${temp.path}');
+    }
+  }
+
+  /// Compile the given string and return the resulting [DDCCompilationResults].
+  Future<DDCCompilationResults> compileDDC(String input) async {
+    if (!importsOkForCompile(input)) {
+      return DDCCompilationResults.failed([
+        CompilationProblem._(BAD_IMPORT_ERROR_MSG),
+      ]);
+    }
+
+    Directory temp = Directory.systemTemp.createTempSync('dartpad');
+
+    try {
+      List<String> arguments = [
+        '--modules=amd',
+      ];
+      arguments.addAll(['-o', '${kMainDart}.js']);
+      arguments.add(kMainDart);
+
+      String compileTarget = path.join(temp.path, kMainDart);
+      File mainDart = File(compileTarget);
+      mainDart.writeAsStringSync(input);
+
+      File mainJs = File(path.join(temp.path, '${kMainDart}.js'));
+
+      final dart2JSPath = path.join(sdkPath, 'bin', 'dartdevc');
+      _logger.info('About to exec: $dart2JSPath $arguments');
+
+      final ProcessResult result =
+          Process.runSync(dart2JSPath, arguments, workingDirectory: temp.path);
+
+      if (result.exitCode != 0) {
+        return DDCCompilationResults.failed([
+          CompilationProblem._(result.stdout),
+        ]);
+      } else {
+        // TODO(devoncarew): The hard-coded URLs below will be replaced with
+        // something based on the sdk version.
+        final DDCCompilationResults results = DDCCompilationResults(
+          compiledJS: mainJs.readAsStringSync(),
+          staticScriptUris: [
+            'https://storage.cloud.google.com/compilation_artifacts/require.js',
+            'https://storage.cloud.google.com/compilation_artifacts/dart_sdk.js',
+          ],
         );
         return results;
       }
@@ -106,29 +163,30 @@ class CompilationResults {
   final String sourceMap;
   final List<CompilationProblem> problems;
 
-  CompilationResults(
-    this.compiledJS, {
+  CompilationResults({
+    this.compiledJS,
     this.problems = const [],
     this.sourceMap,
   });
 
-  bool get hasOutput => compiledJS.isNotEmpty;
+  bool get hasOutput => compiledJS != null && compiledJS.isNotEmpty;
 
   /// This is true if there were no errors.
   bool get success => problems.isEmpty;
 }
 
-// todo: support multi
-
 /// The result of a DDC compile.
-class DraftCompilationResults {
+class DDCCompilationResults {
   final String compiledJS;
+  final List<String> staticScriptUris;
   final List<CompilationProblem> problems;
 
-  DraftCompilationResults(
-    this.compiledJS, {
-    this.problems = const [],
-  });
+  DDCCompilationResults({this.compiledJS, this.staticScriptUris = const []})
+      : problems = const [];
+
+  DDCCompilationResults.failed(this.problems)
+      : compiledJS = null,
+        staticScriptUris = const [];
 
   bool get hasOutput => compiledJS.isNotEmpty;
 

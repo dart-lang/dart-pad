@@ -22,7 +22,17 @@ void defineTests() {
       return compiler.compile(sampleCode).then((CompilationResults result) {
         expect(result.success, true);
         expect(result.compiledJS, isNotEmpty);
-        expect(result.sourceMap, isEmpty);
+        expect(result.sourceMap, isNull);
+      });
+    });
+
+    test('simple ddc', () {
+      return compiler
+          .compileDDC(sampleCode)
+          .then((DDCCompilationResults result) {
+        expect(result.success, true);
+        expect(result.compiledJS, isNotEmpty);
+        expect(result.staticScriptUris, hasLength(2));
       });
     });
 
@@ -32,6 +42,7 @@ void defineTests() {
           .then((CompilationResults result) {
         expect(result.success, true);
         expect(result.compiledJS, isNotEmpty);
+        expect(result.sourceMap, isNotNull);
         expect(result.sourceMap, isNotEmpty);
       });
     });
@@ -42,6 +53,7 @@ void defineTests() {
           .then((CompilationResults result) {
         expect(compiler.version, isNotNull);
         expect(compiler.version, startsWith('2.'));
+        expect(result.sourceMap, isNotNull);
         expect(result.sourceMap, isNotEmpty);
       });
     });

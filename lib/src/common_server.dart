@@ -353,15 +353,25 @@ class CommonServer {
       method: 'POST',
       path: 'compile',
       description: 'Compile the given Dart source code and return the '
-          'resulting JavaScript.')
+          'resulting JavaScript; this uses the dart2js compiler.')
   Future<CompileResponse> compile(CompileRequest request) {
-    return _compile(request.source,
+    return _compileDart2js(request.source,
         returnSourceMap: request.returnSourceMap ?? false);
   }
 
   @ApiMethod(method: 'GET', path: 'compile')
   @deprecated
-  Future<CompileResponse> compileGet({String source}) => _compile(source);
+  Future<CompileResponse> compileGet({String source}) =>
+      _compileDart2js(source);
+
+  @ApiMethod(
+      method: 'POST',
+      path: 'compileDDC',
+      description: 'Compile the given Dart source code and return the '
+          'resulting JavaScript; this uses the DDC compiler.')
+  Future<CompileDDCResponse> compileDDC(CompileRequest request) {
+    return _compileDDC(request.source);
+  }
 
   @ApiMethod(
       method: 'POST',
@@ -532,7 +542,7 @@ class CommonServer {
     }
   }
 
-  Future<CompileResponse> _compile(
+  Future<CompileResponse> _compileDart2js(
     String source, {
     bool returnSourceMap = false,
   }) async {
@@ -550,43 +560,99 @@ class CommonServer {
     String memCacheKey = "%%COMPILE:v0"
         ":returnSourceMap:$returnSourceMap:source:$sourceHash";
 
-    return checkCache(memCacheKey).then((dynamic result) {
-      if (!suppressCache && result != null) {
-        log.info("CACHE: Cache hit for compile");
-        var resultObj = JsonDecoder().convert(result);
-        return CompileResponse(resultObj["output"],
-            returnSourceMap ? resultObj["sourceMap"] : null);
-      } else {
-        log.info("CACHE: MISS, forced: $suppressCache");
-        Stopwatch watch = Stopwatch()..start();
+    String result = await checkCache(memCacheKey);
+    if (!suppressCache && result != null) {
+      log.info("CACHE: Cache hit for compile");
+      var resultObj = JsonDecoder().convert(result);
+      return CompileResponse(
+        resultObj["compiledJS"],
+        returnSourceMap ? resultObj["sourceMap"] : null,
+      );
+    }
 
-        return compiler
-            .compile(source, returnSourceMap: returnSourceMap)
-            .then((CompilationResults results) async {
-          if (results.hasOutput) {
-            int lineCount = source.split('\n').length;
-            int outputSize = (results.compiledJS.length + 512) ~/ 1024;
-            int ms = watch.elapsedMilliseconds;
-            log.info('PERF: Compiled ${lineCount} lines of Dart into '
-                '${outputSize}kb of JavaScript in ${ms}ms.');
-            String out = results.compiledJS;
-            String sourceMap = returnSourceMap ? results.sourceMap : null;
+    log.info("CACHE: MISS, forced: $suppressCache");
+    Stopwatch watch = Stopwatch()..start();
 
-            String cachedResult =
-                JsonEncoder().convert({"output": out, "sourceMap": sourceMap});
-            // Don't block on cache set.
-            unawaited(setCache(memCacheKey, cachedResult));
-            return CompileResponse(out, sourceMap);
-          } else {
-            List<CompilationProblem> problems = results.problems;
-            String errors = problems.map(_printCompileProblem).join('\n');
-            throw BadRequestError(errors);
-          }
-        }).catchError((e, st) {
-          log.severe('Error during compile: ${e}\n${st}');
-          throw e;
+    return compiler
+        .compile(source, returnSourceMap: returnSourceMap)
+        .then((CompilationResults results) {
+      if (results.hasOutput) {
+        int lineCount = source.split('\n').length;
+        int outputSize = (results.compiledJS.length + 512) ~/ 1024;
+        int ms = watch.elapsedMilliseconds;
+        log.info('PERF: Compiled ${lineCount} lines of Dart into '
+            '${outputSize}kb of JavaScript in ${ms}ms.');
+        String sourceMap = returnSourceMap ? results.sourceMap : null;
+
+        String cachedResult = JsonEncoder().convert({
+          "compiledJS": results.compiledJS,
+          "sourceMap": sourceMap,
         });
+        // Don't block on cache set.
+        unawaited(setCache(memCacheKey, cachedResult));
+        return CompileResponse(results.compiledJS, sourceMap);
+      } else {
+        List<CompilationProblem> problems = results.problems;
+        String errors = problems.map(_printCompileProblem).join('\n');
+        throw BadRequestError(errors);
       }
+    }).catchError((e, st) {
+      log.severe('Error during compile: ${e}\n${st}');
+      throw e;
+    });
+  }
+
+  Future<CompileDDCResponse> _compileDDC(String source) async {
+    if (source == null) {
+      throw BadRequestError('Missing parameter: \'source\'');
+    }
+    String sourceHash = _hashSource(source);
+
+    // TODO(lukechurch): Remove this hack after
+    // https://github.com/dart-lang/rpc/issues/15 lands
+    String trimSrc = source.trim();
+    bool suppressCache = trimSrc.endsWith("/** Supress-Memcache **/") ||
+        trimSrc.endsWith("/** Suppress-Memcache **/");
+
+    String memCacheKey = "%%COMPILE_DDC:v0:source:$sourceHash";
+
+    String result = await checkCache(memCacheKey);
+    if (!suppressCache && result != null) {
+      log.info("CACHE: Cache hit for compileDDC");
+      var resultObj = JsonDecoder().convert(result);
+      return CompileDDCResponse(
+        resultObj["compiledJS"],
+        resultObj["staticScriptUris"],
+      );
+    }
+
+    log.info("CACHE: MISS, forced: $suppressCache");
+    Stopwatch watch = Stopwatch()..start();
+
+    return compiler.compileDDC(source).then((DDCCompilationResults results) {
+      if (results.hasOutput) {
+        int lineCount = source.split('\n').length;
+        int outputSize = (results.compiledJS.length + 512) ~/ 1024;
+        int ms = watch.elapsedMilliseconds;
+        log.info('PERF: Compiled ${lineCount} lines of Dart into '
+            '${outputSize}kb of JavaScript in ${ms}ms.');
+        // todo: include script uris
+        String cachedResult = JsonEncoder().convert({
+          'compiledJS': results.compiledJS,
+          'staticScriptUris': results.staticScriptUris,
+        });
+        // Don't block on cache set.
+        unawaited(setCache(memCacheKey, cachedResult));
+
+        return CompileDDCResponse(results.compiledJS, results.staticScriptUris);
+      } else {
+        List<CompilationProblem> problems = results.problems;
+        String errors = problems.map(_printCompileProblem).join('\n');
+        throw BadRequestError(errors);
+      }
+    }).catchError((e, st) {
+      log.severe('Error during compile: ${e}\n${st}');
+      throw e;
     });
   }
 
@@ -700,9 +766,9 @@ class CommonServer {
     return response;
   }
 
-  Future<T> checkCache<T>(String query) => cache.get(query);
+  Future<String> checkCache(String query) => cache.get(query);
 
-  Future<T> setCache<T>(String query, String result) =>
+  Future setCache(String query, String result) =>
       cache.set(query, result, expiration: _standardExpiration);
 }
 

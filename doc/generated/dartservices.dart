@@ -133,7 +133,8 @@ class DartservicesApi {
     return _response.then((data) => new AnalysisResults.fromJson(data));
   }
 
-  /// Compile the given Dart source code and return the resulting JavaScript.
+  /// Compile the given Dart source code and return the resulting JavaScript;
+  /// this uses the dart2js compiler.
   ///
   /// [request] - The metadata request object.
   ///
@@ -167,6 +168,43 @@ class DartservicesApi {
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
     return _response.then((data) => new CompileResponse.fromJson(data));
+  }
+
+  /// Compile the given Dart source code and return the resulting JavaScript;
+  /// this uses the DDC compiler.
+  ///
+  /// [request] - The metadata request object.
+  ///
+  /// Request parameters:
+  ///
+  /// Completes with a [CompileDDCResponse].
+  ///
+  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
+  /// error.
+  ///
+  /// If the used [http.Client] completes with an error when making a REST call,
+  /// this method will complete with the same error.
+  async.Future<CompileDDCResponse> compileDDC(CompileRequest request) {
+    var _url = null;
+    var _queryParams = new core.Map<core.String, core.List<core.String>>();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (request != null) {
+      _body = convert.json.encode((request).toJson());
+    }
+
+    _url = 'compileDDC';
+
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
+    return _response.then((data) => new CompileDDCResponse.fromJson(data));
   }
 
   /// Request parameters:
@@ -770,6 +808,35 @@ class CandidateFix {
     }
     if (message != null) {
       _json["message"] = message;
+    }
+    return _json;
+  }
+}
+
+class CompileDDCResponse {
+  core.String result;
+  core.List<core.String> staticScriptUris;
+
+  CompileDDCResponse();
+
+  CompileDDCResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("result")) {
+      result = _json["result"];
+    }
+    if (_json.containsKey("staticScriptUris")) {
+      staticScriptUris =
+          (_json["staticScriptUris"] as core.List).cast<core.String>();
+    }
+  }
+
+  core.Map<core.String, core.Object> toJson() {
+    final core.Map<core.String, core.Object> _json =
+        new core.Map<core.String, core.Object>();
+    if (result != null) {
+      _json["result"] = result;
+    }
+    if (staticScriptUris != null) {
+      _json["staticScriptUris"] = staticScriptUris;
     }
     return _json;
   }
