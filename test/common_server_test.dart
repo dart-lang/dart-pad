@@ -84,7 +84,7 @@ void defineTests() {
     // since they talk to the same redis instances.
     Lock singleTestOnly = Lock();
 
-    // Prevent cases where we might try to reenter addStream for either  stdout
+    // Prevent cases where we might try to reenter addStream for either stdout
     // or stderr (which will throw a BadState).
     Lock singleStreamOnly = Lock();
 

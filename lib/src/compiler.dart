@@ -71,7 +71,7 @@ class Compiler {
       File mainJs = File(path.join(temp.path, '${kMainDart}.js'));
       File mainSourceMap = File(path.join(temp.path, '${kMainDart}.js.map'));
 
-      final dart2JSPath = path.join(sdkPath, 'bin', 'dart2js');
+      final String dart2JSPath = path.join(sdkPath, 'bin', 'dart2js');
       _logger.info('About to exec: $dart2JSPath $arguments');
 
       ProcessResult result =
@@ -125,11 +125,11 @@ class Compiler {
 
       File mainJs = File(path.join(temp.path, '${kMainDart}.js'));
 
-      final dart2JSPath = path.join(sdkPath, 'bin', 'dartdevc');
-      _logger.info('About to exec: $dart2JSPath $arguments');
+      final String dartdevcPath = path.join(sdkPath, 'bin', 'dartdevc');
+      _logger.info('About to exec: $dartdevcPath $arguments');
 
       final ProcessResult result =
-          Process.runSync(dart2JSPath, arguments, workingDirectory: temp.path);
+          Process.runSync(dartdevcPath, arguments, workingDirectory: temp.path);
 
       if (result.exitCode != 0) {
         return DDCCompilationResults.failed([

@@ -570,7 +570,7 @@ class CommonServer {
       );
     }
 
-    log.info("CACHE: MISS, forced: $suppressCache");
+    log.info("CACHE: MISS for compileDart2js, forced: $suppressCache");
     Stopwatch watch = Stopwatch()..start();
 
     return compiler
@@ -581,7 +581,7 @@ class CommonServer {
         int outputSize = (results.compiledJS.length + 512) ~/ 1024;
         int ms = watch.elapsedMilliseconds;
         log.info('PERF: Compiled ${lineCount} lines of Dart into '
-            '${outputSize}kb of JavaScript in ${ms}ms.');
+            '${outputSize}kb of JavaScript in ${ms}ms using dart2js.');
         String sourceMap = returnSourceMap ? results.sourceMap : null;
 
         String cachedResult = JsonEncoder().convert({
@@ -597,7 +597,7 @@ class CommonServer {
         throw BadRequestError(errors);
       }
     }).catchError((e, st) {
-      log.severe('Error during compile: ${e}\n${st}');
+      log.severe('Error during compile (dart2js): ${e}\n${st}');
       throw e;
     });
   }
@@ -614,6 +614,8 @@ class CommonServer {
     bool suppressCache = trimSrc.endsWith("/** Supress-Memcache **/") ||
         trimSrc.endsWith("/** Suppress-Memcache **/");
 
+    // TODO(devoncarew): Include the version of referenced libraries in the
+    // keys.
     String memCacheKey = "%%COMPILE_DDC:v0:source:$sourceHash";
 
     String result = await checkCache(memCacheKey);
@@ -626,7 +628,7 @@ class CommonServer {
       );
     }
 
-    log.info("CACHE: MISS, forced: $suppressCache");
+    log.info("CACHE: MISS for compileDDC, forced: $suppressCache");
     Stopwatch watch = Stopwatch()..start();
 
     return compiler.compileDDC(source).then((DDCCompilationResults results) {
@@ -635,7 +637,7 @@ class CommonServer {
         int outputSize = (results.compiledJS.length + 512) ~/ 1024;
         int ms = watch.elapsedMilliseconds;
         log.info('PERF: Compiled ${lineCount} lines of Dart into '
-            '${outputSize}kb of JavaScript in ${ms}ms.');
+            '${outputSize}kb of JavaScript in ${ms}ms using DDC.');
         String cachedResult = JsonEncoder().convert({
           'compiledJS': results.compiledJS,
           'staticScriptUris': results.staticScriptUris,
@@ -650,7 +652,7 @@ class CommonServer {
         throw BadRequestError(errors);
       }
     }).catchError((e, st) {
-      log.severe('Error during compile: ${e}\n${st}');
+      log.severe('Error during compile (DDC): ${e}\n${st}');
       throw e;
     });
   }
