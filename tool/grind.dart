@@ -84,19 +84,36 @@ serve() {
 const String backendVariable = 'DARTPAD_BACKEND';
 
 @Task(
-    'Serve locally on port 8000 and use backend from $backendVariable environment variable')
+    'Serve locally on port 8002 and use backend from $backendVariable environment variable')
 @Depends(build)
 serveCustomBackend() {
   if (!Platform.environment.containsKey(backendVariable)) {
-    throw GrinderException(
-        '$backendVariable must be specified as [http|https]://host[:port]');
+    print('$backendVariable can be specified (as [http|https]://host[:port]) '
+        'to indicate the dart-services server to connect to');
   }
-  run('sed', arguments: [
-    '-i',
-    's,https://dart-services.appspot.com,${Platform.environment[backendVariable]},g',
-    'build/scripts/main.dart.js',
-    'build/scripts/embed.dart.js',
-  ]);
+
+  final String serverUrl =
+      Platform.environment[backendVariable] ?? 'http://localhost:8002';
+
+  // In all files *.dart.js in build/scripts/, replace
+  // 'https://dart-services.appspot.com' with serverUrl.
+  for (FileSystemEntity entity
+      in _buildDir.join('scripts').asDirectory.listSync()) {
+    if (entity is! File) continue;
+    if (!entity.path.endsWith('.dart.js')) continue;
+
+    final File file = entity;
+
+    log('Rewriting server url to $serverUrl for ${file.path}');
+
+    String fileContents = file.readAsStringSync();
+    fileContents =
+        fileContents.replaceAll('https://dart-services.appspot.com', serverUrl);
+    file.writeAsStringSync(fileContents);
+  }
+
+  log('\nServing dart-pad on http://localhost:8000');
+
   run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build']);
 }
 
