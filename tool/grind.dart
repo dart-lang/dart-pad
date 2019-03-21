@@ -30,12 +30,16 @@ void analyzeTest() => null;
 @Task()
 @Depends(init)
 void serve() {
+  // You can run the `grind serve` command, or just run
+  // `dart bin/server_dev.dart --port 8002` locally.
+
   Process.runSync(
       Platform.executable, ['bin/server_dev.dart', '--port', '8082']);
 }
 
 final _dockerVersionMatcher = RegExp(r'^FROM google/dart-runtime:(.*)$');
 final _dartSdkVersionMatcher = RegExp(r'(^\d+[.]\d+[.]\d+.*)');
+
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
   String platformVersion = Platform.version.split(' ').first;
