@@ -156,6 +156,74 @@ class NewEmbed {
         });
   }
 
+  void _displayIssues(List<AnalysisIssue> issues) {
+    Element issuesElement = querySelector('#issues');
+
+    // Detect when hiding; don't remove the content until hidden.
+    bool isHiding = issuesElement.children.isNotEmpty && issues.isEmpty;
+
+    if (isHiding) {
+      issuesElement.classes.toggle('showing', issues.isNotEmpty);
+
+      StreamSubscription sub;
+      sub = issuesElement.onTransitionEnd.listen((_) {
+        issuesElement.children.clear();
+        sub.cancel();
+      });
+    } else {
+      issuesElement.children.clear();
+
+      issues.sort((a, b) => a.charStart - b.charStart);
+
+      // Create an item for each issue.
+      for (AnalysisIssue issue in issues) {
+        DivElement e = DivElement();
+        e.classes.add('issue');
+        e.attributes['layout'] = '';
+        e.attributes['horizontal'] = '';
+        issuesElement.children.add(e);
+        e.onClick.listen((_) {
+          _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+        });
+
+        SpanElement typeSpan = SpanElement();
+        typeSpan.classes.addAll([issue.kind, 'issuelabel']);
+        typeSpan.text = issue.kind;
+        e.children.add(typeSpan);
+
+        SpanElement messageSpan = SpanElement();
+        messageSpan.classes.add('message');
+        messageSpan.attributes['flex'] = '';
+        messageSpan.text = issue.message;
+        e.children.add(messageSpan);
+        if (issue.hasFixes) {
+          e.classes.add('hasFix');
+          e.onClick.listen((e) {
+            // This is a bit of a hack to make sure quick fixes popup
+            // is only shown if the wrench is clicked,
+            // and not if the text or label is clicked.
+            if ((e.target as Element).className == 'issue hasFix') {
+              // codemiror only shows completions if there is no selected text
+              _jumpTo(issue.line, issue.charStart, 0, focus: true);
+              userCodeEditor.showCompletions(onlyShowFixes: true);
+            }
+          });
+        }
+      }
+
+      issuesElement.classes.toggle('showing', issues.isNotEmpty);
+    }
+  }
+
+  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
+    Document doc = userCodeEditor.document;
+
+    doc.select(
+        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
+
+    if (focus) userCodeEditor.focus();
+  }
+
   /// Perform static analysis of the source code.
   void _performAnalysis(_) async {
     _debounceTimer.invoke(() {
@@ -167,6 +235,8 @@ class NewEmbed {
       request.then((AnalysisResults result) {
         // Discard if the document has been mutated since we requested analysis.
         if (input.source != userCodeEditor.document.value) return false;
+
+        _displayIssues(result.issues);
 
         userCodeEditor.document
             .setAnnotations(result.issues.map((AnalysisIssue issue) {
