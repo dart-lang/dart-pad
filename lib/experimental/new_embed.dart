@@ -270,7 +270,7 @@ class TestTabView extends EditorTabView {
   TestTabView(DElement element, EditorFactory editorFactory)
       : super(element, editorFactory) {
     // Tests probably shouldn't change...
-    _editor.readOnly = true;
+    // _editor.readOnly = true;
   }
 }
 
@@ -282,7 +282,11 @@ class TestResultLabel {
   final DivElement element;
 
   void setResult(TestResult result) {
-    element.text = result.message;
+    if (result.messages.isEmpty) {
+      element.text = result.success ? 'Test passed!' : 'Test failed.';
+    } else {
+      element.text = result.messages.first;
+    }
 
     if (result.success) {
       element.classes.add('text-green');
