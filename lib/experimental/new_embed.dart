@@ -83,6 +83,7 @@ class NewEmbed {
           ..theme = 'elegant'
           ..mode = 'dart'
           ..showLineNumbers = true;
+
     userCodeEditor.document.onChange.listen(_performAnalysis);
 
     testEditor = editorFactory.createFromElement(querySelector('#test-editor'))
