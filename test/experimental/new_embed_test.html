@@ -22,14 +22,14 @@ BSD-style license that can be found in the LICENSE file. -->
     <link rel="stylesheet" type="text/css" href="../packages/octicons_css/octicons_4.4.0.css">
     <link rel="stylesheet" type="text/css" href="../packages/primer_css/primer_11.0.0.css">
 
-    <link rel="stylesheet" type="text/css" href="new_embed.css">
-
     <!-- codemirror -->
     <link href="../packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/theme/elegant.css" rel="stylesheet" media="screen">
-    <script src="../packages/codemirror/codemirror.js" defer></script>    
+    <script src="../packages/codemirror/codemirror.js" defer></script>
+
+    <link rel="stylesheet" type="text/css" href="new_embed.css">
 
     <!-- Test package stuff -->
     <link rel="x-dart-test" href="new_embed_test.dart">
@@ -57,14 +57,14 @@ BSD-style license that can be found in the LICENSE file. -->
     </div>
 </nav>
 
-<section id="tab-container" class="flex-auto d-flex flex-column p-1">
-    <div class="tabview flex-auto" id="user-code-view" selected>
-        <div id="user-code-editor" spellcheck="false"></div>
+<section id="tab-container" class="flex-auto d-flex flex-column">
+    <div id="user-code-view" class="flex-auto d-flex flex-column">
+        <div id="user-code-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
     </div>
-    <div class="tabview flex-auto" id="test-view" spellcheck="false">
-        <div id="test-editor" spellcheck="false"></div>
+    <div id="test-view" class="flex-auto d-flex flex-column" spellcheck="false" hidden>
+        <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
     </div>
-    <div class="tabview flex-auto" id="console-view"></div>
+    <div id="console-view" class="tabview flex-auto" hidden></div>
 </section>
 
 <iframe id="frame" sandbox="allow-scripts" flex src="../scripts/frame.html">

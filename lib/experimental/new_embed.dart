@@ -220,9 +220,9 @@ class TabView {
 
   void setSelected(bool selected) {
     if (selected) {
-      element.setAttr('selected');
+      element.clearAttr('hidden');
     } else {
-      element.clearAttr('selected');
+      element.setAttr('hidden');
     }
   }
 }
