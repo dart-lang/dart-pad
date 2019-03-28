@@ -7,9 +7,9 @@ library execution;
 import 'dart:async';
 
 class TestResult {
-  const TestResult(this.success, this.message);
+  const TestResult(this.success, this.messages);
   final bool success;
-  final String message;
+  final List<String> messages;
 }
 
 abstract class ExecutionService {
