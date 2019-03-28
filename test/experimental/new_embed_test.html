@@ -58,8 +58,12 @@ BSD-style license that can be found in the LICENSE file. -->
 </nav>
 
 <section id="tab-container" class="flex-auto d-flex flex-column p-1">
-    <div class="tabview flex-auto" id="editor" selected spellcheck="false"></div>
-    <div class="tabview flex-auto" id="test-view" spellcheck="false"></div>
+    <div class="tabview flex-auto" id="user-code-view" selected>
+        <div id="user-code-editor" spellcheck="false"></div>
+    </div>
+    <div class="tabview flex-auto" id="test-view" spellcheck="false">
+        <div id="test-editor" spellcheck="false"></div>
+    </div>
     <div class="tabview flex-auto" id="console-view"></div>
 </section>
 
