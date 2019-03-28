@@ -14,7 +14,7 @@ import 'package:http/http.dart';
 class SanitizingBrowserClient extends BrowserClient {
   // The below list of disallowed browser headers is based on list at:
   // http://www.w3.org/TR/XMLHttpRequest/#the-setrequestheader()-method
-  static const List<String> disallowedHeaders = [
+  static const List<String> disallowedHeaders = <String>[
     'accept-charset',
     'accept-encoding',
     'access-control-request-headers',

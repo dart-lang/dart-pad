@@ -20,27 +20,27 @@ class Summarizer {
   _SummarizeToken storage;
   int _randomizer;
 
-  static Map<String, List<int>> cuttoffs = {
-    'size': [8, 30, 1000], //0-7 = small, 8 - 29 = decent, 29+ = gigantic
-    'errorCount': [1, 10, 100]
+  static Map<String, List<int>> cuttoffs = <String, List<int>>{
+    'size': <int>[8, 30, 1000], //0-7 = small, 8 - 29 = decent, 29+ = gigantic
+    'errorCount': <int>[1, 10, 100]
   };
 
-  static Map<String, String> codeKeyWords = {
+  static Map<String, String> codeKeyWords = <String, String>{
     'await': 'await',
     'async': 'async',
     'rpc': 'RESTful serverside app'
   };
 
-  static Map<String, String> additionKeyWords = {
+  static Map<String, String> additionKeyWords = <String, String>{
     'pirate': 'pirates',
     'bird': 'birds',
     'llama': 'llamas',
     'dog': 'dogs'
   };
 
-  static Map<String, List<String>> categories = {
+  static Map<String, List<String>> categories = <String, List<String>>{
     /// This [size] [codeQuantifier] contains [error] errors and warnings.
-    'size-2': [
+    'size-2': <String>[
       'gigantic',
       'Jupiterian sized',
       'immense',
@@ -50,7 +50,7 @@ class Summarizer {
       'epic',
       'humongous'
     ],
-    'size-1': [
+    'size-1': <String>[
       'decently sized',
       'exceptional',
       'awesome',
@@ -58,29 +58,29 @@ class Summarizer {
       'visionary',
       'legendary'
     ],
-    'size-0': ['itty-bitty', 'miniature', 'tiny', 'pint-sized'],
-    'compiledQuantifier': ['Dart program', 'pad'],
-    'failedQuantifier': [
+    'size-0': <String>['itty-bitty', 'miniature', 'tiny', 'pint-sized'],
+    'compiledQuantifier': <String>['Dart program', 'pad'],
+    'failedQuantifier': <String>[
       'assemblage of characters',
       'series of strings',
       'grouping of letters'
     ],
-    'errorCount-2': [
+    'errorCount-2': <String>[
       'many',
       'a motherload of',
       'copious amounts of',
       'unholy quantities of'
     ],
-    'errorCount-1': [
+    'errorCount-1': <String>[
       'some',
       'a few',
       'sparse amounts of',
       'very few instances of'
     ],
-    'errorCount-0': ['zero', 'no', 'a nonexistent amount of', '0'],
-    'use': ['demonstrates', 'illustrates', 'depicts'],
-    'code-0': ['it'],
-    'code-1': ['It'],
+    'errorCount-0': <String>['zero', 'no', 'a nonexistent amount of', '0'],
+    'use': <String>['demonstrates', 'illustrates', 'depicts'],
+    'code-0': <String>['it'],
+    'code-1': <String>['It'],
   };
 
   Summarizer({this.dart, this.html, this.css, this.analysis}) {
@@ -91,7 +91,7 @@ class Summarizer {
 
   bool get hasAnalysisResults => analysis != null;
 
-  int _sumList(List<int> list) => list.reduce((a, b) => a + b);
+  int _sumList(List<int> list) => list.reduce((int a, int b) => a + b);
 
   String _categorySelector(String category, int itemCount) {
     if (category == 'size' || category == 'errorCount') {
@@ -143,7 +143,7 @@ class Summarizer {
   bool _usedInDartSource(String feature) => dart.contains(feature);
 
   List<String> _additionSearch() {
-    List<String> features = List<String>();
+    List<String> features = <String>[];
     for (String feature in additionKeyWords.keys) {
       if (_usedInDartSource(feature)) features.add(additionKeyWords[feature]);
     }
@@ -151,7 +151,7 @@ class Summarizer {
   }
 
   List<String> _codeSearch() {
-    List<String> features = List<String>();
+    List<String> features = <String>[];
     for (String feature in codeKeyWords.keys) {
       if (_usedInDartSource(feature)) features.add(codeKeyWords[feature]);
     }
@@ -281,8 +281,10 @@ class _SummarizeToken {
   _SummarizeToken(String input, {AnalysisResults analysis}) {
     linesCode = _linesOfCode(input);
     if (analysis != null) {
-      errorPresent = analysis.issues.any((issue) => issue.kind == 'error');
-      warningPresent = analysis.issues.any((issue) => issue.kind == 'warning');
+      errorPresent =
+          analysis.issues.any((AnalysisIssue issue) => issue.kind == 'error');
+      warningPresent =
+          analysis.issues.any((AnalysisIssue issue) => issue.kind == 'warning');
       packageCount = analysis.packageImports.length;
       packageImports = analysis.packageImports;
       errors = analysis.issues;

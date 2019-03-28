@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: always_specify_types
+
 library services_server.apitest;
 
 import 'dart:html';
@@ -49,7 +51,7 @@ void setupSummary() {
   button.onClick.listen((e) {
     _setupClients();
     services.SourcesRequest input = services.SourcesRequest();
-    input.sources = Map<String, String>();
+    input.sources = <String, String>{};
     input.sources['dart'] = editor.getDoc().getValue();
     input.sources['css'] = "";
     input.sources['html'] = "";

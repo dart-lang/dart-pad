@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 class TaskScheduler {
-  Queue<_Task<dynamic>> _taskQueue = Queue();
+  Queue<_Task<dynamic>> _taskQueue = Queue<_Task<dynamic>>();
   bool _isActive = false;
 
   int get queueCount => _taskQueue.length;
@@ -26,7 +26,7 @@ class TaskScheduler {
       _isActive = true;
       return _performTask(task).whenComplete(_next);
     }
-    Completer taskResult = Completer<T>();
+    Completer<T> taskResult = Completer<T>();
     _taskQueue.add(_Task<T>(task, taskResult));
     return taskResult.future;
   }
@@ -37,7 +37,7 @@ class TaskScheduler {
       _isActive = false;
       return;
     }
-    _Task first = _taskQueue.removeFirst();
+    _Task<dynamic> first = _taskQueue.removeFirst();
     first.taskResult.complete(_performTask(first.task).whenComplete(_next));
   }
 }

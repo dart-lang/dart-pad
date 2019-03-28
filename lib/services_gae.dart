@@ -46,7 +46,8 @@ void main(List<String> args) {
     GAE_VERSION: ${io.Platform.environment['GAE_VERSION']}
   ''');
 
-  GaeServer server = GaeServer(sdk, io.Platform.environment['REDIS_SERVER_URI']);
+  GaeServer server =
+      GaeServer(sdk, io.Platform.environment['REDIS_SERVER_URI']);
   server.start(gaePort);
 }
 
@@ -66,14 +67,19 @@ class GaeServer {
     discoveryEnabled = false;
     fileRelayServer = FileRelayServer();
     commonServer = CommonServer(
-        sdkPath, GaeServerContainer(), redisServerUri == null ? InmemoryCache() : RedisCache(redisServerUri, io.Platform.environment['GAE_VERSION']));
+        sdkPath,
+        GaeServerContainer(),
+        redisServerUri == null
+            ? InmemoryCache()
+            : RedisCache(
+                redisServerUri, io.Platform.environment['GAE_VERSION']));
     // Enabled pretty printing of returned json for debuggability.
     apiServer = rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer)
       ..addApi(fileRelayServer);
   }
 
-  Future start([int gaePort = 8080]) async {
+  Future<dynamic> start([int gaePort = 8080]) async {
     await commonServer.init();
     return ae.runAppEngine(requestHandler, port: gaePort);
   }
@@ -86,9 +92,9 @@ class GaeServer {
 
     // Explicitly handle an OPTIONS requests.
     if (request.method == 'OPTIONS') {
-      var requestedMethod =
+      String requestedMethod =
           request.headers.value('access-control-request-method');
-      var statusCode;
+      int statusCode;
       if (requestedMethod != null && requestedMethod.toUpperCase() == 'POST') {
         statusCode = io.HttpStatus.ok;
       } else {
@@ -108,7 +114,8 @@ class GaeServer {
       // NOTE: We could read in the request body here and parse it similar to
       // the _parseRequest method to determine content-type and dispatch to e.g.
       // a plain text handler if we want to support that.
-      var apiRequest = rpc.HttpApiRequest.fromHttpRequest(request);
+      rpc.HttpApiRequest apiRequest =
+          rpc.HttpApiRequest.fromHttpRequest(request);
 
       // Dartpad sends data as plain text, we need to promote this to
       // application/json to ensure that the rpc library processes it correctly
@@ -117,7 +124,7 @@ class GaeServer {
           .handleHttpApiRequest(apiRequest)
           .then((rpc.HttpApiResponse apiResponse) {
         return rpc.sendApiResponse(apiResponse, request.response);
-      }).catchError((e) {
+      }).catchError((dynamic e) {
         // This should only happen in the case where there is a bug in the rpc
         // package. Otherwise it always returns an HttpApiResponse.
         _logger.warning('Failed with error: $e when trying to call '

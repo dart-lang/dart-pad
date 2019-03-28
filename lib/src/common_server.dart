@@ -32,11 +32,11 @@ final Logger log = Logger('common_server');
 final bool enablePackages = false;
 
 abstract class ServerCache {
-  Future get(String key);
+  Future<String> get(String key);
 
-  Future set(String key, String value, {Duration expiration});
+  Future<void> set(String key, String value, {Duration expiration});
 
-  Future remove(String key);
+  Future<void> remove(String key);
 
   Future<void> shutdown();
 }
@@ -48,7 +48,7 @@ abstract class ServerContainer {
 class SummaryText {
   String text;
 
-  SummaryText.fromString(String this.text);
+  SummaryText.fromString(this.text);
 }
 
 /// A redis-backed implementation of [ServerCache].
@@ -71,17 +71,17 @@ class RedisCache implements ServerCache {
     _reconnect();
   }
 
-  var _connected = Completer<void>();
+  Completer<void> _connected = Completer<void>();
 
   /// Completes when and if the redis server connects.  This future is reset
   /// on disconnection.  Mostly for testing.
-  Future get connected => _connected.future;
+  Future<void> get connected => _connected.future;
 
-  var _disconnected = Completer<void>()..complete();
+  Completer<void> _disconnected = Completer<void>()..complete();
 
   /// Completes when the server is disconnected (begins completed).  This
   /// future is reset on connection.  Mostly for testing.
-  Future get disconnected => _disconnected.future;
+  Future<void> get disconnected => _disconnected.future;
 
   String __logPrefix;
 
@@ -141,7 +141,7 @@ class RedisCache implements ServerCache {
             _resetConnection();
             log.warning('${_logPrefix}: connection terminated, reconnecting');
             _reconnect();
-          }).catchError((e) {
+          }).catchError((dynamic e) {
             _resetConnection();
             log.warning(
                 '${_logPrefix}: connection terminated with error ${e}, reconnecting');
@@ -152,7 +152,7 @@ class RedisCache implements ServerCache {
         .catchError((_) {
           log.severe(
               '${_logPrefix}: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...');
-          Future.delayed(Duration(milliseconds: nextRetryMs)).then((_) {
+          Future<void>.delayed(Duration(milliseconds: nextRetryMs)).then((_) {
             _reconnect(nextRetryMs);
           });
         });
@@ -165,13 +165,14 @@ class RedisCache implements ServerCache {
   String _genKey(String key) => '${serverVersion}+${key}';
 
   @override
-  Future get(String key) async {
+  Future<String> get(String key) async {
     String value;
     key = _genKey(key);
     if (!_isConnected()) {
       log.warning('${_logPrefix}: no cache available when getting key ${key}');
     } else {
-      final commands = redisClient.asCommands<String, String>();
+      final redis.Commands<String, String> commands =
+          redisClient.asCommands<String, String>();
       // commands can return errors synchronously in timeout cases.
       try {
         value = await commands.get(key).timeout(cacheOperationTimeout,
@@ -188,14 +189,15 @@ class RedisCache implements ServerCache {
   }
 
   @override
-  Future remove(String key) async {
+  Future<dynamic> remove(String key) async {
     key = _genKey(key);
     if (!_isConnected()) {
       log.warning('${_logPrefix}: no cache available when removing key ${key}');
       return null;
     }
 
-    final commands = redisClient.asCommands<String, String>();
+    final redis.Commands<String, String> commands =
+        redisClient.asCommands<String, String>();
     // commands can sometimes return errors synchronously in timeout cases.
     try {
       return commands.del(key: key).timeout(cacheOperationTimeout,
@@ -211,17 +213,18 @@ class RedisCache implements ServerCache {
   }
 
   @override
-  Future set(String key, String value, {Duration expiration}) async {
+  Future<void> set(String key, String value, {Duration expiration}) async {
     key = _genKey(key);
     if (!_isConnected()) {
       log.warning('${_logPrefix}: no cache available when setting key ${key}');
       return null;
     }
 
-    final commands = redisClient.asCommands<String, String>();
+    final redis.Commands<String, String> commands =
+        redisClient.asCommands<String, String>();
     // commands can sometimes return errors synchronously in timeout cases.
     try {
-      return Future.sync(() async {
+      return Future<void>.sync(() async {
         await commands.multi();
         unawaited(commands.set(key, value));
         if (expiration != null) {
@@ -242,20 +245,21 @@ class RedisCache implements ServerCache {
 /// expiration of entries based on time.
 class InmemoryCache implements ServerCache {
   /// Wrapping an internal cache with a maximum size of 512 entries.
-  final Cache<String, String> _lru = MapCache.lru(maximumSize: 512);
+  final Cache<String, String> _lru =
+      MapCache<String, String>.lru(maximumSize: 512);
 
   @override
-  Future get(String key) async => _lru.get(key);
+  Future<String> get(String key) async => _lru.get(key);
 
   @override
-  Future set(String key, String value, {Duration expiration}) async =>
+  Future<void> set(String key, String value, {Duration expiration}) async =>
       _lru.set(key, value);
 
   @override
-  Future remove(String key) async => _lru.invalidate(key);
+  Future<void> remove(String key) async => _lru.invalidate(key);
 
   @override
-  Future<void> shutdown() => Future.value();
+  Future<void> shutdown() => Future<void>.value();
 }
 
 @ApiClass(name: 'dartservices', version: 'v1')
@@ -275,7 +279,7 @@ class CommonServer {
     log.level = Level.ALL;
   }
 
-  Future init() async {
+  Future<void> init() async {
     pub = enablePackages ? Pub() : Pub.mock();
     compiler = Compiler(sdkPath, pub);
     analysisServer = AnalysisServerWrapper(sdkPath);
@@ -289,12 +293,12 @@ class CommonServer {
     }));
   }
 
-  Future warmup({bool useHtml = false}) async {
+  Future<void> warmup({bool useHtml = false}) async {
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
   }
 
-  Future restart() async {
+  Future<void> restart() async {
     log.warning('Restarting CommonServer');
     await shutdown();
     log.info('Analysis Servers shutdown');
@@ -305,9 +309,11 @@ class CommonServer {
     log.warning('Restart complete');
   }
 
-  Future shutdown() {
-    return Future.wait(
-        [analysisServer.shutdown(), Future.sync(cache.shutdown)]);
+  Future<dynamic> shutdown() {
+    return Future.wait(<Future<dynamic>>[
+      analysisServer.shutdown(),
+      Future<dynamic>.sync(cache.shutdown)
+    ]);
   }
 
   @ApiMethod(
@@ -494,30 +500,32 @@ class CommonServer {
       method: 'GET',
       path: 'version',
       description: 'Return the current SDK version for DartServices.')
-  Future<VersionResponse> version() => Future.value(_version());
+  Future<VersionResponse> version() =>
+      Future<VersionResponse>.value(_version());
 
   Future<AnalysisResults> _analyze(String source) async {
     if (source == null) {
       throw BadRequestError('Missing parameter: \'source\'');
     }
-    return _analyzeMulti({kMainDart: source});
+    return _analyzeMulti(<String, String>{kMainDart: source});
   }
 
   Future<SummaryText> _summarize(String dart, String html, String css) async {
     if (dart == null || html == null || css == null) {
       throw BadRequestError('Missing core source parameter.');
     }
-    String sourcesJson =
-        JsonEncoder().convert({"dart": dart, "html": html, "css": css});
+    String sourcesJson = JsonEncoder()
+        .convert(<String, String>{"dart": dart, "html": html, "css": css});
     log.info("About to summarize: ${_hashSource(sourcesJson)}");
 
     SummaryText summaryString =
-        await _analyzeMulti({kMainDart: dart}).then((result) {
+        await _analyzeMulti(<String, String>{kMainDart: dart})
+            .then((AnalysisResults result) {
       Summarizer summarizer =
           Summarizer(dart: dart, html: html, css: css, analysis: result);
       return SummaryText.fromString(summarizer.returnAsSimpleSummary());
     });
-    return Future.value(summaryString);
+    return summaryString;
   }
 
   Future<AnalysisResults> _analyzeMulti(Map<String, String> sources) async {
@@ -530,8 +538,8 @@ class CommonServer {
       AnalysisServerWrapper server = analysisServer;
       AnalysisResults results = await server.analyzeMulti(sources);
       int lineCount = sources.values
-          .map((s) => s.split('\n').length)
-          .fold(0, (a, b) => a + b);
+          .map((String s) => s.split('\n').length)
+          .fold(0, (int a, int b) => a + b);
       int ms = watch.elapsedMilliseconds;
       log.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
       return results;
@@ -556,7 +564,7 @@ class CommonServer {
     final String result = await checkCache(memCacheKey);
     if (result != null) {
       log.info("CACHE: Cache hit for compile");
-      var resultObj = JsonDecoder().convert(result);
+      dynamic resultObj = JsonDecoder().convert(result);
       return CompileResponse(
         resultObj["compiledJS"],
         returnSourceMap ? resultObj["sourceMap"] : null,
@@ -577,7 +585,7 @@ class CommonServer {
             '${outputSize}kb of JavaScript in ${ms}ms using dart2js.');
         String sourceMap = returnSourceMap ? results.sourceMap : null;
 
-        String cachedResult = JsonEncoder().convert({
+        String cachedResult = JsonEncoder().convert(<String, String>{
           "compiledJS": results.compiledJS,
           "sourceMap": sourceMap,
         });
@@ -589,7 +597,7 @@ class CommonServer {
         String errors = problems.map(_printCompileProblem).join('\n');
         throw BadRequestError(errors);
       }
-    }).catchError((e, st) {
+    }).catchError((dynamic e, dynamic st) {
       log.severe('Error during compile (dart2js): ${e}\n${st}');
       throw e;
     });
@@ -607,7 +615,7 @@ class CommonServer {
     final String result = await checkCache(memCacheKey);
     if (result != null) {
       log.info("CACHE: Cache hit for compileDDC");
-      var resultObj = JsonDecoder().convert(result);
+      dynamic resultObj = JsonDecoder().convert(result);
       return CompileDDCResponse(
         resultObj["compiledJS"],
         resultObj["staticScriptUris"],
@@ -624,7 +632,7 @@ class CommonServer {
         int ms = watch.elapsedMilliseconds;
         log.info('PERF: Compiled ${lineCount} lines of Dart into '
             '${outputSize}kb of JavaScript in ${ms}ms using DDC.');
-        String cachedResult = JsonEncoder().convert({
+        String cachedResult = JsonEncoder().convert(<String, dynamic>{
           'compiledJS': results.compiledJS,
           'staticScriptUris': results.staticScriptUris,
         });
@@ -637,7 +645,7 @@ class CommonServer {
         String errors = problems.map(_printCompileProblem).join('\n');
         throw BadRequestError(errors);
       }
-    }).catchError((e, st) {
+    }).catchError((dynamic e, dynamic st) {
       log.severe('Error during compile (DDC): ${e}\n${st}');
       throw e;
     });
@@ -654,7 +662,7 @@ class CommonServer {
     try {
       Map<String, String> docInfo =
           await analysisServer.dartdoc(source, offset);
-      docInfo ??= {};
+      docInfo ??= <String, String>{};
       log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
       return DocumentResponse(docInfo);
     } catch (e, st) {
@@ -679,7 +687,8 @@ class CommonServer {
       throw BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _completeMulti({kMainDart: source}, kMainDart, offset);
+    return _completeMulti(
+        <String, String>{kMainDart: source}, kMainDart, offset);
   }
 
   Future<CompleteResponse> _completeMulti(
@@ -696,7 +705,7 @@ class CommonServer {
 
     Stopwatch watch = Stopwatch()..start();
     try {
-      var response = await analysisServer.completeMulti(
+      CompleteResponse response = await analysisServer.completeMulti(
           sources,
           Location()
             ..sourceName = sourceName
@@ -718,7 +727,7 @@ class CommonServer {
       throw BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _fixesMulti({kMainDart: source}, kMainDart, offset);
+    return _fixesMulti(<String, String>{kMainDart: source}, kMainDart, offset);
   }
 
   Future<FixesResponse> _fixesMulti(
@@ -731,7 +740,7 @@ class CommonServer {
     }
 
     Stopwatch watch = Stopwatch()..start();
-    var response = await analysisServer.getFixesMulti(
+    FixesResponse response = await analysisServer.getFixesMulti(
         sources,
         Location()
           ..sourceName = sourceName
@@ -748,14 +757,14 @@ class CommonServer {
 
     Stopwatch watch = Stopwatch()..start();
 
-    var response = await analysisServer.format(source, offset);
+    FormatResponse response = await analysisServer.format(source, offset);
     log.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
 
   Future<String> checkCache(String query) => cache.get(query);
 
-  Future setCache(String query, String result) =>
+  Future<void> setCache(String query, String result) =>
       cache.set(query, result, expiration: _standardExpiration);
 }
 

@@ -98,7 +98,7 @@ void main(List<String> argv) {
 """;
 
 class Lines {
-  List<int> _starts = [];
+  List<int> _starts = <int>[];
 
   Lines(String source) {
     List<int> units = source.codeUnits;

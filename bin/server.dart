@@ -11,7 +11,7 @@ import 'dart:async';
 import 'package:dart_services/services_gae.dart' as server;
 import 'package:dart_services/src/sdk_manager.dart';
 
-Future main(List<String> args) async {
+Future<void> main(List<String> args) async {
   // Ensure the Dart SDK is downloaded (if already up-to-date, no work is
   // performed).
   await SdkManager.sdk.init();

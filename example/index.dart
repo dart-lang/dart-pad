@@ -6,9 +6,9 @@ import "dart:convert";
 import "dart:html";
 
 void main() {
-  querySelector('#sendButton').onClick.listen((e) {
+  querySelector('#sendButton').onClick.listen((MouseEvent e) {
     String code = querySelector('#code').text;
-    var jsonData = {'source': code};
+    Map<String, String> jsonData = <String, String>{'source': code};
     //var foo = querySelector('#apiEndPoint');
     String api = (querySelector('#apiEndPoint') as InputElement).value;
 

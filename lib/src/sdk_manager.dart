@@ -24,7 +24,7 @@ class SdkManager {
 abstract class Sdk {
   /// Set up the sdk (download it if necessary, ...), and fail if there's an
   /// error.
-  Future init();
+  Future<void> init();
 
   /// Report the current version of the SDK.
   String get version {
@@ -49,12 +49,12 @@ class DownloadingSdk extends Sdk {
   DownloadingSdk()
       : _versionFull = File('dart-sdk.version')
             .readAsLinesSync()
-            .map((line) => line.trim())
-            .where((line) => line.isNotEmpty && !line.startsWith('#'))
+            .map((String line) => line.trim())
+            .where((String line) => line.isNotEmpty && !line.startsWith('#'))
             .single;
 
   @override
-  Future init() async {
+  Future<void> init() async {
     File file = File(path.join(sdkPath, 'version'));
     if (file.existsSync() && file.readAsStringSync().trim() == _versionFull) {
       return;
@@ -92,7 +92,7 @@ class DownloadingSdk extends Sdk {
       destDir.createSync(recursive: true);
     }
     result = await Process.run(
-        'unzip', ['-o', '-q', destFile.path, '-d', destDir.path]);
+        'unzip', <String>['-o', '-q', destFile.path, '-d', destDir.path]);
     if (result.exitCode != 0) {
       throw 'unzip failed: ${result.exitCode}\n${result.stdout}\n${result.stderr}';
     }
@@ -119,8 +119,13 @@ Future<ProcessResult> _curl(
     count++;
 
     _logger.info('Downloading $message...');
-    result = await Process.run('curl',
-        ['-continue-at=-', '--location', '--output', destFile.path, url]);
+    result = await Process.run('curl', <String>[
+      '-continue-at=-',
+      '--location',
+      '--output',
+      destFile.path,
+      url
+    ]);
     if (result.exitCode == 0) {
       return result;
     }

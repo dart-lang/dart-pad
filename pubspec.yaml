@@ -2,7 +2,7 @@ name: dart_services
 publish_to: none
 
 environment:
-  sdk: '>=2.0.0-dev.64.1 <3.0.0'
+  sdk: '>=2.2.0 <3.0.0'
 
 dependencies:
   _discoveryapis_commons: ^0.1.8
@@ -19,7 +19,7 @@ dependencies:
   pedantic: ^1.4.0
   shelf: ^0.7.0
   rpc: ^0.6.1
-  uuid: 2.0.0-rc1
+  uuid: 2.0.0
   yaml: ^2.0.0
   quiver: ^2.0.1
 

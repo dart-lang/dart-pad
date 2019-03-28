@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: always_specify_types
+
 import 'dart:async';
 
 import 'package:http/http.dart' as http;
@@ -26,7 +28,7 @@ void main(List<String> args) {
   print("QPS: $qps, URI: $URI");
 
   int ms = (1000 / qps).floor();
-  Timer.periodic(Duration(milliseconds: ms), (t) => pingServer(t));
+  Timer.periodic(Duration(milliseconds: ms), pingServer);
 }
 
 void pingServer(Timer t) {

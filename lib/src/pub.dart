@@ -49,14 +49,15 @@ class Pub {
 
   /// Return the current version of the `pub` executable.
   String getVersion() {
-    ProcessResult result = Process.runSync('pub', ['--version']);
+    ProcessResult result = Process.runSync('pub', <String>['--version']);
     return result.stdout.trim();
   }
 
   /// Return the transitive closure of the given packages, resolved into the
   /// latest compatible versions.
   Future<PackagesInfo> resolvePackages(List<String> packages) {
-    if (packages.isEmpty) return Future.value(PackagesInfo([]));
+    if (packages.isEmpty)
+      return Future<PackagesInfo>.value(PackagesInfo(<PackageInfo>[]));
 
     Directory tempDir = Directory.systemTemp.createTempSync(
         /* prefix: */
@@ -66,11 +67,11 @@ class Pub {
       // Create pubspec file.
       File pubspecFile = File(path.join(tempDir.path, 'pubspec.yaml'));
       String specContents = 'name: temp\ndependencies:\n' +
-          packages.map((p) => '  ${p}: any').join('\n');
+          packages.map((String p) => '  ${p}: any').join('\n');
       pubspecFile.writeAsStringSync(specContents, flush: true);
 
       // Run pub.
-      return Process.run('pub', ['get'], workingDirectory: tempDir.path)
+      return Process.run('pub', <String>['get'], workingDirectory: tempDir.path)
           .timeout(Duration(seconds: 20))
           .then<PackagesInfo>((ProcessResult result) {
         if (result.exitCode != 0) {
@@ -78,7 +79,7 @@ class Pub {
               ? result.stderr
               : 'failed to get pub packages: ${result.exitCode}';
           _logger.severe('Error running pub get: ${message}');
-          return Future<PackagesInfo>.value(PackagesInfo([]));
+          return Future<PackagesInfo>.value(PackagesInfo(<PackageInfo>[]));
         }
 
         // Parse the lock file.
@@ -89,7 +90,7 @@ class Pub {
         tempDir.deleteSync(recursive: true);
       });
     } catch (e, st) {
-      return Future.error(e, st);
+      return Future<PackagesInfo>.error(e, st);
     }
   }
 
@@ -102,7 +103,7 @@ class Pub {
       Directory libDir = Directory(path.join(packageDir.path, 'lib'));
 
       if (packageDir.existsSync() && libDir.existsSync()) {
-        return Future.value(libDir);
+        return Future<Directory>.value(libDir);
       }
 
       return _populatePackage(packageInfo, _cacheDir, packageDir).then((_) {
@@ -110,7 +111,7 @@ class Pub {
       });
     } catch (e, st) {
       _logger.severe('Error getting package ${packageInfo}: ${e}\n${st}');
-      return Future.error(e);
+      return Future<Directory>.error(e);
     }
   }
 
@@ -134,12 +135,12 @@ class Pub {
 
     yaml.YamlNode root = yaml.loadYamlNode(lockContents);
 
-    Map m = root.value;
-    Map packages = m['packages'];
+    yaml.YamlMap m = root.value;
+    yaml.YamlMap packages = m['packages'];
 
-    List results = <PackageInfo>[];
+    List<PackageInfo> results = <PackageInfo>[];
 
-    for (var key in packages.keys) {
+    for (String key in packages.keys) {
       results.add(PackageInfo(key, packages[key]['version']));
     }
 
@@ -153,7 +154,7 @@ class Pub {
 //  }
 
   /// Download the indicated package and expand it into the target directory.
-  Future _populatePackage(
+  Future<void> _populatePackage(
       PackageInfo package, Directory cacheDir, Directory target) {
     final String base = 'https://storage.googleapis.com/pub-packages/packages';
 
@@ -200,7 +201,7 @@ class _MockPub implements Pub {
   PackagesInfo _parseLockContents(String lockContents) => null;
 
   @override
-  Future _populatePackage(
+  Future<void> _populatePackage(
       PackageInfo package, Directory cacheDir, Directory target) {
     return null;
   }
@@ -209,14 +210,15 @@ class _MockPub implements Pub {
   void flushCache() {}
 
   @override
-  Future<Directory> getPackageLibDir(PackageInfo packageInfo) => Future.value();
+  Future<Directory> getPackageLibDir(PackageInfo packageInfo) =>
+      Future<Directory>.value();
 
   @override
   String getVersion() => null;
 
   @override
   Future<PackagesInfo> resolvePackages(List<String> packages) =>
-      Future.value(PackagesInfo([]));
+      Future<PackagesInfo>.value(PackagesInfo(<PackageInfo>[]));
 }
 
 /// A set of packages.
@@ -231,8 +233,8 @@ class PackagesInfo {
 
 /// A package name and version tuple.
 class PackageInfo {
-  static final nameRegex = RegExp(r'^([\w]+)$');
-  static final versionRegex = RegExp(r'^([\w-\+\.]+)$');
+  static final RegExp nameRegex = RegExp(r'^([\w]+)$');
+  static final RegExp versionRegex = RegExp(r'^([\w-\+\.]+)$');
 
   final String name;
   final String version;
@@ -248,13 +250,13 @@ class PackageInfo {
 }
 
 Set<String> getAllUnsafeImportsFor(String dartSource) {
-  if (dartSource == null) return Set();
+  if (dartSource == null) return <String>{};
 
   Scanner scanner = Scanner(StringSource(dartSource, kMainDart),
       CharSequenceReader(dartSource), AnalysisErrorListener.NULL_LISTENER);
   Token token = scanner.tokenize();
 
-  var imports = Set<String>();
+  Set<String> imports = <String>{};
 
   while (token.type != TokenType.EOF) {
     if (_isLibrary(token)) {
@@ -278,7 +280,7 @@ Set<String> getAllUnsafeImportsFor(String dartSource) {
 /// Return the list of packages that are imported from the given imports. These
 /// packages are sanitized defensively.
 Set<String> filterSafePackagesFromImports(Set<String> allImports) {
-  return Set.from(allImports.where((import) {
+  return Set<String>.from(allImports.where((String import) {
     return import.startsWith('package:');
   }).map((String import) {
     return import.substring(8);
@@ -287,7 +289,7 @@ Set<String> filterSafePackagesFromImports(Set<String> allImports) {
     return index == -1 ? import : import.substring(0, index);
   }).map((String import) {
     return import.replaceAll('..', '');
-  }).where((import) {
+  }).where((String import) {
     return import.isNotEmpty;
   }));
 }

@@ -10,7 +10,7 @@ import 'package:logging/logging.dart';
 
 Logger _logger = Logger('update_sdk');
 
-Future main() async {
+Future<void> main() async {
   Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord record) {
     print(record);

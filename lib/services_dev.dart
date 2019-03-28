@@ -23,14 +23,14 @@ import 'src/shelf_cors.dart' as shelf_cors;
 Logger _logger = Logger('services');
 
 void main(List<String> args) {
-  var parser = ArgParser();
+  ArgParser parser = ArgParser();
   parser.addOption('port', abbr: 'p', defaultsTo: '8080');
   parser.addFlag('discovery');
   parser.addFlag('relay');
   parser.addOption('server-url', defaultsTo: 'http://localhost');
 
-  var result = parser.parse(args);
-  var port = int.tryParse(result['port']);
+  ArgResults result = parser.parse(args);
+  num port = int.tryParse(result['port']);
   if (port == null) {
     stdout.writeln(
         'Could not parse port value "${result['port']}" into a number.');
@@ -45,13 +45,11 @@ void main(List<String> args) {
   }
 
   if (result['discovery']) {
-    var serverUrl = result['server-url'];
+    String serverUrl = result['server-url'];
     if (result['relay']) {
-      EndpointsServer.generateRelayDiscovery(sdk, serverUrl)
-          .then((doc) => printExit(doc));
+      EndpointsServer.generateRelayDiscovery(sdk, serverUrl).then(printExit);
     } else {
-      EndpointsServer.generateDiscovery(sdk, serverUrl)
-          .then((doc) => printExit(doc));
+      EndpointsServer.generateDiscovery(sdk, serverUrl).then(printExit);
     }
     return;
   }
@@ -81,28 +79,31 @@ class EndpointsServer {
 
   static Future<String> generateDiscovery(
       String sdkPath, String serverUrl) async {
-    var commonServer = CommonServer(sdkPath, _ServerContainer(), _Cache());
+    CommonServer commonServer =
+        CommonServer(sdkPath, _ServerContainer(), _Cache());
     await commonServer.init();
-    var apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
+    ApiServer apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
     apiServer.enableDiscoveryApi();
 
-    var uri = Uri.parse("/api/discovery/v1/apis/dartservices/v1/rest");
-    var request = HttpApiRequest('GET', uri, {}, Stream.fromIterable([]));
+    Uri uri = Uri.parse("/api/discovery/v1/apis/dartservices/v1/rest");
+    HttpApiRequest request = HttpApiRequest('GET', uri, <String, dynamic>{},
+        Stream<List<int>>.fromIterable(<List<int>>[]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
     return utf8.decode(await response.body.first);
   }
 
   static Future<String> generateRelayDiscovery(
       String sdkPath, String serverUrl) async {
-    var databaseServer = FileRelayServer();
-    var apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
+    FileRelayServer databaseServer = FileRelayServer();
+    ApiServer apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(databaseServer);
     apiServer.enableDiscoveryApi();
 
-    var uri =
+    Uri uri =
         Uri.parse("/api/discovery/v1/apis/_dartpadsupportservices/v1/rest");
-    var request = HttpApiRequest('GET', uri, {}, Stream.fromIterable([]));
+    HttpApiRequest request = HttpApiRequest('GET', uri, <String, dynamic>{},
+        Stream<List<int>>.fromIterable(<List<int>>[]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
     return utf8.decode(await response.body.first);
   }
@@ -170,7 +171,7 @@ Stack Trace: ${stackTrace.toString()}
   }
 
   Middleware _createCustomCorsHeadersMiddleware() {
-    return shelf_cors.createCorsHeadersMiddleware(corsHeaders: {
+    return shelf_cors.createCorsHeadersMiddleware(corsHeaders: <String, String>{
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers':
@@ -186,14 +187,15 @@ class _ServerContainer implements ServerContainer {
 
 class _Cache implements ServerCache {
   @override
-  Future<String> get(String key) => Future.value(null);
+  Future<String> get(String key) => Future<String>.value(null);
 
   @override
-  Future set(String key, String value, {Duration expiration}) => Future.value();
+  Future<void> set(String key, String value, {Duration expiration}) =>
+      Future<void>.value();
 
   @override
-  Future remove(String key) => Future.value();
+  Future<void> remove(String key) => Future<void>.value();
 
   @override
-  Future<void> shutdown() => Future.value();
+  Future<void> shutdown() => Future<void>.value();
 }

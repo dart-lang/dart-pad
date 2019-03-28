@@ -16,7 +16,7 @@ import 'pub.dart';
 
 Logger _logger = Logger('compiler');
 
-const BAD_IMPORT_ERROR_MSG =
+const String BAD_IMPORT_ERROR_MSG =
     "Imports other than dart: are not supported on Dartpad";
 
 /// An interface to the dart2js compiler. A compiler object can process one
@@ -29,7 +29,7 @@ class Compiler {
 
   bool importsOkForCompile(String dartSource) {
     Set<String> imports = getAllUnsafeImportsFor(dartSource);
-    return imports.every((import) => import.startsWith("dart:"));
+    return imports.every((String import) => import.startsWith("dart:"));
   }
 
   /// The version of the SDK this copy of dart2js is based on.
@@ -37,7 +37,7 @@ class Compiler {
     return File(path.join(sdkPath, 'version')).readAsStringSync().trim();
   }
 
-  Future warmup({bool useHtml = false}) {
+  Future<CompilationResults> warmup({bool useHtml = false}) {
     return compile(useHtml ? sampleCodeWeb : sampleCode);
   }
 
@@ -47,7 +47,7 @@ class Compiler {
     bool returnSourceMap = false,
   }) async {
     if (!importsOkForCompile(input)) {
-      return CompilationResults(problems: [
+      return CompilationResults(problems: <CompilationProblem>[
         CompilationProblem._(BAD_IMPORT_ERROR_MSG),
       ]);
     }
@@ -55,7 +55,7 @@ class Compiler {
     Directory temp = Directory.systemTemp.createTempSync('dartpad');
 
     try {
-      List<String> arguments = [
+      List<String> arguments = <String>[
         '--suppress-hints',
         '--terse',
       ];
@@ -78,7 +78,8 @@ class Compiler {
           Process.runSync(dart2JSPath, arguments, workingDirectory: temp.path);
 
       if (result.exitCode != 0) {
-        final CompilationResults results = CompilationResults(problems: [
+        final CompilationResults results =
+            CompilationResults(problems: <CompilationProblem>[
           CompilationProblem._(result.stdout),
         ]);
         return results;
@@ -105,7 +106,7 @@ class Compiler {
   /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> compileDDC(String input) async {
     if (!importsOkForCompile(input)) {
-      return DDCCompilationResults.failed([
+      return DDCCompilationResults.failed(<CompilationProblem>[
         CompilationProblem._(BAD_IMPORT_ERROR_MSG),
       ]);
     }
@@ -113,10 +114,10 @@ class Compiler {
     Directory temp = Directory.systemTemp.createTempSync('dartpad');
 
     try {
-      List<String> arguments = [
+      List<String> arguments = <String>[
         '--modules=amd',
       ];
-      arguments.addAll(['-o', '${kMainDart}.js']);
+      arguments.addAll(<String>['-o', '${kMainDart}.js']);
       arguments.add(kMainDart);
 
       String compileTarget = path.join(temp.path, kMainDart);
@@ -132,7 +133,7 @@ class Compiler {
           Process.runSync(dartdevcPath, arguments, workingDirectory: temp.path);
 
       if (result.exitCode != 0) {
-        return DDCCompilationResults.failed([
+        return DDCCompilationResults.failed(<CompilationProblem>[
           CompilationProblem._(result.stdout),
         ]);
       } else {
@@ -140,7 +141,7 @@ class Compiler {
         // something based on the sdk version.
         final DDCCompilationResults results = DDCCompilationResults(
           compiledJS: mainJs.readAsStringSync(),
-          staticScriptUris: [
+          staticScriptUris: <String>[
             'https://storage.cloud.google.com/compilation_artifacts/require.js',
             'https://storage.cloud.google.com/compilation_artifacts/dart_sdk.js',
           ],
@@ -165,7 +166,7 @@ class CompilationResults {
 
   CompilationResults({
     this.compiledJS,
-    this.problems = const [],
+    this.problems = const <CompilationProblem>[],
     this.sourceMap,
   });
 
@@ -181,12 +182,13 @@ class DDCCompilationResults {
   final List<String> staticScriptUris;
   final List<CompilationProblem> problems;
 
-  DDCCompilationResults({this.compiledJS, this.staticScriptUris = const []})
-      : problems = const [];
+  DDCCompilationResults(
+      {this.compiledJS, this.staticScriptUris = const <String>[]})
+      : problems = const <CompilationProblem>[];
 
   DDCCompilationResults.failed(this.problems)
       : compiledJS = null,
-        staticScriptUris = const [];
+        staticScriptUris = const <String>[];
 
   bool get hasOutput => compiledJS.isNotEmpty;
 

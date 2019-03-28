@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: always_specify_types
+
 library services.common_server_test;
 
 import 'dart:async';
@@ -321,9 +323,7 @@ void defineTests() {
       });
     });
 
-    tearDown(() {
-      log.clearListeners();
-    });
+    tearDown(log.clearListeners);
 
     test('analyze', () async {
       var jsonData = {'source': sampleCode};

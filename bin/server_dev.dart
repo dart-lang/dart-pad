@@ -10,7 +10,7 @@ import 'dart:async';
 import 'package:dart_services/services_dev.dart' as services_dev;
 import 'package:dart_services/src/sdk_manager.dart';
 
-Future main(List<String> args) async {
+Future<void> main(List<String> args) async {
   await SdkManager.sdk.init();
 
   services_dev.main(args);

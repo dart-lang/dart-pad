@@ -35,8 +35,12 @@ class AnalysisIssue implements Comparable<AnalysisIssue> {
       this.sourceName,
       this.hasFixes = false});
 
-  Map toMap() {
-    Map m = {'kind': kind, 'line': line, 'message': message};
+  Map<String, dynamic> toMap() {
+    Map<String, dynamic> m = <String, dynamic>{
+      'kind': kind,
+      'line': line,
+      'message': message
+    };
     if (charStart != null) m['charStart'] = charStart;
     if (charLength != null) m['charLength'] = charLength;
     if (hasFixes != null) m['hasFixes'] = hasFixes;
@@ -141,16 +145,16 @@ class CompleteResponse {
 
   final List<Map<String, String>> completions;
 
-  CompleteResponse(
-      this.replacementOffset, this.replacementLength, List<Map> completions)
-      : this.completions = _convert(completions);
+  CompleteResponse(this.replacementOffset, this.replacementLength,
+      List<Map<dynamic, dynamic>> completions)
+      : completions = _convert(completions);
 
   /// Convert any non-string values from the contained maps.
-  static List<Map<String, String>> _convert(List<Map> list) {
-    return list.map<Map<String, String>>((m) {
-      Map<String, String> newMap = {};
+  static List<Map<String, String>> _convert(List<Map<dynamic, dynamic>> list) {
+    return list.map<Map<String, String>>((Map<dynamic, dynamic> m) {
+      Map<String, String> newMap = <String, String>{};
       for (String key in m.keys) {
-        var data = m[key];
+        dynamic data = m[key];
         // TODO: Properly support Lists, Maps (this is a hack).
         if (data is Map || data is List) {
           data = json.encode(data);
@@ -177,7 +181,7 @@ class ProblemAndFixes {
   final int offset;
   final int length;
 
-  ProblemAndFixes() : this.fromList([]);
+  ProblemAndFixes() : this.fromList(<CandidateFix>[]);
 
   ProblemAndFixes.fromList(
       [this.fixes, this.problemMessage, this.offset, this.length]);

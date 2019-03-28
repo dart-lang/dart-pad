@@ -3,7 +3,7 @@ env: flex
 
 resources:
   cpu: 1
-  memory_gb: 3
+  memory_gb: 4
 
 automatic_scaling:
   min_num_instances: 6
