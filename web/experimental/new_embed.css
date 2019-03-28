@@ -13,14 +13,6 @@ body {
   overflow: hidden;
 }
 
-.tabview {
-  display: none;
-}
-
-.tabview[selected] {
-  display: block;
-}
-
 #frame {
   display: none;
 }
@@ -47,4 +39,9 @@ textarea {
 
 .squiggle-info {
   border-bottom: 2px solid #7EA7D8;
+}
+
+/* Styling specifically for CodeMirror editor */
+.CodeMirror {
+  height: 100%;
 }
