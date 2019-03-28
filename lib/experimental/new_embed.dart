@@ -34,8 +34,8 @@ class NewEmbed {
   TestResultLabel testResultLabel;
 
   TabController tabController;
-  EditorTabView editorTabView;
-  TestTabView testTabView;
+  TabView editorTabView;
+  TabView testTabView;
   ConsoleTabView consoleTabView;
 
   ExecutionService executionSvc;
@@ -90,15 +90,11 @@ class NewEmbed {
       ..mode = 'dart'
       ..showLineNumbers = true;
 
-    editorTabView = EditorTabView(
-      DElement(querySelector('#user-code-view')),
-      userCodeEditor,
-    );
+    editorTabView = TabView(
+      DElement(querySelector('#user-code-view')));
 
-    testTabView = TestTabView(
-      DElement(querySelector('#test-view')),
-      testEditor,
-    );
+    testTabView = TabView(
+      DElement(querySelector('#test-view')));
 
     consoleTabView = ConsoleTabView(DElement(querySelector('#console-view')));
 
@@ -217,7 +213,7 @@ class NewEmbedTabController extends TabController {
 }
 
 /// A container underneath the tab strip that can show or hide itself as needed.
-abstract class TabView {
+class TabView {
   final DElement element;
 
   const TabView(this.element);
@@ -229,24 +225,6 @@ abstract class TabView {
       element.clearAttr('selected');
     }
   }
-}
-
-class EditorTabView extends TabView {
-  EditorTabView(DElement element, this.editor) : super(element);
-
-  final Editor editor;
-
-//  set content(String code) {
-//    document.value = code;
-//  }
-//
-//  String get content => document.value;
-//
-//  Document get document => editor.document;
-//
-//  String get mode => editor.mode;
-//
-//  void focus() => editor.focus();
 }
 
 class ConsoleTabView extends TabView {
@@ -269,10 +247,6 @@ class ConsoleTabView extends TabView {
       ..classes.add('console-error');
     element.add(line);
   }
-}
-
-class TestTabView extends EditorTabView {
-  TestTabView(DElement element, Editor editor) : super(element, editor);
 }
 
 /// A line of text next to the [ExecuteButton] that reports test result messages
