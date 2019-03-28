@@ -45,7 +45,16 @@ class MainHandler(webapp2.RequestHandler):
                 _serve(self.response, newPath)
             return
 
-        # Otherwise it's a request for a item after the gist psudeo path
+        # If it is a request for something in the experimental folder, serve it
+        if targetSplits[1] == 'experimental':
+            newPath = "/".join(targetSplits[1:])
+            if newPath == '':
+                _serve(self.response, mainPage)
+            else:
+                _serve(self.response, newPath)
+            return
+
+        # Otherwise it's a request for a item after the gist pseudo path
         # drop the gist and serve it.
         if len(targetSplits) >= 3:
             newPath = "/".join(targetSplits[2:])
@@ -63,7 +72,7 @@ def isDevelopment():
 
 # Serve the files.
 def _serve(resp, path):
-        
+
     if not os.path.isfile(path):
         resp.status = 404
         resp.write("<html><h1>404: Not found</h1></html>")
@@ -80,7 +89,7 @@ def _serve(resp, path):
     if path.endswith('.html'):
         resp.content_type = 'text/html'
     if path.endswith('.png'):
-           resp.content_type = 'image/png'
+        resp.content_type = 'image/png'
 
     f = open(path, 'r')
     c = f.read()
