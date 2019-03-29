@@ -203,7 +203,7 @@ import '../foo.dart';
 void ensureBad(String packageName, String packageVersion) {
   try {
     /*PackageInfo info =*/ PackageInfo(packageName, packageVersion);
-    fail('${packageName}, ${packageVersion} should have failed');
+    fail('$packageName, $packageVersion should have failed');
   } catch (e) {
     // expected -
   }

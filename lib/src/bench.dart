@@ -129,8 +129,8 @@ class BenchMarkResult {
 
 bool isCheckedMode() {
   try {
-    String result = "foo";
-    result = result + "bar";
+    String result = 'foo';
+    result = '${result}bar';
     result = _intVal;
     return false;
   } catch (e) {

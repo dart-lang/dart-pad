@@ -10,7 +10,7 @@ import 'package:dart_services/src/common.dart' as common;
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-final String serverUrl = "https://liftoff-dev.appspot.com";
+final String serverUrl = 'https://liftoff-dev.appspot.com';
 
 void main() => defineTests();
 
@@ -23,7 +23,7 @@ void defineTests({bool skip = true}) {
 }
 
 void analyzeTest() {
-  final String url = '${serverUrl}/api/analyze';
+  final String url = '$serverUrl/api/analyze';
   Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(
@@ -31,14 +31,14 @@ void analyzeTest() {
           .post(url, headers: headers, body: common.sampleCodeWeb)
           .then((response) {
         expect(response.statusCode, 200);
-        expect(response.body.trim(), "[]");
+        expect(response.body.trim(), '[]');
         return true;
       }),
       completion(equals(true)));
 }
 
 void compileTest() {
-  final String url = '${serverUrl}/api/compile';
+  final String url = '$serverUrl/api/compile';
   Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(
@@ -53,7 +53,7 @@ void compileTest() {
 }
 
 void compileDDCTest() {
-  final String url = '${serverUrl}/api/compileDDC';
+  final String url = '$serverUrl/api/compileDDC';
   Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(

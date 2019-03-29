@@ -48,7 +48,7 @@ void updateDockerVersion() {
   List<String> dockerImageLines =
       File('Dockerfile').readAsLinesSync().map((String s) {
     if (s.contains(_dockerVersionMatcher)) {
-      return 'FROM google/dart-runtime:${platformVersion}';
+      return 'FROM google/dart-runtime:$platformVersion';
     }
     return s;
   }).toList()
@@ -94,19 +94,19 @@ void discovery() {
   File discoveryFile = File('doc/generated/dartservices.json');
   discoveryFile.parent.createSync();
   log('writing ${discoveryFile.path}');
-  discoveryFile.writeAsStringSync(result.stdout.trim() + '\n');
+  discoveryFile.writeAsStringSync('${result.stdout.trim()}\n');
 
   ProcessResult resultDb = Process.runSync(
       Platform.executable, ['bin/server_dev.dart', '--discovery', '--relay']);
 
-  if (result.exitCode != 0) {
+  if (resultDb.exitCode != 0) {
     throw 'Error generating the discovery document\n${result.stderr}';
   }
 
   File discoveryDbFile = File('doc/generated/_dartpadsupportservices.json');
   discoveryDbFile.parent.createSync();
   log('writing ${discoveryDbFile.path}');
-  discoveryDbFile.writeAsStringSync(resultDb.stdout.trim() + '\n');
+  discoveryDbFile.writeAsStringSync('${resultDb.stdout.trim()}\n');
 
   // Generate the Dart library from the json discovery file.
   Pub.global.activate('discoveryapis_generator');

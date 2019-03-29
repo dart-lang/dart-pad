@@ -53,7 +53,7 @@ class AnalysisIssue implements Comparable<AnalysisIssue> {
   int compareTo(AnalysisIssue other) => line - other.line;
 
   @override
-  String toString() => '${kind}: ${message} [${line}]';
+  String toString() => '$kind: $message [$line]';
 }
 
 class SourceRequest {
@@ -159,7 +159,7 @@ class CompleteResponse {
         if (data is Map || data is List) {
           data = json.encode(data);
         }
-        newMap[key] = '${data}';
+        newMap[key] = '$data';
       }
       return newMap;
     }).toList();
@@ -221,14 +221,14 @@ class SourceEdit {
 
   String applyTo(String target) {
     if (offset >= replacement.length) {
-      throw "Offset beyond end of string";
+      throw 'Offset beyond end of string';
     } else if (offset + length >= replacement.length) {
-      throw "Change beyond end of string";
+      throw 'Change beyond end of string';
     }
 
-    String pre = "${target.substring(0, offset)}";
-    String post = "${target.substring(offset + length)}";
-    return "$pre$replacement$post";
+    String pre = '${target.substring(0, offset)}';
+    String post = '${target.substring(offset + length)}';
+    return '$pre$replacement$post';
   }
 }
 

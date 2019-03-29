@@ -40,8 +40,8 @@ void main(List<String> args) {
     }
   });
   log.info('''Initializing dart-services: 
-    port: ${gaePort}
-    sdkPath: ${sdkPath}
+    port: $gaePort
+    sdkPath: $sdkPath
     REDIS_SERVER_URI: ${io.Platform.environment['REDIS_SERVER_URI']}
     GAE_VERSION: ${io.Platform.environment['GAE_VERSION']}
   ''');

@@ -17,7 +17,7 @@ import 'pub.dart';
 Logger _logger = Logger('compiler');
 
 const String BAD_IMPORT_ERROR_MSG =
-    "Imports other than dart: are not supported on Dartpad";
+    'Imports other than dart: are not supported on Dartpad';
 
 /// An interface to the dart2js compiler. A compiler object can process one
 /// compile at a time.
@@ -29,7 +29,7 @@ class Compiler {
 
   bool importsOkForCompile(String dartSource) {
     Set<String> imports = getAllUnsafeImportsFor(dartSource);
-    return imports.every((String import) => import.startsWith("dart:"));
+    return imports.every((String import) => import.startsWith('dart:'));
   }
 
   /// The version of the SDK this copy of dart2js is based on.
@@ -61,15 +61,15 @@ class Compiler {
       ];
       if (!returnSourceMap) arguments.add('--no-source-maps');
 
-      arguments.add('-o${kMainDart}.js');
+      arguments.add('-o$kMainDart.js');
       arguments.add(kMainDart);
 
       String compileTarget = path.join(temp.path, kMainDart);
       File mainDart = File(compileTarget);
       mainDart.writeAsStringSync(input);
 
-      File mainJs = File(path.join(temp.path, '${kMainDart}.js'));
-      File mainSourceMap = File(path.join(temp.path, '${kMainDart}.js.map'));
+      File mainJs = File(path.join(temp.path, '$kMainDart.js'));
+      File mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
 
       final String dart2JSPath = path.join(sdkPath, 'bin', 'dart2js');
       _logger.info('About to exec: $dart2JSPath $arguments');
@@ -95,7 +95,7 @@ class Compiler {
         return results;
       }
     } catch (e, st) {
-      _logger.warning("Compiler failed: $e /n $st");
+      _logger.warning('Compiler failed: $e\n$st');
       rethrow;
     } finally {
       temp.deleteSync(recursive: true);
@@ -117,14 +117,14 @@ class Compiler {
       List<String> arguments = <String>[
         '--modules=amd',
       ];
-      arguments.addAll(<String>['-o', '${kMainDart}.js']);
+      arguments.addAll(<String>['-o', '$kMainDart.js']);
       arguments.add(kMainDart);
 
       String compileTarget = path.join(temp.path, kMainDart);
       File mainDart = File(compileTarget);
       mainDart.writeAsStringSync(input);
 
-      File mainJs = File(path.join(temp.path, '${kMainDart}.js'));
+      File mainJs = File(path.join(temp.path, '$kMainDart.js'));
 
       final String dartdevcPath = path.join(sdkPath, 'bin', 'dartdevc');
       _logger.info('About to exec: $dartdevcPath $arguments');
@@ -149,7 +149,7 @@ class Compiler {
         return results;
       }
     } catch (e, st) {
-      _logger.warning("Compiler failed: $e /n $st");
+      _logger.warning('Compiler failed: $e\n$st');
       rethrow;
     } finally {
       temp.deleteSync(recursive: true);

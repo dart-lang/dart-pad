@@ -53,11 +53,11 @@ void setupSummary() {
     services.SourcesRequest input = services.SourcesRequest();
     input.sources = <String, String>{};
     input.sources['dart'] = editor.getDoc().getValue();
-    input.sources['css'] = "";
-    input.sources['html'] = "";
+    input.sources['css'] = '';
+    input.sources['html'] = '';
     Stopwatch sw = Stopwatch()..start();
     servicesApi.summarize(input).then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
 }
@@ -68,14 +68,14 @@ void setupIdRetrieval() {
   button.onClick.listen((e) {
     Stopwatch sw = Stopwatch()..start();
     _dartpadSupportApi.getUnusedMappingId().then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
 }
 
 void setupGistStore() {
   CodeMirror editor = createEditor(querySelector('#storeSection .editor'),
-      defaultText: "Internal ID");
+      defaultText: 'Internal ID');
   Element output = querySelector('#storeSection .output');
   ButtonElement button = querySelector('#storeSection button');
   button.onClick.listen((e) {
@@ -83,24 +83,24 @@ void setupGistStore() {
     support.GistToInternalIdMapping saveObject =
         support.GistToInternalIdMapping();
     saveObject.internalId = editorText;
-    saveObject.gistId = "72d83fe97bfc8e735607"; //Solar
+    saveObject.gistId = '72d83fe97bfc8e735607'; //Solar
     Stopwatch sw = Stopwatch()..start();
     _dartpadSupportApi.storeGist(saveObject).then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
 }
 
 void setupGistRetrieval() {
   CodeMirror editor = createEditor(querySelector('#gistSection .editor'),
-      defaultText: "Internal ID");
+      defaultText: 'Internal ID');
   Element output = querySelector('#gistSection .output');
   ButtonElement button = querySelector('#gistSection button');
   button.onClick.listen((e) {
     String editorText = editor.getDoc().getValue();
     Stopwatch sw = Stopwatch()..start();
     _dartpadSupportApi.retrieveGist(id: editorText).then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
 }
@@ -115,7 +115,7 @@ void setupAnalyze() {
       ..source = editor.getDoc().getValue();
     Stopwatch sw = Stopwatch()..start();
     servicesApi.analyze(srcRequest).then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
 }
@@ -133,7 +133,7 @@ void setupCompile() {
 
     Stopwatch sw = Stopwatch()..start();
     servicesApi.compile(compileRequest).then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
 }
@@ -147,7 +147,7 @@ void setupComplete() {
     var sourceRequest = _getSourceRequest(editor);
     Stopwatch sw = Stopwatch()..start();
     servicesApi.complete(sourceRequest).then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
   offsetElement.text = 'offset ${_getOffset(editor)}';
@@ -165,7 +165,7 @@ void setupDocument() {
     var sourceRequest = _getSourceRequest(editor);
     Stopwatch sw = Stopwatch()..start();
     servicesApi.document(sourceRequest).then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
   offsetElement.text = 'offset ${_getOffset(editor)}';
@@ -183,7 +183,7 @@ void setupFixes() {
     var sourceRequest = _getSourceRequest(editor);
     Stopwatch sw = Stopwatch()..start();
     servicesApi.fixes(sourceRequest).then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
   offsetElement.text = 'offset ${_getOffset(editor)}';
@@ -199,7 +199,7 @@ void setupVersion() {
   button.onClick.listen((e) {
     Stopwatch sw = Stopwatch()..start();
     servicesApi.version().then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
 }
@@ -213,7 +213,7 @@ void setupExport() {
     saveObject.dart = editor.getDoc().getValue();
     Stopwatch sw = Stopwatch()..start();
     _dartpadSupportApi.export(saveObject).then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
 }
@@ -221,7 +221,7 @@ void setupExport() {
 void setupRetrieve() {
   Element output = querySelector('#retrieveSection .output');
   CodeMirror editor =
-      createEditor(querySelector('#retrieveSection .editor'), defaultText: "");
+      createEditor(querySelector('#retrieveSection .editor'), defaultText: '');
   ButtonElement button = querySelector('#retrieveSection button');
   button.onClick.listen((e) {
     String uuid = editor.getDoc().getValue();
@@ -231,7 +231,7 @@ void setupRetrieve() {
     support.UuidContainer uuidContainer = support.UuidContainer()..uuid = uuid;
 
     _dartpadSupportApi.pullExportContent(uuidContainer).then((results) {
-      output.text = "${_formatTiming(sw)}${results.toJson()}";
+      output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
 }
@@ -252,7 +252,7 @@ CodeMirror createEditor(Element element, {String defaultText}) {
   return editor;
 }
 
-String _formatTiming(Stopwatch sw) => "${sw.elapsedMilliseconds}ms\n";
+String _formatTiming(Stopwatch sw) => '${sw.elapsedMilliseconds}ms\n';
 
 String get _uriBase =>
     (querySelector('input[type=text]') as InputElement).value;

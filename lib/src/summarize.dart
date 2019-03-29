@@ -97,9 +97,9 @@ class Summarizer {
     if (category == 'size' || category == 'errorCount') {
       List<int> maxField = cuttoffs[category];
       for (int counter = 0; counter < maxField.length; counter++) {
-        if (itemCount < maxField[counter]) return '${category}-${counter}';
+        if (itemCount < maxField[counter]) return '$category-$counter';
       }
-      return '${category}-${maxField.length - 1}';
+      return '$category-${maxField.length - 1}';
     } else {
       return null;
     }
@@ -248,7 +248,7 @@ class Summarizer {
       summary += '${_additionList(_additionSearch())}';
       return summary.trim();
     } else {
-      String summary = "Summary: ";
+      String summary = 'Summary: ';
       summary += 'This is a ${_sentenceFiller('size', storage.linesCode)} ';
       summary += '${_sentenceFiller('compiledQuantifier')}';
       summary += '${_featureList(_codeSearch())}';

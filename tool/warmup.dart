@@ -11,38 +11,38 @@ import 'package:http/http.dart' as http;
 
 String uri;
 
-const BASE_URI = "dart-services.appspot.com/api/dartservices/v1/";
+const BASE_URI = 'dart-services.appspot.com/api/dartservices/v1/';
 // const BASE_URI = "localhost:8080/api/dartservices/v1/";
 const count = 200;
 
 Future main(List<String> args) async {
   String appPrefix;
   if (args.isNotEmpty) {
-    appPrefix = "${args[0]}.";
+    appPrefix = '${args[0]}.';
   } else {
-    appPrefix = "";
+    appPrefix = '';
   }
 
   // Use an insecure connection for test driving to avoid cert problems
   // with the prefixed app version.
-  uri = "http://$appPrefix$BASE_URI";
+  uri = 'http://$appPrefix$BASE_URI';
 
-  print("Target URI\n$uri");
+  print('Target URI\n$uri');
 
   String source =
       "import 'dart:html'; void main() { var a = 3; var b = a.abs(); int c = 7;}";
 
   for (int j = 0; j < count; j++) {
-    var data = {"offset": 17, "source": source};
-    var dartdocData = {"offset": 84, "source": source};
+    var data = {'offset': 17, 'source': source};
+    var dartdocData = {'offset': 84, 'source': source};
 
     String postPayload = convert.json.encode(data);
     String postPayloadDartdoc = convert.json.encode(dartdocData);
 
-    await request("complete", postPayload);
-    await request("analyze", postPayload);
-    await request("compile", postPayload);
-    await request("document", postPayloadDartdoc);
+    await request('complete', postPayload);
+    await request('analyze', postPayload);
+    await request('compile', postPayload);
+    await request('document', postPayloadDartdoc);
   }
 }
 
@@ -56,9 +56,9 @@ Future request(String verb, String postPayload) async {
   int status = response.statusCode;
 
   if (status != 200) {
-    print("$verb \t $status \t ${response.body} ${response.headers}");
+    print('$verb \t $status \t ${response.body} ${response.headers}');
   } else {
-    print("$verb \t ${sw.elapsedMilliseconds} \t $status");
+    print('$verb \t ${sw.elapsedMilliseconds} \t $status');
   }
   return response.statusCode;
 }

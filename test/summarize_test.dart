@@ -53,7 +53,7 @@ void defineTests() {
     });
 
     test('Unique case detection', () {
-      Summarizer summer = Summarizer(dart: "pirate, dog, bird, llama");
+      Summarizer summer = Summarizer(dart: 'pirate, dog, bird, llama');
       expect(summer.returnAsSimpleSummary(), contains('pirates'));
       expect(summer.returnAsSimpleSummary(), contains('dogs'));
       expect(summer.returnAsSimpleSummary(), contains('birds'));
@@ -69,8 +69,8 @@ void defineTests() {
     });
 
     test('Modification causes change', () {
-      Summarizer summer1 = Summarizer(dart: "this does not return anything");
-      Summarizer summer2 = Summarizer(dart: "this doesnt return anything");
+      Summarizer summer1 = Summarizer(dart: 'this does not return anything');
+      Summarizer summer2 = Summarizer(dart: 'this doesnt return anything');
       expect(summer1.returnAsSimpleSummary(),
           isNot(summer2.returnAsSimpleSummary()));
     });

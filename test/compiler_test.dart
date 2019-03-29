@@ -78,7 +78,7 @@ void defineTests() {
           .then((CompilationResults result) {
         expect(result.success, false);
         expect(result.problems.length, 1);
-        expect(result.problems[0].toString(), contains("Error: Expected"));
+        expect(result.problems[0].toString(), contains('Error: Expected'));
       });
     });
 

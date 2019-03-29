@@ -12,7 +12,7 @@ const POST_PAYLOAD =
     r'''{"source": "import 'dart:html'; void main() {var count = querySelector('#count');for (int i = 0; i < 4; i++) {count.text = '${i}';print('hello ${i}');}}''';
 const EPILOGUE = '"}';
 
-const URI = "https://dart-services.appspot.com/api/dartservices/v1/compile";
+const URI = 'https://dart-services.appspot.com/api/dartservices/v1/compile';
 
 int count = 0;
 
@@ -25,7 +25,7 @@ void main(List<String> args) {
     qps = 1;
   }
 
-  print("QPS: $qps, URI: $URI");
+  print('QPS: $qps, URI: $URI');
 
   int ms = (1000 / qps).floor();
   Timer.periodic(Duration(milliseconds: ms), pingServer);
@@ -45,6 +45,6 @@ void pingServer(Timer t) {
   String message = '$POST_PAYLOAD //$time $EPILOGUE';
   print(message);
   http.post(Uri.parse(URI), body: message).then((response) {
-    print("${response.statusCode}, ${sw.elapsedMilliseconds}");
+    print('${response.statusCode}, ${sw.elapsedMilliseconds}');
   });
 }

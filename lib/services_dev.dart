@@ -86,7 +86,7 @@ class EndpointsServer {
       ..addApi(commonServer);
     apiServer.enableDiscoveryApi();
 
-    Uri uri = Uri.parse("/api/discovery/v1/apis/dartservices/v1/rest");
+    Uri uri = Uri.parse('/api/discovery/v1/apis/dartservices/v1/rest');
     HttpApiRequest request = HttpApiRequest('GET', uri, <String, dynamic>{},
         Stream<List<int>>.fromIterable(<List<int>>[]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
@@ -101,7 +101,7 @@ class EndpointsServer {
     apiServer.enableDiscoveryApi();
 
     Uri uri =
-        Uri.parse("/api/discovery/v1/apis/_dartpadsupportservices/v1/rest");
+        Uri.parse('/api/discovery/v1/apis/_dartpadsupportservices/v1/rest');
     HttpApiRequest request = HttpApiRequest('GET', uri, <String, dynamic>{},
         Stream<List<int>>.fromIterable(<List<int>>[]));
     HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
@@ -165,7 +165,7 @@ Dart Services server
 
 View the available API calls at /api/discovery/v1/apis/dartservices/v1/rest.
 
-Error: ${e}
+Error: $e
 Stack Trace: ${stackTrace.toString()}
 ''');
   }

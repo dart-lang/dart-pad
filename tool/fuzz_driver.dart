@@ -38,7 +38,7 @@ comp.Compiler compiler;
 var random = Random(0);
 var maxMutations = 2;
 var iterations = 5;
-String commandToRun = "ALL";
+String commandToRun = 'ALL';
 bool dumpServerComms = false;
 
 OperationType lastExecuted;
@@ -64,7 +64,7 @@ Usage: slow_test path_to_test_collection
   if (args.length >= 3) maxMutations = int.parse(args[2]);
   if (args.length >= 4) iterations = int.parse(args[3]);
   if (args.length >= 5) commandToRun = args[4];
-  if (args.length >= 6) dumpServerComms = args[5].toLowerCase() == "true";
+  if (args.length >= 6) dumpServerComms = args[5].toLowerCase() == 'true';
   String sdk = sdkPath;
 
   // Load the list of files.
@@ -81,13 +81,13 @@ Usage: slow_test path_to_test_collection
   int counter = 0;
   Stopwatch sw = Stopwatch()..start();
 
-  print("About to setuptools");
+  print('About to setuptools');
   print(sdk);
 
   // Warm up the services.
   await setupTools(sdk);
 
-  print("Setup tools done");
+  print('Setup tools done');
 
   // Main testing loop.
   for (var fse in fileEntities) {
@@ -95,23 +95,23 @@ Usage: slow_test path_to_test_collection
     if (!fse.path.endsWith('.dart')) continue;
 
     try {
-      print("Seed: $seed, "
-          "${((counter / fileEntities.length) * 100).toStringAsFixed(2)}%, "
-          "Elapsed: ${sw.elapsed}");
+      print('Seed: $seed, '
+          '${((counter / fileEntities.length) * 100).toStringAsFixed(2)}%, '
+          'Elapsed: ${sw.elapsed}');
 
       random = Random(seed);
       seed++;
       await testPath(fse.path, analysisServer, compiler);
     } catch (e) {
       print(e);
-      print("FAILED: ${fse.path}");
+      print('FAILED: ${fse.path}');
 
       // Try and re-cycle the services for the next test after the crash
       await setupTools(sdk);
     }
   }
 
-  print("Shutting down");
+  print('Shutting down');
 
   await analysisServer.shutdown();
   await server.shutdown();
@@ -119,10 +119,10 @@ Usage: slow_test path_to_test_collection
 
 /// Init the tools, and warm them up
 Future setupTools(String sdkPath) async {
-  print("Executing setupTools");
+  print('Executing setupTools');
   await analysisServer?.shutdown();
 
-  print("SdKPath: $sdkPath");
+  print('SdKPath: $sdkPath');
 
   container = MockContainer();
   cache = MockCache();
@@ -134,13 +134,13 @@ Future setupTools(String sdkPath) async {
   analysisServer = analysis_server.AnalysisServerWrapper(sdkPath);
   await analysisServer.init();
 
-  print("Warming up analysis server");
+  print('Warming up analysis server');
   await analysisServer.warmup();
 
-  print("Warming up compiler");
+  print('Warming up compiler');
   compiler = comp.Compiler(sdkPath);
   await compiler.warmup();
-  print("SetupTools done");
+  print('SetupTools done');
 }
 
 Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
@@ -163,7 +163,7 @@ Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
 
     try {
       switch (commandToRun.toLowerCase()) {
-        case "all":
+        case 'all':
           averageCompilationTime = await testCompilation(src, compiler);
           averageCompletionTime = await testCompletions(src, wrapper);
           averageAnalysisTime = await testAnalysis(src, wrapper);
@@ -172,50 +172,50 @@ Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
           averageFormatTime = await testFormat(src);
           break;
 
-        case "complete":
+        case 'complete':
           averageCompletionTime = await testCompletions(src, wrapper);
           break;
-        case "analyze":
+        case 'analyze':
           averageAnalysisTime = await testAnalysis(src, wrapper);
           break;
 
-        case "document":
+        case 'document':
           averageDocumentTime = await testDocument(src, wrapper);
           break;
 
-        case "compile":
+        case 'compile':
           averageCompilationTime = await testCompilation(src, compiler);
           break;
 
-        case "fix":
+        case 'fix':
           averageFixesTime = await testFixes(src, wrapper);
           break;
 
-        case "format":
+        case 'format':
           averageFormatTime = await testFormat(src);
           break;
 
         default:
-          throw "Unknown command";
+          throw 'Unknown command';
       }
     } catch (e, stacktrace) {
-      print("===== FAILING OP: $lastExecuted, offset: $lastOffset  =====");
+      print('===== FAILING OP: $lastExecuted, offset: $lastOffset  =====');
       print(src);
-      print("=====                                                 =====");
+      print('=====                                                 =====');
       print(e);
       print(stacktrace);
-      print("===========================================================");
+      print('===========================================================');
 
       rethrow;
     }
 
-    print("$path-$i, "
-        "${averageCompilationTime.toStringAsFixed(2)}, "
-        "${averageAnalysisTime.toStringAsFixed(2)}, "
-        "${averageCompletionTime.toStringAsFixed(2)}, "
-        "${averageDocumentTime.toStringAsFixed(2)}, "
-        "${averageFixesTime.toStringAsFixed(2)}, "
-        "${averageFormatTime.toStringAsFixed(2)}");
+    print('$path-$i, '
+        '${averageCompilationTime.toStringAsFixed(2)}, '
+        '${averageAnalysisTime.toStringAsFixed(2)}, '
+        '${averageCompletionTime.toStringAsFixed(2)}, '
+        '${averageDocumentTime.toStringAsFixed(2)}, '
+        '${averageFixesTime.toStringAsFixed(2)}, '
+        '${averageFormatTime.toStringAsFixed(2)}');
 
     if (maxMutations == 0) break;
 
@@ -244,7 +244,7 @@ Future<num> testAnalysis(
     await withTimeOut(analysisServer.analyze(src));
   }
 
-  if (_DUMP_PERF) print("PERF: ANALYSIS: ${sw.elapsedMilliseconds}");
+  if (_DUMP_PERF) print('PERF: ANALYSIS: ${sw.elapsedMilliseconds}');
   return sw.elapsedMilliseconds / 2.0;
 }
 
@@ -261,7 +261,7 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
     await withTimeOut(compiler.compile(src));
   }
 
-  if (_DUMP_PERF) print("PERF: COMPILATION: ${sw.elapsedMilliseconds}");
+  if (_DUMP_PERF) print('PERF: COMPILATION: ${sw.elapsedMilliseconds}');
   return sw.elapsedMilliseconds;
 }
 
@@ -272,7 +272,7 @@ Future<num> testDocument(
   for (int i = 0; i < src.length; i++) {
     Stopwatch sw2 = Stopwatch()..start();
 
-    if (i % 1000 == 0 && i > 0) print("INC: $i docs completed");
+    if (i % 1000 == 0 && i > 0) print('INC: $i docs completed');
     lastOffset = i;
     if (_SERVER_BASED_CALL) {
       SourceRequest request = SourceRequest();
@@ -282,7 +282,7 @@ Future<num> testDocument(
     } else {
       log(await withTimeOut(analysisServer.dartdoc(src, i)));
     }
-    if (_DUMP_PERF) print("PERF: DOCUMENT: ${sw2.elapsedMilliseconds}");
+    if (_DUMP_PERF) print('PERF: DOCUMENT: ${sw2.elapsedMilliseconds}');
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -294,13 +294,13 @@ Future<num> testCompletions(
   for (int i = 0; i < src.length; i++) {
     Stopwatch sw2 = Stopwatch()..start();
 
-    if (i % 1000 == 0 && i > 0) print("INC: $i completes");
+    if (i % 1000 == 0 && i > 0) print('INC: $i completes');
     lastOffset = i;
     if (_SERVER_BASED_CALL)
       await withTimeOut(server.completeGet(source: src, offset: i));
     else
       await withTimeOut(wrapper.complete(src, i));
-    if (_DUMP_PERF) print("PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}");
+    if (_DUMP_PERF) print('PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}');
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -312,7 +312,7 @@ Future<num> testFixes(
   for (int i = 0; i < src.length; i++) {
     Stopwatch sw2 = Stopwatch()..start();
 
-    if (i % 1000 == 0 && i > 0) print("INC: $i fixes");
+    if (i % 1000 == 0 && i > 0) print('INC: $i fixes');
     lastOffset = i;
     if (_SERVER_BASED_CALL) {
       SourceRequest request = SourceRequest();
@@ -322,7 +322,7 @@ Future<num> testFixes(
     } else {
       await withTimeOut(wrapper.getFixes(src, i));
     }
-    if (_DUMP_PERF) print("PERF: FIXES: ${sw2.elapsedMilliseconds}");
+    if (_DUMP_PERF) print('PERF: FIXES: ${sw2.elapsedMilliseconds}');
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -345,40 +345,40 @@ Future<T> withTimeOut<T>(Future<T> f) {
 
 String mutate(String src) {
   var chars = [
-    "{",
-    "}",
-    "[",
-    "]",
+    '{',
+    '}',
+    '[',
+    ']',
     "'",
-    ",",
-    "!",
-    "@",
-    "#",
-    "\$",
-    "%",
-    "^",
-    "&",
-    " ",
-    "(",
-    ")",
-    "null ",
-    "class ",
-    "for ",
-    "void ",
-    "var ",
-    "dynamic ",
-    ";",
-    "as ",
-    "is ",
-    ".",
-    "import "
+    ',',
+    '!',
+    '@',
+    '#',
+    '\$',
+    '%',
+    '^',
+    '&',
+    ' ',
+    '(',
+    ')',
+    'null ',
+    'class ',
+    'for ',
+    'void ',
+    'var ',
+    'dynamic ',
+    ';',
+    'as ',
+    'is ',
+    '.',
+    'import '
   ];
   String s = chars[random.nextInt(chars.length)];
   int i = random.nextInt(src.length);
   if (i == 0) i = 1;
 
   if (_DUMP_DELTA) {
-    log("Delta: $s");
+    log('Delta: $s');
   }
   String newStr = src.substring(0, i - 1) + s + src.substring(i);
   return newStr;
@@ -413,6 +413,6 @@ final int termWidth = io.stdout.hasTerminal ? io.stdout.terminalColumns : 200;
 
 void log(dynamic obj) {
   if (_VERBOSE) {
-    print("${DateTime.now()} $obj");
+    print('${DateTime.now()} $obj');
   }
 }

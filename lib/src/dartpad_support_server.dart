@@ -88,12 +88,12 @@ class FileRelayServer {
   Future<UuidContainer> export(PadSaveObject data) {
     _GaePadSaveObject record = _GaePadSaveObject.fromDSO(data);
     String randomUuid = uuid_tools.Uuid().v4();
-    record.uuid = "${_computeSHA1(record)}-$randomUuid";
+    record.uuid = '${_computeSHA1(record)}-$randomUuid';
     _databaseCommit(inserts: <dynamic>[record]).catchError((dynamic e) {
-      _logger.severe("Error while recording export ${e}");
+      _logger.severe('Error while recording export $e');
       throw e;
     });
-    _logger.info("Recorded Export with ID ${record.uuid}");
+    _logger.info('Recorded Export with ID ${record.uuid}');
     return Future<UuidContainer>.value(UuidContainer.fromUuid(record.uuid));
   }
 
@@ -106,17 +106,17 @@ class FileRelayServer {
         await _databaseQuery<_GaePadSaveObject>('uuid =', uuidContainer.uuid);
     if (result.isEmpty) {
       _logger
-          .severe("Export with UUID ${uuidContainer.uuid} could not be found.");
-      throw BadRequestError("Nothing of correct uuid could be found.");
+          .severe('Export with UUID ${uuidContainer.uuid} could not be found.');
+      throw BadRequestError('Nothing of correct uuid could be found.');
     }
     _GaePadSaveObject record = result.first;
     if (!test) {
       unawaited(_databaseCommit(deletes: <dynamic>[record.key])
           .catchError((dynamic e) {
-        _logger.severe("Error while deleting export ${e}");
+        _logger.severe('Error while deleting export $e');
         throw (e);
       }));
-      _logger.info("Deleted Export with ID ${record.uuid}");
+      _logger.info('Deleted Export with ID ${record.uuid}');
     }
     return Future<PadSaveObject>.value(PadSaveObject.fromRecordSource(record));
   }
@@ -132,14 +132,14 @@ class FileRelayServer {
       result = await _databaseQuery<_GistMapping>('internalId =', randomUuid);
       attemptCount++;
       if (result.isNotEmpty) {
-        _logger.info("Collision in retrieving mapping id ${randomUuid}.");
+        _logger.info('Collision in retrieving mapping id $randomUuid.');
       }
     } while (result.isNotEmpty && attemptCount < limit);
     if (result.isNotEmpty) {
-      _logger.severe("Could not generate valid ID.");
-      throw InternalServerError("Could not generate ID.");
+      _logger.severe('Could not generate valid ID.');
+      throw InternalServerError('Could not generate ID.');
     }
-    _logger.info("Valid ID ${randomUuid} retrieved.");
+    _logger.info('Valid ID $randomUuid retrieved.');
     return Future<UuidContainer>.value(UuidContainer.fromUuid(randomUuid));
   }
 
@@ -148,17 +148,17 @@ class FileRelayServer {
     List<dynamic> result =
         await _databaseQuery<_GistMapping>('internalId =', map.internalId);
     if (result.isNotEmpty) {
-      _logger.severe("Collision with mapping of Id ${map.gistId}.");
-      throw BadRequestError("Mapping invalid.");
+      _logger.severe('Collision with mapping of Id ${map.gistId}.');
+      throw BadRequestError('Mapping invalid.');
     } else {
       _GistMapping entry = _GistMapping.fromMap(map);
       unawaited(
           _databaseCommit(inserts: <dynamic>[entry]).catchError((dynamic e) {
         _logger.severe(
-            "Error while recording mapping with Id ${map.gistId}. Error ${e}");
+            'Error while recording mapping with Id ${map.gistId}. Error $e');
         throw e;
       }));
-      _logger.info("Mapping with ID ${map.gistId} stored.");
+      _logger.info('Mapping with ID ${map.gistId} stored.');
       return Future<UuidContainer>.value(UuidContainer.fromUuid(map.gistId));
     }
   }
@@ -171,11 +171,11 @@ class FileRelayServer {
     List<dynamic> result =
         await _databaseQuery<_GistMapping>('internalId =', id);
     if (result.isEmpty) {
-      _logger.severe("Missing mapping for Id ${id}.");
-      throw BadRequestError("Missing mapping for Id ${id}");
+      _logger.severe('Missing mapping for Id $id.');
+      throw BadRequestError('Missing mapping for Id $id');
     } else {
       _GistMapping entry = result.first;
-      _logger.info("Mapping with ID ${id} retrieved.");
+      _logger.info('Mapping with ID $id retrieved.');
       return Future<UuidContainer>.value(UuidContainer.fromUuid(entry.gistId));
     }
   }
@@ -238,7 +238,7 @@ class _GaePadSaveObject extends db.Model {
   String uuid;
 
   _GaePadSaveObject() {
-    this.epochTime = DateTime.now().millisecondsSinceEpoch;
+    epochTime = DateTime.now().millisecondsSinceEpoch;
   }
 
   _GaePadSaveObject.fromData(String dart, String html, String css,
@@ -246,22 +246,22 @@ class _GaePadSaveObject extends db.Model {
     this.dart = _gzipEncode(dart);
     this.html = _gzipEncode(html);
     this.css = _gzipEncode(css);
-    this.epochTime = DateTime.now().millisecondsSinceEpoch;
+    epochTime = DateTime.now().millisecondsSinceEpoch;
   }
 
   _GaePadSaveObject.fromDSO(PadSaveObject pso) {
-    this.dart = _gzipEncode(pso.dart != null ? pso.dart : "");
-    this.html = _gzipEncode(pso.html != null ? pso.html : "");
-    this.css = _gzipEncode(pso.css != null ? pso.css : "");
-    this.uuid = pso.uuid;
-    this.epochTime = DateTime.now().millisecondsSinceEpoch;
+    dart = _gzipEncode(pso.dart != null ? pso.dart : '');
+    html = _gzipEncode(pso.html != null ? pso.html : '');
+    css = _gzipEncode(pso.css != null ? pso.css : '');
+    uuid = pso.uuid;
+    epochTime = DateTime.now().millisecondsSinceEpoch;
   }
 
-  String get getDart => _gzipDecode(this.dart);
+  String get getDart => _gzipDecode(dart);
 
-  String get getHtml => _gzipDecode(this.html);
+  String get getHtml => _gzipDecode(html);
 
-  String get getCss => _gzipDecode(this.css);
+  String get getCss => _gzipDecode(css);
 }
 
 /// Internal storage representation for gist id mapping.
@@ -277,13 +277,13 @@ class _GistMapping extends db.Model {
   int epochTime;
 
   _GistMapping() {
-    this.epochTime = DateTime.now().millisecondsSinceEpoch;
+    epochTime = DateTime.now().millisecondsSinceEpoch;
   }
 
   _GistMapping.fromMap(GistToInternalIdMapping map) {
-    this.internalId = map.internalId;
-    this.gistId = map.gistId;
-    this.epochTime = DateTime.now().millisecondsSinceEpoch;
+    internalId = map.internalId;
+    gistId = map.gistId;
+    epochTime = DateTime.now().millisecondsSinceEpoch;
   }
 }
 

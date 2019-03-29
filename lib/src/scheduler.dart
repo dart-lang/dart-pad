@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 class TaskScheduler {
-  Queue<_Task<dynamic>> _taskQueue = Queue<_Task<dynamic>>();
+  final Queue<_Task<dynamic>> _taskQueue = Queue<_Task<dynamic>>();
   bool _isActive = false;
 
   int get queueCount => _taskQueue.length;

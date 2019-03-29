@@ -56,7 +56,7 @@ void defineTests() {
 
   Future<HttpApiResponse> _sendPostRequest(String path, jsonData) {
     assert(apiServer != null);
-    var uri = Uri.parse("/api/$path");
+    var uri = Uri.parse('/api/$path');
     var body = Stream.fromIterable([utf8.encode(json.encode(jsonData))]);
     var request = HttpApiRequest(
         'POST', uri, {'content-type': 'application/json; charset=utf-8'}, body);
@@ -66,7 +66,7 @@ void defineTests() {
   Future<HttpApiResponse> _sendGetRequest(String path, [String queryParams]) {
     assert(apiServer != null);
     var uri = Uri.parse(
-        queryParams == null ? "/api/$path" : "/api/$path?$queryParams");
+        queryParams == null ? '/api/$path' : '/api/$path?$queryParams');
     var body = Stream<List<int>>.fromIterable([]);
     var request = HttpApiRequest(
         'GET', uri, {'content-type': 'application/json; charset=utf-8'}, body);
@@ -346,13 +346,13 @@ void defineTests() {
       var expectedJson = {
         'issues': [
           {
-            "kind": "error",
-            "line": 2,
-            "sourceName": "main.dart",
-            "message": "Expected to find \';\'.",
-            "hasFixes": true,
-            "charStart": 29,
-            "charLength": 1
+            'kind': 'error',
+            'line': 2,
+            'sourceName': 'main.dart',
+            'message': "Expected to find ';'.",
+            'hasFixes': true,
+            'charStart': 29,
+            'charLength': 1
           }
         ],
         'packageImports': []
@@ -448,7 +448,7 @@ void defineTests() {
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data, {
-        "info": {"staticType": "void"}
+        'info': {'staticType': 'void'}
       });
     });
 
@@ -458,7 +458,7 @@ void defineTests() {
           await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
-      expect(data, {"info": {}});
+      expect(data, {'info': {}});
     });
 
     test('document negative-test noSource', () async {
@@ -480,7 +480,7 @@ void defineTests() {
       var response = await _sendPostRequest('dartservices/v1/format', jsonData);
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
-      expect(data["newString"], postFormattedCode);
+      expect(data['newString'], postFormattedCode);
     });
 
     test('format bad code', () async {
@@ -488,7 +488,7 @@ void defineTests() {
       var response = await _sendPostRequest('dartservices/v1/format', jsonData);
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
-      expect(data["newString"], formatBadCode);
+      expect(data['newString'], formatBadCode);
     });
 
     test('format position', () async {
@@ -496,8 +496,8 @@ void defineTests() {
       var response = await _sendPostRequest('dartservices/v1/format', jsonData);
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
-      expect(data["newString"], postFormattedCode);
-      expect(data["offset"], 24);
+      expect(data['newString'], postFormattedCode);
+      expect(data['offset'], 24);
     });
 
     test('fix', () async {

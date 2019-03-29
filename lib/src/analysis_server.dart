@@ -25,7 +25,7 @@ bool dumpServerMessages = false;
 
 final String _WARMUP_SRC_HTML =
     "import 'dart:html'; main() { int b = 2;  b++;   b. }";
-final String _WARMUP_SRC = "main() { int b = 2;  b++;   b. }";
+final String _WARMUP_SRC = 'main() { int b = 2;  b++;   b. }';
 
 // Use very long timeouts to ensure that the server has enough time to restart.
 final Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
@@ -62,9 +62,9 @@ class AnalysisServerWrapper {
       List<String> serverArgs = <String>[
         '--dartpad',
         '--client-id=DartPad',
-        '--client-version=${_sdkVersion}'
+        '--client-version=$_sdkVersion'
       ];
-      _logger.info("About to start with server with args: $serverArgs");
+      _logger.info('About to start with server with args: $serverArgs');
 
       _init = AnalysisServer.create(
         onRead: onRead,
@@ -174,13 +174,13 @@ class AnalysisServerWrapper {
 
       return api.FormatResponse(src, editResult.selectionOffset);
     }).catchError((dynamic error) {
-      _logger.fine("format error: $error");
+      _logger.fine('format error: $error');
       return api.FormatResponse(src, offset);
     });
   }
 
   Future<Map<String, String>> dartdoc(String source, int offset) {
-    _logger.fine("dartdoc: Scheduler queue: ${serverScheduler.queueCount}");
+    _logger.fine('dartdoc: Scheduler queue: ${serverScheduler.queueCount}');
 
     return serverScheduler.schedule(ClosureTask<Map<String, String>>(() async {
       Completer<dynamic> analysisCompleter = getAnalysisCompleteCompleter();
@@ -225,7 +225,7 @@ class AnalysisServerWrapper {
 
   Future<api.AnalysisResults> analyzeMulti(Map<String, String> sources) {
     _logger
-        .fine("analyzeMulti: Scheduler queue: ${serverScheduler.queueCount}");
+        .fine('analyzeMulti: Scheduler queue: ${serverScheduler.queueCount}');
 
     return serverScheduler.schedule(ClosureTask<api.AnalysisResults>(() async {
       clearErrors();
@@ -282,7 +282,7 @@ class AnalysisServerWrapper {
       for (SourceFileEdit sourceFileEdit in sourceChange.edits) {
         // TODO(lukechurch): replace this with a more reliable test based on the
         // psuedo file name in Analysis Server
-        if (!sourceFileEdit.file.endsWith("/main.dart")) {
+        if (!sourceFileEdit.file.endsWith('/main.dart')) {
           invalidFix = true;
           break;
         }
@@ -317,7 +317,7 @@ class AnalysisServerWrapper {
       Map<String, String> sources, String sourceName, int offset) async {
     if (serverScheduler.queueCount > 0) {
       _logger
-          .info("completeImpl: Scheduler queue: ${serverScheduler.queueCount}");
+          .info('completeImpl: Scheduler queue: ${serverScheduler.queueCount}');
     }
 
     return serverScheduler.schedule(ClosureTask<CompletionResults>(() async {
@@ -340,7 +340,7 @@ class AnalysisServerWrapper {
 
     if (serverScheduler.queueCount > 0) {
       _logger
-          .fine("getFixesImpl: Scheduler queue: ${serverScheduler.queueCount}");
+          .fine('getFixesImpl: Scheduler queue: ${serverScheduler.queueCount}');
     }
 
     return serverScheduler.schedule(ClosureTask<FixesResult>(() async {
@@ -354,7 +354,7 @@ class AnalysisServerWrapper {
   }
 
   Future<FormatResult> _formatImpl(String src, int offset) async {
-    _logger.fine("FormatImpl: Scheduler queue: ${serverScheduler.queueCount}");
+    _logger.fine('FormatImpl: Scheduler queue: ${serverScheduler.queueCount}');
 
     return serverScheduler.schedule(ClosureTask<FormatResult>(() async {
       await _loadSources(<String, String>{mainPath: src});
@@ -380,7 +380,7 @@ class AnalysisServerWrapper {
   Future<api.CompleteResponse> warmup({bool useHtml = false}) =>
       complete(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
 
-  Set<String> _overlayPaths = {};
+  final Set<String> _overlayPaths = {};
 
   Future<void> _loadSources(Map<String, String> sources) async {
     if (_overlayPaths.isNotEmpty) {
@@ -403,8 +403,8 @@ class AnalysisServerWrapper {
       params[overlayPath] = AddContentOverlay(overlays[overlayPath]);
     }
 
-    _logger.fine("About to send analysis.updateContent");
-    _logger.fine("  ${params.keys}");
+    _logger.fine('About to send analysis.updateContent');
+    _logger.fine('  ${params.keys}');
 
     _overlayPaths.addAll(params.keys);
 
@@ -412,8 +412,8 @@ class AnalysisServerWrapper {
   }
 
   Future<dynamic> _sendRemoveOverlays() {
-    _logger.fine("About to send analysis.updateContent remove overlays:");
-    _logger.fine("  $_overlayPaths");
+    _logger.fine('About to send analysis.updateContent remove overlays:');
+    _logger.fine('  $_overlayPaths');
 
     Map<String, ContentOverlayType> params = <String, ContentOverlayType>{};
     for (String overlayPath in _overlayPaths) {
@@ -423,7 +423,7 @@ class AnalysisServerWrapper {
     return analysisServer.analysis.updateContent(params);
   }
 
-  Map<String, Completer<CompletionResults>> _completionCompleters =
+  final Map<String, Completer<CompletionResults>> _completionCompleters =
       <String, Completer<CompletionResults>>{};
 
   void listenForCompletions() {
@@ -443,7 +443,7 @@ class AnalysisServerWrapper {
     return _completionCompleters[id].future;
   }
 
-  List<Completer<dynamic>> _analysisCompleters = <Completer<dynamic>>[];
+  final List<Completer<dynamic>> _analysisCompleters = <Completer<dynamic>>[];
 
   void listenForAnalysisComplete() {
     analysisServer.server.onStatus.listen((ServerStatus status) {
@@ -465,7 +465,7 @@ class AnalysisServerWrapper {
     return completer;
   }
 
-  Map<String, List<AnalysisError>> _errors = <String, List<AnalysisError>>{};
+  final Map<String, List<AnalysisError>> _errors = <String, List<AnalysisError>>{};
 
   void listenForErrors() {
     analysisServer.analysis.onErrors.listen((AnalysisErrors result) {

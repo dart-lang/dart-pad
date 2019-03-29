@@ -86,7 +86,7 @@ class RedisCache implements ServerCache {
   String __logPrefix;
 
   String get _logPrefix =>
-      __logPrefix ??= 'RedisCache [${redisUriString}] (${serverVersion})';
+      __logPrefix ??= 'RedisCache [$redisUriString] ($serverVersion)';
 
   bool _isConnected() => redisClient != null && !_isShutdown;
   bool _isShutdown = false;
@@ -96,7 +96,7 @@ class RedisCache implements ServerCache {
   /// will return null after this.  Future completes when disconnection is complete.
   @override
   Future<void> shutdown() {
-    log.info('${_logPrefix}: shutting down...');
+    log.info('$_logPrefix: shutting down...');
     _isShutdown = true;
     redisClient?.disconnect();
     return disconnected;
@@ -126,7 +126,7 @@ class RedisCache implements ServerCache {
     if (_isShutdown) {
       return;
     }
-    log.info('${_logPrefix}: reconnecting to ${redisUriString}...');
+    log.info('$_logPrefix: reconnecting to $redisUriString...');
     int nextRetryMs = retryTimeoutMs;
     if (retryTimeoutMs < _connectionRetryMaxMs / 2) {
       // 1 <= (randomSource.nextDouble() + 1) < 2
@@ -134,24 +134,24 @@ class RedisCache implements ServerCache {
     }
     redis.Connection.connect(redisUriString)
         .then((redis.Connection newConnection) {
-          log.info('${_logPrefix}: Connected to redis server');
+          log.info('$_logPrefix: Connected to redis server');
           _setUpConnection(newConnection);
           // If the client disconnects, discard the client and try to connect again.
           newConnection.done.then((_) {
             _resetConnection();
-            log.warning('${_logPrefix}: connection terminated, reconnecting');
+            log.warning('$_logPrefix: connection terminated, reconnecting');
             _reconnect();
           }).catchError((dynamic e) {
             _resetConnection();
             log.warning(
-                '${_logPrefix}: connection terminated with error ${e}, reconnecting');
+                '$_logPrefix: connection terminated with error $e, reconnecting');
             _reconnect();
           });
         })
         .timeout(Duration(milliseconds: _connectionRetryMaxMs))
         .catchError((_) {
           log.severe(
-              '${_logPrefix}: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...');
+              '$_logPrefix: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...');
           Future<void>.delayed(Duration(milliseconds: nextRetryMs)).then((_) {
             _reconnect(nextRetryMs);
           });
@@ -162,14 +162,14 @@ class RedisCache implements ServerCache {
   ///
   /// We don't use the existing key directly so that different AppEngine versions
   /// using the same redis cache do not have collisions.
-  String _genKey(String key) => '${serverVersion}+${key}';
+  String _genKey(String key) => '$serverVersion+$key';
 
   @override
   Future<String> get(String key) async {
     String value;
     key = _genKey(key);
     if (!_isConnected()) {
-      log.warning('${_logPrefix}: no cache available when getting key ${key}');
+      log.warning('$_logPrefix: no cache available when getting key $key');
     } else {
       final redis.Commands<String, String> commands =
           redisClient.asCommands<String, String>();
@@ -177,12 +177,12 @@ class RedisCache implements ServerCache {
       try {
         value = await commands.get(key).timeout(cacheOperationTimeout,
             onTimeout: () {
-          log.warning('${_logPrefix}: timeout on get operation for key ${key}');
+          log.warning('$_logPrefix: timeout on get operation for key $key');
           redisClient?.disconnect();
         });
       } catch (e) {
         log.warning(
-            '${_logPrefix}: error on get operation for key ${key}: ${e}');
+            '$_logPrefix: error on get operation for key $key: $e');
       }
     }
     return value;
@@ -192,7 +192,7 @@ class RedisCache implements ServerCache {
   Future<dynamic> remove(String key) async {
     key = _genKey(key);
     if (!_isConnected()) {
-      log.warning('${_logPrefix}: no cache available when removing key ${key}');
+      log.warning('$_logPrefix: no cache available when removing key $key');
       return null;
     }
 
@@ -203,12 +203,12 @@ class RedisCache implements ServerCache {
       return commands.del(key: key).timeout(cacheOperationTimeout,
           onTimeout: () {
         log.warning(
-            '${_logPrefix}: timeout on remove operation for key ${key}');
+            '$_logPrefix: timeout on remove operation for key $key');
         redisClient?.disconnect();
       });
     } catch (e) {
       log.warning(
-          '${_logPrefix}: error on remove operation for key ${key}: ${e}');
+          '$_logPrefix: error on remove operation for key $key: $e');
     }
   }
 
@@ -216,7 +216,7 @@ class RedisCache implements ServerCache {
   Future<void> set(String key, String value, {Duration expiration}) async {
     key = _genKey(key);
     if (!_isConnected()) {
-      log.warning('${_logPrefix}: no cache available when setting key ${key}');
+      log.warning('$_logPrefix: no cache available when setting key $key');
       return null;
     }
 
@@ -232,11 +232,11 @@ class RedisCache implements ServerCache {
         }
         await commands.exec();
       }).timeout(cacheOperationTimeout, onTimeout: () {
-        log.warning('${_logPrefix}: timeout on set operation for key ${key}');
+        log.warning('$_logPrefix: timeout on set operation for key $key');
         redisClient?.disconnect();
       });
     } catch (e) {
-      log.warning('${_logPrefix}: error on set operation for key ${key}: ${e}');
+      log.warning('$_logPrefix: error on set operation for key $key: $e');
     }
   }
 }
@@ -274,7 +274,7 @@ class CommonServer {
 
   String sdkPath;
 
-  CommonServer(String this.sdkPath, this.container, this.cache) {
+  CommonServer(this.sdkPath, this.container, this.cache) {
     hierarchicalLoggingEnabled = true;
     log.level = Level.ALL;
   }
@@ -515,8 +515,8 @@ class CommonServer {
       throw BadRequestError('Missing core source parameter.');
     }
     String sourcesJson = JsonEncoder()
-        .convert(<String, String>{"dart": dart, "html": html, "css": css});
-    log.info("About to summarize: ${_hashSource(sourcesJson)}");
+        .convert(<String, String>{'dart': dart, 'html': html, 'css': css});
+    log.info('About to summarize: ${_hashSource(sourcesJson)}');
 
     SummaryText summaryString =
         await _analyzeMulti(<String, String>{kMainDart: dart})
@@ -530,7 +530,7 @@ class CommonServer {
 
   Future<AnalysisResults> _analyzeMulti(Map<String, String> sources) async {
     if (sources == null) {
-      throw BadRequestError('Missing parameter: \'sources\'');
+      throw BadRequestError("Missing parameter: 'sources'");
     }
 
     Stopwatch watch = Stopwatch()..start();
@@ -541,7 +541,7 @@ class CommonServer {
           .map((String s) => s.split('\n').length)
           .fold(0, (int a, int b) => a + b);
       int ms = watch.elapsedMilliseconds;
-      log.info('PERF: Analyzed ${lineCount} lines of Dart in ${ms}ms.');
+      log.info('PERF: Analyzed $lineCount lines of Dart in ${ms}ms.');
       return results;
     } catch (e, st) {
       log.severe('Error during analyze', e, st);
@@ -558,20 +558,20 @@ class CommonServer {
       throw BadRequestError('Missing parameter: \'source\'');
     }
     String sourceHash = _hashSource(source);
-    String memCacheKey = "%%COMPILE:v0"
-        ":returnSourceMap:$returnSourceMap:source:$sourceHash";
+    String memCacheKey = '%%COMPILE:v0'
+        ':returnSourceMap:$returnSourceMap:source:$sourceHash';
 
     final String result = await checkCache(memCacheKey);
     if (result != null) {
-      log.info("CACHE: Cache hit for compile");
+      log.info('CACHE: Cache hit for compile');
       dynamic resultObj = JsonDecoder().convert(result);
       return CompileResponse(
-        resultObj["compiledJS"],
-        returnSourceMap ? resultObj["sourceMap"] : null,
+        resultObj['compiledJS'],
+        returnSourceMap ? resultObj['sourceMap'] : null,
       );
     }
 
-    log.info("CACHE: MISS for compileDart2js");
+    log.info('CACHE: MISS for compileDart2js');
     Stopwatch watch = Stopwatch()..start();
 
     return compiler
@@ -581,13 +581,13 @@ class CommonServer {
         int lineCount = source.split('\n').length;
         int outputSize = (results.compiledJS.length + 512) ~/ 1024;
         int ms = watch.elapsedMilliseconds;
-        log.info('PERF: Compiled ${lineCount} lines of Dart into '
+        log.info('PERF: Compiled $lineCount lines of Dart into '
             '${outputSize}kb of JavaScript in ${ms}ms using dart2js.');
         String sourceMap = returnSourceMap ? results.sourceMap : null;
 
         String cachedResult = JsonEncoder().convert(<String, String>{
-          "compiledJS": results.compiledJS,
-          "sourceMap": sourceMap,
+          'compiledJS': results.compiledJS,
+          'sourceMap': sourceMap,
         });
         // Don't block on cache set.
         unawaited(setCache(memCacheKey, cachedResult));
@@ -598,7 +598,7 @@ class CommonServer {
         throw BadRequestError(errors);
       }
     }).catchError((dynamic e, dynamic st) {
-      log.severe('Error during compile (dart2js): ${e}\n${st}');
+      log.severe('Error during compile (dart2js): $e\n$st');
       throw e;
     });
   }
@@ -610,19 +610,19 @@ class CommonServer {
     String sourceHash = _hashSource(source);
     // TODO(devoncarew): Include the version of referenced libraries in the
     // keys.
-    String memCacheKey = "%%COMPILE_DDC:v0:source:$sourceHash";
+    String memCacheKey = '%%COMPILE_DDC:v0:source:$sourceHash';
 
     final String result = await checkCache(memCacheKey);
     if (result != null) {
-      log.info("CACHE: Cache hit for compileDDC");
+      log.info('CACHE: Cache hit for compileDDC');
       dynamic resultObj = JsonDecoder().convert(result);
       return CompileDDCResponse(
-        resultObj["compiledJS"],
-        resultObj["staticScriptUris"],
+        resultObj['compiledJS'],
+        resultObj['staticScriptUris'],
       );
     }
 
-    log.info("CACHE: MISS for compileDDC");
+    log.info('CACHE: MISS for compileDDC');
     Stopwatch watch = Stopwatch()..start();
 
     return compiler.compileDDC(source).then((DDCCompilationResults results) {
@@ -630,7 +630,7 @@ class CommonServer {
         int lineCount = source.split('\n').length;
         int outputSize = (results.compiledJS.length + 512) ~/ 1024;
         int ms = watch.elapsedMilliseconds;
-        log.info('PERF: Compiled ${lineCount} lines of Dart into '
+        log.info('PERF: Compiled $lineCount lines of Dart into '
             '${outputSize}kb of JavaScript in ${ms}ms using DDC.');
         String cachedResult = JsonEncoder().convert(<String, dynamic>{
           'compiledJS': results.compiledJS,
@@ -646,7 +646,7 @@ class CommonServer {
         throw BadRequestError(errors);
       }
     }).catchError((dynamic e, dynamic st) {
-      log.severe('Error during compile (DDC): ${e}\n${st}');
+      log.severe('Error during compile (DDC): $e\n$st');
       throw e;
     });
   }

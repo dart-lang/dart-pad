@@ -67,8 +67,8 @@ void defineTests() {
           .then((CompleteResponse results) {
         expect(results.replacementLength, 0);
         expect(results.replacementOffset, 32);
-        expect(completionsContains(results, "abs"), true);
-        expect(completionsContains(results, "codeUnitAt"), false);
+        expect(completionsContains(results, 'abs'), true);
+        expect(completionsContains(results, 'codeUnitAt'), false);
       });
     });
 
@@ -82,8 +82,8 @@ void defineTests() {
             .then((CompleteResponse results) {
           expect(results.replacementLength, 2);
           expect(results.replacementOffset, 16);
-          expect(completionsContains(results, "print"), true);
-          expect(completionsContains(results, "pow"), false);
+          expect(completionsContains(results, 'print'), true);
+          expect(completionsContains(results, 'pow'), false);
         });
       });
     });
@@ -96,7 +96,7 @@ void defineTests() {
           .complete(testCode, 9)
           .then((CompleteResponse results) {
         expect(results.completions.every((Map<String, String> completion) {
-          return completion["completion"].startsWith("dart:");
+          return completion['completion'].startsWith('dart:');
         }), true);
       });
     });
@@ -108,7 +108,7 @@ void defineTests() {
       return analysisServer
           .complete(testCode, 34)
           .then((CompleteResponse results) {
-        expect(completionsContains(results, "abs"), true);
+        expect(completionsContains(results, 'abs'), true);
       });
     });
 
@@ -124,10 +124,10 @@ void defineTests() {
         // We should be getting an insert ; fix
         expect(results.fixes[0].fixes.length, 1);
         CandidateFix fix = results.fixes[0].fixes[0];
-        expect(fix.message.contains(";"), true);
+        expect(fix.message.contains(';'), true);
         expect(fix.edits[0].length, 0);
         expect(fix.edits[0].offset, 25);
-        expect(fix.edits[0].replacement, ";");
+        expect(fix.edits[0].replacement, ';');
       });
     });
 
@@ -176,4 +176,4 @@ void defineTests() {
 }
 
 bool completionsContains(CompleteResponse response, String completion) =>
-    response.completions.any((map) => map["completion"] == completion);
+    response.completions.any((map) => map['completion'] == completion);

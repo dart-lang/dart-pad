@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This library is an interface to the command-line pub tool.
+
+// ignore_for_file: implementation_imports
+
 library services.pub;
 
 import 'dart:async';
@@ -66,8 +69,8 @@ class Pub {
     try {
       // Create pubspec file.
       File pubspecFile = File(path.join(tempDir.path, 'pubspec.yaml'));
-      String specContents = 'name: temp\ndependencies:\n' +
-          packages.map((String p) => '  ${p}: any').join('\n');
+      String dependencies = packages.map((String p) => '  $p: any').join('\n');
+      String specContents = 'name: temp\ndependencies:\n$dependencies';
       pubspecFile.writeAsStringSync(specContents, flush: true);
 
       // Run pub.
@@ -78,7 +81,7 @@ class Pub {
           String message = result.stderr.isNotEmpty
               ? result.stderr
               : 'failed to get pub packages: ${result.exitCode}';
-          _logger.severe('Error running pub get: ${message}');
+          _logger.severe('Error running pub get: $message');
           return Future<PackagesInfo>.value(PackagesInfo(<PackageInfo>[]));
         }
 
@@ -110,7 +113,7 @@ class Pub {
         return libDir;
       });
     } catch (e, st) {
-      _logger.severe('Error getting package ${packageInfo}: ${e}\n${st}');
+      _logger.severe('Error getting package $packageInfo: $e\n$st');
       return Future<Directory>.error(e);
     }
   }
@@ -160,7 +163,7 @@ class Pub {
 
     // tuneup-0.0.1.tar.gz
     String tgzName = '${package.name}-${package.version}.tar.gz';
-    return http.get('${base}/${tgzName}').then((http.Response response) {
+    return http.get('$base/$tgzName').then((http.Response response) {
       // Save to disk (for posterity?).
       File tzgFile = File(path.join(cacheDir.path, tgzName));
       tzgFile.writeAsBytesSync(response.bodyBytes, flush: true);
@@ -181,7 +184,6 @@ class Pub {
         f.parent.createSync(recursive: true);
         f.writeAsBytesSync(file.content, flush: true);
       }
-      ;
     });
   }
 }
@@ -228,7 +230,7 @@ class PackagesInfo {
   PackagesInfo(this.packages);
 
   @override
-  String toString() => '${packages}';
+  String toString() => '$packages';
 }
 
 /// A package name and version tuple.
@@ -240,13 +242,13 @@ class PackageInfo {
   final String version;
 
   PackageInfo(this.name, this.version) {
-    if (!nameRegex.hasMatch(name)) throw 'invalid package name: ${name}';
+    if (!nameRegex.hasMatch(name)) throw 'invalid package name: $name';
     if (!versionRegex.hasMatch(version))
-      throw 'invalid package version: ${version}';
+      throw 'invalid package version: $version';
   }
 
   @override
-  String toString() => '[${name}: ${version}]';
+  String toString() => '[$name: $version]';
 }
 
 Set<String> getAllUnsafeImportsFor(String dartSource) {

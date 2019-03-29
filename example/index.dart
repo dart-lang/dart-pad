@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:convert";
-import "dart:html";
+import 'dart:convert';
+import 'dart:html';
 
 void main() {
   querySelector('#sendButton').onClick.listen((MouseEvent e) {
@@ -16,7 +16,7 @@ void main() {
     HttpRequest.request(api, method: 'POST', sendData: json.encode(jsonData))
         .then((HttpRequest request) {
       sw.stop();
-      querySelector('#perf').text = "${sw.elapsedMilliseconds}ms";
+      querySelector('#perf').text = '${sw.elapsedMilliseconds}ms';
       querySelector('#output').text = request.responseText;
     });
   });

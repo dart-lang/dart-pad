@@ -10,11 +10,11 @@ import 'sdk_manager.dart';
 
 final String kMainDart = 'main.dart';
 
-final String sampleCode = """
+final String sampleCode = '''
 void main() {
   print("hello");
 }
-""";
+''';
 
 final String sampleCodeWeb = """
 import 'dart:html';
@@ -33,11 +33,11 @@ void main() {
 }
 """;
 
-final String sampleCodeMultiBar = """
+final String sampleCodeMultiBar = '''
 bar() {
   return 4;
 }
-""";
+''';
 
 final String sampleCodeAsync = """
 import 'dart:html';
@@ -50,19 +50,19 @@ main() async {
 }
 """;
 
-final String sampleCodeError = """
+final String sampleCodeError = '''
 void main() {
   print("hello")
 }
-""";
+''';
 
-final String sampleCodeErrors = """
+final String sampleCodeErrors = '''
 void main() {
   print1("hello");
   print2("hello");
   print3("hello");
 }
-""";
+''';
 
 final String sampleStrongError = """
 void main() {
@@ -84,7 +84,7 @@ void main(List<String> argv) {
 }
 """;
 
-final String sampleDart2Error = """
+final String sampleDart2Error = '''
 class Foo {
   final bool isAlwaysNull;
   Foo(this.isAlwaysNull) {}
@@ -95,10 +95,10 @@ void main(List<String> argv) {
   var y = 1;
   y = x;
 }
-""";
+''';
 
 class Lines {
-  List<int> _starts = <int>[];
+  final List<int> _starts = <int>[];
 
   Lines(String source) {
     List<int> units = source.codeUnits;
