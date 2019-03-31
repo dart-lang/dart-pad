@@ -46,11 +46,10 @@ BSD-style license that can be found in the LICENSE file. -->
         </div>
     </div>
     <div class="UnderlineNav-actions">
-        <div id="test-result" class="tabnav-extra pr-3"></div>
-        <a id="execute" class="btn btn-primary">
+        <button id="execute" class="btn btn-primary">
             <div class="octicon medium-octicon octicon-triangle-right"></div>
             Check code
-        </a>
+        </button>
     </div>
 </nav>
 
@@ -64,10 +63,15 @@ BSD-style license that can be found in the LICENSE file. -->
     <div id="console-view" class="tabview flex-auto" hidden></div>
 </section>
 
-<div class="position-fixed right-0 bottom-0 bg-gray-light border p-2">
-    <div>Issue #1</div>
-    <div>Issue #1</div>
-    <div>Issue #1</div>
+<div id="flash-container" class="position-fixed right-2 bottom-2 col-6">
+    <div id="analysis-result-box" class="flash flash-error" hidden>
+        <button class="flash-close">close</button>
+        <div class="message-container"></div>
+    </div>
+    <div id="test-result-box" class="flash flash-warn" hidden>
+        <button class="flash-close">close</button>
+        <div class="message-container"></div>
+    </div>
 </div>
 
 <iframe id="frame" sandbox="allow-scripts" flex src="../scripts/frame.html">

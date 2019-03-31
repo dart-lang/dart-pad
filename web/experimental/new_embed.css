@@ -28,6 +28,18 @@ textarea {
   font-size: 19px;
 }
 
+/*
+  This rule adds space between the flashes in the flash container, if more
+  than one is displayed.
+*/
+#flash-container > div + div {
+  margin-top: 8px;
+}
+
+.link-message {
+  cursor: pointer;
+}
+
 /* Code annotations */
 .squiggle-error {
   border-bottom: 2px solid #F7977A;
