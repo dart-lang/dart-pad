@@ -31,12 +31,14 @@ void init() {
 /// snippet against a desired result.
 class NewEmbed {
   ExecuteCodeButton executeButton;
-  TestResultLabel testResultLabel;
 
   TabController tabController;
   TabView editorTabView;
   TabView testTabView;
   ConsoleTabView consoleTabView;
+
+  FlashBox testResultBox;
+  FlashBox analysisResultBox;
 
   ExecutionService executionSvc;
 
@@ -74,15 +76,18 @@ class NewEmbed {
       );
     }
 
-    testResultLabel = TestResultLabel(querySelector('#test-result'));
     executeButton =
         ExecuteCodeButton(querySelector('#execute'), _handleExecute);
+
+    testResultBox = FlashBox(querySelector('#test-result-box'));
+    analysisResultBox = FlashBox(querySelector('#analysis-result-box'));
 
     userCodeEditor =
         editorFactory.createFromElement(querySelector('#user-code-editor'))
           ..theme = 'elegant'
           ..mode = 'dart'
           ..showLineNumbers = true;
+
     userCodeEditor.document.onChange.listen(_performAnalysis);
 
     testEditor = editorFactory.createFromElement(querySelector('#test-editor'))
@@ -90,11 +95,9 @@ class NewEmbed {
       ..mode = 'dart'
       ..showLineNumbers = true;
 
-    editorTabView = TabView(
-      DElement(querySelector('#user-code-view')));
+    editorTabView = TabView(DElement(querySelector('#user-code-view')));
 
-    testTabView = TabView(
-      DElement(querySelector('#test-view')));
+    testTabView = TabView(DElement(querySelector('#test-view')));
 
     consoleTabView = ConsoleTabView(DElement(querySelector('#console-view')));
 
@@ -102,7 +105,14 @@ class NewEmbed {
     executionSvc.onStderr.listen((err) => consoleTabView.appendError(err));
     executionSvc.onStdout.listen((msg) => consoleTabView.appendMessage(msg));
     executionSvc.testResults.listen((result) {
-      testResultLabel.setResult(result);
+      if (result.success) {
+        executeButton.executionState = ExecutionState.testSuccess;
+      }
+
+      testResultBox.showStrings(
+        result.messages.isNotEmpty ? result.messages : ['Test passed!'],
+        result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
+      );
     });
 
     _initModules().then((_) => _initNewEmbed());
@@ -139,10 +149,14 @@ class NewEmbed {
   }
 
   void _handleExecute() {
-    executeButton.ready = false;
+    executeButton.executionState = ExecutionState.executing;
+    testResultBox.hide();
+
     final fullCode =
         '${context.dartSource}\n${context.testMethod}\n${executionSvc.testResultDecoration}';
+
     var input = CompileRequest()..source = fullCode;
+
     deps[DartservicesApi]
         .compile(input)
         .timeout(longServiceCallTimeout)
@@ -152,8 +166,42 @@ class NewEmbed {
         // TODO(redbrogdon): Add logging and possibly output to UI.
         .catchError(print)
         .whenComplete(() {
-          executeButton.ready = true;
+          executeButton.executionState = ExecutionState.ready;
         });
+  }
+
+  void _displayIssues(List<AnalysisIssue> issues) {
+    final elements = <DivElement>[];
+
+    for (AnalysisIssue issue in issues) {
+      elements.add(
+        DivElement()
+          ..children.add(
+            AnchorElement()
+              ..text = '${issue.kind.toUpperCase()} - ${issue.message}'
+              ..classes = ['link-message', 'text-red']
+              ..onClick.listen((event) {
+                _jumpTo(issue.line, issue.charStart, issue.charLength,
+                    focus: true);
+              }),
+          ),
+      );
+    }
+
+    if (elements.isNotEmpty) {
+      analysisResultBox.showElements(elements, FlashBoxStyle.error);
+    } else {
+      analysisResultBox.hide();
+    }
+  }
+
+  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
+    Document doc = userCodeEditor.document;
+
+    doc.select(
+        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
+
+    if (focus) userCodeEditor.focus();
   }
 
   /// Perform static analysis of the source code.
@@ -167,6 +215,8 @@ class NewEmbed {
       request.then((AnalysisResults result) {
         // Discard if the document has been mutated since we requested analysis.
         if (input.source != userCodeEditor.document.value) return false;
+
+        _displayIssues(result.issues);
 
         userCodeEditor.document
             .setAnnotations(result.issues.map((AnalysisIssue issue) {
@@ -273,10 +323,16 @@ class TestResultLabel {
   }
 }
 
+enum ExecutionState {
+  ready,
+  executing,
+  testSuccess,
+}
+
 class ExecuteCodeButton {
   /// This constructor will throw if the provided element has no child with a
   /// CSS class that begins with "octicon-".
-  ExecuteCodeButton(AnchorElement anchorElement, VoidCallback onClick)
+  ExecuteCodeButton(ButtonElement anchorElement, VoidCallback onClick)
       : assert(anchorElement != null),
         assert(onClick != null) {
     final iconElement =
@@ -286,21 +342,21 @@ class ExecuteCodeButton {
     _element.onClick.listen((e) => onClick());
   }
 
-  static const readyIconName = 'triangle-right';
-  static const waitingIconName = 'sync';
+  static const iconNames = <ExecutionState, String>{
+    ExecutionState.ready: 'triangle-right',
+    ExecutionState.executing: 'sync',
+    ExecutionState.testSuccess: 'check',
+  };
+
   static const disabledClassName = 'disabled';
 
   DElement _element;
 
   Octicon _icon;
 
-  // Both the icon and the disabled attribute are set at the same time, so
-  // checking one should be as good as checking both.
-  bool get ready => !_element.hasClass(disabledClassName);
-
-  set ready(bool value) {
-    _element.toggleClass(disabledClassName, !value);
-    _icon.iconName = value ? readyIconName : waitingIconName;
+  set executionState(ExecutionState state) {
+    _element.toggleClass(disabledClassName, state == ExecutionState.executing);
+    _icon.iconName = iconNames[state];
   }
 }
 
@@ -323,6 +379,60 @@ class Octicon {
 
   static bool elementIsOcticon(Element el) =>
       el.classes.any((s) => s.startsWith(prefix));
+}
+
+enum FlashBoxStyle {
+  warn,
+  error,
+  success,
+}
+
+class FlashBox {
+  /// This constructor will throw if [div] does not have a child with the
+  /// flash-close class and a child with the message-container class.
+  FlashBox(DivElement div) {
+    _element = DElement(div);
+    _messageContainer = DElement(div.querySelector('.message-container'));
+
+    final closeLink = DElement(div.querySelector('.flash-close'));
+    closeLink.onClick.listen((event) {
+      hide();
+    });
+  }
+
+  static const classNamesForStyles = <FlashBoxStyle, String>{
+    FlashBoxStyle.warn: 'flash-warn',
+    FlashBoxStyle.error: 'flash-error',
+    FlashBoxStyle.success: 'flash-success',
+  };
+
+  DElement _element;
+
+  DElement _messageContainer;
+
+  void showStrings(List<String> messages, [FlashBoxStyle style]) {
+    showElements(messages.map((m) => DivElement()..text = m).toList(), style);
+  }
+
+  void showElements(List<Element> elements, [FlashBoxStyle style]) {
+    _element.clearAttr('hidden');
+    _element.element.classes
+        .removeWhere((s) => classNamesForStyles.values.contains(s));
+
+    if (style != null) {
+      _element.toggleClass(classNamesForStyles[style], true);
+    }
+
+    _messageContainer.clearChildren();
+
+    for (final element in elements) {
+      _messageContainer.add(element);
+    }
+  }
+
+  void hide() {
+    _element.setAttr('hidden');
+  }
 }
 
 class NewEmbedContext {
