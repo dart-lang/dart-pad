@@ -17,21 +17,32 @@ body {
   display: none;
 }
 
-textarea {
-  border: none;
-  resize: none;
-  font-family: 'Inconsolata', monospace;
-  font-size: 12pt;
-}
-
 .medium-octicon {
   font-size: 19px;
 }
+
+
+/* Console */
+
+#console-view {
+  font-family: 'Inconsolata', monospace;
+  font-size: 16px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+
+/* Flashes */
 
 /*
   This rule adds space between the flashes in the flash container, if more
   than one is displayed.
 */
+
+#flash-container {
+  z-index: 100;
+}
+
 #flash-container > div + div {
   margin-top: 8px;
 }
@@ -40,7 +51,9 @@ textarea {
   cursor: pointer;
 }
 
+
 /* Code annotations */
+
 .squiggle-error {
   border-bottom: 2px solid #F7977A;
 }
@@ -54,6 +67,8 @@ textarea {
 }
 
 /* Styling specifically for CodeMirror editor */
+
 .CodeMirror {
   height: 100%;
+  font-family: 'Inconsolata', monospace;
 }

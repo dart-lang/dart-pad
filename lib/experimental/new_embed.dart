@@ -151,6 +151,7 @@ class NewEmbed {
   void _handleExecute() {
     executeButton.executionState = ExecutionState.executing;
     testResultBox.hide();
+    consoleTabView.clear();
 
     final fullCode =
         '${context.dartSource}\n${context.testMethod}\n${executionSvc.testResultDecoration}';
@@ -285,16 +286,14 @@ class ConsoleTabView extends TabView {
   }
 
   void appendMessage(String msg) {
-    final line = DivElement()
-      ..text = msg
-      ..classes.add('console-message');
+    final line = DivElement()..text = msg;
     element.add(line);
   }
 
   void appendError(String err) {
     final line = DivElement()
       ..text = err
-      ..classes.add('console-error');
+      ..classes.add('text-red');
     element.add(line);
   }
 }
