@@ -118,6 +118,7 @@ class Compiler {
         '--modules=amd',
       ];
       arguments.addAll(<String>['-o', '$kMainDart.js']);
+      arguments.add('--single-out-file');
       arguments.addAll(<String>['--module-name', 'dartpad_main']);
       arguments.add(kMainDart);
 
@@ -138,22 +139,10 @@ class Compiler {
           CompilationProblem._(result.stdout),
         ]);
       } else {
-        String compiledJS = mainJs.readAsStringSync();
-
-        // Here, we post-process the DDC output to insert an AMD module name.
-        // In the future, we'd want support from DDC to create modules with a
-        // name (https://github.com/dart-lang/sdk/issues/36423).
-        if (compiledJS.contains('define([')) {
-          compiledJS = compiledJS.replaceFirst(
-            'define([',
-            'define("dartpad_main", [',
-          );
-        }
-
         // TODO(devoncarew): The hard-coded URL below will be replaced with
         // something based on the sdk version.
         final DDCCompilationResults results = DDCCompilationResults(
-          compiledJS: compiledJS,
+          compiledJS: mainJs.readAsStringSync(),
           modulesBaseUrl:
               'https://storage.cloud.google.com/compilation_artifacts/',
         );

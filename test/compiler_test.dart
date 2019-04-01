@@ -34,7 +34,7 @@ void defineTests() {
         expect(result.compiledJS, isNotEmpty);
         expect(result.modulesBaseUrl, isNotEmpty);
 
-        expect(result.compiledJS, contains('define("dartpad_main", ['));
+        expect(result.compiledJS, contains("define('dartpad_main', ["));
       });
     });
 
