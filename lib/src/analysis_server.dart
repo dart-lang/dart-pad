@@ -251,7 +251,7 @@ class AnalysisServerWrapper {
       issues.sort();
 
       // Calculate the imports.
-      Set<String> packageImports = {};
+      Set<String> packageImports = <String>{};
       for (String source in sources.values) {
         packageImports.addAll(
             filterSafePackagesFromImports(getAllUnsafeImportsFor(source)));
@@ -380,7 +380,7 @@ class AnalysisServerWrapper {
   Future<api.CompleteResponse> warmup({bool useHtml = false}) =>
       complete(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
 
-  final Set<String> _overlayPaths = {};
+  final Set<String> _overlayPaths = <String>{};
 
   Future<void> _loadSources(Map<String, String> sources) async {
     if (_overlayPaths.isNotEmpty) {
@@ -465,7 +465,8 @@ class AnalysisServerWrapper {
     return completer;
   }
 
-  final Map<String, List<AnalysisError>> _errors = <String, List<AnalysisError>>{};
+  final Map<String, List<AnalysisError>> _errors =
+      <String, List<AnalysisError>>{};
 
   void listenForErrors() {
     analysisServer.analysis.onErrors.listen((AnalysisErrors result) {

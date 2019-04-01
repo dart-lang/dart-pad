@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "b14ca576dd86324239a5e2240e369506138b5066",
+ "etag": "dae0b714d4f8d5bd3d0926341491efd8ef566973",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -160,11 +160,8 @@
     "result": {
      "type": "string"
     },
-    "staticScriptUris": {
-     "type": "array",
-     "items": {
-      "type": "string"
-     }
+    "modulesBaseUrl": {
+     "type": "string"
     }
    }
   },

@@ -814,29 +814,28 @@ class CandidateFix {
 }
 
 class CompileDDCResponse {
+  core.String modulesBaseUrl;
   core.String result;
-  core.List<core.String> staticScriptUris;
 
   CompileDDCResponse();
 
   CompileDDCResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("modulesBaseUrl")) {
+      modulesBaseUrl = _json["modulesBaseUrl"];
+    }
     if (_json.containsKey("result")) {
       result = _json["result"];
-    }
-    if (_json.containsKey("staticScriptUris")) {
-      staticScriptUris =
-          (_json["staticScriptUris"] as core.List).cast<core.String>();
     }
   }
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
         new core.Map<core.String, core.Object>();
+    if (modulesBaseUrl != null) {
+      _json["modulesBaseUrl"] = modulesBaseUrl;
+    }
     if (result != null) {
       _json["result"] = result;
-    }
-    if (staticScriptUris != null) {
-      _json["staticScriptUris"] = staticScriptUris;
     }
     return _json;
   }

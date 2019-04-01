@@ -634,12 +634,12 @@ class CommonServer {
             '${outputSize}kb of JavaScript in ${ms}ms using DDC.');
         String cachedResult = JsonEncoder().convert(<String, dynamic>{
           'compiledJS': results.compiledJS,
-          'staticScriptUris': results.staticScriptUris,
+          'modulesBaseUrl': results.modulesBaseUrl,
         });
         // Don't block on cache set.
         unawaited(setCache(memCacheKey, cachedResult));
 
-        return CompileDDCResponse(results.compiledJS, results.staticScriptUris);
+        return CompileDDCResponse(results.compiledJS, results.modulesBaseUrl);
       } else {
         List<CompilationProblem> problems = results.problems;
         String errors = problems.map(_printCompileProblem).join('\n');

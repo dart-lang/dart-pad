@@ -113,9 +113,9 @@ class CompileDDCRequest {
 
 class CompileDDCResponse {
   final String result;
-  final List<String> staticScriptUris;
+  final String modulesBaseUrl;
 
-  CompileDDCResponse(this.result, this.staticScriptUris);
+  CompileDDCResponse(this.result, this.modulesBaseUrl);
 }
 
 class CounterRequest {
