@@ -164,8 +164,10 @@ class NewEmbed {
         .then((CompileResponse response) {
           executionSvc.execute('', '', response.result);
         })
-        // TODO(redbrogdon): Add logging and possibly output to UI.
-        .catchError(print)
+        .catchError((e) {
+          consoleTabView.appendError('Error compiling to JavaScript:\n$e');
+          tabController.selectTab('console');
+        })
         .whenComplete(() {
           executeButton.executionState = ExecutionState.ready;
         });
