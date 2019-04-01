@@ -165,6 +165,7 @@ class NewEmbed {
           executionSvc.execute('', '', response.result);
         })
         // TODO(redbrogdon): Add logging and possibly output to UI.
+        .catchError(print)
         .whenComplete(() {
           executeButton.executionState = ExecutionState.ready;
         });
