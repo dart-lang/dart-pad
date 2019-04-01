@@ -31,6 +31,7 @@ void init() {
 /// snippet against a desired result.
 class NewEmbed {
   ExecuteCodeButton executeButton;
+  ButtonElement reloadGistButton;
 
   TabController tabController;
   TabView editorTabView;
@@ -79,6 +80,13 @@ class NewEmbed {
     executeButton =
         ExecuteCodeButton(querySelector('#execute'), _handleExecute);
 
+    reloadGistButton = querySelector('#reload-gist');
+    if (gistId.isNotEmpty) {
+      reloadGistButton.onClick.listen((e) => _loadAndShowGist(gistId));
+    } else {
+      reloadGistButton.setAttribute('disabled', 'true');
+    }
+
     testResultBox = FlashBox(querySelector('#test-result-box'));
     analysisResultBox = FlashBox(querySelector('#analysis-result-box'));
 
@@ -118,6 +126,18 @@ class NewEmbed {
     _initModules().then((_) => _initNewEmbed());
   }
 
+  String get gistId {
+    Uri url = Uri.parse(window.location.toString());
+
+    if (url.hasQuery &&
+        url.queryParameters['id'] != null &&
+        isLegalGistId(url.queryParameters['id'])) {
+      return url.queryParameters['id'];
+    }
+
+    return '';
+  }
+
   Future<void> _initModules() async {
     ModuleManager modules = ModuleManager();
 
@@ -132,12 +152,8 @@ class NewEmbed {
 
     context = NewEmbedContext(userCodeEditor, testEditor);
 
-    Uri url = Uri.parse(window.location.toString());
-
-    if (url.hasQuery &&
-        url.queryParameters['id'] != null &&
-        isLegalGistId(url.queryParameters['id'])) {
-      _loadAndShowGist(url.queryParameters['id']);
+    if (gistId.isNotEmpty) {
+      _loadAndShowGist(gistId);
     }
   }
 
