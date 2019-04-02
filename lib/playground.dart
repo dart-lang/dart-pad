@@ -40,7 +40,7 @@ Playground _playground;
 final Logger _logger = Logger('dartpad');
 
 /// Controls whether we request compilation using dart2js or DDC.
-const bool _useDDC = true;
+const bool _useDDC = false;
 
 void init() {
   _playground = Playground();

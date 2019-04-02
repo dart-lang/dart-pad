@@ -138,7 +138,11 @@ require.config({
 ''';
     }
 
-    final String postfix = '''
+    final bool usesRequireJs = modulesBaseUrl != null;
+
+    String postfix = '';
+    if (usesRequireJs) {
+      postfix = '''
 require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     // SDK initialization.
     dart_sdk.dart.setStartAsyncSynchronously(true);
@@ -148,9 +152,11 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     dartpad_main.main.main();
 });
 ''';
+    }
 
     return '$postMessagePrint\n$exceptionHandler\n$requireConfig\n'
-        '$javaScript\n$postfix';
+        '$javaScript\n$postfix'
+        .trim();
   }
 
   @override
