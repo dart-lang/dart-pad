@@ -23,54 +23,41 @@
         margin-top: 0;
       }
     </style>
+    <script src="https://storage.cloud.google.com/compilation_artifacts/require.js"></script>
     <script>
-
 replaceJavaScript = function(value) {
   // Remove the old node.
-  var node = document.getElementById('scriptId');
-  if (node && node.parentNode) {
-    node.parentNode.removeChild(node);
+  var oldNode = document.getElementById('compiledJsScript');
+  if (oldNode && oldNode.parentNode) {
+    oldNode.parentNode.removeChild(oldNode);
   }
 
   // Create a new node.
-  var s = document.createElement('script');
-  s.setAttribute('defer', 'true');
-  s.text = value;
-  document.head.appendChild(s);
-}
-
-retriggerJavaScriptScripts = function() {
-  var scripts = document.body.getElementsByTagName("script");
-  for (var i = 0; i < scripts.length; ++i) {
-    var oldScript = scripts[i];
-    var newScript = document.createElement('script');
-    if (oldScript.src) newScript.src = oldScript.src;
-    newScript.textContent = oldScript.textContent;
-    oldScript.parentNode.replaceChild(newScript, oldScript);
-  }
-}
+  var scriptNode = document.createElement('script');
+  scriptNode.setAttribute('id', 'compiledJsScript');
+  scriptNode.toggleAttribute('defer');
+  scriptNode.text = value;
+  document.head.appendChild(scriptNode);
+};
 
 messageHandler = function(e) {
-  // TODO: verify the domain is correct
-
   var obj = e.data;
   var command = obj.command;
   var body = document.body;
 
-  if (command == 'setCss') {
+  if (command === 'setCss') {
     document.getElementById('styleId').innerHTML = obj.css;
-  } else if (command == 'setHtml') {
+  } else if (command === 'setHtml') {
     body.innerHTML = obj.html;
-  } else if (command == 'execute') {
+  } else if (command === 'execute') {
     // Replace all three.
     body.innerHTML = obj.html;
     document.getElementById('styleId').innerHTML = obj.css;
-    setTimeout(function() {
+    setTimeout(function () {
       replaceJavaScript(obj.js);
-      retriggerJavaScriptScripts();
     }, 150);
   }
-}
+};
 
 window.setTimeout(function () {
   window.addEventListener('message', messageHandler, false);
@@ -79,9 +66,9 @@ window.setTimeout(function () {
     </script>
 
     <style id="styleId"></style>
-    <div id="scriptId" defer="true"></div>
+    <script id="compiledJsScript" defer></script>
   </head>
 
-	<body>
-	</body>
+  <body>
+  </body>
 </html>
