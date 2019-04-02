@@ -118,6 +118,8 @@ class Compiler {
         '--modules=amd',
       ];
       arguments.addAll(<String>['-o', '$kMainDart.js']);
+      arguments.add('--single-out-file');
+      arguments.addAll(<String>['--module-name', 'dartpad_main']);
       arguments.add(kMainDart);
 
       String compileTarget = path.join(temp.path, kMainDart);
@@ -137,14 +139,12 @@ class Compiler {
           CompilationProblem._(result.stdout),
         ]);
       } else {
-        // TODO(devoncarew): The hard-coded URLs below will be replaced with
+        // TODO(devoncarew): The hard-coded URL below will be replaced with
         // something based on the sdk version.
         final DDCCompilationResults results = DDCCompilationResults(
           compiledJS: mainJs.readAsStringSync(),
-          staticScriptUris: <String>[
-            'https://storage.cloud.google.com/compilation_artifacts/require.js',
-            'https://storage.cloud.google.com/compilation_artifacts/dart_sdk.js',
-          ],
+          modulesBaseUrl:
+              'https://storage.cloud.google.com/compilation_artifacts/',
         );
         return results;
       }
@@ -179,16 +179,15 @@ class CompilationResults {
 /// The result of a DDC compile.
 class DDCCompilationResults {
   final String compiledJS;
-  final List<String> staticScriptUris;
+  final String modulesBaseUrl;
   final List<CompilationProblem> problems;
 
-  DDCCompilationResults(
-      {this.compiledJS, this.staticScriptUris = const <String>[]})
+  DDCCompilationResults({this.compiledJS, this.modulesBaseUrl})
       : problems = const <CompilationProblem>[];
 
   DDCCompilationResults.failed(this.problems)
       : compiledJS = null,
-        staticScriptUris = const <String>[];
+        modulesBaseUrl = null;
 
   bool get hasOutput => compiledJS.isNotEmpty;
 

@@ -32,7 +32,9 @@ void defineTests() {
           .then((DDCCompilationResults result) {
         expect(result.success, true);
         expect(result.compiledJS, isNotEmpty);
-        expect(result.staticScriptUris, hasLength(2));
+        expect(result.modulesBaseUrl, isNotEmpty);
+
+        expect(result.compiledJS, contains("define('dartpad_main', ["));
       });
     });
 
