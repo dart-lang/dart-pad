@@ -15,6 +15,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
 
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+          rel='stylesheet' type='text/css'>
+
     <style>
       iframe {
         background-color: #333;
@@ -33,14 +36,25 @@
       }
 
       .code {
-        font-family: monospace;
+        font-family: 'Inconsolata', monospace;
+        color: #004;
       }
 
       .snippet {
-        font-family: monospace;
+        font-family: 'Inconsolata', monospace;
         white-space: pre-wrap;
         margin-left: -100px;
         margin-top: -10px;
+        color: #008;
+      }
+
+      .disclaimer {
+        margin-bottom: 30px;
+        margin-top: 10px;
+        color: #800;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 20px;
       }
     </style>
 </head>
@@ -51,6 +65,12 @@
         <div class="col-md-2"></div>
         <div class="col-md-8">
             <h2>Dart Cheat Sheet Codelab</h2>
+            <div class="disclaimer">
+                This codelab is being used to test out some new features of DartPad! You may encounter bugs,
+                malapropisms, and other general weirdness. If that happens, please take a moment to
+                <a target="_BLANK" href="https://github.com/dart-lang/dart-pad/issues/new">fill out a bug report on GitHub</a>
+                and let us know.
+            </div>
             <p>
                 Dart is designed to be easy to learn for coders coming from other languages, but it
                 also has a few unique features. This codelab will walk you through the most important
@@ -160,6 +180,76 @@
             <iframe src="embed-new.html?id=58f14a3d943be6231ae611036fcfc80d"></iframe>
 
 
+            <h3>Collection literals</h3>
+            <p>
+                Dart has built-in support for lists, maps, and sets. You can create them using literals:
+            </p>
+            <div class="snippet">
+                final aListOfStrings = ['one', 'two', 'three'];
+                final aSetOfStrings = {'one', 'two', 'three'};
+                final aMapOfStringsToInts = {
+                'one': 1,
+                'two': 2,
+                'three': 3,
+                };
+            </div>
+            <p>
+                Dart's type inference is capable of assigning types to these variables for you. In this case, the
+                nterred types are <span class="code">List&lt;String&gt;</span>,
+                <span class="code">Set&lt;String&gt;</span>, and <span class="code">Map&lt;String, int&gt;</span>.
+            </p>
+            <p>
+                You can also specify the type for a collection literal:
+            </p>
+            <div class="snippet">
+                final aListOfInts = &lt;int&gt;[];
+                final aSetOfInts = &lt;int&gt;{};
+                final aMapOfIntToDouble = &lt;int, double&gt;{};
+            </div>
+            <p>
+                Specifying types is handy if you initialize a list with contents of a subtype, but still want the list
+                itself to be <span class="code">List&lt;BaseType&gt;</span>:
+            </p>
+            <div class="snippet">
+                final aListOfBaseType = &lt;BaseType&gt;[SubType(), SubType()];
+            </div>
+
+            <h4>Code example</h4>
+            <p>
+                Try setting the following variables to the indicated values:
+            </p>
+            <iframe src="embed-new.html?id=f0d6e5f14e4606befa388f52eebc2647"></iframe>
+
+
+            <h3>Arrow syntax</h3>
+            <p>
+                In the previous examples, you may have noticed an operator that looks like <span class="code">=></span>.
+                Dart's docs refer to it as "arrow syntax," and it's a way to define a function that executes the
+                expression to its right and returns its value.
+            </p>
+            <p>
+                For example, consider this call to the <span class="code">List</span> class's
+                <span class="code">any</span> method:
+            </p>
+            <div class="snippet">
+                bool hasEmpty = aListOfStrings.any((s) {
+                return s.isEmpty;
+                });
+            </div>
+            <p>
+                Here’s a simpler way to write that code:
+            <p>
+            <div class="snippet">
+                bool hasEmpty = aListOfStrings.any((s) => s.isEmpty);
+            </div>
+
+            <h4>Code example</h4>
+            <p>
+                Try finishing these statements that use arrow syntax:
+            </p>
+            <iframe src="embed-new.html?id=7c287c55dcc7f414a5dfa5837e3450e3"></iframe>
+
+
             <h3>Cascades</h3>
             <p>
                 Cascades (<span class="code">..</span>) allow you to make a sequence of operations on the same object.
@@ -209,47 +299,6 @@
                 <span class="code">[3.0]</span>, respectively, and then calls <span class="code">allDone</span>:
             </p>
             <iframe src="embed-new.html?id=72bde0b4d5c8c6046b4853a3b4053c3a"></iframe>
-
-
-            <h3>Collection literals</h3>
-            <p>
-                Dart has built-in support for lists, maps, and sets. You can create them using literals:
-            </p>
-            <div class="snippet">
-                final aListOfStrings = ['one', 'two', 'three'];
-                final aSetOfStrings = {'one', 'two', 'three'};
-                final aMapOfStringsToInts = {
-                    'one': 1,
-                    'two': 2,
-                    'three': 3,
-                };
-            </div>
-            <p>
-                Dart's type inference is capable of assigning types to these variables for you. In this case, the
-                nterred types are <span class="code">List&lt;String&gt;</span>,
-                <span class="code">Set&lt;String&gt;</span>, and <span class="code">Map&lt;String, int&gt;</span>.
-            </p>
-            <p>
-                You can also specify the type for a collection literal:
-            </p>
-            <div class="snippet">
-                final aListOfInts = &lt;int&gt;[];
-                final aSetOfInts = &lt;int&gt;{};
-                final aMapOfIntToDouble = &lt;int, double&gt;{};
-            </div>
-            <p>
-                Specifying types is handy if you initialize a list with contents of a subtype, but still want the list
-                itself to be <span class="code">List&lt;BaseType&gt;</span>:
-            </p>
-            <div class="snippet">
-                final aListOfBaseType = &lt;BaseType&gt;[SubType(), SubType()];
-            </div>
-
-            <h4>Code example</h4>
-            <p>
-                Try setting the following variables to the indicated values:
-            </p>
-            <iframe src="embed-new.html?id=f0d6e5f14e4606befa388f52eebc2647"></iframe>
 
 
             <h3>Getters and setters</h3>
@@ -302,35 +351,6 @@
             </ul>
             <br />
             <iframe src="embed-new.html?id=84561041d263cbd4c92f614eceec85e6"></iframe>
-
-
-            <h3>Arrow syntax</h3>
-            <p>
-                In the previous examples, you may have noticed an operator that looks like <span class="code">=></span>.
-                Dart's docs refer to it as "arrow syntax," and it's a way to define a function that executes the
-                expression to its right and returns its value.
-            </p>
-            <p>
-                For example, consider this call to the <span class="code">List</span> class's
-                <span class="code">any</span> method:
-            </p>
-            <div class="snippet">
-                bool hasEmpty = aListOfStrings.any((s) {
-                    return s.isEmpty;
-                });
-            </div>
-            <p>
-                Here’s a simpler way to write that code:
-            <p>
-            <div class="snippet">
-                bool hasEmpty = aListOfStrings.any((s) => s.isEmpty);
-            </div>
-
-            <h4>Code example</h4>
-            <p>
-                Try finishing these statements that use arrow syntax:
-            </p>
-            <iframe src="embed-new.html?id=7c287c55dcc7f414a5dfa5837e3450e3"></iframe>
 
 
             <h3>Optional positional parameters</h3>
@@ -446,7 +466,6 @@
             </p>
             <div class="snippet">
                 throw Exception('Something bad happened.');
-
                 throw 'Waaaaaaah!';
             </div>
             <p>
@@ -671,10 +690,18 @@
                 following:
             </p>
             <ul>
-                <li>If there's one value in the list, create an <span class="code">IntegerSingle</span> with that value.</li>
-                <li>there are two values, create an <span class="code">IntegerDouble</span> with the values in order.</li>
-                <li>If there are three values, create an <span class="code">IntegerTriple</span> with values in order.</li>
-                <li>Otherwise, return null.</li>
+                <li>
+                    If there's one value in the list, create an <span class="code">IntegerSingle</span> with that value.
+                </li>
+                <li>
+                    If there are two values, create an <span class="code">IntegerDouble</span> with the values in order.
+                </li>
+                <li>
+                    If there are three values, create an <span class="code">IntegerTriple</span> with values in order.
+                </li>
+                <li>
+                    Otherwise, return null.
+                </li>
             </ul>
             <br/>
             <iframe src="embed-new.html?id=727981a8ece1244b52a3c6dc377a8085"></iframe>
