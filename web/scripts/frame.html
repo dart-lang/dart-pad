@@ -23,9 +23,13 @@
         margin-top: 0;
       }
     </style>
+    <script src="https://storage.cloud.google.com/compilation_artifacts/require.js"></script>
     <script>
-
 replaceJavaScript = function(value) {
+  // todo: validate this logic - we're finding the scriptId, but we don't create a new scriptId
+  // we're adding to head, when we should be doing in body
+  // and, it's a div
+
   // Remove the old node.
   var node = document.getElementById('scriptId');
   if (node && node.parentNode) {
@@ -37,7 +41,7 @@ replaceJavaScript = function(value) {
   s.setAttribute('defer', 'true');
   s.text = value;
   document.head.appendChild(s);
-}
+};
 
 retriggerJavaScriptScripts = function() {
   var scripts = document.body.getElementsByTagName("script");
@@ -48,29 +52,37 @@ retriggerJavaScriptScripts = function() {
     newScript.textContent = oldScript.textContent;
     oldScript.parentNode.replaceChild(newScript, oldScript);
   }
-}
+};
 
 messageHandler = function(e) {
-  // TODO: verify the domain is correct
-
   var obj = e.data;
   var command = obj.command;
   var body = document.body;
 
-  if (command == 'setCss') {
+  if (command === 'setCss') {
     document.getElementById('styleId').innerHTML = obj.css;
-  } else if (command == 'setHtml') {
+  } else if (command === 'setHtml') {
     body.innerHTML = obj.html;
-  } else if (command == 'execute') {
+  } else if (command === 'execute') {
+    // TODO:
+
     // Replace all three.
     body.innerHTML = obj.html;
     document.getElementById('styleId').innerHTML = obj.css;
-    setTimeout(function() {
+    setTimeout(function () {
+      // remove previous urls
+      // TODO: adjust
+      for (var node in document.querySelectorAll('script[static-url]')) {
+        if (node.parentNode) {
+          node.parentNode.removeChild(node);
+        }
+      }
+
       replaceJavaScript(obj.js);
       retriggerJavaScriptScripts();
     }, 150);
   }
-}
+};
 
 window.setTimeout(function () {
   window.addEventListener('message', messageHandler, false);
@@ -82,6 +94,6 @@ window.setTimeout(function () {
     <div id="scriptId" defer="true"></div>
   </head>
 
-	<body>
-	</body>
+  <body>
+  </body>
 </html>

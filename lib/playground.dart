@@ -37,7 +37,10 @@ Playground get playground => _playground;
 
 Playground _playground;
 
-final _logger = Logger('dartpad');
+final Logger _logger = Logger('dartpad');
+
+/// Controls whether we request compilation using dart2js or DDC.
+const bool _useDDC = true;
 
 void init() {
   _playground = Playground();
@@ -606,35 +609,69 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  void _handleRun() {
+  void _handleRun() async {
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
     overlay.visible = true;
 
     Stopwatch compilationTimer = Stopwatch()..start();
 
-    var input = CompileRequest()..source = context.dartSource;
-    dartServices
-        .compile(input)
-        .timeout(longServiceCallTimeout)
-        .then((CompileResponse response) {
-      ga.sendTiming('action-perf', 'compilation-e2e',
-          compilationTimer.elapsedMilliseconds);
+    final CompileRequest compileRequest = CompileRequest()
+      ..source = context.dartSource;
 
-      _autoSwitchOutputTab();
-      _clearOutput();
+    try {
+      if (_useDDC) {
+        final CompileDDCResponse response = await dartServices
+            .compileDDC(compileRequest)
+            .timeout(longServiceCallTimeout);
 
-      return executionService.execute(
-          _context.htmlSource, _context.cssSource, response.result);
-    }).catchError((e) {
+        ga.sendTiming(
+          'action-perf',
+          'compilation-e2e',
+          compilationTimer.elapsedMilliseconds,
+        );
+
+        _autoSwitchOutputTab();
+        _clearOutput();
+
+        return executionService.execute(
+          _context.htmlSource,
+          _context.cssSource,
+          response.result,
+          modulesBaseUrl: response.modulesBaseUrl,
+        );
+      } else {
+        final CompileResponse response = await dartServices
+            .compile(compileRequest)
+            .timeout(longServiceCallTimeout);
+
+        ga.sendTiming(
+          'action-perf',
+          'compilation-e2e',
+          compilationTimer.elapsedMilliseconds,
+        );
+
+        _autoSwitchOutputTab();
+        _clearOutput();
+
+        return executionService.execute(
+          _context.htmlSource,
+          _context.cssSource,
+          response.result,
+        );
+      }
+    } catch (e) {
       ga.sendException('${e.runtimeType}');
-      if (e is DetailedApiRequestError) e = e.message;
+      dynamic message = e;
+      if (e is DetailedApiRequestError) {
+        message = e.message;
+      }
       DToast.showMessage('Error compiling to JavaScript');
-      _showOuput('Error compiling to JavaScript:\n$e', error: true);
-    }).whenComplete(() {
+      _showOuput('Error compiling to JavaScript:\n$message', error: true);
+    } finally {
       runButton.disabled = false;
       overlay.visible = false;
-    });
+    }
   }
 
   /// Switch to the Dart / Html / Css tab depending on the sample type.
