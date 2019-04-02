@@ -662,10 +662,7 @@ class Playground implements GistContainer, GistController {
       }
     } catch (e) {
       ga.sendException('${e.runtimeType}');
-      dynamic message = e;
-      if (e is DetailedApiRequestError) {
-        message = e.message;
-      }
+      final message = (e is DetailedApiRequestError) ? e.message : '$e';
       DToast.showMessage('Error compiling to JavaScript');
       _showOuput('Error compiling to JavaScript:\n$message', error: true);
     } finally {
