@@ -66,10 +66,12 @@ class ExecutionServiceIFrame implements ExecutionService {
   /// TODO(redbrogdon): Format message so internal double quotes are escaped.
   @override
   String get testResultDecoration => '''
-  void _result(bool success, String message) {
-    print('$testKey{"success": \$success, "message": "\$message"}');
-  }
-''';
+void _result(bool success, [List<String> messages]) {
+  // Join messages into a comma-separated list for inclusion in the JSON array.
+  final joinedMessages = messages?.map((m) => '"\$m"')?.join(',') ?? '';
+
+  print('$testKey{"success": \$success, "messages": [\$joinedMessages]}');
+}''';
 
   String _decorateJavaScript(String javaScript, {String modulesBaseUrl}) {
     final String postMessagePrint = '''
@@ -192,7 +194,8 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
       String type = data['type'];
 
       if (type == 'testResult') {
-        final result = TestResult(data['success'] == true, data['message']);
+        final result = TestResult(
+            data['success'], List<String>.from(data['messages'] ?? []));
         _testResultsController.add(result);
       } else if (type == 'stderr') {
         // Ignore any exceptions before the iframe has completed initialization.

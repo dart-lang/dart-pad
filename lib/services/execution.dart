@@ -7,14 +7,14 @@ library execution;
 import 'dart:async';
 
 class TestResult {
-  const TestResult(this.success, this.message);
+  const TestResult(this.success, this.messages);
 
   final bool success;
-  final String message;
+  final List<String> messages;
 }
 
 /// An abstraction about a service that can inject and execute javascript code.
-/// 
+///
 /// [modulesBaseUrl] can be null, and is only passed in if the given javascript
 /// uses require.js to reference other modules.
 abstract class ExecutionService {

@@ -31,53 +31,111 @@ void init() {
 /// snippet against a desired result.
 class NewEmbed {
   ExecuteCodeButton executeButton;
-  TestResultLabel testResultLabel;
+  ButtonElement reloadGistButton;
 
   TabController tabController;
-  EditorTabView editorTabView;
-  TestTabView testTabView;
+  TabView editorTabView;
+  TabView testTabView;
   ConsoleTabView consoleTabView;
+
+  FlashBox testResultBox;
+  FlashBox analysisResultBox;
 
   ExecutionService executionSvc;
 
   EditorFactory editorFactory = codeMirrorFactory;
 
+  Editor testEditor;
+  Editor userCodeEditor;
+
   NewEmbedContext context;
+
+  final _debounceTimer = DelayedTimer(
+    minDelay: Duration(milliseconds: 100),
+    maxDelay: Duration(milliseconds: 500),
+  );
 
   NewEmbed() {
     tabController = NewEmbedTabController();
     for (String name in ['editor', 'test', 'console']) {
       tabController.registerTab(
-          TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
-        editorTabView.setSelected(name == 'editor');
-        testTabView.setSelected(name == 'test');
-        consoleTabView.setSelected(name == 'console');
-      }));
+        TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
+          editorTabView.setSelected(name == 'editor');
+          testTabView.setSelected(name == 'test');
+          consoleTabView.setSelected(name == 'console');
+
+          if (name == 'editor') {
+            userCodeEditor.resize();
+            userCodeEditor.focus();
+          }
+
+          if (name == 'test') {
+            testEditor.resize();
+            testEditor.focus();
+          }
+        }),
+      );
     }
 
-    testResultLabel = TestResultLabel(querySelector('#test-result'));
     executeButton =
         ExecuteCodeButton(querySelector('#execute'), _handleExecute);
 
-    editorTabView =
-        EditorTabView(DElement(querySelector('#editor')), editorFactory);
-    consoleTabView = ConsoleTabView(DElement(querySelector('#console-view')));
+    reloadGistButton = querySelector('#reload-gist');
+    if (gistId.isNotEmpty) {
+      reloadGistButton.onClick.listen((e) => _loadAndShowGist(gistId));
+    } else {
+      reloadGistButton.setAttribute('disabled', 'true');
+    }
 
-    // Right now the entire tab view is just the textarea, but that will not be
-    // the case going forward, hence the separate parameters.
-    testTabView = TestTabView(
-      DElement(querySelector('#test-view')),
-      editorFactory,
-    );
+    testResultBox = FlashBox(querySelector('#test-result-box'));
+    analysisResultBox = FlashBox(querySelector('#analysis-result-box'));
+
+    userCodeEditor =
+        editorFactory.createFromElement(querySelector('#user-code-editor'))
+          ..theme = 'elegant'
+          ..mode = 'dart'
+          ..showLineNumbers = true;
+
+    userCodeEditor.document.onChange.listen(_performAnalysis);
+
+    testEditor = editorFactory.createFromElement(querySelector('#test-editor'))
+      ..theme = 'elegant'
+      ..mode = 'dart'
+      ..showLineNumbers = true;
+
+    editorTabView = TabView(DElement(querySelector('#user-code-view')));
+
+    testTabView = TabView(DElement(querySelector('#test-view')));
+
+    consoleTabView = ConsoleTabView(DElement(querySelector('#console-view')));
 
     executionSvc = ExecutionServiceIFrame(querySelector('#frame'));
     executionSvc.onStderr.listen((err) => consoleTabView.appendError(err));
     executionSvc.onStdout.listen((msg) => consoleTabView.appendMessage(msg));
     executionSvc.testResults.listen((result) {
-      testResultLabel.setResult(result);
+      if (result.success) {
+        executeButton.executionState = ExecutionState.testSuccess;
+      }
+
+      testResultBox.showStrings(
+        result.messages.isNotEmpty ? result.messages : ['Test passed!'],
+        result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
+      );
     });
 
     _initModules().then((_) => _initNewEmbed());
+  }
+
+  String get gistId {
+    Uri url = Uri.parse(window.location.toString());
+
+    if (url.hasQuery &&
+        url.queryParameters['id'] != null &&
+        isLegalGistId(url.queryParameters['id'])) {
+      return url.queryParameters['id'];
+    }
+
+    return '';
   }
 
   Future<void> _initModules() async {
@@ -92,14 +150,10 @@ class NewEmbed {
   void _initNewEmbed() {
     deps[GistLoader] = GistLoader.defaultFilters();
 
-    context = NewEmbedContext(editorTabView, testTabView);
+    context = NewEmbedContext(userCodeEditor, testEditor);
 
-    Uri url = Uri.parse(window.location.toString());
-
-    if (url.hasQuery &&
-        url.queryParameters['id'] != null &&
-        isLegalGistId(url.queryParameters['id'])) {
-      _loadAndShowGist(url.queryParameters['id']);
+    if (gistId.isNotEmpty) {
+      _loadAndShowGist(gistId);
     }
   }
 
@@ -111,21 +165,102 @@ class NewEmbed {
   }
 
   void _handleExecute() {
-    executeButton.ready = false;
+    executeButton.executionState = ExecutionState.executing;
+    testResultBox.hide();
+    consoleTabView.clear();
+
     final fullCode =
         '${context.dartSource}\n${context.testMethod}\n${executionSvc.testResultDecoration}';
+
     var input = CompileRequest()..source = fullCode;
+
     deps[DartservicesApi]
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
           executionSvc.execute('', '', response.result);
         })
-        // TODO(redbrogdon): Add logging and possibly output to UI.
-        .catchError(print)
+        .catchError((e) {
+          consoleTabView.appendError('Error compiling to JavaScript:\n$e');
+          tabController.selectTab('console');
+        })
         .whenComplete(() {
-          executeButton.ready = true;
+          executeButton.executionState = ExecutionState.ready;
         });
+  }
+
+  void _displayIssues(List<AnalysisIssue> issues) {
+    final elements = <DivElement>[];
+
+    for (AnalysisIssue issue in issues) {
+      elements.add(
+        DivElement()
+          ..children.add(
+            AnchorElement()
+              ..text = '${issue.kind.toUpperCase()} - ${issue.message}'
+              ..classes = ['link-message', 'text-red']
+              ..onClick.listen((event) {
+                _jumpTo(issue.line, issue.charStart, issue.charLength,
+                    focus: true);
+              }),
+          ),
+      );
+    }
+
+    if (elements.isNotEmpty) {
+      analysisResultBox.showElements(elements, FlashBoxStyle.error);
+    } else {
+      analysisResultBox.hide();
+    }
+  }
+
+  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
+    Document doc = userCodeEditor.document;
+
+    doc.select(
+        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
+
+    if (focus) userCodeEditor.focus();
+  }
+
+  /// Perform static analysis of the source code.
+  void _performAnalysis(_) async {
+    _debounceTimer.invoke(() {
+      final dartServices = deps[DartservicesApi] as DartservicesApi;
+      final input = SourceRequest()..source = userCodeEditor.document.value;
+      final lines = Lines(input.source);
+      final request = dartServices.analyze(input).timeout(serviceCallTimeout);
+
+      request.then((AnalysisResults result) {
+        // Discard if the document has been mutated since we requested analysis.
+        if (input.source != userCodeEditor.document.value) return false;
+
+        _displayIssues(result.issues);
+
+        userCodeEditor.document
+            .setAnnotations(result.issues.map((AnalysisIssue issue) {
+          final startLine = lines.getLineForOffset(issue.charStart);
+          final endLine =
+              lines.getLineForOffset(issue.charStart + issue.charLength);
+
+          return Annotation(
+            issue.kind,
+            issue.message,
+            issue.line,
+            start: Position(
+              startLine,
+              issue.charStart - lines.offsetForLine(startLine),
+            ),
+            end: Position(
+              endLine,
+              issue.charStart +
+                  issue.charLength -
+                  lines.offsetForLine(startLine),
+            ),
+          );
+        }).toList());
+      });
+    });
   }
 }
 
@@ -147,100 +282,17 @@ class NewEmbedTabController extends TabController {
 }
 
 /// A container underneath the tab strip that can show or hide itself as needed.
-abstract class TabView {
+class TabView {
   final DElement element;
 
   const TabView(this.element);
 
   void setSelected(bool selected) {
     if (selected) {
-      element.setAttr('selected');
+      element.clearAttr('hidden');
     } else {
-      element.clearAttr('selected');
+      element.setAttr('hidden');
     }
-  }
-}
-
-class EditorTabView extends TabView {
-  final _debounceTimer = DelayedTimer(
-    minDelay: Duration(milliseconds: 100),
-    maxDelay: Duration(milliseconds: 500),
-  );
-
-  // TODO(RedBrogdon): Add UI Elements for errors and warnings indicators
-  bool hasErrors;
-  bool hasWarnings;
-
-  EditorTabView(DElement element, EditorFactory editorFactory)
-      : _editor = editorFactory.createFromElement(element.element),
-        super(element) {
-    // Make sure the theme's css is included in /web/experimental/embed-new.html
-    _editor.theme = 'elegant';
-    _editor.mode = 'dart';
-    _editor.showLineNumbers = true;
-    _editor.document.onChange.listen(_performAnalysis);
-  }
-
-  final Editor _editor;
-
-  set content(String code) {
-    document.value = code;
-  }
-
-  String get content => document.value;
-
-  Document get document => _editor.document;
-
-  String get mode => _editor.mode;
-
-  void focus() => _editor.focus();
-
-  @override
-  void setSelected(bool selected) {
-    super.setSelected(selected);
-    if (selected) {
-      Timer(const Duration(seconds: 0), _editor.resize);
-    }
-  }
-
-  /// Perform static analysis of the source code.
-  void _performAnalysis(_) async {
-    _debounceTimer.invoke(() {
-      final dartServices = deps[DartservicesApi] as DartservicesApi;
-      final input = SourceRequest()..source = content;
-      final lines = Lines(input.source);
-      final request = dartServices.analyze(input).timeout(serviceCallTimeout);
-
-      request.then((AnalysisResults result) {
-        // Discard if the document has been mutated since we requested analysis.
-        if (input.source != content) return false;
-
-        document.setAnnotations(result.issues.map((AnalysisIssue issue) {
-          final startLine = lines.getLineForOffset(issue.charStart);
-          final endLine =
-              lines.getLineForOffset(issue.charStart + issue.charLength);
-
-          return Annotation(
-            issue.kind,
-            issue.message,
-            issue.line,
-            start: Position(
-              startLine,
-              issue.charStart - lines.offsetForLine(startLine),
-            ),
-            end: Position(
-              endLine,
-              issue.charStart +
-                  issue.charLength -
-                  lines.offsetForLine(startLine),
-            ),
-          );
-        }).toList());
-
-        hasErrors = result.issues.any((issue) => issue.kind == 'error');
-        hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
-      });
-    });
   }
 }
 
@@ -252,25 +304,15 @@ class ConsoleTabView extends TabView {
   }
 
   void appendMessage(String msg) {
-    final line = DivElement()
-      ..text = msg
-      ..classes.add('console-message');
+    final line = DivElement()..text = msg;
     element.add(line);
   }
 
   void appendError(String err) {
     final line = DivElement()
       ..text = err
-      ..classes.add('console-error');
+      ..classes.add('text-red');
     element.add(line);
-  }
-}
-
-class TestTabView extends EditorTabView {
-  TestTabView(DElement element, EditorFactory editorFactory)
-      : super(element, editorFactory) {
-    // Tests probably shouldn't change...
-    _editor.readOnly = true;
   }
 }
 
@@ -282,7 +324,11 @@ class TestResultLabel {
   final DivElement element;
 
   void setResult(TestResult result) {
-    element.text = result.message;
+    if (result.messages.isEmpty) {
+      element.text = result.success ? 'Test passed!' : 'Test failed.';
+    } else {
+      element.text = result.messages.first;
+    }
 
     if (result.success) {
       element.classes.add('text-green');
@@ -294,10 +340,16 @@ class TestResultLabel {
   }
 }
 
+enum ExecutionState {
+  ready,
+  executing,
+  testSuccess,
+}
+
 class ExecuteCodeButton {
   /// This constructor will throw if the provided element has no child with a
   /// CSS class that begins with "octicon-".
-  ExecuteCodeButton(AnchorElement anchorElement, VoidCallback onClick)
+  ExecuteCodeButton(ButtonElement anchorElement, VoidCallback onClick)
       : assert(anchorElement != null),
         assert(onClick != null) {
     final iconElement =
@@ -307,21 +359,21 @@ class ExecuteCodeButton {
     _element.onClick.listen((e) => onClick());
   }
 
-  static const readyIconName = 'triangle-right';
-  static const waitingIconName = 'sync';
+  static const iconNames = <ExecutionState, String>{
+    ExecutionState.ready: 'triangle-right',
+    ExecutionState.executing: 'sync',
+    ExecutionState.testSuccess: 'check',
+  };
+
   static const disabledClassName = 'disabled';
 
   DElement _element;
 
   Octicon _icon;
 
-  // Both the icon and the disabled attribute are set at the same time, so
-  // checking one should be as good as checking both.
-  bool get ready => !_element.hasClass(disabledClassName);
-
-  set ready(bool value) {
-    _element.toggleClass(disabledClassName, !value);
-    _icon.iconName = value ? readyIconName : waitingIconName;
+  set executionState(ExecutionState state) {
+    _element.toggleClass(disabledClassName, state == ExecutionState.executing);
+    _icon.iconName = iconNames[state];
   }
 }
 
@@ -346,24 +398,78 @@ class Octicon {
       el.classes.any((s) => s.startsWith(prefix));
 }
 
+enum FlashBoxStyle {
+  warn,
+  error,
+  success,
+}
+
+class FlashBox {
+  /// This constructor will throw if [div] does not have a child with the
+  /// flash-close class and a child with the message-container class.
+  FlashBox(DivElement div) {
+    _element = DElement(div);
+    _messageContainer = DElement(div.querySelector('.message-container'));
+
+    final closeLink = DElement(div.querySelector('.flash-close'));
+    closeLink.onClick.listen((event) {
+      hide();
+    });
+  }
+
+  static const classNamesForStyles = <FlashBoxStyle, String>{
+    FlashBoxStyle.warn: 'flash-warn',
+    FlashBoxStyle.error: 'flash-error',
+    FlashBoxStyle.success: 'flash-success',
+  };
+
+  DElement _element;
+
+  DElement _messageContainer;
+
+  void showStrings(List<String> messages, [FlashBoxStyle style]) {
+    showElements(messages.map((m) => DivElement()..text = m).toList(), style);
+  }
+
+  void showElements(List<Element> elements, [FlashBoxStyle style]) {
+    _element.clearAttr('hidden');
+    _element.element.classes
+        .removeWhere((s) => classNamesForStyles.values.contains(s));
+
+    if (style != null) {
+      _element.toggleClass(classNamesForStyles[style], true);
+    }
+
+    _messageContainer.clearChildren();
+
+    for (final element in elements) {
+      _messageContainer.add(element);
+    }
+  }
+
+  void hide() {
+    _element.setAttr('hidden');
+  }
+}
+
 class NewEmbedContext {
-  final EditorTabView editorTabView;
-  final TestTabView testView;
+  final Editor userCodeEditor;
+  final Editor testEditor;
 
   Document _dartDoc;
 
-  String get testMethod => testView.content;
+  String get testMethod => testEditor.document.value;
 
   set testMethod(String value) {
-    testView.content = value;
+    testEditor.document.value = value;
   }
 
   final _dartDirtyController = StreamController.broadcast();
 
   final _dartReconcileController = StreamController.broadcast();
 
-  NewEmbedContext(this.editorTabView, this.testView) {
-    _dartDoc = editorTabView.document;
+  NewEmbedContext(this.userCodeEditor, this.testEditor) {
+    _dartDoc = userCodeEditor.document;
     _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
     _createReconciler(_dartDoc, _dartReconcileController, 1250);
   }
@@ -373,10 +479,10 @@ class NewEmbedContext {
   String get dartSource => _dartDoc.value;
 
   set dartSource(String value) {
-    editorTabView.content = value;
+    userCodeEditor.document.value = value;
   }
 
-  String get activeMode => editorTabView.mode;
+  String get activeMode => userCodeEditor.mode;
 
   Stream get onDartDirty => _dartDirtyController.stream;
 
@@ -385,7 +491,7 @@ class NewEmbedContext {
   void markDartClean() => _dartDoc.markClean();
 
   /// Restore the focus to the last focused editor.
-  void focus() => editorTabView.focus();
+  void focus() => userCodeEditor.focus();
 
   void _createReconciler(Document doc, StreamController controller, int delay) {
     Timer timer;
