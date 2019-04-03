@@ -15,6 +15,9 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
 
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+          rel='stylesheet' type='text/css'>
+
     <style>
       iframe {
         background-color: #333;
@@ -33,7 +36,25 @@
       }
 
       .code {
-        font-family: monospace;
+        font-family: 'Inconsolata', monospace;
+        color: #004;
+      }
+
+      .snippet {
+        font-family: 'Inconsolata', monospace;
+        white-space: pre-wrap;
+        margin-left: -100px;
+        margin-top: -10px;
+        color: #008;
+      }
+
+      .disclaimer {
+        margin-bottom: 30px;
+        margin-top: 10px;
+        color: #800;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 20px;
       }
     </style>
 </head>
@@ -44,16 +65,21 @@
         <div class="col-md-2"></div>
         <div class="col-md-8">
             <h2>Dart Cheat Sheet Codelab</h2>
+            <div class="disclaimer">
+                This codelab is being used to test out some new features of DartPad! You may encounter bugs,
+                malapropisms, annoyances, and other general weirdness. If that happens, please take a moment to
+                <a target="_BLANK" href="https://github.com/dart-lang/dart-pad/issues/new">fill out a bug report on GitHub</a>
+                and let us know. Feature requests and suggestions are also greatly appreciated.
+            </div>
             <p>
                 Dart is designed to be easy to learn for coders coming from other languages, but it
-                also has a few unique features that will be new to people learning it for the first
-                time. This short codelab will walk you through the most important ones, and can be a
-                handy place to return for a refresher as you grow your Dart skills.
+                also has a few unique features. This codelab will walk you through the most important
+                ones, and can be a handy place to return for a refresher as you grow your Dart skills.
             </p>
             <p>
                 In addition to explanations and examples, the codelab includes embedded editors with
                 partially completed code snippets. You can use these editors to test your knowledge
-                by completing the code and clicking the "test" button.
+                by completing the code and clicking the <strong>Test Code</strong> button.
             </p>
 
             <h3>String interpolation</h3>
@@ -79,133 +105,688 @@
                     <span class="code">myObject.toString()</span>
                 </li>
             </ul>
+
             <h4>Code example</h4>
             <p>
                 The following function takes two integers as parameters. Add code to make it return
-                a string containing both numbers separated by a space (e.g. 2 and 3 become '2 3').
+                a string containing both numbers separated by a space (e.g.
+                <span class="code">2</span> and <span class="code">3</span> become
+                <span class="code">'2 3'</span>).
             </p>
-            <iframe src="embed-new.html?id=a082c5c4de47de521fef8a3c14aa0a9e"></iframe>
+            <iframe src="embed-new.html?id=43f3db47b0632c557200270807696687"></iframe>
+
 
             <h3>Null-aware operators</h3>
             <p>
+                Dart offers some handy operators for dealing with values that might be null. One is the
+                <span class="code">??=</span> assignment operator, which assigns a value to a variable only if that
+                variable is currently null:
             </p>
+            <div class="snippet">
+                int a = null;
+                a ??= 3;
+                print(a); // <-- Prints 3;
+
+                a ??= 5;
+                print(a); // <-- Still prints 3;
+            </div>
+            <p>
+                There's also the <span class="code">??</span> operator, which returns the expression on its left unless
+                its value is null, in which case it evaluates and returns the expression on its right:
+            </p>
+            <div class="snippet">
+                print(1 ?? 3); // <-- Prints 1;
+                print(null ?? 12); // <-- Prints 12.
+            </div>
+
             <h4>Code example</h4>
             <p>
+                Try putting the <span class="code">??=</span> and <span class="code">??</span>
+                operators to work below:
             </p>
             <iframe src="embed-new.html?id=f8ab52228b9c03aee9504dbdc15d797d"></iframe>
 
+
             <h3>Conditional property access</h3>
             <p>
+                To access a property or method on a reference that might be null, you can use
+                <span class="code">?.</span> to guard the call:
             </p>
+            <div class="snippet">
+                myObject?.someProperty
+            </div>
+            <p>
+                The above code is equivalent to:
+            </p>
+            <div class="snippet">
+                (myObject != null) ? myObject.someProperty : null
+            </div>
+            <p>
+                You can chain multiple uses of <span class="code">?.</span> together in a single expression:
+            </p>
+            <div class="snippet">
+                myObject?.someProperty?.someMethod()
+            </div>
+            <p>
+                The above code returns null (and never calls <span class="code">someMethod</span>) if either
+                <span class="code">myObject</span> or <span class="code">myObject.someProperty</span> is
+                null.
+            </p>
+
             <h4>Code example</h4>
             <p>
+                Try using conditional property access to finish the code snippet below:
             </p>
             <iframe src="embed-new.html?id=58f14a3d943be6231ae611036fcfc80d"></iframe>
 
-            <h3>Cascades</h3>
-            <p>
-            </p>
-            <h4>Code example</h4>
-            <p>
-            </p>
-            <iframe src="embed-new.html?id=72bde0b4d5c8c6046b4853a3b4053c3a"></iframe>
 
             <h3>Collection literals</h3>
             <p>
+                Dart has built-in support for lists, maps, and sets. You can create them using literals:
             </p>
+            <div class="snippet">
+                final aListOfStrings = ['one', 'two', 'three'];
+                final aSetOfStrings = {'one', 'two', 'three'};
+                final aMapOfStringsToInts = {
+                'one': 1,
+                'two': 2,
+                'three': 3,
+                };
+            </div>
+            <p>
+                Dart's type inference is capable of assigning types to these variables for you. In this case, the
+                nterred types are <span class="code">List&lt;String&gt;</span>,
+                <span class="code">Set&lt;String&gt;</span>, and <span class="code">Map&lt;String, int&gt;</span>.
+            </p>
+            <p>
+                You can also specify the type for a collection literal:
+            </p>
+            <div class="snippet">
+                final aListOfInts = &lt;int&gt;[];
+                final aSetOfInts = &lt;int&gt;{};
+                final aMapOfIntToDouble = &lt;int, double&gt;{};
+            </div>
+            <p>
+                Specifying types is handy if you initialize a list with contents of a subtype, but still want the list
+                itself to be <span class="code">List&lt;BaseType&gt;</span>:
+            </p>
+            <div class="snippet">
+                final aListOfBaseType = &lt;BaseType&gt;[SubType(), SubType()];
+            </div>
+
             <h4>Code example</h4>
             <p>
+                Try setting the following variables to the indicated values:
             </p>
             <iframe src="embed-new.html?id=f0d6e5f14e4606befa388f52eebc2647"></iframe>
 
-            <h3>Getters and setters</h3>
-            <p>
-            </p>
-            <h4>Code example</h4>
-            <p>
-            </p>
-            <iframe src="embed-new.html?id=84561041d263cbd4c92f614eceec85e6"></iframe>
 
             <h3>Arrow syntax</h3>
             <p>
+                In the previous examples, you may have noticed an operator that looks like <span class="code">=></span>.
+                Dart's docs refer to it as "arrow syntax," and it's a way to define a function that executes the
+                expression to its right and returns its value.
             </p>
+            <p>
+                For example, consider this call to the <span class="code">List</span> class's
+                <span class="code">any</span> method:
+            </p>
+            <div class="snippet">
+                bool hasEmpty = aListOfStrings.any((s) {
+                return s.isEmpty;
+                });
+            </div>
+            <p>
+                Here’s a simpler way to write that code:
+            <p>
+            <div class="snippet">
+                bool hasEmpty = aListOfStrings.any((s) => s.isEmpty);
+            </div>
+
             <h4>Code example</h4>
             <p>
+                Try finishing these statements that use arrow syntax:
             </p>
             <iframe src="embed-new.html?id=7c287c55dcc7f414a5dfa5837e3450e3"></iframe>
 
-            <h3>Optional positional parameters</h3>
+
+            <h3>Cascades</h3>
             <p>
+                Cascades (<span class="code">..</span>) allow you to make a sequence of operations on the same object.
+                We've all seen an expression like this:
             </p>
+            <div class="snippet">
+                myObject.someMethod()
+            </div>
+            <p>
+                It invokes <span class="code">someMethod</span> on <span class="code">myObject</span>, and the result of
+                the expression is the return value of <span class="code">someMethod</span>.
+            </p>
+            <p>
+                The same expression with a cascade, however:
+            </p>
+            <div class="snippet">
+                myObject..someMethod()
+            </div>
+            <p>
+                Still invokes <span class="code">someMethod</span> on <span class="code">myObject</span>, but the result
+                of the expression isn't the return value -- it's a reference to <span class="code">myObject</span>! This
+                way, you can chain together operations that would otherwise require separate statements. For example,
+                consider this code:
+            </p>
+
+            <div class="snippet">
+                var button = querySelector('#confirm');
+                button.text = 'Confirm';
+                button.classes.add('important');
+                button.onClick.listen((e) => window.alert('Confirmed!'));
+            </div>
+            <p>
+                With cascades, the code becomes much shorter, and you don’t need the <span class="code">button</span>
+                variable:
+            </p>
+            <div class="snippet">
+                querySelector('#confirm')
+                ..text = 'Confirm'
+                ..classes.add('important')
+                ..onClick.listen((e) => window.alert('Confirmed!'));
+            </div>
             <h4>Code example</h4>
             <p>
+                Use cascades to create a single statement that sets a <span class="code">BigObject</span>’s
+                <span class="code">anInt</span>, <span class="code">aString</span>, and <span class="code">aList</span>
+                properties to <span class="code">1</span>, <span class="code">'String!'</span>, and
+                <span class="code">[3.0]</span>, respectively, and then calls <span class="code">allDone</span>:
             </p>
+            <iframe src="embed-new.html?id=72bde0b4d5c8c6046b4853a3b4053c3a"></iframe>
+
+
+            <h3>Getters and setters</h3>
+            <p>
+                Dart supports getters and setters for properties via the get and set keywords. You can use getters and
+                setters to guard access of a private variable:
+            </p>
+            <div class="snippet">
+                class MyClass {
+                  int _privateField = 0;
+
+                  int get privateField => _privateField;
+
+                  set privateField(int value) {
+                    if (value >= 0) {
+                      _privateField = value;
+                    }
+                  }
+                }
+            </div>
+            <p>
+                You can also define getters for computed properties like this one:
+            </p>
+            <div class="snippet">
+                class MyClass {
+                  List&lt;div&gt; _values = [];
+
+                  void addValue(int value) {
+                    _values.add(value);
+                  }
+
+                  int get count {
+                    return _values.length;
+                  }
+                }
+            </div>
+
+            <h4>Code example</h4>
+            <p>
+                Imagine you have a shopping cart class that keeps a private <span class="code">List&lt;double&gt;</span>
+                of prices.
+                Add the following:
+            </p>
+            <ul>
+                <li>A getter called <span class="code">total</span> that returns the sum of the prices</li>
+                <li>
+                    A setter that replaces the list with a new one, as long as the new list doesn't contain any negative
+                    prices (in which case the setter should throw an <span class="code">InvalidPriceException</span>).
+                </li>
+            </ul>
+            <br />
+            <iframe src="embed-new.html?id=84561041d263cbd4c92f614eceec85e6"></iframe>
+
+
+            <h3>Optional positional parameters</h3>
+            <p>
+                Dart has two kinds of function parameters: positional and named. Positional parameters are the kind
+                you're likely familiar with:
+            </p>
+            <div class="snippet">
+                int sumUp(int a, int b, int c) {
+                  return a + b + c;
+                }
+
+                int total = sumUp(1, 2, 3);
+            </div>
+            <p>
+                With Dart, you can make these positional parameters optional by wrapping them in brackets:
+            </p>
+            <div class="snippet">
+                int sumUpToFive(int a, [int b, int c, int d, int e]) {
+                  int sum = a;
+                  if (b != null) sum += b;
+                  if (c != null) sum += c;
+                  if (d != null) sum += d;
+                  if (e != null) sum += e;
+                  return sum;
+                }
+
+                int total = sumUptoFive(1, 2);
+                int otherTotal = sumUpToFive(1, 2, 3, 4, 5);
+            </div>
+            <p>
+                Optional positional parameters should always be placed last in a function's parameter list. They default
+                to null, but you can provide default values if desired:
+            </p>
+            <div class="snippet">
+                int sumUpToFive(int a, [int b = 2, int c = 3, int d = 4, int e = 5]) {
+                  ...
+                }
+
+                int newTotal = sumUpToFive(1);
+                print(newTotal); // <-- prints 15
+            </div>
+
+            <h4>Code example</h4>
+            <p>
+                Implement a function called <span class="code">joinWithCommas</span> that accepts at least one and up to
+                five integers, then returns a string of those numbers separated by commas:
+            </p>
+            <ul>
+                <li>joinWithCommas(1) should return '1'.</li>
+                <li>joinWithCommas(1, 2, 3) should return '1,2,3'</li>
+                <li>joinWithCommas(1, 1, 1, 1, 1) should return '1,1,1,1,1'</li>
+                <li>etc.</li>
+            </ul>
             <iframe src="embed-new.html?id=9e7d5b6b56319b7e3b12b791c0ae27c1"></iframe>
+
 
             <h3>Optional named parameters</h3>
             <p>
+                Dart also allows for optional parameters that are referenced by name when the function is invoked. These
+                are defined using a brace syntax:
             </p>
+            <div class="snippet">
+                void printName(String firstName, String lastName, {String suffix}) {
+                  print('$firstName $lastName ${suffix ?? ''}');
+                }
+
+                printName('Avinash', 'Gupta');
+                printName('Poshmeister', 'Moneybuckets', suffix: 'IV');
+            </div>
+            <p>
+                Like optional positional parameters they default to null, but it's possible to provide default values as
+                well:
+            </p>
+            <div class="snippet">
+                void printName(String firstName, String lastName, {String suffix = ''}) {
+                  print('$firstName $lastName ${suffix}');
+                }
+            </div>
+            <p>
+                A function cannot have both optional positional and optional named parameters.
+            </p>
+
             <h4>Code example</h4>
             <p>
+                Add a <span class="code">copyWith</span> instance method to the <span class="code">MyDataObject</span>
+                class. It should take three named parameters:
+
+            </p>
+            <ul>
+                <li><span class="code">int newInt</span></li>
+                <li><span class="code">String newString</span></li>
+                <li><span class="code">double newDouble</span></li>
+            </ul>
+            <p>
+                When called, it should return a new <span class="code">MyDataObject</span> based on the current
+                instance, with data from the above parameters copied into the object's properties (e.g. the value of
+                <span class="code">newInt</span> is copied into <span class="code">anInt</span>). Any parameters that
+                aren't supplied (they'll be null) should be ignored.
             </p>
             <iframe src="embed-new.html?id=1dd9cc9654f9e6d080f99bfb9772dae4"></iframe>
 
+
             <h3>Exceptions</h3>
             <p>
+                Dart code can throw and catch exceptions. In contrast to Java, all of Dart’s exceptions are unchecked
+                exceptions. Methods do not declare which exceptions they might throw, and you are not required to catch
+                any exceptions.
             </p>
+            <p>
+                Dart provides <span class="code">Exception</span> and <span class="code">Error</span> types, but you're
+                allowed to throw any non-null object:
+            </p>
+            <div class="snippet">
+                throw Exception('Something bad happened.');
+                throw 'Waaaaaaah!';
+            </div>
+            <p>
+                There are three keywords to remember for handling exceptions: <span class="code">try</span>,
+                <span class="code">on</span>, and <span class="code">catch</span>:
+            </p>
+            <div class="snippet">
+                try {
+                  breedMoreLlamas();
+                } on OutOfLlamasException {
+                  // A specific exception
+                  buyMoreLlamas();
+                } on Exception catch (e) {
+                  // Anything else that is an exception
+                  print('Unknown exception: $e');
+                } catch (e) {
+                  // No specified type, handles all
+                  print('Something really unknown: $e');
+                }
+            </div>
+            <p>
+                The <span class="code">try</span> keyword works as it does in most other languages. The
+                <span class="code">on</span> keyword is used to filter for specific exceptions by type, and the
+                <span class="code">catch</span> keyword is used to get a reference to the exception object. They can be
+                used together or separately, as shown in the previous example.
+            </p>
+            <p>
+                Exceptions can be rethrown using the <span class="code">rethrow</span> keyword:
+            </p>
+            <div class="snippet">
+                try {
+                  breedMoreLlamas();
+                } catch (e) {
+                  print('I was just trying to breed llamas!.');
+                  rethrow;
+                }
+            </div>
+            <p>
+                And if you need to execute code whether or not an exception is thrown, you can do so with
+                <span class="code">finally</span>:
+            </p>
+            <div class="snippet">
+                try {
+                  breedMoreLlamas();
+                } catch (e) {
+                  … handle exception ...
+                } finally {
+                  // Always clean up, even if an exception is thrown.
+                  cleanLlamaStalls();
+                }
+            </div>
+
             <h4>Code example</h4>
             <p>
+                Implement <span class="code">tryFunction</span> below. It should execute an untrustworthy method and
+                then do the following:
             </p>
+            <ul>
+                <li>
+                    If <span class="code">untrustworthy</span> throws an <span class="code">ExceptionWithMessage</span>,
+                    <span class="code">logger.logException</span> should be called with the exception type and message
+                    (try using <span class="code">on</span> and <span class="code">catch</span>).
+                </li>
+                <li>
+                    If <span class="code">untrustworthy</span> throws an <span class="code">Exception</span>,
+                    <span class="code">logger.logException</span> should be called with the exception type (try using
+                    <span class="code">on</span> for this one).
+                </li>
+                <li>
+                    If <span class="code">untrustworthy</span> throws any other object, it shouldn't be caught.
+                </li>
+                <li>
+                    After everything's caught and handled, <span class="code">logger.doneLogging</span> should be called
+                    (try using <span class="code">finally</span>).
+                </li>
+            </ul>
+            <br />
             <iframe src="embed-new.html?id=e221e3fd667825e62aac79079b8b5c59"></iframe>
+
 
             <h3>Using `this` in a constructor</h3>
             <p>
+                Dart provides a handy shortcut for assigning values to properties in a constructor. Simply use
+                <span class="code">this.propertyName</span> when declaring the constructor:
             </p>
+            <div class="snippet">
+                class MyColor {
+                  int red;
+                  int green;
+                  int blue;
+
+                  MyColor(this.red, this.green, this.blue);
+                }
+
+                final color = MyColor(80, 80, 128);
+            </div>
+            <p>
+                This works for named parameters as well. Property names become the names of the parameters:
+            </p>
+            <div class="snippet">
+                class MyColor {
+                  ...
+
+                  MyColor({this.red, this.green, this.blue});
+                }
+
+                final color = MyColor(red: 80, green: 80, blue: 80);
+            </div>
+            <p>
+                Default values work as expected for both parameter types:
+            </p>
+            <div class="snippet">
+                MyColor([this.red = 0, this.green = 0, this.blue = 0]);
+                // or
+                MyColor({this.red = 0, this.green = 0, this.blue = 0});
+            </div>
+
             <h4>Code example</h4>
             <p>
+                Add a one-line constructor to <span class="code">MyClass</span> that will use
+                <span class="code">this.</span> syntax to receive and assign values for all three of the class's
+                properties:
             </p>
             <iframe src="embed-new.html?id=2778e81ae2c5729d45c611829f3888c2"></iframe>
 
+
             <h3>Initializer lists</h3>
             <p>
+                In between a constructor's signature and its body, you can place an initializer list:
             </p>
+            <div class="snippet">
+                // Initializer list sets instance variables before
+                // the constructor body runs.
+                Point.fromJson(Map&lt;String, num&gt; json)
+                    : x = json['x'],
+                      y = json['y'] {
+                  print('In Point.fromJson(): ($x, $y)');
+                }
+            </div>
+            <p>
+                This is a good place to initialize final fields, and it's executed before the constructor body. In
+                addition, the initializer list is a handy place to put asserts for running in debug mode:
+            </p>
+            <div class="snippet">
+                NonNegativePoint(this.x, this.y)
+                    : assert(x >= 0),
+                      assert(y >= 0) {
+                  print('I just made a NonNegativePoint: ($x, $y)');
+                }
+            </div>
+
             <h4>Code example</h4>
             <p>
+                Complete the <span class="code">FirstTwoLetters</span> constructor below. It should use an initializer
+                list to assign the first two characters in <span class="code">word</span> to the
+                <span class="code">letterOne</span> and <span class="code">LetterTwo</span> properties. You can also
+                throw in an <span class="code">assert</span> to catch words less than two characters in length for extra
+                credit!
             </p>
             <iframe src="embed-new.html?id=4bf47cf7e11bc5902e605a3efc3183ec"></iframe>
 
+
             <h3>Named constructors</h3>
             <p>
+                Much like JavaScript, Dart does not support method overloads (two methods with the same name but
+                different signatures). To allow for classes with multiple constructors, Dart supports named
+                constructors:
             </p>
+            <div class="snippet">
+                class Point {
+                  num x, y;
+
+                  Point(this.x, this.y);
+
+                  Point.origin() {
+                    x = 0;
+                    y = 0;
+                  }
+                }
+            </div>
+            <p>
+                These are invoked using their full name:
+            </p>
+            <div class="snippet">
+                final myPoint = Point.origin();
+            </div>
+
             <h4>Code example</h4>
             <p>
+                Try giving this class a named constructor called <span class="code">black</span> that sets all three
+                properties to zero.
             </p>
             <iframe src="embed-new.html?id=e1a82c77547e659eb24f4e698abf1eca"></iframe>
 
+
             <h3>Factory constructors</h3>
             <p>
+                Dart also supports factory constructors, which are named constructors that can return subtypes or even
+                null. To create one, use the <span class="code">factory</span> keyword:
             </p>
+            <div class="snippet">
+                class Square extends Shape {}
+
+                class Circle extends Shape {}
+
+                class Shape {
+                  Shape();
+
+                  factory Shape.fromTypeName(String typeName) {
+                    if (typeName == 'square') return Square();
+                    if (typeName == 'circle') return Circle();
+
+                    print('I don\'t recognize $typeName');
+                    return null;
+                  }
+                }
+            </div>
+
             <h4>Code example</h4>
             <p>
+                Fill in the factory constructor for <span class="code">IntegerHolder</span> below. It should do the
+                following:
             </p>
+            <ul>
+                <li>
+                    If there's one value in the list, create an <span class="code">IntegerSingle</span> with that value.
+                </li>
+                <li>
+                    If there are two values, create an <span class="code">IntegerDouble</span> with the values in order.
+                </li>
+                <li>
+                    If there are three values, create an <span class="code">IntegerTriple</span> with values in order.
+                </li>
+                <li>
+                    Otherwise, return null.
+                </li>
+            </ul>
+            <br/>
             <iframe src="embed-new.html?id=727981a8ece1244b52a3c6dc377a8085"></iframe>
+
 
             <h3>Redirecting constructors</h3>
             <p>
+                Sometimes a constructor’s only purpose is to redirect to another constructor in the same class. A
+                redirecting constructor’s body is empty, with the constructor call appearing after a colon (:).
             </p>
+            <div class="snippet">
+                class Automobile {
+                  String make;
+                  String model;
+                  int mpg;
+
+                  // The main constructor for this class.
+                  Automobile(this.make, this.model, this.mpg);
+
+                  // Delegates to the main constructor.
+                  Automobile.hybrid(String make, String model) : this(make, model, 60);
+
+                  // Delegates to a named constructor
+                  Automobile.fancyHybrid() : this.hybrid('Futurecar', 'Mark 2');
+                }
+            </div>
+
             <h4>Code example</h4>
             <p>
+                Remember the <span class="code">Color</span> class from above? Create a named constructor called
+                <span class="code">black</span>, but rather than manually assigning the properties, redirect it to the
+                default constructor with zeros as the arguments.
             </p>
             <iframe src="embed-new.html?id=94eb1d8be5b64163753c7350f1f09edf"></iframe>
 
+
             <h3>Const constructors</h3>
             <p>
+                If your class produces objects that never change, you can make these objects compile-time constants. To
+                do this, define a <span class="code">const</span> constructor and make sure that all instance variables
+                are final.
             </p>
+            <div class="snippet">
+                class ImmutablePoint {
+                  const ImmutablePoint(this.x, this.y);
+
+                  final int x;
+                  final int y;
+
+                  static const ImmutablePoint origin =
+                      ImmutablePoint(0, 0);
+                }
+            </div>
+
             <h4>Code example</h4>
             <p>
+                Create a constant constructor for the <span class="code">Recipe</span> class below. It should do the
+                following:
             </p>
+            <ul>
+                <li>
+                    Have three parameters: <span class="code">ingredients</span>, <span class="code">calories</span>,
+                    and <span class="code">milligramsOfSodium</span> (in that order).
+                </li>
+                <li>
+                    Use <span class="code">this.</span> syntax to automatically assign the parameter values to the
+                    object properties of the same name.
+                </li>
+                <li>
+                    Be constant (use the <span class="code">const</span> keyword just before
+                    <span class="code">Recipe</span> when declaring the constructor.
+                </li>
+            </ul>
+            <br/>
             <iframe src="embed-new.html?id=c400cb84fab309ddbbb436c1ced90dad"></iframe>
 
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
         </div>
         <div class="col-md-2"></div>
     </div>
