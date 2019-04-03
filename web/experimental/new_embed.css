@@ -7,10 +7,9 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-
   position: absolute;
-
   overflow: hidden;
+  font-size: 14px;
 }
 
 #frame {
@@ -26,7 +25,6 @@ body {
 
 #console-view {
   font-family: 'Inconsolata', monospace;
-  font-size: 16px;
   overflow-y: auto;
   height: 100%;
   white-space: pre-wrap;
