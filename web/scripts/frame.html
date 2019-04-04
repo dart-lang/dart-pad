@@ -35,7 +35,7 @@ replaceJavaScript = function(value) {
   // Create a new node.
   var scriptNode = document.createElement('script');
   scriptNode.setAttribute('id', 'compiledJsScript');
-  scriptNode.toggleAttribute('defer');
+  scriptNode.setAttribute('defer', '');
   scriptNode.text = value;
   document.head.appendChild(scriptNode);
 };
