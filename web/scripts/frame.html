@@ -25,6 +25,27 @@
     </style>
     <script src="https://storage.cloud.google.com/compilation_artifacts/require.js"></script>
     <script>
+
+// Polyfill from https://developer.mozilla.org/en-US/docs/Web/API/Element/toggleAttribute#Polyfill
+if (!Element.prototype.toggleAttribute) {
+  Element.prototype.toggleAttribute = function(name, force) {
+    if(force !== void 0) force = !!force 
+    
+    if (this.getAttribute(name) !== null) {
+      if (force) return true;
+      
+      this.removeAttribute(name);
+      return false;
+    } else {
+      if (force === false) return false;
+      
+      this.setAttribute(name, "");
+      return true;
+    }
+  };
+}
+
+
 replaceJavaScript = function(value) {
   // Remove the old node.
   var oldNode = document.getElementById('compiledJsScript');
