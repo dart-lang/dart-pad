@@ -9,6 +9,7 @@ import 'dart:html';
 import 'dart:js';
 
 import 'execution.dart';
+
 export 'execution.dart';
 
 class ExecutionServiceIFrame implements ExecutionService {
@@ -34,10 +35,18 @@ class ExecutionServiceIFrame implements ExecutionService {
   IFrameElement get frame => _frame;
 
   @override
-  Future execute(String html, String css, String javaScript) {
+  Future execute(
+    String html,
+    String css,
+    String javaScript, {
+    String modulesBaseUrl,
+  }) {
     return _reset().whenComplete(() {
-      return _send('execute',
-          {'html': html, 'css': css, 'js': _decorateJavaScript(javaScript)});
+      return _send('execute', {
+        'html': html,
+        'css': css,
+        'js': _decorateJavaScript(javaScript, modulesBaseUrl: modulesBaseUrl),
+      });
     });
   }
 
@@ -64,7 +73,7 @@ void _result(bool success, [List<String> messages]) {
   print('$testKey{"success": \$success, "messages": [\$joinedMessages]}');
 }''';
 
-  String _decorateJavaScript(String javaScript) {
+  String _decorateJavaScript(String javaScript, {String modulesBaseUrl}) {
     final String postMessagePrint = '''
 const testKey = '$testKey';
 
@@ -119,7 +128,35 @@ window.onerror = function(message, url, lineNumber, colno, error) {
   _thrownDartMainRunner = false;
 };
 ''';
-    return '$postMessagePrint\n$exceptionHandler\n$javaScript';
+
+    String requireConfig = '';
+    if (modulesBaseUrl != null) {
+      requireConfig = '''
+require.config({
+  "baseUrl": "$modulesBaseUrl"
+});
+''';
+    }
+
+    final bool usesRequireJs = modulesBaseUrl != null;
+
+    String postfix = '';
+    if (usesRequireJs) {
+      postfix = '''
+require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
+    // SDK initialization.
+    dart_sdk.dart.setStartAsyncSynchronously(true);
+    dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
+
+    // Loads the `main` library and runs the main method from it.
+    dartpad_main.main.main();
+});
+''';
+    }
+
+    return '$postMessagePrint\n$exceptionHandler\n$requireConfig\n'
+        '$javaScript\n$postfix'
+        .trim();
   }
 
   @override
