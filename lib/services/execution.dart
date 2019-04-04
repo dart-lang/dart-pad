@@ -8,25 +8,14 @@ import 'dart:async';
 
 class TestResult {
   const TestResult(this.success, this.messages);
-
   final bool success;
   final List<String> messages;
 }
 
-/// An abstraction about a service that can inject and execute javascript code.
-///
-/// [modulesBaseUrl] can be null, and is only passed in if the given javascript
-/// uses require.js to reference other modules.
 abstract class ExecutionService {
-  Future execute(
-    String html,
-    String css,
-    String javaScript, {
-    String modulesBaseUrl,
-  });
+  Future execute(String html, String css, String javaScript);
 
   void replaceHtml(String html);
-
   void replaceCss(String css);
 
   /// Destroy the iframe; stop any currently running scripts. The iframe will be
@@ -34,9 +23,7 @@ abstract class ExecutionService {
   Future tearDown();
 
   Stream<String> get onStdout;
-
   Stream<String> get onStderr;
-
   Stream<TestResult> get testResults;
 
   /// This method should be added to any Dart code that needs to report a test

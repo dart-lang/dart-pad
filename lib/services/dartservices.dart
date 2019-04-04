@@ -133,8 +133,7 @@ class DartservicesApi {
     return _response.then((data) => new AnalysisResults.fromJson(data));
   }
 
-  /// Compile the given Dart source code and return the resulting JavaScript;
-  /// this uses the dart2js compiler.
+  /// Compile the given Dart source code and return the resulting JavaScript.
   ///
   /// [request] - The metadata request object.
   ///
@@ -168,43 +167,6 @@ class DartservicesApi {
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
     return _response.then((data) => new CompileResponse.fromJson(data));
-  }
-
-  /// Compile the given Dart source code and return the resulting JavaScript;
-  /// this uses the DDC compiler.
-  ///
-  /// [request] - The metadata request object.
-  ///
-  /// Request parameters:
-  ///
-  /// Completes with a [CompileDDCResponse].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<CompileDDCResponse> compileDDC(CompileRequest request) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (request != null) {
-      _body = convert.json.encode((request).toJson());
-    }
-
-    _url = 'compileDDC';
-
-    var _response = _requester.request(_url, "POST",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new CompileDDCResponse.fromJson(data));
   }
 
   /// Request parameters:
@@ -813,40 +775,15 @@ class CandidateFix {
   }
 }
 
-class CompileDDCResponse {
-  core.String modulesBaseUrl;
-  core.String result;
-
-  CompileDDCResponse();
-
-  CompileDDCResponse.fromJson(core.Map _json) {
-    if (_json.containsKey("modulesBaseUrl")) {
-      modulesBaseUrl = _json["modulesBaseUrl"];
-    }
-    if (_json.containsKey("result")) {
-      result = _json["result"];
-    }
-  }
-
-  core.Map<core.String, core.Object> toJson() {
-    final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
-    if (modulesBaseUrl != null) {
-      _json["modulesBaseUrl"] = modulesBaseUrl;
-    }
-    if (result != null) {
-      _json["result"] = result;
-    }
-    return _json;
-  }
-}
-
 class CompileRequest {
   /// Return the Dart to JS source map; optional (defaults to false).
   core.bool returnSourceMap;
 
   /// The Dart source.
   core.String source;
+
+  /// Ignored. (server always assumes checked mode/asserts enabled)
+  core.bool useCheckedMode;
 
   CompileRequest();
 
@@ -856,6 +793,9 @@ class CompileRequest {
     }
     if (_json.containsKey("source")) {
       source = _json["source"];
+    }
+    if (_json.containsKey("useCheckedMode")) {
+      useCheckedMode = _json["useCheckedMode"];
     }
   }
 
@@ -867,6 +807,9 @@ class CompileRequest {
     }
     if (source != null) {
       _json["source"] = source;
+    }
+    if (useCheckedMode != null) {
+      _json["useCheckedMode"] = useCheckedMode;
     }
     return _json;
   }
