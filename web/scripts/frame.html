@@ -9,8 +9,6 @@
   	<meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <title></title>
-    <!--<link href='https://fonts.googleapis.com/css?family=Roboto'
-        rel='stylesheet' type='text/css'> -->
     <style>
       body {
         color: #ddd;
@@ -23,7 +21,6 @@
         margin-top: 0;
       }
     </style>
-    <script src="https://storage.cloud.google.com/compilation_artifacts/require.js"></script>
     <script>
 replaceJavaScript = function(value) {
   // Remove the old node.
@@ -35,7 +32,6 @@ replaceJavaScript = function(value) {
   // Create a new node.
   var scriptNode = document.createElement('script');
   scriptNode.setAttribute('id', 'compiledJsScript');
-  scriptNode.setAttribute('defer', '');
   scriptNode.text = value;
   document.head.appendChild(scriptNode);
 };
@@ -53,9 +49,7 @@ messageHandler = function(e) {
     // Replace all three.
     body.innerHTML = obj.html;
     document.getElementById('styleId').innerHTML = obj.css;
-    setTimeout(function () {
-      replaceJavaScript(obj.js);
-    }, 150);
+    replaceJavaScript(obj.js);
   }
 };
 
@@ -66,7 +60,9 @@ window.setTimeout(function () {
     </script>
 
     <style id="styleId"></style>
-    <script id="compiledJsScript" defer></script>
+
+    <script src="https://storage.cloud.google.com/compilation_artifacts/require.js" defer></script>
+    <script id="compiledJsScript"></script>
   </head>
 
   <body>
