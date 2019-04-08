@@ -233,37 +233,39 @@ class NewEmbed {
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
-    final elements = <DivElement>[];
+    int errorCount = 0;
+    int infoCount = 0;
 
     for (AnalysisIssue issue in issues) {
-      elements.add(
-        DivElement()
-          ..children.add(
-            AnchorElement()
-              ..text = '${issue.kind.toUpperCase()} - ${issue.message}'
-              ..classes = ['link-message', 'text-red']
-              ..onClick.listen((event) {
-                _jumpTo(issue.line, issue.charStart, issue.charLength,
-                    focus: true);
-              }),
-          ),
-      );
+      if (issue.kind == 'error') {
+        errorCount++;
+      } else if (issue.kind == 'info') {
+        infoCount++;
+      }
     }
 
-    if (elements.isNotEmpty) {
-      analysisResultBox.showElements(elements, FlashBoxStyle.error);
-    } else {
+    if (errorCount == 0 && infoCount == 0) {
       analysisResultBox.hide();
+    } else {
+      String message;
+      FlashBoxStyle style;
+
+      if (errorCount > 0 && infoCount > 0) {
+        message = 'Analyzer found $errorCount error${errorCount > 1 ? 's' : ''}'
+            ' and $infoCount warning${infoCount > 1 ? 's' : ''}.';
+        style = FlashBoxStyle.error;
+      } else if (errorCount > 0) {
+        message =
+            'Analyzer found $errorCount error${errorCount > 1 ? 's' : ''}.';
+        style = FlashBoxStyle.error;
+      } else {
+        message =
+            'Analyzer found $infoCount warning${infoCount > 1 ? 's' : ''}.';
+        style = FlashBoxStyle.warn;
+      }
+
+      analysisResultBox.showStrings([message], style);
     }
-  }
-
-  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
-    Document doc = userCodeEditor.document;
-
-    doc.select(
-        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
-
-    if (focus) userCodeEditor.focus();
   }
 
   /// Perform static analysis of the source code.
