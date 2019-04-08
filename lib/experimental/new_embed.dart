@@ -341,7 +341,7 @@ class Counter {
 
   void increment() {
     _itemCount++;
-    element.text = _itemCount.toString();
+    element.text = '$_itemCount';
     element.attributes.remove('hidden');
   }
 
