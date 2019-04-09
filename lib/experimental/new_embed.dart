@@ -38,6 +38,8 @@ class NewEmbed {
   TabView testTabView;
   ConsoleTabView consoleTabView;
 
+  Counter unreadConsoleCounter;
+
   FlashBox testResultBox;
   FlashBox analysisResultBox;
 
@@ -67,15 +69,18 @@ class NewEmbed {
           if (name == 'editor') {
             userCodeEditor.resize();
             userCodeEditor.focus();
-          }
-
-          if (name == 'test') {
+          } else if (name == 'test') {
             testEditor.resize();
             testEditor.focus();
+          } else {
+            // Must be the console tab.
+            unreadConsoleCounter.clear();
           }
         }),
       );
     }
+
+    unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
 
     executeButton =
         ExecuteCodeButton(querySelector('#execute'), _handleExecute);
@@ -110,8 +115,21 @@ class NewEmbed {
     consoleTabView = ConsoleTabView(DElement(querySelector('#console-view')));
 
     executionSvc = ExecutionServiceIFrame(querySelector('#frame'));
-    executionSvc.onStderr.listen((err) => consoleTabView.appendError(err));
-    executionSvc.onStdout.listen((msg) => consoleTabView.appendMessage(msg));
+
+    executionSvc.onStderr.listen((err) {
+      if (tabController.selectedTab.name != 'console') {
+        unreadConsoleCounter.increment();
+      }
+      consoleTabView.appendError(err);
+    });
+
+    executionSvc.onStdout.listen((msg) {
+      if (tabController.selectedTab.name != 'console') {
+        unreadConsoleCounter.increment();
+      }
+      consoleTabView.appendMessage(msg);
+    });
+
     executionSvc.testResults.listen((result) {
       if (result.success) {
         executeButton.executionState = ExecutionState.testSuccess;
@@ -178,15 +196,13 @@ class NewEmbed {
         .compile(input)
         .timeout(longServiceCallTimeout)
         .then((CompileResponse response) {
-          executionSvc.execute('', '', response.result);
-        })
-        .catchError((e) {
-          consoleTabView.appendError('Error compiling to JavaScript:\n$e');
-          tabController.selectTab('console');
-        })
-        .whenComplete(() {
-          executeButton.executionState = ExecutionState.ready;
-        });
+      executionSvc.execute('', '', response.result);
+    }).catchError((e) {
+      consoleTabView.appendError('Error compiling to JavaScript:\n$e');
+      tabController.selectTab('console');
+    }).whenComplete(() {
+      executeButton.executionState = ExecutionState.ready;
+    });
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
@@ -316,27 +332,22 @@ class ConsoleTabView extends TabView {
   }
 }
 
-/// A line of text next to the [ExecuteButton] that reports test result messages
-/// in red or green.
-class TestResultLabel {
-  TestResultLabel(this.element);
+class Counter {
+  Counter(this.element);
 
-  final DivElement element;
+  final SpanElement element;
 
-  void setResult(TestResult result) {
-    if (result.messages.isEmpty) {
-      element.text = result.success ? 'Test passed!' : 'Test failed.';
-    } else {
-      element.text = result.messages.first;
-    }
+  int _itemCount = 0;
 
-    if (result.success) {
-      element.classes.add('text-green');
-      element.classes.remove('text-red');
-    } else {
-      element.classes.remove('text-green');
-      element.classes.add('text-red');
-    }
+  void increment() {
+    _itemCount++;
+    element.text = '$_itemCount';
+    element.attributes.remove('hidden');
+  }
+
+  void clear() {
+    _itemCount = 0;
+    element.setAttribute('hidden', 'true');
   }
 }
 
