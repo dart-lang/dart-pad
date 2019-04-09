@@ -234,25 +234,25 @@ class NewEmbed {
 
   void _displayIssues(List<AnalysisIssue> issues) {
     int errorCount = 0;
-    int infoCount = 0;
+    int otherCount = 0;
 
     for (AnalysisIssue issue in issues) {
       if (issue.kind == 'error') {
         errorCount++;
-      } else if (issue.kind == 'info') {
-        infoCount++;
+      } else if (issue.kind == 'info' || issue.kind == 'warning') {
+        otherCount++;
       }
     }
 
-    if (errorCount == 0 && infoCount == 0) {
+    if (errorCount == 0 && otherCount == 0) {
       analysisResultBox.hide();
     } else {
       String message;
       FlashBoxStyle style;
 
-      if (errorCount > 0 && infoCount > 0) {
+      if (errorCount > 0 && otherCount > 0) {
         message = 'Analyzer found $errorCount error${errorCount > 1 ? 's' : ''}'
-            ' and $infoCount warning${infoCount > 1 ? 's' : ''}.';
+            ' and $otherCount other issue${otherCount > 1 ? 's' : ''}.';
         style = FlashBoxStyle.error;
       } else if (errorCount > 0) {
         message =
@@ -260,7 +260,7 @@ class NewEmbed {
         style = FlashBoxStyle.error;
       } else {
         message =
-            'Analyzer found $infoCount warning${infoCount > 1 ? 's' : ''}.';
+            'Analyzer found $otherCount issue${otherCount > 1 ? 's' : ''}';
         style = FlashBoxStyle.warn;
       }
 
