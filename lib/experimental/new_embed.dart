@@ -136,10 +136,6 @@ class NewEmbed {
     });
 
     executionSvc.testResults.listen((result) {
-      if (result.success) {
-        editorIsBusy = false;
-      }
-
       testResultBox.showStrings(
         result.messages.isNotEmpty ? result.messages : ['Test passed!'],
         result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
