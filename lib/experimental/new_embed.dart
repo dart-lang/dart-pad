@@ -31,9 +31,10 @@ void init() {
 /// An embeddable DartPad UI that provides the ability to test the user's code
 /// snippet against a desired result.
 class NewEmbed {
-  ExecuteCodeButton executeButton;
-  ButtonElement reloadGistButton;
+  DisableableButton executeButton;
+  DisableableButton reloadGistButton;
 
+  DElement navBarElement;
   TabController tabController;
   TabView editorTabView;
   TabView testTabView;
@@ -81,17 +82,20 @@ class NewEmbed {
       );
     }
 
+    navBarElement = DElement(querySelector('#navbar'));
+
     unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
 
     executeButton =
-        ExecuteCodeButton(querySelector('#execute'), _handleExecute);
+        DisableableButton(querySelector('#execute'), _handleExecute);
 
-    reloadGistButton = querySelector('#reload-gist');
-    if (gistId.isNotEmpty) {
-      reloadGistButton.onClick.listen((e) => _loadAndShowGist(gistId));
-    } else {
-      reloadGistButton.setAttribute('disabled', 'true');
-    }
+    reloadGistButton = DisableableButton(querySelector('#reload-gist'), () {
+      if (gistId.isNotEmpty) {
+        _loadAndShowGist(gistId);
+      }
+    });
+
+    reloadGistButton.disabled = gistId.isEmpty;
 
     testResultBox = FlashBox(querySelector('#test-result-box'));
     analysisResultBox = FlashBox(querySelector('#analysis-result-box'));
@@ -133,7 +137,7 @@ class NewEmbed {
 
     executionSvc.testResults.listen((result) {
       if (result.success) {
-        executeButton.executionState = ExecutionState.testSuccess;
+        editorIsBusy = false;
       }
 
       testResultBox.showStrings(
@@ -181,15 +185,27 @@ class NewEmbed {
     }
   }
 
+  /// Toggles the state of several UI components based on whether the editor is
+  /// too busy to handle code changes, execute/reset requests, etc.
+  set editorIsBusy(bool value) {
+    navBarElement.toggleClass('busy', value);
+    executeButton.disabled = value;
+    userCodeEditor.readOnly = value;
+    testEditor.readOnly = value;
+    reloadGistButton.disabled = value || gistId.isEmpty;
+  }
+
   Future<void> _loadAndShowGist(String id) async {
+    editorIsBusy = true;
     final GistLoader loader = deps[GistLoader];
     final gist = await loader.loadGist(id);
     context.dartSource = gist.getFile('main.dart')?.content ?? '';
     context.testMethod = gist.getFile('test.dart')?.content ?? '';
+    editorIsBusy = false;
   }
 
   void _handleExecute() {
-    executeButton.executionState = ExecutionState.executing;
+    editorIsBusy = true;
     testResultBox.hide();
     consoleTabView.clear();
 
@@ -214,7 +230,7 @@ class NewEmbed {
         print(st);
         tabController.selectTab('console');
       }).whenComplete(() {
-        executeButton.executionState = ExecutionState.ready;
+        editorIsBusy = false;
       });
     } else {
       dartServices
@@ -227,7 +243,7 @@ class NewEmbed {
         print(st);
         tabController.selectTab('console');
       }).whenComplete(() {
-        executeButton.executionState = ExecutionState.ready;
+        editorIsBusy = false;
       });
     }
   }
@@ -383,41 +399,20 @@ class Counter {
   }
 }
 
-enum ExecutionState {
-  ready,
-  executing,
-  testSuccess,
-}
-
-class ExecuteCodeButton {
-  /// This constructor will throw if the provided element has no child with a
-  /// CSS class that begins with "octicon-".
-  ExecuteCodeButton(ButtonElement anchorElement, VoidCallback onClick)
+/// It's a real word, I swear.
+class DisableableButton {
+  DisableableButton(ButtonElement anchorElement, VoidCallback onClick)
       : assert(anchorElement != null),
         assert(onClick != null) {
-    final iconElement =
-        anchorElement.children.firstWhere(Octicon.elementIsOcticon);
-    _icon = Octicon(iconElement);
     _element = DElement(anchorElement);
     _element.onClick.listen((e) => onClick());
   }
-
-  static const iconNames = <ExecutionState, String>{
-    ExecutionState.ready: 'triangle-right',
-    ExecutionState.executing: 'sync',
-    ExecutionState.testSuccess: 'check',
-  };
 
   static const disabledClassName = 'disabled';
 
   DElement _element;
 
-  Octicon _icon;
-
-  set executionState(ExecutionState state) {
-    _element.toggleClass(disabledClassName, state == ExecutionState.executing);
-    _icon.iconName = iconNames[state];
-  }
+  set disabled(bool value) => _element.toggleClass(disabledClassName, value);
 }
 
 class Octicon {
