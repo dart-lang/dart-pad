@@ -691,10 +691,16 @@ class Playground implements GistContainer, GistController {
     String htmlSrc = _context.htmlSource.trim();
     String dartSrc = _context.dartSource.trim();
 
+    final List<String> webImports = [
+      "import 'dart:html'",
+      'import "dart:html"',
+      //"import 'package:flutter_web",
+      //'import "package:flutter_web',
+    ];
+
     if (htmlSrc.isNotEmpty) {
       outputTabController.selectTab('result');
-    } else if (dartSrc.contains("'dart:html'") ||
-        dartSrc.contains('"dart:html"')) {
+    } else if (webImports.any((String import) => dartSrc.contains(import))) {
       outputTabController.selectTab('result');
     } else {
       outputTabController.selectTab('console');

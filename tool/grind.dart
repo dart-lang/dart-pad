@@ -97,8 +97,10 @@ serveCustomBackend() {
 
   // In all files *.dart.js in build/scripts/, replace
   // 'https://dart-services.appspot.com' with serverUrl.
-  for (FileSystemEntity entity
-      in _buildDir.join('scripts').asDirectory.listSync()) {
+  final List<FileSystemEntity> files = [];
+  files.addAll(_buildDir.join('scripts').asDirectory.listSync());
+  files.addAll(_buildDir.join('experimental').asDirectory.listSync());
+  for (FileSystemEntity entity in files) {
     if (entity is! File) continue;
     if (!entity.path.endsWith('.dart.js')) continue;
 

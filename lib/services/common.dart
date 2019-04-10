@@ -10,11 +10,13 @@ final String serverURL = 'https://dart-services.appspot.com/';
 
 final Duration serviceCallTimeout = Duration(seconds: 10);
 final Duration shortServiceCallTimeout = Duration(seconds: 4);
-final Duration longServiceCallTimeout = Duration(seconds: 20);
+final Duration longServiceCallTimeout = Duration(seconds: 60);
 
 class StringTextProvider {
   final String _text;
+
   StringTextProvider(this._text);
+
   String getText() => _text;
 }
 
