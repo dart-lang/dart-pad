@@ -13,7 +13,8 @@ body {
 }
 
 #frame {
-  display: none;
+  border: none;
+  width: 100%;
 }
 
 .medium-octicon {
