@@ -3,13 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: always_specify_types
-
 library services.grind;
 
 import 'dart:async';
 import 'dart:io';
 
+// TODO(devoncarew): re-add this import after review
+//import 'package:dart_services/src/flutter_web.dart';
 import 'package:grinder/grinder.dart';
+import 'package:grinder/grinder_files.dart';
+import 'package:http/http.dart' as http;
 
 Future main(List<String> args) => grind(args);
 
@@ -51,8 +54,9 @@ void updateDockerVersion() {
       return 'FROM google/dart-runtime:$platformVersion';
     }
     return s;
-  }).toList()
-        ..add('');
+  }).toList();
+  dockerImageLines.add('');
+
   File('Dockerfile').writeAsStringSync(dockerImageLines.join('\n'));
 
   List<String> dartSdkVersionLines =
@@ -61,9 +65,128 @@ void updateDockerVersion() {
       return platformVersion;
     }
     return s;
-  }).toList()
-        ..add('');
+  }).toList();
+  dartSdkVersionLines.add('');
+
   File('dart-sdk.version').writeAsStringSync(dartSdkVersionLines.join('\n'));
+}
+
+final List<String> compilationArtifacts = [
+  'dart_sdk.js',
+  'flutter_web.js',
+  'flutter_web.sum',
+];
+
+@Task('validate that we have the correct compilation artifacts available in '
+    'google storage')
+void validateStorageArtifacts() async {
+  String version = File('dart-sdk.version').readAsStringSync().trim();
+
+  const String urlBase =
+      'https://storage.googleapis.com/compilation_artifacts/';
+
+  for (String artifact in compilationArtifacts) {
+    await _validateExists('$urlBase$version/$artifact');
+  }
+}
+
+Future _validateExists(String url) async {
+  log('checking $url...');
+
+  http.Response response = await http.head(url);
+  if (response.statusCode != 200) {
+    fail(
+      'compilation artifact not found: $url '
+      '(${response.statusCode} ${response.reasonPhrase})',
+    );
+  }
+}
+
+@Task('build the sdk compilation artifacts for upload to google storage')
+void buildStorageArtifacts() {
+  // build and copy dart_sdk.js, flutter_web.js, and flutter_web.sum
+  final Directory temp =
+      Directory.systemTemp.createTempSync('flutter_web_sample');
+
+  try {
+    _buildStorageArtifacts(temp);
+  } finally {
+    temp.deleteSync(recursive: true);
+  }
+}
+
+// TODO(devoncarew): inlined from the real FlutterWebManager in order to
+// split a large PR up for review
+
+class FlutterWebManager {
+  static String createPubspec(bool useFlutterWeb) {
+    return 'name: dartpad_sample\n';
+  }
+}
+
+void _buildStorageArtifacts(Directory dir) {
+  String pubspec = FlutterWebManager.createPubspec(true);
+  joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
+
+  // run pub get
+  Pub.get(workingDirectory: dir.path);
+
+  // locate the artifacts
+  final List<String> flutterPackages = [
+    'flutter_web',
+    'flutter_web_ui',
+    // TODO(devoncarew): package:flutter_web_test is not currently handled
+    // 'flutter_web_test',
+  ];
+
+  List<String> flutterLibraries = [];
+  List<String> packageLines = joinFile(dir, ['.packages']).readAsLinesSync();
+  for (String line in packageLines) {
+    line = line.trim();
+    if (line.startsWith('#') || line.isEmpty) {
+      continue;
+    }
+    int index = line.indexOf(':');
+    if (index == -1) {
+      continue;
+    }
+    String packageName = line.substring(0, index);
+    String url = line.substring(index + 1);
+    if (flutterPackages.contains(packageName)) {
+      // This is a package we're interested in - add all the public libraries to
+      // the list.
+      String libPath = Uri.parse(url).toFilePath();
+      for (FileSystemEntity entity in getDir(libPath).listSync()) {
+        if (entity is File && entity.path.endsWith('.dart')) {
+          flutterLibraries.add('package:$packageName/${fileName(entity)}');
+        }
+      }
+    }
+  }
+
+  // build the artifacts using DDC
+  // dartdevc -o flutter_web.js package:flutter_web/animation.dart ...
+  run(
+    sdkBin('dartdevc'),
+    arguments: ['-o', 'flutter_web.js']..addAll(flutterLibraries),
+    workingDirectory: dir.path,
+  );
+
+  // copy them to the project dir
+  Directory artifactsDir = getDir('artifacts');
+  artifactsDir.create();
+
+  copy(joinFile(sdkDir, ['lib/dev_compiler/amd/dart_sdk.js']), artifactsDir);
+  copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
+  copy(joinFile(dir, ['flutter_web.sum']), artifactsDir);
+
+  // emit some good google storage upload instructions
+  final String version = File('dart-sdk.version').readAsStringSync().trim();
+  log('\nFrom the artifacts/ dir, run:');
+  log('  gsutil -h "Cache-Control:public, max-age=86400" cp *.js '
+      'gs://compilation_artifacts/$version/');
+  log('  gsutil -h "Cache-Control:public, max-age=86400" cp *.sum '
+      'gs://compilation_artifacts/$version/');
 }
 
 @Task()
@@ -75,7 +198,7 @@ void fuzz() {
 @Task('Update discovery files and run all checks prior to deployment')
 @Depends(updateDockerVersion, init, discovery, analyze, test, fuzz)
 void deploy() {
-  log('Run:  gcloud app deploy --project=dart-services --no-promote');
+  log('Run: gcloud app deploy --project=dart-services --no-promote');
 }
 
 @Task()
