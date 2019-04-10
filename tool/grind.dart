@@ -91,7 +91,7 @@ void validateStorageArtifacts() async {
 }
 
 Future _validateExists(String url) async {
-  log(url);
+  log('checking $url...');
 
   http.Response response = await http.head(url);
   if (response.statusCode != 200) {
