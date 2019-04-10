@@ -20,7 +20,6 @@ body {
   font-size: 19px;
 }
 
-
 /* Console */
 
 #console-view {
@@ -29,7 +28,6 @@ body {
   height: 100%;
   white-space: pre-wrap;
 }
-
 
 /* Flashes */
 
@@ -50,7 +48,6 @@ body {
   cursor: pointer;
 }
 
-
 /* Code annotations */
 
 .squiggle-error {
@@ -70,4 +67,14 @@ body {
 .CodeMirror {
   height: 100%;
   font-family: 'Inconsolata', monospace;
+}
+
+#web-output {
+  width: 260px;
+  border-left: 1px solid #e1e4e8;
+}
+
+.no-overflow {
+  height: 100%;
+  overflow-y: hidden;
 }

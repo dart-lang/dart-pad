@@ -9,6 +9,7 @@ import 'package:dart_pad/sharing/gists.dart';
 
 import '../core/dependencies.dart';
 import '../core/modules.dart';
+import '../dart_pad.dart';
 import '../editing/editor.dart';
 import '../editing/editor_codemirror.dart';
 import '../elements/elements.dart';
@@ -170,6 +171,11 @@ class NewEmbed {
 
     context = NewEmbedContext(userCodeEditor, testEditor);
 
+    if (supportsFlutterWeb) {
+      // Make the web output area visible.
+      querySelector('#web-output').removeAttribute('hidden');
+    }
+
     if (gistId.isNotEmpty) {
       _loadAndShowGist(gistId);
     }
@@ -187,22 +193,43 @@ class NewEmbed {
     testResultBox.hide();
     consoleTabView.clear();
 
-    final fullCode =
-        '${context.dartSource}\n${context.testMethod}\n${executionSvc.testResultDecoration}';
+    final fullCode = '${context.dartSource}\n${context.testMethod}\n'
+        '${executionSvc.testResultDecoration}';
 
     var input = CompileRequest()..source = fullCode;
 
-    deps[DartservicesApi]
-        .compile(input)
-        .timeout(longServiceCallTimeout)
-        .then((CompileResponse response) {
-      executionSvc.execute('', '', response.result);
-    }).catchError((e) {
-      consoleTabView.appendError('Error compiling to JavaScript:\n$e');
-      tabController.selectTab('console');
-    }).whenComplete(() {
-      executeButton.executionState = ExecutionState.ready;
-    });
+    if (supportsFlutterWeb) {
+      dartServices
+          .compileDDC(input)
+          .timeout(longServiceCallTimeout)
+          .then((CompileDDCResponse response) {
+        executionSvc.execute(
+          '',
+          '',
+          response.result,
+          modulesBaseUrl: response.modulesBaseUrl,
+        );
+      }).catchError((e, st) {
+        consoleTabView.appendError('Error compiling to JavaScript:\n$e');
+        print(st);
+        tabController.selectTab('console');
+      }).whenComplete(() {
+        executeButton.executionState = ExecutionState.ready;
+      });
+    } else {
+      dartServices
+          .compile(input)
+          .timeout(longServiceCallTimeout)
+          .then((CompileResponse response) {
+        executionSvc.execute('', '', response.result);
+      }).catchError((e, st) {
+        consoleTabView.appendError('Error compiling to JavaScript:\n$e');
+        print(st);
+        tabController.selectTab('console');
+      }).whenComplete(() {
+        executeButton.executionState = ExecutionState.ready;
+      });
+    }
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
@@ -277,6 +304,11 @@ class NewEmbed {
         }).toList());
       });
     });
+  }
+
+  bool get supportsFlutterWeb {
+    Uri url = Uri.parse(window.location.toString());
+    return url.queryParameters['fw'] == 'true';
   }
 }
 

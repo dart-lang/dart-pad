@@ -30,7 +30,6 @@ BSD-style license that can be found in the LICENSE file. -->
     <script src="../packages/codemirror/codemirror.js" defer></script>
 
     <link rel="stylesheet" type="text/css" href="new_embed.css">
-
     <script defer src="new_embed.dart.js"></script>
     <script defer src="../scripts/polymerpatch.js"></script>
 </head>
@@ -59,9 +58,13 @@ BSD-style license that can be found in the LICENSE file. -->
     </div>
 </nav>
 
-<section id="tab-container" class="flex-auto d-flex flex-column">
-    <div id="user-code-view" class="flex-auto d-flex flex-column">
+<section id="tab-container" class="flex-auto d-flex flex-column no-overflow">
+    <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
         <div id="user-code-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
+        <div id="web-output" class="p-1" hidden>
+            <iframe id="frame" sandbox="allow-scripts" flex src="../scripts/frame.html">
+            </iframe>
+        </div>
     </div>
     <div id="test-view" class="flex-auto d-flex flex-column" spellcheck="false" hidden>
         <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
@@ -79,9 +82,6 @@ BSD-style license that can be found in the LICENSE file. -->
         <div class="message-container"></div>
     </div>
 </div>
-
-<iframe id="frame" sandbox="allow-scripts" flex src="../scripts/frame.html">
-</iframe>
 
 </body>
 
