@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Embeddings Demo</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+          rel='stylesheet' type='text/css'>
+
+    <style>
+      iframe {
+        border: 1px solid #ccc;
+        width: 100%;
+        height: 400px;
+      }
+
+      iframe[short] {
+        height: 220px;
+      }
+
+      #choosePad {
+        margin-bottom: 8px;
+        float: right;
+      }
+
+      .code {
+        font-family: 'Inconsolata', monospace;
+        color: #004;
+      }
+
+      .snippet {
+        font-family: 'Inconsolata', monospace;
+        white-space: pre-wrap;
+        margin-left: -100px;
+        margin-top: -10px;
+        color: #008;
+      }
+
+      .disclaimer {
+        margin-bottom: 30px;
+        margin-top: 10px;
+        color: #800;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 20px;
+      }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <h2>Flutter Codelab</h2>
+            <div class="disclaimer">
+                This codelab is being used to test out some new features of DartPad! You may encounter bugs,
+                malapropisms, annoyances, and other general weirdness. If that happens, please take a moment to
+                <a target="_BLANK" href="https://github.com/dart-lang/dart-pad/issues/new">fill out a bug report on GitHub</a>
+                and let us know. Feature requests and suggestions are also greatly appreciated.
+            </div>
+            <div class="disclaimer">
+                You may notice some flutter_web tech being used in this codelab. It's a pre-release
+                version that we're messing around with, so if you see something wonky or wonder why
+                Feature X isn't working, don't assume that it'll look that way when Flutter Web is
+                eventually released.
+            </div>
+            <p>
+                Flutter has some features that do things. You should try them!
+            </p>
+
+            <h3>Centering stuff</h3>
+            <p>
+                To center a widget, stick it in a <span class="code">Center</span> widget.
+            </p>
+
+            <h4>Code example</h4>
+            <p>
+                Try centering the text widget presented below:
+            </p>
+            <iframe src="embed-new.html?id=9d3b49579aea1a7ee5bb546846fd0026&fw=true"></iframe>
+
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+</div>
+</body>
+</html>
