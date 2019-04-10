@@ -694,8 +694,8 @@ class Playground implements GistContainer, GistController {
     final List<String> webImports = [
       "import 'dart:html'",
       'import "dart:html"',
-      "import 'package:flutter_web",
-      'import "package:flutter_web',
+      //"import 'package:flutter_web",
+      //'import "package:flutter_web',
     ];
 
     if (htmlSrc.isNotEmpty) {
