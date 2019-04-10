@@ -13,6 +13,9 @@ pub get
 # Prepare to run unit tests (but do not actually run tests).
 pub run grinder buildbot
 
+# Ensure that we've uploaded the compilation artifacts to google storage.
+pub run grinder validate-storage-artifacts
+
 # Gather coverage and upload to Coveralls.
 if [ "$REPO_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "dev" ]; then
   OBS_PORT=9292
