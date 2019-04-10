@@ -10,6 +10,8 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
+import 'package:dart_services/src/flutter_web.dart';
+import 'package:dart_services/src/pub.dart';
 import 'package:dartis/dartis.dart' as redis;
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
@@ -21,15 +23,12 @@ import 'analysis_server.dart';
 import 'api_classes.dart';
 import 'common.dart';
 import 'compiler.dart';
-import 'pub.dart';
+import 'flutter_web.dart';
 import 'sdk_manager.dart';
 import 'summarize.dart';
 
 final Duration _standardExpiration = Duration(hours: 1);
 final Logger log = Logger('common_server');
-
-/// Toggle to on to enable `package:` support.
-final bool enablePackages = false;
 
 abstract class ServerCache {
   Future<String> get(String key);
@@ -181,8 +180,7 @@ class RedisCache implements ServerCache {
           redisClient?.disconnect();
         });
       } catch (e) {
-        log.warning(
-            '$_logPrefix: error on get operation for key $key: $e');
+        log.warning('$_logPrefix: error on get operation for key $key: $e');
       }
     }
     return value;
@@ -202,13 +200,11 @@ class RedisCache implements ServerCache {
     try {
       return commands.del(key: key).timeout(cacheOperationTimeout,
           onTimeout: () {
-        log.warning(
-            '$_logPrefix: timeout on remove operation for key $key');
+        log.warning('$_logPrefix: timeout on remove operation for key $key');
         redisClient?.disconnect();
       });
     } catch (e) {
-      log.warning(
-          '$_logPrefix: error on remove operation for key $key: $e');
+      log.warning('$_logPrefix: error on remove operation for key $key: $e');
     }
   }
 
@@ -264,27 +260,30 @@ class InmemoryCache implements ServerCache {
 
 @ApiClass(name: 'dartservices', version: 'v1')
 class CommonServer {
+  final String sdkPath;
+  final FlutterWebManager flutterWebManager;
   final ServerContainer container;
   final ServerCache cache;
-
-  Pub pub;
 
   Compiler compiler;
   AnalysisServerWrapper analysisServer;
 
-  String sdkPath;
-
-  CommonServer(this.sdkPath, this.container, this.cache) {
+  CommonServer(
+    this.sdkPath,
+    this.flutterWebManager,
+    this.container,
+    this.cache,
+  ) {
     hierarchicalLoggingEnabled = true;
     log.level = Level.ALL;
   }
 
   Future<void> init() async {
-    pub = enablePackages ? Pub() : Pub.mock();
-    compiler = Compiler(sdkPath, pub);
-    analysisServer = AnalysisServerWrapper(sdkPath);
+    analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
+    compiler = Compiler(sdkPath, flutterWebManager);
 
     await analysisServer.init();
+
     unawaited(analysisServer.onExit.then((int code) {
       log.severe('analysisServer exited, code: $code');
       if (code != 0) {
@@ -294,6 +293,7 @@ class CommonServer {
   }
 
   Future<void> warmup({bool useHtml = false}) async {
+    await flutterWebManager.warmup();
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
   }
@@ -533,10 +533,12 @@ class CommonServer {
       throw BadRequestError("Missing parameter: 'sources'");
     }
 
-    Stopwatch watch = Stopwatch()..start();
+    await _checkPackageReferencesInitFlutterWebMulti(sources);
+
     try {
-      AnalysisServerWrapper server = analysisServer;
-      AnalysisResults results = await server.analyzeMulti(sources);
+      final Stopwatch watch = Stopwatch()..start();
+
+      AnalysisResults results = await analysisServer.analyzeMulti(sources);
       int lineCount = sources.values
           .map((String s) => s.split('\n').length)
           .fold(0, (int a, int b) => a + b);
@@ -545,6 +547,8 @@ class CommonServer {
       return results;
     } catch (e, st) {
       log.severe('Error during analyze', e, st);
+      // TODO(devoncarew): It's really not clear to me that we should restart
+      // the server here.
       await restart();
       rethrow;
     }
@@ -557,6 +561,9 @@ class CommonServer {
     if (source == null) {
       throw BadRequestError('Missing parameter: \'source\'');
     }
+
+    await _checkPackageReferencesInitFlutterWeb(source);
+
     String sourceHash = _hashSource(source);
     String memCacheKey = '%%COMPILE:v0'
         ':returnSourceMap:$returnSourceMap:source:$sourceHash';
@@ -598,7 +605,9 @@ class CommonServer {
         throw BadRequestError(errors);
       }
     }).catchError((dynamic e, dynamic st) {
-      log.severe('Error during compile (dart2js): $e\n$st');
+      if (e is! BadRequestError) {
+        log.severe('Error during compile (dart2js): $e\n$st');
+      }
       throw e;
     });
   }
@@ -607,6 +616,9 @@ class CommonServer {
     if (source == null) {
       throw BadRequestError('Missing parameter: \'source\'');
     }
+
+    await _checkPackageReferencesInitFlutterWeb(source);
+
     String sourceHash = _hashSource(source);
     // TODO(devoncarew): Include the version of referenced libraries in the
     // keys.
@@ -646,7 +658,9 @@ class CommonServer {
         throw BadRequestError(errors);
       }
     }).catchError((dynamic e, dynamic st) {
-      log.severe('Error during compile (DDC): $e\n$st');
+      if (e is! BadRequestError) {
+        log.severe('Error during compile (DDC): $e\n$st');
+      }
       throw e;
     });
   }
@@ -658,6 +672,9 @@ class CommonServer {
     if (offset == null) {
       throw BadRequestError('Missing parameter: \'offset\'');
     }
+
+    await _checkPackageReferencesInitFlutterWeb(source);
+
     Stopwatch watch = Stopwatch()..start();
     try {
       Map<String, String> docInfo =
@@ -739,6 +756,8 @@ class CommonServer {
       throw BadRequestError('Missing parameter: \'offset\'');
     }
 
+    await _checkPackageReferencesInitFlutterWebMulti(sources);
+
     Stopwatch watch = Stopwatch()..start();
     FixesResponse response = await analysisServer.getFixesMulti(
         sources,
@@ -766,6 +785,43 @@ class CommonServer {
 
   Future<void> setCache(String query, String result) =>
       cache.set(query, result, expiration: _standardExpiration);
+
+  /// Check that the set of packages referenced is valid.
+  ///
+  /// If there are uses of package:flutter_web, ensure that support there is
+  /// initialized.
+  Future<void> _checkPackageReferencesInitFlutterWeb(String source) async {
+    Set<String> imports = getAllImportsFor(source);
+
+    if (flutterWebManager.hasUnsupportedImport(imports)) {
+      throw BadRequestError(
+          'Unsupported input: ${flutterWebManager.getUnsupportedImport(imports)}');
+    }
+
+    if (flutterWebManager.usesFlutterWeb(imports)) {
+      try {
+        await flutterWebManager.initFlutterWeb();
+      } catch (e) {
+        log.warning('unable to init package:flutter_web');
+        return;
+      }
+    }
+  }
+
+  /// Check that the set of packages referenced is valid.
+  ///
+  /// If there are uses of package:flutter_web, ensure that support there is
+  /// initialized.
+  Future<void> _checkPackageReferencesInitFlutterWebMulti(
+      Map<String, String> sources) async {
+    // Note, we don't handle multiple input sources
+    if (sources.length > 1) {
+      return;
+    }
+
+    final String source = sources.values.first;
+    await _checkPackageReferencesInitFlutterWeb(source);
+  }
 }
 
 String _printCompileProblem(CompilationProblem problem) => problem.message;

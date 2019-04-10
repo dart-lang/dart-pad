@@ -6,20 +6,26 @@ library services.compiler_test;
 
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
+import 'package:dart_services/src/flutter_web.dart';
 import 'package:test/test.dart';
 
 void main() => defineTests();
 
 void defineTests() {
   Compiler compiler;
+  FlutterWebManager flutterWebManager;
 
   group('compiler', () {
-    setUp(() {
-      compiler = Compiler(sdkPath);
+    setUp(() async {
+      flutterWebManager = FlutterWebManager(sdkPath);
+
+      compiler = Compiler(sdkPath, flutterWebManager);
     });
 
     test('simple', () {
       return compiler.compile(sampleCode).then((CompilationResults result) {
+        print(result.problems);
+
         expect(result.success, true);
         expect(result.compiledJS, isNotEmpty);
         expect(result.sourceMap, isNull);
@@ -105,7 +111,8 @@ import 'foo.dart';
 void main() { missingMethod ('foo'); }
 ''';
       return compiler.compile(code).then((CompilationResults result) {
-        expect(result.problems.first.message == BAD_IMPORT_ERROR_MSG, true);
+        expect(result.problems.first.message,
+            equals('unsupported import: foo.dart'));
       });
     });
 
@@ -115,7 +122,8 @@ import 'http://example.com';
 void main() { missingMethod ('foo'); }
 ''';
       return compiler.compile(code).then((CompilationResults result) {
-        expect(result.problems.first.message == BAD_IMPORT_ERROR_MSG, true);
+        expect(result.problems.first.message,
+            equals('unsupported import: http://example.com'));
       });
     });
 

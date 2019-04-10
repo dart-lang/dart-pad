@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
+import 'package:dart_services/src/flutter_web.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -32,22 +33,23 @@ final Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
 
 class AnalysisServerWrapper {
   final String sdkPath;
+  final FlutterWebManager flutterWebManager;
 
   Future<AnalysisServer> _init;
-  Directory sourceDirectory;
   String mainPath;
   TaskScheduler serverScheduler;
 
   /// Instance to handle communication with the server.
   AnalysisServer analysisServer;
 
-  AnalysisServerWrapper(this.sdkPath) {
+  AnalysisServerWrapper(this.sdkPath, this.flutterWebManager) {
     _logger.info('AnalysisServerWrapper ctor');
-    sourceDirectory = Directory.systemTemp.createTempSync('analysisServer');
     mainPath = _getPathFromName(kMainDart);
 
     serverScheduler = TaskScheduler();
   }
+
+  String get _sourceDirPath => flutterWebManager.projectDirectory.path;
 
   Future<AnalysisServer> init() {
     if (_init == null) {
@@ -86,7 +88,7 @@ class AnalysisServerWrapper {
 
         Completer<dynamic> analysisComplete = getAnalysisCompleteCompleter();
         await analysisServer.analysis
-            .setAnalysisRoots(<String>[sourceDirectory.path], <String>[]);
+            .setAnalysisRoots(<String>[_sourceDirPath], <String>[]);
         await _sendAddOverlays(<String, String>{mainPath: _WARMUP_SRC});
         await analysisComplete.future;
         await _sendRemoveOverlays();
@@ -125,6 +127,7 @@ class AnalysisServerWrapper {
 
     // This hack filters out of scope completions. It needs removing when we
     // have categories of completions.
+    // TODO(devoncarew): Remove this filter code.
     suggestions = suggestions
         .where((CompletionSuggestion c) => c.relevance > 500)
         .toList();
@@ -254,7 +257,7 @@ class AnalysisServerWrapper {
       Set<String> packageImports = <String>{};
       for (String source in sources.values) {
         packageImports.addAll(
-            filterSafePackagesFromImports(getAllUnsafeImportsFor(source)));
+            filterSafePackagesFromImports(getAllImportsFor(source)));
       }
 
       return api.AnalysisResults(
@@ -374,7 +377,7 @@ class AnalysisServerWrapper {
   }
 
   String _getPathFromName(String sourceName) =>
-      path.join(sourceDirectory.path, sourceName);
+      path.join(_sourceDirPath, sourceName);
 
   /// Warm up the analysis server to be ready for use.
   Future<api.CompleteResponse> warmup({bool useHtml = false}) =>

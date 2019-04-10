@@ -8,8 +8,7 @@ library services.grind;
 import 'dart:async';
 import 'dart:io';
 
-// TODO(devoncarew): re-add this import after review
-//import 'package:dart_services/src/flutter_web.dart';
+import 'package:dart_services/src/flutter_web.dart';
 import 'package:grinder/grinder.dart';
 import 'package:grinder/grinder_files.dart';
 import 'package:http/http.dart' as http;
@@ -103,6 +102,7 @@ Future _validateExists(String url) async {
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
+@Depends(init)
 void buildStorageArtifacts() {
   // build and copy dart_sdk.js, flutter_web.js, and flutter_web.sum
   final Directory temp =
@@ -112,15 +112,6 @@ void buildStorageArtifacts() {
     _buildStorageArtifacts(temp);
   } finally {
     temp.deleteSync(recursive: true);
-  }
-}
-
-// TODO(devoncarew): inlined from the real FlutterWebManager in order to
-// split a large PR up for review
-
-class FlutterWebManager {
-  static String createPubspec(bool useFlutterWeb) {
-    return 'name: dartpad_sample\n';
   }
 }
 
@@ -167,8 +158,12 @@ void _buildStorageArtifacts(Directory dir) {
   // build the artifacts using DDC
   // dartdevc -o flutter_web.js package:flutter_web/animation.dart ...
   run(
-    sdkBin('dartdevc'),
-    arguments: ['-o', 'flutter_web.js']..addAll(flutterLibraries),
+    getFile('dart-sdk/bin/dartdevc').absolute.path,
+    arguments: [
+      '--modules=amd',
+      '-o',
+      'flutter_web.js',
+    ]..addAll(flutterLibraries),
     workingDirectory: dir.path,
   );
 
@@ -176,7 +171,7 @@ void _buildStorageArtifacts(Directory dir) {
   Directory artifactsDir = getDir('artifacts');
   artifactsDir.create();
 
-  copy(joinFile(sdkDir, ['lib/dev_compiler/amd/dart_sdk.js']), artifactsDir);
+  copy(getFile('dart-sdk/lib/dev_compiler/amd/dart_sdk.js'), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.sum']), artifactsDir);
 

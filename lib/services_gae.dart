@@ -8,12 +8,14 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart' as ae;
+import 'package:dart_services/src/flutter_web.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart' as rpc;
 
 import 'src/common.dart';
 import 'src/common_server.dart';
 import 'src/dartpad_support_server.dart';
+import 'src/flutter_web.dart';
 
 const String _API = '/api';
 
@@ -57,6 +59,7 @@ class GaeServer {
 
   bool discoveryEnabled;
   rpc.ApiServer apiServer;
+  FlutterWebManager flutterWebManager;
   CommonServer commonServer;
   FileRelayServer fileRelayServer;
 
@@ -66,8 +69,10 @@ class GaeServer {
 
     discoveryEnabled = false;
     fileRelayServer = FileRelayServer();
+    flutterWebManager = FlutterWebManager(sdkPath);
     commonServer = CommonServer(
         sdkPath,
+        flutterWebManager,
         GaeServerContainer(),
         redisServerUri == null
             ? InmemoryCache()

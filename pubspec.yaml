@@ -9,7 +9,6 @@ dependencies:
   analyzer: ^0.34.0
   analysis_server_lib: ^0.1.4
   appengine: ^0.6.0
-  archive: ^2.0.0
   args: ^1.4.1
   crypto: ^2.0.0
   dartis: ^0.3.0

@@ -1,0 +1,47 @@
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+import 'dart:io';
+
+/// A simple, properties file based configuration class.
+/// 
+/// We expect an (optional) file in the root of the directory, names 'config.properties'.
+class Config {
+  static Config _singleton;
+
+  static Config getConfig() {
+    if (_singleton == null) {
+      _singleton = Config._();
+
+      File file = File('config.properties');
+      if (file.existsSync()) {
+        _singleton._load(file.readAsLinesSync());
+      }
+    }
+
+    return _singleton;
+  }
+
+  final Map<String, String> _values = <String, String>{};
+
+  Config._();
+
+  String getValue(String key) => _values[key];
+
+  void _load(List<String> lines) {
+    _values.clear();
+
+    for (String line in lines) {
+      line = line.trim();
+      if (line.isEmpty) {
+        continue;
+      }
+      int index = line.indexOf('=');
+      if (index == -1) {
+        continue;
+      }
+      _values[line.substring(0, index)] = line.substring(index + 1);
+    }
+  }
+}
