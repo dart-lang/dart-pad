@@ -197,7 +197,7 @@ void deploy() {
 }
 
 @Task()
-@Depends(updateDockerVersion, init, discovery, analyze, fuzz)
+@Depends(init, discovery, analyze, fuzz)
 void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')
