@@ -18,6 +18,7 @@ import 'package:shelf/shelf_io.dart' as shelf;
 import 'src/common.dart';
 import 'src/common_server.dart';
 import 'src/dartpad_support_server.dart';
+import 'src/flutter_web.dart';
 import 'src/shelf_cors.dart' as shelf_cors;
 
 Logger _logger = Logger('services');
@@ -54,7 +55,7 @@ void main(List<String> args) {
     return;
   }
 
-  Logger.root.level = Level.ALL;
+  Logger.root.level = Level.FINER;
   Logger.root.onRecord.listen((LogRecord record) {
     print(record);
     if (record.stackTrace != null) print(record.stackTrace);
@@ -79,8 +80,9 @@ class EndpointsServer {
 
   static Future<String> generateDiscovery(
       String sdkPath, String serverUrl) async {
+    FlutterWebManager flutterWebManager = FlutterWebManager(sdkPath);
     CommonServer commonServer =
-        CommonServer(sdkPath, _ServerContainer(), _Cache());
+        CommonServer(sdkPath, flutterWebManager, _ServerContainer(), _Cache());
     await commonServer.init();
     ApiServer apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
@@ -117,11 +119,16 @@ class EndpointsServer {
   ApiServer apiServer;
   bool discoveryEnabled;
   CommonServer commonServer;
+  FlutterWebManager flutterWebManager;
 
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
-    commonServer = CommonServer(sdkPath, _ServerContainer(), _Cache());
+
+    flutterWebManager = FlutterWebManager(sdkPath);
+    commonServer =
+        CommonServer(sdkPath, flutterWebManager, _ServerContainer(), _Cache());
     commonServer.init();
+
     apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
 

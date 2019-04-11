@@ -19,6 +19,7 @@ import 'package:dart_services/src/api_classes.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server.dart';
 import 'package:dart_services/src/compiler.dart' as comp;
+import 'package:dart_services/src/flutter_web.dart';
 import 'package:rpc/rpc.dart';
 
 bool _SERVER_BASED_CALL = false;
@@ -124,21 +125,24 @@ Future setupTools(String sdkPath) async {
 
   print('SdKPath: $sdkPath');
 
+  FlutterWebManager flutterWebManager = FlutterWebManager(sdkPath);
+
   container = MockContainer();
   cache = MockCache();
-  server = CommonServer(sdkPath, container, cache);
+  server = CommonServer(sdkPath, flutterWebManager, container, cache);
   await server.init();
 
   apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
 
-  analysisServer = analysis_server.AnalysisServerWrapper(sdkPath);
+  analysisServer =
+      analysis_server.AnalysisServerWrapper(sdkPath, flutterWebManager);
   await analysisServer.init();
 
   print('Warming up analysis server');
   await analysisServer.warmup();
 
   print('Warming up compiler');
-  compiler = comp.Compiler(sdkPath);
+  compiler = comp.Compiler(sdkPath, flutterWebManager);
   await compiler.warmup();
   print('SetupTools done');
 }
@@ -392,10 +396,13 @@ class MockContainer implements ServerContainer {
 class MockCache implements ServerCache {
   @override
   Future<String> get(String key) => Future.value(null);
+
   @override
   Future set(String key, String value, {Duration expiration}) => Future.value();
+
   @override
   Future remove(String key) => Future.value();
+
   @override
   Future<void> shutdown() => Future.value();
 }

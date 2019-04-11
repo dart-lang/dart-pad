@@ -12,22 +12,25 @@ import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/bench.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
+import 'package:dart_services/src/flutter_web.dart';
 
 void main(List<String> args) {
   final bool json = args.contains('--json');
 
   final BenchmarkHarness harness = BenchmarkHarness(asJson: json);
 
+  final FlutterWebManager flutterWebManager = FlutterWebManager(sdkPath);
+
   final List<Benchmark> benchmarks = [
-    AnalyzerBenchmark('hello', sampleCode),
-    AnalyzerBenchmark('hellohtml', sampleCodeWeb),
-    AnalyzerBenchmark('sunflower', _sunflower),
-    AnalysisServerBenchmark('hello', sampleCode),
-    AnalysisServerBenchmark('hellohtml', sampleCodeWeb),
-    AnalysisServerBenchmark('sunflower', _sunflower),
-    Dart2jsBenchmark('hello', sampleCode),
-    Dart2jsBenchmark('hellohtml', sampleCodeWeb),
-    Dart2jsBenchmark('sunflower', _sunflower),
+    AnalyzerBenchmark('hello', sampleCode, flutterWebManager),
+    AnalyzerBenchmark('hellohtml', sampleCodeWeb, flutterWebManager),
+    AnalyzerBenchmark('sunflower', _sunflower, flutterWebManager),
+    AnalysisServerBenchmark('hello', sampleCode, flutterWebManager),
+    AnalysisServerBenchmark('hellohtml', sampleCodeWeb, flutterWebManager),
+    AnalysisServerBenchmark('sunflower', _sunflower, flutterWebManager),
+    Dart2jsBenchmark('hello', sampleCode, flutterWebManager),
+    Dart2jsBenchmark('hellohtml', sampleCodeWeb, flutterWebManager),
+    Dart2jsBenchmark('sunflower', _sunflower, flutterWebManager),
   ];
 
   harness.benchmark(benchmarks);
@@ -37,8 +40,10 @@ class AnalyzerBenchmark extends Benchmark {
   final String source;
   AnalysisServerWrapper analysisServer;
 
-  AnalyzerBenchmark(String name, this.source) : super('analyzer.$name') {
-    analysisServer = AnalysisServerWrapper(sdkPath);
+  AnalyzerBenchmark(
+      String name, this.source, FlutterWebManager flutterWebManager)
+      : super('analyzer.$name') {
+    analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
   }
 
   @override
@@ -55,8 +60,9 @@ class Dart2jsBenchmark extends Benchmark {
   final String source;
   final Compiler compiler;
 
-  Dart2jsBenchmark(String name, this.source)
-      : compiler = Compiler(sdkPath),
+  Dart2jsBenchmark(
+      String name, this.source, FlutterWebManager flutterWebManager)
+      : compiler = Compiler(sdkPath, flutterWebManager),
         super('dart2js.$name');
 
   @override
@@ -71,8 +77,9 @@ class AnalysisServerBenchmark extends Benchmark {
   final String source;
   final AnalysisServerWrapper analysisServer;
 
-  AnalysisServerBenchmark(String name, this.source)
-      : analysisServer = AnalysisServerWrapper(sdkPath),
+  AnalysisServerBenchmark(
+      String name, this.source, FlutterWebManager flutterWebManager)
+      : analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager),
         super('completion.$name');
 
   @override

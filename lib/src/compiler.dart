@@ -12,24 +12,25 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
+import 'flutter_web.dart';
 import 'pub.dart';
 
 Logger _logger = Logger('compiler');
-
-const String BAD_IMPORT_ERROR_MSG =
-    'Imports other than dart: are not supported on Dartpad';
 
 /// An interface to the dart2js compiler. A compiler object can process one
 /// compile at a time.
 class Compiler {
   final String sdkPath;
-  final Pub pub;
+  final FlutterWebManager flutterWebManager;
 
-  Compiler(this.sdkPath, [this.pub]);
+  String _sdkVersion;
 
-  bool importsOkForCompile(String dartSource) {
-    Set<String> imports = getAllUnsafeImportsFor(dartSource);
-    return imports.every((String import) => import.startsWith('dart:'));
+  Compiler(this.sdkPath, this.flutterWebManager) {
+    _sdkVersion = File('dart-sdk.version').readAsStringSync().trim();
+  }
+
+  bool importsOkForCompile(Set<String> imports) {
+    return !flutterWebManager.hasUnsupportedImport(imports);
   }
 
   /// The version of the SDK this copy of dart2js is based on.
@@ -46,9 +47,12 @@ class Compiler {
     String input, {
     bool returnSourceMap = false,
   }) async {
-    if (!importsOkForCompile(input)) {
+    Set<String> imports = getAllImportsFor(input);
+    if (!importsOkForCompile(imports)) {
       return CompilationResults(problems: <CompilationProblem>[
-        CompilationProblem._(BAD_IMPORT_ERROR_MSG),
+        CompilationProblem._(
+          'unsupported import: ${flutterWebManager.getUnsupportedImport(imports)}',
+        ),
       ]);
     }
 
@@ -61,6 +65,7 @@ class Compiler {
       ];
       if (!returnSourceMap) arguments.add('--no-source-maps');
 
+      arguments.add('--packages=${flutterWebManager.packagesFilePath}');
       arguments.add('-o$kMainDart.js');
       arguments.add(kMainDart);
 
@@ -105,9 +110,12 @@ class Compiler {
 
   /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> compileDDC(String input) async {
-    if (!importsOkForCompile(input)) {
+    Set<String> imports = getAllImportsFor(input);
+    if (!importsOkForCompile(imports)) {
       return DDCCompilationResults.failed(<CompilationProblem>[
-        CompilationProblem._(BAD_IMPORT_ERROR_MSG),
+        CompilationProblem._(
+          'unsupported import: ${flutterWebManager.getUnsupportedImport(imports)}',
+        ),
       ]);
     }
 
@@ -117,6 +125,11 @@ class Compiler {
       List<String> arguments = <String>[
         '--modules=amd',
       ];
+
+      if (flutterWebManager.usesFlutterWeb(imports)) {
+        arguments.addAll(<String>['-s', flutterWebManager.summaryFilePath]);
+      }
+
       arguments.addAll(<String>['-o', '$kMainDart.js']);
       arguments.add('--single-out-file');
       arguments.addAll(<String>['--module-name', 'dartpad_main']);
@@ -139,12 +152,10 @@ class Compiler {
           CompilationProblem._(result.stdout),
         ]);
       } else {
-        // TODO(devoncarew): The hard-coded URL below will be replaced with
-        // something based on the sdk version.
         final DDCCompilationResults results = DDCCompilationResults(
           compiledJS: mainJs.readAsStringSync(),
-          modulesBaseUrl:
-              'https://storage.cloud.google.com/compilation_artifacts/',
+          modulesBaseUrl: 'https://storage.cloud.google.com/'
+              'compilation_artifacts/$_sdkVersion/',
         );
         return results;
       }
@@ -189,7 +200,7 @@ class DDCCompilationResults {
       : compiledJS = null,
         modulesBaseUrl = null;
 
-  bool get hasOutput => compiledJS.isNotEmpty;
+  bool get hasOutput => compiledJS != null && compiledJS.isNotEmpty;
 
   /// This is true if there were no errors.
   bool get success => problems.isEmpty;

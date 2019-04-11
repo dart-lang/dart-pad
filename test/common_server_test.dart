@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server.dart';
+import 'package:dart_services/src/flutter_web.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:rpc/rpc.dart';
@@ -50,6 +51,7 @@ void main() => defineTests();
 void defineTests() {
   CommonServer server;
   ApiServer apiServer;
+  FlutterWebManager flutterWebManager;
 
   MockContainer container;
   MockCache cache;
@@ -286,8 +288,9 @@ void defineTests() {
     setUpAll(() async {
       container = MockContainer();
       cache = MockCache();
+      flutterWebManager = FlutterWebManager(sdkPath);
 
-      server = CommonServer(sdkPath, container, cache);
+      server = CommonServer(sdkPath, flutterWebManager, container, cache);
       await server.init();
 
       apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true);

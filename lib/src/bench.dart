@@ -54,7 +54,8 @@ class BenchmarkHarness {
     }).then((_) {
       if (asJson) {
         logger(json.encode(results
-            .map((BenchMarkResult r) => <String, num>{r.benchmark.name: r.averageMilliseconds()})
+            .map((BenchMarkResult r) =>
+                <String, num>{r.benchmark.name: r.averageMilliseconds()})
             .toList()));
       }
     });
