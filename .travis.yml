@@ -3,7 +3,9 @@ install:
   - gem install coveralls-lcov
 dart:
   - stable
-  - dev
+  # TODO(devoncarew): commented out due to
+  # https://github.com/dart-lang/dart-pad/issues/1002
+  #- dev
 branches:
   only: [master]
 script: ./tool/travis.sh
