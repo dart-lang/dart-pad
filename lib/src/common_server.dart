@@ -547,8 +547,6 @@ class CommonServer {
       return results;
     } catch (e, st) {
       log.severe('Error during analyze', e, st);
-      // TODO(devoncarew): It's really not clear to me that we should restart
-      // the server here.
       await restart();
       rethrow;
     }
