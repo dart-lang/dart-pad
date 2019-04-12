@@ -6,8 +6,6 @@
 /// test variations. This should be run over all of the co19 tests in the SDK
 /// prior to each deployment of the server.
 
-// ignore_for_file: always_specify_types
-
 library services.fuzz_driver;
 
 import 'dart:async';

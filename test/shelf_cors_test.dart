@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: always_specify_types
-
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:test/test.dart';
 

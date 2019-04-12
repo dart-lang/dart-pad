@@ -5,7 +5,7 @@
 import 'dart:io';
 
 /// A simple, properties file based configuration class.
-/// 
+///
 /// We expect an (optional) file in the root of the directory, names 'config.properties'.
 class Config {
   static Config _singleton;

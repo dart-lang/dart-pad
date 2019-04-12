@@ -256,8 +256,8 @@ class AnalysisServerWrapper {
       // Calculate the imports.
       Set<String> packageImports = <String>{};
       for (String source in sources.values) {
-        packageImports.addAll(
-            filterSafePackagesFromImports(getAllImportsFor(source)));
+        packageImports
+            .addAll(filterSafePackagesFromImports(getAllImportsFor(source)));
       }
 
       return api.AnalysisResults(
