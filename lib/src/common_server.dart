@@ -312,6 +312,7 @@ class CommonServer {
   Future<dynamic> shutdown() {
     return Future.wait(<Future<dynamic>>[
       analysisServer.shutdown(),
+      compiler.dispose(),
       Future<dynamic>.sync(cache.shutdown)
     ]);
   }

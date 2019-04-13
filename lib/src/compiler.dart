@@ -8,6 +8,7 @@ library services.compiler;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:bazel_worker/driver.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -23,9 +24,14 @@ class Compiler {
   final String sdkPath;
   final FlutterWebManager flutterWebManager;
 
+  final BazelWorkerDriver _ddcDriver;
   String _sdkVersion;
 
-  Compiler(this.sdkPath, this.flutterWebManager) {
+  Compiler(this.sdkPath, this.flutterWebManager)
+      : _ddcDriver = BazelWorkerDriver(
+            () => Process.start(path.join(sdkPath, 'bin', 'dartdevc'),
+                <String>['--persistent_worker']),
+            maxWorkers: 1) {
     _sdkVersion = File('dart-sdk.version').readAsStringSync().trim();
   }
 
@@ -130,26 +136,25 @@ class Compiler {
         arguments.addAll(<String>['-s', flutterWebManager.summaryFilePath]);
       }
 
-      arguments.addAll(<String>['-o', '$kMainDart.js']);
-      arguments.add('--single-out-file');
-      arguments.addAll(<String>['--module-name', 'dartpad_main']);
-      arguments.add(kMainDart);
-
       String compileTarget = path.join(temp.path, kMainDart);
       File mainDart = File(compileTarget);
       mainDart.writeAsStringSync(input);
 
+      arguments.addAll(<String>['-o', path.join(temp.path, '$kMainDart.js')]);
+      arguments.add('--single-out-file');
+      arguments.addAll(<String>['--module-name', 'dartpad_main']);
+      arguments.add(compileTarget);
+
       File mainJs = File(path.join(temp.path, '$kMainDart.js'));
 
-      final String dartdevcPath = path.join(sdkPath, 'bin', 'dartdevc');
-      _logger.info('About to exec: $dartdevcPath $arguments');
+      _logger.info('About to exec dartdevc with:  $arguments');
 
-      final ProcessResult result =
-          Process.runSync(dartdevcPath, arguments, workingDirectory: temp.path);
+      final WorkResponse response =
+          await _ddcDriver.doWork(WorkRequest()..arguments.addAll(arguments));
 
-      if (result.exitCode != 0) {
+      if (response.exitCode != 0) {
         return DDCCompilationResults.failed(<CompilationProblem>[
-          CompilationProblem._(result.stdout),
+          CompilationProblem._(response.output),
         ]);
       } else {
         final DDCCompilationResults results = DDCCompilationResults(
@@ -167,6 +172,8 @@ class Compiler {
       _logger.info('temp folder removed: ${temp.path}');
     }
   }
+
+  Future<void> dispose() => _ddcDriver.terminateWorkers();
 }
 
 /// The result of a dart2js compile.
@@ -185,6 +192,11 @@ class CompilationResults {
 
   /// This is true if there were no errors.
   bool get success => problems.isEmpty;
+
+  @override
+  String toString() => success
+      ? 'CompilationResults: Success'
+      : 'Compilation errors: ${problems.join('\n')}';
 }
 
 /// The result of a DDC compile.
@@ -204,6 +216,10 @@ class DDCCompilationResults {
 
   /// This is true if there were no errors.
   bool get success => problems.isEmpty;
+  @override
+  String toString() => success
+      ? 'CompilationResults: Success'
+      : 'Compilation errors: ${problems.join('\n')}';
 }
 
 /// An issue associated with [CompilationResults].

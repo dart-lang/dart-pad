@@ -10,6 +10,7 @@ dependencies:
   analysis_server_lib: ^0.1.4
   appengine: ^0.6.0
   args: ^1.4.1
+  bazel_worker: ^0.1.14
   crypto: ^2.0.0
   dartis: ^0.3.0
   http: ^0.12.0

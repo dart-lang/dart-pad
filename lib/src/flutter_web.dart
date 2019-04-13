@@ -54,8 +54,8 @@ $_samplePackageName:lib/
   Future<void> warmup() async {
     try {
       await initFlutterWeb();
-    } catch (_) {
-      // ignore any exception here
+    } catch (e, s) {
+      _logger.warning('Error initializing flutter web', e, s);
     }
   }
 

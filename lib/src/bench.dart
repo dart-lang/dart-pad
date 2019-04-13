@@ -124,7 +124,7 @@ class BenchMarkResult {
   double averageMilliseconds() => (microseconds / iteration) / 1000.0;
 
   @override
-  String toString() => '[${benchmark.name.padRight(20)}: '
+  String toString() => '[${benchmark.name.padRight(26)}: '
       '${averageMilliseconds().toStringAsFixed(3).padLeft(8)}ms]';
 }
 
