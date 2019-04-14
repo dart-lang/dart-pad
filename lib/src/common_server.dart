@@ -719,6 +719,8 @@ class CommonServer {
       throw BadRequestError('Missing parameter: \'offset\'');
     }
 
+    await _checkPackageReferencesInitFlutterWebMulti(sources);
+
     Stopwatch watch = Stopwatch()..start();
     try {
       CompleteResponse response = await analysisServer.completeMulti(
@@ -813,7 +815,7 @@ class CommonServer {
   /// initialized.
   Future<void> _checkPackageReferencesInitFlutterWebMulti(
       Map<String, String> sources) async {
-    // Note, we don't handle multiple input sources
+    // Note, we don't handle multiple input sources.
     if (sources.length > 1) {
       return;
     }
