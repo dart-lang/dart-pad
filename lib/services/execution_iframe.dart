@@ -133,7 +133,8 @@ window.onerror = function(message, url, lineNumber, colno, error) {
     if (modulesBaseUrl != null) {
       requireConfig = '''
 require.config({
-  "baseUrl": "$modulesBaseUrl"
+  "baseUrl": "$modulesBaseUrl",
+  waitSeconds: 60
 });
 ''';
     }

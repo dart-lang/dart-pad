@@ -919,9 +919,9 @@ class Playground implements GistContainer, GistController {
         if (issue.hasFixes) {
           e.classes.add('hasFix');
           e.onClick.listen((e) {
-            // This is a bit of a hack to make sure quick fixes popup
-            // is only shown if the wrench is clicked,
-            // and not if the text or label is clicked.
+            // This is a bit of a hack to make sure quick fixes popup is only
+            // shown if the wrench is clicked, and not if the text or label is
+            // clicked.
             if ((e.target as Element).className == 'issue hasFix') {
               // codemiror only shows completions if there is no selected text
               _jumpTo(issue.line, issue.charStart, 0, focus: true);
