@@ -134,7 +134,7 @@ window.onerror = function(message, url, lineNumber, colno, error) {
       requireConfig = '''
 require.config({
   "baseUrl": "$modulesBaseUrl",
-  waitSeconds: 60
+  "waitSeconds": 60
 });
 ''';
     }
