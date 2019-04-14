@@ -356,9 +356,13 @@ class NewEmbed {
 
       formatButton.disabled = false;
 
-      if (originalSource != result.newString) {
-        userCodeEditor.document.updateValue(result.newString);
-        _performAnalysis();
+      // Check that the user hasn't edited the source since the format request.
+      if (originalSource == userCodeEditor.document.value) {
+        // And, check that the format request did modify the source code.
+        if (originalSource != result.newString) {
+          userCodeEditor.document.updateValue(result.newString);
+          _performAnalysis();
+        }
       }
     } catch (e) {
       formatButton.disabled = false;
