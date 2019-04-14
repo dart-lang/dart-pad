@@ -12,9 +12,9 @@ void main() => defineTests();
 void defineTests() {
   group('AnalysisIssue', () {
     test('toMap', () {
-      AnalysisIssue issue =
+      final issue =
           AnalysisIssue.fromIssue('error', 1, 'not found', charStart: 123);
-      Map m = issue.toMap();
+      final m = issue.toMap();
       expect(m['kind'], 'error');
       expect(m['line'], 1);
       expect(m['message'], isNotNull);

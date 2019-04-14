@@ -67,7 +67,7 @@ Usage: slow_test path_to_test_collection
   String sdk = sdkPath;
 
   // Load the list of files.
-  var fileEntities = [];
+  var fileEntities = <io.FileSystemEntity>[];
   if (io.FileSystemEntity.isDirectorySync(testCollectionRoot)) {
     io.Directory dir = io.Directory(testCollectionRoot);
     fileEntities = dir.listSync(recursive: true);

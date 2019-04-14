@@ -22,7 +22,7 @@ void defineTests({bool skip = true}) {
 
 void analyzeTest() {
   final String url = '$serverUrl/api/analyze';
-  Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
+  final headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(
       http
@@ -37,7 +37,7 @@ void analyzeTest() {
 
 void compileTest() {
   final String url = '$serverUrl/api/compile';
-  Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
+  final headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(
       http
@@ -52,7 +52,7 @@ void compileTest() {
 
 void compileDDCTest() {
   final String url = '$serverUrl/api/compileDDC';
-  Map headers = {'Content-Type': 'text/plain; charset=UTF-8'};
+  final headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(
       http

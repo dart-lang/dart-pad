@@ -153,13 +153,13 @@ class CompleteResponse {
   static List<Map<String, String>> _convert(List<Map<dynamic, dynamic>> list) {
     return list.map<Map<String, String>>((Map<dynamic, dynamic> m) {
       Map<String, String> newMap = <String, String>{};
-      for (String key in m.keys) {
+      for (var key in m.keys.cast<String>()) {
         dynamic data = m[key];
         // TODO: Properly support Lists, Maps (this is a hack).
         if (data is Map || data is List) {
           data = json.encode(data);
         }
-        newMap[key] = '$data';
+        newMap[key.toString()] = '$data';
       }
       return newMap;
     }).toList();

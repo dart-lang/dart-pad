@@ -14,13 +14,13 @@ void main() => defineTests();
 void defineTests() {
   group('Lines', () {
     test('empty string', () {
-      Lines lines = Lines('');
+      final lines = Lines('');
       expect(lines.getLineForOffset(0), 0);
       expect(lines.getLineForOffset(1), 0);
     });
 
     test('getLineForOffset', () {
-      Lines lines = Lines('one\ntwo\nthree');
+      final lines = Lines('one\ntwo\nthree');
       expect(lines.getLineForOffset(0), 0);
       expect(lines.getLineForOffset(1), 0);
       expect(lines.getLineForOffset(2), 0);

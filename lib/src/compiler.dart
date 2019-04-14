@@ -91,7 +91,7 @@ class Compiler {
       if (result.exitCode != 0) {
         final CompilationResults results =
             CompilationResults(problems: <CompilationProblem>[
-          CompilationProblem._(result.stdout),
+          CompilationProblem._(result.stdout as String),
         ]);
         return results;
       } else {

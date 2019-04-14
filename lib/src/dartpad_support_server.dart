@@ -29,7 +29,7 @@ class FileRelayServer {
       mirrors.reflect(obj).type.reflectedType.toString();
 
   String getClass(dynamic obj) =>
-      mirrors.MirrorSystem.getName(mirrors.reflectClass(obj).simpleName);
+      mirrors.MirrorSystem.getName(mirrors.reflectClass(obj as Type).simpleName);
 
   FileRelayServer({this.test = false}) {
     hierarchicalLoggingEnabled = true;
@@ -62,7 +62,7 @@ class FileRelayServer {
     return Future<List<dynamic>>.value(result);
   }
 
-  Future<void> _databaseCommit({List<dynamic> inserts, List<dynamic> deletes}) {
+  Future<void> _databaseCommit({List<db.Model> inserts, List<db.Key> deletes}) {
     if (test) {
       if (inserts != null) {
         for (dynamic insertObject in inserts) {
@@ -89,7 +89,7 @@ class FileRelayServer {
     _GaePadSaveObject record = _GaePadSaveObject.fromDSO(data);
     String randomUuid = uuid_tools.Uuid().v4();
     record.uuid = '${_computeSHA1(record)}-$randomUuid';
-    _databaseCommit(inserts: <dynamic>[record]).catchError((dynamic e) {
+    _databaseCommit(inserts: <db.Model>[record]).catchError((dynamic e) {
       _logger.severe('Error while recording export $e');
       throw e;
     });
@@ -109,9 +109,9 @@ class FileRelayServer {
           .severe('Export with UUID ${uuidContainer.uuid} could not be found.');
       throw BadRequestError('Nothing of correct uuid could be found.');
     }
-    _GaePadSaveObject record = result.first;
+    _GaePadSaveObject record = result.first as _GaePadSaveObject;
     if (!test) {
-      unawaited(_databaseCommit(deletes: <dynamic>[record.key])
+      unawaited(_databaseCommit(deletes: <db.Key>[record.key])
           .catchError((dynamic e) {
         _logger.severe('Error while deleting export $e');
         throw (e);
@@ -153,7 +153,7 @@ class FileRelayServer {
     } else {
       _GistMapping entry = _GistMapping.fromMap(map);
       unawaited(
-          _databaseCommit(inserts: <dynamic>[entry]).catchError((dynamic e) {
+          _databaseCommit(inserts: <db.Model>[entry]).catchError((dynamic e) {
         _logger.severe(
             'Error while recording mapping with Id ${map.gistId}. Error $e');
         throw e;
@@ -174,7 +174,7 @@ class FileRelayServer {
       _logger.severe('Missing mapping for Id $id.');
       throw BadRequestError('Missing mapping for Id $id');
     } else {
-      _GistMapping entry = result.first;
+      _GistMapping entry = result.first as _GistMapping;
       _logger.info('Mapping with ID $id retrieved.');
       return Future<UuidContainer>.value(UuidContainer.fromUuid(entry.gistId));
     }

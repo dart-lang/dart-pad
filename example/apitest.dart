@@ -45,7 +45,7 @@ void _setupClients() {
 void setupSummary() {
   CodeMirror editor = createEditor(querySelector('#summarySection .editor'));
   Element output = querySelector('#summarySection .output');
-  ButtonElement button = querySelector('#summarySection button');
+  ButtonElement button = querySelector('#summarySection button') as ButtonElement;
   button.onClick.listen((e) {
     _setupClients();
     services.SourcesRequest input = services.SourcesRequest();
@@ -62,7 +62,7 @@ void setupSummary() {
 
 void setupIdRetrieval() {
   Element output = querySelector('#idSection .output');
-  ButtonElement button = querySelector('#idSection button');
+  ButtonElement button = querySelector('#idSection button') as ButtonElement;
   button.onClick.listen((e) {
     Stopwatch sw = Stopwatch()..start();
     _dartpadSupportApi.getUnusedMappingId().then((results) {
@@ -75,7 +75,7 @@ void setupGistStore() {
   CodeMirror editor = createEditor(querySelector('#storeSection .editor'),
       defaultText: 'Internal ID');
   Element output = querySelector('#storeSection .output');
-  ButtonElement button = querySelector('#storeSection button');
+  ButtonElement button = querySelector('#storeSection button') as ButtonElement;
   button.onClick.listen((e) {
     String editorText = editor.getDoc().getValue();
     support.GistToInternalIdMapping saveObject =
@@ -93,7 +93,7 @@ void setupGistRetrieval() {
   CodeMirror editor = createEditor(querySelector('#gistSection .editor'),
       defaultText: 'Internal ID');
   Element output = querySelector('#gistSection .output');
-  ButtonElement button = querySelector('#gistSection button');
+  ButtonElement button = querySelector('#gistSection button') as ButtonElement;
   button.onClick.listen((e) {
     String editorText = editor.getDoc().getValue();
     Stopwatch sw = Stopwatch()..start();
@@ -106,7 +106,7 @@ void setupGistRetrieval() {
 void setupAnalyze() {
   CodeMirror editor = createEditor(querySelector('#analyzeSection .editor'));
   Element output = querySelector('#analyzeSection .output');
-  ButtonElement button = querySelector('#analyzeSection button');
+  ButtonElement button = querySelector('#analyzeSection button') as ButtonElement;
   button.onClick.listen((e) {
     _setupClients();
     services.SourceRequest srcRequest = services.SourceRequest()
@@ -121,7 +121,7 @@ void setupAnalyze() {
 void setupCompile() {
   CodeMirror editor = createEditor(querySelector('#compileSection .editor'));
   Element output = querySelector('#compileSection .output');
-  ButtonElement button = querySelector('#compileSection button');
+  ButtonElement button = querySelector('#compileSection button') as ButtonElement;
   button.onClick.listen((e) {
     String source = editor.getDoc().getValue();
 
@@ -140,7 +140,7 @@ void setupComplete() {
   CodeMirror editor = createEditor(querySelector('#completeSection .editor'));
   Element output = querySelector('#completeSection .output');
   Element offsetElement = querySelector('#completeSection .offset');
-  ButtonElement button = querySelector('#completeSection button');
+  ButtonElement button = querySelector('#completeSection button') as ButtonElement;
   button.onClick.listen((e) {
     var sourceRequest = _getSourceRequest(editor);
     Stopwatch sw = Stopwatch()..start();
@@ -158,7 +158,7 @@ void setupDocument() {
   CodeMirror editor = createEditor(querySelector('#documentSection .editor'));
   Element output = querySelector('#documentSection .output');
   Element offsetElement = querySelector('#documentSection .offset');
-  ButtonElement button = querySelector('#documentSection button');
+  ButtonElement button = querySelector('#documentSection button') as ButtonElement;
   button.onClick.listen((e) {
     var sourceRequest = _getSourceRequest(editor);
     Stopwatch sw = Stopwatch()..start();
@@ -176,7 +176,7 @@ void setupFixes() {
   CodeMirror editor = createEditor(querySelector('#fixesSection .editor'));
   Element output = querySelector('#fixesSection .output');
   Element offsetElement = querySelector('#fixesSection .offset');
-  ButtonElement button = querySelector('#fixesSection button');
+  ButtonElement button = querySelector('#fixesSection button') as ButtonElement;
   button.onClick.listen((e) {
     var sourceRequest = _getSourceRequest(editor);
     Stopwatch sw = Stopwatch()..start();
@@ -193,7 +193,7 @@ void setupFixes() {
 
 void setupVersion() {
   Element output = querySelector('#versionSection .output');
-  ButtonElement button = querySelector('#versionSection button');
+  ButtonElement button = querySelector('#versionSection button') as ButtonElement;
   button.onClick.listen((e) {
     Stopwatch sw = Stopwatch()..start();
     servicesApi.version().then((results) {
@@ -205,7 +205,7 @@ void setupVersion() {
 void setupExport() {
   CodeMirror editor = createEditor(querySelector('#exportSection .editor'));
   Element output = querySelector('#exportSection .output');
-  ButtonElement button = querySelector('#exportSection button');
+  ButtonElement button = querySelector('#exportSection button') as ButtonElement;
   button.onClick.listen((e) {
     support.PadSaveObject saveObject = support.PadSaveObject();
     saveObject.dart = editor.getDoc().getValue();
@@ -220,7 +220,7 @@ void setupRetrieve() {
   Element output = querySelector('#retrieveSection .output');
   CodeMirror editor =
       createEditor(querySelector('#retrieveSection .editor'), defaultText: '');
-  ButtonElement button = querySelector('#retrieveSection button');
+  ButtonElement button = querySelector('#retrieveSection button') as ButtonElement;
   button.onClick.listen((e) {
     String uuid = editor.getDoc().getValue();
 

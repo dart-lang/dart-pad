@@ -10,39 +10,39 @@ import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/flutter_web.dart';
 import 'package:test/test.dart';
 
-String completionCode = r'''
+const completionCode = r'''
 void main() {
   int i = 0;
   i.
 }
 ''';
 
-String completionFilterCode = r'''
+const completionFilterCode = r'''
 void main() {
   pr
 }
 ''';
 
-String quickFixesCode = r'''
+const quickFixesCode = r'''
 void main() {
   int i = 0
 }
 ''';
 
-String badFormatCode = r'''
+const badFormatCode = r'''
 void main()
 {
 int i = 0;
 }
 ''';
 
-String formattedCode = r'''
+const formattedCode = r'''
 void main() {
   int i = 0;
 }
 ''';
 
-String formatWithIssues = '''
+const formatWithIssues = '''
 void main() { foo() }
 ''';
 

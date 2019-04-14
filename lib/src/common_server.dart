@@ -572,8 +572,8 @@ class CommonServer {
       log.info('CACHE: Cache hit for compile');
       dynamic resultObj = JsonDecoder().convert(result);
       return CompileResponse(
-        resultObj['compiledJS'],
-        returnSourceMap ? resultObj['sourceMap'] : null,
+        resultObj['compiledJS'] as String,
+        returnSourceMap ? resultObj['sourceMap'] as String : null,
       );
     }
 
@@ -628,8 +628,8 @@ class CommonServer {
       log.info('CACHE: Cache hit for compileDDC');
       dynamic resultObj = JsonDecoder().convert(result);
       return CompileDDCResponse(
-        resultObj['compiledJS'],
-        resultObj['staticScriptUris'],
+        resultObj['compiledJS'] as String,
+        resultObj['staticScriptUris'] as String,
       );
     }
 

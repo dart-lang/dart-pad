@@ -34,12 +34,6 @@ class BenchmarkHarness {
   BenchmarkHarness({this.asJson, this.logger = print});
 
   Future<void> benchmark(List<Benchmark> benchmarks) async {
-    if (isCheckedMode()) {
-      logger(
-          'WARNING: You are running in checked mode. Benchmarks should be run in unchecked,\n'
-          'non-debug mode. See also www.dartlang.org/articles/benchmarking.\n');
-    }
-
     log('Running ${benchmarks.length} benchmarks.');
     log('');
 
@@ -127,16 +121,3 @@ class BenchMarkResult {
   String toString() => '[${benchmark.name.padRight(26)}: '
       '${averageMilliseconds().toStringAsFixed(3).padLeft(8)}ms]';
 }
-
-bool isCheckedMode() {
-  try {
-    String result = 'foo';
-    result = '${result}bar';
-    result = _intVal;
-    return false;
-  } catch (e) {
-    return true;
-  }
-}
-
-dynamic get _intVal => 1 + 2;

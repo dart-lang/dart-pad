@@ -92,7 +92,7 @@ void defineTests() {
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data['uuid'], isNotNull);
-      jsonData = {'uuid': data['uuid']};
+      jsonData = {'uuid': data['uuid'] as String};
       var pull = await _sendPostRequest(
           '_dartpadsupportservices/v1/pullExportData', jsonData);
       expect(pull.status, 200);

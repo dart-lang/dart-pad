@@ -23,7 +23,7 @@ void defineTests() {
     });
 
     test('one', () {
-      final String source = '''
+      const source = '''
 library woot;
 import 'dart:math';
 import 'package:foo/foo.dart';
@@ -34,7 +34,7 @@ void main() { }
     });
 
     test('two', () {
-      final String source = '''
+      const source = '''
 library woot;
 import 'dart:math';
  import 'package:foo/foo.dart';
@@ -48,7 +48,7 @@ void main() { }
     });
 
     test('three', () {
-      final String source = '''
+      const source = '''
 library woot;
 import 'dart:math';
 import 'package:foo/foo.dart';
@@ -70,14 +70,14 @@ void main() { }
 
   group('filterSafePackagesFromImports', () {
     test('empty', () {
-      final String source = '''import 'package:';
+      const source = '''import 'package:';
 void main() { }
 ''';
       expect(filterSafePackagesFromImports(getAllImportsFor(source)), isEmpty);
     });
 
     test('simple', () {
-      final String source = '''
+      const source = '''
 import 'package:foo/foo.dart';
 import 'package:bar/bar.dart';
 void main() { }
@@ -87,32 +87,32 @@ void main() { }
     });
 
     test('defensive', () {
-      final String source = '''
+      const source = '''
 library woot;
 import 'dart:math';
 import 'package:../foo/foo.dart';
 void main() { }
 ''';
-      Set imports = getAllImportsFor(source);
+      final imports = getAllImportsFor(source);
       expect(
           imports, unorderedMatches(['dart:math', 'package:../foo/foo.dart']));
       expect(filterSafePackagesFromImports(imports), isEmpty);
     });
 
     test('negative dart import', () {
-      final String source = '''
+      const source = '''
 import 'dart:../bar.dart';
 ''';
-      Set imports = getAllImportsFor(source);
+      final imports = getAllImportsFor(source);
       expect(imports, unorderedMatches(['dart:../bar.dart']));
       expect(filterSafePackagesFromImports(imports), isEmpty);
     });
 
     test('negative path import', () {
-      final String source = '''
+      const source = '''
 import '../foo.dart';
 ''';
-      Set imports = getAllImportsFor(source);
+      final imports = getAllImportsFor(source);
       expect(imports, unorderedMatches(['../foo.dart']));
       expect(filterSafePackagesFromImports(imports), isEmpty);
     });

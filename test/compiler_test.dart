@@ -95,7 +95,7 @@ void defineTests() {
     });
 
     test('good import', () {
-      final String code = '''
+      const code = '''
 import 'dart:html';
 
 void main() {
@@ -110,7 +110,7 @@ void main() {
     });
 
     test('bad import - local', () {
-      final String code = '''
+      const code = '''
 import 'foo.dart';
 void main() { missingMethod ('foo'); }
 ''';
@@ -121,7 +121,7 @@ void main() { missingMethod ('foo'); }
     });
 
     test('bad import - http', () {
-      final String code = '''
+      const code = '''
 import 'http://example.com';
 void main() { missingMethod ('foo'); }
 ''';
@@ -137,7 +137,7 @@ void main() { missingMethod ('foo'); }
     });
 
     test('transitive errors', () {
-      final String code = '''
+      const code = '''
 import 'dart:foo';
 void main() { print ('foo'); }
 ''';
