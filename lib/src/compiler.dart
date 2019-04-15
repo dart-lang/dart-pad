@@ -144,6 +144,7 @@ class Compiler {
       arguments.add('--single-out-file');
       arguments.addAll(<String>['--module-name', 'dartpad_main']);
       arguments.add(compileTarget);
+      arguments.addAll(<String>['--library-root', temp.path]);
 
       File mainJs = File(path.join(temp.path, '$kMainDart.js'));
 
