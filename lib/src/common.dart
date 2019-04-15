@@ -8,15 +8,15 @@ import 'dart:io';
 
 import 'sdk_manager.dart';
 
-final String kMainDart = 'main.dart';
+const kMainDart = 'main.dart';
 
-final String sampleCode = '''
+const sampleCode = '''
 void main() {
   print("hello");
 }
 ''';
 
-final String sampleCodeWeb = """
+const sampleCodeWeb = """
 import 'dart:html';
 
 void main() {
@@ -25,7 +25,7 @@ void main() {
 }
 """;
 
-final String sampleCodeMultiFoo = """
+const sampleCodeMultiFoo = """
 import 'bar.dart';
 
 void main() {
@@ -33,13 +33,13 @@ void main() {
 }
 """;
 
-final String sampleCodeMultiBar = '''
+const sampleCodeMultiBar = '''
 bar() {
   return 4;
 }
 ''';
 
-final String sampleCodeAsync = """
+const sampleCodeAsync = """
 import 'dart:html';
 
 main() async {
@@ -50,13 +50,13 @@ main() async {
 }
 """;
 
-final String sampleCodeError = '''
+const sampleCodeError = '''
 void main() {
   print("hello")
 }
 ''';
 
-final String sampleCodeErrors = '''
+const sampleCodeErrors = '''
 void main() {
   print1("hello");
   print2("hello");
@@ -64,7 +64,7 @@ void main() {
 }
 ''';
 
-final String sampleStrongError = """
+const sampleStrongError = """
 void main() {
   foo('whoops');
 }
@@ -74,7 +74,7 @@ void foo(int i) {
 }
 """;
 
-final String sampleDart2OK = """
+const sampleDart2OK = """
 class Foo {
   String toString() => 'hello';
 }
@@ -84,7 +84,7 @@ void main(List<String> argv) {
 }
 """;
 
-final String sampleDart2Error = '''
+const sampleDart2Error = '''
 class Foo {
   final bool isAlwaysNull;
   Foo(this.isAlwaysNull) {}
