@@ -6,6 +6,7 @@
 
 library dart_pad.grind;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:git/git.dart';
@@ -77,8 +78,11 @@ testExperimental() async {
 
 @Task('Serve locally on port 8000')
 @Depends(build)
-serve() {
-  run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build']);
+serve() async {
+  await Process.start(Platform.executable, ['bin/serve.dart'])
+      .then((Process process) {
+    process.stdout.transform(utf8.decoder).listen(stdout.write);
+  });
 }
 
 const String backendVariable = 'DARTPAD_BACKEND';
@@ -86,7 +90,7 @@ const String backendVariable = 'DARTPAD_BACKEND';
 @Task(
     'Serve locally on port 8002 and use backend from $backendVariable environment variable')
 @Depends(build)
-serveCustomBackend() {
+serveCustomBackend() async {
   if (!Platform.environment.containsKey(backendVariable)) {
     print('$backendVariable can be specified (as [http|https]://host[:port]) '
         'to indicate the dart-services server to connect to');
@@ -116,7 +120,10 @@ serveCustomBackend() {
 
   log('\nServing dart-pad on http://localhost:8000');
 
-  run('pub', arguments: ['run', 'dhttpd', '-p', '8000', '--path=build']);
+  await Process.start(Platform.executable, ['bin/serve.dart'])
+      .then((Process process) {
+    process.stdout.transform(utf8.decoder).listen(stdout.write);
+  });
 }
 
 @Task('Build the `web/index.html` entrypoint')
