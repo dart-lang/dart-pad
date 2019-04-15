@@ -48,6 +48,7 @@ BSD-style license that can be found in the LICENSE file. -->
         </div>
     </div>
     <div class="UnderlineNav-actions">
+        <button id="show-hint" class="btn disabled">Hint</button>
         <button id="format-code" class="btn">Format</button>
         <button id="reload-gist" class="btn mr-2">Reset</button>
         <button id="execute" class="btn btn-primary">
@@ -79,6 +80,12 @@ BSD-style license that can be found in the LICENSE file. -->
         <div class="message-container"></div>
     </div>
     <div id="test-result-box" class="flash flash-warn" hidden>
+        <button class="flash-close">
+            <div class="octicon octicon-x"></div>
+        </button>
+        <div class="message-container"></div>
+    </div>
+    <div id="hint-box" class="flash" hidden>
         <button class="flash-close">
             <div class="octicon octicon-x"></div>
         </button>
