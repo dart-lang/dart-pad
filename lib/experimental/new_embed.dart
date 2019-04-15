@@ -227,7 +227,6 @@ class NewEmbed {
     context.dartSource = gist.getFile('main.dart')?.content ?? '';
     context.testMethod = gist.getFile('test.dart')?.content ?? '';
     context.hint = gist.getFile('hint.txt')?.content ?? '';
-    showHintButton.disabled = context.hint.isEmpty;
     editorIsBusy = false;
 
     if (analyze) {
