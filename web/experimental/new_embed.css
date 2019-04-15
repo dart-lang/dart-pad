@@ -42,12 +42,27 @@ body {
   than one is displayed.
 */
 
-#flash-container {
-  z-index: 100;
-}
-
 #flash-container > div + div {
   margin-top: 8px;
+}
+
+.flash {
+  border-radius: 0.25em;
+}
+
+#flash-container {
+  width: 380px;
+  z-index: 10;
+}
+
+.message-container {
+  padding-right: 22px;
+  max-height: 120px;
+  overflow-y: scroll;
+}
+
+.message-container div+div {
+  padding-top: 8px;
 }
 
 .link-message {
@@ -80,6 +95,10 @@ body {
 #web-output {
   width: 260px;
   border-left: 1px solid #e1e4e8;
+}
+
+#user-code-editor.web-output-showing {
+  width: calc(100% - 260px);
 }
 
 .no-overflow {

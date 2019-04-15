@@ -66,56 +66,54 @@ class DartCompleter extends CodeCompleter {
         String replacementString = editor.document.value
             .substring(replaceOffset, replaceOffset + replaceLength);
 
-        List<AnalysisCompletion> analysisCompletions =
+        Iterable<AnalysisCompletion> responses =
             response.completions.map((Map completion) {
           return AnalysisCompletion(replaceOffset, replaceLength, completion);
-        }).toList();
+        });
 
-        List<Completion> completions = analysisCompletions
-            .map((completion) {
-              // TODO: Move to using a LabelProvider; decouple the data and rendering.
-              String displayString = completion.isMethod
-                  ? '${completion.text}${completion.parameters}'
-                  : completion.text;
-              if (completion.isMethod && completion.returnType != null) {
-                displayString += ' → ${completion.returnType}';
-              }
+        Iterable<Completion> completions = responses.map((completion) {
+          // TODO: Move to using a LabelProvider; decouple the data and rendering.
+          String displayString = completion.isMethod
+              ? '${completion.text}${completion.parameters}'
+              : completion.text;
+          if (completion.isMethod && completion.returnType != null) {
+            displayString += ' → ${completion.returnType}';
+          }
 
-              // Filter unmatching completions.
-              // TODO: This is temporary; tracking issue here:
-              // https://github.com/dart-lang/dart-services/issues/87.
-              if (replacementString.isNotEmpty) {
-                if (!completion.matchesCompletionFragment(replacementString)) {
-                  return null;
-                }
-              }
+          // Filter unmatching completions.
+          // TODO: This is temporary; tracking issue here:
+          // https://github.com/dart-lang/dart-services/issues/87.
+          if (replacementString.isNotEmpty) {
+            if (!completion.matchesCompletionFragment(replacementString)) {
+              return null;
+            }
+          }
 
-              String text = completion.text;
+          String text = completion.text;
 
-              if (completion.isMethod) text += '()';
+          if (completion.isMethod) text += '()';
 
-              String deprecatedClass =
-                  completion.isDeprecated ? ' deprecated' : '';
+          String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
 
-              if (completion.type == null) {
-                return Completion(text,
-                    displayString: displayString, type: deprecatedClass);
-              } else {
-                int cursorPos;
+          if (completion.type == null) {
+            return Completion(text,
+                displayString: displayString, type: deprecatedClass);
+          } else {
+            int cursorPos;
 
-                if (completion.isMethod && completion.parameterCount > 0) {
-                  cursorPos = text.indexOf('(') + 1;
-                }
+            if (completion.isMethod && completion.parameterCount > 0) {
+              cursorPos = text.indexOf('(') + 1;
+            }
 
-                return Completion(text,
-                    displayString: displayString,
-                    type:
-                        'type-${completion.type.toLowerCase()}$deprecatedClass',
-                    cursorOffset: cursorPos);
-              }
-            })
-            .where((x) => x != null)
-            .toList();
+            return Completion(
+              text,
+              displayString: displayString,
+              type: 'type-${completion.type.toLowerCase()}$deprecatedClass',
+              cursorOffset: cursorPos,
+            );
+          }
+        });
+        completions = completions.where((x) => x != null).toList();
 
         List<Completion> filterCompletions = List.from(completions);
 

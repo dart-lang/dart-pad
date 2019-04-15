@@ -7,6 +7,7 @@ import 'dart:html' hide Document;
 
 import 'package:dart_pad/sharing/gists.dart';
 
+import '../completion.dart';
 import '../core/dependencies.dart';
 import '../core/modules.dart';
 import '../dart_pad.dart';
@@ -33,6 +34,7 @@ void init() {
 class NewEmbed {
   DisableableButton executeButton;
   DisableableButton reloadGistButton;
+  DisableableButton formatButton;
 
   DElement navBarElement;
   TabController tabController;
@@ -49,14 +51,14 @@ class NewEmbed {
 
   EditorFactory editorFactory = codeMirrorFactory;
 
-  Editor testEditor;
   Editor userCodeEditor;
+  Editor testEditor;
 
   NewEmbedContext context;
 
-  final _debounceTimer = DelayedTimer(
-    minDelay: Duration(milliseconds: 100),
-    maxDelay: Duration(milliseconds: 500),
+  final DelayedTimer _debounceTimer = DelayedTimer(
+    minDelay: Duration(milliseconds: 1000),
+    maxDelay: Duration(milliseconds: 5000),
   );
 
   NewEmbed() {
@@ -97,6 +99,11 @@ class NewEmbed {
 
     reloadGistButton.disabled = gistId.isEmpty;
 
+    formatButton = DisableableButton(
+      querySelector('#format-code'),
+      _performFormat,
+    );
+
     testResultBox = FlashBox(querySelector('#test-result-box'));
     analysisResultBox = FlashBox(querySelector('#analysis-result-box'));
 
@@ -105,12 +112,14 @@ class NewEmbed {
           ..theme = 'elegant'
           ..mode = 'dart'
           ..showLineNumbers = true;
-
     userCodeEditor.document.onChange.listen(_performAnalysis);
 
     testEditor = editorFactory.createFromElement(querySelector('#test-editor'))
       ..theme = 'elegant'
       ..mode = 'dart'
+      // TODO(devoncarew): We should make this read-only after initial beta
+      // testing.
+      //..readOnly = true
       ..showLineNumbers = true;
 
     editorTabView = TabView(DElement(querySelector('#user-code-view')));
@@ -171,13 +180,25 @@ class NewEmbed {
 
     context = NewEmbedContext(userCodeEditor, testEditor);
 
+    editorFactory.registerCompleter(
+        'dart', DartCompleter(dartServices, userCodeEditor.document));
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
+      if (userCodeEditor.hasFocus) {
+        userCodeEditor.showCompletions();
+      }
+    }, 'Completion');
+    document.onKeyUp.listen(_handleAutoCompletion);
+
     if (supportsFlutterWeb) {
       // Make the web output area visible.
       querySelector('#web-output').removeAttribute('hidden');
+
+      // Shrink the code editing area.
+      querySelector('#user-code-editor').classes.add('web-output-showing');
     }
 
     if (gistId.isNotEmpty) {
-      _loadAndShowGist(gistId);
+      _loadAndShowGist(gistId, analyze: false);
     }
   }
 
@@ -187,21 +208,25 @@ class NewEmbed {
     navBarElement.toggleClass('busy', value);
     executeButton.disabled = value;
     userCodeEditor.readOnly = value;
-    testEditor.readOnly = value;
     reloadGistButton.disabled = value || gistId.isEmpty;
   }
 
-  Future<void> _loadAndShowGist(String id) async {
+  Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
     editorIsBusy = true;
     final GistLoader loader = deps[GistLoader];
     final gist = await loader.loadGist(id);
     context.dartSource = gist.getFile('main.dart')?.content ?? '';
     context.testMethod = gist.getFile('test.dart')?.content ?? '';
     editorIsBusy = false;
+
+    if (analyze) {
+      _performAnalysis();
+    }
   }
 
   void _handleExecute() {
     editorIsBusy = true;
+    analysisResultBox.hide();
     testResultBox.hide();
     consoleTabView.clear();
 
@@ -245,60 +270,49 @@ class NewEmbed {
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
-    int errorCount = 0;
-    int otherCount = 0;
+    analysisResultBox.hide();
+    testResultBox.hide();
 
-    for (AnalysisIssue issue in issues) {
-      if (issue.kind == 'error') {
-        errorCount++;
-      } else if (issue.kind == 'info' || issue.kind == 'warning') {
-        otherCount++;
-      }
+    if (issues.isEmpty) {
+      return;
     }
 
-    if (errorCount == 0 && otherCount == 0) {
-      analysisResultBox.hide();
-    } else {
-      String message;
-      FlashBoxStyle style;
-
-      if (errorCount > 0 && otherCount > 0) {
-        message = 'Analyzer found $errorCount error${errorCount > 1 ? 's' : ''}'
-            ' and $otherCount other issue${otherCount > 1 ? 's' : ''}.';
-        style = FlashBoxStyle.error;
-      } else if (errorCount > 0) {
-        message =
-            'Analyzer found $errorCount error${errorCount > 1 ? 's' : ''}.';
-        style = FlashBoxStyle.error;
-      } else {
-        message =
-            'Analyzer found $otherCount issue${otherCount > 1 ? 's' : ''}';
-        style = FlashBoxStyle.warn;
+    List<String> messages = issues.map((AnalysisIssue issue) {
+      String message = issue.message;
+      if (message.endsWith('.')) {
+        message = message.substring(0, message.length - 1);
       }
+      return '$message - line ${issue.line}';
+    }).toList();
 
-      analysisResultBox.showStrings([message], style);
-    }
+    analysisResultBox.showStrings(messages, FlashBoxStyle.warn);
   }
 
   /// Perform static analysis of the source code.
-  void _performAnalysis(_) async {
+  void _performAnalysis([_]) {
     _debounceTimer.invoke(() {
       final dartServices = deps[DartservicesApi] as DartservicesApi;
-      final input = SourceRequest()..source = userCodeEditor.document.value;
-      final lines = Lines(input.source);
-      final request = dartServices.analyze(input).timeout(serviceCallTimeout);
+      final userSource = context.dartSource;
+      // Create a synthesis of the user code and other code to analyze.
+      final fullSource = '$userSource\n'
+          '${context.testMethod}\n'
+          '${executionSvc.testResultDecoration}\n';
+      final sourceRequest = SourceRequest()..source = fullSource;
+      final lines = Lines(sourceRequest.source);
 
-      request.then((AnalysisResults result) {
+      dartServices
+          .analyze(sourceRequest)
+          .timeout(serviceCallTimeout)
+          .then((AnalysisResults result) {
         // Discard if the document has been mutated since we requested analysis.
-        if (input.source != userCodeEditor.document.value) return false;
+        if (userSource != context.dartSource) return;
 
         _displayIssues(result.issues);
 
-        userCodeEditor.document
-            .setAnnotations(result.issues.map((AnalysisIssue issue) {
-          final startLine = lines.getLineForOffset(issue.charStart);
-          final endLine =
-              lines.getLineForOffset(issue.charStart + issue.charLength);
+        Iterable<Annotation> issues = result.issues.map((AnalysisIssue issue) {
+          final charStart = issue.charStart;
+          final startLine = lines.getLineForOffset(charStart);
+          final endLine = lines.getLineForOffset(charStart + issue.charLength);
 
           return Annotation(
             issue.kind,
@@ -306,18 +320,61 @@ class NewEmbed {
             issue.line,
             start: Position(
               startLine,
-              issue.charStart - lines.offsetForLine(startLine),
+              charStart - lines.offsetForLine(startLine),
             ),
             end: Position(
               endLine,
-              issue.charStart +
-                  issue.charLength -
-                  lines.offsetForLine(startLine),
+              charStart + issue.charLength - lines.offsetForLine(startLine),
             ),
           );
-        }).toList());
+        });
+
+        userCodeEditor.document.setAnnotations(issues.toList());
+      }).catchError((e) {
+        if (e is! TimeoutException) {
+          final String message = e is ApiRequestError ? e.message : '$e';
+
+          _displayIssues([
+            AnalysisIssue()
+              ..kind = 'error'
+              ..line = 1
+              ..message = message
+          ]);
+          userCodeEditor.document.setAnnotations([]);
+        }
       });
     });
+  }
+
+  void _performFormat() async {
+    String originalSource = userCodeEditor.document.value;
+    SourceRequest input = SourceRequest()..source = originalSource;
+
+    try {
+      formatButton.disabled = true;
+      FormatResponse result =
+          await dartServices.format(input).timeout(serviceCallTimeout);
+
+      formatButton.disabled = false;
+
+      // Check that the user hasn't edited the source since the format request.
+      if (originalSource == userCodeEditor.document.value) {
+        // And, check that the format request did modify the source code.
+        if (originalSource != result.newString) {
+          userCodeEditor.document.updateValue(result.newString);
+          _performAnalysis();
+        }
+      }
+    } catch (e) {
+      formatButton.disabled = false;
+      print(e);
+    }
+  }
+
+  void _handleAutoCompletion(KeyboardEvent e) {
+    if (userCodeEditor.hasFocus && e.keyCode == KeyCode.PERIOD) {
+      userCodeEditor.showCompletions(autoInvoked: true);
+    }
   }
 
   bool get supportsFlutterWeb {

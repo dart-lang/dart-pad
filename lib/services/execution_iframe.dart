@@ -71,7 +71,11 @@ void _result(bool success, [List<String> messages]) {
   final joinedMessages = messages?.map((m) => '"\$m"')?.join(',') ?? '';
 
   print('$testKey{"success": \$success, "messages": [\$joinedMessages]}');
-}''';
+}
+
+// Ensure we have at least one use of `_result`.
+var resultFunction = _result;
+''';
 
   String _decorateJavaScript(String javaScript, {String modulesBaseUrl}) {
     final String postMessagePrint = '''
@@ -133,7 +137,8 @@ window.onerror = function(message, url, lineNumber, colno, error) {
     if (modulesBaseUrl != null) {
       requireConfig = '''
 require.config({
-  "baseUrl": "$modulesBaseUrl"
+  "baseUrl": "$modulesBaseUrl",
+  "waitSeconds": 60
 });
 ''';
     }
