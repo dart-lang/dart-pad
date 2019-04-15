@@ -117,7 +117,9 @@ class NewEmbed {
     testEditor = editorFactory.createFromElement(querySelector('#test-editor'))
       ..theme = 'elegant'
       ..mode = 'dart'
-      ..readOnly = true
+      // TODO(devoncarew): We should make this read-only after initial beta
+      // testing.
+      //..readOnly = true
       ..showLineNumbers = true;
 
     editorTabView = TabView(DElement(querySelector('#user-code-view')));
@@ -294,8 +296,7 @@ class NewEmbed {
       // Create a synthesis of the user code and other code to analyze.
       final fullSource = '$userSource\n'
           '${context.testMethod}\n'
-          '${executionSvc.testResultDecoration}\n'
-          'var resultFunction = _result;\n';
+          '${executionSvc.testResultDecoration}\n';
       final sourceRequest = SourceRequest()..source = fullSource;
       final lines = Lines(sourceRequest.source);
 
