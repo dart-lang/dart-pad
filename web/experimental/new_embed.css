@@ -32,10 +32,23 @@ body {
   background-color: #f7f7f7;
   padding: 2px 8px 0 29px;
   margin-bottom: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap-reverse;
+}
+
+.nav-buttons {
+  padding: 4px 4px 4px 4px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .tabnav-tab:focus {
   outline: 0;
+  justify-self: end;
 }
 
 /* Console */

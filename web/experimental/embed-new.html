@@ -36,13 +36,6 @@ BSD-style license that can be found in the LICENSE file. -->
 
 <body class="d-flex flex-column">
 <div id="navbar" class="tabnav dp-tabs">
-    <button id="execute" class="btn btn-primary float-right">
-        <div class="octicon medium-octicon octicon-triangle-right"></div>
-        Run
-    </button>
-    <button id="reload-gist" class="btn float-right mr-2">Reset</button>
-    <button id="format-code" class="btn float-right mr-2">Format</button>
-    <button id="show-hint" class="btn float-right mr-1">Hint</button>
     <nav class="tabnav-tabs">
         <button id="editor-tab" class="tabnav-tab selected">Your code</button>
         <button id="test-tab" class="tabnav-tab">Test code</button>
@@ -51,6 +44,15 @@ BSD-style license that can be found in the LICENSE file. -->
             <span id="unread-console-counter" class="Counter" hidden></span>
         </button>
     </nav>
+    <div class="nav-buttons">
+        <button id="show-hint" class="btn mr-1">Hint</button>
+        <button id="format-code" class="btn mr-2">Format</button>
+        <button id="reload-gist" class="btn mr-2">Reset</button>
+        <button id="execute" class="btn btn-primary float-right">
+            <div class="octicon medium-octicon octicon-triangle-right"></div>
+            Run
+        </button>
+    </div>
 </div>
 <section id="tab-container" class="flex-auto d-flex flex-column no-overflow">
     <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
