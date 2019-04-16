@@ -618,22 +618,6 @@ class CommonServer {
 
     await _checkPackageReferencesInitFlutterWeb(source);
 
-    String sourceHash = _hashSource(source);
-    // TODO(devoncarew): Include the version of referenced libraries in the
-    // keys.
-    String memCacheKey = '%%COMPILE_DDC:v0:source:$sourceHash';
-
-    final String result = await checkCache(memCacheKey);
-    if (result != null) {
-      log.info('CACHE: Cache hit for compileDDC');
-      dynamic resultObj = JsonDecoder().convert(result);
-      return CompileDDCResponse(
-        resultObj['compiledJS'] as String,
-        resultObj['staticScriptUris'] as String,
-      );
-    }
-
-    log.info('CACHE: MISS for compileDDC');
     Stopwatch watch = Stopwatch()..start();
 
     return compiler.compileDDC(source).then((DDCCompilationResults results) {
@@ -643,12 +627,6 @@ class CommonServer {
         int ms = watch.elapsedMilliseconds;
         log.info('PERF: Compiled $lineCount lines of Dart into '
             '${outputSize}kb of JavaScript in ${ms}ms using DDC.');
-        String cachedResult = JsonEncoder().convert(<String, dynamic>{
-          'compiledJS': results.compiledJS,
-          'modulesBaseUrl': results.modulesBaseUrl,
-        });
-        // Don't block on cache set.
-        unawaited(setCache(memCacheKey, cachedResult));
 
         return CompileDDCResponse(results.compiledJS, results.modulesBaseUrl);
       } else {

@@ -18,6 +18,11 @@ RUN apt-get update && \
   cp -a third_party/pkg ../pkg && \
   rm -rf /var/lib/apt/lists/*
 
+# Flutter web
+RUN rm -rf /app/flutter_web
+ADD flutter_web /flutter_web
+RUN echo "flutter_repo_path=/flutter_web" > /app/config.properties
+
 EXPOSE 8080 8181 5858
 
 # Clear out any arguments the base images might have set and ensure we start

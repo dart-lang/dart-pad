@@ -23,3 +23,6 @@ artifacts/
 
 # local configuration overrides
 config.properties
+
+# Flutter Web
+flutter_web/
