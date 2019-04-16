@@ -120,6 +120,7 @@ class NewEmbed {
           ..mode = 'dart'
           ..showLineNumbers = true;
     userCodeEditor.document.onChange.listen(_performAnalysis);
+    userCodeEditor.autoCloseBrackets = false;
 
     testEditor = editorFactory.createFromElement(querySelector('#test-editor'))
       ..theme = 'elegant'
