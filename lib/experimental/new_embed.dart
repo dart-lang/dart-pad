@@ -35,6 +35,7 @@ class NewEmbed {
   DisableableButton executeButton;
   DisableableButton reloadGistButton;
   DisableableButton formatButton;
+  DisableableButton showHintButton;
 
   DElement navBarElement;
   TabController tabController;
@@ -46,6 +47,7 @@ class NewEmbed {
 
   FlashBox testResultBox;
   FlashBox analysisResultBox;
+  FlashBox hintBox;
 
   ExecutionService executionSvc;
 
@@ -99,6 +101,10 @@ class NewEmbed {
 
     reloadGistButton.disabled = gistId.isEmpty;
 
+    showHintButton = DisableableButton(querySelector('#show-hint'), () {
+      hintBox.showStrings([context.hint]);
+    });
+
     formatButton = DisableableButton(
       querySelector('#format-code'),
       _performFormat,
@@ -106,6 +112,7 @@ class NewEmbed {
 
     testResultBox = FlashBox(querySelector('#test-result-box'));
     analysisResultBox = FlashBox(querySelector('#analysis-result-box'));
+    hintBox = FlashBox(querySelector('#hint-box'));
 
     userCodeEditor =
         editorFactory.createFromElement(querySelector('#user-code-editor'))
@@ -206,9 +213,11 @@ class NewEmbed {
   /// too busy to handle code changes, execute/reset requests, etc.
   set editorIsBusy(bool value) {
     navBarElement.toggleClass('busy', value);
-    executeButton.disabled = value;
     userCodeEditor.readOnly = value;
+    executeButton.disabled = value;
+    formatButton.disabled = value;
     reloadGistButton.disabled = value || gistId.isEmpty;
+    showHintButton.disabled = value || context.hint.isEmpty;
   }
 
   Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
@@ -217,6 +226,7 @@ class NewEmbed {
     final gist = await loader.loadGist(id);
     context.dartSource = gist.getFile('main.dart')?.content ?? '';
     context.testMethod = gist.getFile('test.dart')?.content ?? '';
+    context.hint = gist.getFile('hint.txt')?.content ?? '';
     editorIsBusy = false;
 
     if (analyze) {
@@ -228,6 +238,7 @@ class NewEmbed {
     editorIsBusy = true;
     analysisResultBox.hide();
     testResultBox.hide();
+    hintBox.hide();
     consoleTabView.clear();
 
     final fullCode = '${context.dartSource}\n${context.testMethod}\n'
@@ -272,6 +283,7 @@ class NewEmbed {
   void _displayIssues(List<AnalysisIssue> issues) {
     analysisResultBox.hide();
     testResultBox.hide();
+    hintBox.hide();
 
     if (issues.isEmpty) {
       return;
@@ -550,6 +562,8 @@ class NewEmbedContext {
   final Editor testEditor;
 
   Document _dartDoc;
+
+  String hint = '';
 
   String get testMethod => testEditor.document.value;
 

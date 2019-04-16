@@ -42,7 +42,7 @@ BSD-style license that can be found in the LICENSE file. -->
 
 <nav id="navbar" class="UnderlineNav p-2">
     <div class="UnderlineNav-body">
-        <div class="BtnGroup mr-2">
+        <div class="BtnGroup">
             <button id="editor-tab" class="btn BtnGroup-item selected" selected type="button">Your code</button>
             <button id="test-tab" class="btn BtnGroup-item" type="button">Test code</button>
             <button id="console-tab" class="btn BtnGroup-item" type="button">
@@ -52,10 +52,9 @@ BSD-style license that can be found in the LICENSE file. -->
         </div>
     </div>
     <div class="UnderlineNav-actions">
+        <button id="show-hint" class="btn disabled">Hint</button>
         <button id="format-code" class="btn">Format</button>
-        <button id="reload-gist" class="btn">
-            Reset
-        </button>
+        <button id="reload-gist" class="btn mr-2">Reset</button>
         <button id="execute" class="btn btn-primary">
             <div class="octicon medium-octicon octicon-triangle-right"></div>
             Run
@@ -63,17 +62,21 @@ BSD-style license that can be found in the LICENSE file. -->
     </div>
 </nav>
 
-<section id="tab-container" class="flex-auto d-flex flex-column">
-    <div id="user-code-view" class="flex-auto d-flex flex-column">
+<section id="tab-container" class="flex-auto d-flex flex-column no-overflow">
+    <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
         <div id="user-code-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
+        <div id="web-output" class="p-1 d-flex" hidden>
+            <iframe id="frame" sandbox="allow-scripts" class="flex-auto" src="../scripts/frame.html">
+            </iframe>
+        </div>
     </div>
-    <div id="test-view" class="flex-auto d-flex flex-column" spellcheck="false" hidden>
+    <div id="test-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
         <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
     </div>
     <div id="console-view" class="tabview flex-auto p-2" hidden></div>
 </section>
 
-<div id="flash-container" class="position-fixed right-2 bottom-2 col-6">
+<div id="flash-container" class="position-fixed right-2 bottom-2">
     <div id="analysis-result-box" class="flash flash-error" hidden>
         <button class="flash-close">
             <div class="octicon octicon-x"></div>
@@ -86,10 +89,13 @@ BSD-style license that can be found in the LICENSE file. -->
         </button>
         <div class="message-container"></div>
     </div>
+    <div id="hint-box" class="flash" hidden>
+        <button class="flash-close">
+            <div class="octicon octicon-x"></div>
+        </button>
+        <div class="message-container"></div>
+    </div>
 </div>
-
-<iframe id="frame" sandbox="allow-scripts" flex src="../scripts/frame.html">
-</iframe>
 
 </body>
 
