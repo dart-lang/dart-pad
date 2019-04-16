@@ -2,7 +2,6 @@ from urlparse import urlparse
 from google.appengine.ext import ndb
 import os
 import webapp2
-import logging
 
 class WhiteListEntry(ndb.Model):
     emailAddress = ndb.StringProperty()
@@ -62,12 +61,6 @@ class MainHandler(webapp2.RequestHandler):
                 _serve(self.response, newPath)
             return
 
-        # If it is a request for something in the scripts/assets folder, serve it
-        if targetSplits[1] == 'scripts' and targetSplits[2] == 'assets':
-            newPath = "/".join(targetSplits[1:])
-            _serve(self.response, newPath)
-            return
-
         # Otherwise it's a request for a item after the gist pseudo path
         # drop the gist and serve it.
         if len(targetSplits) >= 3:
@@ -86,7 +79,6 @@ def isDevelopment():
 
 # Serve the files.
 def _serve(resp, path):
-    logging.info('Serving {0}'.format(path))
 
     if not os.path.isfile(path):
         resp.status = 404
@@ -105,11 +97,6 @@ def _serve(resp, path):
         resp.content_type = 'text/html'
     if path.endswith('.png'):
         resp.content_type = 'image/png'
-    if path.endswith('.json'):
-        resp.content_type = 'application/json'
-        resp.headers.add_header('Access-Control-Allow-Origin', '*')
-
-    logging.info('Headers {0}'.format(resp.headers))
 
     f = open(path, 'r')
     c = f.read()
