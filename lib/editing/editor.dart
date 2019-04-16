@@ -37,6 +37,10 @@ abstract class Editor {
   /// Checks if the completion popup is displayed.
   bool get completionActive;
 
+  bool get autoCloseBrackets;
+
+  set autoCloseBrackets(bool value);
+
   String get mode;
 
   set mode(String str);
