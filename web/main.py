@@ -2,6 +2,7 @@ from urlparse import urlparse
 from google.appengine.ext import ndb
 import os
 import webapp2
+import logging
 
 class WhiteListEntry(ndb.Model):
     emailAddress = ndb.StringProperty()
@@ -85,6 +86,7 @@ def isDevelopment():
 
 # Serve the files.
 def _serve(resp, path):
+    logging.info('Serving {0}'.format(path))
 
     if not os.path.isfile(path):
         resp.status = 404
@@ -106,6 +108,8 @@ def _serve(resp, path):
     if path.endswith('.json'):
         resp.content_type = 'application/json'
         resp.headers.add_header('Access-Control-Allow-Origin', '*')
+
+    logging.info('Headers {0}'.format(resp.headers))
 
     f = open(path, 'r')
     c = f.read()
