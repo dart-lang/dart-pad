@@ -8,6 +8,13 @@ class WhiteListEntry(ndb.Model):
 
 
 class MainHandler(webapp2.RequestHandler):
+
+    def options(self):
+        '''options is required for CORS'''
+        self.response.headers['Access-Control-Allow-Origin'] = '*'
+        self.response.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
+        self.response.headers['Access-Control-Allow-Methods'] = 'POST, GET, PUT, DELETE'
+
     def get(self):
         mainPage = 'index.html'
 
@@ -54,6 +61,12 @@ class MainHandler(webapp2.RequestHandler):
                 _serve(self.response, newPath)
             return
 
+        # If it is a request for something in the scripts/assets folder, serve it
+        if targetSplits[1] == 'scripts' and targetSplits[2] == 'assets':
+            newPath = "/".join(targetSplits[1:])
+            _serve(self.response, newPath)
+            return
+
         # Otherwise it's a request for a item after the gist pseudo path
         # drop the gist and serve it.
         if len(targetSplits) >= 3:
@@ -90,6 +103,9 @@ def _serve(resp, path):
         resp.content_type = 'text/html'
     if path.endswith('.png'):
         resp.content_type = 'image/png'
+    if path.endswith('.json'):
+        resp.content_type = 'application/json'
+        resp.headers.add_header('Access-Control-Allow-Origin', '*')
 
     f = open(path, 'r')
     c = f.read()
