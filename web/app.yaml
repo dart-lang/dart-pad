@@ -16,6 +16,7 @@ handlers:
 
 - url: /scripts/assets/FontManifest.json
   static_files: scripts/assets/FontManifest.json
+  upload: scripts/assets/FontManifest\.json
   http_headers:
     Access-Control-Allow-Origin: "*"
 

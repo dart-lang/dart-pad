@@ -8,7 +8,6 @@ class WhiteListEntry(ndb.Model):
 
 
 class MainHandler(webapp2.RequestHandler):
-
     def get(self):
         mainPage = 'index.html'
 
