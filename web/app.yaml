@@ -14,6 +14,12 @@ handlers:
 - url: /pictures
   static_dir: pictures
 
+- url: /scripts/assets/FontManifest.json
+  static_files: scripts/assets/FontManifest.json
+  upload: scripts/assets/FontManifest\.json
+  http_headers:
+    Access-Control-Allow-Origin: "*"
+
 - url: /scripts
   static_dir: scripts
 
