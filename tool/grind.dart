@@ -125,8 +125,7 @@ void _buildStorageArtifacts(Directory dir) {
   final List<String> flutterPackages = [
     'flutter_web',
     'flutter_web_ui',
-    // TODO(devoncarew): package:flutter_web_test is not currently handled
-    // 'flutter_web_test',
+    'flutter_web_test',
   ];
 
   List<String> flutterLibraries = [];
