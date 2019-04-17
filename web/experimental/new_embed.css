@@ -91,7 +91,20 @@ body {
 .message-container {
   padding-right: 22px;
   max-height: 120px;
-  overflow-y: scroll;
+  overflow-y: auto;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 9px;
+  height: 9px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: #888;
+  box-shadow: 0 0 1px rgba(255,255,255, 1);
+  opacity: 0.5;
 }
 
 .message-container div+div {
