@@ -23,10 +23,7 @@
         border: 1px solid #ccc;
         width: 100%;
         height: 400px;
-      }
-
-      iframe[short] {
-        height: 220px;
+        margin-bottom: 40px;
       }
 
       #choosePad {
@@ -55,19 +52,28 @@
         font-style: italic;
         font-size: 16px;
       }
+
+      body {
+        font-size: 16px;
+      }
+
+      h4 {
+        margin-top: 40px;
+      }
     </style>
 </head>
 
 <body>
 <div class="container">
     <div class="row">
-        <div class="col-md-2"></div>
-        <div class="col-md-8">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
             <h2>Flutter Codelab</h2>
             <div class="disclaimer">
                 This codelab is being used to test out some new features of DartPad! You may encounter bugs,
                 malapropisms, annoyances, and other general weirdness. If that happens, please take a moment to
-                <a target="_BLANK" href="https://github.com/dart-lang/dart-pad/issues/new">fill out a bug report on GitHub</a>
+                <a target="_BLANK" href="https://github.com/dart-lang/dart-pad/issues/new">fill out a bug report on
+                    GitHub</a>
                 and let us know. Feature requests and suggestions are also greatly appreciated.
             </div>
             <div class="disclaimer">
@@ -77,19 +83,494 @@
                 eventually released.
             </div>
             <p>
-                Flutter has some features that do things. You should try them!
+                <span class="code">Row</span> and <span class="code">Column</span> are two very important widgets in the
+                Flutter universe. Want to put a <span class="code">Text</span> widget with a label next to another <span
+                    class="code">Text</span> widget with the corresponding value? Use a <span class="code">Row</span>.
+                Want to present multiple pairs of labels and values? That's a <span class="code">Column</span> full of
+                <span class="code">Rows</span>. Forms with several fields, icons next to menu choices, buttons next to
+                search bars, these are all places where <span class="code">Rows</span> and <span
+                    class="code">Columns</span> get used,
+            </p>
+            <p>
+                This codelab will walk you through how <span class="code">Rows</span> and <span
+                    class="code">Columns</span> work. Because they're so similar, once you're done learning about <span
+                    class="code">Rows</span>, the codelab mostly just shows you how all the same stuff applies to <span
+                    class="code">Columns</span>. There are inline editors along the way so you can play around and test
+                your knowledge.
             </p>
 
-            <h3>Centering stuff</h3>
+            <h3>Let's start with a Row and some children</h3>
             <p>
-                To center a widget, stick it in a <span class="code">Center</span> widget.
+                The whole point of a <span class="code">Row</span> or <span class="code">Column</span> is to contain
+                other widgets, known as children. In a <span class="code">Row</span>, children
+                are arranged horizontally from first to last in accordance with text direction. If your device is set to
+                English or another left-to-right language, they'll start from the left. If you're using Arabic or
+                another right-to-left language, they'll start on the right and head left.
             </p>
 
             <h4>Code example</h4>
             <p>
-                Try centering the text widget presented below:
+                Below is a widget called <span class="code">MyWidget</span> that builds a single Row. Try adding three
+                <span class="code">BlueBox</span> widgets to its list
+                of children.
             </p>
-            <iframe src="embed-new.html?id=9d3b49579aea1a7ee5bb546846fd0026&fw=true"></iframe>
+            <iframe src="embed-new.html?id=76e993732820ef908ea8424744b9996d&fw=true"></iframe>
+
+            <h3>Main axis size</h3>
+            <p>
+                The main axis of a <span class="code">Row</span> is the horizontal one (for <span
+                    class="code">Columns</span>, it's the vertical axis). Each <span class="code">Row</span> has a
+                property called <span class="code">mainAxisSize</span> that determines how much space it should take
+                along that axis. By default,
+                <span class="code">mainAxisSize</span> is set to <span class="code">MainAxisSize.max</span>, which
+                causes a Row to take up all the available horizontal
+                space. You can use <span class="code">MainAxisSize.min</span> to direct a <span class="code">Row</span>
+                widget to take up as little space as possible.
+            </p>
+
+            <h4>Code example</h4>
+            <p>
+                Here's the example you just finished. Try setting the <span class="code">Row</span>'s <span
+                    class="code">mainAxisSize</span> property to <span class="code">MainAxisSize.min</span>
+                and see what happens.
+            </p>
+            <iframe src="embed-new.html?id=9ac4ade5961150a27d3e547b667c8037&fw=true"></iframe>
+
+            <h3>Main axis alignment</h3>
+            <p>
+                If you've set the <span class="code">mainAxisSize</span> of a <span class="code">Row</span> to the
+                minimum, there won't be any extra room beyond what the
+                children use. If you've got it set to <span class="code">max</span>, though, the <span
+                    class="code">Row</span> may have some additional space lying around.
+                You can use the <span class="code">mainAxisAlignment</span> property to control how the <span
+                    class="code">Row</span> aligns its children within that space.
+            </p>
+            <p>
+                There are six different values available in the <span class="code">MainAxisAlignment</span> enum:
+            </p>
+            <ul>
+                <li><span class="code">MainAxisAligment.start</span>
+                    <ul>
+                        <li>
+                            Place all children as close to the start of the Row as possible (for left-to-right rows,
+                            this is
+                            the left side)
+                        </li>
+                    </ul>
+                </li>
+                <li><span class="code">MainAxisAligment.end</span>
+                    <ul>
+                        <li>Place all children as close to the end of the <span class="code">Row</span> as possible</li>
+                    </ul>
+                </li>
+                <li><span class="code">MainAxisAligment.center</span>
+                    <ul>
+                        <li>Group the children together in the center of the <span class="code">Row</span></li>
+                    </ul>
+                </li>
+                <li><span class="code">MainAxisAligment.spaceBetween</span>
+                    <ul>
+                        <li>Any extra space is divided evenly and used to make gaps between the children.</li>
+                    </ul>
+                </li>
+                <li><span class="code">MainAxisAligment.spaceEvenly</span>
+                    <ul>
+                        <li>
+                            Just like <span class="code">spaceBetween</span>, except the spots before the first child
+                            and after the last one also
+                            count as gaps
+                        </li>
+                    </ul>
+                </li>
+                <li><span class="code">MainAxisAligment.spaceAround</span>
+                    <ul>
+                        <li>Just like <span class="code">spaceEvenly</span>, only the first and last gaps get 50% of the
+                            amount used between
+                            children.
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h4>Code example</h4>
+            <p>
+                The row below has its <span class="code">mainAxisAlignment</span> set to start. Try changing it to the
+                other values and re-running
+                the code to see how things move around.
+            </p>
+            <iframe src="embed-new.html?id=0c97de625a9aa5c3194f9eecbd73ec1a&fw=true"></iframe>
+
+            <h3>Cross axis alignment</h3>
+            <p>
+                The cross axis for <span class="code">Row</span> widgets is the vertical axis, and you can use the <span
+                    class="code">crossAxisAlignment</span> property to control how children are positioned vertically.
+                The default value is <span class="code">CrossAxisAlignment.center</span>,
+                but there are five options in total:
+            </p>
+            <ul>
+                <li><span class="code">CrossAxisAlignment.start</span>
+                    <ul>
+                        <li>Children are aligned at the start of the <span class="code">Row</span>'s vertical space (by
+                            default, the top is considered to be the start, though you can change that via the
+                            <span class="code">verticalDirection</span> property)
+                        </li>
+                    </ul>
+                </li>
+                <li><span class="code">CrossAxisAlignment.end</span>
+                    <ul>
+                        <li>Children are aligned at the end of the <span class="code">Row</span>'s vertical space (by
+                            default,
+                            that means the bottom)
+                        </li>
+                    </ul>
+                </li>
+                <li><span class="code">CrossAxisAlignment.center</span>
+                    <ul>
+                        <li>Children are centered with respect to the vertical axis</li>
+                    </ul>
+                </li>
+                <li><span class="code">CrossAxisAlignment.stretch</span>
+                    <ul>
+                        <li>Children are forced to have the same height as the <span class="code">Row</span> itself,
+                            filling
+                            all the vertical space
+                        </li>
+                    </ul>
+                </li>
+                <li><span class="code">CrossAxisAlignment.baseline</span>
+                    <ul>
+                        <li>Children are aligned by their baselines (more on this one in a
+                            second)
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <h4>Code example</h4>
+            <p>
+                This <span class="code">Row</span> has two small children and one big one. Its <span class="code">crossAxisAlignment</span>
+                property is set to center, the default. Try changing it to the other values and re-running the code to
+                see how things move around.
+            </p>
+            <p>
+                A word of warning: <span class="code">CrossAxisAlignment.baseline</span> requires that another property
+                be set as well, so you
+                will see an error if you try that one. Don't worry, though -- it's covered in the next section.
+            </p>
+            <iframe src="embed-new.html?id=610aa31bbd09c90b5cede790bb6c3854&fw=true"></iframe>
+
+            <h3>Baseline alignment</h3>
+            <p>
+                Sometimes it's handy to align widgets containing text not by their overall bounds, but by the baselines
+                used by their characters. That's what <span class="code">CrossAxisAlignment.baseline</span> is for. You
+                can use it in combination with a <span class="code">Row</span>'s <span class="code">textBaseline</span>
+                property (which indicates which baseline to use) to align a <span class="code">Row</span>'s children
+                along their baselines.
+            </p>
+            <p>
+                Note that if set a <span class="code">Row</span>'s <span class="code">crossAxisAlignment</span> property
+                to baseline without setting <span class="code">textBaseline</span> at the same
+                time, your widgets will fail to build.
+            </p>
+
+            <h4>Code example</h4>
+            <p>
+                This row contains three <span class="code">Text</span> widgets with different font sizes. Try changing
+                the <span class="code">crossAxisAlignment</span>
+                property to <span class="code">baseline</span>, and experiment with different values for <span
+                    class="code">textBaseline</span> as well.
+            </p>
+            <iframe src="embed-new.html?id=8c4a0571b161755c8d9235df947d268e&fw=true"></iframe>
+
+            <h3>Flexible children</h3>
+            <p>
+                So far, all the widgets used as children in examples have had a fixed size. It's possible, though, for a
+                <span class="code">Row</span> to have children that flex, and adapt to the available space. In order to
+                understand how this works,
+                it's best to take a look at how Rows size themselves and their children:
+            </p>
+            <ol>
+                <li>First, the <span class="code">Row</span> asks all of its children with fixed sizes how big they'd
+                    like to be.
+                </li>
+                <li>Next, it calculates the remaining space in its main axis (horizontal).</li>
+                <li>Then it divides up that remaining space among its flexible children according to their flex factors.
+                    The flexible children can use some or all of the space they're offered.
+                </li>
+                <li>At that point, the <span class="code">Row</span> knows how big all of its children are, and can
+                    align them using the same axis
+                    size and alignment properties you've seen so far.
+                </li>
+            </ol>
+            <p>
+                Most widgets are considered to be of a fixed size. You can change that by wrapping them in a <span
+                    class="code">Flexible</span>
+                widget. <span class="code">Flexibles</span> have two important properties: a <span
+                    class="code">flex</span> factor that determines how much of the remaining
+                space they get in comparison to other <span class="code">Flexibles</span>, and a <span
+                    class="code">fit</span> property that determines whether their child
+                is forced to take up all the extra space it's offered.
+            </p>
+
+            <h4>Code example</h4>
+            <p>
+                Try wrapping the middle box in this row with a <span class="code">Flexible</span> widget that has a
+                <span class="code">flex</span> factor of 1 and its <span class="code">fit</span>
+                property set to <span class="code">FlexFit.loose</span>. Afterward, try changing the fit to tight and
+                see what happens.
+            </p>
+            <p>
+                This combination (a <span class="code">flex</span> factor of 1 and a tight <span class="code">fit</span>)
+                is so popular, there's a whole widget just to make
+                using them easier: <span class="code">Expanded</span>.
+            </p>
+            <iframe src="embed-new.html?id=c7ba00c50151ab2e5c0c2194686fef93&fw=true"></iframe>
+
+            <h3>Flex factors</h3>
+            <p>
+                If more than one child of a <span class="code">Row</span> or <span class="code">Column</span> has a
+                flexible size, the available space is allotted to them
+                according to their <span class="code">flex</span> factors:
+            </p>
+            <div class="snippet">
+                remainingSpace * (flex / totalOfAllFlexValues)
+            </div>
+
+            <h4>Code example</h4>
+            <p>
+                In this example, all three of the <span class="code">Row</span>'s children are <span class="code">Flexible</span>.
+                Try changing their <span class="code">flex</span> values and
+                re-running the code to see how the widgets' sizes adjust.
+            </p>
+            <iframe src="embed-new.html?id=4ab5409b566272c8f2cd28feddb0a995&fw=true"></iframe>
+
+            <h3>What happens if you run out of space?</h3>
+            <p>
+                As you just saw, when a <span class="code">Row</span> asks one of its <span class="code">Flexible</span>
+                children how big it wants to be, it gives the child
+                a max width based on its <span class="code">flex</span> factor. However, fixed-size children get no such
+                restriction. This is so
+                they can determine their own intrinsic size.
+            </p>
+            <p>
+                One side effect is that there's nothing stopping a fixed-size child from declaring itself to be bigger
+                than the <span class="code">Row</span> can support. When that happens, a flex overflow results. You can
+                fix it by changing the
+                child widget so that it chooses a smaller size, or by using a scrolling widget.
+            </p>
+
+            <h4>Code example</h4>
+            <p>
+                The <span class="code">Row</span> below contains a single widget that's way too wide to fit. Run the
+                code as-is to see what
+                happens, then try modifying the width of the <span class="code">Container</span> to make it fit.
+            </p>
+            <iframe src="embed-new.html?id=5a59d93119dc5b6eb1725235fde137cf&fw=true"></iframe>
+
+            <h3>Try using SizedBox to make space</h3>
+            <p>
+                If you need a specific amount of space between two children of a <span class="code">Row</span>, an easy
+                way to do it is by
+                sticking a <span class="code">SizedBox</span> of the appropriate width in between.
+            </p>
+
+            <h4>Code example</h4>
+            <p>
+                Trying making some space between these two list items by placing a <span class="code">SizedBox</span>
+                with a <span class="code">width</span> of 50 between
+                them.
+            </p>
+            <iframe src="embed-new.html?id=0c3e1ce8177a2f0cc8e2275d5260b348&fw=true"></iframe>
+
+            <h3>Spacers expand to make space</h3>
+            <p>
+                <span class="code">Spacers</span> are another convenient way to make space between items in a Row.
+                They're flexible, and will
+                expand to fill any leftover space.
+            </p>
+
+            <h4>Code example</h4>
+            <p>
+                Try adding a <span class="code">Spacer</span> in between the first and second children of the <span
+                    class="code">Row</span> below.
+            </p>
+            <iframe src="embed-new.html?id=dd68c1eb491e7a22a2ceb4127d78e504&fw=true"></iframe>
+
+            <h3>Wait, wasn't I going to learn about Columns, too?</h3>
+            <p>
+                Surprise, you already have! <span class="code">Rows</span> and <span class="code">Columns</span> do the
+                same job, just in different dimensions. The main
+                axis of a <span class="code">Row</span> is horizontal, and the main axis of a <span
+                    class="code">Column</span> is vertical, but they both size and position their
+                children in the same way. They even share a base class, <span class="code">Flex</span>, so everything
+                you've learned about <span class="code">Rows</span>
+                applies to <span class="code">Columns</span> as well!
+            </p>
+
+            <h4>Code example</h4>
+            <p>
+                Here's a <span class="code">Column</span> with some children of various sizes and its most important
+                properties set. Try fiddling
+                around with them and you'll see that the <span class="code">Column</span> works like a vertical <span
+                    class="code">Row</span>.
+            </p>
+            <iframe src="embed-new.html?id=6cafe7beab954e72fed2fd2393a29f6c&fw=true"></iframe>
+
+            <h3>Putting it all together</h3>
+            <p>
+                Now that you're versed in <span class="code">Rows</span>, <span class="code">Columns</span>, and the
+                important properties of both, you're ready to practice
+                putting them together to build interfaces. The next few examples will guide you through the construction
+                of a business card display.
+            </p>
+
+            <h4>Code example</h4>
+            <p>
+                Every business card needs a name and a title, so start with that.
+            </p>
+            <ul>
+                <li>Add a <span class="code">Column</span> widget</li>
+                <li>Add two text widgets to the <span class="code">Column</span>'s list of children:</li>
+                <ul>
+                    <li>The first should be a name and use the <span class="code">headline</span> style:</li>
+                    <ul>
+                        <li>`style: Theme.of(context).textTheme.headline`</li>
+                    </ul>
+                    <li>
+                        The second should say 'Experienced App Developer' and use the default style (just leave the
+                        <span class="code">style</span> property out entirely)
+                    </li>
+                </ul>
+                <li>
+                    Set the <span class="code">Column</span>'s <span class="code">crossAxisAlignment</span> to start, so
+                    that the text widgets will be start-aligned rather
+                    than centered.
+                </li>
+            </ul>
+            <iframe src="embed-new.html?id=5e7e9352bca878f446d4347f324e2f63&fw=true"></iframe>
+
+            <p>
+                Business cards often have an icon or logo in the top-left corner, so the next step is to add one to
+                yours. Start by wrapping the <span class="code">Column</span> you just created with a <span
+                    class="code">Row</span> widget:
+            </p>
+
+            <div class="snippet">
+                Row(
+                  children: [
+                    Column( … ), // <- This should be the Column you made in the previous step
+                  ],
+                );
+            </div>
+            <p>
+                Now you can add the <span class="code">Icon</span>:
+            </p>
+            <ul>
+                <li>Above your <span class="code">Column</span> in the Row's list of children, add a <span class="code">Padding</span>
+                    widget
+                </li>
+                <ul>
+                    <li>Set its <span class="code">padding</span> to `const EdgeInsets.all(8)`</li>
+                </ul>
+                <li>For the child of the <span class="code">Padding</span> widget, use an Icon</li>
+                <ul>
+                    <li>You can use any icon resource you want, though `Icons.account_circle` works nicely</li>
+                    <li>Set the <span class="code">Icon</span>'s <span class="code">size</span> property to 50.</li>
+                </ul>
+            </ul>
+            <iframe src="embed-new.html?id=684e599476eef2ec4b4508e6b2186c03&fw=true"></iframe>
+
+            <p>
+                Your first <span class="code">Row</span> is now complete! There are two more to go, though, and you need
+                a <span class="code">Column</span> to put them in.
+                Wrap your <span class="code">Row</span> with a <span class="code">Column</span> widget so that it looks
+                like this:
+            </p>
+            <div class="snippet">
+                Column(
+                  children: [
+                    Row( … ), // <- This should be the Row with your Icon and Text widgets.
+                  ],
+                );
+            </div>
+            <p>
+                Then, finish up your new <span class="code">Column</span> with these steps:
+            </p>
+            <ul>
+                <li>Set the <span class="code">Column</span>'s mainAxisSize to min</li>
+                <ul>
+                    <li>Otherwise it'll expand to fill the screen!</li>
+                </ul>
+                <li>Set the <span class="code">Column</span>'s <span class="code">crossAxisAlignment</span> to stretch
+                </li>
+                <ul>
+                    <li>This will make all of its children full-width</li>
+                </ul>
+                <li>Add more widgets below your <span class="code">Row</span> in the <span class="code">Column</span>'s
+                    list of children:
+                </li>
+                <ul>
+                    <li>A <span class="code">SizedBox</span> with a height of 8</li>
+                    <li>An empty <span class="code">Row</span> (no children or other properties)</li>
+                    <li>A <span class="code">SizedBox</span> with a height of 16</li>
+                    <li>Another empty <span class="code">Row</span></li>
+                </ul>
+            </ul>
+            <iframe src="embed-new.html?id=19ead6db4f42ce112fc0a7d2e0922466&fw=true"></iframe>
+
+            <p>
+                There are just a few steps to go now. Next up is the second row. Add the following to its list of
+                children:
+            </p>
+            <ul>
+                <li>A <span class="code">Text</span> widget with a street address like '123 Main Street'</li>
+                <li>A <span class="code">Text</span> widget with a phone number like '800-123-1234'</li>
+            </ul>
+            <p>
+                If you run the code at this point, you'll see that the two <span class="code">Text</span> widgets are
+                placed right up against each
+                other rather than at opposite ends of the <span class="code">Row</span>, which isn't right. There are
+                three different ways you can
+                fix this:
+            </p>
+            <ul>
+                <li>You can wrap the first <span class="code">Text</span> widget with an <span
+                        class="code">Expanded</span>, and it will grow to fill all the extra space,
+                    pushing the second <span class="code">Text</span> all the way to the right.
+                </li>
+                <li>You can put a <span class="code">Spacer</span> widget between the two <span class="code">Text</span>
+                    widgets, and it will also grow to fill the space.
+                </li>
+                <li>You can set the <span class="code">Row</span>'s <span class="code">mainAxisAlignment</span> property
+                    to <span class="code">spaceBetween</span>, which will put any extra space
+                    between the two <span class="code">Text</span> widgets.
+                </li>
+            </ul>
+            <p>
+                The remaining steps of this codelab will assume the third choice, but you're free to use whichever you
+                prefer in this one.
+            </p>
+            <iframe src="embed-new.html?id=e6e07bbe96255b762163cf3e40906944&fw=true"></iframe>
+
+            <p>
+                The last step is to get those icons in place at the bottom of the card:
+            </p>
+            <ul>
+                <li>Add four <span class="code">Icon</span> widgets to the last <span class="code">Row</span>'s list of
+                    children. You can use whichever icon resources you
+                    like, but these would be a good way to show that your imaginary developer focuses on accessibility,
+                    fast development, and multi-platform apps:
+                </li>
+                <ul>
+                    <li><span class="code">Icons.accessibility</span></li>
+                    <li><span class="code">Icons.timer</span></li>
+                    <li><span class="code">Icons.phone_android</span></li>
+                    <li><span class="code">Icons.phone_iphone</span></li>
+                </ul>
+                <li>Set the <span class="code">Row</span>'s <span class="code">mainAxisAlignment</span> property to
+                    <span class="code">MainAxisAlignment.spaceAround</span></li>
+            </ul>
+
+            <iframe src="embed-new.html?id=2234a5ccada200eb1e018b12fa95d57d&fw=true"></iframe>
 
             <br/>
             <br/>
@@ -101,7 +582,7 @@
             <br/>
             <br/>
         </div>
-        <div class="col-md-2"></div>
+        <div class="col-md-1"></div>
     </div>
 </div>
 </body>
