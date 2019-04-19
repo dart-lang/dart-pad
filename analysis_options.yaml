@@ -7,6 +7,7 @@ analyzer:
     - 'dart-sdk/**'
     - 'third_party/**'
     - 'doc/generated/**'
+    - 'flutter_web/**'
 
 linter:
   rules:
