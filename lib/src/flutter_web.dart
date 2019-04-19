@@ -167,13 +167,9 @@ $_samplePackageName:lib/
 name: $_samplePackageName
 ''';
 
-    // TODO(devoncarew): We only add the 'test' dep below as
-    // package:flutter_web_test incorrectly lists its test dependency as a dev
-    // dependency; it should list it as a regular dependency.
     if (includeFlutterWeb) {
       content += '''
 dependencies:
-  test: any
   flutter_web:
     git:
       url: https://github.com/flutter/flutter_web
