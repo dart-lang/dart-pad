@@ -39,11 +39,19 @@ body {
   flex-wrap: wrap-reverse;
 }
 
+#navbar .tabnav-tabs {
+  padding-left: 12px;
+}
+
 .nav-buttons {
   padding: 4px 4px 4px 4px;
   display: flex;
   flex-direction: row;
   align-items: center;
+}
+
+.tabnav-tab {
+  line-height: 18px;
 }
 
 .tabnav-tab:focus {
