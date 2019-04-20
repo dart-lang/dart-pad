@@ -175,11 +175,11 @@ void _buildStorageArtifacts(Directory dir) {
 
   // emit some good google storage upload instructions
   final String version = File('dart-sdk.version').readAsStringSync().trim();
-  log('\nFrom the artifacts/ dir, run:');
-  log('  gsutil -h "Cache-Control:public, max-age=86400" cp *.js '
-      'gs://compilation_artifacts/$version/');
-  log('  gsutil -h "Cache-Control:public, max-age=86400" cp *.sum '
-      'gs://compilation_artifacts/$version/');
+  log('\nFrom the dart-services project root dir, run:');
+  log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z js '
+      'artifacts/*.js gs://compilation_artifacts/$version/');
+  log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z sum '
+      'artifacts/*.sum gs://compilation_artifacts/$version/');
 }
 
 @Task()
