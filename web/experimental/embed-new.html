@@ -38,6 +38,7 @@ BSD-style license that can be found in the LICENSE file. -->
 <div id="navbar" class="tabnav dp-tabs">
     <nav class="tabnav-tabs">
         <button id="editor-tab" class="tabnav-tab selected">Your code</button>
+        <button id="solution-tab" class="tabnav-tab" hidden>Solution</button>
         <button id="test-tab" class="tabnav-tab">Test code</button>
         <button id="console-tab" class="tabnav-tab">
             Output
@@ -61,6 +62,9 @@ BSD-style license that can be found in the LICENSE file. -->
             <iframe id="frame" sandbox="allow-scripts" class="flex-auto" src="../scripts/frame.html">
             </iframe>
         </div>
+    </div>
+    <div id="solution-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
+        <div id="solution-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
     </div>
     <div id="test-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
         <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>

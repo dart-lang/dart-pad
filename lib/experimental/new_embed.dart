@@ -41,7 +41,9 @@ class NewEmbed {
   TabController tabController;
   TabView editorTabView;
   TabView testTabView;
+  TabView solutionTabView;
   ConsoleTabView consoleTabView;
+  DElement solutionTab;
 
   Counter unreadConsoleCounter;
 
@@ -55,6 +57,7 @@ class NewEmbed {
 
   Editor userCodeEditor;
   Editor testEditor;
+  Editor solutionEditor;
 
   NewEmbedContext context;
 
@@ -65,12 +68,13 @@ class NewEmbed {
 
   NewEmbed() {
     tabController = NewEmbedTabController();
-    for (String name in ['editor', 'test', 'console']) {
+    for (String name in ['editor', 'test', 'console', 'solution']) {
       tabController.registerTab(
         TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
           editorTabView.setSelected(name == 'editor');
           testTabView.setSelected(name == 'test');
           consoleTabView.setSelected(name == 'console');
+          solutionTabView.setSelected(name == 'solution');
 
           if (name == 'editor') {
             userCodeEditor.resize();
@@ -78,6 +82,9 @@ class NewEmbed {
           } else if (name == 'test') {
             testEditor.resize();
             testEditor.focus();
+          } else if (name == 'solution') {
+            solutionEditor.resize();
+            solutionEditor.focus();
           } else {
             // Must be the console tab.
             unreadConsoleCounter.clear();
@@ -85,6 +92,8 @@ class NewEmbed {
         }),
       );
     }
+
+    solutionTab = DElement(querySelector('#solution-tab'));
 
     navBarElement = DElement(querySelector('#navbar'));
 
@@ -102,7 +111,15 @@ class NewEmbed {
     reloadGistButton.disabled = gistId.isEmpty;
 
     showHintButton = DisableableButton(querySelector('#show-hint'), () {
-      hintBox.showStrings([context.hint]);
+      var showSolutionButton = ButtonElement()
+        ..classes.add('link-button')
+        ..text = 'Show solution';
+      showSolutionButton.onClick.listen((_) {
+        solutionTab.clearAttr('hidden');
+        tabController.selectTab('solution');
+      });
+      var hintElement = DivElement()..text = context.hint;
+      hintBox.showElements([hintElement, showSolutionButton]);
     });
 
     formatButton = DisableableButton(
@@ -130,9 +147,17 @@ class NewEmbed {
       //..readOnly = true
       ..showLineNumbers = true;
 
+    solutionEditor =
+        editorFactory.createFromElement(querySelector('#solution-editor'))
+          ..theme = 'elegant'
+          ..mode = 'dart'
+          ..showLineNumbers = true;
+
     editorTabView = TabView(DElement(querySelector('#user-code-view')));
 
     testTabView = TabView(DElement(querySelector('#test-view')));
+
+    solutionTabView = TabView(DElement(querySelector('#solution-view')));
 
     consoleTabView = ConsoleTabView(DElement(querySelector('#console-view')));
 
@@ -186,7 +211,7 @@ class NewEmbed {
   void _initNewEmbed() {
     deps[GistLoader] = GistLoader.defaultFilters();
 
-    context = NewEmbedContext(userCodeEditor, testEditor);
+    context = NewEmbedContext(userCodeEditor, testEditor, solutionEditor);
 
     editorFactory.registerCompleter(
         'dart', DartCompleter(dartServices, userCodeEditor.document));
@@ -218,7 +243,8 @@ class NewEmbed {
     executeButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value || gistId.isEmpty;
-    showHintButton.disabled = value || context.hint.isEmpty;
+    showHintButton.disabled =
+        value || (context.hint.isEmpty && context.solution.isEmpty);
   }
 
   Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
@@ -227,6 +253,7 @@ class NewEmbed {
     final gist = await loader.loadGist(id);
     context.dartSource = gist.getFile('main.dart')?.content ?? '';
     context.testMethod = gist.getFile('test.dart')?.content ?? '';
+    context.solution = gist.getFile('solution.dart')?.content ?? '';
     context.hint = gist.getFile('hint.txt')?.content ?? '';
     editorIsBusy = false;
 
@@ -473,14 +500,23 @@ class DisableableButton {
       : assert(anchorElement != null),
         assert(onClick != null) {
     _element = DElement(anchorElement);
-    _element.onClick.listen((e) => onClick());
+    _element.onClick.listen((e) {
+      if (!_disabled) {
+        onClick();
+      }
+    });
   }
 
   static const disabledClassName = 'disabled';
 
   DElement _element;
+  bool _disabled = false;
 
-  set disabled(bool value) => _element.toggleClass(disabledClassName, value);
+  bool get disabled => _disabled;
+  set disabled(bool value) {
+    _disabled = value;
+    _element.toggleClass(disabledClassName, value);
+  }
 }
 
 class Octicon {
@@ -561,10 +597,13 @@ class FlashBox {
 class NewEmbedContext {
   final Editor userCodeEditor;
   final Editor testEditor;
+  final Editor solutionEditor;
 
   Document _dartDoc;
 
   String hint = '';
+
+  String _solution;
 
   String get testMethod => testEditor.document.value;
 
@@ -572,11 +611,17 @@ class NewEmbedContext {
     testEditor.document.value = value;
   }
 
+  String get solution => _solution;
+  set solution(String value) {
+    _solution = value;
+    solutionEditor.document.value = value;
+  }
+
   final _dartDirtyController = StreamController.broadcast();
 
   final _dartReconcileController = StreamController.broadcast();
 
-  NewEmbedContext(this.userCodeEditor, this.testEditor) {
+  NewEmbedContext(this.userCodeEditor, this.testEditor, this.solutionEditor) {
     _dartDoc = userCodeEditor.document;
     _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
     _createReconciler(_dartDoc, _dartReconcileController, 1250);

@@ -15,11 +15,13 @@ void main() {
     test('Editor tab is selected at init', () {
       final editorTab = querySelector('#editor-tab');
       expect(editorTab.attributes.keys, contains('selected'));
+      expect(editorTab.classes, contains('selected'));
     });
 
     test('Console tab is not selected at init', () {
       final consoleTab = querySelector('#console-tab');
       expect(consoleTab.attributes.keys, isNot(contains('selected')));
+      expect(consoleTab.classes, isNot(contains('selected')));
     });
 
     test('Console tab is selected when clicked.', () {
@@ -27,6 +29,7 @@ void main() {
       consoleTab.dispatchEvent(Event('click'));
 
       expect(consoleTab.attributes.keys, contains('selected'));
+      expect(consoleTab.classes, contains('selected'));
     });
 
     test('Editor tab is not selected when console tab is clicked', () {
@@ -35,11 +38,13 @@ void main() {
 
       final editorTab = querySelector('#editor-tab');
       expect(editorTab.attributes.keys, isNot(contains('selected')));
+      expect(editorTab.classes, isNot(contains('selected')));
     });
 
     test('Test tab is not selected at init', () {
       final testTab = querySelector('#test-tab');
       expect(testTab.attributes.keys, isNot(contains('selected')));
+      expect(testTab.classes, isNot(contains('selected')));
     });
 
     test('Test tab is selected when clicked.', () {
@@ -47,6 +52,7 @@ void main() {
       testTab.dispatchEvent(Event('click'));
 
       expect(testTab.attributes.keys, contains('selected'));
+      expect(testTab.classes, contains('selected'));
     });
 
     test('Editor tab is not selected when test tab is clicked', () {
@@ -55,6 +61,7 @@ void main() {
 
       final editorTab = querySelector('#editor-tab');
       expect(editorTab.attributes.keys, isNot(contains('selected')));
+      expect(editorTab.classes, isNot(contains('selected')));
     });
   });
 }
