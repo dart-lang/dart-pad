@@ -125,16 +125,28 @@ body {
 
 /* Web output */
 
-#web-output {
-  width: 260px;
-  border-left: 1px solid #e1e4e8;
-}
-
-#user-code-editor.web-output-showing {
-  width: calc(100% - 260px);
-}
-
 .no-overflow {
   height: 100%;
   overflow-y: hidden;
+}
+
+/* Splitter */
+.gutter {
+  background-color: rgb(255, 255, 255);
+  background-repeat: no-repeat;
+  background-position: 50%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.gutter.gutter-horizontal {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+  cursor: col-resize;
+  height: 100%;
+}
+
+.gutter.gutter-vertical {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+  cursor: row-resize;
+  width: 100%;
 }

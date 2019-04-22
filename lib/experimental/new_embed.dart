@@ -5,8 +5,6 @@
 import 'dart:async';
 import 'dart:html' hide Document;
 
-import 'package:dart_pad/sharing/gists.dart';
-
 import '../completion.dart';
 import '../core/dependencies.dart';
 import '../core/modules.dart';
@@ -19,7 +17,11 @@ import '../modules/dartservices_module.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
 import '../services/execution_iframe.dart';
+import '../sharing/gists.dart';
 import '../src/util.dart';
+import 'split.dart';
+
+const int defaultSplitterWidth = 10;
 
 NewEmbed get newEmbed => _newEmbed;
 
@@ -57,6 +59,8 @@ class NewEmbed {
   Editor testEditor;
 
   NewEmbedContext context;
+
+  Splitter splitter;
 
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
@@ -198,11 +202,22 @@ class NewEmbed {
     document.onKeyUp.listen(_handleAutoCompletion);
 
     if (supportsFlutterWeb) {
+      var webOutput = querySelector('#web-output');
+      var userCodeEditor = querySelector('#user-code-editor');
       // Make the web output area visible.
-      querySelector('#web-output').removeAttribute('hidden');
+      webOutput.removeAttribute('hidden');
 
-      // Shrink the code editing area.
-      querySelector('#user-code-editor').classes.add('web-output-showing');
+      var splitterElements = [userCodeEditor, webOutput];
+
+      splitter = flexSplit(
+        splitterElements,
+        horizontal: true,
+        gutterSize: defaultSplitterWidth,
+        // set initial sizes (in percentages)
+        sizes: [70, 30],
+        // set the minimum sizes (in pixels)
+        minSize: [100, 100],
+      );
     }
 
     if (gistId.isNotEmpty) {
