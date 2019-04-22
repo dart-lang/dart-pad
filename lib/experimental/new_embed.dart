@@ -111,8 +111,8 @@ class NewEmbed {
     reloadGistButton.disabled = gistId.isEmpty;
 
     showHintButton = DisableableButton(querySelector('#show-hint'), () {
-      var showSolutionButton = ButtonElement()
-        ..classes.add('link-button')
+      var showSolutionButton = AnchorElement()
+        ..style.cursor = 'pointer'
         ..text = 'Show solution';
       showSolutionButton.onClick.listen((_) {
         solutionTab.clearAttr('hidden');
@@ -184,6 +184,9 @@ class NewEmbed {
       );
     });
 
+    // set enabled/disabled state of various buttons
+    editorIsBusy = false;
+
     _initModules().then((_) => _initNewEmbed());
   }
 
@@ -243,8 +246,9 @@ class NewEmbed {
     executeButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value || gistId.isEmpty;
-    showHintButton.disabled =
-        value || (context.hint.isEmpty && context.solution.isEmpty);
+    var hasHintOrSolution =
+        context.hint.isNotEmpty || context.solution.isNotEmpty;
+    showHintButton.disabled = value || !hasHintOrSolution;
   }
 
   Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
@@ -510,6 +514,7 @@ class DisableableButton {
   static const disabledClassName = 'disabled';
 
   DElement _element;
+
   bool _disabled = false;
 
   bool get disabled => _disabled;
@@ -603,7 +608,7 @@ class NewEmbedContext {
 
   String hint = '';
 
-  String _solution;
+  String _solution = '';
 
   String get testMethod => testEditor.document.value;
 
