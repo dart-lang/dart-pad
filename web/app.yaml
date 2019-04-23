@@ -36,4 +36,4 @@ libraries:
   version: "2.5.2"
 
 skip_files:
-- packages/(?!(?:codemirror|dart-pad|octicons_css))
+- packages/(?!(?:codemirror|dart-pad|octicons_css|split))
