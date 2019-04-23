@@ -184,9 +184,6 @@ class NewEmbed {
       );
     });
 
-    // set enabled/disabled state of various buttons
-    editorIsBusy = false;
-
     _initModules().then((_) => _initNewEmbed());
   }
 
@@ -236,6 +233,9 @@ class NewEmbed {
     if (gistId.isNotEmpty) {
       _loadAndShowGist(gistId, analyze: false);
     }
+
+    // set enabled/disabled state of various buttons
+    editorIsBusy = false;
   }
 
   /// Toggles the state of several UI components based on whether the editor is
