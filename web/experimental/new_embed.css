@@ -132,7 +132,7 @@ body {
 
 /* Splitter */
 .gutter {
-  background-color: rgb(255, 255, 255);
+  background-color: #f7f7f7;
   background-repeat: no-repeat;
   background-position: 50%;
   margin-left: 0;
@@ -143,10 +143,14 @@ body {
   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
   cursor: col-resize;
   height: 100%;
+  border-left: 1px solid #d0d5d9;
+  border-right: 1px solid #d0d5d9;
 }
 
 .gutter.gutter-vertical {
   background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
   cursor: row-resize;
   width: 100%;
+  border-top: 1px solid #d0d5d9;
+  border-bottom: 1px solid #d0d5d9;
 }
