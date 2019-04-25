@@ -69,7 +69,6 @@ class ExecutionServiceIFrame implements ExecutionService {
 void _result(bool success, [List<String> messages]) {
   // Join messages into a comma-separated list for inclusion in the JSON array.
   final joinedMessages = messages?.map((m) => '"\$m"')?.join(',') ?? '';
-  
   print('$testKey{"success": \$success, "messages": [\$joinedMessages]}');
 }
 
