@@ -178,6 +178,10 @@ class NewEmbed {
     });
 
     executionSvc.testResults.listen((result) {
+      if (result.messages.isEmpty &&
+          result.success == false) {
+        result.messages.add('Test failed!');
+      }
       testResultBox.showStrings(
         result.messages.isNotEmpty ? result.messages : ['Test passed!'],
         result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
