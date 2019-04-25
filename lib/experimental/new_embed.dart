@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html' hide Document;
+import 'dart:html' as prefix0;
 
 import 'package:split/split.dart';
 
@@ -51,7 +52,6 @@ class NewEmbed {
   Counter unreadConsoleCounter;
 
   FlashBox testResultBox;
-  FlashBox analysisResultBox;
   FlashBox hintBox;
 
   ExecutionService executionSvc;
@@ -65,6 +65,7 @@ class NewEmbed {
   NewEmbedContext context;
 
   Splitter splitter;
+  AnalysisResultsElement analysisResultsElement;
 
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
@@ -133,7 +134,6 @@ class NewEmbed {
     );
 
     testResultBox = FlashBox(querySelector('#test-result-box'));
-    analysisResultBox = FlashBox(querySelector('#analysis-result-box'));
     hintBox = FlashBox(querySelector('#hint-box'));
 
     userCodeEditor =
@@ -188,6 +188,14 @@ class NewEmbed {
         result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
       );
     });
+
+    analysisResultsElement = AnalysisResultsElement(
+        querySelector('#issues'),
+        DElement(querySelector('#issues-message')),
+        DElement(querySelector('#issues-toggle')))
+      ..onIssueClick.listen((issue) {
+        _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+      });
 
     _initModules().then((_) => _initNewEmbed());
   }
@@ -284,7 +292,6 @@ class NewEmbed {
 
   void _handleExecute() {
     editorIsBusy = true;
-    analysisResultBox.hide();
     testResultBox.hide();
     hintBox.hide();
     consoleTabView.clear();
@@ -330,23 +337,9 @@ class NewEmbed {
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
-    analysisResultBox.hide();
     testResultBox.hide();
     hintBox.hide();
-
-    if (issues.isEmpty) {
-      return;
-    }
-
-    List<String> messages = issues.map((AnalysisIssue issue) {
-      String message = issue.message;
-      if (message.endsWith('.')) {
-        message = message.substring(0, message.length - 1);
-      }
-      return '$message - line ${issue.line}';
-    }).toList();
-
-    analysisResultBox.showStrings(messages, FlashBoxStyle.warn);
+    analysisResultsElement.display(issues);
   }
 
   /// Perform static analysis of the source code.
@@ -441,6 +434,15 @@ class NewEmbed {
   bool get supportsFlutterWeb {
     Uri url = Uri.parse(window.location.toString());
     return url.queryParameters['fw'] == 'true';
+  }
+
+  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
+    Document doc = userCodeEditor.document;
+
+    doc.select(
+        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
+
+    if (focus) userCodeEditor.focus();
   }
 }
 
@@ -613,6 +615,109 @@ class FlashBox {
 
   void hide() {
     _element.setAttr('hidden');
+  }
+
+  void show() {
+    _element.clearAttr('hidden');
+  }
+}
+
+class AnalysisResultsElement extends DElement {
+  static const String _noIssuesMsg = 'no issues';
+  static const String _hideMsg = 'hide';
+  static const String _showMsg = 'show';
+
+  DElement message;
+  DElement toggle;
+  bool _hidden = true;
+
+  final StreamController<AnalysisIssue> _onClickSink =
+      StreamController.broadcast();
+  Stream<AnalysisIssue> get onIssueClick => _onClickSink.stream;
+
+  AnalysisResultsElement(Element element, this.message, this.toggle)
+      : super(element) {
+    hide();
+    message.text = _noIssuesMsg;
+    toggle.text = _hideMsg;
+    toggle.onClick.listen((_) {
+      if (_hidden) {
+        show();
+      } else {
+        hide();
+      }
+    });
+  }
+
+  void display(List<AnalysisIssue> issues) {
+    if (issues.isEmpty) {
+      message.text = _noIssuesMsg;
+      hideToggle();
+      return;
+    }
+
+    showToggle();
+    message.text = '${issues.length} issues';
+
+    clearChildren();
+    for (var elem in _createElements(issues)) {
+      add(elem);
+    }
+  }
+
+  Iterable<Element> _createElements(Iterable<AnalysisIssue> issues) {
+    return issues.map(_issueElement);
+  }
+
+  Element _issueElement(AnalysisIssue issue) {
+    var message = issue.message;
+    if (issue.message.endsWith('.')) {
+      message = message.substring(0, message.length - 1);
+    }
+    var elem = DivElement()..classes.add('issue');
+
+    if (issue.kind == 'info') {
+      elem.children.add(SpanElement()
+        ..text = issue.kind
+        ..classes.addAll(['issuelabel', 'info']));
+    } else if (issue.kind == 'warning') {
+      elem.children.add(SpanElement()
+        ..text = issue.kind
+        ..classes.addAll(['issuelabel', 'warning']));
+    } else if (issue.kind == 'error') {
+      elem.children.add(SpanElement()
+        ..text = issue.kind
+        ..classes.addAll(['issuelabel', 'error']));
+    }
+
+    elem.children.add(SpanElement()
+      ..text = '$message - line ${issue.line}'
+      ..classes.add('message'));
+
+    elem.onClick.listen((_) {
+      _onClickSink.add(issue);
+    });
+    return elem;
+  }
+
+  void hideToggle() {
+    toggle.setAttr('hidden');
+  }
+
+  void showToggle() {
+    toggle.clearAttr('hidden');
+  }
+
+  void hide() {
+    setAttr('hidden');
+    _hidden = true;
+    toggle.text = _showMsg;
+  }
+
+  void show() {
+    _hidden = false;
+    clearAttr('hidden');
+    toggle.text = _hideMsg;
   }
 }
 
