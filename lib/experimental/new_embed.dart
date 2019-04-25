@@ -66,6 +66,10 @@ class NewEmbed {
 
   Splitter splitter;
 
+  DElement issuesMessage;
+  DElement issuesToggle;
+  bool _issuesHidden = true;
+
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
     maxDelay: Duration(milliseconds: 5000),
@@ -188,6 +192,23 @@ class NewEmbed {
         result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
       );
     });
+
+    // Hide analysis issues until the user clicks the toggle
+    analysisResultBox.hide();
+
+    issuesMessage = DElement(querySelector('#issues-message'));
+    issuesToggle = DElement(querySelector('#issues-toggle'))
+      ..onClick.listen((_) {
+        if (_issuesHidden) {
+          analysisResultBox.show();
+          issuesToggle.text = 'hide';
+          _issuesHidden = false;
+        } else {
+          analysisResultBox.hide();
+          issuesToggle.text = 'show';
+          _issuesHidden = true;
+        }
+      });
 
     _initModules().then((_) => _initNewEmbed());
   }
@@ -334,8 +355,11 @@ class NewEmbed {
     hintBox.hide();
 
     if (issues.isEmpty) {
+      issuesMessage.text = 'no issues';
       return;
     }
+
+    issuesMessage.text = '${issues.length} issues';
 
     List<String> messages = issues.map((AnalysisIssue issue) {
       String message = issue.message;
@@ -595,7 +619,6 @@ class FlashBox {
   }
 
   void showElements(List<Element> elements, [FlashBoxStyle style]) {
-    _element.clearAttr('hidden');
     _element.element.classes
         .removeWhere((s) => classNamesForStyles.values.contains(s));
 
@@ -612,6 +635,10 @@ class FlashBox {
 
   void hide() {
     _element.setAttr('hidden');
+  }
+
+  void show() {
+    _element.clearAttr('hidden');
   }
 }
 

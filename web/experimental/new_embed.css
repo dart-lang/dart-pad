@@ -84,6 +84,7 @@ body {
 #flash-container {
   width: 380px;
   z-index: 10;
+    margin-bottom: 18px;
 }
 
 .message-container {
@@ -171,4 +172,33 @@ body {
   width: 100%;
   border-top: 1px solid #d0d5d9;
   border-bottom: 1px solid #d0d5d9;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  border-top: 1px solid #d0d5d9;
+  background-color: #f7f7f7;
+  padding: 0 12px 0 12px;
+}
+
+#issues-message {
+  cursor: default;
+  color: #586069;
+}
+
+#issues-toggle {
+  cursor: pointer;
+}
+
+.issues-spacer {
+  width: 12px;
+}
+
+.issues-container {
+  display: flex;
+  flex-direction: row;
 }
