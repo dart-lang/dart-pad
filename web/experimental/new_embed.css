@@ -12,12 +12,6 @@ body {
   font-size: 14px;
 }
 
-#frame {
-  border: none;
-  width: 100%;
-  height: 100%;
-}
-
 .medium-octicon {
   font-size: 19px;
 }
@@ -26,6 +20,7 @@ body {
   background: url(moving_lines.gif) repeat;
   box-shadow: inset 0 0 0 1000px rgba(255,255,255,.5);
 }
+
 
 /* Tab Navigation */
 
@@ -60,6 +55,7 @@ body {
   justify-self: end;
 }
 
+
 /* Console */
 
 #console-view {
@@ -68,6 +64,7 @@ body {
   height: 100%;
   white-space: pre-wrap;
 }
+
 
 /* Flashes */
 
@@ -112,9 +109,6 @@ body {
   padding-top: 8px;
 }
 
-.link-message {
-  cursor: pointer;
-}
 
 /* Code annotations */
 
@@ -130,6 +124,7 @@ body {
   border-bottom: 2px solid #7EA7D8;
 }
 
+
 /* Styling specifically for CodeMirror editor */
 
 .CodeMirror {
@@ -137,7 +132,14 @@ body {
   font-family: 'Inconsolata', monospace;
 }
 
+
 /* Web output */
+
+#frame {
+  border: none;
+  width: 100%;
+  height: 100%;
+}
 
 .no-overflow {
   height: 100%;
@@ -145,8 +147,8 @@ body {
 }
 
 
-
 /* Splitter */
+
 .gutter {
   background-color: #f7f7f7;
   background-repeat: no-repeat;
