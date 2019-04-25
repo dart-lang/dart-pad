@@ -160,7 +160,7 @@ class Compiler {
       } else {
         final DDCCompilationResults results = DDCCompilationResults(
           compiledJS: mainJs.readAsStringSync(),
-          modulesBaseUrl: 'https://storage.cloud.google.com/'
+          modulesBaseUrl: 'https://storage.googleapis.com/'
               'compilation_artifacts/$_sdkVersion/',
         );
         return results;
