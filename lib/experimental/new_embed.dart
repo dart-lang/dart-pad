@@ -5,6 +5,8 @@
 import 'dart:async';
 import 'dart:html' hide Document;
 
+import 'package:split/split.dart';
+
 import '../completion.dart';
 import '../core/dependencies.dart';
 import '../core/modules.dart';
@@ -19,7 +21,6 @@ import '../services/dartservices.dart';
 import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/util.dart';
-import 'split.dart';
 
 const int defaultSplitterWidth = 10;
 
