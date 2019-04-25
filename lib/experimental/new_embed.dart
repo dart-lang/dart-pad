@@ -288,6 +288,7 @@ class NewEmbed {
     testResultBox.hide();
     hintBox.hide();
     consoleTabView.clear();
+    unreadConsoleCounter.clear();
 
     final fullCode = '${context.dartSource}\n${context.testMethod}\n'
         '${executionSvc.testResultDecoration}';
