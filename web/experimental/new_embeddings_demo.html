@@ -24,6 +24,7 @@
         width: 100%;
         height: 400px;
         margin-bottom: 40px;
+        margin-top: 40px;
       }
 
       #choosePad {
@@ -152,9 +153,8 @@
                 <li><span class="code">MainAxisAligment.start</span>
                     <ul>
                         <li>
-                            Place all children as close to the start of the Row as possible (for left-to-right rows,
-                            this is
-                            the left side)
+                            Place all children as close to the start of the <span class="code">Row</span> as possible
+                            (for left-to-right rows, this is the left side)
                         </li>
                     </ul>
                 </li>
@@ -431,9 +431,11 @@
                 <li>Add a <span class="code">Column</span> widget</li>
                 <li>Add two text widgets to the <span class="code">Column</span>'s list of children:</li>
                 <ul>
-                    <li>The first should be a name and use the <span class="code">headline</span> style:</li>
+                    <li>The first should be a name (a short one will be easier to fit into the small window) and use the
+                        <span class="code">headline</span> style:
+                    </li>
                     <ul>
-                        <li>`style: Theme.of(context).textTheme.headline`</li>
+                        <li><span class="code">style: Theme.of(context).textTheme.headline</span></li>
                     </ul>
                     <li>
                         The second should say 'Experienced App Developer' and use the default style (just leave the
@@ -444,6 +446,11 @@
                     Set the <span class="code">Column</span>'s <span class="code">crossAxisAlignment</span> to start, so
                     that the text widgets will be start-aligned rather
                     than centered.
+                </li>
+                <li>
+                    Set the <span class="code">Column</span>'s <span class="code">mainAxisSize</span> to
+                    <span class="code">MainAxisSize.min</span>, so the card won't expand to the full height of the
+                    window.
                 </li>
             </ul>
             <iframe src="embed-new.html?id=5e7e9352bca878f446d4347f324e2f63&fw=true"></iframe>
@@ -465,15 +472,20 @@
                 Now you can add the <span class="code">Icon</span>:
             </p>
             <ul>
-                <li>Above your <span class="code">Column</span> in the Row's list of children, add a <span class="code">Padding</span>
-                    widget
+                <li>Above your <span class="code">Column</span> in the R<span class="code">ow</span>'s list of children,
+                    add a <span class="code">Padding</span> widget
                 </li>
                 <ul>
-                    <li>Set its <span class="code">padding</span> to `const EdgeInsets.all(8)`</li>
+                    <li>
+                        Set its <span class="code">padding</span> to <span class="code">const EdgeInsets.all(8)</span>
+                    </li>
                 </ul>
                 <li>For the child of the <span class="code">Padding</span> widget, use an Icon</li>
                 <ul>
-                    <li>You can use any icon resource you want, though `Icons.account_circle` works nicely</li>
+                    <li>
+                        You can use any icon resource you want, though <span class="code">Icons.account_circle</span>
+                        works nicely
+                    </li>
                     <li>Set the <span class="code">Icon</span>'s <span class="code">size</span> property to 50.</li>
                 </ul>
             </ul>
@@ -527,24 +539,14 @@
             </ul>
             <p>
                 If you run the code at this point, you'll see that the two <span class="code">Text</span> widgets are
-                placed right up against each
-                other rather than at opposite ends of the <span class="code">Row</span>, which isn't right. There are
-                three different ways you can
-                fix this:
+                placed right up against each other rather than at opposite ends of the
+                <span class="code">Row</span>, which isn't right.
             </p>
-            <ul>
-                <li>You can wrap the first <span class="code">Text</span> widget with an <span
-                        class="code">Expanded</span>, and it will grow to fill all the extra space,
-                    pushing the second <span class="code">Text</span> all the way to the right.
-                </li>
-                <li>You can put a <span class="code">Spacer</span> widget between the two <span class="code">Text</span>
-                    widgets, and it will also grow to fill the space.
-                </li>
-                <li>You can set the <span class="code">Row</span>'s <span class="code">mainAxisAlignment</span> property
-                    to <span class="code">spaceBetween</span>, which will put any extra space
-                    between the two <span class="code">Text</span> widgets.
-                </li>
-            </ul>
+            <p>
+                You can fix this by setting the <span class="code">Row</span>'s
+                <span class="code">mainAxisAlignment</span> property to <span class="code">spaceBetween</span>, which
+                will put any extra space between the two <span class="code">Text</span> widgets.
+            </p>
             <p>
                 The remaining steps of this codelab will assume the third choice, but you're free to use whichever you
                 prefer in this one.
