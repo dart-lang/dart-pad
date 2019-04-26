@@ -41,7 +41,7 @@ class NewEmbed {
   DisableableButton showHintButton;
 
   DElement navBarElement;
-  TabController tabController;
+  NewEmbedTabController tabController;
   TabView editorTabView;
   TabView testTabView;
   TabView solutionTabView;
@@ -262,19 +262,20 @@ class NewEmbed {
     executeButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value || gistId.isEmpty;
-    var hasHintOrSolution =
-        context.hint.isNotEmpty || context.solution.isNotEmpty;
-    showHintButton.disabled = value || !hasHintOrSolution;
+    showHintButton.disabled = value;
   }
 
   Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
     editorIsBusy = true;
+
     final GistLoader loader = deps[GistLoader];
     final gist = await loader.loadGist(id);
     context.dartSource = gist.getFile('main.dart')?.content ?? '';
     context.testMethod = gist.getFile('test.dart')?.content ?? '';
     context.solution = gist.getFile('solution.dart')?.content ?? '';
     context.hint = gist.getFile('hint.txt')?.content ?? '';
+    tabController.setTabVisibility('test', context.testMethod.isNotEmpty);
+    showHintButton.hidden = context.hint.isEmpty && context.testMethod.isEmpty;
     editorIsBusy = false;
 
     if (analyze) {
@@ -459,6 +460,11 @@ class NewEmbedTabController extends TabController {
 
     super.selectTab(tabName);
   }
+
+  void setTabVisibility(String tabName, bool visible) {
+    TabElement tab = tabs.firstWhere((t) => t.name == tabName);
+    tab.toggleAttr('hidden', !visible);
+  }
 }
 
 /// A container underneath the tab strip that can show or hide itself as needed.
@@ -538,6 +544,10 @@ class DisableableButton {
   set disabled(bool value) {
     _disabled = value;
     _element.toggleClass(disabledClassName, value);
+  }
+
+  set hidden(bool value) {
+    _element.toggleAttr('hidden', value);
   }
 }
 
