@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:html' hide Document;
-import 'dart:html' as prefix0;
 
 import 'package:split/split.dart';
 
