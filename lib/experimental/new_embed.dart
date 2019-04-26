@@ -262,10 +262,7 @@ class NewEmbed {
     executeButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value || gistId.isEmpty;
-    var hasHintOrSolution =
-        context.hint.isNotEmpty || context.solution.isNotEmpty;
-    showHintButton.disabled = value || !hasHintOrSolution;
-    showHintButton.hidden = !hasHintOrSolution;
+    showHintButton.disabled = value;
   }
 
   Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
@@ -278,6 +275,7 @@ class NewEmbed {
     context.solution = gist.getFile('solution.dart')?.content ?? '';
     context.hint = gist.getFile('hint.txt')?.content ?? '';
     tabController.setTabVisibility('test', context.testMethod.isNotEmpty);
+    showHintButton.hidden = context.hint.isEmpty && context.testMethod.isEmpty;
     editorIsBusy = false;
 
     if (analyze) {
