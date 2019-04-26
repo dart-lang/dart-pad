@@ -27,6 +27,10 @@
         margin-top: 40px;
       }
 
+      .tall {
+        height: 800px;
+      }
+
       #choosePad {
         margin-bottom: 8px;
         float: right;
@@ -277,7 +281,8 @@
                 This row contains three <span class="code">Text</span> widgets with different font sizes. Try changing
                 the <span class="code">crossAxisAlignment</span>
                 property to <span class="code">baseline</span>, and experiment with different values for <span
-                    class="code">textBaseline</span> as well.
+                    class="code">textBaseline</span> as well (there's an enum called
+                <span class="code">TextBaseline</span> that contains the valid baseline values).
             </p>
             <iframe src="embed-new.html?id=8c4a0571b161755c8d9235df947d268e&fw=true"></iframe>
 
@@ -376,8 +381,7 @@
             <h4>Code example</h4>
             <p>
                 Trying making some space between these two list items by placing a <span class="code">SizedBox</span>
-                with a <span class="code">width</span> of 50 between
-                them.
+                with a <span class="code">width</span> of 100 between them.
             </p>
             <iframe src="embed-new.html?id=0c3e1ce8177a2f0cc8e2275d5260b348&fw=true"></iframe>
 
@@ -453,7 +457,7 @@
                     window.
                 </li>
             </ul>
-            <iframe src="embed-new.html?id=5e7e9352bca878f446d4347f324e2f63&fw=true"></iframe>
+            <iframe class="tall" src="embed-new.html?id=5e7e9352bca878f446d4347f324e2f63&fw=true"></iframe>
 
             <p>
                 Business cards often have an icon or logo in the top-left corner, so the next step is to add one to
@@ -480,7 +484,10 @@
                         Set its <span class="code">padding</span> to <span class="code">const EdgeInsets.all(8)</span>
                     </li>
                 </ul>
-                <li>For the child of the <span class="code">Padding</span> widget, use an Icon</li>
+                <li>
+                    For the child of the <span class="code">Padding</span> widget, use an
+                    <span class="code">Icon</span>.
+                </li>
                 <ul>
                     <li>
                         You can use any icon resource you want, though <span class="code">Icons.account_circle</span>
@@ -489,7 +496,7 @@
                     <li>Set the <span class="code">Icon</span>'s <span class="code">size</span> property to 50.</li>
                 </ul>
             </ul>
-            <iframe src="embed-new.html?id=684e599476eef2ec4b4508e6b2186c03&fw=true"></iframe>
+            <iframe class="tall" src="embed-new.html?id=684e599476eef2ec4b4508e6b2186c03&fw=true"></iframe>
 
             <p>
                 Your first <span class="code">Row</span> is now complete! There are two more to go, though, and you need
@@ -527,7 +534,7 @@
                     <li>Another empty <span class="code">Row</span></li>
                 </ul>
             </ul>
-            <iframe src="embed-new.html?id=19ead6db4f42ce112fc0a7d2e0922466&fw=true"></iframe>
+            <iframe class="tall" src="embed-new.html?id=19ead6db4f42ce112fc0a7d2e0922466&fw=true"></iframe>
 
             <p>
                 There are just a few steps to go now. Next up is the second row. Add the following to its list of
@@ -541,17 +548,11 @@
                 If you run the code at this point, you'll see that the two <span class="code">Text</span> widgets are
                 placed right up against each other rather than at opposite ends of the
                 <span class="code">Row</span>, which isn't right.
-            </p>
-            <p>
                 You can fix this by setting the <span class="code">Row</span>'s
                 <span class="code">mainAxisAlignment</span> property to <span class="code">spaceBetween</span>, which
                 will put any extra space between the two <span class="code">Text</span> widgets.
             </p>
-            <p>
-                The remaining steps of this codelab will assume the third choice, but you're free to use whichever you
-                prefer in this one.
-            </p>
-            <iframe src="embed-new.html?id=e6e07bbe96255b762163cf3e40906944&fw=true"></iframe>
+            <iframe class="tall" src="embed-new.html?id=e6e07bbe96255b762163cf3e40906944&fw=true"></iframe>
 
             <p>
                 The last step is to get those icons in place at the bottom of the card:
@@ -572,7 +573,7 @@
                     <span class="code">MainAxisAlignment.spaceAround</span></li>
             </ul>
 
-            <iframe src="embed-new.html?id=2234a5ccada200eb1e018b12fa95d57d&fw=true"></iframe>
+            <iframe class="tall" src="embed-new.html?id=2234a5ccada200eb1e018b12fa95d57d&fw=true"></iframe>
 
             <br/>
             <br/>
