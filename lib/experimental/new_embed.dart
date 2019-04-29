@@ -243,7 +243,7 @@ class NewEmbed {
         horizontal: true,
         gutterSize: defaultSplitterWidth,
         // set initial sizes (in percentages)
-        sizes: [70, 30],
+        sizes: [initialSplitPercent, (100 - initialSplitPercent)],
         // set the minimum sizes (in pixels)
         minSize: [100, 100],
       );
@@ -443,8 +443,13 @@ class NewEmbed {
   }
 
   bool get supportsFlutterWeb {
-    Uri url = Uri.parse(window.location.toString());
+    var url = Uri.parse(window.location.toString());
     return url.queryParameters['fw'] == 'true';
+  }
+
+  int get initialSplitPercent {
+    var url = Uri.parse(window.location.toString());
+    return int.tryParse(url.queryParameters['split']) ?? 70;
   }
 }
 
