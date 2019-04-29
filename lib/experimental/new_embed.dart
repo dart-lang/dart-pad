@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html' hide Document;
+import 'dart:math' as math;
 
 import 'package:split/split.dart';
 
@@ -449,7 +450,12 @@ class NewEmbed {
 
   int get initialSplitPercent {
     var url = Uri.parse(window.location.toString());
-    return int.tryParse(url.queryParameters['split']) ?? 70;
+    var s = int.tryParse(url.queryParameters['split']) ?? 70;
+
+    // keep the split within the range [5, 95]
+    s = math.min(s, 95);
+    s = math.max(s, 5);
+    return s;
   }
 }
 
