@@ -444,12 +444,12 @@ class NewEmbed {
   }
 
   bool get supportsFlutterWeb {
-    var url = Uri.parse(window.location.toString());
+    final url = Uri.parse(window.location.toString());
     return url.queryParameters['fw'] == 'true';
   }
 
   int get initialSplitPercent {
-    var url = Uri.parse(window.location.toString());
+    final url = Uri.parse(window.location.toString());
     var s = int.tryParse(url.queryParameters['split']) ?? 70;
 
     // keep the split within the range [5, 95]
