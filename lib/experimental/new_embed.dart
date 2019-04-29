@@ -656,8 +656,17 @@ class AnalysisResultsController {
   void display(List<AnalysisIssue> issues) {
     if (issues.isEmpty) {
       message.text = _noIssuesMsg;
+
+      // hide the flash without toggling the hidden state
+      flash.setAttr('hidden');
+
       hideToggle();
       return;
+    }
+
+    // show the flash without toggling the hidden state
+    if (!_hidden) {
+      flash.clearAttr('hidden');
     }
 
     showToggle();
