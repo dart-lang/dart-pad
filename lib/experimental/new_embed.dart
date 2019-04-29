@@ -64,7 +64,7 @@ class NewEmbed {
   NewEmbedContext context;
 
   Splitter splitter;
-  AnalysisResultsElement analysisResultsElement;
+  AnalysisResultsController analysisResultsController;
 
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
@@ -188,8 +188,8 @@ class NewEmbed {
       );
     });
 
-    analysisResultsElement = AnalysisResultsElement(
-        querySelector('#issues'),
+    analysisResultsController = AnalysisResultsController(
+        DElement(querySelector('#issues')),
         DElement(querySelector('#issues-message')),
         DElement(querySelector('#issues-toggle')))
       ..onIssueClick.listen((issue) {
@@ -338,7 +338,7 @@ class NewEmbed {
   void _displayIssues(List<AnalysisIssue> issues) {
     testResultBox.hide();
     hintBox.hide();
-    analysisResultsElement.display(issues);
+    analysisResultsController.display(issues);
   }
 
   /// Perform static analysis of the source code.
@@ -621,24 +621,29 @@ class FlashBox {
   }
 }
 
-class AnalysisResultsElement extends DElement {
+class AnalysisResultsController {
   static const String _noIssuesMsg = 'no issues';
   static const String _hideMsg = 'hide';
   static const String _showMsg = 'show';
 
+  static const Map<String, List<String>> _classesForType = {
+    'info': ['issuelabel', 'info'],
+    'warning': ['issuelabel', 'warning'],
+    'error': ['issuelabel', 'error'],
+  };
+
+  DElement flash;
   DElement message;
   DElement toggle;
   bool _hidden = true;
 
-  final StreamController<AnalysisIssue> _onClickSink =
+  final StreamController<AnalysisIssue> _onClickController =
       StreamController.broadcast();
-  Stream<AnalysisIssue> get onIssueClick => _onClickSink.stream;
+  Stream<AnalysisIssue> get onIssueClick => _onClickController.stream;
 
-  AnalysisResultsElement(Element element, this.message, this.toggle)
-      : super(element) {
+  AnalysisResultsController(this.flash, this.message, this.toggle) {
     hide();
     message.text = _noIssuesMsg;
-    toggle.text = _hideMsg;
     toggle.onClick.listen((_) {
       if (_hidden) {
         show();
@@ -658,14 +663,10 @@ class AnalysisResultsElement extends DElement {
     showToggle();
     message.text = '${issues.length} issues';
 
-    clearChildren();
-    for (var elem in _createElements(issues)) {
-      add(elem);
+    flash.clearChildren();
+    for (var elem in issues.map(_issueElement)) {
+      flash.add(elem);
     }
-  }
-
-  Iterable<Element> _createElements(Iterable<AnalysisIssue> issues) {
-    return issues.map(_issueElement);
   }
 
   Element _issueElement(AnalysisIssue issue) {
@@ -673,29 +674,21 @@ class AnalysisResultsElement extends DElement {
     if (issue.message.endsWith('.')) {
       message = message.substring(0, message.length - 1);
     }
+
     var elem = DivElement()..classes.add('issue');
 
-    if (issue.kind == 'info') {
-      elem.children.add(SpanElement()
-        ..text = issue.kind
-        ..classes.addAll(['issuelabel', 'info']));
-    } else if (issue.kind == 'warning') {
-      elem.children.add(SpanElement()
-        ..text = issue.kind
-        ..classes.addAll(['issuelabel', 'warning']));
-    } else if (issue.kind == 'error') {
-      elem.children.add(SpanElement()
-        ..text = issue.kind
-        ..classes.addAll(['issuelabel', 'error']));
-    }
+    elem.children.add(SpanElement()
+      ..text = issue.kind
+      ..classes.addAll(_classesForType[issue.kind]));
 
     elem.children.add(SpanElement()
       ..text = '$message - line ${issue.line}'
       ..classes.add('message'));
 
     elem.onClick.listen((_) {
-      _onClickSink.add(issue);
+      _onClickController.add(issue);
     });
+
     return elem;
   }
 
@@ -708,14 +701,14 @@ class AnalysisResultsElement extends DElement {
   }
 
   void hide() {
-    setAttr('hidden');
+    flash.setAttr('hidden');
     _hidden = true;
     toggle.text = _showMsg;
   }
 
   void show() {
     _hidden = false;
-    clearAttr('hidden');
+    flash.clearAttr('hidden');
     toggle.text = _hideMsg;
   }
 }

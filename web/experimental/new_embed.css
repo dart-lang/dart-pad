@@ -94,10 +94,6 @@ body {
   width: 380px;
 }
 
-.flash-small {
-  padding: 4px;
-}
-
 .message-container {
   padding-right: 22px;
   max-height: 120px;
@@ -200,17 +196,20 @@ body {
 #issues-message {
   cursor: default;
   color: #586069;
+  margin-right: 12px;
 }
 
 #issues-toggle {
   cursor: pointer;
+
+  /* Prevent the layout from changing when toggling between show and hide */
+  width: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.issues-spacer {
-  width: 12px;
-}
-
-/* Issues css */
+/* Issues */
 #issues {
   padding: 8px;
   overflow-y: auto;
