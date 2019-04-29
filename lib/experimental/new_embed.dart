@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:html' hide Document;
 
+import 'package:dart_pad/experimental/filter_output.dart';
 import 'package:split/split.dart';
 
 import '../completion.dart';
@@ -486,20 +487,20 @@ class TabView {
 }
 
 class ConsoleTabView extends TabView {
-  const ConsoleTabView(DElement element) : super(element);
+  ConsoleTabView(DElement element) : super(element);
 
   void clear() {
     element.text = '';
   }
 
   void appendMessage(String msg) {
-    final line = DivElement()..text = msg;
+    final line = DivElement()..text = filterCloudUrls(msg);
     element.add(line);
   }
 
   void appendError(String err) {
     final line = DivElement()
-      ..text = err
+      ..text = filterCloudUrls(err)
       ..classes.add('text-red');
     element.add(line);
   }
