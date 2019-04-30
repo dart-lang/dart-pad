@@ -449,8 +449,15 @@ class NewEmbed {
   }
 
   int get initialSplitPercent {
+    const int defaultSplitPercentage = 70;
+
     final url = Uri.parse(window.location.toString());
-    var s = int.tryParse(url.queryParameters['split']) ?? 70;
+    if (!url.queryParameters.containsKey('split')) {
+      return defaultSplitPercentage;
+    }
+
+    var s =
+        int.tryParse(url.queryParameters['split']) ?? defaultSplitPercentage;
 
     // keep the split within the range [5, 95]
     s = math.min(s, 95);
