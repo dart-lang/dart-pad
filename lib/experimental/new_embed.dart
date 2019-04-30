@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html' hide Document;
+import 'dart:math' as math;
 
 import 'package:split/split.dart';
 
@@ -243,7 +244,7 @@ class NewEmbed {
         horizontal: true,
         gutterSize: defaultSplitterWidth,
         // set initial sizes (in percentages)
-        sizes: [70, 30],
+        sizes: [initialSplitPercent, (100 - initialSplitPercent)],
         // set the minimum sizes (in pixels)
         minSize: [100, 100],
       );
@@ -443,8 +444,18 @@ class NewEmbed {
   }
 
   bool get supportsFlutterWeb {
-    Uri url = Uri.parse(window.location.toString());
+    final url = Uri.parse(window.location.toString());
     return url.queryParameters['fw'] == 'true';
+  }
+
+  int get initialSplitPercent {
+    final url = Uri.parse(window.location.toString());
+    var s = int.tryParse(url.queryParameters['split']) ?? 70;
+
+    // keep the split within the range [5, 95]
+    s = math.min(s, 95);
+    s = math.max(s, 5);
+    return s;
   }
 }
 
