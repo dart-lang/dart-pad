@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:html' hide Document;
-import 'dart:math' as math;
 
 import 'package:split/split.dart';
 
@@ -449,13 +448,14 @@ class NewEmbed {
   }
 
   int get initialSplitPercent {
+    final defaultPercentage = 70;
     final url = Uri.parse(window.location.toString());
-    var s = int.tryParse(url.queryParameters['split']) ?? 70;
+    var split =
+        int.tryParse(url.queryParameters['split'] ?? '$defaultPercentage') ??
+            defaultPercentage;
 
     // keep the split within the range [5, 95]
-    s = math.min(s, 95);
-    s = math.max(s, 5);
-    return s;
+    return split.clamp(5, 95);
   }
 }
 
@@ -555,6 +555,7 @@ class DisableableButton {
   bool _disabled = false;
 
   bool get disabled => _disabled;
+
   set disabled(bool value) {
     _disabled = value;
     _element.toggleClass(disabledClassName, value);
@@ -658,6 +659,7 @@ class NewEmbedContext {
   }
 
   String get solution => _solution;
+
   set solution(String value) {
     _solution = value;
     solutionEditor.document.value = value;
