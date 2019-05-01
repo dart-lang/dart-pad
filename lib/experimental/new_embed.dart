@@ -450,9 +450,9 @@ class NewEmbed {
   int get initialSplitPercent {
     final defaultPercentage = 70;
     final url = Uri.parse(window.location.toString());
-    var split =
-        int.tryParse(url.queryParameters['split'] ?? '$defaultPercentage') ??
-            defaultPercentage;
+    final split = url.queryParameters.containsKey('split')
+        ? (int.tryParse(url.queryParameters['split']) ?? defaultPercentage)
+        : defaultPercentage;
 
     // keep the split within the range [5, 95]
     return split.clamp(5, 95);
