@@ -125,10 +125,14 @@ class AnalysisServerWrapper {
         await _completeImpl(sources, location.sourceName, location.offset);
     List<CompletionSuggestion> suggestions = results.results;
 
-    // This hack filters out of scope completions. It needs removing when we
-    // have categories of completions.
-    // TODO(devoncarew): Remove this filter code.
+    var source = sources[location.sourceName];
+    var prefix = source.substring(results.replacementOffset, location.offset);
     suggestions = suggestions
+        .where(
+            (s) => s.completion.toLowerCase().startsWith(prefix.toLowerCase()))
+        // This hack filters out of scope completions. It needs removing when we
+        // have categories of completions.
+        // TODO(devoncarew): Remove this filter code.
         .where((CompletionSuggestion c) => c.relevance > 500)
         .toList();
 
