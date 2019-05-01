@@ -56,6 +56,13 @@ body {
 }
 
 
+/* Code Editor */
+
+#user-code-editor {
+  flex: 1;
+}
+
+
 /* Console */
 
 #console-view {
