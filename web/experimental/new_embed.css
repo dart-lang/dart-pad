@@ -153,6 +153,9 @@ body {
   overflow-y: hidden;
 }
 
+#web-output {
+  background-color: rgb(250, 250, 250);
+}
 
 /* Splitter */
 
