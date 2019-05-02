@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html' hide Document;
+import 'dart:math' as math;
 
 import 'package:split/split.dart';
 
@@ -41,7 +42,7 @@ class NewEmbed {
   DisableableButton showHintButton;
 
   DElement navBarElement;
-  TabController tabController;
+  NewEmbedTabController tabController;
   TabView editorTabView;
   TabView testTabView;
   TabView solutionTabView;
@@ -182,8 +183,11 @@ class NewEmbed {
     });
 
     executionSvc.testResults.listen((result) {
+      if (result.messages.isEmpty) {
+        result.messages.add(result.success ? 'Test passed!' : 'Test failed.');
+      }
       testResultBox.showStrings(
-        result.messages.isNotEmpty ? result.messages : ['Test passed!'],
+        result.messages,
         result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
       );
     });
@@ -247,7 +251,7 @@ class NewEmbed {
         horizontal: true,
         gutterSize: defaultSplitterWidth,
         // set initial sizes (in percentages)
-        sizes: [70, 30],
+        sizes: [initialSplitPercent, (100 - initialSplitPercent)],
         // set the minimum sizes (in pixels)
         minSize: [100, 100],
       );
@@ -269,19 +273,20 @@ class NewEmbed {
     executeButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value || gistId.isEmpty;
-    var hasHintOrSolution =
-        context.hint.isNotEmpty || context.solution.isNotEmpty;
-    showHintButton.disabled = value || !hasHintOrSolution;
+    showHintButton.disabled = value;
   }
 
   Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
     editorIsBusy = true;
+
     final GistLoader loader = deps[GistLoader];
     final gist = await loader.loadGist(id);
     context.dartSource = gist.getFile('main.dart')?.content ?? '';
     context.testMethod = gist.getFile('test.dart')?.content ?? '';
     context.solution = gist.getFile('solution.dart')?.content ?? '';
     context.hint = gist.getFile('hint.txt')?.content ?? '';
+    tabController.setTabVisibility('test', context.testMethod.isNotEmpty);
+    showHintButton.hidden = context.hint.isEmpty && context.testMethod.isEmpty;
     editorIsBusy = false;
 
     if (analyze) {
@@ -431,8 +436,25 @@ class NewEmbed {
   }
 
   bool get supportsFlutterWeb {
-    Uri url = Uri.parse(window.location.toString());
+    final url = Uri.parse(window.location.toString());
     return url.queryParameters['fw'] == 'true';
+  }
+
+  int get initialSplitPercent {
+    const int defaultSplitPercentage = 70;
+
+    final url = Uri.parse(window.location.toString());
+    if (!url.queryParameters.containsKey('split')) {
+      return defaultSplitPercentage;
+    }
+
+    var s =
+        int.tryParse(url.queryParameters['split']) ?? defaultSplitPercentage;
+
+    // keep the split within the range [5, 95]
+    s = math.min(s, 95);
+    s = math.max(s, 5);
+    return s;
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
@@ -443,6 +465,7 @@ class NewEmbed {
 
     if (focus) userCodeEditor.focus();
   }
+
 }
 
 // Primer uses a class called "selected" for its navigation styling, rather than
@@ -459,6 +482,11 @@ class NewEmbedTabController extends TabController {
     }
 
     super.selectTab(tabName);
+  }
+
+  void setTabVisibility(String tabName, bool visible) {
+    TabElement tab = tabs.firstWhere((t) => t.name == tabName);
+    tab.toggleAttr('hidden', !visible);
   }
 }
 
@@ -478,20 +506,20 @@ class TabView {
 }
 
 class ConsoleTabView extends TabView {
-  const ConsoleTabView(DElement element) : super(element);
+  ConsoleTabView(DElement element) : super(element);
 
   void clear() {
     element.text = '';
   }
 
   void appendMessage(String msg) {
-    final line = DivElement()..text = msg;
+    final line = DivElement()..text = filterCloudUrls(msg);
     element.add(line);
   }
 
   void appendError(String err) {
     final line = DivElement()
-      ..text = err
+      ..text = filterCloudUrls(err)
       ..classes.add('text-red');
     element.add(line);
   }
@@ -539,6 +567,10 @@ class DisableableButton {
   set disabled(bool value) {
     _disabled = value;
     _element.toggleClass(disabledClassName, value);
+  }
+
+  set hidden(bool value) {
+    _element.toggleAttr('hidden', value);
   }
 }
 
@@ -789,4 +821,16 @@ class NewEmbedContext {
     // TODO(DomesticMouse): implement with CodeMirror integration
     return false;
   }
+}
+
+final RegExp _flutterUrlExp =
+    RegExp(r'(https:[a-zA-Z0-9_=%&\/\-\?\.]+flutter_web\.js)(:\d+:\d+)');
+final RegExp _dartUrlExp =
+    RegExp(r'(https:[a-zA-Z0-9_=%&\/\-\?\.]+dart_sdk\.js)(:\d+:\d+)');
+
+String filterCloudUrls(String trace) {
+  return trace
+      .replaceAllMapped(
+          _flutterUrlExp, (m) => '[Flutter SDK Source]${m.group(2)}')
+      .replaceAllMapped(_dartUrlExp, (m) => '[Dart SDK Source]${m.group(2)}');
 }

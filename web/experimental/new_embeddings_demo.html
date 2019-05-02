@@ -87,6 +87,11 @@
                 Feature X isn't working, don't assume that it'll look that way when Flutter Web is
                 eventually released.
             </div>
+            <div class="disclaimer">
+                Also, this codelab is currently being developed and tested with Chrome. There may be
+                (in the short term) features that work in some browsers and not others. If you encounter
+                any, please feel free to file bugs using the link above.
+            </div>
             <p>
                 <span class="code">Row</span> and <span class="code">Column</span> are two very important widgets in the
                 Flutter universe. Want to put a <span class="code">Text</span> widget with a label next to another <span
@@ -333,12 +338,18 @@
             <h3>Flex factors</h3>
             <p>
                 If more than one child of a <span class="code">Row</span> or <span class="code">Column</span> has a
-                flexible size, the available space is allotted to them
-                according to their <span class="code">flex</span> factors:
+                flexible size, the available space is allotted to them according to their
+                <span class="code">flex</span> factors. Each child gets space in proportion to their flex factor divided
+                by the total of all the flex factors of all children:
             </p>
             <div class="snippet">
                 remainingSpace * (flex / totalOfAllFlexValues)
             </div>
+            <p>
+                For example, if there are two children with flex factors of 1, each gets half of the available space. If there
+                are two children with flex factors of 1 and another child with a flex factor of 2, the first two
+                children will each get a quarter of the available space, and the other child will get half.
+            </p>
 
             <h4>Code example</h4>
             <p>
@@ -457,7 +468,7 @@
                     window.
                 </li>
             </ul>
-            <iframe class="tall" src="embed-new.html?id=5e7e9352bca878f446d4347f324e2f63&fw=true"></iframe>
+            <iframe class="tall" src="embed-new.html?id=5e7e9352bca878f446d4347f324e2f63&fw=true&split=60"></iframe>
 
             <p>
                 Business cards often have an icon or logo in the top-left corner, so the next step is to add one to
@@ -496,7 +507,7 @@
                     <li>Set the <span class="code">Icon</span>'s <span class="code">size</span> property to 50.</li>
                 </ul>
             </ul>
-            <iframe class="tall" src="embed-new.html?id=684e599476eef2ec4b4508e6b2186c03&fw=true"></iframe>
+            <iframe class="tall" src="embed-new.html?id=684e599476eef2ec4b4508e6b2186c03&fw=true&split=60"></iframe>
 
             <p>
                 Your first <span class="code">Row</span> is now complete! There are two more to go, though, and you need
@@ -534,7 +545,7 @@
                     <li>Another empty <span class="code">Row</span></li>
                 </ul>
             </ul>
-            <iframe class="tall" src="embed-new.html?id=19ead6db4f42ce112fc0a7d2e0922466&fw=true"></iframe>
+            <iframe class="tall" src="embed-new.html?id=19ead6db4f42ce112fc0a7d2e0922466&fw=true&split=60"></iframe>
 
             <p>
                 There are just a few steps to go now. Next up is the second row. Add the following to its list of
@@ -552,7 +563,7 @@
                 <span class="code">mainAxisAlignment</span> property to <span class="code">spaceBetween</span>, which
                 will put any extra space between the two <span class="code">Text</span> widgets.
             </p>
-            <iframe class="tall" src="embed-new.html?id=e6e07bbe96255b762163cf3e40906944&fw=true"></iframe>
+            <iframe class="tall" src="embed-new.html?id=e6e07bbe96255b762163cf3e40906944&fw=true&split=60"></iframe>
 
             <p>
                 The last step is to get those icons in place at the bottom of the card:
@@ -573,7 +584,7 @@
                     <span class="code">MainAxisAlignment.spaceAround</span></li>
             </ul>
 
-            <iframe class="tall" src="embed-new.html?id=2234a5ccada200eb1e018b12fa95d57d&fw=true"></iframe>
+            <iframe class="tall" src="embed-new.html?id=2234a5ccada200eb1e018b12fa95d57d&fw=true&split=60"></iframe>
 
             <br/>
             <br/>
