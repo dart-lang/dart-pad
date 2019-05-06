@@ -23,10 +23,12 @@ class DartCompleter extends CodeCompleter {
   DartCompleter(this.servicesApi, this.document);
 
   @override
-  Future<CompletionResult> complete(Editor editor,
-      {bool onlyShowFixes = false}) {
+  Future<CompletionResult> complete(
+    Editor editor, {
+    bool onlyShowFixes = false,
+  }) {
     // Cancel any open completion request.
-    if (_lastCompleter != null) _lastCompleter.cancel(reason: 'new request');
+    if (_lastCompleter != null) _lastCompleter.cancel();
 
     int offset = editor.document.indexFromPos(editor.document.cursor);
 
@@ -47,10 +49,12 @@ class DartCompleter extends CodeCompleter {
               return SourceEdit(edit.length, edit.offset, edit.replacement);
             }).toList();
 
-            completions.add(Completion('',
-                displayString: fix.message,
-                type: 'type-quick_fix',
-                quickFixes: fixes));
+            completions.add(Completion(
+              '',
+              displayString: fix.message,
+              type: 'type-quick_fix',
+              quickFixes: fixes,
+            ));
           }
         }
         completer.complete(CompletionResult(completions,
@@ -63,15 +67,12 @@ class DartCompleter extends CodeCompleter {
         int replaceOffset = response.replacementOffset;
         int replaceLength = response.replacementLength;
 
-        String replacementString = editor.document.value
-            .substring(replaceOffset, replaceOffset + replaceLength);
-
         Iterable<AnalysisCompletion> responses =
             response.completions.map((Map completion) {
           return AnalysisCompletion(replaceOffset, replaceLength, completion);
         });
 
-        Iterable<Completion> completions = responses.map((completion) {
+        List<Completion> completions = responses.map((completion) {
           // TODO: Move to using a LabelProvider; decouple the data and rendering.
           String displayString = completion.isMethod
               ? '${completion.text}${completion.parameters}'
@@ -80,24 +81,24 @@ class DartCompleter extends CodeCompleter {
             displayString += ' → ${completion.returnType}';
           }
 
-          // Filter unmatching completions.
-          // TODO: This is temporary; tracking issue here:
-          // https://github.com/dart-lang/dart-services/issues/87.
-          if (replacementString.isNotEmpty) {
-            if (!completion.matchesCompletionFragment(replacementString)) {
-              return null;
-            }
-          }
-
           String text = completion.text;
 
-          if (completion.isMethod) text += '()';
+          if (completion.isMethod) {
+            text += '()';
+          }
+
+          if (completion.isConstructor) {
+            displayString += '()';
+          }
 
           String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
 
           if (completion.type == null) {
-            return Completion(text,
-                displayString: displayString, type: deprecatedClass);
+            return Completion(
+              text,
+              displayString: displayString,
+              type: deprecatedClass,
+            );
           } else {
             int cursorPos;
 
@@ -112,23 +113,23 @@ class DartCompleter extends CodeCompleter {
               cursorOffset: cursorPos,
             );
           }
-        });
-        completions = completions.where((x) => x != null).toList();
-
-        List<Completion> filterCompletions = List.from(completions);
+        }).toList();
 
         // Removes duplicates when a completion is both a getter and a setter.
         for (Completion completion in completions) {
           for (Completion other in completions) {
             if (completion.isSetterAndMatchesGetter(other)) {
-              filterCompletions.removeWhere((c) => completion == c);
+              completions.removeWhere((c) => completion == c);
               other.type = 'type-getter_and_setter';
             }
           }
         }
 
-        completer.complete(CompletionResult(filterCompletions,
-            replaceOffset: replaceOffset, replaceLength: replaceLength));
+        completer.complete(CompletionResult(
+          completions,
+          replaceOffset: replaceOffset,
+          replaceLength: replaceLength,
+        ));
       }).catchError((e) {
         completer.completeError(e);
       });
@@ -171,6 +172,8 @@ class AnalysisCompletion implements Comparable {
         ? (element['kind'] == 'FUNCTION' || element['kind'] == 'METHOD')
         : false;
   }
+
+  bool get isConstructor => type == 'CONSTRUCTOR';
 
   String get parameters => isMethod ? _map['element']['parameters'] : null;
 
