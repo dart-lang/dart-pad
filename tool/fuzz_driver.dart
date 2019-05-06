@@ -298,10 +298,11 @@ Future<num> testCompletions(
 
     if (i % 1000 == 0 && i > 0) print('INC: $i completes');
     lastOffset = i;
-    if (_SERVER_BASED_CALL)
+    if (_SERVER_BASED_CALL) {
       await withTimeOut(server.completeGet(source: src, offset: i));
-    else
+    } else {
       await withTimeOut(wrapper.complete(src, i));
+    }
     if (_DUMP_PERF) print('PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}');
   }
   return sw.elapsedMilliseconds / src.length;

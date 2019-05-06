@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library gaeDeployed_test;
+library gae_deployed_test;
 
 import 'package:dart_services/src/common.dart' as common;
 import 'package:http/http.dart' as http;

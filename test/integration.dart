@@ -6,8 +6,8 @@
 /// services.
 library services.integration;
 
-import 'gae_deployed_test.dart' as gaeTest_test;
+import 'gae_deployed_test.dart' as gae_test_test;
 
 void main() {
-  gaeTest_test.defineTests(skip: false);
+  gae_test_test.defineTests(skip: false);
 }
