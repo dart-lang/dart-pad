@@ -134,8 +134,9 @@ build() {
   log('$mainFile compiled to ${_printSize(mainFile)}');
 
   FilePath testFile = _buildDir.join('test', 'web.dart.js');
-  if (testFile.exists)
+  if (testFile.exists) {
     log('${testFile.path} compiled to ${_printSize(testFile)}');
+  }
 
   FilePath embedFile = _buildDir.join('scripts/embed.dart.js');
   log('$embedFile compiled to ${_printSize(embedFile)}');
