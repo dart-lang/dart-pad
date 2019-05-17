@@ -9,12 +9,12 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
-import 'package:dart_services/src/flutter_web.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'api_classes.dart' as api;
 import 'common.dart';
+import 'flutter_web.dart';
 import 'pub.dart';
 import 'scheduler.dart';
 

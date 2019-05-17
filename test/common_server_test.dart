@@ -309,7 +309,7 @@ void defineTests() {
           expect(response.headers['content-type'],
               'application/json; charset=utf-8');
           var data = await response.body.first;
-          decodedJson = json.decode(utf8.decode(data)) as Map<dynamic,dynamic>;
+          decodedJson = json.decode(utf8.decode(data)) as Map<dynamic, dynamic>;
         }
       }
     });

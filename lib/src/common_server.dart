@@ -10,8 +10,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:crypto/crypto.dart';
-import 'package:dart_services/src/flutter_web.dart';
-import 'package:dart_services/src/pub.dart';
 import 'package:dartis/dartis.dart' as redis;
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
@@ -24,6 +22,7 @@ import 'api_classes.dart';
 import 'common.dart';
 import 'compiler.dart';
 import 'flutter_web.dart';
+import 'pub.dart';
 import 'sdk_manager.dart';
 import 'summarize.dart';
 
