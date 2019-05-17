@@ -1,6 +1,6 @@
 import 'dart:html';
 
-import 'dart:js';
+import 'package:html_unescape/html_unescape.dart';
 
 void main() {
   var hosts = querySelectorAll('.dartpad-embed');
@@ -20,7 +20,7 @@ void _injectEmbed(DivElement host) {
   }
 
   var codeElement = preElement.children.first;
-  var code = codeElement.innerHtml;
+  var code = HtmlUnescape().convert(codeElement.innerHtml);
   if (code.isEmpty) {
     return;
   }

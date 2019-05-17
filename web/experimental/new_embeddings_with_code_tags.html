@@ -19,6 +19,19 @@
           rel='stylesheet' type='text/css'>
 
     <script defer src="inject_embed.dart.js"></script>
+    <style>
+        .dartpad-embed > * {
+            width: 100%;
+        }
+
+        iframe {
+            border: 1px solid #ccc;
+            width: 100%;
+            height: 400px;
+            margin-bottom: 40px;
+            margin-top: 40px;
+        }
+    </style>
 </head>
 
 <body>
@@ -43,44 +56,22 @@ Future main() async {
   runApp(MyApp());
 }
 
-class MyApp extends StatelessWidget {
-  @override
+class MyApp extends StatefulWidget {
+  MyApp();
+
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State {
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.ltr,
-      child: Container(
-        color: Color(0xffeeeeee),
-        child: Center(
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(),
+        body: Center(
           child: Container(
-            child: MyWidget(),
-            color: Color(0xffcccccc),
+            child: Text('Hello, World!'),
           ),
         ),
-      ),
-    );
-  }
-}
-
-class MyWidget extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-      ],
-    );
-  }
-}
-
-// A widget that appears as a blue square. Just ignore the details for now!
-class BlueBox extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 50,
-      height: 50,
-      decoration: BoxDecoration(
-        color: Colors.blue,
-        border: Border.all(),
       ),
     );
   }

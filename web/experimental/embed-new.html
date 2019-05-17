@@ -35,7 +35,6 @@ BSD-style license that can be found in the LICENSE file. -->
     <script defer src="../scripts/polymerpatch.js"></script>
     <script dever type="text/javascript">
         window.addEventListener('message', function(event) {
-            console.log(event);
             var data = event.data;
             if (window.embedMessageListener) {
                 window.embedMessageListener(data);
