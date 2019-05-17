@@ -28,8 +28,8 @@ class FileRelayServer {
   String getTypeName(dynamic obj) =>
       mirrors.reflect(obj).type.reflectedType.toString();
 
-  String getClass(dynamic obj) =>
-      mirrors.MirrorSystem.getName(mirrors.reflectClass(obj as Type).simpleName);
+  String getClass(dynamic obj) => mirrors.MirrorSystem.getName(
+      mirrors.reflectClass(obj as Type).simpleName);
 
   FileRelayServer({this.test = false}) {
     hierarchicalLoggingEnabled = true;

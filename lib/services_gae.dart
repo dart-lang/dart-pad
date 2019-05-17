@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart' as ae;
-import 'package:dart_services/src/flutter_web.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart' as rpc;
 
