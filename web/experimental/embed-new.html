@@ -33,6 +33,15 @@ BSD-style license that can be found in the LICENSE file. -->
     <link rel="stylesheet" type="text/css" href="new_embed.css">
     <script defer src="new_embed.dart.js"></script>
     <script defer src="../scripts/polymerpatch.js"></script>
+    <script dever type="text/javascript">
+        window.addEventListener('message', function(event) {
+            console.log(event);
+            var data = event.data;
+            if (window.embedMessageListener) {
+                window.embedMessageListener(data);
+            }
+        });
+    </script>
 </head>
 
 <body class="d-flex flex-column">

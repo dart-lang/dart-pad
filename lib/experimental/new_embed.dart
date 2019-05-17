@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'dart:html' hide Document;
+import 'dart:js' as js;
 import 'dart:math' as math;
 
 import 'package:split/split.dart';
@@ -73,6 +74,7 @@ class NewEmbed {
   );
 
   NewEmbed() {
+    _initHostListener();
     tabController = NewEmbedTabController();
     for (String name in ['editor', 'test', 'console', 'solution']) {
       tabController.registerTab(
@@ -194,6 +196,17 @@ class NewEmbed {
     });
 
     _initModules().then((_) => _initNewEmbed());
+  }
+
+  void _initHostListener() {
+    js.context['embedMessageListener'] = js.JsFunction.withThis((_this, data) {
+      var type = data['type'];
+
+      if (type == 'sourceCode') {
+        var sourceCode = data['sourceCode'];
+        userCodeEditor.document.value = sourceCode;
+      }
+    });
   }
 
   String get gistId {
