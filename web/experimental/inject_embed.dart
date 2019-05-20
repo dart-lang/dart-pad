@@ -52,7 +52,13 @@ class InjectedEmbed {
 
   Future _init() async {
     host.children.clear();
-    var iframe = IFrameElement()..setAttribute('src', 'embed-new.html?fw=true');
+
+    // Change src to 'embed-new.html?fw=true for local development
+    var iframe = IFrameElement()
+      ..setAttribute('src',
+          'https://dartpad.dartlang.org/experimental/embed-new.html?fw=true');
+    iframe.style.setProperty('border', '1px solid #ccc');
+
     host.children.add(iframe);
 
     window.addEventListener('message', (dynamic e) {
