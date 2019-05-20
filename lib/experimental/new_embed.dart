@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:html' hide Document;
-import 'dart:js' as js;
 import 'dart:math' as math;
 
 import 'package:split/split.dart';
