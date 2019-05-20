@@ -198,8 +198,16 @@ class NewEmbed {
     _initModules().then((_) => _initNewEmbed());
   }
 
+  /// Initializes a listener for messages from the parent window. Allows this
+  /// embedded iframe to display and run arbitrary Dart code.
   void _initHostListener() {
-    js.context['embedMessageListener'] = js.JsFunction.withThis((_this, data) {
+    window.addEventListener('message', (dynamic event) {
+      var data = event.data;
+      if (data is! Map) {
+        // Ignore unexpected messages
+        return;
+      }
+
       var type = data['type'];
 
       if (type == 'sourceCode') {
@@ -207,6 +215,8 @@ class NewEmbed {
         userCodeEditor.document.value = sourceCode;
       }
     });
+
+    // Send a ready message
     window.parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
   }
 
