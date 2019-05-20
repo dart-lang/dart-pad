@@ -40,7 +40,10 @@ class InjectedEmbed {
     var iframe = IFrameElement()..setAttribute('src', 'embed-new.html?fw=true');
     var m = {'sourceCode': code, 'type': 'sourceCode'};
     host.children.add(iframe);
-    await Future.delayed(Duration(milliseconds: 2000));
-    iframe.contentWindow.postMessage(m, '*');
+    window.addEventListener('message', (dynamic e){
+      if (e.data['type'] == 'ready') {
+        iframe.contentWindow.postMessage(m, '*');
+      }
+    });
   }
 }

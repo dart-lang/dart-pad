@@ -207,6 +207,7 @@ class NewEmbed {
         userCodeEditor.document.value = sourceCode;
       }
     });
+    window.parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
   }
 
   String get gistId {
