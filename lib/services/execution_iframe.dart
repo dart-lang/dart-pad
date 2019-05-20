@@ -63,6 +63,11 @@ class ExecutionServiceIFrame implements ExecutionService {
     _send('setCss', {'css': css});
   }
 
+  set frameSrc(String src) {
+    frame.src = src;
+    _frameSrc = src;
+  }
+
   /// TODO(redbrogdon): Format message so internal double quotes are escaped.
   @override
   String get testResultDecoration => '''

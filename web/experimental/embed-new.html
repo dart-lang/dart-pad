@@ -20,19 +20,37 @@ BSD-style license that can be found in the LICENSE file. -->
           rel='stylesheet' type='text/css'>
 
     <link rel="stylesheet" type="text/css" href="../packages/octicons_css/octicons_4.4.0.css">
-    <link rel="stylesheet" type="text/css" href="../packages/primer_css/primer_11.0.0.css">
 
     <!-- codemirror -->
     <link href="../packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/theme/elegant.css" rel="stylesheet" media="screen">
+    <link href="zenburn_mod.css" rel="stylesheet" media="screen">
+
     <script src="../packages/codemirror/codemirror.js" defer></script>
     <script src="../packages/split/split.min.js" defer></script>
 
-    <link rel="stylesheet" type="text/css" href="new_embed.css">
     <script defer src="new_embed.dart.js"></script>
     <script defer src="../scripts/polymerpatch.js"></script>
+    <script type="text/javascript">
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('theme') == 'dark') {
+                document.write(
+                    '<link rel="stylesheet" type="text/css" href="/packages/primer_css/primer_12.1.0_dark.css">' +
+                    '<link rel="stylesheet" type="text/css" href="styles.css">' +
+                    '<link rel="stylesheet" type="text/css" href="styles_dark.css">'
+                );
+            } else {
+                document.write(
+                    '<link rel="stylesheet" type="text/css" href="/packages/primer_css/primer_12.1.0.css">' +
+                    '<link rel="stylesheet" type="text/css" href="styles.css">' +
+                    '<link rel="stylesheet" type="text/css" href="styles_light.css">'
+                )
+            }
+        })();
+    </script>
 </head>
 
 <body class="d-flex flex-column">
@@ -60,7 +78,7 @@ BSD-style license that can be found in the LICENSE file. -->
     <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
         <div id="user-code-editor" spellcheck="false"></div>
         <div id="web-output" hidden>
-            <iframe id="frame" sandbox="allow-scripts" class="flex-auto" src="../scripts/frame.html">
+            <iframe id="frame" sandbox="allow-scripts" class="flex-auto">
             </iframe>
         </div>
     </div>
