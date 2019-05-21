@@ -2,6 +2,10 @@ import 'dart:html';
 
 import 'package:html_unescape/html_unescape.dart';
 
+// Change src to 'embed-new.html?fw=true for local development
+const iFrameLocation =
+    'https://dartpad.dartlang.org/experimental/embed-new.html?fw=true';
+
 /// Replaces all code snippets marked with the 'dartpad-embed' class with an
 /// instance of DartPad.
 void main() {
@@ -53,10 +57,7 @@ class InjectedEmbed {
   Future _init() async {
     host.children.clear();
 
-    // Change src to 'embed-new.html?fw=true for local development
-    var iframe = IFrameElement()
-      ..setAttribute('src',
-          'https://dartpad.dartlang.org/experimental/embed-new.html?fw=true');
+    var iframe = IFrameElement()..setAttribute('src', iFrameLocation);
     iframe.style.setProperty('border', '1px solid #ccc');
 
     host.children.add(iframe);

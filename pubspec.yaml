@@ -21,8 +21,7 @@ dependencies:
   route_hierarchical:
     path: third_party/pkg/route.dart/
   split: ^0.0.2
-  js: any
-  html_unescape: any
+  html_unescape: ^1.0.0
 dev_dependencies:
   build_runner: any
   build_test: any
