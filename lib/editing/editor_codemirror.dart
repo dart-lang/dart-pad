@@ -49,7 +49,11 @@ class CodeMirrorFactory extends EditorFactory {
       // visible.
       'viewportMargin': 100,
       //'gutters': [_gutterId],
-      'extraKeys': {'Cmd-/': 'toggleComment', 'Ctrl-/': 'toggleComment'},
+      'extraKeys': {
+        'Cmd-/': 'toggleComment',
+        'Ctrl-/': 'toggleComment',
+        'Tab': 'insertSoftTab'
+      },
       'hintOptions': {'completeSingle': false},
       //'lint': true,
       'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
