@@ -1,0 +1,24 @@
+/* styles_light.css */
+
+body {
+    background-color: #f7f7f7;
+}
+
+.busy {
+    background: url(moving_lines.gif) repeat;
+    box-shadow: inset 0 0 0 1000px rgba(255,255,255,.5);
+}
+
+#navbar {
+    background-color: #f7f7f7;
+}
+
+.gutter {
+    background-color: #f7f7f7;
+}
+
+#web-output {
+    background-color: #f7f7f7;
+}
+
+

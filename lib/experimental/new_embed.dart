@@ -135,17 +135,18 @@ class NewEmbed {
 
     testResultBox = FlashBox(querySelector('#test-result-box'));
     hintBox = FlashBox(querySelector('#hint-box'));
+    var editorTheme = isDarkMode ? 'zenburn' : 'elegant';
 
     userCodeEditor =
         editorFactory.createFromElement(querySelector('#user-code-editor'))
-          ..theme = 'elegant'
+          ..theme = editorTheme
           ..mode = 'dart'
           ..showLineNumbers = true;
     userCodeEditor.document.onChange.listen(_performAnalysis);
     userCodeEditor.autoCloseBrackets = false;
 
     testEditor = editorFactory.createFromElement(querySelector('#test-editor'))
-      ..theme = 'elegant'
+      ..theme = editorTheme
       ..mode = 'dart'
       // TODO(devoncarew): We should make this read-only after initial beta
       // testing.
@@ -154,7 +155,7 @@ class NewEmbed {
 
     solutionEditor =
         editorFactory.createFromElement(querySelector('#solution-editor'))
-          ..theme = 'elegant'
+          ..theme = editorTheme
           ..mode = 'dart'
           ..showLineNumbers = true;
 
@@ -166,7 +167,9 @@ class NewEmbed {
 
     consoleTabView = ConsoleTabView(DElement(querySelector('#console-view')));
 
-    executionSvc = ExecutionServiceIFrame(querySelector('#frame'));
+    executionSvc = ExecutionServiceIFrame(querySelector('#frame'))
+      ..frameSrc =
+          isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
 
     executionSvc.onStderr.listen((err) {
       if (tabController.selectedTab.name != 'console') {
@@ -440,6 +443,11 @@ class NewEmbed {
     return url.queryParameters['fw'] == 'true';
   }
 
+  bool get isDarkMode {
+    final url = Uri.parse(window.location.toString());
+    return url.queryParameters['theme'] == 'dark';
+  }
+
   int get initialSplitPercent {
     const int defaultSplitPercentage = 70;
 
@@ -564,6 +572,7 @@ class DisableableButton {
   bool _disabled = false;
 
   bool get disabled => _disabled;
+
   set disabled(bool value) {
     _disabled = value;
     _element.toggleClass(disabledClassName, value);
