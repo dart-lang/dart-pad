@@ -197,7 +197,7 @@ class NewEmbed {
       );
     });
 
-    _initModules().then((_) => _initNewEmbed());
+    _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());
   }
 
   /// Initializes a listener for messages from the parent window. Allows this
@@ -217,8 +217,10 @@ class NewEmbed {
         userCodeEditor.document.value = sourceCode;
       }
     });
+  }
 
-    // Send a ready message
+  /// Sends a ready message to the parent page
+  void _emitReady() {
     window.parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
   }
 
