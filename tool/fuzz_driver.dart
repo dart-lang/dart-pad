@@ -299,7 +299,10 @@ Future<num> testCompletions(
     if (i % 1000 == 0 && i > 0) print('INC: $i completes');
     lastOffset = i;
     if (_SERVER_BASED_CALL) {
-      await withTimeOut(server.completeGet(source: src, offset: i));
+      SourceRequest request = SourceRequest()
+        ..source = src
+        ..offset = i;
+      await withTimeOut(server.complete(request));
     } else {
       await withTimeOut(wrapper.complete(src, i));
     }

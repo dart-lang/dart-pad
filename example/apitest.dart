@@ -29,7 +29,6 @@ void main() {
 void setupDartpadServices() {
   setupExport();
   setupRetrieve();
-  setupSummary();
   setupIdRetrieval();
   setupGistStore();
   setupGistRetrieval();
@@ -40,24 +39,6 @@ void _setupClients() {
   servicesApi = services.DartservicesApi(client, rootUrl: _uriBase);
   _dartpadSupportApi =
       support.P_dartpadsupportservicesApi(client, rootUrl: _uriBase);
-}
-
-void setupSummary() {
-  CodeMirror editor = createEditor(querySelector('#summarySection .editor'));
-  Element output = querySelector('#summarySection .output');
-  ButtonElement button = querySelector('#summarySection button') as ButtonElement;
-  button.onClick.listen((e) {
-    _setupClients();
-    services.SourcesRequest input = services.SourcesRequest();
-    input.sources = <String, String>{};
-    input.sources['dart'] = editor.getDoc().getValue();
-    input.sources['css'] = '';
-    input.sources['html'] = '';
-    Stopwatch sw = Stopwatch()..start();
-    servicesApi.summarize(input).then((results) {
-      output.text = '${_formatTiming(sw)}${results.toJson()}';
-    });
-  });
 }
 
 void setupIdRetrieval() {

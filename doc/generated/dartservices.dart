@@ -62,77 +62,6 @@ class DartservicesApi {
     return _response.then((data) => new AnalysisResults.fromJson(data));
   }
 
-  /// Request parameters:
-  ///
-  /// [source] - Query parameter: 'source'.
-  ///
-  /// Completes with a [AnalysisResults].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<AnalysisResults> analyzeGet({core.String source}) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (source != null) {
-      _queryParams["source"] = [source];
-    }
-
-    _url = 'analyze';
-
-    var _response = _requester.request(_url, "GET",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new AnalysisResults.fromJson(data));
-  }
-
-  /// Analyze the given Dart source code and return any resulting analysis
-  /// errors or warnings.
-  ///
-  /// [request] - The metadata request object.
-  ///
-  /// Request parameters:
-  ///
-  /// Completes with a [AnalysisResults].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (request != null) {
-      _body = convert.json.encode((request).toJson());
-    }
-
-    _url = 'analyzeMulti';
-
-    var _response = _requester.request(_url, "POST",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new AnalysisResults.fromJson(data));
-  }
-
   /// Compile the given Dart source code and return the resulting JavaScript;
   /// this uses the dart2js compiler.
   ///
@@ -207,40 +136,6 @@ class DartservicesApi {
     return _response.then((data) => new CompileDDCResponse.fromJson(data));
   }
 
-  /// Request parameters:
-  ///
-  /// [source] - Query parameter: 'source'.
-  ///
-  /// Completes with a [CompileResponse].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<CompileResponse> compileGet({core.String source}) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (source != null) {
-      _queryParams["source"] = [source];
-    }
-
-    _url = 'compile';
-
-    var _response = _requester.request(_url, "GET",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new CompileResponse.fromJson(data));
-  }
-
   /// Get the valid code completion results for the given offset.
   ///
   /// [request] - The metadata request object.
@@ -267,82 +162,6 @@ class DartservicesApi {
     }
 
     _url = 'complete';
-
-    var _response = _requester.request(_url, "POST",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new CompleteResponse.fromJson(data));
-  }
-
-  /// Request parameters:
-  ///
-  /// [source] - Query parameter: 'source'.
-  ///
-  /// [offset] - Query parameter: 'offset'.
-  ///
-  /// Completes with a [CompleteResponse].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<CompleteResponse> completeGet(
-      {core.String source, core.int offset}) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (source != null) {
-      _queryParams["source"] = [source];
-    }
-    if (offset != null) {
-      _queryParams["offset"] = ["${offset}"];
-    }
-
-    _url = 'complete';
-
-    var _response = _requester.request(_url, "GET",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new CompleteResponse.fromJson(data));
-  }
-
-  /// Get the valid code completion results for the given offset.
-  ///
-  /// [request] - The metadata request object.
-  ///
-  /// Request parameters:
-  ///
-  /// Completes with a [CompleteResponse].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<CompleteResponse> completeMulti(SourcesRequest request) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (request != null) {
-      _body = convert.json.encode((request).toJson());
-    }
-
-    _url = 'completeMulti';
 
     var _response = _requester.request(_url, "POST",
         body: _body,
@@ -390,46 +209,6 @@ class DartservicesApi {
     return _response.then((data) => new DocumentResponse.fromJson(data));
   }
 
-  /// Request parameters:
-  ///
-  /// [source] - Query parameter: 'source'.
-  ///
-  /// [offset] - Query parameter: 'offset'.
-  ///
-  /// Completes with a [DocumentResponse].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<DocumentResponse> documentGet(
-      {core.String source, core.int offset}) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (source != null) {
-      _queryParams["source"] = [source];
-    }
-    if (offset != null) {
-      _queryParams["offset"] = ["${offset}"];
-    }
-
-    _url = 'document';
-
-    var _response = _requester.request(_url, "GET",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new DocumentResponse.fromJson(data));
-  }
-
   /// Get any quick fixes for the given source code location.
   ///
   /// [request] - The metadata request object.
@@ -456,81 +235,6 @@ class DartservicesApi {
     }
 
     _url = 'fixes';
-
-    var _response = _requester.request(_url, "POST",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new FixesResponse.fromJson(data));
-  }
-
-  /// Request parameters:
-  ///
-  /// [source] - Query parameter: 'source'.
-  ///
-  /// [offset] - Query parameter: 'offset'.
-  ///
-  /// Completes with a [FixesResponse].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<FixesResponse> fixesGet({core.String source, core.int offset}) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (source != null) {
-      _queryParams["source"] = [source];
-    }
-    if (offset != null) {
-      _queryParams["offset"] = ["${offset}"];
-    }
-
-    _url = 'fixes';
-
-    var _response = _requester.request(_url, "GET",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new FixesResponse.fromJson(data));
-  }
-
-  /// Get any quick fixes for the given source code location.
-  ///
-  /// [request] - The metadata request object.
-  ///
-  /// Request parameters:
-  ///
-  /// Completes with a [FixesResponse].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<FixesResponse> fixesMulti(SourcesRequest request) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (request != null) {
-      _body = convert.json.encode((request).toJson());
-    }
-
-    _url = 'fixesMulti';
 
     var _response = _requester.request(_url, "POST",
         body: _body,
@@ -577,83 +281,6 @@ class DartservicesApi {
         uploadMedia: _uploadMedia,
         downloadOptions: _downloadOptions);
     return _response.then((data) => new FormatResponse.fromJson(data));
-  }
-
-  /// Request parameters:
-  ///
-  /// [source] - Query parameter: 'source'.
-  ///
-  /// [offset] - Query parameter: 'offset'.
-  ///
-  /// Completes with a [FormatResponse].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<FormatResponse> formatGet(
-      {core.String source, core.int offset}) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (source != null) {
-      _queryParams["source"] = [source];
-    }
-    if (offset != null) {
-      _queryParams["offset"] = ["${offset}"];
-    }
-
-    _url = 'format';
-
-    var _response = _requester.request(_url, "GET",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new FormatResponse.fromJson(data));
-  }
-
-  /// Summarize the given Dart source code and return any resulting analysis
-  /// errors or warnings.
-  ///
-  /// [request] - The metadata request object.
-  ///
-  /// Request parameters:
-  ///
-  /// Completes with a [SummaryText].
-  ///
-  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
-  /// error.
-  ///
-  /// If the used [http.Client] completes with an error when making a REST call,
-  /// this method will complete with the same error.
-  async.Future<SummaryText> summarize(SourcesRequest request) {
-    var _url = null;
-    var _queryParams = new core.Map<core.String, core.List<core.String>>();
-    var _uploadMedia = null;
-    var _uploadOptions = null;
-    var _downloadOptions = commons.DownloadOptions.Metadata;
-    var _body = null;
-
-    if (request != null) {
-      _body = convert.json.encode((request).toJson());
-    }
-
-    _url = 'summarize';
-
-    var _response = _requester.request(_url, "POST",
-        body: _body,
-        queryParams: _queryParams,
-        uploadOptions: _uploadOptions,
-        uploadMedia: _uploadMedia,
-        downloadOptions: _downloadOptions);
-    return _response.then((data) => new SummaryText.fromJson(data));
   }
 
   /// Return the current SDK version for DartServices.
@@ -1017,34 +644,6 @@ class FormatResponse {
   }
 }
 
-class Location {
-  core.int offset;
-  core.String sourceName;
-
-  Location();
-
-  Location.fromJson(core.Map _json) {
-    if (_json.containsKey("offset")) {
-      offset = _json["offset"];
-    }
-    if (_json.containsKey("sourceName")) {
-      sourceName = _json["sourceName"];
-    }
-  }
-
-  core.Map<core.String, core.Object> toJson() {
-    final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
-    if (offset != null) {
-      _json["offset"] = offset;
-    }
-    if (sourceName != null) {
-      _json["sourceName"] = sourceName;
-    }
-    return _json;
-  }
-}
-
 class ProblemAndFixes {
   core.List<CandidateFix> fixes;
   core.int length;
@@ -1159,67 +758,6 @@ class SourceRequest {
     }
     if (strongMode != null) {
       _json["strongMode"] = strongMode;
-    }
-    return _json;
-  }
-}
-
-class SourcesRequest {
-  /// An optional location in the source code.
-  Location location;
-
-  /// Map of names to Sources.
-  core.Map<core.String, core.String> sources;
-
-  /// Ignored: always treated as true.
-  core.bool strongMode;
-
-  SourcesRequest();
-
-  SourcesRequest.fromJson(core.Map _json) {
-    if (_json.containsKey("location")) {
-      location = new Location.fromJson(_json["location"]);
-    }
-    if (_json.containsKey("sources")) {
-      sources = (_json["sources"] as core.Map).cast<core.String, core.String>();
-    }
-    if (_json.containsKey("strongMode")) {
-      strongMode = _json["strongMode"];
-    }
-  }
-
-  core.Map<core.String, core.Object> toJson() {
-    final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
-    if (location != null) {
-      _json["location"] = (location).toJson();
-    }
-    if (sources != null) {
-      _json["sources"] = sources;
-    }
-    if (strongMode != null) {
-      _json["strongMode"] = strongMode;
-    }
-    return _json;
-  }
-}
-
-class SummaryText {
-  core.String text;
-
-  SummaryText();
-
-  SummaryText.fromJson(core.Map _json) {
-    if (_json.containsKey("text")) {
-      text = _json["text"];
-    }
-  }
-
-  core.Map<core.String, core.Object> toJson() {
-    final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
-    if (text != null) {
-      _json["text"] = text;
     }
     return _json;
   }
