@@ -574,7 +574,7 @@ class PlaygroundMobile {
     dartServices
         .compile(input)
         .timeout(longServiceCallTimeout)
-        .then((CompileResponse response) {
+        .then((CompileResponse response) async {
       _cachedCompile = response;
       if (executionService != null) {
         return executionService.execute(
