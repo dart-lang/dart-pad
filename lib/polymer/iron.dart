@@ -12,6 +12,7 @@ import 'base.dart';
 
 class IronPages extends IronSelectableBehavior {
   IronPages() : super('iron-pages');
+
   IronPages.from(HtmlElement element) : super.from(element);
 }
 
@@ -24,11 +25,13 @@ class IronIcon extends PolymerElement {
   IronIcon.from(HtmlElement element) : super.from(element);
 
   String get src => attribute('src');
+
   set src(String value) => setAttribute('src', value);
 }
 
 class IronOverlayBehavior extends PolymerElement {
   IronOverlayBehavior([String tag]) : super(tag == null ? 'core-overlay' : tag);
+
   IronOverlayBehavior.from(HtmlElement element) : super.from(element);
 
   /// Toggle the opened state of the overlay.
@@ -45,11 +48,13 @@ class IronOverlayBehavior extends PolymerElement {
 
 abstract class IronSelectableBehavior extends PolymerElement {
   IronSelectableBehavior(String tag) : super(tag);
+
   IronSelectableBehavior.from(HtmlElement element) : super.from(element);
 
   // TODO: add valueattr
 
   String get selected => "${property('selected')}";
+
   set selected(String value) {
     setAttribute('selected', value);
   }
@@ -74,37 +79,46 @@ abstract class IronSelectableBehavior extends PolymerElement {
 
 class CoreSplitter extends PolymerElement {
   CoreSplitter() : super('core-splitter');
+
   CoreSplitter.from(HtmlElement element) : super.from(element);
 
   /// Possible values are left, right, up and down.
   String get direction => attribute('direction');
+
   set direction(String value) => setAttribute('direction', value);
 
   /// Minimum width to which the splitter target can be sized, e.g.
   /// minSize="100px".
   String get minSize => attribute('minSize');
+
   set minSize(String value) => setAttribute('minSize', value);
 
   /// Locks the split bar so it can't be dragged.
   bool get locked => hasAttribute('locked');
+
   set locked(bool value) => toggleAttribute('locked', value);
 
   /// By default the parent and siblings of the splitter are set to overflow
   /// hidden. This helps avoid elements bleeding outside the splitter regions.
   /// Set this property to true to allow these elements to overflow.
   bool get allowOverflow => hasAttribute('allowOverflow');
+
   set allowOverflow(bool value) => toggleAttribute('allowOverflow', value);
 }
 
 class PaperToolbar extends PolymerElement {
   PaperToolbar() : super('paper-toolbar');
+
   PaperToolbar.from(HtmlElement element) : super.from(element);
 }
 
 class PolymerElement extends WebElement {
   static PolymerElement div() => PolymerElement('div');
+
   static PolymerElement p([String text]) => PolymerElement('p', text: text);
+
   static PolymerElement section() => PolymerElement('section');
+
   static PolymerElement span([String text]) =>
       PolymerElement('span', text: text);
 
@@ -112,44 +126,54 @@ class PolymerElement extends WebElement {
   final _eventStreams = <String, Stream>{};
 
   PolymerElement(String tag, {String text}) : super(tag, text: text);
+
   PolymerElement.from(HtmlElement element) : super.from(element);
 
   void hidden([bool value]) => toggleAttribute('hidden', value);
 
   String get icon => attribute('icon');
+
   set icon(String value) => setAttribute('icon', value);
 
   String get label => attribute('label');
+
   set label(String value) => setAttribute('label', value);
 
   String get transitions => attribute('transitions');
+
   set transitions(String value) => setAttribute('transitions', value);
 
   bool get disabled => hasAttribute('disabled');
+
   set disabled(bool value) => toggleAttribute('disabled', value);
 
   Stream get onTap => listen('tap', sync: true);
 
   // Layout types.
   void layout() => toggleAttribute('layout');
+
   void horizontal() => toggleAttribute('horizontal');
+
   void vertical() => toggleAttribute('vertical');
 
   // Layout params.
   void fit() => toggleAttribute('fit');
+
   void flex([int flexAmount]) {
     toggleAttribute('flex', true);
 
     if (flexAmount != null) {
-      if (flexAmount == 1)
+      if (flexAmount == 1) {
         toggleAttribute('one', true);
-      else if (flexAmount == 2)
+      } else if (flexAmount == 2) {
         toggleAttribute('two', true);
-      else if (flexAmount == 3)
+      } else if (flexAmount == 3) {
         toggleAttribute('three', true);
-      else if (flexAmount == 4)
+      } else if (flexAmount == 4) {
         toggleAttribute('four', true);
-      else if (flexAmount == 5) toggleAttribute('five', true);
+      } else if (flexAmount == 5) {
+        toggleAttribute('five', true);
+      }
     }
   }
 
