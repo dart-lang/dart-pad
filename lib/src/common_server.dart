@@ -24,7 +24,6 @@ import 'compiler.dart';
 import 'flutter_web.dart';
 import 'pub.dart';
 import 'sdk_manager.dart';
-import 'summarize.dart';
 
 final Duration _standardExpiration = Duration(hours: 1);
 final Logger log = Logger('common_server');
@@ -238,7 +237,7 @@ class RedisCache implements ServerCache {
 
 /// An in-memory implementation of [ServerCache] which doesn't support
 /// expiration of entries based on time.
-class InmemoryCache implements ServerCache {
+class InMemoryCache implements ServerCache {
   /// Wrapping an internal cache with a maximum size of 512 entries.
   final Cache<String, String> _lru =
       MapCache<String, String>.lru(maximumSize: 512);
@@ -328,35 +327,6 @@ class CommonServer {
 
   @ApiMethod(
       method: 'POST',
-      path: 'analyzeMulti',
-      description:
-          'Analyze the given Dart source code and return any resulting '
-          'analysis errors or warnings.')
-  @deprecated
-  Future<AnalysisResults> analyzeMulti(SourcesRequest request) {
-    return _analyzeMulti(request.sources);
-  }
-
-  @ApiMethod(
-      method: 'POST',
-      path: 'summarize',
-      description:
-          'Summarize the given Dart source code and return any resulting '
-          'analysis errors or warnings.')
-  @deprecated
-  Future<SummaryText> summarize(SourcesRequest request) {
-    return _summarize(request.sources['dart'], request.sources['css'],
-        request.sources['html']);
-  }
-
-  @ApiMethod(method: 'GET', path: 'analyze')
-  @deprecated
-  Future<AnalysisResults> analyzeGet({String source}) {
-    return _analyze(source);
-  }
-
-  @ApiMethod(
-      method: 'POST',
       path: 'compile',
       description: 'Compile the given Dart source code and return the '
           'resulting JavaScript; this uses the dart2js compiler.')
@@ -364,11 +334,6 @@ class CommonServer {
     return _compileDart2js(request.source,
         returnSourceMap: request.returnSourceMap ?? false);
   }
-
-  @ApiMethod(method: 'GET', path: 'compile')
-  @deprecated
-  Future<CompileResponse> compileGet({String source}) =>
-      _compileDart2js(source);
 
   @ApiMethod(
       method: 'POST',
@@ -394,33 +359,6 @@ class CommonServer {
 
   @ApiMethod(
       method: 'POST',
-      path: 'completeMulti',
-      description:
-          'Get the valid code completion results for the given offset.')
-  @deprecated
-  Future<CompleteResponse> completeMulti(SourcesRequest request) {
-    if (request.location == null) {
-      throw BadRequestError('Missing parameter: \'location\'');
-    }
-
-    return _completeMulti(
-        request.sources, request.location.sourceName, request.location.offset);
-  }
-
-  @ApiMethod(method: 'GET', path: 'complete')
-  Future<CompleteResponse> completeGet({String source, int offset}) {
-    if (source == null) {
-      throw BadRequestError('Missing parameter: \'source\'');
-    }
-    if (offset == null) {
-      throw BadRequestError('Missing parameter: \'offset\'');
-    }
-
-    return _complete(source, offset);
-  }
-
-  @ApiMethod(
-      method: 'POST',
       path: 'fixes',
       description: 'Get any quick fixes for the given source code location.')
   Future<FixesResponse> fixes(SourceRequest request) {
@@ -433,52 +371,12 @@ class CommonServer {
 
   @ApiMethod(
       method: 'POST',
-      path: 'fixesMulti',
-      description: 'Get any quick fixes for the given source code location.')
-  @deprecated
-  Future<FixesResponse> fixesMulti(SourcesRequest request) {
-    if (request.location.sourceName == null) {
-      throw BadRequestError('Missing parameter: \'fullName\'');
-    }
-    if (request.location.offset == null) {
-      throw BadRequestError('Missing parameter: \'offset\'');
-    }
-
-    return _fixesMulti(
-        request.sources, request.location.sourceName, request.location.offset);
-  }
-
-  @ApiMethod(method: 'GET', path: 'fixes')
-  @deprecated
-  Future<FixesResponse> fixesGet({String source, int offset}) {
-    if (source == null) {
-      throw BadRequestError('Missing parameter: \'source\'');
-    }
-    if (offset == null) {
-      throw BadRequestError('Missing parameter: \'offset\'');
-    }
-
-    return _fixes(source, offset);
-  }
-
-  @ApiMethod(
-      method: 'POST',
       path: 'format',
       description: 'Format the given Dart source code and return the results. '
           'If an offset is supplied in the request, the new position for that '
           'offset in the formatted code will be returned.')
   Future<FormatResponse> format(SourceRequest request) {
     return _format(request.source, offset: request.offset);
-  }
-
-  @ApiMethod(method: 'GET', path: 'format')
-  @deprecated
-  Future<FormatResponse> formatGet({String source, int offset}) {
-    if (source == null) {
-      throw BadRequestError('Missing parameter: \'source\'');
-    }
-
-    return _format(source, offset: offset);
   }
 
   @ApiMethod(
@@ -488,12 +386,6 @@ class CommonServer {
           'the given offset.')
   Future<DocumentResponse> document(SourceRequest request) {
     return _document(request.source, request.offset);
-  }
-
-  @ApiMethod(method: 'GET', path: 'document')
-  @deprecated
-  Future<DocumentResponse> documentGet({String source, int offset}) {
-    return _document(source, offset);
   }
 
   @ApiMethod(
@@ -507,41 +399,14 @@ class CommonServer {
     if (source == null) {
       throw BadRequestError('Missing parameter: \'source\'');
     }
-    return _analyzeMulti(<String, String>{kMainDart: source});
-  }
 
-  Future<SummaryText> _summarize(String dart, String html, String css) async {
-    if (dart == null || html == null || css == null) {
-      throw BadRequestError('Missing core source parameter.');
-    }
-    String sourcesJson = JsonEncoder()
-        .convert(<String, String>{'dart': dart, 'html': html, 'css': css});
-    log.info('About to summarize: ${_hashSource(sourcesJson)}');
-
-    SummaryText summaryString =
-        await _analyzeMulti(<String, String>{kMainDart: dart})
-            .then((AnalysisResults result) {
-      Summarizer summarizer =
-          Summarizer(dart: dart, html: html, css: css, analysis: result);
-      return SummaryText.fromString(summarizer.returnAsSimpleSummary());
-    });
-    return summaryString;
-  }
-
-  Future<AnalysisResults> _analyzeMulti(Map<String, String> sources) async {
-    if (sources == null) {
-      throw BadRequestError("Missing parameter: 'sources'");
-    }
-
-    await _checkPackageReferencesInitFlutterWebMulti(sources);
+    await _checkPackageReferencesInitFlutterWeb(source);
 
     try {
       final Stopwatch watch = Stopwatch()..start();
 
-      AnalysisResults results = await analysisServer.analyzeMulti(sources);
-      int lineCount = sources.values
-          .map((String s) => s.split('\n').length)
-          .fold(0, (int a, int b) => a + b);
+      AnalysisResults results = await analysisServer.analyze(source);
+      int lineCount = source.split('\n').length;
       int ms = watch.elapsedMilliseconds;
       log.info('PERF: Analyzed $lineCount lines of Dart in ${ms}ms.');
       return results;
@@ -680,31 +545,11 @@ class CommonServer {
       throw BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _completeMulti(
-        <String, String>{kMainDart: source}, kMainDart, offset);
-  }
-
-  Future<CompleteResponse> _completeMulti(
-      Map<String, String> sources, String sourceName, int offset) async {
-    if (sources == null) {
-      throw BadRequestError('Missing parameter: \'source\'');
-    }
-    if (sourceName == null) {
-      throw BadRequestError('Missing parameter: \'name\'');
-    }
-    if (offset == null) {
-      throw BadRequestError('Missing parameter: \'offset\'');
-    }
-
-    await _checkPackageReferencesInitFlutterWebMulti(sources);
+    await _checkPackageReferencesInitFlutterWeb(source);
 
     Stopwatch watch = Stopwatch()..start();
     try {
-      CompleteResponse response = await analysisServer.completeMulti(
-          sources,
-          Location()
-            ..sourceName = sourceName
-            ..offset = offset);
+      CompleteResponse response = await analysisServer.complete(source, offset);
       log.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
       return response;
     } catch (e, st) {
@@ -722,26 +567,10 @@ class CommonServer {
       throw BadRequestError('Missing parameter: \'offset\'');
     }
 
-    return _fixesMulti(<String, String>{kMainDart: source}, kMainDart, offset);
-  }
-
-  Future<FixesResponse> _fixesMulti(
-      Map<String, String> sources, String sourceName, int offset) async {
-    if (sources == null) {
-      throw BadRequestError('Missing parameter: \'sources\'');
-    }
-    if (offset == null) {
-      throw BadRequestError('Missing parameter: \'offset\'');
-    }
-
-    await _checkPackageReferencesInitFlutterWebMulti(sources);
+    await _checkPackageReferencesInitFlutterWeb(source);
 
     Stopwatch watch = Stopwatch()..start();
-    FixesResponse response = await analysisServer.getFixesMulti(
-        sources,
-        Location()
-          ..sourceName = sourceName
-          ..offset = offset);
+    FixesResponse response = await analysisServer.getFixes(source, offset);
     log.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
@@ -784,21 +613,6 @@ class CommonServer {
         return;
       }
     }
-  }
-
-  /// Check that the set of packages referenced is valid.
-  ///
-  /// If there are uses of package:flutter_web, ensure that support there is
-  /// initialized.
-  Future<void> _checkPackageReferencesInitFlutterWebMulti(
-      Map<String, String> sources) async {
-    // Note, we don't handle multiple input sources.
-    if (sources.length > 1) {
-      return;
-    }
-
-    final String source = sources.values.first;
-    await _checkPackageReferencesInitFlutterWeb(source);
   }
 }
 

@@ -74,7 +74,7 @@ class GaeServer {
         flutterWebManager,
         GaeServerContainer(),
         redisServerUri == null
-            ? InmemoryCache()
+            ? InMemoryCache()
             : RedisCache(
                 redisServerUri, io.Platform.environment['GAE_VERSION']));
     // Enabled pretty printing of returned json for debuggability.
