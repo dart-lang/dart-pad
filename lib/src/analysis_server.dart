@@ -92,6 +92,8 @@ class AnalysisServerWrapper {
         await _sendAddOverlays(<String, String>{mainPath: _WARMUP_SRC});
         await analysisComplete.future;
         await _sendRemoveOverlays();
+
+        return analysisServer;
       });
     }
 

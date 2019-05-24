@@ -174,9 +174,10 @@ class RedisCache implements ServerCache {
       // commands can return errors synchronously in timeout cases.
       try {
         value = await commands.get(key).timeout(cacheOperationTimeout,
-            onTimeout: () {
+            onTimeout: () async {
           log.warning('$_logPrefix: timeout on get operation for key $key');
-          redisClient?.disconnect();
+          await redisClient?.disconnect();
+          return null;
         });
       } catch (e) {
         log.warning('$_logPrefix: error on get operation for key $key: $e');
@@ -198,9 +199,10 @@ class RedisCache implements ServerCache {
     // commands can sometimes return errors synchronously in timeout cases.
     try {
       return commands.del(key: key).timeout(cacheOperationTimeout,
-          onTimeout: () {
+          onTimeout: () async {
         log.warning('$_logPrefix: timeout on remove operation for key $key');
-        redisClient?.disconnect();
+        await redisClient?.disconnect();
+        return null;
       });
     } catch (e) {
       log.warning('$_logPrefix: error on remove operation for key $key: $e');
