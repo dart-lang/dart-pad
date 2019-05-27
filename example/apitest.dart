@@ -87,7 +87,8 @@ void setupGistRetrieval() {
 void setupAnalyze() {
   CodeMirror editor = createEditor(querySelector('#analyzeSection .editor'));
   Element output = querySelector('#analyzeSection .output');
-  ButtonElement button = querySelector('#analyzeSection button') as ButtonElement;
+  ButtonElement button =
+      querySelector('#analyzeSection button') as ButtonElement;
   button.onClick.listen((e) {
     _setupClients();
     services.SourceRequest srcRequest = services.SourceRequest()
@@ -102,7 +103,8 @@ void setupAnalyze() {
 void setupCompile() {
   CodeMirror editor = createEditor(querySelector('#compileSection .editor'));
   Element output = querySelector('#compileSection .output');
-  ButtonElement button = querySelector('#compileSection button') as ButtonElement;
+  ButtonElement button =
+      querySelector('#compileSection button') as ButtonElement;
   button.onClick.listen((e) {
     String source = editor.getDoc().getValue();
 
@@ -121,7 +123,8 @@ void setupComplete() {
   CodeMirror editor = createEditor(querySelector('#completeSection .editor'));
   Element output = querySelector('#completeSection .output');
   Element offsetElement = querySelector('#completeSection .offset');
-  ButtonElement button = querySelector('#completeSection button') as ButtonElement;
+  ButtonElement button =
+      querySelector('#completeSection button') as ButtonElement;
   button.onClick.listen((e) {
     var sourceRequest = _getSourceRequest(editor);
     Stopwatch sw = Stopwatch()..start();
@@ -139,7 +142,8 @@ void setupDocument() {
   CodeMirror editor = createEditor(querySelector('#documentSection .editor'));
   Element output = querySelector('#documentSection .output');
   Element offsetElement = querySelector('#documentSection .offset');
-  ButtonElement button = querySelector('#documentSection button') as ButtonElement;
+  ButtonElement button =
+      querySelector('#documentSection button') as ButtonElement;
   button.onClick.listen((e) {
     var sourceRequest = _getSourceRequest(editor);
     Stopwatch sw = Stopwatch()..start();
@@ -174,7 +178,8 @@ void setupFixes() {
 
 void setupVersion() {
   Element output = querySelector('#versionSection .output');
-  ButtonElement button = querySelector('#versionSection button') as ButtonElement;
+  ButtonElement button =
+      querySelector('#versionSection button') as ButtonElement;
   button.onClick.listen((e) {
     Stopwatch sw = Stopwatch()..start();
     servicesApi.version().then((results) {
@@ -186,7 +191,8 @@ void setupVersion() {
 void setupExport() {
   CodeMirror editor = createEditor(querySelector('#exportSection .editor'));
   Element output = querySelector('#exportSection .output');
-  ButtonElement button = querySelector('#exportSection button') as ButtonElement;
+  ButtonElement button =
+      querySelector('#exportSection button') as ButtonElement;
   button.onClick.listen((e) {
     support.PadSaveObject saveObject = support.PadSaveObject();
     saveObject.dart = editor.getDoc().getValue();
@@ -201,7 +207,8 @@ void setupRetrieve() {
   Element output = querySelector('#retrieveSection .output');
   CodeMirror editor =
       createEditor(querySelector('#retrieveSection .editor'), defaultText: '');
-  ButtonElement button = querySelector('#retrieveSection button') as ButtonElement;
+  ButtonElement button =
+      querySelector('#retrieveSection button') as ButtonElement;
   button.onClick.listen((e) {
     String uuid = editor.getDoc().getValue();
 

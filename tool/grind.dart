@@ -189,7 +189,8 @@ void fuzz() {
 }
 
 @Task('Update discovery files and run all checks prior to deployment')
-@Depends(updateDockerVersion, init, discovery, analyze, test, fuzz, validateStorageArtifacts)
+@Depends(updateDockerVersion, init, discovery, analyze, test, fuzz,
+    validateStorageArtifacts)
 void deploy() {
   log('Run: gcloud app deploy --project=dart-services --no-promote');
 }

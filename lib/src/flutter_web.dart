@@ -9,8 +9,6 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
-import 'config.dart';
-
 Logger _logger = Logger('flutter_web');
 
 /// Handle provisioning package:flutter_web and related work.
@@ -155,14 +153,6 @@ $_samplePackageName:lib/
   static const String _samplePackageName = 'dartpad_sample';
 
   static String createPubspec(bool includeFlutterWeb) {
-    final Config config = Config.getConfig();
-
-    // In order to provision package:flutter_web for a local checkout, create a
-    // file named 'config.properties' in the dart-services repo root.
-    // Add an entry, 'flutter_repo_path=<path/to/flutter_web/repo>', which
-    // points to a local checkout of the flutter_web repository.
-    String flutter_repo_path = config.getValue('flutter_repo_path');
-
     String content = '''
 name: $_samplePackageName
 ''';
@@ -182,19 +172,14 @@ dependencies:
     git:
       url: https://github.com/flutter/flutter_web
       path: packages/flutter_web_ui
-''';
-
-      if (flutter_repo_path != null) {
-        content += '''
 dependency_overrides:
   flutter_web:
-    path: $flutter_repo_path/packages/flutter_web
+    path: ${Directory.current.path}/flutter_web/packages/flutter_web
   flutter_web_test:
-    path: $flutter_repo_path/packages/flutter_web_test
+    path: ${Directory.current.path}/flutter_web/packages/flutter_web_test
   flutter_web_ui:
-    path: $flutter_repo_path/packages/flutter_web_ui
+    path: ${Directory.current.path}/flutter_web/packages/flutter_web_ui
 ''';
-      }
     }
 
     return content;

@@ -21,8 +21,5 @@ dump.rdb
 # compilation artifacts
 artifacts/
 
-# local configuration overrides
-config.properties
-
-# Flutter Web
-flutter_web/
+# editor artifacts 
+.vscode/ 
