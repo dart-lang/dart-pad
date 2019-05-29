@@ -22,3 +22,26 @@ body {
 #web-output {
     background-color: #1b1e22;
 }
+
+.footer {
+    border-top: 1px solid #596068;
+    background-color: #1b1e22;
+}
+
+#issues-message {
+    color: #f8fafb;
+}
+
+/* Issues */
+#issues {
+    border: 1px solid #596068;
+    background-color: rgba(27,29,33,.8);
+}
+
+.issue .issuelabel {
+    color: #222;
+}
+
+.issue .message {
+    color: #f8fafb;
+}
