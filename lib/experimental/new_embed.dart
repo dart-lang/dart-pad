@@ -473,7 +473,6 @@ class NewEmbed {
 
     if (focus) userCodeEditor.focus();
   }
-
 }
 
 // Primer uses a class called "selected" for its navigation styling, rather than
@@ -676,20 +675,20 @@ class AnalysisResultsController {
   DElement flash;
   DElement message;
   DElement toggle;
-  bool _hidden = true;
+  bool _flashHidden = true;
 
   final StreamController<AnalysisIssue> _onClickController =
       StreamController.broadcast();
   Stream<AnalysisIssue> get onIssueClick => _onClickController.stream;
 
   AnalysisResultsController(this.flash, this.message, this.toggle) {
-    hide();
+    hideFlash();
     message.text = _noIssuesMsg;
     toggle.onClick.listen((_) {
-      if (_hidden) {
-        show();
+      if (_flashHidden) {
+        showFlash();
       } else {
-        hide();
+        hideFlash();
       }
     });
   }
@@ -706,7 +705,7 @@ class AnalysisResultsController {
     }
 
     // show the flash without toggling the hidden state
-    if (!_hidden) {
+    if (!_flashHidden) {
       flash.clearAttr('hidden');
     }
 
@@ -750,14 +749,14 @@ class AnalysisResultsController {
     toggle.clearAttr('hidden');
   }
 
-  void hide() {
+  void hideFlash() {
     flash.setAttr('hidden');
-    _hidden = true;
+    _flashHidden = true;
     toggle.text = _showMsg;
   }
 
-  void show() {
-    _hidden = false;
+  void showFlash() {
+    _flashHidden = false;
     flash.clearAttr('hidden');
     toggle.text = _hideMsg;
   }
