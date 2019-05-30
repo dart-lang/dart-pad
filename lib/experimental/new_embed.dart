@@ -52,7 +52,6 @@ class NewEmbed {
   Counter unreadConsoleCounter;
 
   FlashBox testResultBox;
-  FlashBox analysisResultBox;
   FlashBox hintBox;
 
   ExecutionService executionSvc;
@@ -66,6 +65,7 @@ class NewEmbed {
   NewEmbedContext context;
 
   Splitter splitter;
+  AnalysisResultsController analysisResultsController;
 
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
@@ -135,7 +135,6 @@ class NewEmbed {
     );
 
     testResultBox = FlashBox(querySelector('#test-result-box'));
-    analysisResultBox = FlashBox(querySelector('#analysis-result-box'));
     hintBox = FlashBox(querySelector('#hint-box'));
     var editorTheme = isDarkMode ? 'zenburn' : 'elegant';
 
@@ -197,6 +196,13 @@ class NewEmbed {
       );
     });
 
+    analysisResultsController = AnalysisResultsController(
+        DElement(querySelector('#issues')),
+        DElement(querySelector('#issues-message')),
+        DElement(querySelector('#issues-toggle')))
+      ..onIssueClick.listen((issue) {
+        _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+      });
     _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());
   }
 
@@ -317,7 +323,6 @@ class NewEmbed {
 
   void _handleExecute() {
     editorIsBusy = true;
-    analysisResultBox.hide();
     testResultBox.hide();
     hintBox.hide();
     consoleTabView.clear();
@@ -363,23 +368,9 @@ class NewEmbed {
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
-    analysisResultBox.hide();
     testResultBox.hide();
     hintBox.hide();
-
-    if (issues.isEmpty) {
-      return;
-    }
-
-    List<String> messages = issues.map((AnalysisIssue issue) {
-      String message = issue.message;
-      if (message.endsWith('.')) {
-        message = message.substring(0, message.length - 1);
-      }
-      return '$message - line ${issue.line}';
-    }).toList();
-
-    analysisResultBox.showStrings(messages, FlashBoxStyle.warn);
+    analysisResultsController.display(issues);
   }
 
   /// Perform static analysis of the source code.
@@ -496,6 +487,15 @@ class NewEmbed {
     s = math.min(s, 95);
     s = math.max(s, 5);
     return s;
+  }
+
+  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
+    Document doc = userCodeEditor.document;
+
+    doc.select(
+        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
+
+    if (focus) userCodeEditor.focus();
   }
 }
 
@@ -678,6 +678,111 @@ class FlashBox {
 
   void hide() {
     _element.setAttr('hidden');
+  }
+
+  void show() {
+    _element.clearAttr('hidden');
+  }
+}
+
+class AnalysisResultsController {
+  static const String _noIssuesMsg = 'no issues';
+  static const String _hideMsg = 'hide';
+  static const String _showMsg = 'show';
+
+  static const Map<String, List<String>> _classesForType = {
+    'info': ['issuelabel', 'info'],
+    'warning': ['issuelabel', 'warning'],
+    'error': ['issuelabel', 'error'],
+  };
+
+  DElement flash;
+  DElement message;
+  DElement toggle;
+  bool _flashHidden = true;
+
+  final StreamController<AnalysisIssue> _onClickController =
+      StreamController.broadcast();
+  Stream<AnalysisIssue> get onIssueClick => _onClickController.stream;
+
+  AnalysisResultsController(this.flash, this.message, this.toggle) {
+    hideFlash();
+    message.text = _noIssuesMsg;
+    toggle.onClick.listen((_) {
+      if (_flashHidden) {
+        showFlash();
+      } else {
+        hideFlash();
+      }
+    });
+  }
+
+  void display(List<AnalysisIssue> issues) {
+    if (issues.isEmpty) {
+      message.text = _noIssuesMsg;
+
+      // hide the flash without toggling the hidden state
+      flash.setAttr('hidden');
+
+      hideToggle();
+      return;
+    }
+
+    // show the flash without toggling the hidden state
+    if (!_flashHidden) {
+      flash.clearAttr('hidden');
+    }
+
+    showToggle();
+    message.text = '${issues.length} issues';
+
+    flash.clearChildren();
+    for (var elem in issues.map(_issueElement)) {
+      flash.add(elem);
+    }
+  }
+
+  Element _issueElement(AnalysisIssue issue) {
+    var message = issue.message;
+    if (issue.message.endsWith('.')) {
+      message = message.substring(0, message.length - 1);
+    }
+
+    var elem = DivElement()..classes.add('issue');
+
+    elem.children.add(SpanElement()
+      ..text = issue.kind
+      ..classes.addAll(_classesForType[issue.kind]));
+
+    elem.children.add(SpanElement()
+      ..text = '$message - line ${issue.line}'
+      ..classes.add('message'));
+
+    elem.onClick.listen((_) {
+      _onClickController.add(issue);
+    });
+
+    return elem;
+  }
+
+  void hideToggle() {
+    toggle.setAttr('hidden');
+  }
+
+  void showToggle() {
+    toggle.clearAttr('hidden');
+  }
+
+  void hideFlash() {
+    flash.setAttr('hidden');
+    _flashHidden = true;
+    toggle.text = _showMsg;
+  }
+
+  void showFlash() {
+    _flashHidden = false;
+    flash.clearAttr('hidden');
+    toggle.text = _hideMsg;
   }
 }
 
