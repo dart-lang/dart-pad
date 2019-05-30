@@ -78,6 +78,10 @@ body {
   margin-top: 8px;
 }
 
+#issues-container > div + div {
+  margin-top: 8px;
+}
+
 .flash {
   border-radius: 0.25em;
 }
@@ -85,6 +89,10 @@ body {
 #flash-container {
   width: 380px;
   z-index: 10;
+}
+
+#issues-container {
+  width: 380px;
 }
 
 .message-container {
@@ -167,4 +175,72 @@ body {
   width: 100%;
   border-top: 1px solid #d0d5d9;
   border-bottom: 1px solid #d0d5d9;
+}
+
+/* Footer */
+.footer {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 4px 12px 4px 12px;
+  height: 40px;
+}
+
+#issues-message {
+  cursor: default;
+  margin-right: 12px;
+}
+
+#issues-toggle {
+  cursor: pointer;
+
+  /* Prevent the layout from changing when toggling between show and hide */
+  width: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Issues */
+#issues {
+  padding: 8px;
+  overflow-y: auto;
+  border-radius: 0.25em;
+}
+
+#issues .issue {
+  display: flex;
+  flex-direction: row;
+  line-height: 20px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.issue + .issue {
+  margin-top: 4px;
+}
+
+.issue .issuelabel {
+  display: inline-block;
+  border-radius: 3px;
+  padding: 2px 5px;
+  min-width: 53px;
+}
+
+.issue .issuelabel.error {
+  background-color: #F7977A;
+}
+
+.issue .issuelabel.warning {
+  background-color: #FFF79A;
+}
+
+.issue .issuelabel.info {
+  background-color: #7EA7D8;
+}
+
+.issue .message {
+  padding-left: 5px;
+  line-height: 20px;
 }

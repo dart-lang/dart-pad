@@ -90,8 +90,12 @@ BSD-style license that can be found in the LICENSE file. -->
     </div>
     <div id="console-view" class="tabview flex-auto p-2" hidden></div>
 </section>
+<footer flex layout horizontal class="footer">
+    <div id="issues-message"></div>
+    <button id="issues-toggle" class="btn btn-sm" hidden></button>
+</footer>
 
-<div id="flash-container" class="position-fixed right-2 bottom-2">
+<div id="flash-container" class="position-fixed right-2 bottom-6">
     <div id="analysis-result-box" class="flash flash-error" hidden>
         <button class="flash-close">
             <div class="octicon octicon-x"></div>
@@ -110,6 +114,7 @@ BSD-style license that can be found in the LICENSE file. -->
         </button>
         <div class="message-container custom-scrollbar"></div>
     </div>
+    <div id="issues" hidden></div>
 </div>
 
 </body>
