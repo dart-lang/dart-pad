@@ -73,6 +73,7 @@ class NewEmbed {
   );
 
   NewEmbed() {
+    _initHostListener();
     tabController = NewEmbedTabController();
     for (String name in ['editor', 'test', 'console', 'solution']) {
       tabController.registerTab(
@@ -202,8 +203,31 @@ class NewEmbed {
       ..onIssueClick.listen((issue) {
         _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
       });
+    _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());
+  }
 
-    _initModules().then((_) => _initNewEmbed());
+  /// Initializes a listener for messages from the parent window. Allows this
+  /// embedded iframe to display and run arbitrary Dart code.
+  void _initHostListener() {
+    window.addEventListener('message', (dynamic event) {
+      var data = event.data;
+      if (data is! Map) {
+        // Ignore unexpected messages
+        return;
+      }
+
+      var type = data['type'];
+
+      if (type == 'sourceCode') {
+        var sourceCode = data['sourceCode'];
+        userCodeEditor.document.value = sourceCode;
+      }
+    });
+  }
+
+  /// Sends a ready message to the parent page
+  void _emitReady() {
+    window.parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
   }
 
   String get gistId {
