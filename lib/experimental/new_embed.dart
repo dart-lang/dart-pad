@@ -227,11 +227,17 @@ class NewEmbed {
 
     editorFactory.registerCompleter(
         'dart', DartCompleter(dartServices, userCodeEditor.document));
+
     keys.bind(['ctrl-space', 'macctrl-space'], () {
       if (userCodeEditor.hasFocus) {
         userCodeEditor.showCompletions();
       }
     }, 'Completion');
+
+    keys.bind(['alt-enter'], () {
+      userCodeEditor.showCompletions(onlyShowFixes: true);
+    }, 'Quick fix');
+
     document.onKeyUp.listen(_handleAutoCompletion);
 
     if (supportsFlutterWeb) {
