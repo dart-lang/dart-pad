@@ -44,6 +44,12 @@ void main()
 }
 ''';
 
+const assistCode = r'''
+main() {
+  int v = 0;
+}
+''';
+
 void main() => defineTests();
 
 void defineTests() {
@@ -510,6 +516,23 @@ void defineTests() {
       expect(fixes.length, 1);
       var problemAndFix = fixes[0];
       expect(problemAndFix['problemMessage'], isNotNull);
+    });
+
+    test('assist', () async {
+      var jsonData = {'source': assistCode, 'offset': 15};
+      var response =
+          await _sendPostRequest('dartservices/v1/assists', jsonData);
+      expect(response.status, 200);
+
+      var data = json.decode(utf8.decode(await response.body.first));
+      var assists = data['assists'] as List;
+      expect(assists, hasLength(2));
+      expect(assists.first['edits'], isNotNull);
+      expect(assists.first['edits'], hasLength(1));
+      expect(assists.where((m) {
+        var map = m as Map<String, dynamic>;
+        return map['message'] == 'Remove type annotation';
+      }), isNotEmpty);
     });
 
     test('version', () async {

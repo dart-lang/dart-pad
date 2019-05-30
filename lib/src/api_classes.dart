@@ -232,6 +232,12 @@ class SourceEdit {
   }
 }
 
+/// The response from the `/assists` service call.
+class AssistsResponse {
+  final List<CandidateFix> assists;
+  AssistsResponse(this.assists);
+}
+
 /// The response from the `/version` service call.
 class VersionResponse {
   @ApiProperty(

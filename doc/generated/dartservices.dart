@@ -62,6 +62,42 @@ class DartservicesApi {
     return _response.then((data) => new AnalysisResults.fromJson(data));
   }
 
+  /// Get assists for the given source code location.
+  ///
+  /// [request] - The metadata request object.
+  ///
+  /// Request parameters:
+  ///
+  /// Completes with a [AssistsResponse].
+  ///
+  /// Completes with a [commons.ApiRequestError] if the API endpoint returned an
+  /// error.
+  ///
+  /// If the used [http.Client] completes with an error when making a REST call,
+  /// this method will complete with the same error.
+  async.Future<AssistsResponse> assists(SourceRequest request) {
+    var _url = null;
+    var _queryParams = new core.Map<core.String, core.List<core.String>>();
+    var _uploadMedia = null;
+    var _uploadOptions = null;
+    var _downloadOptions = commons.DownloadOptions.Metadata;
+    var _body = null;
+
+    if (request != null) {
+      _body = convert.json.encode((request).toJson());
+    }
+
+    _url = 'assists';
+
+    var _response = _requester.request(_url, "POST",
+        body: _body,
+        queryParams: _queryParams,
+        uploadOptions: _uploadOptions,
+        uploadMedia: _uploadMedia,
+        downloadOptions: _downloadOptions);
+    return _response.then((data) => new AssistsResponse.fromJson(data));
+  }
+
   /// Compile the given Dart source code and return the resulting JavaScript;
   /// this uses the dart2js compiler.
   ///
@@ -405,6 +441,29 @@ class AnalysisResults {
     }
     if (packageImports != null) {
       _json["packageImports"] = packageImports;
+    }
+    return _json;
+  }
+}
+
+class AssistsResponse {
+  core.List<CandidateFix> assists;
+
+  AssistsResponse();
+
+  AssistsResponse.fromJson(core.Map _json) {
+    if (_json.containsKey("assists")) {
+      assists = (_json["assists"] as core.List)
+          .map<CandidateFix>((value) => new CandidateFix.fromJson(value))
+          .toList();
+    }
+  }
+
+  core.Map<core.String, core.Object> toJson() {
+    final core.Map<core.String, core.Object> _json =
+        new core.Map<core.String, core.Object>();
+    if (assists != null) {
+      _json["assists"] = assists.map((value) => (value).toJson()).toList();
     }
     return _json;
   }

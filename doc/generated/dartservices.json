@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "01e0e3c74f6692a3077d117bb98b1cbeb3d832d0",
+ "etag": "8a41b61f09d0992f9a608a93fbffaa0e1953407b",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -213,6 +213,18 @@
     }
    }
   },
+  "AssistsResponse": {
+   "id": "AssistsResponse",
+   "type": "object",
+   "properties": {
+    "assists": {
+     "type": "array",
+     "items": {
+      "$ref": "CandidateFix"
+     }
+    }
+   }
+  },
   "FormatResponse": {
    "id": "FormatResponse",
    "type": "object",
@@ -336,6 +348,20 @@
    },
    "response": {
     "$ref": "FixesResponse"
+   }
+  },
+  "assists": {
+   "id": "CommonServer.assists",
+   "path": "assists",
+   "httpMethod": "POST",
+   "description": "Get assists for the given source code location.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "AssistsResponse"
    }
   },
   "format": {

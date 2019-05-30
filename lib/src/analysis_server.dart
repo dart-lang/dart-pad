@@ -164,6 +164,14 @@ class AnalysisServerWrapper {
     return api.FixesResponse(responseFixes);
   }
 
+  Future<api.AssistsResponse> getAssists(String src, int offset) async {
+    var sources = {kMainDart: src};
+    var sourceName = api.Location.from(kMainDart, offset).sourceName;
+    var results = await _getAssistsImpl(sources, sourceName, offset);
+    var fixes = _convertSourceChangesToCandidateFixes(results.assists);
+    return api.AssistsResponse(fixes);
+  }
+
   Future<api.FormatResponse> format(String src, int offset) {
     return _formatImpl(src, offset).then((FormatResult editResult) {
       List<SourceEdit> edits = editResult.edits;
@@ -266,6 +274,27 @@ class AnalysisServerWrapper {
     }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
   }
 
+  Future<AssistsResult> _getAssistsImpl(
+      Map<String, String> sources, String sourceName, int offset) {
+    sources = _getOverlayMapWithPaths(sources);
+    String path = _getPathFromName(sourceName);
+
+    if (serverScheduler.queueCount > 0) {
+      _logger.fine(
+          'getRefactoringsImpl: Scheduler queue: ${serverScheduler.queueCount}');
+    }
+
+    return serverScheduler.schedule(ClosureTask<AssistsResult>(() async {
+      Completer<dynamic> analysisCompleter = getAnalysisCompleteCompleter();
+      await _loadSources(sources);
+      await analysisCompleter.future;
+      var length = 1;
+      var assists = await analysisServer.edit.getAssists(path, offset, length);
+      await _unloadSources();
+      return assists;
+    }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
+  }
+
   /// Convert between the Analysis Server type and the API protocol types.
   static api.ProblemAndFixes _convertAnalysisErrorFix(
       AnalysisErrorFixes analysisFixes) {
@@ -302,6 +331,28 @@ class AnalysisServerWrapper {
     }
     return api.ProblemAndFixes.fromList(
         possibleFixes, problemMessage, problemOffset, problemLength);
+  }
+
+  static List<api.CandidateFix> _convertSourceChangesToCandidateFixes(
+      List<SourceChange> sourceChanges) {
+    var assists = <api.CandidateFix>[];
+
+    for (var sourceChange in sourceChanges) {
+      for (SourceFileEdit sourceFileEdit in sourceChange.edits) {
+        if (!sourceFileEdit.file.endsWith('/main.dart')) {
+          break;
+        }
+
+        var apiSourceEdits = sourceFileEdit.edits.map((sourceEdit) {
+          return api.SourceEdit.fromChanges(
+              sourceEdit.offset, sourceEdit.length, sourceEdit.replacement);
+        }).toList();
+        assists.add(
+            api.CandidateFix.fromEdits(sourceChange.message, apiSourceEdits));
+      }
+    }
+
+    return assists;
   }
 
   /// Cleanly shutdown the Analysis Server.

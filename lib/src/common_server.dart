@@ -370,6 +370,17 @@ class CommonServer {
 
     return _fixes(request.source, request.offset);
   }
+  @ApiMethod(
+      method: 'POST',
+      path: 'assists',
+      description: 'Get assists for the given source code location.')
+  Future<AssistsResponse> assists(SourceRequest request) {
+    if (request.offset == null) {
+      throw BadRequestError('Missing parameter: \'offset\'');
+    }
+
+    return _assists(request.source, request.offset);
+  }
 
   @ApiMethod(
       method: 'POST',
@@ -574,6 +585,22 @@ class CommonServer {
     Stopwatch watch = Stopwatch()..start();
     FixesResponse response = await analysisServer.getFixes(source, offset);
     log.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
+    return response;
+  }
+
+  Future<AssistsResponse> _assists(String source, int offset) async {
+    if (source == null) {
+      throw BadRequestError('Missing parameter: \'source\'');
+    }
+    if (offset == null) {
+      throw BadRequestError('Missing parameter: \'offset\'');
+    }
+
+    await _checkPackageReferencesInitFlutterWeb(source);
+
+    Stopwatch watch = Stopwatch()..start();
+    var response = await analysisServer.getAssists(source, offset);
+    log.info('PERF: Computed assists in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
 
