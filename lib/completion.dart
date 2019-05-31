@@ -41,8 +41,9 @@ class DartCompleter extends CodeCompleter {
     _lastCompleter = completer;
 
     if (onlyShowFixes) {
-      servicesApi.fixes(request).then((FixesResponse response) {
-        List<Completion> completions = [];
+      List<Completion> completions = [];
+      var fixesFuture =
+          servicesApi.fixes(request).then((FixesResponse response) {
         for (ProblemAndFixes problemFix in response.fixes) {
           for (CandidateFix fix in problemFix.fixes) {
             List<SourceEdit> fixes = fix.edits.map((edit) {
@@ -57,6 +58,27 @@ class DartCompleter extends CodeCompleter {
             ));
           }
         }
+      });
+      var assistsFuture =
+          servicesApi.assists(request).then((AssistsResponse response) {
+        for (var assist in response.assists) {
+          var sourceEdits = assist.edits
+              .map((edit) =>
+                  SourceEdit(edit.length, edit.offset, edit.replacement))
+              .toList();
+
+          var completion = Completion(
+            '',
+            displayString: assist.message,
+            type: 'type-quick_fix',
+            quickFixes: sourceEdits,
+          );
+
+          completions.add(completion);
+        }
+      });
+
+      Future.wait([fixesFuture, assistsFuture]).then((_) {
         completer.complete(CompletionResult(completions,
             replaceOffset: offset, replaceLength: 0));
       });
