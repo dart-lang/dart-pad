@@ -15,13 +15,13 @@ Logger _logger = Logger('dartpad-embed');
 var iframeSrc =
     'https://dartpad.dartlang.org/experimental/embed-new.html?fw=true';
 
-/// Replaces all code snippets marked with the 'dartpad-embed' class with an
+/// Replaces all code snippets marked with the 'run-dartpad' class with an
 /// instance of DartPad.
 void main() {
   _logger.onRecord.listen(logToJsConsole);
-  var hosts = querySelectorAll('.dartpad-embed');
-  for (var host in hosts) {
-    _injectEmbed(host);
+  var snippets = querySelectorAll('.run-dartpad');
+  for (var snippet in snippets) {
+    _injectEmbed(snippet);
   }
 }
 
@@ -29,30 +29,31 @@ void main() {
 ///
 /// Code snippets are assumed to be a div containing `pre` and `code` tags:
 ///
-/// <div class="dartpad-embed">
-///   <pre>
-///     <code>
-///       void main() => print("Hello, World!");
-///     </code>
-///   </pre>
-/// </div>
-void _injectEmbed(DivElement host) {
-  if (host.children.length != 1) {
+/// <pre>
+///   <code class="run-dartpad langauge-run-dartpad">
+///     void main() => print("Hello, World!");
+///   </code>
+/// </pre>
+void _injectEmbed(Element snippet) {
+  var preElement = snippet.parent;
+  if (preElement is! PreElement) {
     _logUnexpectedHtml();
     return;
   }
 
-  var preElement = host.children.first;
   if (preElement.children.length != 1) {
     _logUnexpectedHtml();
     return;
   }
 
-  var codeElement = preElement.children.first;
-  var code = HtmlUnescape().convert(codeElement.innerHtml);
+  var code = HtmlUnescape().convert(snippet.innerHtml);
   if (code.isEmpty) {
     return;
   }
+
+  var hostIndex = preElement.parent.children.indexOf(preElement);
+  var host = DivElement();
+  preElement.parent.children[hostIndex] = host;
 
   InjectedEmbed(host, code);
 }
@@ -86,12 +87,11 @@ class InjectedEmbed {
 
 void _logUnexpectedHtml() {
   var message = '''Incorrect HTML for "dartpad-embed". Please use this format:
-<div class="dartpad-embed">
-  <pre>
-    <code>
-      [code here]
-    </code>
-  </pre>
-</div>''';
+<pre>
+  <code class="run-dartpad">
+    [code here]
+  </code>
+</pre>
+''';
   _logger.warning(message);
 }
