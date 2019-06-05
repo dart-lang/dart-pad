@@ -33,14 +33,14 @@ void main(List<String> args) {
     throw 'No Dart SDK is available; set the DART_SDK env var.';
   }
 
-  // Log to stdout/stderr.  AppEngine's logging package is disabled in 0.6.0
-  // and AppEngine copies stdout/stderr to the dashboards.
   _logger.onRecord.listen((LogRecord rec) {
     String out = ('${rec.level.name}: ${rec.time}: ${rec.message}\n');
+
+    // TODO(domesticmouse): Improve mapping between rec.level and GAE levels
     if (rec.level > Level.INFO) {
-      io.stderr.write(out);
+      ae.context.services.logging.error(out);
     } else {
-      io.stdout.write(out);
+      ae.context.services.logging.info(out);
     }
   });
   log.info('''Initializing dart-services: 
