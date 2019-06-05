@@ -9,8 +9,7 @@ dependencies:
   _discoveryapis_commons: ^0.1.8
   analyzer: ^0.36.0
   analysis_server_lib: ^0.1.4
-  appengine: 
-    git: https://github.com/dart-lang/appengine.git
+  appengine: ^0.6.0
   args: ^1.4.1
   bazel_worker: ^0.1.14
   crypto: ^2.0.0
