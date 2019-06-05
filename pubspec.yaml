@@ -2,7 +2,8 @@ name: dart_services
 publish_to: none
 
 environment:
-  sdk: '>=2.3.0 <3.0.0'
+  # Keep min SDK aligned with .travis.yml
+  sdk: '>=2.3.1 <3.0.0'
 
 dependencies:
   _discoveryapis_commons: ^0.1.8
