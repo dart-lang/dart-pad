@@ -75,7 +75,5 @@ void defineTests() {
       File file = File(summaryFilePath);
       expect(file.existsSync(), isTrue);
     });
-    // TODO(devoncarew): Unskip as soon as the travis bots can provision
-    // package:flutter_web.
-  }, skip: true);
+  });
 }
