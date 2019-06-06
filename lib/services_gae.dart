@@ -18,9 +18,6 @@ import 'src/flutter_web.dart';
 
 const String _API = '/api';
 
-const String _journalctlBinary = '/bin/journalctl';
-const String _sudoBinary = '/usr/bin/sudo';
-
 final Logger _logger = Logger('gae_server');
 
 void main(List<String> args) {
@@ -64,7 +61,6 @@ class GaeServer {
   FlutterWebManager flutterWebManager;
   CommonServer commonServer;
   FileRelayServer fileRelayServer;
-  Timer journalRotator;
 
   GaeServer(this.sdkPath, this.redisServerUri) {
     hierarchicalLoggingEnabled = true;
@@ -85,44 +81,6 @@ class GaeServer {
     apiServer = rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer)
       ..addApi(fileRelayServer);
-
-    // Rotate the journal log files, as we don't have journal rotation in a 
-    // Docker image without running init and systemd
-    final rotationTime = Duration(hours: 1);
-    journalRotator = Timer.periodic(rotationTime, (timer) async {
-      final rotationResults =
-          await io.Process.run(_sudoBinary, [_journalctlBinary, '--rotate']);
-      if (rotationResults.exitCode != 0) {
-        _logger.severe(
-            '''sudo journalctl --rotate failed:
-            ${rotationResults.stdout}
-            ${rotationResults.stderr}''');
-      } else {
-        _logger.info(
-            'sudo journalctl --rotate succeeded: ${rotationResults.stdout}');
-
-        // Trim to 256mb of journal logs
-        final vacuumResults = await io.Process.run(
-            _sudoBinary, [_journalctlBinary, '--vacuum-size=268435456']);
-        if (vacuumResults.exitCode != 0) {
-          _logger.severe(
-              '''sudo journalctl --vacuum-size failed:
-              ${rotationResults.stdout}
-              ${rotationResults.stderr}''');
-        } else {
-          _logger.info(
-              '''sudo journalctl --vacuum-size succeeded:
-              ${rotationResults.stdout}''');
-
-          // Log journal disk usage report
-          final usageResults = await io.Process.run(
-              _sudoBinary, [_journalctlBinary, '--disk-usage']);
-          _logger.info(
-            '''sudo journalctl --disk-usage:
-            ${usageResults.stdout}''');
-        }
-      }
-    });
   }
 
   Future<dynamic> start([int gaePort = 8080]) async {

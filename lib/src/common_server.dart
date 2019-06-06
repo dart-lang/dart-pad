@@ -370,7 +370,6 @@ class CommonServer {
 
     return _fixes(request.source, request.offset);
   }
-
   @ApiMethod(
       method: 'POST',
       path: 'assists',
