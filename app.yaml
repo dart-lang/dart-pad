@@ -20,3 +20,9 @@ network:
 
 skip_files:
 - ^\.git/.*$
+
+liveness_check:
+  path: /_ah/health
+
+readiness_check:
+  path: /_ah/ready
