@@ -141,8 +141,17 @@ build() {
   FilePath embedFile = _buildDir.join('scripts/embed.dart.js');
   log('$embedFile compiled to ${_printSize(embedFile)}');
 
-  FilePath newEmbedFile = _buildDir.join('experimental/new_embed.dart.js');
-  log('$newEmbedFile compiled to ${_printSize(newEmbedFile)}');
+  FilePath newEmbedDartFile = _buildDir.join('experimental/new_embed_dart.dart.js');
+  log('$newEmbedDartFile compiled to ${_printSize(newEmbedDartFile)}');
+
+  FilePath newEmbedFlutterFile = _buildDir.join('experimental/new_embed_flutter.dart.js');
+  log('$newEmbedFlutterFile compiled to ${_printSize(newEmbedFlutterFile)}');
+
+  FilePath newEmbedHtmlFile = _buildDir.join('experimental/new_embed_html.dart.js');
+  log('$newEmbedHtmlFile compiled to ${_printSize(newEmbedHtmlFile)}');
+
+  FilePath newEmbedInlineFile = _buildDir.join('experimental/new_embed_inline.dart.js');
+  log('$newEmbedInlineFile compiled to ${_printSize(newEmbedInlineFile)}');
 
   // Remove .dart files.
   int count = 0;
@@ -163,7 +172,10 @@ build() {
   vulcanize('index.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
+  vulcanize('experimental/embed-new-dart.html');
   vulcanize('experimental/embed-new-flutter.html');
+  vulcanize('experimental/embed-new-html.html');
+  vulcanize('experimental/embed-new-inline.html');
   vulcanize('embed-inline.html');
 }
 
@@ -207,7 +219,13 @@ vulcanize(String filepath) {
         '--exclude',
         'scripts/embed.dart.js',
         '--exclude',
-        ' experimental/new_embed.dart.js',
+        ' experimental/new_embed_dart.dart.js',
+        '--exclude',
+        ' experimental/new_embed_flutter.dart.js',
+        '--exclude',
+        ' experimental/new_embed_html.dart.js',
+        '--exclude',
+        ' experimental/new_embed_inline.dart.js',
         '--exclude',
         'scripts/main.dart.js',
         '--exclude',

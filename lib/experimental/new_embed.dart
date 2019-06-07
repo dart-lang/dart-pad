@@ -29,13 +29,21 @@ NewEmbed get newEmbed => _newEmbed;
 
 NewEmbed _newEmbed;
 
-void init() {
-  _newEmbed = NewEmbed();
+void init(NewEmbedOptions options) {
+  _newEmbed = NewEmbed(options);
+}
+
+enum NewEmbedMode { dart, flutter, html, inline }
+
+class NewEmbedOptions {
+  final NewEmbedMode mode;
+  NewEmbedOptions(this.mode);
 }
 
 /// An embeddable DartPad UI that provides the ability to test the user's code
 /// snippet against a desired result.
 class NewEmbed {
+  final NewEmbedOptions options;
   DisableableButton executeButton;
   DisableableButton reloadGistButton;
   DisableableButton formatButton;
@@ -72,7 +80,7 @@ class NewEmbed {
     maxDelay: Duration(milliseconds: 5000),
   );
 
-  NewEmbed() {
+  NewEmbed(this.options) {
     _initHostListener();
     tabController = NewEmbedTabController();
     for (String name in ['editor', 'test', 'console', 'solution']) {
