@@ -163,7 +163,7 @@ build() {
   vulcanize('index.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
-  vulcanize('experimental/embed-new.html');
+  vulcanize('experimental/embed-new-flutter.html');
   vulcanize('embed-inline.html');
 }
 

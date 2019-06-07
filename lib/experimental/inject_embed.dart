@@ -11,9 +11,9 @@ import 'package:logging/logging.dart';
 Logger _logger = Logger('dartpad-embed');
 
 // Use this location for local development:
-// var iframeSrc = 'embed-new.html?fw=true';
+// var iframeSrc = 'embed-new-flutter.html?fw=true';
 var iframeSrc =
-    'https://dartpad.dartlang.org/experimental/embed-new.html?fw=true';
+    'https://dartpad.dartlang.org/experimental/embed-new-flutter.html?fw=true';
 
 /// Replaces all code snippets marked with the 'run-dartpad' class with an
 /// instance of DartPad.
