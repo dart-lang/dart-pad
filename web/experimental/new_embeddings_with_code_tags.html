@@ -108,35 +108,9 @@ class _MyAppState extends State {
 
         <p>mode-dart</p>
         <pre>
-            <code class="run-dartpad language-run-dartpad mode-flutter">
-import 'package:flutter_web/material.dart';
-import 'package:flutter_web_test/flutter_web_test.dart';
-import 'package:flutter_web_ui/ui.dart' as ui;
-
-Future main() async {
-  await ui.webOnlyInitializePlatform();
-  runApp(MyApp());
-}
-
-class MyApp extends StatefulWidget {
-  MyApp();
-
-  _MyAppState createState() => _MyAppState();
-}
-
-class _MyAppState extends State {
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(),
-        body: Center(
-          child: Container(
-            child: Text('Hello, World!'),
-          ),
-        ),
-      ),
-    );
-  }
+            <code class="run-dartpad language-run-dartpad mode-dart">
+void main() {
+  print("hello, world!");
 }
             </code>
         </pre>

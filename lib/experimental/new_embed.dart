@@ -477,8 +477,7 @@ class NewEmbed {
   }
 
   bool get supportsFlutterWeb {
-    final url = Uri.parse(window.location.toString());
-    return url.queryParameters['fw'] == 'true';
+    return options.mode == NewEmbedMode.flutter;
   }
 
   bool get isDarkMode {
