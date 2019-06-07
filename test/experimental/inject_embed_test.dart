@@ -12,7 +12,7 @@ void main() {
   group('inject_embed', () {
     setUp(() {
       // todo: determine how to load embed-new-flutter.html and other assets
-      inject_embed.iframeSrc = 'embed-new-flutter.html?fw=true';
+      inject_embed.iframePrefix = '';
       inject_embed.main();
     });
     test('injects a DartPad iframe with a correct code snippet', () async {

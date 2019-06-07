@@ -10,7 +10,8 @@ import 'package:test/test.dart';
 
 void main() {
   group('new_embed', () {
-    setUp(new_embed.init);
+    setUp(() => new_embed
+        .init(new_embed.NewEmbedOptions(new_embed.NewEmbedMode.flutter)));
 
     test('Editor tab is selected at init', () {
       final editorTab = querySelector('#editor-tab');
