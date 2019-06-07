@@ -35,14 +35,10 @@
 
 <body>
 <div class="container">
-    <div class="row">
-        <div class="col-md-10">
-            <h4>Hello, World!</h4>
-            <p>
-                Below is a 'Hello, World!' app.
-            </p>
-            <pre>
-                <code class="run-dartpad language-run-dartpad">
+    <div class="col-md-10">
+        <p>mode-flutter, theme-light</p>
+        <pre>
+            <code class="run-dartpad language-run-dartpad theme-light mode-flutter">
 import 'package:flutter_web/material.dart';
 import 'package:flutter_web_test/flutter_web_test.dart';
 import 'package:flutter_web_ui/ui.dart' as ui;
@@ -72,9 +68,95 @@ class _MyAppState extends State {
     );
   }
 }
-                </code>
-            </pre>
-        </div>
+            </code>
+        </pre>
+
+        <p>mode-flutter, theme-dark</p>
+        <pre>
+            <code class="run-dartpad language-run-dartpad theme-dark mode-flutter">
+import 'package:flutter_web/material.dart';
+import 'package:flutter_web_test/flutter_web_test.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+Future main() async {
+  await ui.webOnlyInitializePlatform();
+  runApp(MyApp());
+}
+
+class MyApp extends StatefulWidget {
+  MyApp();
+
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State {
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(),
+        body: Center(
+          child: Container(
+            child: Text('Hello, World!'),
+          ),
+        ),
+      ),
+    );
+  }
+}
+            </code>
+        </pre>
+
+        <p>mode-dart</p>
+        <pre>
+            <code class="run-dartpad language-run-dartpad mode-flutter">
+import 'package:flutter_web/material.dart';
+import 'package:flutter_web_test/flutter_web_test.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+Future main() async {
+  await ui.webOnlyInitializePlatform();
+  runApp(MyApp());
+}
+
+class MyApp extends StatefulWidget {
+  MyApp();
+
+  _MyAppState createState() => _MyAppState();
+}
+
+class _MyAppState extends State {
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        appBar: AppBar(),
+        body: Center(
+          child: Container(
+            child: Text('Hello, World!'),
+          ),
+        ),
+      ),
+    );
+  }
+}
+            </code>
+        </pre>
+
+        <p>mode-html</p>
+        <pre>
+            <code class="run-dartpad language-run-dartpad mode-html">
+void main() {
+  print("hello, world!");
+}
+            </code>
+        </pre>
+        <p>mode-inline</p>
+        <pre>
+            <code class="run-dartpad language-run-dartpad mode-inline">
+void main() {
+  print("hello, world!");
+}
+            </code>
+        </pre>
     </div>
 </div>
 </body>

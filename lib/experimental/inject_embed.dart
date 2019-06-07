@@ -10,10 +10,9 @@ import 'package:logging/logging.dart';
 
 Logger _logger = Logger('dartpad-embed');
 
-// Use this location for local development:
-// var iframeSrc = 'embed-new-flutter.html?fw=true';
-var iframeSrc =
-    'https://dartpad.dartlang.org/experimental/embed-new-flutter.html?fw=true';
+// Use this prefix for local development:
+//var iframePrefix = '';
+var iframePrefix = 'https://dartpad.dartlang.org/experimental/';
 
 /// Replaces all code snippets marked with the 'run-dartpad' class with an
 /// instance of DartPad.
@@ -21,8 +20,32 @@ void main() {
   _logger.onRecord.listen(logToJsConsole);
   var snippets = querySelectorAll('.run-dartpad');
   for (var snippet in snippets) {
-    _injectEmbed(snippet);
+    var options = List<String>.from(snippet.classes)
+        ..removeWhere((c) => c == 'run-dartpad' || c == 'language-run-dartpad');
+    _injectEmbed(snippet, options);
   }
+}
+
+String iframeSrc(List<String> options) {
+  String theme;
+  if (options.contains('theme-dark')) {
+    theme = 'dark';
+  } else {
+    theme = 'light';
+  }
+
+  String mode;
+  if (options.contains('mode-flutter')) {
+    mode = 'flutter';
+  } else if (options.contains('mode-html')) {
+    mode = 'html';
+  } else if (options.contains('mode-inline')) {
+    mode = 'inline';
+  } else if (options.contains('mode-dart')) {
+    mode = 'dart';
+  }
+
+  return '${iframePrefix}embed-new-$mode.html?theme=$theme';
 }
 
 /// Replaces [host] with an instance of DartPad as an embedded iframe.
@@ -34,7 +57,7 @@ void main() {
 ///     void main() => print("Hello, World!");
 ///   </code>
 /// </pre>
-void _injectEmbed(Element snippet) {
+void _injectEmbed(Element snippet, List<String> options) {
   var preElement = snippet.parent;
   if (preElement is! PreElement) {
     _logUnexpectedHtml();
@@ -46,7 +69,7 @@ void _injectEmbed(Element snippet) {
     return;
   }
 
-  var code = HtmlUnescape().convert(snippet.innerHtml);
+  var code = HtmlUnescape().convert(snippet.innerHtml).trim();
   if (code.isEmpty) {
     return;
   }
@@ -55,7 +78,7 @@ void _injectEmbed(Element snippet) {
   var host = DivElement();
   preElement.parent.children[hostIndex] = host;
 
-  InjectedEmbed(host, code);
+  InjectedEmbed(host, code, options);
 }
 
 /// Clears children in [host], instantiates an iframe, and sends it a message
@@ -63,15 +86,16 @@ void _injectEmbed(Element snippet) {
 class InjectedEmbed {
   final DivElement host;
   final String code;
+  final List<String> options;
 
-  InjectedEmbed(this.host, this.code) {
+  InjectedEmbed(this.host, this.code, this.options) {
     _init();
   }
 
   Future _init() async {
     host.children.clear();
 
-    var iframe = IFrameElement()..setAttribute('src', iframeSrc);
+    var iframe = IFrameElement()..setAttribute('src', iframeSrc(options));
     iframe.style.setProperty('border', '1px solid #ccc');
 
     host.children.add(iframe);
