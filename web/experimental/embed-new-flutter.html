@@ -27,6 +27,7 @@ BSD-style license that can be found in the LICENSE file. -->
     <link href="../packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/theme/elegant.css" rel="stylesheet" media="screen">
     <link href="zenburn_mod.css" rel="stylesheet" media="screen">
+    <link href="embed-new-flutter.css" rel="stylesheet" media="screen">
 
     <script src="../packages/codemirror/codemirror.js" defer></script>
     <script src="../packages/split/split.min.js" defer></script>
@@ -60,7 +61,20 @@ BSD-style license that can be found in the LICENSE file. -->
 </div>
 <section id="tab-container" class="flex-auto d-flex flex-column no-overflow">
     <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
-        <div id="user-code-editor" spellcheck="false"></div>
+        <div id="user-code-container">
+            <div id="user-code-editor" spellcheck="false"></div>
+            <div id="console-output-footer" hidden>
+                <div class="console-output-header">
+                    <span class="console-label">Console</span>
+                    <button id="console-expand-button" class="flash-close">
+                        <div id="console-expand-icon" class="octicon octicon-triangle-up"></div>
+                    </button>
+                </div>
+                <div id="console-output-container" hidden>
+                    console output here!
+                </div>
+            </div>
+        </div>
         <div id="web-output" hidden>
             <iframe id="frame" sandbox="allow-scripts" class="flex-auto">
             </iframe>

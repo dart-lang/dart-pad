@@ -177,6 +177,43 @@ body {
   border-bottom: 1px solid #d0d5d9;
 }
 
+/* Console Output Footer */
+
+.console-output-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  background-color: white;
+  border-top: 1px solid #d0d5d9;
+}
+
+#console-output-footer {
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+}
+
+#console-expand-button {
+  color: #888;
+  margin: 0;
+  padding: 2px;
+}
+
+#console-expand-button:focus {
+  outline: none;
+}
+
+#console-output-container {
+  margin: 8px;
+}
+
+.console-label {
+  font-family: monospace;
+  color: #808080;
+  margin-left: 8px;
+}
+
 /* Footer */
 .footer {
   display: flex;

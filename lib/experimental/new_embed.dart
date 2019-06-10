@@ -75,6 +75,8 @@ class NewEmbed {
   Splitter splitter;
   AnalysisResultsController analysisResultsController;
 
+  ConsoleExpandController consoleExpandController;
+
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
     maxDelay: Duration(milliseconds: 5000),
@@ -211,6 +213,14 @@ class NewEmbed {
       ..onIssueClick.listen((issue) {
         _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
       });
+
+    if (options.mode == NewEmbedMode.flutter) {
+      consoleExpandController = ConsoleExpandController(
+        expandButton: querySelector('#console-expand-button'),
+        footer: querySelector('#console-output-footer'),
+        expandIcon: querySelector('#console-expand-icon'),
+      );
+    }
     _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());
   }
 
@@ -286,6 +296,12 @@ class NewEmbed {
       webOutput.removeAttribute('hidden');
 
       var splitterElements = [userCodeEditor, webOutput];
+
+      // Use the parent div when using Flutter layout
+      if (this.options.mode == NewEmbedMode.flutter) {
+        var userCodeContainer = querySelector('#user-code-container');
+        splitterElements = [userCodeContainer, webOutput];
+      }
 
       splitter = flexSplit(
         splitterElements,
@@ -796,6 +812,41 @@ class AnalysisResultsController {
     _flashHidden = false;
     flash.clearAttr('hidden');
     toggle.text = _hideMsg;
+  }
+}
+
+class ConsoleExpandController {
+  final DElement expandButton;
+  final DElement footer;
+  final DElement expandIcon;
+  bool _expanded;
+
+  ConsoleExpandController({
+    Element expandButton,
+    Element footer,
+    Element expandIcon,
+  })  : expandButton = DElement(expandButton),
+        footer = DElement(footer),
+        expandIcon = DElement(expandIcon),
+        _expanded = false {
+    footer.removeAttribute('hidden');
+    expandButton.onClick.listen((_) => _toggleExpanded());
+  }
+
+  void _toggleExpanded() {
+    var outputContainer = querySelector('#console-output-container');
+
+    _expanded = !_expanded;
+    if (_expanded) {
+      outputContainer.removeAttribute('hidden');
+      outputContainer.style.height = '300px';
+      expandIcon.element.classes.remove('octicon-triangle-up');
+      expandIcon.element.classes.add('octicon-triangle-down');
+    } else {
+      outputContainer.setAttribute('hidden', 'true');
+      expandIcon.element.classes.remove('octicon-triangle-down');
+      expandIcon.element.classes.add('octicon-triangle-up');
+    }
   }
 }
 
