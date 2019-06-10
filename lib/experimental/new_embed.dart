@@ -842,11 +842,13 @@ class ConsoleExpandController {
       outputContainer.removeAttribute('hidden');
       expandIcon.element.classes.remove('octicon-triangle-up');
       expandIcon.element.classes.add('octicon-triangle-down');
+      footer.element.classes.remove('border-top');
       _initSplitter();
     } else {
       outputContainer.setAttribute('hidden', 'true');
       expandIcon.element.classes.remove('octicon-triangle-down');
       expandIcon.element.classes.add('octicon-triangle-up');
+      footer.element.classes.add('border-top');
       _splitter?.destroy();
     }
   }

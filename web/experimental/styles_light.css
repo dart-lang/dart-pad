@@ -21,6 +21,19 @@
     background-color: white;
 }
 
+#user-code-container {
+    background-color: #f7f7f7;
+}
+
+#user-code-container .gutter-vertical {
+    border-left: 1px solid #dddddd;
+}
+
+#console-output-footer {
+    background-color: white;
+    border-left: 1px solid #dddddd;
+}
+
 .footer {
     background-color: #f7f7f7;
 }
