@@ -74,7 +74,7 @@ class NewEmbed {
   Splitter splitter;
   AnalysisResultsController analysisResultsController;
 
-  ConsoleExpandController consoleExpandController;
+  ConsoleController consoleExpandController;
 
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
@@ -209,6 +209,9 @@ class NewEmbed {
         unreadCounter: unreadConsoleCounter,
         consoleElement: querySelector('#console-output-container'),
       );
+    } else {
+      consoleExpandController =
+          ConsoleController(querySelector('#console-output-container'));
     }
     _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());
   }
@@ -278,30 +281,29 @@ class NewEmbed {
 
     document.onKeyUp.listen(_handleAutoCompletion);
 
-    if (supportsFlutterWeb) {
-      var webOutput = querySelector('#web-output');
-      var userCodeEditor = querySelector('#user-code-editor');
+    var webOutput = querySelector('#web-output');
+    List splitterElements;
+    if (options.mode == NewEmbedMode.flutter) {
       // Make the web output area visible.
       webOutput.removeAttribute('hidden');
-
-      var splitterElements = [userCodeEditor, webOutput];
-
-      // Use the parent div when using Flutter layout
-      if (this.options.mode == NewEmbedMode.flutter) {
-        var userCodeContainer = querySelector('#user-code-container');
-        splitterElements = [userCodeContainer, webOutput];
-      }
-
-      splitter = flexSplit(
-        splitterElements,
-        horizontal: true,
-        gutterSize: defaultSplitterWidth,
-        // set initial sizes (in percentages)
-        sizes: [initialSplitPercent, (100 - initialSplitPercent)],
-        // set the minimum sizes (in pixels)
-        minSize: [100, 100],
-      );
+      var userCodeContainer = querySelector('#user-code-container');
+      splitterElements = [userCodeContainer, webOutput];
+    } else {
+      var userCodeEditor = querySelector('#user-code-editor');
+      var consoleView = querySelector('#console-view');
+      consoleView.removeAttribute('hidden');
+      splitterElements = [userCodeEditor, consoleView];
     }
+
+    splitter = flexSplit(
+      splitterElements,
+      horizontal: true,
+      gutterSize: defaultSplitterWidth,
+      // set initial sizes (in percentages)
+      sizes: [initialSplitPercent, (100 - initialSplitPercent)],
+      // set the minimum sizes (in pixels)
+      minSize: [100, 100],
+    );
 
     if (gistId.isNotEmpty) {
       _loadAndShowGist(gistId, analyze: false);
@@ -350,8 +352,7 @@ class NewEmbed {
         '${executionSvc.testResultDecoration}';
 
     var input = CompileRequest()..source = fullCode;
-
-    if (supportsFlutterWeb) {
+    if (options.mode == NewEmbedMode.flutter) {
       dartServices
           .compileDDC(input)
           .timeout(longServiceCallTimeout)
@@ -478,10 +479,6 @@ class NewEmbed {
     if (userCodeEditor.hasFocus && e.keyCode == KeyCode.PERIOD) {
       userCodeEditor.showCompletions(autoInvoked: true);
     }
-  }
-
-  bool get supportsFlutterWeb {
-    return options.mode == NewEmbedMode.flutter;
   }
 
   bool get isDarkMode {
@@ -783,11 +780,40 @@ class AnalysisResultsController {
   }
 }
 
-class ConsoleExpandController {
+class ConsoleController {
+  final DElement console;
+  ConsoleController(Element console) : console = DElement(console) {
+    console.removeAttribute('hidden');
+  }
+
+  void appendError(String error) {
+    if (error == null) {
+      return;
+    }
+
+    var line = DivElement()
+      ..text = filterCloudUrls(error)
+      ..classes.add('text-red');
+    console.add(line);
+  }
+
+  void appendMessage(String message) {
+    if (message == null) {
+      return;
+    }
+    var line = DivElement()..text = filterCloudUrls(message);
+    console.add(line);
+  }
+
+  void clear() {
+    console.text = '';
+  }
+}
+
+class ConsoleExpandController extends ConsoleController {
   final DElement expandButton;
   final DElement footer;
   final DElement expandIcon;
-  final DElement console;
   final Counter unreadCounter;
   Splitter _splitter;
   bool _expanded;
@@ -801,41 +827,30 @@ class ConsoleExpandController {
   })  : expandButton = DElement(expandButton),
         footer = DElement(footer),
         expandIcon = DElement(expandIcon),
-        console = DElement(consoleElement),
-        _expanded = false {
+        _expanded = false,
+        super(consoleElement) {
+    super.console.setAttr('hidden');
     footer.removeAttribute('hidden');
     expandButton.onClick.listen((_) => _toggleExpanded());
   }
 
   void appendError(String error) {
-    if (error == null) {
-      return;
-    }
-
-    if (!_expanded) {
+    super.appendError(error);
+    if (!_expanded && error != null) {
       unreadCounter.increment();
     }
-    final line = DivElement()
-      ..text = filterCloudUrls(error)
-      ..classes.add('text-red');
-    console.add(line);
   }
 
   void appendMessage(String message) {
-    if (message == null) {
-      return;
-    }
-
-    if (!_expanded) {
+    super.appendMessage(message);
+    if (!_expanded && message != null) {
       unreadCounter.increment();
     }
-    final line = DivElement()..text = filterCloudUrls(message);
-    console.add(line);
   }
 
   void clear() {
+    super.clear();
     unreadCounter.clear();
-    console.text = '';
   }
 
   void _toggleExpanded() {

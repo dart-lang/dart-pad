@@ -65,6 +65,8 @@ body {
   overflow-y: auto;
   height: 100%;
   white-space: pre-wrap;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Flashes */
