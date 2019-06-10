@@ -819,6 +819,7 @@ class ConsoleExpandController {
   final DElement expandButton;
   final DElement footer;
   final DElement expandIcon;
+  Splitter _splitter;
   bool _expanded;
 
   ConsoleExpandController({
@@ -839,14 +840,29 @@ class ConsoleExpandController {
     _expanded = !_expanded;
     if (_expanded) {
       outputContainer.removeAttribute('hidden');
-      outputContainer.style.height = '300px';
       expandIcon.element.classes.remove('octicon-triangle-up');
       expandIcon.element.classes.add('octicon-triangle-down');
+      _initSplitter();
     } else {
       outputContainer.setAttribute('hidden', 'true');
       expandIcon.element.classes.remove('octicon-triangle-down');
       expandIcon.element.classes.add('octicon-triangle-up');
+      _splitter?.destroy();
     }
+  }
+
+  void _initSplitter() {
+    var splitterElements = [
+      querySelector('#user-code-editor'),
+      querySelector('#console-output-footer'),
+    ];
+    _splitter = flexSplit(
+      splitterElements,
+      horizontal: false,
+      gutterSize: defaultSplitterWidth,
+      sizes: [60, 40],
+      minSize: [200, 100],
+    );
   }
 }
 
