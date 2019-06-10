@@ -205,7 +205,7 @@ body {
 #console-output-container {
   margin: 8px;
   flex: 1;
-  overflow: scroll;
+  overflow: auto;
   font-family: 'Inconsolata', monospace;
 }
 
