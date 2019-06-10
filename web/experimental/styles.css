@@ -162,19 +162,15 @@ body {
 }
 
 .gutter.gutter-horizontal {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAeCAYAAADkftS9AAAAIklEQVQoU2M4c+bMfxAGAgYYmwGrIIiDjrELjpo5aiZeMwF+yNnOs5KSvgAAAABJRU5ErkJggg==');
+  background-repeat: repeat-y;
   cursor: col-resize;
   height: 100%;
-  border-left: 1px solid #d0d5d9;
-  border-right: 1px solid #d0d5d9;
 }
 
 .gutter.gutter-vertical {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAAFAQMAAABo7865AAAABlBMVEVHcEzMzMzyAv2sAAAAAXRSTlMAQObYZgAAABBJREFUeF5jOAMEEAIEEFwAn3kMwcB6I2AAAAAASUVORK5CYII=');
+  background-repeat: repeat-x;
   cursor: row-resize;
   width: 100%;
-  border-top: 1px solid #d0d5d9;
-  border-bottom: 1px solid #d0d5d9;
 }
 
 /* Console Output Footer */
@@ -184,14 +180,11 @@ body {
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  background-color: white;
-  border-top: 1px solid #d0d5d9;
 }
 
 #console-output-footer {
   display: flex;
   flex-direction: column;
-  background-color: white;
 }
 
 #console-expand-button {
