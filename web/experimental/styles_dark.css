@@ -26,7 +26,6 @@ body {
 }
 
 .footer {
-    border-top: 1px solid #596068;
     background-color: #1b1e22;
 }
 
@@ -46,4 +45,12 @@ body {
 
 .issue .message {
     color: #f8fafb;
+}
+
+.border-top {
+    border-top: 1px solid #596068;
+}
+
+.border-left {
+    border-left: 1px solid #596068;
 }
