@@ -206,12 +206,6 @@ body {
   margin: 8px;
 }
 
-.console-label {
-  font-family: monospace;
-  color: #808080;
-  margin-left: 8px;
-}
-
 /* Footer */
 .footer {
   display: flex;
@@ -278,4 +272,12 @@ body {
 .issue .message {
   padding-left: 5px;
   line-height: 20px;
+}
+
+/* Misc */
+
+.view-label {
+  font-family: monospace;
+  color: #808080;
+  margin-left: 8px;
 }
