@@ -64,6 +64,14 @@ body {
     border-top: 1px solid #596068;
 }
 
+.border-bottom {
+    border-top: 1px solid #596068;
+}
+
 .border-left {
     border-left: 1px solid #596068;
+}
+
+.border-right {
+    border-top: 1px solid #596068;
 }

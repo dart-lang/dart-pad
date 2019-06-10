@@ -44,10 +44,6 @@ BSD-style license that can be found in the LICENSE file. -->
         <button id="editor-tab" class="tabnav-tab selected" selected>Your code</button>
         <button id="solution-tab" class="tabnav-tab" hidden>Solution</button>
         <button id="test-tab" class="tabnav-tab">Test code</button>
-        <button id="console-tab" class="tabnav-tab">
-            Output
-            <span id="unread-console-counter" class="Counter" hidden></span>
-        </button>
     </nav>
     <div class="nav-buttons">
         <button id="show-hint" class="btn mr-1">Hint</button>
@@ -63,16 +59,14 @@ BSD-style license that can be found in the LICENSE file. -->
     <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
         <div id="user-code-container">
             <div id="user-code-editor" spellcheck="false"></div>
-            <div id="console-output-footer" hidden>
+            <div id="console-output-footer" class="border-top" hidden>
                 <div class="console-output-header">
-                    <span class="view-label">Console</span>
+                    <span class="view-label">Console <span id="unread-console-counter" class="Counter" hidden></span></span>
                     <button id="console-expand-button" class="flash-close">
                         <div id="console-expand-icon" class="octicon octicon-triangle-up"></div>
                     </button>
                 </div>
-                <div id="console-output-container" hidden>
-                    console output here!
-                </div>
+                <div id="console-output-container" class="custom-scrollbar" hidden></div>
             </div>
         </div>
         <div id="web-output" hidden>

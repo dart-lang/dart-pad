@@ -204,6 +204,9 @@ body {
 
 #console-output-container {
   margin: 8px;
+  flex: 1;
+  overflow: scroll;
+  font-family: 'Inconsolata', monospace;
 }
 
 /* Footer */
@@ -277,7 +280,7 @@ body {
 /* Misc */
 
 .view-label {
-  font-family: monospace;
+  font-family: 'Inconsolata', monospace;
   color: #808080;
   margin-left: 8px;
 }

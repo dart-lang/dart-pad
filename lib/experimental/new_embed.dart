@@ -54,7 +54,6 @@ class NewEmbed {
   TabView editorTabView;
   TabView testTabView;
   TabView solutionTabView;
-  ConsoleTabView consoleTabView;
   DElement solutionTab;
 
   Counter unreadConsoleCounter;
@@ -85,12 +84,11 @@ class NewEmbed {
   NewEmbed(this.options) {
     _initHostListener();
     tabController = NewEmbedTabController();
-    for (String name in ['editor', 'test', 'console', 'solution']) {
+    for (String name in ['editor', 'test', 'solution']) {
       tabController.registerTab(
         TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
           editorTabView.setSelected(name == 'editor');
           testTabView.setSelected(name == 'test');
-          consoleTabView.setSelected(name == 'console');
           solutionTabView.setSelected(name == 'solution');
 
           if (name == 'editor') {
@@ -102,9 +100,6 @@ class NewEmbed {
           } else if (name == 'solution') {
             solutionEditor.resize();
             solutionEditor.focus();
-          } else {
-            // Must be the console tab.
-            unreadConsoleCounter.clear();
           }
         }),
       );
@@ -176,24 +171,16 @@ class NewEmbed {
 
     solutionTabView = TabView(DElement(querySelector('#solution-view')));
 
-    consoleTabView = ConsoleTabView(DElement(querySelector('#console-view')));
-
     executionSvc = ExecutionServiceIFrame(querySelector('#frame'))
       ..frameSrc =
           isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
 
     executionSvc.onStderr.listen((err) {
-      if (tabController.selectedTab.name != 'console') {
-        unreadConsoleCounter.increment();
-      }
-      consoleTabView.appendError(err);
+      consoleExpandController.appendError(err);
     });
 
     executionSvc.onStdout.listen((msg) {
-      if (tabController.selectedTab.name != 'console') {
-        unreadConsoleCounter.increment();
-      }
-      consoleTabView.appendMessage(msg);
+      consoleExpandController.appendMessage(msg);
     });
 
     executionSvc.testResults.listen((result) {
@@ -219,6 +206,8 @@ class NewEmbed {
         expandButton: querySelector('#console-expand-button'),
         footer: querySelector('#console-output-footer'),
         expandIcon: querySelector('#console-expand-icon'),
+        unreadCounter: unreadConsoleCounter,
+        consoleElement: querySelector('#console-output-container'),
       );
     }
     _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());
@@ -355,8 +344,7 @@ class NewEmbed {
     editorIsBusy = true;
     testResultBox.hide();
     hintBox.hide();
-    consoleTabView.clear();
-    unreadConsoleCounter.clear();
+    consoleExpandController.clear();
 
     final fullCode = '${context.dartSource}\n${context.testMethod}\n'
         '${executionSvc.testResultDecoration}';
@@ -375,9 +363,9 @@ class NewEmbed {
           modulesBaseUrl: response.modulesBaseUrl,
         );
       }).catchError((e, st) {
-        consoleTabView.appendError('Error compiling to JavaScript:\n$e');
+        consoleExpandController
+            .appendError('Error compiling to JavaScript:\n$e');
         print(st);
-        tabController.selectTab('console');
       }).whenComplete(() {
         editorIsBusy = false;
       });
@@ -388,9 +376,9 @@ class NewEmbed {
           .then((CompileResponse response) {
         executionSvc.execute('', '', response.result);
       }).catchError((e, st) {
-        consoleTabView.appendError('Error compiling to JavaScript:\n$e');
+        consoleExpandController
+            .appendError('Error compiling to JavaScript:\n$e');
         print(st);
-        tabController.selectTab('console');
       }).whenComplete(() {
         editorIsBusy = false;
       });
@@ -562,26 +550,6 @@ class TabView {
     } else {
       element.setAttr('hidden');
     }
-  }
-}
-
-class ConsoleTabView extends TabView {
-  ConsoleTabView(DElement element) : super(element);
-
-  void clear() {
-    element.text = '';
-  }
-
-  void appendMessage(String msg) {
-    final line = DivElement()..text = filterCloudUrls(msg);
-    element.add(line);
-  }
-
-  void appendError(String err) {
-    final line = DivElement()
-      ..text = filterCloudUrls(err)
-      ..classes.add('text-red');
-    element.add(line);
   }
 }
 
@@ -819,6 +787,8 @@ class ConsoleExpandController {
   final DElement expandButton;
   final DElement footer;
   final DElement expandIcon;
+  final DElement console;
+  final Counter unreadCounter;
   Splitter _splitter;
   bool _expanded;
 
@@ -826,31 +796,70 @@ class ConsoleExpandController {
     Element expandButton,
     Element footer,
     Element expandIcon,
+    Element consoleElement,
+    this.unreadCounter,
   })  : expandButton = DElement(expandButton),
         footer = DElement(footer),
         expandIcon = DElement(expandIcon),
+        console = DElement(consoleElement),
         _expanded = false {
     footer.removeAttribute('hidden');
     expandButton.onClick.listen((_) => _toggleExpanded());
-    _initSplitter();
-    _splitter.setSizes([100, 0]);
+  }
+
+  void appendError(String error) {
+    if (error == null) {
+      return;
+    }
+
+    if (!_expanded) {
+      unreadCounter.increment();
+    }
+    final line = DivElement()
+      ..text = filterCloudUrls(error)
+      ..classes.add('text-red');
+    console.add(line);
+  }
+
+  void appendMessage(String message) {
+    if (message == null) {
+      return;
+    }
+
+    if (!_expanded) {
+      unreadCounter.increment();
+    }
+    final line = DivElement()..text = filterCloudUrls(message);
+    console.add(line);
+  }
+
+  void clear() {
+    unreadCounter.clear();
+    console.text = '';
   }
 
   void _toggleExpanded() {
-    var outputContainer = querySelector('#console-output-container');
-
     _expanded = !_expanded;
     if (_expanded) {
-      _splitter.setSizes([60,40]);
-      outputContainer.removeAttribute('hidden');
+      _initSplitter();
+      _splitter.setSizes([60, 40]);
+      console.element.removeAttribute('hidden');
       expandIcon.element.classes.remove('octicon-triangle-up');
       expandIcon.element.classes.add('octicon-triangle-down');
       footer.element.classes.remove('border-top');
+      unreadCounter.clear();
     } else {
       _splitter.setSizes([100, 0]);
-      outputContainer.setAttribute('hidden', 'true');
+      console.element.setAttribute('hidden', 'true');
       expandIcon.element.classes.remove('octicon-triangle-down');
       expandIcon.element.classes.add('octicon-triangle-up');
+      footer.element.classes.add('border-top');
+      try {
+        _splitter.destroy();
+      } on NoSuchMethodError {
+        // dart2js throws NoSuchMethodError
+        // TODO(ryjohn): investigate why this doesn't happen in dartdevc
+      }
     }
   }
 

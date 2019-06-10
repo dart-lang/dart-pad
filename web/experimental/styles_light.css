@@ -64,6 +64,14 @@
     border-top: 1px solid #d0d5d9;
 }
 
+.border-bottom {
+    border-bottom: 1px solid #d0d5d9;
+}
+
 .border-left {
     border-left: 1px solid #d0d5d9;
+}
+
+.border-right {
+    border-right: 1px solid #d0d5d9;
 }
