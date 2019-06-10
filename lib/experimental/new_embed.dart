@@ -944,7 +944,7 @@ final RegExp _dartUrlExp =
 
 String filterCloudUrls(String trace) {
   return trace
-      .replaceAllMapped(
+      ?.replaceAllMapped(
           _flutterUrlExp, (m) => '[Flutter SDK Source]${m.group(2)}')
-      .replaceAllMapped(_dartUrlExp, (m) => '[Dart SDK Source]${m.group(2)}');
+      ?.replaceAllMapped(_dartUrlExp, (m) => '[Dart SDK Source]${m.group(2)}');
 }
