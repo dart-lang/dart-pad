@@ -207,7 +207,7 @@ class NewEmbed {
       testTabView = TabView(DElement(testTabViewElement));
     }
 
-    var solutionTabViewElement = querySelector('#test-view');
+    var solutionTabViewElement = querySelector('#solution-view');
     if (solutionTabViewElement != null) {
       solutionTabView = TabView(DElement(solutionTabViewElement));
     }
@@ -255,13 +255,11 @@ class NewEmbed {
     if (options.mode == NewEmbedMode.flutter ||
         options.mode == NewEmbedMode.html) {
       consoleExpandController = ConsoleExpandController(
-        expandButton: querySelector('#console-expand-button'),
-        footer: querySelector('#console-output-footer'),
-        expandIcon: querySelector('#console-expand-icon'),
-        unreadCounter: unreadConsoleCounter,
-        consoleElement: querySelector('#console-output-container'),
-        isHtmlMode: options.mode == NewEmbedMode.html,
-      );
+          expandButton: querySelector('#console-expand-button'),
+          footer: querySelector('#console-output-footer'),
+          expandIcon: querySelector('#console-expand-icon'),
+          unreadCounter: unreadConsoleCounter,
+          consoleElement: querySelector('#console-output-container'));
     } else {
       consoleExpandController =
           ConsoleController(querySelector('#console-output-container'));
@@ -343,12 +341,8 @@ class NewEmbed {
 
     var webOutput = querySelector('#web-output');
     List splitterElements;
-    if (options.mode == NewEmbedMode.flutter) {
-      // Make the web output area visible.
-      webOutput.removeAttribute('hidden');
-      var userCodeContainer = querySelector('#user-code-container');
-      splitterElements = [userCodeContainer, webOutput];
-    } else if (options.mode == NewEmbedMode.html) {
+    if (options.mode == NewEmbedMode.flutter ||
+        options.mode == NewEmbedMode.html) {
       var editorAndConsoleContainer =
           querySelector('#editor-and-console-container');
       splitterElements = [editorAndConsoleContainer, webOutput];
@@ -901,7 +895,6 @@ class ConsoleExpandController extends ConsoleController {
   final DElement footer;
   final DElement expandIcon;
   final Counter unreadCounter;
-  final bool isHtmlMode;
   Splitter _splitter;
   bool _expanded;
 
@@ -911,7 +904,6 @@ class ConsoleExpandController extends ConsoleController {
     Element expandIcon,
     Element consoleElement,
     this.unreadCounter,
-    this.isHtmlMode = false,
   })  : expandButton = DElement(expandButton),
         footer = DElement(footer),
         expandIcon = DElement(expandIcon),
@@ -960,25 +952,17 @@ class ConsoleExpandController extends ConsoleController {
       try {
         _splitter.destroy();
       } on NoSuchMethodError {
-        // dart2js throws NoSuchMethodError
-        // TODO(ryjohn): investigate why this doesn't happen in dartdevc
+        // dart2js throws NoSuchMethodError (dartdevc is ok)
+        // TODO(ryjohn): why does this happen?
       }
     }
   }
 
   void _initSplitter() {
     var splitterElements = [
-      querySelector('#user-code-editor'),
+      querySelector('#editor-container'),
       querySelector('#console-output-footer'),
     ];
-
-    // TODO(ryjohn): align flutter web and html modes
-    if (isHtmlMode) {
-      splitterElements = [
-        querySelector('#editor-container'),
-        querySelector('#console-output-footer'),
-      ];
-    }
     _splitter = flexSplit(
       splitterElements,
       horizontal: false,
