@@ -86,6 +86,22 @@ class NewEmbed {
     maxDelay: Duration(milliseconds: 5000),
   );
 
+  bool _editorIsBusy = true;
+
+  bool get editorIsBusy => _editorIsBusy;
+
+  /// Toggles the state of several UI components based on whether the editor is
+  /// too busy to handle code changes, execute/reset requests, etc.
+  set editorIsBusy(bool value) {
+    _editorIsBusy = value;
+    navBarElement.toggleClass('busy', value);
+    userCodeEditor.readOnly = value;
+    executeButton.disabled = value;
+    formatButton.disabled = value;
+    reloadGistButton.disabled = value || gistId.isEmpty;
+    showHintButton.disabled = value;
+  }
+
   NewEmbed(this.options) {
     _initHostListener();
     tabController = NewEmbedTabController();
@@ -337,6 +353,8 @@ class NewEmbed {
       userCodeEditor.showCompletions(onlyShowFixes: true);
     }, 'Quick fix');
 
+    keys.bind(['ctrl-enter', 'macctrl-enter'], _handleExecute, 'Run');
+
     document.onKeyUp.listen(_handleAutoCompletion);
 
     var horizontal = true;
@@ -378,17 +396,6 @@ class NewEmbed {
     editorIsBusy = false;
   }
 
-  /// Toggles the state of several UI components based on whether the editor is
-  /// too busy to handle code changes, execute/reset requests, etc.
-  set editorIsBusy(bool value) {
-    navBarElement.toggleClass('busy', value);
-    userCodeEditor.readOnly = value;
-    executeButton.disabled = value;
-    formatButton.disabled = value;
-    reloadGistButton.disabled = value || gistId.isEmpty;
-    showHintButton?.disabled = value;
-  }
-
   Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
     editorIsBusy = true;
 
@@ -410,6 +417,10 @@ class NewEmbed {
   }
 
   void _handleExecute() {
+    if (editorIsBusy) {
+      return;
+    }
+
     editorIsBusy = true;
     testResultBox.hide();
     hintBox.hide();
@@ -784,6 +795,7 @@ class AnalysisResultsController {
 
   final StreamController<AnalysisIssue> _onClickController =
       StreamController.broadcast();
+
   Stream<AnalysisIssue> get onIssueClick => _onClickController.stream;
 
   AnalysisResultsController(this.flash, this.message, this.toggle) {
@@ -1002,6 +1014,7 @@ class NewEmbedContext {
   }
 
   String get solution => _solution;
+
   set solution(String value) {
     _solution = value;
     solutionEditor.document.value = value;
