@@ -1,7 +1,7 @@
 /* styles_dark.css */
 
 body {
-    background-color: #1b1e22;
+    background-color: #1c2834;
 }
 
 .busy {
@@ -20,12 +20,12 @@ body {
 }
 
 #web-output {
-    background-color: #1b1e22;
+    background-color: #212529;
 }
 
 .footer {
     border-top: 1px solid #596068;
-    background-color: #1b1e22;
+    background-color: #1c2834;
 }
 
 #issues-message {
@@ -44,4 +44,8 @@ body {
 
 .issue .message {
     color: #f8fafb;
+}
+
+.CodeMirror-vscrollbar {
+  opacity: 0.2;
 }
