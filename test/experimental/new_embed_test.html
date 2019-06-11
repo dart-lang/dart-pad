@@ -20,23 +20,26 @@ BSD-style license that can be found in the LICENSE file. -->
           rel='stylesheet' type='text/css'>
 
     <link rel="stylesheet" type="text/css" href="../packages/octicons_css/octicons_4.4.0.css">
-    <link rel="stylesheet" type="text/css" href="../packages/primer_css/primer_11.0.0.css">
 
     <!-- codemirror -->
     <link href="../packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/theme/elegant.css" rel="stylesheet" media="screen">
+    <link href="zenburn_mod.css" rel="stylesheet" media="screen">
+    <link href="embed-new-flutter.css" rel="stylesheet" media="screen">
+
     <script src="../packages/codemirror/codemirror.js" defer></script>
     <script src="../packages/split/split.min.js" defer></script>
 
-    <link rel="stylesheet" type="text/css" href="new_embed.css">
+    <script defer src="new_embed_flutter.dart.js"></script>
+    <script defer src="../scripts/ga.js"></script>
+    <script defer src="../scripts/polymerpatch.js"></script>
+    <script type="text/javascript" src="dark_mode.js"></script>
 
     <!-- Test package stuff -->
     <link rel="x-dart-test" href="new_embed_test.dart">
     <script src="packages/test/dart.js"></script>
-
-    <script defer src="../scripts/polymerpatch.js"></script>
 </head>
 
 <body class="d-flex flex-column">
@@ -45,10 +48,6 @@ BSD-style license that can be found in the LICENSE file. -->
         <button id="editor-tab" class="tabnav-tab selected" selected>Your code</button>
         <button id="solution-tab" class="tabnav-tab" hidden>Solution</button>
         <button id="test-tab" class="tabnav-tab">Test code</button>
-        <button id="console-tab" class="tabnav-tab">
-            Output
-            <span id="unread-console-counter" class="Counter" hidden></span>
-        </button>
     </nav>
     <div class="nav-buttons">
         <button id="show-hint" class="btn mr-1">Hint</button>
@@ -60,26 +59,41 @@ BSD-style license that can be found in the LICENSE file. -->
         </button>
     </div>
 </div>
-<section id="tab-container" class="flex-auto d-flex flex-column no-overflow">
-    <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
-        <div id="user-code-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
-        <div id="web-output" class="p-1 d-flex" hidden>
-            <iframe id="frame" sandbox="allow-scripts" class="flex-auto" src="../scripts/frame.html">
-            </iframe>
+<section id="tab-container">
+    <div id="editor-and-console-container">
+        <div id="editor-container">
+            <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
+                <div id="user-code-editor" spellcheck="false"></div>
+            </div>
+            <div id="solution-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
+                <div id="solution-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
+            </div>
+            <div id="test-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
+                <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
+            </div>
+        </div>
+        <div id="console-output-footer" class="border-top" hidden>
+            <div class="console-output-header">
+                <span class="view-label">
+                    Console <span id="unread-console-counter" class="Counter" hidden></span>
+                </span>
+                <button id="console-expand-button" class="flash-close">
+                    <div id="console-expand-icon" class="octicon octicon-triangle-up"></div>
+                </button>
+            </div>
+            <div id="console-output-container" class="custom-scrollbar" hidden></div>
         </div>
     </div>
-    <div id="solution-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
-        <div id="solution-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
+    <div id="web-output">
+        <span id="web-output-label" class="position-absolute view-label">UI Output</span>
+        <iframe id="frame" sandbox="allow-scripts" class="flex-auto">
+        </iframe>
     </div>
-    <div id="test-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
-        <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
-    </div>
-    <div id="console-view" class="tabview flex-auto p-2" hidden></div>
 </section>
 
-<footer flex layout horizontal class="footer">
+<footer flex layout horizontal class="footer border-top">
     <div id="issues-message"></div>
-    <button id="issues-toggle" class="btn btn-sm" hidden>show</button>
+    <button id="issues-toggle" class="btn btn-sm" hidden></button>
 </footer>
 
 <div id="flash-container" class="position-fixed right-2 bottom-6">
@@ -87,19 +101,19 @@ BSD-style license that can be found in the LICENSE file. -->
         <button class="flash-close">
             <div class="octicon octicon-x"></div>
         </button>
-        <div class="message-container"></div>
+        <div class="message-container custom-scrollbar"></div>
     </div>
     <div id="test-result-box" class="flash flash-warn" hidden>
         <button class="flash-close">
             <div class="octicon octicon-x"></div>
         </button>
-        <div class="message-container"></div>
+        <div class="message-container custom-scrollbar"></div>
     </div>
     <div id="hint-box" class="flash" hidden>
         <button class="flash-close">
             <div class="octicon octicon-x"></div>
         </button>
-        <div class="message-container"></div>
+        <div class="message-container custom-scrollbar"></div>
     </div>
     <div id="issues" hidden></div>
 </div>
