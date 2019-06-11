@@ -29,6 +29,16 @@
     border-left: 1px solid #dddddd;
 }
 
+/* TODO(ryjohn): align flutter and html modes */
+#editor-and-console-container {
+    background-color: #f7f7f7;
+}
+
+/* TODO(ryjohn): align flutter and html modes */
+#editor-and-console-container .gutter-vertical {
+    border-left: 1px solid #dddddd;
+}
+
 #console-output-footer {
     background-color: white;
     border-left: 1px solid #dddddd;

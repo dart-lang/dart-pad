@@ -33,6 +33,11 @@ body {
     border-left: 1px solid #596068;
 }
 
+/* TODO(ryjohn): align flutter and html modes */
+#editor-and-console-container .gutter-vertical {
+    border-left: 1px solid #596068;
+}
+
 #console-output-footer {
     background-color: #1b1e22;
     border-left: 1px solid #596068;

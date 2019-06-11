@@ -54,6 +54,8 @@ class NewEmbed {
   TabView editorTabView;
   TabView testTabView;
   TabView solutionTabView;
+  TabView htmlTabView;
+  TabView cssTabView;
   DElement solutionTab;
 
   Counter unreadConsoleCounter;
@@ -68,6 +70,8 @@ class NewEmbed {
   Editor userCodeEditor;
   Editor testEditor;
   Editor solutionEditor;
+  Editor htmlEditor;
+  Editor cssEditor;
 
   NewEmbedContext context;
 
@@ -84,12 +88,20 @@ class NewEmbed {
   NewEmbed(this.options) {
     _initHostListener();
     tabController = NewEmbedTabController();
-    for (String name in ['editor', 'test', 'solution']) {
+
+    var tabNames = ['editor', 'test', 'solution'];
+    if (options.mode == NewEmbedMode.html) {
+      tabNames = ['editor', 'html', 'css'];
+    }
+
+    for (var name in tabNames) {
       tabController.registerTab(
         TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
-          editorTabView.setSelected(name == 'editor');
-          testTabView.setSelected(name == 'test');
-          solutionTabView.setSelected(name == 'solution');
+          editorTabView?.setSelected(name == 'editor');
+          testTabView?.setSelected(name == 'test');
+          solutionTabView?.setSelected(name == 'solution');
+          htmlTabView?.setSelected(name == 'html');
+          cssTabView?.setSelected(name == 'css');
 
           if (name == 'editor') {
             userCodeEditor.resize();
@@ -100,6 +112,12 @@ class NewEmbed {
           } else if (name == 'solution') {
             solutionEditor.resize();
             solutionEditor.focus();
+          } else if (name == 'html') {
+            htmlEditor.resize();
+            htmlEditor.focus();
+          } else if (name == 'css') {
+            cssEditor.resize();
+            cssEditor.focus();
           }
         }),
       );
@@ -122,17 +140,19 @@ class NewEmbed {
 
     reloadGistButton.disabled = gistId.isEmpty;
 
-    showHintButton = DisableableButton(querySelector('#show-hint'), () {
-      var showSolutionButton = AnchorElement()
-        ..style.cursor = 'pointer'
-        ..text = 'Show solution';
-      showSolutionButton.onClick.listen((_) {
-        solutionTab.clearAttr('hidden');
-        tabController.selectTab('solution');
+    if (options.mode != NewEmbedMode.html) {
+      showHintButton = DisableableButton(querySelector('#show-hint'), () {
+        var showSolutionButton = AnchorElement()
+          ..style.cursor = 'pointer'
+          ..text = 'Show solution';
+        showSolutionButton.onClick.listen((_) {
+          solutionTab.clearAttr('hidden');
+          tabController.selectTab('solution');
+        });
+        var hintElement = DivElement()..text = context.hint;
+        hintBox.showElements([hintElement, showSolutionButton]);
       });
-      var hintElement = DivElement()..text = context.hint;
-      hintBox.showElements([hintElement, showSolutionButton]);
-    });
+    }
 
     formatButton = DisableableButton(
       querySelector('#format-code'),
@@ -165,11 +185,40 @@ class NewEmbed {
           ..mode = 'dart'
           ..showLineNumbers = true;
 
-    editorTabView = TabView(DElement(querySelector('#user-code-view')));
+    htmlEditor = editorFactory.createFromElement(querySelector('#html-editor'))
+      ..theme = editorTheme
+      ..mode = 'html'
+      ..showLineNumbers = true;
 
-    testTabView = TabView(DElement(querySelector('#test-view')));
+    cssEditor = editorFactory.createFromElement(querySelector('#css-editor'))
+      ..theme = editorTheme
+      ..mode = 'css'
+      ..showLineNumbers = true;
 
-    solutionTabView = TabView(DElement(querySelector('#solution-view')));
+    var editorTabViewElement = querySelector('#user-code-view');
+    if (editorTabViewElement != null) {
+      editorTabView = TabView(DElement(editorTabViewElement));
+    }
+
+    var testTabViewElement = querySelector('#test-view');
+    if (testTabViewElement != null) {
+      testTabView = TabView(DElement(testTabViewElement));
+    }
+
+    var solutionTabViewElement = querySelector('#test-view');
+    if (solutionTabViewElement != null) {
+      solutionTabView = TabView(DElement(solutionTabViewElement));
+    }
+
+    var htmlTabViewElement = querySelector('#html-view');
+    if (htmlTabViewElement != null) {
+      htmlTabView = TabView(DElement(htmlTabViewElement));
+    }
+
+    var cssTabViewElement = querySelector('#css-view');
+    if (cssTabViewElement != null) {
+      cssTabView = TabView(DElement(querySelector('#css-view')));
+    }
 
     executionSvc = ExecutionServiceIFrame(querySelector('#frame'))
       ..frameSrc =
@@ -201,13 +250,15 @@ class NewEmbed {
         _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
       });
 
-    if (options.mode == NewEmbedMode.flutter) {
+    if (options.mode == NewEmbedMode.flutter ||
+        options.mode == NewEmbedMode.html) {
       consoleExpandController = ConsoleExpandController(
         expandButton: querySelector('#console-expand-button'),
         footer: querySelector('#console-output-footer'),
         expandIcon: querySelector('#console-expand-icon'),
         unreadCounter: unreadConsoleCounter,
         consoleElement: querySelector('#console-output-container'),
+        isHtmlMode: options.mode == NewEmbedMode.html,
       );
     } else {
       consoleExpandController =
@@ -288,6 +339,10 @@ class NewEmbed {
       webOutput.removeAttribute('hidden');
       var userCodeContainer = querySelector('#user-code-container');
       splitterElements = [userCodeContainer, webOutput];
+    } else if (options.mode == NewEmbedMode.html) {
+      var editorAndConsoleContainer =
+          querySelector('#editor-and-console-container');
+      splitterElements = [editorAndConsoleContainer, webOutput];
     } else {
       var userCodeEditor = querySelector('#user-code-editor');
       var consoleView = querySelector('#console-view');
@@ -321,7 +376,7 @@ class NewEmbed {
     executeButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value || gistId.isEmpty;
-    showHintButton.disabled = value;
+    showHintButton?.disabled = value;
   }
 
   Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
@@ -334,7 +389,7 @@ class NewEmbed {
     context.solution = gist.getFile('solution.dart')?.content ?? '';
     context.hint = gist.getFile('hint.txt')?.content ?? '';
     tabController.setTabVisibility('test', context.testMethod.isNotEmpty);
-    showHintButton.hidden = context.hint.isEmpty && context.testMethod.isEmpty;
+    showHintButton?.hidden = context.hint.isEmpty && context.testMethod.isEmpty;
     editorIsBusy = false;
 
     if (analyze) {
@@ -815,6 +870,7 @@ class ConsoleExpandController extends ConsoleController {
   final DElement footer;
   final DElement expandIcon;
   final Counter unreadCounter;
+  final bool isHtmlMode;
   Splitter _splitter;
   bool _expanded;
 
@@ -824,6 +880,7 @@ class ConsoleExpandController extends ConsoleController {
     Element expandIcon,
     Element consoleElement,
     this.unreadCounter,
+    this.isHtmlMode = false,
   })  : expandButton = DElement(expandButton),
         footer = DElement(footer),
         expandIcon = DElement(expandIcon),
@@ -883,6 +940,14 @@ class ConsoleExpandController extends ConsoleController {
       querySelector('#user-code-editor'),
       querySelector('#console-output-footer'),
     ];
+
+    // TODO(ryjohn): align flutter web and html modes
+    if (isHtmlMode) {
+      splitterElements = [
+        querySelector('#editor-container'),
+        querySelector('#console-output-footer'),
+      ];
+    }
     _splitter = flexSplit(
       splitterElements,
       horizontal: false,

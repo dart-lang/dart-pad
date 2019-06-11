@@ -181,6 +181,11 @@ body {
   margin-left: 29px;
 }
 
+/* TODO(ryjohn): align flutter and html modes */
+#editor-and-console-container .gutter-vertical {
+  margin-left: 29px;
+}
+
 .console-output-header {
   display: flex;
   flex-direction: row;
@@ -209,6 +214,23 @@ body {
   flex: 1;
   overflow: auto;
   font-family: 'Inconsolata', monospace;
+}
+
+/* HTML Mode */
+#editor-and-console-container {
+  display: flex;
+  flex-direction: column;
+}
+#editor-container {
+  flex: 1;
+}
+
+#tab-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
 }
 
 /* Footer */
