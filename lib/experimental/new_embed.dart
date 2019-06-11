@@ -347,10 +347,10 @@ class NewEmbed {
           querySelector('#editor-and-console-container');
       splitterElements = [editorAndConsoleContainer, webOutput];
     } else {
-      var userCodeEditor = querySelector('#user-code-editor');
+      var editorContainer = querySelector('#editor-container');
       var consoleView = querySelector('#console-view');
       consoleView.removeAttribute('hidden');
-      splitterElements = [userCodeEditor, consoleView];
+      splitterElements = [editorContainer, consoleView];
     }
 
     splitter = flexSplit(
