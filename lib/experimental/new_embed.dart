@@ -79,6 +79,7 @@ class NewEmbed {
   AnalysisResultsController analysisResultsController;
 
   ConsoleController consoleExpandController;
+  DElement webOutputLabel;
 
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
@@ -187,7 +188,8 @@ class NewEmbed {
 
     htmlEditor = editorFactory.createFromElement(querySelector('#html-editor'))
       ..theme = editorTheme
-      ..mode = 'html'
+      // TODO(ryjohn): why doesn't editorFactory.modes have html?
+      ..mode = 'xml'
       ..showLineNumbers = true;
 
     cssEditor = editorFactory.createFromElement(querySelector('#css-editor'))
@@ -264,6 +266,12 @@ class NewEmbed {
       consoleExpandController =
           ConsoleController(querySelector('#console-output-container'));
     }
+
+    var webOutputLabelElement = querySelector('#web-output-label');
+    if (webOutputLabelElement != null) {
+      webOutputLabel = DElement(webOutputLabelElement);
+    }
+
     _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());
   }
 
@@ -315,7 +323,8 @@ class NewEmbed {
   void _initNewEmbed() {
     deps[GistLoader] = GistLoader.defaultFilters();
 
-    context = NewEmbedContext(userCodeEditor, testEditor, solutionEditor);
+    context = NewEmbedContext(
+        userCodeEditor, testEditor, solutionEditor, htmlEditor, cssEditor);
 
     editorFactory.registerCompleter(
         'dart', DartCompleter(dartServices, userCodeEditor.document));
@@ -385,6 +394,8 @@ class NewEmbed {
     final GistLoader loader = deps[GistLoader];
     final gist = await loader.loadGist(id);
     context.dartSource = gist.getFile('main.dart')?.content ?? '';
+    context.htmlSource = gist.getFile('index.html')?.content ?? '';
+    context.cssSource = gist.getFile('styles.css')?.content ?? '';
     context.testMethod = gist.getFile('test.dart')?.content ?? '';
     context.solution = gist.getFile('solution.dart')?.content ?? '';
     context.hint = gist.getFile('hint.txt')?.content ?? '';
@@ -423,6 +434,23 @@ class NewEmbed {
             .appendError('Error compiling to JavaScript:\n$e');
         print(st);
       }).whenComplete(() {
+        webOutputLabel.setAttr('hidden');
+        editorIsBusy = false;
+      });
+    } else if (options.mode == NewEmbedMode.html) {
+      dartServices
+          .compile(input)
+          .timeout(longServiceCallTimeout)
+          .then((CompileResponse response) {
+        print(response.result);
+        return executionSvc.execute(
+            context.htmlSource, context.cssSource, response.result);
+      }).catchError((e, st) {
+        consoleExpandController
+            .appendError('Error compiling to JavaScript:\n$e');
+        print(st);
+      }).whenComplete(() {
+        webOutputLabel.setAttr('hidden');
         editorIsBusy = false;
       });
     } else {
@@ -585,7 +613,10 @@ class NewEmbedTabController extends TabController {
   }
 
   void setTabVisibility(String tabName, bool visible) {
-    TabElement tab = tabs.firstWhere((t) => t.name == tabName);
+    var tab = tabs.firstWhere((t) => t.name == tabName, orElse: () => null);
+    if (tab == null) {
+      return;
+    }
     tab.toggleAttr('hidden', !visible);
   }
 }
@@ -960,10 +991,14 @@ class ConsoleExpandController extends ConsoleController {
 
 class NewEmbedContext {
   final Editor userCodeEditor;
+  final Editor htmlEditor;
+  final Editor cssEditor;
   final Editor testEditor;
   final Editor solutionEditor;
 
   Document _dartDoc;
+  Document _htmlDoc;
+  Document _cssDoc;
 
   String hint = '';
 
@@ -985,8 +1020,11 @@ class NewEmbedContext {
 
   final _dartReconcileController = StreamController.broadcast();
 
-  NewEmbedContext(this.userCodeEditor, this.testEditor, this.solutionEditor) {
+  NewEmbedContext(this.userCodeEditor, this.testEditor, this.solutionEditor,
+      this.htmlEditor, this.cssEditor) {
     _dartDoc = userCodeEditor.document;
+    _htmlDoc = htmlEditor?.document;
+    _cssDoc = cssEditor?.document;
     _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
     _createReconciler(_dartDoc, _dartReconcileController, 1250);
   }
@@ -995,8 +1033,20 @@ class NewEmbedContext {
 
   String get dartSource => _dartDoc.value;
 
+  String get htmlSource => _htmlDoc?.value;
+
+  String get cssSource => _cssDoc?.value;
+
   set dartSource(String value) {
     userCodeEditor.document.value = value;
+  }
+
+  set htmlSource(String value) {
+    htmlEditor.document.value = value;
+  }
+
+  set cssSource(String value) {
+    cssEditor.document.value = value;
   }
 
   String get activeMode => userCodeEditor.mode;

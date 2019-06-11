@@ -70,7 +70,9 @@ BSD-style license that can be found in the LICENSE file. -->
         </div>
         <div id="console-output-footer" class="border-top" hidden>
             <div class="console-output-header">
-                <span class="view-label">Console <span id="unread-console-counter" class="Counter" hidden></span></span>
+                <span class="view-label">
+                    Console <span id="unread-console-counter" class="Counter" hidden></span>
+                </span>
                 <button id="console-expand-button" class="flash-close">
                     <div id="console-expand-icon" class="octicon octicon-triangle-up"></div>
                 </button>
@@ -79,7 +81,7 @@ BSD-style license that can be found in the LICENSE file. -->
         </div>
     </div>
     <div id="web-output">
-        <span class="position-absolute view-label">UI Output</span>
+        <span id="web-output-label" class="position-absolute view-label">UI Output</span>
         <iframe id="frame" sandbox="allow-scripts" class="flex-auto">
         </iframe>
     </div>
