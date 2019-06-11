@@ -54,25 +54,27 @@ BSD-style license that can be found in the LICENSE file. -->
         </button>
     </div>
 </div>
-<section id="tab-container" class="flex-auto d-flex flex-column no-overflow">
-    <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
-        <div id="user-code-editor" spellcheck="false"></div>
-        <div id="web-output" hidden>
-            <iframe id="frame" sandbox="allow-scripts" class="flex-auto">
-            </iframe>
+<section id="tab-container" class="flex-column">
+    <div id="editor-container">
+        <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
+            <div id="user-code-editor" spellcheck="false"></div>
         </div>
-        <div id="console-view" hidden>
-            <div class="console-output-header">
-                <span class="view-label">Console <span id="unread-console-counter" class="Counter" hidden></span></span>
-            </div>
-            <div id="console-output-container" class="custom-scrollbar" hidden></div>
+        <div id="solution-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
+            <div id="solution-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
+        </div>
+        <div id="test-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
+            <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
         </div>
     </div>
-    <div id="solution-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
-        <div id="solution-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
+    <div id="console-view" hidden>
+        <div class="console-output-header">
+            <span class="view-label">Console <span id="unread-console-counter" class="Counter" hidden></span></span>
+        </div>
+        <div id="console-output-container" class="custom-scrollbar" hidden></div>
     </div>
-    <div id="test-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
-        <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
+    <div id="web-output" hidden>
+        <iframe id="frame" sandbox="allow-scripts" class="flex-auto">
+        </iframe>
     </div>
 </section>
 <footer flex layout horizontal class="footer border-top">

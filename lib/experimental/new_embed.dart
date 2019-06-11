@@ -339,13 +339,20 @@ class NewEmbed {
 
     document.onKeyUp.listen(_handleAutoCompletion);
 
+    var horizontal = true;
     var webOutput = querySelector('#web-output');
     List splitterElements;
     if (options.mode == NewEmbedMode.flutter ||
         options.mode == NewEmbedMode.html) {
       var editorAndConsoleContainer =
-          querySelector('#editor-and-console-container');
+      querySelector('#editor-and-console-container');
       splitterElements = [editorAndConsoleContainer, webOutput];
+    } else if (options.mode == NewEmbedMode.inline) {
+      var editorContainer = querySelector('#editor-container');
+      var consoleView = querySelector('#console-view');
+      consoleView.removeAttribute('hidden');
+      splitterElements = [editorContainer, consoleView];
+      horizontal = false;
     } else {
       var editorContainer = querySelector('#editor-container');
       var consoleView = querySelector('#console-view');
@@ -355,7 +362,7 @@ class NewEmbed {
 
     splitter = flexSplit(
       splitterElements,
-      horizontal: true,
+      horizontal: horizontal,
       gutterSize: defaultSplitterWidth,
       // set initial sizes (in percentages)
       sizes: [initialSplitPercent, (100 - initialSplitPercent)],
