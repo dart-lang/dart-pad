@@ -454,7 +454,6 @@ class NewEmbed {
           .compile(input)
           .timeout(longServiceCallTimeout)
           .then((CompileResponse response) {
-        print(response.result);
         return executionSvc.execute(
             context.htmlSource, context.cssSource, response.result);
       }).catchError((e, st) {
