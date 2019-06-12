@@ -8,7 +8,7 @@
  * From: https://github.com/wisenomad/zenburn-lighttable-theme/blob/master/zenburn.css
  */
 
-.cm-s-zenburn .CodeMirror-gutters { background: #1b1e22 !important; border-right: 1px solid #596068; }
+.cm-s-zenburn .CodeMirror-gutters { background: #212529 !important; border-right: 1px solid #596068; }
 .cm-s-zenburn .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: #999; }
 .cm-s-zenburn .CodeMirror-cursor { border-left: 1px solid white; }
 .cm-s-zenburn { background-color: #1b1e22; color: #dcdccc; }
