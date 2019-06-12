@@ -7,6 +7,7 @@ import 'dart:html';
 import 'package:dart_pad/util/logging.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:logging/logging.dart';
+import 'package:dart_pad/experimental/inject_parser.dart';
 
 Logger _logger = Logger('dartpad-embed');
 
@@ -69,26 +70,27 @@ void _injectEmbed(Element snippet, List<String> options) {
     return;
   }
 
-  var code = HtmlUnescape().convert(snippet.innerHtml).trim();
-  if (code.isEmpty) {
-    return;
-  }
+  var files = _parseFiles(HtmlUnescape().convert(snippet.innerHtml));
 
   var hostIndex = preElement.parent.children.indexOf(preElement);
   var host = DivElement();
   preElement.parent.children[hostIndex] = host;
 
-  InjectedEmbed(host, code, options);
+  InjectedEmbed(host, files, options);
+}
+
+Map<String, String> _parseFiles(String snippet) {
+  return InjectParser(snippet).read();
 }
 
 /// Clears children in [host], instantiates an iframe, and sends it a message
 /// with the source code when it's ready
 class InjectedEmbed {
   final DivElement host;
-  final String code;
+  final Map<String, String> files;
   final List<String> options;
 
-  InjectedEmbed(this.host, this.code, this.options) {
+  InjectedEmbed(this.host, this.files, this.options) {
     _init();
   }
 
@@ -102,7 +104,7 @@ class InjectedEmbed {
 
     window.addEventListener('message', (dynamic e) {
       if (e.data['type'] == 'ready') {
-        var m = {'sourceCode': code, 'type': 'sourceCode'};
+        var m = {'sourceCode': files, 'type': 'sourceCode'};
         iframe.contentWindow.postMessage(m, '*');
       }
     });
