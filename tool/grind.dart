@@ -8,11 +8,15 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_services/src/flutter_web.dart';
+import 'package:dart_services/src/sdk_manager.dart';
 import 'package:grinder/grinder.dart';
 import 'package:grinder/grinder_files.dart';
 import 'package:http/http.dart' as http;
 
-Future main(List<String> args) => grind(args);
+Future<void> main(List<String> args) async {
+  await SdkManager.sdk.init();
+  return grind(args);
+}
 
 @Task()
 void analyze() {
@@ -20,10 +24,6 @@ void analyze() {
 }
 
 @Task()
-void init() => Dart.run('bin/update_sdk.dart');
-
-@Task()
-@Depends(init)
 Future test() => TestRunner().testAsync();
 
 @DefaultTask()
@@ -31,7 +31,6 @@ Future test() => TestRunner().testAsync();
 void analyzeTest() => null;
 
 @Task()
-@Depends(init)
 void serve() {
   // You can run the `grind serve` command, or just run
   // `dart bin/server_dev.dart --port 8002` locally.
@@ -41,7 +40,6 @@ void serve() {
 }
 
 final _dockerVersionMatcher = RegExp(r'^FROM google/dart-runtime:(.*)$');
-final _dartSdkVersionMatcher = RegExp(r'(^\d+[.]\d+[.]\d+.*)');
 
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
@@ -56,17 +54,6 @@ void updateDockerVersion() {
   dockerImageLines.add('');
 
   File('Dockerfile').writeAsStringSync(dockerImageLines.join('\n'));
-
-  List<String> dartSdkVersionLines =
-      File('dart-sdk.version').readAsLinesSync().map((String s) {
-    if (s.contains(_dartSdkVersionMatcher)) {
-      return platformVersion;
-    }
-    return s;
-  }).toList();
-  dartSdkVersionLines.add('');
-
-  File('dart-sdk.version').writeAsStringSync(dartSdkVersionLines.join('\n'));
 }
 
 final List<String> compilationArtifacts = [
@@ -78,7 +65,7 @@ final List<String> compilationArtifacts = [
 @Task('validate that we have the correct compilation artifacts available in '
     'google storage')
 void validateStorageArtifacts() async {
-  String version = File('dart-sdk.version').readAsStringSync().trim();
+  String version = SdkManager.sdk.version;
 
   const String urlBase =
       'https://storage.googleapis.com/compilation_artifacts/';
@@ -101,7 +88,6 @@ Future _validateExists(String url) async {
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
-@Depends(init)
 void buildStorageArtifacts() {
   // build and copy dart_sdk.js, flutter_web.js, and flutter_web.sum
   final Directory temp =
@@ -174,7 +160,7 @@ void _buildStorageArtifacts(Directory dir) {
   copy(joinFile(dir, ['flutter_web.sum']), artifactsDir);
 
   // emit some good google storage upload instructions
-  final String version = File('dart-sdk.version').readAsStringSync().trim();
+  final String version = SdkManager.sdk.version;
   log('\nFrom the dart-services project root dir, run:');
   log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z js '
       'artifacts/*.js gs://compilation_artifacts/$version/');
@@ -183,20 +169,19 @@ void _buildStorageArtifacts(Directory dir) {
 }
 
 @Task()
-@Depends(init)
 void fuzz() {
   log('warning: fuzz testing is a noop, see #301');
 }
 
 @Task('Update discovery files and run all checks prior to deployment')
-@Depends(updateDockerVersion, init, discovery, analyze, test, fuzz,
+@Depends(updateDockerVersion, discovery, analyze, test, fuzz,
     validateStorageArtifacts)
 void deploy() {
   log('Run: gcloud app deploy --project=dart-services --no-promote');
 }
 
 @Task()
-@Depends(init, discovery, analyze, fuzz)
+@Depends(discovery, analyze, fuzz)
 void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')

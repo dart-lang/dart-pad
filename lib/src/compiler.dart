@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 import 'common.dart';
 import 'flutter_web.dart';
 import 'pub.dart';
+import 'sdk_manager.dart';
 
 Logger _logger = Logger('compiler');
 
@@ -32,7 +33,7 @@ class Compiler {
             () => Process.start(path.join(sdkPath, 'bin', 'dartdevc'),
                 <String>['--persistent_worker']),
             maxWorkers: 1) {
-    _sdkVersion = File('dart-sdk.version').readAsStringSync().trim();
+    _sdkVersion = SdkManager.sdk.version;
   }
 
   bool importsOkForCompile(Set<String> imports) {

@@ -9,6 +9,8 @@ import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
+import 'sdk_manager.dart';
+
 Logger _logger = Logger('flutter_web');
 
 /// Handle provisioning package:flutter_web and related work.
@@ -69,8 +71,7 @@ $_samplePackageName:lib/
 
     _runPubGet();
 
-    final String sdkVersion =
-        File('dart-sdk.version').readAsStringSync().trim();
+    final String sdkVersion = SdkManager.sdk.version;
 
     // download and save the flutter_web.sum file
     String url = 'https://storage.googleapis.com/compilation_artifacts/'
