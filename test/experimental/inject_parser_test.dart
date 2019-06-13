@@ -26,6 +26,21 @@ main() {
       expect(files['main.dart'], equals("main() => print('Hello, World!');"));
     });
   });
+
+  group('LanguageStringParser', () {
+    test('recognizes run-dartpad class names', () {
+      expect(LanguageStringParser('run-dartpad').isValid, isTrue);
+      expect(LanguageStringParser('language-run-dartpad').isValid, isTrue);
+      expect(LanguageStringParser('run-flutterpad').isValid, isFalse);
+    });
+
+    test('supports options ', () {
+      var options = LanguageStringParser('run-dartpad:mode-html:theme-dark').options;
+      expect(options, isNotEmpty);
+      expect(options['mode'], equals('html'));
+      expect(options['theme'], equals('dark'));
+    });
+  });
 }
 
 String _codelab = '''

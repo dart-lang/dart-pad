@@ -31,7 +31,7 @@ class InjectParser {
   void _readLine(String line) {
     if (_beginExp.hasMatch(line)) {
       if (_currentFile == null) {
-        _currentFile = _beginExp.firstMatch(line).group(1);
+        _currentFile = _beginExp.firstMatch(line)[1];
       } else {
         _error('$_currentLine: unexpected begin');
       }
@@ -39,7 +39,7 @@ class InjectParser {
       if (_currentFile == null) {
         _error('$_currentLine: unexpected end');
       } else {
-        var match = _endExp.firstMatch(line).group(1);
+        var match = _endExp.firstMatch(line)[1];
         if (match != _currentFile) {
           _error('$_currentLine: end statement did not match begin statement');
         } else {
@@ -72,4 +72,34 @@ class DartPadInjectException implements Exception {
   final String message;
   DartPadInjectException(this.message);
   String toString() => '$message';
+}
+
+/// Parses the dartpad CSS class names to extract
+class LanguageStringParser {
+  final String input;
+  final RegExp _validExp = RegExp(r'[a-z-]*run-dartpad(:?[a-z-]*)+');
+  final RegExp _optionsExp = RegExp(r':([a-z]*)-([a-z]*)');
+
+  LanguageStringParser(this.input);
+
+  bool get isValid {
+    return _validExp.hasMatch(input);
+  }
+
+  Map<String, String> get options {
+    var opts = <String, String>{};
+    if (!isValid) {
+      return opts;
+    }
+
+    var matches = _optionsExp.allMatches(input);
+    for (var match in matches) {
+      if (match.groupCount != 2) {
+        continue;
+      }
+      opts[match[1]] = match[2];
+    }
+
+    return opts;
+  }
 }
