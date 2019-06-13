@@ -11,7 +11,7 @@ import 'package:dart_pad/experimental/inject_embed.dart' as inject_embed;
 void main() {
   group('inject_embed', () {
     setUp(() {
-      // todo: determine how to load embed-new-flutter.html and other assets
+      // TODO(ryjohn): determine how to load embed-new-flutter.html and other assets
       inject_embed.iframePrefix = '';
       inject_embed.main();
     });

@@ -363,7 +363,7 @@ class NewEmbed {
     if (options.mode == NewEmbedMode.flutter ||
         options.mode == NewEmbedMode.html) {
       var editorAndConsoleContainer =
-      querySelector('#editor-and-console-container');
+          querySelector('#editor-and-console-container');
       splitterElements = [editorAndConsoleContainer, webOutput];
     } else if (options.mode == NewEmbedMode.inline) {
       var editorContainer = querySelector('#editor-container');
@@ -624,11 +624,9 @@ class NewEmbedTabController extends TabController {
   }
 
   void setTabVisibility(String tabName, bool visible) {
-    var tab = tabs.firstWhere((t) => t.name == tabName, orElse: () => null);
-    if (tab == null) {
-      return;
-    }
-    tab.toggleAttr('hidden', !visible);
+    tabs
+        .firstWhere((t) => t.name == tabName, orElse: () => null)
+        ?.toggleAttr('hidden', !visible);
   }
 }
 
@@ -878,6 +876,7 @@ class AnalysisResultsController {
   }
 }
 
+/// Manages the visibility and contents of the console
 class ConsoleController {
   final DElement console;
   ConsoleController(Element console) : console = DElement(console) {

@@ -12,7 +12,7 @@ Logger _logger = Logger('dartpad-embed');
 
 // Use this prefix for local development:
 //var iframePrefix = '';
-var iframePrefix = 'https://dartpad.dartlang.org/experimental/';
+var iframePrefix = 'https://dartpad.dev/experimental/';
 
 /// Replaces all code snippets marked with the 'run-dartpad' class with an
 /// instance of DartPad.
