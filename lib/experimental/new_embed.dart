@@ -985,7 +985,7 @@ class ConsoleExpandController extends ConsoleController {
       horizontal: false,
       gutterSize: defaultSplitterWidth,
       sizes: [60, 40],
-      minSize: [200, 0],
+      minSize: [200, 32],
     );
   }
 }
