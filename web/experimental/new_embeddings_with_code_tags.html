@@ -112,42 +112,38 @@ class _MyAppState extends State {
         <p>mode-dart</p>
         <pre>
             <code class="language-run-dartpad:mode-dart">
-{% begin main.dart %}
+{$ begin main.dart $}
 String message = 'Hello, World!';
-{% end main.dart %}
+{$ end main.dart $}
 
-{% begin solution.dart %}
+{$ begin solution.dart $}
 String message = 'delete your code';
-{% end solution.dart %}
+{$ end solution.dart $}
 
-{% begin test.dart %}
+{$ begin test.dart $}
 main() => print(message);
-{% end test.dart %}
+{$ end test.dart $}
             </code>
         </pre>
 
         <p>mode-html</p>
         <pre>
             <code class="language-run-dartpad:mode-html">
-{% begin main.dart %}
+{$ begin main.dart $}
 void main() {
   print("hello, world!");
 }
-{% end main.dart %}
+{$ end main.dart $}
 
-
-
-{% begin index.html %}
+{$ begin index.html $}
 <p>I'm a paragraph!</p>
-{% end index.html %}
+{$ end index.html $}
 
-
-
-{% begin styles.css %}
+{$ begin styles.css $}
 p {
   font-family: monospace;
 }
-{% end styles.css %}
+{$ end styles.css $}
             </code>
         </pre>
         <p>mode-inline</p>

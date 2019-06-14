@@ -6,8 +6,8 @@
 /// `{% begin <filename> %}` and `{% end <filename> %}` markers
 class InjectParser {
   final String input;
-  RegExp _beginExp = RegExp(r'{% begin ([a-z.]*) %}');
-  RegExp _endExp = RegExp(r'{% end ([a-z.]*) %}');
+  RegExp _beginExp = RegExp(r'{\$ begin ([a-z.]*) \$}');
+  RegExp _endExp = RegExp(r'{\$ end ([a-z.]*) \$}');
   int _currentLine;
   String _currentFile;
   Map<String, String> _tokens = {};

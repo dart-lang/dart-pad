@@ -43,28 +43,28 @@ main() {
   });
 }
 
-String _codelab = '''
-{% begin main.dart %}
+String _codelab = r'''
+{$ begin main.dart $}
 String message = 'Hello, World!';
-{% end main.dart %}
+{$ end main.dart $}
 
-{% begin solution.dart %}
+{$ begin solution.dart $}
 String message = 'delete your code';
-{% end solution.dart %}
+{$ end solution.dart $}
 
-{% begin test.dart %}
+{$ begin test.dart $}
 main() => print(message);
-{% end test.dart %}
+{$ end test.dart $}
 ''';
 
-String _invalidCodelab = '''
-{% begin main.dart %}
+String _invalidCodelab = r'''
+{$ begin main.dart $}
 String message = 'Hello, World!';
-{% end main.dart %}
+{$ end main.dart $}
 
-{% begin solution.dart %}
+{$ begin solution.dart $}
 String message = 'delete your code';
-{% begin main.dart %}
+{$ begin main.dart $}
 ''';
 
 String _normalSnippet = '''
