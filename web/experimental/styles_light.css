@@ -1,28 +1,50 @@
 /* styles_light.css */
 
-body {
-    background-color: #f7f7f7;
-}
-
 .busy {
     background: url(moving_lines.gif) repeat;
     box-shadow: inset 0 0 0 1000px rgba(255,255,255,.5);
 }
 
-#navbar {
-    background-color: #f7f7f7;
+.gutter {
+    background-color: white;
 }
 
-.gutter {
-    background-color: #f7f7f7;
+.gutter.gutter-horizontal {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAeCAYAAADtlXTHAAAAAXNSR0IArs4c6QAAABNJREFUCB1juHD15n8mBiAYTAQAE+8DuEvhrvMAAAAASUVORK5CYII=');
+}
+
+.gutter.gutter-vertical {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAABCAYAAADJsB7sAAAAAXNSR0IArs4c6QAAABBJREFUCB1jvHD15n+GAQAAnhUDf1ql9zwAAAAASUVORK5CYII=');
 }
 
 #web-output {
+    background-color: white;
+}
+
+#user-code-container {
     background-color: #f7f7f7;
 }
 
+#user-code-container .gutter-vertical {
+    border-left: 1px solid #dddddd;
+}
+
+/* TODO(ryjohn): align flutter and html modes */
+#editor-and-console-container {
+    background-color: #f7f7f7;
+}
+
+/* TODO(ryjohn): align flutter and html modes */
+#editor-and-console-container .gutter-vertical {
+    border-left: 1px solid #dddddd;
+}
+
+#console-output-footer {
+    background-color: white;
+    border-left: 1px solid #dddddd;
+}
+
 .footer {
-    border-top: 1px solid #d0d5d9;
     background-color: #f7f7f7;
 }
 
@@ -42,4 +64,24 @@ body {
 
 .issue .message {
     color: #222;
+}
+
+#navbar {
+    background-color: #f7f7f7;
+}
+
+.border-top {
+    border-top: 1px solid #d0d5d9;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #d0d5d9;
+}
+
+.border-left {
+    border-left: 1px solid #d0d5d9;
+}
+
+.border-right {
+    border-right: 1px solid #d0d5d9;
 }

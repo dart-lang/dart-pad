@@ -27,29 +27,25 @@ BSD-style license that can be found in the LICENSE file. -->
     <link href="../packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/theme/elegant.css" rel="stylesheet" media="screen">
     <link href="zenburn_mod.css" rel="stylesheet" media="screen">
-    <link href="embed-new-flutter.css" rel="stylesheet" media="screen">
 
     <script src="../packages/codemirror/codemirror.js" defer></script>
     <script src="../packages/split/split.min.js" defer></script>
 
-    <script defer src="new_embed_flutter.dart.js"></script>
+    <script defer src="new_embed_html.dart.js"></script>
+    <script defer src="../scripts/ga.js"></script>
     <script defer src="../scripts/polymerpatch.js"></script>
     <script type="text/javascript" src="dark_mode.js"></script>
-
-    <!-- Test package stuff -->
-    <link rel="x-dart-test" href="new_embed_test.dart">
-    <script src="packages/test/dart.js"></script>
 </head>
 
 <body class="d-flex flex-column">
+
 <div id="navbar" class="tabnav dp-tabs">
     <nav class="tabnav-tabs">
-        <button id="editor-tab" class="tabnav-tab selected" selected>Your code</button>
-        <button id="solution-tab" class="tabnav-tab" hidden>Solution</button>
-        <button id="test-tab" class="tabnav-tab">Test code</button>
+        <button id="editor-tab" class="tabnav-tab selected" selected>Dart</button>
+        <button id="html-tab" class="tabnav-tab">HTML</button>
+        <button id="css-tab" class="tabnav-tab">CSS</button>
     </nav>
     <div class="nav-buttons">
-        <button id="show-hint" class="btn mr-1">Hint</button>
         <button id="format-code" class="btn mr-2">Format</button>
         <button id="reload-gist" class="btn mr-2">Reset</button>
         <button id="execute" class="btn btn-primary float-right">
@@ -58,17 +54,18 @@ BSD-style license that can be found in the LICENSE file. -->
         </button>
     </div>
 </div>
+
 <section id="tab-container">
     <div id="editor-and-console-container">
         <div id="editor-container">
             <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
                 <div id="user-code-editor" spellcheck="false"></div>
             </div>
-            <div id="solution-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
-                <div id="solution-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
+            <div id="html-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
+                <div id="html-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
             </div>
-            <div id="test-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
-                <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
+            <div id="css-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
+                <div id="css-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
             </div>
         </div>
         <div id="console-output-footer" class="border-top" hidden>

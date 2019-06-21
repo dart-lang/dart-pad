@@ -27,18 +27,20 @@ BSD-style license that can be found in the LICENSE file. -->
     <link href="../packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/theme/elegant.css" rel="stylesheet" media="screen">
     <link href="zenburn_mod.css" rel="stylesheet" media="screen">
-    <link href="embed-new-flutter.css" rel="stylesheet" media="screen">
 
     <script src="../packages/codemirror/codemirror.js" defer></script>
     <script src="../packages/split/split.min.js" defer></script>
 
     <script defer src="new_embed_flutter.dart.js"></script>
+    <script defer src="../scripts/ga.js"></script>
     <script defer src="../scripts/polymerpatch.js"></script>
     <script type="text/javascript" src="dark_mode.js"></script>
-
-    <!-- Test package stuff -->
-    <link rel="x-dart-test" href="new_embed_test.dart">
-    <script src="packages/test/dart.js"></script>
+    <style type="text/css">
+        #user-code-container {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
 </head>
 
 <body class="d-flex flex-column">
