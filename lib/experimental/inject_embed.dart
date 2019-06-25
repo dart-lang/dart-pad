@@ -7,6 +7,7 @@ import 'dart:html';
 import 'package:dart_pad/util/logging.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:logging/logging.dart';
+import 'package:dart_pad/experimental/inject_parser.dart';
 
 Logger _logger = Logger('dartpad-embed');
 
@@ -18,30 +19,34 @@ var iframePrefix = 'https://dartpad.dev/experimental/';
 /// instance of DartPad.
 void main() {
   _logger.onRecord.listen(logToJsConsole);
-  var snippets = querySelectorAll('.run-dartpad');
+  var snippets = querySelectorAll('code');
   for (var snippet in snippets) {
-    var options = List<String>.from(snippet.classes)
-        ..removeWhere((c) => c == 'run-dartpad' || c == 'language-run-dartpad');
-    _injectEmbed(snippet, options);
+    if (snippet.classes.isEmpty) {
+      continue;
+    }
+
+    var className = snippet.classes.first;
+    var parser = LanguageStringParser(className);
+    if (!parser.isValid) {
+      continue;
+    }
+
+    _injectEmbed(snippet, parser.options);
   }
 }
 
-String iframeSrc(List<String> options) {
+String iframeSrc(Map<String, String> options) {
   String theme;
-  if (options.contains('theme-dark')) {
-    theme = 'dark';
+  if (options.containsKey('theme')) {
+    theme = options['theme'];
   } else {
     theme = 'light';
   }
 
   String mode;
-  if (options.contains('mode-flutter')) {
-    mode = 'flutter';
-  } else if (options.contains('mode-html')) {
-    mode = 'html';
-  } else if (options.contains('mode-inline')) {
-    mode = 'inline';
-  } else if (options.contains('mode-dart')) {
+  if (options.containsKey('mode')) {
+    mode = options['mode'];
+  } else {
     mode = 'dart';
   }
 
@@ -57,7 +62,7 @@ String iframeSrc(List<String> options) {
 ///     void main() => print("Hello, World!");
 ///   </code>
 /// </pre>
-void _injectEmbed(Element snippet, List<String> options) {
+void _injectEmbed(Element snippet, Map<String, String> options) {
   var preElement = snippet.parent;
   if (preElement is! PreElement) {
     _logUnexpectedHtml();
@@ -69,26 +74,27 @@ void _injectEmbed(Element snippet, List<String> options) {
     return;
   }
 
-  var code = HtmlUnescape().convert(snippet.innerHtml).trim();
-  if (code.isEmpty) {
-    return;
-  }
+  var files = _parseFiles(HtmlUnescape().convert(snippet.innerHtml));
 
   var hostIndex = preElement.parent.children.indexOf(preElement);
   var host = DivElement();
   preElement.parent.children[hostIndex] = host;
 
-  InjectedEmbed(host, code, options);
+  InjectedEmbed(host, files, options);
+}
+
+Map<String, String> _parseFiles(String snippet) {
+  return InjectParser(snippet).read();
 }
 
 /// Clears children in [host], instantiates an iframe, and sends it a message
 /// with the source code when it's ready
 class InjectedEmbed {
   final DivElement host;
-  final String code;
-  final List<String> options;
+  final Map<String, String> files;
+  final Map<String, String> options;
 
-  InjectedEmbed(this.host, this.code, this.options) {
+  InjectedEmbed(this.host, this.files, this.options) {
     _init();
   }
 
@@ -102,7 +108,7 @@ class InjectedEmbed {
 
     window.addEventListener('message', (dynamic e) {
       if (e.data['type'] == 'ready') {
-        var m = {'sourceCode': code, 'type': 'sourceCode'};
+        var m = {'sourceCode': files, 'type': 'sourceCode'};
         iframe.contentWindow.postMessage(m, '*');
       }
     });

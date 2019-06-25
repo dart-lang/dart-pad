@@ -26,7 +26,7 @@
 
         iframe {
             width: 100%;
-            height: 700px;
+            height: 600px;
             margin-bottom: 40px;
             margin-top: 40px;
         }
@@ -38,7 +38,7 @@
     <div class="col-md-10">
         <p>mode-flutter, theme-light</p>
         <pre>
-            <code class="run-dartpad language-run-dartpad theme-light mode-flutter">
+            <code class="language-run-dartpad:theme-light:mode-flutter">
 import 'package:flutter_web/material.dart';
 import 'package:flutter_web_test/flutter_web_test.dart';
 import 'package:flutter_web_ui/ui.dart' as ui;
@@ -73,7 +73,7 @@ class _MyAppState extends State {
 
         <p>mode-flutter, theme-dark</p>
         <pre>
-            <code class="run-dartpad language-run-dartpad theme-dark mode-flutter">
+            <code class="language-run-dartpad:theme-dark:mode-flutter">
 import 'package:flutter_web/material.dart';
 import 'package:flutter_web_test/flutter_web_test.dart';
 import 'package:flutter_web_ui/ui.dart' as ui;
@@ -92,6 +92,9 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State {
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: new ThemeData(
+        brightness: Brightness.dark,
+      ),
       home: Scaffold(
         appBar: AppBar(),
         body: Center(
@@ -108,24 +111,44 @@ class _MyAppState extends State {
 
         <p>mode-dart</p>
         <pre>
-            <code class="run-dartpad language-run-dartpad mode-dart">
-void main() {
-  print("hello, world!");
-}
+            <code class="language-run-dartpad:mode-dart">
+{$ begin main.dart $}
+String message = 'Hello, World!';
+{$ end main.dart $}
+
+{$ begin solution.dart $}
+String message = 'delete your code';
+{$ end solution.dart $}
+
+{$ begin test.dart $}
+main() => print(message);
+{$ end test.dart $}
             </code>
         </pre>
 
         <p>mode-html</p>
         <pre>
-            <code class="run-dartpad language-run-dartpad mode-html">
+            <code class="language-run-dartpad:mode-html">
+{$ begin main.dart $}
 void main() {
   print("hello, world!");
 }
+{$ end main.dart $}
+
+{$ begin index.html $}
+<p>I'm a paragraph!</p>
+{$ end index.html $}
+
+{$ begin styles.css $}
+p {
+  font-family: monospace;
+}
+{$ end styles.css $}
             </code>
         </pre>
         <p>mode-inline</p>
         <pre>
-            <code class="run-dartpad language-run-dartpad mode-inline">
+            <code class="language-run-dartpad:mode-inline">
 void main() {
   print("hello, world!");
 }

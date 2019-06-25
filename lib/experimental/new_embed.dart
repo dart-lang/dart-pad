@@ -99,7 +99,7 @@ class NewEmbed {
     executeButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value || gistId.isEmpty;
-    showHintButton.disabled = value;
+    showHintButton?.disabled = value;
   }
 
   NewEmbed(this.options) {
@@ -303,7 +303,11 @@ class NewEmbed {
 
       if (type == 'sourceCode') {
         var sourceCode = data['sourceCode'];
-        userCodeEditor.document.value = sourceCode;
+        userCodeEditor.document.value = sourceCode['main.dart'] ?? '';
+        solutionEditor.document.value = sourceCode['solution.dart'] ?? '';
+        testEditor.document.value = sourceCode['test.dart'] ?? '';
+        htmlEditor.document.value = sourceCode['index.html'] ?? '';
+        cssEditor.document.value = sourceCode['styles.css'] ?? '';
       }
     });
   }
