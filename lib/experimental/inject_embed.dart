@@ -102,7 +102,6 @@ class InjectedEmbed {
     host.children.clear();
 
     var iframe = IFrameElement()..setAttribute('src', iframeSrc(options));
-    iframe.style.setProperty('border', '1px solid #ccc');
 
     host.children.add(iframe);
 
