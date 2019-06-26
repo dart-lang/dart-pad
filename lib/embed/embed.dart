@@ -613,8 +613,7 @@ class PlaygroundMobile {
 
   void _performAnalysis() {
     var input = SourceRequest()
-      ..source = _context.dartSource
-      ..strongMode = strongModeDefault;
+      ..source = _context.dartSource;
 
     Lines lines = Lines(input.source);
 
