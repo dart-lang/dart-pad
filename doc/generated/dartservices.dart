@@ -789,9 +789,6 @@ class SourceRequest {
   /// The Dart source.
   core.String source;
 
-  /// Ignored: always treated as true.
-  core.bool strongMode;
-
   SourceRequest();
 
   SourceRequest.fromJson(core.Map _json) {
@@ -800,9 +797,6 @@ class SourceRequest {
     }
     if (_json.containsKey("source")) {
       source = _json["source"];
-    }
-    if (_json.containsKey("strongMode")) {
-      strongMode = _json["strongMode"];
     }
   }
 
@@ -814,9 +808,6 @@ class SourceRequest {
     }
     if (source != null) {
       _json["source"] = source;
-    }
-    if (strongMode != null) {
-      _json["strongMode"] = strongMode;
     }
     return _json;
   }

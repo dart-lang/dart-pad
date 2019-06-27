@@ -62,10 +62,6 @@ class SourceRequest {
 
   @ApiProperty(description: 'An optional offset into the source code.')
   int offset;
-
-  @ApiProperty(description: 'Ignored: always treated as true.')
-  @deprecated
-  bool strongMode;
 }
 
 class SourcesRequest {
