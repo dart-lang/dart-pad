@@ -17,8 +17,6 @@ import 'services/execution.dart';
 import 'sharing/gists.dart';
 import 'src/ga.dart';
 
-const bool strongModeDefault = true;
-
 Analytics get ga => deps[Analytics];
 
 Context get context => deps[Context];

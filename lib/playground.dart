@@ -729,8 +729,7 @@ class Playground implements GistContainer, GistController {
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
     SourceRequest input = SourceRequest()
-      ..source = _context.dartSource
-      ..strongMode = strongModeDefault;
+      ..source = _context.dartSource;
 
     Lines lines = Lines(input.source);
 
