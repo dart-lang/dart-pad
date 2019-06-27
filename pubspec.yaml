@@ -3,7 +3,7 @@ publish_to: none
 
 environment:
   # Keep min SDK aligned with .travis.yml and FROM line of Dockerfile
-  sdk: '>=2.3.2 <3.0.0'
+  sdk: '>=2.4.0 <3.0.0'
 
 dependencies:
   _discoveryapis_commons: ^0.1.8

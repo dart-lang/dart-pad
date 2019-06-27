@@ -140,9 +140,9 @@ void _buildStorageArtifacts(Directory dir) {
   }
 
   // build the artifacts using DDC
-  // dartdevc -o flutter_web.js package:flutter_web/animation.dart ...
+  // dartdevc --modules=amd -o flutter_web.js package:flutter_web/animation.dart ...
   run(
-    getFile('dart-sdk/bin/dartdevc').absolute.path,
+    'dartdevc',
     arguments: [
       '--modules=amd',
       '-o',
@@ -155,7 +155,8 @@ void _buildStorageArtifacts(Directory dir) {
   Directory artifactsDir = getDir('artifacts');
   artifactsDir.create();
 
-  copy(getFile('dart-sdk/lib/dev_compiler/amd/dart_sdk.js'), artifactsDir);
+  copy(getFile('${SdkManager.sdk.sdkPath}/lib/dev_compiler/amd/dart_sdk.js'),
+      artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.sum']), artifactsDir);
 
