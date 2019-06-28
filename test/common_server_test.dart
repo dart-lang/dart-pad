@@ -11,6 +11,7 @@ import 'dart:io';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server.dart';
 import 'package:dart_services/src/flutter_web.dart';
+import 'package:dart_services/src/sdk_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 import 'package:rpc/rpc.dart';
@@ -109,6 +110,7 @@ void defineTests() {
     }
 
     setUpAll(() async {
+      await SdkManager.sdk.init();
       redisProcess = await startRedisProcessAndDrainIO(9501);
       log.onRecord.listen((LogRecord rec) {
         logMessages.add('${rec.level.name}: ${rec.time}: ${rec.message}');
@@ -184,9 +186,12 @@ void defineTests() {
           expect(
               logMessages.join('\n'),
               stringContainsInOrder([
-                'no cache available when setting key cversion+aKey',
-                'no cache available when getting key cversion+aKey',
-                'no cache available when removing key cversion+aKey',
+                'no cache available when setting key server:cversion:dart:',
+                '+aKey',
+                'no cache available when getting key server:cversion:dart:',
+                '+aKey',
+                'no cache available when removing key server:cversion:dart:',
+                '+aKey',
               ]));
         } finally {
           await redisCacheBroken.shutdown();
@@ -241,7 +246,8 @@ void defineTests() {
         expect(
             logMessages.join('\n'),
             stringContainsInOrder([
-              'timeout on get operation for key aversion+beforeStop',
+              'timeout on get operation for key server:aversion:dart:',
+              '+beforeStop',
               '(aversion): reconnecting',
               '(aversion): Connected to redis server',
             ]));

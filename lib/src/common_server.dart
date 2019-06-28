@@ -155,11 +155,11 @@ class RedisCache implements ServerCache {
         });
   }
 
-  /// Build a key that includes the server version.
+  /// Build a key that includes the server version, and Dart SDK Version.
   ///
   /// We don't use the existing key directly so that different AppEngine versions
   /// using the same redis cache do not have collisions.
-  String _genKey(String key) => '$serverVersion+$key';
+  String _genKey(String key) => 'server:$serverVersion:dart:${SdkManager.sdk.versionFull}+$key';
 
   @override
   Future<String> get(String key) async {
@@ -441,14 +441,14 @@ class CommonServer {
 
     await _checkPackageReferencesInitFlutterWeb(source);
 
-    String sourceHash = _hashSource(source);
-    String memCacheKey = '%%COMPILE:v0'
+    final sourceHash = _hashSource(source);
+    final memCacheKey = '%%COMPILE:v0'
         ':returnSourceMap:$returnSourceMap:source:$sourceHash';
 
-    final String result = await checkCache(memCacheKey);
+    final result = await checkCache(memCacheKey);
     if (result != null) {
-      log.info('CACHE: Cache hit for compile');
-      dynamic resultObj = JsonDecoder().convert(result);
+      log.info('CACHE: Cache hit for compileDart2js');
+      final resultObj = JsonDecoder().convert(result);
       return CompileResponse(
         resultObj['compiledJS'] as String,
         returnSourceMap ? resultObj['sourceMap'] as String : null,
@@ -456,20 +456,20 @@ class CommonServer {
     }
 
     log.info('CACHE: MISS for compileDart2js');
-    Stopwatch watch = Stopwatch()..start();
+    final watch = Stopwatch()..start();
 
     return compiler
         .compile(source, returnSourceMap: returnSourceMap)
         .then((CompilationResults results) {
       if (results.hasOutput) {
-        int lineCount = source.split('\n').length;
-        int outputSize = (results.compiledJS.length + 512) ~/ 1024;
-        int ms = watch.elapsedMilliseconds;
+        final lineCount = source.split('\n').length;
+        final outputSize = (results.compiledJS.length + 512) ~/ 1024;
+        final ms = watch.elapsedMilliseconds;
         log.info('PERF: Compiled $lineCount lines of Dart into '
             '${outputSize}kb of JavaScript in ${ms}ms using dart2js.');
-        String sourceMap = returnSourceMap ? results.sourceMap : null;
+        final sourceMap = returnSourceMap ? results.sourceMap : null;
 
-        String cachedResult = JsonEncoder().convert(<String, String>{
+        final cachedResult = JsonEncoder().convert(<String, String>{
           'compiledJS': results.compiledJS,
           'sourceMap': sourceMap,
         });
@@ -477,8 +477,8 @@ class CommonServer {
         unawaited(setCache(memCacheKey, cachedResult));
         return CompileResponse(results.compiledJS, sourceMap);
       } else {
-        List<CompilationProblem> problems = results.problems;
-        String errors = problems.map(_printCompileProblem).join('\n');
+        final problems = results.problems;
+        final errors = problems.map(_printCompileProblem).join('\n');
         throw BadRequestError(errors);
       }
     }).catchError((dynamic e, dynamic st) {
@@ -496,20 +496,40 @@ class CommonServer {
 
     await _checkPackageReferencesInitFlutterWeb(source);
 
+    final sourceHash = _hashSource(source);
+    final memCacheKey = '%%COMPILE_DDC:v0:source:$sourceHash';
+
+    final result = await checkCache(memCacheKey);
+    if (result != null) {
+      log.info('CACHE: Cache hit for compileDDC');
+      final resultObj = JsonDecoder().convert(result);
+      return CompileDDCResponse(
+        resultObj['compiledJS'] as String,
+        resultObj['modulesBaseUrl'] as String,
+      );
+    }
+
+    log.info('CACHE: MISS for compileDDC');
     Stopwatch watch = Stopwatch()..start();
 
     return compiler.compileDDC(source).then((DDCCompilationResults results) {
       if (results.hasOutput) {
-        int lineCount = source.split('\n').length;
-        int outputSize = (results.compiledJS.length + 512) ~/ 1024;
-        int ms = watch.elapsedMilliseconds;
+        final lineCount = source.split('\n').length;
+        final outputSize = (results.compiledJS.length + 512) ~/ 1024;
+        final ms = watch.elapsedMilliseconds;
         log.info('PERF: Compiled $lineCount lines of Dart into '
             '${outputSize}kb of JavaScript in ${ms}ms using DDC.');
 
+        final cachedResult = JsonEncoder().convert(<String, String>{
+          'compiledJS': results.compiledJS,
+          'modulesBaseUrl': results.modulesBaseUrl,
+        });
+        // Don't block on cache set.
+        unawaited(setCache(memCacheKey, cachedResult));
         return CompileDDCResponse(results.compiledJS, results.modulesBaseUrl);
       } else {
-        List<CompilationProblem> problems = results.problems;
-        String errors = problems.map(_printCompileProblem).join('\n');
+        final problems = results.problems;
+        final errors = problems.map(_printCompileProblem).join('\n');
         throw BadRequestError(errors);
       }
     }).catchError((dynamic e, dynamic st) {
