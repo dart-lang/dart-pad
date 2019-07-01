@@ -26,13 +26,11 @@
 .cm-s-dartpad span.cm-string { color: $light-pink; }
 .cm-s-dartpad span.cm-string-2 { color: $light-pink-2; }
 .cm-s-dartpad span.cm-number { color: $light-editor-text; }
-.cm-s-dartpad span.cm-attribute { color: $light-editor-text; }
-.cm-s-dartpad span.cm-qualifier { color: $light-editor-text; }
-.cm-s-dartpad span.cm-meta { color: $light-editor-text; }
-.cm-s-dartpad span.cm-header { color: $light-editor-text; }
+.cm-s-dartpad span.cm-attribute { color: $light-blue; }
+.cm-s-dartpad span.cm-qualifier { color: $light-orange-2; }
+.cm-s-dartpad span.cm-meta { color: $light-red; }
+.cm-s-dartpad span.cm-header { color: $light-blue; }
 .cm-s-dartpad span.cm-operator { color: $light-editor-text; }
-
-// not used in parser:
-.cm-s-dartpad span.cm-def { color: $light-editor-text; } // todo(ryjohn): not used in parser
-.cm-s-dartpad span.cm-tag { color: $light-editor-text; } // todo(ryjohn): not used in parser
-.cm-s-dartpad span.cm-property { color: $light-editor-text; } // todo(ryjohn): not used in parser
+.cm-s-dartpad span.cm-def { color: $light-editor-text; }
+.cm-s-dartpad span.cm-tag { color: $light-green; }
+.cm-s-dartpad span.cm-property { color: $light-red; }

@@ -26,13 +26,11 @@
 .cm-s-darkpad span.cm-string { color: $dark-pink; }
 .cm-s-darkpad span.cm-string-2 { color: $dark-pink-2; }
 .cm-s-darkpad span.cm-number { color: $dark-editor-text; }
-.cm-s-darkpad span.cm-attribute { color: $dark-editor-text; }
-.cm-s-darkpad span.cm-qualifier { color: $dark-editor-text; }
-.cm-s-darkpad span.cm-meta { color: $dark-editor-text; }
-.cm-s-darkpad span.cm-header { color: $dark-editor-text; }
+.cm-s-darkpad span.cm-attribute { color: $dark-blue; }
+.cm-s-darkpad span.cm-qualifier { color: $dark-orange-2; }
+.cm-s-darkpad span.cm-meta { color: $dark-red; }
+.cm-s-darkpad span.cm-header { color: $dark-blue; }
 .cm-s-darkpad span.cm-operator { color: $dark-editor-text; }
-
-// not used in parser:
-.cm-s-darkpad span.cm-def { color: $dark-editor-text; } // todo(ryjohn): not used in parser
-.cm-s-darkpad span.cm-tag { color: $dark-editor-text; } // todo(ryjohn): not used in parser
-.cm-s-darkpad span.cm-property { color: $dark-editor-text; } // todo(ryjohn): not used in parser
+.cm-s-darkpad span.cm-def { color: $dark-editor-text; }
+.cm-s-darkpad span.cm-tag { color: $dark-green; }
+.cm-s-darkpad span.cm-property { color: $dark-red; }
