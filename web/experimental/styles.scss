@@ -179,11 +179,6 @@ body {
 
 /* Console Output Footer */
 
-/* TODO(ryjohn): align flutter and html modes */
-#editor-and-console-container .gutter-vertical {
-  margin-left: 29px;
-}
-
 .console-output-header {
   display: flex;
   flex-direction: row;
@@ -194,7 +189,6 @@ body {
 #console-output-footer {
   display: flex;
   flex-direction: column;
-  margin-left: 29px;
 }
 
 #console-expand-button {

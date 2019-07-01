@@ -13,14 +13,16 @@ $squiggle-info-color: #7EA7D8;
 $light-code-background-color: white;
 $light-busy-background-color: rgba(255, 255, 255, .5);
 $light-secondary-background-color: #f7f7f7;
-$light-border-color: #dddddd;
 $light-label-color: #586069;
+$light-gutter-background-color: lighten(grey, 45%);
+$light-border-color: $light-gutter-background-color;
 
 $dark-code-background-color: #13202e;
 $dark-busy-background-color: rgba(255, 255, 255, .5);
 $dark-secondary-background-color: $dark-code-background-color;
-$dark-border-color: #6b6f74;
 $dark-label-color: #8a9198;
+$dark-gutter-background-color: #121a25;
+$dark-border-color: $dark-gutter-background-color;
 
 // V2 Colors
 $button-color: #168AFD;
@@ -39,7 +41,7 @@ $dark-orange: #ff9b00;
 $dark-editor-text: #ffffff;
 $dark-comment: #909cce;
 $dark-line-count: #414c58;
-$dark-gutter-line-number-color: #343f4b;
+$dark-gutter-line-number-color: #485561;
 $dark-selection-color: lighten($dark-code-background-color, 7%);
 
 $light-green: #007a27;

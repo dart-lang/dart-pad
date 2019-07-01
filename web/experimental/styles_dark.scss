@@ -11,27 +11,11 @@ body {
 }
 
 .gutter {
-  background-color: $dark-code-background-color;
-}
-
-.gutter.gutter-horizontal {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAeCAYAAADtlXTHAAAAAXNSR0IArs4c6QAAABNJREFUCB1jiEzI+M/EAASDiQAAShYCW+OETaMAAAAASUVORK5CYII=');
-}
-
-.gutter.gutter-vertical {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAABCAYAAADJsB7sAAAAAXNSR0IArs4c6QAAABBJREFUCB1jjEzI+M8wAAAA+8UCIuVc7NYAAAAASUVORK5CYII=');
+  background-color: $dark-gutter-background-color;
 }
 
 #web-output {
   background-color: $dark-code-background-color;
-}
-
-#editor-and-console-container {
-  background-color: $dark-secondary-background-color;
-}
-
-#editor-and-console-container .gutter-vertical {
-  border-left: 1px solid $dark-border-color;
 }
 
 #console-output-footer {

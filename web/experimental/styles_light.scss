@@ -7,32 +7,15 @@
 }
 
 .gutter {
-  background-color: $light-code-background-color;
-}
-
-.gutter.gutter-horizontal {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAeCAYAAADtlXTHAAAAAXNSR0IArs4c6QAAABNJREFUCB1juHD15n8mBiAYTAQAE+8DuEvhrvMAAAAASUVORK5CYII=');
-}
-
-.gutter.gutter-vertical {
-  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAABCAYAAADJsB7sAAAAAXNSR0IArs4c6QAAABBJREFUCB1jvHD15n+GAQAAnhUDf1ql9zwAAAAASUVORK5CYII=');
+  background-color: $light-gutter-background-color;
 }
 
 #web-output {
   background-color: $light-code-background-color;
 }
 
-#editor-and-console-container {
-  background-color: $light-secondary-background-color;
-}
-
-#editor-and-console-container .gutter-vertical {
-  border-left: 1px solid $light-border-color;
-}
-
 #console-output-footer {
   background-color: $light-code-background-color;
-  border-left: 1px solid $light-border-color;
 }
 
 .footer {
@@ -45,7 +28,7 @@
 
 /* Issues */
 #issues {
-  border: 1px solid $light-border-color;
+  border: 8px solid $light-border-color;
   background-color: $light-secondary-background-color;
 }
 
@@ -59,20 +42,4 @@
 
 #navbar {
   background-color: $light-secondary-background-color;
-}
-
-.border-top {
-  border-top: 1px solid $light-border-color;
-}
-
-.border-bottom {
-  border-bottom: 1px solid $light-border-color;
-}
-
-.border-left {
-  border-left: 1px solid $light-border-color;
-}
-
-.border-right {
-  border-right: 1px solid $light-border-color;
 }
