@@ -3,36 +3,36 @@
 // dart parser:
 // https://github.com/codemirror/CodeMirror/blob/0f437b9addb3e4308519d208a606c152d42cf0a2/mode/dart/dart.js
 
-.cm-s-zenburn span {
+.cm-s-darkpad span {
   font-size: 12px;
   font-family: 'Roboto Mono', Menlo, 'Bitstream Vera Sans Mono';
-  font-weight: 300;
+  font-weight: 400;
 }
 
-.CodeMirror-matchingbracket {color: $dark-red !important;}
-.CodeMirror-selected {background: $dark-selection-color !important;}
+.cm-s-darkpad .CodeMirror-matchingbracket {color: $dark-red !important;}
+.cm-s-darkpad .CodeMirror-selected {background: $dark-selection-color !important;}
 
-.cm-s-zenburn .CodeMirror-gutters { background: $dark-code-background-color !important; border-right: none}
-.cm-s-zenburn .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: $dark-gutter-line-number-color; }
-.cm-s-zenburn .CodeMirror-linenumber { color: $dark-gutter-line-number-color; }
-.cm-s-zenburn .CodeMirror-cursor { border-left: 1px solid white; }
-.cm-s-zenburn { background-color: $dark-code-background-color; color: $dark-editor-text; }
-.cm-s-zenburn span.cm-builtin { color: $dark-editor-text; }
-.cm-s-zenburn span.cm-comment { color: $dark-comment; }
-.cm-s-zenburn span.cm-keyword { color: $dark-green;}
-.cm-s-zenburn span.cm-atom { color: $dark-orange; }
-.cm-s-zenburn span.cm-variable { color: $dark-blue; }
-.cm-s-zenburn span.cm-variable-2 { color: $dark-blue;}
-.cm-s-zenburn span.cm-string { color: $dark-pink; }
-.cm-s-zenburn span.cm-string-2 { color: $dark-pink-2; }
-.cm-s-zenburn span.cm-number { color: $dark-editor-text; }
-.cm-s-zenburn span.cm-attribute { color: $dark-editor-text; }
-.cm-s-zenburn span.cm-qualifier { color: $dark-editor-text; }
-.cm-s-zenburn span.cm-meta { color: $dark-editor-text; }
-.cm-s-zenburn span.cm-header { color: $dark-editor-text; }
-.cm-s-zenburn span.cm-operator { color: $dark-editor-text; }
+.cm-s-darkpad .CodeMirror-gutters { background: $dark-code-background-color !important; border-right: none}
+.cm-s-darkpad .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: $dark-gutter-line-number-color; }
+.cm-s-darkpad .CodeMirror-linenumber { color: $dark-gutter-line-number-color; }
+.cm-s-darkpad .CodeMirror-cursor { border-left: 1px solid white; }
+.cm-s-darkpad { background-color: $dark-code-background-color; color: $dark-editor-text; }
+.cm-s-darkpad span.cm-builtin { color: $dark-editor-text; }
+.cm-s-darkpad span.cm-comment { color: $dark-comment; }
+.cm-s-darkpad span.cm-keyword { color: $dark-green;}
+.cm-s-darkpad span.cm-atom { color: $dark-orange; }
+.cm-s-darkpad span.cm-variable { color: $dark-blue; }
+.cm-s-darkpad span.cm-variable-2 { color: $dark-blue;}
+.cm-s-darkpad span.cm-string { color: $dark-pink; }
+.cm-s-darkpad span.cm-string-2 { color: $dark-pink-2; }
+.cm-s-darkpad span.cm-number { color: $dark-editor-text; }
+.cm-s-darkpad span.cm-attribute { color: $dark-editor-text; }
+.cm-s-darkpad span.cm-qualifier { color: $dark-editor-text; }
+.cm-s-darkpad span.cm-meta { color: $dark-editor-text; }
+.cm-s-darkpad span.cm-header { color: $dark-editor-text; }
+.cm-s-darkpad span.cm-operator { color: $dark-editor-text; }
 
 // not used in parser:
-.cm-s-zenburn span.cm-def { color: $dark-editor-text; } // todo(ryjohn): not used in parser
-.cm-s-zenburn span.cm-tag { color: $dark-editor-text; } // todo(ryjohn): not used in parser
-.cm-s-zenburn span.cm-property { color: $dark-editor-text; } // todo(ryjohn): not used in parser
+.cm-s-darkpad span.cm-def { color: $dark-editor-text; } // todo(ryjohn): not used in parser
+.cm-s-darkpad span.cm-tag { color: $dark-editor-text; } // todo(ryjohn): not used in parser
+.cm-s-darkpad span.cm-property { color: $dark-editor-text; } // todo(ryjohn): not used in parser

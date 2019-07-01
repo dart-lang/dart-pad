@@ -53,4 +53,5 @@ $light-orange: #d32923;
 $light-editor-text: #4a4a4a;
 $light-comment: #929292;
 $light-line-count: #d5d5d5;
-
+$light-gutter-line-number-color: #d0d0d2;
+$light-selection-color: darken($light-code-background-color, 7%);

@@ -1,0 +1,38 @@
+@import 'package:dart_pad/experimental/scss/colors';
+
+// dart parser:
+// https://github.com/codemirror/CodeMirror/blob/0f437b9addb3e4308519d208a606c152d42cf0a2/mode/dart/dart.js
+
+.cm-s-dartpad span {
+  font-size: 12px;
+  font-family: 'Roboto Mono', Menlo, 'Bitstream Vera Sans Mono';
+  font-weight: 400;
+}
+
+.cm-s-dartpad .CodeMirror-matchingbracket {color: $light-red !important;}
+.cm-s-dartpad .CodeMirror-selected {background: $light-selection-color !important;}
+
+.cm-s-dartpad .CodeMirror-gutters { background: $light-code-background-color !important; border-right: none}
+.cm-s-dartpad .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: $light-gutter-line-number-color; }
+.cm-s-dartpad .CodeMirror-linenumber { color: $light-gutter-line-number-color; }
+.cm-s-dartpad .CodeMirror-cursor { border-left: 1px solid $light-editor-text; }
+.cm-s-dartpad { background-color: $light-code-background-color; color: $light-editor-text; }
+.cm-s-dartpad span.cm-builtin { color: $light-editor-text; }
+.cm-s-dartpad span.cm-comment { color: $light-comment; }
+.cm-s-dartpad span.cm-keyword { color: $light-green;}
+.cm-s-dartpad span.cm-atom { color: $light-orange; }
+.cm-s-dartpad span.cm-variable { color: $light-blue; }
+.cm-s-dartpad span.cm-variable-2 { color: $light-blue;}
+.cm-s-dartpad span.cm-string { color: $light-pink; }
+.cm-s-dartpad span.cm-string-2 { color: $light-pink-2; }
+.cm-s-dartpad span.cm-number { color: $light-editor-text; }
+.cm-s-dartpad span.cm-attribute { color: $light-editor-text; }
+.cm-s-dartpad span.cm-qualifier { color: $light-editor-text; }
+.cm-s-dartpad span.cm-meta { color: $light-editor-text; }
+.cm-s-dartpad span.cm-header { color: $light-editor-text; }
+.cm-s-dartpad span.cm-operator { color: $light-editor-text; }
+
+// not used in parser:
+.cm-s-dartpad span.cm-def { color: $light-editor-text; } // todo(ryjohn): not used in parser
+.cm-s-dartpad span.cm-tag { color: $light-editor-text; } // todo(ryjohn): not used in parser
+.cm-s-dartpad span.cm-property { color: $light-editor-text; } // todo(ryjohn): not used in parser

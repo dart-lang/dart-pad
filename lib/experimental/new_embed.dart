@@ -178,7 +178,7 @@ class NewEmbed {
 
     testResultBox = FlashBox(querySelector('#test-result-box'));
     hintBox = FlashBox(querySelector('#hint-box'));
-    var editorTheme = isDarkMode ? 'zenburn' : 'elegant';
+    var editorTheme = isDarkMode ? 'darkpad' : 'dartpad';
 
     userCodeEditor =
         editorFactory.createFromElement(querySelector('#user-code-editor'))
