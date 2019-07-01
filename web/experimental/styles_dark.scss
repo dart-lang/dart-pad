@@ -23,18 +23,12 @@ body {
   border-left: 1px solid $dark-border-color;
 }
 
-.footer {
-  border-top: 1px solid $dark-border-color;
-  background-color: $dark-code-background-color;
-}
-
 #issues-message {
   color: $dark-label-color;
 }
 
 /* Issues */
 #issues {
-  border: 1px solid $dark-border-color;
   background-color: $dark-secondary-background-color;
 }
 
@@ -44,22 +38,6 @@ body {
 
 .issue .message {
   color: $dark-label-color;
-}
-
-.border-top {
-  border-top: 1px solid $dark-border-color;
-}
-
-.border-bottom {
-  border-bottom: 1px solid $dark-border-color;
-}
-
-.border-left {
-  border-left: 1px solid $dark-border-color;
-}
-
-.border-right {
-  border-right: 1px solid $dark-border-color;
 }
 
 .CodeMirror-vscrollbar {

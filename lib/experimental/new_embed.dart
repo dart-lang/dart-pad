@@ -962,14 +962,12 @@ class ConsoleExpandController extends ConsoleController {
       console.element.removeAttribute('hidden');
       expandIcon.element.classes.remove('octicon-triangle-up');
       expandIcon.element.classes.add('octicon-triangle-down');
-      footer.element.classes.remove('border-top');
       unreadCounter.clear();
     } else {
       _splitter.setSizes([100, 0]);
       console.element.setAttribute('hidden', 'true');
       expandIcon.element.classes.remove('octicon-triangle-down');
       expandIcon.element.classes.add('octicon-triangle-up');
-      footer.element.classes.add('border-top');
       try {
         _splitter.destroy();
       } on NoSuchMethodError {
