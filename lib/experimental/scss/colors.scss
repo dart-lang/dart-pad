@@ -1,0 +1,24 @@
+// light + dark colors
+$label-color: #808080;
+$scrollbar-color: $label-color;
+
+// errors and warnings
+$issue-error-color: #F7977A;
+$issue-warning-color: #FFF79A;
+$issue-info-color: #7EA7D8;
+$squiggle-error-color: #F7977A;
+$squiggle-warning-color: #FFF79A;
+$squiggle-info-color: #7EA7D8;
+
+$light-code-background-color: white;
+$light-busy-background-color: rgba(255,255,255,.5);
+$light-secondary-background-color: #f7f7f7;
+$light-border-color: #dddddd;
+$light-label-color: #586069;
+
+$dark-code-background-color: #1b1e22;
+$dark-busy-background-color: rgba(255,255,255,.5);
+$dark-secondary-background-color: #212529;
+$dark-border-color: #596068;
+$dark-label-color: #f8fafb;
+

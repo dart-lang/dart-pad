@@ -1,89 +1,81 @@
 /* styles_dark.css */
+@import 'package:dart_pad/experimental/scss/colors';
 
 body {
-    background-color: #1c2834;
+  background-color: $dark-code-background-color;
 }
 
 .busy {
-    background: url(moving_lines_dark.gif) repeat;
-    box-shadow: inset 0 0 0 1000px rgba(27,29,33,.8); /* #1b1e22 */
+  background: url(moving_lines_dark.gif) repeat;
+  box-shadow: inset 0 0 0 1000px rgba(27, 29, 33, .8); /* #1b1e22 */
 }
 
 .gutter {
-    background-color: #1b1e22;
+  background-color: $dark-code-background-color;
 }
 
-.gutter.gutter-horizontal{
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAeCAYAAADtlXTHAAAAAXNSR0IArs4c6QAAABNJREFUCB1jiEzI+M/EAASDiQAAShYCW+OETaMAAAAASUVORK5CYII=');
+.gutter.gutter-horizontal {
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAeCAYAAADtlXTHAAAAAXNSR0IArs4c6QAAABNJREFUCB1jiEzI+M/EAASDiQAAShYCW+OETaMAAAAASUVORK5CYII=');
 }
 
 .gutter.gutter-vertical {
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAABCAYAAADJsB7sAAAAAXNSR0IArs4c6QAAABBJREFUCB1jjEzI+M8wAAAA+8UCIuVc7NYAAAAASUVORK5CYII=');
+  background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB4AAAABCAYAAADJsB7sAAAAAXNSR0IArs4c6QAAABBJREFUCB1jjEzI+M8wAAAA+8UCIuVc7NYAAAAASUVORK5CYII=');
 }
 
 #web-output {
-    background-color: #212529;
+  background-color: $dark-code-background-color;
 }
 
-#user-code-container {
-    background-color: #1b1e22;
-}
-
-#user-code-container .gutter-vertical {
-    border-left: 1px solid #596068;
-}
-
-/* TODO(ryjohn): align flutter and html modes */
 #editor-and-console-container {
-    background-color: #212529;
+  background-color: $dark-secondary-background-color;
 }
 
 #editor-and-console-container .gutter-vertical {
-    border-left: 1px solid #596068;
+  border-left: 1px solid $dark-border-color;
 }
 
 #console-output-footer {
-    background-color: #1b1e22;
-    border-left: 1px solid #596068;
+  background-color: $dark-code-background-color;
+  border-left: 1px solid $dark-border-color;
 }
 
 .footer {
-    border-top: 1px solid #596068;
-    background-color: #1c2834;
+  border-top: 1px solid $dark-border-color;
+  background-color: $dark-code-background-color;
 }
 
 #issues-message {
-    color: #f8fafb;
+  color: $dark-label-color;
 }
 
 /* Issues */
 #issues {
-    border: 1px solid #596068;
-    background-color: rgba(27,29,33,.8);
+  border: 1px solid $dark-border-color;
+  background-color: $dark-secondary-background-color;
 }
 
 .issue .issuelabel {
-    color: #222;
+  color: $dark-label-color;
 }
 
 .issue .message {
-    color: #f8fafb;
+  color: $dark-label-color;
 }
 
 .border-top {
-    border-top: 1px solid #596068;
+  border-top: 1px solid $dark-border-color;
 }
 
 .border-bottom {
-    border-top: 1px solid #596068;
+  border-bottom: 1px solid $dark-border-color;
 }
 
 .border-left {
-    border-left: 1px solid #596068;
+  border-left: 1px solid $dark-border-color;
 }
 
 .border-right {
-    border-top: 1px solid #596068;
+  border-right: 1px solid $dark-border-color;
 }
 
 .CodeMirror-vscrollbar {

@@ -2,6 +2,8 @@
 /* for details. All rights reserved. Use of this source code is governed by a */
 /* BSD-style license that can be found in the LICENSE file. */
 
+@import 'package:dart_pad/experimental/scss/colors';
+
 body {
   top: 0;
   bottom: 0;
@@ -111,8 +113,8 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background-color: #888;
-  box-shadow: 0 0 1px rgba(255,255,255, 1);
+  background-color: $scrollbar-color;
+  box-shadow: 0 0 1px $light-code-background-color;
   opacity: 0.5;
 }
 
@@ -123,15 +125,15 @@ body {
 /* Code annotations */
 
 .squiggle-error {
-  border-bottom: 2px solid #F7977A;
+  border-bottom: 2px solid $squiggle-error-color;
 }
 
 .squiggle-warning {
-  border-bottom: 2px solid #FFF79A;
+  border-bottom: 2px solid $squiggle-warning-color;
 }
 
 .squiggle-info {
-  border-bottom: 2px solid #7EA7D8;
+  border-bottom: 2px solid $squiggle-info-color;
 }
 
 /* Styling specifically for CodeMirror editor */
@@ -177,10 +179,6 @@ body {
 
 /* Console Output Footer */
 
-#user-code-container .gutter-vertical {
-  margin-left: 29px;
-}
-
 /* TODO(ryjohn): align flutter and html modes */
 #editor-and-console-container .gutter-vertical {
   margin-left: 29px;
@@ -200,7 +198,7 @@ body {
 }
 
 #console-expand-button {
-  color: #888;
+  color: $label-color;
   margin: 0;
   padding: 2px;
 }
@@ -286,15 +284,15 @@ body {
 }
 
 .issue .issuelabel.error {
-  background-color: #F7977A;
+  background-color: $issue-error-color;
 }
 
 .issue .issuelabel.warning {
-  background-color: #FFF79A;
+  background-color: $issue-warning-color;
 }
 
 .issue .issuelabel.info {
-  background-color: #7EA7D8;
+  background-color: $issue-info-color;
 }
 
 .issue .message {
@@ -306,6 +304,6 @@ body {
 
 .view-label {
   font-family: 'Inconsolata', monospace;
-  color: #808080;
+  color: $label-color;
   margin-left: 8px;
 }
