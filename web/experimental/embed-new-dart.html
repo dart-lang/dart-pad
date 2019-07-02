@@ -92,6 +92,30 @@ BSD-style license that can be found in the LICENSE file. -->
             <i class="material-icons mdc-button__icon">play_arrow</i>
             Run
         </button>
+        <div class="position-relative text-right pr-2">
+            <button id="more-button" class="mdc-icon-button material-icons">more_vert</button>
+            <div id="more-popover" class="Popover right-0 position-absolute" hidden>
+                <div class="Popover-message Popover-message--top-right text-left p-4 mt-2 Box box-shadow-large">
+                    <div class="d-flex flex-row flex-items-center">
+                        <div class="mdc-checkbox">
+                            <input type="checkbox"
+                                   class="mdc-checkbox__native-control"
+                                   id="show-test-checkbox"/>
+                            <div class="mdc-checkbox__background">
+                                <svg class="mdc-checkbox__checkmark"
+                                     viewBox="0 0 24 24">
+                                    <path class="mdc-checkbox__checkmark-path"
+                                          fill="none"
+                                          d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
+                                </svg>
+                                <div class="mdc-checkbox__mixedmark"></div>
+                            </div>
+                        </div>
+                        <label for="show-test-checkbox">Show Test Code</label>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 <section id="tab-container">
@@ -119,7 +143,7 @@ BSD-style license that can be found in the LICENSE file. -->
 </section>
 <footer flex layout horizontal class="footer">
     <div id="issues-message"></div>
-    <button id="issues-toggle" class="btn btn-sm" hidden></button>
+    <button id="issues-toggle" class="mdc-button mdc-button--dense mdc-button--outlined" hidden></button>
 </footer>
 
 <div id="flash-container" class="position-fixed right-2 bottom-6">

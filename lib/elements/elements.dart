@@ -380,6 +380,8 @@ class DContentEditable extends DElement {
 }
 
 class DInput extends DElement {
+  DInput(InputElement element) : super(element);
+
   DInput.input({String type}) : super(InputElement(type: type));
 
   InputElement get inputElement => element;
