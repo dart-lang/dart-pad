@@ -611,7 +611,7 @@ class NewEmbed {
   }
 }
 
-// material-components-web uses specific classes for it's navigation styling,
+// material-components-web uses specific classes for its navigation styling,
 // rather than an attribute. This class extends the tab controller code to also
 // toggle that class.
 class NewEmbedTabController extends TabController {
