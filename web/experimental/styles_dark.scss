@@ -7,7 +7,7 @@ body {
 
 .busy {
   background: url(moving_lines_dark.gif) repeat;
-  box-shadow: inset 0 0 0 1000px rgba(27, 29, 33, .8); /* #1b1e22 */
+  box-shadow: inset 0 0 0 1000px $dark-busy-background-color; /* #1b1e22 */
 }
 
 .gutter {
