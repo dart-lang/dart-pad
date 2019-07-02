@@ -18,6 +18,11 @@
   background-color: $light-code-background-color;
 }
 
+// Helper class for using a border when collapsed
+.footer-top-border {
+  border-top: 8px solid $light-border-color;
+}
+
 #issues-message {
   color: $light-label-color;
 }

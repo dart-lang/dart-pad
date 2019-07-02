@@ -611,9 +611,9 @@ class NewEmbed {
   }
 }
 
-// Primer uses a class called "selected" for its navigation styling, rather than
-// an attribute. This class extends the tab controller code to also toggle that
-// class.
+// material-components-web uses specific classes for it's navigation styling,
+// rather than an attribute. This class extends the tab controller code to also
+// toggle that class.
 class NewEmbedTabController extends TabController {
   /// This method will throw if the tabName is not the name of a current tab.
   @override
@@ -621,7 +621,10 @@ class NewEmbedTabController extends TabController {
     TabElement tab = tabs.firstWhere((t) => t.name == tabName);
 
     for (TabElement t in tabs) {
-      t.toggleClass('selected', t == tab);
+      t.toggleClass('mdc-tab--active', t == tab);
+      DElement(t.element.querySelector('.mdc-tab-indicator'))
+          .toggleClass('mdc-tab-indicator--active', t == tab);
+      t.toggleAttr('aria-selected', t == tab);
     }
 
     super.selectTab(tabName);
@@ -962,12 +965,14 @@ class ConsoleExpandController extends ConsoleController {
       console.element.removeAttribute('hidden');
       expandIcon.element.classes.remove('octicon-triangle-up');
       expandIcon.element.classes.add('octicon-triangle-down');
+      footer.toggleClass('footer-top-border', false);
       unreadCounter.clear();
     } else {
       _splitter.setSizes([100, 0]);
       console.element.setAttribute('hidden', 'true');
       expandIcon.element.classes.remove('octicon-triangle-down');
       expandIcon.element.classes.add('octicon-triangle-up');
+      footer.toggleClass('footer-top-border', true);
       try {
         _splitter.destroy();
       } on NoSuchMethodError {

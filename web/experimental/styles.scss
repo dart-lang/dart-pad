@@ -12,13 +12,16 @@ body {
   position: absolute;
   overflow: hidden;
   font-size: 14px;
+
+  // Material Design theme
+  --mdc-theme-primary: #168AFD;
 }
 
 .medium-octicon {
   font-size: 19px;
 }
 
-/* Tab Navigation */
+// Tab Navigation
 
 #navbar {
   padding: 2px 8px 0 29px;
@@ -71,14 +74,10 @@ body {
   flex-direction: column;
 }
 
-/* Flashes */
-
-/*
-  This rule adds space between the flashes in the flash container, if more
-  than one is displayed.
-*/
+// Flashes
 
 #flash-container > div + div {
+  // Adds space between the flashes in the flash container, if more than one is displayed.
   margin-top: 8px;
 }
 
@@ -88,6 +87,7 @@ body {
 
 .flash {
   border-radius: 0.25em;
+  border: none;
 }
 
 #flash-container {
@@ -122,7 +122,7 @@ body {
   padding-top: 8px;
 }
 
-/* Code annotations */
+// Code annotations
 
 .squiggle-error {
   border-bottom: 2px solid $squiggle-error-color;
@@ -136,14 +136,14 @@ body {
   border-bottom: 2px solid $squiggle-info-color;
 }
 
-/* Styling specifically for CodeMirror editor */
+// Styling specifically for CodeMirror editor
 
 .CodeMirror {
   height: 100%;
   font-family: 'Inconsolata', monospace;
 }
 
-/* Web output */
+// Web output
 
 #frame {
   border: none;
@@ -156,7 +156,7 @@ body {
   overflow-y: hidden;
 }
 
-/* Splitter */
+// Splitter
 
 .gutter {
   background-repeat: no-repeat;
@@ -177,8 +177,7 @@ body {
   width: 100%;
 }
 
-/* Console Output Footer */
-
+// Console Output Footer
 .console-output-header {
   display: flex;
   flex-direction: row;
@@ -189,6 +188,8 @@ body {
 #console-output-footer {
   display: flex;
   flex-direction: column;
+  padding-left: 8px;
+  padding-bottom: 8px;
 }
 
 #console-expand-button {
@@ -208,7 +209,7 @@ body {
   font-family: 'Inconsolata', monospace;
 }
 
-/* HTML Mode */
+// HTML Mode
 #editor-and-console-container {
   display: flex;
   flex-direction: column;
@@ -226,7 +227,7 @@ body {
   flex-direction: row;
 }
 
-/* Footer */
+// Footer
 .footer {
   position: absolute;
   right: 0;
@@ -249,14 +250,14 @@ body {
 #issues-toggle {
   cursor: pointer;
 
-  /* Prevent the layout from changing when toggling between show and hide */
+  // Prevent the layout from changing when toggling between show and hide
   width: 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Issues */
+// Issues
 #issues {
   padding: 8px;
   overflow-y: auto;
@@ -276,6 +277,7 @@ body {
 }
 
 .issue .issuelabel {
+  font-family: "Inconsolata", monospace, sans-serif;
   display: inline-block;
   border-radius: 3px;
   padding: 2px 5px;
@@ -283,15 +285,18 @@ body {
 }
 
 .issue .issuelabel.error {
-  background-color: $issue-error-color;
+  color: $issue-error-color;
+  border: 1px solid $issue-error-color;
 }
 
 .issue .issuelabel.warning {
-  background-color: $issue-warning-color;
+  color: $issue-warning-color;
+  border: 1px solid $issue-warning-color;
 }
 
 .issue .issuelabel.info {
-  background-color: $issue-info-color;
+  color: $issue-info-color;
+  border: 1px solid $issue-info-color;
 }
 
 .issue .message {
@@ -299,7 +304,7 @@ body {
   line-height: 20px;
 }
 
-/* Misc */
+// Misc
 
 .view-label {
   font-family: 'Inconsolata', monospace;

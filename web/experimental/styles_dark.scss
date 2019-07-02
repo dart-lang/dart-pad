@@ -20,26 +20,39 @@ body {
 
 #console-output-footer {
   background-color: $dark-code-background-color;
-  border-left: 1px solid $dark-border-color;
+}
+
+// Helper class for using a border when collapsed
+.footer-top-border {
+  border-top: 8px solid $dark-border-color;
 }
 
 #issues-message {
-  color: $dark-label-color;
+  color: $dark-issue-label-color;
 }
 
 /* Issues */
 #issues {
-  background-color: $dark-secondary-background-color;
+  background-color: $dark-issues-background-color;
 }
 
 .issue .issuelabel {
-  color: $dark-label-color;
+  color: $dark-issue-label-color;
 }
 
 .issue .message {
-  color: $dark-label-color;
+  color: $dark-issue-label-color;
 }
 
 .CodeMirror-vscrollbar {
   opacity: 0.2;
 }
+
+// Material Design
+.mdc-tab__text-label {
+  color: white !important;
+}
+.mdc-tab--active .mdc-tab__text-label {
+  color: #168AFD !important;
+}
+

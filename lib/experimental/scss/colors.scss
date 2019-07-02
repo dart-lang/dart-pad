@@ -20,9 +20,10 @@ $light-border-color: $light-gutter-background-color;
 $dark-code-background-color: #13202e;
 $dark-busy-background-color: rgba(255, 255, 255, .5);
 $dark-secondary-background-color: $dark-code-background-color;
-$dark-label-color: #8a9198;
 $dark-gutter-background-color: #121a25;
 $dark-border-color: $dark-gutter-background-color;
+$dark-issues-background-color: lighten($dark-code-background-color, 10%);
+$dark-issue-label-color: white;
 
 // V2 Colors
 $button-color: #168AFD;
@@ -42,7 +43,7 @@ $dark-editor-text: #ffffff;
 $dark-comment: #909cce;
 $dark-line-count: #414c58;
 $dark-gutter-line-number-color: #485561;
-$dark-selection-color: lighten($dark-code-background-color, 7%);
+$dark-selection-color: lighten($dark-code-background-color, 10%);
 
 $light-green: #007a27;
 $light-blue: #00677a;
