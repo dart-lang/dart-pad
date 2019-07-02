@@ -1,0 +1,45 @@
+/* styles_light.css */
+@import 'package:dart_pad/experimental/scss/colors';
+
+.busy {
+  background: url(moving_lines.gif) repeat;
+  box-shadow: inset 0 0 0 1000px $light-busy-background-color;
+}
+
+.gutter {
+  background-color: $light-gutter-background-color;
+}
+
+#web-output {
+  background-color: $light-code-background-color;
+}
+
+#console-output-footer {
+  background-color: $light-code-background-color;
+}
+
+// Helper class for using a border when collapsed
+.footer-top-border {
+  border-top: 8px solid $light-border-color;
+}
+
+#issues-message {
+  color: $light-label-color;
+}
+
+/* Issues */
+#issues {
+  background-color: $light-secondary-background-color;
+}
+
+.issue .issuelabel {
+  color: $light-label-color;
+}
+
+.issue .message {
+  color: $light-label-color;
+}
+
+#navbar {
+  background-color: $light-secondary-background-color;
+}

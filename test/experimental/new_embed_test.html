@@ -25,16 +25,23 @@ BSD-style license that can be found in the LICENSE file. -->
     <link href="../packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
-    <link href="../packages/codemirror/theme/elegant.css" rel="stylesheet" media="screen">
-    <link href="zenburn_mod.css" rel="stylesheet" media="screen">
-    <link href="embed-new-flutter.css" rel="stylesheet" media="screen">
+    <link href="cm-dartpad-dark.css" rel="stylesheet" media="screen">
+    <link href="cm-dartpad-light.css" rel="stylesheet" media="screen">
 
     <script src="../packages/codemirror/codemirror.js" defer></script>
     <script src="../packages/split/split.min.js" defer></script>
 
-    <script defer src="new_embed_flutter.dart.js"></script>
+    <script defer src="new_embed_dart.dart.js"></script>
+    <script defer src="../scripts/ga.js"></script>
     <script defer src="../scripts/polymerpatch.js"></script>
     <script type="text/javascript" src="dark_mode.js"></script>
+
+    <!-- begin Material Design -->
+    <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
+    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet">
+    <!-- end Material Design -->
 
     <!-- Test package stuff -->
     <link rel="x-dart-test" href="new_embed_test.dart">
@@ -42,18 +49,52 @@ BSD-style license that can be found in the LICENSE file. -->
 </head>
 
 <body class="d-flex flex-column">
-<div id="navbar" class="tabnav dp-tabs">
+
+<div id="navbar">
     <nav class="tabnav-tabs">
-        <button id="editor-tab" class="tabnav-tab selected" selected>Your code</button>
-        <button id="solution-tab" class="tabnav-tab" hidden>Solution</button>
-        <button id="test-tab" class="tabnav-tab">Test code</button>
+        <div class="mdc-tab-bar" role="tablist">
+            <div class="mdc-tab-scroller">
+                <div class="mdc-tab-scroller__scroll-area">
+                    <div class="mdc-tab-scroller__scroll-content">
+                        <button id="editor-tab" class="mdc-tab mdc-tab--active" role="tab" aria-selected="true"
+                                tabindex="0">
+                             <span class="mdc-tab__content">
+                                 <span class="mdc-tab__text-label">Your code</span>
+                             </span>
+                            <span class="mdc-tab-indicator mdc-tab-indicator--active">
+                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                             </span>
+                            <span class="mdc-tab__ripple"></span>
+                        </button>
+                        <button id="solution-tab" class="mdc-tab mdc-tab" role="tab" tabindex="0" hidden>
+                             <span class="mdc-tab__content">
+                                 <span class="mdc-tab__text-label">Solution</span>
+                             </span>
+                            <span class="mdc-tab-indicator mdc-tab-indicator">
+                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                             </span>
+                            <span class="mdc-tab__ripple"></span>
+                        </button>
+                        <button id="test-tab" class="mdc-tab mdc-tab" role="tab" tabindex="0">
+                             <span class="mdc-tab__content">
+                                 <span class="mdc-tab__text-label">Test code</span>
+                            </span>
+                            <span class="mdc-tab-indicator mdc-tab-indicator">
+                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                             </span>
+                            <span class="mdc-tab__ripple"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </nav>
     <div class="nav-buttons">
-        <button id="show-hint" class="btn mr-1">Hint</button>
-        <button id="format-code" class="btn mr-2">Format</button>
-        <button id="reload-gist" class="btn mr-2">Reset</button>
-        <button id="execute" class="btn btn-primary float-right">
-            <div class="octicon medium-octicon octicon-triangle-right"></div>
+        <button id="show-hint" class="mdc-button">Hint</button>
+        <button id="format-code" class="mdc-button">Format</button>
+        <button id="reload-gist" class="mdc-button">Reset</button>
+        <button id="execute" class="mdc-button mdc-button--raised">
+            <i class="material-icons mdc-button__icon">play_arrow</i>
             Run
         </button>
     </div>
@@ -71,7 +112,7 @@ BSD-style license that can be found in the LICENSE file. -->
                 <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
             </div>
         </div>
-        <div id="console-output-footer" class="border-top" hidden>
+        <div id="console-output-footer" class="footer-top-border" hidden>
             <div class="console-output-header">
                 <span class="view-label">
                     Console <span id="unread-console-counter" class="Counter" hidden></span>
@@ -90,9 +131,9 @@ BSD-style license that can be found in the LICENSE file. -->
     </div>
 </section>
 
-<footer flex layout horizontal class="footer border-top">
+<footer flex layout horizontal class="footer">
     <div id="issues-message"></div>
-    <button id="issues-toggle" class="btn btn-sm" hidden></button>
+    <button id="issues-toggle" class="mdc-button mdc-button--dense mdc-button--raised" hidden></button>
 </footer>
 
 <div id="flash-container" class="position-fixed right-2 bottom-6">

@@ -2,6 +2,8 @@
 /* for details. All rights reserved. Use of this source code is governed by a */
 /* BSD-style license that can be found in the LICENSE file. */
 
+@import 'package:dart_pad/experimental/scss/colors';
+
 body {
   top: 0;
   bottom: 0;
@@ -10,13 +12,16 @@ body {
   position: absolute;
   overflow: hidden;
   font-size: 14px;
+
+  // Material Design theme
+  --mdc-theme-primary: #168AFD;
 }
 
 .medium-octicon {
   font-size: 19px;
 }
 
-/* Tab Navigation */
+// Tab Navigation
 
 #navbar {
   padding: 2px 8px 0 29px;
@@ -69,14 +74,10 @@ body {
   flex-direction: column;
 }
 
-/* Flashes */
-
-/*
-  This rule adds space between the flashes in the flash container, if more
-  than one is displayed.
-*/
+// Flashes
 
 #flash-container > div + div {
+  // Adds space between the flashes in the flash container, if more than one is displayed.
   margin-top: 8px;
 }
 
@@ -86,6 +87,7 @@ body {
 
 .flash {
   border-radius: 0.25em;
+  border: none;
 }
 
 #flash-container {
@@ -111,8 +113,8 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background-color: #888;
-  box-shadow: 0 0 1px rgba(255,255,255, 1);
+  background-color: $scrollbar-color;
+  box-shadow: 0 0 1px $light-code-background-color;
   opacity: 0.5;
 }
 
@@ -120,28 +122,28 @@ body {
   padding-top: 8px;
 }
 
-/* Code annotations */
+// Code annotations
 
 .squiggle-error {
-  border-bottom: 2px solid #F7977A;
+  border-bottom: 2px solid $squiggle-error-color;
 }
 
 .squiggle-warning {
-  border-bottom: 2px solid #FFF79A;
+  border-bottom: 2px solid $squiggle-warning-color;
 }
 
 .squiggle-info {
-  border-bottom: 2px solid #7EA7D8;
+  border-bottom: 2px solid $squiggle-info-color;
 }
 
-/* Styling specifically for CodeMirror editor */
+// Styling specifically for CodeMirror editor
 
 .CodeMirror {
   height: 100%;
   font-family: 'Inconsolata', monospace;
 }
 
-/* Web output */
+// Web output
 
 #frame {
   border: none;
@@ -154,7 +156,7 @@ body {
   overflow-y: hidden;
 }
 
-/* Splitter */
+// Splitter
 
 .gutter {
   background-repeat: no-repeat;
@@ -175,17 +177,7 @@ body {
   width: 100%;
 }
 
-/* Console Output Footer */
-
-#user-code-container .gutter-vertical {
-  margin-left: 29px;
-}
-
-/* TODO(ryjohn): align flutter and html modes */
-#editor-and-console-container .gutter-vertical {
-  margin-left: 29px;
-}
-
+// Console Output Footer
 .console-output-header {
   display: flex;
   flex-direction: row;
@@ -196,11 +188,12 @@ body {
 #console-output-footer {
   display: flex;
   flex-direction: column;
-  margin-left: 29px;
+  padding-left: 8px;
+  padding-bottom: 8px;
 }
 
 #console-expand-button {
-  color: #888;
+  color: $label-color;
   margin: 0;
   padding: 2px;
 }
@@ -216,7 +209,7 @@ body {
   font-family: 'Inconsolata', monospace;
 }
 
-/* HTML Mode */
+// HTML Mode
 #editor-and-console-container {
   display: flex;
   flex-direction: column;
@@ -234,8 +227,12 @@ body {
   flex-direction: row;
 }
 
-/* Footer */
+// Footer
 .footer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+
   display: flex;
   flex-direction: row;
   justify-content: flex-end;
@@ -245,6 +242,7 @@ body {
 }
 
 #issues-message {
+  font-family: 'Inconsolata', monospace;
   cursor: default;
   margin-right: 12px;
 }
@@ -252,14 +250,14 @@ body {
 #issues-toggle {
   cursor: pointer;
 
-  /* Prevent the layout from changing when toggling between show and hide */
+  // Prevent the layout from changing when toggling between show and hide
   width: 48px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-/* Issues */
+// Issues
 #issues {
   padding: 8px;
   overflow-y: auto;
@@ -279,6 +277,7 @@ body {
 }
 
 .issue .issuelabel {
+  font-family: "Inconsolata", monospace, sans-serif;
   display: inline-block;
   border-radius: 3px;
   padding: 2px 5px;
@@ -286,15 +285,18 @@ body {
 }
 
 .issue .issuelabel.error {
-  background-color: #F7977A;
+  color: $issue-error-color;
+  border: 1px solid $issue-error-color;
 }
 
 .issue .issuelabel.warning {
-  background-color: #FFF79A;
+  color: $issue-warning-color;
+  border: 1px solid $issue-warning-color;
 }
 
 .issue .issuelabel.info {
-  background-color: #7EA7D8;
+  color: $issue-info-color;
+  border: 1px solid $issue-info-color;
 }
 
 .issue .message {
@@ -302,10 +304,10 @@ body {
   line-height: 20px;
 }
 
-/* Misc */
+// Misc
 
 .view-label {
   font-family: 'Inconsolata', monospace;
-  color: #808080;
+  color: $label-color;
   margin-left: 8px;
 }

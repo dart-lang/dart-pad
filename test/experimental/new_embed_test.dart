@@ -15,22 +15,22 @@ void main() {
 
     test('Editor tab is selected at init', () {
       final editorTab = querySelector('#editor-tab');
-      expect(editorTab.attributes.keys, contains('selected'));
-      expect(editorTab.classes, contains('selected'));
+      expect(editorTab.attributes.keys, contains('aria-selected'));
+      expect(editorTab.classes, contains('mdc-tab--active'));
     });
 
     test('Test tab is not selected at init', () {
       final testTab = querySelector('#test-tab');
-      expect(testTab.attributes.keys, isNot(contains('selected')));
-      expect(testTab.classes, isNot(contains('selected')));
+      expect(testTab.attributes.keys, isNot(contains('aria-selected')));
+      expect(testTab.classes, isNot(contains('mdc-tab--active')));
     });
 
     test('Test tab is selected when clicked.', () {
       final testTab = querySelector('#test-tab');
       testTab.dispatchEvent(Event('click'));
 
-      expect(testTab.attributes.keys, contains('selected'));
-      expect(testTab.classes, contains('selected'));
+      expect(testTab.attributes.keys, contains('aria-selected'));
+      expect(testTab.classes, contains('mdc-tab--active'));
     });
 
     test('Editor tab is not selected when test tab is clicked', () {
@@ -38,8 +38,8 @@ void main() {
       testTab.dispatchEvent(Event('click'));
 
       final editorTab = querySelector('#editor-tab');
-      expect(editorTab.attributes.keys, isNot(contains('selected')));
-      expect(editorTab.classes, isNot(contains('selected')));
+      expect(editorTab.attributes.keys, isNot(contains('aria-selected')));
+      expect(editorTab.classes, isNot(contains('mdc-tab--active')));
     });
   });
   group('filterCloudUrls', () {
