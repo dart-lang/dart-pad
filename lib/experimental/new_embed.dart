@@ -48,6 +48,7 @@ class NewEmbed {
   DisableableButton reloadGistButton;
   DisableableButton formatButton;
   DisableableButton showHintButton;
+  DisableableButton menuButton;
 
   DElement navBarElement;
   NewEmbedTabController tabController;
@@ -57,6 +58,10 @@ class NewEmbed {
   TabView htmlTabView;
   TabView cssTabView;
   DElement solutionTab;
+
+  DElement morePopover;
+  DInput showTestCodeCheckbox;
+  bool _showTestCode = false;
 
   Counter unreadConsoleCounter;
 
@@ -170,6 +175,19 @@ class NewEmbed {
         hintBox.showElements([hintElement, showSolutionButton]);
       });
     }
+
+    tabController.setTabVisibility('test', false);
+    showTestCodeCheckbox = DInput(querySelector('#show-test-checkbox'));
+    showTestCodeCheckbox.onClick.listen((e) {
+      _showTestCode = !_showTestCode;
+      tabController.setTabVisibility('test', _showTestCode);
+    });
+
+    morePopover = DElement(querySelector('#more-popover'));
+    menuButton = DisableableButton(querySelector('#menu-button'), () {
+      var popoverHidden = morePopover.hasAttr('hidden');
+      morePopover.toggleAttr('hidden', !popoverHidden);
+    });
 
     formatButton = DisableableButton(
       querySelector('#format-code'),
@@ -411,7 +429,8 @@ class NewEmbed {
     context.testMethod = gist.getFile('test.dart')?.content ?? '';
     context.solution = gist.getFile('solution.dart')?.content ?? '';
     context.hint = gist.getFile('hint.txt')?.content ?? '';
-    tabController.setTabVisibility('test', context.testMethod.isNotEmpty);
+    tabController.setTabVisibility(
+        'test', context.testMethod.isNotEmpty && _showTestCode);
     showHintButton?.hidden = context.hint.isEmpty && context.testMethod.isEmpty;
     editorIsBusy = false;
 
