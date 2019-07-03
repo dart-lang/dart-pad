@@ -48,7 +48,7 @@ class NewEmbed {
   DisableableButton reloadGistButton;
   DisableableButton formatButton;
   DisableableButton showHintButton;
-  DisableableButton moreButton;
+  DisableableButton menuButton;
 
   DElement navBarElement;
   NewEmbedTabController tabController;
@@ -185,7 +185,7 @@ class NewEmbed {
     });
 
     morePopover = DElement(querySelector('#more-popover'));
-    moreButton = DisableableButton(querySelector('#more-button'), () {
+    menuButton = DisableableButton(querySelector('#menu-button'), () {
       _popoverHidden = !_popoverHidden;
       morePopover.toggleAttr('hidden', _popoverHidden);
     });
