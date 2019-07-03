@@ -185,8 +185,8 @@ class NewEmbed {
 
     morePopover = DElement(querySelector('#more-popover'));
     menuButton = DisableableButton(querySelector('#menu-button'), () {
-      morePopover.toggleAttr(
-          'hidden', !(morePopover.getAttr('hidden') == 'true'));
+      var popoverHidden = morePopover.hasAttr('hidden');
+      morePopover.toggleAttr('hidden', !popoverHidden);
     });
 
     formatButton = DisableableButton(
