@@ -62,7 +62,6 @@ class NewEmbed {
   DElement morePopover;
   DInput showTestCodeCheckbox;
   bool _showTestCode = false;
-  bool _popoverHidden = true;
 
   Counter unreadConsoleCounter;
 
@@ -186,8 +185,8 @@ class NewEmbed {
 
     morePopover = DElement(querySelector('#more-popover'));
     menuButton = DisableableButton(querySelector('#menu-button'), () {
-      _popoverHidden = !_popoverHidden;
-      morePopover.toggleAttr('hidden', _popoverHidden);
+      morePopover.toggleAttr(
+          'hidden', !(morePopover.getAttr('hidden') == 'true'));
     });
 
     formatButton = DisableableButton(
@@ -430,7 +429,8 @@ class NewEmbed {
     context.testMethod = gist.getFile('test.dart')?.content ?? '';
     context.solution = gist.getFile('solution.dart')?.content ?? '';
     context.hint = gist.getFile('hint.txt')?.content ?? '';
-    tabController.setTabVisibility('test', context.testMethod.isNotEmpty && _showTestCode);
+    tabController.setTabVisibility(
+        'test', context.testMethod.isNotEmpty && _showTestCode);
     showHintButton?.hidden = context.hint.isEmpty && context.testMethod.isEmpty;
     editorIsBusy = false;
 
