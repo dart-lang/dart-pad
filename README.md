@@ -44,7 +44,7 @@ Modify `warmup.dart` to point the BASE_URI to your AppEngine project.
 
 Then run
 
-    ./tools/deploy.sh
+    ./tool/deploy.sh
 
 The will deploy the server, and run the warmup sequence and sanity checks.
 
