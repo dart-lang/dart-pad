@@ -66,10 +66,10 @@ $_samplePackageName:lib/
 
     _logger.info('creating flutter web pubspec');
     String pubspec = createPubspec(true);
-    File(path.join(_projectDirectory.path, 'pubspec.yaml'))
-        .writeAsStringSync(pubspec);
+    await File(path.join(_projectDirectory.path, 'pubspec.yaml'))
+        .writeAsString(pubspec);
 
-    _runPubGet();
+    await _runPubGet();
 
     final String sdkVersion = SdkManager.sdk.version;
 
@@ -77,8 +77,8 @@ $_samplePackageName:lib/
     String url = 'https://storage.googleapis.com/compilation_artifacts/'
         '$sdkVersion/flutter_web.sum';
     Uint8List summaryContents = await http.readBytes(url);
-    File(path.join(_projectDirectory.path, 'flutter_web.sum'))
-        .writeAsBytesSync(summaryContents);
+    await File(path.join(_projectDirectory.path, 'flutter_web.sum'))
+        .writeAsBytes(summaryContents);
 
     _initedFlutterWeb = true;
   }
@@ -132,10 +132,10 @@ $_samplePackageName:lib/
     return null;
   }
 
-  void _runPubGet() {
+  Future<void> _runPubGet() async {
     _logger.info('running pub get (${_projectDirectory.path})');
 
-    ProcessResult result = Process.runSync(
+    ProcessResult result = await Process.run(
       path.join(sdkPath, 'bin', 'pub'),
       <String>['get', '--no-precompile'],
       workingDirectory: _projectDirectory.path,
