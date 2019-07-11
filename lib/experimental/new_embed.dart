@@ -270,7 +270,7 @@ class NewEmbed {
 
     executionSvc.testResults.listen((result) {
       if (result.messages.isEmpty) {
-        result.messages.add(result.success ? 'Test passed!' : 'Test failed.');
+        result.messages.add(result.success ? 'All tests passed!' : 'Test failed.');
       }
       testResultBox.showStrings(
         result.messages,
