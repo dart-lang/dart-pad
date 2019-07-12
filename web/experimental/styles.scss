@@ -218,7 +218,9 @@ body {
 #editor-and-console-container {
   display: flex;
   flex-direction: column;
+  overflow-x: scroll;
 }
+
 #editor-container {
   flex: 1;
   overflow: auto;
