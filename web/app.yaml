@@ -36,4 +36,9 @@ libraries:
   version: "2.5.2"
 
 skip_files:
+- ^(.*/)?#.*#$
+- ^(.*/)?.*~$
+- ^(.*/)?.*\.py[co]$
+- ^(.*/)?.*/RCS/.*$
+- ^(.*/)?\..*$
 - packages/(?!(?:codemirror|dart-pad|octicons_css|split|primer_css))
