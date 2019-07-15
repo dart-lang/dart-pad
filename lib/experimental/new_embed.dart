@@ -315,6 +315,7 @@ class NewEmbed {
       webOutputLabel = DElement(webOutputLabelElement);
     }
 
+    _initializeMaterialRipples();
     _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());
   }
 
@@ -639,6 +640,13 @@ class NewEmbed {
 
     if (focus) userCodeEditor.focus();
   }
+
+  void _initializeMaterialRipples() {
+    MDCRipple(executeButton._element.element);
+    MDCRipple(reloadGistButton._element.element);
+    MDCRipple(formatButton._element.element);
+    MDCRipple(showHintButton._element.element);
+  }
 }
 
 // material-components-web uses specific classes for its navigation styling,
@@ -839,6 +847,7 @@ class AnalysisResultsController {
   AnalysisResultsController(this.flash, this.message, this.toggle) {
     hideFlash();
     message.text = _noIssuesMsg;
+    MDCRipple(toggle.element);
     toggle.onClick.listen((_) {
       if (_flashHidden) {
         showFlash();
