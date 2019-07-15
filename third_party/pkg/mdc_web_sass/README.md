@@ -5,7 +5,7 @@ Dart package with Sass files for material-components-web
 
 The `tool/generate.dart` script fetches material-components-web from NPM,
 applies the required changes to the source files, and generates the contents of
-the lib/ directory:
+the `lib/` directory:
 
 ```bash
 dart tool/generate.dart
