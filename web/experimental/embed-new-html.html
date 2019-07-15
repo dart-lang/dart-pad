@@ -43,7 +43,16 @@ BSD-style license that can be found in the LICENSE file. -->
 </head>
 
 <body class="d-flex flex-column">
-
+<div id="progress-bar" role="progressbar" class="mdc-linear-progress hide">
+    <div class="mdc-linear-progress__buffering-dots"></div>
+    <div class="mdc-linear-progress__buffer"></div>
+    <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar">
+        <span class="mdc-linear-progress__bar-inner"></span>
+    </div>
+    <div class="mdc-linear-progress__bar mdc-linear-progress__secondary-bar">
+        <span class="mdc-linear-progress__bar-inner"></span>
+    </div>
+</div>
 <div id="navbar">
     <nav>
         <div class="mdc-tab-bar" role="tablist">

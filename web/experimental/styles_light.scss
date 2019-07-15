@@ -1,11 +1,6 @@
 /* styles_light.css */
 @import 'package:dart_pad/experimental/scss/colors';
 
-.busy {
-  background: url(moving_lines.gif) repeat;
-  box-shadow: inset 0 0 0 1000px $light-busy-background-color;
-}
-
 .gutter {
   background-color: $light-gutter-background-color;
 }

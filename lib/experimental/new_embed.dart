@@ -89,6 +89,8 @@ class NewEmbed {
   ConsoleController consoleExpandController;
   DElement webOutputLabel;
 
+  MDCLinearProgress linearProgress;
+
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
     maxDelay: Duration(milliseconds: 5000),
@@ -102,7 +104,11 @@ class NewEmbed {
   /// too busy to handle code changes, execute/reset requests, etc.
   set editorIsBusy(bool value) {
     _editorIsBusy = value;
-    navBarElement.toggleClass('busy', value);
+    if (value) {
+      linearProgress.root.classes.remove('hide');
+    } else {
+      linearProgress.root.classes.add('hide');
+    }
     userCodeEditor.readOnly = value;
     executeButton.disabled = value;
     formatButton.disabled = value;
@@ -314,6 +320,9 @@ class NewEmbed {
     if (webOutputLabelElement != null) {
       webOutputLabel = DElement(webOutputLabelElement);
     }
+
+    linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
+    linearProgress.determinate = false;
 
     _initializeMaterialRipples();
     _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());

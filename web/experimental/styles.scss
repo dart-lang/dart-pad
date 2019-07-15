@@ -312,6 +312,10 @@ body {
 }
 
 // Material Design
+#progress-bar {
+  position: absolute;
+}
+
 #menu-button {
   color: $secondary-color;
 }
