@@ -183,11 +183,6 @@ class NewEmbed {
     tabController.setTabVisibility('test', false);
     showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
     showTestCodeMenuItem = DElement(querySelector('#show-test-menu-item'));
-    showTestCodeMenuItem.onClick.listen((e) {
-      _showTestCode = !_showTestCode;
-      showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
-      tabController.setTabVisibility('test', _showTestCode);
-    });
 
     morePopover = DElement(querySelector('#more-popover'));
     menuButton = DisableableButton(querySelector('#menu-button'), () {
@@ -196,6 +191,13 @@ class NewEmbed {
     menu = MDCMenu(querySelector('#main-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(menuButton._element.element);
+    menu.listen('MDCMenu:selected', (e) {
+      if ((e as CustomEvent).detail['index'] == 0) {
+        _showTestCode = !_showTestCode;
+        showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
+        tabController.setTabVisibility('test', _showTestCode);
+      }
+    });
 
     formatButton = DisableableButton(
       querySelector('#format-code'),
