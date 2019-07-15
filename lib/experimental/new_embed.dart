@@ -7,6 +7,7 @@ import 'dart:html' hide Document;
 import 'dart:math' as math;
 
 import 'package:split/split.dart';
+import 'package:mdc_web/mdc_web.dart';
 
 import '../completion.dart';
 import '../core/dependencies.dart';
@@ -109,9 +110,10 @@ class NewEmbed {
 
   NewEmbed(this.options) {
     _initHostListener();
-    tabController = NewEmbedTabController();
+    tabController =
+        NewEmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')));
 
-    var tabNames = ['editor', 'test', 'solution'];
+    var tabNames = ['editor', 'solution', 'test'];
     if (options.mode == NewEmbedMode.html) {
       tabNames = ['editor', 'html', 'css'];
     }
@@ -270,7 +272,8 @@ class NewEmbed {
 
     executionSvc.testResults.listen((result) {
       if (result.messages.isEmpty) {
-        result.messages.add(result.success ? 'All tests passed!' : 'Test failed.');
+        result.messages
+            .add(result.success ? 'All tests passed!' : 'Test failed.');
       }
       testResultBox.showStrings(
         result.messages,
@@ -634,15 +637,19 @@ class NewEmbed {
 // rather than an attribute. This class extends the tab controller code to also
 // toggle that class.
 class NewEmbedTabController extends TabController {
+  final MDCTabBar _tabBar;
+
+  NewEmbedTabController(this._tabBar);
+
   /// This method will throw if the tabName is not the name of a current tab.
   @override
   void selectTab(String tabName) {
-    TabElement tab = tabs.firstWhere((t) => t.name == tabName);
+    var tab = tabs.firstWhere((t) => t.name == tabName);
+    var idx = tabs.indexOf(tab);
 
-    for (TabElement t in tabs) {
-      t.toggleClass('mdc-tab--active', t == tab);
-      DElement(t.element.querySelector('.mdc-tab-indicator'))
-          .toggleClass('mdc-tab-indicator--active', t == tab);
+    _tabBar.activateTab(idx);
+
+    for (var t in tabs) {
       t.toggleAttr('aria-selected', t == tab);
     }
 
