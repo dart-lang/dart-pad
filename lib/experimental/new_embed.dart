@@ -59,9 +59,11 @@ class NewEmbed {
   TabView htmlTabView;
   TabView cssTabView;
   DElement solutionTab;
+  MDCMenu menu;
 
   DElement morePopover;
-  DInput showTestCodeCheckbox;
+  DElement showTestCodeMenuItem;
+  DElement showTestCodeCheckmark;
   bool _showTestCode = false;
 
   Counter unreadConsoleCounter;
@@ -179,17 +181,21 @@ class NewEmbed {
     }
 
     tabController.setTabVisibility('test', false);
-    showTestCodeCheckbox = DInput(querySelector('#show-test-checkbox'));
-    showTestCodeCheckbox.onClick.listen((e) {
+    showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
+    showTestCodeMenuItem = DElement(querySelector('#show-test-menu-item'));
+    showTestCodeMenuItem.onClick.listen((e) {
       _showTestCode = !_showTestCode;
+      showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
       tabController.setTabVisibility('test', _showTestCode);
     });
 
     morePopover = DElement(querySelector('#more-popover'));
     menuButton = DisableableButton(querySelector('#menu-button'), () {
-      var popoverHidden = morePopover.hasAttr('hidden');
-      morePopover.toggleAttr('hidden', !popoverHidden);
+      menu.open = !menu.open;
     });
+    menu = MDCMenu(querySelector('#main-menu'))
+      ..setAnchorCorner(AnchorCorner.bottomLeft)
+      ..setAnchorElement(menuButton._element.element);
 
     formatButton = DisableableButton(
       querySelector('#format-code'),

@@ -315,10 +315,18 @@ body {
   color: $secondary-color;
 }
 
+#main-menu {
+  width: 192px;
+}
+
 // Misc
 
 .view-label {
   font-family: 'Inconsolata', monospace;
   color: $label-color;
   margin-left: 8px;
+}
+
+.hide {
+  opacity: 0;
 }
