@@ -40,9 +40,10 @@ a {
   color: $light-label-color;
 }
 
-/* Issues */
+// Issues
 #issues {
   background-color: $light-secondary-background-color;
+  border: 8px solid $light-secondary-background-color;
 }
 
 .issue .issuelabel {

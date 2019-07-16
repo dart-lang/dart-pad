@@ -271,7 +271,7 @@ body {
 #issues {
   padding: 8px;
   overflow-y: auto;
-  border-radius: 0.25em;
+  max-height: 50vh;
 }
 
 #issues .issue {
