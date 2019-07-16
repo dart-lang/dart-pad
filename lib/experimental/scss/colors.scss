@@ -16,6 +16,11 @@ $light-secondary-background-color: #f7f7f7;
 $light-label-color: #586069;
 $light-gutter-background-color: lighten(grey, 45%);
 $light-border-color: $light-gutter-background-color;
+$light-text-color: #4a4a4a;
+$light-flash-info-color: #e7f8ff;
+$light-flash-success-color: #e7fff8;
+$light-flash-warning-color: #fff8e7;
+$light-flash-error-color: #ffe7f8;
 
 $dark-code-background-color: #13202e;
 $dark-busy-background-color: rgba(27, 29, 33, .8);
@@ -24,6 +29,11 @@ $dark-gutter-background-color: #121a25;
 $dark-border-color: $dark-gutter-background-color;
 $dark-issues-background-color: lighten($dark-code-background-color, 10%);
 $dark-issue-label-color: white;
+$dark-text-color: #dcdcdc;
+$dark-flash-info-color: #46535a;
+$dark-flash-success-color: #425a53;
+$dark-flash-warning-color: #5a534a;
+$dark-flash-error-color: #695b62;
 
 // V2 Colors
 $button-color: #168AFD;

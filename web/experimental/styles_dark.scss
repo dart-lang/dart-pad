@@ -1,8 +1,26 @@
-/* styles_dark.css */
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 @import 'package:dart_pad/experimental/scss/colors';
+
+// These variables must be set before importing material-components-web.scss.
+// Since `styles.scss` loads mdc_web_sass these must be before `styles.scss` is
+// imported
+$mdc-theme-primary: #168AFD;
+$mdc-theme-secondary: #676767;
+$mdc-theme-background: $dark-code-background-color;
+$mdc-theme-surface: $dark-code-background-color;
+$mdc-theme-error: $dark-red;
+
+@import 'styles';
 
 body {
   background-color: $dark-code-background-color;
+}
+
+a {
+  color: $dark-blue;
 }
 
 .gutter {
@@ -26,7 +44,7 @@ body {
   color: $dark-issue-label-color;
 }
 
-/* Issues */
+// Issues
 #issues {
   background-color: $dark-issues-background-color;
 }
@@ -51,3 +69,36 @@ body {
   color: #168AFD !important;
 }
 
+.message-container {
+  color: $dark-text-color;
+}
+
+// Progress bar
+
+.mdc-linear-progress {
+  @include mdc-linear-progress-buffer-color($dark-code-background-color)
+}
+
+// Flashes
+
+.flash {
+  background-color: $dark-flash-info-color;
+}
+
+.flash-close {
+  .octicon {
+    color: $dark-text-color;
+  }
+}
+
+.flash-success {
+  background-color: $dark-flash-success-color;
+}
+
+.flash-error {
+  background-color: $dark-flash-error-color;
+}
+
+.flash-warn {
+  background-color: $dark-flash-warning-color;
+}
