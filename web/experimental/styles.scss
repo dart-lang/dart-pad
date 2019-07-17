@@ -1,10 +1,6 @@
-/* Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file */
-/* for details. All rights reserved. Use of this source code is governed by a */
-/* BSD-style license that can be found in the LICENSE file. */
-
-// must be set before imports
-$mdc-theme-primary: #168AFD;
-$mdc-theme-secondary: #676767;
+// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 @import "package:mdc_web_sass/material-components-web";
 @import 'package:dart_pad/experimental/scss/colors';
@@ -53,7 +49,7 @@ body {
   justify-self: end;
 }
 
-/* Code Editor */
+// Code Editor
 
 #user-code-editor {
   flex: 1;
@@ -63,7 +59,7 @@ body {
   max-height: 11em;
 }
 
-/* Console */
+// Console
 
 #console-view {
   font-family: 'Inconsolata', monospace;
@@ -86,8 +82,14 @@ body {
 }
 
 .flash {
-  border-radius: 0.25em;
+  border-radius: 0;
   border: none;
+  padding: 12px;
+}
+
+.flash-close {
+  padding: 6px;
+  margin: -12px;
 }
 
 #flash-container {
@@ -103,6 +105,11 @@ body {
   padding-right: 22px;
   max-height: 120px;
   overflow-y: auto;
+  font-family: Roboto Light, sans-serif;
+  font-weight: 300;
+  a {
+    font-weight: bold;
+  }
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -178,6 +185,7 @@ body {
 }
 
 // Console Output Footer
+
 .console-output-header {
   display: flex;
   flex-direction: row;
@@ -194,8 +202,8 @@ body {
 
 #console-expand-button {
   color: $label-color;
-  margin: 0;
-  padding: 2px;
+  padding: 8px;
+  margin: -4px;
 }
 
 #console-expand-button:focus {
@@ -263,7 +271,7 @@ body {
 #issues {
   padding: 8px;
   overflow-y: auto;
-  border-radius: 0.25em;
+  max-height: 50vh;
 }
 
 #issues .issue {
@@ -326,6 +334,12 @@ body {
 
 .mdc-tab__content {
   text-transform: none !important;
+}
+
+.mdc-tab--active {
+  .mdc-tab__text-label {
+    font-weight: normal;
+  }
 }
 
 .mdc-button {

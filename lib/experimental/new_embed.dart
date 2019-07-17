@@ -64,7 +64,6 @@ class NewEmbed {
   MDCMenu menu;
 
   DElement morePopover;
-  DElement showTestCodeMenuItem;
   DElement showTestCodeCheckmark;
   bool _showTestCode = false;
 
@@ -190,7 +189,6 @@ class NewEmbed {
 
     tabController.setTabVisibility('test', false);
     showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
-    showTestCodeMenuItem = DElement(querySelector('#show-test-menu-item'));
 
     morePopover = DElement(querySelector('#more-popover'));
     menuButton = DisableableButton(querySelector('#menu-button'), () {
