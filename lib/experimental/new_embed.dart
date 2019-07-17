@@ -859,7 +859,7 @@ class AnalysisResultsController {
   DElement flash;
   DElement message;
   DElement toggle;
-  bool _flashHidden = true;
+  bool _flashHidden;
 
   final StreamController<AnalysisIssue> _onClickController =
       StreamController.broadcast();
@@ -867,7 +867,13 @@ class AnalysisResultsController {
   Stream<AnalysisIssue> get onIssueClick => _onClickController.stream;
 
   AnalysisResultsController(this.flash, this.message, this.toggle) {
-    hideFlash();
+    // Show issues by default, but hide the flash element (otherwise an empty
+    // flash container will be shown). display() will un-hide the element when
+    // there are issues to display.
+    _flashHidden = false;
+    flash.setAttr('hidden');
+    toggle.text = _hideMsg;
+
     message.text = _noIssuesMsg;
     MDCRipple(toggle.element);
     toggle.onClick.listen((_) {
