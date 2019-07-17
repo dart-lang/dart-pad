@@ -7,6 +7,7 @@ import 'dart:html' hide Document;
 import 'dart:math' as math;
 
 import 'package:split/split.dart';
+import 'package:mdc_web/mdc_web.dart';
 
 import '../completion.dart';
 import '../core/dependencies.dart';
@@ -58,9 +59,11 @@ class NewEmbed {
   TabView htmlTabView;
   TabView cssTabView;
   DElement solutionTab;
+  MDCMenu menu;
 
   DElement morePopover;
-  DInput showTestCodeCheckbox;
+  DElement showTestCodeMenuItem;
+  DElement showTestCodeCheckmark;
   bool _showTestCode = false;
 
   Counter unreadConsoleCounter;
@@ -86,6 +89,8 @@ class NewEmbed {
   ConsoleController consoleExpandController;
   DElement webOutputLabel;
 
+  MDCLinearProgress linearProgress;
+
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
     maxDelay: Duration(milliseconds: 5000),
@@ -99,7 +104,11 @@ class NewEmbed {
   /// too busy to handle code changes, execute/reset requests, etc.
   set editorIsBusy(bool value) {
     _editorIsBusy = value;
-    navBarElement.toggleClass('busy', value);
+    if (value) {
+      linearProgress.root.classes.remove('hide');
+    } else {
+      linearProgress.root.classes.add('hide');
+    }
     userCodeEditor.readOnly = value;
     executeButton.disabled = value;
     formatButton.disabled = value;
@@ -109,9 +118,10 @@ class NewEmbed {
 
   NewEmbed(this.options) {
     _initHostListener();
-    tabController = NewEmbedTabController();
+    tabController =
+        NewEmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')));
 
-    var tabNames = ['editor', 'test', 'solution'];
+    var tabNames = ['editor', 'solution', 'test'];
     if (options.mode == NewEmbedMode.html) {
       tabNames = ['editor', 'html', 'css'];
     }
@@ -177,16 +187,22 @@ class NewEmbed {
     }
 
     tabController.setTabVisibility('test', false);
-    showTestCodeCheckbox = DInput(querySelector('#show-test-checkbox'));
-    showTestCodeCheckbox.onClick.listen((e) {
-      _showTestCode = !_showTestCode;
-      tabController.setTabVisibility('test', _showTestCode);
-    });
+    showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
+    showTestCodeMenuItem = DElement(querySelector('#show-test-menu-item'));
 
     morePopover = DElement(querySelector('#more-popover'));
     menuButton = DisableableButton(querySelector('#menu-button'), () {
-      var popoverHidden = morePopover.hasAttr('hidden');
-      morePopover.toggleAttr('hidden', !popoverHidden);
+      menu.open = !menu.open;
+    });
+    menu = MDCMenu(querySelector('#main-menu'))
+      ..setAnchorCorner(AnchorCorner.bottomLeft)
+      ..setAnchorElement(menuButton._element.element);
+    menu.listen('MDCMenu:selected', (e) {
+      if ((e as CustomEvent).detail['index'] == 0) {
+        _showTestCode = !_showTestCode;
+        showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
+        tabController.setTabVisibility('test', _showTestCode);
+      }
     });
 
     formatButton = DisableableButton(
@@ -270,7 +286,8 @@ class NewEmbed {
 
     executionSvc.testResults.listen((result) {
       if (result.messages.isEmpty) {
-        result.messages.add(result.success ? 'All tests passed!' : 'Test failed.');
+        result.messages
+            .add(result.success ? 'All tests passed!' : 'Test failed.');
       }
       testResultBox.showStrings(
         result.messages,
@@ -304,6 +321,10 @@ class NewEmbed {
       webOutputLabel = DElement(webOutputLabelElement);
     }
 
+    linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
+    linearProgress.determinate = false;
+
+    _initializeMaterialRipples();
     _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());
   }
 
@@ -628,21 +649,32 @@ class NewEmbed {
 
     if (focus) userCodeEditor.focus();
   }
+
+  void _initializeMaterialRipples() {
+    MDCRipple(executeButton._element.element);
+    MDCRipple(reloadGistButton._element.element);
+    MDCRipple(formatButton._element.element);
+    MDCRipple(showHintButton._element.element);
+  }
 }
 
 // material-components-web uses specific classes for its navigation styling,
 // rather than an attribute. This class extends the tab controller code to also
 // toggle that class.
 class NewEmbedTabController extends TabController {
+  final MDCTabBar _tabBar;
+
+  NewEmbedTabController(this._tabBar);
+
   /// This method will throw if the tabName is not the name of a current tab.
   @override
   void selectTab(String tabName) {
-    TabElement tab = tabs.firstWhere((t) => t.name == tabName);
+    var tab = tabs.firstWhere((t) => t.name == tabName);
+    var idx = tabs.indexOf(tab);
 
-    for (TabElement t in tabs) {
-      t.toggleClass('mdc-tab--active', t == tab);
-      DElement(t.element.querySelector('.mdc-tab-indicator'))
-          .toggleClass('mdc-tab-indicator--active', t == tab);
+    _tabBar.activateTab(idx);
+
+    for (var t in tabs) {
       t.toggleAttr('aria-selected', t == tab);
     }
 
@@ -824,6 +856,7 @@ class AnalysisResultsController {
   AnalysisResultsController(this.flash, this.message, this.toggle) {
     hideFlash();
     message.text = _noIssuesMsg;
+    MDCRipple(toggle.element);
     toggle.onClick.listen((_) {
       if (_flashHidden) {
         showFlash();

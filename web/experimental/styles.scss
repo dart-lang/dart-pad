@@ -2,6 +2,11 @@
 /* for details. All rights reserved. Use of this source code is governed by a */
 /* BSD-style license that can be found in the LICENSE file. */
 
+// must be set before imports
+$mdc-theme-primary: #168AFD;
+$mdc-theme-secondary: #676767;
+
+@import "package:mdc_web_sass/material-components-web";
 @import 'package:dart_pad/experimental/scss/colors';
 
 body {
@@ -12,11 +17,8 @@ body {
   position: absolute;
   overflow: hidden;
   font-size: 14px;
-
-  // Material Design theme
-  --mdc-theme-primary: #168AFD;
-  --mdc-theme-secondary: #676767;
 }
+
 
 .medium-octicon {
   font-size: 19px;
@@ -25,8 +27,6 @@ body {
 // Tab Navigation
 
 #navbar {
-  padding: 2px 8px 0 29px;
-  margin-bottom: 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -34,12 +34,7 @@ body {
   flex-wrap: wrap-reverse;
 }
 
-#navbar .tabnav-tabs {
-  padding-left: 12px;
-}
-
 .nav-buttons {
-  padding: 0 0 4px 0;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -317,8 +312,24 @@ body {
 }
 
 // Material Design
+#progress-bar {
+  position: absolute;
+}
+
 #menu-button {
   color: $secondary-color;
+}
+
+#main-menu {
+  width: 192px;
+}
+
+.mdc-tab__content {
+  text-transform: none !important;
+}
+
+.mdc-button {
+  text-transform: none !important;
 }
 
 // Misc
@@ -327,4 +338,8 @@ body {
   font-family: 'Inconsolata', monospace;
   color: $label-color;
   margin-left: 8px;
+}
+
+.hide {
+  opacity: 0;
 }

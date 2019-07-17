@@ -37,16 +37,24 @@ BSD-style license that can be found in the LICENSE file. -->
     <script type="text/javascript" src="dark_mode.js"></script>
 
     <!-- begin Material Design -->
-    <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
-    <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-          rel="stylesheet">
+    <script src="../packages/mdc_web/material-components-web.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <!-- end Material Design -->
 </head>
 
 <body class="d-flex flex-column">
+<div id="progress-bar" role="progressbar" class="mdc-linear-progress hide">
+    <div class="mdc-linear-progress__buffering-dots"></div>
+    <div class="mdc-linear-progress__buffer"></div>
+    <div class="mdc-linear-progress__bar mdc-linear-progress__primary-bar">
+        <span class="mdc-linear-progress__bar-inner"></span>
+    </div>
+    <div class="mdc-linear-progress__bar mdc-linear-progress__secondary-bar">
+        <span class="mdc-linear-progress__bar-inner"></span>
+    </div>
+</div>
 <div id="navbar">
-    <nav class="tabnav-tabs">
+    <nav>
         <div class="mdc-tab-bar" role="tablist">
             <div class="mdc-tab-scroller">
                 <div class="mdc-tab-scroller__scroll-area">
@@ -54,7 +62,7 @@ BSD-style license that can be found in the LICENSE file. -->
                         <button id="editor-tab" class="mdc-tab mdc-tab--active" role="tab" aria-selected="true"
                                 tabindex="0">
                              <span class="mdc-tab__content">
-                                 <span class="mdc-tab__text-label">Your code</span>
+                                 <span class="mdc-tab__text-label">Dart</span>
                              </span>
                             <span class="mdc-tab-indicator mdc-tab-indicator--active">
                                  <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
@@ -94,26 +102,15 @@ BSD-style license that can be found in the LICENSE file. -->
         </button>
         <div class="position-relative text-right pr-2">
             <button id="menu-button" class="mdc-icon-button material-icons">more_vert</button>
-            <div id="more-popover" class="Popover right-0 position-absolute" hidden>
-                <div class="Popover-message Popover-message--top-right text-left p-4 mt-2 Box box-shadow-large">
-                    <div class="d-flex flex-row flex-items-center">
-                        <div class="mdc-checkbox">
-                            <input type="checkbox"
-                                   class="mdc-checkbox__native-control"
-                                   id="show-test-checkbox"/>
-                            <div class="mdc-checkbox__background">
-                                <svg class="mdc-checkbox__checkmark"
-                                     viewBox="0 0 24 24">
-                                    <path class="mdc-checkbox__checkmark-path"
-                                          fill="none"
-                                          d="M1.73,12.91 8.1,19.28 22.79,4.59"></path>
-                                </svg>
-                                <div class="mdc-checkbox__mixedmark"></div>
-                            </div>
-                        </div>
-                        <label for="show-test-checkbox">Show tests</label>
-                    </div>
-                </div>
+            <div id="main-menu" class="mdc-menu mdc-menu-surface">
+                <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
+                    <li id="show-test-menu-item" class="mdc-list-item" role="menuitem">
+                        <span id="show-test-checkmark" class="mdc-list-item__graphic hide">
+                            <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
+                        </span>
+                        <span class="mdc-list-item__text">Show tests</span>
+                    </li>
+                </ul>
             </div>
         </div>
     </div>
