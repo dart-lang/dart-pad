@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:html' hide Document;
 import 'dart:math' as math;
 
+import 'package:dart_pad/src/ga.dart';
 import 'package:split/split.dart';
 import 'package:mdc_web/mdc_web.dart';
 
@@ -38,6 +39,7 @@ enum NewEmbedMode { dart, flutter, html, inline }
 
 class NewEmbedOptions {
   final NewEmbedMode mode;
+
   NewEmbedOptions(this.mode);
 }
 
@@ -293,6 +295,8 @@ class NewEmbed {
         result.messages,
         result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
       );
+      ga?.sendEvent(
+          'execution', (result.success) ? 'test-success' : 'test-failure');
     });
 
     analysisResultsController = AnalysisResultsController(
@@ -379,6 +383,7 @@ class NewEmbed {
 
   void _initNewEmbed() {
     deps[GistLoader] = GistLoader.defaultFilters();
+    deps[Analytics] = Analytics();
 
     context = NewEmbedContext(
         userCodeEditor, testEditor, solutionEditor, htmlEditor, cssEditor);
@@ -465,6 +470,8 @@ class NewEmbed {
       return;
     }
 
+    ga?.sendEvent('execution', 'initiated');
+
     editorIsBusy = true;
     testResultBox.hide();
     hintBox.hide();
@@ -485,10 +492,12 @@ class NewEmbed {
           response.result,
           modulesBaseUrl: response.modulesBaseUrl,
         );
+        ga?.sendEvent('execution', 'ddc-compile-success');
       }).catchError((e, st) {
         consoleExpandController
             .appendError('Error compiling to JavaScript:\n$e');
         print(st);
+        ga?.sendEvent('execution', 'ddc-compile-failure');
       }).whenComplete(() {
         webOutputLabel.setAttr('hidden');
         editorIsBusy = false;
@@ -498,12 +507,14 @@ class NewEmbed {
           .compile(input)
           .timeout(longServiceCallTimeout)
           .then((CompileResponse response) {
+        ga?.sendEvent('execution', 'html-compile-success');
         return executionSvc.execute(
             context.htmlSource, context.cssSource, response.result);
       }).catchError((e, st) {
         consoleExpandController
             .appendError('Error compiling to JavaScript:\n$e');
         print(st);
+        ga?.sendEvent('execution', 'html-compile-failure');
       }).whenComplete(() {
         webOutputLabel.setAttr('hidden');
         editorIsBusy = false;
@@ -514,10 +525,12 @@ class NewEmbed {
           .timeout(longServiceCallTimeout)
           .then((CompileResponse response) {
         executionSvc.execute('', '', response.result);
+        ga?.sendEvent('execution', 'compile-success');
       }).catchError((e, st) {
         consoleExpandController
             .appendError('Error compiling to JavaScript:\n$e');
         print(st);
+        ga?.sendEvent('execution', 'compile-failure');
       }).whenComplete(() {
         editorIsBusy = false;
       });
@@ -938,6 +951,7 @@ class AnalysisResultsController {
 /// Manages the visibility and contents of the console
 class ConsoleController {
   final DElement console;
+
   ConsoleController(Element console) : console = DElement(console) {
     console.removeAttribute('hidden');
   }
