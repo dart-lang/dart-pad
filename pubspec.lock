@@ -357,14 +357,7 @@ packages:
       name: mdc_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0"
-  mdc_web_sass:
-    dependency: "direct main"
-    description:
-      path: "third_party/pkg/mdc_web_sass"
-      relative: true
-    source: path
-    version: "1.0.0"
+    version: "0.4.1+1"
   meta:
     dependency: "direct main"
     description:
@@ -667,4 +660,4 @@ packages:
     source: hosted
     version: "2.1.16"
 sdks:
-  dart: ">=2.4.0 <3.0.0"
+  dart: ">=2.3.0 <3.0.0"
