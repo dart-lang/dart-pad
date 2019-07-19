@@ -732,6 +732,11 @@ class NewEmbedTabController extends TabController {
     var idx = tabs.indexOf(tab);
 
     _tabBar.activateTab(idx);
+
+    for (var t in tabs) {
+      t.toggleAttr('aria-selected', t == tab);
+    }
+
     super.selectTab(tabName);
   }
 
