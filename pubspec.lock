@@ -357,7 +357,7 @@ packages:
       name: mdc_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.0"
+    version: "0.4.1+1"
   mdc_web_sass:
     dependency: "direct main"
     description:
@@ -422,7 +422,7 @@ packages:
     source: hosted
     version: "1.6.2"
   pedantic:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: pedantic
       url: "https://pub.dartlang.org"

@@ -43,6 +43,36 @@ class NewEmbedOptions {
   NewEmbedOptions(this.mode);
 }
 
+enum DialogResult {
+  yes,
+  no,
+}
+
+Future<DialogResult> showDialog(String title, String message) {
+  querySelector('#my-dialog-title').text = title;
+  querySelector('#my-dialog-content').text = message;
+
+  var yesButton = querySelector('#dialog-yes');
+  var noButton = querySelector('#dialog-no');
+  var dialog = MDCDialog(document.querySelector('.mdc-dialog'));
+  dialog.open();
+
+  var completer = Completer<DialogResult>();
+
+  var sub1 = yesButton.onClick.listen((_) {
+    completer.complete(DialogResult.yes);
+  });
+  var sub2 = noButton.onClick.listen((_) {
+    completer.complete(DialogResult.no);
+  });
+
+  return completer.future.then((v) {
+    sub1.cancel();
+    sub2.cancel();
+    return v;
+  });
+}
+
 /// An embeddable DartPad UI that provides the ability to test the user's code
 /// snippet against a desired result.
 class NewEmbed {
@@ -175,15 +205,8 @@ class NewEmbed {
 
     if (options.mode != NewEmbedMode.html) {
       showHintButton = DisableableButton(querySelector('#show-hint'), () {
-        var showSolutionButton = AnchorElement()
-          ..style.cursor = 'pointer'
-          ..text = 'Show solution';
-        showSolutionButton.onClick.listen((_) {
-          solutionTab.clearAttr('hidden');
-          tabController.selectTab('solution');
-        });
         var hintElement = DivElement()..text = context.hint;
-        hintBox.showElements([hintElement, showSolutionButton]);
+        hintBox.showElements([hintElement]);
       });
     }
 
@@ -456,6 +479,7 @@ class NewEmbed {
     tabController.setTabVisibility(
         'test', context.testMethod.isNotEmpty && _showTestCode);
     showHintButton?.hidden = context.hint.isEmpty && context.testMethod.isEmpty;
+    solutionTab.toggleAttr('hidden', context.solution.isEmpty);
     editorIsBusy = false;
 
     if (analyze) {
@@ -679,16 +703,21 @@ class NewEmbedTabController extends TabController {
 
   /// This method will throw if the tabName is not the name of a current tab.
   @override
-  void selectTab(String tabName) {
+  Future selectTab(String tabName, {bool force = false}) async {
+    // Show a confirmation dialog if the solution tab is tapped
+    if (tabName == 'solution' && !force) {
+      var result = await showDialog('Are you sure?',
+          "If you're stuck, click the \"Hint\" button for a hint");
+      // Go back to the editor tab
+      if (result == DialogResult.no) {
+        tabName = 'editor';
+      }
+    }
+
     var tab = tabs.firstWhere((t) => t.name == tabName);
     var idx = tabs.indexOf(tab);
 
     _tabBar.activateTab(idx);
-
-    for (var t in tabs) {
-      t.toggleAttr('aria-selected', t == tab);
-    }
-
     super.selectTab(tabName);
   }
 
