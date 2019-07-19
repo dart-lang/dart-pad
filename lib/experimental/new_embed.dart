@@ -698,8 +698,20 @@ class NewEmbed {
 // toggle that class.
 class NewEmbedTabController extends TabController {
   final MDCTabBar _tabBar;
+  bool _userHasSeenSolution = false;
 
   NewEmbedTabController(this._tabBar);
+
+  void registerTab(TabElement tab) {
+    tabs.add(tab);
+
+    try {
+      tab.onClick.listen(
+          (_) => selectTab(tab.name, force: _userHasSeenSolution));
+    } catch (e, st) {
+      print('Error from registerTab: $e\n$st');
+    }
+  }
 
   /// This method will throw if the tabName is not the name of a current tab.
   @override
@@ -711,6 +723,8 @@ class NewEmbedTabController extends TabController {
       // Go back to the editor tab
       if (result == DialogResult.no) {
         tabName = 'editor';
+      } else {
+        _userHasSeenSolution = true;
       }
     }
 
