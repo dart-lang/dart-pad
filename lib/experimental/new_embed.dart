@@ -51,8 +51,8 @@ enum DialogResult {
 Future<DialogResult> showDialog(String title, String htmlMessage,
     {String yesText = "Yes", String noText = "No"}) {
   querySelector('#my-dialog-title').text = title;
-  querySelector('#my-dialog-content').setInnerHtml(htmlMessage,
-      validator: PermissiveNodeValidator());
+  querySelector('#my-dialog-content')
+      .setInnerHtml(htmlMessage, validator: PermissiveNodeValidator());
 
   var yesButton = querySelector('#dialog-yes')..text = yesText;
   var noButton = querySelector('#dialog-no')..text = noText;
@@ -721,9 +721,10 @@ class NewEmbedTabController extends TabController {
     // Show a confirmation dialog if the solution tab is tapped
     if (tabName == 'solution' && !force) {
       var result = await showDialog(
-        'Are you sure you want to see the solution?',
-        'If you just want a hint, click <span style="font-weight:bold">Cancel</span> and then <span style="font-weight:bold">Hint</span>.',
-        yesText: "Show the solution",
+        'Show solution?',
+        'If you just want a hint, click <span style="font-weight:bold">Cancel'
+            '</span> and then <span style="font-weight:bold">Hint</span>.',
+        yesText: "Show solution",
         noText: "Cancel",
       );
       // Go back to the editor tab
