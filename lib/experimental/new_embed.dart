@@ -48,12 +48,14 @@ enum DialogResult {
   no,
 }
 
-Future<DialogResult> showDialog(String title, String message) {
+Future<DialogResult> showDialog(String title, String htmlMessage,
+    {String yesText = "Yes", String noText = "No"}) {
   querySelector('#my-dialog-title').text = title;
-  querySelector('#my-dialog-content').text = message;
+  querySelector('#my-dialog-content').setInnerHtml(htmlMessage,
+      validator: PermissiveNodeValidator());
 
-  var yesButton = querySelector('#dialog-yes');
-  var noButton = querySelector('#dialog-no');
+  var yesButton = querySelector('#dialog-yes')..text = yesText;
+  var noButton = querySelector('#dialog-no')..text = noText;
   var dialog = MDCDialog(document.querySelector('.mdc-dialog'));
   dialog.open();
 
@@ -706,8 +708,8 @@ class NewEmbedTabController extends TabController {
     tabs.add(tab);
 
     try {
-      tab.onClick.listen(
-          (_) => selectTab(tab.name, force: _userHasSeenSolution));
+      tab.onClick
+          .listen((_) => selectTab(tab.name, force: _userHasSeenSolution));
     } catch (e, st) {
       print('Error from registerTab: $e\n$st');
     }
@@ -718,8 +720,12 @@ class NewEmbedTabController extends TabController {
   Future selectTab(String tabName, {bool force = false}) async {
     // Show a confirmation dialog if the solution tab is tapped
     if (tabName == 'solution' && !force) {
-      var result = await showDialog('Are you sure?',
-          "If you're stuck, click the \"Hint\" button for a hint");
+      var result = await showDialog(
+        'Are you sure you want to see the solution?',
+        'If you just want a hint, click <span style="font-weight:bold">Cancel</span> and then <span style="font-weight:bold">Hint</span>.',
+        yesText: "Show the solution",
+        noText: "Cancel",
+      );
       // Go back to the editor tab
       if (result == DialogResult.no) {
         tabName = 'editor';
