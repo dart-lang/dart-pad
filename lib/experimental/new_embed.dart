@@ -709,7 +709,7 @@ class NewEmbedTabController extends TabController {
 
     try {
       tab.onClick
-          .listen((_) => selectTab(tab.name, force: _userHasSeenSolution));
+          .listen((_) => selectTab(tab.name));
     } catch (e, st) {
       print('Error from registerTab: $e\n$st');
     }
@@ -717,9 +717,9 @@ class NewEmbedTabController extends TabController {
 
   /// This method will throw if the tabName is not the name of a current tab.
   @override
-  Future selectTab(String tabName, {bool force = false}) async {
+  Future selectTab(String tabName) async {
     // Show a confirmation dialog if the solution tab is tapped
-    if (tabName == 'solution' && !force) {
+    if (tabName == 'solution' && !_userHasSeenSolution) {
       var result = await showDialog(
         'Show solution?',
         'If you just want a hint, click <span style="font-weight:bold">Cancel'
