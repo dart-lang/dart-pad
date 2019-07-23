@@ -141,16 +141,20 @@ build() {
   FilePath embedFile = _buildDir.join('scripts/embed.dart.js');
   log('$embedFile compiled to ${_printSize(embedFile)}');
 
-  FilePath newEmbedDartFile = _buildDir.join('experimental/new_embed_dart.dart.js');
+  FilePath newEmbedDartFile =
+      _buildDir.join('experimental/new_embed_dart.dart.js');
   log('$newEmbedDartFile compiled to ${_printSize(newEmbedDartFile)}');
 
-  FilePath newEmbedFlutterFile = _buildDir.join('experimental/new_embed_flutter.dart.js');
+  FilePath newEmbedFlutterFile =
+      _buildDir.join('experimental/new_embed_flutter.dart.js');
   log('$newEmbedFlutterFile compiled to ${_printSize(newEmbedFlutterFile)}');
 
-  FilePath newEmbedHtmlFile = _buildDir.join('experimental/new_embed_html.dart.js');
+  FilePath newEmbedHtmlFile =
+      _buildDir.join('experimental/new_embed_html.dart.js');
   log('$newEmbedHtmlFile compiled to ${_printSize(newEmbedHtmlFile)}');
 
-  FilePath newEmbedInlineFile = _buildDir.join('experimental/new_embed_inline.dart.js');
+  FilePath newEmbedInlineFile =
+      _buildDir.join('experimental/new_embed_inline.dart.js');
   log('$newEmbedInlineFile compiled to ${_printSize(newEmbedInlineFile)}');
 
   // Remove .dart files.
@@ -283,7 +287,7 @@ void buildbot() => null;
 
 @Task('Prepare the app for deployment')
 @Depends(buildbot)
-deploy() {
+deploy() async {
   // Validate the deploy.
 
   // `dev` is served from dev.dart-pad.appspot.com
@@ -300,21 +304,19 @@ deploy() {
     }
   }
 
-  return GitDir.fromExisting('.').then((GitDir dir) {
-    return dir.getCurrentBranch();
-  }).then((BranchReference branchRef) {
-    final String branch = branchRef.branchName;
+  final dir = await GitDir.fromExisting('.');
+  final branchRef = await dir.currentBranch();
+  final String branch = branchRef.branchName;
 
-    log('branch: $branch');
+  log('branch: $branch');
 
-    if (branch == 'prod') {
-      if (!isSecure) {
-        fail('The prod branch must have `secure: always`.');
-      }
+  if (branch == 'prod') {
+    if (!isSecure) {
+      fail('The prod branch must have `secure: always`.');
     }
+  }
 
-    log('\nexecute: `gcloud app deploy build/app.yaml --project=dart-pad --no-promote`');
-  });
+  log('\nexecute: `gcloud app deploy build/app.yaml --project=dart-pad --no-promote`');
 }
 
 @Task()
