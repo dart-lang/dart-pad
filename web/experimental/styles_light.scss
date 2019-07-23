@@ -5,7 +5,7 @@
 @import 'package:dart_pad/experimental/scss/colors';
 
 // These variables must be set before importing material-components-web.scss.
-// Since `styles.scss` loads mdc_web_sass these must be before `styles.scss` is
+// Since `styles.scss` loads mdc_web these must be before `styles.scss` is
 // imported
 $mdc-theme-primary: #168AFD;
 $mdc-theme-secondary: #676767;
