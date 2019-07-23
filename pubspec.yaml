@@ -4,6 +4,7 @@ description: The UI client for a web based interactive Dart service.
 homepage: https://github.com/dart-lang/dart-pad
 environment:
   sdk: '>=2.2.0 <3.0.0'
+
 dependencies:
   _discoveryapis_commons: '>=0.1.0 <0.2.0'
   codemirror: ^0.5.0+5.43.0
@@ -23,15 +24,13 @@ dependencies:
   split: ^0.0.2
   html_unescape: ^1.0.0
   sass_builder: ^2.1.0
-  mdc_web_sass:
-    path: third_party/pkg/mdc_web_sass
-  mdc_web: ^0.4.0
+  mdc_web: ^0.4.1
 dev_dependencies:
   build_runner: any
   build_test: any
   build_web_compilers: any
   collection: ^1.14.10
-  git: ^0.5.0
+  git: ^1.0.0
   grinder: ^0.8.0
   pedantic: ^1.7.0
   shelf: ^0.7.5
