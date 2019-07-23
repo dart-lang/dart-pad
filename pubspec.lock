@@ -351,13 +351,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.1+1"
-  mdc_web_sass:
-    dependency: "direct main"
-    description:
-      path: "third_party/pkg/mdc_web_sass"
-      relative: true
-    source: path
-    version: "1.0.0"
   meta:
     dependency: "direct main"
     description:
