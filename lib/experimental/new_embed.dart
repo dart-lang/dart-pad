@@ -43,38 +43,6 @@ class NewEmbedOptions {
   NewEmbedOptions(this.mode);
 }
 
-enum DialogResult {
-  yes,
-  no,
-}
-
-Future<DialogResult> showDialog(String title, String htmlMessage,
-    {String yesText = "Yes", String noText = "No"}) {
-  querySelector('#my-dialog-title').text = title;
-  querySelector('#my-dialog-content')
-      .setInnerHtml(htmlMessage, validator: PermissiveNodeValidator());
-
-  var yesButton = querySelector('#dialog-yes')..text = yesText;
-  var noButton = querySelector('#dialog-no')..text = noText;
-  var dialog = MDCDialog(document.querySelector('.mdc-dialog'));
-  dialog.open();
-
-  var completer = Completer<DialogResult>();
-
-  var sub1 = yesButton.onClick.listen((_) {
-    completer.complete(DialogResult.yes);
-  });
-  var sub2 = noButton.onClick.listen((_) {
-    completer.complete(DialogResult.no);
-  });
-
-  return completer.future.then((v) {
-    sub1.cancel();
-    sub2.cancel();
-    return v;
-  });
-}
-
 /// An embeddable DartPad UI that provides the ability to test the user's code
 /// snippet against a desired result.
 class NewEmbed {
@@ -123,6 +91,7 @@ class NewEmbed {
   DElement webOutputLabel;
 
   MDCLinearProgress linearProgress;
+  Dialog dialog;
 
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
@@ -151,8 +120,9 @@ class NewEmbed {
 
   NewEmbed(this.options) {
     _initHostListener();
+    dialog = Dialog();
     tabController =
-        NewEmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')));
+        NewEmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')), dialog);
 
     var tabNames = ['editor', 'solution', 'test'];
     if (options.mode == NewEmbedMode.html) {
@@ -700,16 +670,16 @@ class NewEmbed {
 // toggle that class.
 class NewEmbedTabController extends TabController {
   final MDCTabBar _tabBar;
+  final Dialog _dialog;
   bool _userHasSeenSolution = false;
 
-  NewEmbedTabController(this._tabBar);
+  NewEmbedTabController(this._tabBar, this._dialog);
 
   void registerTab(TabElement tab) {
     tabs.add(tab);
 
     try {
-      tab.onClick
-          .listen((_) => selectTab(tab.name));
+      tab.onClick.listen((_) => selectTab(tab.name));
     } catch (e, st) {
       print('Error from registerTab: $e\n$st');
     }
@@ -720,7 +690,7 @@ class NewEmbedTabController extends TabController {
   Future selectTab(String tabName) async {
     // Show a confirmation dialog if the solution tab is tapped
     if (tabName == 'solution' && !_userHasSeenSolution) {
-      var result = await showDialog(
+      var result = await _dialog.show(
         'Show solution?',
         'If you just want a hint, click <span style="font-weight:bold">Cancel'
             '</span> and then <span style="font-weight:bold">Hint</span>.',
@@ -1119,6 +1089,51 @@ class ConsoleExpandController extends ConsoleController {
       sizes: [60, 40],
       minSize: [32, 32],
     );
+  }
+}
+
+enum DialogResult {
+  yes,
+  no,
+}
+
+class Dialog {
+  final MDCDialog _mdcDialog;
+  final Element _yesButton;
+  final Element _noButton;
+  final Element _title;
+  final Element _content;
+
+  Dialog()
+      : _mdcDialog = MDCDialog(querySelector('.mdc-dialog')),
+        _yesButton = querySelector('#dialog-yes'),
+        _noButton = querySelector('#dialog-no'),
+        _title = querySelector('#my-dialog-title'),
+        _content = querySelector('#my-dialog-content');
+
+  Future<DialogResult> show(String title, String htmlMessage,
+      {String yesText = "Yes", String noText = "No"}) {
+    _title.text = title;
+    _content.setInnerHtml(htmlMessage, validator: PermissiveNodeValidator());
+
+    _yesButton..text = yesText;
+    _noButton.text = noText;
+    _mdcDialog.open();
+
+    var completer = Completer<DialogResult>();
+
+    var sub1 = _yesButton.onClick.listen((_) {
+      completer.complete(DialogResult.yes);
+    });
+    var sub2 = _noButton.onClick.listen((_) {
+      completer.complete(DialogResult.no);
+    });
+
+    return completer.future.then((v) {
+      sub1.cancel();
+      sub2.cancel();
+      return v;
+    });
   }
 }
 
