@@ -138,7 +138,6 @@ class NewEmbed {
         ..style.cursor = 'pointer'
         ..text = 'Show solution';
       showSolutionButton.onClick.listen((_) {
-        solutionTab.clearAttr('hidden');
         tabController.selectTab('solution');
       });
       var hintElement = DivElement()..text = context.hint;

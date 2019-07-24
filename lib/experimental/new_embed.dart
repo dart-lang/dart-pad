@@ -91,6 +91,7 @@ class NewEmbed {
   DElement webOutputLabel;
 
   MDCLinearProgress linearProgress;
+  Dialog dialog;
 
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
@@ -119,8 +120,9 @@ class NewEmbed {
 
   NewEmbed(this.options) {
     _initHostListener();
+    dialog = Dialog();
     tabController =
-        NewEmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')));
+        NewEmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')), dialog);
 
     var tabNames = ['editor', 'solution', 'test'];
     if (options.mode == NewEmbedMode.html) {
@@ -175,15 +177,8 @@ class NewEmbed {
 
     if (options.mode != NewEmbedMode.html) {
       showHintButton = DisableableButton(querySelector('#show-hint'), () {
-        var showSolutionButton = AnchorElement()
-          ..style.cursor = 'pointer'
-          ..text = 'Show solution';
-        showSolutionButton.onClick.listen((_) {
-          solutionTab.clearAttr('hidden');
-          tabController.selectTab('solution');
-        });
         var hintElement = DivElement()..text = context.hint;
-        hintBox.showElements([hintElement, showSolutionButton]);
+        hintBox.showElements([hintElement]);
       });
     }
 
@@ -456,6 +451,7 @@ class NewEmbed {
     tabController.setTabVisibility(
         'test', context.testMethod.isNotEmpty && _showTestCode);
     showHintButton?.hidden = context.hint.isEmpty && context.testMethod.isEmpty;
+    solutionTab.toggleAttr('hidden', context.solution.isEmpty);
     editorIsBusy = false;
 
     if (analyze) {
@@ -674,12 +670,41 @@ class NewEmbed {
 // toggle that class.
 class NewEmbedTabController extends TabController {
   final MDCTabBar _tabBar;
+  final Dialog _dialog;
+  bool _userHasSeenSolution = false;
 
-  NewEmbedTabController(this._tabBar);
+  NewEmbedTabController(this._tabBar, this._dialog);
+
+  void registerTab(TabElement tab) {
+    tabs.add(tab);
+
+    try {
+      tab.onClick.listen((_) => selectTab(tab.name));
+    } catch (e, st) {
+      print('Error from registerTab: $e\n$st');
+    }
+  }
 
   /// This method will throw if the tabName is not the name of a current tab.
   @override
-  void selectTab(String tabName) {
+  Future selectTab(String tabName) async {
+    // Show a confirmation dialog if the solution tab is tapped
+    if (tabName == 'solution' && !_userHasSeenSolution) {
+      var result = await _dialog.show(
+        'Show solution?',
+        'If you just want a hint, click <span style="font-weight:bold">Cancel'
+            '</span> and then <span style="font-weight:bold">Hint</span>.',
+        yesText: "Show solution",
+        noText: "Cancel",
+      );
+      // Go back to the editor tab
+      if (result == DialogResult.no) {
+        tabName = 'editor';
+      } else {
+        _userHasSeenSolution = true;
+      }
+    }
+
     var tab = tabs.firstWhere((t) => t.name == tabName);
     var idx = tabs.indexOf(tab);
 
@@ -1064,6 +1089,51 @@ class ConsoleExpandController extends ConsoleController {
       sizes: [60, 40],
       minSize: [32, 32],
     );
+  }
+}
+
+enum DialogResult {
+  yes,
+  no,
+}
+
+class Dialog {
+  final MDCDialog _mdcDialog;
+  final Element _yesButton;
+  final Element _noButton;
+  final Element _title;
+  final Element _content;
+
+  Dialog()
+      : _mdcDialog = MDCDialog(querySelector('.mdc-dialog')),
+        _yesButton = querySelector('#dialog-yes'),
+        _noButton = querySelector('#dialog-no'),
+        _title = querySelector('#my-dialog-title'),
+        _content = querySelector('#my-dialog-content');
+
+  Future<DialogResult> show(String title, String htmlMessage,
+      {String yesText = "Yes", String noText = "No"}) {
+    _title.text = title;
+    _content.setInnerHtml(htmlMessage, validator: PermissiveNodeValidator());
+
+    _yesButton.text = yesText;
+    _noButton.text = noText;
+    _mdcDialog.open();
+
+    var completer = Completer<DialogResult>();
+
+    var sub1 = _yesButton.onClick.listen((_) {
+      completer.complete(DialogResult.yes);
+    });
+    var sub2 = _noButton.onClick.listen((_) {
+      completer.complete(DialogResult.no);
+    });
+
+    return completer.future.then((v) {
+      sub1.cancel();
+      sub2.cancel();
+      return v;
+    });
   }
 }
 
