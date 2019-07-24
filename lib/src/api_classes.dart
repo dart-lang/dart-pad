@@ -187,10 +187,15 @@ class ProblemAndFixes {
 class CandidateFix {
   final String message;
   final List<SourceEdit> edits;
+  final int selectionOffset;
 
   CandidateFix() : this.fromEdits();
 
-  CandidateFix.fromEdits([this.message, this.edits]);
+  CandidateFix.fromEdits([
+    this.message,
+    this.edits,
+    this.selectionOffset,
+  ]);
 }
 
 /// Represents a reformatting of the code.
@@ -231,6 +236,7 @@ class SourceEdit {
 /// The response from the `/assists` service call.
 class AssistsResponse {
   final List<CandidateFix> assists;
+
   AssistsResponse(this.assists);
 }
 
