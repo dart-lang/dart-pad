@@ -1116,7 +1116,7 @@ class Dialog {
     _title.text = title;
     _content.setInnerHtml(htmlMessage, validator: PermissiveNodeValidator());
 
-    _yesButton..text = yesText;
+    _yesButton.text = yesText;
     _noButton.text = noText;
     _mdcDialog.open();
 
