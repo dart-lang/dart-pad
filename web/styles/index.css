@@ -566,3 +566,16 @@ div.toggle {
     display: none;
   }
 }
+
+#github-button {
+  background: url(/pictures/github-light-32px.png) no-repeat;
+  filter: brightness(0.5);
+  width: 32px;
+  height: 32px;
+  margin: 8px 0 8px 16px;
+  border: none;
+}
+
+#github-button:hover {
+  filter: brightness(0.75);
+}
