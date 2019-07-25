@@ -21,9 +21,9 @@ class DartservicesApi {
 
   DartservicesApi(http.Client client,
       {core.String rootUrl: "/",
-      core.String servicePath: "api/dartservices/v1/"})
+        core.String servicePath: "api/dartservices/v1/"})
       : _requester =
-            new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
+  new commons.ApiRequester(client, rootUrl, servicePath, USER_AGENT);
 
   /// Analyze the given Dart source code and return any resulting analysis
   /// errors or warnings.
@@ -387,7 +387,7 @@ class AnalysisIssue {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (charLength != null) {
       _json["charLength"] = charLength;
     }
@@ -435,7 +435,7 @@ class AnalysisResults {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (issues != null) {
       _json["issues"] = issues.map((value) => (value).toJson()).toList();
     }
@@ -461,7 +461,7 @@ class AssistsResponse {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (assists != null) {
       _json["assists"] = assists.map((value) => (value).toJson()).toList();
     }
@@ -472,6 +472,7 @@ class AssistsResponse {
 class CandidateFix {
   core.List<SourceEdit> edits;
   core.String message;
+  core.int selectionOffset;
 
   CandidateFix();
 
@@ -484,16 +485,22 @@ class CandidateFix {
     if (_json.containsKey("message")) {
       message = _json["message"];
     }
+    if (_json.containsKey("selectionOffset")) {
+      selectionOffset = _json["selectionOffset"];
+    }
   }
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (edits != null) {
       _json["edits"] = edits.map((value) => (value).toJson()).toList();
     }
     if (message != null) {
       _json["message"] = message;
+    }
+    if (selectionOffset != null) {
+      _json["selectionOffset"] = selectionOffset;
     }
     return _json;
   }
@@ -516,7 +523,7 @@ class CompileDDCResponse {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (modulesBaseUrl != null) {
       _json["modulesBaseUrl"] = modulesBaseUrl;
     }
@@ -547,7 +554,7 @@ class CompileRequest {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (returnSourceMap != null) {
       _json["returnSourceMap"] = returnSourceMap;
     }
@@ -575,7 +582,7 @@ class CompileResponse {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (result != null) {
       _json["result"] = result;
     }
@@ -614,7 +621,7 @@ class CompleteResponse {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (completions != null) {
       _json["completions"] = completions;
     }
@@ -641,7 +648,7 @@ class DocumentResponse {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (info != null) {
       _json["info"] = info;
     }
@@ -664,7 +671,7 @@ class FixesResponse {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (fixes != null) {
       _json["fixes"] = fixes.map((value) => (value).toJson()).toList();
     }
@@ -692,7 +699,7 @@ class FormatResponse {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (newString != null) {
       _json["newString"] = newString;
     }
@@ -730,7 +737,7 @@ class ProblemAndFixes {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (fixes != null) {
       _json["fixes"] = fixes.map((value) => (value).toJson()).toList();
     }
@@ -768,7 +775,7 @@ class SourceEdit {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (length != null) {
       _json["length"] = length;
     }
@@ -802,7 +809,7 @@ class SourceRequest {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (offset != null) {
       _json["offset"] = offset;
     }
@@ -853,7 +860,7 @@ class VersionResponse {
 
   core.Map<core.String, core.Object> toJson() {
     final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
+    new core.Map<core.String, core.Object>();
     if (appEngineVersion != null) {
       _json["appEngineVersion"] = appEngineVersion;
     }
