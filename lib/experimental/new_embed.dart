@@ -448,7 +448,7 @@ class NewEmbed {
     context.hint = gist.getFile('hint.txt')?.content ?? '';
     tabController.setTabVisibility(
         'test', context.testMethod.isNotEmpty && _showTestCode);
-    showHintButton?.hidden = context.hint.isEmpty && context.testMethod.isEmpty;
+    showHintButton?.hidden = context.hint.isEmpty;
     solutionTab.toggleAttr('hidden', context.solution.isEmpty);
     editorIsBusy = false;
 
