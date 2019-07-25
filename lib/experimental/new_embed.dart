@@ -175,12 +175,10 @@ class NewEmbed {
 
     reloadGistButton.disabled = gistId.isEmpty;
 
-    if (options.mode != NewEmbedMode.html) {
-      showHintButton = DisableableButton(querySelector('#show-hint'), () {
-        var hintElement = DivElement()..text = context.hint;
-        hintBox.showElements([hintElement]);
-      });
-    }
+    showHintButton = DisableableButton(querySelector('#show-hint'), () {
+      var hintElement = DivElement()..text = context.hint;
+      hintBox.showElements([hintElement]);
+    });
 
     tabController.setTabVisibility('test', false);
     showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
