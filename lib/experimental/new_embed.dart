@@ -126,7 +126,7 @@ class NewEmbed {
 
     var tabNames = ['editor', 'solution', 'test'];
     if (options.mode == NewEmbedMode.html) {
-      tabNames = ['editor', 'html', 'css'];
+      tabNames = ['editor', 'html', 'css', 'solution', 'test'];
     }
 
     for (var name in tabNames) {
@@ -451,7 +451,7 @@ class NewEmbed {
       tabController.setTabVisibility(
           'test', context.testMethod.isNotEmpty && _showTestCode);
       showHintButton?.hidden = context.hint.isEmpty;
-      solutionTab.toggleAttr('hidden', context.solution.isEmpty);
+      solutionTab?.toggleAttr('hidden', context.solution.isEmpty);
       editorIsBusy = false;
 
       if (analyze) {
@@ -467,7 +467,7 @@ class NewEmbed {
       context.hint = '';
       tabController.setTabVisibility('test', false);
       showHintButton?.hidden = true;
-      solutionTab.toggleAttr('hidden', true);
+      solutionTab?.toggleAttr('hidden', true);
       editorIsBusy = false;
 
       if (ex.failureType == GistLoaderFailureType.gistDoesNotExist) {
