@@ -177,7 +177,13 @@ class NewEmbed {
 
     showHintButton = DisableableButton(querySelector('#show-hint'), () {
       var hintElement = DivElement()..text = context.hint;
-      hintBox.showElements([hintElement]);
+      var showSolutionButton = AnchorElement()
+        ..style.cursor = 'pointer'
+        ..text = 'Show solution';
+      showSolutionButton.onClick.listen((_) {
+        tabController.selectTab('solution', force: true);
+      });
+      hintBox.showElements([hintElement, showSolutionButton]);
     });
 
     tabController.setTabVisibility('test', false);
@@ -715,7 +721,8 @@ class NewEmbedTabController extends TabController {
     tabs.add(tab);
 
     try {
-      tab.onClick.listen((_) => selectTab(tab.name));
+      tab.onClick
+          .listen((_) => selectTab(tab.name, force: _userHasSeenSolution));
     } catch (e, st) {
       print('Error from registerTab: $e\n$st');
     }
@@ -723,9 +730,9 @@ class NewEmbedTabController extends TabController {
 
   /// This method will throw if the tabName is not the name of a current tab.
   @override
-  Future selectTab(String tabName) async {
+  Future selectTab(String tabName, {bool force = false}) async {
     // Show a confirmation dialog if the solution tab is tapped
-    if (tabName == 'solution' && !_userHasSeenSolution) {
+    if (tabName == 'solution' && !force) {
       var result = await _dialog.showYesNo(
         'Show solution?',
         'If you just want a hint, click <span style="font-weight:bold">Cancel'
@@ -736,9 +743,11 @@ class NewEmbedTabController extends TabController {
       // Go back to the editor tab
       if (result == DialogResult.no) {
         tabName = 'editor';
-      } else {
-        _userHasSeenSolution = true;
       }
+    }
+
+    if (tabName == 'solution') {
+      _userHasSeenSolution = true;
     }
 
     var tab = tabs.firstWhere((t) => t.name == tabName);
