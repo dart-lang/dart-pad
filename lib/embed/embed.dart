@@ -324,13 +324,14 @@ class PlaygroundMobile {
     _clearOutput();
   }
 
-  Future<void> _showGist(String gistId, {bool run = false}) {
-    return gistLoader.loadGist(gistId).then((Gist gist) {
+  Future<void> _showGist(String gistId, {bool run = false}) async {
+    try {
+      final gist = await gistLoader.loadGist(gistId);
       _setGistDescription(gist.description);
       _setGistId(gist.id);
 
       GistFile dart =
-          chooseGistFile(gist, ['main.dart'], (f) => f.endsWith('.dart'));
+      chooseGistFile(gist, ['main.dart'], (f) => f.endsWith('.dart'));
       GistFile html = chooseGistFile(gist, ['index.html', 'body.html']);
       GistFile css = chooseGistFile(gist, ['styles.css', 'style.css']);
 
@@ -345,10 +346,10 @@ class PlaygroundMobile {
       if (url.hasQuery && url.queryParameters['line'] != null) {
         _jumpToLine(int.parse(url.queryParameters['line']));
       }
-    }).catchError((e) {
+    } catch (e) {
       print('Error loading gist $gistId.\n$e');
       _showError('Error Loading Gist', '$gistId - $e');
-    });
+    }
   }
 
   Future _initModules() {
