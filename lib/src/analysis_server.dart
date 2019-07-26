@@ -348,7 +348,8 @@ class AnalysisServerWrapper {
               sourceEdit.offset, sourceEdit.length, sourceEdit.replacement);
         }).toList();
         assists.add(
-            api.CandidateFix.fromEdits(sourceChange.message, apiSourceEdits, sourceChange.selection.offset));
+            api.CandidateFix.fromEdits(sourceChange.message, apiSourceEdits, 13);//sourceChange?.selection?.offset));
+        print('${sourceChange.message}, ${apiSourceEdits}, ${sourceChange?.selection?.offset}');
       }
     }
 

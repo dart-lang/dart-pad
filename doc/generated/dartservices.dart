@@ -472,6 +472,7 @@ class AssistsResponse {
 class CandidateFix {
   core.List<SourceEdit> edits;
   core.String message;
+  core.int selectionOffset;
 
   CandidateFix();
 
@@ -484,6 +485,9 @@ class CandidateFix {
     if (_json.containsKey("message")) {
       message = _json["message"];
     }
+    if (_json.containsKey("selectionOffset")) {
+      selectionOffset = _json["selectionOffset"];
+    }
   }
 
   core.Map<core.String, core.Object> toJson() {
@@ -494,6 +498,9 @@ class CandidateFix {
     }
     if (message != null) {
       _json["message"] = message;
+    }
+    if (selectionOffset != null) {
+      _json["selectionOffset"] = selectionOffset;
     }
     return _json;
   }

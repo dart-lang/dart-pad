@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "9511ad5e62f9a85d39dbd491c411705fd3876af8",
+ "etag": "f6147d7c8390bfe275fd6c9c0b29b90368d5afa9",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -189,6 +189,10 @@
      "items": {
       "$ref": "SourceEdit"
      }
+    },
+    "selectionOffset": {
+     "type": "integer",
+     "format": "int32"
     }
    }
   },

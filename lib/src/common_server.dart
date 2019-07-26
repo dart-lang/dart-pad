@@ -621,6 +621,8 @@ class CommonServer {
 
     Stopwatch watch = Stopwatch()..start();
     var response = await analysisServer.getAssists(source, offset);
+    // LOGGER
+    print(response.assists.last.selectionOffset);
     log.info('PERF: Computed assists in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
