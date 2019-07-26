@@ -64,7 +64,7 @@ a {
 
 // Material Design
 .mdc-tab__text-label {
-  color: white !important;
+  color: $dark-text-color !important;
 }
 .mdc-tab--active .mdc-tab__text-label {
   color: #168AFD !important;
