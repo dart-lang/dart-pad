@@ -71,6 +71,18 @@ GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
 
 typedef void GistFilterHook(Gist gist);
 
+enum GistLoaderFailureType {
+  unknown,
+  gistDoesNotExist,
+  rateLimitExceeded,
+}
+
+class GistLoaderException {
+  final GistLoaderFailureType failureType;
+
+  const GistLoaderException(this.failureType);
+}
+
 /// A class to load and save gists. Gists can optionally be modified after
 /// loading and before saving.
 class GistLoader {
@@ -153,16 +165,28 @@ $styleRef$dartRef  </head>
         beforeSaveHook = _defaultSaveHook;
 
   /// Load the gist with the given id.
-  Future<Gist> loadGist(String gistId) {
-    // Load the gist using the github gist API:
-    // https://developer.github.com/v3/gists/#get-a-single-gist.
-    return HttpRequest.getString('$_apiUrl/$gistId').then((data) {
-      Gist gist = Gist.fromMap(json.decode(data));
+  Future<Gist> loadGist(String gistId) async {
+    try {
+      // Load the gist using the github gist API:
+      // https://developer.github.com/v3/gists/#get-a-single-gist.
+      final gistJson = await HttpRequest.getString('$_apiUrl/$gistId');
+      final gist = Gist.fromMap(json.decode(gistJson));
+
       if (afterLoadHook != null) {
         afterLoadHook(gist);
       }
+
       return gist;
-    });
+    } catch (ex) {
+      if (ex.target.status == 404) {
+        throw const GistLoaderException(GistLoaderFailureType.gistDoesNotExist);
+      } else if (ex.target.status == 403) {
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
+      } else {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      }
+    }
   }
 
   /// Create a new gist and return the newly created Gist.

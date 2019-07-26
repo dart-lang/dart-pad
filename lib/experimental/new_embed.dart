@@ -439,21 +439,52 @@ class NewEmbed {
     editorIsBusy = true;
 
     final GistLoader loader = deps[GistLoader];
-    final gist = await loader.loadGist(id);
-    context.dartSource = gist.getFile('main.dart')?.content ?? '';
-    context.htmlSource = gist.getFile('index.html')?.content ?? '';
-    context.cssSource = gist.getFile('styles.css')?.content ?? '';
-    context.testMethod = gist.getFile('test.dart')?.content ?? '';
-    context.solution = gist.getFile('solution.dart')?.content ?? '';
-    context.hint = gist.getFile('hint.txt')?.content ?? '';
-    tabController.setTabVisibility(
-        'test', context.testMethod.isNotEmpty && _showTestCode);
-    showHintButton?.hidden = context.hint.isEmpty;
-    solutionTab.toggleAttr('hidden', context.solution.isEmpty);
-    editorIsBusy = false;
 
-    if (analyze) {
-      _performAnalysis();
+    try {
+      final gist = await loader.loadGist(id);
+      context.dartSource = gist.getFile('main.dart')?.content ?? '';
+      context.htmlSource = gist.getFile('index.html')?.content ?? '';
+      context.cssSource = gist.getFile('styles.css')?.content ?? '';
+      context.testMethod = gist.getFile('test.dart')?.content ?? '';
+      context.solution = gist.getFile('solution.dart')?.content ?? '';
+      context.hint = gist.getFile('hint.txt')?.content ?? '';
+      tabController.setTabVisibility(
+          'test', context.testMethod.isNotEmpty && _showTestCode);
+      showHintButton?.hidden = context.hint.isEmpty;
+      solutionTab.toggleAttr('hidden', context.solution.isEmpty);
+      editorIsBusy = false;
+
+      if (analyze) {
+        _performAnalysis();
+      }
+    } on GistLoaderException catch (ex) {
+      // No gist was loaded, so the editors need to be cleared out.
+      context.dartSource = '';
+      context.htmlSource = '';
+      context.cssSource = '';
+      context.testMethod = '';
+      context.solution = '';
+      context.hint = '';
+      tabController.setTabVisibility('test', false);
+      showHintButton?.hidden = true;
+      solutionTab.toggleAttr('hidden', true);
+      editorIsBusy = false;
+
+      if (ex.failureType == GistLoaderFailureType.gistDoesNotExist) {
+        await dialog.showOk('Error loading gist', 'No gist was found matching '
+            ' the ID provided ($gistId).');
+      } else if (ex.failureType == GistLoaderFailureType.rateLimitExceeded) {
+        await dialog.showOk('Error loading gist', 'GitHub\'s rate limit for '
+            'API requests has been exceeded. This is typically caused by '
+            'repeatedly loading a single page that has many DartPad embeds or '
+            'when many users are accessing DartPad (and therefore GitHub\'s '
+            'API server) from a single, shared IP address. Quotas are '
+            'typically renewed within an hour, so the best course of action is '
+            'to try back later.');
+      } else {
+        await dialog.showOk('Error loading gist', 'An error occurred while '
+            'loading Gist ID $gistId.');
+      }
     }
   }
 
@@ -688,7 +719,7 @@ class NewEmbedTabController extends TabController {
   Future selectTab(String tabName) async {
     // Show a confirmation dialog if the solution tab is tapped
     if (tabName == 'solution' && !_userHasSeenSolution) {
-      var result = await _dialog.show(
+      var result = await _dialog.showYesNo(
         'Show solution?',
         'If you just want a hint, click <span style="font-weight:bold">Cancel'
             '</span> and then <span style="font-weight:bold">Hint</span>.',
@@ -1093,43 +1124,88 @@ class ConsoleExpandController extends ConsoleController {
 enum DialogResult {
   yes,
   no,
+  ok,
+  cancel,
 }
 
 class Dialog {
   final MDCDialog _mdcDialog;
-  final Element _yesButton;
-  final Element _noButton;
+  final Element _leftButton;
+  final Element _rightButton;
   final Element _title;
   final Element _content;
 
   Dialog()
       : _mdcDialog = MDCDialog(querySelector('.mdc-dialog')),
-        _yesButton = querySelector('#dialog-yes'),
-        _noButton = querySelector('#dialog-no'),
+        _leftButton = querySelector('#dialog-left-button'),
+        _rightButton = querySelector('#dialog-right-button'),
         _title = querySelector('#my-dialog-title'),
         _content = querySelector('#my-dialog-content');
 
-  Future<DialogResult> show(String title, String htmlMessage,
+  Future<DialogResult> showYesNo(String title, String htmlMessage,
       {String yesText = "Yes", String noText = "No"}) {
+    return _setUpAndDisplay(
+        title, htmlMessage, yesText, noText, DialogResult.yes, DialogResult.no);
+  }
+
+  Future<DialogResult> showOk(String title, String htmlMessage) {
+    return _setUpAndDisplay(
+      title,
+      htmlMessage,
+      "OK",
+      '',
+      DialogResult.ok,
+      DialogResult.cancel,
+      false,
+    );
+  }
+
+  Future<DialogResult> showOkCancel(String title, String htmlMessage) {
+    return _setUpAndDisplay(
+      title,
+      htmlMessage,
+      'OK',
+      'Cancel',
+      DialogResult.ok,
+      DialogResult.cancel,
+    );
+  }
+
+  Future<DialogResult> _setUpAndDisplay(
+      String title,
+      String htmlMessage,
+      String leftButtonText,
+      String rightButtonText,
+      DialogResult leftButtonResult,
+      DialogResult rightButtonResult,
+      [bool showRightButton = true]) {
     _title.text = title;
     _content.setInnerHtml(htmlMessage, validator: PermissiveNodeValidator());
+    _leftButton.text = leftButtonText;
 
-    _yesButton.text = yesText;
-    _noButton.text = noText;
+    final completer = Completer<DialogResult>();
+    StreamSubscription rightSub;
+
+    if (showRightButton) {
+      _rightButton.removeAttribute('hidden');
+      _rightButton.text = rightButtonText;
+      rightSub = _rightButton.onClick.listen((_) {
+        completer.complete(rightButtonResult);
+      });
+    } else {
+      _rightButton.setAttribute('hidden', 'true');
+    }
+
+    final leftSub = _leftButton.onClick.listen((_) {
+      completer.complete(leftButtonResult);
+    });
+
     _mdcDialog.open();
 
-    var completer = Completer<DialogResult>();
-
-    var sub1 = _yesButton.onClick.listen((_) {
-      completer.complete(DialogResult.yes);
-    });
-    var sub2 = _noButton.onClick.listen((_) {
-      completer.complete(DialogResult.no);
-    });
-
     return completer.future.then((v) {
-      sub1.cancel();
-      sub2.cancel();
+      leftSub.cancel();
+      rightSub?.cancel();
+      _mdcDialog.close();
       return v;
     });
   }

@@ -229,7 +229,15 @@ class Playground implements GistContainer, GistController {
     } else if (url.hasQuery && url.queryParameters['source'] != null) {
       UuidContainer gistId = await dartSupportServices.retrieveGist(
           id: url.queryParameters['source']);
-      Gist backing = await gistLoader.loadGist(gistId.uuid);
+      Gist backing;
+
+      try {
+        backing = await gistLoader.loadGist(gistId.uuid);
+      } catch (ex) {
+        print(ex);
+        backing = Gist();
+      }
+
       editableGist.setBackingGist(backing);
       await router.go('gist', {'gist': backing.id});
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
@@ -728,8 +736,7 @@ class Playground implements GistContainer, GistController {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
-    SourceRequest input = SourceRequest()
-      ..source = _context.dartSource;
+    SourceRequest input = SourceRequest()..source = _context.dartSource;
 
     Lines lines = Lines(input.source);
 
