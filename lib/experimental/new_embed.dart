@@ -493,6 +493,13 @@ class NewEmbed {
       return;
     }
 
+    if (context.dartSource.isEmpty) {
+      dialog.showOk('No code to execute!',
+          'Try entering some Dart code into the "Dart" tab, then click this '
+          'button again to run it.');
+      return;
+    }
+
     ga?.sendEvent('execution', 'initiated');
 
     editorIsBusy = true;
