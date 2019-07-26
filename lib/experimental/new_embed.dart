@@ -458,7 +458,7 @@ class NewEmbed {
         _performAnalysis();
       }
     } on GistLoaderException catch (ex) {
-      // No gist was loaded, so the editors need to be cleared out.
+      // No gist was loaded, so clear the editors.
       context.dartSource = '';
       context.htmlSource = '';
       context.cssSource = '';
@@ -471,8 +471,8 @@ class NewEmbed {
       editorIsBusy = false;
 
       if (ex.failureType == GistLoaderFailureType.gistDoesNotExist) {
-        await dialog.showOk('Error loading gist', 'No gist was found matching '
-            ' the ID provided ($gistId).');
+        await dialog.showOk('Error loading gist',
+            'No gist was found matching the ID provided ($gistId).');
       } else if (ex.failureType == GistLoaderFailureType.rateLimitExceeded) {
         await dialog.showOk('Error loading gist', 'GitHub\'s rate limit for '
             'API requests has been exceeded. This is typically caused by '
@@ -494,7 +494,7 @@ class NewEmbed {
     }
 
     if (context.dartSource.isEmpty) {
-      dialog.showOk('No code to execute!',
+      dialog.showOk('No code to execute',
           'Try entering some Dart code into the "Dart" tab, then click this '
           'button again to run it.');
       return;
@@ -1152,17 +1152,23 @@ class Dialog {
   Future<DialogResult> showYesNo(String title, String htmlMessage,
       {String yesText = "Yes", String noText = "No"}) {
     return _setUpAndDisplay(
-        title, htmlMessage, yesText, noText, DialogResult.yes, DialogResult.no);
+      title,
+      htmlMessage,
+      noText,
+      yesText,
+      DialogResult.no,
+      DialogResult.yes,
+    );
   }
 
   Future<DialogResult> showOk(String title, String htmlMessage) {
     return _setUpAndDisplay(
       title,
       htmlMessage,
-      "OK",
       '',
-      DialogResult.ok,
+      "OK",
       DialogResult.cancel,
+      DialogResult.ok,
       false,
     );
   }
@@ -1171,10 +1177,10 @@ class Dialog {
     return _setUpAndDisplay(
       title,
       htmlMessage,
-      'OK',
       'Cancel',
-      DialogResult.ok,
+      'OK',
       DialogResult.cancel,
+      DialogResult.ok,
     );
   }
 
@@ -1185,33 +1191,33 @@ class Dialog {
       String rightButtonText,
       DialogResult leftButtonResult,
       DialogResult rightButtonResult,
-      [bool showRightButton = true]) {
+      [bool showLeftButton = true]) {
     _title.text = title;
     _content.setInnerHtml(htmlMessage, validator: PermissiveNodeValidator());
-    _leftButton.text = leftButtonText;
+    _rightButton.text = rightButtonText;
 
     final completer = Completer<DialogResult>();
-    StreamSubscription rightSub;
+    StreamSubscription leftSub;
 
-    if (showRightButton) {
-      _rightButton.removeAttribute('hidden');
-      _rightButton.text = rightButtonText;
-      rightSub = _rightButton.onClick.listen((_) {
-        completer.complete(rightButtonResult);
+    if (showLeftButton) {
+      _leftButton.text = leftButtonText;
+      _leftButton.removeAttribute('hidden');
+      leftSub = _leftButton.onClick.listen((_) {
+        completer.complete(leftButtonResult);
       });
     } else {
-      _rightButton.setAttribute('hidden', 'true');
+      _leftButton.setAttribute('hidden', 'true');
     }
 
-    final leftSub = _leftButton.onClick.listen((_) {
-      completer.complete(leftButtonResult);
+    final rightSub = _rightButton.onClick.listen((_) {
+      completer.complete(rightButtonResult);
     });
 
     _mdcDialog.open();
 
     return completer.future.then((v) {
-      leftSub.cancel();
-      rightSub?.cancel();
+      leftSub?.cancel();
+      rightSub.cancel();
       _mdcDialog.close();
       return v;
     });

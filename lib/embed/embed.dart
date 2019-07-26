@@ -325,10 +325,8 @@ class PlaygroundMobile {
   }
 
   Future<void> _showGist(String gistId, {bool run = false}) async {
-    Gist gist;
-
     try {
-      gist = await gistLoader.loadGist(gistId);
+      final gist = await gistLoader.loadGist(gistId);
       _setGistDescription(gist.description);
       _setGistId(gist.id);
 
