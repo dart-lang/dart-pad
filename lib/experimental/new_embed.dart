@@ -342,12 +342,7 @@ class NewEmbed {
       var type = data['type'];
 
       if (type == 'sourceCode') {
-        var sourceCode = data['sourceCode'];
-        userCodeEditor.document.value = sourceCode['main.dart'] ?? '';
-        solutionEditor.document.value = sourceCode['solution.dart'] ?? '';
-        testEditor.document.value = sourceCode['test.dart'] ?? '';
-        htmlEditor.document.value = sourceCode['index.html'] ?? '';
-        cssEditor.document.value = sourceCode['styles.css'] ?? '';
+        setContextSources(Map<String, String>.from(data['sourceCode']));
       }
     });
   }
@@ -448,50 +443,56 @@ class NewEmbed {
 
     try {
       final gist = await loader.loadGist(id);
-      context.dartSource = gist.getFile('main.dart')?.content ?? '';
-      context.htmlSource = gist.getFile('index.html')?.content ?? '';
-      context.cssSource = gist.getFile('styles.css')?.content ?? '';
-      context.testMethod = gist.getFile('test.dart')?.content ?? '';
-      context.solution = gist.getFile('solution.dart')?.content ?? '';
-      context.hint = gist.getFile('hint.txt')?.content ?? '';
-      tabController.setTabVisibility(
-          'test', context.testMethod.isNotEmpty && _showTestCode);
-      showHintButton?.hidden = context.hint.isEmpty;
-      solutionTab?.toggleAttr('hidden', context.solution.isEmpty);
-      editorIsBusy = false;
+      setContextSources(<String, String>{
+        'main.dart': gist.getFile('main.dart')?.content ?? '',
+        'index.html': gist.getFile('index.html')?.content ?? '',
+        'styles.css': gist.getFile('styles.css')?.content ?? '',
+        'solution.dart': gist.getFile('solution.dart')?.content ?? '',
+        'test.dart': gist.getFile('test.dart')?.content ?? '',
+        'hint.txt': gist.getFile('hint.txt')?.content ?? '',
+      });
 
       if (analyze) {
         _performAnalysis();
       }
     } on GistLoaderException catch (ex) {
       // No gist was loaded, so clear the editors.
-      context.dartSource = '';
-      context.htmlSource = '';
-      context.cssSource = '';
-      context.testMethod = '';
-      context.solution = '';
-      context.hint = '';
-      tabController.setTabVisibility('test', false);
-      showHintButton?.hidden = true;
-      solutionTab?.toggleAttr('hidden', true);
-      editorIsBusy = false;
+      setContextSources(<String, String>{});
 
       if (ex.failureType == GistLoaderFailureType.gistDoesNotExist) {
         await dialog.showOk('Error loading gist',
             'No gist was found matching the ID provided ($gistId).');
       } else if (ex.failureType == GistLoaderFailureType.rateLimitExceeded) {
-        await dialog.showOk('Error loading gist', 'GitHub\'s rate limit for '
-            'API requests has been exceeded. This is typically caused by '
-            'repeatedly loading a single page that has many DartPad embeds or '
-            'when many users are accessing DartPad (and therefore GitHub\'s '
-            'API server) from a single, shared IP address. Quotas are '
-            'typically renewed within an hour, so the best course of action is '
-            'to try back later.');
+        await dialog.showOk(
+            'Error loading gist',
+            'GitHub\'s rate limit for '
+                'API requests has been exceeded. This is typically caused by '
+                'repeatedly loading a single page that has many DartPad embeds or '
+                'when many users are accessing DartPad (and therefore GitHub\'s '
+                'API server) from a single, shared IP address. Quotas are '
+                'typically renewed within an hour, so the best course of action is '
+                'to try back later.');
       } else {
-        await dialog.showOk('Error loading gist', 'An error occurred while '
-            'loading Gist ID $gistId.');
+        await dialog.showOk(
+            'Error loading gist',
+            'An error occurred while '
+                'loading Gist ID $gistId.');
       }
     }
+  }
+
+  void setContextSources(Map<String, String> sources) {
+    context.dartSource = sources['main.dart'] ?? '';
+    context.solution = sources['solution.dart'] ?? '';
+    context.testMethod = sources['test.dart'] ?? '';
+    context.htmlSource = sources['index.html'] ?? '';
+    context.cssSource = sources['styles.css'] ?? '';
+    context.hint = sources['hint.txt'] ?? '';
+    tabController.setTabVisibility(
+        'test', context.testMethod.isNotEmpty && _showTestCode);
+    showHintButton?.hidden = context.hint.isEmpty;
+    solutionTab?.toggleAttr('hidden', context.solution.isEmpty);
+    editorIsBusy = false;
   }
 
   void _handleExecute() {
@@ -500,9 +501,10 @@ class NewEmbed {
     }
 
     if (context.dartSource.isEmpty) {
-      dialog.showOk('No code to execute',
+      dialog.showOk(
+          'No code to execute',
           'Try entering some Dart code into the "Dart" tab, then click this '
-          'button again to run it.');
+              'button again to run it.');
       return;
     }
 
