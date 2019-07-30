@@ -336,7 +336,14 @@ class NewEmbed {
           footer: querySelector('#console-output-footer'),
           expandIcon: querySelector('#console-expand-icon'),
           unreadCounter: unreadConsoleCounter,
-          consoleElement: querySelector('#console-output-container'));
+          consoleElement: querySelector('#console-output-container'),
+          onSizeChanged: () {
+            userCodeEditor.resize();
+            testEditor.resize();
+            solutionEditor.resize();
+            htmlEditor.resize();
+            cssEditor.resize();
+          });
     } else {
       consoleExpandController =
           ConsoleController(querySelector('#console-output-container'));
@@ -1086,6 +1093,7 @@ class ConsoleExpandController extends ConsoleController {
   final DElement footer;
   final DElement expandIcon;
   final Counter unreadCounter;
+  final Function onSizeChanged;
   Splitter _splitter;
   bool _expanded;
 
@@ -1095,6 +1103,7 @@ class ConsoleExpandController extends ConsoleController {
     Element expandIcon,
     Element consoleElement,
     this.unreadCounter,
+    this.onSizeChanged,
   })  : expandButton = DElement(expandButton),
         footer = DElement(footer),
         expandIcon = DElement(expandIcon),
@@ -1147,6 +1156,7 @@ class ConsoleExpandController extends ConsoleController {
         // TODO(ryjohn): why does this happen?
       }
     }
+    this.onSizeChanged();
   }
 
   void _initSplitter() {
