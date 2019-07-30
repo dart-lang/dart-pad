@@ -204,7 +204,7 @@ class NewEmbed {
         tabController.selectTab('solution', force: true);
       });
       hintBox.showElements([hintElement, showSolutionButton]);
-    });
+    })..hidden = true;
 
     tabController.setTabVisibility('test', false);
     showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
