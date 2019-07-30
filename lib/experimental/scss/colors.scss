@@ -54,7 +54,7 @@ $dark-orange-2: darken(desaturate(#ff9b00, 20%), 5%);
 $dark-editor-text: darken(desaturate(#ffffff, 20%), 5%);
 $dark-comment: darken(desaturate(#909cce, 20%), 5%);
 $dark-line-count: darken(desaturate(#414c58, 20%), 5%);
-$dark-gutter-line-number-color: darken(desaturate(#485561, 20%), 5%);
+$dark-gutter-line-number-color: $dark-text-color;
 $dark-selection-color: lighten($dark-code-background-color, 10%);
 
 $light-green: #007a27;

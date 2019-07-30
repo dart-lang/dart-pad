@@ -31,6 +31,26 @@ NewEmbed get newEmbed => _newEmbed;
 
 NewEmbed _newEmbed;
 
+var codeMirrorOptions = {
+  'continueComments': {'continueLineComment': false},
+  'autofocus': false,
+  'autoCloseBrackets': true,
+  'matchBrackets': true,
+  'tabSize': 2,
+  'lineWrapping': true,
+  'indentUnit': 2,
+  'cursorHeight': 0.85,
+  'viewportMargin': 100,
+  'extraKeys': {
+    'Cmd-/': 'toggleComment',
+    'Ctrl-/': 'toggleComment',
+    'Tab': 'insertSoftTab'
+  },
+  'hintOptions': {'completeSingle': false},
+  'theme': 'zenburn',
+  'scrollbarStyle': 'simple',
+};
+
 void init(NewEmbedOptions options) {
   _newEmbed = NewEmbed(options);
 }
@@ -74,7 +94,7 @@ class NewEmbed {
 
   ExecutionService executionSvc;
 
-  EditorFactory editorFactory = codeMirrorFactory;
+  CodeMirrorFactory editorFactory = codeMirrorFactory;
 
   Editor userCodeEditor;
   Editor testEditor;
@@ -213,15 +233,17 @@ class NewEmbed {
     hintBox = FlashBox(querySelector('#hint-box'));
     var editorTheme = isDarkMode ? 'darkpad' : 'dartpad';
 
-    userCodeEditor =
-        editorFactory.createFromElement(querySelector('#user-code-editor'))
-          ..theme = editorTheme
-          ..mode = 'dart'
-          ..showLineNumbers = true;
+    userCodeEditor = editorFactory.createFromElement(
+        querySelector('#user-code-editor'),
+        options: codeMirrorOptions)
+      ..theme = editorTheme
+      ..mode = 'dart'
+      ..showLineNumbers = true;
     userCodeEditor.document.onChange.listen(_performAnalysis);
     userCodeEditor.autoCloseBrackets = false;
 
-    testEditor = editorFactory.createFromElement(querySelector('#test-editor'))
+    testEditor = editorFactory.createFromElement(querySelector('#test-editor'),
+        options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
       // TODO(devoncarew): We should make this read-only after initial beta
@@ -229,19 +251,22 @@ class NewEmbed {
       //..readOnly = true
       ..showLineNumbers = true;
 
-    solutionEditor =
-        editorFactory.createFromElement(querySelector('#solution-editor'))
-          ..theme = editorTheme
-          ..mode = 'dart'
-          ..showLineNumbers = true;
+    solutionEditor = editorFactory.createFromElement(
+        querySelector('#solution-editor'),
+        options: codeMirrorOptions)
+      ..theme = editorTheme
+      ..mode = 'dart'
+      ..showLineNumbers = true;
 
-    htmlEditor = editorFactory.createFromElement(querySelector('#html-editor'))
+    htmlEditor = editorFactory.createFromElement(querySelector('#html-editor'),
+        options: codeMirrorOptions)
       ..theme = editorTheme
       // TODO(ryjohn): why doesn't editorFactory.modes have html?
       ..mode = 'xml'
       ..showLineNumbers = true;
 
-    cssEditor = editorFactory.createFromElement(querySelector('#css-editor'))
+    cssEditor = editorFactory.createFromElement(querySelector('#css-editor'),
+        options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'css'
       ..showLineNumbers = true;
@@ -480,16 +505,20 @@ class NewEmbed {
         await dialog.showOk('Error loading gist',
             'No gist was found matching the ID provided ($gistId).');
       } else if (ex.failureType == GistLoaderFailureType.rateLimitExceeded) {
-        await dialog.showOk('Error loading gist', 'GitHub\'s rate limit for '
-            'API requests has been exceeded. This is typically caused by '
-            'repeatedly loading a single page that has many DartPad embeds or '
-            'when many users are accessing DartPad (and therefore GitHub\'s '
-            'API server) from a single, shared IP address. Quotas are '
-            'typically renewed within an hour, so the best course of action is '
-            'to try back later.');
+        await dialog.showOk(
+            'Error loading gist',
+            'GitHub\'s rate limit for '
+                'API requests has been exceeded. This is typically caused by '
+                'repeatedly loading a single page that has many DartPad embeds or '
+                'when many users are accessing DartPad (and therefore GitHub\'s '
+                'API server) from a single, shared IP address. Quotas are '
+                'typically renewed within an hour, so the best course of action is '
+                'to try back later.');
       } else {
-        await dialog.showOk('Error loading gist', 'An error occurred while '
-            'loading Gist ID $gistId.');
+        await dialog.showOk(
+            'Error loading gist',
+            'An error occurred while '
+                'loading Gist ID $gistId.');
       }
     }
   }
@@ -500,9 +529,10 @@ class NewEmbed {
     }
 
     if (context.dartSource.isEmpty) {
-      dialog.showOk('No code to execute',
+      dialog.showOk(
+          'No code to execute',
           'Try entering some Dart code into the "Dart" tab, then click this '
-          'button again to run it.');
+              'button again to run it.');
       return;
     }
 
