@@ -51,8 +51,9 @@ body {
 
 // Code Editor
 
-#user-code-editor {
+#user-code-editor, #solution-editor, #test-editor, #html-editor, #solution-editor {
   flex: 1;
+  width: 100%;
 }
 
 .CodeMirror-hints {
@@ -121,8 +122,6 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   border-radius: 4px;
   background-color: $scrollbar-color;
-  box-shadow: 0 0 1px $light-code-background-color;
-  opacity: 0.5;
 }
 
 .message-container div+div {
@@ -226,7 +225,7 @@ body {
 
 #editor-container {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
 }
 
 #tab-container {
