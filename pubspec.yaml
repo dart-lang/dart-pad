@@ -7,7 +7,8 @@ environment:
 
 dependencies:
   _discoveryapis_commons: '>=0.1.0 <0.2.0'
-  codemirror: ^0.5.0+5.43.0
+#  codemirror: ^0.5.0+5.43.0
+  codemirror: 0.5.9-alpha+5.48.2-pre
   # TODO(jcollins-g): return to haikunator pub package after it is
   # published with https://github.com/Atrox/haikunatordart/pull/1
   #haikunator: ^0.1.0
