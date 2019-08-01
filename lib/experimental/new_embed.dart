@@ -112,6 +112,7 @@ class NewEmbed {
 
   MDCLinearProgress linearProgress;
   Dialog dialog;
+  Map<String, String> lastInjectedSourceCode = <String, String>{};
 
   final DelayedTimer _debounceTimer = DelayedTimer(
     minDelay: Duration(milliseconds: 1000),
@@ -134,7 +135,7 @@ class NewEmbed {
     userCodeEditor.readOnly = value;
     executeButton.disabled = value;
     formatButton.disabled = value;
-    reloadGistButton.disabled = value || gistId.isEmpty;
+    reloadGistButton.disabled = value;
     showHintButton?.disabled = value;
   }
 
@@ -190,10 +191,10 @@ class NewEmbed {
     reloadGistButton = DisableableButton(querySelector('#reload-gist'), () {
       if (gistId.isNotEmpty) {
         _loadAndShowGist(gistId);
+      } else {
+        _resetCode();
       }
     });
-
-    reloadGistButton.disabled = gistId.isEmpty;
 
     showHintButton = DisableableButton(querySelector('#show-hint'), () {
       var hintElement = DivElement()..text = context.hint;
@@ -374,7 +375,8 @@ class NewEmbed {
       var type = data['type'];
 
       if (type == 'sourceCode') {
-        setContextSources(Map<String, String>.from(data['sourceCode']));
+        lastInjectedSourceCode = Map<String, String>.from(data['sourceCode']);
+        setContextSources(lastInjectedSourceCode);
       }
     });
   }
@@ -511,6 +513,10 @@ class NewEmbed {
                 'loading Gist ID $gistId.');
       }
     }
+  }
+
+  void _resetCode() {
+    setContextSources(lastInjectedSourceCode);
   }
 
   void setContextSources(Map<String, String> sources) {
