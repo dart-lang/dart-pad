@@ -376,7 +376,7 @@ class NewEmbed {
 
       if (type == 'sourceCode') {
         lastInjectedSourceCode = Map<String, String>.from(data['sourceCode']);
-        setContextSources(lastInjectedSourceCode);
+        _resetCode();
       }
     });
   }
