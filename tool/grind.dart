@@ -169,15 +169,15 @@ build() {
 
   // Run vulcanize.
   // Imports vulcanized, not inlined for IE support
-  vulcanizeNoExclusion('scripts/imports.html');
   vulcanize('index.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
+  vulcanize('embed-flutter.html');
+  vulcanize('embed-inline.html');
   vulcanize('experimental/embed-new-dart.html');
   vulcanize('experimental/embed-new-flutter.html');
   vulcanize('experimental/embed-new-html.html');
   vulcanize('experimental/embed-new-inline.html');
-  vulcanize('embed-inline.html');
 }
 
 void copyPackageResources(String packageName, Directory destDir) {
