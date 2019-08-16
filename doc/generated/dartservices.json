@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "f6147d7c8390bfe275fd6c9c0b29b90368d5afa9",
+ "etag": "e5fb2d50ad3bc13ae1c6dda90907613797073978",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -193,6 +193,12 @@
     "selectionOffset": {
      "type": "integer",
      "format": "int32"
+    },
+    "linkedEditGroups": {
+     "type": "array",
+     "items": {
+      "$ref": "LinkedEditGroup"
+     }
     }
    }
   },
@@ -209,6 +215,53 @@
      "format": "int32"
     },
     "replacement": {
+     "type": "string"
+    }
+   }
+  },
+  "LinkedEditGroup": {
+   "id": "LinkedEditGroup",
+   "type": "object",
+   "properties": {
+    "positions": {
+     "type": "array",
+     "items": {
+      "$ref": "Position"
+     }
+    },
+    "length": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "suggestions": {
+     "type": "array",
+     "items": {
+      "$ref": "LinkedEditSuggestion"
+     }
+    }
+   }
+  },
+  "Position": {
+   "id": "Position",
+   "type": "object",
+   "properties": {
+    "file": {
+     "type": "string"
+    },
+    "offset": {
+     "type": "integer",
+     "format": "int32"
+    }
+   }
+  },
+  "LinkedEditSuggestion": {
+   "id": "LinkedEditSuggestion",
+   "type": "object",
+   "properties": {
+    "value": {
+     "type": "string"
+    },
+    "kind": {
      "type": "string"
     }
    }
