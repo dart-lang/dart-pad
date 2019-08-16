@@ -205,7 +205,8 @@ class NewEmbed {
         tabController.selectTab('solution', force: true);
       });
       hintBox.showElements([hintElement, showSolutionButton]);
-    })..hidden = true;
+    })
+      ..hidden = true;
 
     tabController.setTabVisibility('test', false);
     showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
@@ -359,7 +360,14 @@ class NewEmbed {
     linearProgress.determinate = false;
 
     _initializeMaterialRipples();
-    _initModules().then((_) => _initNewEmbed()).then((_) => _emitReady());
+    _initModules()
+        .then((_) => _initNewEmbed())
+        .then((_) => _emitReady())
+        .then((_) {
+      if (options.mode == NewEmbedMode.flutter) {
+        _notifyIfWebKit();
+      }
+    });
   }
 
   /// Initializes a listener for messages from the parent window. Allows this
@@ -405,6 +413,27 @@ class NewEmbed {
     modules.register(DartServicesModule());
 
     await modules.start();
+  }
+
+  void _notifyIfWebKit() {
+    // See https://bugs.webkit.org/show_bug.cgi?id=199866.
+    if (window.navigator.vendor.contains('Apple') &&
+        !window.navigator.userAgent.contains('CriOS') &&
+        !window.navigator.userAgent.contains('FxiOS')) {
+      dialog.showOk('Possible delay', '''
+<p>
+It looks like you're using a WebKit-based browser (such as Safari). There's
+currently an issue with the way DartPad and WebKit's JavaScript parser interact
+that could cause up to a thirty second delay the first time you execute Flutter
+code in DartPad. This is not an issue with Dart or Flutter itself, and we're
+working with the WebKit team to resolve it.
+</p>
+<p>
+In the meantime, it's possible to avoid the delay by using one of the other
+major browsers, such as Firefox, Edge (dev channel), or Chrome.
+</p>
+''');
+    }
   }
 
   void _initNewEmbed() {
