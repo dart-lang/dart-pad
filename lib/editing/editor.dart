@@ -188,8 +188,8 @@ class Completion {
 
   /// Quick fixes that alter multiple lines of editor content can't simply
   /// provide an offset on the cursor's current line to represent the position
-  /// to which it should move. This field allows for a character count from the
-  /// top of the file to be used instead.
+  /// to which the cursor should move. This field allows for a character count
+  /// from the top of the file to be used instead.
   final int absoluteCursorPosition;
 
   List<SourceEdit> quickFixes = [];
