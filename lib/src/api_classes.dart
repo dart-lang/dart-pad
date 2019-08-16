@@ -7,6 +7,7 @@ library services.api_classes;
 
 import 'dart:convert';
 
+import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:rpc/rpc.dart';
 
 class AnalysisResults {
@@ -188,6 +189,7 @@ class CandidateFix {
   final String message;
   final List<SourceEdit> edits;
   final int selectionOffset;
+  final List<LinkedEditGroup> linkedEditGroups;
 
   CandidateFix() : this.fromEdits();
 
@@ -195,6 +197,7 @@ class CandidateFix {
     this.message,
     this.edits,
     this.selectionOffset,
+    this.linkedEditGroups,
   ]);
 }
 
