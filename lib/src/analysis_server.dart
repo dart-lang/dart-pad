@@ -351,8 +351,8 @@ class AnalysisServerWrapper {
         assists.add(api.CandidateFix.fromEdits(
           sourceChange.message,
           apiSourceEdits,
-          sourceChange?.selection?.offset,
-          sourceChange?.linkedEditGroups,
+          sourceChange.selection?.offset,
+          sourceChange.linkedEditGroups,
         ));
       }
     }
