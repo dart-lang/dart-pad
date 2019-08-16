@@ -91,32 +91,41 @@ class CodeMirrorFactory extends EditorFactory {
       String stringToReplace = doc.getValue().substring(
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
-      List<HintResult> hints = result.completions.map((Completion completion) {
-        return HintResult(completion.value,
-            displayText: completion.displayString,
-            className: completion.type, hintApplier: (CodeMirror editor,
-                HintResult hint, pos.Position from, pos.Position to) {
-          doc.replaceRange(hint.text, from, to);
-          if (completion.cursorOffset != null) {
-            int diff = hint.text.length - completion.cursorOffset;
-            doc.setCursor(pos.Position(
-                editor.getCursor().line, editor.getCursor().ch - diff));
-          }
-          if (completion.type == 'type-quick_fix') {
-            for (final edit in completion.quickFixes) {
-              ed.document.applyEdit(edit);
+      List<HintResult> hints = result.completions.map((completion) {
+        return HintResult(
+          completion.value,
+          displayText: completion.displayString,
+          className: completion.type,
+          hintApplier: (CodeMirror editor, HintResult hint, pos.Position from,
+              pos.Position to) {
+            doc.replaceRange(hint.text, from, to);
+
+            if (completion.type == 'type-quick_fix') {
+              for (final edit in completion.quickFixes) {
+                ed.document.applyEdit(edit);
+              }
             }
-          }
-        }, hintRenderer: (html.Element element, HintResult hint) {
-          var escapeHtml = HtmlEscape().convert;
-          if (completion.type != 'type-quick_fix') {
-            element.innerHtml = escapeHtml(completion.displayString)
-                .replaceFirst(escapeHtml(stringToReplace),
-                    '<em>${escapeHtml(stringToReplace)}</em>');
-          } else {
-            element.innerHtml = escapeHtml(completion.displayString);
-          }
-        });
+
+            if (completion.absoluteCursorPosition != null) {
+              doc.setCursor(
+                  doc.posFromIndex(completion.absoluteCursorPosition));
+            } else if (completion.cursorOffset != null) {
+              int diff = hint.text.length - completion.cursorOffset;
+              doc.setCursor(pos.Position(
+                  editor.getCursor().line, editor.getCursor().ch - diff));
+            }
+          },
+          hintRenderer: (html.Element element, HintResult hint) {
+            var escapeHtml = HtmlEscape().convert;
+            if (completion.type != 'type-quick_fix') {
+              element.innerHtml = escapeHtml(completion.displayString)
+                  .replaceFirst(escapeHtml(stringToReplace),
+                      '<em>${escapeHtml(stringToReplace)}</em>');
+            } else {
+              element.innerHtml = escapeHtml(completion.displayString);
+            }
+          },
+        );
       }).toList();
 
       if (hints.isEmpty && ed._lookingForQuickFix) {

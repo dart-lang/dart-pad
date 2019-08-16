@@ -67,11 +67,28 @@ class DartCompleter extends CodeCompleter {
                   SourceEdit(edit.length, edit.offset, edit.replacement))
               .toList();
 
+          int absoluteCursorPosition;
+
+          // TODO(redbrogdon): Find a way to properly use these linked edit
+          // groups via selections and multiple cursors.
+          if (assist.linkedEditGroups != null &&
+              assist.linkedEditGroups.isNotEmpty) {
+            absoluteCursorPosition =
+                assist.linkedEditGroups.first.positions.first.offset;
+          }
+
+          // If a specific offset is provided, prefer it to the one calculated
+          // from the linked edit groups.
+          if (assist.selectionOffset != null) {
+            absoluteCursorPosition = assist.selectionOffset;
+          }
+
           var completion = Completion(
             '',
             displayString: assist.message,
             type: 'type-quick_fix',
             quickFixes: sourceEdits,
+            absoluteCursorPosition: absoluteCursorPosition,
           );
 
           completions.add(completion);

@@ -12,7 +12,7 @@ import 'context.dart';
 import 'dart_pad.dart';
 import 'editing/editor.dart';
 import 'services/common.dart';
-import 'services/dartservices.dart';
+import 'services/dartservices.dart' hide Position;
 
 class ParameterPopup {
   static const List parKeys = [

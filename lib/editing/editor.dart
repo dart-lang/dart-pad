@@ -186,10 +186,22 @@ class Completion {
   /// This can be `null`.
   final int cursorOffset;
 
+  /// Quick fixes that alter multiple lines of editor content can't simply
+  /// provide an offset on the cursor's current line to represent the position
+  /// to which it should move. This field allows for a character count from the
+  /// top of the file to be used instead.
+  final int absoluteCursorPosition;
+
   List<SourceEdit> quickFixes = [];
 
-  Completion(this.value,
-      {this.displayString, this.type, this.cursorOffset, this.quickFixes});
+  Completion(
+    this.value, {
+    this.displayString,
+    this.type,
+    this.cursorOffset,
+    this.absoluteCursorPosition,
+    this.quickFixes,
+  });
 
   bool isSetterAndMatchesGetter(Completion other) =>
       displayString == other.displayString &&

@@ -471,6 +471,7 @@ class AssistsResponse {
 
 class CandidateFix {
   core.List<SourceEdit> edits;
+  core.List<LinkedEditGroup> linkedEditGroups;
   core.String message;
   core.int selectionOffset;
 
@@ -480,6 +481,11 @@ class CandidateFix {
     if (_json.containsKey("edits")) {
       edits = (_json["edits"] as core.List)
           .map<SourceEdit>((value) => new SourceEdit.fromJson(value))
+          .toList();
+    }
+    if (_json.containsKey("linkedEditGroups")) {
+      linkedEditGroups = (_json["linkedEditGroups"] as core.List)
+          .map<LinkedEditGroup>((value) => new LinkedEditGroup.fromJson(value))
           .toList();
     }
     if (_json.containsKey("message")) {
@@ -495,6 +501,10 @@ class CandidateFix {
     new core.Map<core.String, core.Object>();
     if (edits != null) {
       _json["edits"] = edits.map((value) => (value).toJson()).toList();
+    }
+    if (linkedEditGroups != null) {
+      _json["linkedEditGroups"] =
+          linkedEditGroups.map((value) => (value).toJson()).toList();
     }
     if (message != null) {
       _json["message"] = message;
@@ -702,6 +712,103 @@ class FormatResponse {
     new core.Map<core.String, core.Object>();
     if (newString != null) {
       _json["newString"] = newString;
+    }
+    if (offset != null) {
+      _json["offset"] = offset;
+    }
+    return _json;
+  }
+}
+
+class LinkedEditGroup {
+  core.int length;
+  core.List<Position> positions;
+  core.List<LinkedEditSuggestion> suggestions;
+
+  LinkedEditGroup();
+
+  LinkedEditGroup.fromJson(core.Map _json) {
+    if (_json.containsKey("length")) {
+      length = _json["length"];
+    }
+    if (_json.containsKey("positions")) {
+      positions = (_json["positions"] as core.List)
+          .map<Position>((value) => new Position.fromJson(value))
+          .toList();
+    }
+    if (_json.containsKey("suggestions")) {
+      suggestions = (_json["suggestions"] as core.List)
+          .map<LinkedEditSuggestion>(
+              (value) => new LinkedEditSuggestion.fromJson(value))
+          .toList();
+    }
+  }
+
+  core.Map<core.String, core.Object> toJson() {
+    final core.Map<core.String, core.Object> _json =
+    new core.Map<core.String, core.Object>();
+    if (length != null) {
+      _json["length"] = length;
+    }
+    if (positions != null) {
+      _json["positions"] = positions.map((value) => (value).toJson()).toList();
+    }
+    if (suggestions != null) {
+      _json["suggestions"] =
+          suggestions.map((value) => (value).toJson()).toList();
+    }
+    return _json;
+  }
+}
+
+class LinkedEditSuggestion {
+  core.String kind;
+  core.String value;
+
+  LinkedEditSuggestion();
+
+  LinkedEditSuggestion.fromJson(core.Map _json) {
+    if (_json.containsKey("kind")) {
+      kind = _json["kind"];
+    }
+    if (_json.containsKey("value")) {
+      value = _json["value"];
+    }
+  }
+
+  core.Map<core.String, core.Object> toJson() {
+    final core.Map<core.String, core.Object> _json =
+    new core.Map<core.String, core.Object>();
+    if (kind != null) {
+      _json["kind"] = kind;
+    }
+    if (value != null) {
+      _json["value"] = value;
+    }
+    return _json;
+  }
+}
+
+class Position {
+  core.String file;
+  core.int offset;
+
+  Position();
+
+  Position.fromJson(core.Map _json) {
+    if (_json.containsKey("file")) {
+      file = _json["file"];
+    }
+    if (_json.containsKey("offset")) {
+      offset = _json["offset"];
+    }
+  }
+
+  core.Map<core.String, core.Object> toJson() {
+    final core.Map<core.String, core.Object> _json =
+    new core.Map<core.String, core.Object>();
+    if (file != null) {
+      _json["file"] = file;
     }
     if (offset != null) {
       _json["offset"] = offset;

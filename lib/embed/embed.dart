@@ -27,7 +27,7 @@ import '../polymer/iron.dart';
 import '../polymer/paper.dart';
 import '../services/_dartpadsupportservices.dart';
 import '../services/common.dart';
-import '../services/dartservices.dart';
+import '../services/dartservices.dart' hide Position;
 import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/ga.dart';
