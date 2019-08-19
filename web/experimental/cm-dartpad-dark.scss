@@ -1,11 +1,12 @@
 @import 'package:dart_pad/experimental/scss/colors';
+@import 'package:dart_pad/experimental/scss/variables';
 
 // dart parser:
 // https://github.com/codemirror/CodeMirror/blob/0f437b9addb3e4308519d208a606c152d42cf0a2/mode/dart/dart.js
 
 .cm-s-darkpad span {
   font-size: 12px;
-  font-family: 'Roboto Mono', Menlo, 'Bitstream Vera Sans Mono';
+  font-family: $editor-font;
   font-weight: 400;
 }
 

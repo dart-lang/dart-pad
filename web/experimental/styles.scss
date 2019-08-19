@@ -4,6 +4,7 @@
 
 @import "package:mdc_web/material-components-web";
 @import 'package:dart_pad/experimental/scss/colors';
+@import 'package:dart_pad/experimental/scss/variables';
 
 body {
   top: 0;
@@ -63,7 +64,7 @@ body {
 // Console
 
 #console-view {
-  font-family: 'Inconsolata', monospace;
+  font-family: $editor-font;
   overflow-y: auto;
   height: 100%;
   white-space: pre-wrap;
@@ -146,7 +147,7 @@ body {
 
 .CodeMirror {
   height: 100%;
-  font-family: 'Inconsolata', monospace;
+  font-family: $editor-font;
 }
 
 // Web output
@@ -213,7 +214,7 @@ body {
   margin: 8px;
   flex: 1;
   overflow: auto;
-  font-family: 'Inconsolata', monospace;
+  font-family: $editor-font;
 }
 
 // HTML Mode
@@ -251,7 +252,7 @@ body {
 }
 
 #issues-message {
-  font-family: 'Inconsolata', monospace;
+  font-family: $editor-font;
   cursor: default;
   margin-right: 12px;
 }
@@ -286,7 +287,7 @@ body {
 }
 
 .issue .issuelabel {
-  font-family: "Inconsolata", monospace, sans-serif;
+  font-family: $editor-font;
   display: inline-block;
   border-radius: 3px;
   padding: 2px 5px;
@@ -348,7 +349,7 @@ body {
 // Misc
 
 .view-label {
-  font-family: 'Inconsolata', monospace;
+  font-family: $editor-font;
   color: $label-color;
   margin-left: 8px;
 }
