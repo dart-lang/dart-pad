@@ -138,9 +138,6 @@ build() {
     log('${testFile.path} compiled to ${_printSize(testFile)}');
   }
 
-  FilePath embedFile = _buildDir.join('scripts/embed.dart.js');
-  log('$embedFile compiled to ${_printSize(embedFile)}');
-
   FilePath newEmbedDartFile =
       _buildDir.join('experimental/new_embed_dart.dart.js');
   log('$newEmbedDartFile compiled to ${_printSize(newEmbedDartFile)}');
@@ -172,15 +169,15 @@ build() {
 
   // Run vulcanize.
   // Imports vulcanized, not inlined for IE support
-  vulcanizeNoExclusion('scripts/imports.html');
   vulcanize('index.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
+  vulcanize('embed-flutter.html');
+  vulcanize('embed-inline.html');
   vulcanize('experimental/embed-new-dart.html');
   vulcanize('experimental/embed-new-flutter.html');
   vulcanize('experimental/embed-new-html.html');
   vulcanize('experimental/embed-new-inline.html');
-  vulcanize('embed-inline.html');
 }
 
 void copyPackageResources(String packageName, Directory destDir) {
@@ -221,8 +218,6 @@ vulcanize(String filepath) {
         '--inline-css',
         '--inline-scripts',
         '--exclude',
-        'scripts/embed.dart.js',
-        '--exclude',
         ' experimental/new_embed_dart.dart.js',
         '--exclude',
         ' experimental/new_embed_flutter.dart.js',
@@ -234,8 +229,6 @@ vulcanize(String filepath) {
         'scripts/main.dart.js',
         '--exclude',
         'scripts/codemirror.js',
-        '--exclude',
-        'scripts/embed_components.html',
         filepath,
       ],
       workingDirectory: _buildDir.path);
