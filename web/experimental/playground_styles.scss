@@ -1,0 +1,581 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+body {
+  margin: 0;
+  padding: 0;
+
+  background-color: #333;
+  color: #c6c6c6;
+
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  position: absolute;
+
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  line-height: 20px;
+
+  overflow: hidden;
+}
+
+.export-text-dialog {
+  padding-right: 12px;
+  min-width: 140px;
+}
+
+#dart-code {
+  display:none;
+}
+
+#html-code {
+  display:none;
+}
+
+#css-code{
+  display:none;
+}
+
+header {
+  line-height: 48px;
+  padding: 0 24px;
+  color: #fff;
+  vertical-align: middle;
+
+  box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
+  border-bottom: 1px solid #121212;
+  border-width: 4px;
+
+  margin-bottom: 24px;
+  text-shadow: rgba(0,0,0,0.75) 0 1px;
+}
+
+.header-title {
+  font-size: 16pt;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.header-gist-name {
+  text-overflow: ellipsis;
+  text-align: center;
+  overflow-x: hidden;
+  white-space: nowrap;
+  margin-left: 1em;
+  margin-right: 1em;
+  color: #ccc;
+  font-size: 14pt;
+  min-width: 2em;
+}
+
+input {
+  background-color: #333;
+  color: #c6c6c6;
+  resize: none;
+  border: 1px solid #555;
+  padding: 0.5em;
+}
+
+textarea, input {
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+}
+
+label {
+  user-select: none;
+}
+
+.sharingSummaryText {
+  background-color: #333;
+  color: #c6c6c6;
+  height: 80px;
+  min-height: 80px;
+  resize: none;
+  border: 1px solid #555;
+  padding: 0.5em;
+}
+
+.header-gist-name.dirty::after {
+  content: " •";
+}
+
+#newbutton {
+  margin-left: 10px;
+}
+
+#sharebutton {
+  margin-left: 8px;
+  margin-right: 10px;
+}
+
+#resetbutton {
+  margin-left: 8px;
+}
+
+section {
+  padding: 0 24px 24px 24px;
+  position: relative;
+
+  box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
+  border-bottom: 1px solid #121212;
+  border-width: 4px;
+}
+
+footer {
+  margin: 8px 24px;
+  font-size: 13px;
+  text-shadow: rgba(0,0,0,0.75) 0 1px;
+}
+
+.view {
+  position: relative;
+  margin: 0 0;
+  min-width: 260px;
+  min-height: 50px;
+}
+
+pre {
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+a,
+a:visited {
+  color: #ccc;
+  fill: #ccc;
+}
+
+a:hover {
+  color: #fff;
+  fill: #fff;
+}
+
+a[selected] {
+  color: #66d9ef;
+  cursor: default;
+  border-bottom: 2px solid #66d9ef;
+}
+
+a[selected]:hover {
+  color: #66d9ef;
+}
+
+.header li {
+  list-style-image: none;
+  list-style-type: none;
+  margin-left: 0;
+  white-space: nowrap;
+}
+
+.header a {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.header a {
+  margin-right: 16px;
+  text-transform: uppercase;
+}
+
+.header {
+  line-height: 24px;
+  font-size: 12pt;
+}
+
+.header.small {
+  font-size: 11pt;
+  line-height: 18px;
+}
+
+.header a[last] {
+  margin-right: 0;
+}
+
+#runbutton svg {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+}
+
+#runbutton svg.error {
+  padding: 0 0 1px 1px;
+  width: 17px;
+  height: 17px;
+  fill: #F7977A;
+}
+
+#runbutton svg.warning {
+  padding: 0 0 1px 1px;
+  width: 17px;
+  height: 17px;
+  fill: #FFF79A;
+}
+
+#runbutton {
+  padding-right: 11px;
+}
+
+#output {
+  display: block;
+  position: absolute;
+  top: 16px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#frame {
+  min-height: 50px;
+  display: block;
+  visibility: hidden;
+  margin-top: 5px;
+}
+
+iframe {
+  border: none;
+}
+
+div.toggle {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  padding: 3px 0 3px 6px;
+  height: 24px;
+}
+
+.toggle a {
+  transition: 75ms;
+  min-width: 24px;
+  text-align: center;
+  margin-right: 6px;
+  padding: 2px 6px;
+  display: inline-block;
+  line-height: 1.44em;
+  text-decoration: none;
+  text-shadow: rgba(255, 255, 255, 0.08) 0 1px 0;
+  color: #000;
+}
+
+.toggle a:hover {
+  color: rgba(255, 255, 255, 0.3);
+  box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0 inset;
+  border-radius: 1em;
+}
+
+.toggle a[selected] {
+  color: rgba(255, 255, 255, 0.7);
+  box-shadow: rgba(255, 255, 255, 0.1) 0 1px 0, rgba(0, 0, 0, 0.8) 0 1px 7px 0 inset;
+  background: #202020;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 1em;
+}
+
+.horz_divider {
+  margin: 16px 0;
+  box-shadow: rgba(255, 255, 255, 0.07) 0 1px 0;
+  border-top: 1px solid #121212;
+}
+
+.console {
+  font-family: 'Inconsolata', monospace;
+  font-size: 12pt;
+  line-height: 20px;
+  min-height: 50px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin-top: 16px;
+}
+
+.console .normal {
+  color: #c6c6c6;
+}
+
+.console .errorOutput {
+  color: #F7977A;
+}
+
+#editpanel {
+  font-family: 'Inconsolata', monospace;
+  font-size: 12pt;
+  line-height: 20px;
+  display: block;
+  position: relative;
+  min-height: 50px;
+  margin-top: 16px;
+  margin-left: -3px;
+}
+
+.right {
+  text-align: right;
+}
+
+.footer-item {
+  margin-right: 10px;
+}
+
+#frame-overlay {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  background-color: #333;
+  display: none;
+  opacity: 0.75;
+  cursor: wait;
+}
+
+#frame-overlay.visible {
+  display: block;
+}
+
+#frame-overlay .overlay-progress {
+  position: absolute;
+  left: 45%;
+  top: 60px;
+}
+
+/* documentation and parameter info styling */
+
+#documentation {
+  font-family: 'Roboto', sans-serif;
+  font-size: 11pt;
+  line-height: 20px;
+  position: relative;
+  display: block;
+  overflow: auto;
+  overflow-wrap: break-word;
+  margin-top: 0;
+  margin-left: 0;
+}
+
+#documentation h1 {
+  margin-top: 0;
+  font-size: 12pt;
+  font-weight: bold;
+  color: #eee;
+}
+
+#documentation h2 {
+  margin-bottom: 0;
+}
+
+#documentation h2,
+#documentation strong {
+  font-weight: bold;
+  font-size: inherit;
+  color: #cdcdcd; /* little bit brigher than normal text*/
+}
+
+#documentation p {
+  margin-top: 0;
+}
+
+#documentation a {
+  color: #66d9ef;
+}
+
+#documentation a:hover {
+  color: #66d9ef;
+  text-decoration: underline;
+}
+
+#documentation a {
+  color: #66d9ef;
+}
+
+#documentation a:hover {
+  color: #66d9ef;
+  text-decoration: underline;
+}
+
+#documentation pre {
+  overflow-x: auto;
+  margin: 1em;
+}
+
+#documentation pre code {
+  white-space: inherit;
+  word-wrap: normal;
+}
+
+#documentation code,
+.parameter-hints code {
+  font-family: 'Inconsolata', monospace;
+  font-size: 12pt;
+  color: #999;
+}
+
+#documentation code em {
+  color: #dfaf8f;
+  font-style: normal;
+}
+
+.parameter-hints code {
+  color: #dfaf8f;
+}
+
+#documentation code em {
+  color: #dfaf8f;
+  font-style: normal;
+}
+
+.parameter-hints code em {
+  color: white;
+  font-style: normal;
+  font-weight: bold;
+}
+
+.parameter-hints {
+  position: absolute;
+  z-index: 10;
+  -webkit-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  -moz-box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  box-shadow: 2px 3px 5px rgba(0,0,0,.2);
+  border-radius: 3px;
+  font-family: 'Inconsolata', monospace;
+  overflow-y: hidden;
+  border: 1px solid #cc9393;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.parameter-hints::-webkit-scrollbar {
+  display: none;
+}
+
+.parameter-hint {
+  padding: 4px;
+  background: #3f3f3f;
+}
+
+.sharing-dialog .sharinglabel {
+  min-width: 110px;
+  margin-right: 10px;
+  display: inline-block;
+}
+
+.sharing-dialog .row {
+  margin-bottom: 8px;
+}
+
+.sharing-dialog .inputgroup {
+  display: inline-block;
+}
+
+.sharing-dialog input {
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 4px 8px;
+  outline: none;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.075);
+}
+
+.sharing-dialog input[type='radio'] {
+  position: relative;
+  top: 4px;
+}
+
+.keys-dialog {
+  max-width: 300px;
+  top: auto !important;
+  bottom: 20px;
+}
+
+.keys-dialog dl {
+  padding: 0.5em;
+}
+
+.keys-dialog dt {
+  float: left;
+  clear: left;
+}
+
+.keys-dialog dd {
+  text-align: right;
+}
+
+.keys-dialog dd > span {
+  font-family: "Helvetica Neue", "Inconsolata", monospace;
+  padding: 0 4px;
+  background-color: #FFF79A; /**#dfaf8f #f0dfaf #66d9ef #FFF79A #AEA859;*/
+  font-size: 10pt;
+  color: black;
+  border-radius: 2px;
+  margin: 2px 2px;
+  white-space: nowrap;
+  display: inline-block;
+}
+
+.keyboard {
+  display: inline-block;
+  background: url('../pictures/keyboard.svg') center no-repeat;
+  background-size: 100%;
+  width: 22px;
+  height: 18px;
+  margin-top: 1px;
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+.keyboard:hover {
+  opacity: 1;
+}
+
+.launch-icon {
+  display: inline-block;
+  background: url('../pictures/launch.svg') center no-repeat;
+  background-size: 100%;
+  width: 16px;
+  height: 14px;
+  margin-bottom: -2px;
+}
+
+#samples {
+  width: 100px;
+}
+
+#dartpad_version {
+  cursor: pointer;
+}
+
+@media screen and (max-width: 500px) {
+  #newbutton {
+    display: none;
+  }
+
+  #formatbutton {
+    display: none;
+  }
+
+  #sharebutton {
+    display: none;
+  }
+
+  #keyboard-button {
+    display: none;
+  }
+}
+
+#github-button {
+  background: url(/pictures/github-light-32px.png) no-repeat;
+  filter: brightness(0.5);
+  width: 32px;
+  height: 32px;
+  margin: 8px 0 8px 16px;
+  border: none;
+}
+
+#github-button:hover {
+  filter: brightness(0.75);
+}
