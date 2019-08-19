@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" href="/dart-192.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>DartPad</title>
+
+    <link href="styles/layout.css" rel="stylesheet" media="screen">
+    <link href="styles/index.css" rel="stylesheet" media="screen">
+    <link href="packages/dart_pad/elements/elements.css" rel="stylesheet" media="screen">
+
+    <link href='https://fonts.googleapis.com/css?family=Roboto'
+          rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+          rel='stylesheet' type='text/css'>
+
+    <!-- codemirror -->
+    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/theme/zenburn.css" rel="stylesheet" media="screen">
+    <link href="packages/dart_pad/editing/editor_codemirror.css" rel="stylesheet" media="screen">
+    <script src="packages/codemirror/codemirror.js" defer></script>
+
+    <script defer src="new_playground.dart.js"></script>
+
+    <script src="scripts/ga.js" defer></script>
+    <script src="scripts/polymerpatch.js" defer></script>
+</head>
+
+<body fullbleed layout vertical>
+<header layout horizontal>
+    <div class="header-title">DartPad</div>
+    <div>
+        <button type="button" id="newbutton" class="button">New Pad…</button>
+        <button type="button" id="resetbutton" class="button" disabled>Reset…</button>
+        <button type="button" id="formatbutton" class="button">Format</button>
+    </div>
+    <div class="header-gist-name" flex></div>
+    <div>
+        <button type="button" id="sharebutton" class="button">Share…</button>
+    </div>
+    <div>
+        <select id="samples" required="false">
+            <option value="0">Samples</option>
+            <option disabled></option>
+            <!--- Gists at https://gist.github.com/[value] -->
+            <option value="215ba63265350c02dfbd586dfd30b8c3">Hello World</option>
+            <option value="e93b969fed77325db0b848a85f1cf78e">Int to Double</option>
+            <option value="b60dc2fc7ea49acecb1fd2b57bf9be57">Mixins</option>
+            <option value="7d78af42d7b0aedfd92f00899f93561b">Fibonacci</option>
+            <option value="a559420eed617dab7a196b5ea0b64fba">Sunflower</option>
+            <option value="cb9b199b1085873de191e32a1dd5ca4f">WebSockets</option>
+        </select>
+    </div>
+    <a href="https://github.com/dart-lang/dart-pad" id="github-button"></a>
+</header>
+
+<section flex layout horizontal>
+    <div class="splash"></div>
+
+    <div class="view" flex three layout vertical>
+        <div class="header" layout horizontal wrap>
+            <li><a id="darttab" selected class="arrow_box"><span>Dart</span></a></li>
+            <li><a id="htmltab" style="visibility: hidden;"><span>HTML</span></a></li>
+            <li><a id="csstab" style="visibility: hidden;"><span>CSS</span></a></li>
+            <div flex></div>
+            <div id="dartbusy" class="busylight"></div>
+            <div>
+                <button type="button" id="runbutton" class="button"
+                        title="Run (ctrl-enter / ⌘-enter)">
+                    <svg width="18" height="18" viewBox="0 0 24 24"
+                         style="vertical-align: text-bottom;">
+                        <path d="M8 5v14l11-7z"/>
+                    </svg>
+                    Run
+                </button>
+            </div>
+        </div>
+        <div id="editpanel" flex layout vertical>
+        </div>
+    </div>
+
+    <div class="splitter" vertical id="editor_split">
+        <div class="inner"></div>
+    </div>
+
+    <div class="view" flex two layout vertical>
+        <div class="view" flex two layout vertical>
+            <div id="frame-overlay"></div>
+            <div class="header" layout horizontal wrap>
+                <div flex></div>
+                <li><a id="resulttab" style="visibility: hidden;"><span>HTML Output</span></a></li>
+                <li><a id="consoletab" selected last><span>Console</span></a></li>
+                <div id="consolebusy" class="busylight"></div>
+            </div>
+            <div id="output" class="console" flex></div>
+            <!-- TODO: We might want to embed the iframe into a div, and set -->
+            <!-- div to overflow: scroll. -->
+            <iframe id="frame" sandbox="allow-scripts" flex src="scripts/frame.html">
+            </iframe>
+        </div>
+        <div class="splitter" horizontal id="output_split">
+            <div class="inner"></div>
+        </div>
+        <div class="view" flex layout vertical>
+            <div id="documentation" flex layout vertical></div>
+            <div id="issues"></div>
+        </div>
+    </div>
+</section>
+
+<footer layout horizontal>
+    <div id="keyboard-button" class="keyboard footer-item"></div>
+    <div>
+        <a href="https://www.dartlang.org/tools/dartpad/privacy"
+           target="repo" class="footer-item">Privacy notice</a>
+        <a href="https://github.com/dart-lang/dart-pad/issues"
+           target="repo">Send feedback</a>
+    </div>
+    <div flex></div>
+
+    <input type="checkbox" id="show-web-content" class="footer-items">
+    <label for="show-web-content" class="footer-item">Show web content</label>
+
+    <div id="dartpad_version"> </div>
+</footer>
+</body>
+</html>
