@@ -20,7 +20,7 @@ import '../elements/elements.dart';
 import '../modules/dart_pad_module.dart';
 import '../modules/dartservices_module.dart';
 import '../services/common.dart';
-import '../services/dartservices.dart' hide Position;
+import '../services/dartservices.dart';
 import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/util.dart';

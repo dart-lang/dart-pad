@@ -74,7 +74,7 @@ class DartCompleter extends CodeCompleter {
           if (assist.linkedEditGroups != null &&
               assist.linkedEditGroups.isNotEmpty) {
             absoluteCursorPosition =
-                assist.linkedEditGroups.first.positions?.first?.offset;
+                assist.linkedEditGroups.first.positions?.first;
           }
 
           // If a specific offset is provided, prefer it to the one calculated
