@@ -186,10 +186,25 @@ class Completion {
   /// This can be `null`.
   final int cursorOffset;
 
+  /// The (optional) index (starting from the top of the file) of the character
+  /// at which the cursor should be placed after implementing the completion.
+  ///
+  /// Quick fixes that alter multiple lines of editor content can't simply
+  /// provide an offset on the cursor's current line to represent the position
+  /// to which the cursor should move. This field is provided as an alternative
+  /// for use with those fixes.
+  final int absoluteCursorPosition;
+
   List<SourceEdit> quickFixes = [];
 
-  Completion(this.value,
-      {this.displayString, this.type, this.cursorOffset, this.quickFixes});
+  Completion(
+    this.value, {
+    this.displayString,
+    this.type,
+    this.cursorOffset,
+    this.absoluteCursorPosition,
+    this.quickFixes,
+  });
 
   bool isSetterAndMatchesGetter(Completion other) =>
       displayString == other.displayString &&
