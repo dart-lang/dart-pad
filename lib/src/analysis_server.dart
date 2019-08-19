@@ -347,12 +347,32 @@ class AnalysisServerWrapper {
           return api.SourceEdit.fromChanges(
               sourceEdit.offset, sourceEdit.length, sourceEdit.replacement);
         }).toList();
-        assists.add(
-            api.CandidateFix.fromEdits(sourceChange.message, apiSourceEdits));
+
+        assists.add(api.CandidateFix.fromEdits(
+          sourceChange.message,
+          apiSourceEdits,
+          sourceChange.selection?.offset,
+          _convertLinkedEditGroups(sourceChange.linkedEditGroups),
+        ));
       }
     }
 
     return assists;
+  }
+
+  /// Convert a list of the analysis server's [LinkedEditGroup]s into the API's
+  /// equivalent.
+  static List<api.LinkedEditGroup> _convertLinkedEditGroups(
+      List<LinkedEditGroup> groups) {
+    return groups?.map<api.LinkedEditGroup>((g) {
+      return api.LinkedEditGroup(
+        g.positions?.map((p) => p.offset)?.toList(),
+        g.length,
+        g.suggestions
+            ?.map((s) => api.LinkedEditSuggestion(s.value, s.kind))
+            ?.toList(),
+      );
+    })?.toList();
   }
 
   /// Cleanly shutdown the Analysis Server.

@@ -471,7 +471,9 @@ class AssistsResponse {
 
 class CandidateFix {
   core.List<SourceEdit> edits;
+  core.List<LinkedEditGroup> linkedEditGroups;
   core.String message;
+  core.int selectionOffset;
 
   CandidateFix();
 
@@ -481,8 +483,16 @@ class CandidateFix {
           .map<SourceEdit>((value) => new SourceEdit.fromJson(value))
           .toList();
     }
+    if (_json.containsKey("linkedEditGroups")) {
+      linkedEditGroups = (_json["linkedEditGroups"] as core.List)
+          .map<LinkedEditGroup>((value) => new LinkedEditGroup.fromJson(value))
+          .toList();
+    }
     if (_json.containsKey("message")) {
       message = _json["message"];
+    }
+    if (_json.containsKey("selectionOffset")) {
+      selectionOffset = _json["selectionOffset"];
     }
   }
 
@@ -492,8 +502,15 @@ class CandidateFix {
     if (edits != null) {
       _json["edits"] = edits.map((value) => (value).toJson()).toList();
     }
+    if (linkedEditGroups != null) {
+      _json["linkedEditGroups"] =
+          linkedEditGroups.map((value) => (value).toJson()).toList();
+    }
     if (message != null) {
       _json["message"] = message;
+    }
+    if (selectionOffset != null) {
+      _json["selectionOffset"] = selectionOffset;
     }
     return _json;
   }
@@ -698,6 +715,82 @@ class FormatResponse {
     }
     if (offset != null) {
       _json["offset"] = offset;
+    }
+    return _json;
+  }
+}
+
+class LinkedEditGroup {
+  /// The length of the regions that should be edited simultaneously.
+  core.int length;
+
+  /// The positions of the regions that should be edited simultaneously.
+  core.List<core.int> positions;
+
+  /// Pre-computed suggestions for what every region might want to be changed
+  /// to.
+  core.List<LinkedEditSuggestion> suggestions;
+
+  LinkedEditGroup();
+
+  LinkedEditGroup.fromJson(core.Map _json) {
+    if (_json.containsKey("length")) {
+      length = _json["length"];
+    }
+    if (_json.containsKey("positions")) {
+      positions = (_json["positions"] as core.List).cast<core.int>();
+    }
+    if (_json.containsKey("suggestions")) {
+      suggestions = (_json["suggestions"] as core.List)
+          .map<LinkedEditSuggestion>(
+              (value) => new LinkedEditSuggestion.fromJson(value))
+          .toList();
+    }
+  }
+
+  core.Map<core.String, core.Object> toJson() {
+    final core.Map<core.String, core.Object> _json =
+        new core.Map<core.String, core.Object>();
+    if (length != null) {
+      _json["length"] = length;
+    }
+    if (positions != null) {
+      _json["positions"] = positions;
+    }
+    if (suggestions != null) {
+      _json["suggestions"] =
+          suggestions.map((value) => (value).toJson()).toList();
+    }
+    return _json;
+  }
+}
+
+class LinkedEditSuggestion {
+  /// The kind of value being proposed.
+  core.String kind;
+
+  /// The value that could be used to replace all of the linked edit regions.
+  core.String value;
+
+  LinkedEditSuggestion();
+
+  LinkedEditSuggestion.fromJson(core.Map _json) {
+    if (_json.containsKey("kind")) {
+      kind = _json["kind"];
+    }
+    if (_json.containsKey("value")) {
+      value = _json["value"];
+    }
+  }
+
+  core.Map<core.String, core.Object> toJson() {
+    final core.Map<core.String, core.Object> _json =
+        new core.Map<core.String, core.Object>();
+    if (kind != null) {
+      _json["kind"] = kind;
+    }
+    if (value != null) {
+      _json["value"] = value;
     }
     return _json;
   }

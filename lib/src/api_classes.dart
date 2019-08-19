@@ -183,14 +183,52 @@ class ProblemAndFixes {
       [this.fixes, this.problemMessage, this.offset, this.length]);
 }
 
+class LinkedEditSuggestion {
+  @ApiProperty(
+      description: 'The value that could be used to replace all of the linked '
+          'edit regions.')
+  final String value;
+
+  @ApiProperty(description: 'The kind of value being proposed.')
+  final String kind;
+
+  LinkedEditSuggestion(this.value, this.kind);
+}
+
+class LinkedEditGroup {
+  @ApiProperty(
+      description: 'The positions of the regions that should be edited '
+          'simultaneously.')
+  final List<int> positions;
+
+  @ApiProperty(
+      description: 'The length of the regions that should be edited '
+          'simultaneously.')
+  final int length;
+
+  @ApiProperty(
+      description: 'Pre-computed suggestions for what every region might want '
+          'to be changed to.')
+  final List<LinkedEditSuggestion> suggestions;
+
+  LinkedEditGroup(this.positions, this.length, this.suggestions);
+}
+
 /// Represents a possible way of solving an Analysis Problem.
 class CandidateFix {
   final String message;
   final List<SourceEdit> edits;
+  final int selectionOffset;
+  final List<LinkedEditGroup> linkedEditGroups;
 
   CandidateFix() : this.fromEdits();
 
-  CandidateFix.fromEdits([this.message, this.edits]);
+  CandidateFix.fromEdits([
+    this.message,
+    this.edits,
+    this.selectionOffset,
+    this.linkedEditGroups,
+  ]);
 }
 
 /// Represents a reformatting of the code.
@@ -231,6 +269,7 @@ class SourceEdit {
 /// The response from the `/assists` service call.
 class AssistsResponse {
   final List<CandidateFix> assists;
+
   AssistsResponse(this.assists);
 }
 
