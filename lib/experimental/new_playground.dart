@@ -40,7 +40,7 @@ Playground _playground;
 final Logger _logger = Logger('dartpad');
 
 /// Controls whether we request compilation using dart2js or DDC.
-const bool _useDDC = false;
+bool _useDDC = false;
 
 void init() {
   _playground = Playground();
@@ -85,11 +85,11 @@ class Playground implements GistContainer, GistController {
     for (String name in ['dart', 'html', 'css']) {
       sourceTabController.registerTab(
           TabElement(querySelector('#${name}tab'), name: name, onSelect: () {
-            Element issuesElement = querySelector('#issues');
-            issuesElement.style.display = name == 'dart' ? 'block' : 'none';
-            ga.sendEvent('edit', name);
-            _context.switchTo(name);
-          }));
+        Element issuesElement = querySelector('#issues');
+        issuesElement.style.display = name == 'dart' ? 'block' : 'none';
+        ga.sendEvent('edit', name);
+        _context.switchTo(name);
+      }));
     }
 
     overlay = DOverlay(querySelector('#frame-overlay'));
@@ -218,7 +218,7 @@ class Playground implements GistContainer, GistController {
       UuidContainer requestId = UuidContainer()
         ..uuid = url.queryParameters['export'];
       Future<PadSaveObject> exportPad =
-      dartSupportServices.pullExportContent(requestId);
+          dartSupportServices.pullExportContent(requestId);
       await exportPad.then((pad) {
         Gist blankGist = createSampleGist();
         blankGist.getFile('main.dart').content = pad.dart;
@@ -478,16 +478,16 @@ class Playground implements GistContainer, GistController {
     outputTabController = TabController()
       ..registerTab(
           TabElement(querySelector('#resulttab'), name: 'result', onSelect: () {
-            ga.sendEvent('view', 'result');
-            querySelector('#frame').style.visibility = 'visible';
-            querySelector('#output').style.visibility = 'hidden';
-          }))
+        ga.sendEvent('view', 'result');
+        querySelector('#frame').style.visibility = 'visible';
+        querySelector('#output').style.visibility = 'hidden';
+      }))
       ..registerTab(TabElement(querySelector('#consoletab'), name: 'console',
           onSelect: () {
-            ga.sendEvent('view', 'console');
-            querySelector('#output').style.visibility = 'visible';
-            querySelector('#frame').style.visibility = 'hidden';
-          }));
+        ga.sendEvent('view', 'console');
+        querySelector('#output').style.visibility = 'visible';
+        querySelector('#frame').style.visibility = 'hidden';
+      }));
 
     _context = PlaygroundContext(editor);
     _context.onModeChange.listen((_) {
@@ -538,7 +538,7 @@ class Playground implements GistContainer, GistController {
             final OkCancelDialog dialog = OkCancelDialog(
               'Hide web content',
               'Discard the contents of the HTML and CSS tabs?',
-                  () {
+              () {
                 _context.htmlSource = '';
                 _context.cssSource = '';
                 hideWebContent();
@@ -555,9 +555,26 @@ class Playground implements GistContainer, GistController {
       });
     });
 
+    // Listen for clicks on the 'Show web content' checkbox.
+    enableFlutterInputElement.onClick.listen((MouseEvent event) {
+      event.preventDefault();
+
+      // Delay a bit as it looks like we can't programmatically change the value
+      // of a checkbox in an event handler.
+      Timer(const Duration(milliseconds: 100), () {
+        final bool isChecked = enableFlutterInputElement.checked;
+
+        if (isChecked) {
+          disableFlutter();
+        } else {
+          enableFlutter();
+        }
+      });
+    });
+
     // Bind the editable files to the gist.
     Property htmlFile =
-    GistFileProperty(editableGist.getGistFile('index.html'));
+        GistFileProperty(editableGist.getGistFile('index.html'));
     Property htmlDoc = EditorDocumentProperty(_context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
@@ -741,7 +758,7 @@ class Playground implements GistContainer, GistController {
     Lines lines = Lines(input.source);
 
     Future<AnalysisResults> request =
-    dartServices.analyze(input).timeout(serviceCallTimeout);
+        dartServices.analyze(input).timeout(serviceCallTimeout);
     _analysisRequest = request;
 
     return request.then((AnalysisResults result) {
@@ -759,7 +776,7 @@ class Playground implements GistContainer, GistController {
           .setAnnotations(result.issues.map((AnalysisIssue issue) {
         int startLine = lines.getLineForOffset(issue.charStart);
         int endLine =
-        lines.getLineForOffset(issue.charStart + issue.charLength);
+            lines.getLineForOffset(issue.charStart + issue.charLength);
 
         Position start = Position(
             startLine, issue.charStart - lines.offsetForLine(startLine));
@@ -793,7 +810,7 @@ class Playground implements GistContainer, GistController {
     formatButton.disabled = true;
 
     Future<FormatResponse> request =
-    dartServices.format(input).timeout(serviceCallTimeout);
+        dartServices.format(input).timeout(serviceCallTimeout);
     return request.then((FormatResponse result) {
       busyLight.reset();
       formatButton.disabled = false;
@@ -825,6 +842,9 @@ class Playground implements GistContainer, GistController {
   InputElement get showWebContentInputElement =>
       querySelector('#show-web-content');
 
+  InputElement get enableFlutterInputElement =>
+      querySelector('#enable-flutter');
+
   bool get isWebContentShowing =>
       querySelector('#htmltab').style.visibility != 'hidden';
 
@@ -848,6 +868,21 @@ class Playground implements GistContainer, GistController {
     querySelector('#csstab').style.visibility = 'hidden';
 
     querySelector('#resulttab').style.visibility = 'hidden';
+  }
+
+  void enableFlutter() {
+    enableFlutterInputElement.checked = true;
+    showWebContent();
+    showWebContentInputElement.disabled = true;
+    _useDDC = true;
+  }
+
+  void disableFlutter() {
+    _useDDC = false;
+    enableFlutterInputElement.checked = false;
+    hideWebContent();
+    showWebContentInputElement.disabled = false;
+    _useDDC = false;
   }
 
   final _bufferedOutput = <SpanElement>[];
@@ -948,7 +983,7 @@ class Playground implements GistContainer, GistController {
 
     var path = runButton.element.querySelector('path');
     path.attributes['d'] =
-    (hasErrors || hasWarnings) ? alertSVGIcon : 'M8 5v14l11-7z';
+        (hasErrors || hasWarnings) ? alertSVGIcon : 'M8 5v14l11-7z';
 
     path.parent.classes.toggle('error', hasErrors);
     path.parent.classes.toggle('warning', hasWarnings && !hasErrors);
