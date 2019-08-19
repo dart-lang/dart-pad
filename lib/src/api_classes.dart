@@ -7,7 +7,6 @@ library services.api_classes;
 
 import 'dart:convert';
 
-import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:rpc/rpc.dart';
 
 class AnalysisResults {
@@ -182,6 +181,37 @@ class ProblemAndFixes {
 
   ProblemAndFixes.fromList(
       [this.fixes, this.problemMessage, this.offset, this.length]);
+}
+
+class LinkedEditSuggestion {
+  @ApiProperty(
+      description: 'The value that could be used to replace all of the linked '
+          'edit regions.')
+  final String value;
+
+  @ApiProperty(description: 'The kind of value being proposed.')
+  final String kind;
+
+  LinkedEditSuggestion(this.value, this.kind);
+}
+
+class LinkedEditGroup {
+  @ApiProperty(
+      description: 'The positions of the regions that should be edited '
+          'simultaneously.')
+  final List<int> positions;
+
+  @ApiProperty(
+      description: 'The length of the regions that should be edited '
+          'simultaneously.')
+  final int length;
+
+  @ApiProperty(
+      description: 'Pre-computed suggestions for what every region might want '
+          'to be changed to.')
+  final List<LinkedEditSuggestion> suggestions;
+
+  LinkedEditGroup(this.positions, this.length, this.suggestions);
 }
 
 /// Represents a possible way of solving an Analysis Problem.

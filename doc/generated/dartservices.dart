@@ -721,8 +721,14 @@ class FormatResponse {
 }
 
 class LinkedEditGroup {
+  /// The length of the regions that should be edited simultaneously.
   core.int length;
-  core.List<Position> positions;
+
+  /// The positions of the regions that should be edited simultaneously.
+  core.List<core.int> positions;
+
+  /// Pre-computed suggestions for what every region might want to be changed
+  /// to.
   core.List<LinkedEditSuggestion> suggestions;
 
   LinkedEditGroup();
@@ -732,9 +738,7 @@ class LinkedEditGroup {
       length = _json["length"];
     }
     if (_json.containsKey("positions")) {
-      positions = (_json["positions"] as core.List)
-          .map<Position>((value) => new Position.fromJson(value))
-          .toList();
+      positions = (_json["positions"] as core.List).cast<core.int>();
     }
     if (_json.containsKey("suggestions")) {
       suggestions = (_json["suggestions"] as core.List)
@@ -751,7 +755,7 @@ class LinkedEditGroup {
       _json["length"] = length;
     }
     if (positions != null) {
-      _json["positions"] = positions.map((value) => (value).toJson()).toList();
+      _json["positions"] = positions;
     }
     if (suggestions != null) {
       _json["suggestions"] =
@@ -762,7 +766,10 @@ class LinkedEditGroup {
 }
 
 class LinkedEditSuggestion {
+  /// The kind of value being proposed.
   core.String kind;
+
+  /// The value that could be used to replace all of the linked edit regions.
   core.String value;
 
   LinkedEditSuggestion();
@@ -784,34 +791,6 @@ class LinkedEditSuggestion {
     }
     if (value != null) {
       _json["value"] = value;
-    }
-    return _json;
-  }
-}
-
-class Position {
-  core.String file;
-  core.int offset;
-
-  Position();
-
-  Position.fromJson(core.Map _json) {
-    if (_json.containsKey("file")) {
-      file = _json["file"];
-    }
-    if (_json.containsKey("offset")) {
-      offset = _json["offset"];
-    }
-  }
-
-  core.Map<core.String, core.Object> toJson() {
-    final core.Map<core.String, core.Object> _json =
-        new core.Map<core.String, core.Object>();
-    if (file != null) {
-      _json["file"] = file;
-    }
-    if (offset != null) {
-      _json["offset"] = offset;
     }
     return _json;
   }

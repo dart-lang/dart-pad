@@ -1,6 +1,6 @@
 {
  "kind": "discovery#restDescription",
- "etag": "e5fb2d50ad3bc13ae1c6dda90907613797073978",
+ "etag": "3782b4a662b81bc2c7a01a7d5e7e9021a4debd44",
  "discoveryVersion": "v1",
  "id": "dartservices:v1",
  "name": "dartservices",
@@ -225,32 +225,23 @@
    "properties": {
     "positions": {
      "type": "array",
+     "description": "The positions of the regions that should be edited simultaneously.",
      "items": {
-      "$ref": "Position"
+      "type": "integer",
+      "format": "int32"
      }
     },
     "length": {
      "type": "integer",
+     "description": "The length of the regions that should be edited simultaneously.",
      "format": "int32"
     },
     "suggestions": {
      "type": "array",
+     "description": "Pre-computed suggestions for what every region might want to be changed to.",
      "items": {
       "$ref": "LinkedEditSuggestion"
      }
-    }
-   }
-  },
-  "Position": {
-   "id": "Position",
-   "type": "object",
-   "properties": {
-    "file": {
-     "type": "string"
-    },
-    "offset": {
-     "type": "integer",
-     "format": "int32"
     }
    }
   },
@@ -259,10 +250,12 @@
    "type": "object",
    "properties": {
     "value": {
-     "type": "string"
+     "type": "string",
+     "description": "The value that could be used to replace all of the linked edit regions."
     },
     "kind": {
-     "type": "string"
+     "type": "string",
+     "description": "The kind of value being proposed."
     }
    }
   },
