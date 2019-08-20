@@ -1,0 +1,5 @@
+@import 'layout_mixins';
+
+body {
+  @include layout-fullbleed;
+}
