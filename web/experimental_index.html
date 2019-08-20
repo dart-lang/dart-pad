@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" href="/dart-192.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>DartPad</title>
+
+    <!-- styles -->
+    <link href="experimental/new_playground/styles.css" rel="stylesheet" media="screen">
+
+    <!-- fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet">
+
+    <!-- codemirror -->
+    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
+
+    <!-- codemirror themes -->
+    <link href="cm-scrollbars.css" rel="stylesheet" media="screen">
+    <link href="cm-dartpad-dark.css" rel="stylesheet" media="screen">
+    <link href="cm-dartpad-light.css" rel="stylesheet" media="screen">
+
+    <!-- material design -->
+    <script src="../packages/mdc_web/material-components-web.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- dart -->
+    <script defer src="experimental/new_playground/main.dart.js"></script>
+
+    <!-- javascript -->
+    <script src="scripts/ga.js" defer></script>
+    <script src="scripts/polymerpatch.js" defer></script>
+</head>
+
+<body>
+<header>
+    <div class="header-title">DartPad</div>
+    <div>
+        <button type="button" id="new-button" class="mdc-button">New Pad…</button>
+        <button type="button" id="reset-button" class="mdc-button">Reset…</button>
+        <button type="button" id="format-button" class="mdc-button">Format</button>
+    </div>
+    <div id="header-gist"></div>
+    <div>
+        <button type="button" id="share-button" class="mdc-button">Share…</button>
+    </div>
+    <div>Dropdown</div>
+    <a href="https://github.com/dart-lang/dart-pad" id="github-button"></a>
+</header>
+
+<section>
+    <div>DartPad</div>
+</section>
+
+<footer>
+    <div>footer</div>
+</footer>
+</body>
+</html>
