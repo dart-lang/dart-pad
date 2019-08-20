@@ -7,8 +7,13 @@ library new_playground;
 import 'dart:html';
 
 import 'package:mdc_web/mdc_web.dart';
+import 'package:split/split.dart';
 
+import '../core/modules.dart';
 import '../elements/elements.dart';
+import '../modules/codemirror_module.dart';
+import '../modules/dart_pad_module.dart';
+import '../modules/dartservices_module.dart';
 
 Playground _playground;
 
@@ -24,24 +29,30 @@ class Playground {
   DButton samplesButton;
   DButton runButton;
 
+  Splitter splitter;
+
   Playground() {
-    _initializeButtons();
+    _initButtons();
     _registerMDCButtons();
+    _initSplitters();
+    _initModules().then((_) {
+      _initPlayground();
+    });
   }
 
-  void _initializeButtons() {
+  void _initButtons() {
     newButton = DButton(querySelector('#new-button'));
     resetButton = DButton(querySelector('#reset-button'));
     formatButton = DButton(querySelector('#format-button'));
     shareButton = DButton(querySelector('#share-button'));
     samplesButton = DButton(querySelector('#samples-dropdown-button'));
-    runButton = DButton(querySelector('#run-button'))..onClick.listen((e) {
-      _handleRun();
-    });
-
+    runButton = DButton(querySelector('#run-button'))
+      ..onClick.listen((e) {
+        _handleRun();
+      });
   }
 
-  /// Adds a material ripple effect
+  /// Adds a material ripple effect to the material buttons
   void _registerMDCButtons() {
     MDCRipple(newButton.element);
     MDCRipple(resetButton.element);
@@ -51,8 +62,31 @@ class Playground {
     MDCRipple(runButton.element);
   }
 
+  void _initSplitters() {
+    var editorPanel = querySelector('#editor-panel');
+    var outputPanel = querySelector('#output-panel');
+
+    splitter = flexSplit(
+      [editorPanel, outputPanel],
+      horizontal: true,
+      gutterSize: 6,
+      sizes: [50, 50],
+      minSize: [100, 100],
+    );
+  }
+
+  Future _initModules() async {
+    ModuleManager modules = ModuleManager();
+
+    modules.register(DartPadModule());
+    modules.register(DartServicesModule());
+    modules.register(DartSupportServicesModule());
+    modules.register(CodeMirrorModule());
+  }
+
+  void _initPlayground() {}
+
   void _handleRun() async {
     print('Run');
   }
-
 }

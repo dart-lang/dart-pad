@@ -24,6 +24,7 @@ header {
   height: 48px;
   padding: 0 24px;
   @include layout-center;
+  border-bottom: 6px solid $dark-gutter-background-color;
 
   .header-title {
     @include layout;
@@ -52,16 +53,20 @@ header {
   }
 
   #github-button { background: url(/pictures/github-light-32px.png) no-repeat;
-    filter: brightness(0.5);
+    filter: brightness(0.8);
     width: 32px;
     height: 32px;
     margin: 8px 0 8px 16px;
     border: none;
 
     &:hover {
-      filter: brightness(0.75);
+      filter: brightness(0.6);
     }
   }
+}
+
+section.main-section {
+  @include layout;
 }
 
 footer {
@@ -91,4 +96,25 @@ a {
     color: $playground-text-color;
     fill: $playground-text-color;
   }
+}
+
+// Splitter
+.gutter {
+  background-color: $dark-gutter-background-color;
+  background-repeat: no-repeat;
+  background-position: 50%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.gutter.gutter-horizontal {
+  background-repeat: repeat-y;
+  cursor: col-resize;
+  height: 100%;
+}
+
+.gutter.gutter-vertical {
+  background-repeat: repeat-x;
+  cursor: row-resize;
+  width: 100%;
 }

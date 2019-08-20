@@ -30,6 +30,9 @@
     <link href="experimental/cm-dartpad-dark.css" rel="stylesheet" media="screen">
     <link href="experimental/cm-dartpad-light.css" rel="stylesheet" media="screen">
 
+    <!-- third party javascript -->
+    <script src="packages/split/split.min.js" defer></script>
+
     <!-- material design -->
     <script src="../packages/mdc_web/material-components-web.min.js"></script>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -63,9 +66,11 @@
     <a href="https://github.com/dart-lang/dart-pad" id="github-button"></a>
 </header>
 
-<section>
-    <div>DartPad</div>
-    <button type="button" id="run-button" class="mdc-button">Run</button>
+<section class="main-section">
+    <div id="editor-panel">
+        <button type="button" id="run-button" class="mdc-button">Run</button>
+    </div>
+    <div id="output-panel"></div>
 </section>
 
 <footer>
