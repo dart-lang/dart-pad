@@ -64,3 +64,31 @@ header {
   }
 }
 
+footer {
+  background-color: $playground-footer-background-color;
+  @include layout-horizontal;
+  padding: 8px 24px;
+  .flex {
+    @include layout-flex;
+  }
+
+  .footer-item {
+    margin-right: 10px;
+  }
+}
+
+
+a {
+  text-decoration: none;
+  cursor: pointer;
+
+  &:visited {
+    color: $playground-link-color;
+    fill: $playground-link-color;
+  }
+
+  &:hover {
+    color: $playground-text-color;
+    fill: $playground-text-color;
+  }
+}
