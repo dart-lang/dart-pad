@@ -1,1 +1,33 @@
+@import 'package:mdc_web/material-components-web';
+@import 'package:dart_pad/experimental/scss/colors';
+@import 'package:dart_pad/experimental/scss/variables';
+
 @import 'layout';
+
+
+body {
+  background-color: $playground-background-color;
+  color: $playground-text-color;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+}
+
+header {
+  height: 48px;
+  padding: 0 24px;
+  @include layout-center;
+
+
+  .header-title {
+    font-size: 24px;
+    @include layout;
+    @include layout-center;
+
+    img.logo {
+      height: 24px;
+      width: 24px;
+      margin-right: 8px;
+    }
+  }
+}
+
