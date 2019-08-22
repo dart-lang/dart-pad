@@ -4,11 +4,13 @@
 
 library new_playground;
 
+import 'dart:async';
 import 'dart:html';
 
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 
+import '../context.dart';
 import '../core/dependencies.dart';
 import '../core/modules.dart';
 import '../dart_pad.dart';
@@ -17,6 +19,11 @@ import '../elements/elements.dart';
 import '../modules/codemirror_module.dart';
 import '../modules/dart_pad_module.dart';
 import '../modules/dartservices_module.dart';
+import '../playground_context.dart';
+import '../services/common.dart';
+import '../services/dartservices.dart';
+import '../services/execution_iframe.dart';
+import '../src/ga.dart';
 
 Playground _playground;
 
@@ -25,20 +32,20 @@ void init() {
 }
 
 class Playground {
-  DButton newButton;
-  DButton resetButton;
-  DButton formatButton;
-  DButton shareButton;
-  DButton samplesButton;
-  DButton runButton;
+  MDCButton newButton;
+  MDCButton resetButton;
+  MDCButton formatButton;
+  MDCButton shareButton;
+  MDCButton samplesButton;
+  MDCButton runButton;
 
   Splitter splitter;
 
   Editor editor;
+  PlaygroundContext _context;
 
   Playground() {
     _initButtons();
-    _registerMDCButtons();
     _initSplitters();
     _initModules().then((_) {
       _initPlayground();
@@ -46,28 +53,19 @@ class Playground {
   }
 
   DivElement get _editorHost => querySelector('#editor-host');
-  DivElement get _outputPanel => querySelector('#output');
+  DivElement get _outputHost => querySelector('#output-host');
+  IFrameElement get _frame => querySelector('#frame');
 
   void _initButtons() {
-    newButton = DButton(querySelector('#new-button'));
-    resetButton = DButton(querySelector('#reset-button'));
-    formatButton = DButton(querySelector('#format-button'));
-    shareButton = DButton(querySelector('#share-button'));
-    samplesButton = DButton(querySelector('#samples-dropdown-button'));
-    runButton = DButton(querySelector('#run-button'))
+    newButton = MDCButton(querySelector('#new-button'));
+    resetButton = MDCButton(querySelector('#reset-button'));
+    formatButton = MDCButton(querySelector('#format-button'));
+    shareButton = MDCButton(querySelector('#share-button'));
+    samplesButton = MDCButton(querySelector('#samples-dropdown-button'));
+    runButton = MDCButton(querySelector('#run-button'))
       ..onClick.listen((e) {
         _handleRun();
       });
-  }
-
-  /// Adds a material ripple effect to the material buttons
-  void _registerMDCButtons() {
-    MDCRipple(newButton.element);
-    MDCRipple(resetButton.element);
-    MDCRipple(formatButton.element);
-    MDCRipple(shareButton.element);
-    MDCRipple(samplesButton.element);
-    MDCRipple(runButton.element);
   }
 
   void _initSplitters() {
@@ -95,12 +93,87 @@ class Playground {
   }
 
   void _initPlayground() {
+    // Set up the iframe.
+    deps[ExecutionService] = ExecutionServiceIFrame(_frame);
+    executionService.onStdout.listen(_showOutput);
+    executionService.onStderr.listen((m) => _showOutput(m, error: true));
+
+    // Set up Google Analytics.
+    deps[Analytics] = Analytics();
+
+    // Set up CodeMirror
     editor = editorFactory.createFromElement(_editorHost)
       ..theme = 'darkpad'
       ..mode = 'dart';
+
+    _context = PlaygroundContext(editor);
+    deps[Context] = _context;
   }
 
   void _handleRun() async {
-    print('Run');
+    ga.sendEvent('main', 'run');
+    runButton.disabled = true;
+
+    Stopwatch compilationTimer = Stopwatch()..start();
+
+    final CompileRequest compileRequest = CompileRequest()
+      ..source = context.dartSource;
+
+    try {
+      final CompileResponse response = await dartServices
+          .compile(compileRequest)
+          .timeout(longServiceCallTimeout);
+
+      ga.sendTiming(
+        'action-perf',
+        'compilation-e2e',
+        compilationTimer.elapsedMilliseconds,
+      );
+
+      _clearOutput();
+
+      return await executionService.execute(
+        _context.htmlSource,
+        _context.cssSource,
+        response.result,
+      );
+    } catch (e) {
+      ga.sendException('${e.runtimeType}');
+      final message = (e is DetailedApiRequestError) ? e.message : '$e';
+      DToast.showMessage('Error compiling to JavaScript');
+      _showOutput('Error compiling to JavaScript:\n$message', error: true);
+    } finally {
+      runButton.disabled = false;
+    }
   }
+
+  void _clearOutput() {
+    _outputHost.text = '';
+  }
+
+  final _bufferedOutput = <SpanElement>[];
+  final _outputDuration = Duration(milliseconds: 32);
+
+  void _showOutput(String message, {bool error = false}) {
+    SpanElement span = SpanElement()..text = '$message\n';
+    span.classes.add(error ? 'errorOutput' : 'normal');
+    // Buffer the console output so that heavy writing to stdout does not starve
+    // the DOM thread.
+    _bufferedOutput.add(span);
+    if (_bufferedOutput.length == 1) {
+      Timer(_outputDuration, () {
+        _outputHost.children.addAll(_bufferedOutput);
+        _outputHost.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
+        _bufferedOutput.clear();
+      });
+    }
+  }
+}
+
+/// Adds a ripple effect to material design buttons
+class MDCButton extends DButton {
+  final MDCRipple ripple;
+  MDCButton(ButtonElement element)
+      : ripple = MDCRipple(element),
+        super(element);
 }
