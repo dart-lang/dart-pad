@@ -43,10 +43,12 @@ class Playground {
 
   Editor editor;
   PlaygroundContext _context;
+  Layout _layout;
 
   Playground() {
     _initButtons();
     _initSplitters();
+    _initCheckboxes();
     _initModules().then((_) {
       _initPlayground();
     });
@@ -55,6 +57,14 @@ class Playground {
   DivElement get _editorHost => querySelector('#editor-host');
   DivElement get _outputHost => querySelector('#output-host');
   IFrameElement get _frame => querySelector('#frame');
+  InputElement get dartCheckbox => querySelector('#dart-checkbox');
+  InputElement get webCheckbox => querySelector('#web-checkbox');
+  InputElement get flutterCheckbox => querySelector('#flutter-checkbox');
+  Map<InputElement, Layout> get _layouts => {
+        flutterCheckbox: Layout.flutter,
+        dartCheckbox: Layout.dart,
+        webCheckbox: Layout.web,
+      };
 
   void _initButtons() {
     newButton = MDCButton(querySelector('#new-button'));
@@ -79,6 +89,18 @@ class Playground {
       sizes: [50, 50],
       minSize: [100, 100],
     );
+  }
+
+  void _initCheckboxes() {
+    _changeLayout(Layout.dart);
+    for (var checkbox in _layouts.keys) {
+      checkbox.onClick.listen((event) {
+        event.preventDefault();
+        Timer(Duration(milliseconds: 100), () {
+          _changeLayout(_layouts[checkbox]);
+        });
+      });
+    }
   }
 
   Future _initModules() async {
@@ -140,7 +162,7 @@ class Playground {
     } catch (e) {
       ga.sendException('${e.runtimeType}');
       final message = (e is DetailedApiRequestError) ? e.message : '$e';
-      DToast.showMessage('Error compiling to JavaScript');
+      _showSnackbar('Error compiling to JavaScript');
       _showOutput('Error compiling to JavaScript:\n$message', error: true);
     } finally {
       runButton.disabled = false;
@@ -168,6 +190,32 @@ class Playground {
       });
     }
   }
+
+  void _showSnackbar(String message) {
+    var div = querySelector('.mdc-snackbar');
+    var snackbar = MDCSnackbar(div)..labelText = message;
+    snackbar.open();
+  }
+
+  void _changeLayout(Layout layout) {
+    _layout = layout;
+
+    for (var checkbox in _layouts.keys) {
+      if (_layouts[checkbox] == layout) {
+        checkbox.checked = true;
+      } else {
+        checkbox.checked = false;
+      }
+    }
+
+    if (layout == Layout.dart) {
+      _frame.hidden = true;
+    } else if (layout == Layout.flutter) {
+      _frame.hidden = false;
+    } else if (layout == Layout.web) {
+      _frame.hidden = false;
+    }
+  }
 }
 
 /// Adds a ripple effect to material design buttons
@@ -176,4 +224,10 @@ class MDCButton extends DButton {
   MDCButton(ButtonElement element)
       : ripple = MDCRipple(element),
         super(element);
+}
+
+enum Layout {
+  flutter,
+  dart,
+  web,
 }

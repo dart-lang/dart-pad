@@ -80,6 +80,14 @@
         </iframe>
         <div id="output-host"></div>
     </div>
+    <div class="mdc-snackbar">
+        <div class="mdc-snackbar__surface">
+            <div class="mdc-snackbar__label"
+                 role="status"
+                 aria-live="polite">
+            </div>
+        </div>
+    </div>
 </section>
 
 <footer>
@@ -91,10 +99,18 @@
            target="repo">Send feedback</a>
     </div>
     <div class="flex"></div>
-    <input type="checkbox" id="show-web-content" class="footer-items">
-    <label for="show-web-content" class="footer-item">Show web content</label>
+
+    <input type="checkbox" id="dart-checkbox" class="footer-items">
+    <label for="dart-checkbox" class="footer-item">Dart</label>
+
+    <input type="checkbox" id="flutter-checkbox" class="footer-items">
+    <label for="flutter-checkbox" class="footer-item">Flutter</label>
+
+    <input type="checkbox" id="web-checkbox" class="footer-items">
+    <label for="web-checkbox" class="footer-item">Web</label>
 
     <div id="dartpad_version">Based on Dart SDK ???</div>
 </footer>
+
 </body>
 </html>
