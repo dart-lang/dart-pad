@@ -24,6 +24,8 @@
     <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
     <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
     <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
+    <script src="packages/codemirror/codemirror.js" defer></script>
+
 
     <!-- codemirror themes -->
     <link href="experimental/cm-scrollbars.css" rel="stylesheet" media="screen">
@@ -68,7 +70,10 @@
 
 <section class="main-section">
     <div id="editor-panel">
-        <button type="button" id="run-button" class="mdc-button">Run</button>
+        <div class="header">
+            <button type="button" id="run-button" class="mdc-button">Run</button>
+        </div>
+        <div id="editor-host"></div>
     </div>
     <div id="output-panel"></div>
 </section>

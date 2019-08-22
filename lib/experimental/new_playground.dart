@@ -9,7 +9,10 @@ import 'dart:html';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 
+import '../core/dependencies.dart';
 import '../core/modules.dart';
+import '../dart_pad.dart';
+import '../editing/editor.dart';
 import '../elements/elements.dart';
 import '../modules/codemirror_module.dart';
 import '../modules/dart_pad_module.dart';
@@ -31,6 +34,8 @@ class Playground {
 
   Splitter splitter;
 
+  Editor editor;
+
   Playground() {
     _initButtons();
     _registerMDCButtons();
@@ -39,6 +44,9 @@ class Playground {
       _initPlayground();
     });
   }
+
+  DivElement get _editorHost => querySelector('#editor-host');
+  DivElement get _outputPanel => querySelector('#output');
 
   void _initButtons() {
     newButton = DButton(querySelector('#new-button'));
@@ -82,9 +90,15 @@ class Playground {
     modules.register(DartServicesModule());
     modules.register(DartSupportServicesModule());
     modules.register(CodeMirrorModule());
+
+    await modules.start();
   }
 
-  void _initPlayground() {}
+  void _initPlayground() {
+    editor = editorFactory.createFromElement(_editorHost)
+      ..theme = 'darkpad'
+      ..mode = 'dart';
+  }
 
   void _handleRun() async {
     print('Run');

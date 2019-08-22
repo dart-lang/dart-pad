@@ -118,3 +118,22 @@ a {
   cursor: row-resize;
   width: 100%;
 }
+
+// Editor panel
+#editor-panel {
+  @include layout-vertical;
+}
+
+#editor-host {
+  @include layout-vertical;
+  @include layout-flex;
+
+  .CodeMirror {
+    @include layout-flex;
+  }
+}
+
+.header {
+  @include layout-horizontal;
+  @include layout-end-justified;
+}
