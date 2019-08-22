@@ -10,20 +10,20 @@ import 'dart:html';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 
-import '../context.dart';
-import '../core/dependencies.dart';
-import '../core/modules.dart';
-import '../dart_pad.dart';
-import '../editing/editor.dart';
-import '../elements/elements.dart';
-import '../modules/codemirror_module.dart';
-import '../modules/dart_pad_module.dart';
-import '../modules/dartservices_module.dart';
-import '../playground_context.dart';
-import '../services/common.dart';
-import '../services/dartservices.dart';
-import '../services/execution_iframe.dart';
-import '../src/ga.dart';
+import 'context.dart';
+import 'core/dependencies.dart';
+import 'core/modules.dart';
+import 'dart_pad.dart';
+import 'editing/editor.dart';
+import 'elements/elements.dart';
+import 'modules/codemirror_module.dart';
+import 'modules/dart_pad_module.dart';
+import 'modules/dartservices_module.dart';
+import 'playground_context.dart';
+import 'services/common.dart';
+import 'services/dartservices.dart';
+import 'services/execution_iframe.dart';
+import 'src/ga.dart';
 
 Playground _playground;
 
