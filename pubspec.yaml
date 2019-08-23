@@ -42,5 +42,5 @@ dev_dependencies:
 dependency_overrides:
   mdc_web:
     git:
-      url: git://github.com/johnpryan/mdc_web.git
-      ref: upgrade-to-3.1.1
+      url: git://github.com/jifalops/mdc_web.git
+      ref: e09e45d8088058d89ce69aacac5d07b7e092fe28
