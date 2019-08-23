@@ -48,7 +48,7 @@ class Playground {
   Playground() {
     _initButtons();
     _initSplitters();
-    _initCheckboxes();
+    _initLayout();
     _initModules().then((_) {
       _initPlayground();
     });
@@ -91,7 +91,7 @@ class Playground {
     );
   }
 
-  void _initCheckboxes() {
+  void _initLayout() {
     _changeLayout(Layout.dart);
     for (var checkbox in _layouts.keys) {
       checkbox.onClick.listen((event) {
