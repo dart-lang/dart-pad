@@ -16,7 +16,7 @@ $mdc-theme-error: $dark-red;
 body {
   background-color: $playground-background-color;
   color: $playground-text-color;
-  font-family: 'Roboto', sans-serif;
+  font-family: $normal-font;
   font-size: 14px;
 }
 
@@ -136,4 +136,22 @@ a {
 .header {
   @include layout-horizontal;
   @include layout-end-justified;
+}
+
+// Console
+
+#output-panel {
+  @include layout-flex;
+  @include layout-vertical;
+}
+
+.console {
+  @include layout-flex;
+  font-family: $editor-font;
+  font-size: 14px;
+  line-height: 20px;
+  min-height: 50px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin: 16px;
 }

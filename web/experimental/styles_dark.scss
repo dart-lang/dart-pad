@@ -37,7 +37,7 @@ a {
 
 // Helper class for using a border when collapsed
 .footer-top-border {
-  border-top: 8px solid $dark-border-color;
+  border-top: $border-width solid $dark-border-color;
 }
 
 #issues-message {
@@ -78,6 +78,12 @@ a {
 
 .mdc-linear-progress {
   @include mdc-linear-progress-buffer-color($dark-code-background-color)
+}
+
+// Navbar
+
+#navbar {
+  border-bottom: $border-width solid $dark-gutter-background-color;
 }
 
 // Flashes

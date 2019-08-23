@@ -25,7 +25,7 @@ import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/util.dart';
 
-const int defaultSplitterWidth = 10;
+const int defaultSplitterWidth = 6;
 
 NewEmbed get newEmbed => _newEmbed;
 

@@ -30,7 +30,7 @@ $light-flash-warning-color: #fff8e7;
 $light-flash-error-color: #ffe7f8;
 
 $dark-text-color: #9e9e9e;
-$dark-code-background-color: #13202e;
+$dark-code-background-color: $playground-background-color;
 $dark-busy-background-color: rgba(27, 29, 33, .8);
 $dark-secondary-background-color: $dark-code-background-color;
 $dark-gutter-background-color: #121a25;

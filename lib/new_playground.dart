@@ -177,6 +177,7 @@ class Playground {
   final _outputDuration = Duration(milliseconds: 32);
 
   void _showOutput(String message, {bool error = false}) {
+    _clearOutput();
     SpanElement span = SpanElement()..text = '$message\n';
     span.classes.add(error ? 'errorOutput' : 'normal');
     // Buffer the console output so that heavy writing to stdout does not starve
