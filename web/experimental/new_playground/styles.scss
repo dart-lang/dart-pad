@@ -154,4 +154,12 @@ a {
   overflow-y: auto;
   white-space: pre-wrap;
   margin: 16px;
+
+  .normal {
+    color: $dark-editor-text;
+  }
+
+  .errorOutput {
+    color: $dark-pink;
+  }
 }
