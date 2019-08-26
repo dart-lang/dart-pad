@@ -144,6 +144,11 @@ a {
 #output-panel {
   @include layout-flex;
   @include layout-vertical;
+
+  iframe {
+    @include layout-flex;
+    border: none;
+  }
 }
 
 .console {
