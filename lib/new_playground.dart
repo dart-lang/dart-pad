@@ -130,6 +130,14 @@ class Playground {
 
     _context = PlaygroundContext(editor);
     deps[Context] = _context;
+
+    _finishedInit();
+  }
+
+  void _finishedInit() {
+    // Clear the splash.
+    DSplash splash = DSplash(querySelector('div.splash'));
+    splash.hide();
   }
 
   void _handleRun() async {

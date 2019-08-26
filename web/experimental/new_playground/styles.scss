@@ -66,6 +66,7 @@ header {
 }
 
 section.main-section {
+  @include  layout-relative;
   @include layout;
 }
 
@@ -162,4 +163,27 @@ a {
   .errorOutput {
     color: $dark-pink;
   }
+}
+
+// Splash
+
+.splash {
+  background: $playground-background-color;
+  pointer-events: none;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+
+  z-index: 1000;
+  opacity: 1;
+
+  transition: opacity .1s linear;
+  -webkit-transition: opacity .1s linear;
+}
+
+.splash.hide {
+  opacity: 0;
 }
