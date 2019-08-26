@@ -5,6 +5,7 @@
 library new_playground;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:html';
 
 import 'package:logging/logging.dart';
@@ -52,6 +53,7 @@ class Playground implements GistContainer, GistController {
   MDCButton shareButton;
   MDCButton samplesButton;
   MDCButton runButton;
+  MDCMenu samplesMenu;
   Dialog dialog;
   DContentEditable titleEditable;
 
@@ -77,6 +79,7 @@ class Playground implements GistContainer, GistController {
     _initGistNameHeader();
     _initGistStorage();
     _initButtons();
+    _initSamplesMenu();
     _initSplitters();
     _initLayout();
     _initModules().then((_) {
@@ -135,11 +138,68 @@ class Playground implements GistContainer, GistController {
       ..onClick.listen((_) => _format());
     shareButton = MDCButton(querySelector('#share-button'))
       ..onClick.listen((_) => _showSharingPage());
-    samplesButton = MDCButton(querySelector('#samples-dropdown-button'));
+    samplesButton = MDCButton(querySelector('#samples-dropdown-button'))
+      ..onClick.listen((e) {
+        samplesMenu.open = !samplesMenu.open;
+      });
     runButton = MDCButton(querySelector('#run-button'))
       ..onClick.listen((_) {
         _handleRun();
       });
+  }
+
+  void _initSamplesMenu() {
+    var element = querySelector('#samples-menu');
+
+    // Use SplayTreeMap to keep the order of the keys
+    var samples = SplayTreeMap()
+      ..addEntries([
+        MapEntry('215ba63265350c02dfbd586dfd30b8c3', 'Hello World'),
+        MapEntry('e93b969fed77325db0b848a85f1cf78e', 'Int to Double'),
+        MapEntry('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins'),
+        MapEntry('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci'),
+        MapEntry('a559420eed617dab7a196b5ea0b64fba', 'Sunflower'),
+        MapEntry('cb9b199b1085873de191e32a1dd5ca4f', 'WebSockets'),
+      ]);
+
+    var listElement = UListElement()
+      ..classes.add('mdc-list')
+      ..attributes.addAll({
+        'aria-hidden': 'true',
+        'aria-orientation': 'vertical',
+        'tabindex': '-1'
+      });
+
+    element.children.add(listElement);
+
+    // Helper function to create LIElement with correct attributes and classes
+    // for material-components-web
+    LIElement _menuElement(String gistId, String name) {
+      return LIElement()
+        ..classes.add('mdc-list-item')
+        ..attributes.addAll({'role': 'menuitem'})
+        ..children.add(
+          SpanElement()
+            ..classes.add('mdc-list-item__text')
+            ..text = name,
+        );
+    }
+
+    for (var gistId in samples.keys) {
+      listElement.children.add(_menuElement(gistId, samples[gistId]));
+    }
+
+    samplesMenu = MDCMenu(element)
+      ..setAnchorCorner(AnchorCorner.bottomLeft)
+      ..setAnchorElement(querySelector('#samples-dropdown-button'))
+      ..hoistMenuToBody();
+
+    samplesMenu.listen('MDCMenu:selected', (e) {
+      print('samplesMenu selected');
+      var index = (e as CustomEvent).detail['index'];
+      var gistId = samples.keys.elementAt(index);
+      router.go('gist', {'gist': gistId});
+    });
   }
 
   void _initSplitters() {
@@ -345,6 +405,7 @@ class Playground implements GistContainer, GistController {
           _changeLayout(Layout.web);
         } else {
           // TODO (johnpryan): detect if app is a dart or flutter app
+          _changeLayout(Layout.dart);
         }
       }
 
