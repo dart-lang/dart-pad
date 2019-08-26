@@ -433,23 +433,45 @@ class Playground implements GistContainer, GistController {
       ..source = context.dartSource;
 
     try {
-      final CompileResponse response = await dartServices
-          .compile(compileRequest)
-          .timeout(longServiceCallTimeout);
+      if (_layout == Layout.flutter) {
+        final CompileDDCResponse response = await dartServices
+            .compileDDC(compileRequest)
+            .timeout(longServiceCallTimeout);
 
-      ga.sendTiming(
-        'action-perf',
-        'compilation-e2e',
-        compilationTimer.elapsedMilliseconds,
-      );
+        ga.sendTiming(
+          'action-perf',
+          'compilation-e2e',
+          compilationTimer.elapsedMilliseconds,
+        );
 
-      _clearOutput();
+        _clearOutput();
 
-      return await executionService.execute(
-        _context.htmlSource,
-        _context.cssSource,
-        response.result,
-      );
+        return executionService.execute(
+          _context.htmlSource,
+          _context.cssSource,
+          response.result,
+          modulesBaseUrl: response.modulesBaseUrl,
+        );
+      } else {
+        final CompileResponse response = await dartServices
+            .compile(compileRequest)
+            .timeout(longServiceCallTimeout);
+
+        ga.sendTiming(
+          'action-perf',
+          'compilation-e2e',
+          compilationTimer.elapsedMilliseconds,
+        );
+
+        _clearOutput();
+
+        return await executionService.execute(
+          _context.htmlSource,
+          _context.cssSource,
+          response.result,
+        );
+
+      }
     } catch (e) {
       ga.sendException('${e.runtimeType}');
       final message = (e is DetailedApiRequestError) ? e.message : '$e';
