@@ -192,8 +192,8 @@ class NewEmbed {
         DisableableButton(querySelector('#execute'), _handleExecute);
 
     reloadGistButton = DisableableButton(querySelector('#reload-gist'), () {
-      if (gistId.isNotEmpty) {
-        _loadAndShowGist(gistId);
+      if (gistId.isNotEmpty || sampleId.isNotEmpty) {
+        _loadAndShowGist(analyze: false);
       } else {
         _resetCode();
       }
@@ -410,6 +410,16 @@ class NewEmbed {
     return '';
   }
 
+  String get sampleId {
+    Uri url = Uri.parse(window.location.toString());
+
+    if (url.hasQuery && url.queryParameters['sample_id'] != null) {
+      return url.queryParameters['sample_id'];
+    }
+
+    return '';
+  }
+
   Future<void> _initModules() async {
     ModuleManager modules = ModuleManager();
 
@@ -495,21 +505,24 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
       minSize: [100, 100],
     );
 
-    if (gistId.isNotEmpty) {
-      _loadAndShowGist(gistId, analyze: false);
+    if (gistId.isNotEmpty || sampleId.isNotEmpty) {
+      _loadAndShowGist(analyze: false);
     }
 
     // set enabled/disabled state of various buttons
     editorIsBusy = false;
   }
 
-  Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
+  Future<void> _loadAndShowGist({bool analyze = true}) async {
     editorIsBusy = true;
 
     final GistLoader loader = deps[GistLoader];
 
     try {
-      final gist = await loader.loadGist(id);
+      final gist = gistId.isNotEmpty
+          ? await loader.loadGist(gistId)
+          : await loader.loadGistFromAPIDocs(sampleId);
+
       setContextSources(<String, String>{
         'main.dart': gist.getFile('main.dart')?.content ?? '',
         'index.html': gist.getFile('index.html')?.content ?? '',
