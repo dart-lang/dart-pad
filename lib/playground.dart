@@ -29,6 +29,8 @@ import 'services/_dartpadsupportservices.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
+import 'sharing/editor_doc_property.dart';
+import 'sharing/gist_file_property.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
@@ -969,42 +971,4 @@ class Playground implements GistContainer, GistController {
     doc.select(Position(line, 0), Position(line, 0));
     editor.focus();
   }
-}
-
-
-class GistFileProperty implements Property {
-  final MutableGistFile file;
-
-  GistFileProperty(this.file);
-
-  @override
-  String get() => file.content;
-
-  @override
-  void set(value) {
-    if (file.content != value) {
-      file.content = value;
-    }
-  }
-
-  @override
-  Stream get onChanged => file.onChanged.map((value) => value);
-}
-
-class EditorDocumentProperty implements Property {
-  final Document document;
-  final String debugName;
-
-  EditorDocumentProperty(this.document, [this.debugName]);
-
-  @override
-  String get() => document.value;
-
-  @override
-  void set(str) {
-    document.value = str == null ? '' : str;
-  }
-
-  @override
-  Stream get onChanged => document.onChange.map((_) => get());
 }
