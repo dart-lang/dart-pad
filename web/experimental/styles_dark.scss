@@ -80,12 +80,6 @@ a {
   @include mdc-linear-progress-buffer-color($dark-code-background-color)
 }
 
-// Navbar
-
-#navbar {
-  border-bottom: $border-width solid $dark-gutter-background-color;
-}
-
 // Flashes
 
 .flash {

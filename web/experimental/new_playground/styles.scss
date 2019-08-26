@@ -137,9 +137,12 @@ a {
 #editor-host {
   @include layout-vertical;
   @include layout-flex;
+  padding: 0 1em;
 
   .CodeMirror {
     @include layout-flex;
+    font-family: $editor-font;
+    font-size: $playground-editor-font-size;
   }
 }
 

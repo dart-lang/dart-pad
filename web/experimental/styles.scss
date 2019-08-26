@@ -65,7 +65,7 @@ body {
 
 #console-view {
   font-family: $editor-font;
-  font-size: $editor-font-size;
+  font-size: $embed-editor-font-size;
   overflow-y: auto;
   height: 100%;
   white-space: pre-wrap;
@@ -149,7 +149,7 @@ body {
 .CodeMirror {
   height: 100%;
   font-family: $editor-font;
-  font-size: $editor-font-size;
+  font-size: $embed-editor-font-size;
 }
 
 // Web output
@@ -217,7 +217,7 @@ body {
   flex: 1;
   overflow: auto;
   font-family: $editor-font;
-  font-size: $editor-font-size;
+  font-size: $embed-editor-font-size;
 }
 
 // HTML Mode
@@ -256,7 +256,7 @@ body {
 
 #issues-message {
   font-family: $editor-font;
-  font-size: $editor-font-size;
+  font-size: $embed-editor-font-size;
   cursor: default;
   margin-right: 12px;
 }
@@ -292,7 +292,7 @@ body {
 
 .issue .issuelabel {
   font-family: $editor-font;
-  font-size: $editor-font-size;
+  font-size: $embed-editor-font-size;
   display: inline-block;
   border-radius: 3px;
   padding: 2px 5px;
@@ -355,7 +355,7 @@ body {
 
 .view-label {
   font-family: $editor-font;
-  font-size: $editor-font-size;
+  font-size: $embed-editor-font-size;
   color: $label-color;
   margin-left: 8px;
 }

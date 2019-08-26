@@ -65,13 +65,6 @@ a {
   @include mdc-linear-progress-buffer-color($light-code-background-color)
 }
 
-// Navbar
-
-#navbar {
-  border-bottom: $border-width solid $light-gutter-background-color;
-}
-
-
 // Flashes
 
 .message-container {
