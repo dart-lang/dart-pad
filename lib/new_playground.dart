@@ -185,6 +185,9 @@ class Playground implements GistContainer, GistController {
     // Set up Google Analytics.
     deps[Analytics] = Analytics();
 
+    // Set up the gist loader.
+    deps[GistLoader] = GistLoader.defaultFilters();
+
     // Set up CodeMirror
     editor = editorFactory.createFromElement(_editorHost)
       ..theme = 'darkpad'
