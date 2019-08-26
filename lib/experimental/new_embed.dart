@@ -819,7 +819,7 @@ class NewEmbedTabController extends TabController {
       }
     }
 
-    if (tabName == 'solution' {
+    if (tabName == 'solution') {
       ga?.sendEvent('view', 'solution');
       _userHasSeenSolution = true;
     }
