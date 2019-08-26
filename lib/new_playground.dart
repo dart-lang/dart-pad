@@ -698,7 +698,8 @@ class Playground implements GistContainer, GistController {
   }
 
   void _jumpToLine(int line) {
-    Document doc = editor.document;
+    final doc = editor.document;
+    doc.select(Position(line, 0), Position(line, 0));
 
     editor.focus();
   }
