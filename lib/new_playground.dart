@@ -128,14 +128,16 @@ class Playground implements GistContainer, GistController {
 
   void _initButtons() {
     newButton = MDCButton(querySelector('#new-button'))
-      ..onClick.listen((e) => _showCreateGistDialog());
+      ..onClick.listen((_) => _showCreateGistDialog());
     resetButton = MDCButton(querySelector('#reset-button'))
-      ..onClick.listen((e) => _showResetDialog());
-    formatButton = MDCButton(querySelector('#format-button'));
-    shareButton = MDCButton(querySelector('#share-button'));
+      ..onClick.listen((_) => _showResetDialog());
+    formatButton = MDCButton(querySelector('#format-button'))
+      ..onClick.listen((_) => _format());
+    shareButton = MDCButton(querySelector('#share-button'))
+      ..onClick.listen((_) => _showSharingPage());
     samplesButton = MDCButton(querySelector('#samples-dropdown-button'));
     runButton = MDCButton(querySelector('#run-button'))
-      ..onClick.listen((e) {
+      ..onClick.listen((_) {
         _handleRun();
       });
   }
@@ -550,6 +552,11 @@ class Playground implements GistContainer, GistController {
     if (result == DialogResult.ok) {
       _resetGists();
     }
+  }
+
+  void _showSharingPage() {
+    window.open(
+        'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide', '_sharing');
   }
 
   @override
