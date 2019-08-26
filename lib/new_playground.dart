@@ -36,6 +36,8 @@ import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/util.dart';
 
+Playground get playground => _playground;
+
 Playground _playground;
 
 final Logger _logger = Logger('dartpad');
@@ -282,6 +284,12 @@ class Playground implements GistContainer, GistController {
     router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
     router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
     router.listen();
+
+    dartServices.version().then((VersionResponse version) {
+      // "Based on Dart SDK 2.4.0"
+      String versionText = 'Based on Dart SDK ${version.sdkVersionFull}';
+      querySelector('#dartpad-version').text = versionText;
+    }).catchError((e) => null);
 
     _finishedInit();
   }
