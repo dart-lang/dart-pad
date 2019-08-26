@@ -355,7 +355,7 @@ class Playground implements GistContainer, GistController {
       });
     }).catchError((e) {
       String message = 'Error loading gist $gistId.';
-      DToast.showMessage(message);
+      _showSnackbar(message);
       _logger.severe('$message: $e');
     });
   }
@@ -468,9 +468,9 @@ class Playground implements GistContainer, GistController {
 
       if (originalSource != result.newString) {
         editor.document.updateValue(result.newString);
-        DToast.showMessage('Format successful.');
+        _showSnackbar('Format successful.');
       } else {
-        DToast.showMessage('No formatting changes.');
+        _showSnackbar('No formatting changes.');
       }
     }).catchError((e) {
       busyLight.reset();
@@ -560,7 +560,7 @@ class Playground implements GistContainer, GistController {
 
     if (ga != null) ga.sendEvent('main', 'new');
 
-    DToast.showMessage('New pad created');
+    _showSnackbar('New pad created');
     router.go('gist', {'gist': ''}, forceReload: true);
 
     return Future.value();
@@ -584,20 +584,14 @@ class Playground implements GistContainer, GistController {
       editableGist.setBackingGist(newGist);
       overrideNextRoute(newGist);
       router.go('gist', {'gist': newGist.id});
-      var toast = DToast('Created ${newGist.id}')
-        ..show()
-        ..hide();
-      toast.element
-        ..style.cursor = 'pointer'
-        ..onClick.listen((e) => window.open(
-            'https://gist.github.com/anonymous/${newGist.id}', '_blank'));
+      _showSnackbar('Created ${newGist.id}');
       GistToInternalIdMapping mapping = GistToInternalIdMapping()
         ..gistId = newGist.id
         ..internalId = _mappingId;
       dartSupportServices.storeGist(mapping);
     }).catchError((e) {
       String message = 'Error saving gist: $e';
-      DToast.showMessage(message);
+      _showSnackbar(message);
       ga.sendException('GistLoader.createAnon: failed to create gist');
     });
   }
