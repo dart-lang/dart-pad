@@ -67,6 +67,8 @@ class NewEmbedOptions {
 /// snippet against a desired result.
 class NewEmbed {
   final NewEmbedOptions options;
+
+  var _executionButtonCount = 0;
   DisableableButton executeButton;
   DisableableButton reloadGistButton;
   DisableableButton formatButton;
@@ -205,6 +207,7 @@ class NewEmbed {
         tabController.selectTab('solution', force: true);
       });
       hintBox.showElements([hintElement, showSolutionButton]);
+      ga?.sendEvent('view', 'hint');
     })
       ..hidden = true;
 
@@ -575,7 +578,8 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
       return;
     }
 
-    ga?.sendEvent('execution', 'initiated');
+    _executionButtonCount++;
+    ga?.sendEvent('execution', 'initiated', label: '$_executionButtonCount');
 
     editorIsBusy = true;
     testResultBox.hide();
@@ -816,6 +820,7 @@ class NewEmbedTabController extends TabController {
     }
 
     if (tabName == 'solution') {
+      ga?.sendEvent('view', 'solution');
       _userHasSeenSolution = true;
     }
 
