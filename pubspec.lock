@@ -347,10 +347,12 @@ packages:
   mdc_web:
     dependency: "direct main"
     description:
-      name: mdc_web
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.4.1+1"
+      path: "."
+      ref: "upgrade-to-3.1.1"
+      resolved-ref: "421f3575252fd1bb715a730c92954a291b55f895"
+      url: "git://github.com/johnpryan/mdc_web.git"
+    source: git
+    version: "0.5.0-pre"
   meta:
     dependency: "direct main"
     description:

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @import 'package:dart_pad/experimental/scss/colors';
+@import 'package:dart_pad/experimental/scss/variables';
 
 // These variables must be set before importing material-components-web.scss.
 // Since `styles.scss` loads mdc_web these must be before `styles.scss` is
@@ -33,7 +34,7 @@ a {
 
 // Helper class for using a border when collapsed
 .footer-top-border {
-  border-top: 8px solid $light-border-color;
+  border-top: $border-width solid $light-border-color;
 }
 
 #issues-message {

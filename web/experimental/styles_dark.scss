@@ -37,7 +37,7 @@ a {
 
 // Helper class for using a border when collapsed
 .footer-top-border {
-  border-top: 8px solid $dark-border-color;
+  border-top: $border-width solid $dark-border-color;
 }
 
 #issues-message {

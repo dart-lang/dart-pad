@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" href="/dart-192.png">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>DartPad</title>
+
+    <!-- styles -->
+    <link href="experimental/new_playground/styles.css" rel="stylesheet" media="screen">
+
+    <!-- fonts -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet">
+
+    <!-- codemirror -->
+    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
+    <script src="packages/codemirror/codemirror.js" defer></script>
+
+
+    <!-- codemirror themes -->
+    <link href="experimental/cm-scrollbars.css" rel="stylesheet" media="screen">
+    <link href="experimental/cm-dartpad-dark.css" rel="stylesheet" media="screen">
+    <link href="experimental/cm-dartpad-light.css" rel="stylesheet" media="screen">
+
+    <!-- third party javascript -->
+    <script src="packages/split/split.min.js" defer></script>
+
+    <!-- material design -->
+    <script src="../packages/mdc_web/material-components-web.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- dart -->
+    <script defer src="experimental/new_playground/main.dart.js"></script>
+
+    <!-- javascript -->
+    <script src="scripts/ga.js" defer></script>
+    <script src="scripts/polymerpatch.js" defer></script>
+</head>
+
+<body>
+<header>
+    <div class="header-title">
+        <img src="dart-192.png" alt="DartPad Logo" class="logo"/>
+        <span>DartPad</span>
+    </div>
+    <div>
+        <button type="button" id="new-button" class="mdc-button">New Pad</button>
+        <button type="button" id="reset-button" class="mdc-button">Reset</button>
+        <button type="button" id="format-button" class="mdc-button">Format</button>
+    </div>
+    <div class="header-gist-name"></div>
+    <div>
+        <button type="button" id="share-button" class="mdc-button">Share</button>
+    </div>
+    <div>
+        <button type="button" id="samples-dropdown-button" class="mdc-button">Samples</button>
+        <div id="samples-menu" class="mdc-menu mdc-menu-surface"></div>
+    </div>
+    <a href="https://github.com/dart-lang/dart-pad" id="github-button"></a>
+</header>
+
+<section class="main-section">
+    <div class="splash"></div>
+    <div id="editor-panel">
+        <div class="header">
+            <div id="dartbusy" class="busylight"></div>
+            <button type="button" id="run-button" class="mdc-button mdc-button--raised mdc-button--dense">
+                <i class="material-icons mdc-button__icon">play_arrow</i>
+                Run
+            </button>
+        </div>
+        <div id="editor-host"></div>
+    </div>
+    <div id="output-panel">
+        <div class="header">
+            <div id="consolebusy" class="busylight"></div>
+        </div>
+        <iframe id="frame" sandbox="allow-scripts" flex src="scripts/frame_dark.html">
+        </iframe>
+        <div id="output-host" class="console"></div>
+    </div>
+    <div class="mdc-snackbar">
+        <div class="mdc-snackbar__surface">
+            <div class="mdc-snackbar__label"
+                 role="status"
+                 aria-live="polite">
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <div id="keyboard-button"></div>
+    <div>
+        <a href="https://www.dartlang.org/tools/dartpad/privacy"
+           target="repo" class="footer-item">Privacy notice</a>
+        <a href="https://github.com/dart-lang/dart-pad/issues"
+           target="repo">Send feedback</a>
+    </div>
+    <div class="flex"></div>
+
+    <input type="checkbox" id="dart-checkbox" class="footer-items">
+    <label for="dart-checkbox" class="footer-item">Dart</label>
+
+    <input type="checkbox" id="flutter-checkbox" class="footer-items">
+    <label for="flutter-checkbox" class="footer-item">Flutter</label>
+
+    <input type="checkbox" id="web-checkbox" class="footer-items">
+    <label for="web-checkbox" class="footer-item">Web</label>
+
+    <div id="dartpad-version"></div>
+</footer>
+
+<div class="mdc-dialog"
+     role="alertdialog"
+     aria-modal="true"
+     aria-labelledby="my-dialog-title"
+     aria-describedby="my-dialog-content">
+    <div class="mdc-dialog__container">
+        <div class="mdc-dialog__surface">
+            <h2 class="mdc-dialog__title" id="my-dialog-title"></h2>
+            <div class="mdc-dialog__content" id="my-dialog-content"></div>
+            <footer class="mdc-dialog__actions">
+                <button type="button" id="dialog-left-button" class="mdc-button mdc-dialog__button">
+                    <span class="mdc-button__label">No</span>
+                </button>
+                <button type="button" id="dialog-right-button" class="mdc-button mdc-dialog__button">
+                    <span class="mdc-button__label">Yes</span>
+                </button>
+            </footer>
+        </div>
+    </div>
+    <div class="mdc-dialog__scrim"></div>
+</div>
+</body>
+</html>

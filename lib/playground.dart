@@ -24,10 +24,13 @@ import 'elements/elements.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
+import 'playground_context.dart';
 import 'services/_dartpadsupportservices.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
+import 'sharing/editor_doc_property.dart';
+import 'sharing/gist_file_property.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
@@ -428,8 +431,8 @@ class Playground implements GistContainer, GistController {
 
     // Set up the iframe.
     deps[ExecutionService] = ExecutionServiceIFrame(_frame);
-    executionService.onStdout.listen(_showOuput);
-    executionService.onStderr.listen((m) => _showOuput(m, error: true));
+    executionService.onStdout.listen(_showOutput);
+    executionService.onStderr.listen((m) => _showOutput(m, error: true));
 
     // Set up Google Analytics.
     deps[Analytics] = Analytics();
@@ -496,7 +499,7 @@ class Playground implements GistContainer, GistController {
     deps[Context] = _context;
 
     editorFactory.registerCompleter(
-        'dart', DartCompleter(dartServices, _context._dartDoc));
+        'dart', DartCompleter(dartServices, _context.dartDocument));
 
     _context.onHtmlDirty.listen((_) => busyLight.on());
     _context.onHtmlReconcile.listen((_) {
@@ -672,7 +675,7 @@ class Playground implements GistContainer, GistController {
       ga.sendException('${e.runtimeType}');
       final message = (e is DetailedApiRequestError) ? e.message : '$e';
       DToast.showMessage('Error compiling to JavaScript');
-      _showOuput('Error compiling to JavaScript:\n$message', error: true);
+      _showOutput('Error compiling to JavaScript:\n$message', error: true);
     } finally {
       runButton.disabled = false;
       overlay.visible = false;
@@ -853,7 +856,7 @@ class Playground implements GistContainer, GistController {
   final _bufferedOutput = <SpanElement>[];
   final _outputDuration = Duration(milliseconds: 32);
 
-  void _showOuput(String message, {bool error = false}) {
+  void _showOutput(String message, {bool error = false}) {
     consoleBusyLight.flash();
 
     SpanElement span = SpanElement()..text = '$message\n';
@@ -968,180 +971,4 @@ class Playground implements GistContainer, GistController {
     doc.select(Position(line, 0), Position(line, 0));
     editor.focus();
   }
-}
-
-class PlaygroundContext extends Context {
-  final Editor editor;
-
-  final _modeController = StreamController<String>.broadcast();
-
-  Document _dartDoc;
-  Document _htmlDoc;
-  Document _cssDoc;
-
-  final _cssDirtyController = StreamController.broadcast();
-  final _dartDirtyController = StreamController.broadcast();
-  final _htmlDirtyController = StreamController.broadcast();
-
-  final _cssReconcileController = StreamController.broadcast();
-  final _dartReconcileController = StreamController.broadcast();
-  final _htmlReconcileController = StreamController.broadcast();
-
-  PlaygroundContext(this.editor) {
-    editor.mode = 'dart';
-
-    _dartDoc = editor.document;
-    _htmlDoc = editor.createDocument(content: '', mode: 'html');
-    _cssDoc = editor.createDocument(content: '', mode: 'css');
-
-    _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
-    _htmlDoc.onChange.listen((_) => _htmlDirtyController.add(null));
-    _cssDoc.onChange.listen((_) => _cssDirtyController.add(null));
-
-    _createReconciler(_cssDoc, _cssReconcileController, 250);
-    _createReconciler(_dartDoc, _dartReconcileController, 1250);
-    _createReconciler(_htmlDoc, _htmlReconcileController, 250);
-  }
-
-  Document get dartDocument => _dartDoc;
-
-  Document get htmlDocument => _htmlDoc;
-
-  Document get cssDocument => _cssDoc;
-
-  @override
-  String get dartSource => _dartDoc.value;
-
-  @override
-  set dartSource(String value) {
-    _dartDoc.value = value;
-  }
-
-  @override
-  String get htmlSource => _htmlDoc.value;
-
-  @override
-  set htmlSource(String value) {
-    _htmlDoc.value = value;
-  }
-
-  @override
-  String get cssSource => _cssDoc.value;
-
-  @override
-  set cssSource(String value) {
-    _cssDoc.value = value;
-  }
-
-  @override
-  String get activeMode => editor.mode;
-
-  @override
-  Stream<String> get onModeChange => _modeController.stream;
-
-  bool hasWebContent() {
-    return htmlSource.trim().isNotEmpty || cssSource.trim().isNotEmpty;
-  }
-
-  @override
-  void switchTo(String name) {
-    String oldMode = activeMode;
-
-    if (name == 'dart') {
-      editor.swapDocument(_dartDoc);
-    } else if (name == 'html') {
-      editor.swapDocument(_htmlDoc);
-    } else if (name == 'css') {
-      editor.swapDocument(_cssDoc);
-    }
-
-    if (oldMode != name) _modeController.add(name);
-
-    editor.focus();
-  }
-
-  @override
-  String get focusedEditor {
-    if (editor.document == _htmlDoc) return 'html';
-    if (editor.document == _cssDoc) return 'css';
-    return 'dart';
-  }
-
-  Stream get onCssDirty => _cssDirtyController.stream;
-
-  Stream get onDartDirty => _dartDirtyController.stream;
-
-  Stream get onHtmlDirty => _htmlDirtyController.stream;
-
-  Stream get onCssReconcile => _cssReconcileController.stream;
-
-  Stream get onDartReconcile => _dartReconcileController.stream;
-
-  Stream get onHtmlReconcile => _htmlReconcileController.stream;
-
-  void markCssClean() => _cssDoc.markClean();
-
-  void markDartClean() => _dartDoc.markClean();
-
-  void markHtmlClean() => _htmlDoc.markClean();
-
-  /// Restore the focus to the last focused editor.
-  void focus() => editor.focus();
-
-  void _createReconciler(Document doc, StreamController controller, int delay) {
-    Timer timer;
-    doc.onChange.listen((_) {
-      if (timer != null) timer.cancel();
-      timer = Timer(Duration(milliseconds: delay), () {
-        controller.add(null);
-      });
-    });
-  }
-
-  /// Return true if the current cursor position is in a whitespace char.
-  bool cursorPositionIsWhitespace() {
-    Document document = editor.document;
-    String str = document.value;
-    int index = document.indexFromPos(document.cursor);
-    if (index < 0 || index >= str.length) return false;
-    String char = str[index];
-    return char != char.trim();
-  }
-}
-
-class GistFileProperty implements Property {
-  final MutableGistFile file;
-
-  GistFileProperty(this.file);
-
-  @override
-  String get() => file.content;
-
-  @override
-  void set(value) {
-    if (file.content != value) {
-      file.content = value;
-    }
-  }
-
-  @override
-  Stream get onChanged => file.onChanged.map((value) => value);
-}
-
-class EditorDocumentProperty implements Property {
-  final Document document;
-  final String debugName;
-
-  EditorDocumentProperty(this.document, [this.debugName]);
-
-  @override
-  String get() => document.value;
-
-  @override
-  void set(str) {
-    document.value = str == null ? '' : str;
-  }
-
-  @override
-  Stream get onChanged => document.onChange.map((_) => get());
 }

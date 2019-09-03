@@ -1,0 +1,237 @@
+@import 'package:dart_pad/experimental/scss/colors';
+@import 'package:dart_pad/experimental/scss/variables';
+
+@import 'layout';
+
+// Material Design Web theme colors. Must be imported before importing
+// material-components-web.scss.
+$mdc-theme-primary: #168AFD;
+$mdc-theme-secondary: #676767;
+$mdc-theme-background: $playground-background-color;
+$mdc-theme-surface: $playground-background-color;
+$mdc-theme-error: $dark-red;
+
+@import 'package:mdc_web/material-components-web';
+
+body {
+  background-color: $playground-background-color;
+  color: $playground-text-color;
+  font-family: $normal-font;
+  font-size: 14px;
+}
+
+header {
+  height: 48px;
+  padding: 0 24px;
+  @include layout-center;
+  border-bottom: 6px solid $dark-gutter-background-color;
+
+  .header-title {
+    @include layout;
+    @include layout-center;
+    font-size: 24px;
+    margin-right: 8px;
+
+    img.logo {
+      height: 24px;
+      width: 24px;
+      margin-right: 8px;
+    }
+  }
+
+  button.mdc-button {
+    @include mdc-button-ink-color(#f8f9fa);
+    text-transform: none !important;
+    letter-spacing: normal;
+  }
+
+  .header-gist-name {
+    @include layout-flex;
+    @include layout-horizontal;
+    @include layout-center-justified;
+    font-size: 14pt;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-left: 1em;
+    margin-right: 1em;
+
+    &::after {
+      content: " •";
+      margin-left: 0.4em;
+    }
+  }
+
+  #github-button { background: url(/pictures/github-light-32px.png) no-repeat;
+    filter: brightness(0.8);
+    width: 32px;
+    height: 32px;
+    margin: 8px 0 8px 16px;
+    border: none;
+
+    &:hover {
+      filter: brightness(0.6);
+    }
+  }
+}
+
+section.main-section {
+  @include  layout-relative;
+  @include layout;
+}
+
+body>footer {
+  background-color: $playground-footer-background-color;
+  @include layout-horizontal;
+  padding: 8px 24px;
+  .flex {
+    @include layout-flex;
+  }
+
+  .footer-item {
+    margin-right: 10px;
+  }
+}
+
+
+a {
+  text-decoration: none;
+  cursor: pointer;
+
+  &:visited {
+    color: $playground-link-color;
+    fill: $playground-link-color;
+  }
+
+  &:hover {
+    color: $playground-text-color;
+    fill: $playground-text-color;
+  }
+}
+
+// Splitter
+.gutter {
+  background-color: $dark-gutter-background-color;
+  background-repeat: no-repeat;
+  background-position: 50%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.gutter.gutter-horizontal {
+  background-repeat: repeat-y;
+  cursor: col-resize;
+  height: 100%;
+}
+
+.gutter.gutter-vertical {
+  background-repeat: repeat-x;
+  cursor: row-resize;
+  width: 100%;
+}
+
+// Editor panel
+#editor-panel {
+  @include layout-vertical;
+}
+
+#editor-host {
+  @include layout-vertical;
+  @include layout-flex;
+  padding: 0 1em;
+
+  .CodeMirror {
+    @include layout-flex;
+    font-family: $editor-font;
+    font-size: $playground-editor-font-size;
+  }
+}
+
+.header {
+  @include layout-horizontal;
+  @include layout-end-justified;
+}
+
+// Console
+
+#output-panel {
+  @include layout-flex;
+  @include layout-vertical;
+
+  iframe {
+    @include layout-flex;
+    border: none;
+  }
+}
+
+.console {
+  @include layout-flex;
+  font-family: $editor-font;
+  font-size: 14px;
+  line-height: 20px;
+  min-height: 50px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  margin: 16px;
+
+  .normal {
+    color: $dark-editor-text;
+  }
+
+  .errorOutput {
+    color: $dark-pink;
+  }
+}
+
+// Splash
+
+.splash {
+  background: $playground-background-color;
+  pointer-events: none;
+
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+
+  z-index: 1000;
+  opacity: 1;
+
+  transition: opacity .1s linear;
+  -webkit-transition: opacity .1s linear;
+}
+
+.splash.hide {
+  opacity: 0;
+}
+
+// Busy light
+
+.busylight {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin: 9px;
+
+  opacity: 0;
+  background-color: #fff;
+
+  -webkit-transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  -moz-transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  -o-transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
+
+  -webkit-transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  -moz-transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  -o-transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
+}
+
+.busylight.on {
+  opacity: 0.6;
+}
+
+// Contenteditable elements
+[contenteditable]:focus {
+  outline: 0 solid transparent;
+}
