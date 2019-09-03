@@ -19,7 +19,12 @@ class Dialog {
   final Element _content;
 
   Dialog()
-      : _mdcDialog = MDCDialog(querySelector('.mdc-dialog')),
+      : assert(querySelector('.mdc-dialog') != null),
+        assert(querySelector('.dialog-left-button') != null),
+        assert(querySelector('.dialog-right-button') != null),
+        assert(querySelector('#my-dialog-title') != null),
+        assert(querySelector('#my-dialog-content') != null),
+        _mdcDialog = MDCDialog(querySelector('.mdc-dialog')),
         _leftButton = querySelector('#dialog-left-button'),
         _rightButton = querySelector('#dialog-right-button'),
         _title = querySelector('#my-dialog-title'),
