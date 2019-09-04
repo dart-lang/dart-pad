@@ -193,7 +193,7 @@ class NewEmbed {
 
     reloadGistButton = DisableableButton(querySelector('#reload-gist'), () {
       if (gistId.isNotEmpty || sampleId.isNotEmpty) {
-        _loadAndShowGist(analyze: false);
+        _loadAndShowGist();
       } else {
         _resetCode();
       }
@@ -514,6 +514,11 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
   }
 
   Future<void> _loadAndShowGist({bool analyze = true}) async {
+    if (gistId.isEmpty && sampleId.isEmpty) {
+      print('Can\'t load a gist when neither id nor sample_id is present.');
+      return;
+    }
+
     editorIsBusy = true;
 
     final GistLoader loader = deps[GistLoader];
