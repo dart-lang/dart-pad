@@ -87,7 +87,8 @@ class GistLoaderException {
 /// loading and before saving.
 class GistLoader {
   static final String _githubApiUrl = 'https://api.github.com/gists';
-  static final String _apiDocsUrl = 'https://cors-anywhere.herokuapp.com/https://api.flutter.dev/snippets';
+  // TODO(redbrogdon): Remove 'master-' once the new docs go live.
+  static final String _apiDocsUrl = 'https://master-api.flutter.dev/snippets';
   static final String _sampleMain = 'void main() => runApp(MyApp());';
   static final String _dartPadMain = '''
 import 'package:flutter_web/material.dart';
@@ -200,17 +201,15 @@ $styleRef$dartRef  </head>
   }
 
   Future<Gist> loadGistFromAPIDocs(String sampleId) async {
-    final contents = await HttpRequest.getString('$_apiDocsUrl/$sampleId');
+    final contents = await HttpRequest.getString('$_apiDocsUrl/$sampleId.dart');
 
-    // Remove everything up to and including main(), and replace it with a valid
-    // set of flutter_web imports and a new main() that waits for platform
-    // readiness.
-    //
     // TODO(redbrogdon) This should be removed once the online sample code for
     // IDEs (which is what api.flutter.dev/snippets makes available) can be
     // aligned with what DartPad needs.
-    print(contents);
-    print(contents.indexOf(_sampleMain));
+    //
+    // Remove everything up to and including main(), and replace it with a valid
+    // set of flutter_web imports and a new main() that waits for platform
+    // readiness.
     final spliceIndex = contents.indexOf(_sampleMain) + _sampleMain.length;
     final modifiedCode = '$_dartPadMain${contents.substring(spliceIndex)}';
 
