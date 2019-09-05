@@ -348,9 +348,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: "upgrade-to-3.1.1"
-      resolved-ref: "421f3575252fd1bb715a730c92954a291b55f895"
-      url: "git://github.com/johnpryan/mdc_web.git"
+      ref: "0ac7d5b4386863d91ec397600a326e622031513f"
+      resolved-ref: "0ac7d5b4386863d91ec397600a326e622031513f"
+      url: "git://github.com/jifalops/mdc_web.git"
     source: git
     version: "0.5.0-pre"
   meta:
