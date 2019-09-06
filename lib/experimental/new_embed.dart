@@ -192,8 +192,8 @@ class NewEmbed {
         DisableableButton(querySelector('#execute'), _handleExecute);
 
     reloadGistButton = DisableableButton(querySelector('#reload-gist'), () {
-      if (gistId.isNotEmpty) {
-        _loadAndShowGist(gistId);
+      if (gistId.isNotEmpty || sampleId.isNotEmpty) {
+        _loadAndShowGist();
       } else {
         _resetCode();
       }
@@ -399,12 +399,22 @@ class NewEmbed {
   }
 
   String get gistId {
-    Uri url = Uri.parse(window.location.toString());
+    final url = Uri.parse(window.location.toString());
 
     if (url.hasQuery &&
         url.queryParameters['id'] != null &&
         isLegalGistId(url.queryParameters['id'])) {
       return url.queryParameters['id'];
+    }
+
+    return '';
+  }
+
+  String get sampleId {
+    final url = Uri.parse(window.location.toString());
+
+    if (url.hasQuery && url.queryParameters['sample_id'] != null) {
+      return url.queryParameters['sample_id'];
     }
 
     return '';
@@ -495,21 +505,29 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
       minSize: [100, 100],
     );
 
-    if (gistId.isNotEmpty) {
-      _loadAndShowGist(gistId, analyze: false);
+    if (gistId.isNotEmpty || sampleId.isNotEmpty) {
+      _loadAndShowGist(analyze: false);
     }
 
     // set enabled/disabled state of various buttons
     editorIsBusy = false;
   }
 
-  Future<void> _loadAndShowGist(String id, {bool analyze = true}) async {
+  Future<void> _loadAndShowGist({bool analyze = true}) async {
+    if (gistId.isEmpty && sampleId.isEmpty) {
+      print('Cannot load gist: neither id nor sample_id is present.');
+      return;
+    }
+
     editorIsBusy = true;
 
     final GistLoader loader = deps[GistLoader];
 
     try {
-      final gist = await loader.loadGist(id);
+      final gist = gistId.isNotEmpty
+          ? await loader.loadGist(gistId)
+          : await loader.loadGistFromAPIDocs(sampleId);
+
       setContextSources(<String, String>{
         'main.dart': gist.getFile('main.dart')?.content ?? '',
         'index.html': gist.getFile('index.html')?.content ?? '',
