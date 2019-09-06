@@ -330,3 +330,54 @@ a {
     font-style: normal;
   }
 }
+
+
+// Keys dialog
+.mdc-dialog__surface {
+  // Make the dialog a minimum of 400px to best display the keyboard dialog
+  min-width: 512px !important;
+}
+
+.keyboard {
+  display: inline-block;
+  background: url('../../pictures/keyboard.svg') center no-repeat;
+  background-size: 100%;
+  width: 22px;
+  height: 18px;
+  margin-top: 1px;
+  cursor: pointer;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.keys-dialog {
+  top: auto !important;
+  bottom: 20px;
+
+  dl {
+    padding: 0.5em;
+  }
+
+  dt {
+    float: left;
+    clear: left;
+  }
+  dd {
+    text-align: right;
+  }
+  dd > span {
+    font-family: "Helvetica Neue", "Inconsolata", monospace;
+    padding: 0 4px;
+    background-color: #FFF79A; /**#dfaf8f #f0dfaf #66d9ef #FFF79A #AEA859;*/
+    font-size: 10pt;
+    color: black;
+    border-radius: 2px;
+    margin: 2px 2px;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+}

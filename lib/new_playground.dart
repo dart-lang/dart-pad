@@ -13,8 +13,10 @@ import 'package:mdc_web/mdc_web.dart';
 import 'package:route_hierarchical/client.dart';
 import 'package:split/split.dart';
 
+import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
+import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'documentation.dart';
@@ -102,6 +104,7 @@ class Playground implements GistContainer, GistController {
   InputElement get webCheckbox => querySelector('#web-checkbox');
   InputElement get flutterCheckbox => querySelector('#flutter-checkbox');
   DivElement get _rightDocPanel => querySelector('#right-doc-panel');
+  bool get _isCompletionActive => editor.completionActive;
 
   Map<InputElement, Layout> get _layouts => {
         flutterCheckbox: Layout.flutter,
@@ -158,6 +161,9 @@ class Playground implements GistContainer, GistController {
       });
     editorConsoleTab = MDCButton(querySelector('#editor-panel-console-tab'));
     editorDocsTab = MDCButton(querySelector('#editor-panel-docs-tab'));
+    querySelector('#keyboard-button')
+        .onClick
+        .listen((_) => _showKeyboardDialog());
   }
 
   void _initSamplesMenu() {
@@ -235,10 +241,11 @@ class Playground implements GistContainer, GistController {
       [outputHost, rightDocPanel],
       horizontal: false,
       gutterSize: 6,
-      sizes: [50,50],
-      minSize: [100,100],
+      sizes: [50, 50],
+      minSize: [100, 100],
     );
   }
+
   void _disposeRightSplitter() {
     if (rightSplitter == null) {
       return;
@@ -289,8 +296,39 @@ class Playground implements GistContainer, GistController {
       ..theme = 'darkpad'
       ..mode = 'dart';
 
+    // set up key bindings
+    keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
+    keys.bind(['ctrl-enter'], _handleRun, 'Run');
+    keys.bind(['f1'], () {
+      ga.sendEvent('main', 'help');
+      docHandler.generateDoc(_rightDocPanel);
+    }, 'Documentation');
+
+    keys.bind(['alt-enter'], () {
+      editor.showCompletions(onlyShowFixes: true);
+    }, 'Quick fix');
+
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
+      editor.showCompletions();
+    }, 'Completion');
+
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
+      _showKeyboardDialog();
+    }, 'Shortcuts');
+
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDoc(_rightDocPanel);
+      }
+      _handleAutoCompletion(e);
+    });
+
     _context = PlaygroundContext(editor);
     deps[Context] = _context;
+
+    editorFactory.registerCompleter(
+        'dart', DartCompleter(dartServices, _context.dartDocument));
 
     _context.onDartDirty.listen((_) => busyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
@@ -342,6 +380,28 @@ class Playground implements GistContainer, GistController {
     // Clear the splash.
     DSplash splash = DSplash(querySelector('div.splash'));
     splash.hide();
+  }
+
+  final RegExp cssSymbolRegexp = RegExp(r'[A-Z]');
+
+  void _handleAutoCompletion(KeyboardEvent e) {
+    if (context.focusedEditor == 'dart' && editor.hasFocus) {
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    }
+
+    if (!_isCompletionActive && editor.hasFocus) {
+      if (context.focusedEditor == 'html') {
+        if (printKeyEvent(e) == 'shift-,') {
+          editor.showCompletions(autoInvoked: true);
+        }
+      } else if (context.focusedEditor == 'css') {
+        if (cssSymbolRegexp.hasMatch(String.fromCharCode(e.keyCode))) {
+          editor.showCompletions(autoInvoked: true);
+        }
+      }
+    }
   }
 
   Future showHome(RouteEnterEvent event) async {
@@ -473,6 +533,10 @@ class Playground implements GistContainer, GistController {
       _showSnackbar(message);
       _logger.severe('$message: $e');
     });
+  }
+
+  void _showKeyboardDialog() {
+    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
   void _handleRun() async {
@@ -614,6 +678,8 @@ class Playground implements GistContainer, GistController {
       _logger.severe(e);
     });
   }
+
+  void _handleSave() => ga.sendEvent('main', 'save');
 
   void _clearOutput() {
     _outputHost.text = '';
@@ -766,4 +832,27 @@ enum Layout {
   flutter,
   dart,
   web,
+}
+
+// HTML for keyboard shortcuts dialog
+String keyMapToHtml(Map<Action, Set<String>> keyMap) {
+  DListElement dl = DListElement();
+  keyMap.forEach((Action action, Set<String> keys) {
+    if (!action.hidden) {
+      String string = '';
+      for (final key in keys) {
+        if (makeKeyPresentable(key) != null) {
+          string += '<span>${makeKeyPresentable(key)}</span>';
+        }
+      }
+      dl.innerHtml += '<dt>$action</dt><dd>$string</dd>';
+    }
+  });
+
+  var keysDialogDiv = DivElement()
+    ..children.add(dl)
+    ..classes.add('keys-dialog');
+  var div = DivElement()..children.add(keysDialogDiv);
+
+  return div.innerHtml;
 }
