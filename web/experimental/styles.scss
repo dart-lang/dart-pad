@@ -105,6 +105,7 @@ body {
 }
 
 .message-container {
+  letter-spacing: 0.05em;
   padding-right: 22px;
   max-height: 120px;
   overflow-y: auto;
@@ -349,6 +350,7 @@ body {
 
 .mdc-button {
   text-transform: none !important;
+  letter-spacing: normal;
 }
 
 // Misc
