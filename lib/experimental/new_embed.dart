@@ -476,7 +476,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
 
     var horizontal = true;
     var webOutput = querySelector('#web-output');
-    List splitterElements;
+    List<Element> splitterElements;
     if (options.mode == NewEmbedMode.flutter ||
         options.mode == NewEmbedMode.html) {
       var editorAndConsoleContainer =

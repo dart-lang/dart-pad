@@ -24,8 +24,8 @@ class Dialog {
 
   Dialog()
       : assert(querySelector('.mdc-dialog') != null),
-        assert(querySelector('.dialog-left-button') != null),
-        assert(querySelector('.dialog-right-button') != null),
+        assert(querySelector('#dialog-left-button') != null),
+        assert(querySelector('#dialog-right-button') != null),
         assert(querySelector('#my-dialog-title') != null),
         assert(querySelector('#my-dialog-content') != null),
         _mdcDialog = MDCDialog(querySelector('.mdc-dialog')),
