@@ -238,8 +238,11 @@ a {
 
 // Editor Tabs
 .editor-tab-host {
-  border-top: 6px solid $dark-gutter-background-color;
   @include layout-vertical;
+}
+
+.border-top {
+  border-top: 6px solid $dark-gutter-background-color;
 }
 
 .editor-tabs {
@@ -262,8 +265,16 @@ a {
   }
 }
 
-// documentation
-/* documentation and parameter info styling */
+// TODO(ryjohn): rename - conflicts with editor-tab-host
+#editor-panel-tab-host {
+  @include layout-flex;
+  @include layout-vertical;
+  .documentation {
+    @include layout-flex;
+  }
+}
+
+// documentation and parameter info styling
 
 .documentation {
   padding: 8px;

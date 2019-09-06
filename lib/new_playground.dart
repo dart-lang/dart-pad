@@ -936,34 +936,63 @@ class TabExpandController {
 
   void toggleConsole() {
     if (_state == TabState.closed) {
+      // Show the console
       _state = TabState.console;
       console.clearAttr('hidden');
+      _initSplitter();
+      bottomSplit.classes.remove('border-top');
+      consoleButton.toggleClass('active', true);
     } else if (_state == TabState.docs) {
+      // Show the console
       _state = TabState.console;
       console.clearAttr('hidden');
       docs.setAttr('hidden');
+      _initSplitter();
+      bottomSplit.classes.remove('border-top');
+      consoleButton.toggleClass('active', true);
+      docsButton.toggleClass('active', false);
     } else if (_state == TabState.console) {
+      // Hide the console
       _state = TabState.closed;
       console.setAttr('hidden');
+      _destroySplitter();
+      bottomSplit.classes.add('border-top');
+      consoleButton.toggleClass('active', false);
     }
   }
 
   void toggleDocs() {
     if (_state == TabState.closed) {
+      // Show the docs
       _state = TabState.docs;
       docs.clearAttr('hidden');
+      _initSplitter();
+      bottomSplit.classes.remove('border-top');
+      docsButton.toggleClass('active', true);
+    } else if (_state == TabState.console) {
+      // Show the docs
+      _state = TabState.docs;
+      docs.clearAttr('hidden');
+      console.setAttr('hidden');
+      _initSplitter();
+      bottomSplit.classes.remove('border-top');
+      docsButton.toggleClass('active', true);
+      consoleButton.toggleClass('active', false);
     } else if (_state == TabState.docs) {
+      // Hide the docs
       _state = TabState.closed;
       docs.setAttr('hidden');
       console.setAttr('hidden');
-    } else if (_state == TabState.console) {
-      _state = TabState.docs;
-      docs.clearAttr('hidden');
-      console.setAttr('hidden');
+      _destroySplitter();
+      bottomSplit.classes.add('border-top');
+      docsButton.toggleClass('active', false);
     }
   }
 
-  void initSplitter() {
+  void _initSplitter() {
+    if (_splitter != null) {
+      return;
+    }
     _splitter = flexSplit(
       [topSplit, bottomSplit],
       horizontal: false,
@@ -971,5 +1000,10 @@ class TabExpandController {
       sizes: [70, 30],
       minSize: [100, 100],
     );
+  }
+
+  void _destroySplitter() {
+    _splitter.destroy();
+    _splitter = null;
   }
 }
