@@ -81,8 +81,14 @@
         </div>
         <div id="editor-host"></div>
         <div id="editor-panel-footer" class="editor-tab-host">
-            <button id="editor-panel-console-tab" class="editor-tab mdc-button">Console</button>
-            <button id="editor-panel-docs-tab" class="editor-tab mdc-button">Documentation</button>
+            <div class="editor-tabs">
+                <button id="editor-panel-console-tab" class="editor-tab mdc-button">Console</button>
+                <button id="editor-panel-docs-tab" class="editor-tab mdc-button">Documentation</button>
+            </div>
+            <div id="editor-panel-tab-host">
+                <div id="left-output-panel" class="console"></div>
+                <div id="left-doc-panel" class="documentation"></div>
+            </div>
         </div>
     </div>
     <div id="output-panel">
@@ -91,7 +97,7 @@
         </div>
         <iframe id="frame" sandbox="allow-scripts" flex src="scripts/frame_dark.html">
         </iframe>
-        <div id="output-host" class="console"></div>
+        <div id="right-output-panel" class="console"></div>
         <div id="right-doc-panel" class="documentation"></div>
     </div>
     <div class="mdc-snackbar">

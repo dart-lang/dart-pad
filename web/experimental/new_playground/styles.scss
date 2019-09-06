@@ -239,6 +239,10 @@ a {
 // Editor Tabs
 .editor-tab-host {
   border-top: 6px solid $dark-gutter-background-color;
+  @include layout-vertical;
+}
+
+.editor-tabs {
   @include layout-horizontal;
 }
 
