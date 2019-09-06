@@ -754,18 +754,21 @@ class Playground implements GistContainer, GistController {
       _initRightSplitter();
       _disposeOutputPanelTabs();
       _rightDocPanel.attributes.remove('hidden');
+      _rightPanelConsole.attributes.remove('hidden');
     } else if (layout == Layout.flutter) {
       _frame.hidden = false;
       editorPanelFooter.clearAttr('hidden');
       _disposeRightSplitter();
       _initOutputPanelTabs();
       _rightDocPanel.setAttribute('hidden', '');
+      _rightPanelConsole.setAttribute('hidden', '');
     } else if (layout == Layout.web) {
       _frame.hidden = false;
       editorPanelFooter.clearAttr('hidden');
       _disposeRightSplitter();
       _initOutputPanelTabs();
       _rightDocPanel.setAttribute('hidden', '');
+      _rightPanelConsole.setAttribute('hidden', '');
     }
   }
 
