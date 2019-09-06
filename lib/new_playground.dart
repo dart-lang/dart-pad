@@ -57,11 +57,13 @@ class Playground implements GistContainer, GistController {
   MDCButton runButton;
   MDCButton editorConsoleTab;
   MDCButton editorDocsTab;
+  DElement editorPanelFooter;
   MDCMenu samplesMenu;
   Dialog dialog;
   DContentEditable titleEditable;
 
   Splitter splitter;
+  Splitter rightSplitter;
 
   DBusyLight busyLight;
   DBusyLight consoleBusyLight;
@@ -97,6 +99,8 @@ class Playground implements GistContainer, GistController {
   InputElement get dartCheckbox => querySelector('#dart-checkbox');
   InputElement get webCheckbox => querySelector('#web-checkbox');
   InputElement get flutterCheckbox => querySelector('#flutter-checkbox');
+  DivElement get _rightDocPanel => querySelector('#right-doc-panel');
+
   Map<InputElement, Layout> get _layouts => {
         flutterCheckbox: Layout.flutter,
         dartCheckbox: Layout.dart,
@@ -221,7 +225,29 @@ class Playground implements GistContainer, GistController {
     );
   }
 
+  void _initRightSplitter() {
+    var outputHost = querySelector('#output-host');
+    var rightDocPanel = this._rightDocPanel;
+
+    rightSplitter = flexSplit(
+      [outputHost, rightDocPanel],
+      horizontal: false,
+      gutterSize: 6,
+      sizes: [50,50],
+      minSize: [100,100],
+    );
+  }
+  void _disposeRightSplitter() {
+    if (rightSplitter == null) {
+      return;
+    }
+
+    rightSplitter.destroy();
+    rightSplitter = null;
+  }
+
   void _initLayout() {
+    editorPanelFooter = DElement(querySelector('#editor-panel-footer'));
     _changeLayout(Layout.dart);
     for (var checkbox in _layouts.keys) {
       checkbox.onClick.listen((event) {
@@ -482,7 +508,6 @@ class Playground implements GistContainer, GistController {
           _context.cssSource,
           response.result,
         );
-
       }
     } catch (e) {
       ga.sendException('${e.runtimeType}');
@@ -617,10 +642,16 @@ class Playground implements GistContainer, GistController {
 
     if (layout == Layout.dart) {
       _frame.hidden = true;
+      editorPanelFooter.setAttr('hidden');
+      _initRightSplitter();
     } else if (layout == Layout.flutter) {
       _frame.hidden = false;
+      editorPanelFooter.clearAttr('hidden');
+      _disposeRightSplitter();
     } else if (layout == Layout.web) {
       _frame.hidden = false;
+      editorPanelFooter.clearAttr('hidden');
+      _disposeRightSplitter();
     }
   }
 

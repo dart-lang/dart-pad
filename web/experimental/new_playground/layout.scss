@@ -16,3 +16,9 @@ body {
     @include layout-horizontal;
   }
 }
+
+// ie support for hidden
+html [hidden] {
+  display: none !important;
+}
+
