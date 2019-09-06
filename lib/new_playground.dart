@@ -17,6 +17,7 @@ import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
+import 'documentation.dart';
 import 'editing/editor.dart';
 import 'elements/bind.dart';
 import 'elements/elements.dart';
@@ -75,6 +76,7 @@ class Playground implements GistContainer, GistController {
 
   // The last returned shared gist used to update the url.
   Gist _overrideNextRouteGist;
+  DocHandler docHandler;
 
   // The internal ID of the current Gist.
   String _mappingId;
@@ -309,11 +311,23 @@ class Playground implements GistContainer, GistController {
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
+    // Listen for changes that would effect the documentation panel.
+    editor.onMouseDown.listen((e) {
+      // Delay to give codemirror time to process the mouse event.
+      Timer.run(() {
+        if (!_context.cursorPositionIsWhitespace()) {
+          docHandler.generateDoc(_rightDocPanel);
+        }
+      });
+    });
+
     // Set up the router.
     deps[Router] = Router();
     router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
     router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
     router.listen();
+
+    docHandler = DocHandler(editor, _context);
 
     dartServices.version().then((VersionResponse version) {
       // "Based on Dart SDK 2.4.0"

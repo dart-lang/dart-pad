@@ -257,3 +257,76 @@ a {
     font-weight: bold;
   }
 }
+
+// documentation
+/* documentation and parameter info styling */
+
+.documentation {
+  padding: 8px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 11pt;
+  line-height: 20px;
+  position: relative;
+  display: block;
+  overflow: auto;
+  overflow-wrap: break-word;
+  margin-top: 0;
+  margin-left: 0;
+
+  h1 {
+    margin-top: 0;
+    font-size: 12pt;
+    color: $dark-comment;
+  }
+
+  h2 {
+    margin-bottom: 0;
+  }
+
+  h2, strong {
+    font-weight: bold;
+    font-size: inherit;
+    color: #cdcdcd; /* little bit brigher than normal text*/
+  }
+  p {
+    margin-top: 0;
+  }
+  a {
+    color: #66d9ef;
+  }
+  a:hover {
+    color: #66d9ef;
+    text-decoration: underline;
+  }
+  a {
+    color: #66d9ef;
+  }
+  a:hover {
+    color: #66d9ef;
+    text-decoration: underline;
+  }
+  pre {
+    overflow-x: auto;
+    margin: 1em;
+  }
+  pre code {
+    white-space: inherit;
+    word-wrap: normal;
+  }
+  code, .parameter-hints code {
+    font-family: $editor-font;
+    font-size: 12pt;
+    color: $dark-comment;
+  }
+  code em {
+    color: $dark-orange;
+    font-style: normal;
+  }
+  .parameter-hints code {
+    color: $dark-orange;
+  }
+  code em {
+    color: $dark-orange;
+    font-style: normal;
+  }
+}
