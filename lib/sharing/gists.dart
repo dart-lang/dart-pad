@@ -75,6 +75,7 @@ enum GistLoaderFailureType {
   unknown,
   gistDoesNotExist,
   rateLimitExceeded,
+  sampleDoesNotExist,
 }
 
 class GistLoaderException {
@@ -86,7 +87,19 @@ class GistLoaderException {
 /// A class to load and save gists. Gists can optionally be modified after
 /// loading and before saving.
 class GistLoader {
-  static final String _apiUrl = 'https://api.github.com/gists';
+  static const String _githubApiUrl = 'https://api.github.com/gists';
+
+  // TODO(redbrogdon): Remove 'master-' once the new docs go live.
+  static const String _apiDocsUrl = 'https://master-api.flutter.dev/snippets';
+  static const String _sampleMain = 'void main() => runApp(MyApp());';
+  static const String _dartPadMain = '''
+import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+void main() async {
+  await ui.webOnlyInitializePlatform();
+  runApp(MyApp());
+}''';
 
   static final GistFilterHook _defaultLoadHook = (Gist gist) {
     // Update files based on our preferred file names.
@@ -169,7 +182,7 @@ $styleRef$dartRef  </head>
     try {
       // Load the gist using the github gist API:
       // https://developer.github.com/v3/gists/#get-a-single-gist.
-      final gistJson = await HttpRequest.getString('$_apiUrl/$gistId');
+      final gistJson = await HttpRequest.getString('$_githubApiUrl/$gistId');
       final gist = Gist.fromMap(json.decode(gistJson));
 
       if (afterLoadHook != null) {
@@ -189,6 +202,43 @@ $styleRef$dartRef  </head>
     }
   }
 
+  Future<Gist> loadGistFromAPIDocs(String sampleId) async {
+    try {
+      final contents =
+          await HttpRequest.getString('$_apiDocsUrl/$sampleId.dart');
+
+      // TODO(redbrogdon) This should be removed once the online sample code for
+      // IDEs (which is what api.flutter.dev/snippets makes available) can be
+      // aligned with what DartPad needs.
+      //
+      // Remove everything up to and including main(), and replace it with a valid
+      // set of flutter_web imports and a new main() that waits for platform
+      // readiness.
+      final spliceIndex = contents.indexOf(_sampleMain) + _sampleMain.length;
+      final modifiedCode = '$_dartPadMain${contents.substring(spliceIndex)}';
+
+      final mainFile = GistFile(
+        name: 'main.dart',
+        content: modifiedCode,
+      );
+
+      final gist = Gist(files: [mainFile]);
+
+      if (afterLoadHook != null) {
+        afterLoadHook(gist);
+      }
+
+      return Gist(files: [mainFile]);
+    } catch (ex) {
+      if (ex.target.status == 404) {
+        throw const GistLoaderException(
+            GistLoaderFailureType.sampleDoesNotExist);
+      } else {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      }
+    }
+  }
+
   /// Create a new gist and return the newly created Gist.
   Future<Gist> createAnon(Gist gist) {
     // POST /gists
@@ -197,7 +247,8 @@ $styleRef$dartRef  </head>
       beforeSaveHook(gist);
     }
 
-    return HttpRequest.request(_apiUrl, method: 'POST', sendData: gist.toJson())
+    return HttpRequest.request(_githubApiUrl,
+            method: 'POST', sendData: gist.toJson())
         .then((HttpRequest request) {
       Gist gist = Gist.fromMap(json.decode(request.responseText));
       if (afterLoadHook != null) {
