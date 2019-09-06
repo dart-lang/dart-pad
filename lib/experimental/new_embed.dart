@@ -399,7 +399,7 @@ class NewEmbed {
   }
 
   String get gistId {
-    Uri url = Uri.parse(window.location.toString());
+    final url = Uri.parse(window.location.toString());
 
     if (url.hasQuery &&
         url.queryParameters['id'] != null &&
@@ -411,7 +411,7 @@ class NewEmbed {
   }
 
   String get sampleId {
-    Uri url = Uri.parse(window.location.toString());
+    final url = Uri.parse(window.location.toString());
 
     if (url.hasQuery && url.queryParameters['sample_id'] != null) {
       return url.queryParameters['sample_id'];
@@ -515,7 +515,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
 
   Future<void> _loadAndShowGist({bool analyze = true}) async {
     if (gistId.isEmpty && sampleId.isEmpty) {
-      print('Can\'t load a gist when neither id nor sample_id is present.');
+      print('Cannot load gist: neither id nor sample_id is present.');
       return;
     }
 
