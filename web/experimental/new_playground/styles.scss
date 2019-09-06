@@ -235,3 +235,26 @@ a {
 [contenteditable]:focus {
   outline: 0 solid transparent;
 }
+
+// Editor Tabs
+.editor-tab-host {
+  border-top: 6px solid $dark-gutter-background-color;
+  @include layout-horizontal;
+  //@include lay
+}
+
+.editor-tab {
+  @include reset-button();
+  @include mdc-button-ink-color(#f8f9fa);
+  text-transform: none !important;
+  letter-spacing: normal;
+
+  color: $label-color;
+  border-top: 2px solid transparent;
+  padding: 8px 4px;
+
+  &.active {
+    color: $dark-blue;
+    font-weight: bold;
+  }
+}

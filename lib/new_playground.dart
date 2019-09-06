@@ -55,6 +55,8 @@ class Playground implements GistContainer, GistController {
   MDCButton shareButton;
   MDCButton samplesButton;
   MDCButton runButton;
+  MDCButton editorConsoleTab;
+  MDCButton editorDocsTab;
   MDCMenu samplesMenu;
   Dialog dialog;
   DContentEditable titleEditable;
@@ -148,6 +150,8 @@ class Playground implements GistContainer, GistController {
       ..onClick.listen((_) {
         _handleRun();
       });
+    editorConsoleTab = MDCButton(querySelector('#editor-panel-console-tab'));
+    editorDocsTab = MDCButton(querySelector('#editor-panel-docs-tab'));
   }
 
   void _initSamplesMenu() {
