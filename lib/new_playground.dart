@@ -252,11 +252,7 @@ class Playground implements GistContainer, GistController {
   }
 
   void _disposeRightSplitter() {
-    if (rightSplitter == null) {
-      return;
-    }
-
-    rightSplitter.destroy();
+    rightSplitter?.destroy(true, false);
     rightSplitter = null;
   }
 
@@ -275,7 +271,10 @@ class Playground implements GistContainer, GistController {
     );
   }
 
-  void _disposeOutputPanelTabs() {}
+  void _disposeOutputPanelTabs() {
+    tabExpandController?.dispose();
+    tabExpandController = null;
+  }
 
   void _initLayout() {
     editorPanelFooter = DElement(_editorPanelFooter);
@@ -751,21 +750,21 @@ class Playground implements GistContainer, GistController {
     if (layout == Layout.dart) {
       _frame.hidden = true;
       editorPanelFooter.setAttr('hidden');
-      _initRightSplitter();
       _disposeOutputPanelTabs();
       _rightDocPanel.attributes.remove('hidden');
       _rightPanelConsole.attributes.remove('hidden');
+      _initRightSplitter();
     } else if (layout == Layout.flutter) {
+      _disposeRightSplitter();
       _frame.hidden = false;
       editorPanelFooter.clearAttr('hidden');
-      _disposeRightSplitter();
       _initOutputPanelTabs();
       _rightDocPanel.setAttribute('hidden', '');
       _rightPanelConsole.setAttribute('hidden', '');
     } else if (layout == Layout.web) {
+      _disposeRightSplitter();
       _frame.hidden = false;
       editorPanelFooter.clearAttr('hidden');
-      _disposeRightSplitter();
       _initOutputPanelTabs();
       _rightDocPanel.setAttribute('hidden', '');
       _rightPanelConsole.setAttribute('hidden', '');
@@ -928,6 +927,7 @@ class TabExpandController {
     _state = TabState.closed;
     console.setAttr('hidden');
     docs.setAttr('hidden');
+
     consoleButton.onClick.listen((_) {
       toggleConsole();
     });
@@ -942,23 +942,23 @@ class TabExpandController {
       // Show the console
       _state = TabState.console;
       console.clearAttr('hidden');
-      _initSplitter();
       bottomSplit.classes.remove('border-top');
       consoleButton.toggleClass('active', true);
+      _initSplitter();
     } else if (_state == TabState.docs) {
       // Show the console
       _state = TabState.console;
       console.clearAttr('hidden');
       docs.setAttr('hidden');
-      _initSplitter();
       bottomSplit.classes.remove('border-top');
       consoleButton.toggleClass('active', true);
       docsButton.toggleClass('active', false);
+      _initSplitter();
     } else if (_state == TabState.console) {
       // Hide the console
+      _destroySplitter();
       _state = TabState.closed;
       console.setAttr('hidden');
-      _destroySplitter();
       bottomSplit.classes.add('border-top');
       consoleButton.toggleClass('active', false);
     }
@@ -969,24 +969,24 @@ class TabExpandController {
       // Show the docs
       _state = TabState.docs;
       docs.clearAttr('hidden');
-      _initSplitter();
       bottomSplit.classes.remove('border-top');
       docsButton.toggleClass('active', true);
+      _initSplitter();
     } else if (_state == TabState.console) {
       // Show the docs
       _state = TabState.docs;
       docs.clearAttr('hidden');
       console.setAttr('hidden');
-      _initSplitter();
       bottomSplit.classes.remove('border-top');
       docsButton.toggleClass('active', true);
       consoleButton.toggleClass('active', false);
+      _initSplitter();
     } else if (_state == TabState.docs) {
       // Hide the docs
+      _destroySplitter();
       _state = TabState.closed;
       docs.setAttr('hidden');
       console.setAttr('hidden');
-      _destroySplitter();
       bottomSplit.classes.add('border-top');
       docsButton.toggleClass('active', false);
     }
@@ -1006,7 +1006,12 @@ class TabExpandController {
   }
 
   void _destroySplitter() {
-    _splitter.destroy();
+    _splitter?.destroy(true, false);
     _splitter = null;
+  }
+
+  void dispose() {
+    bottomSplit.classes.add('border-top');
+    _destroySplitter();
   }
 }
