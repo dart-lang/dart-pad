@@ -69,6 +69,7 @@ class Playground implements GistContainer, GistController {
 
   Splitter splitter;
   Splitter rightSplitter;
+  bool rightSplitterConfigured = false;
   TabExpandController tabExpandController;
 
   DBusyLight busyLight;
@@ -240,8 +241,11 @@ class Playground implements GistContainer, GistController {
   }
 
   void _initRightSplitter() {
-    var outputHost = querySelector('#right-output-panel');
+    if (rightSplitterConfigured) {
+      return;
+    }
 
+    var outputHost = querySelector('#right-output-panel');
     rightSplitter = flexSplit(
       [outputHost, _rightDocPanel],
       horizontal: false,
@@ -249,11 +253,16 @@ class Playground implements GistContainer, GistController {
       sizes: [50, 50],
       minSize: [100, 100],
     );
+    rightSplitterConfigured = true;
   }
 
   void _disposeRightSplitter() {
-    rightSplitter?.destroy(true, false);
-    rightSplitter = null;
+    if (!rightSplitterConfigured) {
+      // The right splitter might already be destroyed.
+      return;
+    }
+    rightSplitter?.destroy();
+    rightSplitterConfigured = false;
   }
 
   void _initOutputPanelTabs() {
@@ -912,8 +921,12 @@ class TabExpandController {
   /// The element to give the bottom half of the split
   final Element bottomSplit;
 
+  final List<StreamSubscription> _subscriptions = [];
+
   TabState _state;
   Splitter _splitter;
+  bool _splitterConfigured = false;
+
 
   TabExpandController({
     @required this.consoleButton,
@@ -928,13 +941,13 @@ class TabExpandController {
     console.setAttr('hidden');
     docs.setAttr('hidden');
 
-    consoleButton.onClick.listen((_) {
+    _subscriptions.add(consoleButton.onClick.listen((_) {
       toggleConsole();
-    });
+    }));
 
-    docsButton.onClick.listen((_) {
+    _subscriptions.add(docsButton.onClick.listen((_) {
       toggleDocs();
-    });
+    }));
   }
 
   void toggleConsole() {
@@ -993,9 +1006,10 @@ class TabExpandController {
   }
 
   void _initSplitter() {
-    if (_splitter != null) {
+    if (_splitterConfigured) {
       return;
     }
+
     _splitter = flexSplit(
       [topSplit, bottomSplit],
       horizontal: false,
@@ -1003,15 +1017,28 @@ class TabExpandController {
       sizes: [70, 30],
       minSize: [100, 100],
     );
+    _splitterConfigured = true;
   }
 
   void _destroySplitter() {
-    _splitter?.destroy(true, false);
-    _splitter = null;
+    if (!_splitterConfigured) {
+      return;
+    }
+
+    _splitter?.destroy();
+    _splitterConfigured = false;
   }
 
   void dispose() {
     bottomSplit.classes.add('border-top');
     _destroySplitter();
+
+    // Reset selected tab
+    docsButton.toggleClass('active', false);
+    consoleButton.toggleClass('active', false);
+
+    // Clear listeners
+    _subscriptions.forEach((s) => s.cancel());
+    _subscriptions.clear();
   }
 }

@@ -18,6 +18,8 @@ body {
   color: $playground-text-color;
   font-family: $normal-font;
   font-size: 14px;
+  @include layout-vertical;
+  @include layout-fit;
 }
 
 header {
@@ -75,8 +77,14 @@ header {
 }
 
 section.main-section {
-  @include  layout-relative;
+  @include layout-flex;
   @include layout;
+  @include layout-relative;
+
+  .panels {
+    @include layout;
+    @include layout-fit;
+  }
 }
 
 body>footer {
