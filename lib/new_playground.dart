@@ -87,6 +87,9 @@ class Playground implements GistContainer, GistController {
   // The internal ID of the current Gist.
   String _mappingId;
 
+  BufferedConsole _leftBufferedConsole;
+  BufferedConsole _rightBufferedConsole;
+
   Playground() {
     _initDialog();
     _initBusyLights();
@@ -96,6 +99,7 @@ class Playground implements GistContainer, GistController {
     _initSamplesMenu();
     _initSplitters();
     _initLayout();
+    _initConsoles();
     _initModules().then((_) {
       _initPlayground();
     });
@@ -296,6 +300,10 @@ class Playground implements GistContainer, GistController {
         });
       });
     }
+  }
+  void _initConsoles() {
+    _leftBufferedConsole = BufferedConsole(_leftPanelConsole);
+    _rightBufferedConsole = BufferedConsole(_rightPanelConsole);
   }
 
   Future _initModules() async {
@@ -719,24 +727,9 @@ class Playground implements GistContainer, GistController {
     _leftPanelConsole.text = '';
   }
 
-  final _bufferedOutput = <SpanElement>[];
-  final _outputDuration = Duration(milliseconds: 32);
-
   void _showOutput(String message, {bool error = false}) {
-    SpanElement span = SpanElement()..text = '$message\n';
-    span.classes.add(error ? 'errorOutput' : 'normal');
-    // Buffer the console output so that heavy writing to stdout does not starve
-    // the DOM thread.
-    _bufferedOutput.add(span);
-    if (_bufferedOutput.length == 1) {
-      Timer(_outputDuration, () {
-        _rightPanelConsole.children.addAll(_bufferedOutput);
-        _rightPanelConsole.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
-        _leftPanelConsole.children.addAll(_bufferedOutput);
-        _leftPanelConsole.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
-        _bufferedOutput.clear();
-      });
-    }
+    _leftBufferedConsole.showOutput(message, error: error);
+    _rightBufferedConsole.showOutput(message, error: error);
   }
 
   void _showSnackbar(String message) {
@@ -927,7 +920,6 @@ class TabExpandController {
   Splitter _splitter;
   bool _splitterConfigured = false;
 
-
   TabExpandController({
     @required this.consoleButton,
     @required this.docsButton,
@@ -1040,5 +1032,31 @@ class TabExpandController {
     // Clear listeners
     _subscriptions.forEach((s) => s.cancel());
     _subscriptions.clear();
+  }
+}
+
+class BufferedConsole {
+  final Duration duration;
+  final _bufferedOutput = <SpanElement>[];
+  final DivElement element;
+
+  BufferedConsole(
+    this.element, {
+    this.duration = const Duration(milliseconds: 32),
+  });
+
+  void showOutput(String message, {bool error = false}) {
+    SpanElement span = SpanElement()..text = '$message\n';
+    span.classes.add(error ? 'errorOutput' : 'normal');
+    // Buffer the console output so that heavy writing to stdout does not starve
+    // the DOM thread.
+    _bufferedOutput.add(span);
+    if (_bufferedOutput.length == 1) {
+      Timer(duration, () {
+        element.children.addAll(_bufferedOutput);
+        element.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
+        _bufferedOutput.clear();
+      });
+    }
   }
 }
