@@ -22,7 +22,7 @@ dependencies:
   primer_css: ^0.0.1
   route_hierarchical:
     path: third_party/pkg/route.dart/
-  split: ^0.0.2
+  split: ^0.0.5
   html_unescape: ^1.0.0
   sass_builder: ^2.1.0
   mdc_web:
@@ -43,3 +43,11 @@ dev_dependencies:
   test: ^1.3.4
   tuneup: any
   yaml: any
+dependency_overrides:
+  # remove once https://github.com/flutter/devtools/pull/1019 is released
+  split:
+    git:
+      url: git://github.com/johnpryan/devtools.git
+      ref: split-js-callback
+      path: third_party/packages/split
+

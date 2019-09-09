@@ -538,10 +538,12 @@ packages:
   split:
     dependency: "direct main"
     description:
-      name: split
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.2"
+      path: "third_party/packages/split"
+      ref: split-js-callback
+      resolved-ref: "247ed77f2c71d8b9ecd1ac1867ab74063a5af985"
+      url: "git://github.com/johnpryan/devtools.git"
+    source: git
+    version: "0.0.6"
   stack_trace:
     dependency: transitive
     description:
