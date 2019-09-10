@@ -1,6 +1,7 @@
 import 'package:dart_pad/elements/elements.dart';
 import 'package:mdc_web/mdc_web.dart';
 
+/// Implementation of [TabController] for usage with mdc_web tabs.
 class MaterialTabController extends TabController {
   final MDCTabBar tabBar;
   MaterialTabController(this.tabBar);

@@ -1,5 +1,6 @@
 import 'dart:html';
 
+/// Displays a counter that is only visible if the count is greater than zero.
 class Counter {
   Counter(this.element);
 
