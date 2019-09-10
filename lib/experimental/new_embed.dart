@@ -218,7 +218,7 @@ class NewEmbed {
     morePopover = DElement(querySelector('#more-popover'));
     menuButton = DisableableButton(querySelector('#menu-button'), () {
       menu.open = !menu.open;
-    });
+    })..hidden = gistId.isEmpty;
     menu = MDCMenu(querySelector('#main-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(menuButton._element.element);
@@ -579,6 +579,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     context.hint = sources['hint.txt'] ?? '';
     tabController.setTabVisibility(
         'test', context.testMethod.isNotEmpty && _showTestCode);
+    menuButton.hidden = context.testMethod.isEmpty;
     showHintButton?.hidden = context.hint.isEmpty;
     solutionTab?.toggleAttr('hidden', context.solution.isEmpty);
     editorIsBusy = false;
