@@ -4,4 +4,5 @@
 })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
 ga('create', 'UA-26406144-18', 'auto');
+ga('set', 'referrer', document.referrer.split('?')[0]);
 ga('send', 'pageview');
