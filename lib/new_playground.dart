@@ -88,8 +88,8 @@ class Playground implements GistContainer, GistController {
   // The internal ID of the current Gist.
   String _mappingId;
 
-  Console _leftBufferedConsole;
-  Console _rightBufferedConsole;
+  Console _leftConsole;
+  Console _rightConsole;
   Counter unreadConsoleCounter;
 
   Playground() {
@@ -305,8 +305,8 @@ class Playground implements GistContainer, GistController {
   }
 
   void _initConsoles() {
-    _leftBufferedConsole = Console(DElement(_leftConsoleElement));
-    _rightBufferedConsole = Console(DElement(_rightConsoleElement));
+    _leftConsole = Console(DElement(_leftConsoleElement));
+    _rightConsole = Console(DElement(_rightConsoleElement));
   }
 
   Future _initModules() async {
@@ -726,13 +726,13 @@ class Playground implements GistContainer, GistController {
   void _handleSave() => ga.sendEvent('main', 'save');
 
   void _clearOutput() {
-    _rightBufferedConsole.clear();
-    _leftBufferedConsole.clear();
+    _rightConsole.clear();
+    _leftConsole.clear();
   }
 
   void _showOutput(String message, {bool error = false}) {
-    _leftBufferedConsole.showOutput(message, error: error);
-    _rightBufferedConsole.showOutput(message, error: error);
+    _leftConsole.showOutput(message, error: error);
+    _rightConsole.showOutput(message, error: error);
   }
 
   void _showSnackbar(String message) {
