@@ -157,6 +157,8 @@ a {
 .header {
   @include layout-horizontal;
   @include layout-end-justified;
+  @include layout-center;
+  padding: 4px;
 }
 
 // Console
@@ -255,6 +257,11 @@ a {
 
 .editor-tabs {
   @include layout-horizontal;
+  padding: 4px;
+
+  button {
+    margin-right: 8px;
+  }
 }
 
 .editor-tab {
