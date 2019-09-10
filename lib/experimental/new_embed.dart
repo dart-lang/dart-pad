@@ -1112,7 +1112,7 @@ class ConsoleExpandController extends Console {
 
   void showOutput(String message, {bool error = false}) {
     super.showOutput(message, error: error);
-    if (!_expanded && error != null) {
+    if (!_expanded && message != null) {
       unreadCounter.increment();
     }
   }
