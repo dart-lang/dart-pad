@@ -24,7 +24,7 @@ class Console {
     this.element, {
     this.bufferDuration = const Duration(milliseconds: 32),
     this.filter,
-    this.errorClass = 'errorOutput',
+    this.errorClass = 'error-output',
   });
 
   /// Displays console output. Does not clear the console.
