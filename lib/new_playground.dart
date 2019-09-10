@@ -6,9 +6,8 @@ library new_playground;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:html';
+import 'dart:html' hide Console;
 
-import 'package:dart_pad/experimental/new_embed.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -25,6 +24,8 @@ import 'documentation.dart';
 import 'editing/editor.dart';
 import 'elements/bind.dart';
 import 'elements/elements.dart';
+import 'experimental/console.dart';
+import 'experimental/counter.dart';
 import 'experimental/dialog.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
@@ -87,8 +88,9 @@ class Playground implements GistContainer, GistController {
   // The internal ID of the current Gist.
   String _mappingId;
 
-  BufferedConsole _leftBufferedConsole;
-  BufferedConsole _rightBufferedConsole;
+  Console _leftBufferedConsole;
+  Console _rightBufferedConsole;
+  Counter unreadConsoleCounter;
 
   Playground() {
     _initDialog();
@@ -106,8 +108,8 @@ class Playground implements GistContainer, GistController {
   }
 
   DivElement get _editorHost => querySelector('#editor-host');
-  DivElement get _rightPanelConsole => querySelector('#right-output-panel');
-  DivElement get _leftPanelConsole => querySelector('#left-output-panel');
+  DivElement get _rightConsoleElement => querySelector('#right-output-panel');
+  DivElement get _leftConsoleElement => querySelector('#left-output-panel');
   IFrameElement get _frame => querySelector('#frame');
   InputElement get dartCheckbox => querySelector('#dart-checkbox');
   InputElement get webCheckbox => querySelector('#web-checkbox');
@@ -278,7 +280,7 @@ class Playground implements GistContainer, GistController {
       consoleButton: editorConsoleTab,
       docsButton: editorDocsTab,
       docsElement: _leftDocPanel,
-      consoleElement: _leftPanelConsole,
+      consoleElement: _leftConsoleElement,
       topSplit: _editorHost,
       bottomSplit: _editorPanelFooter,
     );
@@ -301,9 +303,10 @@ class Playground implements GistContainer, GistController {
       });
     }
   }
+
   void _initConsoles() {
-    _leftBufferedConsole = BufferedConsole(_leftPanelConsole);
-    _rightBufferedConsole = BufferedConsole(_rightPanelConsole);
+    _leftBufferedConsole = Console(DElement(_leftConsoleElement));
+    _rightBufferedConsole = Console(DElement(_rightConsoleElement));
   }
 
   Future _initModules() async {
@@ -723,8 +726,8 @@ class Playground implements GistContainer, GistController {
   void _handleSave() => ga.sendEvent('main', 'save');
 
   void _clearOutput() {
-    _rightPanelConsole.text = '';
-    _leftPanelConsole.text = '';
+    _rightBufferedConsole.clear();
+    _leftBufferedConsole.clear();
   }
 
   void _showOutput(String message, {bool error = false}) {
@@ -754,7 +757,7 @@ class Playground implements GistContainer, GistController {
       editorPanelFooter.setAttr('hidden');
       _disposeOutputPanelTabs();
       _rightDocPanel.attributes.remove('hidden');
-      _rightPanelConsole.attributes.remove('hidden');
+      _rightConsoleElement.attributes.remove('hidden');
       _initRightSplitter();
     } else if (layout == Layout.flutter) {
       _disposeRightSplitter();
@@ -762,14 +765,14 @@ class Playground implements GistContainer, GistController {
       editorPanelFooter.clearAttr('hidden');
       _initOutputPanelTabs();
       _rightDocPanel.setAttribute('hidden', '');
-      _rightPanelConsole.setAttribute('hidden', '');
+      _rightConsoleElement.setAttribute('hidden', '');
     } else if (layout == Layout.web) {
       _disposeRightSplitter();
       _frame.hidden = false;
       editorPanelFooter.clearAttr('hidden');
       _initOutputPanelTabs();
       _rightDocPanel.setAttribute('hidden', '');
-      _rightPanelConsole.setAttribute('hidden', '');
+      _rightConsoleElement.setAttribute('hidden', '');
     }
   }
 
@@ -1032,31 +1035,5 @@ class TabExpandController {
     // Clear listeners
     _subscriptions.forEach((s) => s.cancel());
     _subscriptions.clear();
-  }
-}
-
-class BufferedConsole {
-  final Duration duration;
-  final _bufferedOutput = <SpanElement>[];
-  final DivElement element;
-
-  BufferedConsole(
-    this.element, {
-    this.duration = const Duration(milliseconds: 32),
-  });
-
-  void showOutput(String message, {bool error = false}) {
-    SpanElement span = SpanElement()..text = '$message\n';
-    span.classes.add(error ? 'errorOutput' : 'normal');
-    // Buffer the console output so that heavy writing to stdout does not starve
-    // the DOM thread.
-    _bufferedOutput.add(span);
-    if (_bufferedOutput.length == 1) {
-      Timer(duration, () {
-        element.children.addAll(_bufferedOutput);
-        element.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
-        _bufferedOutput.clear();
-      });
-    }
   }
 }
