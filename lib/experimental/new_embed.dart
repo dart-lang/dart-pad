@@ -338,7 +338,7 @@ class NewEmbed {
     if (options.mode == NewEmbedMode.flutter ||
         options.mode == NewEmbedMode.html) {
       consoleExpandController = ConsoleExpandController(
-          expandButton: querySelector('#console-expand-button'),
+          expandButton: querySelector('#console-output-header'),
           footer: querySelector('#console-output-footer'),
           expandIcon: querySelector('#console-expand-icon'),
           unreadCounter: unreadConsoleCounter,
