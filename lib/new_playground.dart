@@ -808,7 +808,6 @@ class Playground implements GistContainer, GistController {
 
   @override
   Future createNewGist() {
-    print('clearing stored gist');
     _gistStorage.clearStoredGist();
 
     if (ga != null) ga.sendEvent('main', 'new');
