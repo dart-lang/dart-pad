@@ -218,7 +218,7 @@ class NewEmbed {
     morePopover = DElement(querySelector('#more-popover'));
     menuButton = DisableableButton(querySelector('#menu-button'), () {
       menu.open = !menu.open;
-    })..hidden = gistId.isEmpty;
+    });
     menu = MDCMenu(querySelector('#main-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(menuButton._element.element);
