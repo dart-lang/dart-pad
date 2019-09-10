@@ -730,11 +730,18 @@ class Playground implements GistContainer, GistController {
   void _clearOutput() {
     _rightConsole.clear();
     _leftConsole.clear();
+    unreadConsoleCounter.clear();
   }
 
   void _showOutput(String message, {bool error = false}) {
     _leftConsole.showOutput(message, error: error);
     _rightConsole.showOutput(message, error: error);
+
+    // If there's no tabs visible or the console is not being displayed,
+    // increment the counter
+    if (tabExpandController == null || tabExpandController?.state != TabState.console) {
+      unreadConsoleCounter.increment();
+    }
   }
 
   void _showSnackbar(String message) {
@@ -926,6 +933,8 @@ class TabExpandController {
   Splitter _splitter;
   bool _splitterConfigured = false;
 
+  TabState get state => _state;
+
   TabExpandController({
     @required this.consoleButton,
     @required this.docsButton,
@@ -974,6 +983,7 @@ class TabExpandController {
   }
 
   void _showConsole() {
+    unreadCounter.clear();
     _state = TabState.console;
     console.clearAttr('hidden');
     bottomSplit.classes.remove('border-top');
@@ -998,7 +1008,6 @@ class TabExpandController {
     docsButton.toggleClass('active', true);
     _initSplitter();
   }
-
 
   void _initSplitter() {
     if (_splitterConfigured) {
