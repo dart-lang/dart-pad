@@ -788,6 +788,7 @@ class Playground implements GistContainer, GistController {
       _rightDocPanel.attributes.remove('hidden');
       _rightConsoleElement.attributes.remove('hidden');
       webTabBar.setAttr('hidden');
+      webLayoutTabController.selectTab('dart');
       _initRightSplitter();
     } else if (layout == Layout.flutter) {
       _disposeRightSplitter();
@@ -797,6 +798,7 @@ class Playground implements GistContainer, GistController {
       _rightDocPanel.setAttribute('hidden', '');
       _rightConsoleElement.setAttribute('hidden', '');
       webTabBar.setAttr('hidden');
+      webLayoutTabController.selectTab('dart');
     } else if (layout == Layout.web) {
       _disposeRightSplitter();
       _frame.hidden = false;
@@ -805,6 +807,7 @@ class Playground implements GistContainer, GistController {
       _rightDocPanel.setAttribute('hidden', '');
       _rightConsoleElement.setAttribute('hidden', '');
       webTabBar.toggleAttr('hidden', false);
+      webLayoutTabController.selectTab('dart');
     }
   }
 
