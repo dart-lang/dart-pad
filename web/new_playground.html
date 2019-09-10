@@ -74,6 +74,44 @@
     <div class="panels">
         <div id="editor-panel">
             <div class="header">
+                <nav>
+                    <div id="web-tab-bar" class="mdc-tab-bar" role="tablist">
+                        <div class="mdc-tab-scroller">
+                            <div class="mdc-tab-scroller__scroll-area">
+                                <div class="mdc-tab-scroller__scroll-content">
+                                    <button id="dart-tab" class="mdc-tab mdc-tab--active" role="tab" aria-selected="true"
+                                tabindex="0">
+                                             <span class="mdc-tab__content">
+                                                 <span class="mdc-tab__text-label">Dart</span>
+                                             </span>
+                                        <span class="mdc-tab-indicator mdc-tab-indicator--active">
+                                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                                             </span>
+                                        <span class="mdc-tab__ripple"></span>
+                                    </button>
+                                    <button id="html-tab" class="mdc-tab mdc-tab" role="tab" tabindex="0">
+                                             <span class="mdc-tab__content">
+                                                 <span class="mdc-tab__text-label">HTML</span>
+                                             </span>
+                                        <span class="mdc-tab-indicator mdc-tab-indicator">
+                                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                                             </span>
+                                        <span class="mdc-tab__ripple"></span>
+                                    </button>
+                                    <button id="css-tab" class="mdc-tab mdc-tab" role="tab" tabindex="0">
+                                             <span class="mdc-tab__content">
+                                                 <span class="mdc-tab__text-label">CSS</span>
+                                            </span>
+                                        <span class="mdc-tab-indicator mdc-tab-indicator">
+                                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                                             </span>
+                                        <span class="mdc-tab__ripple"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
                 <div id="dartbusy" class="busylight"></div>
                 <button type="button" id="run-button" class="mdc-button mdc-button--raised mdc-button--dense">
                     <i class="material-icons mdc-button__icon">play_arrow</i>
@@ -97,9 +135,6 @@
             </div>
         </div>
         <div id="output-panel">
-            <div class="header">
-                <div id="consolebusy" class="busylight"></div>
-            </div>
             <iframe id="frame" sandbox="allow-scripts" flex src="scripts/frame_dark.html">
             </iframe>
             <div id="right-output-panel" class="console"></div>

@@ -159,6 +159,10 @@ a {
   @include layout-end-justified;
   @include layout-center;
   padding: 4px;
+
+  > nav {
+    @include layout-flex;
+  }
 }
 
 // Console

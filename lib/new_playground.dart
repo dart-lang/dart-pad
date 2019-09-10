@@ -27,6 +27,7 @@ import 'elements/elements.dart';
 import 'experimental/console.dart';
 import 'experimental/counter.dart';
 import 'experimental/dialog.dart';
+import 'experimental/material_tab_controller.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -67,6 +68,8 @@ class Playground implements GistContainer, GistController {
   MDCMenu samplesMenu;
   Dialog dialog;
   DContentEditable titleEditable;
+  MaterialTabController webLayoutTabController;
+  DElement webTabBar;
 
   Splitter splitter;
   Splitter rightSplitter;
@@ -100,6 +103,7 @@ class Playground implements GistContainer, GistController {
     _initButtons();
     _initSamplesMenu();
     _initSplitters();
+    _initTabs();
     _initLayout();
     _initConsoles();
     _initModules().then((_) {
@@ -290,6 +294,21 @@ class Playground implements GistContainer, GistController {
   void _disposeOutputPanelTabs() {
     tabExpandController?.dispose();
     tabExpandController = null;
+  }
+
+  void _initTabs() {
+    webTabBar = DElement(querySelector('#web-tab-bar'));
+    webLayoutTabController =
+        MaterialTabController(MDCTabBar(webTabBar.element));
+    for (String name in ['dart', 'html', 'css']) {
+      webLayoutTabController.registerTab(
+          TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
+//        var issuesElement = querySelector('#issues');
+//        issuesElement.style.display = name == 'dart' ? 'block' : 'none';
+        ga.sendEvent('edit', name);
+        _context.switchTo(name);
+      }));
+    }
   }
 
   void _initLayout() {
@@ -739,7 +758,8 @@ class Playground implements GistContainer, GistController {
 
     // If there's no tabs visible or the console is not being displayed,
     // increment the counter
-    if (tabExpandController == null || tabExpandController?.state != TabState.console) {
+    if (tabExpandController == null ||
+        tabExpandController?.state != TabState.console) {
       unreadConsoleCounter.increment();
     }
   }
@@ -767,6 +787,7 @@ class Playground implements GistContainer, GistController {
       _disposeOutputPanelTabs();
       _rightDocPanel.attributes.remove('hidden');
       _rightConsoleElement.attributes.remove('hidden');
+      webTabBar.setAttr('hidden');
       _initRightSplitter();
     } else if (layout == Layout.flutter) {
       _disposeRightSplitter();
@@ -775,6 +796,7 @@ class Playground implements GistContainer, GistController {
       _initOutputPanelTabs();
       _rightDocPanel.setAttribute('hidden', '');
       _rightConsoleElement.setAttribute('hidden', '');
+      webTabBar.setAttr('hidden');
     } else if (layout == Layout.web) {
       _disposeRightSplitter();
       _frame.hidden = false;
@@ -782,6 +804,7 @@ class Playground implements GistContainer, GistController {
       _initOutputPanelTabs();
       _rightDocPanel.setAttribute('hidden', '');
       _rightConsoleElement.setAttribute('hidden', '');
+      webTabBar.toggleAttr('hidden', false);
     }
   }
 
