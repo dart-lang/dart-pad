@@ -283,6 +283,7 @@ class Playground implements GistContainer, GistController {
       consoleElement: _leftConsoleElement,
       topSplit: _editorHost,
       bottomSplit: _editorPanelFooter,
+      unreadCounter: unreadConsoleCounter,
     );
   }
 
@@ -307,6 +308,7 @@ class Playground implements GistContainer, GistController {
   void _initConsoles() {
     _leftConsole = Console(DElement(_leftConsoleElement));
     _rightConsole = Console(DElement(_rightConsoleElement));
+    unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
   }
 
   Future _initModules() async {
@@ -903,11 +905,13 @@ enum TabState {
   console,
 }
 
+/// Manages the bottom-left panel and tabs
 class TabExpandController {
   final MDCButton consoleButton;
   final MDCButton docsButton;
   final DElement console;
   final DElement docs;
+  final Counter unreadCounter;
 
   /// The element to give the top half of the split when this panel
   /// opens
@@ -929,6 +933,7 @@ class TabExpandController {
     @required Element docsElement,
     @required this.topSplit,
     @required this.bottomSplit,
+    @required this.unreadCounter,
   })  : console = DElement(consoleElement),
         docs = DElement(docsElement) {
     _state = TabState.closed;
@@ -946,58 +951,54 @@ class TabExpandController {
 
   void toggleConsole() {
     if (_state == TabState.closed) {
-      // Show the console
-      _state = TabState.console;
-      console.clearAttr('hidden');
-      bottomSplit.classes.remove('border-top');
-      consoleButton.toggleClass('active', true);
-      _initSplitter();
+      _showConsole();
     } else if (_state == TabState.docs) {
-      // Show the console
-      _state = TabState.console;
-      console.clearAttr('hidden');
+      _showConsole();
       docs.setAttr('hidden');
-      bottomSplit.classes.remove('border-top');
-      consoleButton.toggleClass('active', true);
       docsButton.toggleClass('active', false);
-      _initSplitter();
     } else if (_state == TabState.console) {
-      // Hide the console
-      _destroySplitter();
-      _state = TabState.closed;
-      console.setAttr('hidden');
-      bottomSplit.classes.add('border-top');
-      consoleButton.toggleClass('active', false);
+      _hidePanel();
     }
   }
 
   void toggleDocs() {
     if (_state == TabState.closed) {
-      // Show the docs
-      _state = TabState.docs;
-      docs.clearAttr('hidden');
-      bottomSplit.classes.remove('border-top');
-      docsButton.toggleClass('active', true);
-      _initSplitter();
+      _showDocs();
     } else if (_state == TabState.console) {
-      // Show the docs
-      _state = TabState.docs;
-      docs.clearAttr('hidden');
+      _showDocs();
       console.setAttr('hidden');
-      bottomSplit.classes.remove('border-top');
-      docsButton.toggleClass('active', true);
       consoleButton.toggleClass('active', false);
-      _initSplitter();
     } else if (_state == TabState.docs) {
-      // Hide the docs
-      _destroySplitter();
-      _state = TabState.closed;
-      docs.setAttr('hidden');
-      console.setAttr('hidden');
-      bottomSplit.classes.add('border-top');
-      docsButton.toggleClass('active', false);
+      _hidePanel();
     }
   }
+
+  void _showConsole() {
+    _state = TabState.console;
+    console.clearAttr('hidden');
+    bottomSplit.classes.remove('border-top');
+    consoleButton.toggleClass('active', true);
+    _initSplitter();
+  }
+
+  void _hidePanel() {
+    _destroySplitter();
+    _state = TabState.closed;
+    console.setAttr('hidden');
+    docs.setAttr('hidden');
+    bottomSplit.classes.add('border-top');
+    consoleButton.toggleClass('active', false);
+    docsButton.toggleClass('active', false);
+  }
+
+  void _showDocs() {
+    _state = TabState.docs;
+    docs.clearAttr('hidden');
+    bottomSplit.classes.remove('border-top');
+    docsButton.toggleClass('active', true);
+    _initSplitter();
+  }
+
 
   void _initSplitter() {
     if (_splitterConfigured) {
