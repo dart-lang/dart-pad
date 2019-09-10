@@ -6,16 +6,16 @@ import 'package:dart_pad/elements/elements.dart';
 typedef String ConsoleFilter(String line);
 
 class Console {
-  // The duration to wait before adding DOM elements to the document
+  // The duration to wait before adding DOM elements to the document.
   final Duration bufferDuration;
 
-  /// The element to append messages to
+  /// The element to append messages to.
   final DElement element;
 
-  /// A filter function to apply to all messages
+  /// A filter function to apply to all messages.
   final ConsoleFilter filter;
 
-  /// The CSS class name to apply to error messages
+  /// The CSS class name to apply to error messages.
   final String errorClass;
 
   final _bufferedOutput = <SpanElement>[];
