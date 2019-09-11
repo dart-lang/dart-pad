@@ -6,21 +6,28 @@ library new_playground;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:html';
+import 'dart:html' hide Console;
 
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
+import 'package:meta/meta.dart';
 import 'package:route_hierarchical/client.dart';
 import 'package:split/split.dart';
 
+import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
+import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
+import 'documentation.dart';
 import 'editing/editor.dart';
 import 'elements/bind.dart';
 import 'elements/elements.dart';
+import 'experimental/console.dart';
+import 'experimental/counter.dart';
 import 'experimental/dialog.dart';
+import 'experimental/material_tab_controller.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -55,11 +62,19 @@ class Playground implements GistContainer, GistController {
   MDCButton shareButton;
   MDCButton samplesButton;
   MDCButton runButton;
+  MDCButton editorConsoleTab;
+  MDCButton editorDocsTab;
+  DElement editorPanelFooter;
   MDCMenu samplesMenu;
   Dialog dialog;
   DContentEditable titleEditable;
+  MaterialTabController webLayoutTabController;
+  DElement webTabBar;
 
   Splitter splitter;
+  Splitter rightSplitter;
+  bool rightSplitterConfigured = false;
+  TabExpandController tabExpandController;
 
   DBusyLight busyLight;
   DBusyLight consoleBusyLight;
@@ -71,9 +86,14 @@ class Playground implements GistContainer, GistController {
 
   // The last returned shared gist used to update the url.
   Gist _overrideNextRouteGist;
+  DocHandler docHandler;
 
   // The internal ID of the current Gist.
   String _mappingId;
+
+  Console _leftConsole;
+  Console _rightConsole;
+  Counter unreadConsoleCounter;
 
   Playground() {
     _initDialog();
@@ -83,18 +103,26 @@ class Playground implements GistContainer, GistController {
     _initButtons();
     _initSamplesMenu();
     _initSplitters();
+    _initTabs();
     _initLayout();
+    _initConsoles();
     _initModules().then((_) {
       _initPlayground();
     });
   }
 
   DivElement get _editorHost => querySelector('#editor-host');
-  DivElement get _outputHost => querySelector('#output-host');
+  DivElement get _rightConsoleElement => querySelector('#right-output-panel');
+  DivElement get _leftConsoleElement => querySelector('#left-output-panel');
   IFrameElement get _frame => querySelector('#frame');
   InputElement get dartCheckbox => querySelector('#dart-checkbox');
   InputElement get webCheckbox => querySelector('#web-checkbox');
   InputElement get flutterCheckbox => querySelector('#flutter-checkbox');
+  DivElement get _rightDocPanel => querySelector('#right-doc-panel');
+  DivElement get _leftDocPanel => querySelector('#left-doc-panel');
+  DivElement get _editorPanelFooter => querySelector('#editor-panel-footer');
+  bool get _isCompletionActive => editor.completionActive;
+
   Map<InputElement, Layout> get _layouts => {
         flutterCheckbox: Layout.flutter,
         dartCheckbox: Layout.dart,
@@ -148,6 +176,11 @@ class Playground implements GistContainer, GistController {
       ..onClick.listen((_) {
         _handleRun();
       });
+    editorConsoleTab = MDCButton(querySelector('#editor-panel-console-tab'));
+    editorDocsTab = MDCButton(querySelector('#editor-panel-docs-tab'));
+    querySelector('#keyboard-button')
+        .onClick
+        .listen((_) => _showKeyboardDialog());
   }
 
   void _initSamplesMenu() {
@@ -217,7 +250,69 @@ class Playground implements GistContainer, GistController {
     );
   }
 
+  void _initRightSplitter() {
+    if (rightSplitterConfigured) {
+      return;
+    }
+
+    var outputHost = querySelector('#right-output-panel');
+    rightSplitter = flexSplit(
+      [outputHost, _rightDocPanel],
+      horizontal: false,
+      gutterSize: 6,
+      sizes: [50, 50],
+      minSize: [100, 100],
+    );
+    rightSplitterConfigured = true;
+  }
+
+  void _disposeRightSplitter() {
+    if (!rightSplitterConfigured) {
+      // The right splitter might already be destroyed.
+      return;
+    }
+    rightSplitter?.destroy();
+    rightSplitterConfigured = false;
+  }
+
+  void _initOutputPanelTabs() {
+    if (tabExpandController != null) {
+      return;
+    }
+
+    tabExpandController = TabExpandController(
+      consoleButton: editorConsoleTab,
+      docsButton: editorDocsTab,
+      docsElement: _leftDocPanel,
+      consoleElement: _leftConsoleElement,
+      topSplit: _editorHost,
+      bottomSplit: _editorPanelFooter,
+      unreadCounter: unreadConsoleCounter,
+    );
+  }
+
+  void _disposeOutputPanelTabs() {
+    tabExpandController?.dispose();
+    tabExpandController = null;
+  }
+
+  void _initTabs() {
+    webTabBar = DElement(querySelector('#web-tab-bar'));
+    webLayoutTabController =
+        MaterialTabController(MDCTabBar(webTabBar.element));
+    for (String name in ['dart', 'html', 'css']) {
+      webLayoutTabController.registerTab(
+          TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
+//        var issuesElement = querySelector('#issues');
+//        issuesElement.style.display = name == 'dart' ? 'block' : 'none';
+        ga.sendEvent('edit', name);
+        _context.switchTo(name);
+      }));
+    }
+  }
+
   void _initLayout() {
+    editorPanelFooter = DElement(_editorPanelFooter);
     _changeLayout(Layout.dart);
     for (var checkbox in _layouts.keys) {
       checkbox.onClick.listen((event) {
@@ -227,6 +322,12 @@ class Playground implements GistContainer, GistController {
         });
       });
     }
+  }
+
+  void _initConsoles() {
+    _leftConsole = Console(DElement(_leftConsoleElement));
+    _rightConsole = Console(DElement(_rightConsoleElement));
+    unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
   }
 
   Future _initModules() async {
@@ -257,8 +358,41 @@ class Playground implements GistContainer, GistController {
       ..theme = 'darkpad'
       ..mode = 'dart';
 
+    // set up key bindings
+    keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
+    keys.bind(['ctrl-enter'], _handleRun, 'Run');
+    keys.bind(['f1'], () {
+      ga.sendEvent('main', 'help');
+      docHandler.generateDoc(_rightDocPanel);
+      docHandler.generateDoc(_leftDocPanel);
+    }, 'Documentation');
+
+    keys.bind(['alt-enter'], () {
+      editor.showCompletions(onlyShowFixes: true);
+    }, 'Quick fix');
+
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
+      editor.showCompletions();
+    }, 'Completion');
+
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
+      _showKeyboardDialog();
+    }, 'Shortcuts');
+
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDoc(_rightDocPanel);
+        docHandler.generateDoc(_leftDocPanel);
+      }
+      _handleAutoCompletion(e);
+    });
+
     _context = PlaygroundContext(editor);
     deps[Context] = _context;
+
+    editorFactory.registerCompleter(
+        'dart', DartCompleter(dartServices, _context.dartDocument));
 
     _context.onDartDirty.listen((_) => busyLight.on());
     _context.onDartReconcile.listen((_) => _performAnalysis());
@@ -279,11 +413,24 @@ class Playground implements GistContainer, GistController {
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
+    // Listen for changes that would effect the documentation panel.
+    editor.onMouseDown.listen((e) {
+      // Delay to give codemirror time to process the mouse event.
+      Timer.run(() {
+        if (!_context.cursorPositionIsWhitespace()) {
+          docHandler.generateDoc(_rightDocPanel);
+          docHandler.generateDoc(_leftDocPanel);
+        }
+      });
+    });
+
     // Set up the router.
     deps[Router] = Router();
     router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
     router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
     router.listen();
+
+    docHandler = DocHandler(editor, _context);
 
     dartServices.version().then((VersionResponse version) {
       // "Based on Dart SDK 2.4.0"
@@ -298,6 +445,28 @@ class Playground implements GistContainer, GistController {
     // Clear the splash.
     DSplash splash = DSplash(querySelector('div.splash'));
     splash.hide();
+  }
+
+  final RegExp cssSymbolRegexp = RegExp(r'[A-Z]');
+
+  void _handleAutoCompletion(KeyboardEvent e) {
+    if (context.focusedEditor == 'dart' && editor.hasFocus) {
+      if (e.keyCode == KeyCode.PERIOD) {
+        editor.showCompletions(autoInvoked: true);
+      }
+    }
+
+    if (!_isCompletionActive && editor.hasFocus) {
+      if (context.focusedEditor == 'html') {
+        if (printKeyEvent(e) == 'shift-,') {
+          editor.showCompletions(autoInvoked: true);
+        }
+      } else if (context.focusedEditor == 'css') {
+        if (cssSymbolRegexp.hasMatch(String.fromCharCode(e.keyCode))) {
+          editor.showCompletions(autoInvoked: true);
+        }
+      }
+    }
   }
 
   Future showHome(RouteEnterEvent event) async {
@@ -431,6 +600,10 @@ class Playground implements GistContainer, GistController {
     });
   }
 
+  void _showKeyboardDialog() {
+    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
+  }
+
   void _handleRun() async {
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
@@ -478,7 +651,6 @@ class Playground implements GistContainer, GistController {
           _context.cssSource,
           response.result,
         );
-
       }
     } catch (e) {
       ga.sendException('${e.runtimeType}');
@@ -572,25 +744,23 @@ class Playground implements GistContainer, GistController {
     });
   }
 
+  void _handleSave() => ga.sendEvent('main', 'save');
+
   void _clearOutput() {
-    _outputHost.text = '';
+    _rightConsole.clear();
+    _leftConsole.clear();
+    unreadConsoleCounter.clear();
   }
 
-  final _bufferedOutput = <SpanElement>[];
-  final _outputDuration = Duration(milliseconds: 32);
-
   void _showOutput(String message, {bool error = false}) {
-    SpanElement span = SpanElement()..text = '$message\n';
-    span.classes.add(error ? 'errorOutput' : 'normal');
-    // Buffer the console output so that heavy writing to stdout does not starve
-    // the DOM thread.
-    _bufferedOutput.add(span);
-    if (_bufferedOutput.length == 1) {
-      Timer(_outputDuration, () {
-        _outputHost.children.addAll(_bufferedOutput);
-        _outputHost.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
-        _bufferedOutput.clear();
-      });
+    _leftConsole.showOutput(message, error: error);
+    _rightConsole.showOutput(message, error: error);
+
+    // If there's no tabs visible or the console is not being displayed,
+    // increment the counter
+    if (tabExpandController == null ||
+        tabExpandController?.state != TabState.console) {
+      unreadConsoleCounter.increment();
     }
   }
 
@@ -613,10 +783,31 @@ class Playground implements GistContainer, GistController {
 
     if (layout == Layout.dart) {
       _frame.hidden = true;
+      editorPanelFooter.setAttr('hidden');
+      _disposeOutputPanelTabs();
+      _rightDocPanel.attributes.remove('hidden');
+      _rightConsoleElement.attributes.remove('hidden');
+      webTabBar.setAttr('hidden');
+      webLayoutTabController.selectTab('dart');
+      _initRightSplitter();
     } else if (layout == Layout.flutter) {
+      _disposeRightSplitter();
       _frame.hidden = false;
+      editorPanelFooter.clearAttr('hidden');
+      _initOutputPanelTabs();
+      _rightDocPanel.setAttribute('hidden', '');
+      _rightConsoleElement.setAttribute('hidden', '');
+      webTabBar.setAttr('hidden');
+      webLayoutTabController.selectTab('dart');
     } else if (layout == Layout.web) {
+      _disposeRightSplitter();
       _frame.hidden = false;
+      editorPanelFooter.clearAttr('hidden');
+      _initOutputPanelTabs();
+      _rightDocPanel.setAttribute('hidden', '');
+      _rightConsoleElement.setAttribute('hidden', '');
+      webTabBar.toggleAttr('hidden', false);
+      webLayoutTabController.selectTab('dart');
     }
   }
 
@@ -652,7 +843,6 @@ class Playground implements GistContainer, GistController {
 
   @override
   Future createNewGist() {
-    print('clearing stored gist');
     _gistStorage.clearStoredGist();
 
     if (ga != null) ga.sendEvent('main', 'new');
@@ -717,4 +907,168 @@ enum Layout {
   flutter,
   dart,
   web,
+}
+
+// HTML for keyboard shortcuts dialog
+String keyMapToHtml(Map<Action, Set<String>> keyMap) {
+  DListElement dl = DListElement();
+  keyMap.forEach((Action action, Set<String> keys) {
+    if (!action.hidden) {
+      String string = '';
+      for (final key in keys) {
+        if (makeKeyPresentable(key) != null) {
+          string += '<span>${makeKeyPresentable(key)}</span>';
+        }
+      }
+      dl.innerHtml += '<dt>$action</dt><dd>$string</dd>';
+    }
+  });
+
+  var keysDialogDiv = DivElement()
+    ..children.add(dl)
+    ..classes.add('keys-dialog');
+  var div = DivElement()..children.add(keysDialogDiv);
+
+  return div.innerHtml;
+}
+
+enum TabState {
+  closed,
+  docs,
+  console,
+}
+
+/// Manages the bottom-left panel and tabs
+class TabExpandController {
+  final MDCButton consoleButton;
+  final MDCButton docsButton;
+  final DElement console;
+  final DElement docs;
+  final Counter unreadCounter;
+
+  /// The element to give the top half of the split when this panel
+  /// opens
+  final Element topSplit;
+
+  /// The element to give the bottom half of the split
+  final Element bottomSplit;
+
+  final List<StreamSubscription> _subscriptions = [];
+
+  TabState _state;
+  Splitter _splitter;
+  bool _splitterConfigured = false;
+
+  TabState get state => _state;
+
+  TabExpandController({
+    @required this.consoleButton,
+    @required this.docsButton,
+    @required Element consoleElement,
+    @required Element docsElement,
+    @required this.topSplit,
+    @required this.bottomSplit,
+    @required this.unreadCounter,
+  })  : console = DElement(consoleElement),
+        docs = DElement(docsElement) {
+    _state = TabState.closed;
+    console.setAttr('hidden');
+    docs.setAttr('hidden');
+
+    _subscriptions.add(consoleButton.onClick.listen((_) {
+      toggleConsole();
+    }));
+
+    _subscriptions.add(docsButton.onClick.listen((_) {
+      toggleDocs();
+    }));
+  }
+
+  void toggleConsole() {
+    if (_state == TabState.closed) {
+      _showConsole();
+    } else if (_state == TabState.docs) {
+      _showConsole();
+      docs.setAttr('hidden');
+      docsButton.toggleClass('active', false);
+    } else if (_state == TabState.console) {
+      _hidePanel();
+    }
+  }
+
+  void toggleDocs() {
+    if (_state == TabState.closed) {
+      _showDocs();
+    } else if (_state == TabState.console) {
+      _showDocs();
+      console.setAttr('hidden');
+      consoleButton.toggleClass('active', false);
+    } else if (_state == TabState.docs) {
+      _hidePanel();
+    }
+  }
+
+  void _showConsole() {
+    unreadCounter.clear();
+    _state = TabState.console;
+    console.clearAttr('hidden');
+    bottomSplit.classes.remove('border-top');
+    consoleButton.toggleClass('active', true);
+    _initSplitter();
+  }
+
+  void _hidePanel() {
+    _destroySplitter();
+    _state = TabState.closed;
+    console.setAttr('hidden');
+    docs.setAttr('hidden');
+    bottomSplit.classes.add('border-top');
+    consoleButton.toggleClass('active', false);
+    docsButton.toggleClass('active', false);
+  }
+
+  void _showDocs() {
+    _state = TabState.docs;
+    docs.clearAttr('hidden');
+    bottomSplit.classes.remove('border-top');
+    docsButton.toggleClass('active', true);
+    _initSplitter();
+  }
+
+  void _initSplitter() {
+    if (_splitterConfigured) {
+      return;
+    }
+
+    _splitter = flexSplit(
+      [topSplit, bottomSplit],
+      horizontal: false,
+      gutterSize: 6,
+      sizes: [70, 30],
+      minSize: [100, 100],
+    );
+    _splitterConfigured = true;
+  }
+
+  void _destroySplitter() {
+    if (!_splitterConfigured) {
+      return;
+    }
+
+    _splitter?.destroy();
+    _splitterConfigured = false;
+  }
+
+  void dispose() {
+    bottomSplit.classes.add('border-top');
+    _destroySplitter();
+
+    // Reset selected tab
+    docsButton.toggleClass('active', false);
+    consoleButton.toggleClass('active', false);
+
+    // Clear listeners
+    _subscriptions.forEach((s) => s.cancel());
+    _subscriptions.clear();
+  }
 }

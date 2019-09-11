@@ -18,6 +18,8 @@ body {
   color: $playground-text-color;
   font-family: $normal-font;
   font-size: 14px;
+  @include layout-vertical;
+  @include layout-fit;
 }
 
 header {
@@ -75,8 +77,14 @@ header {
 }
 
 section.main-section {
-  @include  layout-relative;
+  @include layout-flex;
   @include layout;
+  @include layout-relative;
+
+  .panels {
+    @include layout;
+    @include layout-fit;
+  }
 }
 
 body>footer {
@@ -149,6 +157,12 @@ a {
 .header {
   @include layout-horizontal;
   @include layout-end-justified;
+  @include layout-center;
+  padding: 4px;
+
+  > nav {
+    @include layout-flex;
+  }
 }
 
 // Console
@@ -177,7 +191,7 @@ a {
     color: $dark-editor-text;
   }
 
-  .errorOutput {
+  .error-output {
     color: $dark-pink;
   }
 }
@@ -234,4 +248,183 @@ a {
 // Contenteditable elements
 [contenteditable]:focus {
   outline: 0 solid transparent;
+}
+
+// Editor Tabs
+.editor-tab-host {
+  @include layout-vertical;
+}
+
+.border-top {
+  border-top: 6px solid $dark-gutter-background-color;
+}
+
+.editor-tabs {
+  @include layout-horizontal;
+  padding: 4px;
+
+  button {
+    margin-right: 8px;
+  }
+}
+
+.editor-tab {
+  @include reset-button();
+  @include mdc-button-ink-color(#f8f9fa);
+  text-transform: none !important;
+  letter-spacing: normal;
+
+  color: $label-color;
+  border-top: 2px solid transparent;
+  padding: 8px 4px;
+
+  &.active {
+    color: $dark-blue;
+    font-weight: bold;
+  }
+}
+
+// TODO(ryjohn): rename - conflicts with editor-tab-host
+#editor-panel-tab-host {
+  @include layout-flex;
+  @include layout-vertical;
+  .documentation {
+    @include layout-flex;
+  }
+}
+
+// documentation and parameter info styling
+
+.documentation {
+  padding: 8px;
+  font-family: 'Roboto', sans-serif;
+  font-size: 11pt;
+  line-height: 20px;
+  position: relative;
+  display: block;
+  overflow: auto;
+  overflow-wrap: break-word;
+  margin-top: 0;
+  margin-left: 0;
+
+  h1 {
+    margin-top: 0;
+    font-size: 12pt;
+    color: $dark-comment;
+  }
+
+  h2 {
+    margin-bottom: 0;
+  }
+
+  h2, strong {
+    font-weight: bold;
+    font-size: inherit;
+    color: #cdcdcd; /* little bit brigher than normal text*/
+  }
+  p {
+    margin-top: 0;
+  }
+  a {
+    color: #66d9ef;
+  }
+  a:hover {
+    color: #66d9ef;
+    text-decoration: underline;
+  }
+  a {
+    color: #66d9ef;
+  }
+  a:hover {
+    color: #66d9ef;
+    text-decoration: underline;
+  }
+  pre {
+    overflow-x: auto;
+    margin: 1em;
+  }
+  pre code {
+    white-space: inherit;
+    word-wrap: normal;
+  }
+  code, .parameter-hints code {
+    font-family: $editor-font;
+    font-size: 12pt;
+    color: $dark-comment;
+  }
+  code em {
+    color: $dark-orange;
+    font-style: normal;
+  }
+  .parameter-hints code {
+    color: $dark-orange;
+  }
+  code em {
+    color: $dark-orange;
+    font-style: normal;
+  }
+}
+
+
+// Keys dialog
+.mdc-dialog__surface {
+  // Make the dialog a minimum of 400px to best display the keyboard dialog
+  min-width: 512px !important;
+}
+
+.keyboard {
+  display: inline-block;
+  background: url('../../pictures/keyboard.svg') center no-repeat;
+  background-size: 100%;
+  width: 22px;
+  height: 18px;
+  margin-top: 1px;
+  cursor: pointer;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.keys-dialog {
+  top: auto !important;
+  bottom: 20px;
+
+  dl {
+    padding: 0.5em;
+  }
+
+  dt {
+    float: left;
+    clear: left;
+  }
+  dd {
+    text-align: right;
+  }
+  dd > span {
+    font-family: "Helvetica Neue", "Inconsolata", monospace;
+    padding: 0 4px;
+    background-color: #FFF79A; /**#dfaf8f #f0dfaf #66d9ef #FFF79A #AEA859;*/
+    font-size: 10pt;
+    color: black;
+    border-radius: 2px;
+    margin: 2px 2px;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+}
+
+// Unread console counter
+.Counter {
+  margin-left: 4px;
+  display: inline-block;
+  padding: 2px 5px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  color: $dark-teal;
+  background-color: fade_out($dark-teal, 0.5);
+  border-radius: 20px;
 }

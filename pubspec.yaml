@@ -22,7 +22,7 @@ dependencies:
   primer_css: ^0.0.1
   route_hierarchical:
     path: third_party/pkg/route.dart/
-  split: ^0.0.2
+  split: ^0.0.6
   html_unescape: ^1.0.0
   sass_builder: ^2.1.0
   mdc_web:

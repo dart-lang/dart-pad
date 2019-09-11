@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:html' hide Document;
+import 'dart:html' hide Document, Console;
 import 'dart:math' as math;
 
+import 'package:dart_pad/experimental/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
 import 'package:split/split.dart';
 import 'package:mdc_web/mdc_web.dart';
@@ -24,6 +25,8 @@ import '../services/dartservices.dart';
 import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/util.dart';
+import 'console.dart';
+import 'counter.dart';
 import 'dialog.dart';
 
 const int defaultSplitterWidth = 6;
@@ -110,7 +113,7 @@ class NewEmbed {
   Splitter splitter;
   AnalysisResultsController analysisResultsController;
 
-  ConsoleController consoleExpandController;
+  Console consoleExpandController;
   DElement webOutputLabel;
 
   MDCLinearProgress linearProgress;
@@ -307,11 +310,11 @@ class NewEmbed {
           isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
 
     executionSvc.onStderr.listen((err) {
-      consoleExpandController.appendError(err);
+      consoleExpandController.showOutput(err, error: true);
     });
 
     executionSvc.onStdout.listen((msg) {
-      consoleExpandController.appendMessage(msg);
+      consoleExpandController.showOutput(msg);
     });
 
     executionSvc.testResults.listen((result) {
@@ -352,7 +355,7 @@ class NewEmbed {
           });
     } else {
       consoleExpandController =
-          ConsoleController(querySelector('#console-output-container'));
+          Console(DElement(querySelector('#console-output-container')));
     }
 
     var webOutputLabelElement = querySelector('#web-output-label');
@@ -623,8 +626,8 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
         );
         ga?.sendEvent('execution', 'ddc-compile-success');
       }).catchError((e, st) {
-        consoleExpandController
-            .appendError('Error compiling to JavaScript:\n$e');
+        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
+            error: true);
         print(st);
         ga?.sendEvent('execution', 'ddc-compile-failure');
       }).whenComplete(() {
@@ -640,8 +643,8 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
         return executionSvc.execute(
             context.htmlSource, context.cssSource, response.result);
       }).catchError((e, st) {
-        consoleExpandController
-            .appendError('Error compiling to JavaScript:\n$e');
+        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
+            error: true);
         print(st);
         ga?.sendEvent('execution', 'html-compile-failure');
       }).whenComplete(() {
@@ -656,8 +659,8 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
         executionSvc.execute('', '', response.result);
         ga?.sendEvent('execution', 'compile-success');
       }).catchError((e, st) {
-        consoleExpandController
-            .appendError('Error compiling to JavaScript:\n$e');
+        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
+            error: true);
         print(st);
         ga?.sendEvent('execution', 'compile-failure');
       }).whenComplete(() {
@@ -803,12 +806,11 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
 // material-components-web uses specific classes for its navigation styling,
 // rather than an attribute. This class extends the tab controller code to also
 // toggle that class.
-class NewEmbedTabController extends TabController {
-  final MDCTabBar _tabBar;
+class NewEmbedTabController extends MaterialTabController {
   final Dialog _dialog;
   bool _userHasSeenSolution = false;
 
-  NewEmbedTabController(this._tabBar, this._dialog);
+  NewEmbedTabController(MDCTabBar tabBar, this._dialog) : super(tabBar);
 
   void registerTab(TabElement tab) {
     tabs.add(tab);
@@ -844,22 +846,7 @@ class NewEmbedTabController extends TabController {
       _userHasSeenSolution = true;
     }
 
-    var tab = tabs.firstWhere((t) => t.name == tabName);
-    var idx = tabs.indexOf(tab);
-
-    _tabBar.activateTab(idx);
-
-    for (var t in tabs) {
-      t.toggleAttr('aria-selected', t == tab);
-    }
-
-    super.selectTab(tabName);
-  }
-
-  void setTabVisibility(String tabName, bool visible) {
-    tabs
-        .firstWhere((t) => t.name == tabName, orElse: () => null)
-        ?.toggleAttr('hidden', !visible);
+    await super.selectTab(tabName);
   }
 }
 
@@ -875,25 +862,6 @@ class TabView {
     } else {
       element.setAttr('hidden');
     }
-  }
-}
-
-class Counter {
-  Counter(this.element);
-
-  final SpanElement element;
-
-  int _itemCount = 0;
-
-  void increment() {
-    _itemCount++;
-    element.text = '$_itemCount';
-    element.attributes.remove('hidden');
-  }
-
-  void clear() {
-    _itemCount = 0;
-    element.setAttribute('hidden', 'true');
   }
 }
 
@@ -1116,39 +1084,7 @@ class AnalysisResultsController {
   }
 }
 
-/// Manages the visibility and contents of the console
-class ConsoleController {
-  final DElement console;
-
-  ConsoleController(Element console) : console = DElement(console) {
-    console.removeAttribute('hidden');
-  }
-
-  void appendError(String error) {
-    if (error == null) {
-      return;
-    }
-
-    var line = DivElement()
-      ..text = filterCloudUrls(error)
-      ..classes.add('text-red');
-    console.add(line);
-  }
-
-  void appendMessage(String message) {
-    if (message == null) {
-      return;
-    }
-    var line = DivElement()..text = filterCloudUrls(message);
-    console.add(line);
-  }
-
-  void clear() {
-    console.text = '';
-  }
-}
-
-class ConsoleExpandController extends ConsoleController {
+class ConsoleExpandController extends Console {
   final DElement expandButton;
   final DElement footer;
   final DElement expandIcon;
@@ -1168,21 +1104,15 @@ class ConsoleExpandController extends ConsoleController {
         footer = DElement(footer),
         expandIcon = DElement(expandIcon),
         _expanded = false,
-        super(consoleElement) {
-    super.console.setAttr('hidden');
+        super(DElement(consoleElement),
+            errorClass: 'text-red', filter: filterCloudUrls) {
+    super.element.setAttr('hidden');
     footer.removeAttribute('hidden');
     expandButton.onClick.listen((_) => _toggleExpanded());
   }
 
-  void appendError(String error) {
-    super.appendError(error);
-    if (!_expanded && error != null) {
-      unreadCounter.increment();
-    }
-  }
-
-  void appendMessage(String message) {
-    super.appendMessage(message);
+  void showOutput(String message, {bool error = false}) {
+    super.showOutput(message, error: error);
     if (!_expanded && message != null) {
       unreadCounter.increment();
     }
@@ -1198,14 +1128,14 @@ class ConsoleExpandController extends ConsoleController {
     if (_expanded) {
       _initSplitter();
       _splitter.setSizes([60, 40]);
-      console.element.removeAttribute('hidden');
+      element.toggleAttr('hidden', false);
       expandIcon.element.classes.remove('octicon-triangle-up');
       expandIcon.element.classes.add('octicon-triangle-down');
       footer.toggleClass('footer-top-border', false);
       unreadCounter.clear();
     } else {
       _splitter.setSizes([100, 0]);
-      console.element.setAttribute('hidden', 'true');
+      element.toggleAttr('hidden', true);
       expandIcon.element.classes.remove('octicon-triangle-down');
       expandIcon.element.classes.add('octicon-triangle-up');
       footer.toggleClass('footer-top-border', true);

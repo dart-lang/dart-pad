@@ -219,6 +219,7 @@ body {
   overflow: auto;
   font-family: $editor-font;
   font-size: $embed-editor-font-size;
+  white-space: pre-wrap;
 }
 
 // HTML Mode

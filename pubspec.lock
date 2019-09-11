@@ -387,7 +387,7 @@ packages:
       name: node_preamble
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.7"
+    version: "1.4.8"
   octicons_css:
     dependency: "direct main"
     description:
@@ -548,7 +548,7 @@ packages:
       name: split
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.0.5"
+    version: "0.0.6"
   stack_trace:
     dependency: transitive
     description:

@@ -860,7 +860,7 @@ class Playground implements GistContainer, GistController {
     consoleBusyLight.flash();
 
     SpanElement span = SpanElement()..text = '$message\n';
-    span.classes.add(error ? 'errorOutput' : 'normal');
+    span.classes.add(error ? 'error-output' : 'normal');
 
     // Buffer the console output so that heavy writing to stdout does not starve
     // the DOM thread.
