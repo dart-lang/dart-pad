@@ -362,9 +362,9 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: "028ef4fd6d4cef16b62447f0c6eaefc519e087f0"
-      url: "https://github.com/RedBrogdon/rpc.git"
+      ref: "366860a618a2f2d702343d6aa0fa0237aa397df6"
+      resolved-ref: "366860a618a2f2d702343d6aa0fa0237aa397df6"
+      url: "https://github.com/dart-archive/rpc.git"
     source: git
     version: "0.6.2"
   shelf:

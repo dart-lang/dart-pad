@@ -6,7 +6,7 @@ environment:
   sdk: '>=2.5.0 <3.0.0'
 
 dependencies:
-  _discoveryapis_commons: ^0.1.9
+  _discoveryapis_commons: 0.1.8+1
   analyzer: ^0.38.0
   analysis_server_lib: ^0.1.4
   appengine: ^0.10.0
@@ -18,6 +18,7 @@ dependencies:
   logging: ^0.11.0
   path: ^1.6.2
   shelf: ^0.7.0
+  # TODO(redbrogdon): Update this once rpc 0.6.2 is published.
   rpc:
     git:
       url: https://github.com/dart-archive/rpc.git
