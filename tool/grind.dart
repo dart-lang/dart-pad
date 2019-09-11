@@ -170,6 +170,7 @@ build() {
   // Run vulcanize.
   // Imports vulcanized, not inlined for IE support
   vulcanize('index.html');
+  vulcanize('new_playground.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
   vulcanize('embed-flutter.html');
@@ -225,6 +226,8 @@ vulcanize(String filepath) {
         ' experimental/new_embed_html.dart.js',
         '--exclude',
         ' experimental/new_embed_inline.dart.js',
+        '--exclude',
+        ' experimental/new_playground/main.dart.js',
         '--exclude',
         'scripts/main.dart.js',
         '--exclude',
