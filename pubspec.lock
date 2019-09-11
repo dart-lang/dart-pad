@@ -545,11 +545,9 @@ packages:
   split:
     dependency: "direct main"
     description:
-      path: "third_party/packages/split"
-      ref: split-js-callback
-      resolved-ref: "372a58ec6671b4e34c73e344a0a656ee4585b221"
-      url: "git://github.com/johnpryan/devtools.git"
-    source: git
+      name: split
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.0.6"
   stack_trace:
     dependency: transitive
