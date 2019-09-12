@@ -24,6 +24,7 @@ import 'documentation.dart';
 import 'editing/editor.dart';
 import 'elements/bind.dart';
 import 'elements/elements.dart';
+import 'experimental/analysis_results_controller.dart';
 import 'experimental/console.dart';
 import 'experimental/counter.dart';
 import 'experimental/dialog.dart';
@@ -75,6 +76,7 @@ class Playground implements GistContainer, GistController {
   Splitter rightSplitter;
   bool rightSplitterConfigured = false;
   TabExpandController tabExpandController;
+  AnalysisResultsController analysisResultsController;
 
   DBusyLight busyLight;
   DBusyLight consoleBusyLight;
@@ -437,6 +439,14 @@ class Playground implements GistContainer, GistController {
       String versionText = 'Based on Dart SDK ${version.sdkVersionFull}';
       querySelector('#dartpad-version').text = versionText;
     }).catchError((e) => null);
+
+    analysisResultsController = AnalysisResultsController(
+        DElement(querySelector('#issues')),
+        DElement(querySelector('#issues-message')),
+        DElement(querySelector('#issues-toggle')))
+      ..onIssueClick.listen((issue) {
+        _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+      });
 
     _finishedInit();
   }
@@ -884,7 +894,16 @@ class Playground implements GistContainer, GistController {
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
-    // TODO(ryjohn)
+    analysisResultsController.display(issues);
+  }
+
+  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
+    final doc = editor.document;
+
+    doc.select(
+        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
+
+    if (focus) editor.focus();
   }
 
   void _jumpToLine(int line) {
