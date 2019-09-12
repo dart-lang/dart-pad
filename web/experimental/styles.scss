@@ -5,6 +5,7 @@
 @import "package:mdc_web/material-components-web";
 @import 'package:dart_pad/experimental/scss/colors';
 @import 'package:dart_pad/experimental/scss/variables';
+@import 'package:dart_pad/experimental/scss/shared';
 
 body {
   top: 0;
@@ -71,49 +72,6 @@ body {
   white-space: pre-wrap;
   display: flex;
   flex-direction: column;
-}
-
-// Flashes
-
-#flash-container > div + div {
-  // Adds space between the flashes in the flash container, if more than one is displayed.
-  margin-top: 8px;
-}
-
-#issues-container > div + div {
-  margin-top: 8px;
-}
-
-.flash {
-  border-radius: 0;
-  border: none;
-  padding: 12px;
-}
-
-.flash-close {
-  padding: 6px;
-  margin: -12px;
-}
-
-#flash-container {
-  width: 380px;
-  z-index: 10;
-}
-
-#issues-container {
-  width: 380px;
-}
-
-.message-container {
-  letter-spacing: 0.05em;
-  padding-right: 22px;
-  max-height: 120px;
-  overflow-y: auto;
-  font-family: Roboto Light, sans-serif;
-  font-weight: 300;
-  a {
-    font-weight: bold;
-  }
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -254,71 +212,6 @@ body {
   align-items: center;
   padding: 4px 12px 4px 12px;
   height: 40px;
-}
-
-#issues-message {
-  font-family: $editor-font;
-  font-size: $embed-editor-font-size;
-  cursor: default;
-  margin-right: 12px;
-}
-
-#issues-toggle {
-  cursor: pointer;
-
-  // Prevent the layout from changing when toggling between show and hide
-  width: 48px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-// Issues
-#issues {
-  padding: 8px;
-  overflow-y: auto;
-  max-height: 50vh;
-}
-
-#issues .issue {
-  display: flex;
-  flex-direction: row;
-  line-height: 20px;
-  border-radius: 3px;
-  cursor: pointer;
-}
-
-.issue + .issue {
-  margin-top: 4px;
-}
-
-.issue .issuelabel {
-  font-family: $editor-font;
-  font-size: $embed-editor-font-size;
-  display: inline-block;
-  border-radius: 3px;
-  padding: 2px 5px;
-  min-width: 53px;
-}
-
-.issue .issuelabel.error {
-  color: $issue-error-color;
-  border: 1px solid $issue-error-color;
-}
-
-.issue .issuelabel.warning {
-  color: $issue-warning-color;
-  border: 1px solid $issue-warning-color;
-}
-
-.issue .issuelabel.info {
-  color: $issue-info-color;
-  border: 1px solid $issue-info-color;
-}
-
-.issue .message {
-  padding-left: 5px;
-  line-height: 20px;
 }
 
 // Primer

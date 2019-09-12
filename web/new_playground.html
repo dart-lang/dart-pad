@@ -29,7 +29,6 @@
     <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <script src="packages/codemirror/codemirror.js" defer></script>
 
-
     <!-- codemirror themes -->
     <link href="experimental/cm-scrollbars.css" rel="stylesheet" media="screen">
     <link href="experimental/cm-dartpad-dark.css" rel="stylesheet" media="screen">
@@ -152,6 +151,27 @@
             </div>
         </div>
     </div>
+    <div id="flash-container" class="position-fixed right-2 bottom-6">
+        <div id="analysis-result-box" class="flash flash-error" hidden>
+            <button class="flash-close">
+                <div class="octicon octicon-x"></div>
+            </button>
+            <div class="message-container custom-scrollbar"></div>
+        </div>
+        <div id="test-result-box" class="flash flash-warn" hidden>
+            <button class="flash-close">
+                <div class="octicon octicon-x"></div>
+            </button>
+            <div class="message-container custom-scrollbar"></div>
+        </div>
+        <div id="hint-box" class="flash" hidden>
+            <button class="flash-close">
+                <div class="octicon octicon-x"></div>
+            </button>
+            <div class="message-container custom-scrollbar"></div>
+        </div>
+        <div id="issues" hidden></div>
+    </div>
 </section>
 
 <footer>
@@ -172,7 +192,8 @@
 
     <input type="checkbox" id="web-checkbox" class="footer-items">
     <label for="web-checkbox" class="footer-item">Web</label>
-
+    <div id="issues-message"></div>
+    <a id="issues-toggle" hidden></a>
     <div id="dartpad-version"></div>
 </footer>
 
