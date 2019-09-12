@@ -1,5 +1,6 @@
 @import 'package:dart_pad/experimental/scss/colors';
 @import 'package:dart_pad/experimental/scss/variables';
+@import 'package:dart_pad/experimental/scss/shared';
 
 @import 'layout';
 
@@ -90,6 +91,7 @@ section.main-section {
 body>footer {
   background-color: $playground-footer-background-color;
   @include layout-horizontal;
+  @include layout-center;
   padding: 8px 24px;
   .flex {
     @include layout-flex;
@@ -97,6 +99,14 @@ body>footer {
 
   .footer-item {
     margin-right: 10px;
+  }
+
+  * {
+    margin-right: 4px;
+  }
+
+  #dartpad-version {
+    margin-left: 12px;
   }
 }
 
@@ -256,7 +266,7 @@ a {
 }
 
 .border-top {
-  border-top: 6px solid $dark-gutter-background-color;
+  border-top: 6px solid $dark-gutter-background-color !important;
 }
 
 .editor-tabs {
@@ -365,6 +375,50 @@ a {
   }
 }
 
+// Code annotations
+
+.squiggle-error {
+  border-bottom: 2px solid $squiggle-error-color;
+}
+
+.squiggle-warning {
+  border-bottom: 2px solid $squiggle-warning-color;
+}
+
+.squiggle-info {
+  border-bottom: 2px solid $squiggle-info-color;
+}
+
+// Analysis flashes
+.flash {
+  background-color: $dark-flash-info-color;
+}
+
+// Issues
+#issues {
+  background-color: $dark-issues-background-color;
+  border: 8px solid $dark-issues-background-color;
+}
+
+.issue .issuelabel {
+  color: $dark-issue-label-color;
+}
+
+.issue .message {
+  color: $dark-issue-label-color;
+}
+
+#issues-toggle {
+  color: $mdc-theme-primary;
+}
+
+#issues-message {
+  font-family: $normal-font;
+  font-size: $playground-editor-font-size;
+  cursor: default;
+  margin-right: 0px;
+  margin-left: 12px;
+}
 
 // Keys dialog
 .mdc-dialog__surface {

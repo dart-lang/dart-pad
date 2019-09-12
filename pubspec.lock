@@ -478,7 +478,7 @@ packages:
       name: sass
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.22.10"
+    version: "1.22.12"
   sass_builder:
     dependency: "direct main"
     description:
