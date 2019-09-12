@@ -361,11 +361,9 @@ packages:
   rpc:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "366860a618a2f2d702343d6aa0fa0237aa397df6"
-      resolved-ref: "366860a618a2f2d702343d6aa0fa0237aa397df6"
-      url: "https://github.com/dart-archive/rpc.git"
-    source: git
+      name: rpc
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.6.2"
   shelf:
     dependency: "direct main"
