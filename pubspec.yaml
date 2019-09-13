@@ -18,11 +18,7 @@ dependencies:
   logging: ^0.11.0
   path: ^1.6.2
   shelf: ^0.7.0
-  # TODO(redbrogdon): Update this once rpc 0.6.2 is published.
-  rpc:
-    git:
-      url: https://github.com/dart-archive/rpc.git
-      ref: 366860a618a2f2d702343d6aa0fa0237aa397df6
+  rpc: ^0.6.2
   uuid: ^2.0.0
   yaml: ^2.1.15
   quiver: ^2.0.3
