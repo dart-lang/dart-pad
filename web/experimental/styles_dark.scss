@@ -35,6 +35,10 @@ a {
   background-color: $dark-code-background-color;
 }
 
+#console-output-container span.normal {
+  color: #dddddd;
+}
+
 // Helper class for using a border when collapsed
 .footer-top-border {
   border-top: $border-width solid $dark-border-color;
