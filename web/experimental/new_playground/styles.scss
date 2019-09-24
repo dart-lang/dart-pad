@@ -483,9 +483,9 @@ a {
   dd > span {
     font-family: "Helvetica Neue", "Inconsolata", monospace;
     padding: 0 4px;
-    background-color: #FFF79A; /**#dfaf8f #f0dfaf #66d9ef #FFF79A #AEA859;*/
     font-size: 10pt;
-    color: black;
+    color: $dark-blue;
+    border: 1px solid $dark-blue;
     border-radius: 2px;
     margin: 2px 2px;
     white-space: nowrap;
