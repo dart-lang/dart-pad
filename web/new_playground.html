@@ -123,12 +123,15 @@
             <div id="editor-host"></div>
             <div id="editor-panel-footer" class="editor-tab-host border-top">
                 <div class="editor-tabs">
-                    <button id="editor-panel-console-tab"
-                            class="editor-tab mdc-button">
-                        Console
-                        <span id="unread-console-counter" class="Counter" hidden></span>
-                    </button>
-                    <button id="editor-panel-docs-tab" class="editor-tab mdc-button">Documentation</button>
+                    <div class="tab-group">
+                        <button id="editor-panel-console-tab"
+                                class="editor-tab mdc-button">
+                            Console
+                            <span id="unread-console-counter" class="Counter" hidden></span>
+                        </button>
+                        <button id="editor-panel-docs-tab" class="editor-tab mdc-button">Documentation</button>
+                    </div>
+                    <button id="editor-panel-close-button" class="mdc-icon-button material-icons" hidden>close</button>
                 </div>
                 <div id="editor-panel-tab-host">
                     <div id="left-output-panel" class="console"></div>

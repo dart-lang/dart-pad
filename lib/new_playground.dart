@@ -65,6 +65,7 @@ class Playground implements GistContainer, GistController {
   MDCButton runButton;
   MDCButton editorConsoleTab;
   MDCButton editorDocsTab;
+  MDCButton closePanelButton;
   DElement editorPanelFooter;
   MDCMenu samplesMenu;
   Dialog dialog;
@@ -98,18 +99,18 @@ class Playground implements GistContainer, GistController {
   Counter unreadConsoleCounter;
 
   Playground() {
-    _initDialog();
-    _initBusyLights();
-    _initGistNameHeader();
-    _initGistStorage();
-    _initButtons();
-    _initSamplesMenu();
-    _initSplitters();
-    _initTabs();
-    _initLayout();
-    _initConsoles();
     _initModules().then((_) {
       _initPlayground();
+      _initDialog();
+      _initBusyLights();
+      _initGistNameHeader();
+      _initGistStorage();
+      _initButtons();
+      _initSamplesMenu();
+      _initSplitters();
+      _initTabs();
+      _initLayout();
+      _initConsoles();
     });
   }
 
@@ -180,6 +181,8 @@ class Playground implements GistContainer, GistController {
       });
     editorConsoleTab = MDCButton(querySelector('#editor-panel-console-tab'));
     editorDocsTab = MDCButton(querySelector('#editor-panel-docs-tab'));
+    closePanelButton =
+        MDCButton(querySelector('#editor-panel-close-button'), isIcon: true);
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => _showKeyboardDialog());
@@ -285,6 +288,7 @@ class Playground implements GistContainer, GistController {
     tabExpandController = TabExpandController(
       consoleButton: editorConsoleTab,
       docsButton: editorDocsTab,
+      closeButton: closePanelButton,
       docsElement: _leftDocPanel,
       consoleElement: _leftConsoleElement,
       topSplit: _editorHost,
@@ -917,8 +921,8 @@ class Playground implements GistContainer, GistController {
 /// Adds a ripple effect to material design buttons
 class MDCButton extends DButton {
   final MDCRipple ripple;
-  MDCButton(ButtonElement element)
-      : ripple = MDCRipple(element),
+  MDCButton(ButtonElement element, {bool isIcon = false})
+      : ripple = MDCRipple(element)..unbounded = isIcon,
         super(element);
 }
 
@@ -961,6 +965,7 @@ enum TabState {
 class TabExpandController {
   final MDCButton consoleButton;
   final MDCButton docsButton;
+  final MDCButton closeButton;
   final DElement console;
   final DElement docs;
   final Counter unreadCounter;
@@ -983,6 +988,7 @@ class TabExpandController {
   TabExpandController({
     @required this.consoleButton,
     @required this.docsButton,
+    @required this.closeButton,
     @required Element consoleElement,
     @required Element docsElement,
     @required this.topSplit,
@@ -1000,6 +1006,10 @@ class TabExpandController {
 
     _subscriptions.add(docsButton.onClick.listen((_) {
       toggleDocs();
+    }));
+
+    _subscriptions.add(closeButton.onClick.listen((_) {
+      _hidePanel();
     }));
   }
 
@@ -1034,6 +1044,7 @@ class TabExpandController {
     bottomSplit.classes.remove('border-top');
     consoleButton.toggleClass('active', true);
     _initSplitter();
+    closeButton.toggleAttr('hidden', false);
   }
 
   void _hidePanel() {
@@ -1044,6 +1055,7 @@ class TabExpandController {
     bottomSplit.classes.add('border-top');
     consoleButton.toggleClass('active', false);
     docsButton.toggleClass('active', false);
+    closeButton.toggleAttr('hidden', true);
   }
 
   void _showDocs() {
@@ -1052,6 +1064,7 @@ class TabExpandController {
     bottomSplit.classes.remove('border-top');
     docsButton.toggleClass('active', true);
     _initSplitter();
+    closeButton.toggleAttr('hidden', false);
   }
 
   void _initSplitter() {

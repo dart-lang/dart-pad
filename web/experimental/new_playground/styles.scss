@@ -271,10 +271,16 @@ a {
 
 .editor-tabs {
   @include layout-horizontal;
+  @include layout-center;
+  @include layout-justified;
   padding: 4px;
 
   button {
     margin-right: 8px;
+  }
+  .tab-group {
+    @include layout-horizontal;
+    @include layout-center;
   }
 }
 
@@ -302,6 +308,10 @@ a {
   .mdc-tab__text-label {
     font-weight: normal;
   }
+}
+
+#editor-panel-close-panel {
+  @include mdc-icon-button-size(16px, 16px, 8px);
 }
 
 // TODO(ryjohn): rename - conflicts with editor-tab-host
