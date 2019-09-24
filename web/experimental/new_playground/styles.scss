@@ -114,6 +114,9 @@ body>footer {
 a {
   text-decoration: none;
   cursor: pointer;
+  
+  color: $playground-link-color;
+  fill: $playground-text-color;
 
   &:visited {
     color: $playground-link-color;
