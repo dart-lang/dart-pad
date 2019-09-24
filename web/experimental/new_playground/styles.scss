@@ -166,13 +166,10 @@ a {
 
 .header {
   @include layout-horizontal;
-  @include layout-end-justified;
+  @include layout-justified;
   @include layout-center;
   padding: 4px;
-
-  > nav {
-    @include layout-flex;
-  }
+  height: 48px;
 }
 
 // Console
