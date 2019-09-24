@@ -285,13 +285,11 @@ a {
 }
 
 .mdc-button {
-  @include reset-button();
   text-transform: none !important;
   letter-spacing: normal;
 }
 
 .editor-tab {
-  @include reset-button();
   @include mdc-button-ink-color(#f8f9fa);
   text-transform: none !important;
   letter-spacing: normal;
