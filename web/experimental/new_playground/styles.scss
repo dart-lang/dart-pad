@@ -57,11 +57,7 @@ header {
     white-space: nowrap;
     margin-left: 1em;
     margin-right: 1em;
-
-    &::after {
-      content: " •";
-      margin-left: 0.4em;
-    }
+    user-select: none;
   }
 
   #github-button { background: url(/pictures/github-light-32px.png) no-repeat;

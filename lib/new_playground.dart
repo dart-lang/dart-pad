@@ -69,7 +69,7 @@ class Playground implements GistContainer, GistController {
   DElement editorPanelFooter;
   MDCMenu samplesMenu;
   Dialog dialog;
-  DContentEditable titleEditable;
+  DElement titleEditable;
   MaterialTabController webLayoutTabController;
   DElement webTabBar;
 
@@ -143,12 +143,8 @@ class Playground implements GistContainer, GistController {
 
   void _initGistNameHeader() {
     // Update the title on changes.
-    titleEditable = DContentEditable(querySelector('header .header-gist-name'));
-    bind(titleEditable.onChanged, editableGist.property('description'));
+    titleEditable = DElement(querySelector('header .header-gist-name'));
     bind(editableGist.property('description'), titleEditable.textProperty);
-    editableGist.onDirtyChanged.listen((val) {
-      titleEditable.element.classes.toggle('dirty', val);
-    });
   }
 
   void _initGistStorage() {
