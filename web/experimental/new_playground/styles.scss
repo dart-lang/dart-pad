@@ -294,6 +294,16 @@ a {
   }
 }
 
+.mdc-tab__content {
+  text-transform: none !important;
+}
+
+.mdc-tab--active {
+  .mdc-tab__text-label {
+    font-weight: normal;
+  }
+}
+
 // TODO(ryjohn): rename - conflicts with editor-tab-host
 #editor-panel-tab-host {
   @include layout-flex;
