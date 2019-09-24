@@ -24,10 +24,10 @@ body {
 }
 
 header {
+  background-color: $dark-gutter-background-color;
   height: 48px;
   padding: 0 24px;
   @include layout-center;
-  border-bottom: 6px solid $dark-gutter-background-color;
 
   .header-title {
     @include layout;
