@@ -114,7 +114,7 @@ body>footer {
 a {
   text-decoration: none;
   cursor: pointer;
-  
+
   color: $playground-link-color;
   fill: $playground-text-color;
 
@@ -282,6 +282,12 @@ a {
     @include layout-horizontal;
     @include layout-center;
   }
+}
+
+.mdc-button {
+  @include reset-button();
+  text-transform: none !important;
+  letter-spacing: normal;
 }
 
 .editor-tab {
