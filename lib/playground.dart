@@ -81,8 +81,6 @@ class Playground implements GistContainer, GistController {
   Gist _overrideNextRouteGist;
   DocHandler docHandler;
 
-  String _mappingId;
-
   Playground() {
     sourceTabController = TabController();
     for (String name in ['dart', 'html', 'css']) {
@@ -307,32 +305,6 @@ class Playground implements GistContainer, GistController {
     router.go('gist', {'gist': ''}, forceReload: true);
 
     return Future.value();
-  }
-
-  @override
-  Future shareAnon({String summary = ''}) {
-    return gistLoader
-        .createAnon(mutableGist.createGist(summary: summary))
-        .then((Gist newGist) {
-      editableGist.setBackingGist(newGist);
-      overrideNextRoute(newGist);
-      router.go('gist', {'gist': newGist.id});
-      var toast = DToast('Created ${newGist.id}')
-        ..show()
-        ..hide();
-      toast.element
-        ..style.cursor = 'pointer'
-        ..onClick.listen((e) => window.open(
-            'https://gist.github.com/anonymous/${newGist.id}', '_blank'));
-      GistToInternalIdMapping mapping = GistToInternalIdMapping()
-        ..gistId = newGist.id
-        ..internalId = _mappingId;
-      dartSupportServices.storeGist(mapping);
-    }).catchError((e) {
-      String message = 'Error saving gist: $e';
-      DToast.showMessage(message);
-      ga.sendException('GistLoader.createAnon: failed to create gist');
-    });
   }
 
   void _showGist(String gistId) {

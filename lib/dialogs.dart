@@ -90,7 +90,6 @@ class SharingDialog extends DDialog {
     _closeButton = DButton.button(text: 'Close');
     _closeButton.onClick.listen((_) => hide());
     _shareButton = DButton.button(text: 'Share it!', classes: 'default');
-    _shareButton.onClick.listen((_) => _performShare());
 
     // Already sharing.
     _div = DElement.tag('div')..layoutVertical();
@@ -237,19 +236,6 @@ class SharingDialog extends DDialog {
       buttonArea.add(_closeButton);
       buttonArea.add(SpanElement()..attributes['flex'] = '');
     }
-  }
-
-  void _performShare() {
-    _shareButton.disabled = true;
-
-    String text = _textArea.value;
-    if (_gistSummary != null) text += '\n\n${_gistSummary.linkText}';
-
-    gistController.shareAnon(summary: text).then((_) {
-      _switchTo(aboutToShare: false);
-    }).whenComplete(() {
-      _shareButton.disabled = false;
-    });
   }
 }
 

@@ -6,8 +6,11 @@ library gists;
 
 import 'dart:async';
 import 'dart:convert' show json;
+import 'dart:convert';
 import 'dart:html';
+import 'package:http/http.dart' as http;
 
+import 'package:dart_pad/sharing/exercise_metadata.dart';
 import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:haikunator/haikunator.dart';
 
@@ -73,9 +76,9 @@ typedef void GistFilterHook(Gist gist);
 
 enum GistLoaderFailureType {
   unknown,
-  gistDoesNotExist,
+  contentNotFound,
   rateLimitExceeded,
-  sampleDoesNotExist,
+  invalidExerciseMetadata,
 }
 
 class GistLoaderException {
@@ -87,7 +90,9 @@ class GistLoaderException {
 /// A class to load and save gists. Gists can optionally be modified after
 /// loading and before saving.
 class GistLoader {
-  static const String _githubApiUrl = 'https://api.github.com/gists';
+  static const String _gistApiUrl = 'https://api.github.com/gists';
+  static const String _repoContentsApiUrl = 'https://api.github.com/repos';
+  static const String _metadataFilename = 'dartpad-metadata.json';
 
   // TODO(redbrogdon): Remove 'master-' once the new docs go live.
   static const String _apiDocsUrl = 'https://master-api.flutter.dev/snippets';
@@ -177,85 +182,157 @@ $styleRef$dartRef  </head>
       : afterLoadHook = _defaultLoadHook,
         beforeSaveHook = _defaultSaveHook;
 
+  String _buildContentsUrl(String owner, String repo, String path,
+      [String ref]) {
+    return '$_repoContentsApiUrl/$owner/$repo/contents/$path'
+        '${(ref != null && ref.isNotEmpty) ? '?ref=$ref' : ''}';
+  }
+
   /// Load the gist with the given id.
   Future<Gist> loadGist(String gistId) async {
-    try {
-      // Load the gist using the github gist API:
-      // https://developer.github.com/v3/gists/#get-a-single-gist.
-      final gistJson = await HttpRequest.getString('$_githubApiUrl/$gistId');
-      final gist = Gist.fromMap(json.decode(gistJson));
+    // Load the gist using the github gist API:
+    // https://developer.github.com/v3/gists/#get-a-single-gist.
+    final response = await http.get('$_gistApiUrl/$gistId');
 
-      if (afterLoadHook != null) {
-        afterLoadHook(gist);
-      }
-
-      return gist;
-    } catch (ex) {
-      if (ex.target.status == 404) {
-        throw const GistLoaderException(GistLoaderFailureType.gistDoesNotExist);
-      } else if (ex.target.status == 403) {
-        throw const GistLoaderException(
-            GistLoaderFailureType.rateLimitExceeded);
-      } else {
-        throw const GistLoaderException(GistLoaderFailureType.unknown);
-      }
+    if (response.statusCode == 404) {
+      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+    } else if (response.statusCode == 403) {
+      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+    } else if (response.statusCode != 200) {
+      throw const GistLoaderException(GistLoaderFailureType.unknown);
     }
+
+    final gist = Gist.fromMap(json.decode(response.body));
+
+    if (afterLoadHook != null) {
+      afterLoadHook(gist);
+    }
+
+    return gist;
   }
 
   Future<Gist> loadGistFromAPIDocs(String sampleId) async {
-    try {
-      final contents =
-          await HttpRequest.getString('$_apiDocsUrl/$sampleId.dart');
+    final response = await http.get('$_apiDocsUrl/$sampleId.dart');
 
-      // TODO(redbrogdon) This should be removed once the online sample code for
-      // IDEs (which is what api.flutter.dev/snippets makes available) can be
-      // aligned with what DartPad needs.
-      //
-      // Remove everything up to and including main(), and replace it with a valid
-      // set of flutter_web imports and a new main() that waits for platform
-      // readiness.
-      final spliceIndex = contents.indexOf(_sampleMain) + _sampleMain.length;
-      final modifiedCode = '$_dartPadMain${contents.substring(spliceIndex)}';
-
-      final mainFile = GistFile(
-        name: 'main.dart',
-        content: modifiedCode,
-      );
-
-      final gist = Gist(files: [mainFile]);
-
-      if (afterLoadHook != null) {
-        afterLoadHook(gist);
-      }
-
-      return Gist(files: [mainFile]);
-    } catch (ex) {
-      if (ex.target.status == 404) {
-        throw const GistLoaderException(
-            GistLoaderFailureType.sampleDoesNotExist);
-      } else {
-        throw const GistLoaderException(GistLoaderFailureType.unknown);
-      }
+    if (response.statusCode == 404) {
+      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+    } else if (response.statusCode == 403) {
+      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+    } else if (response.statusCode != 200) {
+      throw const GistLoaderException(GistLoaderFailureType.unknown);
     }
+
+    // TODO(redbrogdon) This should be removed once Flutter compilation in
+    // dart-services is unforked.
+    //
+    // Remove everything up to and including main(), and replace it with a valid
+    // set of flutter_web imports and a new main() that waits for platform
+    // readiness.
+    final spliceIndex = response.body.indexOf(_sampleMain) + _sampleMain.length;
+    final modifiedCode = '$_dartPadMain${response.body.substring(spliceIndex)}';
+
+    final mainFile = GistFile(
+      name: 'main.dart',
+      content: modifiedCode,
+    );
+
+    final gist = Gist(files: [mainFile]);
+
+    if (afterLoadHook != null) {
+      afterLoadHook(gist);
+    }
+
+    return gist;
   }
 
-  /// Create a new gist and return the newly created Gist.
-  Future<Gist> createAnon(Gist gist) {
-    // POST /gists
-    if (beforeSaveHook != null) {
-      gist = gist.clone();
-      beforeSaveHook(gist);
+  String _extractContents(String githubResponse) {
+    // GitHub's API returns file contents as the "contents" field in a JSON
+    // object. The field's value is in base64 encoding, but with line ending
+    // characters   ('\n') included.
+    final contentJson = json.decode(githubResponse);
+    final encodedContentStr =
+        contentJson['content'].toString().replaceAll('\n', '');
+    return utf8.decode(base64.decode(encodedContentStr));
+  }
+
+  Future<Gist> loadGistFromRepo({
+    String owner,
+    String repo,
+    String path,
+    String ref,
+  }) async {
+    final client = http.Client();
+
+    // Download and parse the exercise's `dartpad-metadata.json` file.
+    final metadataUrl =
+        _buildContentsUrl(owner, repo, '$path/$_metadataFilename', ref);
+    final metadataResponse = await client.get(metadataUrl);
+
+    if (metadataResponse.statusCode == 404) {
+      throw GistLoaderException(GistLoaderFailureType.contentNotFound);
+    } else if (metadataResponse.statusCode == 403) {
+      throw GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+    } else if (metadataResponse.statusCode != 200) {
+      throw GistLoaderException(GistLoaderFailureType.unknown);
     }
 
-    return HttpRequest.request(_githubApiUrl,
-            method: 'POST', sendData: gist.toJson())
-        .then((HttpRequest request) {
-      Gist gist = Gist.fromMap(json.decode(request.responseText));
-      if (afterLoadHook != null) {
-        afterLoadHook(gist);
+    final metadataContent = _extractContents(metadataResponse.body);
+
+    ExerciseMetadata metadata;
+
+    try {
+      metadata = ExerciseMetadata.fromJson(json.decode(metadataContent));
+    } on MetadataException catch (ex) {
+      print('Issue loading & parsing metadata: ${ex.message}');
+      throw const GistLoaderException(
+          GistLoaderFailureType.invalidExerciseMetadata);
+    } on FormatException {
+      throw const GistLoaderException(
+          GistLoaderFailureType.invalidExerciseMetadata);
+    }
+
+    // Make additional requests for the files listed in the metadata.
+    final requests = metadata.files.map((file) async {
+      final contentUrl =
+          _buildContentsUrl(owner, repo, '$path/${file.path}', ref);
+      final contentResponse = await client.get(contentUrl);
+
+      if (contentResponse.statusCode == 404) {
+        // Blame the metadata for listing an invalid file.
+        throw GistLoaderException(
+            GistLoaderFailureType.invalidExerciseMetadata);
+      } else if (metadataResponse.statusCode == 403) {
+        throw GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+      } else if (metadataResponse.statusCode != 200) {
+        throw GistLoaderException(GistLoaderFailureType.unknown);
       }
-      return gist;
+
+      return _extractContents(contentResponse.body);
     });
+
+    // This will rethrow the first exception created above, if one is thrown.
+    final responses = await Future.wait(requests, eagerError: true);
+
+    final gistFiles = <GistFile>[];
+
+    // Responses should be in the order they're listed in the metadata.
+    for (int i = 0; i < metadata.files.length; i++) {
+      gistFiles.add(GistFile(
+        name: metadata.files[i].name,
+        content: responses[i],
+      ));
+    }
+
+    final gist = Gist(
+      files: gistFiles,
+      description: metadata.name,
+    );
+
+    if (afterLoadHook != null) {
+      afterLoadHook(gist);
+    }
+
+    return gist;
   }
 }
 
@@ -355,8 +432,6 @@ class GistFile {
 
 abstract class GistController {
   Future createNewGist();
-
-  Future shareAnon({String summary});
 }
 
 /// A class to store gists in html's localStorage.
