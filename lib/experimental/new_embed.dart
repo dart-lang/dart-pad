@@ -412,19 +412,21 @@ class NewEmbed {
     return '';
   }
 
+  // ID for a GitHub gist that should be loaded into the editors.
   String get gistId {
     final id = _getQueryParam('id');
     return isLegalGistId(id) ? id : '';
   }
 
+  // ID of an API Doc sample that should be loaded into the editors.
   String get sampleId => _getQueryParam('sample_id');
 
+  // GitHub params for loading an exercise from a repo. The first three are
+  // required to load something, while the fourth, gh_ref, is an optional branch
+  // name or commit SHA.
   String get githubOwner => _getQueryParam('gh_owner');
-
   String get githubRepo => _getQueryParam('gh_repo');
-
   String get githubPath => _getQueryParam('gh_path');
-
   String get githubRef => _getQueryParam('gh_ref');
 
   bool get githubParamsPresent =>
@@ -525,7 +527,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
 
   Future<void> _loadAndShowGist({bool analyze = true}) async {
     if (gistId.isEmpty && sampleId.isEmpty && !githubParamsPresent) {
-      print('Cannot load gist: neither id, sample_id, nor GitHub info is '
+      print('Cannot load gist: neither id, sample_id, nor GitHub repo info is '
           'present.');
       return;
     }
