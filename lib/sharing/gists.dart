@@ -7,7 +7,6 @@ library gists;
 import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:convert';
-import 'dart:html';
 import 'package:http/http.dart' as http;
 
 import 'package:dart_pad/sharing/exercise_metadata.dart';
@@ -175,24 +174,22 @@ $styleRef$dartRef  </head>
 
   final GistFilterHook afterLoadHook;
   final GistFilterHook beforeSaveHook;
+  final http.Client _client;
 
-  GistLoader({this.afterLoadHook, this.beforeSaveHook});
+  GistLoader({
+    this.afterLoadHook,
+    this.beforeSaveHook,
+    http.Client client,
+  }) : _client = client ?? http.Client();
 
   GistLoader.defaultFilters()
-      : afterLoadHook = _defaultLoadHook,
-        beforeSaveHook = _defaultSaveHook;
-
-  String _buildContentsUrl(String owner, String repo, String path,
-      [String ref]) {
-    return '$_repoContentsApiUrl/$owner/$repo/contents/$path'
-        '${(ref != null && ref.isNotEmpty) ? '?ref=$ref' : ''}';
-  }
+      : this(afterLoadHook: _defaultLoadHook, beforeSaveHook: _defaultSaveHook);
 
   /// Load the gist with the given id.
   Future<Gist> loadGist(String gistId) async {
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
-    final response = await http.get('$_gistApiUrl/$gistId');
+    final response = await _client.get('$_gistApiUrl/$gistId');
 
     if (response.statusCode == 404) {
       throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -212,7 +209,7 @@ $styleRef$dartRef  </head>
   }
 
   Future<Gist> loadGistFromAPIDocs(String sampleId) async {
-    final response = await http.get('$_apiDocsUrl/$sampleId.dart');
+    final response = await _client.get('$_apiDocsUrl/$sampleId.dart');
 
     if (response.statusCode == 404) {
       throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -255,18 +252,22 @@ $styleRef$dartRef  </head>
     return utf8.decode(base64.decode(encodedContentStr));
   }
 
+  String _buildContentsUrl(String owner, String repo, String path,
+      [String ref]) {
+    return '$_repoContentsApiUrl/$owner/$repo/contents/$path'
+        '${(ref != null && ref.isNotEmpty) ? '?ref=$ref' : ''}';
+  }
+
   Future<Gist> loadGistFromRepo({
     String owner,
     String repo,
     String path,
     String ref,
   }) async {
-    final client = http.Client();
-
     // Download and parse the exercise's `dartpad-metadata.json` file.
     final metadataUrl =
         _buildContentsUrl(owner, repo, '$path/$_metadataFilename', ref);
-    final metadataResponse = await client.get(metadataUrl);
+    final metadataResponse = await _client.get(metadataUrl);
 
     if (metadataResponse.statusCode == 404) {
       throw GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -295,7 +296,7 @@ $styleRef$dartRef  </head>
     final requests = metadata.files.map((file) async {
       final contentUrl =
           _buildContentsUrl(owner, repo, '$path/${file.path}', ref);
-      final contentResponse = await client.get(contentUrl);
+      final contentResponse = await _client.get(contentUrl);
 
       if (contentResponse.statusCode == 404) {
         // Blame the metadata for listing an invalid file.
@@ -432,42 +433,6 @@ class GistFile {
 
 abstract class GistController {
   Future createNewGist();
-}
-
-/// A class to store gists in html's localStorage.
-class GistStorage {
-  static final String _key = 'gist';
-
-  String _storedId;
-
-  GistStorage() {
-    Gist gist = getStoredGist();
-    if (gist != null) {
-      _storedId = gist.id;
-    }
-  }
-
-  bool get hasStoredGist => window.localStorage.containsKey(_key);
-
-  /// Return the id of the stored gist. This will return `null` if there is no
-  /// gist stored.
-  String get storedId =>
-      _storedId == null || _storedId.isEmpty ? null : _storedId;
-
-  Gist getStoredGist() {
-    String data = window.localStorage[_key];
-    return data == null ? null : Gist.fromMap(json.decode(data));
-  }
-
-  void setStoredGist(Gist gist) {
-    _storedId = gist.id;
-    window.localStorage[_key] = gist.toJson();
-  }
-
-  void clearStoredGist() {
-    _storedId = null;
-    window.localStorage.remove(_key);
-  }
 }
 
 class GistSummary {

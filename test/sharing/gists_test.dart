@@ -6,6 +6,7 @@
 library dart_pad.gists_test;
 
 import 'package:dart_pad/sharing/gists.dart';
+import 'package:dart_pad/sharing/gist_storage.dart';
 import 'package:test/test.dart';
 
 void main() => defineTests();
