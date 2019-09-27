@@ -61,7 +61,7 @@ void defineTests() {
     });
   });
 
-  group('GistLoader unit tests', () {
+  group('GistLoader end-to-end tests', () {
     group('Loading by gist ID', () {
       test('Returns valid gist for valid gist id', () async {
         final loader = GistLoader(client: mockClient);
