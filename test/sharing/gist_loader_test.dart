@@ -20,6 +20,8 @@ void defineTests() {
           return Future.value(http.Response(validSample, 200));
         case 'https://api.github.com/repos/owner/repo/contents/basic/dartpad-metadata.json':
           return Future.value(http.Response(basicDartMetadata, 200));
+        case 'https://api.github.com/repos/owner/repo/contents/alt_branch/dartpad-metadata.json?ref=some_branch':
+          return Future.value(http.Response(altBranchMetadata, 200));
         case 'https://api.github.com/repos/owner/repo/contents/invalid/dartpad-metadata.json':
           return Future.value(http.Response(invalidMetadata, 200));
         case 'https://api.github.com/repos/owner/repo/contents/missing_files/dartpad-metadata.json':
@@ -36,14 +38,17 @@ void defineTests() {
         case 'https://api.github.com/repos/owner/repo/contents/alternate_path/dartpad-metadata.json':
           return Future.value(http.Response(alternatePathMetadata, 200));
         case 'https://api.github.com/repos/owner/repo/contents/basic/main.dart':
+        case 'https://api.github.com/repos/owner/repo/contents/alt_branch/main.dart?ref=some_branch':
         case 'https://api.github.com/repos/owner/repo/contents/unnecessary_file/main.dart':
         case 'https://api.github.com/repos/owner/repo/contents/alternate_path/main.dart':
           return Future.value(http.Response(mainFileContent, 200));
         case 'https://api.github.com/repos/owner/repo/contents/basic/test.dart':
+        case 'https://api.github.com/repos/owner/repo/contents/alt_branch/test.dart?ref=some_branch':
         case 'https://api.github.com/repos/owner/repo/contents/unnecessary_file/test.dart':
         case 'https://api.github.com/repos/owner/repo/contents/alternate_path/a_subfolder/test.dart':
           return Future.value(http.Response(testFileContent, 200));
         case 'https://api.github.com/repos/owner/repo/contents/basic/solution.dart':
+        case 'https://api.github.com/repos/owner/repo/contents/alt_branch/solution.dart?ref=some_branch':
         case 'https://api.github.com/repos/owner/repo/contents/unnecessary_file/solution.dart':
         case 'https://api.github.com/repos/owner/repo/contents/alternate_path/solution.dart':
           return Future.value(http.Response(solutionFileContent, 200));
@@ -111,6 +116,16 @@ void defineTests() {
         final loader = GistLoader(client: mockClient);
         final gist = await loader.loadGistFromRepo(
             owner: 'owner', repo: 'repo', path: 'basic');
+        final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
+        expect(contents.content, 'this is main.dart');
+      });
+      test('Returns valid gist for alternate branch', () async {
+        final loader = GistLoader(client: mockClient);
+        final gist = await loader.loadGistFromRepo(
+            owner: 'owner',
+            repo: 'repo',
+            path: 'alt_branch',
+            ref: 'some_branch');
         final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
         expect(contents.content, 'this is main.dart');
       });
@@ -449,6 +464,24 @@ final basicDartMetadata = _createContentsJson('''
     },
     {
       "name": "hint.txt"
+    }
+  ]
+}
+''');
+
+final altBranchMetadata = _createContentsJson('''
+{
+  "name": "A Dart Exercise",
+  "mode": "dart",
+  "files": [
+    {
+      "name": "main.dart"
+    },
+    {
+      "name": "solution.dart"
+    },
+    {
+      "name": "test.dart"
     }
   ]
 }
