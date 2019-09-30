@@ -502,3 +502,29 @@ a {
   background-color: fade_out($dark-teal, 0.5);
   border-radius: 20px;
 }
+
+#new-pad-dialog {
+  .mdc-dialog__content {
+    @include layout-horizontal;
+    @include layout-center;
+    @include layout-justified;
+  }
+  .select-project-button {
+    cursor: pointer;
+    margin: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    &:hover {
+      background-color: lighten($dark-code-background-color, 12%);
+    }
+    &.selected{
+      background-color: lighten($dark-code-background-color, 6%);
+    }
+    @include layout-vertical;
+    @include layout-center;
+    img {
+      width: auto;
+      max-height: 192px;
+    }
+  }
+}
