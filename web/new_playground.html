@@ -56,16 +56,28 @@
         <span>DartPad</span>
     </div>
     <div>
-        <button type="button" id="new-button" class="mdc-button">New Pad</button>
-        <button type="button" id="reset-button" class="mdc-button">Reset</button>
-        <button type="button" id="format-button" class="mdc-button">Format</button>
+        <button type="button" id="new-button" class="mdc-button">
+            <i class="material-icons mdc-button__icon">code</i>
+            New Pad
+        </button>
+        <button type="button" id="reset-button" class="mdc-button">
+            <i class="material-icons mdc-button__icon">refresh</i>
+            Reset
+        </button>
+        <button type="button" id="format-button" class="mdc-button">
+            <i class="material-icons mdc-button__icon">format_align_left</i>
+            Format
+        </button>
     </div>
     <div class="header-gist-name"></div>
     <div>
         <button type="button" id="share-button" class="mdc-button">Share</button>
     </div>
     <div>
-        <button type="button" id="samples-dropdown-button" class="mdc-button">Samples</button>
+        <button type="button" id="samples-dropdown-button" class="mdc-button">
+            <span class="mdc-button__label">Samples</span>
+            <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
+        </button>
         <div id="samples-menu" class="mdc-menu mdc-menu-surface"></div>
     </div>
     <a href="https://github.com/dart-lang/dart-pad" id="github-button"></a>
@@ -123,12 +135,15 @@
             <div id="editor-host"></div>
             <div id="editor-panel-footer" class="editor-tab-host border-top">
                 <div class="editor-tabs">
-                    <button id="editor-panel-console-tab"
-                            class="editor-tab mdc-button">
-                        Console
-                        <span id="unread-console-counter" class="Counter" hidden></span>
-                    </button>
-                    <button id="editor-panel-docs-tab" class="editor-tab mdc-button">Documentation</button>
+                    <div class="tab-group">
+                        <button id="editor-panel-console-tab"
+                                class="editor-tab mdc-button">
+                            Console
+                            <span id="unread-console-counter" class="Counter" hidden></span>
+                        </button>
+                        <button id="editor-panel-docs-tab" class="editor-tab mdc-button">Documentation</button>
+                    </div>
+                    <button id="editor-panel-close-button" class="mdc-icon-button material-icons" hidden>close</button>
                 </div>
                 <div id="editor-panel-tab-host">
                     <div id="left-output-panel" class="console"></div>

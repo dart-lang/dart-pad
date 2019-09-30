@@ -24,10 +24,10 @@ body {
 }
 
 header {
+  background-color: $dark-gutter-background-color;
   height: 48px;
   padding: 0 24px;
   @include layout-center;
-  border-bottom: 6px solid $dark-gutter-background-color;
 
   .header-title {
     @include layout;
@@ -57,11 +57,7 @@ header {
     white-space: nowrap;
     margin-left: 1em;
     margin-right: 1em;
-
-    &::after {
-      content: " •";
-      margin-left: 0.4em;
-    }
+    user-select: none;
   }
 
   #github-button { background: url(/pictures/github-light-32px.png) no-repeat;
@@ -115,6 +111,9 @@ a {
   text-decoration: none;
   cursor: pointer;
 
+  color: $playground-link-color;
+  fill: $playground-text-color;
+
   &:visited {
     color: $playground-link-color;
     fill: $playground-link-color;
@@ -166,13 +165,10 @@ a {
 
 .header {
   @include layout-horizontal;
-  @include layout-end-justified;
+  @include layout-justified;
   @include layout-center;
   padding: 4px;
-
-  > nav {
-    @include layout-flex;
-  }
+  height: 48px;
 }
 
 // Console
@@ -271,15 +267,25 @@ a {
 
 .editor-tabs {
   @include layout-horizontal;
+  @include layout-center;
+  @include layout-justified;
   padding: 4px;
 
   button {
     margin-right: 8px;
   }
+  .tab-group {
+    @include layout-horizontal;
+    @include layout-center;
+  }
+}
+
+.mdc-button {
+  text-transform: none !important;
+  letter-spacing: normal;
 }
 
 .editor-tab {
-  @include reset-button();
   @include mdc-button-ink-color(#f8f9fa);
   text-transform: none !important;
   letter-spacing: normal;
@@ -292,6 +298,20 @@ a {
     color: $dark-blue;
     font-weight: bold;
   }
+}
+
+.mdc-tab__content {
+  text-transform: none !important;
+}
+
+.mdc-tab--active {
+  .mdc-tab__text-label {
+    font-weight: normal;
+  }
+}
+
+#editor-panel-close-button {
+  @include mdc-icon-button-size(16px, 16px, 8px);
 }
 
 // TODO(ryjohn): rename - conflicts with editor-tab-host
@@ -459,9 +479,9 @@ a {
   dd > span {
     font-family: "Helvetica Neue", "Inconsolata", monospace;
     padding: 0 4px;
-    background-color: #FFF79A; /**#dfaf8f #f0dfaf #66d9ef #FFF79A #AEA859;*/
     font-size: 10pt;
-    color: black;
+    color: $dark-blue;
+    border: 1px solid $dark-blue;
     border-radius: 2px;
     margin: 2px 2px;
     white-space: nowrap;
