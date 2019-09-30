@@ -509,6 +509,7 @@ a {
     @include layout-center;
     @include layout-justified;
   }
+
   .select-project-button {
     cursor: pointer;
     margin: 8px;
@@ -526,5 +527,14 @@ a {
       width: auto;
       max-height: 192px;
     }
+  }
+
+  .mdc-switch {
+    @include mdc-switch-toggled-on-color($button-color);
+    @include mdc-switch-toggled-off-color($secondary-color);
+  }
+
+  label[for=new-pad-html-switch] {
+    margin-left: 8px;
   }
 }

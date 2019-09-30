@@ -1111,6 +1111,8 @@ class NewPadDialog {
   final Element _flutterButton;
   final MDCButton _createButton;
   final MDCButton _cancelButton;
+  final MDCSwitch _htmlSwitch;
+  final DElement _htmlSwitchContainer;
 
   NewPadDialog()
       : assert(querySelector('#new-pad-dialog') != null),
@@ -1118,22 +1120,29 @@ class NewPadDialog {
         assert(querySelector('#new-pad-select-flutter') != null),
         assert(querySelector('#new-pad-cancel-button') != null),
         assert(querySelector('#new-pad-create-button') != null),
+        assert(querySelector('#new-pad-html-switch-container') != null),
+        assert(querySelector('#new-pad-html-switch-container .mdc-switch') != null),
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')),
         _dartButton = querySelector('#new-pad-select-dart'),
         _flutterButton = querySelector('#new-pad-select-flutter'),
         _cancelButton = MDCButton(querySelector('#new-pad-cancel-button')),
-        _createButton = MDCButton(querySelector('#new-pad-create-button'));
+        _createButton = MDCButton(querySelector('#new-pad-create-button')),
+        _htmlSwitchContainer = DElement(querySelector('#new-pad-html-switch-container')),
+        _htmlSwitch = MDCSwitch(querySelector('#new-pad-html-switch-container .mdc-switch'));
 
   Layout get selectedLayout {
-    if(_dartButton.classes.contains('selected')) {
+    if (_dartButton.classes.contains('selected')) {
+      if (_htmlSwitch.checked) {
+        return Layout.web;
+      }
       return Layout.dart;
     }
-    if(_flutterButton.classes.contains('selected')) {
+    if (_flutterButton.classes.contains('selected')) {
       return Layout.flutter;
     }
     return null;
   }
-  
+
   Future<Layout> show() {
     _createButton.toggleAttr('disabled', true);
 
@@ -1142,19 +1151,21 @@ class NewPadDialog {
       _flutterButton.classes.remove('selected');
       _dartButton.classes.add('selected');
       _createButton.toggleAttr('disabled', false);
-      
+      _htmlSwitchContainer.toggleAttr('hidden', false);
+      _htmlSwitch.disabled = false;
     });
 
     var flutterSub = _flutterButton.onClick.listen((_) {
       _dartButton.classes.remove('selected');
       _flutterButton.classes.add('selected');
       _createButton.toggleAttr('disabled', false);
+      _htmlSwitchContainer.toggleAttr('hidden', true);
     });
 
     var cancelSub = _cancelButton.onClick.listen((_) {
       completer.complete(null);
     });
-    
+
     var createSub = _createButton.onClick.listen((_) {
       completer.complete(selectedLayout);
     });
