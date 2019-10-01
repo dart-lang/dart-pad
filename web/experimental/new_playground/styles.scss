@@ -538,3 +538,26 @@ a {
     margin-left: 8px;
   }
 }
+
+// responsive layout
+@media screen and (max-width: 850px) {
+  #new-button {
+    display: none;
+  }
+
+  #format-button {
+    display: none;
+  }
+
+  #share-button {
+    display: none;
+  }
+
+  #github-button {
+    display: none;
+  }
+
+  #keyboard-button {
+    display: none;
+  }
+}
