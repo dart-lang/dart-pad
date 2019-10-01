@@ -6,7 +6,7 @@ environment:
   sdk: '>=2.5.0 <3.0.0'
 
 dependencies:
-  _discoveryapis_commons: 0.1.8+1
+  _discoveryapis_commons: 0.1.9
   analyzer: ^0.38.0
   analysis_server_lib: ^0.1.4
   appengine: ^0.10.0
