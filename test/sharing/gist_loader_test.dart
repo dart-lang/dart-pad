@@ -18,24 +18,24 @@ void defineTests() {
           return Future.value(http.Response(validGist, 200));
         case 'https://master-api.flutter.dev/snippets/material.AppBar.1.dart':
           return Future.value(http.Response(validSample, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/basic/dartpad-metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/basic/dartpad_metadata.json':
           return Future.value(http.Response(basicDartMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/alt_branch/dartpad-metadata.json?ref=some_branch':
+        case 'https://api.github.com/repos/owner/repo/contents/alt_branch/dartpad_metadata.json?ref=some_branch':
           return Future.value(http.Response(altBranchMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/invalid/dartpad-metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/invalid/dartpad_metadata.json':
           return Future.value(http.Response(invalidMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/missing_files/dartpad-metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/missing_files/dartpad_metadata.json':
           return Future.value(http.Response(missingFilesMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/missing_mode/dartpad-metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/missing_mode/dartpad_metadata.json':
           return Future.value(http.Response(missingModeMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/missing_name/dartpad-metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/missing_name/dartpad_metadata.json':
           return Future.value(http.Response(missingNameMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/missing_file/dartpad-metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/missing_file/dartpad_metadata.json':
           return Future.value(
               http.Response(missingIndividualFileMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/unnecessary_file/dartpad-metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/unnecessary_file/dartpad_metadata.json':
           return Future.value(http.Response(unnecessaryFileMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/alternate_path/dartpad-metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/alternate_path/dartpad_metadata.json':
           return Future.value(http.Response(alternatePathMetadata, 200));
         case 'https://api.github.com/repos/owner/repo/contents/basic/main.dart':
         case 'https://api.github.com/repos/owner/repo/contents/alt_branch/main.dart?ref=some_branch':

@@ -80,18 +80,19 @@ enum GistLoaderFailureType {
   invalidExerciseMetadata,
 }
 
-class GistLoaderException {
+class GistLoaderException implements Exception {
+  final String message;
   final GistLoaderFailureType failureType;
 
-  const GistLoaderException(this.failureType);
+  const GistLoaderException(this.failureType, [this.message]);
 }
 
 /// A class to load and save gists. Gists can optionally be modified after
 /// loading and before saving.
 class GistLoader {
   static const String _gistApiUrl = 'https://api.github.com/gists';
-  static const String _repoContentsApiUrl = 'https://api.github.com/repos';
-  static const String _metadataFilename = 'dartpad-metadata.json';
+  static const String _repoContentsAuthority = 'api.github.com';
+  static const String _metadataFilename = 'dartpad_metadata.json';
 
   // TODO(redbrogdon): Remove 'master-' once the new docs go live.
   static const String _apiDocsUrl = 'https://master-api.flutter.dev/snippets';
@@ -252,10 +253,12 @@ $styleRef$dartRef  </head>
     return utf8.decode(base64.decode(encodedContentStr));
   }
 
-  String _buildContentsUrl(String owner, String repo, String path,
-      [String ref]) {
-    return '$_repoContentsApiUrl/$owner/$repo/contents/$path'
-        '${(ref != null && ref.isNotEmpty) ? '?ref=$ref' : ''}';
+  Uri _buildContentsUrl(String owner, String repo, String path, [String ref]) {
+    return Uri.https(
+      _repoContentsAuthority,
+      'repos/$owner/$repo/contents/$path',
+      (ref != null && ref.isNotEmpty) ? {'ref': '$ref'} : null,
+    );
   }
 
   Future<Gist> loadGistFromRepo({
@@ -264,7 +267,7 @@ $styleRef$dartRef  </head>
     String path,
     String ref,
   }) async {
-    // Download and parse the exercise's `dartpad-metadata.json` file.
+    // Download and parse the exercise's `dartpad_metadata.json` file.
     final metadataUrl =
         _buildContentsUrl(owner, repo, '$path/$_metadataFilename', ref);
     final metadataResponse = await _client.get(metadataUrl);
@@ -284,9 +287,8 @@ $styleRef$dartRef  </head>
     try {
       metadata = ExerciseMetadata.fromJson(json.decode(metadataContent));
     } on MetadataException catch (ex) {
-      print('Issue loading & parsing metadata: ${ex.message}');
-      throw const GistLoaderException(
-          GistLoaderFailureType.invalidExerciseMetadata);
+      throw GistLoaderException(GistLoaderFailureType.invalidExerciseMetadata,
+          'Issue parsing metadata: $ex');
     } on FormatException {
       throw const GistLoaderException(
           GistLoaderFailureType.invalidExerciseMetadata);

@@ -425,8 +425,11 @@ class NewEmbed {
   // required to load something, while the fourth, gh_ref, is an optional branch
   // name or commit SHA.
   String get githubOwner => _getQueryParam('gh_owner');
+
   String get githubRepo => _getQueryParam('gh_repo');
+
   String get githubPath => _getQueryParam('gh_path');
+
   String get githubRef => _getQueryParam('gh_ref');
 
   bool get githubParamsPresent =>
@@ -569,7 +572,8 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
       setContextSources(<String, String>{});
 
       if (ex.failureType == GistLoaderFailureType.contentNotFound) {
-        await dialog.showOk('Error loading gist',
+        await dialog.showOk(
+            'Error loading gist',
             'No gist was found for the gist ID, sample ID, or repository '
                 'information provided.');
       } else if (ex.failureType == GistLoaderFailureType.rateLimitExceeded) {
@@ -582,15 +586,18 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
                 'API server) from a single, shared IP address. Quotas are '
                 'typically renewed within an hour, so the best course of action is '
                 'to try back later.');
-      } else if (ex.failureType == GistLoaderFailureType.invalidExerciseMetadata) {
+      } else if (ex.failureType ==
+          GistLoaderFailureType.invalidExerciseMetadata) {
+        if (ex.message != null) {
+          print(ex.message);
+        }
         await dialog.showOk(
             'Error loading files',
             'DartPad could not load the requested exercise. Either one of the '
-            'required files wasn\'t available, or the exercise metadata was '
-            'invalid.');
+                'required files wasn\'t available, or the exercise metadata was '
+                'invalid.');
       } else {
-        await dialog.showOk(
-            'Error loading files',
+        await dialog.showOk('Error loading files',
             'An error occurred while the requested files.');
       }
     }
