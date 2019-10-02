@@ -33,19 +33,19 @@ class ExerciseFileMetadata {
   String get path =>
       (alternatePath == null || alternatePath.isEmpty) ? name : alternatePath;
 
-  ExerciseFileMetadata.fromJson(Map<String, dynamic> json) {
-    if (json == null) {
+  ExerciseFileMetadata.fromMap(Map<String, dynamic> map) {
+    if (map == null) {
       throw MetadataException('Null json was given to ExerciseFileMetadata().');
     }
 
-    if (json['name'] == null ||
-        json['name'] is! String ||
-        json['name'].isEmpty) {
+    if (map['name'] == null ||
+        map['name'] is! String ||
+        map['name'].isEmpty) {
       throw MetadataException('The "name" field is required for each file.');
     }
 
-    name = json['name'];
-    alternatePath = json['alternatePath'];
+    name = map['name'];
+    alternatePath = map['alternatePath'];
   }
 }
 
@@ -59,35 +59,35 @@ class ExerciseMetadata {
   ExerciseMode mode;
   List<ExerciseFileMetadata> files;
 
-  ExerciseMetadata.fromJson(Map<String, dynamic> json) {
-    if (json == null) {
+  ExerciseMetadata.fromMap(Map<String, dynamic> map) {
+    if (map == null) {
       throw MetadataException('Null json was given to ExerciseMetadata().');
     }
 
-    if (json['name'] == null ||
-        json['name'] is! String ||
-        json['name'].isEmpty) {
+    if (map['name'] == null ||
+        map['name'] is! String ||
+        map['name'].isEmpty) {
       throw MetadataException('The "name" field is required for an exercise.');
     }
 
-    if (json['mode'] == null ||
-        json['mode'] is! String ||
-        !exerciseModeNames.containsKey(json['mode'])) {
+    if (map['mode'] == null ||
+        map['mode'] is! String ||
+        !exerciseModeNames.containsKey(map['mode'])) {
       throw MetadataException('A "mode" field of "dart", "html" or "flutter" '
           'is required for an exercise.');
     }
 
-    if (json['files'] == null ||
-        json['files'] is! List<dynamic> ||
-        json['files'].isEmpty) {
+    if (map['files'] == null ||
+        map['files'] is! List<dynamic> ||
+        map['files'].isEmpty) {
       throw MetadataException('Each exercise must have at least one file in '
           'its "files" array.');
     }
 
-    name = json['name'];
-    mode = exerciseModeNames[json['mode']];
-    files = (json['files'] as Iterable<dynamic>)
-        .map((f) => ExerciseFileMetadata.fromJson(f))
+    name = map['name'];
+    mode = exerciseModeNames[map['mode']];
+    files = (map['files'] as Iterable<dynamic>)
+        .map((f) => ExerciseFileMetadata.fromMap(Map.from(f)))
         .toList();
   }
 }

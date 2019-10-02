@@ -18,24 +18,24 @@ void defineTests() {
           return Future.value(http.Response(validGist, 200));
         case 'https://master-api.flutter.dev/snippets/material.AppBar.1.dart':
           return Future.value(http.Response(validSample, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/basic/dartpad_metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/basic/dartpad_metadata.yaml':
           return Future.value(http.Response(basicDartMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/alt_branch/dartpad_metadata.json?ref=some_branch':
+        case 'https://api.github.com/repos/owner/repo/contents/alt_branch/dartpad_metadata.yaml?ref=some_branch':
           return Future.value(http.Response(altBranchMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/invalid/dartpad_metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/invalid/dartpad_metadata.yaml':
           return Future.value(http.Response(invalidMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/missing_files/dartpad_metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/missing_files/dartpad_metadata.yaml':
           return Future.value(http.Response(missingFilesMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/missing_mode/dartpad_metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/missing_mode/dartpad_metadata.yaml':
           return Future.value(http.Response(missingModeMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/missing_name/dartpad_metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/missing_name/dartpad_metadata.yaml':
           return Future.value(http.Response(missingNameMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/missing_file/dartpad_metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/missing_file/dartpad_metadata.yaml':
           return Future.value(
               http.Response(missingIndividualFileMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/unnecessary_file/dartpad_metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/unnecessary_file/dartpad_metadata.yaml':
           return Future.value(http.Response(unnecessaryFileMetadata, 200));
-        case 'https://api.github.com/repos/owner/repo/contents/alternate_path/dartpad_metadata.json':
+        case 'https://api.github.com/repos/owner/repo/contents/alternate_path/dartpad_metadata.yaml':
           return Future.value(http.Response(alternatePathMetadata, 200));
         case 'https://api.github.com/repos/owner/repo/contents/basic/main.dart':
         case 'https://api.github.com/repos/owner/repo/contents/alt_branch/main.dart?ref=some_branch':
@@ -449,149 +449,80 @@ String _createContentsJson(String content) {
 }
 
 final basicDartMetadata = _createContentsJson('''
-{
-  "name": "A Dart Exercise",
-  "mode": "dart",
-  "files": [
-    {
-      "name": "main.dart"
-    },
-    {
-      "name": "solution.dart"
-    },
-    {
-      "name": "test.dart"
-    },
-    {
-      "name": "hint.txt"
-    }
-  ]
-}
+name: A Dart Exercise
+mode: dart
+files:
+  - name: main.dart
+  - name: solution.dart
+  - name: test.dart
+  - name: hint.txt
 ''');
 
 final altBranchMetadata = _createContentsJson('''
-{
-  "name": "A Dart Exercise",
-  "mode": "dart",
-  "files": [
-    {
-      "name": "main.dart"
-    },
-    {
-      "name": "solution.dart"
-    },
-    {
-      "name": "test.dart"
-    }
-  ]
-}
+name: A Dart Exercise
+mode: dart
+files:
+  - name: main.dart
+  - name: solution.dart
+  - name: test.dart
 ''');
 
 final invalidMetadata = _createContentsJson('''
-There should be valid JSON in this file but there's not.
+There should be valid YAML in this file but there's not.
 Golly, I hope that doesn't cause an error!
 ''');
 
 final missingFilesMetadata = _createContentsJson('''
-{
-  "name": "A Dart Exercise",
-  "mode": "dart"
-}
+name: A Dart Exercise
+mode: dart
 ''');
 
 final missingModeMetadata = _createContentsJson('''
-{
-  "name": "A Dart Exercise",
-  "files": [
-    {
-      "name": "main.dart"
-    },
-    {
-      "name": "solution.dart"
-    },
-    {
-      "name": "test.dart"
-    }
-  ]
-}
+name: A Dart Exercise
+files:
+  - name: main.dart
+  - name: solution.dart
+  - name: test.dart
+  - name: hint.txt
 ''');
 
 final missingNameMetadata = _createContentsJson('''
-{
-  "mode": "dart",
-  "files": [
-    {
-      "name": "main.dart"
-    },
-    {
-      "name": "solution.dart"
-    },
-    {
-      "name": "test.dart"
-    }
-  ]
-}
+mode: dart
+files:
+  - name: main.dart
+  - name: solution.dart
+  - name: test.dart
+  - name: hint.txt
 ''');
 
 final missingIndividualFileMetadata = _createContentsJson('''
-{
-  "name": "A Dart Exercise",
-  "mode": "dart",
-  "files": [
-    {
-      "name": "main.dart"
-    },
-    {
-      "name": "solution.dart"
-    },
-    {
-      "name": "test.dart"
-    },
-    {
-      "name": "hint.txt"
-    }
-  ]
-}
+name: A Dart Exercise
+mode: dart
+files:
+  - name: main.dart
+  - name: solution.dart
+  - name: test.dart
+  - name: hint.txt
 ''');
 
 final unnecessaryFileMetadata = _createContentsJson('''
-{
-  "name": "A Dart Exercise",
-  "mode": "dart",
-  "files": [
-    {
-      "name": "main.dart"
-    },
-    {
-      "name": "solution.dart"
-    },
-    {
-      "name": "test.dart"
-    },
-    {
-      "name": "unnecessary.txt"
-    }
-  ]
-}
+name: A Dart Exercise
+mode: dart
+files:
+  - name: main.dart
+  - name: solution.dart
+  - name: test.dart
+  - name: unnecessary.txt
 ''');
 
 final alternatePathMetadata = _createContentsJson('''
-{
-  "name": "A Dart Exercise",
-  "mode": "dart",
-  "files": [
-    {
-      "name": "main.dart"
-    },
-    {
-      "name": "solution.dart"
-    },
-    {
-      "name": "test.dart",
-      "alternatePath": "a_subfolder/test.dart"
-    }
-  ]
-}
+name: A Dart Exercise
+mode: dart
+files:
+  - name: main.dart
+  - name: solution.dart
+  - name: test.dart
+    alternatePath: a_subfolder/test.dart
 ''');
 
 final mainFileContent = _createContentsJson('this is main.dart');

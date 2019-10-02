@@ -7,11 +7,12 @@ library gists;
 import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 import 'package:dart_pad/sharing/exercise_metadata.dart';
 import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:haikunator/haikunator.dart';
+import 'package:http/http.dart' as http;
+import 'package:yaml/yaml.dart' as yaml;
 
 final String _dartpadLink =
     '[dartpad.dartlang.org](https://dartpad.dartlang.org)';
@@ -92,7 +93,7 @@ class GistLoaderException implements Exception {
 class GistLoader {
   static const String _gistApiUrl = 'https://api.github.com/gists';
   static const String _repoContentsAuthority = 'api.github.com';
-  static const String _metadataFilename = 'dartpad_metadata.json';
+  static const String _metadataFilename = 'dartpad_metadata.yaml';
 
   // TODO(redbrogdon): Remove 'master-' once the new docs go live.
   static const String _apiDocsUrl = 'https://master-api.flutter.dev/snippets';
@@ -285,11 +286,17 @@ $styleRef$dartRef  </head>
     ExerciseMetadata metadata;
 
     try {
-      metadata = ExerciseMetadata.fromJson(json.decode(metadataContent));
+      final yamlMap = yaml.loadYaml(metadataContent);
+
+      if (yamlMap is! Map) {
+        throw FormatException();
+      }
+
+      metadata = ExerciseMetadata.fromMap(Map<String, dynamic>.from(yamlMap));
     } on MetadataException catch (ex) {
       throw GistLoaderException(GistLoaderFailureType.invalidExerciseMetadata,
           'Issue parsing metadata: $ex');
-    } on FormatException {
+    } on FormatException catch (ex) {
       throw const GistLoaderException(
           GistLoaderFailureType.invalidExerciseMetadata);
     }
