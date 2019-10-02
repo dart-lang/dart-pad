@@ -32,6 +32,7 @@ import 'services/execution_iframe.dart';
 import 'sharing/editor_doc_property.dart';
 import 'sharing/gist_file_property.dart';
 import 'sharing/gists.dart';
+import 'sharing/gist_storage.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/util.dart';
@@ -80,8 +81,6 @@ class Playground implements GistContainer, GistController {
   // We store the last returned shared gist; it's used to update the url.
   Gist _overrideNextRouteGist;
   DocHandler docHandler;
-
-  String _mappingId;
 
   Playground() {
     sourceTabController = TabController();
@@ -307,32 +306,6 @@ class Playground implements GistContainer, GistController {
     router.go('gist', {'gist': ''}, forceReload: true);
 
     return Future.value();
-  }
-
-  @override
-  Future shareAnon({String summary = ''}) {
-    return gistLoader
-        .createAnon(mutableGist.createGist(summary: summary))
-        .then((Gist newGist) {
-      editableGist.setBackingGist(newGist);
-      overrideNextRoute(newGist);
-      router.go('gist', {'gist': newGist.id});
-      var toast = DToast('Created ${newGist.id}')
-        ..show()
-        ..hide();
-      toast.element
-        ..style.cursor = 'pointer'
-        ..onClick.listen((e) => window.open(
-            'https://gist.github.com/anonymous/${newGist.id}', '_blank'));
-      GistToInternalIdMapping mapping = GistToInternalIdMapping()
-        ..gistId = newGist.id
-        ..internalId = _mappingId;
-      dartSupportServices.storeGist(mapping);
-    }).catchError((e) {
-      String message = 'Error saving gist: $e';
-      DToast.showMessage(message);
-      ga.sendException('GistLoader.createAnon: failed to create gist');
-    });
   }
 
   void _showGist(String gistId) {

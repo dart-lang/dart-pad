@@ -40,6 +40,7 @@ import 'services/execution_iframe.dart';
 import 'sharing/editor_doc_property.dart';
 import 'sharing/gist_file_property.dart';
 import 'sharing/gists.dart';
+import 'sharing/gist_storage.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/util.dart';
@@ -91,9 +92,6 @@ class Playground implements GistContainer, GistController {
   // The last returned shared gist used to update the url.
   Gist _overrideNextRouteGist;
   DocHandler docHandler;
-
-  // The internal ID of the current Gist.
-  String _mappingId;
 
   Console _leftConsole;
   Console _rightConsole;
@@ -875,26 +873,6 @@ class Playground implements GistContainer, GistController {
     // the Dart source from).
     Timer.run(_performAnalysis);
     _clearOutput();
-  }
-
-  @override
-  Future shareAnon({String summary = ''}) {
-    return gistLoader
-        .createAnon(mutableGist.createGist(summary: summary))
-        .then((Gist newGist) {
-      editableGist.setBackingGist(newGist);
-      overrideNextRoute(newGist);
-      router.go('gist', {'gist': newGist.id});
-      _showSnackbar('Created ${newGist.id}');
-      GistToInternalIdMapping mapping = GistToInternalIdMapping()
-        ..gistId = newGist.id
-        ..internalId = _mappingId;
-      dartSupportServices.storeGist(mapping);
-    }).catchError((e) {
-      String message = 'Error saving gist: $e';
-      _showSnackbar(message);
-      ga.sendException('GistLoader.createAnon: failed to create gist');
-    });
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {

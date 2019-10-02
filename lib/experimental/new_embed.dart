@@ -196,7 +196,7 @@ class NewEmbed {
         DisableableButton(querySelector('#execute'), _handleExecute);
 
     reloadGistButton = DisableableButton(querySelector('#reload-gist'), () {
-      if (gistId.isNotEmpty || sampleId.isNotEmpty) {
+      if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
         _loadAndShowGist();
       } else {
         _resetCode();
@@ -402,27 +402,38 @@ class NewEmbed {
     window.parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
   }
 
+  String _getQueryParam(String key) {
+    final url = Uri.parse(window.location.toString());
+
+    if (url.hasQuery && url.queryParameters[key] != null) {
+      return url.queryParameters[key];
+    }
+
+    return '';
+  }
+
+  // ID for a GitHub gist that should be loaded into the editors.
   String get gistId {
-    final url = Uri.parse(window.location.toString());
-
-    if (url.hasQuery &&
-        url.queryParameters['id'] != null &&
-        isLegalGistId(url.queryParameters['id'])) {
-      return url.queryParameters['id'];
-    }
-
-    return '';
+    final id = _getQueryParam('id');
+    return isLegalGistId(id) ? id : '';
   }
 
-  String get sampleId {
-    final url = Uri.parse(window.location.toString());
+  // ID of an API Doc sample that should be loaded into the editors.
+  String get sampleId => _getQueryParam('sample_id');
 
-    if (url.hasQuery && url.queryParameters['sample_id'] != null) {
-      return url.queryParameters['sample_id'];
-    }
+  // GitHub params for loading an exercise from a repo. The first three are
+  // required to load something, while the fourth, gh_ref, is an optional branch
+  // name or commit SHA.
+  String get githubOwner => _getQueryParam('gh_owner');
 
-    return '';
-  }
+  String get githubRepo => _getQueryParam('gh_repo');
+
+  String get githubPath => _getQueryParam('gh_path');
+
+  String get githubRef => _getQueryParam('gh_ref');
+
+  bool get githubParamsPresent =>
+      githubOwner.isNotEmpty && githubRepo.isNotEmpty && githubPath.isNotEmpty;
 
   Future<void> _initModules() async {
     ModuleManager modules = ModuleManager();
@@ -509,7 +520,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
       minSize: [100, 100],
     );
 
-    if (gistId.isNotEmpty || sampleId.isNotEmpty) {
+    if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
       _loadAndShowGist(analyze: false);
     }
 
@@ -518,8 +529,9 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
   }
 
   Future<void> _loadAndShowGist({bool analyze = true}) async {
-    if (gistId.isEmpty && sampleId.isEmpty) {
-      print('Cannot load gist: neither id nor sample_id is present.');
+    if (gistId.isEmpty && sampleId.isEmpty && !githubParamsPresent) {
+      print('Cannot load gist: neither id, sample_id, nor GitHub repo info is '
+          'present.');
       return;
     }
 
@@ -528,9 +540,20 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     final GistLoader loader = deps[GistLoader];
 
     try {
-      final gist = gistId.isNotEmpty
-          ? await loader.loadGist(gistId)
-          : await loader.loadGistFromAPIDocs(sampleId);
+      Gist gist;
+
+      if (gistId.isNotEmpty) {
+        gist = await loader.loadGist(gistId);
+      } else if (sampleId.isNotEmpty) {
+        gist = await loader.loadGistFromAPIDocs(sampleId);
+      } else {
+        gist = await loader.loadGistFromRepo(
+          owner: githubOwner,
+          repo: githubRepo,
+          path: githubPath,
+          ref: githubRef,
+        );
+      }
 
       setContextSources(<String, String>{
         'main.dart': gist.getFile('main.dart')?.content ?? '',
@@ -548,12 +571,14 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
       // No gist was loaded, so clear the editors.
       setContextSources(<String, String>{});
 
-      if (ex.failureType == GistLoaderFailureType.gistDoesNotExist) {
-        await dialog.showOk('Error loading gist',
-            'No gist was found matching the ID provided ($gistId).');
-      } else if (ex.failureType == GistLoaderFailureType.rateLimitExceeded) {
+      if (ex.failureType == GistLoaderFailureType.contentNotFound) {
         await dialog.showOk(
             'Error loading gist',
+            'No gist was found for the gist ID, sample ID, or repository '
+                'information provided.');
+      } else if (ex.failureType == GistLoaderFailureType.rateLimitExceeded) {
+        await dialog.showOk(
+            'Error loading files',
             'GitHub\'s rate limit for '
                 'API requests has been exceeded. This is typically caused by '
                 'repeatedly loading a single page that has many DartPad embeds or '
@@ -561,11 +586,19 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
                 'API server) from a single, shared IP address. Quotas are '
                 'typically renewed within an hour, so the best course of action is '
                 'to try back later.');
-      } else {
+      } else if (ex.failureType ==
+          GistLoaderFailureType.invalidExerciseMetadata) {
+        if (ex.message != null) {
+          print(ex.message);
+        }
         await dialog.showOk(
-            'Error loading gist',
-            'An error occurred while '
-                'loading Gist ID $gistId.');
+            'Error loading files',
+            'DartPad could not load the requested exercise. Either one of the '
+                'required files wasn\'t available, or the exercise metadata was '
+                'invalid.');
+      } else {
+        await dialog.showOk('Error loading files',
+            'An error occurred while the requested files.');
       }
     }
   }
