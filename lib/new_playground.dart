@@ -1172,7 +1172,7 @@ class NewPadDialog {
     _mdcDialog.open();
 
     return completer.future.then((v) {
-      dartSub?.cancel();
+      dartSub.cancel();
       flutterSub.cancel();
       cancelSub.cancel();
       createSub.cancel();
