@@ -69,6 +69,7 @@ class Playground implements GistContainer, GistController {
   DElement editorPanelFooter;
   MDCMenu samplesMenu;
   Dialog dialog;
+  NewPadDialog newPadDialog;
   DElement titleElement;
   MaterialTabController webLayoutTabController;
   DElement webTabBar;
@@ -101,7 +102,7 @@ class Playground implements GistContainer, GistController {
   Playground() {
     _initModules().then((_) {
       _initPlayground();
-      _initDialog();
+      _initDialogs();
       _initBusyLights();
       _initGistNameHeader();
       _initGistStorage();
@@ -132,8 +133,9 @@ class Playground implements GistContainer, GistController {
         webCheckbox: Layout.web,
       };
 
-  void _initDialog() {
+  void _initDialogs() {
     dialog = Dialog();
+    newPadDialog = NewPadDialog();
   }
 
   void _initBusyLights() {
@@ -834,7 +836,9 @@ class Playground implements GistContainer, GistController {
     var result = await dialog.showOkCancel(
         'Create New Pad', 'Discard changes to the current pad?');
     if (result == DialogResult.ok) {
+      var layout = await newPadDialog.show();
       await createNewGist();
+      _changeLayout(layout);
     }
   }
 
@@ -1098,5 +1102,82 @@ class TabExpandController {
     // Clear listeners
     _subscriptions.forEach((s) => s.cancel());
     _subscriptions.clear();
+  }
+}
+
+class NewPadDialog {
+  final MDCDialog _mdcDialog;
+  final Element _dartButton;
+  final Element _flutterButton;
+  final MDCButton _createButton;
+  final MDCButton _cancelButton;
+  final MDCSwitch _htmlSwitch;
+  final DElement _htmlSwitchContainer;
+
+  NewPadDialog()
+      : assert(querySelector('#new-pad-dialog') != null),
+        assert(querySelector('#new-pad-select-dart') != null),
+        assert(querySelector('#new-pad-select-flutter') != null),
+        assert(querySelector('#new-pad-cancel-button') != null),
+        assert(querySelector('#new-pad-create-button') != null),
+        assert(querySelector('#new-pad-html-switch-container') != null),
+        assert(querySelector('#new-pad-html-switch-container .mdc-switch') != null),
+        _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')),
+        _dartButton = querySelector('#new-pad-select-dart'),
+        _flutterButton = querySelector('#new-pad-select-flutter'),
+        _cancelButton = MDCButton(querySelector('#new-pad-cancel-button')),
+        _createButton = MDCButton(querySelector('#new-pad-create-button')),
+        _htmlSwitchContainer = DElement(querySelector('#new-pad-html-switch-container')),
+        _htmlSwitch = MDCSwitch(querySelector('#new-pad-html-switch-container .mdc-switch'));
+
+  Layout get selectedLayout {
+    if (_dartButton.classes.contains('selected')) {
+      return _htmlSwitch.checked ? Layout.web : Layout.dart;
+    }
+
+    if (_flutterButton.classes.contains('selected')) {
+      return Layout.flutter;
+    }
+
+    return null;
+  }
+
+  Future<Layout> show() {
+    _createButton.toggleAttr('disabled', true);
+
+    var completer = Completer<Layout>();
+    var dartSub = _dartButton.onClick.listen((_) {
+      _flutterButton.classes.remove('selected');
+      _dartButton.classes.add('selected');
+      _createButton.toggleAttr('disabled', false);
+      _htmlSwitchContainer.toggleAttr('hidden', false);
+      _htmlSwitch.disabled = false;
+    });
+
+    var flutterSub = _flutterButton.onClick.listen((_) {
+      _dartButton.classes.remove('selected');
+      _flutterButton.classes.add('selected');
+      _createButton.toggleAttr('disabled', false);
+      _htmlSwitchContainer.toggleAttr('hidden', true);
+    });
+
+    var cancelSub = _cancelButton.onClick.listen((_) {
+      completer.complete(null);
+    });
+
+    var createSub = _createButton.onClick.listen((_) {
+      completer.complete(selectedLayout);
+    });
+
+    _mdcDialog.open();
+
+    return completer.future.then((v) {
+      dartSub.cancel();
+      flutterSub.cancel();
+      cancelSub.cancel();
+      createSub.cancel();
+      _mdcDialog.close();
+      return v;
+    });
   }
 }
