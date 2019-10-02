@@ -1132,14 +1132,13 @@ class NewPadDialog {
 
   Layout get selectedLayout {
     if (_dartButton.classes.contains('selected')) {
-      if (_htmlSwitch.checked) {
-        return Layout.web;
-      }
-      return Layout.dart;
+      return _htmlSwitch.checked ? Layout.web : Layout.dart;
     }
+
     if (_flutterButton.classes.contains('selected')) {
       return Layout.flutter;
     }
+
     return null;
   }
 
