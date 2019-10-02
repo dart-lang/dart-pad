@@ -297,8 +297,8 @@ $styleRef$dartRef  </head>
       throw GistLoaderException(GistLoaderFailureType.invalidExerciseMetadata,
           'Issue parsing metadata: $ex');
     } on FormatException catch (ex) {
-      throw const GistLoaderException(
-          GistLoaderFailureType.invalidExerciseMetadata);
+      throw GistLoaderException(GistLoaderFailureType.invalidExerciseMetadata,
+          'Issue parsing metadata: $ex');
     }
 
     // Make additional requests for the files listed in the metadata.
