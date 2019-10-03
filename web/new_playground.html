@@ -80,6 +80,35 @@
         </button>
     </div>
     <div class="header-gist-name"></div>
+    <div class="position-relative text-right pr-2">
+        <button id="layout-menu-button" class="mdc-button">
+            <span id="layout-menu-label" class="mdc-button__label">Type</span>
+            <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
+        </button>
+        <div id="layout-menu" class="mdc-menu mdc-menu-surface">
+            <ul class="mdc-list" role="menu" aria-hidden="true"
+                aria-orientation="vertical" tabindex="-1">
+                <li class="mdc-list-item" role="menuitem">
+                    <span id="layout-dart-checkmark" class="mdc-list-item__graphic hide">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
+                    </span>
+                    <span class="mdc-list-item__text">Dart</span>
+                </li>
+                <li class="mdc-list-item" role="menuitem">
+                    <span id="layout-web-checkmark" class="mdc-list-item__graphic hide">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
+                    </span>
+                    <span class="mdc-list-item__text">Dart + HTML</span>
+                </li>
+                <li class="mdc-list-item" role="menuitem">
+                    <span id="layout-flutter-checkmark" class="mdc-list-item__graphic hide">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
+                    </span>
+                    <span class="mdc-list-item__text">Flutter</span>
+                </li>
+            </ul>
+        </div>
+    </div>
     <div>
         <button type="button" id="samples-dropdown-button" class="mdc-button">
             <span class="mdc-button__label">Samples</span>
@@ -238,15 +267,6 @@
            target="repo">Send feedback</a>
     </div>
     <div class="flex"></div>
-
-    <input type="checkbox" id="dart-checkbox" class="footer-items">
-    <label for="dart-checkbox" class="footer-item">Dart</label>
-
-    <input type="checkbox" id="flutter-checkbox" class="footer-items">
-    <label for="flutter-checkbox" class="footer-item">Flutter</label>
-
-    <input type="checkbox" id="web-checkbox" class="footer-items">
-    <label for="web-checkbox" class="footer-item">Web</label>
     <div id="issues-message"></div>
     <a id="issues-toggle" hidden></a>
     <div id="dartpad-version"></div>
