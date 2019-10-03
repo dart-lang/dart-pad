@@ -61,14 +61,15 @@ class Playground implements GistContainer, GistController {
   MDCButton newButton;
   MDCButton resetButton;
   MDCButton formatButton;
-  MDCButton shareButton;
   MDCButton samplesButton;
   MDCButton runButton;
   MDCButton editorConsoleTab;
   MDCButton editorDocsTab;
   MDCButton closePanelButton;
+  MDCButton moreMenuButton;
   DElement editorPanelFooter;
   MDCMenu samplesMenu;
+  MDCMenu moreMenu;
   Dialog dialog;
   NewPadDialog newPadDialog;
   DElement titleElement;
@@ -106,6 +107,7 @@ class Playground implements GistContainer, GistController {
       _initGistStorage();
       _initButtons();
       _initSamplesMenu();
+      _initMoreMenu();
       _initSplitters();
       _initTabs();
       _initLayout();
@@ -165,8 +167,6 @@ class Playground implements GistContainer, GistController {
       ..onClick.listen((_) => _showResetDialog());
     formatButton = MDCButton(querySelector('#format-button'))
       ..onClick.listen((_) => _format());
-    shareButton = MDCButton(querySelector('#share-button'))
-      ..onClick.listen((_) => _showSharingPage());
     samplesButton = MDCButton(querySelector('#samples-dropdown-button'))
       ..onClick.listen((e) {
         samplesMenu.open = !samplesMenu.open;
@@ -179,6 +179,10 @@ class Playground implements GistContainer, GistController {
     editorDocsTab = MDCButton(querySelector('#editor-panel-docs-tab'));
     closePanelButton =
         MDCButton(querySelector('#editor-panel-close-button'), isIcon: true);
+    moreMenuButton = MDCButton(querySelector('#more-menu-button'), isIcon: true)
+      ..onClick.listen((_) {
+        moreMenu.open = !moreMenu.open;
+      });
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => _showKeyboardDialog());
@@ -235,6 +239,24 @@ class Playground implements GistContainer, GistController {
       var index = (e as CustomEvent).detail['index'];
       var gistId = samples.keys.elementAt(index);
       router.go('gist', {'gist': gistId});
+    });
+  }
+
+  void _initMoreMenu() {
+    moreMenu = MDCMenu(querySelector('#more-menu'))
+      ..setAnchorCorner(AnchorCorner.bottomLeft)
+      ..setAnchorElement(querySelector('#more-menu-button'))
+      ..hoistMenuToBody();
+    moreMenu.listen('MDCMenu:selected', (e) {
+      var idx = (e as CustomEvent).detail['index'];
+      switch (idx) {
+        case 0:
+          _showSharingPage();
+          break;
+        case 1:
+          _showGitHubPage();
+          break;
+      }
     });
   }
 
@@ -849,8 +871,12 @@ class Playground implements GistContainer, GistController {
   }
 
   void _showSharingPage() {
-    window.open(
-        'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide', '_sharing');
+    window.open('https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
+        'DartPad Sharing Guide');
+  }
+
+  void _showGitHubPage() {
+    window.open('https://github.com/dart-lang/dart-pad', 'DartPad on GitHub');
   }
 
   @override
@@ -1099,14 +1125,17 @@ class NewPadDialog {
         assert(querySelector('#new-pad-cancel-button') != null),
         assert(querySelector('#new-pad-create-button') != null),
         assert(querySelector('#new-pad-html-switch-container') != null),
-        assert(querySelector('#new-pad-html-switch-container .mdc-switch') != null),
+        assert(querySelector('#new-pad-html-switch-container .mdc-switch') !=
+            null),
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')),
         _dartButton = querySelector('#new-pad-select-dart'),
         _flutterButton = querySelector('#new-pad-select-flutter'),
         _cancelButton = MDCButton(querySelector('#new-pad-cancel-button')),
         _createButton = MDCButton(querySelector('#new-pad-create-button')),
-        _htmlSwitchContainer = DElement(querySelector('#new-pad-html-switch-container')),
-        _htmlSwitch = MDCSwitch(querySelector('#new-pad-html-switch-container .mdc-switch'));
+        _htmlSwitchContainer =
+            DElement(querySelector('#new-pad-html-switch-container')),
+        _htmlSwitch = MDCSwitch(
+            querySelector('#new-pad-html-switch-container .mdc-switch'));
 
   Layout get selectedLayout {
     if (_dartButton.classes.contains('selected')) {

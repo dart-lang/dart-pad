@@ -26,7 +26,7 @@ body {
 header {
   background-color: $dark-gutter-background-color;
   height: 48px;
-  padding: 0 24px;
+  padding-left: 24px;
   @include layout-center;
 
   .header-title {
@@ -58,18 +58,6 @@ header {
     margin-left: 1em;
     margin-right: 1em;
     user-select: none;
-  }
-
-  #github-button { background: url(/pictures/github-light-32px.png) no-repeat;
-    filter: brightness(0.8);
-    width: 32px;
-    height: 32px;
-    margin: 8px 0 8px 16px;
-    border: none;
-
-    &:hover {
-      filter: brightness(0.6);
-    }
   }
 }
 
@@ -546,14 +534,6 @@ a {
   }
 
   #format-button {
-    display: none;
-  }
-
-  #share-button {
-    display: none;
-  }
-
-  #github-button {
     display: none;
   }
 
