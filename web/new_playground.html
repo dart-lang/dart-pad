@@ -81,17 +81,34 @@
     </div>
     <div class="header-gist-name"></div>
     <div>
-        <button type="button" id="share-button" class="mdc-button">Share
-        </button>
-    </div>
-    <div>
         <button type="button" id="samples-dropdown-button" class="mdc-button">
             <span class="mdc-button__label">Samples</span>
             <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
         </button>
         <div id="samples-menu" class="mdc-menu mdc-menu-surface"></div>
     </div>
-    <a href="https://github.com/dart-lang/dart-pad" id="github-button"></a>
+    <div class="position-relative text-right pr-2">
+        <button id="more-menu-button" class="mdc-icon-button material-icons">
+            more_vert
+        </button>
+        <div id="more-menu" class="mdc-menu mdc-menu-surface">
+            <ul class="mdc-list" role="menu" aria-hidden="true"
+                aria-orientation="vertical" tabindex="-1">
+                <li class="mdc-list-item" role="menuitem">
+                    <span class="mdc-list-item__graphic hide">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">launch</i>
+                    </span>
+                    <span class="mdc-list-item__text">Share</span>
+                </li>
+                <li class="mdc-list-item" role="menuitem">
+                    <span class="mdc-list-item__graphic hide">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">launch</i>
+                    </span>
+                    <span class="mdc-list-item__text">DartPad on GitHub</span>
+                </li>
+            </ul>
+        </div>
+    </div>
 </header>
 
 <section class="main-section">
