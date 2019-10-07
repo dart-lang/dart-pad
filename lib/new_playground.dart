@@ -44,6 +44,7 @@ import 'sharing/gist_storage.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/util.dart';
+import 'util/detect_flutter.dart';
 
 Playground get playground => _playground;
 
@@ -235,7 +236,6 @@ class Playground implements GistContainer, GistController {
       ..hoistMenuToBody();
 
     samplesMenu.listen('MDCMenu:selected', (e) {
-      print('samplesMenu selected');
       var index = (e as CustomEvent).detail['index'];
       var gistId = samples.keys.elementAt(index);
       router.go('gist', {'gist': gistId});
@@ -259,7 +259,7 @@ class Playground implements GistContainer, GistController {
       }
     });
   }
-  
+
   void _initLayoutMenu() {
     layoutMenu = MDCMenu(querySelector('#layout-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
@@ -348,8 +348,6 @@ class Playground implements GistContainer, GistController {
     for (String name in ['dart', 'html', 'css']) {
       webLayoutTabController.registerTab(
           TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
-//        var issuesElement = querySelector('#issues');
-//        issuesElement.style.display = name == 'dart' ? 'block' : 'none';
         ga.sendEvent('edit', name);
         _context.switchTo(name);
       }));
@@ -567,6 +565,8 @@ class Playground implements GistContainer, GistController {
 
     _clearOutput();
 
+    _changeLayout(_detectLayout(editableGist.backingGist));
+
     // Analyze and run it.
     Timer.run(() {
       _performAnalysis().then((bool result) {
@@ -622,14 +622,7 @@ class Playground implements GistContainer, GistController {
 
       _clearOutput();
 
-      if ((_layout == Layout.web) != gist.hasWebContent()) {
-        if (gist.hasWebContent()) {
-          _changeLayout(Layout.web);
-        } else {
-          // TODO (johnpryan): detect if app is a dart or flutter app
-          _changeLayout(Layout.dart);
-        }
-      }
+      _changeLayout(_detectLayout(gist));
 
       // Analyze and run it.
       Timer.run(() {
@@ -659,7 +652,7 @@ class Playground implements GistContainer, GistController {
       ..source = context.dartSource;
 
     try {
-      if (_layout == Layout.flutter) {
+      if (hasFlutterContent(_context.dartSource)) {
         final CompileDDCResponse response = await dartServices
             .compileDDC(compileRequest)
             .timeout(longServiceCallTimeout);
@@ -815,9 +808,23 @@ class Playground implements GistContainer, GistController {
     snackbar.open();
   }
 
+  Layout _detectLayout(Gist gist) {
+    if (gist.hasWebContent()) {
+      return Layout.web;
+    } else if (gist.hasFlutterContent()) {
+      return Layout.flutter;
+    } else {
+      return Layout.dart;
+    }
+  }
+
   void _changeLayout(Layout layout) {
+    if (_layout == layout) {
+      return;
+    }
+
     _layout = layout;
-    
+
     var checkmarkIcons = [
       querySelector('#layout-dart-checkmark'),
       querySelector('#layout-web-checkmark'),
