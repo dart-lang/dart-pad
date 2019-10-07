@@ -1204,6 +1204,8 @@ class NewPadDialog {
     _mdcDialog.open();
 
     return completer.future.then((v) {
+      _flutterButton.root.classes.remove('selected');
+      _dartButton.root.classes.remove('selected');
       dartSub.cancel();
       flutterSub.cancel();
       cancelSub.cancel();
