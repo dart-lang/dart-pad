@@ -565,11 +565,7 @@ class Playground implements GistContainer, GistController {
 
     _clearOutput();
 
-    if ((_layout == Layout.web) != editableGist.backingGist.hasWebContent() ||
-        (_layout == Layout.flutter) !=
-            editableGist.backingGist.hasFlutterContent()) {
-      _changeLayout(_detectLayout(editableGist.backingGist));
-    }
+    _changeLayout(_detectLayout(editableGist.backingGist));
 
     // Analyze and run it.
     Timer.run(() {
@@ -626,10 +622,7 @@ class Playground implements GistContainer, GistController {
 
       _clearOutput();
 
-      if ((_layout == Layout.web) != gist.hasWebContent() ||
-          (_layout == Layout.flutter) != gist.hasFlutterContent()) {
-        _changeLayout(_detectLayout(gist));
-      }
+      _changeLayout(_detectLayout(gist));
 
       // Analyze and run it.
       Timer.run(() {
@@ -826,6 +819,10 @@ class Playground implements GistContainer, GistController {
   }
 
   void _changeLayout(Layout layout) {
+    if (_layout == layout) {
+      return;
+    }
+
     _layout = layout;
 
     var checkmarkIcons = [
