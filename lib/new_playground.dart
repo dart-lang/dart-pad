@@ -62,12 +62,14 @@ class Playground implements GistContainer, GistController {
   MDCButton resetButton;
   MDCButton formatButton;
   MDCButton samplesButton;
+  MDCButton layoutsButton;
   MDCButton runButton;
   MDCButton editorConsoleTab;
   MDCButton editorDocsTab;
   MDCButton closePanelButton;
   MDCButton moreMenuButton;
   DElement editorPanelFooter;
+  MDCMenu layoutMenu;
   MDCMenu samplesMenu;
   MDCMenu moreMenu;
   Dialog dialog;
@@ -108,6 +110,7 @@ class Playground implements GistContainer, GistController {
       _initButtons();
       _initSamplesMenu();
       _initMoreMenu();
+      _initLayoutMenu();
       _initSplitters();
       _initTabs();
       _initLayout();
@@ -119,19 +122,10 @@ class Playground implements GistContainer, GistController {
   DivElement get _rightConsoleElement => querySelector('#right-output-panel');
   DivElement get _leftConsoleElement => querySelector('#left-output-panel');
   IFrameElement get _frame => querySelector('#frame');
-  InputElement get dartCheckbox => querySelector('#dart-checkbox');
-  InputElement get webCheckbox => querySelector('#web-checkbox');
-  InputElement get flutterCheckbox => querySelector('#flutter-checkbox');
   DivElement get _rightDocPanel => querySelector('#right-doc-panel');
   DivElement get _leftDocPanel => querySelector('#left-doc-panel');
   DivElement get _editorPanelFooter => querySelector('#editor-panel-footer');
   bool get _isCompletionActive => editor.completionActive;
-
-  Map<InputElement, Layout> get _layouts => {
-        flutterCheckbox: Layout.flutter,
-        dartCheckbox: Layout.dart,
-        webCheckbox: Layout.web,
-      };
 
   void _initDialogs() {
     dialog = Dialog();
@@ -171,6 +165,12 @@ class Playground implements GistContainer, GistController {
       ..onClick.listen((e) {
         samplesMenu.open = !samplesMenu.open;
       });
+
+    layoutsButton = MDCButton(querySelector('#layout-menu-button'))
+      ..onClick.listen((_) {
+        layoutMenu.open = !layoutMenu.open;
+      });
+
     runButton = MDCButton(querySelector('#run-button'))
       ..onClick.listen((_) {
         _handleRun();
@@ -259,6 +259,27 @@ class Playground implements GistContainer, GistController {
       }
     });
   }
+  
+  void _initLayoutMenu() {
+    layoutMenu = MDCMenu(querySelector('#layout-menu'))
+      ..setAnchorCorner(AnchorCorner.bottomLeft)
+      ..setAnchorElement(querySelector('#layout-menu-button'))
+      ..hoistMenuToBody();
+    layoutMenu.listen('MDCMenu:selected', (e) {
+      var idx = (e as CustomEvent).detail['index'];
+      switch (idx) {
+        case 0:
+          _changeLayout(Layout.dart);
+          break;
+        case 1:
+          _changeLayout(Layout.web);
+          break;
+        case 2:
+          _changeLayout(Layout.flutter);
+          break;
+      }
+    });
+  }
 
   void _initSplitters() {
     var editorPanel = querySelector('#editor-panel');
@@ -338,14 +359,6 @@ class Playground implements GistContainer, GistController {
   void _initLayout() {
     editorPanelFooter = DElement(_editorPanelFooter);
     _changeLayout(Layout.dart);
-    for (var checkbox in _layouts.keys) {
-      checkbox.onClick.listen((event) {
-        event.preventDefault();
-        Timer(Duration(milliseconds: 100), () {
-          _changeLayout(_layouts[checkbox]);
-        });
-      });
-    }
   }
 
   void _initConsoles() {
@@ -804,13 +817,15 @@ class Playground implements GistContainer, GistController {
 
   void _changeLayout(Layout layout) {
     _layout = layout;
+    
+    var checkmarkIcons = [
+      querySelector('#layout-dart-checkmark'),
+      querySelector('#layout-web-checkmark'),
+      querySelector('#layout-flutter-checkmark'),
+    ];
 
-    for (var checkbox in _layouts.keys) {
-      if (_layouts[checkbox] == layout) {
-        checkbox.checked = true;
-      } else {
-        checkbox.checked = false;
-      }
+    for (var checkmark in checkmarkIcons) {
+      checkmark.classes.add('hide');
     }
 
     if (layout == Layout.dart) {
@@ -822,15 +837,7 @@ class Playground implements GistContainer, GistController {
       webTabBar.setAttr('hidden');
       webLayoutTabController.selectTab('dart');
       _initRightSplitter();
-    } else if (layout == Layout.flutter) {
-      _disposeRightSplitter();
-      _frame.hidden = false;
-      editorPanelFooter.clearAttr('hidden');
-      _initOutputPanelTabs();
-      _rightDocPanel.setAttribute('hidden', '');
-      _rightConsoleElement.setAttribute('hidden', '');
-      webTabBar.setAttr('hidden');
-      webLayoutTabController.selectTab('dart');
+      checkmarkIcons[0].classes.remove('hide');
     } else if (layout == Layout.web) {
       _disposeRightSplitter();
       _frame.hidden = false;
@@ -840,6 +847,17 @@ class Playground implements GistContainer, GistController {
       _rightConsoleElement.setAttribute('hidden', '');
       webTabBar.toggleAttr('hidden', false);
       webLayoutTabController.selectTab('dart');
+      checkmarkIcons[1].classes.remove('hide');
+    } else if (layout == Layout.flutter) {
+      _disposeRightSplitter();
+      _frame.hidden = false;
+      editorPanelFooter.clearAttr('hidden');
+      _initOutputPanelTabs();
+      _rightDocPanel.setAttribute('hidden', '');
+      _rightConsoleElement.setAttribute('hidden', '');
+      webTabBar.setAttr('hidden');
+      webLayoutTabController.selectTab('dart');
+      checkmarkIcons[2].classes.remove('hide');
     }
   }
 
