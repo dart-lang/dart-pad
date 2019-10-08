@@ -2,8 +2,8 @@ name: dart_services
 publish_to: none
 
 environment:
-  # Keep min SDK aligned with .travis.yml and FROM line of Dockerfile
-  sdk: '>=2.5.1 <3.0.0'
+  # Keep SDK aligned with .travis.yml and FROM line of Dockerfile
+  sdk: 2.5.2
 
 dependencies:
   _discoveryapis_commons: 0.1.9
