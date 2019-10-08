@@ -35,10 +35,12 @@ main() {
     });
 
     test('supports options ', () {
-      var options = LanguageStringParser('run-dartpad:mode-html:theme-dark').options;
+      var options = LanguageStringParser('run-dartpad:mode-html:theme-dark:run-true:split-50').options;
       expect(options, isNotEmpty);
       expect(options['mode'], equals('html'));
       expect(options['theme'], equals('dark'));
+      expect(options['run'], equals('true'));
+      expect(options['split'], equals('50'));
     });
   });
 }

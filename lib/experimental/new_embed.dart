@@ -393,6 +393,10 @@ class NewEmbed {
       if (type == 'sourceCode') {
         lastInjectedSourceCode = Map<String, String>.from(data['sourceCode']);
         _resetCode();
+
+        if(autoRunEnabled) {
+          _handleExecute();
+        }
       }
     });
   }
@@ -566,6 +570,10 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
 
       if (analyze) {
         _performAnalysis();
+      }
+
+      if(autoRunEnabled) {
+        _handleExecute();
       }
     } on GistLoaderException catch (ex) {
       // No gist was loaded, so clear the editors.
@@ -801,6 +809,11 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
   bool get isDarkMode {
     final url = Uri.parse(window.location.toString());
     return url.queryParameters['theme'] == 'dark';
+  }
+
+  bool get autoRunEnabled {
+    final url = Uri.parse(window.location.toString());
+    return url.queryParameters['run'] == 'true';
   }
 
   int get initialSplitPercent {
