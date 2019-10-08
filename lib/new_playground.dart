@@ -1136,8 +1136,8 @@ class TabExpandController {
 
 class NewPadDialog {
   final MDCDialog _mdcDialog;
-  final Element _dartButton;
-  final Element _flutterButton;
+  final MDCRipple _dartButton;
+  final MDCRipple _flutterButton;
   final MDCButton _createButton;
   final MDCButton _cancelButton;
   final MDCSwitch _htmlSwitch;
@@ -1153,8 +1153,8 @@ class NewPadDialog {
         assert(querySelector('#new-pad-html-switch-container .mdc-switch') !=
             null),
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')),
-        _dartButton = querySelector('#new-pad-select-dart'),
-        _flutterButton = querySelector('#new-pad-select-flutter'),
+        _dartButton = MDCRipple(querySelector('#new-pad-select-dart')),
+        _flutterButton = MDCRipple(querySelector('#new-pad-select-flutter')),
         _cancelButton = MDCButton(querySelector('#new-pad-cancel-button')),
         _createButton = MDCButton(querySelector('#new-pad-create-button')),
         _htmlSwitchContainer =
@@ -1163,11 +1163,11 @@ class NewPadDialog {
             querySelector('#new-pad-html-switch-container .mdc-switch'));
 
   Layout get selectedLayout {
-    if (_dartButton.classes.contains('selected')) {
+    if (_dartButton.root.classes.contains('selected')) {
       return _htmlSwitch.checked ? Layout.web : Layout.dart;
     }
 
-    if (_flutterButton.classes.contains('selected')) {
+    if (_flutterButton.root.classes.contains('selected')) {
       return Layout.flutter;
     }
 
@@ -1178,17 +1178,17 @@ class NewPadDialog {
     _createButton.toggleAttr('disabled', true);
 
     var completer = Completer<Layout>();
-    var dartSub = _dartButton.onClick.listen((_) {
-      _flutterButton.classes.remove('selected');
-      _dartButton.classes.add('selected');
+    var dartSub = _dartButton.root.onClick.listen((_) {
+      _flutterButton.root.classes.remove('selected');
+      _dartButton.root.classes.add('selected');
       _createButton.toggleAttr('disabled', false);
       _htmlSwitchContainer.toggleAttr('hidden', false);
       _htmlSwitch.disabled = false;
     });
 
-    var flutterSub = _flutterButton.onClick.listen((_) {
-      _dartButton.classes.remove('selected');
-      _flutterButton.classes.add('selected');
+    var flutterSub = _flutterButton.root.onClick.listen((_) {
+      _dartButton.root.classes.remove('selected');
+      _flutterButton.root.classes.add('selected');
       _createButton.toggleAttr('disabled', false);
       _htmlSwitchContainer.toggleAttr('hidden', true);
     });
@@ -1204,6 +1204,8 @@ class NewPadDialog {
     _mdcDialog.open();
 
     return completer.future.then((v) {
+      _flutterButton.root.classes.remove('selected');
+      _dartButton.root.classes.remove('selected');
       dartSub.cancel();
       flutterSub.cancel();
       cancelSub.cancel();
