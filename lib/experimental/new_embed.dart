@@ -416,10 +416,22 @@ class NewEmbed {
     return '';
   }
 
-  // ID for a GitHub gist that should be loaded into the editors.
+  // Option for the GitHub gist ID that should be loaded into the editors.
   String get gistId {
     final id = _getQueryParam('id');
     return isLegalGistId(id) ? id : '';
+  }
+
+  // Option for Light / Dark theme (defaults to light)
+  bool get isDarkMode {
+    final url = Uri.parse(window.location.toString());
+    return url.queryParameters['theme'] == 'dark';
+  }
+
+  // Option to run the snippet immediately (defaults to  false)
+  bool get autoRunEnabled {
+    final url = Uri.parse(window.location.toString());
+    return url.queryParameters['run'] == 'true';
   }
 
   // ID of an API Doc sample that should be loaded into the editors.
@@ -804,16 +816,6 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     if (userCodeEditor.hasFocus && e.keyCode == KeyCode.PERIOD) {
       userCodeEditor.showCompletions(autoInvoked: true);
     }
-  }
-
-  bool get isDarkMode {
-    final url = Uri.parse(window.location.toString());
-    return url.queryParameters['theme'] == 'dark';
-  }
-
-  bool get autoRunEnabled {
-    final url = Uri.parse(window.location.toString());
-    return url.queryParameters['run'] == 'true';
   }
 
   int get initialSplitPercent {
