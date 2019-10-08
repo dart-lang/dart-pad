@@ -623,15 +623,10 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
 
   String _getActiveSourceCode() {
     String activeSource;
-    String activeTab = "editor";
+    String activeTabName = tabController.selectedTab == null ? 
+    'editor' : tabController.selectedTab.name;
 
-    try {
-      // TODO: Remove this try-catch block
-      // by fixing the selectedTab to return first tab, if selected attr not available.
-      activeTab = tabController.selectedTab.name;
-    } catch (_) {}
-
-    switch (activeTab) {
+    switch (activeTabName) {
       case 'editor':
         activeSource = context.dartSource;
         break;
@@ -640,6 +635,12 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
         break;
       case 'html':
         activeSource = context.htmlSource;
+        break;
+      case 'solution':
+        activeSource = context.solution;
+        break;
+      case 'test':
+        activeSource = context.testMethod;
         break;
       default:
         activeSource = context.dartSource;
