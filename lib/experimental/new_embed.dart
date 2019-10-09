@@ -78,6 +78,7 @@ class NewEmbed {
   DisableableButton reloadGistButton;
   DisableableButton formatButton;
   DisableableButton showHintButton;
+  DisableableButton copyCodeButton;
   DisableableButton menuButton;
 
   DElement navBarElement;
@@ -144,6 +145,7 @@ class NewEmbed {
     formatButton.disabled = value;
     reloadGistButton.disabled = value;
     showHintButton?.disabled = value;
+    copyCodeButton?.disabled = value;
   }
 
   NewEmbed(this.options) {
@@ -202,6 +204,9 @@ class NewEmbed {
         _resetCode();
       }
     });
+
+    copyCodeButton =
+        DisableableButton(querySelector('#copy-code'), _handleCopyCode);
 
     showHintButton = DisableableButton(querySelector('#show-hint'), () {
       var hintElement = DivElement()..text = context.hint;
@@ -605,6 +610,43 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
 
   void _resetCode() {
     setContextSources(lastInjectedSourceCode);
+  }
+
+  void _handleCopyCode() {
+    var textElement = document.createElement('textarea') as TextAreaElement;
+    textElement.value = _getActiveSourceCode();
+    document.body.append(textElement);
+    textElement.select();
+    document.execCommand('copy');
+    textElement.remove();
+  }
+
+  String _getActiveSourceCode() {
+    String activeSource;
+    String activeTabName = tabController.selectedTab.name;
+
+    switch (activeTabName) {
+      case 'editor':
+        activeSource = context.dartSource;
+        break;
+      case 'css':
+        activeSource = context.cssSource;
+        break;
+      case 'html':
+        activeSource = context.htmlSource;
+        break;
+      case 'solution':
+        activeSource = context.solution;
+        break;
+      case 'test':
+        activeSource = context.testMethod;
+        break;
+      default:
+        activeSource = context.dartSource;
+        break;
+    }
+
+    return activeSource;
   }
 
   void setContextSources(Map<String, String> sources) {
