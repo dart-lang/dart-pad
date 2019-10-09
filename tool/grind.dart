@@ -139,19 +139,19 @@ build() {
   }
 
   FilePath newEmbedDartFile =
-      _buildDir.join('experimental/new_embed_dart.dart.js');
+      _buildDir.join('scripts/new_embed_dart.dart.js');
   log('$newEmbedDartFile compiled to ${_printSize(newEmbedDartFile)}');
 
   FilePath newEmbedFlutterFile =
-      _buildDir.join('experimental/new_embed_flutter.dart.js');
+      _buildDir.join('scripts/new_embed_flutter.dart.js');
   log('$newEmbedFlutterFile compiled to ${_printSize(newEmbedFlutterFile)}');
 
   FilePath newEmbedHtmlFile =
-      _buildDir.join('experimental/new_embed_html.dart.js');
+      _buildDir.join('scripts/new_embed_html.dart.js');
   log('$newEmbedHtmlFile compiled to ${_printSize(newEmbedHtmlFile)}');
 
   FilePath newEmbedInlineFile =
-      _buildDir.join('experimental/new_embed_inline.dart.js');
+      _buildDir.join('scripts/new_embed_inline.dart.js');
   log('$newEmbedInlineFile compiled to ${_printSize(newEmbedInlineFile)}');
 
   // Remove .dart files.
@@ -170,15 +170,10 @@ build() {
   // Run vulcanize.
   // Imports vulcanized, not inlined for IE support
   vulcanize('index.html');
-  vulcanize('new_playground.html');
   vulcanize('embed-dart.html');
   vulcanize('embed-html.html');
   vulcanize('embed-flutter.html');
   vulcanize('embed-inline.html');
-  vulcanize('experimental/embed-new-dart.html');
-  vulcanize('experimental/embed-new-flutter.html');
-  vulcanize('experimental/embed-new-html.html');
-  vulcanize('experimental/embed-new-inline.html');
 }
 
 void copyPackageResources(String packageName, Directory destDir) {
@@ -219,15 +214,15 @@ vulcanize(String filepath) {
         '--inline-css',
         '--inline-scripts',
         '--exclude',
-        ' experimental/new_embed_dart.dart.js',
+        ' scripts/new_embed_dart.dart.js',
         '--exclude',
-        ' experimental/new_embed_flutter.dart.js',
+        ' scripts/new_embed_flutter.dart.js',
         '--exclude',
-        ' experimental/new_embed_html.dart.js',
+        ' scripts/new_embed_html.dart.js',
         '--exclude',
-        ' experimental/new_embed_inline.dart.js',
+        ' scripts/new_embed_inline.dart.js',
         '--exclude',
-        ' experimental/new_playground/main.dart.js',
+        ' scripts/new_playground/main.dart.js',
         '--exclude',
         'scripts/main.dart.js',
         '--exclude',
