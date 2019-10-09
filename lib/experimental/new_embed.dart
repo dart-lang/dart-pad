@@ -623,8 +623,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
 
   String _getActiveSourceCode() {
     String activeSource;
-    String activeTabName = tabController.selectedTab == null ? 
-    'editor' : tabController.selectedTab.name;
+    String activeTabName = tabController.selectedTab.name;
 
     switch (activeTabName) {
       case 'editor':
