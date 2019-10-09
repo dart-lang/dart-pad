@@ -56,6 +56,7 @@ body {
 #user-code-editor, #solution-editor, #test-editor, #html-editor, #solution-editor {
   flex: 1;
   width: 100%;
+  margin-right: 8px;
 }
 
 .CodeMirror-hints {
@@ -196,6 +197,8 @@ body {
   z-index: 10;
   font-size: 18px;
   color: $mdc-theme-primary;
+  margin-right: 1em;
+  margin-top: 4px;
 
   &:hover {
     display: block;

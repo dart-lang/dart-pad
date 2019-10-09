@@ -16,40 +16,34 @@
     <title>DartPad</title>
 
     <!-- primer (used for layout) -->
-    <link rel="stylesheet" type="text/css"
-          href="packages/primer_css/primer_12.1.0.css">
+    <link rel="stylesheet" type="text/css" href="packages/primer_css/primer_12.1.0.css">
 
     <!-- styles -->
-    <link href="experimental/new_playground/styles.css" rel="stylesheet"
-          media="screen">
+    <link href="experimental/new_playground/styles.css" rel="stylesheet" media="screen">
 
     <!-- fonts -->
-    <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet">
 
     <!-- codemirror -->
-    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet"
-          media="screen">
-    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet"
-          media="screen">
-    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet"
-          media="screen">
+    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
     <script src="packages/codemirror/codemirror.js" defer></script>
+
+    <!-- codemirror add-ons -->
+    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
+    <script src="packages/codemirror/addon/scroll/simplescrollbars.js" defer></script>
 
     <!-- codemirror themes -->
     <link href="experimental/cm-scrollbars.css" rel="stylesheet" media="screen">
-    <link href="experimental/cm-dartpad-dark.css" rel="stylesheet"
-          media="screen">
-    <link href="experimental/cm-dartpad-light.css" rel="stylesheet"
-          media="screen">
+    <link href="experimental/cm-dartpad-dark.css" rel="stylesheet" media="screen">
+    <link href="experimental/cm-dartpad-light.css" rel="stylesheet" media="screen">
 
     <!-- third party javascript -->
     <script src="packages/split/split.min.js" defer></script>
 
     <!-- material design -->
     <script src="packages/mdc_web/material-components-web.min.js"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-          rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <!-- dart -->
     <script defer src="experimental/new_playground/main.dart.js"></script>
@@ -188,12 +182,14 @@
                         </div>
                     </div>
                 </nav>
-                <div id="dartbusy" class="busylight"></div>
-                <button type="button" id="run-button"
-                        class="mdc-button mdc-button--raised mdc-button--dense">
-                    <i class="material-icons mdc-button__icon">play_arrow</i>
-                    Run
-                </button>
+                <div class="button-group">
+                    <div id="dartbusy" class="busylight"></div>
+                    <button type="button" id="run-button"
+                            class="mdc-button mdc-button--raised mdc-button--dense">
+                        <i class="material-icons mdc-button__icon">play_arrow</i>
+                        Run
+                    </button>
+                </div>
             </div>
             <div id="editor-host"></div>
             <div id="editor-panel-footer" class="editor-tab-host border-top">

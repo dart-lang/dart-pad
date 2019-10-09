@@ -52,7 +52,6 @@ var codeMirrorOptions = {
     'Tab': 'insertSoftTab'
   },
   'hintOptions': {'completeSingle': false},
-  'theme': 'zenburn',
   'scrollbarStyle': 'simple',
 };
 
