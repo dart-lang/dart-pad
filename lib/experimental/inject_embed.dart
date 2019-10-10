@@ -12,8 +12,8 @@ import 'package:dart_pad/experimental/inject_parser.dart';
 Logger _logger = Logger('dartpad-embed');
 
 // Use this prefix for local development:
-//var iframePrefix = '';
-var iframePrefix = 'https://dartpad.dev/experimental/';
+//var iframePrefix = '../';
+var iframePrefix = 'https://dartpad.dev/';
 
 /// Replaces all code snippets marked with the 'run-dartpad' class with an
 /// instance of DartPad.
@@ -50,7 +50,21 @@ String iframeSrc(Map<String, String> options) {
     mode = 'dart';
   }
 
-  return '${iframePrefix}embed-new-$mode.html?theme=$theme';
+  String split;
+  if (options.containsKey('split')) {
+    split = options['split'];
+  } else {
+    split = 'false';
+  }
+
+  String run;
+  if (options.containsKey('run')) {
+    run = options['run'];
+  } else {
+    run = 'false';
+  }
+
+  return '${iframePrefix}embed-$mode.html?theme=$theme&run=$run&split=$split';
 }
 
 /// Replaces [host] with an instance of DartPad as an embedded iframe.

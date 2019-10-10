@@ -44,6 +44,7 @@ import 'sharing/gist_storage.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/util.dart';
+import 'util/detect_flutter.dart';
 
 Playground get playground => _playground;
 
@@ -62,12 +63,14 @@ class Playground implements GistContainer, GistController {
   MDCButton resetButton;
   MDCButton formatButton;
   MDCButton samplesButton;
+  MDCButton layoutsButton;
   MDCButton runButton;
   MDCButton editorConsoleTab;
   MDCButton editorDocsTab;
   MDCButton closePanelButton;
   MDCButton moreMenuButton;
   DElement editorPanelFooter;
+  MDCMenu layoutMenu;
   MDCMenu samplesMenu;
   MDCMenu moreMenu;
   Dialog dialog;
@@ -108,6 +111,7 @@ class Playground implements GistContainer, GistController {
       _initButtons();
       _initSamplesMenu();
       _initMoreMenu();
+      _initLayoutMenu();
       _initSplitters();
       _initTabs();
       _initLayout();
@@ -119,19 +123,10 @@ class Playground implements GistContainer, GistController {
   DivElement get _rightConsoleElement => querySelector('#right-output-panel');
   DivElement get _leftConsoleElement => querySelector('#left-output-panel');
   IFrameElement get _frame => querySelector('#frame');
-  InputElement get dartCheckbox => querySelector('#dart-checkbox');
-  InputElement get webCheckbox => querySelector('#web-checkbox');
-  InputElement get flutterCheckbox => querySelector('#flutter-checkbox');
   DivElement get _rightDocPanel => querySelector('#right-doc-panel');
   DivElement get _leftDocPanel => querySelector('#left-doc-panel');
   DivElement get _editorPanelFooter => querySelector('#editor-panel-footer');
   bool get _isCompletionActive => editor.completionActive;
-
-  Map<InputElement, Layout> get _layouts => {
-        flutterCheckbox: Layout.flutter,
-        dartCheckbox: Layout.dart,
-        webCheckbox: Layout.web,
-      };
 
   void _initDialogs() {
     dialog = Dialog();
@@ -171,6 +166,12 @@ class Playground implements GistContainer, GistController {
       ..onClick.listen((e) {
         samplesMenu.open = !samplesMenu.open;
       });
+
+    layoutsButton = MDCButton(querySelector('#layout-menu-button'))
+      ..onClick.listen((_) {
+        layoutMenu.open = !layoutMenu.open;
+      });
+
     runButton = MDCButton(querySelector('#run-button'))
       ..onClick.listen((_) {
         _handleRun();
@@ -235,7 +236,6 @@ class Playground implements GistContainer, GistController {
       ..hoistMenuToBody();
 
     samplesMenu.listen('MDCMenu:selected', (e) {
-      print('samplesMenu selected');
       var index = (e as CustomEvent).detail['index'];
       var gistId = samples.keys.elementAt(index);
       router.go('gist', {'gist': gistId});
@@ -255,6 +255,27 @@ class Playground implements GistContainer, GistController {
           break;
         case 1:
           _showGitHubPage();
+          break;
+      }
+    });
+  }
+
+  void _initLayoutMenu() {
+    layoutMenu = MDCMenu(querySelector('#layout-menu'))
+      ..setAnchorCorner(AnchorCorner.bottomLeft)
+      ..setAnchorElement(querySelector('#layout-menu-button'))
+      ..hoistMenuToBody();
+    layoutMenu.listen('MDCMenu:selected', (e) {
+      var idx = (e as CustomEvent).detail['index'];
+      switch (idx) {
+        case 0:
+          _changeLayout(Layout.dart);
+          break;
+        case 1:
+          _changeLayout(Layout.web);
+          break;
+        case 2:
+          _changeLayout(Layout.flutter);
           break;
       }
     });
@@ -327,8 +348,6 @@ class Playground implements GistContainer, GistController {
     for (String name in ['dart', 'html', 'css']) {
       webLayoutTabController.registerTab(
           TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
-//        var issuesElement = querySelector('#issues');
-//        issuesElement.style.display = name == 'dart' ? 'block' : 'none';
         ga.sendEvent('edit', name);
         _context.switchTo(name);
       }));
@@ -338,14 +357,6 @@ class Playground implements GistContainer, GistController {
   void _initLayout() {
     editorPanelFooter = DElement(_editorPanelFooter);
     _changeLayout(Layout.dart);
-    for (var checkbox in _layouts.keys) {
-      checkbox.onClick.listen((event) {
-        event.preventDefault();
-        Timer(Duration(milliseconds: 100), () {
-          _changeLayout(_layouts[checkbox]);
-        });
-      });
-    }
   }
 
   void _initConsoles() {
@@ -554,6 +565,8 @@ class Playground implements GistContainer, GistController {
 
     _clearOutput();
 
+    _changeLayout(_detectLayout(editableGist.backingGist));
+
     // Analyze and run it.
     Timer.run(() {
       _performAnalysis().then((bool result) {
@@ -609,14 +622,7 @@ class Playground implements GistContainer, GistController {
 
       _clearOutput();
 
-      if ((_layout == Layout.web) != gist.hasWebContent()) {
-        if (gist.hasWebContent()) {
-          _changeLayout(Layout.web);
-        } else {
-          // TODO (johnpryan): detect if app is a dart or flutter app
-          _changeLayout(Layout.dart);
-        }
-      }
+      _changeLayout(_detectLayout(gist));
 
       // Analyze and run it.
       Timer.run(() {
@@ -646,7 +652,7 @@ class Playground implements GistContainer, GistController {
       ..source = context.dartSource;
 
     try {
-      if (_layout == Layout.flutter) {
+      if (hasFlutterContent(_context.dartSource)) {
         final CompileDDCResponse response = await dartServices
             .compileDDC(compileRequest)
             .timeout(longServiceCallTimeout);
@@ -802,15 +808,31 @@ class Playground implements GistContainer, GistController {
     snackbar.open();
   }
 
+  Layout _detectLayout(Gist gist) {
+    if (gist.hasWebContent()) {
+      return Layout.web;
+    } else if (gist.hasFlutterContent()) {
+      return Layout.flutter;
+    } else {
+      return Layout.dart;
+    }
+  }
+
   void _changeLayout(Layout layout) {
+    if (_layout == layout) {
+      return;
+    }
+
     _layout = layout;
 
-    for (var checkbox in _layouts.keys) {
-      if (_layouts[checkbox] == layout) {
-        checkbox.checked = true;
-      } else {
-        checkbox.checked = false;
-      }
+    var checkmarkIcons = [
+      querySelector('#layout-dart-checkmark'),
+      querySelector('#layout-web-checkmark'),
+      querySelector('#layout-flutter-checkmark'),
+    ];
+
+    for (var checkmark in checkmarkIcons) {
+      checkmark.classes.add('hide');
     }
 
     if (layout == Layout.dart) {
@@ -822,15 +844,7 @@ class Playground implements GistContainer, GistController {
       webTabBar.setAttr('hidden');
       webLayoutTabController.selectTab('dart');
       _initRightSplitter();
-    } else if (layout == Layout.flutter) {
-      _disposeRightSplitter();
-      _frame.hidden = false;
-      editorPanelFooter.clearAttr('hidden');
-      _initOutputPanelTabs();
-      _rightDocPanel.setAttribute('hidden', '');
-      _rightConsoleElement.setAttribute('hidden', '');
-      webTabBar.setAttr('hidden');
-      webLayoutTabController.selectTab('dart');
+      checkmarkIcons[0].classes.remove('hide');
     } else if (layout == Layout.web) {
       _disposeRightSplitter();
       _frame.hidden = false;
@@ -840,6 +854,17 @@ class Playground implements GistContainer, GistController {
       _rightConsoleElement.setAttribute('hidden', '');
       webTabBar.toggleAttr('hidden', false);
       webLayoutTabController.selectTab('dart');
+      checkmarkIcons[1].classes.remove('hide');
+    } else if (layout == Layout.flutter) {
+      _disposeRightSplitter();
+      _frame.hidden = false;
+      editorPanelFooter.clearAttr('hidden');
+      _initOutputPanelTabs();
+      _rightDocPanel.setAttribute('hidden', '');
+      _rightConsoleElement.setAttribute('hidden', '');
+      webTabBar.setAttr('hidden');
+      webLayoutTabController.selectTab('dart');
+      checkmarkIcons[2].classes.remove('hide');
     }
   }
 
@@ -1111,8 +1136,8 @@ class TabExpandController {
 
 class NewPadDialog {
   final MDCDialog _mdcDialog;
-  final Element _dartButton;
-  final Element _flutterButton;
+  final MDCRipple _dartButton;
+  final MDCRipple _flutterButton;
   final MDCButton _createButton;
   final MDCButton _cancelButton;
   final MDCSwitch _htmlSwitch;
@@ -1128,8 +1153,8 @@ class NewPadDialog {
         assert(querySelector('#new-pad-html-switch-container .mdc-switch') !=
             null),
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')),
-        _dartButton = querySelector('#new-pad-select-dart'),
-        _flutterButton = querySelector('#new-pad-select-flutter'),
+        _dartButton = MDCRipple(querySelector('#new-pad-select-dart')),
+        _flutterButton = MDCRipple(querySelector('#new-pad-select-flutter')),
         _cancelButton = MDCButton(querySelector('#new-pad-cancel-button')),
         _createButton = MDCButton(querySelector('#new-pad-create-button')),
         _htmlSwitchContainer =
@@ -1138,11 +1163,11 @@ class NewPadDialog {
             querySelector('#new-pad-html-switch-container .mdc-switch'));
 
   Layout get selectedLayout {
-    if (_dartButton.classes.contains('selected')) {
+    if (_dartButton.root.classes.contains('selected')) {
       return _htmlSwitch.checked ? Layout.web : Layout.dart;
     }
 
-    if (_flutterButton.classes.contains('selected')) {
+    if (_flutterButton.root.classes.contains('selected')) {
       return Layout.flutter;
     }
 
@@ -1153,17 +1178,17 @@ class NewPadDialog {
     _createButton.toggleAttr('disabled', true);
 
     var completer = Completer<Layout>();
-    var dartSub = _dartButton.onClick.listen((_) {
-      _flutterButton.classes.remove('selected');
-      _dartButton.classes.add('selected');
+    var dartSub = _dartButton.root.onClick.listen((_) {
+      _flutterButton.root.classes.remove('selected');
+      _dartButton.root.classes.add('selected');
       _createButton.toggleAttr('disabled', false);
       _htmlSwitchContainer.toggleAttr('hidden', false);
       _htmlSwitch.disabled = false;
     });
 
-    var flutterSub = _flutterButton.onClick.listen((_) {
-      _dartButton.classes.remove('selected');
-      _flutterButton.classes.add('selected');
+    var flutterSub = _flutterButton.root.onClick.listen((_) {
+      _dartButton.root.classes.remove('selected');
+      _flutterButton.root.classes.add('selected');
       _createButton.toggleAttr('disabled', false);
       _htmlSwitchContainer.toggleAttr('hidden', true);
     });
@@ -1179,6 +1204,8 @@ class NewPadDialog {
     _mdcDialog.open();
 
     return completer.future.then((v) {
+      _flutterButton.root.classes.remove('selected');
+      _dartButton.root.classes.remove('selected');
       dartSub.cancel();
       flutterSub.cancel();
       cancelSub.cancel();

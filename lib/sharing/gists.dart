@@ -13,6 +13,8 @@ import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:haikunator/haikunator.dart';
 import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart' as yaml;
+import '../util/detect_flutter.dart' as detect_flutter;
+
 
 final String _dartpadLink =
     '[dartpad.dartlang.org](https://dartpad.dartlang.org)';
@@ -398,6 +400,12 @@ class Gist {
       final bool isWebFile =
           file.name.endsWith('.html') || file.name.endsWith('.css');
       return isWebFile && file.content.trim().isNotEmpty;
+    });
+  }
+
+  bool hasFlutterContent() {
+    return files.any((GistFile file) {
+      return detect_flutter.hasFlutterContent(file.content);
     });
   }
 
