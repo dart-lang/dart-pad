@@ -261,9 +261,7 @@ class NewEmbed {
         options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
-      // TODO(devoncarew): We should make this read-only after initial beta
-      // testing.
-      //..readOnly = true
+      ..readOnly = true
       ..showLineNumbers = true;
 
     solutionEditor = editorFactory.createFromElement(
@@ -271,6 +269,7 @@ class NewEmbed {
         options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
+      ..readOnly = true
       ..showLineNumbers = true;
 
     htmlEditor = editorFactory.createFromElement(querySelector('#html-editor'),
