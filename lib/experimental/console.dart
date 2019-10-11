@@ -42,7 +42,10 @@ class Console {
     if (_bufferedOutput.length == 1) {
       Timer(bufferDuration, () {
         element.element.children.addAll(_bufferedOutput);
-        element.element.children.last.scrollIntoView(ScrollAlignment.BOTTOM);
+        // Using scrollIntoView(ScrollAlignment.BOTTOM) causes the parent page
+        // to scroll, so set the scrollTop instead.
+        var last = element.element.children.last;
+        element.element.scrollTop = last.offsetTop;
         _bufferedOutput.clear();
       });
     }
