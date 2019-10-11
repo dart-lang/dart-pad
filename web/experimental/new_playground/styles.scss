@@ -142,7 +142,7 @@ a {
 #editor-host {
   @include layout-vertical;
   @include layout-flex;
-  padding: 0 1em;
+  padding: 0 8px;
 
   .CodeMirror {
     @include layout-flex;
@@ -157,6 +157,11 @@ a {
   @include layout-center;
   padding: 4px;
   height: 48px;
+
+  .button-group {
+    @include layout-horizontal;
+    @include layout-center;
+  }
 }
 
 // Console

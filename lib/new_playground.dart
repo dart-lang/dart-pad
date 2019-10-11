@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:html' hide Console;
 
+import 'package:dart_pad/editing/editor_codemirror.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -45,6 +46,25 @@ import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/util.dart';
 import 'util/detect_flutter.dart';
+
+const codeMirrorOptions = {
+  'continueComments': {'continueLineComment': false},
+  'autofocus': false,
+  'autoCloseBrackets': true,
+  'matchBrackets': true,
+  'tabSize': 2,
+  'lineWrapping': true,
+  'indentUnit': 2,
+  'cursorHeight': 0.85,
+  'viewportMargin': 100,
+  'extraKeys': {
+    'Cmd-/': 'toggleComment',
+    'Ctrl-/': 'toggleComment',
+    'Tab': 'insertSoftTab'
+  },
+  'hintOptions': {'completeSingle': false},
+  'scrollbarStyle': 'simple',
+};
 
 Playground get playground => _playground;
 
@@ -389,9 +409,10 @@ class Playground implements GistContainer, GistController {
     deps[GistLoader] = GistLoader.defaultFilters();
 
     // Set up CodeMirror
-    editor = editorFactory.createFromElement(_editorHost)
-      ..theme = 'darkpad'
-      ..mode = 'dart';
+    editor = (editorFactory as CodeMirrorFactory)
+        .createFromElement(_editorHost, options: codeMirrorOptions)
+          ..theme = 'darkpad'
+          ..mode = 'dart';
 
     // set up key bindings
     keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
