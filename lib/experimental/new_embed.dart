@@ -36,7 +36,7 @@ NewEmbed get newEmbed => _newEmbed;
 
 NewEmbed _newEmbed;
 
-var codeMirrorOptions = {
+const codeMirrorOptions = {
   'continueComments': {'continueLineComment': false},
   'autofocus': false,
   'autoCloseBrackets': true,

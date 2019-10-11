@@ -47,7 +47,7 @@ import 'src/ga.dart';
 import 'src/util.dart';
 import 'util/detect_flutter.dart';
 
-var codeMirrorOptions = {
+const codeMirrorOptions = {
   'continueComments': {'continueLineComment': false},
   'autofocus': false,
   'autoCloseBrackets': true,
