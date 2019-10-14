@@ -126,13 +126,14 @@ void defineTests() {
       return analysisServer
           .getFixes(quickFixesCode, 25)
           .then((FixesResponse results) {
-        expect(results.fixes.length, 1);
-        expect(results.fixes[0].offset, 24);
-        expect(results.fixes[0].length, 1); //we need an insertion
+        // Under 2.5 we see 1 fix, under 2.6.dev we are seeing 2.
+        expect(results.fixes.length, anyOf(1, 2));
+        expect(results.fixes.last.offset, 24);
+        expect(results.fixes.last.length, 1); //we need an insertion
 
         // We should be getting an insert ; fix
-        expect(results.fixes[0].fixes.length, 1);
-        CandidateFix fix = results.fixes[0].fixes[0];
+        expect(results.fixes.last.fixes.length, 1);
+        CandidateFix fix = results.fixes.last.fixes[0];
         expect(fix.message.contains(';'), true);
         expect(fix.edits[0].length, 0);
         expect(fix.edits[0].offset, 25);
