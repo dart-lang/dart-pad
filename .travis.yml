@@ -4,7 +4,9 @@ install:
 dart:
   # Keep this value aligned with min SDK value in pubspec.yaml and FROM line of Dockerfile
   - "2.5.2"
-  - dev
+  # TODO(devoncarew): commented out due to
+  # https://github.com/dart-lang/dart-pad/issues/1002
+  #- dev
 branches:
   only: [master]
 script: ./tool/travis.sh
