@@ -93,6 +93,8 @@ class NewEmbed {
 
   DElement morePopover;
   DElement showTestCodeCheckmark;
+  DElement editableTestSolutionCheckmark;
+  bool _editableTestSolution = false;
   bool _showTestCode = false;
 
   Counter unreadConsoleCounter;
@@ -223,6 +225,8 @@ class NewEmbed {
 
     tabController.setTabVisibility('test', false);
     showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
+    editableTestSolutionCheckmark =
+        DElement(querySelector('#editable-test-solution-checkmark'));
 
     morePopover = DElement(querySelector('#more-popover'));
     menuButton = DisableableButton(querySelector('#menu-button'), () {
@@ -232,10 +236,24 @@ class NewEmbed {
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(menuButton._element.element);
     menu.listen('MDCMenu:selected', (e) {
-      if ((e as CustomEvent).detail['index'] == 0) {
-        _showTestCode = !_showTestCode;
-        showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
-        tabController.setTabVisibility('test', _showTestCode);
+      final selectedIndex = (e as CustomEvent).detail['index'];
+      switch (selectedIndex) {
+        case 0: // Show Test Code
+          {
+            _showTestCode = !_showTestCode;
+            showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
+            tabController.setTabVisibility('test', _showTestCode);
+            break;
+          }
+        case 1: // Editable test/solution
+          {
+            _editableTestSolution = !_editableTestSolution;
+            editableTestSolutionCheckmark.toggleClass(
+                'hide', !_editableTestSolution);
+            testEditor.readOnly =
+                solutionEditor.readOnly = !_editableTestSolution;
+            break;
+          }
       }
     });
 
@@ -261,7 +279,7 @@ class NewEmbed {
         options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
-      ..readOnly = true
+      ..readOnly = !_editableTestSolution
       ..showLineNumbers = true;
 
     solutionEditor = editorFactory.createFromElement(
@@ -269,7 +287,7 @@ class NewEmbed {
         options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
-      ..readOnly = true
+      ..readOnly = !_editableTestSolution
       ..showLineNumbers = true;
 
     htmlEditor = editorFactory.createFromElement(querySelector('#html-editor'),

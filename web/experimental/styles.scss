@@ -252,7 +252,23 @@ body {
 }
 
 #main-menu {
-  width: 192px;
+  width: 204px;
+
+  .mdc-list-item {
+    height: 40px;
+
+    .mdc-list-item__graphic {
+      margin-right: 8px;
+
+      .mdc-select__icon {
+        font-size: 16px;
+      }
+    }
+
+    .mdc-list-item__text {
+      font-size: 14px;
+    }
+  }
 }
 
 .mdc-tab__content {
