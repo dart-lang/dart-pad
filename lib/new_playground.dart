@@ -5,7 +5,6 @@
 library new_playground;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:html' hide Console;
 
 import 'package:dart_pad/editing/editor_codemirror.dart';
@@ -213,15 +212,17 @@ class Playground implements GistContainer, GistController {
     var element = querySelector('#samples-menu');
 
     // Use SplayTreeMap to keep the order of the keys
-    var samples = SplayTreeMap()
-      ..addEntries([
-        MapEntry('215ba63265350c02dfbd586dfd30b8c3', 'Hello World'),
-        MapEntry('e93b969fed77325db0b848a85f1cf78e', 'Int to Double'),
-        MapEntry('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins'),
-        MapEntry('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci'),
-        MapEntry('a559420eed617dab7a196b5ea0b64fba', 'Sunflower'),
-        MapEntry('cb9b199b1085873de191e32a1dd5ca4f', 'WebSockets'),
-      ]);
+    var samples = [
+      Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World'),
+      Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double'),
+      Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins'),
+      Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci'),
+      Sample('a559420eed617dab7a196b5ea0b64fba', 'Sunflower'),
+      Sample('cb9b199b1085873de191e32a1dd5ca4f', 'WebSockets'),
+      Sample('67acac89cb32605b61dea6f26adb5dc9', 'Flutter Hello World'),
+      Sample('9e574ab997b3217fcef3f600d0c6954c', 'Flutter Todo App'),
+      Sample('b70710dde62f636bccfec5a1cfaa6bc4', 'Flutter Sliding Square'),
+    ];
 
     var listElement = UListElement()
       ..classes.add('mdc-list')
@@ -246,8 +247,8 @@ class Playground implements GistContainer, GistController {
         );
     }
 
-    for (var gistId in samples.keys) {
-      listElement.children.add(_menuElement(gistId, samples[gistId]));
+    for (var sample in samples) {
+      listElement.children.add(_menuElement(sample.gistId, sample.name));
     }
 
     samplesMenu = MDCMenu(element)
@@ -257,7 +258,7 @@ class Playground implements GistContainer, GistController {
 
     samplesMenu.listen('MDCMenu:selected', (e) {
       var index = (e as CustomEvent).detail['index'];
-      var gistId = samples.keys.elementAt(index);
+      var gistId = samples.elementAt(index).gistId;
       router.go('gist', {'gist': gistId});
     });
   }
@@ -1236,4 +1237,10 @@ class NewPadDialog {
       return v;
     });
   }
+}
+
+class Sample {
+  final String gistId;
+  final String name;
+  Sample(this.gistId, this.name);
 }
