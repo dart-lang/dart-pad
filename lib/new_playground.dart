@@ -5,7 +5,6 @@
 library new_playground;
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:html' hide Console;
 
 import 'package:dart_pad/editing/editor_codemirror.dart';
