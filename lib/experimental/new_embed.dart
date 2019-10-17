@@ -238,22 +238,20 @@ class NewEmbed {
     menu.listen('MDCMenu:selected', (e) {
       final selectedIndex = (e as CustomEvent).detail['index'];
       switch (selectedIndex) {
-        case 0: // Show Test Code
-          {
-            _showTestCode = !_showTestCode;
-            showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
-            tabController.setTabVisibility('test', _showTestCode);
-            break;
-          }
-        case 1: // Editable test/solution
-          {
-            _editableTestSolution = !_editableTestSolution;
-            editableTestSolutionCheckmark.toggleClass(
-                'hide', !_editableTestSolution);
-            testEditor.readOnly =
-                solutionEditor.readOnly = !_editableTestSolution;
-            break;
-          }
+        case 0:
+          // Show test code
+          _showTestCode = !_showTestCode;
+          showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
+          tabController.setTabVisibility('test', _showTestCode);
+          break;
+        case 1:
+          // Editable test/solution
+          _editableTestSolution = !_editableTestSolution;
+          editableTestSolutionCheckmark.toggleClass(
+              'hide', !_editableTestSolution);
+          testEditor.readOnly =
+              solutionEditor.readOnly = !_editableTestSolution;
+          break;
       }
     });
 
