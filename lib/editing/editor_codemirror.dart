@@ -261,7 +261,7 @@ class _CodeMirrorEditor extends Editor {
   bool get readOnly => cm.getReadOnly();
 
   @override
-  set readOnly(bool ro) => cm.setReadOnly(ro, true);
+  set readOnly(bool ro) => cm.setReadOnly(ro);
 
   @override
   bool get showLineNumbers => cm.getLineNumbers();
