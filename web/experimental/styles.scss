@@ -75,6 +75,10 @@ body {
   flex-direction: column;
 }
 
+#hint-box .custom-scrollbar {
+  margin-right: 20px;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 9px;
