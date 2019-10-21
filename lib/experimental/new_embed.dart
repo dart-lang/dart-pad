@@ -413,7 +413,7 @@ class NewEmbed {
         lastInjectedSourceCode = Map<String, String>.from(data['sourceCode']);
         _resetCode();
 
-        if(autoRunEnabled) {
+        if (autoRunEnabled) {
           _handleExecute();
         }
       }
@@ -603,7 +603,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
         _performAnalysis();
       }
 
-      if(autoRunEnabled) {
+      if (autoRunEnabled) {
         _handleExecute();
       }
     } on GistLoaderException catch (ex) {
