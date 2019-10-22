@@ -236,24 +236,24 @@ class Playground implements GistContainer, GistController {
 
     // Helper function to create LIElement with correct attributes and classes
     // for material-components-web
-    LIElement _menuElement(String gistId, String name, Layout layout) {
+    LIElement _menuElement(Sample sample) {
       return LIElement()
         ..classes.add('mdc-list-item')
         ..attributes.addAll({'role': 'menuitem'})
         ..children.add(
           ImageElement()
-            ..classes.add('mdc-list-item__icon')
-            ..src = 'pictures/logo_${layout.toString().split('.').last}.png',
+            ..classes.add('mdc-list-item__graphic')
+            ..src = 'pictures/logo_${sample.layout.toString().split('.').last}.png',
         )
         ..children.add(
           SpanElement()
             ..classes.add('mdc-list-item__text')
-            ..text = name,
+            ..text = sample.name,
         );
     }
 
     for (var sample in samples) {
-      listElement.children.add(_menuElement(sample.gistId, sample.name, sample.layout));
+      listElement.children.add(_menuElement(sample));
     }
 
     samplesMenu = MDCMenu(element)
