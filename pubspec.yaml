@@ -9,9 +9,9 @@ dependencies:
   _discoveryapis_commons: 0.1.9
   analyzer: ^0.38.0
   analysis_server_lib: ^0.1.4
-  appengine: ^0.10.0
+  appengine: ^0.10.3
   args: ^1.5.2
-  bazel_worker: ^0.1.21
+  bazel_worker: ^0.1.23
   crypto: ^2.0.0
   dartis: ^0.3.0
   http: ^0.12.0
