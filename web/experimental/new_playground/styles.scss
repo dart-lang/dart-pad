@@ -532,6 +532,12 @@ a {
   }
 }
 
+#samples-menu .mdc-list-item__graphic {
+    height: auto;
+    width: 20px;
+    margin-right: 14px;
+}
+
 // responsive layout
 @media screen and (max-width: 850px) {
   #new-button {
