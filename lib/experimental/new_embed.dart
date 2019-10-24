@@ -26,6 +26,7 @@ import '../services/execution_iframe.dart';
 import '../sharing/gists.dart';
 import '../src/util.dart';
 import 'analysis_results_controller.dart';
+import 'button.dart';
 import 'console.dart';
 import 'counter.dart';
 import 'dialog.dart';
@@ -73,12 +74,13 @@ class NewEmbed {
   final NewEmbedOptions options;
 
   var _executionButtonCount = 0;
-  DisableableButton executeButton;
-  DisableableButton reloadGistButton;
-  DisableableButton formatButton;
-  DisableableButton showHintButton;
-  DisableableButton copyCodeButton;
-  DisableableButton menuButton;
+  MDCButton executeButton;
+  MDCButton reloadGistButton;
+  MDCButton formatButton;
+  MDCButton showHintButton;
+  MDCButton copyCodeButton;
+  MDCButton openInDartPadButton;
+  MDCButton menuButton;
 
   DElement navBarElement;
   NewEmbedTabController tabController;
@@ -195,32 +197,37 @@ class NewEmbed {
 
     unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
 
-    executeButton =
-        DisableableButton(querySelector('#execute'), _handleExecute);
+    executeButton = MDCButton(querySelector('#execute'))
+      ..onClick.listen((_) => _handleExecute());
 
-    reloadGistButton = DisableableButton(querySelector('#reload-gist'), () {
-      if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
-        _loadAndShowGist();
-      } else {
-        _resetCode();
-      }
-    });
-
-    copyCodeButton =
-        DisableableButton(querySelector('#copy-code'), _handleCopyCode);
-
-    showHintButton = DisableableButton(querySelector('#show-hint'), () {
-      var hintElement = DivElement()..text = context.hint;
-      var showSolutionButton = AnchorElement()
-        ..style.cursor = 'pointer'
-        ..text = 'Show solution';
-      showSolutionButton.onClick.listen((_) {
-        tabController.selectTab('solution', force: true);
+    reloadGistButton = MDCButton(querySelector('#reload-gist'))
+      ..onClick.listen((_) {
+        if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
+          _loadAndShowGist();
+        } else {
+          _resetCode();
+        }
       });
-      hintBox.showElements([hintElement, showSolutionButton]);
-      ga?.sendEvent('view', 'hint');
-    })
-      ..hidden = true;
+
+    copyCodeButton = MDCButton(querySelector('#copy-code'), isIcon: true)
+      ..onClick.listen((_) => _handleCopyCode());
+    openInDartPadButton =
+        MDCButton(querySelector('#open-in-dartpad'), isIcon: true)
+          ..onClick.listen((_) => _handleOpenInDartPad());
+
+    showHintButton = MDCButton(querySelector('#show-hint'))
+      ..onClick.listen((_) {
+        var hintElement = DivElement()..text = context.hint;
+        var showSolutionButton = AnchorElement()
+          ..style.cursor = 'pointer'
+          ..text = 'Show solution';
+        showSolutionButton.onClick.listen((_) {
+          tabController.selectTab('solution', force: true);
+        });
+        hintBox.showElements([hintElement, showSolutionButton]);
+        ga?.sendEvent('view', 'hint');
+      })
+      ..element.hidden = true;
 
     tabController.setTabVisibility('test', false);
     showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
@@ -228,12 +235,13 @@ class NewEmbed {
         DElement(querySelector('#editable-test-solution-checkmark'));
 
     morePopover = DElement(querySelector('#more-popover'));
-    menuButton = DisableableButton(querySelector('#menu-button'), () {
-      menu.open = !menu.open;
-    });
+    menuButton = MDCButton(querySelector('#menu-button'), isIcon: true)
+      ..onClick.listen((_) {
+        menu.open = !menu.open;
+      });
     menu = MDCMenu(querySelector('#main-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
-      ..setAnchorElement(menuButton._element.element);
+      ..setAnchorElement(menuButton.element);
     menu.listen('MDCMenu:selected', (e) {
       final selectedIndex = (e as CustomEvent).detail['index'];
       switch (selectedIndex) {
@@ -254,10 +262,10 @@ class NewEmbed {
       }
     });
 
-    formatButton = DisableableButton(
-      querySelector('#format-code'),
-      _performFormat,
-    );
+    formatButton = MDCButton(querySelector('#format-code'))
+      ..onClick.listen(
+        (_) => _performFormat(),
+      );
 
     testResultBox = FlashBox(querySelector('#test-result-box'));
     hintBox = FlashBox(querySelector('#hint-box'));
@@ -386,7 +394,6 @@ class NewEmbed {
     linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
     linearProgress.determinate = false;
 
-    _initializeMaterialRipples();
     _initModules()
         .then((_) => _initNewEmbed())
         .then((_) => _emitReady())
@@ -559,6 +566,10 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
       _loadAndShowGist(analyze: false);
     }
 
+    if (gistId.isEmpty) {
+      openInDartPadButton.toggleAttr('hidden', true);
+    }
+
     // set enabled/disabled state of various buttons
     editorIsBusy = false;
   }
@@ -655,6 +666,10 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     textElement.remove();
   }
 
+  void _handleOpenInDartPad() {
+    window.open('https://dartpad.dev/$gistId', 'DartPad');
+  }
+
   String _getActiveSourceCode() {
     String activeSource;
     String activeTabName = tabController.selectedTab.name;
@@ -692,8 +707,8 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     context.hint = sources['hint.txt'] ?? '';
     tabController.setTabVisibility(
         'test', context.testMethod.isNotEmpty && _showTestCode);
-    menuButton.hidden = context.testMethod.isEmpty;
-    showHintButton?.hidden = context.hint.isEmpty;
+    menuButton.toggleAttr('hidden', context.testMethod.isEmpty);
+    showHintButton.element.hidden = context.hint.isEmpty;
     solutionTab?.toggleAttr('hidden', context.solution.isEmpty);
     editorIsBusy = false;
   }
@@ -898,13 +913,6 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
         doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
     if (focus) userCodeEditor.focus();
-  }
-
-  void _initializeMaterialRipples() {
-    MDCRipple(executeButton._element.element);
-    MDCRipple(reloadGistButton._element.element);
-    MDCRipple(formatButton._element.element);
-    MDCRipple(showHintButton._element.element);
   }
 }
 

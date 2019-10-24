@@ -193,20 +193,19 @@ body {
   position: relative;
 }
 
-#copy-code {
-  display: none;
+.editor-button-group {
   position: absolute;
   right: 0;
   top: 0;
-  z-index: 10;
+  // Set z-index below material dropdown but above the editor
+  z-index: 2;
+  margin-right: 20px;
+  margin-top: 4px;
+}
+
+#copy-code, #open-in-dartpad {
   font-size: 18px;
   color: $mdc-theme-primary;
-  margin-right: 8px;
-  margin-top: 4px;
-
-  &:hover {
-    display: block;
-  }
 }
 
 #editor-container {
