@@ -122,22 +122,28 @@ void defineTests() {
       });
     });
 
-    test('simple_quickFix', () {
-      return analysisServer
-          .getFixes(quickFixesCode, 25)
-          .then((FixesResponse results) {
-        expect(results.fixes.length, 1);
-        expect(results.fixes[0].offset, 24);
-        expect(results.fixes[0].length, 1); //we need an insertion
+    test('simple_quickFix', () async {
+      final results = await analysisServer.getFixes(quickFixesCode, 25);
 
-        // We should be getting an insert ; fix
-        expect(results.fixes[0].fixes.length, 1);
-        CandidateFix fix = results.fixes[0].fixes[0];
-        expect(fix.message.contains(';'), true);
-        expect(fix.edits[0].length, 0);
-        expect(fix.edits[0].offset, 25);
-        expect(fix.edits[0].replacement, ';');
-      });
+      expect(results.fixes.length, 2);
+
+      // Fixes are not guaranteed to arrive in a particular order.
+      results.fixes.sort((a, b) => a.offset.compareTo(b.offset));
+
+      expect(results.fixes[0].offset, 20);
+      expect(results.fixes[0].length, 1); // We need an insertion.
+
+      expect(results.fixes[1].offset, 24);
+      expect(results.fixes[1].length, 1); // We need an insertion.
+
+      expect(results.fixes[1].fixes.length, 1);
+
+      final candidateFix = results.fixes[1].fixes[0];
+
+      expect(candidateFix.message.contains(';'), true);
+      expect(candidateFix.edits[0].length, 0);
+      expect(candidateFix.edits[0].offset, 25);
+      expect(candidateFix.edits[0].replacement, ';');
     });
 
     test('simple_format', () async {
