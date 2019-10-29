@@ -29,6 +29,7 @@ import 'analysis_results_controller.dart';
 import 'console.dart';
 import 'counter.dart';
 import 'dialog.dart';
+import 'keymap.dart';
 
 const int defaultSplitterWidth = 6;
 
@@ -521,6 +522,9 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     }, 'Quick fix');
 
     keys.bind(['ctrl-enter', 'macctrl-enter'], _handleExecute, 'Run');
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
+      _showKeyboardDialog();
+    }, 'Shortcuts');
     keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
       _format();
     }, 'Format');
@@ -844,6 +848,10 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
         }
       });
     });
+  }
+
+  void _showKeyboardDialog() {
+    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
   void _format() async {

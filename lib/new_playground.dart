@@ -28,6 +28,7 @@ import 'experimental/analysis_results_controller.dart';
 import 'experimental/console.dart';
 import 'experimental/counter.dart';
 import 'experimental/dialog.dart';
+import 'experimental/keymap.dart';
 import 'experimental/material_tab_controller.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
@@ -219,9 +220,12 @@ class Playground implements GistContainer, GistController {
       Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
       Sample('a559420eed617dab7a196b5ea0b64fba', 'Sunflower', Layout.web),
       Sample('cb9b199b1085873de191e32a1dd5ca4f', 'WebSockets', Layout.web),
-      Sample('67acac89cb32605b61dea6f26adb5dc9', 'Flutter Hello World', Layout.flutter),
-      Sample('9e574ab997b3217fcef3f600d0c6954c', 'Flutter Todo App', Layout.flutter),
-      Sample('b70710dde62f636bccfec5a1cfaa6bc4', 'Flutter Sliding Square', Layout.flutter),
+      Sample('67acac89cb32605b61dea6f26adb5dc9', 'Flutter Hello World',
+          Layout.flutter),
+      Sample('9e574ab997b3217fcef3f600d0c6954c', 'Flutter Todo App',
+          Layout.flutter),
+      Sample('b70710dde62f636bccfec5a1cfaa6bc4', 'Flutter Sliding Square',
+          Layout.flutter),
     ];
 
     var listElement = UListElement()
@@ -243,7 +247,8 @@ class Playground implements GistContainer, GistController {
         ..children.add(
           ImageElement()
             ..classes.add('mdc-list-item__graphic')
-            ..src = 'pictures/logo_${sample.layout.toString().split('.').last}.png',
+            ..src =
+                'pictures/logo_${sample.layout.toString().split('.').last}.png',
         )
         ..children.add(
           SpanElement()
@@ -990,29 +995,6 @@ enum Layout {
   flutter,
   dart,
   web,
-}
-
-// HTML for keyboard shortcuts dialog
-String keyMapToHtml(Map<Action, Set<String>> keyMap) {
-  DListElement dl = DListElement();
-  keyMap.forEach((Action action, Set<String> keys) {
-    if (!action.hidden) {
-      String string = '';
-      for (final key in keys) {
-        if (makeKeyPresentable(key) != null) {
-          string += '<span>${makeKeyPresentable(key)}</span>';
-        }
-      }
-      dl.innerHtml += '<dt>$action</dt><dd>$string</dd>';
-    }
-  });
-
-  var keysDialogDiv = DivElement()
-    ..children.add(dl)
-    ..classes.add('keys-dialog');
-  var div = DivElement()..children.add(keysDialogDiv);
-
-  return div.innerHtml;
 }
 
 enum TabState {
