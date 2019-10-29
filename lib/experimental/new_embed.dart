@@ -667,7 +667,12 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
   }
 
   void _handleOpenInDartPad() {
-    window.open('https://dartpad.dev/$gistId', 'DartPad');
+    window.open('/embed-$_modeName.html?id=$gistId', 'DartPad_$gistId');
+  }
+
+  /// Returns the name of the current embed mode (html, flutter, inline, dart)
+  String get _modeName {
+    return options.mode.toString().split('.').last;
   }
 
   String _getActiveSourceCode() {
