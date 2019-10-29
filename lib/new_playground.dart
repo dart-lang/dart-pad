@@ -440,6 +440,9 @@ class Playground implements GistContainer, GistController {
     keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
       _showKeyboardDialog();
     }, 'Shortcuts');
+    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
+      _format();
+    }, 'Format');
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||

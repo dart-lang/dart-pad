@@ -256,7 +256,7 @@ class NewEmbed {
 
     formatButton = DisableableButton(
       querySelector('#format-code'),
-      _performFormat,
+      _format,
     );
 
     testResultBox = FlashBox(querySelector('#test-result-box'));
@@ -521,6 +521,9 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     }, 'Quick fix');
 
     keys.bind(['ctrl-enter', 'macctrl-enter'], _handleExecute, 'Run');
+    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
+      _format();
+    }, 'Format');
 
     document.onKeyUp.listen(_handleAutoCompletion);
 
@@ -843,7 +846,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     });
   }
 
-  void _performFormat() async {
+  void _format() async {
     String originalSource = userCodeEditor.document.value;
     SourceRequest input = SourceRequest()..source = originalSource;
 
