@@ -109,3 +109,8 @@
   padding-left: 5px;
   line-height: 20px;
 }
+
+// ie support for hidden
+html [hidden] {
+  display: none !important;
+}
