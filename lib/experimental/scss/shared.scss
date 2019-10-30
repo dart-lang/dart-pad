@@ -143,3 +143,8 @@
     display: inline-block;
   }
 }
+
+// ie support for hidden
+html [hidden] {
+  display: none !important;
+}

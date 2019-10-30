@@ -25,6 +25,7 @@ import 'editing/editor.dart';
 import 'elements/bind.dart';
 import 'elements/elements.dart';
 import 'experimental/analysis_results_controller.dart';
+import 'experimental/button.dart';
 import 'experimental/console.dart';
 import 'experimental/counter.dart';
 import 'experimental/dialog.dart';
@@ -981,14 +982,6 @@ class Playground implements GistContainer, GistController {
 
     editor.focus();
   }
-}
-
-/// Adds a ripple effect to material design buttons
-class MDCButton extends DButton {
-  final MDCRipple ripple;
-  MDCButton(ButtonElement element, {bool isIcon = false})
-      : ripple = MDCRipple(element)..unbounded = isIcon,
-        super(element);
 }
 
 enum Layout {
