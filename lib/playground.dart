@@ -222,7 +222,7 @@ class Playground implements GistContainer, GistController {
       Future<PadSaveObject> exportPad =
           dartSupportServices.pullExportContent(requestId);
       await exportPad.then((pad) {
-        Gist blankGist = createSampleGist();
+        Gist blankGist = createSampleDartGist();
         blankGist.getFile('main.dart').content = pad.dart;
         blankGist.getFile('index.html').content = pad.html;
         blankGist.getFile('styles.css').content = pad.css;
@@ -254,7 +254,7 @@ class Playground implements GistContainer, GistController {
         editableGist.getGistFile(file.name).content = file.content;
       }
     } else {
-      editableGist.setBackingGist(createSampleGist());
+      editableGist.setBackingGist(createSampleDartGist());
     }
 
     _clearOutput();

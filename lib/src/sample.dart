@@ -11,3 +11,20 @@ void main() {
   }
 }
 ''';
+
+final String dartCodeHtml = r'''
+// Dart HTML code!
+''';
+
+final String htmlCode = r'''
+/* HTML! */
+''';
+
+final String cssCode = r'''
+
+/* CSS! */
+''';
+
+final String flutterCode = r'''
+// Flutter!
+''';

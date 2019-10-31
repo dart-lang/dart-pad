@@ -544,6 +544,10 @@ class Playground implements GistContainer, GistController {
     }
   }
 
+  Future showNewFlutter(RouteEnterEvent event) {
+
+  }
+
   Future showHome(RouteEnterEvent event) async {
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
@@ -554,32 +558,6 @@ class Playground implements GistContainer, GistController {
         url.queryParameters['id'] != null &&
         isLegalGistId(url.queryParameters['id'])) {
       _showGist(url.queryParameters['id']);
-    } else if (url.hasQuery && url.queryParameters['export'] != null) {
-      UuidContainer requestId = UuidContainer()
-        ..uuid = url.queryParameters['export'];
-      Future<PadSaveObject> exportPad =
-          dartSupportServices.pullExportContent(requestId);
-      await exportPad.then((pad) {
-        Gist blankGist = createSampleGist();
-        blankGist.getFile('main.dart').content = pad.dart;
-        blankGist.getFile('index.html').content = pad.html;
-        blankGist.getFile('styles.css').content = pad.css;
-        editableGist.setBackingGist(blankGist);
-      });
-    } else if (url.hasQuery && url.queryParameters['source'] != null) {
-      UuidContainer gistId = await dartSupportServices.retrieveGist(
-          id: url.queryParameters['source']);
-      Gist backing;
-
-      try {
-        backing = await gistLoader.loadGist(gistId.uuid);
-      } catch (ex) {
-        print(ex);
-        backing = Gist();
-      }
-
-      editableGist.setBackingGist(backing);
-      await router.go('gist', {'gist': backing.id});
     } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       loadedFromSaved = true;
 
