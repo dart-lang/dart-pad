@@ -531,7 +531,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     keys.bind(['ctrl-enter', 'macctrl-enter'], _handleExecute, 'Run');
     keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
       _showKeyboardDialog();
-    }, 'Shortcuts');
+    }, 'Keyboard Shortcuts');
     keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
       _format();
     }, 'Format');
