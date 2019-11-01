@@ -30,6 +30,7 @@ import 'button.dart';
 import 'console.dart';
 import 'counter.dart';
 import 'dialog.dart';
+import 'keymap.dart';
 
 const int defaultSplitterWidth = 6;
 
@@ -264,7 +265,7 @@ class NewEmbed {
 
     formatButton = MDCButton(querySelector('#format-code'))
       ..onClick.listen(
-        (_) => _performFormat(),
+        (_) => _format(),
       );
 
     testResultBox = FlashBox(querySelector('#test-result-box'));
@@ -528,6 +529,12 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     }, 'Quick fix');
 
     keys.bind(['ctrl-enter', 'macctrl-enter'], _handleExecute, 'Run');
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
+      _showKeyboardDialog();
+    }, 'Keyboard Shortcuts');
+    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
+      _format();
+    }, 'Format');
 
     document.onKeyUp.listen(_handleAutoCompletion);
 
@@ -863,7 +870,11 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     });
   }
 
-  void _performFormat() async {
+  void _showKeyboardDialog() {
+    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
+  }
+
+  void _format() async {
     String originalSource = userCodeEditor.document.value;
     SourceRequest input = SourceRequest()..source = originalSource;
 

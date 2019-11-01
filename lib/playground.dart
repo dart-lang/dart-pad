@@ -439,7 +439,7 @@ class Playground implements GistContainer, GistController {
       } else {
         settings.show();
       }
-    }, 'Shortcuts');
+    }, 'Keyboard Shortcuts');
 
     settings = KeysDialog(keys.inverseBindings);
 

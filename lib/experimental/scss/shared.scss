@@ -110,6 +110,40 @@
   line-height: 20px;
 }
 
+// Keys dialog
+.mdc-dialog__surface {
+  // Make the dialog a minimum of 400px to best display the keyboard dialog
+  min-width: 512px !important;
+}
+
+.keys-dialog {
+  top: auto !important;
+  bottom: 20px;
+
+  dl {
+    padding: 0.5em;
+  }
+
+  dt {
+    float: left;
+    clear: left;
+  }
+  dd {
+    text-align: right;
+  }
+  dd > span {
+    font-family: "Helvetica Neue", "Inconsolata", monospace;
+    padding: 0 4px;
+    font-size: 10pt;
+    color: $dark-blue;
+    border: 1px solid $dark-blue;
+    border-radius: 2px;
+    margin: 2px 2px;
+    white-space: nowrap;
+    display: inline-block;
+  }
+}
+
 // ie support for hidden
 html [hidden] {
   display: none !important;

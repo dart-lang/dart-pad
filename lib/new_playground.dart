@@ -29,6 +29,7 @@ import 'experimental/button.dart';
 import 'experimental/console.dart';
 import 'experimental/counter.dart';
 import 'experimental/dialog.dart';
+import 'experimental/keymap.dart';
 import 'experimental/material_tab_controller.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
@@ -444,7 +445,10 @@ class Playground implements GistContainer, GistController {
 
     keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
       _showKeyboardDialog();
-    }, 'Shortcuts');
+    }, 'Keyboard Shortcuts');
+    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
+      _format();
+    }, 'Format');
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
@@ -962,29 +966,6 @@ enum Layout {
   flutter,
   dart,
   web,
-}
-
-// HTML for keyboard shortcuts dialog
-String keyMapToHtml(Map<Action, Set<String>> keyMap) {
-  DListElement dl = DListElement();
-  keyMap.forEach((Action action, Set<String> keys) {
-    if (!action.hidden) {
-      String string = '';
-      for (final key in keys) {
-        if (makeKeyPresentable(key) != null) {
-          string += '<span>${makeKeyPresentable(key)}</span>';
-        }
-      }
-      dl.innerHtml += '<dt>$action</dt><dd>$string</dd>';
-    }
-  });
-
-  var keysDialogDiv = DivElement()
-    ..children.add(dl)
-    ..classes.add('keys-dialog');
-  var div = DivElement()..children.add(keysDialogDiv);
-
-  return div.innerHtml;
 }
 
 enum TabState {
