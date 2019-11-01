@@ -55,7 +55,7 @@ Gist createSampleDartGist() {
   return gist;
 }
 
-Gist createSampleWebGist() {
+Gist createSampleHtmlGist() {
   Gist gist = Gist();
   gist.description = Haikunator.haikunate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCodeHtml));
