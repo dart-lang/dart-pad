@@ -18,7 +18,7 @@
   "homepage": "https://github.com/PolymerElements/font-roboto/",
   "devDependencies": {
     "@polymer/gen-typescript-declarations": "^1.1.1",
-    "bower": "^1.8.0"
+    "bower": "^1.8.8"
   },
   "scripts": {
     "update-types": "bower install && gen-typescript-declarations --deleteExisting --outDir ."
