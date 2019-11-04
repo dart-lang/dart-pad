@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data' show Uint8List;
 
@@ -15,13 +16,13 @@ Logger _logger = Logger('flutter_web');
 
 /// Handle provisioning package:flutter_web and related work.
 class FlutterWebManager {
-  final String sdkPath;
+  final FlutterSdk flutterSdk;
 
   Directory _projectDirectory;
 
   bool _initedFlutterWeb = false;
 
-  FlutterWebManager(this.sdkPath) {
+  FlutterWebManager(this.flutterSdk) {
     _projectDirectory = Directory.systemTemp.createTempSync('dartpad');
     _init();
   }
@@ -71,26 +72,25 @@ $_samplePackageName:lib/
 
     await _runPubGet();
 
-    final String sdkVersion = SdkManager.sdk.version;
+    final String sdkVersion = flutterSdk.versionFull;
 
-    // download and save the flutter_web.sum file
+    // Download and save the flutter_web.dill file.
     String url = 'https://storage.googleapis.com/compilation_artifacts/'
-        '$sdkVersion/flutter_web.sum';
+        '$sdkVersion/flutter_web.dill';
+
     Uint8List summaryContents = await http.readBytes(url);
-    await File(path.join(_projectDirectory.path, 'flutter_web.sum'))
+    await File(path.join(_projectDirectory.path, 'flutter_web.dill'))
         .writeAsBytes(summaryContents);
 
     _initedFlutterWeb = true;
   }
 
   String get summaryFilePath {
-    return path.join(_projectDirectory.path, 'flutter_web.sum');
+    return path.join(_projectDirectory.path, 'flutter_web.dill');
   }
 
   static final Set<String> _flutterWebImportPrefixes = <String>{
-    'package:flutter_web',
-    'package:flutter_web_ui',
-    'package:flutter_web_test',
+    'package:flutter',
   };
 
   bool usesFlutterWeb(Set<String> imports) {
@@ -133,12 +133,14 @@ $_samplePackageName:lib/
   }
 
   Future<void> _runPubGet() async {
-    _logger.info('running pub get (${_projectDirectory.path})');
+    _logger.info('running flutter pub get (${_projectDirectory.path})');
 
     ProcessResult result = await Process.run(
-      path.join(sdkPath, 'bin', 'pub'),
-      <String>['get', '--no-precompile'],
+      path.join(flutterSdk.flutterBinPath, 'flutter'),
+      ['packages', 'get'],
       workingDirectory: _projectDirectory.path,
+      stderrEncoding: utf8,
+      stdoutEncoding: utf8,
     );
 
     _logger.info('${result.stdout}'.trim());
@@ -147,7 +149,7 @@ $_samplePackageName:lib/
       _logger.warning('pub get failed: ${result.exitCode}');
       _logger.warning(result.stderr);
 
-      throw 'pub get failed: ${result.exitCode}';
+      throw 'pub get failed: ${result.exitCode}: ${result.stderr}';
     }
   }
 
@@ -161,25 +163,10 @@ name: $_samplePackageName
     if (includeFlutterWeb) {
       content += '''
 dependencies:
-  flutter_web:
-    git:
-      url: https://github.com/flutter/flutter_web
-      path: packages/flutter_web
-  flutter_web_test:
-    git:
-      url: https://github.com/flutter/flutter_web
-      path: packages/flutter_web_test
-  flutter_web_ui:
-    git:
-      url: https://github.com/flutter/flutter_web
-      path: packages/flutter_web_ui
-dependency_overrides:
-  flutter_web:
-    path: ${Directory.current.path}/flutter_web/packages/flutter_web
-  flutter_web_test:
-    path: ${Directory.current.path}/flutter_web/packages/flutter_web_test
-  flutter_web_ui:
-    path: ${Directory.current.path}/flutter_web/packages/flutter_web_ui
+  flutter:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
 ''';
     }
 

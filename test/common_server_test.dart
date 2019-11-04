@@ -298,7 +298,7 @@ void defineTests() {
     setUpAll(() async {
       container = MockContainer();
       cache = MockCache();
-      flutterWebManager = FlutterWebManager(sdkPath);
+      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
 
       server = CommonServer(sdkPath, flutterWebManager, container, cache);
       await server.init();

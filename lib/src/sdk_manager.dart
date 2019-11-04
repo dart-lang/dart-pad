@@ -11,11 +11,21 @@ import 'package:path/path.dart' as path;
 class SdkManager {
   static Sdk get sdk => _sdk ?? (_sdk = PlatformSdk());
 
+  static FlutterSdk get flutterSdk => _flutterSdk ?? (_flutterSdk = FlutterSdk());
+
   static void setSdk(Sdk value) {
     _sdk = sdk;
   }
 
+  static void setFlutterSdk(FlutterSdk value) {
+    _flutterSdk = value;
+  }
+
+  // The installed Dart SDK.
   static Sdk _sdk;
+
+  // The installed Flutter SDK.
+  static FlutterSdk _flutterSdk;
 }
 
 abstract class Sdk {
@@ -37,6 +47,7 @@ abstract class Sdk {
   String get sdkPath;
 }
 
+/// Represents a Dart SDK present on the server.
 class PlatformSdk extends Sdk {
   String _versionFull = '';
 
@@ -44,7 +55,6 @@ class PlatformSdk extends Sdk {
   Future<void> init() async {
     _versionFull =
         (await File(path.join(sdkPath, 'version')).readAsString()).trim();
-    return;
   }
 
   @override
@@ -52,4 +62,28 @@ class PlatformSdk extends Sdk {
 
   @override
   String get sdkPath => path.dirname(path.dirname(Platform.resolvedExecutable));
+}
+
+/// Represents a Flutter SDK installation (which includes its own version of the
+/// Dart SDK) present on the server.
+class FlutterSdk extends Sdk {
+  String _versionFull = '';
+
+  @override
+  Future<void> init() async {
+    if (Platform.environment['FLUTTER_SDK'] == null) {
+      throw Exception('No FLUTTER_SDK env var set.');
+    }
+
+    _versionFull =
+        (await File(path.join(sdkPath, 'version')).readAsString()).trim();
+  }
+
+  @override
+  String get sdkPath => '$flutterBinPath/cache/dart-sdk/';
+
+  String get flutterBinPath => '${Platform.environment['FLUTTER_SDK']}/bin';
+
+  @override
+  String get versionFull => _versionFull;
 }

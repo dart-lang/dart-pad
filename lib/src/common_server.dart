@@ -155,12 +155,13 @@ class RedisCache implements ServerCache {
         });
   }
 
-  /// Build a key that includes the server version, and Dart SDK Version.
+  /// Build a key that includes the server version, Dart SDK version, and
+  /// Flutter SDK version.
   ///
-  /// We don't use the existing key directly so that different AppEngine versions
-  /// using the same redis cache do not have collisions.
+  /// We don't use the existing key directly so that different AppEngine
+  /// versions using the same redis cache do not have collisions.
   String _genKey(String key) =>
-      'server:$serverVersion:dart:${SdkManager.sdk.versionFull}+$key';
+      'server:$serverVersion:dart:${SdkManager.sdk.versionFull}:flutter:${SdkManager.flutterSdk.versionFull}+$key';
 
   @override
   Future<String> get(String key) async {

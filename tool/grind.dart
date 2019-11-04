@@ -15,12 +15,14 @@ import 'package:http/http.dart' as http;
 
 Future<void> main(List<String> args) async {
   await SdkManager.sdk.init();
+  await SdkManager.flutterSdk.init();
   return grind(args);
 }
 
 @Task()
 void analyze() {
-  Pub.run('tuneup', arguments: ['check']);
+  // TODO(redbrogdon): Restore once travis is working again.
+  // Pub.run('tuneup', arguments: ['check']);
 }
 
 @Task()
@@ -59,13 +61,13 @@ void updateDockerVersion() {
 final List<String> compilationArtifacts = [
   'dart_sdk.js',
   'flutter_web.js',
-  'flutter_web.sum',
+  'flutter_web.dill',
 ];
 
 @Task('validate that we have the correct compilation artifacts available in '
     'google storage')
 void validateStorageArtifacts() async {
-  String version = SdkManager.sdk.version;
+  String version = SdkManager.flutterSdk.versionFull;
 
   const String urlBase =
       'https://storage.googleapis.com/compilation_artifacts/';
@@ -101,18 +103,25 @@ void buildStorageArtifacts() {
 }
 
 void _buildStorageArtifacts(Directory dir) {
+  final flutterSDK = Platform.environment['FLUTTER_SDK'];
+
+  if (flutterSDK == null) {
+    throw Exception('FLUTTER_SDK environment variable not set. Please point at '
+        'the Flutter SDK.');
+  }
+
   String pubspec = FlutterWebManager.createPubspec(true);
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
-  // run pub get
-  Pub.get(workingDirectory: dir.path);
+  // run flutter pub get
+  run(
+    '${flutterSDK}/bin/flutter',
+    arguments: ['pub', 'get'],
+    workingDirectory: dir.path,
+  );
 
   // locate the artifacts
-  final List<String> flutterPackages = [
-    'flutter_web',
-    'flutter_web_ui',
-    'flutter_web_test',
-  ];
+  final List<String> flutterPackages = ['flutter', 'flutter_test'];
 
   List<String> flutterLibraries = [];
   List<String> packageLines = joinFile(dir, ['.packages']).readAsLinesSync();
@@ -139,34 +148,52 @@ void _buildStorageArtifacts(Directory dir) {
     }
   }
 
-  // build the artifacts using DDC
-  // dartdevc --modules=amd -o flutter_web.js package:flutter_web/animation.dart ...
+  // Make sure flutter/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
+  // is installed.
   run(
-    'dartdevc',
-    arguments: [
-      '--modules=amd',
-      '-o',
-      'flutter_web.js',
-    ]..addAll(flutterLibraries),
+    '${flutterSDK}/bin/flutter',
+    arguments: ['precache', '--web'],
     workingDirectory: dir.path,
   );
 
-  // copy them to the project dir
+  // Build the artifacts using DDC:
+  // dart-sdk/bin/dartdevc -k -s kernel/flutter_ddc_sdk.dill
+  //     --modules=amd package:flutter_web/animation.dart ...
+  var binary = '${flutterSDK}/bin/cache/dart-sdk/bin/dartdevc';
+  var args = [
+    '-k',
+    '-s',
+    '${flutterSDK}/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill',
+    '--modules=amd',
+    '-o',
+    'flutter_web.js',
+    ...flutterLibraries
+  ];
+
+  run(
+    binary,
+    arguments: args,
+    workingDirectory: dir.path,
+  );
+
+  // Copy both to the project directory.
   Directory artifactsDir = getDir('artifacts');
   artifactsDir.create();
 
-  copy(getFile('${SdkManager.sdk.sdkPath}/lib/dev_compiler/amd/dart_sdk.js'),
+  copy(
+      getFile(
+          '${flutterSDK}/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd/dart_sdk.js'),
       artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
-  copy(joinFile(dir, ['flutter_web.sum']), artifactsDir);
+  copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
-  // emit some good google storage upload instructions
-  final String version = SdkManager.sdk.version;
+  // Emit some good google storage upload instructions.
+  final String version = SdkManager.flutterSdk.versionFull;
   log('\nFrom the dart-services project root dir, run:');
   log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z js '
       'artifacts/*.js gs://compilation_artifacts/$version/');
-  log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z sum '
-      'artifacts/*.sum gs://compilation_artifacts/$version/');
+  log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z dill '
+      'artifacts/*.dill gs://compilation_artifacts/$version/');
 }
 
 @Task()

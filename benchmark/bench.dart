@@ -6,6 +6,7 @@ library services.bench;
 
 import 'dart:async';
 
+import 'package:dart_services/src/sdk_manager.dart';
 import 'package:logging/logging.dart';
 
 import 'package:dart_services/src/analysis_server.dart';
@@ -19,7 +20,8 @@ void main(List<String> args) async {
 
   final BenchmarkHarness harness = BenchmarkHarness(asJson: json);
 
-  final FlutterWebManager flutterWebManager = FlutterWebManager(sdkPath);
+  final FlutterWebManager flutterWebManager =
+      FlutterWebManager(SdkManager.flutterSdk);
   await flutterWebManager.initFlutterWeb();
 
   var compiler = Compiler(sdkPath, flutterWebManager);

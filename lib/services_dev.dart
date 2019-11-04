@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
+import 'package:dart_services/src/sdk_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart';
 import 'package:shelf/shelf.dart';
@@ -50,7 +51,7 @@ void main(List<String> args) {
     if (result['relay'] as bool) {
       EndpointsServer.generateRelayDiscovery(sdk, serverUrl).then(printExit);
     } else {
-      EndpointsServer.generateDiscovery(sdk, serverUrl).then(printExit);
+      EndpointsServer.generateDiscovery(SdkManager.flutterSdk, serverUrl).then(printExit);
     }
     return;
   }
@@ -79,8 +80,8 @@ class EndpointsServer {
   }
 
   static Future<String> generateDiscovery(
-      String sdkPath, String serverUrl) async {
-    FlutterWebManager flutterWebManager = FlutterWebManager(sdkPath);
+      FlutterSdk flutterSdk, String serverUrl) async {
+    FlutterWebManager flutterWebManager = FlutterWebManager(flutterSdk);
     CommonServer commonServer =
         CommonServer(sdkPath, flutterWebManager, _ServerContainer(), _Cache());
     await commonServer.init();
@@ -124,7 +125,7 @@ class EndpointsServer {
   EndpointsServer._(String sdkPath, this.port) {
     discoveryEnabled = false;
 
-    flutterWebManager = FlutterWebManager(sdkPath);
+    flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     commonServer =
         CommonServer(sdkPath, flutterWebManager, _ServerContainer(), _Cache());
     commonServer.init();
