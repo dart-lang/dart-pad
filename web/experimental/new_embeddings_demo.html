@@ -69,6 +69,248 @@
         margin-bottom: 300px;
       }
     </style>
+
+    <script type="text/javascript">
+
+    const testSource = `void main() async {
+  await ui.webOnlyInitializePlatform();
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(),
+        ),
+      ),
+    ),
+  );
+}
+`;
+
+    const mainSources = [
+`import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Column(
+        children: [
+          Text('Lime'),
+          Text('9 calories'),
+          Text('Citrus'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('6'),
+              Icon(Icons.thumb_up),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('2'),
+              Icon(Icons.thumb_down),
+            ],
+          ),
+          Image.network('http://placekitten.com/100/120', height: 120),
+        ],
+      ),
+    );
+  }
+}
+`,
+`import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Lime'),
+          Text('9 calories'),
+          Text('Citrus'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('6'),
+              Icon(Icons.thumb_up),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('2'),
+              Icon(Icons.thumb_down),
+            ],
+          ),
+          Image.network('http://placekitten.com/100/120', height: 120),
+        ],
+      ),
+    );
+  }
+}`,
+`import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            height: 96,
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('Lime'),
+                Text('9 calories'),
+                Text('Citrus'),
+              ],
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('6'),
+              Icon(Icons.thumb_up),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('2'),
+              Icon(Icons.thumb_down),
+            ],
+          ),
+          Image.network('http://placekitten.com/100/120', height: 120),
+        ],
+      ),
+    );
+  }
+}`,
+`import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Lime'),
+                    Text('9 calories'),
+                    Text('Citrus'),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('6'),
+                  Icon(Icons.thumb_up),
+                ],
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('2'),
+                  Icon(Icons.thumb_down),
+                ],
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network('http://placekitten.com/100/120', height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`
+    ];
+
+    var isReady = false;
+
+    window.addEventListener('message', (event) => {
+        if (event.data['type'] === 'ready') {
+          if (event.source.frameElement.id === 'plaything-host') {
+            isReady = true;
+          }
+        }
+    });
+
+    window.addEventListener('load', (event) => {
+
+        const host = document.querySelector('#plaything-host');
+
+        for (var i = 0; i < 4; i++) {
+          const button = document.querySelector('#step' + i);
+          const source = mainSources[i];
+          const message = {
+            'sourceCode': {
+              'main.dart': source,
+              'test.dart': testSource
+            },
+            'autoRun': true,
+            'type': 'sourceCode'
+          };
+
+          button.addEventListener('click', (event) => {
+            if (isReady) {
+              host.contentWindow.postMessage(message, '*');
+            }
+          });
+        }
+
+    });
+
+    </script>
 </head>
 
 <body>
@@ -126,6 +368,15 @@
             <h3>Flutter with auto-run</h3>
 
             <iframe class="tall" src="../embed-flutter.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/flutter_all_files&split=60&run=true"></iframe>
+
+            <h3>Step-through</h3>
+
+            <button id="step0">Step Zero</button>
+            <button id="step1">Step One</button>
+            <button id="step2">Step Two</button>
+            <button id="step3">Step Three</button>
+
+            <iframe id="plaything-host" class="tall" src="../embed-flutter.html?split=60"></iframe>
 
         </div>
         <div class="col-md-1"></div>
