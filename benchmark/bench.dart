@@ -24,7 +24,8 @@ void main(List<String> args) async {
       FlutterWebManager(SdkManager.flutterSdk);
   await flutterWebManager.initFlutterWeb();
 
-  var compiler = Compiler(sdkPath, flutterWebManager);
+  var compiler =
+      Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
 
   Logger.root.level = Level.WARNING;
   Logger.root.onRecord.listen((LogRecord record) {

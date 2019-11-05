@@ -25,6 +25,31 @@ void main() {
 }
 """;
 
+const sampleCodeFlutter = """
+import 'package:flutter/material.dart';
+//import 'dart:ui' as ui;
+
+void main() async {
+//  await ui.webOnlyInitializePlatform();
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Hey there, boo!'),
+        ),
+        body: Center(
+          child: Text(
+            'You are pretty okay.',
+          ),
+        ),
+      ),
+    ),
+  );
+}
+""";
+
 const sampleCodeMultiFoo = """
 import 'bar.dart';
 
@@ -71,16 +96,6 @@ void main() {
 
 void foo(int i) {
   print(i);
-}
-""";
-
-const sampleDart2OK = """
-class Foo {
-  String toString() => 'hello';
-}
-
-void main(List<String> argv) {
-  print (Foo());
 }
 """;
 

@@ -22,34 +22,29 @@ Logger _logger = Logger('compiler');
 /// An interface to the dart2js compiler. A compiler object can process one
 /// compile at a time.
 class Compiler {
-  final String sdkPath;
-  final FlutterWebManager flutterWebManager;
+  final Sdk _sdk;
+  final FlutterSdk _flutterSdk;
+  final FlutterWebManager _flutterWebManager;
+  final String _dartdevcPath;
+  final BazelWorkerDriver _flutterDdcDriver;
 
-  final BazelWorkerDriver _ddcDriver;
-  String _sdkVersion;
-
-  Compiler(this.sdkPath, this.flutterWebManager)
-      : _ddcDriver = BazelWorkerDriver(
-            () => Process.start(path.join(sdkPath, 'bin', 'dartdevc'),
+  Compiler(this._sdk, this._flutterSdk, this._flutterWebManager)
+      : _dartdevcPath = path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
+        _flutterDdcDriver = BazelWorkerDriver(
+            () => Process.start(
+                path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
                 <String>['--persistent_worker']),
-            maxWorkers: 1) {
-    _sdkVersion = SdkManager.sdk.version;
-  }
+            maxWorkers: 1);
 
   bool importsOkForCompile(Set<String> imports) {
-    return !flutterWebManager.hasUnsupportedImport(imports);
-  }
-
-  /// The version of the SDK this copy of dart2js is based on.
-  String get version {
-    return File(path.join(sdkPath, 'version')).readAsStringSync().trim();
+    return !_flutterWebManager.hasUnsupportedImport(imports);
   }
 
   Future<CompilationResults> warmup({bool useHtml = false}) {
     return compile(useHtml ? sampleCodeWeb : sampleCode);
   }
 
-  /// Compile the given string and return the resulting [CompilationResults].
+  ///Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(
     String input, {
     bool returnSourceMap = false,
@@ -58,7 +53,7 @@ class Compiler {
     if (!importsOkForCompile(imports)) {
       return CompilationResults(problems: <CompilationProblem>[
         CompilationProblem._(
-          'unsupported import: ${flutterWebManager.getUnsupportedImport(imports)}',
+          'unsupported import: ${_flutterWebManager.getUnsupportedImport(imports)}',
         ),
       ]);
     }
@@ -69,12 +64,11 @@ class Compiler {
       List<String> arguments = <String>[
         '--suppress-hints',
         '--terse',
+        if (!returnSourceMap) '--no-source-maps',
+        '--packages=${_flutterWebManager.packagesFilePath}',
+        '-o$kMainDart.js',
+        kMainDart,
       ];
-      if (!returnSourceMap) arguments.add('--no-source-maps');
-
-      arguments.add('--packages=${flutterWebManager.packagesFilePath}');
-      arguments.add('-o$kMainDart.js');
-      arguments.add(kMainDart);
 
       String compileTarget = path.join(temp.path, kMainDart);
       File mainDart = File(compileTarget);
@@ -83,7 +77,7 @@ class Compiler {
       File mainJs = File(path.join(temp.path, '$kMainDart.js'));
       File mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
 
-      final String dart2JSPath = path.join(sdkPath, 'bin', 'dart2js');
+      final String dart2JSPath = path.join(_sdk.sdkPath, 'bin', 'dart2js');
       _logger.info('About to exec: $dart2JSPath $arguments');
 
       ProcessResult result = await Process.run(dart2JSPath, arguments,
@@ -115,50 +109,57 @@ class Compiler {
     }
   }
 
-  /// Compile the given string and return the resulting [DDCCompilationResults].
+  ///Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> compileDDC(String input) async {
-    final imports = getAllImportsFor(input);
+    Set<String> imports = getAllImportsFor(input);
     if (!importsOkForCompile(imports)) {
       return DDCCompilationResults.failed(<CompilationProblem>[
         CompilationProblem._(
-          'unsupported import: '
-              '${flutterWebManager.getUnsupportedImport(imports)}',
+          'unsupported import: ${_flutterWebManager.getUnsupportedImport(imports)}',
         ),
       ]);
     }
-    final temp = await Directory.systemTemp.createTemp('dartpad');
-    _logger.info('Temp directory created: ${temp.path}');
+
+    Directory temp = await Directory.systemTemp.createTemp('dartpad');
+
     try {
-      final compileTarget = path.join(temp.path, kMainDart);
-      final mainDart = File(compileTarget);
+      String compileTarget = path.join(temp.path, kMainDart);
+      File mainDart = File(compileTarget);
       await mainDart.writeAsString(input);
-      final arguments = [
+
+      List<String> arguments = <String>[
         '--modules=amd',
-        if (flutterWebManager.usesFlutterWeb(imports)) ...[
+        if (_flutterWebManager.usesFlutterWeb(imports)) ...[
           '-k',
           '-s',
-          flutterWebManager.summaryFilePath,
+          _flutterWebManager.summaryFilePath,
           '-s',
-          '${flutterWebManager.flutterSdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill'
+          '${_flutterSdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill'
         ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         '--single-out-file',
         ...['--module-name', 'dartpad_main'],
         compileTarget,
-        '--packages=${flutterWebManager.packagesFilePath}',
+        '--packages=${_flutterWebManager.packagesFilePath}',
       ];
-      final mainJs = File(path.join(temp.path, '$kMainDart.js'));
-      final response = await _ddcDriver
+
+      File mainJs = File(path.join(temp.path, '$kMainDart.js'));
+
+      _logger.info('About to exec "$_dartdevcPath ${arguments.join(' ')}"');
+      _logger.info('Compiling: $input');
+
+      final WorkResponse response = await _flutterDdcDriver
           .doWork(WorkRequest()..arguments.addAll(arguments));
+
       if (response.exitCode != 0) {
         return DDCCompilationResults.failed(<CompilationProblem>[
           CompilationProblem._(response.output),
         ]);
       } else {
-        final results = DDCCompilationResults(
+        final DDCCompilationResults results = DDCCompilationResults(
           compiledJS: await mainJs.readAsString(),
           modulesBaseUrl: 'https://storage.googleapis.com/'
-              'compilation_artifacts/${SdkManager.flutterSdk.versionFull}/',
+              'compilation_artifacts/${_flutterSdk.versionFull}/',
         );
         return results;
       }
@@ -171,7 +172,7 @@ class Compiler {
     }
   }
 
-  Future<void> dispose() => _ddcDriver.terminateWorkers();
+  Future<void> dispose() => _flutterDdcDriver.terminateWorkers();
 }
 
 /// The result of a dart2js compile.
@@ -214,6 +215,7 @@ class DDCCompilationResults {
 
   /// This is true if there were no errors.
   bool get success => problems.isEmpty;
+
   @override
   String toString() => success
       ? 'CompilationResults: Success'

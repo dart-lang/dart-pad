@@ -282,7 +282,8 @@ class CommonServer {
 
   Future<void> init() async {
     analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
-    compiler = Compiler(sdkPath, flutterWebManager);
+    compiler =
+        Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
 
     await analysisServer.init();
 
