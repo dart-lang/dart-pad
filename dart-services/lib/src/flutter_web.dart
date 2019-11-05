@@ -37,7 +37,7 @@ class FlutterWebManager {
 
   void _init() {
     // create a pubspec.yaml file
-    String pubspec = createPubspec(false);
+    String pubspec = createPubspec(true);
     File(path.join(_projectDirectory.path, 'pubspec.yaml'))
         .writeAsStringSync(pubspec);
 
@@ -135,22 +135,30 @@ $_samplePackageName:lib/
   Future<void> _runPubGet() async {
     _logger.info('running flutter pub get (${_projectDirectory.path})');
 
-    ProcessResult result = await Process.run(
+    final result = await Process.start(
       path.join(flutterSdk.flutterBinPath, 'flutter'),
-      ['packages', 'get'],
+      ['pub', 'get'],
       workingDirectory: _projectDirectory.path,
-      stderrEncoding: utf8,
-      stdoutEncoding: utf8,
+//      stderrEncoding: utf8,
+//      stdoutEncoding: utf8,
     );
+
+    result.stdout.transform(utf8.decoder).listen((data) {
+      print(data);
+    });
+
+    result.stderr.transform(utf8.decoder).listen((data) {
+      print(data);
+    });
 
     _logger.info('${result.stdout}'.trim());
 
-    if (result.exitCode != 0) {
-      _logger.warning('pub get failed: ${result.exitCode}');
-      _logger.warning(result.stderr);
-
-      throw 'pub get failed: ${result.exitCode}: ${result.stderr}';
-    }
+//    if (result.exitCode != 0) {
+//      _logger.warning('pub get failed: ${result.exitCode}');
+//      _logger.warning(result.stderr);
+//
+//      throw 'pub get failed: ${result.exitCode}: ${result.stderr}';
+//    }
   }
 
   static const String _samplePackageName = 'dartpad_sample';

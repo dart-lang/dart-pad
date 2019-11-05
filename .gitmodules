@@ -1,0 +1,3 @@
+[submodule "flutter"]
+	path = flutter
+	url = git@github.com:flutter/flutter
