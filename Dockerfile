@@ -1,5 +1,5 @@
 # Keep aligned with min SDK in pubspec.yaml and Dart test version in .travis.yml
-FROM google/dart:2.5.2
+FROM google/dart:2.6.0
 
 WORKDIR /app
 ADD tool/dart_run.sh /dart_runtime/
