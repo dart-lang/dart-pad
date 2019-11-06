@@ -15,9 +15,10 @@ sudo: false
 branches:
   only: [master]
 before_script:
-  - git clone https://github.com/flutter/flutter.git -b dev
+  - git submodule init
+  - git submodule update
   - export PATH=$PATH:$PWD/flutter/bin
-  - export FLUTTER_SDK=$PWD/flutter
   - flutter doctor
   - flutter config --enable-web
-script: ./tool/travis.sh
+  - flutter precache --web --no-android --no-ios --no-linux --no-windows --no-macos --no-fuchsia
+script: ./travis.sh
