@@ -158,9 +158,22 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     dart_sdk.dart.setStartAsyncSynchronously(true);
     dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
 
-    // Loads the `main` library and runs the main method from it.
-    dartpad_main.main.main();
-});
+    // Loads the `main` library and runs the main method from it. The module
+    // definition for dartpad_main produced by DDK exports an object that looks
+    // like this:
+    //
+    // {
+    //    tmp__[random directory name]__main: main
+    // }
+    //
+    // As a result, this code looks for a property ending in "__main", takes its
+    // value as the main method, and executes it.
+
+    for (var prop in dartpad_main) {
+      if (prop.endsWith("__main")) {
+        dartpad_main[prop].main();
+      }
+    }});
 ''';
     }
 
