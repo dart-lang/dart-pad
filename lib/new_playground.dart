@@ -396,7 +396,7 @@ class Playground implements GistContainer, GistController {
     unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
   }
 
-  Future _initModules() async {
+  Future<void> _initModules() async {
     ModuleManager modules = ModuleManager();
 
     modules.register(DartPadModule());
@@ -562,7 +562,7 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  Future showNewFlutter() async {
+  Future<void> showNewFlutter() async {
     var loadResult = _loadGist();
     var shouldAutoRun = loadResult == LoadGistResult.storage;
 
@@ -574,7 +574,7 @@ class Playground implements GistContainer, GistController {
     await _finalizeRoute(Layout.dart, shouldAutoRun);
   }
 
-  Future showNewHtml() async {
+  Future<void> showNewHtml() async {
     var loadResult = _loadGist();
     var shouldAutoRun = loadResult == LoadGistResult.storage;
 
@@ -586,7 +586,7 @@ class Playground implements GistContainer, GistController {
     await _finalizeRoute(Layout.dart, shouldAutoRun);
   }
 
-  Future showNewDart() async {
+  Future<void> showNewDart() async {
     var loadResult = _loadGist();
     var shouldAutoRun = loadResult == LoadGistResult.storage;
 
@@ -598,7 +598,7 @@ class Playground implements GistContainer, GistController {
     await _finalizeRoute(Layout.dart, shouldAutoRun);
   }
 
-  Future showHome(RouteEnterEvent event) async {
+  Future<void> showHome(RouteEnterEvent event) async {
     await showNewDart();
   }
 
@@ -631,7 +631,7 @@ class Playground implements GistContainer, GistController {
 
   /// Clears console output, updates the layout if necessary, Called after each
   /// route event.
-  Future _finalizeRoute(Layout layout, bool autoRun) async {
+  Future<void> _finalizeRoute(Layout layout, bool autoRun) async {
     var url = Uri.parse(window.location.toString());
     _clearOutput();
     _changeLayout(layout);
@@ -644,7 +644,7 @@ class Playground implements GistContainer, GistController {
 
   /// Analyzes and runs the gist.  Auto-runs the gist if [autoRun] is true and
   /// the analyzer comes back clean.
-  Future _analyzeAndRun({bool autoRun = false}) {
+  Future<void> _analyzeAndRun({bool autoRun = false}) {
     var completer = Completer();
     Timer.run(() async {
       try {
@@ -835,7 +835,7 @@ class Playground implements GistContainer, GistController {
     });
   }
 
-  Future _format() {
+  Future<void> _format() {
     String originalSource = _context.dartSource;
     SourceRequest input = SourceRequest()..source = originalSource;
     formatButton.disabled = true;
@@ -959,7 +959,7 @@ class Playground implements GistContainer, GistController {
     _overrideNextRouteGist = gist;
   }
 
-  Future _showCreateGistDialog() async {
+  Future<void> _showCreateGistDialog() async {
     var result = await dialog.showOkCancel(
         'Create New Pad', 'Discard changes to the current pad?');
     if (result == DialogResult.ok) {
@@ -969,7 +969,7 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  Future _showResetDialog() async {
+  Future<void> _showResetDialog() async {
     var result = await dialog.showOkCancel(
         'Reset Pad', 'Discard changes to the current pad?');
     if (result == DialogResult.ok) {
@@ -987,7 +987,7 @@ class Playground implements GistContainer, GistController {
   }
 
   @override
-  Future createNewGist() async {
+  Future<void> createNewGist() async {
     _gistStorage.clearStoredGist();
 
     if (ga != null) ga.sendEvent('main', 'new');
@@ -996,7 +996,7 @@ class Playground implements GistContainer, GistController {
     await router.go('gist', {'gist': ''}, forceReload: true);
   }
 
-  Future createGistForLayout(Layout layout) async {
+  Future<void> createGistForLayout(Layout layout) async {
     _gistStorage.clearStoredGist();
 
     if (ga != null) ga.sendEvent('main', 'new');
