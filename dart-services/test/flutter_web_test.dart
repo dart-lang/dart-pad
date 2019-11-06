@@ -53,6 +53,8 @@ void defineTests() {
     FlutterWebManager flutterWebManager;
 
     setUpAll(() async {
+      await SdkManager.sdk.init();
+      await SdkManager.flutterSdk.init();
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
       await flutterWebManager.initFlutterWeb();
     });

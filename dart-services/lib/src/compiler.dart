@@ -32,8 +32,9 @@ class Compiler {
       : _dartdevcPath = path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
         _flutterDdcDriver = BazelWorkerDriver(
             () => Process.start(
-                path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
-                <String>['--persistent_worker']),
+                  path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
+                  <String>['--persistent_worker'],
+                ),
             maxWorkers: 1);
 
   bool importsOkForCompile(Set<String> imports) {
@@ -123,9 +124,10 @@ class Compiler {
     Directory temp = await Directory.systemTemp.createTemp('dartpad');
 
     try {
-      String compileTarget = path.join(temp.path, kMainDart);
-      File mainDart = File(compileTarget);
-      await mainDart.writeAsString(input);
+      String bootstrapPath = path.join(temp.path, kBootstrapDart);
+      String mainPath = path.join(temp.path, kMainDart);
+      await File(bootstrapPath).writeAsString(kBootstrapCode);
+      await File(mainPath).writeAsString(input);
 
       List<String> arguments = <String>[
         '--modules=amd',
@@ -139,7 +141,7 @@ class Compiler {
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         '--single-out-file',
         ...['--module-name', 'dartpad_main'],
-        compileTarget,
+        bootstrapPath,
         '--packages=${_flutterWebManager.packagesFilePath}',
       ];
 
@@ -174,6 +176,8 @@ class Compiler {
 
   Future<void> dispose() => _flutterDdcDriver.terminateWorkers();
 }
+
+
 
 /// The result of a dart2js compile.
 class CompilationResults {

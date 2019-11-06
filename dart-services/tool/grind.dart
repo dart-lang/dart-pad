@@ -103,19 +103,13 @@ void buildStorageArtifacts() {
 }
 
 void _buildStorageArtifacts(Directory dir) {
-  final flutterSDK = Platform.environment['FLUTTER_SDK'];
-
-  if (flutterSDK == null) {
-    throw Exception('FLUTTER_SDK environment variable not set. Please point at '
-        'the Flutter SDK.');
-  }
-
+  final flutterSdkPath = '${Directory.current.parent.path}/flutter';
   String pubspec = FlutterWebManager.createPubspec(true);
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
   // run flutter pub get
   run(
-    '${flutterSDK}/bin/flutter',
+    '$flutterSdkPath/bin/flutter',
     arguments: ['pub', 'get'],
     workingDirectory: dir.path,
   );
@@ -151,7 +145,7 @@ void _buildStorageArtifacts(Directory dir) {
   // Make sure flutter/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
   // is installed.
   run(
-    '${flutterSDK}/bin/flutter',
+    '$flutterSdkPath/bin/flutter',
     arguments: ['precache', '--web'],
     workingDirectory: dir.path,
   );
@@ -159,11 +153,11 @@ void _buildStorageArtifacts(Directory dir) {
   // Build the artifacts using DDC:
   // dart-sdk/bin/dartdevc -k -s kernel/flutter_ddc_sdk.dill
   //     --modules=amd package:flutter_web/animation.dart ...
-  var binary = '${flutterSDK}/bin/cache/dart-sdk/bin/dartdevc';
+  var binary = '$flutterSdkPath/bin/cache/dart-sdk/bin/dartdevc';
   var args = [
     '-k',
     '-s',
-    '${flutterSDK}/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill',
+    '$flutterSdkPath/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill',
     '--modules=amd',
     '-o',
     'flutter_web.js',
@@ -182,7 +176,7 @@ void _buildStorageArtifacts(Directory dir) {
 
   copy(
       getFile(
-          '${flutterSDK}/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd/dart_sdk.js'),
+          '$flutterSdkPath/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd/dart_sdk.js'),
       artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);

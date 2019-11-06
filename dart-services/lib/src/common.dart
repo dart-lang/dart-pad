@@ -9,6 +9,18 @@ import 'dart:io';
 import 'sdk_manager.dart';
 
 const kMainDart = 'main.dart';
+const kBootstrapDart = 'bootstrap.dart';
+
+const kBootstrapCode = r'''
+import 'dart:ui' as ui;
+import 'main.dart' as user_code;
+
+void main() async {
+  await ui.webOnlyInitializePlatform();
+  user_code.main();
+}
+''';
+
 
 const sampleCode = '''
 void main() {
