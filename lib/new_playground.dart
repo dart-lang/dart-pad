@@ -632,13 +632,14 @@ class Playground implements GistContainer, GistController {
   /// Clears console output, updates the layout if necessary, Called after each
   /// route event.
   Future _finalizeRoute(Layout layout, bool autoRun) async {
-    Uri url = Uri.parse(window.location.toString());
+    var url = Uri.parse(window.location.toString());
     _clearOutput();
     _changeLayout(layout);
-    await _analyzeAndRun(autoRun: autoRun);
     if (url.hasQuery && url.queryParameters['line'] != null) {
       _jumpToLine(int.parse(url.queryParameters['line']));
     }
+
+    await _analyzeAndRun(autoRun: autoRun);
   }
 
   /// Analyzes and runs the gist.  Auto-runs the gist if [autoRun] is true and
