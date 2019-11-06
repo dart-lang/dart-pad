@@ -11,7 +11,7 @@ import 'sdk_manager.dart';
 const kMainDart = 'main.dart';
 const kBootstrapDart = 'bootstrap.dart';
 
-const kBootstrapCode = r'''
+const kBootstrapFlutterCode = r'''
 import 'dart:ui' as ui;
 import 'main.dart' as user_code;
 
@@ -21,6 +21,13 @@ void main() async {
 }
 ''';
 
+const kBootstrapDartCode = r'''
+import 'main.dart' as user_code;
+
+void main() {
+  user_code.main();
+}
+''';
 
 const sampleCode = '''
 void main() {
@@ -39,11 +46,8 @@ void main() {
 
 const sampleCodeFlutter = """
 import 'package:flutter/material.dart';
-//import 'dart:ui' as ui;
 
 void main() async {
-//  await ui.webOnlyInitializePlatform();
-
   runApp(
     MaterialApp(
       debugShowCheckedModeBanner: false,

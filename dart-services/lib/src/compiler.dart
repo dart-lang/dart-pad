@@ -124,14 +124,19 @@ class Compiler {
     Directory temp = await Directory.systemTemp.createTemp('dartpad');
 
     try {
-      String bootstrapPath = path.join(temp.path, kBootstrapDart);
-      String mainPath = path.join(temp.path, kMainDart);
-      await File(bootstrapPath).writeAsString(kBootstrapCode);
+      final usingFlutter = _flutterWebManager.usesFlutterWeb(imports);
+
+      final mainPath = path.join(temp.path, kMainDart);
+      final bootstrapPath = path.join(temp.path, kBootstrapDart);
+      final bootstrapContents =
+          usingFlutter ? kBootstrapFlutterCode : kBootstrapDartCode;
+
+      await File(bootstrapPath).writeAsString(bootstrapContents);
       await File(mainPath).writeAsString(input);
 
       List<String> arguments = <String>[
         '--modules=amd',
-        if (_flutterWebManager.usesFlutterWeb(imports)) ...[
+        if (usingFlutter) ...[
           '-k',
           '-s',
           _flutterWebManager.summaryFilePath,
@@ -176,8 +181,6 @@ class Compiler {
 
   Future<void> dispose() => _flutterDdcDriver.terminateWorkers();
 }
-
-
 
 /// The result of a dart2js compile.
 class CompilationResults {

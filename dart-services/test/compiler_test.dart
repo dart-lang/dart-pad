@@ -73,7 +73,6 @@ void defineTests() {
           .compileDDC(sampleCodeFlutter)
           .then((DDCCompilationResults result) {
         print(result.problems);
-        File('/Users/redbrogdon/Desktop/blah.txt').writeAsString(result.compiledJS);
 
         expect(result.success, true);
         expect(result.compiledJS, isNotEmpty);
