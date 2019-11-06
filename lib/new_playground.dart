@@ -629,7 +629,8 @@ class Playground implements GistContainer, GistController {
     return LoadGistResult.none;
   }
 
-  /// Clears console output, updates the layout if necessary, Called after each route event.
+  /// Clears console output, updates the layout if necessary, Called after each
+  /// route event.
   Future _finalizeRoute(Layout layout, bool autoRun) async {
     Uri url = Uri.parse(window.location.toString());
     _clearOutput();
