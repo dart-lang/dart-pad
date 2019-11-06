@@ -501,17 +501,17 @@ class Playground implements GistContainer, GistController {
         name: 'dart',
         path: '/dart',
         defaultRoute: false,
-        enter: (_) => showNewDart());
+        enter: (_) => showNew(Layout.dart));
     router.root.addRoute(
         name: 'html',
         path: '/html',
         defaultRoute: false,
-        enter: (_) => showNewHtml());
+        enter: (_) => showNew(Layout.html));
     router.root.addRoute(
         name: 'flutter',
         path: '/flutter',
         defaultRoute: false,
-        enter: (_) => showNewFlutter());
+        enter: (_) => showNew(Layout.flutter));
     router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
     router.listen();
 
@@ -562,44 +562,39 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  Future<void> showNewFlutter() async {
+  Future<void> showNew(Layout layout) async {
     var loadResult = _loadGist();
     var shouldAutoRun = loadResult == LoadGistResult.storage;
 
     // If no gist was loaded, use a new Dart gist.
     if (loadResult == LoadGistResult.none) {
-      editableGist.setBackingGist(createSampleFlutterGist());
+      editableGist.setBackingGist(_createGist(layout));
     }
 
-    await _finalizeRoute(Layout.dart, shouldAutoRun);
+    // Clear console output and update the layout if necessary.
+    var url = Uri.parse(window.location.toString());
+    _clearOutput();
+    _changeLayout(layout);
+    if (url.hasQuery && url.queryParameters['line'] != null) {
+      _jumpToLine(int.parse(url.queryParameters['line']));
+    }
+
+    await _analyzeAndRun(autoRun: shouldAutoRun);
   }
 
-  Future<void> showNewHtml() async {
-    var loadResult = _loadGist();
-    var shouldAutoRun = loadResult == LoadGistResult.storage;
-
-    // If no gist was loaded, use a new HTML gist.
-    if (loadResult == LoadGistResult.none) {
-      editableGist.setBackingGist(createSampleHtmlGist());
+  Gist _createGist(Layout layout) {
+    switch (layout) {
+      case Layout.flutter:
+        return createSampleFlutterGist();
+      case Layout.html:
+        return createSampleHtmlGist();
+      default:
+        return createSampleDartGist();
     }
-
-    await _finalizeRoute(Layout.dart, shouldAutoRun);
-  }
-
-  Future<void> showNewDart() async {
-    var loadResult = _loadGist();
-    var shouldAutoRun = loadResult == LoadGistResult.storage;
-
-    // If no gist was loaded, use a new Dart gist.
-    if (loadResult == LoadGistResult.none) {
-      editableGist.setBackingGist(createSampleDartGist());
-    }
-
-    await _finalizeRoute(Layout.dart, shouldAutoRun);
   }
 
   Future<void> showHome(RouteEnterEvent event) async {
-    await showNewDart();
+    await showNew(Layout.dart);
   }
 
   /// Loads the gist provided by the 'id' query parameter or stored in
@@ -627,19 +622,6 @@ class Playground implements GistContainer, GistController {
     }
 
     return LoadGistResult.none;
-  }
-
-  /// Clears console output, updates the layout if necessary, Called after each
-  /// route event.
-  Future<void> _finalizeRoute(Layout layout, bool autoRun) async {
-    var url = Uri.parse(window.location.toString());
-    _clearOutput();
-    _changeLayout(layout);
-    if (url.hasQuery && url.queryParameters['line'] != null) {
-      _jumpToLine(int.parse(url.queryParameters['line']));
-    }
-
-    await _analyzeAndRun(autoRun: autoRun);
   }
 
   /// Analyzes and runs the gist.  Auto-runs the gist if [autoRun] is true and
