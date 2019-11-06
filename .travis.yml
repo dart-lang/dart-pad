@@ -13,7 +13,7 @@ dart:
 sudo: false
 
 branches:
-  only: [master]
+  only: [master, uf]
 before_script:
   - git submodule init
   - git submodule update
