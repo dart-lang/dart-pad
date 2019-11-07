@@ -4,8 +4,6 @@
 
 library services.compiler_test;
 
-import 'dart:io';
-
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
 import 'package:dart_services/src/flutter_web.dart';
