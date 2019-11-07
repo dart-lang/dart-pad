@@ -21,7 +21,6 @@ Future<void> main(List<String> args) async {
 
 @Task()
 void analyze() {
-  // TODO(redbrogdon): Restore once travis is working again.
   Pub.run('tuneup', arguments: ['check']);
 }
 
