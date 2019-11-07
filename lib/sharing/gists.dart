@@ -43,13 +43,35 @@ String extractHtmlBody(String html) {
   }
 }
 
-Gist createSampleGist() {
+Gist createSampleDartGist() {
   Gist gist = Gist();
   // "wispy-dust-1337", "patient-king-8872", "purple-breeze-9817"
   gist.description = Haikunator.haikunate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCode));
-  gist.files.add(GistFile(name: 'index.html', content: '\n'));
-  gist.files.add(GistFile(name: 'styles.css', content: '\n'));
+  gist.files.add(GistFile(
+      name: 'readme.md',
+      content: _createReadmeContents(
+          title: gist.description, withLink: _dartpadLink)));
+  return gist;
+}
+
+Gist createSampleHtmlGist() {
+  Gist gist = Gist();
+  gist.description = Haikunator.haikunate();
+  gist.files.add(GistFile(name: 'main.dart', content: sample.dartCodeHtml));
+  gist.files.add(GistFile(name: 'index.html', content: sample.htmlCode));
+  gist.files.add(GistFile(name: 'styles.css', content: sample.cssCode));
+  gist.files.add(GistFile(
+      name: 'readme.md',
+      content: _createReadmeContents(
+          title: gist.description, withLink: _dartpadLink)));
+  return gist;
+}
+
+Gist createSampleFlutterGist() {
+  Gist gist = Gist();
+  gist.description = Haikunator.haikunate();
+  gist.files.add(GistFile(name: 'main.dart', content: sample.flutterCode));
   gist.files.add(GistFile(
       name: 'readme.md',
       content: _createReadmeContents(

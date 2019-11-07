@@ -219,8 +219,8 @@ class Playground implements GistContainer, GistController {
       Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
       Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
       Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
-      Sample('a559420eed617dab7a196b5ea0b64fba', 'Sunflower', Layout.web),
-      Sample('cb9b199b1085873de191e32a1dd5ca4f', 'WebSockets', Layout.web),
+      Sample('a559420eed617dab7a196b5ea0b64fba', 'Sunflower', Layout.html),
+      Sample('cb9b199b1085873de191e32a1dd5ca4f', 'WebSockets', Layout.html),
       Sample('67acac89cb32605b61dea6f26adb5dc9', 'Flutter Hello World',
           Layout.flutter),
       Sample('9e574ab997b3217fcef3f600d0c6954c', 'Flutter Todo App',
@@ -248,8 +248,7 @@ class Playground implements GistContainer, GistController {
         ..children.add(
           ImageElement()
             ..classes.add('mdc-list-item__graphic')
-            ..src =
-                'pictures/logo_${sample.layout.toString().split('.').last}.png',
+            ..src = 'pictures/logo_${_layoutToString(sample.layout)}.png',
         )
         ..children.add(
           SpanElement()
@@ -304,7 +303,7 @@ class Playground implements GistContainer, GistController {
           _changeLayout(Layout.dart);
           break;
         case 1:
-          _changeLayout(Layout.web);
+          _changeLayout(Layout.html);
           break;
         case 2:
           _changeLayout(Layout.flutter);
@@ -397,7 +396,7 @@ class Playground implements GistContainer, GistController {
     unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
   }
 
-  Future _initModules() async {
+  Future<void> _initModules() async {
     ModuleManager modules = ModuleManager();
 
     modules.register(DartPadModule());
@@ -498,6 +497,21 @@ class Playground implements GistContainer, GistController {
     // Set up the router.
     deps[Router] = Router();
     router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
+    router.root.addRoute(
+        name: 'dart',
+        path: '/dart',
+        defaultRoute: false,
+        enter: (_) => showNew(Layout.dart));
+    router.root.addRoute(
+        name: 'html',
+        path: '/html',
+        defaultRoute: false,
+        enter: (_) => showNew(Layout.html));
+    router.root.addRoute(
+        name: 'flutter',
+        path: '/flutter',
+        defaultRoute: false,
+        enter: (_) => showNew(Layout.flutter));
     router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
     router.listen();
 
@@ -548,45 +562,54 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  Future showHome(RouteEnterEvent event) async {
-    // Don't auto-run if we're re-loading some unsaved edits; the gist might
-    // have halting issues (#384).
-    bool loadedFromSaved = false;
+  Future<void> showNew(Layout layout) async {
+    var loadResult = _loadGist();
+    var shouldAutoRun = loadResult == LoadGistResult.storage;
+
+    // If no gist was loaded, use a new Dart gist.
+    if (loadResult == LoadGistResult.none) {
+      editableGist.setBackingGist(_createGist(layout));
+    }
+
+    // Clear console output and update the layout if necessary.
+    var url = Uri.parse(window.location.toString());
+    _clearOutput();
+    _changeLayout(layout);
+    if (url.hasQuery && url.queryParameters['line'] != null) {
+      _jumpToLine(int.parse(url.queryParameters['line']));
+    }
+
+    await _analyzeAndRun(autoRun: shouldAutoRun);
+  }
+
+  Gist _createGist(Layout layout) {
+    switch (layout) {
+      case Layout.flutter:
+        return createSampleFlutterGist();
+      case Layout.html:
+        return createSampleHtmlGist();
+      default:
+        return createSampleDartGist();
+    }
+  }
+
+  Future<void> showHome(RouteEnterEvent event) async {
+    await showNew(Layout.dart);
+  }
+
+  /// Loads the gist provided by the 'id' query parameter or stored in
+  /// [GistStorage].
+  LoadGistResult _loadGist() {
     Uri url = Uri.parse(window.location.toString());
 
     if (url.hasQuery &&
         url.queryParameters['id'] != null &&
         isLegalGistId(url.queryParameters['id'])) {
       _showGist(url.queryParameters['id']);
-    } else if (url.hasQuery && url.queryParameters['export'] != null) {
-      UuidContainer requestId = UuidContainer()
-        ..uuid = url.queryParameters['export'];
-      Future<PadSaveObject> exportPad =
-          dartSupportServices.pullExportContent(requestId);
-      await exportPad.then((pad) {
-        Gist blankGist = createSampleGist();
-        blankGist.getFile('main.dart').content = pad.dart;
-        blankGist.getFile('index.html').content = pad.html;
-        blankGist.getFile('styles.css').content = pad.css;
-        editableGist.setBackingGist(blankGist);
-      });
-    } else if (url.hasQuery && url.queryParameters['source'] != null) {
-      UuidContainer gistId = await dartSupportServices.retrieveGist(
-          id: url.queryParameters['source']);
-      Gist backing;
+      return LoadGistResult.queryParameter;
+    }
 
-      try {
-        backing = await gistLoader.loadGist(gistId.uuid);
-      } catch (ex) {
-        print(ex);
-        backing = Gist();
-      }
-
-      editableGist.setBackingGist(backing);
-      await router.go('gist', {'gist': backing.id});
-    } else if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
-      loadedFromSaved = true;
-
+    if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       Gist blankGist = Gist();
       editableGist.setBackingGist(blankGist);
 
@@ -595,24 +618,28 @@ class Playground implements GistContainer, GistController {
       for (GistFile file in storedGist.files) {
         editableGist.getGistFile(file.name).content = file.content;
       }
-    } else {
-      editableGist.setBackingGist(createSampleGist());
+      return LoadGistResult.storage;
     }
 
-    _clearOutput();
+    return LoadGistResult.none;
+  }
 
-    _changeLayout(_detectLayout(editableGist.backingGist));
-
-    // Analyze and run it.
-    Timer.run(() {
-      _performAnalysis().then((bool result) {
-        // Only auto-run if the static analysis comes back clean.
-        if (result && !loadedFromSaved) _handleRun();
-        if (url.hasQuery && url.queryParameters['line'] != null) {
-          _jumpToLine(int.parse(url.queryParameters['line']));
+  /// Analyzes and runs the gist.  Auto-runs the gist if [autoRun] is true and
+  /// the analyzer comes back clean.
+  Future<void> _analyzeAndRun({bool autoRun = false}) {
+    var completer = Completer();
+    Timer.run(() async {
+      try {
+        var result = await _performAnalysis();
+        if (result && !autoRun) {
+          _handleRun();
         }
-      }).catchError((e) => null);
+      } catch (e) {
+        // ignore errors
+      }
+      completer.complete();
     });
+    return completer.future;
   }
 
   void showGist(RouteEnterEvent event) {
@@ -790,7 +817,7 @@ class Playground implements GistContainer, GistController {
     });
   }
 
-  Future _format() {
+  Future<void> _format() {
     String originalSource = _context.dartSource;
     SourceRequest input = SourceRequest()..source = originalSource;
     formatButton.disabled = true;
@@ -847,7 +874,7 @@ class Playground implements GistContainer, GistController {
 
   Layout _detectLayout(Gist gist) {
     if (gist.hasWebContent()) {
-      return Layout.web;
+      return Layout.html;
     } else if (gist.hasFlutterContent()) {
       return Layout.flutter;
     } else {
@@ -882,7 +909,7 @@ class Playground implements GistContainer, GistController {
       webLayoutTabController.selectTab('dart');
       _initRightSplitter();
       checkmarkIcons[0].classes.remove('hide');
-    } else if (layout == Layout.web) {
+    } else if (layout == Layout.html) {
       _disposeRightSplitter();
       _frame.hidden = false;
       editorPanelFooter.clearAttr('hidden');
@@ -914,17 +941,17 @@ class Playground implements GistContainer, GistController {
     _overrideNextRouteGist = gist;
   }
 
-  Future _showCreateGistDialog() async {
+  Future<void> _showCreateGistDialog() async {
     var result = await dialog.showOkCancel(
         'Create New Pad', 'Discard changes to the current pad?');
     if (result == DialogResult.ok) {
       var layout = await newPadDialog.show();
-      await createNewGist();
+      await createGistForLayout(layout);
       _changeLayout(layout);
     }
   }
 
-  Future _showResetDialog() async {
+  Future<void> _showResetDialog() async {
     var result = await dialog.showOkCancel(
         'Reset Pad', 'Discard changes to the current pad?');
     if (result == DialogResult.ok) {
@@ -942,15 +969,26 @@ class Playground implements GistContainer, GistController {
   }
 
   @override
-  Future createNewGist() {
+  Future<void> createNewGist() async {
     _gistStorage.clearStoredGist();
 
     if (ga != null) ga.sendEvent('main', 'new');
 
     _showSnackbar('New pad created');
-    router.go('gist', {'gist': ''}, forceReload: true);
+    await router.go('gist', {'gist': ''}, forceReload: true);
+  }
 
-    return Future.value();
+  Future<void> createGistForLayout(Layout layout) async {
+    _gistStorage.clearStoredGist();
+
+    if (ga != null) ga.sendEvent('main', 'new');
+
+    _showSnackbar('New pad created');
+
+    var layoutStr = _layoutToString(layout);
+    print('layout = $layoutStr');
+
+    await router.go(layoutStr, {}, forceReload: true);
   }
 
   void _resetGists() {
@@ -984,10 +1022,20 @@ class Playground implements GistContainer, GistController {
   }
 }
 
+enum LoadGistResult {
+  storage,
+  queryParameter,
+  none,
+}
+
 enum Layout {
   flutter,
   dart,
-  web,
+  html,
+}
+
+String _layoutToString(Layout layout) {
+  return layout.toString().split('.').last;
 }
 
 enum TabState {
@@ -1170,7 +1218,7 @@ class NewPadDialog {
 
   Layout get selectedLayout {
     if (_dartButton.root.classes.contains('selected')) {
-      return _htmlSwitch.checked ? Layout.web : Layout.dart;
+      return _htmlSwitch.checked ? Layout.html : Layout.dart;
     }
 
     if (_flutterButton.root.classes.contains('selected')) {

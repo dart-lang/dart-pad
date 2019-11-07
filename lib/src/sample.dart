@@ -11,3 +11,70 @@ void main() {
   }
 }
 ''';
+
+final String dartCodeHtml = r'''
+import 'dart:html';
+
+void main() {
+  var header = querySelector('#header');
+  header.text = "Hello, World!";
+}
+
+''';
+
+final String htmlCode = r'''
+<h1 id="header"></h1>
+''';
+
+final String cssCode = r'''
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+h1 {
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+''';
+
+final String flutterCode = r'''
+import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+final Color darkBlue = Color.fromARGB(255, 28, 40, 52);
+
+Future main() async {
+  await ui.webOnlyInitializePlatform();
+  runApp(MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: ThemeData.dark().copyWith(scaffoldBackgroundColor: darkBlue),
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: MyWidget(),
+        ),
+      ),
+    );
+  }
+}
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Text('Hello, World!', style: Theme.of(context).textTheme.display1);
+  }
+}
+
+''';
