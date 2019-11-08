@@ -60,6 +60,7 @@ class Compiler {
     }
 
     Directory temp = await Directory.systemTemp.createTemp('dartpad');
+    _logger.info('Temp directory created: ${temp.path}');
 
     try {
       List<String> arguments = <String>[
@@ -122,6 +123,7 @@ class Compiler {
     }
 
     Directory temp = await Directory.systemTemp.createTemp('dartpad');
+    _logger.info('Temp directory created: ${temp.path}');
 
     try {
       final usingFlutter = _flutterWebManager.usesFlutterWeb(imports);

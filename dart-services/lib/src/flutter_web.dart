@@ -82,9 +82,13 @@ $_samplePackageName:lib/
     String url = 'https://storage.googleapis.com/compilation_artifacts/'
         '$sdkVersion/flutter_web.dill';
 
+    _logger.info('Attempting download of $url');
+
     Uint8List summaryContents = await http.readBytes(url);
     await File(path.join(_projectDirectory.path, 'flutter_web.dill'))
         .writeAsBytes(summaryContents);
+
+    _logger.info('Wrote flutter_web.dill');
 
     _initedFlutterWeb = true;
   }

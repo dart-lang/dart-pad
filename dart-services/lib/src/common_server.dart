@@ -662,7 +662,7 @@ class CommonServer {
       try {
         await flutterWebManager.initFlutterWeb();
       } catch (e) {
-        log.warning('unable to init package:flutter_web');
+        log.warning('unable to init package:flutter_web: $e');
         return;
       }
     }

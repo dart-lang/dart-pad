@@ -10,7 +10,8 @@ RUN chmod 755 /dart_runtime/dart_run.sh && \
 
 ADD pubspec.* /app/
 
-ADD third_party /app/third_party
+RUN mkdir /app/third_party
+RUN mkdir /app/third_party/pkg
 
 RUN find -name "*" -print
 
@@ -37,17 +38,22 @@ USER dart
 
 ENV PATH="/home/dart/.pub-cache/bin:${PATH}"
 
-RUN cd / && git clone https://github.com/flutter/flutter.git -b master
+RUN cd / && git clone https://github.com/flutter/flutter.git
+RUN /flutter/bin/flutter channel dev
 RUN /flutter/bin/flutter upgrade
 RUN /flutter/bin/flutter config --enable-web
 RUN /flutter/bin/flutter precache --web --no-android --no-ios --no-linux \
   --no-windows --no-macos --no-fuchsia
 RUN /flutter/bin/flutter doctor
+RUN cat /flutter/bin/cache/dart-sdk/version
+
 
 EXPOSE 8080 8181 5858
 
 # Clear out any arguments the base images might have set and ensure we start
 # the Dart app using custom script enabling debug modes.
 CMD []
+
+USER root
 
 ENTRYPOINT /bin/bash /dart_runtime/dart_run.sh
