@@ -41,12 +41,10 @@ class ExecutionServiceIFrame implements ExecutionService {
     String javaScript, {
     String modulesBaseUrl,
   }) {
-    return _reset().whenComplete(() {
-      return _send('execute', {
-        'html': html,
-        'css': css,
-        'js': _decorateJavaScript(javaScript, modulesBaseUrl: modulesBaseUrl),
-      });
+    return _send('execute', {
+      'html': html,
+      'css': css,
+      'js': _decorateJavaScript(javaScript, modulesBaseUrl: modulesBaseUrl),
     });
   }
 
@@ -84,7 +82,7 @@ var resultFunction = _result;
 
   String _decorateJavaScript(String javaScript, {String modulesBaseUrl}) {
     final String postMessagePrint = '''
-const testKey = '$testKey';
+var testKey = '$testKey';
 
 function dartPrint(message) {
   if (message.startsWith(testKey)) {
@@ -97,6 +95,8 @@ function dartPrint(message) {
       {'sender': 'frame', 'type': 'stdout', 'message': message.toString()}, '*');
   }
 }
+// Unload previous version.
+require.undef('dartpad_main');
 ''';
 
     /// The javascript exception handling for Dartpad catches both errors
@@ -114,16 +114,6 @@ function dartPrint(message) {
     /// and the right error messages on the console.
     final String exceptionHandler = '''
 var _thrownDartMainRunner = false;
-function dartMainRunner(main, args) {
-  try {
-    main(args);
-  } catch(error) {
-    parent.postMessage(
-      {'sender': 'frame', 'type': 'stderr', 'message': "Uncaught exception:\\n" + error.message}, '*');
-    _thrownDartMainRunner = true;
-    throw error;
-  }
-}
 
 window.onerror = function(message, url, lineNumber, colno, error) {
   if (!_thrownDartMainRunner) {
@@ -153,6 +143,13 @@ require.config({
     String postfix = '';
     if (usesRequireJs) {
       postfix = '''
+require(['dart_sdk'],
+  function(sdk) {
+    'use strict';
+    sdk.developer._extensions.clear();
+    sdk.dart.hotRestart();
+});
+
 require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     // SDK initialization.
     dart_sdk.dart.setStartAsyncSynchronously(true);
