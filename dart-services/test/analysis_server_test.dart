@@ -64,7 +64,7 @@ void defineTests() {
   AnalysisServerWrapper analysisServer;
   FlutterWebManager flutterWebManager;
 
-  group('analysis_server', () {
+  group('Platform SDK analysis_server', () {
     setUp(() async {
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
       analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
@@ -191,6 +191,26 @@ void defineTests() {
       expect(completionsContains(results, 'ABC'), true);
       expect(completionsContains(results, 'a'), true);
       expect(completionsContains(results, 'ZZ'), false);
+    });
+  });
+
+  group('Flutter cached SDK analysis_server', () {
+    setUp(() async {
+      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+      analysisServer = AnalysisServerWrapper(SdkManager.flutterSdk.sdkPath, flutterWebManager);
+      await analysisServer.init();
+    });
+
+    tearDown(() => analysisServer.shutdown());
+
+    test('analyze working Dart code', () async {
+      AnalysisResults results = await analysisServer.analyze(sampleCode);
+      expect(results.issues, isEmpty);
+    });
+
+    test('analyze working Flutter code', () async {
+      AnalysisResults results = await analysisServer.analyze(sampleCode);
+      expect(results.issues, isEmpty);
     });
   });
 }
