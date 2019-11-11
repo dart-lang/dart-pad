@@ -344,13 +344,14 @@ class MyStatelessWidget extends StatelessWidget {
 ''';
 
 final processedSample = '''
-import 'package:flutter_web/material.dart';
-import 'package:flutter_web_ui/ui.dart' as ui;
+// Flutter code sample for
 
-void main() async {
-  await ui.webOnlyInitializePlatform();
-  runApp(MyApp());
-}
+// This sample shows an [AppBar] with two simple actions. The first action
+// opens a [SnackBar], while the second action navigates to a new page.
+
+import 'package:flutter/material.dart';
+
+void main() => runApp(MyApp());
 
 /// This Widget is the main application widget.
 class MyApp extends StatelessWidget {
