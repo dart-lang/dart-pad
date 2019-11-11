@@ -269,6 +269,7 @@ class CommonServer {
 
   Compiler compiler;
   AnalysisServerWrapper analysisServer;
+  AnalysisServerWrapper flutterAnalysisServer;
 
   CommonServer(
     this.sdkPath,
@@ -282,13 +283,24 @@ class CommonServer {
 
   Future<void> init() async {
     analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
+    flutterAnalysisServer = AnalysisServerWrapper(
+        flutterWebManager.flutterSdk.sdkPath, flutterWebManager);
+
     compiler =
         Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
 
     await analysisServer.init();
+    await flutterAnalysisServer.init();
 
     unawaited(analysisServer.onExit.then((int code) {
       log.severe('analysisServer exited, code: $code');
+      if (code != 0) {
+        exit(code);
+      }
+    }));
+
+    unawaited(flutterAnalysisServer.onExit.then((int code) {
+      log.severe('flutterAnalysisServer exited, code: $code');
       if (code != 0) {
         exit(code);
       }
@@ -299,6 +311,7 @@ class CommonServer {
     await flutterWebManager.warmup();
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
+    await flutterAnalysisServer.warmup(useHtml: useHtml);
   }
 
   Future<void> restart() async {
@@ -315,6 +328,7 @@ class CommonServer {
   Future<dynamic> shutdown() {
     return Future.wait(<Future<dynamic>>[
       analysisServer.shutdown(),
+      flutterAnalysisServer.shutdown(),
       compiler.dispose(),
       Future<dynamic>.sync(cache.shutdown)
     ]);
@@ -422,7 +436,8 @@ class CommonServer {
     try {
       final Stopwatch watch = Stopwatch()..start();
 
-      AnalysisResults results = await analysisServer.analyze(source);
+      AnalysisResults results =
+          await getCorrectAnalysisServer(source).analyze(source);
       int lineCount = source.split('\n').length;
       int ms = watch.elapsedMilliseconds;
       log.info('PERF: Analyzed $lineCount lines of Dart in ${ms}ms.');
@@ -556,7 +571,7 @@ class CommonServer {
     Stopwatch watch = Stopwatch()..start();
     try {
       Map<String, String> docInfo =
-          await analysisServer.dartdoc(source, offset);
+          await getCorrectAnalysisServer(source).dartdoc(source, offset);
       docInfo ??= <String, String>{};
       log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
       return DocumentResponse(docInfo);
@@ -586,7 +601,8 @@ class CommonServer {
 
     Stopwatch watch = Stopwatch()..start();
     try {
-      CompleteResponse response = await analysisServer.complete(source, offset);
+      CompleteResponse response =
+          await getCorrectAnalysisServer(source).complete(source, offset);
       log.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
       return response;
     } catch (e, st) {
@@ -607,7 +623,8 @@ class CommonServer {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     Stopwatch watch = Stopwatch()..start();
-    FixesResponse response = await analysisServer.getFixes(source, offset);
+    FixesResponse response =
+        await getCorrectAnalysisServer(source).getFixes(source, offset);
     log.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
@@ -623,7 +640,8 @@ class CommonServer {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     Stopwatch watch = Stopwatch()..start();
-    var response = await analysisServer.getAssists(source, offset);
+    var response =
+        await getCorrectAnalysisServer(source).getAssists(source, offset);
     log.info('PERF: Computed assists in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
@@ -636,7 +654,8 @@ class CommonServer {
 
     Stopwatch watch = Stopwatch()..start();
 
-    FormatResponse response = await analysisServer.format(source, offset);
+    FormatResponse response =
+        await getCorrectAnalysisServer(source).format(source, offset);
     log.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
@@ -666,6 +685,13 @@ class CommonServer {
         return;
       }
     }
+  }
+
+  AnalysisServerWrapper getCorrectAnalysisServer(String source) {
+    Set<String> imports = getAllImportsFor(source);
+    return flutterWebManager.usesFlutterWeb(imports)
+        ? flutterAnalysisServer
+        : analysisServer;
   }
 }
 

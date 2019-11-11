@@ -338,14 +338,24 @@ void defineTests() {
 
     tearDown(log.clearListeners);
 
-    test('analyze', () async {
+    test('analyze Dart', () async {
       var jsonData = {'source': sampleCode};
       var response =
-          await _sendPostRequest('dartservices/v1/analyze', jsonData);
+      await _sendPostRequest('dartservices/v1/analyze', jsonData);
       expect(response.status, 200);
       var data = await response.body.first;
       expect(
           json.decode(utf8.decode(data)), {'issues': [], 'packageImports': []});
+    });
+
+    test('analyze Flutter', () async {
+      var jsonData = {'source': sampleCodeFlutter};
+      var response =
+      await _sendPostRequest('dartservices/v1/analyze', jsonData);
+      expect(response.status, 200);
+      var data = await response.body.first;
+      expect(
+          json.decode(utf8.decode(data)), {'issues': [], 'packageImports': ['flutter']});
     });
 
     test('analyze errors', () async {
