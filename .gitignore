@@ -1,4 +1,5 @@
 .DS_Store
+.vscode/
 
 # Don’t commit the following directories created by pub.
 build/

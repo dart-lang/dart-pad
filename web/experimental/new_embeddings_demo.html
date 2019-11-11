@@ -68,11 +68,16 @@
       .row {
         margin-bottom: 300px;
       }
+      .button.active {
+        background-color: hotpink;
+      }
     </style>
 
     <script type="text/javascript">
 
-    const testSource = `void main() async {
+    const testSource = [
+      // Step-1
+      `void main() async {
   await ui.webOnlyInitializePlatform();
 
   runApp(
@@ -86,9 +91,708 @@
     ),
   );
 }
-`;
+`,
+      // Step-2
+      `void main() async {
+  await ui.webOnlyInitializePlatform();
 
-    const mainSources = [
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(),
+        ),
+      ),
+    ),
+  );
+}
+`,
+      // Step-3
+      `void main() async {
+  await ui.webOnlyInitializePlatform();
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(),
+        ),
+      ),
+    ),
+  );
+}
+`,
+      // Step-4
+      `void main() async {
+  await ui.webOnlyInitializePlatform();
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(),
+        ),
+      ),
+    ),
+  );
+}
+`,
+// Step-5
+`void main() async {
+  await ui.webOnlyInitializePlatform();
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard()
+        ),
+      ),
+    ),
+  );
+}
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: FruitInfo(
+                  name: 'Lime',
+                  healthInfo: '9 calories',
+                  family: 'Citrus',
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('6'),
+                  Icon(Icons.thumb_up),
+                ],
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('2'),
+                  Icon(Icons.thumb_down),
+                ],
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network('http://placekitten.com/120/120', height: 120),
+            ),
+            Positioned(
+              left: MediaQuery.of(context).size.width * 0.3,
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                color: Color(0xAA000000)
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+// Step-6
+`void main() async {
+  await ui.webOnlyInitializePlatform();
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard()
+        ),
+      ),
+    ),
+  );
+}
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Lime',
+                      style: Theme.of(context).textTheme.headline,
+                    ),
+                    Text('9 calories',
+                        style: Theme.of(context)
+                            .textTheme
+                            .subtitle
+                            .copyWith(fontWeight: FontWeight.w200),
+                    ),
+                    Text('Citrus',
+                        style: TextStyle(
+                            color: Colors.pink, fontWeight: FontWeight.bold),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: ThumbsUpButton(),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('2'),
+                  Icon(Icons.thumb_down),
+                ],
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network('http://placekitten.com/120/120', height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+// Step-7
+`void main() async {
+  await ui.webOnlyInitializePlatform();
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard()
+        ),
+      ),
+    ),
+  );
+}
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Lime',
+                      style: Theme.of(context).textTheme.headline,
+                    ),
+                    Text('9 calories',
+                        style: Theme.of(context)
+                            .textTheme
+                            .subtitle
+                            .copyWith(fontWeight: FontWeight.w200),
+                    ),
+                    Text('Citrus',
+                        style: TextStyle(
+                            color: Colors.pink, fontWeight: FontWeight.bold),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: RatingButton(
+                numRatings: 6,
+                icon: Icons.thumb_up,
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: RatingButton(
+                numRatings: 2,
+                icon: Icons.thumb_down,
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network('http://placekitten.com/120/120', height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+// Step-8
+`void main() async {
+  await ui.webOnlyInitializePlatform();
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard()
+        ),
+      ),
+    ),
+  );
+}
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Lime',
+                      style: Theme.of(context).textTheme.headline,
+                    ),
+                    Text('9 calories',
+                        style: Theme.of(context)
+                            .textTheme
+                            .subtitle
+                            .copyWith(fontWeight: FontWeight.w200),
+                    ),
+                    Text('Citrus',
+                        style: TextStyle(
+                            color: Colors.pink, fontWeight: FontWeight.bold),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: RatingButton(
+                numRatings: 7,
+                icon: Icons.thumb_up,
+                ratingStatus: RatingStatus.liked,
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: RatingButton(
+                numRatings: 2,
+                icon: Icons.thumb_down,
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network('http://placekitten.com/120/120', height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+  // Step-9
+`void main() async {
+  await ui.webOnlyInitializePlatform();
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(
+            assetUrl: 'http://placekitten.com/120/120',
+            family: 'Citrus',
+            healthInfo: '9 calories',
+            numLikes: 7,
+            numDislikes: 2,
+            ratingStatus: RatingStatus.liked,
+            title: 'Lime',
+          )
+        ),
+      ),
+    ),
+  );
+}
+
+enum RatingStatus { liked, disliked, none }
+
+class FruitInfo extends StatelessWidget {
+  final String name;
+  final String healthInfo;
+  final String family;
+  const FruitInfo({
+    @required this.name,
+    @required this.healthInfo,
+    @required this.family,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          name,
+          style: Theme.of(context).textTheme.headline,
+        ),
+        Text(
+          healthInfo,
+          style: Theme.of(context)
+              .textTheme
+              .subtitle
+              .copyWith(fontWeight: FontWeight.w200),
+        ),
+        Text(
+          family,
+          style: TextStyle(
+              color: Colors.pink, fontWeight: FontWeight.bold),
+          ),
+      ],
+    );
+  }
+}
+
+class RatingButton extends StatelessWidget {
+
+  final int numRatings;
+  final IconData icon;
+  final RatingStatus ratingStatus;
+
+  const RatingButton({
+    this.numRatings,
+    this.icon,
+    this.ratingStatus = RatingStatus.none,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+
+    Map<RatingStatus, Color> borderColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[400],
+      RatingStatus.disliked: Colors.red[400],
+    };
+
+    Map<RatingStatus, Color> buttonColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[700],
+      RatingStatus.disliked: Colors.red[700],
+    };
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: borderColors[ratingStatus]),
+        borderRadius: BorderRadius.all(Radius.circular(100)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(numRatings.toString(), style: TextStyle(
+            color: buttonColors[ratingStatus],
+          )),
+          SizedBox(width: 4),
+          Icon(icon, size: 16, color: buttonColors[ratingStatus]),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-10
+`void main() async {
+  await ui.webOnlyInitializePlatform();
+
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: FruitCardListView(),
+      ),
+    ),
+  );
+}
+
+enum RatingStatus { liked, disliked, none }
+
+class FruitInfo extends StatelessWidget {
+  final String name;
+  final String healthInfo;
+  final String family;
+  const FruitInfo({
+    @required this.name,
+    @required this.healthInfo,
+    @required this.family,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          name,
+          style: Theme.of(context).textTheme.headline,
+        ),
+        Text(
+          healthInfo,
+          style: Theme.of(context)
+              .textTheme
+              .subtitle
+              .copyWith(fontWeight: FontWeight.w200),
+        ),
+        Text(
+          family,
+          style: TextStyle(
+              color: Colors.pink, fontWeight: FontWeight.bold),
+          ),
+      ],
+    );
+  }
+}
+
+class RatingButton extends StatelessWidget {
+
+  final int numRatings;
+  final IconData icon;
+  final RatingStatus ratingStatus;
+
+  const RatingButton({
+    this.numRatings,
+    this.icon,
+    this.ratingStatus = RatingStatus.none,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+
+    Map<RatingStatus, Color> borderColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[400],
+      RatingStatus.disliked: Colors.red[400],
+    };
+
+    Map<RatingStatus, Color> buttonColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[700],
+      RatingStatus.disliked: Colors.red[700],
+    };
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: borderColors[ratingStatus]),
+        borderRadius: BorderRadius.all(Radius.circular(100)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(numRatings.toString(), style: TextStyle(
+            color: buttonColors[ratingStatus],
+          )),
+          SizedBox(width: 4),
+          Icon(icon, size: 16, color: buttonColors[ratingStatus]),
+        ],
+      ),
+    );
+  }
+}
+
+Color grey = const Color(0xFFDDDDDD);
+Color darkGrey = const Color(0xFFBBBBBB);
+
+// Finally, we re-structure our widget to be pluggable elsewhere
+// in our application. Internally, we continue to lean on reusable
+// widgets by including the \`RatingButton\` and \`FruitInfo\` widgets
+// we created earlier.
+class FruitCard extends StatelessWidget {
+  final String assetUrl;
+  final String title;
+  final String healthInfo;
+  final int numLikes;
+  final int numDislikes;
+  final RatingStatus ratingStatus;
+  final String family;
+  final bool isSelected;
+  const FruitCard({
+    @required this.assetUrl,
+    @required this.title,
+    @required this.healthInfo,
+    @required this.family,
+    this.numLikes = 0,
+    this.numDislikes = 0,
+    this.ratingStatus = RatingStatus.none,
+    this.isSelected = false,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+
+                // Pass necessary variables through to child widgets
+                child: FruitInfo(
+                  name: title,
+                  healthInfo: healthInfo,
+                  family: family,
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              // Pass necessary variables through to child widgets
+              child: RatingButton(
+                numRatings: numLikes,
+                icon: Icons.thumb_up,
+                ratingStatus: ratingStatus == RatingStatus.liked ? RatingStatus.liked : RatingStatus.none,
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              // Pass necessary variables through to child widgets
+              child: RatingButton(
+                numRatings: numDislikes,
+                icon: Icons.thumb_down,
+                ratingStatus: ratingStatus == RatingStatus.disliked ? RatingStatus.disliked : RatingStatus.none,
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network(assetUrl, height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+`
+];
+
+const mainSources = [
 `import 'package:flutter_web/material.dart';
 import 'package:flutter_web_ui/ui.dart' as ui;
 
@@ -117,7 +821,7 @@ class FruitCard extends StatelessWidget {
               Icon(Icons.thumb_down),
             ],
           ),
-          Image.network('http://placekitten.com/100/120', height: 120),
+          Image.network('http://placekitten.com/120/120', height: 120),
         ],
       ),
     );
@@ -132,8 +836,11 @@ class FruitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Wrapping widgets in a \`Card\` provides basic styling
     return Card(
       child: Row(
+        // Similar to flex display rules from CSS, this spaces our
+        // items across the horizontal axis
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text('Lime'),
@@ -153,7 +860,7 @@ class FruitCard extends StatelessWidget {
               Icon(Icons.thumb_down),
             ],
           ),
-          Image.network('http://placekitten.com/100/120', height: 120),
+          Image.network('http://placekitten.com/120/120', height: 120),
         ],
       ),
     );
@@ -171,9 +878,18 @@ class FruitCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+
+          // Add some padding to our card with the generic
+          // \`Container\` widget
           Container(
             height: 96,
-            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 4,
+            ),
+
+            // To format the three text items onto the vertical
+            // axis, we can wrap them in a \`Column\` widget
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,12 +914,13 @@ class FruitCard extends StatelessWidget {
               Icon(Icons.thumb_down),
             ],
           ),
-          Image.network('http://placekitten.com/100/120', height: 120),
+          Image.network('http://placekitten.com/120/120', height: 120),
         ],
       ),
     );
   }
 }`,
+// Step-4
 `import 'package:flutter_web/material.dart';
 import 'package:flutter_web_ui/ui.dart' as ui;
 
@@ -219,13 +936,24 @@ class FruitCard extends StatelessWidget {
       margin: EdgeInsets.all(horizontalMargin),
       child: Container(
         height: 120,
+
+        // For more advanced widget placement tricks, the
+        // \`Stack\` widget allows the equivalent of CSS's
+        //  \`position: absolute;\`
         child: Stack(
           children: <Widget>[
+
+            // The \`Positioned\` widget allows precise placement
+            // when directly descending from a \`Stack\`
             Positioned(
               left: cardPadding,
               top: cardPadding,
               height: 96,
               child: Container(
+
+                // Accessing \`MediaQuery.of(context).size\`
+                // creates opportunities for responsive layouts
+                // that render nicely on any device or resolution
                 width: MediaQuery.of(context).size.width -
                     (cardPadding * 2) -
                     (horizontalMargin * 2) -
@@ -265,15 +993,373 @@ class FruitCard extends StatelessWidget {
             ),
             Positioned(
               right: 0,
-              child: Image.network('http://placekitten.com/100/120', height: 120),
+              child: Image.network('http://placekitten.com/120/120', height: 120),
             ),
           ],
         ),
       ),
     );
   }
-}`
-    ];
+}`,
+// Step-5
+`import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+// Zoom in on just the text from our previous code, now with
+// updated style rules
+class FruitInfo extends StatelessWidget {
+  final String name;
+  final String healthInfo;
+  final String family;
+  const FruitInfo({
+    @required this.name,
+    @required this.healthInfo,
+    @required this.family,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          name,
+
+          // Text-styling is streamlined by provided themes that
+          // capture commonly needed text styles
+          style: Theme.of(context).textTheme.headline,
+        ),
+        Text(
+          healthInfo,
+
+          // Common text styles can be customized at the root
+          // of the app, or, as shown here, quickly altered
+          // on the fly for specific needs
+          style: Theme.of(context)
+              .textTheme
+              .subtitle
+              .copyWith(fontWeight: FontWeight.w200),
+        ),
+        Text(
+          family,
+          style: TextStyle(
+              color: Colors.pink, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+}`,
+// Step-6
+`import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+Color grey = const Color(0xFFDDDDDD);
+Color darkGrey = const Color(0xFFBBBBBB);
+
+// Next, let's turn our attention to the Like/Dislike buttons.
+// First, we'll style just the Like button in its inactive state.
+class ThumbsUpButton extends StatelessWidget {
+  const ThumbsUpButton({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+
+      // Set border and padding in ways very familiar to web developers
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: grey),
+        borderRadius: BorderRadius.all(Radius.circular(100)),
+      ),
+      child: Row(
+        // Flexbox-inspired layout rules evenly position elements
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text('6', style: TextStyle(color: darkGrey)),
+          SizedBox(width: 4),
+          Icon(Icons.thumb_up, size: 16, color: darkGrey),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-7
+`import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+Color grey = const Color(0xFFDDDDDD);
+Color darkGrey = const Color(0xFFBBBBBB);
+
+// Next, let's generalize our rating button so it can be used
+// for both positive and negative rankings.
+// Instead of calling it \`ThumbsUpButton\`, we can use the generic
+// name \`RatingButton\`.
+class RatingButton extends StatelessWidget {
+
+  // Add two variables to control the customizable aspects
+  // of our widget
+  final int numRatings;
+  final IconData icon;
+
+  const RatingButton({this.numRatings, this.icon, Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: grey),
+        borderRadius: BorderRadius.all(Radius.circular(100)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          // Replace the hard-coded number with our variable
+          Text(numRatings.toString(), style: TextStyle(color: darkGrey)),
+          SizedBox(width: 4),
+          // Replace the hard-coded icon with our variable
+          Icon(icon, size: 16, color: darkGrey),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-8
+`import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+Color grey = const Color(0xFFDDDDDD);
+Color darkGrey = const Color(0xFFBBBBBB);
+
+enum RatingStatus { liked, disliked, none }
+
+// Next, let's give these rating buttons active states
+class RatingButton extends StatelessWidget {
+
+  // Add two variables to control the customizable aspects
+  // of our widget
+  final int numRatings;
+  final IconData icon;
+  final RatingStatus ratingStatus;
+
+  const RatingButton({
+    this.numRatings,
+    this.icon,
+    this.ratingStatus = RatingStatus.none,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+
+    // Assign a border color to each state
+    Map<RatingStatus, Color> borderColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[400],
+      RatingStatus.disliked: Colors.red[400],
+    };
+
+    // Assign a fill color to each state
+    Map<RatingStatus, Color> buttonColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[700],
+      RatingStatus.disliked: Colors.red[700],
+    };
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      // Replace the hard-coded color with our dynamic color
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: borderColors[ratingStatus]),
+        borderRadius: BorderRadius.all(Radius.circular(100)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          // Replace the hard-coded color with our dynamic color
+          Text(numRatings.toString(), style: TextStyle(
+            color: buttonColors[ratingStatus],
+          )),
+          SizedBox(width: 4),
+          // Replace the hard-coded color with our dynamic color
+          Icon(icon, size: 16, color: buttonColors[ratingStatus]),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-9
+`
+import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+Color grey = const Color(0xFFDDDDDD);
+Color darkGrey = const Color(0xFFBBBBBB);
+
+// Finally, we re-structure our widget to be pluggable elsewhere
+// in our application. Internally, we continue to lean on reusable
+// widgets by including the \`RatingButton\` and \`FruitInfo\` widgets
+// we created earlier.
+class FruitCard extends StatelessWidget {
+  final String assetUrl;
+  final String title;
+  final String healthInfo;
+  final int numLikes;
+  final int numDislikes;
+  final RatingStatus ratingStatus;
+  final String family;
+  final bool isSelected;
+  const FruitCard({
+    @required this.assetUrl,
+    @required this.title,
+    @required this.healthInfo,
+    @required this.family,
+    this.numLikes = 0,
+    this.numDislikes = 0,
+    this.ratingStatus = RatingStatus.none,
+    this.isSelected = false,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+
+                // Pass necessary variables through to child widgets
+                child: FruitInfo(
+                  name: title,
+                  healthInfo: healthInfo,
+                  family: family,
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              // Pass necessary variables through to child widgets
+              child: RatingButton(
+                numRatings: numLikes,
+                icon: Icons.thumb_up,
+                ratingStatus: ratingStatus == RatingStatus.liked ? RatingStatus.liked : RatingStatus.none,
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              // Pass necessary variables through to child widgets
+              child: RatingButton(
+                numRatings: numDislikes,
+                icon: Icons.thumb_down,
+                ratingStatus: ratingStatus == RatingStatus.disliked ? RatingStatus.disliked : RatingStatus.none,
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network(assetUrl, height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+// Step-10
+`
+import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+class FruitCardListView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: BouncingScrollPhysics(),
+      children: <Widget>[
+        FruitCard(
+          assetUrl: 'http://placekitten.com/120/120',
+          family: 'Citrus',
+          healthInfo: '9 calories',
+          numLikes: 7,
+          numDislikes: 2,
+          ratingStatus: RatingStatus.liked,
+          title: 'Lime',
+        ),
+        FruitCard(
+          assetUrl: 'http://placekitten.com/120/120',
+          family: 'Nightshade',
+          healthInfo: '24 calories',
+          numLikes: 10,
+          numDislikes: 3,
+          ratingStatus: RatingStatus.liked,
+          title: 'Tomato',
+        ),
+        FruitCard(
+          assetUrl: 'http://placekitten.com/120/120',
+          family: 'Actinidiaceae',
+          healthInfo: '42 calories',
+          numLikes: 5,
+          numDislikes: 6,
+          ratingStatus: RatingStatus.disliked,
+          title: 'Kiwi',
+        ),
+        FruitCard(
+          assetUrl: 'http://placekitten.com/120/120',
+          family: 'Citrus',
+          healthInfo: '17 calories',
+          numLikes: 12,
+          numDislikes: 11,
+          title: 'Lemon',
+        ),
+        FruitCard(
+          assetUrl: 'http://placekitten.com/120/120',
+          family: 'Citrus',
+          healthInfo: '45 calories',
+          numLikes: 10,
+          numDislikes: 1,
+          title: 'Orange',
+        ),
+        FruitCard(
+          assetUrl: 'http://placekitten.com/120/120',
+          family: 'Citrus',
+          healthInfo: '4 calories',
+          numLikes: 21,
+          numDislikes: 1,
+          ratingStatus: RatingStatus.liked,
+          title: 'Strawberry',
+        ),
+        FruitCard(
+          assetUrl: 'http://placekitten.com/120/120',
+          family: 'Guacamole ingredients',
+          healthInfo: '234 calories',
+          numLikes: 12,
+          numDislikes: 4,
+          ratingStatus: RatingStatus.liked,
+          title: 'Avocado',
+        ),
+      ],
+    );
+  }
+}
+`
+];
 
     var isReady = false;
 
@@ -289,25 +1375,38 @@ class FruitCard extends StatelessWidget {
 
         const host = document.querySelector('#plaything-host');
 
-        for (var i = 0; i < 4; i++) {
+        const buttonHolder = document.getElementById('stepButtons');
+        for (var i = 0; i < mainSources.length; i++) {
+          buttonHolder.innerHTML += `<button id="step${i}" class="button">Step ${i + 1}</button>`;
+        }
+        for (var i = 0; i < mainSources.length; i++) {
           const button = document.querySelector('#step' + i);
-          const source = mainSources[i];
           const message = {
             'sourceCode': {
-              'main.dart': source,
-              'test.dart': testSource
+              'main.dart': mainSources[i],
+              'test.dart': testSource.length > i ? testSource[i] : testSource[testSource.length - 1],
             },
             'autoRun': true,
             'type': 'sourceCode'
           };
 
           button.addEventListener('click', (event) => {
+            document.querySelector('.active').classList.toggle('active');
+            event.target.classList.toggle('active');
             if (isReady) {
               host.contentWindow.postMessage(message, '*');
             }
           });
-        }
 
+
+          // "Click" the first button so we bootstrap the first step
+          // if (i === 0) {
+          if (i === mainSources.length - 1) {
+            button.classList.toggle('active');
+            host.contentWindow.postMessage(message, '*');
+          }
+
+        }
     });
 
     </script>
@@ -369,12 +1468,9 @@ class FruitCard extends StatelessWidget {
 
             <iframe class="tall" src="../embed-flutter.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/flutter_all_files&split=60&run=true"></iframe>
 
-            <h3>Step-through</h3>
+            <h3 id="stepThrough">Step-through</h3>
 
-            <button id="step0">Step Zero</button>
-            <button id="step1">Step One</button>
-            <button id="step2">Step Two</button>
-            <button id="step3">Step Three</button>
+            <div id="stepButtons"></div>
 
             <iframe id="plaything-host" class="tall" src="../embed-flutter.html?split=60"></iframe>
 
