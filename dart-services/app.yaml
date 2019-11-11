@@ -1,16 +1,12 @@
 runtime: custom
 env: flex
 
-# TODO(redbrogdon): remove this line when ready to merge.
-service: flutter-web-unforked
-
 resources:
   cpu: 1
   memory_gb: 4
   disk_size_gb: 50
 
 automatic_scaling:
-  # TODO(redbrogdon): set back to 6 before merging.
   min_num_instances: 1
   max_num_instances: 40
   cool_down_period_sec: 60

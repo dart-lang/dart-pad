@@ -68,7 +68,7 @@ class Compiler {
         '--terse',
         if (!returnSourceMap) '--no-source-maps',
         '--packages=${_flutterWebManager.packagesFilePath}',
-        '-o$kMainDart.js',
+        ...['-o', '$kMainDart.js'],
         kMainDart,
       ];
 
@@ -111,7 +111,7 @@ class Compiler {
     }
   }
 
-  ///Compile the given string and return the resulting [DDCCompilationResults].
+  /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> compileDDC(String input) async {
     Set<String> imports = getAllImportsFor(input);
     if (!importsOkForCompile(imports)) {

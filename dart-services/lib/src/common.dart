@@ -44,7 +44,7 @@ void main() {
 }
 """;
 
-const sampleCodeFlutter = """
+const sampleCodeFlutter = '''
 import 'package:flutter/material.dart';
 
 void main() async {
@@ -64,7 +64,7 @@ void main() async {
     ),
   );
 }
-""";
+''';
 
 const sampleCodeMultiFoo = """
 import 'bar.dart';

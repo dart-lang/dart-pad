@@ -34,7 +34,7 @@ void analyzeTest() => null;
 @Task()
 void serve() {
   // You can run the `grind serve` command, or just run
-  // `dart bin/server_dev.dart --port 8002` locally.
+  // `dart bin/server_dev.dart --port 8082` locally.
 
   Process.runSync(
       Platform.executable, ['bin/server_dev.dart', '--port', '8082']);
@@ -73,6 +73,24 @@ void validateStorageArtifacts() async {
 
   for (String artifact in compilationArtifacts) {
     await _validateExists('$urlBase$version/$artifact');
+  }
+}
+
+@Task('validate that we have the correct commit SHA included in Dockerfile')
+void validateDockerfile() async {
+  final result = await Process.run('git', ['rev-parse', 'HEAD'],
+      workingDirectory: '../flutter');
+
+  final commitSha = result.stdout.toString();
+
+  final dockerfileContents = await File('Dockerfile').readAsString();
+
+  if (!dockerfileContents.contains(commitSha)) {
+    fail('The flutter submodule\'s current commit is $commitSha, '
+      'and the Dockerfile doesn\'t include that string. Did you forget '
+      'to update the Dockerfile after updating Flutter?');
+  } else {
+    print('Flutter commit $commitSha was found in Dockerfile.');
   }
 }
 
@@ -196,7 +214,7 @@ void fuzz() {
 
 @Task('Update discovery files and run all checks prior to deployment')
 @Depends(updateDockerVersion, discovery, analyze, test, fuzz,
-    validateStorageArtifacts)
+    validateStorageArtifacts, validateDockerfile)
 void deploy() {
   log('Run: gcloud app deploy --project=dart-services --no-promote');
 }
