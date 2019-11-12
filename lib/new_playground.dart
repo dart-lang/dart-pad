@@ -84,14 +84,12 @@ class Playground implements GistContainer, GistController {
   MDCButton resetButton;
   MDCButton formatButton;
   MDCButton samplesButton;
-  MDCButton layoutsButton;
   MDCButton runButton;
   MDCButton editorConsoleTab;
   MDCButton editorDocsTab;
   MDCButton closePanelButton;
   MDCButton moreMenuButton;
   DElement editorPanelFooter;
-  MDCMenu layoutMenu;
   MDCMenu samplesMenu;
   MDCMenu moreMenu;
   Dialog dialog;
@@ -132,7 +130,6 @@ class Playground implements GistContainer, GistController {
       _initButtons();
       _initSamplesMenu();
       _initMoreMenu();
-      _initLayoutMenu();
       _initSplitters();
       _initTabs();
       _initLayout();
@@ -186,11 +183,6 @@ class Playground implements GistContainer, GistController {
     samplesButton = MDCButton(querySelector('#samples-dropdown-button'))
       ..onClick.listen((e) {
         samplesMenu.open = !samplesMenu.open;
-      });
-
-    layoutsButton = MDCButton(querySelector('#layout-menu-button'))
-      ..onClick.listen((_) {
-        layoutMenu.open = !layoutMenu.open;
       });
 
     runButton = MDCButton(querySelector('#run-button'))
@@ -286,27 +278,6 @@ class Playground implements GistContainer, GistController {
           break;
         case 1:
           _showGitHubPage();
-          break;
-      }
-    });
-  }
-
-  void _initLayoutMenu() {
-    layoutMenu = MDCMenu(querySelector('#layout-menu'))
-      ..setAnchorCorner(AnchorCorner.bottomLeft)
-      ..setAnchorElement(querySelector('#layout-menu-button'))
-      ..hoistMenuToBody();
-    layoutMenu.listen('MDCMenu:selected', (e) {
-      var idx = (e as CustomEvent).detail['index'];
-      switch (idx) {
-        case 0:
-          _changeLayout(Layout.dart);
-          break;
-        case 1:
-          _changeLayout(Layout.html);
-          break;
-        case 2:
-          _changeLayout(Layout.flutter);
           break;
       }
     });
@@ -569,12 +540,22 @@ class Playground implements GistContainer, GistController {
     // If no gist was loaded, use a new Dart gist.
     if (loadResult == LoadGistResult.none) {
       editableGist.setBackingGist(_createGist(layout));
+
+      // Store the gist so that the same sample is loaded when the page is
+      // refreshed.
+      _gistStorage.setStoredGist(editableGist.createGist());
+
+      _changeLayout(layout);
+    } else {
+      // If a Gist was loaded from storage or from a Gist, use the layout
+      // detected by reading the code.
+      _changeLayout(_detectLayout(editableGist.backingGist));
     }
 
     // Clear console output and update the layout if necessary.
     var url = Uri.parse(window.location.toString());
     _clearOutput();
-    _changeLayout(layout);
+
     if (url.hasQuery && url.queryParameters['line'] != null) {
       _jumpToLine(int.parse(url.queryParameters['line']));
     }
@@ -614,6 +595,11 @@ class Playground implements GistContainer, GistController {
       editableGist.setBackingGist(blankGist);
 
       Gist storedGist = _gistStorage.getStoredGist();
+
+      // Set the editable gist's backing gist so that the route handler can
+      // detect the project type.
+      editableGist.setBackingGist(storedGist);
+
       editableGist.description = storedGist.description;
       for (GistFile file in storedGist.files) {
         editableGist.getGistFile(file.name).content = file.content;
@@ -889,16 +875,6 @@ class Playground implements GistContainer, GistController {
 
     _layout = layout;
 
-    var checkmarkIcons = [
-      querySelector('#layout-dart-checkmark'),
-      querySelector('#layout-web-checkmark'),
-      querySelector('#layout-flutter-checkmark'),
-    ];
-
-    for (var checkmark in checkmarkIcons) {
-      checkmark.classes.add('hide');
-    }
-
     if (layout == Layout.dart) {
       _frame.hidden = true;
       editorPanelFooter.setAttr('hidden');
@@ -908,7 +884,6 @@ class Playground implements GistContainer, GistController {
       webTabBar.setAttr('hidden');
       webLayoutTabController.selectTab('dart');
       _initRightSplitter();
-      checkmarkIcons[0].classes.remove('hide');
     } else if (layout == Layout.html) {
       _disposeRightSplitter();
       _frame.hidden = false;
@@ -918,7 +893,6 @@ class Playground implements GistContainer, GistController {
       _rightConsoleElement.setAttribute('hidden', '');
       webTabBar.toggleAttr('hidden', false);
       webLayoutTabController.selectTab('dart');
-      checkmarkIcons[1].classes.remove('hide');
     } else if (layout == Layout.flutter) {
       _disposeRightSplitter();
       _frame.hidden = false;
@@ -928,7 +902,6 @@ class Playground implements GistContainer, GistController {
       _rightConsoleElement.setAttribute('hidden', '');
       webTabBar.setAttr('hidden');
       webLayoutTabController.selectTab('dart');
-      checkmarkIcons[2].classes.remove('hide');
     }
   }
 
