@@ -29,3 +29,4 @@ liveness_check:
 
 readiness_check:
   path: /_ah/ready
+  app_start_timeout_sec: 600

@@ -33,7 +33,7 @@ RUN apt-get update && \
 RUN groupadd --system dart && \
   useradd --no-log-init --system --home /home/dart --create-home -g dart dart
 
-RUN mkdir /flutter && chown dart:dart /flutter
+RUN mkdir flutter && chown dart:dart flutter
 
 # Switch to a new, non-root user to use the flutter tool.
 USER dart
@@ -41,15 +41,15 @@ USER dart
 ENV PATH="/home/dart/.pub-cache/bin:${PATH}"
 
 # Clone the flutter repo and set it to the same commit as the flutter submodule.
-RUN cd / && git clone https://github.com/flutter/flutter.git
-RUN cd /flutter && git checkout $FLUTTER_COMMIT
+RUN git clone https://github.com/flutter/flutter.git
+RUN cd flutter && git checkout $FLUTTER_COMMIT
 
 # Set the Flutter SDK up for web compilation.
-RUN /flutter/bin/flutter doctor
-RUN /flutter/bin/flutter config --enable-web
-RUN /flutter/bin/flutter precache --web --no-android --no-ios --no-linux \
+RUN flutter/bin/flutter doctor
+RUN flutter/bin/flutter config --enable-web
+RUN flutter/bin/flutter precache --web --no-android --no-ios --no-linux \
   --no-windows --no-macos --no-fuchsia
-RUN cat /flutter/bin/cache/dart-sdk/version
+RUN cat flutter/bin/cache/dart-sdk/version
 
 EXPOSE 8080 8181 5858
 

@@ -282,6 +282,7 @@ class CommonServer {
   }
 
   Future<void> init() async {
+    log.info('Beginning CommonServer init().');
     analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
     flutterAnalysisServer = AnalysisServerWrapper(
         flutterWebManager.flutterSdk.sdkPath, flutterWebManager);
@@ -290,7 +291,12 @@ class CommonServer {
         Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
 
     await analysisServer.init();
+
+    log.info('Dart analysis server initialized.');
+
     await flutterAnalysisServer.init();
+
+    log.info('Flutter analysis server initialized.');
 
     unawaited(analysisServer.onExit.then((int code) {
       log.severe('analysisServer exited, code: $code');
@@ -305,6 +311,8 @@ class CommonServer {
         exit(code);
       }
     }));
+
+
   }
 
   Future<void> warmup({bool useHtml = false}) async {
