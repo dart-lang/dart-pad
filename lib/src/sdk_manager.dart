@@ -66,6 +66,8 @@ class PlatformSdk extends Sdk {
 
 /// Represents a Flutter SDK installation (which includes its own version of the
 /// Dart SDK) present on the server.
+///
+/// This class assumes the Flutter SDK is available at `./flutter`.
 class FlutterSdk extends Sdk {
   String _versionFull = '';
 
@@ -78,7 +80,7 @@ class FlutterSdk extends Sdk {
   @override
   String get sdkPath => path.join(flutterBinPath, 'cache/dart-sdk');
 
-  String get flutterBinPath => path.join(Directory.current.parent.path, 'flutter/bin');
+  String get flutterBinPath => path.join(Directory.current.path, 'flutter/bin');
 
   @override
   String get versionFull => _versionFull;

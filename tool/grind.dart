@@ -12,6 +12,7 @@ import 'package:dart_services/src/sdk_manager.dart';
 import 'package:grinder/grinder.dart';
 import 'package:grinder/grinder_files.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 
 Future<void> main(List<String> args) async {
   await SdkManager.sdk.init();
@@ -76,24 +77,6 @@ void validateStorageArtifacts() async {
   }
 }
 
-@Task('validate that we have the correct commit SHA included in Dockerfile')
-void validateDockerfile() async {
-  final result = await Process.run('git', ['rev-parse', 'HEAD'],
-      workingDirectory: '../flutter');
-
-  final commitSha = result.stdout.toString();
-
-  final dockerfileContents = await File('Dockerfile').readAsString();
-
-  if (!dockerfileContents.contains(commitSha)) {
-    fail('The flutter submodule\'s current commit is $commitSha, '
-      'and the Dockerfile doesn\'t include that string. Did you forget '
-      'to update the Dockerfile after updating Flutter?');
-  } else {
-    print('Flutter commit $commitSha was found in Dockerfile.');
-  }
-}
-
 Future _validateExists(String url) async {
   log('checking $url...');
 
@@ -108,7 +91,7 @@ Future _validateExists(String url) async {
 
 @Task('build the sdk compilation artifacts for upload to google storage')
 void buildStorageArtifacts() {
-  // build and copy dart_sdk.js, flutter_web.js, and flutter_web.sum
+  // build and copy dart_sdk.js, flutter_web.js, and flutter_web.dill
   final Directory temp =
       Directory.systemTemp.createTempSync('flutter_web_sample');
 
@@ -120,13 +103,14 @@ void buildStorageArtifacts() {
 }
 
 void _buildStorageArtifacts(Directory dir) {
-  final flutterSdkPath = '${Directory.current.parent.path}/flutter';
+  final flutterSdkPath =
+      Directory(path.join(Directory.current.path, 'flutter'));
   String pubspec = FlutterWebManager.createPubspec(true);
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
   // run flutter pub get
   run(
-    '$flutterSdkPath/bin/flutter',
+    path.join(flutterSdkPath.path, 'bin/flutter'),
     arguments: ['pub', 'get'],
     workingDirectory: dir.path,
   );
@@ -162,7 +146,7 @@ void _buildStorageArtifacts(Directory dir) {
   // Make sure flutter/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
   // is installed.
   run(
-    '$flutterSdkPath/bin/flutter',
+    path.join(flutterSdkPath.path, 'bin/flutter'),
     arguments: ['precache', '--web'],
     workingDirectory: dir.path,
   );
@@ -170,11 +154,15 @@ void _buildStorageArtifacts(Directory dir) {
   // Build the artifacts using DDC:
   // dart-sdk/bin/dartdevc -k -s kernel/flutter_ddc_sdk.dill
   //     --modules=amd package:flutter_web/animation.dart ...
-  var binary = '$flutterSdkPath/bin/cache/dart-sdk/bin/dartdevc';
+  final compilerPath =
+      path.join(flutterSdkPath.path, 'bin/cache/dart-sdk/bin/dartdevc');
+  final dillPath = path.join(flutterSdkPath.path,
+      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill');
+
   var args = [
     '-k',
     '-s',
-    '$flutterSdkPath/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill',
+    dillPath,
     '--modules=amd',
     '-o',
     'flutter_web.js',
@@ -182,19 +170,19 @@ void _buildStorageArtifacts(Directory dir) {
   ];
 
   run(
-    binary,
+    compilerPath,
     arguments: args,
     workingDirectory: dir.path,
   );
 
   // Copy both to the project directory.
-  Directory artifactsDir = getDir('artifacts');
+  final artifactsDir = getDir('artifacts');
   artifactsDir.create();
 
-  copy(
-      getFile(
-          '$flutterSdkPath/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd/dart_sdk.js'),
-      artifactsDir);
+  final sdkJsPath = path.join(flutterSdkPath.path,
+      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd/dart_sdk.js');
+
+  copy(getFile(sdkJsPath), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
@@ -214,7 +202,7 @@ void fuzz() {
 
 @Task('Update discovery files and run all checks prior to deployment')
 @Depends(updateDockerVersion, discovery, analyze, test, fuzz,
-    validateStorageArtifacts, validateDockerfile)
+    validateStorageArtifacts)
 void deploy() {
   log('Run: gcloud app deploy --project=dart-services --no-promote');
 }
