@@ -291,11 +291,9 @@ class CommonServer {
         Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
 
     await analysisServer.init();
-
     log.info('Dart analysis server initialized.');
 
     await flutterAnalysisServer.init();
-
     log.info('Flutter analysis server initialized.');
 
     unawaited(analysisServer.onExit.then((int code) {
@@ -311,8 +309,6 @@ class CommonServer {
         exit(code);
       }
     }));
-
-
   }
 
   Future<void> warmup({bool useHtml = false}) async {
@@ -675,7 +671,7 @@ class CommonServer {
 
   /// Check that the set of packages referenced is valid.
   ///
-  /// If there are uses of package:flutter_web, ensure that support there is
+  /// If there are uses of package:flutter, ensure that support there is
   /// initialized.
   Future<void> _checkPackageReferencesInitFlutterWeb(String source) async {
     Set<String> imports = getAllImportsFor(source);
@@ -689,7 +685,7 @@ class CommonServer {
       try {
         await flutterWebManager.initFlutterWeb();
       } catch (e) {
-        log.warning('unable to init package:flutter_web: $e');
+        log.warning('unable to init package:flutter: $e');
         return;
       }
     }

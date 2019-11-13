@@ -26,11 +26,11 @@ class Compiler {
   final FlutterSdk _flutterSdk;
   final FlutterWebManager _flutterWebManager;
   final String _dartdevcPath;
-  final BazelWorkerDriver _flutterDdcDriver;
+  final BazelWorkerDriver _ddcDriver;
 
   Compiler(this._sdk, this._flutterSdk, this._flutterWebManager)
       : _dartdevcPath = path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
-        _flutterDdcDriver = BazelWorkerDriver(
+        _ddcDriver = BazelWorkerDriver(
             () => Process.start(
                   path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
                   <String>['--persistent_worker'],
@@ -157,7 +157,7 @@ class Compiler {
       _logger.info('About to exec "$_dartdevcPath ${arguments.join(' ')}"');
       _logger.info('Compiling: $input');
 
-      final WorkResponse response = await _flutterDdcDriver
+      final WorkResponse response = await _ddcDriver
           .doWork(WorkRequest()..arguments.addAll(arguments));
 
       if (response.exitCode != 0) {
@@ -181,7 +181,7 @@ class Compiler {
     }
   }
 
-  Future<void> dispose() => _flutterDdcDriver.terminateWorkers();
+  Future<void> dispose() => _ddcDriver.terminateWorkers();
 }
 
 /// The result of a dart2js compile.
