@@ -45,7 +45,7 @@ class Compiler {
     return compile(useHtml ? sampleCodeWeb : sampleCode);
   }
 
-  ///Compile the given string and return the resulting [CompilationResults].
+  /// Compile the given string and return the resulting [CompilationResults].
   Future<CompilationResults> compile(
     String input, {
     bool returnSourceMap = false,

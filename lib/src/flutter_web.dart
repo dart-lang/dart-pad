@@ -153,17 +153,6 @@ $_samplePackageName:lib/
       environment: {'DART_VM_OPTIONS': '--enable-vm-service=$observatoryPort'},
     );
 
-    final allErr = StringBuffer();
-    final allOut = StringBuffer();
-
-    result.stdout.transform(utf8.decoder).listen((data) {
-      allErr.write(data);
-    });
-
-    result.stderr.transform(utf8.decoder).listen((data) {
-      allOut.write(data);
-    });
-
     _logger.info('${result.stdout}'.trim());
 
     final code = await result.exitCode;

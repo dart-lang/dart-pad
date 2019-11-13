@@ -7,20 +7,13 @@ FROM google/dart:2.6.0
 ARG FLUTTER_COMMIT=fbabb264e0ab3e090d6ec056e0744aaeb1586735
 
 WORKDIR /app
-
 ADD tool/dart_run.sh /dart_runtime/
-
 RUN chmod 755 /dart_runtime/dart_run.sh && \
   chown root:root /dart_runtime/dart_run.sh
-
 ADD pubspec.* /app/
-
 RUN find -name "*" -print
-
 RUN pub get
-
 ADD . /app
-
 RUN pub get --offline
 
 # We install unzip and remove the apt-index again to keep the
