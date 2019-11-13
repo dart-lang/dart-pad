@@ -1,14 +1,16 @@
 runtime: custom
 env: flex
 
+service: unforked
+
 resources:
   cpu: 1
   memory_gb: 4
   disk_size_gb: 50
 
 automatic_scaling:
-  min_num_instances: 6
-  max_num_instances: 40
+  min_num_instances: 1
+  max_num_instances: 10
   cool_down_period_sec: 60
   cpu_utilization:
     target_utilization: 0.6
