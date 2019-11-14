@@ -17,10 +17,6 @@ Logger _logger = Logger('flutter_web');
 class FlutterWebManager {
   final FlutterSdk flutterSdk;
 
-  // TODO(redbrogdon): Find a better way to determine the number of an unused
-  // port.
-  static const observatoryPort = 49003;
-
   Directory _projectDirectory;
 
   bool _initedFlutterWeb = false;
@@ -139,6 +135,8 @@ $_samplePackageName:lib/
   Future<void> _runPubGet() async {
     _logger.info('running flutter pub get (${_projectDirectory.path})');
 
+    final observatoryPort = await _findFreePort();
+
     // The DART_VM_OPTIONS flag is included here to override the one sent by the
     // Dart SDK during tests. Without the flag, the Flutter tool will attempt to
     // spin up its own observatory on the same port as the one already
@@ -162,6 +160,33 @@ $_samplePackageName:lib/
 
       throw 'pub get failed: ${result.exitCode}: ${result.stderr}';
     }
+  }
+
+  Future<int> _findFreePort({bool ipv6 = false}) async {
+    var port = 0;
+    ServerSocket serverSocket;
+    final InternetAddress loopback =
+        ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4;
+
+    try {
+      serverSocket = await ServerSocket.bind(loopback, 0);
+      port = serverSocket.port;
+    } on SocketException catch (e) {
+      // If ipv4 loopback bind fails, try ipv6.
+      if (!ipv6) {
+        return _findFreePort(ipv6: true);
+      }
+      _logger.severe('Could not find free port for `pub get`: $e');
+    } catch (e) {
+      // Failures are signaled by a return value of 0 from this function.
+      _logger.severe('Could not find free port for `pub get`: $e');
+    } finally {
+      if (serverSocket != null) {
+        await serverSocket.close();
+      }
+    }
+
+    return port;
   }
 
   static const String _samplePackageName = 'dartpad_sample';
