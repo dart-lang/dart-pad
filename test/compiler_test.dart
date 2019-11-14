@@ -7,6 +7,7 @@ library services.compiler_test;
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
 import 'package:dart_services/src/flutter_web.dart';
+import 'package:dart_services/src/sdk_manager.dart';
 import 'package:test/test.dart';
 
 void main() => defineTests();
@@ -17,9 +18,14 @@ void defineTests() {
 
   group('compiler', () {
     setUpAll(() async {
-      flutterWebManager = FlutterWebManager(sdkPath);
+      await SdkManager.sdk.init();
+      await SdkManager.flutterSdk.init();
 
-      compiler = Compiler(sdkPath, flutterWebManager);
+      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+      await flutterWebManager.initFlutterWeb();
+
+      compiler =
+          Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
     });
 
     tearDownAll(() async {
@@ -52,6 +58,20 @@ void defineTests() {
       return compiler
           .compileDDC(sampleCodeWeb)
           .then((DDCCompilationResults result) {
+        expect(result.success, true);
+        expect(result.compiledJS, isNotEmpty);
+        expect(result.modulesBaseUrl, isNotEmpty);
+
+        expect(result.compiledJS, contains("define('dartpad_main', ["));
+      });
+    });
+
+    test('compileDDC with Flutter', () {
+      return compiler
+          .compileDDC(sampleCodeFlutter)
+          .then((DDCCompilationResults result) {
+        print(result.problems);
+
         expect(result.success, true);
         expect(result.compiledJS, isNotEmpty);
         expect(result.modulesBaseUrl, isNotEmpty);
@@ -113,8 +133,6 @@ void defineTests() {
       return compiler
           .compile(sampleCode, returnSourceMap: true)
           .then((CompilationResults result) {
-        expect(compiler.version, isNotNull);
-        expect(compiler.version, startsWith('2.'));
         expect(result.sourceMap, isNotNull);
         expect(result.sourceMap, isNotEmpty);
       });

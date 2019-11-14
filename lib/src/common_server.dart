@@ -155,12 +155,13 @@ class RedisCache implements ServerCache {
         });
   }
 
-  /// Build a key that includes the server version, and Dart SDK Version.
+  /// Build a key that includes the server version, Dart SDK version, and
+  /// Flutter SDK version.
   ///
-  /// We don't use the existing key directly so that different AppEngine versions
-  /// using the same redis cache do not have collisions.
+  /// We don't use the existing key directly so that different AppEngine
+  /// versions using the same redis cache do not have collisions.
   String _genKey(String key) =>
-      'server:$serverVersion:dart:${SdkManager.sdk.versionFull}+$key';
+      'server:$serverVersion:dart:${SdkManager.sdk.versionFull}:flutter:${SdkManager.flutterSdk.versionFull}+$key';
 
   @override
   Future<String> get(String key) async {
@@ -268,6 +269,7 @@ class CommonServer {
 
   Compiler compiler;
   AnalysisServerWrapper analysisServer;
+  AnalysisServerWrapper flutterAnalysisServer;
 
   CommonServer(
     this.sdkPath,
@@ -280,13 +282,29 @@ class CommonServer {
   }
 
   Future<void> init() async {
+    log.info('Beginning CommonServer init().');
     analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
-    compiler = Compiler(sdkPath, flutterWebManager);
+    flutterAnalysisServer = AnalysisServerWrapper(
+        flutterWebManager.flutterSdk.sdkPath, flutterWebManager);
+
+    compiler =
+        Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
 
     await analysisServer.init();
+    log.info('Dart analysis server initialized.');
+
+    await flutterAnalysisServer.init();
+    log.info('Flutter analysis server initialized.');
 
     unawaited(analysisServer.onExit.then((int code) {
       log.severe('analysisServer exited, code: $code');
+      if (code != 0) {
+        exit(code);
+      }
+    }));
+
+    unawaited(flutterAnalysisServer.onExit.then((int code) {
+      log.severe('flutterAnalysisServer exited, code: $code');
       if (code != 0) {
         exit(code);
       }
@@ -297,6 +315,7 @@ class CommonServer {
     await flutterWebManager.warmup();
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
+    await flutterAnalysisServer.warmup(useHtml: useHtml);
   }
 
   Future<void> restart() async {
@@ -313,6 +332,7 @@ class CommonServer {
   Future<dynamic> shutdown() {
     return Future.wait(<Future<dynamic>>[
       analysisServer.shutdown(),
+      flutterAnalysisServer.shutdown(),
       compiler.dispose(),
       Future<dynamic>.sync(cache.shutdown)
     ]);
@@ -420,7 +440,8 @@ class CommonServer {
     try {
       final Stopwatch watch = Stopwatch()..start();
 
-      AnalysisResults results = await analysisServer.analyze(source);
+      AnalysisResults results =
+          await getCorrectAnalysisServer(source).analyze(source);
       int lineCount = source.split('\n').length;
       int ms = watch.elapsedMilliseconds;
       log.info('PERF: Analyzed $lineCount lines of Dart in ${ms}ms.');
@@ -554,7 +575,7 @@ class CommonServer {
     Stopwatch watch = Stopwatch()..start();
     try {
       Map<String, String> docInfo =
-          await analysisServer.dartdoc(source, offset);
+          await getCorrectAnalysisServer(source).dartdoc(source, offset);
       docInfo ??= <String, String>{};
       log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
       return DocumentResponse(docInfo);
@@ -584,7 +605,8 @@ class CommonServer {
 
     Stopwatch watch = Stopwatch()..start();
     try {
-      CompleteResponse response = await analysisServer.complete(source, offset);
+      CompleteResponse response =
+          await getCorrectAnalysisServer(source).complete(source, offset);
       log.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
       return response;
     } catch (e, st) {
@@ -605,7 +627,8 @@ class CommonServer {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     Stopwatch watch = Stopwatch()..start();
-    FixesResponse response = await analysisServer.getFixes(source, offset);
+    FixesResponse response =
+        await getCorrectAnalysisServer(source).getFixes(source, offset);
     log.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
@@ -621,7 +644,8 @@ class CommonServer {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     Stopwatch watch = Stopwatch()..start();
-    var response = await analysisServer.getAssists(source, offset);
+    var response =
+        await getCorrectAnalysisServer(source).getAssists(source, offset);
     log.info('PERF: Computed assists in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
@@ -634,7 +658,8 @@ class CommonServer {
 
     Stopwatch watch = Stopwatch()..start();
 
-    FormatResponse response = await analysisServer.format(source, offset);
+    FormatResponse response =
+        await getCorrectAnalysisServer(source).format(source, offset);
     log.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
     return response;
   }
@@ -646,7 +671,7 @@ class CommonServer {
 
   /// Check that the set of packages referenced is valid.
   ///
-  /// If there are uses of package:flutter_web, ensure that support there is
+  /// If there are uses of package:flutter, ensure that support there is
   /// initialized.
   Future<void> _checkPackageReferencesInitFlutterWeb(String source) async {
     Set<String> imports = getAllImportsFor(source);
@@ -660,10 +685,17 @@ class CommonServer {
       try {
         await flutterWebManager.initFlutterWeb();
       } catch (e) {
-        log.warning('unable to init package:flutter_web');
+        log.warning('unable to init package:flutter: $e');
         return;
       }
     }
+  }
+
+  AnalysisServerWrapper getCorrectAnalysisServer(String source) {
+    Set<String> imports = getAllImportsFor(source);
+    return flutterWebManager.usesFlutterWeb(imports)
+        ? flutterAnalysisServer
+        : analysisServer;
   }
 }
 

@@ -9,6 +9,25 @@ import 'dart:io';
 import 'sdk_manager.dart';
 
 const kMainDart = 'main.dart';
+const kBootstrapDart = 'bootstrap.dart';
+
+const kBootstrapFlutterCode = r'''
+import 'dart:ui' as ui;
+import 'main.dart' as user_code;
+
+void main() async {
+  await ui.webOnlyInitializePlatform();
+  user_code.main();
+}
+''';
+
+const kBootstrapDartCode = r'''
+import 'main.dart' as user_code;
+
+void main() {
+  user_code.main();
+}
+''';
 
 const sampleCode = '''
 void main() {
@@ -24,6 +43,28 @@ void main() {
   querySelector('#foo').text = 'bar';
 }
 """;
+
+const sampleCodeFlutter = '''
+import 'package:flutter/material.dart';
+
+void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text('Hey there, boo!'),
+        ),
+        body: Center(
+          child: Text(
+            'You are pretty okay.',
+          ),
+        ),
+      ),
+    ),
+  );
+}
+''';
 
 const sampleCodeMultiFoo = """
 import 'bar.dart';
@@ -71,16 +112,6 @@ void main() {
 
 void foo(int i) {
   print(i);
-}
-""";
-
-const sampleDart2OK = """
-class Foo {
-  String toString() => 'hello';
-}
-
-void main(List<String> argv) {
-  print (Foo());
 }
 """;
 

@@ -1,0 +1,4 @@
+# Docker should ignore the local copy of Flutter and install its own,
+# since the Docker container is likely running a different OS than the
+# developer's machine.
+flutter

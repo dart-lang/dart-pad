@@ -15,13 +15,13 @@ Logger _logger = Logger('flutter_web');
 
 /// Handle provisioning package:flutter_web and related work.
 class FlutterWebManager {
-  final String sdkPath;
+  final FlutterSdk flutterSdk;
 
   Directory _projectDirectory;
 
   bool _initedFlutterWeb = false;
 
-  FlutterWebManager(this.sdkPath) {
+  FlutterWebManager(this.flutterSdk) {
     _projectDirectory = Directory.systemTemp.createTempSync('dartpad');
     _init();
   }
@@ -36,7 +36,7 @@ class FlutterWebManager {
 
   void _init() {
     // create a pubspec.yaml file
-    String pubspec = createPubspec(false);
+    String pubspec = createPubspec(true);
     File(path.join(_projectDirectory.path, 'pubspec.yaml'))
         .writeAsStringSync(pubspec);
 
@@ -71,26 +71,29 @@ $_samplePackageName:lib/
 
     await _runPubGet();
 
-    final String sdkVersion = SdkManager.sdk.version;
+    final String sdkVersion = flutterSdk.versionFull;
 
-    // download and save the flutter_web.sum file
+    // Download and save the flutter_web.dill file.
     String url = 'https://storage.googleapis.com/compilation_artifacts/'
-        '$sdkVersion/flutter_web.sum';
+        '$sdkVersion/flutter_web.dill';
+
+    _logger.info('Attempting download of $url');
+
     Uint8List summaryContents = await http.readBytes(url);
-    await File(path.join(_projectDirectory.path, 'flutter_web.sum'))
+    await File(path.join(_projectDirectory.path, 'flutter_web.dill'))
         .writeAsBytes(summaryContents);
+
+    _logger.info('Wrote flutter_web.dill');
 
     _initedFlutterWeb = true;
   }
 
   String get summaryFilePath {
-    return path.join(_projectDirectory.path, 'flutter_web.sum');
+    return path.join(_projectDirectory.path, 'flutter_web.dill');
   }
 
   static final Set<String> _flutterWebImportPrefixes = <String>{
-    'package:flutter_web',
-    'package:flutter_web_ui',
-    'package:flutter_web_test',
+    'package:flutter',
   };
 
   bool usesFlutterWeb(Set<String> imports) {
@@ -106,9 +109,6 @@ $_samplePackageName:lib/
   }
 
   String getUnsupportedImport(Set<String> imports) {
-    // TODO(devoncarew): Should we support a white-listed set of package:
-    // imports?
-
     for (String import in imports) {
       // All dart: imports are ok;
       if (import.startsWith('dart:')) {
@@ -133,22 +133,60 @@ $_samplePackageName:lib/
   }
 
   Future<void> _runPubGet() async {
-    _logger.info('running pub get (${_projectDirectory.path})');
+    _logger.info('running flutter pub get (${_projectDirectory.path})');
 
-    ProcessResult result = await Process.run(
-      path.join(sdkPath, 'bin', 'pub'),
-      <String>['get', '--no-precompile'],
+    final observatoryPort = await _findFreePort();
+
+    // The DART_VM_OPTIONS flag is included here to override the one sent by the
+    // Dart SDK during tests. Without the flag, the Flutter tool will attempt to
+    // spin up its own observatory on the same port as the one already
+    // instantiated by the Dart SDK running the test, causing a hang.
+    //
+    // The value should be an available port number.
+    final result = await Process.start(
+      path.join(flutterSdk.flutterBinPath, 'flutter'),
+      ['pub', 'get'],
       workingDirectory: _projectDirectory.path,
+      environment: {'DART_VM_OPTIONS': '--enable-vm-service=$observatoryPort'},
     );
 
     _logger.info('${result.stdout}'.trim());
 
-    if (result.exitCode != 0) {
+    final code = await result.exitCode;
+
+    if (code != 0) {
       _logger.warning('pub get failed: ${result.exitCode}');
       _logger.warning(result.stderr);
 
-      throw 'pub get failed: ${result.exitCode}';
+      throw 'pub get failed: ${result.exitCode}: ${result.stderr}';
     }
+  }
+
+  Future<int> _findFreePort({bool ipv6 = false}) async {
+    var port = 0;
+    ServerSocket serverSocket;
+    final InternetAddress loopback =
+        ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4;
+
+    try {
+      serverSocket = await ServerSocket.bind(loopback, 0);
+      port = serverSocket.port;
+    } on SocketException catch (e) {
+      // If ipv4 loopback bind fails, try ipv6.
+      if (!ipv6) {
+        return _findFreePort(ipv6: true);
+      }
+      _logger.severe('Could not find free port for `pub get`: $e');
+    } catch (e) {
+      // Failures are signaled by a return value of 0 from this function.
+      _logger.severe('Could not find free port for `pub get`: $e');
+    } finally {
+      if (serverSocket != null) {
+        await serverSocket.close();
+      }
+    }
+
+    return port;
   }
 
   static const String _samplePackageName = 'dartpad_sample';
@@ -161,25 +199,10 @@ name: $_samplePackageName
     if (includeFlutterWeb) {
       content += '''
 dependencies:
-  flutter_web:
-    git:
-      url: https://github.com/flutter/flutter_web
-      path: packages/flutter_web
-  flutter_web_test:
-    git:
-      url: https://github.com/flutter/flutter_web
-      path: packages/flutter_web_test
-  flutter_web_ui:
-    git:
-      url: https://github.com/flutter/flutter_web
-      path: packages/flutter_web_ui
-dependency_overrides:
-  flutter_web:
-    path: ${Directory.current.path}/flutter_web/packages/flutter_web
-  flutter_web_test:
-    path: ${Directory.current.path}/flutter_web/packages/flutter_web_test
-  flutter_web_ui:
-    path: ${Directory.current.path}/flutter_web/packages/flutter_web_ui
+  flutter:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
 ''';
     }
 

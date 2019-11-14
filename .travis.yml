@@ -14,4 +14,11 @@ sudo: false
 
 branches:
   only: [master]
+before_script:
+  - git submodule init
+  - git submodule update
+  - export PATH=$PATH:$PWD/flutter/bin
+  - flutter doctor
+  - flutter config --enable-web
+  - flutter precache --web --no-android --no-ios --no-linux --no-windows --no-macos --no-fuchsia
 script: ./tool/travis.sh

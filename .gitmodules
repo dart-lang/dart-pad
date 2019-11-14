@@ -1,4 +1,3 @@
-[submodule "flutter_web"]
-	path = flutter_web
-	url = https://github.com/flutter/flutter_web.git
-	branch = master
+[submodule "flutter"]
+	path = flutter
+	url = https://github.com/flutter/flutter.git

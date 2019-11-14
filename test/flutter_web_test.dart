@@ -4,7 +4,6 @@
 
 import 'dart:io';
 
-import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:test/test.dart';
@@ -17,7 +16,8 @@ void defineTests() {
 
     setUp(() async {
       await SdkManager.sdk.init();
-      flutterWebManager = FlutterWebManager(sdkPath);
+      await SdkManager.flutterSdk.init();
+      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     });
 
     tearDown(() {
@@ -53,7 +53,9 @@ void defineTests() {
     FlutterWebManager flutterWebManager;
 
     setUpAll(() async {
-      flutterWebManager = FlutterWebManager(sdkPath);
+      await SdkManager.sdk.init();
+      await SdkManager.flutterSdk.init();
+      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
       await flutterWebManager.initFlutterWeb();
     });
 
@@ -67,7 +69,7 @@ void defineTests() {
 
       File file = File(packagesPath);
       List<String> lines = file.readAsLinesSync();
-      expect(lines, anyElement(startsWith('flutter_web:file://')));
+      expect(lines, anyElement(startsWith('flutter:file://')));
     });
 
     test('summaryFilePath', () {

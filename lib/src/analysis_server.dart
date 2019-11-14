@@ -66,7 +66,7 @@ class AnalysisServerWrapper {
         '--client-id=DartPad',
         '--client-version=$_sdkVersion'
       ];
-      _logger.info('About to start with server with args: $serverArgs');
+      _logger.info('About to start with server with SDK path `$sdkPath` and args: $serverArgs');
 
       _init = AnalysisServer.create(
         onRead: onRead,
@@ -94,6 +94,8 @@ class AnalysisServerWrapper {
         await _sendRemoveOverlays();
 
         return analysisServer;
+      }).catchError((err, st) {
+        _logger.severe('Error starting analysis server ($sdkPath): $err.\n$st');
       });
     }
 

@@ -22,27 +22,23 @@ Logger _logger = Logger('compiler');
 /// An interface to the dart2js compiler. A compiler object can process one
 /// compile at a time.
 class Compiler {
-  final String sdkPath;
-  final FlutterWebManager flutterWebManager;
-
+  final Sdk _sdk;
+  final FlutterSdk _flutterSdk;
+  final FlutterWebManager _flutterWebManager;
+  final String _dartdevcPath;
   final BazelWorkerDriver _ddcDriver;
-  String _sdkVersion;
 
-  Compiler(this.sdkPath, this.flutterWebManager)
-      : _ddcDriver = BazelWorkerDriver(
-            () => Process.start(path.join(sdkPath, 'bin', 'dartdevc'),
-                <String>['--persistent_worker']),
-            maxWorkers: 1) {
-    _sdkVersion = SdkManager.sdk.version;
-  }
+  Compiler(this._sdk, this._flutterSdk, this._flutterWebManager)
+      : _dartdevcPath = path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
+        _ddcDriver = BazelWorkerDriver(
+            () => Process.start(
+                  path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
+                  <String>['--persistent_worker'],
+                ),
+            maxWorkers: 1);
 
   bool importsOkForCompile(Set<String> imports) {
-    return !flutterWebManager.hasUnsupportedImport(imports);
-  }
-
-  /// The version of the SDK this copy of dart2js is based on.
-  String get version {
-    return File(path.join(sdkPath, 'version')).readAsStringSync().trim();
+    return !_flutterWebManager.hasUnsupportedImport(imports);
   }
 
   Future<CompilationResults> warmup({bool useHtml = false}) {
@@ -58,23 +54,23 @@ class Compiler {
     if (!importsOkForCompile(imports)) {
       return CompilationResults(problems: <CompilationProblem>[
         CompilationProblem._(
-          'unsupported import: ${flutterWebManager.getUnsupportedImport(imports)}',
+          'unsupported import: ${_flutterWebManager.getUnsupportedImport(imports)}',
         ),
       ]);
     }
 
     Directory temp = await Directory.systemTemp.createTemp('dartpad');
+    _logger.info('Temp directory created: ${temp.path}');
 
     try {
       List<String> arguments = <String>[
         '--suppress-hints',
         '--terse',
+        if (!returnSourceMap) '--no-source-maps',
+        '--packages=${_flutterWebManager.packagesFilePath}',
+        ...['-o', '$kMainDart.js'],
+        kMainDart,
       ];
-      if (!returnSourceMap) arguments.add('--no-source-maps');
-
-      arguments.add('--packages=${flutterWebManager.packagesFilePath}');
-      arguments.add('-o$kMainDart.js');
-      arguments.add(kMainDart);
 
       String compileTarget = path.join(temp.path, kMainDart);
       File mainDart = File(compileTarget);
@@ -83,7 +79,7 @@ class Compiler {
       File mainJs = File(path.join(temp.path, '$kMainDart.js'));
       File mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
 
-      final String dart2JSPath = path.join(sdkPath, 'bin', 'dart2js');
+      final String dart2JSPath = path.join(_sdk.sdkPath, 'bin', 'dart2js');
       _logger.info('About to exec: $dart2JSPath $arguments');
 
       ProcessResult result = await Process.run(dart2JSPath, arguments,
@@ -121,38 +117,48 @@ class Compiler {
     if (!importsOkForCompile(imports)) {
       return DDCCompilationResults.failed(<CompilationProblem>[
         CompilationProblem._(
-          'unsupported import: ${flutterWebManager.getUnsupportedImport(imports)}',
+          'unsupported import: ${_flutterWebManager.getUnsupportedImport(imports)}',
         ),
       ]);
     }
 
     Directory temp = await Directory.systemTemp.createTemp('dartpad');
+    _logger.info('Temp directory created: ${temp.path}');
 
     try {
+      final usingFlutter = _flutterWebManager.usesFlutterWeb(imports);
+
+      final mainPath = path.join(temp.path, kMainDart);
+      final bootstrapPath = path.join(temp.path, kBootstrapDart);
+      final bootstrapContents =
+          usingFlutter ? kBootstrapFlutterCode : kBootstrapDartCode;
+
+      await File(bootstrapPath).writeAsString(bootstrapContents);
+      await File(mainPath).writeAsString(input);
+
       List<String> arguments = <String>[
         '--modules=amd',
+        if (usingFlutter) ...[
+          '-k',
+          '-s',
+          _flutterWebManager.summaryFilePath,
+          '-s',
+          '${_flutterSdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill'
+        ],
+        ...['-o', path.join(temp.path, '$kMainDart.js')],
+        '--single-out-file',
+        ...['--module-name', 'dartpad_main'],
+        bootstrapPath,
+        '--packages=${_flutterWebManager.packagesFilePath}',
       ];
-
-      if (flutterWebManager.usesFlutterWeb(imports)) {
-        arguments.addAll(<String>['-s', flutterWebManager.summaryFilePath]);
-      }
-
-      String compileTarget = path.join(temp.path, kMainDart);
-      File mainDart = File(compileTarget);
-      await mainDart.writeAsString(input);
-
-      arguments.addAll(<String>['-o', path.join(temp.path, '$kMainDart.js')]);
-      arguments.add('--single-out-file');
-      arguments.addAll(<String>['--module-name', 'dartpad_main']);
-      arguments.add(compileTarget);
-      arguments.addAll(<String>['--library-root', temp.path]);
 
       File mainJs = File(path.join(temp.path, '$kMainDart.js'));
 
-      _logger.info('About to exec dartdevc with:  $arguments');
+      _logger.info('About to exec "$_dartdevcPath ${arguments.join(' ')}"');
+      _logger.info('Compiling: $input');
 
-      final WorkResponse response =
-          await _ddcDriver.doWork(WorkRequest()..arguments.addAll(arguments));
+      final WorkResponse response = await _ddcDriver
+          .doWork(WorkRequest()..arguments.addAll(arguments));
 
       if (response.exitCode != 0) {
         return DDCCompilationResults.failed(<CompilationProblem>[
@@ -162,7 +168,7 @@ class Compiler {
         final DDCCompilationResults results = DDCCompilationResults(
           compiledJS: await mainJs.readAsString(),
           modulesBaseUrl: 'https://storage.googleapis.com/'
-              'compilation_artifacts/$_sdkVersion/',
+              'compilation_artifacts/${_flutterSdk.versionFull}/',
         );
         return results;
       }
@@ -218,6 +224,7 @@ class DDCCompilationResults {
 
   /// This is true if there were no errors.
   bool get success => problems.isEmpty;
+
   @override
   String toString() => success
       ? 'CompilationResults: Success'

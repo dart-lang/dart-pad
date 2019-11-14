@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart' as ae;
+import 'package:dart_services/src/sdk_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart' as rpc;
 
@@ -42,7 +43,7 @@ void main(List<String> args) {
       io.stdout.write(out);
     }
   });
-  log.info('''Initializing dart-services: 
+  log.info('''Initializing dart-services:
     port: $gaePort
     sdkPath: $sdkPath
     REDIS_SERVER_URI: ${io.Platform.environment['REDIS_SERVER_URI']}
@@ -70,7 +71,7 @@ class GaeServer {
 
     discoveryEnabled = false;
     fileRelayServer = FileRelayServer();
-    flutterWebManager = FlutterWebManager(sdkPath);
+    flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     commonServer = CommonServer(
         sdkPath,
         flutterWebManager,

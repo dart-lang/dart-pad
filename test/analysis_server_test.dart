@@ -8,6 +8,7 @@ import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/api_classes.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/flutter_web.dart';
+import 'package:dart_services/src/sdk_manager.dart';
 import 'package:test/test.dart';
 
 const completionCode = r'''
@@ -63,9 +64,9 @@ void defineTests() {
   AnalysisServerWrapper analysisServer;
   FlutterWebManager flutterWebManager;
 
-  group('analysis_server', () {
+  group('Platform SDK analysis_server', () {
     setUp(() async {
-      flutterWebManager = FlutterWebManager(sdkPath);
+      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
       analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
       await analysisServer.init();
     });
@@ -179,18 +180,6 @@ void defineTests() {
       expect(issue.kind, 'error');
     });
 
-    test('analyze dart-2', () async {
-      await analysisServer.shutdown();
-
-      flutterWebManager = FlutterWebManager(sdkPath);
-
-      analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
-      await analysisServer.init();
-
-      AnalysisResults results = await analysisServer.analyze(sampleDart2OK);
-      expect(results.issues, hasLength(0));
-    });
-
     test('filter completions', () async {
       // just after A
       var idx = 61;
@@ -202,6 +191,26 @@ void defineTests() {
       expect(completionsContains(results, 'ABC'), true);
       expect(completionsContains(results, 'a'), true);
       expect(completionsContains(results, 'ZZ'), false);
+    });
+  });
+
+  group('Flutter cached SDK analysis_server', () {
+    setUp(() async {
+      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+      analysisServer = AnalysisServerWrapper(SdkManager.flutterSdk.sdkPath, flutterWebManager);
+      await analysisServer.init();
+    });
+
+    tearDown(() => analysisServer.shutdown());
+
+    test('analyze working Dart code', () async {
+      AnalysisResults results = await analysisServer.analyze(sampleCode);
+      expect(results.issues, isEmpty);
+    });
+
+    test('analyze working Flutter code', () async {
+      AnalysisResults results = await analysisServer.analyze(sampleCode);
+      expect(results.issues, isEmpty);
     });
   });
 }
