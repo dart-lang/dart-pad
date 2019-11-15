@@ -115,7 +115,15 @@ class InjectedEmbed {
   Future _init() async {
     host.children.clear();
 
-    var iframe = IFrameElement()..setAttribute('src', iframeSrc(options));
+    var iframe = IFrameElement()..attributes = {'src': iframeSrc(options)};
+
+    if (options.containsKey('width')) {
+      iframe.style.width = options['width'];
+    }
+
+    if (options.containsKey('height')) {
+      iframe.style.height = options['height'];
+    }
 
     host.children.add(iframe);
 
