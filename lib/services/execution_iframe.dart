@@ -158,9 +158,30 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     dart_sdk.dart.setStartAsyncSynchronously(true);
     dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
 
-    // Loads the `main` library and runs the main method from it.
-    dartpad_main.main.main();
-});
+    // Loads the `dartpad_main` module and runs its bootstrapped main method.
+    //
+    // DDK provides the user's code in a RequireJS module, which exports an
+    // object that looks something like this:
+    //
+    // {
+    //       [random_tokens]__bootstrap: bootstrap,
+    //       [random_tokens]__main: main
+    // }
+    //
+    // The first of those properties holds the compiled code for the bootstrap
+    // Dart file, which the server uses to wrap the user's code and wait on a
+    // call to dart:ui's `webOnlyInitializePlatform` before executing any of it.
+    //
+    // The loop below iterates over the properties of the exported object,
+    // looking for one that ends in "__bootstrap". Once found, it executes the
+    // bootstrapped main method, which calls the user's main method, which
+    // (presumably) calls runApp and starts Flutter's rendering. 
+
+    for (var prop in dartpad_main) {
+          if (prop.endsWith("__bootstrap")) {
+            dartpad_main[prop].main();
+          }
+    }});
 ''';
     }
 
