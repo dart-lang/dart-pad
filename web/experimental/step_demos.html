@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Embeddings Demo</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+          rel='stylesheet' type='text/css'>
+
+    <style>
+      iframe {
+        border: 1px solid #ccc;
+        width: 100%;
+        height: 400px;
+        margin-bottom: 40px;
+      }
+
+      .tall {
+        height: 800px;
+      }
+
+      #choosePad {
+        margin-bottom: 8px;
+        float: right;
+      }
+
+      .code {
+        font-family: 'Inconsolata', monospace;
+        color: #004;
+      }
+
+      .snippet {
+        font-family: 'Inconsolata', monospace;
+        white-space: pre-wrap;
+        margin-left: -100px;
+        margin-top: -10px;
+        color: #008;
+      }
+
+      .disclaimer {
+        margin-bottom: 30px;
+        margin-top: 10px;
+        color: #800;
+        font-weight: bold;
+        font-style: italic;
+        font-size: 16px;
+      }
+
+      body {
+        font-size: 16px;
+      }
+
+      h4 {
+        margin-top: 40px;
+      }
+
+      .row {
+        margin-bottom: 300px;
+      }
+      .button.active {
+        background-color: hotpink;
+      }
+    </style>
+
+    <script type="text/javascript">
+const testSource = [
+// Step-1
+`void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(),
+        ),
+      ),
+    ),
+  );
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}`,
+// Step-2
+`void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(),
+        ),
+      ),
+    ),
+  );
+}
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}
+`,
+// Step-3
+`void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(),
+        ),
+      ),
+    ),
+  );
+}
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}`,
+// Step-4
+`void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(),
+        ),
+      ),
+    ),
+  );
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}`,
+// Step-5
+`void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard()
+        ),
+      ),
+    ),
+  );
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: FruitInfo(
+                  name: 'Lime',
+                  healthInfo: '9 calories',
+                  family: 'Citrus',
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('6'),
+                  Icon(Icons.thumb_up),
+                ],
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('2'),
+                  Icon(Icons.thumb_down),
+                ],
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: CDNImage.network('lime.jpg', height: 120),
+            ),
+            Positioned(
+              left: MediaQuery.of(context).size.width * 0.3,
+              right: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                color: Color(0xAA000000)
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+// Step-6
+`void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard()
+        ),
+      ),
+    ),
+  );
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Lime',
+                      style: Theme.of(context).textTheme.headline,
+                    ),
+                    Text('9 calories',
+                        style: Theme.of(context)
+                            .textTheme
+                            .subtitle
+                            .copyWith(fontWeight: FontWeight.w200),
+                    ),
+                    Text('Citrus',
+                        style: TextStyle(
+                            color: Colors.pink, fontWeight: FontWeight.bold),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: ThumbsUpButton(),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Text('2'),
+                  Icon(Icons.thumb_down),
+                ],
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network('https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/lime.jpg', height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+// Step-7
+`void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard()
+        ),
+      ),
+    ),
+  );
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Lime',
+                      style: Theme.of(context).textTheme.headline,
+                    ),
+                    Text('9 calories',
+                        style: Theme.of(context)
+                            .textTheme
+                            .subtitle
+                            .copyWith(fontWeight: FontWeight.w200),
+                    ),
+                    Text('Citrus',
+                        style: TextStyle(
+                            color: Colors.pink, fontWeight: FontWeight.bold),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: RatingButton(
+                numRatings: 6,
+                icon: Icons.thumb_up,
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: RatingButton(
+                numRatings: 2,
+                icon: Icons.thumb_down,
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network('https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/lime.jpg', height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+// Step-8
+`void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard()
+        ),
+      ),
+    ),
+  );
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      'Lime',
+                      style: Theme.of(context).textTheme.headline,
+                    ),
+                    Text('9 calories',
+                        style: Theme.of(context)
+                            .textTheme
+                            .subtitle
+                            .copyWith(fontWeight: FontWeight.w200),
+                    ),
+                    Text('Citrus',
+                        style: TextStyle(
+                            color: Colors.pink, fontWeight: FontWeight.bold),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: RatingButton(
+                numRatings: 7,
+                icon: Icons.thumb_up,
+                ratingStatus: RatingStatus.liked,
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: RatingButton(
+                numRatings: 2,
+                icon: Icons.thumb_down,
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network('https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/lime.jpg', height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+  // Step-9
+`void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(
+            assetUrl: 'lime.jpg',
+            family: 'Citrus',
+            healthInfo: '9 calories',
+            numLikes: 7,
+            numDislikes: 2,
+            ratingStatus: RatingStatus.liked,
+            title: 'Lime',
+          )
+        ),
+      ),
+    ),
+  );
+}
+
+enum RatingStatus { liked, disliked, none }
+
+class FruitInfo extends StatelessWidget {
+  final String name;
+  final String healthInfo;
+  final String family;
+  const FruitInfo({
+    @required this.name,
+    @required this.healthInfo,
+    @required this.family,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          name,
+          style: Theme.of(context).textTheme.headline,
+        ),
+        Text(
+          healthInfo,
+          style: Theme.of(context)
+              .textTheme
+              .subtitle
+              .copyWith(fontWeight: FontWeight.w200),
+        ),
+        Text(
+          family,
+          style: TextStyle(
+              color: Colors.pink, fontWeight: FontWeight.bold),
+          ),
+      ],
+    );
+  }
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}
+
+class RatingButton extends StatelessWidget {
+
+  final int numRatings;
+  final IconData icon;
+  final RatingStatus ratingStatus;
+
+  const RatingButton({
+    this.numRatings,
+    this.icon,
+    this.ratingStatus = RatingStatus.none,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+
+    Map<RatingStatus, Color> borderColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[400],
+      RatingStatus.disliked: Colors.red[400],
+    };
+
+    Map<RatingStatus, Color> buttonColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[700],
+      RatingStatus.disliked: Colors.red[700],
+    };
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: borderColors[ratingStatus]),
+        borderRadius: BorderRadius.all(Radius.circular(100)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(numRatings.toString(), style: TextStyle(
+            color: buttonColors[ratingStatus],
+          )),
+          SizedBox(width: 4),
+          Icon(icon, size: 16, color: buttonColors[ratingStatus]),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-10
+`void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: FruitCardListView(),
+      ),
+    ),
+  );
+}
+
+enum RatingStatus { liked, disliked, none }
+
+class FruitInfo extends StatelessWidget {
+  final String name;
+  final String healthInfo;
+  final String family;
+  const FruitInfo({
+    @required this.name,
+    @required this.healthInfo,
+    @required this.family,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          name,
+          style: Theme.of(context).textTheme.headline,
+        ),
+        Text(
+          healthInfo,
+          style: Theme.of(context)
+              .textTheme
+              .subtitle
+              .copyWith(fontWeight: FontWeight.w200),
+        ),
+        Text(
+          family,
+          style: TextStyle(
+              color: Colors.pink, fontWeight: FontWeight.bold),
+          ),
+      ],
+    );
+  }
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}
+
+class RatingButton extends StatelessWidget {
+
+  final int numRatings;
+  final IconData icon;
+  final RatingStatus ratingStatus;
+
+  const RatingButton({
+    this.numRatings,
+    this.icon,
+    this.ratingStatus = RatingStatus.none,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+
+    Map<RatingStatus, Color> borderColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[400],
+      RatingStatus.disliked: Colors.red[400],
+    };
+
+    Map<RatingStatus, Color> buttonColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[700],
+      RatingStatus.disliked: Colors.red[700],
+    };
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: borderColors[ratingStatus]),
+        borderRadius: BorderRadius.all(Radius.circular(100)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(numRatings.toString(), style: TextStyle(
+            color: buttonColors[ratingStatus],
+          )),
+          SizedBox(width: 4),
+          Icon(icon, size: 16, color: buttonColors[ratingStatus]),
+        ],
+      ),
+    );
+  }
+}
+
+Color grey = const Color(0xFFDDDDDD);
+Color darkGrey = const Color(0xFFBBBBBB);
+
+class FruitCard extends StatelessWidget {
+  final String assetUrl;
+  final String title;
+  final String healthInfo;
+  final int numLikes;
+  final int numDislikes;
+  final RatingStatus ratingStatus;
+  final String family;
+  final bool isSelected;
+  const FruitCard({
+    @required this.assetUrl,
+    @required this.title,
+    @required this.healthInfo,
+    @required this.family,
+    this.numLikes = 0,
+    this.numDislikes = 0,
+    this.ratingStatus = RatingStatus.none,
+    this.isSelected = false,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+
+                // Pass necessary variables through to child widgets
+                child: FruitInfo(
+                  name: title,
+                  healthInfo: healthInfo,
+                  family: family,
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              // Pass necessary variables through to child widgets
+              child: RatingButton(
+                numRatings: numLikes,
+                icon: Icons.thumb_up,
+                ratingStatus: ratingStatus == RatingStatus.liked ? RatingStatus.liked : RatingStatus.none,
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              // Pass necessary variables through to child widgets
+              child: RatingButton(
+                numRatings: numDislikes,
+                icon: Icons.thumb_down,
+                ratingStatus: ratingStatus == RatingStatus.disliked ? RatingStatus.disliked : RatingStatus.none,
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: CDNImage.network(assetUrl, height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`];
+
+const mainSources = [
+  // Step-1
+`import 'package:flutter/material.dart';
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Column(
+        children: [
+          Text('Lime'),
+          Text('9 calories'),
+          Text('Citrus'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('6'),
+              Icon(Icons.thumb_up),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('2'),
+              Icon(Icons.thumb_down),
+            ],
+          ),
+          CDNImage.network('lime.jpg', height: 120),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-2
+`import 'package:flutter/material.dart';
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    // Wrapping widgets in a \`Card\` provides basic styling
+    return Card(
+      child: Row(
+        // Similar to flex display rules from CSS, this spaces our
+        // items across the horizontal axis
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Lime'),
+          Text('9 calories'),
+          Text('Citrus'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('6'),
+              Icon(Icons.thumb_up),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('2'),
+              Icon(Icons.thumb_down),
+            ],
+          ),
+          CDNImage.network('lime.jpg', height: 120),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-3
+`import 'package:flutter/material.dart';
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+
+          // Add some padding to our card with the generic
+          // \`Container\` widget
+          Container(
+            height: 96,
+            padding: EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 4,
+            ),
+
+            // To format the three text items onto the vertical
+            // axis, we can wrap them in a \`Column\` widget
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('Lime'),
+                Text('9 calories'),
+                Text('Citrus'),
+              ],
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('6'),
+              Icon(Icons.thumb_up),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('2'),
+              Icon(Icons.thumb_down),
+            ],
+          ),
+          CDNImage.network('lime.jpg', height: 120),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-4
+`import 'package:flutter/material.dart';
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+
+        // For more advanced widget placement tricks, the
+        // \`Stack\` widget allows the equivalent of CSS's
+        //  \`position: absolute;\`
+        child: Stack(
+          children: <Widget>[
+
+            // The \`Positioned\` widget allows precise placement
+            // when directly descending from a \`Stack\`
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+
+                // Accessing \`MediaQuery.of(context).size\`
+                // creates opportunities for responsive layouts
+                // that render nicely on any device or resolution
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Lime'),
+                    Text('9 calories'),
+                    Text('Citrus'),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('6'),
+                  Icon(Icons.thumb_up),
+                ],
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('2'),
+                  Icon(Icons.thumb_down),
+                ],
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: CDNImage.network('lime.jpg', height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+// Step-5
+`import 'package:flutter/material.dart';
+
+// Zoom in on just the text from our previous code, now with
+// updated style rules
+class FruitInfo extends StatelessWidget {
+  final String name;
+  final String healthInfo;
+  final String family;
+  const FruitInfo({
+    @required this.name,
+    @required this.healthInfo,
+    @required this.family,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text(
+          name,
+
+          // Text-styling is streamlined by provided themes that
+          // capture commonly needed text styles
+          style: Theme.of(context).textTheme.headline,
+        ),
+        Text(
+          healthInfo,
+
+          // Common text styles can be customized at the root
+          // of the app, or, as shown here, quickly altered
+          // on the fly for specific needs
+          style: Theme.of(context)
+              .textTheme
+              .subtitle
+              .copyWith(fontWeight: FontWeight.w200),
+        ),
+        Text(
+          family,
+          style: TextStyle(
+              color: Colors.pink, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+}`,
+// Step-6
+`import 'package:flutter/material.dart';
+
+Color grey = const Color(0xFFDDDDDD);
+Color darkGrey = const Color(0xFFBBBBBB);
+
+// Next, let's turn our attention to the Like/Dislike buttons.
+// First, we'll style just the Like button in its inactive state.
+class ThumbsUpButton extends StatelessWidget {
+  const ThumbsUpButton({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+
+      // Set border and padding in ways very familiar to web developers
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: grey),
+        borderRadius: BorderRadius.all(Radius.circular(100)),
+      ),
+      child: Row(
+        // Flexbox-inspired layout rules evenly position elements
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text('6', style: TextStyle(color: darkGrey)),
+          SizedBox(width: 4),
+          Icon(Icons.thumb_up, size: 16, color: darkGrey),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-7
+`import 'package:flutter/material.dart';
+
+Color grey = const Color(0xFFDDDDDD);
+Color darkGrey = const Color(0xFFBBBBBB);
+
+// Next, let's generalize our rating button so it can be used
+// for both positive and negative rankings.
+// Instead of calling it \`ThumbsUpButton\`, we can use the generic
+// name \`RatingButton\`.
+class RatingButton extends StatelessWidget {
+
+  // Add two variables to control the customizable aspects
+  // of our widget
+  final int numRatings;
+  final IconData icon;
+
+  const RatingButton({this.numRatings, this.icon, Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: grey),
+        borderRadius: BorderRadius.all(Radius.circular(100)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          // Replace the hard-coded number with our variable
+          Text(numRatings.toString(), style: TextStyle(color: darkGrey)),
+          SizedBox(width: 4),
+          // Replace the hard-coded icon with our variable
+          Icon(icon, size: 16, color: darkGrey),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-8
+`import 'package:flutter/material.dart';
+
+Color grey = const Color(0xFFDDDDDD);
+Color darkGrey = const Color(0xFFBBBBBB);
+
+enum RatingStatus { liked, disliked, none }
+
+// Next, let's give these rating buttons active states
+class RatingButton extends StatelessWidget {
+
+  // Add two variables to control the customizable aspects
+  // of our widget
+  final int numRatings;
+  final IconData icon;
+  final RatingStatus ratingStatus;
+
+  const RatingButton({
+    this.numRatings,
+    this.icon,
+    this.ratingStatus = RatingStatus.none,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+
+    // Assign a border color to each state
+    Map<RatingStatus, Color> borderColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[400],
+      RatingStatus.disliked: Colors.red[400],
+    };
+
+    // Assign a fill color to each state
+    Map<RatingStatus, Color> buttonColors = {
+      RatingStatus.none: grey,
+      RatingStatus.liked: Colors.green[700],
+      RatingStatus.disliked: Colors.red[700],
+    };
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+      // Replace the hard-coded color with our dynamic color
+      decoration: BoxDecoration(
+        border: Border.all(width: 1, color: borderColors[ratingStatus]),
+        borderRadius: BorderRadius.all(Radius.circular(100)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          // Replace the hard-coded color with our dynamic color
+          Text(numRatings.toString(), style: TextStyle(
+            color: buttonColors[ratingStatus],
+          )),
+          SizedBox(width: 4),
+          // Replace the hard-coded color with our dynamic color
+          Icon(icon, size: 16, color: buttonColors[ratingStatus]),
+        ],
+      ),
+    );
+  }
+}`,
+// Step-9
+`import 'package:flutter/material.dart';
+
+Color grey = const Color(0xFFDDDDDD);
+Color darkGrey = const Color(0xFFBBBBBB);
+
+// Finally, we re-structure our widget to be pluggable elsewhere
+// in our application. Internally, we continue to lean on reusable
+// widgets by including the \`RatingButton\` and \`FruitInfo\` widgets
+// we created earlier.
+class FruitCard extends StatelessWidget {
+  final String assetUrl;
+  final String title;
+  final String healthInfo;
+  final int numLikes;
+  final int numDislikes;
+  final RatingStatus ratingStatus;
+  final String family;
+  final bool isSelected;
+  const FruitCard({
+    @required this.assetUrl,
+    @required this.title,
+    @required this.healthInfo,
+    @required this.family,
+    this.numLikes = 0,
+    this.numDislikes = 0,
+    this.ratingStatus = RatingStatus.none,
+    this.isSelected = false,
+    Key key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+
+                // Pass necessary variables through to child widgets
+                child: FruitInfo(
+                  name: title,
+                  healthInfo: healthInfo,
+                  family: family,
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              // Pass necessary variables through to child widgets
+              child: RatingButton(
+                numRatings: numLikes,
+                icon: Icons.thumb_up,
+                ratingStatus: ratingStatus == RatingStatus.liked
+                    ? RatingStatus.liked
+                    : RatingStatus.none,
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              // Pass necessary variables through to child widgets
+              child: RatingButton(
+                numRatings: numDislikes,
+                icon: Icons.thumb_down,
+                ratingStatus: ratingStatus == RatingStatus.disliked
+                    ? RatingStatus.disliked
+                    : RatingStatus.none,
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: CDNImage.network(assetUrl, height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`,
+// Step-10
+`import 'package:flutter/material.dart';
+
+class FruitCardListView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      physics: BouncingScrollPhysics(),
+      children: <Widget>[
+        FruitCard(
+          assetUrl: 'lime.jpg',
+          family: 'Citrus',
+          healthInfo: '20 calories',
+          numLikes: 7,
+          numDislikes: 2,
+          ratingStatus: RatingStatus.liked,
+          title: 'Lime',
+        ),
+        FruitCard(
+          assetUrl: 'tomato.jpg',
+          family: 'Nightshade',
+          healthInfo: '24 calories',
+          numLikes: 10,
+          numDislikes: 3,
+          ratingStatus: RatingStatus.liked,
+          title: 'Tomato',
+        ),
+        FruitCard(
+          assetUrl: 'kiwi.jpg',
+          family: 'Actinidiaceae',
+          healthInfo: '42 calories',
+          numLikes: 5,
+          numDislikes: 6,
+          ratingStatus: RatingStatus.disliked,
+          title: 'Kiwi',
+        ),
+        FruitCard(
+          assetUrl: 'lemon.jpg',
+          family: 'Citrus',
+          healthInfo: '17 calories',
+          numLikes: 12,
+          numDislikes: 11,
+          title: 'Lemon',
+        ),
+        FruitCard(
+          assetUrl: 'orange.jpg',
+          family: 'Citrus',
+          healthInfo: '45 calories',
+          numLikes: 10,
+          numDislikes: 1,
+          title: 'Orange',
+        ),
+        FruitCard(
+          assetUrl: 'strawberry.jpg',
+          family: 'Citrus',
+          healthInfo: '4 calories',
+          numLikes: 21,
+          numDislikes: 1,
+          ratingStatus: RatingStatus.liked,
+          title: 'Strawberry',
+        ),
+        FruitCard(
+          assetUrl: 'avocado.jpg',
+          family: 'Guacamole ingredients',
+          healthInfo: '234 calories',
+          numLikes: 12,
+          numDislikes: 4,
+          ratingStatus: RatingStatus.liked,
+          title: 'Avocado',
+        ),
+      ],
+    );
+  }
+}`
+];
+
+const tabbarWrappers = [
+  // TabBar-1
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/284e9e06b751583331c1edd87b88b18a/raw/tabbar_wrapper_01.dart'
+    ]
+  },
+  // TabBar-2
+  {
+    gists: 0, // index of wrapper to copy
+  },
+  // TabBar-3
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/c93c52466b2e26e0e0f9b70df9058bed/raw/tabbar_wrapper_03.dart'
+    ]
+  },
+  // TabBar-4
+  {
+    gists: 2, // index of wrapper to copy
+  },
+  // TabBar-5
+  {
+    gists: 2, // index of wrapper to copy
+  },
+  // TabBar-6
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/c93c52466b2e26e0e0f9b70df9058bed/raw/tabbar_wrapper_03.dart', // same as from index-2
+      'https://gist.githubusercontent.com/craiglabenz/c77b5187cbb069f9dd95f0c105d68d99/raw/tabbar_icon_01.dart',
+    ]
+  },
+  // TabBar-7
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/b40ebc66d8a79112ddcb91168e6522ab/raw/tabbar_wrapper_07.dart',
+      'https://gist.githubusercontent.com/craiglabenz/c77b5187cbb069f9dd95f0c105d68d99/raw/tabbar_icon_01.dart',
+    ]
+  }
+];
+const tabbarSources = [
+  // TabBar-1
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/cd38891f864f9dc5bf28d3a6654c5923/raw/tabbar_source_01.dart'
+    ],
+  },
+  // TabBar-2
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/f760aa81b3461a9b289a7b72bf1fecf0/raw/tabbar_source_02.dart',
+    ]
+  },
+  // TabBar-3
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/6c94535165960095648f2a57737bd242/raw/tabbar_source_03.dart',
+    ]
+  },
+  // TabBar-4
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/1d94031a985ef15a0d4610fa334a5b76/raw/tabbar_source_04.dart',
+    ]
+  },
+  // TabBar-5
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/55aafa5ab49710a5a88e6145419e72b5/raw/tabbar_source_05.dart',
+      'https://gist.githubusercontent.com/craiglabenz/c77b5187cbb069f9dd95f0c105d68d99/raw/tabbar_icon_01.dart',
+    ]
+  },
+  // TabBar-6
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/93b580b73ef1b564765e3204288f503f/raw/tabbar_source_06.dart',
+    ]
+  },
+  // TabBar-7
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/90075ccec3e89fa293e616a48c0b3b19/raw/tabbar_source_07.dart',
+    ]
+  },
+]
+
+
+const topCardWrappers = [
+  // TopCard-1
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/9e6d660abc24ee2d873bdc54d7e65414/raw/topcard_wrapper_01.dart',
+      'https://gist.githubusercontent.com/craiglabenz/edbabbb522f2b1a02d56afaa19bdc4ab/raw/cdn_image.dart',
+    ],
+  },
+  // TopCard-2
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/ecf81c3084c9c34ee3b5cecbd38956a9/raw/topcard_wrapper_02.dart',
+      'https://gist.githubusercontent.com/craiglabenz/edbabbb522f2b1a02d56afaa19bdc4ab/raw/cdn_image.dart',
+    ],
+  },
+  // TopCard-3
+  {
+    gists: 1,
+  },
+  // TopCard-4
+  {
+    gists: 1,
+  },
+  // TopCard-5
+  {
+    gists: 1,
+  },
+  // TopCard-6
+  {
+    gists: 1,
+  },
+];
+const topCardSources = [
+  // TopCard-1
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/66fddb768a770e872a2fa6da8841708b/raw/topcard_source_01.dart'
+    ]
+  },
+  // TopCard-2
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/3d199a6ed645d20b5c16104f304a45c9/raw/topcard_source_02.dart'
+    ]
+  },
+  // TopCard-3
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/c424527f7482ef3fb9a3d377fc447ff0/raw/topcard_source_03.dart'
+    ]
+  },
+  // TopCard-4
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/b61ff7bd0d3f92f486eb1ddc29465ccc/raw/topcard_source_04.dart',
+    ]
+  },
+  // TopCard-5
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/e2bceb6113ab1f2fc5d7fbcd0ed750d8/raw/topcard_source_05.dart',
+    ]
+  },
+  // TopCard-6
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/a2d786dfcd1aa3239183b1ebbfa6023b/raw/topcard_source_06.dart',
+    ]
+  },
+];
+
+const fullPageWrappers = [
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/19277e8707efe360750b031cf4dd65fb/raw/main_page_wrapper.dart',
+      'https://gist.githubusercontent.com/craiglabenz/c90fc5c521c9c7c6c7fb4b43fe4712f2/raw/top_card_widget.dart',
+      'https://gist.githubusercontent.com/craiglabenz/c7734a87eda4484c253f7e6db41a4f7f/raw/custom_tab_bar_widget.dart',
+      'https://gist.githubusercontent.com/craiglabenz/ae90fce6fecb6d202abed681d7a7aa20/raw/d4b8bacc9dc4adccab7a5df750dbecf2db012d98/fruit_card_list.dart',
+      'https://gist.githubusercontent.com/craiglabenz/edbabbb522f2b1a02d56afaa19bdc4ab/raw/cdn_image.dart',
+      'https://gist.githubusercontent.com/craiglabenz/c77b5187cbb069f9dd95f0c105d68d99/raw/tabbar_icon_01.dart',
+    ],
+  },
+];
+const fullPageSources = [
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/f38ff80a73f4a2209df7bed1b78a78e5/raw/full_page_source.dart',
+    ],
+  },
+];
+
+var isReady = false;
+
+window.addEventListener('message', (event) => {
+  if (event.data['type'] === 'ready') {
+    if (event.source.frameElement.id === 'plaything-host') {
+      isReady = true;
+    }
+  }
+});
+
+function updateIframe(wrappers, source, iFrameId) {
+  const host = document.getElementById(iFrameId);
+  const message = {
+    'sourceCode': {
+      'main.dart': source.join('\n\n'),
+      'test.dart': wrappers.join('\n\n'),
+    },
+    'autoRun': true,
+    'type': 'sourceCode'
+  };
+  host.contentWindow.postMessage(message, '*');
+}
+
+/**
+ * Loads multiple Gists (provided as a list of strings) and returns a Promise
+ * that completes when all are ready.
+ *
+ * @param {Array<String>}   gists   The raw gist.githubcontent.com/... links for each gist.
+ */
+function loadGists(gists) {
+  let promise = new Promise((resolve, reject) => {
+    if (gists.length === 0) {
+      resolve([]);
+    }
+    // Create array to house responses
+    let responses = new Array(gists.length).fill(undefined);
+
+    // Load all gists for the button we just clicked
+    for (let index in gists) {
+      let gistUrl = gists[index];
+
+      // Begin making a request
+      let xhr = new XMLHttpRequest()
+      xhr.onload = function () {
+
+        // Wait for successful responses
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+          responses[index] = xhr.responseText;
+        } else if (xhr.readyState === XMLHttpRequest.DONE && xhr.status !== 200) {
+          reject(`Failed to load gist at ${gistUrl}`);
+          return;
+        }
+
+        // Count the unfulfilled responses
+        let numUndefined = responses.reduce(
+          (total, element) => element === undefined ? total + 1 : total,
+          0
+        );
+
+        if (numUndefined == 0) {
+          resolve(responses);
+          return;
+        }
+      }
+      xhr.open('GET', gistUrl)
+      xhr.send();
+    }
+  });
+  return promise;
+}
+
+/**
+ * @param {String} iFrameId           The Id selector for our iFrame
+ * @param {String} buttonsWrapperId   The Id selector for our iFrame's buttons
+ * @param {Array}  wrappers           Raw Gist URLs pointing to wrapper content for Flutter code
+ * @param {Array}  sources            Raw Gist URLs pointing to direct content for Flutter code
+ */
+function prepareMultiStepIFrame(iFrameId, buttonsWrapperId, wrappers, sources) {
+  const buttonHolder = document.getElementById(buttonsWrapperId);
+
+  // Create the necessary buttons and within our container
+  for (let i = 0; i < wrappers.length; i++) {
+    buttonHolder.innerHTML += `<button id="${buttonsWrapperId}${i}" class="button">Step ${i + 1}</button>`;
+  }
+
+  // Add listeners to each button that repopulate the iframe.
+  // It is important to run this loop after the one above, as
+  // attaching listeners before the DOM fully updates can cause
+  // silent failure-type behavior.
+  for (let j = 0; j < wrappers.length; j++) {
+    const button = document.querySelector(`#${buttonsWrapperId}${j}`);
+    button.addEventListener('click', (event) => {
+
+      // Update active state
+      var node = document.querySelector(`#${buttonsWrapperId} .active`);
+      if (node !== null) {
+        node.classList.toggle('active');
+      }
+      event.target.classList.toggle('active');
+
+      // Pull out wrapper gists, buf if we find an index, swap it for
+      // the gists at that spot in line
+      let wrappersGists = wrappers[j].gists;
+      if (typeof wrappersGists === 'number') {
+        wrappersGists = wrappers[wrappersGists].gists
+      }
+      let wrappersPromise = loadGists(wrappersGists);
+
+      // Pull out wrapper gists, but if we find an index, swap it for
+      // the gists at that spot in line
+      let sourceGists = sources[j].gists;
+      if (typeof sourceGists === 'number') {
+        sourceGists = sources[sourceGists].gists
+      }
+      let sourcePromise = loadGists(sourceGists);
+      Promise.all([wrappersPromise, sourcePromise])
+        .then(([wrappers, source]) => {
+          updateIframe(wrappers, source, iFrameId);
+        });
+    });
+  }
+}
+
+window.addEventListener('load', (event) => {
+  prepareMultiStepIFrame('tabbarHost', 'tabbarButtons', tabbarWrappers, tabbarSources);
+  prepareMultiStepIFrame('topCardHost', 'topCardButtons', topCardWrappers, topCardSources);
+  prepareMultiStepIFrame('fullPageHost', 'fullPageButtons', fullPageWrappers, fullPageSources);
+});
+
+window.addEventListener('load', (event) => {
+
+  const host = document.querySelector('#plaything-host');
+
+  const buttonHolder = document.getElementById('stepButtons');
+  for (var i = 0; i < mainSources.length; i++) {
+    buttonHolder.innerHTML += `<button id="step${i}" class="button">Step ${i + 1}</button>`;
+  }
+  for (var i = 0; i < mainSources.length; i++) {
+    const button = document.querySelector('#step' + i);
+    const message = {
+      'sourceCode': {
+        'main.dart': mainSources[i],
+        'test.dart': testSource.length > i ? testSource[i] : testSource[testSource.length - 1],
+      },
+      'autoRun': true,
+      'type': 'sourceCode'
+    };
+
+    button.addEventListener('click', (event) => {
+      document.querySelector('#stepButtons .active').classList.toggle('active');
+      event.target.classList.toggle('active');
+      if (isReady) {
+        host.contentWindow.postMessage(message, '*');
+      }
+    });
+
+    // "Click" the first button so we bootstrap the first step
+    if (i === 0) {
+      button.classList.toggle('active');
+      host.contentWindow.postMessage(message, '*');
+    }
+  }
+});
+
+    </script>
+</head>
+
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <h2>DartPad's new embed UI</h2>
+            <div class="disclaimer">
+                DartPad's new embedded UI supports both Dart and Flutter code. To speed up incremental builds,
+                it uses the Dart development compiler (DDC) for code snippets that use Flutter. Currently, there's
+                an issue involving the DDC and WebKit that causes Safari to hang while JavaScriptCore parses the
+                compiled Dart and Flutter SDKs. If you're using Safari, you may see a significant delay during this
+                time. This is a DartPad issue, <i>not</i> a problem with Flutter for web or Dart itself, and we're
+                <a href="https://bugs.webkit.org/show_bug.cgi?id=199866">working with the WebKit team</a> to get it
+                fixed.
+            </div>
+
+            <h3 id="stepThrough">Step-through</h3>
+
+            <div id="stepButtons"></div>
+
+            <iframe id="plaything-host" class="tall" src="../embed-flutter.html?split=60"></iframe>
+
+            <h3 id="tabbarSteps">Tab Bar Steps</h3>
+
+            <div id="tabbarButtons"></div>
+
+            <iframe id="tabbarHost" class="tall" src="../embed-flutter.html?split=60"></iframe>
+
+            <h3 id="topCardSteps">Top Card Steps</h3>
+
+            <div id="topCardButtons"></div>
+
+            <iframe id="topCardHost" class="tall" src="../embed-flutter.html?split=60"></iframe>
+
+            <h3 id="fullPageSteps">Bringing it all Together</h3>
+
+            <div id="fullPageButtons"></div>
+
+            <iframe id="fullPageHost" class="tall" src="../embed-flutter.html?split=60"></iframe>
+
+        </div>
+        <div class="col-md-1"></div>
+    </div>
+</div>
+</body>
+</html>
