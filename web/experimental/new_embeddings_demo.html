@@ -75,7 +75,7 @@
 
     <script type="text/javascript">
 
-    const testSource = [
+const testSource = [
       // Step-1
       `void main() async {
   await ui.webOnlyInitializePlatform();
@@ -91,7 +91,25 @@
     ),
   );
 }
-`,
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}`,
       // Step-2
       `void main() async {
   await ui.webOnlyInitializePlatform();
@@ -107,9 +125,27 @@
     ),
   );
 }
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}
 `,
-      // Step-3
-      `void main() async {
+// Step-3
+`void main() async {
   await ui.webOnlyInitializePlatform();
 
   runApp(
@@ -123,9 +159,26 @@
     ),
   );
 }
-`,
-      // Step-4
-      `void main() async {
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}`,
+// Step-4
+`void main() async {
   await ui.webOnlyInitializePlatform();
 
   runApp(
@@ -139,7 +192,25 @@
     ),
   );
 }
-`,
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
+}`,
 // Step-5
 `void main() async {
   await ui.webOnlyInitializePlatform();
@@ -154,6 +225,25 @@
       ),
     ),
   );
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
 }
 
 class FruitCard extends StatelessWidget {
@@ -210,7 +300,7 @@ class FruitCard extends StatelessWidget {
             ),
             Positioned(
               right: 0,
-              child: Image.network('http://placekitten.com/120/120', height: 120),
+              child: CDNImage.network('lime.jpg', height: 120),
             ),
             Positioned(
               left: MediaQuery.of(context).size.width * 0.3,
@@ -241,6 +331,25 @@ class FruitCard extends StatelessWidget {
       ),
     ),
   );
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
 }
 
 class FruitCard extends StatelessWidget {
@@ -306,7 +415,7 @@ class FruitCard extends StatelessWidget {
             ),
             Positioned(
               right: 0,
-              child: Image.network('http://placekitten.com/120/120', height: 120),
+              child: Image.network('https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/lime.jpg', height: 120),
             ),
           ],
         ),
@@ -328,6 +437,25 @@ class FruitCard extends StatelessWidget {
       ),
     ),
   );
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
 }
 
 class FruitCard extends StatelessWidget {
@@ -393,7 +521,7 @@ class FruitCard extends StatelessWidget {
             ),
             Positioned(
               right: 0,
-              child: Image.network('http://placekitten.com/120/120', height: 120),
+              child: Image.network('https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/lime.jpg', height: 120),
             ),
           ],
         ),
@@ -415,6 +543,25 @@ class FruitCard extends StatelessWidget {
       ),
     ),
   );
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
+    );
+  }
 }
 
 class FruitCard extends StatelessWidget {
@@ -481,7 +628,7 @@ class FruitCard extends StatelessWidget {
             ),
             Positioned(
               right: 0,
-              child: Image.network('http://placekitten.com/120/120', height: 120),
+              child: Image.network('https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/lime.jpg', height: 120),
             ),
           ],
         ),
@@ -499,7 +646,7 @@ class FruitCard extends StatelessWidget {
       home: Scaffold(
         body: Center(
           child: FruitCard(
-            assetUrl: 'http://placekitten.com/120/120',
+            assetUrl: 'lime.jpg',
             family: 'Citrus',
             healthInfo: '9 calories',
             numLikes: 7,
@@ -549,6 +696,25 @@ class FruitInfo extends StatelessWidget {
               color: Colors.pink, fontWeight: FontWeight.bold),
           ),
       ],
+    );
+  }
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
     );
   }
 }
@@ -650,6 +816,25 @@ class FruitInfo extends StatelessWidget {
               color: Colors.pink, fontWeight: FontWeight.bold),
           ),
       ],
+    );
+  }
+}
+
+class CDNImage extends StatelessWidget {
+  final String baseUrl;
+  final String uri;
+  final double height;
+  final double width;
+  CDNImage(this.baseUrl, this.uri, {this.height, this.width});
+  CDNImage.network(this.uri, {this.height, this.width})
+    : baseUrl = 'https://craiglabenz.sfo2.digitaloceanspaces.com/stock-photos/';
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.network(
+      '$baseUrl$uri',
+      height: height,
+      width: width,
     );
   }
 }
@@ -781,18 +966,30 @@ class FruitCard extends StatelessWidget {
             ),
             Positioned(
               right: 0,
-              child: Image.network(assetUrl, height: 120),
+              child: CDNImage.network(assetUrl, height: 120),
             ),
           ],
         ),
       ),
     );
   }
-}
-`
+}`,
+// `void main() async {
+//   await ui.webOnlyInitializePlatform();
+
+//   runApp(
+//     MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       home: Scaffold(
+//         body: TabBar(),
+//       ),
+//     ),
+//   );
+// }`
 ];
 
 const mainSources = [
+  // Step-1
 `import 'package:flutter_web/material.dart';
 import 'package:flutter_web_ui/ui.dart' as ui;
 
@@ -821,13 +1018,13 @@ class FruitCard extends StatelessWidget {
               Icon(Icons.thumb_down),
             ],
           ),
-          Image.network('http://placekitten.com/120/120', height: 120),
+          CDNImage.network('lime.jpg', height: 120),
         ],
       ),
     );
   }
-}
-`,
+}`,
+// Step-2
 `import 'package:flutter_web/material.dart';
 import 'package:flutter_web_ui/ui.dart' as ui;
 
@@ -860,12 +1057,13 @@ class FruitCard extends StatelessWidget {
               Icon(Icons.thumb_down),
             ],
           ),
-          Image.network('http://placekitten.com/120/120', height: 120),
+          CDNImage.network('lime.jpg', height: 120),
         ],
       ),
     );
   }
 }`,
+// Step-3
 `import 'package:flutter_web/material.dart';
 import 'package:flutter_web_ui/ui.dart' as ui;
 
@@ -914,7 +1112,7 @@ class FruitCard extends StatelessWidget {
               Icon(Icons.thumb_down),
             ],
           ),
-          Image.network('http://placekitten.com/120/120', height: 120),
+          CDNImage.network('lime.jpg', height: 120),
         ],
       ),
     );
@@ -993,7 +1191,7 @@ class FruitCard extends StatelessWidget {
             ),
             Positioned(
               right: 0,
-              child: Image.network('http://placekitten.com/120/120', height: 120),
+              child: CDNImage.network('lime.jpg', height: 120),
             ),
           ],
         ),
@@ -1259,7 +1457,9 @@ class FruitCard extends StatelessWidget {
               child: RatingButton(
                 numRatings: numLikes,
                 icon: Icons.thumb_up,
-                ratingStatus: ratingStatus == RatingStatus.liked ? RatingStatus.liked : RatingStatus.none,
+                ratingStatus: ratingStatus == RatingStatus.liked
+                    ? RatingStatus.liked
+                    : RatingStatus.none,
               ),
             ),
             Positioned(
@@ -1269,12 +1469,14 @@ class FruitCard extends StatelessWidget {
               child: RatingButton(
                 numRatings: numDislikes,
                 icon: Icons.thumb_down,
-                ratingStatus: ratingStatus == RatingStatus.disliked ? RatingStatus.disliked : RatingStatus.none,
+                ratingStatus: ratingStatus == RatingStatus.disliked
+                    ? RatingStatus.disliked
+                    : RatingStatus.none,
               ),
             ),
             Positioned(
               right: 0,
-              child: Image.network(assetUrl, height: 120),
+              child: CDNImage.network(assetUrl, height: 120),
             ),
           ],
         ),
@@ -1294,16 +1496,16 @@ class FruitCardListView extends StatelessWidget {
       physics: BouncingScrollPhysics(),
       children: <Widget>[
         FruitCard(
-          assetUrl: 'http://placekitten.com/120/120',
+          assetUrl: 'lime.jpg',
           family: 'Citrus',
-          healthInfo: '9 calories',
+          healthInfo: '20 calories',
           numLikes: 7,
           numDislikes: 2,
           ratingStatus: RatingStatus.liked,
           title: 'Lime',
         ),
         FruitCard(
-          assetUrl: 'http://placekitten.com/120/120',
+          assetUrl: 'tomato.jpg',
           family: 'Nightshade',
           healthInfo: '24 calories',
           numLikes: 10,
@@ -1312,7 +1514,7 @@ class FruitCardListView extends StatelessWidget {
           title: 'Tomato',
         ),
         FruitCard(
-          assetUrl: 'http://placekitten.com/120/120',
+          assetUrl: 'kiwi.jpg',
           family: 'Actinidiaceae',
           healthInfo: '42 calories',
           numLikes: 5,
@@ -1321,7 +1523,7 @@ class FruitCardListView extends StatelessWidget {
           title: 'Kiwi',
         ),
         FruitCard(
-          assetUrl: 'http://placekitten.com/120/120',
+          assetUrl: 'lemon.jpg',
           family: 'Citrus',
           healthInfo: '17 calories',
           numLikes: 12,
@@ -1329,7 +1531,7 @@ class FruitCardListView extends StatelessWidget {
           title: 'Lemon',
         ),
         FruitCard(
-          assetUrl: 'http://placekitten.com/120/120',
+          assetUrl: 'orange.jpg',
           family: 'Citrus',
           healthInfo: '45 calories',
           numLikes: 10,
@@ -1337,7 +1539,7 @@ class FruitCardListView extends StatelessWidget {
           title: 'Orange',
         ),
         FruitCard(
-          assetUrl: 'http://placekitten.com/120/120',
+          assetUrl: 'strawberry.jpg',
           family: 'Citrus',
           healthInfo: '4 calories',
           numLikes: 21,
@@ -1346,7 +1548,7 @@ class FruitCardListView extends StatelessWidget {
           title: 'Strawberry',
         ),
         FruitCard(
-          assetUrl: 'http://placekitten.com/120/120',
+          assetUrl: 'avocado.jpg',
           family: 'Guacamole ingredients',
           healthInfo: '234 calories',
           numLikes: 12,
@@ -1357,18 +1559,302 @@ class FruitCardListView extends StatelessWidget {
       ],
     );
   }
-}
-`
+}`
+];
+
+const tabbarWrappers = [
+  // TabBar-1
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/284e9e06b751583331c1edd87b88b18a/raw/tabbar_wrapper_01.dart'
+    ]
+  },
+  // TabBar-2
+  {
+    gists: 0, // index of wrapper to copy
+  },
+  // TabBar-3
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/c93c52466b2e26e0e0f9b70df9058bed/raw/tabbar_wrapper_03.dart'
+    ]
+  },
+  // TabBar-4
+  {
+    gists: 2, // index of wrapper to copy
+  },
+  // TabBar-5
+  {
+    gists: 2, // index of wrapper to copy
+  },
+  // TabBar-6
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/c93c52466b2e26e0e0f9b70df9058bed/raw/tabbar_wrapper_03.dart', // same as from index-2
+      'https://gist.githubusercontent.com/craiglabenz/c77b5187cbb069f9dd95f0c105d68d99/raw/tabbar_icon_01.dart',
+    ]
+  },
+  // TabBar-7
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/b40ebc66d8a79112ddcb91168e6522ab/raw/tabbar_wrapper_07.dart',
+      'https://gist.githubusercontent.com/craiglabenz/c77b5187cbb069f9dd95f0c105d68d99/raw/tabbar_icon_01.dart',
+    ]
+  }
+];
+
+const tabbarSources = [
+  // TabBar-1
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/cd38891f864f9dc5bf28d3a6654c5923/raw/tabbar_source_01.dart'
+    ],
+  },
+  // TabBar-2
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/f760aa81b3461a9b289a7b72bf1fecf0/raw/tabbar_source_02.dart',
+    ]
+  },
+  // TabBar-3
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/6c94535165960095648f2a57737bd242/raw/tabbar_source_03.dart',
+    ]
+  },
+  // TabBar-4
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/1d94031a985ef15a0d4610fa334a5b76/raw/tabbar_source_04.dart',
+    ]
+  },
+  // TabBar-5
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/55aafa5ab49710a5a88e6145419e72b5/raw/tabbar_source_05.dart',
+      'https://gist.githubusercontent.com/craiglabenz/c77b5187cbb069f9dd95f0c105d68d99/raw/tabbar_icon_01.dart',
+    ]
+  },
+  // TabBar-6
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/93b580b73ef1b564765e3204288f503f/raw/tabbar_source_06.dart',
+    ]
+  },
+  // TabBar-7
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/90075ccec3e89fa293e616a48c0b3b19/raw/tabbar_source_07.dart',
+    ]
+  },
+]
+
+
+const topCardWrappers = [
+  // TopCard-1
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/9e6d660abc24ee2d873bdc54d7e65414/raw/topcard_wrapper_01.dart',
+      'https://gist.githubusercontent.com/craiglabenz/edbabbb522f2b1a02d56afaa19bdc4ab/raw/cdn_image.dart',
+    ],
+  },
+  // TopCard-2
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/ecf81c3084c9c34ee3b5cecbd38956a9/raw/topcard_wrapper_02.dart',
+      'https://gist.githubusercontent.com/craiglabenz/edbabbb522f2b1a02d56afaa19bdc4ab/raw/cdn_image.dart',
+    ],
+  },
+  // TopCard-3
+  {
+    gists: 1,
+  },
+  // TopCard-4
+  {
+    gists: 1,
+  },
+  // TopCard-5
+  {
+    gists: 1,
+  },
+  // TopCard-6
+  {
+    gists: 1,
+  },
+];
+const topCardSources = [
+  // TopCard-1
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/66fddb768a770e872a2fa6da8841708b/raw/topcard_source_01.dart'
+    ]
+  },
+  // TopCard-2
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/3d199a6ed645d20b5c16104f304a45c9/raw/topcard_source_02.dart'
+    ]
+  },
+  // TopCard-3
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/c424527f7482ef3fb9a3d377fc447ff0/raw/topcard_source_03.dart'
+    ]
+  },
+  // TopCard-4
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/b61ff7bd0d3f92f486eb1ddc29465ccc/raw/topcard_source_04.dart',
+    ]
+  },
+  // TopCard-5
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/e2bceb6113ab1f2fc5d7fbcd0ed750d8/raw/topcard_source_05.dart',
+    ]
+  },
+  // TopCard-6
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/a2d786dfcd1aa3239183b1ebbfa6023b/raw/topcard_source_06.dart',
+    ]
+  },
+];
+
+const fullPageWrappers = [
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/19277e8707efe360750b031cf4dd65fb/raw/main_page_wrapper.dart',
+      'https://gist.githubusercontent.com/craiglabenz/c90fc5c521c9c7c6c7fb4b43fe4712f2/raw/top_card_widget.dart',
+      'https://gist.githubusercontent.com/craiglabenz/c7734a87eda4484c253f7e6db41a4f7f/raw/4ea3781155e13e6025576e886eb13fa7af71593b/custom_tab_bar_widget.dart',
+      'https://gist.githubusercontent.com/craiglabenz/ae90fce6fecb6d202abed681d7a7aa20/raw/dbfdefc3e63558d6a22edee5340e7b4a46ffc50e/fruit_card_list.dart',
+      'https://gist.githubusercontent.com/craiglabenz/edbabbb522f2b1a02d56afaa19bdc4ab/raw/cdn_image.dart',
+      'https://gist.githubusercontent.com/craiglabenz/c77b5187cbb069f9dd95f0c105d68d99/raw/tabbar_icon_01.dart',
+    ],
+  },
+];
+const fullPageSources = [
+  {
+    gists: [
+      'https://gist.githubusercontent.com/craiglabenz/f38ff80a73f4a2209df7bed1b78a78e5/raw/a74b58645e4eaf269d3301fc87ef1e5f76fc4e23/full_page_source.dart',
+    ],
+  },
 ];
 
     var isReady = false;
 
     window.addEventListener('message', (event) => {
-        if (event.data['type'] === 'ready') {
-          if (event.source.frameElement.id === 'plaything-host') {
-            isReady = true;
-          }
+      if (event.data['type'] === 'ready') {
+        if (event.source.frameElement.id === 'plaything-host') {
+          isReady = true;
         }
+      }
+    });
+
+    function updateIframe(wrappers, source, iFrameId) {
+      const host = document.getElementById(iFrameId);
+      const message = {
+        'sourceCode': {
+          'main.dart': source.join('\n\n'),
+          'test.dart': wrappers.join('\n\n'),
+        },
+        'autoRun': true,
+        'type': 'sourceCode'
+      };
+      console.log(JSON.stringify(message));
+      host.contentWindow.postMessage(message, '*');
+    }
+
+    function loadGists(gists) {
+      let promise = new Promise((resolve, reject) => {
+        if (gists.length === 0) {
+          resolve([]);
+        }
+        // Create array to house responses
+        let responses = new Array(gists.length).fill(undefined);
+
+        // Load all gists for the button we just clicked
+        for (let index in gists) {
+          let gistUrl = gists[index];
+
+          // Begin making a request
+          let xhr = new XMLHttpRequest()
+          xhr.onload = function () {
+
+            // Wait for successful responses
+            if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+              responses[index] = xhr.responseText;
+            } else if (xhr.readyState === XMLHttpRequest.DONE && xhr.status !== 200) {
+              reject(`Failed to load gist at ${gistUrl}`);
+              return;
+            }
+
+            // Count the unfulfilled responses
+            let numUndefined = responses.reduce(
+              (total, element) => element === undefined ? total + 1 : total,
+              0
+            );
+
+            if (numUndefined == 0) {
+              resolve(responses);
+              return;
+            }
+          }
+          xhr.open('GET', gistUrl)
+          xhr.send();
+        }
+      });
+      return promise;
+    }
+
+    /**
+     * @param {String} iFrameId           The Id selector for our iFrame
+     * @param {String} buttonsWrapperId   The Id selector for our iFrame's buttons
+     * @param {Array}  wrappers           Raw Gist URLs pointing to wrapper content for Flutter code
+     * @param {Array}  sources            Raw Gist URLs pointing to direct content for Flutter code
+     */
+    function prepareMultiStepIFrame(iFrameId, buttonsWrapperId, wrappers, sources) {
+      const buttonHolder = document.getElementById(buttonsWrapperId);
+
+      // Create the necessary buttons and within our container
+      for (let i = 0; i < wrappers.length; i++) {
+        buttonHolder.innerHTML += `<button id="${buttonsWrapperId}${i}" class="button">Step ${i + 1}</button>`;
+      }
+
+      // Add listeners to each button that repopulate the iframe.
+      // It is important to run this loop after the one above, as
+      // attaching listeners before the DOM fully updates can cause
+      // silent failure-type behavior.
+      for (let j = 0; j < wrappers.length; j++) {
+        const button = document.querySelector(`#${buttonsWrapperId}${j}`);
+        button.addEventListener('click', (event) => {
+          // Pull out wrapper gists, buf if we find an index, swap it for
+          // the gists at that spot in line
+          let wrappersGists = wrappers[j].gists;
+          if (typeof wrappersGists === 'number') {
+            wrappersGists = wrappers[wrappersGists].gists
+          }
+          let wrappersPromise = loadGists(wrappersGists);
+
+          // Pull out wrapper gists, but if we find an index, swap it for
+          // the gists at that spot in line
+          let sourceGists = sources[j].gists;
+          if (typeof sourceGists === 'number') {
+            sourceGists = sources[sourceGists].gists
+          }
+          let sourcePromise = loadGists(sourceGists);
+          Promise.all([wrappersPromise, sourcePromise])
+            .then(([wrappers, source]) => {
+              updateIframe(wrappers, source, iFrameId);
+            });
+        });
+      }
+    }
+
+    window.addEventListener('load', (event) => {
+      prepareMultiStepIFrame('tabbarHost', 'tabbarButtons', tabbarWrappers, tabbarSources);
+      prepareMultiStepIFrame('topCardHost', 'topCardButtons', topCardWrappers, topCardSources);
+      prepareMultiStepIFrame('fullPageHost', 'fullPageButtons', fullPageWrappers, fullPageSources);
     });
 
     window.addEventListener('load', (event) => {
@@ -1391,21 +1877,18 @@ class FruitCardListView extends StatelessWidget {
           };
 
           button.addEventListener('click', (event) => {
-            document.querySelector('.active').classList.toggle('active');
+            document.querySelector('#stepButtons .active').classList.toggle('active');
             event.target.classList.toggle('active');
             if (isReady) {
               host.contentWindow.postMessage(message, '*');
             }
           });
 
-
           // "Click" the first button so we bootstrap the first step
-          // if (i === 0) {
-          if (i === mainSources.length - 1) {
+          if (i === 0) {
             button.classList.toggle('active');
             host.contentWindow.postMessage(message, '*');
           }
-
         }
     });
 
@@ -1482,6 +1965,24 @@ class FruitCardListView extends StatelessWidget {
             <button id="step3">Step Three</button>
 
             <iframe id="plaything-host" class="tall" src="../embed-flutter.html?split=60"></iframe>
+
+            <h3 id="tabbarSteps">Tab Bar Steps</h3>
+
+            <div id="tabbarButtons"></div>
+
+            <iframe id="tabbarHost" class="tall" src="../embed-flutter.html?split=60"></iframe>
+
+            <h3 id="topCardSteps">Top Card Steps</h3>
+
+            <div id="topCardButtons"></div>
+
+            <iframe id="topCardHost" class="tall" src="../embed-flutter.html?split=60"></iframe>
+
+            <h3 id="fullPageSteps">Bringing it all Together</h3>
+
+            <div id="fullPageButtons"></div>
+
+            <iframe id="fullPageHost" class="tall" src="../embed-flutter.html?split=60"></iframe>
 
         </div>
         <div class="col-md-1"></div>
