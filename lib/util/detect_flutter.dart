@@ -6,3 +6,7 @@ bool hasFlutterContent(String fileContent) {
   return fileContent.contains('package:flutter/') ||
       fileContent.contains('package:flutter_web/');
 }
+
+bool hasHtmlContent(String fileContent) {
+  return fileContent.contains('dart:html');
+}
