@@ -205,7 +205,6 @@ class Playground implements GistContainer, GistController {
   void _initSamplesMenu() {
     var element = querySelector('#samples-menu');
 
-    // Use SplayTreeMap to keep the order of the keys
     var samples = [
       Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
       Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
