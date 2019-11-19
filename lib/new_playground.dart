@@ -213,11 +213,11 @@ class Playground implements GistContainer, GistController {
       Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
       Sample('a559420eed617dab7a196b5ea0b64fba', 'Sunflower', Layout.html),
       Sample('cb9b199b1085873de191e32a1dd5ca4f', 'WebSockets', Layout.html),
-      Sample('67acac89cb32605b61dea6f26adb5dc9', 'Flutter Hello World',
+      Sample('698639ac24feab2f89c32e68adc412b2', 'Flutter Hello World',
           Layout.flutter),
-      Sample('9e574ab997b3217fcef3f600d0c6954c', 'Flutter Todo App',
+      Sample('103e0db091ee58934b83a283a40a3d5c', 'Flutter Todo App',
           Layout.flutter),
-      Sample('b70710dde62f636bccfec5a1cfaa6bc4', 'Flutter Sliding Square',
+      Sample('877a75d7aae54f48c8024b0ddce354df', 'Flutter Sliding Square',
           Layout.flutter),
     ];
 
