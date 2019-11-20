@@ -127,6 +127,7 @@ class Playground implements GistContainer, GistController {
       _initBusyLights();
       _initGistNameHeader();
       _initGistStorage();
+      _initLayoutDetection();
       _initButtons();
       _initSamplesMenu();
       _initMoreMenu();
@@ -169,6 +170,19 @@ class Playground implements GistContainer, GistController {
         .listen((_) {
       if (mutableGist.dirty) {
         _gistStorage.setStoredGist(mutableGist.createGist());
+      }
+    });
+  }
+
+  void _initLayoutDetection() {
+    debounceStream(mutableGist.onChanged, Duration(milliseconds: 32))
+        .listen((_) {
+      if (hasFlutterContent(_context.dartSource)) {
+        _changeLayout(Layout.flutter);
+      } else if (hasHtmlContent(_context.dartSource)) {
+        _changeLayout(Layout.html);
+      } else {
+        _changeLayout(Layout.dart);
       }
     });
   }

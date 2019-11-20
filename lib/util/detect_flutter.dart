@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 bool hasFlutterContent(String fileContent) {
-  return fileContent.contains('package:flutter/') ||
-      fileContent.contains('package:flutter_web/');
+  return fileContent.contains('package:flutter/');
+}
+
+bool hasHtmlContent(String fileContent) {
+  return fileContent.contains('dart:html');
 }
