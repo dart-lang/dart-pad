@@ -24,7 +24,7 @@ body {
 }
 
 header {
-  background-color: $dark-gutter-background-color;
+  background-color: $playground-header-background-color;
   height: 48px;
   padding-left: 24px;
   @include layout-center;
