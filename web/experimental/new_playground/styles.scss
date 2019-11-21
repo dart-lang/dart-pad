@@ -32,7 +32,9 @@ header {
   .header-title {
     @include layout;
     @include layout-center;
-    font-size: 24px;
+    font-family: $google-sans;
+    font-weight: 400;
+    font-size: 16pt;
     margin-right: 8px;
 
     img.logo {
