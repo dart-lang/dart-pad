@@ -275,11 +275,6 @@ a {
   }
 }
 
-.mdc-button {
-  text-transform: none !important;
-  letter-spacing: normal;
-}
-
 .editor-tab {
   @include mdc-button-ink-color(#f8f9fa);
   text-transform: none !important;
@@ -464,10 +459,27 @@ a {
 }
 
 #new-pad-dialog {
+  @include mdc-dialog-content-ink-color(white, 1.0);
+
   .mdc-dialog__content {
     @include layout-horizontal;
+    @include layout-start;
+    @include layout-around-justified;
+  }
+
+  .divider {
+    width: 1px;
+    height: 200px;
+    background-color: #2e3742;
+  }
+
+  .dart-container {
+    @include layout-vertical;
     @include layout-center;
-    @include layout-justified;
+
+    #new-pad-html-switch-container {
+      margin-top: 8px;
+    }
   }
 
   .select-project-button {
@@ -485,7 +497,8 @@ a {
     @include layout-center;
     img {
       width: auto;
-      max-height: 192px;
+      max-height: 120px;
+      margin-bottom: 16px;
     }
   }
 

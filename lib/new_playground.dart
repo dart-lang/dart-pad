@@ -1220,7 +1220,7 @@ class NewPadDialog {
       _flutterButton.root.classes.remove('selected');
       _dartButton.root.classes.add('selected');
       _createButton.toggleAttr('disabled', false);
-      _htmlSwitchContainer.toggleAttr('hidden', false);
+      _htmlSwitchContainer.toggleClass('hide', false);
       _htmlSwitch.disabled = false;
     });
 
@@ -1228,7 +1228,7 @@ class NewPadDialog {
       _dartButton.root.classes.remove('selected');
       _flutterButton.root.classes.add('selected');
       _createButton.toggleAttr('disabled', false);
-      _htmlSwitchContainer.toggleAttr('hidden', true);
+      _htmlSwitchContainer.toggleClass('hide', true);
     });
 
     var cancelSub = _cancelButton.onClick.listen((_) {

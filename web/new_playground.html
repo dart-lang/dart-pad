@@ -272,10 +272,27 @@
         <div class="mdc-dialog__surface">
             <h2 class="mdc-dialog__title">New Pad</h2>
             <div class="mdc-dialog__content">
-                <div id="new-pad-select-dart" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">
-                    <img src="/pictures/logo_dart.png"/>
-                    <span>Dart</span>
+                <div class="dart-container">
+                    <div id="new-pad-select-dart" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">
+                        <img src="/pictures/logo_dart.png"/>
+                        <span>Dart</span>
+                    </div>
+                    <div id="new-pad-html-switch-container" class="hide">
+                        <div class="mdc-switch mdc-switch--disabled">
+                            <div class="mdc-switch__track"></div>
+                            <div class="mdc-switch__thumb-underlay">
+                                <div class="mdc-switch__thumb">
+                                    <input type="checkbox"
+                                           id="new-pad-html-switch"
+                                           class="mdc-switch__native-control"
+                                           role="switch">
+                                </div>
+                            </div>
+                        </div>
+                        <label for="new-pad-html-switch">HTML</label>
+                    </div>
                 </div>
+                <div class="divider"></div>
                 <div id="new-pad-select-flutter" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">
                     <img src="/pictures/logo_flutter.png"/>
                     <span>Flutter</span>
@@ -283,20 +300,7 @@
             </div>
 
             <footer class="mdc-dialog__actions">
-                <div id="new-pad-html-switch-container" hidden>
-                    <div class="mdc-switch mdc-switch--disabled">
-                        <div class="mdc-switch__track"></div>
-                        <div class="mdc-switch__thumb-underlay">
-                            <div class="mdc-switch__thumb">
-                                <input type="checkbox"
-                                       id="new-pad-html-switch"
-                                       class="mdc-switch__native-control"
-                                       role="switch">
-                            </div>
-                        </div>
-                    </div>
-                    <label for="new-pad-html-switch">HTML</label>
-                </div>
+
                 <button type="button" id="new-pad-cancel-button"
                         class="mdc-button mdc-dialog__button">
                     <span class="mdc-button__label">Cancel</span>
