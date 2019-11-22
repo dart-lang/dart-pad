@@ -27,6 +27,9 @@
 #flash-container {
   width: 380px;
   z-index: 10;
+  bottom: 40px;
+  right: 8px;
+  position: fixed;
 }
 
 #issues-container {
