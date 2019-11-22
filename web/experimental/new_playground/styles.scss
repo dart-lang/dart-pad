@@ -360,10 +360,13 @@ a {
   margin-top: 0;
   margin-left: 0;
 
+  * {
+    color: $dark-editor-text;
+  }
   h1 {
     margin-top: 0;
     font-size: 12pt;
-    color: $dark-comment;
+    color: $dark-blue;
   }
 
   h2 {
@@ -403,7 +406,7 @@ a {
   code, .parameter-hints code {
     font-family: $editor-font;
     font-size: 12pt;
-    color: $dark-comment;
+    color: $dark-blue;
   }
   code em {
     color: $dark-orange;
