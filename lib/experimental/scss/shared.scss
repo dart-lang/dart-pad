@@ -144,6 +144,20 @@
   }
 }
 
+// Misc
+.view-label {
+  font-family: $editor-font;
+  font-size: $embed-editor-font-size;
+  color: $label-color;
+  &.absolute {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin-top: 8px;
+    margin-left: 8px;
+  }
+}
+
 // ie support for hidden
 html [hidden] {
   display: none !important;

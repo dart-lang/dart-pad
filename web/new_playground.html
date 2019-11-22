@@ -110,7 +110,7 @@
     <div class="splash"></div>
     <div class="panels">
         <div id="editor-panel">
-            <div class="header">
+            <div id="editor-panel-header" class="header">
                 <nav>
                     <div id="web-tab-bar" class="mdc-tab-bar" role="tablist">
                         <div class="mdc-tab-scroller">
@@ -154,14 +154,14 @@
                         </div>
                     </div>
                 </nav>
-                <div class="button-group">
-                    <div id="dartbusy" class="busylight"></div>
-                    <button type="button" id="run-button"
-                            class="mdc-button mdc-button--raised mdc-button--dense">
-                        <i class="material-icons mdc-button__icon">play_arrow</i>
-                        Run
-                    </button>
-                </div>
+            </div>
+            <div class="button-group">
+                <div id="dartbusy" class="busylight"></div>
+                <button type="button" id="run-button"
+                        class="mdc-button mdc-button--raised mdc-button--dense">
+                    <i class="material-icons mdc-button__icon">play_arrow</i>
+                    Run
+                </button>
             </div>
             <div id="editor-host"></div>
             <div id="editor-panel-footer" class="editor-tab-host border-top">
@@ -182,16 +182,27 @@
                     </button>
                 </div>
                 <div id="editor-panel-tab-host">
-                    <div id="left-output-panel" class="console"></div>
-                    <div id="left-doc-panel" class="documentation"></div>
+                    <div id="left-output-panel" class="console">
+                        <span id="left-output-label" class="view-label">Console</span>
+                    </div>
+                    <div id="left-doc-panel" class="documentation">
+                        <span id="left-doc-label" class="view-label">Documentation</span>
+                    </div>
                 </div>
             </div>
         </div>
         <div id="output-panel">
+            <span id="web-output-label" class="view-label absolute">UI Output</span>
             <iframe id="frame" sandbox="allow-scripts" flex
                     src="scripts/frame.html"></iframe>
-            <div id="right-output-panel" class="console"></div>
-            <div id="right-doc-panel" class="documentation"></div>
+            <div id="right-output-panel">
+                <span class="view-label">Console</span>
+                <div id="right-output-panel-content" class="console"></div>
+            </div>
+            <div id="right-doc-panel">
+                <span id="right-doc-label" class="view-label">Documentation</span>
+                <div id="right-doc-panel-content" class="documentation"></div>
+            </div>
         </div>
     </div>
     <div class="mdc-snackbar">
