@@ -5,8 +5,10 @@
 library services.grind;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:grinder/grinder.dart';
@@ -33,12 +35,14 @@ Future test() => TestRunner().testAsync();
 void analyzeTest() => null;
 
 @Task()
-void serve() {
-  // You can run the `grind serve` command, or just run
-  // `dart bin/server_dev.dart --port 8082` locally.
-
-  Process.runSync(
+@Depends(buildStorageArtifacts)
+Future<void> serve() async {
+  final proc = await Process.start(
       Platform.executable, ['bin/server_dev.dart', '--port', '8082']);
+  final output = StreamGroup.merge([proc.stdout, proc.stderr]);
+  await for (final message in output) {
+    log(utf8.decode(message));
+  }
 }
 
 final _dockerVersionMatcher = RegExp(r'^FROM google/dart-runtime:(.*)$');
@@ -61,7 +65,6 @@ void updateDockerVersion() {
 final List<String> compilationArtifacts = [
   'dart_sdk.js',
   'flutter_web.js',
-  'flutter_web.dill',
 ];
 
 @Task('validate that we have the correct compilation artifacts available in '
@@ -191,8 +194,6 @@ void _buildStorageArtifacts(Directory dir) {
   log('\nFrom the dart-services project root dir, run:');
   log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z js '
       'artifacts/*.js gs://compilation_artifacts/$version/');
-  log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z dill '
-      'artifacts/*.dill gs://compilation_artifacts/$version/');
 }
 
 @Task()
@@ -208,7 +209,7 @@ void deploy() {
 }
 
 @Task()
-@Depends(discovery, analyze, fuzz)
+@Depends(discovery, analyze, fuzz, buildStorageArtifacts)
 void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')

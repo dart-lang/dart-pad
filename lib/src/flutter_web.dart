@@ -3,9 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:typed_data' show Uint8List;
 
-import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -71,25 +69,11 @@ $_samplePackageName:lib/
 
     await _runPubGet();
 
-    final String sdkVersion = flutterSdk.versionFull;
-
-    // Download and save the flutter_web.dill file.
-    String url = 'https://storage.googleapis.com/compilation_artifacts/'
-        '$sdkVersion/flutter_web.dill';
-
-    _logger.info('Attempting download of $url');
-
-    Uint8List summaryContents = await http.readBytes(url);
-    await File(path.join(_projectDirectory.path, 'flutter_web.dill'))
-        .writeAsBytes(summaryContents);
-
-    _logger.info('Wrote flutter_web.dill');
-
     _initedFlutterWeb = true;
   }
 
   String get summaryFilePath {
-    return path.join(_projectDirectory.path, 'flutter_web.dill');
+    return path.join('artifacts', 'flutter_web.dill');
   }
 
   static final Set<String> _flutterWebImportPrefixes = <String>{

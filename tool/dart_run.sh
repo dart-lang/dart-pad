@@ -10,7 +10,7 @@ if [ -n "$DBG_ENABLE" ] && [ "$GAE_PARTITION" = "dev" ]; then
   DBG_OPTION="--debug:${DBG_PORT:-5858}/0.0.0.0"
   echo "Starting Dart with additional options $DBG_OPTION"
 fi
- if [ -n "$DART_VM_OPTIONS" ]; then
+if [ -n "$DART_VM_OPTIONS" ]; then
   echo "Starting Dart with additional options $DART_VM_OPTIONS"
 fi
  exec /usr/bin/dart \
