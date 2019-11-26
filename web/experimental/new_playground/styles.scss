@@ -12,6 +12,9 @@ $mdc-theme-background: $playground-background-color;
 $mdc-theme-surface: $playground-background-color;
 $mdc-theme-error: $dark-red;
 
+// Layout constants
+$doc-console-padding: 8px 24px 8px 24px;
+
 @import 'package:mdc_web/material-components-web';
 
 body {
@@ -24,15 +27,18 @@ body {
 }
 
 header {
-  background-color: $dark-gutter-background-color;
+  background-color: $playground-header-background-color;
   height: 48px;
   padding-left: 24px;
   @include layout-center;
+  z-index: 4;
 
   .header-title {
     @include layout;
     @include layout-center;
-    font-size: 24px;
+    font-family: $google-sans;
+    font-weight: 400;
+    font-size: 16pt;
     margin-right: 8px;
 
     img.logo {
@@ -137,11 +143,13 @@ a {
 // Editor panel
 #editor-panel {
   @include layout-vertical;
+  @include layout-relative;
 }
 
 #editor-host {
   @include layout-vertical;
   @include layout-flex;
+  margin: 8px 0 0 16px;
   padding: 0 8px;
 
   .CodeMirror {
@@ -158,10 +166,16 @@ a {
   padding: 4px;
   height: 48px;
 
-  .button-group {
-    @include layout-horizontal;
-    @include layout-center;
-  }
+}
+
+.button-group {
+  @include layout-horizontal;
+  @include layout-center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 8px 24px 0 0;
+  z-index: 5;
 }
 
 // Console
@@ -169,10 +183,33 @@ a {
 #output-panel {
   @include layout-flex;
   @include layout-vertical;
+  @include layout-relative;
 
   iframe {
     @include layout-flex;
     border: none;
+  }
+}
+
+#right-output-panel {
+  @include layout;
+  @include layout-vertical;
+  #right-output-panel-content {
+    @include layout-flex;
+  }
+  .view-label {
+    margin: 8px;
+  }
+}
+
+#right-doc-panel {
+  @include layout;
+  @include layout-vertical;
+  #right-doc-panel-content {
+    @include layout-flex;
+  }
+  .view-label {
+    margin: 8px;
   }
 }
 
@@ -184,7 +221,7 @@ a {
   min-height: 50px;
   overflow-y: auto;
   white-space: pre-wrap;
-  margin: 16px;
+  padding: $doc-console-padding;
 
   .normal {
     color: $dark-editor-text;
@@ -262,7 +299,7 @@ a {
   @include layout-horizontal;
   @include layout-center;
   @include layout-justified;
-  padding: 4px;
+  padding-left: 8px;
 
   button {
     margin-right: 8px;
@@ -271,11 +308,6 @@ a {
     @include layout-horizontal;
     @include layout-center;
   }
-}
-
-.mdc-button {
-  text-transform: none !important;
-  letter-spacing: normal;
 }
 
 .editor-tab {
@@ -307,7 +339,6 @@ a {
   @include mdc-icon-button-size(16px, 16px, 8px);
 }
 
-// TODO(ryjohn): rename - conflicts with editor-tab-host
 #editor-panel-tab-host {
   @include layout-flex;
   @include layout-vertical;
@@ -317,9 +348,8 @@ a {
 }
 
 // documentation and parameter info styling
-
 .documentation {
-  padding: 8px;
+  padding: $doc-console-padding;
   font-family: 'Roboto', sans-serif;
   font-size: 11pt;
   line-height: 20px;
@@ -330,10 +360,13 @@ a {
   margin-top: 0;
   margin-left: 0;
 
+  * {
+    color: $dark-editor-text;
+  }
   h1 {
     margin-top: 0;
     font-size: 12pt;
-    color: $dark-comment;
+    color: $dark-blue;
   }
 
   h2 {
@@ -373,7 +406,7 @@ a {
   code, .parameter-hints code {
     font-family: $editor-font;
     font-size: 12pt;
-    color: $dark-comment;
+    color: $dark-blue;
   }
   code em {
     color: $dark-orange;
@@ -462,10 +495,27 @@ a {
 }
 
 #new-pad-dialog {
+  @include mdc-dialog-content-ink-color(white, 1.0);
+
   .mdc-dialog__content {
     @include layout-horizontal;
+    @include layout-start;
+    @include layout-around-justified;
+  }
+
+  .divider {
+    width: 1px;
+    height: 200px;
+    background-color: #2e3742;
+  }
+
+  .dart-container {
+    @include layout-vertical;
     @include layout-center;
-    @include layout-justified;
+
+    #new-pad-html-switch-container {
+      margin-top: 8px;
+    }
   }
 
   .select-project-button {
@@ -483,7 +533,8 @@ a {
     @include layout-center;
     img {
       width: auto;
-      max-height: 192px;
+      max-height: 120px;
+      margin-bottom: 16px;
     }
   }
 

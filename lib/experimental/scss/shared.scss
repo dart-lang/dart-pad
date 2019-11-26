@@ -27,6 +27,9 @@
 #flash-container {
   width: 380px;
   z-index: 10;
+  bottom: 40px;
+  right: 8px;
+  position: fixed;
 }
 
 #issues-container {
@@ -141,6 +144,20 @@
     margin: 2px 2px;
     white-space: nowrap;
     display: inline-block;
+  }
+}
+
+// Misc
+.view-label {
+  font-family: $editor-font;
+  font-size: $embed-editor-font-size;
+  color: $label-color;
+  &.absolute {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin-top: 8px;
+    margin-left: 8px;
   }
 }
 
