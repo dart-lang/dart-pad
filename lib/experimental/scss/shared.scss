@@ -148,6 +148,10 @@
 }
 
 // Custom scrollbars
+.custom-scrollbar {
+  margin-right: 8px;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 9px;
