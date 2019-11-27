@@ -147,6 +147,18 @@
   }
 }
 
+// Custom scrollbars
+.custom-scrollbar::-webkit-scrollbar {
+  -webkit-appearance: none;
+  width: 9px;
+  height: 9px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background-color: $scrollbar-color;
+}
+
 // Misc
 .view-label {
   font-family: $editor-font;
