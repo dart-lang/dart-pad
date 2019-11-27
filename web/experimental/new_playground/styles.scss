@@ -32,6 +32,7 @@ header {
   padding-left: 24px;
   @include layout-center;
   z-index: 4;
+  user-select: none;
 
   .header-title {
     @include layout;
@@ -71,6 +72,7 @@ section.main-section {
   @include layout-flex;
   @include layout;
   @include layout-relative;
+  user-select: none;
 
   .panels {
     @include layout;
