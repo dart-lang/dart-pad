@@ -991,7 +991,6 @@ class Playground implements GistContainer, GistController {
     _showSnackbar('New pad created');
 
     var layoutStr = _layoutToString(layout);
-    print('layout = $layoutStr');
 
     await router.go(layoutStr, {}, forceReload: true);
   }
