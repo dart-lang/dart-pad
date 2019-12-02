@@ -49,15 +49,6 @@ class MainHandler(webapp2.RequestHandler):
                 _serve(self.response, newPath)
             return
 
-        # If it is a request for something in the experimental folder, serve it
-        if targetSplits[1] == 'experimental':
-            newPath = "/".join(targetSplits[1:])
-            if newPath == '':
-                _serve(self.response, mainPage)
-            else:
-                _serve(self.response, newPath)
-            return
-
         # Otherwise it's a request for a item after the gist pseudo path
         # drop the gist and serve it.
         if len(targetSplits) >= 3:
