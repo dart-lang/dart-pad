@@ -43,13 +43,35 @@ String extractHtmlBody(String html) {
   }
 }
 
-Gist createSampleGist() {
+Gist createSampleDartGist() {
   Gist gist = Gist();
   // "wispy-dust-1337", "patient-king-8872", "purple-breeze-9817"
   gist.description = Haikunator.haikunate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCode));
-  gist.files.add(GistFile(name: 'index.html', content: '\n'));
-  gist.files.add(GistFile(name: 'styles.css', content: '\n'));
+  gist.files.add(GistFile(
+      name: 'readme.md',
+      content: _createReadmeContents(
+          title: gist.description, withLink: _dartpadLink)));
+  return gist;
+}
+
+Gist createSampleHtmlGist() {
+  Gist gist = Gist();
+  gist.description = Haikunator.haikunate();
+  gist.files.add(GistFile(name: 'main.dart', content: sample.dartCodeHtml));
+  gist.files.add(GistFile(name: 'index.html', content: sample.htmlCode));
+  gist.files.add(GistFile(name: 'styles.css', content: sample.cssCode));
+  gist.files.add(GistFile(
+      name: 'readme.md',
+      content: _createReadmeContents(
+          title: gist.description, withLink: _dartpadLink)));
+  return gist;
+}
+
+Gist createSampleFlutterGist() {
+  Gist gist = Gist();
+  gist.description = Haikunator.haikunate();
+  gist.files.add(GistFile(name: 'main.dart', content: sample.flutterCode));
   gist.files.add(GistFile(
       name: 'readme.md',
       content: _createReadmeContents(
@@ -99,15 +121,6 @@ class GistLoader {
 
   // TODO(redbrogdon): Remove 'master-' once the new docs go live.
   static const String _apiDocsUrl = 'https://master-api.flutter.dev/snippets';
-  static const String _sampleMain = 'void main() => runApp(MyApp());';
-  static const String _dartPadMain = '''
-import 'package:flutter_web/material.dart';
-import 'package:flutter_web_ui/ui.dart' as ui;
-
-void main() async {
-  await ui.webOnlyInitializePlatform();
-  runApp(MyApp());
-}''';
 
   static final GistFilterHook _defaultLoadHook = (Gist gist) {
     // Update files based on our preferred file names.
@@ -223,18 +236,9 @@ $styleRef$dartRef  </head>
       throw const GistLoaderException(GistLoaderFailureType.unknown);
     }
 
-    // TODO(redbrogdon) This should be removed once Flutter compilation in
-    // dart-services is unforked.
-    //
-    // Remove everything up to and including main(), and replace it with a valid
-    // set of flutter_web imports and a new main() that waits for platform
-    // readiness.
-    final spliceIndex = response.body.indexOf(_sampleMain) + _sampleMain.length;
-    final modifiedCode = '$_dartPadMain${response.body.substring(spliceIndex)}';
-
     final mainFile = GistFile(
       name: 'main.dart',
-      content: modifiedCode,
+      content: response.body,
     );
 
     final gist = Gist(files: [mainFile]);

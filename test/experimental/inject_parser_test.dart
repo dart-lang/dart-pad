@@ -35,12 +35,16 @@ main() {
     });
 
     test('supports options ', () {
-      var options = LanguageStringParser('run-dartpad:mode-html:theme-dark:run-true:split-50').options;
+      var options = LanguageStringParser('run-dartpad:mode-html:theme-dark'
+              ':run-true:split-50:width-100%:height-400px')
+          .options;
       expect(options, isNotEmpty);
       expect(options['mode'], equals('html'));
       expect(options['theme'], equals('dark'));
       expect(options['run'], equals('true'));
       expect(options['split'], equals('50'));
+      expect(options['width'], equals('100%'));
+      expect(options['height'], equals('400px'));
     });
   });
 }

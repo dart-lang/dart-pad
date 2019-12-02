@@ -15,11 +15,8 @@
 
     <title>DartPad</title>
 
-    <!-- primer (used for layout) -->
-    <link rel="stylesheet" type="text/css" href="packages/primer_css/primer_12.1.0.css">
-
     <!-- styles -->
-    <link href="styles/styles.css" rel="stylesheet" media="screen">
+    <link href="experimental/new_playground/styles.css" rel="stylesheet" media="screen">
 
     <!-- fonts -->
     <link href="https://fonts.googleapis.com/css?family=Roboto|Roboto+Mono&display=swap" rel="stylesheet">
@@ -34,9 +31,9 @@
     <script src="packages/codemirror/addon/scroll/simplescrollbars.js" defer></script>
 
     <!-- codemirror themes -->
-    <link href="styles/cm-scrollbars.css" rel="stylesheet" media="screen">
-    <link href="styles/cm-dartpad-dark.css" rel="stylesheet" media="screen">
-    <link href="styles/cm-dartpad-light.css" rel="stylesheet" media="screen">
+    <link href="experimental/cm-scrollbars.css" rel="stylesheet" media="screen">
+    <link href="experimental/cm-dartpad-dark.css" rel="stylesheet" media="screen">
+    <link href="experimental/cm-dartpad-light.css" rel="stylesheet" media="screen">
 
     <!-- third party javascript -->
     <script src="packages/split/split.min.js" defer></script>
@@ -46,7 +43,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <!-- dart -->
-    <script defer src="scripts/main.dart.js"></script>
+    <script defer src="experimental/new_playground/main.dart.js"></script>
 
     <!-- javascript -->
     <script src="scripts/ga.js" defer></script>
@@ -54,7 +51,8 @@
 </head>
 
 <body>
-<header>
+
+<header class="mdc-elevation--z4">
     <div class="header-title">
         <img src="dart-192.png" alt="DartPad Logo" class="logo"/>
         <span>DartPad</span>
@@ -74,35 +72,6 @@
         </button>
     </div>
     <div class="header-gist-name"></div>
-    <div class="position-relative text-right pr-2">
-        <button id="layout-menu-button" class="mdc-button">
-            <span id="layout-menu-label" class="mdc-button__label">Type</span>
-            <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
-        </button>
-        <div id="layout-menu" class="mdc-menu mdc-menu-surface">
-            <ul class="mdc-list" role="menu" aria-hidden="true"
-                aria-orientation="vertical" tabindex="-1">
-                <li class="mdc-list-item" role="menuitem">
-                    <span id="layout-dart-checkmark" class="mdc-list-item__graphic hide">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
-                    </span>
-                    <span class="mdc-list-item__text">Dart</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem">
-                    <span id="layout-web-checkmark" class="mdc-list-item__graphic hide">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
-                    </span>
-                    <span class="mdc-list-item__text">Dart + HTML</span>
-                </li>
-                <li class="mdc-list-item" role="menuitem">
-                    <span id="layout-flutter-checkmark" class="mdc-list-item__graphic hide">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
-                    </span>
-                    <span class="mdc-list-item__text">Flutter</span>
-                </li>
-            </ul>
-        </div>
-    </div>
     <div>
         <button type="button" id="samples-dropdown-button" class="mdc-button">
             <span class="mdc-button__label">Samples</span>
@@ -110,7 +79,7 @@
         </button>
         <div id="samples-menu" class="mdc-menu mdc-menu-surface"></div>
     </div>
-    <div class="position-relative text-right pr-2">
+    <div>
         <button id="more-menu-button" class="mdc-icon-button material-icons">
             more_vert
         </button>
@@ -118,13 +87,13 @@
             <ul class="mdc-list" role="menu" aria-hidden="true"
                 aria-orientation="vertical" tabindex="-1">
                 <li class="mdc-list-item" role="menuitem">
-                    <span class="mdc-list-item__graphic hide">
+                    <span class="mdc-list-item__graphic">
                         <i class="material-icons mdc-select__icon" tabindex="-1" role="button">launch</i>
                     </span>
                     <span class="mdc-list-item__text">Share</span>
                 </li>
                 <li class="mdc-list-item" role="menuitem">
-                    <span class="mdc-list-item__graphic hide">
+                    <span class="mdc-list-item__graphic">
                         <i class="material-icons mdc-select__icon" tabindex="-1" role="button">launch</i>
                     </span>
                     <span class="mdc-list-item__text">DartPad on GitHub</span>
@@ -138,7 +107,7 @@
     <div class="splash"></div>
     <div class="panels">
         <div id="editor-panel">
-            <div class="header">
+            <div id="editor-panel-header" class="header">
                 <nav>
                     <div id="web-tab-bar" class="mdc-tab-bar" role="tablist">
                         <div class="mdc-tab-scroller">
@@ -182,14 +151,14 @@
                         </div>
                     </div>
                 </nav>
-                <div class="button-group">
-                    <div id="dartbusy" class="busylight"></div>
-                    <button type="button" id="run-button"
-                            class="mdc-button mdc-button--raised mdc-button--dense">
-                        <i class="material-icons mdc-button__icon">play_arrow</i>
-                        Run
-                    </button>
-                </div>
+            </div>
+            <div class="button-group">
+                <div id="dartbusy" class="busylight"></div>
+                <button type="button" id="run-button"
+                        class="mdc-button mdc-button--raised mdc-button--dense">
+                    <i class="material-icons mdc-button__icon">play_arrow</i>
+                    Run
+                </button>
             </div>
             <div id="editor-host"></div>
             <div id="editor-panel-footer" class="editor-tab-host border-top">
@@ -210,16 +179,27 @@
                     </button>
                 </div>
                 <div id="editor-panel-tab-host">
-                    <div id="left-output-panel" class="console"></div>
-                    <div id="left-doc-panel" class="documentation"></div>
+                    <div id="left-output-panel" class="console custom-scrollbar">
+                        <span id="left-output-label" class="view-label">Console</span>
+                    </div>
+                    <div id="left-doc-panel" class="documentation custom-scrollbar">
+                        <span id="left-doc-label" class="view-label">Documentation</span>
+                    </div>
                 </div>
             </div>
         </div>
         <div id="output-panel">
+            <span id="web-output-label" class="view-label absolute">UI Output</span>
             <iframe id="frame" sandbox="allow-scripts" flex
                     src="scripts/frame.html"></iframe>
-            <div id="right-output-panel" class="console"></div>
-            <div id="right-doc-panel" class="documentation"></div>
+            <div id="right-output-panel">
+                <span class="view-label">Console</span>
+                <div id="right-output-panel-content" class="console custom-scrollbar"></div>
+            </div>
+            <div id="right-doc-panel">
+                <span id="right-doc-label" class="view-label">Documentation</span>
+                <div id="right-doc-panel-content" class="documentation custom-scrollbar"></div>
+            </div>
         </div>
     </div>
     <div class="mdc-snackbar">
@@ -230,7 +210,7 @@
             </div>
         </div>
     </div>
-    <div id="flash-container" class="position-fixed right-2 bottom-6">
+    <div id="flash-container">
         <div id="analysis-result-box" class="flash flash-error" hidden>
             <button class="flash-close">
                 <div class="octicon octicon-x"></div>
@@ -300,10 +280,27 @@
         <div class="mdc-dialog__surface">
             <h2 class="mdc-dialog__title">New Pad</h2>
             <div class="mdc-dialog__content">
-                <div id="new-pad-select-dart" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">
-                    <img src="/pictures/logo_dart.png"/>
-                    <span>Dart</span>
+                <div class="dart-container">
+                    <div id="new-pad-select-dart" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">
+                        <img src="/pictures/logo_dart.png"/>
+                        <span>Dart</span>
+                    </div>
+                    <div id="new-pad-html-switch-container" class="hide">
+                        <div class="mdc-switch mdc-switch--disabled">
+                            <div class="mdc-switch__track"></div>
+                            <div class="mdc-switch__thumb-underlay">
+                                <div class="mdc-switch__thumb">
+                                    <input type="checkbox"
+                                           id="new-pad-html-switch"
+                                           class="mdc-switch__native-control"
+                                           role="switch">
+                                </div>
+                            </div>
+                        </div>
+                        <label for="new-pad-html-switch">HTML</label>
+                    </div>
                 </div>
+                <div class="divider"></div>
                 <div id="new-pad-select-flutter" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">
                     <img src="/pictures/logo_flutter.png"/>
                     <span>Flutter</span>
@@ -311,20 +308,7 @@
             </div>
 
             <footer class="mdc-dialog__actions">
-                <div id="new-pad-html-switch-container" hidden>
-                    <div class="mdc-switch mdc-switch--disabled">
-                        <div class="mdc-switch__track"></div>
-                        <div class="mdc-switch__thumb-underlay">
-                            <div class="mdc-switch__thumb">
-                                <input type="checkbox"
-                                       id="new-pad-html-switch"
-                                       class="mdc-switch__native-control"
-                                       role="switch">
-                            </div>
-                        </div>
-                    </div>
-                    <label for="new-pad-html-switch">HTML</label>
-                </div>
+
                 <button type="button" id="new-pad-cancel-button"
                         class="mdc-button mdc-dialog__button">
                     <span class="mdc-button__label">Cancel</span>

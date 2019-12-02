@@ -41,12 +41,10 @@ class ExecutionServiceIFrame implements ExecutionService {
     String javaScript, {
     String modulesBaseUrl,
   }) {
-    return _reset().whenComplete(() {
-      return _send('execute', {
-        'html': html,
-        'css': css,
-        'js': _decorateJavaScript(javaScript, modulesBaseUrl: modulesBaseUrl),
-      });
+    return _send('execute', {
+      'html': html,
+      'css': css,
+      'js': _decorateJavaScript(javaScript, modulesBaseUrl: modulesBaseUrl),
     });
   }
 
@@ -84,7 +82,7 @@ var resultFunction = _result;
 
   String _decorateJavaScript(String javaScript, {String modulesBaseUrl}) {
     final String postMessagePrint = '''
-const testKey = '$testKey';
+var testKey = '$testKey';
 
 function dartPrint(message) {
   if (message.startsWith(testKey)) {
@@ -97,6 +95,8 @@ function dartPrint(message) {
       {'sender': 'frame', 'type': 'stdout', 'message': message.toString()}, '*');
   }
 }
+// Unload previous version.
+require.undef('dartpad_main');
 ''';
 
     /// The javascript exception handling for Dartpad catches both errors
@@ -114,16 +114,6 @@ function dartPrint(message) {
     /// and the right error messages on the console.
     final String exceptionHandler = '''
 var _thrownDartMainRunner = false;
-function dartMainRunner(main, args) {
-  try {
-    main(args);
-  } catch(error) {
-    parent.postMessage(
-      {'sender': 'frame', 'type': 'stderr', 'message': "Uncaught exception:\\n" + error.message}, '*');
-    _thrownDartMainRunner = true;
-    throw error;
-  }
-}
 
 window.onerror = function(message, url, lineNumber, colno, error) {
   if (!_thrownDartMainRunner) {
@@ -153,14 +143,42 @@ require.config({
     String postfix = '';
     if (usesRequireJs) {
       postfix = '''
+require(['dart_sdk'],
+  function(sdk) {
+    'use strict';
+    sdk.developer._extensions.clear();
+    sdk.dart.hotRestart();
+});
+
 require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     // SDK initialization.
     dart_sdk.dart.setStartAsyncSynchronously(true);
     dart_sdk._isolate_helper.startRootIsolate(() => {}, []);
 
-    // Loads the `main` library and runs the main method from it.
-    dartpad_main.main.main();
-});
+    // Loads the `dartpad_main` module and runs its bootstrapped main method.
+    //
+    // DDK provides the user's code in a RequireJS module, which exports an
+    // object that looks something like this:
+    //
+    // {
+    //       [random_tokens]__bootstrap: bootstrap,
+    //       [random_tokens]__main: main
+    // }
+    //
+    // The first of those properties holds the compiled code for the bootstrap
+    // Dart file, which the server uses to wrap the user's code and wait on a
+    // call to dart:ui's `webOnlyInitializePlatform` before executing any of it.
+    //
+    // The loop below iterates over the properties of the exported object,
+    // looking for one that ends in "__bootstrap". Once found, it executes the
+    // bootstrapped main method, which calls the user's main method, which
+    // (presumably) calls runApp and starts Flutter's rendering. 
+
+    for (var prop in dartpad_main) {
+          if (prop.endsWith("__bootstrap")) {
+            dartpad_main[prop].main();
+          }
+    }});
 ''';
     }
 
