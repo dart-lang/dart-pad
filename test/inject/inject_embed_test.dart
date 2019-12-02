@@ -6,7 +6,7 @@
 import 'dart:html';
 
 import 'package:test/test.dart';
-import 'package:dart_pad/experimental/inject_embed.dart' as inject_embed;
+import 'package:dart_pad/inject/inject_embed.dart' as inject_embed;
 
 void main() {
   group('inject_embed', () {

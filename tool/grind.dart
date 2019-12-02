@@ -17,7 +17,6 @@ final FilePath _buildDir = FilePath('build');
 final FilePath _pkgDir = FilePath('third_party/pkg');
 final FilePath _routeDir = FilePath('third_party/pkg/route.dart');
 final FilePath _haikunatorDir = FilePath('third_party/pkg/haikunatordart');
-final FilePath _experimentalTestDir = FilePath('test/experimental');
 
 Map get _env => Platform.environment;
 
@@ -67,15 +66,6 @@ testWeb() async {
       workingDirectory: _routeDir.path);
 }
 
-// This task also requires a frame buffer to run.
-@Task()
-testExperimental() async {
-  await TestRunner().testAsync(
-    files: _experimentalTestDir.path,
-    platformSelector: 'chrome',
-  );
-}
-
 @Task('Serve locally on port 8000')
 @Depends(build)
 serve() async {
@@ -103,7 +93,6 @@ serveCustomBackend() async {
   // 'https://dart-services.appspot.com' with serverUrl.
   final List<FileSystemEntity> files = [];
   files.addAll(_buildDir.join('scripts').asDirectory.listSync());
-  files.addAll(_buildDir.join('experimental').asDirectory.listSync());
   for (FileSystemEntity entity in files) {
     if (entity is! File) continue;
     if (!entity.path.endsWith('.dart.js')) continue;
@@ -271,7 +260,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(analyze, testCli, testWeb, testExperimental, coverage, build)
+@Depends(analyze, testCli, testWeb, coverage, build)
 void buildbot() => null;
 
 @Task('Prepare the app for deployment')

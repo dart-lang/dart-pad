@@ -6,37 +6,37 @@ import 'dart:async';
 import 'dart:html' hide Document, Console;
 import 'dart:math' as math;
 
-import 'package:dart_pad/experimental/material_tab_controller.dart';
+import 'package:dart_pad/elements/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
 import 'package:split/split.dart';
 import 'package:mdc_web/mdc_web.dart';
 
-import '../completion.dart';
-import '../core/dependencies.dart';
-import '../core/modules.dart';
-import '../dart_pad.dart';
-import '../editing/editor.dart';
-import '../editing/editor_codemirror.dart';
-import '../elements/elements.dart';
-import '../modules/dart_pad_module.dart';
-import '../modules/dartservices_module.dart';
-import '../services/common.dart';
-import '../services/dartservices.dart';
-import '../services/execution_iframe.dart';
-import '../sharing/gists.dart';
-import '../src/util.dart';
-import 'analysis_results_controller.dart';
-import 'button.dart';
-import 'console.dart';
-import 'counter.dart';
-import 'dialog.dart';
-import 'keymap.dart';
+import 'completion.dart';
+import 'core/dependencies.dart';
+import 'core/modules.dart';
+import 'dart_pad.dart';
+import 'editing/editor.dart';
+import 'editing/editor_codemirror.dart';
+import 'elements/elements.dart';
+import 'modules/dart_pad_module.dart';
+import 'modules/dartservices_module.dart';
+import 'services/common.dart';
+import 'services/dartservices.dart';
+import 'services/execution_iframe.dart';
+import 'sharing/gists.dart';
+import 'src/util.dart';
+import 'elements/analysis_results_controller.dart';
+import 'elements/button.dart';
+import 'elements/console.dart';
+import 'elements/counter.dart';
+import 'elements/dialog.dart';
+import 'util/keymap.dart';
 
 const int defaultSplitterWidth = 6;
 
-NewEmbed get newEmbed => _newEmbed;
+Embed get embed => _embed;
 
-NewEmbed _newEmbed;
+Embed _embed;
 
 const codeMirrorOptions = {
   'continueComments': {'continueLineComment': false},
@@ -57,22 +57,22 @@ const codeMirrorOptions = {
   'scrollbarStyle': 'simple',
 };
 
-void init(NewEmbedOptions options) {
-  _newEmbed = NewEmbed(options);
+void init(EmbedOptions options) {
+  _embed = Embed(options);
 }
 
-enum NewEmbedMode { dart, flutter, html, inline }
+enum EmbedMode { dart, flutter, html, inline }
 
-class NewEmbedOptions {
-  final NewEmbedMode mode;
+class EmbedOptions {
+  final EmbedMode mode;
 
-  NewEmbedOptions(this.mode);
+  EmbedOptions(this.mode);
 }
 
 /// An embeddable DartPad UI that provides the ability to test the user's code
 /// snippet against a desired result.
-class NewEmbed {
-  final NewEmbedOptions options;
+class Embed {
+  final EmbedOptions options;
 
   var _executionButtonCount = 0;
   MDCButton executeButton;
@@ -84,7 +84,7 @@ class NewEmbed {
   MDCButton menuButton;
 
   DElement navBarElement;
-  NewEmbedTabController tabController;
+  EmbedTabController tabController;
   TabView editorTabView;
   TabView testTabView;
   TabView solutionTabView;
@@ -114,7 +114,7 @@ class NewEmbed {
   Editor htmlEditor;
   Editor cssEditor;
 
-  NewEmbedContext context;
+  EmbedContext context;
 
   Splitter splitter;
   AnalysisResultsController analysisResultsController;
@@ -152,14 +152,14 @@ class NewEmbed {
     copyCodeButton?.disabled = value;
   }
 
-  NewEmbed(this.options) {
+  Embed(this.options) {
     _initHostListener();
     dialog = Dialog();
     tabController =
-        NewEmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')), dialog);
+        EmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')), dialog);
 
     var tabNames = ['editor', 'solution', 'test'];
-    if (options.mode == NewEmbedMode.html) {
+    if (options.mode == EmbedMode.html) {
       tabNames = ['editor', 'html', 'css', 'solution', 'test'];
     }
 
@@ -367,8 +367,8 @@ class NewEmbed {
         _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
       });
 
-    if (options.mode == NewEmbedMode.flutter ||
-        options.mode == NewEmbedMode.html) {
+    if (options.mode == EmbedMode.flutter ||
+        options.mode == EmbedMode.html) {
       consoleExpandController = ConsoleExpandController(
           expandButton: querySelector('#console-output-header'),
           footer: querySelector('#console-output-footer'),
@@ -399,7 +399,7 @@ class NewEmbed {
         .then((_) => _initNewEmbed())
         .then((_) => _emitReady())
         .then((_) {
-      if (options.mode == NewEmbedMode.flutter) {
+      if (options.mode == EmbedMode.flutter) {
         _notifyIfWebKit();
       }
     });
@@ -512,7 +512,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     deps[GistLoader] = GistLoader.defaultFilters();
     deps[Analytics] = Analytics();
 
-    context = NewEmbedContext(
+    context = EmbedContext(
         userCodeEditor, testEditor, solutionEditor, htmlEditor, cssEditor);
 
     editorFactory.registerCompleter(
@@ -541,12 +541,12 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     var horizontal = true;
     var webOutput = querySelector('#web-output');
     List<Element> splitterElements;
-    if (options.mode == NewEmbedMode.flutter ||
-        options.mode == NewEmbedMode.html) {
+    if (options.mode == EmbedMode.flutter ||
+        options.mode == EmbedMode.html) {
       var editorAndConsoleContainer =
           querySelector('#editor-and-console-container');
       splitterElements = [editorAndConsoleContainer, webOutput];
-    } else if (options.mode == NewEmbedMode.inline) {
+    } else if (options.mode == EmbedMode.inline) {
       var editorContainer = querySelector('#editor-container');
       var consoleView = querySelector('#console-view');
       consoleView.removeAttribute('hidden');
@@ -750,7 +750,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
         '${executionSvc.testResultDecoration}';
 
     var input = CompileRequest()..source = fullCode;
-    if (options.mode == NewEmbedMode.flutter) {
+    if (options.mode == EmbedMode.flutter) {
       dartServices
           .compileDDC(input)
           .timeout(longServiceCallTimeout)
@@ -771,7 +771,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
         webOutputLabel.setAttr('hidden');
         editorIsBusy = false;
       });
-    } else if (options.mode == NewEmbedMode.html) {
+    } else if (options.mode == EmbedMode.html) {
       dartServices
           .compile(input)
           .timeout(longServiceCallTimeout)
@@ -935,11 +935,11 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
 // material-components-web uses specific classes for its navigation styling,
 // rather than an attribute. This class extends the tab controller code to also
 // toggle that class.
-class NewEmbedTabController extends MaterialTabController {
+class EmbedTabController extends MaterialTabController {
   final Dialog _dialog;
   bool _userHasSeenSolution = false;
 
-  NewEmbedTabController(MDCTabBar tabBar, this._dialog) : super(tabBar);
+  EmbedTabController(MDCTabBar tabBar, this._dialog) : super(tabBar);
 
   void registerTab(TabElement tab) {
     tabs.add(tab);
@@ -1184,7 +1184,7 @@ class ConsoleExpandController extends Console {
   }
 }
 
-class NewEmbedContext {
+class EmbedContext {
   final Editor userCodeEditor;
   final Editor htmlEditor;
   final Editor cssEditor;
@@ -1216,7 +1216,7 @@ class NewEmbedContext {
 
   final _dartReconcileController = StreamController.broadcast();
 
-  NewEmbedContext(this.userCodeEditor, this.testEditor, this.solutionEditor,
+  EmbedContext(this.userCodeEditor, this.testEditor, this.solutionEditor,
       this.htmlEditor, this.cssEditor) {
     _dartDoc = userCodeEditor.document;
     _htmlDoc = htmlEditor?.document;
