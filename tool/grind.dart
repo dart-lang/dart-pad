@@ -222,8 +222,6 @@ vulcanize(String filepath) {
         '--exclude',
         ' scripts/new_embed_inline.dart.js',
         '--exclude',
-        ' scripts/new_playground/main.dart.js',
-        '--exclude',
         'scripts/main.dart.js',
         '--exclude',
         'scripts/codemirror.js',
