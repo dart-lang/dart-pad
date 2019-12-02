@@ -128,19 +128,19 @@ build() {
   }
 
   FilePath newEmbedDartFile =
-      _buildDir.join('scripts/new_embed_dart.dart.js');
+      _buildDir.join('scripts/embed_dart.dart.js');
   log('$newEmbedDartFile compiled to ${_printSize(newEmbedDartFile)}');
 
   FilePath newEmbedFlutterFile =
-      _buildDir.join('scripts/new_embed_flutter.dart.js');
+      _buildDir.join('scripts/embed_flutter.dart.js');
   log('$newEmbedFlutterFile compiled to ${_printSize(newEmbedFlutterFile)}');
 
   FilePath newEmbedHtmlFile =
-      _buildDir.join('scripts/new_embed_html.dart.js');
+      _buildDir.join('scripts/embed_html.dart.js');
   log('$newEmbedHtmlFile compiled to ${_printSize(newEmbedHtmlFile)}');
 
   FilePath newEmbedInlineFile =
-      _buildDir.join('scripts/new_embed_inline.dart.js');
+      _buildDir.join('scripts/embed_inline.dart.js');
   log('$newEmbedInlineFile compiled to ${_printSize(newEmbedInlineFile)}');
 
   // Remove .dart files.
