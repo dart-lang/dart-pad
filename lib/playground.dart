@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:html' hide Console;
 
 import 'package:dart_pad/editing/editor_codemirror.dart';
+import 'package:dart_pad/util/detect_safari.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -704,7 +705,9 @@ class Playground implements GistContainer, GistController {
       Timer.run(() {
         _performAnalysis().then((bool result) {
           // Only auto-run if the static analysis comes back clean.
-          if (result && !loadedFromSaved) _handleRun();
+          if (result && !loadedFromSaved && !isRunningInWebKit()) {
+            _handleRun();
+          }
         }).catchError((e) => null);
       });
     }).catchError((e) {
@@ -926,6 +929,7 @@ class Playground implements GistContainer, GistController {
       editorPanelHeader.clearAttr('hidden');
       webOutputLabel.setAttr('hidden');
     } else if (layout == Layout.flutter) {
+      notifyIfWebKit(dialog);
       _disposeRightSplitter();
       _frame.hidden = false;
       editorPanelFooter.clearAttr('hidden');
