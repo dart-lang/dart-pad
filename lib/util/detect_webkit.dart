@@ -16,7 +16,11 @@ working with the WebKit team to resolve it.
 </p>
 <p>
 In the meantime, it's possible to avoid the delay by using one of the other
-major browsers, such as Firefox, Edge (dev channel), or Chrome.
+major browsers, such as 
+<a href="https://www.mozilla.org/en-US/firefox/new/">Firefox</a>, 
+<a href="https://www.microsoftedgeinsider.com/en-au/download">Edge (dev 
+channel)</a>, or 
+<a href="https://www.google.com/chrome/">Chrome</a>.
 </p>
 ''';
 
