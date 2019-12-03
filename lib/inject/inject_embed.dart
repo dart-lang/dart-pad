@@ -7,7 +7,8 @@ import 'dart:html';
 import 'package:dart_pad/util/logging.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:logging/logging.dart';
-import 'package:dart_pad/experimental/inject_parser.dart';
+
+import 'inject_parser.dart';
 
 Logger _logger = Logger('dartpad-embed');
 

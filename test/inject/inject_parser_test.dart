@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart_pad/experimental/inject_parser.dart';
+import 'package:dart_pad/inject/inject_parser.dart';
 import 'package:test/test.dart';
 
 main() {

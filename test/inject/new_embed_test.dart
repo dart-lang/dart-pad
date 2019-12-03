@@ -5,13 +5,12 @@
 @TestOn('browser')
 import 'dart:html';
 
-import 'package:dart_pad/experimental/new_embed.dart' as new_embed;
+import 'package:dart_pad/embed.dart' as embed;
 import 'package:test/test.dart';
 
 void main() {
   group('new_embed', () {
-    setUp(() => new_embed
-        .init(new_embed.NewEmbedOptions(new_embed.NewEmbedMode.flutter)));
+    setUp(() => embed.init(embed.EmbedOptions(embed.EmbedMode.flutter)));
 
     test('Editor tab is selected at init', () {
       final editorTab = querySelector('#editor-tab');
@@ -46,13 +45,12 @@ void main() {
     test('cleans dart SDK urls', () {
       var trace =
           '(https://storage.googleapis.com/compilation_artifacts/2.2.0/dart_sdk.js:4537:11)';
-      expect(new_embed.filterCloudUrls(trace), '([Dart SDK Source]:4537:11)');
+      expect(embed.filterCloudUrls(trace), '([Dart SDK Source]:4537:11)');
     });
     test('cleans flutter SDK urls', () {
       var trace =
           '(https://storage.googleapis.com/compilation_artifacts/2.2.0/flutter_web.js:96550:21)';
-      expect(
-          new_embed.filterCloudUrls(trace), '([Flutter SDK Source]:96550:21)');
+      expect(embed.filterCloudUrls(trace), '([Flutter SDK Source]:96550:21)');
     });
   });
 }

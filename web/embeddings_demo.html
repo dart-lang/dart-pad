@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 
-<!-- Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+<!-- Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
      for details. All rights reserved. Use of this source code is governed by a
      BSD-style license that can be found in the LICENSE file. -->
 
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,93 +15,372 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
 
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+          rel='stylesheet' type='text/css'>
+
     <style>
-      iframe {
-        background-color: #333;
-        border: 1px solid #ccc;
-        width: 100%;
-        height: 400px;
-      }
+        iframe {
+            border: 1px solid #ccc;
+            width: 100%;
+            height: 400px;
+            margin-bottom: 40px;
+        }
 
-      iframe[short] {
-        height: 220px;
-      }
+        .tall {
+            height: 800px;
+        }
 
-      #choosePad {
-        margin-bottom: 8px;
-        float: right;
-      }
+        #choosePad {
+            margin-bottom: 8px;
+            float: right;
+        }
+
+        .code {
+            font-family: 'Inconsolata', monospace;
+            color: #004;
+        }
+
+        .snippet {
+            font-family: 'Inconsolata', monospace;
+            white-space: pre-wrap;
+            margin-left: -100px;
+            margin-top: -10px;
+            color: #008;
+        }
+
+        .disclaimer {
+            margin-bottom: 30px;
+            margin-top: 10px;
+            color: #800;
+            font-weight: bold;
+            font-style: italic;
+            font-size: 16px;
+        }
+
+        body {
+            font-size: 16px;
+        }
+
+        h4 {
+            margin-top: 40px;
+        }
+
+        .row {
+            margin-bottom: 300px;
+        }
     </style>
-  </head>
 
-  <body>
-    <div class="container">
-      <div class="row">
-        <div class="col-md-2"></div>
-        <div class="col-md-8">
-          <h2>Embeddings Demo</h2>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-            veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-            commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-            velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-            cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
-            id est laborum.
-          </p>
+    <script type="text/javascript">
 
-          <h3>Foo bar</h3>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-            veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-            commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-            velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-            cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
-            id est laborum.
-          </p>
-          <select id="choosePad" onChange="changeOptions()">
-            <option value="33706e19df021e52d98c">Hello World</option>
-            <option value="74e990d984faad26dea0">Fibonacci</option>
-          </select>
-          <iframe id="embed-dart" src="embed-dart.html"></iframe>
+        const testSource = `void main() async {
+  await ui.webOnlyInitializePlatform();
 
-          <h3>Foo bar</h3>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-            veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-            commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-            velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-            cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
-            id est laborum.
-          </p>
-          <iframe src="embed-html.html?id=9126d5d48ebabf5bf547"></iframe>
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: FruitCard(),
+        ),
+      ),
+    ),
+  );
+}
+`;
 
-          <h3>Foo bar</h3>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-            tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim
-            veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea
-            commodo consequat. Duis aute irure dolor in reprehenderit in voluptate
-            velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
-            cupidatat non proident, sunt in culpa qui officia deserunt mollit anim
-            id est laborum.
-          </p>
-          <iframe short src="embed-inline.html"></iframe>
-          <p></p>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
-          tempor incididunt ut labore et dolore magna aliqua.</p>
+        const mainSources = [
+            `import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Column(
+        children: [
+          Text('Lime'),
+          Text('9 calories'),
+          Text('Citrus'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('6'),
+              Icon(Icons.thumb_up),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('2'),
+              Icon(Icons.thumb_down),
+            ],
+          ),
+          Image.network('http://placekitten.com/100/120', height: 120),
+        ],
+      ),
+    );
+  }
+}
+`,
+            `import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text('Lime'),
+          Text('9 calories'),
+          Text('Citrus'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('6'),
+              Icon(Icons.thumb_up),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('2'),
+              Icon(Icons.thumb_down),
+            ],
+          ),
+          Image.network('http://placekitten.com/100/120', height: 120),
+        ],
+      ),
+    );
+  }
+}`,
+            `import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            height: 96,
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('Lime'),
+                Text('9 calories'),
+                Text('Citrus'),
+              ],
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('6'),
+              Icon(Icons.thumb_up),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('2'),
+              Icon(Icons.thumb_down),
+            ],
+          ),
+          Image.network('http://placekitten.com/100/120', height: 120),
+        ],
+      ),
+    );
+  }
+}`,
+            `import 'package:flutter_web/material.dart';
+import 'package:flutter_web_ui/ui.dart' as ui;
+
+class FruitCard extends StatelessWidget {
+  const FruitCard({Key key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    double horizontalMargin = 5;
+    double cardPadding = 12;
+    double pictureAndRatings = 164;
+    return Card(
+      margin: EdgeInsets.all(horizontalMargin),
+      child: Container(
+        height: 120,
+        child: Stack(
+          children: <Widget>[
+            Positioned(
+              left: cardPadding,
+              top: cardPadding,
+              height: 96,
+              child: Container(
+                width: MediaQuery.of(context).size.width -
+                    (cardPadding * 2) -
+                    (horizontalMargin * 2) -
+                    pictureAndRatings,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Lime'),
+                    Text('9 calories'),
+                    Text('Citrus'),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              top: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('6'),
+                  Icon(Icons.thumb_up),
+                ],
+              ),
+            ),
+            Positioned(
+              right: pictureAndRatings - 30,
+              bottom: 20,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('2'),
+                  Icon(Icons.thumb_down),
+                ],
+              ),
+            ),
+            Positioned(
+              right: 0,
+              child: Image.network('http://placekitten.com/100/120', height: 120),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}`
+        ];
+
+        var isReady = false;
+
+        window.addEventListener('message', (event) => {
+            if (event.data['type'] === 'ready') {
+                if (event.source.frameElement.id === 'plaything-host') {
+                    isReady = true;
+                }
+            }
+        });
+
+        window.addEventListener('load', (event) => {
+
+            const host = document.querySelector('#plaything-host');
+
+            for (var i = 0; i < 4; i++) {
+                const button = document.querySelector('#step' + i);
+                const source = mainSources[i];
+                const message = {
+                    'sourceCode': {
+                        'main.dart': source,
+                        'test.dart': testSource
+                    },
+                    'autoRun': true,
+                    'type': 'sourceCode'
+                };
+
+                button.addEventListener('click', (event) => {
+                    if (isReady) {
+                        host.contentWindow.postMessage(message, '*');
+                    }
+                });
+            }
+
+        });
+
+    </script>
+</head>
+
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-1"></div>
+        <div class="col-md-10">
+            <h2>DartPad's new embed UI</h2>
+            <div class="disclaimer">
+                DartPad's new embedded UI supports both Dart and Flutter code. To speed up incremental builds,
+                it uses the Dart development compiler (DDC) for code snippets that use Flutter. Currently, there's
+                an issue involving the DDC and WebKit that causes Safari to hang while JavaScriptCore parses the
+                compiled Dart and Flutter SDKs. If you're using Safari, you may see a significant delay during this
+                time. This is a DartPad issue, <i>not</i> a problem with Flutter for web or Dart itself, and we're
+                <a href="https://bugs.webkit.org/show_bug.cgi?id=199866">working with the WebKit team</a> to get it
+                fixed.
+            </div>
+
+            <h3>Dart</h3>
+
+            <iframe src="../embed-dart.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/dart_all_files"></iframe>
+
+            <h3>Dart (dark)</h3>
+
+            <iframe src="../embed-dart.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/dart_just_main&theme=dark"></iframe>
+
+            <h3>Dart inline</h3>
+
+            <iframe src="../embed-inline.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/dart_all_files"></iframe>
+
+            <h3>Dart inline (dark)</h3>
+
+            <iframe src="../embed-inline.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/dart_just_main&theme=dark"></iframe>
+
+            <h3>Dart HTML</h3>
+
+            <iframe src="../embed-html.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/dart_html_all_files"></iframe>
+
+            <h3>Dart HTML (dark)</h3>
+
+            <iframe src="../embed-html.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/dart_html_just_main&theme=dark"></iframe>
+
+            <h3>Flutter</h3>
+
+            <iframe class="tall" src="../embed-flutter.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/flutter_all_files&split=60"></iframe>
+
+            <h3>Flutter (dark)</h3>
+
+            <iframe class="tall" src="../embed-flutter.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/flutter_just_main&split=60&theme=dark"></iframe>
+
+            <h3>Loading an API Doc sample</h3>
+
+            <iframe class="tall" src="../embed-flutter.html?sample_id=material.AppBar.1&split=60"></iframe>
+
+            <h3>Flutter with auto-run</h3>
+
+            <iframe class="tall" src="../embed-flutter.html?gh_owner=RedBrogdon&gh_repo=dartpad_exercises&gh_path=embeddings_demo/flutter_all_files&split=60&run=true"></iframe>
+
+            <h3>Step-through</h3>
+
+            <button id="step0">Step Zero</button>
+            <button id="step1">Step One</button>
+            <button id="step2">Step Two</button>
+            <button id="step3">Step Three</button>
+
+            <iframe id="plaything-host" class="tall" src="../embed-flutter.html?split=60"></iframe>
+
         </div>
-      </div>
-      <div class="col-md-2"></div>
+        <div class="col-md-1"></div>
     </div>
-  </body>
-  <script>
-    function changeOptions(){
-      var select = document.getElementById("choosePad");
-      var url = 'embed-dart.html?id='+select.options[select.selectedIndex].value;
-      document.getElementById("embed-dart").src = url;
-    }
-  </script>
+</div>
+</body>
 </html>

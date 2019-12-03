@@ -2,11 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dart_pad/experimental/new_embed.dart';
-import 'package:logging/logging.dart';
+import 'package:dart_pad/inject/inject_embed.dart' as inject_embed;
 
 void main() {
-  init(NewEmbedOptions(NewEmbedMode.inline));
-
-  Logger.root.onRecord.listen(print);
+  inject_embed.main();
 }
