@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:html' hide Console;
 
 import 'package:dart_pad/editing/editor_codemirror.dart';
+import 'package:dart_pad/util/detect_webkit.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -121,6 +122,8 @@ class Playground implements GistContainer, GistController {
   Console _leftConsole;
   Console _rightConsole;
   Counter unreadConsoleCounter;
+
+  bool _hasShownWebKitDialog = false;
 
   Playground() {
     _initModules().then((_) {
@@ -704,7 +707,9 @@ class Playground implements GistContainer, GistController {
       Timer.run(() {
         _performAnalysis().then((bool result) {
           // Only auto-run if the static analysis comes back clean.
-          if (result && !loadedFromSaved) _handleRun();
+          if (result && !loadedFromSaved) {
+            _handleRun();
+          }
         }).catchError((e) => null);
       });
     }).catchError((e) {
@@ -728,7 +733,9 @@ class Playground implements GistContainer, GistController {
       ..source = context.dartSource;
 
     try {
-      if (hasFlutterContent(_context.dartSource)) {
+      if (hasFlutterContent(_context.dartSource) &&
+          !isRunningInWebKit() &&
+          _hasShownWebKitDialog) {
         final CompileDDCResponse response = await dartServices
             .compileDDC(compileRequest)
             .timeout(longServiceCallTimeout);
@@ -926,6 +933,10 @@ class Playground implements GistContainer, GistController {
       editorPanelHeader.clearAttr('hidden');
       webOutputLabel.setAttr('hidden');
     } else if (layout == Layout.flutter) {
+      if (!_hasShownWebKitDialog) {
+        notifyIfWebKit(dialog);
+      }
+      _hasShownWebKitDialog = true;
       _disposeRightSplitter();
       _frame.hidden = false;
       editorPanelFooter.clearAttr('hidden');

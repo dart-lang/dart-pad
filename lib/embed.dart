@@ -8,6 +8,7 @@ import 'dart:math' as math;
 
 import 'package:dart_pad/elements/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
+import 'package:dart_pad/util/detect_webkit.dart';
 import 'package:split/split.dart';
 import 'package:mdc_web/mdc_web.dart';
 
@@ -367,8 +368,7 @@ class Embed {
         _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
       });
 
-    if (options.mode == EmbedMode.flutter ||
-        options.mode == EmbedMode.html) {
+    if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
       consoleExpandController = ConsoleExpandController(
           expandButton: querySelector('#console-output-header'),
           footer: querySelector('#console-output-footer'),
@@ -400,7 +400,7 @@ class Embed {
         .then((_) => _emitReady())
         .then((_) {
       if (options.mode == EmbedMode.flutter) {
-        _notifyIfWebKit();
+        notifyIfWebKit(dialog);
       }
     });
   }
@@ -421,7 +421,7 @@ class Embed {
         lastInjectedSourceCode = Map<String, String>.from(data['sourceCode']);
         _resetCode();
 
-        if (autoRunEnabled) {
+        if (autoRunEnabled && !isRunningInWebKit()) {
           _handleExecute();
         }
       }
@@ -487,27 +487,6 @@ class Embed {
     await modules.start();
   }
 
-  void _notifyIfWebKit() {
-    // See https://bugs.webkit.org/show_bug.cgi?id=199866.
-    if (window.navigator.vendor.contains('Apple') &&
-        !window.navigator.userAgent.contains('CriOS') &&
-        !window.navigator.userAgent.contains('FxiOS')) {
-      dialog.showOk('Possible delay', '''
-<p>
-It looks like you're using a WebKit-based browser (such as Safari). There's
-currently an issue with the way DartPad and WebKit's JavaScript parser interact
-that could cause up to a thirty second delay the first time you execute Flutter
-code in DartPad. This is not an issue with Dart or Flutter itself, and we're
-working with the WebKit team to resolve it.
-</p>
-<p>
-In the meantime, it's possible to avoid the delay by using one of the other
-major browsers, such as Firefox, Edge (dev channel), or Chrome.
-</p>
-''');
-    }
-  }
-
   void _initNewEmbed() {
     deps[GistLoader] = GistLoader.defaultFilters();
     deps[Analytics] = Analytics();
@@ -541,8 +520,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
     var horizontal = true;
     var webOutput = querySelector('#web-output');
     List<Element> splitterElements;
-    if (options.mode == EmbedMode.flutter ||
-        options.mode == EmbedMode.html) {
+    if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
       var editorAndConsoleContainer =
           querySelector('#editor-and-console-container');
       splitterElements = [editorAndConsoleContainer, webOutput];
@@ -621,7 +599,7 @@ major browsers, such as Firefox, Edge (dev channel), or Chrome.
         _performAnalysis();
       }
 
-      if (autoRunEnabled) {
+      if (autoRunEnabled && !isRunningInWebKit()) {
         _handleExecute();
       }
     } on GistLoaderException catch (ex) {
