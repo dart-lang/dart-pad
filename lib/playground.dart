@@ -8,7 +8,7 @@ import 'dart:async';
 import 'dart:html' hide Console;
 
 import 'package:dart_pad/editing/editor_codemirror.dart';
-import 'package:dart_pad/util/detect_safari.dart';
+import 'package:dart_pad/util/detect_webkit.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';

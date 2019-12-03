@@ -8,7 +8,7 @@ import 'dart:math' as math;
 
 import 'package:dart_pad/elements/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
-import 'package:dart_pad/util/detect_safari.dart';
+import 'package:dart_pad/util/detect_webkit.dart';
 import 'package:split/split.dart';
 import 'package:mdc_web/mdc_web.dart';
 
