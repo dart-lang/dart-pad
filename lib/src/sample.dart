@@ -45,7 +45,7 @@ h1 {
 final String flutterCode = r'''
 import 'package:flutter/material.dart';
 
-final Color darkBlue = Color.fromARGB(255, 28, 40, 52);
+final Color darkBlue = Color.fromARGB(255, 18, 32, 47);
 
 void main() {
   runApp(MyApp());
