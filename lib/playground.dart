@@ -245,9 +245,10 @@ class Playground implements GistContainer, GistController {
       Sample('a559420eed617dab7a196b5ea0b64fba', 'Sunflower', Layout.html),
       Sample('cb9b199b1085873de191e32a1dd5ca4f', 'WebSockets', Layout.html),
       Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
-      Sample('1ae68b761529fd721b84d8709c6017bd', 'Todo App', Layout.flutter),
+      Sample('b3ccb26497ac84895540185935ed5825', 'Sunflower', Layout.flutter),
+      Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics', Layout.flutter),
       Sample(
-          'ceb5101e540378761391e2b7f6b64325', 'Sliding Square', Layout.flutter),
+          '40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations', Layout.flutter),
     ];
 
     var listElement = UListElement()
