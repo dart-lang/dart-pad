@@ -119,7 +119,7 @@ serveCustomBackend() async {
 build() {
   PubApp.local('build_runner').run(['build', '-r', '-o', 'web:build']);
 
-  FilePath mainFile = _buildDir.join('scripts/main.dart.js');
+  FilePath mainFile = _buildDir.join('scripts/playground.dart.js');
   log('$mainFile compiled to ${_printSize(mainFile)}');
 
   FilePath testFile = _buildDir.join('test', 'web.dart.js');
@@ -211,7 +211,7 @@ vulcanize(String filepath) {
         '--exclude',
         ' scripts/embed_inline.dart.js',
         '--exclude',
-        'scripts/main.dart.js',
+        'scripts/playground.dart.js',
         '--exclude',
         'scripts/codemirror.js',
         filepath,
