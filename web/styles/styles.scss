@@ -72,7 +72,6 @@ section.main-section {
   @include layout-flex;
   @include layout;
   @include layout-relative;
-  user-select: none;
 
   .panels {
     @include layout;
