@@ -16,7 +16,7 @@ void defineTests() {
       switch (request.url.toString()) {
         case 'https://api.github.com/gists/12345678901234567890123456789012':
           return Future.value(http.Response(validGist, 200));
-        case 'https://master-api.flutter.dev/snippets/material.AppBar.1.dart':
+        case 'https://api.flutter.dev/snippets/material.AppBar.1.dart':
           return Future.value(http.Response(validSample, 200));
         case 'https://api.github.com/repos/owner/repo/contents/basic/dartpad_metadata.yaml':
           return Future.value(http.Response(basicDartMetadata, 200));
