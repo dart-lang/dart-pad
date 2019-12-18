@@ -471,7 +471,7 @@ void defineTests() {
       expect(response.status, 200);
       var data = json.decode(utf8.decode(await response.body.first));
       expect(data, {
-        'info': {'staticType': 'void'}
+        'info': {},
       });
     });
 
