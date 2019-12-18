@@ -7,14 +7,36 @@ import 'dart:convert' as convert;
 
 import 'package:http/http.dart' as http;
 
-String uri;
-
 const BASE_URI = 'dart-services.appspot.com/api/dartservices/v1/';
-// const BASE_URI = "localhost:8080/api/dartservices/v1/";
+
 const count = 200;
 
-Future main(List<String> args) async {
+const dartSource =
+    "import 'dart:html'; void main() { var a = 3; var b = a.abs(); int c = 7;}";
+
+const flutterSource = """import 'package:flutter/material.dart';
+
+void main() {
+  final widget = Container(color: Colors.white);
+  runApp(widget);
+}
+""";
+
+const dartData = {'offset': 17, 'source': dartSource};
+const dartDocData = {'offset': 84, 'source': dartSource};
+const flutterData = {'offset': 96, 'source': flutterSource};
+const flutterDocData = {'offset': 93, 'source': flutterSource};
+
+final dartPayload = convert.json.encode(dartData);
+final dartDocPayload = convert.json.encode(dartDocData);
+final flutterPayload = convert.json.encode(flutterData);
+final flutterDocPayload = convert.json.encode(flutterDocData);
+
+String uri;
+
+Future<void> main(List<String> args) async {
   String appPrefix;
+
   if (args.isNotEmpty) {
     appPrefix = '${args[0]}.';
   } else {
@@ -27,36 +49,34 @@ Future main(List<String> args) async {
 
   print('Target URI\n$uri');
 
-  String source =
-      "import 'dart:html'; void main() { var a = 3; var b = a.abs(); int c = 7;}";
-
   for (int j = 0; j < count; j++) {
-    var data = {'offset': 17, 'source': source};
-    var dartdocData = {'offset': 84, 'source': source};
-
-    String postPayload = convert.json.encode(data);
-    String postPayloadDartdoc = convert.json.encode(dartdocData);
-
-    await request('complete', postPayload);
-    await request('analyze', postPayload);
-    await request('compile', postPayload);
-    await request('document', postPayloadDartdoc);
+    await request('Dart', 'complete', dartPayload);
+    await request('Dart', 'analyze', dartPayload);
+    await request('Dart', 'compile', dartPayload);
+    await request('Dart', 'document', dartDocPayload);
+    await request('Flutter', 'complete', flutterPayload);
+    await request('Flutter', 'analyze', flutterPayload);
+    await request('Flutter', 'compileDDC', flutterPayload);
+    await request('Flutter', 'document', flutterDocPayload);
   }
 }
 
-Future request(String verb, String postPayload) async {
-  Stopwatch sw = Stopwatch()..start();
+Future<int> request(String codeType, String verb, String postPayload) async {
+  final sw = Stopwatch()..start();
 
-  var response = await http.post(Uri.parse(uri + verb),
-      body: postPayload,
-      headers: {'content-type': 'text/plain; charset=utf-8'});
+  final response = await http.post(
+    Uri.parse(uri + verb),
+    body: postPayload,
+    headers: {'content-type': 'text/plain; charset=utf-8'},
+  );
 
-  int status = response.statusCode;
+  final status = response.statusCode;
 
   if (status != 200) {
-    print('$verb \t $status \t ${response.body} ${response.headers}');
+    print('$codeType $verb \t $status \t ${response.body} ${response.headers}');
   } else {
-    print('$verb \t ${sw.elapsedMilliseconds} \t $status');
+    print('$codeType $verb \t ${sw.elapsedMilliseconds} \t $status');
   }
+
   return response.statusCode;
 }
