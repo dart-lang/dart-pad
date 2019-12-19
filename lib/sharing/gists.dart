@@ -119,8 +119,7 @@ class GistLoader {
   static const String _repoContentsAuthority = 'api.github.com';
   static const String _metadataFilename = 'dartpad_metadata.yaml';
 
-  // TODO(redbrogdon): Remove 'master-' once the new docs go live.
-  static const String _apiDocsUrl = 'https://master-api.flutter.dev/snippets';
+  static const String _apiDocsUrl = 'https://api.flutter.dev/snippets';
 
   static final GistFilterHook _defaultLoadHook = (Gist gist) {
     // Update files based on our preferred file names.
