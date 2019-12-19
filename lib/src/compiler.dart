@@ -139,14 +139,12 @@ class Compiler {
       List<String> arguments = <String>[
         '--modules=amd',
         if (usingFlutter) ...[
-          '-k',
           '-s',
           _flutterWebManager.summaryFilePath,
           '-s',
           '${_flutterSdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill'
         ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
-        '--single-out-file',
         ...['--module-name', 'dartpad_main'],
         bootstrapPath,
         '--packages=${_flutterWebManager.packagesFilePath}',
@@ -157,16 +155,25 @@ class Compiler {
       _logger.info('About to exec "$_dartdevcPath ${arguments.join(' ')}"');
       _logger.info('Compiling: $input');
 
-      final WorkResponse response = await _ddcDriver
-          .doWork(WorkRequest()..arguments.addAll(arguments));
+      final WorkResponse response =
+          await _ddcDriver.doWork(WorkRequest()..arguments.addAll(arguments));
 
       if (response.exitCode != 0) {
         return DDCCompilationResults.failed(<CompilationProblem>[
           CompilationProblem._(response.output),
         ]);
       } else {
+        // The `--single-out-file` option for dartdevc was removed in v2.7.0. As
+        // a result, the JS code produced above does *not* provide a name for
+        // the module it contains. That's a problem for DartPad, since it's
+        // adding the code to a script tag in an iframe rather than loading it
+        // as an individual file from baseURL. As a workaround, this replace
+        // statement injects a name into the module definition.
+        final processedJs = (await mainJs.readAsString())
+            .replaceFirst("define([", "define('dartpad_main', [");
+
         final DDCCompilationResults results = DDCCompilationResults(
-          compiledJS: await mainJs.readAsString(),
+          compiledJS: processedJs,
           modulesBaseUrl: 'https://storage.googleapis.com/'
               'compilation_artifacts/${_flutterSdk.versionFull}/',
         );
