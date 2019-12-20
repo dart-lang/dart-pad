@@ -145,17 +145,27 @@ class Playground implements GistContainer, GistController {
   }
 
   DivElement get _editorHost => querySelector('#editor-host');
+
   DivElement get _rightConsoleElement => querySelector('#right-output-panel');
+
   DivElement get _rightConsoleContentElement =>
       querySelector('#right-output-panel-content');
+
   DivElement get _leftConsoleElement => querySelector('#left-output-panel');
+
   IFrameElement get _frame => querySelector('#frame');
+
   DivElement get _rightDocPanel => querySelector('#right-doc-panel');
+
   DivElement get _rightDocContentElement =>
       querySelector('#right-doc-panel-content');
+
   DivElement get _leftDocPanel => querySelector('#left-doc-panel');
+
   DivElement get _editorPanelHeader => querySelector('#editor-panel-header');
+
   DivElement get _editorPanelFooter => querySelector('#editor-panel-footer');
+
   bool get _isCompletionActive => editor.completionActive;
 
   void _initDialogs() {
@@ -242,13 +252,12 @@ class Playground implements GistContainer, GistController {
       Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
       Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
       Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
-      Sample('a559420eed617dab7a196b5ea0b64fba', 'Sunflower', Layout.html),
-      Sample('cb9b199b1085873de191e32a1dd5ca4f', 'WebSockets', Layout.html),
       Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
       Sample('b3ccb26497ac84895540185935ed5825', 'Sunflower', Layout.flutter),
-      Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics', Layout.flutter),
-      Sample(
-          '40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations', Layout.flutter),
+      Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics',
+          Layout.flutter),
+      Sample('40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations',
+          Layout.flutter),
     ];
 
     var listElement = UListElement()
@@ -1292,5 +1301,6 @@ class Sample {
   final String gistId;
   final String name;
   final Layout layout;
+
   Sample(this.gistId, this.name, this.layout);
 }
