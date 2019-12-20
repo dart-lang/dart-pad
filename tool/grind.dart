@@ -196,6 +196,47 @@ void _buildStorageArtifacts(Directory dir) {
 }
 
 @Task()
+void setupFlutterSubmodule() {
+  final flutterDir = Directory('flutter');
+
+  // Remove all files currently in the submodule. This is done to clear any
+  // internal state the Flutter/Dart SDKs may have created on their own.
+  flutterDir.listSync().forEach((e) => e.deleteSync(recursive: true));
+
+  // Pull clean files into the submodule, based on whatever commit it's set to.
+  run(
+    'git',
+    arguments: ['submodule', 'update'],
+  );
+
+  // Set up the submodule's copy of the Flutter SDK the way dart-services needs
+  // it.
+  run(
+    path.join(flutterDir.path, 'bin/flutter'),
+    arguments: ['doctor'],
+  );
+
+  run(
+    path.join(flutterDir.path, 'bin/flutter'),
+    arguments: ['config', '--enable-web'],
+  );
+
+  run(
+    path.join(flutterDir.path, 'bin/flutter'),
+    arguments: [
+      'precache',
+      '--web',
+      '--no-android',
+      '--no-ios',
+      '--no-linux',
+      '--no-windows',
+      '--no-macos',
+      '--no-fuchsia',
+    ],
+  );
+}
+
+@Task()
 void fuzz() {
   log('warning: fuzz testing is a noop, see #301');
 }
