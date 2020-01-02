@@ -155,7 +155,7 @@ void _buildStorageArtifacts(Directory dir) {
   );
 
   // Build the artifacts using DDC:
-  // dart-sdk/bin/dartdevc -k -s kernel/flutter_ddc_sdk.dill
+  // dart-sdk/bin/dartdevc -s kernel/flutter_ddc_sdk.dill
   //     --modules=amd package:flutter_web/animation.dart ...
   final compilerPath =
       path.join(flutterSdkPath.path, 'bin/cache/dart-sdk/bin/dartdevc');
@@ -163,7 +163,6 @@ void _buildStorageArtifacts(Directory dir) {
       'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill');
 
   var args = [
-    '-k',
     '-s',
     dillPath,
     '--modules=amd',
@@ -194,6 +193,47 @@ void _buildStorageArtifacts(Directory dir) {
   log('\nFrom the dart-services project root dir, run:');
   log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z js '
       'artifacts/*.js gs://compilation_artifacts/$version/');
+}
+
+@Task()
+void setupFlutterSubmodule() {
+  final flutterDir = Directory('flutter');
+
+  // Remove all files currently in the submodule. This is done to clear any
+  // internal state the Flutter/Dart SDKs may have created on their own.
+  flutterDir.listSync().forEach((e) => e.deleteSync(recursive: true));
+
+  // Pull clean files into the submodule, based on whatever commit it's set to.
+  run(
+    'git',
+    arguments: ['submodule', 'update'],
+  );
+
+  // Set up the submodule's copy of the Flutter SDK the way dart-services needs
+  // it.
+  run(
+    path.join(flutterDir.path, 'bin/flutter'),
+    arguments: ['doctor'],
+  );
+
+  run(
+    path.join(flutterDir.path, 'bin/flutter'),
+    arguments: ['config', '--enable-web'],
+  );
+
+  run(
+    path.join(flutterDir.path, 'bin/flutter'),
+    arguments: [
+      'precache',
+      '--web',
+      '--no-android',
+      '--no-ios',
+      '--no-linux',
+      '--no-windows',
+      '--no-macos',
+      '--no-fuchsia',
+    ],
+  );
 }
 
 @Task()

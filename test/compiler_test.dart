@@ -99,7 +99,7 @@ void defineTests() {
         expect(result.success, false);
         expect(result.problems.length, 1);
         expect(result.problems[0].toString(),
-            contains('[error] Expected to find \';\'.'));
+            contains('Error: Expected \';\' after this.'));
       });
     });
 
@@ -110,11 +110,11 @@ void defineTests() {
         expect(result.success, false);
         expect(result.problems.length, 1);
         expect(result.problems[0].toString(),
-            contains('[error] The function \'print1\' isn\'t defined.'));
+            contains('Error: Method not found: \'print1\'.'));
         expect(result.problems[0].toString(),
-            contains('[error] The function \'print2\' isn\'t defined.'));
+            contains('Error: Method not found: \'print2\'.'));
         expect(result.problems[0].toString(),
-            contains('[error] The function \'print3\' isn\'t defined.'));
+            contains('Error: Method not found: \'print3\'.'));
       });
     });
 

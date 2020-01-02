@@ -4,7 +4,7 @@ FROM google/dart:2.7.0
 # The specific commit that dart-services should use. This should be kept
 # in sync with the flutter submodule in the dart-services repo.
 # (run `git rev-parse HEAD` from the flutter submodule to retrieve this value.
-ARG FLUTTER_COMMIT=fbabb264e0ab3e090d6ec056e0744aaeb1586735
+ARG FLUTTER_COMMIT=4af66e335f8d87da5cb8c7f2a3e89c1ee02ef23b
 
 # We install unzip and remove the apt-index again to keep the
 # docker image diff small.
