@@ -36,7 +36,7 @@ main() {
 
     test('supports options ', () {
       var options = LanguageStringParser('run-dartpad:mode-html:theme-dark'
-              ':run-true:split-50:width-100%:height-400px')
+              ':run-true:split-50:width-100%:height-400px:snippetid-example1')
           .options;
       expect(options, isNotEmpty);
       expect(options['mode'], equals('html'));
@@ -45,6 +45,7 @@ main() {
       expect(options['split'], equals('50'));
       expect(options['width'], equals('100%'));
       expect(options['height'], equals('400px'));
+      expect(options['snippetid'], equals('example1'));
     });
   });
 }

@@ -9,17 +9,26 @@ import 'dart:js';
 /// Very lightweight Google Analytics integration. This class depends on having
 /// the JavaScript GA library available.
 class Analytics {
+  String _snippetId = "";
+
   Analytics();
 
   bool get isAvailable => _gaFunction != null;
 
   void sendPage() => _ga2('send', 'pageview');
 
+  // A unique ID for embedded DartPads. These are used to distinguish between
+  // instances in the context of an article or codelab.
+  set snippetId(String id) {
+    _snippetId = id;
+  }
+
   void sendEvent(String category, String action, {String label}) {
     Map m = {
       'hitType': 'event',
       'eventCategory': category,
-      'eventAction': action
+      'eventAction': action,
+      'snippetId': _snippetId,
     };
     if (label != null) m['eventLabel'] = label;
     _ga('send', m);
@@ -38,7 +47,10 @@ class Analytics {
   }
 
   void sendException(String description, {bool fatal}) {
-    Map m = {'exDescription': description};
+    Map m = {
+      'exDescription': description,
+      'snippetId': _snippetId,
+    };
     if (fatal != null) m['exFatal'] = fatal;
     _ga2('send', 'exception', m);
   }

@@ -8,24 +8,23 @@ import 'dart:html';
 import 'package:test/test.dart';
 import 'package:dart_pad/inject/inject_embed.dart' as inject_embed;
 
+// todo: determine how to load embed-new-flutter.html and other assets.
+//
+//  The test package doesn't build assets in the web/ directory. Run 'pub run
+//  test -p chrome -n "inject_embed" --pause-after-load` to reproduce
 void main() {
   group('inject_embed', () {
     setUp(() {
-      // TODO(ryjohn): determine how to load embed-new-flutter.html and other assets
       inject_embed.iframePrefix = '';
       inject_embed.main();
     });
+
     test('injects a DartPad iframe with a correct code snippet', () async {
       var iframes = querySelectorAll('iframe');
-      expect(iframes.length, 1);
-
       var iframe = iframes.first;
       expect(iframe, TypeMatcher<IFrameElement>());
-
-      // todo: determine how to load embed-new-flutter.html and other assets
-      // run 'pub run test -p chrome -n "inject_embed" --pause-after-load` to
-      // reproduce
-      //  expect(iframe.querySelector('#navbar'), isNotNull);
+      expect(iframe.attributes['src'],
+          'embed-flutter.html?theme=dark&run=false&split=false&snippetid=example1');
     });
   });
 }

@@ -396,7 +396,7 @@ class Embed {
     linearProgress.determinate = false;
 
     _initModules()
-        .then((_) => _initNewEmbed())
+        .then((_) => _init())
         .then((_) => _emitReady())
         .then((_) {
       if (options.mode == EmbedMode.flutter) {
@@ -449,6 +449,21 @@ class Embed {
     return isLegalGistId(id) ? id : '';
   }
 
+  // A unique string for this sample in the context of a codelab or article
+  String get snippetId {
+    final url = Uri.parse(window.location.toString());
+    if (!url.queryParameters.containsKey('snippetid')) {
+      return null;
+    }
+
+    final value = url.queryParameters['snippetid'];
+    if (value == 'false' || value.isEmpty || value == null) {
+      return null;
+    }
+
+    return value;
+  }
+
   // Option for Light / Dark theme (defaults to light)
   bool get isDarkMode {
     final url = Uri.parse(window.location.toString());
@@ -487,9 +502,12 @@ class Embed {
     await modules.start();
   }
 
-  void _initNewEmbed() {
+  void _init() {
     deps[GistLoader] = GistLoader.defaultFilters();
     deps[Analytics] = Analytics();
+    if (this.snippetId != null) {
+      (deps[Analytics] as Analytics).snippetId = snippetId;
+    }
 
     context = EmbedContext(
         userCodeEditor, testEditor, solutionEditor, htmlEditor, cssEditor);

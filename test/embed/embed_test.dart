@@ -9,7 +9,7 @@ import 'package:dart_pad/embed.dart' as embed;
 import 'package:test/test.dart';
 
 void main() {
-  group('new_embed', () {
+  group('embed', () {
     setUp(() => embed.init(embed.EmbedOptions(embed.EmbedMode.flutter)));
 
     test('Editor tab is selected at init', () {
