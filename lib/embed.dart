@@ -450,7 +450,7 @@ class Embed {
   }
 
   // A unique string for this sample in the context of a codelab or article
-  String get snippetId {
+  String get googleAnalyticsId {
     final url = Uri.parse(window.location.toString());
     if (!url.queryParameters.containsKey('ga_id')) {
       return null;
@@ -505,8 +505,8 @@ class Embed {
   void _init() {
     deps[GistLoader] = GistLoader.defaultFilters();
     deps[Analytics] = Analytics();
-    if (this.snippetId != null) {
-      (deps[Analytics] as Analytics).snippetId = snippetId;
+    if (this.googleAnalyticsId != null) {
+      (deps[Analytics] as Analytics).googleAnalyticsId = googleAnalyticsId;
     }
 
     context = EmbedContext(
