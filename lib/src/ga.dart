@@ -28,7 +28,7 @@ class Analytics {
       'hitType': 'event',
       'eventCategory': category,
       'eventAction': action,
-      'snippetId': _googleAnalyticsId,
+      'ga_id': _googleAnalyticsId,
     };
     if (label != null) m['eventLabel'] = label;
     _ga('send', m);
@@ -49,7 +49,7 @@ class Analytics {
   void sendException(String description, {bool fatal}) {
     Map m = {
       'exDescription': description,
-      'snippetId': _googleAnalyticsId,
+      'ga_id': _googleAnalyticsId,
     };
     if (fatal != null) m['exFatal'] = fatal;
     _ga2('send', 'exception', m);
