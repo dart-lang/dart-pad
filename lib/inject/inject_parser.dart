@@ -78,7 +78,7 @@ class DartPadInjectException implements Exception {
 class LanguageStringParser {
   final String input;
   final RegExp _validExp = RegExp(r'[a-z-]*run-dartpad(:?[a-z-]*)+');
-  final RegExp _optionsExp = RegExp(r':([a-z]*)-([a-z0-9%]*)');
+  final RegExp _optionsExp = RegExp(r':([a-z_]*)-([a-z0-9%_]*)');
 
   LanguageStringParser(this.input);
 
