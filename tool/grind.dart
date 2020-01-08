@@ -28,6 +28,7 @@ void analyze() {
 }
 
 @Task()
+@Depends(buildStorageArtifacts)
 Future test() => TestRunner().testAsync();
 
 @DefaultTask()
