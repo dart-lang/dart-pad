@@ -452,11 +452,11 @@ class Embed {
   // A unique string for this sample in the context of a codelab or article
   String get snippetId {
     final url = Uri.parse(window.location.toString());
-    if (!url.queryParameters.containsKey('snippetid')) {
+    if (!url.queryParameters.containsKey('ga_id')) {
       return null;
     }
 
-    final value = url.queryParameters['snippetid'];
+    final value = url.queryParameters['ga_id'];
     if (value == 'false' || value.isEmpty || value == null) {
       return null;
     }
