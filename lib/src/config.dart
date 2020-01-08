@@ -14,7 +14,7 @@ class Config {
     if (_singleton == null) {
       _singleton = Config._();
 
-      File file = File('config.properties');
+      final file = File('config.properties');
       if (file.existsSync()) {
         _singleton._load(file.readAsLinesSync());
       }
@@ -32,12 +32,12 @@ class Config {
   void _load(List<String> lines) {
     _values.clear();
 
-    for (String line in lines) {
+    for (var line in lines) {
       line = line.trim();
       if (line.isEmpty) {
         continue;
       }
-      int index = line.indexOf('=');
+      final index = line.indexOf('=');
       if (index == -1) {
         continue;
       }

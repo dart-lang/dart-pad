@@ -7,12 +7,11 @@ import 'dart:html';
 
 void main() {
   querySelector('#sendButton').onClick.listen((MouseEvent e) {
-    String code = querySelector('#code').text;
-    Map<String, String> jsonData = <String, String>{'source': code};
-    //var foo = querySelector('#apiEndPoint');
-    String api = (querySelector('#apiEndPoint') as InputElement).value;
+    final code = querySelector('#code').text;
+    final jsonData = <String, String>{'source': code};
+    final api = (querySelector('#apiEndPoint') as InputElement).value;
 
-    Stopwatch sw = Stopwatch()..start();
+    final sw = Stopwatch()..start();
     HttpRequest.request(api, method: 'POST', sendData: json.encode(jsonData))
         .then((HttpRequest request) {
       sw.stop();

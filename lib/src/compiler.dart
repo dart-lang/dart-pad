@@ -50,7 +50,7 @@ class Compiler {
     String input, {
     bool returnSourceMap = false,
   }) async {
-    Set<String> imports = getAllImportsFor(input);
+    final imports = getAllImportsFor(input);
     if (!importsOkForCompile(imports)) {
       return CompilationResults(problems: <CompilationProblem>[
         CompilationProblem._(
@@ -59,11 +59,11 @@ class Compiler {
       ]);
     }
 
-    Directory temp = await Directory.systemTemp.createTemp('dartpad');
+    final temp = await Directory.systemTemp.createTemp('dartpad');
     _logger.info('Temp directory created: ${temp.path}');
 
     try {
-      List<String> arguments = <String>[
+      final arguments = <String>[
         '--suppress-hints',
         '--terse',
         if (!returnSourceMap) '--no-source-maps',
@@ -72,22 +72,21 @@ class Compiler {
         kMainDart,
       ];
 
-      String compileTarget = path.join(temp.path, kMainDart);
-      File mainDart = File(compileTarget);
+      final compileTarget = path.join(temp.path, kMainDart);
+      final mainDart = File(compileTarget);
       await mainDart.writeAsString(input);
 
-      File mainJs = File(path.join(temp.path, '$kMainDart.js'));
-      File mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
+      final mainJs = File(path.join(temp.path, '$kMainDart.js'));
+      final mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
 
-      final String dart2JSPath = path.join(_sdk.sdkPath, 'bin', 'dart2js');
+      final dart2JSPath = path.join(_sdk.sdkPath, 'bin', 'dart2js');
       _logger.info('About to exec: $dart2JSPath $arguments');
 
-      ProcessResult result = await Process.run(dart2JSPath, arguments,
+      final result = await Process.run(dart2JSPath, arguments,
           workingDirectory: temp.path);
 
       if (result.exitCode != 0) {
-        final CompilationResults results =
-            CompilationResults(problems: <CompilationProblem>[
+        final results = CompilationResults(problems: <CompilationProblem>[
           CompilationProblem._(result.stdout as String),
         ]);
         return results;
@@ -96,7 +95,7 @@ class Compiler {
         if (returnSourceMap && await mainSourceMap.exists()) {
           sourceMap = await mainSourceMap.readAsString();
         }
-        final CompilationResults results = CompilationResults(
+        final results = CompilationResults(
           compiledJS: await mainJs.readAsString(),
           sourceMap: sourceMap,
         );
@@ -113,7 +112,7 @@ class Compiler {
 
   /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> compileDDC(String input) async {
-    Set<String> imports = getAllImportsFor(input);
+    final imports = getAllImportsFor(input);
     if (!importsOkForCompile(imports)) {
       return DDCCompilationResults.failed(<CompilationProblem>[
         CompilationProblem._(
@@ -122,7 +121,7 @@ class Compiler {
       ]);
     }
 
-    Directory temp = await Directory.systemTemp.createTemp('dartpad');
+    final temp = await Directory.systemTemp.createTemp('dartpad');
     _logger.info('Temp directory created: ${temp.path}');
 
     try {
@@ -136,7 +135,7 @@ class Compiler {
       await File(bootstrapPath).writeAsString(bootstrapContents);
       await File(mainPath).writeAsString(input);
 
-      List<String> arguments = <String>[
+      final arguments = <String>[
         '--modules=amd',
         if (usingFlutter) ...[
           '-s',
@@ -150,12 +149,12 @@ class Compiler {
         '--packages=${_flutterWebManager.packagesFilePath}',
       ];
 
-      File mainJs = File(path.join(temp.path, '$kMainDart.js'));
+      final mainJs = File(path.join(temp.path, '$kMainDart.js'));
 
       _logger.info('About to exec "$_dartdevcPath ${arguments.join(' ')}"');
       _logger.info('Compiling: $input');
 
-      final WorkResponse response =
+      final response =
           await _ddcDriver.doWork(WorkRequest()..arguments.addAll(arguments));
 
       if (response.exitCode != 0) {
@@ -170,9 +169,9 @@ class Compiler {
         // as an individual file from baseURL. As a workaround, this replace
         // statement injects a name into the module definition.
         final processedJs = (await mainJs.readAsString())
-            .replaceFirst("define([", "define('dartpad_main', [");
+            .replaceFirst('define([', "define('dartpad_main', [");
 
-        final DDCCompilationResults results = DDCCompilationResults(
+        final results = DDCCompilationResults(
           compiledJS: processedJs,
           modulesBaseUrl: 'https://storage.googleapis.com/'
               'compilation_artifacts/${_flutterSdk.versionFull}/',

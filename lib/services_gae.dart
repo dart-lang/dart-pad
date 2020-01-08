@@ -24,10 +24,10 @@ const String _readynessCheck = '/_ah/ready';
 final Logger _logger = Logger('gae_server');
 
 void main(List<String> args) {
-  int gaePort = 8080;
+  var gaePort = 8080;
   if (args.isNotEmpty) gaePort = int.parse(args[0]);
 
-  String sdk = sdkPath;
+  final sdk = sdkPath;
 
   if (sdk == null) {
     throw 'No Dart SDK is available; set the DART_SDK env var.';
@@ -36,7 +36,7 @@ void main(List<String> args) {
   // Log to stdout/stderr.  AppEngine's logging package is disabled in 0.6.0
   // and AppEngine copies stdout/stderr to the dashboards.
   _logger.onRecord.listen((LogRecord rec) {
-    String out = ('${rec.level.name}: ${rec.time}: ${rec.message}\n');
+    final out = ('${rec.level.name}: ${rec.time}: ${rec.message}\n');
     if (rec.level > Level.INFO) {
       io.stderr.write(out);
     } else {
@@ -50,8 +50,7 @@ void main(List<String> args) {
     GAE_VERSION: ${io.Platform.environment['GAE_VERSION']}
   ''');
 
-  GaeServer server =
-      GaeServer(sdk, io.Platform.environment['REDIS_SERVER_URI']);
+  final server = GaeServer(sdk, io.Platform.environment['REDIS_SERVER_URI']);
   server.start(gaePort);
 }
 
@@ -111,7 +110,7 @@ class GaeServer {
   }
 
   Future<void> _processOptionsRequest(io.HttpRequest request) async {
-    String requestedMethod =
+    final requestedMethod =
         request.headers.value('access-control-request-method');
     int statusCode;
     if (requestedMethod != null && requestedMethod.toUpperCase() == 'POST') {
@@ -158,13 +157,13 @@ class GaeServer {
     // NOTE: We could read in the request body here and parse it similar to
     // the _parseRequest method to determine content-type and dispatch to e.g.
     // a plain text handler if we want to support that.
-    rpc.HttpApiRequest apiRequest = rpc.HttpApiRequest.fromHttpRequest(request);
+    final apiRequest = rpc.HttpApiRequest.fromHttpRequest(request);
 
     // Dartpad sends data as plain text, we need to promote this to
     // application/json to ensure that the rpc library processes it correctly
     try {
       apiRequest.headers['content-type'] = 'application/json; charset=utf-8';
-      var apiResponse = await apiServer.handleHttpApiRequest(apiRequest);
+      final apiResponse = await apiServer.handleHttpApiRequest(apiRequest);
       await rpc.sendApiResponse(apiResponse, request.response);
     } catch (e) {
       // This should only happen in the case where there is a bug in the rpc

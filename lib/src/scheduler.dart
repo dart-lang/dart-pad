@@ -26,7 +26,7 @@ class TaskScheduler {
       _isActive = true;
       return _performTask(task).whenComplete(_next);
     }
-    Completer<T> taskResult = Completer<T>();
+    final taskResult = Completer<T>();
     _taskQueue.add(_Task<T>(task, taskResult));
     return taskResult.future;
   }
@@ -37,7 +37,7 @@ class TaskScheduler {
       _isActive = false;
       return;
     }
-    _Task<dynamic> first = _taskQueue.removeFirst();
+    final first = _taskQueue.removeFirst();
     first.taskResult.complete(_performTask(first.task).whenComplete(_next));
   }
 }
@@ -56,7 +56,7 @@ abstract class Task<T> {
 }
 
 class ClosureTask<T> extends Task<T> {
-  Future<T> Function() _closure;
+  final Future<T> Function() _closure;
 
   ClosureTask(this._closure, {Duration timeoutDuration}) {
     this.timeoutDuration = timeoutDuration;

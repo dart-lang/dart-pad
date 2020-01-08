@@ -29,7 +29,7 @@ dev_dependencies:
   codemirror: ^0.5.6
   coverage: ^0.13.0
   grinder: ^0.8.0
-  pedantic: ^1.8.0
+  pedantic: ^1.9.0
   synchronized: ^2.1.0
   test: ^1.6.4
   tuneup: ^0.3.6

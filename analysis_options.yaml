@@ -1,4 +1,4 @@
-include: package:pedantic/analysis_options.1.8.0.yaml
+include: package:pedantic/analysis_options.1.9.0.yaml
 
 analyzer:
   strong-mode:
@@ -8,3 +8,9 @@ analyzer:
     - 'third_party/**'
     - 'doc/generated/**'
     - 'flutter/**'
+
+linter:
+  rules:
+    - prefer_final_fields
+    - prefer_final_in_for_each
+    - prefer_final_locals

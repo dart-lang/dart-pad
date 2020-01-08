@@ -63,19 +63,19 @@ void defineTests() {
 
   Future<HttpApiResponse> _sendPostRequest(String path, jsonData) {
     assert(apiServer != null);
-    var uri = Uri.parse('/api/$path');
-    var body = Stream.fromIterable([utf8.encode(json.encode(jsonData))]);
-    var request = HttpApiRequest(
+    final uri = Uri.parse('/api/$path');
+    final body = Stream.fromIterable([utf8.encode(json.encode(jsonData))]);
+    final request = HttpApiRequest(
         'POST', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
 
   Future<HttpApiResponse> _sendGetRequest(String path, [String queryParams]) {
     assert(apiServer != null);
-    var uri = Uri.parse(
+    final uri = Uri.parse(
         queryParams == null ? '/api/$path' : '/api/$path?$queryParams');
-    var body = Stream<List<int>>.fromIterable([]);
-    var request = HttpApiRequest(
+    final body = Stream<List<int>>.fromIterable([]);
+    final request = HttpApiRequest(
         'GET', uri, {'content-type': 'application/json; charset=utf-8'}, body);
     return apiServer.handleHttpApiRequest(request);
   }
@@ -88,17 +88,17 @@ void defineTests() {
     // Note: all caches share values between them.
     RedisCache redisCache, redisCacheAlt;
     Process redisProcess, redisAltProcess;
-    List<String> logMessages = [];
+    var logMessages = <String>[];
     // Critical section handling -- do not run more than one test at a time
     // since they talk to the same redis instances.
-    Lock singleTestOnly = Lock();
+    final singleTestOnly = Lock();
 
     // Prevent cases where we might try to reenter addStream for either stdout
     // or stderr (which will throw a BadState).
-    Lock singleStreamOnly = Lock();
+    final singleStreamOnly = Lock();
 
     Future<Process> startRedisProcessAndDrainIO(int port) async {
-      Process newRedisProcess =
+      final newRedisProcess =
           await Process.start('redis-server', ['--port', port.toString()]);
       unawaited(singleStreamOnly.synchronized(() async {
         await stdout.addStream(newRedisProcess.stdout);
@@ -177,7 +177,7 @@ void defineTests() {
     test('Verify disconnected cache logs errors and returns nulls', () async {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
-        RedisCache redisCacheBroken =
+        final redisCacheBroken =
             RedisCache('redis://localhost:9502', 'cversion');
         try {
           await redisCacheBroken.set('aKey', 'value');
@@ -203,7 +203,7 @@ void defineTests() {
         () async {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
-        RedisCache redisCacheRepairable =
+        final redisCacheRepairable =
             RedisCache('redis://localhost:9503', 'cversion');
         try {
           // Wait for a retry message.
@@ -237,7 +237,7 @@ void defineTests() {
         await redisCache.set('beforeStop', 'truth');
         redisProcess.kill(ProcessSignal.sigstop);
         // Don't fail the test before sending sigcont.
-        var beforeStop = await redisCache.get('beforeStop');
+        final beforeStop = await redisCache.get('beforeStop');
         await redisCache.disconnected;
         redisProcess.kill(ProcessSignal.sigcont);
         expect(beforeStop, isNull);
@@ -261,7 +261,7 @@ void defineTests() {
         logMessages = [];
 
         redisAltProcess = await startRedisProcessAndDrainIO(9504);
-        RedisCache redisCacheHealing =
+        final redisCacheHealing =
             RedisCache('redis://localhost:9504', 'cversion');
         try {
           await redisCacheHealing.connected;
@@ -313,14 +313,14 @@ void defineTests() {
       // happening and deal with that in warmup/init.
       {
         var decodedJson = {};
-        var jsonData = {'source': sampleCodeError};
+        final jsonData = {'source': sampleCodeError};
         while (decodedJson.isEmpty) {
-          var response =
+          final response =
               await _sendPostRequest('dartservices/v1/analyze', jsonData);
           expect(response.status, 200);
           expect(response.headers['content-type'],
               'application/json; charset=utf-8');
-          var data = await response.body.first;
+          final data = await response.body.first;
           decodedJson = json.decode(utf8.decode(data)) as Map<dynamic, dynamic>;
         }
       }
@@ -339,34 +339,36 @@ void defineTests() {
     tearDown(log.clearListeners);
 
     test('analyze Dart', () async {
-      var jsonData = {'source': sampleCode};
-      var response =
-      await _sendPostRequest('dartservices/v1/analyze', jsonData);
+      final jsonData = {'source': sampleCode};
+      final response =
+          await _sendPostRequest('dartservices/v1/analyze', jsonData);
       expect(response.status, 200);
-      var data = await response.body.first;
+      final data = await response.body.first;
       expect(
           json.decode(utf8.decode(data)), {'issues': [], 'packageImports': []});
     });
 
     test('analyze Flutter', () async {
-      var jsonData = {'source': sampleCodeFlutter};
-      var response =
-      await _sendPostRequest('dartservices/v1/analyze', jsonData);
+      final jsonData = {'source': sampleCodeFlutter};
+      final response =
+          await _sendPostRequest('dartservices/v1/analyze', jsonData);
       expect(response.status, 200);
-      var data = await response.body.first;
-      expect(
-          json.decode(utf8.decode(data)), {'issues': [], 'packageImports': ['flutter']});
+      final data = await response.body.first;
+      expect(json.decode(utf8.decode(data)), {
+        'issues': [],
+        'packageImports': ['flutter']
+      });
     });
 
     test('analyze errors', () async {
-      var jsonData = {'source': sampleCodeError};
-      var response =
+      final jsonData = {'source': sampleCodeError};
+      final response =
           await _sendPostRequest('dartservices/v1/analyze', jsonData);
       expect(response.status, 200);
       expect(
           response.headers['content-type'], 'application/json; charset=utf-8');
-      var data = await response.body.first;
-      var expectedJson = {
+      final data = await response.body.first;
+      final expectedJson = {
         'issues': [
           {
             'kind': 'error',
@@ -384,177 +386,177 @@ void defineTests() {
     });
 
     test('analyze negative-test noSource', () async {
-      var jsonData = {};
-      var response =
+      final jsonData = {};
+      final response =
           await _sendPostRequest('dartservices/v1/analyze', jsonData);
       expect(response.status, 400);
     });
 
     test('compile', () async {
-      var jsonData = {'source': sampleCode};
-      var response =
+      final jsonData = {'source': sampleCode};
+      final response =
           await _sendPostRequest('dartservices/v1/compile', jsonData);
       expect(response.status, 200);
-      var data = await response.body.first;
+      final data = await response.body.first;
       expect(json.decode(utf8.decode(data)), isNotEmpty);
     });
 
     test('compile error', () async {
-      var jsonData = {'source': sampleCodeError};
-      var response =
+      final jsonData = {'source': sampleCodeError};
+      final response =
           await _sendPostRequest('dartservices/v1/compile', jsonData);
       expect(response.status, 400);
-      var data = json.decode(utf8.decode(await response.body.first));
+      final data = json.decode(utf8.decode(await response.body.first));
       expect(data, isNotEmpty);
       expect(data['error']['message'], contains('Error: Expected'));
     });
 
     test('compile negative-test noSource', () async {
-      var jsonData = {};
-      var response =
+      final jsonData = {};
+      final response =
           await _sendPostRequest('dartservices/v1/compile', jsonData);
       expect(response.status, 400);
     });
 
     test('compileDDC', () async {
-      var jsonData = {'source': sampleCode};
-      var response =
+      final jsonData = {'source': sampleCode};
+      final response =
           await _sendPostRequest('dartservices/v1/compileDDC', jsonData);
       expect(response.status, 200);
-      var data = await response.body.first;
+      final data = await response.body.first;
       expect(json.decode(utf8.decode(data)), isNotEmpty);
     });
 
     test('complete', () async {
-      var jsonData = {'source': 'void main() {print("foo");}', 'offset': 1};
-      var response =
+      final jsonData = {'source': 'void main() {print("foo");}', 'offset': 1};
+      final response =
           await _sendPostRequest('dartservices/v1/complete', jsonData);
       expect(response.status, 200);
-      var data = json.decode(utf8.decode(await response.body.first));
+      final data = json.decode(utf8.decode(await response.body.first));
       expect(data, isNotEmpty);
     });
 
     test('complete no data', () async {
-      var response = await _sendPostRequest('dartservices/v1/complete', {});
+      final response = await _sendPostRequest('dartservices/v1/complete', {});
       expect(response.status, 400);
     });
 
     test('complete param missing', () async {
-      var jsonData = {'offset': 1};
-      var response =
+      final jsonData = {'offset': 1};
+      final response =
           await _sendPostRequest('dartservices/v1/complete', jsonData);
       expect(response.status, 400);
     });
 
     test('complete param missing 2', () async {
-      var jsonData = {'source': 'void main() {print("foo");}'};
-      var response =
+      final jsonData = {'source': 'void main() {print("foo");}'};
+      final response =
           await _sendPostRequest('dartservices/v1/complete', jsonData);
       expect(response.status, 400);
-      var data = json.decode(utf8.decode(await response.body.first));
+      final data = json.decode(utf8.decode(await response.body.first));
       expect(data['error']['message'], 'Missing parameter: \'offset\'');
     });
 
     test('document', () async {
-      var jsonData = {'source': 'void main() {print("foo");}', 'offset': 17};
-      var response =
+      final jsonData = {'source': 'void main() {print("foo");}', 'offset': 17};
+      final response =
           await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 200);
-      var data = json.decode(utf8.decode(await response.body.first));
+      final data = json.decode(utf8.decode(await response.body.first));
       expect(data, isNotEmpty);
     });
 
     test('document little data', () async {
-      var jsonData = {'source': 'void main() {print("foo");}', 'offset': 2};
-      var response =
+      final jsonData = {'source': 'void main() {print("foo");}', 'offset': 2};
+      final response =
           await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 200);
-      var data = json.decode(utf8.decode(await response.body.first));
+      final data = json.decode(utf8.decode(await response.body.first));
       expect(data, {
         'info': {},
       });
     });
 
     test('document no data', () async {
-      var jsonData = {'source': 'void main() {print("foo");}', 'offset': 12};
-      var response =
+      final jsonData = {'source': 'void main() {print("foo");}', 'offset': 12};
+      final response =
           await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 200);
-      var data = json.decode(utf8.decode(await response.body.first));
+      final data = json.decode(utf8.decode(await response.body.first));
       expect(data, {'info': {}});
     });
 
     test('document negative-test noSource', () async {
-      var jsonData = {'offset': 12};
-      var response =
+      final jsonData = {'offset': 12};
+      final response =
           await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 400);
     });
 
     test('document negative-test noOffset', () async {
-      var jsonData = {'source': 'void main() {print("foo");}'};
-      var response =
+      final jsonData = {'source': 'void main() {print("foo");}'};
+      final response =
           await _sendPostRequest('dartservices/v1/document', jsonData);
       expect(response.status, 400);
     });
 
     test('format', () async {
-      var jsonData = {'source': preFormattedCode};
-      var response = await _sendPostRequest('dartservices/v1/format', jsonData);
+      final jsonData = {'source': preFormattedCode};
+      final response = await _sendPostRequest('dartservices/v1/format', jsonData);
       expect(response.status, 200);
-      var data = json.decode(utf8.decode(await response.body.first));
+      final data = json.decode(utf8.decode(await response.body.first));
       expect(data['newString'], postFormattedCode);
     });
 
     test('format bad code', () async {
-      var jsonData = {'source': formatBadCode};
-      var response = await _sendPostRequest('dartservices/v1/format', jsonData);
+      final jsonData = {'source': formatBadCode};
+      final response = await _sendPostRequest('dartservices/v1/format', jsonData);
       expect(response.status, 200);
-      var data = json.decode(utf8.decode(await response.body.first));
+      final data = json.decode(utf8.decode(await response.body.first));
       expect(data['newString'], formatBadCode);
     });
 
     test('format position', () async {
-      var jsonData = {'source': preFormattedCode, 'offset': 21};
-      var response = await _sendPostRequest('dartservices/v1/format', jsonData);
+      final jsonData = {'source': preFormattedCode, 'offset': 21};
+      final response = await _sendPostRequest('dartservices/v1/format', jsonData);
       expect(response.status, 200);
-      var data = json.decode(utf8.decode(await response.body.first));
+      final data = json.decode(utf8.decode(await response.body.first));
       expect(data['newString'], postFormattedCode);
       expect(data['offset'], 24);
     });
 
     test('fix', () async {
-      var jsonData = {'source': quickFixesCode, 'offset': 10};
-      var response = await _sendPostRequest('dartservices/v1/fixes', jsonData);
+      final jsonData = {'source': quickFixesCode, 'offset': 10};
+      final response = await _sendPostRequest('dartservices/v1/fixes', jsonData);
       expect(response.status, 200);
-      var data = json.decode(utf8.decode(await response.body.first));
-      var fixes = data['fixes'];
+      final data = json.decode(utf8.decode(await response.body.first));
+      final fixes = data['fixes'];
       expect(fixes.length, 1);
-      var problemAndFix = fixes[0];
+      final problemAndFix = fixes[0];
       expect(problemAndFix['problemMessage'], isNotNull);
     });
 
     test('assist', () async {
-      var jsonData = {'source': assistCode, 'offset': 15};
-      var response =
+      final jsonData = {'source': assistCode, 'offset': 15};
+      final response =
           await _sendPostRequest('dartservices/v1/assists', jsonData);
       expect(response.status, 200);
 
-      var data = json.decode(utf8.decode(await response.body.first));
-      var assists = data['assists'] as List;
+      final data = json.decode(utf8.decode(await response.body.first));
+      final assists = data['assists'] as List;
       expect(assists, hasLength(2));
       expect(assists.first['edits'], isNotNull);
       expect(assists.first['edits'], hasLength(1));
       expect(assists.where((m) {
-        var map = m as Map<String, dynamic>;
+        final map = m as Map<String, dynamic>;
         return map['message'] == 'Remove type annotation';
       }), isNotEmpty);
     });
 
     test('version', () async {
-      var response = await _sendGetRequest('dartservices/v1/version');
+      final response = await _sendGetRequest('dartservices/v1/version');
       expect(response.status, 200);
-      var data = json.decode(utf8.decode(await response.body.first));
+      final data = json.decode(utf8.decode(await response.body.first));
       expect(data['sdkVersion'], isNotNull);
       expect(data['runtimeVersion'], isNotNull);
     });

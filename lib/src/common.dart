@@ -132,8 +132,8 @@ class Lines {
   final List<int> _starts = <int>[];
 
   Lines(String source) {
-    List<int> units = source.codeUnits;
-    for (int i = 0; i < units.length; i++) {
+    final units = source.codeUnits;
+    for (var i = 0; i < units.length; i++) {
       if (units[i] == 10) _starts.add(i);
     }
   }
@@ -141,7 +141,7 @@ class Lines {
   /// Return the 0-based line number.
   int getLineForOffset(int offset) {
     assert(offset != null);
-    for (int i = 0; i < _starts.length; i++) {
+    for (var i = 0; i < _starts.length; i++) {
       if (offset <= _starts[i]) return i;
     }
     return _starts.length;

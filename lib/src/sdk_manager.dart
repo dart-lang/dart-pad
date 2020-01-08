@@ -11,7 +11,8 @@ import 'package:path/path.dart' as path;
 class SdkManager {
   static Sdk get sdk => _sdk ?? (_sdk = PlatformSdk());
 
-  static FlutterSdk get flutterSdk => _flutterSdk ?? (_flutterSdk = FlutterSdk());
+  static FlutterSdk get flutterSdk =>
+      _flutterSdk ?? (_flutterSdk = FlutterSdk());
 
   static void setSdk(Sdk value) {
     _sdk = sdk;
@@ -35,7 +36,7 @@ abstract class Sdk {
 
   /// Report the current version of the SDK.
   String get version {
-    String ver = versionFull;
+    var ver = versionFull;
     if (ver.contains('-')) ver = ver.substring(0, ver.indexOf('-'));
     return ver;
   }

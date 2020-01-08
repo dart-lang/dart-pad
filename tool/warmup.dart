@@ -49,7 +49,7 @@ Future<void> main(List<String> args) async {
 
   print('Target URI\n$uri');
 
-  for (int j = 0; j < count; j++) {
+  for (var j = 0; j < count; j++) {
     await request('Dart', 'complete', dartPayload);
     await request('Dart', 'analyze', dartPayload);
     await request('Dart', 'compile', dartPayload);

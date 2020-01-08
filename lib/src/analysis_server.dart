@@ -61,12 +61,13 @@ class AnalysisServerWrapper {
         if (dumpServerMessages) _logger.info('--> $str');
       }
 
-      List<String> serverArgs = <String>[
+      final serverArgs = <String>[
         '--dartpad',
         '--client-id=DartPad',
         '--client-version=$_sdkVersion'
       ];
-      _logger.info('About to start with server with SDK path `$sdkPath` and args: $serverArgs');
+      _logger.info(
+          'About to start with server with SDK path `$sdkPath` and args: $serverArgs');
 
       _init = AnalysisServer.create(
         onRead: onRead,
@@ -86,7 +87,7 @@ class AnalysisServerWrapper {
         listenForAnalysisComplete();
         listenForErrors();
 
-        Completer<dynamic> analysisComplete = getAnalysisCompleteCompleter();
+        final analysisComplete = getAnalysisCompleteCompleter();
         await analysisServer.analysis
             .setAnalysisRoots(<String>[_sourceDirPath], <String>[]);
         await _sendAddOverlays(<String, String>{mainPath: _WARMUP_SRC});
@@ -117,15 +118,15 @@ class AnalysisServerWrapper {
   }
 
   Future<api.CompleteResponse> complete(String src, int offset) async {
-    Map<String, String> sources = <String, String>{kMainDart: src};
-    api.Location location = api.Location.from(kMainDart, offset);
+    final sources = <String, String>{kMainDart: src};
+    final location = api.Location.from(kMainDart, offset);
 
-    CompletionResults results =
+    final results =
         await _completeImpl(sources, location.sourceName, location.offset);
-    List<CompletionSuggestion> suggestions = results.results;
+    var suggestions = results.results;
 
-    var source = sources[location.sourceName];
-    var prefix = source.substring(results.replacementOffset, location.offset);
+    final source = sources[location.sourceName];
+    final prefix = source.substring(results.replacementOffset, location.offset);
     suggestions = suggestions
         .where(
             (s) => s.completion.toLowerCase().startsWith(prefix.toLowerCase()))
@@ -159,29 +160,28 @@ class AnalysisServerWrapper {
 
   Future<api.FixesResponse> getFixesMulti(
       Map<String, String> sources, api.Location location) async {
-    FixesResult results =
+    final results =
         await _getFixesImpl(sources, location.sourceName, location.offset);
-    List<api.ProblemAndFixes> responseFixes =
-        results.fixes.map(_convertAnalysisErrorFix).toList();
+    final responseFixes = results.fixes.map(_convertAnalysisErrorFix).toList();
     return api.FixesResponse(responseFixes);
   }
 
   Future<api.AssistsResponse> getAssists(String src, int offset) async {
-    var sources = {kMainDart: src};
-    var sourceName = api.Location.from(kMainDart, offset).sourceName;
-    var results = await _getAssistsImpl(sources, sourceName, offset);
-    var fixes = _convertSourceChangesToCandidateFixes(results.assists);
+    final sources = {kMainDart: src};
+    final sourceName = api.Location.from(kMainDart, offset).sourceName;
+    final results = await _getAssistsImpl(sources, sourceName, offset);
+    final fixes = _convertSourceChangesToCandidateFixes(results.assists);
     return api.AssistsResponse(fixes);
   }
 
   Future<api.FormatResponse> format(String src, int offset) {
     return _formatImpl(src, offset).then((FormatResult editResult) {
-      List<SourceEdit> edits = editResult.edits;
+      final edits = editResult.edits;
 
       edits.sort((SourceEdit e1, SourceEdit e2) =>
           -1 * e1.offset.compareTo(e2.offset));
 
-      for (SourceEdit edit in edits) {
+      for (final edit in edits) {
         src = src.replaceRange(
             edit.offset, edit.offset + edit.length, edit.replacement);
       }
@@ -197,20 +197,19 @@ class AnalysisServerWrapper {
     _logger.fine('dartdoc: Scheduler queue: ${serverScheduler.queueCount}');
 
     return serverScheduler.schedule(ClosureTask<Map<String, String>>(() async {
-      Completer<dynamic> analysisCompleter = getAnalysisCompleteCompleter();
+      final analysisCompleter = getAnalysisCompleteCompleter();
       await _loadSources(<String, String>{mainPath: source});
       await analysisCompleter.future;
 
-      HoverResult result =
-          await analysisServer.analysis.getHover(mainPath, offset);
+      final result = await analysisServer.analysis.getHover(mainPath, offset);
       await _unloadSources();
 
       if (result.hovers.isEmpty) {
         return null;
       }
 
-      HoverInformation info = result.hovers.first;
-      Map<String, String> m = <String, String>{};
+      final info = result.hovers.first;
+      final m = <String, String>{};
 
       m['description'] = info.elementDescription;
       m['kind'] = info.elementKind;
@@ -225,7 +224,7 @@ class AnalysisServerWrapper {
       m['staticType'] = info.staticType;
       m['propagatedType'] = info.propagatedType;
 
-      for (String key in m.keys.toList()) {
+      for (final key in m.keys.toList()) {
         if (m[key] == null) m.remove(key);
       }
 
@@ -234,7 +233,7 @@ class AnalysisServerWrapper {
   }
 
   Future<api.AnalysisResults> analyze(String source) {
-    Map<String, String> sources = <String, String>{kMainDart: source};
+    var sources = <String, String>{kMainDart: source};
 
     _logger
         .fine('analyzeMulti: Scheduler queue: ${serverScheduler.queueCount}');
@@ -242,13 +241,13 @@ class AnalysisServerWrapper {
     return serverScheduler.schedule(ClosureTask<api.AnalysisResults>(() async {
       clearErrors();
 
-      Completer<dynamic> analysisCompleter = getAnalysisCompleteCompleter();
+      final analysisCompleter = getAnalysisCompleteCompleter();
       sources = _getOverlayMapWithPaths(sources);
       await _loadSources(sources);
       await analysisCompleter.future;
 
       // Calculate the issues.
-      List<api.AnalysisIssue> issues = getErrors().map((AnalysisError error) {
+      final issues = getErrors().map((AnalysisError error) {
         return api.AnalysisIssue.fromIssue(
           error.severity.toLowerCase(),
           error.location.startLine,
@@ -263,8 +262,8 @@ class AnalysisServerWrapper {
       issues.sort();
 
       // Calculate the imports.
-      Set<String> packageImports = <String>{};
-      for (String source in sources.values) {
+      final packageImports = <String>{};
+      for (final source in sources.values) {
         packageImports
             .addAll(filterSafePackagesFromImports(getAllImportsFor(source)));
       }
@@ -279,7 +278,7 @@ class AnalysisServerWrapper {
   Future<AssistsResult> _getAssistsImpl(
       Map<String, String> sources, String sourceName, int offset) {
     sources = _getOverlayMapWithPaths(sources);
-    String path = _getPathFromName(sourceName);
+    final path = _getPathFromName(sourceName);
 
     if (serverScheduler.queueCount > 0) {
       _logger.fine(
@@ -287,11 +286,11 @@ class AnalysisServerWrapper {
     }
 
     return serverScheduler.schedule(ClosureTask<AssistsResult>(() async {
-      Completer<dynamic> analysisCompleter = getAnalysisCompleteCompleter();
+      final analysisCompleter = getAnalysisCompleteCompleter();
       await _loadSources(sources);
       await analysisCompleter.future;
-      var length = 1;
-      var assists = await analysisServer.edit.getAssists(path, offset, length);
+      final length = 1;
+      final assists = await analysisServer.edit.getAssists(path, offset, length);
       await _unloadSources();
       return assists;
     }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
@@ -300,19 +299,19 @@ class AnalysisServerWrapper {
   /// Convert between the Analysis Server type and the API protocol types.
   static api.ProblemAndFixes _convertAnalysisErrorFix(
       AnalysisErrorFixes analysisFixes) {
-    String problemMessage = analysisFixes.error.message;
-    int problemOffset = analysisFixes.error.location.offset;
-    int problemLength = analysisFixes.error.location.length;
+    final problemMessage = analysisFixes.error.message;
+    final problemOffset = analysisFixes.error.location.offset;
+    final problemLength = analysisFixes.error.location.length;
 
-    List<api.CandidateFix> possibleFixes = <api.CandidateFix>[];
+    final possibleFixes = <api.CandidateFix>[];
 
-    for (SourceChange sourceChange in analysisFixes.fixes) {
-      List<api.SourceEdit> edits = <api.SourceEdit>[];
+    for (final sourceChange in analysisFixes.fixes) {
+      final edits = <api.SourceEdit>[];
 
       // A fix that tries to modify other files is considered invalid.
 
-      bool invalidFix = false;
-      for (SourceFileEdit sourceFileEdit in sourceChange.edits) {
+      var invalidFix = false;
+      for (final sourceFileEdit in sourceChange.edits) {
         // TODO(lukechurch): replace this with a more reliable test based on the
         // psuedo file name in Analysis Server
         if (!sourceFileEdit.file.endsWith('/main.dart')) {
@@ -320,13 +319,13 @@ class AnalysisServerWrapper {
           break;
         }
 
-        for (SourceEdit sourceEdit in sourceFileEdit.edits) {
+        for (final sourceEdit in sourceFileEdit.edits) {
           edits.add(api.SourceEdit.fromChanges(
               sourceEdit.offset, sourceEdit.length, sourceEdit.replacement));
         }
       }
       if (!invalidFix) {
-        api.CandidateFix possibleFix =
+        final possibleFix =
             api.CandidateFix.fromEdits(sourceChange.message, edits);
         possibleFixes.add(possibleFix);
       }
@@ -337,15 +336,15 @@ class AnalysisServerWrapper {
 
   static List<api.CandidateFix> _convertSourceChangesToCandidateFixes(
       List<SourceChange> sourceChanges) {
-    var assists = <api.CandidateFix>[];
+    final assists = <api.CandidateFix>[];
 
-    for (var sourceChange in sourceChanges) {
-      for (SourceFileEdit sourceFileEdit in sourceChange.edits) {
+    for (final sourceChange in sourceChanges) {
+      for (final sourceFileEdit in sourceChange.edits) {
         if (!sourceFileEdit.file.endsWith('/main.dart')) {
           break;
         }
 
-        var apiSourceEdits = sourceFileEdit.edits.map((sourceEdit) {
+        final apiSourceEdits = sourceFileEdit.edits.map((sourceEdit) {
           return api.SourceEdit.fromChanges(
               sourceEdit.offset, sourceEdit.length, sourceEdit.replacement);
         }).toList();
@@ -398,11 +397,11 @@ class AnalysisServerWrapper {
     return serverScheduler.schedule(ClosureTask<CompletionResults>(() async {
       sources = _getOverlayMapWithPaths(sources);
       await _loadSources(sources);
-      SuggestionsResult id = await analysisServer.completion.getSuggestions(
+      final id = await analysisServer.completion.getSuggestions(
         _getPathFromName(sourceName),
         offset,
       );
-      CompletionResults results = await getCompletionResults(id.id);
+      final results = await getCompletionResults(id.id);
       await _unloadSources();
       return results;
     }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
@@ -411,7 +410,7 @@ class AnalysisServerWrapper {
   Future<FixesResult> _getFixesImpl(
       Map<String, String> sources, String sourceName, int offset) async {
     sources = _getOverlayMapWithPaths(sources);
-    String path = _getPathFromName(sourceName);
+    final path = _getPathFromName(sourceName);
 
     if (serverScheduler.queueCount > 0) {
       _logger
@@ -419,10 +418,10 @@ class AnalysisServerWrapper {
     }
 
     return serverScheduler.schedule(ClosureTask<FixesResult>(() async {
-      Completer<dynamic> analysisCompleter = getAnalysisCompleteCompleter();
+      final analysisCompleter = getAnalysisCompleteCompleter();
       await _loadSources(sources);
       await analysisCompleter.future;
-      FixesResult fixes = await analysisServer.edit.getFixes(path, offset);
+      final fixes = await analysisServer.edit.getFixes(path, offset);
       await _unloadSources();
       return fixes;
     }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
@@ -433,16 +432,15 @@ class AnalysisServerWrapper {
 
     return serverScheduler.schedule(ClosureTask<FormatResult>(() async {
       await _loadSources(<String, String>{mainPath: src});
-      FormatResult result =
-          await analysisServer.edit.format(mainPath, offset, 0);
+      final result = await analysisServer.edit.format(mainPath, offset, 0);
       await _unloadSources();
       return result;
     }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
   }
 
   Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {
-    Map<String, String> newOverlay = <String, String>{};
-    for (String key in overlay.keys) {
+    final newOverlay = <String, String>{};
+    for (final key in overlay.keys) {
       newOverlay[_getPathFromName(key)] = overlay[key];
     }
     return newOverlay;
@@ -473,8 +471,8 @@ class AnalysisServerWrapper {
   }
 
   Future<dynamic> _sendAddOverlays(Map<String, String> overlays) {
-    Map<String, ContentOverlayType> params = <String, ContentOverlayType>{};
-    for (String overlayPath in overlays.keys) {
+    final params = <String, ContentOverlayType>{};
+    for (final overlayPath in overlays.keys) {
       params[overlayPath] = AddContentOverlay(overlays[overlayPath]);
     }
 
@@ -490,8 +488,8 @@ class AnalysisServerWrapper {
     _logger.fine('About to send analysis.updateContent remove overlays:');
     _logger.fine('  $_overlayPaths');
 
-    Map<String, ContentOverlayType> params = <String, ContentOverlayType>{};
-    for (String overlayPath in _overlayPaths) {
+    final params = <String, ContentOverlayType>{};
+    for (final overlayPath in _overlayPaths) {
       params[overlayPath] = RemoveContentOverlay();
     }
     _overlayPaths.clear();
@@ -504,8 +502,7 @@ class AnalysisServerWrapper {
   void listenForCompletions() {
     analysisServer.completion.onResults.listen((CompletionResults result) {
       if (result.isLast) {
-        Completer<CompletionResults> completer =
-            _completionCompleters.remove(result.id);
+        final completer = _completionCompleters.remove(result.id);
         if (completer != null) {
           completer.complete(result);
         }
@@ -525,7 +522,7 @@ class AnalysisServerWrapper {
       if (status.analysis == null) return;
 
       if (!status.analysis.isAnalyzing) {
-        for (Completer<dynamic> completer in _analysisCompleters) {
+        for (final completer in _analysisCompleters) {
           completer.complete();
         }
 
@@ -535,7 +532,7 @@ class AnalysisServerWrapper {
   }
 
   Completer<dynamic> getAnalysisCompleteCompleter() {
-    Completer<dynamic> completer = Completer<dynamic>();
+    final completer = Completer<dynamic>();
     _analysisCompleters.add(completer);
     return completer;
   }
@@ -556,8 +553,8 @@ class AnalysisServerWrapper {
   void clearErrors() => _errors.clear();
 
   List<AnalysisError> getErrors() {
-    List<AnalysisError> errors = <AnalysisError>[];
-    for (List<AnalysisError> e in _errors.values) {
+    final errors = <AnalysisError>[];
+    for (final e in _errors.values) {
       errors.addAll(e);
     }
     return errors;

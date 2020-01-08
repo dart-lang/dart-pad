@@ -25,21 +25,21 @@ import 'src/shelf_cors.dart' as shelf_cors;
 Logger _logger = Logger('services');
 
 void main(List<String> args) {
-  ArgParser parser = ArgParser();
+  final parser = ArgParser();
   parser.addOption('port', abbr: 'p', defaultsTo: '8080');
   parser.addFlag('discovery');
   parser.addFlag('relay');
   parser.addOption('server-url', defaultsTo: 'http://localhost');
 
-  ArgResults result = parser.parse(args);
-  int port = int.tryParse(result['port'] as String);
+  final result = parser.parse(args);
+  final port = int.tryParse(result['port'] as String);
   if (port == null) {
     stdout.writeln(
         'Could not parse port value "${result['port']}" into a number.');
     exit(1);
   }
 
-  String sdk = sdkPath;
+  final sdk = sdkPath;
 
   void printExit(String doc) {
     print(doc);
@@ -47,11 +47,12 @@ void main(List<String> args) {
   }
 
   if (result['discovery'] as bool) {
-    String serverUrl = result['server-url'] as String;
+    final serverUrl = result['server-url'] as String;
     if (result['relay'] as bool) {
       EndpointsServer.generateRelayDiscovery(sdk, serverUrl).then(printExit);
     } else {
-      EndpointsServer.generateDiscovery(SdkManager.flutterSdk, serverUrl).then(printExit);
+      EndpointsServer.generateDiscovery(SdkManager.flutterSdk, serverUrl)
+          .then(printExit);
     }
     return;
   }
@@ -69,7 +70,7 @@ void main(List<String> args) {
 
 class EndpointsServer {
   static Future<EndpointsServer> serve(String sdkPath, int port) {
-    EndpointsServer endpointsServer = EndpointsServer._(sdkPath, port);
+    final endpointsServer = EndpointsServer._(sdkPath, port);
 
     return shelf
         .serve(endpointsServer.handler, InternetAddress.anyIPv4, port)
@@ -81,33 +82,33 @@ class EndpointsServer {
 
   static Future<String> generateDiscovery(
       FlutterSdk flutterSdk, String serverUrl) async {
-    FlutterWebManager flutterWebManager = FlutterWebManager(flutterSdk);
-    CommonServer commonServer =
+    final flutterWebManager = FlutterWebManager(flutterSdk);
+    final commonServer =
         CommonServer(sdkPath, flutterWebManager, _ServerContainer(), _Cache());
     await commonServer.init();
-    ApiServer apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
+    final apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(commonServer);
     apiServer.enableDiscoveryApi();
 
-    Uri uri = Uri.parse('/api/discovery/v1/apis/dartservices/v1/rest');
-    HttpApiRequest request = HttpApiRequest('GET', uri, <String, dynamic>{},
+    final uri = Uri.parse('/api/discovery/v1/apis/dartservices/v1/rest');
+    final request = HttpApiRequest('GET', uri, <String, dynamic>{},
         Stream<List<int>>.fromIterable(<List<int>>[]));
-    HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
+    final response = await apiServer.handleHttpApiRequest(request);
     return utf8.decode(await response.body.first);
   }
 
   static Future<String> generateRelayDiscovery(
       String sdkPath, String serverUrl) async {
-    FileRelayServer databaseServer = FileRelayServer();
-    ApiServer apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
+    final databaseServer = FileRelayServer();
+    final apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
       ..addApi(databaseServer);
     apiServer.enableDiscoveryApi();
 
-    Uri uri =
+    final uri =
         Uri.parse('/api/discovery/v1/apis/_dartpadsupportservices/v1/rest');
-    HttpApiRequest request = HttpApiRequest('GET', uri, <String, dynamic>{},
+    final request = HttpApiRequest('GET', uri, <String, dynamic>{},
         Stream<List<int>>.fromIterable(<List<int>>[]));
-    HttpApiResponse response = await apiServer.handleHttpApiRequest(request);
+    final response = await apiServer.handleHttpApiRequest(request);
     return utf8.decode(await response.body.first);
   }
 
@@ -149,7 +150,7 @@ class EndpointsServer {
     // NOTE: We could read in the request body here and parse it similar to the
     // _parseRequest method to determine content-type and dispatch to e.g. a
     // plain text handler if we want to support that.
-    HttpApiRequest apiRequest = HttpApiRequest(
+    final apiRequest = HttpApiRequest(
         request.method, request.requestedUri, request.headers, request.read());
 
     // Promote text/plain requests to application/json.

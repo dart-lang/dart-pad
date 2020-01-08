@@ -102,7 +102,7 @@ void defineTests() {
     });
 
     test('import_test', () {
-      String testCode = "import '/'; main() { int a = 0; a. }";
+      final testCode = "import '/'; main() { int a = 0; a. }";
 
       return analysisServer
           .complete(testCode, 9)
@@ -114,7 +114,7 @@ void defineTests() {
     });
 
     test('import_and_other_test', () {
-      String testCode = "import '/'; main() { int a = 0; a. }";
+      final testCode = "import '/'; main() { int a = 0; a. }";
 
       return analysisServer
           .complete(testCode, 34)
@@ -148,43 +148,43 @@ void defineTests() {
     });
 
     test('simple_format', () async {
-      FormatResponse results = await analysisServer.format(badFormatCode, 0);
+      final results = await analysisServer.format(badFormatCode, 0);
       expect(results.newString, formattedCode);
     });
 
     test('format good code', () async {
-      FormatResponse results =
+      final results =
           await analysisServer.format(formattedCode.replaceAll('\n', ' '), 0);
       expect(results.newString, formattedCode);
     });
 
     test('format with issues', () async {
-      FormatResponse results = await analysisServer.format(formatWithIssues, 0);
+      final results = await analysisServer.format(formatWithIssues, 0);
       expect(results.newString, formatWithIssues);
     });
 
     test('analyze', () async {
-      AnalysisResults results = await analysisServer.analyze(sampleCode);
+      final results = await analysisServer.analyze(sampleCode);
       expect(results.issues, isEmpty);
     });
 
     test('analyze with errors', () async {
-      AnalysisResults results = await analysisServer.analyze(sampleCodeError);
+      final results = await analysisServer.analyze(sampleCodeError);
       expect(results.issues, hasLength(1));
     });
 
     test('analyze strong', () async {
-      AnalysisResults results = await analysisServer.analyze(sampleStrongError);
+      final results = await analysisServer.analyze(sampleStrongError);
       expect(results.issues, hasLength(1));
-      AnalysisIssue issue = results.issues.first;
+      final issue = results.issues.first;
       expect(issue.kind, 'error');
     });
 
     test('filter completions', () async {
       // just after A
-      var idx = 61;
+      final idx = 61;
       expect(completionLargeNamespaces.substring(idx - 1, idx), 'A');
-      var results =
+      final results =
           await analysisServer.complete(completionLargeNamespaces, 61);
       expect(completionsContains(results, 'A'), true);
       expect(completionsContains(results, 'AB'), true);
@@ -197,19 +197,20 @@ void defineTests() {
   group('Flutter cached SDK analysis_server', () {
     setUp(() async {
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-      analysisServer = AnalysisServerWrapper(SdkManager.flutterSdk.sdkPath, flutterWebManager);
+      analysisServer = AnalysisServerWrapper(
+          SdkManager.flutterSdk.sdkPath, flutterWebManager);
       await analysisServer.init();
     });
 
     tearDown(() => analysisServer.shutdown());
 
     test('analyze working Dart code', () async {
-      AnalysisResults results = await analysisServer.analyze(sampleCode);
+      final results = await analysisServer.analyze(sampleCode);
       expect(results.issues, isEmpty);
     });
 
     test('analyze working Flutter code', () async {
-      AnalysisResults results = await analysisServer.analyze(sampleCode);
+      final results = await analysisServer.analyze(sampleCode);
       expect(results.issues, isEmpty);
     });
   });

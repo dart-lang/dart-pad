@@ -50,8 +50,8 @@ final _dockerVersionMatcher = RegExp(r'^FROM google/dart-runtime:(.*)$');
 
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
-  String platformVersion = Platform.version.split(' ').first;
-  List<String> dockerImageLines =
+  final platformVersion = Platform.version.split(' ').first;
+  final dockerImageLines =
       File('Dockerfile').readAsLinesSync().map((String s) {
     if (s.contains(_dockerVersionMatcher)) {
       return 'FROM google/dart-runtime:$platformVersion';
@@ -71,12 +71,12 @@ final List<String> compilationArtifacts = [
 @Task('validate that we have the correct compilation artifacts available in '
     'google storage')
 void validateStorageArtifacts() async {
-  String version = SdkManager.flutterSdk.versionFull;
+  final version = SdkManager.flutterSdk.versionFull;
 
-  const String urlBase =
+  const urlBase =
       'https://storage.googleapis.com/compilation_artifacts/';
 
-  for (String artifact in compilationArtifacts) {
+  for (final artifact in compilationArtifacts) {
     await _validateExists('$urlBase$version/$artifact');
   }
 }
@@ -84,7 +84,7 @@ void validateStorageArtifacts() async {
 Future _validateExists(String url) async {
   log('checking $url...');
 
-  http.Response response = await http.head(url);
+  final response = await http.head(url);
   if (response.statusCode != 200) {
     fail(
       'compilation artifact not found: $url '
@@ -96,7 +96,7 @@ Future _validateExists(String url) async {
 @Task('build the sdk compilation artifacts for upload to google storage')
 void buildStorageArtifacts() {
   // build and copy dart_sdk.js, flutter_web.js, and flutter_web.dill
-  final Directory temp =
+  final temp =
       Directory.systemTemp.createTempSync('flutter_web_sample');
 
   try {
@@ -109,7 +109,7 @@ void buildStorageArtifacts() {
 void _buildStorageArtifacts(Directory dir) {
   final flutterSdkPath =
       Directory(path.join(Directory.current.path, 'flutter'));
-  String pubspec = FlutterWebManager.createPubspec(true);
+  final pubspec = FlutterWebManager.createPubspec(true);
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
   // run flutter pub get
@@ -120,26 +120,26 @@ void _buildStorageArtifacts(Directory dir) {
   );
 
   // locate the artifacts
-  final List<String> flutterPackages = ['flutter', 'flutter_test'];
+  final flutterPackages = ['flutter', 'flutter_test'];
 
-  List<String> flutterLibraries = [];
-  List<String> packageLines = joinFile(dir, ['.packages']).readAsLinesSync();
-  for (String line in packageLines) {
+  final flutterLibraries = <String>[];
+  final packageLines = joinFile(dir, ['.packages']).readAsLinesSync();
+  for (var line in packageLines) {
     line = line.trim();
     if (line.startsWith('#') || line.isEmpty) {
       continue;
     }
-    int index = line.indexOf(':');
+    final index = line.indexOf(':');
     if (index == -1) {
       continue;
     }
-    String packageName = line.substring(0, index);
-    String url = line.substring(index + 1);
+    final packageName = line.substring(0, index);
+    final url = line.substring(index + 1);
     if (flutterPackages.contains(packageName)) {
       // This is a package we're interested in - add all the public libraries to
       // the list.
-      String libPath = Uri.parse(url).toFilePath();
-      for (FileSystemEntity entity in getDir(libPath).listSync()) {
+      final libPath = Uri.parse(url).toFilePath();
+      for (final entity in getDir(libPath).listSync()) {
         if (entity is File && entity.path.endsWith('.dart')) {
           flutterLibraries.add('package:$packageName/${fileName(entity)}');
         }
@@ -163,7 +163,7 @@ void _buildStorageArtifacts(Directory dir) {
   final dillPath = path.join(flutterSdkPath.path,
       'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill');
 
-  var args = [
+  final args = <String>[
     '-s',
     dillPath,
     '--modules=amd',
@@ -190,7 +190,7 @@ void _buildStorageArtifacts(Directory dir) {
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
   // Emit some good google storage upload instructions.
-  final String version = SdkManager.flutterSdk.versionFull;
+  final version = SdkManager.flutterSdk.versionFull;
   log('\nFrom the dart-services project root dir, run:');
   log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z js '
       'artifacts/*.js gs://compilation_artifacts/$version/');
@@ -255,26 +255,26 @@ void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')
 void discovery() {
-  ProcessResult result = Process.runSync(
+  final result = Process.runSync(
       Platform.executable, ['bin/server_dev.dart', '--discovery']);
 
   if (result.exitCode != 0) {
     throw 'Error generating the discovery document\n${result.stderr}';
   }
 
-  File discoveryFile = File('doc/generated/dartservices.json');
+  final discoveryFile = File('doc/generated/dartservices.json');
   discoveryFile.parent.createSync();
   log('writing ${discoveryFile.path}');
   discoveryFile.writeAsStringSync('${result.stdout.trim()}\n');
 
-  ProcessResult resultDb = Process.runSync(
+  final resultDb = Process.runSync(
       Platform.executable, ['bin/server_dev.dart', '--discovery', '--relay']);
 
   if (resultDb.exitCode != 0) {
     throw 'Error generating the discovery document\n${result.stderr}';
   }
 
-  File discoveryDbFile = File('doc/generated/_dartpadsupportservices.json');
+  final discoveryDbFile = File('doc/generated/_dartpadsupportservices.json');
   discoveryDbFile.parent.createSync();
   log('writing ${discoveryDbFile.path}');
   discoveryDbFile.writeAsStringSync('${resultDb.stdout.trim()}\n');

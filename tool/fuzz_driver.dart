@@ -58,19 +58,19 @@ Usage: slow_test path_to_test_collection
   }
 
   // TODO: Replace this with args package.
-  int seed = 0;
-  String testCollectionRoot = args[0];
+  var seed = 0;
+  final testCollectionRoot = args[0];
   if (args.length >= 2) seed = int.parse(args[1]);
   if (args.length >= 3) maxMutations = int.parse(args[2]);
   if (args.length >= 4) iterations = int.parse(args[3]);
   if (args.length >= 5) commandToRun = args[4];
   if (args.length >= 6) dumpServerComms = args[5].toLowerCase() == 'true';
-  String sdk = sdkPath;
+  final sdk = sdkPath;
 
   // Load the list of files.
   var fileEntities = <io.FileSystemEntity>[];
   if (io.FileSystemEntity.isDirectorySync(testCollectionRoot)) {
-    io.Directory dir = io.Directory(testCollectionRoot);
+    final dir = io.Directory(testCollectionRoot);
     fileEntities = dir.listSync(recursive: true);
   } else {
     fileEntities = [io.File(testCollectionRoot)];
@@ -78,8 +78,8 @@ Usage: slow_test path_to_test_collection
 
   analysis_server.dumpServerMessages = false;
 
-  int counter = 0;
-  Stopwatch sw = Stopwatch()..start();
+  var counter = 0;
+  final sw = Stopwatch()..start();
 
   print('About to setuptools');
   print(sdk);
@@ -90,7 +90,7 @@ Usage: slow_test path_to_test_collection
   print('Setup tools done');
 
   // Main testing loop.
-  for (var fse in fileEntities) {
+  for (final fse in fileEntities) {
     counter++;
     if (!fse.path.endsWith('.dart')) continue;
 
@@ -124,7 +124,8 @@ Future setupTools(String sdkPath) async {
 
   print('SdKPath: $sdkPath');
 
-  FlutterWebManager flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+  final flutterWebManager =
+      FlutterWebManager(SdkManager.flutterSdk);
 
   container = MockContainer();
   cache = MockCache();
@@ -141,20 +142,21 @@ Future setupTools(String sdkPath) async {
   await analysisServer.warmup();
 
   print('Warming up compiler');
-  compiler = comp.Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
+  compiler =
+      comp.Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
   await compiler.warmup();
   print('SetupTools done');
 }
 
 Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
     comp.Compiler compiler) async {
-  var f = io.File(path);
-  String src = f.readAsStringSync();
+  final f = io.File(path);
+  var src = f.readAsStringSync();
 
   print('Path, Compilation/ms, Analysis/ms, '
       'Completion/ms, Document/ms, Fixes/ms, Format/ms');
 
-  for (int i = 0; i < iterations; i++) {
+  for (var i = 0; i < iterations; i++) {
     // Run once for each file without mutation.
     num averageCompilationTime = 0;
     num averageAnalysisTime = 0;
@@ -223,9 +225,9 @@ Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
     if (maxMutations == 0) break;
 
     // And then for the remainder with an increasing mutated file.
-    int noChanges = random.nextInt(maxMutations);
+    final noChanges = random.nextInt(maxMutations);
 
-    for (int j = 0; j < noChanges; j++) {
+    for (var j = 0; j < noChanges; j++) {
       src = mutate(src);
     }
   }
@@ -234,11 +236,11 @@ Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
 Future<num> testAnalysis(
     String src, analysis_server.AnalysisServerWrapper analysisServer) async {
   lastExecuted = OperationType.Analysis;
-  Stopwatch sw = Stopwatch()..start();
+  final sw = Stopwatch()..start();
 
   lastOffset = null;
   if (_SERVER_BASED_CALL) {
-    SourceRequest request = SourceRequest();
+    final request = SourceRequest();
     request.source = src;
     await withTimeOut(server.analyze(request));
     await withTimeOut(server.analyze(request));
@@ -253,11 +255,11 @@ Future<num> testAnalysis(
 
 Future<num> testCompilation(String src, comp.Compiler compiler) async {
   lastExecuted = OperationType.Compilation;
-  Stopwatch sw = Stopwatch()..start();
+  final sw = Stopwatch()..start();
 
   lastOffset = null;
   if (_SERVER_BASED_CALL) {
-    CompileRequest request = CompileRequest();
+    final request = CompileRequest();
     request.source = src;
     await withTimeOut(server.compile(request));
   } else {
@@ -271,14 +273,14 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
 Future<num> testDocument(
     String src, analysis_server.AnalysisServerWrapper analysisServer) async {
   lastExecuted = OperationType.Document;
-  Stopwatch sw = Stopwatch()..start();
-  for (int i = 0; i < src.length; i++) {
-    Stopwatch sw2 = Stopwatch()..start();
+  final sw = Stopwatch()..start();
+  for (var i = 0; i < src.length; i++) {
+    final sw2 = Stopwatch()..start();
 
     if (i % 1000 == 0 && i > 0) print('INC: $i docs completed');
     lastOffset = i;
     if (_SERVER_BASED_CALL) {
-      SourceRequest request = SourceRequest();
+      final request = SourceRequest();
       request.source = src;
       request.offset = i;
       log(await withTimeOut(server.document(request)));
@@ -293,14 +295,14 @@ Future<num> testDocument(
 Future<num> testCompletions(
     String src, analysis_server.AnalysisServerWrapper wrapper) async {
   lastExecuted = OperationType.Completion;
-  Stopwatch sw = Stopwatch()..start();
-  for (int i = 0; i < src.length; i++) {
-    Stopwatch sw2 = Stopwatch()..start();
+  final sw = Stopwatch()..start();
+  for (var i = 0; i < src.length; i++) {
+    final sw2 = Stopwatch()..start();
 
     if (i % 1000 == 0 && i > 0) print('INC: $i completes');
     lastOffset = i;
     if (_SERVER_BASED_CALL) {
-      SourceRequest request = SourceRequest()
+      final request = SourceRequest()
         ..source = src
         ..offset = i;
       await withTimeOut(server.complete(request));
@@ -315,14 +317,14 @@ Future<num> testCompletions(
 Future<num> testFixes(
     String src, analysis_server.AnalysisServerWrapper wrapper) async {
   lastExecuted = OperationType.Fixes;
-  Stopwatch sw = Stopwatch()..start();
-  for (int i = 0; i < src.length; i++) {
-    Stopwatch sw2 = Stopwatch()..start();
+  final sw = Stopwatch()..start();
+  for (var i = 0; i < src.length; i++) {
+    final sw2 = Stopwatch()..start();
 
     if (i % 1000 == 0 && i > 0) print('INC: $i fixes');
     lastOffset = i;
     if (_SERVER_BASED_CALL) {
-      SourceRequest request = SourceRequest();
+      final request = SourceRequest();
       request.source = src;
       request.offset = i;
       await withTimeOut(server.fixes(request));
@@ -336,10 +338,10 @@ Future<num> testFixes(
 
 Future<num> testFormat(String src) async {
   lastExecuted = OperationType.Format;
-  Stopwatch sw = Stopwatch()..start();
-  int i = 0;
+  final sw = Stopwatch()..start();
+  final i = 0;
   lastOffset = i;
-  SourceRequest request = SourceRequest();
+  final request = SourceRequest();
   request.source = src;
   request.offset = i;
   log(await withTimeOut(server.format(request)));
@@ -351,7 +353,7 @@ Future<T> withTimeOut<T>(Future<T> f) {
 }
 
 String mutate(String src) {
-  var chars = [
+  final chars = [
     '{',
     '}',
     '[',
@@ -380,14 +382,14 @@ String mutate(String src) {
     '.',
     'import '
   ];
-  String s = chars[random.nextInt(chars.length)];
-  int i = random.nextInt(src.length);
+  final s = chars[random.nextInt(chars.length)];
+  var i = random.nextInt(src.length);
   if (i == 0) i = 1;
 
   if (_DUMP_DELTA) {
     log('Delta: $s');
   }
-  String newStr = src.substring(0, i - 1) + s + src.substring(i);
+  final newStr = src.substring(0, i - 1) + s + src.substring(i);
   return newStr;
 }
 

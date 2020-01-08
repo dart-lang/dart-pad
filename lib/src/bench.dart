@@ -37,7 +37,7 @@ class BenchmarkHarness {
     log('Running ${benchmarks.length} benchmarks.');
     log('');
 
-    List<BenchMarkResult> results = <BenchMarkResult>[];
+    final results = <BenchMarkResult>[];
 
     await Future.forEach(benchmarks, (Benchmark benchmark) => benchmark.init());
 
@@ -85,8 +85,8 @@ class BenchmarkHarness {
   Future<BenchMarkResult> _time(
       Benchmark benchmark, int minIterations, int minMillis,
       [int maxMillis]) {
-    BenchMarkResult result = BenchMarkResult(benchmark);
-    Stopwatch timer = Stopwatch()..start();
+    final result = BenchMarkResult(benchmark);
+    final timer = Stopwatch()..start();
 
     return Future.doWhile(() {
       if (result.iteration >= minIterations &&

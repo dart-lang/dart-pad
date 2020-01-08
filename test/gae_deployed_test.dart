@@ -21,7 +21,7 @@ void defineTests({bool skip = true}) {
 }
 
 void analyzeTest() {
-  final String url = '$serverUrl/api/analyze';
+  final url = '$serverUrl/api/analyze';
   final headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(
@@ -36,7 +36,7 @@ void analyzeTest() {
 }
 
 void compileTest() {
-  final String url = '$serverUrl/api/compile';
+  final url = '$serverUrl/api/compile';
   final headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(
@@ -51,7 +51,7 @@ void compileTest() {
 }
 
 void compileDDCTest() {
-  final String url = '$serverUrl/api/compileDDC';
+  final url = '$serverUrl/api/compileDDC';
   final headers = {'Content-Type': 'text/plain; charset=UTF-8'};
 
   expect(

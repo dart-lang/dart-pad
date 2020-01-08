@@ -25,7 +25,7 @@ void main(List<String> args) {
 
   print('QPS: $qps, URI: $URI');
 
-  int ms = (1000 / qps).floor();
+  final ms = (1000 / qps).floor();
   Timer.periodic(Duration(milliseconds: ms), pingServer);
 }
 
@@ -37,10 +37,10 @@ void pingServer(Timer t) {
     return;
   }
 
-  Stopwatch sw = Stopwatch()..start();
+  final sw = Stopwatch()..start();
 
-  int time = DateTime.now().millisecondsSinceEpoch;
-  String message = '$POST_PAYLOAD //$time $EPILOGUE';
+  final time = DateTime.now().millisecondsSinceEpoch;
+  final message = '$POST_PAYLOAD //$time $EPILOGUE';
   print(message);
   http.post(Uri.parse(URI), body: message).then((response) {
     print('${response.statusCode}, ${sw.elapsedMilliseconds}');

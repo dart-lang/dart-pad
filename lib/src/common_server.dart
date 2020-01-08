@@ -124,7 +124,7 @@ class RedisCache implements ServerCache {
       return;
     }
     log.info('$_logPrefix: reconnecting to $redisUriString...');
-    int nextRetryMs = retryTimeoutMs;
+    var nextRetryMs = retryTimeoutMs;
     if (retryTimeoutMs < _connectionRetryMaxMs / 2) {
       // 1 <= (randomSource.nextDouble() + 1) < 2
       nextRetryMs = (retryTimeoutMs * (randomSource.nextDouble() + 1)).toInt();
@@ -170,8 +170,7 @@ class RedisCache implements ServerCache {
     if (!_isConnected()) {
       log.warning('$_logPrefix: no cache available when getting key $key');
     } else {
-      final redis.Commands<String, String> commands =
-          redisClient.asCommands<String, String>();
+      final commands = redisClient.asCommands<String, String>();
       // commands can return errors synchronously in timeout cases.
       try {
         value = await commands.get(key).timeout(cacheOperationTimeout,
@@ -195,8 +194,7 @@ class RedisCache implements ServerCache {
       return null;
     }
 
-    final redis.Commands<String, String> commands =
-        redisClient.asCommands<String, String>();
+    final commands = redisClient.asCommands<String, String>();
     // commands can sometimes return errors synchronously in timeout cases.
     try {
       return commands.del(key: key).timeout(cacheOperationTimeout,
@@ -218,8 +216,7 @@ class RedisCache implements ServerCache {
       return null;
     }
 
-    final redis.Commands<String, String> commands =
-        redisClient.asCommands<String, String>();
+    final commands = redisClient.asCommands<String, String>();
     // commands can sometimes return errors synchronously in timeout cases.
     try {
       return Future<void>.sync(() async {
@@ -438,12 +435,11 @@ class CommonServer {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     try {
-      final Stopwatch watch = Stopwatch()..start();
+      final watch = Stopwatch()..start();
 
-      AnalysisResults results =
-          await getCorrectAnalysisServer(source).analyze(source);
-      int lineCount = source.split('\n').length;
-      int ms = watch.elapsedMilliseconds;
+      final results = await getCorrectAnalysisServer(source).analyze(source);
+      final lineCount = source.split('\n').length;
+      final ms = watch.elapsedMilliseconds;
       log.info('PERF: Analyzed $lineCount lines of Dart in ${ms}ms.');
       return results;
     } catch (e, st) {
@@ -532,7 +528,7 @@ class CommonServer {
     }
 
     log.info('CACHE: MISS for compileDDC');
-    Stopwatch watch = Stopwatch()..start();
+    final watch = Stopwatch()..start();
 
     return compiler.compileDDC(source).then((DDCCompilationResults results) {
       if (results.hasOutput) {
@@ -572,9 +568,9 @@ class CommonServer {
 
     await _checkPackageReferencesInitFlutterWeb(source);
 
-    Stopwatch watch = Stopwatch()..start();
+    final watch = Stopwatch()..start();
     try {
-      Map<String, String> docInfo =
+      var docInfo =
           await getCorrectAnalysisServer(source).dartdoc(source, offset);
       docInfo ??= <String, String>{};
       log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
@@ -603,9 +599,9 @@ class CommonServer {
 
     await _checkPackageReferencesInitFlutterWeb(source);
 
-    Stopwatch watch = Stopwatch()..start();
+    final watch = Stopwatch()..start();
     try {
-      CompleteResponse response =
+      final response =
           await getCorrectAnalysisServer(source).complete(source, offset);
       log.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
       return response;
@@ -626,8 +622,8 @@ class CommonServer {
 
     await _checkPackageReferencesInitFlutterWeb(source);
 
-    Stopwatch watch = Stopwatch()..start();
-    FixesResponse response =
+    final watch = Stopwatch()..start();
+    final response =
         await getCorrectAnalysisServer(source).getFixes(source, offset);
     log.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
     return response;
@@ -643,8 +639,8 @@ class CommonServer {
 
     await _checkPackageReferencesInitFlutterWeb(source);
 
-    Stopwatch watch = Stopwatch()..start();
-    var response =
+    final watch = Stopwatch()..start();
+    final response =
         await getCorrectAnalysisServer(source).getAssists(source, offset);
     log.info('PERF: Computed assists in ${watch.elapsedMilliseconds}ms.');
     return response;
@@ -656,9 +652,9 @@ class CommonServer {
     }
     offset ??= 0;
 
-    Stopwatch watch = Stopwatch()..start();
+    final watch = Stopwatch()..start();
 
-    FormatResponse response =
+    final response =
         await getCorrectAnalysisServer(source).format(source, offset);
     log.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
     return response;
@@ -674,7 +670,7 @@ class CommonServer {
   /// If there are uses of package:flutter, ensure that support there is
   /// initialized.
   Future<void> _checkPackageReferencesInitFlutterWeb(String source) async {
-    Set<String> imports = getAllImportsFor(source);
+    final imports = getAllImportsFor(source);
 
     if (flutterWebManager.hasUnsupportedImport(imports)) {
       throw BadRequestError(
@@ -692,7 +688,7 @@ class CommonServer {
   }
 
   AnalysisServerWrapper getCorrectAnalysisServer(String source) {
-    Set<String> imports = getAllImportsFor(source);
+    final imports = getAllImportsFor(source);
     return flutterWebManager.usesFlutterWeb(imports)
         ? flutterAnalysisServer
         : analysisServer;

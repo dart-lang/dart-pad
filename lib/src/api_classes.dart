@@ -36,11 +36,7 @@ class AnalysisIssue implements Comparable<AnalysisIssue> {
       this.hasFixes = false});
 
   Map<String, dynamic> toMap() {
-    Map<String, dynamic> m = <String, dynamic>{
-      'kind': kind,
-      'line': line,
-      'message': message
-    };
+    final m = <String, dynamic>{'kind': kind, 'line': line, 'message': message};
     if (charStart != null) m['charStart'] = charStart;
     if (charLength != null) m['charLength'] = charLength;
     if (hasFixes != null) m['hasFixes'] = hasFixes;
@@ -148,8 +144,8 @@ class CompleteResponse {
   /// Convert any non-string values from the contained maps.
   static List<Map<String, String>> _convert(List<Map<dynamic, dynamic>> list) {
     return list.map<Map<String, String>>((Map<dynamic, dynamic> m) {
-      Map<String, String> newMap = <String, String>{};
-      for (var key in m.keys.cast<String>()) {
+      final newMap = <String, String>{};
+      for (final key in m.keys.cast<String>()) {
         dynamic data = m[key];
         // TODO: Properly support Lists, Maps (this is a hack).
         if (data is Map || data is List) {
@@ -260,8 +256,8 @@ class SourceEdit {
       throw 'Change beyond end of string';
     }
 
-    String pre = '${target.substring(0, offset)}';
-    String post = '${target.substring(offset + length)}';
+    final pre = '${target.substring(0, offset)}';
+    final post = '${target.substring(offset + length)}';
     return '$pre$replacement$post';
   }
 }

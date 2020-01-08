@@ -16,15 +16,14 @@ import 'package:dart_services/src/compiler.dart';
 import 'package:dart_services/src/flutter_web.dart';
 
 void main(List<String> args) async {
-  final bool json = args.contains('--json');
+  final json = args.contains('--json');
 
-  final BenchmarkHarness harness = BenchmarkHarness(asJson: json);
+  final harness = BenchmarkHarness(asJson: json);
 
-  final FlutterWebManager flutterWebManager =
-      FlutterWebManager(SdkManager.flutterSdk);
+  final flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
   await flutterWebManager.initFlutterWeb();
 
-  var compiler =
+  final compiler =
       Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
 
   Logger.root.level = Level.WARNING;
@@ -33,7 +32,7 @@ void main(List<String> args) async {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  final List<Benchmark> benchmarks = [
+  final benchmarks = <Benchmark>[
     AnalyzerBenchmark('hello', sampleCode, flutterWebManager),
     AnalyzerBenchmark('hellohtml', sampleCodeWeb, flutterWebManager),
     AnalyzerBenchmark('sunflower', _sunflower, flutterWebManager),

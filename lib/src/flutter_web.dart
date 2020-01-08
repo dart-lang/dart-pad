@@ -34,12 +34,12 @@ class FlutterWebManager {
 
   void _init() {
     // create a pubspec.yaml file
-    String pubspec = createPubspec(true);
+    final pubspec = createPubspec(true);
     File(path.join(_projectDirectory.path, 'pubspec.yaml'))
         .writeAsStringSync(pubspec);
 
     // create a .packages file
-    final String packagesFileContents = '''
+    final packagesFileContents = '''
 $_samplePackageName:lib/
 ''';
     File(path.join(_projectDirectory.path, '.packages'))
@@ -63,7 +63,7 @@ $_samplePackageName:lib/
     }
 
     _logger.info('creating flutter web pubspec');
-    String pubspec = createPubspec(true);
+    final pubspec = createPubspec(true);
     await File(path.join(_projectDirectory.path, 'pubspec.yaml'))
         .writeAsString(pubspec);
 
@@ -93,7 +93,7 @@ $_samplePackageName:lib/
   }
 
   String getUnsupportedImport(Set<String> imports) {
-    for (String import in imports) {
+    for (final import in imports) {
       // All dart: imports are ok;
       if (import.startsWith('dart:')) {
         continue;
@@ -149,7 +149,7 @@ $_samplePackageName:lib/
   Future<int> _findFreePort({bool ipv6 = false}) async {
     var port = 0;
     ServerSocket serverSocket;
-    final InternetAddress loopback =
+    final loopback =
         ipv6 ? InternetAddress.loopbackIPv6 : InternetAddress.loopbackIPv4;
 
     try {
@@ -176,7 +176,7 @@ $_samplePackageName:lib/
   static const String _samplePackageName = 'dartpad_sample';
 
   static String createPubspec(bool includeFlutterWeb) {
-    String content = '''
+    var content = '''
 name: $_samplePackageName
 ''';
 

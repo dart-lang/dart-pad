@@ -15,14 +15,14 @@ import 'common.dart';
 Set<String> getAllImportsFor(String dartSource) {
   if (dartSource == null) return <String>{};
 
-  Scanner scanner = Scanner(
+  final scanner = Scanner(
     StringSource(dartSource, kMainDart),
     CharSequenceReader(dartSource),
     AnalysisErrorListener.NULL_LISTENER,
   );
-  Token token = scanner.tokenize();
+  var token = scanner.tokenize();
 
-  Set<String> imports = <String>{};
+  final imports = <String>{};
 
   while (token.type != TokenType.EOF) {
     if (_isLibrary(token)) {
@@ -51,7 +51,7 @@ Set<String> filterSafePackagesFromImports(Set<String> allImports) {
   }).map((String import) {
     return import.substring(8);
   }).map((String import) {
-    int index = import.indexOf('/');
+    final index = import.indexOf('/');
     return index == -1 ? import : import.substring(0, index);
   }).map((String import) {
     return import.replaceAll('..', '');

@@ -14,8 +14,8 @@ void main() => defineTests();
 void defineTests() {
   group('BenchmarkHarness', () {
     test('single', () {
-      BenchmarkHarness harness = BenchmarkHarness(asJson: true);
-      MockBenchmark benchmark = MockBenchmark();
+      final harness = BenchmarkHarness(asJson: true);
+      final benchmark = MockBenchmark();
 
       return harness.benchmarkSingle(benchmark).then((BenchMarkResult result) {
         expect(result.iteration, greaterThan(1));
@@ -27,9 +27,9 @@ void defineTests() {
     });
 
     test('many', () {
-      BenchmarkHarness harness =
+      final harness =
           BenchmarkHarness(asJson: true, logger: (_) => null);
-      List<MockBenchmark> benchmarks = [MockBenchmark(), MockBenchmark()];
+      final benchmarks = [MockBenchmark(), MockBenchmark()];
 
       return harness.benchmark(benchmarks).then((_) {
         expect(benchmarks[0].count, greaterThan(80));

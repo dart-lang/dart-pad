@@ -95,8 +95,8 @@ class Summarizer {
 
   String _categorySelector(String category, int itemCount) {
     if (category == 'size' || category == 'errorCount') {
-      List<int> maxField = cuttoffs[category];
-      for (int counter = 0; counter < maxField.length; counter++) {
+      final maxField = cuttoffs[category];
+      for (var counter = 0; counter < maxField.length; counter++) {
         if (itemCount < maxField[counter]) return '$category-$counter';
       }
       return '$category-${maxField.length - 1}';
@@ -107,7 +107,7 @@ class Summarizer {
 
   String _wordSelector(String category) {
     if (categories.containsKey(category)) {
-      List<String> returnSet = categories[category];
+      final returnSet = categories[category];
       return returnSet.elementAt(_randomizer % returnSet.length);
     } else {
       return null;
@@ -124,8 +124,8 @@ class Summarizer {
 
   String _additionList(List<String> list) {
     if (list.isEmpty) return '';
-    String englishList = ' Also, mentions ';
-    for (int i = 0; i < list.length; i++) {
+    var englishList = ' Also, mentions ';
+    for (var i = 0; i < list.length; i++) {
       englishList += list[i];
       if (i < list.length - 2) englishList += ', ';
       if (i == list.length - 2) {
@@ -143,16 +143,16 @@ class Summarizer {
   bool _usedInDartSource(String feature) => dart.contains(feature);
 
   List<String> _additionSearch() {
-    List<String> features = <String>[];
-    for (String feature in additionKeyWords.keys) {
+    final features = <String>[];
+    for (final feature in additionKeyWords.keys) {
       if (_usedInDartSource(feature)) features.add(additionKeyWords[feature]);
     }
     return features;
   }
 
   List<String> _codeSearch() {
-    List<String> features = <String>[];
-    for (String feature in codeKeyWords.keys) {
+    final features = <String>[];
+    for (final feature in codeKeyWords.keys) {
       if (_usedInDartSource(feature)) features.add(codeKeyWords[feature]);
     }
     return features;
@@ -160,8 +160,8 @@ class Summarizer {
 
   String _featureList(List<String> list) {
     if (list.isEmpty) return '. ';
-    String englishList = ', and ${_sentenceFiller('use')} use of ';
-    for (int i = 0; i < list.length; i++) {
+    var englishList = ', and ${_sentenceFiller('use')} use of ';
+    for (var i = 0; i < list.length; i++) {
       englishList += list[i];
       if (i < list.length - 2) englishList += ', ';
       if (i == list.length - 2) {
@@ -178,14 +178,14 @@ class Summarizer {
       return source == null ? '' : '. ';
     }
 
-    String englishList = '';
+    var englishList = '';
     if (source == 'packages') {
       englishList += ', and ${_sentenceFiller('code-0')} imports ';
     } else {
       englishList += '${_sentenceFiller('code-1')} imports the ';
     }
 
-    for (int i = 0; i < list.length; i++) {
+    for (var i = 0; i < list.length; i++) {
       englishList += "'${list[i]}'";
       if (i < list.length - 2) englishList += ', ';
       if (i == list.length - 2) {
@@ -204,7 +204,7 @@ class Summarizer {
   }
 
   String _htmlCSS() {
-    String htmlCSS = 'This code has ';
+    var htmlCSS = 'This code has ';
     if (_hasCSS && _hasHtml) {
       htmlCSS += 'associated html and css';
       return htmlCSS;
@@ -233,7 +233,7 @@ class Summarizer {
 
   String returnAsSimpleSummary() {
     if (hasAnalysisResults) {
-      String summary = '';
+      var summary = '';
       summary += 'This ${_sentenceFiller('size', storage.linesCode)} ';
       if (storage.errorPresent) {
         summary += '${_sentenceFiller('failedQuantifier')} contains ';
@@ -248,7 +248,7 @@ class Summarizer {
       summary += '${_additionList(_additionSearch())}';
       return summary.trim();
     } else {
-      String summary = 'Summary: ';
+      var summary = 'Summary: ';
       summary += 'This is a ${_sentenceFiller('size', storage.linesCode)} ';
       summary += '${_sentenceFiller('compiledQuantifier')}';
       summary += '${_featureList(_codeSearch())}';

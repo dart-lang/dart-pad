@@ -23,7 +23,7 @@ void defineTests() {
     });
 
     test('toString', () {
-      AnalysisIssue issue = AnalysisIssue.fromIssue('error', 1, 'not found');
+      final issue = AnalysisIssue.fromIssue('error', 1, 'not found');
       expect(issue.toString(), isNotNull);
     });
   });

@@ -41,13 +41,13 @@ class FileRelayServer {
 
   Future<List<dynamic>> _databaseQuery<T extends db.Model>(
       String attribute, dynamic value) async {
-    List<dynamic> result = <dynamic>[];
+    var result = <dynamic>[];
     if (test) {
-      List<dynamic> dataList = database[getClass(T)];
+      final dataList = database[getClass(T)];
       if (dataList != null) {
-        for (dynamic dataObject in dataList) {
-          mirrors.InstanceMirror dataObjectMirror = mirrors.reflect(dataObject);
-          mirrors.InstanceMirror futureValue =
+        for (final dataObject in dataList) {
+          final dataObjectMirror = mirrors.reflect(dataObject);
+          final futureValue =
               dataObjectMirror.getField(Symbol(attribute.split(' ')[0]));
           if (futureValue.hasReflectee && futureValue.reflectee == value) {
             result.add(dataObject);
@@ -55,8 +55,7 @@ class FileRelayServer {
         }
       }
     } else {
-      db.Query<dynamic> query = ae.context.services.db.query<T>()
-        ..filter(attribute, value);
+      final query = ae.context.services.db.query<T>()..filter(attribute, value);
       result = await query.run().toList();
     }
     return Future<List<dynamic>>.value(result);
@@ -65,7 +64,7 @@ class FileRelayServer {
   Future<void> _databaseCommit({List<db.Model> inserts, List<db.Key> deletes}) {
     if (test) {
       if (inserts != null) {
-        for (dynamic insertObject in inserts) {
+        for (final insertObject in inserts) {
           if (!database.containsKey(getTypeName(insertObject))) {
             database[getTypeName(insertObject)] = <dynamic>[];
           }
@@ -86,8 +85,8 @@ class FileRelayServer {
       path: 'export',
       description: 'Store a gist dataset to be retrieved.')
   Future<UuidContainer> export(PadSaveObject data) {
-    _GaePadSaveObject record = _GaePadSaveObject.fromDSO(data);
-    String randomUuid = uuid_tools.Uuid().v4();
+    final record = _GaePadSaveObject.fromDSO(data);
+    final randomUuid = uuid_tools.Uuid().v4();
     record.uuid = '${_computeSHA1(record)}-$randomUuid';
     _databaseCommit(inserts: <db.Model>[record]).catchError((dynamic e) {
       _logger.severe('Error while recording export $e');
@@ -102,14 +101,14 @@ class FileRelayServer {
       path: 'pullExportData',
       description: 'Retrieve a stored gist data set.')
   Future<PadSaveObject> pullExportContent(UuidContainer uuidContainer) async {
-    List<dynamic> result =
+    final result =
         await _databaseQuery<_GaePadSaveObject>('uuid =', uuidContainer.uuid);
     if (result.isEmpty) {
       _logger
           .severe('Export with UUID ${uuidContainer.uuid} could not be found.');
       throw BadRequestError('Nothing of correct uuid could be found.');
     }
-    _GaePadSaveObject record = result.first as _GaePadSaveObject;
+    final record = result.first as _GaePadSaveObject;
     if (!test) {
       unawaited(_databaseCommit(deletes: <db.Key>[record.key])
           .catchError((dynamic e) {
@@ -123,8 +122,8 @@ class FileRelayServer {
 
   @ApiMethod(method: 'GET', path: 'getUnusedMappingId')
   Future<UuidContainer> getUnusedMappingId() async {
-    final int limit = 4;
-    int attemptCount = 0;
+    final limit = 4;
+    var attemptCount = 0;
     String randomUuid;
     List<dynamic> result;
     do {
@@ -145,13 +144,13 @@ class FileRelayServer {
 
   @ApiMethod(method: 'POST', path: 'storeGist')
   Future<UuidContainer> storeGist(GistToInternalIdMapping map) async {
-    List<dynamic> result =
+    final result =
         await _databaseQuery<_GistMapping>('internalId =', map.internalId);
     if (result.isNotEmpty) {
       _logger.severe('Collision with mapping of Id ${map.gistId}.');
       throw BadRequestError('Mapping invalid.');
     } else {
-      _GistMapping entry = _GistMapping.fromMap(map);
+      final entry = _GistMapping.fromMap(map);
       unawaited(
           _databaseCommit(inserts: <db.Model>[entry]).catchError((dynamic e) {
         _logger.severe(
@@ -168,13 +167,12 @@ class FileRelayServer {
     if (id == null) {
       throw BadRequestError('Missing parameter: \'id\'');
     }
-    List<dynamic> result =
-        await _databaseQuery<_GistMapping>('internalId =', id);
+    final result = await _databaseQuery<_GistMapping>('internalId =', id);
     if (result.isEmpty) {
       _logger.severe('Missing mapping for Id $id.');
       throw BadRequestError('Missing mapping for Id $id');
     } else {
-      _GistMapping entry = result.first as _GistMapping;
+      final entry = result.first as _GistMapping;
       _logger.info('Mapping with ID $id retrieved.');
       return Future<UuidContainer>.value(UuidContainer.fromUuid(entry.gistId));
     }
@@ -250,9 +248,9 @@ class _GaePadSaveObject extends db.Model {
   }
 
   _GaePadSaveObject.fromDSO(PadSaveObject pso) {
-    dart = _gzipEncode(pso.dart != null ? pso.dart : '');
-    html = _gzipEncode(pso.html != null ? pso.html : '');
-    css = _gzipEncode(pso.css != null ? pso.css : '');
+    dart = _gzipEncode(pso.dart ?? '');
+    html = _gzipEncode(pso.html ?? '');
+    css = _gzipEncode(pso.css ?? '');
     uuid = pso.uuid;
     epochTime = DateTime.now().millisecondsSinceEpoch;
   }
@@ -288,7 +286,7 @@ class _GistMapping extends db.Model {
 }
 
 String _computeSHA1(_GaePadSaveObject record) {
-  convert.Utf8Encoder utf8 = convert.Utf8Encoder();
+  final utf8 = convert.Utf8Encoder();
   return crypto.sha1
       .convert(utf8.convert(
           "blob  'n ${record.getDart} ${record.getHtml} ${record.getCss}"))

@@ -200,7 +200,7 @@ void main() { missingMethod ('foo'); }
     });
 
     test('disallow compiler warnings', () async {
-      CompilationResults result = await compiler.compile(sampleCodeErrors);
+      final result = await compiler.compile(sampleCodeErrors);
       expect(result.success, false);
     });
 

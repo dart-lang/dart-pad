@@ -26,7 +26,7 @@ void defineTests() {
 
     test('inited', () {
       expect(flutterWebManager.projectDirectory.existsSync(), isTrue);
-      File file = File(flutterWebManager.packagesFilePath);
+      final file = File(flutterWebManager.packagesFilePath);
       expect(file.existsSync(), isTrue);
     });
 
@@ -64,19 +64,19 @@ void defineTests() {
     });
 
     test('packagesFilePath', () {
-      String packagesPath = flutterWebManager.packagesFilePath;
+      final packagesPath = flutterWebManager.packagesFilePath;
       expect(packagesPath, isNotEmpty);
 
-      File file = File(packagesPath);
-      List<String> lines = file.readAsLinesSync();
+      final file = File(packagesPath);
+      final lines = file.readAsLinesSync();
       expect(lines, anyElement(startsWith('flutter:file://')));
     });
 
     test('summaryFilePath', () {
-      String summaryFilePath = flutterWebManager.summaryFilePath;
+      final summaryFilePath = flutterWebManager.summaryFilePath;
       expect(summaryFilePath, isNotEmpty);
 
-      File file = File(summaryFilePath);
+      final file = File(summaryFilePath);
       expect(file.existsSync(), isTrue);
     });
   });
