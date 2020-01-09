@@ -449,21 +449,6 @@ class Embed {
     return isLegalGistId(id) ? id : '';
   }
 
-  // A unique string for this sample in the context of a codelab or article
-  String get googleAnalyticsId {
-    final url = Uri.parse(window.location.toString());
-    if (!url.queryParameters.containsKey('ga_id')) {
-      return null;
-    }
-
-    final value = url.queryParameters['ga_id'];
-    if (value == 'false' || value.isEmpty || value == null) {
-      return null;
-    }
-
-    return value;
-  }
-
   // Option for Light / Dark theme (defaults to light)
   bool get isDarkMode {
     final url = Uri.parse(window.location.toString());
@@ -505,9 +490,6 @@ class Embed {
   void _init() {
     deps[GistLoader] = GistLoader.defaultFilters();
     deps[Analytics] = Analytics();
-    if (this.googleAnalyticsId != null) {
-      (deps[Analytics] as Analytics).googleAnalyticsId = googleAnalyticsId;
-    }
 
     context = EmbedContext(
         userCodeEditor, testEditor, solutionEditor, htmlEditor, cssEditor);

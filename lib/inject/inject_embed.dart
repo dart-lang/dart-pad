@@ -41,6 +41,8 @@ String iframeSrc(Map<String, String> options) {
   var theme = 'theme=${_valueOr(options, 'theme', 'light')}';
   var run = 'run=${_valueOr(options, 'run', 'false')}';
   var split = 'split=${_valueOr(options, 'split', 'false')}';
+  // A unique ID used to distinguish between DartPad instances in an article or
+  // codelab.
   var analytics = 'ga_id=${_valueOr(options, 'ga_id', 'false')}';
 
   return '$iframePrefix$prefix?$theme&$run&$split&$analytics';
