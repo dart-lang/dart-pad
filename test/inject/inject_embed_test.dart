@@ -8,7 +8,7 @@ import 'dart:html';
 import 'package:test/test.dart';
 import 'package:dart_pad/inject/inject_embed.dart' as inject_embed;
 
-// todo: determine how to load embed-new-flutter.html and other assets.
+// todo (ryjohn): determine how to load embed-flutter.html and other assets.
 //
 // The test package doesn't build assets in the web/ directory. Run 'pub run
 // test -p chrome -n "inject_embed" --pause-after-load` to reproduce
