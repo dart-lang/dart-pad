@@ -37,35 +37,23 @@ void main() {
 }
 
 String iframeSrc(Map<String, String> options) {
-  String theme;
-  if (options.containsKey('theme')) {
-    theme = options['theme'];
-  } else {
-    theme = 'light';
+  var prefix = 'embed-${_valueOr(options, 'mode', 'dart')}.html';
+  var theme = 'theme=${_valueOr(options, 'theme', 'light')}';
+  var run = 'run=${_valueOr(options, 'run', 'false')}';
+  var split = 'split=${_valueOr(options, 'split', 'false')}';
+  // A unique ID used to distinguish between DartPad instances in an article or
+  // codelab.
+  var analytics = 'ga_id=${_valueOr(options, 'ga_id', 'false')}';
+
+  return '$iframePrefix$prefix?$theme&$run&$split&$analytics';
+}
+
+String _valueOr(Map<String, String> map, String value, String defaultValue) {
+  if (map.containsKey(value)) {
+    return map[value];
   }
 
-  String mode;
-  if (options.containsKey('mode')) {
-    mode = options['mode'];
-  } else {
-    mode = 'dart';
-  }
-
-  String split;
-  if (options.containsKey('split')) {
-    split = options['split'];
-  } else {
-    split = 'false';
-  }
-
-  String run;
-  if (options.containsKey('run')) {
-    run = options['run'];
-  } else {
-    run = 'false';
-  }
-
-  return '${iframePrefix}embed-$mode.html?theme=$theme&run=$run&split=$split';
+  return defaultValue;
 }
 
 /// Replaces [host] with an instance of DartPad as an embedded iframe.

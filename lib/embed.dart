@@ -396,7 +396,7 @@ class Embed {
     linearProgress.determinate = false;
 
     _initModules()
-        .then((_) => _initNewEmbed())
+        .then((_) => _init())
         .then((_) => _emitReady())
         .then((_) {
       if (options.mode == EmbedMode.flutter) {
@@ -487,7 +487,7 @@ class Embed {
     await modules.start();
   }
 
-  void _initNewEmbed() {
+  void _init() {
     deps[GistLoader] = GistLoader.defaultFilters();
     deps[Analytics] = Analytics();
 
