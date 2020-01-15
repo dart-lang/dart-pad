@@ -35,8 +35,14 @@ a {
   background-color: $dark-code-background-color;
 }
 
-#console-output-container span.normal {
-  color: #dddddd;
+#console-output-container {
+  span.normal {
+    color: #dddddd;
+  }
+
+  .error-output {
+    color: $dark-pink;
+  }
 }
 
 // Helper class for using a border when collapsed
