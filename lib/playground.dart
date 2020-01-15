@@ -146,25 +146,31 @@ class Playground implements GistContainer, GistController {
 
   DivElement get _editorHost => querySelector('#editor-host') as DivElement;
 
-  DivElement get _rightConsoleElement => querySelector('#right-output-panel') as DivElement;
+  DivElement get _rightConsoleElement =>
+      querySelector('#right-output-panel') as DivElement;
 
   DivElement get _rightConsoleContentElement =>
       querySelector('#right-output-panel-content') as DivElement;
 
-  DivElement get _leftConsoleElement => querySelector('#left-output-panel') as DivElement;
+  DivElement get _leftConsoleElement =>
+      querySelector('#left-output-panel') as DivElement;
 
   IFrameElement get _frame => querySelector('#frame') as IFrameElement;
 
-  DivElement get _rightDocPanel => querySelector('#right-doc-panel') as DivElement;
+  DivElement get _rightDocPanel =>
+      querySelector('#right-doc-panel') as DivElement;
 
   DivElement get _rightDocContentElement =>
       querySelector('#right-doc-panel-content') as DivElement;
 
-  DivElement get _leftDocPanel => querySelector('#left-doc-panel') as DivElement;
+  DivElement get _leftDocPanel =>
+      querySelector('#left-doc-panel') as DivElement;
 
-  DivElement get _editorPanelHeader => querySelector('#editor-panel-header') as DivElement;
+  DivElement get _editorPanelHeader =>
+      querySelector('#editor-panel-header') as DivElement;
 
-  DivElement get _editorPanelFooter => querySelector('#editor-panel-footer') as DivElement;
+  DivElement get _editorPanelFooter =>
+      querySelector('#editor-panel-footer') as DivElement;
 
   bool get _isCompletionActive => editor.completionActive;
 
@@ -215,20 +221,26 @@ class Playground implements GistContainer, GistController {
       ..onClick.listen((_) => _showResetDialog());
     formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
       ..onClick.listen((_) => _format());
-    samplesButton = MDCButton(querySelector('#samples-dropdown-button') as ButtonElement)
-      ..onClick.listen((e) {
-        samplesMenu.open = !samplesMenu.open;
-      });
+    samplesButton =
+        MDCButton(querySelector('#samples-dropdown-button') as ButtonElement)
+          ..onClick.listen((e) {
+            samplesMenu.open = !samplesMenu.open;
+          });
 
     runButton = MDCButton(querySelector('#run-button') as ButtonElement)
       ..onClick.listen((_) {
         _handleRun();
       });
-    editorConsoleTab = MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
-    editorDocsTab = MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
-    closePanelButton =
-        MDCButton(querySelector('#editor-panel-close-button') as ButtonElement, isIcon: true);
-    moreMenuButton = MDCButton(querySelector('#more-menu-button') as ButtonElement, isIcon: true)
+    editorConsoleTab =
+        MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
+    editorDocsTab =
+        MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
+    closePanelButton = MDCButton(
+        querySelector('#editor-panel-close-button') as ButtonElement,
+        isIcon: true);
+    moreMenuButton = MDCButton(
+        querySelector('#more-menu-button') as ButtonElement,
+        isIcon: true)
       ..onClick.listen((_) {
         moreMenu.open = !moreMenu.open;
       });
@@ -404,7 +416,8 @@ class Playground implements GistContainer, GistController {
   void _initConsoles() {
     _leftConsole = Console(DElement(_leftConsoleElement));
     _rightConsole = Console(DElement(_rightConsoleContentElement));
-    unreadConsoleCounter = Counter(querySelector('#unread-console-counter') as SpanElement);
+    unreadConsoleCounter =
+        Counter(querySelector('#unread-console-counter') as SpanElement);
   }
 
   Future<void> _initModules() async {
@@ -1233,8 +1246,10 @@ class NewPadDialog {
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')),
         _dartButton = MDCRipple(querySelector('#new-pad-select-dart')),
         _flutterButton = MDCRipple(querySelector('#new-pad-select-flutter')),
-        _cancelButton = MDCButton(querySelector('#new-pad-cancel-button') as ButtonElement),
-        _createButton = MDCButton(querySelector('#new-pad-create-button') as ButtonElement),
+        _cancelButton =
+            MDCButton(querySelector('#new-pad-cancel-button') as ButtonElement),
+        _createButton =
+            MDCButton(querySelector('#new-pad-create-button') as ButtonElement),
         _htmlSwitchContainer =
             DElement(querySelector('#new-pad-html-switch-container')),
         _htmlSwitch = MDCSwitch(

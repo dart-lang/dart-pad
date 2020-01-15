@@ -105,7 +105,8 @@ class DartCompleter extends CodeCompleter {
         var replaceOffset = response.replacementOffset;
         var replaceLength = response.replacementLength;
 
-        var responses = response.completions.map((Map<String,dynamic> completion) {
+        var responses =
+            response.completions.map((Map<String, dynamic> completion) {
           return AnalysisCompletion(replaceOffset, replaceLength, completion);
         });
 
@@ -180,7 +181,7 @@ class AnalysisCompletion implements Comparable {
   final int offset;
   final int length;
 
-  Map<String,dynamic> _map;
+  Map<String, dynamic> _map;
 
   AnalysisCompletion(this.offset, this.length, Map<String, dynamic> map) {
     _map = Map<String, dynamic>.from(map);
@@ -212,9 +213,11 @@ class AnalysisCompletion implements Comparable {
 
   bool get isConstructor => type == 'CONSTRUCTOR';
 
-  String get parameters => isMethod ? _map['element']['parameters'] as String : null;
+  String get parameters =>
+      isMethod ? _map['element']['parameters'] as String : null;
 
-  int get parameterCount => isMethod ? _map['parameterNames'].length as int: null;
+  int get parameterCount =>
+      isMethod ? _map['parameterNames'].length as int : null;
 
   String get text {
     var str = _map['completion'] as String;

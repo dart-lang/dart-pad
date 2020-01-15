@@ -28,7 +28,8 @@ P_dartpadsupportservicesApi get dartSupportServices =>
 
 EditorFactory get editorFactory => deps[EditorFactory] as EditorFactory;
 
-ExecutionService get executionService => deps[ExecutionService] as ExecutionService;
+ExecutionService get executionService =>
+    deps[ExecutionService] as ExecutionService;
 
 GistLoader get gistLoader => deps[GistLoader] as GistLoader;
 

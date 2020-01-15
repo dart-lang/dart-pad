@@ -40,7 +40,9 @@ class ExerciseFileMetadata {
       throw MetadataException('Null json was given to ExerciseFileMetadata().');
     }
 
-    if (map['name'] == null || map['name'] is! String || map['name'].isEmpty as bool) {
+    if (map['name'] == null ||
+        map['name'] is! String ||
+        map['name'].isEmpty as bool) {
       throw MetadataException('The "name" field is required for each file.');
     }
 
@@ -64,7 +66,9 @@ class ExerciseMetadata {
       throw MetadataException('Null json was given to ExerciseMetadata().');
     }
 
-    if (map['name'] == null || map['name'] is! String || map['name'].isEmpty as bool) {
+    if (map['name'] == null ||
+        map['name'] is! String ||
+        map['name'].isEmpty as bool) {
       throw MetadataException('The "name" field is required for an exercise.');
     }
 

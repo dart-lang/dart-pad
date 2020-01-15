@@ -245,7 +245,8 @@ class _CodeMirrorEditor extends Editor {
     if (position == null) {
       js = cm.call('cursorCoords') as JsObject;
     } else {
-      js = cm.callArg('cursorCoords', _document._posToPos(position).toProxy()) as JsObject;
+      js = cm.callArg('cursorCoords', _document._posToPos(position).toProxy())
+          as JsObject;
     }
     return Point(js['left'] as num, js['top'] as num);
   }

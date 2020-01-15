@@ -18,7 +18,7 @@ final FilePath _pkgDir = FilePath('third_party/pkg');
 final FilePath _routeDir = FilePath('third_party/pkg/route.dart');
 final FilePath _haikunatorDir = FilePath('third_party/pkg/haikunatordart');
 
-Map<String,String> get _env => Platform.environment;
+Map<String, String> get _env => Platform.environment;
 
 main(List<String> args) => grind(args);
 
@@ -127,20 +127,16 @@ build() {
     log('${testFile.path} compiled to ${_printSize(testFile)}');
   }
 
-  var newEmbedDartFile =
-      _buildDir.join('scripts/embed_dart.dart.js');
+  var newEmbedDartFile = _buildDir.join('scripts/embed_dart.dart.js');
   log('$newEmbedDartFile compiled to ${_printSize(newEmbedDartFile)}');
 
-  var newEmbedFlutterFile =
-      _buildDir.join('scripts/embed_flutter.dart.js');
+  var newEmbedFlutterFile = _buildDir.join('scripts/embed_flutter.dart.js');
   log('$newEmbedFlutterFile compiled to ${_printSize(newEmbedFlutterFile)}');
 
-  var newEmbedHtmlFile =
-      _buildDir.join('scripts/embed_html.dart.js');
+  var newEmbedHtmlFile = _buildDir.join('scripts/embed_html.dart.js');
   log('$newEmbedHtmlFile compiled to ${_printSize(newEmbedHtmlFile)}');
 
-  var newEmbedInlineFile =
-      _buildDir.join('scripts/embed_inline.dart.js');
+  var newEmbedInlineFile = _buildDir.join('scripts/embed_inline.dart.js');
   log('$newEmbedInlineFile compiled to ${_printSize(newEmbedInlineFile)}');
 
   // Remove .dart files.
@@ -273,7 +269,7 @@ deploy() async {
 
   var app = yaml.loadYaml(File('web/app.yaml').readAsStringSync()) as Map;
 
-  var handlers = app['handlers'] as List<Map<String,String>>;
+  var handlers = app['handlers'] as List<Map<String, String>>;
   var isSecure = false;
 
   for (Map m in handlers) {

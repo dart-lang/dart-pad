@@ -29,7 +29,9 @@ class GistStorage {
 
   Gist getStoredGist() {
     var data = window.localStorage[_key];
-    return data == null ? null : Gist.fromMap(json.decode(data) as Map<String,dynamic>);
+    return data == null
+        ? null
+        : Gist.fromMap(json.decode(data) as Map<String, dynamic>);
   }
 
   void setStoredGist(Gist gist) {

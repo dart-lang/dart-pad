@@ -214,7 +214,8 @@ $styleRef$dartRef  </head>
       throw const GistLoaderException(GistLoaderFailureType.unknown);
     }
 
-    final gist = Gist.fromMap(json.decode(response.body) as Map<String,dynamic>);
+    final gist =
+        Gist.fromMap(json.decode(response.body) as Map<String, dynamic>);
 
     if (afterLoadHook != null) {
       afterLoadHook(gist);
@@ -365,14 +366,15 @@ class Gist {
     files ??= [];
   }
 
-  Gist.fromMap(Map<String,dynamic> map) {
+  Gist.fromMap(Map<String, dynamic> map) {
     id = map['id'] as String;
     description = map['description'] as String;
     public = map['public'] as bool;
     htmlUrl = map['html_url'] as String;
     summary = map['summary'] as String;
     var f = map['files'];
-    files = List<GistFile>.from(f.keys.map((key) => GistFile.fromMap(key as String, f[key])) as Iterable);
+    files = List<GistFile>.from(f.keys
+        .map((key) => GistFile.fromMap(key as String, f[key])) as Iterable);
   }
 
   dynamic operator [](String key) {
@@ -428,7 +430,7 @@ class Gist {
 
   String toJson() => json.encode(toMap());
 
-  Gist clone() => Gist.fromMap(json.decode(toJson()) as Map<String,dynamic>);
+  Gist clone() => Gist.fromMap(json.decode(toJson()) as Map<String, dynamic>);
 
   @override
   String toString() => id;

@@ -224,12 +224,13 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   }
 
   void _initListener() {
-    context['dartMessageListener'] = JsFunction.withThis((_this, Map<String,dynamic> data) {
+    context['dartMessageListener'] =
+        JsFunction.withThis((_this, Map<String, dynamic> data) {
       var type = data['type'] as String;
 
       if (type == 'testResult') {
-        final result = TestResult(
-            data['success'] as bool, List<String>.from(data['messages'] as Iterable ?? []));
+        final result = TestResult(data['success'] as bool,
+            List<String>.from(data['messages'] as Iterable ?? []));
         _testResultsController.add(result);
       } else if (type == 'stderr') {
         // Ignore any exceptions before the iframe has completed initialization.

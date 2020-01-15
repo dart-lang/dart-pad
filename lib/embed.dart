@@ -197,7 +197,8 @@ class Embed {
 
     navBarElement = DElement(querySelector('#navbar'));
 
-    unreadConsoleCounter = Counter(querySelector('#unread-console-counter') as SpanElement);
+    unreadConsoleCounter =
+        Counter(querySelector('#unread-console-counter') as SpanElement);
 
     executeButton = MDCButton(querySelector('#execute') as ButtonElement)
       ..onClick.listen((_) => _handleExecute());
@@ -211,11 +212,13 @@ class Embed {
         }
       });
 
-    copyCodeButton = MDCButton(querySelector('#copy-code') as ButtonElement, isIcon: true)
-      ..onClick.listen((_) => _handleCopyCode());
-    openInDartPadButton =
-        MDCButton(querySelector('#open-in-dartpad') as ButtonElement, isIcon: true)
-          ..onClick.listen((_) => _handleOpenInDartPad());
+    copyCodeButton =
+        MDCButton(querySelector('#copy-code') as ButtonElement, isIcon: true)
+          ..onClick.listen((_) => _handleCopyCode());
+    openInDartPadButton = MDCButton(
+        querySelector('#open-in-dartpad') as ButtonElement,
+        isIcon: true)
+      ..onClick.listen((_) => _handleOpenInDartPad());
 
     showHintButton = MDCButton(querySelector('#show-hint') as ButtonElement)
       ..onClick.listen((_) {
@@ -237,10 +240,11 @@ class Embed {
         DElement(querySelector('#editable-test-solution-checkmark'));
 
     morePopover = DElement(querySelector('#more-popover'));
-    menuButton = MDCButton(querySelector('#menu-button') as ButtonElement, isIcon: true)
-      ..onClick.listen((_) {
-        menu.open = !menu.open;
-      });
+    menuButton =
+        MDCButton(querySelector('#menu-button') as ButtonElement, isIcon: true)
+          ..onClick.listen((_) {
+            menu.open = !menu.open;
+          });
     menu = MDCMenu(querySelector('#main-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(menuButton.element);
@@ -335,9 +339,11 @@ class Embed {
       cssTabView = TabView(DElement(querySelector('#css-view')));
     }
 
-    executionSvc = ExecutionServiceIFrame(querySelector('#frame') as IFrameElement)
-      ..frameSrc =
-          isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
+    executionSvc =
+        ExecutionServiceIFrame(querySelector('#frame') as IFrameElement)
+          ..frameSrc = isDarkMode
+              ? '../scripts/frame_dark.html'
+              : '../scripts/frame.html';
 
     executionSvc.onStderr.listen((err) {
       consoleExpandController.showOutput(err, error: true);
@@ -415,7 +421,8 @@ class Embed {
       var type = data['type'];
 
       if (type == 'sourceCode') {
-        lastInjectedSourceCode = Map<String, String>.from(data['sourceCode'] as Map);
+        lastInjectedSourceCode =
+            Map<String, String>.from(data['sourceCode'] as Map);
         _resetCode();
 
         if (autoRunEnabled && !isRunningInWebKit()) {
@@ -855,8 +862,7 @@ class Embed {
 
     try {
       formatButton.disabled = true;
-      var result =
-          await dartServices.format(input).timeout(serviceCallTimeout);
+      var result = await dartServices.format(input).timeout(serviceCallTimeout);
 
       formatButton.disabled = false;
 
