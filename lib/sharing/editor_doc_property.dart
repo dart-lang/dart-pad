@@ -5,7 +5,7 @@
 import '../editing/editor.dart';
 import '../elements/bind.dart';
 
-class EditorDocumentProperty implements Property {
+class EditorDocumentProperty implements Property<String> {
   final Document document;
   final String debugName;
 
@@ -15,10 +15,10 @@ class EditorDocumentProperty implements Property {
   String get() => document.value;
 
   @override
-  void set(str) {
+  void set(String str) {
     document.value = str ?? '';
   }
 
   @override
-  Stream get onChanged => document.onChange.map((_) => get());
+  Stream<String> get onChanged => document.onChange.map((_) => get());
 }

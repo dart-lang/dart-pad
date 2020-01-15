@@ -105,7 +105,7 @@ class DartCompleter extends CodeCompleter {
         var replaceOffset = response.replacementOffset;
         var replaceLength = response.replacementLength;
 
-        var responses = response.completions.map((Map completion) {
+        var responses = response.completions.map((Map<String,dynamic> completion) {
           return AnalysisCompletion(replaceOffset, replaceLength, completion);
         });
 
@@ -180,7 +180,7 @@ class AnalysisCompletion implements Comparable {
   final int offset;
   final int length;
 
-  Map _map;
+  Map<String,dynamic> _map;
 
   AnalysisCompletion(this.offset, this.length, Map<String, dynamic> map) {
     _map = Map<String, dynamic>.from(map);
@@ -196,12 +196,12 @@ class AnalysisCompletion implements Comparable {
   // Convert maps and lists that have been passed as json.
   void _convert(String key) {
     if (_map[key] is String) {
-      _map[key] = jsonDecode(_map[key]);
+      _map[key] = jsonDecode(_map[key] as String);
     }
   }
 
   // KEYWORD, INVOCATION, ...
-  String get kind => _map['kind'];
+  String get kind => _map['kind'] as String;
 
   bool get isMethod {
     var element = _map['element'];
@@ -212,12 +212,12 @@ class AnalysisCompletion implements Comparable {
 
   bool get isConstructor => type == 'CONSTRUCTOR';
 
-  String get parameters => isMethod ? _map['element']['parameters'] : null;
+  String get parameters => isMethod ? _map['element']['parameters'] as String : null;
 
-  int get parameterCount => isMethod ? _map['parameterNames'].length : null;
+  int get parameterCount => isMethod ? _map['parameterNames'].length as int: null;
 
   String get text {
-    String str = _map['completion'];
+    var str = _map['completion'] as String;
     if (str.startsWith('(') && str.endsWith(')')) {
       return str.substring(1, str.length - 1);
     } else {
@@ -225,21 +225,21 @@ class AnalysisCompletion implements Comparable {
     }
   }
 
-  String get returnType => _map['returnType'];
+  String get returnType => _map['returnType'] as String;
 
-  int get relevance => _int(_map['relevance']);
+  int get relevance => _int(_map['relevance'] as String);
 
   bool get isDeprecated => _map['isDeprecated'] == 'true';
 
   bool get isPotential => _map['isPotential'] == 'true';
 
-  int get selectionLength => _int(_map['selectionLength']);
+  int get selectionLength => _int(_map['selectionLength'] as String);
 
-  int get selectionOffset => _int(_map['selectionOffset']);
+  int get selectionOffset => _int(_map['selectionOffset'] as String);
 
   // FUNCTION, GETTER, CLASS, ...
   String get type =>
-      _map.containsKey('element') ? _map['element']['kind'] : kind;
+      _map.containsKey('element') ? _map['element']['kind'] as String : kind;
 
   bool matchesCompletionFragment(String completionFragment) =>
       text.toLowerCase().startsWith(completionFragment.toLowerCase());
@@ -247,7 +247,7 @@ class AnalysisCompletion implements Comparable {
   @override
   int compareTo(other) {
     if (other is! AnalysisCompletion) return -1;
-    return text.compareTo(other.text);
+    return text.compareTo(other.text as String);
   }
 
   @override

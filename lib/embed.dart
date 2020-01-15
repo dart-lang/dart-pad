@@ -197,12 +197,12 @@ class Embed {
 
     navBarElement = DElement(querySelector('#navbar'));
 
-    unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
+    unreadConsoleCounter = Counter(querySelector('#unread-console-counter') as SpanElement);
 
-    executeButton = MDCButton(querySelector('#execute'))
+    executeButton = MDCButton(querySelector('#execute') as ButtonElement)
       ..onClick.listen((_) => _handleExecute());
 
-    reloadGistButton = MDCButton(querySelector('#reload-gist'))
+    reloadGistButton = MDCButton(querySelector('#reload-gist') as ButtonElement)
       ..onClick.listen((_) {
         if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
           _loadAndShowGist();
@@ -211,13 +211,13 @@ class Embed {
         }
       });
 
-    copyCodeButton = MDCButton(querySelector('#copy-code'), isIcon: true)
+    copyCodeButton = MDCButton(querySelector('#copy-code') as ButtonElement, isIcon: true)
       ..onClick.listen((_) => _handleCopyCode());
     openInDartPadButton =
-        MDCButton(querySelector('#open-in-dartpad'), isIcon: true)
+        MDCButton(querySelector('#open-in-dartpad') as ButtonElement, isIcon: true)
           ..onClick.listen((_) => _handleOpenInDartPad());
 
-    showHintButton = MDCButton(querySelector('#show-hint'))
+    showHintButton = MDCButton(querySelector('#show-hint') as ButtonElement)
       ..onClick.listen((_) {
         var hintElement = DivElement()..text = context.hint;
         var showSolutionButton = AnchorElement()
@@ -237,7 +237,7 @@ class Embed {
         DElement(querySelector('#editable-test-solution-checkmark'));
 
     morePopover = DElement(querySelector('#more-popover'));
-    menuButton = MDCButton(querySelector('#menu-button'), isIcon: true)
+    menuButton = MDCButton(querySelector('#menu-button') as ButtonElement, isIcon: true)
       ..onClick.listen((_) {
         menu.open = !menu.open;
       });
@@ -245,7 +245,7 @@ class Embed {
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(menuButton.element);
     menu.listen('MDCMenu:selected', (e) {
-      final selectedIndex = (e as CustomEvent).detail['index'];
+      final selectedIndex = (e as CustomEvent).detail['index'] as int;
       switch (selectedIndex) {
         case 0:
           // Show test code
@@ -264,13 +264,13 @@ class Embed {
       }
     });
 
-    formatButton = MDCButton(querySelector('#format-code'))
+    formatButton = MDCButton(querySelector('#format-code') as ButtonElement)
       ..onClick.listen(
         (_) => _format(),
       );
 
-    testResultBox = FlashBox(querySelector('#test-result-box'));
-    hintBox = FlashBox(querySelector('#hint-box'));
+    testResultBox = FlashBox(querySelector('#test-result-box') as DivElement);
+    hintBox = FlashBox(querySelector('#hint-box') as DivElement);
     var editorTheme = isDarkMode ? 'darkpad' : 'dartpad';
 
     userCodeEditor = editorFactory.createFromElement(
@@ -335,7 +335,7 @@ class Embed {
       cssTabView = TabView(DElement(querySelector('#css-view')));
     }
 
-    executionSvc = ExecutionServiceIFrame(querySelector('#frame'))
+    executionSvc = ExecutionServiceIFrame(querySelector('#frame') as IFrameElement)
       ..frameSrc =
           isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
 
@@ -415,7 +415,7 @@ class Embed {
       var type = data['type'];
 
       if (type == 'sourceCode') {
-        lastInjectedSourceCode = Map<String, String>.from(data['sourceCode']);
+        lastInjectedSourceCode = Map<String, String>.from(data['sourceCode'] as Map);
         _resetCode();
 
         if (autoRunEnabled && !isRunningInWebKit()) {
@@ -565,7 +565,7 @@ class Embed {
 
     editorIsBusy = true;
 
-    final GistLoader loader = deps[GistLoader];
+    final loader = deps[GistLoader] as GistLoader;
 
     try {
       Gist gist;

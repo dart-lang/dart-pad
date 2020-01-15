@@ -96,7 +96,7 @@ class ParameterPopup {
         return;
       }
 
-      var parameterInfo = result.info['parameters'] as List;
+      var parameterInfo = result.info['parameters'];
       var outputString = '';
       if (parameterInfo.isEmpty) {
         outputString += '<code>&lt;no parameters&gt;</code>';
@@ -154,7 +154,7 @@ class ParameterPopup {
           .max(cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22)
           .round();
 
-      parameterPopup = querySelector('.parameter-hints')
+      parameterPopup = querySelector('.parameter-hints') as DivElement
         ..style.top = '${heightOfMethod}px';
       var oldLeftString = parameterPopup.style.left;
       var oldLeft =
@@ -226,7 +226,7 @@ class ParameterPopup {
     return openingParenIndex == null
         ? null
         : {
-            'openingParenIndex': openingParenIndex,
+            'openingParenIndex': openingParenIndex as int,
             'parameterIndex': parameterIndex
           };
   }

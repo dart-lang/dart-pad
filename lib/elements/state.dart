@@ -20,7 +20,7 @@ class HtmlState implements State {
 
   HtmlState(this.id) {
     if (window.localStorage.containsKey(id)) {
-      _values = json.decode(window.localStorage[id]);
+      _values = json.decode(window.localStorage[id]) as Map<String, dynamic>;
     }
   }
 

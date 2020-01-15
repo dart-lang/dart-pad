@@ -151,7 +151,7 @@ class CodeMirrorFactory extends EditorFactory {
 
 class _CodeMirrorEditor extends Editor {
   // Map from JsObject codemirror instances to existing dartpad wrappers.
-  static final Map _instances = <dynamic, _CodeMirrorEditor>{};
+  static final Map<dynamic, _CodeMirrorEditor> _instances = {};
 
   final CodeMirror cm;
 
@@ -216,7 +216,7 @@ class _CodeMirrorEditor extends Editor {
   }
 
   @override
-  bool get autoCloseBrackets => cm.getOption('autoCloseBrackets');
+  bool get autoCloseBrackets => cm.getOption('autoCloseBrackets') as bool;
 
   @override
   set autoCloseBrackets(bool value) => cm.setOption('autoCloseBrackets', value);
@@ -234,7 +234,7 @@ class _CodeMirrorEditor extends Editor {
   set theme(String str) => cm.setTheme(str);
 
   @override
-  bool get hasFocus => cm.jsProxy['state']['focused'];
+  bool get hasFocus => cm.jsProxy['state']['focused'] as bool;
 
   @override
   Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
@@ -243,11 +243,11 @@ class _CodeMirrorEditor extends Editor {
   Point getCursorCoords({ed.Position position}) {
     JsObject js;
     if (position == null) {
-      js = cm.call('cursorCoords');
+      js = cm.call('cursorCoords') as JsObject;
     } else {
-      js = cm.callArg('cursorCoords', _document._posToPos(position).toProxy());
+      js = cm.callArg('cursorCoords', _document._posToPos(position).toProxy()) as JsObject;
     }
-    return Point(js['left'], js['top']);
+    return Point(js['left'] as num, js['top'] as num);
   }
 
   @override
@@ -270,7 +270,7 @@ class _CodeMirrorEditor extends Editor {
 
   @override
   void swapDocument(Document document) {
-    _document = document;
+    _document = document as _CodeMirrorDocument;
     cm.swapDoc(_document.doc);
   }
 
@@ -280,7 +280,7 @@ class _CodeMirrorEditor extends Editor {
   }
 }
 
-class _CodeMirrorDocument extends Document {
+class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
   final Doc doc;
 
   final List<LineWidget> widgets = [];

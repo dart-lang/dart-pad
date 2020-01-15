@@ -60,11 +60,11 @@ class DElement {
 
   void flex() => setAttr('flex');
 
-  dynamic add(var child) {
+  T add<T>(T child) {
     if (child is DElement) {
       element.children.add(child.element);
     } else {
-      element.children.add(child);
+      element.children.add(child as Element);
     }
 
     return child;
@@ -105,7 +105,7 @@ class DButton extends DElement {
 
   DButton.close() : super.tag('button', classes: 'close');
 
-  ButtonElement get belement => element;
+  ButtonElement get belement => element as ButtonElement;
 
   bool get disabled => belement.disabled;
 
@@ -234,7 +234,7 @@ class DSplitter extends DElement {
   }
 
   Element get _target {
-    List children = element.parent.children;
+    var children = element.parent.children;
     return children[children.indexOf(element) - 1];
   }
 
@@ -384,7 +384,7 @@ class DInput extends DElement {
 
   DInput.input({String type}) : super(InputElement(type: type));
 
-  InputElement get inputElement => element;
+  InputElement get inputElement => element as InputElement;
 
   void readonly() => setAttr('readonly');
 
