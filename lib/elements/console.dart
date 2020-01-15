@@ -7,7 +7,7 @@ import 'dart:html';
 
 import 'package:dart_pad/elements/elements.dart';
 
-typedef String ConsoleFilter(String line);
+typedef ConsoleFilter = String Function(String line);
 
 class Console {
   // The duration to wait before adding DOM elements to the document.

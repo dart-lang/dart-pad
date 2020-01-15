@@ -59,7 +59,7 @@ class CodeMirrorFactory extends EditorFactory {
       'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
     };
 
-    CodeMirror editor = CodeMirror.fromElement(element, options: options);
+    var editor = CodeMirror.fromElement(element, options: options);
     CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
     return _CodeMirrorEditor._(this, editor);
   }
@@ -79,19 +79,18 @@ class CodeMirrorFactory extends EditorFactory {
 
   Future<HintResults> _completionHelper(
       CodeMirror editor, CodeCompleter completer, HintsOptions options) {
-    _CodeMirrorEditor ed = _CodeMirrorEditor._fromExisting(this, editor);
+    var ed = _CodeMirrorEditor._fromExisting(this, editor);
 
     return completer
         .complete(ed, onlyShowFixes: ed._lookingForQuickFix)
         .then((CompletionResult result) {
-      Doc doc = editor.getDoc();
-      pos.Position from = doc.posFromIndex(result.replaceOffset);
-      pos.Position to =
-          doc.posFromIndex(result.replaceOffset + result.replaceLength);
-      String stringToReplace = doc.getValue().substring(
+      var doc = editor.getDoc();
+      var from = doc.posFromIndex(result.replaceOffset);
+      var to = doc.posFromIndex(result.replaceOffset + result.replaceLength);
+      var stringToReplace = doc.getValue().substring(
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
-      List<HintResult> hints = result.completions.map((completion) {
+      var hints = result.completions.map((completion) {
         return HintResult(
           completion.value,
           displayText: completion.displayString,
@@ -110,7 +109,7 @@ class CodeMirrorFactory extends EditorFactory {
               doc.setCursor(
                   doc.posFromIndex(completion.absoluteCursorPosition));
             } else if (completion.cursorOffset != null) {
-              int diff = hint.text.length - completion.cursorOffset;
+              var diff = hint.text.length - completion.cursorOffset;
               doc.setCursor(pos.Position(
                   editor.getCursor().line, editor.getCursor().ch - diff));
             }
@@ -343,16 +342,16 @@ class _CodeMirrorDocument extends Document {
 
   @override
   void setAnnotations(List<Annotation> annotations) {
-    for (TextMarker marker in doc.getAllMarks()) {
+    for (var marker in doc.getAllMarks()) {
       marker.clear();
     }
 
-    for (LineWidget widget in widgets) {
+    for (var widget in widgets) {
       widget.clear();
     }
     widgets.clear();
 
-    for (html.DivElement e in nodes) {
+    for (var e in nodes) {
       e.parent.children.remove(e);
     }
     nodes.clear();
@@ -360,9 +359,9 @@ class _CodeMirrorDocument extends Document {
     // Sort annotations so that the errors are set first.
     annotations.sort();
 
-    int lastLine = -1;
+    var lastLine = -1;
 
-    for (Annotation an in annotations) {
+    for (var an in annotations) {
       // Create in-line squiggles.
       doc.markText(_posToPos(an.start), _posToPos(an.end),
           className: 'squiggle-${an.type}', title: an.message);

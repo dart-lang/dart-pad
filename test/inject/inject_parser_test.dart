@@ -5,7 +5,7 @@
 import 'package:dart_pad/inject/inject_parser.dart';
 import 'package:test/test.dart';
 
-main() {
+void main() {
   group('InjectParser', () {
     test('can parse files', () {
       var parser = InjectParser(_codelab);
@@ -13,7 +13,7 @@ main() {
       expect(files, isNotEmpty);
       expect(files['main.dart'], "String message = 'Hello, World!';\n");
       expect(files['solution.dart'], "String message = 'delete your code';\n");
-      expect(files['test.dart'], "main() => print(message);\n");
+      expect(files['test.dart'], 'main() => print(message);\n');
     });
 
     test('throws with invalid input', () {

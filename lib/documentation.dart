@@ -42,9 +42,9 @@ class DocHandler {
       return;
     }
 
-    int offset = _editor.document.indexFromPos(_editor.document.cursor);
+    var offset = _editor.document.indexFromPos(_editor.document.cursor);
 
-    SourceRequest request = SourceRequest()..offset = offset;
+    var request = SourceRequest()..offset = offset;
 
     if (_editor.completionActive) {
       // If the completion popup is open we create a new source as if the
@@ -87,9 +87,9 @@ class DocHandler {
       return;
     }
 
-    int offset = _editor.document.indexFromPos(_editor.document.cursor);
+    var offset = _editor.document.indexFromPos(_editor.document.cursor);
 
-    SourceRequest request = SourceRequest()..offset = offset;
+    var request = SourceRequest()..offset = offset;
 
     if (_editor.completionActive) {
       // If the completion popup is open we create a new source as if the
@@ -118,10 +118,10 @@ class DocHandler {
   }
 
   String _sourceWithCompletionInserted(String source, int offset) {
-    String completionText = querySelector('.CodeMirror-hint-active').text;
-    int lastSpace = source.substring(0, offset).lastIndexOf(' ') + 1;
-    int lastDot = source.substring(0, offset).lastIndexOf('.') + 1;
-    int insertOffset = math.max(lastSpace, lastDot);
+    var completionText = querySelector('.CodeMirror-hint-active').text;
+    var lastSpace = source.substring(0, offset).lastIndexOf(' ') + 1;
+    var lastDot = source.substring(0, offset).lastIndexOf('.') + 1;
+    var insertOffset = math.max(lastSpace, lastDot);
     return _context.dartSource.substring(0, insertOffset) +
         completionText +
         _context.dartSource.substring(offset);
@@ -134,32 +134,32 @@ class DocHandler {
       return Future.value(_DocResult(''));
     }
 
-    String libraryName = info['libraryName'];
-    String domName = info['DomName'];
-    String kind = info['kind'];
-    bool hasDartdoc = info['dartdoc'] != null;
-    bool isHtmlLib = libraryName == 'dart:html';
-    bool isVariable = kind.contains('variable');
+    var libraryName = info['libraryName'] as String;
+    var domName = info['DomName'] as String;
+    var kind = info['kind'] as String;
+    var hasDartdoc = info['dartdoc'] != null;
+    var isHtmlLib = libraryName == 'dart:html';
+    var isVariable = kind.contains('variable');
 
-    String apiLink = _dartApiLink(
+    var apiLink = _dartApiLink(
         libraryName: libraryName,
         enclosingClassName: info['enclosingClassName']);
 
-    Future<String> mdnCheck = Future.value();
+    var mdnCheck = Future<String>.value();
     if (!hasDartdoc && isHtmlLib && domName != null) {
       mdnCheck = createMdnMarkdownLink(domName);
     }
 
     return mdnCheck.then((String mdnLink) {
       var propagatedType = info['propagatedType'];
-      String _mdDocs = '''# `${info['description']}`\n\n
+      var _mdDocs = '''# `${info['description']}`\n\n
 ${hasDartdoc ? "${info['dartdoc']}\n\n" : ''}
 ${mdnLink != null ? "## External resources:\n * $mdnLink at MDN" : ''}
 ${isVariable ? "$kind\n\n" : ''}
 ${(isVariable && propagatedType != null) ? "**Propagated type:** $propagatedType\n\n" : ''}
 ${libraryName == null ? '' : apiLink}\n\n''';
 
-      String _htmlDocs = markdown.markdownToHtml(_mdDocs,
+      var _htmlDocs = markdown.markdownToHtml(_mdDocs,
           inlineSyntaxes: [InlineBracketsColon(), InlineBrackets()]);
 
       // Append a 'launch' icon to the 'Open library docs' link.
@@ -171,7 +171,7 @@ ${libraryName == null ? '' : apiLink}\n\n''';
   }
 
   String _dartApiLink({String libraryName, String enclosingClassName}) {
-    StringBuffer apiLink = StringBuffer();
+    var apiLink = StringBuffer();
     if (libraryName != null) {
       if (libraryName.contains('dart:')) {
         libraryName = libraryName.replaceAll(':', '-');
@@ -188,9 +188,9 @@ ${libraryName == null ? '' : apiLink}\n\n''';
 /// Returns the markdown url link for the MDN documentation for the given DOM
 /// element name, or `null` if no documentation URL for that element exits.
 Future<String> createMdnMarkdownLink(String domName) {
-  final String baseUrl = 'https://developer.mozilla.org/en-US/docs/Web/API/';
+  final baseUrl = 'https://developer.mozilla.org/en-US/docs/Web/API/';
 
-  String domClassName =
+  var domClassName =
       domName.contains('.') ? domName.substring(0, domName.indexOf('.')) : null;
 
   return _urlExists('$baseUrl$domName').then((bool exists) {

@@ -10,6 +10,7 @@ class MaterialTabController extends TabController {
   final MDCTabBar tabBar;
   MaterialTabController(this.tabBar);
 
+  @override
   Future selectTab(String tabName) async {
     var tab = tabs.firstWhere((t) => t.name == tabName);
     var idx = tabs.indexOf(tab);

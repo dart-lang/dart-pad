@@ -395,10 +395,7 @@ class Embed {
     linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
     linearProgress.determinate = false;
 
-    _initModules()
-        .then((_) => _init())
-        .then((_) => _emitReady())
-        .then((_) {
+    _initModules().then((_) => _init()).then((_) => _emitReady()).then((_) {
       if (options.mode == EmbedMode.flutter) {
         notifyIfWebKit(dialog);
       }
@@ -479,7 +476,7 @@ class Embed {
       githubOwner.isNotEmpty && githubRepo.isNotEmpty && githubPath.isNotEmpty;
 
   Future<void> _initModules() async {
-    ModuleManager modules = ModuleManager();
+    var modules = ModuleManager();
 
     modules.register(DartPadModule());
     modules.register(DartServicesModule());
@@ -662,7 +659,7 @@ class Embed {
 
   String _getActiveSourceCode() {
     String activeSource;
-    String activeTabName = tabController.selectedTab.name;
+    var activeTabName = tabController.selectedTab.name;
 
     switch (activeTabName) {
       case 'editor':
@@ -811,7 +808,7 @@ class Embed {
 
         _displayIssues(result.issues);
 
-        Iterable<Annotation> issues = result.issues.map((AnalysisIssue issue) {
+        var issues = result.issues.map((AnalysisIssue issue) {
           final charStart = issue.charStart;
           final startLine = lines.getLineForOffset(charStart);
           final endLine = lines.getLineForOffset(charStart + issue.charLength);
@@ -834,7 +831,7 @@ class Embed {
         userCodeEditor.document.setAnnotations(issues.toList());
       }).catchError((e) {
         if (e is! TimeoutException) {
-          final String message = e is ApiRequestError ? e.message : '$e';
+          final message = e is ApiRequestError ? e.message : '$e';
 
           _displayIssues([
             AnalysisIssue()
@@ -853,12 +850,12 @@ class Embed {
   }
 
   void _format() async {
-    String originalSource = userCodeEditor.document.value;
-    SourceRequest input = SourceRequest()..source = originalSource;
+    var originalSource = userCodeEditor.document.value;
+    var input = SourceRequest()..source = originalSource;
 
     try {
       formatButton.disabled = true;
-      FormatResponse result =
+      var result =
           await dartServices.format(input).timeout(serviceCallTimeout);
 
       formatButton.disabled = false;
@@ -884,7 +881,7 @@ class Embed {
   }
 
   int get initialSplitPercent {
-    const int defaultSplitPercentage = 70;
+    const defaultSplitPercentage = 70;
 
     final url = Uri.parse(window.location.toString());
     if (!url.queryParameters.containsKey('split')) {
@@ -901,7 +898,7 @@ class Embed {
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
-    Document doc = userCodeEditor.document;
+    var doc = userCodeEditor.document;
 
     doc.select(
         doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
@@ -919,6 +916,7 @@ class EmbedTabController extends MaterialTabController {
 
   EmbedTabController(MDCTabBar tabBar, this._dialog) : super(tabBar);
 
+  @override
   void registerTab(TabElement tab) {
     tabs.add(tab);
 
@@ -939,8 +937,8 @@ class EmbedTabController extends MaterialTabController {
         'Show solution?',
         'If you just want a hint, click <span style="font-weight:bold">Cancel'
             '</span> and then <span style="font-weight:bold">Hint</span>.',
-        yesText: "Show solution",
-        noText: "Cancel",
+        yesText: 'Show solution',
+        noText: 'Cancel',
       );
       // Go back to the editor tab
       if (result == DialogResult.no) {
@@ -1109,6 +1107,7 @@ class ConsoleExpandController extends Console {
     expandButton.onClick.listen((_) => _toggleExpanded());
   }
 
+  @override
   void showOutput(String message, {bool error = false}) {
     super.showOutput(message, error: error);
     if (!_expanded && message != null) {
@@ -1116,6 +1115,7 @@ class ConsoleExpandController extends Console {
     }
   }
 
+  @override
   void clear() {
     super.clear();
     unreadCounter.clear();
@@ -1144,7 +1144,7 @@ class ConsoleExpandController extends Console {
         // TODO(ryjohn): why does this happen?
       }
     }
-    this.onSizeChanged();
+    onSizeChanged();
   }
 
   void _initSplitter() {

@@ -30,23 +30,22 @@ class DartCompleter extends CodeCompleter {
     // Cancel any open completion request.
     if (_lastCompleter != null) _lastCompleter.cancel();
 
-    int offset = editor.document.indexFromPos(editor.document.cursor);
+    var offset = editor.document.indexFromPos(editor.document.cursor);
 
     var request = SourceRequest()
       ..source = editor.document.value
       ..offset = offset;
 
-    CancellableCompleter<CompletionResult> completer =
-        CancellableCompleter<CompletionResult>();
+    var completer = CancellableCompleter<CompletionResult>();
     _lastCompleter = completer;
 
     if (onlyShowFixes) {
-      List<Completion> completions = [];
+      var completions = <Completion>[];
       var fixesFuture =
           servicesApi.fixes(request).then((FixesResponse response) {
-        for (ProblemAndFixes problemFix in response.fixes) {
-          for (CandidateFix fix in problemFix.fixes) {
-            List<SourceEdit> fixes = fix.edits.map((edit) {
+        for (var problemFix in response.fixes) {
+          for (var fix in problemFix.fixes) {
+            var fixes = fix.edits.map((edit) {
               return SourceEdit(edit.length, edit.offset, edit.replacement);
             }).toList();
 
@@ -103,24 +102,23 @@ class DartCompleter extends CodeCompleter {
       servicesApi.complete(request).then((CompleteResponse response) {
         if (completer.isCancelled) return;
 
-        int replaceOffset = response.replacementOffset;
-        int replaceLength = response.replacementLength;
+        var replaceOffset = response.replacementOffset;
+        var replaceLength = response.replacementLength;
 
-        Iterable<AnalysisCompletion> responses =
-            response.completions.map((Map completion) {
+        var responses = response.completions.map((Map completion) {
           return AnalysisCompletion(replaceOffset, replaceLength, completion);
         });
 
-        List<Completion> completions = responses.map((completion) {
+        var completions = responses.map((completion) {
           // TODO: Move to using a LabelProvider; decouple the data and rendering.
-          String displayString = completion.isMethod
+          var displayString = completion.isMethod
               ? '${completion.text}${completion.parameters}'
               : completion.text;
           if (completion.isMethod && completion.returnType != null) {
             displayString += ' → ${completion.returnType}';
           }
 
-          String text = completion.text;
+          var text = completion.text;
 
           if (completion.isMethod) {
             text += '()';
@@ -130,7 +128,7 @@ class DartCompleter extends CodeCompleter {
             displayString += '()';
           }
 
-          String deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
+          var deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
 
           if (completion.type == null) {
             return Completion(
@@ -155,8 +153,8 @@ class DartCompleter extends CodeCompleter {
         }).toList();
 
         // Removes duplicates when a completion is both a getter and a setter.
-        for (Completion completion in completions) {
-          for (Completion other in completions) {
+        for (var completion in completions) {
+          for (var other in completions) {
             if (completion.isSetterAndMatchesGetter(other)) {
               completions.removeWhere((c) => completion == c);
               other.type = 'type-getter_and_setter';

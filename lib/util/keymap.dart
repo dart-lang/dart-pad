@@ -8,10 +8,10 @@ import 'package:dart_pad/core/keys.dart';
 
 // HTML for keyboard shortcuts dialog
 String keyMapToHtml(Map<Action, Set<String>> keyMap) {
-  DListElement dl = DListElement();
+  var dl = DListElement();
   keyMap.forEach((Action action, Set<String> keys) {
     if (!action.hidden) {
-      String string = '';
+      var string = '';
       for (final key in keys) {
         if (makeKeyPresentable(key) != null) {
           string += '<span>${makeKeyPresentable(key)}</span>';

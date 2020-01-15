@@ -47,7 +47,7 @@ class SanitizingBrowserClient extends BrowserClient {
   /// Strips all disallowed headers for an HTTP request before sending it.
   @override
   Future<StreamedResponse> send(BaseRequest request) {
-    for (String headerKey in disallowedHeaders) {
+    for (var headerKey in disallowedHeaders) {
       request.headers.remove(headerKey);
     }
 

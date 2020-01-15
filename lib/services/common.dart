@@ -23,9 +23,9 @@ class Lines {
   final _starts = <int>[];
 
   Lines(String source) {
-    List<int> units = source.codeUnits;
-    bool nextIsEol = true;
-    for (int i = 0; i < units.length; i++) {
+    var units = source.codeUnits;
+    var nextIsEol = true;
+    for (var i = 0; i < units.length; i++) {
       if (nextIsEol) {
         nextIsEol = false;
         _starts.add(i);
@@ -37,7 +37,7 @@ class Lines {
   /// Return the 0-based line number.
   int getLineForOffset(int offset) {
     if (_starts.isEmpty) return 0;
-    for (int i = 1; i < _starts.length; i++) {
+    for (var i = 1; i < _starts.length; i++) {
       if (offset < _starts[i]) return i - 1;
     }
     return _starts.length - 1;

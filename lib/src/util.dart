@@ -10,10 +10,10 @@ import 'package:meta/meta.dart';
 
 /// Return whether we are running on a mobile device.
 bool isMobile() {
-  final int mobileSize = 610;
+  final mobileSize = 610;
 
-  int width = document.documentElement.clientWidth;
-  int height = document.documentElement.clientHeight;
+  var width = document.documentElement.clientWidth;
+  var height = document.documentElement.clientHeight;
 
   return width <= mobileSize || height <= mobileSize;
 }
@@ -53,7 +53,7 @@ class CancellationException implements Exception {
 
   @override
   String toString() {
-    String result = 'Request cancelled';
+    var result = 'Request cancelled';
     if (reason != null) result = '$result due to: $reason';
     return result;
   }
@@ -104,7 +104,7 @@ String capitalize(String s) {
 /// Wait [duration] time after an event to fire on the returned stream, and
 /// reset that time if a new event arrives.
 Stream<T> debounceStream<T>(Stream<T> stream, Duration duration) {
-  StreamController<T> controller = StreamController<T>.broadcast();
+  var controller = StreamController<T>.broadcast();
 
   Timer timer;
 

@@ -102,7 +102,7 @@ class _PropertyBinding implements Binding {
   StreamSubscription _sub;
 
   _PropertyBinding(this.property, this.target) {
-    Stream stream = property.onChanged;
+    var stream = property.onChanged;
     if (stream != null) _sub = stream.listen(_handleEvent);
   }
 

@@ -46,7 +46,7 @@ class Dependencies {
   /// current Zone, parent Zones, or the global instance.
   static Dependencies get instance {
     Dependencies deps = Zone.current['dependencies'];
-    return deps != null ? deps : _global;
+    return deps ?? _global;
   }
 
   final _instances = <Type, dynamic>{};
@@ -60,7 +60,7 @@ class Dependencies {
       return _instances[type];
     }
 
-    Dependencies parent = _calcParent(Zone.current);
+    var parent = _calcParent(Zone.current);
     return parent?.getDependency(type);
   }
 
@@ -81,7 +81,7 @@ class Dependencies {
   /// satisfied with this [Dependencies] object, and then delegate up to
   /// [Dependencies] for parent Zones.
   void runInZone(Function function) {
-    Zone zone = Zone.current.fork(zoneValues: {'dependencies': this});
+    var zone = Zone.current.fork(zoneValues: {'dependencies': this});
     zone.run(function);
   }
 
@@ -90,14 +90,14 @@ class Dependencies {
   Dependencies _calcParent(Zone zone) {
     if (this == _global) return null;
 
-    Zone parentZone = zone.parent;
+    var parentZone = zone.parent;
     if (parentZone == null) return _global;
 
     Dependencies deps = parentZone['dependencies'];
     if (deps == this) {
       return _calcParent(parentZone);
     } else {
-      return deps != null ? deps : _global;
+      return deps ?? _global;
     }
   }
 }

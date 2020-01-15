@@ -38,7 +38,7 @@ class Keys {
 
   void _handleKeyEvent(KeyboardEvent event) {
     try {
-      KeyboardEvent k = event;
+      var k = event;
 
       if (!k.altKey &&
           !k.ctrlKey &&
@@ -62,7 +62,7 @@ class Keys {
   }
 
   bool _handleKey(String key) {
-    Action action = _bindings[key];
+    var action = _bindings[key];
     if (action != null) {
       Timer.run(action);
       return true;
@@ -99,7 +99,7 @@ class Action {
 
 /// Convert [event] into a string (e.g., `ctrl-s`).
 String printKeyEvent(KeyboardEvent event) {
-  StringBuffer buf = StringBuffer();
+  var buf = StringBuffer();
 
   // shift ctrl alt
   if (event.shiftKey) buf.write('shift-');
@@ -117,7 +117,7 @@ String printKeyEvent(KeyboardEvent event) {
 }
 
 String makeKeyPresentable(String key) {
-  List<String> keyAsList = key.split('-');
+  var keyAsList = key.split('-');
   if (isMac()) {
     if (keyAsList.any((s) => s == 'meta')) {
       return null;

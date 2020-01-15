@@ -12,7 +12,7 @@ void main() => defineTests();
 void defineTests() {
   group('dependencies', () {
     test('retrieve dependency', () {
-      Dependencies dependency = Dependencies();
+      var dependency = Dependencies();
       expect(dependency[String], isNull);
       dependency[String] = 'foo';
       expect(dependency[String], isNotNull);
@@ -21,7 +21,7 @@ void defineTests() {
 
     test('runInZone', () {
       expect(Dependencies.instance, isNull);
-      Dependencies dependency = Dependencies();
+      var dependency = Dependencies();
       expect(Dependencies.instance, isNull);
       dependency[String] = 'foo';
       dependency.runInZone(() {
