@@ -75,5 +75,5 @@ Did DartPad print anything to the console pane? If so, paste it below:
 [paste console output here]
 ```
 
-If you were running Fltuter code, you can also paste an image of the
+If you were running Flutter code, you can also paste an image of the
 Flutter output directly into this bug report.
