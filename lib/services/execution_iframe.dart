@@ -196,7 +196,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   @override
   Stream<TestResult> get testResults => _testResultsController.stream;
 
-  Future _send(String command, Map<String,String> params) {
+  Future _send(String command, Map<String, String> params) {
     var m = {'command': command};
     m.addAll(params);
     frame.contentWindow.postMessage(m, '*');
