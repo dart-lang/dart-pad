@@ -4,6 +4,21 @@
 
 import 'dart:html';
 
+const _helloWorldSample = '''
+void main() {
+  print('Hello, World!');
+}
+    ''';
+const _functionsSample = '''
+void main() {
+  print(f());
+}
+
+String f() {
+  return 'function';
+}
+    ''';
+
 void main() {
   var dartPadHost = querySelector('#dartpad-host');
   var select = querySelector('#dartpad-select');
@@ -12,27 +27,16 @@ void main() {
 }
 
 const snippets = <Snippet>[
-  Snippet('Hello, World!', '''
-void main() {
-  print('Hello, World!');
-}
-    '''),
-  Snippet('Functions', '''
-void main() {
-  print(f());
-}
-
-String f() {
-  return 'function';
-}
-    '''),
+  Snippet('Hello, World!', _helloWorldSample, 'hello_world1'),
+  Snippet('Functions', _functionsSample, 'function1'),
 ];
 
 class Snippet {
   final String name;
   final String sourceCode;
+  final String googleAnalyticsId;
 
-  const Snippet(this.name, this.sourceCode);
+  const Snippet(this.name, this.sourceCode, this.googleAnalyticsId);
 }
 
 class DartPadPicker {
@@ -52,11 +56,12 @@ class DartPadPicker {
   Snippet get _selectedSnippet => snippets[_selected];
 
   Map<String, dynamic> get _sourceCodeMessage => {
-    'sourceCode': {
-      'main.dart': _selectedSnippet.sourceCode,
-    },
-    'type': 'sourceCode'
-  };
+        'sourceCode': {
+          'main.dart': _selectedSnippet.sourceCode,
+          'ga_id': _selectedSnippet.googleAnalyticsId,
+        },
+        'type': 'sourceCode'
+      };
 
   void _initSelectElement() {
     for (var i = 0; i < snippets.length; i++) {

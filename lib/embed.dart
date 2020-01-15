@@ -692,6 +692,9 @@ class Embed {
     context.htmlSource = sources['index.html'] ?? '';
     context.cssSource = sources['styles.css'] ?? '';
     context.hint = sources['hint.txt'] ?? '';
+    if (sources.containsKey('ga_id')) {
+      _virtualPageView(sources['ga_id']);
+    }
     tabController.setTabVisibility(
         'test', context.testMethod.isNotEmpty && _showTestCode);
     menuButton.toggleAttr('hidden', context.testMethod.isEmpty);
@@ -779,6 +782,15 @@ class Embed {
         editorIsBusy = false;
       });
     }
+  }
+
+  void _virtualPageView(String id) {
+    var url = Uri.parse(window.location.toString());
+    var newParams = Map<String, String>.from(url.queryParameters);
+    newParams['ga_id'] = id;
+    var pageName = url.replace(queryParameters: newParams);
+    var path = '${pageName.path}?${pageName.query}';
+    ga?.sendPage(pageName: path);
   }
 
   void _displayIssues(List<AnalysisIssue> issues) {
