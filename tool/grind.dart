@@ -86,14 +86,14 @@ serveCustomBackend() async {
         'to indicate the dart-services server to connect to');
   }
 
-  final String serverUrl =
+  final serverUrl =
       Platform.environment[backendVariable] ?? 'http://localhost:8002';
 
   // In all files *.dart.js in build/scripts/, replace
   // 'https://dart-services.appspot.com' with serverUrl.
-  final List<FileSystemEntity> files = [];
+  final files = <FileSystemEntity>[];
   files.addAll(_buildDir.join('scripts').asDirectory.listSync());
-  for (FileSystemEntity entity in files) {
+  for (var entity in files) {
     if (entity is! File) continue;
     if (!entity.path.endsWith('.dart.js')) continue;
 
@@ -101,7 +101,7 @@ serveCustomBackend() async {
 
     log('Rewriting server url to $serverUrl for ${file.path}');
 
-    String fileContents = file.readAsStringSync();
+    var fileContents = file.readAsStringSync();
     fileContents =
         fileContents.replaceAll('https://dart-services.appspot.com', serverUrl);
     file.writeAsStringSync(fileContents);
@@ -119,34 +119,34 @@ serveCustomBackend() async {
 build() {
   PubApp.local('build_runner').run(['build', '-r', '-o', 'web:build']);
 
-  FilePath mainFile = _buildDir.join('scripts/playground.dart.js');
+  var mainFile = _buildDir.join('scripts/playground.dart.js');
   log('$mainFile compiled to ${_printSize(mainFile)}');
 
-  FilePath testFile = _buildDir.join('test', 'web.dart.js');
+  var testFile = _buildDir.join('test', 'web.dart.js');
   if (testFile.exists) {
     log('${testFile.path} compiled to ${_printSize(testFile)}');
   }
 
-  FilePath newEmbedDartFile =
+  var newEmbedDartFile =
       _buildDir.join('scripts/embed_dart.dart.js');
   log('$newEmbedDartFile compiled to ${_printSize(newEmbedDartFile)}');
 
-  FilePath newEmbedFlutterFile =
+  var newEmbedFlutterFile =
       _buildDir.join('scripts/embed_flutter.dart.js');
   log('$newEmbedFlutterFile compiled to ${_printSize(newEmbedFlutterFile)}');
 
-  FilePath newEmbedHtmlFile =
+  var newEmbedHtmlFile =
       _buildDir.join('scripts/embed_html.dart.js');
   log('$newEmbedHtmlFile compiled to ${_printSize(newEmbedHtmlFile)}');
 
-  FilePath newEmbedInlineFile =
+  var newEmbedInlineFile =
       _buildDir.join('scripts/embed_inline.dart.js');
   log('$newEmbedInlineFile compiled to ${_printSize(newEmbedInlineFile)}');
 
   // Remove .dart files.
-  int count = 0;
+  var count = 0;
 
-  for (FileSystemEntity entity in getDir('build/packages')
+  for (var entity in getDir('build/packages')
       .listSync(recursive: true, followLinks: false)) {
     if (entity is! File) continue;
     if (!entity.path.endsWith('.dart')) continue;
@@ -166,18 +166,18 @@ build() {
 }
 
 void copyPackageResources(String packageName, Directory destDir) {
-  String text = File('.packages').readAsStringSync();
-  for (String line in text.split('\n')) {
+  var text = File('.packages').readAsStringSync();
+  for (var line in text.split('\n')) {
     line = line.trim();
     if (line.isEmpty) {
       continue;
     }
-    int index = line.indexOf(':');
-    String name = line.substring(0, index);
-    String location = line.substring(index + 1);
+    var index = line.indexOf(':');
+    var name = line.substring(0, index);
+    var location = line.substring(index + 1);
     if (name == packageName) {
       if (location.startsWith('file:')) {
-        Uri uri = Uri.parse(location);
+        var uri = Uri.parse(location);
 
         copyDirectory(Directory.fromUri(uri),
             joinDir(destDir, ['packages', packageName]));
@@ -194,9 +194,9 @@ void copyPackageResources(String packageName, Directory destDir) {
 
 // Run vulcanize
 vulcanize(String filepath) {
-  FilePath htmlFile = _buildDir.join(filepath);
+  var htmlFile = _buildDir.join(filepath);
   log('${htmlFile.path} original: ${_printSize(htmlFile)}');
-  ProcessResult result = Process.runSync(
+  var result = Process.runSync(
       'vulcanize',
       [
         '--strip-comments',
@@ -227,9 +227,9 @@ vulcanize(String filepath) {
 
 //Run vulcanize with no exclusions
 vulcanizeNoExclusion(String filepath) {
-  FilePath htmlFile = _buildDir.join(filepath);
+  var htmlFile = _buildDir.join(filepath);
   log('${htmlFile.path} original: ${_printSize(htmlFile)}');
-  ProcessResult result = Process.runSync('vulcanize',
+  var result = Process.runSync('vulcanize',
       ['--strip-comments', '--inline-css', '--inline-scripts', filepath],
       workingDirectory: _buildDir.path);
   if (result.exitCode != 0) {
@@ -247,7 +247,7 @@ coverage() {
     return;
   }
 
-  PubApp coveralls = PubApp.global('dart_coveralls');
+  var coveralls = PubApp.global('dart_coveralls');
   coveralls.run([
     'report',
     '--token',
@@ -273,8 +273,8 @@ deploy() async {
 
   Map app = yaml.loadYaml(File('web/app.yaml').readAsStringSync());
 
-  List handlers = app['handlers'];
-  bool isSecure = false;
+  var handlers = app['handlers'] as List<Map<String,String>>;
+  var isSecure = false;
 
   for (Map m in handlers) {
     if (m['url'] == '.*') {
@@ -284,7 +284,7 @@ deploy() async {
 
   final dir = await GitDir.fromExisting('.');
   final branchRef = await dir.currentBranch();
-  final String branch = branchRef.branchName;
+  final branch = branchRef.branchName;
 
   log('branch: $branch');
 

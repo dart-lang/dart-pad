@@ -15,7 +15,6 @@ import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart' as yaml;
 import '../util/detect_flutter.dart' as detect_flutter;
 
-
 final String _dartpadLink =
     '[dartpad.dartlang.org](https://dartpad.dartlang.org)';
 
@@ -44,7 +43,7 @@ String extractHtmlBody(String html) {
 }
 
 Gist createSampleDartGist() {
-  Gist gist = Gist();
+  var gist = Gist();
   // "wispy-dust-1337", "patient-king-8872", "purple-breeze-9817"
   gist.description = Haikunator.haikunate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCode));
@@ -56,7 +55,7 @@ Gist createSampleDartGist() {
 }
 
 Gist createSampleHtmlGist() {
-  Gist gist = Gist();
+  var gist = Gist();
   gist.description = Haikunator.haikunate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCodeHtml));
   gist.files.add(GistFile(name: 'index.html', content: sample.htmlCode));
@@ -69,7 +68,7 @@ Gist createSampleHtmlGist() {
 }
 
 Gist createSampleFlutterGist() {
-  Gist gist = Gist();
+  var gist = Gist();
   gist.description = Haikunator.haikunate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.flutterCode));
   gist.files.add(GistFile(
@@ -82,10 +81,10 @@ Gist createSampleFlutterGist() {
 /// Find the best match for the given file names in the gist file info; return
 /// the file (or `null` if no match is found).
 GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
-  List<GistFile> files = gist.files;
+  var files = gist.files;
 
-  for (String name in names) {
-    GistFile file = files.firstWhere((f) => f.name == name, orElse: () => null);
+  for (var name in names) {
+    var file = files.firstWhere((f) => f.name == name, orElse: () => null);
     if (file != null) return file;
   }
 
@@ -96,7 +95,7 @@ GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
   }
 }
 
-typedef void GistFilterHook(Gist gist);
+typedef GistFilterHook = void Function(Gist gist);
 
 enum GistLoaderFailureType {
   unknown,
@@ -125,24 +124,24 @@ class GistLoader {
     // Update files based on our preferred file names.
     if (gist.getFile('body.html') != null &&
         gist.getFile('index.html') == null) {
-      GistFile file = gist.getFile('body.html');
+      var file = gist.getFile('body.html');
       file.name = 'index.html';
     }
 
     if (gist.getFile('style.css') != null &&
         gist.getFile('styles.css') == null) {
-      GistFile file = gist.getFile('style.css');
+      var file = gist.getFile('style.css');
       file.name = 'styles.css';
     }
 
     if (gist.getFile('main.dart') == null &&
         gist.files.where((f) => f.name.endsWith('.dart')).length == 1) {
-      GistFile file = gist.files.firstWhere((f) => f.name.endsWith('.dart'));
+      var file = gist.files.firstWhere((f) => f.name.endsWith('.dart'));
       file.name = 'main.dart';
     }
 
     // Extract the body out of the html file.
-    GistFile htmlFile = gist.getFile('index.html');
+    var htmlFile = gist.getFile('index.html');
     if (htmlFile != null) {
       htmlFile.content = extractHtmlBody(htmlFile.content);
     }
@@ -150,16 +149,16 @@ class GistLoader {
 
   static final GistFilterHook _defaultSaveHook = (Gist gist) {
     // Create a full html file on save.
-    bool hasStyles = gist.getFile('styles.css') != null;
-    String styleRef =
+    var hasStyles = gist.getFile('styles.css') != null;
+    var styleRef =
         hasStyles ? '    <link rel="stylesheet" href="styles.css">\n' : '';
 
-    bool hasDart = gist.getFile('main.dart') != null;
-    String dartRef = hasDart
+    var hasDart = gist.getFile('main.dart') != null;
+    var dartRef = hasDart
         ? '    <script type="application/dart" src="main.dart"></script>\n'
         : '';
 
-    GistFile htmlFile = gist.getFile('index.html');
+    var htmlFile = gist.getFile('index.html');
     if (htmlFile != null) {
       htmlFile.content = '''
 <!DOCTYPE html>
@@ -179,7 +178,7 @@ $styleRef$dartRef  </head>
     }
 
     // Update the readme for this gist.
-    GistFile readmeFile = GistFile(
+    var readmeFile = GistFile(
         name: 'readme.md',
         content: _createReadmeContents(
             title: gist.description,
@@ -331,7 +330,7 @@ $styleRef$dartRef  </head>
     final gistFiles = <GistFile>[];
 
     // Responses should be in the order they're listed in the metadata.
-    for (int i = 0; i < metadata.files.length; i++) {
+    for (var i = 0; i < metadata.files.length; i++) {
       gistFiles.add(GistFile(
         name: metadata.files[i].name,
         content: responses[i],
@@ -382,7 +381,7 @@ class Gist {
     if (key == 'html_url') return htmlUrl;
     if (key == 'public') return public;
     if (key == 'summary') return summary;
-    for (GistFile file in files) {
+    for (var file in files) {
       if (file.name == key) return file.content;
     }
     return null;
@@ -400,7 +399,7 @@ class Gist {
 
   bool hasWebContent() {
     return files.any((GistFile file) {
-      final bool isWebFile =
+      final isWebFile =
           file.name.endsWith('.html') || file.name.endsWith('.css');
       return isWebFile && file.content.trim().isNotEmpty;
     });
@@ -413,13 +412,13 @@ class Gist {
   }
 
   Map toMap() {
-    Map m = {};
+    var m = <String, dynamic>{};
     if (id != null) m['id'] = id;
     if (description != null) m['description'] = description;
     if (public != null) m['public'] = public;
     if (summary != null) m['summary'] = summary;
     m['files'] = {};
-    for (GistFile file in files) {
+    for (var file in files) {
       if (file.hasContent) {
         m['files'][file.name] = {'content': file.content};
       }
@@ -463,7 +462,7 @@ class GistSummary {
 }
 
 String _createReadmeContents({String title, String summary, String withLink}) {
-  String str = '# $title\n';
+  var str = '# $title\n';
 
   if (summary != null) {
     str += '\n$summary\n';

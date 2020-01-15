@@ -35,7 +35,7 @@ class Dialog {
         _content = querySelector('#my-dialog-content');
 
   Future<DialogResult> showYesNo(String title, String htmlMessage,
-      {String yesText = "Yes", String noText = "No"}) {
+      {String yesText = 'Yes', String noText = 'No'}) {
     return _setUpAndDisplay(
       title,
       htmlMessage,
@@ -51,7 +51,7 @@ class Dialog {
       title,
       htmlMessage,
       '',
-      "OK",
+      'OK',
       DialogResult.cancel,
       DialogResult.ok,
       false,

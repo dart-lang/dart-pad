@@ -6,11 +6,11 @@
 /// `{% begin <filename> %}` and `{% end <filename> %}` markers
 class InjectParser {
   final String input;
-  RegExp _beginExp = RegExp(r'{\$ begin ([a-z.]*) \$}');
-  RegExp _endExp = RegExp(r'{\$ end ([a-z.]*) \$}');
+  final RegExp _beginExp = RegExp(r'{\$ begin ([a-z.]*) \$}');
+  final RegExp _endExp = RegExp(r'{\$ end ([a-z.]*) \$}');
   int _currentLine;
   String _currentFile;
-  Map<String, String> _tokens = {};
+  final Map<String, String> _tokens = {};
   InjectParser(this.input);
 
   /// Returns filenames and contents that were parsed from the input
@@ -22,7 +22,7 @@ class InjectParser {
     }
 
     if (_tokens.isEmpty) {
-      return {"main.dart": input.trim()};
+      return {'main.dart': input.trim()};
     }
 
     return _tokens;
@@ -64,13 +64,14 @@ class InjectParser {
   void _error(String message) {
     var errorMessage =
         'error parsing DartPad scripts on line $_currentLine: $message';
-    throw new DartPadInjectException(errorMessage);
+    throw DartPadInjectException(errorMessage);
   }
 }
 
 class DartPadInjectException implements Exception {
   final String message;
   DartPadInjectException(this.message);
+  @override
   String toString() => '$message';
 }
 

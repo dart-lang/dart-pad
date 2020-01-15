@@ -192,7 +192,7 @@ class DSplitter extends DElement {
         if (e.button != 0) {
           cancel();
         } else {
-          Point current = e.client - element.parent.client.topLeft - _offset;
+          var current = e.client - element.parent.client.topLeft - _offset;
           current -= _target.marginEdge.topLeft;
           _handleDrag(current);
         }
@@ -223,7 +223,7 @@ class DSplitter extends DElement {
 
       touchOffset ??= Point(0, 0);
 
-      Point current = e.targetTouches.first.client;
+      var current = e.targetTouches.first.client;
       current -= _target.marginEdge.topLeft - touchOffset;
       _handleDrag(current - touchOffset);
     });
@@ -239,8 +239,8 @@ class DSplitter extends DElement {
   }
 
   num _minSize(Element e) {
-    CssStyleDeclaration style = e.getComputedStyle();
-    String str = vertical ? style.minWidth : style.minHeight;
+    var style = e.getComputedStyle();
+    var str = vertical ? style.minWidth : style.minHeight;
     if (str.endsWith('px')) {
       str = str.substring(0, str.length - 2);
       return num.parse(str);
@@ -250,8 +250,8 @@ class DSplitter extends DElement {
   }
 
   num get _targetSize {
-    CssStyleDeclaration style = _target.getComputedStyle();
-    String str = vertical ? style.width : style.height;
+    var style = _target.getComputedStyle();
+    var str = vertical ? style.width : style.height;
     if (str.endsWith('px')) {
       str = str.substring(0, str.length - 2);
       return num.parse(str);
@@ -261,7 +261,7 @@ class DSplitter extends DElement {
   }
 
   set _targetSize(num size) {
-    final num currentPos = _controller.hasListener ? position : null;
+    final currentPos = _controller.hasListener ? position : null;
 
     size = math.max(size, _minSize(_target));
 
@@ -276,7 +276,7 @@ class DSplitter extends DElement {
     }
 
     if (_controller.hasListener) {
-      num newPos = position;
+      var newPos = position;
       if (currentPos != newPos) _controller.add(newPos);
     }
   }
@@ -564,9 +564,9 @@ class TabController {
 
   /// This method will throw if the tabName is not the name of a current tab.
   void selectTab(String tabName) {
-    TabElement tab = tabs.firstWhere((t) => t.name == tabName);
+    var tab = tabs.firstWhere((t) => t.name == tabName);
 
-    for (TabElement t in tabs) {
+    for (var t in tabs) {
       t.toggleAttr('selected', t == tab);
     }
 

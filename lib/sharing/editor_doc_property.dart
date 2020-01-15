@@ -16,7 +16,7 @@ class EditorDocumentProperty implements Property {
 
   @override
   void set(str) {
-    document.value = str == null ? '' : str;
+    document.value = str ?? '';
   }
 
   @override

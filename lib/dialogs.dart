@@ -36,7 +36,7 @@ class OkCancelDialog extends DDialog {
 class AboutDialog extends DDialog {
   AboutDialog([String versionText]) : super(title: 'About DartPad') {
     ParagraphElement p = content.add(ParagraphElement());
-    String text = privacyText;
+    var text = privacyText;
     if (versionText != null) text += ' Based on Dart SDK $versionText.';
     p.setInnerHtml(text, validator: PermissiveNodeValidator());
 
@@ -124,7 +124,7 @@ class SharingDialog extends DDialog {
       ..readonly()
       ..value =
           "<iframe src='https://$home/embed-dart.html?id=${gistContainer.mutableGist.id}' "
-          "style='height:300px;width:100%;' frameborder='0'></iframe>";
+              "style='height:300px;width:100%;' frameborder='0'></iframe>";
     _embedUrl.onClick.listen((_) => _embedUrl.selectAll());
     div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
     _embedArea = div.add(DElement.tag('div'))
@@ -226,7 +226,7 @@ class SharingDialog extends DDialog {
       _text.text =
           'Share the DartPad link or view the source at gist.github.com:';
       _textArea.style.display = 'none';
-      MutableGist gist = gistContainer.mutableGist;
+      var gist = gistContainer.mutableGist;
       content.add(_div);
       _padUrl.value = 'https://dartpad.dartlang.org/${gist.id}';
       _gistUrl.value = gist.htmlUrl;
@@ -248,10 +248,10 @@ class KeysDialog extends DDialog {
   }
 
   DListElement get keyMapToHtml {
-    DListElement dl = DListElement();
+    var dl = DListElement();
     keyMap.forEach((Action action, Set<String> keys) {
       if (!action.hidden) {
-        String string = '';
+        var string = '';
         for (final key in keys) {
           if (makeKeyPresentable(key) != null) {
             string += '<span>${makeKeyPresentable(key)}</span>';

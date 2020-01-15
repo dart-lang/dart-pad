@@ -106,8 +106,8 @@ void defineTests() {
     });
 
     test('clone', () {
-      Gist gist = Gist(id: '2342jh2jh3g4', description: 'test gist');
-      Gist clone = gist.clone();
+      var gist = Gist(id: '2342jh2jh3g4', description: 'test gist');
+      var clone = gist.clone();
       expect(clone.id, gist.id);
       expect(clone.description, gist.description);
     });
@@ -115,7 +115,7 @@ void defineTests() {
 
   group('GistStorage', () {
     test('store', () {
-      GistStorage storage = GistStorage();
+      var storage = GistStorage();
       storage.setStoredGist(createSampleDartGist());
       expect(storage.hasStoredGist, true);
       expect(storage.getStoredGist(), isNotNull);
@@ -123,7 +123,7 @@ void defineTests() {
     });
 
     test('clear', () {
-      GistStorage storage = GistStorage();
+      var storage = GistStorage();
       storage.setStoredGist(createSampleDartGist());
       expect(storage.hasStoredGist, true);
       storage.clearStoredGist();

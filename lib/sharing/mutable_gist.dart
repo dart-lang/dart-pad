@@ -55,7 +55,7 @@ class MutableGist implements PropertyOwner {
   Gist get backingGist => _backingGist;
 
   void setBackingGist(Gist newGist, {bool wipeState = true}) {
-    bool wasDirty = dirty;
+    var wasDirty = dirty;
     if (wipeState) _localValues.clear();
     _backingGist = newGist;
     if (wasDirty != dirty) _dirtyChangedController.add(dirty);
@@ -82,9 +82,9 @@ class MutableGist implements PropertyOwner {
   Property property(String name) => _MutableGistProperty(this, name);
 
   Gist createGist({String summary}) {
-    Gist gist = Gist(description: description, id: id, public: public);
+    var gist = Gist(description: description, id: id, public: public);
     gist.htmlUrl = htmlUrl;
-    for (MutableGistFile file in getFiles()) {
+    for (var file in getFiles()) {
       gist.files.add(GistFile(name: file.name, content: file.content));
     }
     if (summary != null) gist.summary = summary;
@@ -92,7 +92,7 @@ class MutableGist implements PropertyOwner {
   }
 
   void reset() {
-    bool wasDirty = dirty;
+    var wasDirty = dirty;
     _localValues.clear();
     if (wasDirty != dirty) _dirtyChangedController.add(dirty);
     _changedController.add(null);
@@ -104,7 +104,7 @@ class MutableGist implements PropertyOwner {
   }
 
   void _setProperty(String key, String data) {
-    bool wasDirty = dirty;
+    var wasDirty = dirty;
     _localValues[key] = data;
     if (_localValues[key] == _backingGist[key]) _localValues.remove(key);
     if (wasDirty != dirty) _dirtyChangedController.add(dirty);

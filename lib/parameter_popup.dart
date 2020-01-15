@@ -69,21 +69,21 @@ class ParameterPopup {
   }
 
   void _lookupParameterInfo() {
-    int offset = editor.document.indexFromPos(editor.document.cursor);
-    String source = editor.document.value;
-    Map<String, int> parInfo = _parameterInfo(source, offset);
+    var offset = editor.document.indexFromPos(editor.document.cursor);
+    var source = editor.document.value;
+    var parInfo = _parameterInfo(source, offset);
 
     if (parInfo == null) {
       remove();
       return;
     }
 
-    int openingParenIndex = parInfo['openingParenIndex'];
-    int parameterIndex = parInfo['parameterIndex'];
+    var openingParenIndex = parInfo['openingParenIndex'];
+    var parameterIndex = parInfo['parameterIndex'];
     offset = openingParenIndex - 1;
 
     // We request documentation info of what is before the parenthesis.
-    SourceRequest input = SourceRequest()
+    var input = SourceRequest()
       ..source = source
       ..offset = offset;
 
@@ -96,8 +96,8 @@ class ParameterPopup {
         return;
       }
 
-      List parameterInfo = result.info['parameters'] as List;
-      String outputString = '';
+      var parameterInfo = result.info['parameters'] as List;
+      var outputString = '';
       if (parameterInfo.isEmpty) {
         outputString += '<code>&lt;no parameters&gt;</code>';
       } else if (parameterInfo.length < parameterIndex + 1) {
@@ -105,7 +105,7 @@ class ParameterPopup {
       } else {
         outputString += '<code>';
 
-        for (int i = 0; i < parameterInfo.length; i++) {
+        for (var i = 0; i < parameterInfo.length; i++) {
           if (i == parameterIndex) {
             outputString += '<em>${sanitizer.convert(parameterInfo[i])}</em>';
           } else {
@@ -131,18 +131,18 @@ class ParameterPopup {
   }
 
   void _showParameterPopup(String string, int methodOffset) {
-    DivElement editorDiv = querySelector('#editpanel .CodeMirror');
-    String lineHeightStr =
+    var editorDiv = querySelector('#editpanel .CodeMirror') as DivElement;
+    var lineHeightStr =
         editorDiv.getComputedStyle().getPropertyValue('line-height');
-    num lineHeight =
+    var lineHeight =
         int.parse(lineHeightStr.substring(0, lineHeightStr.indexOf('px')));
     // var charWidth = editorDiv.getComputedStyle().getPropertyValue('letter-spacing');
-    int charWidth = 8;
+    var charWidth = 8;
 
-    Position methodPosition = editor.document.posFromIndex(methodOffset);
-    Point cursorCoords = editor.getCursorCoords();
-    Point methodCoords = editor.getCursorCoords(position: methodPosition);
-    int heightOfMethod = (methodCoords.y - lineHeight - 5).round();
+    var methodPosition = editor.document.posFromIndex(methodOffset);
+    var cursorCoords = editor.getCursorCoords();
+    var methodCoords = editor.getCursorCoords(position: methodPosition);
+    var heightOfMethod = (methodCoords.y - lineHeight - 5).round();
 
     DivElement parameterPopup;
     if (parPopupActive) {
@@ -150,7 +150,7 @@ class ParameterPopup {
       parameterHint.innerHtml = string;
 
       //update popup position
-      int newLeft = math
+      var newLeft = math
           .max(cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22)
           .round();
 
@@ -166,7 +166,7 @@ class ParameterPopup {
       var parameterHint = SpanElement()
         ..innerHtml = string
         ..classes.add('parameter-hint');
-      int left = math
+      var left = math
           .max(cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22)
           .round();
       parameterPopup = DivElement()
@@ -191,9 +191,9 @@ class ParameterPopup {
   /// For example, if the source is `substring(1, <caret>)`, it will return
   /// `{openingParenIndex: 9, parameterIndex: 1}`.
   Map<String, int> _parameterInfo(String source, int offset) {
-    int parameterIndex = 0;
-    int openingParenIndex;
-    int nesting = 0;
+    var parameterIndex = 0;
+    var openingParenIndex;
+    var nesting = 0;
 
     while (openingParenIndex == null && offset > 0) {
       offset += -1;
