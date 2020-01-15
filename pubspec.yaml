@@ -24,11 +24,7 @@ dependencies:
   split: ^0.0.6
   html_unescape: ^1.0.0
   sass_builder: ^2.1.0
-  mdc_web:
-    # https://github.com/jifalops/mdc_web/issues/8
-    git:
-      url: git://github.com/jifalops/mdc_web.git
-      ref: 0ac7d5b4386863d91ec397600a326e622031513f
+  mdc_web: ^0.5.0-pre
   yaml: ^2.2.0
 
 dev_dependencies:

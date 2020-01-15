@@ -361,11 +361,9 @@ packages:
   mdc_web:
     dependency: "direct main"
     description:
-      path: "."
-      ref: "0ac7d5b4386863d91ec397600a326e622031513f"
-      resolved-ref: "0ac7d5b4386863d91ec397600a326e622031513f"
-      url: "git://github.com/jifalops/mdc_web.git"
-    source: git
+      name: mdc_web
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "0.5.0-pre"
   meta:
     dependency: "direct main"
