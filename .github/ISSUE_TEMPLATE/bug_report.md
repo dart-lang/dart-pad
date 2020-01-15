@@ -23,8 +23,9 @@ assignees: ''
 ## What happened?
 
 <!-- 
-    Let us know what you expected to happen and what DartPad
-    actually did.
+    Let us know what you expected to happen and what DartPad actually did.
+    You're welcome to paste screenshots into this bug report if it will help
+    us diagnose the problem.
 -->
 
 ## Steps to reproduce problem
@@ -41,12 +42,14 @@ Browser:
 
 Version:
 
-Are you using any extensions/plugins that affect website behavior (particularly those that affect iframes, such as ad blockers)?
+Are you using any extensions/plugins that affect website behavior
+(particularly those that affect iframes, such as ad blockers)?
 
-Are there any warnings or errors in your browser's JavaScript console? If so, paste them below:
+Are there any warnings or errors in your browser's JavaScript console?
+If so, paste them below:
 
 ```
-[paste console output here]
+[paste warnings or errors here]
 ```
 
 ### Machine
@@ -57,8 +60,20 @@ Version:
 
 ### Your code
 
-What code was in the editor, if any, when the failure occurred? You can paste it in below:
+What code was in the editor, if any, when the failure occurred? You
+can paste it in below:
 
 ```
 // Paste code here.
 ```
+
+### DartPad's output
+
+Did DartPad print anything to the console pane? If so, paste it below:
+
+```
+[paste console output here]
+```
+
+If you were running Fltuter code, you can also paste an image of the
+Flutter output directly into this bug report.
