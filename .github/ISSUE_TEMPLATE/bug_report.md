@@ -10,12 +10,14 @@ assignees: ''
 <!-- 
     Thank you for using DartPad!
 
-    If you've run into a problem while trying to edit or run code in DartPad,
-    we'd like to help. By providing as much information as possible about
-    your browser, machine, and experience, you can help us identify 
-    problems as quickly as possible.
+    If you haven't already, please check our troubleshooting guide for info
+    on resolving common problems people may run into when using DartPad:
+    
+    https://dart.dev/tools/dartpad/troubleshoot
 
-    Please looks through the questions below and answer as many as you can.
+    If you're still having an issue, we'd like to help. By providing as much
+    information as possible about your browser, machine, and experience,
+    you can help us identify problems as quickly as possible.
 -->
 
 ## What happened?
@@ -41,7 +43,11 @@ Version:
 
 Are you using any extensions/plugins that affect website behavior (particularly those that affect iframes, such as ad blockers)?
 
-Are there any warnings or errors in your browser's JavaScript console?
+Are there any warnings or errors in your browser's JavaScript console? If so, paste them below:
+
+```
+[paste console output here]
+```
 
 ### Machine
 
@@ -54,5 +60,5 @@ Version:
 What code was in the editor, if any, when the failure occurred? You can paste it in below:
 
 ```
-// code goes here
+// Paste code here.
 ```
