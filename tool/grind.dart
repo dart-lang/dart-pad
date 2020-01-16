@@ -269,10 +269,10 @@ deploy() async {
 
   var app = yaml.loadYaml(File('web/app.yaml').readAsStringSync()) as Map;
 
-  var handlers = app['handlers'] as List<Map<String, String>>;
+  var handlers = app['handlers'];
   var isSecure = false;
 
-  for (Map m in handlers) {
+  for (var m in handlers) {
     if (m['url'] == '.*') {
       isSecure = m['secure'] == 'always';
     }
