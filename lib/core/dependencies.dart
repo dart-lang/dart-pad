@@ -84,7 +84,7 @@ class Dependencies {
   /// [Dependencies] for parent Zones.
   void runInZone(VoidFunc function) {
     var zone = Zone.current.fork(zoneValues: {'dependencies': this});
-    zone.run<void>(function);
+    zone.run(function);
   }
 
   /// Determine the [Dependencies] instance that is the logical parent of the
