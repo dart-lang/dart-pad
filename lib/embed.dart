@@ -461,6 +461,14 @@ class Embed {
   // ID of an API Doc sample that should be loaded into the editors.
   String get sampleId => _getQueryParam('sample_id');
 
+  // An optional channel indicating which version of the API Docs to use when
+  // loading a sample.
+  //
+  // If this value is "master", the sample will be loaded from the master API
+  // Doc server. All other values will result in a sample loaded from the stable
+  // server (api.flutter.dev).
+  String get sampleChannel => _getQueryParam('sample_channel');
+
   // GitHub params for loading an exercise from a repo. The first three are
   // required to load something, while the fourth, gh_ref, is an optional branch
   // name or commit SHA.
@@ -573,7 +581,8 @@ class Embed {
       if (gistId.isNotEmpty) {
         gist = await loader.loadGist(gistId);
       } else if (sampleId.isNotEmpty) {
-        gist = await loader.loadGistFromAPIDocs(sampleId);
+        final useMaster = sampleChannel?.toLowerCase() == 'master';
+        gist = await loader.loadGistFromAPIDocs(sampleId, useMaster);
       } else {
         gist = await loader.loadGistFromRepo(
           owner: githubOwner,
@@ -855,8 +864,7 @@ class Embed {
 
     try {
       formatButton.disabled = true;
-      var result =
-          await dartServices.format(input).timeout(serviceCallTimeout);
+      var result = await dartServices.format(input).timeout(serviceCallTimeout);
 
       formatButton.disabled = false;
 

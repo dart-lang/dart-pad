@@ -118,7 +118,9 @@ class GistLoader {
   static const String _repoContentsAuthority = 'api.github.com';
   static const String _metadataFilename = 'dartpad_metadata.yaml';
 
-  static const String _apiDocsUrl = 'https://api.flutter.dev/snippets';
+  static const String _stableApiDocsUrl = 'https://api.flutter.dev/snippets';
+  static const String _masterApiDocsUrl =
+      'https://master-api.flutter.dev/snippets';
 
   static final GistFilterHook _defaultLoadHook = (Gist gist) {
     // Update files based on our preferred file names.
@@ -223,8 +225,12 @@ $styleRef$dartRef  </head>
     return gist;
   }
 
-  Future<Gist> loadGistFromAPIDocs(String sampleId) async {
-    final response = await _client.get('$_apiDocsUrl/$sampleId.dart');
+  Future<Gist> loadGistFromAPIDocs(String sampleId, bool useMaster) async {
+    final sampleUrl = useMaster
+        ? '$_masterApiDocsUrl/$sampleId.dart'
+        : '$_stableApiDocsUrl/$sampleId.dart';
+
+    final response = await _client.get(sampleUrl);
 
     if (response.statusCode == 404) {
       throw const GistLoaderException(GistLoaderFailureType.contentNotFound);

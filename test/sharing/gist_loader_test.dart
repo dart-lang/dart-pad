@@ -17,7 +17,9 @@ void defineTests() {
         case 'https://api.github.com/gists/12345678901234567890123456789012':
           return Future.value(http.Response(validGist, 200));
         case 'https://api.flutter.dev/snippets/material.AppBar.1.dart':
-          return Future.value(http.Response(validSample, 200));
+          return Future.value(http.Response(stableAPIDocSample, 200));
+        case 'https://master-api.flutter.dev/snippets/material.AppBar.1.dart':
+          return Future.value(http.Response(masterAPIDocSample, 200));
         case 'https://api.github.com/repos/owner/repo/contents/basic/dartpad_metadata.yaml':
           return Future.value(http.Response(basicDartMetadata, 200));
         case 'https://api.github.com/repos/owner/repo/contents/alt_branch/dartpad_metadata.yaml?ref=some_branch':
@@ -90,11 +92,19 @@ void defineTests() {
       });
     });
     group('Loading by sample ID', () {
-      test('Returns valid gist for valid sample id', () async {
+      test('Returns stable version gist for stable sample id', () async {
         final loader = GistLoader(client: mockClient);
-        final gist = await loader.loadGistFromAPIDocs('material.AppBar.1');
+        final gist =
+            await loader.loadGistFromAPIDocs('material.AppBar.1', false);
         final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
-        expect(contents.content, processedSample);
+        expect(contents.content, stableAPIDocSample);
+      });
+      test('Returns master version gist for master sample id', () async {
+        final loader = GistLoader(client: mockClient);
+        final gist =
+            await loader.loadGistFromAPIDocs('material.AppBar.1', true);
+        final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
+        expect(contents.content, masterAPIDocSample);
       });
       test('Throws correct exception for nonexistent sample', () async {
         final loader = GistLoader(client: mockClient);
@@ -261,169 +271,10 @@ final validGist = '''
 }
 ''';
 
-final validSample = '''
-// Flutter code sample for
-
-// This sample shows an [AppBar] with two simple actions. The first action
-// opens a [SnackBar], while the second action navigates to a new page.
-
-import 'package:flutter/material.dart';
-
-void main() => runApp(MyApp());
-
-/// This Widget is the main application widget.
-class MyApp extends StatelessWidget {
-  static const String _title = 'Flutter Code Sample';
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: _title,
-      home: MyStatelessWidget(),
-    );
-  }
-}
-
-final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-final SnackBar snackBar = const SnackBar(content: Text('Showing Snackbar'));
-
-void openPage(BuildContext context) {
-  Navigator.push(context, MaterialPageRoute(
-    builder: (BuildContext context) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Next page'),
-        ),
-        body: const Center(
-          child: Text(
-            'This is the next page',
-            style: TextStyle(fontSize: 24),
-          ),
-        ),
-      );
-    },
-  ));
-}
-
-/// This is the stateless widget that the main application instantiates.
-class MyStatelessWidget extends StatelessWidget {
-  MyStatelessWidget({Key key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      key: scaffoldKey,
-      appBar: AppBar(
-        title: const Text('AppBar Demo'),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.add_alert),
-            tooltip: 'Show Snackbar',
-            onPressed: () {
-              scaffoldKey.currentState.showSnackBar(snackBar);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.navigate_next),
-            tooltip: 'Next page',
-            onPressed: () {
-              openPage(context);
-            },
-          ),
-        ],
-      ),
-      body: const Center(
-        child: Text(
-          'This is the home page',
-          style: TextStyle(fontSize: 24),
-        ),
-      ),
-    );
-  }
-}
-''';
-
-final processedSample = '''
-// Flutter code sample for
-
-// This sample shows an [AppBar] with two simple actions. The first action
-// opens a [SnackBar], while the second action navigates to a new page.
-
-import 'package:flutter/material.dart';
-
-void main() => runApp(MyApp());
-
-/// This Widget is the main application widget.
-class MyApp extends StatelessWidget {
-  static const String _title = 'Flutter Code Sample';
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: _title,
-      home: MyStatelessWidget(),
-    );
-  }
-}
-
-final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-final SnackBar snackBar = const SnackBar(content: Text('Showing Snackbar'));
-
-void openPage(BuildContext context) {
-  Navigator.push(context, MaterialPageRoute(
-    builder: (BuildContext context) {
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('Next page'),
-        ),
-        body: const Center(
-          child: Text(
-            'This is the next page',
-            style: TextStyle(fontSize: 24),
-          ),
-        ),
-      );
-    },
-  ));
-}
-
-/// This is the stateless widget that the main application instantiates.
-class MyStatelessWidget extends StatelessWidget {
-  MyStatelessWidget({Key key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      key: scaffoldKey,
-      appBar: AppBar(
-        title: const Text('AppBar Demo'),
-        actions: <Widget>[
-          IconButton(
-            icon: const Icon(Icons.add_alert),
-            tooltip: 'Show Snackbar',
-            onPressed: () {
-              scaffoldKey.currentState.showSnackBar(snackBar);
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.navigate_next),
-            tooltip: 'Next page',
-            onPressed: () {
-              openPage(context);
-            },
-          ),
-        ],
-      ),
-      body: const Center(
-        child: Text(
-          'This is the home page',
-          style: TextStyle(fontSize: 24),
-        ),
-      ),
-    );
-  }
-}
-''';
+final stableAPIDocSample =
+    'This is some sample code from the stable API Doc server.';
+final masterAPIDocSample =
+    'This is some sample code from the master API Doc server.';
 
 /// Create a GitHub API-like contents response for the provided content.
 String _createContentsJson(String content) {
