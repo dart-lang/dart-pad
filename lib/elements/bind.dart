@@ -26,10 +26,10 @@ Binding bind(from, to) {
 
 /// A `Property` is able to get its value, change its value, and report changes
 /// to its value.
-abstract class Property {
-  dynamic get();
-  void set(value);
-  Stream get onChanged;
+abstract class Property<T> {
+  T get();
+  void set(T value);
+  Stream<T> get onChanged;
 }
 
 /// A [Property] backed by a getter and setter pair. Currently it cannot report

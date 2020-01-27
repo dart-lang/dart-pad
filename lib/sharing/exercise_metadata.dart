@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:yaml/yaml.dart' as yaml;
+
 /// An exception thrown when a metadata file has missing or invalid fields.
 class MetadataException implements Exception {
   final String message;
@@ -33,17 +35,19 @@ class ExerciseFileMetadata {
   String get path =>
       (alternatePath == null || alternatePath.isEmpty) ? name : alternatePath;
 
-  ExerciseFileMetadata.fromMap(Map<String, dynamic> map) {
+  ExerciseFileMetadata.fromMap(map) {
     if (map == null) {
       throw MetadataException('Null json was given to ExerciseFileMetadata().');
     }
 
-    if (map['name'] == null || map['name'] is! String || map['name'].isEmpty) {
+    if (map['name'] == null ||
+        map['name'] is! String ||
+        map['name'].isEmpty as bool) {
       throw MetadataException('The "name" field is required for each file.');
     }
 
-    name = map['name'];
-    alternatePath = map['alternatePath'];
+    name = map['name'] as String;
+    alternatePath = map['alternatePath'] as String;
   }
 }
 
@@ -57,12 +61,14 @@ class ExerciseMetadata {
   ExerciseMode mode;
   List<ExerciseFileMetadata> files;
 
-  ExerciseMetadata.fromMap(Map<String, dynamic> map) {
+  ExerciseMetadata.fromMap(map) {
     if (map == null) {
       throw MetadataException('Null json was given to ExerciseMetadata().');
     }
 
-    if (map['name'] == null || map['name'] is! String || map['name'].isEmpty) {
+    if (map['name'] == null ||
+        map['name'] is! String ||
+        map['name'].isEmpty as bool) {
       throw MetadataException('The "name" field is required for an exercise.');
     }
 
@@ -75,15 +81,15 @@ class ExerciseMetadata {
 
     if (map['files'] == null ||
         map['files'] is! List<dynamic> ||
-        map['files'].isEmpty) {
+        map['files'].isEmpty as bool) {
       throw MetadataException('Each exercise must have at least one file in '
           'its "files" array.');
     }
 
-    name = map['name'];
+    name = map['name'] as String;
     mode = exerciseModeNames[map['mode']];
-    files = (map['files'] as Iterable<dynamic>)
-        .map((f) => ExerciseFileMetadata.fromMap(Map.from(f)))
+    files = (map['files'] as yaml.YamlList)
+        .map((f) => ExerciseFileMetadata.fromMap(f))
         .toList();
   }
 }

@@ -5,7 +5,7 @@
 import '../elements/bind.dart';
 import 'mutable_gist.dart';
 
-class GistFileProperty implements Property {
+class GistFileProperty implements Property<String> {
   final MutableGistFile file;
 
   GistFileProperty(this.file);
@@ -21,5 +21,5 @@ class GistFileProperty implements Property {
   }
 
   @override
-  Stream get onChanged => file.onChanged.map((value) => value);
+  Stream<String> get onChanged => file.onChanged.map((value) => value);
 }

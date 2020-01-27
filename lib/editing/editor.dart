@@ -75,8 +75,8 @@ abstract class Editor {
   void dispose() {}
 }
 
-abstract class Document {
-  final Editor editor;
+abstract class Document<E extends Editor> {
+  final E editor;
 
   Document(this.editor);
 

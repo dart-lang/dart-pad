@@ -67,7 +67,7 @@ class CancellableCompleter<T> implements Completer {
 
   @override
   void complete([value]) {
-    if (!_cancelled) _completer.complete(value);
+    if (!_cancelled) _completer.complete(value as FutureOr<T>);
   }
 
   @override

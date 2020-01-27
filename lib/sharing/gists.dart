@@ -89,7 +89,7 @@ GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
   }
 
   if (matcher != null) {
-    return files.firstWhere((f) => matcher(f.name), orElse: () => null);
+    return files.firstWhere((f) => matcher(f.name) as bool, orElse: () => null);
   } else {
     return null;
   }
@@ -214,7 +214,8 @@ $styleRef$dartRef  </head>
       throw const GistLoaderException(GistLoaderFailureType.unknown);
     }
 
-    final gist = Gist.fromMap(json.decode(response.body));
+    final gist =
+        Gist.fromMap(json.decode(response.body) as Map<String, dynamic>);
 
     if (afterLoadHook != null) {
       afterLoadHook(gist);
@@ -296,7 +297,7 @@ $styleRef$dartRef  </head>
         throw FormatException();
       }
 
-      metadata = ExerciseMetadata.fromMap(Map<String, dynamic>.from(yamlMap));
+      metadata = ExerciseMetadata.fromMap(yamlMap);
     } on MetadataException catch (ex) {
       throw GistLoaderException(GistLoaderFailureType.invalidExerciseMetadata,
           'Issue parsing metadata: $ex');
@@ -365,14 +366,15 @@ class Gist {
     files ??= [];
   }
 
-  Gist.fromMap(Map map) {
-    id = map['id'];
-    description = map['description'];
-    public = map['public'];
-    htmlUrl = map['html_url'];
-    summary = map['summary'];
-    Map f = map['files'];
-    files = f.keys.map((key) => GistFile.fromMap(key, f[key])).toList();
+  Gist.fromMap(Map<String, dynamic> map) {
+    id = map['id'] as String;
+    description = map['description'] as String;
+    public = map['public'] as bool;
+    htmlUrl = map['html_url'] as String;
+    summary = map['summary'] as String;
+    var f = map['files'];
+    files = List<GistFile>.from(f.keys
+        .map((key) => GistFile.fromMap(key as String, f[key])) as Iterable);
   }
 
   dynamic operator [](String key) {
@@ -428,7 +430,7 @@ class Gist {
 
   String toJson() => json.encode(toMap());
 
-  Gist clone() => Gist.fromMap(json.decode(toJson()));
+  Gist clone() => Gist.fromMap(json.decode(toJson()) as Map<String, dynamic>);
 
   @override
   String toString() => id;
@@ -440,8 +442,8 @@ class GistFile {
 
   GistFile({this.name, this.content});
 
-  GistFile.fromMap(this.name, Map data) {
-    content = data['content'];
+  GistFile.fromMap(this.name, data) {
+    content = data['content'] as String;
   }
 
   bool get hasContent => content != null && content.trim().isNotEmpty;

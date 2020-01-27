@@ -128,15 +128,15 @@ class DocHandler {
   }
 
   Future<_DocResult> _getHtmlTextFor(DocumentResponse result) {
-    Map info = result.info;
+    var info = result.info;
 
     if (info['description'] == null && info['dartdoc'] == null) {
       return Future.value(_DocResult(''));
     }
 
-    var libraryName = info['libraryName'] as String;
-    var domName = info['DomName'] as String;
-    var kind = info['kind'] as String;
+    var libraryName = info['libraryName'];
+    var domName = info['DomName'];
+    var kind = info['kind'];
     var hasDartdoc = info['dartdoc'] != null;
     var isHtmlLib = libraryName == 'dart:html';
     var isVariable = kind.contains('variable');

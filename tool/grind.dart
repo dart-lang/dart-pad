@@ -18,7 +18,7 @@ final FilePath _pkgDir = FilePath('third_party/pkg');
 final FilePath _routeDir = FilePath('third_party/pkg/route.dart');
 final FilePath _haikunatorDir = FilePath('third_party/pkg/haikunatordart');
 
-Map get _env => Platform.environment;
+Map<String, String> get _env => Platform.environment;
 
 main(List<String> args) => grind(args);
 
@@ -97,7 +97,7 @@ serveCustomBackend() async {
     if (entity is! File) continue;
     if (!entity.path.endsWith('.dart.js')) continue;
 
-    final File file = entity;
+    final file = entity as File;
 
     log('Rewriting server url to $serverUrl for ${file.path}');
 
@@ -216,7 +216,7 @@ vulcanize(String filepath) {
   if (result.exitCode != 0) {
     fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
   }
-  htmlFile.asFile.writeAsStringSync(result.stdout);
+  htmlFile.asFile.writeAsStringSync(result.stdout as String);
 
   log('${htmlFile.path} vulcanize: ${_printSize(htmlFile)}');
 }
@@ -231,7 +231,7 @@ vulcanizeNoExclusion(String filepath) {
   if (result.exitCode != 0) {
     fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
   }
-  htmlFile.asFile.writeAsStringSync(result.stdout);
+  htmlFile.asFile.writeAsStringSync(result.stdout as String);
 
   log('${htmlFile.path} vulcanize: ${_printSize(htmlFile)}');
 }
@@ -267,7 +267,7 @@ deploy() async {
   // `dev` is served from dev.dart-pad.appspot.com
   // `prod` is served from prod.dart-pad.appspot.com and from dartpad.dartlang.org.
 
-  Map app = yaml.loadYaml(File('web/app.yaml').readAsStringSync());
+  var app = yaml.loadYaml(File('web/app.yaml').readAsStringSync()) as Map;
 
   var handlers = app['handlers'];
   var isSecure = false;

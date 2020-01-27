@@ -144,27 +144,33 @@ class Playground implements GistContainer, GistController {
     });
   }
 
-  DivElement get _editorHost => querySelector('#editor-host');
+  DivElement get _editorHost => querySelector('#editor-host') as DivElement;
 
-  DivElement get _rightConsoleElement => querySelector('#right-output-panel');
+  DivElement get _rightConsoleElement =>
+      querySelector('#right-output-panel') as DivElement;
 
   DivElement get _rightConsoleContentElement =>
-      querySelector('#right-output-panel-content');
+      querySelector('#right-output-panel-content') as DivElement;
 
-  DivElement get _leftConsoleElement => querySelector('#left-output-panel');
+  DivElement get _leftConsoleElement =>
+      querySelector('#left-output-panel') as DivElement;
 
-  IFrameElement get _frame => querySelector('#frame');
+  IFrameElement get _frame => querySelector('#frame') as IFrameElement;
 
-  DivElement get _rightDocPanel => querySelector('#right-doc-panel');
+  DivElement get _rightDocPanel =>
+      querySelector('#right-doc-panel') as DivElement;
 
   DivElement get _rightDocContentElement =>
-      querySelector('#right-doc-panel-content');
+      querySelector('#right-doc-panel-content') as DivElement;
 
-  DivElement get _leftDocPanel => querySelector('#left-doc-panel');
+  DivElement get _leftDocPanel =>
+      querySelector('#left-doc-panel') as DivElement;
 
-  DivElement get _editorPanelHeader => querySelector('#editor-panel-header');
+  DivElement get _editorPanelHeader =>
+      querySelector('#editor-panel-header') as DivElement;
 
-  DivElement get _editorPanelFooter => querySelector('#editor-panel-footer');
+  DivElement get _editorPanelFooter =>
+      querySelector('#editor-panel-footer') as DivElement;
 
   bool get _isCompletionActive => editor.completionActive;
 
@@ -209,26 +215,32 @@ class Playground implements GistContainer, GistController {
   }
 
   void _initButtons() {
-    newButton = MDCButton(querySelector('#new-button'))
+    newButton = MDCButton(querySelector('#new-button') as ButtonElement)
       ..onClick.listen((_) => _showCreateGistDialog());
-    resetButton = MDCButton(querySelector('#reset-button'))
+    resetButton = MDCButton(querySelector('#reset-button') as ButtonElement)
       ..onClick.listen((_) => _showResetDialog());
-    formatButton = MDCButton(querySelector('#format-button'))
+    formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
       ..onClick.listen((_) => _format());
-    samplesButton = MDCButton(querySelector('#samples-dropdown-button'))
-      ..onClick.listen((e) {
-        samplesMenu.open = !samplesMenu.open;
-      });
+    samplesButton =
+        MDCButton(querySelector('#samples-dropdown-button') as ButtonElement)
+          ..onClick.listen((e) {
+            samplesMenu.open = !samplesMenu.open;
+          });
 
-    runButton = MDCButton(querySelector('#run-button'))
+    runButton = MDCButton(querySelector('#run-button') as ButtonElement)
       ..onClick.listen((_) {
         _handleRun();
       });
-    editorConsoleTab = MDCButton(querySelector('#editor-panel-console-tab'));
-    editorDocsTab = MDCButton(querySelector('#editor-panel-docs-tab'));
-    closePanelButton =
-        MDCButton(querySelector('#editor-panel-close-button'), isIcon: true);
-    moreMenuButton = MDCButton(querySelector('#more-menu-button'), isIcon: true)
+    editorConsoleTab =
+        MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
+    editorDocsTab =
+        MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
+    closePanelButton = MDCButton(
+        querySelector('#editor-panel-close-button') as ButtonElement,
+        isIcon: true);
+    moreMenuButton = MDCButton(
+        querySelector('#more-menu-button') as ButtonElement,
+        isIcon: true)
       ..onClick.listen((_) {
         moreMenu.open = !moreMenu.open;
       });
@@ -298,7 +310,7 @@ class Playground implements GistContainer, GistController {
       ..hoistMenuToBody();
 
     samplesMenu.listen('MDCMenu:selected', (e) {
-      var index = (e as CustomEvent).detail['index'];
+      var index = (e as CustomEvent).detail['index'] as int;
       var gistId = samples.elementAt(index).gistId;
       router.go('gist', {'gist': gistId});
     });
@@ -310,7 +322,7 @@ class Playground implements GistContainer, GistController {
       ..setAnchorElement(querySelector('#more-menu-button'))
       ..hoistMenuToBody();
     moreMenu.listen('MDCMenu:selected', (e) {
-      var idx = (e as CustomEvent).detail['index'];
+      var idx = (e as CustomEvent).detail['index'] as int;
       switch (idx) {
         case 0:
           _showSharingPage();
@@ -404,7 +416,8 @@ class Playground implements GistContainer, GistController {
   void _initConsoles() {
     _leftConsole = Console(DElement(_leftConsoleElement));
     _rightConsole = Console(DElement(_rightConsoleContentElement));
-    unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
+    unreadConsoleCounter =
+        Counter(querySelector('#unread-console-counter') as SpanElement);
   }
 
   Future<void> _initModules() async {
@@ -669,7 +682,7 @@ class Playground implements GistContainer, GistController {
   }
 
   void showGist(RouteEnterEvent event) {
-    String gistId = event.parameters['gist'];
+    var gistId = event.parameters['gist'] as String;
 
     _clearOutput();
 
@@ -1233,8 +1246,10 @@ class NewPadDialog {
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')),
         _dartButton = MDCRipple(querySelector('#new-pad-select-dart')),
         _flutterButton = MDCRipple(querySelector('#new-pad-select-flutter')),
-        _cancelButton = MDCButton(querySelector('#new-pad-cancel-button')),
-        _createButton = MDCButton(querySelector('#new-pad-create-button')),
+        _cancelButton =
+            MDCButton(querySelector('#new-pad-cancel-button') as ButtonElement),
+        _createButton =
+            MDCButton(querySelector('#new-pad-create-button') as ButtonElement),
         _htmlSwitchContainer =
             DElement(querySelector('#new-pad-html-switch-container')),
         _htmlSwitch = MDCSwitch(
