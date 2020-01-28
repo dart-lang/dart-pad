@@ -462,7 +462,7 @@ class Embed {
   String get sampleId => _getQueryParam('sample_id');
 
   // An optional channel indicating which version of the API Docs to use when
-  // loading a sample.
+  // loading a sample. Defaults to the stable channel.
   FlutterSdkChannel get sampleChannel {
     final channelStr = _getQueryParam('sample_channel')?.toLowerCase();
 
