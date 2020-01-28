@@ -94,15 +94,15 @@ void defineTests() {
     group('Loading by sample ID', () {
       test('Returns stable version gist for stable sample id', () async {
         final loader = GistLoader(client: mockClient);
-        final gist =
-            await loader.loadGistFromAPIDocs('material.AppBar.1', false);
+        final gist = await loader.loadGistFromAPIDocs(
+            'material.AppBar.1', FlutterSdkChannel.stable);
         final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
         expect(contents.content, stableAPIDocSample);
       });
       test('Returns master version gist for master sample id', () async {
         final loader = GistLoader(client: mockClient);
-        final gist =
-            await loader.loadGistFromAPIDocs('material.AppBar.1', true);
+        final gist = await loader.loadGistFromAPIDocs(
+            'material.AppBar.1', FlutterSdkChannel.master);
         final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
         expect(contents.content, masterAPIDocSample);
       });

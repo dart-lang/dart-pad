@@ -20,6 +20,13 @@ final String _dartpadLink =
 
 final RegExp _gistRegex = RegExp(r'^[0-9a-f]+$');
 
+enum FlutterSdkChannel {
+  master,
+  dev,
+  beta,
+  stable,
+}
+
 /// Return whether the given string is a valid github gist ID.
 bool isLegalGistId(String id) {
   if (id == null) return false;
@@ -225,8 +232,13 @@ $styleRef$dartRef  </head>
     return gist;
   }
 
-  Future<Gist> loadGistFromAPIDocs(String sampleId, bool useMaster) async {
-    final sampleUrl = useMaster
+  Future<Gist> loadGistFromAPIDocs(
+      String sampleId, FlutterSdkChannel channel) async {
+    if (channel == FlutterSdkChannel.beta || channel == FlutterSdkChannel.dev) {
+      throw ArgumentError('Only stable and master channels are supported!');
+    }
+
+    final sampleUrl = (channel == FlutterSdkChannel.master)
         ? '$_masterApiDocsUrl/$sampleId.dart'
         : '$_stableApiDocsUrl/$sampleId.dart';
 

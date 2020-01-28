@@ -463,11 +463,19 @@ class Embed {
 
   // An optional channel indicating which version of the API Docs to use when
   // loading a sample.
-  //
-  // If this value is "master", the sample will be loaded from the master API
-  // Doc server. All other values will result in a sample loaded from the stable
-  // server (api.flutter.dev).
-  String get sampleChannel => _getQueryParam('sample_channel');
+  FlutterSdkChannel get sampleChannel {
+    final channelStr = _getQueryParam('sample_channel')?.toLowerCase();
+
+    if (channelStr == 'master') {
+      return FlutterSdkChannel.master;
+    } else if (channelStr == 'dev') {
+      return FlutterSdkChannel.dev;
+    } else if (channelStr == 'beta') {
+      return FlutterSdkChannel.beta;
+    } else {
+      return FlutterSdkChannel.stable;
+    }
+  }
 
   // GitHub params for loading an exercise from a repo. The first three are
   // required to load something, while the fourth, gh_ref, is an optional branch
@@ -581,8 +589,12 @@ class Embed {
       if (gistId.isNotEmpty) {
         gist = await loader.loadGist(gistId);
       } else if (sampleId.isNotEmpty) {
-        final useMaster = sampleChannel?.toLowerCase() == 'master';
-        gist = await loader.loadGistFromAPIDocs(sampleId, useMaster);
+        // Right now, there are only two hosted versions of the docs: master and
+        // stable. Default to stable for dev and beta.
+        final channel = (sampleChannel == FlutterSdkChannel.master)
+            ? FlutterSdkChannel.master
+            : FlutterSdkChannel.stable;
+        gist = await loader.loadGistFromAPIDocs(sampleId, channel);
       } else {
         gist = await loader.loadGistFromRepo(
           owner: githubOwner,
