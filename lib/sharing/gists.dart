@@ -20,6 +20,13 @@ final String _dartpadLink =
 
 final RegExp _gistRegex = RegExp(r'^[0-9a-f]+$');
 
+enum FlutterSdkChannel {
+  master,
+  dev,
+  beta,
+  stable,
+}
+
 /// Return whether the given string is a valid github gist ID.
 bool isLegalGistId(String id) {
   if (id == null) return false;
@@ -118,7 +125,9 @@ class GistLoader {
   static const String _repoContentsAuthority = 'api.github.com';
   static const String _metadataFilename = 'dartpad_metadata.yaml';
 
-  static const String _apiDocsUrl = 'https://api.flutter.dev/snippets';
+  static const String _stableApiDocsUrl = 'https://api.flutter.dev/snippets';
+  static const String _masterApiDocsUrl =
+      'https://master-api.flutter.dev/snippets';
 
   static final GistFilterHook _defaultLoadHook = (Gist gist) {
     // Update files based on our preferred file names.
@@ -224,8 +233,17 @@ $styleRef$dartRef  </head>
     return gist;
   }
 
-  Future<Gist> loadGistFromAPIDocs(String sampleId) async {
-    final response = await _client.get('$_apiDocsUrl/$sampleId.dart');
+  Future<Gist> loadGistFromAPIDocs(
+      String sampleId, FlutterSdkChannel channel) async {
+    if (channel == FlutterSdkChannel.beta || channel == FlutterSdkChannel.dev) {
+      throw ArgumentError('Only stable and master channels are supported!');
+    }
+
+    final sampleUrl = (channel == FlutterSdkChannel.master)
+        ? '$_masterApiDocsUrl/$sampleId.dart'
+        : '$_stableApiDocsUrl/$sampleId.dart';
+
+    final response = await _client.get(sampleUrl);
 
     if (response.statusCode == 404) {
       throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
