@@ -124,7 +124,7 @@ String makeKeyPresentable(String key) {
     }
     keyAsList = keyAsList.map<String>((s) {
       if (_unicodeMac.containsKey(s)) {
-        return _unicodeMac[s];
+        return _unicodeMac[s] as String;
       } else {
         return capitalize(s);
       }

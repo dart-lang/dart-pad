@@ -75,5 +75,5 @@ class Analytics {
     }
   }
 
-  JsFunction get _gaFunction => context['ga'];
+  JsFunction get _gaFunction => context['ga'] as JsFunction;
 }

@@ -15,7 +15,7 @@ class NewPadAction {
   final DButton _button;
   final GistController _gistController;
 
-  NewPadAction(Element element, this._gistController)
+  NewPadAction(ButtonElement element, this._gistController)
       : _button = DButton(element) {
     _button.onClick.listen((e) => _handleButtonPress());
   }

@@ -197,12 +197,13 @@ class Embed {
 
     navBarElement = DElement(querySelector('#navbar'));
 
-    unreadConsoleCounter = Counter(querySelector('#unread-console-counter'));
+    unreadConsoleCounter =
+        Counter(querySelector('#unread-console-counter') as SpanElement);
 
-    executeButton = MDCButton(querySelector('#execute'))
+    executeButton = MDCButton(querySelector('#execute') as ButtonElement)
       ..onClick.listen((_) => _handleExecute());
 
-    reloadGistButton = MDCButton(querySelector('#reload-gist'))
+    reloadGistButton = MDCButton(querySelector('#reload-gist') as ButtonElement)
       ..onClick.listen((_) {
         if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
           _loadAndShowGist();
@@ -211,13 +212,15 @@ class Embed {
         }
       });
 
-    copyCodeButton = MDCButton(querySelector('#copy-code'), isIcon: true)
-      ..onClick.listen((_) => _handleCopyCode());
-    openInDartPadButton =
-        MDCButton(querySelector('#open-in-dartpad'), isIcon: true)
-          ..onClick.listen((_) => _handleOpenInDartPad());
+    copyCodeButton =
+        MDCButton(querySelector('#copy-code') as ButtonElement, isIcon: true)
+          ..onClick.listen((_) => _handleCopyCode());
+    openInDartPadButton = MDCButton(
+        querySelector('#open-in-dartpad') as ButtonElement,
+        isIcon: true)
+      ..onClick.listen((_) => _handleOpenInDartPad());
 
-    showHintButton = MDCButton(querySelector('#show-hint'))
+    showHintButton = MDCButton(querySelector('#show-hint') as ButtonElement)
       ..onClick.listen((_) {
         var hintElement = DivElement()..text = context.hint;
         var showSolutionButton = AnchorElement()
@@ -237,15 +240,16 @@ class Embed {
         DElement(querySelector('#editable-test-solution-checkmark'));
 
     morePopover = DElement(querySelector('#more-popover'));
-    menuButton = MDCButton(querySelector('#menu-button'), isIcon: true)
-      ..onClick.listen((_) {
-        menu.open = !menu.open;
-      });
+    menuButton =
+        MDCButton(querySelector('#menu-button') as ButtonElement, isIcon: true)
+          ..onClick.listen((_) {
+            menu.open = !menu.open;
+          });
     menu = MDCMenu(querySelector('#main-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(menuButton.element);
     menu.listen('MDCMenu:selected', (e) {
-      final selectedIndex = (e as CustomEvent).detail['index'];
+      final selectedIndex = (e as CustomEvent).detail['index'] as int;
       switch (selectedIndex) {
         case 0:
           // Show test code
@@ -264,13 +268,13 @@ class Embed {
       }
     });
 
-    formatButton = MDCButton(querySelector('#format-code'))
+    formatButton = MDCButton(querySelector('#format-code') as ButtonElement)
       ..onClick.listen(
         (_) => _format(),
       );
 
-    testResultBox = FlashBox(querySelector('#test-result-box'));
-    hintBox = FlashBox(querySelector('#hint-box'));
+    testResultBox = FlashBox(querySelector('#test-result-box') as DivElement);
+    hintBox = FlashBox(querySelector('#hint-box') as DivElement);
     var editorTheme = isDarkMode ? 'darkpad' : 'dartpad';
 
     userCodeEditor = editorFactory.createFromElement(
@@ -335,9 +339,11 @@ class Embed {
       cssTabView = TabView(DElement(querySelector('#css-view')));
     }
 
-    executionSvc = ExecutionServiceIFrame(querySelector('#frame'))
-      ..frameSrc =
-          isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
+    executionSvc =
+        ExecutionServiceIFrame(querySelector('#frame') as IFrameElement)
+          ..frameSrc = isDarkMode
+              ? '../scripts/frame_dark.html'
+              : '../scripts/frame.html';
 
     executionSvc.onStderr.listen((err) {
       consoleExpandController.showOutput(err, error: true);
@@ -415,7 +421,8 @@ class Embed {
       var type = data['type'];
 
       if (type == 'sourceCode') {
-        lastInjectedSourceCode = Map<String, String>.from(data['sourceCode']);
+        lastInjectedSourceCode =
+            Map<String, String>.from(data['sourceCode'] as Map);
         _resetCode();
 
         if (autoRunEnabled && !isRunningInWebKit()) {
@@ -460,6 +467,22 @@ class Embed {
 
   // ID of an API Doc sample that should be loaded into the editors.
   String get sampleId => _getQueryParam('sample_id');
+
+  // An optional channel indicating which version of the API Docs to use when
+  // loading a sample. Defaults to the stable channel.
+  FlutterSdkChannel get sampleChannel {
+    final channelStr = _getQueryParam('sample_channel')?.toLowerCase();
+
+    if (channelStr == 'master') {
+      return FlutterSdkChannel.master;
+    } else if (channelStr == 'dev') {
+      return FlutterSdkChannel.dev;
+    } else if (channelStr == 'beta') {
+      return FlutterSdkChannel.beta;
+    } else {
+      return FlutterSdkChannel.stable;
+    }
+  }
 
   // GitHub params for loading an exercise from a repo. The first three are
   // required to load something, while the fourth, gh_ref, is an optional branch
@@ -565,7 +588,7 @@ class Embed {
 
     editorIsBusy = true;
 
-    final GistLoader loader = deps[GistLoader];
+    final loader = deps[GistLoader] as GistLoader;
 
     try {
       Gist gist;
@@ -573,7 +596,12 @@ class Embed {
       if (gistId.isNotEmpty) {
         gist = await loader.loadGist(gistId);
       } else if (sampleId.isNotEmpty) {
-        gist = await loader.loadGistFromAPIDocs(sampleId);
+        // Right now, there are only two hosted versions of the docs: master and
+        // stable. Default to stable for dev and beta.
+        final channel = (sampleChannel == FlutterSdkChannel.master)
+            ? FlutterSdkChannel.master
+            : FlutterSdkChannel.stable;
+        gist = await loader.loadGistFromAPIDocs(sampleId, channel);
       } else {
         gist = await loader.loadGistFromRepo(
           owner: githubOwner,
@@ -867,8 +895,7 @@ class Embed {
 
     try {
       formatButton.disabled = true;
-      var result =
-          await dartServices.format(input).timeout(serviceCallTimeout);
+      var result = await dartServices.format(input).timeout(serviceCallTimeout);
 
       formatButton.disabled = false;
 

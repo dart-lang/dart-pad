@@ -79,7 +79,7 @@ class MutableGist implements PropertyOwner {
   }
 
   @override
-  Property property(String name) => _MutableGistProperty(this, name);
+  Property<String> property(String name) => _MutableGistProperty(this, name);
 
   Gist createGist({String summary}) {
     var gist = Gist(description: description, id: id, public: public);
@@ -100,7 +100,7 @@ class MutableGist implements PropertyOwner {
 
   String _getProperty(String key) {
     if (_localValues.containsKey(key)) return _localValues[key];
-    return _backingGist[key];
+    return _backingGist[key] as String;
   }
 
   void _setProperty(String key, String data) {
@@ -127,7 +127,7 @@ class MutableGistFile {
     _parent._setProperty(name, value);
   }
 
-  Stream get onChanged => _parent.property(name).onChanged;
+  Stream<String> get onChanged => _parent.property(name).onChanged;
 }
 
 /// An entity that can own a gist.
@@ -140,12 +140,12 @@ abstract class GistContainer {
   void overrideNextRoute(Gist gist);
 }
 
-class _MutableGistProperty implements Property {
+class _MutableGistProperty implements Property<String> {
   final MutableGist mutableGist;
   final String name;
 
-  final _changedController = StreamController.broadcast(sync: true);
-  dynamic _value;
+  final _changedController = StreamController<String>.broadcast(sync: true);
+  String _value;
 
   _MutableGistProperty(this.mutableGist, this.name) {
     _value = get();
@@ -164,10 +164,10 @@ class _MutableGistProperty implements Property {
   }
 
   @override
-  dynamic get() => mutableGist._getProperty(name);
+  String get() => mutableGist._getProperty(name);
 
   @override
-  Stream get onChanged => _changedController.stream;
+  Stream<String> get onChanged => _changedController.stream;
 
   @override
   String toString() => name;

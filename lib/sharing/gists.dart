@@ -20,6 +20,13 @@ final String _dartpadLink =
 
 final RegExp _gistRegex = RegExp(r'^[0-9a-f]+$');
 
+enum FlutterSdkChannel {
+  master,
+  dev,
+  beta,
+  stable,
+}
+
 /// Return whether the given string is a valid github gist ID.
 bool isLegalGistId(String id) {
   if (id == null) return false;
@@ -89,7 +96,7 @@ GistFile chooseGistFile(Gist gist, List<String> names, [Function matcher]) {
   }
 
   if (matcher != null) {
-    return files.firstWhere((f) => matcher(f.name), orElse: () => null);
+    return files.firstWhere((f) => matcher(f.name) as bool, orElse: () => null);
   } else {
     return null;
   }
@@ -118,7 +125,9 @@ class GistLoader {
   static const String _repoContentsAuthority = 'api.github.com';
   static const String _metadataFilename = 'dartpad_metadata.yaml';
 
-  static const String _apiDocsUrl = 'https://api.flutter.dev/snippets';
+  static const String _stableApiDocsUrl = 'https://api.flutter.dev/snippets';
+  static const String _masterApiDocsUrl =
+      'https://master-api.flutter.dev/snippets';
 
   static final GistFilterHook _defaultLoadHook = (Gist gist) {
     // Update files based on our preferred file names.
@@ -214,7 +223,8 @@ $styleRef$dartRef  </head>
       throw const GistLoaderException(GistLoaderFailureType.unknown);
     }
 
-    final gist = Gist.fromMap(json.decode(response.body));
+    final gist =
+        Gist.fromMap(json.decode(response.body) as Map<String, dynamic>);
 
     if (afterLoadHook != null) {
       afterLoadHook(gist);
@@ -223,8 +233,17 @@ $styleRef$dartRef  </head>
     return gist;
   }
 
-  Future<Gist> loadGistFromAPIDocs(String sampleId) async {
-    final response = await _client.get('$_apiDocsUrl/$sampleId.dart');
+  Future<Gist> loadGistFromAPIDocs(
+      String sampleId, FlutterSdkChannel channel) async {
+    if (channel == FlutterSdkChannel.beta || channel == FlutterSdkChannel.dev) {
+      throw ArgumentError('Only stable and master channels are supported!');
+    }
+
+    final sampleUrl = (channel == FlutterSdkChannel.master)
+        ? '$_masterApiDocsUrl/$sampleId.dart'
+        : '$_stableApiDocsUrl/$sampleId.dart';
+
+    final response = await _client.get(sampleUrl);
 
     if (response.statusCode == 404) {
       throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -296,7 +315,7 @@ $styleRef$dartRef  </head>
         throw FormatException();
       }
 
-      metadata = ExerciseMetadata.fromMap(Map<String, dynamic>.from(yamlMap));
+      metadata = ExerciseMetadata.fromMap(yamlMap);
     } on MetadataException catch (ex) {
       throw GistLoaderException(GistLoaderFailureType.invalidExerciseMetadata,
           'Issue parsing metadata: $ex');
@@ -365,14 +384,15 @@ class Gist {
     files ??= [];
   }
 
-  Gist.fromMap(Map map) {
-    id = map['id'];
-    description = map['description'];
-    public = map['public'];
-    htmlUrl = map['html_url'];
-    summary = map['summary'];
-    Map f = map['files'];
-    files = f.keys.map((key) => GistFile.fromMap(key, f[key])).toList();
+  Gist.fromMap(Map<String, dynamic> map) {
+    id = map['id'] as String;
+    description = map['description'] as String;
+    public = map['public'] as bool;
+    htmlUrl = map['html_url'] as String;
+    summary = map['summary'] as String;
+    var f = map['files'];
+    files = List<GistFile>.from(f.keys
+        .map((key) => GistFile.fromMap(key as String, f[key])) as Iterable);
   }
 
   dynamic operator [](String key) {
@@ -428,7 +448,7 @@ class Gist {
 
   String toJson() => json.encode(toMap());
 
-  Gist clone() => Gist.fromMap(json.decode(toJson()));
+  Gist clone() => Gist.fromMap(json.decode(toJson()) as Map<String, dynamic>);
 
   @override
   String toString() => id;
@@ -440,8 +460,8 @@ class GistFile {
 
   GistFile({this.name, this.content});
 
-  GistFile.fromMap(this.name, Map data) {
-    content = data['content'];
+  GistFile.fromMap(this.name, data) {
+    content = data['content'] as String;
   }
 
   bool get hasContent => content != null && content.trim().isNotEmpty;
