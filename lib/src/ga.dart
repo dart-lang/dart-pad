@@ -13,7 +13,13 @@ class Analytics {
 
   bool get isAvailable => _gaFunction != null;
 
-  void sendPage() => _ga2('send', 'pageview');
+  void sendPage({String pageName}) {
+    if (pageName != null && pageName.isNotEmpty) {
+      _ga2('send', 'pageview');
+    } else {
+      _ga3('send', 'pageview', pageName);
+    }
+  }
 
   void sendEvent(String category, String action, {String label}) {
     var m = <String, dynamic>{
@@ -56,6 +62,14 @@ class Analytics {
   void _ga2(String method, String type, [Map args]) {
     if (isAvailable) {
       var params = <dynamic>[method, type];
+      if (args != null) params.add(JsObject.jsify(args));
+      _gaFunction.apply(params);
+    }
+  }
+
+  void _ga3(String method, String type, String arg, [Map args]) {
+    if (isAvailable) {
+      var params = <dynamic>[method, type, arg];
       if (args != null) params.add(JsObject.jsify(args));
       _gaFunction.apply(params);
     }

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Embeddings Demo</title>
+
+    <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
+          rel='stylesheet' type='text/css'>
+    <style>
+        .container {
+            max-width: 960px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        iframe {
+            width: 100%;
+            height: 512px;
+        }
+        * {
+            font-family: "Arial", sans-serif;
+        }
+    </style>
+    <script defer src="picker.dart.js"></script>
+</head>
+<body>
+<div class="container">
+    <h2>Select a sample</h2>
+    <label for="dartpad-select">Select a sample</label>
+    <select id="dartpad-select"></select>
+    <div id="dartpad-host"></div>
+</div>
+</body>
+</html>
