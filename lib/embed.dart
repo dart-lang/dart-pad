@@ -721,7 +721,7 @@ class Embed {
     context.cssSource = sources['styles.css'] ?? '';
     context.hint = sources['hint.txt'] ?? '';
     if (sources.containsKey('ga_id')) {
-      _virtualPageView(sources['ga_id']);
+      _sendVirtualPageView(sources['ga_id']);
     }
     tabController.setTabVisibility(
         'test', context.testMethod.isNotEmpty && _showTestCode);
@@ -812,7 +812,7 @@ class Embed {
     }
   }
 
-  void _virtualPageView(String id) {
+  void _sendVirtualPageView(String id) {
     var url = Uri.parse(window.location.toString());
     var newParams = Map<String, String>.from(url.queryParameters);
     newParams['ga_id'] = id;
