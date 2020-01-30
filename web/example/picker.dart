@@ -1,4 +1,4 @@
-// Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -21,7 +21,7 @@ String f() {
 
 void main() {
   var dartPadHost = querySelector('#dartpad-host');
-  var select = querySelector('#dartpad-select');
+  var select = querySelector('#dartpad-select') as SelectElement;
 
   DartPadPicker(dartPadHost, select, snippets, dartPadUrl: '');
 }
@@ -83,7 +83,7 @@ class DartPadPicker {
       final e = _e as MessageEvent;
       // Don't handle events from other iframe elements
       if (e.data is Map &&
-          e.data.containsKey('type') &&
+          (e.data as Map).containsKey('type') &&
           e.data['type'] is String &&
           e.data['type'] == 'ready') {
         _sendSourceCode();
