@@ -3,7 +3,7 @@ install:
   - gem install coveralls-lcov
 dart:
   # Keep this value aligned with min SDK value in pubspec.yaml and FROM line of Dockerfile
-  - "2.7.0"
+  - "2.7.1"
   # TODO(devoncarew): commented out due to
   # https://github.com/dart-lang/dart-pad/issues/1002
   #- dev
