@@ -75,6 +75,18 @@ serve() async {
   });
 }
 
+@Task('Serve via local AppEngine on port 8080')
+@Depends(build)
+serveLocalAppEngine() async {
+  await Process.start(
+    'dev_appserver.py',
+    ['.'],
+    workingDirectory: 'build',
+  ).then((Process process) {
+    process.stdout.transform(utf8.decoder).listen(stdout.write);
+  });
+}
+
 const String backendVariable = 'DARTPAD_BACKEND';
 
 @Task(

@@ -1,109 +1,70 @@
-import logging
-from urlparse import urlparse
-from google.appengine.ext import ndb
+from flask import Flask, send_file
 import os
-import webapp2
+import string
 
-SERVING_DIRECTORY = os.path.abspath(os.path.dirname(__file__))
+# `entrypoint` is not defined in app.yaml, so App Engine will look for an app
+# called `app` in this file.
+app = Flask(__name__)
 
+if __name__ == '__main__':
+    # This is used when running locally only.
+    app.run(host='127.0.0.1', port=8080, debug=True)
 
-class WhiteListEntry(ndb.Model):
-    emailAddress = ndb.StringProperty()
+# Files that the server is allowed to serve. Additional static files are
+# served via directives in app.yaml.
+VALID_FILES= [
+    'dark_mode.js',
+    'dart-192.png',
+    'embed-dart.html',
+    'embed-flutter.html',
+    'embed-html.html',
+    'embed-inline.html',
+    'embed-.html',
+    'fav_icon.ico',
+    'index.html',
+    'inject_embed.dart.js',
+    'robots.txt'
+]
 
+# File extensions and the mimetypes with which they should be served.
+DEFAULT_CONTENT_TYPE = 'application/octet-stream'
 
-class MainHandler(webapp2.RequestHandler):
-    def get(self):
-        mainPage = 'index.html'
+CONTENT_TYPES = {
+    '.css': 'text/css',
+    '.html': 'text/html',
+    '.ico': 'image/x-icon',
+    '.js': 'application/javascript',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml',
+    '.txt': 'text/plain',
+}
 
-        if self.request.uri.find("try.dartlang.org") > 0:
-            self.redirect("https://dartpad.dartlang.org")
+# Routes.
 
-        parsedURL = urlparse(self.request.uri)
-        path = parsedURL.path
-        targetSplits = path.split('/')
+@app.route('/')
+def index():
+    return _serve_file('index.html')
 
-        if os.path.isfile(path):
-            _serve(self.response, path)
-            return
+@app.route('/<item_name>')
+def item(item_name):
+    print(item_name)
 
-        # If it is a request for a file in the TLD, serve as is.
-        if targetSplits[1].find('.') > 0:
-            newPath = "/".join(targetSplits[1:])
-            if newPath == '':
-                _serve(self.response, mainPage)
-            else:
-                _serve(self.response, newPath)
-            return
+    if item_name in VALID_FILES:
+        return _serve_file(item_name)
 
-        # If it is a request for a TLD psuedo-item, serve back the main page
-        if len(targetSplits) < 3:
-            _serve(self.response, mainPage)
-            return
+    if len(item_name) == 32 and all(c in string.hexdigits for c in item_name):
+        return _serve_file('index.html')
 
-        # If it is a request for something in the packages folder, serve it
-        if targetSplits[1] == 'packages':
-            newPath = "/".join(targetSplits[1:])
-            if newPath == '':
-                _serve(self.response, mainPage)
-            else:
-                _serve(self.response, newPath)
-            return
+    return _serve_404()
 
-        # Otherwise it's a request for a item after the gist pseudo path
-        # drop the gist and serve it.
-        if len(targetSplits) >= 3:
-            newPath = "/".join(targetSplits[2:])
-            if newPath == '':
-                _serve(self.response, mainPage)
-            else:
-                _serve(self.response, newPath)
-            return
+# Helpers.
 
+def _serve_file(file_path):
+    if not os.path.isfile(file_path):
+        return _serve_404()
+    file_name, file_ext = os.path.splitext(file_path)
+    mimetype = CONTENT_TYPES.get(file_ext, DEFAULT_CONTENT_TYPE)
+    return send_file(file_path, mimetype=mimetype)
 
-# Return whether we're running in the development server or not.
-def isDevelopment():
-    return os.environ['SERVER_SOFTWARE'].startswith('Development')
-
-
-# Serve the files.
-def _serve(resp, path):
-    # Normalize and restrict the path to only files under this directory.
-    path = os.path.abspath(path)
-
-    if not path.startswith(SERVING_DIRECTORY):
-        logging.warning(
-            "Rejecting file outside of serving directory. "
-            "Serving directory: %s, requested path: %s",
-            SERVING_DIRECTORY, path)
-
-        resp.status = 404
-        resp.write("<html><h1>404: Not found</h1></html>")
-        return
-
-    if not os.path.isfile(path):
-        resp.status = 404
-        resp.write("<html><h1>404: Not found</h1></html>")
-        return
-
-    if path.endswith('.css'):
-        resp.content_type = 'text/css'
-    if path.endswith('.svg'):
-        resp.content_type = 'image/svg+xml'
-    if path.endswith('.js'):
-        resp.content_type = 'application/javascript'
-    if path.endswith('.ico'):
-        resp.content_type = 'image/x-icon'
-    if path.endswith('.html'):
-        resp.content_type = 'text/html'
-    if path.endswith('.png'):
-        resp.content_type = 'image/png'
-
-    f = open(path, 'r')
-    c = f.read()
-    resp.write(c)
-    return
-
-
-app = webapp2.WSGIApplication([
-    ('.*', MainHandler)
-], debug=False)
+def _serve_404():
+    return '<html><h1>404: Not found</h1></html>', 404

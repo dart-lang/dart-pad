@@ -1,44 +1,39 @@
-runtime: python27
-api_version: 1
-threadsafe: yes
+runtime: python37
 default_expiration: "0d 3h"
 
-builtins:
-- remote_api: on
-
 handlers:
-- url: /favicon\.ico
-  static_files: favicon.ico
-  upload: favicon\.ico
+  - url: /pictures
+    static_dir: pictures
 
-- url: /pictures
-  static_dir: pictures
+  - url: /example
+    static_dir: example
 
-- url: /scripts/assets/FontManifest.json
-  static_files: scripts/assets/FontManifest.json
-  upload: scripts/assets/FontManifest\.json
-  http_headers:
-    Access-Control-Allow-Origin: "*"
+  - url: /scripts/assets/FontManifest.json
+    static_files: scripts/assets/FontManifest.json
+    upload: scripts/assets/FontManifest\.json
+    http_headers:
+      Access-Control-Allow-Origin: "*"
 
-- url: /scripts
-  static_dir: scripts
+  - url: /scripts
+    static_dir: scripts
 
-- url: /styles
-  static_dir: styles
+  - url: /styles
+    static_dir: styles
 
-- url: .*
-  script: main.app
-# Enable for version == prod.
-  secure: always
+  - url: /text-fonts
+    static_dir: text-fonts
 
-libraries:
-- name: webapp2
-  version: "2.5.2"
+  - url: /packages/codemirror
+    static_dir: packages/code-mirror
 
-skip_files:
-- ^(.*/)?#.*#$
-- ^(.*/)?.*~$
-- ^(.*/)?.*\.py[co]$
-- ^(.*/)?.*/RCS/.*$
-- ^(.*/)?\..*$
-- packages/(?!(?:codemirror|dart-pad|octicons_css|split|primer_css))
+  - url: /packages/dart-pad
+    static_dir: packages/dart-pad
+
+  - url: /packages/split
+    static_dir: packages/split
+
+  - url: .*
+    script: auto
+
+    # Enable for version == prod.
+    secure: always
