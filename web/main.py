@@ -47,8 +47,6 @@ def index():
 
 @app.route('/<item_name>')
 def item(item_name):
-    print(item_name)
-
     if item_name in VALID_FILES:
         return _serve_file(item_name)
 
