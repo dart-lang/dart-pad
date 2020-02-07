@@ -196,7 +196,7 @@ void _buildStorageArtifacts(Directory dir) {
       'artifacts/*.js gs://compilation_artifacts/$version/');
 }
 
-@Task('Delete, re-download, and reinitialize the Flutter submodule')
+@Task('Delete, re-download, and reinitialize the Flutter submodule.')
 void setupFlutterSubmodule() {
   final flutterDir = Directory('flutter');
 
