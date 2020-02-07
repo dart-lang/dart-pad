@@ -268,6 +268,12 @@ class CommonServer {
   AnalysisServerWrapper analysisServer;
   AnalysisServerWrapper flutterAnalysisServer;
 
+  bool get analysisServersRunning => analysisServer.analysisServer != null &&
+    flutterAnalysisServer.analysisServer != null;
+
+  bool _running = false;
+  bool get running => _running;
+
   CommonServer(
     this.sdkPath,
     this.flutterWebManager,
@@ -313,6 +319,7 @@ class CommonServer {
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
     await flutterAnalysisServer.warmup(useHtml: useHtml);
+    _running = true;
   }
 
   Future<void> restart() async {
@@ -327,6 +334,7 @@ class CommonServer {
   }
 
   Future<dynamic> shutdown() {
+    _running = false;
     return Future.wait(<Future<dynamic>>[
       analysisServer.shutdown(),
       flutterAnalysisServer.shutdown(),

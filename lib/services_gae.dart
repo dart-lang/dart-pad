@@ -128,24 +128,31 @@ class GaeServer {
   }
 
   Future _processHealthRequest(io.HttpRequest request) async {
-    try {
-      final tempDir = await io.Directory.systemTemp.createTemp('healthz');
-      try {
-        final file = await io.File('${tempDir.path}/livecheck.txt');
-        await file.writeAsString('testing123\n' * 1000, flush: true);
-        final stat = await file.stat();
-        if (stat.size > 10000) {
-          request.response.statusCode = io.HttpStatus.ok;
-        } else {
-          request.response.statusCode = io.HttpStatus.internalServerError;
-        }
-      } finally {
-        await tempDir.delete(recursive: true);
-      }
-    } catch (e) {
-      _logger.severe('Failed to create temporary file: $e');
+    if (commonServer.running && !commonServer.analysisServersRunning) {
+      _logger.severe('CommonServer running without analysis servers. '
+          'Intentionally failing healthcheck.');
       request.response.statusCode = io.HttpStatus.internalServerError;
+    } else {
+      try {
+        final tempDir = await io.Directory.systemTemp.createTemp('healthz');
+        try {
+          final file = await io.File('${tempDir.path}/livecheck.txt');
+          await file.writeAsString('testing123\n' * 1000, flush: true);
+          final stat = await file.stat();
+          if (stat.size > 10000) {
+            request.response.statusCode = io.HttpStatus.ok;
+          } else {
+            request.response.statusCode = io.HttpStatus.internalServerError;
+          }
+        } finally {
+          await tempDir.delete(recursive: true);
+        }
+      } catch (e) {
+        _logger.severe('Failed to create temporary file: $e');
+        request.response.statusCode = io.HttpStatus.internalServerError;
+      }
     }
+
     await request.response.close();
   }
 
