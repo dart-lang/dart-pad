@@ -330,6 +330,12 @@ class Playground implements GistContainer, GistController {
         case 1:
           _showGitHubPage();
           break;
+        case 2:
+          _showDartDevPage();
+          break;
+        case 3:
+          _showFlutterDevPage();
+          break;
       }
     });
   }
@@ -1004,6 +1010,14 @@ class Playground implements GistContainer, GistController {
 
   void _showGitHubPage() {
     window.open('https://github.com/dart-lang/dart-pad', 'DartPad on GitHub');
+  }
+
+  void _showDartDevPage() {
+    window.open('https://dart.dev', 'dart.dev');
+  }
+
+  void _showFlutterDevPage() {
+    window.open('https://flutter.dev', 'flutter.dev');
   }
 
   @override
