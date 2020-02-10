@@ -11,7 +11,6 @@ import 'package:http/http.dart';
 
 import '../core/dependencies.dart';
 import '../core/modules.dart';
-import '../services/_dartpadsupportservices.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
 
@@ -65,16 +64,6 @@ class DartServicesModule extends Module {
   Future init() {
     var client = SanitizingBrowserClient();
     deps[DartservicesApi] = DartservicesApi(client, rootUrl: serverURL);
-    return Future.value();
-  }
-}
-
-class DartSupportServicesModule extends Module {
-  @override
-  Future init() {
-    var client = SanitizingBrowserClient();
-    deps[P_dartpadsupportservicesApi] =
-        P_dartpadsupportservicesApi(client, rootUrl: serverURL);
     return Future.value();
   }
 }
