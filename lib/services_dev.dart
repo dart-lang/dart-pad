@@ -19,6 +19,7 @@ import 'package:shelf/shelf_io.dart' as shelf;
 import 'src/common.dart';
 import 'src/common_server.dart';
 import 'src/flutter_web.dart';
+import 'src/server_cache.dart';
 import 'src/shelf_cors.dart' as shelf_cors;
 
 Logger _logger = Logger('services');

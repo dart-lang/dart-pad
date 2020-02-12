@@ -19,6 +19,7 @@ import 'package:dart_services/src/common_server.dart';
 import 'package:dart_services/src/compiler.dart' as comp;
 import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/sdk_manager.dart';
+import 'package:dart_services/src/server_cache.dart';
 import 'package:rpc/rpc.dart';
 
 bool _SERVER_BASED_CALL = false;

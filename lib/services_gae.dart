@@ -15,6 +15,7 @@ import 'package:rpc/rpc.dart' as rpc;
 import 'src/common.dart';
 import 'src/common_server.dart';
 import 'src/flutter_web.dart';
+import 'src/server_cache.dart';
 
 const String _API = '/api';
 const String _healthCheck = '/_ah/health';
