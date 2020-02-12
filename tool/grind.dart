@@ -51,8 +51,7 @@ final _dockerVersionMatcher = RegExp(r'^FROM google/dart-runtime:(.*)$');
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
   final platformVersion = Platform.version.split(' ').first;
-  final dockerImageLines =
-      File('Dockerfile').readAsLinesSync().map((String s) {
+  final dockerImageLines = File('Dockerfile').readAsLinesSync().map((String s) {
     if (s.contains(_dockerVersionMatcher)) {
       return 'FROM google/dart-runtime:$platformVersion';
     }
@@ -73,8 +72,7 @@ final List<String> compilationArtifacts = [
 void validateStorageArtifacts() async {
   final version = SdkManager.flutterSdk.versionFull;
 
-  const urlBase =
-      'https://storage.googleapis.com/compilation_artifacts/';
+  const urlBase = 'https://storage.googleapis.com/compilation_artifacts/';
 
   for (final artifact in compilationArtifacts) {
     await _validateExists('$urlBase$version/$artifact');
@@ -96,8 +94,7 @@ Future _validateExists(String url) async {
 @Task('build the sdk compilation artifacts for upload to google storage')
 void buildStorageArtifacts() {
   // build and copy dart_sdk.js, flutter_web.js, and flutter_web.dill
-  final temp =
-      Directory.systemTemp.createTempSync('flutter_web_sample');
+  final temp = Directory.systemTemp.createTempSync('flutter_web_sample');
 
   try {
     _buildStorageArtifacts(temp);
@@ -243,8 +240,8 @@ void fuzz() {
 }
 
 @Task('Update discovery files and run all checks prior to deployment')
-@Depends(updateDockerVersion, discovery, analyze, test, fuzz,
-    validateStorageArtifacts)
+@Depends(setupFlutterSubmodule, updateDockerVersion, discovery, analyze, test,
+    fuzz, validateStorageArtifacts)
 void deploy() {
   log('Run: gcloud app deploy --project=dart-services --no-promote');
 }
@@ -266,18 +263,6 @@ void discovery() {
   discoveryFile.parent.createSync();
   log('writing ${discoveryFile.path}');
   discoveryFile.writeAsStringSync('${result.stdout.trim()}\n');
-
-  final resultDb = Process.runSync(
-      Platform.executable, ['bin/server_dev.dart', '--discovery', '--relay']);
-
-  if (resultDb.exitCode != 0) {
-    throw 'Error generating the discovery document\n${result.stderr}';
-  }
-
-  final discoveryDbFile = File('doc/generated/_dartpadsupportservices.json');
-  discoveryDbFile.parent.createSync();
-  log('writing ${discoveryDbFile.path}');
-  discoveryDbFile.writeAsStringSync('${resultDb.stdout.trim()}\n');
 
   // Generate the Dart library from the json discovery file.
   Pub.global.activate('discoveryapis_generator');

@@ -18,7 +18,6 @@ import 'package:shelf/shelf_io.dart' as shelf;
 
 import 'src/common.dart';
 import 'src/common_server.dart';
-import 'src/dartpad_support_server.dart';
 import 'src/flutter_web.dart';
 import 'src/shelf_cors.dart' as shelf_cors;
 
@@ -48,12 +47,9 @@ void main(List<String> args) {
 
   if (result['discovery'] as bool) {
     final serverUrl = result['server-url'] as String;
-    if (result['relay'] as bool) {
-      EndpointsServer.generateRelayDiscovery(sdk, serverUrl).then(printExit);
-    } else {
-      EndpointsServer.generateDiscovery(SdkManager.flutterSdk, serverUrl)
-          .then(printExit);
-    }
+    EndpointsServer.generateDiscovery(SdkManager.flutterSdk, serverUrl)
+        .then(printExit);
+
     return;
   }
 
@@ -91,21 +87,6 @@ class EndpointsServer {
     apiServer.enableDiscoveryApi();
 
     final uri = Uri.parse('/api/discovery/v1/apis/dartservices/v1/rest');
-    final request = HttpApiRequest('GET', uri, <String, dynamic>{},
-        Stream<List<int>>.fromIterable(<List<int>>[]));
-    final response = await apiServer.handleHttpApiRequest(request);
-    return utf8.decode(await response.body.first);
-  }
-
-  static Future<String> generateRelayDiscovery(
-      String sdkPath, String serverUrl) async {
-    final databaseServer = FileRelayServer();
-    final apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
-      ..addApi(databaseServer);
-    apiServer.enableDiscoveryApi();
-
-    final uri =
-        Uri.parse('/api/discovery/v1/apis/_dartpadsupportservices/v1/rest');
     final request = HttpApiRequest('GET', uri, <String, dynamic>{},
         Stream<List<int>>.fromIterable(<List<int>>[]));
     final response = await apiServer.handleHttpApiRequest(request);

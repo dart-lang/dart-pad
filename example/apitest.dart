@@ -8,13 +8,11 @@ import 'dart:html';
 
 import 'package:codemirror/codemirror.dart';
 
-import '../doc/generated/_dartpadsupportservices.dart' as support;
 import '../doc/generated/dartservices.dart' as services;
 import 'services_utils.dart' as utils;
 
 utils.SanitizingBrowserClient client;
 services.DartservicesApi servicesApi;
-support.P_dartpadsupportservicesApi _dartpadSupportApi;
 
 void main() {
   setupAnalyze();
@@ -23,64 +21,12 @@ void main() {
   setupDocument();
   setupFixes();
   setupVersion();
-  setupDartpadServices();
 }
 
-void setupDartpadServices() {
-  setupExport();
-  setupRetrieve();
-  setupIdRetrieval();
-  setupGistStore();
-  setupGistRetrieval();
-}
 
 void _setupClients() {
   client = utils.SanitizingBrowserClient();
   servicesApi = services.DartservicesApi(client, rootUrl: _uriBase);
-  _dartpadSupportApi =
-      support.P_dartpadsupportservicesApi(client, rootUrl: _uriBase);
-}
-
-void setupIdRetrieval() {
-  final output = querySelector('#idSection .output');
-  final button = querySelector('#idSection button') as ButtonElement;
-  button.onClick.listen((e) {
-    final sw = Stopwatch()..start();
-    _dartpadSupportApi.getUnusedMappingId().then((results) {
-      output.text = '${_formatTiming(sw)}${results.toJson()}';
-    });
-  });
-}
-
-void setupGistStore() {
-  final editor = createEditor(querySelector('#storeSection .editor'),
-      defaultText: 'Internal ID');
-  final output = querySelector('#storeSection .output');
-  final button = querySelector('#storeSection button') as ButtonElement;
-  button.onClick.listen((e) {
-    final editorText = editor.getDoc().getValue();
-    final saveObject = support.GistToInternalIdMapping();
-    saveObject.internalId = editorText;
-    saveObject.gistId = '72d83fe97bfc8e735607'; //Solar
-    final sw = Stopwatch()..start();
-    _dartpadSupportApi.storeGist(saveObject).then((results) {
-      output.text = '${_formatTiming(sw)}${results.toJson()}';
-    });
-  });
-}
-
-void setupGistRetrieval() {
-  final editor = createEditor(querySelector('#gistSection .editor'),
-      defaultText: 'Internal ID');
-  final output = querySelector('#gistSection .output');
-  final button = querySelector('#gistSection button') as ButtonElement;
-  button.onClick.listen((e) {
-    final editorText = editor.getDoc().getValue();
-    final sw = Stopwatch()..start();
-    _dartpadSupportApi.retrieveGist(id: editorText).then((results) {
-      output.text = '${_formatTiming(sw)}${results.toJson()}';
-    });
-  });
 }
 
 void setupAnalyze() {
@@ -177,36 +123,6 @@ void setupVersion() {
   button.onClick.listen((e) {
     final sw = Stopwatch()..start();
     servicesApi.version().then((results) {
-      output.text = '${_formatTiming(sw)}${results.toJson()}';
-    });
-  });
-}
-
-void setupExport() {
-  final editor = createEditor(querySelector('#exportSection .editor'));
-  final output = querySelector('#exportSection .output');
-  final button = querySelector('#exportSection button') as ButtonElement;
-  button.onClick.listen((e) {
-    final saveObject = support.PadSaveObject();
-    saveObject.dart = editor.getDoc().getValue();
-    final sw = Stopwatch()..start();
-    _dartpadSupportApi.export(saveObject).then((results) {
-      output.text = '${_formatTiming(sw)}${results.toJson()}';
-    });
-  });
-}
-
-void setupRetrieve() {
-  final output = querySelector('#retrieveSection .output');
-  final editor =
-      createEditor(querySelector('#retrieveSection .editor'), defaultText: '');
-  final button = querySelector('#retrieveSection button') as ButtonElement;
-  button.onClick.listen((e) {
-    final uuid = editor.getDoc().getValue();
-    final sw = Stopwatch()..start();
-    final uuidContainer = support.UuidContainer()..uuid = uuid;
-
-    _dartpadSupportApi.pullExportContent(uuidContainer).then((results) {
       output.text = '${_formatTiming(sw)}${results.toJson()}';
     });
   });
