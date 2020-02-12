@@ -11,7 +11,6 @@ import 'core/dependencies.dart';
 import 'core/keys.dart';
 import 'editing/editor.dart';
 import 'elements/state.dart';
-import 'services/_dartpadsupportservices.dart';
 import 'services/dartservices.dart';
 import 'services/execution.dart';
 import 'sharing/gists.dart';
@@ -22,9 +21,6 @@ Analytics get ga => deps[Analytics] as Analytics;
 Context get context => deps[Context] as Context;
 
 DartservicesApi get dartServices => deps[DartservicesApi] as DartservicesApi;
-
-P_dartpadsupportservicesApi get dartSupportServices =>
-    deps[P_dartpadsupportservicesApi] as P_dartpadsupportservicesApi;
 
 EditorFactory get editorFactory => deps[EditorFactory] as EditorFactory;
 

@@ -36,7 +36,6 @@ import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'playground_context.dart';
-import 'services/_dartpadsupportservices.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
@@ -425,7 +424,6 @@ class Playground implements GistContainer, GistController {
 
     modules.register(DartPadModule());
     modules.register(DartServicesModule());
-    modules.register(DartSupportServicesModule());
     modules.register(CodeMirrorModule());
 
     await modules.start();
