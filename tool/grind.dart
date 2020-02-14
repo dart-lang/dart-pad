@@ -191,7 +191,7 @@ void copyPackageResources(String packageName, Directory destDir) {
             joinDir(destDir, ['packages', packageName]));
       } else {
         copyDirectory(
-            Directory(location), joinDir(destDir, ['pacakges', packageName]));
+            Directory(location), joinDir(destDir, ['packages', packageName]));
       }
       return;
     }

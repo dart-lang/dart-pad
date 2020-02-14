@@ -32,6 +32,9 @@ handlers:
   - url: /packages/split
     static_dir: packages/split
 
+  - url: /packages/octicons_css
+    static_dir: packages/octicons_css
+
   - url: .*
     script: auto
 
