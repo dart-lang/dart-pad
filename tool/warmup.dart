@@ -4,10 +4,11 @@
 
 import 'dart:async';
 import 'dart:convert' as convert;
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-const BASE_URI = 'dart-services.appspot.com/api/dartservices/v1/';
+const BASE_PATH = '/api/dartservices/v1/';
 
 const count = 200;
 
@@ -35,17 +36,25 @@ final flutterDocPayload = convert.json.encode(flutterDocData);
 String uri;
 
 Future<void> main(List<String> args) async {
-  String appPrefix;
+  String appHost;
 
   if (args.isNotEmpty) {
-    appPrefix = '${args[0]}.';
+    appHost = '${args[0]}';
   } else {
-    appPrefix = '';
+    print('''Pass the fully qualified dart-services hostname (no protocol, no
+path) as the first argument when invoking this script.
+
+For example:
+
+dart warmup.dart 20200124t152413-dot-dart-services-0.appspot.com
+''');
+
+    exit(1);
   }
 
   // Use an insecure connection for test driving to avoid cert problems
   // with the prefixed app version.
-  uri = 'http://$appPrefix$BASE_URI';
+  uri = 'http://$appHost$BASE_PATH';
 
   print('Target URI\n$uri');
 

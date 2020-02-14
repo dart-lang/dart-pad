@@ -47,10 +47,12 @@ class CommonServer {
   AnalysisServerWrapper analysisServer;
   AnalysisServerWrapper flutterAnalysisServer;
 
-  bool get analysisServersRunning => analysisServer.analysisServer != null &&
-    flutterAnalysisServer.analysisServer != null;
+  bool get analysisServersRunning =>
+      analysisServer.analysisServer != null &&
+      flutterAnalysisServer.analysisServer != null;
 
   bool _running = false;
+
   bool get running => _running;
 
   CommonServer(
@@ -91,6 +93,8 @@ class CommonServer {
         exit(code);
       }
     }));
+
+    _running = true;
   }
 
   Future<void> warmup({bool useHtml = false}) async {
@@ -98,7 +102,6 @@ class CommonServer {
     await compiler.warmup(useHtml: useHtml);
     await analysisServer.warmup(useHtml: useHtml);
     await flutterAnalysisServer.warmup(useHtml: useHtml);
-    _running = true;
   }
 
   Future<void> restart() async {
@@ -119,7 +122,7 @@ class CommonServer {
       flutterAnalysisServer.shutdown(),
       compiler.dispose(),
       Future<dynamic>.sync(cache.shutdown)
-    ]);
+    ]).timeout(Duration(minutes: 1));
   }
 
   @ApiMethod(

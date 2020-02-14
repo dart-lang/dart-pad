@@ -65,6 +65,8 @@ class GaeServer {
 
   GaeServer(this.sdkPath, this.redisServerUri) {
     hierarchicalLoggingEnabled = true;
+    recordStackTraceAtLevel = Level.SEVERE;
+
     _logger.level = Level.ALL;
 
     discoveryEnabled = false;
@@ -120,7 +122,13 @@ class GaeServer {
   }
 
   Future _processReadynessRequest(io.HttpRequest request) async {
-    request.response.statusCode = io.HttpStatus.ok;
+    if (commonServer.running) {
+      request.response.statusCode = io.HttpStatus.ok;
+    } else {
+      request.response.statusCode = io.HttpStatus.internalServerError;
+      _logger.info('CommonServer not running - failing readiness check.');
+    }
+
     await request.response.close();
   }
 
