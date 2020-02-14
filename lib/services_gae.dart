@@ -126,6 +126,7 @@ class GaeServer {
       request.response.statusCode = io.HttpStatus.ok;
     } else {
       request.response.statusCode = io.HttpStatus.internalServerError;
+      _logger.info('CommonServer not running - failing readiness check.');
     }
 
     await request.response.close();
