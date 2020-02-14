@@ -47,10 +47,12 @@ class CommonServer {
   AnalysisServerWrapper analysisServer;
   AnalysisServerWrapper flutterAnalysisServer;
 
-  bool get analysisServersRunning => analysisServer.analysisServer != null &&
-    flutterAnalysisServer.analysisServer != null;
+  bool get analysisServersRunning =>
+      analysisServer.analysisServer != null &&
+      flutterAnalysisServer.analysisServer != null;
 
   bool _running = false;
+
   bool get running => _running;
 
   CommonServer(
@@ -119,7 +121,7 @@ class CommonServer {
       flutterAnalysisServer.shutdown(),
       compiler.dispose(),
       Future<dynamic>.sync(cache.shutdown)
-    ]);
+    ]).timeout(Duration(minutes: 1));
   }
 
   @ApiMethod(
