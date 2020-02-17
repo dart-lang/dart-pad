@@ -503,7 +503,8 @@ void defineTests() {
 
     test('format', () async {
       final jsonData = {'source': preFormattedCode};
-      final response = await _sendPostRequest('dartservices/v1/format', jsonData);
+      final response =
+          await _sendPostRequest('dartservices/v1/format', jsonData);
       expect(response.status, 200);
       final data = json.decode(utf8.decode(await response.body.first));
       expect(data['newString'], postFormattedCode);
@@ -511,7 +512,8 @@ void defineTests() {
 
     test('format bad code', () async {
       final jsonData = {'source': formatBadCode};
-      final response = await _sendPostRequest('dartservices/v1/format', jsonData);
+      final response =
+          await _sendPostRequest('dartservices/v1/format', jsonData);
       expect(response.status, 200);
       final data = json.decode(utf8.decode(await response.body.first));
       expect(data['newString'], formatBadCode);
@@ -519,7 +521,8 @@ void defineTests() {
 
     test('format position', () async {
       final jsonData = {'source': preFormattedCode, 'offset': 21};
-      final response = await _sendPostRequest('dartservices/v1/format', jsonData);
+      final response =
+          await _sendPostRequest('dartservices/v1/format', jsonData);
       expect(response.status, 200);
       final data = json.decode(utf8.decode(await response.body.first));
       expect(data['newString'], postFormattedCode);
@@ -528,7 +531,8 @@ void defineTests() {
 
     test('fix', () async {
       final jsonData = {'source': quickFixesCode, 'offset': 10};
-      final response = await _sendPostRequest('dartservices/v1/fixes', jsonData);
+      final response =
+          await _sendPostRequest('dartservices/v1/fixes', jsonData);
       expect(response.status, 200);
       final data = json.decode(utf8.decode(await response.body.first));
       final fixes = data['fixes'];

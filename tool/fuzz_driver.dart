@@ -125,8 +125,7 @@ Future setupTools(String sdkPath) async {
 
   print('SdKPath: $sdkPath');
 
-  final flutterWebManager =
-      FlutterWebManager(SdkManager.flutterSdk);
+  final flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
 
   container = MockContainer();
   cache = MockCache();

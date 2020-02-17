@@ -23,7 +23,6 @@ void main() {
   setupVersion();
 }
 
-
 void _setupClients() {
   client = utils.SanitizingBrowserClient();
   servicesApi = services.DartservicesApi(client, rootUrl: _uriBase);

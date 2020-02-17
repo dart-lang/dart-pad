@@ -290,7 +290,8 @@ class AnalysisServerWrapper {
       await _loadSources(sources);
       await analysisCompleter.future;
       final length = 1;
-      final assists = await analysisServer.edit.getAssists(path, offset, length);
+      final assists =
+          await analysisServer.edit.getAssists(path, offset, length);
       await _unloadSources();
       return assists;
     }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
