@@ -40,12 +40,9 @@
         <p>mode-flutter, theme-light, run-true, split-40, width-80%, height-800px</p>
         <pre>
             <code class="language-run-dartpad:theme-light:mode-flutter:run-true:split-40:width-80%:height-800px">
-import 'package:flutter_web/material.dart';
-import 'package:flutter_web_test/flutter_web_test.dart';
-import 'package:flutter_web_ui/ui.dart' as ui;
+import 'package:flutter/material.dart';
 
 Future main() async {
-  await ui.webOnlyInitializePlatform();
   runApp(MyApp());
 }
 
@@ -75,12 +72,9 @@ class _MyAppState extends State {
         <p>mode-flutter, theme-dark</p>
         <pre>
             <code class="language-run-dartpad:theme-dark:mode-flutter">
-import 'package:flutter_web/material.dart';
-import 'package:flutter_web_test/flutter_web_test.dart';
-import 'package:flutter_web_ui/ui.dart' as ui;
+import 'package:flutter/material.dart';
 
 Future main() async {
-  await ui.webOnlyInitializePlatform();
   runApp(MyApp());
 }
 
