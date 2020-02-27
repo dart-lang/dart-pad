@@ -50,7 +50,7 @@ def item(item_name):
     if item_name in VALID_FILES:
         return _serve_file(item_name)
 
-    if len(item_name) == 32 and all(c in string.hexdigits for c in item_name):
+    if (len(item_name) == 32 or len(item_name) == 20) and all(c in string.hexdigits for c in item_name):
         return _serve_file('index.html')
 
     return _serve_404()
