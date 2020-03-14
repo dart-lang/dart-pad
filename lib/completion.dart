@@ -8,14 +8,14 @@ import 'dart:async';
 import 'dart:convert' show jsonDecode;
 
 import 'editing/editor.dart';
-import 'services/dartservices.dart' hide SourceEdit;
+import 'services/dartservices.dart' as ds;
 import 'src/util.dart';
 
 // TODO: For CodeMirror, we get a request each time the user hits a key when the
 // completion popup is open. We need to cache the results when appropriate.
 
 class DartCompleter extends CodeCompleter {
-  final DartservicesApi servicesApi;
+  final ds.DartservicesApi servicesApi;
   final Document document;
 
   CancellableCompleter _lastCompleter;
@@ -32,7 +32,7 @@ class DartCompleter extends CodeCompleter {
 
     var offset = editor.document.indexFromPos(editor.document.cursor);
 
-    var request = SourceRequest()
+    var request = ds.SourceRequest()
       ..source = editor.document.value
       ..offset = offset;
 
@@ -42,7 +42,7 @@ class DartCompleter extends CodeCompleter {
     if (onlyShowFixes) {
       var completions = <Completion>[];
       var fixesFuture =
-          servicesApi.fixes(request).then((FixesResponse response) {
+          servicesApi.fixes(request).then((ds.FixesResponse response) {
         for (var problemFix in response.fixes) {
           for (var fix in problemFix.fixes) {
             var fixes = fix.edits.map((edit) {
@@ -59,7 +59,7 @@ class DartCompleter extends CodeCompleter {
         }
       });
       var assistsFuture =
-          servicesApi.assists(request).then((AssistsResponse response) {
+          servicesApi.assists(request).then((ds.AssistsResponse response) {
         for (var assist in response.assists) {
           var sourceEdits = assist.edits
               .map((edit) =>
@@ -99,14 +99,14 @@ class DartCompleter extends CodeCompleter {
             replaceOffset: offset, replaceLength: 0));
       });
     } else {
-      servicesApi.complete(request).then((CompleteResponse response) {
+      servicesApi.complete(request).then((ds.CompleteResponse response) {
         if (completer.isCancelled) return;
 
         var replaceOffset = response.replacementOffset;
         var replaceLength = response.replacementLength;
 
         var responses =
-            response.completions.map((Map<String, dynamic> completion) {
+            response.completions.map((completion) {
           return AnalysisCompletion(replaceOffset, replaceLength, completion);
         });
 
@@ -183,8 +183,8 @@ class AnalysisCompletion implements Comparable {
 
   Map<String, dynamic> _map;
 
-  AnalysisCompletion(this.offset, this.length, Map<String, dynamic> map) {
-    _map = Map<String, dynamic>.from(map);
+  AnalysisCompletion(this.offset, this.length, ds.Completion completion) {
+    _map = Map<String, dynamic>.from(completion.completion);
 
     // TODO: We need to pass this completion info better.
     _convert('element');

@@ -6,7 +6,7 @@ syntax = "proto3";
 
 package dart_services.api;
 
-message Compile {
+message CompileRequest {
   // The Dart source.
   string source = 1;
 
@@ -14,7 +14,7 @@ message Compile {
   bool returnSourceMap = 2;
 }
 
-message Source {
+message SourceRequest {
   // The Dart source.
   string source = 1;
 
@@ -22,7 +22,7 @@ message Source {
   int32 offset = 2;
 }
 
-message AnalyzeReply {
+message AnalysisResults {
   repeated AnalysisIssue issues = 1;
 
   // The package imports parsed from the source.

@@ -9,27 +9,27 @@ import 'dart:core' as $core;
 
 import 'package:protobuf/protobuf.dart' as $pb;
 
-class Compile extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Compile', package: const $pb.PackageName('dart_services.api'), createEmptyInstance: create)
+class CompileRequest extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('CompileRequest', package: const $pb.PackageName('dart_services.api'), createEmptyInstance: create)
     ..aOS(1, 'source')
     ..aOB(2, 'returnSourceMap', protoName: 'returnSourceMap')
     ..hasRequiredFields = false
   ;
 
-  Compile._() : super();
-  factory Compile() => create();
-  factory Compile.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Compile.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  Compile clone() => Compile()..mergeFromMessage(this);
-  Compile copyWith(void Function(Compile) updates) => super.copyWith((message) => updates(message as Compile));
+  CompileRequest._() : super();
+  factory CompileRequest() => create();
+  factory CompileRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory CompileRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  CompileRequest clone() => CompileRequest()..mergeFromMessage(this);
+  CompileRequest copyWith(void Function(CompileRequest) updates) => super.copyWith((message) => updates(message as CompileRequest));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static Compile create() => Compile._();
-  Compile createEmptyInstance() => create();
-  static $pb.PbList<Compile> createRepeated() => $pb.PbList<Compile>();
+  static CompileRequest create() => CompileRequest._();
+  CompileRequest createEmptyInstance() => create();
+  static $pb.PbList<CompileRequest> createRepeated() => $pb.PbList<CompileRequest>();
   @$core.pragma('dart2js:noInline')
-  static Compile getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Compile>(create);
-  static Compile _defaultInstance;
+  static CompileRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<CompileRequest>(create);
+  static CompileRequest _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get source => $_getSZ(0);
@@ -50,27 +50,27 @@ class Compile extends $pb.GeneratedMessage {
   void clearReturnSourceMap() => clearField(2);
 }
 
-class Source extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('Source', package: const $pb.PackageName('dart_services.api'), createEmptyInstance: create)
+class SourceRequest extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('SourceRequest', package: const $pb.PackageName('dart_services.api'), createEmptyInstance: create)
     ..aOS(1, 'source')
     ..a<$core.int>(2, 'offset', $pb.PbFieldType.O3)
     ..hasRequiredFields = false
   ;
 
-  Source._() : super();
-  factory Source() => create();
-  factory Source.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory Source.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  Source clone() => Source()..mergeFromMessage(this);
-  Source copyWith(void Function(Source) updates) => super.copyWith((message) => updates(message as Source));
+  SourceRequest._() : super();
+  factory SourceRequest() => create();
+  factory SourceRequest.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory SourceRequest.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  SourceRequest clone() => SourceRequest()..mergeFromMessage(this);
+  SourceRequest copyWith(void Function(SourceRequest) updates) => super.copyWith((message) => updates(message as SourceRequest));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static Source create() => Source._();
-  Source createEmptyInstance() => create();
-  static $pb.PbList<Source> createRepeated() => $pb.PbList<Source>();
+  static SourceRequest create() => SourceRequest._();
+  SourceRequest createEmptyInstance() => create();
+  static $pb.PbList<SourceRequest> createRepeated() => $pb.PbList<SourceRequest>();
   @$core.pragma('dart2js:noInline')
-  static Source getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<Source>(create);
-  static Source _defaultInstance;
+  static SourceRequest getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SourceRequest>(create);
+  static SourceRequest _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.String get source => $_getSZ(0);
@@ -91,28 +91,28 @@ class Source extends $pb.GeneratedMessage {
   void clearOffset() => clearField(2);
 }
 
-class AnalyzeReply extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo('AnalyzeReply', package: const $pb.PackageName('dart_services.api'), createEmptyInstance: create)
+class AnalysisResults extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('AnalysisResults', package: const $pb.PackageName('dart_services.api'), createEmptyInstance: create)
     ..pc<AnalysisIssue>(1, 'issues', $pb.PbFieldType.PM, subBuilder: AnalysisIssue.create)
     ..pPS(2, 'packageImports', protoName: 'packageImports')
     ..aOM<ErrorMessage>(99, 'error', subBuilder: ErrorMessage.create)
     ..hasRequiredFields = false
   ;
 
-  AnalyzeReply._() : super();
-  factory AnalyzeReply() => create();
-  factory AnalyzeReply.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
-  factory AnalyzeReply.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
-  AnalyzeReply clone() => AnalyzeReply()..mergeFromMessage(this);
-  AnalyzeReply copyWith(void Function(AnalyzeReply) updates) => super.copyWith((message) => updates(message as AnalyzeReply));
+  AnalysisResults._() : super();
+  factory AnalysisResults() => create();
+  factory AnalysisResults.fromBuffer($core.List<$core.int> i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(i, r);
+  factory AnalysisResults.fromJson($core.String i, [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(i, r);
+  AnalysisResults clone() => AnalysisResults()..mergeFromMessage(this);
+  AnalysisResults copyWith(void Function(AnalysisResults) updates) => super.copyWith((message) => updates(message as AnalysisResults));
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
-  static AnalyzeReply create() => AnalyzeReply._();
-  AnalyzeReply createEmptyInstance() => create();
-  static $pb.PbList<AnalyzeReply> createRepeated() => $pb.PbList<AnalyzeReply>();
+  static AnalysisResults create() => AnalysisResults._();
+  AnalysisResults createEmptyInstance() => create();
+  static $pb.PbList<AnalysisResults> createRepeated() => $pb.PbList<AnalysisResults>();
   @$core.pragma('dart2js:noInline')
-  static AnalyzeReply getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AnalyzeReply>(create);
-  static AnalyzeReply _defaultInstance;
+  static AnalysisResults getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<AnalysisResults>(create);
+  static AnalysisResults _defaultInstance;
 
   @$pb.TagNumber(1)
   $core.List<AnalysisIssue> get issues => $_getList(0);

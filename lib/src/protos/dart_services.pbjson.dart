@@ -5,24 +5,24 @@
 // @dart = 2.3
 // ignore_for_file: camel_case_types,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type
 
-const Compile$json = const {
-  '1': 'Compile',
+const CompileRequest$json = const {
+  '1': 'CompileRequest',
   '2': const [
     const {'1': 'source', '3': 1, '4': 1, '5': 9, '10': 'source'},
     const {'1': 'returnSourceMap', '3': 2, '4': 1, '5': 8, '10': 'returnSourceMap'},
   ],
 };
 
-const Source$json = const {
-  '1': 'Source',
+const SourceRequest$json = const {
+  '1': 'SourceRequest',
   '2': const [
     const {'1': 'source', '3': 1, '4': 1, '5': 9, '10': 'source'},
     const {'1': 'offset', '3': 2, '4': 1, '5': 5, '10': 'offset'},
   ],
 };
 
-const AnalyzeReply$json = const {
-  '1': 'AnalyzeReply',
+const AnalysisResults$json = const {
+  '1': 'AnalysisResults',
   '2': const [
     const {'1': 'issues', '3': 1, '4': 3, '5': 11, '6': '.dart_services.api.AnalysisIssue', '10': 'issues'},
     const {'1': 'packageImports', '3': 2, '4': 3, '5': 9, '10': 'packageImports'},
