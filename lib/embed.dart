@@ -871,7 +871,7 @@ class Embed {
         userCodeEditor.document.setAnnotations(issues.toList());
       }).catchError((e) {
         if (e is! TimeoutException) {
-          final message = e is ApiRequestError ? e.message : '$e';	
+          final message = e is ApiRequestError ? e.message : '$e';
 
           _displayIssues([
             AnalysisIssue()

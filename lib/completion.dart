@@ -105,8 +105,7 @@ class DartCompleter extends CodeCompleter {
         var replaceOffset = response.replacementOffset;
         var replaceLength = response.replacementLength;
 
-        var responses =
-            response.completions.map((completion) {
+        var responses = response.completions.map((completion) {
           return AnalysisCompletion(replaceOffset, replaceLength, completion);
         });
 
