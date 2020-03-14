@@ -450,7 +450,7 @@ packages:
     source: hosted
     version: "0.0.2"
   protobuf:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: protobuf
       url: "https://pub.dartlang.org"

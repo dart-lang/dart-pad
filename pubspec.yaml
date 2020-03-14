@@ -19,6 +19,7 @@ dependencies:
   meta: ^1.1.7
   octicons_css: ^0.0.1
   primer_css: ^0.0.1
+  protobuf: ^1.0.1
   route_hierarchical:
     path: third_party/pkg/route.dart/
   split: ^0.0.6

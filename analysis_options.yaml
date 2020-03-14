@@ -10,4 +10,5 @@ analyzer:
     - 'lib/bower/**'
     - 'lib/services/_dartpadsupportservices.dart'
     - 'lib/services/dartservices.dart'
+    - 'lib/src/protos/**'
     - 'third_party/pkg/**'
