@@ -93,6 +93,20 @@ class DartservicesApi {
       encoding: utf8,
       body: json.encode(request.toProto3Json()),
     );
-    return res()..mergeFromProto3Json(json.decode(response.body));
+    final jsonBody = json.decode(response.body);
+    final result = res()..mergeFromProto3Json(jsonBody);
+
+    // 99 is the tag number for error message.
+    if (result.getFieldOrNull(99) != null) {
+      final br = BadRequest()..mergeFromProto3Json(jsonBody);
+      throw ApiRequestError(br.error.message);
+    }
+
+    return result;
   }
+}
+
+class ApiRequestError implements Exception {
+  ApiRequestError(this.message);
+  final String message;
 }

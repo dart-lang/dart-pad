@@ -801,8 +801,7 @@ class Playground implements GistContainer, GistController {
       }
     } catch (e) {
       ga.sendException('${e.runtimeType}');
-      // TODO: Figure out how to handle errors properly
-      final message = '$e';
+      final message = e is ApiRequestError ? e.message : '$e';	
       _showSnackbar('Error compiling to JavaScript');
       _clearOutput();
       _showOutput('Error compiling to JavaScript:\n$message', error: true);
