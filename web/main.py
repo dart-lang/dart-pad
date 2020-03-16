@@ -12,7 +12,7 @@ if __name__ == '__main__':
 
 # Files that the server is allowed to serve. Additional static files are
 # served via directives in app.yaml.
-VALID_FILES= [
+VALID_FILES = [
     'dark_mode.js',
     'dart-192.png',
     'embed-dart.html',
@@ -24,6 +24,12 @@ VALID_FILES= [
     'index.html',
     'inject_embed.dart.js',
     'robots.txt'
+]
+
+VALID_ROUTES = [
+    'flutter',
+    'dart',
+    'html'
 ]
 
 # File extensions and the mimetypes with which they should be served.
@@ -39,21 +45,31 @@ CONTENT_TYPES = {
     '.txt': 'text/plain',
 }
 
+
 # Routes.
 
 @app.route('/')
 def index():
     return _serve_file('index.html')
 
+
 @app.route('/<item_name>')
 def item(item_name):
+    # It's a known, valid file, so just serve it.
     if item_name in VALID_FILES:
         return _serve_file(item_name)
 
+    # It's a known, valid route, so serve the index file.
+    if item_name in VALID_ROUTES:
+        return _serve_file('index.html')
+
+    # It's a gist ID, so serve the index file.
     if (len(item_name) == 32 or len(item_name) == 20) and all(c in string.hexdigits for c in item_name):
         return _serve_file('index.html')
 
+    # Route doesn't match anything, so return a 404.
     return _serve_404()
+
 
 # Helpers.
 
@@ -63,6 +79,7 @@ def _serve_file(file_path):
     file_name, file_ext = os.path.splitext(file_path)
     mimetype = CONTENT_TYPES.get(file_ext, DEFAULT_CONTENT_TYPE)
     return send_file(file_path, mimetype=mimetype)
+
 
 def _serve_404():
     return '<html><h1>404: Not found</h1></html>', 404
