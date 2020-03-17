@@ -8,6 +8,7 @@ analyzer:
     - 'third_party/**'
     - 'doc/generated/**'
     - 'flutter/**'
+    - 'lib/src/protos/**'
 
 linter:
   rules:

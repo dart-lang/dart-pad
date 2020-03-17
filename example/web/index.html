@@ -7,12 +7,17 @@
 <html>
   <head>
   	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
   	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>index</title>
-
+    <link rel="icon" href="favicon.ico">
+    <script defer src="index.dart.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
     <style>
-  #code {font-family: monospace;}
-</style>
+      #code {
+        font-family: 'Roboto Mono', monospace;
+      }
+    </style>
   </head>
   <body>
     <h1>API Tester</h1>
@@ -20,9 +25,9 @@
 
     <table>
       <tr>
-        <td width = "100px" />
+        <td width = "100px"></td>
         <td width = "500px">
-          <pre id="code" style="fontface:monospace" contentEditable="true">
+          <pre id="code" contentEditable="true">
 main() {
   print(primesLessThan(15));
 }
@@ -30,9 +35,9 @@ main() {
 // Computes primes less than [n] using the Sieve of Eratosthenes.
 primesLessThan(n) {
   var l = new List.generate(n, (i) =&gt; i);
-  for (int i = 2; i * i < n; i++)
+  for (int i = 2; i * i &lt; n; i++)
       if (l[i] != null)
-          for (int j = i * i; j < n; j += i)
+          for (int j = i * i; j &lt; n; j += i)
               l[j] = null;
   return l.skip(2).where((i) => i != null);
 }
@@ -42,7 +47,7 @@ primesLessThan(n) {
     </table>
 
     <input type="text" id="apiEndPoint"
-    value="http://liftoff-dev.appspot.com/api/dartservices/v1/analyze"
+    value="http://localhost:8082/api/dartservices/v2/analyze"
     size="64" />
 
     <button id="sendButton">Send</button>
@@ -50,7 +55,5 @@ primesLessThan(n) {
     <pre id="perf">Perf</pre>
     <pre id="output">Output</pre>
 
-    <script type="application/dart" src="index.dart"></script>
-    <script src="packages/browser/dart.js"></script>
   </body>
 </html>

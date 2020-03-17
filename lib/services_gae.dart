@@ -11,13 +11,17 @@ import 'package:appengine/appengine.dart' as ae;
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart' as rpc;
+import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'src/common.dart';
 import 'src/common_server.dart';
+import 'src/common_server_impl.dart';
+import 'src/common_server_proto.dart';
 import 'src/flutter_web.dart';
 import 'src/server_cache.dart';
 
 const String _API = '/api';
+const String _API_V1_PREFIX = '/api/dartservices/v1';
 const String _healthCheck = '/_ah/health';
 const String _readynessCheck = '/_ah/ready';
 
@@ -60,8 +64,9 @@ class GaeServer {
 
   bool discoveryEnabled;
   rpc.ApiServer apiServer;
-  FlutterWebManager flutterWebManager;
   CommonServer commonServer;
+  CommonServerImpl commonServerImpl;
+  CommonServerProto commonServerProto;
 
   GaeServer(this.sdkPath, this.redisServerUri) {
     hierarchicalLoggingEnabled = true;
@@ -70,22 +75,27 @@ class GaeServer {
     _logger.level = Level.ALL;
 
     discoveryEnabled = false;
-    flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-    commonServer = CommonServer(
-        sdkPath,
-        flutterWebManager,
-        GaeServerContainer(),
-        redisServerUri == null
-            ? InMemoryCache()
-            : RedisCache(
-                redisServerUri, io.Platform.environment['GAE_VERSION']));
+    final flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+    commonServerImpl = CommonServerImpl(
+      sdkPath,
+      flutterWebManager,
+      GaeServerContainer(),
+      redisServerUri == null
+          ? InMemoryCache()
+          : RedisCache(
+              redisServerUri,
+              io.Platform.environment['GAE_VERSION'],
+            ),
+    );
+    commonServer = CommonServer(commonServerImpl);
+    commonServerProto = CommonServerProto(commonServerImpl);
     // Enabled pretty printing of returned json for debuggability.
     apiServer = rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
       ..addApi(commonServer);
   }
 
   Future<dynamic> start([int gaePort = 8080]) async {
-    await commonServer.init();
+    await commonServerImpl.init();
     return ae.runAppEngine(requestHandler, port: gaePort);
   }
 
@@ -101,8 +111,10 @@ class GaeServer {
       await _processReadynessRequest(request);
     } else if (request.uri.path == _healthCheck) {
       await _processHealthRequest(request);
-    } else if (request.uri.path.startsWith(_API)) {
+    } else if (request.uri.path.startsWith(_API_V1_PREFIX)) {
       await _processApiRequest(request);
+    } else if (request.uri.path.startsWith(PROTO_API_URL_PREFIX)) {
+      await shelf_io.handleRequest(request, commonServerProto.router.handler);
     } else {
       await _processDefaultRequest(request);
     }
@@ -122,7 +134,7 @@ class GaeServer {
   }
 
   Future _processReadynessRequest(io.HttpRequest request) async {
-    if (commonServer.running) {
+    if (commonServerImpl.running) {
       request.response.statusCode = io.HttpStatus.ok;
     } else {
       request.response.statusCode = io.HttpStatus.internalServerError;
@@ -133,7 +145,7 @@ class GaeServer {
   }
 
   Future _processHealthRequest(io.HttpRequest request) async {
-    if (commonServer.running && !commonServer.analysisServersRunning) {
+    if (commonServerImpl.running && !commonServerImpl.analysisServersRunning) {
       _logger.severe('CommonServer running without analysis servers. '
           'Intentionally failing healthcheck.');
       request.response.statusCode = io.HttpStatus.internalServerError;

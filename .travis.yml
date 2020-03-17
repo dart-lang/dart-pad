@@ -21,4 +21,9 @@ before_script:
   - flutter doctor
   - flutter config --enable-web
   - flutter precache --web --no-android --no-ios --no-linux --no-windows --no-macos --no-fuchsia
+  - wget https://github.com/protocolbuffers/protobuf/releases/download/v3.11.4/protoc-3.11.4-linux-x86_64.zip
+  - unzip protoc-3.11.4-linux-x86_64.zip -d protoc
+  - export PATH=$PATH:$PWD/protoc/bin
+  - pub global activate protoc_plugin
+  - export PATH=$PATH:$HOME/.pub-cache/bin
 script: ./tool/travis.sh

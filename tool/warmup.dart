@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-const BASE_PATH = '/api/dartservices/v1/';
+const BASE_PATH = '/api/dartservices/v2/';
 
 const count = 200;
 
@@ -24,13 +24,17 @@ void main() {
 """;
 
 const dartData = {'offset': 17, 'source': dartSource};
+const dartCompileData = {'source': dartSource};
 const dartDocData = {'offset': 84, 'source': dartSource};
 const flutterData = {'offset': 96, 'source': flutterSource};
+const flutterCompileDDCData = {'source': flutterSource};
 const flutterDocData = {'offset': 93, 'source': flutterSource};
 
 final dartPayload = convert.json.encode(dartData);
+final dartCompilePayload = convert.json.encode(dartCompileData);
 final dartDocPayload = convert.json.encode(dartDocData);
 final flutterPayload = convert.json.encode(flutterData);
+final flutterCompileDDCPayload = convert.json.encode(flutterCompileDDCData);
 final flutterDocPayload = convert.json.encode(flutterDocData);
 
 String uri;
@@ -54,18 +58,18 @@ dart warmup.dart 20200124t152413-dot-dart-services-0.appspot.com
 
   // Use an insecure connection for test driving to avoid cert problems
   // with the prefixed app version.
-  uri = 'http://$appHost$BASE_PATH';
+  uri = 'https://$appHost$BASE_PATH';
 
   print('Target URI\n$uri');
 
   for (var j = 0; j < count; j++) {
     await request('Dart', 'complete', dartPayload);
     await request('Dart', 'analyze', dartPayload);
-    await request('Dart', 'compile', dartPayload);
+    await request('Dart', 'compile', dartCompilePayload);
     await request('Dart', 'document', dartDocPayload);
     await request('Flutter', 'complete', flutterPayload);
     await request('Flutter', 'analyze', flutterPayload);
-    await request('Flutter', 'compileDDC', flutterPayload);
+    await request('Flutter', 'compileDDC', flutterCompileDDCPayload);
     await request('Flutter', 'document', flutterDocPayload);
   }
 }

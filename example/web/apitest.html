@@ -6,9 +6,12 @@
 
 <html>
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  	<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>API Test</title>
+    <link rel="icon" href="favicon.ico">
+    <script defer src="apitest.dart.js"></script>
     <link href="apitest.css" rel="stylesheet">
     <link href="packages/codemirror/codemirror.css" rel="stylesheet">
   </head>
@@ -18,8 +21,9 @@
 
     <h2>Dartpad Server API Tester</h2>
     <!--<input type="text" value="https://dart-services.appspot.com/">-->
-    <input type="text" value="http://localhost:8080/api/">
-    <section id="analyzeSection">
+    <input type="text" value="http://localhost:8082/api">
+
+    <section id="analyzeSection-v1">
       <h3>api/dartservices/v1/analyze</h3>
       <div class="row">
         <button class="post">POST</button>
@@ -30,7 +34,42 @@
       </div>
     </section>
 
-    <section id="compileSection">
+    <section id="analyzeSection-v2">
+      <h3>api/dartservices/v2/analyze</h3>
+      <div class="row">
+        <button class="post">POST</button>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="assistsSection-v1">
+      <h3>api/dartservices/v1/assists</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="assistsSection-v2">
+      <h3>api/dartservices/v2/assists</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="compileSection-v1">
       <h3>api/dartservices/v1/compile</h3>
       <div class="row">
         <button class="post">POST</button>
@@ -41,7 +80,40 @@
       </div>
     </section>
 
-    <section id="completeSection">
+    <section id="compileSection-v2">
+      <h3>api/dartservices/v2/compile</h3>
+      <div class="row">
+        <button class="post">POST</button>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="compileDDCSection-v1">
+      <h3>api/dartservices/v1/compileDDC</h3>
+      <div class="row">
+        <button class="post">POST</button>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="compileDDCSection-v2">
+      <h3>api/dartservices/v2/compileDDC</h3>
+      <div class="row">
+        <button class="post">POST</button>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="completeSection-v1">
       <h3>api/dartservices/v1/complete</h3>
       <div class="row">
         <button class="post">POST</button>
@@ -53,7 +125,19 @@
       </div>
     </section>
 
-    <section id="documentSection">
+    <section id="completeSection-v2">
+      <h3>api/dartservices/v2/complete</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="documentSection-v1">
       <h3>api/dartservices/v1/document</h3>
       <div class="row">
         <button class="post">POST</button>
@@ -65,7 +149,19 @@
       </div>
     </section>
 
-    <section id="fixesSection">
+    <section id="documentSection-v2">
+      <h3>api/dartservices/v2/document</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="fixesSection-v1">
       <h3>api/dartservices/v1/fixes</h3>
       <div class="row">
         <button class="post">POST</button>
@@ -77,7 +173,19 @@
       </div>
     </section>
 
-    <section id="versionSection">
+    <section id="fixesSection-v2">
+      <h3>api/dartservices/v2/fixes</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="versionSection-v1">
       <h3>api/dartservices/v1/version</h3>
       <div class="row">
         <button class="post">GET</button>
@@ -88,64 +196,8 @@
       </div>
     </section>
     
-     
-    <section id="summarySection">
-      <h3>api/dartservices/v1/summarize</h3>
-      <div class="row">
-        <button class="post">POST</button>
-        <span class="offset"></span>
-      </div>
-      <div class="container">
-        <div class="editor"></div>
-        <div class="output"></div>
-      </div>
-    </section>
-    
-    <section id="exportSection">
-      <h3>api/_dartpadsupportservices/v1/export</h3>
-      <div class="row">
-        <button class="post">POST</button>
-      </div>
-      <div class="container">
-        <div class="editor"></div>
-        <div class="output"></div>
-      </div>
-    </section>
-    
-    <section id="retrieveSection">
-      <h3>api/_dartpadsupportservices/v1/pullExportData</h3>
-      <div class="row">
-        <button class="post">POST</button>
-      </div>
-      <div class="container">
-        <div class="editor"></div>
-        <div class="output"></div>
-      </div>
-    </section>
-
-    <section id="idSection">
-      <h3>api/_dartpadsupportservices/v1/getUnusedMappingId</h3>
-      <div class="row">
-        <button class="post">GET</button>
-      </div>
-      <div class="container">
-        <div class="output"></div>
-      </div>
-    </section>
-
-    <section id="storeSection">
-      <h3>api/_dartpadsupportservices/v1/storeGist</h3>
-      <div class="row">
-        <button class="post">POST</button>
-      </div>
-      <div class="container">
-        <div class="editor"></div>
-        <div class="output"></div>
-      </div>
-    </section>
-
-    <section id="gistSection">
-      <h3>api/_dartpadsupportservices/v1/retrieveGist</h3>
+    <section id="versionSection-v2">
+      <h3>api/dartservices/v2/version</h3>
       <div class="row">
         <button class="post">GET</button>
       </div>
@@ -154,8 +206,6 @@
         <div class="output"></div>
       </div>
     </section>
-
-    <script type="application/dart" src="apitest.dart"></script>
-    <script src="packages/browser/dart.js"></script>
+    
   </body>
 </html>

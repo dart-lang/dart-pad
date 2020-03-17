@@ -240,14 +240,14 @@ void fuzz() {
 }
 
 @Task('Update discovery files and run all checks prior to deployment')
-@Depends(setupFlutterSubmodule, updateDockerVersion, discovery, analyze, test,
-    fuzz, validateStorageArtifacts)
+@Depends(setupFlutterSubmodule, updateDockerVersion, generateProtos, discovery,
+    analyze, test, fuzz, validateStorageArtifacts)
 void deploy() {
   log('Run: gcloud app deploy --project=dart-services --no-promote');
 }
 
 @Task()
-@Depends(discovery, analyze, fuzz, buildStorageArtifacts)
+@Depends(generateProtos, discovery, analyze, fuzz, buildStorageArtifacts)
 void buildbot() => null;
 
 @Task('Generate the discovery doc and Dart library from the annotated API')
@@ -271,4 +271,19 @@ void discovery() {
     '--input-dir=doc/generated',
     '--output-dir=doc/generated'
   ]);
+}
+
+@Task('Generate Protobuf classes')
+void generateProtos() {
+  final result = Process.runSync(
+    'protoc',
+    ['--dart_out=lib/src', 'protos/dart_services.proto'],
+  );
+  print(result.stdout);
+  if (result.exitCode != 0) {
+    throw 'Error generating the Protobuf classes\n${result.stderr}';
+  }
+
+  // generate common_server_proto.g.dart
+  Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
 }

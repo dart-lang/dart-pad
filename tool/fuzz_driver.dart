@@ -16,6 +16,7 @@ import 'package:dart_services/src/analysis_server.dart' as analysis_server;
 import 'package:dart_services/src/api_classes.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server.dart';
+import 'package:dart_services/src/common_server_impl.dart';
 import 'package:dart_services/src/compiler.dart' as comp;
 import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/sdk_manager.dart';
@@ -29,6 +30,7 @@ bool _DUMP_PERF = false;
 bool _DUMP_DELTA = false;
 
 CommonServer server;
+CommonServerImpl commonServerImpl;
 ApiServer apiServer;
 MockContainer container;
 MockCache cache;
@@ -115,7 +117,7 @@ Usage: slow_test path_to_test_collection
   print('Shutting down');
 
   await analysisServer.shutdown();
-  await server.shutdown();
+  await commonServerImpl.shutdown();
 }
 
 /// Init the tools, and warm them up
@@ -129,8 +131,10 @@ Future setupTools(String sdkPath) async {
 
   container = MockContainer();
   cache = MockCache();
-  server = CommonServer(sdkPath, flutterWebManager, container, cache);
-  await server.init();
+  commonServerImpl =
+      CommonServerImpl(sdkPath, flutterWebManager, container, cache);
+  server = CommonServer(commonServerImpl);
+  await commonServerImpl.init();
 
   apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)..addApi(server);
 

@@ -8,39 +8,15 @@ import 'dart:async';
 
 import 'package:rpc/rpc.dart';
 
-import 'analysis_server.dart';
 import 'api_classes.dart';
-import 'common_server_impl.dart'
-    show BadRequest, CommonServerImpl, ServerContainer;
+import 'common_server_impl.dart' show BadRequest, CommonServerImpl;
 export 'common_server_impl.dart' show log, ServerContainer;
-import 'flutter_web.dart';
-import 'server_cache.dart';
 
 @ApiClass(name: 'dartservices', version: 'v1')
 class CommonServer {
   final CommonServerImpl _impl;
 
-  bool get analysisServersRunning =>
-      _impl.analysisServer.analysisServer != null &&
-      _impl.flutterAnalysisServer.analysisServer != null;
-
-  bool get running => _impl.running;
-
-  CommonServer(
-    String sdkPath,
-    FlutterWebManager flutterWebManager,
-    ServerContainer container,
-    ServerCache cache,
-  ) : _impl = CommonServerImpl(sdkPath, flutterWebManager, container, cache);
-
-  Future<void> init() async => _impl.init();
-
-  Future<void> warmup({bool useHtml = false}) async =>
-      _impl.warmup(useHtml: useHtml);
-
-  Future<void> restart() async => _impl.restart();
-
-  Future<dynamic> shutdown() => _impl.shutdown();
+  CommonServer(this._impl);
 
   @ApiMethod(
       method: 'POST',
@@ -112,14 +88,6 @@ class CommonServer {
       description: 'Return the current SDK version for DartServices.')
   Future<VersionResponse> version() =>
       _convertBadRequest(() => _impl.version());
-
-  Future<String> checkCache(String query) => _impl.checkCache(query);
-
-  Future<void> setCache(String query, String result) =>
-      _impl.setCache(query, result);
-
-  AnalysisServerWrapper getCorrectAnalysisServer(String source) =>
-      _impl.getCorrectAnalysisServer(source);
 }
 
 Future<T> _convertBadRequest<T>(Future<T> Function() fun) async {
