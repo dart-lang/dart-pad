@@ -189,6 +189,9 @@ const VersionResponse$json = const {
     const {'1': 'runtimeVersion', '3': 3, '4': 1, '5': 9, '10': 'runtimeVersion'},
     const {'1': 'appEngineVersion', '3': 4, '4': 1, '5': 9, '10': 'appEngineVersion'},
     const {'1': 'servicesVersion', '3': 5, '4': 1, '5': 9, '10': 'servicesVersion'},
+    const {'1': 'flutterVersion', '3': 6, '4': 1, '5': 9, '10': 'flutterVersion'},
+    const {'1': 'flutterDartVersion', '3': 7, '4': 1, '5': 9, '10': 'flutterDartVersion'},
+    const {'1': 'flutterDartVersionFull', '3': 8, '4': 1, '5': 9, '10': 'flutterDartVersionFull'},
     const {'1': 'error', '3': 99, '4': 1, '5': 11, '6': '.dart_services.api.ErrorMessage', '10': 'error'},
   ],
 };

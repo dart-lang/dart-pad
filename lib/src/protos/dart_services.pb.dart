@@ -838,6 +838,9 @@ class VersionResponse extends $pb.GeneratedMessage {
     ..aOS(3, 'runtimeVersion', protoName: 'runtimeVersion')
     ..aOS(4, 'appEngineVersion', protoName: 'appEngineVersion')
     ..aOS(5, 'servicesVersion', protoName: 'servicesVersion')
+    ..aOS(6, 'flutterVersion', protoName: 'flutterVersion')
+    ..aOS(7, 'flutterDartVersion', protoName: 'flutterDartVersion')
+    ..aOS(8, 'flutterDartVersionFull', protoName: 'flutterDartVersionFull')
     ..aOM<ErrorMessage>(99, 'error', subBuilder: ErrorMessage.create)
     ..hasRequiredFields = false
   ;
@@ -902,16 +905,43 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(5)
   void clearServicesVersion() => clearField(5);
 
+  @$pb.TagNumber(6)
+  $core.String get flutterVersion => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set flutterVersion($core.String v) { $_setString(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasFlutterVersion() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearFlutterVersion() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get flutterDartVersion => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set flutterDartVersion($core.String v) { $_setString(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasFlutterDartVersion() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearFlutterDartVersion() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get flutterDartVersionFull => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set flutterDartVersionFull($core.String v) { $_setString(7, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasFlutterDartVersionFull() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearFlutterDartVersionFull() => clearField(8);
+
   @$pb.TagNumber(99)
-  ErrorMessage get error => $_getN(5);
+  ErrorMessage get error => $_getN(8);
   @$pb.TagNumber(99)
   set error(ErrorMessage v) { setField(99, v); }
   @$pb.TagNumber(99)
-  $core.bool hasError() => $_has(5);
+  $core.bool hasError() => $_has(8);
   @$pb.TagNumber(99)
   void clearError() => clearField(99);
   @$pb.TagNumber(99)
-  ErrorMessage ensureError() => $_ensure(5);
+  ErrorMessage ensureError() => $_ensure(8);
 }
 
 class BadRequest extends $pb.GeneratedMessage {
