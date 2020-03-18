@@ -128,7 +128,6 @@ serveCustomBackend() async {
 }
 
 @Task('Build the `web/index.html` entrypoint')
-@Depends(generateProtos)
 build() {
   PubApp.local('build_runner').run(['build', '-r', '-o', 'web:build']);
 
