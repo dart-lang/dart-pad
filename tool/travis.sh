@@ -16,6 +16,9 @@ pub run grinder buildbot
 # Ensure that we've uploaded the compilation artifacts to google storage.
 pub run grinder validate-storage-artifacts
 
+# Enforce dart formatting on lib, test and tool directories.
+dartfmt --dry-run --set-exit-if-changed lib test tool
+
 # Gather coverage and upload to Coveralls.
 if [ "$REPO_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "dev" ]; then
   OBS_PORT=9292

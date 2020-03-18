@@ -21,3 +21,6 @@ artifacts/
 
 # local configuration
 config.properties
+
+# Editor configuration
+.vscode/

@@ -71,18 +71,26 @@ class PlatformSdk extends Sdk {
 /// This class assumes the Flutter SDK is available at `./flutter`.
 class FlutterSdk extends Sdk {
   String _versionFull = '';
+  String _flutterVersion = '';
 
   @override
   Future<void> init() async {
     _versionFull =
         (await File(path.join(sdkPath, 'version')).readAsString()).trim();
+    _flutterVersion =
+        (await File(path.join(Directory.current.path, 'flutter', 'version'))
+                .readAsString())
+            .trim();
   }
 
   @override
-  String get sdkPath => path.join(flutterBinPath, 'cache/dart-sdk');
+  String get sdkPath => path.join(flutterBinPath, 'cache', 'dart-sdk');
 
-  String get flutterBinPath => path.join(Directory.current.path, 'flutter/bin');
+  String get flutterBinPath =>
+      path.join(Directory.current.path, 'flutter', 'bin');
 
   @override
   String get versionFull => _versionFull;
+
+  String get flutterVersion => _flutterVersion;
 }

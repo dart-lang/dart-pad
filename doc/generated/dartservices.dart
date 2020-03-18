@@ -910,6 +910,15 @@ class VersionResponse {
   /// The App Engine version.
   core.String appEngineVersion;
 
+  /// The Flutter SDK's Dart version.
+  core.String flutterDartVersion;
+
+  /// The Flutter SDK's full Dart version.
+  core.String flutterDartVersionFull;
+
+  /// The Flutter SDK version.
+  core.String flutterVersion;
+
   /// The Dart SDK version that the server is running on. This will start with a
   /// semver string, and have a space and other build details appended.
   core.String runtimeVersion;
@@ -930,6 +939,15 @@ class VersionResponse {
     if (_json.containsKey("appEngineVersion")) {
       appEngineVersion = _json["appEngineVersion"];
     }
+    if (_json.containsKey("flutterDartVersion")) {
+      flutterDartVersion = _json["flutterDartVersion"];
+    }
+    if (_json.containsKey("flutterDartVersionFull")) {
+      flutterDartVersionFull = _json["flutterDartVersionFull"];
+    }
+    if (_json.containsKey("flutterVersion")) {
+      flutterVersion = _json["flutterVersion"];
+    }
     if (_json.containsKey("runtimeVersion")) {
       runtimeVersion = _json["runtimeVersion"];
     }
@@ -949,6 +967,15 @@ class VersionResponse {
         new core.Map<core.String, core.Object>();
     if (appEngineVersion != null) {
       _json["appEngineVersion"] = appEngineVersion;
+    }
+    if (flutterDartVersion != null) {
+      _json["flutterDartVersion"] = flutterDartVersion;
+    }
+    if (flutterDartVersionFull != null) {
+      _json["flutterDartVersionFull"] = flutterDartVersionFull;
+    }
+    if (flutterVersion != null) {
+      _json["flutterVersion"] = flutterVersion;
     }
     if (runtimeVersion != null) {
       _json["runtimeVersion"] = runtimeVersion;

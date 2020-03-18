@@ -5,14 +5,13 @@
 library services.grind;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
-import 'package:async/async.dart';
 import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:grinder/grinder.dart';
 import 'package:grinder/grinder_files.dart';
+import 'package:grinder/src/run_utils.dart' show mergeWorkingDirectory;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
@@ -38,12 +37,8 @@ void analyzeTest() => null;
 @Task()
 @Depends(buildStorageArtifacts)
 Future<void> serve() async {
-  final proc = await Process.start(
-      Platform.executable, ['bin/server_dev.dart', '--port', '8082']);
-  final output = StreamGroup.merge([proc.stdout, proc.stderr]);
-  await for (final message in output) {
-    log(utf8.decode(message));
-  }
+  await runWithLogging(Platform.executable,
+      arguments: ['bin/server_dev.dart', '--port', '8082']);
 }
 
 final _dockerVersionMatcher = RegExp(r'^FROM google/dart-runtime:(.*)$');
@@ -92,25 +87,25 @@ Future _validateExists(String url) async {
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
-void buildStorageArtifacts() {
+void buildStorageArtifacts() async {
   // build and copy dart_sdk.js, flutter_web.js, and flutter_web.dill
   final temp = Directory.systemTemp.createTempSync('flutter_web_sample');
 
   try {
-    _buildStorageArtifacts(temp);
+    await _buildStorageArtifacts(temp);
   } finally {
     temp.deleteSync(recursive: true);
   }
 }
 
-void _buildStorageArtifacts(Directory dir) {
+void _buildStorageArtifacts(Directory dir) async {
   final flutterSdkPath =
       Directory(path.join(Directory.current.path, 'flutter'));
   final pubspec = FlutterWebManager.createPubspec(true);
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
   // run flutter pub get
-  run(
+  await runWithLogging(
     path.join(flutterSdkPath.path, 'bin/flutter'),
     arguments: ['pub', 'get'],
     workingDirectory: dir.path,
@@ -146,7 +141,7 @@ void _buildStorageArtifacts(Directory dir) {
 
   // Make sure flutter/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
   // is installed.
-  run(
+  await runWithLogging(
     path.join(flutterSdkPath.path, 'bin/flutter'),
     arguments: ['precache', '--web'],
     workingDirectory: dir.path,
@@ -169,7 +164,7 @@ void _buildStorageArtifacts(Directory dir) {
     ...flutterLibraries
   ];
 
-  run(
+  await runWithLogging(
     compilerPath,
     arguments: args,
     workingDirectory: dir.path,
@@ -177,7 +172,7 @@ void _buildStorageArtifacts(Directory dir) {
 
   // Copy both to the project directory.
   final artifactsDir = getDir('artifacts');
-  artifactsDir.create();
+  await artifactsDir.create();
 
   final sdkJsPath = path.join(flutterSdkPath.path,
       'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd/dart_sdk.js');
@@ -194,7 +189,7 @@ void _buildStorageArtifacts(Directory dir) {
 }
 
 @Task('Delete, re-download, and reinitialize the Flutter submodule.')
-void setupFlutterSubmodule() {
+void setupFlutterSubmodule() async {
   final flutterDir = Directory('flutter');
 
   // Remove all files currently in the submodule. This is done to clear any
@@ -202,24 +197,24 @@ void setupFlutterSubmodule() {
   flutterDir.listSync().forEach((e) => e.deleteSync(recursive: true));
 
   // Pull clean files into the submodule, based on whatever commit it's set to.
-  run(
+  await runWithLogging(
     'git',
     arguments: ['submodule', 'update'],
   );
 
   // Set up the submodule's copy of the Flutter SDK the way dart-services needs
   // it.
-  run(
+  await runWithLogging(
     path.join(flutterDir.path, 'bin/flutter'),
     arguments: ['doctor'],
   );
 
-  run(
+  await runWithLogging(
     path.join(flutterDir.path, 'bin/flutter'),
     arguments: ['config', '--enable-web'],
   );
 
-  run(
+  await runWithLogging(
     path.join(flutterDir.path, 'bin/flutter'),
     arguments: [
       'precache',
@@ -274,16 +269,47 @@ void discovery() {
 }
 
 @Task('Generate Protobuf classes')
-void generateProtos() {
-  final result = Process.runSync(
+void generateProtos() async {
+  await runWithLogging(
     'protoc',
-    ['--dart_out=lib/src', 'protos/dart_services.proto'],
+    arguments: ['--dart_out=lib/src', 'protos/dart_services.proto'],
   );
-  print(result.stdout);
-  if (result.exitCode != 0) {
-    throw 'Error generating the Protobuf classes\n${result.stderr}';
-  }
+
+  // reformat generated classes so travis dartfmt test doesn't fail
+  await runWithLogging(
+    'dartfmt',
+    arguments: ['--fix', '-w', 'lib/src/protos'],
+  );
 
   // generate common_server_proto.g.dart
   Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
+}
+
+class RunWithLoggingException implements Exception {
+  const RunWithLoggingException(this.executable, this.exitCode);
+  final String executable;
+  final int exitCode;
+}
+
+Future<void> runWithLogging(String executable,
+    {List<String> arguments = const [],
+    RunOptions runOptions,
+    String workingDirectory}) async {
+  runOptions = mergeWorkingDirectory(workingDirectory, runOptions);
+  log("${executable} ${arguments.join(' ')}");
+  runOptions ??= RunOptions();
+
+  final proc = await Process.start(executable, arguments,
+      workingDirectory: runOptions.workingDirectory,
+      environment: runOptions.environment,
+      includeParentEnvironment: runOptions.includeParentEnvironment,
+      runInShell: runOptions.runInShell);
+
+  proc.stdout.map((out) => log(runOptions.stdoutEncoding.decode(out)));
+  proc.stderr.map((err) => log(runOptions.stdoutEncoding.decode(err)));
+  final exitCode = await proc.exitCode;
+
+  if (exitCode != 0) {
+    throw RunWithLoggingException(executable, exitCode);
+  }
 }

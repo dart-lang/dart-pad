@@ -293,10 +293,22 @@ class VersionResponse {
   @ApiProperty(description: 'The dart-services backend version.')
   final String servicesVersion;
 
+  @ApiProperty(description: 'The Flutter SDK version.')
+  final String flutterVersion;
+
+  @ApiProperty(description: "The Flutter SDK's Dart version.")
+  final String flutterDartVersion;
+
+  @ApiProperty(description: "The Flutter SDK's full Dart version.")
+  final String flutterDartVersionFull;
+
   VersionResponse(
       {this.sdkVersion,
       this.sdkVersionFull,
       this.runtimeVersion,
       this.appEngineVersion,
-      this.servicesVersion});
+      this.servicesVersion,
+      this.flutterDartVersion,
+      this.flutterDartVersionFull,
+      this.flutterVersion});
 }

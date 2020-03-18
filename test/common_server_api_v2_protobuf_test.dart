@@ -229,8 +229,8 @@ void defineTests() {
     });
 
     test('complete no data', () async {
-      final request =
-          await _sendPostRequest('dartservices/v2/complete', proto.SourceRequest());
+      final request = await _sendPostRequest(
+          'dartservices/v2/complete', proto.SourceRequest());
       expect(request.statusCode, 400);
     });
 
@@ -245,7 +245,8 @@ void defineTests() {
     });
 
     test('complete param missing 2', () async {
-      final request = proto.SourceRequest()..source = 'void main() {print("foo");}';
+      final request = proto.SourceRequest()
+        ..source = 'void main() {print("foo");}';
       final response =
           await _sendPostRequest('dartservices/v2/complete', request);
       expect(response.statusCode, 400);
@@ -298,7 +299,8 @@ void defineTests() {
     });
 
     test('document negative-test noOffset', () async {
-      final request = proto.SourceRequest()..source = 'void main() {print("foo");}';
+      final request = proto.SourceRequest()
+        ..source = 'void main() {print("foo");}';
       final response =
           await _sendPostRequest('dartservices/v2/document', request);
       expect(response.statusCode, 400);
