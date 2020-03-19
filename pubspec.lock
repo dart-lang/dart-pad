@@ -14,7 +14,7 @@ packages:
       name: analysis_server_lib
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.8"
+    version: "0.1.9"
   analyzer:
     dependency: "direct main"
     description:
@@ -28,35 +28,35 @@ packages:
       name: appengine
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.4"
+    version: "0.10.5"
   args:
     dependency: "direct main"
     description:
       name: args
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.2"
+    version: "1.6.0"
   async:
     dependency: "direct dev"
     description:
       name: async
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.4.0"
+    version: "2.4.1"
   bazel_worker:
     dependency: "direct main"
     description:
       name: bazel_worker
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.1.23"
+    version: "0.1.23+1"
   boolean_selector:
     dependency: transitive
     description:
       name: boolean_selector
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.5"
+    version: "2.0.0"
   build:
     dependency: transitive
     description:
@@ -91,14 +91,14 @@ packages:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.7.4"
+    version: "1.8.0"
   build_runner_core:
     dependency: transitive
     description:
       name: build_runner_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.4.0"
+    version: "4.5.2"
   built_collection:
     dependency: transitive
     description:
@@ -119,7 +119,7 @@ packages:
       name: charcode
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.2"
+    version: "1.1.3"
   checked_yaml:
     dependency: transitive
     description:
@@ -147,7 +147,7 @@ packages:
       name: codemirror
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.12+5.49.2"
+    version: "0.5.14+5.52.0"
   collection:
     dependency: transitive
     description:
@@ -168,7 +168,7 @@ packages:
       name: coverage
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.3+3"
+    version: "0.13.9"
   crypto:
     dependency: "direct main"
     description:
@@ -245,7 +245,7 @@ packages:
       name: googleapis_auth
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.11"
+    version: "0.2.11+1"
   graphs:
     dependency: transitive
     description:
@@ -259,7 +259,7 @@ packages:
       name: grinder
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.3+1"
+    version: "0.8.4"
   grpc:
     dependency: transitive
     description:
@@ -280,7 +280,7 @@ packages:
       name: http
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.0+2"
+    version: "0.12.0+4"
   http2:
     dependency: transitive
     description:
@@ -301,7 +301,7 @@ packages:
       name: http_multi_server
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.0"
+    version: "2.2.0"
   http_parser:
     dependency: transitive
     description:
@@ -357,7 +357,7 @@ packages:
       name: logging
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.11.3+2"
+    version: "0.11.4"
   matcher:
     dependency: transitive
     description:
@@ -420,7 +420,7 @@ packages:
       name: package_config
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.9.2"
   package_resolver:
     dependency: transitive
     description:
@@ -462,7 +462,7 @@ packages:
       name: pub_semver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.2"
+    version: "1.4.4"
   pubspec_parse:
     dependency: transitive
     description:
@@ -476,7 +476,7 @@ packages:
       name: quiver
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.2+1"
+    version: "2.1.3"
   rpc:
     dependency: "direct main"
     description:
@@ -497,7 +497,7 @@ packages:
       name: shelf_packages_handler
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.4"
+    version: "2.0.0"
   shelf_router:
     dependency: "direct main"
     description:
@@ -539,21 +539,21 @@ packages:
       name: source_map_stack_trace
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.5"
+    version: "2.0.0"
   source_maps:
     dependency: transitive
     description:
       name: source_maps
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.10.8"
+    version: "0.10.9"
   source_span:
     dependency: transitive
     description:
       name: source_span
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.5"
+    version: "1.7.0"
   stack_trace:
     dependency: transitive
     description:
@@ -574,7 +574,7 @@ packages:
       name: stream_transform
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.2.0"
   string_scanner:
     dependency: transitive
     description:
@@ -588,7 +588,7 @@ packages:
       name: synchronized
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.1"
+    version: "2.2.0"
   term_glyph:
     dependency: transitive
     description:
@@ -602,21 +602,21 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.9.4"
+    version: "1.14.2"
   test_api:
     dependency: transitive
     description:
       name: test_api
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.11"
+    version: "0.2.15"
   test_core:
     dependency: transitive
     description:
       name: test_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.15"
+    version: "0.3.3"
   timing:
     dependency: transitive
     description:
@@ -665,14 +665,14 @@ packages:
       name: vm_service
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.1.4"
+    version: "4.0.0"
   watcher:
     dependency: transitive
     description:
       name: watcher
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.7+13"
+    version: "0.9.7+14"
   web_socket_channel:
     dependency: transitive
     description:
@@ -680,6 +680,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
+  webkit_inspection_protocol:
+    dependency: transitive
+    description:
+      name: webkit_inspection_protocol
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.5.0+1"
   yaml:
     dependency: "direct main"
     description:
