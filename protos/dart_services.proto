@@ -1,0 +1,190 @@
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+syntax = "proto3";
+
+package dart_services.api;
+
+message CompileRequest {
+  // The Dart source.
+  string source = 1;
+
+  // Return the Dart to JS source map; optional (defaults to false).
+  bool returnSourceMap = 2;
+}
+
+message SourceRequest {
+  // The Dart source.
+  string source = 1;
+
+  // The offset within source to operate at.
+  int32 offset = 2;
+}
+
+message AnalysisResults {
+  repeated AnalysisIssue issues = 1;
+
+  // The package imports parsed from the source.
+  repeated string packageImports = 2;
+
+  // Make this response compatible with BadRequest
+  ErrorMessage error = 99;
+}
+
+message AnalysisIssue {
+  string kind = 1;
+  int32 line = 2;
+  string message = 3;
+  string sourceName = 4;
+  bool hasFixes = 5;
+  int32 charStart = 6;
+  int32 charLength = 7;
+}
+
+message VersionRequest {}
+
+message CompileResponse {
+  string result = 1;
+  string sourceMap = 2;
+
+  // Make this response compatible with BadRequest
+  ErrorMessage error = 99;
+}
+
+message CompileDDCResponse {
+  string result = 1;
+  string modulesBaseUrl = 2;
+
+  // Make this response compatible with BadRequest
+  ErrorMessage error = 99;
+}
+
+message DocumentResponse {
+  map<string, string> info = 1;
+
+  // Make this response compatible with BadRequest
+  ErrorMessage error = 99;
+}
+
+message CompleteResponse {
+  // The offset of the start of the text to be replaced.
+  int32 replacementOffset = 1;
+
+  // The length of the text to be replaced.
+  int32 replacementLength = 2;
+
+  repeated Completion completions = 3;
+
+  // Make this response compatible with BadRequest
+  ErrorMessage error = 99;
+}
+
+message Completion { map<string, string> completion = 1; }
+
+message FixesResponse {
+  repeated ProblemAndFixes fixes = 1;
+
+  // Make this response compatible with BadRequest
+  ErrorMessage error = 99;
+}
+
+// Represents a problem detected during analysis, and a set of possible ways of
+// resolving the problem.
+message ProblemAndFixes {
+  repeated CandidateFix fixes = 1;
+  string problemMessage = 2;
+  int32 offset = 3;
+  int32 length = 4;
+}
+
+// Represents a possible way of solving an Analysis Problem.
+message CandidateFix {
+  string message = 1;
+  repeated SourceEdit edits = 2;
+  int32 selectionOffset = 3;
+  repeated LinkedEditGroup linkedEditGroups = 4;
+}
+
+// Represents a single edit-point change to a source file.
+message SourceEdit {
+  int32 offset = 1;
+  int32 length = 2;
+  string replacement = 3;
+}
+
+message LinkedEditGroup {
+  // The positions of the regions that should be edited simultaneously.
+  repeated int32 positions = 1;
+
+  // The length of the regions that should be edited simultaneously.
+  int32 length = 2;
+
+  // Pre-computed suggestions for what every region might want to be changed to.
+  repeated LinkedEditSuggestion suggestions = 3;
+}
+
+message LinkedEditSuggestion {
+  // The value that could be used to replace all of the linked edit regions.
+  string value = 1;
+
+  // The kind of value being proposed.
+  string kind = 2;
+}
+
+// Represents a reformatting of the code.
+message FormatResponse {
+  // The formatted source code.
+  string newString = 1;
+
+  // The (optional) new offset of the cursor; can be `null`.
+  int32 offset = 2;
+
+  // Make this response compatible with BadRequest
+  ErrorMessage error = 99;
+}
+
+// The response from the `/assists` service call.
+message AssistsResponse {
+  repeated CandidateFix assists = 1;
+
+  // Make this response compatible with BadRequest
+  ErrorMessage error = 99;
+}
+
+// The response from the `/version` service call.
+message VersionResponse {
+  // The Dart SDK version that DartServices is compatible with.
+  string sdkVersion = 1;
+
+  // The full Dart SDK version that DartServices is compatible with.
+  string sdkVersionFull = 2;
+
+  // The Dart SDK version that the server is running on. This will start with a
+  // semver string, and have a space and other build details appended.
+  string runtimeVersion = 3;
+
+  // The App Engine version.
+  string appEngineVersion = 4;
+
+  // The dart-services backend version.
+  string servicesVersion = 5;
+
+  // The Flutter SDK's version
+  string flutterVersion = 6;
+
+  // The Flutter SDK's Dart version
+  string flutterDartVersion = 7;
+
+  // The Flutter SDK's full Dart version
+  string flutterDartVersionFull = 8;
+
+  // Make this response compatible with BadRequest
+  ErrorMessage error = 99;
+}
+
+// Response from the server when errors are thrown internally
+message BadRequest { ErrorMessage error = 99; }
+
+// Individual error messages.
+message ErrorMessage { string message = 1; }

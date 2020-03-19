@@ -310,3 +310,18 @@ clean() => defaultClean();
 
 String _printSize(FilePath file) =>
     '${(file.asFile.lengthSync() + 1023) ~/ 1024}k';
+
+@Task('Generate Protobuf classes')
+void generateProtos() {
+  final result = Process.runSync(
+    'protoc',
+    ['--dart_out=lib/src', 'protos/dart_services.proto'],
+  );
+  print(result.stdout);
+  if (result.exitCode != 0) {
+    throw 'Error generating the Protobuf classes\n${result.stderr}';
+  }
+
+  // generate common_server_proto.g.dart
+  Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
+}

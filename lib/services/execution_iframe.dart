@@ -224,8 +224,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   }
 
   void _initListener() {
-    context['dartMessageListener'] =
-        JsFunction.withThis((_this, data) {
+    context['dartMessageListener'] = JsFunction.withThis((_this, data) {
       var type = data['type'] as String;
 
       if (type == 'testResult') {
