@@ -8,7 +8,6 @@ import 'dart:math' as math;
 
 import 'package:dart_pad/elements/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
-import 'package:dart_pad/util/detect_webkit.dart';
 import 'package:split/split.dart';
 import 'package:mdc_web/mdc_web.dart';
 
@@ -401,11 +400,7 @@ class Embed {
     linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
     linearProgress.determinate = false;
 
-    _initModules().then((_) => _init()).then((_) => _emitReady()).then((_) {
-      if (options.mode == EmbedMode.flutter) {
-        notifyIfWebKit(dialog);
-      }
-    });
+    _initModules().then((_) => _init()).then((_) => _emitReady());
   }
 
   /// Initializes a listener for messages from the parent window. Allows this
@@ -425,7 +420,7 @@ class Embed {
             Map<String, String>.from(data['sourceCode'] as Map);
         _resetCode();
 
-        if (autoRunEnabled && !isRunningInWebKit()) {
+        if (autoRunEnabled) {
           _handleExecute();
         }
       }
@@ -624,7 +619,7 @@ class Embed {
         _performAnalysis();
       }
 
-      if (autoRunEnabled && !isRunningInWebKit()) {
+      if (autoRunEnabled) {
         _handleExecute();
       }
     } on GistLoaderException catch (ex) {
