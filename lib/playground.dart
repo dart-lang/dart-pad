@@ -668,12 +668,12 @@ class Playground implements GistContainer, GistController {
 
   /// Analyzes and runs the gist.  Auto-runs the gist if [autoRun] is true and
   /// the analyzer comes back clean.
-  Future<void> _analyzeAndRun({bool autoRun = true}) {
+  Future<void> _analyzeAndRun() {
     var completer = Completer();
     Timer.run(() async {
       try {
         var result = await _performAnalysis();
-        if (result && autoRun) {
+        if (result) {
           _handleRun();
         }
       } catch (e) {
