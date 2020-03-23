@@ -589,7 +589,6 @@ class Playground implements GistContainer, GistController {
 
   Future<void> showNew(Layout layout) async {
     var loadResult = _loadGist();
-    var shouldAutoRun = loadResult == LoadGistResult.storage;
 
     // If no gist was loaded, use a new Dart gist.
     if (loadResult == LoadGistResult.none) {
@@ -614,7 +613,7 @@ class Playground implements GistContainer, GistController {
       _jumpToLine(int.parse(url.queryParameters['line']));
     }
 
-    await _analyzeAndRun(autoRun: shouldAutoRun);
+    await _analyzeAndRun();
   }
 
   Gist _createGist(Layout layout) {
@@ -666,12 +665,12 @@ class Playground implements GistContainer, GistController {
 
   /// Analyzes and runs the gist.  Auto-runs the gist if [autoRun] is true and
   /// the analyzer comes back clean.
-  Future<void> _analyzeAndRun({bool autoRun = false}) {
+  Future<void> _analyzeAndRun() {
     var completer = Completer();
     Timer.run(() async {
       try {
         var result = await _performAnalysis();
-        if (result && !autoRun) {
+        if (result) {
           _handleRun();
         }
       } catch (e) {
