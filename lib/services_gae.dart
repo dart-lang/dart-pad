@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart' as ae;
-import 'package:dart_services/src/sdk_manager.dart';
 import 'package:logging/logging.dart';
 import 'package:rpc/rpc.dart' as rpc;
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -18,6 +17,7 @@ import 'src/common_server.dart';
 import 'src/common_server_impl.dart';
 import 'src/common_server_proto.dart';
 import 'src/flutter_web.dart';
+import 'src/sdk_manager.dart';
 import 'src/server_cache.dart';
 
 const String _API = '/api';

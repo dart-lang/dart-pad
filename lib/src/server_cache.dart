@@ -11,8 +11,8 @@ import 'package:dartis/dartis.dart' as redis;
 import 'package:pedantic/pedantic.dart';
 import 'package:quiver/cache.dart';
 
-import 'sdk_manager.dart';
 import 'common_server.dart' show log;
+import 'sdk_manager.dart';
 
 abstract class ServerCache {
   Future<String> get(String key);

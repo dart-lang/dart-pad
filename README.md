@@ -30,7 +30,7 @@ The Dart protoc plugin is also required for the above `protoc` compiler
 to generate Dart code. To install, please run:
 
 ```bash
-pub global install protoc_plugin
+pub global activate protoc_plugin
 ```
 
 ## Running

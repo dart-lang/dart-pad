@@ -19,8 +19,8 @@ import 'common.dart';
 import 'compiler.dart';
 import 'flutter_web.dart';
 import 'pub.dart';
-import 'server_cache.dart';
 import 'sdk_manager.dart';
+import 'server_cache.dart';
 
 final Duration _standardExpiration = Duration(hours: 1);
 final Logger log = Logger('common_server');

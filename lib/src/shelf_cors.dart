@@ -25,7 +25,7 @@ Middleware createCorsHeadersMiddleware({Map<String, String> corsHeaders}) {
   }
 
   Response addCorsHeaders(Response response) =>
-      response.change(headers: corsHeaders);
+      response?.change(headers: corsHeaders);
 
   return createMiddleware(
       requestHandler: handleOptionsRequest, responseHandler: addCorsHeaders);

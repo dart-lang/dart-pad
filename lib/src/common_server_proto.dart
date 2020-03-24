@@ -14,8 +14,9 @@ import 'package:shelf_router/shelf_router.dart';
 
 import 'api_classes.dart' as api;
 import 'common_server_impl.dart' show CommonServerImpl, BadRequest;
-export 'common_server_impl.dart' show log, ServerContainer;
 import 'protos/dart_services.pb.dart' as proto;
+
+export 'common_server_impl.dart' show log, ServerContainer;
 
 part 'common_server_proto.g.dart'; // generated with 'pub run build_runner build'
 

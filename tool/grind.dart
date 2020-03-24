@@ -305,8 +305,8 @@ Future<void> runWithLogging(String executable,
       includeParentEnvironment: runOptions.includeParentEnvironment,
       runInShell: runOptions.runInShell);
 
-  proc.stdout.map((out) => log(runOptions.stdoutEncoding.decode(out)));
-  proc.stderr.map((err) => log(runOptions.stdoutEncoding.decode(err)));
+  proc.stdout.listen((out) => log(runOptions.stdoutEncoding.decode(out)));
+  proc.stderr.listen((err) => log(runOptions.stdoutEncoding.decode(err)));
   final exitCode = await proc.exitCode;
 
   if (exitCode != 0) {

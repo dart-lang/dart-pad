@@ -17,7 +17,9 @@ pub run grinder buildbot
 pub run grinder validate-storage-artifacts
 
 # Enforce dart formatting on lib, test and tool directories.
+echo -n "Files that need dartfmt: "
 dartfmt --dry-run --set-exit-if-changed lib test tool
+echo "All clean"
 
 # Gather coverage and upload to Coveralls.
 if [ "$REPO_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "dev" ]; then
