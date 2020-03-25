@@ -98,7 +98,7 @@ packages:
       name: build_runner_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.5.2"
+    version: "4.5.3"
   built_collection:
     dependency: transitive
     description:
@@ -147,7 +147,7 @@ packages:
       name: codemirror
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.14+5.52.0"
+    version: "0.5.15+5.52.2"
   collection:
     dependency: transitive
     description:
@@ -308,7 +308,7 @@ packages:
       name: http_parser
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.1.3"
+    version: "3.1.4"
   http_server:
     dependency: transitive
     description:
