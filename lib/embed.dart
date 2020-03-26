@@ -374,7 +374,7 @@ class Embed {
       });
 
     if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
-      consoleExpandController = ConsoleExpandController(
+      var controller = ConsoleExpandController(
           expandButton: querySelector('#console-output-header'),
           footer: querySelector('#console-output-footer'),
           expandIcon: querySelector('#console-expand-icon'),
@@ -387,6 +387,10 @@ class Embed {
             htmlEditor.resize();
             cssEditor.resize();
           });
+      consoleExpandController = controller;
+      if (shouldOpenConsole) {
+        controller.open();
+      }
     } else {
       consoleExpandController =
           Console(DElement(querySelector('#console-output-container')));
@@ -458,6 +462,11 @@ class Embed {
   bool get autoRunEnabled {
     final url = Uri.parse(window.location.toString());
     return url.queryParameters['run'] == 'true';
+  }
+
+  bool get shouldOpenConsole {
+    final value = _getQueryParam('open_console');
+    return value == 'true';
   }
 
   // ID of an API Doc sample that should be loaded into the editors.
@@ -1153,6 +1162,18 @@ class ConsoleExpandController extends Console {
   void clear() {
     super.clear();
     unreadCounter.clear();
+  }
+
+  void open() {
+    if (!_expanded) {
+      _toggleExpanded();
+    }
+  }
+
+  void close() {
+    if (_expanded) {
+      _toggleExpanded();
+    }
   }
 
   void _toggleExpanded() {
