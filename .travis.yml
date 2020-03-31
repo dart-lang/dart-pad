@@ -4,9 +4,7 @@ install:
 dart:
   # Keep this value aligned with min SDK value in pubspec.yaml and FROM line of Dockerfile
   - "2.7.2"
-  # TODO(devoncarew): commented out due to
-  # https://github.com/dart-lang/dart-pad/issues/1002
-  #- dev
+  - dev
 
 # Speed up builds by using containerization. Disable this if you need to use
 # sudo in your scripts.

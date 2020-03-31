@@ -33,7 +33,11 @@ dev_dependencies:
   coverage: ^0.13.0
   discoveryapis_generator: ^0.9.11
   grinder: ^0.8.0
-  mock_request: ^1.0.6
+  # TODO(brettmorgan): return to mock_request pub package after it is
+  # published with https://github.com/thosakwe/mock_request/pull/3
+  # mock_request: ^1.0.6
+  mock_request:
+    git: https://github.com/domesticmouse/mock_request.git
   pedantic: ^1.9.0
   shelf_router_generator: ^0.7.0+1
   synchronized: ^2.1.0
