@@ -78,6 +78,7 @@ $_samplePackageName:lib/
 
   static final Set<String> _flutterWebImportPrefixes = <String>{
     'package:flutter',
+    'dart:ui',
   };
 
   bool usesFlutterWeb(Set<String> imports) {
