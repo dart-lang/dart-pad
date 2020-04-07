@@ -1,0 +1,20 @@
+image:
+  file: .gitpod.Dockerfile
+
+# List the ports you want to expose and what to do when they are served. See https://www.gitpod.io/docs/config-ports/
+ports:
+  - port: 8080
+    onOpen: "open-browser"
+  - port: 8082
+    onOpen: "ignore"
+  - port: 9501
+    onOpen: "ignore"
+
+# List the start up tasks. You can start them in parallel in multiple terminals. See https://www.gitpod.io/docs/config-start-tasks/
+tasks:
+  - init: ./flutter/bin/flutter doctor -v && pub get && grind deploy
+
+# Add the DartCode extension. See https://www.gitpod.io/docs/vscode-extensions/
+vscode:
+  extensions:
+    - Dart-Code.dart-code@3.9.0:umvoqCQMs3NpksmwhVtStw==
