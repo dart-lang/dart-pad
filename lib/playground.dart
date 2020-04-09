@@ -847,13 +847,23 @@ class Playground implements GistContainer, GistController {
       var hasErrors = result.issues.any((issue) => issue.kind == 'error');
       var hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
 
-      // TODO: show errors or warnings
-
       return hasErrors == false && hasWarnings == false;
     }).catchError((e) {
+      if (e is! TimeoutException) {
+        final message = e is ApiRequestError ? e.message : '$e';
+
+        _displayIssues([
+          AnalysisIssue()
+            ..kind = 'error'
+            ..line = 1
+            ..message = message
+        ]);
+      } else {
+        _logger.severe(e);
+      }
+
       _context.dartDocument.setAnnotations([]);
       busyLight.reset();
-      _logger.severe(e);
     });
   }
 
