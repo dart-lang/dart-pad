@@ -612,8 +612,6 @@ class Playground implements GistContainer, GistController {
     if (url.hasQuery && url.queryParameters['line'] != null) {
       _jumpToLine(int.parse(url.queryParameters['line']));
     }
-
-    await _analyzeAndRun();
   }
 
   Gist _createGist(Layout layout) {
@@ -663,8 +661,7 @@ class Playground implements GistContainer, GistController {
     return LoadGistResult.none;
   }
 
-  /// Analyzes and runs the gist.  Auto-runs the gist if [autoRun] is true and
-  /// the analyzer comes back clean.
+  /// Analyzes and runs the gist.
   Future<void> _analyzeAndRun() {
     var completer = Completer();
     Timer.run(() async {
