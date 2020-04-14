@@ -1021,7 +1021,11 @@ class Playground implements GistContainer, GistController {
   }
 
   void _showInstallPage() {
-    window.location.href = 'https://flutter.dev/get-started/install';
+    if (_layout == Layout.dart) {
+      window.location.href = 'https://dart.dev/get-dart';
+    } else {
+      window.location.href = 'https://flutter.dev/get-started/install';
+    }
   }
 
   @override

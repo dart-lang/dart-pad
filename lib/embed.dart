@@ -899,7 +899,11 @@ class Embed {
   }
 
   void _showInstallPage() {
-    window.location.href = 'https://flutter.dev/get-started/install';
+    if (_modeName == 'dart' || _modeName == 'html') {
+      window.location.href = 'https://dart.dev/get-dart';
+    } else {
+      window.location.href = 'https://flutter.dev/get-started/install';
+    }
   }
 
   void _format() async {
