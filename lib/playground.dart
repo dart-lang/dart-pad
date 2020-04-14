@@ -612,6 +612,9 @@ class Playground implements GistContainer, GistController {
     if (url.hasQuery && url.queryParameters['line'] != null) {
       _jumpToLine(int.parse(url.queryParameters['line']));
     }
+
+    // Run asynchronously to wait for _context.dartSource to exist
+    Timer.run(_performAnalysis);
   }
 
   Gist _createGist(Layout layout) {
