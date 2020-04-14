@@ -77,6 +77,7 @@ class Embed {
   var _executionButtonCount = 0;
   MDCButton executeButton;
   MDCButton reloadGistButton;
+  MDCButton installButton;
   MDCButton formatButton;
   MDCButton showHintButton;
   MDCButton copyCodeButton;
@@ -270,6 +271,10 @@ class Embed {
     formatButton = MDCButton(querySelector('#format-code') as ButtonElement)
       ..onClick.listen(
         (_) => _format(),
+      );
+    installButton = MDCButton(querySelector('#install-button') as ButtonElement)
+      ..onClick.listen(
+        (_) => _showInstallPage(),
       );
 
     testResultBox = FlashBox(querySelector('#test-result-box') as DivElement);
@@ -891,6 +896,10 @@ class Embed {
 
   void _showKeyboardDialog() {
     dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
+  }
+
+  void _showInstallPage() {
+    window.location.href = 'https://flutter.dev/get-started/install';
   }
 
   void _format() async {
