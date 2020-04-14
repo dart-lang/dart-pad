@@ -664,23 +664,6 @@ class Playground implements GistContainer, GistController {
     return LoadGistResult.none;
   }
 
-  /// Analyzes and runs the gist.
-  Future<void> _analyzeAndRun() {
-    var completer = Completer();
-    Timer.run(() async {
-      try {
-        var result = await _performAnalysis();
-        if (result) {
-          _handleRun();
-        }
-      } catch (e) {
-        // ignore errors
-      }
-      completer.complete();
-    });
-    return completer.future;
-  }
-
   void showGist(RouteEnterEvent event) {
     var gistId = event.parameters['gist'] as String;
 
