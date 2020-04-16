@@ -8,7 +8,7 @@ import 'package:shelf_static/shelf_static.dart';
 
 Future<void> main() async {
   final handler = const Pipeline()
-      .addMiddleware(createCorsHeadersMiddleware())
+      .addMiddleware(_corsHeadersMiddleware)
       .addMiddleware(logRequests())
       .addMiddleware(_canonicalHeadersMiddleware)
       .addHandler(createStaticHandler('build', defaultDocument: 'index.html'));
@@ -45,25 +45,17 @@ Handler _canonicalHeadersMiddleware(Handler innerHandler) => (request) async {
       return response;
     };
 
+// By default allow access from everywhere.
+const _corsHeaders = <String, String>{'Access-Control-Allow-Origin': '*'};
+
 /// Middleware which adds [CORS headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)
 /// to shelf responses. Also handles preflight (OPTIONS) requests.
-Middleware createCorsHeadersMiddleware({Map<String, String> corsHeaders}) {
-  // By default allow access from everywhere.
-  corsHeaders ??= <String, String>{'Access-Control-Allow-Origin': '*'};
+Handler _corsHeadersMiddleware(Handler innerHandler) => (request) async {
+      if (request.method == 'OPTIONS') {
+        return Response.ok(null, headers: _corsHeaders);
+      }
 
-  // Handle preflight (OPTIONS) requests by just adding headers and an empty
-  // response.
-  Response handleOptionsRequest(Request request) {
-    if (request.method == 'OPTIONS') {
-      return Response.ok(null, headers: corsHeaders);
-    } else {
-      return null;
-    }
-  }
+      final response = await innerHandler(request);
 
-  Response addCorsHeaders(Response response) =>
-      response.change(headers: corsHeaders);
-
-  return createMiddleware(
-      requestHandler: handleOptionsRequest, responseHandler: addCorsHeaders);
-}
+      return response.change(headers: _corsHeaders);
+    };
