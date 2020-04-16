@@ -613,7 +613,8 @@ class Playground implements GistContainer, GistController {
       _jumpToLine(int.parse(url.queryParameters['line']));
     }
 
-    await _analyzeAndRun();
+    // Run asynchronously to wait for _context.dartSource to exist
+    Timer.run(_performAnalysis);
   }
 
   Gist _createGist(Layout layout) {
@@ -661,24 +662,6 @@ class Playground implements GistContainer, GistController {
     }
 
     return LoadGistResult.none;
-  }
-
-  /// Analyzes and runs the gist.  Auto-runs the gist if [autoRun] is true and
-  /// the analyzer comes back clean.
-  Future<void> _analyzeAndRun() {
-    var completer = Completer();
-    Timer.run(() async {
-      try {
-        var result = await _performAnalysis();
-        if (result) {
-          _handleRun();
-        }
-      } catch (e) {
-        // ignore errors
-      }
-      completer.complete();
-    });
-    return completer.future;
   }
 
   void showGist(RouteEnterEvent event) {
