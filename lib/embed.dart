@@ -907,6 +907,8 @@ class Embed {
   }
 
   void _showInstallPage() {
+    ga?.sendEvent('main', 'install');
+    
     if (_modeName == 'dart' || _modeName == 'html') {
       _hostWindow.location.href = 'https://dart.dev/get-dart';
     } else {
