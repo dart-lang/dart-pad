@@ -898,11 +898,19 @@ class Embed {
     dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
+  WindowBase get _hostWindow {
+    if (window.parent != null) {
+      return window.parent;
+    }
+
+    return window;
+  }
+
   void _showInstallPage() {
     if (_modeName == 'dart' || _modeName == 'html') {
-      window.location.href = 'https://dart.dev/get-dart';
+      _hostWindow.location.href = 'https://dart.dev/get-dart';
     } else {
-      window.location.href = 'https://flutter.dev/get-started/install';
+      _hostWindow.location.href = 'https://flutter.dev/get-started/install';
     }
   }
 
