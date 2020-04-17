@@ -318,6 +318,10 @@ class Embed {
       ..mode = 'css'
       ..showLineNumbers = true;
 
+    if (!showInstallButton) {
+      querySelector('#install-button').setAttribute('hidden', '');
+    }
+
     var editorTabViewElement = querySelector('#user-code-view');
     if (editorTabViewElement != null) {
       editorTabView = TabView(DElement(editorTabViewElement));
@@ -471,6 +475,18 @@ class Embed {
 
   bool get shouldOpenConsole {
     final value = _getQueryParam('open_console');
+    return value == 'true';
+  }
+
+  // Whether or not to show the Install button. (defaults to true)
+  bool get showInstallButton {
+    final value = _getQueryParam('install_button');
+
+    // Default to true
+    if (value.isEmpty) {
+      return true;
+    }
+
     return value == 'true';
   }
 
@@ -908,7 +924,7 @@ class Embed {
 
   void _showInstallPage() {
     ga?.sendEvent('main', 'install');
-    
+
     if (_modeName == 'dart' || _modeName == 'html') {
       _hostWindow.location.href = 'https://dart.dev/get-dart';
     } else {
