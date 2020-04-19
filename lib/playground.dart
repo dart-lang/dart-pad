@@ -258,16 +258,10 @@ class Playground implements GistContainer, GistController {
     var element = querySelector('#samples-menu');
 
     var samples = [
-      Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
-      Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
-      Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
-      Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
-      Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
-      Sample('b3ccb26497ac84895540185935ed5825', 'Sunflower', Layout.flutter),
-      Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics',
-          Layout.flutter),
-      Sample('40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations',
-          Layout.flutter),
+      Sample('1ede47fde8adf5d4dab09bcf6ddf1ec6', 'Hello null safety!', Layout.dart),
+      Sample('d6877b23861d2864d055994000ed086d', 'Variables and exclamations', Layout.dart),
+      Sample('cf9c41700058f687be0763c968240cb4', 'Classes and late fields', Layout.dart),
+      Sample('50786448d2765a86be9c6e3b6aa32496', 'Put it all together', Layout.dart),
     ];
 
     var listElement = UListElement()
@@ -761,7 +755,7 @@ class Playground implements GistContainer, GistController {
         );
       } else {
         final response = await dartServices
-            .compile(compileRequest)
+            .compileDDC(compileRequest)
             .timeout(longServiceCallTimeout);
 
         ga.sendTiming(
@@ -776,6 +770,7 @@ class Playground implements GistContainer, GistController {
           _context.htmlSource,
           _context.cssSource,
           response.result,
+          modulesBaseUrl: response.modulesBaseUrl,
         );
       }
     } catch (e) {
@@ -946,16 +941,21 @@ class Playground implements GistContainer, GistController {
       editorPanelHeader.clearAttr('hidden');
       webOutputLabel.setAttr('hidden');
     } else if (layout == Layout.flutter) {
-      _disposeRightSplitter();
-      _frame.hidden = false;
-      editorPanelFooter.clearAttr('hidden');
-      _initOutputPanelTabs();
-      _rightDocPanel.setAttribute('hidden', '');
-      _rightConsoleElement.setAttribute('hidden', '');
-      webTabBar.setAttr('hidden');
-      webLayoutTabController.selectTab('dart');
-      editorPanelHeader.setAttr('hidden');
-      webOutputLabel.clearAttr('hidden');
+      dialog.showOk('Flutter is not yet supported',
+          'Null safety has not yet been integrated into the Flutter SDK. As '
+              'a result, Flutter packages cannot be imported in this version '
+        ' of DartPad. Try <a href="https://dartpad.dev">dartpad.dev</a> '
+          'for Flutter code instead.',);
+//      _disposeRightSplitter();
+//      _frame.hidden = false;
+//      editorPanelFooter.clearAttr('hidden');
+//      _initOutputPanelTabs();
+//      _rightDocPanel.setAttribute('hidden', '');
+//      _rightConsoleElement.setAttribute('hidden', '');
+//      webTabBar.setAttr('hidden');
+//      webLayoutTabController.selectTab('dart');
+//      editorPanelHeader.setAttr('hidden');
+//      webOutputLabel.clearAttr('hidden');
     }
   }
 
