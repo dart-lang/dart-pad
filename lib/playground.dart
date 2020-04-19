@@ -258,10 +258,14 @@ class Playground implements GistContainer, GistController {
     var element = querySelector('#samples-menu');
 
     var samples = [
-      Sample('1ede47fde8adf5d4dab09bcf6ddf1ec6', 'Hello null safety!', Layout.dart),
-      Sample('d6877b23861d2864d055994000ed086d', 'Variables and exclamations', Layout.dart),
-      Sample('cf9c41700058f687be0763c968240cb4', 'Classes and late fields', Layout.dart),
-      Sample('50786448d2765a86be9c6e3b6aa32496', 'Put it all together', Layout.dart),
+      Sample('1ede47fde8adf5d4dab09bcf6ddf1ec6', 'Hello null safety!',
+          Layout.dart),
+      Sample('d6877b23861d2864d055994000ed086d', 'Variables and exclamations',
+          Layout.dart),
+      Sample('cf9c41700058f687be0763c968240cb4', 'Classes and late fields',
+          Layout.dart),
+      Sample('50786448d2765a86be9c6e3b6aa32496', 'Put it all together',
+          Layout.dart),
     ];
 
     var listElement = UListElement()
@@ -941,21 +945,13 @@ class Playground implements GistContainer, GistController {
       editorPanelHeader.clearAttr('hidden');
       webOutputLabel.setAttr('hidden');
     } else if (layout == Layout.flutter) {
-      dialog.showOk('Flutter is not yet supported',
-          'Null safety has not yet been integrated into the Flutter SDK. As '
-              'a result, Flutter packages cannot be imported in this version '
-        ' of DartPad. Try <a href="https://dartpad.dev">dartpad.dev</a> '
-          'for Flutter code instead.',);
-//      _disposeRightSplitter();
-//      _frame.hidden = false;
-//      editorPanelFooter.clearAttr('hidden');
-//      _initOutputPanelTabs();
-//      _rightDocPanel.setAttribute('hidden', '');
-//      _rightConsoleElement.setAttribute('hidden', '');
-//      webTabBar.setAttr('hidden');
-//      webLayoutTabController.selectTab('dart');
-//      editorPanelHeader.setAttr('hidden');
-//      webOutputLabel.clearAttr('hidden');
+      dialog.showOk(
+        'Flutter is not yet supported',
+        'Null safety has not yet been integrated into the Flutter SDK. As '
+            'a result, Flutter packages cannot be imported in this version '
+            ' of DartPad. Try <a href="https://dartpad.dev">dartpad.dev</a> '
+            'for Flutter code instead.',
+      );
     }
   }
 
