@@ -271,7 +271,10 @@ class AnalysisServerWrapper {
           ..charLength = error.location.length;
       }).toList();
 
-      issues.sort();
+      issues.sort((a, b) {
+        // Order issues by character position of the bug/warning.
+        return a.charStart.compareTo(b.charStart);
+      });
 
       // Calculate the imports.
       final packageImports = <String>{};

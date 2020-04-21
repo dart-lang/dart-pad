@@ -58,7 +58,7 @@ dart warmup.dart 20200124t152413-dot-dart-services-0.appspot.com
 
   // Use an insecure connection for test driving to avoid cert problems
   // with the prefixed app version.
-  uri = 'https://$appHost$BASE_PATH';
+  uri = 'http://$appHost$BASE_PATH';
 
   print('Target URI\n$uri');
 
