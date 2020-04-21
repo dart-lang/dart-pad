@@ -9,19 +9,16 @@ import 'dart:io' as io;
 
 import 'package:appengine/appengine.dart' as ae;
 import 'package:logging/logging.dart';
-import 'package:rpc/rpc.dart' as rpc;
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
 import 'src/common.dart';
-import 'src/common_server.dart';
+import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
-import 'src/common_server_proto.dart';
 import 'src/flutter_web.dart';
 import 'src/sdk_manager.dart';
 import 'src/server_cache.dart';
 
-const String _API = '/api';
-const String _API_V1_PREFIX = '/api/dartservices/v1';
+const String _API_PREFIX = '/api/dartservices/';
 const String _healthCheck = '/_ah/health';
 const String _readynessCheck = '/_ah/ready';
 
@@ -63,10 +60,8 @@ class GaeServer {
   final String redisServerUri;
 
   bool discoveryEnabled;
-  rpc.ApiServer apiServer;
-  CommonServer commonServer;
   CommonServerImpl commonServerImpl;
-  CommonServerProto commonServerProto;
+  CommonServerApi commonServerApi;
 
   GaeServer(this.sdkPath, this.redisServerUri) {
     hierarchicalLoggingEnabled = true;
@@ -87,11 +82,7 @@ class GaeServer {
               io.Platform.environment['GAE_VERSION'],
             ),
     );
-    commonServer = CommonServer(commonServerImpl);
-    commonServerProto = CommonServerProto(commonServerImpl);
-    // Enabled pretty printing of returned json for debuggability.
-    apiServer = rpc.ApiServer(apiPrefix: _API, prettyPrint: true)
-      ..addApi(commonServer);
+    commonServerApi = CommonServerApi(commonServerImpl);
   }
 
   Future<dynamic> start([int gaePort = 8080]) async {
@@ -111,10 +102,8 @@ class GaeServer {
       await _processReadynessRequest(request);
     } else if (request.uri.path == _healthCheck) {
       await _processHealthRequest(request);
-    } else if (request.uri.path.startsWith(_API_V1_PREFIX)) {
-      await _processApiRequest(request);
-    } else if (request.uri.path.startsWith(PROTO_API_URL_PREFIX)) {
-      await shelf_io.handleRequest(request, commonServerProto.router.handler);
+    } else if (request.uri.path.startsWith(_API_PREFIX)) {
+      await shelf_io.handleRequest(request, commonServerApi.router.handler);
     } else {
       await _processDefaultRequest(request);
     }
@@ -171,32 +160,6 @@ class GaeServer {
     }
 
     await request.response.close();
-  }
-
-  Future _processApiRequest(io.HttpRequest request) async {
-    if (!discoveryEnabled) {
-      apiServer.enableDiscoveryApi();
-      discoveryEnabled = true;
-    }
-    // NOTE: We could read in the request body here and parse it similar to
-    // the _parseRequest method to determine content-type and dispatch to e.g.
-    // a plain text handler if we want to support that.
-    final apiRequest = rpc.HttpApiRequest.fromHttpRequest(request);
-
-    // Dartpad sends data as plain text, we need to promote this to
-    // application/json to ensure that the rpc library processes it correctly
-    try {
-      apiRequest.headers['content-type'] = 'application/json; charset=utf-8';
-      final apiResponse = await apiServer.handleHttpApiRequest(apiRequest);
-      await rpc.sendApiResponse(apiResponse, request.response);
-    } catch (e) {
-      // This should only happen in the case where there is a bug in the rpc
-      // package. Otherwise it always returns an HttpApiResponse.
-      _logger.warning('Failed with error: $e when trying to call '
-          'method at \'${request.uri.path}\'.');
-      request.response.statusCode = io.HttpStatus.internalServerError;
-      await request.response.close();
-    }
   }
 
   Future _processDefaultRequest(io.HttpRequest request) async {

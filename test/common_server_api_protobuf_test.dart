@@ -2,15 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library services.common_server_api_v2_protobuf_test;
+library services.common_server_api_protobuf_test;
 
 import 'dart:async';
 import 'dart:convert';
 
 import 'package:dart_services/src/common.dart';
-import 'package:dart_services/src/common_server.dart';
 import 'package:dart_services/src/common_server_impl.dart';
-import 'package:dart_services/src/common_server_proto.dart';
+import 'package:dart_services/src/common_server_api.dart';
 import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:dart_services/src/server_cache.dart';
@@ -57,7 +56,7 @@ main() {
 void main() => defineTests();
 
 void defineTests() {
-  CommonServerProto commonServerProto;
+  CommonServerApi commonServerApi;
   CommonServerImpl commonServerImpl;
   FlutterWebManager flutterWebManager;
 
@@ -68,25 +67,25 @@ void defineTests() {
     String path,
     GeneratedMessage message,
   ) async {
-    assert(commonServerProto != null);
+    assert(commonServerApi != null);
     final uri = Uri.parse('/api/$path');
     final request = MockHttpRequest('POST', uri);
     request.headers.add('content-type', JSON_CONTENT_TYPE);
     request.add(utf8.encode(json.encode(message.toProto3Json())));
     await request.close();
-    await shelf_io.handleRequest(request, commonServerProto.router.handler);
+    await shelf_io.handleRequest(request, commonServerApi.router.handler);
     return request.response;
   }
 
   Future<MockHttpResponse> _sendGetRequest(
     String path,
   ) async {
-    assert(commonServerProto != null);
+    assert(commonServerApi != null);
     final uri = Uri.parse('/api/$path');
     final request = MockHttpRequest('POST', uri);
     request.headers.add('content-type', JSON_CONTENT_TYPE);
     await request.close();
-    await shelf_io.handleRequest(request, commonServerProto.router.handler);
+    await shelf_io.handleRequest(request, commonServerApi.router.handler);
     return request.response;
   }
 
@@ -97,7 +96,7 @@ void defineTests() {
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
       commonServerImpl =
           CommonServerImpl(sdkPath, flutterWebManager, container, cache);
-      commonServerProto = CommonServerProto(commonServerImpl);
+      commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 
       // Some piece of initialization doesn't always happen fast enough for this

@@ -6,19 +6,16 @@
 library services_dev;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
-import 'package:rpc/rpc.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 
 import 'src/common.dart';
-import 'src/common_server.dart';
+import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
-import 'src/common_server_proto.dart';
 import 'src/flutter_web.dart';
 import 'src/sdk_manager.dart';
 import 'src/server_cache.dart';
@@ -43,19 +40,6 @@ void main(List<String> args) {
 
   final sdk = sdkPath;
 
-  void printExit(String doc) {
-    print(doc);
-    exit(0);
-  }
-
-  if (result['discovery'] as bool) {
-    final serverUrl = result['server-url'] as String;
-    EndpointsServer.generateDiscovery(SdkManager.flutterSdk, serverUrl)
-        .then(printExit);
-
-    return;
-  }
-
   Logger.root.level = Level.FINER;
   Logger.root.onRecord.listen((LogRecord record) {
     print(record);
@@ -79,43 +63,16 @@ class EndpointsServer {
     });
   }
 
-  static Future<String> generateDiscovery(
-      FlutterSdk flutterSdk, String serverUrl) async {
-    final flutterWebManager = FlutterWebManager(flutterSdk);
-    final commonServerImpl = CommonServerImpl(
-      sdkPath,
-      flutterWebManager,
-      _ServerContainer(),
-      _Cache(),
-    );
-    final commonServer = CommonServer(commonServerImpl);
-    await commonServerImpl.init();
-    final apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
-      ..addApi(commonServer);
-    apiServer.enableDiscoveryApi();
-
-    final uri = Uri.parse('/api/discovery/v1/apis/dartservices/v1/rest');
-    final request = HttpApiRequest('GET', uri, <String, dynamic>{},
-        Stream<List<int>>.fromIterable(<List<int>>[]));
-    final response = await apiServer.handleHttpApiRequest(request);
-    return utf8.decode(await response.body.first);
-  }
-
   final int port;
   HttpServer server;
 
   Pipeline pipeline;
   Handler handler;
 
-  ApiServer apiServer;
-  bool discoveryEnabled;
-  CommonServer commonServer;
-  CommonServerProto commonServerProto;
+  CommonServerApi commonServerApi;
   FlutterWebManager flutterWebManager;
 
   EndpointsServer._(String sdkPath, this.port) {
-    discoveryEnabled = false;
-
     flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     final commonServerImpl = CommonServerImpl(
       sdkPath,
@@ -123,50 +80,14 @@ class EndpointsServer {
       _ServerContainer(),
       _Cache(),
     );
-    commonServer = CommonServer(commonServerImpl);
-    commonServerProto = CommonServerProto(commonServerImpl);
+    commonServerApi = CommonServerApi(commonServerImpl);
     commonServerImpl.init();
 
-    apiServer = ApiServer(apiPrefix: '/api', prettyPrint: true)
-      ..addApi(commonServer);
-
-    pipeline = Pipeline()
+    pipeline = const Pipeline()
         .addMiddleware(logRequests())
         .addMiddleware(_createCustomCorsHeadersMiddleware());
 
-    handler = pipeline.addHandler((request) {
-      if (request.requestedUri.path.startsWith(PROTO_API_URL_PREFIX)) {
-        return commonServerProto.router.handler(request);
-      }
-      return _apiHandler(request);
-    });
-  }
-
-  Future<Response> _apiHandler(Request request) {
-    if (!discoveryEnabled) {
-      apiServer.enableDiscoveryApi();
-      discoveryEnabled = true;
-    }
-
-    // NOTE: We could read in the request body here and parse it similar to the
-    // _parseRequest method to determine content-type and dispatch to e.g. a
-    // plain text handler if we want to support that.
-    final apiRequest = HttpApiRequest(
-        request.method, request.requestedUri, request.headers, request.read());
-
-    // Promote text/plain requests to application/json.
-    if (apiRequest.headers['content-type'] == 'text/plain; charset=utf-8') {
-      apiRequest.headers['content-type'] = 'application/json; charset=utf-8';
-    }
-
-    return apiServer
-        .handleHttpApiRequest(apiRequest)
-        .then((HttpApiResponse apiResponse) {
-      // TODO(jcollins-g): use sendApiResponse helper?
-      return Response(apiResponse.status,
-          body: apiResponse.body,
-          headers: Map<String, String>.from(apiResponse.headers));
-    });
+    handler = pipeline.addHandler(commonServerApi.router.handler);
   }
 
   Response printUsage(Request request, dynamic e, StackTrace stackTrace) {

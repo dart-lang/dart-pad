@@ -234,39 +234,16 @@ void fuzz() {
   log('warning: fuzz testing is a noop, see #301');
 }
 
-@Task('Update discovery files and run all checks prior to deployment')
-@Depends(setupFlutterSubmodule, updateDockerVersion, generateProtos, discovery,
-    analyze, test, fuzz, validateStorageArtifacts)
+@Task('Update generated files and run all checks prior to deployment')
+@Depends(setupFlutterSubmodule, updateDockerVersion, generateProtos, analyze,
+    test, fuzz, validateStorageArtifacts)
 void deploy() {
   log('Run: gcloud app deploy --project=dart-services --no-promote');
 }
 
 @Task()
-@Depends(generateProtos, discovery, analyze, fuzz, buildStorageArtifacts)
+@Depends(generateProtos, analyze, fuzz, buildStorageArtifacts)
 void buildbot() => null;
-
-@Task('Generate the discovery doc and Dart library from the annotated API')
-void discovery() {
-  final result = Process.runSync(
-      Platform.executable, ['bin/server_dev.dart', '--discovery']);
-
-  if (result.exitCode != 0) {
-    throw 'Error generating the discovery document\n${result.stderr}';
-  }
-
-  final discoveryFile = File('doc/generated/dartservices.json');
-  discoveryFile.parent.createSync();
-  log('writing ${discoveryFile.path}');
-  discoveryFile.writeAsStringSync('${result.stdout.trim()}\n');
-
-  // Generate the Dart library from the json discovery file.
-  Pub.global.activate('discoveryapis_generator');
-  Pub.global.run('discoveryapis_generator:generate', arguments: [
-    'files',
-    '--input-dir=doc/generated',
-    '--output-dir=doc/generated'
-  ]);
-}
 
 @Task('Generate Protobuf classes')
 void generateProtos() async {

@@ -64,6 +64,48 @@ class CompileRequest extends $pb.GeneratedMessage {
   void clearReturnSourceMap() => clearField(2);
 }
 
+class CompileDDCRequest extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo('CompileDDCRequest',
+      package: const $pb.PackageName('dart_services.api'),
+      createEmptyInstance: create)
+    ..aOS(1, 'source')
+    ..hasRequiredFields = false;
+
+  CompileDDCRequest._() : super();
+  factory CompileDDCRequest() => create();
+  factory CompileDDCRequest.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory CompileDDCRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  CompileDDCRequest clone() => CompileDDCRequest()..mergeFromMessage(this);
+  CompileDDCRequest copyWith(void Function(CompileDDCRequest) updates) =>
+      super.copyWith((message) => updates(message as CompileDDCRequest));
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static CompileDDCRequest create() => CompileDDCRequest._();
+  CompileDDCRequest createEmptyInstance() => create();
+  static $pb.PbList<CompileDDCRequest> createRepeated() =>
+      $pb.PbList<CompileDDCRequest>();
+  @$core.pragma('dart2js:noInline')
+  static CompileDDCRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<CompileDDCRequest>(create);
+  static CompileDDCRequest _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get source => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set source($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasSource() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearSource() => clearField(1);
+}
+
 class SourceRequest extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('SourceRequest',
       package: const $pb.PackageName('dart_services.api'),

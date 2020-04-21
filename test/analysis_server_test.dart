@@ -5,7 +5,7 @@
 library services.analyzer_server_test;
 
 import 'package:dart_services/src/analysis_server.dart';
-import 'package:dart_services/src/api_classes.dart';
+import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/sdk_manager.dart';
@@ -75,9 +75,7 @@ void defineTests() {
 
     test('simple_completion', () {
       // Just after i.
-      return analysisServer
-          .complete(completionCode, 32)
-          .then((CompleteResponse results) {
+      return analysisServer.complete(completionCode, 32).then((results) {
         expect(results.replacementLength, 0);
         expect(results.replacementOffset, 32);
         expect(completionsContains(results, 'abs'), true);
@@ -87,12 +85,10 @@ void defineTests() {
 
     test('repro #126 - completions polluted on second request', () {
       // https://github.com/dart-lang/dart-services/issues/126
-      return analysisServer
-          .complete(completionFilterCode, 17)
-          .then((CompleteResponse results) {
+      return analysisServer.complete(completionFilterCode, 17).then((results) {
         return analysisServer
             .complete(completionFilterCode, 17)
-            .then((CompleteResponse results) {
+            .then((results) {
           expect(results.replacementLength, 2);
           expect(results.replacementOffset, 16);
           expect(completionsContains(results, 'print'), true);
@@ -104,11 +100,9 @@ void defineTests() {
     test('import_test', () {
       final testCode = "import '/'; main() { int a = 0; a. }";
 
-      return analysisServer
-          .complete(testCode, 9)
-          .then((CompleteResponse results) {
-        expect(results.completions.every((Map<String, String> completion) {
-          return completion['completion'].startsWith('dart:');
+      return analysisServer.complete(testCode, 9).then((results) {
+        expect(results.completions.every((completion) {
+          return completion.completion['completion'].startsWith('dart:');
         }), true);
       });
     });
@@ -116,9 +110,7 @@ void defineTests() {
     test('import_and_other_test', () {
       final testCode = "import '/'; main() { int a = 0; a. }";
 
-      return analysisServer
-          .complete(testCode, 34)
-          .then((CompleteResponse results) {
+      return analysisServer.complete(testCode, 34).then((results) {
         expect(completionsContains(results, 'abs'), true);
       });
     });
@@ -216,5 +208,6 @@ void defineTests() {
   });
 }
 
-bool completionsContains(CompleteResponse response, String completion) =>
-    response.completions.any((map) => map['completion'] == completion);
+bool completionsContains(proto.CompleteResponse response, String expected) =>
+    response.completions
+        .any((completion) => completion.completion['completion'] == expected);

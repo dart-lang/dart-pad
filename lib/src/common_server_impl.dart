@@ -14,15 +14,15 @@ import 'package:pedantic/pedantic.dart';
 
 import '../version.dart';
 import 'analysis_server.dart';
-import 'api_classes.dart';
 import 'common.dart';
 import 'compiler.dart';
 import 'flutter_web.dart';
+import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'sdk_manager.dart';
 import 'server_cache.dart';
 
-final Duration _standardExpiration = Duration(hours: 1);
+const Duration _standardExpiration = Duration(hours: 1);
 final Logger log = Logger('common_server');
 
 class BadRequest implements Exception {
@@ -118,62 +118,90 @@ class CommonServerImpl {
       flutterAnalysisServer.shutdown(),
       compiler.dispose(),
       Future<dynamic>.sync(cache.shutdown)
-    ]).timeout(Duration(minutes: 1));
+    ]).timeout(const Duration(minutes: 1));
   }
 
-  Future<AnalysisResults> analyze(SourceRequest request) {
+  Future<proto.AnalysisResults> analyze(proto.SourceRequest request) {
+    if (!request.hasSource()) {
+      throw BadRequest('Missing parameter: \'source\'');
+    }
+
     return _analyze(request.source);
   }
 
-  Future<CompileResponse> compile(CompileRequest request) {
+  Future<proto.CompileResponse> compile(proto.CompileRequest request) {
+    if (!request.hasSource()) {
+      throw BadRequest('Missing parameter: \'source\'');
+    }
+
     return _compileDart2js(request.source,
         returnSourceMap: request.returnSourceMap ?? false);
   }
 
-  Future<CompileDDCResponse> compileDDC(CompileRequest request) {
+  Future<proto.CompileDDCResponse> compileDDC(proto.CompileDDCRequest request) {
+    if (!request.hasSource()) {
+      throw BadRequest('Missing parameter: \'source\'');
+    }
+
     return _compileDDC(request.source);
   }
 
-  Future<CompleteResponse> complete(SourceRequest request) {
-    if (request.offset == null) {
+  Future<proto.CompleteResponse> complete(proto.SourceRequest request) {
+    if (!request.hasSource()) {
+      throw BadRequest('Missing parameter: \'source\'');
+    }
+    if (!request.hasOffset()) {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
     return _complete(request.source, request.offset);
   }
 
-  Future<FixesResponse> fixes(SourceRequest request) {
-    if (request.offset == null) {
+  Future<proto.FixesResponse> fixes(proto.SourceRequest request) {
+    if (!request.hasSource()) {
+      throw BadRequest('Missing parameter: \'source\'');
+    }
+    if (!request.hasOffset()) {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
     return _fixes(request.source, request.offset);
   }
 
-  Future<AssistsResponse> assists(SourceRequest request) {
-    if (request.offset == null) {
+  Future<proto.AssistsResponse> assists(proto.SourceRequest request) {
+    if (!request.hasSource()) {
+      throw BadRequest('Missing parameter: \'source\'');
+    }
+    if (!request.hasOffset()) {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
     return _assists(request.source, request.offset);
   }
 
-  Future<FormatResponse> format(SourceRequest request) {
-    return _format(request.source, offset: request.offset);
-  }
-
-  Future<DocumentResponse> document(SourceRequest request) {
-    return _document(request.source, request.offset);
-  }
-
-  Future<VersionResponse> version() =>
-      Future<VersionResponse>.value(_version());
-
-  Future<AnalysisResults> _analyze(String source) async {
-    if (source == null) {
+  Future<proto.FormatResponse> format(proto.SourceRequest request) {
+    if (!request.hasSource()) {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
+    return _format(request.source, offset: request.offset ?? 0);
+  }
+
+  Future<proto.DocumentResponse> document(proto.SourceRequest request) {
+    if (!request.hasSource()) {
+      throw BadRequest('Missing parameter: \'source\'');
+    }
+    if (!request.hasOffset()) {
+      throw BadRequest('Missing parameter: \'offset\'');
+    }
+
+    return _document(request.source, request.offset);
+  }
+
+  Future<proto.VersionResponse> version(proto.VersionRequest _) =>
+      Future<proto.VersionResponse>.value(_version());
+
+  Future<proto.AnalysisResults> _analyze(String source) async {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     try {
@@ -191,14 +219,10 @@ class CommonServerImpl {
     }
   }
 
-  Future<CompileResponse> _compileDart2js(
+  Future<proto.CompileResponse> _compileDart2js(
     String source, {
     bool returnSourceMap = false,
   }) async {
-    if (source == null) {
-      throw BadRequest('Missing parameter: \'source\'');
-    }
-
     await _checkPackageReferencesInitFlutterWeb(source);
 
     final sourceHash = _hashSource(source);
@@ -208,11 +232,10 @@ class CommonServerImpl {
     final result = await checkCache(memCacheKey);
     if (result != null) {
       log.info('CACHE: Cache hit for compileDart2js');
-      final resultObj = JsonDecoder().convert(result);
-      return CompileResponse(
-        resultObj['compiledJS'] as String,
-        returnSourceMap ? resultObj['sourceMap'] as String : null,
-      );
+      final resultObj = const JsonDecoder().convert(result);
+      return proto.CompileResponse()
+        ..result = resultObj['compiledJS'] as String
+        ..sourceMap = returnSourceMap ? resultObj['sourceMap'] as String : null;
     }
 
     log.info('CACHE: MISS for compileDart2js');
@@ -229,13 +252,18 @@ class CommonServerImpl {
             '${outputSize}kb of JavaScript in ${ms}ms using dart2js.');
         final sourceMap = returnSourceMap ? results.sourceMap : null;
 
-        final cachedResult = JsonEncoder().convert(<String, String>{
+        final cachedResult = const JsonEncoder().convert(<String, String>{
           'compiledJS': results.compiledJS,
           'sourceMap': sourceMap,
         });
         // Don't block on cache set.
         unawaited(setCache(memCacheKey, cachedResult));
-        return CompileResponse(results.compiledJS, sourceMap);
+        final compileResponse = proto.CompileResponse();
+        compileResponse.result = results.compiledJS;
+        if (sourceMap != null) {
+          compileResponse.sourceMap = sourceMap;
+        }
+        return compileResponse;
       } else {
         final problems = results.problems;
         final errors = problems.map(_printCompileProblem).join('\n');
@@ -249,11 +277,7 @@ class CommonServerImpl {
     });
   }
 
-  Future<CompileDDCResponse> _compileDDC(String source) async {
-    if (source == null) {
-      throw BadRequest('Missing parameter: \'source\'');
-    }
-
+  Future<proto.CompileDDCResponse> _compileDDC(String source) async {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     final sourceHash = _hashSource(source);
@@ -262,11 +286,10 @@ class CommonServerImpl {
     final result = await checkCache(memCacheKey);
     if (result != null) {
       log.info('CACHE: Cache hit for compileDDC');
-      final resultObj = JsonDecoder().convert(result);
-      return CompileDDCResponse(
-        resultObj['compiledJS'] as String,
-        resultObj['modulesBaseUrl'] as String,
-      );
+      final resultObj = const JsonDecoder().convert(result);
+      return proto.CompileDDCResponse()
+        ..result = resultObj['compiledJS'] as String
+        ..modulesBaseUrl = resultObj['modulesBaseUrl'] as String;
     }
 
     log.info('CACHE: MISS for compileDDC');
@@ -280,13 +303,15 @@ class CommonServerImpl {
         log.info('PERF: Compiled $lineCount lines of Dart into '
             '${outputSize}kb of JavaScript in ${ms}ms using DDC.');
 
-        final cachedResult = JsonEncoder().convert(<String, String>{
+        final cachedResult = const JsonEncoder().convert(<String, String>{
           'compiledJS': results.compiledJS,
           'modulesBaseUrl': results.modulesBaseUrl,
         });
         // Don't block on cache set.
         unawaited(setCache(memCacheKey, cachedResult));
-        return CompileDDCResponse(results.compiledJS, results.modulesBaseUrl);
+        return proto.CompileDDCResponse()
+          ..result = results.compiledJS
+          ..modulesBaseUrl = results.modulesBaseUrl;
       } else {
         final problems = results.problems;
         final errors = problems.map(_printCompileProblem).join('\n');
@@ -300,14 +325,7 @@ class CommonServerImpl {
     });
   }
 
-  Future<DocumentResponse> _document(String source, int offset) async {
-    if (source == null) {
-      throw BadRequest('Missing parameter: \'source\'');
-    }
-    if (offset == null) {
-      throw BadRequest('Missing parameter: \'offset\'');
-    }
-
+  Future<proto.DocumentResponse> _document(String source, int offset) async {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     final watch = Stopwatch()..start();
@@ -316,7 +334,7 @@ class CommonServerImpl {
           await getCorrectAnalysisServer(source).dartdoc(source, offset);
       docInfo ??= <String, String>{};
       log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-      return DocumentResponse(docInfo);
+      return proto.DocumentResponse()..info.addAll(docInfo);
     } catch (e, st) {
       log.severe('Error during dartdoc', e, st);
       await restart();
@@ -324,24 +342,17 @@ class CommonServerImpl {
     }
   }
 
-  VersionResponse _version() => VersionResponse(
-      sdkVersion: SdkManager.sdk.version,
-      sdkVersionFull: SdkManager.sdk.versionFull,
-      runtimeVersion: vmVersion,
-      servicesVersion: servicesVersion,
-      appEngineVersion: container.version,
-      flutterDartVersion: SdkManager.flutterSdk.version,
-      flutterDartVersionFull: SdkManager.flutterSdk.versionFull,
-      flutterVersion: SdkManager.flutterSdk.flutterVersion);
+  proto.VersionResponse _version() => proto.VersionResponse()
+    ..sdkVersion = SdkManager.sdk.version
+    ..sdkVersionFull = SdkManager.sdk.versionFull
+    ..runtimeVersion = vmVersion
+    ..servicesVersion = servicesVersion
+    ..appEngineVersion = container.version
+    ..flutterDartVersion = SdkManager.flutterSdk.version
+    ..flutterDartVersionFull = SdkManager.flutterSdk.versionFull
+    ..flutterVersion = SdkManager.flutterSdk.flutterVersion;
 
-  Future<CompleteResponse> _complete(String source, int offset) async {
-    if (source == null) {
-      throw BadRequest('Missing parameter: \'source\'');
-    }
-    if (offset == null) {
-      throw BadRequest('Missing parameter: \'offset\'');
-    }
-
+  Future<proto.CompleteResponse> _complete(String source, int offset) async {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     final watch = Stopwatch()..start();
@@ -357,14 +368,7 @@ class CommonServerImpl {
     }
   }
 
-  Future<FixesResponse> _fixes(String source, int offset) async {
-    if (source == null) {
-      throw BadRequest('Missing parameter: \'source\'');
-    }
-    if (offset == null) {
-      throw BadRequest('Missing parameter: \'offset\'');
-    }
-
+  Future<proto.FixesResponse> _fixes(String source, int offset) async {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     final watch = Stopwatch()..start();
@@ -374,14 +378,7 @@ class CommonServerImpl {
     return response;
   }
 
-  Future<AssistsResponse> _assists(String source, int offset) async {
-    if (source == null) {
-      throw BadRequest('Missing parameter: \'source\'');
-    }
-    if (offset == null) {
-      throw BadRequest('Missing parameter: \'offset\'');
-    }
-
+  Future<proto.AssistsResponse> _assists(String source, int offset) async {
     await _checkPackageReferencesInitFlutterWeb(source);
 
     final watch = Stopwatch()..start();
@@ -391,12 +388,7 @@ class CommonServerImpl {
     return response;
   }
 
-  Future<FormatResponse> _format(String source, {int offset}) async {
-    if (source == null) {
-      throw BadRequest('Missing parameter: \'source\'');
-    }
-    offset ??= 0;
-
+  Future<proto.FormatResponse> _format(String source, {int offset}) async {
     final watch = Stopwatch()..start();
 
     final response =

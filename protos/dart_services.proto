@@ -14,6 +14,11 @@ message CompileRequest {
   bool returnSourceMap = 2;
 }
 
+message CompileDDCRequest {
+  // The Dart source.
+  string source = 1;
+}
+
 message SourceRequest {
   // The Dart source.
   string source = 1;

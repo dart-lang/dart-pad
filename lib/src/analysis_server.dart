@@ -6,15 +6,16 @@
 library services.analysis_server;
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
-import 'api_classes.dart' as api;
 import 'common.dart';
 import 'flutter_web.dart';
+import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'scheduler.dart';
 
@@ -24,12 +25,12 @@ final Logger _logger = Logger('analysis_server');
 /// to stdout.
 bool dumpServerMessages = false;
 
-final String _WARMUP_SRC_HTML =
+const String _WARMUP_SRC_HTML =
     "import 'dart:html'; main() { int b = 2;  b++;   b. }";
-final String _WARMUP_SRC = 'main() { int b = 2;  b++;   b. }';
+const String _WARMUP_SRC = 'main() { int b = 2;  b++;   b. }';
 
 // Use very long timeouts to ensure that the server has enough time to restart.
-final Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
+const Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
 
 class AnalysisServerWrapper {
   final String sdkPath;
@@ -111,15 +112,15 @@ class AnalysisServerWrapper {
     // Return when the analysis server exits. We introduce a delay so that when
     // we terminate the analysis server we can exit normally.
     return analysisServer.processCompleter.future.then((int code) {
-      return Future<int>.delayed(Duration(seconds: 1), () {
+      return Future<int>.delayed(const Duration(seconds: 1), () {
         return code;
       });
     });
   }
 
-  Future<api.CompleteResponse> complete(String src, int offset) async {
+  Future<proto.CompleteResponse> complete(String src, int offset) async {
     final sources = <String, String>{kMainDart: src};
-    final location = api.Location.from(kMainDart, offset);
+    final location = Location(kMainDart, offset);
 
     final results =
         await _completeImpl(sources, location.sourceName, location.offset);
@@ -144,37 +145,44 @@ class AnalysisServerWrapper {
       }
     });
 
-    return api.CompleteResponse(
-      results.replacementOffset,
-      results.replacementLength,
-      suggestions.map((CompletionSuggestion c) => c.toMap()).toList(),
-    );
+    return proto.CompleteResponse()
+      ..replacementOffset = results.replacementOffset
+      ..replacementLength = results.replacementLength
+      ..completions
+          .addAll(suggestions.map((CompletionSuggestion c) => proto.Completion()
+            ..completion.addAll(c.toMap().map((key, value) {
+              // TODO: Properly support Lists, Maps (this is a hack).
+              if (value is Map || value is List) {
+                value = json.encode(value);
+              }
+              return MapEntry(key.toString(), value.toString());
+            }))));
   }
 
-  Future<api.FixesResponse> getFixes(String src, int offset) {
+  Future<proto.FixesResponse> getFixes(String src, int offset) {
     return getFixesMulti(
       <String, String>{kMainDart: src},
-      api.Location.from(kMainDart, offset),
+      Location(kMainDart, offset),
     );
   }
 
-  Future<api.FixesResponse> getFixesMulti(
-      Map<String, String> sources, api.Location location) async {
+  Future<proto.FixesResponse> getFixesMulti(
+      Map<String, String> sources, Location location) async {
     final results =
         await _getFixesImpl(sources, location.sourceName, location.offset);
-    final responseFixes = results.fixes.map(_convertAnalysisErrorFix).toList();
-    return api.FixesResponse(responseFixes);
+    final responseFixes = results.fixes.map(_convertAnalysisErrorFix);
+    return proto.FixesResponse()..fixes.addAll(responseFixes);
   }
 
-  Future<api.AssistsResponse> getAssists(String src, int offset) async {
+  Future<proto.AssistsResponse> getAssists(String src, int offset) async {
     final sources = {kMainDart: src};
-    final sourceName = api.Location.from(kMainDart, offset).sourceName;
+    final sourceName = Location(kMainDart, offset).sourceName;
     final results = await _getAssistsImpl(sources, sourceName, offset);
     final fixes = _convertSourceChangesToCandidateFixes(results.assists);
-    return api.AssistsResponse(fixes);
+    return proto.AssistsResponse()..assists.addAll(fixes);
   }
 
-  Future<api.FormatResponse> format(String src, int offset) {
+  Future<proto.FormatResponse> format(String src, int offset) {
     return _formatImpl(src, offset).then((FormatResult editResult) {
       final edits = editResult.edits;
 
@@ -186,10 +194,14 @@ class AnalysisServerWrapper {
             edit.offset, edit.offset + edit.length, edit.replacement);
       }
 
-      return api.FormatResponse(src, editResult.selectionOffset);
+      return proto.FormatResponse()
+        ..newString = src
+        ..offset = editResult.selectionOffset;
     }).catchError((dynamic error) {
       _logger.fine('format error: $error');
-      return api.FormatResponse(src, offset);
+      return proto.FormatResponse()
+        ..newString = src
+        ..offset = offset;
     });
   }
 
@@ -232,13 +244,14 @@ class AnalysisServerWrapper {
     }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
   }
 
-  Future<api.AnalysisResults> analyze(String source) {
+  Future<proto.AnalysisResults> analyze(String source) {
     var sources = <String, String>{kMainDart: source};
 
     _logger
         .fine('analyzeMulti: Scheduler queue: ${serverScheduler.queueCount}');
 
-    return serverScheduler.schedule(ClosureTask<api.AnalysisResults>(() async {
+    return serverScheduler
+        .schedule(ClosureTask<proto.AnalysisResults>(() async {
       clearErrors();
 
       final analysisCompleter = getAnalysisCompleteCompleter();
@@ -248,15 +261,14 @@ class AnalysisServerWrapper {
 
       // Calculate the issues.
       final issues = getErrors().map((AnalysisError error) {
-        return api.AnalysisIssue.fromIssue(
-          error.severity.toLowerCase(),
-          error.location.startLine,
-          error.message,
-          charStart: error.location.offset,
-          charLength: error.location.length,
-          sourceName: path.basename(error.location.file),
-          hasFixes: error.hasFix,
-        );
+        return proto.AnalysisIssue()
+          ..kind = error.severity.toLowerCase()
+          ..line = error.location.startLine
+          ..message = error.message
+          ..sourceName = path.basename(error.location.file)
+          ..hasFixes = error.hasFix
+          ..charStart = error.location.offset
+          ..charLength = error.location.length;
       }).toList();
 
       issues.sort();
@@ -268,10 +280,9 @@ class AnalysisServerWrapper {
             .addAll(filterSafePackagesFromImports(getAllImportsFor(source)));
       }
 
-      return api.AnalysisResults(
-        issues,
-        packageImports.toList(),
-      );
+      return proto.AnalysisResults()
+        ..issues.addAll(issues)
+        ..packageImports.addAll(packageImports);
     }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
   }
 
@@ -289,7 +300,7 @@ class AnalysisServerWrapper {
       final analysisCompleter = getAnalysisCompleteCompleter();
       await _loadSources(sources);
       await analysisCompleter.future;
-      final length = 1;
+      const length = 1;
       final assists =
           await analysisServer.edit.getAssists(path, offset, length);
       await _unloadSources();
@@ -298,16 +309,16 @@ class AnalysisServerWrapper {
   }
 
   /// Convert between the Analysis Server type and the API protocol types.
-  static api.ProblemAndFixes _convertAnalysisErrorFix(
+  static proto.ProblemAndFixes _convertAnalysisErrorFix(
       AnalysisErrorFixes analysisFixes) {
     final problemMessage = analysisFixes.error.message;
     final problemOffset = analysisFixes.error.location.offset;
     final problemLength = analysisFixes.error.location.length;
 
-    final possibleFixes = <api.CandidateFix>[];
+    final possibleFixes = <proto.CandidateFix>[];
 
     for (final sourceChange in analysisFixes.fixes) {
-      final edits = <api.SourceEdit>[];
+      final edits = <proto.SourceEdit>[];
 
       // A fix that tries to modify other files is considered invalid.
 
@@ -321,23 +332,29 @@ class AnalysisServerWrapper {
         }
 
         for (final sourceEdit in sourceFileEdit.edits) {
-          edits.add(api.SourceEdit.fromChanges(
-              sourceEdit.offset, sourceEdit.length, sourceEdit.replacement));
+          edits.add(proto.SourceEdit()
+            ..offset = sourceEdit.offset
+            ..length = sourceEdit.length
+            ..replacement = sourceEdit.replacement);
         }
       }
       if (!invalidFix) {
-        final possibleFix =
-            api.CandidateFix.fromEdits(sourceChange.message, edits);
+        final possibleFix = proto.CandidateFix()
+          ..message = sourceChange.message
+          ..edits.addAll(edits);
         possibleFixes.add(possibleFix);
       }
     }
-    return api.ProblemAndFixes.fromList(
-        possibleFixes, problemMessage, problemOffset, problemLength);
+    return proto.ProblemAndFixes()
+      ..fixes.addAll(possibleFixes)
+      ..problemMessage = problemMessage
+      ..offset = problemOffset
+      ..length = problemLength;
   }
 
-  static List<api.CandidateFix> _convertSourceChangesToCandidateFixes(
+  static List<proto.CandidateFix> _convertSourceChangesToCandidateFixes(
       List<SourceChange> sourceChanges) {
-    final assists = <api.CandidateFix>[];
+    final assists = <proto.CandidateFix>[];
 
     for (final sourceChange in sourceChanges) {
       for (final sourceFileEdit in sourceChange.edits) {
@@ -345,17 +362,23 @@ class AnalysisServerWrapper {
           break;
         }
 
-        final apiSourceEdits = sourceFileEdit.edits.map((sourceEdit) {
-          return api.SourceEdit.fromChanges(
-              sourceEdit.offset, sourceEdit.length, sourceEdit.replacement);
-        }).toList();
+        final sourceEdits = sourceFileEdit.edits.map((sourceEdit) {
+          return proto.SourceEdit()
+            ..offset = sourceEdit.offset
+            ..length = sourceEdit.length
+            ..replacement = sourceEdit.replacement;
+        });
 
-        assists.add(api.CandidateFix.fromEdits(
-          sourceChange.message,
-          apiSourceEdits,
-          sourceChange.selection?.offset,
-          _convertLinkedEditGroups(sourceChange.linkedEditGroups),
-        ));
+        final candidateFix = proto.CandidateFix();
+        candidateFix.message = sourceChange.message;
+        candidateFix.edits.addAll(sourceEdits);
+        final selectionOffset = sourceChange.selection?.offset;
+        if (selectionOffset != null) {
+          candidateFix.selectionOffset = selectionOffset;
+        }
+        candidateFix.linkedEditGroups
+            .addAll(_convertLinkedEditGroups(sourceChange.linkedEditGroups));
+        assists.add(candidateFix);
       }
     }
 
@@ -364,17 +387,19 @@ class AnalysisServerWrapper {
 
   /// Convert a list of the analysis server's [LinkedEditGroup]s into the API's
   /// equivalent.
-  static List<api.LinkedEditGroup> _convertLinkedEditGroups(
-      List<LinkedEditGroup> groups) {
-    return groups?.map<api.LinkedEditGroup>((g) {
-      return api.LinkedEditGroup(
-        g.positions?.map((p) => p.offset)?.toList(),
-        g.length,
-        g.suggestions
-            ?.map((s) => api.LinkedEditSuggestion(s.value, s.kind))
-            ?.toList(),
-      );
-    })?.toList();
+  static Iterable<proto.LinkedEditGroup> _convertLinkedEditGroups(
+      Iterable<LinkedEditGroup> groups) {
+    return groups?.map<proto.LinkedEditGroup>((g) {
+          return proto.LinkedEditGroup()
+            ..positions.addAll(g.positions?.map((p) => p.offset)?.toList())
+            ..length = g.length
+            ..suggestions.addAll(g.suggestions
+                ?.map((s) => proto.LinkedEditSuggestion()
+                  ..value = s.value
+                  ..kind = s.kind)
+                ?.toList());
+        }) ??
+        [];
   }
 
   /// Cleanly shutdown the Analysis Server.
@@ -383,7 +408,7 @@ class AnalysisServerWrapper {
     // --pause-isolates-on-exit from working; fix.
     return analysisServer.server
         .shutdown()
-        .timeout(Duration(seconds: 1))
+        .timeout(const Duration(seconds: 1))
         .catchError((dynamic e) => null);
   }
 
@@ -451,7 +476,7 @@ class AnalysisServerWrapper {
       path.join(_sourceDirPath, sourceName);
 
   /// Warm up the analysis server to be ready for use.
-  Future<api.CompleteResponse> warmup({bool useHtml = false}) =>
+  Future<proto.CompleteResponse> warmup({bool useHtml = false}) =>
       complete(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
 
   final Set<String> _overlayPaths = <String>{};
@@ -560,4 +585,11 @@ class AnalysisServerWrapper {
     }
     return errors;
   }
+}
+
+class Location {
+  final String sourceName;
+  final int offset;
+
+  const Location(this.sourceName, this.offset);
 }

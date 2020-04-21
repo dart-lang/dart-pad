@@ -13,6 +13,13 @@ const CompileRequest$json = {
   ],
 };
 
+const CompileDDCRequest$json = {
+  '1': 'CompileDDCRequest',
+  '2': [
+    {'1': 'source', '3': 1, '4': 1, '5': 9, '10': 'source'},
+  ],
+};
+
 const SourceRequest$json = {
   '1': 'SourceRequest',
   '2': [
