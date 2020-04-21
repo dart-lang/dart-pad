@@ -923,11 +923,12 @@ class Embed {
   }
 
   void _showInstallPage() {
-    ga?.sendEvent('main', 'install');
 
     if (_modeName == 'dart' || _modeName == 'html') {
+      ga?.sendEvent('main', 'install-dart');
       _hostWindow.location.href = 'https://dart.dev/get-dart';
     } else {
+      ga?.sendEvent('main', 'install-flutter');
       _hostWindow.location.href = 'https://flutter.dev/get-started/install';
     }
   }

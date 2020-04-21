@@ -1021,11 +1021,12 @@ class Playground implements GistContainer, GistController {
   }
 
   void _showInstallPage() {
-    ga?.sendEvent('main', 'install');
 
     if (_layout == Layout.dart) {
+      ga?.sendEvent('main', 'install-dart');
       window.location.href = 'https://dart.dev/get-dart';
     } else {
+      ga?.sendEvent('main', 'install-flutter');
       window.location.href = 'https://flutter.dev/get-started/install';
     }
   }
