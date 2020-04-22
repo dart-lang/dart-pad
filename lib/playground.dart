@@ -217,6 +217,8 @@ class Playground implements GistContainer, GistController {
       ..onClick.listen((_) => _showResetDialog());
     formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
       ..onClick.listen((_) => _format());
+    formatButton = MDCButton(querySelector('#install-button') as ButtonElement)
+      ..onClick.listen((_) => _showInstallPage());
     samplesButton =
         MDCButton(querySelector('#samples-dropdown-button') as ButtonElement)
           ..onClick.listen((e) {
@@ -985,20 +987,31 @@ class Playground implements GistContainer, GistController {
   }
 
   void _showSharingPage() {
-    window.open('https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
-        'DartPad Sharing Guide');
+    window.location.href =
+        'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide';
   }
 
   void _showGitHubPage() {
-    window.open('https://github.com/dart-lang/dart-pad', 'DartPad on GitHub');
+    window.location.href = 'https://github.com/dart-lang/dart-pad';
   }
 
   void _showDartDevPage() {
-    window.open('https://dart.dev', 'dart.dev');
+    window.location.href = 'https://dart.dev';
   }
 
   void _showFlutterDevPage() {
-    window.open('https://flutter.dev', 'flutter.dev');
+    window.location.href = 'https://flutter.dev';
+  }
+
+  void _showInstallPage() {
+
+    if (_layout == Layout.dart) {
+      ga?.sendEvent('main', 'install-dart');
+      window.location.href = 'https://dart.dev/get-dart';
+    } else {
+      ga?.sendEvent('main', 'install-flutter');
+      window.location.href = 'https://flutter.dev/get-started/install';
+    }
   }
 
   @override

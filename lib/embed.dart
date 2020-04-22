@@ -77,6 +77,7 @@ class Embed {
   var _executionButtonCount = 0;
   MDCButton executeButton;
   MDCButton reloadGistButton;
+  MDCButton installButton;
   MDCButton formatButton;
   MDCButton showHintButton;
   MDCButton copyCodeButton;
@@ -271,6 +272,10 @@ class Embed {
       ..onClick.listen(
         (_) => _format(),
       );
+    installButton = MDCButton(querySelector('#install-button') as ButtonElement)
+      ..onClick.listen(
+        (_) => _showInstallPage(),
+      );
 
     testResultBox = FlashBox(querySelector('#test-result-box') as DivElement);
     hintBox = FlashBox(querySelector('#hint-box') as DivElement);
@@ -312,6 +317,10 @@ class Embed {
       ..theme = editorTheme
       ..mode = 'css'
       ..showLineNumbers = true;
+
+    if (!showInstallButton) {
+      querySelector('#install-button').setAttribute('hidden', '');
+    }
 
     var editorTabViewElement = querySelector('#user-code-view');
     if (editorTabViewElement != null) {
@@ -466,6 +475,18 @@ class Embed {
 
   bool get shouldOpenConsole {
     final value = _getQueryParam('open_console');
+    return value == 'true';
+  }
+
+  // Whether or not to show the Install button. (defaults to true)
+  bool get showInstallButton {
+    final value = _getQueryParam('install_button');
+
+    // Default to true
+    if (value.isEmpty) {
+      return true;
+    }
+
     return value == 'true';
   }
 
@@ -891,6 +912,25 @@ class Embed {
 
   void _showKeyboardDialog() {
     dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
+  }
+
+  WindowBase get _hostWindow {
+    if (window.parent != null) {
+      return window.parent;
+    }
+
+    return window;
+  }
+
+  void _showInstallPage() {
+
+    if (_modeName == 'dart' || _modeName == 'html') {
+      ga?.sendEvent('main', 'install-dart');
+      _hostWindow.location.href = 'https://dart.dev/get-dart';
+    } else {
+      ga?.sendEvent('main', 'install-flutter');
+      _hostWindow.location.href = 'https://flutter.dev/get-started/install';
+    }
   }
 
   void _format() async {
