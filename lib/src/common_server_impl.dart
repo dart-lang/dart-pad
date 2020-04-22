@@ -233,9 +233,12 @@ class CommonServerImpl {
     if (result != null) {
       log.info('CACHE: Cache hit for compileDart2js');
       final resultObj = const JsonDecoder().convert(result);
-      return proto.CompileResponse()
-        ..result = resultObj['compiledJS'] as String
-        ..sourceMap = returnSourceMap ? resultObj['sourceMap'] as String : null;
+      final response = proto.CompileResponse()
+        ..result = resultObj['compiledJS'] as String;
+      if (resultObj['sourceMap'] != null) {
+        response.sourceMap = resultObj['sourceMap'] as String;
+      }
+      return response;
     }
 
     log.info('CACHE: MISS for compileDart2js');
