@@ -9,51 +9,111 @@
   	<meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
   	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>index</title>
+    <title>API Test</title>
     <link rel="icon" href="favicon.ico">
     <script defer src="index.dart.js"></script>
-    <link href="https://fonts.googleapis.com/css?family=Roboto+Mono&display=swap" rel="stylesheet">
-    <style>
-      #code {
-        font-family: 'Roboto Mono', monospace;
-      }
-    </style>
+    <link href="styles.css" rel="stylesheet">
+    <link href="packages/codemirror/codemirror.css" rel="stylesheet">
   </head>
+
   <body>
-    <h1>API Tester</h1>
-    <br />
+    <script src="packages/codemirror/codemirror.js"></script>
 
-    <table>
-      <tr>
-        <td width = "100px"></td>
-        <td width = "500px">
-          <pre id="code" contentEditable="true">
-main() {
-  print(primesLessThan(15));
-}
+    <h2>Dartpad Server API Tester</h2>
+    <!--<input type="text" value="https://dart-services.appspot.com/">-->
+    <input type="text" value="http://localhost:8082/api">
 
-// Computes primes less than [n] using the Sieve of Eratosthenes.
-primesLessThan(n) {
-  var l = new List.generate(n, (i) =&gt; i);
-  for (int i = 2; i * i &lt; n; i++)
-      if (l[i] != null)
-          for (int j = i * i; j &lt; n; j += i)
-              l[j] = null;
-  return l.skip(2).where((i) => i != null);
-}
-          </pre>
-        </td>
-      </tr>
-    </table>
+    <section id="analyzeSection-v2">
+      <h3>api/dartservices/v2/analyze</h3>
+      <div class="row">
+        <button class="post">POST</button>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
 
-    <input type="text" id="apiEndPoint"
-    value="http://localhost:8082/api/dartservices/v2/analyze"
-    size="64" />
+    <section id="assistsSection-v2">
+      <h3>api/dartservices/v2/assists</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
 
-    <button id="sendButton">Send</button>
-    <hr />
-    <pre id="perf">Perf</pre>
-    <pre id="output">Output</pre>
+    <section id="compileSection-v2">
+      <h3>api/dartservices/v2/compile</h3>
+      <div class="row">
+        <button class="post">POST</button>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
 
+    <section id="compileDDCSection-v2">
+      <h3>api/dartservices/v2/compileDDC</h3>
+      <div class="row">
+        <button class="post">POST</button>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="completeSection-v2">
+      <h3>api/dartservices/v2/complete</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="documentSection-v2">
+      <h3>api/dartservices/v2/document</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="fixesSection-v2">
+      <h3>api/dartservices/v2/fixes</h3>
+      <div class="row">
+        <button class="post">POST</button>
+        <span class="offset"></span>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+
+    <section id="versionSection-v2">
+      <h3>api/dartservices/v2/version</h3>
+      <div class="row">
+        <button class="post">GET</button>
+      </div>
+      <div class="container">
+        <div class="editor"></div>
+        <div class="output"></div>
+      </div>
+    </section>
+    
   </body>
 </html>

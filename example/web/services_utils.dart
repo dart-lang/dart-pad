@@ -45,11 +45,6 @@ class SanitizingBrowserClient extends BrowserClient {
       request.headers.remove(headerKey);
     }
 
-    // Replace 'application/json; charset=utf-8' with text/plain. This will
-    // avoid the browser sending an OPTIONS request before the actual POST (and
-    // introducing an additional round trip between the client and the server).
-    request.headers['Content-Type'] = 'text/plain; charset=utf-8';
-
     return super.send(request);
   }
 }

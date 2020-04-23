@@ -92,9 +92,10 @@ class GaeServer {
 
   Future<void> requestHandler(io.HttpRequest request) async {
     request.response.headers
-        .add('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    request.response.headers.add('Access-Control-Allow-Headers',
-        'Origin, X-Requested-With, Content-Type, Accept');
+      ..add('Access-Control-Allow-Origin', '*')
+      ..add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+      ..add('Access-Control-Allow-Headers',
+          'Origin, X-Requested-With, Content-Type, Accept');
 
     if (request.method == 'OPTIONS') {
       await _processOptionsRequest(request);
@@ -110,14 +111,7 @@ class GaeServer {
   }
 
   Future<void> _processOptionsRequest(io.HttpRequest request) async {
-    final requestedMethod =
-        request.headers.value('access-control-request-method');
-    int statusCode;
-    if (requestedMethod != null && requestedMethod.toUpperCase() == 'POST') {
-      statusCode = io.HttpStatus.ok;
-    } else {
-      statusCode = io.HttpStatus.badRequest;
-    }
+    final statusCode = io.HttpStatus.ok;
     request.response.statusCode = statusCode;
     await request.response.close();
   }

@@ -370,8 +370,8 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "7a21837c234f9328df8de0e0cf74893d4a82df93"
-      url: "https://github.com/domesticmouse/mock_request.git"
+      resolved-ref: "5a6336d6a7ba9309b6fa31a6185b619f329dc5d7"
+      url: "https://github.com/thosakwe/mock_request.git"
     source: git
     version: "1.0.7"
   multi_server_socket:

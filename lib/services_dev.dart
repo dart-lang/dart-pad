@@ -104,7 +104,7 @@ Stack Trace: ${stackTrace.toString()}
   Middleware _createCustomCorsHeadersMiddleware() {
     return shelf_cors.createCorsHeadersMiddleware(corsHeaders: <String, String>{
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers':
           'Origin, X-Requested-With, Content-Type, Accept, x-goog-api-client'
     });
