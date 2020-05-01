@@ -6,7 +6,7 @@ FROM google/dart:2.7.2
 # To retrieve this value, please run the following in your closest shell:
 #
 # $ (cd flutter && git rev-parse HEAD)
-ARG FLUTTER_COMMIT=e0c63cd35e15e407a80dc44281cc392535fcce25
+ARG FLUTTER_COMMIT=0da1ab09224f6c6d69fcff1195a3662fe7ad7534
 
 # We install unzip and remove the apt-index again to keep the
 # docker image diff small.
