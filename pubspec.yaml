@@ -30,10 +30,7 @@ dev_dependencies:
   codemirror: ^0.5.6
   coverage: ^0.13.0
   grinder: ^0.8.0
-  # TODO(brettmorgan): return to mock_request pub package after it is updated 
-  # mock_request: ^1.0.6
-  mock_request:
-    git: https://github.com/thosakwe/mock_request.git
+  mock_request: ^1.0.7
   pedantic: ^1.9.0
   shelf_router_generator: ^0.7.0+1
   synchronized: ^2.1.0

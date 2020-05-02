@@ -368,11 +368,9 @@ packages:
   mock_request:
     dependency: "direct dev"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "5a6336d6a7ba9309b6fa31a6185b619f329dc5d7"
-      url: "https://github.com/thosakwe/mock_request.git"
-    source: git
+      name: mock_request
+      url: "https://pub.dartlang.org"
+    source: hosted
     version: "1.0.7"
   multi_server_socket:
     dependency: transitive
