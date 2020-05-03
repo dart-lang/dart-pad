@@ -5,7 +5,6 @@ dart:
   # Keep this value aligned with min SDK value in pubspec.yaml and FROM line of Dockerfile
   - "2.7.2"
   - beta
-  - dev
 
 # Speed up builds by using containerization. Disable this if you need to use
 # sudo in your scripts.
