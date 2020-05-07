@@ -6,10 +6,6 @@ dart:
   - "2.8.1"
   - beta
 
-# Speed up builds by using containerization. Disable this if you need to use
-# sudo in your scripts.
-sudo: false
-
 branches:
   only: [master]
 before_script:
