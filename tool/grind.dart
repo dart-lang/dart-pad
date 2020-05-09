@@ -262,12 +262,6 @@ void generateProtos() async {
   Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
 }
 
-class RunWithLoggingException implements Exception {
-  const RunWithLoggingException(this.executable, this.exitCode);
-  final String executable;
-  final int exitCode;
-}
-
 Future<void> runWithLogging(String executable,
     {List<String> arguments = const [],
     RunOptions runOptions,
@@ -287,6 +281,6 @@ Future<void> runWithLogging(String executable,
   final exitCode = await proc.exitCode;
 
   if (exitCode != 0) {
-    throw RunWithLoggingException(executable, exitCode);
+    fail('Unable to exec $executable, failed with code $exitCode');
   }
 }
