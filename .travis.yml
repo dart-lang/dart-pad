@@ -12,7 +12,7 @@ dist: bionic
 os: linux
 
 branches:
-  only: [master]
+  only: [master, dart-29]
 before_script:
   - git submodule init
   - git submodule update
