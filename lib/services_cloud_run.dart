@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// A dev-time only server.
-library services_dev;
+/// A server for Cloud Run.
+library services_cloud_run;
 
 import 'dart:async';
 import 'dart:io';
@@ -27,6 +27,7 @@ void main(List<String> args) {
   final parser = ArgParser();
   parser.addOption('port', abbr: 'p', defaultsTo: '8080');
   parser.addOption('server-url', defaultsTo: 'http://localhost');
+  parser.addOption('redis-url');
 
   final result = parser.parse(args);
   final port = int.tryParse(result['port'] as String);
@@ -35,7 +36,7 @@ void main(List<String> args) {
         'Could not parse port value "${result['port']}" into a number.');
     exit(1);
   }
-
+  final redisServerUri = result['redis-url'] as String;
   final sdk = sdkPath;
 
   Logger.root.level = Level.FINER;
@@ -44,14 +45,16 @@ void main(List<String> args) {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  EndpointsServer.serve(sdk, port).then((EndpointsServer server) {
+  EndpointsServer.serve(sdk, port, redisServerUri)
+      .then((EndpointsServer server) {
     _logger.info('Listening on port ${server.port}');
   });
 }
 
 class EndpointsServer {
-  static Future<EndpointsServer> serve(String sdkPath, int port) {
-    final endpointsServer = EndpointsServer._(sdkPath, port);
+  static Future<EndpointsServer> serve(
+      String sdkPath, int port, String redisServerUri) {
+    final endpointsServer = EndpointsServer._(sdkPath, port, redisServerUri);
 
     return shelf
         .serve(endpointsServer.handler, InternetAddress.anyIPv4, port)
@@ -63,6 +66,7 @@ class EndpointsServer {
 
   final int port;
   HttpServer server;
+  String redisServerUri;
 
   Pipeline pipeline;
   Handler handler;
@@ -70,13 +74,20 @@ class EndpointsServer {
   CommonServerApi commonServerApi;
   FlutterWebManager flutterWebManager;
 
-  EndpointsServer._(String sdkPath, this.port) {
+  EndpointsServer._(String sdkPath, this.port, this.redisServerUri) {
     flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     final commonServerImpl = CommonServerImpl(
       sdkPath,
       flutterWebManager,
       _ServerContainer(),
-      _Cache(),
+      redisServerUri == null
+          ? InMemoryCache()
+          : RedisCache(
+              redisServerUri,
+              // The name of the Cloud Run revision being run, for more detail please see:
+              // https://cloud.google.com/run/docs/reference/container-contract#env-vars
+              Platform.environment['K_REVISION'],
+            ),
     );
     commonServerApi = CommonServerApi(commonServerImpl);
     commonServerImpl.init();
@@ -101,19 +112,4 @@ class EndpointsServer {
 class _ServerContainer implements ServerContainer {
   @override
   String get version => '1.0';
-}
-
-class _Cache implements ServerCache {
-  @override
-  Future<String> get(String key) => Future<String>.value(null);
-
-  @override
-  Future<void> set(String key, String value, {Duration expiration}) =>
-      Future<void>.value();
-
-  @override
-  Future<void> remove(String key) => Future<void>.value();
-
-  @override
-  Future<void> shutdown() => Future<void>.value();
 }

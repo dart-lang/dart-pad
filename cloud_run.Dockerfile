@@ -49,4 +49,6 @@ RUN pub run grinder build-storage-artifacts validate-storage-artifacts
 # the Dart app using custom script enabling debug modes.
 CMD []
 
-ENTRYPOINT ["/dart_runtime/dart_cloud_run.sh", "--port", "${PORT}", "--server-url", "http://0.0.0.0"]
+ENTRYPOINT ["/dart_runtime/dart_cloud_run.sh", "--port", "${PORT}", \
+            "--server-url", "http://0.0.0.0", \
+            "--services_cloud_run", "redis://10.0.0.4:6379"]
