@@ -27,6 +27,7 @@ final Logger log = Logger('common_server');
 
 class BadRequest implements Exception {
   String cause;
+
   BadRequest(this.cause);
 }
 
@@ -48,8 +49,17 @@ class CommonServerImpl {
       analysisServer.analysisServer != null &&
       flutterAnalysisServer.analysisServer != null;
 
-  bool _running = false;
-  bool get running => _running;
+  // If non-null, this value indicates that the server is starting/restarting
+  // and holds the time at which that process began. If null, the server is
+  // ready to handle requests.
+  DateTime _restartingSince = DateTime.now();
+
+  bool get isRestarting => (_restartingSince != null);
+
+  // If the server has been trying and failing to restart for more than a half
+  // hour, something is seriously wrong.
+  bool get isHealthy => (_restartingSince == null ||
+      DateTime.now().difference(_restartingSince).inMinutes < 30);
 
   CommonServerImpl(
     this.sdkPath,
@@ -90,7 +100,7 @@ class CommonServerImpl {
       }
     }));
 
-    _running = true;
+    _restartingSince = null;
   }
 
   Future<void> warmup({bool useHtml = false}) async {
@@ -112,7 +122,8 @@ class CommonServerImpl {
   }
 
   Future<dynamic> shutdown() {
-    _running = false;
+    _restartingSince = DateTime.now();
+
     return Future.wait(<Future<dynamic>>[
       analysisServer.shutdown(),
       flutterAnalysisServer.shutdown(),

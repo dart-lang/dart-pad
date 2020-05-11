@@ -117,7 +117,7 @@ class GaeServer {
   }
 
   Future _processReadynessRequest(io.HttpRequest request) async {
-    if (commonServerImpl.running) {
+    if (!commonServerImpl.isRestarting) {
       request.response.statusCode = io.HttpStatus.ok;
     } else {
       request.response.statusCode = io.HttpStatus.internalServerError;
@@ -128,9 +128,9 @@ class GaeServer {
   }
 
   Future _processHealthRequest(io.HttpRequest request) async {
-    if (commonServerImpl.running && !commonServerImpl.analysisServersRunning) {
-      _logger.severe('CommonServer running without analysis servers. '
-          'Intentionally failing healthcheck.');
+    if (!commonServerImpl.isHealthy) {
+      _logger.severe('CommonServer is no longer healthy.'
+          ' Intentionally failing health check.');
       request.response.statusCode = io.HttpStatus.internalServerError;
     } else {
       try {
@@ -140,15 +140,20 @@ class GaeServer {
           await file.writeAsString('testing123\n' * 1000, flush: true);
           final stat = await file.stat();
           if (stat.size > 10000) {
+            _logger.info('CommonServer healthy and file system working.'
+                ' Passing health check.');
             request.response.statusCode = io.HttpStatus.ok;
           } else {
+            _logger.severe('CommonServer healthy, but filesystem is not.'
+                ' Intentionally failing health check.');
             request.response.statusCode = io.HttpStatus.internalServerError;
           }
         } finally {
           await tempDir.delete(recursive: true);
         }
       } catch (e) {
-        _logger.severe('Failed to create temporary file: $e');
+        _logger.severe('CommonServer healthy, but failed to create temporary'
+            ' file: $e');
         request.response.statusCode = io.HttpStatus.internalServerError;
       }
     }
