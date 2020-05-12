@@ -78,7 +78,7 @@ class DartCompleter extends CodeCompleter {
 
           // If a specific offset is provided, prefer it to the one calculated
           // from the linked edit groups.
-          if (assist.selectionOffset != null) {
+          if (assist.hasSelectionOffset()) {
             absoluteCursorPosition = assist.selectionOffset;
           }
 
