@@ -14,5 +14,5 @@ Future<void> main(List<String> args) async {
   await SdkManager.sdk.init();
   await SdkManager.flutterSdk.init();
 
-  services_cloud_run.main(args);
+  return services_cloud_run.main(args);
 }
