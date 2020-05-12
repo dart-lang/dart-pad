@@ -6,6 +6,7 @@ library services_gae;
 
 import 'dart:async';
 import 'dart:io' as io;
+import 'dart:math';
 
 import 'package:appengine/appengine.dart' as ae;
 import 'package:logging/logging.dart';
@@ -21,6 +22,10 @@ import 'src/server_cache.dart';
 const String _API_PREFIX = '/api/dartservices/';
 const String _healthCheck = '/_ah/health';
 const String _readynessCheck = '/_ah/ready';
+// Serve content for 4 hours, +- 1 hour.
+final DateTime _serveUntil = DateTime.now()
+    .add(Duration(hours: 3))
+    .add(Duration(minutes: Random().nextInt(120)));
 
 final Logger _logger = Logger('gae_server');
 
@@ -117,7 +122,8 @@ class GaeServer {
   }
 
   Future _processReadynessRequest(io.HttpRequest request) async {
-    if (!commonServerImpl.isRestarting) {
+    if (!commonServerImpl.isRestarting &&
+        DateTime.now().isBefore(_serveUntil)) {
       request.response.statusCode = io.HttpStatus.ok;
     } else {
       request.response.statusCode = io.HttpStatus.internalServerError;
@@ -128,7 +134,7 @@ class GaeServer {
   }
 
   Future _processHealthRequest(io.HttpRequest request) async {
-    if (!commonServerImpl.isHealthy) {
+    if (!commonServerImpl.isHealthy || DateTime.now().isAfter(_serveUntil)) {
       _logger.severe('CommonServer is no longer healthy.'
           ' Intentionally failing health check.');
       request.response.statusCode = io.HttpStatus.internalServerError;
