@@ -23,7 +23,7 @@ pub global activate grinder
 ```
 
 The dart-services v2 API is defined in terms of Protobuf, which requires
-the installation of the Protobuf `protoc` compiler. Please see 
+the installation of the Protobuf `protoc` compiler. Please see
 [Protocol Buffers](https://developers.google.com/protocol-buffers/)
 for detailed instalation instructions.
 
@@ -46,6 +46,14 @@ The server will run from port 8082 and export several JSON APIs, like
 `/api/compile` and `/api/analyze`.
 
 ## Testing
+
+Flutter is bundled with the project and requires the following commands to be executed to configure the bundled version:
+
+```bash
+flutter/bin/flutter doctor
+flutter/bin/flutter config --enable-web
+flutter/bin/flutter precache --web --no-android --no-ios --no-linux --no-windows --no-macos --no-fuchsia
+```
 
 To run tests:
 
