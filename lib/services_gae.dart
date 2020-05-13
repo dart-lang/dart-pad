@@ -20,8 +20,8 @@ import 'src/sdk_manager.dart';
 import 'src/server_cache.dart';
 
 const String _API_PREFIX = '/api/dartservices/';
-const String _healthCheck = '/_ah/health';
-const String _readynessCheck = '/_ah/ready';
+const String _livenessCheck = '/liveness_check';
+const String _readinessCheck = '/readiness_check';
 // Serve content for 4 hours, +- 1 hour.
 final DateTime _serveUntil = DateTime.now()
     .add(Duration(hours: 3))
@@ -104,10 +104,10 @@ class GaeServer {
 
     if (request.method == 'OPTIONS') {
       await _processOptionsRequest(request);
-    } else if (request.uri.path == _readynessCheck) {
-      await _processReadynessRequest(request);
-    } else if (request.uri.path == _healthCheck) {
-      await _processHealthRequest(request);
+    } else if (request.uri.path == _readinessCheck) {
+      await _processReadinessRequest(request);
+    } else if (request.uri.path == _livenessCheck) {
+      await _processLivenessRequest(request);
     } else if (request.uri.path.startsWith(_API_PREFIX)) {
       await shelf_io.handleRequest(request, commonServerApi.router.handler);
     } else {
@@ -121,23 +121,25 @@ class GaeServer {
     await request.response.close();
   }
 
-  Future _processReadynessRequest(io.HttpRequest request) async {
+  Future _processReadinessRequest(io.HttpRequest request) async {
+    _logger.info('Processing readiness check');
     if (!commonServerImpl.isRestarting &&
         DateTime.now().isBefore(_serveUntil)) {
       request.response.statusCode = io.HttpStatus.ok;
     } else {
-      request.response.statusCode = io.HttpStatus.internalServerError;
-      _logger.info('CommonServer not running - failing readiness check.');
+      request.response.statusCode = io.HttpStatus.serviceUnavailable;
+      _logger.severe('CommonServer not running - failing readiness check.');
     }
 
     await request.response.close();
   }
 
-  Future _processHealthRequest(io.HttpRequest request) async {
+  Future _processLivenessRequest(io.HttpRequest request) async {
+    _logger.info('Processing liveness check');
     if (!commonServerImpl.isHealthy || DateTime.now().isAfter(_serveUntil)) {
       _logger.severe('CommonServer is no longer healthy.'
           ' Intentionally failing health check.');
-      request.response.statusCode = io.HttpStatus.internalServerError;
+      request.response.statusCode = io.HttpStatus.serviceUnavailable;
     } else {
       try {
         final tempDir = await io.Directory.systemTemp.createTemp('healthz');
@@ -152,7 +154,7 @@ class GaeServer {
           } else {
             _logger.severe('CommonServer healthy, but filesystem is not.'
                 ' Intentionally failing health check.');
-            request.response.statusCode = io.HttpStatus.internalServerError;
+            request.response.statusCode = io.HttpStatus.serviceUnavailable;
           }
         } finally {
           await tempDir.delete(recursive: true);
@@ -160,7 +162,7 @@ class GaeServer {
       } catch (e) {
         _logger.severe('CommonServer healthy, but failed to create temporary'
             ' file: $e');
-        request.response.statusCode = io.HttpStatus.internalServerError;
+        request.response.statusCode = io.HttpStatus.serviceUnavailable;
       }
     }
 

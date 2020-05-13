@@ -22,8 +22,21 @@ network:
 skip_files:
 - ^\.git/.*$
 
+# Health checks, for detail please see:
+# https://cloud.google.com/appengine/docs/flexible/custom-runtimes/configuring-your-app-with-app-yaml#updated_health_checks
+
 liveness_check:
-  path: /_ah/health
+  path: "/liveness_check"
+  check_interval_sec: 30
+  timeout_sec: 5
+  failure_threshold: 2
+  success_threshold: 2
+  initial_delay_sec: 600
 
 readiness_check:
-  path: /_ah/ready
+  path: "/readiness_check"
+  check_interval_sec: 5
+  timeout_sec: 4
+  failure_threshold: 2
+  success_threshold: 2
+  app_start_timeout_sec: 300
