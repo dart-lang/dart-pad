@@ -101,13 +101,11 @@ class CommonServerImpl {
     }));
 
     _restartingSince = null;
-  }
 
-  Future<void> warmup({bool useHtml = false}) async {
     await flutterWebManager.warmup();
-    await compiler.warmup(useHtml: useHtml);
-    await analysisServer.warmup(useHtml: useHtml);
-    await flutterAnalysisServer.warmup(useHtml: useHtml);
+    await compiler.warmup();
+    await analysisServer.warmup();
+    await flutterAnalysisServer.warmup();
   }
 
   Future<void> restart() async {
@@ -116,8 +114,6 @@ class CommonServerImpl {
     log.info('Analysis Servers shutdown');
 
     await init();
-    await warmup();
-
     log.warning('Restart complete');
   }
 
