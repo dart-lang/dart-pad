@@ -22,10 +22,10 @@ import 'src/server_cache.dart';
 const String _API_PREFIX = '/api/dartservices/';
 const String _livenessCheck = '/liveness_check';
 const String _readinessCheck = '/readiness_check';
-// Serve content for 4 hours, +- 1 hour.
+// Serve content for 1.5 hours, +- 30 minutes.
 final DateTime _serveUntil = DateTime.now()
-    .add(Duration(hours: 3))
-    .add(Duration(minutes: Random().nextInt(120)));
+    .add(Duration(hours: 1))
+    .add(Duration(minutes: Random().nextInt(60)));
 
 final Logger _logger = Logger('gae_server');
 
