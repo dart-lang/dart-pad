@@ -781,60 +781,30 @@ class Embed {
         '${executionSvc.testResultDecoration}';
 
     var input = CompileRequest()..source = fullCode;
-    if (options.mode == EmbedMode.flutter) {
-      dartServices
-          .compileDDC(input)
-          .timeout(longServiceCallTimeout)
-          .then((CompileDDCResponse response) {
-        executionSvc.execute(
-          '',
-          '',
-          response.result,
-          modulesBaseUrl: response.modulesBaseUrl,
-        );
-        ga?.sendEvent('execution', 'ddc-compile-success');
-      }).catchError((e, st) {
-        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
-            error: true);
-        print(st);
-        ga?.sendEvent('execution', 'ddc-compile-failure');
-      }).whenComplete(() {
-        webOutputLabel.setAttr('hidden');
-        editorIsBusy = false;
-      });
-    } else if (options.mode == EmbedMode.html) {
-      dartServices
-          .compile(input)
-          .timeout(longServiceCallTimeout)
-          .then((CompileResponse response) {
-        ga?.sendEvent('execution', 'html-compile-success');
-        return executionSvc.execute(
-            context.htmlSource, context.cssSource, response.result);
-      }).catchError((e, st) {
-        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
-            error: true);
-        print(st);
-        ga?.sendEvent('execution', 'html-compile-failure');
-      }).whenComplete(() {
-        webOutputLabel.setAttr('hidden');
-        editorIsBusy = false;
-      });
-    } else {
-      dartServices
-          .compile(input)
-          .timeout(longServiceCallTimeout)
-          .then((CompileResponse response) {
-        executionSvc.execute('', '', response.result);
-        ga?.sendEvent('execution', 'compile-success');
-      }).catchError((e, st) {
-        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
-            error: true);
-        print(st);
-        ga?.sendEvent('execution', 'compile-failure');
-      }).whenComplete(() {
-        editorIsBusy = false;
-      });
-    }
+
+    dartServices
+        .compileDDC(input)
+        .timeout(longServiceCallTimeout)
+        .then((CompileDDCResponse response) {
+      final htmlContent =
+          (options.mode == EmbedMode.html) ? context.htmlSource : '';
+      final cssContent =
+          (options.mode == EmbedMode.html) ? context.cssSource : '';
+      executionSvc.execute(
+        htmlContent,
+        cssContent,
+        response.result,
+        modulesBaseUrl: response.modulesBaseUrl,
+      );
+      ga?.sendEvent('execution', 'ddc-compile-success');
+    }).catchError((e, st) {
+      consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
+          error: true);
+      ga?.sendEvent('execution', 'ddc-compile-failure');
+    }).whenComplete(() {
+      webOutputLabel?.setAttr('hidden');
+      editorIsBusy = false;
+    });
   }
 
   void _sendVirtualPageView(String id) {
