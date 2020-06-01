@@ -48,6 +48,20 @@
     <!-- javascript -->
     <script src="scripts/ga.js" defer></script>
     <script src="scripts/polymerpatch.js" defer></script>
+
+    <style>
+
+        #badgeroo {
+          margin-left: 10px;
+          color: #202020;
+          font-size: 10pt;
+          padding: 4px;
+          background-color: #ffffe0;
+          transform: rotate(-5deg);
+        }
+
+    </style>
+
 </head>
 
 <body>
@@ -55,7 +69,8 @@
 <header class="mdc-elevation--z4">
     <div class="header-title">
         <img src="dart-192.png" alt="DartPad Logo" class="logo"/>
-        <span>DartPad (with null safety!)</span>
+        <span>DartPad</span>
+        <span id="badgeroo">with null safety!</span>
     </div>
     <div>
         <button type="button" id="new-button" class="mdc-button">
@@ -78,7 +93,7 @@
     <div class="header-gist-name"></div>
     <div>
         <button type="button" id="samples-dropdown-button" class="mdc-button">
-            <span class="mdc-button__label">Samples</span>
+            <span class="mdc-button__label">Learn with Snippets!</span>
             <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
         </button>
         <div id="samples-menu" class="mdc-menu mdc-menu-surface"></div>

@@ -5,6 +5,13 @@
 library dart_pad.sample;
 
 final String dartCode = r'''
+// Welcome to the null safety version of DartPad!
+// This site has a dev channel release of the
+// Dart SDK with null safety enabled. You can
+// play around with code of your own, or pick a
+// learning exercise from the snippets menu at
+// the top-right of this page.
+
 void main() {
   for (int i = 0; i < 5; i++) {
     print('hello ${i + 1}');

@@ -258,14 +258,61 @@ class Playground implements GistContainer, GistController {
     var element = querySelector('#samples-menu');
 
     var samples = [
-      Sample('1ede47fde8adf5d4dab09bcf6ddf1ec6', 'Hello null safety!',
-          Layout.dart),
-      Sample('d6877b23861d2864d055994000ed086d', 'Variables and exclamations',
-          Layout.dart),
-      Sample('cf9c41700058f687be0763c968240cb4', 'Classes and late fields',
-          Layout.dart),
-      Sample('50786448d2765a86be9c6e3b6aa32496', 'Put it all together',
-          Layout.dart),
+      Sample(
+        '3d9c1769de7912c654bc5d132aff60ac',
+        '1) Introducing non-nullable types',
+        Layout.dart,
+      ),
+      Sample(
+        '4ce48b97196304dda3ce56fa568c44b8',
+        '2) Nullable types',
+        Layout.dart,
+      ),
+      Sample(
+        'cb03c039bd508de3435f04eb791fc5a9',
+        '3) Question mark with List',
+        Layout.dart,
+      ),
+      Sample(
+        'e564e4dc6a1b8467d4a8715fb21baf00',
+        '4) Definite assignment - conditional',
+        Layout.dart,
+      ),
+      Sample(
+        '5a80bfd8e835bb470f56fcc381f901ed',
+        '5) Conditional access',
+        Layout.dart,
+      ),
+      Sample(
+        '15f4ca1103bb4283d335d9f9f9a40e03',
+        '6) Promotion - null check',
+        Layout.dart,
+      ),
+      Sample(
+        'b272fbb6689c623f9dfb2258e19088a8',
+        '7) Promotion - throwing',
+        Layout.dart,
+      ),
+      Sample(
+        '3e53f7b92a90a1b5a31484453e76160e',
+        '8) Null assertion operator',
+        Layout.dart,
+      ),
+      Sample(
+        '1680b2b3f4d50abc9fa70148b6811b27',
+        '9) Late assignment',
+        Layout.dart,
+      ),
+      Sample(
+        'cc35655cf10b30a594e979f2e81fa3ab',
+        '10) Late final assignment',
+        Layout.dart,
+      ),
+      Sample(
+        '88970173429a487e82caf8ccf949157e',
+        '11) Late caching example',
+        Layout.dart,
+      ),
     ];
 
     var listElement = UListElement()
