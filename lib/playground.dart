@@ -270,12 +270,12 @@ class Playground implements GistContainer, GistController {
       ),
       Sample(
         'cb03c039bd508de3435f04eb791fc5a9',
-        '3) Question mark with List',
+        '3) More nullable types!',
         Layout.dart,
       ),
       Sample(
         'e564e4dc6a1b8467d4a8715fb21baf00',
-        '4) Definite assignment - conditional',
+        '4) Definite assignment',
         Layout.dart,
       ),
       Sample(
@@ -285,32 +285,32 @@ class Playground implements GistContainer, GistController {
       ),
       Sample(
         '15f4ca1103bb4283d335d9f9f9a40e03',
-        '6) Promotion - null check',
+        '6) Promotion',
         Layout.dart,
       ),
       Sample(
         'b272fbb6689c623f9dfb2258e19088a8',
-        '7) Promotion - throwing',
+        '7) Promotion with exceptions',
         Layout.dart,
       ),
       Sample(
         '3e53f7b92a90a1b5a31484453e76160e',
-        '8) Null assertion operator',
+        '8) The assertion operator',
         Layout.dart,
       ),
       Sample(
         '1680b2b3f4d50abc9fa70148b6811b27',
-        '9) Late assignment',
+        '9) The late keyword',
         Layout.dart,
       ),
       Sample(
         'cc35655cf10b30a594e979f2e81fa3ab',
-        '10) Late final assignment',
+        '10) Late circular references',
         Layout.dart,
       ),
       Sample(
         '88970173429a487e82caf8ccf949157e',
-        '11) Late caching example',
+        '11) Late and lazy',
         Layout.dart,
       ),
     ];
