@@ -177,7 +177,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     // The first of those properties holds the compiled code for the bootstrap
     // Dart file, which the server uses to wrap the user's code and wait on a
     // call to dart:ui's `webOnlyInitializePlatform` before executing any of it.
-    //w
+    //
     // The loop below iterates over the properties of the exported object,
     // looking for one that ends in "__bootstrap". Once found, it executes the
     // bootstrapped main method, which calls the user's main method, which
