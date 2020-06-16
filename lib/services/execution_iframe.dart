@@ -116,7 +116,6 @@ require.undef('dartpad_main');
 var _thrownDartMainRunner = false;
 
 window.onerror = function(message, url, lineNumber, colno, error) {
-  console.log('inside window.onerror.');
   if (!_thrownDartMainRunner) {
     var errorMessage = '';
     if (error != null) {
@@ -156,8 +155,9 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     // SDK initialization.
     dart_sdk.dart.setStartAsyncSynchronously(true);
     
-    // Probably shouldn't be accessing private members like this, but it's just
-    // a tech preview, after all.
+    // TODO(redbrogdon): Avoid accessing this member directly. Right now,
+    // There's no other convenient way of guaranteeing that sound null safety
+    // hasn't been turned on.
     if (!dart_sdk.dart._setNullSafety) {
       dart_sdk.dart.nullSafety(true);
     }

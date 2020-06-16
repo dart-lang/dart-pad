@@ -16,7 +16,6 @@ VALID_FILES = [
     'dark_mode.js',
     'dart-192.png',
     'embed-dart.html',
-    # 'embed-flutter.html',
     'embed-html.html',
     'embed-inline.html',
     'embed-.html',
