@@ -4,9 +4,23 @@
 
 library dart_pad.common;
 
-final String serverURL = 'https://dart-services.appspot.com/';
-//final String serverURL = 'http://127.0.0.1:8082/';
-//final String serverURL = 'https://dart2-test-dot-dart-services.appspot.com/';
+import 'dart:math';
+
+// A list of several endpoints running dart-services, across which DartPad can
+// spread its traffic. For simplicity's sake, at the current time DartPad picks
+// one at launch and sticks with it until the window is closed.
+final serverURLs = [
+  'https://dart-services.appspot.com/',
+  'https://dart-services-0.appspot.com/',
+];
+
+// A set of URLs to use while debugging.
+//final serverURLs = [
+//  'http://127.0.0.1:8082/',
+//];
+
+// The actual server URL, chosen at random from one of the above lists.
+final serverURL = serverURLs[Random().nextInt(serverURLs.length)];
 
 final Duration serviceCallTimeout = Duration(seconds: 10);
 final Duration longServiceCallTimeout = Duration(seconds: 60);
