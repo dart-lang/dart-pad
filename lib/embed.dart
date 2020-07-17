@@ -10,6 +10,7 @@ import 'package:dart_pad/elements/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
 import 'package:split/split.dart';
 import 'package:mdc_web/mdc_web.dart';
+import 'localstorage.dart';
 
 import 'completion.dart';
 import 'core/dependencies.dart';
@@ -156,6 +157,19 @@ class Embed {
   Embed(this.options) {
     _initHostListener();
     dialog = Dialog();
+
+    if(localStorage == null) {
+      dialog.showOk(
+          'Missing browser features',
+          'Check that you\'re using a <a href="'
+              'https://dart.dev/faq#'
+              'q-what-browsers-do-you-support-as-javascript-compilation-targets'
+              '">supported browser</a> and that you’ve disabled third-party'
+              'tracking cookies. For more information, visit '
+              '<a href="https://dart.dev/tools/dartpad/troubleshoot">'
+              'dart.dev/tools/dartpad/troubleshoot</a>');
+    }
+
     tabController =
         EmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')), dialog);
 

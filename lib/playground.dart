@@ -21,6 +21,7 @@ import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'documentation.dart';
+import 'localstorage.dart';
 import 'editing/editor.dart';
 import 'elements/bind.dart';
 import 'elements/elements.dart';
@@ -78,7 +79,7 @@ void init() {
 
 class Playground implements GistContainer, GistController {
   final MutableGist editableGist = MutableGist(Gist());
-  final GistStorage _gistStorage = GistStorage();
+  GistStorage _gistStorage;
   MDCButton newButton;
   MDCButton resetButton;
   MDCButton formatButton;
@@ -122,9 +123,10 @@ class Playground implements GistContainer, GistController {
   Counter unreadConsoleCounter;
 
   Playground() {
+    _initDialogs();
+    _checkLocalStorage();
     _initModules().then((_) {
       _initPlayground();
-      _initDialogs();
       _initBusyLights();
       _initGistNameHeader();
       _initGistStorage();
@@ -137,6 +139,7 @@ class Playground implements GistContainer, GistController {
       _initTabs();
       _initLayout();
       _initConsoles();
+      _gistStorage  = GistStorage();
     });
   }
 
@@ -422,6 +425,20 @@ class Playground implements GistContainer, GistController {
     _rightConsole = Console(DElement(_rightConsoleContentElement));
     unreadConsoleCounter =
         Counter(querySelector('#unread-console-counter') as SpanElement);
+  }
+
+  void _checkLocalStorage() {
+    if(localStorage == null) {
+      dialog.showOk(
+          'Missing browser features',
+          'Check that you\'re using a <a href="'
+              'https://dart.dev/faq#'
+              'q-what-browsers-do-you-support-as-javascript-compilation-targets'
+              '">supported browser</a> and that you’ve disabled third-party'
+              'tracking cookies. For more information, visit '
+              '<a href="https://dart.dev/tools/dartpad/troubleshoot">'
+              'dart.dev/tools/dartpad/troubleshoot</a>');
+    }
   }
 
   Future<void> _initModules() async {

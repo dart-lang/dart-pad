@@ -310,7 +310,7 @@ packages:
     source: hosted
     version: "0.3.3"
   js:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: js
       url: "https://pub.dartlang.org"

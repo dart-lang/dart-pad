@@ -495,6 +495,12 @@ a {
   border-radius: 20px;
 }
 
+
+// Make the dialog show up even without everything initialized (for localStorage check)
+.mdc-dialog {
+  z-index: 1000;
+}
+
 #new-pad-dialog {
   @include mdc-dialog-content-ink-color(white, 1.0);
 
