@@ -164,7 +164,7 @@ class Embed {
           'Check that you\'re using a <a href="'
               'https://dart.dev/faq#'
               'q-what-browsers-do-you-support-as-javascript-compilation-targets'
-              '">supported browser</a> and that you’ve disabled third-party'
+              '">supported browser</a> and that you’ve enabled third-party'
               'tracking cookies. For more information, visit '
               '<a href="https://dart.dev/tools/dartpad/troubleshoot">'
               'dart.dev/tools/dartpad/troubleshoot</a>');
