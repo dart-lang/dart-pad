@@ -14,7 +14,7 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "5.0.0"
+    version: "6.0.0"
   analysis_server_lib:
     dependency: "direct main"
     description:
@@ -28,7 +28,7 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.39.13"
+    version: "0.39.14"
   appengine:
     dependency: "direct main"
     description:
@@ -140,7 +140,7 @@ packages:
       name: cli_util
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.0"
+    version: "0.1.4"
   code_builder:
     dependency: transitive
     description:
@@ -154,7 +154,7 @@ packages:
       name: codemirror
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.17+5.54.0"
+    version: "0.5.19+5.56.0"
   collection:
     dependency: transitive
     description:
@@ -273,7 +273,7 @@ packages:
       name: http
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.12.1"
+    version: "0.12.2"
   http2:
     dependency: transitive
     description:
@@ -595,7 +595,7 @@ packages:
       name: tuneup
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.7"
+    version: "0.3.6+2"
   typed_data:
     dependency: transitive
     description:
