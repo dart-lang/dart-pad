@@ -545,8 +545,8 @@ class Playground implements GistContainer, GistController {
     docHandler = DocHandler(editor, _context);
 
     dartServices.version().then((VersionResponse version) {
-      // "Based on Dart SDK 2.4.0"
-      var versionText = 'Based on Dart SDK ${version.sdkVersionFull}';
+      // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
+      var versionText = 'Based on Flutter ${version.flutterVersion} Dart SDK ${version.sdkVersionFull}';
       querySelector('#dartpad-version').text = versionText;
     }).catchError((e) => null);
 
