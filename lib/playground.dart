@@ -21,17 +21,16 @@ import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'documentation.dart';
-import 'localstorage.dart';
 import 'editing/editor.dart';
-import 'elements/bind.dart';
-import 'elements/elements.dart';
 import 'elements/analysis_results_controller.dart';
+import 'elements/bind.dart';
 import 'elements/button.dart';
 import 'elements/console.dart';
 import 'elements/counter.dart';
 import 'elements/dialog.dart';
-import 'util/keymap.dart';
+import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
+import 'localstorage.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -41,12 +40,13 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_doc_property.dart';
 import 'sharing/gist_file_property.dart';
-import 'sharing/gists.dart';
 import 'sharing/gist_storage.dart';
+import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/util.dart';
 import 'util/detect_flutter.dart';
+import 'util/keymap.dart';
 
 const codeMirrorOptions = {
   'continueComments': {'continueLineComment': false},
@@ -431,11 +431,8 @@ class Playground implements GistContainer, GistController {
     if(localStorage == null) {
       dialog.showOk(
           'Missing browser features',
-          'Check that you\'re using a <a href="'
-              'https://dart.dev/faq#'
-              'q-what-browsers-do-you-support-as-javascript-compilation-targets'
-              '">supported browser</a> and that you’ve enabled third-party'
-              'tracking cookies. For more information, visit '
+          'DartPad requires localStorage to be enabled. '
+              'For more information, visit '
               '<a href="https://dart.dev/tools/dartpad/troubleshoot">'
               'dart.dev/tools/dartpad/troubleshoot</a>');
     }

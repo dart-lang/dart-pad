@@ -8,9 +8,8 @@ import 'dart:math' as math;
 
 import 'package:dart_pad/elements/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
-import 'package:split/split.dart';
 import 'package:mdc_web/mdc_web.dart';
-import 'localstorage.dart';
+import 'package:split/split.dart';
 
 import 'completion.dart';
 import 'core/dependencies.dart';
@@ -18,7 +17,13 @@ import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'editing/editor.dart';
 import 'editing/editor_codemirror.dart';
+import 'elements/analysis_results_controller.dart';
+import 'elements/button.dart';
+import 'elements/console.dart';
+import 'elements/counter.dart';
+import 'elements/dialog.dart';
 import 'elements/elements.dart';
+import 'localstorage.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'services/common.dart';
@@ -26,11 +31,6 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'src/util.dart';
-import 'elements/analysis_results_controller.dart';
-import 'elements/button.dart';
-import 'elements/console.dart';
-import 'elements/counter.dart';
-import 'elements/dialog.dart';
 import 'util/keymap.dart';
 
 const int defaultSplitterWidth = 6;
@@ -161,11 +161,8 @@ class Embed {
     if(localStorage == null) {
       dialog.showOk(
           'Missing browser features',
-          'Check that you\'re using a <a href="'
-              'https://dart.dev/faq#'
-              'q-what-browsers-do-you-support-as-javascript-compilation-targets'
-              '">supported browser</a> and that you’ve enabled third-party'
-              'tracking cookies. For more information, visit '
+          'DartPad requires localStorage to be enabled. '
+          'For more information, visit '
               '<a href="https://dart.dev/tools/dartpad/troubleshoot">'
               'dart.dev/tools/dartpad/troubleshoot</a>');
     }
