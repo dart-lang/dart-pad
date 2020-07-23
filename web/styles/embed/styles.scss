@@ -290,3 +290,9 @@ body {
 .hide {
   opacity: 0;
 }
+
+
+// Make the dialog show up even without everything initialized (for localStorage check)
+.mdc-dialog {
+  z-index: 1000;
+}

@@ -22,15 +22,15 @@ import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'documentation.dart';
 import 'editing/editor.dart';
-import 'elements/bind.dart';
-import 'elements/elements.dart';
 import 'elements/analysis_results_controller.dart';
+import 'elements/bind.dart';
 import 'elements/button.dart';
 import 'elements/console.dart';
 import 'elements/counter.dart';
 import 'elements/dialog.dart';
-import 'util/keymap.dart';
+import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
+import 'localstorage.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -40,12 +40,13 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_doc_property.dart';
 import 'sharing/gist_file_property.dart';
-import 'sharing/gists.dart';
 import 'sharing/gist_storage.dart';
+import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'src/util.dart';
 import 'util/detect_flutter.dart';
+import 'util/keymap.dart';
 
 const codeMirrorOptions = {
   'continueComments': {'continueLineComment': false},
@@ -78,7 +79,7 @@ void init() {
 
 class Playground implements GistContainer, GistController {
   final MutableGist editableGist = MutableGist(Gist());
-  final GistStorage _gistStorage = GistStorage();
+  GistStorage _gistStorage;
   MDCButton newButton;
   MDCButton resetButton;
   MDCButton formatButton;
@@ -122,9 +123,10 @@ class Playground implements GistContainer, GistController {
   Counter unreadConsoleCounter;
 
   Playground() {
+    _initDialogs();
+    _checkLocalStorage();
     _initModules().then((_) {
       _initPlayground();
-      _initDialogs();
       _initBusyLights();
       _initGistNameHeader();
       _initGistStorage();
@@ -137,6 +139,7 @@ class Playground implements GistContainer, GistController {
       _initTabs();
       _initLayout();
       _initConsoles();
+      _gistStorage  = GistStorage();
     });
   }
 
@@ -422,6 +425,17 @@ class Playground implements GistContainer, GistController {
     _rightConsole = Console(DElement(_rightConsoleContentElement));
     unreadConsoleCounter =
         Counter(querySelector('#unread-console-counter') as SpanElement);
+  }
+
+  void _checkLocalStorage() {
+    if(localStorage == null) {
+      dialog.showOk(
+          'Missing browser features',
+          'DartPad requires localStorage to be enabled. '
+              'For more information, visit '
+              '<a href="https://dart.dev/tools/dartpad/troubleshoot">'
+              'dart.dev/tools/dartpad/troubleshoot</a>');
+    }
   }
 
   Future<void> _initModules() async {

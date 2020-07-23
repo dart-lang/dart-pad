@@ -8,8 +8,8 @@ import 'dart:math' as math;
 
 import 'package:dart_pad/elements/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
-import 'package:split/split.dart';
 import 'package:mdc_web/mdc_web.dart';
+import 'package:split/split.dart';
 
 import 'completion.dart';
 import 'core/dependencies.dart';
@@ -17,7 +17,13 @@ import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'editing/editor.dart';
 import 'editing/editor_codemirror.dart';
+import 'elements/analysis_results_controller.dart';
+import 'elements/button.dart';
+import 'elements/console.dart';
+import 'elements/counter.dart';
+import 'elements/dialog.dart';
 import 'elements/elements.dart';
+import 'localstorage.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'services/common.dart';
@@ -25,11 +31,6 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'src/util.dart';
-import 'elements/analysis_results_controller.dart';
-import 'elements/button.dart';
-import 'elements/console.dart';
-import 'elements/counter.dart';
-import 'elements/dialog.dart';
 import 'util/keymap.dart';
 
 const int defaultSplitterWidth = 6;
@@ -156,6 +157,16 @@ class Embed {
   Embed(this.options) {
     _initHostListener();
     dialog = Dialog();
+
+    if(localStorage == null) {
+      dialog.showOk(
+          'Missing browser features',
+          'DartPad requires localStorage to be enabled. '
+          'For more information, visit '
+              '<a href="https://dart.dev/tools/dartpad/troubleshoot">'
+              'dart.dev/tools/dartpad/troubleshoot</a>');
+    }
+
     tabController =
         EmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')), dialog);
 
