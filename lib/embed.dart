@@ -23,7 +23,7 @@ import 'elements/console.dart';
 import 'elements/counter.dart';
 import 'elements/dialog.dart';
 import 'elements/elements.dart';
-import 'localstorage.dart';
+import 'check_localstorage.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'services/common.dart';
@@ -158,7 +158,7 @@ class Embed {
     _initHostListener();
     dialog = Dialog();
 
-    if(localStorage == null) {
+    if(!checkLocalStorage()) {
       dialog.showOk(
           'Missing browser features',
           'DartPad requires localStorage to be enabled. '

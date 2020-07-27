@@ -30,7 +30,7 @@ import 'elements/counter.dart';
 import 'elements/dialog.dart';
 import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
-import 'localstorage.dart';
+import 'check_localstorage.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -428,7 +428,7 @@ class Playground implements GistContainer, GistController {
   }
 
   void _checkLocalStorage() {
-    if(localStorage == null) {
+    if(!checkLocalStorage()) {
       dialog.showOk(
           'Missing browser features',
           'DartPad requires localStorage to be enabled. '
