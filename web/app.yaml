@@ -1,5 +1,5 @@
 runtime: python37
-default_expiration: "0d 3h"
+default_expiration: "0d 0h 10m"
 
 handlers:
   - url: /pictures
