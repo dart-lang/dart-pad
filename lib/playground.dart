@@ -99,6 +99,7 @@ class Playground implements GistContainer, GistController {
   MaterialTabController webLayoutTabController;
   DElement webTabBar;
   DElement webOutputLabel;
+  MDCSwitch nullSafetySwitch;
 
   Splitter splitter;
   Splitter rightSplitter;
@@ -248,6 +249,10 @@ class Playground implements GistContainer, GistController {
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => _showKeyboardDialog());
+    nullSafetySwitch = MDCSwitch(querySelector('#null-safety-switch'))
+      ..listen('change', (event) {
+        _handleNullSafetySwitched(nullSafetySwitch.checked);
+      });
   }
 
   void _initLabels() {
@@ -972,6 +977,16 @@ class Playground implements GistContainer, GistController {
       editorPanelHeader.setAttr('hidden');
       webOutputLabel.clearAttr('hidden');
     }
+  }
+
+  void _handleNullSafetySwitched(bool enabled) {
+    var api = deps[DartservicesApi] as DartservicesApi;
+    if (enabled) {
+      api.rootUrl = nullSafetyServerUrl;
+    } else {
+      api.rootUrl = serverUrl;
+    }
+    _performAnalysis();
   }
 
   // GistContainer interface

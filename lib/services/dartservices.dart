@@ -12,7 +12,7 @@ class DartservicesApi {
   DartservicesApi(this._client, {@required this.rootUrl});
 
   final BrowserClient _client;
-  final String rootUrl;
+  String rootUrl;
 
   Future<AnalysisResults> analyze(SourceRequest request) => _request(
         'analyze',
