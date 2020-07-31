@@ -249,10 +249,14 @@ class Playground implements GistContainer, GistController {
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => _showKeyboardDialog());
+    var nullSafetyEnabled = window.localStorage.containsKey('null_safety') &&
+        window.localStorage['null_safety'] == 'true';
     nullSafetySwitch = MDCSwitch(querySelector('#null-safety-switch'))
+      ..checked = nullSafetyEnabled
       ..listen('change', (event) {
         _handleNullSafetySwitched(nullSafetySwitch.checked);
       });
+    _handleNullSafetySwitched(nullSafetyEnabled);
   }
 
   void _initLabels() {
@@ -983,8 +987,10 @@ class Playground implements GistContainer, GistController {
     var api = deps[DartservicesApi] as DartservicesApi;
     if (enabled) {
       api.rootUrl = nullSafetyServerUrl;
+      window.localStorage['null_safety'] = 'true';
     } else {
       api.rootUrl = serverUrl;
+      window.localStorage['null_safety'] = 'false';
     }
     _performAnalysis();
   }
