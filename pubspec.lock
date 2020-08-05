@@ -28,14 +28,14 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.39.14"
+    version: "0.39.16"
   appengine:
     dependency: "direct main"
     description:
       name: appengine
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.11.0"
+    version: "0.12.0"
   args:
     dependency: "direct main"
     description:
@@ -98,14 +98,14 @@ packages:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.10.1"
+    version: "1.10.0"
   build_runner_core:
     dependency: transitive
     description:
       name: build_runner_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.0.1"
+    version: "5.2.0"
   built_collection:
     dependency: transitive
     description:
@@ -175,7 +175,7 @@ packages:
       name: coverage
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.13.11"
+    version: "0.14.0"
   crypto:
     dependency: "direct main"
     description:
@@ -616,7 +616,7 @@ packages:
       name: vm_service
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.1.0"
+    version: "4.2.0"
   watcher:
     dependency: transitive
     description:
@@ -646,4 +646,4 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.8.4 <3.0.0"
+  dart: ">=2.9.0 <3.0.0"

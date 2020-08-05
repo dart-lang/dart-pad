@@ -3,12 +3,12 @@ publish_to: none
 
 environment:
   # Keep SDK aligned with .travis.yml and FROM line of Dockerfile
-  sdk: ^2.8.4
+  sdk: ^2.9.0
 
 dependencies:
-  analyzer: ^0.39.0
+  analyzer: ^0.39.15
   analysis_server_lib: ^0.1.4
-  appengine: ^0.11.0
+  appengine: ^0.12.0
   args: ^1.5.2
   bazel_worker: ^0.1.23
   crypto: ^2.0.0
@@ -28,7 +28,7 @@ dev_dependencies:
   async: ^2.2.0
   build_runner: ^1.10.0
   codemirror: ^0.5.6
-  coverage: ^0.13.0
+  coverage: ^0.14.0
   grinder: ^0.8.0
   mock_request: ^1.0.7
   pedantic: ^1.9.0

@@ -3,8 +3,9 @@ install:
   - gem install coveralls-lcov
 dart:
   # Keep this value aligned with min SDK value in pubspec.yaml and FROM line of Dockerfile
-  - "2.8.4"
-  - beta
+  - "2.9.0"
+  # Temporarily eliding beta, because it is currently trailing stable
+  #- beta
 
 # Use Ubuntu 18.04 (Bionic Beaver) 
 # https://docs.travis-ci.com/user/reference/overview/#virtualization-environments
@@ -12,7 +13,7 @@ dist: bionic
 os: linux
 
 branches:
-  only: [master, dart-29]
+  only: [master]
 before_script:
   - git submodule init
   - git submodule update
