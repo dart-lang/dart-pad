@@ -251,6 +251,12 @@ class Playground implements GistContainer, GistController {
         .listen((_) => _showKeyboardDialog());
     var nullSafetyEnabled = window.localStorage.containsKey('null_safety') &&
         window.localStorage['null_safety'] == 'true';
+
+    // Override if a query parameter is provided
+    if (_hasNullSafetyQueryParam) {
+      nullSafetyEnabled = _nullSafetyQueryParam;
+    }
+
     nullSafetySwitch = MDCSwitch(querySelector('#null-safety-switch'))
       ..checked = nullSafetyEnabled
       ..listen('change', (event) {
@@ -993,6 +999,23 @@ class Playground implements GistContainer, GistController {
       window.localStorage['null_safety'] = 'false';
     }
     _performAnalysis();
+  }
+
+  bool get _nullSafetyQueryParam {
+    var url = Uri.parse(window.location.toString());
+
+    if (url.hasQuery &&
+        url.queryParameters['null_safety'] != null &&
+        url.queryParameters['null_safety'] == 'true') {
+      return true;
+    }
+
+    return false;
+  }
+
+  bool get _hasNullSafetyQueryParam {
+    var url = Uri.parse(window.location.toString());
+    return url.hasQuery && url.queryParameters['null_safety'] != null;
   }
 
   // GistContainer interface
