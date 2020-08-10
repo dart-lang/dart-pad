@@ -32,6 +32,7 @@ import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'src/util.dart';
 import 'util/keymap.dart';
+import 'util/query_params.dart';
 
 const int defaultSplitterWidth = 6;
 
@@ -123,6 +124,7 @@ class Embed {
 
   Console consoleExpandController;
   DElement webOutputLabel;
+  DElement featureMessage;
 
   MDCLinearProgress linearProgress;
   Dialog dialog;
@@ -419,6 +421,11 @@ class Embed {
     var webOutputLabelElement = querySelector('#web-output-label');
     if (webOutputLabelElement != null) {
       webOutputLabel = DElement(webOutputLabelElement);
+    }
+
+    featureMessage = DElement(querySelector('#feature-message'));
+    if (QueryParams.hasNullSafety && QueryParams.nullSafety) {
+      featureMessage.text = 'Null Safety Enabled';
     }
 
     linearProgress = MDCLinearProgress(querySelector('#progress-bar'));

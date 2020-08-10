@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:html' hide Console;
 
 import 'package:dart_pad/editing/editor_codemirror.dart';
+import 'package:dart_pad/util/query_params.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -253,8 +254,8 @@ class Playground implements GistContainer, GistController {
         window.localStorage['null_safety'] == 'true';
 
     // Override if a query parameter is provided
-    if (_hasNullSafetyQueryParam) {
-      nullSafetyEnabled = _nullSafetyQueryParam;
+    if (QueryParams.hasNullSafety) {
+      nullSafetyEnabled = QueryParams.nullSafety;
     }
 
     nullSafetySwitch = MDCSwitch(querySelector('#null-safety-switch'))
@@ -999,23 +1000,6 @@ class Playground implements GistContainer, GistController {
       window.localStorage['null_safety'] = 'false';
     }
     _performAnalysis();
-  }
-
-  bool get _nullSafetyQueryParam {
-    var url = Uri.parse(window.location.toString());
-
-    if (url.hasQuery &&
-        url.queryParameters['null_safety'] != null &&
-        url.queryParameters['null_safety'] == 'true') {
-      return true;
-    }
-
-    return false;
-  }
-
-  bool get _hasNullSafetyQueryParam {
-    var url = Uri.parse(window.location.toString());
-    return url.hasQuery && url.queryParameters['null_safety'] != null;
   }
 
   // GistContainer interface
