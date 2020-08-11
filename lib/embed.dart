@@ -158,13 +158,13 @@ class Embed {
     _initHostListener();
     dialog = Dialog();
 
-    if(!checkLocalStorage()) {
+    if (!checkLocalStorage()) {
       dialog.showOk(
           'Missing browser features',
           'DartPad requires localStorage to be enabled. '
-          'For more information, visit '
-              '<a href="https://dart.dev/tools/dartpad/troubleshoot">'
-              'dart.dev/tools/dartpad/troubleshoot</a>');
+              'For more information, visit '
+              '<a href="https://dart.dev/tools/dartpad/troubleshoot" '
+              'target="_parent">dart.dev/tools/dartpad/troubleshoot</a>.');
     }
 
     tabController =
@@ -934,7 +934,6 @@ class Embed {
   }
 
   void _showInstallPage() {
-
     if (_modeName == 'dart' || _modeName == 'html') {
       ga?.sendEvent('main', 'install-dart');
       _hostWindow.location.href = 'https://dart.dev/get-dart';

@@ -139,7 +139,7 @@ class Playground implements GistContainer, GistController {
       _initTabs();
       _initLayout();
       _initConsoles();
-      _gistStorage  = GistStorage();
+      _gistStorage = GistStorage();
     });
   }
 
@@ -428,13 +428,13 @@ class Playground implements GistContainer, GistController {
   }
 
   void _checkLocalStorage() {
-    if(!checkLocalStorage()) {
+    if (!checkLocalStorage()) {
       dialog.showOk(
           'Missing browser features',
           'DartPad requires localStorage to be enabled. '
               'For more information, visit '
               '<a href="https://dart.dev/tools/dartpad/troubleshoot">'
-              'dart.dev/tools/dartpad/troubleshoot</a>');
+              'dart.dev/tools/dartpad/troubleshoot</a>.');
     }
   }
 
@@ -560,7 +560,8 @@ class Playground implements GistContainer, GistController {
 
     dartServices.version().then((VersionResponse version) {
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
-      var versionText = 'Based on Flutter ${version.flutterVersion} Dart SDK ${version.sdkVersionFull}';
+      var versionText =
+          'Based on Flutter ${version.flutterVersion} Dart SDK ${version.sdkVersionFull}';
       querySelector('#dartpad-version').text = versionText;
     }).catchError((e) => null);
 
@@ -1018,7 +1019,6 @@ class Playground implements GistContainer, GistController {
   }
 
   void _showInstallPage() {
-
     if (_layout == Layout.dart) {
       ga?.sendEvent('main', 'install-dart');
       window.location.href = 'https://dart.dev/get-dart';
