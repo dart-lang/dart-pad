@@ -48,11 +48,20 @@
   }
 }
 
-#issues-message {
+.info-message {
   font-family: $editor-font;
   font-size: $embed-editor-font-size;
   cursor: default;
   margin-right: 12px;
+}
+
+// Feature messages have a blue border
+#feature-message {
+  user-select: none;
+  color: var(--mdc-theme-primary, #168AFD);
+  padding: 2px 4px 2px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--mdc-theme-primary, #168AFD);
 }
 
 #issues-toggle {

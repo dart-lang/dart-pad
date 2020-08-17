@@ -424,8 +424,10 @@ class Embed {
     }
 
     featureMessage = DElement(querySelector('#feature-message'));
+    featureMessage.toggleAttr('hidden', true);
     if (QueryParams.hasNullSafety && QueryParams.nullSafety) {
-      featureMessage.text = 'Null Safety Enabled';
+      featureMessage.text = 'Null safety';
+      featureMessage.toggleAttr('hidden', false);
     }
 
     linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
