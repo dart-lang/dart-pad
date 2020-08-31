@@ -609,7 +609,7 @@ packages:
       name: uuid
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.0"
+    version: "2.2.2"
   vm_service:
     dependency: transitive
     description:
