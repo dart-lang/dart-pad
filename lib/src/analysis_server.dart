@@ -131,10 +131,6 @@ class AnalysisServerWrapper {
     suggestions = suggestions
         .where(
             (s) => s.completion.toLowerCase().startsWith(prefix.toLowerCase()))
-        // This hack filters out of scope completions. It needs removing when we
-        // have categories of completions.
-        // TODO(devoncarew): Remove this filter code.
-        .where((CompletionSuggestion c) => c.relevance > 500)
         .toList();
 
     suggestions.sort((CompletionSuggestion x, CompletionSuggestion y) {

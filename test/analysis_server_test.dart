@@ -5,9 +5,9 @@
 library services.analyzer_server_test;
 
 import 'package:dart_services/src/analysis_server.dart';
-import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/flutter_web.dart';
+import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:test/test.dart';
 
@@ -73,14 +73,13 @@ void defineTests() {
 
     tearDown(() => analysisServer.shutdown());
 
-    test('simple_completion', () {
+    test('simple_completion', () async {
       // Just after i.
-      return analysisServer.complete(completionCode, 32).then((results) {
-        expect(results.replacementLength, 0);
-        expect(results.replacementOffset, 32);
-        expect(completionsContains(results, 'abs'), true);
-        expect(completionsContains(results, 'codeUnitAt'), false);
-      });
+      final results = await analysisServer.complete(completionCode, 32);
+      expect(results.replacementLength, 0);
+      expect(results.replacementOffset, 32);
+      expectCompletionsContains(results, 'abs');
+      expect(completionsContains(results, 'codeUnitAt'), false);
     });
 
     test('repro #126 - completions polluted on second request', () {
@@ -97,14 +96,19 @@ void defineTests() {
       });
     });
 
-    test('import_test', () {
+    test('import_test', () async {
+      // We're testing here that we don't have any path imports - we don't want
+      // to enable browsing the file system.
       final testCode = "import '/'; main() { int a = 0; a. }";
 
-      return analysisServer.complete(testCode, 9).then((results) {
-        expect(results.completions.every((completion) {
+      final results = await analysisServer.complete(testCode, 9);
+      final completions = results.completions;
+
+      if (completions.isNotEmpty) {
+        expect(completions.every((completion) {
           return completion.completion['completion'].startsWith('dart:');
         }), true);
-      });
+      }
     });
 
     test('import_and_other_test', () {
@@ -211,3 +215,10 @@ void defineTests() {
 bool completionsContains(proto.CompleteResponse response, String expected) =>
     response.completions
         .any((completion) => completion.completion['completion'] == expected);
+
+void expectCompletionsContains(
+    proto.CompleteResponse response, String expected) {
+  final completions =
+      response.completions.map((c) => c.completion['completion']).toList();
+  expect(completions, contains(expected));
+}
