@@ -6,7 +6,6 @@ library services.common_server_impl;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
@@ -41,24 +40,15 @@ class CommonServerImpl {
 
   FlutterWebManager flutterWebManager;
   Compiler compiler;
-  AnalysisServerWrapper dartAnalysisServer;
-  AnalysisServerWrapper flutterAnalysisServer;
+  AnalysisServersWrapper analysisServers;
 
-  bool get analysisServersRunning =>
-      dartAnalysisServer.analysisServer != null &&
-      flutterAnalysisServer.analysisServer != null;
+  bool get analysisServersRunning => analysisServers.running;
 
-  // If non-null, this value indicates that the server is starting/restarting
-  // and holds the time at which that process began. If null, the server is
-  // ready to handle requests.
-  DateTime _restartingSince = DateTime.now();
-
-  bool get isRestarting => (_restartingSince != null);
+  bool get isRestarting => analysisServers.isRestarting;
 
   // If the server has been trying and failing to restart for more than a half
   // hour, something is seriously wrong.
-  bool get isHealthy => (_restartingSince == null ||
-      DateTime.now().difference(_restartingSince).inMinutes < 30);
+  bool get isHealthy => analysisServers.isHealthy;
 
   CommonServerImpl(
     this.container,
@@ -71,38 +61,17 @@ class CommonServerImpl {
   Future<void> init() async {
     log.info('Beginning CommonServer init().');
     flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-    dartAnalysisServer = DartAnalysisServerWrapper();
-    flutterAnalysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
+    analysisServers = AnalysisServersWrapper(flutterWebManager);
 
     compiler =
         Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
 
-    await dartAnalysisServer.init();
-    log.info('Dart analysis server initialized.');
-
-    await flutterAnalysisServer.init();
-    log.info('Flutter analysis server initialized.');
-
-    unawaited(dartAnalysisServer.onExit.then((int code) {
-      log.severe('dartAnalysisServer exited, code: $code');
-      if (code != 0) {
-        exit(code);
-      }
-    }));
-
-    unawaited(flutterAnalysisServer.onExit.then((int code) {
-      log.severe('flutterAnalysisServer exited, code: $code');
-      if (code != 0) {
-        exit(code);
-      }
-    }));
-
-    _restartingSince = null;
+    await analysisServers.init();
+    log.info('Analysis servers initialized.');
 
     await flutterWebManager.warmup();
     await compiler.warmup();
-    await dartAnalysisServer.warmup();
-    await flutterAnalysisServer.warmup();
+    await analysisServers.warmup();
   }
 
   Future<void> restart() async {
@@ -115,11 +84,8 @@ class CommonServerImpl {
   }
 
   Future<dynamic> shutdown() {
-    _restartingSince = DateTime.now();
-
     return Future.wait(<Future<dynamic>>[
-      dartAnalysisServer.shutdown(),
-      flutterAnalysisServer.shutdown(),
+      analysisServers.shutdown(),
       compiler.dispose(),
       flutterWebManager.dispose(),
       Future<dynamic>.sync(cache.shutdown)
@@ -212,7 +178,7 @@ class CommonServerImpl {
     try {
       final watch = Stopwatch()..start();
 
-      final results = await getCorrectAnalysisServer(source).analyze(source);
+      final results = await analysisServers.analyze(source);
       final lineCount = source.split('\n').length;
       final ms = watch.elapsedMilliseconds;
       log.info('PERF: Analyzed $lineCount lines of Dart in ${ms}ms.');
@@ -341,8 +307,7 @@ class CommonServerImpl {
 
     final watch = Stopwatch()..start();
     try {
-      var docInfo =
-          await getCorrectAnalysisServer(source).dartdoc(source, offset);
+      var docInfo = await analysisServers.dartdoc(source, offset);
       docInfo ??= <String, String>{};
       log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
       return proto.DocumentResponse()..info.addAll(docInfo);
@@ -368,8 +333,7 @@ class CommonServerImpl {
 
     final watch = Stopwatch()..start();
     try {
-      final response =
-          await getCorrectAnalysisServer(source).complete(source, offset);
+      final response = await analysisServers.complete(source, offset);
       log.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
       return response;
     } catch (e, st) {
@@ -384,8 +348,7 @@ class CommonServerImpl {
       await _checkPackageReferencesInitFlutterWeb(source);
 
       final watch = Stopwatch()..start();
-      final response =
-          await getCorrectAnalysisServer(source).getFixes(source, offset);
+      final response = await analysisServers.getFixes(source, offset);
       log.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
       return response;
     } catch (e, st) {
@@ -400,8 +363,7 @@ class CommonServerImpl {
       await _checkPackageReferencesInitFlutterWeb(source);
 
       final watch = Stopwatch()..start();
-      final response =
-          await getCorrectAnalysisServer(source).getAssists(source, offset);
+      final response = await analysisServers.getAssists(source, offset);
       log.info('PERF: Computed assists in ${watch.elapsedMilliseconds}ms.');
       return response;
     } catch (e, st) {
@@ -415,8 +377,7 @@ class CommonServerImpl {
     try {
       final watch = Stopwatch()..start();
 
-      final response =
-          await getCorrectAnalysisServer(source).format(source, offset);
+      final response = await analysisServers.format(source, offset);
       log.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
       return response;
     } catch (e, st) {
@@ -451,13 +412,6 @@ class CommonServerImpl {
         return;
       }
     }
-  }
-
-  AnalysisServerWrapper getCorrectAnalysisServer(String source) {
-    final imports = getAllImportsFor(source);
-    return flutterWebManager.usesFlutterWeb(imports)
-        ? flutterAnalysisServer
-        : dartAnalysisServer;
   }
 }
 

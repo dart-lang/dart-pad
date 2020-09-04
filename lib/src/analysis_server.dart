@@ -12,6 +12,7 @@ import 'dart:io';
 import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
+import 'package:pedantic/pedantic.dart';
 
 import 'common.dart';
 import 'flutter_web.dart';
@@ -41,6 +42,97 @@ class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
 
   @override
   String get _sourceDirPath => flutterWebManager.projectDirectory.path;
+}
+
+class AnalysisServersWrapper {
+  AnalysisServersWrapper(this._flutterWebManager);
+
+  final FlutterWebManager _flutterWebManager;
+  DartAnalysisServerWrapper _dartAnalysisServer;
+  FlutterAnalysisServerWrapper _flutterAnalysisServer;
+
+  bool get running =>
+      _dartAnalysisServer.analysisServer != null &&
+      _flutterAnalysisServer.analysisServer != null;
+
+  // If non-null, this value indicates that the server is starting/restarting
+  // and holds the time at which that process began. If null, the server is
+  // ready to handle requests.
+  DateTime _restartingSince = DateTime.now();
+
+  bool get isRestarting => (_restartingSince != null);
+
+  // If the server has been trying and failing to restart for more than a half
+  // hour, something is seriously wrong.
+  bool get isHealthy => (_restartingSince == null ||
+      DateTime.now().difference(_restartingSince).inMinutes < 30);
+
+  Future<void> init() async {
+    _logger.info('Beginning CommonServer init().');
+    _dartAnalysisServer = DartAnalysisServerWrapper();
+    _flutterAnalysisServer = FlutterAnalysisServerWrapper(_flutterWebManager);
+
+    await _dartAnalysisServer.init();
+    _logger.info('Dart analysis server initialized.');
+
+    await _flutterAnalysisServer.init();
+    _logger.info('Flutter analysis server initialized.');
+
+    unawaited(_dartAnalysisServer.onExit.then((int code) {
+      _logger.severe('dartAnalysisServer exited, code: $code');
+      if (code != 0) {
+        exit(code);
+      }
+    }));
+
+    unawaited(_flutterAnalysisServer.onExit.then((int code) {
+      _logger.severe('flutterAnalysisServer exited, code: $code');
+      if (code != 0) {
+        exit(code);
+      }
+    }));
+
+    _restartingSince = null;
+  }
+
+  Future warmup() => Future.wait(<Future<dynamic>>[
+        _flutterWebManager.warmup(),
+        _dartAnalysisServer.warmup(),
+      ]);
+
+  Future<dynamic> shutdown() {
+    _restartingSince = DateTime.now();
+
+    return Future.wait(<Future<dynamic>>[
+      _dartAnalysisServer.shutdown(),
+      _flutterAnalysisServer.shutdown(),
+    ]);
+  }
+
+  AnalysisServerWrapper _getCorrectAnalysisServer(String source) {
+    final imports = getAllImportsFor(source);
+    return _flutterWebManager.usesFlutterWeb(imports)
+        ? _flutterAnalysisServer
+        : _dartAnalysisServer;
+  }
+
+  Future<proto.AnalysisResults> analyze(String source) =>
+      _getCorrectAnalysisServer(source).analyze(source);
+
+  Future<proto.CompleteResponse> complete(String source, int offset) =>
+      _getCorrectAnalysisServer(source).complete(source, offset);
+
+  Future<proto.FixesResponse> getFixes(String source, int offset) =>
+      _getCorrectAnalysisServer(source).getFixes(source, offset);
+
+  Future<proto.AssistsResponse> getAssists(String source, int offset) =>
+      _getCorrectAnalysisServer(source).getAssists(source, offset);
+
+  Future<proto.FormatResponse> format(String source, int offset) =>
+      _getCorrectAnalysisServer(source).format(source, offset);
+
+  Future<Map<String, String>> dartdoc(String source, int offset) =>
+      _getCorrectAnalysisServer(source).dartdoc(source, offset);
 }
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
