@@ -15,7 +15,7 @@ import 'package:dart_services/src/server_cache.dart';
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:test/test.dart';
 
-const counter = r'''
+const counterApp = r'''
 // Copyright (c) 2019, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -86,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 ''';
 
-const draggableAndPhysics = '''
+const draggableAndPhysicsApp = '''
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
 
@@ -222,12 +222,12 @@ void defineTests() {
     });
 
     test('analyze counter app', () async {
-      final results = await analysisServer.analyze(counter);
+      final results = await analysisServer.analyze(counterApp);
       expect(results.issues, isEmpty);
     });
 
     test('analyze Draggable Physics sample', () async {
-      final results = await analysisServer.analyze(draggableAndPhysics);
+      final results = await analysisServer.analyze(draggableAndPhysicsApp);
       expect(results.issues, isEmpty);
     });
   });
@@ -258,12 +258,12 @@ void defineTests() {
     });
 
     test('analyze counter app', () async {
-      final results = await analysisServer.analyze(counter);
+      final results = await analysisServer.analyze(counterApp);
       expect(results.issues, isEmpty);
     });
 
     test('analyze Draggable Physics sample', () async {
-      final results = await analysisServer.analyze(draggableAndPhysics);
+      final results = await analysisServer.analyze(draggableAndPhysicsApp);
       expect(results.issues, isEmpty);
     });
   });
@@ -294,12 +294,13 @@ void defineTests() {
     });
 
     test('analyze counter app', () async {
-      final results = await flutterAnalysisServer.analyze(counter);
+      final results = await flutterAnalysisServer.analyze(counterApp);
       expect(results.issues, isEmpty);
     });
 
     test('analyze Draggable Physics sample', () async {
-      final results = await flutterAnalysisServer.analyze(draggableAndPhysics);
+      final results =
+          await flutterAnalysisServer.analyze(draggableAndPhysicsApp);
       expect(results.issues, isEmpty);
     });
   });
@@ -324,13 +325,13 @@ void defineTests() {
 
     test('counter app', () async {
       final results =
-          await commonServerImpl.analyze(SourceRequest()..source = counter);
+          await commonServerImpl.analyze(SourceRequest()..source = counterApp);
       expect(results.issues, isEmpty);
     });
 
     test('Draggable Physics sample', () async {
       final results = await commonServerImpl
-          .analyze(SourceRequest()..source = draggableAndPhysics);
+          .analyze(SourceRequest()..source = draggableAndPhysicsApp);
       expect(results.issues, isEmpty);
     });
   });
