@@ -12,10 +12,8 @@ import 'package:appengine/appengine.dart' as ae;
 import 'package:logging/logging.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 
-import 'src/common.dart';
 import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
-import 'src/flutter_web.dart';
 import 'src/sdk_manager.dart';
 import 'src/server_cache.dart';
 
@@ -33,9 +31,7 @@ void main(List<String> args) {
   var gaePort = 8080;
   if (args.isNotEmpty) gaePort = int.parse(args[0]);
 
-  final sdk = sdkPath;
-
-  if (sdk == null) {
+  if (SdkManager.sdk.sdkPath == null) {
     throw 'No Dart SDK is available; set the DART_SDK env var.';
   }
 
@@ -51,34 +47,30 @@ void main(List<String> args) {
   });
   log.info('''Initializing dart-services:
     port: $gaePort
-    sdkPath: $sdkPath
+    sdkPath: ${SdkManager.sdk?.sdkPath}
     REDIS_SERVER_URI: ${io.Platform.environment['REDIS_SERVER_URI']}
     GAE_VERSION: ${io.Platform.environment['GAE_VERSION']}
   ''');
 
-  final server = GaeServer(sdk, io.Platform.environment['REDIS_SERVER_URI']);
+  final server = GaeServer(io.Platform.environment['REDIS_SERVER_URI']);
   server.start(gaePort);
 }
 
 class GaeServer {
-  final String sdkPath;
   final String redisServerUri;
 
   bool discoveryEnabled;
   CommonServerImpl commonServerImpl;
   CommonServerApi commonServerApi;
 
-  GaeServer(this.sdkPath, this.redisServerUri) {
+  GaeServer(this.redisServerUri) {
     hierarchicalLoggingEnabled = true;
     recordStackTraceAtLevel = Level.SEVERE;
 
     _logger.level = Level.ALL;
 
     discoveryEnabled = false;
-    final flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     commonServerImpl = CommonServerImpl(
-      sdkPath,
-      flutterWebManager,
       GaeServerContainer(),
       redisServerUri == null
           ? InMemoryCache()

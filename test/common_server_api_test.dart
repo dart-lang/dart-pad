@@ -10,8 +10,6 @@ import 'dart:convert';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server_impl.dart';
 import 'package:dart_services/src/common_server_api.dart';
-import 'package:dart_services/src/flutter_web.dart';
-import 'package:dart_services/src/sdk_manager.dart';
 import 'package:dart_services/src/server_cache.dart';
 import 'package:logging/logging.dart';
 import 'package:mock_request/mock_request.dart';
@@ -58,7 +56,6 @@ void main() => defineTests();
 void defineTests() {
   CommonServerApi commonServerApi;
   CommonServerImpl commonServerImpl;
-  FlutterWebManager flutterWebManager;
 
   MockContainer container;
   MockCache cache;
@@ -93,9 +90,7 @@ void defineTests() {
     setUpAll(() async {
       container = MockContainer();
       cache = MockCache();
-      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-      commonServerImpl =
-          CommonServerImpl(sdkPath, flutterWebManager, container, cache);
+      commonServerImpl = CommonServerImpl(container, cache);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 

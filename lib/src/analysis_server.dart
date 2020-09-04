@@ -18,6 +18,7 @@ import 'flutter_web.dart';
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'scheduler.dart';
+import 'sdk_manager.dart';
 
 final Logger _logger = Logger('analysis_server');
 
@@ -32,25 +33,48 @@ const String _WARMUP_SRC = 'main() { int b = 2;  b++;   b. }';
 // Use very long timeouts to ensure that the server has enough time to restart.
 const Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
 
-class AnalysisServerWrapper {
-  final String sdkPath;
+class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
   final FlutterWebManager flutterWebManager;
 
+  FlutterAnalysisServerWrapper(this.flutterWebManager)
+      : super(SdkManager.flutterSdk.sdkPath);
+
+  @override
+  String get _sourceDirPath => flutterWebManager.projectDirectory.path;
+}
+
+class DartAnalysisServerWrapper extends AnalysisServerWrapper {
+  Directory _tempProject;
+  DartAnalysisServerWrapper() : super(SdkManager.sdk.sdkPath);
+
+  @override
+  Future<AnalysisServer> init() async {
+    _tempProject = await Directory.systemTemp.createTemp('DartAnalysisWrapper');
+    return super.init();
+  }
+
+  @override
+  String get _sourceDirPath => _tempProject.path;
+
+  @override
+  Future shutdown() =>
+      _tempProject.delete(recursive: true).then((value) => super.shutdown());
+}
+
+abstract class AnalysisServerWrapper {
+  final String sdkPath;
+  final TaskScheduler serverScheduler = TaskScheduler();
+
   Future<AnalysisServer> _init;
-  String mainPath;
-  TaskScheduler serverScheduler;
 
   /// Instance to handle communication with the server.
   AnalysisServer analysisServer;
 
-  AnalysisServerWrapper(this.sdkPath, this.flutterWebManager) {
-    _logger.info('AnalysisServerWrapper ctor');
-    mainPath = _getPathFromName(kMainDart);
+  AnalysisServerWrapper(this.sdkPath);
 
-    serverScheduler = TaskScheduler();
-  }
+  String get mainPath => _getPathFromName(kMainDart);
 
-  String get _sourceDirPath => flutterWebManager.projectDirectory.path;
+  String get _sourceDirPath;
 
   Future<AnalysisServer> init() {
     if (_init == null) {
@@ -243,8 +267,7 @@ class AnalysisServerWrapper {
   Future<proto.AnalysisResults> analyze(String source) {
     var sources = <String, String>{kMainDart: source};
 
-    _logger
-        .fine('analyzeMulti: Scheduler queue: ${serverScheduler.queueCount}');
+    _logger.fine('analyze: Scheduler queue: ${serverScheduler.queueCount}');
 
     return serverScheduler
         .schedule(ClosureTask<proto.AnalysisResults>(() async {

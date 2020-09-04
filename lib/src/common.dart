@@ -6,8 +6,6 @@ library services.common;
 
 import 'dart:io';
 
-import 'sdk_manager.dart';
-
 const kMainDart = 'main.dart';
 const kBootstrapDart = 'bootstrap.dart';
 
@@ -166,5 +164,3 @@ String stripMatchingQuotes(String str) {
   }
   return str;
 }
-
-String get sdkPath => SdkManager.sdk.sdkPath;

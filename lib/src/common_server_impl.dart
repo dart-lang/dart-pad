@@ -36,17 +36,16 @@ abstract class ServerContainer {
 }
 
 class CommonServerImpl {
-  final String sdkPath;
-  final FlutterWebManager flutterWebManager;
   final ServerContainer container;
   final ServerCache cache;
 
+  FlutterWebManager flutterWebManager;
   Compiler compiler;
-  AnalysisServerWrapper analysisServer;
+  AnalysisServerWrapper dartAnalysisServer;
   AnalysisServerWrapper flutterAnalysisServer;
 
   bool get analysisServersRunning =>
-      analysisServer.analysisServer != null &&
+      dartAnalysisServer.analysisServer != null &&
       flutterAnalysisServer.analysisServer != null;
 
   // If non-null, this value indicates that the server is starting/restarting
@@ -62,8 +61,6 @@ class CommonServerImpl {
       DateTime.now().difference(_restartingSince).inMinutes < 30);
 
   CommonServerImpl(
-    this.sdkPath,
-    this.flutterWebManager,
     this.container,
     this.cache,
   ) {
@@ -73,21 +70,21 @@ class CommonServerImpl {
 
   Future<void> init() async {
     log.info('Beginning CommonServer init().');
-    analysisServer = AnalysisServerWrapper(sdkPath, flutterWebManager);
-    flutterAnalysisServer = AnalysisServerWrapper(
-        flutterWebManager.flutterSdk.sdkPath, flutterWebManager);
+    flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+    dartAnalysisServer = DartAnalysisServerWrapper();
+    flutterAnalysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
 
     compiler =
         Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
 
-    await analysisServer.init();
+    await dartAnalysisServer.init();
     log.info('Dart analysis server initialized.');
 
     await flutterAnalysisServer.init();
     log.info('Flutter analysis server initialized.');
 
-    unawaited(analysisServer.onExit.then((int code) {
-      log.severe('analysisServer exited, code: $code');
+    unawaited(dartAnalysisServer.onExit.then((int code) {
+      log.severe('dartAnalysisServer exited, code: $code');
       if (code != 0) {
         exit(code);
       }
@@ -104,7 +101,7 @@ class CommonServerImpl {
 
     await flutterWebManager.warmup();
     await compiler.warmup();
-    await analysisServer.warmup();
+    await dartAnalysisServer.warmup();
     await flutterAnalysisServer.warmup();
   }
 
@@ -121,9 +118,10 @@ class CommonServerImpl {
     _restartingSince = DateTime.now();
 
     return Future.wait(<Future<dynamic>>[
-      analysisServer.shutdown(),
+      dartAnalysisServer.shutdown(),
       flutterAnalysisServer.shutdown(),
       compiler.dispose(),
+      flutterWebManager.dispose(),
       Future<dynamic>.sync(cache.shutdown)
     ]).timeout(const Duration(minutes: 1));
   }
@@ -459,7 +457,7 @@ class CommonServerImpl {
     final imports = getAllImportsFor(source);
     return flutterWebManager.usesFlutterWeb(imports)
         ? flutterAnalysisServer
-        : analysisServer;
+        : dartAnalysisServer;
   }
 }
 

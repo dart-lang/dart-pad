@@ -24,9 +24,7 @@ class FlutterWebManager {
     _init();
   }
 
-  void dispose() {
-    _projectDirectory.deleteSync(recursive: true);
-  }
+  Future<void> dispose() => _projectDirectory.delete(recursive: true);
 
   Directory get projectDirectory => _projectDirectory;
 

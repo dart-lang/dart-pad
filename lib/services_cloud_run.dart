@@ -13,7 +13,6 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 
-import 'src/common.dart';
 import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
 import 'src/flutter_web.dart';
@@ -41,7 +40,6 @@ Future<void> main(List<String> args) async {
   }
 
   final redisServerUri = result['redis-url'] as String;
-  final sdk = sdkPath;
 
   Logger.root.level = Level.FINER;
   Logger.root.onRecord.listen((LogRecord record) {
@@ -56,19 +54,18 @@ Future<void> main(List<String> args) async {
 
   _logger.info('''Initializing dart-services:
     port: $port
-    sdkPath: $sdkPath
+    sdkPath: ${SdkManager.sdk.sdkPath}
     redisServerUri: $redisServerUri
     Cloud Run Environment variables:
     $cloudRunEnvVars''');
 
-  final server = await EndpointsServer.serve(sdk, port, redisServerUri);
+  final server = await EndpointsServer.serve(port, redisServerUri);
   _logger.info('Listening on port ${server.port}');
 }
 
 class EndpointsServer {
-  static Future<EndpointsServer> serve(
-      String sdkPath, int port, String redisServerUri) {
-    final endpointsServer = EndpointsServer._(sdkPath, port, redisServerUri);
+  static Future<EndpointsServer> serve(int port, String redisServerUri) {
+    final endpointsServer = EndpointsServer._(port, redisServerUri);
 
     return shelf
         .serve(endpointsServer.handler, InternetAddress.anyIPv4, port)
@@ -88,11 +85,8 @@ class EndpointsServer {
   CommonServerApi commonServerApi;
   FlutterWebManager flutterWebManager;
 
-  EndpointsServer._(String sdkPath, this.port, this.redisServerUri) {
-    flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+  EndpointsServer._(this.port, this.redisServerUri) {
     final commonServerImpl = CommonServerImpl(
-      sdkPath,
-      flutterWebManager,
       _ServerContainer(),
       redisServerUri == null
           ? InMemoryCache()

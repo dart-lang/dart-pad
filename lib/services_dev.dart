@@ -13,11 +13,9 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as shelf;
 
-import 'src/common.dart';
 import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
 import 'src/flutter_web.dart';
-import 'src/sdk_manager.dart';
 import 'src/server_cache.dart';
 import 'src/shelf_cors.dart' as shelf_cors;
 
@@ -36,22 +34,20 @@ void main(List<String> args) {
     exit(1);
   }
 
-  final sdk = sdkPath;
-
   Logger.root.level = Level.FINER;
   Logger.root.onRecord.listen((LogRecord record) {
     print(record);
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  EndpointsServer.serve(sdk, port).then((EndpointsServer server) {
+  EndpointsServer.serve(port).then((EndpointsServer server) {
     _logger.info('Listening on port ${server.port}');
   });
 }
 
 class EndpointsServer {
-  static Future<EndpointsServer> serve(String sdkPath, int port) {
-    final endpointsServer = EndpointsServer._(sdkPath, port);
+  static Future<EndpointsServer> serve(int port) {
+    final endpointsServer = EndpointsServer._(port);
 
     return shelf
         .serve(endpointsServer.handler, InternetAddress.anyIPv4, port)
@@ -70,11 +66,8 @@ class EndpointsServer {
   CommonServerApi commonServerApi;
   FlutterWebManager flutterWebManager;
 
-  EndpointsServer._(String sdkPath, this.port) {
-    flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+  EndpointsServer._(this.port) {
     final commonServerImpl = CommonServerImpl(
-      sdkPath,
-      flutterWebManager,
       _ServerContainer(),
       _Cache(),
     );

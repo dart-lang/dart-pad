@@ -211,8 +211,7 @@ void defineTests() {
       await SdkManager.flutterSdk.init();
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
       await flutterWebManager.warmup();
-      analysisServer = AnalysisServerWrapper(
-          SdkManager.flutterSdk.sdkPath, flutterWebManager);
+      analysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
       await analysisServer.init();
       await analysisServer.warmup();
     });
@@ -247,8 +246,7 @@ void defineTests() {
           Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
       await compiler.warmup();
 
-      analysisServer = AnalysisServerWrapper(
-          SdkManager.flutterSdk.sdkPath, flutterWebManager);
+      analysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
       await analysisServer.init();
       await analysisServer.warmup();
     });
@@ -280,13 +278,11 @@ void defineTests() {
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
       await flutterWebManager.warmup();
 
-      flutterAnalysisServer = AnalysisServerWrapper(
-          SdkManager.flutterSdk.sdkPath, flutterWebManager);
+      flutterAnalysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
       await flutterAnalysisServer.init();
       await flutterAnalysisServer.warmup();
 
-      dartAnalysisServer =
-          AnalysisServerWrapper(SdkManager.sdk.sdkPath, flutterWebManager);
+      dartAnalysisServer = DartAnalysisServerWrapper();
       await dartAnalysisServer.init();
       await dartAnalysisServer.warmup();
     });
@@ -310,7 +306,6 @@ void defineTests() {
 
   group('CommonServerImpl flutter analyze', () {
     CommonServerImpl commonServerImpl;
-    FlutterWebManager flutterWebManager;
 
     _MockContainer container;
     _MockCache cache;
@@ -319,24 +314,21 @@ void defineTests() {
       await SdkManager.flutterSdk.init();
       container = _MockContainer();
       cache = _MockCache();
-      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-      commonServerImpl =
-          CommonServerImpl(sdkPath, flutterWebManager, container, cache);
+      commonServerImpl = CommonServerImpl(container, cache);
       await commonServerImpl.init();
     });
 
     tearDown(() async {
       await commonServerImpl.shutdown();
-      await flutterWebManager.dispose();
     });
 
-    test('analyze counter app', () async {
+    test('counter app', () async {
       final results =
           await commonServerImpl.analyze(SourceRequest()..source = counter);
       expect(results.issues, isEmpty);
     });
 
-    test('analyze Draggable Physics sample', () async {
+    test('Draggable Physics sample', () async {
       final results = await commonServerImpl
           .analyze(SourceRequest()..source = draggableAndPhysics);
       expect(results.issues, isEmpty);
