@@ -34,16 +34,6 @@ const String _WARMUP_SRC = 'main() { int b = 2;  b++;   b. }';
 // Use very long timeouts to ensure that the server has enough time to restart.
 const Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
 
-class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
-  final FlutterWebManager flutterWebManager;
-
-  FlutterAnalysisServerWrapper(this.flutterWebManager)
-      : super(SdkManager.flutterSdk.sdkPath);
-
-  @override
-  String get _sourceDirPath => flutterWebManager.projectDirectory.path;
-}
-
 class AnalysisServersWrapper {
   AnalysisServersWrapper(this._flutterWebManager);
 
@@ -68,7 +58,7 @@ class AnalysisServersWrapper {
       DateTime.now().difference(_restartingSince).inMinutes < 30);
 
   Future<void> init() async {
-    _logger.info('Beginning CommonServer init().');
+    _logger.info('Beginning AnalysisServersWrapper init().');
     _dartAnalysisServer = DartAnalysisServerWrapper();
     _flutterAnalysisServer = FlutterAnalysisServerWrapper(_flutterWebManager);
 
@@ -141,6 +131,7 @@ class DartAnalysisServerWrapper extends AnalysisServerWrapper {
 
   @override
   Future<AnalysisServer> init() async {
+    _logger.info('DartAnalysisServerWrapper init');
     _tempProject = await Directory.systemTemp.createTemp('DartAnalysisWrapper');
     return super.init();
   }
@@ -149,8 +140,46 @@ class DartAnalysisServerWrapper extends AnalysisServerWrapper {
   String get _sourceDirPath => _tempProject.path;
 
   @override
-  Future shutdown() =>
-      _tempProject.delete(recursive: true).then((value) => super.shutdown());
+  Future<proto.AnalysisResults> analyze(String source) {
+    _logger.info('DartAnalysisServerWrapper analyze');
+    return super.analyze(source);
+  }
+
+  @override
+  Future shutdown() {
+    _logger.info('DartAnalysisServerWrapper shutdown');
+    return _tempProject
+        .delete(recursive: true)
+        .then((value) => super.shutdown());
+  }
+}
+
+class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
+  final FlutterWebManager flutterWebManager;
+
+  FlutterAnalysisServerWrapper(this.flutterWebManager)
+      : super(SdkManager.flutterSdk.sdkPath);
+
+  @override
+  Future<AnalysisServer> init() async {
+    _logger.info('FlutterAnalysisServerWrapper init');
+    return super.init();
+  }
+
+  @override
+  String get _sourceDirPath => flutterWebManager.projectDirectory.path;
+
+  @override
+  Future<proto.AnalysisResults> analyze(String source) {
+    _logger.info('FlutterAnalysisServerWrapper analyze');
+    return super.analyze(source);
+  }
+
+  @override
+  Future shutdown() {
+    _logger.info('FlutterAnalysisServerWrapper shutdown');
+    return super.shutdown();
+  }
 }
 
 abstract class AnalysisServerWrapper {

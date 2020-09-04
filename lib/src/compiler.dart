@@ -152,7 +152,6 @@ class Compiler {
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
 
       _logger.info('About to exec "$_dartdevcPath ${arguments.join(' ')}"');
-      _logger.info('Compiling: $input');
 
       final response =
           await _ddcDriver.doWork(WorkRequest()..arguments.addAll(arguments));
