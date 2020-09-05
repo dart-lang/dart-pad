@@ -86,7 +86,7 @@ class AnalysisServersWrapper {
   }
 
   Future warmup() => Future.wait(<Future<dynamic>>[
-        _flutterWebManager.warmup(),
+        _flutterAnalysisServer.warmup(),
         _dartAnalysisServer.warmup(),
       ]);
 
