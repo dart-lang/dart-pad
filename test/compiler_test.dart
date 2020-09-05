@@ -22,7 +22,7 @@ void defineTests() {
       await SdkManager.flutterSdk.init();
 
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-      await flutterWebManager.initFlutterWeb();
+      await flutterWebManager.warmup();
 
       compiler =
           Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);

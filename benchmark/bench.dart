@@ -21,7 +21,7 @@ void main(List<String> args) async {
   final harness = BenchmarkHarness(asJson: json);
 
   final flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-  await flutterWebManager.initFlutterWeb();
+  await flutterWebManager.warmup();
 
   final compiler =
       Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);

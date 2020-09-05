@@ -42,12 +42,9 @@ class CommonServerImpl {
   Compiler compiler;
   AnalysisServersWrapper analysisServers;
 
+  // Restarting and health status of the two Analysis Servers
   bool get analysisServersRunning => analysisServers.running;
-
   bool get isRestarting => analysisServers.isRestarting;
-
-  // If the server has been trying and failing to restart for more than a half
-  // hour, something is seriously wrong.
   bool get isHealthy => analysisServers.isHealthy;
 
   CommonServerImpl(
@@ -62,7 +59,6 @@ class CommonServerImpl {
     log.info('Beginning CommonServer init().');
     flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     analysisServers = AnalysisServersWrapper(flutterWebManager);
-
     compiler =
         Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
 
@@ -402,15 +398,6 @@ class CommonServerImpl {
     if (flutterWebManager.hasUnsupportedImport(imports)) {
       throw BadRequest(
           'Unsupported input: ${flutterWebManager.getUnsupportedImport(imports)}');
-    }
-
-    if (flutterWebManager.usesFlutterWeb(imports)) {
-      try {
-        await flutterWebManager.initFlutterWeb();
-      } catch (e) {
-        log.warning('unable to init package:flutter: $e');
-        return;
-      }
     }
   }
 }
