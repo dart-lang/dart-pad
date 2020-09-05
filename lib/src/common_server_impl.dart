@@ -93,7 +93,11 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _analyze(request.source);
+    return _perfLogAndRestart(
+        request.source,
+        () => analysisServers.analyze(request.source),
+        'analysis',
+        'Error during analyze on "${request.source}"');
   }
 
   Future<proto.CompileResponse> compile(proto.CompileRequest request) {
@@ -121,7 +125,11 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _complete(request.source, request.offset);
+    return _perfLogAndRestart(
+        request.source,
+        () => analysisServers.complete(request.source, request.offset),
+        'completions',
+        'Error during complete on "${request.source}" at ${request.offset}');
   }
 
   Future<proto.FixesResponse> fixes(proto.SourceRequest request) {
@@ -132,7 +140,11 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _fixes(request.source, request.offset);
+    return _perfLogAndRestart(
+        request.source,
+        () => analysisServers.getFixes(request.source, request.offset),
+        'fixes',
+        'Error during fixes on "${request.source}" at ${request.offset}');
   }
 
   Future<proto.AssistsResponse> assists(proto.SourceRequest request) {
@@ -143,7 +155,11 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _assists(request.source, request.offset);
+    return _perfLogAndRestart(
+        request.source,
+        () => analysisServers.getAssists(request.source, request.offset),
+        'assists',
+        'Error during assists on "${request.source}" at ${request.offset}');
   }
 
   Future<proto.FormatResponse> format(proto.SourceRequest request) {
@@ -151,7 +167,11 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _format(request.source, request.offset ?? 0);
+    return _perfLogAndRestart(
+        request.source,
+        () => analysisServers.format(request.source, request.offset ?? 0),
+        'format',
+        'Error during format on "${request.source}" at ${request.offset}');
   }
 
   Future<proto.DocumentResponse> document(proto.SourceRequest request) {
@@ -162,29 +182,28 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _document(request.source, request.offset);
+    return _perfLogAndRestart(
+        request.source,
+        () async => proto.DocumentResponse()
+          ..info.addAll(
+              await analysisServers.dartdoc(request.source, request.offset) ??
+                  <String, String>{}),
+        'dartdoc',
+        'Error during document on "${request.source}" at ${request.offset}');
   }
 
   Future<proto.VersionResponse> version(proto.VersionRequest _) =>
-      Future<proto.VersionResponse>.value(_version());
-
-  Future<proto.AnalysisResults> _analyze(String source) async {
-    await _checkPackageReferencesInitFlutterWeb(source);
-
-    try {
-      final watch = Stopwatch()..start();
-
-      final results = await analysisServers.analyze(source);
-      final lineCount = source.split('\n').length;
-      final ms = watch.elapsedMilliseconds;
-      log.info('PERF: Analyzed $lineCount lines of Dart in ${ms}ms.');
-      return results;
-    } catch (e, st) {
-      log.severe('Error during _analyze on "$source"', e, st);
-      await restart();
-      rethrow;
-    }
-  }
+      Future<proto.VersionResponse>.value(
+        proto.VersionResponse()
+          ..sdkVersion = SdkManager.sdk.version
+          ..sdkVersionFull = SdkManager.sdk.versionFull
+          ..runtimeVersion = vmVersion
+          ..servicesVersion = servicesVersion
+          ..appEngineVersion = container.version
+          ..flutterDartVersion = SdkManager.flutterSdk.version
+          ..flutterDartVersionFull = SdkManager.flutterSdk.versionFull
+          ..flutterVersion = SdkManager.flutterSdk.flutterVersion,
+      );
 
   Future<proto.CompileResponse> _compileDart2js(
     String source, {
@@ -197,7 +216,7 @@ class CommonServerImpl {
       final memCacheKey = '%%COMPILE:v0'
           ':returnSourceMap:$returnSourceMap:source:$sourceHash';
 
-      final result = await checkCache(memCacheKey);
+      final result = await _checkCache(memCacheKey);
       if (result != null) {
         log.info('CACHE: Cache hit for compileDart2js');
         final resultObj = const JsonDecoder().convert(result);
@@ -228,7 +247,7 @@ class CommonServerImpl {
           'sourceMap': sourceMap,
         });
         // Don't block on cache set.
-        unawaited(setCache(memCacheKey, cachedResult));
+        unawaited(_setCache(memCacheKey, cachedResult));
         final compileResponse = proto.CompileResponse();
         compileResponse.result = results.compiledJS;
         if (sourceMap != null) {
@@ -255,7 +274,7 @@ class CommonServerImpl {
       final sourceHash = _hashSource(source);
       final memCacheKey = '%%COMPILE_DDC:v0:source:$sourceHash';
 
-      final result = await checkCache(memCacheKey);
+      final result = await _checkCache(memCacheKey);
       if (result != null) {
         log.info('CACHE: Cache hit for compileDDC');
         final resultObj = const JsonDecoder().convert(result);
@@ -281,7 +300,7 @@ class CommonServerImpl {
           'modulesBaseUrl': results.modulesBaseUrl,
         });
         // Don't block on cache set.
-        unawaited(setCache(memCacheKey, cachedResult));
+        unawaited(_setCache(memCacheKey, cachedResult));
         return proto.CompileDDCResponse()
           ..result = results.compiledJS
           ..modulesBaseUrl = results.modulesBaseUrl;
@@ -298,94 +317,9 @@ class CommonServerImpl {
     }
   }
 
-  Future<proto.DocumentResponse> _document(String source, int offset) async {
-    await _checkPackageReferencesInitFlutterWeb(source);
+  Future<String> _checkCache(String query) => cache.get(query);
 
-    final watch = Stopwatch()..start();
-    try {
-      var docInfo = await analysisServers.dartdoc(source, offset);
-      docInfo ??= <String, String>{};
-      log.info('PERF: Computed dartdoc in ${watch.elapsedMilliseconds}ms.');
-      return proto.DocumentResponse()..info.addAll(docInfo);
-    } catch (e, st) {
-      log.severe('Error during _document on "$source" at $offset', e, st);
-      await restart();
-      rethrow;
-    }
-  }
-
-  proto.VersionResponse _version() => proto.VersionResponse()
-    ..sdkVersion = SdkManager.sdk.version
-    ..sdkVersionFull = SdkManager.sdk.versionFull
-    ..runtimeVersion = vmVersion
-    ..servicesVersion = servicesVersion
-    ..appEngineVersion = container.version
-    ..flutterDartVersion = SdkManager.flutterSdk.version
-    ..flutterDartVersionFull = SdkManager.flutterSdk.versionFull
-    ..flutterVersion = SdkManager.flutterSdk.flutterVersion;
-
-  Future<proto.CompleteResponse> _complete(String source, int offset) async {
-    await _checkPackageReferencesInitFlutterWeb(source);
-
-    final watch = Stopwatch()..start();
-    try {
-      final response = await analysisServers.complete(source, offset);
-      log.info('PERF: Computed completions in ${watch.elapsedMilliseconds}ms.');
-      return response;
-    } catch (e, st) {
-      log.severe('Error during _complete on "$source" at $offset', e, st);
-      await restart();
-      rethrow;
-    }
-  }
-
-  Future<proto.FixesResponse> _fixes(String source, int offset) async {
-    try {
-      await _checkPackageReferencesInitFlutterWeb(source);
-
-      final watch = Stopwatch()..start();
-      final response = await analysisServers.getFixes(source, offset);
-      log.info('PERF: Computed fixes in ${watch.elapsedMilliseconds}ms.');
-      return response;
-    } catch (e, st) {
-      log.severe('Error during _fixes on "$source" at $offset', e, st);
-      await restart();
-      rethrow;
-    }
-  }
-
-  Future<proto.AssistsResponse> _assists(String source, int offset) async {
-    try {
-      await _checkPackageReferencesInitFlutterWeb(source);
-
-      final watch = Stopwatch()..start();
-      final response = await analysisServers.getAssists(source, offset);
-      log.info('PERF: Computed assists in ${watch.elapsedMilliseconds}ms.');
-      return response;
-    } catch (e, st) {
-      log.severe('Error during _assists on "$source" at $offset', e, st);
-      await restart();
-      rethrow;
-    }
-  }
-
-  Future<proto.FormatResponse> _format(String source, int offset) async {
-    try {
-      final watch = Stopwatch()..start();
-
-      final response = await analysisServers.format(source, offset);
-      log.info('PERF: Computed format in ${watch.elapsedMilliseconds}ms.');
-      return response;
-    } catch (e, st) {
-      log.severe('Error during _format on "$source" at $offset', e, st);
-      await restart();
-      rethrow;
-    }
-  }
-
-  Future<String> checkCache(String query) => cache.get(query);
-
-  Future<void> setCache(String query, String result) =>
+  Future<void> _setCache(String query, String result) =>
       cache.set(query, result, expiration: _standardExpiration);
 
   /// Check that the set of packages referenced is valid.
@@ -398,6 +332,21 @@ class CommonServerImpl {
     if (flutterWebManager.hasUnsupportedImport(imports)) {
       throw BadRequest(
           'Unsupported input: ${flutterWebManager.getUnsupportedImport(imports)}');
+    }
+  }
+
+  Future<T> _perfLogAndRestart<T>(String source, Future<T> Function() body,
+      String action, String errorDescription) async {
+    await _checkPackageReferencesInitFlutterWeb(source);
+    try {
+      final watch = Stopwatch()..start();
+      final response = await body();
+      log.info('PERF: Computed $action in ${watch.elapsedMilliseconds}ms.');
+      return response;
+    } catch (e, st) {
+      log.severe(errorDescription, e, st);
+      await restart();
+      rethrow;
     }
   }
 }
