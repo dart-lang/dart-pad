@@ -16,7 +16,6 @@ import 'package:dart_services/src/analysis_server.dart' as analysis_server;
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server_impl.dart';
 import 'package:dart_services/src/compiler.dart' as comp;
-import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:dart_services/src/server_cache.dart';
 import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
@@ -122,8 +121,6 @@ Future setupTools(String sdkPath) async {
 
   print('SdKPath: $sdkPath');
 
-  final flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-
   container = MockContainer();
   cache = MockCache();
   commonServerImpl = CommonServerImpl(container, cache);
@@ -136,8 +133,7 @@ Future setupTools(String sdkPath) async {
   await analysisServer.warmup();
 
   print('Warming up compiler');
-  compiler =
-      comp.Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
+  compiler = comp.Compiler(SdkManager.sdk, SdkManager.flutterSdk);
   await compiler.warmup();
   print('SetupTools done');
 }

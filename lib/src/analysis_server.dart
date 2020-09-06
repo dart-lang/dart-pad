@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 import 'package:pedantic/pedantic.dart';
 
 import 'common.dart';
+import 'common_server_impl.dart' show BadRequest;
 import 'flutter_web.dart';
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
@@ -35,9 +36,9 @@ const String _WARMUP_SRC = 'main() { int b = 2;  b++;   b. }';
 const Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
 
 class AnalysisServersWrapper {
-  AnalysisServersWrapper(this._flutterWebManager);
+  AnalysisServersWrapper();
 
-  final FlutterWebManager _flutterWebManager;
+  FlutterWebManager _flutterWebManager;
   DartAnalysisServerWrapper _dartAnalysisServer;
   FlutterAnalysisServerWrapper _flutterAnalysisServer;
 
@@ -57,9 +58,10 @@ class AnalysisServersWrapper {
   bool get isHealthy => (_restartingSince == null ||
       DateTime.now().difference(_restartingSince).inMinutes < 30);
 
-  Future<void> init() async {
+  Future<void> warmup() async {
     _logger.info('Beginning AnalysisServersWrapper init().');
     _dartAnalysisServer = DartAnalysisServerWrapper();
+    _flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     _flutterAnalysisServer = FlutterAnalysisServerWrapper(_flutterWebManager);
 
     await _dartAnalysisServer.init();
@@ -83,19 +85,30 @@ class AnalysisServersWrapper {
     }));
 
     _restartingSince = null;
+
+    return Future.wait(<Future<dynamic>>[
+      _flutterWebManager.warmup(),
+      _flutterAnalysisServer.warmup(),
+      _dartAnalysisServer.warmup(),
+    ]);
   }
 
-  Future warmup() => Future.wait(<Future<dynamic>>[
-        _flutterAnalysisServer.warmup(),
-        _dartAnalysisServer.warmup(),
-      ]);
+  Future<void> _restart() async {
+    _logger.warning('Restarting');
+    await shutdown();
+    _logger.info('shutdown');
+
+    await warmup();
+    _logger.warning('Restart complete');
+  }
 
   Future<dynamic> shutdown() {
     _restartingSince = DateTime.now();
 
     return Future.wait(<Future<dynamic>>[
-      _dartAnalysisServer.shutdown(),
+      _flutterWebManager.dispose(),
       _flutterAnalysisServer.shutdown(),
+      _dartAnalysisServer.shutdown(),
     ]);
   }
 
@@ -106,23 +119,71 @@ class AnalysisServersWrapper {
         : _dartAnalysisServer;
   }
 
-  Future<proto.AnalysisResults> analyze(String source) =>
-      _getCorrectAnalysisServer(source).analyze(source);
+  Future<proto.AnalysisResults> analyze(String source) => _perfLogAndRestart(
+      source,
+      () => _getCorrectAnalysisServer(source).analyze(source),
+      'analysis',
+      'Error during analyze on "$source"');
 
   Future<proto.CompleteResponse> complete(String source, int offset) =>
-      _getCorrectAnalysisServer(source).complete(source, offset);
+      _perfLogAndRestart(
+          source,
+          () => _getCorrectAnalysisServer(source).complete(source, offset),
+          'completions',
+          'Error during complete on "$source" at $offset');
 
   Future<proto.FixesResponse> getFixes(String source, int offset) =>
-      _getCorrectAnalysisServer(source).getFixes(source, offset);
+      _perfLogAndRestart(
+          source,
+          () => _getCorrectAnalysisServer(source).getFixes(source, offset),
+          'fixes',
+          'Error during fixes on "$source" at $offset');
 
   Future<proto.AssistsResponse> getAssists(String source, int offset) =>
-      _getCorrectAnalysisServer(source).getAssists(source, offset);
+      _perfLogAndRestart(
+          source,
+          () => _getCorrectAnalysisServer(source).getAssists(source, offset),
+          'assists',
+          'Error during assists on "$source" at $offset');
 
   Future<proto.FormatResponse> format(String source, int offset) =>
-      _getCorrectAnalysisServer(source).format(source, offset);
+      _perfLogAndRestart(
+          source,
+          () => _getCorrectAnalysisServer(source).format(source, offset),
+          'format',
+          'Error during format on "$source" at $offset');
 
   Future<Map<String, String>> dartdoc(String source, int offset) =>
-      _getCorrectAnalysisServer(source).dartdoc(source, offset);
+      _perfLogAndRestart(
+          source,
+          () => _getCorrectAnalysisServer(source).dartdoc(source, offset),
+          'dartdoc',
+          'Error during dartdoc on "$source" at $offset');
+
+  Future<T> _perfLogAndRestart<T>(String source, Future<T> Function() body,
+      String action, String errorDescription) async {
+    await _checkPackageReferences(source);
+    try {
+      final watch = Stopwatch()..start();
+      final response = await body();
+      _logger.info('PERF: Computed $action in ${watch.elapsedMilliseconds}ms.');
+      return response;
+    } catch (e, st) {
+      _logger.severe(errorDescription, e, st);
+      await _restart();
+      rethrow;
+    }
+  }
+
+  /// Check that the set of packages referenced is valid.
+  Future<void> _checkPackageReferences(String source) async {
+    final imports = getAllImportsFor(source);
+
+    if (_flutterWebManager.hasUnsupportedImport(imports)) {
+      throw BadRequest(
+          'Unsupported input: ${_flutterWebManager.getUnsupportedImport(imports)}');
+    }
+  }
 }
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {

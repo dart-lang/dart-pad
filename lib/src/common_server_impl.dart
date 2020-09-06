@@ -15,9 +15,7 @@ import '../version.dart';
 import 'analysis_server.dart';
 import 'common.dart';
 import 'compiler.dart';
-import 'flutter_web.dart';
 import 'protos/dart_services.pb.dart' as proto;
-import 'pub.dart';
 import 'sdk_manager.dart';
 import 'server_cache.dart';
 
@@ -38,7 +36,6 @@ class CommonServerImpl {
   final ServerContainer container;
   final ServerCache cache;
 
-  FlutterWebManager flutterWebManager;
   Compiler compiler;
   AnalysisServersWrapper analysisServers;
 
@@ -57,33 +54,17 @@ class CommonServerImpl {
 
   Future<void> init() async {
     log.info('Beginning CommonServer init().');
-    flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-    analysisServers = AnalysisServersWrapper(flutterWebManager);
-    compiler =
-        Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
+    analysisServers = AnalysisServersWrapper();
+    compiler = Compiler(SdkManager.sdk, SdkManager.flutterSdk);
 
-    await analysisServers.init();
-    log.info('Analysis servers initialized.');
-
-    await flutterWebManager.warmup();
     await compiler.warmup();
     await analysisServers.warmup();
-  }
-
-  Future<void> restart() async {
-    log.warning('Restarting CommonServer');
-    await shutdown();
-    log.info('Analysis Servers shutdown');
-
-    await init();
-    log.warning('Restart complete');
   }
 
   Future<dynamic> shutdown() {
     return Future.wait(<Future<dynamic>>[
       analysisServers.shutdown(),
       compiler.dispose(),
-      flutterWebManager.dispose(),
       Future<dynamic>.sync(cache.shutdown)
     ]).timeout(const Duration(minutes: 1));
   }
@@ -93,11 +74,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _perfLogAndRestart(
-        request.source,
-        () => analysisServers.analyze(request.source),
-        'analysis',
-        'Error during analyze on "${request.source}"');
+    return analysisServers.analyze(request.source);
   }
 
   Future<proto.CompileResponse> compile(proto.CompileRequest request) {
@@ -125,11 +102,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _perfLogAndRestart(
-        request.source,
-        () => analysisServers.complete(request.source, request.offset),
-        'completions',
-        'Error during complete on "${request.source}" at ${request.offset}');
+    return analysisServers.complete(request.source, request.offset);
   }
 
   Future<proto.FixesResponse> fixes(proto.SourceRequest request) {
@@ -140,11 +113,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _perfLogAndRestart(
-        request.source,
-        () => analysisServers.getFixes(request.source, request.offset),
-        'fixes',
-        'Error during fixes on "${request.source}" at ${request.offset}');
+    return analysisServers.getFixes(request.source, request.offset);
   }
 
   Future<proto.AssistsResponse> assists(proto.SourceRequest request) {
@@ -155,11 +124,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _perfLogAndRestart(
-        request.source,
-        () => analysisServers.getAssists(request.source, request.offset),
-        'assists',
-        'Error during assists on "${request.source}" at ${request.offset}');
+    return analysisServers.getAssists(request.source, request.offset);
   }
 
   Future<proto.FormatResponse> format(proto.SourceRequest request) {
@@ -167,14 +132,10 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _perfLogAndRestart(
-        request.source,
-        () => analysisServers.format(request.source, request.offset ?? 0),
-        'format',
-        'Error during format on "${request.source}" at ${request.offset}');
+    return analysisServers.format(request.source, request.offset ?? 0);
   }
 
-  Future<proto.DocumentResponse> document(proto.SourceRequest request) {
+  Future<proto.DocumentResponse> document(proto.SourceRequest request) async {
     if (!request.hasSource()) {
       throw BadRequest('Missing parameter: \'source\'');
     }
@@ -182,14 +143,10 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _perfLogAndRestart(
-        request.source,
-        () async => proto.DocumentResponse()
-          ..info.addAll(
-              await analysisServers.dartdoc(request.source, request.offset) ??
-                  <String, String>{}),
-        'dartdoc',
-        'Error during document on "${request.source}" at ${request.offset}');
+    return proto.DocumentResponse()
+      ..info.addAll(
+          await analysisServers.dartdoc(request.source, request.offset) ??
+              <String, String>{});
   }
 
   Future<proto.VersionResponse> version(proto.VersionRequest _) =>
@@ -210,8 +167,6 @@ class CommonServerImpl {
     bool returnSourceMap = false,
   }) async {
     try {
-      await _checkPackageReferencesInitFlutterWeb(source);
-
       final sourceHash = _hashSource(source);
       final memCacheKey = '%%COMPILE:v0'
           ':returnSourceMap:$returnSourceMap:source:$sourceHash';
@@ -269,8 +224,6 @@ class CommonServerImpl {
 
   Future<proto.CompileDDCResponse> _compileDDC(String source) async {
     try {
-      await _checkPackageReferencesInitFlutterWeb(source);
-
       final sourceHash = _hashSource(source);
       final memCacheKey = '%%COMPILE_DDC:v0:source:$sourceHash';
 
@@ -321,34 +274,6 @@ class CommonServerImpl {
 
   Future<void> _setCache(String query, String result) =>
       cache.set(query, result, expiration: _standardExpiration);
-
-  /// Check that the set of packages referenced is valid.
-  ///
-  /// If there are uses of package:flutter, ensure that support there is
-  /// initialized.
-  Future<void> _checkPackageReferencesInitFlutterWeb(String source) async {
-    final imports = getAllImportsFor(source);
-
-    if (flutterWebManager.hasUnsupportedImport(imports)) {
-      throw BadRequest(
-          'Unsupported input: ${flutterWebManager.getUnsupportedImport(imports)}');
-    }
-  }
-
-  Future<T> _perfLogAndRestart<T>(String source, Future<T> Function() body,
-      String action, String errorDescription) async {
-    await _checkPackageReferencesInitFlutterWeb(source);
-    try {
-      final watch = Stopwatch()..start();
-      final response = await body();
-      log.info('PERF: Computed $action in ${watch.elapsedMilliseconds}ms.');
-      return response;
-    } catch (e, st) {
-      log.severe(errorDescription, e, st);
-      await restart();
-      rethrow;
-    }
-  }
 }
 
 String _printCompileProblem(CompilationProblem problem) => problem.message;

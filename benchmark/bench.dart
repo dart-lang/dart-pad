@@ -13,18 +13,13 @@ import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/bench.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
-import 'package:dart_services/src/flutter_web.dart';
 
 void main(List<String> args) async {
   final json = args.contains('--json');
 
   final harness = BenchmarkHarness(asJson: json);
 
-  final flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-  await flutterWebManager.warmup();
-
-  final compiler =
-      Compiler(SdkManager.sdk, SdkManager.flutterSdk, flutterWebManager);
+  final compiler = Compiler(SdkManager.sdk, SdkManager.flutterSdk);
 
   Logger.root.level = Level.WARNING;
   Logger.root.onRecord.listen((LogRecord record) {
