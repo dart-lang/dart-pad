@@ -12,7 +12,7 @@ import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 
 import '../version.dart';
-import 'analysis_server.dart';
+import 'analysis_servers.dart';
 import 'common.dart';
 import 'compiler.dart';
 import 'protos/dart_services.pb.dart' as proto;

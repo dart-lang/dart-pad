@@ -6,6 +6,7 @@ library services.flutter_analyzer_server_test;
 
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/analysis_server.dart';
+import 'package:dart_services/src/analysis_servers.dart';
 import 'package:dart_services/src/common_server_impl.dart';
 import 'package:dart_services/src/common_server_api.dart';
 import 'package:dart_services/src/flutter_web.dart';
