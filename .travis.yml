@@ -3,7 +3,7 @@ install:
   - gem install coveralls-lcov
 dart:
   # Keep this value aligned with min SDK value in pubspec.yaml and FROM line of Dockerfile
-  - "2.9.2"
+  - "2.9.3"
   - beta
 
 # Use Ubuntu 18.04 (Bionic Beaver) 

@@ -3,7 +3,7 @@ publish_to: none
 
 environment:
   # Keep SDK aligned with .travis.yml and FROM line of Dockerfile
-  sdk: ^2.9.2
+  sdk: ^2.9.3
 
 dependencies:
   # TODO(domesticmouse): unpin analyzer after we update to Dart 2.10
