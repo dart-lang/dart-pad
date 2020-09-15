@@ -3,15 +3,15 @@
         "family": "MaterialIcons",
         "fonts": [
             {
-                "asset": "https://fonts.gstatic.com/s/materialicons/v42/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2"
+                "asset": "fonts/MaterialIcons-Regular.otf"
             }
         ]
     },
     {
-        "family": "Roboto",
+        "family": "packages/cupertino_icons/CupertinoIcons",
         "fonts": [
             {
-                "asset": "https://fonts.gstatic.com/s/roboto/v19/KFOmCnqEu92Fr1Mu4mxKKTU1Kg.woff2"
+                "asset": "packages/cupertino_icons/assets/CupertinoIcons.ttf"
             }
         ]
     }
