@@ -14,6 +14,18 @@ handlers:
     http_headers:
       Access-Control-Allow-Origin: "*"
 
+  - url: /scripts/assets/fonts/MaterialIcons-Regular.otf
+    static_files: scripts/assets/fonts/MaterialIcons-Regular.otf
+    upload: /scripts/assets/fonts/MaterialIcons-Regular\.otf
+    http_headers:
+      Access-Control-Allow-Origin: "*"
+
+  - url: /scripts/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf
+    static_files: scripts/assets/packages/cupertino_icons/assets/CupertinoIcons.ttf
+    upload: /scripts/assets/packages/cupertino_icons/assets/CupertinoIcons\.ttf
+    http_headers:
+      Access-Control-Allow-Origin: "*"
+
   - url: /scripts
     static_dir: scripts
 
