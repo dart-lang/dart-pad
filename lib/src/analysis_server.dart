@@ -35,6 +35,7 @@ const Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
   Directory _tempProject;
+
   DartAnalysisServerWrapper() : super(SdkManager.sdk.sdkPath);
 
   @override
@@ -116,12 +117,10 @@ abstract class AnalysisServerWrapper {
       }
 
       final serverArgs = <String>[
-        '--dartpad',
         '--client-id=DartPad',
-        '--client-version=$_sdkVersion'
+        '--client-version=$_sdkVersion',
       ];
-      _logger.info(
-          'About to start with server with SDK path `$sdkPath` and args: $serverArgs');
+      _logger.info('Starting server; sdk: `$sdkPath`, args: $serverArgs');
 
       _init = AnalysisServer.create(
         onRead: onRead,
@@ -181,10 +180,23 @@ abstract class AnalysisServerWrapper {
 
     final source = sources[location.sourceName];
     final prefix = source.substring(results.replacementOffset, location.offset);
-    suggestions = suggestions
-        .where(
-            (s) => s.completion.toLowerCase().startsWith(prefix.toLowerCase()))
-        .toList();
+    suggestions = suggestions.where((suggestion) {
+      return suggestion.completion
+          .toLowerCase()
+          .startsWith(prefix.toLowerCase());
+    }).where((CompletionSuggestion suggestion) {
+      // We do not want to enable arbitrary discovery of file system resources.
+
+      // In order to avoid returning local file paths, we only allow returning
+      // IMPORT kinds that are dart: or package: imports.
+      if (suggestion.kind == 'IMPORT') {
+        final completion = suggestion.completion;
+        return completion.startsWith('dart:') ||
+            completion.startsWith('package:');
+      } else {
+        return true;
+      }
+    }).toList();
 
     suggestions.sort((CompletionSuggestion x, CompletionSuggestion y) {
       if (x.relevance == y.relevance) {

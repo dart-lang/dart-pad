@@ -109,6 +109,25 @@ void defineTests() {
       }
     });
 
+    test('import_dart_core_test', () async {
+      // Ensure we can import dart: imports.
+      final testCode = "import 'dart:c'; main() { int a = 0; a. }";
+
+      final results = await analysisServer.complete(testCode, 14);
+      final completions = results.completions;
+
+      expect(
+        completions.every((completion) =>
+            completion.completion['completion'].startsWith('dart:')),
+        true,
+      );
+      expect(
+        completions.any((completion) =>
+            completion.completion['completion'].startsWith('dart:')),
+        true,
+      );
+    });
+
     test('import_and_other_test', () {
       final testCode = "import '/'; main() { int a = 0; a. }";
 
