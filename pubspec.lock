@@ -154,7 +154,7 @@ packages:
       name: codemirror
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.20+5.57.0"
+    version: "0.5.21+5.58.0"
   collection:
     dependency: transitive
     description:
@@ -259,7 +259,7 @@ packages:
       name: grpc
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.2.0"
+    version: "2.3.0"
   html:
     dependency: transitive
     description:
@@ -280,7 +280,7 @@ packages:
       name: http2
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.0"
+    version: "1.0.1"
   http_methods:
     dependency: transitive
     description:
@@ -336,7 +336,7 @@ packages:
       name: json_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.1"
+    version: "3.1.0"
   logging:
     dependency: "direct main"
     description:
@@ -497,7 +497,7 @@ packages:
       name: source_gen
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.6"
+    version: "0.9.7+1"
   source_map_stack_trace:
     dependency: transitive
     description:
@@ -567,7 +567,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.15.3"
+    version: "1.15.4"
   test_api:
     dependency: transitive
     description:
@@ -581,7 +581,7 @@ packages:
       name: test_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.11"
+    version: "0.3.11+1"
   timing:
     dependency: transitive
     description:

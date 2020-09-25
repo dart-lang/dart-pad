@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
 
@@ -32,21 +33,161 @@ abstract class ServerContainer {
   String get version;
 }
 
-class CommonServerImpl {
-  final ServerContainer container;
-  final ServerCache cache;
+class CommonServerImplProxy implements CommonServerImpl {
+  const CommonServerImplProxy(
+      this._wrapped, this._darkLaunch, this._proxyTarget);
+  final CommonServerImpl _wrapped;
+  final String _proxyTarget;
+  final bool _darkLaunch;
 
-  Compiler compiler;
-  AnalysisServersWrapper analysisServers;
+  @override
+  Future<String> _checkCache(String query) => _wrapped._checkCache(query);
+
+  @override
+  Future<proto.CompileDDCResponse> _compileDDC(String source) =>
+      _wrapped._compileDDC(source);
+
+  @override
+  Future<proto.CompileResponse> _compileDart2js(String source,
+          {bool returnSourceMap = false}) =>
+      _wrapped._compileDart2js(source, returnSourceMap: returnSourceMap);
+
+  @override
+  Future<void> _setCache(String query, String result) =>
+      _wrapped._setCache(query, result);
+
+  @override
+  bool get analysisServersRunning => _wrapped.analysisServersRunning;
+
+  @override
+  Future<proto.AnalysisResults> analyze(proto.SourceRequest request) =>
+      _wrapped.analyze(request);
+
+  @override
+  Future<proto.AssistsResponse> assists(proto.SourceRequest request) =>
+      _wrapped.assists(request);
+
+  @override
+  Future<proto.CompileResponse> compile(proto.CompileRequest request) {
+    final url = '${_proxyTarget}api/dartservices/v2/compile';
+    final proxyResponse = http.post(url,
+        headers: {'Content-Type': 'application/json; charset=utf-8'},
+        body: _jsonEncoder.convert(request.toProto3Json()));
+    if (_darkLaunch) {
+      proxyResponse.then((response) {
+        log.info(
+            'compile: Proxied request returned status code: ${response.statusCode}');
+      });
+      return _wrapped.compile(request);
+    } else {
+      return proxyResponse.then((response) async {
+        if (response.statusCode == 200) {
+          return proto.CompileResponse.create()
+            ..mergeFromProto3Json(JsonDecoder().convert(response.body));
+        } else {
+          final err = proto.BadRequest.create()
+            ..mergeFromProto3Json(JsonDecoder().convert(response.body));
+          throw BadRequest(err.error.message);
+        }
+      });
+    }
+  }
+
+  @override
+  Future<proto.CompileDDCResponse> compileDDC(proto.CompileDDCRequest request) {
+    final url = '${_proxyTarget}api/dartservices/v2/compileDDC';
+    final proxyResponse = http.post(url,
+        headers: {'Content-Type': 'application/json; charset=utf-8'},
+        body: _jsonEncoder.convert(request.toProto3Json()));
+    if (_darkLaunch) {
+      proxyResponse.then((response) {
+        log.info(
+            'compileDDC: Proxied request returned status code: ${response.statusCode}');
+      });
+      return _wrapped.compileDDC(request);
+    } else {
+      return proxyResponse.then((response) async {
+        if (response.statusCode == 200) {
+          return proto.CompileDDCResponse.create()
+            ..mergeFromProto3Json(JsonDecoder().convert(response.body));
+        } else {
+          final err = proto.BadRequest.create()
+            ..mergeFromProto3Json(JsonDecoder().convert(response.body));
+          throw BadRequest(err.error.message);
+        }
+      });
+    }
+  }
+
+  @override
+  Future<proto.CompleteResponse> complete(proto.SourceRequest request) =>
+      _wrapped.complete(request);
+
+  @override
+  Future<proto.DocumentResponse> document(proto.SourceRequest request) =>
+      _wrapped.document(request);
+
+  @override
+  Future<proto.FixesResponse> fixes(proto.SourceRequest request) =>
+      _wrapped.fixes(request);
+
+  @override
+  Future<proto.FormatResponse> format(proto.SourceRequest request) =>
+      _wrapped.format(request);
+
+  @override
+  Future<void> init() => _wrapped.init();
+
+  @override
+  bool get isHealthy => _wrapped.isHealthy;
+
+  @override
+  bool get isRestarting => _wrapped.isRestarting;
+
+  @override
+  Future shutdown() => _wrapped.shutdown();
+
+  @override
+  Future<proto.VersionResponse> version(proto.VersionRequest request) =>
+      _wrapped.version(request);
+
+  @override
+  AnalysisServersWrapper get _analysisServers => _wrapped._analysisServers;
+
+  @override
+  Compiler get _compiler => _wrapped._compiler;
+
+  @override
+  ServerCache get _cache => _wrapped._cache;
+
+  @override
+  ServerContainer get _container => _wrapped._container;
+
+  @override
+  set _analysisServers(AnalysisServersWrapper __analysisServers) =>
+      _wrapped._analysisServers = __analysisServers;
+
+  @override
+  set _compiler(Compiler __compiler) => _wrapped._compiler = __compiler;
+}
+
+final JsonEncoder _jsonEncoder = const JsonEncoder.withIndent('  ');
+
+class CommonServerImpl {
+  final ServerContainer _container;
+  final ServerCache _cache;
+
+  Compiler _compiler;
+  AnalysisServersWrapper _analysisServers;
 
   // Restarting and health status of the two Analysis Servers
-  bool get analysisServersRunning => analysisServers.running;
-  bool get isRestarting => analysisServers.isRestarting;
-  bool get isHealthy => analysisServers.isHealthy;
+  bool get analysisServersRunning => _analysisServers.running;
+  bool get isRestarting => _analysisServers.isRestarting;
+  bool get isHealthy => _analysisServers.isHealthy;
 
   CommonServerImpl(
-    this.container,
-    this.cache,
+    this._container,
+    this._cache,
   ) {
     hierarchicalLoggingEnabled = true;
     log.level = Level.ALL;
@@ -54,18 +195,18 @@ class CommonServerImpl {
 
   Future<void> init() async {
     log.info('Beginning CommonServer init().');
-    analysisServers = AnalysisServersWrapper();
-    compiler = Compiler(SdkManager.sdk, SdkManager.flutterSdk);
+    _analysisServers = AnalysisServersWrapper();
+    _compiler = Compiler(SdkManager.sdk, SdkManager.flutterSdk);
 
-    await compiler.warmup();
-    await analysisServers.warmup();
+    await _compiler.warmup();
+    await _analysisServers.warmup();
   }
 
   Future<dynamic> shutdown() {
     return Future.wait(<Future<dynamic>>[
-      analysisServers.shutdown(),
-      compiler.dispose(),
-      Future<dynamic>.sync(cache.shutdown)
+      _analysisServers.shutdown(),
+      _compiler.dispose(),
+      Future<dynamic>.sync(_cache.shutdown)
     ]).timeout(const Duration(minutes: 1));
   }
 
@@ -74,7 +215,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return analysisServers.analyze(request.source);
+    return _analysisServers.analyze(request.source);
   }
 
   Future<proto.CompileResponse> compile(proto.CompileRequest request) {
@@ -102,7 +243,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return analysisServers.complete(request.source, request.offset);
+    return _analysisServers.complete(request.source, request.offset);
   }
 
   Future<proto.FixesResponse> fixes(proto.SourceRequest request) {
@@ -113,7 +254,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return analysisServers.getFixes(request.source, request.offset);
+    return _analysisServers.getFixes(request.source, request.offset);
   }
 
   Future<proto.AssistsResponse> assists(proto.SourceRequest request) {
@@ -124,7 +265,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return analysisServers.getAssists(request.source, request.offset);
+    return _analysisServers.getAssists(request.source, request.offset);
   }
 
   Future<proto.FormatResponse> format(proto.SourceRequest request) {
@@ -132,7 +273,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return analysisServers.format(request.source, request.offset ?? 0);
+    return _analysisServers.format(request.source, request.offset ?? 0);
   }
 
   Future<proto.DocumentResponse> document(proto.SourceRequest request) async {
@@ -145,7 +286,7 @@ class CommonServerImpl {
 
     return proto.DocumentResponse()
       ..info.addAll(
-          await analysisServers.dartdoc(request.source, request.offset) ??
+          await _analysisServers.dartdoc(request.source, request.offset) ??
               <String, String>{});
   }
 
@@ -156,7 +297,7 @@ class CommonServerImpl {
           ..sdkVersionFull = SdkManager.sdk.versionFull
           ..runtimeVersion = vmVersion
           ..servicesVersion = servicesVersion
-          ..appEngineVersion = container.version
+          ..appEngineVersion = _container.version
           ..flutterDartVersion = SdkManager.flutterSdk.version
           ..flutterDartVersionFull = SdkManager.flutterSdk.versionFull
           ..flutterVersion = SdkManager.flutterSdk.flutterVersion,
@@ -187,7 +328,7 @@ class CommonServerImpl {
       final watch = Stopwatch()..start();
 
       final results =
-          await compiler.compile(source, returnSourceMap: returnSourceMap);
+          await _compiler.compile(source, returnSourceMap: returnSourceMap);
 
       if (results.hasOutput) {
         final lineCount = source.split('\n').length;
@@ -239,7 +380,7 @@ class CommonServerImpl {
       log.info('CACHE: MISS for compileDDC');
       final watch = Stopwatch()..start();
 
-      final results = await compiler.compileDDC(source);
+      final results = await _compiler.compileDDC(source);
 
       if (results.hasOutput) {
         final lineCount = source.split('\n').length;
@@ -270,10 +411,10 @@ class CommonServerImpl {
     }
   }
 
-  Future<String> _checkCache(String query) => cache.get(query);
+  Future<String> _checkCache(String query) => _cache.get(query);
 
   Future<void> _setCache(String query, String result) =>
-      cache.set(query, result, expiration: _standardExpiration);
+      _cache.set(query, result, expiration: _standardExpiration);
 }
 
 String _printCompileProblem(CompilationProblem problem) => problem.message;

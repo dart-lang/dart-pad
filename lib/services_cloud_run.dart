@@ -23,15 +23,14 @@ import 'src/shelf_cors.dart' as shelf_cors;
 final Logger _logger = Logger('services');
 
 Future<void> main(List<String> args) async {
-  final parser = ArgParser();
-  parser.addOption('port', abbr: 'p');
-  parser.addOption('server-url', defaultsTo: 'http://localhost');
-  parser.addOption('redis-url');
-  final result = parser.parse(args);
+  final parser = ArgParser()
+    ..addOption('port', abbr: 'p')
+    ..addOption('redis-url');
+  final results = parser.parse(args);
 
   // Cloud Run supplies the port to bind to in the environment.
   // Allow command line arg to override environment.
-  final port = int.tryParse(result['port'] as String ?? '') ??
+  final port = int.tryParse(results['port'] as String ?? '') ??
       int.tryParse(Platform.environment['PORT'] ?? '');
   if (port == null) {
     stdout.writeln('Could not parse port value from either environment '
@@ -39,7 +38,7 @@ Future<void> main(List<String> args) async {
     exit(1);
   }
 
-  final redisServerUri = result['redis-url'] as String;
+  final redisServerUri = results['redis-url'] as String;
 
   Logger.root.level = Level.FINER;
   Logger.root.onRecord.listen((LogRecord record) {
