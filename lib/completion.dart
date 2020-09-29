@@ -4,7 +4,7 @@
 
 library dartpad.completion;
 
-import 'dart:async';
+
 import 'dart:convert' show jsonDecode;
 
 import 'editing/editor.dart';
