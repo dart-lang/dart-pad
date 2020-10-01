@@ -80,7 +80,7 @@ void defineTests() {
       expect(completionsContains(results, 'codeUnitAt'), false);
     });
 
-    test('repro #126 - completions polluted on second request', () {
+    test('repro #126 - completions polluted on second request', () async {
       // https://github.com/dart-lang/dart-services/issues/126
       return analysisServer.complete(completionFilterCode, 17).then((results) {
         return analysisServer
@@ -98,7 +98,6 @@ void defineTests() {
       // We're testing here that we don't have any path imports - we don't want
       // to enable browsing the file system.
       final testCode = "import '/'; main() { int a = 0; a. }";
-
       final results = await analysisServer.complete(testCode, 9);
       final completions = results.completions;
 
@@ -128,12 +127,11 @@ void defineTests() {
       );
     });
 
-    test('import_and_other_test', () {
+    test('import_and_other_test', () async {
       final testCode = "import '/'; main() { int a = 0; a. }";
+      final results = await analysisServer.complete(testCode, 34);
 
-      return analysisServer.complete(testCode, 34).then((results) {
-        expect(completionsContains(results, 'abs'), true);
-      });
+      expect(completionsContains(results, 'abs'), true);
     });
 
     test('simple_quickFix', () async {

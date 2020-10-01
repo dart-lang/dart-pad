@@ -19,6 +19,8 @@ env_variables:
 network:
   name: vpc-dart-services
 
+service: default
+
 skip_files:
 - ^\.git/.*$
 
