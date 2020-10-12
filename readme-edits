@@ -1,0 +1,142 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(new MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: new ClassCoba(),
+  ));
+}
+
+class ClassCoba extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.red,
+
+        //leading: Icon(IconData(58929, fontFamily: 'MaterialIcons'),),
+        title: Text("UTS Matondang Amsari Rajagukguk"),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(IconData(58929, fontFamily: 'MaterialIcons')),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Biodata()),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(IconData(59383, fontFamily: 'MaterialIcons')),
+             onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => Rumus()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class Biodata extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+      title: Text("Form Biodata"),
+      backgroundColor: Colors.red,
+    ),
+    );
+  }
+}
+
+//batas
+
+
+
+//rumus balok
+class Rumus extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+      title: Text("Hitung"),
+      backgroundColor: Colors.red,
+    ),
+      body: Penjumlahan(),
+    );
+  }
+}
+  
+  
+  class Penjumlahan extends StatefulWidget {
+  _PenjumlahanState createState() => _PenjumlahanState();
+}
+
+class _PenjumlahanState extends State<Penjumlahan> {
+  final txtpanjang = TextEditingController();
+  final txtlebar = TextEditingController();
+  final txttinggi   = TextEditingController();
+
+  String result = '';
+
+  getTextInputData() {
+    setState(() {
+      var panjang = int.parse(txtpanjang.text);
+      var lebar = int.parse(txtlebar.text);
+      var tinggi = int.parse(txttinggi.text);
+      var luas = panjang * lebar * tinggi;
+      result = luas.toString();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        body: Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+           Container(
+              width: 280,
+              padding: EdgeInsets.all(10.0),
+              child: TextField(
+                controller: txtpanjang,
+                autocorrect: true,
+                decoration: InputDecoration(hintText: 'Panjang'),
+              )),
+          Container(
+              width: 280,
+              padding: EdgeInsets.all(10.0),
+              child: TextField(
+                controller: txtlebar,
+                autocorrect: true,
+                decoration: InputDecoration(hintText: 'Lebar'),
+              )),
+          Container(
+              width: 280,
+              padding: EdgeInsets.all(10.0),
+              
+              child: TextField(
+                controller: txttinggi,
+                autocorrect: true,
+                decoration: InputDecoration(hintText: 'Tinggi'),
+              )),
+          RaisedButton(
+            onPressed: getTextInputData,
+            color: Color(0xffFF1744),
+            textColor: Colors.white,
+            padding: EdgeInsets.fromLTRB(10, 10, 10, 10),
+            child: Text('Hitung'),
+          ),
+          Padding(
+              padding: EdgeInsets.all(8.0),
+              child: Text("Balok = $result ", style: TextStyle(fontSize: 20)))
+        ],
+      ),
+    ));
+  }
+}
