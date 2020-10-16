@@ -147,7 +147,7 @@ packages:
       name: code_builder
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.4.1"
+    version: "3.5.0"
   codemirror:
     dependency: "direct dev"
     description:
@@ -231,7 +231,7 @@ packages:
       name: googleapis
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.55.0"
+    version: "0.56.1"
   googleapis_auth:
     dependency: transitive
     description:
@@ -252,7 +252,7 @@ packages:
       name: grinder
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.8.5"
+    version: "0.8.6"
   grpc:
     dependency: transitive
     description:
@@ -266,7 +266,7 @@ packages:
       name: html
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.14.0+3"
+    version: "0.14.0+4"
   http:
     dependency: "direct main"
     description:
@@ -646,4 +646,4 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.10.0 <3.0.0"
+  dart: ">=2.10.2 <3.0.0"
