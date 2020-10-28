@@ -24,7 +24,7 @@ void main() {
       var iframe = iframes.first;
       expect(iframe, TypeMatcher<IFrameElement>());
       expect(iframe.attributes['src'],
-          'embed-flutter.html?theme=dark&run=false&split=false&ga_id=example1');
+          'embed-flutter.html?theme=dark&run=false&split=false&ga_id=example1&null_safety=false');
     });
   });
 }
