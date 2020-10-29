@@ -124,6 +124,8 @@ class Playground implements GistContainer, GistController {
   Console _rightConsole;
   Counter unreadConsoleCounter;
 
+  bool nullSafetyEnabled;
+
   Playground() {
     _initDialogs();
     _checkLocalStorage();
@@ -135,7 +137,7 @@ class Playground implements GistContainer, GistController {
       _initLayoutDetection();
       _initButtons();
       _initLabels();
-      _initSamplesMenu();
+      _initSamplesMenu(nullSafe: nullSafetyEnabled);
       _initMoreMenu();
       _initSplitters();
       _initTabs();
@@ -250,7 +252,7 @@ class Playground implements GistContainer, GistController {
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => _showKeyboardDialog());
-    var nullSafetyEnabled = window.localStorage.containsKey('null_safety') &&
+    nullSafetyEnabled = window.localStorage.containsKey('null_safety') &&
         window.localStorage['null_safety'] == 'true';
 
     // Override if a query parameter is provided
@@ -273,21 +275,38 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  void _initSamplesMenu() {
+  void _initSamplesMenu({bool nullSafe = false}) {
     var element = querySelector('#samples-menu');
+    element.children.clear();
 
-    var samples = [
-      Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
-      Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
-      Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
-      Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
-      Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
-      Sample('b3ccb26497ac84895540185935ed5825', 'Sunflower', Layout.flutter),
-      Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics',
-          Layout.flutter),
-      Sample('40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations',
-          Layout.flutter),
-    ];
+    List<Sample> samples;
+    if (nullSafe) {
+      samples = [
+        Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
+        Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
+        Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
+        Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
+        Sample('1a28bdd9203250d3226cc25d512579ec', 'Counter', Layout.flutter),
+        Sample('e0a2e942e85fde2cd39b2741ff0c49e5', 'Sunflower', Layout.flutter),
+        Sample('516c310a7c7d0c6fea90fcb8d26feec2', 'Draggables & physics',
+            Layout.flutter),
+        Sample('4d7650278c256e6bc5c9ba0bfb4b5f35', 'Implicit animations',
+            Layout.flutter),
+      ];
+    } else {
+      samples = [
+        Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
+        Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
+        Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
+        Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
+        Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
+        Sample('b3ccb26497ac84895540185935ed5825', 'Sunflower', Layout.flutter),
+        Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics',
+            Layout.flutter),
+        Sample('40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations',
+            Layout.flutter),
+      ];
+    }
 
     var listElement = UListElement()
       ..classes.add('mdc-list')
@@ -1000,6 +1019,7 @@ class Playground implements GistContainer, GistController {
       window.localStorage['null_safety'] = 'false';
     }
     _performAnalysis();
+    _initSamplesMenu(nullSafe: enabled);
   }
 
   // GistContainer interface
