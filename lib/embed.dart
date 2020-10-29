@@ -810,7 +810,6 @@ class Embed {
     }
     tabController.setTabVisibility(
         'test', context.testMethod.isNotEmpty && _showTestCode);
-    // menuButton.toggleAttr('hidden', context.testMethod.isEmpty);
     menuButton.toggleAttr('hidden', false);
     showHintButton.element.hidden = context.hint.isEmpty;
     solutionTab?.toggleAttr('hidden', context.solution.isEmpty);
