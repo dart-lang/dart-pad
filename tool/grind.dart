@@ -258,6 +258,12 @@ void generateProtos() async {
     arguments: ['--fix', '-w', 'lib/src/protos'],
   );
 
+  // And reformat again, for $REASONS
+  await runWithLogging(
+    'dartfmt',
+    arguments: ['--fix', '-w', 'lib/src/protos'],
+  );
+
   // generate common_server_proto.g.dart
   Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
 }
