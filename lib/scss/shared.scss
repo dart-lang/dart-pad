@@ -96,22 +96,25 @@
   display: inline-block;
   border-radius: 3px;
   padding: 2px 5px;
-  min-width: 53px;
+  min-width: 62px;
 }
 
 .issue .issuelabel.error {
   color: $issue-error-color;
   border: 1px solid $issue-error-color;
+  background-color: transparent;
 }
 
 .issue .issuelabel.warning {
   color: $issue-warning-color;
   border: 1px solid $issue-warning-color;
+  background-color: transparent;
 }
 
 .issue .issuelabel.info {
   color: $issue-info-color;
   border: 1px solid $issue-info-color;
+  background-color: transparent;
 }
 
 .issue .message {

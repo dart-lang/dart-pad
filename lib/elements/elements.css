@@ -160,17 +160,14 @@ button.close:hover {
 
 .label.error {
   color: #000;
-  background-color: rgba(247, 151, 122, 0.8);
 }
 
 .label.warning {
   color: #000;
-  background-color: rgba(255, 247, 154, 0.8);
 }
 
 .label.info {
   color: #000;
-  background-color: rgba(126, 167, 216, 0.8);
 }
 
 /* shell css */
@@ -235,17 +232,6 @@ button.close:hover {
   min-width: 53px;
 }
 
-.issue .issuelabel.error {
-  background-color: #F7977A;
-}
-
-.issue .issuelabel.warning {
-  background-color: #FFF79A;
-}
-
-.issue .issuelabel.info {
-  background-color: #7EA7D8;
-}
 
 .issue .message {
   color: #eee;
