@@ -1,0 +1,47 @@
+name: Dart
+
+on:
+  # Run CI on pushes to the master branch, and on PRs against master.
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  # Check code formating, static analysis, and build on a single OS (linux)
+  # against Dart stable and beta.
+  analyze:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        sdk: [stable, beta]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: ${{ matrix.sdk }}
+      - name: Install dependencies
+        run: sudo apt-get install -y protobuf-compiler redis
+      - name: Report version
+        run: dart --version
+      - name: Install dependencies
+        run: dart pub get
+      - name: Activate pub globals
+        run: dart pub global activate grinder protoc_plugin
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+      - name: Analyze code (lib and test)
+        run: dart analyze .
+      - name: Analyze code (example)
+        run: |
+          cd example
+          echo [Analyzing example]
+          dart pub get
+          dart analyze .
+        shell: bash
+      - name: Prepare to run unit tests (but do not actually run tests).
+        run: dart pub run grinder buildbot
+      - name: Validate storage artifacts
+        run: dart pub run grinder validate-storage-artifacts
+      - name: run tests
+        run: dart test/all.dart
