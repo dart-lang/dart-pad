@@ -26,8 +26,6 @@ jobs:
         run: dart --version
       - name: Install dependencies
         run: dart pub get
-      - name: Activate pub globals
-        run: dart pub global activate grinder protoc_plugin
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed .
       - name: Analyze code (lib and test)
@@ -39,8 +37,18 @@ jobs:
           dart pub get
           dart analyze .
         shell: bash
+      - name: Prepare Flutter
+        run: |
+          git submodule init
+          git submodule update
+          export PATH=$PATH:$PWD/flutter/bin
+          flutter doctor -v
+          flutter config --enable-web
       - name: Prepare to run unit tests (but do not actually run tests).
-        run: dart pub run grinder buildbot
+        run: |
+          dart pub global activate protoc_plugin
+          export PATH=$PATH:$HOME/.pub-cache/bin
+          dart pub run grinder buildbot
       - name: Validate storage artifacts
         run: dart pub run grinder validate-storage-artifacts
       - name: run tests
