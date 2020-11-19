@@ -27,137 +27,105 @@ void defineTests() {
       await compiler.dispose();
     });
 
-    test('simple', () {
-      return compiler.compile(sampleCode).then((CompilationResults result) {
-        print(result.problems);
+    test('simple', () async {
+      final result = await compiler.compile(sampleCode);
+      print(result.problems);
 
-        expect(result.success, true);
-        expect(result.compiledJS, isNotEmpty);
-        expect(result.sourceMap, isNull);
-      });
+      expect(result.success, true);
+      expect(result.compiledJS, isNotEmpty);
+      expect(result.sourceMap, isNull);
     });
 
-    test('compileDDC simple', () {
-      return compiler
-          .compileDDC(sampleCode)
-          .then((DDCCompilationResults result) {
-        expect(result.success, true);
-        expect(result.compiledJS, isNotEmpty);
-        expect(result.modulesBaseUrl, isNotEmpty);
+    test('compileDDC simple', () async {
+      final result = await compiler.compileDDC(sampleCode);
+      expect(result.success, true);
+      expect(result.compiledJS, isNotEmpty);
+      expect(result.modulesBaseUrl, isNotEmpty);
 
-        expect(result.compiledJS, contains("define('dartpad_main', ["));
-      });
+      expect(result.compiledJS, contains("define('dartpad_main', ["));
     });
 
-    test('compileDDC with web', () {
-      return compiler
-          .compileDDC(sampleCodeWeb)
-          .then((DDCCompilationResults result) {
-        expect(result.success, true);
-        expect(result.compiledJS, isNotEmpty);
-        expect(result.modulesBaseUrl, isNotEmpty);
+    test('compileDDC with web', () async {
+      final result = await compiler.compileDDC(sampleCodeWeb);
+      expect(result.success, true);
+      expect(result.compiledJS, isNotEmpty);
+      expect(result.modulesBaseUrl, isNotEmpty);
 
-        expect(result.compiledJS, contains("define('dartpad_main', ["));
-      });
+      expect(result.compiledJS, contains("define('dartpad_main', ["));
     });
 
-    test('compileDDC with Flutter', () {
-      return compiler
-          .compileDDC(sampleCodeFlutter)
-          .then((DDCCompilationResults result) {
-        print(result.problems);
+    test('compileDDC with Flutter', () async {
+      final result = await compiler.compileDDC(sampleCodeFlutter);
+      print(result.problems);
 
-        expect(result.success, true);
-        expect(result.compiledJS, isNotEmpty);
-        expect(result.modulesBaseUrl, isNotEmpty);
+      expect(result.success, true);
+      expect(result.compiledJS, isNotEmpty);
+      expect(result.modulesBaseUrl, isNotEmpty);
 
-        expect(result.compiledJS, contains("define('dartpad_main', ["));
-      });
+      expect(result.compiledJS, contains("define('dartpad_main', ["));
     });
 
-    test('compileDDC with async', () {
-      return compiler
-          .compileDDC(sampleCodeAsync)
-          .then((DDCCompilationResults result) {
-        expect(result.success, true);
-        expect(result.compiledJS, isNotEmpty);
-        expect(result.modulesBaseUrl, isNotEmpty);
+    test('compileDDC with async', () async {
+      final result = await compiler.compileDDC(sampleCodeAsync);
+      expect(result.success, true);
+      expect(result.compiledJS, isNotEmpty);
+      expect(result.modulesBaseUrl, isNotEmpty);
 
-        expect(result.compiledJS, contains("define('dartpad_main', ["));
-      });
+      expect(result.compiledJS, contains("define('dartpad_main', ["));
     });
 
-    test('compileDDC with single error', () {
-      return compiler
-          .compileDDC(sampleCodeError)
-          .then((DDCCompilationResults result) {
-        expect(result.success, false);
-        expect(result.problems.length, 1);
-        expect(result.problems[0].toString(),
-            contains('Error: Expected \';\' after this.'));
-      });
+    test('compileDDC with single error', () async {
+      final result = await compiler.compileDDC(sampleCodeError);
+      expect(result.success, false);
+      expect(result.problems.length, 1);
+      expect(result.problems[0].toString(),
+          contains('Error: Expected \';\' after this.'));
     });
 
-    test('compileDDC with multiple errors', () {
-      return compiler
-          .compileDDC(sampleCodeErrors)
-          .then((DDCCompilationResults result) {
-        expect(result.success, false);
-        expect(result.problems.length, 1);
-        expect(result.problems[0].toString(),
-            contains('Error: Method not found: \'print1\'.'));
-        expect(result.problems[0].toString(),
-            contains('Error: Method not found: \'print2\'.'));
-        expect(result.problems[0].toString(),
-            contains('Error: Method not found: \'print3\'.'));
-      });
+    test('compileDDC with multiple errors', () async {
+      final result = await compiler.compileDDC(sampleCodeErrors);
+      expect(result.success, false);
+      expect(result.problems.length, 1);
+      expect(result.problems[0].toString(),
+          contains('Error: Method not found: \'print1\'.'));
+      expect(result.problems[0].toString(),
+          contains('Error: Method not found: \'print2\'.'));
+      expect(result.problems[0].toString(),
+          contains('Error: Method not found: \'print3\'.'));
     });
 
-    test('sourcemap', () {
-      return compiler
-          .compile(sampleCode, returnSourceMap: true)
-          .then((CompilationResults result) {
-        expect(result.success, true);
-        expect(result.compiledJS, isNotEmpty);
-        expect(result.sourceMap, isNotNull);
-        expect(result.sourceMap, isNotEmpty);
-      });
+    test('sourcemap', () async {
+      final result = await compiler.compile(sampleCode, returnSourceMap: true);
+      expect(result.success, true);
+      expect(result.compiledJS, isNotEmpty);
+      expect(result.sourceMap, isNotNull);
+      expect(result.sourceMap, isNotEmpty);
     });
 
-    test('version', () {
-      return compiler
-          .compile(sampleCode, returnSourceMap: true)
-          .then((CompilationResults result) {
-        expect(result.sourceMap, isNotNull);
-        expect(result.sourceMap, isNotEmpty);
-      });
+    test('version', () async {
+      final result = await compiler.compile(sampleCode, returnSourceMap: true);
+      expect(result.sourceMap, isNotNull);
+      expect(result.sourceMap, isNotEmpty);
     });
 
-    test('simple web', () {
-      return compiler.compile(sampleCodeWeb).then((CompilationResults result) {
-        expect(result.success, true);
-      });
+    test('simple web', () async {
+      final result = await compiler.compile(sampleCodeWeb);
+      expect(result.success, true);
     });
 
-    test('web async', () {
-      return compiler
-          .compile(sampleCodeAsync)
-          .then((CompilationResults result) {
-        expect(result.success, true);
-      });
+    test('web async', () async {
+      final result = await compiler.compile(sampleCodeAsync);
+      expect(result.success, true);
     });
 
-    test('errors', () {
-      return compiler
-          .compile(sampleCodeError)
-          .then((CompilationResults result) {
-        expect(result.success, false);
-        expect(result.problems.length, 1);
-        expect(result.problems[0].toString(), contains('Error: Expected'));
-      });
+    test('errors', () async {
+      final result = await compiler.compile(sampleCodeError);
+      expect(result.success, false);
+      expect(result.problems.length, 1);
+      expect(result.problems[0].toString(), contains('Error: Expected'));
     });
 
-    test('good import', () {
+    test('good import', () async {
       const code = '''
 import 'dart:html';
 
@@ -167,31 +135,28 @@ void main() {
 }
 
 ''';
-      return compiler.compile(code).then((CompilationResults result) {
-        expect(result.problems.length, 0);
-      });
+      final result = await compiler.compile(code);
+      expect(result.problems.length, 0);
     });
 
-    test('bad import - local', () {
+    test('bad import - local', () async {
       const code = '''
 import 'foo.dart';
 void main() { missingMethod ('foo'); }
 ''';
-      return compiler.compile(code).then((CompilationResults result) {
-        expect(result.problems.first.message,
-            equals('unsupported import: foo.dart'));
-      });
+      final result = await compiler.compile(code);
+      expect(result.problems.first.message,
+          equals('unsupported import: foo.dart'));
     });
 
-    test('bad import - http', () {
+    test('bad import - http', () async {
       const code = '''
 import 'http://example.com';
 void main() { missingMethod ('foo'); }
 ''';
-      return compiler.compile(code).then((CompilationResults result) {
-        expect(result.problems.first.message,
-            equals('unsupported import: http://example.com'));
-      });
+      final result = await compiler.compile(code);
+      expect(result.problems.first.message,
+          equals('unsupported import: http://example.com'));
     });
 
     test('disallow compiler warnings', () async {
@@ -199,22 +164,18 @@ void main() { missingMethod ('foo'); }
       expect(result.success, false);
     });
 
-    test('transitive errors', () {
+    test('transitive errors', () async {
       const code = '''
 import 'dart:foo';
 void main() { print ('foo'); }
 ''';
-      return compiler.compile(code).then((CompilationResults result) {
-        expect(result.problems.length, 1);
-      });
+      final result = await compiler.compile(code);
+      expect(result.problems.length, 1);
     });
 
-    test('errors for dart 2', () {
-      return compiler
-          .compile(sampleDart2Error)
-          .then((CompilationResults result) {
-        expect(result.problems.length, 1);
-      });
+    test('errors for dart 2', () async {
+      final result = await compiler.compile(sampleDart2Error);
+      expect(result.problems.length, 1);
     });
   });
 }

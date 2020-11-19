@@ -171,8 +171,11 @@ $_samplePackageName:lib/
   static const String _samplePackageName = 'dartpad_sample';
 
   static String createPubspec(bool includeFlutterWeb) {
+    // Mark the samples as not null safe.
     var content = '''
 name: $_samplePackageName
+environment:
+  sdk: '>=2.10.0 <3.0.0'
 ''';
 
     if (includeFlutterWeb) {
