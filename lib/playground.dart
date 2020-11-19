@@ -288,9 +288,9 @@ class Playground implements GistContainer, GistController {
         Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
         Sample('1a28bdd9203250d3226cc25d512579ec', 'Counter', Layout.flutter),
         Sample('e0a2e942e85fde2cd39b2741ff0c49e5', 'Sunflower', Layout.flutter),
-        Sample('516c310a7c7d0c6fea90fcb8d26feec2', 'Draggables & physics',
+        Sample('5e28c5273c2c1a41d30bad9f9d11da56', 'Draggables & physics',
             Layout.flutter),
-        Sample('4d7650278c256e6bc5c9ba0bfb4b5f35', 'Implicit animations',
+        Sample('289ecf8480ad005f01faeace70bd529a', 'Implicit animations',
             Layout.flutter),
       ];
     } else {
