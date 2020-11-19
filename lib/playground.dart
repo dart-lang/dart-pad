@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:html' hide Console;
 
 import 'package:dart_pad/editing/editor_codemirror.dart';
+import 'package:dart_pad/util/query_params.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -99,6 +100,7 @@ class Playground implements GistContainer, GistController {
   MaterialTabController webLayoutTabController;
   DElement webTabBar;
   DElement webOutputLabel;
+  MDCSwitch nullSafetySwitch;
 
   Splitter splitter;
   Splitter rightSplitter;
@@ -122,6 +124,8 @@ class Playground implements GistContainer, GistController {
   Console _rightConsole;
   Counter unreadConsoleCounter;
 
+  bool nullSafetyEnabled;
+
   Playground() {
     _initDialogs();
     _checkLocalStorage();
@@ -133,7 +137,7 @@ class Playground implements GistContainer, GistController {
       _initLayoutDetection();
       _initButtons();
       _initLabels();
-      _initSamplesMenu();
+      _initSamplesMenu(nullSafe: nullSafetyEnabled);
       _initMoreMenu();
       _initSplitters();
       _initTabs();
@@ -248,6 +252,20 @@ class Playground implements GistContainer, GistController {
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => _showKeyboardDialog());
+    nullSafetyEnabled = window.localStorage.containsKey('null_safety') &&
+        window.localStorage['null_safety'] == 'true';
+
+    // Override if a query parameter is provided
+    if (QueryParams.hasNullSafety) {
+      nullSafetyEnabled = QueryParams.nullSafety;
+    }
+
+    nullSafetySwitch = MDCSwitch(querySelector('#null-safety-switch'))
+      ..checked = nullSafetyEnabled
+      ..listen('change', (event) {
+        _handleNullSafetySwitched(nullSafetySwitch.checked);
+      });
+    _handleNullSafetySwitched(nullSafetyEnabled);
   }
 
   void _initLabels() {
@@ -257,21 +275,38 @@ class Playground implements GistContainer, GistController {
     }
   }
 
-  void _initSamplesMenu() {
+  void _initSamplesMenu({bool nullSafe = false}) {
     var element = querySelector('#samples-menu');
+    element.children.clear();
 
-    var samples = [
-      Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
-      Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
-      Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
-      Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
-      Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
-      Sample('b3ccb26497ac84895540185935ed5825', 'Sunflower', Layout.flutter),
-      Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics',
-          Layout.flutter),
-      Sample('40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations',
-          Layout.flutter),
-    ];
+    List<Sample> samples;
+    if (nullSafe) {
+      samples = [
+        Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
+        Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
+        Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
+        Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
+        Sample('1a28bdd9203250d3226cc25d512579ec', 'Counter', Layout.flutter),
+        Sample('e0a2e942e85fde2cd39b2741ff0c49e5', 'Sunflower', Layout.flutter),
+        Sample('5e28c5273c2c1a41d30bad9f9d11da56', 'Draggables & physics',
+            Layout.flutter),
+        Sample('289ecf8480ad005f01faeace70bd529a', 'Implicit animations',
+            Layout.flutter),
+      ];
+    } else {
+      samples = [
+        Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
+        Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
+        Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
+        Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
+        Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
+        Sample('b3ccb26497ac84895540185935ed5825', 'Sunflower', Layout.flutter),
+        Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics',
+            Layout.flutter),
+        Sample('40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations',
+            Layout.flutter),
+      ];
+    }
 
     var listElement = UListElement()
       ..classes.add('mdc-list')
@@ -560,8 +595,8 @@ class Playground implements GistContainer, GistController {
 
     dartServices.version().then((VersionResponse version) {
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
-      var versionText =
-          'Based on Flutter ${version.flutterVersion} Dart SDK ${version.sdkVersionFull}';
+      var versionText = 'Based on Flutter ${version.flutterVersion}'
+          ' Dart SDK ${version.sdkVersionFull}';
       querySelector('#dartpad-version').text = versionText;
     }).catchError((e) => null);
 
@@ -972,6 +1007,19 @@ class Playground implements GistContainer, GistController {
       editorPanelHeader.setAttr('hidden');
       webOutputLabel.clearAttr('hidden');
     }
+  }
+
+  void _handleNullSafetySwitched(bool enabled) {
+    var api = deps[DartservicesApi] as DartservicesApi;
+    if (enabled) {
+      api.rootUrl = nullSafetyServerUrl;
+      window.localStorage['null_safety'] = 'true';
+    } else {
+      api.rootUrl = serverUrl;
+      window.localStorage['null_safety'] = 'false';
+    }
+    _performAnalysis();
+    _initSamplesMenu(nullSafe: enabled);
   }
 
   // GistContainer interface

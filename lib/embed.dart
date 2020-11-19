@@ -32,6 +32,7 @@ import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'src/util.dart';
 import 'util/keymap.dart';
+import 'util/query_params.dart';
 
 const int defaultSplitterWidth = 6;
 
@@ -101,6 +102,9 @@ class Embed {
   bool _editableTestSolution = false;
   bool _showTestCode = false;
 
+  DElement nullSafetyCheckmark;
+  bool _nullSafetyEnabled = false;
+
   Counter unreadConsoleCounter;
 
   FlashBox testResultBox;
@@ -123,6 +127,7 @@ class Embed {
 
   Console consoleExpandController;
   DElement webOutputLabel;
+  DElement featureMessage;
 
   MDCLinearProgress linearProgress;
   Dialog dialog;
@@ -249,6 +254,8 @@ class Embed {
     showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
     editableTestSolutionCheckmark =
         DElement(querySelector('#editable-test-solution-checkmark'));
+    nullSafetyCheckmark =
+        DElement(querySelector('#toggle-null-safety-checkmark'));
 
     morePopover = DElement(querySelector('#more-popover'));
     menuButton =
@@ -275,6 +282,11 @@ class Embed {
               'hide', !_editableTestSolution);
           testEditor.readOnly =
               solutionEditor.readOnly = !_editableTestSolution;
+          break;
+        case 2:
+          // Null safety
+          nullSafetyEnabled = !nullSafetyEnabled;
+          nullSafetyCheckmark.toggleClass('hide', !nullSafetyEnabled);
           break;
       }
     });
@@ -421,10 +433,13 @@ class Embed {
       webOutputLabel = DElement(webOutputLabelElement);
     }
 
+    featureMessage = DElement(querySelector('#feature-message'));
+    featureMessage.toggleAttr('hidden', true);
+
     linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
     linearProgress.determinate = false;
 
-    _initModules().then((_) => _init()).then((_) => _emitReady());
+    _initModules().then((_) => _init()).then((_) => _emitReady()).then((_) => _initNullSafety());
   }
 
   /// Initializes a listener for messages from the parent window. Allows this
@@ -533,6 +548,40 @@ class Embed {
 
   bool get githubParamsPresent =>
       githubOwner.isNotEmpty && githubRepo.isNotEmpty && githubPath.isNotEmpty;
+
+  void _initNullSafety() {
+    if (QueryParams.hasNullSafety && QueryParams.nullSafety) {
+      nullSafetyEnabled = true;
+    }
+  }
+
+  set nullSafetyEnabled(bool enabled) {
+    _nullSafetyEnabled = enabled;
+    _handleNullSafetySwitched(enabled);
+    if (enabled) {
+      featureMessage.text = 'Null safety';
+      featureMessage.toggleAttr('hidden', false);
+    } else {
+      featureMessage.text = 'Null safety';
+      featureMessage.toggleAttr('hidden', false);
+    }
+  }
+
+  bool get nullSafetyEnabled {
+    return _nullSafetyEnabled;
+  }
+
+  void _handleNullSafetySwitched(bool enabled) {
+    var api = deps[DartservicesApi] as DartservicesApi;
+    if (enabled) {
+      api.rootUrl = nullSafetyServerUrl;
+      window.localStorage['null_safety'] = 'true';
+    } else {
+      api.rootUrl = serverUrl;
+      window.localStorage['null_safety'] = 'false';
+    }
+    _performAnalysis();
+  }
 
   Future<void> _initModules() async {
     var modules = ModuleManager();
@@ -761,7 +810,7 @@ class Embed {
     }
     tabController.setTabVisibility(
         'test', context.testMethod.isNotEmpty && _showTestCode);
-    menuButton.toggleAttr('hidden', context.testMethod.isEmpty);
+    menuButton.toggleAttr('hidden', false);
     showHintButton.element.hidden = context.hint.isEmpty;
     solutionTab?.toggleAttr('hidden', context.solution.isEmpty);
     editorIsBusy = false;

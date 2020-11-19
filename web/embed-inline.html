@@ -107,7 +107,7 @@ BSD-style license that can be found in the LICENSE file. -->
             Run
         </button>
         <div class="position-relative text-right pr-2">
-            <button id="menu-button" class="mdc-icon-button material-icons" hidden>more_vert</button>
+            <button id="menu-button" class="mdc-icon-button material-icons">more_vert</button>
             <div id="main-menu" class="mdc-menu mdc-menu-surface">
                 <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
                     <li id="show-test-menu-item" class="mdc-list-item" role="menuitem">
@@ -120,8 +120,14 @@ BSD-style license that can be found in the LICENSE file. -->
                       <span id="editable-test-solution-checkmark" class="mdc-list-item__graphic hide">
                           <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
                       </span>
-                      <span class="mdc-list-item__text">Editable test/solution</span>
-                  </li>
+                        <span class="mdc-list-item__text">Editable test/solution</span>
+                    </li>
+                    <li id="toggle-null-safety-menu-item" class="mdc-list-item" role="menuitem">
+                        <span id="toggle-null-safety-checkmark" class="mdc-list-item__graphic hide">
+                            <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
+                        </span>
+                        <span class="mdc-list-item__text">Null Safety</span>
+                    </li>
                 </ul>
             </div>
         </div>
@@ -155,7 +161,8 @@ BSD-style license that can be found in the LICENSE file. -->
     </div>
 </section>
 <footer flex layout horizontal class="footer">
-    <div id="issues-message"></div>
+    <div id="feature-message" class="info-message"></div>
+    <div id="issues-message" class="info-message"></div>
     <button id="issues-toggle" class="mdc-button mdc-button--dense mdc-button--outlined" hidden></button>
 </footer>
 
