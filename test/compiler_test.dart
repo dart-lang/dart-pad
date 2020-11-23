@@ -36,43 +36,57 @@ void defineTests() {
       expect(result.sourceMap, isNull);
     });
 
-    test('compileDDC simple', () async {
-      final result = await compiler.compileDDC(sampleCode);
-      expect(result.success, true);
-      expect(result.compiledJS, isNotEmpty);
-      expect(result.modulesBaseUrl, isNotEmpty);
+    Future<void> Function() _generateCompilerDDCTest(String sample) =>
+        () async {
+          final result = await compiler.compileDDC(sample);
+          print(result.problems);
 
-      expect(result.compiledJS, contains("define('dartpad_main', ["));
-    });
+          expect(result.success, true);
+          expect(result.compiledJS, isNotEmpty);
+          expect(result.modulesBaseUrl, isNotEmpty);
 
-    test('compileDDC with web', () async {
-      final result = await compiler.compileDDC(sampleCodeWeb);
-      expect(result.success, true);
-      expect(result.compiledJS, isNotEmpty);
-      expect(result.modulesBaseUrl, isNotEmpty);
+          expect(result.compiledJS, contains("define('dartpad_main', ["));
+        };
 
-      expect(result.compiledJS, contains("define('dartpad_main', ["));
-    });
+    test(
+      'compileDDC simple',
+      _generateCompilerDDCTest(sampleCode),
+    );
 
-    test('compileDDC with Flutter', () async {
-      final result = await compiler.compileDDC(sampleCodeFlutter);
-      print(result.problems);
+    test(
+      'compileDDC with web',
+      _generateCompilerDDCTest(sampleCodeWeb),
+    );
 
-      expect(result.success, true);
-      expect(result.compiledJS, isNotEmpty);
-      expect(result.modulesBaseUrl, isNotEmpty);
+    test(
+      'compileDDC with Flutter',
+      _generateCompilerDDCTest(sampleCodeFlutter),
+    );
 
-      expect(result.compiledJS, contains("define('dartpad_main', ["));
-    });
+    test(
+      'compileDDC with Flutter Counter',
+      _generateCompilerDDCTest(sampleCodeFlutterCounter),
+    );
 
-    test('compileDDC with async', () async {
-      final result = await compiler.compileDDC(sampleCodeAsync);
-      expect(result.success, true);
-      expect(result.compiledJS, isNotEmpty);
-      expect(result.modulesBaseUrl, isNotEmpty);
+    test(
+      'compileDDC with Flutter Sunflower',
+      _generateCompilerDDCTest(sampleCodeFlutterSunflower),
+    );
 
-      expect(result.compiledJS, contains("define('dartpad_main', ["));
-    });
+    test(
+      'compileDDC with Flutter Draggable Card',
+      _generateCompilerDDCTest(sampleCodeFlutterDraggableCard),
+    );
+
+    test(
+      'compileDDC with Flutter Implicit Animations',
+      _generateCompilerDDCTest(sampleCodeFlutterImplicitAnimations),
+    );
+
+    test(
+      'compileDDC with async',
+      _generateCompilerDDCTest(sampleCodeAsync),
+    );
 
     test('compileDDC with single error', () async {
       final result = await compiler.compileDDC(sampleCodeError);
