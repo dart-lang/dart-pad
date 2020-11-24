@@ -283,7 +283,8 @@ class Playground implements GistContainer, GistController {
     if (nullSafe) {
       samples = [
         Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
-        Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
+        Sample(
+            'e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
         Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
         Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
         Sample('1a28bdd9203250d3226cc25d512579ec', 'Counter', Layout.flutter),
@@ -296,7 +297,8 @@ class Playground implements GistContainer, GistController {
     } else {
       samples = [
         Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
-        Sample('e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
+        Sample(
+            'e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
         Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
         Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
         Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
