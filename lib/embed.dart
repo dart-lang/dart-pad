@@ -439,7 +439,10 @@ class Embed {
     linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
     linearProgress.determinate = false;
 
-    _initModules().then((_) => _init()).then((_) => _emitReady()).then((_) => _initNullSafety());
+    _initModules()
+        .then((_) => _init())
+        .then((_) => _emitReady())
+        .then((_) => _initNullSafety());
   }
 
   /// Initializes a listener for messages from the parent window. Allows this

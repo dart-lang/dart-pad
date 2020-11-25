@@ -1,0 +1,37 @@
+name: Dart
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        sdk: [stable, beta, dev]
+    
+    steps:
+      - uses: actions/checkout@v2
+      - uses: cedx/setup-dart@v2
+        with:
+          release-channel: ${{ matrix.sdk }}
+      - uses: actions/setup-node@v1
+      
+      - name: Print Dart SDK version
+        run: dart --version
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyze project source
+        run: dart analyze --fatal-infos
+
+      - name: Run travis
+        run: ./tool/travis.sh

@@ -482,7 +482,7 @@ abstract class DDialog extends DElement {
     content = add(DElement.tag('div', classes: 'content'));
 
     // padding
-    add(DElement.tag('div'))..flex();
+    add(DElement.tag('div')).flex();
 
     buttonArea = add(DElement.tag('div', classes: 'buttons')
       ..setAttr('layout')

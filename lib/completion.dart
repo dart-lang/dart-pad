@@ -4,7 +4,6 @@
 
 library dartpad.completion;
 
-
 import 'dart:convert' show jsonDecode;
 
 import 'editing/editor.dart';
@@ -143,7 +142,7 @@ class DartCompleter extends CodeCompleter {
               cursorPos = text.indexOf('(') + 1;
             }
 
-            if(completion.selectionOffset != null) {
+            if (completion.selectionOffset != null) {
               cursorPos = completion.selectionOffset;
             }
 

@@ -18,7 +18,7 @@ class OkCancelDialog extends DDialog {
       {String okText = 'OK', String cancelText = 'Cancel'})
       : super(title: title) {
     element.classes.toggle('sharing-dialog', true);
-    content.add(ParagraphElement())..text = message;
+    content.add(ParagraphElement()).text = message;
 
     var cancelButton = buttonArea.add(DButton.button(text: cancelText));
     buttonArea.add(SpanElement()..attributes['flex'] = '');
@@ -94,7 +94,7 @@ class SharingDialog extends DDialog {
     // Already sharing.
     _div = DElement.tag('div')..layoutVertical();
     var div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
-    div.add(DElement.tag('span', classes: 'sharinglabel'))..text = 'DartPad:';
+    div.add(DElement.tag('span', classes: 'sharinglabel')).text = 'DartPad:';
     var inputGroup = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
@@ -104,8 +104,8 @@ class SharingDialog extends DDialog {
     _padUrl.onClick.listen((_) => _padUrl.selectAll());
 
     div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
-    div.add(DElement.tag('span', classes: 'sharinglabel'))
-      ..text = 'gist.github.com:';
+    div.add(DElement.tag('span', classes: 'sharinglabel')).text =
+        'gist.github.com:';
     inputGroup = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
@@ -114,7 +114,7 @@ class SharingDialog extends DDialog {
       ..readonly();
     _gistUrl.onClick.listen((_) => _gistUrl.selectAll());
     div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
-    div.add(DElement.tag('span', classes: 'sharinglabel'))..text = 'Embed:';
+    div.add(DElement.tag('span', classes: 'sharinglabel')).text = 'Embed:';
     inputGroup = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
