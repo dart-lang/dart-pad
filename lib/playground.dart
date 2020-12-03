@@ -350,7 +350,8 @@ class Playground implements GistContainer, GistController {
     samplesMenu.listen('MDCMenu:selected', (e) {
       var index = (e as CustomEvent).detail['index'] as int;
       var gistId = samples.elementAt(index).gistId;
-      router.go('gist', {'gist': gistId});
+      router.go('gist', {'gist': gistId},
+          queryParameters: QueryParams.parameters);
     });
   }
 
@@ -1088,7 +1089,8 @@ class Playground implements GistContainer, GistController {
     if (ga != null) ga.sendEvent('main', 'new');
 
     _showSnackbar('New pad created');
-    await router.go('gist', {'gist': ''}, forceReload: true);
+    await router.go('gist', {'gist': ''},
+        queryParameters: QueryParams.parameters, forceReload: true);
   }
 
   Future<void> createGistForLayout(Layout layout) async {
@@ -1100,7 +1102,8 @@ class Playground implements GistContainer, GistController {
 
     var layoutStr = _layoutToString(layout);
 
-    await router.go(layoutStr, {}, forceReload: true);
+    await router.go(layoutStr, {},
+        forceReload: true, queryParameters: QueryParams.parameters);
   }
 
   void _resetGists() {

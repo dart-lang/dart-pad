@@ -1,6 +1,11 @@
 import 'dart:html';
 
 class QueryParams {
+
+  static Map<String, String> get parameters {
+    return Uri.parse(window.location.toString()).queryParameters;
+  }
+
   static bool get nullSafety {
     var url = Uri.parse(window.location.toString());
 
