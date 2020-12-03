@@ -1020,6 +1020,9 @@ class Playground implements GistContainer, GistController {
       api.rootUrl = serverUrl;
       window.localStorage['null_safety'] = 'false';
     }
+
+    QueryParams.nullSafety = enabled;
+
     _performAnalysis();
     _initSamplesMenu(nullSafe: enabled);
   }
