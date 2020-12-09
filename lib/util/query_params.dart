@@ -1,6 +1,10 @@
 import 'dart:html';
 
 class QueryParams {
+  static Map<String, String> get parameters {
+    return Uri.parse(window.location.toString()).queryParameters;
+  }
+
   static bool get nullSafety {
     var url = Uri.parse(window.location.toString());
 
@@ -11,6 +15,18 @@ class QueryParams {
     }
 
     return false;
+  }
+
+  static set nullSafety(bool enabled) {
+    var url = Uri.parse(window.location.toString());
+    var params = Map<String, String>.from(url.queryParameters);
+    if (enabled) {
+      params['null_safety'] = 'true';
+    } else if (params.containsKey('null_safety')) {
+      params.remove('null_safety');
+    }
+    url = url.replace(queryParameters: params);
+    window.history.replaceState({}, 'DartPad', url.toString());
   }
 
   static bool get hasNullSafety {
