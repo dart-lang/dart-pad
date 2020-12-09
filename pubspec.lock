@@ -70,14 +70,14 @@ packages:
       name: build
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.5.1"
+    version: "1.5.2"
   build_config:
     dependency: transitive
     description:
       name: build_config
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.4.3"
+    version: "0.4.4"
   build_daemon:
     dependency: transitive
     description:
@@ -91,21 +91,21 @@ packages:
       name: build_resolvers
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.4.3"
+    version: "1.4.4"
   build_runner:
     dependency: "direct dev"
     description:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.10.6"
+    version: "1.10.7"
   build_runner_core:
     dependency: transitive
     description:
       name: build_runner_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.1.1"
+    version: "6.1.2"
   built_collection:
     dependency: transitive
     description:
@@ -310,7 +310,7 @@ packages:
     source: hosted
     version: "0.16.1"
   io:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: io
       url: "https://pub.dartlang.org"
@@ -490,7 +490,7 @@ packages:
       name: source_gen
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.9.8"
+    version: "0.9.9"
   source_map_stack_trace:
     dependency: transitive
     description:
@@ -560,7 +560,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.15.6"
+    version: "1.15.7"
   test_api:
     dependency: transitive
     description:
@@ -574,7 +574,7 @@ packages:
       name: test_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.11+3"
+    version: "0.3.11+4"
   timing:
     dependency: transitive
     description:

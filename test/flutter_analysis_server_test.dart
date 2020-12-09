@@ -210,7 +210,6 @@ void defineTests() {
     setUp(() async {
       await SdkManager.flutterSdk.init();
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-      await flutterWebManager.warmup();
       analysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
       await analysisServer.init();
       await analysisServer.warmup();
@@ -218,7 +217,6 @@ void defineTests() {
 
     tearDown(() async {
       await analysisServer.shutdown();
-      await flutterWebManager.dispose();
     });
 
     test('analyze counter app', () async {

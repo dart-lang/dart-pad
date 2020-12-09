@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bazel_worker/driver.dart';
+import 'package:io/io.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -43,7 +44,6 @@ class Compiler {
   }
 
   Future<CompilationResults> warmup({bool useHtml = false}) async {
-    await _flutterWebManager.warmup();
     return compile(useHtml ? sampleCodeWeb : sampleCode);
   }
 
@@ -65,16 +65,19 @@ class Compiler {
     _logger.info('Temp directory created: ${temp.path}');
 
     try {
+      await copyPath(_flutterWebManager.dartTemplateProject.path, temp.path);
+      await Directory(path.join(temp.path, 'lib')).create(recursive: true);
+
       final arguments = <String>[
         '--suppress-hints',
         '--terse',
         if (!returnSourceMap) '--no-source-maps',
-        '--packages=${_flutterWebManager.packagesFilePath}',
+        '--packages=${path.join('.dart_tool', 'package_config.json')}',
         ...['-o', '$kMainDart.js'],
-        kMainDart,
+        path.join('lib', kMainDart),
       ];
 
-      final compileTarget = path.join(temp.path, kMainDart);
+      final compileTarget = path.join(temp.path, 'lib', kMainDart);
       final mainDart = File(compileTarget);
       await mainDart.writeAsString(input);
 
@@ -82,7 +85,7 @@ class Compiler {
       final mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
 
       final dart2JSPath = path.join(_sdk.sdkPath, 'bin', 'dart2js');
-      _logger.info('About to exec: $dart2JSPath $arguments');
+      _logger.info('About to exec: $dart2JSPath ${arguments.join(' ')}');
 
       final result = await Process.run(dart2JSPath, arguments,
           workingDirectory: temp.path);
@@ -128,9 +131,17 @@ class Compiler {
 
     try {
       final usingFlutter = _flutterWebManager.usesFlutterWeb(imports);
+      if (usingFlutter) {
+        await copyPath(
+            _flutterWebManager.flutterTemplateProject.path, temp.path);
+      } else {
+        await copyPath(_flutterWebManager.dartTemplateProject.path, temp.path);
+      }
 
-      final mainPath = path.join(temp.path, kMainDart);
-      final bootstrapPath = path.join(temp.path, kBootstrapDart);
+      await Directory(path.join(temp.path, 'lib')).create(recursive: true);
+
+      final mainPath = path.join(temp.path, 'lib', kMainDart);
+      final bootstrapPath = path.join(temp.path, 'lib', kBootstrapDart);
       final bootstrapContents =
           usingFlutter ? kBootstrapFlutterCode : kBootstrapDartCode;
 
@@ -148,7 +159,7 @@ class Compiler {
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         ...['--module-name', 'dartpad_main'],
         bootstrapPath,
-        '--packages=${_flutterWebManager.packagesFilePath}',
+        '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];
 
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
@@ -189,7 +200,6 @@ class Compiler {
   }
 
   Future<void> dispose() async {
-    await _flutterWebManager.dispose();
     return _ddcDriver.terminateWorkers();
   }
 }

@@ -14,6 +14,7 @@ dependencies:
   crypto: ^2.0.0
   dartis: ^0.5.0
   http: ^0.12.0
+  io: ^0.3.4
   logging: ^0.11.0
   meta: ^1.1.8
   path: ^1.6.2

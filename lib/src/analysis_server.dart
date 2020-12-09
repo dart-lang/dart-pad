@@ -76,7 +76,7 @@ class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
   }
 
   @override
-  String get _sourceDirPath => flutterWebManager.projectDirectory.path;
+  String get _sourceDirPath => flutterWebManager.flutterTemplateProject.path;
 
   @override
   Future<proto.AnalysisResults> analyze(String source) {

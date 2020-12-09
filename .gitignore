@@ -18,6 +18,7 @@ dump.rdb
 
 # compilation artifacts
 artifacts/
+project_templates/
 
 # local configuration
 config.properties

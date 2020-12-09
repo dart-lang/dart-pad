@@ -7,12 +7,12 @@ library services.grind;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:grinder/grinder.dart';
 import 'package:grinder/grinder_files.dart';
 import 'package:grinder/src/run_utils.dart' show mergeWorkingDirectory;
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 Future<void> main(List<String> args) async {
@@ -22,8 +22,8 @@ Future<void> main(List<String> args) async {
 }
 
 @Task()
-void analyze() {
-  Pub.run('tuneup', arguments: ['check']);
+void analyze() async {
+  await runWithLogging('dart', arguments: ['analyze']);
 }
 
 @Task()
@@ -86,7 +86,52 @@ Future _validateExists(String url) async {
   }
 }
 
+@Task('build the project templates')
+void buildProjectTemplates() async {
+  final templatesPath =
+      Directory(path.join(Directory.current.path, 'project_templates'));
+  final exists = await templatesPath.exists();
+  if (exists) {
+    await templatesPath.delete(recursive: true);
+  }
+
+  final dartProjectPath =
+      Directory(path.join(templatesPath.path, 'dart_project'));
+  final dartProjectDir = await dartProjectPath.create(recursive: true);
+  joinFile(dartProjectDir, ['pubspec.yaml'])
+      .writeAsStringSync(createPubspec(includeFlutterWeb: false));
+  await _runDartPubGet(dartProjectDir);
+
+  final flutterProjectPath =
+      Directory(path.join(templatesPath.path, 'flutter_project'));
+  final flutterProjectDir = await flutterProjectPath.create(recursive: true);
+  joinFile(flutterProjectDir, ['pubspec.yaml'])
+      .writeAsStringSync(createPubspec(includeFlutterWeb: true));
+  await _runFlutterPubGet(flutterProjectDir);
+}
+
+Future<void> _runDartPubGet(Directory dir) async {
+  log('running dart pub get (${dir.path})');
+
+  await runWithLogging(
+    path.join(SdkManager.sdk.sdkPath, 'bin', 'dart'),
+    arguments: ['pub', 'get'],
+    workingDirectory: dir.path,
+  );
+}
+
+Future<void> _runFlutterPubGet(Directory dir) async {
+  log('running flutter pub get (${dir.path})');
+
+  await runWithLogging(
+    path.join(SdkManager.flutterSdk.flutterBinPath, 'flutter'),
+    arguments: ['pub', 'get'],
+    workingDirectory: dir.path,
+  );
+}
+
 @Task('build the sdk compilation artifacts for upload to google storage')
+@Depends(buildProjectTemplates)
 void buildStorageArtifacts() async {
   // build and copy dart_sdk.js, flutter_web.js, and flutter_web.dill
   final temp = Directory.systemTemp.createTempSync('flutter_web_sample');
@@ -101,7 +146,7 @@ void buildStorageArtifacts() async {
 void _buildStorageArtifacts(Directory dir) async {
   final flutterSdkPath =
       Directory(path.join(Directory.current.path, 'flutter'));
-  final pubspec = FlutterWebManager.createPubspec(true);
+  final pubspec = createPubspec(includeFlutterWeb: true);
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
   // run flutter pub get
@@ -142,7 +187,7 @@ void _buildStorageArtifacts(Directory dir) async {
   // Make sure flutter/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
   // is installed.
   await runWithLogging(
-    path.join(flutterSdkPath.path, 'bin/flutter'),
+    path.join(flutterSdkPath.path, 'bin', 'flutter'),
     arguments: ['precache', '--web'],
     workingDirectory: dir.path,
   );
@@ -289,4 +334,27 @@ Future<void> runWithLogging(String executable,
   if (exitCode != 0) {
     fail('Unable to exec $executable, failed with code $exitCode');
   }
+}
+
+const String _samplePackageName = 'dartpad_sample';
+
+String createPubspec({@required bool includeFlutterWeb}) {
+  // Mark the samples as not null safe.
+  var content = '''
+name: $_samplePackageName
+environment:
+  sdk: '>=2.10.0 <3.0.0'
+''';
+
+  if (includeFlutterWeb) {
+    content += '''
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_test:
+    sdk: flutter
+''';
+  }
+
+  return content;
 }

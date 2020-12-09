@@ -49,9 +49,6 @@ class AnalysisServersWrapper {
     _flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     _flutterAnalysisServer = FlutterAnalysisServerWrapper(_flutterWebManager);
 
-    await _flutterWebManager.warmup();
-    _logger.info('FlutterWebManager warmed up');
-
     await _dartAnalysisServer.init();
     _logger.info('Dart analysis server initialized.');
 
@@ -93,7 +90,6 @@ class AnalysisServersWrapper {
     _restartingSince = DateTime.now();
 
     return Future.wait(<Future<dynamic>>[
-      _flutterWebManager.dispose(),
       _flutterAnalysisServer.shutdown(),
       _dartAnalysisServer.shutdown(),
     ]);

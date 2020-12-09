@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/sdk_manager.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() => defineTests();
@@ -20,14 +22,11 @@ void defineTests() {
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
     });
 
-    tearDown(() {
-      flutterWebManager.dispose();
-    });
-
-    test('inited', () {
-      expect(flutterWebManager.projectDirectory.existsSync(), isTrue);
-      final file = File(flutterWebManager.packagesFilePath);
-      expect(file.existsSync(), isTrue);
+    test('inited', () async {
+      expect(await flutterWebManager.flutterTemplateProject.exists(), isTrue);
+      final file = File(path.join(flutterWebManager.flutterTemplateProject.path,
+          '.dart_tool', 'package_config.json'));
+      expect(await file.exists(), isTrue);
     });
 
     test('usesFlutterWeb', () {
@@ -58,20 +57,20 @@ void defineTests() {
       await SdkManager.sdk.init();
       await SdkManager.flutterSdk.init();
       flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
-      await flutterWebManager.warmup();
     });
 
-    tearDownAll(() {
-      flutterWebManager.dispose();
-    });
-
-    test('packagesFilePath', () {
-      final packagesPath = flutterWebManager.packagesFilePath;
-      expect(packagesPath, isNotEmpty);
-
-      final file = File(packagesPath);
-      final lines = file.readAsLinesSync();
-      expect(lines, anyElement(startsWith('flutter:file://')));
+    test('packagesFilePath', () async {
+      final packageConfig = File(path.join(
+          flutterWebManager.flutterTemplateProject.path,
+          '.dart_tool',
+          'package_config.json'));
+      expect(await packageConfig.exists(), true);
+      final contents = jsonDecode(await packageConfig.readAsString());
+      expect(contents['packages'], isNotEmpty);
+      expect(
+          (contents['packages'] as List)
+              .where((element) => element['name'] == 'flutter'),
+          isNotEmpty);
     });
 
     test('summaryFilePath', () {
