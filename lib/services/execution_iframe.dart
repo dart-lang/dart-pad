@@ -172,10 +172,11 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     // The loop below iterates over the properties of the exported object,
     // looking for one that ends in "__bootstrap". Once found, it executes the
     // bootstrapped main method, which calls the user's main method, which
-    // (presumably) calls runApp and starts Flutter's rendering. 
+    // (presumably) calls runApp and starts Flutter's rendering.
 
+    // TODO: simplify this once we are firmly in a post Flutter 1.24 world.
     for (var prop in dartpad_main) {
-          if (prop.endsWith("__bootstrap")) {
+          if (prop.endsWith("bootstrap")) {
             dartpad_main[prop].main();
           }
     }});
