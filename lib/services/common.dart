@@ -10,8 +10,8 @@ import 'dart:math';
 // spread its traffic. For simplicity's sake, at the current time DartPad picks
 // one at launch and sticks with it until the window is closed.
 final serverUrls = [
-  'https://flutter-1-24---dart-service-cloud-run-hdjctvyqtq-uc.a.run.app/',
-  // 'https://flutter-1-23---dart-service-cloud-run-hdjctvyqtq-uc.a.run.app/',
+  'https://dart-services.appspot.com/',
+  'https://dart-services-0.appspot.com/',
 ];
 
 // Used when null safety is enabled in the UI.
