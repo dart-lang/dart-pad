@@ -69,10 +69,9 @@ class ExecutionServiceIFrame implements ExecutionService {
   /// TODO(redbrogdon): Format message so internal double quotes are escaped.
   @override
   String get testResultDecoration => '''
-void _result(bool success, [List<String> messages]) {
+void _result(bool success, [List<String> messages = const []]) {
   // Join messages into a comma-separated list for inclusion in the JSON array.
-  final joinedMessages = messages?.map((m) => '"\$m"')?.join(',') ?? '';
-
+  final joinedMessages = messages.map((m) => '"\$m"').join(',');
   print('$testKey{"success": \$success, "messages": [\$joinedMessages]}');
 }
 

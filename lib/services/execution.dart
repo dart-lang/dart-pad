@@ -39,8 +39,8 @@ abstract class ExecutionService {
 
   Stream<TestResult> get testResults;
 
-  /// This method should be added to any Dart code that needs to report a test
-  /// result while executing via this service. It calls `print` with a specially
+  /// The method returned here should be added to any Dart code that needs to
+  /// report a test result while executing via this service. It calls `print` with a specially
   /// constructed string, which is caught by the `dartPrint` method and routed
   /// to [testResults] rather than the [onStdout] stream.
   String get testResultDecoration;
