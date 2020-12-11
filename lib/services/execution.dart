@@ -43,5 +43,5 @@ abstract class ExecutionService {
   /// report a test result while executing via this service. It calls `print` with a specially
   /// constructed string, which is caught by the `dartPrint` method and routed
   /// to [testResults] rather than the [onStdout] stream.
-  String testResultDecoration;
+  String get testResultDecoration;
 }
