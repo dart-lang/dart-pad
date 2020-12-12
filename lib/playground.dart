@@ -1041,7 +1041,10 @@ class Playground implements GistContainer, GistController {
     var result = await dialog.showOkCancel(
         'Create New Pad', 'Discard changes to the current pad?');
     if (result == DialogResult.ok) {
-      var layout = await newPadDialog.show();
+      final layout = await newPadDialog.show();
+      if (layout == null) {
+        return;
+      }
       await createGistForLayout(layout);
       _changeLayout(layout);
     }
