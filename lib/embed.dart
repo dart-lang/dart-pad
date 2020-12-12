@@ -561,13 +561,8 @@ class Embed {
   set nullSafetyEnabled(bool enabled) {
     _nullSafetyEnabled = enabled;
     _handleNullSafetySwitched(enabled);
-    if (enabled) {
-      featureMessage.text = 'Null safety';
-      featureMessage.toggleAttr('hidden', false);
-    } else {
-      featureMessage.text = 'Null safety';
-      featureMessage.toggleAttr('hidden', false);
-    }
+    featureMessage.text = 'Null safety';
+    featureMessage.toggleAttr('hidden', !enabled);
   }
 
   bool get nullSafetyEnabled {
