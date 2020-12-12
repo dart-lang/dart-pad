@@ -16,7 +16,7 @@ import 'package:yaml/yaml.dart' as yaml;
 import '../util/detect_flutter.dart' as detect_flutter;
 
 final String _dartpadLink =
-    '[dartpad.dartlang.org](https://dartpad.dartlang.org)';
+    '[dartpad.dev](https://dartpad.dev)';
 
 final RegExp _gistRegex = RegExp(r'^[0-9a-f]+$');
 

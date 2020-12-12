@@ -176,7 +176,7 @@ ${libraryName == null ? '' : apiLink}\n\n''';
       if (libraryName.contains('dart:')) {
         libraryName = libraryName.replaceAll(':', '-');
         apiLink.write(
-            'https://api.dartlang.org/stable/$libraryName/$libraryName-library.html');
+            'https://api.dart.dev/stable/$libraryName/$libraryName-library.html');
 
         return '[Open library docs]($apiLink)';
       }
