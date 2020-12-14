@@ -48,7 +48,7 @@ class AboutDialog extends DDialog {
 }
 
 class SharingDialog extends DDialog {
-  final String home = 'dartpad.dartlang.org';
+  final String home = 'dartpad.dev';
   final String _dartThumbnail = 'pictures/embed-dart.png';
   final String _htmlThumbnail = 'pictures/embed-html.png';
   final GistContainer gistContainer;
@@ -225,7 +225,7 @@ class SharingDialog extends DDialog {
       _textArea.style.display = 'none';
       var gist = gistContainer.mutableGist;
       content.add(_div);
-      _padUrl.value = 'https://dartpad.dartlang.org/${gist.id}';
+      _padUrl.value = 'https://dartpad.dev/${gist.id}';
       _gistUrl.value = gist.htmlUrl;
       _embedHtmlRadio.checked = false;
       _embedDartRadio.checked = true;
