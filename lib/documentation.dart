@@ -4,7 +4,6 @@
 
 library dartpad.documentation;
 
-import 'dart:async';
 import 'dart:convert' as convert show htmlEscape;
 import 'dart:html';
 import 'dart:math' as math;
@@ -60,21 +59,20 @@ class DocHandler {
         .document(request)
         .timeout(serviceCallTimeout)
         .then((DocumentResponse result) {
-      return _getHtmlTextFor(result).then((_DocResult docResult) {
-        if (docResult.html == '') {
-          docPanel.innerHtml =
-              "<div class='default-text-div layout horizontal center-center'>"
-              "<span class='default-text'>Documentation</span></div>";
-          return;
-        }
-        docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-        for (final a in docPanel.querySelectorAll('a')) {
-          if (a is AnchorElement) a.target = 'docs';
-        }
-        for (final h in docPanel.querySelectorAll('h1')) {
-          h.classes.add('type-${docResult.entitykind}');
-        }
-      });
+      final docResult = _getHtmlTextFor(result);
+      if (docResult.html == '') {
+        docPanel.innerHtml =
+            "<div class='default-text-div layout horizontal center-center'>"
+            "<span class='default-text'>Documentation</span></div>";
+        return;
+      }
+      docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
+      for (final a in docPanel.querySelectorAll('a')) {
+        if (a is AnchorElement) a.target = 'docs';
+      }
+      for (final h in docPanel.querySelectorAll('h1')) {
+        h.classes.add('type-${docResult.entitykind}');
+      }
     });
   }
 
@@ -105,15 +103,14 @@ class DocHandler {
         .document(request)
         .timeout(serviceCallTimeout)
         .then((DocumentResponse result) {
-      return _getHtmlTextFor(result).then((_DocResult docResult) {
-        docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-        for (final a in docPanel.querySelectorAll('a')) {
-          if (a is AnchorElement) a.target = 'docs';
-        }
-        for (final h in docPanel.querySelectorAll('h1')) {
-          h.classes.add('type-${docResult.entitykind}');
-        }
-      });
+      final docResult = _getHtmlTextFor(result);
+      docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
+      for (final a in docPanel.querySelectorAll('a')) {
+        if (a is AnchorElement) a.target = 'docs';
+      }
+      for (final h in docPanel.querySelectorAll('h1')) {
+        h.classes.add('type-${docResult.entitykind}');
+      }
     });
   }
 
@@ -127,47 +124,37 @@ class DocHandler {
         _context.dartSource.substring(offset);
   }
 
-  Future<_DocResult> _getHtmlTextFor(DocumentResponse result) {
+  _DocResult _getHtmlTextFor(DocumentResponse result) {
     var info = result.info;
 
     if (info['description'] == null && info['dartdoc'] == null) {
-      return Future.value(_DocResult(''));
+      return _DocResult('');
     }
 
     var libraryName = info['libraryName'];
-    var domName = info['DomName'];
     var kind = info['kind'];
     var hasDartdoc = info['dartdoc'] != null;
-    var isHtmlLib = libraryName == 'dart:html';
     var isVariable = kind.contains('variable');
 
     var apiLink = _dartApiLink(
         libraryName: libraryName,
         enclosingClassName: info['enclosingClassName']);
 
-    var mdnCheck = Future<String>.value();
-    if (!hasDartdoc && isHtmlLib && domName != null) {
-      mdnCheck = createMdnMarkdownLink(domName);
-    }
-
-    return mdnCheck.then((String mdnLink) {
-      var propagatedType = info['propagatedType'];
-      var _mdDocs = '''# `${info['description']}`\n\n
+    var propagatedType = info['propagatedType'];
+    var _mdDocs = '''# `${info['description']}`\n\n
 ${hasDartdoc ? "${info['dartdoc']}\n\n" : ''}
-${mdnLink != null ? "## External resources:\n * $mdnLink at MDN" : ''}
 ${isVariable ? "$kind\n\n" : ''}
 ${(isVariable && propagatedType != null) ? "**Propagated type:** $propagatedType\n\n" : ''}
 ${libraryName == null ? '' : apiLink}\n\n''';
 
-      var _htmlDocs = markdown.markdownToHtml(_mdDocs,
-          inlineSyntaxes: [InlineBracketsColon(), InlineBrackets()]);
+    var _htmlDocs = markdown.markdownToHtml(_mdDocs,
+        inlineSyntaxes: [InlineBracketsColon(), InlineBrackets()]);
 
-      // Append a 'launch' icon to the 'Open library docs' link.
-      _htmlDocs = _htmlDocs.replaceAll('library docs</a>',
-          "library docs <span class='launch-icon'></span></a>");
+    // Append a 'launch' icon to the 'Open library docs' link.
+    _htmlDocs = _htmlDocs.replaceAll('library docs</a>',
+        "library docs <span class='launch-icon'></span></a>");
 
-      return _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
-    });
+    return _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
   }
 
   String _dartApiLink({String libraryName, String enclosingClassName}) {
@@ -183,35 +170,6 @@ ${libraryName == null ? '' : apiLink}\n\n''';
     }
     return libraryName;
   }
-}
-
-/// Returns the markdown url link for the MDN documentation for the given DOM
-/// element name, or `null` if no documentation URL for that element exits.
-Future<String> createMdnMarkdownLink(String domName) {
-  final baseUrl = 'https://developer.mozilla.org/en-US/docs/Web/API/';
-
-  var domClassName =
-      domName.contains('.') ? domName.substring(0, domName.indexOf('.')) : null;
-
-  return _urlExists('$baseUrl$domName').then((bool exists) {
-    if (exists) return '[$domName]($baseUrl$domName)';
-
-    if (domClassName != null) {
-      return _urlExists('$baseUrl$domClassName').then((bool exists) {
-        return exists ? '[$domClassName]($baseUrl$domClassName)' : null;
-      });
-    }
-
-    return null;
-  });
-
-  // Avoid searching for now.
-  //String searchUrl = "https://developer.mozilla.org/en-US/search?q=";
-  //return 'Search for [$domName]($searchUrl$domName)';
-}
-
-Future<bool> _urlExists(String url) {
-  return HttpRequest.getString(url).then((_) => true).catchError((e) => false);
 }
 
 class _DocResult {
