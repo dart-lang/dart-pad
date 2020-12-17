@@ -19,8 +19,6 @@ BSD-style license that can be found in the LICENSE file. -->
     <link href='https://fonts.googleapis.com/css?family=Inconsolata:400,700'
           rel='stylesheet' type='text/css'>
 
-    <link rel="stylesheet" type="text/css" href="../packages/octicons_css/octicons_4.4.0.css">
-
     <!-- codemirror -->
     <link href="../packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
     <link href="../packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
@@ -28,9 +26,6 @@ BSD-style license that can be found in the LICENSE file. -->
     <link href="cm-scrollbars.css" rel="stylesheet" media="screen">
     <link href="cm-dartpad-dark.css" rel="stylesheet" media="screen">
     <link href="cm-dartpad-light.css" rel="stylesheet" media="screen">
-
-    <!-- primer -->
-    <link rel="stylesheet" type="text/css" href="../packages/primer_css/primer_12.1.0.css">
 
     <script src="../packages/codemirror/codemirror.js" defer></script>
     <script src="../packages/codemirror/addon/scroll/simplescrollbars.js" defer></script>
@@ -162,7 +157,9 @@ BSD-style license that can be found in the LICENSE file. -->
                 <span class="view-label">
                     Console <span id="unread-console-counter" class="Counter" hidden></span>
                 </span>
-                <div id="console-expand-icon" class="octicon octicon-triangle-up"></div>
+                <button id="console-expand-icon"
+                        class="mdc-icon-button material-icons" hidden>expand_less
+                </button>
             </div>
             <div id="console-output-container" class="custom-scrollbar" hidden></div>
         </div>
@@ -181,21 +178,15 @@ BSD-style license that can be found in the LICENSE file. -->
 </footer>
 
 <div id="flash-container" class="position-fixed right-2 bottom-6">
-    <div id="analysis-result-box" class="flash flash-error" hidden>
-        <button class="flash-close">
-            <div class="octicon octicon-x"></div>
-        </button>
-        <div class="message-container custom-scrollbar"></div>
-    </div>
     <div id="test-result-box" class="flash flash-warn" hidden>
         <button class="flash-close">
-            <div class="octicon octicon-x"></div>
+            <i class="material-icons mdc-button__icon">close</i>
         </button>
         <div class="message-container custom-scrollbar"></div>
     </div>
     <div id="hint-box" class="flash" hidden>
         <button class="flash-close">
-            <div class="octicon octicon-x"></div>
+            <i class="material-icons mdc-button__icon">close</i>
         </button>
         <div class="message-container custom-scrollbar"></div>
     </div>

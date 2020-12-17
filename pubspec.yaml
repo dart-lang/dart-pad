@@ -16,8 +16,6 @@ dependencies:
   logging: '>=0.11.4 <0.12.0'
   markdown: ^3.0.0
   meta: ^1.2.4
-  octicons_css: ^0.0.1
-  primer_css: ^0.0.1
   protobuf: ^1.1.0
   route_hierarchical:
     path: third_party/pkg/route.dart/

@@ -17,11 +17,6 @@ body {
   font-size: 14px;
 }
 
-
-.medium-octicon {
-  font-size: 19px;
-}
-
 // Tab Navigation
 
 #navbar {
@@ -159,11 +154,7 @@ body {
 
 #console-expand-icon {
   color: $label-color;
-  padding: 8px;
-}
-
-#console-expand-icon:focus {
-  outline: none;
+  @include mdc-icon-button-size(16px, 16px, 8px);
 }
 
 #console-output-container {
@@ -231,11 +222,6 @@ body {
   align-items: center;
   padding: 4px 12px 4px 12px;
   height: 40px;
-}
-
-// Primer
-.Popover-message {
-  padding: 8px !important;
 }
 
 // Material Design
