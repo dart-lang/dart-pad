@@ -1,19 +1,30 @@
 name: Dart
 
 on:
+  # Run CI on pushes to the master branch, and on PRs against master.
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *" # Every day at midnight
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
     strategy:
+      fail-fast: false
       matrix:
-        sdk: [stable, beta, dev]
-    
+        include:
+          - sdk: dev
+            allow_failure: true
+          - sdk: beta
+            allow_failure: true
+          - sdk: stable
+            allow_failure: false
+
     steps:
       - uses: actions/checkout@v2
       - uses: cedx/setup-dart@v2
@@ -35,3 +46,4 @@ jobs:
 
       - name: Run travis
         run: ./tool/travis.sh
+        continue-on-error: ${{ matrix.allow_failure }}
