@@ -18,13 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - sdk: dev
-            allow_failure: true
-          - sdk: beta
-            allow_failure: true
-          - sdk: stable
-            allow_failure: false
+        sdk: [dev,beta,stable]
     steps:
       - uses: actions/checkout@v2
       - uses: cedx/setup-dart@v2
@@ -56,4 +50,3 @@ jobs:
           export PATH=$PATH:$HOME/.pub-cache/bin
           dart pub global activate protoc_plugin
           ./tool/travis.sh
-        continue-on-error: ${{ matrix.allow_failure }}
