@@ -8,17 +8,17 @@
 set -e
 
 # Run pub get to fetch packages.
-pub get
+dart pub get
 
 # Prepare to run unit tests (but do not actually run tests).
-pub run grinder buildbot
+dart pub run grinder buildbot
 
 # Ensure that we've uploaded the compilation artifacts to google storage.
-pub run grinder validate-storage-artifacts
+dart pub run grinder validate-storage-artifacts
 
 # Enforce dart formatting on lib, test and tool directories.
-echo -n "Files that need dartfmt: "
-dartfmt --dry-run --set-exit-if-changed lib test tool
+echo -n "Files that need dart format: "
+dart format --set-exit-if-changed lib test tool
 echo "All clean"
 
 # Gather coverage and upload to Coveralls.

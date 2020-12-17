@@ -6,6 +6,9 @@ on:
     branches: [master]
   pull_request:
     branches: [master]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *" # Every day at midnight
 
 jobs:
   # Check code formating, static analysis, and build on a single OS (linux)
@@ -13,8 +16,15 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        sdk: [stable]
+        include:
+          - sdk: dev
+            allow_failure: true
+          - sdk: beta
+            allow_failure: true
+          - sdk: stable
+            allow_failure: false
     steps:
       - uses: actions/checkout@v2
       - uses: cedx/setup-dart@v2
@@ -26,8 +36,6 @@ jobs:
         run: dart --version
       - name: Install dependencies
         run: dart pub get
-      - name: Check formatting
-        run: dart format --output=none --set-exit-if-changed .
       - name: Analyze code (lib and test)
         run: dart analyze .
       - name: Analyze code (example)
@@ -36,7 +44,6 @@ jobs:
           echo [Analyzing example]
           dart pub get
           dart analyze .
-        shell: bash
       - name: Prepare Flutter
         run: |
           git submodule init
@@ -44,12 +51,9 @@ jobs:
           export PATH=$PATH:$PWD/flutter/bin
           flutter doctor -v
           flutter config --enable-web
-      - name: Prepare to run unit tests (but do not actually run tests).
+      - name: Run tests
         run: |
-          dart pub global activate protoc_plugin
           export PATH=$PATH:$HOME/.pub-cache/bin
-          dart pub run grinder buildbot
-      - name: Validate storage artifacts
-        run: dart pub run grinder validate-storage-artifacts
-      - name: run tests
-        run: dart test/all.dart
+          dart pub global activate protoc_plugin
+          ./tool/travis.sh
+        continue-on-error: ${{ matrix.allow_failure }}
