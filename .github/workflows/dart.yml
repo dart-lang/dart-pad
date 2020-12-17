@@ -17,13 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - sdk: dev
-            allow_failure: true
-          - sdk: beta
-            allow_failure: true
-          - sdk: stable
-            allow_failure: false
+        sdk: [dev,beta,stable]
 
     steps:
       - uses: actions/checkout@v2
@@ -46,4 +40,3 @@ jobs:
 
       - name: Run travis
         run: ./tool/travis.sh
-        continue-on-error: ${{ matrix.allow_failure }}
