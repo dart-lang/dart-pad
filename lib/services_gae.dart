@@ -115,7 +115,7 @@ class GaeServer {
     } else if (request.uri.path == _livenessCheck) {
       await _processLivenessRequest(request);
     } else if (request.uri.path.startsWith(_API_PREFIX)) {
-      await shelf_io.handleRequest(request, commonServerApi.router.handler);
+      await shelf_io.handleRequest(request, commonServerApi.router);
     } else {
       await _processDefaultRequest(request);
     }

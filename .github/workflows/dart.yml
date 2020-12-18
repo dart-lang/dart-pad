@@ -31,13 +31,13 @@ jobs:
       - name: Install dependencies
         run: dart pub get
       - name: Analyze code (lib and test)
-        run: dart analyze .
+        run: dart analyze --fatal-infos .
       - name: Analyze code (example)
         run: |
           cd example
           echo [Analyzing example]
           dart pub get
-          dart analyze .
+          dart analyze --fatal-infos .
       - name: Prepare Flutter
         run: |
           git submodule init
