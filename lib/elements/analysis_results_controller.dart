@@ -50,7 +50,8 @@ class AnalysisResultsController {
   }
 
   void display(List<AnalysisIssue> issues) {
-    if (issues.isEmpty) {
+    final amount = issues.length;
+    if (amount == 0) {
       message.text = _noIssuesMsg;
 
       // hide the flash without toggling the hidden state
@@ -66,7 +67,7 @@ class AnalysisResultsController {
     }
 
     showToggle();
-    message.text = '${issues.length} issues';
+    message.text = '${amount} ${amount == 1 ? 'issue' : 'issues'}';
 
     flash.clearChildren();
     for (var elem in issues.map(_issueElement)) {
