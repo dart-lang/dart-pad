@@ -157,9 +157,11 @@ BSD-style license that can be found in the LICENSE file. -->
                 <span class="view-label">
                     Console <span id="unread-console-counter" class="Counter" hidden></span>
                 </span>
-                <button id="console-expand-icon"
-                        class="mdc-icon-button material-icons" hidden>expand_less
-                </button>
+                <div id="console-expand-icon-container">
+                    <button id="console-expand-icon" title="Expand console" class="mdc-icon-button material-icons">
+                        expand_less
+                    </button>
+                </div>
             </div>
             <div id="console-output-container" class="custom-scrollbar" hidden></div>
         </div>

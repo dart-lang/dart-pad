@@ -7,7 +7,12 @@
 @import 'package:dart_pad/scss/variables';
 @import 'package:dart_pad/scss/shared';
 
+* {
+  box-sizing: border-box;
+}
+
 body {
+  margin: 0;
   top: 0;
   bottom: 0;
   left: 0;
@@ -15,6 +20,8 @@ body {
   position: absolute;
   overflow: hidden;
   font-size: 14px;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 // Tab Navigation
@@ -150,6 +157,11 @@ body {
   padding-left: 8px;
   padding-bottom: 8px;
   overflow: auto;
+}
+
+#console-expand-icon-container {
+  height: 32px;
+  width: 32px;
 }
 
 #console-expand-icon {
