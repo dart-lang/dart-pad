@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:bazel_worker/driver.dart';
-import 'package:io/io.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -262,4 +261,40 @@ class CompilationProblem implements Comparable<CompilationProblem> {
 
   @override
   String toString() => message;
+}
+
+/// Copies all of the files in the [from] directory to [to].
+///
+/// This is similar to `cp -R <from> <to>`:
+/// * Symlinks are supported.
+/// * Existing files are over-written, if any.
+/// * If [to] is within [from], throws [ArgumentError] (an infinite operation).
+/// * If [from] and [to] are canonically the same, no operation occurs.
+///
+/// Returns a future that completes when complete.
+Future<Null> copyPath(String from, String to) async {
+  if (_doNothing(from, to)) {
+    return;
+  }
+  await Directory(to).create(recursive: true);
+  await for (final file in Directory(from).list(recursive: true)) {
+    final copyTo = path.join(to, path.relative(file.path, from: from));
+    if (file is Directory) {
+      await Directory(copyTo).create(recursive: true);
+    } else if (file is File) {
+      await File(file.path).copy(copyTo);
+    } else if (file is Link) {
+      await Link(copyTo).create(await file.target(), recursive: true);
+    }
+  }
+}
+
+bool _doNothing(String from, String to) {
+  if (path.canonicalize(from) == path.canonicalize(to)) {
+    return true;
+  }
+  if (path.isWithin(from, to)) {
+    throw ArgumentError('Cannot copy from $from to $to');
+  }
+  return false;
 }

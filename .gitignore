@@ -12,6 +12,7 @@ build/
 # Other files.
 coverage.json
 lcov.info
+.idea/
 
 # Redis snapshot persistance file
 dump.rdb
