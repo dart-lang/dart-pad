@@ -4,11 +4,11 @@ analyzer:
   strong-mode:
     implicit-casts: false
   exclude:
-    - "dart-sdk/**"
-    - "third_party/**"
-    - "doc/generated/**"
-    - "flutter/**"
-    - "lib/src/protos/**"
+    - dart-sdk/**
+    - doc/generated/**
+    - flutter/**
+    # TODO: This seems to be hiding ~2 dozen legitimate analysis issues.
+    - lib/src/protos/**
 
 linter:
   rules:
@@ -17,3 +17,4 @@ linter:
     - prefer_final_in_for_each
     - prefer_final_locals
     - prefer_relative_imports
+    - sort_pub_dependencies

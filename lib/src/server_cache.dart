@@ -215,6 +215,7 @@ class RedisCache implements ServerCache {
 /// An in-memory implementation of [ServerCache] which doesn't support
 /// expiration of entries based on time.
 class InMemoryCache implements ServerCache {
+  // TODO: This is the only use of package:quiver; consider in-lining it.
   /// Wrapping an internal cache with a maximum size of 512 entries.
   final Cache<String, String> _lru =
       MapCache<String, String>.lru(maximumSize: 512);

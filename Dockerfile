@@ -1,4 +1,4 @@
-# Keep aligned with min SDK in pubspec.yaml and Dart test version in .travis.yml
+# Keep aligned with min SDK in pubspec.yaml and .github/workflows/dart.yml.
 FROM google/dart:2.10.4
 
 # The specific commit that dart-services should use. This should be kept

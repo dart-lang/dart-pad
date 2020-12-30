@@ -11,7 +11,7 @@ on:
     - cron: "0 0 * * *" # Every day at midnight
 
 jobs:
-  # Check code formating, static analysis, and build on a single OS (linux)
+  # Check code formatting, static analysis, and build on a single OS (linux)
   # against Dart stable and beta.
   analyze:
     runs-on: ubuntu-latest
@@ -30,14 +30,14 @@ jobs:
         run: dart --version
       - name: Install dependencies
         run: dart pub get
-      - name: Analyze code (lib and test)
-        run: dart analyze --fatal-infos .
-      - name: Analyze code (example)
+      - name: Analyze code (example/)
         run: |
           cd example
           echo [Analyzing example]
           dart pub get
           dart analyze --fatal-infos .
+      - name: Analyze code
+        run: dart analyze --fatal-infos .
       - name: Prepare Flutter
         run: |
           git submodule init
