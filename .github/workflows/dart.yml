@@ -1,19 +1,24 @@
 name: Dart
 
 on:
+  # Run CI on pushes to the master branch, and on PRs against master.
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *" # Every day at midnight
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
     strategy:
+      fail-fast: false
       matrix:
-        sdk: [stable, beta, dev]
-    
+        sdk: [dev,beta,stable]
+
     steps:
       - uses: actions/checkout@v2
       - uses: cedx/setup-dart@v2

@@ -16,8 +16,8 @@ final String dartCodeHtml = r'''
 import 'dart:html';
 
 void main() {
-  var header = querySelector('#header');
-  header.text = "Hello, World!";
+  final header = querySelector('#header');
+  header?.text = "Hello, World!";
 }
 ''';
 

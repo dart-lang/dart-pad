@@ -38,7 +38,7 @@ running in Google Cloud Platform to be analyzed for errors/warnings, compiled
 to JavaScript, and returned to the browser.
 <br><br>
 Learn more about how DartPad stores your data in our
-<a href="https://www.dartlang.org/tools/dartpad/privacy">privacy notice</a>.
+<a href="https://dart.dev/tools/dartpad/privacy">privacy notice</a>.
 We look forward to your
 <a href="https://github.com/dart-lang/dart-pad/issues" target="feedback">feedback</a>.
 <br><br>
