@@ -33,16 +33,15 @@ void defineTests() {
       expect(flutterWebManager.usesFlutterWeb({''}), isFalse);
       expect(flutterWebManager.usesFlutterWeb({'dart:html'}), isFalse);
       expect(flutterWebManager.usesFlutterWeb({'dart:ui'}), isTrue);
-      expect(flutterWebManager.usesFlutterWeb({'package:flutter_web'}), isTrue);
-      expect(
-          flutterWebManager.usesFlutterWeb({'package:flutter_web/'}), isTrue);
+      expect(flutterWebManager.usesFlutterWeb({'package:flutter'}), isTrue);
+      expect(flutterWebManager.usesFlutterWeb({'package:flutter/'}), isTrue);
     });
 
     test('getUnsupportedImport', () {
       expect(flutterWebManager.getUnsupportedImport({'dart:html'}), isNull);
       expect(flutterWebManager.getUnsupportedImport({'dart:ui'}), isNull);
-      expect(flutterWebManager.getUnsupportedImport({'package:flutter_web/'}),
-          isNull);
+      expect(
+          flutterWebManager.getUnsupportedImport({'package:flutter/'}), isNull);
       expect(flutterWebManager.getUnsupportedImport({'package:path'}),
           equals('package:path'));
       expect(flutterWebManager.getUnsupportedImport({'foo.dart'}),
@@ -50,7 +49,7 @@ void defineTests() {
     });
   });
 
-  group('FlutterWebManager package:flutter_web inited', () {
+  group('FlutterWebManager inited', () {
     FlutterWebManager flutterWebManager;
 
     setUpAll(() async {

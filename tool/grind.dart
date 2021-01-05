@@ -194,7 +194,7 @@ void _buildStorageArtifacts(Directory dir) async {
 
   // Build the artifacts using DDC:
   // dart-sdk/bin/dartdevc -s kernel/flutter_ddc_sdk.dill
-  //     --modules=amd package:flutter_web/animation.dart ...
+  //     --modules=amd package:flutter/animation.dart ...
   final compilerPath =
       path.join(flutterSdkPath.path, 'bin/cache/dart-sdk/bin/dartdevc');
   final dillPath = path.join(flutterSdkPath.path,

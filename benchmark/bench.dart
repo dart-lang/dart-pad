@@ -6,13 +6,12 @@ library services.bench;
 
 import 'dart:async';
 
-import 'package:dart_services/src/sdk_manager.dart';
-import 'package:logging/logging.dart';
-
 import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/bench.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
+import 'package:dart_services/src/sdk_manager.dart';
+import 'package:logging/logging.dart';
 
 void main(List<String> args) async {
   final json = args.contains('--json');
@@ -190,8 +189,9 @@ final _spinningSquare = '''
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:flutter_web/material.dart';
-import 'package:flutter_web_ui/ui.dart' as ui;
+import 'dart:ui/ui.dart' as ui;
+
+import 'package:flutter/material.dart';
 
 class SpinningSquare extends StatefulWidget {
   @override
