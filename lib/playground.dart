@@ -84,6 +84,7 @@ class Playground implements GistContainer, GistController {
   MDCButton newButton;
   MDCButton resetButton;
   MDCButton formatButton;
+  MDCButton installButton;
   MDCButton samplesButton;
   MDCButton runButton;
   MDCButton editorConsoleTab;
@@ -224,7 +225,7 @@ class Playground implements GistContainer, GistController {
       ..onClick.listen((_) => _showResetDialog());
     formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
       ..onClick.listen((_) => _format());
-    formatButton = MDCButton(querySelector('#install-button') as ButtonElement)
+    installButton = MDCButton(querySelector('#install-button') as ButtonElement)
       ..onClick.listen((_) => _showInstallPage());
     samplesButton =
         MDCButton(querySelector('#samples-dropdown-button') as ButtonElement)
