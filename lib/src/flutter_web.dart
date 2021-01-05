@@ -8,7 +8,7 @@ import 'package:path/path.dart' as path;
 
 import 'sdk_manager.dart';
 
-/// Handle provisioning package:flutter_web and related work.
+/// Support for handling Flutter web snippets.
 class FlutterWebManager {
   final FlutterSdk flutterSdk;
 
