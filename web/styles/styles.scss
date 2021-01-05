@@ -22,6 +22,7 @@ body {
   color: $playground-text-color;
   font-family: $normal-font;
   font-size: 14px;
+  overflow: hidden;
   @include layout-vertical;
   @include layout-fit;
 }
