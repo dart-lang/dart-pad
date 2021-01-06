@@ -597,12 +597,7 @@ class Playground implements GistContainer, GistController {
 
     docHandler = DocHandler(editor, _context);
 
-    dartServices.version().then((VersionResponse version) {
-      // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
-      var versionText = 'Based on Flutter ${version.flutterVersion}'
-          ' Dart SDK ${version.sdkVersionFull}';
-      querySelector('#dartpad-version').text = versionText;
-    }).catchError((e) => null);
+    updateVersion();
 
     analysisResultsController = AnalysisResultsController(
         DElement(querySelector('#issues')),
@@ -613,6 +608,15 @@ class Playground implements GistContainer, GistController {
       });
 
     _finishedInit();
+  }
+
+  void updateVersion() {
+    dartServices.version().then((VersionResponse version) {
+      // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
+      var versionText = 'Based on Flutter ${version.flutterVersion}'
+          ' Dart SDK ${version.sdkVersionFull}';
+      querySelector('#dartpad-version').text = versionText;
+    }).catchError((e) => null);
   }
 
   void _finishedInit() {
@@ -1015,6 +1019,7 @@ class Playground implements GistContainer, GistController {
 
   void _handleNullSafetySwitched(bool enabled) {
     var api = deps[DartservicesApi] as DartservicesApi;
+
     if (enabled) {
       api.rootUrl = nullSafetyServerUrl;
       window.localStorage['null_safety'] = 'true';
@@ -1022,6 +1027,8 @@ class Playground implements GistContainer, GistController {
       api.rootUrl = serverUrl;
       window.localStorage['null_safety'] = 'false';
     }
+
+    updateVersion();
 
     QueryParams.nullSafety = enabled;
 
