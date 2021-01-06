@@ -41,6 +41,18 @@ Future<void> serve() async {
       arguments: ['bin/server_dev.dart', '--port', '8082']);
 }
 
+@Task()
+@Depends(buildStorageArtifacts)
+Future<void> serveWithProxyTarget() async {
+  await runWithLogging(Platform.executable, arguments: [
+    'bin/server_dev.dart',
+    '--port',
+    '8082',
+    '--proxy-target',
+    'https://dart-service-cloud-run-hdjctvyqtq-uc.a.run.app/'
+  ]);
+}
+
 final _dockerVersionMatcher = RegExp(r'^FROM google/dart-runtime:(.*)$');
 
 @Task('Update the docker and SDK versions')

@@ -23,8 +23,11 @@ final Logger _logger = Logger('services');
 
 void main(List<String> args) {
   final parser = ArgParser();
-  parser.addOption('port', abbr: 'p', defaultsTo: '8080');
-  parser.addOption('server-url', defaultsTo: 'http://localhost');
+  parser
+    ..addOption('port', abbr: 'p', defaultsTo: '8080')
+    ..addOption('server-url', defaultsTo: 'http://localhost')
+    ..addOption('proxy-target',
+        help: 'URL base to proxy compilation requests to');
 
   final result = parser.parse(args);
   final port = int.tryParse(result['port'] as String);
@@ -40,14 +43,15 @@ void main(List<String> args) {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  EndpointsServer.serve(port).then((EndpointsServer server) {
+  EndpointsServer.serve(port, result['proxy-target'].toString())
+      .then((EndpointsServer server) {
     _logger.info('Listening on port ${server.port}');
   });
 }
 
 class EndpointsServer {
-  static Future<EndpointsServer> serve(int port) {
-    final endpointsServer = EndpointsServer._(port);
+  static Future<EndpointsServer> serve(int port, String proxyTarget) {
+    final endpointsServer = EndpointsServer._(port, proxyTarget);
 
     return shelf
         .serve(endpointsServer.handler, InternetAddress.anyIPv4, port)
@@ -59,6 +63,7 @@ class EndpointsServer {
 
   final int port;
   HttpServer server;
+  final String proxyTarget;
 
   Pipeline pipeline;
   Handler handler;
@@ -66,11 +71,13 @@ class EndpointsServer {
   CommonServerApi commonServerApi;
   FlutterWebManager flutterWebManager;
 
-  EndpointsServer._(this.port) {
-    final commonServerImpl = CommonServerImpl(
-      _ServerContainer(),
-      _Cache(),
-    );
+  EndpointsServer._(this.port, this.proxyTarget) {
+    final commonServerImpl = (proxyTarget != null && proxyTarget.isNotEmpty)
+        ? CommonServerImplProxy(proxyTarget)
+        : CommonServerImpl(
+            _ServerContainer(),
+            _Cache(),
+          );
     commonServerApi = CommonServerApi(commonServerImpl);
     commonServerImpl.init();
 

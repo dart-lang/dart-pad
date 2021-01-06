@@ -30,7 +30,6 @@ final Logger _logger = Logger('gae_server');
 
 void main(List<String> args) {
   final parser = ArgParser()
-    ..addFlag('dark-launch', help: 'Dark launch proxied compilation requests')
     ..addOption('proxy-target',
         help: 'URL base to proxy compilation requests to')
     ..addOption('port',
@@ -55,16 +54,13 @@ void main(List<String> args) {
   });
   log.info('''Initializing dart-services:
     --port: $gaePort
-    --dark-launch: ${results['dark-launch']}
     --proxy-target: ${results['proxy-target']}
     sdkPath: ${SdkManager.sdk?.sdkPath}
     \$REDIS_SERVER_URI: ${io.Platform.environment['REDIS_SERVER_URI']}
     \$GAE_VERSION: ${io.Platform.environment['GAE_VERSION']}
   ''');
 
-  final server = GaeServer(
-      io.Platform.environment['REDIS_SERVER_URI'],
-      results['dark-launch'].toString().toLowerCase() == 'true',
+  final server = GaeServer(io.Platform.environment['REDIS_SERVER_URI'],
       results['proxy-target'].toString());
   server.start(gaePort);
 }
@@ -74,25 +70,27 @@ class GaeServer {
 
   CommonServerImpl commonServerImpl;
   CommonServerApi commonServerApi;
+  bool proxying = false;
 
-  GaeServer(this.redisServerUri, bool darkLaunch, String proxyTarget) {
+  GaeServer(this.redisServerUri, String proxyTarget) {
     hierarchicalLoggingEnabled = true;
     recordStackTraceAtLevel = Level.SEVERE;
 
     _logger.level = Level.ALL;
 
-    commonServerImpl = CommonServerImpl(
-      GaeServerContainer(),
-      redisServerUri == null
-          ? InMemoryCache()
-          : RedisCache(
-              redisServerUri,
-              io.Platform.environment['GAE_VERSION'],
-            ),
-    );
     if (proxyTarget != null && proxyTarget.isNotEmpty) {
-      commonServerImpl =
-          CommonServerImplProxy(commonServerImpl, darkLaunch, proxyTarget);
+      commonServerImpl = CommonServerImplProxy(proxyTarget);
+      proxying = true;
+    } else {
+      commonServerImpl = CommonServerImpl(
+        GaeServerContainer(),
+        redisServerUri == null
+            ? InMemoryCache()
+            : RedisCache(
+                redisServerUri,
+                io.Platform.environment['GAE_VERSION'],
+              ),
+      );
     }
     commonServerApi = CommonServerApi(commonServerImpl);
   }
@@ -130,7 +128,9 @@ class GaeServer {
 
   Future _processReadinessRequest(io.HttpRequest request) async {
     _logger.info('Processing readiness check');
-    if (!commonServerImpl.isRestarting &&
+    if (proxying) {
+      request.response.statusCode = io.HttpStatus.ok;
+    } else if (!commonServerImpl.isRestarting &&
         DateTime.now().isBefore(_serveUntil)) {
       request.response.statusCode = io.HttpStatus.ok;
     } else {
@@ -143,7 +143,10 @@ class GaeServer {
 
   Future _processLivenessRequest(io.HttpRequest request) async {
     _logger.info('Processing liveness check');
-    if (!commonServerImpl.isHealthy || DateTime.now().isAfter(_serveUntil)) {
+    if (proxying) {
+      request.response.statusCode = io.HttpStatus.ok;
+    } else if (!commonServerImpl.isHealthy ||
+        DateTime.now().isAfter(_serveUntil)) {
       _logger.severe('CommonServer is no longer healthy.'
           ' Intentionally failing health check.');
       request.response.statusCode = io.HttpStatus.serviceUnavailable;
