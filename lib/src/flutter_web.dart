@@ -43,8 +43,8 @@ class FlutterWebManager {
 
   String getUnsupportedImport(Set<String> imports) {
     for (final import in imports) {
-      // All dart: imports are ok;
-      if (import.startsWith('dart:')) {
+      // All dart: imports are ok, except dart:io
+      if (import.startsWith('dart:') && import != 'dart:io') {
         continue;
       }
 

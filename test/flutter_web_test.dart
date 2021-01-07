@@ -46,6 +46,9 @@ void defineTests() {
           equals('package:path'));
       expect(flutterWebManager.getUnsupportedImport({'foo.dart'}),
           equals('foo.dart'));
+      // dart:io is an unsupported package
+      expect(flutterWebManager.getUnsupportedImport({'dart:io'}),
+          equals('dart:io'));
     });
   });
 
