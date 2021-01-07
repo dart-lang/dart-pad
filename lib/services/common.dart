@@ -10,8 +10,7 @@ import 'dart:math';
 // spread its traffic. For simplicity's sake, at the current time DartPad picks
 // one at launch and sticks with it until the window is closed.
 final serverUrls = [
-  'https://dart-services.appspot.com/',
-  'https://dart-services-0.appspot.com/',
+  'https://v1.api.dartpad.dev/',
 ];
 
 // Used when null safety is enabled in the UI.
