@@ -49,7 +49,7 @@ Future<void> serveWithProxyTarget() async {
     '--port',
     '8082',
     '--proxy-target',
-    'https://dart-service-cloud-run-hdjctvyqtq-uc.a.run.app/'
+    'https://v1.api.dartpad.dev/'
   ]);
 }
 

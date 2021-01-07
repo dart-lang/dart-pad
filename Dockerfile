@@ -52,4 +52,4 @@ CMD []
 
 ENTRYPOINT ["/dart_runtime/dart_run.sh", \
             "--port", "8080", \
-            "--proxy-target", "https://dart-service-cloud-run-hdjctvyqtq-uc.a.run.app/"]
+            "--proxy-target", "https://v1.api.dartpad.dev/"]
