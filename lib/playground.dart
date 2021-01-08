@@ -811,7 +811,7 @@ class Playground implements GistContainer, GistController {
 
         _clearOutput();
 
-        return executionService.execute(
+        await executionService.execute(
           _context.htmlSource,
           _context.cssSource,
           response.result,
@@ -830,7 +830,7 @@ class Playground implements GistContainer, GistController {
 
         _clearOutput();
 
-        return await executionService.execute(
+        await executionService.execute(
           _context.htmlSource,
           _context.cssSource,
           response.result,
@@ -1309,7 +1309,9 @@ class TabExpandController {
     consoleButton.toggleClass('active', false);
 
     // Clear listeners
-    _subscriptions.forEach((s) => s.cancel());
+    for (var s in _subscriptions) {
+      s.cancel();
+    }
     _subscriptions.clear();
   }
 }

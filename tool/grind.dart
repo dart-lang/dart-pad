@@ -49,7 +49,7 @@ updateThirdParty() {
 
 @Task()
 analyze() {
-  PubApp.local('tuneup')..run(['check']);
+  PubApp.local('tuneup').run(['check']);
 }
 
 @Task()
@@ -269,7 +269,7 @@ coverage() {
 
 @DefaultTask()
 @Depends(analyze, testCli, testWeb, coverage, build)
-void buildbot() => null;
+void buildbot() {}
 
 @Task('Prepare the app for deployment')
 @Depends(buildbot)
