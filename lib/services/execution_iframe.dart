@@ -77,6 +77,9 @@ void _result(bool success, [List<String> messages = const []]) {
 
 // Ensure we have at least one use of `_result`.
 var resultFunction = _result;
+
+// Placeholder for unimplemented methods in dart-pad exercises.
+Never TODO([String? message]) => throw UnimplementedError(message);
 ''';
 
   String _decorateJavaScript(String javaScript, {String modulesBaseUrl}) {
