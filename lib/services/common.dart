@@ -4,25 +4,14 @@
 
 library dart_pad.common;
 
-import 'dart:math';
-
-// A list of several endpoints running dart-services, across which DartPad can
-// spread its traffic. For simplicity's sake, at the current time DartPad picks
-// one at launch and sticks with it until the window is closed.
-final serverUrls = [
-  'https://v1.api.dartpad.dev/',
-];
+// The endpoint running dart-services.
+final serverUrl = 'https://v1.api.dartpad.dev/';
 
 // Used when null safety is enabled in the UI.
 final nullSafetyServerUrl = 'https://dart-services-beta-0.appspot.com/';
 
-// A set of URLs to use while debugging.
-//final serverURLs = [
-//  'http://127.0.0.1:8082/',
-//];
-
-// The actual server URL, chosen at random from one of the above lists.
-final serverUrl = serverUrls[Random().nextInt(serverUrls.length)];
+// A URL to use while debugging.
+//final serverURL = 'http://127.0.0.1:8082/';
 
 final Duration serviceCallTimeout = Duration(seconds: 10);
 final Duration longServiceCallTimeout = Duration(seconds: 60);
