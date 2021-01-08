@@ -70,6 +70,10 @@ def item(item_name):
     # Route doesn't match anything, so return a 404.
     return _serve_404()
 
+# Temporary route to find out if we can sniff which host we are serving as.
+@app.route("/hostname/")
+def return_hostname():
+    return "This is an example wsgi app served from {} to {}".format(socket.gethostname(), request.remote_addr)
 
 # Helpers.
 
