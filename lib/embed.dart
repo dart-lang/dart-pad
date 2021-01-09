@@ -531,7 +531,7 @@ class Embed {
 
   String get githubPath => QueryParams.githubPath ?? '';
 
-  String get githubRef => QueryParams.githubRef ?? '';
+  String /*?*/ get githubRef => QueryParams.githubRef;
 
   bool get githubParamsPresent =>
       githubOwner.isNotEmpty && githubRepo.isNotEmpty && githubPath.isNotEmpty;
