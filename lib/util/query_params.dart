@@ -1,20 +1,31 @@
 import 'dart:html';
 
-/// A utility for accessing and setting query parameters.
-abstract class QueryParams {
+/// Enables retrieving and setting browser query parameters.
+final queryParams = _QueryParams();
+
+/// A singleton for accessing and setting query parameters.
+class _QueryParams {
+  static _QueryParams _instance;
+
+  const _QueryParams._();
+
+  factory _QueryParams() {
+    return _instance ??= const _QueryParams._();
+  }
+
   /// An immutable map of all current query parameters.
-  static Map<String, String> get parameters {
+  Map<String, String> get parameters {
     return Uri.parse(window.location.toString()).queryParameters;
   }
 
   /// Whether or not null safety is enabled through query parameters.
-  static bool get nullSafety {
+  bool get nullSafety {
     final nullSafety = _queryParam('null_safety');
 
     return nullSafety == 'true';
   }
 
-  static set nullSafety(bool enabled) {
+  set nullSafety(bool enabled) {
     var url = Uri.parse(window.location.toString());
     var params = Map<String, String>.from(url.queryParameters);
     if (enabled) {
@@ -29,17 +40,17 @@ abstract class QueryParams {
   }
 
   /// Whether the `null_safety` query parameter is defined or not.
-  static bool get hasNullSafety {
+  bool get hasNullSafety {
     final nullSafety = _queryParam('null_safety');
 
     return nullSafety != null;
   }
 
-  static String /*?*/ get gistId {
+  String /*?*/ get gistId {
     return _queryParam('id');
   }
 
-  static int /*?*/ get line {
+  int /*?*/ get line {
     final line = _queryParam('line');
 
     if (line == null) {
@@ -49,51 +60,51 @@ abstract class QueryParams {
     return int.tryParse(line);
   }
 
-  static String /*?*/ get theme {
+  String /*?*/ get theme {
     return _queryParam('theme');
   }
 
-  static bool get autoRunEnabled {
+  bool get autoRunEnabled {
     return _queryParam('run') == 'true';
   }
 
-  static bool get shouldOpenConsole {
+  bool get shouldOpenConsole {
     return _queryParam('open_console') == 'true';
   }
 
-  static bool get showInstallButton {
+  bool get showInstallButton {
     return _queryParam('install_button') == 'true';
   }
 
-  static bool get hasShowInstallButton {
+  bool get hasShowInstallButton {
     return _queryParam('install_button') != null;
   }
 
-  static String /*?*/ get sampleId {
+  String /*?*/ get sampleId {
     return _queryParam('sample_id');
   }
 
-  static String /*?*/ get sampleChannel {
+  String /*?*/ get sampleChannel {
     return _queryParam('sample_channel');
   }
 
-  static String /*?*/ get githubOwner {
+  String /*?*/ get githubOwner {
     return _queryParam('gh_owner');
   }
 
-  static String /*?*/ get githubRepo {
+  String /*?*/ get githubRepo {
     return _queryParam('gh_repo');
   }
 
-  static String /*?*/ get githubPath {
+  String /*?*/ get githubPath {
     return _queryParam('gh_path');
   }
 
-  static String /*?*/ get githubRef {
+  String /*?*/ get githubRef {
     return _queryParam('gh_ref');
   }
 
-  static int /*?*/ get initialSplit {
+  int /*?*/ get initialSplit {
     final split = _queryParam('split');
 
     if (split == null) {
@@ -103,7 +114,7 @@ abstract class QueryParams {
     return int.tryParse(split);
   }
 
-  static String /*?*/ _queryParam(String key) {
+  String /*?*/ _queryParam(String key) {
     return Uri.parse(window.location.toString()).queryParameters[key];
   }
 }

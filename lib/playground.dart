@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:html' hide Console;
 
 import 'package:dart_pad/editing/editor_codemirror.dart';
-import 'package:dart_pad/util/query_params.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -48,6 +47,7 @@ import 'src/ga.dart';
 import 'src/util.dart';
 import 'util/detect_flutter.dart';
 import 'util/keymap.dart';
+import 'util/query_params.dart' show queryParams;
 
 const codeMirrorOptions = {
   'continueComments': {'continueLineComment': false},
@@ -257,8 +257,8 @@ class Playground implements GistContainer, GistController {
         window.localStorage['null_safety'] == 'true';
 
     // Override if a query parameter is provided
-    if (QueryParams.hasNullSafety) {
-      nullSafetyEnabled = QueryParams.nullSafety;
+    if (queryParams.hasNullSafety) {
+      nullSafetyEnabled = queryParams.nullSafety;
     }
 
     nullSafetySwitch = MDCSwitch(querySelector('#null-safety-switch'))
@@ -352,7 +352,7 @@ class Playground implements GistContainer, GistController {
       var index = (e as CustomEvent).detail['index'] as int;
       var gistId = samples.elementAt(index).gistId;
       router.go('gist', {'gist': gistId},
-          queryParameters: QueryParams.parameters);
+          queryParameters: queryParams.parameters);
     });
   }
 
@@ -668,7 +668,7 @@ class Playground implements GistContainer, GistController {
     // Clear console output and update the layout if necessary.
     _clearOutput();
 
-    final line = QueryParams.line;
+    final line = queryParams.line;
     if (line != null) {
       _jumpToLine(line);
     }
@@ -695,7 +695,7 @@ class Playground implements GistContainer, GistController {
   /// Loads the gist provided by the 'id' query parameter or stored in
   /// [GistStorage].
   LoadGistResult _loadGist() {
-    final gistId = QueryParams.gistId;
+    final gistId = queryParams.gistId;
 
     if (gistId != null && isLegalGistId(gistId)) {
       _showGist(gistId);
@@ -1028,7 +1028,7 @@ class Playground implements GistContainer, GistController {
 
     updateVersion();
 
-    QueryParams.nullSafety = enabled;
+    queryParams.nullSafety = enabled;
 
     _performAnalysis();
     _initSamplesMenu(nullSafe: enabled);
@@ -1099,7 +1099,7 @@ class Playground implements GistContainer, GistController {
 
     _showSnackbar('New pad created');
     await router.go('gist', {'gist': ''},
-        queryParameters: QueryParams.parameters, forceReload: true);
+        queryParameters: queryParams.parameters, forceReload: true);
   }
 
   Future<void> createGistForLayout(Layout layout) async {
@@ -1112,7 +1112,7 @@ class Playground implements GistContainer, GistController {
     var layoutStr = _layoutToString(layout);
 
     await router.go(layoutStr, {},
-        forceReload: true, queryParameters: QueryParams.parameters);
+        forceReload: true, queryParameters: queryParams.parameters);
   }
 
   void _resetGists() {

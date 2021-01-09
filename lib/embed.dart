@@ -32,7 +32,7 @@ import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'src/util.dart';
 import 'util/keymap.dart';
-import 'util/query_params.dart';
+import 'util/query_params.dart' show queryParams;
 
 const int defaultSplitterWidth = 6;
 
@@ -475,28 +475,28 @@ class Embed {
 
   // Option for the GitHub gist ID that should be loaded into the editors.
   String get gistId {
-    final id = QueryParams.gistId;
+    final id = queryParams.gistId;
     return isLegalGistId(id) ? id : '';
   }
 
   // Option for Light / Dark theme (defaults to light)
   bool get isDarkMode {
-    return QueryParams.theme == 'dark';
+    return queryParams.theme == 'dark';
   }
 
   // Option to run the snippet immediately (defaults to  false)
   bool get autoRunEnabled {
-    return QueryParams.autoRunEnabled;
+    return queryParams.autoRunEnabled;
   }
 
   bool get shouldOpenConsole {
-    return QueryParams.shouldOpenConsole;
+    return queryParams.shouldOpenConsole;
   }
 
   // Whether or not to show the Install button. (defaults to true)
   bool get showInstallButton {
-    if (QueryParams.hasShowInstallButton) {
-      return QueryParams.showInstallButton;
+    if (queryParams.hasShowInstallButton) {
+      return queryParams.showInstallButton;
     }
 
     // Default to true
@@ -504,12 +504,12 @@ class Embed {
   }
 
   // ID of an API Doc sample that should be loaded into the editors.
-  String get sampleId => QueryParams.sampleId ?? '';
+  String get sampleId => queryParams.sampleId ?? '';
 
   // An optional channel indicating which version of the API Docs to use when
   // loading a sample. Defaults to the stable channel.
   FlutterSdkChannel get sampleChannel {
-    final channelStr = QueryParams.sampleChannel?.toLowerCase();
+    final channelStr = queryParams.sampleChannel?.toLowerCase();
 
     if (channelStr == 'master') {
       return FlutterSdkChannel.master;
@@ -525,19 +525,19 @@ class Embed {
   // GitHub params for loading an exercise from a repo. The first three are
   // required to load something, while the fourth, gh_ref, is an optional branch
   // name or commit SHA.
-  String get githubOwner => QueryParams.githubOwner ?? '';
+  String get githubOwner => queryParams.githubOwner ?? '';
 
-  String get githubRepo => QueryParams.githubRepo ?? '';
+  String get githubRepo => queryParams.githubRepo ?? '';
 
-  String get githubPath => QueryParams.githubPath ?? '';
+  String get githubPath => queryParams.githubPath ?? '';
 
-  String /*?*/ get githubRef => QueryParams.githubRef;
+  String /*?*/ get githubRef => queryParams.githubRef;
 
   bool get githubParamsPresent =>
       githubOwner.isNotEmpty && githubRepo.isNotEmpty && githubPath.isNotEmpty;
 
   void _initNullSafety() {
-    if (QueryParams.hasNullSafety && QueryParams.nullSafety) {
+    if (queryParams.hasNullSafety && queryParams.nullSafety) {
       nullSafetyEnabled = true;
     }
   }
@@ -1008,7 +1008,7 @@ class Embed {
   int get initialSplitPercent {
     const defaultSplitPercentage = 70;
 
-    var s = QueryParams.initialSplit ?? defaultSplitPercentage;
+    var s = queryParams.initialSplit ?? defaultSplitPercentage;
 
     // keep the split within the range [5, 95]
     s = math.min(s, 95);
