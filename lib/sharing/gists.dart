@@ -27,8 +27,8 @@ enum FlutterSdkChannel {
 }
 
 /// Return whether the given string is a valid github gist ID.
-bool isLegalGistId(String id) {
-  if (id == null) return false;
+bool isLegalGistId(String /*?*/ id) {
+  if (id == null || id.isEmpty) return false;
   // 4/8/2016: Github gist ids changed from 20 to 32 characters long.
   return _gistRegex.hasMatch(id) && id.length >= 5 && id.length <= 40;
 }

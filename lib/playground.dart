@@ -669,8 +669,9 @@ class Playground implements GistContainer, GistController {
     var url = Uri.parse(window.location.toString());
     _clearOutput();
 
-    if (url.hasQuery && url.queryParameters['line'] != null) {
-      _jumpToLine(int.parse(url.queryParameters['line']));
+    final line = QueryParams.line;
+    if (line != null) {
+      _jumpToLine(line);
     }
 
     // Run asynchronously to wait for _context.dartSource to exist
@@ -695,12 +696,10 @@ class Playground implements GistContainer, GistController {
   /// Loads the gist provided by the 'id' query parameter or stored in
   /// [GistStorage].
   LoadGistResult _loadGist() {
-    var url = Uri.parse(window.location.toString());
+    final gistId = QueryParams.gistId;
 
-    if (url.hasQuery &&
-        url.queryParameters['id'] != null &&
-        isLegalGistId(url.queryParameters['id'])) {
-      _showGist(url.queryParameters['id']);
+    if (gistId != null && isLegalGistId(gistId)) {
+      _showGist(gistId);
       return LoadGistResult.queryParameter;
     }
 
