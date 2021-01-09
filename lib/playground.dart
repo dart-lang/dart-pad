@@ -666,7 +666,6 @@ class Playground implements GistContainer, GistController {
     }
 
     // Clear console output and update the layout if necessary.
-    var url = Uri.parse(window.location.toString());
     _clearOutput();
 
     final line = QueryParams.line;
