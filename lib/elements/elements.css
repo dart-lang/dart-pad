@@ -186,7 +186,7 @@ button.close:hover {
   border-radius: 2px;
   background-color: #3a3a3a;
   padding: 8px 16px;
-  box-shadow: 3px 3px 4px 0px rgba(15, 14, 14, 0.7);
+  box-shadow: 3px 3px 4px 0 rgba(15, 14, 14, 0.7);
 }
 
 /* issues css */
@@ -276,8 +276,7 @@ button.close:hover {
   position: absolute;
   padding: 10px;
   background-color: #444;
-  border: 1px solid;
-  border-color: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.5);
   border-radius: 4px;
   box-shadow: rgba(255, 255, 255, 0.1) 0 0 0, rgba(0, 0, 0, 0.4) 0 1px 7px 0;
 
@@ -348,7 +347,7 @@ button.close:hover {
 /* style the <select> element */
 
 select {
-  -webkit-border-radius: 0px;
+  -webkit-border-radius: 0;
 
   color: #aaa;
   fill: #aaa;

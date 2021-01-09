@@ -141,7 +141,7 @@ String makeKeyPresentable(String key) {
 
 bool isMac() => _isMac;
 
-final Map _codeMap = {
+const Map _codeMap = {
   KeyCode.ZERO: '0',
   KeyCode.ONE: '1',
   KeyCode.TWO: '2',
@@ -234,7 +234,7 @@ final Map _codeMap = {
   KeyCode.SHIFT: '', //
 };
 
-final Map _unicodeMac = {
+const Map _unicodeMac = {
   'macctrl': '\u2303',
   'alt': '\u2325',
   'shift': '\u21E7',

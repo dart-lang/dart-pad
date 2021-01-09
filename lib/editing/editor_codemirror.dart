@@ -33,7 +33,7 @@ class CodeMirrorFactory extends EditorFactory {
   List<String> get themes => CodeMirror.THEMES;
 
   @override
-  Editor createFromElement(html.Element element, {Map options}) {
+  Editor createFromElement(html.Element element, {Map /*?*/ options}) {
     options ??= {
       'continueComments': {'continueLineComment': false},
       'autofocus': false,
