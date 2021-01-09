@@ -72,7 +72,8 @@ class DartPadInjectException implements Exception {
   final String message;
   DartPadInjectException(this.message);
   @override
-  String toString() => message;
+  // ignore: unnecessary_string_interpolations
+  String toString() => '$message';
 }
 
 /// Parses the dartpad CSS class names to extract
