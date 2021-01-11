@@ -10,7 +10,7 @@ import 'dart:convert';
 
 import 'package:dart_pad/sharing/exercise_metadata.dart';
 import 'package:dart_pad/src/sample.dart' as sample;
-import 'package:haikunator/haikunator.dart';
+import 'package:fluttering_phrases/fluttering_phrases.dart' as phrases;
 import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart' as yaml;
 import '../util/detect_flutter.dart' as detect_flutter;
@@ -51,7 +51,7 @@ String extractHtmlBody(String html) {
 Gist createSampleDartGist() {
   var gist = Gist();
   // "wispy-dust-1337", "patient-king-8872", "purple-breeze-9817"
-  gist.description = Haikunator.haikunate();
+  gist.description = phrases.generate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCode));
   gist.files.add(GistFile(
       name: 'readme.md',
@@ -62,7 +62,7 @@ Gist createSampleDartGist() {
 
 Gist createSampleHtmlGist() {
   var gist = Gist();
-  gist.description = Haikunator.haikunate();
+  gist.description = phrases.generate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCodeHtml));
   gist.files.add(GistFile(name: 'index.html', content: sample.htmlCode));
   gist.files.add(GistFile(name: 'styles.css', content: sample.cssCode));
@@ -75,7 +75,7 @@ Gist createSampleHtmlGist() {
 
 Gist createSampleFlutterGist() {
   var gist = Gist();
-  gist.description = Haikunator.haikunate();
+  gist.description = phrases.generate();
   gist.files.add(GistFile(name: 'main.dart', content: sample.flutterCode));
   gist.files.add(GistFile(
       name: 'readme.md',
