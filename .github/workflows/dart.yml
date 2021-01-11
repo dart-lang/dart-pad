@@ -21,13 +21,11 @@ jobs:
         sdk: [dev,beta,stable]
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.1
         with:
-          release-channel: ${{ matrix.sdk }}
+          channel: ${{ matrix.sdk }}
       - name: Install dependencies
         run: sudo apt-get install -y protobuf-compiler redis
-      - name: Report version
-        run: dart --version
       - name: Install dependencies
         run: dart pub get
       - name: Analyze code (example/)
