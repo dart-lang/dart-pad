@@ -21,9 +21,9 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: cedx/setup-dart@v2
+      - uses: dart-lang/setup-dart@v0.1
         with:
-          release-channel: ${{ matrix.sdk }}
+          channel: ${{ matrix.sdk }}
       - uses: actions/setup-node@v1
       
       - name: Print Dart SDK version
