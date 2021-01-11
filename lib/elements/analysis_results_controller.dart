@@ -67,7 +67,7 @@ class AnalysisResultsController {
     }
 
     showToggle();
-    message.text = '${amount} ${amount == 1 ? 'issue' : 'issues'}';
+    message.text = '$amount ${amount == 1 ? 'issue' : 'issues'}';
 
     flash.clearChildren();
     for (var elem in issues.map(_issueElement)) {

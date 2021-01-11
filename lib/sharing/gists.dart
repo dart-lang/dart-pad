@@ -128,7 +128,7 @@ class GistLoader {
   static const String _masterApiDocsUrl =
       'https://master-api.flutter.dev/snippets';
 
-  static final GistFilterHook _defaultLoadHook = (Gist gist) {
+  static void _defaultLoadHook(Gist gist) {
     // Update files based on our preferred file names.
     if (gist.getFile('body.html') != null &&
         gist.getFile('index.html') == null) {
@@ -153,9 +153,9 @@ class GistLoader {
     if (htmlFile != null) {
       htmlFile.content = extractHtmlBody(htmlFile.content);
     }
-  };
+  }
 
-  static final GistFilterHook _defaultSaveHook = (Gist gist) {
+  static void _defaultSaveHook(Gist gist) {
     // Create a full html file on save.
     var hasStyles = gist.getFile('styles.css') != null;
     var styleRef =
@@ -193,7 +193,7 @@ $styleRef$dartRef  </head>
             summary: gist.summary,
             withLink: _dartpadLink));
     gist.files.add(readmeFile);
-  };
+  }
 
   final GistFilterHook afterLoadHook;
   final GistFilterHook beforeSaveHook;
@@ -280,7 +280,7 @@ $styleRef$dartRef  </head>
     return Uri.https(
       _repoContentsAuthority,
       'repos/$owner/$repo/contents/$path',
-      (ref != null && ref.isNotEmpty) ? {'ref': '$ref'} : null,
+      (ref != null && ref.isNotEmpty) ? {'ref': ref} : null,
     );
   }
 

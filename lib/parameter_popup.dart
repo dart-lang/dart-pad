@@ -192,7 +192,7 @@ class ParameterPopup {
   /// `{openingParenIndex: 9, parameterIndex: 1}`.
   Map<String, int> _parameterInfo(String source, int offset) {
     var parameterIndex = 0;
-    var openingParenIndex;
+    int /*?*/ openingParenIndex;
     var nesting = 0;
 
     while (openingParenIndex == null && offset > 0) {
@@ -226,7 +226,7 @@ class ParameterPopup {
     return openingParenIndex == null
         ? null
         : {
-            'openingParenIndex': openingParenIndex as int,
+            'openingParenIndex': openingParenIndex,
             'parameterIndex': parameterIndex
           };
   }

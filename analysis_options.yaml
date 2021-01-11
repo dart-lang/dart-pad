@@ -8,7 +8,49 @@ analyzer:
     - 'doc/api/**'
     - 'last_prod/**'
     - 'lib/bower/**'
-    - 'lib/services/_dartpadsupportservices.dart'
-    - 'lib/services/dartservices.dart'
     - 'lib/src/protos/**'
     - 'third_party/pkg/**'
+
+linter:
+  rules:
+    - await_only_futures
+    - camel_case_types
+    - file_names
+    - hash_and_equals
+    - iterable_contains_unrelated_type
+    - list_remove_unrelated_type
+    - non_constant_identifier_names
+    - package_prefixed_library_names
+    - prefer_typing_uninitialized_variables
+    - provide_deprecation_message
+    - unawaited_futures
+    - unnecessary_overrides
+    - unrelated_type_equality_checks
+    - valid_regexps
+    - void_checks
+    - avoid_function_literals_in_foreach_calls
+    - avoid_private_typedef_functions
+    - avoid_renaming_method_parameters
+    - avoid_returning_null_for_void
+    - avoid_single_cascade_in_expression_statements
+    - constant_identifier_names
+    - control_flow_in_finally
+    - empty_constructor_bodies
+    - empty_statements
+    - exhaustive_cases
+    - implementation_imports
+    - overridden_fields
+    - package_names
+    - prefer_function_declarations_over_variables
+    - prefer_initializing_formals
+    - prefer_inlined_adds
+    - prefer_is_not_operator
+    - prefer_mixin
+    - prefer_null_aware_operators
+    - prefer_void_to_null
+    - slash_for_doc_comments
+    - type_init_formals
+    - unnecessary_brace_in_string_interps
+    - unnecessary_getters_setters
+    - unnecessary_string_escapes
+    - unnecessary_string_interpolations

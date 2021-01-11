@@ -35,8 +35,7 @@ void defineTests() {
     test('target functions', () {
       var from = TestProperty('foo');
       Object val;
-      var to = (_val) => val = _val;
-      bind(from, to).flush();
+      bind(from, (_val) => val = _val).flush();
       expect(val, from.value);
     });
 

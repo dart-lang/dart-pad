@@ -174,11 +174,11 @@ class DSplitter extends DElement {
       element.children.add(e);
     }
 
-    var cancel = () {
+    void cancel() {
       if (_moveSub != null) _moveSub.cancel();
       if (_upSub != null) _upSub.cancel();
       if (onDragEnd != null) onDragEnd();
-    };
+    }
 
     element.onMouseDown.listen((MouseEvent e) {
       if (e.button != 0) return;

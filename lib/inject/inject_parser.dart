@@ -72,6 +72,7 @@ class DartPadInjectException implements Exception {
   final String message;
   DartPadInjectException(this.message);
   @override
+  // ignore: unnecessary_string_interpolations
   String toString() => '$message';
 }
 
