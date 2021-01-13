@@ -20,11 +20,11 @@ import 'package:dart_services/src/sdk_manager.dart';
 import 'package:dart_services/src/server_cache.dart';
 import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 
-bool _SERVER_BASED_CALL = false;
-bool _VERBOSE = false;
-bool _DUMP_SRC = false;
-bool _DUMP_PERF = false;
-bool _DUMP_DELTA = false;
+bool serverBasedCall = false;
+bool verbose = false;
+bool dumpSrc = false;
+bool dumpPerf = false;
+bool dumpDelta = false;
 
 CommonServerImpl commonServerImpl;
 MockContainer container;
@@ -154,7 +154,7 @@ Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
     num averageDocumentTime = 0;
     num averageFixesTime = 0;
     num averageFormatTime = 0;
-    if (_DUMP_SRC) print(src);
+    if (dumpSrc) print(src);
 
     try {
       switch (commandToRun.toLowerCase()) {
@@ -229,7 +229,7 @@ Future<num> testAnalysis(
   final sw = Stopwatch()..start();
 
   lastOffset = null;
-  if (_SERVER_BASED_CALL) {
+  if (serverBasedCall) {
     final request = proto.SourceRequest();
     request.source = src;
     await withTimeOut(commonServerImpl.analyze(request));
@@ -239,7 +239,7 @@ Future<num> testAnalysis(
     await withTimeOut(analysisServer.analyze(src));
   }
 
-  if (_DUMP_PERF) print('PERF: ANALYSIS: ${sw.elapsedMilliseconds}');
+  if (dumpPerf) print('PERF: ANALYSIS: ${sw.elapsedMilliseconds}');
   return sw.elapsedMilliseconds / 2.0;
 }
 
@@ -248,7 +248,7 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
   final sw = Stopwatch()..start();
 
   lastOffset = null;
-  if (_SERVER_BASED_CALL) {
+  if (serverBasedCall) {
     final request = proto.CompileRequest();
     request.source = src;
     await withTimeOut(commonServerImpl.compile(request));
@@ -256,7 +256,7 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
     await withTimeOut(compiler.compile(src));
   }
 
-  if (_DUMP_PERF) print('PERF: COMPILATION: ${sw.elapsedMilliseconds}');
+  if (dumpPerf) print('PERF: COMPILATION: ${sw.elapsedMilliseconds}');
   return sw.elapsedMilliseconds;
 }
 
@@ -269,7 +269,7 @@ Future<num> testDocument(
 
     if (i % 1000 == 0 && i > 0) print('INC: $i docs completed');
     lastOffset = i;
-    if (_SERVER_BASED_CALL) {
+    if (serverBasedCall) {
       final request = proto.SourceRequest();
       request.source = src;
       request.offset = i;
@@ -277,7 +277,7 @@ Future<num> testDocument(
     } else {
       log(await withTimeOut(analysisServer.dartdoc(src, i)));
     }
-    if (_DUMP_PERF) print('PERF: DOCUMENT: ${sw2.elapsedMilliseconds}');
+    if (dumpPerf) print('PERF: DOCUMENT: ${sw2.elapsedMilliseconds}');
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -291,7 +291,7 @@ Future<num> testCompletions(
 
     if (i % 1000 == 0 && i > 0) print('INC: $i completes');
     lastOffset = i;
-    if (_SERVER_BASED_CALL) {
+    if (serverBasedCall) {
       final request = proto.SourceRequest()
         ..source = src
         ..offset = i;
@@ -299,7 +299,7 @@ Future<num> testCompletions(
     } else {
       await withTimeOut(wrapper.complete(src, i));
     }
-    if (_DUMP_PERF) print('PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}');
+    if (dumpPerf) print('PERF: COMPLETIONS: ${sw2.elapsedMilliseconds}');
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -313,7 +313,7 @@ Future<num> testFixes(
 
     if (i % 1000 == 0 && i > 0) print('INC: $i fixes');
     lastOffset = i;
-    if (_SERVER_BASED_CALL) {
+    if (serverBasedCall) {
       final request = proto.SourceRequest();
       request.source = src;
       request.offset = i;
@@ -321,7 +321,7 @@ Future<num> testFixes(
     } else {
       await withTimeOut(wrapper.getFixes(src, i));
     }
-    if (_DUMP_PERF) print('PERF: FIXES: ${sw2.elapsedMilliseconds}');
+    if (dumpPerf) print('PERF: FIXES: ${sw2.elapsedMilliseconds}');
   }
   return sw.elapsedMilliseconds / src.length;
 }
@@ -376,7 +376,7 @@ String mutate(String src) {
   var i = random.nextInt(src.length);
   if (i == 0) i = 1;
 
-  if (_DUMP_DELTA) {
+  if (dumpDelta) {
     log('Delta: $s');
   }
   final newStr = src.substring(0, i - 1) + s + src.substring(i);
@@ -414,7 +414,7 @@ enum OperationType {
 final int termWidth = io.stdout.hasTerminal ? io.stdout.terminalColumns : 200;
 
 void log(dynamic obj) {
-  if (_VERBOSE) {
+  if (verbose) {
     print('${DateTime.now()} $obj');
   }
 }
