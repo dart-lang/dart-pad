@@ -11,6 +11,7 @@ import 'package:dart_pad/src/ga.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 
+import 'check_localstorage.dart';
 import 'completion.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
@@ -23,7 +24,6 @@ import 'elements/console.dart';
 import 'elements/counter.dart';
 import 'elements/dialog.dart';
 import 'elements/elements.dart';
-import 'check_localstorage.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'services/common.dart';

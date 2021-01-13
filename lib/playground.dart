@@ -15,6 +15,7 @@ import 'package:meta/meta.dart';
 import 'package:route_hierarchical/client.dart';
 import 'package:split/split.dart';
 
+import 'check_localstorage.dart';
 import 'completion.dart';
 import 'context.dart';
 import 'core/dependencies.dart';
@@ -31,7 +32,6 @@ import 'elements/counter.dart';
 import 'elements/dialog.dart';
 import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
-import 'check_localstorage.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
