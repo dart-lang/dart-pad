@@ -154,7 +154,7 @@ class GaeServer {
       try {
         final tempDir = await io.Directory.systemTemp.createTemp('healthz');
         try {
-          final file = await io.File('${tempDir.path}/livecheck.txt');
+          final file = io.File('${tempDir.path}/livecheck.txt');
           await file.writeAsString('testing123\n' * 1000, flush: true);
           final stat = await file.stat();
           if (stat.size > 10000) {

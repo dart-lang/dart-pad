@@ -155,7 +155,7 @@ void buildStorageArtifacts() async {
   }
 }
 
-void _buildStorageArtifacts(Directory dir) async {
+Future _buildStorageArtifacts(Directory dir) async {
   final flutterSdkPath =
       Directory(path.join(Directory.current.path, 'flutter'));
   final pubspec = createPubspec(includeFlutterWeb: true);
