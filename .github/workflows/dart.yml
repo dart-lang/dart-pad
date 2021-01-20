@@ -1,4 +1,4 @@
-name: Dart
+name: dart-services
 
 on:
   # Run CI on pushes to the master branch, and on PRs against master.
