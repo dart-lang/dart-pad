@@ -32,7 +32,7 @@ import 'services/execution_iframe.dart';
 import 'sharing/gists.dart';
 import 'src/util.dart';
 import 'util/keymap.dart';
-import 'util/query_params.dart';
+import 'util/query_params.dart' show queryParams;
 
 const int defaultSplitterWidth = 6;
 
@@ -473,58 +473,43 @@ class Embed {
     window.parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
   }
 
-  String _getQueryParam(String key) {
-    final url = Uri.parse(window.location.toString());
-
-    if (url.hasQuery && url.queryParameters[key] != null) {
-      return url.queryParameters[key];
-    }
-
-    return '';
-  }
-
   // Option for the GitHub gist ID that should be loaded into the editors.
   String get gistId {
-    final id = _getQueryParam('id');
+    final id = queryParams.gistId;
     return isLegalGistId(id) ? id : '';
   }
 
   // Option for Light / Dark theme (defaults to light)
   bool get isDarkMode {
-    final url = Uri.parse(window.location.toString());
-    return url.queryParameters['theme'] == 'dark';
+    return queryParams.theme == 'dark';
   }
 
   // Option to run the snippet immediately (defaults to  false)
   bool get autoRunEnabled {
-    final url = Uri.parse(window.location.toString());
-    return url.queryParameters['run'] == 'true';
+    return queryParams.autoRunEnabled;
   }
 
   bool get shouldOpenConsole {
-    final value = _getQueryParam('open_console');
-    return value == 'true';
+    return queryParams.shouldOpenConsole;
   }
 
   // Whether or not to show the Install button. (defaults to true)
   bool get showInstallButton {
-    final value = _getQueryParam('install_button');
-
-    // Default to true
-    if (value.isEmpty) {
-      return true;
+    if (queryParams.hasShowInstallButton) {
+      return queryParams.showInstallButton;
     }
 
-    return value == 'true';
+    // Default to true
+    return true;
   }
 
   // ID of an API Doc sample that should be loaded into the editors.
-  String get sampleId => _getQueryParam('sample_id');
+  String get sampleId => queryParams.sampleId ?? '';
 
   // An optional channel indicating which version of the API Docs to use when
   // loading a sample. Defaults to the stable channel.
   FlutterSdkChannel get sampleChannel {
-    final channelStr = _getQueryParam('sample_channel')?.toLowerCase();
+    final channelStr = queryParams.sampleChannel?.toLowerCase();
 
     if (channelStr == 'master') {
       return FlutterSdkChannel.master;
@@ -540,19 +525,19 @@ class Embed {
   // GitHub params for loading an exercise from a repo. The first three are
   // required to load something, while the fourth, gh_ref, is an optional branch
   // name or commit SHA.
-  String get githubOwner => _getQueryParam('gh_owner');
+  String get githubOwner => queryParams.githubOwner ?? '';
 
-  String get githubRepo => _getQueryParam('gh_repo');
+  String get githubRepo => queryParams.githubRepo ?? '';
 
-  String get githubPath => _getQueryParam('gh_path');
+  String get githubPath => queryParams.githubPath ?? '';
 
-  String get githubRef => _getQueryParam('gh_ref');
+  String /*?*/ get githubRef => queryParams.githubRef;
 
   bool get githubParamsPresent =>
       githubOwner.isNotEmpty && githubRepo.isNotEmpty && githubPath.isNotEmpty;
 
   void _initNullSafety() {
-    if (QueryParams.hasNullSafety && QueryParams.nullSafety) {
+    if (queryParams.hasNullSafety && queryParams.nullSafety) {
       nullSafetyEnabled = true;
     }
   }
@@ -1023,13 +1008,7 @@ class Embed {
   int get initialSplitPercent {
     const defaultSplitPercentage = 70;
 
-    final url = Uri.parse(window.location.toString());
-    if (!url.queryParameters.containsKey('split')) {
-      return defaultSplitPercentage;
-    }
-
-    var s =
-        int.tryParse(url.queryParameters['split']) ?? defaultSplitPercentage;
+    var s = queryParams.initialSplit ?? defaultSplitPercentage;
 
     // keep the split within the range [5, 95]
     s = math.min(s, 95);

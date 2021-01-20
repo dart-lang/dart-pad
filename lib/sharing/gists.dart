@@ -12,6 +12,7 @@ import 'package:dart_pad/sharing/exercise_metadata.dart';
 import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:fluttering_phrases/fluttering_phrases.dart' as phrases;
 import 'package:http/http.dart' as http;
+import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart' as yaml;
 import '../util/detect_flutter.dart' as detect_flutter;
 
@@ -27,8 +28,8 @@ enum FlutterSdkChannel {
 }
 
 /// Return whether the given string is a valid github gist ID.
-bool isLegalGistId(String id) {
-  if (id == null) return false;
+bool isLegalGistId(String /*?*/ id) {
+  if (id == null || id.isEmpty) return false;
   // 4/8/2016: Github gist ids changed from 20 to 32 characters long.
   return _gistRegex.hasMatch(id) && id.length >= 5 && id.length <= 40;
 }
@@ -276,19 +277,20 @@ $styleRef$dartRef  </head>
     return utf8.decode(base64.decode(encodedContentStr));
   }
 
-  Uri _buildContentsUrl(String owner, String repo, String path, [String ref]) {
+  Uri _buildContentsUrl(String owner, String repo, String path,
+      [String /*?*/ ref]) {
     return Uri.https(
       _repoContentsAuthority,
       'repos/$owner/$repo/contents/$path',
-      (ref != null && ref.isNotEmpty) ? {'ref': ref} : null,
+      (ref?.isNotEmpty == true) ? {'ref': ref} : null,
     );
   }
 
   Future<Gist> loadGistFromRepo({
-    String owner,
-    String repo,
-    String path,
-    String ref,
+    @required String owner,
+    @required String repo,
+    @required String path,
+    String /*?*/ ref,
   }) async {
     // Download and parse the exercise's `dartpad_metadata.json` file.
     final metadataUrl =
