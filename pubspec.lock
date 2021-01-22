@@ -393,13 +393,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.12"
-  octicons_css:
-    dependency: "direct main"
-    description:
-      name: octicons_css
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.1"
   package_config:
     dependency: transitive
     description:
@@ -435,13 +428,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.0"
-  primer_css:
-    dependency: "direct main"
-    description:
-      name: primer_css
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.0.2"
   protobuf:
     dependency: "direct main"
     description:

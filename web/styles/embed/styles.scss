@@ -7,7 +7,12 @@
 @import 'package:dart_pad/scss/variables';
 @import 'package:dart_pad/scss/shared';
 
+* {
+  box-sizing: border-box;
+}
+
 body {
+  margin: 0;
   top: 0;
   bottom: 0;
   left: 0;
@@ -15,11 +20,8 @@ body {
   position: absolute;
   overflow: hidden;
   font-size: 14px;
-}
-
-
-.medium-octicon {
-  font-size: 19px;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 // Tab Navigation
@@ -157,13 +159,14 @@ body {
   overflow: auto;
 }
 
-#console-expand-icon {
-  color: $label-color;
-  padding: 8px;
+#console-expand-icon-container {
+  height: 32px;
+  width: 32px;
 }
 
-#console-expand-icon:focus {
-  outline: none;
+#console-expand-icon {
+  color: $label-color;
+  @include mdc-icon-button-size(16px, 16px, 8px);
 }
 
 #console-output-container {
@@ -231,11 +234,6 @@ body {
   align-items: center;
   padding: 4px 12px 4px 12px;
   height: 40px;
-}
-
-// Primer
-.Popover-message {
-  padding: 8px !important;
 }
 
 // Material Design

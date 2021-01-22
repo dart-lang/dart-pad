@@ -1120,27 +1120,6 @@ class DisableableButton {
   }
 }
 
-class Octicon {
-  static const prefix = 'octicon-';
-
-  Octicon(this.element);
-
-  final DivElement element;
-
-  String get iconName {
-    return element.classes
-        .firstWhere((s) => s.startsWith(prefix), orElse: () => '');
-  }
-
-  set iconName(String name) {
-    element.classes.removeWhere((s) => s.startsWith(prefix));
-    element.classes.add('$prefix$name');
-  }
-
-  static bool elementIsOcticon(Element el) =>
-      el.classes.any((s) => s.startsWith(prefix));
-}
-
 enum FlashBoxStyle {
   warn,
   error,
@@ -1258,15 +1237,13 @@ class ConsoleExpandController extends Console {
       _initSplitter();
       _splitter.setSizes([60, 40]);
       element.toggleAttr('hidden', false);
-      expandIcon.element.classes.remove('octicon-triangle-up');
-      expandIcon.element.classes.add('octicon-triangle-down');
+      expandIcon.element.innerText = 'expand_more';
       footer.toggleClass('footer-top-border', false);
       unreadCounter.clear();
     } else {
       _splitter.setSizes([100, 0]);
       element.toggleAttr('hidden', true);
-      expandIcon.element.classes.remove('octicon-triangle-down');
-      expandIcon.element.classes.add('octicon-triangle-up');
+      expandIcon.element.innerText = 'expand_less';
       footer.toggleClass('footer-top-border', true);
       try {
         _splitter.destroy();
