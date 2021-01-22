@@ -43,7 +43,7 @@ void main(List<String> args) {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  EndpointsServer.serve(port, result['proxy-target'].toString())
+  EndpointsServer.serve(port, result['proxy-target'] as String)
       .then((EndpointsServer server) {
     _logger.info('Listening on port ${server.port}');
   });
