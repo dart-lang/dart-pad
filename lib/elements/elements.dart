@@ -105,12 +105,12 @@ class DButton extends DElement {
 
   DButton.close() : super.tag('button', classes: 'close');
 
-  ButtonElement get belement => element as ButtonElement;
+  ButtonElement get buttonElement => element as ButtonElement;
 
-  bool get disabled => belement.disabled;
+  bool get disabled => buttonElement.disabled;
 
   set disabled(bool value) {
-    belement.disabled = value;
+    buttonElement.disabled = value;
   }
 }
 
@@ -470,7 +470,7 @@ abstract class DDialog extends DElement {
   DElement content;
   DElement buttonArea;
 
-  DDialog({String title}) : super.tag('div') {
+  DDialog({String /*?*/ title}) : super.tag('div') {
     element.classes.addAll(['dialog', 'dialog-position']);
     setAttr('layout');
     setAttr('vertical');
@@ -580,7 +580,7 @@ class TabController {
 
 class TabElement extends DElement {
   final String name;
-  final Function onSelect;
+  final Function /*?*/ onSelect;
 
   TabElement(Element element, {this.name, this.onSelect}) : super(element);
 

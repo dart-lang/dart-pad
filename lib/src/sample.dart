@@ -4,7 +4,7 @@
 
 library dart_pad.sample;
 
-final String dartCode = r'''
+const String dartCode = r'''
 void main() {
   for (int i = 0; i < 5; i++) {
     print('hello ${i + 1}');
@@ -12,7 +12,7 @@ void main() {
 }
 ''';
 
-final String dartCodeHtml = r'''
+const String dartCodeHtml = r'''
 import 'dart:html';
 
 void main() {
@@ -21,11 +21,11 @@ void main() {
 }
 ''';
 
-final String htmlCode = r'''
+const String htmlCode = r'''
 <h1 id="header"></h1>
 ''';
 
-final String cssCode = r'''
+const String cssCode = r'''
 body {
   display: flex;
   flex-direction: column;

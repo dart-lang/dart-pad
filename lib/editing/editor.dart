@@ -148,7 +148,7 @@ class Position {
   final int line;
   final int char;
 
-  Position(this.line, this.char);
+  const Position(this.line, this.char);
 
   @override
   String toString() => '[$line,$char]';

@@ -9,7 +9,7 @@ import 'dart:async';
 import 'services/dartservices.dart';
 
 abstract class Context {
-  List<AnalysisIssue> issues = [];
+  final List<AnalysisIssue> issues = [];
 
   String get focusedEditor;
 

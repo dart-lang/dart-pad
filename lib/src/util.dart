@@ -31,7 +31,7 @@ class PermissiveNodeValidator implements NodeValidator {
 
 /// Text to be displayed to DartPad users. The associated title should be
 /// 'About DartPad' (or equivalent).
-final String privacyText = '''
+const String privacyText = '''
 DartPad is a free, open-source service to help developers learn about the Dart 
 language and libraries. Source code entered into DartPad may be sent to servers 
 running in Google Cloud Platform to be analyzed for errors/warnings, compiled 

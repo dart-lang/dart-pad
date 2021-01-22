@@ -6,11 +6,11 @@ import 'dart:html';
 
 /// Displays a counter that is only visible if the count is greater than zero.
 class Counter {
-  Counter(this.element);
-
   final SpanElement element;
 
   int _itemCount = 0;
+
+  Counter(this.element);
 
   void increment() {
     _itemCount++;

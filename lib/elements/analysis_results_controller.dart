@@ -20,9 +20,9 @@ class AnalysisResultsController {
     'error': ['issuelabel', 'error'],
   };
 
-  DElement flash;
-  DElement message;
-  DElement toggle;
+  final DElement flash;
+  final DElement message;
+  final DElement toggle;
   bool _flashHidden;
 
   final StreamController<AnalysisIssue> _onClickController =

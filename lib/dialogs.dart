@@ -48,9 +48,9 @@ class AboutDialog extends DDialog {
 }
 
 class SharingDialog extends DDialog {
-  final String home = 'dartpad.dev';
-  final String _dartThumbnail = 'pictures/embed-dart.png';
-  final String _htmlThumbnail = 'pictures/embed-html.png';
+  static const String home = 'dartpad.dev';
+  static const String _dartThumbnail = 'pictures/embed-dart.png';
+  static const String _htmlThumbnail = 'pictures/embed-html.png';
   final GistContainer gistContainer;
   final GistController gistController;
 

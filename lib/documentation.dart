@@ -71,7 +71,7 @@ class DocHandler {
         if (a is AnchorElement) a.target = 'docs';
       }
       for (final h in docPanel.querySelectorAll('h1')) {
-        h.classes.add('type-${docResult.entitykind}');
+        h.classes.add('type-${docResult.entityKind}');
       }
     });
   }
@@ -109,7 +109,7 @@ class DocHandler {
         if (a is AnchorElement) a.target = 'docs';
       }
       for (final h in docPanel.querySelectorAll('h1')) {
-        h.classes.add('type-${docResult.entitykind}');
+        h.classes.add('type-${docResult.entityKind}');
       }
     });
   }
@@ -174,9 +174,9 @@ ${libraryName == null ? '' : apiLink}\n\n''';
 
 class _DocResult {
   final String html;
-  final String entitykind;
+  final String entityKind;
 
-  _DocResult(this.html, [this.entitykind]);
+  _DocResult(this.html, [this.entityKind]);
 }
 
 class InlineBracketsColon extends markdown.InlineSyntax {

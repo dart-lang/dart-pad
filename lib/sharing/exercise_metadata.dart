@@ -21,7 +21,7 @@ enum ExerciseMode {
   flutter,
 }
 
-final exerciseModeNames = <String, ExerciseMode>{
+const exerciseModeNames = <String, ExerciseMode>{
   'dart': ExerciseMode.dart,
   'html': ExerciseMode.html,
   'flutter': ExerciseMode.flutter,
