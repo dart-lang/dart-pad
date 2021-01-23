@@ -24,8 +24,29 @@ class FlutterWebManager {
     return path.join('artifacts', 'flutter_web.dill');
   }
 
-  static final Set<String> _flutterWebImportPrefixes = <String>{
+  static const Set<String> _flutterWebImportPrefixes = {
     'package:flutter',
+    'dart:ui',
+  };
+
+  /// A set of all allowed `dart:` imports. Currently includes non-VM libraries
+  /// listed as the [doc](https://api.dart.dev/stable/index.html) categories.
+  static const Set<String> _allowedDartImports = {
+    'dart:async',
+    'dart:collection',
+    'dart:convert',
+    'dart:core',
+    'dart:developer',
+    'dart:math',
+    'dart:typed_data',
+    'dart:html',
+    'dart:indexed_db',
+    'dart:js',
+    'dart:js_util',
+    'dart:svg',
+    'dart:web_audio',
+    'dart:web_gl',
+    'dart:web_sql',
     'dart:ui',
   };
 
@@ -43,8 +64,8 @@ class FlutterWebManager {
 
   String getUnsupportedImport(Set<String> imports) {
     for (final import in imports) {
-      // All dart: imports are ok, except dart:io
-      if (import.startsWith('dart:') && import != 'dart:io') {
+      // All non-VM dart: imports are ok
+      if (import.startsWith('dart:') && _allowedDartImports.contains(import)) {
         continue;
       }
 
