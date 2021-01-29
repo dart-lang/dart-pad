@@ -79,6 +79,7 @@ void _result(bool success, [List<String> messages = const []]) {
 var resultFunction = _result;
 
 // Placeholder for unimplemented methods in dart-pad exercises.
+// ignore: non_constant_identifier_names
 Never TODO([String message = '']) => throw UnimplementedError(message);
 ''';
 
