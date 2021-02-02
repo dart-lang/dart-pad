@@ -26,3 +26,6 @@ config.properties
 
 # Editor configuration
 .vscode/
+
+# A Flutter SDK checkout
+flutter-sdk/
