@@ -1,0 +1,15 @@
+# The channel or version of the Flutter SDK to use.
+
+# Note: either the 'channel' field or the 'version' field should be provided
+# below, but not both. If neither a channel nor version is provided then no
+# particular git configuration will be done to the Flutter SDK in `flutter-sdk/`
+# (apart from any initial git clone).
+
+# The dart-services server will automatically create or configure the
+# flutter-sdk/ directory based on this configuration file at startup.
+
+# In order to update the SDK manually, run 'dart tool/update_sdk.dart'.
+
+flutter_sdk:
+  channel: beta
+  # version: 1.25.0-8.1.pre
