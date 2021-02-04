@@ -36,12 +36,11 @@ $ pub global activate protoc_plugin
 
 ## Initialise Flutter
 
-The Flutter submodule in the git repo needs to also be downloaded and setup.
+The Flutter SDK needs to be downloaded and setup.
 
 ```bash
-$ git submodule update --init
-$ ./flutter/bin/flutter doctor -v
-$ ./flutter/bin/flutter/bin/flutter config --enable-web
+$ dart pub install
+$ dart run tool/update_sdk.dart
 ```
 
 ## Build the subsidiary files

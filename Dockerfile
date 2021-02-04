@@ -25,7 +25,13 @@ RUN pub get --offline
 ENV PATH="/home/dart/.pub-cache/bin:${PATH}"
 
 # Set the Flutter SDK up for web compilation.
-RUN dart pub run grinder setup-flutter-sdk
+RUN dart run tool/update_sdk.dart
+
+# Set the Flutter SDK up for web compilation.	# Set the Flutter SDK up for web compilation.
+RUN flutter-sdk/bin/flutter doctor
+RUN flutter-sdk/bin/flutter config --enable-web
+RUN flutter-sdk/bin/flutter precache --web --no-android --no-ios --no-linux \
+  --no-windows --no-macos --no-fuchsia
 
 # Build the dill file
 RUN dart pub run grinder build-storage-artifacts validate-storage-artifacts
