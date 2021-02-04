@@ -11,5 +11,5 @@
 # In order to update the SDK manually, run 'dart tool/update_sdk.dart'.
 
 flutter_sdk:
-  channel: beta
-  # version: 1.25.0-8.1.pre
+  # channel: beta
+  version: 1.25.0-8.3.pre

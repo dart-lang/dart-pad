@@ -2,7 +2,7 @@
 //  Generated code. Do not modify.
 //  source: protos/dart_services.proto
 //
-// @dart = 2.3
+// @dart = 2.7
 // ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
 
 import 'dart:core' as $core;
@@ -33,7 +33,19 @@ class CompileRequest extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   CompileRequest._() : super();
-  factory CompileRequest() => create();
+  factory CompileRequest({
+    $core.String source,
+    $core.bool returnSourceMap,
+  }) {
+    final _result = create();
+    if (source != null) {
+      _result.source = source;
+    }
+    if (returnSourceMap != null) {
+      _result.returnSourceMap = returnSourceMap;
+    }
+    return _result;
+  }
   factory CompileRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -104,7 +116,15 @@ class CompileDDCRequest extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   CompileDDCRequest._() : super();
-  factory CompileDDCRequest() => create();
+  factory CompileDDCRequest({
+    $core.String source,
+  }) {
+    final _result = create();
+    if (source != null) {
+      _result.source = source;
+    }
+    return _result;
+  }
   factory CompileDDCRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -169,7 +189,19 @@ class SourceRequest extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   SourceRequest._() : super();
-  factory SourceRequest() => create();
+  factory SourceRequest({
+    $core.String source,
+    $core.int offset,
+  }) {
+    final _result = create();
+    if (source != null) {
+      _result.source = source;
+    }
+    if (offset != null) {
+      _result.offset = offset;
+    }
+    return _result;
+  }
   factory SourceRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -243,7 +275,23 @@ class AnalysisResults extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   AnalysisResults._() : super();
-  factory AnalysisResults() => create();
+  factory AnalysisResults({
+    $core.Iterable<AnalysisIssue> issues,
+    $core.Iterable<$core.String> packageImports,
+    ErrorMessage error,
+  }) {
+    final _result = create();
+    if (issues != null) {
+      _result.issues.addAll(issues);
+    }
+    if (packageImports != null) {
+      _result.packageImports.addAll(packageImports);
+    }
+    if (error != null) {
+      _result.error = error;
+    }
+    return _result;
+  }
   factory AnalysisResults.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -325,7 +373,39 @@ class AnalysisIssue extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   AnalysisIssue._() : super();
-  factory AnalysisIssue() => create();
+  factory AnalysisIssue({
+    $core.String kind,
+    $core.int line,
+    $core.String message,
+    $core.String sourceName,
+    $core.bool hasFixes,
+    $core.int charStart,
+    $core.int charLength,
+  }) {
+    final _result = create();
+    if (kind != null) {
+      _result.kind = kind;
+    }
+    if (line != null) {
+      _result.line = line;
+    }
+    if (message != null) {
+      _result.message = message;
+    }
+    if (sourceName != null) {
+      _result.sourceName = sourceName;
+    }
+    if (hasFixes != null) {
+      _result.hasFixes = hasFixes;
+    }
+    if (charStart != null) {
+      _result.charStart = charStart;
+    }
+    if (charLength != null) {
+      _result.charLength = charLength;
+    }
+    return _result;
+  }
   factory AnalysisIssue.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -506,7 +586,23 @@ class CompileResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   CompileResponse._() : super();
-  factory CompileResponse() => create();
+  factory CompileResponse({
+    $core.String result,
+    $core.String sourceMap,
+    ErrorMessage error,
+  }) {
+    final _result = create();
+    if (result != null) {
+      _result.result = result;
+    }
+    if (sourceMap != null) {
+      _result.sourceMap = sourceMap;
+    }
+    if (error != null) {
+      _result.error = error;
+    }
+    return _result;
+  }
   factory CompileResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -599,7 +695,23 @@ class CompileDDCResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   CompileDDCResponse._() : super();
-  factory CompileDDCResponse() => create();
+  factory CompileDDCResponse({
+    $core.String result,
+    $core.String modulesBaseUrl,
+    ErrorMessage error,
+  }) {
+    final _result = create();
+    if (result != null) {
+      _result.result = result;
+    }
+    if (modulesBaseUrl != null) {
+      _result.modulesBaseUrl = modulesBaseUrl;
+    }
+    if (error != null) {
+      _result.error = error;
+    }
+    return _result;
+  }
   factory CompileDDCResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -691,7 +803,19 @@ class DocumentResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   DocumentResponse._() : super();
-  factory DocumentResponse() => create();
+  factory DocumentResponse({
+    $core.Map<$core.String, $core.String> info,
+    ErrorMessage error,
+  }) {
+    final _result = create();
+    if (info != null) {
+      _result.info.addAll(info);
+    }
+    if (error != null) {
+      _result.error = error;
+    }
+    return _result;
+  }
   factory DocumentResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -760,7 +884,27 @@ class CompleteResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   CompleteResponse._() : super();
-  factory CompleteResponse() => create();
+  factory CompleteResponse({
+    $core.int replacementOffset,
+    $core.int replacementLength,
+    $core.Iterable<Completion> completions,
+    ErrorMessage error,
+  }) {
+    final _result = create();
+    if (replacementOffset != null) {
+      _result.replacementOffset = replacementOffset;
+    }
+    if (replacementLength != null) {
+      _result.replacementLength = replacementLength;
+    }
+    if (completions != null) {
+      _result.completions.addAll(completions);
+    }
+    if (error != null) {
+      _result.error = error;
+    }
+    return _result;
+  }
   factory CompleteResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -852,7 +996,15 @@ class Completion extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   Completion._() : super();
-  factory Completion() => create();
+  factory Completion({
+    $core.Map<$core.String, $core.String> completion,
+  }) {
+    final _result = create();
+    if (completion != null) {
+      _result.completion.addAll(completion);
+    }
+    return _result;
+  }
   factory Completion.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -906,7 +1058,19 @@ class FixesResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   FixesResponse._() : super();
-  factory FixesResponse() => create();
+  factory FixesResponse({
+    $core.Iterable<ProblemAndFixes> fixes,
+    ErrorMessage error,
+  }) {
+    final _result = create();
+    if (fixes != null) {
+      _result.fixes.addAll(fixes);
+    }
+    if (error != null) {
+      _result.error = error;
+    }
+    return _result;
+  }
   factory FixesResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -976,7 +1140,27 @@ class ProblemAndFixes extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   ProblemAndFixes._() : super();
-  factory ProblemAndFixes() => create();
+  factory ProblemAndFixes({
+    $core.Iterable<CandidateFix> fixes,
+    $core.String problemMessage,
+    $core.int offset,
+    $core.int length,
+  }) {
+    final _result = create();
+    if (fixes != null) {
+      _result.fixes.addAll(fixes);
+    }
+    if (problemMessage != null) {
+      _result.problemMessage = problemMessage;
+    }
+    if (offset != null) {
+      _result.offset = offset;
+    }
+    if (length != null) {
+      _result.length = length;
+    }
+    return _result;
+  }
   factory ProblemAndFixes.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -1071,7 +1255,27 @@ class CandidateFix extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   CandidateFix._() : super();
-  factory CandidateFix() => create();
+  factory CandidateFix({
+    $core.String message,
+    $core.Iterable<SourceEdit> edits,
+    $core.int selectionOffset,
+    $core.Iterable<LinkedEditGroup> linkedEditGroups,
+  }) {
+    final _result = create();
+    if (message != null) {
+      _result.message = message;
+    }
+    if (edits != null) {
+      _result.edits.addAll(edits);
+    }
+    if (selectionOffset != null) {
+      _result.selectionOffset = selectionOffset;
+    }
+    if (linkedEditGroups != null) {
+      _result.linkedEditGroups.addAll(linkedEditGroups);
+    }
+    return _result;
+  }
   factory CandidateFix.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -1157,7 +1361,23 @@ class SourceEdit extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   SourceEdit._() : super();
-  factory SourceEdit() => create();
+  factory SourceEdit({
+    $core.int offset,
+    $core.int length,
+    $core.String replacement,
+  }) {
+    final _result = create();
+    if (offset != null) {
+      _result.offset = offset;
+    }
+    if (length != null) {
+      _result.length = length;
+    }
+    if (replacement != null) {
+      _result.replacement = replacement;
+    }
+    return _result;
+  }
   factory SourceEdit.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -1250,7 +1470,23 @@ class LinkedEditGroup extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   LinkedEditGroup._() : super();
-  factory LinkedEditGroup() => create();
+  factory LinkedEditGroup({
+    $core.Iterable<$core.int> positions,
+    $core.int length,
+    $core.Iterable<LinkedEditSuggestion> suggestions,
+  }) {
+    final _result = create();
+    if (positions != null) {
+      _result.positions.addAll(positions);
+    }
+    if (length != null) {
+      _result.length = length;
+    }
+    if (suggestions != null) {
+      _result.suggestions.addAll(suggestions);
+    }
+    return _result;
+  }
   factory LinkedEditGroup.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -1320,7 +1556,19 @@ class LinkedEditSuggestion extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   LinkedEditSuggestion._() : super();
-  factory LinkedEditSuggestion() => create();
+  factory LinkedEditSuggestion({
+    $core.String value,
+    $core.String kind,
+  }) {
+    final _result = create();
+    if (value != null) {
+      _result.value = value;
+    }
+    if (kind != null) {
+      _result.kind = kind;
+    }
+    return _result;
+  }
   factory LinkedEditSuggestion.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -1399,7 +1647,23 @@ class FormatResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   FormatResponse._() : super();
-  factory FormatResponse() => create();
+  factory FormatResponse({
+    $core.String newString,
+    $core.int offset,
+    ErrorMessage error,
+  }) {
+    final _result = create();
+    if (newString != null) {
+      _result.newString = newString;
+    }
+    if (offset != null) {
+      _result.offset = offset;
+    }
+    if (error != null) {
+      _result.error = error;
+    }
+    return _result;
+  }
   factory FormatResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -1489,7 +1753,19 @@ class AssistsResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   AssistsResponse._() : super();
-  factory AssistsResponse() => create();
+  factory AssistsResponse({
+    $core.Iterable<CandidateFix> assists,
+    ErrorMessage error,
+  }) {
+    final _result = create();
+    if (assists != null) {
+      _result.assists.addAll(assists);
+    }
+    if (error != null) {
+      _result.error = error;
+    }
+    return _result;
+  }
   factory AssistsResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -1561,7 +1837,47 @@ class VersionResponse extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   VersionResponse._() : super();
-  factory VersionResponse() => create();
+  factory VersionResponse({
+    $core.String sdkVersion,
+    $core.String sdkVersionFull,
+    $core.String runtimeVersion,
+    $core.String appEngineVersion,
+    $core.String servicesVersion,
+    $core.String flutterVersion,
+    $core.String flutterDartVersion,
+    $core.String flutterDartVersionFull,
+    ErrorMessage error,
+  }) {
+    final _result = create();
+    if (sdkVersion != null) {
+      _result.sdkVersion = sdkVersion;
+    }
+    if (sdkVersionFull != null) {
+      _result.sdkVersionFull = sdkVersionFull;
+    }
+    if (runtimeVersion != null) {
+      _result.runtimeVersion = runtimeVersion;
+    }
+    if (appEngineVersion != null) {
+      _result.appEngineVersion = appEngineVersion;
+    }
+    if (servicesVersion != null) {
+      _result.servicesVersion = servicesVersion;
+    }
+    if (flutterVersion != null) {
+      _result.flutterVersion = flutterVersion;
+    }
+    if (flutterDartVersion != null) {
+      _result.flutterDartVersion = flutterDartVersion;
+    }
+    if (flutterDartVersionFull != null) {
+      _result.flutterDartVersionFull = flutterDartVersionFull;
+    }
+    if (error != null) {
+      _result.error = error;
+    }
+    return _result;
+  }
   factory VersionResponse.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -1719,7 +2035,15 @@ class BadRequest extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   BadRequest._() : super();
-  factory BadRequest() => create();
+  factory BadRequest({
+    ErrorMessage error,
+  }) {
+    final _result = create();
+    if (error != null) {
+      _result.error = error;
+    }
+    return _result;
+  }
   factory BadRequest.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);
@@ -1779,7 +2103,15 @@ class ErrorMessage extends $pb.GeneratedMessage {
     ..hasRequiredFields = false;
 
   ErrorMessage._() : super();
-  factory ErrorMessage() => create();
+  factory ErrorMessage({
+    $core.String message,
+  }) {
+    final _result = create();
+    if (message != null) {
+      _result.message = message;
+    }
+    return _result;
+  }
   factory ErrorMessage.fromBuffer($core.List<$core.int> i,
           [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
       create()..mergeFromBuffer(i, r);

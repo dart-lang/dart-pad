@@ -38,9 +38,8 @@ jobs:
         run: dart analyze --fatal-infos .
       - name: Prepare Flutter
         run: |
-          git submodule init
-          git submodule update
-          export PATH=$PATH:$PWD/flutter/bin
+          dart run tool/update_sdk.dart
+          export PATH=$PATH:$PWD/flutter-sdk/bin
           flutter doctor -v
           flutter config --enable-web
       - name: Run tests

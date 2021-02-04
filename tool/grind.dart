@@ -156,14 +156,12 @@ void buildStorageArtifacts() async {
 }
 
 Future _buildStorageArtifacts(Directory dir) async {
-  final flutterSdkPath =
-      Directory(path.join(Directory.current.path, 'flutter'));
   final pubspec = createPubspec(includeFlutterWeb: true);
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
   // run flutter pub get
   await runWithLogging(
-    path.join(flutterSdkPath.path, 'bin/flutter'),
+    path.join(flutterSdkPath.path, 'bin', 'flutter'),
     arguments: ['pub', 'get'],
     workingDirectory: dir.path,
   );
@@ -196,7 +194,7 @@ Future _buildStorageArtifacts(Directory dir) async {
     }
   }
 
-  // Make sure flutter/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
+  // Make sure flutter-sdk/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
   // is installed.
   await runWithLogging(
     path.join(flutterSdkPath.path, 'bin', 'flutter'),
@@ -207,10 +205,10 @@ Future _buildStorageArtifacts(Directory dir) async {
   // Build the artifacts using DDC:
   // dart-sdk/bin/dartdevc -s kernel/flutter_ddc_sdk.dill
   //     --modules=amd package:flutter/animation.dart ...
-  final compilerPath =
-      path.join(flutterSdkPath.path, 'bin/cache/dart-sdk/bin/dartdevc');
-  final dillPath = path.join(flutterSdkPath.path,
-      'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill');
+  final compilerPath = path.join(
+      flutterSdkPath.path, 'bin', 'cache', 'dart-sdk', 'bin', 'dartdevc');
+  final dillPath = path.join(flutterSdkPath.path, 'bin', 'cache',
+      'flutter_web_sdk', 'flutter_web_sdk', 'kernel', 'flutter_ddc_sdk.dill');
 
   final args = <String>[
     '-s',
@@ -246,33 +244,30 @@ Future _buildStorageArtifacts(Directory dir) async {
 }
 
 @Task('Delete, re-download, and reinitialize the Flutter submodule.')
-void setupFlutterSubmodule() async {
-  final flutterDir = Directory('flutter');
+void setupFlutterSdk() async {
+  await flutterSdkPath.delete(recursive: true);
 
-  // Remove all files currently in the submodule. This is done to clear any
-  // internal state the Flutter/Dart SDKs may have created on their own.
-  flutterDir.listSync().forEach((e) => e.deleteSync(recursive: true));
+  final info = DownloadingSdkManager.getSdkConfigInfo();
+  print('Flutter SDK configuration: $info\n');
 
-  // Pull clean files into the submodule, based on whatever commit it's set to.
+  // Download the SDK into ./futter-sdk/
+  await DownloadingSdkManager().createFromConfigFile();
+
+  // Set up the  Flutter SDK the way dart-services needs it.
+
+  final flutterBinFlutter = path.join(flutterSdkPath.path, 'bin', 'flutter');
   await runWithLogging(
-    'git',
-    arguments: ['submodule', 'update'],
-  );
-
-  // Set up the submodule's copy of the Flutter SDK the way dart-services needs
-  // it.
-  await runWithLogging(
-    path.join(flutterDir.path, 'bin/flutter'),
+    flutterBinFlutter,
     arguments: ['doctor'],
   );
 
   await runWithLogging(
-    path.join(flutterDir.path, 'bin/flutter'),
+    flutterBinFlutter,
     arguments: ['config', '--enable-web'],
   );
 
   await runWithLogging(
-    path.join(flutterDir.path, 'bin/flutter'),
+    flutterBinFlutter,
     arguments: [
       'precache',
       '--web',
@@ -292,8 +287,8 @@ void fuzz() {
 }
 
 @Task('Update generated files and run all checks prior to deployment')
-@Depends(setupFlutterSubmodule, updateDockerVersion, generateProtos, analyze,
-    test, fuzz, validateStorageArtifacts)
+@Depends(setupFlutterSdk, updateDockerVersion, generateProtos, analyze, test,
+    fuzz, validateStorageArtifacts)
 void deploy() {
   log('Run: gcloud app deploy --project=dart-services --no-promote');
 }

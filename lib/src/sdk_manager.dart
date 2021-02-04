@@ -64,10 +64,12 @@ class PlatformSdk extends Sdk {
   String get sdkPath => path.dirname(path.dirname(Platform.resolvedExecutable));
 }
 
+/// The Flutter SDK is asuumed to be available at `./flutter-sdk/`.
+final flutterSdkPath =
+    Directory(path.join(Directory.current.path, 'flutter-sdk'));
+
 /// Represents a Flutter SDK installation (which includes its own version of the
 /// Dart SDK) present on the server.
-///
-/// This class assumes the Flutter SDK is available at `./flutter`.
 class FlutterSdk extends Sdk {
   String _versionFull = '';
   String _flutterVersion = '';
@@ -77,16 +79,14 @@ class FlutterSdk extends Sdk {
     _versionFull =
         (await File(path.join(sdkPath, 'version')).readAsString()).trim();
     _flutterVersion =
-        (await File(path.join(Directory.current.path, 'flutter', 'version'))
-                .readAsString())
+        (await File(path.join(flutterSdkPath.path, 'version')).readAsString())
             .trim();
   }
 
   @override
   String get sdkPath => path.join(flutterBinPath, 'cache', 'dart-sdk');
 
-  String get flutterBinPath =>
-      path.join(Directory.current.path, 'flutter', 'bin');
+  String get flutterBinPath => path.join(flutterSdkPath.path, 'bin');
 
   @override
   String get versionFull => _versionFull;

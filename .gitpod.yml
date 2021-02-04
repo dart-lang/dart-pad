@@ -16,11 +16,3 @@ ports:
   - port: 9504
     onOpen: "ignore"
 
-# List the start up tasks. You can start them in parallel in multiple terminals. See https://www.gitpod.io/docs/config-start-tasks/
-tasks:
-  - init: ./flutter/bin/flutter doctor -v && pub get && grind deploy
-
-# Add the DartCode extension. See https://www.gitpod.io/docs/vscode-extensions/
-vscode:
-  extensions:
-    - Dart-Code.dart-code@3.9.0:umvoqCQMs3NpksmwhVtStw==
