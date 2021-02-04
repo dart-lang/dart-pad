@@ -15,7 +15,7 @@ class SdkManager {
   static Sdk get sdk => _sdk ?? (_sdk = PlatformSdk());
 
   static FlutterSdk get flutterSdk =>
-      _flutterSdk ?? (_flutterSdk = FlutterSdk());
+      _flutterSdk ?? (_flutterSdk = FlutterSdk(flutterSdkPath));
 
   static void setSdk(Sdk value) {
     _sdk = sdk;
@@ -64,29 +64,30 @@ class PlatformSdk extends Sdk {
   String get sdkPath => path.dirname(path.dirname(Platform.resolvedExecutable));
 }
 
-/// The Flutter SDK is asuumed to be available at `./flutter-sdk/`.
-final flutterSdkPath =
-    Directory(path.join(Directory.current.path, 'flutter-sdk'));
+String get flutterSdkPath => path.join(Directory.current.path, 'flutter-sdk');
 
 /// Represents a Flutter SDK installation (which includes its own version of the
 /// Dart SDK) present on the server.
 class FlutterSdk extends Sdk {
+  final String flutterSdkPath;
+
   String _versionFull = '';
   String _flutterVersion = '';
+
+  FlutterSdk(this.flutterSdkPath);
 
   @override
   Future<void> init() async {
     _versionFull =
-        (await File(path.join(sdkPath, 'version')).readAsString()).trim();
+        (File(path.join(sdkPath, 'version')).readAsStringSync()).trim();
     _flutterVersion =
-        (await File(path.join(flutterSdkPath.path, 'version')).readAsString())
-            .trim();
+        (File(path.join(flutterSdkPath, 'version')).readAsStringSync()).trim();
   }
 
   @override
   String get sdkPath => path.join(flutterBinPath, 'cache', 'dart-sdk');
 
-  String get flutterBinPath => path.join(flutterSdkPath.path, 'bin');
+  String get flutterBinPath => path.join(flutterSdkPath, 'bin');
 
   @override
   String get versionFull => _versionFull;
@@ -94,8 +95,6 @@ class FlutterSdk extends Sdk {
   String get flutterVersion => _flutterVersion;
 }
 
-// TODO: Have an option to skip git calls (for testing)?
-// TODO(devoncarew): Collapse this with the other SDK managers.
 class DownloadingSdkManager {
   DownloadingSdkManager();
 
@@ -111,7 +110,7 @@ class DownloadingSdkManager {
   /// `flutter-sdk-version.yaml` file.
   ///
   /// Note that this is an expensive operation.
-  Future<DownloadedFlutterSdk> createFromConfigFile() async {
+  Future<FlutterSdk> createFromConfigFile() async {
     final Map<String, Object> sdkConfig = getSdkConfigInfo();
 
     // flutter_sdk:
@@ -134,7 +133,7 @@ class DownloadingSdkManager {
       return createUsingFlutterVersion(version: config['version'] as String);
     } else {
       // Clone the repo if necessary but don't do any other setup.
-      return _cloneSdkIfNecessary();
+      return (await _cloneSdkIfNecessary()).asFlutterSdk();
     }
   }
 
@@ -142,10 +141,10 @@ class DownloadingSdkManager {
   /// channel.
   ///
   /// Note that this is an expensive operation.
-  Future<DownloadedFlutterSdk> createUsingFlutterChannel({
+  Future<FlutterSdk> createUsingFlutterChannel({
     @required String channel,
   }) async {
-    final DownloadedFlutterSdk sdk = await _cloneSdkIfNecessary();
+    final _DownloadedFlutterSdk sdk = await _cloneSdkIfNecessary();
 
     // git checkout master
     await sdk.checkout('master');
@@ -160,17 +159,17 @@ class DownloadingSdkManager {
     // git pull
     await sdk.pull();
 
-    return sdk;
+    return sdk.asFlutterSdk();
   }
 
   /// Create a Flutter SDK in `flutter-sdk/` that tracks a specific Flutter
   /// version.
   ///
   /// Note that this is an expensive operation.
-  Future<DownloadedFlutterSdk> createUsingFlutterVersion({
+  Future<FlutterSdk> createUsingFlutterVersion({
     @required String version,
   }) async {
-    final DownloadedFlutterSdk sdk = await _cloneSdkIfNecessary();
+    final _DownloadedFlutterSdk sdk = await _cloneSdkIfNecessary();
 
     // git checkout master
     await sdk.checkout('master');
@@ -179,11 +178,11 @@ class DownloadingSdkManager {
     // git checkout 1.25.0-8.1.pre
     await sdk.checkout(version);
 
-    return sdk;
+    return sdk.asFlutterSdk();
   }
 
-  Future<DownloadedFlutterSdk> _cloneSdkIfNecessary() async {
-    final DownloadedFlutterSdk sdk = DownloadedFlutterSdk();
+  Future<_DownloadedFlutterSdk> _cloneSdkIfNecessary() async {
+    final _DownloadedFlutterSdk sdk = _DownloadedFlutterSdk(flutterSdkPath);
 
     if (!Directory(sdk.flutterSdkPath).existsSync()) {
       // This takes perhaps ~20 seconds.
@@ -203,21 +202,22 @@ class DownloadingSdkManager {
   }
 }
 
-class DownloadedFlutterSdk extends Sdk {
-  @override
+class _DownloadedFlutterSdk {
+  final String flutterSdkPath;
+
+  _DownloadedFlutterSdk(this.flutterSdkPath);
+
   Future<void> init() async {
     // flutter --version takes ~28s
     await _execLog('bin/flutter', ['--version'], flutterSdkPath);
   }
 
-  @override
+  FlutterSdk asFlutterSdk() => FlutterSdk(flutterSdkPath);
+
   String get sdkPath => path.join(flutterSdkPath, 'bin/cache/dart-sdk');
 
-  @override
   String get versionFull =>
       File(path.join(sdkPath, 'version')).readAsStringSync().trim();
-
-  String get flutterSdkPath => path.join(Directory.current.path, 'flutter-sdk');
 
   String get flutterVersion =>
       File(path.join(flutterSdkPath, 'version')).readAsStringSync().trim();

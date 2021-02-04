@@ -161,7 +161,7 @@ Future _buildStorageArtifacts(Directory dir) async {
 
   // run flutter pub get
   await runWithLogging(
-    path.join(flutterSdkPath.path, 'bin', 'flutter'),
+    path.join(flutterSdkPath, 'bin', 'flutter'),
     arguments: ['pub', 'get'],
     workingDirectory: dir.path,
   );
@@ -197,7 +197,7 @@ Future _buildStorageArtifacts(Directory dir) async {
   // Make sure flutter-sdk/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
   // is installed.
   await runWithLogging(
-    path.join(flutterSdkPath.path, 'bin', 'flutter'),
+    path.join(flutterSdkPath, 'bin', 'flutter'),
     arguments: ['precache', '--web'],
     workingDirectory: dir.path,
   );
@@ -205,10 +205,10 @@ Future _buildStorageArtifacts(Directory dir) async {
   // Build the artifacts using DDC:
   // dart-sdk/bin/dartdevc -s kernel/flutter_ddc_sdk.dill
   //     --modules=amd package:flutter/animation.dart ...
-  final compilerPath = path.join(
-      flutterSdkPath.path, 'bin', 'cache', 'dart-sdk', 'bin', 'dartdevc');
-  final dillPath = path.join(flutterSdkPath.path, 'bin', 'cache',
-      'flutter_web_sdk', 'flutter_web_sdk', 'kernel', 'flutter_ddc_sdk.dill');
+  final compilerPath =
+      path.join(flutterSdkPath, 'bin', 'cache', 'dart-sdk', 'bin', 'dartdevc');
+  final dillPath = path.join(flutterSdkPath, 'bin', 'cache', 'flutter_web_sdk',
+      'flutter_web_sdk', 'kernel', 'flutter_ddc_sdk.dill');
 
   final args = <String>[
     '-s',
@@ -229,7 +229,7 @@ Future _buildStorageArtifacts(Directory dir) async {
   final artifactsDir = getDir('artifacts');
   await artifactsDir.create();
 
-  final sdkJsPath = path.join(flutterSdkPath.path,
+  final sdkJsPath = path.join(flutterSdkPath,
       'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd/dart_sdk.js');
 
   copy(getFile(sdkJsPath), artifactsDir);
@@ -245,7 +245,7 @@ Future _buildStorageArtifacts(Directory dir) async {
 
 @Task('Delete, re-download, and reinitialize the Flutter submodule.')
 void setupFlutterSdk() async {
-  await flutterSdkPath.delete(recursive: true);
+  await Directory(flutterSdkPath).delete(recursive: true);
 
   final info = DownloadingSdkManager.getSdkConfigInfo();
   print('Flutter SDK configuration: $info\n');
@@ -255,7 +255,7 @@ void setupFlutterSdk() async {
 
   // Set up the  Flutter SDK the way dart-services needs it.
 
-  final flutterBinFlutter = path.join(flutterSdkPath.path, 'bin', 'flutter');
+  final flutterBinFlutter = path.join(flutterSdkPath, 'bin', 'flutter');
   await runWithLogging(
     flutterBinFlutter,
     arguments: ['doctor'],
