@@ -8,10 +8,10 @@ library dart_pad.common;
 final serverUrl = 'https://v1.api.dartpad.dev/';
 
 // Used when null safety is enabled in the UI.
-final nullSafetyServerUrl = 'https://dart-services-beta-0.appspot.com/';
+final nullSafetyServerUrl = 'https://nullsafety.api.dartpad.dev/';
 
 // A URL to use while debugging.
-//final serverURL = 'http://127.0.0.1:8082/';
+// final serverUrl = 'http://127.0.0.1:8082/';
 
 final Duration serviceCallTimeout = Duration(seconds: 10);
 final Duration longServiceCallTimeout = Duration(seconds: 60);
