@@ -63,15 +63,16 @@ Future<void> main(List<String> args) async {
 }
 
 class EndpointsServer {
-  static Future<EndpointsServer> serve(int port, String redisServerUri) {
+  static Future<EndpointsServer> serve(int port, String redisServerUri) async {
     final endpointsServer = EndpointsServer._(port, redisServerUri);
 
-    return shelf
-        .serve(endpointsServer.handler, InternetAddress.anyIPv4, port)
-        .then((HttpServer server) {
-      endpointsServer.server = server;
-      return endpointsServer;
-    });
+    await endpointsServer.init();
+    endpointsServer.server = await shelf.serve(
+      endpointsServer.handler,
+      InternetAddress.anyIPv4,
+      port,
+    );
+    return endpointsServer;
   }
 
   final int port;
@@ -82,10 +83,11 @@ class EndpointsServer {
   Handler handler;
 
   CommonServerApi commonServerApi;
+  CommonServerImpl _commonServerImpl;
   FlutterWebManager flutterWebManager;
 
   EndpointsServer._(this.port, this.redisServerUri) {
-    final commonServerImpl = CommonServerImpl(
+    _commonServerImpl = CommonServerImpl(
       _ServerContainer(),
       redisServerUri == null
           ? InMemoryCache()
@@ -96,8 +98,7 @@ class EndpointsServer {
               Platform.environment['K_REVISION'],
             ),
     );
-    commonServerApi = CommonServerApi(commonServerImpl);
-    commonServerImpl.init();
+    commonServerApi = CommonServerApi(_commonServerImpl);
 
     pipeline = const Pipeline()
         .addMiddleware(logRequests())
@@ -105,6 +106,8 @@ class EndpointsServer {
 
     handler = pipeline.addHandler(commonServerApi.router);
   }
+
+  Future<void> init() => _commonServerImpl.init();
 
   Middleware _createCustomCorsHeadersMiddleware() {
     return shelf_cors.createCorsHeadersMiddleware(corsHeaders: <String, String>{
