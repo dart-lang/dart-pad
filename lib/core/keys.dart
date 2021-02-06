@@ -119,7 +119,7 @@ String printKeyEvent(KeyboardEvent event) {
 String makeKeyPresentable(String key) {
   var keyAsList = key.split('-');
   if (isMac()) {
-    if (keyAsList.any((s) => s == 'meta')) {
+    if (keyAsList.contains('meta')) {
       return null;
     }
     keyAsList = keyAsList.map<String>((s) {
@@ -131,7 +131,7 @@ String makeKeyPresentable(String key) {
     }).toList();
     return keyAsList.join('&thinsp;');
   } else {
-    if (keyAsList.any((s) => s == 'macctrl')) {
+    if (keyAsList.contains('macctrl')) {
       return null;
     }
     keyAsList = keyAsList.map(capitalize).toList();

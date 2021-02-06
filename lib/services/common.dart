@@ -5,16 +5,16 @@
 library dart_pad.common;
 
 // The endpoint running dart-services.
-final serverUrl = 'https://v1.api.dartpad.dev/';
+const serverUrl = 'https://v1.api.dartpad.dev/';
 
 // Used when null safety is enabled in the UI.
-final nullSafetyServerUrl = 'https://nullsafety.api.dartpad.dev/';
+const nullSafetyServerUrl = 'https://nullsafety.api.dartpad.dev/';
 
 // A URL to use while debugging.
 // final serverUrl = 'http://127.0.0.1:8082/';
 
-final Duration serviceCallTimeout = Duration(seconds: 10);
-final Duration longServiceCallTimeout = Duration(seconds: 60);
+const Duration serviceCallTimeout = Duration(seconds: 10);
+const Duration longServiceCallTimeout = Duration(seconds: 60);
 
 class StringTextProvider {
   final String _text;

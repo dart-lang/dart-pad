@@ -4,8 +4,6 @@
 
 library dart_pad_module;
 
-import 'dart:async';
-
 import '../core/dependencies.dart';
 import '../core/keys.dart';
 import '../core/modules.dart';

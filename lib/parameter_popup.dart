@@ -15,7 +15,7 @@ import 'services/common.dart';
 import 'services/dartservices.dart';
 
 class ParameterPopup {
-  static const List parKeys = [
+  static const Set<int> parKeys = {
     KeyCode.COMMA,
     KeyCode.NINE,
     KeyCode.ZERO,
@@ -23,7 +23,7 @@ class ParameterPopup {
     KeyCode.RIGHT,
     KeyCode.UP,
     KeyCode.DOWN
-  ];
+  };
 
   final Context context;
   final Editor editor;
