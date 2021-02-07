@@ -30,7 +30,7 @@ class DocHandler {
 
   final NodeValidator _htmlValidator = PermissiveNodeValidator();
 
-  int /*?*/ _previousDoc;
+  int /*?*/ _previousDocHash;
 
   DocHandler(this._editor, this._context);
 
@@ -40,7 +40,7 @@ class DocHandler {
     }
 
     if (_context.focusedEditor != 'dart') {
-      _previousDoc = null;
+      _previousDocHash = null;
       for (final docPanel in docElements) {
         docPanel.innerHtml = '';
       }
@@ -71,10 +71,10 @@ class DocHandler {
       final hash = result.hashCode;
       // If nothing has changed, don't need to parse Markdown and
       // manipulate HTML again.
-      if (hash == _previousDoc) {
+      if (hash == _previousDocHash) {
         return;
       }
-      _previousDoc = hash;
+      _previousDocHash = hash;
 
       final docResult = _getHtmlTextFor(result);
 
