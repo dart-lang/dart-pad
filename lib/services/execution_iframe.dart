@@ -115,7 +115,7 @@ require.undef('dartpad_main');
     ///
     /// This seems to produce both the stack traces we expect in inspector
     /// and the right error messages on the console.
-    final exceptionHandler = '''
+    const exceptionHandler = '''
 var _thrownDartMainRunner = false;
 
 window.onerror = function(message, url, lineNumber, colno, error) {

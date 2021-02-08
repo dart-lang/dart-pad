@@ -388,8 +388,8 @@ class Playground implements GistContainer, GistController {
       [editorPanel, outputPanel],
       horizontal: true,
       gutterSize: 6,
-      sizes: [50, 50],
-      minSize: [100, 100],
+      sizes: const [50, 50],
+      minSize: const [100, 100],
     );
   }
 
@@ -403,8 +403,8 @@ class Playground implements GistContainer, GistController {
       [outputHost, _rightDocPanel],
       horizontal: false,
       gutterSize: 6,
-      sizes: [50, 50],
-      minSize: [100, 100],
+      sizes: const [50, 50],
+      minSize: const [100, 100],
     );
     rightSplitterConfigured = true;
   }

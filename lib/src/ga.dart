@@ -9,7 +9,7 @@ import 'dart:js';
 /// Very lightweight Google Analytics integration. This class depends on having
 /// the JavaScript GA library available.
 class Analytics {
-  Analytics();
+  const Analytics();
 
   bool get isAvailable => _gaFunction != null;
 

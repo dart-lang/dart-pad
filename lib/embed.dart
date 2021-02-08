@@ -68,7 +68,7 @@ enum EmbedMode { dart, flutter, html, inline }
 class EmbedOptions {
   final EmbedMode mode;
 
-  EmbedOptions(this.mode);
+  const EmbedOptions(this.mode);
 }
 
 /// An embeddable DartPad UI that provides the ability to test the user's code
@@ -1102,7 +1102,7 @@ class DisableableButton {
     });
   }
 
-  static const disabledClassName = 'disabled';
+  static const _disabledClassName = 'disabled';
 
   DElement _element;
 
@@ -1112,7 +1112,7 @@ class DisableableButton {
 
   set disabled(bool value) {
     _disabled = value;
-    _element.toggleClass(disabledClassName, value);
+    _element.toggleClass(_disabledClassName, value);
   }
 
   set hidden(bool value) {

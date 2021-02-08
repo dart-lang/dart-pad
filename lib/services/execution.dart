@@ -4,13 +4,11 @@
 
 library execution;
 
-import 'dart:async';
-
 class TestResult {
-  const TestResult(this.success, this.messages);
-
   final bool success;
   final List<String> messages;
+
+  const TestResult(this.success, this.messages);
 }
 
 /// An abstraction about a service that can inject and execute javascript code.
@@ -22,7 +20,7 @@ abstract class ExecutionService {
     String html,
     String css,
     String javaScript, {
-    String modulesBaseUrl,
+    String /*?*/ modulesBaseUrl,
   });
 
   void replaceHtml(String html);

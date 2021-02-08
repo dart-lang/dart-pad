@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 
 /// Return whether we are running on a mobile device.
 bool isMobile() {
-  final mobileSize = 610;
+  const mobileSize = 610;
 
   var width = document.documentElement.clientWidth;
   var height = document.documentElement.clientHeight;
@@ -49,7 +49,7 @@ Made with &lt;3 by Google.
 class CancellationException implements Exception {
   final String reason;
 
-  CancellationException(this.reason);
+  const CancellationException(this.reason);
 
   @override
   String toString() {
@@ -126,11 +126,6 @@ typedef VoidFunction = void Function();
 /// overwrite the closure to be called. We'll delay at least [minDelay] before
 /// calling the closure, but will not delay more than [maxDelay].
 class DelayedTimer {
-  DelayedTimer({
-    @required this.minDelay,
-    @required this.maxDelay,
-  });
-
   final Duration minDelay;
   final Duration maxDelay;
 
@@ -138,6 +133,11 @@ class DelayedTimer {
 
   Timer _minTimer;
   Timer _maxTimer;
+
+  DelayedTimer({
+    @required this.minDelay,
+    @required this.maxDelay,
+  });
 
   void invoke(VoidFunction closure) {
     _closure = closure;

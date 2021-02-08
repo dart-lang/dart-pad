@@ -251,8 +251,10 @@ class AnalysisCompletion implements Comparable {
 
   @override
   int compareTo(other) {
-    if (other is! AnalysisCompletion) return -1;
-    return text.compareTo(other.text as String);
+    if (other is AnalysisCompletion) {
+      return text.compareTo(other.text);
+    }
+    return -1;
   }
 
   @override

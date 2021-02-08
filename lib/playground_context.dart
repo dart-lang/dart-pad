@@ -12,9 +12,9 @@ class PlaygroundContext extends Context {
 
   final _modeController = StreamController<String>.broadcast();
 
-  Document _dartDoc;
-  Document _htmlDoc;
-  Document _cssDoc;
+  final Document _dartDoc;
+  final Document _htmlDoc;
+  final Document _cssDoc;
 
   final _cssDirtyController = StreamController.broadcast();
   final _dartDirtyController = StreamController.broadcast();
@@ -24,12 +24,11 @@ class PlaygroundContext extends Context {
   final _dartReconcileController = StreamController.broadcast();
   final _htmlReconcileController = StreamController.broadcast();
 
-  PlaygroundContext(this.editor) {
+  PlaygroundContext(this.editor)
+      : _dartDoc = editor.document,
+        _htmlDoc = editor.createDocument(content: '', mode: 'html'),
+        _cssDoc = editor.createDocument(content: '', mode: 'css') {
     editor.mode = 'dart';
-
-    _dartDoc = editor.document;
-    _htmlDoc = editor.createDocument(content: '', mode: 'html');
-    _cssDoc = editor.createDocument(content: '', mode: 'css');
 
     _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
     _htmlDoc.onChange.listen((_) => _htmlDirtyController.add(null));
