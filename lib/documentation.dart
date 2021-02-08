@@ -18,32 +18,41 @@ import 'services/dartservices.dart';
 import 'src/util.dart';
 
 class DocHandler {
-  static const List cursorKeys = [
+  static const Set<int> cursorKeys = {
     KeyCode.LEFT,
     KeyCode.RIGHT,
     KeyCode.UP,
     KeyCode.DOWN
-  ];
+  };
 
   final Editor _editor;
   final Context _context;
 
   final NodeValidator _htmlValidator = PermissiveNodeValidator();
 
+  int /*?*/ _previousDocHash;
+
   DocHandler(this._editor, this._context);
 
-  void generateDocWithText(DivElement docPanel) {
+  void generateDoc(List<DivElement> docElements) {
+    if (docElements.isEmpty) {
+      return;
+    }
+
     if (_context.focusedEditor != 'dart') {
-      docPanel.innerHtml = 'Documentation';
+      _previousDocHash = null;
+      for (final docPanel in docElements) {
+        docPanel.innerHtml = '';
+      }
       return;
     }
     if (!_editor.hasFocus || _editor.document.selection.isNotEmpty) {
       return;
     }
 
-    var offset = _editor.document.indexFromPos(_editor.document.cursor);
+    final offset = _editor.document.indexFromPos(_editor.document.cursor);
 
-    var request = SourceRequest()..offset = offset;
+    final request = SourceRequest()..offset = offset;
 
     if (_editor.completionActive) {
       // If the completion popup is open we create a new source as if the
@@ -59,57 +68,25 @@ class DocHandler {
         .document(request)
         .timeout(serviceCallTimeout)
         .then((DocumentResponse result) {
-      final docResult = _getHtmlTextFor(result);
-      if (docResult.html == '') {
-        docPanel.innerHtml =
-            "<div class='default-text-div layout horizontal center-center'>"
-            "<span class='default-text'>Documentation</span></div>";
+      final hash = result.hashCode;
+      // If nothing has changed, don't need to parse Markdown and
+      // manipulate HTML again.
+      if (hash == _previousDocHash) {
         return;
       }
-      docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-      for (final a in docPanel.querySelectorAll('a')) {
-        if (a is AnchorElement) a.target = 'docs';
-      }
-      for (final h in docPanel.querySelectorAll('h1')) {
-        h.classes.add('type-${docResult.entityKind}');
-      }
-    });
-  }
+      _previousDocHash = hash;
 
-  void generateDoc(DivElement docPanel) {
-    if (_context.focusedEditor != 'dart') {
-      docPanel.innerHtml = '';
-      return;
-    }
-    if (!_editor.hasFocus || _editor.document.selection.isNotEmpty) {
-      return;
-    }
-
-    var offset = _editor.document.indexFromPos(_editor.document.cursor);
-
-    var request = SourceRequest()..offset = offset;
-
-    if (_editor.completionActive) {
-      // If the completion popup is open we create a new source as if the
-      // completion popup was chosen, and ask for the documentation of that
-      // source.
-      request.source =
-          _sourceWithCompletionInserted(_context.dartSource, offset);
-    } else {
-      request.source = _context.dartSource;
-    }
-
-    dartServices
-        .document(request)
-        .timeout(serviceCallTimeout)
-        .then((DocumentResponse result) {
       final docResult = _getHtmlTextFor(result);
-      docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
-      for (final a in docPanel.querySelectorAll('a')) {
-        if (a is AnchorElement) a.target = 'docs';
-      }
-      for (final h in docPanel.querySelectorAll('h1')) {
-        h.classes.add('type-${docResult.entityKind}');
+
+      final docType = 'type-${docResult.entityKind}';
+      for (final docPanel in docElements) {
+        docPanel.setInnerHtml(docResult.html, validator: _htmlValidator);
+        for (final a in docPanel.querySelectorAll('a')) {
+          if (a is AnchorElement) a.target = 'docs';
+        }
+        for (final h in docPanel.querySelectorAll('h1')) {
+          h.classes.add(docType);
+        }
       }
     });
   }

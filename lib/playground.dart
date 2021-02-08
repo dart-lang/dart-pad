@@ -510,8 +510,7 @@ class Playground implements GistContainer, GistController {
     keys.bind(['ctrl-enter'], _handleRun, 'Run');
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
-      docHandler.generateDoc(_rightDocContentElement);
-      docHandler.generateDoc(_leftDocPanel);
+      docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
     }, 'Documentation');
 
     keys.bind(['alt-enter'], () {
@@ -532,8 +531,7 @@ class Playground implements GistContainer, GistController {
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
           DocHandler.cursorKeys.contains(e.keyCode)) {
-        docHandler.generateDoc(_rightDocContentElement);
-        docHandler.generateDoc(_leftDocPanel);
+        docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
       }
       _handleAutoCompletion(e);
     });
@@ -568,8 +566,7 @@ class Playground implements GistContainer, GistController {
       // Delay to give codemirror time to process the mouse event.
       Timer.run(() {
         if (!_context.cursorPositionIsWhitespace()) {
-          docHandler.generateDoc(_rightDocContentElement);
-          docHandler.generateDoc(_leftDocPanel);
+          docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
         }
       });
     });
