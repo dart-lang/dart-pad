@@ -1133,7 +1133,7 @@ class FlashBox {
     _element = DElement(div);
     _messageContainer = DElement(div.querySelector('.message-container'));
 
-    final closeLink = DElement(div.querySelector('.flash-close'));
+    final closeLink = DElement(div.querySelector('.close-flash-container'));
     closeLink.onClick.listen((event) {
       hide();
     });
