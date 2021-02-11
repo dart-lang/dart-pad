@@ -16,16 +16,7 @@
 .flash {
   border-radius: 0;
   border: none;
-  padding: 12px;
-}
-
-.flash-close {
   padding: 6px;
-  margin: -12px;
-
-  i {
-    font-size: 20px;
-  }
 }
 
 #flash-container {
@@ -42,7 +33,8 @@
 
 .message-container {
   letter-spacing: 0.05em;
-  padding-right: 22px;
+  padding: 6px 18px 6px 6px;
+  min-height: 32px;
   max-height: 120px;
   overflow-y: auto;
   font-family: Roboto Light, sans-serif;

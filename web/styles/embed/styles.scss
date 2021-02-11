@@ -159,12 +159,12 @@ body {
   overflow: auto;
 }
 
-#console-expand-icon-container {
+#console-expand-icon-container, .close-flash-container {
   height: 32px;
   width: 32px;
 }
 
-#console-expand-icon {
+#console-expand-icon, .close-flash-container .close-flash-button {
   color: $label-color;
   @include mdc-icon-button-size(16px, 16px, 8px);
 }
@@ -176,6 +176,10 @@ body {
   font-family: $editor-font;
   font-size: $embed-editor-font-size;
   white-space: pre-wrap;
+}
+
+.close-flash-container {
+  float: right;
 }
 
 // HTML Mode
