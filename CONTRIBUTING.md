@@ -46,7 +46,7 @@ DartPad requires [npm](https://www.npmjs.com/get-npm) v5 or higher and
 * To run the DartPad against the regular serving backend:
 
 ```bash
-pub global activate grinder
+dart pub global activate grinder
 grind serve
 ```
 This serves the DartPad frontend locally on port 8000.
@@ -57,7 +57,7 @@ This serves the DartPad frontend locally on port 8000.
 cd ..
 git clone git@github.com:dart-lang/dart-services.git
 cd dart-services
-pub get
+dart pub get
 # Change the SDK version dart-services serves to the one you currently have installed
 grind update-docker-version
 # Begin serving the backend locally on port 8002.
