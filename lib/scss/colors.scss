@@ -1,5 +1,6 @@
 // light + dark colors
 $label-color: #808080;
+$dark-label-color: #DEDEDE;
 $scrollbar-color: $label-color;
 
 // errors and warnings
@@ -59,11 +60,7 @@ $dark-orange: darken(desaturate(#ff916e, 20%), 5%);
 $dark-red: darken(desaturate(#ff2d64, 20%), 5%);
 $dark-pink-2: darken(desaturate(#ff00fA, 20%), 5%);
 $dark-orange-2: darken(desaturate(#ff9b00, 20%), 5%);
-$dark-editor-text: darken(desaturate(#c4cedb, 20%), 5%);
-$dark-comment: darken(desaturate(#909cce, 20%), 5%);
-$dark-line-count: darken(desaturate(#414c58, 20%), 5%);
 $dark-gutter-line-number-color: $dark-text-color;
-$dark-selection-color: lighten($dark-code-background-color, 10%);
 
 $light-green: #007a27;
 $light-blue: #00677a;
@@ -78,3 +75,20 @@ $light-comment: #929292;
 $light-line-count: #d5d5d5;
 $light-gutter-line-number-color: #d0d0d2;
 $light-selection-color: darken($light-code-background-color, 7%);
+
+// Colors used by *exclusively* by the Dark code editor theme. Separated
+// from the $dark-* colors above so that they can be independently adjusted
+// to maximize contrast.
+
+$dark-editor-background: #0e161f;
+$dark-editor-selection-color: lighten($dark-editor-background, 20%);
+$dark-editor-text: #fff;
+$dark-editor-comment: #9198b4;
+$dark-editor-green: #50ffa0;
+$dark-editor-pink: #f99fb5;
+$dark-editor-red: #ff8888;
+$dark-editor-blue: #75dbf0;
+$dark-editor-yellow: #fbff36;
+$dark-editor-orange: #f9a085;
+$dark-editor-purple: #d962ff;
+$dark-editor-cyan: #a5f6ff;

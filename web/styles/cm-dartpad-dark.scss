@@ -9,28 +9,31 @@
   font-weight: 400;
 }
 
-.cm-s-darkpad .CodeMirror-matchingbracket {color: $dark-red !important;}
-.cm-s-darkpad .CodeMirror-selected {background: $dark-selection-color !important;}
+.cm-s-darkpad .CodeMirror-matchingbracket {color: $dark-editor-purple !important;}
+.cm-s-darkpad .CodeMirror-selected {background: $dark-editor-selection-color !important;}
 
-.cm-s-darkpad .CodeMirror-gutters { background: $dark-code-background-color !important; border-right: none}
+.cm-s-darkpad .CodeMirror-gutters { background: $dark-editor-background !important; border-right: none}
 .cm-s-darkpad .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: $dark-gutter-line-number-color; }
 .cm-s-darkpad .CodeMirror-linenumber { color: $dark-gutter-line-number-color; }
 .cm-s-darkpad .CodeMirror-cursor { border-left: 1px solid white; }
-.cm-s-darkpad { background-color: $dark-code-background-color; color: $dark-editor-text; }
+.cm-s-darkpad {
+    background-color: $dark-editor-background;
+    color: $dark-editor-text;
+}
 .cm-s-darkpad span.cm-builtin { color: $dark-editor-text; }
-.cm-s-darkpad span.cm-comment { color: $dark-comment; }
-.cm-s-darkpad span.cm-keyword { color: $dark-green;}
-.cm-s-darkpad span.cm-atom { color: $dark-orange; }
-.cm-s-darkpad span.cm-variable { color: $dark-blue; }
-.cm-s-darkpad span.cm-variable-2 { color: $dark-orange;}
-.cm-s-darkpad span.cm-string { color: $dark-pink; }
-.cm-s-darkpad span.cm-string-2 { color: $dark-pink-2; }
-.cm-s-darkpad span.cm-number { color: $dark-teal; }
-.cm-s-darkpad span.cm-attribute { color: $dark-blue; }
-.cm-s-darkpad span.cm-qualifier { color: $dark-orange-2; }
-.cm-s-darkpad span.cm-meta { color: $dark-teal; }
-.cm-s-darkpad span.cm-header { color: $dark-blue; }
+.cm-s-darkpad span.cm-comment { color: $dark-editor-comment; }
+.cm-s-darkpad span.cm-keyword { color: $dark-editor-green;}
+.cm-s-darkpad span.cm-atom { color: $dark-editor-orange; }
+.cm-s-darkpad span.cm-variable { color: $dark-editor-blue; }
+.cm-s-darkpad span.cm-variable-2 { color: $dark-editor-cyan; }
+.cm-s-darkpad span.cm-string { color: $dark-editor-pink; }
+.cm-s-darkpad span.cm-string-2 { color: $dark-editor-red; }
+.cm-s-darkpad span.cm-number { color: $dark-editor-yellow; }
+.cm-s-darkpad span.cm-attribute { color: $dark-editor-blue; }
+.cm-s-darkpad span.cm-qualifier { color: $dark-editor-cyan; }
+.cm-s-darkpad span.cm-meta { color: $dark-editor-yellow; }
+.cm-s-darkpad span.cm-header { color: $dark-editor-blue; }
 .cm-s-darkpad span.cm-operator { color: $dark-editor-text; }
 .cm-s-darkpad span.cm-def { color: $dark-editor-text; }
-.cm-s-darkpad span.cm-tag { color: $dark-green; }
-.cm-s-darkpad span.cm-property { color: $dark-red; }
+.cm-s-darkpad span.cm-tag { color: $dark-editor-green; }
+.cm-s-darkpad span.cm-property { color: $dark-editor-red; }
