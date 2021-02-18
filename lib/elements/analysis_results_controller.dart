@@ -25,10 +25,10 @@ class AnalysisResultsController {
   final DElement toggle;
   bool _flashHidden;
 
-  final StreamController<AnalysisIssue> _onClickController =
+  final StreamController<LineInfo> _onClickController =
       StreamController.broadcast();
 
-  Stream<AnalysisIssue> get onIssueClick => _onClickController.stream;
+  Stream<LineInfo> get onItemClicked => _onClickController.stream;
 
   AnalysisResultsController(this.flash, this.message, this.toggle) {
     // Show issues by default, but hide the flash element (otherwise an empty
@@ -70,14 +70,19 @@ class AnalysisResultsController {
     message.text = '$amount ${amount == 1 ? 'issue' : 'issues'}';
 
     flash.clearChildren();
-    for (var elem in issues.map(_issueElement)) {
+    for (var issue in issues) {
+      var elem = _issueElement(issue);
       flash.add(elem);
+      for (var diagnostic in issue.diagnosticMessages) {
+        var diagnosticElement = _diagnosticElement(diagnostic);
+        flash.add(diagnosticElement);
+      }
     }
   }
 
   Element _issueElement(AnalysisIssue issue) {
     var message = issue.message;
-    if (issue.message.endsWith('.')) {
+    if (message.endsWith('.')) {
       message = message.substring(0, message.length - 1);
     }
 
@@ -92,7 +97,34 @@ class AnalysisResultsController {
       ..classes.add('message'));
 
     elem.onClick.listen((_) {
-      _onClickController.add(issue);
+      _onClickController.add(LineInfo(
+          line: issue.line,
+          charStart: issue.charStart,
+          charLength: issue.charLength));
+    });
+
+    return elem;
+  }
+
+  Element _diagnosticElement(DiagnosticMessage diagnosticMessage) {
+    var message = diagnosticMessage.message;
+    if (message.endsWith('.')) {
+      message = message.substring(0, message.length - 1);
+    }
+
+    var elem = DivElement()..classes.add('issue');
+
+    elem.children.add(SpanElement()..classes.add('issue-indent'));
+
+    elem.children.add(SpanElement()
+      ..text = message
+      ..classes.add('message'));
+
+    elem.onClick.listen((_) {
+      _onClickController.add(LineInfo(
+          line: diagnosticMessage.line,
+          charStart: diagnosticMessage.charStart,
+          charLength: diagnosticMessage.charLength));
     });
 
     return elem;
@@ -117,4 +149,16 @@ class AnalysisResultsController {
     flash.clearAttr('hidden');
     toggle.text = _hideMsg;
   }
+}
+
+class LineInfo {
+  final int line;
+  final int charStart;
+  final int charLength;
+
+  LineInfo({
+    this.line,
+    this.charStart,
+    this.charLength,
+  });
 }

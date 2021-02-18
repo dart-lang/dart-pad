@@ -95,6 +95,11 @@
   min-width: 62px;
 }
 
+.issue-indent {
+  padding: 2px 5px; // to match size of issuelabel
+  min-width: 62px;
+}
+
 .issue .issuelabel.error {
   color: $issue-error-color;
   border: 1px solid $issue-error-color;

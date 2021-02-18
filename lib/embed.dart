@@ -400,8 +400,9 @@ class Embed {
         DElement(querySelector('#issues')),
         DElement(querySelector('#issues-message')),
         DElement(querySelector('#issues-toggle')))
-      ..onIssueClick.listen((issue) {
-        _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+      ..onItemClicked.listen((item) {
+        _jumpTo(item.line, item.charStart, item.charLength,
+            focus: true);
       });
 
     if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
@@ -1016,11 +1017,12 @@ class Embed {
     return s;
   }
 
-  void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
+  void _jumpTo(int line, int charStart, int charLength,
+      {bool focus = false, bool relativeToLine = false}) {
     var doc = userCodeEditor.document;
 
-    doc.select(
-        doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
+      doc.select(doc.posFromIndex(charStart),
+          doc.posFromIndex(charStart + charLength));
 
     if (focus) userCodeEditor.focus();
   }
