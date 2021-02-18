@@ -453,12 +453,23 @@ a {
   color: $dark-issue-label-color;
 }
 
+.issue:hover {
+  background-color: darken($dark-issues-background-color, 3%);
+}
+
 .issue .message {
   color: $dark-issue-label-color;
 }
 
-#issues-toggle {
+#issues-toggle, .issue-anchor {
   color: $mdc-theme-primary;
+  &:visited {
+    color: $mdc-theme-primary;
+  }
+
+  &:hover {
+    color: darken($mdc-theme-primary, 12%);
+  }
 }
 
 #issues-message {

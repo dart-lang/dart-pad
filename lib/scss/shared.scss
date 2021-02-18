@@ -69,7 +69,6 @@
 
 // Issues
 #issues {
-  padding: 8px;
   overflow-y: auto;
   max-height: 50vh;
 }
@@ -80,6 +79,8 @@
   line-height: 20px;
   border-radius: 3px;
   cursor: pointer;
+  padding: 4px;
+  margin: 0;
 }
 
 .issue + .issue {
@@ -96,8 +97,13 @@
 }
 
 .issue-indent {
+  border: 1px;
   padding: 2px 5px; // to match size of issuelabel
   min-width: 62px;
+}
+
+.issue-anchor {
+  margin: 0 4px;
 }
 
 .issue .issuelabel.error {

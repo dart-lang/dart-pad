@@ -92,9 +92,18 @@ class AnalysisResultsController {
       ..text = issue.kind
       ..classes.addAll(_classesForType[issue.kind]));
 
-    elem.children.add(SpanElement()
+    var messageSpan = SpanElement()
       ..text = '$message - line ${issue.line}'
-      ..classes.add('message'));
+      ..classes.add('message');
+    elem.children.add(messageSpan);
+
+    if (issue.url != null && issue.url.isNotEmpty) {
+      messageSpan.children.add(AnchorElement()
+        ..href = issue.url
+        ..text = ' Open Documentation'
+        ..target = '_blank'
+        ..classes.add('issue-anchor'));
+    }
 
     elem.onClick.listen((_) {
       _onClickController.add(LineInfo(
