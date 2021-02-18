@@ -74,10 +74,6 @@ class AnalysisResultsController {
       var elem = _issueElement(issue);
       flash.add(elem);
 
-      if (issue.correction != null && issue.correction.isNotEmpty) {
-        flash.add(_correctionElement(issue));
-      }
-
       for (var diagnostic in issue.diagnosticMessages) {
         var diagnosticElement = _diagnosticElement(diagnostic);
         flash.add(diagnosticElement);
@@ -87,28 +83,39 @@ class AnalysisResultsController {
 
   Element _issueElement(AnalysisIssue issue) {
     var message = issue.message;
-    if (message.endsWith('.')) {
-      message = message.substring(0, message.length - 1);
-    }
+    message = _stripPeriod(message);
 
-    var elem = DivElement()..classes.add('issue');
+    var elem = DivElement()..classes.addAll(['issue', 'clickable']);
 
     elem.children.add(SpanElement()
       ..text = issue.kind
       ..classes.addAll(_classesForType[issue.kind]));
 
-    var messageSpan = SpanElement()
+    var columnElem = DivElement()..classes.add('issue-column');
+
+    var messageSpan = DivElement()
       ..text = '$message - line ${issue.line}'
       ..classes.add('message');
-    elem.children.add(messageSpan);
+    columnElem.children.add(messageSpan);
 
+    // Add the correction, if any.
+    if (issue.correction != null && issue.correction.isNotEmpty) {
+      var correctionMessage = _stripPeriod(issue.correction);
+      columnElem.children.add(DivElement()
+        ..text = correctionMessage
+        ..classes.add('message'));
+    }
+
+    // Add a link to the documentation
     if (issue.url != null && issue.url.isNotEmpty) {
-      messageSpan.children.add(AnchorElement()
+      columnElem.children.add(AnchorElement()
         ..href = issue.url
         ..text = ' Open Documentation'
         ..target = '_blank'
         ..classes.add('issue-anchor'));
     }
+
+    elem.children.add(columnElem);
 
     elem.onClick.listen((_) {
       _onClickController.add(LineInfo(
@@ -120,13 +127,20 @@ class AnalysisResultsController {
     return elem;
   }
 
+  String _stripPeriod(String s) {
+    if (s.endsWith('.')) {
+      s = s.substring(0, s.length - 1);
+    }
+    return s;
+  }
+
   Element _diagnosticElement(DiagnosticMessage diagnosticMessage) {
     var message = diagnosticMessage.message;
     if (message.endsWith('.')) {
       message = message.substring(0, message.length - 1);
     }
 
-    var elem = DivElement()..classes.add('issue');
+    var elem = DivElement()..classes.addAll(['issue', 'clickable']);
 
     elem.children.add(SpanElement()..classes.add('issue-indent'));
 
@@ -140,23 +154,6 @@ class AnalysisResultsController {
           charStart: diagnosticMessage.charStart,
           charLength: diagnosticMessage.charLength));
     });
-
-    return elem;
-  }
-
-  Element _correctionElement(AnalysisIssue issue) {
-    var message = issue.correction;
-    if (message.endsWith('.')) {
-      message = message.substring(0, message.length - 1);
-    }
-
-    var elem = DivElement()..classes.add('issue');
-
-    elem.children.add(SpanElement()..classes.add('issue-indent'));
-
-    elem.children.add(SpanElement()
-      ..text = message
-      ..classes.add('message'));
 
     return elem;
   }

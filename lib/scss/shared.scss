@@ -79,9 +79,12 @@
   align-items: start;
   line-height: 20px;
   border-radius: 3px;
-  cursor: pointer;
   padding: 4px;
   margin: 0;
+}
+
+.clickable {
+  cursor: pointer;
 }
 
 .issue + .issue {
