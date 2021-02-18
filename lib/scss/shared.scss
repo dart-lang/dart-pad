@@ -76,6 +76,7 @@
 #issues .issue {
   display: flex;
   flex-direction: row;
+  align-items: start;
   line-height: 20px;
   border-radius: 3px;
   cursor: pointer;
@@ -92,7 +93,7 @@
   font-size: $embed-editor-font-size;
   display: inline-block;
   border-radius: 3px;
-  padding: 2px 5px;
+  padding: 0 5px 2px 5px;
   min-width: 62px;
 }
 

@@ -73,6 +73,11 @@ class AnalysisResultsController {
     for (var issue in issues) {
       var elem = _issueElement(issue);
       flash.add(elem);
+
+      if (issue.correction != null && issue.correction.isNotEmpty) {
+        flash.add(_correctionElement(issue));
+      }
+
       for (var diagnostic in issue.diagnosticMessages) {
         var diagnosticElement = _diagnosticElement(diagnostic);
         flash.add(diagnosticElement);
@@ -135,6 +140,23 @@ class AnalysisResultsController {
           charStart: diagnosticMessage.charStart,
           charLength: diagnosticMessage.charLength));
     });
+
+    return elem;
+  }
+
+  Element _correctionElement(AnalysisIssue issue) {
+    var message = issue.correction;
+    if (message.endsWith('.')) {
+      message = message.substring(0, message.length - 1);
+    }
+
+    var elem = DivElement()..classes.add('issue');
+
+    elem.children.add(SpanElement()..classes.add('issue-indent'));
+
+    elem.children.add(SpanElement()
+      ..text = message
+      ..classes.add('message'));
 
     return elem;
   }

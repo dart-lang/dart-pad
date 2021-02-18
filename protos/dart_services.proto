@@ -47,6 +47,7 @@ message AnalysisIssue {
   int32 charLength = 7;
   string url = 8;
   repeated DiagnosticMessage diagnosticMessages = 9;
+  string correction = 10;
 }
 
 message DiagnosticMessage {

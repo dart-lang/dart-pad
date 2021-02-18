@@ -254,6 +254,7 @@ class AnalysisIssue extends $pb.GeneratedMessage {
     ..a<$core.int>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'charLength', $pb.PbFieldType.O3, protoName: 'charLength')
     ..aOS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'url')
     ..pc<DiagnosticMessage>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'diagnosticMessages', $pb.PbFieldType.PM, protoName: 'diagnosticMessages', subBuilder: DiagnosticMessage.create)
+    ..aOS(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'correction')
     ..hasRequiredFields = false
   ;
 
@@ -268,6 +269,7 @@ class AnalysisIssue extends $pb.GeneratedMessage {
     $core.int charLength,
     $core.String url,
     $core.Iterable<DiagnosticMessage> diagnosticMessages,
+    $core.String correction,
   }) {
     final _result = create();
     if (kind != null) {
@@ -296,6 +298,9 @@ class AnalysisIssue extends $pb.GeneratedMessage {
     }
     if (diagnosticMessages != null) {
       _result.diagnosticMessages.addAll(diagnosticMessages);
+    }
+    if (correction != null) {
+      _result.correction = correction;
     }
     return _result;
   }
@@ -394,6 +399,15 @@ class AnalysisIssue extends $pb.GeneratedMessage {
 
   @$pb.TagNumber(9)
   $core.List<DiagnosticMessage> get diagnosticMessages => $_getList(8);
+
+  @$pb.TagNumber(10)
+  $core.String get correction => $_getSZ(9);
+  @$pb.TagNumber(10)
+  set correction($core.String v) { $_setString(9, v); }
+  @$pb.TagNumber(10)
+  $core.bool hasCorrection() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearCorrection() => clearField(10);
 }
 
 class DiagnosticMessage extends $pb.GeneratedMessage {

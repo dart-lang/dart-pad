@@ -65,11 +65,12 @@ const AnalysisIssue$json = const {
     const {'1': 'charLength', '3': 7, '4': 1, '5': 5, '10': 'charLength'},
     const {'1': 'url', '3': 8, '4': 1, '5': 9, '10': 'url'},
     const {'1': 'diagnosticMessages', '3': 9, '4': 3, '5': 11, '6': '.dart_services.api.DiagnosticMessage', '10': 'diagnosticMessages'},
+    const {'1': 'correction', '3': 10, '4': 1, '5': 9, '10': 'correction'},
   ],
 };
 
 /// Descriptor for `AnalysisIssue`. Decode as a `google.protobuf.DescriptorProto`.
-final $typed_data.Uint8List analysisIssueDescriptor = $convert.base64Decode('Cg1BbmFseXNpc0lzc3VlEhIKBGtpbmQYASABKAlSBGtpbmQSEgoEbGluZRgCIAEoBVIEbGluZRIYCgdtZXNzYWdlGAMgASgJUgdtZXNzYWdlEh4KCnNvdXJjZU5hbWUYBCABKAlSCnNvdXJjZU5hbWUSGgoIaGFzRml4ZXMYBSABKAhSCGhhc0ZpeGVzEhwKCWNoYXJTdGFydBgGIAEoBVIJY2hhclN0YXJ0Eh4KCmNoYXJMZW5ndGgYByABKAVSCmNoYXJMZW5ndGgSEAoDdXJsGAggASgJUgN1cmwSVAoSZGlhZ25vc3RpY01lc3NhZ2VzGAkgAygLMiQuZGFydF9zZXJ2aWNlcy5hcGkuRGlhZ25vc3RpY01lc3NhZ2VSEmRpYWdub3N0aWNNZXNzYWdlcw==');
+final $typed_data.Uint8List analysisIssueDescriptor = $convert.base64Decode('Cg1BbmFseXNpc0lzc3VlEhIKBGtpbmQYASABKAlSBGtpbmQSEgoEbGluZRgCIAEoBVIEbGluZRIYCgdtZXNzYWdlGAMgASgJUgdtZXNzYWdlEh4KCnNvdXJjZU5hbWUYBCABKAlSCnNvdXJjZU5hbWUSGgoIaGFzRml4ZXMYBSABKAhSCGhhc0ZpeGVzEhwKCWNoYXJTdGFydBgGIAEoBVIJY2hhclN0YXJ0Eh4KCmNoYXJMZW5ndGgYByABKAVSCmNoYXJMZW5ndGgSEAoDdXJsGAggASgJUgN1cmwSVAoSZGlhZ25vc3RpY01lc3NhZ2VzGAkgAygLMiQuZGFydF9zZXJ2aWNlcy5hcGkuRGlhZ25vc3RpY01lc3NhZ2VSEmRpYWdub3N0aWNNZXNzYWdlcxIeCgpjb3JyZWN0aW9uGAogASgJUgpjb3JyZWN0aW9u');
 @$core.Deprecated('Use diagnosticMessageDescriptor instead')
 const DiagnosticMessage$json = const {
   '1': 'DiagnosticMessage',
