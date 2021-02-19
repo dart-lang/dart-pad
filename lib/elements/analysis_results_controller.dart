@@ -83,7 +83,6 @@ class AnalysisResultsController {
 
   Element _issueElement(AnalysisIssue issue) {
     var message = issue.message;
-    message = _stripPeriod(message);
 
     var elem = DivElement()..classes.addAll(['issue', 'clickable']);
 
@@ -100,9 +99,8 @@ class AnalysisResultsController {
 
     // Add the correction, if any.
     if (issue.correction != null && issue.correction.isNotEmpty) {
-      var correctionMessage = _stripPeriod(issue.correction);
       columnElem.children.add(DivElement()
-        ..text = correctionMessage
+        ..text = issue.correction
         ..classes.add('message'));
     }
 
@@ -125,13 +123,6 @@ class AnalysisResultsController {
     });
 
     return elem;
-  }
-
-  String _stripPeriod(String s) {
-    if (s.endsWith('.')) {
-      s = s.substring(0, s.length - 1);
-    }
-    return s;
   }
 
   Element _diagnosticElement(DiagnosticMessage diagnosticMessage) {
