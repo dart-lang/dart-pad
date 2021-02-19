@@ -25,10 +25,10 @@ class AnalysisResultsController {
   final DElement toggle;
   bool _flashHidden;
 
-  final StreamController<LineInfo> _onClickController =
+  final StreamController<Location> _onClickController =
       StreamController.broadcast();
 
-  Stream<LineInfo> get onItemClicked => _onClickController.stream;
+  Stream<Location> get onItemClicked => _onClickController.stream;
 
   AnalysisResultsController(this.flash, this.message, this.toggle) {
     // Show issues by default, but hide the flash element (otherwise an empty
@@ -118,7 +118,7 @@ class AnalysisResultsController {
     elem.children.add(columnElem);
 
     elem.onClick.listen((_) {
-      _onClickController.add(LineInfo(
+      _onClickController.add(Location(
           line: issue.line,
           charStart: issue.charStart,
           charLength: issue.charLength));
@@ -149,7 +149,7 @@ class AnalysisResultsController {
       ..classes.add('message'));
 
     elem.onClick.listen((_) {
-      _onClickController.add(LineInfo(
+      _onClickController.add(Location(
           line: diagnosticMessage.line,
           charStart: diagnosticMessage.charStart,
           charLength: diagnosticMessage.charLength));
@@ -179,12 +179,13 @@ class AnalysisResultsController {
   }
 }
 
-class LineInfo {
+/// A range of text in the file.
+class Location {
   final int line;
   final int charStart;
   final int charLength;
 
-  LineInfo({
+  Location({
     this.line,
     this.charStart,
     this.charLength,
