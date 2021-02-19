@@ -1614,10 +1614,9 @@ class LinkedEditGroup extends $pb.GeneratedMessage {
       const $core.bool.fromEnvironment('protobuf.omit_message_names')
           ? ''
           : 'LinkedEditGroup',
-      package: const $pb.PackageName(
-          $core.bool.fromEnvironment('protobuf.omit_message_names')
-              ? ''
-              : 'dart_services.api'),
+      package: const $pb.PackageName($core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'dart_services.api'),
       createEmptyInstance: create)
     ..p<$core.int>(
         1,
