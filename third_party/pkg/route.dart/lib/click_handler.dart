@@ -5,12 +5,12 @@ import 'dart:html';
 import 'link_matcher.dart';
 import 'client.dart';
 
-typedef String _HashNormalizer(String s);
+typedef _HashNormalizer = String Function(String s);
 
 /// WindowClickHandler can be used as a hook into [Router] to
 /// modify behavior right after user clicks on an element, and
 /// before the URL in the browser changes.
-typedef WindowClickHandler(Event e);
+typedef WindowClickHandler = Function(Event e);
 
 /// This is default behavior used by [Router] to handle clicks on elements.
 ///
