@@ -93,7 +93,7 @@ class AnalysisResultsController {
     var columnElem = DivElement()..classes.add('issue-column');
 
     var messageSpan = DivElement()
-      ..text = '$message - line ${issue.line}'
+      ..text = '$message (line ${issue.line})'
       ..classes.add('message');
     columnElem.children.add(messageSpan);
 
