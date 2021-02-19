@@ -3,6 +3,12 @@
 @import 'package:dart_pad/scss/colors';
 @import 'package:dart_pad/scss/variables';
 
+a {
+  text-decoration: none;
+  cursor: pointer;
+  font-family: Roboto, sans-serif;
+}
+
 // Flashes
 #flash-container > div + div {
   // Adds space between the flashes in the flash container, if more than one is displayed.
@@ -82,6 +88,8 @@
   padding: 4px;
   margin: 0;
 }
+
+
 
 .clickable {
   cursor: pointer;
