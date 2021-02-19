@@ -60,8 +60,8 @@ class CompileRequest extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CompileRequest copyWith(void Function(CompileRequest) updates) =>
-      super.copyWith((message) =>
-          updates(message as CompileRequest)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as CompileRequest))
+          as CompileRequest; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static CompileRequest create() => CompileRequest._();
@@ -139,8 +139,8 @@ class CompileDDCRequest extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CompileDDCRequest copyWith(void Function(CompileDDCRequest) updates) =>
-      super.copyWith((message) => updates(
-          message as CompileDDCRequest)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as CompileDDCRequest))
+          as CompileDDCRequest; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static CompileDDCRequest create() => CompileDDCRequest._();
@@ -216,8 +216,8 @@ class SourceRequest extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   SourceRequest copyWith(void Function(SourceRequest) updates) =>
-      super.copyWith((message) =>
-          updates(message as SourceRequest)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as SourceRequest))
+          as SourceRequest; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static SourceRequest create() => SourceRequest._();
@@ -306,8 +306,8 @@ class AnalysisResults extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   AnalysisResults copyWith(void Function(AnalysisResults) updates) =>
-      super.copyWith((message) =>
-          updates(message as AnalysisResults)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as AnalysisResults))
+          as AnalysisResults; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static AnalysisResults create() => AnalysisResults._();
@@ -370,6 +370,9 @@ class AnalysisIssue extends $pb.GeneratedMessage {
     ..aOB(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'hasFixes', protoName: 'hasFixes')
     ..a<$core.int>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'charStart', $pb.PbFieldType.O3, protoName: 'charStart')
     ..a<$core.int>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'charLength', $pb.PbFieldType.O3, protoName: 'charLength')
+    ..aOS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'url')
+    ..pc<DiagnosticMessage>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'diagnosticMessages', $pb.PbFieldType.PM, protoName: 'diagnosticMessages', subBuilder: DiagnosticMessage.create)
+    ..aOS(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'correction')
     ..hasRequiredFields = false;
 
   AnalysisIssue._() : super();
@@ -381,6 +384,9 @@ class AnalysisIssue extends $pb.GeneratedMessage {
     $core.bool hasFixes,
     $core.int charStart,
     $core.int charLength,
+    $core.String url,
+    $core.Iterable<DiagnosticMessage> diagnosticMessages,
+    $core.String correction,
   }) {
     final _result = create();
     if (kind != null) {
@@ -404,6 +410,15 @@ class AnalysisIssue extends $pb.GeneratedMessage {
     if (charLength != null) {
       _result.charLength = charLength;
     }
+    if (url != null) {
+      _result.url = url;
+    }
+    if (diagnosticMessages != null) {
+      _result.diagnosticMessages.addAll(diagnosticMessages);
+    }
+    if (correction != null) {
+      _result.correction = correction;
+    }
     return _result;
   }
   factory AnalysisIssue.fromBuffer($core.List<$core.int> i,
@@ -420,8 +435,8 @@ class AnalysisIssue extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   AnalysisIssue copyWith(void Function(AnalysisIssue) updates) =>
-      super.copyWith((message) =>
-          updates(message as AnalysisIssue)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as AnalysisIssue))
+          as AnalysisIssue; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static AnalysisIssue create() => AnalysisIssue._();
@@ -516,6 +531,159 @@ class AnalysisIssue extends $pb.GeneratedMessage {
   $core.bool hasCharLength() => $_has(6);
   @$pb.TagNumber(7)
   void clearCharLength() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get url => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set url($core.String v) {
+    $_setString(7, v);
+  }
+
+  @$pb.TagNumber(8)
+  $core.bool hasUrl() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearUrl() => clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.List<DiagnosticMessage> get diagnosticMessages => $_getList(8);
+
+  @$pb.TagNumber(10)
+  $core.String get correction => $_getSZ(9);
+  @$pb.TagNumber(10)
+  set correction($core.String v) {
+    $_setString(9, v);
+  }
+
+  @$pb.TagNumber(10)
+  $core.bool hasCorrection() => $_has(9);
+  @$pb.TagNumber(10)
+  void clearCorrection() => clearField(10);
+}
+
+class DiagnosticMessage extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'DiagnosticMessage',
+      package: const $pb.PackageName(
+          $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart_services.api'),
+      createEmptyInstance: create)
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'message')
+    ..a<$core.int>(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'line',
+        $pb.PbFieldType.O3)
+    ..a<$core.int>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'charStart', $pb.PbFieldType.O3,
+        protoName: 'charStart')
+    ..a<$core.int>(
+        4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'charLength', $pb.PbFieldType.O3,
+        protoName: 'charLength')
+    ..hasRequiredFields = false;
+
+  DiagnosticMessage._() : super();
+  factory DiagnosticMessage({
+    $core.String message,
+    $core.int line,
+    $core.int charStart,
+    $core.int charLength,
+  }) {
+    final _result = create();
+    if (message != null) {
+      _result.message = message;
+    }
+    if (line != null) {
+      _result.line = line;
+    }
+    if (charStart != null) {
+      _result.charStart = charStart;
+    }
+    if (charLength != null) {
+      _result.charLength = charLength;
+    }
+    return _result;
+  }
+  factory DiagnosticMessage.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory DiagnosticMessage.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  DiagnosticMessage clone() => DiagnosticMessage()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  DiagnosticMessage copyWith(void Function(DiagnosticMessage) updates) =>
+      super.copyWith((message) => updates(message as DiagnosticMessage))
+          as DiagnosticMessage; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static DiagnosticMessage create() => DiagnosticMessage._();
+  DiagnosticMessage createEmptyInstance() => create();
+  static $pb.PbList<DiagnosticMessage> createRepeated() =>
+      $pb.PbList<DiagnosticMessage>();
+  @$core.pragma('dart2js:noInline')
+  static DiagnosticMessage getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<DiagnosticMessage>(create);
+  static DiagnosticMessage _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get message => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set message($core.String v) {
+    $_setString(0, v);
+  }
+
+  @$pb.TagNumber(1)
+  $core.bool hasMessage() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearMessage() => clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.int get line => $_getIZ(1);
+  @$pb.TagNumber(2)
+  set line($core.int v) {
+    $_setSignedInt32(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasLine() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearLine() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get charStart => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set charStart($core.int v) {
+    $_setSignedInt32(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasCharStart() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearCharStart() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.int get charLength => $_getIZ(3);
+  @$pb.TagNumber(4)
+  set charLength($core.int v) {
+    $_setSignedInt32(3, v);
+  }
+
+  @$pb.TagNumber(4)
+  $core.bool hasCharLength() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearCharLength() => clearField(4);
 }
 
 class VersionRequest extends $pb.GeneratedMessage {
@@ -546,8 +714,8 @@ class VersionRequest extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   VersionRequest copyWith(void Function(VersionRequest) updates) =>
-      super.copyWith((message) =>
-          updates(message as VersionRequest)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as VersionRequest))
+          as VersionRequest; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static VersionRequest create() => VersionRequest._();
@@ -617,8 +785,8 @@ class CompileResponse extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CompileResponse copyWith(void Function(CompileResponse) updates) =>
-      super.copyWith((message) =>
-          updates(message as CompileResponse)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as CompileResponse))
+          as CompileResponse; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static CompileResponse create() => CompileResponse._();
@@ -726,8 +894,8 @@ class CompileDDCResponse extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CompileDDCResponse copyWith(void Function(CompileDDCResponse) updates) =>
-      super.copyWith((message) => updates(
-          message as CompileDDCResponse)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as CompileDDCResponse))
+          as CompileDDCResponse; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static CompileDDCResponse create() => CompileDDCResponse._();
@@ -830,8 +998,8 @@ class DocumentResponse extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   DocumentResponse copyWith(void Function(DocumentResponse) updates) =>
-      super.copyWith((message) => updates(
-          message as DocumentResponse)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as DocumentResponse))
+          as DocumentResponse; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static DocumentResponse create() => DocumentResponse._();
@@ -919,8 +1087,8 @@ class CompleteResponse extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CompleteResponse copyWith(void Function(CompleteResponse) updates) =>
-      super.copyWith((message) => updates(
-          message as CompleteResponse)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as CompleteResponse))
+          as CompleteResponse; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static CompleteResponse create() => CompleteResponse._();
@@ -1019,8 +1187,8 @@ class Completion extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   Completion copyWith(void Function(Completion) updates) =>
-      super.copyWith((message) =>
-          updates(message as Completion)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as Completion))
+          as Completion; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static Completion create() => Completion._();
@@ -1085,8 +1253,8 @@ class FixesResponse extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   FixesResponse copyWith(void Function(FixesResponse) updates) =>
-      super.copyWith((message) =>
-          updates(message as FixesResponse)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as FixesResponse))
+          as FixesResponse; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static FixesResponse create() => FixesResponse._();
@@ -1175,8 +1343,8 @@ class ProblemAndFixes extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   ProblemAndFixes copyWith(void Function(ProblemAndFixes) updates) =>
-      super.copyWith((message) =>
-          updates(message as ProblemAndFixes)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as ProblemAndFixes))
+          as ProblemAndFixes; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static ProblemAndFixes create() => ProblemAndFixes._();
@@ -1290,8 +1458,8 @@ class CandidateFix extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   CandidateFix copyWith(void Function(CandidateFix) updates) =>
-      super.copyWith((message) =>
-          updates(message as CandidateFix)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as CandidateFix))
+          as CandidateFix; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static CandidateFix create() => CandidateFix._();
@@ -1392,8 +1560,8 @@ class SourceEdit extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   SourceEdit copyWith(void Function(SourceEdit) updates) =>
-      super.copyWith((message) =>
-          updates(message as SourceEdit)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as SourceEdit))
+          as SourceEdit; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static SourceEdit create() => SourceEdit._();
@@ -1501,8 +1669,8 @@ class LinkedEditGroup extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   LinkedEditGroup copyWith(void Function(LinkedEditGroup) updates) =>
-      super.copyWith((message) =>
-          updates(message as LinkedEditGroup)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as LinkedEditGroup))
+          as LinkedEditGroup; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static LinkedEditGroup create() => LinkedEditGroup._();
@@ -1584,8 +1752,8 @@ class LinkedEditSuggestion extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   LinkedEditSuggestion copyWith(void Function(LinkedEditSuggestion) updates) =>
-      super.copyWith((message) => updates(
-          message as LinkedEditSuggestion)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as LinkedEditSuggestion))
+          as LinkedEditSuggestion; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static LinkedEditSuggestion create() => LinkedEditSuggestion._();
@@ -1678,8 +1846,8 @@ class FormatResponse extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   FormatResponse copyWith(void Function(FormatResponse) updates) =>
-      super.copyWith((message) =>
-          updates(message as FormatResponse)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as FormatResponse))
+          as FormatResponse; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static FormatResponse create() => FormatResponse._();
@@ -1780,8 +1948,8 @@ class AssistsResponse extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   AssistsResponse copyWith(void Function(AssistsResponse) updates) =>
-      super.copyWith((message) =>
-          updates(message as AssistsResponse)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as AssistsResponse))
+          as AssistsResponse; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static AssistsResponse create() => AssistsResponse._();
@@ -1892,8 +2060,8 @@ class VersionResponse extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   VersionResponse copyWith(void Function(VersionResponse) updates) =>
-      super.copyWith((message) =>
-          updates(message as VersionResponse)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as VersionResponse))
+          as VersionResponse; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static VersionResponse create() => VersionResponse._();
@@ -2058,8 +2226,8 @@ class BadRequest extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   BadRequest copyWith(void Function(BadRequest) updates) =>
-      super.copyWith((message) =>
-          updates(message as BadRequest)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as BadRequest))
+          as BadRequest; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static BadRequest create() => BadRequest._();
@@ -2126,8 +2294,8 @@ class ErrorMessage extends $pb.GeneratedMessage {
       'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
       'Will be removed in next major version')
   ErrorMessage copyWith(void Function(ErrorMessage) updates) =>
-      super.copyWith((message) =>
-          updates(message as ErrorMessage)); // ignore: deprecated_member_use
+      super.copyWith((message) => updates(message as ErrorMessage))
+          as ErrorMessage; // ignore: deprecated_member_use
   $pb.BuilderInfo get info_ => _i;
   @$core.pragma('dart2js:noInline')
   static ErrorMessage create() => ErrorMessage._();

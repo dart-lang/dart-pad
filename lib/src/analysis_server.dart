@@ -321,14 +321,24 @@ abstract class AnalysisServerWrapper {
 
       // Calculate the issues.
       final issues = getErrors().map((AnalysisError error) {
-        return proto.AnalysisIssue()
+        final issue = proto.AnalysisIssue()
           ..kind = error.severity.toLowerCase()
           ..line = error.location.startLine
           ..message = error.message
           ..sourceName = path.basename(error.location.file)
           ..hasFixes = error.hasFix
           ..charStart = error.location.offset
-          ..charLength = error.location.length;
+          ..charLength = error.location.length
+          ..diagnosticMessages.addAll(error.contextMessages?.map((m) =>
+                  proto.DiagnosticMessage(
+                      message: m.message,
+                      line: m.location.startLine,
+                      charStart: m.location.offset,
+                      charLength: m.location.length)) ??
+              []);
+        if (error.url != null) issue.url = error.url;
+        if (error.correction != null) issue.correction = error.correction;
+        return issue;
       }).toList();
 
       issues.sort((a, b) {
