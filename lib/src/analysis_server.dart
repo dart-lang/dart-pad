@@ -19,6 +19,7 @@ import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'scheduler.dart';
 import 'sdk_manager.dart';
+import 'utils.dart' as utils;
 
 final Logger _logger = Logger('analysis_server');
 
@@ -324,20 +325,27 @@ abstract class AnalysisServerWrapper {
         final issue = proto.AnalysisIssue()
           ..kind = error.severity.toLowerCase()
           ..line = error.location.startLine
-          ..message = error.message
+          ..message = utils.stripFilePaths(error.message)
           ..sourceName = path.basename(error.location.file)
           ..hasFixes = error.hasFix
           ..charStart = error.location.offset
           ..charLength = error.location.length
           ..diagnosticMessages.addAll(error.contextMessages?.map((m) =>
                   proto.DiagnosticMessage(
-                      message: m.message,
+                      message: utils.stripFilePaths(m.message),
                       line: m.location.startLine,
                       charStart: m.location.offset,
                       charLength: m.location.length)) ??
               []);
-        if (error.url != null) issue.url = error.url;
-        if (error.correction != null) issue.correction = error.correction;
+
+        if (error.url != null) {
+          issue.url = error.url;
+        }
+
+        if (error.correction != null) {
+          issue.correction = utils.stripFilePaths(error.correction);
+        }
+
         return issue;
       }).toList();
 
