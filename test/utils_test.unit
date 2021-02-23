@@ -3,7 +3,7 @@ List is defined in /var/folders/4p/y54w9nqj0_n6ryqwn7lxqz6800m6cw/T/DartAnalysis
 <<<
 List is defined in main.dart
 >>> Strips Dart SDK paths
-List is defined in /Users/ryjohn/.dvm/darts/2.10.5/lib/core/list.dart
+List is defined in /path/dart/dart/sdk/lib/core/list.dart
 <<<
 List is defined in dart:core/list.dart
 >>> Strips SDK and temporary directory paths
@@ -14,6 +14,10 @@ The argument type 'List<int> (where List is defined in dart:core/list.dart)' can
 Unused import: 'package:flutter/material.dart'.
 <<<
 Unused import: 'package:flutter/material.dart'.
+>>> Keeps dart:core paths intact
+dart:core/foo.dart
+<<<
+dart:core/foo.dart
 >>> Strips Flutter SDK paths
 The argument type 'StatelessWidget (where StatelessWidget is defined in /Users/username/path/to/dart-services/project_templates/flutter_project/main.dart)' can't be assigned to the parameter type 'StatelessWidget (where StatelessWidget is defined in /Users/username/path/to/dart-services/flutter-sdk/packages/flutter/lib/src/widgets/framework.dart)'.
 <<<
