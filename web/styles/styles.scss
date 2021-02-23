@@ -141,7 +141,6 @@ a {
 
 // Editor panel
 #editor-panel {
-  background-color: $dark-editor-background;
   @include layout-vertical;
   @include layout-relative;
 }
