@@ -7,7 +7,7 @@
 // These variables must be set before importing material-components-web.scss.
 // Since `styles.scss` loads mdc_web these must be before `styles.scss` is
 // imported
-$mdc-theme-primary: #a5f6ff;
+$mdc-theme-primary: #168AFD;
 $mdc-theme-secondary: #676767;
 $mdc-theme-background: $dark-code-background-color;
 $mdc-theme-surface: $dark-code-background-color;
@@ -78,7 +78,7 @@ a {
   color: $dark-text-color !important;
 }
 .mdc-tab--active .mdc-tab__text-label {
-  color: $mdc-theme-primary !important;
+  color: #168AFD !important;
 }
 
 .message-container {
@@ -107,10 +107,4 @@ a {
 
 .flash-warn {
   background-color: $dark-flash-warning-color;
-}
-
-// Misc
-
-.view-label {
-  color: $dark-label-color;
 }
