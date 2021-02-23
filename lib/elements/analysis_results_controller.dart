@@ -25,10 +25,10 @@ class AnalysisResultsController {
   final DElement toggle;
   bool _flashHidden;
 
-  final StreamController<AnalysisIssue> _onClickController =
+  final StreamController<Location> _onClickController =
       StreamController.broadcast();
 
-  Stream<AnalysisIssue> get onIssueClick => _onClickController.stream;
+  Stream<Location> get onItemClicked => _onClickController.stream;
 
   AnalysisResultsController(this.flash, this.message, this.toggle) {
     // Show issues by default, but hide the flash element (otherwise an empty
@@ -70,29 +70,80 @@ class AnalysisResultsController {
     message.text = '$amount ${amount == 1 ? 'issue' : 'issues'}';
 
     flash.clearChildren();
-    for (var elem in issues.map(_issueElement)) {
+    for (var issue in issues) {
+      var elem = _issueElement(issue);
       flash.add(elem);
+
+      for (var diagnostic in issue.diagnosticMessages) {
+        var diagnosticElement = _diagnosticElement(diagnostic);
+        flash.add(diagnosticElement);
+      }
     }
   }
 
   Element _issueElement(AnalysisIssue issue) {
     var message = issue.message;
-    if (issue.message.endsWith('.')) {
-      message = message.substring(0, message.length - 1);
-    }
 
-    var elem = DivElement()..classes.add('issue');
+    var elem = DivElement()..classes.addAll(['issue', 'clickable']);
 
     elem.children.add(SpanElement()
       ..text = issue.kind
       ..classes.addAll(_classesForType[issue.kind]));
 
+    var columnElem = DivElement()..classes.add('issue-column');
+
+    var messageSpan = DivElement()
+      ..text = '$message (line ${issue.line})'
+      ..classes.add('message');
+    columnElem.children.add(messageSpan);
+
+    // Add the correction, if any.
+    if (issue.correction != null && issue.correction.isNotEmpty) {
+      columnElem.children.add(DivElement()
+        ..text = issue.correction
+        ..classes.add('message'));
+    }
+
+    // Add a link to the documentation
+    if (issue.url != null && issue.url.isNotEmpty) {
+      columnElem.children.add(AnchorElement()
+        ..href = issue.url
+        ..text = ' Open Documentation'
+        ..target = '_blank'
+        ..classes.add('issue-anchor'));
+    }
+
+    elem.children.add(columnElem);
+
+    elem.onClick.listen((_) {
+      _onClickController.add(Location(
+          line: issue.line,
+          charStart: issue.charStart,
+          charLength: issue.charLength));
+    });
+
+    return elem;
+  }
+
+  Element _diagnosticElement(DiagnosticMessage diagnosticMessage) {
+    var message = diagnosticMessage.message;
+    if (message.endsWith('.')) {
+      message = message.substring(0, message.length - 1);
+    }
+
+    var elem = DivElement()..classes.addAll(['issue', 'clickable']);
+
+    elem.children.add(SpanElement()..classes.add('issue-indent'));
+
     elem.children.add(SpanElement()
-      ..text = '$message - line ${issue.line}'
+      ..text = message
       ..classes.add('message'));
 
     elem.onClick.listen((_) {
-      _onClickController.add(issue);
+      _onClickController.add(Location(
+          line: diagnosticMessage.line,
+          charStart: diagnosticMessage.charStart,
+          charLength: diagnosticMessage.charLength));
     });
 
     return elem;
@@ -117,4 +168,17 @@ class AnalysisResultsController {
     flash.clearAttr('hidden');
     toggle.text = _hideMsg;
   }
+}
+
+/// A range of text in the file.
+class Location {
+  final int line;
+  final int charStart;
+  final int charLength;
+
+  Location({
+    this.line,
+    this.charStart,
+    this.charLength,
+  });
 }

@@ -3,6 +3,12 @@
 @import 'package:dart_pad/scss/colors';
 @import 'package:dart_pad/scss/variables';
 
+a {
+  text-decoration: none;
+  cursor: pointer;
+  font-family: Roboto, sans-serif;
+}
+
 // Flashes
 #flash-container > div + div {
   // Adds space between the flashes in the flash container, if more than one is displayed.
@@ -69,7 +75,6 @@
 
 // Issues
 #issues {
-  padding: 8px;
   overflow-y: auto;
   max-height: 50vh;
 }
@@ -77,8 +82,16 @@
 #issues .issue {
   display: flex;
   flex-direction: row;
+  align-items: start;
   line-height: 20px;
   border-radius: 3px;
+  padding: 4px;
+  margin: 0;
+}
+
+
+
+.clickable {
   cursor: pointer;
 }
 
@@ -91,8 +104,18 @@
   font-size: $embed-editor-font-size;
   display: inline-block;
   border-radius: 3px;
-  padding: 2px 5px;
+  padding: 0 5px 2px 5px;
   min-width: 62px;
+}
+
+.issue-indent {
+  border: 1px;
+  padding: 2px 5px; // to match size of issuelabel
+  min-width: 62px;
+}
+
+.issue-anchor {
+  margin: 0 4px;
 }
 
 .issue .issuelabel.error {

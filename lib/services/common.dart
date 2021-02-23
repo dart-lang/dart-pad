@@ -12,6 +12,7 @@ const nullSafetyServerUrl = 'https://nullsafety.api.dartpad.dev/';
 
 // A URL to use while debugging.
 // final serverUrl = 'http://127.0.0.1:8082/';
+// const nullSafetyServerUrl = 'http://127.0.0.1:8082/';
 
 const Duration serviceCallTimeout = Duration(seconds: 10);
 const Duration longServiceCallTimeout = Duration(seconds: 60);

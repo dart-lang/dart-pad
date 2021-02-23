@@ -400,8 +400,8 @@ class Embed {
         DElement(querySelector('#issues')),
         DElement(querySelector('#issues-message')),
         DElement(querySelector('#issues-toggle')))
-      ..onIssueClick.listen((issue) {
-        _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+      ..onItemClicked.listen((item) {
+        _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 
     if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {

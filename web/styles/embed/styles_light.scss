@@ -52,6 +52,10 @@ a {
   color: $light-label-color;
 }
 
+.issue:hover {
+  background-color: darken($light-secondary-background-color, 5%);
+}
+
 .issue .message {
   color: $light-label-color;
 }
