@@ -71,17 +71,12 @@ class AnalysisResultsController {
 
     flash.clearChildren();
     for (var issue in issues) {
-      var elem = _issueElement(issue);
+      var elem = _createIssueElement(issue);
       flash.add(elem);
-
-      for (var diagnostic in issue.diagnosticMessages) {
-        var diagnosticElement = _diagnosticElement(diagnostic);
-        flash.add(diagnosticElement);
-      }
     }
   }
 
-  Element _issueElement(AnalysisIssue issue) {
+  Element _createIssueElement(AnalysisIssue issue) {
     var message = issue.message;
 
     var elem = DivElement()..classes.addAll(['issue', 'clickable']);
@@ -93,9 +88,18 @@ class AnalysisResultsController {
     var columnElem = DivElement()..classes.add('issue-column');
 
     var messageSpan = DivElement()
-      ..text = '$message (line ${issue.line})'
+      ..text = 'line ${issue.line} • $message'
       ..classes.add('message');
     columnElem.children.add(messageSpan);
+
+    // Add a link to the documentation
+    if (issue.url != null && issue.url.isNotEmpty) {
+      messageSpan.children.add(AnchorElement()
+        ..href = issue.url
+        ..text = ' (view docs)'
+        ..target = '_blank'
+        ..classes.add('issue-anchor'));
+    }
 
     // Add the correction, if any.
     if (issue.correction != null && issue.correction.isNotEmpty) {
@@ -104,13 +108,10 @@ class AnalysisResultsController {
         ..classes.add('message'));
     }
 
-    // Add a link to the documentation
-    if (issue.url != null && issue.url.isNotEmpty) {
-      columnElem.children.add(AnchorElement()
-        ..href = issue.url
-        ..text = ' Open Documentation'
-        ..target = '_blank'
-        ..classes.add('issue-anchor'));
+    // TODO: This should likely be named contextMessages.
+    for (var diagnostic in issue.diagnosticMessages) {
+      var diagnosticElement = _createDiagnosticElement(diagnostic);
+      columnElem.children.add(diagnosticElement);
     }
 
     elem.children.add(columnElem);
@@ -125,21 +126,16 @@ class AnalysisResultsController {
     return elem;
   }
 
-  Element _diagnosticElement(DiagnosticMessage diagnosticMessage) {
-    var message = diagnosticMessage.message;
-    if (message.endsWith('.')) {
-      message = message.substring(0, message.length - 1);
-    }
+  Element _createDiagnosticElement(DiagnosticMessage diagnosticMessage) {
+    final message = diagnosticMessage.message;
 
-    var elem = DivElement()..classes.addAll(['issue', 'clickable']);
+    var elem = DivElement()..classes.addAll(['message', 'clickable']);
+    elem.text = message;
+    elem.onClick.listen((event) {
+      // Stop the mouse event so the outer issue mouse handler doesn't process
+      // it.
+      event.stopPropagation();
 
-    elem.children.add(SpanElement()..classes.add('issue-indent'));
-
-    elem.children.add(SpanElement()
-      ..text = message
-      ..classes.add('message'));
-
-    elem.onClick.listen((_) {
       _onClickController.add(Location(
           line: diagnosticMessage.line,
           charStart: diagnosticMessage.charStart,

@@ -15,10 +15,6 @@ a {
   margin-top: 8px;
 }
 
-#issues-container > div + div {
-  margin-top: 8px;
-}
-
 .flash {
   border-radius: 0;
   border: none;
@@ -26,15 +22,11 @@ a {
 }
 
 #flash-container {
-  width: 380px;
+  width: 420px;
   z-index: 10;
   bottom: 40px;
   right: 8px;
   position: fixed;
-}
-
-#issues-container {
-  width: 380px;
 }
 
 .message-container {
@@ -83,7 +75,6 @@ a {
   display: flex;
   flex-direction: row;
   align-items: start;
-  line-height: 20px;
   border-radius: 3px;
   padding: 4px;
   margin: 0;
@@ -140,6 +131,10 @@ a {
   padding-left: 5px;
   line-height: 20px;
   font-family: 'Roboto', sans-serif;
+}
+
+.message + .message {
+  padding-top: 4px;
 }
 
 // Keys dialog
