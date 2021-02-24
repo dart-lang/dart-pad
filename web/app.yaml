@@ -36,13 +36,16 @@ handlers:
     static_dir: text-fonts
 
   - url: /packages/codemirror
-    static_dir: packages/code-mirror
+    static_dir: packages/codemirror
 
   - url: /packages/dart-pad
-    static_dir: packages/dart-pad
+    static_dir: packages/dart_pad
 
   - url: /packages/split
     static_dir: packages/split
+
+  - url: /packages/mdc_web
+    static_dir: packages/mdc_web
 
   - url: .*
     script: auto
