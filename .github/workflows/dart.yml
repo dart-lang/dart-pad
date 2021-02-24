@@ -38,5 +38,5 @@ jobs:
       - name: Analyze project source
         run: dart analyze --fatal-infos
 
-      - name: Run travis
-        run: ./tool/travis.sh
+      - name: Run buildbot
+        run: dart tool/grind.dart buildbot
