@@ -6,7 +6,6 @@ library execution_iframe;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:js';
 
 import 'execution.dart';
 
@@ -234,12 +233,11 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
         if (data['sender'] != 'frame') {
           return;
         }
-        var type = data['type'] as String;
+        final type = data['type'] as String;
 
         if (type == 'testResult') {
-          final result = TestResult(data['success'] as bool,
-              List<String>.from(data['messages'] as Iterable ?? []));
-          _testResultsController.add(result);
+          _testResultsController.add(TestResult(data['success'] as bool,
+              List<String>.from(data['messages'] as Iterable ?? [])));
         } else if (type == 'stderr') {
           // Ignore any exceptions before the iframe has completed initialization.
           if (_readyCompleter.isCompleted) {
