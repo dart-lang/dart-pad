@@ -221,7 +221,7 @@ button.close:hover {
 }
 
 .issue + .issue {
-  margin-top: 4px;
+  padding-top: 6px;
 }
 
 .issue .issuelabel {
