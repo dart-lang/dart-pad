@@ -6,7 +6,6 @@ library execution_iframe;
 
 import 'dart:async';
 import 'dart:html';
-import 'dart:js';
 
 import 'execution.dart';
 
@@ -228,23 +227,28 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   }
 
   void _initListener() {
-    context['dartMessageListener'] = JsFunction.withThis((_this, data) {
-      var type = data['type'] as String;
-
-      if (type == 'testResult') {
-        final result = TestResult(data['success'] as bool,
-            List<String>.from(data['messages'] as Iterable ?? []));
-        _testResultsController.add(result);
-      } else if (type == 'stderr') {
-        // Ignore any exceptions before the iframe has completed initialization.
-        if (_readyCompleter.isCompleted) {
-          _stderrController.add(data['message'] as String);
+    window.addEventListener('message', (event) {
+      if (event is MessageEvent) {
+        final data = event.data;
+        if (data['sender'] != 'frame') {
+          return;
         }
-      } else if (type == 'ready' && !_readyCompleter.isCompleted) {
-        _readyCompleter.complete();
-      } else {
-        _stdoutController.add(data['message'] as String);
+        final type = data['type'] as String;
+
+        if (type == 'testResult') {
+          _testResultsController.add(TestResult(data['success'] as bool,
+              List<String>.from(data['messages'] as Iterable ?? [])));
+        } else if (type == 'stderr') {
+          // Ignore any exceptions before the iframe has completed initialization.
+          if (_readyCompleter.isCompleted) {
+            _stderrController.add(data['message'] as String);
+          }
+        } else if (type == 'ready' && !_readyCompleter.isCompleted) {
+          _readyCompleter.complete();
+        } else {
+          _stdoutController.add(data['message'] as String);
+        }
       }
-    });
+    }, false);
   }
 }

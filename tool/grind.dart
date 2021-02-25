@@ -152,14 +152,6 @@ build() {
   }
 
   log('Removed $count Dart files');
-
-  // Run vulcanize.
-  // Imports vulcanized, not inlined for IE support
-  vulcanize('index.html');
-  vulcanize('embed-dart.html');
-  vulcanize('embed-html.html');
-  vulcanize('embed-flutter.html');
-  vulcanize('embed-inline.html');
 }
 
 void copyPackageResources(String packageName, Directory destDir) {
@@ -187,54 +179,6 @@ void copyPackageResources(String packageName, Directory destDir) {
   }
 
   fail('package $packageName not found in .packages file');
-}
-
-// Run vulcanize
-vulcanize(String filepath) {
-  var htmlFile = _buildDir.join(filepath);
-  log('${htmlFile.path} original: ${_printSize(htmlFile)}');
-  var result = Process.runSync(
-      'vulcanize',
-      [
-        '--strip-comments',
-        '--inline-css',
-        '--inline-scripts',
-        '--exclude',
-        ' scripts/embed_dart.dart.js',
-        '--exclude',
-        ' scripts/embed_flutter.dart.js',
-        '--exclude',
-        ' scripts/embed_html.dart.js',
-        '--exclude',
-        ' scripts/embed_inline.dart.js',
-        '--exclude',
-        'scripts/playground.dart.js',
-        '--exclude',
-        'scripts/codemirror.js',
-        filepath,
-      ],
-      workingDirectory: _buildDir.path);
-  if (result.exitCode != 0) {
-    fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
-  }
-  htmlFile.asFile.writeAsStringSync(result.stdout as String);
-
-  log('${htmlFile.path} vulcanize: ${_printSize(htmlFile)}');
-}
-
-//Run vulcanize with no exclusions
-vulcanizeNoExclusion(String filepath) {
-  var htmlFile = _buildDir.join(filepath);
-  log('${htmlFile.path} original: ${_printSize(htmlFile)}');
-  var result = Process.runSync('vulcanize',
-      ['--strip-comments', '--inline-css', '--inline-scripts', filepath],
-      workingDirectory: _buildDir.path);
-  if (result.exitCode != 0) {
-    fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
-  }
-  htmlFile.asFile.writeAsStringSync(result.stdout as String);
-
-  log('${htmlFile.path} vulcanize: ${_printSize(htmlFile)}');
 }
 
 @Task()

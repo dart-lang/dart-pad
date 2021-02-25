@@ -40,9 +40,6 @@ Contributions made by corporations are covered by a different agreement than the
 
 ## How to run DartPad locally
 
-DartPad requires [npm](https://www.npmjs.com/get-npm) v5 or higher and
-[vulcanize](https://www.npmjs.com/package/vulcanize) to be installed.
-
 * To run the DartPad against the regular serving backend:
 
 ```bash
