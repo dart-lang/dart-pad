@@ -19,7 +19,7 @@ Future<void> main(List<String> args) async {
   return grind(args);
 }
 
-@Task("Make sure SDKs are appropriately initialized")
+@Task('Make sure SDKs are appropriately initialized')
 @Depends(setupFlutterSdk)
 void sdkInit() async {
   await SdkManager.sdk.init();
@@ -329,7 +329,7 @@ Future<void> runWithLogging(String executable,
     RunOptions runOptions,
     String workingDirectory}) async {
   runOptions = mergeWorkingDirectory(workingDirectory, runOptions);
-  log("${executable} ${arguments.join(' ')}");
+  log("$executable ${arguments.join(' ')}");
   runOptions ??= RunOptions();
 
   final proc = await Process.start(executable, arguments,
