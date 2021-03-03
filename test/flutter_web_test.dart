@@ -18,8 +18,7 @@ void defineTests() {
 
     setUp(() async {
       await SdkManager.sdk.init();
-      await SdkManager.flutterSdk.init();
-      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+      flutterWebManager = FlutterWebManager(SdkManager.sdk);
     });
 
     test('inited', () async {
@@ -57,8 +56,7 @@ void defineTests() {
 
     setUpAll(() async {
       await SdkManager.sdk.init();
-      await SdkManager.flutterSdk.init();
-      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+      flutterWebManager = FlutterWebManager(SdkManager.sdk);
     });
 
     test('packagesFilePath', () async {

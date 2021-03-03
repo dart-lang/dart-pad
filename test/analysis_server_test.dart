@@ -209,7 +209,7 @@ void defineTests() {
     FlutterWebManager flutterWebManager;
 
     setUp(() async {
-      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+      flutterWebManager = FlutterWebManager(SdkManager.sdk);
       analysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
       await analysisServer.init();
     });

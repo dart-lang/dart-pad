@@ -183,7 +183,7 @@ class CommonServerImpl {
   Future<void> init() async {
     log.info('Beginning CommonServer init().');
     _analysisServers = AnalysisServersWrapper();
-    _compiler = Compiler(SdkManager.sdk, SdkManager.flutterSdk);
+    _compiler = Compiler(SdkManager.sdk);
 
     await _compiler.warmup();
     await _analysisServers.warmup();
@@ -285,9 +285,9 @@ class CommonServerImpl {
           ..runtimeVersion = vmVersion
           ..servicesVersion = servicesVersion
           ..appEngineVersion = _container.version
-          ..flutterDartVersion = SdkManager.flutterSdk.version
-          ..flutterDartVersionFull = SdkManager.flutterSdk.versionFull
-          ..flutterVersion = SdkManager.flutterSdk.flutterVersion,
+          ..flutterDartVersion = SdkManager.sdk.version
+          ..flutterDartVersionFull = SdkManager.sdk.versionFull
+          ..flutterVersion = SdkManager.sdk.flutterVersion,
       );
 
   Future<proto.CompileResponse> _compileDart2js(

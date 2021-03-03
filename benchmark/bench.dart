@@ -18,7 +18,7 @@ void main(List<String> args) async {
 
   final harness = BenchmarkHarness(asJson: json);
 
-  final compiler = Compiler(SdkManager.sdk, SdkManager.flutterSdk);
+  final compiler = Compiler(SdkManager.sdk);
 
   Logger.root.level = Level.WARNING;
   Logger.root.onRecord.listen((LogRecord record) {

@@ -15,7 +15,6 @@ Future<void> main(List<String> args) async {
   // Ensure the Dart SDK is downloaded (if already up-to-date, no work is
   // performed).
   await SdkManager.sdk.init();
-  await SdkManager.flutterSdk.init();
 
   server.main(args);
 }

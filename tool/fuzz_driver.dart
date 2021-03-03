@@ -133,7 +133,7 @@ Future setupTools(String sdkPath) async {
   await analysisServer.warmup();
 
   print('Warming up compiler');
-  compiler = comp.Compiler(SdkManager.sdk, SdkManager.flutterSdk);
+  compiler = comp.Compiler(SdkManager.sdk);
   await compiler.warmup();
   print('SetupTools done');
 }

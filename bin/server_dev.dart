@@ -12,7 +12,6 @@ import 'package:dart_services/src/sdk_manager.dart';
 
 Future<void> main(List<String> args) async {
   await SdkManager.sdk.init();
-  await SdkManager.flutterSdk.init();
 
   services_dev.main(args);
 }

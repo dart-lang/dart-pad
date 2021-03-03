@@ -22,21 +22,20 @@ Logger _logger = Logger('compiler');
 /// An interface to the dart2js compiler. A compiler object can process one
 /// compile at a time.
 class Compiler {
-  final Sdk _sdk;
-  final FlutterSdk _flutterSdk;
+  final FlutterSdk _sdk;
   final FlutterWebManager _flutterWebManager;
   final String _dartdevcPath;
   final BazelWorkerDriver _ddcDriver;
 
-  Compiler(this._sdk, this._flutterSdk)
-      : _dartdevcPath = path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
+  Compiler(this._sdk)
+      : _dartdevcPath = path.join(_sdk.sdkPath, 'bin', 'dartdevc'),
         _ddcDriver = BazelWorkerDriver(
             () => Process.start(
-                  path.join(_flutterSdk.sdkPath, 'bin', 'dartdevc'),
+                  path.join(_sdk.sdkPath, 'bin', 'dartdevc'),
                   <String>['--persistent_worker'],
                 ),
             maxWorkers: 1),
-        _flutterWebManager = FlutterWebManager(_flutterSdk);
+        _flutterWebManager = FlutterWebManager(_sdk);
 
   bool importsOkForCompile(Set<String> imports) {
     return !_flutterWebManager.hasUnsupportedImport(imports);
@@ -153,7 +152,7 @@ class Compiler {
           '-s',
           _flutterWebManager.summaryFilePath,
           '-s',
-          '${_flutterSdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill'
+          '${_sdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill'
         ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         ...['--module-name', 'dartpad_main'],
@@ -185,7 +184,7 @@ class Compiler {
         final results = DDCCompilationResults(
           compiledJS: processedJs,
           modulesBaseUrl: 'https://storage.googleapis.com/'
-              'compilation_artifacts/${_flutterSdk.versionFull}/',
+              'compilation_artifacts/${_sdk.versionFull}/',
         );
         return results;
       }

@@ -12,24 +12,14 @@ import 'package:yaml/yaml.dart';
 
 /// Generally, this should be a singleton instance (it's a heavy-weight object).
 class SdkManager {
-  static Sdk get sdk => _sdk ?? (_sdk = PlatformSdk());
+  static FlutterSdk get sdk => _sdk ?? (_sdk = FlutterSdk(flutterSdkPath));
 
-  static FlutterSdk get flutterSdk =>
-      _flutterSdk ?? (_flutterSdk = FlutterSdk(flutterSdkPath));
-
-  static void setSdk(Sdk value) {
+  static void setSdk(FlutterSdk sdk) {
     _sdk = sdk;
   }
 
-  static void setFlutterSdk(FlutterSdk value) {
-    _flutterSdk = value;
-  }
-
-  // The installed Dart SDK.
-  static Sdk _sdk;
-
   // The installed Flutter SDK.
-  static FlutterSdk _flutterSdk;
+  static FlutterSdk _sdk;
 }
 
 abstract class Sdk {
@@ -49,19 +39,6 @@ abstract class Sdk {
 
   /// Get the path to the sdk.
   String get sdkPath;
-}
-
-/// Represents a Dart SDK present on the server.
-class PlatformSdk extends Sdk {
-  @override
-  Future<void> init() => Future.value();
-
-  @override
-  String get versionFull =>
-      File(path.join(sdkPath, 'version')).readAsStringSync().trim();
-
-  @override
-  String get sdkPath => path.dirname(path.dirname(Platform.resolvedExecutable));
 }
 
 String get flutterSdkPath => path.join(Directory.current.path, 'flutter-sdk');

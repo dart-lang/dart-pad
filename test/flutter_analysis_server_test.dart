@@ -208,8 +208,8 @@ void defineTests() {
     FlutterWebManager flutterWebManager;
 
     setUp(() async {
-      await SdkManager.flutterSdk.init();
-      flutterWebManager = FlutterWebManager(SdkManager.flutterSdk);
+      await SdkManager.sdk.init();
+      flutterWebManager = FlutterWebManager(SdkManager.sdk);
       analysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
       await analysisServer.init();
       await analysisServer.warmup();
@@ -234,7 +234,7 @@ void defineTests() {
     AnalysisServersWrapper analysisServersWrapper;
 
     setUp(() async {
-      await SdkManager.flutterSdk.init();
+      await SdkManager.sdk.init();
 
       analysisServersWrapper = AnalysisServersWrapper();
       await analysisServersWrapper.warmup();
@@ -263,7 +263,7 @@ void defineTests() {
     _MockCache cache;
 
     setUp(() async {
-      await SdkManager.flutterSdk.init();
+      await SdkManager.sdk.init();
       container = _MockContainer();
       cache = _MockCache();
       commonServerImpl = CommonServerImpl(container, cache);

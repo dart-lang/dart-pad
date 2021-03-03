@@ -17,9 +17,8 @@ void defineTests() {
   group('compiler', () {
     setUpAll(() async {
       await SdkManager.sdk.init();
-      await SdkManager.flutterSdk.init();
 
-      compiler = Compiler(SdkManager.sdk, SdkManager.flutterSdk);
+      compiler = Compiler(SdkManager.sdk);
       await compiler.warmup();
     });
 
