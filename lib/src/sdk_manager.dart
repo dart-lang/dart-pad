@@ -78,7 +78,7 @@ class DownloadingSdkManager {
   /// Read and return the Flutter sdk configuration file info
   /// (`flutter-sdk-version.yaml`).
   static Map<String, Object> getSdkConfigInfo() {
-    final File file =
+    final file =
         File(path.join(Directory.current.path, 'flutter-sdk-version.yaml'));
     return (loadYaml(file.readAsStringSync()) as Map).cast<String, Object>();
   }
@@ -88,7 +88,7 @@ class DownloadingSdkManager {
   ///
   /// Note that this is an expensive operation.
   Future<FlutterSdk> createFromConfigFile() async {
-    final Map<String, Object> sdkConfig = getSdkConfigInfo();
+    final sdkConfig = getSdkConfigInfo();
 
     // flutter_sdk:
     //   channel: beta
@@ -97,8 +97,7 @@ class DownloadingSdkManager {
       throw "No key 'flutter_sdk' found in sdk config file";
     }
 
-    final Map<String, Object> config =
-        (sdkConfig['flutter_sdk'] as Map).cast<String, Object>();
+    final config = (sdkConfig['flutter_sdk'] as Map).cast<String, Object>();
 
     if (config.containsKey('channel') && config.containsKey('version')) {
       throw "config file contains both 'channel' and 'version' config settings";
@@ -121,7 +120,7 @@ class DownloadingSdkManager {
   Future<FlutterSdk> createUsingFlutterChannel({
     @required String channel,
   }) async {
-    final _DownloadedFlutterSdk sdk = await _cloneSdkIfNecessary();
+    final sdk = await _cloneSdkIfNecessary();
 
     // git checkout master
     await sdk.checkout('master');
@@ -146,7 +145,7 @@ class DownloadingSdkManager {
   Future<FlutterSdk> createUsingFlutterVersion({
     @required String version,
   }) async {
-    final _DownloadedFlutterSdk sdk = await _cloneSdkIfNecessary();
+    final sdk = await _cloneSdkIfNecessary();
 
     // git checkout master
     await sdk.checkout('master');
@@ -159,7 +158,7 @@ class DownloadingSdkManager {
   }
 
   Future<_DownloadedFlutterSdk> _cloneSdkIfNecessary() async {
-    final _DownloadedFlutterSdk sdk = _DownloadedFlutterSdk(flutterSdkPath);
+    final sdk = _DownloadedFlutterSdk(flutterSdkPath);
 
     if (!Directory(sdk.flutterSdkPath).existsSync()) {
       // This takes perhaps ~20 seconds.

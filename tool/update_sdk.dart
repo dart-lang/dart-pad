@@ -11,8 +11,8 @@ void main(List<String> args) async {
   final info = DownloadingSdkManager.getSdkConfigInfo();
   print('configuration: $info\n');
 
-  final DownloadingSdkManager sdkManager = DownloadingSdkManager();
-  final FlutterSdk sdk = await sdkManager.createFromConfigFile();
+  final sdkManager = DownloadingSdkManager();
+  final sdk = await sdkManager.createFromConfigFile();
 
   print('\nSDK setup complete (${sdk.flutterSdkPath}).');
 }
