@@ -6,10 +6,12 @@ library services.bench;
 
 import 'dart:async';
 
+import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/bench.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
+import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:dart_services/src/sdk_manager.dart';
 import 'package:logging/logging.dart';
 
@@ -61,13 +63,13 @@ class AnalyzerBenchmark extends Benchmark {
   }
 
   @override
-  Future init() => analysisServer.init();
+  Future<AnalysisServer> init() => analysisServer.init();
 
   @override
-  Future perform() => analysisServer.analyze(source);
+  Future<proto.AnalysisResults> perform() => analysisServer.analyze(source);
 
   @override
-  Future tearDown() => analysisServer.shutdown();
+  Future<dynamic> tearDown() => analysisServer.shutdown();
 }
 
 class Dart2jsBenchmark extends Benchmark {
@@ -78,7 +80,7 @@ class Dart2jsBenchmark extends Benchmark {
       : super('dart2js.$name');
 
   @override
-  Future perform() {
+  Future<void> perform() {
     return compiler.compile(source).then((CompilationResults result) {
       if (!result.success) throw result;
     });
@@ -93,7 +95,7 @@ class DevCompilerBenchmark extends Benchmark {
       : super('dartdevc.$name');
 
   @override
-  Future perform() {
+  Future<void> perform() {
     return compiler.compileDDC(source).then((DDCCompilationResults result) {
       if (!result.success) throw result;
     });
@@ -109,13 +111,14 @@ class AnalysisServerBenchmark extends Benchmark {
         super('completion.$name');
 
   @override
-  Future init() => analysisServer.init();
+  Future<AnalysisServer> init() => analysisServer.init();
 
   @override
-  Future perform() => analysisServer.complete(source, 30);
+  Future<proto.CompleteResponse> perform() =>
+      analysisServer.complete(source, 30);
 
   @override
-  Future tearDown() => analysisServer.shutdown();
+  Future<dynamic> tearDown() => analysisServer.shutdown();
 }
 
 final String _sunflower = '''

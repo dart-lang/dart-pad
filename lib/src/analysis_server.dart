@@ -56,7 +56,7 @@ class DartAnalysisServerWrapper extends AnalysisServerWrapper {
   }
 
   @override
-  Future shutdown() {
+  Future<dynamic> shutdown() {
     _logger.info('DartAnalysisServerWrapper shutdown');
     return _tempProject
         .delete(recursive: true)
@@ -86,7 +86,7 @@ class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
   }
 
   @override
-  Future shutdown() {
+  Future<dynamic> shutdown() {
     _logger.info('FlutterAnalysisServerWrapper shutdown');
     return super.shutdown();
   }
@@ -149,8 +149,9 @@ abstract class AnalysisServerWrapper {
         await _sendRemoveOverlays();
 
         return analysisServer;
-      }).catchError((err, st) {
+      }).catchError((Object err, StackTrace st) {
         _logger.severe('Error starting analysis server ($sdkPath): $err.\n$st');
+        return null;
       });
     }
 

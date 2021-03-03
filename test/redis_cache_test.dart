@@ -91,7 +91,7 @@ void defineTests() {
         logMessages = [];
         await redisCache.set('expiringkey', 'expiringValue',
             expiration: Duration(milliseconds: 1));
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future<void>.delayed(Duration(milliseconds: 100));
         await expectLater(await redisCache.get('expiringkey'), isNull);
         expect(logMessages, isEmpty);
       });
@@ -146,7 +146,7 @@ void defineTests() {
         try {
           // Wait for a retry message.
           while (logMessages.length < 2) {
-            await (Future.delayed(Duration(milliseconds: 50)));
+            await (Future<void>.delayed(Duration(milliseconds: 50)));
           }
           expect(
               logMessages.join('\n'),

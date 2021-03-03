@@ -100,7 +100,7 @@ void defineTests() {
       // TODO(jcollins-g): determine which piece of initialization isn't
       // happening and deal with that in warmup/init.
       {
-        var decodedJson = {};
+        var decodedJson = <dynamic, dynamic>{};
         final jsonData = proto.SourceRequest()..source = sampleCodeError;
         while (decodedJson.isEmpty) {
           final response =
@@ -409,10 +409,11 @@ class MockCache implements ServerCache {
   Future<String> get(String key) => Future.value(null);
 
   @override
-  Future set(String key, String value, {Duration expiration}) => Future.value();
+  Future<void> set(String key, String value, {Duration expiration}) =>
+      Future.value();
 
   @override
-  Future remove(String key) => Future.value();
+  Future<void> remove(String key) => Future.value();
 
   @override
   Future<void> shutdown() => Future.value();

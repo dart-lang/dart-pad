@@ -126,7 +126,7 @@ class GaeServer {
     await request.response.close();
   }
 
-  Future _processReadinessRequest(io.HttpRequest request) async {
+  Future<void> _processReadinessRequest(io.HttpRequest request) async {
     _logger.info('Processing readiness check');
     if (proxying) {
       request.response.statusCode = io.HttpStatus.ok;
@@ -141,7 +141,7 @@ class GaeServer {
     await request.response.close();
   }
 
-  Future _processLivenessRequest(io.HttpRequest request) async {
+  Future<void> _processLivenessRequest(io.HttpRequest request) async {
     _logger.info('Processing liveness check');
     if (proxying) {
       request.response.statusCode = io.HttpStatus.ok;
@@ -179,7 +179,7 @@ class GaeServer {
     await request.response.close();
   }
 
-  Future _processDefaultRequest(io.HttpRequest request) async {
+  Future<void> _processDefaultRequest(io.HttpRequest request) async {
     request.response.statusCode = io.HttpStatus.notFound;
     await request.response.close();
   }

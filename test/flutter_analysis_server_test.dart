@@ -298,10 +298,11 @@ class _MockCache implements ServerCache {
   Future<String> get(String key) => Future.value(null);
 
   @override
-  Future set(String key, String value, {Duration expiration}) => Future.value();
+  Future<void> set(String key, String value, {Duration expiration}) =>
+      Future.value();
 
   @override
-  Future remove(String key) => Future.value();
+  Future<void> remove(String key) => Future.value();
 
   @override
   Future<void> shutdown() => Future.value();

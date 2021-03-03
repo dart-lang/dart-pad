@@ -122,7 +122,7 @@ class RedisCache implements ServerCache {
           });
         })
         .timeout(const Duration(milliseconds: _connectionRetryMaxMs))
-        .catchError((_) {
+        .catchError((Object _) {
           log.severe(
               '$_logPrefix: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...');
           Future<void>.delayed(Duration(milliseconds: nextRetryMs)).then((_) {

@@ -2,6 +2,8 @@
 # include: package:pedantic/analysis_options.1.9.0.yaml
 
 analyzer:
+  language:
+    strict-raw-types: true
   strong-mode:
     implicit-casts: false
   exclude:

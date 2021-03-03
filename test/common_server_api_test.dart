@@ -285,7 +285,7 @@ void defineTests() {
       // TODO(jcollins-g): determine which piece of initialization isn't
       // happening and deal with that in warmup/init.
       {
-        var decodedJson = {};
+        var decodedJson = <dynamic, dynamic>{};
         final jsonData = {'source': sampleCodeError};
         while (decodedJson.isEmpty) {
           final response =
@@ -318,7 +318,7 @@ void defineTests() {
             await _sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 200);
         final data = await response.transform(utf8.decoder).join();
-        expect(json.decode(data), {});
+        expect(json.decode(data), <dynamic, dynamic>{});
       }
     });
 
@@ -389,7 +389,7 @@ void defineTests() {
 
     test('analyze negative-test noSource', () async {
       for (final version in versions) {
-        final jsonData = {};
+        final jsonData = <dynamic, dynamic>{};
         final response =
             await _sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 400);
@@ -421,7 +421,7 @@ void defineTests() {
 
     test('compile negative-test noSource', () async {
       for (final version in versions) {
-        final jsonData = {};
+        final jsonData = <dynamic, dynamic>{};
         final response =
             await _sendPostRequest('dartservices/$version/compile', jsonData);
         expect(response.statusCode, 400);
@@ -452,8 +452,8 @@ void defineTests() {
 
     test('complete no data', () async {
       for (final version in versions) {
-        final response =
-            await _sendPostRequest('dartservices/$version/complete', {});
+        final response = await _sendPostRequest(
+            'dartservices/$version/complete', <dynamic, dynamic>{});
         expect(response.statusCode, 400);
       }
     });
@@ -500,7 +500,7 @@ void defineTests() {
         expect(response.statusCode, 200);
         final data = json.decode(await response.transform(utf8.decoder).join());
         expect(data, {
-          'info': {},
+          'info': <dynamic, dynamic>{},
         });
       }
     });
@@ -515,7 +515,7 @@ void defineTests() {
             await _sendPostRequest('dartservices/$version/document', jsonData);
         expect(response.statusCode, 200);
         final data = json.decode(await response.transform(utf8.decoder).join());
-        expect(data, {'info': {}});
+        expect(data, {'info': <dynamic, dynamic>{}});
       }
     });
 
@@ -662,10 +662,11 @@ class MockCache implements ServerCache {
   Future<String> get(String key) => Future.value(null);
 
   @override
-  Future set(String key, String value, {Duration expiration}) => Future.value();
+  Future<void> set(String key, String value, {Duration expiration}) =>
+      Future.value();
 
   @override
-  Future remove(String key) => Future.value();
+  Future<void> remove(String key) => Future.value();
 
   @override
   Future<void> shutdown() => Future.value();

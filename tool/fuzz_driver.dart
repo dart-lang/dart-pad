@@ -42,7 +42,7 @@ bool dumpServerComms = false;
 OperationType lastExecuted;
 int lastOffset;
 
-Future main(List<String> args) async {
+Future<void> main(List<String> args) async {
   if (args.isEmpty) {
     print('''
 Usage: slow_test path_to_test_collection
@@ -115,7 +115,7 @@ Usage: slow_test path_to_test_collection
 }
 
 /// Init the tools, and warm them up
-Future setupTools(String sdkPath) async {
+Future<void> setupTools(String sdkPath) async {
   print('Executing setupTools');
   await analysisServer?.shutdown();
 
@@ -138,7 +138,9 @@ Future setupTools(String sdkPath) async {
   print('SetupTools done');
 }
 
-Future testPath(String path, analysis_server.AnalysisServerWrapper wrapper,
+Future<void> testPath(
+    String path,
+    analysis_server.AnalysisServerWrapper wrapper,
     comp.Compiler compiler) async {
   final f = io.File(path);
   var src = f.readAsStringSync();
@@ -393,10 +395,11 @@ class MockCache implements ServerCache {
   Future<String> get(String key) => Future.value(null);
 
   @override
-  Future set(String key, String value, {Duration expiration}) => Future.value();
+  Future<void> set(String key, String value, {Duration expiration}) =>
+      Future.value();
 
   @override
-  Future remove(String key) => Future.value();
+  Future<void> remove(String key) => Future.value();
 
   @override
   Future<void> shutdown() => Future.value();

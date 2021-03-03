@@ -32,7 +32,7 @@ void analyze() async {
 
 @Task()
 @Depends(buildStorageArtifacts)
-Future test() => TestRunner().testAsync();
+Future<dynamic> test() => TestRunner().testAsync();
 
 @DefaultTask()
 @Depends(analyze, test)
@@ -91,7 +91,7 @@ void validateStorageArtifacts() async {
   }
 }
 
-Future _validateExists(String url) async {
+Future<void> _validateExists(String url) async {
   log('checking $url...');
 
   final response = await http.head(url);
@@ -161,7 +161,7 @@ void buildStorageArtifacts() async {
   }
 }
 
-Future _buildStorageArtifacts(Directory dir) async {
+Future<void> _buildStorageArtifacts(Directory dir) async {
   final pubspec = createPubspec(includeFlutterWeb: true);
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 

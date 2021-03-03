@@ -137,7 +137,7 @@ class CommonServerImplProxy implements CommonServerImpl {
   bool get isRestarting => false;
 
   @override
-  Future shutdown() => null;
+  Future<dynamic> shutdown() => null;
 
   @override
   AnalysisServersWrapper get _analysisServers => null;
