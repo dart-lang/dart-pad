@@ -2,7 +2,7 @@ name: dart_services
 publish_to: none
 
 environment:
-  # Keep this aligned with .github/workflows/dart.yml and the FROM line of Dockerfile
+  # Lock to 2.10.x as this code base is not yet migrated to null safe.
   sdk: ^2.10.4
 
 dependencies:

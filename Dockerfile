@@ -1,5 +1,4 @@
-# Keep aligned with min SDK in pubspec.yaml and .github/workflows/dart.yml.
-FROM google/dart:2.10.4
+FROM google/dart:2.12.0
 
 # We install unzip and remove the apt-index again to keep the
 # docker image diff small.
