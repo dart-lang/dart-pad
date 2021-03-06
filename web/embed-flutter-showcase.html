@@ -55,7 +55,7 @@ BSD-style license that can be found in the LICENSE file. -->
     </div>
 </div>
 <div id="navbar">
-    <nav>
+    <nav hidden>
         <div class="mdc-tab-bar" role="tablist">
             <div class="mdc-tab-scroller">
                 <div class="mdc-tab-scroller__scroll-area">
@@ -93,7 +93,7 @@ BSD-style license that can be found in the LICENSE file. -->
             </div>
         </div>
     </nav>
-    <div class="nav-buttons">
+    <div class="nav-buttons" style="margin-top: 8px; margin-bottom: 8px">
         <button hidden id="install-button" class="mdc-button">Install SDK</button>
         <button hidden id="show-hint" class="mdc-button">Hint</button>
         <button hidden id="format-code" class="mdc-button">Format</button>
@@ -102,7 +102,7 @@ BSD-style license that can be found in the LICENSE file. -->
             <i class="material-icons mdc-button__icon">play_arrow</i>
             Run
         </button>
-        <div class="position-relative text-right pr-2">
+        <div hidden class="position-relative text-right pr-2">
             <button hidden id="menu-button" class="mdc-icon-button material-icons">more_vert</button>
             <div id="main-menu" class="mdc-menu mdc-menu-surface">
                 <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
