@@ -379,20 +379,11 @@ dependencies:
 }
 
 String createDartAnalysisOptions() {
-  // TODO(gspencergoog): Update this to Dart "recommended" list once that is finalized.
+  // TODO(gspencergoog): Update this to Dart "recommended" list once that is
+  // finalized.
   return '''
-analyzer:
-  errors:
-    # Increase the severity of some hints.
-    - unused_import: warning
-
 linter:
   rules:
-    # Ordering lints.
-    - directives_ordering
-    - sort_pub_dependencies
-
-    # All other lints.
     - always_declare_return_types
     - avoid_empty_else
     - avoid_relative_lib_imports
