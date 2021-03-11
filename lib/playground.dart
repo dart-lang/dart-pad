@@ -1013,14 +1013,16 @@ class Playground implements GistContainer, GistController {
   }
 
   void _handleNullSafetySwitched(bool enabled) {
-    var api = deps[DartservicesApi] as DartservicesApi;
+    final api = deps[DartservicesApi] as DartservicesApi;
 
     if (enabled) {
       api.rootUrl = nullSafetyServerUrl;
       window.localStorage['null_safety'] = 'true';
+      nullSafetySwitch.root.title = 'Null safety is currently enabled';
     } else {
       api.rootUrl = serverUrl;
       window.localStorage['null_safety'] = 'false';
+      nullSafetySwitch.root.title = 'Null safety is currently disabled';
     }
 
     updateVersion();
