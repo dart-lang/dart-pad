@@ -733,6 +733,7 @@ class Embed {
 
   void _resetCode() {
     setContextSources(lastInjectedSourceCode);
+    Timer.run(_performAnalysis);
   }
 
   void _handleCopyCode() {
