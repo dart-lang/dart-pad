@@ -554,11 +554,6 @@ a {
     }
   }
 
-  .mdc-switch {
-    @include mdc-switch-toggled-on-color($button-color);
-    @include mdc-switch-toggled-off-color($secondary-color);
-  }
-
   label[for=new-pad-html-switch] {
     margin-left: 8px;
   }
@@ -598,4 +593,9 @@ a {
 // Misc
 .hide {
   opacity: 0;
+}
+
+.mdc-switch {
+  @include mdc-switch-toggled-on-color($button-color);
+  @include mdc-switch-toggled-off-color($secondary-color);
 }
