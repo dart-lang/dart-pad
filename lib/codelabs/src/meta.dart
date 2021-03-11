@@ -7,7 +7,7 @@ part 'meta.g.dart';
   anyMap: true,
   checked: true,
   disallowUnrecognizedKeys: true,
-    fieldRename: FieldRename.snake,
+  fieldRename: FieldRename.snake,
 )
 class Meta {
   @JsonKey(required: true)
@@ -19,6 +19,7 @@ class Meta {
   factory Meta.fromJson(Map json) => _$MetaFromJson(json);
 
   Map<String, dynamic> toJson() => _$MetaToJson(this);
+
   String toString() => '<Meta> name: $name steps: $steps';
 }
 
@@ -32,11 +33,16 @@ class StepConfiguration {
   final String name;
   final bool hasSolution;
 
-  StepConfiguration({@required this.name, this.hasSolution = false});
+  StepConfiguration({
+    @required this.name,
+    this.hasSolution = false,
+  });
 
   factory StepConfiguration.fromJson(Map json) =>
       _$StepConfigurationFromJson(json);
 
   Map<String, dynamic> toJson() => _$StepConfigurationToJson(this);
-  String toString() => '<StepConfiguration> name: $name has_solution: $hasSolution';
+
+  String toString() =>
+      '<StepConfiguration> name: $name has_solution: $hasSolution';
 }
