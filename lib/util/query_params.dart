@@ -104,6 +104,10 @@ class _QueryParams {
     return _queryParam('gh_ref');
   }
 
+  String /*?*/ get webServer {
+    return _queryParam('webserver');
+  }
+
   int /*?*/ get initialSplit {
     final split = _queryParam('split');
 

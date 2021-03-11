@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<!-- Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+     for details. All rights reserved. Use of this source code is governed by a
+     BSD-style license that can be found in the LICENSE file. -->
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="dart-32.png">
+    <link rel="shortcut icon" type="image/png" sizes="64x64" href="dart-64.png">
+    <link rel="shortcut icon" type="image/png" sizes="192x192" href="dart-192.png">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>DartPad Codelabs</title>
+
+    <!-- styles -->
+    <link href="styles/codelabs.css" rel="stylesheet" media="screen">
+
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono&display=swap" rel="stylesheet">
+
+    <!-- codemirror -->
+    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
+    <script src="packages/codemirror/codemirror.js" defer></script>
+
+    <!-- codemirror add-ons -->
+    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
+    <script src="packages/codemirror/addon/scroll/simplescrollbars.js" defer></script>
+
+    <!-- codemirror themes -->
+    <link href="styles/cm-scrollbars.css" rel="stylesheet" media="screen">
+    <link href="styles/cm-dartpad-dark.css" rel="stylesheet" media="screen">
+
+    <!-- third party javascript -->
+    <script src="packages/split/split.min.js" defer></script>
+
+    <!-- material design -->
+    <script src="packages/mdc_web/material-components-web.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- check that local storage is enabled -->
+    <script src="scripts/check_localstorage.js"></script>
+
+    <!-- dart -->
+    <script defer src="scripts/codelabs.dart.js"></script>
+
+    <!-- javascript -->
+    <script src="scripts/ga.js" defer></script>
+</head>
+
+<body>
+
+<header class="mdc-elevation--z4">
+    <div class="header-title">
+        <img src="dart-192.png" alt="DartPad Logo" class="logo"/>
+        <span>DartPad</span>
+    </div>
+</header>
+
+<section class="main-section">
+    <div class="panels">
+        <div id="steps-panel">
+
+        </div>
+        <div id="editor-panel">
+
+        </div>
+        <div id="output-panel">
+
+        </div>
+    </div>
+    <div class="mdc-snackbar">
+        <div class="mdc-snackbar__surface">
+            <div class="mdc-snackbar__label"
+                 role="status"
+                 aria-live="polite">
+            </div>
+        </div>
+    </div>
+    <div id="flash-container">
+        <div id="test-result-box" class="flash flash-warn" hidden>
+            <div title="Close" class="close-flash-container">
+                <button class="close-flash-button mdc-icon-button material-icons">close</button>
+            </div>
+            <div class="message-container custom-scrollbar"></div>
+        </div>
+        <div id="hint-box" class="flash" hidden>
+            <<div title="Close" class="close-flash-container">
+            <button class="close-flash-button mdc-icon-button material-icons">close</button>
+        </div>
+            <div class="message-container custom-scrollbar"></div>
+        </div>
+        <div id="issues" hidden></div>
+    </div>
+</section>
+
+<footer>
+    <div id="keyboard-button" class="keyboard footer-item"></div>
+    <div class="footer-item">
+        <a href="https://dart.dev/tools/dartpad/privacy"
+           target="repo" class="footer-item">Privacy notice</a>
+        <a href="https://github.com/dart-lang/dart-pad/issues"
+           target="repo">Send feedback</a>
+    </div>
+    <div class="footer-item">
+        <div id="null-safety-switch" class="mdc-switch">
+            <div class="mdc-switch__track"></div>
+            <div class="mdc-switch__thumb-underlay">
+                <div class="mdc-switch__thumb"></div>
+                <input type="checkbox" id="basic-switch" class="mdc-switch__native-control" role="switch" aria-checked="false">
+            </div>
+        </div>
+        <label for="basic-switch">Null Safety</label>
+    </div>
+    <div class="flex"></div>
+    <div id="issues-message" class="info-message"></div>
+    <a id="issues-toggle" hidden></a>
+    <div id="dartpad-version"></div>
+</footer>
+
+<div class="mdc-dialog"
+     role="alertdialog"
+     aria-modal="true"
+     aria-labelledby="my-dialog-title"
+     aria-describedby="my-dialog-content">
+    <div class="mdc-dialog__container">
+        <div class="mdc-dialog__surface">
+            <h2 class="mdc-dialog__title" id="my-dialog-title"></h2>
+            <div class="mdc-dialog__content" id="my-dialog-content"></div>
+            <footer class="mdc-dialog__actions">
+                <button type="button" id="dialog-left-button"
+                        class="mdc-button mdc-dialog__button">
+                    <span class="mdc-button__label">No</span>
+                </button>
+                <button type="button" id="dialog-right-button"
+                        class="mdc-button mdc-dialog__button">
+                    <span class="mdc-button__label">Yes</span>
+                </button>
+            </footer>
+        </div>
+    </div>
+    <div class="mdc-dialog__scrim"></div>
+</div>
+</body>
+</html>
