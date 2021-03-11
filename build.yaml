@@ -6,3 +6,5 @@ targets:
           dart2js_args:
           - --minify
           - --fast-startup
+      json_serializable:
+        options:

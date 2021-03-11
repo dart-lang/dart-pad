@@ -1,6 +1,6 @@
 name: Example codelab
 steps:
-  - step_01
+  - name: Step 1
     has_solution: true
-  - step_02
+  - name: Step 2
     has_solution: false

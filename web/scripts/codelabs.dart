@@ -3,7 +3,8 @@ import 'package:dart_pad/util/query_params.dart';
 
 Future main() async {
   var fetcher = await getFetcher();
-  print(fetcher.getCodelab());
+  var codelab = await fetcher.getCodelab();
+  print('got codelab with ${codelab.steps.length} codelabs');
 }
 
 Future<CodelabFetcher> getFetcher() async {
