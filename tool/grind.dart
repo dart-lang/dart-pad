@@ -79,7 +79,7 @@ serveLocalAppEngine() async {
 const String backendVariable = 'DARTPAD_BACKEND';
 
 @Task(
-    'Serve locally on port 8002 and use backend from $backendVariable environment variable')
+    'Serve locally on port 8082 and use backend from $backendVariable environment variable')
 @Depends(build)
 serveCustomBackend() async {
   if (!Platform.environment.containsKey(backendVariable)) {
@@ -88,7 +88,7 @@ serveCustomBackend() async {
   }
 
   final serverUrl =
-      Platform.environment[backendVariable] ?? 'http://localhost:8002';
+      Platform.environment[backendVariable] ?? 'http://localhost:8082';
 
   // In all files *.dart.js in build/scripts/, replace
   // 'https://v1.api.dartpad.dev' with serverUrl.
