@@ -91,7 +91,7 @@ serveCustomBackend() async {
       Platform.environment[backendVariable] ?? 'http://localhost:8002';
 
   // In all files *.dart.js in build/scripts/, replace
-  // 'https://dart-services.appspot.com' with serverUrl.
+  // 'https://v1.api.dartpad.dev' with serverUrl.
   final files = <FileSystemEntity>[];
   files.addAll(_buildDir.join('scripts').asDirectory.listSync());
   for (var entity in files) {
@@ -104,7 +104,7 @@ serveCustomBackend() async {
 
     var fileContents = file.readAsStringSync();
     fileContents =
-        fileContents.replaceAll('https://dart-services.appspot.com', serverUrl);
+        fileContents.replaceAll('https://v1.api.dartpad.dev', serverUrl);
     file.writeAsStringSync(fileContents);
   }
 
