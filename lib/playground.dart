@@ -503,7 +503,8 @@ class Playground implements GistContainer, GistController {
     editor = (editorFactory as CodeMirrorFactory)
         .createFromElement(_editorHost, options: codeMirrorOptions)
           ..theme = 'darkpad'
-          ..mode = 'dart';
+          ..mode = 'dart'
+          ..showLineNumbers = true;
 
     // set up key bindings
     keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
