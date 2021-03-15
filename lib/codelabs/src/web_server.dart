@@ -15,20 +15,38 @@ class WebServerCodelabFetcher implements CodelabFetcher {
   @override
   Future<Codelab> getCodelab() async {
     var metadata = await _fetchMeta();
-    print('metadata: $metadata');
     var steps = await _fetchSteps(metadata);
 
-    return Codelab('Example codelab', []);
+    return Codelab('Example codelab', metadata.type, steps);
   }
 
   Future<Meta> _fetchMeta() async {
-    var metadataUri =
-        uri.replace(pathSegments: [...uri.pathSegments, 'meta.yaml']);
-    var response = await http.get(metadataUri);
-    return checkedYamlDecode(response.body, (Map m) => Meta.fromJson(m));
+    var contents = await _loadFileContents(['meta.yaml']);
+    return checkedYamlDecode(contents, (Map m) => Meta.fromJson(m));
   }
 
   Future<List<Step>> _fetchSteps(Meta metadata) async {
-    return [];
+    var steps = <Step>[];
+    for (var stepConfig in metadata.steps) {
+      steps.add(await _fetchStep(stepConfig));
+    }
+    return steps;
+  }
+
+  Future<Step> _fetchStep(StepConfiguration config) async {
+    var directory = config.directory;
+    var instructions = await _loadFileContents([directory, 'instructions.md']);
+    var snippet = await _loadFileContents([directory, 'snippet.dart']);
+    var solution = config.hasSolution
+        ? await _loadFileContents([directory, 'solution.dart'])
+        : null;
+    return Step(config.name, instructions, snippet, solution: solution);
+  }
+
+  Future<String> _loadFileContents(List<String> relativePath) async {
+    var fileUri =
+        uri.replace(pathSegments: [...uri.pathSegments, ...relativePath]);
+    var response = await http.get(fileUri);
+    return response.body;
   }
 }
