@@ -456,6 +456,8 @@ class Playground implements GistContainer, GistController {
   void _initLayout() {
     editorPanelHeader = DElement(_editorPanelHeader);
     editorPanelFooter = DElement(_editorPanelFooter);
+    var editor = querySelector('#editor-host');
+    editor.setAttribute('style', 'margin:0;');
     _changeLayout(Layout.dart);
   }
 
