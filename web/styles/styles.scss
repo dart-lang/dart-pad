@@ -148,7 +148,7 @@ a {
 #editor-host {
   @include layout-vertical;
   @include layout-flex;
-  margin: 8px 0 0 16px;
+  margin: 8px 0 0 0;
   padding: 0 8px;
 
   .CodeMirror {
