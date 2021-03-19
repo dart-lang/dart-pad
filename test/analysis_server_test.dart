@@ -6,7 +6,6 @@ library services.analyzer_server_test;
 
 import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/common.dart';
-import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:test/test.dart';
 
@@ -206,7 +205,7 @@ void defineTests() {
 
   group('Flutter cached SDK analysis_server', () {
     setUp(() async {
-      analysisServer = FlutterAnalysisServerWrapper(FlutterWebManager());
+      analysisServer = FlutterAnalysisServerWrapper();
       await analysisServer.init();
     });
 

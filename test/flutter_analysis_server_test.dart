@@ -9,7 +9,6 @@ import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/analysis_servers.dart';
 import 'package:dart_services/src/common_server_impl.dart';
 import 'package:dart_services/src/common_server_api.dart';
-import 'package:dart_services/src/flutter_web.dart';
 import 'package:dart_services/src/protos/dart_services.pbserver.dart';
 import 'package:dart_services/src/server_cache.dart';
 import 'package:dart_services/src/sdk_manager.dart';
@@ -208,7 +207,7 @@ void defineTests() {
 
     setUp(() async {
       await SdkManager.sdk.init();
-      analysisServer = FlutterAnalysisServerWrapper(FlutterWebManager());
+      analysisServer = FlutterAnalysisServerWrapper();
       await analysisServer.init();
       await analysisServer.warmup();
     });

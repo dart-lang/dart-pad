@@ -16,3 +16,7 @@ ports:
   - port: 9504
     onOpen: "ignore"
 
+
+vscode:
+  extensions:
+    - dart-code.dart-code@3.20.1:gKwMOzlkrgxrb7aPrMdQ8w==

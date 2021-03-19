@@ -8,10 +8,10 @@ import 'package:path/path.dart' as path;
 
 /// Support for handling Flutter web snippets.
 class FlutterWebManager {
-  final Directory flutterTemplateProject = Directory(path.join(
+  static final Directory flutterTemplateProject = Directory(path.join(
       Directory.current.path, 'project_templates', 'flutter_project'));
 
-  final Directory dartTemplateProject = Directory(
+  static final Directory dartTemplateProject = Directory(
       path.join(Directory.current.path, 'project_templates', 'dart_project'));
 
   FlutterWebManager();

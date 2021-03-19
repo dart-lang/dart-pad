@@ -63,7 +63,7 @@ class Compiler {
     _logger.info('Temp directory created: ${temp.path}');
 
     try {
-      await copyPath(_flutterWebManager.dartTemplateProject.path, temp.path);
+      await copyPath(FlutterWebManager.dartTemplateProject.path, temp.path);
       await Directory(path.join(temp.path, 'lib')).create(recursive: true);
 
       final arguments = <String>[
@@ -131,9 +131,9 @@ class Compiler {
       final usingFlutter = _flutterWebManager.usesFlutterWeb(imports);
       if (usingFlutter) {
         await copyPath(
-            _flutterWebManager.flutterTemplateProject.path, temp.path);
+            FlutterWebManager.flutterTemplateProject.path, temp.path);
       } else {
-        await copyPath(_flutterWebManager.dartTemplateProject.path, temp.path);
+        await copyPath(FlutterWebManager.dartTemplateProject.path, temp.path);
       }
 
       await Directory(path.join(temp.path, 'lib')).create(recursive: true);

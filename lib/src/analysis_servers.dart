@@ -46,7 +46,7 @@ class AnalysisServersWrapper {
     _logger.info('Beginning AnalysisServersWrapper init().');
     _dartAnalysisServer = DartAnalysisServerWrapper();
     _flutterWebManager = FlutterWebManager();
-    _flutterAnalysisServer = FlutterAnalysisServerWrapper(_flutterWebManager);
+    _flutterAnalysisServer = FlutterAnalysisServerWrapper();
 
     await _dartAnalysisServer.init();
     _logger.info('Dart analysis server initialized.');
