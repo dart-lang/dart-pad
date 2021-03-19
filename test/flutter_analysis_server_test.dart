@@ -205,12 +205,10 @@ void main() => defineTests();
 void defineTests() {
   group('Flutter SDK analysis_server', () {
     AnalysisServerWrapper analysisServer;
-    FlutterWebManager flutterWebManager;
 
     setUp(() async {
       await SdkManager.sdk.init();
-      flutterWebManager = FlutterWebManager(SdkManager.sdk);
-      analysisServer = FlutterAnalysisServerWrapper(flutterWebManager);
+      analysisServer = FlutterAnalysisServerWrapper(FlutterWebManager());
       await analysisServer.init();
       await analysisServer.warmup();
     });

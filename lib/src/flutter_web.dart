@@ -6,19 +6,15 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path;
 
-import 'sdk_manager.dart';
-
 /// Support for handling Flutter web snippets.
 class FlutterWebManager {
-  final FlutterSdk flutterSdk;
-
   final Directory flutterTemplateProject = Directory(path.join(
       Directory.current.path, 'project_templates', 'flutter_project'));
 
   final Directory dartTemplateProject = Directory(
       path.join(Directory.current.path, 'project_templates', 'dart_project'));
 
-  FlutterWebManager(this.flutterSdk);
+  FlutterWebManager();
 
   String get summaryFilePath {
     return path.join('artifacts', 'flutter_web.dill');
