@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:html';
 
 import 'package:dart_pad/util/query_params.dart';
@@ -23,6 +24,7 @@ void init() {
 }
 
 class CodelabUi {
+  CodelabState _codelabState;
   Splitter splitter;
   Splitter rightSplitter;
   Editor editor;
@@ -34,12 +36,13 @@ class CodelabUi {
   DivElement get _editorHost => querySelector('#editor-host') as DivElement;
 
   Future<void> _init() async {
-    _initSplitters();
-    var codelab = await _loadCodelab();
-    _initHeader(codelab.name);
-    _initStepsPanel(codelab);
+    await _loadCodelab();
+    _initHeader();
+    _updateInstructions();
     await _initModules();
-    _initCodelabUi();
+    _initEditor();
+    _initSplitters();
+    _initStepListener();
   }
 
   Future<void> _initModules() async {
@@ -52,18 +55,18 @@ class CodelabUi {
     await modules.start();
   }
 
-  void _initCodelabUi() {
+  void _initEditor() {
     // Set up CodeMirror
     editor = (editorFactory as CodeMirrorFactory)
         .createFromElement(_editorHost, options: codeMirrorOptions)
-      ..theme = 'darkpad'
-      ..mode = 'dart'
-      ..showLineNumbers = true;
+          ..theme = 'darkpad'
+          ..mode = 'dart'
+          ..showLineNumbers = true;
   }
 
-  Future<Codelab> _loadCodelab() async {
+  Future<void> _loadCodelab() async {
     var fetcher = await _getFetcher();
-    return await fetcher.getCodelab();
+    _codelabState = CodelabState(await fetcher.getCodelab());
   }
 
   void _initSplitters() {
@@ -93,13 +96,20 @@ class CodelabUi {
     }).observe(editorPanel);
   }
 
-  void _initHeader(String name) {
-    querySelector('#codelab-name').text = name;
+  void _initHeader() {
+    querySelector('#codelab-name').text = _codelabState.codelab.name;
   }
 
-  void _initStepsPanel(Codelab codelab) {
-    var div = querySelector('#steps-panel');
-    div.innerHtml = markdown.markdownToHtml(codelab.steps.first.instructions);
+  void _updateInstructions() {
+    var div = querySelector('#markdown-content');
+    div.innerHtml =
+        markdown.markdownToHtml(_codelabState.currentStep.instructions);
+  }
+
+  void _initStepListener() {
+    _codelabState.onStepChanged.listen((event) {
+       _updateInstructions();
+    });
   }
 
   Future<CodelabFetcher> _getFetcher() async {
@@ -129,5 +139,26 @@ class CodelabUi {
     }
     throw ('Invalid parameters provided. Use either "webserver" or '
         '"gh_owner", "gh_repo", "gh_ref", and "gh_path"');
+  }
+}
+
+class CodelabState {
+  final StreamController<Step> _controller = StreamController.broadcast();
+  int _currentStepIndex = 0;
+
+  final Codelab codelab;
+
+  CodelabState(this.codelab);
+
+  Stream<Step> get onStepChanged => _controller.stream;
+
+  Step get currentStep => codelab.steps[_currentStepIndex];
+
+  set currentStepIndex(int stepIndex) {
+    if (stepIndex < 0 || stepIndex >= codelab.steps.length) {
+      throw('Invalid step index: $stepIndex');
+    }
+    _currentStepIndex = stepIndex;
+    _controller.add(codelab.steps[stepIndex]);
   }
 }

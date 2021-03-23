@@ -9,7 +9,8 @@
     <meta charset="utf-8">
     <link rel="shortcut icon" type="image/png" sizes="32x32" href="dart-32.png">
     <link rel="shortcut icon" type="image/png" sizes="64x64" href="dart-64.png">
-    <link rel="shortcut icon" type="image/png" sizes="192x192" href="dart-192.png">
+    <link rel="shortcut icon" type="image/png" sizes="192x192"
+          href="dart-192.png">
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
@@ -22,16 +23,21 @@
 
     <!-- fonts -->
     <link rel="preconnect" href="https://fonts.gstatic.com">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono&display=swap"
+          rel="stylesheet">
 
     <!-- codemirror -->
-    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet" media="screen">
+    <link href="packages/codemirror/css/codemirror.css" rel="stylesheet"
+          media="screen">
     <script src="packages/codemirror/codemirror.js" defer></script>
 
     <!-- codemirror add-ons -->
-    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
-    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
-    <script src="packages/codemirror/addon/scroll/simplescrollbars.js" defer></script>
+    <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet"
+          media="screen">
+    <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet"
+          media="screen">
+    <script src="packages/codemirror/addon/scroll/simplescrollbars.js"
+            defer></script>
 
     <!-- codemirror themes -->
     <link href="styles/cm-scrollbars.css" rel="stylesheet" media="screen">
@@ -42,7 +48,8 @@
 
     <!-- material design -->
     <script src="packages/mdc_web/material-components-web.min.js"></script>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet">
 
     <!-- check that local storage is enabled -->
     <script src="scripts/check_localstorage.js"></script>
@@ -67,7 +74,8 @@
 <section class="main-section">
     <div class="panels">
         <div id="steps-panel">
-
+            <div id="markdown-content"></div>
+            <div id="step-button-container">TODO: Step buttons</div>
         </div>
         <div id="right-panel">
             <div id="editor-panel">
@@ -89,14 +97,19 @@
     <div id="flash-container">
         <div id="test-result-box" class="flash flash-warn" hidden>
             <div title="Close" class="close-flash-container">
-                <button class="close-flash-button mdc-icon-button material-icons">close</button>
+                <button class="close-flash-button mdc-icon-button material-icons">
+                    close
+                </button>
             </div>
             <div class="message-container custom-scrollbar"></div>
         </div>
         <div id="hint-box" class="flash" hidden>
-            <<div title="Close" class="close-flash-container">
-            <button class="close-flash-button mdc-icon-button material-icons">close</button>
-        </div>
+            <
+            <div title="Close" class="close-flash-container">
+                <button class="close-flash-button mdc-icon-button material-icons">
+                    close
+                </button>
+            </div>
             <div class="message-container custom-scrollbar"></div>
         </div>
         <div id="issues" hidden></div>
