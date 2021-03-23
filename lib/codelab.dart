@@ -45,7 +45,6 @@ class CodelabUi {
     await modules.start();
   }
 
-
   Future<Codelab> _loadCodelab() async {
     var fetcher = await _getFetcher();
     return await fetcher.getCodelab();
@@ -53,11 +52,19 @@ class CodelabUi {
 
   void _initSplitters() {
     var stepsPanel = querySelector('#steps-panel');
+    var rightPanel = querySelector('#right-panel');
     var editorPanel = querySelector('#editor-panel');
     var outputPanel = querySelector('#output-panel');
     splitter = flexSplit(
-      [stepsPanel, editorPanel],
+      [stepsPanel, rightPanel],
       horizontal: true,
+      gutterSize: 6,
+      sizes: const [50, 50],
+      minSize: [100, 100],
+    );
+    rightSplitter = flexSplit(
+      [editorPanel, outputPanel],
+      horizontal: false,
       gutterSize: 6,
       sizes: const [50, 50],
       minSize: [100, 100],

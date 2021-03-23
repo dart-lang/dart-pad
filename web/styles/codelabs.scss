@@ -75,6 +75,15 @@ section.main-section {
   }
 }
 
+// Panels
+#right-panel {
+  @include layout-vertical();
+}
+
+#editor-panel, #output-panel {
+  @include layout-flex;
+}
+
 a {
   color: $playground-link-color;
   fill: $playground-text-color;
