@@ -84,6 +84,24 @@ section.main-section {
   @include layout-flex;
 }
 
+// Editor panel
+#editor-panel {
+  @include layout-vertical;
+  @include layout-relative;
+}
+#editor-host {
+  @include layout-vertical;
+  @include layout-flex;
+  margin: 8px 0 0 0;
+  padding: 0 8px;
+
+  .CodeMirror {
+    @include layout-flex;
+    font-family: $editor-font;
+    font-size: $playground-editor-font-size;
+  }
+}
+
 a {
   color: $playground-link-color;
   fill: $playground-text-color;

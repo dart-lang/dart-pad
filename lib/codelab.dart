@@ -6,6 +6,10 @@ import 'package:split/split.dart';
 
 import 'codelabs/codelabs.dart';
 import 'core/modules.dart';
+import 'dart_pad.dart';
+import 'editing/codemirror_options.dart';
+import 'editing/editor.dart';
+import 'editing/editor_codemirror.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -21,10 +25,13 @@ void init() {
 class CodelabUi {
   Splitter splitter;
   Splitter rightSplitter;
+  Editor editor;
 
   CodelabUi() {
     _init();
   }
+
+  DivElement get _editorHost => querySelector('#editor-host') as DivElement;
 
   Future<void> _init() async {
     _initSplitters();
@@ -32,7 +39,7 @@ class CodelabUi {
     _initHeader(codelab.name);
     _initStepsPanel(codelab);
     await _initModules();
-
+    _initCodelabUi();
   }
 
   Future<void> _initModules() async {
@@ -43,6 +50,15 @@ class CodelabUi {
     modules.register(CodeMirrorModule());
 
     await modules.start();
+  }
+
+  void _initCodelabUi() {
+    // Set up CodeMirror
+    editor = (editorFactory as CodeMirrorFactory)
+        .createFromElement(_editorHost, options: codeMirrorOptions)
+      ..theme = 'darkpad'
+      ..mode = 'dart'
+      ..showLineNumbers = true;
   }
 
   Future<Codelab> _loadCodelab() async {
@@ -69,6 +85,12 @@ class CodelabUi {
       sizes: const [50, 50],
       minSize: [100, 100],
     );
+
+    // Resize Codemirror when the size of the panel changes. This keeps the
+    // virtual scrollbar in sync with the size of the panel.
+    ResizeObserver((entries, observer) {
+      editor.resize();
+    }).observe(editorPanel);
   }
 
   void _initHeader(String name) {
