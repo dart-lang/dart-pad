@@ -1,17 +1,3 @@
-# Step 1
+# Step 2
 
-Change the code to do something:
-
-1. Example
-2. List
-3. Of
-4. Steps
-
-## Hint
-Try using a function:
-
-```dart
-void myFunction() {
-  
-}
-```
+You're done! Have a coffee ☕️.

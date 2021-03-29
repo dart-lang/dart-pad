@@ -84,6 +84,30 @@ section.main-section {
   @include layout-flex;
 }
 
+// Steps panel
+#steps-panel {
+  @include layout-vertical();
+  @include layout-center();
+}
+
+#markdown-content {
+  @include layout-flex();
+  width: 100%;
+}
+
+#step-button-container {
+  @include layout-horizontal();
+  @include layout-center();
+}
+
+#steps-label {
+  padding: 12px;
+}
+
+#next-step-btn, #previous-step-btn {
+  @include mdc-icon-button-size(32px, 32px);
+}
+
 // Editor panel
 #editor-panel {
   @include layout-vertical;

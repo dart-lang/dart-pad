@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:html';
 
+import 'package:dart_pad/elements/button.dart';
 import 'package:dart_pad/util/query_params.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:split/split.dart';
@@ -11,6 +12,7 @@ import 'dart_pad.dart';
 import 'editing/codemirror_options.dart';
 import 'editing/editor.dart';
 import 'editing/editor_codemirror.dart';
+import 'elements/elements.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -28,6 +30,9 @@ class CodelabUi {
   Splitter splitter;
   Splitter rightSplitter;
   Editor editor;
+  DElement stepLabel;
+  DElement previousStepButton;
+  DElement nextStepButton;
 
   CodelabUi() {
     _init();
@@ -42,6 +47,7 @@ class CodelabUi {
     await _initModules();
     _initEditor();
     _initSplitters();
+    _initStepButtons();
     _initStepListener();
   }
 
@@ -100,16 +106,38 @@ class CodelabUi {
     querySelector('#codelab-name').text = _codelabState.codelab.name;
   }
 
-  void _updateInstructions() {
-    var div = querySelector('#markdown-content');
-    div.innerHtml =
-        markdown.markdownToHtml(_codelabState.currentStep.instructions);
+  void _initStepButtons() {
+    stepLabel = DElement(querySelector('#steps-label'));
+    previousStepButton = DElement(querySelector('#previous-step-btn'))
+      ..onClick.listen((event) {
+        _codelabState.currentStepIndex--;
+      });
+    nextStepButton = DElement(querySelector('#next-step-btn'))
+      ..onClick.listen((event) {
+        _codelabState.currentStepIndex++;
+      });
+    _updateStepButtons();
   }
 
   void _initStepListener() {
     _codelabState.onStepChanged.listen((event) {
-       _updateInstructions();
+      print('onStepChanged');
+      _updateInstructions();
+      _updateStepButtons();
     });
+  }
+
+  void _updateInstructions() {
+    var div = querySelector('#markdown-content');
+    div.children.clear();
+    div.innerHtml =
+        markdown.markdownToHtml(_codelabState.currentStep.instructions);
+  }
+
+  void _updateStepButtons() {
+    stepLabel.text = 'Step ${_codelabState.currentStepIndex + 1}';
+    previousStepButton.toggleAttr('disabled', !_codelabState.hasPreviousStep);
+    nextStepButton.toggleAttr('disabled', !_codelabState.hasNextStep);
   }
 
   Future<CodelabFetcher> _getFetcher() async {
@@ -154,11 +182,17 @@ class CodelabState {
 
   Step get currentStep => codelab.steps[_currentStepIndex];
 
+  int get currentStepIndex => _currentStepIndex;
+
   set currentStepIndex(int stepIndex) {
     if (stepIndex < 0 || stepIndex >= codelab.steps.length) {
-      throw('Invalid step index: $stepIndex');
+      throw ('Invalid step index: $stepIndex');
     }
     _currentStepIndex = stepIndex;
     _controller.add(codelab.steps[stepIndex]);
   }
+
+  bool get hasNextStep => _currentStepIndex < codelab.steps.length - 1;
+
+  bool get hasPreviousStep => _currentStepIndex > 0;
 }
