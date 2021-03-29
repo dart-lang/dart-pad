@@ -126,6 +126,45 @@ section.main-section {
   }
 }
 
+.button-group {
+  @include layout-horizontal;
+  @include layout-center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 8px 24px 0 0;
+  z-index: 5;
+}
+
+// Console panel
+#output-panel {
+  @include layout-vertical();
+}
+#output-panel-content {
+  @include layout-flex();
+  overflow-y: scroll;
+}
+
+.console {
+  @include layout-flex;
+  font-family: $editor-font;
+  font-size: 14px;
+  line-height: 20px;
+  min-height: 50px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  padding: $doc-console-padding;
+
+  .normal {
+    color: $dark-editor-text;
+  }
+
+  .error-output {
+    color: $dark-pink;
+  }
+}
+
+// Links
 a {
   color: $playground-link-color;
   fill: $playground-text-color;

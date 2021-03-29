@@ -83,10 +83,20 @@
         </div>
         <div id="right-panel">
             <div id="editor-panel">
+                <div class="button-group">
+                    <div id="dartbusy" class="busylight"></div>
+                    <button type="button" id="run-button"
+                            class="mdc-button mdc-button--raised mdc-button--dense">
+                        <i class="material-icons mdc-button__icon">play_arrow</i>
+                        Run
+                    </button>
+                </div>
                 <div id="editor-host"></div>
             </div>
             <div id="output-panel">
-
+                <div id="output-panel-content" class="console custom-scrollbar"></div>
+                <iframe id="frame" sandbox="allow-scripts" flex
+                        src="scripts/frame_dark.html"></iframe>
             </div>
         </div>
     </div>

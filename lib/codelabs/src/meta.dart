@@ -30,6 +30,7 @@ class Meta {
 
   Map<String, dynamic> toJson() => _$MetaToJson(this);
 
+  @override
   String toString() => '<Meta> name: $name steps: $steps';
 }
 
@@ -55,6 +56,7 @@ class StepConfiguration {
 
   Map<String, dynamic> toJson() => _$StepConfigurationToJson(this);
 
+  @override
   String toString() =>
       '<StepConfiguration> name: $name has_solution: $hasSolution';
 }

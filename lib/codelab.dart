@@ -1,21 +1,29 @@
 import 'dart:async';
-import 'dart:html';
+import 'dart:html' hide Console;
 
-import 'package:dart_pad/elements/button.dart';
 import 'package:dart_pad/util/query_params.dart';
 import 'package:markdown/markdown.dart' as markdown;
+import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 
 import 'codelabs/codelabs.dart';
+import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'editing/codemirror_options.dart';
 import 'editing/editor.dart';
 import 'editing/editor_codemirror.dart';
+import 'elements/button.dart';
+import 'elements/console.dart';
 import 'elements/elements.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
+import 'services/common.dart';
+import 'services/dartservices.dart';
+import 'services/execution.dart';
+import 'services/execution_iframe.dart';
+import 'src/ga.dart';
 
 CodelabUi _codelabUi;
 
@@ -33,6 +41,8 @@ class CodelabUi {
   DElement stepLabel;
   DElement previousStepButton;
   DElement nextStepButton;
+  Console _console;
+  MDCButton runButton;
 
   CodelabUi() {
     _init();
@@ -40,15 +50,23 @@ class CodelabUi {
 
   DivElement get _editorHost => querySelector('#editor-host') as DivElement;
 
+  DivElement get _consoleContentElement =>
+      querySelector('#output-panel-content') as DivElement;
+
+  IFrameElement get _frame => querySelector('#frame') as IFrameElement;
+
   Future<void> _init() async {
     await _loadCodelab();
     _initHeader();
     _updateInstructions();
     await _initModules();
+    _initCodelabUi();
     _initEditor();
     _initSplitters();
     _initStepButtons();
     _initStepListener();
+    _initConsoles();
+    _initButtons();
     _updateCode();
   }
 
@@ -69,6 +87,15 @@ class CodelabUi {
           ..theme = 'darkpad'
           ..mode = 'dart'
           ..showLineNumbers = true;
+  }
+
+  void _initCodelabUi() {
+    // Set up the iframe.
+    deps[ExecutionService] = ExecutionServiceIFrame(_frame);
+    executionService.onStdout.listen(_showOutput);
+    executionService.onStderr.listen((m) => _showOutput(m, error: true));
+    // Set up Google Analytics.
+    deps[Analytics] = Analytics();
   }
 
   Future<void> _loadCodelab() async {
@@ -128,6 +155,17 @@ class CodelabUi {
     });
   }
 
+  void _initConsoles() {
+    _console = Console(DElement(_consoleContentElement));
+  }
+
+  void _initButtons() {
+    runButton = MDCButton(querySelector('#run-button') as ButtonElement)
+      ..onClick.listen((_) {
+        _handleRun();
+      });
+  }
+
   void _updateCode() {
     editor.document.updateValue(_codelabState.currentStep.snippet);
   }
@@ -172,6 +210,78 @@ class CodelabUi {
     }
     throw ('Invalid parameters provided. Use either "webserver" or '
         '"gh_owner", "gh_repo", "gh_ref", and "gh_path"');
+  }
+
+  void _handleRun() async {
+    ga.sendEvent('main', 'run');
+    runButton.disabled = true;
+
+    var compilationTimer = Stopwatch()..start();
+
+    final compileRequest = CompileRequest()..source = editor.document.value;
+
+    try {
+      if (_codelabState.codelab.type == CodelabType.flutter) {
+        final response = await dartServices
+            .compileDDC(compileRequest)
+            .timeout(longServiceCallTimeout);
+
+        ga.sendTiming(
+          'action-perf',
+          'compilation-e2e',
+          compilationTimer.elapsedMilliseconds,
+        );
+
+        _clearOutput();
+
+        await executionService.execute(
+          '',
+          '',
+          response.result,
+          modulesBaseUrl: response.modulesBaseUrl,
+        );
+      } else {
+        final response = await dartServices
+            .compile(compileRequest)
+            .timeout(longServiceCallTimeout);
+
+        ga.sendTiming(
+          'action-perf',
+          'compilation-e2e',
+          compilationTimer.elapsedMilliseconds,
+        );
+
+        _clearOutput();
+
+        await executionService.execute(
+          '',
+          '',
+          response.result,
+        );
+      }
+    } catch (e) {
+      ga.sendException('${e.runtimeType}');
+      final message = e is ApiRequestError ? e.message : '$e';
+      _showSnackbar('Error compiling to JavaScript');
+      _clearOutput();
+      _showOutput('Error compiling to JavaScript:\n$message', error: true);
+    } finally {
+      runButton.disabled = false;
+    }
+  }
+
+  void _clearOutput() {
+    _console.clear();
+  }
+
+  void _showOutput(String message, {bool error = false}) {
+    _console.showOutput(message, error: error);
+  }
+
+  void _showSnackbar(String message) {
+    var div = querySelector('.mdc-snackbar');
+    var snackbar = MDCSnackbar(div)..labelText = message;
+    snackbar.open();
   }
 }
 
