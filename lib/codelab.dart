@@ -121,7 +121,6 @@ class CodelabUi {
 
   void _initStepListener() {
     _codelabState.onStepChanged.listen((event) {
-      print('onStepChanged');
       _updateInstructions();
       _updateStepButtons();
     });
