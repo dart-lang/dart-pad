@@ -49,6 +49,7 @@ class CodelabUi {
     _initSplitters();
     _initStepButtons();
     _initStepListener();
+    _updateCode();
   }
 
   Future<void> _initModules() async {
@@ -123,7 +124,12 @@ class CodelabUi {
     _codelabState.onStepChanged.listen((event) {
       _updateInstructions();
       _updateStepButtons();
+      _updateCode();
     });
+  }
+
+  void _updateCode() {
+    editor.document.updateValue(_codelabState.currentStep.snippet);
   }
 
   void _updateInstructions() {
