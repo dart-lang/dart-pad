@@ -37,11 +37,6 @@ updateThirdParty() {
 }
 
 @Task()
-analyze() {
-  PubApp.local('tuneup').run(['check']);
-}
-
-@Task()
 testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
 
 // This task require a frame buffer to run.
@@ -201,7 +196,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(analyze, testCli, testWeb, coverage, build)
+@Depends(testCli, testWeb, coverage, build)
 void buildbot() {}
 
 @Task('Prepare the app for deployment')
