@@ -8,13 +8,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "14.0.0"
-  analysis_server_lib:
-    dependency: transitive
-    description:
-      name: analysis_server_lib
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.1.10"
   analyzer:
     dependency: transitive
     description:
@@ -603,13 +596,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.1+3"
-  tuneup:
-    dependency: "direct dev"
-    description:
-      name: tuneup
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "0.3.7"
   tuple:
     dependency: transitive
     description:
