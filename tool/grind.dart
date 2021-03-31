@@ -44,9 +44,9 @@ testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
 testWeb() async {
   await TestRunner().testAsync(platformSelector: 'chrome');
   log('Running route.dart tests...');
-  run('pub', arguments: ['get'], workingDirectory: _routeDir.path);
-  run('pub',
-      arguments: ['run', 'test:test', '--platform=chrome'],
+  run('dart', arguments: ['pub', 'get'], workingDirectory: _routeDir.path);
+  run('dart',
+      arguments: ['pub', 'run', 'test:test', '--platform=chrome'],
       workingDirectory: _routeDir.path);
 }
 
