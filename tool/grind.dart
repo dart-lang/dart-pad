@@ -315,6 +315,9 @@ void generateProtos() async {
   await runWithLogging(
     'protoc',
     arguments: ['--dart_out=lib/src', 'protos/dart_services.proto'],
+    onErrorMessage:
+        'Error running "protoc"; make sure the Protocol Buffer compiler is '
+        'installed (see README.md)',
   );
 
   // reformat generated classes so travis dart format test doesn't fail
@@ -336,16 +339,25 @@ void generateProtos() async {
 Future<void> runWithLogging(String executable,
     {List<String> arguments = const [],
     RunOptions runOptions,
-    String workingDirectory}) async {
+    String workingDirectory,
+    String onErrorMessage}) async {
   runOptions = mergeWorkingDirectory(workingDirectory, runOptions);
   log("$executable ${arguments.join(' ')}");
   runOptions ??= RunOptions();
 
-  final proc = await Process.start(executable, arguments,
-      workingDirectory: runOptions.workingDirectory,
-      environment: runOptions.environment,
-      includeParentEnvironment: runOptions.includeParentEnvironment,
-      runInShell: runOptions.runInShell);
+  Process proc;
+  try {
+    proc = await Process.start(executable, arguments,
+        workingDirectory: runOptions.workingDirectory,
+        environment: runOptions.environment,
+        includeParentEnvironment: runOptions.includeParentEnvironment,
+        runInShell: runOptions.runInShell);
+  } catch (e) {
+    if (onErrorMessage != null) {
+      print(onErrorMessage);
+    }
+    rethrow;
+  }
 
   proc.stdout.listen((out) => log(runOptions.stdoutEncoding.decode(out)));
   proc.stderr.listen((err) => log(runOptions.stdoutEncoding.decode(err)));
