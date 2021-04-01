@@ -10,7 +10,7 @@ analyzer:
     - 'lib/bower/**'
     - 'lib/src/protos/**'
     - 'third_party/pkg/**'
-
+    - 'web/example/codelabs/**'
 linter:
   rules:
     - await_only_futures
