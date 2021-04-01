@@ -312,10 +312,16 @@ void buildbot() => null;
 
 @Task('Generate Protobuf classes')
 void generateProtos() async {
-  await runWithLogging(
-    'protoc',
-    arguments: ['--dart_out=lib/src', 'protos/dart_services.proto'],
-  );
+  try {
+    await runWithLogging(
+      'protoc',
+      arguments: ['--dart_out=lib/src', 'protos/dart_services.proto'],
+    );
+  } catch (e) {
+    print('Error running "protoc"; make sure the Protocol Buffer compiler is '
+        'installed (see README.md)');
+    rethrow;
+  }
 
   // reformat generated classes so travis dart format test doesn't fail
   await runWithLogging(
