@@ -37,11 +37,6 @@ updateThirdParty() {
 }
 
 @Task()
-analyze() {
-  PubApp.local('tuneup').run(['check']);
-}
-
-@Task()
 testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
 
 // This task require a frame buffer to run.
@@ -49,9 +44,9 @@ testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
 testWeb() async {
   await TestRunner().testAsync(platformSelector: 'chrome');
   log('Running route.dart tests...');
-  run('pub', arguments: ['get'], workingDirectory: _routeDir.path);
-  run('pub',
-      arguments: ['run', 'test:test', '--platform=chrome'],
+  run('dart', arguments: ['pub', 'get'], workingDirectory: _routeDir.path);
+  run('dart',
+      arguments: ['pub', 'run', 'test:test', '--platform=chrome'],
       workingDirectory: _routeDir.path);
 }
 
@@ -201,7 +196,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(analyze, testCli, testWeb, coverage, build)
+@Depends(testCli, testWeb, coverage, build)
 void buildbot() {}
 
 @Task('Prepare the app for deployment')
