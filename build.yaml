@@ -1,5 +1,9 @@
 targets:
   $default:
+    sources:
+      exclude:
+      - web/example/dart_codelab/**
+      - web/example/flutter_codelab/**
     builders:
       build_web_compilers|entrypoint:
         options:
