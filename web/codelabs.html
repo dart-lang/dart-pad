@@ -76,9 +76,15 @@
         <div id="steps-panel">
             <div id="markdown-content"></div>
             <div id="step-button-container">
-                <button id="previous-step-btn" class="mdc-icon-button material-icons">keyboard_arrow_left</button>
+                <button id="previous-step-btn"
+                        class="mdc-icon-button material-icons">
+                    keyboard_arrow_left
+                </button>
                 <div id="steps-label">Step 1</div>
-                <button id="next-step-btn" class="mdc-icon-button material-icons">keyboard_arrow_right</button>
+                <button id="next-step-btn"
+                        class="mdc-icon-button material-icons">
+                    keyboard_arrow_right
+                </button>
             </div>
         </div>
         <div id="right-panel">
@@ -94,9 +100,57 @@
                 <div id="editor-host"></div>
             </div>
             <div id="output-panel">
-                <div id="output-panel-content" class="console custom-scrollbar"></div>
+                <nav>
+                    <div id="web-tab-bar" class="mdc-tab-bar" role="tablist">
+                        <div class="mdc-tab-scroller">
+                            <div class="mdc-tab-scroller__scroll-area">
+                                <div class="mdc-tab-scroller__scroll-content">
+                                    <button id="ui-output-tab"
+                                            class="mdc-tab mdc-tab--active"
+                                            role="tab" aria-selected="true"
+                                            tabindex="0">
+                                             <span class="mdc-tab__content">
+                                                 <span class="mdc-tab__text-label">UI Output</span>
+                                             </span>
+                                        <span class="mdc-tab-indicator mdc-tab-indicator--active">
+                                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                                             </span>
+                                        <span class="mdc-tab__ripple"></span>
+                                    </button>
+                                    <button id="console-tab"
+                                            class="mdc-tab mdc-tab" role="tab"
+                                            tabindex="0">
+                                             <span class="mdc-tab__content">
+                                                 <span class="mdc-tab__text-label">Console</span>
+                                                 <span id="unread-console-counter" class="Counter"hidden></span>
+                                             </span>
+                                        <span class="mdc-tab-indicator mdc-tab-indicator">
+                                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                                             </span>
+                                        <span class="mdc-tab__ripple"></span>
+                                    </button>
+                                    <button id="documentation-tab"
+                                            class="mdc-tab mdc-tab"
+                                            role="tab" tabindex="0">
+                                             <span class="mdc-tab__content">
+                                                 <span class="mdc-tab__text-label">Documentation</span>
+                                            </span>
+                                        <span class="mdc-tab-indicator mdc-tab-indicator">
+                                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
+                                             </span>
+                                        <span class="mdc-tab__ripple"></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+                <div id="output-panel-content"
+                     class="console custom-scrollbar"></div>
                 <iframe id="frame" sandbox="allow-scripts" flex
                         src="scripts/frame_dark.html"></iframe>
+                <div id="doc-panel"
+                     class="documentation custom-scrollbar"></div>
             </div>
         </div>
     </div>

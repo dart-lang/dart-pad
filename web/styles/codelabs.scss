@@ -140,6 +140,7 @@ section.main-section {
 #output-panel {
   @include layout-vertical();
 }
+
 #output-panel-content {
   @include layout-flex();
   overflow-y: scroll;
@@ -162,6 +163,13 @@ section.main-section {
   .error-output {
     color: $dark-pink;
   }
+}
+
+// iframe element
+
+iframe {
+  @include layout-flex;
+  border: none;
 }
 
 // Links

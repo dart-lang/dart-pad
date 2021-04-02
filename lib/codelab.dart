@@ -15,7 +15,9 @@ import 'editing/editor.dart';
 import 'editing/editor_codemirror.dart';
 import 'elements/button.dart';
 import 'elements/console.dart';
+import 'elements/counter.dart';
 import 'elements/elements.dart';
+import 'elements/material_tab_controller.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -28,6 +30,8 @@ import 'src/ga.dart';
 CodelabUi _codelabUi;
 
 CodelabUi get codelabUi => _codelabUi;
+
+IFrameElement get _frame => querySelector('#frame') as IFrameElement;
 
 void init() {
   _codelabUi = CodelabUi();
@@ -43,6 +47,8 @@ class CodelabUi {
   DElement nextStepButton;
   Console _console;
   MDCButton runButton;
+  MaterialTabController consolePanelTabController;
+  Counter unreadConsoleCounter;
 
   CodelabUi() {
     _init();
@@ -50,8 +56,11 @@ class CodelabUi {
 
   DivElement get _editorHost => querySelector('#editor-host') as DivElement;
 
-  DivElement get _consoleContentElement =>
+  DivElement get _consoleElement =>
       querySelector('#output-panel-content') as DivElement;
+
+  DivElement get _documentationElement =>
+      querySelector('#doc-panel') as DivElement;
 
   IFrameElement get _frame => querySelector('#frame') as IFrameElement;
 
@@ -68,6 +77,7 @@ class CodelabUi {
     _initConsoles();
     _initButtons();
     _updateCode();
+    _initTabs();
   }
 
   Future<void> _initModules() async {
@@ -156,7 +166,9 @@ class CodelabUi {
   }
 
   void _initConsoles() {
-    _console = Console(DElement(_consoleContentElement));
+    _console = Console(DElement(_consoleElement));
+    unreadConsoleCounter =
+        Counter(querySelector('#unread-console-counter') as SpanElement);
   }
 
   void _initButtons() {
@@ -168,6 +180,35 @@ class CodelabUi {
 
   void _updateCode() {
     editor.document.updateValue(_codelabState.currentStep.snippet);
+  }
+
+  void _initTabs() {
+    var consoleTabBar = querySelector('#web-tab-bar');
+    consolePanelTabController = MaterialTabController(MDCTabBar(consoleTabBar));
+    for (var name in ['ui-output', 'console', 'documentation']) {
+      consolePanelTabController.registerTab(
+          TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
+        _changeConsoleTab(name);
+      }));
+    }
+    // Set the current tab to UI Output
+    _changeConsoleTab('ui-output');
+  }
+
+  void _changeConsoleTab(String name) {
+    if (name == 'ui-output') {
+      _frame.hidden = false;
+      _consoleElement.hidden = true;
+      _documentationElement.hidden = true;
+    } else if (name == 'console') {
+      _frame.hidden = true;
+      _consoleElement.hidden = false;
+      _documentationElement.hidden = true;
+    } else if (name == 'documentation') {
+      _frame.hidden = true;
+      _consoleElement.hidden = true;
+      _documentationElement.hidden = false;
+    }
   }
 
   void _updateInstructions() {
@@ -272,10 +313,14 @@ class CodelabUi {
 
   void _clearOutput() {
     _console.clear();
+    unreadConsoleCounter.clear();
   }
 
   void _showOutput(String message, {bool error = false}) {
     _console.showOutput(message, error: error);
+    if (consolePanelTabController.selectedTab.name != 'console') {
+      unreadConsoleCounter.increment();
+    }
   }
 
   void _showSnackbar(String message) {
