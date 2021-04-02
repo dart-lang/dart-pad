@@ -106,6 +106,9 @@ class CodelabUi {
     executionService.onStderr.listen((m) => _showOutput(m, error: true));
     // Set up Google Analytics.
     deps[Analytics] = Analytics();
+
+    // Use null safety for codelabs
+    (deps[DartservicesApi] as DartservicesApi).rootUrl = nullSafetyServerUrl;
   }
 
   Future<void> _loadCodelab() async {

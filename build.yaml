@@ -17,3 +17,10 @@ targets:
           - lib/**.dart
           exclude:
           - web/example/codelabs/**.dart
+# Don't clean up .dart files, since web/example/codelabs contains .dart files
+# that need to be served
+# TODO: remove this, since it's only an example.
+global_options:
+  build_web_compilers:dart_source_cleanup:
+    release_options:
+      enabled: false
