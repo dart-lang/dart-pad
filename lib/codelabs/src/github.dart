@@ -1,7 +1,6 @@
 import 'package:meta/meta.dart';
 
 import 'codelab.dart';
-
 import 'fetcher.dart';
 
 class GithubCodelabFetcher implements CodelabFetcher {
