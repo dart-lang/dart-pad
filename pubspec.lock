@@ -135,7 +135,7 @@ packages:
     source: hosted
     version: "1.2.0"
   checked_yaml:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: checked_yaml
       url: "https://pub.dartlang.org"
@@ -317,12 +317,19 @@ packages:
     source: hosted
     version: "0.6.3"
   json_annotation:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: json_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.0.1"
+    version: "3.1.1"
+  json_serializable:
+    dependency: "direct dev"
+    description:
+      name: json_serializable
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "3.5.1"
   logging:
     dependency: "direct main"
     description:
@@ -505,6 +512,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.4+1"
+  source_gen:
+    dependency: transitive
+    description:
+      name: source_gen
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.9.10+3"
   source_map_stack_trace:
     dependency: transitive
     description:

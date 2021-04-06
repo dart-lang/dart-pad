@@ -491,20 +491,6 @@ a {
   }
 }
 
-// Unread console counter
-.Counter {
-  margin-left: 4px;
-  display: inline-block;
-  padding: 2px 5px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-  color: $dark-teal;
-  background-color: fade_out($dark-teal, 0.5);
-  border-radius: 20px;
-}
-
-
 // Make the dialog show up even without everything initialized (for localStorage check)
 .mdc-dialog {
   z-index: 1000;

@@ -16,6 +16,7 @@ import 'completion.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
+import 'editing/codemirror_options.dart';
 import 'editing/editor.dart';
 import 'editing/editor_codemirror.dart';
 import 'elements/analysis_results_controller.dart';
@@ -39,25 +40,6 @@ const int defaultSplitterWidth = 6;
 Embed get embed => _embed;
 
 Embed _embed;
-
-const codeMirrorOptions = {
-  'continueComments': {'continueLineComment': false},
-  'autofocus': false,
-  'autoCloseBrackets': true,
-  'matchBrackets': true,
-  'tabSize': 2,
-  'lineWrapping': true,
-  'indentUnit': 2,
-  'cursorHeight': 0.85,
-  'viewportMargin': 100,
-  'extraKeys': {
-    'Cmd-/': 'toggleComment',
-    'Ctrl-/': 'toggleComment',
-    'Tab': 'insertSoftTab'
-  },
-  'hintOptions': {'completeSingle': false},
-  'scrollbarStyle': 'simple',
-};
 
 void init(EmbedOptions options) {
   _embed = Embed(options);

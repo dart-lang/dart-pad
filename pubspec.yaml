@@ -9,6 +9,7 @@ dependencies:
   codemirror: ^0.6.0-0
   fluttering_phrases: ^0.3.1
   http: '>=0.12.2 <0.13.0'
+  json_annotation: ^3.1.0
   logging: '>=0.11.4 <0.12.0'
   markdown: ^3.0.0
   meta: ^1.2.4
@@ -20,6 +21,7 @@ dependencies:
   sass_builder: ^2.1.0
   mdc_web: ^0.5.0-pre
   yaml: ^2.2.0
+  checked_yaml: ^1.0.0
   js: ^0.6.0
 
 dev_dependencies:
@@ -29,6 +31,7 @@ dev_dependencies:
   collection: ^1.14.10
   git: ^2.0.0
   grinder: ^0.8.0
+  json_serializable: ^3.5.0
   pedantic: ^1.9.0
   shelf: ^0.7.5
   shelf_static: ^0.2.8

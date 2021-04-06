@@ -1,8 +1,24 @@
 targets:
   $default:
     builders:
+      # Don't clean up codelab examples, they need to be served.
+      build_web_compilers:dart_source_cleanup:
+        generate_for:
+          exclude:
+            - web/example/codelabs/**.dart
+
       build_web_compilers|entrypoint:
+        # Don't compile codelab examples.
+        generate_for:
+          exclude:
+          - web/example/codelabs/**.dart
         options:
           dart2js_args:
           - --minify
           - --fast-startup
+
+      json_serializable:
+        # Ignore codelab samples.
+        generate_for:
+          exclude:
+          - web/example/codelabs/**.dart
