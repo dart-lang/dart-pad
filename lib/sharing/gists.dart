@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart' as yaml;
 import '../util/detect_flutter.dart' as detect_flutter;
+import '../util/github.dart';
 
 final String _dartpadLink = '[dartpad.dev](https://dartpad.dev)';
 
@@ -266,16 +267,6 @@ $styleRef$dartRef  </head>
     return gist;
   }
 
-  String _extractContents(String githubResponse) {
-    // GitHub's API returns file contents as the "contents" field in a JSON
-    // object. The field's value is in base64 encoding, but with line ending
-    // characters ('\n') included.
-    final contentJson = json.decode(githubResponse);
-    final encodedContentStr =
-        contentJson['content'].toString().replaceAll('\n', '');
-    return utf8.decode(base64.decode(encodedContentStr));
-  }
-
   Uri _buildContentsUrl(String owner, String repo, String path,
       [String /*?*/ ref]) {
     return Uri.https(
@@ -304,7 +295,7 @@ $styleRef$dartRef  </head>
       throw GistLoaderException(GistLoaderFailureType.unknown);
     }
 
-    final metadataContent = _extractContents(metadataResponse.body);
+    final metadataContent = extractGitHubResponseBody(metadataResponse.body);
 
     ExerciseMetadata metadata;
 
@@ -340,7 +331,7 @@ $styleRef$dartRef  </head>
         throw GistLoaderException(GistLoaderFailureType.unknown);
       }
 
-      return _extractContents(contentResponse.body);
+      return extractGitHubResponseBody(contentResponse.body);
     });
 
     // This will rethrow the first exception created above, if one is thrown.
