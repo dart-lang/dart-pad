@@ -57,20 +57,23 @@ Future<void> serveWithProxyTarget() async {
   ]);
 }
 
-final _dockerVersionMatcher = RegExp(r'^FROM google/dart-runtime:(.*)$');
+const _dartImageName = 'google/dart';
+final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
+const _dockerFileName = 'cloud_run.Dockerfile';
 
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
   final platformVersion = Platform.version.split(' ').first;
-  final dockerImageLines = File('Dockerfile').readAsLinesSync().map((String s) {
+  final dockerFile = File(_dockerFileName);
+  final dockerImageLines = dockerFile.readAsLinesSync().map((String s) {
     if (s.contains(_dockerVersionMatcher)) {
-      return 'FROM google/dart-runtime:$platformVersion';
+      return 'FROM $_dartImageName:$platformVersion';
     }
     return s;
   }).toList();
   dockerImageLines.add('');
 
-  File('Dockerfile').writeAsStringSync(dockerImageLines.join('\n'));
+  dockerFile.writeAsStringSync(dockerImageLines.join('\n'));
 }
 
 final List<String> compilationArtifacts = [
@@ -303,7 +306,7 @@ void fuzz() {
 @Depends(sdkInit, updateDockerVersion, generateProtos, analyze, test, fuzz,
     validateStorageArtifacts)
 void deploy() {
-  log('Run: gcloud app deploy --project=dart-services --no-promote');
+  log('Deploy via Google Cloud Console');
 }
 
 @Task()
