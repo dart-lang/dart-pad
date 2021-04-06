@@ -240,11 +240,7 @@ class CodelabUi {
     if (ghOwner != null &&
         ghOwner.isNotEmpty &&
         ghRepo != null &&
-        ghRepo.isNotEmpty &&
-        ghRef != null &&
-        ghRef.isNotEmpty &&
-        ghPath != null &&
-        ghPath.isNotEmpty) {
+        ghRepo.isNotEmpty) {
       return GithubCodelabFetcher(
         owner: ghOwner,
         repo: ghRepo,
