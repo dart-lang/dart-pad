@@ -6,7 +6,7 @@ library services.compiler_test;
 
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
-import 'package:dart_services/src/sdk_manager.dart';
+import 'package:dart_services/src/sdk.dart';
 import 'package:test/test.dart';
 
 void main() => defineTests();
@@ -16,9 +16,7 @@ void defineTests() {
 
   group('compiler', () {
     setUpAll(() async {
-      await SdkManager.sdk.init();
-
-      compiler = Compiler(SdkManager.sdk);
+      compiler = Compiler(Sdk());
       await compiler.warmup();
     });
 

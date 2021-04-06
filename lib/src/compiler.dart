@@ -15,23 +15,23 @@ import 'package:path/path.dart' as path;
 import 'common.dart';
 import 'flutter_web.dart';
 import 'pub.dart';
-import 'sdk_manager.dart';
+import 'sdk.dart';
 
 Logger _logger = Logger('compiler');
 
 /// An interface to the dart2js compiler. A compiler object can process one
 /// compile at a time.
 class Compiler {
-  final FlutterSdk _sdk;
+  final Sdk _sdk;
   final FlutterWebManager _flutterWebManager;
   final String _dartdevcPath;
   final BazelWorkerDriver _ddcDriver;
 
   Compiler(this._sdk)
-      : _dartdevcPath = path.join(_sdk.sdkPath, 'bin', 'dartdevc'),
+      : _dartdevcPath = path.join(Sdk.sdkPath, 'bin', 'dartdevc'),
         _ddcDriver = BazelWorkerDriver(
             () => Process.start(
-                  path.join(_sdk.sdkPath, 'bin', 'dartdevc'),
+                  path.join(Sdk.sdkPath, 'bin', 'dartdevc'),
                   <String>['--persistent_worker'],
                 ),
             maxWorkers: 1),
@@ -82,7 +82,7 @@ class Compiler {
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
       final mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
 
-      final dart2JSPath = path.join(_sdk.sdkPath, 'bin', 'dart2js');
+      final dart2JSPath = path.join(Sdk.sdkPath, 'bin', 'dart2js');
       _logger.info('About to exec: $dart2JSPath ${arguments.join(' ')}');
 
       final result = await Process.run(dart2JSPath, arguments,
@@ -152,7 +152,7 @@ class Compiler {
           '-s',
           _flutterWebManager.summaryFilePath,
           '-s',
-          '${_sdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill'
+          '${Sdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill'
         ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         ...['--module-name', 'dartpad_main'],

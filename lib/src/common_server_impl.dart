@@ -18,7 +18,7 @@ import 'analysis_servers.dart';
 import 'common.dart';
 import 'compiler.dart';
 import 'protos/dart_services.pb.dart' as proto;
-import 'sdk_manager.dart';
+import 'sdk.dart';
 import 'server_cache.dart';
 
 const Duration _standardExpiration = Duration(hours: 1);
@@ -183,7 +183,7 @@ class CommonServerImpl {
   Future<void> init() async {
     log.info('Beginning CommonServer init().');
     _analysisServers = AnalysisServersWrapper();
-    _compiler = Compiler(SdkManager.sdk);
+    _compiler = Compiler(Sdk());
 
     await _compiler.warmup();
     await _analysisServers.warmup();
@@ -277,18 +277,20 @@ class CommonServerImpl {
               <String, String>{});
   }
 
-  Future<proto.VersionResponse> version(proto.VersionRequest _) =>
-      Future<proto.VersionResponse>.value(
-        proto.VersionResponse()
-          ..sdkVersion = SdkManager.sdk.version
-          ..sdkVersionFull = SdkManager.sdk.versionFull
-          ..runtimeVersion = vmVersion
-          ..servicesVersion = servicesVersion
-          ..appEngineVersion = _container.version
-          ..flutterDartVersion = SdkManager.sdk.version
-          ..flutterDartVersionFull = SdkManager.sdk.versionFull
-          ..flutterVersion = SdkManager.sdk.flutterVersion,
-      );
+  Future<proto.VersionResponse> version(proto.VersionRequest _) {
+    final sdk = Sdk();
+    return Future<proto.VersionResponse>.value(
+      proto.VersionResponse()
+        ..sdkVersion = sdk.version
+        ..sdkVersionFull = sdk.versionFull
+        ..runtimeVersion = vmVersion
+        ..servicesVersion = servicesVersion
+        ..appEngineVersion = _container.version
+        ..flutterDartVersion = sdk.version
+        ..flutterDartVersionFull = sdk.versionFull
+        ..flutterVersion = sdk.flutterVersion,
+    );
+  }
 
   Future<proto.CompileResponse> _compileDart2js(
     String source, {

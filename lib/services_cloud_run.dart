@@ -16,7 +16,7 @@ import 'package:shelf/shelf_io.dart' as shelf;
 import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
 import 'src/flutter_web.dart';
-import 'src/sdk_manager.dart';
+import 'src/sdk.dart';
 import 'src/server_cache.dart';
 import 'src/shelf_cors.dart' as shelf_cors;
 
@@ -53,7 +53,7 @@ Future<void> main(List<String> args) async {
 
   _logger.info('''Initializing dart-services:
     port: $port
-    sdkPath: ${SdkManager.sdk.sdkPath}
+    sdkPath: ${Sdk.sdkPath}
     redisServerUri: $redisServerUri
     Cloud Run Environment variables:
     $cloudRunEnvVars''');

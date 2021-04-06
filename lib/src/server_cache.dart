@@ -12,7 +12,7 @@ import 'package:pedantic/pedantic.dart';
 import 'package:quiver/cache.dart';
 
 import 'common_server_impl.dart' show log;
-import 'sdk_manager.dart';
+import 'sdk.dart';
 
 abstract class ServerCache {
   Future<String> get(String key);
@@ -136,8 +136,10 @@ class RedisCache implements ServerCache {
   ///
   /// We don't use the existing key directly so that different AppEngine
   /// versions using the same redis cache do not have collisions.
-  String _genKey(String key) =>
-      'server:$serverVersion:dart:${SdkManager.sdk.versionFull}:flutter:${SdkManager.sdk.flutterVersion}+$key';
+  String _genKey(String key) {
+    final sdk = Sdk();
+    return 'server:$serverVersion:dart:${sdk.versionFull}:flutter:${sdk.flutterVersion}+$key';
+  }
 
   @override
   Future<String> get(String key) async {

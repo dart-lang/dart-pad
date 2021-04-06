@@ -8,10 +8,7 @@ library services.bin;
 import 'dart:async';
 
 import 'package:dart_services/services_cloud_run.dart' as services_cloud_run;
-import 'package:dart_services/src/sdk_manager.dart';
 
 Future<void> main(List<String> args) async {
-  await SdkManager.sdk.init();
-
   return services_cloud_run.main(args);
 }

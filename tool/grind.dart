@@ -7,7 +7,7 @@ library services.grind;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:dart_services/src/sdk_manager.dart';
+import 'package:dart_services/src/sdk.dart';
 import 'package:grinder/grinder.dart';
 import 'package:grinder/grinder_files.dart';
 import 'package:grinder/src/run_utils.dart' show mergeWorkingDirectory;
@@ -21,9 +21,7 @@ Future<void> main(List<String> args) async {
 
 @Task('Make sure SDKs are appropriately initialized')
 @Depends(setupFlutterSdk)
-void sdkInit() async {
-  await SdkManager.sdk.init();
-}
+void sdkInit() {}
 
 @Task()
 void analyze() async {
@@ -85,7 +83,7 @@ final List<String> compilationArtifacts = [
     'google storage')
 @Depends(sdkInit)
 void validateStorageArtifacts() async {
-  final version = SdkManager.sdk.versionFull;
+  final version = Sdk().versionFull;
 
   const urlBase = 'https://storage.googleapis.com/compilation_artifacts/';
 
@@ -143,7 +141,7 @@ Future<void> _runDartPubGet(Directory dir) async {
   log('running dart pub get (${dir.path})');
 
   await runWithLogging(
-    path.join(SdkManager.sdk.sdkPath, 'bin', 'dart'),
+    path.join(Sdk.sdkPath, 'bin', 'dart'),
     arguments: ['pub', 'get'],
     workingDirectory: dir.path,
   );
@@ -153,7 +151,7 @@ Future<void> _runFlutterPubGet(Directory dir) async {
   log('running flutter pub get (${dir.path})');
 
   await runWithLogging(
-    path.join(SdkManager.sdk.flutterBinPath, 'flutter'),
+    path.join(Sdk.flutterBinPath, 'flutter'),
     arguments: ['pub', 'get'],
     workingDirectory: dir.path,
   );
@@ -178,7 +176,7 @@ Future<void> _buildStorageArtifacts(Directory dir) async {
 
   // run flutter pub get
   await runWithLogging(
-    path.join(flutterSdkPath, 'bin', 'flutter'),
+    path.join(Sdk.flutterSdkPath, 'bin', 'flutter'),
     arguments: ['pub', 'get'],
     workingDirectory: dir.path,
   );
@@ -214,7 +212,7 @@ Future<void> _buildStorageArtifacts(Directory dir) async {
   // Make sure flutter-sdk/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
   // is installed.
   await runWithLogging(
-    path.join(flutterSdkPath, 'bin', 'flutter'),
+    path.join(Sdk.flutterSdkPath, 'bin', 'flutter'),
     arguments: ['precache', '--web'],
     workingDirectory: dir.path,
   );
@@ -222,10 +220,10 @@ Future<void> _buildStorageArtifacts(Directory dir) async {
   // Build the artifacts using DDC:
   // dart-sdk/bin/dartdevc -s kernel/flutter_ddc_sdk.dill
   //     --modules=amd package:flutter/animation.dart ...
-  final compilerPath =
-      path.join(flutterSdkPath, 'bin', 'cache', 'dart-sdk', 'bin', 'dartdevc');
-  final dillPath = path.join(flutterSdkPath, 'bin', 'cache', 'flutter_web_sdk',
-      'flutter_web_sdk', 'kernel', 'flutter_ddc_sdk.dill');
+  final compilerPath = path.join(
+      Sdk.flutterSdkPath, 'bin', 'cache', 'dart-sdk', 'bin', 'dartdevc');
+  final dillPath = path.join(Sdk.flutterSdkPath, 'bin', 'cache',
+      'flutter_web_sdk', 'flutter_web_sdk', 'kernel', 'flutter_ddc_sdk.dill');
 
   final args = <String>[
     '-s',
@@ -247,7 +245,7 @@ Future<void> _buildStorageArtifacts(Directory dir) async {
   delete(artifactsDir);
   artifactsDir.createSync();
 
-  final sdkJsPath = path.join(flutterSdkPath,
+  final sdkJsPath = path.join(Sdk.flutterSdkPath,
       'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd-canvaskit-html/dart_sdk.js');
 
   copy(getFile(sdkJsPath), artifactsDir);
@@ -255,7 +253,7 @@ Future<void> _buildStorageArtifacts(Directory dir) async {
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
   // Emit some good google storage upload instructions.
-  final version = SdkManager.sdk.versionFull;
+  final version = Sdk().versionFull;
   log('\nFrom the dart-services project root dir, run:');
   log('  gsutil -h "Cache-Control:public, max-age=86400" cp -z js '
       'artifacts/*.js gs://compilation_artifacts/$version/');
@@ -271,7 +269,7 @@ void setupFlutterSdk() async {
 
   // Set up the  Flutter SDK the way dart-services needs it.
 
-  final flutterBinFlutter = path.join(flutterSdkPath, 'bin', 'flutter');
+  final flutterBinFlutter = path.join(Sdk.flutterSdkPath, 'bin', 'flutter');
   await runWithLogging(
     flutterBinFlutter,
     arguments: ['doctor'],

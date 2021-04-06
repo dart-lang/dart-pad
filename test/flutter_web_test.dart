@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:dart_services/src/flutter_web.dart';
-import 'package:dart_services/src/sdk_manager.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -17,7 +16,6 @@ void defineTests() {
     FlutterWebManager flutterWebManager;
 
     setUp(() async {
-      await SdkManager.sdk.init();
       flutterWebManager = FlutterWebManager();
     });
 
@@ -55,7 +53,6 @@ void defineTests() {
     FlutterWebManager flutterWebManager;
 
     setUpAll(() async {
-      await SdkManager.sdk.init();
       flutterWebManager = FlutterWebManager();
     });
 

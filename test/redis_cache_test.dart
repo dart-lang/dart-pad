@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_services/src/common_server_impl.dart';
-import 'package:dart_services/src/sdk_manager.dart';
 import 'package:dart_services/src/server_cache.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
@@ -48,7 +47,6 @@ void defineTests() {
     }
 
     setUpAll(() async {
-      await SdkManager.sdk.init();
       redisProcess = await startRedisProcessAndDrainIO(9501);
       log.onRecord.listen((LogRecord rec) {
         logMessages.add('${rec.level.name}: ${rec.time}: ${rec.message}');

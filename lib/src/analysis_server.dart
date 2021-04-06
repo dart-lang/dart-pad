@@ -18,7 +18,7 @@ import 'flutter_web.dart';
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'scheduler.dart';
-import 'sdk_manager.dart';
+import 'sdk.dart';
 import 'utils.dart' as utils;
 
 final Logger _logger = Logger('analysis_server');
@@ -35,14 +35,14 @@ const String _WARMUP_SRC = 'main() { int b = 2;  b++;   b. }';
 const Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
-  DartAnalysisServerWrapper() : super(SdkManager.sdk.sdkPath);
+  DartAnalysisServerWrapper() : super(Sdk.sdkPath);
 
   @override
   String get _sourceDirPath => FlutterWebManager.dartTemplateProject.path;
 }
 
 class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
-  FlutterAnalysisServerWrapper() : super(SdkManager.sdk.sdkPath);
+  FlutterAnalysisServerWrapper() : super(Sdk.sdkPath);
 
   @override
   String get _sourceDirPath => FlutterWebManager.flutterTemplateProject.path;
