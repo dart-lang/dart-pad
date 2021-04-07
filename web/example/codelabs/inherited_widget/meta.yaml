@@ -1,0 +1,12 @@
+name: Inherited Widget Workshop
+type: flutter # Optional
+steps:
+  - name: Welcome to the InhertiedWidget workshop
+    directory: intro
+    has_solution: false
+  - name: Define the State Data Structure
+    directory: step_01
+    has_solution: true
+  - name: Create the Inherited Widget
+    directory: step_02
+    has_solution: true
