@@ -4,6 +4,7 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 const String baseAssetURL = 'http://localhost:8000/example/codelabs/inherited_widget/assets';
 
@@ -101,7 +102,59 @@ void main() {
 }
 
 class StateData {
-  // TODO: fill in this data structure.
+  StateData({
+    required this.productList,
+    this.purchaseList = const <String>{},
+  });
+
+  List<String> productList;
+  Set<String> purchaseList;
+}
+
+class AppStateScope extends InheritedWidget {
+  AppStateScope(this.data, {required Widget child}) : super(child: child);
+
+  final StateData data;
+
+  static StateData of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppStateScope>()!.data;
+  }
+
+  @override
+  bool updateShouldNotify(AppStateScope oldWidget) {
+    return data != oldWidget.data;
+  }
+}
+
+class AppStateWidget extends StatefulWidget {
+  AppStateWidget({required this.child});
+
+  final Widget child;
+
+  static AppStateWidgetState of(BuildContext context) {
+    // TODO: implement this method
+  }
+  @override
+  AppStateWidgetState createState() => AppStateWidgetState();
+}
+
+class AppStateWidgetState extends State<AppStateWidget> {
+  StateData _data = StateData(
+    productList: Server.getProductList(),
+  );
+
+  void setProductList(List<String> newProductList) {
+    // TODO: implement this method
+  }
+
+  void setPurchaseList(Set<String> newPurchaseList) {
+    // TODO: implement this method
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement this method
+  }
 }
 
 class MySorePage extends StatefulWidget {

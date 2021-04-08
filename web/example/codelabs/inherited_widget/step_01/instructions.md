@@ -6,16 +6,16 @@ To do that, we need to find what should be considered as the app state.
 We know there are at least two components requires state, the product list
 and the cart icon.
 
-In the source code, the product list corresponds to the `ProductList` widget,
+In the source code, the product list corresponds to the `ProductListWidget` widget,
 and the cart icon corresponds to the `ShoppingCartIcon`.
 
-Let's first look at the `ProductList` widget. This widget builds the
+Let's first look at the `ProductListWidget` widget. This widget builds the
 scrollable body and display the google products. Since it needs to know what
 product to display and which products are already in the cart, the
 `ProductListState` stores the `productList` and the `purchaseList`.
 
 ```dart
-class ProductListState extends State<ProductList> {
+class ProductListWidgetState extends State<ProductListWidget> {
   List<String> get productList => _productList;
   List<String> _productList = Server.getProductList();
   set productList (List<String> value) {
@@ -55,18 +55,18 @@ class ShoppingCartIconState extends State<ShoppingCartIcon> {
 
 ```
 
-This is where things get interesting. Both `ShoppingCartIcon` and `ProductList` store their own
+This is where things get interesting. Both `ShoppingCartIcon` and `ProductListWidget` store their own
 version of `purchaseList`, and they need to be kept in sync. When the `purchaseList` is updated
-in `ProductList` widget, it also needs to update the state in `ShoppingCartIcon` widget. It can
+in `ProductListWidget` widget, it also needs to update the state in `ShoppingCartIcon` widget. It can
 become very messy quickly if there are more more widgets depends on the `purchaseList`.
 
 Now let's pull these states out of the widgets. The first thing we want to do is to define a
 data structure to store the states.
 
-Please refers to the IDE.
+Please refer to the IDE.
 
 ```dart
 class StateData {
-  // Please fill in this data structure.
+  // TODO: fill in this data structure.
 }
 ```

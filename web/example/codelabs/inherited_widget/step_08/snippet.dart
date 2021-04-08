@@ -4,6 +4,7 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 const String baseAssetURL = 'http://localhost:8000/example/codelabs/inherited_widget/assets';
 
@@ -86,24 +87,93 @@ class Product {
   final TextSpan description;
 }
 
-
-final GlobalKey<ShoppingCartIconState> shoppingCart = GlobalKey<ShoppingCartIconState>();
-final GlobalKey<ProductListWidgetState> productList = GlobalKey<ProductListWidgetState>();
-
 void main() {
   runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Store',
-      home: MySorePage(),
-    )
+      AppStateWidget(
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Store',
+            home: MySorePage(),
+          )
+      )
   );
 }
 
 class StateData {
-  // TODO: fill in this data structure.
+  StateData({
+    required this.productList,
+    this.purchaseList = const <String>{},
+  });
+
+  List<String> productList;
+  Set<String> purchaseList;
 }
 
+class AppStateScope extends InheritedWidget {
+  AppStateScope(this.data, {required Widget child}) : super(child: child);
+
+  final StateData data;
+
+  static StateData of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppStateScope>()!.data;
+  }
+
+  @override
+  bool updateShouldNotify(AppStateScope oldWidget) {
+    return data != oldWidget.data;
+  }
+}
+
+class AppStateWidget extends StatefulWidget {
+  AppStateWidget({required this.child});
+
+  final Widget child;
+
+  static AppStateWidgetState of(BuildContext context) {
+    return context.findAncestorStateOfType<AppStateWidgetState>()!;
+  }
+
+  @override
+  AppStateWidgetState createState() => AppStateWidgetState();
+}
+
+class AppStateWidgetState extends State<AppStateWidget> {
+  StateData _data = StateData(
+    productList: Server.getProductList(),
+  );
+
+  void setProductList(List<String> newProductList) {
+    if (newProductList != _data.productList) {
+      setState(() {
+        _data = StateData(
+          productList: newProductList,
+          purchaseList: _data.purchaseList,
+        );
+      });
+    }
+  }
+
+  void setPurchaseList(Set<String> newPurchaseList) {
+    if (newPurchaseList != _data.purchaseList) {
+      setState(() {
+        _data = StateData(
+          productList: _data.productList,
+          purchaseList: newPurchaseList,
+        );
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppStateScope(
+      _data,
+      child: widget.child,
+    );
+  }
+}
+
+// TODO: convert MySorePage into StatelessWidget
 class MySorePage extends StatefulWidget {
   MySorePage({Key? key}) : super(key: key);
   @override
@@ -115,19 +185,18 @@ class MySorePageState extends State<MySorePage> {
   bool _inSearch = false;
   late TextEditingController _controller;
   final FocusNode _focusNode = FocusNode();
-  void _toggleSearch() {
+  void _toggleSearch(BuildContext context) {
     setState(() {
       _inSearch = !_inSearch;
     });
-
+    AppStateWidget.of(context).setProductList(Server.getProductList());
     _controller = TextEditingController();
-    productList.currentState!.productList = Server.getProductList();
   }
 
-  void _handleSearch() {
+  void _handleSearch(BuildContext context) {
     _focusNode.unfocus();
     final String filter = _controller.text;
-    productList.currentState!.productList = Server.getProductList(filter: filter);
+    AppStateWidget.of(context).setProductList(Server.getProductList(filter: filter));
   }
 
   @override
@@ -145,23 +214,23 @@ class MySorePageState extends State<MySorePage> {
                   autofocus: true,
                   focusNode: _focusNode,
                   controller: _controller,
-                  onSubmitted: (_) => _handleSearch(),
+                  onSubmitted: (_) => _handleSearch(context),
                   decoration: InputDecoration(
                     hintText: 'Search Google Store',
-                    prefixIcon: IconButton(icon: Icon(Icons.search), onPressed: _handleSearch),
-                    suffixIcon: IconButton(icon: Icon(Icons.close), onPressed: _toggleSearch),
+                    prefixIcon: IconButton(icon: Icon(Icons.search), onPressed: () => _handleSearch(context)),
+                    suffixIcon: IconButton(icon: Icon(Icons.close), onPressed: () => _toggleSearch(context)),
                   )
                 )
               : null,
             actions: <Widget>[
-              if (!_inSearch) IconButton(onPressed: _toggleSearch, icon: Icon(Icons.search, color: Colors.black)),
-              ShoppingCartIcon(key: shoppingCart),
+              if (!_inSearch) IconButton(onPressed: () => _toggleSearch(context), icon: Icon(Icons.search, color: Colors.black)),
+              ShoppingCartIcon(),
             ],
             backgroundColor: Colors.white,
             pinned: true,
           ),
           SliverToBoxAdapter(
-            child: ProductListWidget(key: productList),
+            child: ProductListWidget(),
           ),
         ],
       ),
@@ -169,23 +238,12 @@ class MySorePageState extends State<MySorePage> {
   }
 }
 
-class ShoppingCartIcon extends StatefulWidget {
+class ShoppingCartIcon extends StatelessWidget {
   ShoppingCartIcon({Key? key}) : super(key: key);
-  @override
-  ShoppingCartIconState createState() => ShoppingCartIconState();
-}
-
-class ShoppingCartIconState extends State<ShoppingCartIcon> {
-  Set<String> get purchaseList => _purchaseList;
-  Set<String> _purchaseList = <String>{};
-  set purchaseList(Set<String> value) {
-    setState(() {
-      _purchaseList = value;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
+    final Set<String> purchaseList = AppStateScope.of(context).purchaseList;
     final bool hasPurchase = purchaseList.length > 0;
     return Stack(
       alignment: Alignment.center,
@@ -218,52 +276,36 @@ class ShoppingCartIconState extends State<ShoppingCartIcon> {
   }
 }
 
-class ProductListWidget extends StatefulWidget {
+class ProductListWidget extends StatelessWidget {
   ProductListWidget({Key? key}) : super(key: key);
-  @override
-  ProductListWidgetState createState() => ProductListWidgetState();
-}
 
-class ProductListWidgetState extends State<ProductListWidget> {
-  List<String> get productList => _productList;
-  List<String> _productList = Server.getProductList();
-  set productList (List<String> value) {
-    setState(() {
-      _productList = value;
-    });
+  void _handleAddToCart(String id, Set<String> purchaseList, BuildContext context) {
+    Set<String> newPurchaseList = Set<String>.from(purchaseList);
+    newPurchaseList.add(id);
+    AppStateWidget.of(context).setPurchaseList(newPurchaseList);
   }
 
-  Set<String> get purchaseList => _purchaseList;
-  Set<String> _purchaseList = <String>{};
-  set purchaseList(Set<String> value) {
-    setState(() {
-      _purchaseList = value;
-    });
+  void _handleRemoveFromCart(String id, Set<String> purchaseList, BuildContext context) {
+    Set<String> newPurchaseList = Set<String>.from(purchaseList);
+    newPurchaseList.remove(id);
+    AppStateWidget.of(context).setPurchaseList(newPurchaseList);
   }
 
-  void _handleAddToCart(String id) {
-    purchaseList = _purchaseList..add(id);
-    shoppingCart.currentState!.purchaseList = purchaseList;
-  }
-
-  void _handleRemoveFromCart(String id) {
-    purchaseList = _purchaseList..remove(id);
-    shoppingCart.currentState!.purchaseList = purchaseList;
-  }
-
-  Widget _buildProductTile(String id) {
+  Widget _buildProductTile(String id, BuildContext context) {
+    final Set<String> purchaseList = AppStateScope.of(context).purchaseList;
     return ProductTile(
       product: Server.getProductById(id),
       purchased: purchaseList.contains(id),
-      onAddToCart: () => _handleAddToCart(id),
-      onRemoveFromCart: () => _handleRemoveFromCart(id),
+      onAddToCart: () => _handleAddToCart(id, purchaseList, context),
+      onRemoveFromCart: () => _handleRemoveFromCart(id, purchaseList, context),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final List<String> productList = AppStateScope.of(context).productList;
     return Column(
-      children: productList.map(_buildProductTile).toList(),
+      children: productList.map((String id) =>_buildProductTile(id, context)).toList(),
     );
   }
 }

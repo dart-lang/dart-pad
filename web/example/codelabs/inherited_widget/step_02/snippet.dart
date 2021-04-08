@@ -4,6 +4,7 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 const String baseAssetURL = 'http://localhost:8000/example/codelabs/inherited_widget/assets';
 
@@ -88,20 +89,39 @@ class Product {
 
 
 final GlobalKey<ShoppingCartIconState> shoppingCart = GlobalKey<ShoppingCartIconState>();
-final GlobalKey<ProductListState> productList = GlobalKey<ProductListState>();
+final GlobalKey<ProductListWidgetState> productList = GlobalKey<ProductListWidgetState>();
 
 void main() {
   runApp(
-      MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Store',
-        home: MySorePage(),
-      )
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Store',
+      home: MySorePage(),
+    )
   );
 }
 
 class StateData {
-  // Please fill in this data structure.
+  StateData({
+    required this.productList,
+    this.purchaseList = const <String>{},
+  });
+
+  List<String> productList;
+  Set<String> purchaseList;
+}
+
+class AppStateScope extends InheritedWidget {
+  // TODO: implement this class.
+
+  static StateData of(BuildContext context) {
+    // TODO: implement this method.
+  }
+
+  @override
+  bool updateShouldNotify(AppStateScope oldWidget) {
+    // TODO: implement this method.
+  }
 }
 
 class MySorePage extends StatefulWidget {
@@ -137,22 +157,22 @@ class MySorePageState extends State<MySorePage> {
         slivers: <Widget>[
           SliverAppBar(
             leading: Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Image.network('$baseAssetURL/google-logo.png')
+              padding: EdgeInsets.all(16.0),
+              child: Image.network('$baseAssetURL/google-logo.png')
             ),
             title: _inSearch
-                ? TextField(
-                autofocus: true,
-                focusNode: _focusNode,
-                controller: _controller,
-                onSubmitted: (_) => _handleSearch(),
-                decoration: InputDecoration(
-                  hintText: 'Search Google Store',
-                  prefixIcon: IconButton(icon: Icon(Icons.search), onPressed: _handleSearch),
-                  suffixIcon: IconButton(icon: Icon(Icons.close), onPressed: _toggleSearch),
+              ? TextField(
+                  autofocus: true,
+                  focusNode: _focusNode,
+                  controller: _controller,
+                  onSubmitted: (_) => _handleSearch(),
+                  decoration: InputDecoration(
+                    hintText: 'Search Google Store',
+                    prefixIcon: IconButton(icon: Icon(Icons.search), onPressed: _handleSearch),
+                    suffixIcon: IconButton(icon: Icon(Icons.close), onPressed: _toggleSearch),
+                  )
                 )
-            )
-                : null,
+              : null,
             actions: <Widget>[
               if (!_inSearch) IconButton(onPressed: _toggleSearch, icon: Icon(Icons.search, color: Colors.black)),
               ShoppingCartIcon(key: shoppingCart),
@@ -161,7 +181,7 @@ class MySorePageState extends State<MySorePage> {
             pinned: true,
           ),
           SliverToBoxAdapter(
-            child: ProductList(key: productList),
+            child: ProductListWidget(key: productList),
           ),
         ],
       ),
@@ -218,13 +238,13 @@ class ShoppingCartIconState extends State<ShoppingCartIcon> {
   }
 }
 
-class ProductList extends StatefulWidget {
-  ProductList({Key? key}) : super(key: key);
+class ProductListWidget extends StatefulWidget {
+  ProductListWidget({Key? key}) : super(key: key);
   @override
-  ProductListState createState() => ProductListState();
+  ProductListWidgetState createState() => ProductListWidgetState();
 }
 
-class ProductListState extends State<ProductList> {
+class ProductListWidgetState extends State<ProductListWidget> {
   List<String> get productList => _productList;
   List<String> _productList = Server.getProductList();
   set productList (List<String> value) {

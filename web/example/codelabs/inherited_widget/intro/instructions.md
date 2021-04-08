@@ -26,14 +26,8 @@ Based on the functionality of this app, there are two components that
 require states.
 
 1. The cart icon needs to store how many items is in the cart.
-2. The product list view needs to store which item is already in cart, and
+2. The product list widget needs to store which item is already in cart, and
 what the search query is.
 
 This app is writing poorly without any state management. Let's see how
 we can improve this app!
-
-
-
-
-
-Click the next step button to start your journey.

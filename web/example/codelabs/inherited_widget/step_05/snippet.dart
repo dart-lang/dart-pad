@@ -4,6 +4,7 @@
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 const String baseAssetURL = 'http://localhost:8000/example/codelabs/inherited_widget/assets';
 
@@ -86,22 +87,94 @@ class Product {
   final TextSpan description;
 }
 
-
+// TODO: remove the usage of shoppingCart globalkey.
 final GlobalKey<ShoppingCartIconState> shoppingCart = GlobalKey<ShoppingCartIconState>();
 final GlobalKey<ProductListWidgetState> productList = GlobalKey<ProductListWidgetState>();
 
 void main() {
   runApp(
-    MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Store',
-      home: MySorePage(),
-    )
+      AppStateWidget(
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            title: 'Store',
+            home: MySorePage(),
+          )
+      )
   );
 }
 
 class StateData {
-  // TODO: fill in this data structure.
+  StateData({
+    required this.productList,
+    this.purchaseList = const <String>{},
+  });
+
+  List<String> productList;
+  Set<String> purchaseList;
+}
+
+class AppStateScope extends InheritedWidget {
+  AppStateScope(this.data, {required Widget child}) : super(child: child);
+
+  final StateData data;
+
+  static StateData of(BuildContext context) {
+    return context.dependOnInheritedWidgetOfExactType<AppStateScope>()!.data;
+  }
+
+  @override
+  bool updateShouldNotify(AppStateScope oldWidget) {
+    return data != oldWidget.data;
+  }
+}
+
+class AppStateWidget extends StatefulWidget {
+  AppStateWidget({required this.child});
+
+  final Widget child;
+
+  static AppStateWidgetState of(BuildContext context) {
+    return context.findAncestorStateOfType<AppStateWidgetState>()!;
+  }
+
+  @override
+  AppStateWidgetState createState() => AppStateWidgetState();
+}
+
+class AppStateWidgetState extends State<AppStateWidget> {
+  StateData _data = StateData(
+    productList: Server.getProductList(),
+  );
+
+  void setProductList(List<String> newProductList) {
+    if (newProductList != _data.productList) {
+      setState(() {
+        _data = StateData(
+          productList: newProductList,
+          purchaseList: _data.purchaseList,
+        );
+      });
+    }
+  }
+
+  void setPurchaseList(Set<String> newPurchaseList) {
+    if (newPurchaseList != _data.purchaseList) {
+      setState(() {
+        _data = StateData(
+          productList: _data.productList,
+          purchaseList: newPurchaseList,
+        );
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AppStateScope(
+      _data,
+      child: widget.child,
+    );
+  }
 }
 
 class MySorePage extends StatefulWidget {
@@ -169,6 +242,7 @@ class MySorePageState extends State<MySorePage> {
   }
 }
 
+// TODO: convert ShoppingCartIcon into StatelessWidget.
 class ShoppingCartIcon extends StatefulWidget {
   ShoppingCartIcon({Key? key}) : super(key: key);
   @override
