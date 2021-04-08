@@ -25,7 +25,8 @@ final Logger _logger = Logger('services');
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addOption('port', abbr: 'p')
-    ..addOption('redis-url');
+    ..addOption('redis-url')
+    ..addFlag('null-safety');
   final results = parser.parse(args);
 
   // Cloud Run supplies the port to bind to in the environment.
@@ -39,6 +40,7 @@ Future<void> main(List<String> args) async {
   }
 
   final redisServerUri = results['redis-url'] as String;
+  final nullSafety = results['null-safety'] as bool;
 
   Logger.root.level = Level.FINER;
   Logger.root.onRecord.listen((LogRecord record) {
@@ -55,16 +57,18 @@ Future<void> main(List<String> args) async {
     port: $port
     sdkPath: ${Sdk.sdkPath}
     redisServerUri: $redisServerUri
+    nullSafety: $nullSafety
     Cloud Run Environment variables:
     $cloudRunEnvVars''');
 
-  final server = await EndpointsServer.serve(port, redisServerUri);
+  final server = await EndpointsServer.serve(port, redisServerUri, nullSafety);
   _logger.info('Listening on port ${server.port}');
 }
 
 class EndpointsServer {
-  static Future<EndpointsServer> serve(int port, String redisServerUri) async {
-    final endpointsServer = EndpointsServer._(port, redisServerUri);
+  static Future<EndpointsServer> serve(
+      int port, String redisServerUri, bool nullSafety) async {
+    final endpointsServer = EndpointsServer._(port, redisServerUri, nullSafety);
 
     await endpointsServer.init();
     endpointsServer.server = await shelf.serve(
@@ -86,7 +90,7 @@ class EndpointsServer {
   CommonServerImpl _commonServerImpl;
   FlutterWebManager flutterWebManager;
 
-  EndpointsServer._(this.port, this.redisServerUri) {
+  EndpointsServer._(this.port, this.redisServerUri, bool nullSafety) {
     _commonServerImpl = CommonServerImpl(
       _ServerContainer(),
       redisServerUri == null
@@ -97,6 +101,7 @@ class EndpointsServer {
               // https://cloud.google.com/run/docs/reference/container-contract#env-vars
               Platform.environment['K_REVISION'],
             ),
+      nullSafety,
     );
     commonServerApi = CommonServerApi(_commonServerImpl);
 

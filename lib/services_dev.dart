@@ -26,8 +26,7 @@ void main(List<String> args) {
   parser
     ..addOption('port', abbr: 'p', defaultsTo: '8080')
     ..addOption('server-url', defaultsTo: 'http://localhost')
-    ..addOption('proxy-target',
-        help: 'URL base to proxy compilation requests to');
+    ..addFlag('null-safety');
 
   final result = parser.parse(args);
   final port = int.tryParse(result['port'] as String);
@@ -43,15 +42,15 @@ void main(List<String> args) {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  EndpointsServer.serve(port, result['proxy-target'] as String)
+  EndpointsServer.serve(port, result['null-safety'] as bool)
       .then((EndpointsServer server) {
     _logger.info('Listening on port ${server.port}');
   });
 }
 
 class EndpointsServer {
-  static Future<EndpointsServer> serve(int port, String proxyTarget) {
-    final endpointsServer = EndpointsServer._(port, proxyTarget);
+  static Future<EndpointsServer> serve(int port, bool nullSafety) {
+    final endpointsServer = EndpointsServer._(port, nullSafety);
 
     return shelf
         .serve(endpointsServer.handler, InternetAddress.anyIPv4, port)
@@ -63,7 +62,6 @@ class EndpointsServer {
 
   final int port;
   HttpServer server;
-  final String proxyTarget;
 
   Pipeline pipeline;
   Handler handler;
@@ -71,13 +69,12 @@ class EndpointsServer {
   CommonServerApi commonServerApi;
   FlutterWebManager flutterWebManager;
 
-  EndpointsServer._(this.port, this.proxyTarget) {
-    final commonServerImpl = (proxyTarget != null && proxyTarget.isNotEmpty)
-        ? CommonServerImplProxy(proxyTarget)
-        : CommonServerImpl(
-            _ServerContainer(),
-            _Cache(),
-          );
+  EndpointsServer._(this.port, bool nullSafety) {
+    final commonServerImpl = CommonServerImpl(
+      _ServerContainer(),
+      _Cache(),
+      nullSafety,
+    );
     commonServerApi = CommonServerApi(commonServerImpl);
     commonServerImpl.init();
 

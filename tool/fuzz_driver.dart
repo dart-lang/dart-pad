@@ -123,17 +123,17 @@ Future<void> setupTools(String sdkPath) async {
 
   container = MockContainer();
   cache = MockCache();
-  commonServerImpl = CommonServerImpl(container, cache);
+  commonServerImpl = CommonServerImpl(container, cache, false);
   await commonServerImpl.init();
 
-  analysisServer = analysis_server.DartAnalysisServerWrapper();
+  analysisServer = analysis_server.DartAnalysisServerWrapper(false);
   await analysisServer.init();
 
   print('Warming up analysis server');
   await analysisServer.warmup();
 
   print('Warming up compiler');
-  compiler = comp.Compiler(Sdk());
+  compiler = comp.Compiler(Sdk(), false);
   await compiler.warmup();
   print('SetupTools done');
 }

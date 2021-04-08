@@ -8,16 +8,29 @@ import 'package:path/path.dart' as path;
 
 /// Support for handling Flutter web snippets.
 class FlutterWebManager {
-  static final Directory flutterTemplateProject = Directory(path.join(
-      Directory.current.path, 'project_templates', 'flutter_project'));
+  static Directory flutterTemplateProject(bool nullSafety) =>
+      Directory(path.join(
+        Directory.current.path,
+        'project_templates',
+        nullSafety ? 'null-safe' : 'null-unsafe',
+        'flutter_project',
+      ));
 
-  static final Directory dartTemplateProject = Directory(
-      path.join(Directory.current.path, 'project_templates', 'dart_project'));
+  static Directory dartTemplateProject(bool nullSafety) => Directory(path.join(
+        Directory.current.path,
+        'project_templates',
+        nullSafety ? 'null-safe' : 'null-unsafe',
+        'dart_project',
+      ));
 
   FlutterWebManager();
 
-  String get summaryFilePath {
-    return path.join('artifacts', 'flutter_web.dill');
+  String summaryFilePath(bool nullSafety) {
+    return path.join(
+      'artifacts',
+      nullSafety ? 'null-safe' : 'null-unsafe',
+      'flutter_web.dill',
+    );
   }
 
   static const Set<String> _flutterWebImportPrefixes = {

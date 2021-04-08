@@ -20,7 +20,8 @@ import 'pub.dart';
 final Logger _logger = Logger('analysis_servers');
 
 class AnalysisServersWrapper {
-  AnalysisServersWrapper();
+  AnalysisServersWrapper(this._nullSafety);
+  final bool _nullSafety;
 
   FlutterWebManager _flutterWebManager;
   DartAnalysisServerWrapper _dartAnalysisServer;
@@ -44,9 +45,9 @@ class AnalysisServersWrapper {
 
   Future<void> warmup() async {
     _logger.info('Beginning AnalysisServersWrapper init().');
-    _dartAnalysisServer = DartAnalysisServerWrapper();
+    _dartAnalysisServer = DartAnalysisServerWrapper(_nullSafety);
     _flutterWebManager = FlutterWebManager();
-    _flutterAnalysisServer = FlutterAnalysisServerWrapper();
+    _flutterAnalysisServer = FlutterAnalysisServerWrapper(_nullSafety);
 
     await _dartAnalysisServer.init();
     _logger.info('Dart analysis server initialized.');

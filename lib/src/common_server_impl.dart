@@ -37,6 +37,7 @@ abstract class ServerContainer {
 class CommonServerImplProxy implements CommonServerImpl {
   const CommonServerImplProxy(this._proxyTarget);
   final String _proxyTarget;
+  final bool _nullSafety = false;
 
   Future<R> _postToProxy<R extends $pb.GeneratedMessage>(
       String url, $pb.GeneratedMessage request, R responseProto) async {
@@ -163,6 +164,7 @@ final JsonEncoder _jsonEncoder = const JsonEncoder.withIndent('  ');
 class CommonServerImpl {
   final ServerContainer _container;
   final ServerCache _cache;
+  final bool _nullSafety;
 
   Compiler _compiler;
   AnalysisServersWrapper _analysisServers;
@@ -175,6 +177,7 @@ class CommonServerImpl {
   CommonServerImpl(
     this._container,
     this._cache,
+    this._nullSafety,
   ) {
     hierarchicalLoggingEnabled = true;
     log.level = Level.ALL;
@@ -182,8 +185,8 @@ class CommonServerImpl {
 
   Future<void> init() async {
     log.info('Beginning CommonServer init().');
-    _analysisServers = AnalysisServersWrapper();
-    _compiler = Compiler(Sdk());
+    _analysisServers = AnalysisServersWrapper(_nullSafety);
+    _compiler = Compiler(Sdk(), _nullSafety);
 
     await _compiler.warmup();
     await _analysisServers.warmup();

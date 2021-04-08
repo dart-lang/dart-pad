@@ -90,7 +90,7 @@ void defineTests() {
     setUpAll(() async {
       container = MockContainer();
       cache = MockCache();
-      commonServerImpl = CommonServerImpl(container, cache);
+      commonServerImpl = CommonServerImpl(container, cache, false);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 

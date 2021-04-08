@@ -35,17 +35,21 @@ const String _WARMUP_SRC = 'main() { int b = 2;  b++;   b. }';
 const Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
-  DartAnalysisServerWrapper() : super(Sdk.sdkPath);
+  DartAnalysisServerWrapper(this._nullSafety) : super(Sdk.sdkPath);
+  final bool _nullSafety;
 
   @override
-  String get _sourceDirPath => FlutterWebManager.dartTemplateProject.path;
+  String get _sourceDirPath =>
+      FlutterWebManager.dartTemplateProject(_nullSafety).path;
 }
 
 class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
-  FlutterAnalysisServerWrapper() : super(Sdk.sdkPath);
+  FlutterAnalysisServerWrapper(this._nullSafety) : super(Sdk.sdkPath);
+  final bool _nullSafety;
 
   @override
-  String get _sourceDirPath => FlutterWebManager.flutterTemplateProject.path;
+  String get _sourceDirPath =>
+      FlutterWebManager.flutterTemplateProject(_nullSafety).path;
 }
 
 abstract class AnalysisServerWrapper {
