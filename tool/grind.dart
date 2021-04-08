@@ -506,7 +506,7 @@ void updateDependenciesFile({
   final pubSpecLockContents = pubspecLock.contents as YamlMap;
   final packages = pubSpecLockContents['packages'] as YamlMap;
   final packageVersions = <String, String>{};
-  final flutterPackages = [
+  const flutterPackages = [
     'flutter',
     'flutter_test',
     'flutter_web_plugins',
