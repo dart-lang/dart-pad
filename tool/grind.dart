@@ -5,6 +5,7 @@
 library services.grind;
 
 import 'dart:async';
+import 'dart:convert' show jsonDecode, jsonEncode;
 import 'dart:io';
 
 import 'package:dart_services/src/sdk.dart';
@@ -14,6 +15,7 @@ import 'package:grinder/src/run_utils.dart' show mergeWorkingDirectory;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:yaml/yaml.dart';
 
 Future<void> main(List<String> args) async {
   return grind(args);
@@ -126,8 +128,12 @@ void buildProjectTemplates() async {
     final flutterProjectPath = Directory(path.join(templatesPath.path,
         nullSafety ? 'null-safe' : 'null-unsafe', 'flutter_project'));
     final flutterProjectDir = await flutterProjectPath.create(recursive: true);
-    joinFile(flutterProjectDir, ['pubspec.yaml']).writeAsStringSync(
-        createPubspec(includeFlutterWeb: true, nullSafety: nullSafety));
+    final flutterPubspec = createPubspec(
+        includeFlutterWeb: true,
+        nullSafety: nullSafety,
+        dependencies: _parsePubDependenciesFile(nullSafety: nullSafety));
+    joinFile(flutterProjectDir, ['pubspec.yaml'])
+        .writeAsStringSync(flutterPubspec);
     await _runFlutterPubGet(flutterProjectDir);
     // TODO(gspencergoog): Convert this to use the flutter recommended lints as
     // soon as those are finalized (the current proposal is to leave the
@@ -181,8 +187,10 @@ void buildStorageArtifacts() async {
 }
 
 Future<String> _buildStorageArtifacts(Directory dir, bool nullSafety) async {
-  final pubspec =
-      createPubspec(includeFlutterWeb: true, nullSafety: nullSafety);
+  final pubspec = createPubspec(
+      includeFlutterWeb: true,
+      nullSafety: nullSafety,
+      dependencies: _parsePubDependenciesFile(nullSafety: nullSafety));
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
   // run flutter pub get
@@ -395,25 +403,27 @@ Future<void> runWithLogging(String executable,
 
 const String _samplePackageName = 'dartpad_sample';
 
-String createPubspec({
-  @required bool includeFlutterWeb,
-  @required bool nullSafety,
-}) {
-  // Mark the samples as not null safe.
+String createPubspec(
+    {@required bool includeFlutterWeb,
+    @required bool nullSafety,
+    Map<String, String> dependencies = const {}}) {
   var content = '''
 name: $_samplePackageName
 environment:
   sdk: '>=${nullSafety ? '2.12.0' : '2.10.0'} <3.0.0'
+dependencies:
 ''';
 
   if (includeFlutterWeb) {
     content += '''
-dependencies:
   flutter:
     sdk: flutter
   flutter_test:
     sdk: flutter
 ''';
+    dependencies.forEach((name, version) {
+      content += '  $name: $version\n';
+    });
   }
 
   return content;
@@ -454,4 +464,90 @@ linter:
     - valid_regexps
     - void_checks
 ''';
+}
+
+@Task('Update pubspec dependency versions')
+void updatePubDependencies() async {
+  for (final nullSafety in [false, true]) {
+    await updateDependenciesFile(nullSafety: nullSafety);
+  }
+}
+
+/// Updates the "dependencies file".
+///
+/// The new set of dependency packages, and their version numbers, is determined
+/// by resolving versions of direct and indirect dependencies of a Flutter web
+/// app with Firebase plugins in a scratch pub package.
+///
+/// See [_pubDependenciesFile] for the location of the dependencies files.
+void updateDependenciesFile({
+  @required bool nullSafety,
+}) async {
+  final tempDir = Directory.systemTemp.createTempSync('pubspec-scratch');
+  final pubspec = createPubspec(
+    includeFlutterWeb: true,
+    nullSafety: nullSafety,
+    dependencies: {
+      // These are all of the web-enabled plugins found at
+      // https://firebase.flutter.dev/.
+      'cloud_functions': 'any',
+      'cloud_firestore': 'any',
+      'firebase_analytics': 'any',
+      'firebase_auth': 'any',
+      'firebase_core': 'any',
+      'firebase_messaging': 'any',
+      'firebase_storage': 'any',
+    },
+  );
+  joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
+  await _runFlutterPubGet(tempDir);
+  final pubspecLock =
+      loadYamlDocument(joinFile(tempDir, ['pubspec.lock']).readAsStringSync());
+  final pubSpecLockContents = pubspecLock.contents as YamlMap;
+  final packages = pubSpecLockContents['packages'] as YamlMap;
+  final packageVersions = <String, String>{};
+  final flutterPackages = [
+    'flutter',
+    'flutter_test',
+    'flutter_web_plugins',
+    'sky_engine',
+  ];
+
+  packages.forEach((name_, package_) {
+    final name = name_ as String;
+    if (flutterPackages.contains(name)) {
+      return;
+    }
+    final package = package_ as YamlMap;
+    final source = package['source'];
+    if (source is! String || source != 'hosted') {
+      fail('$name is not hosted: "$source" (${source.runtimeType})');
+    }
+    final version = package['version'];
+    if (version is String) {
+      packageVersions[name] = version;
+    } else {
+      fail('$name does not have a well-formatted version: $version');
+    }
+  });
+
+  _pubDependenciesFile(nullSafety: nullSafety)
+      .writeAsStringSync(jsonEncode(packageVersions));
+}
+
+/// Returns the File containing the pub dependencies and their version numbers.
+///
+/// The null safe file is at `tool/pub_dependencies_null-safe.json`. The null
+/// unsafe file is at `tool/pub_dependencies_null-unsafe.json`.
+File _pubDependenciesFile({@required bool nullSafety}) {
+  final versionsFileName =
+      'pub_dependencies_${nullSafety ? 'null-safe' : 'null-unsafe'}.json';
+  return File(path.join(Directory.current.path, 'tool', versionsFileName));
+}
+
+/// Parses [_pubDependenciesFile] as a JSON Map of Strings.
+Map<String, String> _parsePubDependenciesFile({@required bool nullSafety}) {
+  final packageVersions = jsonDecode(
+      _pubDependenciesFile(nullSafety: nullSafety).readAsStringSync()) as Map;
+  return packageVersions.cast<String, String>();
 }
