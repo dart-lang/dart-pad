@@ -50,18 +50,6 @@ Future<void> serveNullSafety() async {
       arguments: ['bin/server_dev.dart', '--port', '8084', '--null-safety']);
 }
 
-@Task()
-@Depends(buildStorageArtifacts)
-Future<void> serveWithProxyTarget() async {
-  await runWithLogging(Platform.executable, arguments: [
-    'bin/server_dev.dart',
-    '--port',
-    '8082',
-    '--proxy-target',
-    'https://v1.api.dartpad.dev/'
-  ]);
-}
-
 const _dartImageName = 'google/dart';
 final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
 const _dockerFileName = 'cloud_run.Dockerfile';
