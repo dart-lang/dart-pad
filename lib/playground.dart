@@ -253,12 +253,15 @@ class Playground implements GistContainer, GistController {
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => _showKeyboardDialog());
-    nullSafetyEnabled = window.localStorage.containsKey('null_safety') &&
-        window.localStorage['null_safety'] == 'true';
 
-    // Override if a query parameter is provided
+    // Query params have higher precedence than local storage
     if (queryParams.hasNullSafety) {
       nullSafetyEnabled = queryParams.nullSafety;
+    } else if (window.localStorage.containsKey('null_safety')) {
+      nullSafetyEnabled = window.localStorage['null_safety'] == 'true';
+    } else {
+      // Default to null safety
+      nullSafetyEnabled = true;
     }
 
     nullSafetySwitch = MDCSwitch(querySelector('#null-safety-switch'))
