@@ -5,7 +5,7 @@
 library services.grind;
 
 import 'dart:async';
-import 'dart:convert' show jsonDecode, jsonEncode;
+import 'dart:convert' show jsonDecode, JsonEncoder;
 import 'dart:io';
 
 import 'package:dart_services/src/sdk.dart';
@@ -467,6 +467,7 @@ linter:
 }
 
 @Task('Update pubspec dependency versions')
+@Depends(sdkInit)
 void updatePubDependencies() async {
   for (final nullSafety in [false, true]) {
     await updateDependenciesFile(nullSafety: nullSafety);
@@ -532,8 +533,11 @@ void updateDependenciesFile({
   });
 
   _pubDependenciesFile(nullSafety: nullSafety)
-      .writeAsStringSync(jsonEncode(packageVersions));
+      .writeAsStringSync(_jsonEncoder.convert(packageVersions));
 }
+
+/// An encoder which indents nested elements by two spaces.
+const JsonEncoder _jsonEncoder = JsonEncoder.withIndent('  ');
 
 /// Returns the File containing the pub dependencies and their version numbers.
 ///
