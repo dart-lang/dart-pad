@@ -16,6 +16,7 @@ import 'editing/editor_codemirror.dart';
 import 'elements/button.dart';
 import 'elements/console.dart';
 import 'elements/counter.dart';
+import 'elements/dialog.dart';
 import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
 import 'modules/codemirror_module.dart';
@@ -47,8 +48,10 @@ class CodelabUi {
   DElement nextStepButton;
   Console _console;
   MDCButton runButton;
+  MDCButton showSolutionButton;
   MaterialTabController consolePanelTabController;
   Counter unreadConsoleCounter;
+  Dialog dialog;
 
   CodelabUi() {
     _init();
@@ -65,6 +68,7 @@ class CodelabUi {
   IFrameElement get _frame => querySelector('#frame') as IFrameElement;
 
   Future<void> _init() async {
+    _initDialogs();
     await _loadCodelab();
     _initHeader();
     _updateInstructions();
@@ -88,6 +92,10 @@ class CodelabUi {
     modules.register(CodeMirrorModule());
 
     await modules.start();
+  }
+
+  void _initDialogs() {
+    dialog = Dialog();
   }
 
   void _initEditor() {
@@ -165,6 +173,7 @@ class CodelabUi {
       _updateInstructions();
       _updateStepButtons();
       _updateCode();
+      _updateSolutionButton();
     });
   }
 
@@ -176,9 +185,20 @@ class CodelabUi {
 
   void _initButtons() {
     runButton = MDCButton(querySelector('#run-button') as ButtonElement)
-      ..onClick.listen((_) {
-        _handleRun();
-      });
+      ..onClick.listen((_) => _handleRun());
+
+    showSolutionButton =
+        MDCButton(querySelector('#show-solution-btn') as ButtonElement)
+          ..onClick.listen((_) => _handleShowSolution());
+  }
+
+  void _updateSolutionButton() {
+    if (_codelabState.currentStep.solution == null) {
+      showSolutionButton.element.style.visibility = 'hidden';
+    } else {
+      showSolutionButton.element.style.visibility = null;
+    }
+    showSolutionButton.disabled = false;
   }
 
   void _updateCode() {
@@ -326,6 +346,17 @@ class CodelabUi {
     var div = querySelector('.mdc-snackbar');
     var snackbar = MDCSnackbar(div)..labelText = message;
     snackbar.open();
+  }
+
+  Future<void> _handleShowSolution() async {
+    var result = await dialog.showOkCancel(
+        'Show solution',
+        'Are you sure you want to show the solution? Your changes for this '
+            'step will be lost.');
+    if (result == DialogResult.ok) {
+      editor.document.updateValue(_codelabState.currentStep.solution);
+      showSolutionButton.disabled = true;
+    }
   }
 }
 

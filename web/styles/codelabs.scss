@@ -85,6 +85,17 @@ section.main-section {
 }
 
 // Steps panel
+#steps-row {
+  @include layout-horizontal();
+  @include layout-center();
+  @include layout-relative();
+  width: 100%;
+}
+
+#show-solution-btn {
+  margin: 8px;
+}
+
 #steps-panel {
   @include layout-vertical();
   @include layout-center();
@@ -98,6 +109,8 @@ section.main-section {
 #step-button-container {
   @include layout-horizontal();
   @include layout-center();
+  @include layout-flex();
+  @include layout-center-justified();
 }
 
 #steps-label {
