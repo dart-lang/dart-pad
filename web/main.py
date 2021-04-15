@@ -13,6 +13,7 @@ if __name__ == '__main__':
 # Files that the server is allowed to serve. Additional static files are
 # served via directives in app.yaml.
 VALID_FILES = [
+    'codelabs.html',
     'dark_mode.js',
     'dart-192.png',
     'embed-dart.html',
