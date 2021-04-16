@@ -50,7 +50,6 @@ import 'util/detect_flutter.dart';
 import 'util/keymap.dart';
 import 'util/query_params.dart' show queryParams;
 
-
 Playground get playground => _playground;
 
 Playground _playground;

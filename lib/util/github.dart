@@ -8,6 +8,6 @@ String extractGitHubResponseBody(String githubResponse) {
   // characters ('\n') included.
   final contentJson = json.decode(githubResponse);
   final encodedContentStr =
-  contentJson['content'].toString().replaceAll('\n', '');
+      contentJson['content'].toString().replaceAll('\n', '');
   return utf8.decode(base64.decode(encodedContentStr));
 }
