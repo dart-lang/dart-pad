@@ -32,8 +32,6 @@ CodelabUi _codelabUi;
 
 CodelabUi get codelabUi => _codelabUi;
 
-IFrameElement get _frame => querySelector('#frame') as IFrameElement;
-
 void init() {
   _codelabUi = CodelabUi();
 }
