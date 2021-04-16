@@ -1,7 +1,7 @@
 # Migrate MySorePage
 
-Now we have successfully migrate the app to a centralized state management system.
-However, there is still one StatefulWidget that still contains its own state. That is
+Now we have successfully migrate the app to use a centralized state management system.
+However, there is still one StatefulWidget that contains its own state. That is
 `MySorePage` widget.
 
 This widget keeps track of whether it is in a search mode and `TextField` related

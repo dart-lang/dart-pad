@@ -10,7 +10,7 @@ In the source code, the product list corresponds to the `ProductListWidget` widg
 and the cart icon corresponds to the `ShoppingCartIcon`.
 
 Let's first look at the `ProductListWidget` widget. This widget builds the
-scrollable body and display the google products. Since it needs to know what
+scrollable body and displays the google products. Since it needs to know what
 product to display and which products are already in the cart, the
 `ProductListState` stores the `productList` and the `purchaseList`.
 
@@ -58,12 +58,12 @@ class ShoppingCartIconState extends State<ShoppingCartIcon> {
 This is where things get interesting. Both `ShoppingCartIcon` and `ProductListWidget` store their own
 version of `purchaseList`, and they need to be kept in sync. When the `purchaseList` is updated
 in `ProductListWidget` widget, it also needs to update the state in `ShoppingCartIcon` widget. It can
-become very messy quickly if there are more more widgets depends on the `purchaseList`.
+can get out of hand very quickly if we were to add more widgets that depends on the `purchaseList`
+in the future.
 
-Now let's pull these states out of the widgets. The first thing we want to do is to define a
-data structure to store the states.
+Now let's pull these states out of the widgets.
 
-Please refer to the IDE.
+You can find the class by searching `TODO` in the IDE
 
 ```dart
 class StateData {
