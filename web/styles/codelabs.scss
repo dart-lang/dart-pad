@@ -104,6 +104,12 @@ section.main-section {
 #markdown-content {
   @include layout-flex();
   width: 100%;
+  overflow-y: auto;
+
+  > * {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
 }
 
 #step-button-container {

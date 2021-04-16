@@ -27,6 +27,7 @@ import 'services/dartservices.dart';
 import 'services/execution.dart';
 import 'services/execution_iframe.dart';
 import 'src/ga.dart';
+import 'hljs.dart' as hljs;
 
 CodelabUi _codelabUi;
 
@@ -237,6 +238,7 @@ class CodelabUi {
     div.children.clear();
     div.innerHtml =
         markdown.markdownToHtml(_codelabState.currentStep.instructions);
+    hljs.highlightAll();
   }
 
   void _updateStepButtons() {
