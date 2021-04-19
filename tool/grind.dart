@@ -113,7 +113,8 @@ serveCustomBackend() async {
 
 @Task('Build the `web/index.html` entrypoint')
 build() {
-  PubApp.local('build_runner').run(['build', '-r', '-o', 'web:build']);
+  PubApp.local('build_runner')
+      .run(['build', '-r', '-o', 'web:build', '--delete-conflicting-outputs']);
 
   var mainFile = _buildDir.join('scripts/playground.dart.js');
   log('$mainFile compiled to ${_printSize(mainFile)}');
