@@ -17,14 +17,6 @@ const nullSafetyServerUrl = 'https://nullsafety.api.dartpad.dev/';
 const Duration serviceCallTimeout = Duration(seconds: 10);
 const Duration longServiceCallTimeout = Duration(seconds: 60);
 
-class StringTextProvider {
-  final String _text;
-
-  StringTextProvider(this._text);
-
-  String getText() => _text;
-}
-
 class Lines {
   final _starts = <int>[];
 
