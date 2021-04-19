@@ -74,7 +74,7 @@ serveLocalAppEngine() async {
 const String backendVariable = 'DARTPAD_BACKEND';
 
 @Task(
-    'Serve locally on port 8002 and use backend from $backendVariable environment variable')
+    'Serve locally on port 8082 and use backend from $backendVariable environment variable')
 @Depends(build)
 serveCustomBackend() async {
   if (!Platform.environment.containsKey(backendVariable)) {
@@ -83,10 +83,10 @@ serveCustomBackend() async {
   }
 
   final serverUrl =
-      Platform.environment[backendVariable] ?? 'http://localhost:8002';
+      Platform.environment[backendVariable] ?? 'http://localhost:8082';
 
   // In all files *.dart.js in build/scripts/, replace
-  // 'https://dart-services.appspot.com' with serverUrl.
+  // 'https://v1.api.dartpad.dev' with serverUrl.
   final files = <FileSystemEntity>[];
   files.addAll(_buildDir.join('scripts').asDirectory.listSync());
   for (var entity in files) {
@@ -99,7 +99,7 @@ serveCustomBackend() async {
 
     var fileContents = file.readAsStringSync();
     fileContents =
-        fileContents.replaceAll('https://dart-services.appspot.com', serverUrl);
+        fileContents.replaceAll('https://v1.api.dartpad.dev', serverUrl);
     file.writeAsStringSync(fileContents);
   }
 

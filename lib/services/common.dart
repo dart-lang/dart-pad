@@ -11,8 +11,14 @@ const serverUrl = 'https://v1.api.dartpad.dev/';
 const nullSafetyServerUrl = 'https://nullsafety.api.dartpad.dev/';
 
 // A URL to use while debugging.
-// final serverUrl = 'http://127.0.0.1:8082/';
-// const nullSafetyServerUrl = 'http://127.0.0.1:8082/';
+// const serverUrl = 'http://127.0.0.1:8082/';
+// const nullSafetyServerUrl = 'http://127.0.0.1:8084/';
+
+// Alternate versions for development purposes
+// const serverUrl = 'https://old.api.dartpad.dev/';
+// const serverUrl = 'https://stable.api.dartpad.dev/';
+// const serverUrl = 'https://beta.api.dartpad.dev/';
+// const serverUrl = 'https://dev.api.dartpad.dev/';
 
 const Duration serviceCallTimeout = Duration(seconds: 10);
 const Duration longServiceCallTimeout = Duration(seconds: 60);
