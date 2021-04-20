@@ -22,6 +22,7 @@ import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'documentation.dart';
+import 'editing/codemirror_options.dart';
 import 'editing/editor.dart';
 import 'elements/analysis_results_controller.dart';
 import 'elements/bind.dart';
@@ -48,25 +49,6 @@ import 'src/util.dart';
 import 'util/detect_flutter.dart';
 import 'util/keymap.dart';
 import 'util/query_params.dart' show queryParams;
-
-const codeMirrorOptions = {
-  'continueComments': {'continueLineComment': false},
-  'autofocus': false,
-  'autoCloseBrackets': true,
-  'matchBrackets': true,
-  'tabSize': 2,
-  'lineWrapping': true,
-  'indentUnit': 2,
-  'cursorHeight': 0.85,
-  'viewportMargin': 100,
-  'extraKeys': {
-    'Cmd-/': 'toggleComment',
-    'Ctrl-/': 'toggleComment',
-    'Tab': 'insertSoftTab'
-  },
-  'hintOptions': {'completeSingle': false},
-  'scrollbarStyle': 'simple',
-};
 
 Playground get playground => _playground;
 
