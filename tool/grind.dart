@@ -9,6 +9,7 @@ library dart_pad.grind;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dart_pad/services/common.dart';
 import 'package:git/git.dart';
 import 'package:grinder/grinder.dart';
 import 'package:yaml/yaml.dart' as yaml;
@@ -71,38 +72,15 @@ serveLocalAppEngine() async {
   });
 }
 
-const String backendVariable = 'DARTPAD_BACKEND';
-
-@Task(
-    'Serve locally on port 8082 and use backend from $backendVariable environment variable')
-@Depends(build)
-serveCustomBackend() async {
-  if (!Platform.environment.containsKey(backendVariable)) {
-    print('$backendVariable can be specified (as [http|https]://host[:port]) '
-        'to indicate the dart-services server to connect to');
-  }
-
-  final serverUrl =
-      Platform.environment[backendVariable] ?? 'http://localhost:8082';
-
-  // In all files *.dart.js in build/scripts/, replace
-  // 'https://v1.api.dartpad.dev' with serverUrl.
-  final files = <FileSystemEntity>[];
-  files.addAll(_buildDir.join('scripts').asDirectory.listSync());
-  for (var entity in files) {
-    if (entity is! File) continue;
-    if (!entity.path.endsWith('.dart.js')) continue;
-
-    final file = entity as File;
-
-    log('Rewriting server url to $serverUrl for ${file.path}');
-
-    var fileContents = file.readAsStringSync();
-    fileContents =
-        fileContents.replaceAll('https://v1.api.dartpad.dev', serverUrl);
-    file.writeAsStringSync(fileContents);
-  }
-
+@Task('Serve locally on port 8000 and use local server URLs')
+@Depends(ConstTaskInvocation(
+  'build',
+  ConstTaskArgs('build', flags: {}, options: {
+    _preNullSafetyServerUrlOption: 'http://127.0.0.1:8082/',
+    _nullSafetyServerUrlOption: 'http://127.0.0.1:8084/',
+  }),
+))
+serveLocalBackend() async {
   log('\nServing dart-pad on http://localhost:8000');
 
   await Process.start(Platform.executable, ['bin/serve.dart'])
@@ -111,10 +89,35 @@ serveCustomBackend() async {
   });
 }
 
+/// A grinder option which specifies the URL of the pre-null safety back-end
+/// server.
+const _preNullSafetyServerUrlOption = 'pre-null-safety-server-url';
+
+/// A grinder option which specifies the URL of the null safety back-end
+/// server.
+const _nullSafetyServerUrlOption = 'null-safety-server-url';
+
 @Task('Build the `web/index.html` entrypoint')
 build() {
-  PubApp.local('build_runner')
-      .run(['build', '-r', '-o', 'web:build', '--delete-conflicting-outputs']);
+  var args = context.invocation.arguments;
+  var dart2jsArgs = {
+    if (args.hasOption(_preNullSafetyServerUrlOption))
+      preNullSafetyServerUrlEnvironmentVar:
+          args.getOption(_preNullSafetyServerUrlOption),
+    if (args.hasOption(_nullSafetyServerUrlOption))
+      nullSafetyServerUrlEnvironmentVar:
+          args.getOption(_nullSafetyServerUrlOption),
+  };
+  PubApp.local('build_runner').run([
+    'build',
+    '-r',
+    if (dart2jsArgs.isNotEmpty)
+      '--define=build_web_compilers:entrypoint='
+          'dart2js_args=${_formatDart2jsArgs(dart2jsArgs)}',
+    '-o',
+    'web:build',
+    '--delete-conflicting-outputs',
+  ]);
 
   var mainFile = _buildDir.join('scripts/playground.dart.js');
   log('$mainFile compiled to ${_printSize(mainFile)}');
@@ -148,6 +151,13 @@ build() {
   }
 
   log('Removed $count Dart files');
+}
+
+/// Formats a map of argument key and values to be passed as `dart2js_args` for
+/// webdev.
+String _formatDart2jsArgs(Map<String, String> args) {
+  var values = args.entries.map((entry) => '"-D${entry.key}=${entry.value}"');
+  return '[${values.join(',')}]';
 }
 
 void copyPackageResources(String packageName, Directory destDir) {
@@ -253,4 +263,46 @@ void generateProtos() {
 
   // generate common_server_proto.g.dart
   Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
+}
+
+/// An implementation of [TaskArgs] which can be used as a const value in an
+/// annotation.
+class ConstTaskArgs implements TaskArgs {
+  @override
+  final String taskName;
+  final Map<String, bool> _flags;
+  final Map<String, String> _options;
+
+  const ConstTaskArgs(this.taskName,
+      {Map<String, bool> flags, Map<String, String> options})
+      : _flags = flags,
+        _options = options;
+
+  @override
+  bool hasFlag(String name) => _flags.containsKey(name);
+
+  @override
+  bool getFlag(String name) => _flags[name] ?? false;
+
+  @override
+  bool hasOption(String name) => _options.containsKey(name);
+
+  @override
+  String getOption(String name) => _options[name];
+
+  @override
+  List<String> get arguments => throw UnimplementedError();
+}
+
+/// An implementation of [TaskInvocation] which can be used as a const value in
+/// an annotation.
+class ConstTaskInvocation implements TaskInvocation {
+  @override
+  final String name;
+  final TaskArgs _arguments;
+
+  const ConstTaskInvocation(this.name, this._arguments);
+
+  @override
+  TaskArgs get arguments => _arguments;
 }

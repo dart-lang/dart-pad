@@ -1006,7 +1006,7 @@ class Playground implements GistContainer, GistController {
       window.localStorage['null_safety'] = 'true';
       nullSafetySwitch.root.title = 'Null safety is currently enabled';
     } else {
-      api.rootUrl = serverUrl;
+      api.rootUrl = preNullSafetyServerUrl;
       window.localStorage['null_safety'] = 'false';
       nullSafetySwitch.root.title = 'Null safety is currently disabled';
     }
