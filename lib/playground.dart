@@ -796,6 +796,7 @@ class Playground implements GistContainer, GistController {
           _context.cssSource,
           response.result,
           modulesBaseUrl: response.modulesBaseUrl,
+          addFirebase: hasFirebaseContent(_context.dartSource),
         );
       } else {
         final response = await dartServices
