@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:path/path.dart' as path;
 
 /// Support for handling Flutter web snippets.
@@ -33,7 +34,7 @@ class FlutterWebManager {
     );
   }
 
-  static const Set<String> _flutterWebImportPrefixes = {
+  static const Set<String> _flutterImportPrefixes = {
     'package:flutter',
     'dart:ui',
   };
@@ -59,39 +60,29 @@ class FlutterWebManager {
     'dart:ui',
   };
 
-  bool usesFlutterWeb(Set<String> imports) {
-    return imports.any((String import) {
-      return _flutterWebImportPrefixes.any(
-        (String prefix) => import.startsWith(prefix),
-      );
+  bool usesFlutterWeb(Iterable<ImportDirective> imports) {
+    return imports.any((import) {
+      return _flutterImportPrefixes
+          .any((String prefix) => import.uri.stringValue.startsWith(prefix));
     });
   }
 
-  bool hasUnsupportedImport(Set<String> imports) {
-    return getUnsupportedImport(imports) != null;
-  }
-
-  String getUnsupportedImport(Set<String> imports) {
-    for (final import in imports) {
-      // All non-VM dart: imports are ok
-      if (import.startsWith('dart:') && _allowedDartImports.contains(import)) {
-        continue;
+  List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports) {
+    return imports.where((import) {
+      final uri = import.uri.stringValue;
+      // All non-VM 'dart:' imports are ok.
+      if (uri.startsWith('dart:')) {
+        return !_allowedDartImports.contains(uri);
       }
 
       // Currently we only allow flutter web imports.
-      if (import.startsWith('package:')) {
-        if (_flutterWebImportPrefixes
-            .any((String prefix) => import.startsWith(prefix))) {
-          continue;
-        }
-
-        return import;
+      if (uri.startsWith('package:')) {
+        return !_flutterImportPrefixes
+            .any((String prefix) => uri.startsWith(prefix));
       }
 
       // Don't allow file imports.
-      return import;
-    }
-
-    return null;
+      return true;
+    }).toList();
   }
 }

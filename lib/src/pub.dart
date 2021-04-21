@@ -4,78 +4,23 @@
 
 // ignore_for_file: implementation_imports
 
-import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/scanner/reader.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
-import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer/dart/analysis/utilities.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 
-import 'common.dart';
+List<ImportDirective> getAllImportsFor(String dartSource) {
+  if (dartSource == null) return [];
 
-Set<String> getAllImportsFor(String dartSource) {
-  if (dartSource == null) return <String>{};
+  final unit = parseString(content: dartSource, throwIfDiagnostics: false).unit;
+  return unit.directives.whereType<ImportDirective>().toList();
+}
 
-  final scanner = Scanner(
-    StringSource(dartSource, kMainDart),
-    CharSequenceReader(dartSource),
-    AnalysisErrorListener.NULL_LISTENER,
-  );
-  var token = scanner.tokenize();
-
-  final imports = <String>{};
-
-  while (token.type != TokenType.EOF) {
-    if (_isLibrary(token)) {
-      token = _consumeSemi(token);
-    } else if (_isImport(token)) {
-      token = token.next;
-
-      if (token.type == TokenType.STRING) {
-        imports.add(stripMatchingQuotes(token.lexeme));
-      }
-
-      token = _consumeSemi(token);
-    } else {
-      break;
-    }
+extension ImportIterableExtensions on Iterable<ImportDirective> {
+  /// Returns the names of packages that are referenced in this collection.
+  /// These package names are sanitized defensively.
+  Iterable<String> filterSafePackages() {
+    return where((import) => !import.uri.stringValue.startsWith('package:../'))
+        .map((import) => Uri.parse(import.uri.stringValue))
+        .where((uri) => uri.scheme == 'package' && uri.pathSegments.isNotEmpty)
+        .map((uri) => uri.pathSegments.first);
   }
-
-  return imports;
-}
-
-/// Return the list of packages that are imported from the given imports. These
-/// packages are sanitized defensively.
-Set<String> filterSafePackagesFromImports(Set<String> allImports) {
-  return Set<String>.from(allImports.where((String import) {
-    return import.startsWith('package:');
-  }).map((String import) {
-    return import.substring(8);
-  }).map((String import) {
-    final index = import.indexOf('/');
-    return index == -1 ? import : import.substring(0, index);
-  }).map((String import) {
-    return import.replaceAll('..', '');
-  }).where((String import) {
-    return import.isNotEmpty;
-  }));
-}
-
-bool _isLibrary(Token token) {
-  return token.isKeyword && token.lexeme == 'library';
-}
-
-bool _isImport(Token token) {
-  return token.isKeyword && token.lexeme == 'import';
-}
-
-Token _consumeSemi(Token token) {
-  while (token.type != TokenType.SEMICOLON) {
-    if (token.type == TokenType.EOF) return token;
-    token = token.next;
-  }
-
-  // Skip past the semi-colon.
-  token = token.next;
-
-  return token;
 }

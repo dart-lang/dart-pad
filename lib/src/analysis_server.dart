@@ -316,11 +316,10 @@ abstract class AnalysisServerWrapper {
       });
 
       // Calculate the imports.
-      final packageImports = <String>{};
-      for (final source in sources.values) {
-        packageImports
-            .addAll(filterSafePackagesFromImports(getAllImportsFor(source)));
-      }
+      final packageImports = {
+        for (final source in sources.values)
+          ...getAllImportsFor(source).filterSafePackages(),
+      };
 
       return proto.AnalysisResults()
         ..issues.addAll(issues)

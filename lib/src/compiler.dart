@@ -38,10 +38,6 @@ class Compiler {
             maxWorkers: 1),
         _flutterWebManager = FlutterWebManager();
 
-  bool importsOkForCompile(Set<String> imports) {
-    return !_flutterWebManager.hasUnsupportedImport(imports);
-  }
-
   Future<CompilationResults> warmup({bool useHtml = false}) async {
     return compile(useHtml ? sampleCodeWeb : sampleCode);
   }
@@ -52,11 +48,12 @@ class Compiler {
     bool returnSourceMap = false,
   }) async {
     final imports = getAllImportsFor(input);
-    if (!importsOkForCompile(imports)) {
-      return CompilationResults(problems: <CompilationProblem>[
-        CompilationProblem._(
-          'unsupported import: ${_flutterWebManager.getUnsupportedImport(imports)}',
-        ),
+    final unsupportedImports =
+        _flutterWebManager.getUnsupportedImports(imports);
+    if (unsupportedImports.isNotEmpty) {
+      return CompilationResults(problems: [
+        for (var import in unsupportedImports)
+          CompilationProblem._('unsupported import: ${import.uri.stringValue}'),
       ]);
     }
 
@@ -122,11 +119,12 @@ class Compiler {
   /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> compileDDC(String input) async {
     final imports = getAllImportsFor(input);
-    if (!importsOkForCompile(imports)) {
-      return DDCCompilationResults.failed(<CompilationProblem>[
-        CompilationProblem._(
-          'unsupported import: ${_flutterWebManager.getUnsupportedImport(imports)}',
-        ),
+    final unsupportedImports =
+        _flutterWebManager.getUnsupportedImports(imports);
+    if (unsupportedImports.isNotEmpty) {
+      return DDCCompilationResults.failed([
+        for (var import in unsupportedImports)
+          CompilationProblem._('unsupported import: ${import.uri.stringValue}'),
       ]);
     }
 
