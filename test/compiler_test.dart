@@ -171,7 +171,7 @@ void main() { missingMethod ('foo'); }
         final result = await compiler.compile(code);
         expect(result.problems, hasLength(1));
         expect(result.problems.single.message,
-            equals('unsupported imports: foo.dart'));
+            equals('unsupported import: foo.dart'));
       });
 
       test('bad import - http', () async {
@@ -182,7 +182,7 @@ void main() { missingMethod ('foo'); }
         final result = await compiler.compile(code);
         expect(result.problems, hasLength(1));
         expect(result.problems.single.message,
-            equals('unsupported imports: http://example.com'));
+            equals('unsupported import: http://example.com'));
       });
 
       test('multiple bad imports', () async {
@@ -193,9 +193,9 @@ import 'package:bar';
         final result = await compiler.compile(code);
         expect(result.problems, hasLength(2));
         expect(result.problems[0].message,
-            equals('unsupported imports: package:foo'));
+            equals('unsupported import: package:foo'));
         expect(result.problems[1].message,
-            equals('unsupported imports: package:bar'));
+            equals('unsupported import: package:bar'));
       });
 
       test('disallow compiler warnings', () async {
