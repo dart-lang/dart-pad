@@ -47,6 +47,9 @@ handlers:
   - url: /packages/mdc_web
     static_dir: packages/mdc_web
 
+  - url: /third_party
+    static_dir: third_party
+
   - url: .*
     script: auto
 
