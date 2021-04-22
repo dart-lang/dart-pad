@@ -26,6 +26,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto&family=Roboto+Mono&display=swap"
           rel="stylesheet">
 
+    <!-- highlightjs -->
+    <link rel="stylesheet" href="/styles/hljs-dartpad-dark.css">
+    <script src="/third_party/highlight/highlight.pack.js"></script>
+
     <!-- codemirror -->
     <link href="packages/codemirror/css/codemirror.css" rel="stylesheet"
           media="screen">
@@ -74,7 +78,7 @@
 <section class="main-section">
     <div class="panels">
         <div id="steps-panel">
-            <div id="markdown-content"></div>
+            <div id="markdown-content" class="custom-scrollbar"></div>
             <div id="steps-row">
                 <div id="step-button-container">
                     <button id="previous-step-btn"
