@@ -1,4 +1,3 @@
-
 replaceJavaScript = function (value) {
     // Remove the old node.
     var oldNode = document.getElementById('compiledJsScript');
