@@ -160,11 +160,13 @@ class AnalysisServersWrapper {
 
   /// Check that the set of packages referenced is valid.
   Future<void> _checkPackageReferences(String source) async {
-    final imports = getAllImportsFor(source);
+    final unsupportedImports =
+        _flutterWebManager.getUnsupportedImports(getAllImportsFor(source));
 
-    if (_flutterWebManager.hasUnsupportedImport(imports)) {
-      throw BadRequest(
-          'Unsupported input: ${_flutterWebManager.getUnsupportedImport(imports)}');
+    if (unsupportedImports.isNotEmpty) {
+      // TODO(srawlins): Do the work so that each unsupported input is its own
+      // error, with a proper SourceSpan.
+      throw BadRequest('Unsupported input(s): $unsupportedImports');
     }
   }
 }

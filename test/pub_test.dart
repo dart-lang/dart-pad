@@ -19,7 +19,9 @@ void defineTests() {
     });
 
     test('bad source', () {
-      expect(getAllImportsFor('foo bar;\n baz\nimport mybad;\n'), isEmpty);
+      final imports = getAllImportsFor('foo bar;\n baz\nimport mybad;\n');
+      expect(imports, hasLength(1));
+      expect(imports.single.uri.stringValue, equals(''));
     });
 
     test('one', () {
@@ -29,7 +31,7 @@ import 'dart:math';
 import 'package:foo/foo.dart';
 void main() { }
 ''';
-      expect(getAllImportsFor(source),
+      expect(getAllImportsFor(source).map((import) => import.uri.stringValue),
           unorderedEquals(['dart:math', 'package:foo/foo.dart']));
     });
 
@@ -42,7 +44,7 @@ import 'package:bar/bar.dart';
 void main() { }
 ''';
       expect(
-          getAllImportsFor(source),
+          getAllImportsFor(source).map((import) => import.uri.stringValue),
           unorderedEquals(
               ['dart:math', 'package:foo/foo.dart', 'package:bar/bar.dart']));
     });
@@ -57,7 +59,7 @@ import 'mybazfile.dart';
 void main() { }
 ''';
       expect(
-          getAllImportsFor(source),
+          getAllImportsFor(source).map((import) => import.uri.stringValue),
           unorderedEquals([
             'dart:math',
             'package:foo/foo.dart',
@@ -73,7 +75,7 @@ void main() { }
       const source = '''import 'package:';
 void main() { }
 ''';
-      expect(filterSafePackagesFromImports(getAllImportsFor(source)), isEmpty);
+      expect(getAllImportsFor(source).filterSafePackages(), isEmpty);
     });
 
     test('simple', () {
@@ -82,7 +84,7 @@ import 'package:foo/foo.dart';
 import 'package:bar/bar.dart';
 void main() { }
 ''';
-      expect(filterSafePackagesFromImports(getAllImportsFor(source)),
+      expect(getAllImportsFor(source).filterSafePackages(),
           unorderedEquals(['foo', 'bar']));
     });
 
@@ -94,9 +96,10 @@ import 'package:../foo/foo.dart';
 void main() { }
 ''';
       final imports = getAllImportsFor(source);
-      expect(
-          imports, unorderedMatches(['dart:math', 'package:../foo/foo.dart']));
-      expect(filterSafePackagesFromImports(imports), isEmpty);
+      expect(imports, hasLength(2));
+      expect(imports[0].uri.stringValue, equals('dart:math'));
+      expect(imports[1].uri.stringValue, equals('package:../foo/foo.dart'));
+      expect(imports.filterSafePackages(), isEmpty);
     });
 
     test('negative dart import', () {
@@ -104,8 +107,9 @@ void main() { }
 import 'dart:../bar.dart';
 ''';
       final imports = getAllImportsFor(source);
-      expect(imports, unorderedMatches(['dart:../bar.dart']));
-      expect(filterSafePackagesFromImports(imports), isEmpty);
+      expect(imports, hasLength(1));
+      expect(imports.single.uri.stringValue, equals('dart:../bar.dart'));
+      expect(imports.filterSafePackages(), isEmpty);
     });
 
     test('negative path import', () {
@@ -113,8 +117,9 @@ import 'dart:../bar.dart';
 import '../foo.dart';
 ''';
       final imports = getAllImportsFor(source);
-      expect(imports, unorderedMatches(['../foo.dart']));
-      expect(filterSafePackagesFromImports(imports), isEmpty);
+      expect(imports, hasLength(1));
+      expect(imports.single.uri.stringValue, equals('../foo.dart'));
+      expect(imports.filterSafePackages(), isEmpty);
     });
   });
 }
