@@ -80,7 +80,46 @@ a {
   margin: 0;
 }
 
+// Keyboard button
+.keyboard {
+  display: inline-block;
+  background: url('../../pictures/keyboard.svg') center no-repeat;
+  background-size: 100%;
+  width: 22px;
+  height: 18px;
+  margin-top: 1px;
+  cursor: pointer;
+  opacity: 0.7;
 
+  &:hover {
+    opacity: 1;
+  }
+}
+
+// Busy light
+.busylight {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin: 9px;
+
+  opacity: 0;
+  background-color: #fff;
+
+  -webkit-transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  -moz-transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  -o-transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
+
+  -webkit-transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  -moz-transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  -o-transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
+  transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
+}
+
+.busylight.on {
+  opacity: 0.6;
+}
 
 .clickable {
   cursor: pointer;

@@ -40,6 +40,12 @@ header {
     }
   }
 
+  button.mdc-button {
+    @include mdc-button-ink-color(#f8f9fa);
+    text-transform: none !important;
+    letter-spacing: normal;
+  }
+
   #codelab-name {
     @include layout-flex;
     @include layout-horizontal;
@@ -229,6 +235,36 @@ body>footer {
     margin-left: 12px;
   }
 }
+
+// Issues
+#issues {
+  background-color: $dark-issues-background-color;
+  border: 8px solid $dark-issues-background-color;
+}
+
+.issue .issuelabel {
+  color: $dark-issue-label-color;
+}
+
+.issue:hover {
+  background-color: darken($dark-issues-background-color, 3%);
+}
+
+.issue .message {
+  color: $dark-issue-label-color;
+}
+
+#issues-toggle, .issue-anchor {
+  color: $mdc-theme-primary;
+  &:visited {
+    color: $mdc-theme-primary;
+  }
+
+  &:hover {
+    color: darken($mdc-theme-primary, 12%);
+  }
+}
+
 
 // Splitter
 .gutter {
