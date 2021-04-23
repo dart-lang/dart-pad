@@ -12,7 +12,6 @@ import 'package:stream_transform/stream_transform.dart';
 import 'codelabs/codelabs.dart';
 import 'completion.dart';
 import 'core/dependencies.dart';
-import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'documentation.dart';
