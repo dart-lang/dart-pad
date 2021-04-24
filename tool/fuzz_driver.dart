@@ -16,9 +16,9 @@ import 'package:dart_services/src/analysis_server.dart' as analysis_server;
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server_impl.dart';
 import 'package:dart_services/src/compiler.dart' as comp;
+import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:dart_services/src/sdk.dart';
 import 'package:dart_services/src/server_cache.dart';
-import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 
 bool serverBasedCall = false;
 bool verbose = false;
