@@ -18,6 +18,7 @@ linter:
 
     # Extra enabled rules
     camel_case_types: true
+    directives_ordering: true
     file_names: true
     hash_and_equals: true
     iterable_contains_unrelated_type: true
