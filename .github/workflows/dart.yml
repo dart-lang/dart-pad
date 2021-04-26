@@ -21,10 +21,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: dart-lang/setup-dart@v0.1
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          channel: ${{ matrix.sdk }}
-      - uses: actions/setup-node@v1
+          sdk: ${{ matrix.sdk }}
+      - uses: actions/setup-node@v2
       
       - name: Print Dart SDK version
         run: dart --version
