@@ -5,8 +5,8 @@
 @TestOn('browser')
 import 'dart:html';
 
-import 'package:test/test.dart';
 import 'package:dart_pad/inject/inject_embed.dart' as inject_embed;
+import 'package:test/test.dart';
 
 // todo (ryjohn): determine how to load embed-flutter.html and other assets.
 //
