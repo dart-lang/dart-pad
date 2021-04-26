@@ -33,7 +33,7 @@ dev_dependencies:
   git: ^2.0.0
   grinder: ^0.8.0
   json_serializable: ^3.5.0
-  pedantic: ^1.9.0
+  pedantic: ^1.11.0
   shelf: ^0.7.5
   shelf_static: ^0.2.8
   test: ^1.15.7
