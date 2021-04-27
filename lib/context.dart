@@ -6,14 +6,22 @@ library context;
 
 import 'services/dartservices.dart';
 
-abstract class Context {
+abstract class DartSourceProvider {
+  bool get isFocused;
+  String get dartSource;
+}
+
+abstract class Context implements DartSourceProvider {
   final List<AnalysisIssue> issues = [];
 
   String get focusedEditor;
+  @override
+  bool get isFocused => focusedEditor == 'dart';
 
   String name;
   String description;
 
+  @override
   String dartSource;
   String htmlSource;
   String cssSource;

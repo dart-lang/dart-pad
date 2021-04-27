@@ -26,20 +26,20 @@ class DocHandler {
   };
 
   final Editor _editor;
-  final Context _context;
+  final DartSourceProvider _sourceProvider;
 
   final NodeValidator _htmlValidator = PermissiveNodeValidator();
 
   int /*?*/ _previousDocHash;
 
-  DocHandler(this._editor, this._context);
+  DocHandler(this._editor, this._sourceProvider);
 
   void generateDoc(List<DivElement> docElements) {
     if (docElements.isEmpty) {
       return;
     }
 
-    if (_context.focusedEditor != 'dart') {
+    if (!_sourceProvider.isFocused) {
       _previousDocHash = null;
       for (final docPanel in docElements) {
         docPanel.innerHtml = '';
@@ -59,9 +59,9 @@ class DocHandler {
       // completion popup was chosen, and ask for the documentation of that
       // source.
       request.source =
-          _sourceWithCompletionInserted(_context.dartSource, offset);
+          _sourceWithCompletionInserted(_sourceProvider.dartSource, offset);
     } else {
-      request.source = _context.dartSource;
+      request.source = _sourceProvider.dartSource;
     }
 
     dartServices
@@ -96,9 +96,9 @@ class DocHandler {
     var lastSpace = source.substring(0, offset).lastIndexOf(' ') + 1;
     var lastDot = source.substring(0, offset).lastIndexOf('.') + 1;
     var insertOffset = math.max(lastSpace, lastDot);
-    return _context.dartSource.substring(0, insertOffset) +
+    return _sourceProvider.dartSource.substring(0, insertOffset) +
         completionText +
-        _context.dartSource.substring(offset);
+        _sourceProvider.dartSource.substring(offset);
   }
 
   _DocResult _getHtmlTextFor(DocumentResponse result) {
