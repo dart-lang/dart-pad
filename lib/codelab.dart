@@ -25,6 +25,7 @@ import 'elements/counter.dart';
 import 'elements/dialog.dart';
 import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
+import 'hljs.dart' as hljs;
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -33,7 +34,6 @@ import 'services/dartservices.dart';
 import 'services/execution.dart';
 import 'services/execution_iframe.dart';
 import 'src/ga.dart';
-import 'hljs.dart' as hljs;
 import 'util/keymap.dart';
 
 CodelabUi _codelabUi;
