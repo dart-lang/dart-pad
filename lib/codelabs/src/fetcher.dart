@@ -1,9 +1,6 @@
 import 'package:dart_pad/codelabs/codelabs.dart';
 import 'package:meta/meta.dart';
 
-import 'codelab.dart';
-import 'github.dart';
-
 abstract class CodelabFetcher {
   Future<Codelab> getCodelab();
   factory CodelabFetcher.github({

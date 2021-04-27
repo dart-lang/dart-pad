@@ -23,7 +23,6 @@ import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'documentation.dart';
 import 'editing/codemirror_options.dart';
-import 'editing/editor.dart';
 import 'elements/analysis_results_controller.dart';
 import 'elements/bind.dart';
 import 'elements/button.dart';
