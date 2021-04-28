@@ -40,15 +40,17 @@ class ExecutionServiceIFrame implements ExecutionService {
     String html,
     String css,
     String javaScript, {
-    @required String modulesBaseUrl,
-    bool addFirebase = false,
+    String /*?*/ modulesBaseUrl,
+    bool addRequireJs = false,
+    bool addFirebaseJs = false,
   }) {
     return _send('execute', {
       'html': html,
       'css': css,
       'js': _decorateJavaScript(javaScript,
-          modulesBaseUrl: modulesBaseUrl, requireFirebase: addFirebase),
-      'addFirebase': addFirebase ? 'true' : 'false',
+          modulesBaseUrl: modulesBaseUrl, requireFirebase: addFirebaseJs),
+      'addRequireJs': addRequireJs ? 'true' : 'false',
+      'addFirebaseJs': addFirebaseJs ? 'true' : 'false',
     });
   }
 

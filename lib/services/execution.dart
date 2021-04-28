@@ -21,7 +21,8 @@ abstract class ExecutionService {
     String css,
     String javaScript, {
     String /*?*/ modulesBaseUrl,
-    bool addFirebase = false,
+    bool addRequireJs = false,
+    bool addFirebaseJs = false,
   });
 
   void replaceHtml(String html);

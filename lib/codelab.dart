@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:html' hide Console;
 
 import 'package:dart_pad/context.dart';
+import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:dart_pad/util/query_params.dart';
 import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as markdown;
@@ -416,6 +417,8 @@ class CodelabUi {
           '',
           response.result,
           modulesBaseUrl: response.modulesBaseUrl,
+          addRequireJs: true,
+          addFirebaseJs: hasFirebaseContent(compileRequest.source),
         );
       } else {
         final response = await dartServices
