@@ -2,10 +2,10 @@ import 'package:http/http.dart' as http;
 
 import 'fetcher_impl.dart';
 
-class WebServerCodelabFetcher extends CodelabFetcherImpl {
+class WebServerWorkshopFetcher extends WorkshopFetcherImpl {
   final Uri uri;
 
-  WebServerCodelabFetcher(this.uri);
+  WebServerWorkshopFetcher(this.uri);
 
   @override
   Future<String> loadFileContents(List<String> relativePath) async {

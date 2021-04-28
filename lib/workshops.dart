@@ -9,7 +9,6 @@ import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 import 'package:stream_transform/stream_transform.dart';
 
-import 'codelabs/codelabs.dart';
 import 'completion.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
@@ -33,19 +32,20 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'src/ga.dart';
 import 'util/keymap.dart';
+import 'workshops/workshops.dart';
 
-CodelabUi _codelabUi;
+WorkshopUi _workshopUi;
 
-CodelabUi get codelabUi => _codelabUi;
+WorkshopUi get workshopUi => _workshopUi;
 
 final Logger _logger = Logger('dartpad');
 
 void init() {
-  _codelabUi = CodelabUi();
+  _workshopUi = WorkshopUi();
 }
 
-class CodelabUi {
-  CodelabState _codelabState;
+class WorkshopUi {
+  WorkshopState _workshopState;
   Splitter splitter;
   Splitter rightSplitter;
   Editor editor;
@@ -65,7 +65,7 @@ class CodelabUi {
   DBusyLight busyLight;
   AnalysisResultsController analysisResultsController;
 
-  CodelabUi() {
+  WorkshopUi() {
     _init();
   }
 
@@ -81,12 +81,12 @@ class CodelabUi {
 
   Future<void> _init() async {
     _initDialogs();
-    await _loadCodelab();
+    await _loadWorkshop();
     _initBusyLights();
     _initHeader();
     _updateInstructions();
     await _initModules();
-    _initCodelabUi();
+    _initWorkshopUi();
     _initKeyBindings();
     _initEditor();
     _initSplitters();
@@ -125,7 +125,7 @@ class CodelabUi {
           ..mode = 'dart'
           ..showLineNumbers = true;
 
-    sourceProvider = CodelabDartSourceProvider(editor);
+    sourceProvider = WorkshopDartSourceProvider(editor);
     docHandler = DocHandler(editor, sourceProvider);
 
     editor.document.onChange.listen((_) => busyLight.on());
@@ -147,7 +147,7 @@ class CodelabUi {
     });
   }
 
-  void _initCodelabUi() {
+  void _initWorkshopUi() {
     // Set up the iframe.
     deps[ExecutionService] = ExecutionServiceIFrame(_frame);
     executionService.onStdout.listen(_showOutput);
@@ -155,7 +155,7 @@ class CodelabUi {
     // Set up Google Analytics.
     deps[Analytics] = Analytics();
 
-    // Use null safety for codelabs
+    // Use null safety for workshops
     (deps[DartservicesApi] as DartservicesApi).rootUrl = nullSafetyServerUrl;
 
     analysisResultsController = AnalysisResultsController(
@@ -222,9 +222,9 @@ class CodelabUi {
     }).catchError((e) => null);
   }
 
-  Future<void> _loadCodelab() async {
+  Future<void> _loadWorkshop() async {
     var fetcher = await _getFetcher();
-    _codelabState = CodelabState(await fetcher.getCodelab());
+    _workshopState = WorkshopState(await fetcher.fetch());
   }
 
   void _initSplitters() {
@@ -255,24 +255,24 @@ class CodelabUi {
   }
 
   void _initHeader() {
-    querySelector('#codelab-name').text = _codelabState.codelab.name;
+    querySelector('#workshop-name').text = _workshopState.workshop.name;
   }
 
   void _initStepButtons() {
     stepLabel = DElement(querySelector('#steps-label'));
     previousStepButton = DElement(querySelector('#previous-step-btn'))
       ..onClick.listen((event) {
-        _codelabState.currentStepIndex--;
+        _workshopState.currentStepIndex--;
       });
     nextStepButton = DElement(querySelector('#next-step-btn'))
       ..onClick.listen((event) {
-        _codelabState.currentStepIndex++;
+        _workshopState.currentStepIndex++;
       });
     _updateStepButtons();
   }
 
   void _initStepListener() {
-    _codelabState.onStepChanged.listen((event) {
+    _workshopState.onStepChanged.listen((event) {
       _updateInstructions();
       _updateStepButtons();
       _updateCode();
@@ -298,7 +298,7 @@ class CodelabUi {
   }
 
   void _updateSolutionButton() {
-    if (_codelabState.currentStep.solution == null) {
+    if (_workshopState.currentStep.solution == null) {
       showSolutionButton.element.style.visibility = 'hidden';
     } else {
       showSolutionButton.element.style.visibility = null;
@@ -307,7 +307,7 @@ class CodelabUi {
   }
 
   void _updateCode() {
-    editor.document.updateValue(_codelabState.currentStep.snippet);
+    editor.document.updateValue(_workshopState.currentStep.snippet);
   }
 
   void _initTabs() {
@@ -321,8 +321,8 @@ class CodelabUi {
     }
 
     // Set the current tab to UI Output or console, depending on whether this is
-    // Dart or Flutter codelab.
-    if (_codelabState.codelab.type == CodelabType.dart) {
+    // Dart or Flutter workshop.
+    if (_workshopState.workshop.type == WorkshopType.dart) {
       querySelector('#ui-output-tab').hidden = true;
       consolePanelTabController.selectTab('console');
     } else {
@@ -350,21 +350,21 @@ class CodelabUi {
     var div = querySelector('#markdown-content');
     div.children.clear();
     div.innerHtml =
-        markdown.markdownToHtml(_codelabState.currentStep.instructions);
+        markdown.markdownToHtml(_workshopState.currentStep.instructions);
     hljs.highlightAll();
   }
 
   void _updateStepButtons() {
-    stepLabel.text = 'Step ${_codelabState.currentStepIndex + 1}';
-    previousStepButton.toggleAttr('disabled', !_codelabState.hasPreviousStep);
-    nextStepButton.toggleAttr('disabled', !_codelabState.hasNextStep);
+    stepLabel.text = 'Step ${_workshopState.currentStepIndex + 1}';
+    previousStepButton.toggleAttr('disabled', !_workshopState.hasPreviousStep);
+    nextStepButton.toggleAttr('disabled', !_workshopState.hasNextStep);
   }
 
-  Future<CodelabFetcher> _getFetcher() async {
+  Future<WorkshopFetcher> _getFetcher() async {
     var webServer = queryParams.webServer;
     if (webServer != null && webServer.isNotEmpty) {
       var uri = Uri.parse(webServer);
-      return WebServerCodelabFetcher(uri);
+      return WebServerWorkshopFetcher(uri);
     }
     var ghOwner = queryParams.githubOwner;
     var ghRepo = queryParams.githubRepo;
@@ -374,7 +374,7 @@ class CodelabUi {
         ghOwner.isNotEmpty &&
         ghRepo != null &&
         ghRepo.isNotEmpty) {
-      return GithubCodelabFetcher(
+      return GithubWorkshopFetcher(
         owner: ghOwner,
         repo: ghRepo,
         ref: ghRef,
@@ -398,7 +398,7 @@ class CodelabUi {
     final compileRequest = CompileRequest()..source = editor.document.value;
 
     try {
-      if (_codelabState.codelab.type == CodelabType.flutter) {
+      if (_workshopState.workshop.type == WorkshopType.flutter) {
         final response = await dartServices
             .compileDDC(compileRequest)
             .timeout(longServiceCallTimeout);
@@ -564,7 +564,7 @@ class CodelabUi {
         'Are you sure you want to show the solution? Your changes for this '
             'step will be lost.');
     if (result == DialogResult.ok) {
-      editor.document.updateValue(_codelabState.currentStep.solution);
+      editor.document.updateValue(_workshopState.currentStep.solution);
       showSolutionButton.disabled = true;
     }
   }
@@ -593,37 +593,37 @@ class CodelabUi {
   }
 }
 
-class CodelabState {
+class WorkshopState {
   final StreamController<Step> _controller = StreamController.broadcast();
   int _currentStepIndex = 0;
 
-  final Codelab codelab;
+  final Workshop workshop;
 
-  CodelabState(this.codelab);
+  WorkshopState(this.workshop);
 
   Stream<Step> get onStepChanged => _controller.stream;
 
-  Step get currentStep => codelab.steps[_currentStepIndex];
+  Step get currentStep => workshop.steps[_currentStepIndex];
 
   int get currentStepIndex => _currentStepIndex;
 
   set currentStepIndex(int stepIndex) {
-    if (stepIndex < 0 || stepIndex >= codelab.steps.length) {
+    if (stepIndex < 0 || stepIndex >= workshop.steps.length) {
       throw ('Invalid step index: $stepIndex');
     }
     _currentStepIndex = stepIndex;
-    _controller.add(codelab.steps[stepIndex]);
+    _controller.add(workshop.steps[stepIndex]);
   }
 
-  bool get hasNextStep => _currentStepIndex < codelab.steps.length - 1;
+  bool get hasNextStep => _currentStepIndex < workshop.steps.length - 1;
 
   bool get hasPreviousStep => _currentStepIndex > 0;
 }
 
-class CodelabDartSourceProvider implements DartSourceProvider {
+class WorkshopDartSourceProvider implements DartSourceProvider {
   final Editor editor;
 
-  CodelabDartSourceProvider(this.editor);
+  WorkshopDartSourceProvider(this.editor);
 
   @override
   String get dartSource => editor.document.value;

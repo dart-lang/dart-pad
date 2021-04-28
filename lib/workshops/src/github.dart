@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 import 'exceptions.dart';
 import 'fetcher_impl.dart';
 
-class GithubCodelabFetcher extends CodelabFetcherImpl {
+class GithubWorkshopFetcher extends WorkshopFetcherImpl {
   static const String _apiHostname = 'api.github.com';
 
   final String owner;
@@ -13,7 +13,7 @@ class GithubCodelabFetcher extends CodelabFetcherImpl {
   final String ref;
   final String path;
 
-  GithubCodelabFetcher({
+  GithubWorkshopFetcher({
     @required this.owner,
     @required this.repo,
     this.ref,
@@ -27,11 +27,11 @@ class GithubCodelabFetcher extends CodelabFetcherImpl {
 
     var statusCode = res.statusCode;
     if (statusCode == 404) {
-      throw CodelabFetchException(CodelabFetchExceptionType.contentNotFound);
+      throw WorkshopFetchException(WorkshopFetchExceptionType.contentNotFound);
     } else if (statusCode == 403) {
-      throw CodelabFetchException(CodelabFetchExceptionType.rateLimitExceeded);
+      throw WorkshopFetchException(WorkshopFetchExceptionType.rateLimitExceeded);
     } else if (statusCode != 200) {
-      throw CodelabFetchException(CodelabFetchExceptionType.unknown);
+      throw WorkshopFetchException(WorkshopFetchExceptionType.unknown);
     }
 
     return extractGitHubResponseBody(res.body);
