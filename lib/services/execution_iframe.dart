@@ -143,7 +143,11 @@ require.config({
   "waitSeconds": 60
 });
 ''');
-      completeScript.writeln(javaScript);
+    }
+
+    completeScript.writeln(javaScript);
+
+    if (usesRequireJs) {
       completeScript.writeln('''
 require(['dart_sdk'],
   function(sdk) {
@@ -184,6 +188,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     }});
 ''');
     }
+
     return completeScript.toString();
   }
 
