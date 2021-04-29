@@ -16,10 +16,10 @@ abstract class ExecutionService {
   /// Sends a request to the execution iframe.
   ///
   /// [modulesBaseUrl] can be null, and is only passed in if [javaScript]
-  /// uses require.js to reference other modules.
+  /// uses RequireJS to reference other modules.
   ///
   /// [addRequireJs] should be `true` when [javaScript] has been compiled with
-  /// DDC. Require.js will then be added to the iframe, and will be used to load
+  /// DDC. RequireJS will then be added to the iframe, and will be used to load
   /// the Dart and Flutter SDKs.
   ///
   /// [addFirebaseJs] should be `true` when the script imports any Firebase

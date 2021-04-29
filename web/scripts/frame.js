@@ -43,8 +43,8 @@ removeScript = function (id) {
 }
 
 addFirebase = function () {
-    // Require.js must be added _after_ the Firebase JS. If a previous
-    // execution added Require.js, then we must first remove it.
+    // RequireJS must be added _after_ the Firebase JS. If a previous execution
+    // added RequireJS, then we must first remove it.
     removeScript('require');
     addScript('firebase-app', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js');
     addScript('firebase-auth', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-auth.js');
@@ -67,14 +67,14 @@ messageHandler = function (e) {
     } else if (command === 'setHtml') {
         body.innerHTML = obj.html;
     } else if (command === 'execute') {
-        // Replace HTML, CSS, possible Firebase JS, require.js, and app.
+        // Replace HTML, CSS, possible Firebase JS, RequireJS, and app.
         body.innerHTML = obj.html;
         document.getElementById('styleId').innerHTML = obj.css;
         if (obj.addFirebaseJs) {
             addFirebase();
         }
         if (obj.addRequireJs) {
-            // Require.js must be added _after_ the Firebase JS.
+            // RequireJS must be added _after_ the Firebase JS.
             addScript('require', 'require.js', function () {
                 replaceJavaScript(obj.js);
             });
