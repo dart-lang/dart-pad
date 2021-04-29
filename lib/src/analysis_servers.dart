@@ -166,7 +166,9 @@ class AnalysisServersWrapper {
     if (unsupportedImports.isNotEmpty) {
       // TODO(srawlins): Do the work so that each unsupported input is its own
       // error, with a proper SourceSpan.
-      throw BadRequest('Unsupported input(s): $unsupportedImports');
+      final unsupportedUris =
+          unsupportedImports.map((import) => import.uri.stringValue);
+      throw BadRequest('Unsupported import(s): $unsupportedUris');
     }
   }
 }
