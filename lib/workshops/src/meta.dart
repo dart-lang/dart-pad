@@ -1,7 +1,7 @@
 import 'package:json_annotation/json_annotation.dart';
 import 'package:meta/meta.dart';
 
-import 'codelab.dart';
+import 'workshop.dart';
 
 part 'meta.g.dart';
 
@@ -17,9 +17,9 @@ class Meta {
 
   @JsonKey(
     required: false,
-    defaultValue: CodelabType.dart,
+    defaultValue: WorkshopType.dart,
   )
-  final CodelabType type;
+  final WorkshopType type;
 
   @JsonKey(required: true)
   final List<StepConfiguration> steps;

@@ -10,7 +10,7 @@ analyzer:
     - 'lib/bower/**'
     - 'lib/src/protos/**'
     - 'third_party/pkg/**'
-    - 'web/example/codelabs/**'
+    - 'web/example/workshops/**'
 linter:
   rules:
     # Disabled as we really on quite a few uses of these currently

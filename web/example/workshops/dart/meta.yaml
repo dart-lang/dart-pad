@@ -1,5 +1,5 @@
 name: Example codelab
-type: flutter # Optional
+type: dart
 steps:
   - name: Step 1
     directory: step_01

@@ -1,18 +1,18 @@
 import 'package:checked_yaml/checked_yaml.dart';
 
-import 'codelab.dart';
 import 'fetcher.dart';
 import 'meta.dart';
 import 'step.dart';
+import 'workshop.dart';
 
-abstract class CodelabFetcherImpl implements CodelabFetcher {
+abstract class WorkshopFetcherImpl implements WorkshopFetcher {
   Future<String> loadFileContents(List<String> relativePath);
 
   @override
-  Future<Codelab> getCodelab() async {
+  Future<Workshop> fetch() async {
     var metadata = await fetchMeta();
     var steps = await fetchSteps(metadata);
-    return Codelab('Example codelab', metadata.type, steps);
+    return Workshop('Example workshop', metadata.type, steps);
   }
 
   Future<Meta> fetchMeta() async {
