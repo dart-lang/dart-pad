@@ -40,12 +40,17 @@ class ExecutionServiceIFrame implements ExecutionService {
     String html,
     String css,
     String javaScript, {
-    @required String modulesBaseUrl,
+    String /*?*/ modulesBaseUrl,
+    bool addRequireJs = false,
+    bool addFirebaseJs = false,
   }) {
     return _send('execute', {
       'html': html,
       'css': css,
-      'js': _decorateJavaScript(javaScript, modulesBaseUrl: modulesBaseUrl),
+      'js': _decorateJavaScript(javaScript,
+          modulesBaseUrl: modulesBaseUrl, requireFirebase: addFirebaseJs),
+      'addRequireJs': addRequireJs ? 'true' : 'false',
+      'addFirebaseJs': addFirebaseJs ? 'true' : 'false',
     });
   }
 
@@ -84,9 +89,13 @@ var resultFunction = _result;
 Never TODO([String message = '']) => throw UnimplementedError(message);
 ''';
 
-  String _decorateJavaScript(String javaScript,
-      {@required String modulesBaseUrl}) {
+  String _decorateJavaScript(
+    String javaScript, {
+    @required String modulesBaseUrl,
+    @required bool requireFirebase,
+  }) {
     final completeScript = StringBuffer();
+    final usesRequireJs = modulesBaseUrl != null;
     // postMessagePrint:
     completeScript.writeln('''
 var testKey = '$testKey';
@@ -102,9 +111,13 @@ function dartPrint(message) {
       {'sender': 'frame', 'type': 'stdout', 'message': message.toString()}, '*');
   }
 }
+''');
+    if (usesRequireJs) {
+      completeScript.writeln('''
 // Unload previous version.
 require.undef('dartpad_main');
 ''');
+    }
 
     // The JavaScript exception handling for DartPad catches both errors
     // directly raised by `main()` (in which case we might have useful Dart
@@ -135,7 +148,6 @@ window.onerror = function(message, url, lineNumber, colno, error) {
 };
 ''');
 
-    final usesRequireJs = modulesBaseUrl != null;
     if (usesRequireJs) {
       completeScript.writeln('''
 require.config({

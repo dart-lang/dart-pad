@@ -8,6 +8,7 @@ import 'dart:math' as math;
 
 import 'package:dart_pad/elements/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
+import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 
@@ -816,6 +817,8 @@ class Embed {
           '',
           response.result,
           modulesBaseUrl: response.modulesBaseUrl,
+          addRequireJs: true,
+          addFirebaseJs: hasFirebaseContent(input.source),
         );
         ga?.sendEvent('execution', 'ddc-compile-success');
       }).catchError((e, st) {
@@ -834,7 +837,10 @@ class Embed {
           .then((CompileResponse response) {
         ga?.sendEvent('execution', 'html-compile-success');
         return executionSvc.execute(
-            context.htmlSource, context.cssSource, response.result);
+          context.htmlSource,
+          context.cssSource,
+          response.result,
+        );
       }).catchError((e, st) {
         consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
             error: true);
