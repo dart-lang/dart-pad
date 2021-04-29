@@ -155,7 +155,9 @@ require.config({
   "waitSeconds": 60
 });
 ''');
-      completeScript.writeln(javaScript);
+    }
+    completeScript.writeln(javaScript);
+    if (usesRequireJs) {
       completeScript.writeln('''
 require(['dart_sdk'],
   function(sdk) {
