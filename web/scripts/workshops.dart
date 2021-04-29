@@ -1,4 +1,4 @@
-import 'package:dart_pad/codelab.dart';
+import 'package:dart_pad/workshops.dart';
 import 'package:logging/logging.dart';
 
 void main() {

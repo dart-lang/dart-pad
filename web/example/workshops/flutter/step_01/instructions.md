@@ -1,6 +1,6 @@
 # Step 1
 
-Flutter Codelab
+Flutter Workshop
 
 ```dart
 // Put this code in the build() method

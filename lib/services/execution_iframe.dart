@@ -156,7 +156,9 @@ require.config({
 });
 ''');
     }
+
     completeScript.writeln(javaScript);
+
     if (usesRequireJs) {
       completeScript.writeln('''
 require(['dart_sdk'],
@@ -198,6 +200,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     }});
 ''');
     }
+
     return completeScript.toString();
   }
 

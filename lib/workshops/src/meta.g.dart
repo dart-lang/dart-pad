@@ -21,8 +21,8 @@ Meta _$MetaFromJson(Map json) {
                   e == null ? null : StepConfiguration.fromJson(e as Map))
               ?.toList()),
       type: $checkedConvert(json, 'type',
-              (v) => _$enumDecodeNullable(_$CodelabTypeEnumMap, v)) ??
-          CodelabType.dart,
+              (v) => _$enumDecodeNullable(_$WorkshopTypeEnumMap, v)) ??
+          WorkshopType.dart,
     );
     return val;
   });
@@ -30,7 +30,7 @@ Meta _$MetaFromJson(Map json) {
 
 Map<String, dynamic> _$MetaToJson(Meta instance) => <String, dynamic>{
       'name': instance.name,
-      'type': _$CodelabTypeEnumMap[instance.type],
+      'type': _$WorkshopTypeEnumMap[instance.type],
       'steps': instance.steps,
     };
 
@@ -66,9 +66,9 @@ T _$enumDecodeNullable<T>(
   return _$enumDecode<T>(enumValues, source, unknownValue: unknownValue);
 }
 
-const _$CodelabTypeEnumMap = {
-  CodelabType.dart: 'dart',
-  CodelabType.flutter: 'flutter',
+const _$WorkshopTypeEnumMap = {
+  WorkshopType.dart: 'dart',
+  WorkshopType.flutter: 'flutter',
 };
 
 StepConfiguration _$StepConfigurationFromJson(Map json) {
