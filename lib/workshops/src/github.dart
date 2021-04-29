@@ -29,7 +29,8 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
     if (statusCode == 404) {
       throw WorkshopFetchException(WorkshopFetchExceptionType.contentNotFound);
     } else if (statusCode == 403) {
-      throw WorkshopFetchException(WorkshopFetchExceptionType.rateLimitExceeded);
+      throw WorkshopFetchException(
+          WorkshopFetchExceptionType.rateLimitExceeded);
     } else if (statusCode != 200) {
       throw WorkshopFetchException(WorkshopFetchExceptionType.unknown);
     }

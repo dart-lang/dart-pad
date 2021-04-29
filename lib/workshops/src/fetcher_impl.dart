@@ -1,9 +1,9 @@
 import 'package:checked_yaml/checked_yaml.dart';
 
-import 'workshop.dart';
 import 'fetcher.dart';
 import 'meta.dart';
 import 'step.dart';
+import 'workshop.dart';
 
 abstract class WorkshopFetcherImpl implements WorkshopFetcher {
   Future<String> loadFileContents(List<String> relativePath);
