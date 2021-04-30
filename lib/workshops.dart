@@ -31,6 +31,7 @@ import 'modules/dartservices_module.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
+import 'sharing/editor_ui.dart';
 import 'src/ga.dart';
 import 'util/keymap.dart';
 import 'workshops/workshops.dart';
@@ -45,7 +46,7 @@ void init() {
   _workshopUi = WorkshopUi();
 }
 
-class WorkshopUi {
+class WorkshopUi extends EditorUi {
   WorkshopState _workshopState;
   Splitter splitter;
   Splitter rightSplitter;

@@ -30,6 +30,7 @@ import 'modules/dartservices_module.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
+import 'sharing/editor_ui.dart';
 import 'sharing/gists.dart';
 import 'src/util.dart';
 import 'util/keymap.dart';
@@ -55,7 +56,7 @@ class EmbedOptions {
 
 /// An embeddable DartPad UI that provides the ability to test the user's code
 /// snippet against a desired result.
-class Embed {
+class Embed extends EditorUi {
   final EmbedOptions options;
 
   var _executionButtonCount = 0;

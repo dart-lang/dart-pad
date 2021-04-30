@@ -39,6 +39,7 @@ import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_doc_property.dart';
+import 'sharing/editor_ui.dart';
 import 'sharing/gist_file_property.dart';
 import 'sharing/gist_storage.dart';
 import 'sharing/gists.dart';
@@ -59,7 +60,7 @@ void init() {
   _playground = Playground();
 }
 
-class Playground implements GistContainer, GistController {
+class Playground extends EditorUi implements GistContainer, GistController {
   final MutableGist editableGist = MutableGist(Gist());
   GistStorage _gistStorage;
   MDCButton newButton;
