@@ -35,7 +35,11 @@ class FlutterWebManager {
   }
 
   static const Set<String> _flutterImportPrefixes = {
-    'package:flutter',
+    'package:cloud_firestore/',
+    'package:firebase/',
+    'package:firebase_auth/',
+    'package:firebase_core/',
+    'package:flutter/',
     'dart:ui',
   };
 
