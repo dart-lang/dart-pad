@@ -13,6 +13,7 @@ import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
 import 'package:route_hierarchical/client.dart';
 import 'package:split/split.dart';
+import 'package:stream_transform/stream_transform.dart';
 
 import 'check_localstorage.dart';
 import 'completion.dart';
@@ -45,7 +46,6 @@ import 'sharing/gist_storage.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
-import 'src/util.dart';
 import 'util/detect_flutter.dart';
 import 'util/keymap.dart';
 import 'util/query_params.dart' show queryParams;
@@ -89,15 +89,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
   Splitter rightSplitter;
   bool rightSplitterConfigured = false;
   TabExpandController tabExpandController;
-  AnalysisResultsController analysisResultsController;
-
-  DBusyLight busyLight;
   DBusyLight consoleBusyLight;
 
-  Editor editor;
   @override
   PlaygroundContext context;
-  Future _analysisRequest;
   Layout _layout;
 
   // The last returned shared gist used to update the url.
@@ -180,8 +175,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   void _initGistStorage() {
     // If there was a change, and the gist is dirty, write the gist's contents
     // to storage.
-    debounceStream(mutableGist.onChanged, Duration(milliseconds: 100))
-        .listen((_) {
+    mutableGist.onChanged.debounce(Duration(milliseconds: 100)).listen((_) {
       if (mutableGist.dirty) {
         _gistStorage.setStoredGist(mutableGist.createGist());
       }
@@ -189,8 +183,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   }
 
   void _initLayoutDetection() {
-    debounceStream(mutableGist.onChanged, Duration(milliseconds: 32))
-        .listen((_) {
+    mutableGist.onChanged.debounce(Duration(milliseconds: 32)).listen((_) {
       if (hasFlutterContent(context.dartSource)) {
         _changeLayout(Layout.flutter);
       } else if (hasHtmlContent(context.dartSource)) {
@@ -530,7 +523,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
         'dart', DartCompleter(dartServices, context.dartDocument));
 
     context.onDartDirty.listen((_) => busyLight.on());
-    context.onDartReconcile.listen((_) => _performAnalysis());
+    context.onDartReconcile.listen((_) => performAnalysis());
 
     Property htmlFile =
         GistFileProperty(editableGist.getGistFile('index.html'));
@@ -658,7 +651,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     }
 
     // Run asynchronously to wait for _context.dartSource to exist
-    Timer.run(_performAnalysis);
+    Timer.run(performAnalysis);
   }
 
   Gist _createGist(Layout layout) {
@@ -753,7 +746,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
       // Analyze and run it.
       Timer.run(() {
-        _performAnalysis().then((bool result) {
+        performAnalysis().then((bool result) {
           // Only auto-run if the static analysis comes back clean.
           if (result && !loadedFromSaved) {
             _handleRun();
@@ -830,68 +823,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       runButton.disabled = false;
       webOutputLabel.setAttr('hidden');
     }
-  }
-
-  /// Perform static analysis of the source code. Return whether the code
-  /// analyzed cleanly (had no errors or warnings).
-  Future<bool> _performAnalysis() {
-    var input = SourceRequest()..source = context.dartSource;
-
-    var lines = Lines(input.source);
-
-    var request = dartServices.analyze(input).timeout(serviceCallTimeout);
-    _analysisRequest = request;
-
-    return request.then((AnalysisResults result) {
-      // Discard if we requested another analysis.
-      if (_analysisRequest != request) return false;
-
-      // Discard if the document has been mutated since we requested analysis.
-      if (input.source != context.dartSource) return false;
-
-      busyLight.reset();
-
-      _displayIssues(result.issues);
-
-      context.dartDocument
-          .setAnnotations(result.issues.map((AnalysisIssue issue) {
-        var startLine = lines.getLineForOffset(issue.charStart);
-        var endLine =
-            lines.getLineForOffset(issue.charStart + issue.charLength);
-
-        var start = Position(
-            startLine, issue.charStart - lines.offsetForLine(startLine));
-        var end = Position(
-            endLine,
-            issue.charStart +
-                issue.charLength -
-                lines.offsetForLine(startLine));
-
-        return Annotation(issue.kind, issue.message, issue.line,
-            start: start, end: end);
-      }).toList());
-
-      var hasErrors = result.issues.any((issue) => issue.kind == 'error');
-      var hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
-
-      return hasErrors == false && hasWarnings == false;
-    }).catchError((e) {
-      if (e is! TimeoutException) {
-        final message = e is ApiRequestError ? e.message : '$e';
-
-        _displayIssues([
-          AnalysisIssue()
-            ..kind = 'error'
-            ..line = 1
-            ..message = message
-        ]);
-      } else {
-        _logger.severe(e);
-      }
-
-      context.dartDocument.setAnnotations([]);
-      busyLight.reset();
-    });
   }
 
   Future<void> _format() {
@@ -1022,7 +953,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     queryParams.nullSafety = enabled;
 
-    _performAnalysis();
+    performAnalysis();
     _initSamplesMenu(nullSafe: enabled);
   }
 
@@ -1113,12 +1044,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
     // Delay to give time for the model change event to propagate through
     // to the editor component (which is where `_performAnalysis()` pulls
     // the Dart source from).
-    Timer.run(_performAnalysis);
+    Timer.run(performAnalysis);
     _clearOutput();
-  }
-
-  void _displayIssues(List<AnalysisIssue> issues) {
-    analysisResultsController.display(issues);
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {

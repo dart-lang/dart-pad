@@ -10,6 +10,7 @@ import 'package:dart_pad/elements/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
 import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:mdc_web/mdc_web.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:split/split.dart';
 
 import 'check_localstorage.dart';
@@ -33,7 +34,6 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_ui.dart';
 import 'sharing/gists.dart';
-import 'src/util.dart';
 import 'util/keymap.dart';
 import 'util/query_params.dart' show queryParams;
 
@@ -108,7 +108,6 @@ class Embed extends EditorUi {
   EmbedContext context;
 
   Splitter splitter;
-  AnalysisResultsController analysisResultsController;
 
   Console consoleExpandController;
   DElement webOutputLabel;
@@ -117,11 +116,6 @@ class Embed extends EditorUi {
   MDCLinearProgress linearProgress;
   Dialog dialog;
   Map<String, String> lastInjectedSourceCode = <String, String>{};
-
-  final DelayedTimer _debounceTimer = DelayedTimer(
-    minDelay: Duration(milliseconds: 1000),
-    maxDelay: Duration(milliseconds: 5000),
-  );
 
   bool _editorIsBusy = true;
 
@@ -294,7 +288,7 @@ class Embed extends EditorUi {
       ..theme = editorTheme
       ..mode = 'dart'
       ..showLineNumbers = true;
-    userCodeEditor.document.onChange.listen(_performAnalysis);
+    userCodeEditor.document.onChange.listen((_) => performAnalysis());
     userCodeEditor.autoCloseBrackets = false;
 
     testEditor = editorFactory.createFromElement(querySelector('#test-editor'),
@@ -548,7 +542,7 @@ class Embed extends EditorUi {
       api.rootUrl = serverUrl;
       window.localStorage['null_safety'] = 'false';
     }
-    _performAnalysis();
+    unawaited(performAnalysis());
   }
 
   Future<void> _initModules() async {
@@ -674,7 +668,7 @@ class Embed extends EditorUi {
       });
 
       if (analyze) {
-        _performAnalysis();
+        unawaited(performAnalysis());
       }
 
       if (autoRunEnabled) {
@@ -718,7 +712,7 @@ class Embed extends EditorUi {
 
   void _resetCode() {
     setContextSources(lastInjectedSourceCode);
-    Timer.run(_performAnalysis);
+    Timer.run(() => unawaited(performAnalysis()));
   }
 
   void _handleCopyCode() {
@@ -880,68 +874,11 @@ class Embed extends EditorUi {
     ga?.sendPage(pageName: path);
   }
 
-  void _displayIssues(List<AnalysisIssue> issues) {
+  @override
+  void displayIssues(List<AnalysisIssue> issues) {
     testResultBox.hide();
     hintBox.hide();
     analysisResultsController.display(issues);
-  }
-
-  /// Perform static analysis of the source code.
-  void _performAnalysis([_]) {
-    _debounceTimer.invoke(() {
-      final dartServices = deps[DartservicesApi] as DartservicesApi;
-      final userSource = context.dartSource;
-      // Create a synthesis of the user code and other code to analyze.
-      final fullSource = '$userSource\n'
-          '${context.testMethod}\n'
-          '${executionSvc.testResultDecoration}\n';
-      final sourceRequest = SourceRequest()..source = fullSource;
-      final lines = Lines(sourceRequest.source);
-
-      dartServices
-          .analyze(sourceRequest)
-          .timeout(serviceCallTimeout)
-          .then((AnalysisResults result) {
-        // Discard if the document has been mutated since we requested analysis.
-        if (userSource != context.dartSource) return;
-
-        _displayIssues(result.issues);
-
-        var issues = result.issues.map((AnalysisIssue issue) {
-          final charStart = issue.charStart;
-          final startLine = lines.getLineForOffset(charStart);
-          final endLine = lines.getLineForOffset(charStart + issue.charLength);
-
-          return Annotation(
-            issue.kind,
-            issue.message,
-            issue.line,
-            start: Position(
-              startLine,
-              charStart - lines.offsetForLine(startLine),
-            ),
-            end: Position(
-              endLine,
-              charStart + issue.charLength - lines.offsetForLine(startLine),
-            ),
-          );
-        });
-
-        userCodeEditor.document.setAnnotations(issues.toList());
-      }).catchError((e) {
-        if (e is! TimeoutException) {
-          final message = e is ApiRequestError ? e.message : '$e';
-
-          _displayIssues([
-            AnalysisIssue()
-              ..kind = 'error'
-              ..line = 1
-              ..message = message
-          ]);
-          userCodeEditor.document.setAnnotations([]);
-        }
-      });
-    });
   }
 
   void _showKeyboardDialog() {
@@ -981,7 +918,7 @@ class Embed extends EditorUi {
         // And, check that the format request did modify the source code.
         if (originalSource != result.newString) {
           userCodeEditor.document.updateValue(result.newString);
-          _performAnalysis();
+          unawaited(performAnalysis());
         }
       }
     } catch (e) {

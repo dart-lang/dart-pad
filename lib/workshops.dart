@@ -4,7 +4,6 @@ import 'dart:html' hide Console;
 import 'package:dart_pad/context.dart';
 import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:dart_pad/util/query_params.dart';
-import 'package:logging/logging.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
@@ -40,8 +39,6 @@ WorkshopUi _workshopUi;
 
 WorkshopUi get workshopUi => _workshopUi;
 
-final Logger _logger = Logger('dartpad');
-
 void init() {
   _workshopUi = WorkshopUi();
 }
@@ -50,7 +47,6 @@ class WorkshopUi extends EditorUi {
   WorkshopState _workshopState;
   Splitter splitter;
   Splitter rightSplitter;
-  Editor editor;
   DElement stepLabel;
   DElement previousStepButton;
   DElement nextStepButton;
@@ -61,12 +57,9 @@ class WorkshopUi extends EditorUi {
   Counter unreadConsoleCounter;
   Dialog dialog;
   DocHandler docHandler;
-  Future _analysisRequest;
   @override
   ContextBase context;
   MDCButton formatButton;
-  DBusyLight busyLight;
-  AnalysisResultsController analysisResultsController;
 
   WorkshopUi() {
     _init();
@@ -134,7 +127,7 @@ class WorkshopUi extends EditorUi {
     editor.document.onChange.listen((_) => busyLight.on());
     editor.document.onChange
         .debounce(Duration(milliseconds: 1250))
-        .listen((_) => _performAnalysis());
+        .listen((_) => performAnalysis());
 
     editorFactory.registerCompleter(
         'dart', DartCompleter(dartServices, editor.document));
@@ -452,67 +445,6 @@ class WorkshopUi extends EditorUi {
     }
   }
 
-  /// Perform static analysis of the source code. Return whether the code
-  /// analyzed cleanly (had no errors or warnings).
-  Future<bool> _performAnalysis() {
-    var input = SourceRequest()..source = context.dartSource;
-
-    var lines = Lines(input.source);
-
-    var request = dartServices.analyze(input).timeout(serviceCallTimeout);
-    _analysisRequest = request;
-
-    return request.then((AnalysisResults result) {
-      // Discard if we requested another analysis.
-      if (_analysisRequest != request) return false;
-
-      // Discard if the document has been mutated since we requested analysis.
-      if (input.source != context.dartSource) return false;
-
-      busyLight.reset();
-
-      _displayIssues(result.issues);
-
-      editor.document.setAnnotations(result.issues.map((AnalysisIssue issue) {
-        var startLine = lines.getLineForOffset(issue.charStart);
-        var endLine =
-            lines.getLineForOffset(issue.charStart + issue.charLength);
-
-        var start = Position(
-            startLine, issue.charStart - lines.offsetForLine(startLine));
-        var end = Position(
-            endLine,
-            issue.charStart +
-                issue.charLength -
-                lines.offsetForLine(startLine));
-
-        return Annotation(issue.kind, issue.message, issue.line,
-            start: start, end: end);
-      }).toList());
-
-      var hasErrors = result.issues.any((issue) => issue.kind == 'error');
-      var hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
-
-      return hasErrors == false && hasWarnings == false;
-    }).catchError((e) {
-      if (e is! TimeoutException) {
-        final message = e is ApiRequestError ? e.message : '$e';
-
-        _displayIssues([
-          AnalysisIssue()
-            ..kind = 'error'
-            ..line = 1
-            ..message = message
-        ]);
-      } else {
-        _logger.severe(e);
-      }
-
-      editor.document.setAnnotations([]);
-      busyLight.reset();
-    });
-  }
-
   Future<void> _format() {
     var originalSource = context.dartSource;
     var input = SourceRequest()..source = originalSource;
@@ -524,7 +456,7 @@ class WorkshopUi extends EditorUi {
       formatButton.disabled = false;
 
       if (result.newString == null || result.newString.isEmpty) {
-        _logger.fine('Format returned null/empty result');
+        logger.fine('Format returned null/empty result');
         return;
       }
 
@@ -537,7 +469,7 @@ class WorkshopUi extends EditorUi {
     }).catchError((e) {
       busyLight.reset();
       formatButton.disabled = false;
-      _logger.severe(e);
+      logger.severe(e);
     });
   }
 
@@ -572,10 +504,6 @@ class WorkshopUi extends EditorUi {
       editor.document.updateValue(_workshopState.currentStep.solution);
       showSolutionButton.disabled = true;
     }
-  }
-
-  void _displayIssues(List<AnalysisIssue> issues) {
-    analysisResultsController.display(issues);
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
