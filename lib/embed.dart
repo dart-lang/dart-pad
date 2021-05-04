@@ -14,6 +14,7 @@ import 'package:split/split.dart';
 
 import 'check_localstorage.dart';
 import 'completion.dart';
+import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
@@ -103,6 +104,7 @@ class Embed extends EditorUi {
   Editor htmlEditor;
   Editor cssEditor;
 
+  @override
   EmbedContext context;
 
   Splitter splitter;
@@ -1259,7 +1261,7 @@ class ConsoleExpandController extends Console {
   }
 }
 
-class EmbedContext {
+class EmbedContext implements ContextBase {
   final Editor userCodeEditor;
   final Editor htmlEditor;
   final Editor cssEditor;
@@ -1302,6 +1304,7 @@ class EmbedContext {
 
   Document get dartDocument => _dartDoc;
 
+  @override
   String get dartSource => _dartDoc.value;
 
   String get htmlSource => _htmlDoc?.value;
@@ -1346,6 +1349,9 @@ class EmbedContext {
     // TODO(DomesticMouse): implement with CodeMirror integration
     return false;
   }
+
+  @override
+  bool get isFocused => userCodeEditor.hasFocus;
 }
 
 final RegExp _flutterUrlExp =

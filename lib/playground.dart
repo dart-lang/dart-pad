@@ -95,7 +95,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
   DBusyLight consoleBusyLight;
 
   Editor editor;
-  PlaygroundContext _context;
+  @override
+  PlaygroundContext context;
   Future _analysisRequest;
   Layout _layout;
 
@@ -190,9 +191,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
   void _initLayoutDetection() {
     debounceStream(mutableGist.onChanged, Duration(milliseconds: 32))
         .listen((_) {
-      if (hasFlutterContent(_context.dartSource)) {
+      if (hasFlutterContent(context.dartSource)) {
         _changeLayout(Layout.flutter);
-      } else if (hasHtmlContent(_context.dartSource)) {
+      } else if (hasHtmlContent(context.dartSource)) {
         _changeLayout(Layout.html);
       } else {
         _changeLayout(Layout.dart);
@@ -433,7 +434,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       webLayoutTabController.registerTab(
           TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
         ga.sendEvent('edit', name);
-        _context.switchTo(name);
+        context.switchTo(name);
       }));
     }
   }
@@ -522,28 +523,28 @@ class Playground extends EditorUi implements GistContainer, GistController {
       _handleAutoCompletion(e);
     });
 
-    _context = PlaygroundContext(editor);
-    deps[Context] = _context;
+    context = PlaygroundContext(editor);
+    deps[Context] = context;
 
     editorFactory.registerCompleter(
-        'dart', DartCompleter(dartServices, _context.dartDocument));
+        'dart', DartCompleter(dartServices, context.dartDocument));
 
-    _context.onDartDirty.listen((_) => busyLight.on());
-    _context.onDartReconcile.listen((_) => _performAnalysis());
+    context.onDartDirty.listen((_) => busyLight.on());
+    context.onDartReconcile.listen((_) => _performAnalysis());
 
     Property htmlFile =
         GistFileProperty(editableGist.getGistFile('index.html'));
-    Property htmlDoc = EditorDocumentProperty(_context.htmlDocument, 'html');
+    Property htmlDoc = EditorDocumentProperty(context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
     Property cssFile = GistFileProperty(editableGist.getGistFile('styles.css'));
-    Property cssDoc = EditorDocumentProperty(_context.cssDocument, 'css');
+    Property cssDoc = EditorDocumentProperty(context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
     Property dartFile = GistFileProperty(editableGist.getGistFile('main.dart'));
-    Property dartDoc = EditorDocumentProperty(_context.dartDocument, 'dart');
+    Property dartDoc = EditorDocumentProperty(context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
@@ -551,7 +552,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     editor.onMouseDown.listen((e) {
       // Delay to give codemirror time to process the mouse event.
       Timer.run(() {
-        if (!_context.cursorPositionIsWhitespace()) {
+        if (!context.cursorPositionIsWhitespace()) {
           docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
         }
       });
@@ -578,7 +579,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
     router.listen();
 
-    docHandler = DocHandler(editor, _context);
+    docHandler = DocHandler(editor, context);
 
     updateVersion();
 
@@ -779,7 +780,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     final compileRequest = CompileRequest()..source = context.dartSource;
 
     try {
-      if (hasFlutterContent(_context.dartSource)) {
+      if (hasFlutterContent(context.dartSource)) {
         final response = await dartServices
             .compileDDC(compileRequest)
             .timeout(longServiceCallTimeout);
@@ -793,12 +794,12 @@ class Playground extends EditorUi implements GistContainer, GistController {
         _clearOutput();
 
         await executionService.execute(
-          _context.htmlSource,
-          _context.cssSource,
+          context.htmlSource,
+          context.cssSource,
           response.result,
           modulesBaseUrl: response.modulesBaseUrl,
           addRequireJs: true,
-          addFirebaseJs: hasFirebaseContent(_context.dartSource),
+          addFirebaseJs: hasFirebaseContent(context.dartSource),
         );
       } else {
         final response = await dartServices
@@ -814,8 +815,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
         _clearOutput();
 
         await executionService.execute(
-          _context.htmlSource,
-          _context.cssSource,
+          context.htmlSource,
+          context.cssSource,
           response.result,
         );
       }
@@ -834,7 +835,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
-    var input = SourceRequest()..source = _context.dartSource;
+    var input = SourceRequest()..source = context.dartSource;
 
     var lines = Lines(input.source);
 
@@ -846,13 +847,13 @@ class Playground extends EditorUi implements GistContainer, GistController {
       if (_analysisRequest != request) return false;
 
       // Discard if the document has been mutated since we requested analysis.
-      if (input.source != _context.dartSource) return false;
+      if (input.source != context.dartSource) return false;
 
       busyLight.reset();
 
       _displayIssues(result.issues);
 
-      _context.dartDocument
+      context.dartDocument
           .setAnnotations(result.issues.map((AnalysisIssue issue) {
         var startLine = lines.getLineForOffset(issue.charStart);
         var endLine =
@@ -888,13 +889,13 @@ class Playground extends EditorUi implements GistContainer, GistController {
         _logger.severe(e);
       }
 
-      _context.dartDocument.setAnnotations([]);
+      context.dartDocument.setAnnotations([]);
       busyLight.reset();
     });
   }
 
   Future<void> _format() {
-    var originalSource = _context.dartSource;
+    var originalSource = context.dartSource;
     var input = SourceRequest()..source = originalSource;
     formatButton.disabled = true;
 

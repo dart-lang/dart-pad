@@ -26,7 +26,7 @@ class DocHandler {
   };
 
   final Editor _editor;
-  final DartSourceProvider _sourceProvider;
+  final ContextBase _sourceProvider;
 
   final NodeValidator _htmlValidator = PermissiveNodeValidator();
 

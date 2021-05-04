@@ -62,7 +62,8 @@ class WorkshopUi extends EditorUi {
   Dialog dialog;
   DocHandler docHandler;
   Future _analysisRequest;
-  DartSourceProvider sourceProvider;
+  @override
+  ContextBase context;
   MDCButton formatButton;
   DBusyLight busyLight;
   AnalysisResultsController analysisResultsController;
@@ -127,8 +128,8 @@ class WorkshopUi extends EditorUi {
           ..mode = 'dart'
           ..showLineNumbers = true;
 
-    sourceProvider = WorkshopDartSourceProvider(editor);
-    docHandler = DocHandler(editor, sourceProvider);
+    context = WorkshopDartSourceProvider(editor);
+    docHandler = DocHandler(editor, context);
 
     editor.document.onChange.listen((_) => busyLight.on());
     editor.document.onChange
@@ -454,7 +455,7 @@ class WorkshopUi extends EditorUi {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> _performAnalysis() {
-    var input = SourceRequest()..source = sourceProvider.dartSource;
+    var input = SourceRequest()..source = context.dartSource;
 
     var lines = Lines(input.source);
 
@@ -466,7 +467,7 @@ class WorkshopUi extends EditorUi {
       if (_analysisRequest != request) return false;
 
       // Discard if the document has been mutated since we requested analysis.
-      if (input.source != sourceProvider.dartSource) return false;
+      if (input.source != context.dartSource) return false;
 
       busyLight.reset();
 
@@ -513,7 +514,7 @@ class WorkshopUi extends EditorUi {
   }
 
   Future<void> _format() {
-    var originalSource = sourceProvider.dartSource;
+    var originalSource = context.dartSource;
     var input = SourceRequest()..source = originalSource;
     formatButton.disabled = true;
 
@@ -624,7 +625,7 @@ class WorkshopState {
   bool get hasPreviousStep => _currentStepIndex > 0;
 }
 
-class WorkshopDartSourceProvider implements DartSourceProvider {
+class WorkshopDartSourceProvider implements ContextBase {
   final Editor editor;
 
   WorkshopDartSourceProvider(this.editor);
