@@ -12,7 +12,7 @@ abstract class WorkshopFetcherImpl implements WorkshopFetcher {
   Future<Workshop> fetch() async {
     var metadata = await fetchMeta();
     var steps = await fetchSteps(metadata);
-    return Workshop('Example workshop', metadata.type, steps);
+    return Workshop(metadata.name, metadata.type, steps);
   }
 
   Future<Meta> fetchMeta() async {
