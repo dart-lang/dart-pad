@@ -12,7 +12,6 @@ import 'core/keys.dart';
 import 'editing/editor.dart';
 import 'elements/state.dart';
 import 'services/dartservices.dart';
-import 'services/execution.dart';
 import 'sharing/gists.dart';
 import 'src/ga.dart';
 
@@ -23,9 +22,6 @@ Context get context => deps[Context] as Context;
 DartservicesApi get dartServices => deps[DartservicesApi] as DartservicesApi;
 
 EditorFactory get editorFactory => deps[EditorFactory] as EditorFactory;
-
-ExecutionService get executionService =>
-    deps[ExecutionService] as ExecutionService;
 
 GistLoader get gistLoader => deps[GistLoader] as GistLoader;
 

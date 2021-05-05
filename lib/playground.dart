@@ -68,7 +68,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
   MDCButton formatButton;
   MDCButton installButton;
   MDCButton samplesButton;
-  MDCButton runButton;
   MDCButton editorConsoleTab;
   MDCButton editorDocsTab;
   MDCButton closePanelButton;
@@ -211,7 +210,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     runButton = MDCButton(querySelector('#run-button') as ButtonElement)
       ..onClick.listen((_) {
-        _handleRun();
+        handleRun();
       });
     editorConsoleTab =
         MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
@@ -468,9 +467,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void _initPlayground() {
     // Set up the iframe.
-    deps[ExecutionService] = ExecutionServiceIFrame(_frame);
-    executionService.onStdout.listen(_showOutput);
-    executionService.onStderr.listen((m) => _showOutput(m, error: true));
+    executionService = ExecutionServiceIFrame(_frame);
+    executionService.onStdout.listen(showOutput);
+    executionService.onStderr.listen((m) => showOutput(m, error: true));
 
     // Set up Google Analytics.
     deps[Analytics] = Analytics();
@@ -487,7 +486,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     // set up key bindings
     keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
-    keys.bind(['ctrl-enter'], _handleRun, 'Run');
+    keys.bind(['ctrl-enter'], handleRun, 'Run');
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
       docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
@@ -643,7 +642,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     }
 
     // Clear console output and update the layout if necessary.
-    _clearOutput();
+    clearOutput();
 
     final line = queryParams.line;
     if (line != null) {
@@ -702,7 +701,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   void showGist(RouteEnterEvent event) {
     var gistId = event.parameters['gist'] as String;
 
-    _clearOutput();
+    clearOutput();
 
     if (!isLegalGistId(gistId)) {
       showHome(event);
@@ -740,7 +739,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
         }
       }
 
-      _clearOutput();
+      clearOutput();
 
       _changeLayout(_detectLayout(gist));
 
@@ -749,13 +748,13 @@ class Playground extends EditorUi implements GistContainer, GistController {
         performAnalysis().then((bool result) {
           // Only auto-run if the static analysis comes back clean.
           if (result && !loadedFromSaved) {
-            _handleRun();
+            handleRun();
           }
         }).catchError((e) => null);
       });
     }).catchError((e) {
       var message = 'Error loading gist $gistId.';
-      _showSnackbar(message);
+      showSnackbar(message);
       _logger.severe('$message: $e');
     });
   }
@@ -764,65 +763,13 @@ class Playground extends EditorUi implements GistContainer, GistController {
     dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
-  void _handleRun() async {
-    ga.sendEvent('main', 'run');
-    runButton.disabled = true;
-
-    var compilationTimer = Stopwatch()..start();
-
-    final compileRequest = CompileRequest()..source = context.dartSource;
-
-    try {
-      if (hasFlutterContent(context.dartSource)) {
-        final response = await dartServices
-            .compileDDC(compileRequest)
-            .timeout(longServiceCallTimeout);
-
-        ga.sendTiming(
-          'action-perf',
-          'compilation-e2e',
-          compilationTimer.elapsedMilliseconds,
-        );
-
-        _clearOutput();
-
-        await executionService.execute(
-          context.htmlSource,
-          context.cssSource,
-          response.result,
-          modulesBaseUrl: response.modulesBaseUrl,
-          addRequireJs: true,
-          addFirebaseJs: hasFirebaseContent(context.dartSource),
-        );
-      } else {
-        final response = await dartServices
-            .compile(compileRequest)
-            .timeout(longServiceCallTimeout);
-
-        ga.sendTiming(
-          'action-perf',
-          'compilation-e2e',
-          compilationTimer.elapsedMilliseconds,
-        );
-
-        _clearOutput();
-
-        await executionService.execute(
-          context.htmlSource,
-          context.cssSource,
-          response.result,
-        );
-      }
-    } catch (e) {
-      ga.sendException('${e.runtimeType}');
-      final message = e is ApiRequestError ? e.message : '$e';
-      _showSnackbar('Error compiling to JavaScript');
-      _clearOutput();
-      _showOutput('Error compiling to JavaScript:\n$message', error: true);
-    } finally {
-      runButton.disabled = false;
+  @override
+  Future<bool> handleRun() async {
+    var success = await super.handleRun();
+    if (success) {
       webOutputLabel.setAttr('hidden');
     }
+    return success;
   }
 
   Future<void> _format() {
@@ -842,9 +789,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
       if (originalSource != result.newString) {
         editor.document.updateValue(result.newString);
-        _showSnackbar('Format successful.');
+        showSnackbar('Format successful.');
       } else {
-        _showSnackbar('No formatting changes.');
+        showSnackbar('No formatting changes.');
       }
     }).catchError((e) {
       busyLight.reset();
@@ -853,15 +800,23 @@ class Playground extends EditorUi implements GistContainer, GistController {
     });
   }
 
+  @override
+  bool get shouldCompileDDC => hasFlutterContent(context.dartSource);
+
+  @override
+  bool get shouldAddFirebaseJs => hasFirebaseContent(context.dartSource);
+
   void _handleSave() => ga.sendEvent('main', 'save');
 
-  void _clearOutput() {
+  @override
+  void clearOutput() {
     _rightConsole.clear();
     _leftConsole.clear();
     unreadConsoleCounter.clear();
   }
 
-  void _showOutput(String message, {bool error = false}) {
+  @override
+  void showOutput(String message, {bool error = false}) {
     _leftConsole.showOutput(message, error: error);
     _rightConsole.showOutput(message, error: error);
 
@@ -871,12 +826,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
         tabExpandController.state != TabState.console) {
       unreadConsoleCounter.increment();
     }
-  }
-
-  void _showSnackbar(String message) {
-    var div = querySelector('.mdc-snackbar');
-    var snackbar = MDCSnackbar(div)..labelText = message;
-    snackbar.open();
   }
 
   Layout _detectLayout(Gist gist) {
@@ -1020,7 +969,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     if (ga != null) ga.sendEvent('main', 'new');
 
-    _showSnackbar('New pad created');
+    showSnackbar('New pad created');
     await router.go('gist', {'gist': ''},
         queryParameters: queryParams.parameters, forceReload: true);
   }
@@ -1030,7 +979,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     if (ga != null) ga.sendEvent('main', 'new');
 
-    _showSnackbar('New pad created');
+    showSnackbar('New pad created');
 
     var layoutStr = _layoutToString(layout);
 
@@ -1045,7 +994,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     // to the editor component (which is where `_performAnalysis()` pulls
     // the Dart source from).
     Timer.run(performAnalysis);
-    _clearOutput();
+    clearOutput();
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {

@@ -9,6 +9,8 @@ import 'services/dartservices.dart';
 abstract class ContextBase {
   bool get isFocused;
   String get dartSource;
+  String get htmlSource;
+  String get cssSource;
 }
 
 abstract class Context implements ContextBase {
@@ -23,7 +25,11 @@ abstract class Context implements ContextBase {
 
   @override
   String dartSource;
+
+  @override
   String htmlSource;
+
+  @override
   String cssSource;
 
   String get activeMode;

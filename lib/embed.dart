@@ -61,7 +61,6 @@ class Embed extends EditorUi {
   final EmbedOptions options;
 
   var _executionButtonCount = 0;
-  MDCButton executeButton;
   MDCButton reloadGistButton;
   MDCButton installButton;
   MDCButton formatButton;
@@ -93,8 +92,6 @@ class Embed extends EditorUi {
 
   FlashBox testResultBox;
   FlashBox hintBox;
-
-  ExecutionService executionSvc;
 
   CodeMirrorFactory editorFactory = codeMirrorFactory;
 
@@ -131,7 +128,7 @@ class Embed extends EditorUi {
       linearProgress.root.classes.add('hide');
     }
     userCodeEditor.readOnly = value;
-    executeButton.disabled = value;
+    runButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value;
     showHintButton?.disabled = value;
@@ -195,8 +192,8 @@ class Embed extends EditorUi {
     unreadConsoleCounter =
         Counter(querySelector('#unread-console-counter') as SpanElement);
 
-    executeButton = MDCButton(querySelector('#execute') as ButtonElement)
-      ..onClick.listen((_) => _handleExecute());
+    runButton = MDCButton(querySelector('#execute') as ButtonElement)
+      ..onClick.listen((_) => handleRun());
 
     reloadGistButton = MDCButton(querySelector('#reload-gist') as ButtonElement)
       ..onClick.listen((_) {
@@ -348,21 +345,21 @@ class Embed extends EditorUi {
       cssTabView = TabView(DElement(querySelector('#css-view')));
     }
 
-    executionSvc =
+    executionService =
         ExecutionServiceIFrame(querySelector('#frame') as IFrameElement)
           ..frameSrc = isDarkMode
               ? '../scripts/frame_dark.html'
               : '../scripts/frame.html';
 
-    executionSvc.onStderr.listen((err) {
+    executionService.onStderr.listen((err) {
       consoleExpandController.showOutput(err, error: true);
     });
 
-    executionSvc.onStdout.listen((msg) {
+    executionService.onStdout.listen((msg) {
       consoleExpandController.showOutput(msg);
     });
 
-    executionSvc.testResults.listen((result) {
+    executionService.testResults.listen((result) {
       if (result.messages.isEmpty) {
         result.messages
             .add(result.success ? 'All tests passed!' : 'Test failed.');
@@ -441,7 +438,7 @@ class Embed extends EditorUi {
         _resetCode();
 
         if (autoRunEnabled) {
-          _handleExecute();
+          handleRun();
         }
       }
     });
@@ -574,7 +571,7 @@ class Embed extends EditorUi {
       userCodeEditor.showCompletions(onlyShowFixes: true);
     }, 'Quick fix');
 
-    keys.bind(['ctrl-enter', 'macctrl-enter'], _handleExecute, 'Run');
+    keys.bind(['ctrl-enter', 'macctrl-enter'], handleRun, 'Run');
     keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
       _showKeyboardDialog();
     }, 'Keyboard Shortcuts');
@@ -672,7 +669,7 @@ class Embed extends EditorUi {
       }
 
       if (autoRunEnabled) {
-        _handleExecute();
+        unawaited(handleRun());
       }
     } on GistLoaderException catch (ex) {
       // No gist was loaded, so clear the editors.
@@ -779,17 +776,22 @@ class Embed extends EditorUi {
     editorIsBusy = false;
   }
 
-  void _handleExecute() {
+  @override
+  String get fullDartSource => '${context.dartSource}\n${context.testMethod}\n'
+      '${executionService.testResultDecoration}';
+
+  @override
+  Future<bool> handleRun() async {
     if (editorIsBusy) {
-      return;
+      return false;
     }
 
     if (context.dartSource.isEmpty) {
-      dialog.showOk(
+      unawaited(dialog.showOk(
           'No code to execute',
           'Try entering some Dart code into the "Dart" tab, then click this '
-              'button again to run it.');
-      return;
+              'button again to run it.'));
+      return false;
     }
 
     _executionButtonCount++;
@@ -800,69 +802,15 @@ class Embed extends EditorUi {
     hintBox.hide();
     consoleExpandController.clear();
 
-    final fullCode = '${context.dartSource}\n${context.testMethod}\n'
-        '${executionSvc.testResultDecoration}';
+    var success = await super.handleRun();
 
-    var input = CompileRequest()..source = fullCode;
-    if (options.mode == EmbedMode.flutter) {
-      dartServices
-          .compileDDC(input)
-          .timeout(longServiceCallTimeout)
-          .then((CompileDDCResponse response) {
-        executionSvc.execute(
-          '',
-          '',
-          response.result,
-          modulesBaseUrl: response.modulesBaseUrl,
-          addRequireJs: true,
-          addFirebaseJs: hasFirebaseContent(input.source),
-        );
-        ga?.sendEvent('execution', 'ddc-compile-success');
-      }).catchError((e, st) {
-        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
-            error: true);
-        print(st);
-        ga?.sendEvent('execution', 'ddc-compile-failure');
-      }).whenComplete(() {
-        webOutputLabel.setAttr('hidden');
-        editorIsBusy = false;
-      });
-    } else if (options.mode == EmbedMode.html) {
-      dartServices
-          .compile(input)
-          .timeout(longServiceCallTimeout)
-          .then((CompileResponse response) {
-        ga?.sendEvent('execution', 'html-compile-success');
-        return executionSvc.execute(
-          context.htmlSource,
-          context.cssSource,
-          response.result,
-        );
-      }).catchError((e, st) {
-        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
-            error: true);
-        print(st);
-        ga?.sendEvent('execution', 'html-compile-failure');
-      }).whenComplete(() {
-        webOutputLabel.setAttr('hidden');
-        editorIsBusy = false;
-      });
-    } else {
-      dartServices
-          .compile(input)
-          .timeout(longServiceCallTimeout)
-          .then((CompileResponse response) {
-        executionSvc.execute('', '', response.result);
-        ga?.sendEvent('execution', 'compile-success');
-      }).catchError((e, st) {
-        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
-            error: true);
-        print(st);
-        ga?.sendEvent('execution', 'compile-failure');
-      }).whenComplete(() {
-        editorIsBusy = false;
-      });
-    }
+    editorIsBusy = false;
+
+    // The iframe will show Flutter output for the rest of the lifetime of the
+    // app, so hide the label.
+    webOutputLabel?.setAttr('hidden');
+
+    return success;
   }
 
   void _sendVirtualPageView(String id) {
@@ -951,6 +899,22 @@ class Embed extends EditorUi {
         doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
     if (focus) userCodeEditor.focus();
+  }
+
+  @override
+  void clearOutput() {
+    consoleExpandController.clear();
+  }
+
+  @override
+  bool get shouldAddFirebaseJs => hasFirebaseContent(fullDartSource);
+
+  @override
+  bool get shouldCompileDDC => options.mode == EmbedMode.flutter;
+
+  @override
+  void showOutput(String message, {bool error = false}) {
+    consoleExpandController.showOutput(message, error: error);
   }
 }
 
@@ -1244,8 +1208,10 @@ class EmbedContext implements ContextBase {
   @override
   String get dartSource => _dartDoc.value;
 
+  @override
   String get htmlSource => _htmlDoc?.value;
 
+  @override
   String get cssSource => _cssDoc?.value;
 
   set dartSource(String value) {

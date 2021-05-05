@@ -1,6 +1,10 @@
 import 'dart:async';
+import 'dart:html';
 
+import 'package:dart_pad/elements/button.dart';
+import 'package:dart_pad/services/execution.dart';
 import 'package:logging/logging.dart';
+import 'package:mdc_web/mdc_web.dart';
 
 import '../context.dart';
 import '../dart_pad.dart';
@@ -12,21 +16,40 @@ import '../services/dartservices.dart';
 
 abstract class EditorUi {
   final Logger logger = Logger('dartpad');
+
   ContextBase get context;
 
   Future<AnalysisResults> analysisRequest;
   DBusyLight busyLight;
   AnalysisResultsController analysisResultsController;
   Editor editor;
+  MDCButton runButton;
+  ExecutionService executionService;
+
+  String get fullDartSource => context.dartSource;
+
+  bool get shouldCompileDDC;
+
+  bool get shouldAddFirebaseJs;
+
+  void clearOutput();
+
+  void showOutput(String message, {bool error = false});
 
   void displayIssues(List<AnalysisIssue> issues) {
     analysisResultsController.display(issues);
   }
 
+  void showSnackbar(String message) {
+    var div = querySelector('.mdc-snackbar');
+    var snackbar = MDCSnackbar(div)..labelText = message;
+    snackbar.open();
+  }
+
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> performAnalysis() {
-    var input = SourceRequest()..source = context.dartSource;
+    var input = SourceRequest()..source = fullDartSource;
 
     var lines = Lines(input.source);
 
@@ -82,5 +105,67 @@ abstract class EditorUi {
       editor.document.setAnnotations([]);
       busyLight.reset();
     });
+  }
+
+  Future<bool> handleRun() async {
+    ga.sendEvent('main', 'run');
+    runButton.disabled = true;
+
+    var compilationTimer = Stopwatch()..start();
+
+    final compileRequest = CompileRequest()..source = fullDartSource;
+
+    try {
+      if (shouldCompileDDC) {
+        final response = await dartServices
+            .compileDDC(compileRequest)
+            .timeout(longServiceCallTimeout);
+
+        ga.sendTiming(
+          'action-perf',
+          'compilation-e2e',
+          compilationTimer.elapsedMilliseconds,
+        );
+
+        clearOutput();
+
+        await executionService.execute(
+          context.htmlSource,
+          context.cssSource,
+          response.result,
+          modulesBaseUrl: response.modulesBaseUrl,
+          addRequireJs: true,
+          addFirebaseJs: shouldAddFirebaseJs,
+        );
+      } else {
+        final response = await dartServices
+            .compile(compileRequest)
+            .timeout(longServiceCallTimeout);
+
+        ga.sendTiming(
+          'action-perf',
+          'compilation-e2e',
+          compilationTimer.elapsedMilliseconds,
+        );
+
+        clearOutput();
+
+        await executionService.execute(
+          context.htmlSource,
+          context.cssSource,
+          response.result,
+        );
+      }
+      return true;
+    } catch (e) {
+      ga.sendException('${e.runtimeType}');
+      final message = e is ApiRequestError ? e.message : '$e';
+      showSnackbar('Error compiling to JavaScript');
+      clearOutput();
+      showOutput('Error compiling to JavaScript:\n$message', error: true);
+      return false;
+    } finally {
+      runButton.disabled = false;
+    }
   }
 }
