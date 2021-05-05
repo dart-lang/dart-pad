@@ -1,5 +1,3 @@
-
-
 import 'dart:async';
 
 import 'package:logging/logging.dart';
@@ -25,7 +23,7 @@ abstract class EditorUi {
     analysisResultsController.display(issues);
   }
 
-    /// Perform static analysis of the source code. Return whether the code
+  /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> performAnalysis() {
     var input = SourceRequest()..source = context.dartSource;
@@ -49,7 +47,7 @@ abstract class EditorUi {
       editor.document.setAnnotations(result.issues.map((AnalysisIssue issue) {
         var startLine = lines.getLineForOffset(issue.charStart);
         var endLine =
-        lines.getLineForOffset(issue.charStart + issue.charLength);
+            lines.getLineForOffset(issue.charStart + issue.charLength);
 
         var start = Position(
             startLine, issue.charStart - lines.offsetForLine(startLine));
