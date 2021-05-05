@@ -144,7 +144,7 @@ class WorkshopUi extends EditorUi {
 
   void _initWorkshopUi() {
     // Set up the iframe.
-    deps[ExecutionService] = ExecutionServiceIFrame(_frame);
+    executionService = ExecutionServiceIFrame(_frame);
     executionService.onStdout.listen(showOutput);
     executionService.onStderr.listen((m) => showOutput(m, error: true));
     // Set up Google Analytics.

@@ -467,7 +467,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void _initPlayground() {
     // Set up the iframe.
-    deps[ExecutionService] = ExecutionServiceIFrame(_frame);
+    executionService = ExecutionServiceIFrame(_frame);
     executionService.onStdout.listen(showOutput);
     executionService.onStderr.listen((m) => showOutput(m, error: true));
 

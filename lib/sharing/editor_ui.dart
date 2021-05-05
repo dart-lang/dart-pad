@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:dart_pad/elements/button.dart';
+import 'package:dart_pad/services/execution.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 
@@ -23,6 +24,9 @@ abstract class EditorUi {
   AnalysisResultsController analysisResultsController;
   Editor editor;
   MDCButton runButton;
+  ExecutionService executionService;
+
+  String get fullDartSource => context.dartSource;
 
   bool get shouldCompileDDC;
 
@@ -45,7 +49,7 @@ abstract class EditorUi {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> performAnalysis() {
-    var input = SourceRequest()..source = context.dartSource;
+    var input = SourceRequest()..source = fullDartSource;
 
     var lines = Lines(input.source);
 
@@ -109,7 +113,7 @@ abstract class EditorUi {
 
     var compilationTimer = Stopwatch()..start();
 
-    final compileRequest = CompileRequest()..source = context.dartSource;
+    final compileRequest = CompileRequest()..source = fullDartSource;
 
     try {
       if (shouldCompileDDC) {
