@@ -4,9 +4,7 @@
 
 library dart_pad.util;
 
-import 'dart:async';
 import 'dart:html';
-import 'package:meta/meta.dart';
 
 /// Return whether we are running on a mobile device.
 bool isMobile() {
@@ -45,52 +43,6 @@ We look forward to your
 Made with &lt;3 by Google.
 ''';
 
-/// Thrown when a cancellation occurs whilst waiting for a result.
-class CancellationException implements Exception {
-  final String reason;
-
-  const CancellationException(this.reason);
-
-  @override
-  String toString() {
-    var result = 'Request cancelled';
-    if (reason != null) result = '$result due to: $reason';
-    return result;
-  }
-}
-
-class CancellableCompleter<T> implements Completer {
-  final _completer = Completer<T>();
-  bool _cancelled = false;
-
-  CancellableCompleter();
-
-  @override
-  void complete([value]) {
-    if (!_cancelled) _completer.complete(value as FutureOr<T>);
-  }
-
-  @override
-  void completeError(Object error, [StackTrace stackTrace]) {
-    if (!_cancelled) _completer.completeError(error, stackTrace);
-  }
-
-  @override
-  Future<T> get future => _completer.future;
-
-  @override
-  bool get isCompleted => _completer.isCompleted;
-
-  void cancel({String reason = 'cancelled'}) {
-    if (!_cancelled) {
-      if (!isCompleted) completeError(CancellationException(reason));
-      _cancelled = true;
-    }
-  }
-
-  bool get isCancelled => _cancelled;
-}
-
 String capitalize(String s) {
   if (s == null) {
     return null;
@@ -98,67 +50,5 @@ String capitalize(String s) {
     return s.toUpperCase();
   } else {
     return '${s[0].toUpperCase()}${s.substring(1)}';
-  }
-}
-
-/// Wait [duration] time after an event to fire on the returned stream, and
-/// reset that time if a new event arrives.
-Stream<T> debounceStream<T>(Stream<T> stream, Duration duration) {
-  var controller = StreamController<T>.broadcast();
-
-  Timer timer;
-
-  stream.listen((T event) {
-    timer?.cancel();
-    timer = Timer(duration, () {
-      controller.add(event);
-    });
-  });
-
-  return controller.stream;
-}
-
-/// A typedef to represent a function taking no arguments and with no return
-/// value.
-typedef VoidFunction = void Function();
-
-/// Batch up calls to the given closure. Repeated calls to [invoke] will
-/// overwrite the closure to be called. We'll delay at least [minDelay] before
-/// calling the closure, but will not delay more than [maxDelay].
-class DelayedTimer {
-  final Duration minDelay;
-  final Duration maxDelay;
-
-  VoidFunction _closure;
-
-  Timer _minTimer;
-  Timer _maxTimer;
-
-  DelayedTimer({
-    @required this.minDelay,
-    @required this.maxDelay,
-  });
-
-  void invoke(VoidFunction closure) {
-    _closure = closure;
-
-    if (_minTimer == null) {
-      _minTimer = Timer(minDelay, _fire);
-      _maxTimer = Timer(maxDelay, _fire);
-    } else {
-      _minTimer.cancel();
-      _minTimer = Timer(minDelay, _fire);
-    }
-  }
-
-  void _fire() {
-    _minTimer?.cancel();
-    _minTimer = null;
-
-    _maxTimer?.cancel();
-    _maxTimer = null;
-
-    _closure();
-    _closure = null;
   }
 }

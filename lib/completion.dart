@@ -5,10 +5,10 @@
 library dartpad.completion;
 
 import 'dart:convert' show jsonDecode;
+import 'package:async/async.dart';
 
 import 'editing/editor.dart';
 import 'services/dartservices.dart' as ds;
-import 'src/util.dart';
 
 // TODO: For CodeMirror, we get a request each time the user hits a key when the
 // completion popup is open. We need to cache the results when appropriate.
@@ -17,7 +17,7 @@ class DartCompleter extends CodeCompleter {
   final ds.DartservicesApi servicesApi;
   final Document document;
 
-  CancellableCompleter _lastCompleter;
+  CancelableCompleter _lastCompleter;
 
   DartCompleter(this.servicesApi, this.document);
 
@@ -27,7 +27,7 @@ class DartCompleter extends CodeCompleter {
     bool onlyShowFixes = false,
   }) {
     // Cancel any open completion request.
-    if (_lastCompleter != null) _lastCompleter.cancel();
+    _lastCompleter?.operation?.cancel();
 
     var offset = editor.document.indexFromPos(editor.document.cursor);
 
@@ -35,7 +35,7 @@ class DartCompleter extends CodeCompleter {
       ..source = editor.document.value
       ..offset = offset;
 
-    var completer = CancellableCompleter<CompletionResult>();
+    var completer = CancelableCompleter<CompletionResult>();
     _lastCompleter = completer;
 
     if (onlyShowFixes) {
@@ -99,7 +99,7 @@ class DartCompleter extends CodeCompleter {
       });
     } else {
       servicesApi.complete(request).then((ds.CompleteResponse response) {
-        if (completer.isCancelled) return;
+        if (completer.isCanceled) return;
 
         var replaceOffset = response.replacementOffset;
         var replaceLength = response.replacementLength;
@@ -175,7 +175,7 @@ class DartCompleter extends CodeCompleter {
       });
     }
 
-    return completer.future;
+    return completer.operation.value;
   }
 }
 
