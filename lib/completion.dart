@@ -27,7 +27,7 @@ class DartCompleter extends CodeCompleter {
     bool onlyShowFixes = false,
   }) {
     // Cancel any open completion request.
-    if (_lastCompleter != null) _lastCompleter.operation.cancel();
+    _lastCompleter?.operation?.cancel();
 
     var offset = editor.document.indexFromPos(editor.document.cursor);
 

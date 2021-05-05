@@ -14,7 +14,7 @@ abstract class EditorUi {
   final Logger logger = Logger('dartpad');
   ContextBase get context;
 
-  Future analysisRequest;
+  Future<AnalysisResults> analysisRequest;
   DBusyLight busyLight;
   AnalysisResultsController analysisResultsController;
   Editor editor;
