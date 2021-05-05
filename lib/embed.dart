@@ -196,7 +196,7 @@ class Embed extends EditorUi {
         Counter(querySelector('#unread-console-counter') as SpanElement);
 
     executeButton = MDCButton(querySelector('#execute') as ButtonElement)
-      ..onClick.listen((_) => _handleExecute());
+      ..onClick.listen((_) => handleRun());
 
     reloadGistButton = MDCButton(querySelector('#reload-gist') as ButtonElement)
       ..onClick.listen((_) {
@@ -441,7 +441,7 @@ class Embed extends EditorUi {
         _resetCode();
 
         if (autoRunEnabled) {
-          _handleExecute();
+          handleRun();
         }
       }
     });
@@ -574,7 +574,7 @@ class Embed extends EditorUi {
       userCodeEditor.showCompletions(onlyShowFixes: true);
     }, 'Quick fix');
 
-    keys.bind(['ctrl-enter', 'macctrl-enter'], _handleExecute, 'Run');
+    keys.bind(['ctrl-enter', 'macctrl-enter'], handleRun, 'Run');
     keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
       _showKeyboardDialog();
     }, 'Keyboard Shortcuts');
@@ -672,7 +672,7 @@ class Embed extends EditorUi {
       }
 
       if (autoRunEnabled) {
-        _handleExecute();
+        unawaited(handleRun());
       }
     } on GistLoaderException catch (ex) {
       // No gist was loaded, so clear the editors.
@@ -779,17 +779,18 @@ class Embed extends EditorUi {
     editorIsBusy = false;
   }
 
-  void _handleExecute() {
+  @override
+  Future<bool> handleRun() async {
     if (editorIsBusy) {
-      return;
+      return false;
     }
 
     if (context.dartSource.isEmpty) {
-      dialog.showOk(
+      unawaited(dialog.showOk(
           'No code to execute',
           'Try entering some Dart code into the "Dart" tab, then click this '
-              'button again to run it.');
-      return;
+              'button again to run it.'));
+      return false;
     }
 
     _executionButtonCount++;
@@ -951,6 +952,24 @@ class Embed extends EditorUi {
         doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
     if (focus) userCodeEditor.focus();
+  }
+
+  @override
+  void clearOutput() {
+    consoleExpandController.clear();
+  }
+
+  @override
+  // TODO: implement shouldAddFirebaseJs
+  bool get shouldAddFirebaseJs => throw UnimplementedError();
+
+  @override
+  // TODO: implement shouldCompileDDC
+  bool get shouldCompileDDC => throw UnimplementedError();
+
+  @override
+  void showOutput(String message, {bool error = false}) {
+    consoleExpandController.showOutput(message, error: error);
   }
 }
 
@@ -1244,8 +1263,10 @@ class EmbedContext implements ContextBase {
   @override
   String get dartSource => _dartDoc.value;
 
+  @override
   String get htmlSource => _htmlDoc?.value;
 
+  @override
   String get cssSource => _cssDoc?.value;
 
   set dartSource(String value) {

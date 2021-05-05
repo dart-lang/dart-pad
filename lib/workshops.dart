@@ -51,7 +51,6 @@ class WorkshopUi extends EditorUi {
   DElement previousStepButton;
   DElement nextStepButton;
   Console _console;
-  MDCButton runButton;
   MDCButton showSolutionButton;
   MaterialTabController consolePanelTabController;
   Counter unreadConsoleCounter;
@@ -146,8 +145,8 @@ class WorkshopUi extends EditorUi {
   void _initWorkshopUi() {
     // Set up the iframe.
     deps[ExecutionService] = ExecutionServiceIFrame(_frame);
-    executionService.onStdout.listen(_showOutput);
-    executionService.onStderr.listen((m) => _showOutput(m, error: true));
+    executionService.onStdout.listen(showOutput);
+    executionService.onStderr.listen((m) => showOutput(m, error: true));
     // Set up Google Analytics.
     deps[Analytics] = Analytics();
 
@@ -171,7 +170,7 @@ class WorkshopUi extends EditorUi {
 
   void _initKeyBindings() {
     // set up key bindings
-    keys.bind(['ctrl-enter'], _handleRun, 'Run');
+    keys.bind(['ctrl-enter'], handleRun, 'Run');
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
       docHandler.generateDoc([_documentationElement]);
@@ -284,7 +283,7 @@ class WorkshopUi extends EditorUi {
 
   void _initButtons() {
     runButton = MDCButton(querySelector('#run-button') as ButtonElement)
-      ..onClick.listen((_) => _handleRun());
+      ..onClick.listen((_) => handleRun());
 
     showSolutionButton =
         MDCButton(querySelector('#show-solution-btn') as ButtonElement)
@@ -385,66 +384,6 @@ class WorkshopUi extends EditorUi {
     dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
-  void _handleRun() async {
-    ga.sendEvent('main', 'run');
-    runButton.disabled = true;
-
-    var compilationTimer = Stopwatch()..start();
-
-    final compileRequest = CompileRequest()..source = editor.document.value;
-
-    try {
-      if (_workshopState.workshop.type == WorkshopType.flutter) {
-        final response = await dartServices
-            .compileDDC(compileRequest)
-            .timeout(longServiceCallTimeout);
-
-        ga.sendTiming(
-          'action-perf',
-          'compilation-e2e',
-          compilationTimer.elapsedMilliseconds,
-        );
-
-        _clearOutput();
-
-        await executionService.execute(
-          '',
-          '',
-          response.result,
-          modulesBaseUrl: response.modulesBaseUrl,
-          addRequireJs: true,
-          addFirebaseJs: hasFirebaseContent(compileRequest.source),
-        );
-      } else {
-        final response = await dartServices
-            .compile(compileRequest)
-            .timeout(longServiceCallTimeout);
-
-        ga.sendTiming(
-          'action-perf',
-          'compilation-e2e',
-          compilationTimer.elapsedMilliseconds,
-        );
-
-        _clearOutput();
-
-        await executionService.execute(
-          '',
-          '',
-          response.result,
-        );
-      }
-    } catch (e) {
-      ga.sendException('${e.runtimeType}');
-      final message = e is ApiRequestError ? e.message : '$e';
-      _showSnackbar('Error compiling to JavaScript');
-      _clearOutput();
-      _showOutput('Error compiling to JavaScript:\n$message', error: true);
-    } finally {
-      runButton.disabled = false;
-    }
-  }
-
   Future<void> _format() {
     var originalSource = context.dartSource;
     var input = SourceRequest()..source = originalSource;
@@ -462,9 +401,9 @@ class WorkshopUi extends EditorUi {
 
       if (originalSource != result.newString) {
         editor.document.updateValue(result.newString);
-        _showSnackbar('Format successful.');
+        showSnackbar('Format successful.');
       } else {
-        _showSnackbar('No formatting changes.');
+        showSnackbar('No formatting changes.');
       }
     }).catchError((e) {
       busyLight.reset();
@@ -477,22 +416,24 @@ class WorkshopUi extends EditorUi {
     editor.focus();
   }
 
-  void _clearOutput() {
+  @override
+  bool get shouldCompileDDC => _workshopState.workshop.type == WorkshopType.flutter;
+
+  @override
+  bool get shouldAddFirebaseJs => hasFirebaseContent(editor.document.value);
+
+  @override
+  void clearOutput() {
     _console.clear();
     unreadConsoleCounter.clear();
   }
 
-  void _showOutput(String message, {bool error = false}) {
+  @override
+  void showOutput(String message, {bool error = false}) {
     _console.showOutput(message, error: error);
     if (consolePanelTabController.selectedTab.name != 'console') {
       unreadConsoleCounter.increment();
     }
-  }
-
-  void _showSnackbar(String message) {
-    var div = querySelector('.mdc-snackbar');
-    var snackbar = MDCSnackbar(div)..labelText = message;
-    snackbar.open();
   }
 
   Future<void> _handleShowSolution() async {
@@ -560,6 +501,12 @@ class WorkshopDartSourceProvider implements ContextBase {
 
   @override
   String get dartSource => editor.document.value;
+
+  @override
+  String get htmlSource => '';
+
+  @override
+  String get cssSource => '';
 
   @override
   bool get isFocused => true;
