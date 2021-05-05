@@ -417,7 +417,8 @@ class WorkshopUi extends EditorUi {
   }
 
   @override
-  bool get shouldCompileDDC => _workshopState.workshop.type == WorkshopType.flutter;
+  bool get shouldCompileDDC =>
+      _workshopState.workshop.type == WorkshopType.flutter;
 
   @override
   bool get shouldAddFirebaseJs => hasFirebaseContent(editor.document.value);
