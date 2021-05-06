@@ -4,15 +4,27 @@
 
 library dart_pad.common;
 
-// The endpoint running dart-services.
-const serverUrl = 'https://v1.api.dartpad.dev/';
+/// The environment variable name which specifies the URL of the pre-null safety
+/// back-end server.
+///
+/// This typically is specified in `dart2js_args` passed via a build_runner
+/// option. The `grind build` task specifies this option.
+const preNullSafetyServerUrlEnvironmentVar = 'PRE_NULL_SAFETY_SERVER_URL';
 
-// Used when null safety is enabled in the UI.
-const nullSafetyServerUrl = 'https://nullsafety.api.dartpad.dev/';
+/// The URL of the pre-null safety back-end server.
+const preNullSafetyServerUrl =
+    String.fromEnvironment(preNullSafetyServerUrlEnvironmentVar);
 
-// A URL to use while debugging.
-// const serverUrl = 'http://127.0.0.1:8082/';
-// const nullSafetyServerUrl = 'http://127.0.0.1:8084/';
+/// The environment variable name which specifies the URL of the null safety
+/// back-end server.
+///
+/// This typically is specified in `dart2js_args` passed via a build_runner
+/// option. The `grind build` task specifies this option.
+const nullSafetyServerUrlEnvironmentVar = 'NULL_SAFETY_SERVER_URL';
+
+/// The URL of the null safety back-end server.
+const nullSafetyServerUrl =
+    String.fromEnvironment(nullSafetyServerUrlEnvironmentVar);
 
 // Alternate versions for development purposes
 // const serverUrl = 'https://old.api.dartpad.dev/';

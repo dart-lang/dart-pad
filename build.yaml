@@ -16,6 +16,8 @@ targets:
           dart2js_args:
           - --minify
           - --fast-startup
+          - -DPRE_NULL_SAFETY_SERVER_URL=https://v1.api.dartpad.dev/
+          - -DNULL_SAFETY_SERVER_URL=https://nullsafety.api.dartpad.dev/
 
       json_serializable:
         # Ignore workshop samples.

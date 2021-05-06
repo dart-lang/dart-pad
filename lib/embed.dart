@@ -536,7 +536,7 @@ class Embed extends EditorUi {
       api.rootUrl = nullSafetyServerUrl;
       window.localStorage['null_safety'] = 'true';
     } else {
-      api.rootUrl = serverUrl;
+      api.rootUrl = preNullSafetyServerUrl;
       window.localStorage['null_safety'] = 'false';
     }
     unawaited(performAnalysis());
