@@ -102,8 +102,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
   Console _rightConsole;
   Counter unreadConsoleCounter;
 
-  bool nullSafetyEnabled;
-
   Playground() {
     _initDialogs();
     _checkLocalStorage();
@@ -891,10 +889,12 @@ class Playground extends EditorUi implements GistContainer, GistController {
     if (enabled) {
       api.rootUrl = nullSafetyServerUrl;
       window.localStorage['null_safety'] = 'true';
+      nullSafetyEnabled = true;
       nullSafetySwitch.root.title = 'Null safety is currently enabled';
     } else {
       api.rootUrl = preNullSafetyServerUrl;
       window.localStorage['null_safety'] = 'false';
+      nullSafetyEnabled = false;
       nullSafetySwitch.root.title = 'Null safety is currently disabled';
     }
 

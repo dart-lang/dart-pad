@@ -518,6 +518,7 @@ class Embed extends EditorUi {
     }
   }
 
+  @override
   set nullSafetyEnabled(bool enabled) {
     _nullSafetyEnabled = enabled;
     _handleNullSafetySwitched(enabled);
@@ -526,6 +527,7 @@ class Embed extends EditorUi {
     nullSafetyCheckmark.toggleClass('hide', !enabled);
   }
 
+  @override
   bool get nullSafetyEnabled {
     return _nullSafetyEnabled;
   }

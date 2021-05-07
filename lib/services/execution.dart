@@ -24,13 +24,17 @@ abstract class ExecutionService {
   ///
   /// [addFirebaseJs] should be `true` when the script imports any Firebase
   /// libraries. Firebase JS SDKs will then be added to the iframe.
-  Future execute(
+  ///
+  /// If [destroyFrame] is `true`, this method destroys and rebuilds the
+  /// execution frame, instead of just replacing its contents.
+  Future<void> execute(
     String html,
     String css,
     String javaScript, {
     String /*?*/ modulesBaseUrl,
     bool addRequireJs = false,
     bool addFirebaseJs = false,
+    bool destroyFrame = false,
   });
 
   void replaceHtml(String html);
@@ -39,7 +43,7 @@ abstract class ExecutionService {
 
   /// Destroy the iframe; stop any currently running scripts. The iframe will be
   /// available to be re-used again.
-  Future tearDown();
+  Future<void> tearDown();
 
   Stream<String> get onStdout;
 
