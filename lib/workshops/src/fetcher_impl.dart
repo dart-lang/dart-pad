@@ -23,8 +23,9 @@ abstract class WorkshopFetcherImpl implements WorkshopFetcher {
   }
 
   Future<Iterable<Step>> fetchSteps(Meta metadata) async {
-    // The unnamed list constructor was removed in Dart 2.12, so use a map to
-    // fetch each step in parallel and place the results in the original order.
+    // The unnamed list constructor was removed in Dart 2.12, so use a map
+    // instead of a list to fetch each step in parallel and place the results in
+    // the original order.
     var map = <int, Step>{};
     var futures = <Future>[];
     for (var i = 0; i < metadata.steps.length; i++) {
