@@ -40,6 +40,7 @@ class FlutterWebManager {
     'package:firebase_auth/',
     'package:firebase_core/',
     'package:flutter/',
+    'package:flutter_test/',
     'dart:ui',
   };
 
