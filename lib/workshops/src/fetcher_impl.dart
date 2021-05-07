@@ -1,5 +1,3 @@
-import 'dart:collection';
-
 import 'package:checked_yaml/checked_yaml.dart';
 
 import 'fetcher.dart';
@@ -14,7 +12,7 @@ abstract class WorkshopFetcherImpl implements WorkshopFetcher {
   Future<Workshop> fetch() async {
     var metadata = await fetchMeta();
     var steps = await fetchSteps(metadata);
-    return Workshop(metadata.name, metadata.type, steps);
+    return Workshop(metadata.name, metadata.type, steps.toList());
   }
 
   Future<Meta> fetchMeta() async {
