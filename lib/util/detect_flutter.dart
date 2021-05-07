@@ -5,6 +5,7 @@
 /// Returns whether [fileContent] appears to use Flutter.
 bool hasFlutterContent(String fileContent) {
   return fileContent.contains('package:flutter/') ||
+      fileContent.contains('package:flutter_test/') ||
       fileContent.contains('dart:ui') ||
       hasFirebaseContent(fileContent);
 }
