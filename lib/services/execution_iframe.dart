@@ -25,7 +25,7 @@ class ExecutionServiceIFrame implements ExecutionService {
 
   IFrameElement _frame;
   String _frameSrc;
-  Completer _readyCompleter = Completer();
+  Completer<void> _readyCompleter = Completer();
 
   ExecutionServiceIFrame(this._frame) {
     _frameSrc = _frame.src;
@@ -33,17 +33,19 @@ class ExecutionServiceIFrame implements ExecutionService {
     _initListener();
   }
 
-  IFrameElement get frame => _frame;
-
   @override
-  Future execute(
+  Future<void> execute(
     String html,
     String css,
     String javaScript, {
     String /*?*/ modulesBaseUrl,
     bool addRequireJs = false,
     bool addFirebaseJs = false,
-  }) {
+    bool destroyFrame = false,
+  }) async {
+    if (destroyFrame) {
+      await _reset();
+    }
     return _send('execute', {
       'html': html,
       'css': css,
@@ -51,6 +53,7 @@ class ExecutionServiceIFrame implements ExecutionService {
           modulesBaseUrl: modulesBaseUrl, requireFirebase: addFirebaseJs),
       'addRequireJs': addRequireJs ? 'true' : 'false',
       'addFirebaseJs': addFirebaseJs ? 'true' : 'false',
+      'destroyFrame': destroyFrame ? 'true' : 'false',
     });
   }
 
@@ -65,10 +68,10 @@ class ExecutionServiceIFrame implements ExecutionService {
   }
 
   @override
-  Future tearDown() => _reset();
+  Future<void> tearDown() => _reset();
 
   set frameSrc(String src) {
-    frame.src = src;
+    _frame.src = src;
     _frameSrc = src;
   }
 
@@ -213,25 +216,27 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   @override
   Stream<TestResult> get testResults => _testResultsController.stream;
 
-  Future _send(String command, Map<String, String> params) {
-    var m = {'command': command};
-    m.addAll(params);
-    frame.contentWindow.postMessage(m, '*');
+  Future<void> _send(String command, Map<String, String> params) {
+    final message = {
+      'command': command,
+      ...params,
+    };
+    _frame.contentWindow.postMessage(message, '*');
     return Future.value();
   }
 
   /// Destroy and re-load the iframe.
-  Future _reset() {
-    if (frame.parent != null) {
+  Future<void> _reset() {
+    if (_frame.parent != null) {
       _readyCompleter = Completer();
 
       var clone = _frame.clone(false) as IFrameElement;
       clone.src = _frameSrc;
 
-      var children = frame.parent.children;
+      var children = _frame.parent.children;
       var index = children.indexOf(_frame);
       children.insert(index, clone);
-      frame.parent.children.remove(_frame);
+      _frame.parent.children.remove(_frame);
       _frame = clone;
     }
 

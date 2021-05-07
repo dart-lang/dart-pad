@@ -26,6 +26,14 @@ abstract class EditorUi {
   MDCButton runButton;
   ExecutionService executionService;
 
+  /// The source-of-truth for whether null safety is enabled.
+  ///
+  /// On page load, this may be originally derived from local storage.
+  bool nullSafetyEnabled;
+
+  /// Whether null safety was enabled for the previous execution.
+  bool nullSafetyWasPreviouslyEnabled;
+
   String get fullDartSource => context.dartSource;
 
   bool get shouldCompileDDC;
@@ -111,9 +119,12 @@ abstract class EditorUi {
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
 
-    var compilationTimer = Stopwatch()..start();
-
+    final compilationTimer = Stopwatch()..start();
     final compileRequest = CompileRequest()..source = fullDartSource;
+    // If the null safety toggle has changed from the last execution to this
+    // one, destroy the frame.
+    final shouldDestroyFrame =
+        nullSafetyWasPreviouslyEnabled == !nullSafetyEnabled;
 
     try {
       if (shouldCompileDDC) {
@@ -121,12 +132,7 @@ abstract class EditorUi {
             .compileDDC(compileRequest)
             .timeout(longServiceCallTimeout);
 
-        ga.sendTiming(
-          'action-perf',
-          'compilation-e2e',
-          compilationTimer.elapsedMilliseconds,
-        );
-
+        _sendCompilationTiming(compilationTimer.elapsedMilliseconds);
         clearOutput();
 
         await executionService.execute(
@@ -136,26 +142,28 @@ abstract class EditorUi {
           modulesBaseUrl: response.modulesBaseUrl,
           addRequireJs: true,
           addFirebaseJs: shouldAddFirebaseJs,
+          destroyFrame: shouldDestroyFrame,
         );
       } else {
         final response = await dartServices
             .compile(compileRequest)
             .timeout(longServiceCallTimeout);
 
-        ga.sendTiming(
-          'action-perf',
-          'compilation-e2e',
-          compilationTimer.elapsedMilliseconds,
-        );
-
+        _sendCompilationTiming(compilationTimer.elapsedMilliseconds);
         clearOutput();
 
         await executionService.execute(
           context.htmlSource,
           context.cssSource,
           response.result,
+          destroyFrame: shouldDestroyFrame,
         );
       }
+      // Only after successful execution can we safely set the "previous" null
+      // safety state. If compilation or execution threw, we leave the previous
+      // null safety state so that we know to still destroy the frame on the
+      // next attempt.
+      nullSafetyWasPreviouslyEnabled = nullSafetyEnabled;
       return true;
     } catch (e) {
       ga.sendException('${e.runtimeType}');
@@ -167,5 +175,13 @@ abstract class EditorUi {
     } finally {
       runButton.disabled = false;
     }
+  }
+
+  void _sendCompilationTiming(int milliseconds) {
+    ga.sendTiming(
+      'action-perf',
+      'compilation-e2e',
+      milliseconds,
+    );
   }
 }
