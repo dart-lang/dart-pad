@@ -21,20 +21,35 @@ abstract class WorkshopFetcherImpl implements WorkshopFetcher {
   }
 
   Future<List<Step>> fetchSteps(Meta metadata) async {
-    var steps = <Step>[];
-    for (var stepConfig in metadata.steps) {
-      steps.add(await fetchStep(stepConfig));
+    // Fetch each step in parallel and place the results in the original order.
+    var futures = <Future<Step>>[];
+    for (var i = 0; i < metadata.steps.length; i++) {
+      var config = metadata.steps[i];
+      futures.add(fetchStep(config));
     }
-    return steps;
+    return Future.wait(futures);
   }
 
   Future<Step> fetchStep(StepConfiguration config) async {
     var directory = config.directory;
-    var instructions = await loadFileContents([directory, 'instructions.md']);
-    var snippet = await loadFileContents([directory, 'snippet.dart']);
-    var solution = config.hasSolution
-        ? await loadFileContents([directory, 'solution.dart'])
-        : null;
+    String instructions;
+    String snippet;
+    String /*?*/ solution;
+
+    var futures = <Future<String>>[];
+
+    futures.add(loadFileContents([directory, 'instructions.md'])
+        .then((e) => instructions = e));
+    futures.add(
+        loadFileContents([directory, 'snippet.dart']).then((e) => snippet = e));
+
+    if (config.hasSolution) {
+      futures.add(loadFileContents([directory, 'solution.dart'])
+          .then((e) => solution = e));
+    }
+
+    await Future.wait(futures);
+
     return Step(config.name, instructions, snippet, solution: solution);
   }
 }

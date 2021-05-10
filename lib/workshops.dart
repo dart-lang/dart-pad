@@ -218,7 +218,7 @@ class WorkshopUi extends EditorUi {
   }
 
   Future<void> _loadWorkshop() async {
-    var fetcher = await _getFetcher();
+    var fetcher = _createWorkshopFetcher();
     _workshopState = WorkshopState(await fetcher.fetch());
   }
 
@@ -355,7 +355,7 @@ class WorkshopUi extends EditorUi {
     nextStepButton.toggleAttr('disabled', !_workshopState.hasNextStep);
   }
 
-  Future<WorkshopFetcher> _getFetcher() async {
+  WorkshopFetcher _createWorkshopFetcher() {
     var webServer = queryParams.webServer;
     if (webServer != null && webServer.isNotEmpty) {
       var uri = Uri.parse(webServer);
