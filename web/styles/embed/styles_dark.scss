@@ -95,6 +95,11 @@ a {
   @include mdc-linear-progress-buffer-color($dark-code-background-color)
 }
 
+// Busy light
+.busylight {
+  background-color: #fff;
+}
+
 // Flashes
 
 .flash {

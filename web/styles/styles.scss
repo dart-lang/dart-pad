@@ -394,20 +394,6 @@ a {
   }
 }
 
-// Code annotations
-
-.squiggle-error {
-  border-bottom: 2px solid $squiggle-error-color;
-}
-
-.squiggle-warning {
-  border-bottom: 2px solid $squiggle-warning-color;
-}
-
-.squiggle-info {
-  border-bottom: 2px solid $squiggle-info-color;
-}
-
 // Analysis flashes
 .flash {
   background-color: $dark-flash-info-color;

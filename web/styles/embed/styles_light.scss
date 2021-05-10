@@ -70,6 +70,12 @@ a {
   @include mdc-linear-progress-buffer-color($light-code-background-color)
 }
 
+// Busy light
+.busylight {
+  background-color: #000;
+}
+
+
 // Flashes
 
 .message-container {
