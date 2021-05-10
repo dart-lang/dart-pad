@@ -12,7 +12,7 @@ abstract class WorkshopFetcherImpl implements WorkshopFetcher {
   Future<Workshop> fetch() async {
     var metadata = await fetchMeta();
     var steps = await fetchSteps(metadata);
-    return Workshop(metadata.name, metadata.type, steps.toList());
+    return Workshop(metadata.name, metadata.type, steps);
   }
 
   Future<Meta> fetchMeta() async {
@@ -20,22 +20,14 @@ abstract class WorkshopFetcherImpl implements WorkshopFetcher {
     return checkedYamlDecode(contents, (Map m) => Meta.fromJson(m));
   }
 
-  Future<Iterable<Step>> fetchSteps(Meta metadata) async {
-    // The unnamed list constructor was removed in Dart 2.12, so use a map
-    // instead of a list to fetch each step in parallel and place the results in
-    // the original order.
-    var map = <int, Step>{};
-    var futures = <Future>[];
+  Future<List<Step>> fetchSteps(Meta metadata) async {
+    // Fetch each step in parallel and place the results in the original order.
+    var futures = <Future<Step>>[];
     for (var i = 0; i < metadata.steps.length; i++) {
       var config = metadata.steps[i];
-      var future = fetchStep(config).then((step) => map[i] = step);
-      futures.add(future);
+      futures.add(fetchStep(config));
     }
-    await Future.wait(futures);
-
-    // Return the fetched step objects in the same order that they appeared in
-    // the configuration metadata
-    return List<Step>.generate(metadata.steps.length, (idx) => map[idx]);
+    return Future.wait(futures);
   }
 
   Future<Step> fetchStep(StepConfiguration config) async {
@@ -44,7 +36,7 @@ abstract class WorkshopFetcherImpl implements WorkshopFetcher {
     String snippet;
     String /*?*/ solution;
 
-    var futures = <Future>[];
+    var futures = <Future<String>>[];
 
     futures.add(loadFileContents([directory, 'instructions.md'])
         .then((e) => instructions = e));
