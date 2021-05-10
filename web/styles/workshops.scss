@@ -11,10 +11,8 @@ $mdc-theme-background: $playground-background-color;
 $mdc-theme-surface: $playground-background-color;
 $mdc-theme-error: $dark-red;
 
-// Layout constants
-$doc-console-padding: 8px 24px 8px 24px;
-
 @import 'package:mdc_web/material-components-web';
+@import 'shared';
 
 header {
   background-color: $playground-header-background-color;

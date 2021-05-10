@@ -6,7 +6,6 @@ import 'package:dart_pad/src/util.dart';
 import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:dart_pad/util/query_params.dart';
 import 'package:markdown/markdown.dart' as markdown;
-import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -329,42 +328,6 @@ class WorkshopUi extends EditorUi {
     editor.document.updateValue(_workshopState.currentStep.snippet);
   }
 
-  // void _initTabs() {
-  //   var consoleTabBar = querySelector('#web-tab-bar');
-  //   consolePanelTabController = MaterialTabController(MDCTabBar(consoleTabBar));
-  //   for (var name in ['ui-output', 'console', 'documentation']) {
-  //     consolePanelTabController.registerTab(
-  //         TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
-  //       _changeConsoleTab(name);
-  //     }));
-  //   }
-  //
-  //   // Set the current tab to UI Output or console, depending on whether this is
-  //   // Dart or Flutter workshop.
-  //   if (_workshopState.workshop.type == WorkshopType.dart) {
-  //     querySelector('#ui-output-tab').hidden = true;
-  //     consolePanelTabController.selectTab('console');
-  //   } else {
-  //     consolePanelTabController.selectTab('ui-output');
-  //   }
-  // }
-
-  void _changeConsoleTab(String name) {
-    if (name == 'ui-output') {
-      _frame.hidden = false;
-      _consoleElement.hidden = true;
-      _documentationElement.hidden = true;
-    } else if (name == 'console') {
-      _frame.hidden = true;
-      _consoleElement.hidden = false;
-      _documentationElement.hidden = true;
-    } else if (name == 'documentation') {
-      _frame.hidden = true;
-      _consoleElement.hidden = true;
-      _documentationElement.hidden = false;
-    }
-  }
-
   void _updateInstructions() {
     var div = querySelector('#markdown-content');
     div.children.clear();
@@ -443,9 +406,11 @@ class WorkshopUi extends EditorUi {
     }
 
     tabExpandController = TabExpandController(
+      uiOutputButton: editorUiOutputTab,
       consoleButton: editorConsoleTab,
       docsButton: editorDocsTab,
       closeButton: closePanelButton,
+      iframeElement: _frame,
       docsElement: _documentationElement,
       consoleElement: _consoleElement,
       topSplit: _editorPanel,

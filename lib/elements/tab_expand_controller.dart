@@ -10,18 +10,21 @@ import 'elements.dart';
 
 enum TabState {
   closed,
+  ui,
   docs,
   console,
 }
 
 /// Manages the bottom-left panel and tabs
 class TabExpandController {
+  final MDCButton uiOutputButton;
   final MDCButton consoleButton;
   final MDCButton docsButton;
   final MDCButton closeButton;
   final DElement console;
   final DElement docs;
   final Counter unreadCounter;
+  final DElement iframe;
 
   /// The element to give the top half of the split when this panel
   /// opens
@@ -39,19 +42,29 @@ class TabExpandController {
   TabState get state => _state;
 
   TabExpandController({
+    this.uiOutputButton,
     @required this.consoleButton,
     @required this.docsButton,
     @required this.closeButton,
+    IFrameElement iframeElement,
     @required Element consoleElement,
     @required Element docsElement,
     @required this.topSplit,
     @required this.bottomSplit,
     @required this.unreadCounter,
   })  : console = DElement(consoleElement),
-        docs = DElement(docsElement) {
+        docs = DElement(docsElement),
+        iframe = iframeElement == null ? null : DElement(iframeElement) {
     _state = TabState.closed;
+    iframe?.setAttr('hidden');
     console.setAttr('hidden');
     docs.setAttr('hidden');
+
+    if (uiOutputButton != null) {
+      _subscriptions.add(uiOutputButton.onClick.listen((_) {
+        toggleIframe();
+      }));
+    }
 
     _subscriptions.add(consoleButton.onClick.listen((_) {
       toggleConsole();
@@ -66,6 +79,22 @@ class TabExpandController {
     }));
   }
 
+  void toggleIframe() {
+    if (_state == TabState.closed) {
+      _showUiOutput();
+    } else if (_state == TabState.docs) {
+      _showUiOutput();
+      docs.setAttr('hidden');
+      docsButton.toggleClass('active', false);
+    } else if (_state == TabState.console) {
+      _showUiOutput();
+      console.setAttr('hidden');
+      consoleButton.toggleClass('active', false);
+    } else if (_state == TabState.ui) {
+      _hidePanel();
+    }
+  }
+
   void toggleConsole() {
     if (_state == TabState.closed) {
       _showConsole();
@@ -73,6 +102,10 @@ class TabExpandController {
       _showConsole();
       docs.setAttr('hidden');
       docsButton.toggleClass('active', false);
+    } else if (_state == TabState.ui) {
+      _showConsole();
+      uiOutputButton?.setAttr('hidden');
+      iframe.toggleClass('active', false);
     } else if (_state == TabState.console) {
       _hidePanel();
     }
@@ -85,9 +118,22 @@ class TabExpandController {
       _showDocs();
       console.setAttr('hidden');
       consoleButton.toggleClass('active', false);
+    } else if (_state == TabState.ui) {
+      _showConsole();
+      uiOutputButton?.setAttr('hidden');
+      iframe.toggleClass('active', false);
     } else if (_state == TabState.docs) {
       _hidePanel();
     }
+  }
+
+  void _showUiOutput() {
+    _state = TabState.ui;
+    iframe.clearAttr('hidden');
+    bottomSplit.classes.remove('border-top');
+    uiOutputButton.toggleClass('active', true);
+    _initSplitter();
+    closeButton.toggleAttr('hidden', false);
   }
 
   void _showConsole() {
@@ -103,9 +149,11 @@ class TabExpandController {
   void _hidePanel() {
     _destroySplitter();
     _state = TabState.closed;
+    iframe?.setAttr('hidden');
     console.setAttr('hidden');
     docs.setAttr('hidden');
     bottomSplit.classes.add('border-top');
+    uiOutputButton?.toggleClass('active', false);
     consoleButton.toggleClass('active', false);
     docsButton.toggleClass('active', false);
     closeButton.toggleAttr('hidden', true);
