@@ -54,6 +54,8 @@ abstract class EditorUi {
     snackbar.open();
   }
 
+  Document get currentDocument => editor.document;
+
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> performAnalysis() {
@@ -69,13 +71,13 @@ abstract class EditorUi {
       if (analysisRequest != request) return false;
 
       // Discard if the document has been mutated since we requested analysis.
-      if (input.source != context.dartSource) return false;
+      if (input.source != fullDartSource) return false;
 
       busyLight.reset();
 
       displayIssues(result.issues);
 
-      editor.document.setAnnotations(result.issues.map((AnalysisIssue issue) {
+      currentDocument.setAnnotations(result.issues.map((AnalysisIssue issue) {
         var startLine = lines.getLineForOffset(issue.charStart);
         var endLine =
             lines.getLineForOffset(issue.charStart + issue.charLength);
@@ -110,7 +112,7 @@ abstract class EditorUi {
         logger.severe(e);
       }
 
-      editor.document.setAnnotations([]);
+      currentDocument.setAnnotations([]);
       busyLight.reset();
     });
   }

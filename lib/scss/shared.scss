@@ -121,6 +121,20 @@ a {
   opacity: 0.6;
 }
 
+// Code annotations
+.squiggle-error {
+  border-bottom: 2px solid $squiggle-error-color;
+}
+
+.squiggle-warning {
+  border-bottom: 2px solid $squiggle-warning-color;
+}
+
+.squiggle-info {
+  border-bottom: 2px solid $squiggle-info-color;
+}
+
+
 .clickable {
   cursor: pointer;
 }

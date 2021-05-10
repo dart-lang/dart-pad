@@ -118,6 +118,9 @@ class Embed extends EditorUi {
 
   bool get editorIsBusy => _editorIsBusy;
 
+  @override
+  Document get currentDocument => userCodeEditor.document;
+
   /// Toggles the state of several UI components based on whether the editor is
   /// too busy to handle code changes, execute/reset requests, etc.
   set editorIsBusy(bool value) {
@@ -285,7 +288,6 @@ class Embed extends EditorUi {
       ..theme = editorTheme
       ..mode = 'dart'
       ..showLineNumbers = true;
-    userCodeEditor.document.onChange.listen((_) => performAnalysis());
     userCodeEditor.autoCloseBrackets = false;
 
     testEditor = editorFactory.createFromElement(querySelector('#test-editor'),
@@ -413,6 +415,8 @@ class Embed extends EditorUi {
 
     linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
     linearProgress.determinate = false;
+
+    _initBusyLights();
 
     _initModules()
         .then((_) => _init())
@@ -553,6 +557,10 @@ class Embed extends EditorUi {
     await modules.start();
   }
 
+  void _initBusyLights() {
+    busyLight = DBusyLight(querySelector('#dartbusy'));
+  }
+
   void _init() {
     deps[GistLoader] = GistLoader.defaultFilters();
     deps[Analytics] = Analytics();
@@ -562,6 +570,9 @@ class Embed extends EditorUi {
 
     editorFactory.registerCompleter(
         'dart', DartCompleter(dartServices, userCodeEditor.document));
+
+    context.onDartDirty.listen((_) => busyLight.on());
+    context.onDartReconcile.listen((_) => performAnalysis());
 
     keys.bind(['ctrl-space', 'macctrl-space'], () {
       if (userCodeEditor.hasFocus) {
@@ -861,6 +872,7 @@ class Embed extends EditorUi {
       formatButton.disabled = true;
       var result = await dartServices.format(input).timeout(serviceCallTimeout);
 
+      busyLight.reset();
       formatButton.disabled = false;
 
       // Check that the user hasn't edited the source since the format request.
@@ -872,6 +884,7 @@ class Embed extends EditorUi {
         }
       }
     } catch (e) {
+      busyLight.reset();
       formatButton.disabled = false;
       print(e);
     }

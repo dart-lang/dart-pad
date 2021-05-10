@@ -4,8 +4,10 @@
 
 @import "package:mdc_web/material-components-web";
 @import 'package:dart_pad/scss/colors';
-@import 'package:dart_pad/scss/variables';
 @import 'package:dart_pad/scss/shared';
+@import 'package:dart_pad/scss/variables';
+
+@import '../layout';
 
 * {
   box-sizing: border-box;
@@ -197,6 +199,8 @@ body {
 }
 
 .editor-button-group {
+  @include layout-horizontal;
+  @include layout-center;
   position: absolute;
   right: 0;
   top: 0;
