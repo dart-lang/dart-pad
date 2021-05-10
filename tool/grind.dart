@@ -160,33 +160,6 @@ String _formatDart2jsArgs(Map<String, String> args) {
   return '[${values.join(',')}]';
 }
 
-void copyPackageResources(String packageName, Directory destDir) {
-  var text = File('.packages').readAsStringSync();
-  for (var line in text.split('\n')) {
-    line = line.trim();
-    if (line.isEmpty) {
-      continue;
-    }
-    var index = line.indexOf(':');
-    var name = line.substring(0, index);
-    var location = line.substring(index + 1);
-    if (name == packageName) {
-      if (location.startsWith('file:')) {
-        var uri = Uri.parse(location);
-
-        copyDirectory(Directory.fromUri(uri),
-            joinDir(destDir, ['packages', packageName]));
-      } else {
-        copyDirectory(
-            Directory(location), joinDir(destDir, ['packages', packageName]));
-      }
-      return;
-    }
-  }
-
-  fail('package $packageName not found in .packages file');
-}
-
 @Task()
 coverage() {
   if (!_env.containsKey('COVERAGE_TOKEN')) {
