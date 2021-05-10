@@ -116,58 +116,37 @@
                 </div>
                 <div id="editor-host"></div>
             </div>
-            <div id="output-panel">
-                <nav>
-                    <div id="web-tab-bar" class="mdc-tab-bar" role="tablist">
-                        <div class="mdc-tab-scroller">
-                            <div class="mdc-tab-scroller__scroll-area">
-                                <div class="mdc-tab-scroller__scroll-content">
-                                    <button id="ui-output-tab"
-                                            class="mdc-tab mdc-tab--active"
-                                            role="tab" aria-selected="true"
-                                            tabindex="0">
-                                             <span class="mdc-tab__content">
-                                                 <span class="mdc-tab__text-label">UI Output</span>
-                                             </span>
-                                        <span class="mdc-tab-indicator mdc-tab-indicator--active">
-                                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
-                                             </span>
-                                        <span class="mdc-tab__ripple"></span>
-                                    </button>
-                                    <button id="console-tab"
-                                            class="mdc-tab mdc-tab" role="tab"
-                                            tabindex="0">
-                                             <span class="mdc-tab__content">
-                                                 <span class="mdc-tab__text-label">Console</span>
-                                                 <span id="unread-console-counter" class="Counter"hidden></span>
-                                             </span>
-                                        <span class="mdc-tab-indicator mdc-tab-indicator">
-                                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
-                                             </span>
-                                        <span class="mdc-tab__ripple"></span>
-                                    </button>
-                                    <button id="documentation-tab"
-                                            class="mdc-tab mdc-tab"
-                                            role="tab" tabindex="0">
-                                             <span class="mdc-tab__content">
-                                                 <span class="mdc-tab__text-label">Documentation</span>
-                                            </span>
-                                        <span class="mdc-tab-indicator mdc-tab-indicator">
-                                                 <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
-                                             </span>
-                                        <span class="mdc-tab__ripple"></span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
+            <div id="editor-panel-footer">
+                <div class="editor-tabs">
+                    <div class="tab-group">
+                        <button id="editor-panel-ui-tab"
+                                class="editor-tab mdc-button">
+                            UI Output
+                        </button>
+                        <button id="editor-panel-console-tab"
+                                class="editor-tab mdc-button">
+                            Console
+                            <span id="unread-console-counter" class="Counter"
+                                  hidden></span>
+                        </button>
+                        <button id="editor-panel-docs-tab"
+                                class="editor-tab mdc-button">Documentation
+                        </button>
                     </div>
-                </nav>
-                <div id="output-panel-content"
-                     class="console custom-scrollbar"></div>
-                <iframe id="frame" sandbox="allow-scripts" flex
-                        src="scripts/frame_dark.html"></iframe>
-                <div id="doc-panel"
-                     class="documentation custom-scrollbar"></div>
+                    <button id="editor-panel-close-button"
+                            class="mdc-icon-button material-icons" hidden>close
+                    </button>
+                </div>
+                <div id="editor-panel-tab-host">
+                    <iframe id="frame" sandbox="allow-scripts" flex
+                            src="scripts/frame_dark.html"></iframe>
+                    <div id="console-panel" class="console custom-scrollbar">
+                        <span id="left-output-label" class="view-label">Console</span>
+                    </div>
+                    <div id="doc-panel" class="documentation custom-scrollbar">
+                        <span id="left-doc-label" class="view-label">Documentation</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

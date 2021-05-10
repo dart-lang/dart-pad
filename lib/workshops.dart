@@ -23,6 +23,7 @@ import 'elements/counter.dart';
 import 'elements/dialog.dart';
 import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
+import 'elements/tab_expand_controller.dart';
 import 'hljs.dart' as hljs;
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
@@ -59,20 +60,29 @@ class WorkshopUi extends EditorUi {
   @override
   ContextBase context;
   MDCButton formatButton;
+  TabExpandController tabExpandController;
+  MDCButton closePanelButton;
+  MDCButton editorUiOutputTab;
+  MDCButton editorConsoleTab;
+  MDCButton editorDocsTab;
 
   WorkshopUi() {
     _init();
   }
 
+  DivElement get _editorPanel => querySelector('#editor-panel') as DivElement;
   DivElement get _editorHost => querySelector('#editor-host') as DivElement;
 
+  IFrameElement get _frame => querySelector('#frame') as IFrameElement;
+
   DivElement get _consoleElement =>
-      querySelector('#output-panel-content') as DivElement;
+      querySelector('#console-panel') as DivElement;
 
   DivElement get _documentationElement =>
       querySelector('#doc-panel') as DivElement;
 
-  IFrameElement get _frame => querySelector('#frame') as IFrameElement;
+  DivElement get _editorPanelFooter =>
+      querySelector('#editor-panel-footer') as DivElement;
 
   Future<void> _init() async {
     _initDialogs();
@@ -90,8 +100,9 @@ class WorkshopUi extends EditorUi {
     _initConsoles();
     _initButtons();
     _updateCode();
-    _initTabs();
+    // _initTabs();
     _focusEditor();
+    _initOutputPanelTabs();
   }
 
   Future<void> _initModules() async {
@@ -226,7 +237,7 @@ class WorkshopUi extends EditorUi {
     var stepsPanel = querySelector('#steps-panel');
     var rightPanel = querySelector('#right-panel');
     var editorPanel = querySelector('#editor-panel');
-    var outputPanel = querySelector('#output-panel');
+    // var editorPanelFooter = querySelector('#editor-panel-footer');
     splitter = flexSplit(
       [stepsPanel, rightPanel],
       horizontal: true,
@@ -234,13 +245,13 @@ class WorkshopUi extends EditorUi {
       sizes: const [50, 50],
       minSize: [100, 100],
     );
-    rightSplitter = flexSplit(
-      [editorPanel, outputPanel],
-      horizontal: false,
-      gutterSize: 6,
-      sizes: const [50, 50],
-      minSize: [100, 100],
-    );
+    // rightSplitter = flexSplit(
+    //   [editorPanel, editorPanelFooter],
+    //   horizontal: false,
+    //   gutterSize: 6,
+    //   sizes: const [50, 50],
+    //   minSize: [100, 100],
+    // );
 
     // Resize Codemirror when the size of the panel changes. This keeps the
     // virtual scrollbar in sync with the size of the panel.
@@ -290,6 +301,16 @@ class WorkshopUi extends EditorUi {
           ..onClick.listen((_) => _handleShowSolution());
     formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
       ..onClick.listen((_) => _format());
+    closePanelButton = MDCButton(
+        querySelector('#editor-panel-close-button') as ButtonElement,
+        isIcon: true);
+    editorUiOutputTab =
+        MDCButton(querySelector('#editor-panel-ui-tab') as ButtonElement);
+    editorConsoleTab =
+        MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
+    editorDocsTab =
+        MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
+
   }
 
   void _updateSolutionButton() {
@@ -305,25 +326,25 @@ class WorkshopUi extends EditorUi {
     editor.document.updateValue(_workshopState.currentStep.snippet);
   }
 
-  void _initTabs() {
-    var consoleTabBar = querySelector('#web-tab-bar');
-    consolePanelTabController = MaterialTabController(MDCTabBar(consoleTabBar));
-    for (var name in ['ui-output', 'console', 'documentation']) {
-      consolePanelTabController.registerTab(
-          TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
-        _changeConsoleTab(name);
-      }));
-    }
-
-    // Set the current tab to UI Output or console, depending on whether this is
-    // Dart or Flutter workshop.
-    if (_workshopState.workshop.type == WorkshopType.dart) {
-      querySelector('#ui-output-tab').hidden = true;
-      consolePanelTabController.selectTab('console');
-    } else {
-      consolePanelTabController.selectTab('ui-output');
-    }
-  }
+  // void _initTabs() {
+  //   var consoleTabBar = querySelector('#web-tab-bar');
+  //   consolePanelTabController = MaterialTabController(MDCTabBar(consoleTabBar));
+  //   for (var name in ['ui-output', 'console', 'documentation']) {
+  //     consolePanelTabController.registerTab(
+  //         TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
+  //       _changeConsoleTab(name);
+  //     }));
+  //   }
+  //
+  //   // Set the current tab to UI Output or console, depending on whether this is
+  //   // Dart or Flutter workshop.
+  //   if (_workshopState.workshop.type == WorkshopType.dart) {
+  //     querySelector('#ui-output-tab').hidden = true;
+  //     consolePanelTabController.selectTab('console');
+  //   } else {
+  //     consolePanelTabController.selectTab('ui-output');
+  //   }
+  // }
 
   void _changeConsoleTab(String name) {
     if (name == 'ui-output') {
@@ -410,6 +431,23 @@ class WorkshopUi extends EditorUi {
       formatButton.disabled = false;
       logger.severe(e);
     });
+  }
+
+  void _initOutputPanelTabs() {
+    if (tabExpandController != null) {
+      return;
+    }
+
+    tabExpandController = TabExpandController(
+      consoleButton: editorConsoleTab,
+      docsButton: editorDocsTab,
+      closeButton: closePanelButton,
+      docsElement: _documentationElement,
+      consoleElement: _consoleElement,
+      topSplit: _editorPanel,
+      bottomSplit: _editorPanelFooter,
+      unreadCounter: unreadConsoleCounter,
+    );
   }
 
   void _focusEditor() {

@@ -1,7 +1,8 @@
 // Styles shared between the playground and embeds
 
-@import 'package:dart_pad/scss/colors';
-@import 'package:dart_pad/scss/variables';
+@import 'colors';
+@import 'layout';
+@import 'variables';
 
 a {
   text-decoration: none;
@@ -238,6 +239,56 @@ a {
 .custom-scrollbar::-webkit-scrollbar-thumb {
   border-radius: 4px;
   background-color: $scrollbar-color;
+}
+
+// Editor Tabs
+.editor-tab-host {
+  @include layout-vertical;
+}
+
+.editor-tabs {
+  @include layout-horizontal;
+  @include layout-center;
+  @include layout-justified;
+  padding-left: 8px;
+
+  button {
+    margin-right: 8px;
+  }
+  .tab-group {
+    @include layout-horizontal;
+    @include layout-center;
+  }
+}
+
+.editor-tab {
+  text-transform: none !important;
+  letter-spacing: normal;
+
+  border-top: 2px solid transparent;
+  padding: 8px 4px;
+
+  &.active {
+    font-weight: bold;
+  }
+}
+
+.mdc-tab__content {
+  text-transform: none !important;
+}
+
+.mdc-tab--active {
+  .mdc-tab__text-label {
+    font-weight: normal;
+  }
+}
+
+#editor-panel-tab-host {
+  @include layout-flex;
+  @include layout-vertical;
+  .documentation {
+    @include layout-flex;
+  }
 }
 
 // Unread console counter
