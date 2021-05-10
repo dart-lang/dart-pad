@@ -24,3 +24,10 @@ targets:
         generate_for:
           exclude:
           - web/example/workshops/**.dart
+
+global_options:
+  build_web_compilers:ddc:
+    options:
+      environment:
+        PRE_NULL_SAFETY_SERVER_URL: https://v1.api.dartpad.dev/
+        NULL_SAFETY_SERVER_URL: https://nullsafety.api.dartpad.dev/
