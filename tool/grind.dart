@@ -75,7 +75,9 @@ serveLocalAppEngine() async {
 @Task('Serve locally on port 8000 and use local server URLs')
 @Depends(ConstTaskInvocation(
   'build',
-  ConstTaskArgs('build', flags: {}, options: {
+  ConstTaskArgs('build', flags: {
+    _debugFlag: true,
+  }, options: {
     _preNullSafetyServerUrlOption: 'http://127.0.0.1:8082/',
     _nullSafetyServerUrlOption: 'http://127.0.0.1:8084/',
   }),
@@ -88,6 +90,10 @@ serveLocalBackend() async {
     process.stdout.transform(utf8.decoder).listen(stdout.write);
   });
 }
+
+/// A grinder flag which directs build_runner to use the non-release mode, and
+/// use DDC instead of dart2js.
+const _debugFlag = 'debug';
 
 /// A grinder option which specifies the URL of the pre-null safety back-end
 /// server.
@@ -110,7 +116,7 @@ build() {
   };
   PubApp.local('build_runner').run([
     'build',
-    '-r',
+    if (!args.hasFlag(_debugFlag)) '-r',
     if (dart2jsArgs.isNotEmpty)
       '--define=build_web_compilers:entrypoint='
           'dart2js_args=${_formatDart2jsArgs(dart2jsArgs)}',
@@ -158,33 +164,6 @@ build() {
 String _formatDart2jsArgs(Map<String, String> args) {
   var values = args.entries.map((entry) => '"-D${entry.key}=${entry.value}"');
   return '[${values.join(',')}]';
-}
-
-void copyPackageResources(String packageName, Directory destDir) {
-  var text = File('.packages').readAsStringSync();
-  for (var line in text.split('\n')) {
-    line = line.trim();
-    if (line.isEmpty) {
-      continue;
-    }
-    var index = line.indexOf(':');
-    var name = line.substring(0, index);
-    var location = line.substring(index + 1);
-    if (name == packageName) {
-      if (location.startsWith('file:')) {
-        var uri = Uri.parse(location);
-
-        copyDirectory(Directory.fromUri(uri),
-            joinDir(destDir, ['packages', packageName]));
-      } else {
-        copyDirectory(
-            Directory(location), joinDir(destDir, ['packages', packageName]));
-      }
-      return;
-    }
-  }
-
-  fail('package $packageName not found in .packages file');
 }
 
 @Task()

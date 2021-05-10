@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:html' hide Console;
 
 import 'package:dart_pad/context.dart';
+import 'package:dart_pad/src/util.dart';
 import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:dart_pad/util/query_params.dart';
 import 'package:markdown/markdown.dart' as markdown;
@@ -39,6 +40,8 @@ import 'workshops/workshops.dart';
 WorkshopUi _workshopUi;
 
 WorkshopUi get workshopUi => _workshopUi;
+
+final NodeValidator _htmlValidator = PermissiveNodeValidator();
 
 void init() {
   _workshopUi = WorkshopUi();
@@ -365,8 +368,9 @@ class WorkshopUi extends EditorUi {
   void _updateInstructions() {
     var div = querySelector('#markdown-content');
     div.children.clear();
-    div.innerHtml =
-        markdown.markdownToHtml(_workshopState.currentStep.instructions);
+    div.setInnerHtml(
+        markdown.markdownToHtml(_workshopState.currentStep.instructions),
+        validator: _htmlValidator);
     hljs.highlightAll();
   }
 
