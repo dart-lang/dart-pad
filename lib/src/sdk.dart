@@ -14,15 +14,17 @@ class Sdk {
   static Sdk _instance;
   factory Sdk() => _instance ?? (_instance = Sdk._());
 
-  String _versionFull = '';
-  String _flutterVersion = '';
+  /// The current version of the SDK, including any `-dev` suffix.
+  final String versionFull;
 
-  Sdk._() {
-    _versionFull =
-        (File(path.join(sdkPath, 'version')).readAsStringSync()).trim();
-    _flutterVersion =
-        (File(path.join(flutterSdkPath, 'version')).readAsStringSync()).trim();
-  }
+  final String flutterVersion;
+
+  Sdk._()
+      : versionFull = _readVersionFile(sdkPath),
+        flutterVersion = _readVersionFile(flutterSdkPath);
+
+  static String _readVersionFile(String filePath) =>
+      (File(path.join(filePath, 'version')).readAsStringSync()).trim();
 
   /// Get the path to the Flutter SDK.
   static String get flutterSdkPath =>
@@ -40,11 +42,6 @@ class Sdk {
     if (ver.contains('-')) ver = ver.substring(0, ver.indexOf('-'));
     return ver;
   }
-
-  /// Report the current version of the SDK, including any `-dev` suffix.
-  String get versionFull => _versionFull;
-
-  String get flutterVersion => _flutterVersion;
 }
 
 class DownloadingSdkManager {
