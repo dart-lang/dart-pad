@@ -91,7 +91,7 @@ class WorkshopUi extends EditorUi {
 
   @override
   set nullSafetyEnabled(bool v) {
-    throw (Exception('setting null safety in workshops is not supported.'));
+    throw Exception('setting null safety in workshops is not supported.');
   }
 
   Future<void> _init() async {
@@ -110,7 +110,6 @@ class WorkshopUi extends EditorUi {
     _initConsoles();
     _initButtons();
     _updateCode();
-    // _initTabs();
     _focusEditor();
     _initOutputPanelTabs();
   }
@@ -247,7 +246,7 @@ class WorkshopUi extends EditorUi {
     var stepsPanel = querySelector('#steps-panel');
     var rightPanel = querySelector('#right-panel');
     var editorPanel = querySelector('#editor-panel');
-    // var editorPanelFooter = querySelector('#editor-panel-footer');
+
     splitter = flexSplit(
       [stepsPanel, rightPanel],
       horizontal: true,
