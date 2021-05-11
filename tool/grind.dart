@@ -94,9 +94,7 @@ serveLocalBackend() async {
 @Task('Serve locally on port 8000 and use beta server URL for pre null-safe')
 @Depends(ConstTaskInvocation(
   'build',
-  ConstTaskArgs('build', flags: {
-    _debugFlag: true,
-  }, options: {
+  ConstTaskArgs('build', options: {
     _preNullSafetyServerUrlOption: 'http://beta.api.dartpad.dev/',
   }),
 ))
@@ -112,9 +110,7 @@ serveBetaBackend() async {
 @Task('Serve locally on port 8000 and use dev server URL for pre null-safe')
 @Depends(ConstTaskInvocation(
   'build',
-  ConstTaskArgs('build', flags: {
-    _debugFlag: true,
-  }, options: {
+  ConstTaskArgs('build', options: {
     _preNullSafetyServerUrlOption: 'http://dev.api.dartpad.dev/',
   }),
 ))
@@ -288,9 +284,11 @@ class ConstTaskArgs implements TaskArgs {
   final Map<String, bool> _flags;
   final Map<String, String> _options;
 
-  const ConstTaskArgs(this.taskName,
-      {Map<String, bool> flags, Map<String, String> options})
-      : _flags = flags,
+  const ConstTaskArgs(
+    this.taskName, {
+    Map<String, bool> flags = const {},
+    Map<String, String> options = const {},
+  })  : _flags = flags,
         _options = options;
 
   @override
