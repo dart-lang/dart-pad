@@ -80,50 +80,65 @@ class TabExpandController {
   }
 
   void toggleIframe() {
-    if (_state == TabState.closed) {
-      _showUiOutput();
-    } else if (_state == TabState.docs) {
-      _showUiOutput();
-      docs.setAttr('hidden');
-      docsButton.toggleClass('active', false);
-    } else if (_state == TabState.console) {
-      _showUiOutput();
-      console.setAttr('hidden');
-      consoleButton.toggleClass('active', false);
-    } else if (_state == TabState.ui) {
-      _hidePanel();
+    switch (_state) {
+      case TabState.closed:
+        _showUiOutput();
+        break;
+      case TabState.ui:
+        _hidePanel();
+        break;
+      case TabState.console:
+        _showUiOutput();
+        console.setAttr('hidden');
+        consoleButton.toggleClass('active', false);
+        break;
+      case TabState.docs:
+        _showUiOutput();
+        docs.setAttr('hidden');
+        docsButton.toggleClass('active', false);
+        break;
     }
   }
 
   void toggleConsole() {
-    if (_state == TabState.closed) {
-      _showConsole();
-    } else if (_state == TabState.docs) {
-      _showConsole();
-      docs.setAttr('hidden');
-      docsButton.toggleClass('active', false);
-    } else if (_state == TabState.ui) {
-      _showConsole();
-      iframe?.setAttr('hidden');
-      uiOutputButton?.toggleClass('active', false);
-    } else if (_state == TabState.console) {
-      _hidePanel();
+    switch (_state) {
+      case TabState.closed:
+        _showConsole();
+        break;
+      case TabState.ui:
+        _showConsole();
+        iframe?.setAttr('hidden');
+        uiOutputButton?.toggleClass('active', false);
+        break;
+      case TabState.console:
+        _hidePanel();
+        break;
+      case TabState.docs:
+        _showConsole();
+        docs.setAttr('hidden');
+        docsButton.toggleClass('active', false);
+        break;
     }
   }
 
   void toggleDocs() {
-    if (_state == TabState.closed) {
-      _showDocs();
-    } else if (_state == TabState.console) {
-      _showDocs();
-      console.setAttr('hidden');
-      consoleButton.toggleClass('active', false);
-    } else if (_state == TabState.ui) {
-      _showConsole();
-      iframe?.setAttr('hidden');
-      uiOutputButton?.toggleClass('active', false);
-    } else if (_state == TabState.docs) {
-      _hidePanel();
+    switch(_state) {
+      case TabState.closed:
+        _showDocs();
+        break;
+      case TabState.ui:
+        _showConsole();
+        iframe?.setAttr('hidden');
+        uiOutputButton?.toggleClass('active', false);
+        break;
+      case TabState.console:
+        _showDocs();
+        console.setAttr('hidden');
+        consoleButton.toggleClass('active', false);
+        break;
+      case TabState.docs:
+        _hidePanel();
+        break;
     }
   }
 
