@@ -33,7 +33,7 @@ class TabExpandController {
   /// The element to give the bottom half of the split
   final Element bottomSplit;
 
-  final List<StreamSubscription> _subscriptions = [];
+  final List<StreamSubscription<Event>> _subscriptions = [];
 
   TabState _state;
   Splitter _splitter;
