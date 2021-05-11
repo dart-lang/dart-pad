@@ -91,6 +91,42 @@ serveLocalBackend() async {
   });
 }
 
+@Task('Serve locally on port 8000 and use beta server URL for pre null-safe')
+@Depends(ConstTaskInvocation(
+  'build',
+  ConstTaskArgs('build', flags: {
+    _debugFlag: true,
+  }, options: {
+    _preNullSafetyServerUrlOption: 'http://beta.api.dartpad.dev/',
+  }),
+))
+serveBetaBackend() async {
+  log('\nServing dart-pad on http://localhost:8000');
+
+  await Process.start(Platform.executable, ['bin/serve.dart'])
+      .then((Process process) {
+    process.stdout.transform(utf8.decoder).listen(stdout.write);
+  });
+}
+
+@Task('Serve locally on port 8000 and use dev server URL for pre null-safe')
+@Depends(ConstTaskInvocation(
+  'build',
+  ConstTaskArgs('build', flags: {
+    _debugFlag: true,
+  }, options: {
+    _preNullSafetyServerUrlOption: 'http://dev.api.dartpad.dev/',
+  }),
+))
+serveDevBackend() async {
+  log('\nServing dart-pad on http://localhost:8000');
+
+  await Process.start(Platform.executable, ['bin/serve.dart'])
+      .then((Process process) {
+    process.stdout.transform(utf8.decoder).listen(stdout.write);
+  });
+}
+
 /// A grinder flag which directs build_runner to use the non-release mode, and
 /// use DDC instead of dart2js.
 const _debugFlag = 'debug';
