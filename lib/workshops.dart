@@ -22,7 +22,6 @@ import 'elements/console.dart';
 import 'elements/counter.dart';
 import 'elements/dialog.dart';
 import 'elements/elements.dart';
-import 'elements/material_tab_controller.dart';
 import 'elements/tab_expand_controller.dart';
 import 'hljs.dart' as hljs;
 import 'modules/codemirror_module.dart';
