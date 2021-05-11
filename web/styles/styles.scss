@@ -1,8 +1,7 @@
 @import 'package:dart_pad/scss/colors';
-@import 'package:dart_pad/scss/variables';
+@import 'package:dart_pad/scss/layout';
 @import 'package:dart_pad/scss/shared';
-
-@import 'layout';
+@import 'package:dart_pad/scss/variables';
 
 // Material Design Web theme colors. Must be imported before importing
 // material-components-web.scss.
@@ -16,6 +15,7 @@ $mdc-theme-error: $dark-red;
 $doc-console-padding: 8px 24px 8px 24px;
 
 @import 'package:mdc_web/material-components-web';
+@import 'shared';
 
 body {
   background-color: $playground-background-color;
@@ -196,9 +196,6 @@ a {
   #right-output-panel-content {
     @include layout-flex;
   }
-  .view-label {
-    margin: 8px;
-  }
 }
 
 #right-doc-panel {
@@ -206,9 +203,6 @@ a {
   @include layout-vertical;
   #right-doc-panel-content {
     @include layout-flex;
-  }
-  .view-label {
-    margin: 8px;
   }
 }
 
@@ -257,141 +251,6 @@ a {
 // Contenteditable elements
 [contenteditable]:focus {
   outline: 0 solid transparent;
-}
-
-// Editor Tabs
-.editor-tab-host {
-  @include layout-vertical;
-}
-
-.border-top {
-  border-top: 6px solid $dark-gutter-background-color !important;
-}
-
-.editor-tabs {
-  @include layout-horizontal;
-  @include layout-center;
-  @include layout-justified;
-  padding-left: 8px;
-
-  button {
-    margin-right: 8px;
-  }
-  .tab-group {
-    @include layout-horizontal;
-    @include layout-center;
-  }
-}
-
-.editor-tab {
-  @include mdc-button-ink-color(#f8f9fa);
-  text-transform: none !important;
-  letter-spacing: normal;
-
-  color: $label-color;
-  border-top: 2px solid transparent;
-  padding: 8px 4px;
-
-  &.active {
-    color: $dark-blue;
-    font-weight: bold;
-  }
-}
-
-.mdc-tab__content {
-  text-transform: none !important;
-}
-
-.mdc-tab--active {
-  .mdc-tab__text-label {
-    font-weight: normal;
-  }
-}
-
-#editor-panel-close-button {
-  @include mdc-icon-button-size(16px, 16px, 8px);
-}
-
-#editor-panel-tab-host {
-  @include layout-flex;
-  @include layout-vertical;
-  .documentation {
-    @include layout-flex;
-  }
-}
-
-// documentation and parameter info styling
-.documentation {
-  padding: $doc-console-padding;
-  font-family: 'Roboto', sans-serif;
-  font-size: 11pt;
-  line-height: 20px;
-  position: relative;
-  display: block;
-  overflow: auto;
-  overflow-wrap: break-word;
-  margin-top: 0;
-  margin-left: 0;
-
-  * {
-    color: $dark-editor-text;
-  }
-  h1 {
-    margin-top: 0;
-    font-size: 12pt;
-    color: $dark-blue;
-  }
-
-  h2 {
-    margin-bottom: 0;
-  }
-
-  h2, strong {
-    font-weight: bold;
-    font-size: inherit;
-    color: #cdcdcd; /* little bit brigher than normal text*/
-  }
-  p {
-    margin-top: 0;
-  }
-  a {
-    color: #66d9ef;
-  }
-  a:hover {
-    color: #66d9ef;
-    text-decoration: underline;
-  }
-  a {
-    color: #66d9ef;
-  }
-  a:hover {
-    color: #66d9ef;
-    text-decoration: underline;
-  }
-  pre {
-    overflow-x: auto;
-    margin: 1em;
-  }
-  pre code {
-    white-space: inherit;
-    word-wrap: normal;
-  }
-  code, .parameter-hints code {
-    font-family: $editor-font;
-    font-size: 12pt;
-    color: $dark-blue;
-  }
-  code em {
-    color: $dark-orange;
-    font-style: normal;
-  }
-  .parameter-hints code {
-    color: $dark-orange;
-  }
-  code em {
-    color: $dark-orange;
-    font-style: normal;
-  }
 }
 
 // Analysis flashes
@@ -495,6 +354,23 @@ a {
     height: auto;
     width: 20px;
     margin-right: 14px;
+}
+
+// Editor Tabs
+.editor-tab {
+  @include mdc-button-ink-color(#f8f9fa);
+  color: $label-color;
+  &.active {
+    color: $dark-blue;
+  }
+}
+
+.border-top {
+  border-top: 6px solid $dark-gutter-background-color !important;
+}
+
+#editor-panel-close-button {
+  @include mdc-icon-button-size(16px, 16px, 8px);
 }
 
 // responsive layout

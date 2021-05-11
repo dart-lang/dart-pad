@@ -6,7 +6,6 @@ import 'package:dart_pad/src/util.dart';
 import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:dart_pad/util/query_params.dart';
 import 'package:markdown/markdown.dart' as markdown;
-import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -23,7 +22,7 @@ import 'elements/console.dart';
 import 'elements/counter.dart';
 import 'elements/dialog.dart';
 import 'elements/elements.dart';
-import 'elements/material_tab_controller.dart';
+import 'elements/tab_expand_controller.dart';
 import 'hljs.dart' as hljs;
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
@@ -55,27 +54,45 @@ class WorkshopUi extends EditorUi {
   DElement nextStepButton;
   Console _console;
   MDCButton showSolutionButton;
-  MaterialTabController consolePanelTabController;
   Counter unreadConsoleCounter;
   Dialog dialog;
   DocHandler docHandler;
   @override
   ContextBase context;
   MDCButton formatButton;
+  TabExpandController tabExpandController;
+  MDCButton closePanelButton;
+  MDCButton editorUiOutputTab;
+  MDCButton editorConsoleTab;
+  MDCButton editorDocsTab;
+  final _nullSafetyEnabled = true;
 
   WorkshopUi() {
     _init();
   }
 
+  DivElement get _editorPanel => querySelector('#editor-panel') as DivElement;
+
   DivElement get _editorHost => querySelector('#editor-host') as DivElement;
 
+  IFrameElement get _frame => querySelector('#frame') as IFrameElement;
+
   DivElement get _consoleElement =>
-      querySelector('#output-panel-content') as DivElement;
+      querySelector('#console-panel') as DivElement;
 
   DivElement get _documentationElement =>
       querySelector('#doc-panel') as DivElement;
 
-  IFrameElement get _frame => querySelector('#frame') as IFrameElement;
+  DivElement get _editorPanelFooter =>
+      querySelector('#editor-panel-footer') as DivElement;
+
+  @override
+  bool get nullSafetyEnabled => _nullSafetyEnabled;
+
+  @override
+  set nullSafetyEnabled(bool v) {
+    throw Exception('setting null safety in workshops is not supported.');
+  }
 
   Future<void> _init() async {
     _initDialogs();
@@ -93,8 +110,8 @@ class WorkshopUi extends EditorUi {
     _initConsoles();
     _initButtons();
     _updateCode();
-    _initTabs();
     _focusEditor();
+    _initOutputPanelTabs();
   }
 
   Future<void> _initModules() async {
@@ -229,17 +246,10 @@ class WorkshopUi extends EditorUi {
     var stepsPanel = querySelector('#steps-panel');
     var rightPanel = querySelector('#right-panel');
     var editorPanel = querySelector('#editor-panel');
-    var outputPanel = querySelector('#output-panel');
+
     splitter = flexSplit(
       [stepsPanel, rightPanel],
       horizontal: true,
-      gutterSize: 6,
-      sizes: const [50, 50],
-      minSize: [100, 100],
-    );
-    rightSplitter = flexSplit(
-      [editorPanel, outputPanel],
-      horizontal: false,
       gutterSize: 6,
       sizes: const [50, 50],
       minSize: [100, 100],
@@ -293,6 +303,18 @@ class WorkshopUi extends EditorUi {
           ..onClick.listen((_) => _handleShowSolution());
     formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
       ..onClick.listen((_) => _format());
+    closePanelButton = MDCButton(
+        querySelector('#editor-panel-close-button') as ButtonElement,
+        isIcon: true);
+    editorUiOutputTab =
+        MDCButton(querySelector('#editor-panel-ui-tab') as ButtonElement);
+    editorConsoleTab =
+        MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
+    editorDocsTab =
+        MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
+    if (!shouldCompileDDC) {
+      editorUiOutputTab.setAttr('hidden');
+    }
   }
 
   void _updateSolutionButton() {
@@ -306,42 +328,6 @@ class WorkshopUi extends EditorUi {
 
   void _updateCode() {
     editor.document.updateValue(_workshopState.currentStep.snippet);
-  }
-
-  void _initTabs() {
-    var consoleTabBar = querySelector('#web-tab-bar');
-    consolePanelTabController = MaterialTabController(MDCTabBar(consoleTabBar));
-    for (var name in ['ui-output', 'console', 'documentation']) {
-      consolePanelTabController.registerTab(
-          TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
-        _changeConsoleTab(name);
-      }));
-    }
-
-    // Set the current tab to UI Output or console, depending on whether this is
-    // Dart or Flutter workshop.
-    if (_workshopState.workshop.type == WorkshopType.dart) {
-      querySelector('#ui-output-tab').hidden = true;
-      consolePanelTabController.selectTab('console');
-    } else {
-      consolePanelTabController.selectTab('ui-output');
-    }
-  }
-
-  void _changeConsoleTab(String name) {
-    if (name == 'ui-output') {
-      _frame.hidden = false;
-      _consoleElement.hidden = true;
-      _documentationElement.hidden = true;
-    } else if (name == 'console') {
-      _frame.hidden = true;
-      _consoleElement.hidden = false;
-      _documentationElement.hidden = true;
-    } else if (name == 'documentation') {
-      _frame.hidden = true;
-      _consoleElement.hidden = true;
-      _documentationElement.hidden = false;
-    }
   }
 
   void _updateInstructions() {
@@ -416,6 +402,25 @@ class WorkshopUi extends EditorUi {
     });
   }
 
+  void _initOutputPanelTabs() {
+    if (tabExpandController != null) {
+      return;
+    }
+
+    tabExpandController = TabExpandController(
+      uiOutputButton: shouldCompileDDC ? editorUiOutputTab : null,
+      consoleButton: editorConsoleTab,
+      docsButton: editorDocsTab,
+      closeButton: closePanelButton,
+      iframeElement: _frame,
+      docsElement: _documentationElement,
+      consoleElement: _consoleElement,
+      topSplit: _editorPanel,
+      bottomSplit: _editorPanelFooter,
+      unreadCounter: unreadConsoleCounter,
+    );
+  }
+
   void _focusEditor() {
     editor.focus();
   }
@@ -436,7 +441,7 @@ class WorkshopUi extends EditorUi {
   @override
   void showOutput(String message, {bool error = false}) {
     _console.showOutput(message, error: error);
-    if (consolePanelTabController.selectedTab.name != 'console') {
+    if (tabExpandController.state != TabState.console) {
       unreadConsoleCounter.increment();
     }
   }

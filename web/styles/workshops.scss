@@ -1,8 +1,7 @@
 @import 'package:dart_pad/scss/colors';
-@import 'package:dart_pad/scss/variables';
+@import 'package:dart_pad/scss/layout';
 @import 'package:dart_pad/scss/shared';
-
-@import 'layout';
+@import 'package:dart_pad/scss/variables';
 
 // Material Design Web theme colors. Must be imported before importing
 // material-components-web.scss.
@@ -12,10 +11,8 @@ $mdc-theme-background: $playground-background-color;
 $mdc-theme-surface: $playground-background-color;
 $mdc-theme-error: $dark-red;
 
-// Layout constants
-$doc-console-padding: 8px 24px 8px 24px;
-
 @import 'package:mdc_web/material-components-web';
+@import 'shared';
 
 header {
   background-color: $playground-header-background-color;
@@ -265,7 +262,6 @@ body>footer {
   }
 }
 
-
 // Splitter
 .gutter {
   background-color: $dark-gutter-background-color;
@@ -287,3 +283,19 @@ body>footer {
   width: 100%;
 }
 
+// Editor Tabs
+.editor-tab {
+  @include mdc-button-ink-color(#f8f9fa);
+  color: $label-color;
+  &.active {
+    color: $dark-blue;
+  }
+}
+
+.border-top {
+  border-top: 6px solid $dark-gutter-background-color !important;
+}
+
+#editor-panel-close-button {
+  @include mdc-icon-button-size(16px, 16px, 8px);
+}
