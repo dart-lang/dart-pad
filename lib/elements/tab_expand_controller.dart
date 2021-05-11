@@ -122,7 +122,7 @@ class TabExpandController {
   }
 
   void toggleDocs() {
-    switch(_state) {
+    switch (_state) {
       case TabState.closed:
         _showDocs();
         break;
