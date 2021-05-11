@@ -199,8 +199,6 @@ body {
 }
 
 .editor-button-group {
-  @include layout-horizontal;
-  @include layout-center;
   position: absolute;
   right: 0;
   top: 0;
