@@ -55,7 +55,6 @@ class WorkshopUi extends EditorUi {
   DElement nextStepButton;
   Console _console;
   MDCButton showSolutionButton;
-  MaterialTabController consolePanelTabController;
   Counter unreadConsoleCounter;
   Dialog dialog;
   DocHandler docHandler;
@@ -67,12 +66,14 @@ class WorkshopUi extends EditorUi {
   MDCButton editorUiOutputTab;
   MDCButton editorConsoleTab;
   MDCButton editorDocsTab;
+  final _nullSafetyEnabled = true;
 
   WorkshopUi() {
     _init();
   }
 
   DivElement get _editorPanel => querySelector('#editor-panel') as DivElement;
+
   DivElement get _editorHost => querySelector('#editor-host') as DivElement;
 
   IFrameElement get _frame => querySelector('#frame') as IFrameElement;
@@ -85,6 +86,14 @@ class WorkshopUi extends EditorUi {
 
   DivElement get _editorPanelFooter =>
       querySelector('#editor-panel-footer') as DivElement;
+
+  @override
+  bool get nullSafetyEnabled => _nullSafetyEnabled;
+
+  @override
+  set nullSafetyEnabled(bool v) {
+    throw (Exception('setting null safety in workshops is not supported.'));
+  }
 
   Future<void> _init() async {
     _initDialogs();
@@ -247,13 +256,6 @@ class WorkshopUi extends EditorUi {
       sizes: const [50, 50],
       minSize: [100, 100],
     );
-    // rightSplitter = flexSplit(
-    //   [editorPanel, editorPanelFooter],
-    //   horizontal: false,
-    //   gutterSize: 6,
-    //   sizes: const [50, 50],
-    //   minSize: [100, 100],
-    // );
 
     // Resize Codemirror when the size of the panel changes. This keeps the
     // virtual scrollbar in sync with the size of the panel.
@@ -312,7 +314,9 @@ class WorkshopUi extends EditorUi {
         MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
     editorDocsTab =
         MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
-
+    if (!shouldCompileDDC) {
+      editorUiOutputTab.setAttr('hidden');
+    }
   }
 
   void _updateSolutionButton() {
@@ -406,7 +410,7 @@ class WorkshopUi extends EditorUi {
     }
 
     tabExpandController = TabExpandController(
-      uiOutputButton: editorUiOutputTab,
+      uiOutputButton: shouldCompileDDC ? editorUiOutputTab : null,
       consoleButton: editorConsoleTab,
       docsButton: editorDocsTab,
       closeButton: closePanelButton,
@@ -439,7 +443,7 @@ class WorkshopUi extends EditorUi {
   @override
   void showOutput(String message, {bool error = false}) {
     _console.showOutput(message, error: error);
-    if (consolePanelTabController.selectedTab.name != 'console') {
+    if (tabExpandController.state != TabState.console) {
       unreadConsoleCounter.increment();
     }
   }

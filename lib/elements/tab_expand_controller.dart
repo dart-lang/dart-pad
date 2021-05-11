@@ -104,8 +104,8 @@ class TabExpandController {
       docsButton.toggleClass('active', false);
     } else if (_state == TabState.ui) {
       _showConsole();
-      uiOutputButton?.setAttr('hidden');
-      iframe.toggleClass('active', false);
+      iframe?.setAttr('hidden');
+      uiOutputButton?.toggleClass('active', false);
     } else if (_state == TabState.console) {
       _hidePanel();
     }
@@ -120,8 +120,8 @@ class TabExpandController {
       consoleButton.toggleClass('active', false);
     } else if (_state == TabState.ui) {
       _showConsole();
-      uiOutputButton?.setAttr('hidden');
-      iframe.toggleClass('active', false);
+      iframe?.setAttr('hidden');
+      uiOutputButton?.toggleClass('active', false);
     } else if (_state == TabState.docs) {
       _hidePanel();
     }

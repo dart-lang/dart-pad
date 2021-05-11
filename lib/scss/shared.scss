@@ -306,9 +306,11 @@ a {
 
 // Misc
 .view-label {
+  margin: 8px;
   font-family: $editor-font;
   font-size: $embed-editor-font-size;
   color: $label-color;
+  white-space: normal;
   &.absolute {
     position: absolute;
     left: 0;

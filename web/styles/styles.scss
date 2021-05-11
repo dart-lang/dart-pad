@@ -196,9 +196,6 @@ a {
   #right-output-panel-content {
     @include layout-flex;
   }
-  .view-label {
-    margin: 8px;
-  }
 }
 
 #right-doc-panel {
@@ -206,9 +203,6 @@ a {
   @include layout-vertical;
   #right-doc-panel-content {
     @include layout-flex;
-  }
-  .view-label {
-    margin: 8px;
   }
 }
 
