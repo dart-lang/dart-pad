@@ -14,7 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
-import 'flutter_web.dart';
+import 'project.dart' as project;
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'scheduler.dart';
@@ -39,8 +39,7 @@ class DartAnalysisServerWrapper extends AnalysisServerWrapper {
   final bool _nullSafety;
 
   @override
-  String get _sourceDirPath =>
-      FlutterWebManager.dartTemplateProject(_nullSafety).path;
+  String get _sourceDirPath => project.dartTemplateProject(_nullSafety).path;
 }
 
 class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
@@ -48,8 +47,7 @@ class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
   final bool _nullSafety;
 
   @override
-  String get _sourceDirPath =>
-      FlutterWebManager.flutterTemplateProject(_nullSafety).path;
+  String get _sourceDirPath => project.flutterTemplateProject(_nullSafety).path;
 }
 
 abstract class AnalysisServerWrapper {

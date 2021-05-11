@@ -15,7 +15,6 @@ import 'package:shelf/shelf_io.dart' as shelf;
 
 import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
-import 'src/flutter_web.dart';
 import 'src/server_cache.dart';
 import 'src/shelf_cors.dart' as shelf_cors;
 
@@ -67,7 +66,6 @@ class EndpointsServer {
   Handler handler;
 
   CommonServerApi commonServerApi;
-  FlutterWebManager flutterWebManager;
 
   EndpointsServer._(this.port, bool nullSafety) {
     final commonServerImpl = CommonServerImpl(

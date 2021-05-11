@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:dart_services/src/flutter_web.dart';
+import 'package:dart_services/src/project.dart' as project;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
@@ -15,69 +15,50 @@ void main() => defineTests();
 void defineTests() {
   for (final nullSafety in [false, true]) {
     group('Null ${nullSafety ? 'Safe' : 'Unsafe'} FlutterWebManager', () {
-      FlutterWebManager flutterWebManager;
-
       final dartHtmlImport = _FakeImportDirective('dart:html');
       final dartUiImport = _FakeImportDirective('dart:ui');
       final packageFlutterImport = _FakeImportDirective('package:flutter/');
 
-      setUp(() async {
-        flutterWebManager = FlutterWebManager();
-      });
-
       test('inited', () async {
         expect(
-            await FlutterWebManager.flutterTemplateProject(nullSafety).exists(),
-            isTrue);
+            await project.flutterTemplateProject(nullSafety).exists(), isTrue);
         final file = File(path.join(
-            FlutterWebManager.flutterTemplateProject(nullSafety).path,
+            project.flutterTemplateProject(nullSafety).path,
             '.dart_tool',
             'package_config.json'));
         expect(await file.exists(), isTrue);
       });
 
       test('usesFlutterWeb', () {
-        expect(flutterWebManager.usesFlutterWeb({_FakeImportDirective('')}),
-            isFalse);
-        expect(flutterWebManager.usesFlutterWeb({dartHtmlImport}), isFalse);
-        expect(flutterWebManager.usesFlutterWeb({dartUiImport}), isTrue);
-        expect(
-            flutterWebManager.usesFlutterWeb({packageFlutterImport}), isTrue);
+        expect(project.usesFlutterWeb({_FakeImportDirective('')}), isFalse);
+        expect(project.usesFlutterWeb({dartHtmlImport}), isFalse);
+        expect(project.usesFlutterWeb({dartUiImport}), isTrue);
+        expect(project.usesFlutterWeb({packageFlutterImport}), isTrue);
       });
 
       test('getUnsupportedImport', () {
         expect(
-            flutterWebManager
-                .getUnsupportedImports([_FakeImportDirective('dart:html')]),
+            project.getUnsupportedImports([_FakeImportDirective('dart:html')]),
             isEmpty);
-        expect(
-            flutterWebManager.getUnsupportedImports([dartUiImport]), isEmpty);
-        expect(flutterWebManager.getUnsupportedImports([packageFlutterImport]),
-            isEmpty);
+        expect(project.getUnsupportedImports([dartUiImport]), isEmpty);
+        expect(project.getUnsupportedImports([packageFlutterImport]), isEmpty);
         final packagePathImport = _FakeImportDirective('package:path');
-        expect(flutterWebManager.getUnsupportedImports([packagePathImport]),
+        expect(project.getUnsupportedImports([packagePathImport]),
             contains(packagePathImport));
         final localFooImport = _FakeImportDirective('foo.dart');
-        expect(flutterWebManager.getUnsupportedImports([localFooImport]),
+        expect(project.getUnsupportedImports([localFooImport]),
             contains(localFooImport));
         // dart:io is an unsupported package.
         final dartIoImport = _FakeImportDirective('dart:io');
-        expect(flutterWebManager.getUnsupportedImports([dartIoImport]),
+        expect(project.getUnsupportedImports([dartIoImport]),
             contains(dartIoImport));
       });
     });
 
-    group('Null ${nullSafety ? 'Safe' : 'Unsafe'} FlutterWebManager inited',
-        () {
-      FlutterWebManager flutterWebManager;
-
-      setUpAll(() async {
-        flutterWebManager = FlutterWebManager();
-      });
-
+    group('Null ${nullSafety ? 'Safe' : 'Unsafe'} project inited', () {
       test('packagesFilePath', () async {
         final packageConfig = File(path.join(
-            FlutterWebManager.flutterTemplateProject(nullSafety).path,
+            project.flutterTemplateProject(nullSafety).path,
             '.dart_tool',
             'package_config.json'));
         expect(await packageConfig.exists(), true);
@@ -90,7 +71,7 @@ void defineTests() {
       });
 
       test('summaryFilePath', () {
-        final summaryFilePath = flutterWebManager.summaryFilePath(nullSafety);
+        final summaryFilePath = project.summaryFilePath(nullSafety);
         expect(summaryFilePath, isNotEmpty);
 
         final file = File(summaryFilePath);

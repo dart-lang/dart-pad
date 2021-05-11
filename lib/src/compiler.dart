@@ -13,7 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
-import 'flutter_web.dart';
+import 'project.dart' as project;
 import 'pub.dart';
 import 'sdk.dart';
 
@@ -23,7 +23,6 @@ Logger _logger = Logger('compiler');
 /// compile at a time.
 class Compiler {
   final Sdk _sdk;
-  final FlutterWebManager _flutterWebManager;
   final String _dartdevcPath;
   final BazelWorkerDriver _ddcDriver;
   final bool _nullSafety;
@@ -35,8 +34,7 @@ class Compiler {
                   path.join(Sdk.sdkPath, 'bin', 'dartdevc'),
                   <String>['--persistent_worker'],
                 ),
-            maxWorkers: 1),
-        _flutterWebManager = FlutterWebManager();
+            maxWorkers: 1);
 
   Future<CompilationResults> warmup({bool useHtml = false}) async {
     return compile(useHtml ? sampleCodeWeb : sampleCode);
@@ -48,8 +46,7 @@ class Compiler {
     bool returnSourceMap = false,
   }) async {
     final imports = getAllImportsFor(input);
-    final unsupportedImports =
-        _flutterWebManager.getUnsupportedImports(imports);
+    final unsupportedImports = project.getUnsupportedImports(imports);
     if (unsupportedImports.isNotEmpty) {
       return CompilationResults(problems: [
         for (var import in unsupportedImports)
@@ -61,8 +58,7 @@ class Compiler {
     _logger.info('Temp directory created: ${temp.path}');
 
     try {
-      await copyPath(
-          FlutterWebManager.dartTemplateProject(_nullSafety).path, temp.path);
+      await copyPath(project.dartTemplateProject(_nullSafety).path, temp.path);
       await Directory(path.join(temp.path, 'lib')).create(recursive: true);
 
       final arguments = <String>[
@@ -119,8 +115,7 @@ class Compiler {
   /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> compileDDC(String input) async {
     final imports = getAllImportsFor(input);
-    final unsupportedImports =
-        _flutterWebManager.getUnsupportedImports(imports);
+    final unsupportedImports = project.getUnsupportedImports(imports);
     if (unsupportedImports.isNotEmpty) {
       return DDCCompilationResults.failed([
         for (var import in unsupportedImports)
@@ -132,14 +127,13 @@ class Compiler {
     _logger.info('Temp directory created: ${temp.path}');
 
     try {
-      final usingFlutter = _flutterWebManager.usesFlutterWeb(imports);
+      final usingFlutter = project.usesFlutterWeb(imports);
       if (usingFlutter) {
         await copyPath(
-            FlutterWebManager.flutterTemplateProject(_nullSafety).path,
-            temp.path);
+            project.flutterTemplateProject(_nullSafety).path, temp.path);
       } else {
         await copyPath(
-            FlutterWebManager.dartTemplateProject(_nullSafety).path, temp.path);
+            project.dartTemplateProject(_nullSafety).path, temp.path);
       }
 
       await Directory(path.join(temp.path, 'lib')).create(recursive: true);
@@ -156,7 +150,7 @@ class Compiler {
         '--modules=amd',
         if (usingFlutter) ...[
           '-s',
-          _flutterWebManager.summaryFilePath(_nullSafety),
+          project.summaryFilePath(_nullSafety),
           '-s',
           '${Sdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/' +
               (_nullSafety

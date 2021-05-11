@@ -13,7 +13,7 @@ import 'package:pedantic/pedantic.dart';
 
 import 'analysis_server.dart';
 import 'common_server_impl.dart' show BadRequest;
-import 'flutter_web.dart';
+import 'project.dart' as project;
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 
@@ -23,7 +23,6 @@ class AnalysisServersWrapper {
   AnalysisServersWrapper(this._nullSafety);
   final bool _nullSafety;
 
-  FlutterWebManager _flutterWebManager;
   DartAnalysisServerWrapper _dartAnalysisServer;
   FlutterAnalysisServerWrapper _flutterAnalysisServer;
 
@@ -46,7 +45,6 @@ class AnalysisServersWrapper {
   Future<void> warmup() async {
     _logger.info('Beginning AnalysisServersWrapper init().');
     _dartAnalysisServer = DartAnalysisServerWrapper(_nullSafety);
-    _flutterWebManager = FlutterWebManager();
     _flutterAnalysisServer = FlutterAnalysisServerWrapper(_nullSafety);
 
     await _dartAnalysisServer.init();
@@ -97,7 +95,7 @@ class AnalysisServersWrapper {
 
   AnalysisServerWrapper _getCorrectAnalysisServer(String source) {
     final imports = getAllImportsFor(source);
-    return _flutterWebManager.usesFlutterWeb(imports)
+    return project.usesFlutterWeb(imports)
         ? _flutterAnalysisServer
         : _dartAnalysisServer;
   }
@@ -161,7 +159,7 @@ class AnalysisServersWrapper {
   /// Check that the set of packages referenced is valid.
   Future<void> _checkPackageReferences(String source) async {
     final unsupportedImports =
-        _flutterWebManager.getUnsupportedImports(getAllImportsFor(source));
+        project.getUnsupportedImports(getAllImportsFor(source));
 
     if (unsupportedImports.isNotEmpty) {
       // TODO(srawlins): Do the work so that each unsupported input is its own
