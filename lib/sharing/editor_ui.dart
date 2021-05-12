@@ -2,9 +2,12 @@ import 'dart:async';
 import 'dart:html';
 
 import 'package:dart_pad/elements/button.dart';
+import 'package:dart_pad/elements/dialog.dart';
 import 'package:dart_pad/services/execution.dart';
+import 'package:dart_pad/util/keymap.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
+import 'package:meta/meta.dart';
 
 import '../context.dart';
 import '../dart_pad.dart';
@@ -26,6 +29,9 @@ abstract class EditorUi {
   MDCButton runButton;
   ExecutionService executionService;
 
+  /// The dialog box for information like Keyboard shortcuts.
+  final Dialog dialog = Dialog();
+
   /// The source-of-truth for whether null safety is enabled.
   ///
   /// On page load, this may be originally derived from local storage.
@@ -46,6 +52,18 @@ abstract class EditorUi {
 
   void displayIssues(List<AnalysisIssue> issues) {
     analysisResultsController.display(issues);
+  }
+
+  @mustCallSuper
+  void initKeyBindings() {
+    keys.bind(['ctrl-enter', 'macctrl-enter'], handleRun, 'Run');
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
+      showKeyboardDialog();
+    }, 'Keyboard Shortcuts');
+  }
+
+  void showKeyboardDialog() {
+    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
   void showSnackbar(String message) {

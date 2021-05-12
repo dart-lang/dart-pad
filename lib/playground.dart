@@ -47,7 +47,6 @@ import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
 import 'util/detect_flutter.dart';
-import 'util/keymap.dart';
 import 'util/query_params.dart' show queryParams;
 
 Playground get playground => _playground;
@@ -76,7 +75,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
   DElement editorPanelFooter;
   MDCMenu samplesMenu;
   MDCMenu moreMenu;
-  Dialog dialog;
   NewPadDialog newPadDialog;
   DElement titleElement;
   MaterialTabController webLayoutTabController;
@@ -154,7 +152,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
   bool get _isCompletionActive => editor.completionActive;
 
   void _initDialogs() {
-    dialog = Dialog();
     newPadDialog = NewPadDialog();
   }
 
@@ -225,7 +222,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       });
     querySelector('#keyboard-button')
         .onClick
-        .listen((_) => _showKeyboardDialog());
+        .listen((_) => showKeyboardDialog());
 
     // Query params have higher precedence than local storage
     if (queryParams.hasNullSafety) {
@@ -482,36 +479,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
           ..mode = 'dart'
           ..showLineNumbers = true;
 
-    // set up key bindings
-    keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
-    keys.bind(['ctrl-enter'], handleRun, 'Run');
-    keys.bind(['f1'], () {
-      ga.sendEvent('main', 'help');
-      docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
-    }, 'Documentation');
-
-    keys.bind(['alt-enter'], () {
-      editor.showCompletions(onlyShowFixes: true);
-    }, 'Quick fix');
-
-    keys.bind(['ctrl-space', 'macctrl-space'], () {
-      editor.showCompletions();
-    }, 'Completion');
-
-    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
-      _showKeyboardDialog();
-    }, 'Keyboard Shortcuts');
-    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
-      _format();
-    }, 'Format');
-
-    document.onKeyUp.listen((e) {
-      if (editor.completionActive ||
-          DocHandler.cursorKeys.contains(e.keyCode)) {
-        docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
-      }
-      _handleAutoCompletion(e);
-    });
+    initKeyBindings();
 
     context = PlaygroundContext(editor);
     deps[Context] = context;
@@ -582,6 +550,37 @@ class Playground extends EditorUi implements GistContainer, GistController {
       });
 
     _finishedInit();
+  }
+
+  @override
+  void initKeyBindings() {
+    keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
+    keys.bind(['f1'], () {
+      ga.sendEvent('main', 'help');
+      docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
+    }, 'Documentation');
+
+    keys.bind(['alt-enter'], () {
+      editor.showCompletions(onlyShowFixes: true);
+    }, 'Quick fix');
+
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
+      editor.showCompletions();
+    }, 'Completion');
+
+    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
+      _format();
+    }, 'Format');
+
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
+      }
+      _handleAutoCompletion(e);
+    });
+
+    super.initKeyBindings();
   }
 
   void updateVersion() {
@@ -755,10 +754,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       showSnackbar(message);
       _logger.severe('$message: $e');
     });
-  }
-
-  void _showKeyboardDialog() {
-    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
   @override
