@@ -32,7 +32,6 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_ui.dart';
 import 'src/ga.dart';
-import 'util/keymap.dart';
 import 'workshops/workshops.dart';
 
 WorkshopUi _workshopUi;
@@ -55,7 +54,6 @@ class WorkshopUi extends EditorUi {
   Console _console;
   MDCButton showSolutionButton;
   Counter unreadConsoleCounter;
-  Dialog dialog;
   DocHandler docHandler;
   @override
   ContextBase context;
@@ -95,14 +93,13 @@ class WorkshopUi extends EditorUi {
   }
 
   Future<void> _init() async {
-    _initDialogs();
     await _loadWorkshop();
     _initBusyLights();
     _initHeader();
     _updateInstructions();
     await _initModules();
     _initWorkshopUi();
-    _initKeyBindings();
+    initKeyBindings();
     _initEditor();
     _initSplitters();
     _initStepButtons();
@@ -122,10 +119,6 @@ class WorkshopUi extends EditorUi {
     modules.register(CodeMirrorModule());
 
     await modules.start();
-  }
-
-  void _initDialogs() {
-    dialog = Dialog();
   }
 
   void _initBusyLights() {
@@ -185,12 +178,11 @@ class WorkshopUi extends EditorUi {
 
     querySelector('#keyboard-button')
         .onClick
-        .listen((_) => _showKeyboardDialog());
+        .listen((_) => showKeyboardDialog());
   }
 
-  void _initKeyBindings() {
-    // set up key bindings
-    keys.bind(['ctrl-enter'], handleRun, 'Run');
+  @override
+  void initKeyBindings() {
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
       docHandler.generateDoc([_documentationElement]);
@@ -204,9 +196,6 @@ class WorkshopUi extends EditorUi {
       editor.showCompletions();
     }, 'Completion');
 
-    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
-      _showKeyboardDialog();
-    }, 'Keyboard Shortcuts');
     keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
       _format();
     }, 'Format');
@@ -218,6 +207,8 @@ class WorkshopUi extends EditorUi {
       }
       _handleAutoCompletion(e);
     });
+
+    super.initKeyBindings();
   }
 
   void _handleAutoCompletion(KeyboardEvent e) {
@@ -368,10 +359,6 @@ class WorkshopUi extends EditorUi {
     }
     throw ('Invalid parameters provided. Use either "webserver" or '
         '"gh_owner", "gh_repo", "gh_ref", and "gh_path"');
-  }
-
-  void _showKeyboardDialog() {
-    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
   Future<void> _format() {

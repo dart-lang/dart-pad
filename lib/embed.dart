@@ -34,7 +34,6 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_ui.dart';
 import 'sharing/gists.dart';
-import 'util/keymap.dart';
 import 'util/query_params.dart' show queryParams;
 
 const int defaultSplitterWidth = 6;
@@ -111,7 +110,6 @@ class Embed extends EditorUi {
   DElement featureMessage;
 
   MDCLinearProgress linearProgress;
-  Dialog dialog;
   Map<String, String> lastInjectedSourceCode = <String, String>{};
 
   bool _editorIsBusy = true;
@@ -140,7 +138,6 @@ class Embed extends EditorUi {
 
   Embed(this.options) {
     _initHostListener();
-    dialog = Dialog();
 
     if (!checkLocalStorage()) {
       dialog.showOk(
@@ -574,25 +571,7 @@ class Embed extends EditorUi {
     context.onDartDirty.listen((_) => busyLight.on());
     context.onDartReconcile.listen((_) => performAnalysis());
 
-    keys.bind(['ctrl-space', 'macctrl-space'], () {
-      if (userCodeEditor.hasFocus) {
-        userCodeEditor.showCompletions();
-      }
-    }, 'Completion');
-
-    keys.bind(['alt-enter'], () {
-      userCodeEditor.showCompletions(onlyShowFixes: true);
-    }, 'Quick fix');
-
-    keys.bind(['ctrl-enter', 'macctrl-enter'], handleRun, 'Run');
-    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
-      _showKeyboardDialog();
-    }, 'Keyboard Shortcuts');
-    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
-      _format();
-    }, 'Format');
-
-    document.onKeyUp.listen(_handleAutoCompletion);
+    initKeyBindings();
 
     var horizontal = true;
     var webOutput = querySelector('#web-output');
@@ -634,6 +613,26 @@ class Embed extends EditorUi {
 
     // set enabled/disabled state of various buttons
     editorIsBusy = false;
+  }
+
+  @override
+  void initKeyBindings() {
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
+      if (userCodeEditor.hasFocus) {
+        userCodeEditor.showCompletions();
+      }
+    }, 'Completion');
+
+    keys.bind(['alt-enter'], () {
+      userCodeEditor.showCompletions(onlyShowFixes: true);
+    }, 'Quick fix');
+
+    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
+      _format();
+    }, 'Format');
+
+    document.onKeyUp.listen(_handleAutoCompletion);
+    super.initKeyBindings();
   }
 
   Future<void> _loadAndShowGist({bool analyze = true}) async {
@@ -840,10 +839,6 @@ class Embed extends EditorUi {
     testResultBox.hide();
     hintBox.hide();
     analysisResultsController.display(issues);
-  }
-
-  void _showKeyboardDialog() {
-    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
   WindowBase get _hostWindow {
