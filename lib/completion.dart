@@ -183,11 +183,10 @@ class AnalysisCompletion implements Comparable {
   final int offset;
   final int length;
 
-  Map<String, dynamic> _map;
+  final Map<String, dynamic> _map;
 
-  AnalysisCompletion(this.offset, this.length, ds.Completion completion) {
-    _map = Map<String, dynamic>.from(completion.completion);
-
+  AnalysisCompletion(this.offset, this.length, ds.Completion completion)
+      : _map = Map<String, dynamic>.from(completion.completion) {
     // TODO: We need to pass this completion info better.
     _convert('element');
     _convert('parameterNames');
@@ -232,22 +231,13 @@ class AnalysisCompletion implements Comparable {
 
   String get returnType => _map['returnType'] as String;
 
-  int get relevance => _int(_map['relevance'] as String);
-
   bool get isDeprecated => _map['isDeprecated'] == 'true';
-
-  bool get isPotential => _map['isPotential'] == 'true';
-
-  int get selectionLength => _int(_map['selectionLength'] as String);
 
   int get selectionOffset => _int(_map['selectionOffset'] as String);
 
   // FUNCTION, GETTER, CLASS, ...
   String get type =>
       _map.containsKey('element') ? _map['element']['kind'] as String : kind;
-
-  bool matchesCompletionFragment(String completionFragment) =>
-      text.toLowerCase().startsWith(completionFragment.toLowerCase());
 
   @override
   int compareTo(other) {
