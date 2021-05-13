@@ -113,6 +113,20 @@ section.main-section {
     margin-left: 12px;
     margin-right: 12px;
   }
+
+  // Inline <code> elements, not code blocks.
+  code:not(pre code) {
+    background-color: $workshop-snippet-bg-color;
+    color: opacify($dark-blue, 0.75);
+    padding: 4px 6px 4px 6px;
+    border-radius: 4px;
+  }
+
+  p {
+    font-size: 16px;
+    color: $dark-editor-text;
+    line-height: 28px;
+  }
 }
 
 #step-button-container {
