@@ -102,6 +102,7 @@ section.main-section {
 #steps-panel {
   @include layout-vertical();
   @include layout-center();
+  min-width: 500px;
 }
 
 #markdown-content {
