@@ -80,4 +80,6 @@ $light-gutter-line-number-color: #d0d0d2;
 $light-selection-color: darken($light-code-background-color, 7%);
 
 // Workshop colors
-$workshop-snippet-bg-color: #071421
+$workshop-snippet-bg-color: #071421;
+$workshop-table-border-color: #4b5769;
+$workshop-table-bg-color: $playground-background-color;

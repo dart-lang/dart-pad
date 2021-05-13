@@ -114,6 +114,32 @@ section.main-section {
     margin-right: 12px;
   }
 
+  // Add a border
+  table, th, td {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 1px solid $workshop-table-border-color;
+  }
+
+  table {
+    font-size: 16px;
+    thead {
+      display: table-header-group;
+      vertical-align: middle;
+    }
+    
+    td, th {
+      padding: 6px 14px
+    }
+    
+    tr {
+      background-color: $workshop-table-bg-color;
+      &:nth-child(2n) {
+        background-color: lighten($workshop-table-bg-color, 3%);
+      }
+    }
+  }
+
   // Inline <code> elements, not code blocks.
   code:not(pre code) {
     background-color: $workshop-snippet-bg-color;
@@ -126,6 +152,7 @@ section.main-section {
     font-size: 16px;
     color: $dark-editor-text;
     line-height: 28px;
+  }
 
   img {
     width: 100%;

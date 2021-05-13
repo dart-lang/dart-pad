@@ -325,7 +325,8 @@ class WorkshopUi extends EditorUi {
     var div = querySelector('#markdown-content');
     div.children.clear();
     div.setInnerHtml(
-        markdown.markdownToHtml(_workshopState.currentStep.instructions),
+        markdown.markdownToHtml(_workshopState.currentStep.instructions,
+            blockSyntaxes: [markdown.TableSyntax()]),
         validator: _htmlValidator);
     hljs.highlightAll();
   }
