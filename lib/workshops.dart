@@ -174,11 +174,14 @@ class WorkshopUi extends EditorUi {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 
-    _updateVersion();
+    updateVersions();
 
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => showKeyboardDialog());
+    querySelector('#dartpad-version')
+        .onClick
+        .listen((_) => showPackageVersionsDialog());
   }
 
   @override
@@ -217,15 +220,6 @@ class WorkshopUi extends EditorUi {
         editor.showCompletions(autoInvoked: true);
       }
     }
-  }
-
-  void _updateVersion() {
-    dartServices.version().then((VersionResponse version) {
-      // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
-      var versionText = 'Based on Flutter ${version.flutterVersion}'
-          ' Dart SDK ${version.sdkVersionFull}';
-      querySelector('#dartpad-version').text = versionText;
-    }).catchError((e) => null);
   }
 
   Future<void> _loadWorkshop() async {
