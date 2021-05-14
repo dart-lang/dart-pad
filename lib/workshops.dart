@@ -329,6 +329,7 @@ class WorkshopUi extends EditorUi {
             blockSyntaxes: [markdown.TableSyntax()]),
         validator: _htmlValidator);
     hljs.highlightAll();
+    div.scrollTop = 0;
   }
 
   void _updateStepButtons() {
