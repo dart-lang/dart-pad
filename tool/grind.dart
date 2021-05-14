@@ -26,6 +26,7 @@ Future<void> main(List<String> args) async {
 void sdkInit() {}
 
 @Task()
+@Depends(buildProjectTemplates)
 void analyze() async {
   await runWithLogging('dart', arguments: ['analyze']);
 }
@@ -54,21 +55,26 @@ Future<void> serveNullSafety() async {
 
 const _dartImageName = 'google/dart';
 final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
-const _dockerFileName = 'cloud_run.Dockerfile';
+const _dockerFileNames = [
+  'cloud_run.Dockerfile',
+  'cloud_run_null_safety.Dockerfile'
+];
 
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
   final platformVersion = Platform.version.split(' ').first;
-  final dockerFile = File(_dockerFileName);
-  final dockerImageLines = dockerFile.readAsLinesSync().map((String s) {
-    if (s.contains(_dockerVersionMatcher)) {
-      return 'FROM $_dartImageName:$platformVersion';
-    }
-    return s;
-  }).toList();
-  dockerImageLines.add('');
+  for (final _dockerFileName in _dockerFileNames) {
+    final dockerFile = File(_dockerFileName);
+    final dockerImageLines = dockerFile.readAsLinesSync().map((String s) {
+      if (s.contains(_dockerVersionMatcher)) {
+        return 'FROM $_dartImageName:$platformVersion';
+      }
+      return s;
+    }).toList();
+    dockerImageLines.add('');
 
-  dockerFile.writeAsStringSync(dockerImageLines.join('\n'));
+    dockerFile.writeAsStringSync(dockerImageLines.join('\n'));
+  }
 }
 
 final List<String> compilationArtifacts = [
@@ -333,8 +339,8 @@ void fuzz() {
 }
 
 @Task('Update generated files and run all checks prior to deployment')
-@Depends(sdkInit, updateDockerVersion, generateProtos, analyze, test, fuzz,
-    validateStorageArtifacts)
+@Depends(sdkInit, updateDockerVersion, generateProtos, updatePubDependencies,
+    analyze, test, validateStorageArtifacts)
 void deploy() {
   log('Deploy via Google Cloud Console');
 }
