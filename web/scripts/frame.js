@@ -64,16 +64,12 @@ removeFirebase = function () {
 
 removeCanvaskit = function () {
     var scripts = document.head.querySelectorAll('script');
-    var existingScript;
     for (var i = 0; i < scripts.length; i++) {
-        if (scripts[i].src.includes('canvaskit.js')) {
-            existingScript = scripts[i];
-            break;
+        var script = scripts[i];
+        if (script.src.includes('canvaskit.js')) {
+            script.parentNode.removeChild(script);
+            return;
         }
-    }
-
-    if (existingScript != null) {
-        existingScript.parentNode.removeChild(existingScript);
     }
 }
 
@@ -104,5 +100,5 @@ messageHandler = function (e) {
 
 window.addEventListener('load', function () {
     window.addEventListener('message', messageHandler, false);
-    parent.postMessage({ 'sender': 'frame', 'type': 'ready' }, '*');
+    parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
 });
