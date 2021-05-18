@@ -112,7 +112,7 @@ Future<void> _validateExists(String url) async {
 }
 
 @Task('build the project templates')
-@Depends(sdkInit)
+@Depends(sdkInit, updatePubDependencies)
 void buildProjectTemplates() async {
   final templatesPath =
       Directory(path.join(Directory.current.path, 'project_templates'));
