@@ -1,4 +1,4 @@
-FROM google/dart:2.12.4
+FROM google/dart:2.13.0
 
 # We install unzip and remove the apt-index again to keep the
 # docker image diff small.
