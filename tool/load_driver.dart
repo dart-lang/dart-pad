@@ -6,11 +6,11 @@ import 'dart:async';
 
 import 'package:http/http.dart' as http;
 
-const POST_PAYLOAD =
+const postPayload =
     r'''{"source": "import 'dart:html'; void main() {var count = querySelector('#count');for (int i = 0; i < 4; i++) {count.text = '${i}';print('hello ${i}');}}''';
-const EPILOGUE = '"}';
+const epilogue = '"}';
 
-const URI = 'https://dart-services.appspot.com/api/dartservices/v1/compile';
+const uri = 'https://dart-services.appspot.com/api/dartservices/v1/compile';
 
 int count = 0;
 
@@ -23,7 +23,7 @@ void main(List<String> args) {
     qps = 1;
   }
 
-  print('QPS: $qps, URI: $URI');
+  print('QPS: $qps, URI: $uri');
 
   final ms = (1000 / qps).floor();
   Timer.periodic(Duration(milliseconds: ms), pingServer);
@@ -40,9 +40,9 @@ void pingServer(Timer t) {
   final sw = Stopwatch()..start();
 
   final time = DateTime.now().millisecondsSinceEpoch;
-  final message = '$POST_PAYLOAD //$time $EPILOGUE';
+  final message = '$postPayload //$time $epilogue';
   print(message);
-  http.post(Uri.parse(URI), body: message).then((response) {
+  http.post(Uri.parse(uri), body: message).then((response) {
     print('${response.statusCode}, ${sw.elapsedMilliseconds}');
   });
 }

@@ -1,5 +1,6 @@
 # Dart analyzer dislikes this line. https://github.com/dart-lang/dart-pad/issues/1720
 # include: package:pedantic/analysis_options.1.11.0.yaml
+include: package:lints/recommended.yaml
 
 analyzer:
   language:
@@ -16,9 +17,12 @@ analyzer:
 
 linter:
   rules:
+    - always_declare_return_types
     - directives_ordering
     - prefer_final_fields
     - prefer_final_in_for_each
     - prefer_final_locals
     - prefer_relative_imports
+    - prefer_single_quotes
     - sort_pub_dependencies
+    - unawaited_futures

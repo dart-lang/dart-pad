@@ -242,18 +242,18 @@ class Summarizer {
       }
       summary += '${_sentenceFiller('errorCount', storage.errorCount)} ';
       summary += 'errors and warnings';
-      summary += '${_featureList(_codeSearch())}';
-      summary += '${_htmlCSS()}';
-      summary += '${_packageList(storage.packageImports, source: 'packages')}';
-      summary += '${_additionList(_additionSearch())}';
+      summary += _featureList(_codeSearch());
+      summary += _htmlCSS();
+      summary += _packageList(storage.packageImports, source: 'packages');
+      summary += _additionList(_additionSearch());
       return summary.trim();
     } else {
       var summary = 'Summary: ';
       summary += 'This is a ${_sentenceFiller('size', storage.linesCode)} ';
-      summary += '${_sentenceFiller('compiledQuantifier')}';
-      summary += '${_featureList(_codeSearch())}';
-      summary += '${_htmlCSS()}';
-      summary += '${_additionList(_additionSearch())}';
+      summary += _sentenceFiller('compiledQuantifier');
+      summary += _featureList(_codeSearch());
+      summary += _htmlCSS();
+      summary += _additionList(_additionSearch());
       return summary.trim();
     }
   }

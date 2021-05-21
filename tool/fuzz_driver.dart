@@ -227,7 +227,7 @@ Future<void> testPath(
 
 Future<num> testAnalysis(
     String src, analysis_server.AnalysisServerWrapper analysisServer) async {
-  lastExecuted = OperationType.Analysis;
+  lastExecuted = OperationType.analysis;
   final sw = Stopwatch()..start();
 
   lastOffset = null;
@@ -246,7 +246,7 @@ Future<num> testAnalysis(
 }
 
 Future<num> testCompilation(String src, comp.Compiler compiler) async {
-  lastExecuted = OperationType.Compilation;
+  lastExecuted = OperationType.compilation;
   final sw = Stopwatch()..start();
 
   lastOffset = null;
@@ -264,7 +264,7 @@ Future<num> testCompilation(String src, comp.Compiler compiler) async {
 
 Future<num> testDocument(
     String src, analysis_server.AnalysisServerWrapper analysisServer) async {
-  lastExecuted = OperationType.Document;
+  lastExecuted = OperationType.document;
   final sw = Stopwatch()..start();
   for (var i = 0; i < src.length; i++) {
     final sw2 = Stopwatch()..start();
@@ -286,7 +286,7 @@ Future<num> testDocument(
 
 Future<num> testCompletions(
     String src, analysis_server.AnalysisServerWrapper wrapper) async {
-  lastExecuted = OperationType.Completion;
+  lastExecuted = OperationType.completion;
   final sw = Stopwatch()..start();
   for (var i = 0; i < src.length; i++) {
     final sw2 = Stopwatch()..start();
@@ -308,7 +308,7 @@ Future<num> testCompletions(
 
 Future<num> testFixes(
     String src, analysis_server.AnalysisServerWrapper wrapper) async {
-  lastExecuted = OperationType.Fixes;
+  lastExecuted = OperationType.fixes;
   final sw = Stopwatch()..start();
   for (var i = 0; i < src.length; i++) {
     final sw2 = Stopwatch()..start();
@@ -329,7 +329,7 @@ Future<num> testFixes(
 }
 
 Future<num> testFormat(String src) async {
-  lastExecuted = OperationType.Format;
+  lastExecuted = OperationType.format;
   final sw = Stopwatch()..start();
   final i = 0;
   lastOffset = i;
@@ -406,12 +406,12 @@ class MockCache implements ServerCache {
 }
 
 enum OperationType {
-  Compilation,
-  Analysis,
-  Completion,
-  Document,
-  Fixes,
-  Format
+  compilation,
+  analysis,
+  completion,
+  document,
+  fixes,
+  format
 }
 
 final int termWidth = io.stdout.hasTerminal ? io.stdout.terminalColumns : 200;

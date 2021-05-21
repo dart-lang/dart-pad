@@ -191,7 +191,7 @@ class RedisCache implements ServerCache {
     key = _genKey(key);
     if (!_isConnected()) {
       log.warning('$_logPrefix: no cache available when setting key $key');
-      return null;
+      return;
     }
 
     final commands = redisClient.asCommands<String, String>();

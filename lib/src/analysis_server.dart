@@ -27,12 +27,12 @@ final Logger _logger = Logger('analysis_server');
 /// to stdout.
 bool dumpServerMessages = false;
 
-const String _WARMUP_SRC_HTML =
+const String _warmupSrcHtml =
     "import 'dart:html'; main() { int b = 2;  b++;   b. }";
-const String _WARMUP_SRC = 'main() { int b = 2;  b++;   b. }';
+const String _warmupSrc = 'main() { int b = 2;  b++;   b. }';
 
 // Use very long timeouts to ensure that the server has enough time to restart.
-const Duration _ANALYSIS_SERVER_TIMEOUT = Duration(seconds: 35);
+const Duration _analysisServerTimeout = Duration(seconds: 35);
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
   DartAnalysisServerWrapper(this._nullSafety) : super(Sdk.sdkPath);
@@ -102,7 +102,7 @@ abstract class AnalysisServerWrapper {
         final analysisComplete = getAnalysisCompleteCompleter();
         await analysisServer.analysis
             .setAnalysisRoots(<String>[_sourceDirPath], <String>[]);
-        await _sendAddOverlays(<String, String>{mainPath: _WARMUP_SRC});
+        await _sendAddOverlays(<String, String>{mainPath: _warmupSrc});
         await analysisComplete.future;
         await _sendRemoveOverlays();
 
@@ -262,7 +262,7 @@ abstract class AnalysisServerWrapper {
       }
 
       return m;
-    }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
+    }, timeoutDuration: _analysisServerTimeout));
   }
 
   Future<proto.AnalysisResults> analyze(String source) {
@@ -322,7 +322,7 @@ abstract class AnalysisServerWrapper {
       return proto.AnalysisResults()
         ..issues.addAll(issues)
         ..packageImports.addAll(packageImports);
-    }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
+    }, timeoutDuration: _analysisServerTimeout));
   }
 
   Future<AssistsResult> _getAssistsImpl(
@@ -344,7 +344,7 @@ abstract class AnalysisServerWrapper {
           await analysisServer.edit.getAssists(path, offset, length);
       await _unloadSources();
       return assists;
-    }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
+    }, timeoutDuration: _analysisServerTimeout));
   }
 
   /// Convert between the Analysis Server type and the API protocol types.
@@ -469,7 +469,7 @@ abstract class AnalysisServerWrapper {
       final results = await getCompletionResults(id.id);
       await _unloadSources();
       return results;
-    }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
+    }, timeoutDuration: _analysisServerTimeout));
   }
 
   Future<FixesResult> _getFixesImpl(
@@ -489,7 +489,7 @@ abstract class AnalysisServerWrapper {
       final fixes = await analysisServer.edit.getFixes(path, offset);
       await _unloadSources();
       return fixes;
-    }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
+    }, timeoutDuration: _analysisServerTimeout));
   }
 
   Future<FormatResult> _formatImpl(String src, int offset) async {
@@ -500,7 +500,7 @@ abstract class AnalysisServerWrapper {
       final result = await analysisServer.edit.format(mainPath, offset, 0);
       await _unloadSources();
       return result;
-    }, timeoutDuration: _ANALYSIS_SERVER_TIMEOUT));
+    }, timeoutDuration: _analysisServerTimeout));
   }
 
   Map<String, String> _getOverlayMapWithPaths(Map<String, String> overlay) {
@@ -516,7 +516,7 @@ abstract class AnalysisServerWrapper {
 
   /// Warm up the analysis server to be ready for use.
   Future<proto.CompleteResponse> warmup({bool useHtml = false}) =>
-      complete(useHtml ? _WARMUP_SRC_HTML : _WARMUP_SRC, 10);
+      complete(useHtml ? _warmupSrcHtml : _warmupSrc, 10);
 
   final Set<String> _overlayPaths = <String>{};
 

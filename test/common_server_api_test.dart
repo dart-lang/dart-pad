@@ -252,7 +252,7 @@ void defineTests() {
     assert(commonServerApi != null);
     final uri = Uri.parse('/api/$path');
     final request = MockHttpRequest('POST', uri);
-    request.headers.add('content-type', JSON_CONTENT_TYPE);
+    request.headers.add('content-type', jsonContentType);
     request.add(utf8.encode(json.encode(jsonData)));
     await request.close();
     await shelf_io.handleRequest(request, commonServerApi.router);
@@ -265,7 +265,7 @@ void defineTests() {
     assert(commonServerApi != null);
     final uri = Uri.parse('/api/$path');
     final request = MockHttpRequest('POST', uri);
-    request.headers.add('content-type', JSON_CONTENT_TYPE);
+    request.headers.add('content-type', jsonContentType);
     await request.close();
     await shelf_io.handleRequest(request, commonServerApi.router);
     return request.response;

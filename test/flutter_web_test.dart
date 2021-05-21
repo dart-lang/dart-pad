@@ -82,17 +82,21 @@ void defineTests() {
 }
 
 class _FakeImportDirective implements ImportDirective {
+  @override
   final _FakeStringLiteral uri;
 
   _FakeImportDirective(String uri) : uri = _FakeStringLiteral(uri);
 
+  @override
   dynamic noSuchMethod(_) => throw UnimplementedError();
 }
 
 class _FakeStringLiteral implements StringLiteral {
+  @override
   final String stringValue;
 
   _FakeStringLiteral(this.stringValue);
 
+  @override
   dynamic noSuchMethod(_) => throw UnimplementedError();
 }
