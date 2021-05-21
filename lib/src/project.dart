@@ -36,6 +36,7 @@ const Set<String> _flutterImportPrefixes = {
   'package:firebase_core/',
   'package:flutter/',
   'package:flutter_test/',
+  'package:pedantic/',
   'dart:ui',
 };
 

@@ -503,6 +503,7 @@ void updateDependenciesFile({
       'firebase_core': 'any',
       'firebase_messaging': 'any',
       'firebase_storage': 'any',
+      'pedantic': 'any',
     },
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
