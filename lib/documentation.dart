@@ -114,7 +114,7 @@ class DocHandler {
     var hasDartdoc = info['dartdoc'] != null;
     var isVariable = kind.contains('variable');
 
-    var apiLink = libraryName == null ? '' : _dartApiLink(libraryName);
+    var apiLink = _dartApiLink(libraryName);
 
     var propagatedType = info['propagatedType'];
     var _mdDocs = '''# `${info['description']}`\n\n
@@ -133,7 +133,11 @@ $apiLink\n\n''';
     return _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
   }
 
-  String _dartApiLink(String /*!*/ libraryName) {
+  String _dartApiLink(String /*?*/ libraryName) {
+    if (libraryName == null) {
+      return '';
+    }
+
     final usingFlutter = hasFlutterContent(_sourceProvider.dartSource);
     if (libraryName.contains('dart:') || usingFlutter) {
       if (usingFlutter) {
@@ -164,6 +168,7 @@ $apiLink\n\n''';
 
       return apiLink.toString();
     }
+
     return libraryName;
   }
 }
