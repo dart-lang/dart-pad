@@ -8,6 +8,7 @@ import 'dart:convert' as convert show htmlEscape;
 import 'dart:html';
 import 'dart:math' as math;
 
+import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:markdown/markdown.dart' as markdown;
 
 import 'context.dart';
@@ -113,16 +114,14 @@ class DocHandler {
     var hasDartdoc = info['dartdoc'] != null;
     var isVariable = kind.contains('variable');
 
-    var apiLink = _dartApiLink(
-        libraryName: libraryName,
-        enclosingClassName: info['enclosingClassName']);
+    var apiLink = libraryName == null ? '' : _dartApiLink(libraryName);
 
     var propagatedType = info['propagatedType'];
     var _mdDocs = '''# `${info['description']}`\n\n
 ${hasDartdoc ? "${info['dartdoc']}\n\n" : ''}
 ${isVariable ? "$kind\n\n" : ''}
 ${(isVariable && propagatedType != null) ? "**Propagated type:** $propagatedType\n\n" : ''}
-${libraryName == null ? '' : apiLink}\n\n''';
+$apiLink\n\n''';
 
     var _htmlDocs = markdown.markdownToHtml(_mdDocs,
         inlineSyntaxes: [InlineBracketsColon(), InlineBrackets()]);
@@ -134,16 +133,36 @@ ${libraryName == null ? '' : apiLink}\n\n''';
     return _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
   }
 
-  String _dartApiLink({String libraryName, String enclosingClassName}) {
-    var apiLink = StringBuffer();
-    if (libraryName != null) {
-      if (libraryName.contains('dart:')) {
-        libraryName = libraryName.replaceAll(':', '-');
-        apiLink.write(
-            'https://api.dart.dev/stable/$libraryName/$libraryName-library.html');
-
-        return '[Open library docs]($apiLink)';
+  String _dartApiLink(String /*!*/ libraryName) {
+    final usingFlutter = hasFlutterContent(_sourceProvider.dartSource);
+    if (libraryName.contains('dart:') || usingFlutter) {
+      if (usingFlutter) {
+        final splitFlutter = libraryName.split('/');
+        if (splitFlutter[0] == 'package:flutter') {
+          final splitName = splitFlutter[2];
+          if (splitName != null) {
+            libraryName = splitName;
+          } else {
+            // If this part of the path is not present, we cannot link to the
+            // documentation currently.
+            return libraryName;
+          }
+        }
       }
+
+      final apiLink = StringBuffer();
+      apiLink.write('[Open library docs](');
+
+      if (usingFlutter) {
+        apiLink.write('https://api.flutter.dev/flutter');
+      } else {
+        apiLink.write('https://api.dart.dev/stable');
+      }
+
+      libraryName = libraryName.replaceAll(':', '-');
+      apiLink.write('/$libraryName/$libraryName-library.html)');
+
+      return apiLink.toString();
     }
     return libraryName;
   }
