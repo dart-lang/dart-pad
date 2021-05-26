@@ -138,7 +138,7 @@ const _nullSafetyServerUrlOption = 'null-safety-server-url';
 @Task('Build the `web/index.html` entrypoint')
 build() {
   var args = context.invocation.arguments;
-  var dart2jsArgs = {
+  var compilerArgs = {
     if (args.hasOption(_preNullSafetyServerUrlOption))
       preNullSafetyServerUrlEnvironmentVar:
           args.getOption(_preNullSafetyServerUrlOption),
@@ -149,9 +149,12 @@ build() {
   PubApp.local('build_runner').run([
     'build',
     if (!args.hasFlag(_debugFlag)) '-r',
-    if (dart2jsArgs.isNotEmpty)
+    if (compilerArgs.isNotEmpty)
       '--define=build_web_compilers:entrypoint='
-          'dart2js_args=${_formatDart2jsArgs(dart2jsArgs)}',
+          'dart2js_args=${_formatDart2jsArgs(compilerArgs)}',
+    if (compilerArgs.isNotEmpty)
+      '--define=build_web_compilers:ddc='
+          'environment=${_formatDdcArgs(compilerArgs)}',
     '-o',
     'web:build',
     '--delete-conflicting-outputs',
@@ -196,6 +199,13 @@ build() {
 String _formatDart2jsArgs(Map<String, String> args) {
   var values = args.entries.map((entry) => '"-D${entry.key}=${entry.value}"');
   return '[${values.join(',')}]';
+}
+
+/// Formats a map of argument key and values to be passed as DDC environment
+/// variables.
+String _formatDdcArgs(Map<String, String> args) {
+  var values = args.entries.map((entry) => '"${entry.key}":"${entry.value}"');
+  return '{${values.join(',')}}';
 }
 
 @Task()

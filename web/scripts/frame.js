@@ -5,6 +5,11 @@
  */
 
 replaceJavaScript = function (value) {
+    // Remove canvaskit from this page, This can be removed when this PR lands
+    // in dart-services:
+    // https://github.com/flutter/engine/pull/26059
+    removeCanvaskit();
+
     // Remove the old node.
     var oldNode = document.getElementById('compiledJsScript');
     if (oldNode && oldNode.parentNode) {
@@ -57,6 +62,17 @@ removeFirebase = function () {
     removeScript('firestore');
 }
 
+removeCanvaskit = function () {
+    var scripts = document.head.querySelectorAll('script');
+    for (var i = 0; i < scripts.length; i++) {
+        var script = scripts[i];
+        if (script.src.includes('canvaskit.js')) {
+            script.parentNode.removeChild(script);
+            return;
+        }
+    }
+}
+
 messageHandler = function (e) {
     var obj = e.data;
     var command = obj.command;
@@ -84,5 +100,5 @@ messageHandler = function (e) {
 
 window.addEventListener('load', function () {
     window.addEventListener('message', messageHandler, false);
-    parent.postMessage({ 'sender': 'frame', 'type': 'ready' }, '*');
+    parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
 });

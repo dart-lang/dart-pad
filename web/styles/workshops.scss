@@ -102,6 +102,7 @@ section.main-section {
 #steps-panel {
   @include layout-vertical();
   @include layout-center();
+  min-width: 500px;
 }
 
 #markdown-content {
@@ -112,6 +113,50 @@ section.main-section {
   > * {
     margin-left: 12px;
     margin-right: 12px;
+  }
+
+  // Add a border
+  table, th, td {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 1px solid $workshop-table-border-color;
+  }
+
+  table {
+    font-size: 16px;
+    thead {
+      display: table-header-group;
+      vertical-align: middle;
+    }
+    
+    td, th {
+      padding: 6px 14px
+    }
+    
+    tr {
+      background-color: $workshop-table-bg-color;
+      &:nth-child(2n) {
+        background-color: lighten($workshop-table-bg-color, 3%);
+      }
+    }
+  }
+
+  // Inline <code> elements, not code blocks.
+  code:not(pre code) {
+    background-color: $workshop-snippet-bg-color;
+    color: opacify($dark-blue, 0.75);
+    padding: 4px 6px 4px 6px;
+    border-radius: 4px;
+  }
+
+  p {
+    font-size: 16px;
+    color: $dark-editor-text;
+    line-height: 28px;
+  }
+
+  img {
+    width: 100%;
   }
 }
 
