@@ -66,6 +66,38 @@ abstract class EditorUi {
     dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
+  /// Show the Pub package versions which are currently in play in [dialog].
+  ///
+  /// Each package name links to its page at pub.dev; each package version
+  /// links to the version page at pub.dev; Each link opens in a new tab.
+  void showPackageVersionsDialog() {
+    var listOuterHtml = StringBuffer('<dl>');
+    for (var packageName in _packageVersions.keys) {
+      var packageUrl = 'https://pub.dev/packages/$packageName';
+      var packageLink = AnchorElement()
+        ..href = packageUrl
+        ..setAttribute('target', '_blank')
+        ..text = packageName;
+      listOuterHtml.write('<dt>${packageLink.outerHtml}</dt>');
+      print(packageLink.outerHtml);
+      var packageVersion = _packageVersions[packageName];
+      var versionLink = SpanElement()
+        ..children.add(AnchorElement()
+          ..href = '$packageUrl/versions/$packageVersion'
+          ..setAttribute('target', '_blank')
+          ..text = packageVersion);
+      listOuterHtml.write('<dd>${versionLink.outerHtml}</dd>');
+    }
+    listOuterHtml.write('</dl>');
+    var dl = Element.html(listOuterHtml.toString(),
+        treeSanitizer: NodeTreeSanitizer.trusted);
+
+    var div = DivElement()
+      ..children
+          .add(DivElement()..children.add(dl)..classes.add('keys-dialog'));
+    dialog.showOk('Pub package versions', div.innerHtml);
+  }
+
   void showSnackbar(String message) {
     var div = querySelector('.mdc-snackbar');
     var snackbar = MDCSnackbar(div)..labelText = message;
@@ -196,6 +228,30 @@ abstract class EditorUi {
       runButton.disabled = false;
     }
   }
+
+  /// Updates the Flutter and Dart SDK versions in the bottom right.
+  void updateVersions() async {
+    try {
+      var version = await dartServices.version();
+      // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
+      var versionText = 'Based on Flutter ${version.flutterVersion}'
+          ' Dart SDK ${version.sdkVersionFull}';
+      querySelector('#dartpad-version').text = versionText;
+      if (version.packageVersions.isNotEmpty) {
+        _packageVersions.clear();
+        _packageVersions.addAll(version.packageVersions);
+      }
+    } catch (_) {
+      // Don't crash the app.
+    }
+  }
+
+  /// A mapping from Pub package name to package version, in play on the
+  /// backend.
+  ///
+  /// This mapping is set on page load, and each time the Null Safety switch is
+  /// toggled.
+  final Map<String, String> _packageVersions = {};
 
   void _sendCompilationTiming(int milliseconds) {
     ga.sendTiming(

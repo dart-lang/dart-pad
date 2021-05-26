@@ -223,6 +223,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => showKeyboardDialog());
+    querySelector('#dartpad-version')
+        .onClick
+        .listen((_) => showPackageVersionsDialog());
 
     // Query params have higher precedence than local storage
     if (queryParams.hasNullSafety) {
@@ -539,7 +542,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     docHandler = DocHandler(editor, context);
 
-    updateVersion();
+    updateVersions();
 
     analysisResultsController = AnalysisResultsController(
         DElement(querySelector('#issues')),
@@ -581,15 +584,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
     });
 
     super.initKeyBindings();
-  }
-
-  void updateVersion() {
-    dartServices.version().then((VersionResponse version) {
-      // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
-      var versionText = 'Based on Flutter ${version.flutterVersion}'
-          ' Dart SDK ${version.sdkVersionFull}';
-      querySelector('#dartpad-version').text = versionText;
-    }).catchError((e) => null);
   }
 
   void _finishedInit() {
@@ -893,7 +887,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       nullSafetySwitch.root.title = 'Null safety is currently disabled';
     }
 
-    updateVersion();
+    updateVersions();
 
     queryParams.nullSafety = enabled;
 
