@@ -1,15 +1,17 @@
-FROM google/dart:2.13.0
+FROM dart:2.13.1-sdk
 
 # We install unzip and remove the apt-index again to keep the
 # docker image diff small.
 RUN apt-get update && \
-  apt-get install -y unzip && \
+  apt-get install -y git unzip && \
   rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 RUN groupadd --system dart && \
   useradd --no-log-init --system --home /home/dart --create-home -g dart dart
+RUN usermod -a -G dart root
 RUN chown dart:dart /app
+RUN chown -R dart:dart /usr/lib/dart
 
 # Switch to a new, non-root user to use the flutter tool.
 # The Flutter tool won't perform its actions when run as root.
