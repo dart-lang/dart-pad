@@ -79,3 +79,12 @@ $doc-console-padding: 8px 24px 8px 24px;
     font-style: normal;
   }
 }
+
+.launch-icon {
+  display: inline-block;
+  background: url('../../pictures/launch.svg') center no-repeat;
+  background-size: 100%;
+  width: 12px;
+  height: 12px;
+  margin-bottom: -1px;
+}
