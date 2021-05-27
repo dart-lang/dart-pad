@@ -20,6 +20,7 @@ dependencies:
   quiver: ^3.0.1
   shelf: ^0.7.5
   shelf_router: ^0.7.0+1
+  yaml: ^3.0.0
 
 dev_dependencies:
   async: ^2.2.0
@@ -33,7 +34,6 @@ dev_dependencies:
   shelf_router_generator: ^0.7.0+1
   synchronized: ^3.0.0
   test: ^1.6.4
-  yaml: ^3.0.0
 
 executables:
   services: null

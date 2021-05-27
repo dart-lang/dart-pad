@@ -2001,6 +2001,7 @@ class VersionResponse extends $pb.GeneratedMessage {
     ..aOS(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'flutterVersion', protoName: 'flutterVersion')
     ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'flutterDartVersion', protoName: 'flutterDartVersion')
     ..aOS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'flutterDartVersionFull', protoName: 'flutterDartVersionFull')
+    ..m<$core.String, $core.String>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packageVersions', protoName: 'packageVersions', entryClassName: 'VersionResponse.PackageVersionsEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS, packageName: const $pb.PackageName('dart_services.api'))
     ..aOM<ErrorMessage>(99, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'error', subBuilder: ErrorMessage.create)
     ..hasRequiredFields = false;
 
@@ -2014,6 +2015,7 @@ class VersionResponse extends $pb.GeneratedMessage {
     $core.String? flutterVersion,
     $core.String? flutterDartVersion,
     $core.String? flutterDartVersionFull,
+    $core.Map<$core.String, $core.String>? packageVersions,
     ErrorMessage? error,
   }) {
     final _result = create();
@@ -2040,6 +2042,9 @@ class VersionResponse extends $pb.GeneratedMessage {
     }
     if (flutterDartVersionFull != null) {
       _result.flutterDartVersionFull = flutterDartVersionFull;
+    }
+    if (packageVersions != null) {
+      _result.packageVersions.addAll(packageVersions);
     }
     if (error != null) {
       _result.error = error;
@@ -2169,19 +2174,22 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(8)
   void clearFlutterDartVersionFull() => clearField(8);
 
+  @$pb.TagNumber(9)
+  $core.Map<$core.String, $core.String> get packageVersions => $_getMap(8);
+
   @$pb.TagNumber(99)
-  ErrorMessage get error => $_getN(8);
+  ErrorMessage get error => $_getN(9);
   @$pb.TagNumber(99)
   set error(ErrorMessage v) {
     setField(99, v);
   }
 
   @$pb.TagNumber(99)
-  $core.bool hasError() => $_has(8);
+  $core.bool hasError() => $_has(9);
   @$pb.TagNumber(99)
   void clearError() => clearField(99);
   @$pb.TagNumber(99)
-  ErrorMessage ensureError() => $_ensure(8);
+  ErrorMessage ensureError() => $_ensure(9);
 }
 
 class BadRequest extends $pb.GeneratedMessage {

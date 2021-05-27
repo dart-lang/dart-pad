@@ -185,14 +185,20 @@ message VersionResponse {
   // The dart-services backend version.
   string servicesVersion = 5;
 
-  // The Flutter SDK's version
+  // The Flutter SDK's version.
   string flutterVersion = 6;
 
-  // The Flutter SDK's Dart version
+  // The Flutter SDK's Dart version.
   string flutterDartVersion = 7;
 
-  // The Flutter SDK's full Dart version
+  // The Flutter SDK's full Dart version.
   string flutterDartVersionFull = 8;
+
+  // Package version numbers.
+  //
+  // Each package found in pubspec.lock is included, mapping the package name
+  // to the package version.
+  map<string, string> packageVersions = 9;
 
   // Make this response compatible with BadRequest
   ErrorMessage error = 99;

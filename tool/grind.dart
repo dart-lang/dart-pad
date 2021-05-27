@@ -8,13 +8,13 @@ import 'dart:async';
 import 'dart:convert' show jsonDecode, JsonEncoder;
 import 'dart:io';
 
+import 'package:dart_services/src/pub.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:grinder/grinder.dart';
 import 'package:grinder/src/run_utils.dart' show mergeWorkingDirectory;
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
-import 'package:yaml/yaml.dart';
 
 Future<void> main(List<String> args) async {
   return grind(args);
@@ -508,35 +508,7 @@ void updateDependenciesFile({
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
   await _runFlutterPubGet(tempDir);
-  final pubspecLock =
-      loadYamlDocument(joinFile(tempDir, ['pubspec.lock']).readAsStringSync());
-  final pubSpecLockContents = pubspecLock.contents as YamlMap;
-  final packages = pubSpecLockContents['packages'] as YamlMap;
-  final packageVersions = <String, String>{};
-  const flutterPackages = [
-    'flutter',
-    'flutter_test',
-    'flutter_web_plugins',
-    'sky_engine',
-  ];
-
-  packages.forEach((_name, _package) {
-    final name = _name as String;
-    if (flutterPackages.contains(name)) {
-      return;
-    }
-    final package = _package as YamlMap;
-    final source = package['source'];
-    if (source is! String || source != 'hosted') {
-      fail('$name is not hosted: "$source" (${source.runtimeType})');
-    }
-    final version = package['version'];
-    if (version is String) {
-      packageVersions[name] = version;
-    } else {
-      fail('$name does not have a well-formatted version: $version');
-    }
-  });
+  final packageVersions = packageVersionsFromPubspecLock(tempDir);
 
   _pubDependenciesFile(nullSafety: nullSafety)
       .writeAsStringSync(_jsonEncoder.convert(packageVersions));

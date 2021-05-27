@@ -16,6 +16,7 @@ import 'analysis_servers.dart';
 import 'common.dart';
 import 'compiler.dart';
 import 'protos/dart_services.pb.dart' as proto;
+import 'pub.dart';
 import 'sdk.dart';
 import 'server_cache.dart';
 
@@ -153,7 +154,9 @@ class CommonServerImpl {
 
   Future<proto.VersionResponse> version(proto.VersionRequest _) {
     final sdk = Sdk();
-    return Future<proto.VersionResponse>.value(
+    final packageVersions = getPackageVersions(nullSafe: _nullSafety);
+
+    return Future.value(
       proto.VersionResponse()
         ..sdkVersion = sdk.version
         ..sdkVersionFull = sdk.versionFull
@@ -162,7 +165,8 @@ class CommonServerImpl {
         ..appEngineVersion = _container.version
         ..flutterDartVersion = sdk.version
         ..flutterDartVersionFull = sdk.versionFull
-        ..flutterVersion = sdk.flutterVersion,
+        ..flutterVersion = sdk.flutterVersion
+        ..packageVersions.addAll(packageVersions),
     );
   }
 
