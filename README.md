@@ -19,7 +19,7 @@ quick fixes for issues.
 This project is built with [grinder](https://pub.dev/packages/grinder). To install, please run:
 
 ```bash
-$ pub global activate grinder
+$ dart pub global activate grinder
 ```
 
 The dart-services v2 API is defined in terms of Protobuf, which requires the
@@ -35,7 +35,7 @@ The Dart protoc plugin is also required for the above `protoc` compiler
 to generate Dart code. To install, please run:
 
 ```bash
-$ pub global activate protoc_plugin
+$ dart pub global activate protoc_plugin
 ```
 
 ## Initialise Flutter

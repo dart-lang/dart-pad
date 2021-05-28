@@ -1,5 +1,3 @@
-# Dart analyzer dislikes this line. https://github.com/dart-lang/dart-pad/issues/1720
-# include: package:pedantic/analysis_options.1.11.0.yaml
 include: package:lints/recommended.yaml
 
 analyzer:
@@ -9,9 +7,10 @@ analyzer:
     implicit-casts: false
   exclude:
     - dart-sdk/**
-    - flutter-sdk/**
     - doc/generated/**
-    - flutter/**
+    - flutter-sdk/**
+    - project_templates/null-safe/dart_project/**
+    - project_templates/null-unsafe/dart_project/**
     # TODO: This seems to be hiding ~2 dozen legitimate analysis issues. https://github.com/dart-lang/dart-pad/issues/1712
     - lib/src/protos/**
 
