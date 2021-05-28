@@ -9,8 +9,7 @@ analyzer:
     - dart-sdk/**
     - doc/generated/**
     - flutter-sdk/**
-    - project_templates/null-safe/dart_project/**
-    - project_templates/null-unsafe/dart_project/**
+    - project_templates/**
     # TODO: This seems to be hiding ~2 dozen legitimate analysis issues. https://github.com/dart-lang/dart-pad/issues/1712
     - lib/src/protos/**
 
