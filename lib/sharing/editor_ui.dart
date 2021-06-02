@@ -79,7 +79,6 @@ abstract class EditorUi {
         ..setAttribute('target', '_blank')
         ..text = packageName;
       listOuterHtml.write('<dt>${packageLink.outerHtml}</dt>');
-      print(packageLink.outerHtml);
       var packageVersion = _packageVersions[packageName];
       var versionLink = SpanElement()
         ..children.add(AnchorElement()
