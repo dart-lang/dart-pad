@@ -43,6 +43,9 @@ class ExecutionServiceIFrame implements ExecutionService {
     bool addFirebaseJs = false,
     bool destroyFrame = false,
   }) async {
+    assert(addRequireJs != null);
+    assert(addFirebaseJs != null);
+    assert(destroyFrame != null);
     if (destroyFrame) {
       await _reset();
     }
@@ -51,9 +54,9 @@ class ExecutionServiceIFrame implements ExecutionService {
       'css': css,
       'js': _decorateJavaScript(javaScript,
           modulesBaseUrl: modulesBaseUrl, requireFirebase: addFirebaseJs),
-      'addRequireJs': addRequireJs ? 'true' : 'false',
-      'addFirebaseJs': addFirebaseJs ? 'true' : 'false',
-      'destroyFrame': destroyFrame ? 'true' : 'false',
+      'addRequireJs': addRequireJs,
+      'addFirebaseJs': addFirebaseJs,
+      'destroyFrame': destroyFrame,
     });
   }
 
@@ -216,7 +219,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   @override
   Stream<TestResult> get testResults => _testResultsController.stream;
 
-  Future<void> _send(String command, Map<String, String> params) {
+  Future<void> _send(String command, Map<String, Object> params) {
     final message = {
       'command': command,
       ...params,

@@ -48,9 +48,6 @@ removeScript = function (id) {
 }
 
 addFirebase = function () {
-    // RequireJS must be added _after_ the Firebase JS. If a previous execution
-    // added RequireJS, then we must first remove it.
-    removeScript('require');
     addScript('firebase-app', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js');
     addScript('firebase-auth', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-auth.js');
     addScript('firestore', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-firestore.js');
@@ -73,6 +70,31 @@ removeCanvaskit = function () {
     }
 }
 
+executeWithFirebase = function (userJs) {
+    let existingFirebase = document.getElementById('firebase-app');
+    if (existingFirebase) {
+        // Keep existing RequireJS and Firebase.
+        replaceJavaScript(userJs);
+    } else {
+        // RequireJS must be added _after_ the Firebase JS. If a previous
+        // execution added RequireJS, then we must first remove it.
+        removeScript('require');
+        addFirebase();
+        // RequireJS must be added _after_ the Firebase JS.
+        addScript('require', 'require.js', function () {
+            // User script must be added after RequireJS loads.
+            replaceJavaScript(userJs);
+        });
+    }
+}
+
+executeWithRequireJs = function (userJs) {
+    addScript('require', 'require.js', function () {
+        // User script must be added after RequireJS loads.
+        replaceJavaScript(obj.js);
+    });
+}
+
 messageHandler = function (e) {
     var obj = e.data;
     var command = obj.command;
@@ -87,18 +109,16 @@ messageHandler = function (e) {
         body.innerHTML = obj.html;
         document.getElementById('styleId').innerHTML = obj.css;
         if (obj.addFirebaseJs) {
-            addFirebase();
-        }
-        if (obj.addRequireJs) {
-            // RequireJS must be added _after_ the Firebase JS.
-            addScript('require', 'require.js', function () {
-                replaceJavaScript(obj.js);
-            });
+            executeWithFirebase(obj.js);
+        } else if (obj.addRequireJs) {
+            executeWithRequireJs(obj.js);
+        } else {
+            replaceJavaScript(obj.js);
         }
     }
 };
 
 window.addEventListener('load', function () {
     window.addEventListener('message', messageHandler, false);
-    parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
+    parent.postMessage({ 'sender': 'frame', 'type': 'ready' }, '*');
 });
