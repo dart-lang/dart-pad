@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert' show jsonDecode, JsonEncoder;
 import 'dart:io';
 
+import 'package:dart_services/src/project.dart';
 import 'package:dart_services/src/pub.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:grinder/grinder.dart';
@@ -124,8 +125,12 @@ void buildProjectTemplates() async {
     final dartProjectPath = Directory(path.join(templatesPath.path,
         nullSafety ? 'null-safe' : 'null-unsafe', 'dart_project'));
     final dartProjectDir = await dartProjectPath.create(recursive: true);
-    joinFile(dartProjectDir, ['pubspec.yaml']).writeAsStringSync(
-        createPubspec(includeFlutterWeb: false, nullSafety: nullSafety));
+    final dependencies = _parsePubDependenciesFile(nullSafety: nullSafety)
+      ..removeWhere((name, _) => !supportedNonFlutterPackages.contains(name));
+    joinFile(dartProjectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
+        includeFlutterWeb: false,
+        nullSafety: nullSafety,
+        dependencies: dependencies));
     await _runDartPubGet(dartProjectDir);
     joinFile(dartProjectDir, ['analysis_options.yaml'])
         .writeAsStringSync(createDartAnalysisOptions());
@@ -426,10 +431,10 @@ dependencies:
   flutter_test:
     sdk: flutter
 ''';
-    dependencies.forEach((name, version) {
-      content += '  $name: $version\n';
-    });
   }
+  dependencies.forEach((name, version) {
+    content += '  $name: $version\n';
+  });
 
   return content;
 }

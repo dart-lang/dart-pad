@@ -29,15 +29,26 @@ String summaryFilePath(bool nullSafety) {
   );
 }
 
-const Set<String> _flutterImportPrefixes = {
-  'package:cloud_firestore/',
-  'package:firebase/',
-  'package:firebase_auth/',
-  'package:firebase_core/',
-  'package:flutter/',
-  'package:flutter_test/',
-  'package:pedantic/',
-  'dart:ui',
+/// The set of packages which indicate that Flutter Web is being used.
+const Set<String> _flutterPackages = {
+  'cloud_firestore',
+  'firebase',
+  'firebase_auth',
+  'firebase_core',
+  'flutter',
+  'flutter_test',
+};
+
+/// The set of non-Flutter packages which can be directly imported into a
+/// script.
+const Set<String> supportedNonFlutterPackages = {
+  'characters',
+  'collection',
+  'js',
+  'meta',
+  'path',
+  'pedantic',
+  'vector_math',
 };
 
 /// A set of all allowed `dart:` imports. Currently includes non-VM libraries
@@ -63,23 +74,35 @@ const Set<String> _allowedDartImports = {
 
 bool usesFlutterWeb(Iterable<ImportDirective> imports) {
   return imports.any((import) {
-    return _flutterImportPrefixes
-        .any((String prefix) => import.uri.stringValue.startsWith(prefix));
+    final uriString = import.uri.stringValue;
+    if (uriString == 'dart:ui') return true;
+
+    final uri = Uri.tryParse(import.uri.stringValue);
+    if (uri == null) return false;
+    if (uri.scheme != 'package') return false;
+    if (uri.pathSegments.isEmpty) return false;
+    final package = uri.pathSegments.first;
+    return _flutterPackages.contains(package);
   });
 }
 
 List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports) {
   return imports.where((import) {
-    final uri = import.uri.stringValue;
+    final uriString = import.uri.stringValue;
     // All non-VM 'dart:' imports are ok.
-    if (uri.startsWith('dart:')) {
-      return !_allowedDartImports.contains(uri);
+    if (uriString.startsWith('dart:')) {
+      return !_allowedDartImports.contains(uriString);
     }
 
-    // Currently we only allow flutter web imports.
-    if (uri.startsWith('package:')) {
-      return !_flutterImportPrefixes
-          .any((String prefix) => uri.startsWith(prefix));
+    final uri = Uri.tryParse(import.uri.stringValue);
+    if (uri == null) return false;
+
+    // We allow a specific set of package imports.
+    if (uri.scheme == 'package') {
+      if (uri.pathSegments.isEmpty) return true;
+      final package = uri.pathSegments.first;
+      return !_flutterPackages.contains(package) &&
+          !supportedNonFlutterPackages.contains(package);
     }
 
     // Don't allow file imports.

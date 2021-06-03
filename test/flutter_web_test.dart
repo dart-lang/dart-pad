@@ -36,19 +36,39 @@ void defineTests() {
         expect(project.usesFlutterWeb({packageFlutterImport}), isTrue);
       });
 
-      test('getUnsupportedImport', () {
+      test('getUnsupportedImport allows dart:html', () {
         expect(
             project.getUnsupportedImports([_FakeImportDirective('dart:html')]),
             isEmpty);
+      });
+
+      test('getUnsupportedImport allows dart:ui', () {
         expect(project.getUnsupportedImports([dartUiImport]), isEmpty);
+      });
+
+      test('getUnsupportedImport allows package:flutter', () {
         expect(project.getUnsupportedImports([packageFlutterImport]), isEmpty);
+      });
+
+      test('getUnsupportedImport allows package:path', () {
         final packagePathImport = _FakeImportDirective('package:path');
-        expect(project.getUnsupportedImports([packagePathImport]),
-            contains(packagePathImport));
+        expect(project.getUnsupportedImports([packagePathImport]), isEmpty);
+      });
+
+      test('getUnsupportedImport does now allow package:unsupported', () {
+        final usupportedPackageImport =
+            _FakeImportDirective('package:unsupported');
+        expect(project.getUnsupportedImports([usupportedPackageImport]),
+            contains(usupportedPackageImport));
+      });
+
+      test('getUnsupportedImport does now allow local imports', () {
         final localFooImport = _FakeImportDirective('foo.dart');
         expect(project.getUnsupportedImports([localFooImport]),
             contains(localFooImport));
-        // dart:io is an unsupported package.
+      });
+
+      test('getUnsupportedImport does not allow VM-only imports', () {
         final dartIoImport = _FakeImportDirective('dart:io');
         expect(project.getUnsupportedImports([dartIoImport]),
             contains(dartIoImport));
