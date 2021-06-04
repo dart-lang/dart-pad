@@ -82,13 +82,7 @@ a {
 }
 
 // Keyboard button
-.keyboard {
-  display: inline-block;
-  background: url('../../pictures/keyboard.svg') center no-repeat;
-  background-size: 100%;
-  width: 22px;
-  height: 18px;
-  margin-top: 1px;
+#keyboard-button {
   cursor: pointer;
   opacity: 0.7;
 
@@ -140,6 +134,7 @@ a {
   cursor: pointer;
 }
 
+// Issues
 .issue + .issue {
   margin-top: 4px;
 }
@@ -189,6 +184,27 @@ a {
 
 .message + .message {
   padding-top: 4px;
+}
+
+// Styles for footer items on the right
+@mixin footer-item-right {
+  margin-left: 12px;
+}
+
+// Versions
+#dartpad-version {
+  @include footer-item-right;
+}
+
+#dartpad-package-versions {
+  @include footer-item-right;
+  cursor: pointer;
+  font-size: 18px;
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
 }
 
 // Keys dialog

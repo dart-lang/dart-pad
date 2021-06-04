@@ -96,10 +96,6 @@ body>footer {
   * {
     margin-right: 4px;
   }
-
-  #dartpad-version {
-    margin-left: 12px;
-  }
 }
 
 
@@ -288,11 +284,11 @@ a {
 }
 
 #issues-message {
+  @include footer-item-right;
   font-family: $normal-font;
   font-size: $playground-editor-font-size;
   cursor: default;
   margin-right: 0px;
-  margin-left: 12px;
 }
 
 
