@@ -91,7 +91,7 @@ executeWithFirebase = function (userJs) {
 executeWithRequireJs = function (userJs) {
     addScript('require', 'require.js', function () {
         // User script must be added after RequireJS loads.
-        replaceJavaScript(obj.js);
+        replaceJavaScript(userJs);
     });
 }
 
