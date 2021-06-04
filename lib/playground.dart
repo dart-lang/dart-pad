@@ -223,7 +223,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => showKeyboardDialog());
-    querySelector('#dartpad-version')
+    querySelector('#dartpad-package-versions')
         .onClick
         .listen((_) => showPackageVersionsDialog());
 

@@ -179,7 +179,7 @@ class WorkshopUi extends EditorUi {
     querySelector('#keyboard-button')
         .onClick
         .listen((_) => showKeyboardDialog());
-    querySelector('#dartpad-version')
+    querySelector('#dartpad-package-versions')
         .onClick
         .listen((_) => showPackageVersionsDialog());
   }
