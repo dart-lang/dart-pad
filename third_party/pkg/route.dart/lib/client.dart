@@ -23,10 +23,10 @@ part 'route_handle.dart';
 final _logger = Logger('route');
 const _PATH_SEPARATOR = '.';
 
-typedef void RoutePreEnterEventHandler(RoutePreEnterEvent event);
-typedef void RouteEnterEventHandler(RouteEnterEvent event);
-typedef void RoutePreLeaveEventHandler(RoutePreLeaveEvent event);
-typedef void RouteLeaveEventHandler(RouteLeaveEvent event);
+typedef RoutePreEnterEventHandler = void Function(RoutePreEnterEvent event);
+typedef RouteEnterEventHandler = void Function(RouteEnterEvent event);
+typedef RoutePreLeaveEventHandler = void Function(RoutePreLeaveEvent event);
+typedef RouteLeaveEventHandler = void Function(RouteLeaveEvent event);
 
 /// [Route] represents a node in the route tree.
 abstract class Route {

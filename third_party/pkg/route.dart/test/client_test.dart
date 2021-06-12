@@ -216,12 +216,11 @@ main() {
         'fooLeave': 0,
         'fooEnter': 0,
       };
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/:foo',
-            leave: (_) => counters['fooLeave']++,
-            enter: (_) => counters['fooEnter']++);
+      router.root.addRoute(
+          name: 'foo',
+          path: '/:foo',
+          leave: (_) => counters['fooLeave']++,
+          enter: (_) => counters['fooEnter']++);
 
       return router.reload().then((_) {
         expect(counters, {
@@ -239,17 +238,16 @@ main() {
         'barLeave': 0,
         'barEnter': 0,
       };
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/:foo',
-            leave: (_) => counters['fooLeave']++,
-            enter: (_) => counters['fooEnter']++,
-            mount: (r) => r.addRoute(
-                name: 'bar',
-                path: '/:bar',
-                leave: (_) => counters['barLeave']++,
-                enter: (_) => counters['barEnter']++));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/:foo',
+          leave: (_) => counters['fooLeave']++,
+          enter: (_) => counters['fooEnter']++,
+          mount: (r) => r.addRoute(
+              name: 'bar',
+              path: '/:bar',
+              leave: (_) => counters['barLeave']++,
+              enter: (_) => counters['barEnter']++));
 
       return router.route('/123').then((_) {
         expect(counters, {
@@ -278,17 +276,16 @@ main() {
         'barLeave': 0,
         'barEnter': 0,
       };
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/:foo',
-            leave: (_) => counters['fooLeave']++,
-            enter: (_) => counters['fooEnter']++,
-            mount: (r) => r.addRoute(
-                name: 'bar',
-                path: '/:bar',
-                leave: (_) => counters['barLeave']++,
-                enter: (_) => counters['barEnter']++));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/:foo',
+          leave: (_) => counters['fooLeave']++,
+          enter: (_) => counters['fooEnter']++,
+          mount: (r) => r.addRoute(
+              name: 'bar',
+              path: '/:bar',
+              leave: (_) => counters['barLeave']++,
+              enter: (_) => counters['barEnter']++));
 
       return router.route('/123/321').then((_) {
         expect(counters, {
@@ -318,17 +315,16 @@ main() {
         'barLeave': 0,
         'barEnter': 0,
       };
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/:foo',
-            leave: (_) => counters['fooLeave']++,
-            enter: (_) => counters['fooEnter']++,
-            mount: (r) => r.addRoute(
-                name: 'bar',
-                path: '/:bar',
-                leave: (_) => counters['barLeave']++,
-                enter: (_) => counters['barEnter']++));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/:foo',
+          leave: (_) => counters['fooLeave']++,
+          enter: (_) => counters['fooEnter']++,
+          mount: (r) => r.addRoute(
+              name: 'bar',
+              path: '/:bar',
+              leave: (_) => counters['barLeave']++,
+              enter: (_) => counters['barEnter']++));
 
       return router.route('/123/321').then((_) {
         expect(counters, {
@@ -356,12 +352,11 @@ main() {
         'fooLeave': 0,
         'fooEnter': 0,
       };
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/:foo',
-            leave: (_) => counters['fooLeave']++,
-            enter: (_) => counters['fooEnter']++);
+      router.root.addRoute(
+          name: 'foo',
+          path: '/:foo',
+          leave: (_) => counters['fooLeave']++,
+          enter: (_) => counters['fooEnter']++);
 
       return router.route('/123?foo=bar&blah=blah').then((_) {
         expect(counters, {
@@ -389,17 +384,16 @@ main() {
         'barLeave': 0,
         'barEnter': 0,
       };
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/:foo',
-            leave: (_) => counters['fooLeave']++,
-            enter: (_) => counters['fooEnter']++,
-            mount: (r) => r.addRoute(
-                name: 'bar',
-                path: '/:bar',
-                leave: (_) => counters['barLeave']++,
-                enter: (_) => counters['barEnter']++));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/:foo',
+          leave: (_) => counters['fooLeave']++,
+          enter: (_) => counters['fooEnter']++,
+          mount: (r) => r.addRoute(
+              name: 'bar',
+              path: '/:bar',
+              leave: (_) => counters['barLeave']++,
+              enter: (_) => counters['barEnter']++));
 
       return router.route('/123/321?foo=bar&blah=blah').then((_) {
         expect(counters, {
@@ -447,31 +441,30 @@ main() {
         'bazLeave': 0
       };
       var router = Router();
-      router.root
-        ..addRoute(
-            path: '/foo',
-            name: 'foo',
-            preEnter: (_) => counters['fooPreEnter']++,
-            preLeave: (_) => counters['fooPreLeave']++,
-            enter: (_) => counters['fooEnter']++,
-            leave: (_) => counters['fooLeave']++,
-            watchQueryParameters: [],
-            mount: (Route route) => route
-              ..addRoute(
-                  path: '/bar',
-                  name: 'bar',
-                  preEnter: (_) => counters['barPreEnter']++,
-                  preLeave: (_) => counters['barPreLeave']++,
-                  enter: (_) => counters['barEnter']++,
-                  leave: (_) => counters['barLeave']++)
-              ..addRoute(
-                  path: '/baz',
-                  name: 'baz',
-                  preEnter: (_) => counters['bazPreEnter']++,
-                  preLeave: (_) => counters['bazPreLeave']++,
-                  enter: (_) => counters['bazEnter']++,
-                  leave: (_) => counters['bazLeave']++,
-                  watchQueryParameters: ['baz.blah']));
+      router.root.addRoute(
+          path: '/foo',
+          name: 'foo',
+          preEnter: (_) => counters['fooPreEnter']++,
+          preLeave: (_) => counters['fooPreLeave']++,
+          enter: (_) => counters['fooEnter']++,
+          leave: (_) => counters['fooLeave']++,
+          watchQueryParameters: [],
+          mount: (Route route) => route
+            ..addRoute(
+                path: '/bar',
+                name: 'bar',
+                preEnter: (_) => counters['barPreEnter']++,
+                preLeave: (_) => counters['barPreLeave']++,
+                enter: (_) => counters['barEnter']++,
+                leave: (_) => counters['barLeave']++)
+            ..addRoute(
+                path: '/baz',
+                name: 'baz',
+                preEnter: (_) => counters['bazPreEnter']++,
+                preLeave: (_) => counters['bazPreLeave']++,
+                enter: (_) => counters['bazEnter']++,
+                leave: (_) => counters['bazLeave']++,
+                watchQueryParameters: ['baz.blah']));
 
       expect(counters, {
         'fooPreEnter': 0,
@@ -550,21 +543,18 @@ main() {
       ;
 
       var router = Router();
-      router.root
-        ..addRoute(
-            path: '/foo',
-            name: 'foo',
-            leave: loggingLeaveHandler,
-            mount: (Route route) => route
-              ..addRoute(
-                  path: '/bar',
-                  name: 'bar',
-                  leave: loggingLeaveHandler,
-                  mount: (Route route) => route
-                    ..addRoute(
-                        path: '/baz',
-                        name: 'baz',
-                        leave: loggingLeaveHandler)));
+      router.root.addRoute(
+          path: '/foo',
+          name: 'foo',
+          leave: loggingLeaveHandler,
+          mount: (Route route) => route
+            ..addRoute(
+                path: '/bar',
+                name: 'bar',
+                leave: loggingLeaveHandler,
+                mount: (Route route) => route
+                  ..addRoute(
+                      path: '/baz', name: 'baz', leave: loggingLeaveHandler)));
 
       router.route('/foo/bar/baz').then(expectAsync1((_) {
         expect(log, []);
@@ -578,11 +568,10 @@ main() {
     test('should leave active child route when routed to parent route only',
         () {
       var router = Router();
-      router.root
-        ..addRoute(
-            path: '/foo',
-            name: 'foo',
-            mount: (Route route) => route..addRoute(path: '/bar', name: 'bar'));
+      router.root.addRoute(
+          path: '/foo',
+          name: 'foo',
+          mount: (Route route) => route..addRoute(path: '/bar', name: 'bar'));
 
       return router.route('/foo/bar').then((_) {
         expect(router.activePath.map((r) => r.name), ['foo', 'bar']);
@@ -598,21 +587,20 @@ main() {
       bool bazEntered = false;
 
       var router = Router();
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/foo',
-            mount: (Route child) => child
-              ..addRoute(
-                  name: 'bar',
-                  path: '/bar',
-                  enter: (RouteEnterEvent e) => barEntered = true,
-                  preLeave: (RoutePreLeaveEvent e) =>
-                      e.allowLeave(completer.future))
-              ..addRoute(
-                  name: 'baz',
-                  path: '/baz',
-                  enter: (RouteEnterEvent e) => bazEntered = true));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/foo',
+          mount: (Route child) => child
+            ..addRoute(
+                name: 'bar',
+                path: '/bar',
+                enter: (RouteEnterEvent e) => barEntered = true,
+                preLeave: (RoutePreLeaveEvent e) =>
+                    e.allowLeave(completer.future))
+            ..addRoute(
+                name: 'baz',
+                path: '/baz',
+                enter: (RouteEnterEvent e) => bazEntered = true));
 
       router.route('/foo/bar').then(expectAsync1((_) {
         expect(barEntered, true);
@@ -639,17 +627,16 @@ main() {
       bool barEntered = false;
 
       var router = Router();
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/foo',
-            mount: (Route child) => child
-              ..addRoute(
-                  name: 'bar',
-                  path: '/bar',
-                  enter: (RouteEnterEvent e) => barEntered = true,
-                  preEnter: (RoutePreEnterEvent e) =>
-                      e.allowEnter(completer.future)));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/foo',
+          mount: (Route child) => child
+            ..addRoute(
+                name: 'bar',
+                path: '/bar',
+                enter: (RouteEnterEvent e) => barEntered = true,
+                preEnter: (RoutePreEnterEvent e) =>
+                    e.allowEnter(completer.future)));
 
       router.route('/foo/bar').then(expectAsync1((_) {
         expect(barEntered, allowEnter);
@@ -929,21 +916,20 @@ main() {
   group('Default route', () {
     void _testHeadTail(String path, String expectFoo, String expectBar) {
       var router = Router();
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/foo',
-            defaultRoute: true,
-            enter: expectAsync1((RouteEvent e) {
-              expect(e.path, expectFoo);
-            }),
-            mount: (child) => child
-              ..addRoute(
-                  name: 'bar',
-                  path: '/bar',
-                  defaultRoute: true,
-                  enter: expectAsync1(
-                      (RouteEvent e) => expect(e.path, expectBar))));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/foo',
+          defaultRoute: true,
+          enter: expectAsync1((RouteEvent e) {
+            expect(e.path, expectFoo);
+          }),
+          mount: (child) => child
+            ..addRoute(
+                name: 'bar',
+                path: '/bar',
+                defaultRoute: true,
+                enter:
+                    expectAsync1((RouteEvent e) => expect(e.path, expectBar))));
 
       router.route(path);
     }
@@ -1121,11 +1107,10 @@ main() {
       when((mockWindow.document as HtmlDocument).title)
           .thenReturn('page title');
       var router = Router(windowImpl: mockWindow);
-      router.root
-        ..addRoute(
-            name: 'a',
-            path: '/:foo',
-            mount: (child) => child..addRoute(name: 'b', path: '/:bar'));
+      router.root.addRoute(
+          name: 'a',
+          path: '/:foo',
+          mount: (child) => child..addRoute(name: 'b', path: '/:bar'));
 
       var routeA = router.root.findRoute('a');
 
@@ -1165,18 +1150,17 @@ main() {
       when((mockWindow.document as HtmlDocument).title)
           .thenReturn('page title');
       var router = Router(windowImpl: mockWindow);
-      router.root
-        ..addRoute(
-            name: 'a',
-            defaultRoute: true,
-            path: '/:foo',
-            enter: (_) => counters['aEnter']++,
-            mount: (child) => child
-              ..addRoute(
-                  name: 'b',
-                  defaultRoute: true,
-                  path: '/:bar',
-                  enter: (_) => counters['bEnter']++));
+      router.root.addRoute(
+          name: 'a',
+          defaultRoute: true,
+          path: '/:foo',
+          enter: (_) => counters['aEnter']++,
+          mount: (child) => child
+            ..addRoute(
+                name: 'b',
+                defaultRoute: true,
+                path: '/:bar',
+                enter: (_) => counters['bEnter']++));
 
       expect(counters, {'aEnter': 0, 'bEnter': 0});
 
@@ -1202,14 +1186,13 @@ main() {
       when((mockWindow.document as HtmlDocument).title)
           .thenReturn('page title');
       var router = Router(windowImpl: mockWindow);
-      router.root
-        ..addRoute(
-            name: 'a',
-            path: '/foo',
-            enter: (_) => counters['aEnter']++,
-            mount: (child) => child
-              ..addRoute(
-                  name: 'b', path: '/bar', enter: (_) => counters['bEnter']++));
+      router.root.addRoute(
+          name: 'a',
+          path: '/foo',
+          enter: (_) => counters['aEnter']++,
+          mount: (child) => child
+            ..addRoute(
+                name: 'b', path: '/bar', enter: (_) => counters['bEnter']++));
 
       expect(counters, {'aEnter': 0, 'bEnter': 0});
 
@@ -1255,13 +1238,12 @@ main() {
     test('should reconstruct url', () {
       var mockWindow = MockWindow();
       var router = Router(windowImpl: mockWindow);
-      router.root
-        ..addRoute(
-            name: 'a',
-            defaultRoute: true,
-            path: '/:foo',
-            mount: (child) =>
-                child..addRoute(name: 'b', defaultRoute: true, path: '/:bar'));
+      router.root.addRoute(
+          name: 'a',
+          defaultRoute: true,
+          path: '/:foo',
+          mount: (child) =>
+              child..addRoute(name: 'b', defaultRoute: true, path: '/:bar'));
 
       var routeA = router.root.findRoute('a');
 
@@ -1300,27 +1282,26 @@ main() {
       Route routeFoo, routeBar, routeBaz, routeQux, routeAux;
 
       var router = Router();
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/:foo',
-            mount: (child) => routeFoo = child
-              ..addRoute(
-                  name: 'bar',
-                  path: '/:bar',
-                  mount: (child) => routeBar = child
-                    ..addRoute(
-                        name: 'baz',
-                        path: '/:baz',
-                        mount: (child) => routeBaz = child))
-              ..addRoute(
-                  name: 'qux',
-                  path: '/:qux',
-                  mount: (child) => routeQux = child
-                    ..addRoute(
-                        name: 'aux',
-                        path: '/:aux',
-                        mount: (child) => routeAux = child)));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/:foo',
+          mount: (child) => routeFoo = child
+            ..addRoute(
+                name: 'bar',
+                path: '/:bar',
+                mount: (child) => routeBar = child
+                  ..addRoute(
+                      name: 'baz',
+                      path: '/:baz',
+                      mount: (child) => routeBaz = child))
+            ..addRoute(
+                name: 'qux',
+                path: '/:qux',
+                mount: (child) => routeQux = child
+                  ..addRoute(
+                      name: 'aux',
+                      path: '/:aux',
+                      mount: (child) => routeAux = child)));
 
       expect(router.root.findRoute('foo'), same(routeFoo));
       expect(router.root.findRoute('foo.bar'), same(routeBar));
@@ -1340,16 +1321,15 @@ main() {
     group('query params', () {
       test('should parse query', () {
         var router = Router();
-        router.root
-          ..addRoute(
-              name: 'foo',
-              path: '/:foo',
-              enter: expectAsync1((RouteEvent e) {
-                expect(e.parameters, {
-                  'foo': '123',
-                });
-                expect(e.queryParameters, {'a': 'b', 'b': '', 'c': 'foo bar'});
-              }));
+        router.root.addRoute(
+            name: 'foo',
+            path: '/:foo',
+            enter: expectAsync1((RouteEvent e) {
+              expect(e.parameters, {
+                'foo': '123',
+              });
+              expect(e.queryParameters, {'a': 'b', 'b': '', 'c': 'foo bar'});
+            }));
 
         router.route('/123?a=b&b=&c=foo%20bar');
       });
@@ -1360,13 +1340,12 @@ main() {
           'fooLeave': 0,
           'fooEnter': 0,
         };
-        router.root
-          ..addRoute(
-              name: 'foo',
-              path: '/:foo',
-              watchQueryParameters: ['bar'],
-              leave: (_) => counters['fooLeave']++,
-              enter: (_) => counters['fooEnter']++);
+        router.root.addRoute(
+            name: 'foo',
+            path: '/:foo',
+            watchQueryParameters: ['bar'],
+            leave: (_) => counters['fooLeave']++,
+            enter: (_) => counters['fooEnter']++);
 
         return router.route('/123').then((_) {
           expect(counters, {
@@ -1388,13 +1367,12 @@ main() {
           'fooLeave': 0,
           'fooEnter': 0,
         };
-        router.root
-          ..addRoute(
-              name: 'foo',
-              path: '/:foo',
-              watchQueryParameters: ['foo'],
-              leave: (_) => counters['fooLeave']++,
-              enter: (_) => counters['fooEnter']++);
+        router.root.addRoute(
+            name: 'foo',
+            path: '/:foo',
+            watchQueryParameters: ['foo'],
+            leave: (_) => counters['fooLeave']++,
+            enter: (_) => counters['fooEnter']++);
 
         return router.route('/123').then((_) {
           expect(counters, {
@@ -1416,13 +1394,12 @@ main() {
           'fooLeave': 0,
           'fooEnter': 0,
         };
-        router.root
-          ..addRoute(
-              name: 'foo',
-              path: '/:foo',
-              watchQueryParameters: [RegExp(r'^foo$')],
-              leave: (_) => counters['fooLeave']++,
-              enter: (_) => counters['fooEnter']++);
+        router.root.addRoute(
+            name: 'foo',
+            path: '/:foo',
+            watchQueryParameters: [RegExp(r'^foo$')],
+            leave: (_) => counters['fooLeave']++,
+            enter: (_) => counters['fooEnter']++);
 
         return router.route('/123').then((_) {
           expect(counters, {
@@ -1442,23 +1419,22 @@ main() {
     group('isActive', () {
       test('should currectly identify active/inactive routes', () {
         var router = Router();
-        router.root
-          ..addRoute(
-              name: 'foo',
-              path: '/foo',
-              mount: (child) => child
-                ..addRoute(
-                    name: 'bar',
-                    path: '/bar',
-                    mount: (child) => child
-                      ..addRoute(
-                          name: 'baz', path: '/baz', mount: (child) => child))
-                ..addRoute(
-                    name: 'qux',
-                    path: '/qux',
-                    mount: (child) => child
-                      ..addRoute(
-                          name: 'aux', path: '/aux', mount: (child) => child)));
+        router.root.addRoute(
+            name: 'foo',
+            path: '/foo',
+            mount: (child) => child
+              ..addRoute(
+                  name: 'bar',
+                  path: '/bar',
+                  mount: (child) => child
+                    ..addRoute(
+                        name: 'baz', path: '/baz', mount: (child) => child))
+              ..addRoute(
+                  name: 'qux',
+                  path: '/qux',
+                  mount: (child) => child
+                    ..addRoute(
+                        name: 'aux', path: '/aux', mount: (child) => child)));
 
         expect(r(router, 'foo').isActive, false);
         expect(r(router, 'foo.bar').isActive, false);
@@ -1491,19 +1467,16 @@ main() {
     group('parameters', () {
       test('should return path parameters for routes', () {
         var router = Router();
-        router.root
-          ..addRoute(
-              name: 'foo',
-              path: '/:foo',
-              mount: (child) => child
-                ..addRoute(
-                    name: 'bar',
-                    path: '/:bar',
-                    mount: (child) => child
-                      ..addRoute(
-                          name: 'baz',
-                          path: '/:baz',
-                          mount: (child) => child)));
+        router.root.addRoute(
+            name: 'foo',
+            path: '/:foo',
+            mount: (child) => child
+              ..addRoute(
+                  name: 'bar',
+                  path: '/:bar',
+                  mount: (child) => child
+                    ..addRoute(
+                        name: 'baz', path: '/:baz', mount: (child) => child)));
 
         expect(r(router, 'foo').parameters, isNull);
         expect(r(router, 'foo.bar').parameters, isNull);
@@ -1533,23 +1506,22 @@ main() {
   group('activePath', () {
     test('should currectly identify active path', () {
       var router = Router();
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/foo',
-            mount: (child) => child
-              ..addRoute(
-                  name: 'bar',
-                  path: '/bar',
-                  mount: (child) => child
-                    ..addRoute(
-                        name: 'baz', path: '/baz', mount: (child) => child))
-              ..addRoute(
-                  name: 'qux',
-                  path: '/qux',
-                  mount: (child) => child
-                    ..addRoute(
-                        name: 'aux', path: '/aux', mount: (child) => child)));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/foo',
+          mount: (child) => child
+            ..addRoute(
+                name: 'bar',
+                path: '/bar',
+                mount: (child) => child
+                  ..addRoute(
+                      name: 'baz', path: '/baz', mount: (child) => child))
+            ..addRoute(
+                name: 'qux',
+                path: '/qux',
+                mount: (child) => child
+                  ..addRoute(
+                      name: 'aux', path: '/aux', mount: (child) => child)));
 
       var strPath =
           (List<Route> path) => path.map((Route r) => r.name).join('.');
@@ -1572,23 +1544,22 @@ main() {
     test('should currectly identify active path after relative go', () {
       var mockWindow = MockWindow();
       var router = Router(windowImpl: mockWindow);
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/foo',
-            mount: (child) => child
-              ..addRoute(
-                  name: 'bar',
-                  path: '/bar',
-                  mount: (child) => child
-                    ..addRoute(
-                        name: 'baz', path: '/baz', mount: (child) => child))
-              ..addRoute(
-                  name: 'qux',
-                  path: '/qux',
-                  mount: (child) => child
-                    ..addRoute(
-                        name: 'aux', path: '/aux', mount: (child) => child)));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/foo',
+          mount: (child) => child
+            ..addRoute(
+                name: 'bar',
+                path: '/bar',
+                mount: (child) => child
+                  ..addRoute(
+                      name: 'baz', path: '/baz', mount: (child) => child))
+            ..addRoute(
+                name: 'qux',
+                path: '/qux',
+                mount: (child) => child
+                  ..addRoute(
+                      name: 'aux', path: '/aux', mount: (child) => child)));
 
       var strPath =
           (List<Route> path) => path.map((Route r) => r.name).join('.');
@@ -1610,23 +1581,22 @@ main() {
         () {
       var mockWindow = MockWindow();
       var router = Router(windowImpl: mockWindow);
-      router.root
-        ..addRoute(
-            name: 'foo',
-            path: '/foo',
-            mount: (child) => child
-              ..addRoute(
-                  name: 'bar',
-                  path: '/bar',
-                  mount: (child) => child
-                    ..addRoute(
-                        name: 'baz', path: '/baz', mount: (child) => child))
-              ..addRoute(
-                  name: 'qux',
-                  path: '/qux',
-                  mount: (child) => child
-                    ..addRoute(
-                        name: 'aux', path: '/aux', mount: (child) => child)));
+      router.root.addRoute(
+          name: 'foo',
+          path: '/foo',
+          mount: (child) => child
+            ..addRoute(
+                name: 'bar',
+                path: '/bar',
+                mount: (child) => child
+                  ..addRoute(
+                      name: 'baz', path: '/baz', mount: (child) => child))
+            ..addRoute(
+                name: 'qux',
+                path: '/qux',
+                mount: (child) => child
+                  ..addRoute(
+                      name: 'aux', path: '/aux', mount: (child) => child)));
 
       var strPath =
           (List<Route> path) => path.map((Route r) => r.name).join('.');

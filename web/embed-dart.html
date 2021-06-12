@@ -7,7 +7,9 @@ BSD-style license that can be found in the LICENSE file. -->
 <html>
 <head>
     <meta charset="utf-8">
-    <link rel="shortcut icon" href="/dart-64.png">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="dart-32.png">
+    <link rel="shortcut icon" type="image/png" sizes="64x64" href="dart-64.png">
+    <link rel="shortcut icon" type="image/png" sizes="192x192" href="dart-192.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -34,7 +36,6 @@ BSD-style license that can be found in the LICENSE file. -->
 
     <script defer src="scripts/embed_dart.dart.js"></script>
     <script defer src="scripts/ga.js"></script>
-    <script defer src="scripts/polymerpatch.js"></script>
     <script type="text/javascript" src="dark_mode.js"></script>
 
     <!-- begin Material Design -->
@@ -141,6 +142,7 @@ BSD-style license that can be found in the LICENSE file. -->
             <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
         </div>
         <div class="editor-button-group">
+            <div id="dartbusy" class="busylight"></div>
             <button id="copy-code" title="Copy code" class="mdc-icon-button material-icons">file_copy</button>
             <button id="open-in-dartpad" title="Full screen" class="mdc-icon-button material-icons">launch</button>
         </div>
@@ -154,6 +156,14 @@ BSD-style license that can be found in the LICENSE file. -->
     <div id="web-output" hidden>
         <iframe id="frame" sandbox="allow-scripts" class="flex-auto">
         </iframe>
+    </div>
+    <div class="mdc-snackbar">
+        <div class="mdc-snackbar__surface">
+            <div class="mdc-snackbar__label"
+                 role="status"
+                 aria-live="polite">
+            </div>
+        </div>
     </div>
 </section>
 <footer flex layout horizontal class="footer">

@@ -1,4 +1,4 @@
-include: package:pedantic/analysis_options.1.9.0.yaml
+include: package:pedantic/analysis_options.1.11.0.yaml
 
 analyzer:
   strong-mode:
@@ -10,47 +10,48 @@ analyzer:
     - 'lib/bower/**'
     - 'lib/src/protos/**'
     - 'third_party/pkg/**'
-
+    - 'web/example/workshops/**'
 linter:
   rules:
-    - await_only_futures
-    - camel_case_types
-    - file_names
-    - hash_and_equals
-    - iterable_contains_unrelated_type
-    - list_remove_unrelated_type
-    - non_constant_identifier_names
-    - package_prefixed_library_names
-    - prefer_typing_uninitialized_variables
-    - provide_deprecation_message
-    - unawaited_futures
-    - unnecessary_overrides
-    - unrelated_type_equality_checks
-    - valid_regexps
-    - void_checks
-    - avoid_function_literals_in_foreach_calls
-    - avoid_private_typedef_functions
-    - avoid_renaming_method_parameters
-    - avoid_returning_null_for_void
-    - avoid_single_cascade_in_expression_statements
-    - constant_identifier_names
-    - control_flow_in_finally
-    - empty_constructor_bodies
-    - empty_statements
-    - exhaustive_cases
-    - implementation_imports
-    - overridden_fields
-    - package_names
-    - prefer_function_declarations_over_variables
-    - prefer_initializing_formals
-    - prefer_inlined_adds
-    - prefer_is_not_operator
-    - prefer_mixin
-    - prefer_null_aware_operators
-    - prefer_void_to_null
-    - slash_for_doc_comments
-    - type_init_formals
-    - unnecessary_brace_in_string_interps
-    - unnecessary_getters_setters
-    - unnecessary_string_escapes
-    - unnecessary_string_interpolations
+    # Disabled as we really on quite a few uses of these currently
+    unsafe_html: false
+
+    # Extra enabled rules
+    camel_case_types: true
+    directives_ordering: true
+    file_names: true
+    hash_and_equals: true
+    iterable_contains_unrelated_type: true
+    list_remove_unrelated_type: true
+    non_constant_identifier_names: true
+    package_prefixed_library_names: true
+    prefer_typing_uninitialized_variables: true
+    provide_deprecation_message: true
+    unawaited_futures: true
+    unnecessary_overrides: true
+    unrelated_type_equality_checks: true
+    valid_regexps: true
+    void_checks: true
+    avoid_function_literals_in_foreach_calls: true
+    avoid_private_typedef_functions: true
+    avoid_renaming_method_parameters: true
+    avoid_returning_null_for_void: true
+    avoid_single_cascade_in_expression_statements: true
+    constant_identifier_names: true
+    control_flow_in_finally: true
+    empty_constructor_bodies: true
+    empty_statements: true
+    exhaustive_cases: true
+    implementation_imports: true
+    overridden_fields: true
+    package_names: true
+    prefer_function_declarations_over_variables: true
+    prefer_initializing_formals: true
+    prefer_is_not_operator: true
+    prefer_mixin: true
+    prefer_null_aware_operators: true
+    prefer_void_to_null: true
+    slash_for_doc_comments: true
+    type_init_formals: true
+    unnecessary_string_escapes: true
+    unnecessary_string_interpolations: true

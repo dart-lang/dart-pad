@@ -17,14 +17,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: [dev,beta,stable]
+        # Disabling Dart dev SDK due to https://github.com/google/dart-neats/issues/132
+        # sdk: [stable, beta, dev]
+        sdk: [stable, beta]
 
     steps:
       - uses: actions/checkout@v2
-      - uses: dart-lang/setup-dart@v0.1
+      - uses: dart-lang/setup-dart@v1.0
         with:
-          channel: ${{ matrix.sdk }}
-      - uses: actions/setup-node@v1
+          sdk: ${{ matrix.sdk }}
+      - uses: actions/setup-node@v2
       
       - name: Print Dart SDK version
         run: dart --version
@@ -38,5 +40,5 @@ jobs:
       - name: Analyze project source
         run: dart analyze --fatal-infos
 
-      - name: Run travis
-        run: ./tool/travis.sh
+      - name: Run buildbot
+        run: dart tool/grind.dart buildbot

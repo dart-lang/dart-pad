@@ -40,32 +40,28 @@ Contributions made by corporations are covered by a different agreement than the
 
 ## How to run DartPad locally
 
-DartPad requires [npm](https://www.npmjs.com/get-npm) v5 or higher and
-[vulcanize](https://www.npmjs.com/package/vulcanize) to be installed.
-
 * To run the DartPad against the regular serving backend:
 
 ```bash
-pub global activate grinder
+dart pub global activate grinder
 grind serve
 ```
 This serves the DartPad frontend locally on port 8000.
 
 * To run DartPad against a local version of the dart-services backend:
 ```bash
-
 cd ..
 git clone git@github.com:dart-lang/dart-services.git
 cd dart-services
-pub get
+dart pub get
 # Change the SDK version dart-services serves to the one you currently have installed
 grind update-docker-version
-# Begin serving the backend locally on port 8002.
+# Begin serving the backend locally on port 8082.
 grind serve &
 
 cd ../dart-pad
 # Begin serving the front-end locally on port 8000, with the given backend
-export DARTPAD_BACKEND=http://localhost:8002 
+export DARTPAD_BACKEND=http://localhost:8082
 grind serve-custom-backend
 ```
 

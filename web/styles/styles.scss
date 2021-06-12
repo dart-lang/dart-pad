@@ -1,8 +1,7 @@
 @import 'package:dart_pad/scss/colors';
-@import 'package:dart_pad/scss/variables';
+@import 'package:dart_pad/scss/layout';
 @import 'package:dart_pad/scss/shared';
-
-@import 'layout';
+@import 'package:dart_pad/scss/variables';
 
 // Material Design Web theme colors. Must be imported before importing
 // material-components-web.scss.
@@ -16,6 +15,7 @@ $mdc-theme-error: $dark-red;
 $doc-console-padding: 8px 24px 8px 24px;
 
 @import 'package:mdc_web/material-components-web';
+@import 'shared';
 
 body {
   background-color: $playground-background-color;
@@ -96,17 +96,10 @@ body>footer {
   * {
     margin-right: 4px;
   }
-
-  #dartpad-version {
-    margin-left: 12px;
-  }
 }
 
 
 a {
-  text-decoration: none;
-  cursor: pointer;
-
   color: $playground-link-color;
   fill: $playground-text-color;
 
@@ -151,7 +144,7 @@ a {
 #editor-host {
   @include layout-vertical;
   @include layout-flex;
-  margin: 8px 0 0 16px;
+  margin: 8px 0 0 0;
   padding: 0 8px;
 
   .CodeMirror {
@@ -199,9 +192,6 @@ a {
   #right-output-panel-content {
     @include layout-flex;
   }
-  .view-label {
-    margin: 8px;
-  }
 }
 
 #right-doc-panel {
@@ -209,9 +199,6 @@ a {
   @include layout-vertical;
   #right-doc-panel-content {
     @include layout-flex;
-  }
-  .view-label {
-    margin: 8px;
   }
 }
 
@@ -257,184 +244,9 @@ a {
   opacity: 0;
 }
 
-// Busy light
-
-.busylight {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  margin: 9px;
-
-  opacity: 0;
-  background-color: #fff;
-
-  -webkit-transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
-  -moz-transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
-  -o-transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
-  transition: all 100ms cubic-bezier(0.640, 0.125, 0.235, 0.885);
-
-  -webkit-transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
-  -moz-transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
-  -o-transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
-  transition-timing-function: cubic-bezier(0.640, 0.125, 0.235, 0.885);
-}
-
-.busylight.on {
-  opacity: 0.6;
-}
-
 // Contenteditable elements
 [contenteditable]:focus {
   outline: 0 solid transparent;
-}
-
-// Editor Tabs
-.editor-tab-host {
-  @include layout-vertical;
-}
-
-.border-top {
-  border-top: 6px solid $dark-gutter-background-color !important;
-}
-
-.editor-tabs {
-  @include layout-horizontal;
-  @include layout-center;
-  @include layout-justified;
-  padding-left: 8px;
-
-  button {
-    margin-right: 8px;
-  }
-  .tab-group {
-    @include layout-horizontal;
-    @include layout-center;
-  }
-}
-
-.editor-tab {
-  @include mdc-button-ink-color(#f8f9fa);
-  text-transform: none !important;
-  letter-spacing: normal;
-
-  color: $label-color;
-  border-top: 2px solid transparent;
-  padding: 8px 4px;
-
-  &.active {
-    color: $dark-blue;
-    font-weight: bold;
-  }
-}
-
-.mdc-tab__content {
-  text-transform: none !important;
-}
-
-.mdc-tab--active {
-  .mdc-tab__text-label {
-    font-weight: normal;
-  }
-}
-
-#editor-panel-close-button {
-  @include mdc-icon-button-size(16px, 16px, 8px);
-}
-
-#editor-panel-tab-host {
-  @include layout-flex;
-  @include layout-vertical;
-  .documentation {
-    @include layout-flex;
-  }
-}
-
-// documentation and parameter info styling
-.documentation {
-  padding: $doc-console-padding;
-  font-family: 'Roboto', sans-serif;
-  font-size: 11pt;
-  line-height: 20px;
-  position: relative;
-  display: block;
-  overflow: auto;
-  overflow-wrap: break-word;
-  margin-top: 0;
-  margin-left: 0;
-
-  * {
-    color: $dark-editor-text;
-  }
-  h1 {
-    margin-top: 0;
-    font-size: 12pt;
-    color: $dark-blue;
-  }
-
-  h2 {
-    margin-bottom: 0;
-  }
-
-  h2, strong {
-    font-weight: bold;
-    font-size: inherit;
-    color: #cdcdcd; /* little bit brigher than normal text*/
-  }
-  p {
-    margin-top: 0;
-  }
-  a {
-    color: #66d9ef;
-  }
-  a:hover {
-    color: #66d9ef;
-    text-decoration: underline;
-  }
-  a {
-    color: #66d9ef;
-  }
-  a:hover {
-    color: #66d9ef;
-    text-decoration: underline;
-  }
-  pre {
-    overflow-x: auto;
-    margin: 1em;
-  }
-  pre code {
-    white-space: inherit;
-    word-wrap: normal;
-  }
-  code, .parameter-hints code {
-    font-family: $editor-font;
-    font-size: 12pt;
-    color: $dark-blue;
-  }
-  code em {
-    color: $dark-orange;
-    font-style: normal;
-  }
-  .parameter-hints code {
-    color: $dark-orange;
-  }
-  code em {
-    color: $dark-orange;
-    font-style: normal;
-  }
-}
-
-// Code annotations
-
-.squiggle-error {
-  border-bottom: 2px solid $squiggle-error-color;
-}
-
-.squiggle-warning {
-  border-bottom: 2px solid $squiggle-warning-color;
-}
-
-.squiggle-info {
-  border-bottom: 2px solid $squiggle-info-color;
 }
 
 // Analysis flashes
@@ -452,48 +264,31 @@ a {
   color: $dark-issue-label-color;
 }
 
+.issue:hover {
+  background-color: darken($dark-issues-background-color, 3%);
+}
+
 .issue .message {
   color: $dark-issue-label-color;
 }
 
-#issues-toggle {
+#issues-toggle, .issue-anchor {
   color: $mdc-theme-primary;
+  &:visited {
+    color: $mdc-theme-primary;
+  }
+
+  &:hover {
+    color: darken($mdc-theme-primary, 12%);
+  }
 }
 
 #issues-message {
+  @include footer-item-right;
   font-family: $normal-font;
   font-size: $playground-editor-font-size;
   cursor: default;
   margin-right: 0px;
-  margin-left: 12px;
-}
-
-.keyboard {
-  display: inline-block;
-  background: url('../../pictures/keyboard.svg') center no-repeat;
-  background-size: 100%;
-  width: 22px;
-  height: 18px;
-  margin-top: 1px;
-  cursor: pointer;
-  opacity: 0.7;
-
-  &:hover {
-    opacity: 1;
-  }
-}
-
-// Unread console counter
-.Counter {
-  margin-left: 4px;
-  display: inline-block;
-  padding: 2px 5px;
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1;
-  color: $dark-teal;
-  background-color: fade_out($dark-teal, 0.5);
-  border-radius: 20px;
 }
 
 
@@ -546,11 +341,6 @@ a {
     }
   }
 
-  .mdc-switch {
-    @include mdc-switch-toggled-on-color($button-color);
-    @include mdc-switch-toggled-off-color($secondary-color);
-  }
-
   label[for=new-pad-html-switch] {
     margin-left: 8px;
   }
@@ -560,6 +350,23 @@ a {
     height: auto;
     width: 20px;
     margin-right: 14px;
+}
+
+// Editor Tabs
+.editor-tab {
+  @include mdc-button-ink-color(#f8f9fa);
+  color: $label-color;
+  &.active {
+    color: $dark-blue;
+  }
+}
+
+.border-top {
+  border-top: 6px solid $dark-gutter-background-color !important;
+}
+
+#editor-panel-close-button {
+  @include mdc-icon-button-size(16px, 16px, 8px);
 }
 
 // responsive layout
@@ -590,4 +397,9 @@ a {
 // Misc
 .hide {
   opacity: 0;
+}
+
+.mdc-switch {
+  @include mdc-switch-toggled-on-color($button-color);
+  @include mdc-switch-toggled-off-color($secondary-color);
 }

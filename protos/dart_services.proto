@@ -14,6 +14,11 @@ message CompileRequest {
   bool returnSourceMap = 2;
 }
 
+message CompileDDCRequest {
+  // The Dart source.
+  string source = 1;
+}
+
 message SourceRequest {
   // The Dart source.
   string source = 1;
@@ -40,6 +45,16 @@ message AnalysisIssue {
   bool hasFixes = 5;
   int32 charStart = 6;
   int32 charLength = 7;
+  string url = 8;
+  repeated DiagnosticMessage diagnosticMessages = 9;
+  string correction = 10;
+}
+
+message DiagnosticMessage {
+  string message = 1;
+  int32 line = 2;
+  int32 charStart = 3;
+  int32 charLength = 4;
 }
 
 message VersionRequest {}
@@ -170,14 +185,20 @@ message VersionResponse {
   // The dart-services backend version.
   string servicesVersion = 5;
 
-  // The Flutter SDK's version
+  // The Flutter SDK's version.
   string flutterVersion = 6;
 
-  // The Flutter SDK's Dart version
+  // The Flutter SDK's Dart version.
   string flutterDartVersion = 7;
 
-  // The Flutter SDK's full Dart version
+  // The Flutter SDK's full Dart version.
   string flutterDartVersionFull = 8;
+
+  // Package version numbers.
+  //
+  // Each package found in pubspec.lock is included, mapping the package name
+  // to the package version.
+  map<string, string> packageVersions = 9;
 
   // Make this response compatible with BadRequest
   ErrorMessage error = 99;

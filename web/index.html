@@ -7,7 +7,9 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <link rel="shortcut icon" href="/dart-192.png">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="dart-32.png">
+    <link rel="shortcut icon" type="image/png" sizes="64x64" href="dart-64.png">
+    <link rel="shortcut icon" type="image/png" sizes="192x192" href="dart-192.png">
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
@@ -51,7 +53,6 @@
 
     <!-- javascript -->
     <script src="scripts/ga.js" defer></script>
-    <script src="scripts/polymerpatch.js" defer></script>
 </head>
 
 <body>
@@ -199,12 +200,8 @@
                     </button>
                 </div>
                 <div id="editor-panel-tab-host">
-                    <div id="left-output-panel" class="console custom-scrollbar">
-                        <span id="left-output-label" class="view-label">Console</span>
-                    </div>
-                    <div id="left-doc-panel" class="documentation custom-scrollbar">
-                        <span id="left-doc-label" class="view-label">Documentation</span>
-                    </div>
+                    <div id="left-output-panel" class="console custom-scrollbar"></div>
+                    <div id="left-doc-panel" class="documentation custom-scrollbar"></div>
                 </div>
             </div>
         </div>
@@ -248,7 +245,7 @@
 </section>
 
 <footer>
-    <div id="keyboard-button" class="keyboard footer-item"></div>
+    <i id="keyboard-button" class="material-icons footer-item" aria-hidden="true">keyboard</i>
     <div class="footer-item">
         <a href="https://dart.dev/tools/dartpad/privacy"
            target="repo" class="footer-item">Privacy notice</a>
@@ -256,7 +253,7 @@
            target="repo">Send feedback</a>
     </div>
     <div class="footer-item">
-        <div id="null-safety-switch" class="mdc-switch">
+        <div id="null-safety-switch" class="mdc-switch" title="Null safety is currently disabled">
             <div class="mdc-switch__track"></div>
             <div class="mdc-switch__thumb-underlay">
                 <div class="mdc-switch__thumb"></div>
@@ -269,6 +266,7 @@
     <div id="issues-message" class="info-message"></div>
     <a id="issues-toggle" hidden></a>
     <div id="dartpad-version"></div>
+    <i id="dartpad-package-versions" class="material-icons" aria-hidden="true">info</i>
 </footer>
 
 <div class="mdc-dialog"

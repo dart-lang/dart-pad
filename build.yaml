@@ -1,8 +1,33 @@
 targets:
   $default:
     builders:
+      # Don't clean up workshop examples, they need to be served.
+      build_web_compilers:dart_source_cleanup:
+        generate_for:
+          exclude:
+            - web/example/workshops/**.dart
+
       build_web_compilers|entrypoint:
+        # Don't compile workshop examples.
+        generate_for:
+          exclude:
+          - web/example/workshops/**.dart
         options:
           dart2js_args:
           - --minify
           - --fast-startup
+          - -DPRE_NULL_SAFETY_SERVER_URL=https://v1.api.dartpad.dev/
+          - -DNULL_SAFETY_SERVER_URL=https://nullsafety.api.dartpad.dev/
+
+      json_serializable:
+        # Ignore workshop samples.
+        generate_for:
+          exclude:
+          - web/example/workshops/**.dart
+
+global_options:
+  build_web_compilers:ddc:
+    options:
+      environment:
+        PRE_NULL_SAFETY_SERVER_URL: https://v1.api.dartpad.dev/
+        NULL_SAFETY_SERVER_URL: https://nullsafety.api.dartpad.dev/

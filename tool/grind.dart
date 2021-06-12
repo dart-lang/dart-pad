@@ -9,6 +9,7 @@ library dart_pad.grind;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dart_pad/services/common.dart';
 import 'package:git/git.dart';
 import 'package:grinder/grinder.dart';
 import 'package:yaml/yaml.dart' as yaml;
@@ -37,11 +38,6 @@ updateThirdParty() {
 }
 
 @Task()
-analyze() {
-  PubApp.local('tuneup').run(['check']);
-}
-
-@Task()
 testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
 
 // This task require a frame buffer to run.
@@ -49,9 +45,9 @@ testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
 testWeb() async {
   await TestRunner().testAsync(platformSelector: 'chrome');
   log('Running route.dart tests...');
-  run('pub', arguments: ['get'], workingDirectory: _routeDir.path);
-  run('pub',
-      arguments: ['run', 'test:test', '--platform=chrome'],
+  run('dart', arguments: ['pub', 'get'], workingDirectory: _routeDir.path);
+  run('dart',
+      arguments: ['pub', 'run', 'test:test', '--platform=chrome'],
       workingDirectory: _routeDir.path);
 }
 
@@ -76,38 +72,17 @@ serveLocalAppEngine() async {
   });
 }
 
-const String backendVariable = 'DARTPAD_BACKEND';
-
-@Task(
-    'Serve locally on port 8002 and use backend from $backendVariable environment variable')
-@Depends(build)
-serveCustomBackend() async {
-  if (!Platform.environment.containsKey(backendVariable)) {
-    print('$backendVariable can be specified (as [http|https]://host[:port]) '
-        'to indicate the dart-services server to connect to');
-  }
-
-  final serverUrl =
-      Platform.environment[backendVariable] ?? 'http://localhost:8002';
-
-  // In all files *.dart.js in build/scripts/, replace
-  // 'https://dart-services.appspot.com' with serverUrl.
-  final files = <FileSystemEntity>[];
-  files.addAll(_buildDir.join('scripts').asDirectory.listSync());
-  for (var entity in files) {
-    if (entity is! File) continue;
-    if (!entity.path.endsWith('.dart.js')) continue;
-
-    final file = entity as File;
-
-    log('Rewriting server url to $serverUrl for ${file.path}');
-
-    var fileContents = file.readAsStringSync();
-    fileContents =
-        fileContents.replaceAll('https://dart-services.appspot.com', serverUrl);
-    file.writeAsStringSync(fileContents);
-  }
-
+@Task('Serve locally on port 8000 and use local server URLs')
+@Depends(ConstTaskInvocation(
+  'build',
+  ConstTaskArgs('build', flags: {
+    _debugFlag: true,
+  }, options: {
+    _preNullSafetyServerUrlOption: 'http://127.0.0.1:8082/',
+    _nullSafetyServerUrlOption: 'http://127.0.0.1:8084/',
+  }),
+))
+serveLocalBackend() async {
   log('\nServing dart-pad on http://localhost:8000');
 
   await Process.start(Platform.executable, ['bin/serve.dart'])
@@ -116,9 +91,74 @@ serveCustomBackend() async {
   });
 }
 
+@Task('Serve locally on port 8000 and use beta server URL for pre null-safe')
+@Depends(ConstTaskInvocation(
+  'build',
+  ConstTaskArgs('build', options: {
+    _preNullSafetyServerUrlOption: 'http://beta.api.dartpad.dev/',
+  }),
+))
+serveBetaBackend() async {
+  log('\nServing dart-pad on http://localhost:8000');
+
+  await Process.start(Platform.executable, ['bin/serve.dart'])
+      .then((Process process) {
+    process.stdout.transform(utf8.decoder).listen(stdout.write);
+  });
+}
+
+@Task('Serve locally on port 8000 and use dev server URL for pre null-safe')
+@Depends(ConstTaskInvocation(
+  'build',
+  ConstTaskArgs('build', options: {
+    _preNullSafetyServerUrlOption: 'http://dev.api.dartpad.dev/',
+  }),
+))
+serveDevBackend() async {
+  log('\nServing dart-pad on http://localhost:8000');
+
+  await Process.start(Platform.executable, ['bin/serve.dart'])
+      .then((Process process) {
+    process.stdout.transform(utf8.decoder).listen(stdout.write);
+  });
+}
+
+/// A grinder flag which directs build_runner to use the non-release mode, and
+/// use DDC instead of dart2js.
+const _debugFlag = 'debug';
+
+/// A grinder option which specifies the URL of the pre-null safety back-end
+/// server.
+const _preNullSafetyServerUrlOption = 'pre-null-safety-server-url';
+
+/// A grinder option which specifies the URL of the null safety back-end
+/// server.
+const _nullSafetyServerUrlOption = 'null-safety-server-url';
+
 @Task('Build the `web/index.html` entrypoint')
 build() {
-  PubApp.local('build_runner').run(['build', '-r', '-o', 'web:build']);
+  var args = context.invocation.arguments;
+  var compilerArgs = {
+    if (args.hasOption(_preNullSafetyServerUrlOption))
+      preNullSafetyServerUrlEnvironmentVar:
+          args.getOption(_preNullSafetyServerUrlOption),
+    if (args.hasOption(_nullSafetyServerUrlOption))
+      nullSafetyServerUrlEnvironmentVar:
+          args.getOption(_nullSafetyServerUrlOption),
+  };
+  PubApp.local('build_runner').run([
+    'build',
+    if (!args.hasFlag(_debugFlag)) '-r',
+    if (compilerArgs.isNotEmpty)
+      '--define=build_web_compilers:entrypoint='
+          'dart2js_args=${_formatDart2jsArgs(compilerArgs)}',
+    if (compilerArgs.isNotEmpty)
+      '--define=build_web_compilers:ddc='
+          'environment=${_formatDdcArgs(compilerArgs)}',
+    '-o',
+    'web:build',
+    '--delete-conflicting-outputs',
+  ]);
 
   var mainFile = _buildDir.join('scripts/playground.dart.js');
   log('$mainFile compiled to ${_printSize(mainFile)}');
@@ -152,89 +192,20 @@ build() {
   }
 
   log('Removed $count Dart files');
-
-  // Run vulcanize.
-  // Imports vulcanized, not inlined for IE support
-  vulcanize('index.html');
-  vulcanize('embed-dart.html');
-  vulcanize('embed-html.html');
-  vulcanize('embed-flutter.html');
-  vulcanize('embed-inline.html');
 }
 
-void copyPackageResources(String packageName, Directory destDir) {
-  var text = File('.packages').readAsStringSync();
-  for (var line in text.split('\n')) {
-    line = line.trim();
-    if (line.isEmpty) {
-      continue;
-    }
-    var index = line.indexOf(':');
-    var name = line.substring(0, index);
-    var location = line.substring(index + 1);
-    if (name == packageName) {
-      if (location.startsWith('file:')) {
-        var uri = Uri.parse(location);
-
-        copyDirectory(Directory.fromUri(uri),
-            joinDir(destDir, ['packages', packageName]));
-      } else {
-        copyDirectory(
-            Directory(location), joinDir(destDir, ['packages', packageName]));
-      }
-      return;
-    }
-  }
-
-  fail('package $packageName not found in .packages file');
+/// Formats a map of argument key and values to be passed as `dart2js_args` for
+/// webdev.
+String _formatDart2jsArgs(Map<String, String> args) {
+  var values = args.entries.map((entry) => '"-D${entry.key}=${entry.value}"');
+  return '[${values.join(',')}]';
 }
 
-// Run vulcanize
-vulcanize(String filepath) {
-  var htmlFile = _buildDir.join(filepath);
-  log('${htmlFile.path} original: ${_printSize(htmlFile)}');
-  var result = Process.runSync(
-      'vulcanize',
-      [
-        '--strip-comments',
-        '--inline-css',
-        '--inline-scripts',
-        '--exclude',
-        ' scripts/embed_dart.dart.js',
-        '--exclude',
-        ' scripts/embed_flutter.dart.js',
-        '--exclude',
-        ' scripts/embed_html.dart.js',
-        '--exclude',
-        ' scripts/embed_inline.dart.js',
-        '--exclude',
-        'scripts/playground.dart.js',
-        '--exclude',
-        'scripts/codemirror.js',
-        filepath,
-      ],
-      workingDirectory: _buildDir.path);
-  if (result.exitCode != 0) {
-    fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
-  }
-  htmlFile.asFile.writeAsStringSync(result.stdout as String);
-
-  log('${htmlFile.path} vulcanize: ${_printSize(htmlFile)}');
-}
-
-//Run vulcanize with no exclusions
-vulcanizeNoExclusion(String filepath) {
-  var htmlFile = _buildDir.join(filepath);
-  log('${htmlFile.path} original: ${_printSize(htmlFile)}');
-  var result = Process.runSync('vulcanize',
-      ['--strip-comments', '--inline-css', '--inline-scripts', filepath],
-      workingDirectory: _buildDir.path);
-  if (result.exitCode != 0) {
-    fail('error running vulcanize: ${result.exitCode}\n${result.stderr}');
-  }
-  htmlFile.asFile.writeAsStringSync(result.stdout as String);
-
-  log('${htmlFile.path} vulcanize: ${_printSize(htmlFile)}');
+/// Formats a map of argument key and values to be passed as DDC environment
+/// variables.
+String _formatDdcArgs(Map<String, String> args) {
+  var values = args.entries.map((entry) => '"${entry.key}":"${entry.value}"');
+  return '{${values.join(',')}}';
 }
 
 @Task()
@@ -257,7 +228,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(analyze, testCli, testWeb, coverage, build)
+@Depends(testCli, testWeb, coverage, build)
 void buildbot() {}
 
 @Task('Prepare the app for deployment')
@@ -313,4 +284,48 @@ void generateProtos() {
 
   // generate common_server_proto.g.dart
   Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
+}
+
+/// An implementation of [TaskArgs] which can be used as a const value in an
+/// annotation.
+class ConstTaskArgs implements TaskArgs {
+  @override
+  final String taskName;
+  final Map<String, bool> _flags;
+  final Map<String, String> _options;
+
+  const ConstTaskArgs(
+    this.taskName, {
+    Map<String, bool> flags = const {},
+    Map<String, String> options = const {},
+  })  : _flags = flags,
+        _options = options;
+
+  @override
+  bool hasFlag(String name) => _flags.containsKey(name);
+
+  @override
+  bool getFlag(String name) => _flags[name] ?? false;
+
+  @override
+  bool hasOption(String name) => _options.containsKey(name);
+
+  @override
+  String getOption(String name) => _options[name];
+
+  @override
+  List<String> get arguments => throw UnimplementedError();
+}
+
+/// An implementation of [TaskInvocation] which can be used as a const value in
+/// an annotation.
+class ConstTaskInvocation implements TaskInvocation {
+  @override
+  final String name;
+  final TaskArgs _arguments;
+
+  const ConstTaskInvocation(this.name, this._arguments);
+
+  @override
+  TaskArgs get arguments => _arguments;
 }

@@ -8,15 +8,18 @@ import 'dart:math' as math;
 
 import 'package:dart_pad/elements/material_tab_controller.dart';
 import 'package:dart_pad/src/ga.dart';
+import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:mdc_web/mdc_web.dart';
+import 'package:pedantic/pedantic.dart';
 import 'package:split/split.dart';
 
 import 'check_localstorage.dart';
 import 'completion.dart';
+import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
-import 'editing/editor.dart';
+import 'editing/codemirror_options.dart';
 import 'editing/editor_codemirror.dart';
 import 'elements/analysis_results_controller.dart';
 import 'elements/button.dart';
@@ -29,9 +32,8 @@ import 'modules/dartservices_module.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
+import 'sharing/editor_ui.dart';
 import 'sharing/gists.dart';
-import 'src/util.dart';
-import 'util/keymap.dart';
 import 'util/query_params.dart' show queryParams;
 
 const int defaultSplitterWidth = 6;
@@ -39,25 +41,6 @@ const int defaultSplitterWidth = 6;
 Embed get embed => _embed;
 
 Embed _embed;
-
-const codeMirrorOptions = {
-  'continueComments': {'continueLineComment': false},
-  'autofocus': false,
-  'autoCloseBrackets': true,
-  'matchBrackets': true,
-  'tabSize': 2,
-  'lineWrapping': true,
-  'indentUnit': 2,
-  'cursorHeight': 0.85,
-  'viewportMargin': 100,
-  'extraKeys': {
-    'Cmd-/': 'toggleComment',
-    'Ctrl-/': 'toggleComment',
-    'Tab': 'insertSoftTab'
-  },
-  'hintOptions': {'completeSingle': false},
-  'scrollbarStyle': 'simple',
-};
 
 void init(EmbedOptions options) {
   _embed = Embed(options);
@@ -73,11 +56,10 @@ class EmbedOptions {
 
 /// An embeddable DartPad UI that provides the ability to test the user's code
 /// snippet against a desired result.
-class Embed {
+class Embed extends EditorUi {
   final EmbedOptions options;
 
   var _executionButtonCount = 0;
-  MDCButton executeButton;
   MDCButton reloadGistButton;
   MDCButton installButton;
   MDCButton formatButton;
@@ -110,8 +92,6 @@ class Embed {
   FlashBox testResultBox;
   FlashBox hintBox;
 
-  ExecutionService executionSvc;
-
   CodeMirrorFactory editorFactory = codeMirrorFactory;
 
   Editor userCodeEditor;
@@ -120,27 +100,24 @@ class Embed {
   Editor htmlEditor;
   Editor cssEditor;
 
+  @override
   EmbedContext context;
 
   Splitter splitter;
-  AnalysisResultsController analysisResultsController;
 
   Console consoleExpandController;
   DElement webOutputLabel;
   DElement featureMessage;
 
   MDCLinearProgress linearProgress;
-  Dialog dialog;
   Map<String, String> lastInjectedSourceCode = <String, String>{};
-
-  final DelayedTimer _debounceTimer = DelayedTimer(
-    minDelay: Duration(milliseconds: 1000),
-    maxDelay: Duration(milliseconds: 5000),
-  );
 
   bool _editorIsBusy = true;
 
   bool get editorIsBusy => _editorIsBusy;
+
+  @override
+  Document get currentDocument => userCodeEditor.document;
 
   /// Toggles the state of several UI components based on whether the editor is
   /// too busy to handle code changes, execute/reset requests, etc.
@@ -152,7 +129,7 @@ class Embed {
       linearProgress.root.classes.add('hide');
     }
     userCodeEditor.readOnly = value;
-    executeButton.disabled = value;
+    runButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value;
     showHintButton?.disabled = value;
@@ -161,7 +138,6 @@ class Embed {
 
   Embed(this.options) {
     _initHostListener();
-    dialog = Dialog();
 
     if (!checkLocalStorage()) {
       dialog.showOk(
@@ -216,8 +192,8 @@ class Embed {
     unreadConsoleCounter =
         Counter(querySelector('#unread-console-counter') as SpanElement);
 
-    executeButton = MDCButton(querySelector('#execute') as ButtonElement)
-      ..onClick.listen((_) => _handleExecute());
+    runButton = MDCButton(querySelector('#execute') as ButtonElement)
+      ..onClick.listen((_) => handleRun());
 
     reloadGistButton = MDCButton(querySelector('#reload-gist') as ButtonElement)
       ..onClick.listen((_) {
@@ -309,7 +285,6 @@ class Embed {
       ..theme = editorTheme
       ..mode = 'dart'
       ..showLineNumbers = true;
-    userCodeEditor.document.onChange.listen(_performAnalysis);
     userCodeEditor.autoCloseBrackets = false;
 
     testEditor = editorFactory.createFromElement(querySelector('#test-editor'),
@@ -369,21 +344,21 @@ class Embed {
       cssTabView = TabView(DElement(querySelector('#css-view')));
     }
 
-    executionSvc =
+    executionService =
         ExecutionServiceIFrame(querySelector('#frame') as IFrameElement)
           ..frameSrc = isDarkMode
               ? '../scripts/frame_dark.html'
               : '../scripts/frame.html';
 
-    executionSvc.onStderr.listen((err) {
+    executionService.onStderr.listen((err) {
       consoleExpandController.showOutput(err, error: true);
     });
 
-    executionSvc.onStdout.listen((msg) {
+    executionService.onStdout.listen((msg) {
       consoleExpandController.showOutput(msg);
     });
 
-    executionSvc.testResults.listen((result) {
+    executionService.testResults.listen((result) {
       if (result.messages.isEmpty) {
         result.messages
             .add(result.success ? 'All tests passed!' : 'Test failed.');
@@ -400,8 +375,8 @@ class Embed {
         DElement(querySelector('#issues')),
         DElement(querySelector('#issues-message')),
         DElement(querySelector('#issues-toggle')))
-      ..onIssueClick.listen((issue) {
-        _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+      ..onItemClicked.listen((item) {
+        _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 
     if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
@@ -438,6 +413,8 @@ class Embed {
     linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
     linearProgress.determinate = false;
 
+    _initBusyLights();
+
     _initModules()
         .then((_) => _init())
         .then((_) => _emitReady())
@@ -462,7 +439,7 @@ class Embed {
         _resetCode();
 
         if (autoRunEnabled) {
-          _handleExecute();
+          handleRun();
         }
       }
     });
@@ -542,6 +519,7 @@ class Embed {
     }
   }
 
+  @override
   set nullSafetyEnabled(bool enabled) {
     _nullSafetyEnabled = enabled;
     _handleNullSafetySwitched(enabled);
@@ -550,6 +528,7 @@ class Embed {
     nullSafetyCheckmark.toggleClass('hide', !enabled);
   }
 
+  @override
   bool get nullSafetyEnabled {
     return _nullSafetyEnabled;
   }
@@ -560,10 +539,10 @@ class Embed {
       api.rootUrl = nullSafetyServerUrl;
       window.localStorage['null_safety'] = 'true';
     } else {
-      api.rootUrl = serverUrl;
+      api.rootUrl = preNullSafetyServerUrl;
       window.localStorage['null_safety'] = 'false';
     }
-    _performAnalysis();
+    unawaited(performAnalysis());
   }
 
   Future<void> _initModules() async {
@@ -573,6 +552,10 @@ class Embed {
     modules.register(DartServicesModule());
 
     await modules.start();
+  }
+
+  void _initBusyLights() {
+    busyLight = DBusyLight(querySelector('#dartbusy'));
   }
 
   void _init() {
@@ -585,25 +568,10 @@ class Embed {
     editorFactory.registerCompleter(
         'dart', DartCompleter(dartServices, userCodeEditor.document));
 
-    keys.bind(['ctrl-space', 'macctrl-space'], () {
-      if (userCodeEditor.hasFocus) {
-        userCodeEditor.showCompletions();
-      }
-    }, 'Completion');
+    context.onDartDirty.listen((_) => busyLight.on());
+    context.onDartReconcile.listen((_) => performAnalysis());
 
-    keys.bind(['alt-enter'], () {
-      userCodeEditor.showCompletions(onlyShowFixes: true);
-    }, 'Quick fix');
-
-    keys.bind(['ctrl-enter', 'macctrl-enter'], _handleExecute, 'Run');
-    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
-      _showKeyboardDialog();
-    }, 'Keyboard Shortcuts');
-    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
-      _format();
-    }, 'Format');
-
-    document.onKeyUp.listen(_handleAutoCompletion);
+    initKeyBindings();
 
     var horizontal = true;
     var webOutput = querySelector('#web-output');
@@ -645,6 +613,26 @@ class Embed {
 
     // set enabled/disabled state of various buttons
     editorIsBusy = false;
+  }
+
+  @override
+  void initKeyBindings() {
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
+      if (userCodeEditor.hasFocus) {
+        userCodeEditor.showCompletions();
+      }
+    }, 'Completion');
+
+    keys.bind(['alt-enter'], () {
+      userCodeEditor.showCompletions(onlyShowFixes: true);
+    }, 'Quick fix');
+
+    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
+      _format();
+    }, 'Format');
+
+    document.onKeyUp.listen(_handleAutoCompletion);
+    super.initKeyBindings();
   }
 
   Future<void> _loadAndShowGist({bool analyze = true}) async {
@@ -689,11 +677,11 @@ class Embed {
       });
 
       if (analyze) {
-        _performAnalysis();
+        unawaited(performAnalysis());
       }
 
       if (autoRunEnabled) {
-        _handleExecute();
+        unawaited(handleRun());
       }
     } on GistLoaderException catch (ex) {
       // No gist was loaded, so clear the editors.
@@ -733,6 +721,7 @@ class Embed {
 
   void _resetCode() {
     setContextSources(lastInjectedSourceCode);
+    Timer.run(() => unawaited(performAnalysis()));
   }
 
   void _handleCopyCode() {
@@ -799,17 +788,22 @@ class Embed {
     editorIsBusy = false;
   }
 
-  void _handleExecute() {
+  @override
+  String get fullDartSource => '${context.dartSource}\n${context.testMethod}\n'
+      '${executionService.testResultDecoration}';
+
+  @override
+  Future<bool> handleRun() async {
     if (editorIsBusy) {
-      return;
+      return false;
     }
 
     if (context.dartSource.isEmpty) {
-      dialog.showOk(
+      unawaited(dialog.showOk(
           'No code to execute',
           'Try entering some Dart code into the "Dart" tab, then click this '
-              'button again to run it.');
-      return;
+              'button again to run it.'));
+      return false;
     }
 
     _executionButtonCount++;
@@ -820,64 +814,15 @@ class Embed {
     hintBox.hide();
     consoleExpandController.clear();
 
-    final fullCode = '${context.dartSource}\n${context.testMethod}\n'
-        '${executionSvc.testResultDecoration}';
+    var success = await super.handleRun();
 
-    var input = CompileRequest()..source = fullCode;
-    if (options.mode == EmbedMode.flutter) {
-      dartServices
-          .compileDDC(input)
-          .timeout(longServiceCallTimeout)
-          .then((CompileDDCResponse response) {
-        executionSvc.execute(
-          '',
-          '',
-          response.result,
-          modulesBaseUrl: response.modulesBaseUrl,
-        );
-        ga?.sendEvent('execution', 'ddc-compile-success');
-      }).catchError((e, st) {
-        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
-            error: true);
-        print(st);
-        ga?.sendEvent('execution', 'ddc-compile-failure');
-      }).whenComplete(() {
-        webOutputLabel.setAttr('hidden');
-        editorIsBusy = false;
-      });
-    } else if (options.mode == EmbedMode.html) {
-      dartServices
-          .compile(input)
-          .timeout(longServiceCallTimeout)
-          .then((CompileResponse response) {
-        ga?.sendEvent('execution', 'html-compile-success');
-        return executionSvc.execute(
-            context.htmlSource, context.cssSource, response.result);
-      }).catchError((e, st) {
-        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
-            error: true);
-        print(st);
-        ga?.sendEvent('execution', 'html-compile-failure');
-      }).whenComplete(() {
-        webOutputLabel.setAttr('hidden');
-        editorIsBusy = false;
-      });
-    } else {
-      dartServices
-          .compile(input)
-          .timeout(longServiceCallTimeout)
-          .then((CompileResponse response) {
-        executionSvc.execute('', '', response.result);
-        ga?.sendEvent('execution', 'compile-success');
-      }).catchError((e, st) {
-        consoleExpandController.showOutput('Error compiling to JavaScript:\n$e',
-            error: true);
-        print(st);
-        ga?.sendEvent('execution', 'compile-failure');
-      }).whenComplete(() {
-        editorIsBusy = false;
-      });
-    }
+    editorIsBusy = false;
+
+    // The iframe will show Flutter output for the rest of the lifetime of the
+    // app, so hide the label.
+    webOutputLabel?.setAttr('hidden');
+
+    return success;
   }
 
   void _sendVirtualPageView(String id) {
@@ -889,72 +834,11 @@ class Embed {
     ga?.sendPage(pageName: path);
   }
 
-  void _displayIssues(List<AnalysisIssue> issues) {
+  @override
+  void displayIssues(List<AnalysisIssue> issues) {
     testResultBox.hide();
     hintBox.hide();
     analysisResultsController.display(issues);
-  }
-
-  /// Perform static analysis of the source code.
-  void _performAnalysis([_]) {
-    _debounceTimer.invoke(() {
-      final dartServices = deps[DartservicesApi] as DartservicesApi;
-      final userSource = context.dartSource;
-      // Create a synthesis of the user code and other code to analyze.
-      final fullSource = '$userSource\n'
-          '${context.testMethod}\n'
-          '${executionSvc.testResultDecoration}\n';
-      final sourceRequest = SourceRequest()..source = fullSource;
-      final lines = Lines(sourceRequest.source);
-
-      dartServices
-          .analyze(sourceRequest)
-          .timeout(serviceCallTimeout)
-          .then((AnalysisResults result) {
-        // Discard if the document has been mutated since we requested analysis.
-        if (userSource != context.dartSource) return;
-
-        _displayIssues(result.issues);
-
-        var issues = result.issues.map((AnalysisIssue issue) {
-          final charStart = issue.charStart;
-          final startLine = lines.getLineForOffset(charStart);
-          final endLine = lines.getLineForOffset(charStart + issue.charLength);
-
-          return Annotation(
-            issue.kind,
-            issue.message,
-            issue.line,
-            start: Position(
-              startLine,
-              charStart - lines.offsetForLine(startLine),
-            ),
-            end: Position(
-              endLine,
-              charStart + issue.charLength - lines.offsetForLine(startLine),
-            ),
-          );
-        });
-
-        userCodeEditor.document.setAnnotations(issues.toList());
-      }).catchError((e) {
-        if (e is! TimeoutException) {
-          final message = e is ApiRequestError ? e.message : '$e';
-
-          _displayIssues([
-            AnalysisIssue()
-              ..kind = 'error'
-              ..line = 1
-              ..message = message
-          ]);
-          userCodeEditor.document.setAnnotations([]);
-        }
-      });
-    });
-  }
-
-  void _showKeyboardDialog() {
-    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
   }
 
   WindowBase get _hostWindow {
@@ -983,6 +867,7 @@ class Embed {
       formatButton.disabled = true;
       var result = await dartServices.format(input).timeout(serviceCallTimeout);
 
+      busyLight.reset();
       formatButton.disabled = false;
 
       // Check that the user hasn't edited the source since the format request.
@@ -990,10 +875,11 @@ class Embed {
         // And, check that the format request did modify the source code.
         if (originalSource != result.newString) {
           userCodeEditor.document.updateValue(result.newString);
-          _performAnalysis();
+          unawaited(performAnalysis());
         }
       }
     } catch (e) {
+      busyLight.reset();
       formatButton.disabled = false;
       print(e);
     }
@@ -1023,6 +909,22 @@ class Embed {
         doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
 
     if (focus) userCodeEditor.focus();
+  }
+
+  @override
+  void clearOutput() {
+    consoleExpandController.clear();
+  }
+
+  @override
+  bool get shouldAddFirebaseJs => hasFirebaseContent(fullDartSource);
+
+  @override
+  bool get shouldCompileDDC => options.mode == EmbedMode.flutter;
+
+  @override
+  void showOutput(String message, {bool error = false}) {
+    consoleExpandController.showOutput(message, error: error);
   }
 }
 
@@ -1270,7 +1172,7 @@ class ConsoleExpandController extends Console {
   }
 }
 
-class EmbedContext {
+class EmbedContext implements ContextBase {
   final Editor userCodeEditor;
   final Editor htmlEditor;
   final Editor cssEditor;
@@ -1313,10 +1215,13 @@ class EmbedContext {
 
   Document get dartDocument => _dartDoc;
 
+  @override
   String get dartSource => _dartDoc.value;
 
+  @override
   String get htmlSource => _htmlDoc?.value;
 
+  @override
   String get cssSource => _cssDoc?.value;
 
   set dartSource(String value) {
@@ -1357,6 +1262,9 @@ class EmbedContext {
     // TODO(DomesticMouse): implement with CodeMirror integration
     return false;
   }
+
+  @override
+  bool get isFocused => userCodeEditor.hasFocus;
 }
 
 final RegExp _flutterUrlExp =

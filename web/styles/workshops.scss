@@ -1,0 +1,342 @@
+@import 'package:dart_pad/scss/colors';
+@import 'package:dart_pad/scss/layout';
+@import 'package:dart_pad/scss/shared';
+@import 'package:dart_pad/scss/variables';
+
+// Material Design Web theme colors. Must be imported before importing
+// material-components-web.scss.
+$mdc-theme-primary: #168AFD;
+$mdc-theme-secondary: #676767;
+$mdc-theme-background: $playground-background-color;
+$mdc-theme-surface: $playground-background-color;
+$mdc-theme-error: $dark-red;
+
+@import 'package:mdc_web/material-components-web';
+@import 'shared';
+
+header {
+  background-color: $playground-header-background-color;
+  height: 48px;
+  padding-left: 24px;
+  @include layout-center;
+  z-index: 4;
+  user-select: none;
+
+  .header-title {
+    @include layout;
+    @include layout-center;
+    font-family: $google-sans;
+    font-weight: 400;
+    font-size: 16pt;
+    margin-right: 8px;
+
+    img.logo {
+      height: 24px;
+      width: 24px;
+      margin-right: 8px;
+    }
+  }
+
+  button.mdc-button {
+    @include mdc-button-ink-color(#f8f9fa);
+    text-transform: none !important;
+    letter-spacing: normal;
+  }
+
+  #workshop-name {
+    @include layout-flex;
+    @include layout-horizontal;
+    @include layout-center-justified;
+    font-size: 14pt;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-left: 1em;
+    margin-right: 1em;
+    user-select: none;
+  }
+}
+
+body {
+  background-color: $playground-background-color;
+  color: $playground-text-color;
+  font-family: $normal-font;
+  font-size: 14px;
+  overflow: hidden;
+  @include layout-vertical;
+  @include layout-fit;
+}
+
+// Main section
+section.main-section {
+  @include layout-flex;
+  @include layout;
+  @include layout-relative;
+
+  .panels {
+    @include layout;
+    @include layout-fit;
+  }
+}
+
+// Panels
+#right-panel {
+  @include layout-vertical();
+}
+
+#editor-panel, #output-panel {
+  @include layout-flex;
+}
+
+// Steps panel
+#steps-row {
+  @include layout-horizontal();
+  @include layout-center();
+  @include layout-relative();
+  width: 100%;
+}
+
+#show-solution-btn {
+  margin: 8px;
+}
+
+#steps-panel {
+  @include layout-vertical();
+  @include layout-center();
+  min-width: 500px;
+}
+
+#markdown-content {
+  @include layout-flex();
+  width: 100%;
+  overflow-y: auto;
+
+  > * {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  // Add a border
+  table, th, td {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 1px solid $workshop-table-border-color;
+  }
+
+  table {
+    font-size: 16px;
+    thead {
+      display: table-header-group;
+      vertical-align: middle;
+    }
+    
+    td, th {
+      padding: 6px 14px
+    }
+    
+    tr {
+      background-color: $workshop-table-bg-color;
+      &:nth-child(2n) {
+        background-color: lighten($workshop-table-bg-color, 3%);
+      }
+    }
+  }
+
+  // Inline <code> elements, not code blocks.
+  code:not(pre code) {
+    background-color: $workshop-snippet-bg-color;
+    color: opacify($dark-blue, 0.75);
+    padding: 4px 6px 4px 6px;
+    border-radius: 4px;
+  }
+
+  p {
+    font-size: 16px;
+    color: $dark-editor-text;
+    line-height: 28px;
+  }
+
+  img {
+    width: 100%;
+  }
+}
+
+#step-button-container {
+  @include layout-horizontal();
+  @include layout-center();
+  @include layout-flex();
+  @include layout-center-justified();
+}
+
+#steps-label {
+  padding: 12px;
+}
+
+#next-step-btn, #previous-step-btn {
+  @include mdc-icon-button-size(32px, 32px);
+}
+
+// Editor panel
+#editor-panel {
+  @include layout-vertical;
+  @include layout-relative;
+}
+#editor-host {
+  @include layout-vertical;
+  @include layout-flex;
+  margin: 8px 0 0 0;
+  padding: 0 8px;
+
+  .CodeMirror {
+    @include layout-flex;
+    font-family: $editor-font;
+    font-size: $playground-editor-font-size;
+  }
+}
+
+.button-group {
+  @include layout-horizontal;
+  @include layout-center;
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 8px 24px 0 0;
+  z-index: 5;
+}
+
+// Console panel
+#output-panel {
+  @include layout-vertical();
+}
+
+#output-panel-content {
+  @include layout-flex();
+  overflow-y: scroll;
+}
+
+.console {
+  @include layout-flex;
+  font-family: $editor-font;
+  font-size: 14px;
+  line-height: 20px;
+  min-height: 50px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  padding: $doc-console-padding;
+
+  .normal {
+    color: $dark-editor-text;
+  }
+
+  .error-output {
+    color: $dark-pink;
+  }
+}
+
+// iframe element
+
+iframe {
+  @include layout-flex;
+  border: none;
+}
+
+// Links
+a {
+  color: $playground-link-color;
+  fill: $playground-text-color;
+
+  &:visited {
+    color: $playground-link-color;
+    fill: $playground-link-color;
+  }
+
+  &:hover {
+    color: $playground-text-color;
+    fill: $playground-text-color;
+  }
+}
+
+// Footer
+body>footer {
+  background-color: $playground-footer-background-color;
+  @include layout-horizontal;
+  @include layout-center;
+  padding: 8px 24px;
+  .flex {
+    @include layout-flex;
+  }
+
+  .footer-item {
+    margin-right: 14px;
+  }
+
+  * {
+    margin-right: 4px;
+  }
+}
+
+// Issues
+#issues {
+  background-color: $dark-issues-background-color;
+  border: 8px solid $dark-issues-background-color;
+}
+
+.issue .issuelabel {
+  color: $dark-issue-label-color;
+}
+
+.issue:hover {
+  background-color: darken($dark-issues-background-color, 3%);
+}
+
+.issue .message {
+  color: $dark-issue-label-color;
+}
+
+#issues-toggle, .issue-anchor {
+  color: $mdc-theme-primary;
+  &:visited {
+    color: $mdc-theme-primary;
+  }
+
+  &:hover {
+    color: darken($mdc-theme-primary, 12%);
+  }
+}
+
+// Splitter
+.gutter {
+  background-color: $dark-gutter-background-color;
+  background-repeat: no-repeat;
+  background-position: 50%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.gutter.gutter-horizontal {
+  background-repeat: repeat-y;
+  cursor: col-resize;
+  height: 100%;
+}
+
+.gutter.gutter-vertical {
+  background-repeat: repeat-x;
+  cursor: row-resize;
+  width: 100%;
+}
+
+// Editor Tabs
+.editor-tab {
+  @include mdc-button-ink-color(#f8f9fa);
+  color: $label-color;
+  &.active {
+    color: $dark-blue;
+  }
+}
+
+.border-top {
+  border-top: 6px solid $dark-gutter-background-color !important;
+}
+
+#editor-panel-close-button {
+  @include mdc-icon-button-size(16px, 16px, 8px);
+}

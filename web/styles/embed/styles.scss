@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-@import "package:mdc_web/material-components-web";
 @import 'package:dart_pad/scss/colors';
-@import 'package:dart_pad/scss/variables';
+@import 'package:dart_pad/scss/layout';
 @import 'package:dart_pad/scss/shared';
+@import 'package:dart_pad/scss/variables';
+
+@import "package:mdc_web/material-components-web";
 
 * {
   box-sizing: border-box;
@@ -58,11 +60,14 @@ body {
 #user-code-editor, #solution-editor, #test-editor, #html-editor, #solution-editor {
   flex: 1;
   width: 100%;
-  margin-right: 8px;
 }
 
 .CodeMirror-hints {
   max-height: 11em;
+}
+
+.CodeMirror-simplescroll-vertical {
+  margin-right: 4px;
 }
 
 // Console

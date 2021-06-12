@@ -4,25 +4,36 @@
 
 library dart_pad.common;
 
-// The endpoint running dart-services.
-const serverUrl = 'https://v1.api.dartpad.dev/';
+/// The environment variable name which specifies the URL of the pre-null safety
+/// back-end server.
+///
+/// This typically is specified in `dart2js_args` passed via a build_runner
+/// option. The `grind build` task specifies this option.
+const preNullSafetyServerUrlEnvironmentVar = 'PRE_NULL_SAFETY_SERVER_URL';
 
-// Used when null safety is enabled in the UI.
-const nullSafetyServerUrl = 'https://nullsafety.api.dartpad.dev/';
+/// The URL of the pre-null safety back-end server.
+const preNullSafetyServerUrl =
+    String.fromEnvironment(preNullSafetyServerUrlEnvironmentVar);
 
-// A URL to use while debugging.
-// final serverUrl = 'http://127.0.0.1:8082/';
+/// The environment variable name which specifies the URL of the null safety
+/// back-end server.
+///
+/// This typically is specified in `dart2js_args` passed via a build_runner
+/// option. The `grind build` task specifies this option.
+const nullSafetyServerUrlEnvironmentVar = 'NULL_SAFETY_SERVER_URL';
+
+/// The URL of the null safety back-end server.
+const nullSafetyServerUrl =
+    String.fromEnvironment(nullSafetyServerUrlEnvironmentVar);
+
+// Alternate versions for development purposes
+// const serverUrl = 'https://old.api.dartpad.dev/';
+// const serverUrl = 'https://stable.api.dartpad.dev/';
+// const serverUrl = 'https://beta.api.dartpad.dev/';
+// const serverUrl = 'https://dev.api.dartpad.dev/';
 
 const Duration serviceCallTimeout = Duration(seconds: 10);
 const Duration longServiceCallTimeout = Duration(seconds: 60);
-
-class StringTextProvider {
-  final String _text;
-
-  StringTextProvider(this._text);
-
-  String getText() => _text;
-}
 
 class Lines {
   final _starts = <int>[];

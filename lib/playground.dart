@@ -10,9 +10,9 @@ import 'dart:html' hide Console;
 import 'package:dart_pad/editing/editor_codemirror.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
-import 'package:meta/meta.dart';
 import 'package:route_hierarchical/client.dart';
 import 'package:split/split.dart';
+import 'package:stream_transform/stream_transform.dart';
 
 import 'check_localstorage.dart';
 import 'completion.dart';
@@ -22,7 +22,7 @@ import 'core/keys.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'documentation.dart';
-import 'editing/editor.dart';
+import 'editing/codemirror_options.dart';
 import 'elements/analysis_results_controller.dart';
 import 'elements/bind.dart';
 import 'elements/button.dart';
@@ -31,6 +31,7 @@ import 'elements/counter.dart';
 import 'elements/dialog.dart';
 import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
+import 'elements/tab_expand_controller.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -39,34 +40,14 @@ import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_doc_property.dart';
+import 'sharing/editor_ui.dart';
 import 'sharing/gist_file_property.dart';
 import 'sharing/gist_storage.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 import 'src/ga.dart';
-import 'src/util.dart';
 import 'util/detect_flutter.dart';
-import 'util/keymap.dart';
 import 'util/query_params.dart' show queryParams;
-
-const codeMirrorOptions = {
-  'continueComments': {'continueLineComment': false},
-  'autofocus': false,
-  'autoCloseBrackets': true,
-  'matchBrackets': true,
-  'tabSize': 2,
-  'lineWrapping': true,
-  'indentUnit': 2,
-  'cursorHeight': 0.85,
-  'viewportMargin': 100,
-  'extraKeys': {
-    'Cmd-/': 'toggleComment',
-    'Ctrl-/': 'toggleComment',
-    'Tab': 'insertSoftTab'
-  },
-  'hintOptions': {'completeSingle': false},
-  'scrollbarStyle': 'simple',
-};
 
 Playground get playground => _playground;
 
@@ -78,7 +59,7 @@ void init() {
   _playground = Playground();
 }
 
-class Playground implements GistContainer, GistController {
+class Playground extends EditorUi implements GistContainer, GistController {
   final MutableGist editableGist = MutableGist(Gist());
   GistStorage _gistStorage;
   MDCButton newButton;
@@ -86,7 +67,6 @@ class Playground implements GistContainer, GistController {
   MDCButton formatButton;
   MDCButton installButton;
   MDCButton samplesButton;
-  MDCButton runButton;
   MDCButton editorConsoleTab;
   MDCButton editorDocsTab;
   MDCButton closePanelButton;
@@ -95,7 +75,6 @@ class Playground implements GistContainer, GistController {
   DElement editorPanelFooter;
   MDCMenu samplesMenu;
   MDCMenu moreMenu;
-  Dialog dialog;
   NewPadDialog newPadDialog;
   DElement titleElement;
   MaterialTabController webLayoutTabController;
@@ -107,14 +86,10 @@ class Playground implements GistContainer, GistController {
   Splitter rightSplitter;
   bool rightSplitterConfigured = false;
   TabExpandController tabExpandController;
-  AnalysisResultsController analysisResultsController;
-
-  DBusyLight busyLight;
   DBusyLight consoleBusyLight;
 
-  Editor editor;
-  PlaygroundContext _context;
-  Future _analysisRequest;
+  @override
+  PlaygroundContext context;
   Layout _layout;
 
   // The last returned shared gist used to update the url.
@@ -124,8 +99,6 @@ class Playground implements GistContainer, GistController {
   Console _leftConsole;
   Console _rightConsole;
   Counter unreadConsoleCounter;
-
-  bool nullSafetyEnabled;
 
   Playground() {
     _initDialogs();
@@ -179,7 +152,6 @@ class Playground implements GistContainer, GistController {
   bool get _isCompletionActive => editor.completionActive;
 
   void _initDialogs() {
-    dialog = Dialog();
     newPadDialog = NewPadDialog();
   }
 
@@ -197,8 +169,7 @@ class Playground implements GistContainer, GistController {
   void _initGistStorage() {
     // If there was a change, and the gist is dirty, write the gist's contents
     // to storage.
-    debounceStream(mutableGist.onChanged, Duration(milliseconds: 100))
-        .listen((_) {
+    mutableGist.onChanged.debounce(Duration(milliseconds: 100)).listen((_) {
       if (mutableGist.dirty) {
         _gistStorage.setStoredGist(mutableGist.createGist());
       }
@@ -206,11 +177,10 @@ class Playground implements GistContainer, GistController {
   }
 
   void _initLayoutDetection() {
-    debounceStream(mutableGist.onChanged, Duration(milliseconds: 32))
-        .listen((_) {
-      if (hasFlutterContent(_context.dartSource)) {
+    mutableGist.onChanged.debounce(Duration(milliseconds: 32)).listen((_) {
+      if (hasFlutterContent(context.dartSource)) {
         _changeLayout(Layout.flutter);
-      } else if (hasHtmlContent(_context.dartSource)) {
+      } else if (hasHtmlContent(context.dartSource)) {
         _changeLayout(Layout.html);
       } else {
         _changeLayout(Layout.dart);
@@ -235,7 +205,7 @@ class Playground implements GistContainer, GistController {
 
     runButton = MDCButton(querySelector('#run-button') as ButtonElement)
       ..onClick.listen((_) {
-        _handleRun();
+        handleRun();
       });
     editorConsoleTab =
         MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
@@ -252,13 +222,19 @@ class Playground implements GistContainer, GistController {
       });
     querySelector('#keyboard-button')
         .onClick
-        .listen((_) => _showKeyboardDialog());
-    nullSafetyEnabled = window.localStorage.containsKey('null_safety') &&
-        window.localStorage['null_safety'] == 'true';
+        .listen((_) => showKeyboardDialog());
+    querySelector('#dartpad-package-versions')
+        .onClick
+        .listen((_) => showPackageVersionsDialog());
 
-    // Override if a query parameter is provided
+    // Query params have higher precedence than local storage
     if (queryParams.hasNullSafety) {
       nullSafetyEnabled = queryParams.nullSafety;
+    } else if (window.localStorage.containsKey('null_safety')) {
+      nullSafetyEnabled = window.localStorage['null_safety'] == 'true';
+    } else {
+      // Default to null safety
+      nullSafetyEnabled = true;
     }
 
     nullSafetySwitch = MDCSwitch(querySelector('#null-safety-switch'))
@@ -448,7 +424,7 @@ class Playground implements GistContainer, GistController {
       webLayoutTabController.registerTab(
           TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
         ga.sendEvent('edit', name);
-        _context.switchTo(name);
+        context.switchTo(name);
       }));
     }
   }
@@ -489,9 +465,9 @@ class Playground implements GistContainer, GistController {
 
   void _initPlayground() {
     // Set up the iframe.
-    deps[ExecutionService] = ExecutionServiceIFrame(_frame);
-    executionService.onStdout.listen(_showOutput);
-    executionService.onStderr.listen((m) => _showOutput(m, error: true));
+    executionService = ExecutionServiceIFrame(_frame);
+    executionService.onStdout.listen(showOutput);
+    executionService.onStderr.listen((m) => showOutput(m, error: true));
 
     // Set up Google Analytics.
     deps[Analytics] = Analytics();
@@ -503,61 +479,33 @@ class Playground implements GistContainer, GistController {
     editor = (editorFactory as CodeMirrorFactory)
         .createFromElement(_editorHost, options: codeMirrorOptions)
           ..theme = 'darkpad'
-          ..mode = 'dart';
+          ..mode = 'dart'
+          ..showLineNumbers = true;
 
-    // set up key bindings
-    keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
-    keys.bind(['ctrl-enter'], _handleRun, 'Run');
-    keys.bind(['f1'], () {
-      ga.sendEvent('main', 'help');
-      docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
-    }, 'Documentation');
+    initKeyBindings();
 
-    keys.bind(['alt-enter'], () {
-      editor.showCompletions(onlyShowFixes: true);
-    }, 'Quick fix');
-
-    keys.bind(['ctrl-space', 'macctrl-space'], () {
-      editor.showCompletions();
-    }, 'Completion');
-
-    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
-      _showKeyboardDialog();
-    }, 'Keyboard Shortcuts');
-    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
-      _format();
-    }, 'Format');
-
-    document.onKeyUp.listen((e) {
-      if (editor.completionActive ||
-          DocHandler.cursorKeys.contains(e.keyCode)) {
-        docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
-      }
-      _handleAutoCompletion(e);
-    });
-
-    _context = PlaygroundContext(editor);
-    deps[Context] = _context;
+    context = PlaygroundContext(editor);
+    deps[Context] = context;
 
     editorFactory.registerCompleter(
-        'dart', DartCompleter(dartServices, _context.dartDocument));
+        'dart', DartCompleter(dartServices, context.dartDocument));
 
-    _context.onDartDirty.listen((_) => busyLight.on());
-    _context.onDartReconcile.listen((_) => _performAnalysis());
+    context.onDartDirty.listen((_) => busyLight.on());
+    context.onDartReconcile.listen((_) => performAnalysis());
 
     Property htmlFile =
         GistFileProperty(editableGist.getGistFile('index.html'));
-    Property htmlDoc = EditorDocumentProperty(_context.htmlDocument, 'html');
+    Property htmlDoc = EditorDocumentProperty(context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
     Property cssFile = GistFileProperty(editableGist.getGistFile('styles.css'));
-    Property cssDoc = EditorDocumentProperty(_context.cssDocument, 'css');
+    Property cssDoc = EditorDocumentProperty(context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
     Property dartFile = GistFileProperty(editableGist.getGistFile('main.dart'));
-    Property dartDoc = EditorDocumentProperty(_context.dartDocument, 'dart');
+    Property dartDoc = EditorDocumentProperty(context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
@@ -565,7 +513,7 @@ class Playground implements GistContainer, GistController {
     editor.onMouseDown.listen((e) {
       // Delay to give codemirror time to process the mouse event.
       Timer.run(() {
-        if (!_context.cursorPositionIsWhitespace()) {
+        if (!context.cursorPositionIsWhitespace()) {
           docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
         }
       });
@@ -592,28 +540,50 @@ class Playground implements GistContainer, GistController {
     router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
     router.listen();
 
-    docHandler = DocHandler(editor, _context);
+    docHandler = DocHandler(editor, context);
 
-    updateVersion();
+    updateVersions();
 
     analysisResultsController = AnalysisResultsController(
         DElement(querySelector('#issues')),
         DElement(querySelector('#issues-message')),
         DElement(querySelector('#issues-toggle')))
-      ..onIssueClick.listen((issue) {
-        _jumpTo(issue.line, issue.charStart, issue.charLength, focus: true);
+      ..onItemClicked.listen((item) {
+        _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 
     _finishedInit();
   }
 
-  void updateVersion() {
-    dartServices.version().then((VersionResponse version) {
-      // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
-      var versionText = 'Based on Flutter ${version.flutterVersion}'
-          ' Dart SDK ${version.sdkVersionFull}';
-      querySelector('#dartpad-version').text = versionText;
-    }).catchError((e) => null);
+  @override
+  void initKeyBindings() {
+    keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
+    keys.bind(['f1'], () {
+      ga.sendEvent('main', 'help');
+      docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
+    }, 'Documentation');
+
+    keys.bind(['alt-enter'], () {
+      editor.showCompletions(onlyShowFixes: true);
+    }, 'Quick fix');
+
+    keys.bind(['ctrl-space', 'macctrl-space'], () {
+      editor.showCompletions();
+    }, 'Completion');
+
+    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
+      _format();
+    }, 'Format');
+
+    document.onKeyUp.listen((e) {
+      if (editor.completionActive ||
+          DocHandler.cursorKeys.contains(e.keyCode)) {
+        docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
+      }
+      _handleAutoCompletion(e);
+    });
+
+    super.initKeyBindings();
   }
 
   void _finishedInit() {
@@ -663,7 +633,7 @@ class Playground implements GistContainer, GistController {
     }
 
     // Clear console output and update the layout if necessary.
-    _clearOutput();
+    clearOutput();
 
     final line = queryParams.line;
     if (line != null) {
@@ -671,7 +641,7 @@ class Playground implements GistContainer, GistController {
     }
 
     // Run asynchronously to wait for _context.dartSource to exist
-    Timer.run(_performAnalysis);
+    Timer.run(performAnalysis);
   }
 
   Gist _createGist(Layout layout) {
@@ -722,7 +692,7 @@ class Playground implements GistContainer, GistController {
   void showGist(RouteEnterEvent event) {
     var gistId = event.parameters['gist'] as String;
 
-    _clearOutput();
+    clearOutput();
 
     if (!isLegalGistId(gistId)) {
       showHome(event);
@@ -760,153 +730,37 @@ class Playground implements GistContainer, GistController {
         }
       }
 
-      _clearOutput();
+      clearOutput();
 
       _changeLayout(_detectLayout(gist));
 
       // Analyze and run it.
       Timer.run(() {
-        _performAnalysis().then((bool result) {
+        performAnalysis().then((bool result) {
           // Only auto-run if the static analysis comes back clean.
           if (result && !loadedFromSaved) {
-            _handleRun();
+            handleRun();
           }
         }).catchError((e) => null);
       });
     }).catchError((e) {
       var message = 'Error loading gist $gistId.';
-      _showSnackbar(message);
+      showSnackbar(message);
       _logger.severe('$message: $e');
     });
   }
 
-  void _showKeyboardDialog() {
-    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
-  }
-
-  void _handleRun() async {
-    ga.sendEvent('main', 'run');
-    runButton.disabled = true;
-
-    var compilationTimer = Stopwatch()..start();
-
-    final compileRequest = CompileRequest()..source = context.dartSource;
-
-    try {
-      if (hasFlutterContent(_context.dartSource)) {
-        final response = await dartServices
-            .compileDDC(compileRequest)
-            .timeout(longServiceCallTimeout);
-
-        ga.sendTiming(
-          'action-perf',
-          'compilation-e2e',
-          compilationTimer.elapsedMilliseconds,
-        );
-
-        _clearOutput();
-
-        await executionService.execute(
-          _context.htmlSource,
-          _context.cssSource,
-          response.result,
-          modulesBaseUrl: response.modulesBaseUrl,
-        );
-      } else {
-        final response = await dartServices
-            .compile(compileRequest)
-            .timeout(longServiceCallTimeout);
-
-        ga.sendTiming(
-          'action-perf',
-          'compilation-e2e',
-          compilationTimer.elapsedMilliseconds,
-        );
-
-        _clearOutput();
-
-        await executionService.execute(
-          _context.htmlSource,
-          _context.cssSource,
-          response.result,
-        );
-      }
-    } catch (e) {
-      ga.sendException('${e.runtimeType}');
-      final message = e is ApiRequestError ? e.message : '$e';
-      _showSnackbar('Error compiling to JavaScript');
-      _clearOutput();
-      _showOutput('Error compiling to JavaScript:\n$message', error: true);
-    } finally {
-      runButton.disabled = false;
+  @override
+  Future<bool> handleRun() async {
+    var success = await super.handleRun();
+    if (success) {
       webOutputLabel.setAttr('hidden');
     }
-  }
-
-  /// Perform static analysis of the source code. Return whether the code
-  /// analyzed cleanly (had no errors or warnings).
-  Future<bool> _performAnalysis() {
-    var input = SourceRequest()..source = _context.dartSource;
-
-    var lines = Lines(input.source);
-
-    var request = dartServices.analyze(input).timeout(serviceCallTimeout);
-    _analysisRequest = request;
-
-    return request.then((AnalysisResults result) {
-      // Discard if we requested another analysis.
-      if (_analysisRequest != request) return false;
-
-      // Discard if the document has been mutated since we requested analysis.
-      if (input.source != _context.dartSource) return false;
-
-      busyLight.reset();
-
-      _displayIssues(result.issues);
-
-      _context.dartDocument
-          .setAnnotations(result.issues.map((AnalysisIssue issue) {
-        var startLine = lines.getLineForOffset(issue.charStart);
-        var endLine =
-            lines.getLineForOffset(issue.charStart + issue.charLength);
-
-        var start = Position(
-            startLine, issue.charStart - lines.offsetForLine(startLine));
-        var end = Position(
-            endLine,
-            issue.charStart +
-                issue.charLength -
-                lines.offsetForLine(startLine));
-
-        return Annotation(issue.kind, issue.message, issue.line,
-            start: start, end: end);
-      }).toList());
-
-      var hasErrors = result.issues.any((issue) => issue.kind == 'error');
-      var hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
-
-      return hasErrors == false && hasWarnings == false;
-    }).catchError((e) {
-      if (e is! TimeoutException) {
-        final message = e is ApiRequestError ? e.message : '$e';
-
-        _displayIssues([
-          AnalysisIssue()
-            ..kind = 'error'
-            ..line = 1
-            ..message = message
-        ]);
-      } else {
-        _logger.severe(e);
-      }
-
-      _context.dartDocument.setAnnotations([]);
-      busyLight.reset();
-    });
+    return success;
   }
 
   Future<void> _format() {
-    var originalSource = _context.dartSource;
+    var originalSource = context.dartSource;
     var input = SourceRequest()..source = originalSource;
     formatButton.disabled = true;
 
@@ -922,9 +776,9 @@ class Playground implements GistContainer, GistController {
 
       if (originalSource != result.newString) {
         editor.document.updateValue(result.newString);
-        _showSnackbar('Format successful.');
+        showSnackbar('Format successful.');
       } else {
-        _showSnackbar('No formatting changes.');
+        showSnackbar('No formatting changes.');
       }
     }).catchError((e) {
       busyLight.reset();
@@ -933,30 +787,32 @@ class Playground implements GistContainer, GistController {
     });
   }
 
+  @override
+  bool get shouldCompileDDC => hasFlutterContent(context.dartSource);
+
+  @override
+  bool get shouldAddFirebaseJs => hasFirebaseContent(context.dartSource);
+
   void _handleSave() => ga.sendEvent('main', 'save');
 
-  void _clearOutput() {
+  @override
+  void clearOutput() {
     _rightConsole.clear();
     _leftConsole.clear();
     unreadConsoleCounter.clear();
   }
 
-  void _showOutput(String message, {bool error = false}) {
+  @override
+  void showOutput(String message, {bool error = false}) {
     _leftConsole.showOutput(message, error: error);
     _rightConsole.showOutput(message, error: error);
 
-    // If there's no tabs visible or the console is not being displayed,
-    // increment the counter
+    // If there are no tabs visible or the console is not being displayed,
+    // increment the counter.
     if (tabExpandController == null ||
-        tabExpandController?.state != TabState.console) {
+        tabExpandController.state != TabState.console) {
       unreadConsoleCounter.increment();
     }
-  }
-
-  void _showSnackbar(String message) {
-    var div = querySelector('.mdc-snackbar');
-    var snackbar = MDCSnackbar(div)..labelText = message;
-    snackbar.open();
   }
 
   Layout _detectLayout(Gist gist) {
@@ -976,58 +832,66 @@ class Playground implements GistContainer, GistController {
 
     _layout = layout;
 
-    if (layout == Layout.dart) {
-      _frame.hidden = true;
-      editorPanelFooter.setAttr('hidden');
-      _disposeOutputPanelTabs();
-      _rightDocPanel.attributes.remove('hidden');
-      _rightConsoleElement.attributes.remove('hidden');
-      webTabBar.setAttr('hidden');
-      webLayoutTabController.selectTab('dart');
-      _initRightSplitter();
-      editorPanelHeader.setAttr('hidden');
-      webOutputLabel.setAttr('hidden');
-    } else if (layout == Layout.html) {
-      _disposeRightSplitter();
-      _frame.hidden = false;
-      editorPanelFooter.clearAttr('hidden');
-      _initOutputPanelTabs();
-      _rightDocPanel.setAttribute('hidden', '');
-      _rightConsoleElement.setAttribute('hidden', '');
-      webTabBar.toggleAttr('hidden', false);
-      webLayoutTabController.selectTab('dart');
-      editorPanelHeader.clearAttr('hidden');
-      webOutputLabel.setAttr('hidden');
-    } else if (layout == Layout.flutter) {
-      _disposeRightSplitter();
-      _frame.hidden = false;
-      editorPanelFooter.clearAttr('hidden');
-      _initOutputPanelTabs();
-      _rightDocPanel.setAttribute('hidden', '');
-      _rightConsoleElement.setAttribute('hidden', '');
-      webTabBar.setAttr('hidden');
-      webLayoutTabController.selectTab('dart');
-      editorPanelHeader.setAttr('hidden');
-      webOutputLabel.clearAttr('hidden');
+    switch (layout) {
+      case Layout.dart:
+        _frame.hidden = true;
+        editorPanelFooter.setAttr('hidden');
+        _disposeOutputPanelTabs();
+        _rightDocPanel.attributes.remove('hidden');
+        _rightConsoleElement.attributes.remove('hidden');
+        webTabBar.setAttr('hidden');
+        webLayoutTabController.selectTab('dart');
+        _initRightSplitter();
+        editorPanelHeader.setAttr('hidden');
+        webOutputLabel.setAttr('hidden');
+        break;
+      case Layout.html:
+        _disposeRightSplitter();
+        _frame.hidden = false;
+        editorPanelFooter.clearAttr('hidden');
+        _initOutputPanelTabs();
+        _rightDocPanel.setAttribute('hidden', '');
+        _rightConsoleElement.setAttribute('hidden', '');
+        webTabBar.toggleAttr('hidden', false);
+        webLayoutTabController.selectTab('dart');
+        editorPanelHeader.clearAttr('hidden');
+        webOutputLabel.setAttr('hidden');
+        break;
+      case Layout.flutter:
+        _disposeRightSplitter();
+        _frame.hidden = false;
+        editorPanelFooter.clearAttr('hidden');
+        _initOutputPanelTabs();
+        _rightDocPanel.setAttribute('hidden', '');
+        _rightConsoleElement.setAttribute('hidden', '');
+        webTabBar.setAttr('hidden');
+        webLayoutTabController.selectTab('dart');
+        editorPanelHeader.setAttr('hidden');
+        webOutputLabel.clearAttr('hidden');
+        break;
     }
   }
 
   void _handleNullSafetySwitched(bool enabled) {
-    var api = deps[DartservicesApi] as DartservicesApi;
+    final api = deps[DartservicesApi] as DartservicesApi;
 
     if (enabled) {
       api.rootUrl = nullSafetyServerUrl;
       window.localStorage['null_safety'] = 'true';
+      nullSafetyEnabled = true;
+      nullSafetySwitch.root.title = 'Null safety is currently enabled';
     } else {
-      api.rootUrl = serverUrl;
+      api.rootUrl = preNullSafetyServerUrl;
       window.localStorage['null_safety'] = 'false';
+      nullSafetyEnabled = false;
+      nullSafetySwitch.root.title = 'Null safety is currently disabled';
     }
 
-    updateVersion();
+    updateVersions();
 
     queryParams.nullSafety = enabled;
 
-    _performAnalysis();
+    performAnalysis();
     _initSamplesMenu(nullSafe: enabled);
   }
 
@@ -1094,7 +958,7 @@ class Playground implements GistContainer, GistController {
 
     if (ga != null) ga.sendEvent('main', 'new');
 
-    _showSnackbar('New pad created');
+    showSnackbar('New pad created');
     await router.go('gist', {'gist': ''},
         queryParameters: queryParams.parameters, forceReload: true);
   }
@@ -1104,7 +968,7 @@ class Playground implements GistContainer, GistController {
 
     if (ga != null) ga.sendEvent('main', 'new');
 
-    _showSnackbar('New pad created');
+    showSnackbar('New pad created');
 
     var layoutStr = _layoutToString(layout);
 
@@ -1118,12 +982,8 @@ class Playground implements GistContainer, GistController {
     // Delay to give time for the model change event to propagate through
     // to the editor component (which is where `_performAnalysis()` pulls
     // the Dart source from).
-    Timer.run(_performAnalysis);
-    _clearOutput();
-  }
-
-  void _displayIssues(List<AnalysisIssue> issues) {
-    analysisResultsController.display(issues);
+    Timer.run(performAnalysis);
+    clearOutput();
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
@@ -1157,158 +1017,6 @@ enum Layout {
 
 String _layoutToString(Layout layout) {
   return layout.toString().split('.').last;
-}
-
-enum TabState {
-  closed,
-  docs,
-  console,
-}
-
-/// Manages the bottom-left panel and tabs
-class TabExpandController {
-  final MDCButton consoleButton;
-  final MDCButton docsButton;
-  final MDCButton closeButton;
-  final DElement console;
-  final DElement docs;
-  final Counter unreadCounter;
-
-  /// The element to give the top half of the split when this panel
-  /// opens
-  final Element topSplit;
-
-  /// The element to give the bottom half of the split
-  final Element bottomSplit;
-
-  final List<StreamSubscription> _subscriptions = [];
-
-  TabState _state;
-  Splitter _splitter;
-  bool _splitterConfigured = false;
-
-  TabState get state => _state;
-
-  TabExpandController({
-    @required this.consoleButton,
-    @required this.docsButton,
-    @required this.closeButton,
-    @required Element consoleElement,
-    @required Element docsElement,
-    @required this.topSplit,
-    @required this.bottomSplit,
-    @required this.unreadCounter,
-  })  : console = DElement(consoleElement),
-        docs = DElement(docsElement) {
-    _state = TabState.closed;
-    console.setAttr('hidden');
-    docs.setAttr('hidden');
-
-    _subscriptions.add(consoleButton.onClick.listen((_) {
-      toggleConsole();
-    }));
-
-    _subscriptions.add(docsButton.onClick.listen((_) {
-      toggleDocs();
-    }));
-
-    _subscriptions.add(closeButton.onClick.listen((_) {
-      _hidePanel();
-    }));
-  }
-
-  void toggleConsole() {
-    if (_state == TabState.closed) {
-      _showConsole();
-    } else if (_state == TabState.docs) {
-      _showConsole();
-      docs.setAttr('hidden');
-      docsButton.toggleClass('active', false);
-    } else if (_state == TabState.console) {
-      _hidePanel();
-    }
-  }
-
-  void toggleDocs() {
-    if (_state == TabState.closed) {
-      _showDocs();
-    } else if (_state == TabState.console) {
-      _showDocs();
-      console.setAttr('hidden');
-      consoleButton.toggleClass('active', false);
-    } else if (_state == TabState.docs) {
-      _hidePanel();
-    }
-  }
-
-  void _showConsole() {
-    unreadCounter.clear();
-    _state = TabState.console;
-    console.clearAttr('hidden');
-    bottomSplit.classes.remove('border-top');
-    consoleButton.toggleClass('active', true);
-    _initSplitter();
-    closeButton.toggleAttr('hidden', false);
-  }
-
-  void _hidePanel() {
-    _destroySplitter();
-    _state = TabState.closed;
-    console.setAttr('hidden');
-    docs.setAttr('hidden');
-    bottomSplit.classes.add('border-top');
-    consoleButton.toggleClass('active', false);
-    docsButton.toggleClass('active', false);
-    closeButton.toggleAttr('hidden', true);
-  }
-
-  void _showDocs() {
-    _state = TabState.docs;
-    docs.clearAttr('hidden');
-    bottomSplit.classes.remove('border-top');
-    docsButton.toggleClass('active', true);
-    _initSplitter();
-    closeButton.toggleAttr('hidden', false);
-  }
-
-  void _initSplitter() {
-    if (_splitterConfigured) {
-      return;
-    }
-
-    _splitter = flexSplit(
-      [topSplit, bottomSplit],
-      horizontal: false,
-      gutterSize: 6,
-      sizes: [70, 30],
-      minSize: [100, 100],
-    );
-    _splitterConfigured = true;
-  }
-
-  void _destroySplitter() {
-    if (!_splitterConfigured) {
-      return;
-    }
-
-    _splitter?.destroy();
-    _splitterConfigured = false;
-  }
-
-  void dispose() {
-    bottomSplit.classes.add('border-top');
-    _destroySplitter();
-
-    // Reset selected tab
-    docsButton.toggleClass('active', false);
-    consoleButton.toggleClass('active', false);
-
-    // Clear listeners
-    for (var s in _subscriptions) {
-      s.cancel();
-    }
-    _subscriptions.clear();
-  }
 }
 
 class NewPadDialog {
