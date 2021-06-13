@@ -46,7 +46,7 @@ void init(EmbedOptions options) {
   _embed = Embed(options);
 }
 
-enum EmbedMode { dart, flutter, html, inline }
+enum EmbedMode { dart, flutter, html, inline, flutterShowcase }
 
 class EmbedOptions {
   final EmbedMode mode;
