@@ -7,7 +7,9 @@ BSD-style license that can be found in the LICENSE file. -->
 <html>
 <head>
     <meta charset="utf-8">
-    <link rel="shortcut icon" href="/dart-64.png">
+    <link rel="shortcut icon" type="image/png" sizes="32x32" href="dart-32.png">
+    <link rel="shortcut icon" type="image/png" sizes="64x64" href="dart-64.png">
+    <link rel="shortcut icon" type="image/png" sizes="192x192" href="dart-192.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -32,9 +34,8 @@ BSD-style license that can be found in the LICENSE file. -->
     <!-- check that local storage is enabled -->
     <script src="scripts/check_localstorage.js"></script>
 
-    <script defer src="scripts/embed_flutter.dart.js"></script>
+    <script defer src="scripts/embed_flutter_showcase.dart.js"></script>
     <script defer src="scripts/ga.js"></script>
-    <script defer src="scripts/polymerpatch.js"></script>
     <script type="text/javascript" src="dark_mode.js"></script>
 
     <!-- begin Material Design -->
@@ -55,22 +56,23 @@ BSD-style license that can be found in the LICENSE file. -->
     </div>
 </div>
 <div id="navbar">
-    <nav hidden>
+    <nav>
         <div class="mdc-tab-bar" role="tablist">
             <div class="mdc-tab-scroller">
                 <div class="mdc-tab-scroller__scroll-area">
                     <div class="mdc-tab-scroller__scroll-content">
-                        <button id="editor-tab" class="mdc-tab mdc-tab--active" role="tab" aria-selected="true" selected
-                                tabindex="0" hidden>
+                        <button hidden id="editor-tab" class="mdc-tab mdc-tab--active" role="tab" aria-selected="true"
+                                selected
+                                tabindex="0">
                              <span class="mdc-tab__content">
-                                 <span class="mdc-tab__text-label">Dart</span>
+                                 <span class="mdc-tab__text-label">Code</span>
                              </span>
                             <span class="mdc-tab-indicator mdc-tab-indicator--active">
                                  <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span>
                              </span>
                             <span class="mdc-tab__ripple"></span>
                         </button>
-                        <button id="solution-tab" class="mdc-tab mdc-tab" role="tab" tabindex="0" hidden>
+                        <button hidden id="solution-tab" class="mdc-tab mdc-tab" role="tab" tabindex="0">
                              <span class="mdc-tab__content">
                                  <span class="mdc-tab__text-label">Solution</span>
                              </span>
@@ -93,69 +95,66 @@ BSD-style license that can be found in the LICENSE file. -->
             </div>
         </div>
     </nav>
-    <div class="nav-buttons" style="margin-top: 8px; margin-bottom: 8px">
-        <button hidden id="install-button" class="mdc-button">Install SDK</button>
-        <button hidden id="show-hint" class="mdc-button">Hint</button>
-        <button hidden id="format-code" class="mdc-button">Format</button>
-        <button hidden id="reload-gist" class="mdc-button">Reset</button>
-        <button id="execute" class="mdc-button mdc-button--raised" hidden>
-            <i class="material-icons mdc-button__icon">play_arrow</i>
-            Run
-        </button>
-        <div hidden class="position-relative text-right pr-2">
-            <button hidden id="menu-button" class="mdc-icon-button material-icons">more_vert</button>
-            <div id="main-menu" class="mdc-menu mdc-menu-surface">
-                <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
-                    <li id="show-test-menu-item" class="mdc-list-item" role="menuitem">
+</div>
+<section id="tab-container">
+    <div hidden id="editor-and-console-container">
+        <div class="nav-buttons">
+            <div class="position-relative text-right pr-2">
+                <button id="menu-button" class="mdc-icon-button material-icons">more_vert</button>
+                <div id="main-menu" class="mdc-menu mdc-menu-surface">
+                    <ul class="mdc-list" role="menu" aria-hidden="true" aria-orientation="vertical" tabindex="-1">
+                        <li hidden id="show-test-menu-item" class="mdc-list-item" role="menuitem">
                         <span id="show-test-checkmark" class="mdc-list-item__graphic hide">
                             <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
                         </span>
-                        <span class="mdc-list-item__text">Show tests</span>
-                    </li>
-                    <li id="editable-test-solution-menu-item" class="mdc-list-item" role="menuitem">
+                            <span class="mdc-list-item__text">Show tests</span>
+                        </li>
+                        <li hidden id="editable-test-solution-menu-item" class="mdc-list-item" role="menuitem">
                       <span id="editable-test-solution-checkmark" class="mdc-list-item__graphic hide">
                           <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
                       </span>
-                      <span class="mdc-list-item__text">Editable test/solution</span>
-                  </li>
-                  <li id="toggle-null-safety-menu-item" class="mdc-list-item" role="menuitem">
+                            <span class="mdc-list-item__text">Editable test/solution</span>
+                        </li>
+                        <li id="toggle-null-safety-menu-item" class="mdc-list-item" role="menuitem">
                     <span id="toggle-null-safety-checkmark" class="mdc-list-item__graphic hide">
                       <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
                     </span>
-                    <span class="mdc-list-item__text">Null Safety</span>
-                  </li>
-                </ul>
+                            <span class="mdc-list-item__text">Null Safety</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
+            <button hidden id="install-button" class="mdc-button">Install SDK</button>
+            <button id="show-hint" class="mdc-button">Hint</button>
+            <button id="format-code" class="mdc-button">Format</button>
+            <button id="reload-gist" class="mdc-button">Reset</button>
         </div>
-    </div>
-</div>
-<section id="tab-container">
-    <div id="editor-and-console-container" hidden>
         <div id="editor-container">
             <div id="user-code-view" class="flex-auto d-flex flex-row no-overflow">
                 <div id="user-code-editor" spellcheck="false"></div>
             </div>
-            <div id="solution-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
+            <div hidden id="solution-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false">
                 <div id="solution-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
             </div>
-            <div id="test-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false" hidden>
+            <div hidden id="test-view" class="flex-auto d-flex flex-row no-overflow" spellcheck="false">
                 <div id="test-editor" class="flex-auto d-flex flex-column" spellcheck="false"></div>
             </div>
         </div>
         <div class="editor-button-group">
+            <div id="dartbusy" class="busylight"></div>
             <button id="copy-code" title="Copy code" class="mdc-icon-button material-icons">file_copy</button>
-            <button id="open-in-dartpad" title="Full screen" class="mdc-icon-button material-icons">launch</button>
+            <button hidden id="open-in-dartpad" title="Full screen" class="mdc-icon-button material-icons">launch</button>
         </div>
         <div id="console-output-footer" class="footer-top-border" hidden>
-            <div id="console-output-header">
-                <span class="view-label">
-                    Console <span id="unread-console-counter" class="Counter" hidden></span>
-                </span>
+            <div id="console-output-header" style="justify-content: left">
                 <div id="console-expand-icon-container">
                     <button id="console-expand-icon" title="Expand console" class="mdc-icon-button material-icons">
                         expand_less
                     </button>
                 </div>
+                <span class="view-label">
+                    Console <span id="unread-console-counter" class="Counter" hidden></span>
+                </span>
             </div>
             <div id="console-output-container" class="custom-scrollbar" hidden></div>
         </div>
@@ -165,11 +164,30 @@ BSD-style license that can be found in the LICENSE file. -->
         <iframe id="frame" sandbox="allow-scripts" class="flex-auto">
         </iframe>
     </div>
+    <div class="mdc-snackbar">
+        <div class="mdc-snackbar__surface">
+            <div class="mdc-snackbar__label"
+                 role="status"
+                 aria-live="polite">
+            </div>
+        </div>
+    </div>
 </section>
 
 <footer flex layout horizontal class="footer">
+    <div class="editor-tabs">
+        <button id="editor-panel-show-code-button"
+                class="editor-tab mdc-button">
+            <i class="material-icons mdc-button__icon">code</i>
+            Show code
+        </button>
+        <button id="execute" class="mdc-button">
+            <i class="material-icons mdc-button__icon">play_arrow</i>
+            Run
+        </button>
+    </div>
     <div id="feature-message" class="info-message"></div>
-    <div id="issues-message" class="info-message" hidden></div>
+    <div id="issues-message" class="info-message"></div>
     <button id="issues-toggle" class="mdc-button mdc-button--dense mdc-button--outlined" hidden></button>
 </footer>
 
