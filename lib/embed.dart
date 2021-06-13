@@ -67,6 +67,7 @@ class Embed extends EditorUi {
   MDCButton copyCodeButton;
   MDCButton openInDartPadButton;
   MDCButton menuButton;
+  MDCButton editorCodeInputTabButton;
 
   DElement navBarElement;
   EmbedTabController tabController;
@@ -194,6 +195,17 @@ class Embed extends EditorUi {
 
     runButton = MDCButton(querySelector('#execute') as ButtonElement)
       ..onClick.listen((_) => handleRun());
+
+    // Flutter showcase mode
+    var editorCodeInputTabButtonElement =
+        querySelector('#editor-panel-show-code-button');
+    if (editorCodeInputTabButtonElement != null) {
+      editorCodeInputTabButton = MDCButton(
+          querySelector('#editor-panel-show-code-button') as ButtonElement)
+        ..onClick.listen(
+          (_) => _toggleCodeInput(),
+        );
+    }
 
     reloadGistButton = MDCButton(querySelector('#reload-gist') as ButtonElement)
       ..onClick.listen((_) {
@@ -379,7 +391,9 @@ class Embed extends EditorUi {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 
-    if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
+    if (options.mode == EmbedMode.flutter ||
+        options.mode == EmbedMode.html ||
+        options.mode == EmbedMode.flutterShowcase) {
       var controller = ConsoleExpandController(
           expandButton: querySelector('#console-output-header'),
           footer: querySelector('#console-output-footer'),
@@ -586,22 +600,30 @@ class Embed extends EditorUi {
       consoleView.removeAttribute('hidden');
       splitterElements = [editorContainer, consoleView];
       horizontal = false;
-    } else {
+    } else if (options.mode == EmbedMode.flutterShowcase) {
+      // do nothing
+    }
+    else {
       var editorContainer = querySelector('#editor-container');
       var consoleView = querySelector('#console-view');
       consoleView.removeAttribute('hidden');
       splitterElements = [editorContainer, consoleView];
     }
 
-    splitter = flexSplit(
-      splitterElements,
-      horizontal: horizontal,
-      gutterSize: defaultSplitterWidth,
-      // set initial sizes (in percentages)
-      sizes: [initialSplitPercent, (100 - initialSplitPercent)],
-      // set the minimum sizes (in pixels)
-      minSize: [100, 100],
-    );
+    // Flutter showcase mode does not show code input by default
+    if (options.mode == EmbedMode.flutterShowcase) {
+      _updateShowcase();
+    } else {
+      splitter = flexSplit(
+        splitterElements,
+        horizontal: horizontal,
+        gutterSize: defaultSplitterWidth,
+        // set initial sizes (in percentages)
+        sizes: [initialSplitPercent, (100 - initialSplitPercent)],
+        // set the minimum sizes (in pixels)
+        minSize: [100, 100],
+      );
+    }
 
     if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
       _loadAndShowGist(analyze: false);
@@ -737,7 +759,8 @@ class Embed extends EditorUi {
     window.open('/embed-$_modeName.html?id=$gistId', 'DartPad_$gistId');
   }
 
-  /// Returns the name of the current embed mode (html, flutter, inline, dart)
+  /// Returns the name of the current embed mode
+  /// (html, flutter, inline, dart, flutterShowcase).
   String get _modeName {
     return options.mode.toString().split('.').last;
   }
@@ -823,6 +846,45 @@ class Embed extends EditorUi {
     webOutputLabel?.setAttr('hidden');
 
     return success;
+  }
+
+  void _toggleCodeInput() {
+    var editorAndConsoleContainer =
+        querySelector('#editor-and-console-container');
+    var webOutput = querySelector('#web-output');
+
+    var isEditorHidden = editorAndConsoleContainer.hidden;
+
+    if (isEditorHidden) {
+      // show code input, hide UI output
+      editorCodeInputTabButton.text = 'Hide code';
+      editorAndConsoleContainer.removeAttribute('hidden');
+      webOutput.setAttribute('hidden', '');
+      _updateShowcase(isEditorVisible: true);
+
+      // run format to force to display the code & show caret in the editor
+      _format();
+    } else {
+      // hide code input, show UI output
+      editorCodeInputTabButton.text = 'Show code';
+      editorAndConsoleContainer.setAttribute('hidden', '');
+      webOutput.removeAttribute('hidden');
+      _updateShowcase();
+    }
+  }
+
+  void _updateShowcase({bool isEditorVisible = false}) {
+    var webOutput = querySelector('#web-output');
+    var editorAndConsoleContainer =
+        querySelector('#editor-and-console-container');
+
+    splitter = flexSplit(
+      <Element>[isEditorVisible ? editorAndConsoleContainer : webOutput],
+      horizontal: true,
+      gutterSize: 0,
+      sizes: [100],
+      minSize: [100],
+    );
   }
 
   void _sendVirtualPageView(String id) {
@@ -920,7 +982,9 @@ class Embed extends EditorUi {
   bool get shouldAddFirebaseJs => hasFirebaseContent(fullDartSource);
 
   @override
-  bool get shouldCompileDDC => options.mode == EmbedMode.flutter;
+  bool get shouldCompileDDC =>
+      options.mode == EmbedMode.flutter ||
+      options.mode == EmbedMode.flutterShowcase;
 
   @override
   void showOutput(String message, {bool error = false}) {
