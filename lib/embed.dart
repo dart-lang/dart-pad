@@ -601,9 +601,8 @@ class Embed extends EditorUi {
       splitterElements = [editorContainer, consoleView];
       horizontal = false;
     } else if (options.mode == EmbedMode.flutterShowcase) {
-      // do nothing
-    }
-    else {
+      // do not split elements in flutterShowcase mode
+    } else {
       var editorContainer = querySelector('#editor-container');
       var consoleView = querySelector('#console-view');
       consoleView.removeAttribute('hidden');
