@@ -297,7 +297,7 @@ Future<String> _buildStorageArtifacts(Directory dir, bool nullSafety) async {
 
   // Emit some good google storage upload instructions.
   final version = Sdk().versionFull;
-  return ('  gsutil -h "Cache-Control:public, max-age=86400" cp -z js ${artifactsDir.path}/*.js'
+  return ('  gsutil -h "Cache-Control: public, max-age=604800, immutable" cp -z js ${artifactsDir.path}/*.js'
       ' gs://${nullSafety ? 'nnbd_artifacts' : 'compilation_artifacts'}/$version/');
 }
 
