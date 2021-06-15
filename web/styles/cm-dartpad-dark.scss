@@ -34,3 +34,7 @@
 .cm-s-darkpad span.cm-def { color: $dark-editor-text; }
 .cm-s-darkpad span.cm-tag { color: $dark-green; }
 .cm-s-darkpad span.cm-property { color: $dark-red; }
+
+.CodeMirror-simplescroll-horizontal div, .CodeMirror-simplescroll-vertical div {
+  background: $dark-scrollbar-color;
+}

@@ -97,3 +97,47 @@ a {
 .flash-warn {
   background-color: $light-flash-warning-color;
 }
+
+
+// Analysis panel
+.issue .issuelabel.error {
+  color: $light-issue-error-color;
+  border: 1px solid $light-issue-error-color;
+}
+
+.issue .issuelabel.warning {
+  color: $light-issue-warning-color;
+  border: 1px solid $light-issue-warning-color;
+}
+
+.issue .issuelabel.info {
+  color: $light-issue-info-color;
+  border: 1px solid $light-issue-info-color;
+}
+
+// Code annotations
+.squiggle-error {
+  border-bottom: 2px solid $dark-squiggle-error-color;
+}
+
+.squiggle-warning {
+  border-bottom: 2px solid $dark-squiggle-warning-color;
+}
+
+.squiggle-info {
+  border-bottom: 2px solid $dark-squiggle-info-color;
+}
+
+// Labels and scrollbars
+.view-label {
+  color: $light-label-color;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: $light-scrollbar-color;
+}
+
+#console-expand-icon, .close-flash-container .close-flash-button {
+  color: $light-label-color;
+}
+

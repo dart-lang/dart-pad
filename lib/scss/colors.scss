@@ -1,17 +1,28 @@
+$dark-text-color: #749090;
+
 // light + dark colors
-$label-color: #808080;
-$scrollbar-color: $label-color;
+$light-label-color: #5F6368;
+$light-scrollbar-color: $light-label-color;
+$dark-scrollbar-color: $dark-text-color;
+$dark-label-color: $dark-text-color;
 
 // errors and warnings
-$issue-error-color: #F7977A;
-$issue-warning-color: #d9d077;
-$issue-info-color: #7EA7D8;
-$squiggle-error-color: #F7977A;
-$squiggle-warning-color: #d9d077;
-$squiggle-info-color: #7EA7D8;
+$dark-issue-error-color: #EF5350;
+$dark-issue-warning-color: #d9d077;
+$dark-issue-info-color: #7ea7d8;
+$dark-squiggle-error-color: #EF5350;
+$dark-squiggle-warning-color: #d9d077;
+$dark-squiggle-info-color: #7EA7D8;
+
+$light-issue-error-color: #BF360C;
+$light-issue-warning-color: #BF360C;
+$light-issue-info-color: #2C57A4;
+$light-squiggle-error-color: #EF5350;
+$light-squiggle-warning-color: #BF360C;
+$light-squiggle-info-color: #2C57A4;
 
 // Playground
-$playground-background-color: #12202f;
+$playground-background-color: #0E161F;
 $playground-text-color: #fff;
 $playground-link-color: #ccc;
 $playground-header-background-color: #1c2834;
@@ -21,7 +32,6 @@ $light-text-color: #808080;
 $light-code-background-color: white;
 $light-busy-background-color: rgba(255, 255, 255, .5);
 $light-secondary-background-color: #f7f7f7;
-$light-label-color: #586069;
 $light-gutter-background-color: lighten(grey, 45%);
 $light-border-color: $light-gutter-background-color;
 $light-issue-label-color: darken($light-text-color, 30%);
@@ -30,13 +40,12 @@ $light-flash-success-color: #e7fff8;
 $light-flash-warning-color: #fff8e7;
 $light-flash-error-color: #ffe7f8;
 
-$dark-text-color: #9e9e9e;
 $dark-code-background-color: $playground-background-color;
 $dark-busy-background-color: rgba(27, 29, 33, .8);
 $dark-secondary-background-color: $dark-code-background-color;
 $dark-gutter-background-color: #121a25;
 $dark-border-color: $dark-gutter-background-color;
-$dark-issues-background-color: lighten($dark-code-background-color, 10%);
+$dark-issues-background-color: #0E161F;
 $dark-issue-label-color: #e6e6e6;
 $dark-flash-text-color: $dark-issue-label-color;
 $dark-flash-info-color: #2f3a41;
@@ -45,28 +54,29 @@ $dark-flash-warning-color: #413a31;
 $dark-flash-error-color: #41333a;
 
 // V2 Colors
-$button-color: #168AFD;
+$button-color: #1967D2;
+$button-text-color: #f8f9fa;
 $secondary-color: #676767;
 $grey-1: #1c2834;
 $grey-2: #27323A;
 $grey-3: #12202F;
 
-$dark-green: darken(desaturate(#50E191, 20%), 5%);
-$dark-blue: darken(desaturate(#00d2fa, 20%), 5%);
-$dark-pink: darken(desaturate(#FA557d, 20%), 5%);
-$dark-teal: darken(desaturate(#55a09b, 20%), 5%);
-$dark-orange: darken(desaturate(#ff916e, 20%), 5%);
-$dark-red: darken(desaturate(#ff2d64, 20%), 5%);
-$dark-pink-2: darken(desaturate(#ff00fA, 20%), 5%);
-$dark-orange-2: darken(desaturate(#ff9b00, 20%), 5%);
-$dark-editor-text: darken(desaturate(#c4cedb, 20%), 5%);
-$dark-comment: darken(desaturate(#909cce, 20%), 5%);
-$dark-line-count: darken(desaturate(#414c58, 20%), 5%);
-$dark-gutter-line-number-color: $dark-text-color;
+$dark-green: #50E191;
+$dark-blue: #00D2FA;
+$dark-pink: #FA557D;
+$dark-teal: $dark-text-color;
+$dark-orange: #FF916E;
+$dark-red: #FF2D64;
+$dark-pink-2: #FF00FA;
+$dark-orange-2: #FF9B00;
+$dark-editor-text: #FFFFFF;
+$dark-comment: #909CC3;
+$dark-line-count: $dark-teal;
+$dark-gutter-line-number-color: $dark-teal;
 $dark-selection-color: lighten($dark-code-background-color, 10%);
 
 $light-green: #007a27;
-$light-blue: #00677a;
+$light-blue: #0E161F;
 $light-pink: #bc0056;
 $light-teal: #00786d;
 $light-dark-blue: #2f4960;
@@ -74,7 +84,7 @@ $light-red: #a54a78;
 $light-pink-2: #983ab3;
 $light-red-2: #d32923;
 $light-editor-text: #4a4a4a;
-$light-comment: #929292;
+$light-comment: #5F6368;
 $light-line-count: #d5d5d5;
 $light-gutter-line-number-color: #d0d0d2;
 $light-selection-color: darken($light-code-background-color, 7%);

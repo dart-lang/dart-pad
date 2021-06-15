@@ -118,15 +118,15 @@ a {
 
 // Code annotations
 .squiggle-error {
-  border-bottom: 2px solid $squiggle-error-color;
+  border-bottom: 2px solid $dark-squiggle-error-color;
 }
 
 .squiggle-warning {
-  border-bottom: 2px solid $squiggle-warning-color;
+  border-bottom: 2px solid $dark-squiggle-warning-color;
 }
 
 .squiggle-info {
-  border-bottom: 2px solid $squiggle-info-color;
+  border-bottom: 2px solid $dark-squiggle-info-color;
 }
 
 
@@ -159,20 +159,20 @@ a {
 }
 
 .issue .issuelabel.error {
-  color: $issue-error-color;
-  border: 1px solid $issue-error-color;
+  color: $dark-issue-error-color;
+  border: 1px solid $dark-issue-error-color;
   background-color: transparent;
 }
 
 .issue .issuelabel.warning {
-  color: $issue-warning-color;
-  border: 1px solid $issue-warning-color;
+  color: $dark-issue-warning-color;
+  border: 1px solid $dark-issue-warning-color;
   background-color: transparent;
 }
 
 .issue .issuelabel.info {
-  color: $issue-info-color;
-  border: 1px solid $issue-info-color;
+  color: $dark-issue-info-color;
+  border: 1px solid $dark-issue-info-color;
   background-color: transparent;
 }
 
@@ -254,7 +254,6 @@ a {
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   border-radius: 4px;
-  background-color: $scrollbar-color;
 }
 
 // Editor Tabs
@@ -325,7 +324,6 @@ a {
   margin: 8px;
   font-family: $editor-font;
   font-size: $embed-editor-font-size;
-  color: $label-color;
   white-space: normal;
   &.absolute {
     position: absolute;

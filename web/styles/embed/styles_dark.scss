@@ -117,3 +117,17 @@ a {
 .flash-warn {
   background-color: $dark-flash-warning-color;
 }
+
+// Labels and scrollbars
+.view-label {
+  color: $dark-label-color;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: $dark-scrollbar-color;
+}
+
+#console-expand-icon, .close-flash-container .close-flash-button {
+  color: $dark-label-color;
+}
+

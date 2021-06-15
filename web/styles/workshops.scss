@@ -38,7 +38,7 @@ header {
   }
 
   button.mdc-button {
-    @include mdc-button-ink-color(#f8f9fa);
+    @include mdc-button-ink-color($button-text-color);
     text-transform: none !important;
     letter-spacing: normal;
   }
@@ -326,8 +326,8 @@ body>footer {
 
 // Editor Tabs
 .editor-tab {
-  @include mdc-button-ink-color(#f8f9fa);
-  color: $label-color;
+  @include mdc-button-ink-color($button-text-color);
+  color: $dark-label-color;
   &.active {
     color: $dark-blue;
   }
