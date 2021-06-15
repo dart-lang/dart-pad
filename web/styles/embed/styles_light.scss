@@ -8,9 +8,10 @@
 // These variables must be set before importing material-components-web.scss.
 // Since `styles.scss` loads mdc_web these must be before `styles.scss` is
 // imported
-$mdc-theme-primary: #168AFD;
+$mdc-theme-primary: #1967d2;
+$mdc-theme-on-primary: #fff;
 $mdc-theme-secondary: #676767;
-$mdc-theme-background: $light-code-background-color;
+$mdc-theme-background: $light-gutter-background-color;
 $mdc-theme-surface: $light-code-background-color;
 $mdc-theme-error: $light-red;
 

@@ -6,9 +6,10 @@
 // Material Design Web theme colors. Must be imported before importing
 // material-components-web.scss.
 $mdc-theme-primary: #168afd;
+$mdc-theme-on-primary: #0e161f;
 $mdc-theme-secondary: #676767;
-$mdc-theme-background: $playground-background-color;
-$mdc-theme-surface: $playground-background-color;
+$mdc-theme-background: $playground-header-background-color;
+$mdc-theme-surface: $playground-header-background-color;
 $mdc-theme-error: $dark-red;
 
 // Layout constants
@@ -51,9 +52,14 @@ header {
   }
 
   button.mdc-button {
-    @include mdc-button-ink-color(#0E161F); // TODO
+    @include mdc-button-ink-color($button-text-color); // TODO
     text-transform: none !important;
     letter-spacing: normal;
+  }
+
+  button#run-button {
+    @include mdc-button-ink-color(#0e161f);
+    color: #442C2E;
   }
 
   .header-gist-name {
@@ -355,7 +361,7 @@ a {
 // Editor Tabs
 .editor-tab {
   @include mdc-button-ink-color($button-text-color);
-  color: $dark-label-color;
+  color: $button-text-color;
   &.active {
     color: $dark-blue;
   }

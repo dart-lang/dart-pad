@@ -324,15 +324,6 @@ body>footer {
   width: 100%;
 }
 
-// Editor Tabs
-.editor-tab {
-  @include mdc-button-ink-color($button-text-color);
-  color: $dark-label-color;
-  &.active {
-    color: $dark-blue;
-  }
-}
-
 .border-top {
   border-top: 6px solid $dark-gutter-background-color !important;
 }
