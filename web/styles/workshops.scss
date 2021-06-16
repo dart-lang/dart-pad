@@ -179,6 +179,7 @@ section.main-section {
 #editor-panel {
   @include layout-vertical;
   @include layout-relative;
+  @include layout-self-stretch;
 }
 #editor-host {
   @include layout-fit;
