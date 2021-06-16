@@ -181,13 +181,13 @@ section.main-section {
   @include layout-relative;
 }
 #editor-host {
-  @include layout-vertical;
-  @include layout-flex;
+  @include layout-fit;
   margin: 8px 0 0 0;
   padding: 0 8px;
 
   .CodeMirror {
-    @include layout-flex;
+    width: 100%;
+    height: 100%;
     font-family: $editor-font;
     font-size: $playground-editor-font-size;
   }

@@ -4,6 +4,7 @@ import 'dart:html';
 import 'package:meta/meta.dart';
 import 'package:split/split.dart';
 
+import '../sharing/editor_ui.dart';
 import 'button.dart';
 import 'counter.dart';
 import 'elements.dart';
@@ -25,6 +26,7 @@ class TabExpandController {
   final DElement docs;
   final Counter unreadCounter;
   final DElement iframe;
+  final EditorUi editorUi;
 
   /// The element to give the top half of the split when this panel
   /// opens
@@ -52,6 +54,7 @@ class TabExpandController {
     @required this.topSplit,
     @required this.bottomSplit,
     @required this.unreadCounter,
+    @required this.editorUi,
   })  : console = DElement(consoleElement),
         docs = DElement(docsElement),
         iframe = iframeElement == null ? null : DElement(iframeElement) {
@@ -195,6 +198,9 @@ class TabExpandController {
       sizes: [70, 30],
       minSize: [100, 100],
     );
+
+    editorUi.listenForResize(topSplit);
+
     _splitterConfigured = true;
   }
 
