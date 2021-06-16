@@ -221,11 +221,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
         moreMenu.open = !moreMenu.open;
       });
     querySelector('#keyboard-button')
-        .onClick
-        .listen((_) => showKeyboardDialog());
+        ?.onClick
+        ?.listen((_) => showKeyboardDialog());
     querySelector('#dartpad-package-versions')
-        .onClick
-        .listen((_) => showPackageVersionsDialog());
+        ?.onClick
+        ?.listen((_) => showPackageVersionsDialog());
 
     // Query params have higher precedence than local storage
     if (queryParams.hasNullSafety) {
