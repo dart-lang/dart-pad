@@ -179,15 +179,16 @@ section.main-section {
 #editor-panel {
   @include layout-vertical;
   @include layout-relative;
-  @include layout-self-stretch;
 }
+
 #editor-host {
-  @include layout-fit;
+  @include layout-flex;
+  @include layout-relative;
   margin: 8px 0 0 0;
   padding: 0 8px;
 
   .CodeMirror {
-    width: 100%;
+    @include layout-fit;
     height: 100%;
     font-family: $editor-font;
     font-size: $playground-editor-font-size;
