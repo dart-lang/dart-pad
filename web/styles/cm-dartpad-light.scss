@@ -38,3 +38,7 @@
 .CodeMirror-simplescroll-horizontal div, .CodeMirror-simplescroll-vertical div {
   background: $dark-scrollbar-color;
 }
+
+.CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
+  background-color: $light-code-background-color !important;
+}
