@@ -117,6 +117,9 @@ class Embed extends EditorUi {
   bool get editorIsBusy => _editorIsBusy;
 
   @override
+  Editor get editor => userCodeEditor;
+
+  @override
   Document get currentDocument => userCodeEditor.document;
 
   /// Toggles the state of several UI components based on whether the editor is
