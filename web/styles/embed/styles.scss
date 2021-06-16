@@ -93,15 +93,15 @@ body {
 // Code annotations
 
 .squiggle-error {
-  border-bottom: 2px solid $squiggle-error-color;
+  border-bottom: 2px solid $dark-squiggle-error-color;
 }
 
 .squiggle-warning {
-  border-bottom: 2px solid $squiggle-warning-color;
+  border-bottom: 2px solid $dark-squiggle-warning-color;
 }
 
 .squiggle-info {
-  border-bottom: 2px solid $squiggle-info-color;
+  border-bottom: 2px solid $dark-squiggle-info-color;
 }
 
 // Styling specifically for CodeMirror editor
@@ -174,7 +174,6 @@ body {
 }
 
 #console-expand-icon, .close-flash-container .close-flash-button {
-  color: $label-color;
   @include mdc-icon-button-size(16px, 16px, 8px);
 }
 
@@ -296,6 +295,7 @@ body {
 // Misc
 .view-label {
   margin-left: 8px;
+  font-size: 12px;
 }
 
 .hide {

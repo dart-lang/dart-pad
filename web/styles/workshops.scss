@@ -5,10 +5,11 @@
 
 // Material Design Web theme colors. Must be imported before importing
 // material-components-web.scss.
-$mdc-theme-primary: #168AFD;
+$mdc-theme-primary: #168afd;
+$mdc-theme-on-primary: #0e161f;
 $mdc-theme-secondary: #676767;
-$mdc-theme-background: $playground-background-color;
-$mdc-theme-surface: $playground-background-color;
+$mdc-theme-background: $playground-header-background-color;
+$mdc-theme-surface: $playground-header-background-color;
 $mdc-theme-error: $dark-red;
 
 @import 'package:mdc_web/material-components-web';
@@ -38,7 +39,7 @@ header {
   }
 
   button.mdc-button {
-    @include mdc-button-ink-color(#f8f9fa);
+    @include mdc-button-ink-color($button-text-color);
     text-transform: none !important;
     letter-spacing: normal;
   }
@@ -203,6 +204,13 @@ section.main-section {
   z-index: 5;
 }
 
+// Tabs
+.mdc-tab {
+  @include mdc-tab-text-label-color($dark-tab-color);
+  @include mdc-tab-active-text-label-color($dark-tab-color-active);
+  @include mdc-tab-indicator-underline-color($dark-tab-color-active);
+}
+
 // Console panel
 #output-panel {
   @include layout-vertical();
@@ -303,6 +311,11 @@ body>footer {
   }
 }
 
+button#show-solution-btn {
+  @include mdc-button-ink-color(#0e161f);
+  color: #442C2E;
+}
+
 // Splitter
 .gutter {
   background-color: $dark-gutter-background-color;
@@ -322,15 +335,6 @@ body>footer {
   background-repeat: repeat-x;
   cursor: row-resize;
   width: 100%;
-}
-
-// Editor Tabs
-.editor-tab {
-  @include mdc-button-ink-color(#f8f9fa);
-  color: $label-color;
-  &.active {
-    color: $dark-blue;
-  }
 }
 
 .border-top {

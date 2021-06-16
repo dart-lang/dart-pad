@@ -7,10 +7,11 @@
 // These variables must be set before importing material-components-web.scss.
 // Since `styles.scss` loads mdc_web these must be before `styles.scss` is
 // imported
-$mdc-theme-primary: #168AFD;
+$mdc-theme-primary: #168afd;
+$mdc-theme-on-primary: #0e161f;
 $mdc-theme-secondary: #676767;
-$mdc-theme-background: $dark-code-background-color;
-$mdc-theme-surface: $dark-code-background-color;
+$mdc-theme-background: $playground-header-background-color;
+$mdc-theme-surface: $playground-header-background-color;
 $mdc-theme-error: $dark-red;
 
 @import 'styles';
@@ -77,22 +78,32 @@ a {
   opacity: 0.2;
 }
 
-// Material Design
-.mdc-tab__text-label {
-  color: $dark-text-color !important;
-}
-.mdc-tab--active .mdc-tab__text-label {
-  color: #168AFD !important;
-}
-
 .message-container {
   color: $dark-flash-text-color;
+}
+
+#navbar {
+  border-bottom: 3px solid $dark-gutter-background-color;
+}
+
+.nav-buttons button {
+  @include mdc-button-ink-color($button-text-color);
+}
+
+.nav-buttons button#execute{
+  @include mdc-button-ink-color($mdc-theme-on-primary);
+}
+
+.mdc-tab {
+  @include mdc-tab-text-label-color($dark-tab-color);
+  @include mdc-tab-active-text-label-color($dark-tab-color-active);
+  @include mdc-tab-indicator-underline-color($dark-tab-color-active);
 }
 
 // Progress bar
 
 .mdc-linear-progress {
-  @include mdc-linear-progress-buffer-color($dark-code-background-color)
+  @include mdc-linear-progress-buffer-color($dark-code-background-color);
 }
 
 // Busy light
@@ -117,3 +128,17 @@ a {
 .flash-warn {
   background-color: $dark-flash-warning-color;
 }
+
+// Labels and scrollbars
+.view-label {
+  color: $dark-label-color;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: $dark-scrollbar-color;
+}
+
+#console-expand-icon, .close-flash-container .close-flash-button {
+  color: $dark-label-color;
+}
+

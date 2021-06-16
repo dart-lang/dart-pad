@@ -1,7 +1,10 @@
+@import 'package:mdc_web/material-components-web';
+
 @import 'package:dart_pad/scss/colors';
 @import 'package:dart_pad/scss/layout';
 @import 'package:dart_pad/scss/shared';
 @import 'package:dart_pad/scss/variables';
+
 
 // Layout constants
 $doc-console-padding: 8px 24px 8px 24px;
@@ -87,4 +90,25 @@ $doc-console-padding: 8px 24px 8px 24px;
   width: 12px;
   height: 12px;
   margin-bottom: -1px;
+}
+
+// Buttons
+button.mdc-button {
+  @include mdc-button-ink-color($button-text-color); // TODO
+  text-transform: none !important;
+  letter-spacing: normal;
+}
+
+button#run-button {
+  @include mdc-button-ink-color(#0e161f);
+  color: #442C2E;
+}
+
+// Editor Tabs
+.editor-tab {
+  @include mdc-button-ink-color($button-text-color);
+  color: $button-text-color;
+  &.active {
+    color: $dark-blue;
+  }
 }
