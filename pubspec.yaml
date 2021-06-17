@@ -26,7 +26,6 @@ dev_dependencies:
   async: ^2.2.0
   build_runner: ^1.10.6
   coverage: ^0.15.2
-  expected_output: ^2.0.0
   grinder: ^0.9.0
   lints: ^1.0.1
   mock_request: ^1.0.7

@@ -284,14 +284,14 @@ abstract class AnalysisServerWrapper {
         final issue = proto.AnalysisIssue()
           ..kind = error.severity.toLowerCase()
           ..line = error.location.startLine
-          ..message = utils.stripFilePaths(error.message)
+          ..message = utils.normalizeFilePaths(error.message)
           ..sourceName = path.basename(error.location.file)
           ..hasFixes = error.hasFix
           ..charStart = error.location.offset
           ..charLength = error.location.length
           ..diagnosticMessages.addAll(error.contextMessages?.map((m) =>
                   proto.DiagnosticMessage(
-                      message: utils.stripFilePaths(m.message),
+                      message: utils.normalizeFilePaths(m.message),
                       line: m.location.startLine,
                       charStart: m.location.offset,
                       charLength: m.location.length)) ??
@@ -302,7 +302,7 @@ abstract class AnalysisServerWrapper {
         }
 
         if (error.correction != null) {
-          issue.correction = utils.stripFilePaths(error.correction);
+          issue.correction = utils.normalizeFilePaths(error.correction);
         }
 
         return issue;

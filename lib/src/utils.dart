@@ -1,50 +1,48 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:path/path.dart' as path;
 
-/// Matches any path in the string and replaces the part of the path before the
-/// last separator with either dart:core, package:flutter, or removes it.
+/// Normalizes any "paths" from [text], replacing the segments before the last
+/// separator with either "dart:core" or "package:flutter", or removes them,
+/// according to their content.
 ///
 /// ## Examples:
 ///
 /// "Unused import: '/path/foo.dart'" -> "Unused import: 'foo.dart'"
 ///
-/// "Unused import: '/path/to/dart/lib/world.dart'" -> "Unused import:
-/// 'dart:core/world.dart'"
+/// "Unused import: '/path/to/dart/lib/core/world.dart'" ->
+/// "Unused import: 'dart:core/world.dart'"
 ///
-/// "Unused import: 'package:flutter/material.dart'" -> "Unused import:
-/// 'package:flutter/material.dart'"
-String stripFilePaths(String str) {
-  // Match any URI. Also match URIs that are prefixed with dart:core or
-  // package:*
-  final regex = RegExp(r'(?:dart:core?)?(?:package:?)?[a-z]*\/\S*');
+/// "Unused import: 'package:flutter/material.dart'" ->
+/// "Unused import: 'package:flutter/material.dart'"
+String normalizeFilePaths(String text) {
+  return text.replaceAllMapped(_possiblePathPattern, (match) {
+    final possiblePath = match.group(0);
 
-  return str.replaceAllMapped(regex, (match) {
-    final urlString = match.group(0);
-    final pathComponents = path.split(urlString);
-    final isDartPath =
-        pathComponents.contains('lib') && pathComponents.contains('core');
+    final uri = Uri.tryParse(possiblePath);
+    if (uri != null && uri.hasScheme) {
+      return possiblePath;
+    }
 
-    // matches the 'flutter' package in the SDK
-    final isFlutterPath = pathComponents.contains('flutter');
+    final pathComponents = path.split(possiblePath);
+    final basename = path.basename(possiblePath);
 
-    final isPackagePath = urlString.contains('package:');
-    final isDartCorePath = urlString.contains('dart:core');
-    final basename = path.basename(urlString);
-
-    if (isFlutterPath) {
+    if (pathComponents.contains('flutter')) {
       return path.join('package:flutter', basename);
     }
 
-    if (isDartCorePath) {
-      return urlString;
-    }
-
-    if (isDartPath) {
+    if (pathComponents.contains('lib') && pathComponents.contains('core')) {
       return path.join('dart:core', basename);
     }
 
-    if (isPackagePath) {
-      return urlString;
-    }
     return basename;
   });
 }
+
+/// A pattern which matches a possible path.
+///
+/// This pattern is essentially "possibly some letters and colons, followed by a
+/// slash, followed by non-whitespace."
+final _possiblePathPattern = RegExp(r'[a-zA-Z:]*\/\S*');

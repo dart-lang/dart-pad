@@ -176,13 +176,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.5.0"
-  expected_output:
-    dependency: "direct dev"
-    description:
-      name: expected_output
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.0.0"
   file:
     dependency: transitive
     description:
