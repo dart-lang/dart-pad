@@ -118,6 +118,9 @@ class Embed extends EditorUi {
   bool get editorIsBusy => _editorIsBusy;
 
   @override
+  Editor get editor => userCodeEditor;
+
+  @override
   Document get currentDocument => userCodeEditor.document;
 
   /// Toggles the state of several UI components based on whether the editor is
@@ -400,6 +403,7 @@ class Embed extends EditorUi {
           expandIcon: querySelector('#console-expand-icon'),
           unreadCounter: unreadConsoleCounter,
           consoleElement: querySelector('#console-output-container'),
+          editorUi: this,
           onSizeChanged: () {
             userCodeEditor.resize();
             testEditor.resize();
@@ -623,6 +627,8 @@ class Embed extends EditorUi {
         minSize: [100, 100],
       );
     }
+
+    listenForResize(splitterElements[0]);
 
     if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
       _loadAndShowGist(analyze: false);
@@ -1149,6 +1155,7 @@ class ConsoleExpandController extends Console {
   final DElement expandIcon;
   final Counter unreadCounter;
   final Function onSizeChanged;
+  final EditorUi editorUi;
   Splitter _splitter;
   bool _expanded;
 
@@ -1159,6 +1166,7 @@ class ConsoleExpandController extends Console {
     Element consoleElement,
     this.unreadCounter,
     this.onSizeChanged,
+    this.editorUi,
   })  : expandButton = DElement(expandButton),
         footer = DElement(footer),
         expandIcon = DElement(expandIcon),
@@ -1232,6 +1240,7 @@ class ConsoleExpandController extends Console {
       sizes: [60, 40],
       minSize: [32, 32],
     );
+    editorUi.listenForResize(splitterElements[0]);
   }
 }
 

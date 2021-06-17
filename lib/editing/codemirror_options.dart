@@ -4,7 +4,7 @@ const codeMirrorOptions = {
   'autoCloseBrackets': true,
   'matchBrackets': true,
   'tabSize': 2,
-  'lineWrapping': true,
+  'lineWrapping': false,
   'indentUnit': 2,
   'cursorHeight': 0.85,
   'viewportMargin': 100,

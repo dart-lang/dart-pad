@@ -259,4 +259,12 @@ abstract class EditorUi {
       milliseconds,
     );
   }
+
+  /// Resize Codemirror when the size of the panel changes. This keeps the
+  /// virtual scrollbar in sync with the size of the panel.
+  void listenForResize(Element element) {
+    ResizeObserver((entries, observer) {
+      editor.resize();
+    }).observe(element);
+  }
 }

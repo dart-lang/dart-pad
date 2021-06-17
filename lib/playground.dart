@@ -221,11 +221,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
         moreMenu.open = !moreMenu.open;
       });
     querySelector('#keyboard-button')
-        .onClick
-        .listen((_) => showKeyboardDialog());
+        ?.onClick
+        ?.listen((_) => showKeyboardDialog());
     querySelector('#dartpad-package-versions')
-        .onClick
-        .listen((_) => showPackageVersionsDialog());
+        ?.onClick
+        ?.listen((_) => showPackageVersionsDialog());
 
     // Query params have higher precedence than local storage
     if (queryParams.hasNullSafety) {
@@ -367,6 +367,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
       sizes: const [50, 50],
       minSize: const [100, 100],
     );
+
+    listenForResize(editorPanel);
   }
 
   void _initRightSplitter() {
@@ -383,6 +385,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
       minSize: const [100, 100],
     );
     rightSplitterConfigured = true;
+
+    listenForResize(outputHost);
   }
 
   void _disposeRightSplitter() {
@@ -408,6 +412,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       topSplit: _editorHost,
       bottomSplit: _editorPanelFooter,
       unreadCounter: unreadConsoleCounter,
+      editorUi: this,
     );
   }
 
