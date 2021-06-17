@@ -626,9 +626,8 @@ class Embed extends EditorUi {
         // set the minimum sizes (in pixels)
         minSize: [100, 100],
       );
+      listenForResize(splitterElements[0]);
     }
-
-    listenForResize(splitterElements[0]);
 
     if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
       _loadAndShowGist(analyze: false);
