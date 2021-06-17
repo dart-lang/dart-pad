@@ -46,7 +46,8 @@ void init(EmbedOptions options) {
   _embed = Embed(options);
 }
 
-enum EmbedMode { dart, flutter, html, inline, flutterShowcase }
+// ignore: constant_identifier_names
+enum EmbedMode { dart, flutter, html, inline, flutter_showcase }
 
 class EmbedOptions {
   final EmbedMode mode;
@@ -396,7 +397,7 @@ class Embed extends EditorUi {
 
     if (options.mode == EmbedMode.flutter ||
         options.mode == EmbedMode.html ||
-        options.mode == EmbedMode.flutterShowcase) {
+        options.mode == EmbedMode.flutter_showcase) {
       var controller = ConsoleExpandController(
           expandButton: querySelector('#console-output-header'),
           footer: querySelector('#console-output-footer'),
@@ -604,8 +605,8 @@ class Embed extends EditorUi {
       consoleView.removeAttribute('hidden');
       splitterElements = [editorContainer, consoleView];
       horizontal = false;
-    } else if (options.mode == EmbedMode.flutterShowcase) {
-      // do not split elements in flutterShowcase mode
+    } else if (options.mode == EmbedMode.flutter_showcase) {
+      // do not split elements in flutter_showcase mode
     } else {
       var editorContainer = querySelector('#editor-container');
       var consoleView = querySelector('#console-view');
@@ -614,7 +615,7 @@ class Embed extends EditorUi {
     }
 
     // Flutter showcase mode does not show code input by default
-    if (options.mode == EmbedMode.flutterShowcase) {
+    if (options.mode == EmbedMode.flutter_showcase) {
       _updateShowcase();
     } else {
       splitter = flexSplit(
@@ -764,7 +765,7 @@ class Embed extends EditorUi {
   }
 
   /// Returns the name of the current embed mode
-  /// (html, flutter, inline, dart, flutterShowcase).
+  /// (html, flutter, inline, dart, flutter_showcase).
   String get _modeName {
     return options.mode.toString().split('.').last;
   }
@@ -988,7 +989,7 @@ class Embed extends EditorUi {
   @override
   bool get shouldCompileDDC =>
       options.mode == EmbedMode.flutter ||
-      options.mode == EmbedMode.flutterShowcase;
+      options.mode == EmbedMode.flutter_showcase;
 
   @override
   void showOutput(String message, {bool error = false}) {

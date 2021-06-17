@@ -6,7 +6,7 @@ import 'package:dart_pad/embed.dart';
 import 'package:logging/logging.dart';
 
 void main() {
-  init(EmbedOptions(EmbedMode.flutterShowcase));
+  init(EmbedOptions(EmbedMode.flutter_showcase));
 
   Logger.root.onRecord.listen(print);
 }
