@@ -137,13 +137,14 @@ a {
 }
 
 #editor-host {
-  @include layout-vertical;
   @include layout-flex;
+  @include layout-relative;
   margin: 8px 0 0 0;
   padding: 0 8px;
 
   .CodeMirror {
-    @include layout-flex;
+    @include layout-fit;
+    height: 100%;
     font-family: $editor-font;
     font-size: $playground-editor-font-size;
   }
@@ -175,6 +176,9 @@ a {
   @include layout-vertical;
   @include layout-relative;
 
+  // Constrain the width of #console-panel
+  width: 0;
+
   iframe {
     @include layout-flex;
     border: none;
@@ -184,6 +188,8 @@ a {
 #right-output-panel {
   @include layout;
   @include layout-vertical;
+  @include layout-relative;
+
   #right-output-panel-content {
     @include layout-flex;
   }
@@ -203,7 +209,7 @@ a {
   font-size: 14px;
   line-height: 20px;
   min-height: 50px;
-  overflow-y: auto;
+  overflow: auto;
   white-space: pre-wrap;
   padding: $doc-console-padding;
 
@@ -400,6 +406,13 @@ a {
 .view-label {
   color: $dark-label-color;
 }
+
+// Scrollbars
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: $dark-scrollbar-color;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner { background: transparent; }
 
 // Misc
 .hide {

@@ -240,11 +240,7 @@ class WorkshopUi extends EditorUi {
       minSize: [100, 100],
     );
 
-    // Resize Codemirror when the size of the panel changes. This keeps the
-    // virtual scrollbar in sync with the size of the panel.
-    ResizeObserver((entries, observer) {
-      editor.resize();
-    }).observe(editorPanel);
+    listenForResize(editorPanel);
   }
 
   void _initHeader() {
@@ -401,6 +397,7 @@ class WorkshopUi extends EditorUi {
       topSplit: _editorPanel,
       bottomSplit: _editorPanelFooter,
       unreadCounter: unreadConsoleCounter,
+      editorUi: this,
     );
   }
 

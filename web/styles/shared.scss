@@ -25,6 +25,7 @@ $doc-console-padding: 8px 24px 8px 24px;
   * {
     color: $dark-editor-text;
   }
+
   h1 {
     margin-top: 0;
     font-size: 12pt;
@@ -40,43 +41,54 @@ $doc-console-padding: 8px 24px 8px 24px;
     font-size: inherit;
     color: #cdcdcd; /* little bit brigher than normal text*/
   }
+
   p {
     margin-top: 0;
   }
+
   a {
     color: #66d9ef;
   }
+
   a:hover {
     color: #66d9ef;
     text-decoration: underline;
   }
+
   a {
     color: #66d9ef;
   }
+
   a:hover {
     color: #66d9ef;
     text-decoration: underline;
   }
+
   pre {
     overflow-x: auto;
     margin: 1em;
   }
+
   pre code {
     white-space: inherit;
     word-wrap: normal;
   }
+
   code, .parameter-hints code {
     font-family: $editor-font;
     font-size: 12pt;
     color: $dark-blue;
   }
+
   code em {
     color: $dark-orange;
     font-style: normal;
   }
+
   .parameter-hints code {
     color: $dark-orange;
   }
+
   code em {
     color: $dark-orange;
     font-style: normal;
@@ -108,7 +120,12 @@ button#run-button {
 .editor-tab {
   @include mdc-button-ink-color($button-text-color);
   color: $button-text-color;
+
   &.active {
     color: $dark-blue;
   }
+}
+
+.console .normal {
+  white-space: nowrap !important;
 }

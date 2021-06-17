@@ -22,7 +22,7 @@ class Console {
   /// The CSS class name to apply to error messages.
   final String errorClass;
 
-  final _bufferedOutput = <SpanElement>[];
+  final _bufferedOutput = <DivElement>[];
 
   Console(
     this.element, {
@@ -37,12 +37,12 @@ class Console {
       message = filter(message);
     }
 
-    var span = SpanElement()..text = '$message\n';
-    span.classes.add(error ? errorClass : 'normal');
+    var div = DivElement()..text = '$message\n';
+    div.classes.add(error ? errorClass : 'normal');
 
     // Buffer the console output so that heavy writing to stdout does not starve
     // the DOM thread.
-    _bufferedOutput.add(span);
+    _bufferedOutput.add(div);
     if (_bufferedOutput.length == 1) {
       Timer(bufferDuration, () {
         element.element.children.addAll(_bufferedOutput);

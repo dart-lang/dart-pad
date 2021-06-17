@@ -82,6 +82,9 @@ section.main-section {
 // Panels
 #right-panel {
   @include layout-vertical();
+
+  // Constrain the width of #console-panel
+  width: 0;
 }
 
 #editor-panel, #output-panel {
@@ -181,14 +184,16 @@ section.main-section {
   @include layout-vertical;
   @include layout-relative;
 }
+
 #editor-host {
-  @include layout-vertical;
   @include layout-flex;
+  @include layout-relative;
   margin: 8px 0 0 0;
   padding: 0 8px;
 
   .CodeMirror {
-    @include layout-flex;
+    @include layout-fit;
+    height: 100%;
     font-family: $editor-font;
     font-size: $playground-editor-font-size;
   }
@@ -344,3 +349,10 @@ button#show-solution-btn {
 #editor-panel-close-button {
   @include mdc-icon-button-size(16px, 16px, 8px);
 }
+
+// Scrollbars
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: $dark-scrollbar-color;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner { background: transparent; }
