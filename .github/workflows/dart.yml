@@ -17,9 +17,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Disabling Dart dev SDK due to https://github.com/google/dart-neats/issues/132
+        # Disabling Dart beta and dev SDK due to https://github.com/google/dart-neats/issues/132
         # sdk: [stable, beta, dev]
-        sdk: [stable, beta]
+        sdk: [stable]
 
     steps:
       - uses: actions/checkout@v2
