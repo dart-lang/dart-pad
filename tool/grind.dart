@@ -94,12 +94,12 @@ void validateStorageArtifacts() async {
 
   for (final urlBase in [nullUnsafeUrlBase, nullSafeUrlBase]) {
     for (final artifact in compilationArtifacts) {
-      await _validateExists('$urlBase$version/$artifact');
+      await _validateExists(Uri.parse('$urlBase$version/$artifact'));
     }
   }
 }
 
-Future<void> _validateExists(String url) async {
+Future<void> _validateExists(Uri url) async {
   log('checking $url...');
 
   final response = await http.head(url);
