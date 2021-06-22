@@ -42,4 +42,7 @@ jobs:
         run: dart analyze --fatal-infos
 
       - name: Run buildbot
-        run: dart tool/grind.dart buildbot
+        run: |
+          export PATH=$PATH:$HOME/.pub-cache/bin
+          dart pub global activate protoc_plugin
+          dart tool/grind.dart buildbot
