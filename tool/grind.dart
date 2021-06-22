@@ -136,6 +136,7 @@ const _preNullSafetyServerUrlOption = 'pre-null-safety-server-url';
 const _nullSafetyServerUrlOption = 'null-safety-server-url';
 
 @Task('Build the `web/index.html` entrypoint')
+@Depends(generateProtos)
 build() {
   var args = context.invocation.arguments;
   var compilerArgs = {
@@ -158,6 +159,7 @@ build() {
     '-o',
     'web:build',
     '--delete-conflicting-outputs',
+    '--verbose',
   ]);
 
   var mainFile = _buildDir.join('scripts/playground.dart.js');
@@ -283,7 +285,9 @@ void generateProtos() {
   }
 
   // generate common_server_proto.g.dart
-  Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
+  Pub.run('build_runner',
+      arguments: ['build', '--delete-conflicting-outputs', '--verbose']);
+  Process.runSync('dart', ['format', 'lib/src/protos']);
 }
 
 /// An implementation of [TaskArgs] which can be used as a const value in an
