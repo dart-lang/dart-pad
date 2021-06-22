@@ -29,7 +29,10 @@ jobs:
       - name: Print Dart SDK version
         run: dart --version
 
-      - name: Install dependencies
+      - name: Install apt dependencies
+        run: sudo apt-get install -y protobuf-compiler
+
+      - name: Install dart dependencies
         run: dart pub get
 
       - name: Verify formatting
