@@ -74,7 +74,7 @@ class DartservicesApi {
     O result,
   ) async {
     final response = await _client.post(
-      '$rootUrl$_apiPath/$action',
+      Uri.parse('$rootUrl$_apiPath/$action'),
       encoding: utf8,
       body: json.encode(request.toProto3Json()),
     );

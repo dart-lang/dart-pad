@@ -1,16 +1,16 @@
-include: package:pedantic/analysis_options.1.11.0.yaml
+include: package:lints/recommended.yaml
 
 analyzer:
   strong-mode:
     implicit-casts: false
   exclude:
-    - 'build/**'
-    - 'doc/api/**'
-    - 'last_prod/**'
-    - 'lib/bower/**'
-    - 'lib/src/protos/**'
-    - 'third_party/pkg/**'
-    - 'web/example/workshops/**'
+    - "build/**"
+    - "doc/api/**"
+    - "last_prod/**"
+    - "lib/bower/**"
+    - "lib/src/protos/**"
+    - "third_party/pkg/**"
+    - "web/example/workshops/**"
 linter:
   rules:
     # Disabled as we really on quite a few uses of these currently
