@@ -159,7 +159,6 @@ build() {
     '-o',
     'web:build',
     '--delete-conflicting-outputs',
-    '--verbose',
   ]);
 
   var mainFile = _buildDir.join('scripts/playground.dart.js');
@@ -230,7 +229,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(testCli, testWeb, coverage, build)
+@Depends(generateProtos, testCli, testWeb, coverage, build)
 void buildbot() {}
 
 @Task('Prepare the app for deployment')
@@ -285,8 +284,7 @@ void generateProtos() {
   }
 
   // generate common_server_proto.g.dart
-  Pub.run('build_runner',
-      arguments: ['build', '--delete-conflicting-outputs', '--verbose']);
+  Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
   Process.runSync('dart', ['format', 'lib/src/protos']);
 }
 
