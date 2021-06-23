@@ -13,13 +13,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
-        # Disabling Dart beta and dev SDK due to https://github.com/google/dart-neats/issues/132
-        # sdk: [stable, beta, dev]
-        sdk: [stable]
+        sdk: [stable, beta, dev]
 
     steps:
       - uses: actions/checkout@v2
@@ -27,7 +25,7 @@ jobs:
         with:
           sdk: ${{ matrix.sdk }}
       - uses: actions/setup-node@v2
-      
+
       - name: Print Dart SDK version
         run: dart --version
 
