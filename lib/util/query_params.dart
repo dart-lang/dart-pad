@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'dart:html';
 
 /// Enables retrieving and setting browser query parameters.

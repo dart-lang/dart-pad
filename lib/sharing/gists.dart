@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 library gists;
 
 import 'dart:convert' show json;
@@ -213,7 +215,7 @@ $styleRef$dartRef  </head>
   Future<Gist> loadGist(String gistId) async {
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
-    final response = await _client.get('$_gistApiUrl/$gistId');
+    final response = await _client.get(Uri.parse('$_gistApiUrl/$gistId'));
 
     if (response.statusCode == 404) {
       throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -243,7 +245,7 @@ $styleRef$dartRef  </head>
         ? '$_masterApiDocsUrl/$sampleId.dart'
         : '$_stableApiDocsUrl/$sampleId.dart';
 
-    final response = await _client.get(sampleUrl);
+    final response = await _client.get(Uri.parse(sampleUrl));
 
     if (response.statusCode == 404) {
       throw const GistLoaderException(GistLoaderFailureType.contentNotFound);

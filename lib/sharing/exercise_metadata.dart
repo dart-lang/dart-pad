@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 import 'package:yaml/yaml.dart' as yaml;
 
 /// An exception thrown when a metadata file has missing or invalid fields.

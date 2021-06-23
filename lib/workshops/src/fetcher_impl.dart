@@ -1,3 +1,5 @@
+// @dart=2.9
+
 import 'package:checked_yaml/checked_yaml.dart';
 
 import 'fetcher.dart';

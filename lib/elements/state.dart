@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.9
+
 /// A library for storing non-semantic user state, like UI component positions.
 /// This information is differentiated from user configurable settings.
 library dart_pad.state;

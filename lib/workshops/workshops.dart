@@ -1,3 +1,5 @@
+// @dart=2.9
+
 export 'src/fetcher.dart';
 export 'src/github.dart';
 export 'src/step.dart';
