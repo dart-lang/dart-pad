@@ -16,19 +16,19 @@ import 'package:js/js_util.dart' as js_util;
 typedef _ElementStyleCallback
     = Function(Object dimension, Object size, num gutterSize, [int index]);
 typedef _GutterStyleCallback = Function(
-    Object dimension, num gutterSize, int index);
+    Object dimension, num gutterSize, int? index);
 
 @JS()
 @anonymous
 class _SplitOptions {
   external factory _SplitOptions({
-    _ElementStyleCallback elementStyle,
-    _GutterStyleCallback gutterStyle,
-    String direction,
-    num gutterSize,
-    List<num> sizes,
-    List<num> minSize,
-    bool expandToMin,
+    _ElementStyleCallback? elementStyle,
+    _GutterStyleCallback? gutterStyle,
+    String? direction,
+    num? gutterSize,
+    List<num>? sizes,
+    List<num>? minSize,
+    bool? expandToMin,
   });
 
   external _ElementStyleCallback get elementStyle;
@@ -52,10 +52,10 @@ external Splitter _split(List parts, _SplitOptions options);
 
 typedef _SplitterBuilder = Splitter Function(
   List<Element> parts, {
-  @required bool horizontal,
-  @required num gutterSize,
-  @required List<num> sizes,
-  @required List<num> minSize,
+  required bool horizontal,
+  required num gutterSize,
+  required List<num>? sizes,
+  required List<num>? minSize,
 });
 
 @JS()
@@ -67,10 +67,10 @@ class Splitter {
 
   external void collapse();
 
-  external void destroy([bool preserveStyles, bool preserveGutters]);
+  external void destroy([bool? preserveStyles, bool? preserveGutters]);
 }
 
-bool _isAttachedToDocument(Element element) => element.isConnected;
+bool? _isAttachedToDocument(Element element) => element.isConnected;
 
 /// Splitter that splits multiple elements using flex layout.
 ///
@@ -87,17 +87,17 @@ Splitter flexSplit(
   List<Element> parts, {
   bool horizontal = true,
   num gutterSize = 5,
-  List<num> sizes,
-  List<num> minSize,
+  List<num>? sizes,
+  List<num>? minSize,
 }) {
   // The splitter library will generate nonsense split percentages if called
   // on elements that are not yet attached to the document.
-  assert(parts.every(_isAttachedToDocument));
+  assert(parts.every(_isAttachedToDocument as bool Function(Element)));
 
   return _split(
     parts,
     _SplitOptions(
-      elementStyle: allowInterop((dimension, size, gutterSize, [index]) {
+      elementStyle: allowInterop((dimension, size, gutterSize, [int? index]) {
         return js_util.jsify({
           'flex-basis': 'calc($size% - ${gutterSize}px)',
         });
@@ -131,18 +131,18 @@ Splitter fixedSplit(
   List<Element> parts, {
   bool horizontal = true,
   num gutterSize = 5,
-  List<num> sizes,
-  List<num> minSize,
+  List<num>? sizes,
+  List<num>? minSize,
 }) {
   // The splitter library will generate nonsense split percentages if called
   // on elements that are not yet attached to the document.
-  assert(parts.every(_isAttachedToDocument));
+  assert(parts.every(_isAttachedToDocument as bool Function(Element)));
 
   return _split(
     parts,
     _SplitOptions(
-      elementStyle: allowInterop((dimension, size, gutterSize, [index]) {
-        final Object o = js_util.newObject();
+      elementStyle: allowInterop((dimension, size, gutterSize, [int? index]) {
+        final Object o = js_util.newObject() as Object;
         js_util.setProperty(
           o,
           horizontal ? 'width' : 'height',
@@ -156,7 +156,7 @@ Splitter fixedSplit(
         return o;
       }),
       gutterStyle: allowInterop((dimension, gutterSize, index) {
-        final Object o = js_util.newObject();
+        final Object o = js_util.newObject() as Object;
         js_util.setProperty(
           o,
           horizontal ? 'width' : 'height',
@@ -180,14 +180,14 @@ Splitter fixedSplit(
 
 StreamSubscription<Object> _splitBidirectional(
   List<Element> parts, {
-  @required num gutterSize,
-  @required List<num> verticalSizes,
-  @required List<num> horizontalSizes,
-  @required List<num> minSize,
-  @required _SplitterBuilder splitterBuilder,
+  required num gutterSize,
+  required List<num>? verticalSizes,
+  required List<num>? horizontalSizes,
+  required List<num>? minSize,
+  required _SplitterBuilder splitterBuilder,
 }) {
   final mediaQueryList = window.matchMedia('(min-aspect-ratio: 1/1)');
-  Splitter splitter;
+  late Splitter splitter;
   // TODO(jacobr): cache the vertical or horizontal split and restore the value
   // when the aspect ratio changes back.
   void createSplitter() {
@@ -221,9 +221,9 @@ StreamSubscription<Object> _splitBidirectional(
 StreamSubscription<Object> flexSplitBidirectional(
   List<Element> parts, {
   num gutterSize = 5,
-  List<num> verticalSizes,
-  List<num> horizontalSizes,
-  List<num> minSize,
+  List<num>? verticalSizes,
+  List<num>? horizontalSizes,
+  List<num>? minSize,
 }) {
   return _splitBidirectional(
     parts,
@@ -249,9 +249,9 @@ StreamSubscription<Object> flexSplitBidirectional(
 StreamSubscription<Object> fixedSplitBidirectional(
   List<Element> parts, {
   num gutterSize = 5,
-  List<num> verticalSizes,
-  List<num> horizontalSizes,
-  List<num> minSize,
+  List<num>? verticalSizes,
+  List<num>? horizontalSizes,
+  List<num>? minSize,
 }) {
   return _splitBidirectional(
     parts,
