@@ -28,12 +28,12 @@ dependencies:
   yaml: ^3.0.0
 
 dev_dependencies:
+  angel3_mock_request: ^2.0.0
   async: ^2.2.0
   build_runner: ^2.0.4
   coverage: ^1.0.3
   grinder: ^0.9.0
   lints: ^1.0.1
-  mock_request: ^1.0.7
   pedantic: ^1.11.0
   shelf_router_generator: ^1.0.0
   synchronized: ^3.0.0

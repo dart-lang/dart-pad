@@ -22,6 +22,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.7.0"
+  angel3_mock_request:
+    dependency: "direct dev"
+    description:
+      name: angel3_mock_request
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.1"
   args:
     dependency: "direct main"
     description:
@@ -304,13 +311,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.0.0"
-  mock_request:
-    dependency: "direct dev"
-    description:
-      name: mock_request
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "1.0.7"
   node_preamble:
     dependency: transitive
     description:
