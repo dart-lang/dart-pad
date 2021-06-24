@@ -550,9 +550,9 @@ packages:
   split:
     dependency: "direct main"
     description:
-      name: split
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "third_party/pkg/split"
+      relative: true
+    source: path
     version: "0.0.7"
   stack_trace:
     dependency: transitive
