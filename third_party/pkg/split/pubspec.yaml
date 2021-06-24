@@ -1,0 +1,12 @@
+name: split
+description: Minimal package containing 'split' third_party dependency used by package:devtools.
+author: Dart Team <misc@dartlang.org>
+homepage: https://github.com/flutter/devtools/tree/master/third_party/packages/split
+version: 0.0.7
+
+dependencies:
+  js: ^0.6.1+1
+  meta: ^1.1.0
+
+environment:
+  sdk: '>=2.1.0-dev <3.0.0'
