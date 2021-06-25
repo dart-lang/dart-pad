@@ -117,7 +117,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       _initTabs();
       _initLayout();
       _initConsoles();
-    }).then((_){
+    }).then((_) {
       showHome();
     });
   }
