@@ -22,3 +22,4 @@ web/scripts/codemirror.js
 last_prod/
 
 .idea/
+third_party/pkg/split/pubspec.lock
