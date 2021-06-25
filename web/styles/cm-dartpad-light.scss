@@ -34,3 +34,11 @@
 .cm-s-dartpad span.cm-def { color: $light-editor-text; }
 .cm-s-dartpad span.cm-tag { color: $light-green; }
 .cm-s-dartpad span.cm-property { color: $light-red; }
+
+.CodeMirror-simplescroll-horizontal div, .CodeMirror-simplescroll-vertical div {
+  background: $light-scrollbar-color;
+}
+
+.CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
+  background-color: $light-code-background-color !important;
+}

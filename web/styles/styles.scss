@@ -5,10 +5,11 @@
 
 // Material Design Web theme colors. Must be imported before importing
 // material-components-web.scss.
-$mdc-theme-primary: #168AFD;
+$mdc-theme-primary: #168afd;
+$mdc-theme-on-primary: #0e161f;
 $mdc-theme-secondary: #676767;
-$mdc-theme-background: $playground-background-color;
-$mdc-theme-surface: $playground-background-color;
+$mdc-theme-background: $playground-header-background-color;
+$mdc-theme-surface: $playground-header-background-color;
 $mdc-theme-error: $dark-red;
 
 // Layout constants
@@ -48,12 +49,6 @@ header {
       width: 24px;
       margin-right: 8px;
     }
-  }
-
-  button.mdc-button {
-    @include mdc-button-ink-color(#f8f9fa);
-    text-transform: none !important;
-    letter-spacing: normal;
   }
 
   .header-gist-name {
@@ -142,13 +137,14 @@ a {
 }
 
 #editor-host {
-  @include layout-vertical;
   @include layout-flex;
+  @include layout-relative;
   margin: 8px 0 0 0;
   padding: 0 8px;
 
   .CodeMirror {
-    @include layout-flex;
+    @include layout-fit;
+    height: 100%;
     font-family: $editor-font;
     font-size: $playground-editor-font-size;
   }
@@ -180,6 +176,9 @@ a {
   @include layout-vertical;
   @include layout-relative;
 
+  // Constrain the width of #console-panel
+  width: 0;
+
   iframe {
     @include layout-flex;
     border: none;
@@ -189,6 +188,8 @@ a {
 #right-output-panel {
   @include layout;
   @include layout-vertical;
+  @include layout-relative;
+
   #right-output-panel-content {
     @include layout-flex;
   }
@@ -208,7 +209,7 @@ a {
   font-size: 14px;
   line-height: 20px;
   min-height: 50px;
-  overflow-y: auto;
+  overflow: auto;
   white-space: pre-wrap;
   padding: $doc-console-padding;
 
@@ -354,8 +355,8 @@ a {
 
 // Editor Tabs
 .editor-tab {
-  @include mdc-button-ink-color(#f8f9fa);
-  color: $label-color;
+  @include mdc-button-ink-color($button-text-color);
+  color: $button-text-color;
   &.active {
     color: $dark-blue;
   }
@@ -367,6 +368,13 @@ a {
 
 #editor-panel-close-button {
   @include mdc-icon-button-size(16px, 16px, 8px);
+}
+
+// Tabs
+.mdc-tab {
+  @include mdc-tab-text-label-color($dark-tab-color);
+  @include mdc-tab-active-text-label-color($dark-tab-color-active);
+  @include mdc-tab-indicator-underline-color($dark-tab-color-active);
 }
 
 // responsive layout
@@ -393,6 +401,18 @@ a {
     display: none !important;
   }
 }
+
+// Labels
+.view-label {
+  color: $dark-label-color;
+}
+
+// Scrollbars
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: $dark-scrollbar-color;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner { background: transparent; }
 
 // Misc
 .hide {

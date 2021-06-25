@@ -1,7 +1,10 @@
+@import 'package:mdc_web/material-components-web';
+
 @import 'package:dart_pad/scss/colors';
 @import 'package:dart_pad/scss/layout';
 @import 'package:dart_pad/scss/shared';
 @import 'package:dart_pad/scss/variables';
+
 
 // Layout constants
 $doc-console-padding: 8px 24px 8px 24px;
@@ -22,6 +25,7 @@ $doc-console-padding: 8px 24px 8px 24px;
   * {
     color: $dark-editor-text;
   }
+
   h1 {
     margin-top: 0;
     font-size: 12pt;
@@ -37,43 +41,54 @@ $doc-console-padding: 8px 24px 8px 24px;
     font-size: inherit;
     color: #cdcdcd; /* little bit brigher than normal text*/
   }
+
   p {
     margin-top: 0;
   }
+
   a {
     color: #66d9ef;
   }
+
   a:hover {
     color: #66d9ef;
     text-decoration: underline;
   }
+
   a {
     color: #66d9ef;
   }
+
   a:hover {
     color: #66d9ef;
     text-decoration: underline;
   }
+
   pre {
     overflow-x: auto;
     margin: 1em;
   }
+
   pre code {
     white-space: inherit;
     word-wrap: normal;
   }
+
   code, .parameter-hints code {
     font-family: $editor-font;
     font-size: 12pt;
     color: $dark-blue;
   }
+
   code em {
     color: $dark-orange;
     font-style: normal;
   }
+
   .parameter-hints code {
     color: $dark-orange;
   }
+
   code em {
     color: $dark-orange;
     font-style: normal;
@@ -87,4 +102,30 @@ $doc-console-padding: 8px 24px 8px 24px;
   width: 12px;
   height: 12px;
   margin-bottom: -1px;
+}
+
+// Buttons
+button.mdc-button {
+  @include mdc-button-ink-color($button-text-color); // TODO
+  text-transform: none !important;
+  letter-spacing: normal;
+}
+
+button#run-button {
+  @include mdc-button-ink-color(#0e161f);
+  color: #442C2E;
+}
+
+// Editor Tabs
+.editor-tab {
+  @include mdc-button-ink-color($button-text-color);
+  color: $button-text-color;
+
+  &.active {
+    color: $dark-blue;
+  }
+}
+
+.console .normal {
+  white-space: nowrap !important;
 }

@@ -5,10 +5,11 @@
 
 // Material Design Web theme colors. Must be imported before importing
 // material-components-web.scss.
-$mdc-theme-primary: #168AFD;
+$mdc-theme-primary: #168afd;
+$mdc-theme-on-primary: #0e161f;
 $mdc-theme-secondary: #676767;
-$mdc-theme-background: $playground-background-color;
-$mdc-theme-surface: $playground-background-color;
+$mdc-theme-background: $playground-header-background-color;
+$mdc-theme-surface: $playground-header-background-color;
 $mdc-theme-error: $dark-red;
 
 @import 'package:mdc_web/material-components-web';
@@ -38,7 +39,7 @@ header {
   }
 
   button.mdc-button {
-    @include mdc-button-ink-color(#f8f9fa);
+    @include mdc-button-ink-color($button-text-color);
     text-transform: none !important;
     letter-spacing: normal;
   }
@@ -81,6 +82,9 @@ section.main-section {
 // Panels
 #right-panel {
   @include layout-vertical();
+
+  // Constrain the width of #console-panel
+  width: 0;
 }
 
 #editor-panel, #output-panel {
@@ -180,14 +184,16 @@ section.main-section {
   @include layout-vertical;
   @include layout-relative;
 }
+
 #editor-host {
-  @include layout-vertical;
   @include layout-flex;
+  @include layout-relative;
   margin: 8px 0 0 0;
   padding: 0 8px;
 
   .CodeMirror {
-    @include layout-flex;
+    @include layout-fit;
+    height: 100%;
     font-family: $editor-font;
     font-size: $playground-editor-font-size;
   }
@@ -201,6 +207,13 @@ section.main-section {
   right: 0;
   margin: 8px 24px 0 0;
   z-index: 5;
+}
+
+// Tabs
+.mdc-tab {
+  @include mdc-tab-text-label-color($dark-tab-color);
+  @include mdc-tab-active-text-label-color($dark-tab-color-active);
+  @include mdc-tab-indicator-underline-color($dark-tab-color-active);
 }
 
 // Console panel
@@ -303,6 +316,11 @@ body>footer {
   }
 }
 
+button#show-solution-btn {
+  @include mdc-button-ink-color(#0e161f);
+  color: #442C2E;
+}
+
 // Splitter
 .gutter {
   background-color: $dark-gutter-background-color;
@@ -324,15 +342,6 @@ body>footer {
   width: 100%;
 }
 
-// Editor Tabs
-.editor-tab {
-  @include mdc-button-ink-color(#f8f9fa);
-  color: $label-color;
-  &.active {
-    color: $dark-blue;
-  }
-}
-
 .border-top {
   border-top: 6px solid $dark-gutter-background-color !important;
 }
@@ -340,3 +349,10 @@ body>footer {
 #editor-panel-close-button {
   @include mdc-icon-button-size(16px, 16px, 8px);
 }
+
+// Scrollbars
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: $dark-scrollbar-color;
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner { background: transparent; }

@@ -58,8 +58,7 @@ body {
 // Code Editor
 
 #user-code-editor, #solution-editor, #test-editor, #html-editor, #solution-editor {
-  flex: 1;
-  width: 100%;
+  @include layout-fit;
 }
 
 .CodeMirror-hints {
@@ -76,7 +75,6 @@ body {
   font-family: $editor-font;
   font-size: $embed-editor-font-size;
   overflow-y: auto;
-  height: 100%;
   white-space: pre-wrap;
   display: flex;
   flex-direction: column;
@@ -93,20 +91,21 @@ body {
 // Code annotations
 
 .squiggle-error {
-  border-bottom: 2px solid $squiggle-error-color;
+  border-bottom: 2px solid $dark-squiggle-error-color;
 }
 
 .squiggle-warning {
-  border-bottom: 2px solid $squiggle-warning-color;
+  border-bottom: 2px solid $dark-squiggle-warning-color;
 }
 
 .squiggle-info {
-  border-bottom: 2px solid $squiggle-info-color;
+  border-bottom: 2px solid $dark-squiggle-info-color;
 }
 
 // Styling specifically for CodeMirror editor
 
 .CodeMirror {
+  width: 100%;
   height: 100%;
   font-family: $editor-font;
   font-size: $embed-editor-font-size;
@@ -126,6 +125,8 @@ body {
 
 .no-overflow {
   height: 100%;
+  width: 100%;
+  overflow-x: hidden;
   overflow-y: hidden;
 }
 
@@ -174,7 +175,6 @@ body {
 }
 
 #console-expand-icon, .close-flash-container .close-flash-button {
-  color: $label-color;
   @include mdc-icon-button-size(16px, 16px, 8px);
 }
 
@@ -296,6 +296,7 @@ body {
 // Misc
 .view-label {
   margin-left: 8px;
+  font-size: 12px;
 }
 
 .hide {
@@ -323,4 +324,8 @@ body {
 
 .flex-column {
   flex-direction: column !important;
+}
+
+.console .normal {
+  white-space: nowrap !important;
 }
