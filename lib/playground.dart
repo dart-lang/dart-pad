@@ -791,16 +791,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
     }
   }
 
-  Layout _detectLayout(Gist gist) {
-    if (gist.hasWebContent()) {
-      return Layout.html;
-    } else if (gist.hasFlutterContent()) {
-      return Layout.flutter;
-    } else {
-      return Layout.dart;
-    }
-  }
-
   void _changeLayout(Layout layout) {
     if (_layout == layout) {
       return;
