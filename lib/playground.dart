@@ -10,7 +10,6 @@ import 'dart:html' hide Console;
 import 'package:dart_pad/editing/editor_codemirror.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
-import 'package:route_hierarchical/client.dart';
 import 'package:split/split.dart';
 import 'package:stream_transform/stream_transform.dart';
 
@@ -104,6 +103,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _initDialogs();
     _checkLocalStorage();
     _initModules().then((_) {
+      _gistStorage = GistStorage();
       _initPlayground();
       _initBusyLights();
       _initGistNameHeader();
@@ -117,7 +117,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
       _initTabs();
       _initLayout();
       _initConsoles();
-      _gistStorage = GistStorage();
+    }).then((_){
+      showHome();
     });
   }
 
@@ -327,8 +328,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     samplesMenu.listen('MDCMenu:selected', (e) {
       var index = (e as CustomEvent).detail['index'] as int;
       var gistId = samples.elementAt(index).gistId;
-      router.go('gist', {'gist': gistId},
-          queryParameters: queryParams.parameters);
+      showGist(gistId);
     });
   }
 
@@ -432,7 +432,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
   void _initLayout() {
     editorPanelHeader = DElement(_editorPanelHeader);
     editorPanelFooter = DElement(_editorPanelFooter);
-    _changeLayout(Layout.dart);
   }
 
   void _initConsoles() {
@@ -519,27 +518,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       });
     });
 
-    // Set up the router.
-    deps[Router] = Router();
-    router.root.addRoute(name: 'home', defaultRoute: true, enter: showHome);
-    router.root.addRoute(
-        name: 'dart',
-        path: '/dart',
-        defaultRoute: false,
-        enter: (_) => showNew(Layout.dart));
-    router.root.addRoute(
-        name: 'html',
-        path: '/html',
-        defaultRoute: false,
-        enter: (_) => showNew(Layout.html));
-    router.root.addRoute(
-        name: 'flutter',
-        path: '/flutter',
-        defaultRoute: false,
-        enter: (_) => showNew(Layout.flutter));
-    router.root.addRoute(name: 'gist', path: '/:gist', enter: showGist);
-    router.listen();
-
     docHandler = DocHandler(editor, context);
 
     updateVersions();
@@ -624,12 +602,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       // Store the gist so that the same sample is loaded when the page is
       // refreshed.
       _gistStorage.setStoredGist(editableGist.createGist());
-
-      _changeLayout(layout);
-    } else {
-      // If a Gist was loaded from storage or from a Gist, use the layout
-      // detected by reading the code.
-      _changeLayout(_detectLayout(editableGist.backingGist));
     }
 
     // Clear console output and update the layout if necessary.
@@ -655,7 +627,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     }
   }
 
-  Future<void> showHome(RouteEnterEvent event) async {
+  Future<void> showHome() async {
     await showNew(Layout.dart);
   }
 
@@ -689,17 +661,18 @@ class Playground extends EditorUi implements GistContainer, GistController {
     return LoadGistResult.none;
   }
 
-  void showGist(RouteEnterEvent event) {
-    var gistId = event.parameters['gist'] as String;
-
+  void showGist(String gistId) {
     clearOutput();
 
     if (!isLegalGistId(gistId)) {
-      showHome(event);
+      showHome();
+      return;
+    } else if (editableGist.backingGist.id == gistId) {
       return;
     }
 
     _showGist(gistId);
+    queryParams.gistId = gistId;
   }
 
   void _showGist(String gistId) {
@@ -731,8 +704,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       }
 
       clearOutput();
-
-      _changeLayout(_detectLayout(gist));
 
       // Analyze and run it.
       Timer.run(() {
@@ -913,7 +884,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
         return;
       }
       await createGistForLayout(layout);
-      _changeLayout(layout);
     }
   }
 
@@ -959,8 +929,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
     if (ga != null) ga.sendEvent('main', 'new');
 
     showSnackbar('New pad created');
-    await router.go('gist', {'gist': ''},
-        queryParameters: queryParams.parameters, forceReload: true);
   }
 
   Future<void> createGistForLayout(Layout layout) async {
@@ -968,12 +936,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     if (ga != null) ga.sendEvent('main', 'new');
 
+    await showNew(layout);
     showSnackbar('New pad created');
-
-    var layoutStr = _layoutToString(layout);
-
-    await router.go(layoutStr, {},
-        forceReload: true, queryParameters: queryParams.parameters);
   }
 
   void _resetGists() {
