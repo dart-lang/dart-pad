@@ -1,7 +1,7 @@
 library route.click_handler_test;
 
-import 'dart:html';
 import 'dart:async';
+import 'dart:html';
 import 'package:test/test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:route_hierarchical/click_handler.dart';
@@ -10,7 +10,7 @@ import 'package:route_hierarchical/link_matcher.dart';
 
 import 'util/mocks.dart';
 
-main() {
+void main() {
   group('DefaultWindowLinkHandler', () {
     WindowClickHandler linkHandler;
     MockRouter router;
@@ -24,7 +24,7 @@ main() {
       when(mockWindow.location.host).thenReturn(window.location.host);
       when(mockWindow.location.hash).thenReturn('');
       when(mockWindow.onHashChange)
-          .thenAnswer((_) => onHashChangeController.stream);
+          .thenAnswer((_) => onHashChangeController.stream as Stream<Event>);
       router = MockRouter();
       root = DivElement();
       document.body.append(root);
@@ -42,29 +42,28 @@ main() {
     });
 
     MouseEvent _createMockMouseEvent({String anchorTarget, String anchorHref}) {
-      AnchorElement anchor = AnchorElement();
+      var anchor = AnchorElement();
       if (anchorHref != null) anchor.href = anchorHref;
       if (anchorTarget != null) anchor.target = anchorTarget;
 
-      MockMouseEvent mockMouseEvent = MockMouseEvent();
+      var mockMouseEvent = MockMouseEvent();
       when(mockMouseEvent.target).thenReturn(anchor);
       when(mockMouseEvent.path).thenReturn([anchor]);
       return mockMouseEvent;
     }
 
     test('should process AnchorElements which have target set', () {
-      MockMouseEvent mockMouseEvent =
-          _createMockMouseEvent(anchorHref: '#test');
+      final mockMouseEvent = _createMockMouseEvent(anchorHref: '#test');
       linkHandler(mockMouseEvent);
       var result = verify(router.gotoUrl(captureAny));
       result.called(1);
-      expect(result.captured.first, "test");
+      expect(result.captured.first, 'test');
     });
 
     test(
         'should process AnchorElements which has target set to _blank, _self, _top or _parent',
         () {
-      MockMouseEvent mockMouseEvent =
+      var mockMouseEvent =
           _createMockMouseEvent(anchorHref: '#test', anchorTarget: '_blank');
       linkHandler(mockMouseEvent);
 
@@ -87,22 +86,22 @@ main() {
     test('should process AnchorElements which has a child', () {
       Element anchorChild = DivElement();
 
-      AnchorElement anchor = AnchorElement();
+      var anchor = AnchorElement();
       anchor.href = '#test';
       anchor.append(anchorChild);
 
-      MockMouseEvent mockMouseEvent = MockMouseEvent();
+      var mockMouseEvent = MockMouseEvent();
       when(mockMouseEvent.target).thenReturn(anchorChild);
       when(mockMouseEvent.path).thenReturn([anchorChild, anchor]);
 
       linkHandler(mockMouseEvent);
       var result = verify(router.gotoUrl(captureAny));
       result.called(1);
-      expect(result.captured.first, "test");
+      expect(result.captured.first, 'test');
     });
 
     test('should be called if event triggerd on anchor element', () {
-      AnchorElement anchor = AnchorElement();
+      var anchor = AnchorElement();
       anchor.href = '#test';
       root.append(anchor);
 
@@ -119,7 +118,7 @@ main() {
     test('should be called if event triggerd on child of an anchor element',
         () {
       Element anchorChild = DivElement();
-      AnchorElement anchor = AnchorElement();
+      var anchor = AnchorElement();
       anchor.href = '#test';
       anchor.append(anchorChild);
       root.append(anchor);

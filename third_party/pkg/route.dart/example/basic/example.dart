@@ -5,7 +5,7 @@ import 'dart:html';
 import 'package:logging/logging.dart';
 import 'package:route_hierarchical/client.dart';
 
-main() {
+void main() {
   Logger('')
     ..level = Level.FINEST
     ..onRecord.listen((r) => print('[${r.level}] ${r.message}'));
@@ -25,13 +25,13 @@ main() {
 }
 
 void showOne(RouteEvent e) {
-  print("showOne");
+  print('showOne');
   querySelector('#one').classes.add('selected');
   querySelector('#two').classes.remove('selected');
 }
 
 void showTwo(RouteEvent e) {
-  print("showTwo");
+  print('showTwo');
   querySelector('#one').classes.remove('selected');
   querySelector('#two').classes.add('selected');
 }

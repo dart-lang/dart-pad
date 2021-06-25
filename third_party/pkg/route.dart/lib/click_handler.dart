@@ -2,10 +2,8 @@ library link_handler;
 
 import 'dart:html';
 
-import 'link_matcher.dart';
 import 'client.dart';
-
-typedef _HashNormalizer = String Function(String s);
+import 'link_matcher.dart';
 
 /// WindowClickHandler can be used as a hook into [Router] to
 /// modify behavior right after user clicks on an element, and
@@ -21,21 +19,21 @@ typedef WindowClickHandler = Function(Event e);
 class DefaultWindowClickHandler {
   final RouterLinkMatcher _linkMatcher;
   final Router _router;
-  final _HashNormalizer _normalizer;
+  final String Function(String) _normalizer;
   final Window _window;
-  bool _useFragment;
+  final bool _useFragment;
 
   DefaultWindowClickHandler(this._linkMatcher, this._router, this._useFragment,
       this._window, this._normalizer);
 
   void call(Event e) {
-    Element el = e.target;
+    var el = e.target as Element;
     while (el != null && el is! AnchorElement) {
       el = el.parent;
     }
     if (el == null) return;
     assert(el is AnchorElement);
-    AnchorElement anchor = el;
+    final anchor = el as AnchorElement;
     if (!_linkMatcher.matches(anchor)) {
       return;
     }

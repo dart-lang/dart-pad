@@ -13,7 +13,7 @@ import 'package:route_hierarchical/client.dart';
 
 import 'util/mocks.dart';
 
-main() {
+void main() {
   test('paths are routed to routes added with addRoute', () {
     var router = Router();
     router.root.addRoute(
@@ -28,7 +28,7 @@ main() {
 
   group('use a longer path first', () {
     test('add a longer path first', () {
-      Router router = Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'foobar',
@@ -45,7 +45,7 @@ main() {
     });
 
     test('add a longer path last', () {
-      Router router = Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -62,7 +62,7 @@ main() {
     });
 
     test('add paths with a param', () {
-      Router router = Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'foo',
@@ -79,7 +79,7 @@ main() {
     });
 
     test('add paths with a parametalized parent', () {
-      Router router = Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'paramaddress',
@@ -96,7 +96,7 @@ main() {
     });
 
     test('add paths with a first param and one without', () {
-      Router router = Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'fooparam',
@@ -113,7 +113,7 @@ main() {
     });
 
     test('add paths with a first param and one without 2', () {
-      Router router = Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'paramfoo',
@@ -130,7 +130,7 @@ main() {
     });
 
     test('add paths with a second param and one without', () {
-      Router router = Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'bazparamfoo',
@@ -147,7 +147,7 @@ main() {
     });
 
     test('add paths with a first param and a second param', () {
-      Router router = Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'parambarfoo',
@@ -164,7 +164,7 @@ main() {
     });
 
     test('add paths with two params and a param', () {
-      Router router = Router();
+      var router = Router();
       router.root
         ..addRoute(
             name: 'param1param2foo',
@@ -540,8 +540,6 @@ main() {
         log.add(r.route.name);
       }
 
-      ;
-
       var router = Router();
       router.root.addRoute(
           path: '/foo',
@@ -583,8 +581,8 @@ main() {
 
     void _testAllowLeave(bool allowLeave) {
       var completer = Completer<bool>();
-      bool barEntered = false;
-      bool bazEntered = false;
+      var barEntered = false;
+      var bazEntered = false;
 
       var router = Router();
       router.root.addRoute(
@@ -624,7 +622,7 @@ main() {
   group('preEnter', () {
     void _testAllowEnter(bool allowEnter) {
       var completer = Completer<bool>();
-      bool barEntered = false;
+      var barEntered = false;
 
       var router = Router();
       router.root.addRoute(
@@ -1285,23 +1283,23 @@ main() {
       router.root.addRoute(
           name: 'foo',
           path: '/:foo',
-          mount: (child) => routeFoo = child
+          mount: (Route child) => routeFoo = child
             ..addRoute(
                 name: 'bar',
                 path: '/:bar',
-                mount: (child) => routeBar = child
+                mount: (Route child) => routeBar = child
                   ..addRoute(
                       name: 'baz',
                       path: '/:baz',
-                      mount: (child) => routeBaz = child))
+                      mount: (Route child) => routeBaz = child))
             ..addRoute(
                 name: 'qux',
                 path: '/:qux',
-                mount: (child) => routeQux = child
+                mount: (Route child) => routeQux = child
                   ..addRoute(
                       name: 'aux',
                       path: '/:aux',
-                      mount: (child) => routeAux = child)));
+                      mount: (Route child) => routeAux = child)));
 
       expect(router.root.findRoute('foo'), same(routeFoo));
       expect(router.root.findRoute('foo.bar'), same(routeBar));
@@ -1523,8 +1521,8 @@ main() {
                   ..addRoute(
                       name: 'aux', path: '/aux', mount: (child) => child)));
 
-      var strPath =
-          (List<Route> path) => path.map((Route r) => r.name).join('.');
+      String strPath(List<Route> path) =>
+          path.map((Route r) => r.name).join('.');
 
       expect(strPath(router.activePath), '');
 
@@ -1561,8 +1559,8 @@ main() {
                   ..addRoute(
                       name: 'aux', path: '/aux', mount: (child) => child)));
 
-      var strPath =
-          (List<Route> path) => path.map((Route r) => r.name).join('.');
+      String strPath(List<Route> path) =>
+          path.map((Route r) => r.name).join('.');
 
       expect(strPath(router.activePath), '');
 
@@ -1598,8 +1596,8 @@ main() {
                   ..addRoute(
                       name: 'aux', path: '/aux', mount: (child) => child)));
 
-      var strPath =
-          (List<Route> path) => path.map((Route r) => r.name).join('.');
+      String strPath(List<Route> path) =>
+          path.map((Route r) => r.name).join('.');
 
       expect(strPath(router.activePath), '');
 
@@ -1635,11 +1633,12 @@ main() {
     });
 
     group('pushState', () {
-      testInit(mockWindow, [count = 1]) {
+      void testInit(mockWindow, [int count = 1]) {
         when(mockWindow.location.hash).thenReturn('');
         when(mockWindow.location.pathname).thenReturn('/hello');
         when(mockWindow.location.search).thenReturn('?foo=bar&baz=bat');
-        var router = Router(useFragment: false, windowImpl: mockWindow);
+        var router =
+            Router(useFragment: false, windowImpl: mockWindow as Window);
         router.root.addRoute(name: 'hello', path: '/hello');
         router.onRouteStart.listen(expectAsync1((RouteStartEvent start) {
           start.completed.then(expectAsync1((_) {
@@ -1682,7 +1681,7 @@ main() {
       });
 
       test('it should be called if event triggered on anchor element', () {
-        AnchorElement anchor = AnchorElement();
+        var anchor = AnchorElement();
         anchor.href = '#test1';
         document.body.append(toRemove = anchor);
 
@@ -1708,7 +1707,7 @@ main() {
           'it should be called if event triggered on child of an anchor element',
           () {
         Element anchorChild = DivElement();
-        AnchorElement anchor = AnchorElement();
+        var anchor = AnchorElement();
         anchor.href = '#test2';
         anchor.append(anchorChild);
         document.body.append(toRemove = anchor);
@@ -1735,4 +1734,4 @@ main() {
 }
 
 /// An alias for Router.root.findRoute(path)
-r(Router router, String path) => router.root.findRoute(path);
+Route r(Router router, String path) => router.root.findRoute(path);

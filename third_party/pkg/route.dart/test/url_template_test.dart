@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 import 'package:route_hierarchical/url_template.dart';
 import 'package:route_hierarchical/url_matcher.dart';
 
-main() {
+void main() {
   group('UrlTemplate', () {
     test('should work with simple templates', () {
       var tmpl = UrlTemplate('/foo/bar:baz/aux');
@@ -18,8 +18,7 @@ main() {
       expect(tmpl.match('/123/bar'), UrlMatch('/123/bar', '', {'foo': '123'}));
 
       tmpl = UrlTemplate('/user/:userId/article/:articleId/view');
-      UrlMatch params =
-          tmpl.match('/user/jsmith/article/1234/view/someotherstuff');
+      var params = tmpl.match('/user/jsmith/article/1234/view/someotherstuff');
       expect(
           params,
           UrlMatch('/user/jsmith/article/1234/view', '/someotherstuff',

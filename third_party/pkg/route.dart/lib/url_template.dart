@@ -25,21 +25,23 @@ class UrlTemplate implements UrlMatcher {
   /// - [2] = `/baz`
   List _chunks;
 
+  @override
   String toString() => 'UrlTemplate($_pattern)';
 
+  @override
   int compareTo(UrlMatcher other) {
-    final String tmpParamPattern = '\t';
+    final tmpParamPattern = '\t';
     if (other is UrlTemplate) {
-      String thisPattern =
+      var thisPattern =
           _pattern.pattern.replaceAll(_paramPattern, tmpParamPattern);
-      String otherPattern =
+      var otherPattern =
           other._pattern.pattern.replaceAll(_paramPattern, tmpParamPattern);
-      List<String> thisPatternParts = thisPattern.split('/');
-      List<String> otherPatternParts = otherPattern.split('/');
+      var thisPatternParts = thisPattern.split('/');
+      var otherPatternParts = otherPattern.split('/');
       if (thisPatternParts.length == otherPatternParts.length) {
-        for (int i = 0; i < thisPatternParts.length; i++) {
-          String thisPart = thisPatternParts[i];
-          String otherPart = otherPatternParts[i];
+        for (var i = 0; i < thisPatternParts.length; i++) {
+          var thisPart = thisPatternParts[i];
+          var otherPart = otherPatternParts[i];
           if (thisPart == tmpParamPattern && otherPart != tmpParamPattern) {
             return 1;
           } else if (thisPart != tmpParamPattern &&
@@ -66,8 +68,8 @@ class UrlTemplate implements UrlMatcher {
     _fields = <String>[];
     _chunks = [];
     var exp = RegExp(r':(\w+\*?)');
-    StringBuffer sb = StringBuffer('^');
-    int start = 0;
+    var sb = StringBuffer('^');
+    var start = 0;
     exp.allMatches(template).forEach((Match m) {
       var paramName = m[1];
       var txt = template.substring(start, m.start);
@@ -90,12 +92,13 @@ class UrlTemplate implements UrlMatcher {
     _pattern = RegExp(sb.toString());
   }
 
+  @override
   UrlMatch match(String url) {
     Match match = _pattern.firstMatch(url);
     if (match == null) {
       return null;
     }
-    var parameters = Map();
+    var parameters = {};
     for (var i = 0; i < match.groupCount; i++) {
       parameters[_fields[i]] = match[i + 1];
     }
@@ -103,12 +106,12 @@ class UrlTemplate implements UrlMatcher {
     return UrlMatch(match[0], tail, parameters);
   }
 
+  @override
   String reverse({Map parameters, String tail = ''}) {
-    if (parameters == null) {
-      parameters = const {};
-    }
+    parameters ??= const {};
     return _chunks.map((c) => c is Function ? c(parameters) : c).join() + tail;
   }
 
+  @override
   List<String> get urlParameterNames => _fields;
 }

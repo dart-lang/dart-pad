@@ -10,7 +10,7 @@ class RouteHandle implements Route {
   final StreamController<RouteLeaveEvent> _onLeaveController;
 
   @override
-  @Deprecated("use [onEnter] instead.")
+  @Deprecated('use [onEnter] instead.')
   Stream<RouteEnterEvent> get onRoute => onEnter;
   @override
   Stream<RoutePreEnterEvent> get onPreEnter => _onPreEnterController.stream;
@@ -25,7 +25,7 @@ class RouteHandle implements Route {
   StreamSubscription _onPreLeaveSubscription;
   StreamSubscription _onEnterSubscription;
   StreamSubscription _onLeaveSubscription;
-  List<RouteHandle> _childHandles = <RouteHandle>[];
+  final List<RouteHandle> _childHandles = <RouteHandle>[];
 
   RouteHandle._new(this._route)
       : _onEnterController =
@@ -79,12 +79,13 @@ class RouteHandle implements Route {
   }
 
   @override
-  @Deprecated("use [findRoute] instead.")
+  @Deprecated('use [findRoute] instead.')
   Route getRoute(String routePath) => findRoute(routePath);
 
   @override
   Route findRoute(String routePath) {
-    Route r = _assertState(() => _getHost(_route).findRoute(routePath));
+    final r =
+        _assertState(() => _getHost(_route).findRoute(routePath)) as Route;
     if (r == null) return null;
     var handle = r.newHandle();
     if (handle != null) _childHandles.add(handle);
@@ -102,11 +103,11 @@ class RouteHandle implements Route {
     _assertState();
     if (r == null) throw StateError('Oops?!');
     if ((r is Route) && (r is! RouteHandle)) return r;
-    RouteHandle rh = r;
+    final rh = r as RouteHandle;
     return rh._getHost(rh._route);
   }
 
-  dynamic _assertState([f()]) {
+  dynamic _assertState([Function() f]) {
     if (_route == null) {
       throw StateError('This route handle is already discarded.');
     }

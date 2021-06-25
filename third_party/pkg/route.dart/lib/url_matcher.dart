@@ -19,6 +19,7 @@ abstract class UrlMatcher extends Comparable<UrlMatcher> {
   /// * negative if this matcher should be tested before another.
   /// * zero if this matcher and another can be tested in no particular order.
   /// * positive if this matcher should be tested after another.
+  @override
   int compareTo(UrlMatcher other);
 }
 
@@ -34,14 +35,17 @@ class UrlMatch {
 
   UrlMatch(this.match, this.tail, this.parameters);
 
+  @override
   bool operator ==(other) =>
       other is UrlMatch &&
       other.match == match &&
       other.tail == tail &&
       mapsShallowEqual(other.parameters, parameters);
 
+  @override
   int get hashCode =>
       13 * match.hashCode + 101 * tail.hashCode + 199 * parameters.hashCode;
 
+  @override
   String toString() => '{$match, $tail, $parameters}';
 }

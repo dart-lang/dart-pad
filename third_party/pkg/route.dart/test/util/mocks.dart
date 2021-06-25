@@ -9,8 +9,11 @@ import 'package:mockito/mockito.dart';
 import 'package:route_hierarchical/client.dart';
 
 class MockWindow extends Mock implements Window {
+  @override
   final history = MockHistory();
+  @override
   final location = MockLocation();
+  @override
   final document = MockDocument();
 }
 
