@@ -5,11 +5,13 @@
 library services.server_cache;
 
 import 'dart:async';
+import 'dart:io';
 import 'dart:math';
 
-import 'package:dartis/dartis.dart' as redis;
-import 'package:pedantic/pedantic.dart';
 import 'package:quiver/cache.dart';
+import 'package:resp_client/resp_client.dart';
+import 'package:resp_client/resp_commands.dart';
+import 'package:resp_client/resp_server.dart';
 
 import 'common_server_impl.dart' show log;
 import 'sdk.dart';
@@ -26,10 +28,10 @@ abstract class ServerCache {
 
 /// A redis-backed implementation of [ServerCache].
 class RedisCache implements ServerCache {
-  redis.Client redisClient;
-  redis.Connection _connection;
+  RespClient redisClient;
+  RespServerConnection _connection;
 
-  final String redisUriString;
+  final Uri redisUri;
 
   // Version of the server to add with keys.
   final String serverVersion;
@@ -40,7 +42,8 @@ class RedisCache implements ServerCache {
   static const int _connectionRetryMaxMs = 60000;
   static const Duration cacheOperationTimeout = Duration(milliseconds: 10000);
 
-  RedisCache(this.redisUriString, this.serverVersion) {
+  RedisCache(String redisUriString, this.serverVersion)
+      : redisUri = Uri.parse(redisUriString) {
     _reconnect();
   }
 
@@ -59,7 +62,7 @@ class RedisCache implements ServerCache {
   String __logPrefix;
 
   String get _logPrefix =>
-      __logPrefix ??= 'RedisCache [$redisUriString] ($serverVersion)';
+      __logPrefix ??= 'RedisCache [$redisUri] ($serverVersion)';
 
   bool _isConnected() => redisClient != null && !_isShutdown;
   bool _isShutdown = false;
@@ -71,7 +74,7 @@ class RedisCache implements ServerCache {
   Future<void> shutdown() {
     log.info('$_logPrefix: shutting down...');
     _isShutdown = true;
-    redisClient?.disconnect();
+    _connection?.close();
     return disconnected;
   }
 
@@ -85,11 +88,11 @@ class RedisCache implements ServerCache {
   }
 
   /// Call when a new connection is established.
-  void _setUpConnection(redis.Connection newConnection) {
+  void _setUpConnection(RespServerConnection newConnection) {
     assert(_disconnected.isCompleted && !_connected.isCompleted);
     _disconnected = Completer<void>();
     _connection = newConnection;
-    redisClient = redis.Client(_connection);
+    redisClient = RespClient(_connection);
     _connected.complete();
   }
 
@@ -99,22 +102,23 @@ class RedisCache implements ServerCache {
     if (_isShutdown) {
       return;
     }
-    log.info('$_logPrefix: reconnecting to $redisUriString...');
+    log.info('$_logPrefix: reconnecting to $redisUri...');
     var nextRetryMs = retryTimeoutMs;
     if (retryTimeoutMs < _connectionRetryMaxMs / 2) {
       // 1 <= (randomSource.nextDouble() + 1) < 2
       nextRetryMs = (retryTimeoutMs * (randomSource.nextDouble() + 1)).toInt();
     }
-    redis.Connection.connect(redisUriString)
-        .then((redis.Connection newConnection) {
+    connectSocket(redisUri.host, port: redisUri.hasPort ? redisUri.port : null)
+        .then((newConnection) {
           log.info('$_logPrefix: Connected to redis server');
           _setUpConnection(newConnection);
           // If the client disconnects, discard the client and try to connect again.
-          newConnection.done.then((_) {
+
+          ((newConnection as dynamic).socket as Socket).done.then((_) {
             _resetConnection();
             log.warning('$_logPrefix: connection terminated, reconnecting');
             _reconnect();
-          }).catchError((dynamic e) {
+          }).catchError((e) {
             _resetConnection();
             log.warning(
                 '$_logPrefix: connection terminated with error $e, reconnecting');
@@ -122,7 +126,7 @@ class RedisCache implements ServerCache {
           });
         })
         .timeout(const Duration(milliseconds: _connectionRetryMaxMs))
-        .catchError((Object _) {
+        .catchError((_) {
           log.severe(
               '$_logPrefix: Unable to connect to redis server, reconnecting in ${nextRetryMs}ms ...');
           Future<void>.delayed(Duration(milliseconds: nextRetryMs)).then((_) {
@@ -138,7 +142,9 @@ class RedisCache implements ServerCache {
   /// versions using the same redis cache do not have collisions.
   String _genKey(String key) {
     final sdk = Sdk();
-    return 'server:$serverVersion:dart:${sdk.versionFull}:flutter:${sdk.flutterVersion}+$key';
+    // the `rc` here is a differentiator to keep the `resp_client` documents
+    // separate from the `dartis` documents.
+    return 'server:rc:$serverVersion:dart:${sdk.versionFull}:flutter:${sdk.flutterVersion}+$key';
   }
 
   @override
@@ -148,13 +154,12 @@ class RedisCache implements ServerCache {
     if (!_isConnected()) {
       log.warning('$_logPrefix: no cache available when getting key $key');
     } else {
-      final commands = redisClient.asCommands<String, String>();
-      // commands can return errors synchronously in timeout cases.
+      final commands = RespCommandsTier2(redisClient);
       try {
         value = await commands.get(key).timeout(cacheOperationTimeout,
             onTimeout: () async {
           log.warning('$_logPrefix: timeout on get operation for key $key');
-          await redisClient?.disconnect();
+          await _connection?.close();
           return null;
         });
       } catch (e) {
@@ -172,13 +177,12 @@ class RedisCache implements ServerCache {
       return null;
     }
 
-    final commands = redisClient.asCommands<String, String>();
-    // commands can sometimes return errors synchronously in timeout cases.
+    final commands = RespCommandsTier2(redisClient);
     try {
-      return commands.del(key: key).timeout(cacheOperationTimeout,
+      return commands.del([key]).timeout(cacheOperationTimeout,
           onTimeout: () async {
         log.warning('$_logPrefix: timeout on remove operation for key $key');
-        await redisClient?.disconnect();
+        await _connection?.close();
         return null;
       });
     } catch (e) {
@@ -194,19 +198,16 @@ class RedisCache implements ServerCache {
       return;
     }
 
-    final commands = redisClient.asCommands<String, String>();
-    // commands can sometimes return errors synchronously in timeout cases.
+    final commands = RespCommandsTier2(redisClient);
     try {
       return Future<void>.sync(() async {
-        await commands.multi();
-        unawaited(commands.set(key, value));
+        await commands.set(key, value);
         if (expiration != null) {
-          unawaited(commands.pexpire(key, expiration.inMilliseconds));
+          await commands.pexpire(key, expiration);
         }
-        await commands.exec();
       }).timeout(cacheOperationTimeout, onTimeout: () {
         log.warning('$_logPrefix: timeout on set operation for key $key');
-        redisClient?.disconnect();
+        _connection?.close();
       });
     } catch (e) {
       log.warning('$_logPrefix: error on set operation for key $key: $e');

@@ -28,7 +28,7 @@ packages:
       name: angel3_mock_request
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.1"
+    version: "2.0.2"
   args:
     dependency: "direct main"
     description:
@@ -91,7 +91,7 @@ packages:
       name: build_runner
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.0.4"
+    version: "2.0.5"
   build_runner_core:
     dependency: transitive
     description:
@@ -133,7 +133,7 @@ packages:
       name: cli_util
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.0"
+    version: "0.3.1"
   code_builder:
     dependency: transitive
     description:
@@ -154,7 +154,7 @@ packages:
       name: convert
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0"
+    version: "3.0.1"
   coverage:
     dependency: "direct dev"
     description:
@@ -176,15 +176,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.1"
-  dartis:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: "Update-to-lints-and-Dart-2.10"
-      resolved-ref: "6c5857bc6b4ce0b90aa04d14e225d2265094fffe"
-      url: "https://github.com/domesticmouse/dartis"
-    source: git
-    version: "0.5.0"
   file:
     dependency: transitive
     description:
@@ -374,6 +365,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.1"
+  resp_client:
+    dependency: "direct main"
+    description:
+      name: resp_client
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.0"
   shelf:
     dependency: "direct main"
     description:
@@ -492,7 +490,7 @@ packages:
       name: test
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.17.8"
+    version: "1.17.9"
   test_api:
     dependency: transitive
     description:
@@ -506,7 +504,7 @@ packages:
       name: test_core
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.28"
+    version: "0.3.29"
   timing:
     dependency: transitive
     description:

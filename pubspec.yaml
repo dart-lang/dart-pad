@@ -11,18 +11,13 @@ dependencies:
   args: ^2.0.0
   bazel_worker: ^1.0.0
   crypto: ^3.0.1
-  # TODO(domesticmouse): Go back to mainline once
-  # https://github.com/jcmellado/dartis/pull/38 has landed
-  dartis:
-    git:
-      url: https://github.com/domesticmouse/dartis
-      ref: Update-to-lints-and-Dart-2.10
   http: ^0.13.3
   logging: ^1.0.0
   meta: ^1.1.8
   path: ^1.6.2
   protobuf: ^2.0.0
   quiver: ^3.0.1
+  resp_client: ^1.2.0
   shelf: ^1.0.0
   shelf_router: ^1.0.0
   yaml: ^3.0.0

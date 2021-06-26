@@ -122,11 +122,11 @@ void defineTests() {
           expect(
               logMessages.join('\n'),
               stringContainsInOrder([
-                'no cache available when setting key server:cversion:dart:',
+                'no cache available when setting key server:rc:cversion:dart:',
                 '+aKey',
-                'no cache available when getting key server:cversion:dart:',
+                'no cache available when getting key server:rc:cversion:dart:',
                 '+aKey',
-                'no cache available when removing key server:cversion:dart:',
+                'no cache available when removing key server:rc:cversion:dart:',
                 '+aKey',
               ]));
         } finally {
@@ -182,7 +182,7 @@ void defineTests() {
         expect(
             logMessages.join('\n'),
             stringContainsInOrder([
-              'timeout on get operation for key server:aversion:dart:',
+              'timeout on get operation for key server:rc:aversion:dart:',
               '+beforeStop',
               '(aversion): reconnecting',
               '(aversion): Connected to redis server',
