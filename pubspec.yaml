@@ -19,7 +19,7 @@ dependencies:
   split: ^0.0.6
   html_unescape: ^2.0.0
   sass_builder: ^2.1.0
-  mdc_web: ^0.5.0-pre
+  mdc_web: ^0.6.0
   yaml: ^2.2.0
   checked_yaml: ^1.0.0
   js: ^0.6.0
