@@ -463,13 +463,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.5"
-  route_hierarchical:
-    dependency: "direct main"
-    description:
-      path: "third_party/pkg/route.dart"
-      relative: true
-    source: path
-    version: "0.7.1-dev"
   sass:
     dependency: transitive
     description:

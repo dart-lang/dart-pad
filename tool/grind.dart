@@ -15,7 +15,6 @@ import 'package:grinder/grinder.dart';
 import 'package:yaml/yaml.dart' as yaml;
 
 final FilePath _buildDir = FilePath('build');
-final FilePath _pkgDir = FilePath('third_party/pkg');
 
 Map<String, String> get _env => Platform.environment;
 
