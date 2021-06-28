@@ -14,8 +14,6 @@ dependencies:
   markdown: ^3.0.0
   meta: ^1.2.4
   protobuf: ^2.0.0
-  route_hierarchical:
-    path: third_party/pkg/route.dart/
   split:
     path: third_party/pkg/split/
   html_unescape: ^2.0.0
