@@ -28,7 +28,11 @@ class ExecutionServiceIFrame implements ExecutionService {
   Completer<void> _readyCompleter = Completer();
 
   ExecutionServiceIFrame(this._frame) {
-    _frameSrc = _frame.src;
+    final src = _frame.src;
+    if (src == null) {
+      throw('invalid iframe src');
+    }
+    _frameSrc = src;
 
     _initListener();
   }
@@ -38,7 +42,7 @@ class ExecutionServiceIFrame implements ExecutionService {
     String html,
     String css,
     String javaScript, {
-    String /*?*/ modulesBaseUrl,
+    String? modulesBaseUrl,
     bool addRequireJs = false,
     bool addFirebaseJs = false,
     bool destroyFrame = false,
@@ -97,8 +101,8 @@ Never TODO([String message = '']) => throw UnimplementedError(message);
 
   String _decorateJavaScript(
     String javaScript, {
-    @required String modulesBaseUrl,
-    @required bool requireFirebase,
+    required String? modulesBaseUrl,
+    required bool requireFirebase,
   }) {
     final completeScript = StringBuffer();
     final usesRequireJs = modulesBaseUrl != null;
@@ -224,7 +228,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
       'command': command,
       ...params,
     };
-    _frame.contentWindow.postMessage(message, '*');
+    _frame.contentWindow!.postMessage(message, '*');
     return Future.value();
   }
 
@@ -236,10 +240,10 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
       var clone = _frame.clone(false) as IFrameElement;
       clone.src = _frameSrc;
 
-      var children = _frame.parent.children;
+      var children = _frame.parent!.children;
       var index = children.indexOf(_frame);
       children.insert(index, clone);
-      _frame.parent.children.remove(_frame);
+      _frame.parent!.children.remove(_frame);
       _frame = clone;
     }
 
@@ -255,11 +259,11 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
         if (data['sender'] != 'frame') {
           return;
         }
-        final type = data['type'] as String;
+        final type = data['type'] as String?;
 
         if (type == 'testResult') {
           _testResultsController.add(TestResult(data['success'] as bool,
-              List<String>.from(data['messages'] as Iterable ?? [])));
+              List<String>.from(data['messages'] as Iterable? ?? [])));
         } else if (type == 'stderr') {
           // Ignore any exceptions before the iframe has completed initialization.
           if (_readyCompleter.isCompleted) {

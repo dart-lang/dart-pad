@@ -34,7 +34,7 @@ class OkCancelDialog extends DDialog {
 }
 
 class AboutDialog extends DDialog {
-  AboutDialog([String versionText]) : super(title: 'About DartPad') {
+  AboutDialog([String? versionText]) : super(title: 'About DartPad') {
     var p = content.add(ParagraphElement());
     var text = privacyText;
     if (versionText != null) text += ' Based on Dart SDK $versionText.';
@@ -54,23 +54,23 @@ class SharingDialog extends DDialog {
   final GistContainer gistContainer;
   final GistController gistController;
 
-  ParagraphElement _text;
-  TextAreaElement _textArea;
-  DButton _cancelButton;
-  DButton _closeButton;
-  DButton _shareButton;
-  DElement _div;
-  DElement _embedArea;
-  DElement _info;
-  DInput _padUrl;
-  DInput _gistUrl;
-  DInput _embedUrl;
-  GistSummary _gistSummary;
+  late ParagraphElement _text;
+  late TextAreaElement _textArea;
+  DButton? _cancelButton;
+  DButton? _closeButton;
+  DButton? _shareButton;
+  DElement? _div;
+  late DElement _embedArea;
+  late DElement _info;
+  late DInput _padUrl;
+  late DInput _gistUrl;
+  late DInput _embedUrl;
+  GistSummary? _gistSummary;
 
-  ImageElement _embedPicture;
+  late ImageElement _embedPicture;
 
-  RadioButtonInputElement _embedDartRadio;
-  RadioButtonInputElement _embedHtmlRadio;
+  late RadioButtonInputElement _embedDartRadio;
+  late RadioButtonInputElement _embedHtmlRadio;
 
   SharingDialog(this.gistContainer, this.gistController)
       : super(title: 'Sharing') {
@@ -86,14 +86,14 @@ class SharingDialog extends DDialog {
 
     // About to share.
     _cancelButton = DButton.button(text: 'Cancel');
-    _cancelButton.onClick.listen((_) => hide());
+    _cancelButton!.onClick.listen((_) => hide());
     _closeButton = DButton.button(text: 'Close');
-    _closeButton.onClick.listen((_) => hide());
+    _closeButton!.onClick.listen((_) => hide());
     _shareButton = DButton.button(text: 'Share it!', classes: 'default');
 
     // Already sharing.
     _div = DElement.tag('div')..layoutVertical();
-    var div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
+    var div = _div!.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
     div.add(DElement.tag('span', classes: 'sharinglabel')).text = 'DartPad:';
     var inputGroup = div.add(DElement.tag('div'))
       ..layoutHorizontal()
@@ -103,7 +103,7 @@ class SharingDialog extends DDialog {
       ..readonly();
     _padUrl.onClick.listen((_) => _padUrl.selectAll());
 
-    div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
+    div = _div!.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
     div.add(DElement.tag('span', classes: 'sharinglabel')).text =
         'gist.github.com:';
     inputGroup = div.add(DElement.tag('div'))
@@ -113,7 +113,7 @@ class SharingDialog extends DDialog {
       ..flex()
       ..readonly();
     _gistUrl.onClick.listen((_) => _gistUrl.selectAll());
-    div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
+    div = _div!.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
     div.add(DElement.tag('span', classes: 'sharinglabel')).text = 'Embed:';
     inputGroup = div.add(DElement.tag('div'))
       ..layoutHorizontal()
@@ -125,7 +125,7 @@ class SharingDialog extends DDialog {
           "<iframe src='https://$home/embed-dart.html?id=${gistContainer.mutableGist.id}' "
               "style='height:300px;width:100%;' frameborder='0'></iframe>";
     _embedUrl.onClick.listen((_) => _embedUrl.selectAll());
-    div = _div.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
+    div = _div!.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
     _embedArea = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
@@ -207,12 +207,12 @@ class SharingDialog extends DDialog {
 
   void _switchTo({bool aboutToShare = true}) {
     buttonArea.element.children.clear();
-    _div.dispose();
+    _div!.dispose();
     if (aboutToShare) {
       // Show 'about to share'.
       _text.text = 'Sharing this pad will create a permanent, publicly visible '
           'copy on gist.github.com.';
-      _textArea.text = _gistSummary != null ? _gistSummary.summaryText : '';
+      _textArea.text = _gistSummary != null ? _gistSummary!.summaryText : '';
       _textArea.style.display = 'block';
 
       buttonArea.add(_cancelButton);

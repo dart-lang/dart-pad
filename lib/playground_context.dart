@@ -125,9 +125,9 @@ class PlaygroundContext extends Context {
   void focus() => editor.focus();
 
   void _createReconciler(Document doc, StreamController controller, int delay) {
-    Timer timer;
+    Timer? timer;
     doc.onChange.listen((_) {
-      if (timer != null) timer.cancel();
+      if (timer != null) timer!.cancel();
       timer = Timer(Duration(milliseconds: delay), () {
         controller.add(null);
       });

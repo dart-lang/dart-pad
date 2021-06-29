@@ -9,7 +9,7 @@ class EditorDocumentProperty implements Property<String> {
   final Document document;
   final String debugName;
 
-  EditorDocumentProperty(this.document, [this.debugName]);
+  EditorDocumentProperty(this.document, this.debugName);
 
   @override
   String get() => document.value;

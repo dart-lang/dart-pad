@@ -31,7 +31,7 @@ class DocHandler {
 
   final NodeValidator _htmlValidator = PermissiveNodeValidator();
 
-  int /*?*/ _previousDocHash;
+  int? _previousDocHash;
 
   DocHandler(this._editor, this._sourceProvider);
 
@@ -93,7 +93,7 @@ class DocHandler {
   }
 
   String _sourceWithCompletionInserted(String source, int offset) {
-    var completionText = querySelector('.CodeMirror-hint-active').text;
+    var completionText = querySelector('.CodeMirror-hint-active')!.text!;
     var lastSpace = source.substring(0, offset).lastIndexOf(' ') + 1;
     var lastDot = source.substring(0, offset).lastIndexOf('.') + 1;
     var insertOffset = math.max(lastSpace, lastDot);
@@ -110,7 +110,7 @@ class DocHandler {
     }
 
     var libraryName = info['libraryName'];
-    var kind = info['kind'];
+    var kind = info['kind']!;
     var hasDartdoc = info['dartdoc'] != null;
     var isVariable = kind.contains('variable');
 
@@ -133,7 +133,7 @@ $apiLink\n\n''';
     return _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
   }
 
-  String _dartApiLink(String /*?*/ libraryName) {
+  String _dartApiLink(String? libraryName) {
     if (libraryName == null) {
       return '';
     }
@@ -175,7 +175,7 @@ $apiLink\n\n''';
 
 class _DocResult {
   final String html;
-  final String entityKind;
+  final String? entityKind;
 
   _DocResult(this.html, [this.entityKind]);
 }
@@ -187,7 +187,7 @@ class InlineBracketsColon extends markdown.InlineSyntax {
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
-    var element = markdown.Element.text('code', htmlEscape(match[1]));
+    var element = markdown.Element.text('code', htmlEscape(match[1]!));
     parser.addNode(element);
     return true;
   }
@@ -208,7 +208,7 @@ class InlineBrackets extends markdown.InlineSyntax {
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
     var element =
-        markdown.Element.text('code', '<em>${htmlEscape(match[1])}</em>');
+        markdown.Element.text('code', '<em>${htmlEscape(match[1]!)}</em>');
     parser.addNode(element);
     return true;
   }

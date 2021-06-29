@@ -23,7 +23,7 @@ class AnalysisResultsController {
   final DElement flash;
   final DElement message;
   final DElement toggle;
-  bool _flashHidden;
+  late bool _flashHidden;
 
   final StreamController<Location> _onClickController =
       StreamController.broadcast();
@@ -83,7 +83,7 @@ class AnalysisResultsController {
 
     elem.children.add(SpanElement()
       ..text = issue.kind
-      ..classes.addAll(_classesForType[issue.kind]));
+      ..classes.addAll(_classesForType[issue.kind]!));
 
     var columnElem = DivElement()..classes.add('issue-column');
 
@@ -173,8 +173,8 @@ class Location {
   final int charLength;
 
   Location({
-    this.line,
-    this.charStart,
-    this.charLength,
+    required this.line,
+    required this.charStart,
+    required this.charLength,
   });
 }

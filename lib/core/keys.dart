@@ -15,7 +15,7 @@ final bool _isMac =
 /// Map key events into commands.
 class Keys {
   final _bindings = <String, Action>{};
-  StreamSubscription _sub;
+  late StreamSubscription _sub;
   bool _loggedException = false;
 
   Keys() {
@@ -64,7 +64,7 @@ class Keys {
   bool _handleKey(String key) {
     var action = _bindings[key];
     if (action != null) {
-      Timer.run(action);
+      Timer.run(action as void Function());
       return true;
     }
 
@@ -116,15 +116,15 @@ String printKeyEvent(KeyboardEvent event) {
   return buf.toString();
 }
 
-String makeKeyPresentable(String key) {
-  var keyAsList = key.split('-');
+String? makeKeyPresentable(String key) {
+  List<String?> keyAsList = key.split('-');
   if (isMac()) {
     if (keyAsList.contains('meta')) {
       return null;
     }
-    keyAsList = keyAsList.map<String>((s) {
+    keyAsList = keyAsList.map<String?>((s) {
       if (_unicodeMac.containsKey(s)) {
-        return _unicodeMac[s] as String;
+        return _unicodeMac[s] as String?;
       } else {
         return capitalize(s);
       }

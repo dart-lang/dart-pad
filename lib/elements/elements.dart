@@ -15,7 +15,7 @@ class DElement {
 
   DElement(this.element);
 
-  DElement.tag(String tag, {String classes}) : element = Element.tag(tag) {
+  DElement.tag(String tag, {String? classes}) : element = Element.tag(tag) {
     if (classes != null) {
       element.classes.add(classes);
     }
@@ -27,22 +27,22 @@ class DElement {
     value ? setAttr(name) : clearAttr(name);
   }
 
-  String getAttr(String name) => element.getAttribute(name);
+  String? getAttr(String name) => element.getAttribute(name);
 
   void setAttr(String name, [String value = '']) =>
       element.setAttribute(name, value);
 
-  String clearAttr(String name) => element.attributes.remove(name);
+  String? clearAttr(String name) => element.attributes.remove(name);
 
-  void toggleClass(String name, bool value) {
-    value ? element.classes.add(name) : element.classes.remove(name);
+  void toggleClass(String? name, bool value) {
+    value ? element.classes.add(name!) : element.classes.remove(name);
   }
 
   bool hasClass(String name) => element.classes.contains(name);
 
-  String get text => element.text;
+  String? get text => element.text;
 
-  set text(String value) {
+  set text(String? value) {
     element.text = value;
   }
 
@@ -79,9 +79,9 @@ class DElement {
   void dispose() {
     if (element.parent == null) return;
 
-    if (element.parent.children.contains(element)) {
+    if (element.parent!.children.contains(element)) {
       try {
-        element.parent.children.remove(element);
+        element.parent!.children.remove(element);
       } catch (e) {
         print('foo');
       }
@@ -95,7 +95,7 @@ class DElement {
 class DButton extends DElement {
   DButton(ButtonElement element) : super(element);
 
-  DButton.button({String text, String classes})
+  DButton.button({String? text, String? classes})
       : super.tag('button', classes: classes) {
     element.classes.add('button');
     if (text != null) {
@@ -117,13 +117,13 @@ class DButton extends DElement {
 class DSplitter extends DElement {
   final _controller = StreamController<num>.broadcast();
 
-  final Function onDragStart;
-  final Function onDragEnd;
+  final Function? onDragStart;
+  final Function? onDragEnd;
 
   Point _offset = Point(0, 0);
 
-  StreamSubscription _moveSub;
-  StreamSubscription _upSub;
+  StreamSubscription? _moveSub;
+  StreamSubscription? _upSub;
 
   DSplitter(Element element, {this.onDragStart, this.onDragEnd})
       : super(element) {
@@ -175,9 +175,9 @@ class DSplitter extends DElement {
     }
 
     void cancel() {
-      if (_moveSub != null) _moveSub.cancel();
-      if (_upSub != null) _upSub.cancel();
-      if (onDragEnd != null) onDragEnd();
+      if (_moveSub != null) _moveSub!.cancel();
+      if (_upSub != null) _upSub!.cancel();
+      if (onDragEnd != null) onDragEnd!();
     }
 
     element.onMouseDown.listen((MouseEvent e) {
@@ -186,13 +186,13 @@ class DSplitter extends DElement {
       e.preventDefault();
       _offset = e.offset;
 
-      if (onDragStart != null) onDragStart();
+      if (onDragStart != null) onDragStart!();
 
       _moveSub = document.onMouseMove.listen((MouseEvent e) {
         if (e.button != 0) {
           cancel();
         } else {
-          var current = e.client - element.parent.client.topLeft - _offset;
+          var current = e.client - element.parent!.client.topLeft - _offset;
           current -= _target.marginEdge.topLeft;
           _handleDrag(current);
         }
@@ -204,10 +204,10 @@ class DSplitter extends DElement {
     });
 
     // TODO: implement touch events
-    Point touchOffset;
+    Point? touchOffset;
 
     element.onTouchStart.listen((TouchEvent e) {
-      if (e.targetTouches.isEmpty) return;
+      if (e.targetTouches!.isEmpty) return;
       // TODO:
 
       e.preventDefault();
@@ -217,15 +217,15 @@ class DSplitter extends DElement {
     });
 
     element.onTouchMove.listen((TouchEvent e) {
-      if (e.targetTouches.isEmpty) return;
+      if (e.targetTouches!.isEmpty) return;
 
       e.preventDefault();
 
       touchOffset ??= Point(0, 0);
 
-      var current = e.targetTouches.first.client;
-      current -= _target.marginEdge.topLeft - touchOffset;
-      _handleDrag(current - touchOffset);
+      var current = e.targetTouches!.first.client;
+      current -= _target.marginEdge.topLeft - touchOffset!;
+      _handleDrag(current - touchOffset!);
     });
   }
 
@@ -234,7 +234,7 @@ class DSplitter extends DElement {
   }
 
   Element get _target {
-    var children = element.parent.children;
+    var children = element.parent!.children;
     return children[children.indexOf(element) - 1];
   }
 
@@ -337,9 +337,9 @@ class DLabel extends DElement {
     element.classes.toggle('label', true);
   }
 
-  String get message => element.text;
+  String? get message => element.text;
 
-  set message(String value) {
+  set message(String? value) {
     element.text = value;
   }
 
@@ -376,21 +376,21 @@ class DContentEditable extends DElement {
     });
   }
 
-  Stream<String> get onChanged => element.on['input'].map((_) => element.text);
+  Stream<String?> get onChanged => element.on['input'].map((_) => element.text);
 }
 
 class DInput extends DElement {
   DInput(InputElement element) : super(element);
 
-  DInput.input({String type}) : super(InputElement(type: type));
+  DInput.input({String? type}) : super(InputElement(type: type));
 
   InputElement get inputElement => element as InputElement;
 
   void readonly() => setAttr('readonly');
 
-  String get value => inputElement.value;
+  String? get value => inputElement.value;
 
-  set value(String v) {
+  set value(String? v) {
     inputElement.value = v;
   }
 
@@ -415,7 +415,7 @@ class DToast extends DElement {
 
   void show() {
     // Add to the DOM, start a timer, make it visible.
-    document.body.children.add(element);
+    document.body!.children.add(element);
 
     Timer(Duration(milliseconds: 16), () {
       element.classes.toggle('showing', true);
@@ -453,12 +453,12 @@ class GlassPane extends DElement {
   }
 
   void show() {
-    document.body.children.add(element);
+    document.body!.children.add(element);
   }
 
   void hide() => dispose();
 
-  bool get isShowing => document.body.children.contains(element);
+  bool get isShowing => document.body!.children.contains(element);
 
   Stream get onCancel => _controller.stream;
 }
@@ -466,11 +466,11 @@ class GlassPane extends DElement {
 abstract class DDialog extends DElement {
   GlassPane pane = GlassPane();
 
-  DElement titleArea;
-  DElement content;
-  DElement buttonArea;
+  late DElement titleArea;
+  late DElement content;
+  late DElement buttonArea;
 
-  DDialog({String /*?*/ title}) : super.tag('div') {
+  DDialog({String? title}) : super.tag('div') {
     element.classes.addAll(['dialog', 'dialog-position']);
     setAttr('layout');
     setAttr('vertical');
@@ -498,7 +498,7 @@ abstract class DDialog extends DElement {
     pane.show();
 
     // Add to the DOM, start a timer, make it visible.
-    document.body.children.add(element);
+    document.body!.children.add(element);
 
     Timer(Duration(milliseconds: 16), () {
       element.classes.toggle('showing', true);
@@ -523,7 +523,7 @@ abstract class DDialog extends DElement {
     isShowing ? hide() : show();
   }
 
-  bool get isShowing => document.body.children.contains(element);
+  bool get isShowing => document.body!.children.contains(element);
 }
 
 class _ElementTextProperty implements Property {
@@ -532,7 +532,7 @@ class _ElementTextProperty implements Property {
   _ElementTextProperty(this.element);
 
   @override
-  String get() => element.text;
+  String? get() => element.text;
 
   @override
   void set(value) {
@@ -541,7 +541,7 @@ class _ElementTextProperty implements Property {
 
   // TODO:
   @override
-  Stream get onChanged => null;
+  Stream? get onChanged => null;
 }
 
 class TabController {
@@ -563,7 +563,7 @@ class TabController {
       tabs.firstWhere((tab) => tab.hasAttr('selected'));
 
   /// This method will throw if the tabName is not the name of a current tab.
-  void selectTab(String tabName) {
+  void selectTab(String? tabName) {
     var tab = tabs.firstWhere((t) => t.name == tabName);
 
     for (var t in tabs) {
@@ -579,15 +579,15 @@ class TabController {
 }
 
 class TabElement extends DElement {
-  final String name;
-  final Function /*?*/ onSelect;
+  final String? name;
+  final Function? onSelect;
 
   TabElement(Element element, {this.name, this.onSelect}) : super(element);
 
   void handleSelected() {
-    if (onSelect != null) onSelect();
+    if (onSelect != null) onSelect!();
   }
 
   @override
-  String toString() => name;
+  String toString() => name!;
 }

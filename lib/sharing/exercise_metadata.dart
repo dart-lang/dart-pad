@@ -58,8 +58,8 @@ class ExerciseFileMetadata {
 /// from GitHub, and used to set up the DartPad environment for that exercise.
 class ExerciseMetadata {
   String name;
-  ExerciseMode mode;
-  List<ExerciseFileMetadata> files;
+  late ExerciseMode mode;
+  late List<ExerciseFileMetadata> files;
 
   ExerciseMetadata.fromMap(map) {
     if (map == null) {
@@ -87,7 +87,7 @@ class ExerciseMetadata {
     }
 
     name = map['name'] as String;
-    mode = exerciseModeNames[map['mode']];
+    mode = exerciseModeNames[map['mode']]!;
     files = (map['files'] as yaml.YamlList)
         .map((f) => ExerciseFileMetadata.fromMap(f))
         .toList();

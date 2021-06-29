@@ -17,7 +17,7 @@ class Console {
   final DElement element;
 
   /// A filter function to apply to all messages.
-  final ConsoleFilter filter;
+  final ConsoleFilter? filter;
 
   /// The CSS class name to apply to error messages.
   final String errorClass;
@@ -33,6 +33,7 @@ class Console {
 
   /// Displays console output. Does not clear the console.
   void showOutput(String message, {bool error = false}) {
+    final filter = this.filter;
     if (filter != null) {
       message = filter(message);
     }

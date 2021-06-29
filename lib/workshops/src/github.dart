@@ -10,12 +10,12 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
 
   final String owner;
   final String repo;
-  final String ref;
-  final String path;
+  final String? ref;
+  final String? path;
 
   GithubWorkshopFetcher({
-    @required this.owner,
-    @required this.repo,
+    required this.owner,
+    required this.repo,
     this.ref,
     this.path,
   });
@@ -43,7 +43,7 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
     return Uri(
       scheme: 'https',
       host: _apiHostname,
-      pathSegments: ['repos', owner, repo, 'contents', ...filePath],
+      pathSegments: ['repos', owner, repo, 'contents', ...filePath as Iterable<String>],
       queryParameters: {if (ref != null) 'ref': ref},
     );
   }

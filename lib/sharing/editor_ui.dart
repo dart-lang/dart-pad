@@ -22,12 +22,12 @@ abstract class EditorUi {
 
   ContextBase get context;
 
-  Future<AnalysisResults> analysisRequest;
-  DBusyLight busyLight;
-  AnalysisResultsController analysisResultsController;
+  Future<AnalysisResults>? analysisRequest;
+  late DBusyLight busyLight;
+  late AnalysisResultsController analysisResultsController;
   Editor editor;
-  MDCButton runButton;
-  ExecutionService executionService;
+  late MDCButton runButton;
+  late ExecutionService executionService;
 
   /// The dialog box for information like Keyboard shortcuts.
   final Dialog dialog = Dialog();
@@ -98,7 +98,7 @@ abstract class EditorUi {
   }
 
   void showSnackbar(String message) {
-    var div = querySelector('.mdc-snackbar');
+    var div = querySelector('.mdc-snackbar')!;
     var snackbar = MDCSnackbar(div)..labelText = message;
     snackbar.open();
   }
@@ -235,7 +235,7 @@ abstract class EditorUi {
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
       var versionText = 'Based on Flutter ${version.flutterVersion}'
           ' Dart SDK ${version.sdkVersionFull}';
-      querySelector('#dartpad-version').text = versionText;
+      querySelector('#dartpad-version')!.text = versionText;
       if (version.packageVersions.isNotEmpty) {
         _packageVersions.clear();
         _packageVersions.addAll(version.packageVersions);

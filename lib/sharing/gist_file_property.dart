@@ -11,7 +11,7 @@ class GistFileProperty implements Property<String> {
   GistFileProperty(this.file);
 
   @override
-  String get() => file.content;
+  String get() => file.content!;
 
   @override
   void set(value) {
@@ -21,5 +21,5 @@ class GistFileProperty implements Property<String> {
   }
 
   @override
-  Stream<String> get onChanged => file.onChanged.map((value) => value);
+  Stream<String?> get onChanged => file.onChanged!.map((value) => value);
 }

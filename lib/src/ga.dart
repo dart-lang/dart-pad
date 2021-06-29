@@ -13,7 +13,7 @@ class Analytics {
 
   bool get isAvailable => _gaFunction != null;
 
-  void sendPage({String pageName}) {
+  void sendPage({String? pageName}) {
     if (pageName != null && pageName.isNotEmpty) {
       _ga2('send', 'pageview');
     } else {
@@ -21,7 +21,7 @@ class Analytics {
     }
   }
 
-  void sendEvent(String category, String action, {String label}) {
+  void sendEvent(String category, String action, {String? label}) {
     var m = <String, dynamic>{
       'hitType': 'event',
       'eventCategory': category,
@@ -32,7 +32,7 @@ class Analytics {
   }
 
   void sendTiming(String category, String variable, int valueMillis,
-      {String label}) {
+      {String? label}) {
     var m = <String, dynamic>{
       'hitType': 'timing',
       'timingCategory': category,
@@ -43,7 +43,7 @@ class Analytics {
     _ga('send', m);
   }
 
-  void sendException(String description, {bool fatal}) {
+  void sendException(String description, {bool? fatal}) {
     var m = <String, dynamic>{
       'exDescription': description,
     };
@@ -51,29 +51,29 @@ class Analytics {
     _ga2('send', 'exception', m);
   }
 
-  void _ga(String method, [Map args]) {
+  void _ga(String method, [Map? args]) {
     if (isAvailable) {
       var params = <dynamic>[method];
       if (args != null) params.add(JsObject.jsify(args));
-      _gaFunction.apply(params);
+      _gaFunction!.apply(params);
     }
   }
 
-  void _ga2(String method, String type, [Map args]) {
+  void _ga2(String method, String type, [Map? args]) {
     if (isAvailable) {
       var params = <dynamic>[method, type];
       if (args != null) params.add(JsObject.jsify(args));
-      _gaFunction.apply(params);
+      _gaFunction!.apply(params);
     }
   }
 
-  void _ga3(String method, String type, String arg, [Map args]) {
+  void _ga3(String method, String type, String? arg, [Map? args]) {
     if (isAvailable) {
       var params = <dynamic>[method, type, arg];
       if (args != null) params.add(JsObject.jsify(args));
-      _gaFunction.apply(params);
+      _gaFunction!.apply(params);
     }
   }
 
-  JsFunction get _gaFunction => context['ga'] as JsFunction;
+  JsFunction? get _gaFunction => context['ga'] as JsFunction?;
 }

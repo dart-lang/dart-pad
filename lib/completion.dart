@@ -17,7 +17,7 @@ class DartCompleter extends CodeCompleter {
   final ds.DartservicesApi servicesApi;
   final Document document;
 
-  CancelableCompleter _lastCompleter;
+  CancelableCompleter? _lastCompleter;
 
   DartCompleter(this.servicesApi, this.document);
 
@@ -65,7 +65,7 @@ class DartCompleter extends CodeCompleter {
                   SourceEdit(edit.length, edit.offset, edit.replacement))
               .toList();
 
-          int absoluteCursorPosition;
+          int? absoluteCursorPosition;
 
           // TODO(redbrogdon): Find a way to properly use these linked edit
           // groups via selections and multiple cursors.
@@ -136,9 +136,9 @@ class DartCompleter extends CodeCompleter {
               type: deprecatedClass,
             );
           } else {
-            int cursorPos;
+            int? cursorPos;
 
-            if (completion.isMethod && completion.parameterCount > 0) {
+            if (completion.isMethod && completion.parameterCount! > 0) {
               cursorPos = text.indexOf('(') + 1;
             }
 
@@ -149,7 +149,7 @@ class DartCompleter extends CodeCompleter {
             return Completion(
               text,
               displayString: displayString,
-              type: 'type-${completion.type.toLowerCase()}$deprecatedClass',
+              type: 'type-${completion.type!.toLowerCase()}$deprecatedClass',
               cursorOffset: cursorPos,
             );
           }
@@ -203,7 +203,7 @@ class AnalysisCompletion implements Comparable {
   }
 
   // KEYWORD, INVOCATION, ...
-  String get kind => _map['kind'] as String;
+  String? get kind => _map['kind'] as String?;
 
   bool get isMethod {
     var element = _map['element'];
@@ -214,11 +214,11 @@ class AnalysisCompletion implements Comparable {
 
   bool get isConstructor => type == 'CONSTRUCTOR';
 
-  String get parameters =>
-      isMethod ? _map['element']['parameters'] as String : null;
+  String? get parameters =>
+      isMethod ? _map['element']['parameters'] as String? : null;
 
-  int get parameterCount =>
-      isMethod ? _map['parameterNames'].length as int : null;
+  int? get parameterCount =>
+      isMethod ? _map['parameterNames'].length as int? : null;
 
   String get text {
     var str = _map['completion'] as String;
@@ -229,15 +229,15 @@ class AnalysisCompletion implements Comparable {
     }
   }
 
-  String get returnType => _map['returnType'] as String;
+  String? get returnType => _map['returnType'] as String?;
 
   bool get isDeprecated => _map['isDeprecated'] == 'true';
 
-  int get selectionOffset => _int(_map['selectionOffset'] as String);
+  int get selectionOffset => _int(_map['selectionOffset'] as String?);
 
   // FUNCTION, GETTER, CLASS, ...
-  String get type =>
-      _map.containsKey('element') ? _map['element']['kind'] as String : kind;
+  String? get type =>
+      _map.containsKey('element') ? _map['element']['kind'] as String? : kind;
 
   @override
   int compareTo(other) {
@@ -250,5 +250,5 @@ class AnalysisCompletion implements Comparable {
   @override
   String toString() => text;
 
-  int _int(String val) => val == null ? 0 : int.parse(val);
+  int _int(String? val) => val == null ? 0 : int.parse(val);
 }

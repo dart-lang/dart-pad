@@ -29,7 +29,7 @@ Binding bind(from, to) {
 abstract class Property<T> {
   T get();
   void set(T value);
-  Stream<T> get onChanged;
+  Stream<T?>? get onChanged;
 }
 
 /// A [Property] backed by a getter and setter pair. Currently it cannot report
@@ -50,12 +50,12 @@ class FunctionProperty implements Property {
 
   // TODO:
   @override
-  Stream get onChanged => null;
+  Stream? get onChanged => null;
 }
 
 /// An object that can own a set of properties.
 abstract class PropertyOwner {
-  List<String> get propertyNames;
+  List<String?> get propertyNames;
   Property property(String name);
 }
 
@@ -76,7 +76,7 @@ class _StreamBinding implements Binding {
   final Stream stream;
   final dynamic target;
 
-  StreamSubscription _sub;
+  late StreamSubscription _sub;
 
   _StreamBinding(this.stream, this.target) {
     _sub = stream.listen(_handleEvent);
@@ -99,7 +99,7 @@ class _PropertyBinding implements Binding {
   final Property property;
   final dynamic target;
 
-  StreamSubscription _sub;
+  StreamSubscription? _sub;
 
   _PropertyBinding(this.property, this.target) {
     var stream = property.onChanged;
@@ -111,7 +111,7 @@ class _PropertyBinding implements Binding {
 
   @override
   void cancel() {
-    if (_sub != null) _sub.cancel();
+    if (_sub != null) _sub!.cancel();
   }
 
   void _handleEvent(e) => _sendTo(target, e);

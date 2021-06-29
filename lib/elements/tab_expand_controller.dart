@@ -44,17 +44,17 @@ class TabExpandController {
   TabState get state => _state;
 
   TabExpandController({
-    this.uiOutputButton,
-    @required this.consoleButton,
-    @required this.docsButton,
-    @required this.closeButton,
-    IFrameElement iframeElement,
-    @required Element consoleElement,
-    @required Element docsElement,
-    @required this.topSplit,
-    @required this.bottomSplit,
-    @required this.unreadCounter,
-    @required this.editorUi,
+    required this.uiOutputButton,
+    required this.consoleButton,
+    required this.docsButton,
+    required this.closeButton,
+    IFrameElement? iframeElement,
+    required Element consoleElement,
+    required Element docsElement,
+    required this.topSplit,
+    required this.bottomSplit,
+    required this.unreadCounter,
+    required this.editorUi,
   })  : console = DElement(consoleElement),
         docs = DElement(docsElement),
         iframe = iframeElement == null ? null : DElement(iframeElement) {

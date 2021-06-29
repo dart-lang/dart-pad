@@ -5,7 +5,7 @@ final queryParams = _QueryParams();
 
 /// A singleton for accessing and setting query parameters.
 class _QueryParams {
-  static _QueryParams _instance;
+  static _QueryParams? _instance;
 
   const _QueryParams._();
 
@@ -46,19 +46,19 @@ class _QueryParams {
     return nullSafety != null;
   }
 
-  set gistId(String gistId) {
+  set gistId(String? gistId) {
     var url = Uri.parse(window.location.toString());
-    var params = Map<String, String>.from(url.queryParameters);
+    var params = Map<String, String?>.from(url.queryParameters);
     params['id'] = gistId;
     url = url.replace(queryParameters: params);
     window.history.replaceState({}, 'DartPad', url.toString());
   }
 
-  String /*?*/ get gistId {
+  String? get gistId {
     return _queryParam('id');
   }
 
-  int /*?*/ get line {
+  int? get line {
     final line = _queryParam('line');
 
     if (line == null) {
@@ -68,7 +68,7 @@ class _QueryParams {
     return int.tryParse(line);
   }
 
-  String /*?*/ get theme {
+  String? get theme {
     return _queryParam('theme');
   }
 
@@ -88,35 +88,35 @@ class _QueryParams {
     return _queryParam('install_button') != null;
   }
 
-  String /*?*/ get sampleId {
+  String? get sampleId {
     return _queryParam('sample_id');
   }
 
-  String /*?*/ get sampleChannel {
+  String? get sampleChannel {
     return _queryParam('sample_channel');
   }
 
-  String /*?*/ get githubOwner {
+  String? get githubOwner {
     return _queryParam('gh_owner');
   }
 
-  String /*?*/ get githubRepo {
+  String? get githubRepo {
     return _queryParam('gh_repo');
   }
 
-  String /*?*/ get githubPath {
+  String? get githubPath {
     return _queryParam('gh_path');
   }
 
-  String /*?*/ get githubRef {
+  String? get githubRef {
     return _queryParam('gh_ref');
   }
 
-  String /*?*/ get webServer {
+  String? get webServer {
     return _queryParam('webserver');
   }
 
-  int /*?*/ get initialSplit {
+  int? get initialSplit {
     final split = _queryParam('split');
 
     if (split == null) {
@@ -126,7 +126,7 @@ class _QueryParams {
     return int.tryParse(split);
   }
 
-  String /*?*/ _queryParam(String key) {
+  String? _queryParam(String key) {
     return Uri.parse(window.location.toString()).queryParameters[key];
   }
 }

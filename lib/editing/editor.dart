@@ -24,7 +24,7 @@ abstract class Editor {
 
   Editor(this.factory);
 
-  Document createDocument({String content, String mode});
+  Document createDocument({required String content, required String mode});
 
   Document get document;
 
@@ -36,9 +36,9 @@ abstract class Editor {
   /// Checks if the completion popup is displayed.
   bool get completionActive;
 
-  bool get autoCloseBrackets;
+  bool? get autoCloseBrackets;
 
-  set autoCloseBrackets(bool value);
+  set autoCloseBrackets(bool? value);
 
   String get mode;
 
@@ -50,7 +50,7 @@ abstract class Editor {
 
   /// Returns the cursor coordinates in pixels. cursorCoords.x corresponds to
   /// left and cursorCoords.y corresponds to top.
-  Point getCursorCoords({Position position});
+  Point getCursorCoords({Position? position});
 
   bool get hasFocus;
 
@@ -66,7 +66,7 @@ abstract class Editor {
   bool showLineNumbers;
 
   /// Whether the editor is in read only mode.
-  bool readOnly;
+  late bool readOnly;
 
   void swapDocument(Document document);
 
@@ -85,11 +85,11 @@ abstract class Document<E extends Editor> {
 
   /// Update the value on behalf of a user action, performing
   /// save, etc.
-  void updateValue(String str);
+  void updateValue(String? str);
 
   Position get cursor;
 
-  void select(Position start, [Position end]);
+  void select(Position start, [Position? end]);
 
   /// The currently selected text in the editor.
   String get selection;
@@ -128,7 +128,7 @@ class Annotation implements Comparable<Annotation> {
   final Position start;
   final Position end;
 
-  Annotation(this.type, this.message, this.line, {this.start, this.end});
+  Annotation(this.type, this.message, this.line, {required this.start, required this.end});
 
   @override
   int compareTo(Annotation other) {
@@ -167,7 +167,7 @@ class CompletionResult {
   /// The length of the text to be replaced by a completion.
   final int replaceLength;
 
-  CompletionResult(this.completions, {this.replaceOffset, this.replaceLength});
+  CompletionResult(this.completions, {required this.replaceOffset, required this.replaceLength});
 }
 
 class Completion {
@@ -175,15 +175,15 @@ class Completion {
   final String value;
 
   /// An optional string that is displayed during auto-completion if specified.
-  final String displayString;
+  final String? displayString;
 
   /// The css class type for the completion.
-  String type;
+  String? type;
 
   /// The (optional) offset to display the cursor at after completion. This is
   /// relative to the insertion location, not the absolute position in the file.
   /// This can be `null`.
-  final int cursorOffset;
+  final int? cursorOffset;
 
   /// The (optional) index (starting from the top of the file) of the character
   /// at which the cursor should be placed after implementing the completion.
@@ -192,7 +192,7 @@ class Completion {
   /// provide an offset on the cursor's current line to represent the position
   /// to which the cursor should move. This field is provided as an alternative
   /// for use with those fixes.
-  final int absoluteCursorPosition;
+  final int? absoluteCursorPosition;
 
   List<SourceEdit> quickFixes = [];
 
@@ -202,7 +202,7 @@ class Completion {
     this.type,
     this.cursorOffset,
     this.absoluteCursorPosition,
-    this.quickFixes,
+    required this.quickFixes,
   });
 
   bool isSetterAndMatchesGetter(Completion other) =>

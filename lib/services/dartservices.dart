@@ -9,7 +9,7 @@ export '../src/protos/dart_services.pb.dart';
 const _apiPath = 'api/dartservices/v2';
 
 class DartservicesApi {
-  DartservicesApi(this._client, {@required this.rootUrl});
+  DartservicesApi(this._client, {required this.rootUrl});
 
   final BrowserClient _client;
   String rootUrl;
