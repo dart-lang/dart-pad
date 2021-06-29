@@ -4,8 +4,6 @@
 
 library dart_pad;
 
-import 'package:route_hierarchical/client.dart';
-
 import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/keys.dart';
@@ -26,7 +24,5 @@ EditorFactory get editorFactory => deps[EditorFactory] as EditorFactory;
 GistLoader get gistLoader => deps[GistLoader] as GistLoader;
 
 Keys get keys => deps[Keys] as Keys;
-
-Router get router => deps[Router] as Router;
 
 State get state => deps[State] as State;
