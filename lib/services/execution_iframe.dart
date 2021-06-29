@@ -266,7 +266,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
           }
         } else if (type == 'ready' && !_readyCompleter.isCompleted) {
           _readyCompleter.complete();
-        } else {
+        } else if (data['message'] != null) {
           _stdoutController.add(data['message'] as String);
         }
       }

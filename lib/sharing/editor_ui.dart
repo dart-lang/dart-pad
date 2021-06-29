@@ -38,7 +38,7 @@ abstract class EditorUi {
   late bool nullSafetyEnabled;
 
   /// Whether null safety was enabled for the previous execution.
-  late bool nullSafetyWasPreviouslyEnabled;
+  bool nullSafetyWasPreviouslyEnabled = false;
 
   String get fullDartSource => context.dartSource;
 

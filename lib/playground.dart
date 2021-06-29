@@ -85,11 +85,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
   late Splitter rightSplitter;
   bool rightSplitterConfigured = false;
   TabExpandController? tabExpandController;
-  late DBusyLight consoleBusyLight;
 
   @override
   late PlaygroundContext context;
-  late Layout _layout;
+  Layout? _layout;
 
   // The last returned shared gist used to update the url.
   Gist? _overrideNextRouteGist;
@@ -158,7 +157,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void _initBusyLights() {
     busyLight = DBusyLight(querySelector('#dartbusy')!);
-    consoleBusyLight = DBusyLight(querySelector('#consolebusy')!);
   }
 
   void _initGistNameHeader() {

@@ -78,7 +78,6 @@ class Embed extends EditorUi {
   late final DElement solutionTab;
   late final MDCMenu menu;
 
-  late final DElement morePopover;
   late final DElement showTestCodeCheckmark;
   late final DElement editableTestSolutionCheckmark;
   bool _editableTestSolution = false;
@@ -97,8 +96,8 @@ class Embed extends EditorUi {
   late final Editor userCodeEditor;
   late final Editor testEditor;
   late final Editor solutionEditor;
-  late final Editor htmlEditor;
-  late final Editor cssEditor;
+  Editor? htmlEditor;
+  Editor? cssEditor;
 
   @override
   late final EmbedContext context;
@@ -178,11 +177,11 @@ class Embed extends EditorUi {
             solutionEditor.resize();
             solutionEditor.focus();
           } else if (name == 'html') {
-            htmlEditor.resize();
-            htmlEditor.focus();
+            htmlEditor!.resize();
+            htmlEditor!.focus();
           } else if (name == 'css') {
-            cssEditor.resize();
-            cssEditor.focus();
+            cssEditor!.resize();
+            cssEditor!.focus();
           }
         }),
       );
@@ -236,7 +235,6 @@ class Embed extends EditorUi {
     nullSafetyCheckmark =
         DElement(querySelector('#toggle-null-safety-checkmark')!);
 
-    morePopover = DElement(querySelector('#more-popover')!);
     menuButton =
         MDCButton(querySelector('#menu-button') as ButtonElement, isIcon: true)
           ..onClick.listen((_) {
@@ -305,18 +303,24 @@ class Embed extends EditorUi {
       ..readOnly = !_editableTestSolution
       ..showLineNumbers = true;
 
-    htmlEditor = editorFactory.createFromElement(querySelector('#html-editor')!,
-        options: codeMirrorOptions)
-      ..theme = editorTheme
-      // TODO(ryjohn): why doesn't editorFactory.modes have html?
-      ..mode = 'xml'
-      ..showLineNumbers = true;
+    final htmlEditorElement = querySelector('#html-editor');
+    if (htmlEditorElement != null) {
+      htmlEditor = editorFactory.createFromElement(htmlEditorElement,
+          options: codeMirrorOptions)
+        ..theme = editorTheme
+        // TODO(ryjohn): why doesn't editorFactory.modes have html?
+        ..mode = 'xml'
+        ..showLineNumbers = true;
+    }
 
-    cssEditor = editorFactory.createFromElement(querySelector('#css-editor')!,
-        options: codeMirrorOptions)
-      ..theme = editorTheme
-      ..mode = 'css'
-      ..showLineNumbers = true;
+    final cssEditorElement = querySelector('#css-editor');
+    if (cssEditorElement != null) {
+      cssEditor = editorFactory.createFromElement(cssEditorElement,
+          options: codeMirrorOptions)
+        ..theme = editorTheme
+        ..mode = 'css'
+        ..showLineNumbers = true;
+    }
 
     if (!showInstallButton) {
       querySelector('#install-button')!.setAttribute('hidden', '');
@@ -394,8 +398,8 @@ class Embed extends EditorUi {
             userCodeEditor.resize();
             testEditor.resize();
             solutionEditor.resize();
-            htmlEditor.resize();
-            cssEditor.resize();
+            htmlEditor?.resize();
+            cssEditor?.resize();
           });
       consoleExpandController = controller;
       if (shouldOpenConsole) {
@@ -578,27 +582,27 @@ class Embed extends EditorUi {
     initKeyBindings();
 
     var horizontal = true;
-    var webOutput = querySelector('#web-output');
-    List<Element?> splitterElements;
+    var webOutput = querySelector('#web-output')!;
+    List<Element> splitterElements;
     if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
       var editorAndConsoleContainer =
-          querySelector('#editor-and-console-container');
+          querySelector('#editor-and-console-container')!;
       splitterElements = [editorAndConsoleContainer, webOutput];
     } else if (options.mode == EmbedMode.inline) {
-      var editorContainer = querySelector('#editor-container');
+      var editorContainer = querySelector('#editor-container')!;
       var consoleView = querySelector('#console-view')!;
       consoleView.removeAttribute('hidden');
       splitterElements = [editorContainer, consoleView];
       horizontal = false;
     } else {
-      var editorContainer = querySelector('#editor-container');
+      var editorContainer = querySelector('#editor-container')!;
       var consoleView = querySelector('#console-view')!;
       consoleView.removeAttribute('hidden');
       splitterElements = [editorContainer, consoleView];
     }
 
     splitter = flexSplit(
-      splitterElements as List<Element>,
+      splitterElements,
       horizontal: horizontal,
       gutterSize: defaultSplitterWidth,
       // set initial sizes (in percentages)
@@ -1181,14 +1185,14 @@ class ConsoleExpandController extends Console {
 
 class EmbedContext implements ContextBase {
   final Editor userCodeEditor;
-  final Editor htmlEditor;
-  final Editor cssEditor;
+  final Editor? htmlEditor;
+  final Editor? cssEditor;
   final Editor testEditor;
   final Editor solutionEditor;
 
   Document? _dartDoc;
-  late Document _htmlDoc;
-  late Document _cssDoc;
+  Document? _htmlDoc;
+  Document? _cssDoc;
 
   String hint = '';
 
@@ -1214,8 +1218,8 @@ class EmbedContext implements ContextBase {
   EmbedContext(this.userCodeEditor, this.testEditor, this.solutionEditor,
       this.htmlEditor, this.cssEditor) {
     _dartDoc = userCodeEditor.document;
-    _htmlDoc = htmlEditor.document;
-    _cssDoc = cssEditor.document;
+    _htmlDoc = htmlEditor?.document;
+    _cssDoc = cssEditor?.document;
     _dartDoc!.onChange.listen((_) => _dartDirtyController.add(null));
     _createReconciler(_dartDoc!, _dartReconcileController, 1250);
   }
@@ -1226,21 +1230,21 @@ class EmbedContext implements ContextBase {
   String get dartSource => _dartDoc!.value;
 
   @override
-  String get htmlSource => _htmlDoc.value;
+  String get htmlSource => _htmlDoc?.value ?? '';
 
   @override
-  String get cssSource => _cssDoc.value;
+  String get cssSource => _cssDoc?.value ?? '';
 
   set dartSource(String value) {
     userCodeEditor.document.value = value;
   }
 
-  set htmlSource(String value) {
-    htmlEditor.document.value = value;
+  set htmlSource(String? value) {
+    htmlEditor!.document.value = value ?? '';
   }
 
-  set cssSource(String value) {
-    cssEditor.document.value = value;
+  set cssSource(String? value) {
+    cssEditor!.document.value = value ?? '';
   }
 
   String get activeMode => userCodeEditor.mode;

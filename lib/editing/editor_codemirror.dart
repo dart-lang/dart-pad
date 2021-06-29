@@ -154,7 +154,7 @@ class _CodeMirrorEditor extends Editor {
 
   final CodeMirror cm;
 
-  late final _CodeMirrorDocument _document;
+  late _CodeMirrorDocument _document;
 
   late bool _lookingForQuickFix;
 
