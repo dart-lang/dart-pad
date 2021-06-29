@@ -34,19 +34,19 @@ class ExerciseFileMetadata {
 
   String get path => alternatePath.isEmpty ? name : alternatePath;
 
-  ExerciseFileMetadata.fromMap(map) {
+  ExerciseFileMetadata.fromMap(Map? map) {
     if (map == null) {
       throw MetadataException('Null json was given to ExerciseFileMetadata().');
     }
 
     if (map['name'] == null ||
         map['name'] is! String ||
-        map['name'].isEmpty as bool) {
+        map['name']?.isEmpty as bool) {
       throw MetadataException('The "name" field is required for each file.');
     }
 
-    name = map['name'] as String;
-    alternatePath = map['alternatePath'] as String;
+    name = map.containsKey('name') ? map['name'] as String : '';
+    alternatePath = map.containsKey('alternatePath') ? map['alternatePath'] as String : '';
   }
 }
 
@@ -88,7 +88,7 @@ class ExerciseMetadata {
     name = map['name'] as String;
     mode = exerciseModeNames[map['mode']]!;
     files = (map['files'] as yaml.YamlList)
-        .map((f) => ExerciseFileMetadata.fromMap(f))
+        .map((f) => ExerciseFileMetadata.fromMap(f as yaml.YamlMap))
         .toList();
   }
 }
