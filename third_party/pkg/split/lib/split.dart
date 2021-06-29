@@ -14,9 +14,9 @@ import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 
 typedef _ElementStyleCallback
-    = Function(Object dimension, Object size, num gutterSize, [int index]);
+    = Function(Object? dimension, Object? size, num? gutterSize, [int? index]);
 typedef _GutterStyleCallback = Function(
-    Object dimension, num gutterSize, int? index);
+    Object? dimension, num? gutterSize, int? index);
 
 @JS()
 @anonymous
