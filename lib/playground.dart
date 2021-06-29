@@ -82,14 +82,14 @@ class Playground extends EditorUi implements GistContainer, GistController {
   late MDCSwitch nullSafetySwitch;
 
   late Splitter splitter;
-  Splitter rightSplitter;
+  late Splitter rightSplitter;
   bool rightSplitterConfigured = false;
   TabExpandController? tabExpandController;
   late DBusyLight consoleBusyLight;
 
   @override
-  PlaygroundContext context;
-  Layout _layout;
+  late PlaygroundContext context;
+  late Layout _layout;
 
   // The last returned shared gist used to update the url.
   Gist? _overrideNextRouteGist;
@@ -119,7 +119,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       _initConsoles();
     }).then((_) {
       showHome();
-    } as FutureOr<_> Function(Null));
+    });
   }
 
   DivElement get _editorHost => querySelector('#editor-host') as DivElement;
@@ -223,10 +223,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
       });
     querySelector('#keyboard-button')
         ?.onClick
-        ?.listen((_) => showKeyboardDialog());
+        .listen((_) => showKeyboardDialog());
     querySelector('#dartpad-package-versions')
         ?.onClick
-        ?.listen((_) => showPackageVersionsDialog());
+        .listen((_) => showPackageVersionsDialog());
 
     // Query params have higher precedence than local storage
     if (queryParams.hasNullSafety) {
@@ -394,7 +394,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       // The right splitter might already be destroyed.
       return;
     }
-    rightSplitter?.destroy();
+    rightSplitter.destroy();
     rightSplitterConfigured = false;
   }
 
@@ -745,7 +745,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       busyLight.reset();
       formatButton.disabled = false;
 
-      if (result.newString == null || result.newString.isEmpty) {
+      if (result.newString.isEmpty) {
         _logger.fine('Format returned null/empty result');
         return;
       }
@@ -875,9 +875,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
         'Create New Pad', 'Discard changes to the current pad?');
     if (result == DialogResult.ok) {
       final layout = await newPadDialog.show();
-      if (layout == null) {
-        return;
-      }
       await createGistForLayout(layout);
     }
   }
@@ -909,10 +906,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void _showInstallPage() {
     if (_layout == Layout.dart) {
-      ga?.sendEvent('main', 'install-dart');
+      ga.sendEvent('main', 'install-dart');
       window.location.href = 'https://dart.dev/get-dart';
     } else {
-      ga?.sendEvent('main', 'install-flutter');
+      ga.sendEvent('main', 'install-flutter');
       window.location.href = 'https://flutter.dev/get-started/install';
     }
   }
@@ -921,7 +918,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   Future<void> createNewGist() async {
     _gistStorage.clearStoredGist();
 
-    if (ga != null) ga.sendEvent('main', 'new');
+    ga.sendEvent('main', 'new');
 
     showSnackbar('New pad created');
   }
@@ -929,7 +926,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   Future<void> createGistForLayout(Layout layout) async {
     _gistStorage.clearStoredGist();
 
-    if (ga != null) ga.sendEvent('main', 'new');
+    ga.sendEvent('main', 'new');
 
     await showNew(layout);
     showSnackbar('New pad created');

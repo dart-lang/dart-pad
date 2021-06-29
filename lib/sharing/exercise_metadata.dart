@@ -29,11 +29,11 @@ const exerciseModeNames = <String, ExerciseMode>{
 
 /// Metadata for a single file within a larger exercise.
 class ExerciseFileMetadata {
-  String name;
-  String alternatePath;
+  late String name;
+  late String alternatePath;
 
   String get path =>
-      (alternatePath == null || alternatePath.isEmpty) ? name : alternatePath;
+      alternatePath.isEmpty ? name : alternatePath;
 
   ExerciseFileMetadata.fromMap(map) {
     if (map == null) {
@@ -57,7 +57,7 @@ class ExerciseFileMetadata {
 /// This data will be deserialized from that file when an exercise is loaded
 /// from GitHub, and used to set up the DartPad environment for that exercise.
 class ExerciseMetadata {
-  String name;
+  late String name;
   late ExerciseMode mode;
   late List<ExerciseFileMetadata> files;
 

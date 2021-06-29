@@ -93,7 +93,8 @@ class SharingDialog extends DDialog {
 
     // Already sharing.
     _div = DElement.tag('div')..layoutVertical();
-    var div = _div!.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
+    var div =
+        _div!.add(DElement.tag('div', classes: 'row')..layoutHorizontal());
     div.add(DElement.tag('span', classes: 'sharinglabel')).text = 'DartPad:';
     var inputGroup = div.add(DElement.tag('div'))
       ..layoutHorizontal()
@@ -254,19 +255,20 @@ class KeysDialog extends DDialog {
             string += '<span>${makeKeyPresentable(key)}</span>';
           }
         }
-        dl.innerHtml += '<dt>$action</dt><dd>$string</dd>';
+        dl.innerHtml =
+            (dl.innerHtml ?? '') + '<dt>$action</dt><dd>$string</dd>';
       }
     });
     return dl;
   }
 
-  // TODO: expose options
-  //  DListElement get optionMapToHtml {
-  //    DListElement dl = new DListElement();
-  //    optionMap.forEach((key, value) {
-  //      dl.innerHtml += "<dt>${capitalize(key.replaceAll("_"," "))}</dt>"
-  //      '<dd><input type="checkbox" id="$key" ${options.getValueBool(key) ? "checked" : ""}></dd>';
-  //    });
-  //    return dl;
-  //  }
+// TODO: expose options
+//  DListElement get optionMapToHtml {
+//    DListElement dl = new DListElement();
+//    optionMap.forEach((key, value) {
+//      dl.innerHtml += "<dt>${capitalize(key.replaceAll("_"," "))}</dt>"
+//      '<dd><input type="checkbox" id="$key" ${options.getValueBool(key) ? "checked" : ""}></dd>';
+//    });
+//    return dl;
+//  }
 }

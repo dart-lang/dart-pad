@@ -27,7 +27,7 @@ class DartCompleter extends CodeCompleter {
     bool onlyShowFixes = false,
   }) {
     // Cancel any open completion request.
-    _lastCompleter?.operation?.cancel();
+    _lastCompleter?.operation.cancel();
 
     var offset = editor.document.indexFromPos(editor.document.cursor);
 
@@ -69,10 +69,9 @@ class DartCompleter extends CodeCompleter {
 
           // TODO(redbrogdon): Find a way to properly use these linked edit
           // groups via selections and multiple cursors.
-          if (assist.linkedEditGroups != null &&
-              assist.linkedEditGroups.isNotEmpty) {
+          if (assist.linkedEditGroups.isNotEmpty) {
             absoluteCursorPosition =
-                assist.linkedEditGroups.first.positions?.first;
+                assist.linkedEditGroups.first.positions.first;
           }
 
           // If a specific offset is provided, prefer it to the one calculated
@@ -142,9 +141,7 @@ class DartCompleter extends CodeCompleter {
               cursorPos = text.indexOf('(') + 1;
             }
 
-            if (completion.selectionOffset != null) {
-              cursorPos = completion.selectionOffset;
-            }
+            cursorPos = completion.selectionOffset;
 
             return Completion(
               text,
@@ -171,7 +168,7 @@ class DartCompleter extends CodeCompleter {
           replaceLength: replaceLength,
         ));
       }).catchError((e) {
-        completer.completeError(e);
+        completer.completeError(e as Object);
       });
     }
 

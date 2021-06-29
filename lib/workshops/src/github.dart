@@ -1,6 +1,5 @@
 import 'package:dart_pad/util/github.dart';
 import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 
 import 'exceptions.dart';
 import 'fetcher_impl.dart';

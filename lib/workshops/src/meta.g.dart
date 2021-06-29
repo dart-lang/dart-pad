@@ -1,6 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-import 'package:collection/collection.dart' show IterableExtension;
 part of 'meta.dart';
 
 // **************************************************************************
@@ -17,10 +16,9 @@ Meta _$MetaFromJson(Map json) {
       $checkedConvert(
           json,
           'steps',
-          (v) => (v as List?)
-              ?.map((e) =>
-                  e == null ? null : StepConfiguration.fromJson(e as Map))
-              ?.toList()),
+          (v) => (v as List<dynamic>?)
+              ?.map((e) => StepConfiguration.fromJson(e as Map))
+              .toList()),
       type: $checkedConvert(json, 'type',
               (v) => _$enumDecodeNullable(_$WorkshopTypeEnumMap, v)) ??
           WorkshopType.dart,
@@ -31,40 +29,45 @@ Meta _$MetaFromJson(Map json) {
 
 Map<String, dynamic> _$MetaToJson(Meta instance) => <String, dynamic>{
       'name': instance.name,
-      'type': _$WorkshopTypeEnumMap[instance.type!],
+      'type': _$WorkshopTypeEnumMap[instance.type],
       'steps': instance.steps,
     };
 
-T? _$enumDecode<T>(
-  Map<T, dynamic> enumValues,
-  dynamic source, {
-  T? unknownValue,
+K _$enumDecode<K, V>(
+  Map<K, V> enumValues,
+  Object? source, {
+  K? unknownValue,
 }) {
   if (source == null) {
-    throw ArgumentError('A value must be provided. Supported values: '
-        '${enumValues.values.join(', ')}');
+    throw ArgumentError(
+      'A value must be provided. Supported values: '
+      '${enumValues.values.join(', ')}',
+    );
   }
 
-  final value = enumValues.entries
-      .singleWhereOrNull((e) => e.value == source)
-      ?.key;
-
-  if (value == null && unknownValue == null) {
-    throw ArgumentError('`$source` is not one of the supported values: '
-        '${enumValues.values.join(', ')}');
-  }
-  return value ?? unknownValue;
+  return enumValues.entries.singleWhere(
+    (e) => e.value == source,
+    orElse: () {
+      if (unknownValue == null) {
+        throw ArgumentError(
+          '`$source` is not one of the supported values: '
+          '${enumValues.values.join(', ')}',
+        );
+      }
+      return MapEntry(unknownValue, enumValues.values.first);
+    },
+  ).key;
 }
 
-T? _$enumDecodeNullable<T>(
-  Map<T, dynamic> enumValues,
+K? _$enumDecodeNullable<K, V>(
+  Map<K, V> enumValues,
   dynamic source, {
-  T? unknownValue,
+  K? unknownValue,
 }) {
   if (source == null) {
     return null;
   }
-  return _$enumDecode<T>(enumValues, source, unknownValue: unknownValue);
+  return _$enumDecode<K, V>(enumValues, source, unknownValue: unknownValue);
 }
 
 const _$WorkshopTypeEnumMap = {
@@ -76,9 +79,9 @@ StepConfiguration _$StepConfigurationFromJson(Map json) {
   return $checkedNew('StepConfiguration', json, () {
     $checkKeys(json, allowedKeys: const ['name', 'directory', 'has_solution']);
     final val = StepConfiguration(
-      name: $checkedConvert(json, 'name', ((v) => (v as String?)!) as String Function(dynamic)),
-      directory: $checkedConvert(json, 'directory', ((v) => (v as String?)!) as String Function(dynamic)),
-      hasSolution: $checkedConvert(json, 'has_solution', ((v) => (v as bool?)!) as bool Function(dynamic)),
+      name: $checkedConvert(json, 'name', (v) => v as String),
+      directory: $checkedConvert(json, 'directory', (v) => v as String),
+      hasSolution: $checkedConvert(json, 'has_solution', (v) => v as bool),
     );
     return val;
   }, fieldKeyMap: const {'hasSolution': 'has_solution'});

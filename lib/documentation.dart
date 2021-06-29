@@ -143,14 +143,9 @@ $apiLink\n\n''';
       if (usingFlutter) {
         final splitFlutter = libraryName.split('/');
         if (splitFlutter[0] == 'package:flutter') {
-          final splitName = splitFlutter[2];
-          if (splitName != null) {
-            libraryName = splitName;
-          } else {
-            // If this part of the path is not present, we cannot link to the
-            // documentation currently.
-            return libraryName;
-          }
+          // If this part of the path is not present, we cannot link to the
+          // documentation currently.
+          return libraryName;
         }
       }
 

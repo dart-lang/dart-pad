@@ -12,7 +12,6 @@ import 'package:dart_pad/sharing/exercise_metadata.dart';
 import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:fluttering_phrases/fluttering_phrases.dart' as phrases;
 import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 import 'package:yaml/yaml.dart' as yaml;
 import '../util/detect_flutter.dart' as detect_flutter;
 import '../util/github.dart';

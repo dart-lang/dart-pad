@@ -66,7 +66,7 @@ String? _valueOr(Map<String, String> map, String value, String defaultValue) {
 ///     void main() => print("Hello, World!");
 ///   </code>
 /// </pre>
-void _injectEmbed(Element snippet, Map<String?, String?> options) {
+void _injectEmbed(Element snippet, Map<String, String> options) {
   var preElement = snippet.parent;
   if (preElement is! PreElement) {
     _logUnexpectedHtml();

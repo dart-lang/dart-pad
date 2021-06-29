@@ -57,7 +57,7 @@ class InjectParser {
     if (_tokens[_currentFile] == null) {
       _tokens[_currentFile] = line;
     } else {
-      _tokens[_currentFile] += '\n$line';
+      _tokens[_currentFile] = (_tokens[_currentFile] ?? '') + '\n$line';
     }
   }
 
@@ -88,8 +88,8 @@ class LanguageStringParser {
     return _validExp.hasMatch(input);
   }
 
-  Map<String?, String?> get options {
-    var opts = <String?, String?>{};
+  Map<String, String> get options {
+    var opts = <String, String>{};
     if (!isValid) {
       return opts;
     }
@@ -99,7 +99,7 @@ class LanguageStringParser {
       if (match.groupCount != 2) {
         continue;
       }
-      opts[match[1]] = match[2];
+      opts[match[1]!] = match[2]!;
     }
 
     return opts;

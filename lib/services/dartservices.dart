@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:http/browser_client.dart';
-import 'package:meta/meta.dart';
 import 'package:protobuf/protobuf.dart';
 import '../src/protos/dart_services.pb.dart';
 export '../src/protos/dart_services.pb.dart';

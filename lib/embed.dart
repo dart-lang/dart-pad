@@ -60,56 +60,56 @@ class Embed extends EditorUi {
   final EmbedOptions options;
 
   var _executionButtonCount = 0;
-  late MDCButton reloadGistButton;
-  late MDCButton installButton;
-  late MDCButton formatButton;
-  MDCButton showHintButton;
-  MDCButton copyCodeButton;
-  late MDCButton openInDartPadButton;
-  late MDCButton menuButton;
+  late final MDCButton reloadGistButton;
+  late final MDCButton installButton;
+  late final MDCButton formatButton;
+  late final MDCButton showHintButton;
+  late final MDCButton copyCodeButton;
+  late final MDCButton openInDartPadButton;
+  late final MDCButton menuButton;
 
-  late DElement navBarElement;
-  late EmbedTabController tabController;
-  TabView editorTabView;
-  TabView testTabView;
-  TabView solutionTabView;
-  TabView htmlTabView;
-  TabView cssTabView;
-  DElement solutionTab;
-  late MDCMenu menu;
+  late final DElement navBarElement;
+  late final EmbedTabController tabController;
+  late final TabView editorTabView;
+  late final TabView testTabView;
+  late final TabView solutionTabView;
+  late final TabView htmlTabView;
+  late final TabView cssTabView;
+  late final DElement solutionTab;
+  late final MDCMenu menu;
 
-  late DElement morePopover;
-  late DElement showTestCodeCheckmark;
-  late DElement editableTestSolutionCheckmark;
+  late final DElement morePopover;
+  late final DElement showTestCodeCheckmark;
+  late final DElement editableTestSolutionCheckmark;
   bool _editableTestSolution = false;
   bool _showTestCode = false;
 
-  late DElement nullSafetyCheckmark;
+  late final DElement nullSafetyCheckmark;
   bool _nullSafetyEnabled = false;
 
-  Counter unreadConsoleCounter;
+  late final Counter unreadConsoleCounter;
 
-  late FlashBox testResultBox;
-  late FlashBox hintBox;
+  late final FlashBox testResultBox;
+  late final FlashBox hintBox;
 
-  CodeMirrorFactory editorFactory = codeMirrorFactory;
+  final CodeMirrorFactory editorFactory = codeMirrorFactory;
 
-  Editor userCodeEditor;
-  Editor testEditor;
-  Editor solutionEditor;
-  Editor htmlEditor;
-  Editor cssEditor;
+  late final Editor userCodeEditor;
+  late final Editor testEditor;
+  late final Editor solutionEditor;
+  late final Editor htmlEditor;
+  late final Editor cssEditor;
 
   @override
-  late EmbedContext context;
+  late final EmbedContext context;
 
-  late Splitter splitter;
+  late final Splitter splitter;
 
-  late Console consoleExpandController;
-  DElement webOutputLabel;
-  late DElement featureMessage;
+  late final Console consoleExpandController;
+  late final DElement webOutputLabel;
+  late final DElement featureMessage;
 
-  late MDCLinearProgress linearProgress;
+  late final MDCLinearProgress linearProgress;
   Map<String, String> lastInjectedSourceCode = <String, String>{};
 
   bool _editorIsBusy = true;
@@ -135,8 +135,8 @@ class Embed extends EditorUi {
     runButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value;
-    showHintButton?.disabled = value;
-    copyCodeButton?.disabled = value;
+    showHintButton.disabled = value;
+    copyCodeButton.disabled = value;
   }
 
   Embed(this.options) {
@@ -162,11 +162,11 @@ class Embed extends EditorUi {
     for (var name in tabNames) {
       tabController.registerTab(
         TabElement(querySelector('#$name-tab')!, name: name, onSelect: () {
-          editorTabView?.setSelected(name == 'editor');
-          testTabView?.setSelected(name == 'test');
-          solutionTabView?.setSelected(name == 'solution');
-          htmlTabView?.setSelected(name == 'html');
-          cssTabView?.setSelected(name == 'css');
+          editorTabView.setSelected(name == 'editor');
+          testTabView.setSelected(name == 'test');
+          solutionTabView.setSelected(name == 'solution');
+          htmlTabView.setSelected(name == 'html');
+          cssTabView.setSelected(name == 'css');
 
           if (name == 'editor') {
             userCodeEditor.resize();
@@ -225,7 +225,7 @@ class Embed extends EditorUi {
           tabController.selectTab('solution', force: true);
         });
         hintBox.showElements([hintElement, showSolutionButton]);
-        ga?.sendEvent('view', 'hint');
+        ga.sendEvent('view', 'hint');
       })
       ..element.hidden = true;
 
@@ -370,7 +370,7 @@ class Embed extends EditorUi {
         result.messages,
         result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
       );
-      ga?.sendEvent(
+      ga.sendEvent(
           'execution', (result.success) ? 'test-success' : 'test-failure');
     });
 
@@ -790,7 +790,7 @@ class Embed extends EditorUi {
         'test', context.testMethod.isNotEmpty && _showTestCode);
     menuButton.toggleAttr('hidden', false);
     showHintButton.element.hidden = context.hint.isEmpty;
-    solutionTab?.toggleAttr('hidden', context.solution.isEmpty);
+    solutionTab.toggleAttr('hidden', context.solution.isEmpty);
     editorIsBusy = false;
   }
 
@@ -813,7 +813,7 @@ class Embed extends EditorUi {
     }
 
     _executionButtonCount++;
-    ga?.sendEvent('execution', 'initiated', label: '$_executionButtonCount');
+    ga.sendEvent('execution', 'initiated', label: '$_executionButtonCount');
 
     editorIsBusy = true;
     testResultBox.hide();
@@ -826,7 +826,7 @@ class Embed extends EditorUi {
 
     // The iframe will show Flutter output for the rest of the lifetime of the
     // app, so hide the label.
-    webOutputLabel?.setAttr('hidden');
+    webOutputLabel.setAttr('hidden');
 
     return success;
   }
@@ -837,7 +837,7 @@ class Embed extends EditorUi {
     newParams['ga_id'] = id;
     var pageName = url.replace(queryParameters: newParams);
     var path = '${pageName.path}?${pageName.query}';
-    ga?.sendPage(pageName: path);
+    ga.sendPage(pageName: path);
   }
 
   @override
@@ -857,10 +857,10 @@ class Embed extends EditorUi {
 
   void _showInstallPage() {
     if (_modeName == 'dart' || _modeName == 'html') {
-      ga?.sendEvent('main', 'install-dart');
+      ga.sendEvent('main', 'install-dart');
       _hostWindow!.location.href = 'https://dart.dev/get-dart';
     } else {
-      ga?.sendEvent('main', 'install-flutter');
+      ga.sendEvent('main', 'install-flutter');
       _hostWindow!.location.href = 'https://flutter.dev/get-started/install';
     }
   }
@@ -974,7 +974,7 @@ class EmbedTabController extends MaterialTabController {
     }
 
     if (tabName == 'solution') {
-      ga?.sendEvent('view', 'solution');
+      ga.sendEvent('view', 'solution');
       _userHasSeenSolution = true;
     }
 
@@ -999,9 +999,7 @@ class TabView {
 
 /// It's a real word, I swear.
 class DisableableButton {
-  DisableableButton(ButtonElement anchorElement, VoidCallback onClick)
-      : assert(anchorElement != null),
-        assert(onClick != null) {
+  DisableableButton(ButtonElement anchorElement, VoidCallback onClick) {
     _element = DElement(anchorElement);
     _element.onClick.listen((e) {
       if (!_disabled) {
@@ -1118,7 +1116,7 @@ class ConsoleExpandController extends Console {
   @override
   void showOutput(String message, {bool error = false}) {
     super.showOutput(message, error: error);
-    if (!_expanded && message != null) {
+    if (!_expanded) {
       unreadCounter!.increment();
     }
   }
@@ -1216,8 +1214,8 @@ class EmbedContext implements ContextBase {
   EmbedContext(this.userCodeEditor, this.testEditor, this.solutionEditor,
       this.htmlEditor, this.cssEditor) {
     _dartDoc = userCodeEditor.document;
-    _htmlDoc = htmlEditor?.document;
-    _cssDoc = cssEditor?.document;
+    _htmlDoc = htmlEditor.document;
+    _cssDoc = cssEditor.document;
     _dartDoc!.onChange.listen((_) => _dartDirtyController.add(null));
     _createReconciler(_dartDoc!, _dartReconcileController, 1250);
   }
@@ -1228,10 +1226,10 @@ class EmbedContext implements ContextBase {
   String get dartSource => _dartDoc!.value;
 
   @override
-  String get htmlSource => _htmlDoc?.value;
+  String get htmlSource => _htmlDoc.value;
 
   @override
-  String get cssSource => _cssDoc?.value;
+  String get cssSource => _cssDoc.value;
 
   set dartSource(String value) {
     userCodeEditor.document.value = value;
@@ -1283,7 +1281,7 @@ final RegExp _dartUrlExp =
 
 String filterCloudUrls(String trace) {
   return trace
-      ?.replaceAllMapped(
+      .replaceAllMapped(
           _flutterUrlExp, (m) => '[Flutter SDK Source]${m.group(2)}')
-      ?.replaceAllMapped(_dartUrlExp, (m) => '[Dart SDK Source]${m.group(2)}');
+      .replaceAllMapped(_dartUrlExp, (m) => '[Dart SDK Source]${m.group(2)}');
 }

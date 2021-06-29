@@ -93,7 +93,7 @@ class AnalysisResultsController {
     columnElem.children.add(messageSpan);
 
     // Add a link to the documentation
-    if (issue.url != null && issue.url.isNotEmpty) {
+    if (issue.url.isNotEmpty) {
       messageSpan.children.add(AnchorElement()
         ..href = issue.url
         ..text = ' (view docs)'
@@ -102,7 +102,7 @@ class AnalysisResultsController {
     }
 
     // Add the correction, if any.
-    if (issue.correction != null && issue.correction.isNotEmpty) {
+    if (issue.correction.isNotEmpty) {
       columnElem.children.add(DivElement()
         ..text = issue.correction
         ..classes.add('message'));

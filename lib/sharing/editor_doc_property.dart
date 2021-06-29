@@ -16,7 +16,7 @@ class EditorDocumentProperty implements Property<String> {
 
   @override
   void set(String str) {
-    document.value = str ?? '';
+    document.value = str;
   }
 
   @override

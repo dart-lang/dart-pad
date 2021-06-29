@@ -63,7 +63,7 @@ abstract class Editor {
   void focus();
 
   /// Whether to show line numbers to the left of the editor.
-  bool showLineNumbers;
+  late bool showLineNumbers;
 
   /// Whether the editor is in read only mode.
   late bool readOnly;
@@ -194,7 +194,7 @@ class Completion {
   /// for use with those fixes.
   final int? absoluteCursorPosition;
 
-  List<SourceEdit> quickFixes = [];
+  final List<SourceEdit> quickFixes;
 
   Completion(
     this.value, {
@@ -202,7 +202,7 @@ class Completion {
     this.type,
     this.cursorOffset,
     this.absoluteCursorPosition,
-    required this.quickFixes,
+    this.quickFixes = const [],
   });
 
   bool isSetterAndMatchesGetter(Completion other) =>

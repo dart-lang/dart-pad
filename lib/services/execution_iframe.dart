@@ -7,8 +7,6 @@ library execution_iframe;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:meta/meta.dart';
-
 import 'execution.dart';
 
 export 'execution.dart';
@@ -24,7 +22,7 @@ class ExecutionServiceIFrame implements ExecutionService {
       StreamController<TestResult>.broadcast();
 
   IFrameElement _frame;
-  String _frameSrc;
+  late String _frameSrc;
   Completer<void> _readyCompleter = Completer();
 
   ExecutionServiceIFrame(this._frame) {
@@ -47,9 +45,6 @@ class ExecutionServiceIFrame implements ExecutionService {
     bool addFirebaseJs = false,
     bool destroyFrame = false,
   }) async {
-    assert(addRequireJs != null);
-    assert(addFirebaseJs != null);
-    assert(destroyFrame != null);
     if (destroyFrame) {
       await _reset();
     }

@@ -24,13 +24,13 @@ abstract class Context implements ContextBase {
   String? description;
 
   @override
-  String dartSource;
+  String dartSource = '';
 
   @override
-  String htmlSource;
+  String htmlSource = '';
 
   @override
-  String cssSource;
+  String cssSource = '';
 
   String get activeMode;
   Stream<String> get onModeChange;

@@ -45,24 +45,24 @@ void init() {
 }
 
 class WorkshopUi extends EditorUi {
-  late WorkshopState _workshopState;
-  late Splitter splitter;
-  late Splitter rightSplitter;
-  late DElement stepLabel;
-  late DElement previousStepButton;
-  late DElement nextStepButton;
-  late Console _console;
-  late MDCButton showSolutionButton;
-  late Counter unreadConsoleCounter;
-  late DocHandler docHandler;
+  late final WorkshopState _workshopState;
+  late final Splitter splitter;
+  late final Splitter rightSplitter;
+  late final DElement stepLabel;
+  late final DElement previousStepButton;
+  late final DElement nextStepButton;
+  late final Console _console;
+  late final MDCButton showSolutionButton;
+  late final Counter unreadConsoleCounter;
+  late final DocHandler docHandler;
   @override
-  ContextBase context;
+  late ContextBase context;
   late MDCButton formatButton;
-  TabExpandController tabExpandController;
-  late MDCButton closePanelButton;
-  late MDCButton editorUiOutputTab;
-  late MDCButton editorConsoleTab;
-  late MDCButton editorDocsTab;
+  late final TabExpandController tabExpandController;
+  late final MDCButton closePanelButton;
+  late final MDCButton editorUiOutputTab;
+  late final MDCButton editorConsoleTab;
+  late final MDCButton editorDocsTab;
   final _nullSafetyEnabled = true;
 
   WorkshopUi() {
@@ -178,10 +178,10 @@ class WorkshopUi extends EditorUi {
 
     querySelector('#keyboard-button')
         ?.onClick
-        ?.listen((_) => showKeyboardDialog());
+        .listen((_) => showKeyboardDialog());
     querySelector('#dartpad-package-versions')
         ?.onClick
-        ?.listen((_) => showPackageVersionsDialog());
+        .listen((_) => showPackageVersionsDialog());
   }
 
   @override
@@ -363,7 +363,7 @@ class WorkshopUi extends EditorUi {
       busyLight.reset();
       formatButton.disabled = false;
 
-      if (result.newString == null || result.newString.isEmpty) {
+      if (result.newString.isEmpty) {
         logger.fine('Format returned null/empty result');
         return;
       }
@@ -382,10 +382,6 @@ class WorkshopUi extends EditorUi {
   }
 
   void _initOutputPanelTabs() {
-    if (tabExpandController != null) {
-      return;
-    }
-
     tabExpandController = TabExpandController(
       uiOutputButton: shouldCompileDDC ? editorUiOutputTab : null,
       consoleButton: editorConsoleTab,

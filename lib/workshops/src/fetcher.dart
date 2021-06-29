@@ -1,5 +1,3 @@
-import 'package:meta/meta.dart';
-
 import 'github.dart';
 import 'web_server.dart';
 import 'workshop.dart';

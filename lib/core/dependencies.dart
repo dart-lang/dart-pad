@@ -38,7 +38,7 @@ Dependencies get deps => Dependencies.instance;
 /// [Dependencies.instance] will return the new dependencies set up for that
 /// zone.
 class Dependencies {
-  static Dependencies _global;
+  static late Dependencies _global;
 
   static void setGlobalInstance(Dependencies deps) {
     _global = deps;

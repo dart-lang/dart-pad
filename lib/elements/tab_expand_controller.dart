@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:meta/meta.dart';
 import 'package:split/split.dart';
 
 import '../sharing/editor_ui.dart';
@@ -18,14 +17,14 @@ enum TabState {
 
 /// Manages the bottom-left panel and tabs
 class TabExpandController {
-  final MDCButton uiOutputButton;
+  MDCButton? uiOutputButton;
   final MDCButton consoleButton;
   final MDCButton docsButton;
   final MDCButton closeButton;
   final DElement console;
   final DElement docs;
   final Counter unreadCounter;
-  final DElement iframe;
+  final DElement? iframe;
   final EditorUi editorUi;
 
   /// The element to give the top half of the split when this panel
@@ -37,14 +36,14 @@ class TabExpandController {
 
   final List<StreamSubscription<Event>> _subscriptions = [];
 
-  TabState _state;
-  Splitter _splitter;
+  late TabState _state;
+  late Splitter _splitter;
   bool _splitterConfigured = false;
 
   TabState get state => _state;
 
   TabExpandController({
-    required this.uiOutputButton,
+    this.uiOutputButton,
     required this.consoleButton,
     required this.docsButton,
     required this.closeButton,
@@ -55,7 +54,7 @@ class TabExpandController {
     required this.bottomSplit,
     required this.unreadCounter,
     required this.editorUi,
-  })  : console = DElement(consoleElement),
+  })   : console = DElement(consoleElement),
         docs = DElement(docsElement),
         iframe = iframeElement == null ? null : DElement(iframeElement) {
     _state = TabState.closed;
@@ -63,6 +62,7 @@ class TabExpandController {
     console.setAttr('hidden');
     docs.setAttr('hidden');
 
+    final uiOutputButton = this.uiOutputButton;
     if (uiOutputButton != null) {
       _subscriptions.add(uiOutputButton.onClick.listen((_) {
         toggleIframe();
@@ -147,9 +147,9 @@ class TabExpandController {
 
   void _showUiOutput() {
     _state = TabState.ui;
-    iframe.clearAttr('hidden');
+    iframe?.clearAttr('hidden');
     bottomSplit.classes.remove('border-top');
-    uiOutputButton.toggleClass('active', true);
+    uiOutputButton?.toggleClass('active', true);
     _initSplitter();
     closeButton.toggleAttr('hidden', false);
   }
@@ -209,7 +209,7 @@ class TabExpandController {
       return;
     }
 
-    _splitter?.destroy();
+    _splitter.destroy();
     _splitterConfigured = false;
   }
 

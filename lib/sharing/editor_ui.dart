@@ -23,11 +23,11 @@ abstract class EditorUi {
   ContextBase get context;
 
   Future<AnalysisResults>? analysisRequest;
-  late DBusyLight busyLight;
-  late AnalysisResultsController analysisResultsController;
-  Editor editor;
-  late MDCButton runButton;
-  late ExecutionService executionService;
+  late final DBusyLight busyLight;
+  late final AnalysisResultsController analysisResultsController;
+  late final Editor editor;
+  late final MDCButton runButton;
+  late final ExecutionService executionService;
 
   /// The dialog box for information like Keyboard shortcuts.
   final Dialog dialog = Dialog();
@@ -35,10 +35,10 @@ abstract class EditorUi {
   /// The source-of-truth for whether null safety is enabled.
   ///
   /// On page load, this may be originally derived from local storage.
-  bool nullSafetyEnabled;
+  late bool nullSafetyEnabled;
 
   /// Whether null safety was enabled for the previous execution.
-  bool nullSafetyWasPreviouslyEnabled;
+  late bool nullSafetyWasPreviouslyEnabled;
 
   String get fullDartSource => context.dartSource;
 
