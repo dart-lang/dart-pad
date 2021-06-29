@@ -364,7 +364,7 @@ packages:
       name: mdc_web
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.5.0-pre"
+    version: "0.6.0"
   meta:
     dependency: "direct main"
     description:
@@ -463,13 +463,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.5"
-  route_hierarchical:
-    dependency: "direct main"
-    description:
-      path: "third_party/pkg/route.dart"
-      relative: true
-    source: path
-    version: "0.7.1-dev"
   sass:
     dependency: transitive
     description:
@@ -550,9 +543,9 @@ packages:
   split:
     dependency: "direct main"
     description:
-      name: split
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "third_party/pkg/split"
+      relative: true
+    source: path
     version: "0.0.7"
   stack_trace:
     dependency: transitive
