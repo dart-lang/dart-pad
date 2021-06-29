@@ -218,7 +218,8 @@ class _CodeMirrorEditor extends Editor {
   bool? get autoCloseBrackets => cm.getOption('autoCloseBrackets') as bool?;
 
   @override
-  set autoCloseBrackets(bool? value) => cm.setOption('autoCloseBrackets', value);
+  set autoCloseBrackets(bool? value) =>
+      cm.setOption('autoCloseBrackets', value);
 
   @override
   String get mode => cm.getMode()!;

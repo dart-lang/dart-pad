@@ -32,8 +32,7 @@ class ExerciseFileMetadata {
   late String name;
   late String alternatePath;
 
-  String get path =>
-      alternatePath.isEmpty ? name : alternatePath;
+  String get path => alternatePath.isEmpty ? name : alternatePath;
 
   ExerciseFileMetadata.fromMap(map) {
     if (map == null) {

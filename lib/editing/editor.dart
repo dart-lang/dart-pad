@@ -128,7 +128,8 @@ class Annotation implements Comparable<Annotation> {
   final Position start;
   final Position end;
 
-  Annotation(this.type, this.message, this.line, {required this.start, required this.end});
+  Annotation(this.type, this.message, this.line,
+      {required this.start, required this.end});
 
   @override
   int compareTo(Annotation other) {
@@ -167,7 +168,8 @@ class CompletionResult {
   /// The length of the text to be replaced by a completion.
   final int replaceLength;
 
-  CompletionResult(this.completions, {required this.replaceOffset, required this.replaceLength});
+  CompletionResult(this.completions,
+      {required this.replaceOffset, required this.replaceLength});
 }
 
 class Completion {

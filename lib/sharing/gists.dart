@@ -267,8 +267,7 @@ $styleRef$dartRef  </head>
     return gist;
   }
 
-  Uri _buildContentsUrl(String owner, String repo, String path,
-      [String? ref]) {
+  Uri _buildContentsUrl(String owner, String repo, String path, [String? ref]) {
     return Uri.https(
       _repoContentsAuthority,
       'repos/$owner/$repo/contents/$path',
@@ -471,7 +470,8 @@ class GistSummary {
   GistSummary(this.summaryText, this.linkText);
 }
 
-String _createReadmeContents({String? title, String? summary, String? withLink}) {
+String _createReadmeContents(
+    {String? title, String? summary, String? withLink}) {
   var str = '# $title\n';
 
   if (summary != null) {

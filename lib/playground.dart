@@ -501,12 +501,14 @@ class Playground extends EditorUi implements GistContainer, GistController {
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
-    Property cssFile = GistFileProperty(editableGist.getGistFile('styles.css')!);
+    Property cssFile =
+        GistFileProperty(editableGist.getGistFile('styles.css')!);
     Property cssDoc = EditorDocumentProperty(context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
-    Property dartFile = GistFileProperty(editableGist.getGistFile('main.dart')!);
+    Property dartFile =
+        GistFileProperty(editableGist.getGistFile('main.dart')!);
     Property dartDoc = EditorDocumentProperty(context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
@@ -685,7 +687,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     // When sharing, we have to pipe the returned (created) gist through the
     // routing library to update the url properly.
-    if (_overrideNextRouteGist != null && _overrideNextRouteGist!.id == gistId) {
+    if (_overrideNextRouteGist != null &&
+        _overrideNextRouteGist!.id == gistId) {
       editableGist.setBackingGist(_overrideNextRouteGist);
       _overrideNextRouteGist = null;
       return;

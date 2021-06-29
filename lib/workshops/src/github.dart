@@ -42,7 +42,13 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
     return Uri(
       scheme: 'https',
       host: _apiHostname,
-      pathSegments: ['repos', owner, repo, 'contents', ...filePath as Iterable<String>],
+      pathSegments: [
+        'repos',
+        owner,
+        repo,
+        'contents',
+        ...filePath as Iterable<String>
+      ],
       queryParameters: {if (ref != null) 'ref': ref},
     );
   }

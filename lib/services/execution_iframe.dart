@@ -28,7 +28,7 @@ class ExecutionServiceIFrame implements ExecutionService {
   ExecutionServiceIFrame(this._frame) {
     final src = _frame.src;
     if (src == null) {
-      throw('invalid iframe src');
+      throw ('invalid iframe src');
     }
     _frameSrc = src;
 

@@ -151,7 +151,8 @@ class ParameterPopup {
 
       //update popup position
       var newLeft = math
-          .max(cursorCoords.x - (parameterHint.text!.length * charWidth / 2), 22)
+          .max(
+              cursorCoords.x - (parameterHint.text!.length * charWidth / 2), 22)
           .round();
 
       parameterPopup = querySelector('.parameter-hints') as DivElement
@@ -167,7 +168,8 @@ class ParameterPopup {
         ..innerHtml = string
         ..classes.add('parameter-hint');
       var left = math
-          .max(cursorCoords.x - (parameterHint.text!.length * charWidth / 2), 22)
+          .max(
+              cursorCoords.x - (parameterHint.text!.length * charWidth / 2), 22)
           .round();
       parameterPopup = DivElement()
         ..classes.add('parameter-hints')

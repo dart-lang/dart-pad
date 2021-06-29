@@ -54,7 +54,7 @@ class TabExpandController {
     required this.bottomSplit,
     required this.unreadCounter,
     required this.editorUi,
-  })   : console = DElement(consoleElement),
+  })  : console = DElement(consoleElement),
         docs = DElement(docsElement),
         iframe = iframeElement == null ? null : DElement(iframeElement) {
     _state = TabState.closed;
