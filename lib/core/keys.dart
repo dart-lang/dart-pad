@@ -64,7 +64,7 @@ class Keys {
   bool _handleKey(String key) {
     var action = _bindings[key];
     if (action != null) {
-      Timer.run(action as void Function());
+      Timer.run(() => action());
       return true;
     }
 

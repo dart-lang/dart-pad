@@ -141,7 +141,9 @@ class DartCompleter extends CodeCompleter {
               cursorPos = text.indexOf('(') + 1;
             }
 
-            cursorPos = completion.selectionOffset;
+            if (completion.selectionOffset != 0) {
+              cursorPos = completion.selectionOffset;
+            }
 
             return Completion(
               text,
