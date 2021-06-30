@@ -57,7 +57,7 @@ class CommonServerImpl {
   Future<void> init() async {
     log.info('Beginning CommonServer init().');
     _analysisServers = AnalysisServersWrapper(_nullSafety);
-    _compiler = Compiler(Sdk(), _nullSafety);
+    _compiler = Compiler(Sdk.create(), _nullSafety);
 
     await _compiler.warmup();
     await _analysisServers.warmup();
@@ -151,7 +151,7 @@ class CommonServerImpl {
   }
 
   Future<proto.VersionResponse> version(proto.VersionRequest _) {
-    final sdk = Sdk();
+    final sdk = Sdk.create();
     final packageVersions = getPackageVersions(nullSafe: _nullSafety);
 
     return Future.value(

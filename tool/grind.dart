@@ -86,7 +86,7 @@ final List<String> compilationArtifacts = [
     'google storage')
 @Depends(sdkInit)
 void validateStorageArtifacts() async {
-  final version = Sdk().versionFull;
+  final version = Sdk.create().versionFull;
 
   const nullUnsafeUrlBase =
       'https://storage.googleapis.com/compilation_artifacts/';
@@ -296,7 +296,7 @@ Future<String> _buildStorageArtifacts(Directory dir, bool nullSafety) async {
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
   // Emit some good google storage upload instructions.
-  final version = Sdk().versionFull;
+  final version = Sdk.create().versionFull;
   return ('  gsutil -h "Cache-Control: public, max-age=604800, immutable" cp -z js ${artifactsDir.path}/*.js'
       ' gs://${nullSafety ? 'nnbd_artifacts' : 'compilation_artifacts'}/$version/');
 }

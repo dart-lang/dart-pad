@@ -143,7 +143,7 @@ class RedisCache implements ServerCache {
   /// We don't use the existing key directly so that different AppEngine
   /// versions using the same redis cache do not have collisions.
   String _genKey(String key) {
-    final sdk = Sdk();
+    final sdk = Sdk.create();
     // the `rc` here is a differentiator to keep the `resp_client` documents
     // separate from the `dartis` documents.
     return 'server:rc:$serverVersion:dart:${sdk.versionFull}:flutter:${sdk.flutterVersion}+$key';

@@ -19,7 +19,7 @@ const nullSafe = false;
 void main(List<String> args) async {
   final json = args.contains('--json');
   final harness = BenchmarkHarness(asJson: json);
-  final compiler = Compiler(Sdk(), nullSafe);
+  final compiler = Compiler(Sdk.create(), nullSafe);
 
   Logger.root.level = Level.WARNING;
   Logger.root.onRecord.listen((LogRecord record) {

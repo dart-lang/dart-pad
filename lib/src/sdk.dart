@@ -10,18 +10,26 @@ import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 class Sdk {
-  static late final Sdk _instance = Sdk._();
-  // TODO: eliminate this factory constructor
-  factory Sdk() => _instance;
+  static Sdk? _instance;
 
   /// The current version of the SDK, including any `-dev` suffix.
   final String versionFull;
 
   final String flutterVersion;
 
-  Sdk._()
-      : versionFull = _readVersionFile(sdkPath),
-        flutterVersion = _readVersionFile(flutterSdkPath);
+  /// The current version of the SDK, not including any `-dev` suffix.
+  final String version;
+
+  factory Sdk.create() {
+    return _instance ??= Sdk._(
+        versionFull: _readVersionFile(sdkPath),
+        flutterVersion: _readVersionFile(flutterSdkPath));
+  }
+
+  Sdk._({required this.versionFull, required this.flutterVersion})
+      : version = versionFull.contains('-')
+            ? versionFull.substring(0, versionFull.indexOf('-'))
+            : versionFull;
 
   static String _readVersionFile(String filePath) =>
       (File(path.join(filePath, 'version')).readAsStringSync()).trim();
@@ -35,13 +43,6 @@ class Sdk {
 
   /// Get the path to the Flutter binaries.
   static String get flutterBinPath => path.join(flutterSdkPath, 'bin');
-
-  /// Report the current version of the SDK.
-  String get version {
-    var ver = versionFull;
-    if (ver.contains('-')) ver = ver.substring(0, ver.indexOf('-'));
-    return ver;
-  }
 }
 
 class DownloadingSdkManager {
@@ -59,7 +60,7 @@ class DownloadingSdkManager {
   /// `flutter-sdk-version.yaml` file.
   ///
   /// Note that this is an expensive operation.
-  Future<Sdk> createFromConfigFile() async {
+  Future<void> createFromConfigFile() async {
     final sdkConfig = getSdkConfigInfo();
 
     // flutter_sdk:
@@ -81,7 +82,7 @@ class DownloadingSdkManager {
       return createUsingFlutterVersion(version: config['version'] as String);
     } else {
       // Clone the repo if necessary but don't do any other setup.
-      return (await _cloneSdkIfNecessary()).asSdk();
+      await _cloneSdkIfNecessary();
     }
   }
 
@@ -89,7 +90,7 @@ class DownloadingSdkManager {
   /// channel.
   ///
   /// Note that this is an expensive operation.
-  Future<Sdk> createUsingFlutterChannel({
+  Future<void> createUsingFlutterChannel({
     required String channel,
   }) async {
     final sdk = await _cloneSdkIfNecessary();
@@ -106,15 +107,13 @@ class DownloadingSdkManager {
 
     // git pull
     await sdk.pull();
-
-    return sdk.asSdk();
   }
 
   /// Create a Flutter SDK in `flutter-sdk/` that tracks a specific Flutter
   /// version.
   ///
   /// Note that this is an expensive operation.
-  Future<Sdk> createUsingFlutterVersion({
+  Future<void> createUsingFlutterVersion({
     required String version,
   }) async {
     final sdk = await _cloneSdkIfNecessary();
@@ -128,8 +127,6 @@ class DownloadingSdkManager {
 
     // Force downloading of Dart SDK before constructing the Sdk singleton.
     await sdk.init();
-
-    return sdk.asSdk();
   }
 
   Future<_DownloadedFlutterSdk> _cloneSdkIfNecessary() async {
@@ -159,11 +156,9 @@ class _DownloadedFlutterSdk {
   _DownloadedFlutterSdk(this.flutterSdkPath);
 
   Future<void> init() async {
-    // flutter --version takes ~28s
+    // `flutter --version` takes ~28s.
     await _execLog('bin/flutter', ['--version'], flutterSdkPath);
   }
-
-  Sdk asSdk() => Sdk();
 
   String get sdkPath => path.join(flutterSdkPath, 'bin/cache/dart-sdk');
 

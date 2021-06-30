@@ -133,7 +133,7 @@ Future<void> setupTools(String sdkPath) async {
   await analysisServer!.warmup();
 
   print('Warming up compiler');
-  compiler = comp.Compiler(Sdk(), false);
+  compiler = comp.Compiler(Sdk.create(), false);
   await compiler.warmup();
   print('SetupTools done');
 }
