@@ -27,7 +27,7 @@ void defineTests() {
     });
 
     test('many', () {
-      final harness = BenchmarkHarness(asJson: true, logger: (_) => null);
+      final harness = BenchmarkHarness(asJson: true, logger: (_) {});
       final benchmarks = [MockBenchmark(), MockBenchmark()];
 
       return harness.benchmark(benchmarks).then((_) {

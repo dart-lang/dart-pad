@@ -1013,7 +1013,6 @@ class Lines {
 
   /// Return the 0-based line number.
   int getLineForOffset(int offset) {
-    assert(offset != null);
     for (var i = 0; i < _starts.length; i++) {
       if (offset <= _starts[i]) return i;
     }

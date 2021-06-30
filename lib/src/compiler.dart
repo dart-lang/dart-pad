@@ -93,7 +93,7 @@ class Compiler {
         ]);
         return results;
       } else {
-        String sourceMap;
+        String? sourceMap;
         if (returnSourceMap && await mainSourceMap.exists()) {
           sourceMap = await mainSourceMap.readAsString();
         }
@@ -212,8 +212,8 @@ class Compiler {
 
 /// The result of a dart2js compile.
 class CompilationResults {
-  final String compiledJS;
-  final String sourceMap;
+  final String? compiledJS;
+  final String? sourceMap;
   final List<CompilationProblem> problems;
 
   CompilationResults({
@@ -222,7 +222,7 @@ class CompilationResults {
     this.sourceMap,
   });
 
-  bool get hasOutput => compiledJS != null && compiledJS.isNotEmpty;
+  bool get hasOutput => compiledJS != null && compiledJS!.isNotEmpty;
 
   /// This is true if there were no errors.
   bool get success => problems.isEmpty;
@@ -235,8 +235,8 @@ class CompilationResults {
 
 /// The result of a DDC compile.
 class DDCCompilationResults {
-  final String compiledJS;
-  final String modulesBaseUrl;
+  final String? compiledJS;
+  final String? modulesBaseUrl;
   final List<CompilationProblem> problems;
 
   DDCCompilationResults({this.compiledJS, this.modulesBaseUrl})
@@ -246,7 +246,7 @@ class DDCCompilationResults {
       : compiledJS = null,
         modulesBaseUrl = null;
 
-  bool get hasOutput => compiledJS != null && compiledJS.isNotEmpty;
+  bool get hasOutput => compiledJS != null && compiledJS!.isNotEmpty;
 
   /// This is true if there were no errors.
   bool get success => problems.isEmpty;

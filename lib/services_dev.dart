@@ -20,7 +20,7 @@ import 'src/shelf_cors.dart' as shelf_cors;
 
 final Logger _logger = Logger('services');
 
-void main(List<String> args) {
+Future<void> main(List<String> args) async {
   final parser = ArgParser();
   parser
     ..addOption('port', abbr: 'p', defaultsTo: '8080')
@@ -41,33 +41,22 @@ void main(List<String> args) {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  EndpointsServer.serve(port, result['null-safety'] as bool)
-      .then((EndpointsServer server) {
-    _logger.info('Listening on port ${server.port}');
-  });
+  await EndpointsServer.serve(port, result['null-safety'] as bool);
+  _logger.info('Listening on port $port');
 }
 
 class EndpointsServer {
-  static Future<EndpointsServer> serve(int port, bool nullSafety) {
-    final endpointsServer = EndpointsServer._(port, nullSafety);
-
-    return shelf
-        .serve(endpointsServer.handler, InternetAddress.anyIPv4, port)
-        .then((HttpServer server) {
-      endpointsServer.server = server;
-      return endpointsServer;
-    });
+  static Future<EndpointsServer> serve(int port, bool nullSafety) async {
+    final endpointsServer = EndpointsServer._(nullSafety);
+    await shelf.serve(endpointsServer.handler, InternetAddress.anyIPv4, port);
+    return endpointsServer;
   }
 
-  final int port;
-  HttpServer server;
+  late final Pipeline pipeline;
+  late final Handler handler;
+  late final CommonServerApi commonServerApi;
 
-  Pipeline pipeline;
-  Handler handler;
-
-  CommonServerApi commonServerApi;
-
-  EndpointsServer._(this.port, bool nullSafety) {
+  EndpointsServer._(bool nullSafety) {
     final commonServerImpl = CommonServerImpl(
       _ServerContainer(),
       _Cache(),
@@ -100,10 +89,10 @@ class _ServerContainer implements ServerContainer {
 
 class _Cache implements ServerCache {
   @override
-  Future<String> get(String key) => Future<String>.value(null);
+  Future<String?> get(String key) => Future<String?>.value(null);
 
   @override
-  Future<void> set(String key, String value, {Duration expiration}) =>
+  Future<void> set(String key, String value, {Duration? expiration}) =>
       Future<void>.value();
 
   @override

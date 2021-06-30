@@ -18,7 +18,7 @@ void defineTests() {
   for (final nullSafety in [false, true]) {
     group('Null ${nullSafety ? 'Safe' : 'Unsafe'} Flutter SDK analysis_server',
         () {
-      AnalysisServerWrapper analysisServer;
+      late AnalysisServerWrapper analysisServer;
 
       setUp(() async {
         analysisServer = FlutterAnalysisServerWrapper(nullSafety);
@@ -48,7 +48,7 @@ void defineTests() {
     group(
         'Null ${nullSafety ? 'Safe' : 'Unsafe'} Flutter SDK analysis_server with analysis servers',
         () {
-      AnalysisServersWrapper analysisServersWrapper;
+      late AnalysisServersWrapper analysisServersWrapper;
 
       setUp(() async {
         analysisServersWrapper = AnalysisServersWrapper(nullSafety);
@@ -77,7 +77,7 @@ void defineTests() {
     group(
         'Null ${nullSafety ? 'Safe' : 'Unsafe'} CommonServerImpl flutter analyze',
         () {
-      CommonServerImpl commonServerImpl;
+      late CommonServerImpl commonServerImpl;
 
       _MockContainer container;
       _MockCache cache;
@@ -119,10 +119,10 @@ class _MockContainer implements ServerContainer {
 
 class _MockCache implements ServerCache {
   @override
-  Future<String> get(String key) => Future.value(null);
+  Future<String?> get(String key) => Future<String?>.value(null);
 
   @override
-  Future<void> set(String key, String value, {Duration expiration}) =>
+  Future<void> set(String key, String value, {Duration? expiration}) =>
       Future.value();
 
   @override

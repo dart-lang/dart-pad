@@ -12,7 +12,7 @@ import 'package:test/test.dart';
 void main() => defineTests();
 
 void defineTests() {
-  Compiler compiler;
+  late Compiler compiler;
 
   for (final nullSafety in [false, true]) {
     group('Null ${nullSafety ? 'Safe' : 'Unsafe'} Compiler', () {

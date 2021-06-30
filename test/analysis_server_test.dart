@@ -59,7 +59,7 @@ void main() { foo() }
 void main() => defineTests();
 
 void defineTests() {
-  AnalysisServerWrapper analysisServer;
+  late AnalysisServerWrapper analysisServer;
 
   for (final nullSafety in [false, true]) {
     group('Null ${nullSafety ? 'Safe' : 'Unsafe'} Platform SDK analysis_server',
@@ -105,7 +105,7 @@ void defineTests() {
 
         if (completions.isNotEmpty) {
           expect(completions.every((completion) {
-            return completion.completion['completion'].startsWith('dart:');
+            return completion.completion['completion']!.startsWith('dart:');
           }), true);
         }
       });
@@ -119,12 +119,12 @@ void defineTests() {
 
         expect(
           completions.every((completion) =>
-              completion.completion['completion'].startsWith('dart:')),
+              completion.completion['completion']!.startsWith('dart:')),
           true,
         );
         expect(
           completions.any((completion) =>
-              completion.completion['completion'].startsWith('dart:')),
+              completion.completion['completion']!.startsWith('dart:')),
           true,
         );
       });

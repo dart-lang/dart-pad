@@ -23,26 +23,22 @@ class AnalysisServersWrapper {
   AnalysisServersWrapper(this._nullSafety);
   final bool _nullSafety;
 
-  DartAnalysisServerWrapper _dartAnalysisServer;
-  FlutterAnalysisServerWrapper _flutterAnalysisServer;
-
-  bool get running =>
-      _dartAnalysisServer.analysisServer != null &&
-      _flutterAnalysisServer.analysisServer != null;
+  late DartAnalysisServerWrapper _dartAnalysisServer;
+  late FlutterAnalysisServerWrapper _flutterAnalysisServer;
 
   // If non-null, this value indicates that the server is starting/restarting
   // and holds the time at which that process began. If null, the server is
   // ready to handle requests.
-  DateTime _restartingSince = DateTime.now();
+  DateTime? _restartingSince = DateTime.now();
 
   bool get isRestarting => (_restartingSince != null);
 
   // If the server has been trying and failing to restart for more than a half
   // hour, something is seriously wrong.
   bool get isHealthy => (_restartingSince == null ||
-      DateTime.now().difference(_restartingSince).inMinutes < 30);
+      DateTime.now().difference(_restartingSince!).inMinutes < 30);
 
-  Future<void> warmup() async {
+  Future<List<void>> warmup() async {
     _logger.info('Beginning AnalysisServersWrapper init().');
     _dartAnalysisServer = DartAnalysisServerWrapper(_nullSafety);
     _flutterAnalysisServer = FlutterAnalysisServerWrapper(_nullSafety);
@@ -69,7 +65,7 @@ class AnalysisServersWrapper {
 
     _restartingSince = null;
 
-    return Future.wait(<Future<dynamic>>[
+    return Future.wait([
       _flutterAnalysisServer.warmup(),
       _dartAnalysisServer.warmup(),
     ]);

@@ -19,7 +19,7 @@ import 'package:path/path.dart' as path;
 /// "Unused import: 'package:flutter/material.dart'"
 String normalizeFilePaths(String text) {
   return text.replaceAllMapped(_possiblePathPattern, (match) {
-    final possiblePath = match.group(0);
+    final possiblePath = match.group(0)!;
 
     final uri = Uri.tryParse(possiblePath);
     if (uri != null && uri.hasScheme) {

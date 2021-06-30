@@ -8,7 +8,7 @@ import 'dart:io';
 ///
 /// We expect an (optional) file in the root of the directory, names 'config.properties'.
 class Config {
-  static Config _singleton;
+  static Config? _singleton;
 
   static Config getConfig() {
     if (_singleton == null) {
@@ -16,18 +16,18 @@ class Config {
 
       final file = File('config.properties');
       if (file.existsSync()) {
-        _singleton._load(file.readAsLinesSync());
+        _singleton!._load(file.readAsLinesSync());
       }
     }
 
-    return _singleton;
+    return _singleton!;
   }
 
   final Map<String, String> _values = <String, String>{};
 
   Config._();
 
-  String getValue(String key) => _values[key];
+  String? getValue(String key) => _values[key];
 
   void _load(List<String> lines) {
     _values.clear();

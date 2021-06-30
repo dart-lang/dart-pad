@@ -37,7 +37,7 @@ final flutterPayload = convert.json.encode(flutterData);
 final flutterCompileDDCPayload = convert.json.encode(flutterCompileDDCData);
 final flutterDocPayload = convert.json.encode(flutterDocData);
 
-String uri;
+late String uri;
 
 Future<void> main(List<String> args) async {
   String appHost;

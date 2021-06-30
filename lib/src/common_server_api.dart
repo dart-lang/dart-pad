@@ -7,7 +7,6 @@ library services.common_server_api;
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:meta/meta.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -117,9 +116,9 @@ class CommonServerApi {
 
   Future<Response> _processRequest<I, O extends GeneratedMessage>(
     Request request, {
-    @required I Function(List<int> bytes) decodeFromProto,
-    @required I Function(Object json) decodeFromJSON,
-    @required Future<O> Function(I input) transform,
+    required I Function(List<int> bytes) decodeFromProto,
+    required I Function(Object json) decodeFromJSON,
+    required Future<O> Function(I input) transform,
   }) async {
     if (request.mimeType == protobufContentType) {
       // Dealing with binary Protobufs
@@ -145,7 +144,7 @@ class CommonServerApi {
       final body = await request.readAsString();
       try {
         final response = await transform(
-            decodeFromJSON(body.isNotEmpty ? json.decode(body) : {}));
+            decodeFromJSON(body.isNotEmpty ? json.decode(body) as Object : {}));
         return Response.ok(
           _jsonEncoder.convert(response.toProto3Json()),
           encoding: utf8,

@@ -6,13 +6,13 @@ import 'dart:async';
 import 'dart:convert' show utf8;
 import 'dart:io';
 
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 class Sdk {
-  static Sdk _instance;
-  factory Sdk() => _instance ?? (_instance = Sdk._());
+  static late final Sdk _instance = Sdk._();
+  // TODO: eliminate this factory constructor
+  factory Sdk() => _instance;
 
   /// The current version of the SDK, including any `-dev` suffix.
   final String versionFull;
@@ -90,7 +90,7 @@ class DownloadingSdkManager {
   ///
   /// Note that this is an expensive operation.
   Future<Sdk> createUsingFlutterChannel({
-    @required String channel,
+    required String channel,
   }) async {
     final sdk = await _cloneSdkIfNecessary();
 
@@ -115,7 +115,7 @@ class DownloadingSdkManager {
   ///
   /// Note that this is an expensive operation.
   Future<Sdk> createUsingFlutterVersion({
-    @required String version,
+    required String version,
   }) async {
     final sdk = await _cloneSdkIfNecessary();
 
@@ -175,7 +175,7 @@ class _DownloadedFlutterSdk {
 
   /// Perform a git clone, logging the command and any output, and throwing an
   /// exception if there are any issues with the clone.
-  Future<void> clone(List<String> args, {@required String cwd}) async {
+  Future<void> clone(List<String> args, {required String cwd}) async {
     final result = await _execLog('git', ['clone', ...args], cwd);
     if (result != 0) {
       throw 'result from git clone: $result';

@@ -14,7 +14,6 @@ import 'package:dart_services/src/sdk.dart';
 import 'package:grinder/grinder.dart';
 import 'package:grinder/src/run_utils.dart' show mergeWorkingDirectory;
 import 'package:http/http.dart' as http;
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 
 Future<void> main(List<String> args) async {
@@ -33,7 +32,8 @@ void analyze() async {
 
 @Task()
 @Depends(buildStorageArtifacts)
-Future<dynamic> test() => TestRunner().testAsync();
+Future<dynamic> test() =>
+    runWithLogging(Platform.executable, arguments: ['test']);
 
 @DefaultTask()
 @Depends(analyze, test)
@@ -381,12 +381,11 @@ void generateProtos() async {
 
 Future<void> runWithLogging(String executable,
     {List<String> arguments = const [],
-    RunOptions runOptions,
-    String workingDirectory,
-    String onErrorMessage}) async {
+    RunOptions? runOptions,
+    String? workingDirectory,
+    String? onErrorMessage}) async {
   runOptions = mergeWorkingDirectory(workingDirectory, runOptions);
   log("$executable ${arguments.join(' ')}");
-  runOptions ??= RunOptions();
 
   Process proc;
   try {
@@ -402,8 +401,8 @@ Future<void> runWithLogging(String executable,
     rethrow;
   }
 
-  proc.stdout.listen((out) => log(runOptions.stdoutEncoding.decode(out)));
-  proc.stderr.listen((err) => log(runOptions.stdoutEncoding.decode(err)));
+  proc.stdout.listen((out) => log(runOptions!.stdoutEncoding.decode(out)));
+  proc.stderr.listen((err) => log(runOptions!.stdoutEncoding.decode(err)));
   final exitCode = await proc.exitCode;
 
   if (exitCode != 0) {
@@ -413,10 +412,11 @@ Future<void> runWithLogging(String executable,
 
 const String _samplePackageName = 'dartpad_sample';
 
-String createPubspec(
-    {@required bool includeFlutterWeb,
-    @required bool nullSafety,
-    Map<String, String> dependencies = const {}}) {
+String createPubspec({
+  required bool includeFlutterWeb,
+  required bool nullSafety,
+  Map<String, String> dependencies = const {},
+}) {
   var content = '''
 name: $_samplePackageName
 environment:
@@ -492,7 +492,7 @@ void updatePubDependencies() async {
 ///
 /// See [_pubDependenciesFile] for the location of the dependencies files.
 void updateDependenciesFile({
-  @required bool nullSafety,
+  required bool nullSafety,
 }) async {
   final tempDir = Directory.systemTemp.createTempSync('pubspec-scratch');
   final pubspec = createPubspec(
@@ -526,14 +526,14 @@ const JsonEncoder _jsonEncoder = JsonEncoder.withIndent('  ');
 ///
 /// The null safe file is at `tool/pub_dependencies_null-safe.json`. The null
 /// unsafe file is at `tool/pub_dependencies_null-unsafe.json`.
-File _pubDependenciesFile({@required bool nullSafety}) {
+File _pubDependenciesFile({required bool nullSafety}) {
   final versionsFileName =
       'pub_dependencies_${nullSafety ? 'null-safe' : 'null-unsafe'}.json';
   return File(path.join(Directory.current.path, 'tool', versionsFileName));
 }
 
 /// Parses [_pubDependenciesFile] as a JSON Map of Strings.
-Map<String, String> _parsePubDependenciesFile({@required bool nullSafety}) {
+Map<String, String> _parsePubDependenciesFile({required bool nullSafety}) {
   final packageVersions = jsonDecode(
       _pubDependenciesFile(nullSafety: nullSafety).readAsStringSync()) as Map;
   return packageVersions.cast<String, String>();

@@ -2,8 +2,7 @@ name: dart_services
 publish_to: none
 
 environment:
-  # Lock to 2.10.x as this code base is not yet migrated to null safe.
-  sdk: ^2.10.4
+  sdk: ^2.13.0
 
 dependencies:
   analysis_server_lib: ^0.2.0

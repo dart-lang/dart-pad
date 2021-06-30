@@ -53,17 +53,16 @@ void main(List<String> args) async {
 
 class AnalyzerBenchmark extends Benchmark {
   final String source;
-  AnalysisServerWrapper analysisServer;
+  final AnalysisServerWrapper analysisServer;
 
   AnalyzerBenchmark(
     String name,
     this.source,
-  ) : super('analyzer.$name') {
-    analysisServer = DartAnalysisServerWrapper(nullSafe);
-  }
+  )   : analysisServer = DartAnalysisServerWrapper(nullSafe),
+        super('analyzer.$name');
 
   @override
-  Future<AnalysisServer> init() => analysisServer.init();
+  Future<AnalysisServer?> init() => analysisServer.init();
 
   @override
   Future<proto.AnalysisResults> perform() => analysisServer.analyze(source);
@@ -111,7 +110,7 @@ class AnalysisServerBenchmark extends Benchmark {
         super('completion.$name');
 
   @override
-  Future<AnalysisServer> init() => analysisServer.init();
+  Future<AnalysisServer?> init() => analysisServer.init();
 
   @override
   Future<proto.CompleteResponse> perform() =>

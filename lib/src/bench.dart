@@ -31,7 +31,7 @@ class BenchmarkHarness {
   final bool asJson;
   final BenchmarkLogger logger;
 
-  BenchmarkHarness({this.asJson, this.logger = print});
+  BenchmarkHarness({required this.asJson, this.logger = print});
 
   Future<void> benchmark(List<Benchmark> benchmarks) async {
     log('Running ${benchmarks.length} benchmarks.');
@@ -84,7 +84,7 @@ class BenchmarkHarness {
 
   Future<BenchMarkResult> _time(
       Benchmark benchmark, int minIterations, int minMillis,
-      [int maxMillis]) {
+      [int? maxMillis]) {
     final result = BenchMarkResult(benchmark);
     final timer = Stopwatch()..start();
 

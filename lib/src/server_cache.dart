@@ -17,7 +17,7 @@ import 'common_server_impl.dart' show log;
 import 'sdk.dart';
 
 abstract class ServerCache {
-  Future<String> get(String key);
+  Future<String?> get(String key);
 
   Future<void> set(String key, String value, {Duration expiration});
 
@@ -28,13 +28,13 @@ abstract class ServerCache {
 
 /// A redis-backed implementation of [ServerCache].
 class RedisCache implements ServerCache {
-  RespClient redisClient;
-  RespServerConnection _connection;
+  RespClient? redisClient;
+  RespServerConnection? _connection;
 
   final Uri redisUri;
 
   // Version of the server to add with keys.
-  final String serverVersion;
+  final String? serverVersion;
 
   // pseudo-random is good enough.
   final Random randomSource = Random();
@@ -59,7 +59,7 @@ class RedisCache implements ServerCache {
   /// future is reset on connection.  Mostly for testing.
   Future<void> get disconnected => _disconnected.future;
 
-  String __logPrefix;
+  String? __logPrefix;
 
   String get _logPrefix =>
       __logPrefix ??= 'RedisCache [$redisUri] ($serverVersion)';
@@ -92,7 +92,7 @@ class RedisCache implements ServerCache {
     assert(_disconnected.isCompleted && !_connected.isCompleted);
     _disconnected = Completer<void>();
     _connection = newConnection;
-    redisClient = RespClient(_connection);
+    redisClient = RespClient(_connection!);
     _connected.complete();
   }
 
@@ -108,7 +108,9 @@ class RedisCache implements ServerCache {
       // 1 <= (randomSource.nextDouble() + 1) < 2
       nextRetryMs = (retryTimeoutMs * (randomSource.nextDouble() + 1)).toInt();
     }
-    connectSocket(redisUri.host, port: redisUri.hasPort ? redisUri.port : null)
+    (redisUri.hasPort
+            ? connectSocket(redisUri.host, port: redisUri.port)
+            : connectSocket(redisUri.host))
         .then((newConnection) {
           log.info('$_logPrefix: Connected to redis server');
           _setUpConnection(newConnection);
@@ -148,13 +150,13 @@ class RedisCache implements ServerCache {
   }
 
   @override
-  Future<String> get(String key) async {
-    String value;
+  Future<String?> get(String key) async {
+    String? value;
     key = _genKey(key);
     if (!_isConnected()) {
       log.warning('$_logPrefix: no cache available when getting key $key');
     } else {
-      final commands = RespCommandsTier2(redisClient);
+      final commands = RespCommandsTier2(redisClient!);
       try {
         value = await commands.get(key).timeout(cacheOperationTimeout,
             onTimeout: () async {
@@ -177,13 +179,13 @@ class RedisCache implements ServerCache {
       return null;
     }
 
-    final commands = RespCommandsTier2(redisClient);
+    final commands = RespCommandsTier2(redisClient!);
     try {
       return commands.del([key]).timeout(cacheOperationTimeout,
           onTimeout: () async {
         log.warning('$_logPrefix: timeout on remove operation for key $key');
         await _connection?.close();
-        return null;
+        return 0; // 0 keys deleted
       });
     } catch (e) {
       log.warning('$_logPrefix: error on remove operation for key $key: $e');
@@ -191,14 +193,14 @@ class RedisCache implements ServerCache {
   }
 
   @override
-  Future<void> set(String key, String value, {Duration expiration}) async {
+  Future<void> set(String key, String value, {Duration? expiration}) async {
     key = _genKey(key);
     if (!_isConnected()) {
       log.warning('$_logPrefix: no cache available when setting key $key');
       return;
     }
 
-    final commands = RespCommandsTier2(redisClient);
+    final commands = RespCommandsTier2(redisClient!);
     try {
       return Future<void>.sync(() async {
         await commands.set(key, value);
@@ -224,10 +226,10 @@ class InMemoryCache implements ServerCache {
       MapCache<String, String>.lru(maximumSize: 512);
 
   @override
-  Future<String> get(String key) async => _lru.get(key);
+  Future<String?> get(String key) async => _lru.get(key);
 
   @override
-  Future<void> set(String key, String value, {Duration expiration}) async =>
+  Future<void> set(String key, String value, {Duration? expiration}) async =>
       _lru.set(key, value);
 
   @override

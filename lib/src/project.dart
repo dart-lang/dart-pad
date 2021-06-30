@@ -77,7 +77,7 @@ bool usesFlutterWeb(Iterable<ImportDirective> imports) {
     final uriString = import.uri.stringValue;
     if (uriString == 'dart:ui') return true;
 
-    final uri = Uri.tryParse(import.uri.stringValue);
+    final uri = Uri.tryParse(import.uri.stringValue!);
     if (uri == null) return false;
     if (uri.scheme != 'package') return false;
     if (uri.pathSegments.isEmpty) return false;
@@ -89,12 +89,15 @@ bool usesFlutterWeb(Iterable<ImportDirective> imports) {
 List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports) {
   return imports.where((import) {
     final uriString = import.uri.stringValue;
+    if (uriString == null) {
+      return false;
+    }
     // All non-VM 'dart:' imports are ok.
     if (uriString.startsWith('dart:')) {
       return !_allowedDartImports.contains(uriString);
     }
 
-    final uri = Uri.tryParse(import.uri.stringValue);
+    final uri = Uri.tryParse(uriString);
     if (uri == null) return false;
 
     // We allow a specific set of package imports.

@@ -26,12 +26,12 @@ bool dumpSrc = false;
 bool dumpPerf = false;
 bool dumpDelta = false;
 
-CommonServerImpl commonServerImpl;
-MockContainer container;
-MockCache cache;
-analysis_server.AnalysisServerWrapper analysisServer;
+late CommonServerImpl commonServerImpl;
+late MockContainer container;
+late MockCache cache;
+analysis_server.AnalysisServerWrapper? analysisServer;
 
-comp.Compiler compiler;
+late comp.Compiler compiler;
 
 var random = Random(0);
 var maxMutations = 2;
@@ -39,8 +39,8 @@ var iterations = 5;
 String commandToRun = 'ALL';
 bool dumpServerComms = false;
 
-OperationType lastExecuted;
-int lastOffset;
+late OperationType lastExecuted;
+int? lastOffset;
 
 Future<void> main(List<String> args) async {
   if (args.isEmpty) {
@@ -98,7 +98,7 @@ Usage: slow_test path_to_test_collection
 
       random = Random(seed);
       seed++;
-      await testPath(fse.path, analysisServer, compiler);
+      await testPath(fse.path, analysisServer!, compiler);
     } catch (e) {
       print(e);
       print('FAILED: ${fse.path}');
@@ -110,7 +110,7 @@ Usage: slow_test path_to_test_collection
 
   print('Shutting down');
 
-  await analysisServer.shutdown();
+  await analysisServer!.shutdown();
   await commonServerImpl.shutdown();
 }
 
@@ -127,10 +127,10 @@ Future<void> setupTools(String sdkPath) async {
   await commonServerImpl.init();
 
   analysisServer = analysis_server.DartAnalysisServerWrapper(false);
-  await analysisServer.init();
+  await analysisServer!.init();
 
   print('Warming up analysis server');
-  await analysisServer.warmup();
+  await analysisServer!.warmup();
 
   print('Warming up compiler');
   compiler = comp.Compiler(Sdk(), false);
@@ -392,10 +392,10 @@ class MockContainer implements ServerContainer {
 
 class MockCache implements ServerCache {
   @override
-  Future<String> get(String key) => Future.value(null);
+  Future<String?> get(String key) => Future<String?>.value(null);
 
   @override
-  Future<void> set(String key, String value, {Duration expiration}) =>
+  Future<void> set(String key, String value, {Duration? expiration}) =>
       Future.value();
 
   @override

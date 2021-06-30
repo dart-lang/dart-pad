@@ -4,6 +4,7 @@
 
 library shelf_cors;
 
+import 'dart:async';
 import 'package:shelf/shelf.dart';
 
 /// Middleware which adds [CORS headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Access_control_CORS)
@@ -16,7 +17,7 @@ Middleware createCorsHeadersMiddleware(
     }}) {
   // Handle preflight (OPTIONS) requests by just adding headers and an empty
   // response.
-  Response handleOptionsRequest(Request request) {
+  FutureOr<Response?> handleOptionsRequest(Request request) {
     if (request.method == 'OPTIONS') {
       return Response.ok(null, headers: corsHeaders);
     } else {
@@ -24,8 +25,8 @@ Middleware createCorsHeadersMiddleware(
     }
   }
 
-  Response addCorsHeaders(Response response) =>
-      response?.change(headers: corsHeaders);
+  FutureOr<Response> addCorsHeaders(Response response) =>
+      response.change(headers: corsHeaders);
 
   return createMiddleware(
       requestHandler: handleOptionsRequest, responseHandler: addCorsHeaders);

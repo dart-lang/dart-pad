@@ -10,5 +10,5 @@ import 'dart:async';
 import 'package:dart_services/services_dev.dart' as services_dev;
 
 Future<void> main(List<String> args) async {
-  services_dev.main(args);
+  await services_dev.main(args);
 }

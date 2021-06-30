@@ -54,8 +54,8 @@ main() {
 void main() => defineTests();
 
 void defineTests() {
-  CommonServerApi commonServerApi;
-  CommonServerImpl commonServerImpl;
+  CommonServerApi? commonServerApi;
+  late CommonServerImpl commonServerImpl;
 
   MockContainer container;
   MockCache cache;
@@ -70,7 +70,7 @@ void defineTests() {
     request.headers.add('content-type', jsonContentType);
     request.add(utf8.encode(json.encode(jsonData)));
     await request.close();
-    await shelf_io.handleRequest(request, commonServerApi.router);
+    await shelf_io.handleRequest(request, commonServerApi!.router);
     return request.response;
   }
 
@@ -82,7 +82,7 @@ void defineTests() {
     final request = MockHttpRequest('POST', uri);
     request.headers.add('content-type', jsonContentType);
     await request.close();
-    await shelf_io.handleRequest(request, commonServerApi.router);
+    await shelf_io.handleRequest(request, commonServerApi!.router);
     return request.response;
   }
 
@@ -474,10 +474,10 @@ class MockContainer implements ServerContainer {
 
 class MockCache implements ServerCache {
   @override
-  Future<String> get(String key) => Future.value(null);
+  Future<String?> get(String key) => Future.value(null);
 
   @override
-  Future<void> set(String key, String value, {Duration expiration}) =>
+  Future<void> set(String key, String value, {Duration? expiration}) =>
       Future.value();
 
   @override

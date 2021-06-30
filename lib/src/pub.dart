@@ -6,13 +6,12 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
 import 'project.dart' as project;
 
-List<ImportDirective> getAllImportsFor(String dartSource) {
+List<ImportDirective> getAllImportsFor(String? dartSource) {
   if (dartSource == null) return [];
 
   final unit = parseString(content: dartSource, throwIfDiagnostics: false).unit;
@@ -29,19 +28,14 @@ const _flutterPackages = [
 
 /// Each of these is expensive to calculate; they require reading from disk.
 /// None of them changes during execution.
-/*late*/ Map<String, String> _nullSafePackageVersions;
-/*late*/ Map<String, String> _preNullSafePackageVersions;
+late final Map<String, String> _nullSafePackageVersions =
+    packageVersionsFromPubspecLock(project.flutterTemplateProject(true));
+late final Map<String, String> _preNullSafePackageVersions =
+    packageVersionsFromPubspecLock(project.flutterTemplateProject(false));
 
 /// Returns a mapping of Pub package name to package version.
-Map<String, String> getPackageVersions({@required bool nullSafe}) {
-  if (nullSafe) {
-    return _nullSafePackageVersions ??=
-        packageVersionsFromPubspecLock(project.flutterTemplateProject(true));
-  } else {
-    return _preNullSafePackageVersions ??=
-        packageVersionsFromPubspecLock(project.flutterTemplateProject(false));
-  }
-}
+Map<String, String> getPackageVersions({bool nullSafe = true}) =>
+    nullSafe ? _nullSafePackageVersions : _preNullSafePackageVersions;
 
 /// Returns a mapping of Pub package name to package version, retrieving data
 /// from the project template's `pubspec.lock` file.
@@ -79,8 +73,8 @@ extension ImportIterableExtensions on Iterable<ImportDirective> {
   /// Returns the names of packages that are referenced in this collection.
   /// These package names are sanitized defensively.
   Iterable<String> filterSafePackages() {
-    return where((import) => !import.uri.stringValue.startsWith('package:../'))
-        .map((import) => Uri.parse(import.uri.stringValue))
+    return where((import) => !import.uri.stringValue!.startsWith('package:../'))
+        .map((import) => Uri.parse(import.uri.stringValue!))
         .where((uri) => uri.scheme == 'package' && uri.pathSegments.isNotEmpty)
         .map((uri) => uri.pathSegments.first);
   }
