@@ -6,7 +6,6 @@ library services.bench;
 
 import 'dart:async';
 
-import 'package:analysis_server_lib/analysis_server_lib.dart';
 import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/bench.dart';
 import 'package:dart_services/src/common.dart';
@@ -62,7 +61,7 @@ class AnalyzerBenchmark extends Benchmark {
         super('analyzer.$name');
 
   @override
-  Future<AnalysisServer?> init() => analysisServer.init();
+  Future<void> init() => analysisServer.init();
 
   @override
   Future<proto.AnalysisResults> perform() => analysisServer.analyze(source);
@@ -110,7 +109,7 @@ class AnalysisServerBenchmark extends Benchmark {
         super('completion.$name');
 
   @override
-  Future<AnalysisServer?> init() => analysisServer.init();
+  Future<void> init() => analysisServer.init();
 
   @override
   Future<proto.CompleteResponse> perform() =>

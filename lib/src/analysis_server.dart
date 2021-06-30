@@ -54,7 +54,7 @@ abstract class AnalysisServerWrapper {
   final String sdkPath;
   final TaskScheduler serverScheduler = TaskScheduler();
 
-  Future<AnalysisServer>? _init;
+  bool _isInitialized = false;
 
   /// Instance to handle communication with the server.
   late AnalysisServer analysisServer;
@@ -65,55 +65,56 @@ abstract class AnalysisServerWrapper {
 
   String get _sourceDirPath;
 
-  Future<AnalysisServer> init() {
-    if (_init == null) {
-      void onRead(String str) {
-        if (dumpServerMessages) _logger.info('<-- $str');
-      }
-
-      void onWrite(String str) {
-        if (dumpServerMessages) _logger.info('--> $str');
-      }
-
-      final serverArgs = <String>[
-        '--client-id=DartPad',
-        '--client-version=$_sdkVersion',
-      ];
-      _logger.info('Starting server; sdk: `$sdkPath`, args: $serverArgs');
-
-      _init = AnalysisServer.create(
-        onRead: onRead,
-        onWrite: onWrite,
-        sdkPath: sdkPath,
-        serverArgs: serverArgs,
-      ).then((AnalysisServer server) async {
-        analysisServer = server;
-        analysisServer.server.onError.listen((ServerError error) {
-          _logger.severe('server error${error.isFatal ? ' (fatal)' : ''}',
-              error.message, StackTrace.fromString(error.stackTrace));
-        });
-        await analysisServer.server.onConnected.first;
-        await analysisServer.server.setSubscriptions(<String>['STATUS']);
-
-        listenForCompletions();
-        listenForAnalysisComplete();
-        listenForErrors();
-
-        final analysisComplete = getAnalysisCompleteCompleter();
-        await analysisServer.analysis
-            .setAnalysisRoots(<String>[_sourceDirPath], <String>[]);
-        await _sendAddOverlays(<String, String>{mainPath: _warmupSrc});
-        await analysisComplete.future;
-        await _sendRemoveOverlays();
-
-        return analysisServer;
-      }).catchError((Object err, StackTrace st) {
-        _logger.severe('Error starting analysis server ($sdkPath): $err.\n$st');
-        throw err;
-      });
+  Future<void> init() async {
+    if (_isInitialized) {
+      throw StateError('AnalysisServerWrapper is already initialized');
     }
 
-    return _init!;
+    _isInitialized = true;
+
+    void onRead(String str) {
+      if (dumpServerMessages) _logger.info('<-- $str');
+    }
+
+    void onWrite(String str) {
+      if (dumpServerMessages) _logger.info('--> $str');
+    }
+
+    final serverArgs = <String>[
+      '--client-id=DartPad',
+      '--client-version=$_sdkVersion',
+    ];
+    _logger.info('Starting server; sdk: `$sdkPath`, args: $serverArgs');
+
+    analysisServer = await AnalysisServer.create(
+      onRead: onRead,
+      onWrite: onWrite,
+      sdkPath: sdkPath,
+      serverArgs: serverArgs,
+    );
+
+    try {
+      analysisServer.server.onError.listen((ServerError error) {
+        _logger.severe('server error${error.isFatal ? ' (fatal)' : ''}',
+            error.message, StackTrace.fromString(error.stackTrace));
+      });
+      await analysisServer.server.onConnected.first;
+      await analysisServer.server.setSubscriptions(<String>['STATUS']);
+
+      listenForCompletions();
+      listenForAnalysisComplete();
+      listenForErrors();
+
+      final analysisComplete = getAnalysisCompleteCompleter();
+      await analysisServer.analysis
+          .setAnalysisRoots(<String>[_sourceDirPath], <String>[]);
+      await _sendAddOverlays(<String, String>{mainPath: _warmupSrc});
+      await analysisComplete.future;
+      await _sendRemoveOverlays();
+    } catch (err, st) {
+      _logger.severe('Error starting analysis server ($sdkPath): $err.\n$st');
+      rethrow;
+    }
   }
 
   String get _sdkVersion {
