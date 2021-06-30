@@ -1095,7 +1095,7 @@ class ConsoleExpandController extends Console {
   final Counter? unreadCounter;
   final Function? onSizeChanged;
   final EditorUi? editorUi;
-  Splitter? _splitter;
+  late Splitter _splitter;
   bool _expanded;
 
   ConsoleExpandController({
@@ -1147,18 +1147,18 @@ class ConsoleExpandController extends Console {
     _expanded = !_expanded;
     if (_expanded) {
       _initSplitter();
-      _splitter?.setSizes([60, 40]);
+      _splitter.setSizes([60, 40]);
       element.toggleAttr('hidden', false);
       expandIcon.element.innerText = 'expand_more';
       footer.toggleClass('footer-top-border', false);
       unreadCounter!.clear();
     } else {
-      _splitter?.setSizes([100, 0]);
+      _splitter.setSizes([100, 0]);
       element.toggleAttr('hidden', true);
       expandIcon.element.innerText = 'expand_less';
       footer.toggleClass('footer-top-border', true);
       try {
-        _splitter?.destroy();
+        _splitter.destroy();
       } on NoSuchMethodError {
         // dart2js throws NoSuchMethodError (dartdevc is ok)
         // TODO(ryjohn): why does this happen?
