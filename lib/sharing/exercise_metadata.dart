@@ -46,7 +46,8 @@ class ExerciseFileMetadata {
     }
 
     name = map.containsKey('name') ? map['name'] as String : '';
-    alternatePath = map.containsKey('alternatePath') ? map['alternatePath'] as String : '';
+    alternatePath =
+        map.containsKey('alternatePath') ? map['alternatePath'] as String : '';
   }
 }
 
