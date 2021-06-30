@@ -1,5 +1,4 @@
 name: dart_pad
-author: Dart Team <misc@dartlang.org>
 description: The UI client for a web based interactive Dart service.
 homepage: https://github.com/dart-lang/dart-pad
 environment:
