@@ -24,9 +24,17 @@ replaceJavaScript = function (value) {
     document.head.appendChild(scriptNode);
 };
 
+/**
+ * Adds a script tag, with url as "src" and id as "id", unless a script tag with
+ * that id already exists.
+ *
+ * Executes onload after the script has loaded, if the script did not already
+ * exist, and executes onload immediately otherwise.
+ */
 addScript = function (id, url, onload) {
     let existingScript = document.getElementById(id);
     if (existingScript && existingScript.parentNode) {
+        onload();
         return;
     }
 
@@ -88,6 +96,9 @@ executeWithFirebase = function (userJs) {
     }
 }
 
+/**
+ * Executes userJs, a user script, after first loading RequireJS.
+ */
 executeWithRequireJs = function (userJs) {
     addScript('require', 'require.js', function () {
         // User script must be added after RequireJS loads.
@@ -95,6 +106,12 @@ executeWithRequireJs = function (userJs) {
     });
 }
 
+/**
+ * Handles any incoming messages.
+ *
+ * In particular, understands the following commands on e: 'setCss', 'setHtml',
+ * and 'execute'.
+ */
 messageHandler = function (e) {
     var obj = e.data;
     var command = obj.command;
