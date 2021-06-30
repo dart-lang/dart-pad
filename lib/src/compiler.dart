@@ -68,7 +68,6 @@ class Compiler {
         '--packages=${path.join('.dart_tool', 'package_config.json')}',
         if (_nullSafety) ...[
           '--sound-null-safety',
-          '--enable-experiment=non-nullable',
         ],
         ...['-o', '$kMainDart.js'],
         path.join('lib', kMainDart),
@@ -161,7 +160,6 @@ class Compiler {
         ...['--module-name', 'dartpad_main'],
         if (_nullSafety) ...[
           '--sound-null-safety',
-          '--enable-experiment=non-nullable',
         ],
         bootstrapPath,
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
