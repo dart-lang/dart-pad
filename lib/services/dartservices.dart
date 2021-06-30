@@ -1,7 +1,6 @@
 import 'dart:convert';
 
 import 'package:http/browser_client.dart';
-import 'package:meta/meta.dart';
 import 'package:protobuf/protobuf.dart';
 import '../src/protos/dart_services.pb.dart';
 export '../src/protos/dart_services.pb.dart';
@@ -9,7 +8,7 @@ export '../src/protos/dart_services.pb.dart';
 const _apiPath = 'api/dartservices/v2';
 
 class DartservicesApi {
-  DartservicesApi(this._client, {@required this.rootUrl});
+  DartservicesApi(this._client, {required this.rootUrl});
 
   final BrowserClient _client;
   String rootUrl;
@@ -74,7 +73,7 @@ class DartservicesApi {
     O result,
   ) async {
     final response = await _client.post(
-      '$rootUrl$_apiPath/$action',
+      Uri.parse('$rootUrl$_apiPath/$action'),
       encoding: utf8,
       body: json.encode(request.toProto3Json()),
     );

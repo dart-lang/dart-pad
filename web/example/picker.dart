@@ -20,7 +20,7 @@ String f() {
     ''';
 
 void main() {
-  var dartPadHost = querySelector('#dartpad-host');
+  var dartPadHost = querySelector('#dartpad-host')!;
   var select = querySelector('#dartpad-select') as SelectElement;
 
   DartPadPicker(dartPadHost, select, snippets, dartPadUrl: '');
@@ -44,7 +44,7 @@ class DartPadPicker {
   final Element iFrameHost;
   final SelectElement selectElement;
   final List<Snippet> snippets;
-  IFrameElement _iFrameElement;
+  late IFrameElement _iFrameElement;
   int _selected = 0;
 
   DartPadPicker(this.iFrameHost, this.selectElement, this.snippets,
@@ -70,7 +70,7 @@ class DartPadPicker {
       selectElement.children.add(option);
     }
     selectElement.onChange.listen((Event _) {
-      _selected = selectElement.selectedIndex;
+      _selected = selectElement.selectedIndex!;
       _sendSourceCode();
     });
   }
@@ -92,10 +92,10 @@ class DartPadPicker {
   }
 
   void _sendSourceCode() {
-    _iFrameElement.contentWindow.postMessage(_sourceCodeMessage, '*');
+    _iFrameElement.contentWindow!.postMessage(_sourceCodeMessage, '*');
   }
 
-  String iFrameSrc({String theme, String mode}) {
+  String iFrameSrc({required String theme, required String mode}) {
     return '$dartPadUrl/embed-$mode.html?theme=$theme';
   }
 }

@@ -7,8 +7,6 @@ library execution_iframe;
 import 'dart:async';
 import 'dart:html';
 
-import 'package:meta/meta.dart';
-
 import 'execution.dart';
 
 export 'execution.dart';
@@ -24,11 +22,15 @@ class ExecutionServiceIFrame implements ExecutionService {
       StreamController<TestResult>.broadcast();
 
   IFrameElement _frame;
-  String _frameSrc;
+  late String _frameSrc;
   Completer<void> _readyCompleter = Completer();
 
   ExecutionServiceIFrame(this._frame) {
-    _frameSrc = _frame.src;
+    final src = _frame.src;
+    if (src == null) {
+      throw ('invalid iframe src');
+    }
+    _frameSrc = src;
 
     _initListener();
   }
@@ -38,14 +40,11 @@ class ExecutionServiceIFrame implements ExecutionService {
     String html,
     String css,
     String javaScript, {
-    String /*?*/ modulesBaseUrl,
+    String? modulesBaseUrl,
     bool addRequireJs = false,
     bool addFirebaseJs = false,
     bool destroyFrame = false,
   }) async {
-    assert(addRequireJs != null);
-    assert(addFirebaseJs != null);
-    assert(destroyFrame != null);
     if (destroyFrame) {
       await _reset();
     }
@@ -97,8 +96,8 @@ Never TODO([String message = '']) => throw UnimplementedError(message);
 
   String _decorateJavaScript(
     String javaScript, {
-    @required String modulesBaseUrl,
-    @required bool requireFirebase,
+    required String? modulesBaseUrl,
+    required bool requireFirebase,
   }) {
     final completeScript = StringBuffer();
     final usesRequireJs = modulesBaseUrl != null;
@@ -224,7 +223,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
       'command': command,
       ...params,
     };
-    _frame.contentWindow.postMessage(message, '*');
+    _frame.contentWindow!.postMessage(message, '*');
     return Future.value();
   }
 
@@ -236,10 +235,10 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
       var clone = _frame.clone(false) as IFrameElement;
       clone.src = _frameSrc;
 
-      var children = _frame.parent.children;
+      var children = _frame.parent!.children;
       var index = children.indexOf(_frame);
       children.insert(index, clone);
-      _frame.parent.children.remove(_frame);
+      _frame.parent!.children.remove(_frame);
       _frame = clone;
     }
 
@@ -255,11 +254,11 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
         if (data['sender'] != 'frame') {
           return;
         }
-        final type = data['type'] as String;
+        final type = data['type'] as String?;
 
         if (type == 'testResult') {
           _testResultsController.add(TestResult(data['success'] as bool,
-              List<String>.from(data['messages'] as Iterable ?? [])));
+              List<String>.from(data['messages'] as Iterable? ?? [])));
         } else if (type == 'stderr') {
           // Ignore any exceptions before the iframe has completed initialization.
           if (_readyCompleter.isCompleted) {
@@ -267,7 +266,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
           }
         } else if (type == 'ready' && !_readyCompleter.isCompleted) {
           _readyCompleter.complete();
-        } else {
+        } else if (data['message'] != null) {
           _stdoutController.add(data['message'] as String);
         }
       }

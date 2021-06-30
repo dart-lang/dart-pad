@@ -40,7 +40,7 @@ class ParameterPopup {
   bool get parPopupActive => querySelector('.parameter-hints') != null;
 
   void remove() {
-    document.body.children.remove(querySelector('.parameter-hints'));
+    document.body!.children.remove(querySelector('.parameter-hints'));
   }
 
   void _handleKeyDown(KeyboardEvent e) {
@@ -78,7 +78,7 @@ class ParameterPopup {
       return;
     }
 
-    var openingParenIndex = parInfo['openingParenIndex'];
+    var openingParenIndex = parInfo['openingParenIndex']!;
     var parameterIndex = parInfo['parameterIndex'];
     offset = openingParenIndex - 1;
 
@@ -96,11 +96,11 @@ class ParameterPopup {
         return;
       }
 
-      var parameterInfo = result.info['parameters'];
+      var parameterInfo = result.info['parameters']!;
       var outputString = '';
       if (parameterInfo.isEmpty) {
         outputString += '<code>&lt;no parameters&gt;</code>';
-      } else if (parameterInfo.length < parameterIndex + 1) {
+      } else if (parameterInfo.length < parameterIndex! + 1) {
         outputString += '<code>too many parameters listed</code>';
       } else {
         outputString += '<code>';
@@ -146,12 +146,13 @@ class ParameterPopup {
 
     DivElement parameterPopup;
     if (parPopupActive) {
-      var parameterHint = querySelector('.parameter-hint');
+      var parameterHint = querySelector('.parameter-hint')!;
       parameterHint.innerHtml = string;
 
       //update popup position
       var newLeft = math
-          .max(cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22)
+          .max(
+              cursorCoords.x - (parameterHint.text!.length * charWidth / 2), 22)
           .round();
 
       parameterPopup = querySelector('.parameter-hints') as DivElement
@@ -167,22 +168,23 @@ class ParameterPopup {
         ..innerHtml = string
         ..classes.add('parameter-hint');
       var left = math
-          .max(cursorCoords.x - (parameterHint.text.length * charWidth / 2), 22)
+          .max(
+              cursorCoords.x - (parameterHint.text!.length * charWidth / 2), 22)
           .round();
       parameterPopup = DivElement()
         ..classes.add('parameter-hints')
         ..style.left = '${left}px'
         ..style.top = '${heightOfMethod}px'
         ..style.maxWidth =
-            "${querySelector("#editpanel").getBoundingClientRect().width}px";
+            "${querySelector("#editpanel")!.getBoundingClientRect().width}px";
       parameterPopup.append(parameterHint);
-      document.body.append(parameterPopup);
+      document.body!.append(parameterPopup);
     }
     var activeParameter = querySelector('.parameter-hints em');
     if (activeParameter != null &&
         activeParameter.previousElementSibling != null) {
       parameterPopup.scrollLeft =
-          activeParameter.previousElementSibling.offsetLeft;
+          activeParameter.previousElementSibling!.offsetLeft;
     }
   }
 
@@ -190,9 +192,9 @@ class ParameterPopup {
   /// Otherwise it will return information about the parameters.
   /// For example, if the source is `substring(1, <caret>)`, it will return
   /// `{openingParenIndex: 9, parameterIndex: 1}`.
-  Map<String, int> _parameterInfo(String source, int offset) {
+  Map<String, int>? _parameterInfo(String source, int offset) {
     var parameterIndex = 0;
-    int /*?*/ openingParenIndex;
+    int? openingParenIndex;
     var nesting = 0;
 
     while (openingParenIndex == null && offset > 0) {

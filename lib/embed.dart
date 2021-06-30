@@ -38,9 +38,9 @@ import 'util/query_params.dart' show queryParams;
 
 const int defaultSplitterWidth = 6;
 
-Embed get embed => _embed;
+Embed? get embed => _embed;
 
-Embed _embed;
+Embed? _embed;
 
 void init(EmbedOptions options) {
   _embed = Embed(options);
@@ -60,56 +60,55 @@ class Embed extends EditorUi {
   final EmbedOptions options;
 
   var _executionButtonCount = 0;
-  MDCButton reloadGistButton;
-  MDCButton installButton;
-  MDCButton formatButton;
-  MDCButton showHintButton;
-  MDCButton copyCodeButton;
-  MDCButton openInDartPadButton;
-  MDCButton menuButton;
+  late final MDCButton reloadGistButton;
+  late final MDCButton installButton;
+  late final MDCButton formatButton;
+  late final MDCButton showHintButton;
+  late final MDCButton copyCodeButton;
+  late final MDCButton openInDartPadButton;
+  late final MDCButton menuButton;
 
-  DElement navBarElement;
-  EmbedTabController tabController;
-  TabView editorTabView;
-  TabView testTabView;
-  TabView solutionTabView;
-  TabView htmlTabView;
-  TabView cssTabView;
-  DElement solutionTab;
-  MDCMenu menu;
+  late final DElement navBarElement;
+  late final EmbedTabController tabController;
+  late final TabView editorTabView;
+  late final TabView testTabView;
+  late final TabView solutionTabView;
+  late final TabView htmlTabView;
+  late final TabView cssTabView;
+  late final DElement solutionTab;
+  late final MDCMenu menu;
 
-  DElement morePopover;
-  DElement showTestCodeCheckmark;
-  DElement editableTestSolutionCheckmark;
+  late final DElement showTestCodeCheckmark;
+  late final DElement editableTestSolutionCheckmark;
   bool _editableTestSolution = false;
   bool _showTestCode = false;
 
-  DElement nullSafetyCheckmark;
+  late final DElement nullSafetyCheckmark;
   bool _nullSafetyEnabled = false;
 
-  Counter unreadConsoleCounter;
+  late final Counter unreadConsoleCounter;
 
-  FlashBox testResultBox;
-  FlashBox hintBox;
+  late final FlashBox testResultBox;
+  late final FlashBox hintBox;
 
-  CodeMirrorFactory editorFactory = codeMirrorFactory;
+  final CodeMirrorFactory editorFactory = codeMirrorFactory;
 
-  Editor userCodeEditor;
-  Editor testEditor;
-  Editor solutionEditor;
-  Editor htmlEditor;
-  Editor cssEditor;
+  late final Editor userCodeEditor;
+  late final Editor testEditor;
+  late final Editor solutionEditor;
+  Editor? htmlEditor;
+  Editor? cssEditor;
 
   @override
-  EmbedContext context;
+  late final EmbedContext context;
 
-  Splitter splitter;
+  late final Splitter splitter;
 
-  Console consoleExpandController;
-  DElement webOutputLabel;
-  DElement featureMessage;
+  late final Console consoleExpandController;
+  late final DElement webOutputLabel;
+  late final DElement featureMessage;
 
-  MDCLinearProgress linearProgress;
+  late final MDCLinearProgress linearProgress;
   Map<String, String> lastInjectedSourceCode = <String, String>{};
 
   bool _editorIsBusy = true;
@@ -135,8 +134,8 @@ class Embed extends EditorUi {
     runButton.disabled = value;
     formatButton.disabled = value;
     reloadGistButton.disabled = value;
-    showHintButton?.disabled = value;
-    copyCodeButton?.disabled = value;
+    showHintButton.disabled = value;
+    copyCodeButton.disabled = value;
   }
 
   Embed(this.options) {
@@ -152,7 +151,7 @@ class Embed extends EditorUi {
     }
 
     tabController =
-        EmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')), dialog);
+        EmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')!), dialog);
 
     var tabNames = ['editor', 'solution', 'test'];
     if (options.mode == EmbedMode.html) {
@@ -161,12 +160,12 @@ class Embed extends EditorUi {
 
     for (var name in tabNames) {
       tabController.registerTab(
-        TabElement(querySelector('#$name-tab'), name: name, onSelect: () {
-          editorTabView?.setSelected(name == 'editor');
-          testTabView?.setSelected(name == 'test');
-          solutionTabView?.setSelected(name == 'solution');
-          htmlTabView?.setSelected(name == 'html');
-          cssTabView?.setSelected(name == 'css');
+        TabElement(querySelector('#$name-tab')!, name: name, onSelect: () {
+          editorTabView.setSelected(name == 'editor');
+          testTabView.setSelected(name == 'test');
+          solutionTabView.setSelected(name == 'solution');
+          htmlTabView.setSelected(name == 'html');
+          cssTabView.setSelected(name == 'css');
 
           if (name == 'editor') {
             userCodeEditor.resize();
@@ -178,19 +177,19 @@ class Embed extends EditorUi {
             solutionEditor.resize();
             solutionEditor.focus();
           } else if (name == 'html') {
-            htmlEditor.resize();
-            htmlEditor.focus();
+            htmlEditor!.resize();
+            htmlEditor!.focus();
           } else if (name == 'css') {
-            cssEditor.resize();
-            cssEditor.focus();
+            cssEditor!.resize();
+            cssEditor!.focus();
           }
         }),
       );
     }
 
-    solutionTab = DElement(querySelector('#solution-tab'));
+    solutionTab = DElement(querySelector('#solution-tab')!);
 
-    navBarElement = DElement(querySelector('#navbar'));
+    navBarElement = DElement(querySelector('#navbar')!);
 
     unreadConsoleCounter =
         Counter(querySelector('#unread-console-counter') as SpanElement);
@@ -200,7 +199,7 @@ class Embed extends EditorUi {
 
     reloadGistButton = MDCButton(querySelector('#reload-gist') as ButtonElement)
       ..onClick.listen((_) {
-        if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
+        if (gistId!.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
           _loadAndShowGist();
         } else {
           _resetCode();
@@ -225,28 +224,27 @@ class Embed extends EditorUi {
           tabController.selectTab('solution', force: true);
         });
         hintBox.showElements([hintElement, showSolutionButton]);
-        ga?.sendEvent('view', 'hint');
+        ga.sendEvent('view', 'hint');
       })
       ..element.hidden = true;
 
     tabController.setTabVisibility('test', false);
-    showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark'));
+    showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark')!);
     editableTestSolutionCheckmark =
-        DElement(querySelector('#editable-test-solution-checkmark'));
+        DElement(querySelector('#editable-test-solution-checkmark')!);
     nullSafetyCheckmark =
-        DElement(querySelector('#toggle-null-safety-checkmark'));
+        DElement(querySelector('#toggle-null-safety-checkmark')!);
 
-    morePopover = DElement(querySelector('#more-popover'));
     menuButton =
         MDCButton(querySelector('#menu-button') as ButtonElement, isIcon: true)
           ..onClick.listen((_) {
-            menu.open = !menu.open;
+            menu.open = !menu.open!;
           });
     menu = MDCMenu(querySelector('#main-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(menuButton.element);
     menu.listen('MDCMenu:selected', (e) {
-      final selectedIndex = (e as CustomEvent).detail['index'] as int;
+      final selectedIndex = (e as CustomEvent).detail['index'] as int?;
       switch (selectedIndex) {
         case 0:
           // Show test code
@@ -283,14 +281,14 @@ class Embed extends EditorUi {
     var editorTheme = isDarkMode ? 'darkpad' : 'dartpad';
 
     userCodeEditor = editorFactory.createFromElement(
-        querySelector('#user-code-editor'),
+        querySelector('#user-code-editor')!,
         options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
       ..showLineNumbers = true;
     userCodeEditor.autoCloseBrackets = false;
 
-    testEditor = editorFactory.createFromElement(querySelector('#test-editor'),
+    testEditor = editorFactory.createFromElement(querySelector('#test-editor')!,
         options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
@@ -298,28 +296,34 @@ class Embed extends EditorUi {
       ..showLineNumbers = true;
 
     solutionEditor = editorFactory.createFromElement(
-        querySelector('#solution-editor'),
+        querySelector('#solution-editor')!,
         options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
       ..readOnly = !_editableTestSolution
       ..showLineNumbers = true;
 
-    htmlEditor = editorFactory.createFromElement(querySelector('#html-editor'),
-        options: codeMirrorOptions)
-      ..theme = editorTheme
-      // TODO(ryjohn): why doesn't editorFactory.modes have html?
-      ..mode = 'xml'
-      ..showLineNumbers = true;
+    final htmlEditorElement = querySelector('#html-editor');
+    if (htmlEditorElement != null) {
+      htmlEditor = editorFactory.createFromElement(htmlEditorElement,
+          options: codeMirrorOptions)
+        ..theme = editorTheme
+        // TODO(ryjohn): why doesn't editorFactory.modes have html?
+        ..mode = 'xml'
+        ..showLineNumbers = true;
+    }
 
-    cssEditor = editorFactory.createFromElement(querySelector('#css-editor'),
-        options: codeMirrorOptions)
-      ..theme = editorTheme
-      ..mode = 'css'
-      ..showLineNumbers = true;
+    final cssEditorElement = querySelector('#css-editor');
+    if (cssEditorElement != null) {
+      cssEditor = editorFactory.createFromElement(cssEditorElement,
+          options: codeMirrorOptions)
+        ..theme = editorTheme
+        ..mode = 'css'
+        ..showLineNumbers = true;
+    }
 
     if (!showInstallButton) {
-      querySelector('#install-button').setAttribute('hidden', '');
+      querySelector('#install-button')!.setAttribute('hidden', '');
     }
 
     var editorTabViewElement = querySelector('#user-code-view');
@@ -344,7 +348,7 @@ class Embed extends EditorUi {
 
     var cssTabViewElement = querySelector('#css-view');
     if (cssTabViewElement != null) {
-      cssTabView = TabView(DElement(querySelector('#css-view')));
+      cssTabView = TabView(DElement(querySelector('#css-view')!));
     }
 
     executionService =
@@ -370,32 +374,32 @@ class Embed extends EditorUi {
         result.messages,
         result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
       );
-      ga?.sendEvent(
+      ga.sendEvent(
           'execution', (result.success) ? 'test-success' : 'test-failure');
     });
 
     analysisResultsController = AnalysisResultsController(
-        DElement(querySelector('#issues')),
-        DElement(querySelector('#issues-message')),
-        DElement(querySelector('#issues-toggle')))
+        DElement(querySelector('#issues')!),
+        DElement(querySelector('#issues-message')!),
+        DElement(querySelector('#issues-toggle')!))
       ..onItemClicked.listen((item) {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 
     if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
       var controller = ConsoleExpandController(
-          expandButton: querySelector('#console-output-header'),
-          footer: querySelector('#console-output-footer'),
-          expandIcon: querySelector('#console-expand-icon'),
+          expandButton: querySelector('#console-output-header')!,
+          footer: querySelector('#console-output-footer')!,
+          expandIcon: querySelector('#console-expand-icon')!,
           unreadCounter: unreadConsoleCounter,
-          consoleElement: querySelector('#console-output-container'),
+          consoleElement: querySelector('#console-output-container')!,
           editorUi: this,
           onSizeChanged: () {
             userCodeEditor.resize();
             testEditor.resize();
             solutionEditor.resize();
-            htmlEditor.resize();
-            cssEditor.resize();
+            htmlEditor?.resize();
+            cssEditor?.resize();
           });
       consoleExpandController = controller;
       if (shouldOpenConsole) {
@@ -403,7 +407,7 @@ class Embed extends EditorUi {
       }
     } else {
       consoleExpandController =
-          Console(DElement(querySelector('#console-output-container')));
+          Console(DElement(querySelector('#console-output-container')!));
     }
 
     var webOutputLabelElement = querySelector('#web-output-label');
@@ -411,10 +415,10 @@ class Embed extends EditorUi {
       webOutputLabel = DElement(webOutputLabelElement);
     }
 
-    featureMessage = DElement(querySelector('#feature-message'));
+    featureMessage = DElement(querySelector('#feature-message')!);
     featureMessage.toggleAttr('hidden', true);
 
-    linearProgress = MDCLinearProgress(querySelector('#progress-bar'));
+    linearProgress = MDCLinearProgress(querySelector('#progress-bar')!);
     linearProgress.determinate = false;
 
     _initBusyLights();
@@ -451,11 +455,11 @@ class Embed extends EditorUi {
 
   /// Sends a ready message to the parent page
   void _emitReady() {
-    window.parent.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
+    window.parent!.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
   }
 
   // Option for the GitHub gist ID that should be loaded into the editors.
-  String get gistId {
+  String? get gistId {
     final id = queryParams.gistId;
     return isLegalGistId(id) ? id : '';
   }
@@ -512,7 +516,7 @@ class Embed extends EditorUi {
 
   String get githubPath => queryParams.githubPath ?? '';
 
-  String /*?*/ get githubRef => queryParams.githubRef;
+  String? get githubRef => queryParams.githubRef;
 
   bool get githubParamsPresent =>
       githubOwner.isNotEmpty && githubRepo.isNotEmpty && githubPath.isNotEmpty;
@@ -538,12 +542,12 @@ class Embed extends EditorUi {
   }
 
   void _handleNullSafetySwitched(bool enabled) {
-    var api = deps[DartservicesApi] as DartservicesApi;
+    var api = deps[DartservicesApi] as DartservicesApi?;
     if (enabled) {
-      api.rootUrl = nullSafetyServerUrl;
+      api!.rootUrl = nullSafetyServerUrl;
       window.localStorage['null_safety'] = 'true';
     } else {
-      api.rootUrl = preNullSafetyServerUrl;
+      api!.rootUrl = preNullSafetyServerUrl;
       window.localStorage['null_safety'] = 'false';
     }
     unawaited(performAnalysis());
@@ -559,7 +563,7 @@ class Embed extends EditorUi {
   }
 
   void _initBusyLights() {
-    busyLight = DBusyLight(querySelector('#dartbusy'));
+    busyLight = DBusyLight(querySelector('#dartbusy')!);
   }
 
   void _init() {
@@ -578,21 +582,21 @@ class Embed extends EditorUi {
     initKeyBindings();
 
     var horizontal = true;
-    var webOutput = querySelector('#web-output');
+    var webOutput = querySelector('#web-output')!;
     List<Element> splitterElements;
     if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
       var editorAndConsoleContainer =
-          querySelector('#editor-and-console-container');
+          querySelector('#editor-and-console-container')!;
       splitterElements = [editorAndConsoleContainer, webOutput];
     } else if (options.mode == EmbedMode.inline) {
-      var editorContainer = querySelector('#editor-container');
-      var consoleView = querySelector('#console-view');
+      var editorContainer = querySelector('#editor-container')!;
+      var consoleView = querySelector('#console-view')!;
       consoleView.removeAttribute('hidden');
       splitterElements = [editorContainer, consoleView];
       horizontal = false;
     } else {
-      var editorContainer = querySelector('#editor-container');
-      var consoleView = querySelector('#console-view');
+      var editorContainer = querySelector('#editor-container')!;
+      var consoleView = querySelector('#console-view')!;
       consoleView.removeAttribute('hidden');
       splitterElements = [editorContainer, consoleView];
     }
@@ -609,11 +613,11 @@ class Embed extends EditorUi {
 
     listenForResize(splitterElements[0]);
 
-    if (gistId.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
+    if (gistId!.isNotEmpty || sampleId.isNotEmpty || githubParamsPresent) {
       _loadAndShowGist(analyze: false);
     }
 
-    if (gistId.isEmpty) {
+    if (gistId!.isEmpty) {
       openInDartPadButton.toggleAttr('hidden', true);
     }
 
@@ -642,7 +646,7 @@ class Embed extends EditorUi {
   }
 
   Future<void> _loadAndShowGist({bool analyze = true}) async {
-    if (gistId.isEmpty && sampleId.isEmpty && !githubParamsPresent) {
+    if (gistId!.isEmpty && sampleId.isEmpty && !githubParamsPresent) {
       print('Cannot load gist: neither id, sample_id, nor GitHub repo info is '
           'present.');
       return;
@@ -650,22 +654,22 @@ class Embed extends EditorUi {
 
     editorIsBusy = true;
 
-    final loader = deps[GistLoader] as GistLoader;
+    final loader = deps[GistLoader] as GistLoader?;
 
     try {
       Gist gist;
 
-      if (gistId.isNotEmpty) {
-        gist = await loader.loadGist(gistId);
+      if (gistId!.isNotEmpty) {
+        gist = await loader!.loadGist(gistId);
       } else if (sampleId.isNotEmpty) {
         // Right now, there are only two hosted versions of the docs: master and
         // stable. Default to stable for dev and beta.
         final channel = (sampleChannel == FlutterSdkChannel.master)
             ? FlutterSdkChannel.master
             : FlutterSdkChannel.stable;
-        gist = await loader.loadGistFromAPIDocs(sampleId, channel);
+        gist = await loader!.loadGistFromAPIDocs(sampleId, channel);
       } else {
-        gist = await loader.loadGistFromRepo(
+        gist = await loader!.loadGistFromRepo(
           owner: githubOwner,
           repo: githubRepo,
           path: githubPath,
@@ -733,7 +737,7 @@ class Embed extends EditorUi {
   void _handleCopyCode() {
     var textElement = document.createElement('textarea') as TextAreaElement;
     textElement.value = _getActiveSourceCode();
-    document.body.append(textElement);
+    document.body!.append(textElement);
     textElement.select();
     document.execCommand('copy');
     textElement.remove();
@@ -790,7 +794,7 @@ class Embed extends EditorUi {
         'test', context.testMethod.isNotEmpty && _showTestCode);
     menuButton.toggleAttr('hidden', false);
     showHintButton.element.hidden = context.hint.isEmpty;
-    solutionTab?.toggleAttr('hidden', context.solution.isEmpty);
+    solutionTab.toggleAttr('hidden', context.solution.isEmpty);
     editorIsBusy = false;
   }
 
@@ -813,7 +817,7 @@ class Embed extends EditorUi {
     }
 
     _executionButtonCount++;
-    ga?.sendEvent('execution', 'initiated', label: '$_executionButtonCount');
+    ga.sendEvent('execution', 'initiated', label: '$_executionButtonCount');
 
     editorIsBusy = true;
     testResultBox.hide();
@@ -826,18 +830,18 @@ class Embed extends EditorUi {
 
     // The iframe will show Flutter output for the rest of the lifetime of the
     // app, so hide the label.
-    webOutputLabel?.setAttr('hidden');
+    webOutputLabel.setAttr('hidden');
 
     return success;
   }
 
-  void _sendVirtualPageView(String id) {
+  void _sendVirtualPageView(String? id) {
     var url = Uri.parse(window.location.toString());
-    var newParams = Map<String, String>.from(url.queryParameters);
+    var newParams = Map<String, String?>.from(url.queryParameters);
     newParams['ga_id'] = id;
     var pageName = url.replace(queryParameters: newParams);
     var path = '${pageName.path}?${pageName.query}';
-    ga?.sendPage(pageName: path);
+    ga.sendPage(pageName: path);
   }
 
   @override
@@ -847,7 +851,7 @@ class Embed extends EditorUi {
     analysisResultsController.display(issues);
   }
 
-  WindowBase get _hostWindow {
+  WindowBase? get _hostWindow {
     if (window.parent != null) {
       return window.parent;
     }
@@ -857,11 +861,11 @@ class Embed extends EditorUi {
 
   void _showInstallPage() {
     if (_modeName == 'dart' || _modeName == 'html') {
-      ga?.sendEvent('main', 'install-dart');
-      _hostWindow.location.href = 'https://dart.dev/get-dart';
+      ga.sendEvent('main', 'install-dart');
+      _hostWindow!.location.href = 'https://dart.dev/get-dart';
     } else {
-      ga?.sendEvent('main', 'install-flutter');
-      _hostWindow.location.href = 'https://flutter.dev/get-started/install';
+      ga.sendEvent('main', 'install-flutter');
+      _hostWindow!.location.href = 'https://flutter.dev/get-started/install';
     }
   }
 
@@ -957,7 +961,7 @@ class EmbedTabController extends MaterialTabController {
 
   /// This method will throw if the tabName is not the name of a current tab.
   @override
-  Future selectTab(String tabName, {bool force = false}) async {
+  Future selectTab(String? tabName, {bool force = false}) async {
     // Show a confirmation dialog if the solution tab is tapped
     if (tabName == 'solution' && !force) {
       var result = await _dialog.showYesNo(
@@ -974,7 +978,7 @@ class EmbedTabController extends MaterialTabController {
     }
 
     if (tabName == 'solution') {
-      ga?.sendEvent('view', 'solution');
+      ga.sendEvent('view', 'solution');
       _userHasSeenSolution = true;
     }
 
@@ -999,9 +1003,7 @@ class TabView {
 
 /// It's a real word, I swear.
 class DisableableButton {
-  DisableableButton(ButtonElement anchorElement, VoidCallback onClick)
-      : assert(anchorElement != null),
-        assert(onClick != null) {
+  DisableableButton(ButtonElement anchorElement, VoidCallback onClick) {
     _element = DElement(anchorElement);
     _element.onClick.listen((e) {
       if (!_disabled) {
@@ -1012,7 +1014,7 @@ class DisableableButton {
 
   static const _disabledClassName = 'disabled';
 
-  DElement _element;
+  late DElement _element;
 
   bool _disabled = false;
 
@@ -1039,9 +1041,9 @@ class FlashBox {
   /// flash-close class and a child with the message-container class.
   FlashBox(DivElement div) {
     _element = DElement(div);
-    _messageContainer = DElement(div.querySelector('.message-container'));
+    _messageContainer = DElement(div.querySelector('.message-container')!);
 
-    final closeLink = DElement(div.querySelector('.close-flash-container'));
+    final closeLink = DElement(div.querySelector('.close-flash-container')!);
     closeLink.onClick.listen((event) {
       hide();
     });
@@ -1053,15 +1055,15 @@ class FlashBox {
     FlashBoxStyle.success: 'flash-success',
   };
 
-  DElement _element;
+  late DElement _element;
 
-  DElement _messageContainer;
+  late DElement _messageContainer;
 
-  void showStrings(List<String> messages, [FlashBoxStyle style]) {
+  void showStrings(List<String> messages, [FlashBoxStyle? style]) {
     showElements(messages.map((m) => DivElement()..text = m).toList(), style);
   }
 
-  void showElements(List<Element> elements, [FlashBoxStyle style]) {
+  void showElements(List<Element> elements, [FlashBoxStyle? style]) {
     _element.clearAttr('hidden');
     _element.element.classes
         .removeWhere((s) => classNamesForStyles.values.contains(s));
@@ -1090,17 +1092,17 @@ class ConsoleExpandController extends Console {
   final DElement expandButton;
   final DElement footer;
   final DElement expandIcon;
-  final Counter unreadCounter;
-  final Function onSizeChanged;
-  final EditorUi editorUi;
-  Splitter _splitter;
+  final Counter? unreadCounter;
+  final Function? onSizeChanged;
+  final EditorUi? editorUi;
+  late Splitter _splitter;
   bool _expanded;
 
   ConsoleExpandController({
-    Element expandButton,
-    Element footer,
-    Element expandIcon,
-    Element consoleElement,
+    required Element expandButton,
+    required Element footer,
+    required Element expandIcon,
+    required Element consoleElement,
     this.unreadCounter,
     this.onSizeChanged,
     this.editorUi,
@@ -1118,15 +1120,15 @@ class ConsoleExpandController extends Console {
   @override
   void showOutput(String message, {bool error = false}) {
     super.showOutput(message, error: error);
-    if (!_expanded && message != null) {
-      unreadCounter.increment();
+    if (!_expanded) {
+      unreadCounter!.increment();
     }
   }
 
   @override
   void clear() {
     super.clear();
-    unreadCounter.clear();
+    unreadCounter!.clear();
   }
 
   void open() {
@@ -1149,7 +1151,7 @@ class ConsoleExpandController extends Console {
       element.toggleAttr('hidden', false);
       expandIcon.element.innerText = 'expand_more';
       footer.toggleClass('footer-top-border', false);
-      unreadCounter.clear();
+      unreadCounter!.clear();
     } else {
       _splitter.setSizes([100, 0]);
       element.toggleAttr('hidden', true);
@@ -1162,7 +1164,7 @@ class ConsoleExpandController extends Console {
         // TODO(ryjohn): why does this happen?
       }
     }
-    onSizeChanged();
+    onSizeChanged!();
   }
 
   void _initSplitter() {
@@ -1171,26 +1173,26 @@ class ConsoleExpandController extends Console {
       querySelector('#console-output-footer'),
     ];
     _splitter = flexSplit(
-      splitterElements,
+      splitterElements as List<Element>,
       horizontal: false,
       gutterSize: defaultSplitterWidth,
       sizes: [60, 40],
       minSize: [32, 32],
     );
-    editorUi.listenForResize(splitterElements[0]);
+    editorUi!.listenForResize(splitterElements[0]);
   }
 }
 
 class EmbedContext implements ContextBase {
   final Editor userCodeEditor;
-  final Editor htmlEditor;
-  final Editor cssEditor;
+  final Editor? htmlEditor;
+  final Editor? cssEditor;
   final Editor testEditor;
   final Editor solutionEditor;
 
-  Document _dartDoc;
-  Document _htmlDoc;
-  Document _cssDoc;
+  Document? _dartDoc;
+  Document? _htmlDoc;
+  Document? _cssDoc;
 
   String hint = '';
 
@@ -1218,31 +1220,31 @@ class EmbedContext implements ContextBase {
     _dartDoc = userCodeEditor.document;
     _htmlDoc = htmlEditor?.document;
     _cssDoc = cssEditor?.document;
-    _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
-    _createReconciler(_dartDoc, _dartReconcileController, 1250);
+    _dartDoc!.onChange.listen((_) => _dartDirtyController.add(null));
+    _createReconciler(_dartDoc!, _dartReconcileController, 1250);
   }
 
-  Document get dartDocument => _dartDoc;
+  Document? get dartDocument => _dartDoc;
 
   @override
-  String get dartSource => _dartDoc.value;
+  String get dartSource => _dartDoc!.value;
 
   @override
-  String get htmlSource => _htmlDoc?.value;
+  String get htmlSource => _htmlDoc?.value ?? '';
 
   @override
-  String get cssSource => _cssDoc?.value;
+  String get cssSource => _cssDoc?.value ?? '';
 
   set dartSource(String value) {
     userCodeEditor.document.value = value;
   }
 
-  set htmlSource(String value) {
-    htmlEditor.document.value = value;
+  set htmlSource(String? value) {
+    htmlEditor!.document.value = value ?? '';
   }
 
-  set cssSource(String value) {
-    cssEditor.document.value = value;
+  set cssSource(String? value) {
+    cssEditor!.document.value = value ?? '';
   }
 
   String get activeMode => userCodeEditor.mode;
@@ -1251,15 +1253,15 @@ class EmbedContext implements ContextBase {
 
   Stream get onDartReconcile => _dartReconcileController.stream;
 
-  void markDartClean() => _dartDoc.markClean();
+  void markDartClean() => _dartDoc!.markClean();
 
   /// Restore the focus to the last focused editor.
   void focus() => userCodeEditor.focus();
 
   void _createReconciler(Document doc, StreamController controller, int delay) {
-    Timer timer;
+    Timer? timer;
     doc.onChange.listen((_) {
-      if (timer != null) timer.cancel();
+      if (timer != null) timer!.cancel();
       timer = Timer(Duration(milliseconds: delay), () {
         controller.add(null);
       });
@@ -1283,7 +1285,7 @@ final RegExp _dartUrlExp =
 
 String filterCloudUrls(String trace) {
   return trace
-      ?.replaceAllMapped(
+      .replaceAllMapped(
           _flutterUrlExp, (m) => '[Flutter SDK Source]${m.group(2)}')
-      ?.replaceAllMapped(_dartUrlExp, (m) => '[Dart SDK Source]${m.group(2)}');
+      .replaceAllMapped(_dartUrlExp, (m) => '[Dart SDK Source]${m.group(2)}');
 }

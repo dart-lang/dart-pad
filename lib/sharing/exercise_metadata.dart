@@ -29,25 +29,25 @@ const exerciseModeNames = <String, ExerciseMode>{
 
 /// Metadata for a single file within a larger exercise.
 class ExerciseFileMetadata {
-  String name;
-  String alternatePath;
+  late String name;
+  late String alternatePath;
 
-  String get path =>
-      (alternatePath == null || alternatePath.isEmpty) ? name : alternatePath;
+  String get path => alternatePath.isEmpty ? name : alternatePath;
 
-  ExerciseFileMetadata.fromMap(map) {
+  ExerciseFileMetadata.fromMap(Map? map) {
     if (map == null) {
       throw MetadataException('Null json was given to ExerciseFileMetadata().');
     }
 
     if (map['name'] == null ||
         map['name'] is! String ||
-        map['name'].isEmpty as bool) {
+        map['name']?.isEmpty as bool) {
       throw MetadataException('The "name" field is required for each file.');
     }
 
-    name = map['name'] as String;
-    alternatePath = map['alternatePath'] as String;
+    name = map.containsKey('name') ? map['name'] as String : '';
+    alternatePath =
+        map.containsKey('alternatePath') ? map['alternatePath'] as String : '';
   }
 }
 
@@ -57,9 +57,9 @@ class ExerciseFileMetadata {
 /// This data will be deserialized from that file when an exercise is loaded
 /// from GitHub, and used to set up the DartPad environment for that exercise.
 class ExerciseMetadata {
-  String name;
-  ExerciseMode mode;
-  List<ExerciseFileMetadata> files;
+  late String name;
+  late ExerciseMode mode;
+  late List<ExerciseFileMetadata> files;
 
   ExerciseMetadata.fromMap(map) {
     if (map == null) {
@@ -87,9 +87,9 @@ class ExerciseMetadata {
     }
 
     name = map['name'] as String;
-    mode = exerciseModeNames[map['mode']];
+    mode = exerciseModeNames[map['mode']]!;
     files = (map['files'] as yaml.YamlList)
-        .map((f) => ExerciseFileMetadata.fromMap(f))
+        .map((f) => ExerciseFileMetadata.fromMap(f as yaml.YamlMap))
         .toList();
   }
 }

@@ -16,20 +16,20 @@ abstract class State {
 
 class HtmlState implements State {
   final String id;
-  Map<String, dynamic> _values = {};
+  Map<String, dynamic>? _values = {};
 
   HtmlState(this.id) {
     if (window.localStorage.containsKey(id)) {
-      _values = json.decode(window.localStorage[id]) as Map<String, dynamic>;
+      _values = json.decode(window.localStorage[id]!) as Map<String, dynamic>?;
     }
   }
 
   @override
-  dynamic operator [](String key) => _values[key];
+  dynamic operator [](String key) => _values![key];
 
   @override
   void operator []=(String key, dynamic value) {
-    _values[key] = value;
+    _values![key] = value;
     window.localStorage[id] = json.encode(_values);
   }
 }

@@ -108,6 +108,7 @@ const _preNullSafetyServerUrlOption = 'pre-null-safety-server-url';
 const _nullSafetyServerUrlOption = 'null-safety-server-url';
 
 @Task('Build the `web/index.html` entrypoint')
+@Depends(generateProtos)
 build() {
   var args = context.invocation.arguments;
   var compilerArgs = {
@@ -168,14 +169,14 @@ build() {
 
 /// Formats a map of argument key and values to be passed as `dart2js_args` for
 /// webdev.
-String _formatDart2jsArgs(Map<String, String> args) {
+String _formatDart2jsArgs(Map<String, String?> args) {
   var values = args.entries.map((entry) => '"-D${entry.key}=${entry.value}"');
   return '[${values.join(',')}]';
 }
 
 /// Formats a map of argument key and values to be passed as DDC environment
 /// variables.
-String _formatDdcArgs(Map<String, String> args) {
+String _formatDdcArgs(Map<String, String?> args) {
   var values = args.entries.map((entry) => '"${entry.key}":"${entry.value}"');
   return '{${values.join(',')}}';
 }
@@ -191,7 +192,7 @@ coverage() {
   coveralls.run([
     'report',
     '--token',
-    _env['COVERAGE_TOKEN'],
+    _env['COVERAGE_TOKEN']!,
     '--retry',
     '2',
     '--exclude-test-files',
@@ -200,7 +201,7 @@ coverage() {
 }
 
 @DefaultTask()
-@Depends(testCli, coverage, build)
+@Depends(generateProtos, testCli, coverage, build)
 void buildbot() {}
 
 @Task('Prepare the app for deployment')
@@ -256,6 +257,7 @@ void generateProtos() {
 
   // generate common_server_proto.g.dart
   Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
+  Process.runSync('dart', ['format', 'lib/src/protos']);
 }
 
 /// An implementation of [TaskArgs] which can be used as a const value in an
@@ -283,7 +285,7 @@ class ConstTaskArgs implements TaskArgs {
   bool hasOption(String name) => _options.containsKey(name);
 
   @override
-  String getOption(String name) => _options[name];
+  String? getOption(String name) => _options[name];
 
   @override
   List<String> get arguments => throw UnimplementedError();

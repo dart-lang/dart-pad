@@ -23,7 +23,7 @@ final CodeMirrorFactory codeMirrorFactory = CodeMirrorFactory._();
 class CodeMirrorFactory extends EditorFactory {
   CodeMirrorFactory._();
 
-  String get version => CodeMirror.version;
+  String? get version => CodeMirror.version;
 
   @override
   List<String> get modes => CodeMirror.MODES;
@@ -32,7 +32,7 @@ class CodeMirrorFactory extends EditorFactory {
   List<String> get themes => CodeMirror.THEMES;
 
   @override
-  Editor createFromElement(html.Element element, {Map /*?*/ options}) {
+  Editor createFromElement(html.Element element, {Map? options}) {
     options ??= {
       'continueComments': {'continueLineComment': false},
       'autofocus': false,
@@ -66,7 +66,7 @@ class CodeMirrorFactory extends EditorFactory {
   @override
   void registerCompleter(String mode, CodeCompleter completer) {
     Hints.registerHintsHelperAsync(mode, (CodeMirror editor,
-        [HintsOptions options]) {
+        [HintsOptions? options]) {
       return _completionHelper(editor, completer, options);
     });
   }
@@ -77,16 +77,16 @@ class CodeMirrorFactory extends EditorFactory {
   }
 
   Future<HintResults> _completionHelper(
-      CodeMirror editor, CodeCompleter completer, HintsOptions options) {
+      CodeMirror editor, CodeCompleter completer, HintsOptions? options) {
     var ed = _CodeMirrorEditor._fromExisting(this, editor);
 
     return completer
         .complete(ed, onlyShowFixes: ed._lookingForQuickFix)
         .then((CompletionResult result) {
-      var doc = editor.getDoc();
+      var doc = editor.getDoc()!;
       var from = doc.posFromIndex(result.replaceOffset);
       var to = doc.posFromIndex(result.replaceOffset + result.replaceLength);
-      var stringToReplace = doc.getValue().substring(
+      var stringToReplace = doc.getValue()!.substring(
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
       var hints = result.completions.map((completion) {
@@ -94,9 +94,9 @@ class CodeMirrorFactory extends EditorFactory {
           completion.value,
           displayText: completion.displayString,
           className: completion.type,
-          hintApplier: (CodeMirror editor, HintResult hint, pos.Position from,
-              pos.Position to) {
-            doc.replaceRange(hint.text, from, to);
+          hintApplier: (CodeMirror editor, HintResult hint, pos.Position? from,
+              pos.Position? to) {
+            doc.replaceRange(hint.text!, from!, to);
 
             if (completion.type == 'type-quick_fix') {
               for (final edit in completion.quickFixes) {
@@ -106,15 +106,15 @@ class CodeMirrorFactory extends EditorFactory {
 
             if (completion.absoluteCursorPosition != null) {
               doc.setCursor(
-                  doc.posFromIndex(completion.absoluteCursorPosition));
+                  doc.posFromIndex(completion.absoluteCursorPosition!));
             } else if (completion.cursorOffset != null) {
-              var diff = hint.text.length - completion.cursorOffset;
+              var diff = hint.text!.length - completion.cursorOffset!;
               doc.setCursor(pos.Position(
-                  editor.getCursor().line, editor.getCursor().ch - diff));
+                  editor.getCursor().line, editor.getCursor().ch! - diff));
             }
           },
           hintRenderer: (html.Element element, HintResult hint) {
-            var escapeHtml = HtmlEscape().convert;
+            var escapeHtml = HtmlEscape().convert as String Function(String?);
             if (completion.type != 'type-quick_fix') {
               element.innerHtml = escapeHtml(completion.displayString)
                   .replaceFirst(escapeHtml(stringToReplace),
@@ -154,9 +154,9 @@ class _CodeMirrorEditor extends Editor {
 
   final CodeMirror cm;
 
-  _CodeMirrorDocument _document;
+  late _CodeMirrorDocument _document;
 
-  bool _lookingForQuickFix;
+  late bool _lookingForQuickFix;
 
   _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
     _document = _CodeMirrorDocument._(this, cm.getDoc());
@@ -169,7 +169,7 @@ class _CodeMirrorEditor extends Editor {
     // same instances to us when possible (or, identity is based on the
     // underlying JS proxy).
     if (_instances.containsKey(cm.jsProxy)) {
-      return _instances[cm.jsProxy];
+      return _instances[cm.jsProxy]!;
     } else {
       return _CodeMirrorEditor._(factory, cm);
     }
@@ -179,7 +179,7 @@ class _CodeMirrorEditor extends Editor {
   Document get document => _document;
 
   @override
-  Document createDocument({String content, String mode}) {
+  Document createDocument({String? content, String? mode}) {
     if (mode == 'html') mode = 'text/html';
     content ??= '';
 
@@ -207,47 +207,48 @@ class _CodeMirrorEditor extends Editor {
 
   @override
   bool get completionActive {
-    if (cm.jsProxy['state']['completionActive'] == null) {
+    if (cm.jsProxy!['state']['completionActive'] == null) {
       return false;
     } else {
-      return cm.jsProxy['state']['completionActive']['widget'] != null;
+      return cm.jsProxy!['state']['completionActive']['widget'] != null;
     }
   }
 
   @override
-  bool get autoCloseBrackets => cm.getOption('autoCloseBrackets') as bool;
+  bool? get autoCloseBrackets => cm.getOption('autoCloseBrackets') as bool?;
 
   @override
-  set autoCloseBrackets(bool value) => cm.setOption('autoCloseBrackets', value);
+  set autoCloseBrackets(bool? value) =>
+      cm.setOption('autoCloseBrackets', value);
 
   @override
-  String get mode => cm.getMode();
+  String get mode => cm.getMode()!;
 
   @override
   set mode(String str) => cm.setMode(str);
 
   @override
-  String get theme => cm.getTheme();
+  String get theme => cm.getTheme()!;
 
   @override
   set theme(String str) => cm.setTheme(str);
 
   @override
-  bool get hasFocus => cm.jsProxy['state']['focused'] as bool;
+  bool get hasFocus => cm.jsProxy!['state']['focused'] as bool;
 
   @override
   Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
 
   @override
-  Point getCursorCoords({ed.Position position}) {
-    JsObject js;
+  Point getCursorCoords({ed.Position? position}) {
+    JsObject? js;
     if (position == null) {
-      js = cm.call('cursorCoords') as JsObject;
+      js = cm.call('cursorCoords') as JsObject?;
     } else {
       js = cm.callArg('cursorCoords', _document._posToPos(position).toProxy())
-          as JsObject;
+          as JsObject?;
     }
-    return Point(js['left'] as num, js['top'] as num);
+    return Point(js!['left'] as num, js['top'] as num);
   }
 
   @override
@@ -263,7 +264,7 @@ class _CodeMirrorEditor extends Editor {
   set readOnly(bool ro) => cm.setReadOnly(ro);
 
   @override
-  bool get showLineNumbers => cm.getLineNumbers();
+  bool get showLineNumbers => cm.getLineNumbers()!;
 
   @override
   set showLineNumbers(bool ln) => cm.setLineNumbers(ln);
@@ -271,7 +272,7 @@ class _CodeMirrorEditor extends Editor {
   @override
   void swapDocument(Document document) {
     _document = document as _CodeMirrorDocument;
-    cm.swapDoc(_document.doc);
+    cm.swapDoc(_document.doc!);
   }
 
   @override
@@ -281,68 +282,68 @@ class _CodeMirrorEditor extends Editor {
 }
 
 class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
-  final Doc doc;
+  final Doc? doc;
 
   final List<LineWidget> widgets = [];
   final List<html.DivElement> nodes = [];
 
   /// We use `_lastSetValue` here to avoid a change notification when we
   /// programmatically change the `value` field.
-  String _lastSetValue;
+  String? _lastSetValue;
 
   _CodeMirrorDocument._(_CodeMirrorEditor editor, this.doc) : super(editor);
 
   _CodeMirrorEditor get parent => editor;
 
   @override
-  String get value => doc.getValue();
+  String get value => doc!.getValue()!;
 
   @override
   set value(String str) {
     _lastSetValue = str;
-    doc.setValue(str);
-    doc.markClean();
-    doc.clearHistory();
+    doc!.setValue(str);
+    doc!.markClean();
+    doc!.clearHistory();
   }
 
   @override
-  void updateValue(String str) {
-    doc.setValue(str);
+  void updateValue(String? str) {
+    doc!.setValue(str!);
   }
 
   @override
-  ed.Position get cursor => _posFromPos(doc.getCursor());
+  ed.Position get cursor => _posFromPos(doc!.getCursor());
 
   @override
-  void select(ed.Position start, [ed.Position end]) {
+  void select(ed.Position start, [ed.Position? end]) {
     if (end != null) {
-      doc.setSelection(_posToPos(start), head: _posToPos(end));
+      doc!.setSelection(_posToPos(start), head: _posToPos(end));
     } else {
-      doc.setSelection(_posToPos(start));
+      doc!.setSelection(_posToPos(start));
     }
   }
 
   @override
-  String get selection => doc.getSelection(value);
+  String get selection => doc!.getSelection(value)!;
 
   @override
   String get mode => parent.mode;
 
   @override
-  bool get isClean => doc.isClean();
+  bool get isClean => doc!.isClean()!;
 
   @override
-  void markClean() => doc.markClean();
+  void markClean() => doc!.markClean();
 
   @override
   void applyEdit(SourceEdit edit) {
-    doc.replaceRange(edit.replacement, _posToPos(posFromIndex(edit.offset)),
+    doc!.replaceRange(edit.replacement, _posToPos(posFromIndex(edit.offset)),
         _posToPos(posFromIndex(edit.offset + edit.length)));
   }
 
   @override
   void setAnnotations(List<Annotation> annotations) {
-    for (var marker in doc.getAllMarks()) {
+    for (var marker in doc!.getAllMarks()) {
       marker.clear();
     }
 
@@ -352,7 +353,7 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
     widgets.clear();
 
     for (var e in nodes) {
-      e.parent.children.remove(e);
+      e.parent!.children.remove(e);
     }
     nodes.clear();
 
@@ -363,7 +364,7 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
 
     for (var an in annotations) {
       // Create in-line squiggles.
-      doc.markText(_posToPos(an.start), _posToPos(an.end),
+      doc!.markText(_posToPos(an.start), _posToPos(an.end),
           className: 'squiggle-${an.type}', title: an.message);
 
       // Create markers in the margin.
@@ -374,20 +375,20 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
 
   @override
   int indexFromPos(ed.Position position) =>
-      doc.indexFromPos(_posToPos(position));
+      doc!.indexFromPos(_posToPos(position))!;
 
   @override
-  ed.Position posFromIndex(int index) => _posFromPos(doc.posFromIndex(index));
+  ed.Position posFromIndex(int index) => _posFromPos(doc!.posFromIndex(index));
 
   pos.Position _posToPos(ed.Position position) =>
       pos.Position(position.line, position.char);
 
   ed.Position _posFromPos(pos.Position position) =>
-      ed.Position(position.line, position.ch);
+      ed.Position(position.line!, position.ch!);
 
   @override
   Stream get onChange {
-    return doc.onChange.where((_) {
+    return doc!.onChange.where((_) {
       if (value != _lastSetValue) {
         _lastSetValue = null;
         return true;

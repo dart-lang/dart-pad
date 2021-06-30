@@ -7,7 +7,7 @@ enum WorkshopFetchExceptionType {
 
 class WorkshopFetchException implements Exception {
   final WorkshopFetchExceptionType failureType;
-  final String message;
+  final String? message;
 
   const WorkshopFetchException(this.failureType, [this.message]);
 }

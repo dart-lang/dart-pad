@@ -8,8 +8,8 @@ import 'package:test/test.dart';
 void main() => defineTests();
 
 void defineTests() {
-  MockClient mockClient;
-  MockClient rateLimitedMockClient;
+  late MockClient mockClient;
+  late MockClient rateLimitedMockClient;
 
   setUp(() async {
     mockClient = MockClient((request) {
@@ -73,7 +73,7 @@ void defineTests() {
       test('Returns valid gist for valid gist id', () async {
         final loader = GistLoader(client: mockClient);
         final gist = await loader.loadGist('12345678901234567890123456789012');
-        final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
+        final contents = gist.files!.firstWhere((f) => f.name == 'main.dart');
         expect(contents.content, 'This is some dart code!');
       });
       test('Throws correct exception for nonexistent gist', () async {
@@ -96,14 +96,14 @@ void defineTests() {
         final loader = GistLoader(client: mockClient);
         final gist = await loader.loadGistFromAPIDocs(
             'material.AppBar.1', FlutterSdkChannel.stable);
-        final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
+        final contents = gist.files!.firstWhere((f) => f.name == 'main.dart');
         expect(contents.content, stableAPIDocSample);
       });
       test('Returns master version gist for master sample id', () async {
         final loader = GistLoader(client: mockClient);
         final gist = await loader.loadGistFromAPIDocs(
             'material.AppBar.1', FlutterSdkChannel.master);
-        final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
+        final contents = gist.files!.firstWhere((f) => f.name == 'main.dart');
         expect(contents.content, masterAPIDocSample);
       });
       test('Throws correct exception for nonexistent sample', () async {
@@ -126,7 +126,7 @@ void defineTests() {
         final loader = GistLoader(client: mockClient);
         final gist = await loader.loadGistFromRepo(
             owner: 'owner', repo: 'repo', path: 'basic');
-        final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
+        final contents = gist.files!.firstWhere((f) => f.name == 'main.dart');
         expect(contents.content, 'this is main.dart');
       });
       test('Returns valid gist for alternate branch', () async {
@@ -136,7 +136,7 @@ void defineTests() {
             repo: 'repo',
             path: 'alt_branch',
             ref: 'some_branch');
-        final contents = gist.files.firstWhere((f) => f.name == 'main.dart');
+        final contents = gist.files!.firstWhere((f) => f.name == 'main.dart');
         expect(contents.content, 'this is main.dart');
       });
       test('Throws exception for invalid metadata', () async {
@@ -189,14 +189,14 @@ void defineTests() {
         final gist = await loader.loadGistFromRepo(
             owner: 'owner', repo: 'repo', path: 'unnecessary_file');
         final contents =
-            gist.files.firstWhere((f) => f.name == 'unnecessary.txt');
+            gist.files!.firstWhere((f) => f.name == 'unnecessary.txt');
         expect(contents.content, 'this is unnecessary.txt');
       });
       test('Returns gist for metadata with alternate path', () async {
         final loader = GistLoader(client: mockClient);
         final gist = await loader.loadGistFromRepo(
             owner: 'owner', repo: 'repo', path: 'alternate_path');
-        final contents = gist.files.firstWhere((f) => f.name == 'test.dart');
+        final contents = gist.files!.firstWhere((f) => f.name == 'test.dart');
         expect(contents.content, 'this is test.dart');
       });
       test('Throws correct exception for incorrect metadata path', () async {

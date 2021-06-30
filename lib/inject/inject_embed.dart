@@ -49,7 +49,7 @@ String iframeSrc(Map<String, String> options) {
   return '$iframePrefix$prefix?$theme&$run&$split&$analytics&$nullSafety';
 }
 
-String _valueOr(Map<String, String> map, String value, String defaultValue) {
+String? _valueOr(Map<String, String> map, String value, String defaultValue) {
   if (map.containsKey(value)) {
     return map[value];
   }
@@ -78,17 +78,17 @@ void _injectEmbed(Element snippet, Map<String, String> options) {
     return;
   }
 
-  var files = _parseFiles(HtmlUnescape().convert(snippet.innerHtml));
+  var files = _parseFiles(HtmlUnescape().convert(snippet.innerHtml!));
 
-  var hostIndex = preElement.parent.children.indexOf(preElement);
+  var hostIndex = preElement.parent!.children.indexOf(preElement);
   var host = DivElement();
-  preElement.parent.children[hostIndex] = host;
+  preElement.parent!.children[hostIndex] = host;
 
   InjectedEmbed(host, files, options);
 }
 
 Map<String, String> _parseFiles(String snippet) {
-  return InjectParser(snippet).read();
+  return InjectParser(snippet).read() as Map<String, String>;
 }
 
 /// Clears children in [host], instantiates an iframe, and sends it a message
@@ -120,7 +120,7 @@ class InjectedEmbed {
     window.addEventListener('message', (dynamic e) {
       if (e.data['type'] == 'ready') {
         var m = {'sourceCode': files, 'type': 'sourceCode'};
-        iframe.contentWindow.postMessage(m, '*');
+        iframe.contentWindow!.postMessage(m, '*');
       }
     });
   }

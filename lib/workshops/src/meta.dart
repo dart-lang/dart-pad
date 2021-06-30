@@ -1,5 +1,4 @@
 import 'package:json_annotation/json_annotation.dart';
-import 'package:meta/meta.dart';
 
 import 'workshop.dart';
 
@@ -13,16 +12,16 @@ part 'meta.g.dart';
 )
 class Meta {
   @JsonKey(required: true)
-  final String name;
+  final String? name;
 
   @JsonKey(
     required: false,
     defaultValue: WorkshopType.dart,
   )
-  final WorkshopType type;
+  final WorkshopType? type;
 
   @JsonKey(required: true)
-  final List<StepConfiguration> steps;
+  final List<StepConfiguration>? steps;
 
   Meta(this.name, this.steps, {this.type});
 
@@ -46,8 +45,8 @@ class StepConfiguration {
   final bool hasSolution;
 
   StepConfiguration({
-    @required this.name,
-    @required this.directory,
+    required this.name,
+    required this.directory,
     this.hasSolution = false,
   });
 
