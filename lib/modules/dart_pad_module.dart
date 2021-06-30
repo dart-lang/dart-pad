@@ -12,9 +12,7 @@ import '../elements/state.dart';
 class DartPadModule extends Module {
   @override
   Future init() {
-    if (Dependencies.instance == null) {
-      Dependencies.setGlobalInstance(Dependencies());
-    }
+    Dependencies.setGlobalInstance(Dependencies());
 
     deps[Keys] = Keys();
     deps[State] = HtmlState('dart_pad');

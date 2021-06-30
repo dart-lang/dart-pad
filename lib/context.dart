@@ -20,17 +20,17 @@ abstract class Context implements ContextBase {
   @override
   bool get isFocused => focusedEditor == 'dart';
 
-  String name;
-  String description;
+  String? name;
+  String? description;
 
   @override
-  String dartSource;
+  String dartSource = '';
 
   @override
-  String htmlSource;
+  String htmlSource = '';
 
   @override
-  String cssSource;
+  String cssSource = '';
 
   String get activeMode;
   Stream<String> get onModeChange;

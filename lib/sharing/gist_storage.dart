@@ -11,7 +11,7 @@ import 'package:dart_pad/sharing/gists.dart';
 class GistStorage {
   static final String _key = 'gist';
 
-  String _storedId;
+  String? _storedId;
 
   GistStorage() {
     var gist = getStoredGist();
@@ -24,10 +24,10 @@ class GistStorage {
 
   /// Return the id of the stored gist. This will return `null` if there is no
   /// gist stored.
-  String get storedId =>
-      _storedId == null || _storedId.isEmpty ? null : _storedId;
+  String? get storedId =>
+      _storedId == null || _storedId!.isEmpty ? null : _storedId;
 
-  Gist getStoredGist() {
+  Gist? getStoredGist() {
     var data = window.localStorage[_key];
     return data == null
         ? null

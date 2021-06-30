@@ -23,7 +23,7 @@ class AnalysisResultsController {
   final DElement flash;
   final DElement message;
   final DElement toggle;
-  bool _flashHidden;
+  late bool _flashHidden;
 
   final StreamController<Location> _onClickController =
       StreamController.broadcast();
@@ -83,7 +83,7 @@ class AnalysisResultsController {
 
     elem.children.add(SpanElement()
       ..text = issue.kind
-      ..classes.addAll(_classesForType[issue.kind]));
+      ..classes.addAll(_classesForType[issue.kind]!));
 
     var columnElem = DivElement()..classes.add('issue-column');
 
@@ -93,7 +93,7 @@ class AnalysisResultsController {
     columnElem.children.add(messageSpan);
 
     // Add a link to the documentation
-    if (issue.url != null && issue.url.isNotEmpty) {
+    if (issue.url.isNotEmpty) {
       messageSpan.children.add(AnchorElement()
         ..href = issue.url
         ..text = ' (view docs)'
@@ -102,7 +102,7 @@ class AnalysisResultsController {
     }
 
     // Add the correction, if any.
-    if (issue.correction != null && issue.correction.isNotEmpty) {
+    if (issue.correction.isNotEmpty) {
       columnElem.children.add(DivElement()
         ..text = issue.correction
         ..classes.add('message'));
@@ -173,8 +173,8 @@ class Location {
   final int charLength;
 
   Location({
-    this.line,
-    this.charStart,
-    this.charLength,
+    required this.line,
+    required this.charStart,
+    required this.charLength,
   });
 }

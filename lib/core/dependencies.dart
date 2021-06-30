@@ -38,7 +38,7 @@ Dependencies get deps => Dependencies.instance;
 /// [Dependencies.instance] will return the new dependencies set up for that
 /// zone.
 class Dependencies {
-  static Dependencies _global;
+  static late Dependencies _global;
 
   static void setGlobalInstance(Dependencies deps) {
     _global = deps;
@@ -47,7 +47,7 @@ class Dependencies {
   /// Get the current logical instance. This is the instance associated with the
   /// current Zone, parent Zones, or the global instance.
   static Dependencies get instance {
-    var deps = Zone.current['dependencies'] as Dependencies;
+    var deps = Zone.current['dependencies'] as Dependencies?;
     return deps ?? _global;
   }
 
@@ -55,7 +55,7 @@ class Dependencies {
 
   Dependencies();
 
-  Dependencies get parent => _calcParent(Zone.current);
+  Dependencies? get parent => _calcParent(Zone.current);
 
   dynamic getDependency(Type type) {
     if (_instances.containsKey(type)) {
@@ -89,13 +89,13 @@ class Dependencies {
 
   /// Determine the [Dependencies] instance that is the logical parent of the
   /// [Dependencies] for the given [Zone].
-  Dependencies _calcParent(Zone zone) {
+  Dependencies? _calcParent(Zone zone) {
     if (this == _global) return null;
 
     var parentZone = zone.parent;
     if (parentZone == null) return _global;
 
-    var deps = parentZone['dependencies'] as Dependencies;
+    var deps = parentZone['dependencies'] as Dependencies?;
     if (deps == this) {
       return _calcParent(parentZone);
     } else {

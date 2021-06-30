@@ -34,7 +34,7 @@ void defineTests() {
 
     test('target functions', () {
       var from = TestProperty('foo');
-      Object val;
+      Object? val;
       bind(from, (_val) => val = _val).flush();
       expect(val, from.value);
     });
@@ -64,7 +64,7 @@ void defineTests() {
 
 class TestProperty implements Property {
   final _controller = StreamController(sync: true);
-  Object value;
+  Object? value;
   int changedCount = 0;
 
   TestProperty([this.value]);

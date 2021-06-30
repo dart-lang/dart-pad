@@ -17,10 +17,10 @@ enum DialogResult {
 
 class Dialog {
   final MDCDialog _mdcDialog;
-  final Element _leftButton;
-  final Element _rightButton;
-  final Element _title;
-  final Element _content;
+  final Element? _leftButton;
+  final Element? _rightButton;
+  final Element? _title;
+  final Element? _content;
 
   Dialog()
       : assert(querySelector('.mdc-dialog') != null),
@@ -28,7 +28,7 @@ class Dialog {
         assert(querySelector('#dialog-right-button') != null),
         assert(querySelector('#my-dialog-title') != null),
         assert(querySelector('#my-dialog-content') != null),
-        _mdcDialog = MDCDialog(querySelector('.mdc-dialog')),
+        _mdcDialog = MDCDialog(querySelector('.mdc-dialog')!),
         _leftButton = querySelector('#dialog-left-button'),
         _rightButton = querySelector('#dialog-right-button'),
         _title = querySelector('#my-dialog-title'),
@@ -46,7 +46,7 @@ class Dialog {
     );
   }
 
-  Future<DialogResult> showOk(String title, String htmlMessage) {
+  Future<DialogResult> showOk(String title, String? htmlMessage) {
     return _setUpAndDisplay(
       title,
       htmlMessage,
@@ -71,30 +71,30 @@ class Dialog {
 
   Future<DialogResult> _setUpAndDisplay(
       String title,
-      String htmlMessage,
+      String? htmlMessage,
       String leftButtonText,
       String rightButtonText,
       DialogResult leftButtonResult,
       DialogResult rightButtonResult,
       [bool showLeftButton = true]) {
-    _title.text = title;
-    _content.setInnerHtml(htmlMessage, validator: PermissiveNodeValidator());
-    _rightButton.text = rightButtonText;
+    _title!.text = title;
+    _content!.setInnerHtml(htmlMessage, validator: PermissiveNodeValidator());
+    _rightButton!.text = rightButtonText;
 
     final completer = Completer<DialogResult>();
-    StreamSubscription leftSub;
+    StreamSubscription? leftSub;
 
     if (showLeftButton) {
-      _leftButton.text = leftButtonText;
-      _leftButton.removeAttribute('hidden');
-      leftSub = _leftButton.onClick.listen((_) {
+      _leftButton!.text = leftButtonText;
+      _leftButton!.removeAttribute('hidden');
+      leftSub = _leftButton!.onClick.listen((_) {
         completer.complete(leftButtonResult);
       });
     } else {
-      _leftButton.setAttribute('hidden', 'true');
+      _leftButton!.setAttribute('hidden', 'true');
     }
 
-    final rightSub = _rightButton.onClick.listen((_) {
+    final rightSub = _rightButton!.onClick.listen((_) {
       completer.complete(rightButtonResult);
     });
 

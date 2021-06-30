@@ -8,13 +8,13 @@ class InjectParser {
   final String input;
   final RegExp _beginExp = RegExp(r'{\$ begin ([a-z.]*) \$}');
   final RegExp _endExp = RegExp(r'{\$ end ([a-z.]*) \$}');
-  int _currentLine;
-  String _currentFile;
-  final Map<String, String> _tokens = {};
+  int? _currentLine;
+  String? _currentFile;
+  final Map<String?, String> _tokens = {};
   InjectParser(this.input);
 
   /// Returns filenames and contents that were parsed from the input
-  Map<String, String> read() {
+  Map<String?, String> read() {
     var lines = input.split('\n');
     for (var i = 0; i < lines.length; i++) {
       _currentLine = i;
@@ -31,7 +31,7 @@ class InjectParser {
   void _readLine(String line) {
     if (_beginExp.hasMatch(line)) {
       if (_currentFile == null) {
-        _currentFile = _beginExp.firstMatch(line)[1];
+        _currentFile = _beginExp.firstMatch(line)![1];
       } else {
         _error('$_currentLine: unexpected begin');
       }
@@ -39,7 +39,7 @@ class InjectParser {
       if (_currentFile == null) {
         _error('$_currentLine: unexpected end');
       } else {
-        var match = _endExp.firstMatch(line)[1];
+        var match = _endExp.firstMatch(line)![1];
         if (match != _currentFile) {
           _error('$_currentLine: end statement did not match begin statement');
         } else {
@@ -53,11 +53,11 @@ class InjectParser {
     }
   }
 
-  void _addLine(String line, String file) {
+  void _addLine(String line, String? file) {
     if (_tokens[_currentFile] == null) {
       _tokens[_currentFile] = line;
     } else {
-      _tokens[_currentFile] += '\n$line';
+      _tokens[_currentFile] = (_tokens[_currentFile] ?? '') + '\n$line';
     }
   }
 
@@ -99,7 +99,7 @@ class LanguageStringParser {
       if (match.groupCount != 2) {
         continue;
       }
-      opts[match[1]] = match[2];
+      opts[match[1]!] = match[2]!;
     }
 
     return opts;

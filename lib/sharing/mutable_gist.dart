@@ -12,33 +12,33 @@ import 'gists.dart';
 /// On overlay on a gist. Used to edit gists, this overlay knows about its dirty
 /// state, and can have dirty state listeners.
 class MutableGist implements PropertyOwner {
-  Gist _backingGist;
-  final _localValues = <String, String>{};
+  Gist? _backingGist;
+  final _localValues = <String?, String?>{};
 
-  final _files = <String, MutableGistFile>{};
+  final _files = <String?, MutableGistFile>{};
 
   final _dirtyChangedController = StreamController<bool>.broadcast();
   final _changedController = StreamController.broadcast();
 
   MutableGist(this._backingGist);
 
-  bool get hasId => id != null && id.isNotEmpty;
+  bool get hasId => id != null && id!.isNotEmpty;
 
   bool get dirty => _localValues.isNotEmpty;
 
-  String get id => _backingGist.id;
+  String? get id => _backingGist!.id;
 
-  String get description => _getProperty('description');
+  String? get description => _getProperty('description');
 
-  set description(String value) => _setProperty('description', value);
+  set description(String? value) => _setProperty('description', value);
 
-  String get htmlUrl => _getProperty('html_url');
+  String? get htmlUrl => _getProperty('html_url');
 
-  String get summary => _getProperty('summary');
+  String? get summary => _getProperty('summary');
 
-  bool get public => _backingGist.public;
+  bool? get public => _backingGist!.public;
 
-  MutableGistFile getGistFile(String name) {
+  MutableGistFile? getGistFile(String? name) {
     if (_files[name] == null) {
       _files[name] = MutableGistFile._(this, name);
     }
@@ -46,15 +46,15 @@ class MutableGist implements PropertyOwner {
   }
 
   List<MutableGistFile> getFiles() {
-    for (final f in _backingGist.files) {
+    for (final f in _backingGist!.files!) {
       getGistFile(f.name);
     }
     return _files.values.toList();
   }
 
-  Gist get backingGist => _backingGist;
+  Gist? get backingGist => _backingGist;
 
-  void setBackingGist(Gist newGist, {bool wipeState = true}) {
+  void setBackingGist(Gist? newGist, {bool wipeState = true}) {
     var wasDirty = dirty;
     if (wipeState) _localValues.clear();
     _backingGist = newGist;
@@ -67,25 +67,25 @@ class MutableGist implements PropertyOwner {
   Stream get onChanged => _changedController.stream;
 
   @override
-  List<String> get propertyNames {
-    final set = <String>{};
+  List<String?> get propertyNames {
+    final set = <String?>{};
     set.add('id');
     set.add('description');
     set.add('html_url');
     set.add('summary');
-    set.addAll(_backingGist.files.map((f) => f.name));
+    set.addAll(_backingGist!.files!.map((f) => f.name));
     set.addAll(_localValues.keys);
     return set.toList();
   }
 
   @override
-  Property<String> property(String name) => _MutableGistProperty(this, name);
+  Property<String?> property(String? name) => _MutableGistProperty(this, name);
 
-  Gist createGist({String summary}) {
+  Gist createGist({String? summary}) {
     var gist = Gist(description: description, id: id, public: public);
     gist.htmlUrl = htmlUrl;
     for (var file in getFiles()) {
-      gist.files.add(GistFile(name: file.name, content: file.content));
+      gist.files!.add(GistFile(name: file.name, content: file.content));
     }
     if (summary != null) gist.summary = summary;
     return gist;
@@ -98,15 +98,15 @@ class MutableGist implements PropertyOwner {
     _changedController.add(null);
   }
 
-  String _getProperty(String key) {
+  String? _getProperty(String? key) {
     if (_localValues.containsKey(key)) return _localValues[key];
-    return _backingGist[key] as String;
+    return _backingGist![key] as String?;
   }
 
-  void _setProperty(String key, String data) {
+  void _setProperty(String? key, String? data) {
     var wasDirty = dirty;
     _localValues[key] = data;
-    if (_localValues[key] == _backingGist[key]) _localValues.remove(key);
+    if (_localValues[key] == _backingGist![key]) _localValues.remove(key);
     if (wasDirty != dirty) _dirtyChangedController.add(dirty);
     _changedController.add(null);
   }
@@ -117,17 +117,17 @@ class MutableGist implements PropertyOwner {
 
 class MutableGistFile {
   final MutableGist _parent;
-  final String name;
+  final String? name;
 
   MutableGistFile._(this._parent, this.name);
 
-  String get content => _parent._getProperty(name);
+  String? get content => _parent._getProperty(name);
 
-  set content(String value) {
+  set content(String? value) {
     _parent._setProperty(name, value);
   }
 
-  Stream<String> get onChanged => _parent.property(name).onChanged;
+  Stream<String?>? get onChanged => _parent.property(name).onChanged;
 }
 
 /// An entity that can own a gist.
@@ -140,12 +140,12 @@ abstract class GistContainer {
   void overrideNextRoute(Gist gist);
 }
 
-class _MutableGistProperty implements Property<String> {
+class _MutableGistProperty implements Property<String?> {
   final MutableGist mutableGist;
-  final String name;
+  final String? name;
 
-  final _changedController = StreamController<String>.broadcast(sync: true);
-  String _value;
+  final _changedController = StreamController<String?>.broadcast(sync: true);
+  String? _value;
 
   _MutableGistProperty(this.mutableGist, this.name) {
     _value = get();
@@ -164,11 +164,11 @@ class _MutableGistProperty implements Property<String> {
   }
 
   @override
-  String get() => mutableGist._getProperty(name);
+  String? get() => mutableGist._getProperty(name);
 
   @override
-  Stream<String> get onChanged => _changedController.stream;
+  Stream<String?> get onChanged => _changedController.stream;
 
   @override
-  String toString() => name;
+  String toString() => name!;
 }

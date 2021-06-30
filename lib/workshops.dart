@@ -34,9 +34,9 @@ import 'sharing/editor_ui.dart';
 import 'src/ga.dart';
 import 'workshops/workshops.dart';
 
-WorkshopUi _workshopUi;
+WorkshopUi? _workshopUi;
 
-WorkshopUi get workshopUi => _workshopUi;
+WorkshopUi? get workshopUi => _workshopUi;
 
 final NodeValidator _htmlValidator = PermissiveNodeValidator();
 
@@ -45,24 +45,24 @@ void init() {
 }
 
 class WorkshopUi extends EditorUi {
-  WorkshopState _workshopState;
-  Splitter splitter;
-  Splitter rightSplitter;
-  DElement stepLabel;
-  DElement previousStepButton;
-  DElement nextStepButton;
-  Console _console;
-  MDCButton showSolutionButton;
-  Counter unreadConsoleCounter;
-  DocHandler docHandler;
+  late final WorkshopState _workshopState;
+  late final Splitter splitter;
+  late final Splitter rightSplitter;
+  late final DElement stepLabel;
+  late final DElement previousStepButton;
+  late final DElement nextStepButton;
+  late final Console _console;
+  late final MDCButton showSolutionButton;
+  late final Counter unreadConsoleCounter;
+  late final DocHandler docHandler;
   @override
-  ContextBase context;
-  MDCButton formatButton;
-  TabExpandController tabExpandController;
-  MDCButton closePanelButton;
-  MDCButton editorUiOutputTab;
-  MDCButton editorConsoleTab;
-  MDCButton editorDocsTab;
+  late ContextBase context;
+  late MDCButton formatButton;
+  late final TabExpandController tabExpandController;
+  late final MDCButton closePanelButton;
+  late final MDCButton editorUiOutputTab;
+  late final MDCButton editorConsoleTab;
+  late final MDCButton editorDocsTab;
   final _nullSafetyEnabled = true;
 
   WorkshopUi() {
@@ -122,7 +122,7 @@ class WorkshopUi extends EditorUi {
   }
 
   void _initBusyLights() {
-    busyLight = DBusyLight(querySelector('#dartbusy'));
+    busyLight = DBusyLight(querySelector('#dartbusy')!);
   }
 
   void _initEditor() {
@@ -167,9 +167,9 @@ class WorkshopUi extends EditorUi {
     (deps[DartservicesApi] as DartservicesApi).rootUrl = nullSafetyServerUrl;
 
     analysisResultsController = AnalysisResultsController(
-        DElement(querySelector('#issues')),
-        DElement(querySelector('#issues-message')),
-        DElement(querySelector('#issues-toggle')))
+        DElement(querySelector('#issues')!),
+        DElement(querySelector('#issues-message')!),
+        DElement(querySelector('#issues-toggle')!))
       ..onItemClicked.listen((item) {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
@@ -178,10 +178,10 @@ class WorkshopUi extends EditorUi {
 
     querySelector('#keyboard-button')
         ?.onClick
-        ?.listen((_) => showKeyboardDialog());
+        .listen((_) => showKeyboardDialog());
     querySelector('#dartpad-package-versions')
         ?.onClick
-        ?.listen((_) => showPackageVersionsDialog());
+        .listen((_) => showPackageVersionsDialog());
   }
 
   @override
@@ -230,10 +230,10 @@ class WorkshopUi extends EditorUi {
   void _initSplitters() {
     var stepsPanel = querySelector('#steps-panel');
     var rightPanel = querySelector('#right-panel');
-    var editorPanel = querySelector('#editor-panel');
+    var editorPanel = querySelector('#editor-panel')!;
 
     splitter = flexSplit(
-      [stepsPanel, rightPanel],
+      [stepsPanel!, rightPanel!],
       horizontal: true,
       gutterSize: 6,
       sizes: const [50, 50],
@@ -244,16 +244,16 @@ class WorkshopUi extends EditorUi {
   }
 
   void _initHeader() {
-    querySelector('#workshop-name').text = _workshopState.workshop.name;
+    querySelector('#workshop-name')!.text = _workshopState.workshop.name;
   }
 
   void _initStepButtons() {
-    stepLabel = DElement(querySelector('#steps-label'));
-    previousStepButton = DElement(querySelector('#previous-step-btn'))
+    stepLabel = DElement(querySelector('#steps-label')!);
+    previousStepButton = DElement(querySelector('#previous-step-btn')!)
       ..onClick.listen((event) {
         _workshopState.currentStepIndex--;
       });
-    nextStepButton = DElement(querySelector('#next-step-btn'))
+    nextStepButton = DElement(querySelector('#next-step-btn')!)
       ..onClick.listen((event) {
         _workshopState.currentStepIndex++;
       });
@@ -312,7 +312,7 @@ class WorkshopUi extends EditorUi {
   }
 
   void _updateInstructions() {
-    var div = querySelector('#markdown-content');
+    var div = querySelector('#markdown-content')!;
     div.children.clear();
     div.setInnerHtml(
         markdown.markdownToHtml(_workshopState.currentStep.instructions,
@@ -363,7 +363,7 @@ class WorkshopUi extends EditorUi {
       busyLight.reset();
       formatButton.disabled = false;
 
-      if (result.newString == null || result.newString.isEmpty) {
+      if (result.newString.isEmpty) {
         logger.fine('Format returned null/empty result');
         return;
       }
@@ -382,10 +382,6 @@ class WorkshopUi extends EditorUi {
   }
 
   void _initOutputPanelTabs() {
-    if (tabExpandController != null) {
-      return;
-    }
-
     tabExpandController = TabExpandController(
       uiOutputButton: shouldCompileDDC ? editorUiOutputTab : null,
       consoleButton: editorConsoleTab,

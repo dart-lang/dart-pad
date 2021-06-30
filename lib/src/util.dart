@@ -10,8 +10,8 @@ import 'dart:html';
 bool isMobile() {
   const mobileSize = 610;
 
-  var width = document.documentElement.clientWidth;
-  var height = document.documentElement.clientHeight;
+  var width = document.documentElement!.clientWidth;
+  var height = document.documentElement!.clientHeight;
 
   return width <= mobileSize || height <= mobileSize;
 }
@@ -43,7 +43,7 @@ We look forward to your
 Made with &lt;3 by Google.
 ''';
 
-String capitalize(String s) {
+String? capitalize(String? s) {
   if (s == null) {
     return null;
   } else if (s.length <= 1) {

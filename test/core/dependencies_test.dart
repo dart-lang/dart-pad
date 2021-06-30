@@ -13,6 +13,7 @@ void defineTests() {
   group('dependencies', () {
     test('retrieve dependency', () {
       var dependency = Dependencies();
+      Dependencies.setGlobalInstance(dependency);
       expect(dependency[String], isNull);
       dependency[String] = 'foo';
       expect(dependency[String], isNotNull);
@@ -20,15 +21,14 @@ void defineTests() {
     });
 
     test('runInZone', () {
-      expect(Dependencies.instance, isNull);
       var dependency = Dependencies();
-      expect(Dependencies.instance, isNull);
+      Dependencies.setGlobalInstance(dependency);
+      expect(Dependencies.instance, isNotNull);
       dependency[String] = 'foo';
       dependency.runInZone(() {
         expect(Dependencies.instance, isNotNull);
         expect(dependency[String], 'foo');
       });
-      expect(Dependencies.instance, isNull);
     });
   });
 }

@@ -13,13 +13,11 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     strategy:
       fail-fast: false
       matrix:
-        # Disabling Dart beta and dev SDK due to https://github.com/google/dart-neats/issues/132
-        # sdk: [stable, beta, dev]
-        sdk: [stable]
+        sdk: [stable, beta, dev]
 
     steps:
       - uses: actions/checkout@v2
@@ -27,11 +25,14 @@ jobs:
         with:
           sdk: ${{ matrix.sdk }}
       - uses: actions/setup-node@v2
-      
+
       - name: Print Dart SDK version
         run: dart --version
 
-      - name: Install dependencies
+      - name: Install apt dependencies
+        run: sudo apt-get install -y protobuf-compiler
+
+      - name: Install dart dependencies
         run: dart pub get
 
       - name: Verify formatting
@@ -41,4 +42,7 @@ jobs:
         run: dart analyze --fatal-infos
 
       - name: Run buildbot
-        run: dart tool/grind.dart buildbot
+        run: |
+          export PATH=$PATH:$HOME/.pub-cache/bin
+          dart pub global activate protoc_plugin
+          dart tool/grind.dart buildbot

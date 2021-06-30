@@ -22,12 +22,12 @@ abstract class EditorUi {
 
   ContextBase get context;
 
-  Future<AnalysisResults> analysisRequest;
-  DBusyLight busyLight;
-  AnalysisResultsController analysisResultsController;
-  Editor editor;
-  MDCButton runButton;
-  ExecutionService executionService;
+  Future<AnalysisResults>? analysisRequest;
+  late final DBusyLight busyLight;
+  late final AnalysisResultsController analysisResultsController;
+  late final Editor editor;
+  late final MDCButton runButton;
+  late final ExecutionService executionService;
 
   /// The dialog box for information like Keyboard shortcuts.
   final Dialog dialog = Dialog();
@@ -35,10 +35,10 @@ abstract class EditorUi {
   /// The source-of-truth for whether null safety is enabled.
   ///
   /// On page load, this may be originally derived from local storage.
-  bool nullSafetyEnabled;
+  late bool nullSafetyEnabled;
 
   /// Whether null safety was enabled for the previous execution.
-  bool nullSafetyWasPreviouslyEnabled;
+  bool nullSafetyWasPreviouslyEnabled = false;
 
   String get fullDartSource => context.dartSource;
 
@@ -98,7 +98,7 @@ abstract class EditorUi {
   }
 
   void showSnackbar(String message) {
-    var div = querySelector('.mdc-snackbar');
+    var div = querySelector('.mdc-snackbar')!;
     var snackbar = MDCSnackbar(div)..labelText = message;
     snackbar.open();
   }
@@ -235,7 +235,7 @@ abstract class EditorUi {
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
       var versionText = 'Based on Flutter ${version.flutterVersion}'
           ' Dart SDK ${version.sdkVersionFull}';
-      querySelector('#dartpad-version').text = versionText;
+      querySelector('#dartpad-version')!.text = versionText;
       if (version.packageVersions.isNotEmpty) {
         _packageVersions.clear();
         _packageVersions.addAll(version.packageVersions);

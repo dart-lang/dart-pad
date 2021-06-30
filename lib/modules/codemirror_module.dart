@@ -9,7 +9,7 @@ import '../core/modules.dart';
 import '../editing/editor_codemirror.dart';
 
 class CodeMirrorModule extends Module {
-  static String get version => codeMirrorFactory.version;
+  static String? get version => codeMirrorFactory.version;
 
   @override
   Future init() async {
