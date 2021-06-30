@@ -930,6 +930,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     ga.sendEvent('main', 'new');
 
+    queryParams.gistId = '';
+
     await showNew(layout);
     showSnackbar('New pad created');
   }
