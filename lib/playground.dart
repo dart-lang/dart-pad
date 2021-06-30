@@ -876,6 +876,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
         'Create New Pad', 'Discard changes to the current pad?');
     if (result == DialogResult.ok) {
       final layout = await newPadDialog.show();
+      if (layout == null) return;
       await createGistForLayout(layout);
     }
   }
@@ -1018,10 +1019,10 @@ class NewPadDialog {
     return null;
   }
 
-  Future<Layout> show() {
+  Future<Layout?> show() {
     _createButton.toggleAttr('disabled', true);
 
-    var completer = Completer<Layout>();
+    var completer = Completer<Layout?>();
     var dartSub = _dartButton.root.onClick.listen((_) {
       _flutterButton.root.classes.remove('selected');
       _dartButton.root.classes.add('selected');
@@ -1038,7 +1039,7 @@ class NewPadDialog {
     });
 
     var cancelSub = _cancelButton.onClick.listen((_) {
-      completer.complete(null);
+      completer.complete(selectedLayout);
     });
 
     var createSub = _createButton.onClick.listen((_) {
