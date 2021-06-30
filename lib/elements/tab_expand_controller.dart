@@ -37,7 +37,7 @@ class TabExpandController {
   final List<StreamSubscription<Event>> _subscriptions = [];
 
   late TabState _state;
-  late Splitter _splitter;
+  Splitter? _splitter;
   bool _splitterConfigured = false;
 
   TabState get state => _state;
@@ -209,7 +209,7 @@ class TabExpandController {
       return;
     }
 
-    _splitter.destroy();
+    _splitter?.destroy();
     _splitterConfigured = false;
   }
 
