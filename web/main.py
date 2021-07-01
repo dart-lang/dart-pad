@@ -1,4 +1,5 @@
-from flask import Flask, send_file
+from flask import Flask, send_file, redirect, request
+from urllib.parse import urlencode
 import os
 import string
 
@@ -47,8 +48,6 @@ CONTENT_TYPES = {
 }
 
 
-# Routes.
-
 @app.route('/')
 def index():
     return _serve_file('index.html')
@@ -64,19 +63,22 @@ def item(item_name):
     if item_name in VALID_ROUTES:
         return _serve_file('index.html')
 
-    # It's a gist ID, so serve the index file.
+    # It's a gist ID, so redirect to `/` and add the gist id as a query param.
     if (len(item_name) == 32 or len(item_name) == 20) and all(c in string.hexdigits for c in item_name):
-        return _serve_file('index.html')
+        args = request.args.copy()
+        args['id'] = item_name
+        url = '/?{}'.format(urlencode(args))
+        return redirect(url)
 
     # Route doesn't match anything, so return a 404.
     return _serve_404()
+
 
 # Temporary route to find out if we can sniff which host we are serving as.
 @app.route("/hostname/")
 def return_hostname():
     return "This is an example wsgi app served from {} to {}".format(socket.gethostname(), request.remote_addr)
 
-# Helpers.
 
 def _serve_file(file_path):
     if not os.path.isfile(file_path):
