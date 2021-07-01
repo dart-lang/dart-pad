@@ -68,7 +68,7 @@ def item(item_name):
         args = request.args.copy()
         args['id'] = item_name
         url = '/?{}'.format(urlencode(args))
-        return redirect(url)
+        return redirect(url, code=308)
 
     # Route doesn't match anything, so return a 404.
     return _serve_404()
