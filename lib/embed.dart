@@ -1169,11 +1169,11 @@ class ConsoleExpandController extends Console {
 
   void _initSplitter() {
     var splitterElements = [
-      querySelector('#editor-container'),
-      querySelector('#console-output-footer'),
+      querySelector('#editor-container')!,
+      querySelector('#console-output-footer')!,
     ];
     _splitter = flexSplit(
-      splitterElements as List<Element>,
+      splitterElements,
       horizontal: false,
       gutterSize: defaultSplitterWidth,
       sizes: [60, 40],
