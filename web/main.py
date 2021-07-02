@@ -63,7 +63,7 @@ def item(item_name):
     if item_name in VALID_ROUTES:
         return _serve_file('index.html')
 
-    # It's a gist ID, so redirect to `/` and add the gist id as a query param.
+    # It's a gist ID, so redirect to `/` and add the ID as a query param.
     if (len(item_name) == 32 or len(item_name) == 20) and all(c in string.hexdigits for c in item_name):
         args = request.args.copy()
         args['id'] = item_name
