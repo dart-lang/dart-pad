@@ -5,9 +5,11 @@
 import 'dart:async';
 import 'dart:html';
 
+import 'package:dart_pad/elements/button.dart';
 import 'package:dart_pad/elements/elements.dart';
 import 'package:dart_pad/services/dartservices.dart';
 import 'package:mdc_web/mdc_web.dart';
+import 'package:dart_pad/playground.dart';
 
 class AnalysisResultsController {
   static const String _noIssuesMsg = 'no issues';
@@ -115,6 +117,52 @@ class AnalysisResultsController {
     }
 
     elem.children.add(columnElem);
+
+    var copyButton = MDCButton(ButtonElement(), isIcon: true);
+    copyButton.buttonElement.setInnerHtml('content_copy');
+    copyButton..toggleClass('mdc-icon-button', true)
+              ..toggleClass('material-icons', true);
+    
+    copyButton.onClick.listen((event) {
+      
+      // document.addEventListener('copy', (event) => {
+      //   window.console.log((event as ClipboardEvent).clipboardData?.items)
+      // });
+
+      // // Creating ClipboardEvent
+      // var clipboardCopyEvent = ClipboardEvent('copy', {
+      //   'clipboardData': DataTransfer()
+      // });
+      // clipboardCopyEvent.clipboardData?.items?.add(message, 'text/plain');
+      // document.dispatchEvent(clipboardCopyEvent);
+
+      // // Using execCommand
+      // // Creating temporary input element
+      // var tempTextElem = document.createElement('input');
+      // tempTextElem.text = message;
+
+      // document.body?.append(tempTextElem);
+      // tempTextElem.focus();
+      // var textRange = document.createRange();
+      // window.getSelection()?.removeAllRanges();
+      // textRange.selectNode(tempTextElem);
+      // window.getSelection()?.addRange(textRange);
+
+      // document.execCommand('copy');
+      // window.getSelection()?.removeAllRanges();
+
+
+      // tempTextElem.remove();
+
+
+      // using navigator
+      window.navigator.clipboard?.writeText(message);
+      
+      playground?.showSnackbar('Copied to clipboard');
+
+    });
+
+    elem.children.add(copyButton.element);
 
     elem.onClick.listen((_) {
       _onClickController.add(Location(
