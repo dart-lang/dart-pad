@@ -28,6 +28,7 @@ handlers:
 
   - url: /scripts
     static_dir: scripts
+    expiration: "0d 0h 5m"
 
   - url: /styles
     static_dir: styles
