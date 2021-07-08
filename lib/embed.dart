@@ -1239,12 +1239,12 @@ class EmbedContext implements ContextBase {
     userCodeEditor.document.value = value;
   }
 
-  set htmlSource(String? value) {
-    htmlEditor!.document.value = value ?? '';
+  set htmlSource(String value) {
+    htmlEditor?.document.value = value;
   }
 
-  set cssSource(String? value) {
-    cssEditor!.document.value = value ?? '';
+  set cssSource(String value) {
+    cssEditor?.document.value = value;
   }
 
   String get activeMode => userCodeEditor.mode;
