@@ -124,41 +124,10 @@ class AnalysisResultsController {
               ..toggleClass('material-icons', true);
     
     copyButton.onClick.listen((event) {
-      
-      // document.addEventListener('copy', (event) => {
-      //   window.console.log((event as ClipboardEvent).clipboardData?.items)
-      // });
 
-      // // Creating ClipboardEvent
-      // var clipboardCopyEvent = ClipboardEvent('copy', {
-      //   'clipboardData': DataTransfer()
-      // });
-      // clipboardCopyEvent.clipboardData?.items?.add(message, 'text/plain');
-      // document.dispatchEvent(clipboardCopyEvent);
-
-      // // Using execCommand
-      // // Creating temporary input element
-      // var tempTextElem = document.createElement('input');
-      // tempTextElem.text = message;
-
-      // document.body?.append(tempTextElem);
-      // tempTextElem.focus();
-      // var textRange = document.createRange();
-      // window.getSelection()?.removeAllRanges();
-      // textRange.selectNode(tempTextElem);
-      // window.getSelection()?.addRange(textRange);
-
-      // document.execCommand('copy');
-      // window.getSelection()?.removeAllRanges();
-
-
-      // tempTextElem.remove();
-
-
-      // using navigator
-      window.navigator.clipboard?.writeText(message);
-      
-      playground?.showSnackbar('Copied to clipboard');
+      window.navigator.clipboard?.writeText(message)
+      .then((_) => {playground?.showSnackbar('Copied to clipboard successfully!')})
+      .catchError((_) => {playground?.showSnackbar('Failed to copy')});
 
     });
 
