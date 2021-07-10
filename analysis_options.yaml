@@ -13,45 +13,9 @@ analyzer:
     - "web/example/workshops/**"
 linter:
   rules:
-    # Disabled as we really on quite a few uses of these currently
-    unsafe_html: false
-
-    # Extra enabled rules
-    camel_case_types: true
-    directives_ordering: true
-    file_names: true
-    hash_and_equals: true
-    iterable_contains_unrelated_type: true
-    list_remove_unrelated_type: true
-    non_constant_identifier_names: true
-    package_prefixed_library_names: true
-    prefer_typing_uninitialized_variables: true
-    provide_deprecation_message: true
-    unawaited_futures: true
-    unnecessary_overrides: true
-    unrelated_type_equality_checks: true
-    valid_regexps: true
-    void_checks: true
-    avoid_function_literals_in_foreach_calls: true
-    avoid_private_typedef_functions: true
-    avoid_renaming_method_parameters: true
-    avoid_returning_null_for_void: true
-    avoid_single_cascade_in_expression_statements: true
-    constant_identifier_names: true
-    control_flow_in_finally: true
-    empty_constructor_bodies: true
-    empty_statements: true
-    exhaustive_cases: true
-    implementation_imports: true
-    overridden_fields: true
-    package_names: true
-    prefer_function_declarations_over_variables: true
-    prefer_initializing_formals: true
-    prefer_is_not_operator: true
-    prefer_mixin: true
-    prefer_null_aware_operators: true
-    prefer_void_to_null: true
-    slash_for_doc_comments: true
-    type_init_formals: true
-    unnecessary_string_escapes: true
-    unnecessary_string_interpolations: true
+    - always_declare_return_types
+    - avoid_private_typedef_functions
+    - directives_ordering
+    - prefer_mixin
+    - prefer_single_quotes
+    - unawaited_futures
