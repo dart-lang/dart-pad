@@ -88,7 +88,7 @@ void _injectEmbed(Element snippet, Map<String, String> options) {
 }
 
 Map<String, String> _parseFiles(String snippet) {
-  return InjectParser(snippet).read() as Map<String, String>;
+  return InjectParser(snippet).read();
 }
 
 /// Clears children in [host], instantiates an iframe, and sends it a message
