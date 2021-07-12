@@ -120,16 +120,17 @@ class AnalysisResultsController {
 
     var copyButton = MDCButton(ButtonElement(), isIcon: true);
     copyButton.buttonElement.setInnerHtml('content_copy');
-    copyButton..toggleClass('mdc-icon-button', true)
-              ..toggleClass('mdc-button-small', true)
-              ..toggleClass('material-icons', true);
-    
+    copyButton
+      ..toggleClass('mdc-icon-button', true)
+      ..toggleClass('mdc-button-small', true)
+      ..toggleClass('material-icons', true);
+
     copyButton.onClick.listen((event) {
-
-      window.navigator.clipboard?.writeText(message)
-      .then((_) => {playground?.showSnackbar('Copied to clipboard successfully!')})
-      .catchError((_) => {playground?.showSnackbar('Failed to copy')});
-
+      window.navigator.clipboard
+          ?.writeText(message)
+          .then((_) =>
+              {playground?.showSnackbar('Copied to clipboard successfully!')})
+          .catchError((_) => {playground?.showSnackbar('Failed to copy')});
     });
 
     elem.children.add(copyButton.element);
