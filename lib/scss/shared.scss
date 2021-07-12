@@ -81,6 +81,10 @@ a {
   margin: 0;
 }
 
+.issue > .issue-column {
+  flex: 1;
+}
+
 // Keyboard button
 #keyboard-button {
   cursor: pointer;
