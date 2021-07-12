@@ -121,6 +121,7 @@ class AnalysisResultsController {
     var copyButton = MDCButton(ButtonElement(), isIcon: true);
     copyButton.buttonElement.setInnerHtml('content_copy');
     copyButton..toggleClass('mdc-icon-button', true)
+              ..toggleClass('mdc-button-small', true)
               ..toggleClass('material-icons', true);
     
     copyButton.onClick.listen((event) {
