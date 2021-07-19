@@ -105,7 +105,7 @@ class Embed extends EditorUi {
   @override
   late final EmbedContext context;
 
-  late final Splitter splitter;
+  late Splitter splitter;
 
   late final Console consoleExpandController;
   late final DElement webOutputLabel;
