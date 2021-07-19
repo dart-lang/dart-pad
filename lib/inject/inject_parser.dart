@@ -10,11 +10,11 @@ class InjectParser {
   final RegExp _endExp = RegExp(r'{\$ end ([a-z.]*) \$}');
   int? _currentLine;
   String? _currentFile;
-  final Map<String?, String> _tokens = {};
+  final Map<String, String> _tokens = {};
   InjectParser(this.input);
 
   /// Returns filenames and contents that were parsed from the input
-  Map<String?, String> read() {
+  Map<String, String> read() {
     var lines = input.split('\n');
     for (var i = 0; i < lines.length; i++) {
       _currentLine = i;
@@ -54,10 +54,13 @@ class InjectParser {
   }
 
   void _addLine(String line, String? file) {
-    if (_tokens[_currentFile] == null) {
-      _tokens[_currentFile] = line;
-    } else {
-      _tokens[_currentFile] = (_tokens[_currentFile] ?? '') + '\n$line';
+    if (file != null) {
+      final token = _tokens[file];
+      if (token == null) {
+        _tokens[file] = line;
+      } else {
+        _tokens[file] = token + '\n$line';
+      }
     }
   }
 

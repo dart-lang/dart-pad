@@ -129,3 +129,10 @@ button#run-button {
 .console .normal {
   white-space: nowrap !important;
 }
+
+// Small icon buttons
+.mdc-button-small {
+  @include mdc-icon-button-size(14px);
+  font-size: 14px !important;
+  margin: -2px 0 0 12px
+}
