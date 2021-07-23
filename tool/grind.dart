@@ -269,6 +269,7 @@ Future<String> _buildStorageArtifacts(Directory dir, bool nullSafety) async {
       '--enable-experiment=non-nullable'
     ],
     '--modules=amd',
+    '--source-map',
     '-o',
     'flutter_web.js',
     ...flutterLibraries
@@ -292,12 +293,14 @@ Future<String> _buildStorageArtifacts(Directory dir, bool nullSafety) async {
           : 'bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/amd-canvaskit-html/dart_sdk.js');
 
   copy(getFile(sdkJsPath), artifactsDir);
+  copy(getFile('$sdkJsPath.map'), artifactsDir);
   copy(joinFile(dir, ['flutter_web.js']), artifactsDir);
+  copy(joinFile(dir, ['flutter_web.js.map']), artifactsDir);
   copy(joinFile(dir, ['flutter_web.dill']), artifactsDir);
 
   // Emit some good google storage upload instructions.
   final version = Sdk.create().versionFull;
-  return ('  gsutil -h "Cache-Control: public, max-age=604800, immutable" cp -z js ${artifactsDir.path}/*.js'
+  return ('  gsutil -h "Cache-Control: public, max-age=604800, immutable" cp -z js ${artifactsDir.path}/*.js*'
       ' gs://${nullSafety ? 'nnbd_artifacts' : 'compilation_artifacts'}/$version/');
 }
 
