@@ -105,7 +105,7 @@ class Embed extends EditorUi {
   late final Splitter splitter;
 
   late final Console consoleExpandController;
-  late final DElement webOutputLabel;
+  late final DElement? webOutputLabel;
   late final DElement featureMessage;
 
   late final MDCLinearProgress linearProgress;
@@ -411,6 +411,8 @@ class Embed extends EditorUi {
     var webOutputLabelElement = querySelector('#web-output-label');
     if (webOutputLabelElement != null) {
       webOutputLabel = DElement(webOutputLabelElement);
+    } else {
+      webOutputLabel = null;
     }
 
     featureMessage = DElement(querySelector('#feature-message')!);
@@ -819,7 +821,7 @@ class Embed extends EditorUi {
 
     // The iframe will show Flutter output for the rest of the lifetime of the
     // app, so hide the label.
-    webOutputLabel.setAttr('hidden');
+    webOutputLabel?.setAttr('hidden');
 
     return success;
   }
