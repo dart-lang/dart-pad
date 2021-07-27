@@ -153,10 +153,9 @@ class Embed extends EditorUi {
     tabController =
         EmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')!), dialog);
 
-    var tabNames = ['editor', 'solution', 'test'];
-    if (options.mode == EmbedMode.html) {
-      tabNames = ['editor', 'html', 'css', 'solution', 'test'];
-    }
+    final tabNames = options.mode == EmbedMode.html
+        ? const ['editor', 'html', 'css', 'solution', 'test']
+        : const ['editor', 'solution', 'test'];
 
     for (var name in tabNames) {
       tabController.registerTab(
@@ -455,7 +454,7 @@ class Embed extends EditorUi {
 
   /// Sends a ready message to the parent page
   void _emitReady() {
-    window.parent!.postMessage({'sender': 'frame', 'type': 'ready'}, '*');
+    window.parent!.postMessage(const {'sender': 'frame', 'type': 'ready'}, '*');
   }
 
   // Option for the GitHub gist ID that should be loaded into the editors.
@@ -627,17 +626,17 @@ class Embed extends EditorUi {
 
   @override
   void initKeyBindings() {
-    keys.bind(['ctrl-space', 'macctrl-space'], () {
+    keys.bind(const ['ctrl-space', 'macctrl-space'], () {
       if (userCodeEditor.hasFocus) {
         userCodeEditor.showCompletions();
       }
     }, 'Completion');
 
-    keys.bind(['alt-enter'], () {
+    keys.bind(const ['alt-enter'], () {
       userCodeEditor.showCompletions(onlyShowFixes: true);
     }, 'Quick fix');
 
-    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
+    keys.bind(const ['shift-ctrl-f', 'shift-macctrl-f'], () {
       _format();
     }, 'Format');
 
@@ -753,31 +752,22 @@ class Embed extends EditorUi {
   }
 
   String _getActiveSourceCode() {
-    String activeSource;
     var activeTabName = tabController.selectedTab.name;
 
     switch (activeTabName) {
       case 'editor':
-        activeSource = context.dartSource;
-        break;
+        return context.dartSource;
       case 'css':
-        activeSource = context.cssSource;
-        break;
+        return context.cssSource;
       case 'html':
-        activeSource = context.htmlSource;
-        break;
+        return context.htmlSource;
       case 'solution':
-        activeSource = context.solution;
-        break;
+        return context.solution;
       case 'test':
-        activeSource = context.testMethod;
-        break;
+        return context.testMethod;
       default:
-        activeSource = context.dartSource;
-        break;
+        return context.dartSource;
     }
-
-    return activeSource;
   }
 
   void setContextSources(Map<String, String> sources) {
@@ -1049,15 +1039,15 @@ class FlashBox {
     });
   }
 
-  static const classNamesForStyles = <FlashBoxStyle, String>{
+  static const _classNamesForStyles = <FlashBoxStyle, String>{
     FlashBoxStyle.warn: 'flash-warn',
     FlashBoxStyle.error: 'flash-error',
     FlashBoxStyle.success: 'flash-success',
   };
 
-  late DElement _element;
+  late final DElement _element;
 
-  late DElement _messageContainer;
+  late final DElement _messageContainer;
 
   void showStrings(List<String> messages, [FlashBoxStyle? style]) {
     showElements(messages.map((m) => DivElement()..text = m).toList(), style);
@@ -1066,10 +1056,10 @@ class FlashBox {
   void showElements(List<Element> elements, [FlashBoxStyle? style]) {
     _element.clearAttr('hidden');
     _element.element.classes
-        .removeWhere((s) => classNamesForStyles.values.contains(s));
+        .removeWhere((s) => _classNamesForStyles.values.contains(s));
 
     if (style != null) {
-      _element.toggleClass(classNamesForStyles[style], true);
+      _element.toggleClass(_classNamesForStyles[style], true);
     }
 
     _messageContainer.clearChildren();
@@ -1092,7 +1082,7 @@ class ConsoleExpandController extends Console {
   final DElement expandButton;
   final DElement footer;
   final DElement expandIcon;
-  final Counter? unreadCounter;
+  final Counter unreadCounter;
   final Function? onSizeChanged;
   final EditorUi? editorUi;
   late Splitter _splitter;
@@ -1103,7 +1093,7 @@ class ConsoleExpandController extends Console {
     required Element footer,
     required Element expandIcon,
     required Element consoleElement,
-    this.unreadCounter,
+    required this.unreadCounter,
     this.onSizeChanged,
     this.editorUi,
   })  : expandButton = DElement(expandButton),
@@ -1121,14 +1111,14 @@ class ConsoleExpandController extends Console {
   void showOutput(String message, {bool error = false}) {
     super.showOutput(message, error: error);
     if (!_expanded) {
-      unreadCounter!.increment();
+      unreadCounter.increment();
     }
   }
 
   @override
   void clear() {
     super.clear();
-    unreadCounter!.clear();
+    unreadCounter.clear();
   }
 
   void open() {
@@ -1151,7 +1141,7 @@ class ConsoleExpandController extends Console {
       element.toggleAttr('hidden', false);
       expandIcon.element.innerText = 'expand_more';
       footer.toggleClass('footer-top-border', false);
-      unreadCounter!.clear();
+      unreadCounter.clear();
     } else {
       _splitter.setSizes([100, 0]);
       element.toggleAttr('hidden', true);
@@ -1168,8 +1158,9 @@ class ConsoleExpandController extends Console {
   }
 
   void _initSplitter() {
+    final editorContainer = querySelector('#editor-container')!;
     var splitterElements = [
-      querySelector('#editor-container')!,
+      editorContainer,
       querySelector('#console-output-footer')!,
     ];
     _splitter = flexSplit(
@@ -1179,7 +1170,7 @@ class ConsoleExpandController extends Console {
       sizes: [60, 40],
       minSize: [32, 32],
     );
-    editorUi!.listenForResize(splitterElements[0]);
+    editorUi!.listenForResize(editorContainer);
   }
 }
 
@@ -1261,7 +1252,7 @@ class EmbedContext implements ContextBase {
   void _createReconciler(Document doc, StreamController controller, int delay) {
     Timer? timer;
     doc.onChange.listen((_) {
-      if (timer != null) timer!.cancel();
+      timer?.cancel();
       timer = Timer(Duration(milliseconds: delay), () {
         controller.add(null);
       });
