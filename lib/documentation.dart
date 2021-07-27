@@ -134,23 +134,33 @@ $apiLink\n\n''';
   }
 
   String _dartApiLink(String? libraryName) {
-    if (libraryName == null) {
+    if (libraryName == null ||
+        libraryName.isEmpty ||
+        libraryName == 'main.dart') {
       return '';
     }
 
     final usingFlutter = hasFlutterContent(_sourceProvider.dartSource);
-    if (libraryName.contains('dart:') || usingFlutter) {
+    final isDartLibrary = libraryName.contains('dart:');
+
+    // Only can link to library docs for dart libraries or `package:flutter`.
+    if (isDartLibrary || usingFlutter) {
       if (usingFlutter) {
         final splitFlutter = libraryName.split('/');
+
         if (splitFlutter[0] == 'package:flutter') {
-          // If this part of the path is not present, we cannot link to the
-          // documentation currently.
+          splitFlutter.removeAt(0);
+          // Find library name, either after package declaration or `src`.
+          libraryName = splitFlutter
+              .firstWhere((element) => element != 'src')
+              .replaceAll('.dart', '');
+        } else if (!isDartLibrary) {
+          // If it's not a Flutter or Dart library, return just the name.
           return libraryName;
         }
       }
 
-      final apiLink = StringBuffer();
-      apiLink.write('[Open library docs](');
+      final apiLink = StringBuffer('[Open library docs](');
 
       if (usingFlutter) {
         apiLink.write('https://api.flutter.dev/flutter');
