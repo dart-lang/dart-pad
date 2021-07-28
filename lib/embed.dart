@@ -350,11 +350,10 @@ class Embed extends EditorUi {
       cssTabView = TabView(DElement(querySelector('#css-view')!));
     }
 
-    executionService =
-        ExecutionServiceIFrame(querySelector('#frame') as IFrameElement)
-          ..frameSrc = isDarkMode
-              ? '../scripts/frame_dark.html'
-              : '../scripts/frame.html';
+    executionService = ExecutionServiceIFrame(
+        querySelector('#frame') as IFrameElement)
+      ..frameSrc =
+          isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
 
     executionService.onStderr.listen((err) {
       consoleExpandController.showOutput(err, error: true);
