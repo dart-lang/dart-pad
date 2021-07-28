@@ -9,7 +9,7 @@ import 'dart:async';
 import '../elements/bind.dart';
 import 'gists.dart';
 
-/// On overlay on a gist. Used to edit gists, this overlay knows about its dirty
+/// An overlay on a gist. Used to edit gists, this overlay knows about its dirty
 /// state, and can have dirty state listeners.
 class MutableGist implements PropertyOwner {
   Gist _backingGist;
