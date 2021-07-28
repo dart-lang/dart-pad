@@ -34,7 +34,9 @@ replaceJavaScript = function (value) {
 addScript = function (id, url, onload) {
     let existingScript = document.getElementById(id);
     if (existingScript && existingScript.parentNode) {
-        onload();
+        if (onload !== undefined) {
+            onload();
+        }
         return;
     }
 
@@ -58,12 +60,14 @@ removeScript = function (id) {
 addFirebase = function () {
     addScript('firebase-app', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js');
     addScript('firebase-auth', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-auth.js');
+    addScript('firebase-database', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-database.js');
     addScript('firestore', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-firestore.js');
 }
 
 removeFirebase = function () {
     removeScript('firebase-app');
     removeScript('firebase-auth');
+    removeScript('firebase-database');
     removeScript('firestore');
 }
 
