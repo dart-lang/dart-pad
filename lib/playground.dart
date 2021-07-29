@@ -480,9 +480,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
     // Set up CodeMirror
     editor = (editorFactory as CodeMirrorFactory)
         .createFromElement(_editorHost, options: codeMirrorOptions)
-          ..theme = 'darkpad'
-          ..mode = 'dart'
-          ..showLineNumbers = true;
+      ..theme = 'darkpad'
+      ..mode = 'dart'
+      ..showLineNumbers = true;
 
     initKeyBindings();
 

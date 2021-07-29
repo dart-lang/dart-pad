@@ -37,6 +37,8 @@ jobs:
 
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
+        # "stable" uses an older formatter.
+        if: matrix.sdk != 'stable'
 
       - name: Analyze project source
         run: dart analyze --fatal-infos
