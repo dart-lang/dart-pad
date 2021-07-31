@@ -38,6 +38,7 @@ jobs:
       - name: Verify formatting
         run: dart format --output=none --set-exit-if-changed .
         # "stable" uses an older formatter.
+        # TODO(srawlins): Re-enable when "stable" is Flutter 2.4 or Dart 2.14.
         if: matrix.sdk != 'stable'
 
       - name: Analyze project source
