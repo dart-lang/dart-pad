@@ -7,9 +7,9 @@ import 'dart:html';
 
 import 'package:dart_pad/elements/button.dart';
 import 'package:dart_pad/elements/elements.dart';
+import 'package:dart_pad/playground.dart';
 import 'package:dart_pad/services/dartservices.dart';
 import 'package:mdc_web/mdc_web.dart';
-import 'package:dart_pad/playground.dart';
 
 class AnalysisResultsController {
   static const String _noIssuesMsg = 'no issues';
