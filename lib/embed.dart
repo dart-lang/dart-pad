@@ -350,10 +350,11 @@ class Embed extends EditorUi {
       cssTabView = TabView(DElement(querySelector('#css-view')!));
     }
 
-    executionService = ExecutionServiceIFrame(
-        querySelector('#frame') as IFrameElement)
-      ..frameSrc =
-          isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
+    executionService =
+        ExecutionServiceIFrame(querySelector('#frame') as IFrameElement)
+          ..frameSrc = isDarkMode
+              ? '../scripts/frame_dark.html'
+              : '../scripts/frame.html';
 
     executionService.onStderr.listen((err) {
       consoleExpandController.showOutput(err, error: true);
@@ -377,10 +378,11 @@ class Embed extends EditorUi {
     });
 
     analysisResultsController = AnalysisResultsController(
-        DElement(querySelector('#issues')!),
-        DElement(querySelector('#issues-message')!),
-        DElement(querySelector('#issues-toggle')!))
-      ..onItemClicked.listen((item) {
+      DElement(querySelector('#issues')!),
+      DElement(querySelector('#issues-message')!),
+      DElement(querySelector('#issues-toggle')!),
+      snackbar,
+    )..onItemClicked.listen((item) {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 

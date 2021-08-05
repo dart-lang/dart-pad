@@ -129,9 +129,9 @@ class WorkshopUi extends EditorUi {
     // Set up CodeMirror
     editor = (editorFactory as CodeMirrorFactory)
         .createFromElement(_editorHost, options: codeMirrorOptions)
-      ..theme = 'darkpad'
-      ..mode = 'dart'
-      ..showLineNumbers = true;
+          ..theme = 'darkpad'
+          ..mode = 'dart'
+          ..showLineNumbers = true;
 
     context = WorkshopDartSourceProvider(editor);
     docHandler = DocHandler(editor, context);
@@ -167,10 +167,11 @@ class WorkshopUi extends EditorUi {
     (deps[DartservicesApi] as DartservicesApi).rootUrl = nullSafetyServerUrl;
 
     analysisResultsController = AnalysisResultsController(
-        DElement(querySelector('#issues')!),
-        DElement(querySelector('#issues-message')!),
-        DElement(querySelector('#issues-toggle')!))
-      ..onItemClicked.listen((item) {
+      DElement(querySelector('#issues')!),
+      DElement(querySelector('#issues-message')!),
+      DElement(querySelector('#issues-toggle')!),
+      snackbar,
+    )..onItemClicked.listen((item) {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 

@@ -92,17 +92,14 @@ abstract class EditorUi {
         treeSanitizer: NodeTreeSanitizer.trusted);
 
     var div = DivElement()
-      ..children.add(DivElement()
-        ..children.add(dl)
-        ..classes.add('keys-dialog'));
+      ..children
+          .add(DivElement()..children.add(dl)..classes.add('keys-dialog'));
     dialog.showOk('Pub package versions', div.innerHtml);
   }
 
-  void showSnackbar(String message) {
-    var div = querySelector('.mdc-snackbar')!;
-    var snackbar = MDCSnackbar(div)..labelText = message;
-    snackbar.open();
-  }
+  void showSnackbar(String message) => snackbar.showMessage(message);
+
+  MDCSnackbar get snackbar => MDCSnackbar(querySelector('.mdc-snackbar')!);
 
   Document get currentDocument => editor.document;
 
