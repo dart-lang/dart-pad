@@ -92,8 +92,9 @@ abstract class EditorUi {
         treeSanitizer: NodeTreeSanitizer.trusted);
 
     var div = DivElement()
-      ..children
-          .add(DivElement()..children.add(dl)..classes.add('keys-dialog'));
+      ..children.add(DivElement()
+        ..children.add(dl)
+        ..classes.add('keys-dialog'));
     dialog.showOk('Pub package versions', div.innerHtml);
   }
 
