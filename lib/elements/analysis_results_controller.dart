@@ -199,3 +199,10 @@ class Location {
     required this.charLength,
   });
 }
+
+extension SnackbarExtension on MDCSnackbar {
+  void showMessage(String message) {
+    labelText = message;
+    open();
+  }
+}
