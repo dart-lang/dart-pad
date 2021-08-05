@@ -129,9 +129,9 @@ class WorkshopUi extends EditorUi {
     // Set up CodeMirror
     editor = (editorFactory as CodeMirrorFactory)
         .createFromElement(_editorHost, options: codeMirrorOptions)
-          ..theme = 'darkpad'
-          ..mode = 'dart'
-          ..showLineNumbers = true;
+      ..theme = 'darkpad'
+      ..mode = 'dart'
+      ..showLineNumbers = true;
 
     context = WorkshopDartSourceProvider(editor);
     docHandler = DocHandler(editor, context);
