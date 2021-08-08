@@ -60,9 +60,9 @@ void main() async {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         appBar: AppBar(
-          title: Text('Hey there, boo!'),
+          title: const Text('Hey there, boo!'),
         ),
-        body: Center(
+        body: const Center(
           child: Text(
             'You are pretty okay.',
           ),
@@ -74,7 +74,7 @@ void main() async {
 ''';
 
 // From https://gist.github.com/johnpryan/b6409e10de32b280b8938aa75364fa7b
-const sampleCodeFlutterCounter = '''
+const sampleCodeFlutterCounter = r'''
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());
@@ -88,13 +88,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  const MyHomePage({Key key, this.title}) : super(key: key);
 
   final String title;
 
@@ -121,11 +121,11 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
+            const Text(
               'You have pushed the button this many times:',
             ),
             Text(
-              '\$_counter',
+              '$_counter',
               style: Theme.of(context).textTheme.headline4,
             ),
           ],
@@ -134,13 +134,14 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
 }
 ''';
 
+// From https://gist.github.com/johnpryan/1a28bdd9203250d3226cc25d512579ec
 const sampleCodeFlutterCounterNullSafe = r'''
 import 'package:flutter/material.dart';
 
@@ -155,16 +156,14 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
   final String title;
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-
-
+  const MyHomePage({Key? key, required this.title}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -189,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text(
+            const Text(
               'You have pushed the button this many times:',
             ),
             Text(
@@ -202,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: FloatingActionButton(
         onPressed: _incrementCounter,
         tooltip: 'Increment',
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
@@ -210,151 +209,12 @@ class _MyHomePageState extends State<MyHomePage> {
 ''';
 
 // From https://gist.github.com/johnpryan/b3ccb26497ac84895540185935ed5825
-const sampleCodeFlutterSunflower = '''
-import 'package:flutter/material.dart';
-import 'dart:math' as math;
-
-final Color primaryColor = Colors.orange;
-final TargetPlatform platform = TargetPlatform.android;
-
-void main() {
-  runApp(Sunflower());
-}
-
-class SunflowerPainter extends CustomPainter {
-  static const seedRadius = 2.0;
-  static const scaleFactor = 4;
-  static const tau = math.pi * 2;
-
-  static final phi = (math.sqrt(5) + 1) / 2;
-
-  final int seeds;
-
-  SunflowerPainter(this.seeds);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    var center = size.width / 2;
-
-    for (var i = 0; i < seeds; i++) {
-      var theta = i * tau / phi;
-      var r = math.sqrt(i) * scaleFactor;
-      var x = center + r * math.cos(theta);
-      var y = center - r * math.sin(theta);
-      var offset = Offset(x, y);
-      if (!size.contains(offset)) {
-        continue;
-      }
-      drawSeed(canvas, x, y);
-    }
-  }
-
-  @override
-  bool shouldRepaint(SunflowerPainter oldDelegate) {
-    return oldDelegate.seeds != this.seeds;
-  }
-
-  // Draw a small circle representing a seed centered at (x,y).
-  void drawSeed(Canvas canvas, num x, num y) {
-    var paint = Paint()
-      ..strokeWidth = 2
-      ..style = PaintingStyle.fill
-      ..color = primaryColor;
-    canvas.drawCircle(Offset(x, y), seedRadius, paint);
-  }
-}
-
-class Sunflower extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() {
-    return _SunflowerState();
-  }
-}
-
-class _SunflowerState extends State<Sunflower> {
-  double seeds = 100.0;
-
-  int get seedCount => seeds.floor();
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData().copyWith(
-        platform: platform,
-        brightness: Brightness.dark,
-        sliderTheme: SliderThemeData.fromPrimaryColors(
-          primaryColor: primaryColor,
-          primaryColorLight: primaryColor,
-          primaryColorDark: primaryColor,
-          valueIndicatorTextStyle: DefaultTextStyle.fallback().style,
-        ),
-      ),
-      home: Scaffold(
-        appBar: AppBar(title: Text("Sunflower")),
-        drawer: Drawer(
-            child: ListView(
-          children: [
-            DrawerHeader(
-              child: Center(
-                child: Container(
-                  child: Text(
-                    "Sunflower 🌻",
-                    style: TextStyle(fontSize: 32),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        )),
-        body: Container(
-          constraints: BoxConstraints.expand(),
-          decoration:
-              BoxDecoration(border: Border.all(color: Colors.transparent)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                    border: Border.all(color: Colors.transparent)),
-                child: SizedBox(
-                  width: 400,
-                  height: 400,
-                  child: CustomPaint(
-                    painter: SunflowerPainter(seedCount),
-                  ),
-                ),
-              ),
-              Text("Showing \$seedCount seeds"),
-              ConstrainedBox(
-                constraints: BoxConstraints.tightFor(width: 300),
-                child: Slider.adaptive(
-                  min: 20,
-                  max: 2000,
-                  value: seeds,
-                  onChanged: (newValue) {
-                    setState(() {
-                      seeds = newValue;
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-''';
-
-const sampleCodeFlutterSunflowerNullSafe = r'''
+const sampleCodeFlutterSunflower = r'''
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 final Color primaryColor = Colors.orange;
-final TargetPlatform platform = TargetPlatform.android;
+const TargetPlatform platform = TargetPlatform.android;
 
 void main() {
   runApp(Sunflower());
@@ -390,7 +250,145 @@ class SunflowerPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(SunflowerPainter oldDelegate) {
-    return oldDelegate.seeds != this.seeds;
+    return oldDelegate.seeds != seeds;
+  }
+
+  // Draw a small circle representing a seed centered at (x,y).
+  void drawSeed(Canvas canvas, num x, num y) {
+    final paint = Paint()
+      ..strokeWidth = 2
+      ..style = PaintingStyle.fill
+      ..color = primaryColor;
+    canvas.drawCircle(Offset(x.toDouble(), y.toDouble()), seedRadius, paint);
+  }
+}
+
+class Sunflower extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() {
+    return _SunflowerState();
+  }
+}
+
+class _SunflowerState extends State<Sunflower> {
+  double seeds = 100.0;
+
+  int get seedCount => seeds.floor();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData().copyWith(
+        platform: platform,
+        brightness: Brightness.dark,
+        sliderTheme: SliderThemeData.fromPrimaryColors(
+          primaryColor: primaryColor,
+          primaryColorLight: primaryColor,
+          primaryColorDark: primaryColor,
+          valueIndicatorTextStyle: const DefaultTextStyle.fallback().style,
+        ),
+      ),
+      home: Scaffold(
+        appBar: AppBar(title: const Text("Sunflower")),
+        drawer: Drawer(
+            child: ListView(
+          children: const [
+            DrawerHeader(
+              child: Center(
+                child: Text(
+                  "Sunflower 🌻",
+                  style: TextStyle(fontSize: 32),
+                ),
+              ),
+            ),
+          ],
+        )),
+        body: Container(
+          constraints: const BoxConstraints.expand(),
+          decoration:
+              BoxDecoration(border: Border.all(color: Colors.transparent)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                    border: Border.all(color: Colors.transparent)),
+                child: SizedBox(
+                  width: 400,
+                  height: 400,
+                  child: CustomPaint(
+                    painter: SunflowerPainter(seedCount),
+                  ),
+                ),
+              ),
+              Text("Showing $seedCount seeds"),
+              ConstrainedBox(
+                constraints: const BoxConstraints.tightFor(width: 300),
+                child: Slider.adaptive(
+                  min: 20,
+                  max: 2000,
+                  value: seeds,
+                  onChanged: (newValue) {
+                    setState(() {
+                      seeds = newValue;
+                    });
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+''';
+
+// From https://gist.github.com/RedBrogdon/e0a2e942e85fde2cd39b2741ff0c49e5
+const sampleCodeFlutterSunflowerNullSafe = r'''
+import 'dart:math' as math;
+import 'package:flutter/material.dart';
+
+final Color primaryColor = Colors.orange;
+const TargetPlatform platform = TargetPlatform.android;
+
+void main() {
+  runApp(Sunflower());
+}
+
+class SunflowerPainter extends CustomPainter {
+  static const seedRadius = 2.0;
+  static const scaleFactor = 4;
+  static const tau = math.pi * 2;
+
+  static final phi = (math.sqrt(5) + 1) / 2;
+
+  final int seeds;
+
+  SunflowerPainter(this.seeds);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.width / 2;
+
+    for (var i = 0; i < seeds; i++) {
+      final theta = i * tau / phi;
+      final r = math.sqrt(i) * scaleFactor;
+      final x = center + r * math.cos(theta);
+      final y = center - r * math.sin(theta);
+      final offset = Offset(x, y);
+      if (!size.contains(offset)) {
+        continue;
+      }
+      drawSeed(canvas, x, y);
+    }
+  }
+
+  @override
+  bool shouldRepaint(SunflowerPainter oldDelegate) {
+    return oldDelegate.seeds != seeds;
   }
 
   // Draw a small circle representing a seed centered at (x,y).
@@ -426,28 +424,26 @@ class _SunflowerState extends State<Sunflower> {
           primaryColor: primaryColor,
           primaryColorLight: primaryColor,
           primaryColorDark: primaryColor,
-          valueIndicatorTextStyle: DefaultTextStyle.fallback().style,
+          valueIndicatorTextStyle: const DefaultTextStyle.fallback().style,
         ),
       ),
       home: Scaffold(
-        appBar: AppBar(title: Text("Sunflower")),
+        appBar: AppBar(title: const Text("Sunflower")),
         drawer: Drawer(
             child: ListView(
-          children: [
+          children: const [
             DrawerHeader(
               child: Center(
-                child: Container(
-                  child: Text(
-                    "Sunflower 🌻",
-                    style: TextStyle(fontSize: 32),
-                  ),
+                child: Text(
+                  "Sunflower 🌻",
+                  style: TextStyle(fontSize: 32),
                 ),
               ),
             ),
           ],
         )),
         body: Container(
-          constraints: BoxConstraints.expand(),
+          constraints: const BoxConstraints.expand(),
           decoration:
               BoxDecoration(border: Border.all(color: Colors.transparent)),
           child: Column(
@@ -467,7 +463,7 @@ class _SunflowerState extends State<Sunflower> {
               ),
               Text("Showing $seedCount seeds"),
               ConstrainedBox(
-                constraints: BoxConstraints.tightFor(width: 300),
+                constraints: const BoxConstraints.tightFor(width: 300),
                 child: Slider.adaptive(
                   min: 20,
                   max: 2000,
@@ -507,9 +503,9 @@ class PhysicsCardDragDemo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('A draggable card!'),
+        title: const Text('A draggable card!'),
       ),
-      body: DraggableCard(
+      body: const DraggableCard(
         child: FlutterLogo(
           size: 128,
         ),
@@ -520,7 +516,7 @@ class PhysicsCardDragDemo extends StatelessWidget {
 
 class DraggableCard extends StatefulWidget {
   final Widget child;
-  DraggableCard({this.child});
+  const DraggableCard({this.child});
 
   @override
   _DraggableCardState createState() => _DraggableCardState();
@@ -603,6 +599,7 @@ class _DraggableCardState extends State<DraggableCard>
 }
 ''';
 
+// https://gist.github.com/johnpryan/5e28c5273c2c1a41d30bad9f9d11da56
 const sampleCodeFlutterDraggableCardNullSafe = '''
 import 'package:flutter/material.dart';
 import 'package:flutter/physics.dart';
@@ -621,9 +618,9 @@ class PhysicsCardDragDemo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('A draggable card!'),
+        title: const Text('A draggable card!'),
       ),
-      body: DraggableCard(
+      body: const DraggableCard(
         child: FlutterLogo(
           size: 128,
         ),
@@ -634,7 +631,7 @@ class PhysicsCardDragDemo extends StatelessWidget {
 
 class DraggableCard extends StatefulWidget {
   final Widget child;
-  DraggableCard({required this.child});
+  const DraggableCard({required this.child});
 
   @override
   _DraggableCardState createState() => _DraggableCardState();
@@ -719,8 +716,8 @@ class _DraggableCardState extends State<DraggableCard>
 
 // From https://gist.github.com/RedBrogdon/40308e0a5f47acba46ba62f4d8be2bf4
 const sampleCodeFlutterImplicitAnimations = '''
-import 'package:flutter/material.dart';
 import 'dart:math';
+import 'package:flutter/material.dart';
 
 class DiscData {
   static final _rng = Random();
@@ -750,8 +747,8 @@ void main() async {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Container(
-          color: Color(0xFF15202D),
-          child: SizedBox.expand(
+          color: const Color(0xFF15202D),
+          child: const SizedBox.expand(
             child: VariousDiscs(50),
           ),
         ),
@@ -761,10 +758,10 @@ void main() async {
 }
 
 class VariousDiscs extends StatefulWidget {
-  final numberOfDiscs;
+  final int numberOfDiscs;
 
-  VariousDiscs(this.numberOfDiscs);
-  
+  const VariousDiscs(this.numberOfDiscs);
+
   @override
   _VariousDiscsState createState() => _VariousDiscsState();
 }
@@ -793,7 +790,7 @@ class _VariousDiscsState extends State<VariousDiscs> {
       }),
       child: Stack(
         children: [
-          Center(
+          const Center(
             child: Text(
               'Click a disc!',
               style: TextStyle(color: Colors.white, fontSize: 50),
@@ -802,11 +799,11 @@ class _VariousDiscsState extends State<VariousDiscs> {
           for (final disc in _discs)
             Positioned.fill(
               child: AnimatedAlign(
-                duration: Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 500),
                 curve: Curves.easeInOut,
                 alignment: disc.alignment,
                 child: AnimatedContainer(
-                  duration: Duration(milliseconds: 500),
+                  duration: const Duration(milliseconds: 500),
                   decoration: BoxDecoration(
                     color: disc.color,
                     shape: BoxShape.circle,
@@ -823,10 +820,10 @@ class _VariousDiscsState extends State<VariousDiscs> {
 }
 ''';
 
+// From https://gist.github.com/johnpryan/289ecf8480ad005f01faeace70bd529a
 const sampleCodeFlutterImplicitAnimationsNullSafe = '''
 import 'dart:math';
 import 'package:flutter/material.dart';
-
 
 class DiscData {
   static final _rng = Random();
@@ -855,8 +852,8 @@ void main() async {
       debugShowCheckedModeBanner: false,
       home: Scaffold(
         body: Container(
-          color: Color(0xFF15202D),
-          child: SizedBox.expand(
+          color: const Color(0xFF15202D),
+          child: const SizedBox.expand(
             child: VariousDiscs(50),
           ),
         ),
@@ -868,7 +865,7 @@ void main() async {
 class VariousDiscs extends StatefulWidget {
   final int numberOfDiscs;
 
-  VariousDiscs(this.numberOfDiscs);
+  const VariousDiscs(this.numberOfDiscs);
 
   @override
   _VariousDiscsState createState() => _VariousDiscsState();
@@ -898,7 +895,7 @@ class _VariousDiscsState extends State<VariousDiscs> {
       }),
       child: Stack(
         children: [
-          Center(
+          const Center(
             child: Text(
               'Click a disc!',
               style: TextStyle(color: Colors.white, fontSize: 50),
@@ -907,11 +904,11 @@ class _VariousDiscsState extends State<VariousDiscs> {
           for (final disc in _discs)
             Positioned.fill(
               child: AnimatedAlign(
-                duration: Duration(milliseconds: 500),
+                duration: const Duration(milliseconds: 500),
                 curve: Curves.easeInOut,
                 alignment: disc.alignment,
                 child: AnimatedContainer(
-                  duration: Duration(milliseconds: 500),
+                  duration: const Duration(milliseconds: 500),
                   decoration: BoxDecoration(
                     color: disc.color,
                     shape: BoxShape.circle,
