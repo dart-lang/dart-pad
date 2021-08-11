@@ -98,11 +98,9 @@ abstract class EditorUi {
     dialog.showOk('Pub package versions', div.innerHtml);
   }
 
-  void showSnackbar(String message) {
-    var div = querySelector('.mdc-snackbar')!;
-    var snackbar = MDCSnackbar(div)..labelText = message;
-    snackbar.open();
-  }
+  void showSnackbar(String message) => snackbar.showMessage(message);
+
+  MDCSnackbar get snackbar => MDCSnackbar(querySelector('.mdc-snackbar')!);
 
   Document get currentDocument => editor.document;
 

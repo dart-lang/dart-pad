@@ -48,33 +48,34 @@ import 'src/ga.dart';
 import 'util/detect_flutter.dart';
 import 'util/query_params.dart' show queryParams;
 
-Playground? get playground => _playground;
-
-Playground? _playground;
-
 final Logger _logger = Logger('dartpad');
-
-void init() {
-  _playground = Playground();
-}
 
 class Playground extends EditorUi implements GistContainer, GistController {
   final MutableGist _editableGist = MutableGist(Gist());
-  late GistStorage _gistStorage;
-  late MDCButton _formatButton;
-  late MDCButton _editorConsoleTab;
-  late MDCButton _editorDocsTab;
-  late MDCButton _closePanelButton;
-  late DElement editorPanelHeader;
-  late DElement editorPanelFooter;
-  late MDCMenu _samplesMenu;
-  late MDCMenu _moreMenu;
-  late NewPadDialog _newPadDialog;
-  late DElement _titleElement;
-  late MaterialTabController _webLayoutTabController;
-  late DElement _webTabBar;
-  late DElement _webOutputLabel;
-  late MDCSwitch _nullSafetySwitch;
+  final GistStorage _gistStorage = GistStorage();
+  final MDCButton _formatButton =
+      MDCButton(querySelector('#format-button') as ButtonElement);
+  final MDCButton _editorConsoleTab =
+      MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
+  final MDCButton _editorDocsTab =
+      MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
+  final MDCButton _closePanelButton = MDCButton(
+      querySelector('#editor-panel-close-button') as ButtonElement,
+      isIcon: true);
+  final DElement _editorPanelHeader =
+      DElement(querySelector('#editor-panel-header') as DivElement);
+  final DElement _editorPanelFooter =
+      DElement(querySelector('#editor-panel-footer') as DivElement);
+  late final MDCMenu _samplesMenu = _initSamplesMenu();
+  final NewPadDialog _newPadDialog = NewPadDialog();
+  final DElement _titleElement =
+      DElement(querySelector('header .header-gist-name')!);
+  late final MaterialTabController _webLayoutTabController = _initTabs();
+  final DElement _webTabBar = DElement(querySelector('#web-tab-bar')!);
+  final DElement _webOutputLabel =
+      DElement(querySelector('#web-output-label')!);
+  final MDCSwitch _nullSafetySwitch =
+      MDCSwitch(querySelector('#null-safety-switch'));
 
   late Splitter _rightSplitter;
   bool _rightSplitterConfigured = false;
@@ -88,31 +89,29 @@ class Playground extends EditorUi implements GistContainer, GistController {
   Gist? _overrideNextRouteGist;
   late DocHandler _docHandler;
 
-  late Console _leftConsole;
-  late Console _rightConsole;
-  late Counter _unreadConsoleCounter;
+  final Console _leftConsole = Console(DElement(_leftConsoleElement));
+  final Console _rightConsole = Console(DElement(_rightConsoleContentElement));
+  final Counter _unreadConsoleCounter =
+      Counter(querySelector('#unread-console-counter') as SpanElement);
 
-  Playground() {
-    _initDialogs();
+  static Future<Playground> initialize() async {
+    await _initModules();
+    return Playground._();
+  }
+
+  Playground._() {
     _checkLocalStorage();
-    _initModules().then((_) {
-      _gistStorage = GistStorage();
-      _initPlayground();
-      _initBusyLights();
-      _initGistNameHeader();
-      _initGistStorage();
-      _initLayoutDetection();
-      _initButtons();
-      _initLabels();
-      _initSamplesMenu(nullSafe: nullSafetyEnabled);
-      _initMoreMenu();
-      _initSplitters();
-      _initTabs();
-      _initLayout();
-      _initConsoles();
-    }).then((_) {
-      showHome();
-    });
+    _initPlayground();
+    _initBusyLights();
+    _initGistNameHeader();
+    _initGistStorage();
+    _initLayoutDetection();
+    _initButtons();
+    _initSamplesMenu(nullSafe: nullSafetyEnabled);
+    _initMoreMenu();
+    _initSplitters();
+    _initTabs();
+    showHome();
   }
 
   DivElement get _editorHost => querySelector('#editor-host') as DivElement;
@@ -120,10 +119,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
   DivElement get _rightConsoleElement =>
       querySelector('#right-output-panel') as DivElement;
 
-  DivElement get _rightConsoleContentElement =>
+  static DivElement get _rightConsoleContentElement =>
       querySelector('#right-output-panel-content') as DivElement;
 
-  DivElement get _leftConsoleElement =>
+  static DivElement get _leftConsoleElement =>
       querySelector('#left-output-panel') as DivElement;
 
   IFrameElement get _frame => querySelector('#frame') as IFrameElement;
@@ -137,17 +136,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   DivElement get _leftDocPanel =>
       querySelector('#left-doc-panel') as DivElement;
 
-  DivElement get _editorPanelHeader =>
-      querySelector('#editor-panel-header') as DivElement;
-
-  DivElement get _editorPanelFooter =>
-      querySelector('#editor-panel-footer') as DivElement;
-
   bool get _isCompletionActive => editor.completionActive;
-
-  void _initDialogs() {
-    _newPadDialog = NewPadDialog();
-  }
 
   void _initBusyLights() {
     busyLight = DBusyLight(querySelector('#dartbusy')!);
@@ -155,7 +144,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void _initGistNameHeader() {
     // Update the title on changes.
-    _titleElement = DElement(querySelector('header .header-gist-name')!);
+
     bind(_editableGist.property('description'), _titleElement.textProperty);
   }
 
@@ -190,8 +179,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     MDCButton(querySelector('#reset-button') as ButtonElement)
         .onClick
         .listen((_) => _showResetDialog());
-    _formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
-      ..onClick.listen((_) => _format());
+    _formatButton.onClick.listen((_) => _format());
     MDCButton(querySelector('#install-button') as ButtonElement)
         .onClick
         .listen((_) => _showInstallPage());
@@ -204,16 +192,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       ..onClick.listen((_) {
         handleRun();
       });
-    _editorConsoleTab =
-        MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
-    _editorDocsTab =
-        MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
-    _closePanelButton = MDCButton(
-        querySelector('#editor-panel-close-button') as ButtonElement,
-        isIcon: true);
-    MDCButton(querySelector('#more-menu-button') as ButtonElement, isIcon: true)
-        .onClick
-        .listen((_) => _toggleMenu(_moreMenu));
     querySelector('#keyboard-button')
         ?.onClick
         .listen((_) => showKeyboardDialog());
@@ -231,7 +209,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       nullSafetyEnabled = true;
     }
 
-    _nullSafetySwitch = MDCSwitch(querySelector('#null-safety-switch'))
+    _nullSafetySwitch
       ..checked = nullSafetyEnabled
       ..listen('change', (event) {
         _handleNullSafetySwitched(_nullSafetySwitch.checked!);
@@ -239,14 +217,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _handleNullSafetySwitched(nullSafetyEnabled);
   }
 
-  void _initLabels() {
-    var webOutputLabelElement = querySelector('#web-output-label');
-    if (webOutputLabelElement != null) {
-      _webOutputLabel = DElement(webOutputLabelElement);
-    }
-  }
-
-  void _initSamplesMenu({bool nullSafe = false}) {
+  MDCMenu _initSamplesMenu({bool nullSafe = false}) {
     var element = querySelector('#samples-menu')!;
     element.children.clear();
 
@@ -291,10 +262,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     element.children.add(listElement);
 
-    // Helper function to create LIElement with correct attributes and classes
-    // for material-components-web
-    LIElement _menuElement(Sample sample) {
-      return LIElement()
+    for (var sample in samples) {
+      var menuElement = LIElement()
         ..classes.add('mdc-list-item')
         ..attributes.addAll({'role': 'menuitem'})
         ..children.add(
@@ -307,30 +276,32 @@ class Playground extends EditorUi implements GistContainer, GistController {
             ..classes.add('mdc-list-item__text')
             ..text = sample.name,
         );
+      listElement.children.add(menuElement);
     }
 
-    for (var sample in samples) {
-      listElement.children.add(_menuElement(sample));
-    }
-
-    _samplesMenu = MDCMenu(element)
+    var samplesMenu = MDCMenu(element)
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(querySelector('#samples-dropdown-button')!)
       ..hoistMenuToBody();
 
-    _samplesMenu.listen('MDCMenu:selected', (e) {
+    samplesMenu.listen('MDCMenu:selected', (e) {
       var index = (e as CustomEvent).detail['index'] as int;
       var gistId = samples.elementAt(index).gistId;
       showGist(gistId);
     });
+
+    return samplesMenu;
   }
 
   void _initMoreMenu() {
-    _moreMenu = MDCMenu(querySelector('#more-menu'))
+    var moreMenu = MDCMenu(querySelector('#more-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(querySelector('#more-menu-button')!)
       ..hoistMenuToBody();
-    _moreMenu.listen('MDCMenu:selected', (e) {
+    MDCButton(querySelector('#more-menu-button') as ButtonElement, isIcon: true)
+        .onClick
+        .listen((_) => _toggleMenu(moreMenu));
+    moreMenu.listen('MDCMenu:selected', (e) {
       var idx = (e as CustomEvent).detail['index'] as int?;
       switch (idx) {
         case 0:
@@ -403,7 +374,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       docsElement: _leftDocPanel,
       consoleElement: _leftConsoleElement,
       topSplit: _editorHost,
-      bottomSplit: _editorPanelFooter,
+      bottomSplit: _editorPanelFooter.element,
       unreadCounter: _unreadConsoleCounter,
       editorUi: this,
     );
@@ -414,29 +385,18 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _tabExpandController = null;
   }
 
-  void _initTabs() {
-    _webTabBar = DElement(querySelector('#web-tab-bar')!);
-    _webLayoutTabController =
+  MaterialTabController _initTabs() {
+    var webLayoutTabController =
         MaterialTabController(MDCTabBar(_webTabBar.element));
     for (var name in ['dart', 'html', 'css']) {
-      _webLayoutTabController.registerTab(
+      webLayoutTabController.registerTab(
           TabElement(querySelector('#$name-tab')!, name: name, onSelect: () {
         ga.sendEvent('edit', name);
         context.switchTo(name);
       }));
     }
-  }
 
-  void _initLayout() {
-    editorPanelHeader = DElement(_editorPanelHeader);
-    editorPanelFooter = DElement(_editorPanelFooter);
-  }
-
-  void _initConsoles() {
-    _leftConsole = Console(DElement(_leftConsoleElement));
-    _rightConsole = Console(DElement(_rightConsoleContentElement));
-    _unreadConsoleCounter =
-        Counter(querySelector('#unread-console-counter') as SpanElement);
+    return webLayoutTabController;
   }
 
   void _checkLocalStorage() {
@@ -450,7 +410,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     }
   }
 
-  Future<void> _initModules() async {
+  static Future<void> _initModules() async {
     var modules = ModuleManager();
 
     modules.register(DartPadModule());
@@ -523,10 +483,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
     updateVersions();
 
     analysisResultsController = AnalysisResultsController(
-        DElement(querySelector('#issues')!),
-        DElement(querySelector('#issues-message')!),
-        DElement(querySelector('#issues-toggle')!))
-      ..onItemClicked.listen((item) {
+      DElement(querySelector('#issues')!),
+      DElement(querySelector('#issues-message')!),
+      DElement(querySelector('#issues-toggle')!),
+      snackbar,
+    )..onItemClicked.listen((item) {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 
@@ -797,38 +758,38 @@ class Playground extends EditorUi implements GistContainer, GistController {
     switch (layout) {
       case Layout.dart:
         _frame.hidden = true;
-        editorPanelFooter.setAttr('hidden');
+        _editorPanelFooter.setAttr('hidden');
         _disposeOutputPanelTabs();
         _rightDocPanel.attributes.remove('hidden');
         _rightConsoleElement.attributes.remove('hidden');
         _webTabBar.setAttr('hidden');
         _webLayoutTabController.selectTab('dart');
         _initRightSplitter();
-        editorPanelHeader.setAttr('hidden');
+        _editorPanelHeader.setAttr('hidden');
         _webOutputLabel.setAttr('hidden');
         break;
       case Layout.html:
         _disposeRightSplitter();
         _frame.hidden = false;
-        editorPanelFooter.clearAttr('hidden');
+        _editorPanelFooter.clearAttr('hidden');
         _initOutputPanelTabs();
         _rightDocPanel.setAttribute('hidden', '');
         _rightConsoleElement.setAttribute('hidden', '');
         _webTabBar.toggleAttr('hidden', false);
         _webLayoutTabController.selectTab('dart');
-        editorPanelHeader.clearAttr('hidden');
+        _editorPanelHeader.clearAttr('hidden');
         _webOutputLabel.setAttr('hidden');
         break;
       case Layout.flutter:
         _disposeRightSplitter();
         _frame.hidden = false;
-        editorPanelFooter.clearAttr('hidden');
+        _editorPanelFooter.clearAttr('hidden');
         _initOutputPanelTabs();
         _rightDocPanel.setAttribute('hidden', '');
         _rightConsoleElement.setAttribute('hidden', '');
         _webTabBar.setAttr('hidden');
         _webLayoutTabController.selectTab('dart');
-        editorPanelHeader.setAttr('hidden');
+        _editorPanelHeader.setAttr('hidden');
         _webOutputLabel.clearAttr('hidden');
         break;
     }
