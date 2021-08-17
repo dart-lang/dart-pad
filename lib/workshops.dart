@@ -167,10 +167,11 @@ class WorkshopUi extends EditorUi {
     (deps[DartservicesApi] as DartservicesApi).rootUrl = nullSafetyServerUrl;
 
     analysisResultsController = AnalysisResultsController(
-        DElement(querySelector('#issues')!),
-        DElement(querySelector('#issues-message')!),
-        DElement(querySelector('#issues-toggle')!))
-      ..onItemClicked.listen((item) {
+      DElement(querySelector('#issues')!),
+      DElement(querySelector('#issues-message')!),
+      DElement(querySelector('#issues-toggle')!),
+      snackbar,
+    )..onItemClicked.listen((item) {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 

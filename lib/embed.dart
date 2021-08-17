@@ -73,8 +73,8 @@ class Embed extends EditorUi {
   late final TabView editorTabView;
   late final TabView testTabView;
   late final TabView solutionTabView;
-  late final TabView htmlTabView;
-  late final TabView cssTabView;
+  TabView? htmlTabView;
+  TabView? cssTabView;
   late final DElement solutionTab;
   late final MDCMenu menu;
 
@@ -105,7 +105,7 @@ class Embed extends EditorUi {
   late final Splitter splitter;
 
   late final Console consoleExpandController;
-  late final DElement webOutputLabel;
+  DElement? webOutputLabel;
   late final DElement featureMessage;
 
   late final MDCLinearProgress linearProgress;
@@ -163,8 +163,8 @@ class Embed extends EditorUi {
           editorTabView.setSelected(name == 'editor');
           testTabView.setSelected(name == 'test');
           solutionTabView.setSelected(name == 'solution');
-          htmlTabView.setSelected(name == 'html');
-          cssTabView.setSelected(name == 'css');
+          htmlTabView?.setSelected(name == 'html');
+          cssTabView?.setSelected(name == 'css');
 
           if (name == 'editor') {
             userCodeEditor.resize();
@@ -377,10 +377,11 @@ class Embed extends EditorUi {
     });
 
     analysisResultsController = AnalysisResultsController(
-        DElement(querySelector('#issues')!),
-        DElement(querySelector('#issues-message')!),
-        DElement(querySelector('#issues-toggle')!))
-      ..onItemClicked.listen((item) {
+      DElement(querySelector('#issues')!),
+      DElement(querySelector('#issues-message')!),
+      DElement(querySelector('#issues-toggle')!),
+      snackbar,
+    )..onItemClicked.listen((item) {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 
@@ -819,7 +820,7 @@ class Embed extends EditorUi {
 
     // The iframe will show Flutter output for the rest of the lifetime of the
     // app, so hide the label.
-    webOutputLabel.setAttr('hidden');
+    webOutputLabel?.setAttr('hidden');
 
     return success;
   }

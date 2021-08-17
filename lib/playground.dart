@@ -48,77 +48,70 @@ import 'src/ga.dart';
 import 'util/detect_flutter.dart';
 import 'util/query_params.dart' show queryParams;
 
-Playground? get playground => _playground;
-
-Playground? _playground;
-
 final Logger _logger = Logger('dartpad');
 
-void init() {
-  _playground = Playground();
-}
-
 class Playground extends EditorUi implements GistContainer, GistController {
-  final MutableGist editableGist = MutableGist(Gist());
-  late GistStorage _gistStorage;
-  late MDCButton newButton;
-  late MDCButton resetButton;
-  late MDCButton formatButton;
-  late MDCButton installButton;
-  late MDCButton samplesButton;
-  late MDCButton editorConsoleTab;
-  late MDCButton editorDocsTab;
-  late MDCButton closePanelButton;
-  late MDCButton moreMenuButton;
-  late DElement editorPanelHeader;
-  late DElement editorPanelFooter;
-  late MDCMenu samplesMenu;
-  late MDCMenu moreMenu;
-  late NewPadDialog newPadDialog;
-  late DElement titleElement;
-  late MaterialTabController webLayoutTabController;
-  late DElement webTabBar;
-  late DElement webOutputLabel;
-  late MDCSwitch nullSafetySwitch;
+  final MutableGist _editableGist = MutableGist(Gist());
+  final GistStorage _gistStorage = GistStorage();
+  final MDCButton _formatButton =
+      MDCButton(querySelector('#format-button') as ButtonElement);
+  final MDCButton _editorConsoleTab =
+      MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
+  final MDCButton _editorDocsTab =
+      MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
+  final MDCButton _closePanelButton = MDCButton(
+      querySelector('#editor-panel-close-button') as ButtonElement,
+      isIcon: true);
+  final DElement _editorPanelHeader =
+      DElement(querySelector('#editor-panel-header') as DivElement);
+  final DElement _editorPanelFooter =
+      DElement(querySelector('#editor-panel-footer') as DivElement);
+  late final MDCMenu _samplesMenu = _initSamplesMenu();
+  final NewPadDialog _newPadDialog = NewPadDialog();
+  final DElement _titleElement =
+      DElement(querySelector('header .header-gist-name')!);
+  late final MaterialTabController _webLayoutTabController = _initTabs();
+  final DElement _webTabBar = DElement(querySelector('#web-tab-bar')!);
+  final DElement _webOutputLabel =
+      DElement(querySelector('#web-output-label')!);
+  final MDCSwitch _nullSafetySwitch =
+      MDCSwitch(querySelector('#null-safety-switch'));
 
-  late Splitter splitter;
-  late Splitter rightSplitter;
-  bool rightSplitterConfigured = false;
-  TabExpandController? tabExpandController;
+  late Splitter _rightSplitter;
+  bool _rightSplitterConfigured = false;
+  TabExpandController? _tabExpandController;
 
   @override
   late PlaygroundContext context;
-  Layout? _layout;
+  late Layout _layout;
 
   // The last returned shared gist used to update the url.
   Gist? _overrideNextRouteGist;
-  late DocHandler docHandler;
+  late DocHandler _docHandler;
 
-  late Console _leftConsole;
-  late Console _rightConsole;
-  late Counter unreadConsoleCounter;
+  final Console _leftConsole = Console(DElement(_leftConsoleElement));
+  final Console _rightConsole = Console(DElement(_rightConsoleContentElement));
+  final Counter _unreadConsoleCounter =
+      Counter(querySelector('#unread-console-counter') as SpanElement);
 
-  Playground() {
-    _initDialogs();
+  static Future<Playground> initialize() async {
+    await _initModules();
+    return Playground._();
+  }
+
+  Playground._() {
     _checkLocalStorage();
-    _initModules().then((_) {
-      _gistStorage = GistStorage();
-      _initPlayground();
-      _initBusyLights();
-      _initGistNameHeader();
-      _initGistStorage();
-      _initLayoutDetection();
-      _initButtons();
-      _initLabels();
-      _initSamplesMenu(nullSafe: nullSafetyEnabled);
-      _initMoreMenu();
-      _initSplitters();
-      _initTabs();
-      _initLayout();
-      _initConsoles();
-    }).then((_) {
-      showHome();
-    });
+    _initPlayground();
+    _initBusyLights();
+    _initGistNameHeader();
+    _initGistStorage();
+    _initLayoutDetection();
+    _initButtons();
+    _initSamplesMenu(nullSafe: nullSafetyEnabled);
+    _initMoreMenu();
+    _initSplitters();
+    _initTabs();
+    showHome();
   }
 
   DivElement get _editorHost => querySelector('#editor-host') as DivElement;
@@ -126,10 +119,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
   DivElement get _rightConsoleElement =>
       querySelector('#right-output-panel') as DivElement;
 
-  DivElement get _rightConsoleContentElement =>
+  static DivElement get _rightConsoleContentElement =>
       querySelector('#right-output-panel-content') as DivElement;
 
-  DivElement get _leftConsoleElement =>
+  static DivElement get _leftConsoleElement =>
       querySelector('#left-output-panel') as DivElement;
 
   IFrameElement get _frame => querySelector('#frame') as IFrameElement;
@@ -143,17 +136,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   DivElement get _leftDocPanel =>
       querySelector('#left-doc-panel') as DivElement;
 
-  DivElement get _editorPanelHeader =>
-      querySelector('#editor-panel-header') as DivElement;
-
-  DivElement get _editorPanelFooter =>
-      querySelector('#editor-panel-footer') as DivElement;
-
   bool get _isCompletionActive => editor.completionActive;
-
-  void _initDialogs() {
-    newPadDialog = NewPadDialog();
-  }
 
   void _initBusyLights() {
     busyLight = DBusyLight(querySelector('#dartbusy')!);
@@ -161,8 +144,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void _initGistNameHeader() {
     // Update the title on changes.
-    titleElement = DElement(querySelector('header .header-gist-name')!);
-    bind(editableGist.property('description'), titleElement.textProperty);
+
+    bind(_editableGist.property('description'), _titleElement.textProperty);
   }
 
   void _initGistStorage() {
@@ -187,37 +170,27 @@ class Playground extends EditorUi implements GistContainer, GistController {
     });
   }
 
+  static void _toggleMenu(MDCMenu menu) => menu.open = !menu.open!;
+
   void _initButtons() {
-    newButton = MDCButton(querySelector('#new-button') as ButtonElement)
-      ..onClick.listen((_) => _showCreateGistDialog());
-    resetButton = MDCButton(querySelector('#reset-button') as ButtonElement)
-      ..onClick.listen((_) => _showResetDialog());
-    formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
-      ..onClick.listen((_) => _format());
-    installButton = MDCButton(querySelector('#install-button') as ButtonElement)
-      ..onClick.listen((_) => _showInstallPage());
-    samplesButton =
-        MDCButton(querySelector('#samples-dropdown-button') as ButtonElement)
-          ..onClick.listen((e) {
-            samplesMenu.open = !samplesMenu.open!;
-          });
+    MDCButton(querySelector('#new-button') as ButtonElement)
+        .onClick
+        .listen((_) => _showCreateGistDialog());
+    MDCButton(querySelector('#reset-button') as ButtonElement)
+        .onClick
+        .listen((_) => _showResetDialog());
+    _formatButton.onClick.listen((_) => _format());
+    MDCButton(querySelector('#install-button') as ButtonElement)
+        .onClick
+        .listen((_) => _showInstallPage());
+
+    MDCButton(querySelector('#samples-dropdown-button') as ButtonElement)
+        .onClick
+        .listen((e) => _toggleMenu(_samplesMenu));
 
     runButton = MDCButton(querySelector('#run-button') as ButtonElement)
       ..onClick.listen((_) {
         handleRun();
-      });
-    editorConsoleTab =
-        MDCButton(querySelector('#editor-panel-console-tab') as ButtonElement);
-    editorDocsTab =
-        MDCButton(querySelector('#editor-panel-docs-tab') as ButtonElement);
-    closePanelButton = MDCButton(
-        querySelector('#editor-panel-close-button') as ButtonElement,
-        isIcon: true);
-    moreMenuButton = MDCButton(
-        querySelector('#more-menu-button') as ButtonElement,
-        isIcon: true)
-      ..onClick.listen((_) {
-        moreMenu.open = !moreMenu.open!;
       });
     querySelector('#keyboard-button')
         ?.onClick
@@ -236,22 +209,15 @@ class Playground extends EditorUi implements GistContainer, GistController {
       nullSafetyEnabled = true;
     }
 
-    nullSafetySwitch = MDCSwitch(querySelector('#null-safety-switch'))
+    _nullSafetySwitch
       ..checked = nullSafetyEnabled
       ..listen('change', (event) {
-        _handleNullSafetySwitched(nullSafetySwitch.checked!);
+        _handleNullSafetySwitched(_nullSafetySwitch.checked!);
       });
     _handleNullSafetySwitched(nullSafetyEnabled);
   }
 
-  void _initLabels() {
-    var webOutputLabelElement = querySelector('#web-output-label');
-    if (webOutputLabelElement != null) {
-      webOutputLabel = DElement(webOutputLabelElement);
-    }
-  }
-
-  void _initSamplesMenu({bool nullSafe = false}) {
+  MDCMenu _initSamplesMenu({bool nullSafe = false}) {
     var element = querySelector('#samples-menu')!;
     element.children.clear();
 
@@ -296,10 +262,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     element.children.add(listElement);
 
-    // Helper function to create LIElement with correct attributes and classes
-    // for material-components-web
-    LIElement _menuElement(Sample sample) {
-      return LIElement()
+    for (var sample in samples) {
+      var menuElement = LIElement()
         ..classes.add('mdc-list-item')
         ..attributes.addAll({'role': 'menuitem'})
         ..children.add(
@@ -312,13 +276,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
             ..classes.add('mdc-list-item__text')
             ..text = sample.name,
         );
+      listElement.children.add(menuElement);
     }
 
-    for (var sample in samples) {
-      listElement.children.add(_menuElement(sample));
-    }
-
-    samplesMenu = MDCMenu(element)
+    var samplesMenu = MDCMenu(element)
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(querySelector('#samples-dropdown-button')!)
       ..hoistMenuToBody();
@@ -328,13 +289,18 @@ class Playground extends EditorUi implements GistContainer, GistController {
       var gistId = samples.elementAt(index).gistId;
       showGist(gistId);
     });
+
+    return samplesMenu;
   }
 
   void _initMoreMenu() {
-    moreMenu = MDCMenu(querySelector('#more-menu'))
+    var moreMenu = MDCMenu(querySelector('#more-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(querySelector('#more-menu-button')!)
       ..hoistMenuToBody();
+    MDCButton(querySelector('#more-menu-button') as ButtonElement, isIcon: true)
+        .onClick
+        .listen((_) => _toggleMenu(moreMenu));
     moreMenu.listen('MDCMenu:selected', (e) {
       var idx = (e as CustomEvent).detail['index'] as int?;
       switch (idx) {
@@ -356,10 +322,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void _initSplitters() {
     var editorPanel = querySelector('#editor-panel')!;
-    var outputPanel = querySelector('#output-panel');
+    var outputPanel = querySelector('#output-panel')!;
 
-    splitter = flexSplit(
-      [editorPanel, outputPanel!],
+    flexSplit(
+      [editorPanel, outputPanel],
       horizontal: true,
       gutterSize: 6,
       sizes: const [50, 50],
@@ -370,59 +336,58 @@ class Playground extends EditorUi implements GistContainer, GistController {
   }
 
   void _initRightSplitter() {
-    if (rightSplitterConfigured) {
+    if (_rightSplitterConfigured) {
       return;
     }
 
     var outputHost = querySelector('#right-output-panel')!;
-    rightSplitter = flexSplit(
+    _rightSplitter = flexSplit(
       [outputHost, _rightDocPanel],
       horizontal: false,
       gutterSize: 6,
       sizes: const [50, 50],
       minSize: const [100, 100],
     );
-    rightSplitterConfigured = true;
+    _rightSplitterConfigured = true;
 
     listenForResize(outputHost);
   }
 
   void _disposeRightSplitter() {
-    if (!rightSplitterConfigured) {
+    if (!_rightSplitterConfigured) {
       // The right splitter might already be destroyed.
       return;
     }
-    rightSplitter.destroy();
-    rightSplitterConfigured = false;
+    _rightSplitter.destroy();
+    _rightSplitterConfigured = false;
   }
 
   void _initOutputPanelTabs() {
-    if (tabExpandController != null) {
+    if (_tabExpandController != null) {
       return;
     }
 
-    tabExpandController = TabExpandController(
-      consoleButton: editorConsoleTab,
-      docsButton: editorDocsTab,
-      closeButton: closePanelButton,
+    _tabExpandController = TabExpandController(
+      consoleButton: _editorConsoleTab,
+      docsButton: _editorDocsTab,
+      closeButton: _closePanelButton,
       docsElement: _leftDocPanel,
       consoleElement: _leftConsoleElement,
       topSplit: _editorHost,
-      bottomSplit: _editorPanelFooter,
-      unreadCounter: unreadConsoleCounter,
+      bottomSplit: _editorPanelFooter.element,
+      unreadCounter: _unreadConsoleCounter,
       editorUi: this,
     );
   }
 
   void _disposeOutputPanelTabs() {
-    tabExpandController?.dispose();
-    tabExpandController = null;
+    _tabExpandController?.dispose();
+    _tabExpandController = null;
   }
 
-  void _initTabs() {
-    webTabBar = DElement(querySelector('#web-tab-bar')!);
-    webLayoutTabController =
-        MaterialTabController(MDCTabBar(webTabBar.element));
+  MaterialTabController _initTabs() {
+    var webLayoutTabController =
+        MaterialTabController(MDCTabBar(_webTabBar.element));
     for (var name in ['dart', 'html', 'css']) {
       webLayoutTabController.registerTab(
           TabElement(querySelector('#$name-tab')!, name: name, onSelect: () {
@@ -430,18 +395,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
         context.switchTo(name);
       }));
     }
-  }
 
-  void _initLayout() {
-    editorPanelHeader = DElement(_editorPanelHeader);
-    editorPanelFooter = DElement(_editorPanelFooter);
-  }
-
-  void _initConsoles() {
-    _leftConsole = Console(DElement(_leftConsoleElement));
-    _rightConsole = Console(DElement(_rightConsoleContentElement));
-    unreadConsoleCounter =
-        Counter(querySelector('#unread-console-counter') as SpanElement);
+    return webLayoutTabController;
   }
 
   void _checkLocalStorage() {
@@ -455,7 +410,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     }
   }
 
-  Future<void> _initModules() async {
+  static Future<void> _initModules() async {
     var modules = ModuleManager();
 
     modules.register(DartPadModule());
@@ -496,19 +451,19 @@ class Playground extends EditorUi implements GistContainer, GistController {
     context.onDartReconcile.listen((_) => performAnalysis());
 
     Property htmlFile =
-        GistFileProperty(editableGist.getGistFile('index.html')!);
+        GistFileProperty(_editableGist.getGistFile('index.html')!);
     Property htmlDoc = EditorDocumentProperty(context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
     Property cssFile =
-        GistFileProperty(editableGist.getGistFile('styles.css')!);
+        GistFileProperty(_editableGist.getGistFile('styles.css')!);
     Property cssDoc = EditorDocumentProperty(context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
     Property dartFile =
-        GistFileProperty(editableGist.getGistFile('main.dart')!);
+        GistFileProperty(_editableGist.getGistFile('main.dart')!);
     Property dartDoc = EditorDocumentProperty(context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
@@ -518,20 +473,21 @@ class Playground extends EditorUi implements GistContainer, GistController {
       // Delay to give codemirror time to process the mouse event.
       Timer.run(() {
         if (!context.cursorPositionIsWhitespace()) {
-          docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
+          _docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
         }
       });
     });
 
-    docHandler = DocHandler(editor, context);
+    _docHandler = DocHandler(editor, context);
 
     updateVersions();
 
     analysisResultsController = AnalysisResultsController(
-        DElement(querySelector('#issues')!),
-        DElement(querySelector('#issues-message')!),
-        DElement(querySelector('#issues-toggle')!))
-      ..onItemClicked.listen((item) {
+      DElement(querySelector('#issues')!),
+      DElement(querySelector('#issues-message')!),
+      DElement(querySelector('#issues-toggle')!),
+      snackbar,
+    )..onItemClicked.listen((item) {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 
@@ -543,7 +499,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     keys.bind(['ctrl-s'], _handleSave, 'Save', hidden: true);
     keys.bind(['f1'], () {
       ga.sendEvent('main', 'help');
-      docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
+      _docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
     }, 'Documentation');
 
     keys.bind(['alt-enter'], () {
@@ -561,7 +517,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
           DocHandler.cursorKeys.contains(e.keyCode)) {
-        docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
+        _docHandler.generateDoc([_rightDocContentElement, _leftDocPanel]);
       }
       _handleAutoCompletion(e);
     });
@@ -602,11 +558,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     // If no gist was loaded, use a new Dart gist.
     if (loadResult == LoadGistResult.none) {
-      editableGist.setBackingGist(_createGist(layout));
+      _editableGist.setBackingGist(_createGist(layout));
 
       // Store the gist so that the same sample is loaded when the page is
       // refreshed.
-      _gistStorage.setStoredGist(editableGist.createGist());
+      _gistStorage.setStoredGist(_editableGist.createGist());
     }
 
     // Clear console output and update the layout if necessary.
@@ -648,17 +604,17 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     if (_gistStorage.hasStoredGist && _gistStorage.storedId == null) {
       var blankGist = Gist();
-      editableGist.setBackingGist(blankGist);
+      _editableGist.setBackingGist(blankGist);
 
       var storedGist = _gistStorage.getStoredGist()!;
 
       // Set the editable gist's backing gist so that the route handler can
       // detect the project type.
-      editableGist.setBackingGist(storedGist);
+      _editableGist.setBackingGist(storedGist);
 
-      editableGist.description = storedGist.description;
+      _editableGist.description = storedGist.description;
       for (var file in storedGist.files) {
-        editableGist.getGistFile(file.name)!.content = file.content;
+        _editableGist.getGistFile(file.name)!.content = file.content;
       }
       return LoadGistResult.storage;
     }
@@ -672,7 +628,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     if (!isLegalGistId(gistId)) {
       showHome();
       return;
-    } else if (editableGist.backingGist!.id == gistId) {
+    } else if (_editableGist.backingGist!.id == gistId) {
       return;
     }
 
@@ -689,7 +645,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     // routing library to update the url properly.
     final overrideGist = _overrideNextRouteGist;
     if (overrideGist != null && overrideGist.id == gistId) {
-      editableGist.setBackingGist(overrideGist);
+      _editableGist.setBackingGist(overrideGist);
       _overrideNextRouteGist = null;
       return;
     }
@@ -697,15 +653,15 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _overrideNextRouteGist = null;
 
     gistLoader.loadGist(gistId).then((Gist gist) {
-      editableGist.setBackingGist(gist);
+      _editableGist.setBackingGist(gist);
 
       if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
         loadedFromSaved = true;
 
         var storedGist = _gistStorage.getStoredGist()!;
-        editableGist.description = storedGist.description;
+        _editableGist.description = storedGist.description;
         for (var file in storedGist.files) {
-          editableGist.getGistFile(file.name)!.content = file.content;
+          _editableGist.getGistFile(file.name)!.content = file.content;
         }
       }
 
@@ -731,7 +687,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   Future<bool> handleRun() async {
     var success = await super.handleRun();
     if (success) {
-      webOutputLabel.setAttr('hidden');
+      _webOutputLabel.setAttr('hidden');
     }
     return success;
   }
@@ -739,12 +695,12 @@ class Playground extends EditorUi implements GistContainer, GistController {
   Future<void> _format() {
     var originalSource = context.dartSource;
     var input = SourceRequest()..source = originalSource;
-    formatButton.disabled = true;
+    _formatButton.disabled = true;
 
     var request = dartServices.format(input).timeout(serviceCallTimeout);
     return request.then((FormatResponse result) {
       busyLight.reset();
-      formatButton.disabled = false;
+      _formatButton.disabled = false;
 
       if (result.newString.isEmpty) {
         _logger.fine('Format returned null/empty result');
@@ -759,7 +715,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       }
     }).catchError((e) {
       busyLight.reset();
-      formatButton.disabled = false;
+      _formatButton.disabled = false;
       _logger.severe(e);
     });
   }
@@ -776,7 +732,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   void clearOutput() {
     _rightConsole.clear();
     _leftConsole.clear();
-    unreadConsoleCounter.clear();
+    _unreadConsoleCounter.clear();
   }
 
   @override
@@ -786,9 +742,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     // If there are no tabs visible or the console is not being displayed,
     // increment the counter.
-    if (tabExpandController == null ||
-        tabExpandController!.state != TabState.console) {
-      unreadConsoleCounter.increment();
+    if (_tabExpandController == null ||
+        _tabExpandController!.state != TabState.console) {
+      _unreadConsoleCounter.increment();
     }
   }
 
@@ -802,39 +758,39 @@ class Playground extends EditorUi implements GistContainer, GistController {
     switch (layout) {
       case Layout.dart:
         _frame.hidden = true;
-        editorPanelFooter.setAttr('hidden');
+        _editorPanelFooter.setAttr('hidden');
         _disposeOutputPanelTabs();
         _rightDocPanel.attributes.remove('hidden');
         _rightConsoleElement.attributes.remove('hidden');
-        webTabBar.setAttr('hidden');
-        webLayoutTabController.selectTab('dart');
+        _webTabBar.setAttr('hidden');
+        _webLayoutTabController.selectTab('dart');
         _initRightSplitter();
-        editorPanelHeader.setAttr('hidden');
-        webOutputLabel.setAttr('hidden');
+        _editorPanelHeader.setAttr('hidden');
+        _webOutputLabel.setAttr('hidden');
         break;
       case Layout.html:
         _disposeRightSplitter();
         _frame.hidden = false;
-        editorPanelFooter.clearAttr('hidden');
+        _editorPanelFooter.clearAttr('hidden');
         _initOutputPanelTabs();
         _rightDocPanel.setAttribute('hidden', '');
         _rightConsoleElement.setAttribute('hidden', '');
-        webTabBar.toggleAttr('hidden', false);
-        webLayoutTabController.selectTab('dart');
-        editorPanelHeader.clearAttr('hidden');
-        webOutputLabel.setAttr('hidden');
+        _webTabBar.toggleAttr('hidden', false);
+        _webLayoutTabController.selectTab('dart');
+        _editorPanelHeader.clearAttr('hidden');
+        _webOutputLabel.setAttr('hidden');
         break;
       case Layout.flutter:
         _disposeRightSplitter();
         _frame.hidden = false;
-        editorPanelFooter.clearAttr('hidden');
+        _editorPanelFooter.clearAttr('hidden');
         _initOutputPanelTabs();
         _rightDocPanel.setAttribute('hidden', '');
         _rightConsoleElement.setAttribute('hidden', '');
-        webTabBar.setAttr('hidden');
-        webLayoutTabController.selectTab('dart');
-        editorPanelHeader.setAttr('hidden');
-        webOutputLabel.clearAttr('hidden');
+        _webTabBar.setAttr('hidden');
+        _webLayoutTabController.selectTab('dart');
+        _editorPanelHeader.setAttr('hidden');
+        _webOutputLabel.clearAttr('hidden');
         break;
     }
   }
@@ -846,12 +802,12 @@ class Playground extends EditorUi implements GistContainer, GistController {
       api!.rootUrl = nullSafetyServerUrl;
       window.localStorage['null_safety'] = 'true';
       nullSafetyEnabled = true;
-      nullSafetySwitch.root.title = 'Null safety is currently enabled';
+      _nullSafetySwitch.root.title = 'Null safety is currently enabled';
     } else {
       api!.rootUrl = preNullSafetyServerUrl;
       window.localStorage['null_safety'] = 'false';
       nullSafetyEnabled = false;
-      nullSafetySwitch.root.title = 'Null safety is currently disabled';
+      _nullSafetySwitch.root.title = 'Null safety is currently disabled';
     }
 
     updateVersions();
@@ -864,7 +820,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   // GistContainer interface
   @override
-  MutableGist get mutableGist => editableGist;
+  MutableGist get mutableGist => _editableGist;
 
   @override
   void overrideNextRoute(Gist gist) {
@@ -875,7 +831,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     var result = await dialog.showOkCancel(
         'Create New Pad', 'Discard changes to the current pad?');
     if (result == DialogResult.ok) {
-      final layout = await newPadDialog.show();
+      final layout = await _newPadDialog.show();
       if (layout == null) return;
       await createGistForLayout(layout);
     }
@@ -938,7 +894,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void _resetGists() {
     _gistStorage.clearStoredGist();
-    editableGist.reset();
+    _editableGist.reset();
     // Delay to give time for the model change event to propagate through
     // to the editor component (which is where `_performAnalysis()` pulls
     // the Dart source from).
