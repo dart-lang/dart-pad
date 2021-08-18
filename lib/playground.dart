@@ -83,7 +83,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   @override
   late PlaygroundContext context;
-  late Layout _layout;
+  Layout? _layout;
 
   // The last returned shared gist used to update the url.
   Gist? _overrideNextRouteGist;
