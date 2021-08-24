@@ -38,7 +38,7 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
   }
 
   Uri _buildFileUrl(List<String> pathSegments) {
-    var filePath = [if (path != null) path, ...pathSegments];
+    var filePath = <String>[if (path != null) path!, ...pathSegments];
     return Uri(
       scheme: 'https',
       host: _apiHostname,
@@ -47,7 +47,7 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
         owner,
         repo,
         'contents',
-        ...filePath as Iterable<String>
+        ...filePath,
       ],
       queryParameters: {if (ref != null) 'ref': ref},
     );
