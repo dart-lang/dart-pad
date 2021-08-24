@@ -38,7 +38,8 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
   }
 
   Uri _buildFileUrl(List<String> pathSegments) {
-    var filePath = <String>[if (path != null) path!, ...pathSegments];
+    var p = path;
+    var filePath = <String>[if (p != null) p, ...pathSegments];
     return Uri(
       scheme: 'https',
       host: _apiHostname,
