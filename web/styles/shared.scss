@@ -1,10 +1,15 @@
-@import 'package:mdc_web/material-components-web';
+// This file contains styles shared between the Workshop UI (workshops.html) and
+// the Playground UI (index.html).
+//
+// Styles shared between all editors are located in
+// package:dart_pad/scss/shared.scss
 
+@import 'package:mdc_web/material-components-web';
 @import 'package:dart_pad/scss/colors';
 @import 'package:dart_pad/scss/layout';
 @import 'package:dart_pad/scss/shared';
 @import 'package:dart_pad/scss/variables';
-
+@import 'package:dart_pad/scss/material_shared';
 
 // Layout constants
 $doc-console-padding: 8px 24px 8px 24px;
@@ -128,11 +133,4 @@ button#run-button {
 
 .console .normal {
   white-space: pre !important;
-}
-
-// Small icon buttons
-.mdc-button-small {
-  @include mdc-icon-button-size(14px);
-  font-size: 14px !important;
-  margin: -2px 0 0 12px
 }
