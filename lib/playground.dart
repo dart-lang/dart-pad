@@ -224,25 +224,25 @@ class Playground extends EditorUi implements GistContainer, GistController {
     List<Sample> samples;
     if (nullSafe) {
       samples = [
-        Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
+        Sample('c0f7c578204d61e08ec0fbc4d63456cd', 'Hello World', Layout.dart),
         Sample(
-            'e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
-        Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
-        Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
-        Sample('1a28bdd9203250d3226cc25d512579ec', 'Counter', Layout.flutter),
-        Sample('e0a2e942e85fde2cd39b2741ff0c49e5', 'Sunflower', Layout.flutter),
-        Sample('5e28c5273c2c1a41d30bad9f9d11da56', 'Draggables & physics',
+            'a93a8de8eab0da9a07edd242df05e71f', 'Int to Double', Layout.dart),
+        Sample('21304866bcdc7b7d4d853e635f90f3e1', 'Mixins', Layout.dart),
+        Sample('d3bd83918d21b6d5f778bdc69c3d36d6', 'Fibonacci', Layout.dart),
+        Sample('e75b493dae1287757c5e1d77a0dc73f1', 'Counter', Layout.flutter),
+        Sample('5c0e154dd50af4a9ac856908061291bc', 'Sunflower', Layout.flutter),
+        Sample('a1d5666d6b54a45eb170b897895cf757', 'Draggables & physics',
             Layout.flutter),
-        Sample('289ecf8480ad005f01faeace70bd529a', 'Implicit animations',
+        Sample('85e77d36533b16647bf9b6eb8c03296d', 'Implicit animations',
             Layout.flutter),
       ];
     } else {
       samples = [
-        Sample('215ba63265350c02dfbd586dfd30b8c3', 'Hello World', Layout.dart),
+        Sample('c0f7c578204d61e08ec0fbc4d63456cd', 'Hello World', Layout.dart),
         Sample(
-            'e93b969fed77325db0b848a85f1cf78e', 'Int to Double', Layout.dart),
-        Sample('b60dc2fc7ea49acecb1fd2b57bf9be57', 'Mixins', Layout.dart),
-        Sample('7d78af42d7b0aedfd92f00899f93561b', 'Fibonacci', Layout.dart),
+            'a93a8de8eab0da9a07edd242df05e71f', 'Int to Double', Layout.dart),
+        Sample('21304866bcdc7b7d4d853e635f90f3e1', 'Mixins', Layout.dart),
+        Sample('d3bd83918d21b6d5f778bdc69c3d36d6', 'Fibonacci', Layout.dart),
         Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
         Sample('b3ccb26497ac84895540185935ed5825', 'Sunflower', Layout.flutter),
         Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics',
