@@ -4,6 +4,8 @@
 
 library dart_pad;
 
+import 'package:http/browser_client.dart';
+
 import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/keys.dart';
@@ -26,3 +28,5 @@ GistLoader get gistLoader => deps[GistLoader] as GistLoader;
 Keys get keys => deps[Keys] as Keys;
 
 State get state => deps[State] as State;
+
+BrowserClient get browserClient => deps[BrowserClient] as BrowserClient;

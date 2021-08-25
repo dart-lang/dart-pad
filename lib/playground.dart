@@ -66,7 +66,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       DElement(querySelector('#editor-panel-header') as DivElement);
   final DElement _editorPanelFooter =
       DElement(querySelector('#editor-panel-footer') as DivElement);
-  late final MDCMenu _samplesMenu = _initSamplesMenu();
   final NewPadDialog _newPadDialog = NewPadDialog();
   final DElement _titleElement =
       DElement(querySelector('header .header-gist-name')!);
@@ -136,6 +135,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
   DivElement get _leftDocPanel =>
       querySelector('#left-doc-panel') as DivElement;
 
+  ButtonElement get _samplesDropdownButton =>
+      querySelector('#samples-dropdown-button') as ButtonElement;
+
+  MDCMenu get _samplesMenu => _initSamplesMenu(nullSafe: nullSafetyEnabled);
+
   bool get _isCompletionActive => editor.completionActive;
 
   void _initBusyLights() {
@@ -184,7 +188,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
         .onClick
         .listen((_) => _showInstallPage());
 
-    MDCButton(querySelector('#samples-dropdown-button') as ButtonElement)
+    MDCButton(_samplesDropdownButton)
         .onClick
         .listen((e) => _toggleMenu(_samplesMenu));
 
@@ -252,36 +256,24 @@ class Playground extends EditorUi implements GistContainer, GistController {
       ];
     }
 
-    var listElement = UListElement()
-      ..classes.add('mdc-list')
-      ..attributes.addAll({
-        'aria-hidden': 'true',
-        'aria-orientation': 'vertical',
-        'tabindex': '-1'
-      });
-
+    var listElement = _mdcList();
     element.children.add(listElement);
 
     for (var sample in samples) {
-      var menuElement = LIElement()
-        ..classes.add('mdc-list-item')
-        ..attributes.addAll({'role': 'menuitem'})
-        ..children.add(
-          ImageElement()
-            ..classes.add('mdc-list-item__graphic')
-            ..src = 'pictures/logo_${_layoutToString(sample.layout)}.png',
-        )
-        ..children.add(
-          SpanElement()
-            ..classes.add('mdc-list-item__text')
-            ..text = sample.name,
-        );
+      var menuElement = _mdcListItem(children: [
+        ImageElement()
+          ..classes.add('mdc-list-item__graphic')
+          ..src = 'pictures/logo_${_layoutToString(sample.layout)}.png',
+        SpanElement()
+          ..classes.add('mdc-list-item__text')
+          ..text = sample.name,
+      ]);
       listElement.children.add(menuElement);
     }
 
     var samplesMenu = MDCMenu(element)
       ..setAnchorCorner(AnchorCorner.bottomLeft)
-      ..setAnchorElement(querySelector('#samples-dropdown-button')!)
+      ..setAnchorElement(_samplesDropdownButton)
       ..hoistMenuToBody();
 
     samplesMenu.listen('MDCMenu:selected', (e) {
@@ -294,11 +286,12 @@ class Playground extends EditorUi implements GistContainer, GistController {
   }
 
   void _initMoreMenu() {
+    var moreMenuButton = querySelector('#more-menu-button') as ButtonElement;
     var moreMenu = MDCMenu(querySelector('#more-menu'))
       ..setAnchorCorner(AnchorCorner.bottomLeft)
-      ..setAnchorElement(querySelector('#more-menu-button')!)
+      ..setAnchorElement(moreMenuButton)
       ..hoistMenuToBody();
-    MDCButton(querySelector('#more-menu-button') as ButtonElement, isIcon: true)
+    MDCButton(moreMenuButton, isIcon: true)
         .onClick
         .listen((_) => _toggleMenu(moreMenu));
     moreMenu.listen('MDCMenu:selected', (e) {
@@ -318,6 +311,24 @@ class Playground extends EditorUi implements GistContainer, GistController {
           break;
       }
     });
+  }
+
+  UListElement _mdcList() => UListElement()
+    ..classes.add('mdc-list')
+    ..attributes.addAll({
+      'aria-hidden': 'true',
+      'aria-orientation': 'vertical',
+      'tabindex': '-1'
+    });
+
+  LIElement _mdcListItem({List<Element> children = const []}) {
+    var element = LIElement()
+      ..classes.add('mdc-list-item')
+      ..attributes.addAll({'role': 'menuitem'});
+    for (var child in children) {
+      element.children.add(child);
+    }
+    return element;
   }
 
   void _initSplitters() {
@@ -796,15 +807,15 @@ class Playground extends EditorUi implements GistContainer, GistController {
   }
 
   void _handleNullSafetySwitched(bool enabled) {
-    final api = deps[DartservicesApi] as DartservicesApi?;
+    final api = deps[DartservicesApi] as DartservicesApi;
 
     if (enabled) {
-      api!.rootUrl = nullSafetyServerUrl;
+      api.rootUrl = nullSafetyServerUrl;
       window.localStorage['null_safety'] = 'true';
       nullSafetyEnabled = true;
       _nullSafetySwitch.root.title = 'Null safety is currently enabled';
     } else {
-      api!.rootUrl = preNullSafetyServerUrl;
+      api.rootUrl = preNullSafetyServerUrl;
       window.localStorage['null_safety'] = 'false';
       nullSafetyEnabled = false;
       _nullSafetySwitch.root.title = 'Null safety is currently disabled';
@@ -1025,4 +1036,38 @@ class Sample {
   final Layout layout;
 
   Sample(this.gistId, this.name, this.layout);
+}
+
+class Channel {
+  final String name;
+  final String dartVersion;
+  final String flutterVersion;
+
+  static Future<Channel> fromVersion(String name) async {
+    var rootUrl = _urlMapping[name];
+    // If the user provided bad URL query parameter (`?channel=nonsense`),
+    // default to the stable channel.
+    rootUrl ??= stableServerUrl;
+
+    var dartservicesApi = DartservicesApi(browserClient, rootUrl: rootUrl);
+    var versionResponse = await dartservicesApi.version();
+    return Channel._(
+      name: name,
+      dartVersion: versionResponse.sdkVersionFull,
+      flutterVersion: versionResponse.flutterVersion,
+    );
+  }
+
+  static const _urlMapping = {
+    'stable': stableServerUrl,
+    'beta': betaServerUrl,
+    'dev': devServerUrl,
+    'old': oldServerUrl,
+  };
+
+  Channel._({
+    required this.name,
+    required this.dartVersion,
+    required this.flutterVersion,
+  });
 }

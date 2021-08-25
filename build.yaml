@@ -18,6 +18,10 @@ targets:
           - --fast-startup
           - -DPRE_NULL_SAFETY_SERVER_URL=https://v1.api.dartpad.dev/
           - -DNULL_SAFETY_SERVER_URL=https://nullsafety.api.dartpad.dev/
+          - -DSTABLE_SERVER_URL=https://v1.api.dartpad.dev/
+          - -DBETA_SERVER_URL=https://beta.api.dartpad.dev/
+          - -DDEV_SERVER_URL=https://dev.api.dartpad.dev/
+          - -DOLD_SERVER_URL=https://old.api.dartpad.dev/
 
       json_serializable:
         # Ignore workshop samples.
@@ -31,3 +35,7 @@ global_options:
       environment:
         PRE_NULL_SAFETY_SERVER_URL: https://v1.api.dartpad.dev/
         NULL_SAFETY_SERVER_URL: https://nullsafety.api.dartpad.dev/
+        STABLE_SERVER_URL: https://nullsafety.api.dartpad.dev/
+        BETA_SERVER_URL: https://beta.api.dartpad.dev/
+        DEV_SERVER_URL: https://dev.api.dartpad.dev/
+        OLD_SERVER_URL: https://old.api.dartpad.dev/
