@@ -1,0 +1,8 @@
+import 'dart:math' ;
+int tinhTong( int a, int b){
+return a * a + b * b ;
+}
+void main() {
+  var x = tinhTong(3,4);
+  print("tong hai binh phuong = $x");
+  }
