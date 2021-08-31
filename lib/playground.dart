@@ -624,7 +624,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       _editableGist.setBackingGist(storedGist);
 
       _editableGist.description = storedGist.description;
-      for (var file in storedGist.files!) {
+      for (var file in storedGist.files) {
         _editableGist.getGistFile(file.name)!.content = file.content;
       }
       return LoadGistResult.storage;
@@ -654,9 +654,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     // When sharing, we have to pipe the returned (created) gist through the
     // routing library to update the url properly.
-    if (_overrideNextRouteGist != null &&
-        _overrideNextRouteGist!.id == gistId) {
-      _editableGist.setBackingGist(_overrideNextRouteGist);
+    final overrideGist = _overrideNextRouteGist;
+    if (overrideGist != null && overrideGist.id == gistId) {
+      _editableGist.setBackingGist(overrideGist);
       _overrideNextRouteGist = null;
       return;
     }
@@ -671,7 +671,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
         var storedGist = _gistStorage.getStoredGist()!;
         _editableGist.description = storedGist.description;
-        for (var file in storedGist.files!) {
+        for (var file in storedGist.files) {
           _editableGist.getGistFile(file.name)!.content = file.content;
         }
       }
