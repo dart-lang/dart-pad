@@ -61,6 +61,7 @@ class DartServicesModule extends Module {
   @override
   Future init() {
     var client = SanitizingBrowserClient();
+    deps[BrowserClient] = client;
     deps[DartservicesApi] =
         DartservicesApi(client, rootUrl: preNullSafetyServerUrl);
     return Future.value();
