@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Common constants.
+///
+/// The `*EnvironmentVar` constants specify environment variable names, which
+/// are typically specified in `dart2js_args` passed via a build_runner option.
+/// The `grind build` task specifies each of these options.
 library dart_pad.common;
 
 /// The environment variable name which specifies the URL of the pre-null safety
 /// back-end server.
-///
-/// This typically is specified in `dart2js_args` passed via a build_runner
-/// option. The `grind build` task specifies this option.
 const preNullSafetyServerUrlEnvironmentVar = 'PRE_NULL_SAFETY_SERVER_URL';
 
 /// The URL of the pre-null safety back-end server.
@@ -17,20 +19,39 @@ const preNullSafetyServerUrl =
 
 /// The environment variable name which specifies the URL of the null safety
 /// back-end server.
-///
-/// This typically is specified in `dart2js_args` passed via a build_runner
-/// option. The `grind build` task specifies this option.
 const nullSafetyServerUrlEnvironmentVar = 'NULL_SAFETY_SERVER_URL';
 
 /// The URL of the null safety back-end server.
 const nullSafetyServerUrl =
     String.fromEnvironment(nullSafetyServerUrlEnvironmentVar);
 
-// Alternate versions for development purposes
-// const serverUrl = 'https://old.api.dartpad.dev/';
-// const serverUrl = 'https://stable.api.dartpad.dev/';
-// const serverUrl = 'https://beta.api.dartpad.dev/';
-// const serverUrl = 'https://dev.api.dartpad.dev/';
+/// The environment variable name which specifies the URL of the back-end
+/// server serving "Flutter stable".
+const stableServerUrlEnvironmentVar = 'STABLE_SERVER_URL';
+
+/// The URL of the "Flutter stable" back-end server.
+const stableServerUrl = String.fromEnvironment(stableServerUrlEnvironmentVar);
+
+/// The environment variable name which specifies the URL of the back-end
+/// server serving "Flutter beta".
+const betaServerUrlEnvironmentVar = 'BETA_SERVER_URL';
+
+/// The URL of the "Flutter beta" back-end server.
+const betaServerUrl = String.fromEnvironment(betaServerUrlEnvironmentVar);
+
+/// The environment variable name which specifies the URL of the back-end
+/// server serving "Flutter dev".
+const devServerUrlEnvironmentVar = 'DEV_SERVER_URL';
+
+/// The URL of the "Flutter dev" back-end server.
+const devServerUrl = String.fromEnvironment(devServerUrlEnvironmentVar);
+
+/// The environment variable name which specifies the URL of the back-end
+/// server serving "Flutter old" (stable -1).
+const oldServerUrlEnvironmentVar = 'OLD_SERVER_URL';
+
+/// The URL of the "Flutter old" back-end server.
+const oldServerUrl = String.fromEnvironment(oldServerUrlEnvironmentVar);
 
 const Duration serviceCallTimeout = Duration(seconds: 10);
 const Duration longServiceCallTimeout = Duration(seconds: 60);

@@ -63,7 +63,6 @@ class WorkshopUi extends EditorUi {
   late final MDCButton editorUiOutputTab;
   late final MDCButton editorConsoleTab;
   late final MDCButton editorDocsTab;
-  final _nullSafetyEnabled = true;
 
   WorkshopUi() {
     _init();
@@ -85,7 +84,11 @@ class WorkshopUi extends EditorUi {
       querySelector('#editor-panel-footer') as DivElement;
 
   @override
-  bool get nullSafetyEnabled => _nullSafetyEnabled;
+  bool get nullSafetyEnabled => true;
+
+  /// Whether null safety was enabled for the previous execution.
+  @override
+  bool get nullSafetyWasPreviouslyEnabled => true;
 
   @override
   set nullSafetyEnabled(bool v) {
@@ -129,9 +132,9 @@ class WorkshopUi extends EditorUi {
     // Set up CodeMirror
     editor = (editorFactory as CodeMirrorFactory)
         .createFromElement(_editorHost, options: codeMirrorOptions)
-      ..theme = 'darkpad'
-      ..mode = 'dart'
-      ..showLineNumbers = true;
+          ..theme = 'darkpad'
+          ..mode = 'dart'
+          ..showLineNumbers = true;
 
     context = WorkshopDartSourceProvider(editor);
     docHandler = DocHandler(editor, context);
@@ -167,10 +170,11 @@ class WorkshopUi extends EditorUi {
     (deps[DartservicesApi] as DartservicesApi).rootUrl = nullSafetyServerUrl;
 
     analysisResultsController = AnalysisResultsController(
-        DElement(querySelector('#issues')!),
-        DElement(querySelector('#issues-message')!),
-        DElement(querySelector('#issues-toggle')!))
-      ..onItemClicked.listen((item) {
+      DElement(querySelector('#issues')!),
+      DElement(querySelector('#issues-message')!),
+      DElement(querySelector('#issues-toggle')!),
+      snackbar,
+    )..onItemClicked.listen((item) {
         _jumpTo(item.line, item.charStart, item.charLength, focus: true);
       });
 
