@@ -1,17 +1,11 @@
 import 'dart:html';
 
 /// Enables retrieving and setting browser query parameters.
-final queryParams = _QueryParams();
+const queryParams = _QueryParams._();
 
 /// A singleton for accessing and setting query parameters.
 class _QueryParams {
-  static _QueryParams? _instance;
-
   const _QueryParams._();
-
-  factory _QueryParams() {
-    return _instance ??= const _QueryParams._();
-  }
 
   /// An immutable map of all current query parameters.
   Map<String, String> get parameters {
@@ -26,17 +20,14 @@ class _QueryParams {
   }
 
   set nullSafety(bool enabled) {
-    var url = Uri.parse(window.location.toString());
-    var params = Map<String, String>.from(url.queryParameters);
-    if (enabled) {
-      params['null_safety'] = 'true';
-    } else if (params.containsKey('null_safety')) {
-      params.remove('null_safety');
-    } else {
-      return;
-    }
-    url = url.replace(queryParameters: params);
-    window.history.replaceState({}, 'DartPad', url.toString());
+    _replaceQueryParameters((params) {
+      if (enabled) {
+        params['null_safety'] = 'true';
+      } else {
+        params.remove('null_safety');
+      }
+      return params;
+    });
   }
 
   /// Whether the `null_safety` query parameter is defined or not.
@@ -124,6 +115,34 @@ class _QueryParams {
     }
 
     return int.tryParse(split);
+  }
+
+  String get channel {
+    return _queryParam('channel') ?? 'stable';
+  }
+
+  set channel(String value) {
+    _replaceQueryParameters((params) {
+      if (_validChannels.contains(value)) {
+        if (value == 'stable') {
+          params.remove('channel');
+        } else {
+          params['channel'] = value;
+        }
+      }
+      return params;
+    });
+  }
+
+  static const List<String> _validChannels = ['stable', 'beta', 'dev', 'old'];
+
+  void _replaceQueryParameters(
+      Map<String, String> Function(Map<String, String> params) fn) {
+    var url = Uri.parse(window.location.toString());
+    var params = Map<String, String>.from(url.queryParameters);
+    params = fn(params);
+    url = url.replace(queryParameters: params);
+    window.history.replaceState({}, 'DartPad', url.toString());
   }
 
   String? _queryParam(String key) {

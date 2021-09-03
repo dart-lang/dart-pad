@@ -260,7 +260,14 @@
                 <input type="checkbox" id="basic-switch" class="mdc-switch__native-control" role="switch" aria-checked="false">
             </div>
         </div>
-        <label for="basic-switch">Null Safety</label>
+        <label id="null-safety-switch-label" for="null-safety-switch">Null Safety</label>
+        <div id="channel-switch">
+            <button type="button" id="channels-dropdown-button" class="mdc-button">
+                <span class="mdc-button__label">Channel</span>
+                <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
+            </button>
+            <div id="channels-menu" class="mdc-menu mdc-menu-surface"></div>
+        </div>
     </div>
     <div class="flex"></div>
     <div id="issues-message" class="info-message"></div>
