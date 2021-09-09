@@ -75,6 +75,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
       DElement(querySelector('#web-output-label')!);
   final MDCSwitch _nullSafetySwitch =
       MDCSwitch(querySelector('#null-safety-switch'));
+  final Element? _channelSwitch = querySelector('#channel-switch');
+  late final Future<MDCMenu> _channelsMenu = _initChannelsMenu();
 
   late Splitter _rightSplitter;
   bool _rightSplitterConfigured = false;
@@ -140,6 +142,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   MDCMenu get _samplesMenu => _initSamplesMenu(nullSafe: nullSafetyEnabled);
 
+  Element? get _channelsDropdownButton =>
+      querySelector('#channels-dropdown-button');
+
   bool get _isCompletionActive => editor.completionActive;
 
   void _initBusyLights() {
@@ -202,6 +207,32 @@ class Playground extends EditorUi implements GistContainer, GistController {
     querySelector('#dartpad-package-versions')
         ?.onClick
         .listen((_) => showPackageVersionsDialog());
+
+    var channel = queryParams.channel;
+    if (channel == 'stable') {
+      // Disable the channel switcher.
+      var channelSwitch = _channelSwitch;
+      if (channelSwitch != null) {
+        channelSwitch.setAttribute('hidden', '');
+      }
+      var channelSwitchLabel = querySelector('#channel-switch-label');
+      if (channelSwitchLabel != null) {
+        channelSwitchLabel.setAttribute('hidden', '');
+      }
+    } else {
+      _initChannelsMenu();
+      _nullSafetySwitch.root.setAttribute('hidden', '');
+      var nullSafetySwitchLabel = querySelector('#null-safety-switch-label');
+      if (nullSafetySwitchLabel != null) {
+        nullSafetySwitchLabel.setAttribute('hidden', '');
+      }
+      var channelsButton = _channelsDropdownButton;
+      if (channelsButton is ButtonElement) {
+        MDCButton(channelsButton)
+            .onClick
+            .listen((e) async => _toggleMenu(await _channelsMenu));
+      }
+    }
 
     // Query params have higher precedence than local storage
     if (queryParams.hasNullSafety) {
@@ -311,6 +342,48 @@ class Playground extends EditorUi implements GistContainer, GistController {
           break;
       }
     });
+  }
+
+  Future<MDCMenu> _initChannelsMenu() async {
+    var element = querySelector('#channels-menu')!;
+    element.children.clear();
+
+    var channels = await Future.wait([
+      Channel.fromVersion('stable'),
+      Channel.fromVersion('beta'),
+      Channel.fromVersion('dev'),
+      Channel.fromVersion('old'),
+    ]);
+
+    var listElement = _mdcList();
+    element.children.add(listElement);
+
+    for (var channel in channels) {
+      var menuElement = _mdcListItem(children: [
+        ParagraphElement()
+          ..classes.add('mdc-list-item__title')
+          ..text = '${channel.name} channel',
+        ParagraphElement()
+          ..classes.add('mdc-list-item__details')
+          ..text = 'Use Flutter version ${channel.flutterVersion} and Dart '
+              'version ${channel.dartVersion}',
+      ])
+        ..classes.add('channel-item');
+      listElement.children.add(menuElement);
+    }
+
+    var channelsMenu = MDCMenu(element)
+      ..setAnchorCorner(AnchorCorner.bottomLeft)
+      ..setAnchorElement(_channelsDropdownButton as ButtonElement)
+      ..hoistMenuToBody();
+
+    channelsMenu.listen('MDCMenu:selected', (e) {
+      var index = (e as CustomEvent).detail['index'] as int;
+      var channel = Channel._urlMapping.keys.toList()[index];
+      _handleChannelSwitched(channel);
+    });
+
+    return channelsMenu;
   }
 
   UListElement _mdcList() => UListElement()
@@ -654,9 +727,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     // When sharing, we have to pipe the returned (created) gist through the
     // routing library to update the url properly.
-    final overrideGist = _overrideNextRouteGist;
-    if (overrideGist != null && overrideGist.id == gistId) {
-      _editableGist.setBackingGist(overrideGist);
+    var overrideNextRouteGist = _overrideNextRouteGist;
+    if (overrideNextRouteGist != null && overrideNextRouteGist.id == gistId) {
+      _editableGist.setBackingGist(overrideNextRouteGist);
       _overrideNextRouteGist = null;
       return;
     }
@@ -806,6 +879,16 @@ class Playground extends EditorUi implements GistContainer, GistController {
     }
   }
 
+  /// Carries out various tasks to update the state of null safety:
+  ///
+  /// * switches the API root URL
+  /// * switches the state in local storage
+  /// * toggles [nullSafetyEnabled]
+  /// * toggles the title on the null safety switch
+  /// * updates the Dart and Flutter versions
+  /// * updates the URL query parameters
+  /// * re-analyzes the source
+  /// * re-initializes the Samples menu.
   void _handleNullSafetySwitched(bool enabled) {
     final api = deps[DartservicesApi] as DartservicesApi;
 
@@ -827,6 +910,23 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     performAnalysis();
     _initSamplesMenu(nullSafe: enabled);
+  }
+
+  /// Carries out various tasks to update the channel:
+  ///
+  /// * switches the API root URL
+  /// * updates the URL query parameters
+  /// * re-analyzes the source
+  // TODO(srawlins): Re-initialize the samples menu.
+  void _handleChannelSwitched(String channel) {
+    if (!Channel._urlMapping.keys.contains(channel)) {
+      return;
+    }
+    queryParams.channel = channel;
+    (deps[DartservicesApi] as DartservicesApi).rootUrl =
+        Channel._urlMapping[channel]!;
+    updateVersions();
+    performAnalysis();
   }
 
   // GistContainer interface
