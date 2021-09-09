@@ -323,6 +323,16 @@ a {
   border-radius: 20px;
 }
 
+// Channel selection menu
+.channel-item-group {
+  @include layout-horizontal();
+  @include layout-center();
+}
+
+.channel-menu-right {
+  @include layout-flex();
+}
+
 // Misc
 .view-label {
   margin: 8px;

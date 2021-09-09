@@ -76,7 +76,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   final MDCSwitch _nullSafetySwitch =
       MDCSwitch(querySelector('#null-safety-switch'));
   final Element? _channelSwitch = querySelector('#channel-switch');
-  late final Future<MDCMenu> _channelsMenu = _initChannelsMenu();
+  MDCMenu? _channelsMenu;
 
   late Splitter _rightSplitter;
   bool _rightSplitterConfigured = false;
@@ -94,6 +94,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
   final Console _rightConsole = Console(DElement(_rightConsoleContentElement));
   final Counter _unreadConsoleCounter =
       Counter(querySelector('#unread-console-counter') as SpanElement);
+
+  late final List<Channel> channels;
 
   static Future<Playground> initialize() async {
     await _initModules();
@@ -179,7 +181,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     });
   }
 
-  static void _toggleMenu(MDCMenu menu) => menu.open = !menu.open!;
+  static void _toggleMenu(MDCMenu? menu) => menu?.open = !menu.open!;
 
   void _initButtons() {
     MDCButton(querySelector('#new-button') as ButtonElement)
@@ -230,7 +232,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       if (channelsButton is ButtonElement) {
         MDCButton(channelsButton)
             .onClick
-            .listen((e) async => _toggleMenu(await _channelsMenu));
+            .listen((e) => _toggleMenu(_channelsMenu));
       }
     }
 
@@ -344,46 +346,83 @@ class Playground extends EditorUi implements GistContainer, GistController {
     });
   }
 
-  Future<MDCMenu> _initChannelsMenu() async {
+  Element _buildChannelsMenu(List<Channel> channels) {
     var element = querySelector('#channels-menu')!;
-    element.children.clear();
+    element.children = [];
 
-    var channels = await Future.wait([
+    var listElement = _mdcList();
+    element.children.add(listElement);
+
+    var currentChannel = queryParams.channel;
+
+    for (var channel in channels) {
+      var checkmark = SpanElement()
+        ..classes.add('channel-menu-left')
+        ..classes.add('mdc-list-item__graphic')
+        ..children.add(
+          LIElement()
+            ..classes.addAll(['material-icons', 'mdc-select__icon'])
+            ..tabIndex = -1
+            ..attributes['role'] = 'button'
+            ..text = 'check',
+        );
+
+      if (currentChannel != channel.name) {
+        checkmark.classes.toggle('hide');
+      }
+
+      var menuElement = _mdcListItem(children: [
+        DivElement()
+          ..classes.add('channel-item-group')
+          ..children = [
+            checkmark,
+            SpanElement()
+              ..classes.add('channel-menu-right')
+              ..children = [
+                ParagraphElement()
+                  ..classes.add('mdc-list-item__title')
+                  ..text = '${channel.name} channel',
+                ParagraphElement()
+                  ..classes.add('mdc-list-item__details')
+                  ..text =
+                      'Use Flutter version ${channel.flutterVersion} and Dart '
+                          'version ${channel.dartVersion}',
+              ],
+          ],
+      ])
+        ..classes.add('channel-item');
+      listElement.children.add(menuElement);
+    }
+
+    return element;
+  }
+
+  Future<void> _initChannelsMenu() async {
+    channels = await Future.wait([
       Channel.fromVersion('stable'),
       Channel.fromVersion('beta'),
       Channel.fromVersion('dev'),
       Channel.fromVersion('old'),
     ]);
 
-    var listElement = _mdcList();
-    element.children.add(listElement);
+    var element = _buildChannelsMenu(channels);
+    _configureChannelsMenu(element);
+  }
 
-    for (var channel in channels) {
-      var menuElement = _mdcListItem(children: [
-        ParagraphElement()
-          ..classes.add('mdc-list-item__title')
-          ..text = '${channel.name} channel',
-        ParagraphElement()
-          ..classes.add('mdc-list-item__details')
-          ..text = 'Use Flutter version ${channel.flutterVersion} and Dart '
-              'version ${channel.dartVersion}',
-      ])
-        ..classes.add('channel-item');
-      listElement.children.add(menuElement);
-    }
-
-    var channelsMenu = MDCMenu(element)
+  void _configureChannelsMenu(Element menuElement) {
+    _channelsMenu?.unlisten('MDCMenu:selected', _handleChannelsMenuSelected);
+    _channelsMenu = MDCMenu(menuElement)
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(_channelsDropdownButton as ButtonElement)
       ..hoistMenuToBody();
 
-    channelsMenu.listen('MDCMenu:selected', (e) {
-      var index = (e as CustomEvent).detail['index'] as int;
-      var channel = Channel._urlMapping.keys.toList()[index];
-      _handleChannelSwitched(channel);
-    });
+    _channelsMenu?.listen('MDCMenu:selected', _handleChannelsMenuSelected);
+  }
 
-    return channelsMenu;
+  void _handleChannelsMenuSelected(e) {
+    var index = (e as CustomEvent).detail['index'] as int;
+    var channel = Channel._urlMapping.keys.toList()[index];
+    _handleChannelSwitched(channel);
   }
 
   UListElement _mdcList() => UListElement()
@@ -397,6 +436,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   LIElement _mdcListItem({List<Element> children = const []}) {
     var element = LIElement()
       ..classes.add('mdc-list-item')
+      ..classes.add('channel-menu-list')
       ..attributes.addAll({'role': 'menuitem'});
     for (var child in children) {
       element.children.add(child);
@@ -927,6 +967,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
         Channel._urlMapping[channel]!;
     updateVersions();
     performAnalysis();
+
+    // Re-create the channels menu to show the correct checkmark
+    var menuElement = _buildChannelsMenu(channels);
+    _configureChannelsMenu(menuElement);
   }
 
   // GistContainer interface
