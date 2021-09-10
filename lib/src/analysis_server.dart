@@ -253,8 +253,9 @@ abstract class AnalysisServerWrapper {
           'enclosingClassName': info.containingClassDescription!,
         if (info.containingLibraryName != null)
           'libraryName': info.containingLibraryName!,
-        if (info.parameter != null) 'deprecated': info.parameter!,
-        if (info.isDeprecated != null) 'deprecated': '${info.isDeprecated}',
+        if (info.parameter != null) 'parameter': info.parameter!,
+        if (info.isDeprecated != null)
+          'deprecated': info.isDeprecated!.toString(),
         if (info.staticType != null) 'staticType': info.staticType!,
         if (info.propagatedType != null) 'propagatedType': info.propagatedType!,
       };

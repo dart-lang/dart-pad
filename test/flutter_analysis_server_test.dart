@@ -12,6 +12,23 @@ import 'package:dart_services/src/protos/dart_services.pbserver.dart';
 import 'package:dart_services/src/server_cache.dart';
 import 'package:test/test.dart';
 
+const _lintWarningTrigger = '''
+import 'package:flutter/material.dart';
+
+void main() async {
+  var unknown;
+  print(unknown);
+
+  runApp(MaterialApp(
+      debugShowCheckedModeBanner: false, home: Scaffold(body: HelloWorld())));
+}
+
+class HelloWorld extends StatelessWidget {
+  @override
+  Widget build(context) => const Center(child: Text('Hello world'));
+}
+''';
+
 void main() => defineTests();
 
 void defineTests() {
@@ -57,6 +74,18 @@ void defineTests() {
 
       tearDown(() async {
         await analysisServersWrapper.shutdown();
+      });
+
+      // https://github.com/dart-lang/dart-pad/issues/2005
+      test('Trigger lint with Flutter code', () async {
+        final results =
+            await analysisServersWrapper.analyze(_lintWarningTrigger);
+        expect(results.issues.length, 1);
+        final issue = results.issues[0];
+        expect(issue.line, 4);
+        expect(issue.kind, 'info');
+        expect(
+            issue.message, 'Prefer typing uninitialized variables and fields.');
       });
 
       test('analyze counter app', () async {

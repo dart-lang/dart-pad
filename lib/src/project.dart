@@ -8,18 +8,20 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:path/path.dart' as path;
 
 Directory flutterTemplateProject(bool nullSafety) => Directory(path.join(
-      Directory.current.path,
-      'project_templates',
-      nullSafety ? 'null-safe' : 'null-unsafe',
+      _baseTemplateProject(nullSafety),
       'flutter_project',
     ));
 
 Directory dartTemplateProject(bool nullSafety) => Directory(path.join(
+      _baseTemplateProject(nullSafety),
+      'dart_project',
+    ));
+
+String _baseTemplateProject(bool nullSafety) => path.join(
       Directory.current.path,
       'project_templates',
       nullSafety ? 'null-safe' : 'null-unsafe',
-      'dart_project',
-    ));
+    );
 
 String summaryFilePath(bool nullSafety) {
   return path.join(
@@ -49,6 +51,7 @@ const Set<String> supportedNonFlutterPackages = {
   'http',
   'intl',
   'js',
+  'lints',
   'meta',
   'path',
   'pedantic',

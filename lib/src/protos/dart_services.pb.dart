@@ -265,12 +265,23 @@ class AnalysisResults extends $pb.GeneratedMessage {
               : 'dart_services.api'),
       createEmptyInstance: create)
     ..pc<AnalysisIssue>(
-        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'issues', $pb.PbFieldType.PM,
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'issues',
+        $pb.PbFieldType.PM,
         subBuilder: AnalysisIssue.create)
-    ..pPS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packageImports',
+    ..pPS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packageImports',
         protoName: 'packageImports')
     ..aOM<ErrorMessage>(
-        99, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'error',
+        99,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'error',
         subBuilder: ErrorMessage.create)
     ..hasRequiredFields = false;
 
@@ -345,9 +356,10 @@ class AnalysisIssue extends $pb.GeneratedMessage {
       const $core.bool.fromEnvironment('protobuf.omit_message_names')
           ? ''
           : 'AnalysisIssue',
-      package: const $pb.PackageName($core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'dart_services.api'),
+      package: const $pb.PackageName(
+          $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart_services.api'),
       createEmptyInstance: create)
     ..aOS(
         1,
@@ -365,14 +377,50 @@ class AnalysisIssue extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'message')
-    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sourceName',
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sourceName',
         protoName: 'sourceName')
-    ..aOB(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'hasFixes', protoName: 'hasFixes')
-    ..a<$core.int>(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'charStart', $pb.PbFieldType.O3, protoName: 'charStart')
-    ..a<$core.int>(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'charLength', $pb.PbFieldType.O3, protoName: 'charLength')
-    ..aOS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'url')
-    ..pc<DiagnosticMessage>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'diagnosticMessages', $pb.PbFieldType.PM, protoName: 'diagnosticMessages', subBuilder: DiagnosticMessage.create)
-    ..aOS(10, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'correction')
+    ..aOB(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'hasFixes',
+        protoName: 'hasFixes')
+    ..a<$core.int>(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'charStart',
+        $pb.PbFieldType.O3,
+        protoName: 'charStart')
+    ..a<$core.int>(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'charLength',
+        $pb.PbFieldType.O3,
+        protoName: 'charLength')
+    ..aOS(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'url')
+    ..pc<DiagnosticMessage>(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'diagnosticMessages',
+        $pb.PbFieldType.PM,
+        protoName: 'diagnosticMessages',
+        subBuilder: DiagnosticMessage.create)
+    ..aOS(
+        10,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'correction')
     ..hasRequiredFields = false;
 
   AnalysisIssue._() : super();
@@ -581,10 +629,19 @@ class DiagnosticMessage extends $pb.GeneratedMessage {
             ? ''
             : 'line',
         $pb.PbFieldType.O3)
-    ..a<$core.int>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'charStart', $pb.PbFieldType.O3,
+    ..a<$core.int>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'charStart',
+        $pb.PbFieldType.O3,
         protoName: 'charStart')
     ..a<$core.int>(
-        4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'charLength', $pb.PbFieldType.O3,
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'charLength',
+        $pb.PbFieldType.O3,
         protoName: 'charLength')
     ..hasRequiredFields = false;
 
@@ -743,7 +800,11 @@ class CompileResponse extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'result')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sourceMap',
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sourceMap',
         protoName: 'sourceMap')
     ..aOM<ErrorMessage>(
         99,
@@ -852,7 +913,11 @@ class CompileDDCResponse extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'result')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'modulesBaseUrl',
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'modulesBaseUrl',
         protoName: 'modulesBaseUrl')
     ..aOM<ErrorMessage>(
         99,
@@ -957,7 +1022,10 @@ class DocumentResponse extends $pb.GeneratedMessage {
               : 'dart_services.api'),
       createEmptyInstance: create)
     ..m<$core.String, $core.String>(
-        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'info',
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'info',
         entryClassName: 'DocumentResponse.InfoEntry',
         keyFieldType: $pb.PbFieldType.OS,
         valueFieldType: $pb.PbFieldType.OS,
@@ -1040,15 +1108,32 @@ class CompleteResponse extends $pb.GeneratedMessage {
               : 'dart_services.api'),
       createEmptyInstance: create)
     ..a<$core.int>(
-        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'replacementOffset', $pb.PbFieldType.O3,
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'replacementOffset',
+        $pb.PbFieldType.O3,
         protoName: 'replacementOffset')
     ..a<$core.int>(
         2,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'replacementLength',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'replacementLength',
         $pb.PbFieldType.O3,
         protoName: 'replacementLength')
-    ..pc<Completion>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'completions', $pb.PbFieldType.PM, subBuilder: Completion.create)
-    ..aOM<ErrorMessage>(99, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'error', subBuilder: ErrorMessage.create)
+    ..pc<Completion>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'completions',
+        $pb.PbFieldType.PM,
+        subBuilder: Completion.create)
+    ..aOM<ErrorMessage>(
+        99,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'error',
+        subBuilder: ErrorMessage.create)
     ..hasRequiredFields = false;
 
   CompleteResponse._() : super();
@@ -1221,7 +1306,10 @@ class FixesResponse extends $pb.GeneratedMessage {
         $pb.PbFieldType.PM,
         subBuilder: ProblemAndFixes.create)
     ..aOM<ErrorMessage>(
-        99, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'error',
+        99,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'error',
         subBuilder: ErrorMessage.create)
     ..hasRequiredFields = false;
 
@@ -1301,10 +1389,24 @@ class ProblemAndFixes extends $pb.GeneratedMessage {
             : 'fixes',
         $pb.PbFieldType.PM,
         subBuilder: CandidateFix.create)
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'problemMessage',
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'problemMessage',
         protoName: 'problemMessage')
-    ..a<$core.int>(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'offset', $pb.PbFieldType.O3)
-    ..a<$core.int>(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'length', $pb.PbFieldType.O3)
+    ..a<$core.int>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'offset',
+        $pb.PbFieldType.O3)
+    ..a<$core.int>(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'length',
+        $pb.PbFieldType.O3)
     ..hasRequiredFields = false;
 
   ProblemAndFixes._() : super();
@@ -1397,7 +1499,10 @@ class ProblemAndFixes extends $pb.GeneratedMessage {
 }
 
 class CandidateFix extends $pb.GeneratedMessage {
-  static final $pb.BuilderInfo _i = $pb.BuilderInfo(const $core.bool.fromEnvironment('protobuf.omit_message_names') ? '' : 'CandidateFix',
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'CandidateFix',
       package: const $pb.PackageName(
           $core.bool.fromEnvironment('protobuf.omit_message_names')
               ? ''
@@ -1409,14 +1514,24 @@ class CandidateFix extends $pb.GeneratedMessage {
             ? ''
             : 'message')
     ..pc<SourceEdit>(
-        2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'edits', $pb.PbFieldType.PM,
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'edits',
+        $pb.PbFieldType.PM,
         subBuilder: SourceEdit.create)
     ..a<$core.int>(
-        3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'selectionOffset', $pb.PbFieldType.O3,
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'selectionOffset',
+        $pb.PbFieldType.O3,
         protoName: 'selectionOffset')
     ..pc<LinkedEditGroup>(
         4,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'linkedEditGroups',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'linkedEditGroups',
         $pb.PbFieldType.PM,
         protoName: 'linkedEditGroups',
         subBuilder: LinkedEditGroup.create)
@@ -1524,8 +1639,11 @@ class SourceEdit extends $pb.GeneratedMessage {
             ? ''
             : 'length',
         $pb.PbFieldType.O3)
-    ..aOS(3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'replacement')
+    ..aOS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'replacement')
     ..hasRequiredFields = false;
 
   SourceEdit._() : super();
@@ -1614,9 +1732,10 @@ class LinkedEditGroup extends $pb.GeneratedMessage {
       const $core.bool.fromEnvironment('protobuf.omit_message_names')
           ? ''
           : 'LinkedEditGroup',
-      package: const $pb.PackageName($core.bool.fromEnvironment('protobuf.omit_message_names')
-          ? ''
-          : 'dart_services.api'),
+      package: const $pb.PackageName(
+          $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart_services.api'),
       createEmptyInstance: create)
     ..p<$core.int>(
         1,
@@ -1632,7 +1751,9 @@ class LinkedEditGroup extends $pb.GeneratedMessage {
         $pb.PbFieldType.O3)
     ..pc<LinkedEditSuggestion>(
         3,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'suggestions',
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'suggestions',
         $pb.PbFieldType.PM,
         subBuilder: LinkedEditSuggestion.create)
     ..hasRequiredFields = false;
@@ -1801,7 +1922,10 @@ class FormatResponse extends $pb.GeneratedMessage {
               : 'dart_services.api'),
       createEmptyInstance: create)
     ..aOS(
-        1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'newString',
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'newString',
         protoName: 'newString')
     ..a<$core.int>(
         2,
@@ -1810,7 +1934,10 @@ class FormatResponse extends $pb.GeneratedMessage {
             : 'offset',
         $pb.PbFieldType.O3)
     ..aOM<ErrorMessage>(
-        99, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'error',
+        99,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'error',
         subBuilder: ErrorMessage.create)
     ..hasRequiredFields = false;
 
@@ -1916,7 +2043,10 @@ class AssistsResponse extends $pb.GeneratedMessage {
         $pb.PbFieldType.PM,
         subBuilder: CandidateFix.create)
     ..aOM<ErrorMessage>(
-        99, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'error',
+        99,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'error',
         subBuilder: ErrorMessage.create)
     ..hasRequiredFields = false;
 
@@ -1989,20 +2119,70 @@ class VersionResponse extends $pb.GeneratedMessage {
               ? ''
               : 'dart_services.api'),
       createEmptyInstance: create)
-    ..aOS(1, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sdkVersion',
+    ..aOS(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sdkVersion',
         protoName: 'sdkVersion')
-    ..aOS(2, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'sdkVersionFull',
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'sdkVersionFull',
         protoName: 'sdkVersionFull')
-    ..aOS(3, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'runtimeVersion',
+    ..aOS(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'runtimeVersion',
         protoName: 'runtimeVersion')
-    ..aOS(4, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'appEngineVersion',
+    ..aOS(
+        4,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'appEngineVersion',
         protoName: 'appEngineVersion')
-    ..aOS(5, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'servicesVersion', protoName: 'servicesVersion')
-    ..aOS(6, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'flutterVersion', protoName: 'flutterVersion')
-    ..aOS(7, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'flutterDartVersion', protoName: 'flutterDartVersion')
-    ..aOS(8, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'flutterDartVersionFull', protoName: 'flutterDartVersionFull')
-    ..m<$core.String, $core.String>(9, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'packageVersions', protoName: 'packageVersions', entryClassName: 'VersionResponse.PackageVersionsEntry', keyFieldType: $pb.PbFieldType.OS, valueFieldType: $pb.PbFieldType.OS, packageName: const $pb.PackageName('dart_services.api'))
-    ..aOM<ErrorMessage>(99, const $core.bool.fromEnvironment('protobuf.omit_field_names') ? '' : 'error', subBuilder: ErrorMessage.create)
+    ..aOS(
+        5,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'servicesVersion',
+        protoName: 'servicesVersion')
+    ..aOS(
+        6,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'flutterVersion',
+        protoName: 'flutterVersion')
+    ..aOS(
+        7,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'flutterDartVersion',
+        protoName: 'flutterDartVersion')
+    ..aOS(
+        8,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'flutterDartVersionFull',
+        protoName: 'flutterDartVersionFull')
+    ..m<$core.String, $core.String>(
+        9,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'packageVersions',
+        protoName: 'packageVersions',
+        entryClassName: 'VersionResponse.PackageVersionsEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('dart_services.api'))
+    ..aOM<ErrorMessage>(
+        99,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'error',
+        subBuilder: ErrorMessage.create)
     ..hasRequiredFields = false;
 
   VersionResponse._() : super();

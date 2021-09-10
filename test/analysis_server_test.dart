@@ -56,6 +56,13 @@ const formatWithIssues = '''
 void main() { foo() }
 ''';
 
+const lintWarningTrigger = '''
+void main() async {
+  var unknown;
+  print(unknown);
+}
+''';
+
 void main() => defineTests();
 
 void defineTests() {
@@ -78,6 +85,17 @@ void defineTests() {
         expect(results.replacementOffset, 32);
         expectCompletionsContains(results, 'abs');
         expect(completionsContains(results, 'codeUnitAt'), false);
+      });
+
+      // https://github.com/dart-lang/dart-pad/issues/2005
+      test('Trigger lint with Dart code', () async {
+        final results = await analysisServer.analyze(lintWarningTrigger);
+        expect(results.issues.length, 1);
+        final issue = results.issues[0];
+        expect(issue.line, 2);
+        expect(issue.kind, 'info');
+        expect(
+            issue.message, 'Prefer typing uninitialized variables and fields.');
       });
 
       test('repro #126 - completions polluted on second request', () async {
