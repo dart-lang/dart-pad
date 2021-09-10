@@ -483,6 +483,17 @@ void updateDependenciesFile({
       'firebase_messaging': 'any',
       'firebase_storage': 'any',
       'pedantic': 'any',
+      // Otherwise desirable for users:
+      'bloc': 'any',
+      'collection': 'any',
+      'google_fonts': 'any',
+      'http': 'any',
+      'intl': 'any',
+      'js': 'any',
+      'meta': 'any',
+      'provider': 'any',
+      'riverpod': 'any',
+      'url_launcher': 'any',
     },
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
