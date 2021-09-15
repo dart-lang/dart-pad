@@ -357,6 +357,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     for (var channel in channels) {
       var checkmark = SpanElement()
+        ..id = ('${channel.name}-checkmark')
         ..classes.add('channel-menu-left')
         ..classes.add('mdc-list-item__graphic')
         ..children.add(
@@ -969,8 +970,17 @@ class Playground extends EditorUi implements GistContainer, GistController {
     performAnalysis();
 
     // Re-create the channels menu to show the correct checkmark
-    var menuElement = _buildChannelsMenu(channels);
-    _configureChannelsMenu(menuElement);
+    for (var channelName in Channel._urlMapping.keys) {
+      var checkmark = document.querySelector('#$channelName-checkmark');
+      if (checkmark == null) {
+        continue;
+      }
+      if (channel == channelName) {
+        checkmark.classes.remove('hide');
+      } else {
+        checkmark.classes.add('hide');
+      }
+    }
   }
 
   // GistContainer interface
