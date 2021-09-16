@@ -37,7 +37,9 @@ const Set<String> _flutterPackages = {
   'firebase',
   'firebase_auth',
   'firebase_core',
+  'firebase_database',
   'flutter',
+  'flutter_bloc',
   'flutter_test',
 };
 
