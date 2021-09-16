@@ -428,7 +428,7 @@ String createPubspec({
   var content = '''
 name: $_samplePackageName
 environment:
-  sdk: '>=${nullSafety ? '2.13.0' : '2.10.0'} <3.0.0'
+  sdk: '>=${nullSafety ? '2.14.0' : '2.10.0'} <3.0.0'
 dependencies:
 ''';
 
