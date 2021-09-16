@@ -198,10 +198,29 @@ message VersionResponse {
   //
   // Each package found in pubspec.lock is included, mapping the package name
   // to the package version.
+  //
+  // Deprecated: Use `packageInfo` data if available.
   map<string, string> packageVersions = 9;
+
+  // Package information.
+  //
+  // Each package found in `pubspec.lock` is included.
+  repeated PackageInfo packageInfo = 10;
 
   // Make this response compatible with BadRequest
   ErrorMessage error = 99;
+}
+
+message PackageInfo {
+  // The name of this package.
+  string name = 1;
+
+  // The selected version of this package.
+  string version = 2;
+
+  // Whether this package is supported as a directly importable package,
+  // or simply available as a transitive dependency of a supported package.
+  bool supported = 3;
 }
 
 // Response from the server when errors are thrown internally
