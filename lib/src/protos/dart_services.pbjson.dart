@@ -465,6 +465,14 @@ const VersionResponse$json = {
       '10': 'packageVersions'
     },
     {
+      '1': 'packageInfo',
+      '3': 10,
+      '4': 3,
+      '5': 11,
+      '6': '.dart_services.api.PackageInfo',
+      '10': 'packageInfo'
+    },
+    {
       '1': 'error',
       '3': 99,
       '4': 1,
@@ -488,7 +496,20 @@ const VersionResponse_PackageVersionsEntry$json = {
 
 /// Descriptor for `VersionResponse`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List versionResponseDescriptor = $convert.base64Decode(
-    'Cg9WZXJzaW9uUmVzcG9uc2USHgoKc2RrVmVyc2lvbhgBIAEoCVIKc2RrVmVyc2lvbhImCg5zZGtWZXJzaW9uRnVsbBgCIAEoCVIOc2RrVmVyc2lvbkZ1bGwSJgoOcnVudGltZVZlcnNpb24YAyABKAlSDnJ1bnRpbWVWZXJzaW9uEioKEGFwcEVuZ2luZVZlcnNpb24YBCABKAlSEGFwcEVuZ2luZVZlcnNpb24SKAoPc2VydmljZXNWZXJzaW9uGAUgASgJUg9zZXJ2aWNlc1ZlcnNpb24SJgoOZmx1dHRlclZlcnNpb24YBiABKAlSDmZsdXR0ZXJWZXJzaW9uEi4KEmZsdXR0ZXJEYXJ0VmVyc2lvbhgHIAEoCVISZmx1dHRlckRhcnRWZXJzaW9uEjYKFmZsdXR0ZXJEYXJ0VmVyc2lvbkZ1bGwYCCABKAlSFmZsdXR0ZXJEYXJ0VmVyc2lvbkZ1bGwSYQoPcGFja2FnZVZlcnNpb25zGAkgAygLMjcuZGFydF9zZXJ2aWNlcy5hcGkuVmVyc2lvblJlc3BvbnNlLlBhY2thZ2VWZXJzaW9uc0VudHJ5Ug9wYWNrYWdlVmVyc2lvbnMSNQoFZXJyb3IYYyABKAsyHy5kYXJ0X3NlcnZpY2VzLmFwaS5FcnJvck1lc3NhZ2VSBWVycm9yGkIKFFBhY2thZ2VWZXJzaW9uc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAE=');
+    'Cg9WZXJzaW9uUmVzcG9uc2USHgoKc2RrVmVyc2lvbhgBIAEoCVIKc2RrVmVyc2lvbhImCg5zZGtWZXJzaW9uRnVsbBgCIAEoCVIOc2RrVmVyc2lvbkZ1bGwSJgoOcnVudGltZVZlcnNpb24YAyABKAlSDnJ1bnRpbWVWZXJzaW9uEioKEGFwcEVuZ2luZVZlcnNpb24YBCABKAlSEGFwcEVuZ2luZVZlcnNpb24SKAoPc2VydmljZXNWZXJzaW9uGAUgASgJUg9zZXJ2aWNlc1ZlcnNpb24SJgoOZmx1dHRlclZlcnNpb24YBiABKAlSDmZsdXR0ZXJWZXJzaW9uEi4KEmZsdXR0ZXJEYXJ0VmVyc2lvbhgHIAEoCVISZmx1dHRlckRhcnRWZXJzaW9uEjYKFmZsdXR0ZXJEYXJ0VmVyc2lvbkZ1bGwYCCABKAlSFmZsdXR0ZXJEYXJ0VmVyc2lvbkZ1bGwSYQoPcGFja2FnZVZlcnNpb25zGAkgAygLMjcuZGFydF9zZXJ2aWNlcy5hcGkuVmVyc2lvblJlc3BvbnNlLlBhY2thZ2VWZXJzaW9uc0VudHJ5Ug9wYWNrYWdlVmVyc2lvbnMSQAoLcGFja2FnZUluZm8YCiADKAsyHi5kYXJ0X3NlcnZpY2VzLmFwaS5QYWNrYWdlSW5mb1ILcGFja2FnZUluZm8SNQoFZXJyb3IYYyABKAsyHy5kYXJ0X3NlcnZpY2VzLmFwaS5FcnJvck1lc3NhZ2VSBWVycm9yGkIKFFBhY2thZ2VWZXJzaW9uc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAE=');
+@$core.Deprecated('Use packageInfoDescriptor instead')
+const PackageInfo$json = {
+  '1': 'PackageInfo',
+  '2': [
+    {'1': 'name', '3': 1, '4': 1, '5': 9, '10': 'name'},
+    {'1': 'version', '3': 2, '4': 1, '5': 9, '10': 'version'},
+    {'1': 'supported', '3': 3, '4': 1, '5': 8, '10': 'supported'},
+  ],
+};
+
+/// Descriptor for `PackageInfo`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List packageInfoDescriptor = $convert.base64Decode(
+    'CgtQYWNrYWdlSW5mbxISCgRuYW1lGAEgASgJUgRuYW1lEhgKB3ZlcnNpb24YAiABKAlSB3ZlcnNpb24SHAoJc3VwcG9ydGVkGAMgASgIUglzdXBwb3J0ZWQ=');
 @$core.Deprecated('Use badRequestDescriptor instead')
 const BadRequest$json = {
   '1': 'BadRequest',

@@ -15,6 +15,7 @@ import '../version.dart';
 import 'analysis_servers.dart';
 import 'common.dart';
 import 'compiler.dart';
+import 'project.dart';
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'sdk.dart';
@@ -153,6 +154,13 @@ class CommonServerImpl {
   Future<proto.VersionResponse> version(proto.VersionRequest _) {
     final sdk = Sdk.create();
     final packageVersions = getPackageVersions(nullSafe: _nullSafety);
+    final packageInfos = [
+      for (var packageName in packageVersions.keys)
+        proto.PackageInfo()
+          ..name = packageName
+          ..version = packageVersions[packageName]!
+          ..supported = isSupportedPackage(packageName),
+    ];
 
     return Future.value(
       proto.VersionResponse()
@@ -164,7 +172,8 @@ class CommonServerImpl {
         ..flutterDartVersion = sdk.version
         ..flutterDartVersionFull = sdk.versionFull
         ..flutterVersion = sdk.flutterVersion
-        ..packageVersions.addAll(packageVersions),
+        ..packageVersions.addAll(packageVersions)
+        ..packageInfo.addAll(packageInfos),
     );
   }
 

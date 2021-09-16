@@ -114,11 +114,14 @@ List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports) {
     if (uri.scheme == 'package') {
       if (uri.pathSegments.isEmpty) return true;
       final package = uri.pathSegments.first;
-      return !_flutterPackages.contains(package) &&
-          !supportedNonFlutterPackages.contains(package);
+      return !isSupportedPackage(package);
     }
 
     // Don't allow file imports.
     return true;
   }).toList();
 }
+
+bool isSupportedPackage(String package) =>
+    _flutterPackages.contains(package) ||
+    supportedNonFlutterPackages.contains(package);
