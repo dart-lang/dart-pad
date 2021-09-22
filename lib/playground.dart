@@ -408,6 +408,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     var element = _buildChannelsMenu(channels);
     _configureChannelsMenu(element);
+
+    // Set the initial channel from the current query parameter
+    _handleChannelSwitched(queryParams.channel);
   }
 
   void _configureChannelsMenu(Element menuElement) {
