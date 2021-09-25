@@ -53,7 +53,7 @@ Future<void> serveNullSafety() async {
       arguments: ['bin/server_dev.dart', '--port', '8084', '--null-safety']);
 }
 
-const _dartImageName = 'dart';
+const _dartImageName = 'google/dart';
 final _dockerVersionMatcher = RegExp('^FROM $_dartImageName:(.*)\$');
 const _dockerFileNames = [
   'cloud_run.Dockerfile',
