@@ -106,7 +106,7 @@ abstract class EditorUi {
 
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
-  Future<bool> performAnalysis() {
+  Future<bool> performAnalysis() async {
     var input = SourceRequest()..source = fullDartSource;
 
     var lines = Lines(input.source);
@@ -114,7 +114,8 @@ abstract class EditorUi {
     var request = dartServices.analyze(input).timeout(serviceCallTimeout);
     analysisRequest = request;
 
-    return request.then((AnalysisResults result) {
+    try {
+      var result = await request;
       // Discard if we requested another analysis.
       if (analysisRequest != request) return false;
 
@@ -129,14 +130,11 @@ abstract class EditorUi {
         var startLine = lines.getLineForOffset(issue.charStart);
         var endLine =
             lines.getLineForOffset(issue.charStart + issue.charLength);
+        var offsetForStartLine = lines.offsetForLine(startLine);
 
-        var start = Position(
-            startLine, issue.charStart - lines.offsetForLine(startLine));
+        var start = Position(startLine, issue.charStart - offsetForStartLine);
         var end = Position(
-            endLine,
-            issue.charStart +
-                issue.charLength -
-                lines.offsetForLine(startLine));
+            endLine, issue.charStart + issue.charLength - offsetForStartLine);
 
         return Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
@@ -144,9 +142,8 @@ abstract class EditorUi {
 
       var hasErrors = result.issues.any((issue) => issue.kind == 'error');
       var hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
-
-      return hasErrors == false && hasWarnings == false;
-    }).catchError((e) {
+      return !hasErrors && !hasWarnings;
+    } catch (e) {
       if (e is! TimeoutException) {
         final message = e is ApiRequestError ? e.message : '$e';
 
@@ -162,7 +159,8 @@ abstract class EditorUi {
 
       currentDocument.setAnnotations([]);
       busyLight.reset();
-    });
+      return false;
+    }
   }
 
   Future<bool> handleRun() async {
