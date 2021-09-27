@@ -6,26 +6,31 @@ part of 'meta.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Meta _$MetaFromJson(Map json) {
-  return $checkedNew('Meta', json, () {
-    $checkKeys(json,
-        allowedKeys: const ['name', 'type', 'steps'],
-        requiredKeys: const ['name', 'steps']);
-    final val = Meta(
-      $checkedConvert(json, 'name', (v) => v as String?),
-      $checkedConvert(
+Meta _$MetaFromJson(Map json) => $checkedCreate(
+      'Meta',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
           json,
-          'steps',
-          (v) => (v as List<dynamic>?)
-              ?.map((e) => StepConfiguration.fromJson(e as Map))
-              .toList()),
-      type: $checkedConvert(json, 'type',
-              (v) => _$enumDecodeNullable(_$WorkshopTypeEnumMap, v)) ??
-          WorkshopType.dart,
+          allowedKeys: const ['name', 'type', 'steps'],
+          requiredKeys: const ['name', 'steps'],
+        );
+        final val = Meta(
+          $checkedConvert('name', (v) => v as String?),
+          $checkedConvert(
+              'steps',
+              (v) => (v as List<dynamic>?)
+                  ?.map((e) => StepConfiguration.fromJson(e as Map))
+                  .toList()),
+          type: $checkedConvert(
+              'type',
+              (v) =>
+                  _$enumDecodeNullable(_$WorkshopTypeEnumMap, v) ??
+                  WorkshopType.dart),
+        );
+        return val;
+      },
     );
-    return val;
-  });
-}
 
 Map<String, dynamic> _$MetaToJson(Meta instance) => <String, dynamic>{
       'name': instance.name,
@@ -75,17 +80,24 @@ const _$WorkshopTypeEnumMap = {
   WorkshopType.flutter: 'flutter',
 };
 
-StepConfiguration _$StepConfigurationFromJson(Map json) {
-  return $checkedNew('StepConfiguration', json, () {
-    $checkKeys(json, allowedKeys: const ['name', 'directory', 'has_solution']);
-    final val = StepConfiguration(
-      name: $checkedConvert(json, 'name', (v) => v as String),
-      directory: $checkedConvert(json, 'directory', (v) => v as String),
-      hasSolution: $checkedConvert(json, 'has_solution', (v) => v as bool),
+StepConfiguration _$StepConfigurationFromJson(Map json) => $checkedCreate(
+      'StepConfiguration',
+      json,
+      ($checkedConvert) {
+        $checkKeys(
+          json,
+          allowedKeys: const ['name', 'directory', 'has_solution'],
+        );
+        final val = StepConfiguration(
+          name: $checkedConvert('name', (v) => v as String),
+          directory: $checkedConvert('directory', (v) => v as String),
+          hasSolution:
+              $checkedConvert('has_solution', (v) => v as bool? ?? false),
+        );
+        return val;
+      },
+      fieldKeyMap: const {'hasSolution': 'has_solution'},
     );
-    return val;
-  }, fieldKeyMap: const {'hasSolution': 'has_solution'});
-}
 
 Map<String, dynamic> _$StepConfigurationToJson(StepConfiguration instance) =>
     <String, dynamic>{
