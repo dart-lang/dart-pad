@@ -438,13 +438,15 @@ abstract class AnalysisServerWrapper {
   }
 
   /// Cleanly shutdown the Analysis Server.
-  Future<dynamic> shutdown() {
+  Future<void> shutdown() {
     // TODO(jcollins-g): calling dispose() sometimes prevents
     // --pause-isolates-on-exit from working; fix.
     return analysisServer.server
         .shutdown()
         .timeout(const Duration(seconds: 1))
-        .catchError((dynamic e) => null);
+        // At runtime, it appears that [ServerDomain.shutdown] returns a
+        // `Future<Map<dynamic, dynamic>>`.
+        .catchError((_) => {});
   }
 
   /// Internal implementation of the completion mechanism.
