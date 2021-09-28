@@ -138,7 +138,8 @@
                     </button>
                 </div>
                 <div id="editor-panel-tab-host">
-                    <iframe id="frame" sandbox="allow-scripts" flex
+                    <!-- allow-popups allows plugins like url_launcher to open popups. -->
+                    <iframe id="frame" sandbox="allow-scripts allow-popups" flex
                             src="scripts/frame_dark.html"></iframe>
                     <div id="console-panel" class="console custom-scrollbar">
                     </div>
