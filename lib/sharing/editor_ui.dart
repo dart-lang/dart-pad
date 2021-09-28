@@ -71,29 +71,45 @@ abstract class EditorUi {
   /// Each package name links to its page at pub.dev; each package version
   /// links to the version page at pub.dev; Each link opens in a new tab.
   void showPackageVersionsDialog() {
-    var listOuterHtml = StringBuffer('<dl>');
-    for (var packageName in _packageVersions.keys) {
-      var packageUrl = 'https://pub.dev/packages/$packageName';
+    var directlyImportableList = StringBuffer('<dl>');
+    var indirectList = StringBuffer('<dl>');
+    for (var package in _packageInfo) {
+      var packageUrl = 'https://pub.dev/packages/${package.name}';
       var packageLink = AnchorElement()
         ..href = packageUrl
         ..setAttribute('target', '_blank')
-        ..text = packageName;
-      listOuterHtml.write('<dt>${packageLink.outerHtml}</dt>');
-      var packageVersion = _packageVersions[packageName];
+        ..text = package.name;
+      var dt = '<dt>${packageLink.outerHtml}</dt>';
+      var packageVersion = package.version;
       var versionLink = SpanElement()
         ..children.add(AnchorElement()
           ..href = '$packageUrl/versions/$packageVersion'
           ..setAttribute('target', '_blank')
           ..text = packageVersion);
-      listOuterHtml.write('<dd>${versionLink.outerHtml}</dd>');
+      var dd = '<dd>${versionLink.outerHtml}</dd>';
+      if (package.supported) {
+        directlyImportableList.write(dt);
+        directlyImportableList.write(dd);
+      } else {
+        indirectList.write(dt);
+        indirectList.write(dd);
+      }
     }
-    listOuterHtml.write('</dl>');
-    var dl = Element.html(listOuterHtml.toString(),
+    directlyImportableList.write('</dl>');
+    indirectList.write('</dl>');
+    var directDl = Element.html(directlyImportableList.toString(),
+        treeSanitizer: NodeTreeSanitizer.trusted);
+    var indirectDl = Element.html(indirectList.toString(),
         treeSanitizer: NodeTreeSanitizer.trusted);
 
     var div = DivElement()
       ..children.add(DivElement()
-        ..children.add(dl)
+        ..children
+            .add(ParagraphElement()..text = 'Directly importable packages')
+        ..children.add(directDl)
+        ..children
+            .add(ParagraphElement()..text = 'Packages available transitively')
+        ..children.add(indirectDl)
         ..classes.add('keys-dialog'));
     dialog.showOk('Pub package versions', div.innerHtml);
   }
@@ -228,26 +244,25 @@ abstract class EditorUi {
   /// Updates the Flutter and Dart SDK versions in the bottom right.
   void updateVersions() async {
     try {
-      var version = await dartServices.version();
+      var response = await dartServices.version();
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
-      var versionText = 'Based on Flutter ${version.flutterVersion}'
-          ' Dart SDK ${version.sdkVersionFull}';
+      var versionText = 'Based on Flutter ${response.flutterVersion}'
+          ' Dart SDK ${response.sdkVersionFull}';
       querySelector('#dartpad-version')!.text = versionText;
-      if (version.packageVersions.isNotEmpty) {
-        _packageVersions.clear();
-        _packageVersions.addAll(version.packageVersions);
+      if (response.packageVersions.isNotEmpty) {
+        _packageInfo.clear();
+        _packageInfo.addAll(response.packageInfo);
       }
     } catch (_) {
       // Don't crash the app.
     }
   }
 
-  /// A mapping from Pub package name to package version, in play on the
-  /// backend.
+  /// A list of each package's information.
   ///
-  /// This mapping is set on page load, and each time the Null Safety switch is
+  /// This list is set on page load, and each time the Null Safety switch is
   /// toggled.
-  final Map<String, String> _packageVersions = {};
+  final List<PackageInfo> _packageInfo = [];
 
   void _sendCompilationTiming(int milliseconds) {
     ga.sendTiming(
