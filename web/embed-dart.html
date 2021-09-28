@@ -154,7 +154,8 @@ BSD-style license that can be found in the LICENSE file. -->
         <div id="console-output-container" class="console custom-scrollbar"></div>
     </div>
     <div id="web-output" hidden>
-        <iframe id="frame" sandbox="allow-scripts" class="flex-auto">
+        <!-- allow-popups allows plugins like url_launcher to open popups. -->
+        <iframe id="frame" sandbox="allow-scripts allow-popups" class="flex-auto">
         </iframe>
     </div>
     <div class="mdc-snackbar">
