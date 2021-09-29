@@ -1,4 +1,4 @@
-FROM google/dart:2.14.2
+FROM dart:2.14.2
 
 # We install unzip and remove the apt-index again to keep the
 # docker image diff small.
@@ -11,6 +11,9 @@ RUN groupadd --system dart && \
   useradd --no-log-init --system --home /home/dart --create-home -g dart dart
 RUN chown dart:dart /app
 
+# Work around https://github.com/dart-lang/sdk/issues/47093
+RUN find /usr/lib/dart -type d -exec chmod 755 {} \;
+
 # Switch to a new, non-root user to use the flutter tool.
 # The Flutter tool won't perform its actions when run as root.
 USER dart
@@ -18,9 +21,9 @@ USER dart
 COPY --chown=dart:dart tool/dart_cloud_run.sh /dart_runtime/
 RUN chmod a+x /dart_runtime/dart_cloud_run.sh
 COPY --chown=dart:dart pubspec.* /app/
-RUN pub get
+RUN dart pub get
 COPY --chown=dart:dart . /app
-RUN pub get --offline
+RUN dart pub get --offline
 
 ENV PATH="/home/dart/.pub-cache/bin:${PATH}"
 
