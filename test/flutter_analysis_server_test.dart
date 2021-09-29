@@ -80,7 +80,7 @@ void defineTests() {
       test('Trigger lint with Flutter code', () async {
         final results =
             await analysisServersWrapper.analyze(_lintWarningTrigger);
-        expect(results.issues.length, 1);
+        expect(results.issues, hasLength(1));
         final issue = results.issues[0];
         expect(issue.line, 4);
         expect(issue.kind, 'info');
