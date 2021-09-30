@@ -488,6 +488,7 @@ void updateDependenciesFile({
       'bloc': 'any',
       'collection': 'any',
       'flutter_bloc': 'any',
+      'flutter_riverpod': 'any',
       'google_fonts': 'any',
       'http': 'any',
       'intl': 'any',

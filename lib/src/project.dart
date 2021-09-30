@@ -40,6 +40,7 @@ const Set<String> _flutterPackages = {
   'firebase_database',
   'flutter',
   'flutter_bloc',
+  'flutter_riverpod',
   'flutter_test',
 };
 
