@@ -7,41 +7,70 @@ import 'dart:io';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:path/path.dart' as path;
 
-Directory flutterTemplateProject(bool nullSafety) => Directory(path.join(
-      _baseTemplateProject(nullSafety),
-      'flutter_project',
-    ));
+/// Sets of project template directory paths.
+class ProjectTemplates {
+  ProjectTemplates._({
+    required this.dartPath,
+    required this.flutterPath,
+    required this.firebasePath,
+    required this.summaryFilePath,
+  });
 
-Directory dartTemplateProject(bool nullSafety) => Directory(path.join(
-      _baseTemplateProject(nullSafety),
-      'dart_project',
-    ));
-
-String _baseTemplateProject(bool nullSafety) => path.join(
-      Directory.current.path,
-      'project_templates',
+  factory ProjectTemplates({required bool nullSafety}) {
+    final basePath = _baseTemplateProject(nullSafety: nullSafety);
+    final summaryFilePath = path.join(
+      'artifacts',
       nullSafety ? 'null-safe' : 'null-unsafe',
+      'flutter_web.dill',
     );
+    return ProjectTemplates._(
+      dartPath: path.join(basePath, 'dart_project'),
+      flutterPath: path.join(basePath, 'flutter_project'),
+      firebasePath: path.join(basePath, 'firebase_project'),
+      summaryFilePath: summaryFilePath,
+    );
+  }
 
-String summaryFilePath(bool nullSafety) {
-  return path.join(
-    'artifacts',
-    nullSafety ? 'null-safe' : 'null-unsafe',
-    'flutter_web.dill',
-  );
+  /// The path to the plain Dart project template path.
+  final String dartPath;
+
+  /// The path to the Flutter (without Firebase) project template path.
+  final String flutterPath;
+
+  /// The path to the Firebase (with Flutter) project template path.
+  final String firebasePath;
+
+  /// The path to summary files.
+  final String summaryFilePath;
+
+  static ProjectTemplates nullUnsafe = ProjectTemplates(nullSafety: false);
+  static ProjectTemplates nullSafe = ProjectTemplates(nullSafety: true);
+
+  static String _baseTemplateProject({required bool nullSafety}) => path.join(
+        Directory.current.path,
+        'project_templates',
+        nullSafety ? 'null-safe' : 'null-unsafe',
+      );
 }
 
-/// The set of packages which indicate that Flutter Web is being used.
-const Set<String> _flutterPackages = {
+/// The set of Firebase packages which indicate that Firebase is being used.
+const Set<String> firebasePackages = {
+  'cloud_functions',
   'cloud_firestore',
   'firebase',
   'firebase_auth',
   'firebase_core',
   'firebase_database',
+};
+
+/// The set of packages which indicate that Flutter Web is being used.
+const Set<String> _flutterPackages = {
   'flutter',
   'flutter_bloc',
   'flutter_riverpod',
   'flutter_test',
+  'url_launcher',
+  ...firebasePackages,
 };
 
 /// The set of non-Flutter packages which can be directly imported into a
@@ -60,7 +89,6 @@ const Set<String> supportedNonFlutterPackages = {
   'pedantic',
   'provider',
   'riverpod',
-  'url_launcher',
   'vector_math',
 };
 
@@ -85,17 +113,34 @@ const Set<String> _allowedDartImports = {
   'dart:ui',
 };
 
+/// Returns whether [imports] denote use of Flutter Web.
 bool usesFlutterWeb(Iterable<ImportDirective> imports) {
   return imports.any((import) {
     final uriString = import.uri.stringValue;
+    if (uriString == null) return false;
     if (uriString == 'dart:ui') return true;
 
-    final uri = Uri.tryParse(import.uri.stringValue!);
+    final uri = Uri.tryParse(uriString);
     if (uri == null) return false;
     if (uri.scheme != 'package') return false;
     if (uri.pathSegments.isEmpty) return false;
     final package = uri.pathSegments.first;
     return _flutterPackages.contains(package);
+  });
+}
+
+/// Returns whether [imports] denote use of Firebase.
+bool usesFirebase(Iterable<ImportDirective> imports) {
+  return imports.any((import) {
+    final uriString = import.uri.stringValue;
+    if (uriString == null) return false;
+
+    final uri = Uri.tryParse(uriString);
+    if (uri == null) return false;
+    if (uri.scheme != 'package') return false;
+    if (uri.pathSegments.isEmpty) return false;
+    final package = uri.pathSegments.first;
+    return firebasePackages.contains(package);
   });
 }
 

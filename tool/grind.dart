@@ -122,41 +122,88 @@ void buildProjectTemplates() async {
   }
 
   for (final nullSafety in [true, false]) {
-    final dartProjectPath = Directory(path.join(templatesPath.path,
-        nullSafety ? 'null-safe' : 'null-unsafe', 'dart_project'));
-    final dartProjectDir = await dartProjectPath.create(recursive: true);
-    final dependencies = _parsePubDependenciesFile(nullSafety: nullSafety)
-      ..removeWhere((name, _) => !supportedNonFlutterPackages.contains(name));
-    joinFile(dartProjectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
-        includeFlutterWeb: false,
-        nullSafety: nullSafety,
-        dependencies: dependencies));
-    await _runDartPubGet(dartProjectDir);
-    joinFile(dartProjectDir, ['analysis_options.yaml']).writeAsStringSync('''
+    await _buildDartProjectTemplate(
+      nullSafety: nullSafety,
+      templatePath: templatesPath.path,
+    );
+
+    await _buildFlutterProjectTemplate(
+      nullSafety: nullSafety,
+      templatePath: templatesPath.path,
+      includeFirebase: false,
+    );
+
+    await _buildFlutterProjectTemplate(
+      nullSafety: nullSafety,
+      templatePath: templatesPath.path,
+      includeFirebase: true,
+    );
+  }
+}
+
+/// Builds a basic Dart project template directory, complete with `pubspec.yaml`
+/// and `analysis_options.yaml`.
+Future<void> _buildDartProjectTemplate({
+  required bool nullSafety,
+  required String templatePath,
+}) async {
+  final projectPath = Directory(path.join(
+      templatePath, nullSafety ? 'null-safe' : 'null-unsafe', 'dart_project'));
+  final projectDir = await projectPath.create(recursive: true);
+  final dependencies = _parsePubDependenciesFile(nullSafety: nullSafety)
+    ..removeWhere((name, _) => !supportedNonFlutterPackages.contains(name));
+  joinFile(projectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
+    includeFlutterWeb: false,
+    nullSafety: nullSafety,
+    dependencies: dependencies,
+  ));
+  await _runDartPubGet(projectDir);
+  joinFile(projectDir, ['analysis_options.yaml']).writeAsStringSync('''
 include: package:lints/recommended.yaml
 linter:
   rules:
     avoid_print: false
 ''');
+}
 
-    final flutterProjectPath = Directory(path.join(templatesPath.path,
-        nullSafety ? 'null-safe' : 'null-unsafe', 'flutter_project'));
-    final flutterProjectDir = await flutterProjectPath.create(recursive: true);
-    final flutterPubspec = createPubspec(
-        includeFlutterWeb: true,
-        nullSafety: nullSafety,
-        dependencies: _parsePubDependenciesFile(nullSafety: nullSafety));
-    joinFile(flutterProjectDir, ['pubspec.yaml'])
-        .writeAsStringSync(flutterPubspec);
-    await _runFlutterPubGet(flutterProjectDir);
-    joinFile(flutterProjectDir, ['analysis_options.yaml']).writeAsStringSync('''
+/// Builds a Flutter project template directory, complete with `pubspec.yaml`,
+/// `analysis_options.yaml`, and `web/index.html`.
+///
+/// Depending on [includeFirebase], Firebase packages are included in
+/// `pubspec.yaml` which affects how `flutter packages get` will register
+/// plugins.
+Future<void> _buildFlutterProjectTemplate({
+  required bool nullSafety,
+  required String templatePath,
+  required bool includeFirebase,
+}) async {
+  final projectPath = path.join(
+    templatePath,
+    nullSafety ? 'null-safe' : 'null-unsafe',
+    includeFirebase ? 'firebase_project' : 'flutter_project',
+  );
+  final projectDir = await Directory(projectPath).create(recursive: true);
+  await Directory(path.join(projectPath, 'lib')).create();
+  await Directory(path.join(projectPath, 'web')).create();
+  await File(path.join(projectPath, 'web', 'index.html')).create();
+  final dependencies = _parsePubDependenciesFile(nullSafety: nullSafety);
+  if (!includeFirebase) {
+    dependencies.removeWhere(
+        (name, _) => firebasePackages.any((p) => name.startsWith(p)));
+  }
+  joinFile(projectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
+    includeFlutterWeb: true,
+    nullSafety: nullSafety,
+    dependencies: dependencies,
+  ));
+  await _runFlutterPackagesGet(projectDir);
+  joinFile(projectDir, ['analysis_options.yaml']).writeAsStringSync('''
 include: package:flutter_lints/flutter.yaml
 linter:
   rules:
     avoid_print: false
     use_key_in_widget_constructors: false
 ''');
-  }
 }
 
 Future<void> _runDartPubGet(Directory dir) async {
@@ -169,12 +216,12 @@ Future<void> _runDartPubGet(Directory dir) async {
   );
 }
 
-Future<void> _runFlutterPubGet(Directory dir) async {
-  log('running flutter pub get (${dir.path})');
+Future<void> _runFlutterPackagesGet(Directory dir) async {
+  log('running flutter packages get (${dir.path})');
 
   await runWithLogging(
     path.join(Sdk.flutterBinPath, 'flutter'),
-    arguments: ['pub', 'get'],
+    arguments: ['packages', 'get'],
     workingDirectory: dir.path,
   );
 }
@@ -208,10 +255,10 @@ Future<String> _buildStorageArtifacts(Directory dir, bool nullSafety) async {
       dependencies: _parsePubDependenciesFile(nullSafety: nullSafety));
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
-  // run flutter pub get
+  // Run `flutter packages get`.
   await runWithLogging(
     path.join(Sdk.flutterSdkPath, 'bin', 'flutter'),
-    arguments: ['pub', 'get'],
+    arguments: ['packages', 'get'],
     workingDirectory: dir.path,
   );
 
@@ -500,8 +547,8 @@ void updateDependenciesFile({
     },
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
-  await _runFlutterPubGet(tempDir);
-  final packageVersions = packageVersionsFromPubspecLock(tempDir);
+  await _runFlutterPackagesGet(tempDir);
+  final packageVersions = packageVersionsFromPubspecLock(tempDir.path);
 
   _pubDependenciesFile(nullSafety: nullSafety)
       .writeAsStringSync(_jsonEncoder.convert(packageVersions));

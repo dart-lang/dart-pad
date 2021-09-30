@@ -9,13 +9,18 @@ import 'dart:io';
 const kMainDart = 'main.dart';
 const kBootstrapDart = 'bootstrap.dart';
 
+/// This code should be kept up-to-date with WebEntrypointTarget.build() from
+/// flutter_tools: https://github.com/flutter/flutter/blob/169020719bc5882e746b836629721644633b6c8a/packages/flutter_tools/lib/src/build_system/targets/web.dart#L137
 const kBootstrapFlutterCode = r'''
 import 'dart:ui' as ui;
-import 'main.dart' as user_code;
+import 'package:flutter_web_plugins/flutter_web_plugins.dart';
+import 'generated_plugin_registrant.dart';
+import 'main.dart' as entrypoint;
 
-void main() async {
+Future<void> main() async {
+  registerPlugins(webPluginRegistrar);
   await ui.webOnlyInitializePlatform();
-  user_code.main();
+  entrypoint.main();
 }
 ''';
 

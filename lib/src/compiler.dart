@@ -13,7 +13,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
-import 'project.dart' as project;
+import 'project.dart';
 import 'pub.dart';
 import 'sdk.dart';
 
@@ -26,15 +26,19 @@ class Compiler {
   final String _dartdevcPath;
   final BazelWorkerDriver _ddcDriver;
   final bool _nullSafety;
+  final ProjectTemplates _projectTemplates;
 
   Compiler(this._sdk, this._nullSafety)
       : _dartdevcPath = path.join(Sdk.sdkPath, 'bin', 'dartdevc'),
         _ddcDriver = BazelWorkerDriver(
             () => Process.start(
                   path.join(Sdk.sdkPath, 'bin', 'dartdevc'),
-                  <String>['--persistent_worker'],
+                  ['--persistent_worker'],
                 ),
-            maxWorkers: 1);
+            maxWorkers: 1),
+        _projectTemplates = _nullSafety
+            ? ProjectTemplates.nullSafe
+            : ProjectTemplates.nullUnsafe;
 
   Future<CompilationResults> warmup({bool useHtml = false}) async {
     return compile(useHtml ? sampleCodeWeb : sampleCode);
@@ -46,7 +50,7 @@ class Compiler {
     bool returnSourceMap = false,
   }) async {
     final imports = getAllImportsFor(input);
-    final unsupportedImports = project.getUnsupportedImports(imports);
+    final unsupportedImports = getUnsupportedImports(imports);
     if (unsupportedImports.isNotEmpty) {
       return CompilationResults(problems: [
         for (var import in unsupportedImports)
@@ -58,7 +62,7 @@ class Compiler {
     _logger.info('Temp directory created: ${temp.path}');
 
     try {
-      await copyPath(project.dartTemplateProject(_nullSafety).path, temp.path);
+      await copyPath(_projectTemplates.dartPath, temp.path);
       await Directory(path.join(temp.path, 'lib')).create(recursive: true);
 
       final arguments = <String>[
@@ -114,7 +118,7 @@ class Compiler {
   /// Compile the given string and return the resulting [DDCCompilationResults].
   Future<DDCCompilationResults> compileDDC(String input) async {
     final imports = getAllImportsFor(input);
-    final unsupportedImports = project.getUnsupportedImports(imports);
+    final unsupportedImports = getUnsupportedImports(imports);
     if (unsupportedImports.isNotEmpty) {
       return DDCCompilationResults.failed([
         for (var import in unsupportedImports)
@@ -126,13 +130,13 @@ class Compiler {
     _logger.info('Temp directory created: ${temp.path}');
 
     try {
-      final usingFlutter = project.usesFlutterWeb(imports);
-      if (usingFlutter) {
-        await copyPath(
-            project.flutterTemplateProject(_nullSafety).path, temp.path);
+      final usingFlutter = usesFlutterWeb(imports);
+      if (usesFirebase(imports)) {
+        await copyPath(_projectTemplates.firebasePath, temp.path);
+      } else if (usingFlutter) {
+        await copyPath(_projectTemplates.flutterPath, temp.path);
       } else {
-        await copyPath(
-            project.dartTemplateProject(_nullSafety).path, temp.path);
+        await copyPath(_projectTemplates.dartPath, temp.path);
       }
 
       await Directory(path.join(temp.path, 'lib')).create(recursive: true);
@@ -149,7 +153,7 @@ class Compiler {
         '--modules=amd',
         if (usingFlutter) ...[
           '-s',
-          project.summaryFilePath(_nullSafety),
+          _projectTemplates.summaryFilePath,
           '-s',
           '${Sdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/' +
               (_nullSafety
@@ -158,9 +162,7 @@ class Compiler {
         ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         ...['--module-name', 'dartpad_main'],
-        if (_nullSafety) ...[
-          '--sound-null-safety',
-        ],
+        if (_nullSafety) '--sound-null-safety',
         bootstrapPath,
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];
@@ -173,9 +175,8 @@ class Compiler {
           await _ddcDriver.doWork(WorkRequest()..arguments.addAll(arguments));
 
       if (response.exitCode != 0) {
-        return DDCCompilationResults.failed(<CompilationProblem>[
-          CompilationProblem._(response.output),
-        ]);
+        return DDCCompilationResults.failed(
+            [CompilationProblem._(response.output)]);
       } else {
         // The `--single-out-file` option for dartdevc was removed in v2.7.0. As
         // a result, the JS code produced above does *not* provide a name for

@@ -14,7 +14,7 @@ import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'common.dart';
-import 'project.dart' as project;
+import 'project.dart';
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'scheduler.dart';
@@ -35,19 +35,31 @@ const String _warmupSrc = 'main() { int b = 2;  b++;   b. }';
 const Duration _analysisServerTimeout = Duration(seconds: 35);
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
-  DartAnalysisServerWrapper(this._nullSafety) : super(Sdk.sdkPath);
-  final bool _nullSafety;
+  DartAnalysisServerWrapper(bool nullSafety)
+      : _sourceDirPath = (nullSafety
+                ? ProjectTemplates.nullSafe
+                : ProjectTemplates.nullUnsafe)
+            .dartPath,
+        super(Sdk.sdkPath);
 
   @override
-  String get _sourceDirPath => project.dartTemplateProject(_nullSafety).path;
+  final String _sourceDirPath;
 }
 
 class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
-  FlutterAnalysisServerWrapper(this._nullSafety) : super(Sdk.sdkPath);
-  final bool _nullSafety;
+  FlutterAnalysisServerWrapper(bool nullSafety)
+      : _sourceDirPath = (nullSafety
+                ? ProjectTemplates.nullSafe
+                : ProjectTemplates.nullUnsafe)
+            // During analysis, we use the Firebase project template. The
+            // Firebase template is separate from the Flutter template only to
+            // keep Firebase references out of app initialization code at
+            // runtime.
+            .firebasePath,
+        super(Sdk.sdkPath);
 
   @override
-  String get _sourceDirPath => project.flutterTemplateProject(_nullSafety).path;
+  final String _sourceDirPath;
 }
 
 abstract class AnalysisServerWrapper {

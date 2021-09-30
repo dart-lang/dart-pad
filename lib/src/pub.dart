@@ -29,9 +29,11 @@ const _flutterPackages = [
 /// Each of these is expensive to calculate; they require reading from disk.
 /// None of them changes during execution.
 late final Map<String, String> _nullSafePackageVersions =
-    packageVersionsFromPubspecLock(project.flutterTemplateProject(true));
+    packageVersionsFromPubspecLock(
+        project.ProjectTemplates.nullSafe.flutterPath);
 late final Map<String, String> _preNullSafePackageVersions =
-    packageVersionsFromPubspecLock(project.flutterTemplateProject(false));
+    packageVersionsFromPubspecLock(
+        project.ProjectTemplates.nullUnsafe.flutterPath);
 
 /// Returns a mapping of Pub package name to package version.
 Map<String, String> getPackageVersions({bool nullSafe = true}) =>
@@ -39,8 +41,8 @@ Map<String, String> getPackageVersions({bool nullSafe = true}) =>
 
 /// Returns a mapping of Pub package name to package version, retrieving data
 /// from the project template's `pubspec.lock` file.
-Map<String, String> packageVersionsFromPubspecLock(Directory package) {
-  final pubspecLockPath = File(path.join(package.path, 'pubspec.lock'));
+Map<String, String> packageVersionsFromPubspecLock(String templatePath) {
+  final pubspecLockPath = File(path.join(templatePath, 'pubspec.lock'));
   final pubspecLock = loadYamlDocument(pubspecLockPath.readAsStringSync());
   final pubSpecLockContents = pubspecLock.contents as YamlMap;
   final packages = pubSpecLockContents['packages'] as YamlMap;
