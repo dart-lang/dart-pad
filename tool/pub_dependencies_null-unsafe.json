@@ -57,7 +57,7 @@
   "path_provider_windows": "2.0.3",
   "pedantic": "1.11.1",
   "platform": "3.0.2",
-  "plugin_platform_interface": "2.0.1",
+  "plugin_platform_interface": "2.0.2",
   "process": "4.2.3",
   "provider": "6.0.1",
   "riverpod": "0.14.0+3",
