@@ -1,0 +1,45 @@
+void main() {
+  List<int> wert1 = [1, 8, 6, 2];
+  print("Mittelwert von " +
+      wert1[0].toString() +
+      ", " +
+      wert1[1].toString() +
+      ", " +
+      wert1[2].toString() +
+      ", " +
+      wert1[3].toString() +
+      ", " +
+      "ist: " +
+      calcMean(wert1[0], wert1[1], wert1[2], wert1[3]).toString());
+
+  List<int> wert2 = [1, 3, 4, 7];
+  print("Mittelwert von " +
+      wert2[0].toString() +
+      ", " +
+      wert2[1].toString() +
+      ", " +
+      wert2[2].toString() +
+      ", " +
+      wert2[3].toString() +
+      ", " +
+      "ist: " +
+      calcMean(wert2[0], wert2[1], wert2[2], wert2[3]).toString());
+
+  List<int> wert3 = [1, 5, 9, 4];
+  print("Mittelwert von " +
+      wert3[0].toString() +
+      ", " +
+      wert3[1].toString() +
+      ", " +
+      wert3[2].toString() +
+      ", " +
+      wert3[3].toString() +
+      ", " +
+      "ist: " +
+      calcMean(wert3[0], wert3[1], wert3[2], wert3[3]).toString());
+}
+
+double calcMean(w1, w2, w3, w4) {
+  double mittelwert = (w1 + w2 + w3 + w4) / 4;
+  return mittelwert;
+}
