@@ -570,10 +570,9 @@ class Embed extends EditorUi {
     deps[Analytics] = Analytics();
 
     var channel = queryParams.channel;
-    if (!Channel.urlMapping.keys.contains(channel)) {
-      return;
+    if (Channel.urlMapping.keys.contains(channel)) {
+      dartServices.rootUrl = Channel.urlMapping[channel]!;
     }
-    dartServices.rootUrl = Channel.urlMapping[channel]!;
 
     context = EmbedContext(
         userCodeEditor, testEditor, solutionEditor, htmlEditor, cssEditor);
