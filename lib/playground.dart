@@ -425,7 +425,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void _handleChannelsMenuSelected(e) {
     var index = (e as CustomEvent).detail['index'] as int;
-    var channel = Channel._urlMapping.keys.toList()[index];
+    var channel = Channel.urlMapping.keys.toList()[index];
     _handleChannelSwitched(channel);
   }
 
@@ -963,17 +963,16 @@ class Playground extends EditorUi implements GistContainer, GistController {
   /// * re-analyzes the source
   // TODO(srawlins): Re-initialize the samples menu.
   void _handleChannelSwitched(String channel) {
-    if (!Channel._urlMapping.keys.contains(channel)) {
+    if (!Channel.urlMapping.keys.contains(channel)) {
       return;
     }
     queryParams.channel = channel;
-    (deps[DartservicesApi] as DartservicesApi).rootUrl =
-        Channel._urlMapping[channel]!;
+    dartServices.rootUrl = Channel.urlMapping[channel]!;
     updateVersions();
     performAnalysis();
 
     // Re-create the channels menu to show the correct checkmark
-    for (var channelName in Channel._urlMapping.keys) {
+    for (var channelName in Channel.urlMapping.keys) {
       var checkmark = document.querySelector('#$channelName-checkmark');
       if (checkmark == null) {
         continue;
@@ -1193,38 +1192,4 @@ class Sample {
   final Layout layout;
 
   Sample(this.gistId, this.name, this.layout);
-}
-
-class Channel {
-  final String name;
-  final String dartVersion;
-  final String flutterVersion;
-
-  static Future<Channel> fromVersion(String name) async {
-    var rootUrl = _urlMapping[name];
-    // If the user provided bad URL query parameter (`?channel=nonsense`),
-    // default to the stable channel.
-    rootUrl ??= stableServerUrl;
-
-    var dartservicesApi = DartservicesApi(browserClient, rootUrl: rootUrl);
-    var versionResponse = await dartservicesApi.version();
-    return Channel._(
-      name: name,
-      dartVersion: versionResponse.sdkVersionFull,
-      flutterVersion: versionResponse.flutterVersion,
-    );
-  }
-
-  static const _urlMapping = {
-    'stable': stableServerUrl,
-    'beta': betaServerUrl,
-    'dev': devServerUrl,
-    'old': oldServerUrl,
-  };
-
-  Channel._({
-    required this.name,
-    required this.dartVersion,
-    required this.flutterVersion,
-  });
 }
