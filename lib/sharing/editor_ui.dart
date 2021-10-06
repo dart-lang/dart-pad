@@ -280,3 +280,37 @@ abstract class EditorUi {
     }).observe(element);
   }
 }
+
+class Channel {
+  final String name;
+  final String dartVersion;
+  final String flutterVersion;
+
+  static Future<Channel> fromVersion(String name) async {
+    var rootUrl = urlMapping[name];
+    // If the user provided bad URL query parameter (`?channel=nonsense`),
+    // default to the stable channel.
+    rootUrl ??= stableServerUrl;
+
+    var dartservicesApi = DartservicesApi(browserClient, rootUrl: rootUrl);
+    var versionResponse = await dartservicesApi.version();
+    return Channel._(
+      name: name,
+      dartVersion: versionResponse.sdkVersionFull,
+      flutterVersion: versionResponse.flutterVersion,
+    );
+  }
+
+  static const urlMapping = {
+    'stable': stableServerUrl,
+    'beta': betaServerUrl,
+    'dev': devServerUrl,
+    'old': oldServerUrl,
+  };
+
+  Channel._({
+    required this.name,
+    required this.dartVersion,
+    required this.flutterVersion,
+  });
+}
