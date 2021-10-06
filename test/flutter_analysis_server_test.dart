@@ -38,7 +38,7 @@ void defineTests() {
       late AnalysisServerWrapper analysisServer;
 
       setUp(() async {
-        analysisServer = FlutterAnalysisServerWrapper(nullSafety);
+        analysisServer = FlutterAnalysisServerWrapper(nullSafety: nullSafety);
         await analysisServer.init();
         await analysisServer.warmup();
       });

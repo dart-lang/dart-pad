@@ -27,15 +27,13 @@ final Logger _logger = Logger('analysis_server');
 /// to stdout.
 bool dumpServerMessages = false;
 
-const String _warmupSrcHtml =
-    "import 'dart:html'; main() { int b = 2;  b++;   b. }";
 const String _warmupSrc = 'main() { int b = 2;  b++;   b. }';
 
 // Use very long timeouts to ensure that the server has enough time to restart.
 const Duration _analysisServerTimeout = Duration(seconds: 35);
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
-  DartAnalysisServerWrapper(bool nullSafety)
+  DartAnalysisServerWrapper({required bool nullSafety})
       : _sourceDirPath = (nullSafety
                 ? ProjectTemplates.nullSafe
                 : ProjectTemplates.nullUnsafe)
@@ -44,10 +42,13 @@ class DartAnalysisServerWrapper extends AnalysisServerWrapper {
 
   @override
   final String _sourceDirPath;
+
+  @override
+  String toString() => 'DartAnalysisServerWrapper<$_sourceDirPath>';
 }
 
 class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
-  FlutterAnalysisServerWrapper(bool nullSafety)
+  FlutterAnalysisServerWrapper({required bool nullSafety})
       : _sourceDirPath = (nullSafety
                 ? ProjectTemplates.nullSafe
                 : ProjectTemplates.nullUnsafe)
@@ -60,6 +61,9 @@ class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
 
   @override
   final String _sourceDirPath;
+
+  @override
+  String toString() => 'FlutterAnalysisServerWrapper<$_sourceDirPath>';
 }
 
 abstract class AnalysisServerWrapper {
@@ -525,8 +529,7 @@ abstract class AnalysisServerWrapper {
       path.join(_sourceDirPath, sourceName);
 
   /// Warm up the analysis server to be ready for use.
-  Future<void> warmup({bool useHtml = false}) =>
-      complete(useHtml ? _warmupSrcHtml : _warmupSrc, 10);
+  Future<void> warmup() => complete(_warmupSrc, 10);
 
   final Set<String> _overlayPaths = <String>{};
 
@@ -546,10 +549,8 @@ abstract class AnalysisServerWrapper {
   }
 
   Future<dynamic> _sendAddOverlays(Map<String, String> overlays) {
-    final params = <String, ContentOverlayType>{};
-    for (final overlayPath in overlays.keys) {
-      params[overlayPath] = AddContentOverlay(overlays[overlayPath]!);
-    }
+    final params = overlays.map((overlayPath, content) =>
+        MapEntry(overlayPath, AddContentOverlay(content)));
 
     _logger.fine('About to send analysis.updateContent');
     _logger.fine('  ${params.keys}');
@@ -563,10 +564,10 @@ abstract class AnalysisServerWrapper {
     _logger.fine('About to send analysis.updateContent remove overlays:');
     _logger.fine('  $_overlayPaths');
 
-    final params = <String, ContentOverlayType>{};
-    for (final overlayPath in _overlayPaths) {
-      params[overlayPath] = RemoveContentOverlay();
-    }
+    final params = {
+      for (final overlayPath in _overlayPaths)
+        overlayPath: RemoveContentOverlay()
+    };
     _overlayPaths.clear();
     return analysisServer.analysis.updateContent(params);
   }
@@ -586,17 +587,19 @@ abstract class AnalysisServerWrapper {
   }
 
   Future<CompletionResults> getCompletionResults(String id) {
-    _completionCompleters[id] = Completer<CompletionResults>();
-    return _completionCompleters[id]!.future;
+    final completer = Completer<CompletionResults>();
+    _completionCompleters[id] = completer;
+    return completer.future;
   }
 
-  final List<Completer<dynamic>> _analysisCompleters = <Completer<dynamic>>[];
+  final List<Completer<void>> _analysisCompleters = [];
 
   void listenForAnalysisComplete() {
     analysisServer.server.onStatus.listen((ServerStatus status) {
-      if (status.analysis == null) return;
+      final analysis = status.analysis;
+      if (analysis == null) return;
 
-      if (!status.analysis!.isAnalyzing) {
+      if (!analysis.isAnalyzing) {
         for (final completer in _analysisCompleters) {
           completer.complete();
         }
@@ -606,8 +609,8 @@ abstract class AnalysisServerWrapper {
     });
   }
 
-  Completer<dynamic> getAnalysisCompleteCompleter() {
-    final completer = Completer<dynamic>();
+  Completer<void> getAnalysisCompleteCompleter() {
+    final completer = Completer<void>();
     _analysisCompleters.add(completer);
     return completer;
   }
@@ -628,11 +631,9 @@ abstract class AnalysisServerWrapper {
   void clearErrors() => _errors.clear();
 
   List<AnalysisError> getErrors() {
-    final errors = <AnalysisError>[];
-    for (final e in _errors.values) {
-      errors.addAll(e);
-    }
-    return errors;
+    return [
+      for (final errors in _errors.values) ...errors,
+    ];
   }
 }
 

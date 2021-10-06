@@ -40,8 +40,9 @@ class AnalysisServersWrapper {
 
   Future<List<void>> warmup() async {
     _logger.info('Beginning AnalysisServersWrapper init().');
-    _dartAnalysisServer = DartAnalysisServerWrapper(_nullSafety);
-    _flutterAnalysisServer = FlutterAnalysisServerWrapper(_nullSafety);
+    _dartAnalysisServer = DartAnalysisServerWrapper(nullSafety: _nullSafety);
+    _flutterAnalysisServer =
+        FlutterAnalysisServerWrapper(nullSafety: _nullSafety);
 
     await _dartAnalysisServer.init();
     _logger.info('Dart analysis server initialized.');

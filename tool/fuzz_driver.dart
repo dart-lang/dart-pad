@@ -126,7 +126,7 @@ Future<void> setupTools(String sdkPath) async {
   commonServerImpl = CommonServerImpl(container, cache, false);
   await commonServerImpl.init();
 
-  analysisServer = analysis_server.DartAnalysisServerWrapper(false);
+  analysisServer = analysis_server.DartAnalysisServerWrapper(nullSafety: false);
   await analysisServer!.init();
 
   print('Warming up analysis server');

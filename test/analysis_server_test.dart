@@ -72,7 +72,7 @@ void defineTests() {
     group('Null ${nullSafety ? 'Safe' : 'Unsafe'} Platform SDK analysis_server',
         () {
       setUp(() async {
-        analysisServer = DartAnalysisServerWrapper(nullSafety);
+        analysisServer = DartAnalysisServerWrapper(nullSafety: nullSafety);
         await analysisServer.init();
       });
 
@@ -229,7 +229,7 @@ void defineTests() {
         'Null ${nullSafety ? 'Safe' : 'Unsafe'} Flutter cached SDK analysis_server',
         () {
       setUp(() async {
-        analysisServer = FlutterAnalysisServerWrapper(nullSafety);
+        analysisServer = FlutterAnalysisServerWrapper(nullSafety: nullSafety);
         await analysisServer.init();
       });
 

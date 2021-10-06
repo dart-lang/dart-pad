@@ -57,7 +57,7 @@ class AnalyzerBenchmark extends Benchmark {
   AnalyzerBenchmark(
     String name,
     this.source,
-  )   : analysisServer = DartAnalysisServerWrapper(nullSafe),
+  )   : analysisServer = DartAnalysisServerWrapper(nullSafety: nullSafe),
         super('analyzer.$name');
 
   @override
@@ -105,7 +105,7 @@ class AnalysisServerBenchmark extends Benchmark {
   final AnalysisServerWrapper analysisServer;
 
   AnalysisServerBenchmark(String name, this.source)
-      : analysisServer = DartAnalysisServerWrapper(nullSafe),
+      : analysisServer = DartAnalysisServerWrapper(nullSafety: nullSafe),
         super('completion.$name');
 
   @override
