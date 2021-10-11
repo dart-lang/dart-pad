@@ -141,6 +141,14 @@ void buildProjectTemplates() async {
   }
 }
 
+Map<String, String> _dependencyVersions(Iterable<String> packages,
+    {required bool nullSafety}) {
+  final allVersions = _parsePubDependenciesFile(nullSafety: nullSafety);
+  return {
+    for (var package in packages) package: allVersions[package]!,
+  };
+}
+
 /// Builds a basic Dart project template directory, complete with `pubspec.yaml`
 /// and `analysis_options.yaml`.
 Future<void> _buildDartProjectTemplate({
@@ -150,8 +158,8 @@ Future<void> _buildDartProjectTemplate({
   final projectPath = Directory(path.join(
       templatePath, nullSafety ? 'null-safe' : 'null-unsafe', 'dart_project'));
   final projectDir = await projectPath.create(recursive: true);
-  final dependencies = _parsePubDependenciesFile(nullSafety: nullSafety)
-    ..removeWhere((name, _) => !supportedNonFlutterPackages.contains(name));
+  final dependencies =
+      _dependencyVersions(supportedBasicDartPackages, nullSafety: nullSafety);
   joinFile(projectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
     includeFlutterWeb: false,
     nullSafety: nullSafety,
@@ -186,17 +194,30 @@ Future<void> _buildFlutterProjectTemplate({
   await Directory(path.join(projectPath, 'lib')).create();
   await Directory(path.join(projectPath, 'web')).create();
   await File(path.join(projectPath, 'web', 'index.html')).create();
-  final dependencies = _parsePubDependenciesFile(nullSafety: nullSafety);
-  if (!includeFirebase) {
-    dependencies.removeWhere(
-        (name, _) => firebasePackages.any((p) => name.startsWith(p)));
-  }
+  var packages = {
+    ...supportedBasicDartPackages,
+    ...supportedFlutterPackages,
+    if (includeFirebase) ...registerableFirebasePackages,
+  };
+  final dependencies = _dependencyVersions(packages, nullSafety: nullSafety);
   joinFile(projectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
     includeFlutterWeb: true,
     nullSafety: nullSafety,
     dependencies: dependencies,
   ));
   await _runFlutterPackagesGet(projectDir);
+  if (includeFirebase) {
+    // `flutter packages get` has been run with a _subset_ of all supported
+    // Firebase packages, the ones that don't require a Firebase app to be
+    // configured in JavaScript, before executing Dart. Now add the full set of
+    // supported Firebase pacakges. This workaround is a very fragile hack.
+    packages = {
+      ...supportedBasicDartPackages,
+      ...supportedFlutterPackages,
+      if (includeFirebase) ...firebasePackages,
+    };
+    await _runDartPubGet(projectDir);
+  }
   joinFile(projectDir, ['analysis_options.yaml']).writeAsStringSync('''
 include: package:flutter_lints/flutter.yaml
 linter:

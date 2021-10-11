@@ -53,29 +53,46 @@ class ProjectTemplates {
       );
 }
 
-/// The set of Firebase packages which indicate that Firebase is being used.
-const Set<String> firebasePackages = {
+/// The set of Firebase packages which can be registered in the generated
+/// registrant file. Theoretically this should be _all_ plugins, but there
+/// are bugs. See https://github.com/dart-lang/dart-pad/issues/2033 and
+/// https://github.com/FirebaseExtended/flutterfire/issues/3962.
+const Set<String> registerableFirebasePackages = {
   'cloud_functions',
-  'cloud_firestore',
   'firebase',
   'firebase_auth',
   'firebase_core',
+  'firebase_storage',
+};
+
+/// The set of Firebase packages which indicate that Firebase is being used.
+const Set<String> firebasePackages = {
+  'cloud_firestore',
+  'firebase_analytics',
   'firebase_database',
+  'firebase_messaging',
+  ...registerableFirebasePackages,
 };
 
 /// The set of packages which indicate that Flutter Web is being used.
-const Set<String> _flutterPackages = {
-  'flutter',
+const Set<String> supportedFlutterPackages = {
   'flutter_bloc',
+  'flutter_lints',
   'flutter_riverpod',
-  'flutter_test',
   'url_launcher',
+};
+
+/// The set of packages which indicate that Flutter Web is being used.
+const Set<String> _packagesIndicatingFlutter = {
+  'flutter',
+  'flutter_test',
+  ...supportedFlutterPackages,
   ...firebasePackages,
 };
 
-/// The set of non-Flutter packages which can be directly imported into a
-/// script.
-const Set<String> supportedNonFlutterPackages = {
+/// The set of basic Dart (non-Flutter) packages which can be directly imported
+/// into a script.
+const Set<String> supportedBasicDartPackages = {
   'bloc',
   'characters',
   'collection',
@@ -125,7 +142,7 @@ bool usesFlutterWeb(Iterable<ImportDirective> imports) {
     if (uri.scheme != 'package') return false;
     if (uri.pathSegments.isEmpty) return false;
     final package = uri.pathSegments.first;
-    return _flutterPackages.contains(package);
+    return _packagesIndicatingFlutter.contains(package);
   });
 }
 
@@ -171,5 +188,5 @@ List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports) {
 }
 
 bool isSupportedPackage(String package) =>
-    _flutterPackages.contains(package) ||
-    supportedNonFlutterPackages.contains(package);
+    _packagesIndicatingFlutter.contains(package) ||
+    supportedBasicDartPackages.contains(package);
