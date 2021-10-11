@@ -10,12 +10,14 @@ analyzer:
     - doc/generated/**
     - flutter-sdk/**
     - project_templates/**
-    # TODO: This seems to be hiding ~2 dozen legitimate analysis issues. https://github.com/dart-lang/dart-pad/issues/1712
+    # TODO(https://github.com/dart-lang/dart-pad/issues/1712): This seems to be
+    # hiding ~2 dozen legitimate analysis issues.
     - lib/src/protos/**
 
 linter:
   rules:
     - always_declare_return_types
+    - avoid_dynamic_calls
     - directives_ordering
     - prefer_final_fields
     - prefer_final_in_for_each

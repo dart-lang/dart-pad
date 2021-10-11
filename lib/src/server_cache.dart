@@ -5,7 +5,6 @@
 library services.server_cache;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:math';
 
 import 'package:quiver/cache.dart';
@@ -116,7 +115,7 @@ class RedisCache implements ServerCache {
           _setUpConnection(newConnection);
           // If the client disconnects, discard the client and try to connect again.
 
-          ((newConnection as dynamic).socket as Socket).done.then((_) {
+          newConnection.outputSink.done.then((_) {
             _resetConnection();
             log.warning('$_logPrefix: connection terminated, reconnecting');
             _reconnect();

@@ -228,9 +228,11 @@ void defineTests() {
         final response =
             await _sendPostRequest('dartservices/$version/compile', jsonData);
         expect(response.statusCode, 400);
-        final data = json.decode(await response.transform(utf8.decoder).join());
+        final encoded = await response.transform(utf8.decoder).join();
+        final data = json.decode(encoded) as Map<String, dynamic>;
         expect(data, isNotEmpty);
-        expect(data['error']['message'], contains('Error: Expected'));
+        final error = data['error'] as Map<String, dynamic>;
+        expect(error['message'], contains('Error: Expected'));
       }
     });
 
@@ -288,8 +290,10 @@ void defineTests() {
         final response =
             await _sendPostRequest('dartservices/$version/complete', jsonData);
         expect(response.statusCode, 400);
-        final data = json.decode(await response.transform(utf8.decoder).join());
-        expect(data['error']['message'], 'Missing parameter: \'offset\'');
+        final encoded = await response.transform(utf8.decoder).join();
+        final data = json.decode(encoded) as Map<String, dynamic>;
+        final error = data['error'] as Map<String, dynamic>;
+        expect(error['message'], 'Missing parameter: \'offset\'');
       }
     });
 
@@ -358,7 +362,8 @@ void defineTests() {
         final response =
             await _sendPostRequest('dartservices/$version/format', jsonData);
         expect(response.statusCode, 200);
-        final data = json.decode(await response.transform(utf8.decoder).join());
+        final encoded = await response.transform(utf8.decoder).join();
+        final data = json.decode(encoded) as Map<String, dynamic>;
         expect(data['newString'], postFormattedCode);
       }
     });
@@ -369,7 +374,8 @@ void defineTests() {
         final response =
             await _sendPostRequest('dartservices/$version/format', jsonData);
         expect(response.statusCode, 200);
-        final data = json.decode(await response.transform(utf8.decoder).join());
+        final encoded = await response.transform(utf8.decoder).join();
+        final data = json.decode(encoded) as Map<String, dynamic>;
         expect(data['newString'], formatBadCode);
       }
     });
@@ -380,7 +386,8 @@ void defineTests() {
         final response =
             await _sendPostRequest('dartservices/$version/format', jsonData);
         expect(response.statusCode, 200);
-        final data = json.decode(await response.transform(utf8.decoder).join());
+        final encoded = await response.transform(utf8.decoder).join();
+        final data = json.decode(encoded) as Map<String, dynamic>;
         expect(data['newString'], postFormattedCode);
         expect(data['offset'], 24);
       }
@@ -392,10 +399,11 @@ void defineTests() {
         final response =
             await _sendPostRequest('dartservices/$version/fixes', jsonData);
         expect(response.statusCode, 200);
-        final data = json.decode(await response.transform(utf8.decoder).join());
-        final fixes = data['fixes'];
+        final encoded = await response.transform(utf8.decoder).join();
+        final data = json.decode(encoded) as Map<String, dynamic>;
+        final fixes = data['fixes'] as List<dynamic>;
         expect(fixes.length, 1);
-        final problemAndFix = fixes[0];
+        final problemAndFix = fixes[0] as Map<String, dynamic>;
         expect(problemAndFix['problemMessage'], isNotNull);
       }
     });
@@ -443,11 +451,13 @@ void main() {
             await _sendPostRequest('dartservices/$version/assists', jsonData);
         expect(response.statusCode, 200);
 
-        final data = json.decode(await response.transform(utf8.decoder).join());
-        final assists = data['assists'] as List;
+        final encoded = await response.transform(utf8.decoder).join();
+        final data = json.decode(encoded) as Map<String, dynamic>;
+        final assists = data['assists'] as List<dynamic>;
         expect(assists, hasLength(2));
-        expect(assists.first['edits'], isNotNull);
-        expect(assists.first['edits'], hasLength(1));
+        final firstEdit = assists.first as Map<String, dynamic>;
+        expect(firstEdit['edits'], isNotNull);
+        expect(firstEdit['edits'], hasLength(1));
         expect(assists.where((m) {
           final map = m as Map<String, dynamic>;
           return map['message'] == 'Remove type annotation';
@@ -459,7 +469,8 @@ void main() {
       for (final version in versions) {
         final response = await _sendGetRequest('dartservices/$version/version');
         expect(response.statusCode, 200);
-        final data = json.decode(await response.transform(utf8.decoder).join());
+        final encoded = await response.transform(utf8.decoder).join();
+        final data = json.decode(encoded) as Map<String, dynamic>;
         expect(data['sdkVersion'], isNotNull);
         expect(data['runtimeVersion'], isNotNull);
       }

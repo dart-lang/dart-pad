@@ -392,7 +392,8 @@ void main() {
     test('version', () async {
       final response = await _sendGetRequest('dartservices/v2/version');
       expect(response.statusCode, 200);
-      final data = json.decode(await response.transform(utf8.decoder).join());
+      final encoded = await response.transform(utf8.decoder).join();
+      final data = json.decode(encoded) as Map<String, dynamic>;
       expect(data['sdkVersion'], isNotNull);
       expect(data['runtimeVersion'], isNotNull);
     });
