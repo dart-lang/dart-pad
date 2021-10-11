@@ -541,30 +541,9 @@ void updateDependenciesFile({
       // pkg:lints and pkg:flutter_lints
       'lints': 'any',
       'flutter_lints': 'any',
-      // These are all of the web-enabled plugins found at
-      // https://firebase.flutter.dev/.
-      'cloud_functions': 'any',
-      'cloud_firestore': 'any',
-      'firebase_analytics': 'any',
-      'firebase_auth': 'any',
-      'firebase_core': 'any',
-      'firebase_database': 'any',
-      'firebase_messaging': 'any',
-      'firebase_storage': 'any',
-      'pedantic': 'any',
-      // Otherwise desirable for users:
-      'bloc': 'any',
-      'collection': 'any',
-      'flutter_bloc': 'any',
-      'flutter_riverpod': 'any',
-      'google_fonts': 'any',
-      'http': 'any',
-      'intl': 'any',
-      'js': 'any',
-      'meta': 'any',
-      'provider': 'any',
-      'riverpod': 'any',
-      'url_launcher': 'any',
+      for (var package in firebasePackages) package: 'any',
+      for (var package in supportedFlutterPackages) package: 'any',
+      for (var package in supportedBasicDartPackages) package: 'any',
     },
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
