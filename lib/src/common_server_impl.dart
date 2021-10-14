@@ -189,7 +189,7 @@ class CommonServerImpl {
       final result = await _checkCache(memCacheKey);
       if (result != null) {
         log.info('CACHE: Cache hit for compileDart2js');
-        final resultObj = json.decode(result) as Map<Object, Object>;
+        final resultObj = json.decode(result) as Map<String, dynamic>;
         final response = proto.CompileResponse()
           ..result = resultObj['compiledJS'] as String;
         if (resultObj['sourceMap'] != null) {
@@ -245,7 +245,7 @@ class CommonServerImpl {
       final result = await _checkCache(memCacheKey);
       if (result != null) {
         log.info('CACHE: Cache hit for compileDDC');
-        final resultObj = json.decode(result) as Map<Object, Object>;
+        final resultObj = json.decode(result) as Map<String, dynamic>;
         return proto.CompileDDCResponse()
           ..result = resultObj['compiledJS'] as String
           ..modulesBaseUrl = resultObj['modulesBaseUrl'] as String;

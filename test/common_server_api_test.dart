@@ -5,6 +5,7 @@
 library services.common_server_api_test;
 
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:angel3_mock_request/angel3_mock_request.dart';
@@ -87,7 +88,7 @@ void defineTests() {
   }
 
   group('CommonServerProto JSON', () {
-    setUpAll(() async {
+    setUp(() async {
       container = MockContainer();
       cache = MockCache();
       commonServerImpl = CommonServerImpl(container, cache, false);
@@ -114,7 +115,7 @@ void defineTests() {
       }
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await commonServerImpl.shutdown();
     });
 
@@ -222,6 +223,23 @@ void defineTests() {
       }
     });
 
+    test('compile with cache', () async {
+      for (final version in versions) {
+        final jsonData = {'source': sampleCode};
+        final response1 =
+            await _sendPostRequest('dartservices/$version/compile', jsonData);
+        expect(response1.statusCode, 200);
+        final data1 = await response1.transform(utf8.decoder).join();
+        expect(json.decode(data1), isNotEmpty);
+
+        final response2 =
+            await _sendPostRequest('dartservices/$version/compile', jsonData);
+        expect(response2.statusCode, 200);
+        final data2 = await response2.transform(utf8.decoder).join();
+        expect(json.decode(data2), isNotEmpty);
+      }
+    });
+
     test('compile error', () async {
       for (final version in versions) {
         final jsonData = {'source': sampleCodeError};
@@ -253,6 +271,23 @@ void defineTests() {
         expect(response.statusCode, 200);
         final data = await response.transform(utf8.decoder).join();
         expect(json.decode(data), isNotEmpty);
+      }
+    });
+
+    test('compileDDC with cache', () async {
+      for (final version in versions) {
+        final jsonData = {'source': sampleCode};
+        final response1 = await _sendPostRequest(
+            'dartservices/$version/compileDDC', jsonData);
+        expect(response1.statusCode, 200);
+        final data1 = await response1.transform(utf8.decoder).join();
+        expect(json.decode(data1), isNotEmpty);
+
+        final response2 = await _sendPostRequest(
+            'dartservices/$version/compileDDC', jsonData);
+        expect(response2.statusCode, 200);
+        final data2 = await response2.transform(utf8.decoder).join();
+        expect(json.decode(data2), isNotEmpty);
       }
     });
 
@@ -484,16 +519,18 @@ class MockContainer implements ServerContainer {
 }
 
 class MockCache implements ServerCache {
-  @override
-  Future<String?> get(String key) => Future.value(null);
+  final _cache = HashMap<String, String>();
 
   @override
-  Future<void> set(String key, String value, {Duration? expiration}) =>
-      Future.value();
+  Future<String?> get(String key) async => _cache[key];
 
   @override
-  Future<void> remove(String key) => Future.value();
+  Future<void> set(String key, String value, {Duration? expiration}) async =>
+      _cache[key] = value;
 
   @override
-  Future<void> shutdown() => Future.value();
+  Future<void> remove(String key) async => _cache.remove(key);
+
+  @override
+  Future<void> shutdown() async => _cache.removeWhere((key, value) => true);
 }
