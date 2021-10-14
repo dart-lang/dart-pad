@@ -23,18 +23,21 @@ Logger _logger = Logger('compiler');
 /// compile at a time.
 class Compiler {
   final Sdk _sdk;
-  final String _dartdevcPath;
+  final String _dartPath;
   final BazelWorkerDriver _ddcDriver;
   final bool _nullSafety;
   final ProjectTemplates _projectTemplates;
 
-  Compiler(this._sdk, this._nullSafety)
-      : _dartdevcPath = path.join(Sdk.sdkPath, 'bin', 'dartdevc'),
-        _ddcDriver = BazelWorkerDriver(
-            () => Process.start(
-                  path.join(Sdk.sdkPath, 'bin', 'dartdevc'),
-                  ['--persistent_worker'],
-                ),
+  Compiler(Sdk sdk, bool nullSafety)
+      : this._(sdk, nullSafety, path.join(Sdk.sdkPath, 'bin', 'dart'));
+
+  Compiler._(this._sdk, this._nullSafety, this._dartPath)
+      : _ddcDriver = BazelWorkerDriver(
+            () => Process.start(_dartPath, [
+                  path.join(Sdk.sdkPath, 'bin', 'snapshots',
+                      'dartdevc.dart.snapshot'),
+                  '--persistent_worker'
+                ]),
             maxWorkers: 1),
         _projectTemplates = _nullSafety
             ? ProjectTemplates.nullSafe
@@ -66,6 +69,8 @@ class Compiler {
       await Directory(path.join(temp.path, 'lib')).create(recursive: true);
 
       final arguments = <String>[
+        'compile',
+        'js',
         '--suppress-hints',
         '--terse',
         if (!returnSourceMap) '--no-source-maps',
@@ -84,11 +89,10 @@ class Compiler {
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
       final mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
 
-      final dart2JSPath = path.join(Sdk.sdkPath, 'bin', 'dart2js');
-      _logger.info('About to exec: $dart2JSPath ${arguments.join(' ')}');
+      _logger.info('About to exec: $_dartPath ${arguments.join(' ')}');
 
-      final result = await Process.run(dart2JSPath, arguments,
-          workingDirectory: temp.path);
+      final result =
+          await Process.run(_dartPath, arguments, workingDirectory: temp.path);
 
       if (result.exitCode != 0) {
         final results = CompilationResults(problems: <CompilationProblem>[
@@ -169,7 +173,7 @@ class Compiler {
 
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
 
-      _logger.info('About to exec "$_dartdevcPath ${arguments.join(' ')}"');
+      _logger.info('About to exec dartdevc worker: ${arguments.join(' ')}"');
 
       final response =
           await _ddcDriver.doWork(WorkRequest()..arguments.addAll(arguments));
