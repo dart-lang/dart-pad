@@ -252,7 +252,7 @@ packages:
       name: json_annotation
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "4.2.0"
+    version: "4.3.0"
   lints:
     dependency: "direct dev"
     description:
