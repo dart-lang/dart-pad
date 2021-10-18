@@ -189,7 +189,9 @@ BSD-style license that can be found in the LICENSE file. -->
     <div id="web-output">
         <span id="web-output-label" class="view-label">UI Output</span>
         <!-- allow-popups allows plugins like url_launcher to open popups. -->
-        <iframe id="frame" sandbox="allow-scripts allow-popups" class="flex-auto">
+        <iframe id="frame"
+		sandbox="allow-scripts allow-popups allow-same-origin"
+		class="flex-auto">
         </iframe>
     </div>
     <div class="mdc-snackbar">
