@@ -73,8 +73,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
   final DElement _webTabBar = DElement(querySelector('#web-tab-bar')!);
   final DElement _webOutputLabel =
       DElement(querySelector('#web-output-label')!);
-  final MDCSwitch _nullSafetySwitch =
-      MDCSwitch(querySelector('#null-safety-switch'));
   final Element? _channelSwitch = querySelector('#channel-switch');
   MDCMenu? _channelsMenu;
 
@@ -110,7 +108,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _initGistStorage();
     _initLayoutDetection();
     _initButtons();
-    _initSamplesMenu(nullSafe: nullSafetyEnabled);
+    _initSamplesMenu();
     _initMoreMenu();
     _initSplitters();
     _initTabs();
@@ -142,7 +140,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   ButtonElement get _samplesDropdownButton =>
       querySelector('#samples-dropdown-button') as ButtonElement;
 
-  MDCMenu get _samplesMenu => _initSamplesMenu(nullSafe: nullSafetyEnabled);
+  MDCMenu get _samplesMenu => _initSamplesMenu();
 
   Element? get _channelsDropdownButton =>
       querySelector('#channels-dropdown-button');
@@ -223,11 +221,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       }
     } else {
       _initChannelsMenu();
-      _nullSafetySwitch.root.setAttribute('hidden', '');
-      var nullSafetySwitchLabel = querySelector('#null-safety-switch-label');
-      if (nullSafetySwitchLabel != null) {
-        nullSafetySwitchLabel.setAttribute('hidden', '');
-      }
       var channelsButton = _channelsDropdownButton;
       if (channelsButton is ButtonElement) {
         MDCButton(channelsButton)
@@ -235,59 +228,24 @@ class Playground extends EditorUi implements GistContainer, GistController {
             .listen((e) => _toggleMenu(_channelsMenu));
       }
     }
-
-    // Query params have higher precedence than local storage
-    if (queryParams.hasNullSafety) {
-      nullSafetyEnabled = queryParams.nullSafety;
-    } else if (window.localStorage.containsKey('null_safety')) {
-      nullSafetyEnabled = window.localStorage['null_safety'] == 'true';
-    } else {
-      // Default to null safety
-      nullSafetyEnabled = true;
-    }
-
-    _nullSafetySwitch
-      ..checked = nullSafetyEnabled
-      ..listen('change', (event) {
-        _handleNullSafetySwitched(_nullSafetySwitch.checked!);
-      });
-    _handleNullSafetySwitched(nullSafetyEnabled);
   }
 
-  MDCMenu _initSamplesMenu({bool nullSafe = false}) {
+  MDCMenu _initSamplesMenu() {
     var element = querySelector('#samples-menu')!;
     element.children.clear();
 
-    List<Sample> samples;
-    if (nullSafe) {
-      samples = [
-        Sample('c0f7c578204d61e08ec0fbc4d63456cd', 'Hello World', Layout.dart),
-        Sample(
-            'a93a8de8eab0da9a07edd242df05e71f', 'Int to Double', Layout.dart),
-        Sample('21304866bcdc7b7d4d853e635f90f3e1', 'Mixins', Layout.dart),
-        Sample('d3bd83918d21b6d5f778bdc69c3d36d6', 'Fibonacci', Layout.dart),
-        Sample('e75b493dae1287757c5e1d77a0dc73f1', 'Counter', Layout.flutter),
-        Sample('5c0e154dd50af4a9ac856908061291bc', 'Sunflower', Layout.flutter),
-        Sample('a1d5666d6b54a45eb170b897895cf757', 'Draggables & physics',
-            Layout.flutter),
-        Sample('85e77d36533b16647bf9b6eb8c03296d', 'Implicit animations',
-            Layout.flutter),
-      ];
-    } else {
-      samples = [
-        Sample('c0f7c578204d61e08ec0fbc4d63456cd', 'Hello World', Layout.dart),
-        Sample(
-            'a93a8de8eab0da9a07edd242df05e71f', 'Int to Double', Layout.dart),
-        Sample('21304866bcdc7b7d4d853e635f90f3e1', 'Mixins', Layout.dart),
-        Sample('d3bd83918d21b6d5f778bdc69c3d36d6', 'Fibonacci', Layout.dart),
-        Sample('b6409e10de32b280b8938aa75364fa7b', 'Counter', Layout.flutter),
-        Sample('b3ccb26497ac84895540185935ed5825', 'Sunflower', Layout.flutter),
-        Sample('ecb28c29c646b7f38139b1e7f44129b7', 'Draggables & physics',
-            Layout.flutter),
-        Sample('40308e0a5f47acba46ba62f4d8be2bf4', 'Implicit animations',
-            Layout.flutter),
-      ];
-    }
+    final samples = [
+      Sample('c0f7c578204d61e08ec0fbc4d63456cd', 'Hello World', Layout.dart),
+      Sample('a93a8de8eab0da9a07edd242df05e71f', 'Int to Double', Layout.dart),
+      Sample('21304866bcdc7b7d4d853e635f90f3e1', 'Mixins', Layout.dart),
+      Sample('d3bd83918d21b6d5f778bdc69c3d36d6', 'Fibonacci', Layout.dart),
+      Sample('e75b493dae1287757c5e1d77a0dc73f1', 'Counter', Layout.flutter),
+      Sample('5c0e154dd50af4a9ac856908061291bc', 'Sunflower', Layout.flutter),
+      Sample('a1d5666d6b54a45eb170b897895cf757', 'Draggables & physics',
+          Layout.flutter),
+      Sample('85e77d36533b16647bf9b6eb8c03296d', 'Implicit animations',
+          Layout.flutter),
+    ];
 
     var listElement = _mdcList();
     element.children.add(listElement);
@@ -921,39 +879,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
         _webOutputLabel.clearAttr('hidden');
         break;
     }
-  }
-
-  /// Carries out various tasks to update the state of null safety:
-  ///
-  /// * switches the API root URL
-  /// * switches the state in local storage
-  /// * toggles [nullSafetyEnabled]
-  /// * toggles the title on the null safety switch
-  /// * updates the Dart and Flutter versions
-  /// * updates the URL query parameters
-  /// * re-analyzes the source
-  /// * re-initializes the Samples menu.
-  void _handleNullSafetySwitched(bool enabled) {
-    final api = deps[DartservicesApi] as DartservicesApi;
-
-    if (enabled) {
-      api.rootUrl = nullSafetyServerUrl;
-      window.localStorage['null_safety'] = 'true';
-      nullSafetyEnabled = true;
-      _nullSafetySwitch.root.title = 'Null safety is currently enabled';
-    } else {
-      api.rootUrl = preNullSafetyServerUrl;
-      window.localStorage['null_safety'] = 'false';
-      nullSafetyEnabled = false;
-      _nullSafetySwitch.root.title = 'Null safety is currently disabled';
-    }
-
-    updateVersions();
-
-    queryParams.nullSafety = enabled;
-
-    performAnalysis();
-    _initSamplesMenu(nullSafe: enabled);
   }
 
   /// Carries out various tasks to update the channel:

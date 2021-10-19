@@ -84,7 +84,6 @@ class Embed extends EditorUi {
   bool _showTestCode = false;
 
   late final DElement nullSafetyCheckmark;
-  bool _nullSafetyEnabled = false;
 
   late final Counter unreadConsoleCounter;
 
@@ -259,10 +258,6 @@ class Embed extends EditorUi {
           testEditor.readOnly =
               solutionEditor.readOnly = !_editableTestSolution;
           break;
-        case 2:
-          // Null safety
-          nullSafetyEnabled = !nullSafetyEnabled;
-          break;
       }
     });
 
@@ -422,10 +417,7 @@ class Embed extends EditorUi {
 
     _initBusyLights();
 
-    _initModules()
-        .then((_) => _init())
-        .then((_) => _emitReady())
-        .then((_) => _initNullSafety());
+    _initModules().then((_) => _init()).then((_) => _emitReady());
   }
 
   /// Initializes a listener for messages from the parent window. Allows this
@@ -519,38 +511,6 @@ class Embed extends EditorUi {
 
   bool get githubParamsPresent =>
       githubOwner.isNotEmpty && githubRepo.isNotEmpty && githubPath.isNotEmpty;
-
-  void _initNullSafety() {
-    if (queryParams.hasNullSafety && queryParams.nullSafety) {
-      nullSafetyEnabled = true;
-    }
-  }
-
-  @override
-  set nullSafetyEnabled(bool enabled) {
-    _nullSafetyEnabled = enabled;
-    _handleNullSafetySwitched(enabled);
-    featureMessage.text = 'Null safety';
-    featureMessage.toggleAttr('hidden', !enabled);
-    nullSafetyCheckmark.toggleClass('hide', !enabled);
-  }
-
-  @override
-  bool get nullSafetyEnabled {
-    return _nullSafetyEnabled;
-  }
-
-  void _handleNullSafetySwitched(bool enabled) {
-    var api = deps[DartservicesApi] as DartservicesApi?;
-    if (enabled) {
-      api!.rootUrl = nullSafetyServerUrl;
-      window.localStorage['null_safety'] = 'true';
-    } else {
-      api!.rootUrl = preNullSafetyServerUrl;
-      window.localStorage['null_safety'] = 'false';
-    }
-    unawaited(performAnalysis());
-  }
 
   Future<void> _initModules() async {
     var modules = ModuleManager();

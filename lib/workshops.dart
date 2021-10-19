@@ -83,18 +83,6 @@ class WorkshopUi extends EditorUi {
   DivElement get _editorPanelFooter =>
       querySelector('#editor-panel-footer') as DivElement;
 
-  @override
-  bool get nullSafetyEnabled => true;
-
-  /// Whether null safety was enabled for the previous execution.
-  @override
-  bool get nullSafetyWasPreviouslyEnabled => true;
-
-  @override
-  set nullSafetyEnabled(bool v) {
-    throw Exception('setting null safety in workshops is not supported.');
-  }
-
   Future<void> _init() async {
     await _loadWorkshop();
     _initBusyLights();
