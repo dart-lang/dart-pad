@@ -63,7 +63,7 @@ class DartServicesModule extends Module {
     var client = SanitizingBrowserClient();
     deps[BrowserClient] = client;
     deps[DartservicesApi] =
-        DartservicesApi(client, rootUrl: preNullSafetyServerUrl);
+        DartservicesApi(client, rootUrl: nullSafetyServerUrl);
     return Future.value();
   }
 }

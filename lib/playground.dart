@@ -73,7 +73,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
   final DElement _webTabBar = DElement(querySelector('#web-tab-bar')!);
   final DElement _webOutputLabel =
       DElement(querySelector('#web-output-label')!);
-  final Element? _channelSwitch = querySelector('#channel-switch');
   MDCMenu? _channelsMenu;
 
   late Splitter _rightSplitter;
@@ -208,25 +207,12 @@ class Playground extends EditorUi implements GistContainer, GistController {
         ?.onClick
         .listen((_) => showPackageVersionsDialog());
 
-    var channel = queryParams.channel;
-    if (channel == 'stable') {
-      // Disable the channel switcher.
-      var channelSwitch = _channelSwitch;
-      if (channelSwitch != null) {
-        channelSwitch.setAttribute('hidden', '');
-      }
-      var channelSwitchLabel = querySelector('#channel-switch-label');
-      if (channelSwitchLabel != null) {
-        channelSwitchLabel.setAttribute('hidden', '');
-      }
-    } else {
-      _initChannelsMenu();
-      var channelsButton = _channelsDropdownButton;
-      if (channelsButton is ButtonElement) {
-        MDCButton(channelsButton)
-            .onClick
-            .listen((e) => _toggleMenu(_channelsMenu));
-      }
+    _initChannelsMenu();
+    var channelsButton = _channelsDropdownButton;
+    if (channelsButton is ButtonElement) {
+      MDCButton(channelsButton)
+          .onClick
+          .listen((e) => _toggleMenu(_channelsMenu));
     }
   }
 

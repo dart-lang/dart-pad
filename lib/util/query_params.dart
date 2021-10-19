@@ -12,31 +12,6 @@ class _QueryParams {
     return Uri.parse(window.location.toString()).queryParameters;
   }
 
-  /// Whether or not null safety is enabled through query parameters.
-  bool get nullSafety {
-    final nullSafety = _queryParam('null_safety');
-
-    return nullSafety == 'true';
-  }
-
-  set nullSafety(bool enabled) {
-    _replaceQueryParameters((params) {
-      if (enabled) {
-        params['null_safety'] = 'true';
-      } else {
-        params.remove('null_safety');
-      }
-      return params;
-    });
-  }
-
-  /// Whether the `null_safety` query parameter is defined or not.
-  bool get hasNullSafety {
-    final nullSafety = _queryParam('null_safety');
-
-    return nullSafety != null;
-  }
-
   set gistId(String? gistId) {
     var url = Uri.parse(window.location.toString());
     var params = Map<String, String?>.from(url.queryParameters);

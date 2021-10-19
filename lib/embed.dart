@@ -83,8 +83,6 @@ class Embed extends EditorUi {
   bool _editableTestSolution = false;
   bool _showTestCode = false;
 
-  late final DElement nullSafetyCheckmark;
-
   late final Counter unreadConsoleCounter;
 
   late final FlashBox testResultBox;
@@ -230,8 +228,6 @@ class Embed extends EditorUi {
     showTestCodeCheckmark = DElement(querySelector('#show-test-checkmark')!);
     editableTestSolutionCheckmark =
         DElement(querySelector('#editable-test-solution-checkmark')!);
-    nullSafetyCheckmark =
-        DElement(querySelector('#toggle-null-safety-checkmark')!);
 
     menuButton =
         MDCButton(querySelector('#menu-button') as ButtonElement, isIcon: true)
