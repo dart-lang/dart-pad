@@ -39,4 +39,4 @@ RUN dart pub run grinder build-storage-artifacts validate-storage-artifacts
 CMD []
 
 ENTRYPOINT ["/dart_runtime/dart_cloud_run.sh", "--port", "${PORT}", \
-  "--redis-url", "redis://10.0.0.4:6379", "--null-safety", "--channel", "stable"]
+  "--redis-url", "redis://10.0.0.4:6379", "--null-safety", "--channel", ""${FLUTTER_CHANNEL}""]

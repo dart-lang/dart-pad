@@ -26,7 +26,7 @@ COPY --chown=dart:dart . /app
 RUN dart pub get --offline
 
 ENV PATH="/home/dart/.pub-cache/bin:${PATH}"
-ENV FLUTTER_CHANNEL="stable"
+ENV FLUTTER_CHANNEL="beta"
 
 # Set the Flutter SDK up for web compilation.
 RUN dart pub run grinder setup-flutter-sdk
@@ -39,4 +39,4 @@ RUN dart pub run grinder build-storage-artifacts validate-storage-artifacts
 CMD []
 
 ENTRYPOINT ["/dart_runtime/dart_cloud_run.sh", "--port", "${PORT}", \
-  "--redis-url", "redis://10.0.0.4:6379", "--channel", ""${FLUTTER_CHANNEL}""]
+  "--redis-url", "redis://10.0.0.4:6379", "--null-safety", "--channel", "${FLUTTER_CHANNEL}"]
