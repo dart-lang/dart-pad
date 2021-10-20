@@ -60,7 +60,15 @@ removeScript = function (id) {
 addFirebase = function () {
     addScript('firebase-app', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js');
     addScript('firebase-auth', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-auth.js');
-    addScript('firebase-database', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-database.js');
+    addScript('firebase-database', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-database.js',
+    function() {
+        // To prevent poor interaction between a firebase iframe, and the
+        // sandboxed render iframe, use this one weird trick. Otherwise, you
+        // get sandboxed iframe security errors. See:
+        // * https://github.com/dart-lang/dart-pad/issues/1946,
+        // * https://github.com/firebase/firebase-js-sdk/issues/123.
+        firebase.database.INTERNAL.forceWebSockets();
+    });
     addScript('firestore', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-firestore.js');
 }
 
