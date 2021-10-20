@@ -259,6 +259,12 @@ Future<void> _buildFlutterProjectTemplate({
       ...supportedFlutterPackages,
       if (includeFirebase) ...firebasePackages,
     };
+    final dependencies = _dependencyVersions(packages, channel: channel);
+    joinFile(projectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
+      includeFlutterWeb: true,
+      nullSafety: nullSafety,
+      dependencies: dependencies,
+    ));
     await _runDartPubGet(sdk.dartSdkPath, projectDir);
   }
   joinFile(projectDir, ['analysis_options.yaml']).writeAsStringSync('''
