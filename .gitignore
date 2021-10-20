@@ -28,4 +28,4 @@ config.properties
 .vscode/
 
 # A Flutter SDK checkout
-flutter-sdk/
+flutter-sdks/

@@ -18,7 +18,6 @@ import 'project.dart';
 import 'protos/dart_services.pb.dart' as proto;
 import 'pub.dart';
 import 'scheduler.dart';
-import 'sdk.dart';
 import 'utils.dart' as utils;
 
 final Logger _logger = Logger('analysis_server');
@@ -33,12 +32,14 @@ const String _warmupSrc = 'main() { int b = 2;  b++;   b. }';
 const Duration _analysisServerTimeout = Duration(seconds: 35);
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
-  DartAnalysisServerWrapper({required bool nullSafety})
-      : _sourceDirPath = (nullSafety
+  DartAnalysisServerWrapper({
+    required String dartSdkPath,
+    required bool nullSafety,
+  })  : _sourceDirPath = (nullSafety
                 ? ProjectTemplates.nullSafe
                 : ProjectTemplates.nullUnsafe)
             .dartPath,
-        super(Sdk.sdkPath);
+        super(dartSdkPath);
 
   @override
   final String _sourceDirPath;
@@ -48,8 +49,10 @@ class DartAnalysisServerWrapper extends AnalysisServerWrapper {
 }
 
 class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
-  FlutterAnalysisServerWrapper({required bool nullSafety})
-      : _sourceDirPath = (nullSafety
+  FlutterAnalysisServerWrapper({
+    required String dartSdkPath,
+    required bool nullSafety,
+  })  : _sourceDirPath = (nullSafety
                 ? ProjectTemplates.nullSafe
                 : ProjectTemplates.nullUnsafe)
             // During analysis, we use the Firebase project template. The
@@ -57,7 +60,7 @@ class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
             // keep Firebase references out of app initialization code at
             // runtime.
             .firebasePath,
-        super(Sdk.sdkPath);
+        super(dartSdkPath);
 
   @override
   final String _sourceDirPath;

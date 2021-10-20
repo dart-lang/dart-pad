@@ -79,10 +79,11 @@ Usage: slow_test path_to_test_collection
   final sw = Stopwatch()..start();
 
   print('About to setuptools');
-  print(Sdk.sdkPath);
+  final sdk = Sdk.create(stableChannel);
+  print(sdk.dartSdkPath);
 
   // Warm up the services.
-  await setupTools(Sdk.sdkPath);
+  await setupTools(sdk);
 
   print('Setup tools done');
 
@@ -104,7 +105,7 @@ Usage: slow_test path_to_test_collection
       print('FAILED: ${fse.path}');
 
       // Try and re-cycle the services for the next test after the crash
-      await setupTools(Sdk.sdkPath);
+      await setupTools(sdk);
     }
   }
 
@@ -115,25 +116,26 @@ Usage: slow_test path_to_test_collection
 }
 
 /// Init the tools, and warm them up
-Future<void> setupTools(String sdkPath) async {
+Future<void> setupTools(Sdk sdk) async {
   print('Executing setupTools');
   await analysisServer?.shutdown();
 
-  print('SdKPath: $sdkPath');
+  print('SdKPath: ${sdk.dartSdkPath}');
 
   container = MockContainer();
   cache = MockCache();
-  commonServerImpl = CommonServerImpl(container, cache, false);
+  commonServerImpl = CommonServerImpl(container, cache, sdk, false);
   await commonServerImpl.init();
 
-  analysisServer = analysis_server.DartAnalysisServerWrapper(nullSafety: false);
+  analysisServer = analysis_server.DartAnalysisServerWrapper(
+      dartSdkPath: sdk.dartSdkPath, nullSafety: false);
   await analysisServer!.init();
 
   print('Warming up analysis server');
   await analysisServer!.warmup();
 
   print('Warming up compiler');
-  compiler = comp.Compiler(Sdk.create(), false);
+  compiler = comp.Compiler(sdk, false);
   await compiler.warmup();
   print('SetupTools done');
 }

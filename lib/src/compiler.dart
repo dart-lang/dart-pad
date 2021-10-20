@@ -29,12 +29,12 @@ class Compiler {
   final ProjectTemplates _projectTemplates;
 
   Compiler(Sdk sdk, bool nullSafety)
-      : this._(sdk, nullSafety, path.join(Sdk.sdkPath, 'bin', 'dart'));
+      : this._(sdk, nullSafety, path.join(sdk.dartSdkPath, 'bin', 'dart'));
 
   Compiler._(this._sdk, this._nullSafety, this._dartPath)
       : _ddcDriver = BazelWorkerDriver(
             () => Process.start(_dartPath, [
-                  path.join(Sdk.sdkPath, 'bin', 'snapshots',
+                  path.join(_sdk.dartSdkPath, 'bin', 'snapshots',
                       'dartdevc.dart.snapshot'),
                   '--persistent_worker'
                 ]),
@@ -159,7 +159,7 @@ class Compiler {
           '-s',
           _projectTemplates.summaryFilePath,
           '-s',
-          '${Sdk.flutterBinPath}/cache/flutter_web_sdk/flutter_web_sdk/kernel/' +
+          '${_sdk.flutterWebSdkPath}/' +
               (_nullSafety
                   ? 'flutter_ddc_sdk_sound.dill'
                   : 'flutter_ddc_sdk.dill'),

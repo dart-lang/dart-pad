@@ -9,8 +9,18 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
+const stableChannel = 'stable';
+
 class Sdk {
   static Sdk? _instance;
+
+  final String sdkPath;
+
+  /// The path to the Flutter binaries.
+  final String _flutterBinPath;
+
+  /// The path to the Dart SDK.
+  final String dartSdkPath;
 
   /// The current version of the SDK, including any `-dev` suffix.
   final String versionFull;
@@ -20,117 +30,105 @@ class Sdk {
   /// The current version of the SDK, not including any `-dev` suffix.
   final String version;
 
-  factory Sdk.create() {
+  factory Sdk.create(String channel) {
+    final sdkPath = path.join(Sdk.flutterSdksPath, channel);
+    final flutterBinPath = path.join(sdkPath, 'bin');
+    final dartSdkPath = path.join(flutterBinPath, 'cache', 'dart-sdk');
     return _instance ??= Sdk._(
-        versionFull: _readVersionFile(sdkPath),
-        flutterVersion: _readVersionFile(flutterSdkPath));
+        sdkPath: sdkPath,
+        flutterBinPath: flutterBinPath,
+        dartSdkPath: dartSdkPath,
+        versionFull: _readVersionFile(dartSdkPath),
+        flutterVersion: _readVersionFile(sdkPath));
   }
 
-  Sdk._({required this.versionFull, required this.flutterVersion})
-      : version = versionFull.contains('-')
+  Sdk._({
+    required this.sdkPath,
+    required String flutterBinPath,
+    required this.dartSdkPath,
+    required this.versionFull,
+    required this.flutterVersion,
+  })  : _flutterBinPath = flutterBinPath,
+        version = versionFull.contains('-')
             ? versionFull.substring(0, versionFull.indexOf('-'))
             : versionFull;
+
+  /// The path to the 'flutter' tool (binary).
+  String get flutterToolPath => path.join(_flutterBinPath, 'flutter');
+
+  String get flutterWebSdkPath => path.join(
+      _flutterBinPath, 'cache', 'flutter_web_sdk', 'flutter_web_sdk', 'kernel');
 
   static String _readVersionFile(String filePath) =>
       (File(path.join(filePath, 'version')).readAsStringSync()).trim();
 
-  /// Get the path to the Flutter SDK.
-  static String get flutterSdkPath =>
-      path.join(Directory.current.path, 'flutter-sdk');
-
-  /// Get the path to the Dart SDK.
-  static String get sdkPath => path.join(flutterBinPath, 'cache', 'dart-sdk');
-
-  /// Get the path to the Flutter binaries.
-  static String get flutterBinPath => path.join(flutterSdkPath, 'bin');
+  /// Get the path to the Flutter SDKs.
+  static String get flutterSdksPath =>
+      path.join(Directory.current.path, 'flutter-sdks');
 }
 
+const channels = ['stable', 'beta', 'dev', 'old'];
+
 class DownloadingSdkManager {
-  DownloadingSdkManager();
+  final String channel;
+  final String flutterVersion;
+
+  DownloadingSdkManager._(this.channel, this.flutterVersion);
+
+  factory DownloadingSdkManager(String channel) {
+    if (!channels.contains(channel)) {
+      throw StateError('Unknown channel name: $channel');
+    }
+    final flutterVersion = _readFlutterVersion(channel);
+    return DownloadingSdkManager._(channel, flutterVersion);
+  }
+
+  static const String _flutterSdkConfigFile = 'flutter-sdk-version.yaml';
 
   /// Read and return the Flutter sdk configuration file info
   /// (`flutter-sdk-version.yaml`).
-  static Map<String, Object> getSdkConfigInfo() {
-    final file =
-        File(path.join(Directory.current.path, 'flutter-sdk-version.yaml'));
-    return (loadYaml(file.readAsStringSync()) as Map).cast<String, Object>();
+  static String _readFlutterVersion(String channelName) {
+    final file = File(path.join(Directory.current.path, _flutterSdkConfigFile));
+    final sdkConfig =
+        (loadYaml(file.readAsStringSync()) as Map).cast<String, Object>();
+
+    if (!sdkConfig.containsKey('flutter_sdk')) {
+      throw "No key 'flutter_sdk' found in '$_flutterSdkConfigFile'";
+    }
+    final flutterConfig = sdkConfig['flutter_sdk'] as Map;
+    final versionKey = '${channelName}_version';
+    if (!flutterConfig.containsKey(versionKey)) {
+      throw "No key '$versionKey' found in '$_flutterSdkConfigFile'";
+    }
+    return flutterConfig[versionKey] as String;
   }
 
-  /// Create a Flutter SDK in `flutter-sdk/` that configured using the
+  /// Creates a Flutter SDK in `flutter-sdks/` that is configured using the
   /// `flutter-sdk-version.yaml` file.
   ///
   /// Note that this is an expensive operation.
-  Future<void> createFromConfigFile() async {
-    final sdkConfig = getSdkConfigInfo();
-
-    // flutter_sdk:
-    //   channel: beta
-    //   #version: 1.25.0-8.1.pre
-    if (!sdkConfig.containsKey('flutter_sdk')) {
-      throw "No key 'flutter_sdk' found in sdk config file";
-    }
-
-    final config = (sdkConfig['flutter_sdk'] as Map).cast<String, Object>();
-
-    if (config.containsKey('channel') && config.containsKey('version')) {
-      throw "config file contains both 'channel' and 'version' config settings";
-    }
-
-    if (config.containsKey('channel')) {
-      return createUsingFlutterChannel(channel: config['channel'] as String);
-    } else if (config.containsKey('version')) {
-      return createUsingFlutterVersion(version: config['version'] as String);
-    } else {
-      // Clone the repo if necessary but don't do any other setup.
-      await _cloneSdkIfNecessary();
-    }
-  }
-
-  /// Create a Flutter SDK in `flutter-sdk/` that tracks a specific Flutter
-  /// channel.
-  ///
-  /// Note that this is an expensive operation.
-  Future<void> createUsingFlutterChannel({
-    required String channel,
-  }) async {
-    final sdk = await _cloneSdkIfNecessary();
-
-    // git checkout master
-    await sdk.checkout('master');
-
-    // Check if 'beta' exists.
-    if (await sdk.checkChannelAvailableLocally(channel)) {
-      await sdk.checkout(channel);
-    } else {
-      await sdk.trackChannel(channel);
-    }
-
-    // git pull
-    await sdk.pull();
-  }
-
-  /// Create a Flutter SDK in `flutter-sdk/` that tracks a specific Flutter
-  /// version.
-  ///
-  /// Note that this is an expensive operation.
-  Future<void> createUsingFlutterVersion({
-    required String version,
-  }) async {
-    final sdk = await _cloneSdkIfNecessary();
+  Future<String> createFromConfigFile() async {
+    final sdk = await _cloneSdkIfNecessary(channel);
 
     // git checkout master
     await sdk.checkout('master');
     // git fetch --tags
     await sdk.fetchTags();
     // git checkout 1.25.0-8.1.pre
-    await sdk.checkout(version);
+    await sdk.checkout(flutterVersion);
 
     // Force downloading of Dart SDK before constructing the Sdk singleton.
-    await sdk.init();
+    final exitCode = await sdk.init();
+    if (exitCode != 0) {
+      throw StateError('Initializing Flutter SDK resulted in error: $exitCode');
+    }
+
+    return sdk.flutterSdkPath;
   }
 
-  Future<_DownloadedFlutterSdk> _cloneSdkIfNecessary() async {
-    final sdk = _DownloadedFlutterSdk(Sdk.flutterSdkPath);
+  Future<_DownloadedFlutterSdk> _cloneSdkIfNecessary(String channel) async {
+    final sdkPath = path.join(Sdk.flutterSdksPath, channel);
+    final sdk = _DownloadedFlutterSdk(sdkPath);
 
     if (!Directory(sdk.flutterSdkPath).existsSync()) {
       // This takes perhaps ~20 seconds.
@@ -155,10 +153,9 @@ class _DownloadedFlutterSdk {
 
   _DownloadedFlutterSdk(this.flutterSdkPath);
 
-  Future<void> init() async {
-    // `flutter --version` takes ~28s.
-    await _execLog('bin/flutter', ['--version'], flutterSdkPath);
-  }
+  Future<int> init() =>
+      // `flutter --version` takes ~28s.
+      _execLog('bin/flutter', ['--version'], flutterSdkPath);
 
   String get sdkPath => path.join(flutterSdkPath, 'bin/cache/dart-sdk');
 

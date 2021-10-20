@@ -44,7 +44,7 @@ The Flutter SDK needs to be downloaded and setup.
 
 ```bash
 $ dart pub install
-$ dart run tool/update_sdk.dart
+$ dart run tool/update_sdk.dart stable
 ```
 
 ## Build the subsidiary files

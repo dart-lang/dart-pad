@@ -7,14 +7,16 @@
 # Fast fail the script on failures.
 set -e
 
+channel="$1"
+
 # Run pub get to fetch packages.
 dart pub get
 
 # Prepare to run unit tests (but do not actually run tests).
-dart pub run grinder buildbot
+FLUTTER_CHANNEL=$channel dart pub run grinder buildbot
 
 # Ensure that we've uploaded the compilation artifacts to google storage.
-dart pub run grinder validate-storage-artifacts
+FLUTTER_CHANNEL=$channel dart pub run grinder validate-storage-artifacts
 
 # Enforce dart formatting on lib, test and tool directories.
 echo -n "Files that need dart format: "
@@ -27,27 +29,30 @@ if [ "$REPO_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "dev" ]; then
   echo "Collecting coverage on port $OBS_PORT..."
 
   # Start tests in one VM.
-  dart \
-    --enable-vm-service=$OBS_PORT \
-    --pause-isolates-on-exit \
-    test/all.dart &
+  FLUTTER_CHANNEL=$channel \
+    dart \
+      --enable-vm-service=$OBS_PORT \
+      --pause-isolates-on-exit \
+      test/all.dart &
 
   # Run the coverage collector to generate the JSON coverage report.
-  pub run coverage:collect_coverage \
-    --port=$OBS_PORT \
-    --out=coverage.json \
-    --wait-paused \
-    --resume-isolates
+  FLUTTER_CHANNEL=$channel \
+    pub run coverage:collect_coverage \
+      --port=$OBS_PORT \
+      --out=coverage.json \
+      --wait-paused \
+      --resume-isolates
 
   echo "Generating LCOV report..."
-  pub run coverage:format_coverage \
-    --lcov \
-    --in=coverage.json \
-    --out=lcov.info \
-    --packages=.packages \
-    --report-on=lib
+  FLUTTER_CHANNEL=$channel \
+    pub run coverage:format_coverage \
+      --lcov \
+      --in=coverage.json \
+      --out=lcov.info \
+      --packages=.packages \
+      --report-on=lib
 
   coveralls-lcov --repo-token="${REPO_TOKEN}" lcov.info
 else
-  dart test/all.dart
+  FLUTTER_CHANNEL=$channel dart test/all.dart
 fi

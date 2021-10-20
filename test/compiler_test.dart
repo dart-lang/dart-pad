@@ -4,6 +4,8 @@
 
 library services.compiler_test;
 
+import 'dart:io';
+
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
 import 'package:dart_services/src/sdk.dart';
@@ -17,7 +19,9 @@ void defineTests() {
   for (final nullSafety in [false, true]) {
     group('Null ${nullSafety ? 'Safe' : 'Unsafe'} Compiler', () {
       setUpAll(() async {
-        compiler = Compiler(Sdk.create(), nullSafety);
+        final channel =
+            Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
+        compiler = Compiler(Sdk.create(channel), nullSafety);
         await compiler.warmup();
       });
 

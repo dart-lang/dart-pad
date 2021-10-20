@@ -23,10 +23,14 @@ final Logger _logger = Logger('services');
 
 Future<void> main(List<String> args) async {
   final parser = ArgParser()
+    ..addOption('channel', mandatory: true)
     ..addOption('port', abbr: 'p')
     ..addOption('redis-url')
     ..addFlag('null-safety');
   final results = parser.parse(args);
+
+  final channel = results['channel'] as String;
+  final sdk = Sdk.create(channel);
 
   // Cloud Run supplies the port to bind to in the environment.
   // Allow command line arg to override environment.
@@ -54,20 +58,20 @@ Future<void> main(List<String> args) async {
 
   _logger.info('''Initializing dart-services:
     port: $port
-    sdkPath: ${Sdk.sdkPath}
+    sdkPath: ${sdk.dartSdkPath}
     redisServerUri: $redisServerUri
     nullSafety: $nullSafety
     Cloud Run Environment variables:
     $cloudRunEnvVars''');
 
-  await EndpointsServer.serve(port, redisServerUri, nullSafety);
+  await EndpointsServer.serve(port, redisServerUri, sdk, nullSafety);
   _logger.info('Listening on port $port');
 }
 
 class EndpointsServer {
   static Future<EndpointsServer> serve(
-      int port, String redisServerUri, bool nullSafety) async {
-    final endpointsServer = EndpointsServer._(redisServerUri, nullSafety);
+      int port, String redisServerUri, Sdk sdk, bool nullSafety) async {
+    final endpointsServer = EndpointsServer._(redisServerUri, sdk, nullSafety);
 
     await endpointsServer.init();
     endpointsServer.server = await shelf.serve(
@@ -86,17 +90,19 @@ class EndpointsServer {
   late final CommonServerApi commonServerApi;
   late final CommonServerImpl _commonServerImpl;
 
-  EndpointsServer._(String? redisServerUri, bool nullSafety) {
+  EndpointsServer._(String? redisServerUri, Sdk sdk, bool nullSafety) {
     _commonServerImpl = CommonServerImpl(
       _ServerContainer(),
       redisServerUri == null
           ? InMemoryCache()
           : RedisCache(
               redisServerUri,
+              sdk,
               // The name of the Cloud Run revision being run, for more detail please see:
               // https://cloud.google.com/run/docs/reference/container-contract#env-vars
               Platform.environment['K_REVISION'],
             ),
+      sdk,
       nullSafety,
     );
     commonServerApi = CommonServerApi(_commonServerImpl);

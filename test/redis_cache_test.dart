@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_services/src/common_server_impl.dart';
+import 'package:dart_services/src/sdk.dart';
 import 'package:dart_services/src/server_cache.dart';
 import 'package:logging/logging.dart';
 import 'package:pedantic/pedantic.dart';
@@ -25,6 +26,9 @@ void defineTests() {
     // Note: all caches share values between them.
     late RedisCache redisCache, redisCacheAlt;
     Process? redisProcess, redisAltProcess;
+
+    late Sdk sdk;
+
     var logMessages = <String>[];
     // Critical section handling -- do not run more than one test at a time
     // since they talk to the same redis instances.
@@ -48,12 +52,14 @@ void defineTests() {
 
     setUpAll(() async {
       redisProcess = await startRedisProcessAndDrainIO(9501);
+      final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
+      sdk = Sdk.create(channel);
       log.onRecord.listen((LogRecord rec) {
         logMessages.add('${rec.level.name}: ${rec.time}: ${rec.message}');
         print(logMessages.last);
       });
-      redisCache = RedisCache('redis://localhost:9501', 'aversion');
-      redisCacheAlt = RedisCache('redis://localhost:9501', 'bversion');
+      redisCache = RedisCache('redis://localhost:9501', sdk, 'aversion');
+      redisCacheAlt = RedisCache('redis://localhost:9501', sdk, 'bversion');
       await Future.wait([redisCache.connected, redisCacheAlt.connected]);
     });
 
@@ -114,7 +120,7 @@ void defineTests() {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
         final redisCacheBroken =
-            RedisCache('redis://localhost:9502', 'cversion');
+            RedisCache('redis://localhost:9502', sdk, 'cversion');
         try {
           await redisCacheBroken.set('aKey', 'value');
           await expectLater(await redisCacheBroken.get('aKey'), isNull);
@@ -140,7 +146,7 @@ void defineTests() {
       await singleTestOnly.synchronized(() async {
         logMessages = [];
         final redisCacheRepairable =
-            RedisCache('redis://localhost:9503', 'cversion');
+            RedisCache('redis://localhost:9503', sdk, 'cversion');
         try {
           // Wait for a retry message.
           while (logMessages.length < 2) {
@@ -198,7 +204,7 @@ void defineTests() {
 
         redisAltProcess = await startRedisProcessAndDrainIO(9504);
         final redisCacheHealing =
-            RedisCache('redis://localhost:9504', 'cversion');
+            RedisCache('redis://localhost:9504', sdk, 'cversion');
         try {
           await redisCacheHealing.connected;
           await redisCacheHealing.set('missingKey', 'value');

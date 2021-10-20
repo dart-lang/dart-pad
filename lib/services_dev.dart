@@ -15,6 +15,7 @@ import 'package:shelf/shelf_io.dart' as shelf;
 
 import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
+import 'src/sdk.dart';
 import 'src/server_cache.dart';
 import 'src/shelf_cors.dart' as shelf_cors;
 
@@ -23,6 +24,7 @@ final Logger _logger = Logger('services');
 Future<void> main(List<String> args) async {
   final parser = ArgParser();
   parser
+    ..addOption('channel', mandatory: true)
     ..addOption('port', abbr: 'p', defaultsTo: '8080')
     ..addOption('server-url', defaultsTo: 'http://localhost')
     ..addFlag('null-safety');
@@ -41,13 +43,15 @@ Future<void> main(List<String> args) async {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
-  await EndpointsServer.serve(port, result['null-safety'] as bool);
+  await EndpointsServer.serve(port, Sdk.create(result['channel'] as String),
+      result['null-safety'] as bool);
   _logger.info('Listening on port $port');
 }
 
 class EndpointsServer {
-  static Future<EndpointsServer> serve(int port, bool nullSafety) async {
-    final endpointsServer = EndpointsServer._(nullSafety);
+  static Future<EndpointsServer> serve(
+      int port, Sdk sdk, bool nullSafety) async {
+    final endpointsServer = EndpointsServer._(sdk, nullSafety);
     await shelf.serve(endpointsServer.handler, InternetAddress.anyIPv4, port);
     return endpointsServer;
   }
@@ -56,10 +60,11 @@ class EndpointsServer {
   late final Handler handler;
   late final CommonServerApi commonServerApi;
 
-  EndpointsServer._(bool nullSafety) {
+  EndpointsServer._(Sdk sdk, bool nullSafety) {
     final commonServerImpl = CommonServerImpl(
       _ServerContainer(),
       _Cache(),
+      sdk,
       nullSafety,
     );
     commonServerApi = CommonServerApi(commonServerImpl);

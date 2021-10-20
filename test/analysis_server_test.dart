@@ -4,9 +4,12 @@
 
 library services.analyzer_server_test;
 
+import 'dart:io';
+
 import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
+import 'package:dart_services/src/sdk.dart';
 import 'package:test/test.dart';
 
 const completionCode = r'''
@@ -63,6 +66,8 @@ void main() async {
 }
 ''';
 
+final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
+
 void main() => defineTests();
 
 void defineTests() {
@@ -72,7 +77,9 @@ void defineTests() {
     group('Null ${nullSafety ? 'Safe' : 'Unsafe'} Platform SDK analysis_server',
         () {
       setUp(() async {
-        analysisServer = DartAnalysisServerWrapper(nullSafety: nullSafety);
+        final sdk = Sdk.create(channel);
+        analysisServer = DartAnalysisServerWrapper(
+            dartSdkPath: sdk.dartSdkPath, nullSafety: nullSafety);
         await analysisServer.init();
       });
 
@@ -229,7 +236,9 @@ void defineTests() {
         'Null ${nullSafety ? 'Safe' : 'Unsafe'} Flutter cached SDK analysis_server',
         () {
       setUp(() async {
-        analysisServer = FlutterAnalysisServerWrapper(nullSafety: nullSafety);
+        final sdk = Sdk.create(channel);
+        analysisServer = FlutterAnalysisServerWrapper(
+            dartSdkPath: sdk.dartSdkPath, nullSafety: nullSafety);
         await analysisServer.init();
       });
 
