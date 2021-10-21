@@ -52,7 +52,7 @@ $ dart run tool/update_sdk.dart stable
 The Dart Services server depends on generated files. Run the following to generate all the required binaries.
 
 ```bash
-$ grind deploy
+$ FLUTTER_CHANNEL="stable" grind deploy
 ```
 
 ## Running
@@ -60,7 +60,7 @@ $ grind deploy
 To run the server, run:
 
 ```bash
-$ grind serve
+$ FLUTTER_CHANNEL="stable" grind serve
 ```
 
 The server will run from port 8082 and export several JSON APIs, like
