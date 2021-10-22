@@ -184,7 +184,7 @@ Map<String, String> _dependencyVersions(Iterable<String> packages,
     {required String channel}) {
   final allVersions = _parsePubDependenciesFile(channel: channel);
   return {
-    for (var package in packages) package: allVersions[package]!,
+    for (var package in packages) package: allVersions[package] ?? 'any',
   };
 }
 
