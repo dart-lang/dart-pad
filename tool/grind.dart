@@ -329,12 +329,7 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
       dependencies: _parsePubDependenciesFile(channel: channel));
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
-  // Run `flutter packages get`.
-  await runWithLogging(
-    sdk.flutterToolPath,
-    arguments: ['packages', 'get'],
-    workingDirectory: dir.path,
-  );
+  await _runFlutterPackagesGet(sdk.flutterToolPath, dir);
 
   // locate the artifacts
   final flutterPackages = ['flutter', 'flutter_test'];
@@ -567,7 +562,7 @@ dependencies:
 @Depends(sdkInit)
 void updatePubDependencies() async {
   final sdk = _getSdk();
-  _updateDependenciesFile(
+  await _updateDependenciesFile(
       flutterToolPath: sdk.flutterToolPath, channel: _channel);
 }
 
@@ -578,7 +573,7 @@ void updatePubDependencies() async {
 /// app with Firebase plugins in a scratch pub package.
 ///
 /// See [_pubDependenciesFile] for the location of the dependencies files.
-void _updateDependenciesFile({
+Future<void> _updateDependenciesFile({
   required String flutterToolPath,
   required String channel,
 }) async {
