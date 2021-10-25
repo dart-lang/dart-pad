@@ -7,6 +7,6 @@
 
 flutter_sdk:
   stable_version: 2.5.3
-  beta_version: 2.6.0-5.2.pre
+  beta_version: 2.7.0-3.0.pre
   dev_version: 2.6.0-11.0.pre
   old_version: 2.5.1
