@@ -12,7 +12,7 @@ abstract class WorkshopFetcherImpl implements WorkshopFetcher {
   Future<Workshop> fetch() async {
     var metadata = await fetchMeta();
     var steps = await fetchSteps(metadata);
-    return Workshop(metadata.name!, metadata.type!, steps);
+    return Workshop(metadata.name, metadata.type, steps);
   }
 
   Future<Meta> fetchMeta() async {
@@ -23,8 +23,8 @@ abstract class WorkshopFetcherImpl implements WorkshopFetcher {
   Future<List<Step>> fetchSteps(Meta metadata) async {
     // Fetch each step in parallel and place the results in the original order.
     var futures = <Future<Step>>[];
-    for (var i = 0; i < metadata.steps!.length; i++) {
-      var config = metadata.steps![i];
+    for (var i = 0; i < metadata.steps.length; i++) {
+      var config = metadata.steps[i];
       futures.add(fetchStep(config));
     }
     return Future.wait(futures);

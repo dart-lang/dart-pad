@@ -11,19 +11,13 @@ part 'meta.g.dart';
   fieldRename: FieldRename.snake,
 )
 class Meta {
-  @JsonKey(required: true)
-  final String? name;
+  final String name;
 
-  @JsonKey(
-    required: false,
-    defaultValue: WorkshopType.dart,
-  )
-  final WorkshopType? type;
+  final WorkshopType type;
 
-  @JsonKey(required: true)
-  final List<StepConfiguration>? steps;
+  final List<StepConfiguration> steps;
 
-  Meta(this.name, this.steps, {this.type});
+  Meta(this.name, this.steps, {this.type = WorkshopType.dart});
 
   factory Meta.fromJson(Map json) => _$MetaFromJson(json);
 
