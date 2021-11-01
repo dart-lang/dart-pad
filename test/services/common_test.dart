@@ -12,7 +12,7 @@ void main() => defineTests();
 void defineTests() {
   group('Lines', () {
     test('empty string', () {
-      var lines = Lines('');
+      final lines = Lines('');
       expect(lines.getLineForOffset(0), 0);
       expect(lines.getLineForOffset(1), 0);
       expect(lines.offsetForLine(0), 0);
@@ -20,7 +20,7 @@ void defineTests() {
     });
 
     test('getLineForOffset', () {
-      var lines = Lines('one\ntwo\nthree');
+      final lines = Lines('one\ntwo\nthree');
       expect(lines.getLineForOffset(0), 0);
       expect(lines.getLineForOffset(1), 0);
       expect(lines.getLineForOffset(2), 0);
@@ -40,7 +40,7 @@ void defineTests() {
     });
 
     test('offsetForLine', () {
-      var lines = Lines('one\ntwo\nthree');
+      final lines = Lines('one\ntwo\nthree');
       expect(lines.offsetForLine(0), 0);
       expect(lines.offsetForLine(1), 4);
       expect(lines.offsetForLine(2), 8);

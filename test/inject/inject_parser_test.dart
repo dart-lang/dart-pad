@@ -8,8 +8,8 @@ import 'package:test/test.dart';
 void main() {
   group('InjectParser', () {
     test('can parse files', () {
-      var parser = InjectParser(_codelab);
-      var files = parser.read();
+      final parser = InjectParser(_codelab);
+      final files = parser.read();
       expect(files, isNotEmpty);
       expect(files['main.dart'], "String message = 'Hello, World!';\n");
       expect(files['solution.dart'], "String message = 'delete your code';\n");
@@ -22,7 +22,7 @@ void main() {
     });
 
     test('can parse normal snippets', () {
-      var files = InjectParser(_normalSnippet).read();
+      final files = InjectParser(_normalSnippet).read();
       expect(files['main.dart'], equals("main() => print('Hello, World!');"));
     });
   });
@@ -35,7 +35,7 @@ void main() {
     });
 
     test('supports options ', () {
-      var options = LanguageStringParser('run-dartpad:mode-html:theme-dark'
+      final options = LanguageStringParser('run-dartpad:mode-html:theme-dark'
               ':run-true:split-50:width-100%:height-400px:ga_id-example1:null_safety-true')
           .options;
       expect(options, isNotEmpty);

@@ -20,8 +20,8 @@ void main() {
     });
 
     test('injects a DartPad iframe with a correct code snippet', () async {
-      var iframes = querySelectorAll('iframe');
-      var iframe = iframes.first;
+      final iframes = querySelectorAll('iframe');
+      final iframe = iframes.first;
       expect(iframe, TypeMatcher<IFrameElement>());
       expect(iframe.attributes['src'],
           'embed-flutter.html?theme=dark&run=false&split=false&ga_id=example1&null_safety=false');

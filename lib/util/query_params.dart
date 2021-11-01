@@ -39,7 +39,7 @@ class _QueryParams {
 
   set gistId(String? gistId) {
     var url = Uri.parse(window.location.toString());
-    var params = Map<String, String?>.from(url.queryParameters);
+    final params = Map<String, String?>.from(url.queryParameters);
     params['id'] = gistId;
     url = url.replace(queryParameters: params);
     window.history.replaceState({}, 'DartPad', url.toString());

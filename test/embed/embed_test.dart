@@ -43,12 +43,12 @@ void main() {
   });
   group('filterCloudUrls', () {
     test('cleans dart SDK urls', () {
-      var trace =
+      final trace =
           '(https://storage.googleapis.com/compilation_artifacts/2.2.0/dart_sdk.js:4537:11)';
       expect(embed.filterCloudUrls(trace), '([Dart SDK Source]:4537:11)');
     });
     test('cleans flutter SDK urls', () {
-      var trace =
+      final trace =
           '(https://storage.googleapis.com/compilation_artifacts/2.2.0/flutter_web.js:96550:21)';
       expect(embed.filterCloudUrls(trace), '([Flutter SDK Source]:96550:21)');
     });

@@ -74,23 +74,23 @@ class AnalysisResultsController {
 
     flash.clearChildren();
     for (var issue in issues) {
-      var elem = _createIssueElement(issue);
+      final elem = _createIssueElement(issue);
       flash.add(elem);
     }
   }
 
   Element _createIssueElement(AnalysisIssue issue) {
-    var message = issue.message;
+    final message = issue.message;
 
-    var elem = DivElement()..classes.addAll(['issue', 'clickable']);
+    final elem = DivElement()..classes.addAll(['issue', 'clickable']);
 
     elem.children.add(SpanElement()
       ..text = issue.kind
       ..classes.addAll(_classesForType[issue.kind]!));
 
-    var columnElem = DivElement()..classes.add('issue-column');
+    final columnElem = DivElement()..classes.add('issue-column');
 
-    var messageSpan = DivElement()
+    final messageSpan = DivElement()
       ..text = 'line ${issue.line} • $message'
       ..classes.add('message');
     columnElem.children.add(messageSpan);
@@ -113,13 +113,13 @@ class AnalysisResultsController {
 
     // TODO: This should likely be named contextMessages.
     for (var diagnostic in issue.diagnosticMessages) {
-      var diagnosticElement = _createDiagnosticElement(diagnostic);
+      final diagnosticElement = _createDiagnosticElement(diagnostic);
       columnElem.children.add(diagnosticElement);
     }
 
     elem.children.add(columnElem);
 
-    var copyButton = MDCButton(ButtonElement(), isIcon: true);
+    final copyButton = MDCButton(ButtonElement(), isIcon: true);
     copyButton.buttonElement.setInnerHtml('content_copy');
     copyButton
       ..toggleClass('mdc-icon-button', true)
@@ -150,7 +150,7 @@ class AnalysisResultsController {
   Element _createDiagnosticElement(DiagnosticMessage diagnosticMessage) {
     final message = diagnosticMessage.message;
 
-    var elem = DivElement()..classes.addAll(['message', 'clickable']);
+    final elem = DivElement()..classes.addAll(['message', 'clickable']);
     elem.text = message;
     elem.onClick.listen((event) {
       // Stop the mouse event so the outer issue mouse handler doesn't process

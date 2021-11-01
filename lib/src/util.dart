@@ -10,8 +10,8 @@ import 'dart:html';
 bool isMobile() {
   const mobileSize = 610;
 
-  var width = document.documentElement!.clientWidth;
-  var height = document.documentElement!.clientHeight;
+  final width = document.documentElement!.clientWidth;
+  final height = document.documentElement!.clientHeight;
 
   return width <= mobileSize || height <= mobileSize;
 }

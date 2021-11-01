@@ -9,9 +9,9 @@ class WebServerWorkshopFetcher extends WorkshopFetcherImpl {
 
   @override
   Future<String> loadFileContents(List<String> relativePath) async {
-    var fileUri =
+    final fileUri =
         uri.replace(pathSegments: [...uri.pathSegments, ...relativePath]);
-    var response = await http.get(fileUri);
+    final response = await http.get(fileUri);
     return response.body;
   }
 }

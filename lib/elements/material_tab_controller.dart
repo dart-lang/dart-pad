@@ -13,8 +13,8 @@ class MaterialTabController extends TabController {
 
   @override
   Future selectTab(String? tabName) async {
-    var tab = tabs.firstWhere((t) => t.name == tabName);
-    var idx = tabs.indexOf(tab);
+    final tab = tabs.firstWhere((t) => t.name == tabName);
+    final idx = tabs.indexOf(tab);
 
     tabBar.activateTab(idx);
 

@@ -55,7 +55,7 @@ class MutableGist implements PropertyOwner {
   Gist? get backingGist => _backingGist;
 
   void setBackingGist(Gist newGist, {bool wipeState = true}) {
-    var wasDirty = dirty;
+    final wasDirty = dirty;
     if (wipeState) _localValues.clear();
     _backingGist = newGist;
     if (wasDirty != dirty) _dirtyChangedController.add(dirty);
@@ -82,7 +82,7 @@ class MutableGist implements PropertyOwner {
   Property<String?> property(String? name) => _MutableGistProperty(this, name);
 
   Gist createGist({String? summary}) {
-    var gist = Gist(
+    final gist = Gist(
         description: description,
         id: id,
         public: public,
@@ -96,7 +96,7 @@ class MutableGist implements PropertyOwner {
   }
 
   void reset() {
-    var wasDirty = dirty;
+    final wasDirty = dirty;
     _localValues.clear();
     if (wasDirty != dirty) _dirtyChangedController.add(dirty);
     _changedController.add(null);
@@ -108,7 +108,7 @@ class MutableGist implements PropertyOwner {
   }
 
   void _setProperty(String? key, String? data) {
-    var wasDirty = dirty;
+    final wasDirty = dirty;
     _localValues[key] = data;
     if (_localValues[key] == _backingGist[key]) _localValues.remove(key);
     if (wasDirty != dirty) _dirtyChangedController.add(dirty);
@@ -154,7 +154,7 @@ class _MutableGistProperty implements Property<String?> {
   _MutableGistProperty(this.mutableGist, this.name) {
     _value = get();
     mutableGist.onChanged.listen((_) {
-      var newValue = get();
+      final newValue = get();
       if (newValue != _value) {
         _value = newValue;
         _changedController.add(_value);
