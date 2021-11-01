@@ -8,6 +8,8 @@ import 'package:grinder/grinder_sdk.dart';
 import 'package:test/test.dart';
 import 'package:webdriver/io.dart';
 
+bool get runningInCi => Platform.environment.keys.contains('CI');
+
 void main() async {
   late final Process chromedriverProcess;
   late final Process frontEndServer;
@@ -121,7 +123,7 @@ void main() async {
   test('Version text is displayed', () async {
     final versionsElement = await driver.findElement(By.id('dartpad-version'));
     expect(await versionsElement.text, startsWith('Based on Flutter'));
-  });
+  }, skip: runningInCi);
 
   test('Basic Dart app', () async {
     await writeScript(r'''
@@ -135,5 +137,5 @@ void main() {
     await runScript();
     final text = await waitForOutput('hello');
     expect(text, contains('hello 3'));
-  });
+  }, skip: runningInCi);
 }
