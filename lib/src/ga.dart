@@ -22,7 +22,7 @@ class Analytics {
   }
 
   void sendEvent(String category, String action, {String? label}) {
-    var m = <String, dynamic>{
+    final m = <String, dynamic>{
       'hitType': 'event',
       'eventCategory': category,
       'eventAction': action,
@@ -33,7 +33,7 @@ class Analytics {
 
   void sendTiming(String category, String variable, int valueMillis,
       {String? label}) {
-    var m = <String, dynamic>{
+    final m = <String, dynamic>{
       'hitType': 'timing',
       'timingCategory': category,
       'timingVar': variable,
@@ -44,7 +44,7 @@ class Analytics {
   }
 
   void sendException(String description, {bool? fatal}) {
-    var m = <String, dynamic>{
+    final m = <String, dynamic>{
       'exDescription': description,
     };
     if (fatal != null) m['exFatal'] = fatal;
@@ -53,7 +53,7 @@ class Analytics {
 
   void _ga(String method, [Map? args]) {
     if (isAvailable) {
-      var params = <dynamic>[method];
+      final params = <dynamic>[method];
       if (args != null) params.add(JsObject.jsify(args));
       _gaFunction!.apply(params);
     }
@@ -61,7 +61,7 @@ class Analytics {
 
   void _ga2(String method, String type, [Map? args]) {
     if (isAvailable) {
-      var params = <dynamic>[method, type];
+      final params = <dynamic>[method, type];
       if (args != null) params.add(JsObject.jsify(args));
       _gaFunction!.apply(params);
     }
@@ -69,7 +69,7 @@ class Analytics {
 
   void _ga3(String method, String type, String? arg, [Map? args]) {
     if (isAvailable) {
-      var params = <dynamic>[method, type, arg];
+      final params = <dynamic>[method, type, arg];
       if (args != null) params.add(JsObject.jsify(args));
       _gaFunction!.apply(params);
     }

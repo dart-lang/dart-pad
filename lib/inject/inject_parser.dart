@@ -15,7 +15,7 @@ class InjectParser {
 
   /// Returns filenames and contents that were parsed from the input
   Map<String, String> read() {
-    var lines = input.split('\n');
+    final lines = input.split('\n');
     for (var i = 0; i < lines.length; i++) {
       _currentLine = i;
       _readLine(lines[i]);
@@ -39,7 +39,7 @@ class InjectParser {
       if (_currentFile == null) {
         _error('$_currentLine: unexpected end');
       } else {
-        var match = _endExp.firstMatch(line)![1];
+        final match = _endExp.firstMatch(line)![1];
         if (match != _currentFile) {
           _error('$_currentLine: end statement did not match begin statement');
         } else {
@@ -65,7 +65,7 @@ class InjectParser {
   }
 
   void _error(String message) {
-    var errorMessage =
+    final errorMessage =
         'error parsing DartPad scripts on line $_currentLine: $message';
     throw DartPadInjectException(errorMessage);
   }
@@ -92,12 +92,12 @@ class LanguageStringParser {
   }
 
   Map<String, String> get options {
-    var opts = <String, String>{};
+    final opts = <String, String>{};
     if (!isValid) {
       return opts;
     }
 
-    var matches = _optionsExp.allMatches(input);
+    final matches = _optionsExp.allMatches(input);
     for (var match in matches) {
       if (match.groupCount != 2) {
         continue;

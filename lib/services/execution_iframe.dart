@@ -232,11 +232,11 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
     if (_frame.parent != null) {
       _readyCompleter = Completer();
 
-      var clone = _frame.clone(false) as IFrameElement;
+      final clone = _frame.clone(false) as IFrameElement;
       clone.src = _frameSrc;
 
-      var children = _frame.parent!.children;
-      var index = children.indexOf(_frame);
+      final children = _frame.parent!.children;
+      final index = children.indexOf(_frame);
       children.insert(index, clone);
       _frame.parent!.children.remove(_frame);
       _frame = clone;

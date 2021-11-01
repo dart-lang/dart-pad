@@ -14,7 +14,7 @@ class GistStorage {
   String? _storedId;
 
   GistStorage() {
-    var gist = getStoredGist();
+    final gist = getStoredGist();
     if (gist != null) {
       _storedId = gist.id;
     }
@@ -28,7 +28,7 @@ class GistStorage {
       _storedId == null || _storedId!.isEmpty ? null : _storedId;
 
   Gist? getStoredGist() {
-    var data = window.localStorage[_key];
+    final data = window.localStorage[_key];
     return data == null
         ? null
         : Gist.fromMap(json.decode(data) as Map<String, dynamic>);

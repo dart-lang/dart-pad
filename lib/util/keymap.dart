@@ -8,7 +8,7 @@ import 'package:dart_pad/core/keys.dart';
 
 // HTML for keyboard shortcuts dialog
 String? keyMapToHtml(Map<Action, Set<String>> keyMap) {
-  var dl = DListElement();
+  final dl = DListElement();
   keyMap.forEach((Action action, Set<String> keys) {
     if (!action.hidden) {
       var string = '';
@@ -21,10 +21,10 @@ String? keyMapToHtml(Map<Action, Set<String>> keyMap) {
     }
   });
 
-  var keysDialogDiv = DivElement()
+  final keysDialogDiv = DivElement()
     ..children.add(dl)
     ..classes.add('keys-dialog');
-  var div = DivElement()..children.add(keysDialogDiv);
+  final div = DivElement()..children.add(keysDialogDiv);
 
   return div.innerHtml;
 }

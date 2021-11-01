@@ -20,14 +20,14 @@ var iframePrefix = 'https://dartpad.dev/';
 /// instance of DartPad.
 void main() {
   _logger.onRecord.listen(logToJsConsole);
-  var snippets = querySelectorAll('code');
+  final snippets = querySelectorAll('code');
   for (var snippet in snippets) {
     if (snippet.classes.isEmpty) {
       continue;
     }
 
-    var className = snippet.classes.first;
-    var parser = LanguageStringParser(className);
+    final className = snippet.classes.first;
+    final parser = LanguageStringParser(className);
     if (!parser.isValid) {
       continue;
     }
@@ -37,14 +37,14 @@ void main() {
 }
 
 String iframeSrc(Map<String, String> options) {
-  var prefix = 'embed-${_valueOr(options, 'mode', 'dart')}.html';
-  var theme = 'theme=${_valueOr(options, 'theme', 'light')}';
-  var run = 'run=${_valueOr(options, 'run', 'false')}';
-  var split = 'split=${_valueOr(options, 'split', 'false')}';
-  var nullSafety = 'null_safety=${_valueOr(options, 'null_safety', 'false')}';
+  final prefix = 'embed-${_valueOr(options, 'mode', 'dart')}.html';
+  final theme = 'theme=${_valueOr(options, 'theme', 'light')}';
+  final run = 'run=${_valueOr(options, 'run', 'false')}';
+  final split = 'split=${_valueOr(options, 'split', 'false')}';
+  final nullSafety = 'null_safety=${_valueOr(options, 'null_safety', 'false')}';
   // A unique ID used to distinguish between DartPad instances in an article or
   // codelab.
-  var analytics = 'ga_id=${_valueOr(options, 'ga_id', 'false')}';
+  final analytics = 'ga_id=${_valueOr(options, 'ga_id', 'false')}';
 
   return '$iframePrefix$prefix?$theme&$run&$split&$analytics&$nullSafety';
 }
@@ -67,7 +67,7 @@ String? _valueOr(Map<String, String> map, String value, String defaultValue) {
 ///   </code>
 /// </pre>
 void _injectEmbed(Element snippet, Map<String, String> options) {
-  var preElement = snippet.parent;
+  final preElement = snippet.parent;
   if (preElement is! PreElement) {
     _logUnexpectedHtml();
     return;
@@ -78,10 +78,10 @@ void _injectEmbed(Element snippet, Map<String, String> options) {
     return;
   }
 
-  var files = _parseFiles(HtmlUnescape().convert(snippet.innerHtml!));
+  final files = _parseFiles(HtmlUnescape().convert(snippet.innerHtml!));
 
-  var hostIndex = preElement.parent!.children.indexOf(preElement);
-  var host = DivElement();
+  final hostIndex = preElement.parent!.children.indexOf(preElement);
+  final host = DivElement();
   preElement.parent!.children[hostIndex] = host;
 
   InjectedEmbed(host, files, options);
@@ -105,7 +105,7 @@ class InjectedEmbed {
   Future _init() async {
     host.children.clear();
 
-    var iframe = IFrameElement()..attributes = {'src': iframeSrc(options)};
+    final iframe = IFrameElement()..attributes = {'src': iframeSrc(options)};
 
     if (options.containsKey('width')) {
       iframe.style.width = options['width'];
@@ -119,7 +119,7 @@ class InjectedEmbed {
 
     window.addEventListener('message', (dynamic e) {
       if (e.data['type'] == 'ready') {
-        var m = {'sourceCode': files, 'type': 'sourceCode'};
+        final m = {'sourceCode': files, 'type': 'sourceCode'};
         iframe.contentWindow!.postMessage(m, '*');
       }
     });
@@ -127,7 +127,7 @@ class InjectedEmbed {
 }
 
 void _logUnexpectedHtml() {
-  var message = '''Incorrect HTML for "dartpad-embed". Please use this format:
+  final message = '''Incorrect HTML for "dartpad-embed". Please use this format:
 <pre>
   <code class="run-dartpad">
     [code here]

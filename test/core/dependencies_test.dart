@@ -12,7 +12,7 @@ void main() => defineTests();
 void defineTests() {
   group('dependencies', () {
     test('retrieve dependency', () {
-      var dependency = Dependencies();
+      final dependency = Dependencies();
       Dependencies.setGlobalInstance(dependency);
       expect(dependency[String], isNull);
       dependency[String] = 'foo';
@@ -21,7 +21,7 @@ void defineTests() {
     });
 
     test('runInZone', () {
-      var dependency = Dependencies();
+      final dependency = Dependencies();
       Dependencies.setGlobalInstance(dependency);
       expect(Dependencies.instance, isNotNull);
       dependency[String] = 'foo';

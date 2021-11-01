@@ -20,8 +20,8 @@ String f() {
     ''';
 
 void main() {
-  var dartPadHost = querySelector('#dartpad-host')!;
-  var select = querySelector('#dartpad-select') as SelectElement;
+  final dartPadHost = querySelector('#dartpad-host')!;
+  final select = querySelector('#dartpad-select') as SelectElement;
 
   DartPadPicker(dartPadHost, select, snippets, dartPadUrl: '');
 }
@@ -65,8 +65,8 @@ class DartPadPicker {
 
   void _initSelectElement() {
     for (var i = 0; i < snippets.length; i++) {
-      var snippet = snippets[i];
-      var option = OptionElement(value: '$i')..text = snippet.name;
+      final snippet = snippets[i];
+      final option = OptionElement(value: '$i')..text = snippet.name;
       selectElement.children.add(option);
     }
     selectElement.onChange.listen((Event _) {

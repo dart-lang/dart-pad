@@ -215,8 +215,8 @@ class Embed extends EditorUi {
 
     showHintButton = MDCButton(querySelector('#show-hint') as ButtonElement)
       ..onClick.listen((_) {
-        var hintElement = DivElement()..text = context.hint;
-        var showSolutionButton = AnchorElement()
+        final hintElement = DivElement()..text = context.hint;
+        final showSolutionButton = AnchorElement()
           ..style.cursor = 'pointer'
           ..text = 'Show solution';
         showSolutionButton.onClick.listen((_) {
@@ -277,7 +277,7 @@ class Embed extends EditorUi {
 
     testResultBox = FlashBox(querySelector('#test-result-box') as DivElement);
     hintBox = FlashBox(querySelector('#hint-box') as DivElement);
-    var editorTheme = isDarkMode ? 'darkpad' : 'dartpad';
+    final editorTheme = isDarkMode ? 'darkpad' : 'dartpad';
 
     userCodeEditor = editorFactory.createFromElement(
         querySelector('#user-code-editor')!,
@@ -325,27 +325,27 @@ class Embed extends EditorUi {
       querySelector('#install-button')!.setAttribute('hidden', '');
     }
 
-    var editorTabViewElement = querySelector('#user-code-view');
+    final editorTabViewElement = querySelector('#user-code-view');
     if (editorTabViewElement != null) {
       editorTabView = TabView(DElement(editorTabViewElement));
     }
 
-    var testTabViewElement = querySelector('#test-view');
+    final testTabViewElement = querySelector('#test-view');
     if (testTabViewElement != null) {
       testTabView = TabView(DElement(testTabViewElement));
     }
 
-    var solutionTabViewElement = querySelector('#solution-view');
+    final solutionTabViewElement = querySelector('#solution-view');
     if (solutionTabViewElement != null) {
       solutionTabView = TabView(DElement(solutionTabViewElement));
     }
 
-    var htmlTabViewElement = querySelector('#html-view');
+    final htmlTabViewElement = querySelector('#html-view');
     if (htmlTabViewElement != null) {
       htmlTabView = TabView(DElement(htmlTabViewElement));
     }
 
-    var cssTabViewElement = querySelector('#css-view');
+    final cssTabViewElement = querySelector('#css-view');
     if (cssTabViewElement != null) {
       cssTabView = TabView(DElement(querySelector('#css-view')!));
     }
@@ -386,7 +386,7 @@ class Embed extends EditorUi {
       });
 
     if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
-      var controller = ConsoleExpandController(
+      final controller = ConsoleExpandController(
           expandButton: querySelector('#console-output-header')!,
           footer: querySelector('#console-output-footer')!,
           expandIcon: querySelector('#console-expand-icon')!,
@@ -409,7 +409,7 @@ class Embed extends EditorUi {
           Console(DElement(querySelector('#console-output-container')!));
     }
 
-    var webOutputLabelElement = querySelector('#web-output-label');
+    final webOutputLabelElement = querySelector('#web-output-label');
     if (webOutputLabelElement != null) {
       webOutputLabel = DElement(webOutputLabelElement);
     }
@@ -432,13 +432,13 @@ class Embed extends EditorUi {
   /// embedded iframe to display and run arbitrary Dart code.
   void _initHostListener() {
     window.addEventListener('message', (dynamic event) {
-      var data = event.data;
+      final data = event.data;
       if (data is! Map) {
         // Ignore unexpected messages
         return;
       }
 
-      var type = data['type'];
+      final type = data['type'];
 
       if (type == 'sourceCode') {
         lastInjectedSourceCode =
@@ -541,7 +541,7 @@ class Embed extends EditorUi {
   }
 
   void _handleNullSafetySwitched(bool enabled) {
-    var api = deps[DartservicesApi] as DartservicesApi?;
+    final api = deps[DartservicesApi] as DartservicesApi?;
     if (enabled) {
       api!.rootUrl = nullSafetyServerUrl;
       window.localStorage['null_safety'] = 'true';
@@ -553,7 +553,7 @@ class Embed extends EditorUi {
   }
 
   Future<void> _initModules() async {
-    var modules = ModuleManager();
+    final modules = ModuleManager();
 
     modules.register(DartPadModule());
     modules.register(DartServicesModule());
@@ -569,7 +569,7 @@ class Embed extends EditorUi {
     deps[GistLoader] = GistLoader.defaultFilters();
     deps[Analytics] = Analytics();
 
-    var channel = queryParams.channel;
+    final channel = queryParams.channel;
     if (Channel.urlMapping.keys.contains(channel)) {
       dartServices.rootUrl = Channel.urlMapping[channel]!;
     }
@@ -586,21 +586,21 @@ class Embed extends EditorUi {
     initKeyBindings();
 
     var horizontal = true;
-    var webOutput = querySelector('#web-output')!;
+    final webOutput = querySelector('#web-output')!;
     List<Element> splitterElements;
     if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
-      var editorAndConsoleContainer =
+      final editorAndConsoleContainer =
           querySelector('#editor-and-console-container')!;
       splitterElements = [editorAndConsoleContainer, webOutput];
     } else if (options.mode == EmbedMode.inline) {
-      var editorContainer = querySelector('#editor-container')!;
-      var consoleView = querySelector('#console-view')!;
+      final editorContainer = querySelector('#editor-container')!;
+      final consoleView = querySelector('#console-view')!;
       consoleView.removeAttribute('hidden');
       splitterElements = [editorContainer, consoleView];
       horizontal = false;
     } else {
-      var editorContainer = querySelector('#editor-container')!;
-      var consoleView = querySelector('#console-view')!;
+      final editorContainer = querySelector('#editor-container')!;
+      final consoleView = querySelector('#console-view')!;
       consoleView.removeAttribute('hidden');
       splitterElements = [editorContainer, consoleView];
     }
@@ -739,7 +739,7 @@ class Embed extends EditorUi {
   }
 
   void _handleCopyCode() {
-    var textElement = document.createElement('textarea') as TextAreaElement;
+    final textElement = document.createElement('textarea') as TextAreaElement;
     textElement.value = _getActiveSourceCode();
     document.body!.append(textElement);
     textElement.select();
@@ -757,7 +757,7 @@ class Embed extends EditorUi {
   }
 
   String _getActiveSourceCode() {
-    var activeTabName = tabController.selectedTab.name;
+    final activeTabName = tabController.selectedTab.name;
 
     switch (activeTabName) {
       case 'editor':
@@ -819,7 +819,7 @@ class Embed extends EditorUi {
     hintBox.hide();
     consoleExpandController.clear();
 
-    var success = await super.handleRun();
+    final success = await super.handleRun();
 
     editorIsBusy = false;
 
@@ -831,11 +831,11 @@ class Embed extends EditorUi {
   }
 
   void _sendVirtualPageView(String? id) {
-    var url = Uri.parse(window.location.toString());
-    var newParams = Map<String, String?>.from(url.queryParameters);
+    final url = Uri.parse(window.location.toString());
+    final newParams = Map<String, String?>.from(url.queryParameters);
     newParams['ga_id'] = id;
-    var pageName = url.replace(queryParameters: newParams);
-    var path = '${pageName.path}?${pageName.query}';
+    final pageName = url.replace(queryParameters: newParams);
+    final path = '${pageName.path}?${pageName.query}';
     ga.sendPage(pageName: path);
   }
 
@@ -865,12 +865,12 @@ class Embed extends EditorUi {
   }
 
   void _format() async {
-    var originalSource = userCodeEditor.document.value;
-    var input = SourceRequest()..source = originalSource;
+    final originalSource = userCodeEditor.document.value;
+    final input = SourceRequest()..source = originalSource;
 
     try {
       formatButton.disabled = true;
-      var result = await dartServices.format(input).timeout(serviceCallTimeout);
+      final result = await dartServices.format(input).timeout(serviceCallTimeout);
 
       busyLight.reset();
       formatButton.disabled = false;
@@ -908,7 +908,7 @@ class Embed extends EditorUi {
   }
 
   void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
-    var doc = userCodeEditor.document;
+    final doc = userCodeEditor.document;
 
     doc.select(
         doc.posFromIndex(charStart), doc.posFromIndex(charStart + charLength));
@@ -959,7 +959,7 @@ class EmbedTabController extends MaterialTabController {
   Future selectTab(String? tabName, {bool force = false}) async {
     // Show a confirmation dialog if the solution tab is tapped
     if (tabName == 'solution' && !force) {
-      var result = await _dialog.showYesNo(
+      final result = await _dialog.showYesNo(
         'Show solution?',
         'If you just want a hint, click <span style="font-weight:bold">Cancel'
             '</span> and then <span style="font-weight:bold">Hint</span>.',
@@ -1164,7 +1164,7 @@ class ConsoleExpandController extends Console {
 
   void _initSplitter() {
     final editorContainer = querySelector('#editor-container')!;
-    var splitterElements = [
+    final splitterElements = [
       editorContainer,
       querySelector('#console-output-footer')!,
     ];

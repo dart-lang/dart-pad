@@ -169,7 +169,7 @@ class DSplitter extends DElement {
     if (!horizontal && !vertical) horizontal = true;
 
     if (element.querySelector('div.inner') == null) {
-      Element e = DivElement();
+      final Element e = DivElement();
       e.classes.add('inner');
       element.children.add(e);
     }
@@ -234,12 +234,12 @@ class DSplitter extends DElement {
   }
 
   Element get _target {
-    var children = element.parent!.children;
+    final children = element.parent!.children;
     return children[children.indexOf(element) - 1];
   }
 
   num _minSize(Element e) {
-    var style = e.getComputedStyle();
+    final style = e.getComputedStyle();
     var str = vertical ? style.minWidth : style.minHeight;
     if (str.endsWith('px')) {
       str = str.substring(0, str.length - 2);
@@ -250,7 +250,7 @@ class DSplitter extends DElement {
   }
 
   num get _targetSize {
-    var style = _target.getComputedStyle();
+    final style = _target.getComputedStyle();
     var str = vertical ? style.width : style.height;
     if (str.endsWith('px')) {
       str = str.substring(0, str.length - 2);
@@ -276,7 +276,7 @@ class DSplitter extends DElement {
     }
 
     if (_controller.hasListener) {
-      var newPos = position;
+      final newPos = position;
       if (currentPos != newPos) _controller.add(newPos);
     }
   }
@@ -566,7 +566,7 @@ class TabController {
 
   /// This method will throw if the tabName is not the name of a current tab.
   void selectTab(String? tabName) {
-    var tab = tabs.firstWhere((t) => t.name == tabName);
+    final tab = tabs.firstWhere((t) => t.name == tabName);
 
     for (var t in tabs) {
       t.toggleAttr('selected', t == tab);

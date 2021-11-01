@@ -38,7 +38,7 @@ class Console {
       message = filter(message);
     }
 
-    var div = DivElement()..text = '$message\n';
+    final div = DivElement()..text = '$message\n';
     div.classes.add(error ? errorClass : 'normal');
 
     // Buffer the console output so that heavy writing to stdout does not starve
@@ -49,7 +49,7 @@ class Console {
         element.element.children.addAll(_bufferedOutput);
         // Using scrollIntoView(ScrollAlignment.BOTTOM) causes the parent page
         // to scroll, so set the scrollTop instead.
-        var last = element.element.children.last;
+        final last = element.element.children.last;
         element.element.scrollTop = last.offsetTop;
         _bufferedOutput.clear();
       });

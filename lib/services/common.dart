@@ -60,7 +60,7 @@ class Lines {
   final _starts = <int>[];
 
   Lines(String source) {
-    var units = source.codeUnits;
+    final units = source.codeUnits;
     var nextIsEol = true;
     for (var i = 0; i < units.length; i++) {
       if (nextIsEol) {
