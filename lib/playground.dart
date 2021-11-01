@@ -580,7 +580,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     final Property htmlFile =
         GistFileProperty(_editableGist.getGistFile('index.html')!);
-    final Property htmlDoc = EditorDocumentProperty(context.htmlDocument, 'html');
+    final Property htmlDoc =
+        EditorDocumentProperty(context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
@@ -592,7 +593,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     final Property dartFile =
         GistFileProperty(_editableGist.getGistFile('main.dart')!);
-    final Property dartDoc = EditorDocumentProperty(context.dartDocument, 'dart');
+    final Property dartDoc =
+        EditorDocumentProperty(context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 

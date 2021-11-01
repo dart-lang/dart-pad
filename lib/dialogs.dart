@@ -135,8 +135,10 @@ class SharingDialog extends DDialog {
       ..flex()
       ..element.style.paddingLeft = '16px');
     final _rightArea = _embedArea.add(DElement.tag('div'));
-    final _embedDartArea = _leftArea.add(DElement.tag('div')..layoutHorizontal());
-    final _embedHtmlArea = _leftArea.add(DElement.tag('div')..layoutHorizontal());
+    final _embedDartArea =
+        _leftArea.add(DElement.tag('div')..layoutHorizontal());
+    final _embedHtmlArea =
+        _leftArea.add(DElement.tag('div')..layoutHorizontal());
     _embedDartRadio = _embedDartArea.add(RadioButtonInputElement()
       ..name = 'embed'
       ..id = 'dart-radio');
