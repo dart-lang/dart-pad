@@ -767,7 +767,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
     queryParams.gistId = gistId;
   }
 
-
   void _showGist(String gistId) {
     if (_gistIdInProgress == gistId) {
       return;
