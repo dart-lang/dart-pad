@@ -77,6 +77,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       MDCSwitch(querySelector('#null-safety-switch'));
   final Element? _channelSwitch = querySelector('#channel-switch');
   MDCMenu? _channelsMenu;
+  String? _gistIdInProgress;
 
   late Splitter _rightSplitter;
   bool _rightSplitterConfigured = false;
@@ -766,7 +767,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
     queryParams.gistId = gistId;
   }
 
+
   void _showGist(String gistId) {
+    if (_gistIdInProgress != null && _gistIdInProgress == gistId) {
+      return;
+    }
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
     var loadedFromSaved = false;
@@ -782,6 +787,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     _overrideNextRouteGist = null;
 
+    _gistIdInProgress = gistId;
     gistLoader.loadGist(gistId).then((Gist gist) {
       _editableGist.setBackingGist(gist);
 
@@ -810,6 +816,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
       final message = 'Error loading gist $gistId.';
       showSnackbar(message);
       _logger.severe('$message: $e');
+    }).whenComplete(() {
+      _gistIdInProgress = null;
     });
   }
 
