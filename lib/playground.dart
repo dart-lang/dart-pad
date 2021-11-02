@@ -769,7 +769,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
 
   void _showGist(String gistId) {
-    if (_gistIdInProgress != null && _gistIdInProgress == gistId) {
+    if (_gistIdInProgress == gistId) {
       return;
     }
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
