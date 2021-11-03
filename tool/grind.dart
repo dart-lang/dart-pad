@@ -29,6 +29,7 @@ serve() async {
   await Process.start(Platform.executable, ['bin/serve.dart'])
       .then((Process process) {
     process.stdout.transform(utf8.decoder).listen(stdout.write);
+    process.stderr.transform(utf8.decoder).listen(stderr.write);
   });
 }
 
