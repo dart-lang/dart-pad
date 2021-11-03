@@ -5,11 +5,6 @@
  */
 
 replaceJavaScript = function (value) {
-    // Remove canvaskit from this page, This can be removed when this PR lands
-    // in dart-services:
-    // https://github.com/flutter/engine/pull/26059
-    removeCanvaskit();
-
     // Remove the old node.
     var oldNode = document.getElementById('compiledJsScript');
     if (oldNode && oldNode.parentNode) {
