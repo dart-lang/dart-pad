@@ -107,8 +107,12 @@ abstract class EditorUi {
         ..children
             .add(ParagraphElement()..text = 'Directly importable packages')
         ..children.add(directDl)
-        ..children
-            .add(ParagraphElement()..text = 'Packages available transitively')
+        ..children.add(ParagraphElement()
+          ..text = 'Packages available transitively'
+          ..children.add(BRElement())
+          ..children.add(SpanElement()
+            ..text = '(These are not directly importable.)'
+            ..classes.add('muted')))
         ..children.add(indirectDl)
         ..classes.add('keys-dialog'));
     dialog.showOk('Pub package versions', div.innerHtml);

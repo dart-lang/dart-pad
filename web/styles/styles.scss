@@ -438,3 +438,8 @@ p.mdc-list-item__details {
   @include mdc-switch-toggled-on-color($button-color);
   @include mdc-switch-toggled-off-color($secondary-color);
 }
+
+.muted {
+  font-size: 0.8em;
+  font-style: italic;
+}
