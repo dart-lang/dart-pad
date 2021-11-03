@@ -121,7 +121,7 @@ packages:
     source: hosted
     version: "5.1.0"
   built_value:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
       name: built_value
       url: "https://pub.dartlang.org"

@@ -43,3 +43,6 @@ dev_dependencies:
 # https://github.com/material-components/material-components-web/pull/7158
 dependency_overrides:
   sass: 1.32.10
+  # `pub downgrade` will choose 8.0.0 but this conflicts in nullability with some
+  # other dependency...
+  built_value: ^8.1.0
