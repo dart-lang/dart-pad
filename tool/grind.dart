@@ -12,7 +12,6 @@ import 'package:dart_services/src/project.dart';
 import 'package:dart_services/src/pub.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:grinder/grinder.dart';
-import 'package:grinder/src/run_utils.dart' show mergeWorkingDirectory;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 
@@ -32,8 +31,7 @@ void analyze() async {
 
 @Task()
 @Depends(buildStorageArtifacts)
-Future<dynamic> test() =>
-    runWithLogging(Platform.executable, arguments: ['test']);
+Future<void> test() => runWithLogging(Platform.executable, arguments: ['test']);
 
 @DefaultTask()
 @Depends(analyze, test)
@@ -280,24 +278,29 @@ linter:
 }
 
 Future<void> _runDartPubGet(String dartSdkPath, Directory dir) async {
-  log('running dart pub get (${dir.path})');
-
   await runWithLogging(
     path.join(dartSdkPath, 'bin', 'dart'),
     arguments: ['pub', 'get'],
     workingDirectory: dir.path,
+    environment: {'PUB_CACHE': _pubCachePath},
   );
 }
 
 Future<void> _runFlutterPackagesGet(
     String flutterToolPath, Directory dir) async {
-  log('running flutter packages get (${dir.path})');
-
   await runWithLogging(
     flutterToolPath,
     arguments: ['packages', 'get'],
     workingDirectory: dir.path,
+    environment: {'PUB_CACHE': _pubCachePath},
   );
+}
+
+/// Builds the local pub cache directory and returns the path.
+String get _pubCachePath {
+  final pubCachePath = path.join(Directory.current.path, 'local_pub_cache');
+  Directory(pubCachePath).createSync();
+  return pubCachePath;
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
@@ -503,12 +506,17 @@ void generateProtos() async {
 
 Future<void> runWithLogging(String executable,
     {List<String> arguments = const [],
-    RunOptions? runOptions,
     String? workingDirectory,
+    Map<String, String> environment = const {},
     String? onErrorMessage}) async {
-  runOptions = mergeWorkingDirectory(workingDirectory, runOptions);
-  log("$executable ${arguments.join(' ')}");
+  log([
+    'Running $executable ${arguments.join(' ')}',
+    if (workingDirectory != null) "from directory: '$workingDirectory'",
+    if (environment.isNotEmpty) 'with additional environment: $environment',
+  ].join('\n  '));
 
+  final runOptions =
+      RunOptions(workingDirectory: workingDirectory, environment: environment);
   Process proc;
   try {
     proc = await Process.start(executable, arguments,
@@ -523,8 +531,8 @@ Future<void> runWithLogging(String executable,
     rethrow;
   }
 
-  proc.stdout.listen((out) => log(runOptions!.stdoutEncoding.decode(out)));
-  proc.stderr.listen((err) => log(runOptions!.stdoutEncoding.decode(err)));
+  proc.stdout.listen((out) => log(runOptions.stdoutEncoding.decode(out)));
+  proc.stderr.listen((err) => log(runOptions.stdoutEncoding.decode(err)));
   final exitCode = await proc.exitCode;
 
   if (exitCode != 0) {

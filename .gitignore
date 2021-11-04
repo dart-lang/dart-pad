@@ -20,6 +20,8 @@ dump.rdb
 # compilation artifacts
 artifacts/
 project_templates/
+flutter-sdks/
+local_pub_cache/
 
 # local configuration
 config.properties
@@ -27,5 +29,3 @@ config.properties
 # Editor configuration
 .vscode/
 
-# A Flutter SDK checkout
-flutter-sdks/
