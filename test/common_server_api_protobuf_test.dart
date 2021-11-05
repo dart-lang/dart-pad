@@ -56,35 +56,33 @@ main() {
 void main() => defineTests();
 
 void defineTests() {
-  CommonServerApi? commonServerApi;
+  late CommonServerApi commonServerApi;
   late CommonServerImpl commonServerImpl;
 
   MockContainer container;
   MockCache cache;
 
-  Future<MockHttpResponse> _sendPostRequest(
+  Future<MockHttpResponse> sendPostRequest(
     String path,
     GeneratedMessage message,
   ) async {
-    assert(commonServerApi != null);
     final uri = Uri.parse('/api/$path');
     final request = MockHttpRequest('POST', uri);
     request.headers.add('content-type', jsonContentType);
     request.add(utf8.encode(json.encode(message.toProto3Json())));
     await request.close();
-    await shelf_io.handleRequest(request, commonServerApi!.router);
+    await shelf_io.handleRequest(request, commonServerApi.router);
     return request.response;
   }
 
-  Future<MockHttpResponse> _sendGetRequest(
+  Future<MockHttpResponse> sendGetRequest(
     String path,
   ) async {
-    assert(commonServerApi != null);
     final uri = Uri.parse('/api/$path');
     final request = MockHttpRequest('POST', uri);
     request.headers.add('content-type', jsonContentType);
     await request.close();
-    await shelf_io.handleRequest(request, commonServerApi!.router);
+    await shelf_io.handleRequest(request, commonServerApi.router);
     return request.response;
   }
 
@@ -108,7 +106,7 @@ void defineTests() {
         final jsonData = proto.SourceRequest()..source = sampleCodeError;
         while (decodedJson.isEmpty) {
           final response =
-              await _sendPostRequest('dartservices/v2/analyze', jsonData);
+              await sendPostRequest('dartservices/v2/analyze', jsonData);
           expect(response.statusCode, 200);
           expect(response.headers['content-type'],
               ['application/json; charset=utf-8']);
@@ -133,7 +131,7 @@ void defineTests() {
     test('analyze Dart', () async {
       final request = proto.SourceRequest()..source = sampleCode;
       final response =
-          await _sendPostRequest('dartservices/v2/analyze', request);
+          await sendPostRequest('dartservices/v2/analyze', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.AnalysisResults()..mergeFromProto3Json(data);
@@ -144,7 +142,7 @@ void defineTests() {
     test('analyze Flutter', () async {
       final request = proto.SourceRequest()..source = sampleCodeFlutter;
       final response =
-          await _sendPostRequest('dartservices/v2/analyze', request);
+          await sendPostRequest('dartservices/v2/analyze', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.AnalysisResults()..mergeFromProto3Json(data);
@@ -155,7 +153,7 @@ void defineTests() {
     test('analyze errors', () async {
       final request = proto.SourceRequest()..source = sampleCodeError;
       final response =
-          await _sendPostRequest('dartservices/v2/analyze', request);
+          await sendPostRequest('dartservices/v2/analyze', request);
       expect(response.statusCode, 200);
       expect(response.headers['content-type'],
           ['application/json; charset=utf-8']);
@@ -173,14 +171,14 @@ void defineTests() {
     test('analyze negative-test noSource', () async {
       final request = proto.SourceRequest();
       final response =
-          await _sendPostRequest('dartservices/v2/analyze', request);
+          await sendPostRequest('dartservices/v2/analyze', request);
       expect(response.statusCode, 400);
     });
 
     test('compile', () async {
       final request = proto.CompileRequest()..source = sampleCode;
       final response =
-          await _sendPostRequest('dartservices/v2/compile', request);
+          await sendPostRequest('dartservices/v2/compile', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.CompileResponse()..mergeFromProto3Json(data);
@@ -190,7 +188,7 @@ void defineTests() {
     test('compile error', () async {
       final request = proto.CompileRequest()..source = sampleCodeError;
       final response =
-          await _sendPostRequest('dartservices/v2/compile', request);
+          await sendPostRequest('dartservices/v2/compile', request);
       expect(response.statusCode, 400);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.CompileResponse()..mergeFromProto3Json(data);
@@ -200,14 +198,14 @@ void defineTests() {
     test('compile negative-test noSource', () async {
       final request = proto.CompileRequest();
       final response =
-          await _sendPostRequest('dartservices/v2/compile', request);
+          await sendPostRequest('dartservices/v2/compile', request);
       expect(response.statusCode, 400);
     });
 
     test('compileDDC', () async {
       final request = proto.CompileRequest()..source = sampleCode;
       final response =
-          await _sendPostRequest('dartservices/v2/compileDDC', request);
+          await sendPostRequest('dartservices/v2/compileDDC', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.CompileDDCResponse()..mergeFromProto3Json(data);
@@ -219,7 +217,7 @@ void defineTests() {
         ..source = 'void main() {print("foo");}'
         ..offset = 1;
       final response =
-          await _sendPostRequest('dartservices/v2/complete', request);
+          await sendPostRequest('dartservices/v2/complete', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.CompleteResponse()..mergeFromProto3Json(data);
@@ -227,7 +225,7 @@ void defineTests() {
     });
 
     test('complete no data', () async {
-      final request = await _sendPostRequest(
+      final request = await sendPostRequest(
           'dartservices/v2/complete', proto.SourceRequest());
       expect(request.statusCode, 400);
     });
@@ -235,7 +233,7 @@ void defineTests() {
     test('complete param missing', () async {
       final request = proto.SourceRequest()..offset = 1;
       final response =
-          await _sendPostRequest('dartservices/v2/complete', request);
+          await sendPostRequest('dartservices/v2/complete', request);
       expect(response.statusCode, 400);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.CompleteResponse()..mergeFromProto3Json(data);
@@ -246,7 +244,7 @@ void defineTests() {
       final request = proto.SourceRequest()
         ..source = 'void main() {print("foo");}';
       final response =
-          await _sendPostRequest('dartservices/v2/complete', request);
+          await sendPostRequest('dartservices/v2/complete', request);
       expect(response.statusCode, 400);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.CompleteResponse()..mergeFromProto3Json(data);
@@ -258,7 +256,7 @@ void defineTests() {
         ..source = 'void main() {print("foo");}'
         ..offset = 17;
       final response =
-          await _sendPostRequest('dartservices/v2/document', request);
+          await sendPostRequest('dartservices/v2/document', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.DocumentResponse()..mergeFromProto3Json(data);
@@ -270,7 +268,7 @@ void defineTests() {
         ..source = 'void main() {print("foo");}'
         ..offset = 2;
       final response =
-          await _sendPostRequest('dartservices/v2/document', request);
+          await sendPostRequest('dartservices/v2/document', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.DocumentResponse()..mergeFromProto3Json(data);
@@ -282,7 +280,7 @@ void defineTests() {
         ..source = 'void main() {print("foo");}'
         ..offset = 12;
       final response =
-          await _sendPostRequest('dartservices/v2/document', request);
+          await sendPostRequest('dartservices/v2/document', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.DocumentResponse()..mergeFromProto3Json(data);
@@ -292,7 +290,7 @@ void defineTests() {
     test('document negative-test noSource', () async {
       final request = proto.SourceRequest()..offset = 12;
       final response =
-          await _sendPostRequest('dartservices/v2/document', request);
+          await sendPostRequest('dartservices/v2/document', request);
       expect(response.statusCode, 400);
     });
 
@@ -300,14 +298,13 @@ void defineTests() {
       final request = proto.SourceRequest()
         ..source = 'void main() {print("foo");}';
       final response =
-          await _sendPostRequest('dartservices/v2/document', request);
+          await sendPostRequest('dartservices/v2/document', request);
       expect(response.statusCode, 400);
     });
 
     test('format', () async {
       final request = proto.SourceRequest()..source = preFormattedCode;
-      final response =
-          await _sendPostRequest('dartservices/v2/format', request);
+      final response = await sendPostRequest('dartservices/v2/format', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.FormatResponse()..mergeFromProto3Json(data);
@@ -316,8 +313,7 @@ void defineTests() {
 
     test('format bad code', () async {
       final request = proto.SourceRequest()..source = formatBadCode;
-      final response =
-          await _sendPostRequest('dartservices/v2/format', request);
+      final response = await sendPostRequest('dartservices/v2/format', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.FormatResponse()..mergeFromProto3Json(data);
@@ -328,8 +324,7 @@ void defineTests() {
       final request = proto.SourceRequest()
         ..source = preFormattedCode
         ..offset = 21;
-      final response =
-          await _sendPostRequest('dartservices/v2/format', request);
+      final response = await sendPostRequest('dartservices/v2/format', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.FormatResponse()..mergeFromProto3Json(data);
@@ -341,7 +336,7 @@ void defineTests() {
       final request = proto.SourceRequest()
         ..source = quickFixesCode
         ..offset = 10;
-      final response = await _sendPostRequest('dartservices/v2/fixes', request);
+      final response = await sendPostRequest('dartservices/v2/fixes', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.FixesResponse()..mergeFromProto3Json(data);
@@ -361,7 +356,7 @@ void main() {
 }
 '''
         ..offset = 67;
-      final response = await _sendPostRequest('dartservices/v2/fixes', request);
+      final response = await sendPostRequest('dartservices/v2/fixes', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.FixesResponse()..mergeFromProto3Json(data);
@@ -379,7 +374,7 @@ void main() {
         ..source = assistCode
         ..offset = 15;
       final response =
-          await _sendPostRequest('dartservices/v2/assists', request);
+          await sendPostRequest('dartservices/v2/assists', request);
       expect(response.statusCode, 200);
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.AssistsResponse()..mergeFromProto3Json(data);
@@ -394,7 +389,7 @@ void main() {
     });
 
     test('version', () async {
-      final response = await _sendGetRequest('dartservices/v2/version');
+      final response = await sendGetRequest('dartservices/v2/version');
       expect(response.statusCode, 200);
       final encoded = await response.transform(utf8.decoder).join();
       final data = json.decode(encoded) as Map<String, dynamic>;
