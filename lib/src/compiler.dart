@@ -135,7 +135,9 @@ class Compiler {
 
     try {
       final usingFlutter = usesFlutterWeb(imports);
-      if (usesFirebase(imports)) {
+      if (usesDeprecatedFirebase(imports)) {
+        await copyPath(_projectTemplates.firebaseDeprecatedPath, temp.path);
+      } else if (usesFirebase(imports)) {
         await copyPath(_projectTemplates.firebasePath, temp.path);
       } else if (usingFlutter) {
         await copyPath(_projectTemplates.flutterPath, temp.path);

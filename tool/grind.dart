@@ -168,7 +168,7 @@ void buildProjectTemplates() async {
       nullSafety: nullSafety,
       channel: _channel,
       templatePath: templatesPath.path,
-      includeFirebase: false,
+      firebaseStyle: FirebaseStyle.none,
     );
 
     await _buildFlutterProjectTemplate(
@@ -176,7 +176,15 @@ void buildProjectTemplates() async {
       nullSafety: nullSafety,
       channel: _channel,
       templatePath: templatesPath.path,
-      includeFirebase: true,
+      firebaseStyle: FirebaseStyle.deprecated,
+    );
+
+    await _buildFlutterProjectTemplate(
+      sdk: sdk,
+      nullSafety: nullSafety,
+      channel: _channel,
+      templatePath: templatesPath.path,
+      firebaseStyle: FirebaseStyle.flutterFire,
     );
   }
 }
@@ -216,6 +224,17 @@ linter:
 ''');
 }
 
+enum FirebaseStyle {
+  /// Indicates that no Firebase is used.
+  none,
+
+  /// Indicates that the deprecated Firebase packages are used.
+  deprecated,
+
+  /// Indicates that the "pure Dart" Flutterfire packages are used.
+  flutterFire,
+}
+
 /// Builds a Flutter project template directory, complete with `pubspec.yaml`,
 /// `analysis_options.yaml`, and `web/index.html`.
 ///
@@ -227,12 +246,17 @@ Future<void> _buildFlutterProjectTemplate({
   required bool nullSafety,
   required String channel,
   required String templatePath,
-  required bool includeFirebase,
+  required FirebaseStyle firebaseStyle,
 }) async {
+  final projectDirName = firebaseStyle == FirebaseStyle.none
+      ? 'flutter_project'
+      : firebaseStyle == FirebaseStyle.deprecated
+          ? 'firebase_deprecated_project'
+          : 'firebase_project';
   final projectPath = path.join(
     templatePath,
     nullSafety ? 'null-safe' : 'null-unsafe',
-    includeFirebase ? 'firebase_project' : 'flutter_project',
+    projectDirName,
   );
   final projectDir = await Directory(projectPath).create(recursive: true);
   await Directory(path.join(projectPath, 'lib')).create();
@@ -241,7 +265,11 @@ Future<void> _buildFlutterProjectTemplate({
   var packages = {
     ...supportedBasicDartPackages,
     ...supportedFlutterPackages,
-    if (includeFirebase) ...registerableFirebasePackages,
+    if (firebaseStyle != FirebaseStyle.none) ...coreFirebasePackages,
+    if (firebaseStyle == FirebaseStyle.deprecated)
+      ...deprecatedFirebasePackages,
+    if (firebaseStyle == FirebaseStyle.flutterFire)
+      ...registerableFirebasePackages,
   };
   final dependencies = _dependencyVersions(packages, channel: channel);
   joinFile(projectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
@@ -250,7 +278,7 @@ Future<void> _buildFlutterProjectTemplate({
     dependencies: dependencies,
   ));
   await _runFlutterPackagesGet(sdk.flutterToolPath, projectDir);
-  if (includeFirebase) {
+  if (firebaseStyle != FirebaseStyle.none) {
     // `flutter packages get` has been run with a _subset_ of all supported
     // Firebase packages, the ones that don't require a Firebase app to be
     // configured in JavaScript, before executing Dart. Now add the full set of
@@ -258,7 +286,7 @@ Future<void> _buildFlutterProjectTemplate({
     packages = {
       ...supportedBasicDartPackages,
       ...supportedFlutterPackages,
-      if (includeFirebase) ...firebasePackages,
+      ...firebasePackages,
     };
     final dependencies = _dependencyVersions(packages, channel: channel);
     joinFile(projectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
