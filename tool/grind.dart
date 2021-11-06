@@ -145,7 +145,7 @@ Future<void> _validateExists(Uri url) async {
 /// * the Flutter project template (both null safe and pre-null safe),
 /// * the Firebase project template (both null safe and pre-null safe).
 @Task('build the project templates')
-@Depends(sdkInit, updatePubDependencies)
+@Depends(sdkInit)
 void buildProjectTemplates() async {
   final templatesPath =
       Directory(path.join(Directory.current.path, 'project_templates'));
@@ -496,8 +496,8 @@ void fuzz() {
 }
 
 @Task('Update generated files and run all checks prior to deployment')
-@Depends(sdkInit, updateDockerVersion, generateProtos, updatePubDependencies,
-    analyze, test, validateStorageArtifacts)
+@Depends(sdkInit, updateDockerVersion, generateProtos, analyze, test,
+    validateStorageArtifacts)
 void deploy() {
   log('Deploy via Google Cloud Console');
 }
