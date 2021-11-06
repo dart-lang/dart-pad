@@ -56,8 +56,8 @@ Map<String, String> packageVersionsFromPubspecLock(String templatePath) {
     final package = packageValue as YamlMap;
     final source = package['source'];
     if (source is! String || source != 'hosted') {
-      throw StateError(
-          '$name is not hosted: "$source" (${source.runtimeType})');
+      // `name` is not hosted. Might be a local or git dependency.
+      return;
     }
     final version = package['version'];
     if (version is String) {
