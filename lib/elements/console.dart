@@ -39,6 +39,10 @@ class Console {
     }
 
     final div = DivElement()..text = '$message\n';
+
+    // Prevent long lines of text from expanding the console panel.
+    div.style.width = '0';
+
     div.classes.add(error ? errorClass : 'normal');
 
     // Buffer the console output so that heavy writing to stdout does not starve
