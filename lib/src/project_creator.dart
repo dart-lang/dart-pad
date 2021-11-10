@@ -21,6 +21,9 @@ class ProjectCreator {
 
   final bool _isNullSafe;
 
+  /// The Dart Language Version to use for code using null safety.
+  final String _dartLanguageVersion;
+
   final File _dependenciesFile;
 
   final LogFunction _log;
@@ -29,11 +32,13 @@ class ProjectCreator {
     Sdk sdk,
     this._templatesPath, {
     required bool isNullSafe,
+    required String dartLanguageVersion,
     required File dependenciesFile,
     required LogFunction log,
   })  : _dartSdkPath = sdk.dartSdkPath,
         _flutterToolPath = sdk.flutterToolPath,
         _isNullSafe = isNullSafe,
+        _dartLanguageVersion = dartLanguageVersion,
         _dependenciesFile = dependenciesFile,
         _log = log;
 
@@ -49,6 +54,7 @@ class ProjectCreator {
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: false,
       nullSafety: _isNullSafe,
+      dartLanguageVersion: _dartLanguageVersion,
       dependencies: dependencies,
     ));
     await _runDartPubGet(projectDirectory);
@@ -97,6 +103,7 @@ linter:
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: true,
       nullSafety: _isNullSafe,
+      dartLanguageVersion: _dartLanguageVersion,
       dependencies: dependencies,
     ));
     await runFlutterPackagesGet(_flutterToolPath, projectPath, log: _log);
@@ -115,6 +122,7 @@ linter:
           .writeAsStringSync(createPubspec(
         includeFlutterWeb: true,
         nullSafety: _isNullSafe,
+        dartLanguageVersion: _dartLanguageVersion,
         dependencies: dependencies,
       ));
       await _runDartPubGet(projectDir);
@@ -161,12 +169,13 @@ Map<String, String> parsePubDependenciesFile({required File dependenciesFile}) {
 String createPubspec({
   required bool includeFlutterWeb,
   required bool nullSafety,
+  required String dartLanguageVersion,
   Map<String, String> dependencies = const {},
 }) {
   var content = '''
 name: dartpad_sample
 environment:
-  sdk: '>=${nullSafety ? '2.14.0' : '2.10.0'} <3.0.0'
+  sdk: '>=${nullSafety ? dartLanguageVersion : '2.10.0'} <3.0.0'
 dependencies:
 ''';
 

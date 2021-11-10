@@ -10,6 +10,7 @@ import 'package:test/test.dart';
 import 'package:test_descriptor/test_descriptor.dart' as d;
 
 final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
+final languageVersion = readDartLanguageVersion(channel);
 
 void main() => defineTests();
 
@@ -23,11 +24,12 @@ void defineTests() {
     await dependenciesFile.create();
     final templatesPath = d.dir('project_templates');
     await templatesPath.create();
-    final sdk = Sdk.create('stable');
+    final sdk = Sdk.create(channel);
     return ProjectCreator(
       sdk,
       templatesPath.io.path,
       isNullSafe: true,
+      dartLanguageVersion: readDartLanguageVersion(channel),
       dependenciesFile: dependenciesFile.io,
       log: (_) {},
     );
@@ -52,7 +54,7 @@ void defineTests() {
           d.file(
               'pubspec.yaml',
               allOf([
-                matches("sdk: '>=2.14.0 <3.0.0'"),
+                matches("sdk: '>=$languageVersion <3.0.0'"),
                 matches('meta: 1.7.0'),
               ])),
         ]),
@@ -90,6 +92,7 @@ void defineTests() {
         sdk,
         templatesPath.io.path,
         isNullSafe: false,
+        dartLanguageVersion: readDartLanguageVersion(channel),
         dependenciesFile: dependenciesFile.io,
         log: (_) {},
       );
@@ -147,7 +150,7 @@ void defineTests() {
           d.file(
               'pubspec.yaml',
               allOf([
-                matches("sdk: '>=2.14.0 <3.0.0'"),
+                matches("sdk: '>=$languageVersion <3.0.0'"),
                 matches('meta: 1.7.0'),
                 matches('sdk: flutter'),
               ])),
@@ -209,7 +212,7 @@ void defineTests() {
           d.file(
               'pubspec.yaml',
               allOf([
-                matches("sdk: '>=2.14.0 <3.0.0'"),
+                matches("sdk: '>=$languageVersion <3.0.0'"),
                 matches('meta: 1.7.0'),
                 matches('sdk: flutter'),
               ])),
@@ -281,7 +284,7 @@ void defineTests() {
           d.file(
               'pubspec.yaml',
               allOf([
-                matches("sdk: '>=2.14.0 <3.0.0'"),
+                matches("sdk: '>=$languageVersion <3.0.0'"),
                 matches('meta: 1.7.0'),
                 matches('sdk: flutter'),
               ])),

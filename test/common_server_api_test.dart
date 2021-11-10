@@ -59,7 +59,7 @@ main() {
 void main() => defineTests();
 
 void defineTests() {
-  CommonServerApi? commonServerApi;
+  late CommonServerApi commonServerApi;
   late CommonServerImpl commonServerImpl;
 
   MockContainer container;
@@ -69,35 +69,34 @@ void defineTests() {
     String path,
     dynamic jsonData,
   ) async {
-    assert(commonServerApi != null);
     final uri = Uri.parse('/api/$path');
     final request = MockHttpRequest('POST', uri);
     request.headers.add('content-type', jsonContentType);
     request.add(utf8.encode(json.encode(jsonData)));
     await request.close();
-    await shelf_io.handleRequest(request, commonServerApi!.router);
+    await shelf_io.handleRequest(request, commonServerApi.router);
     return request.response;
   }
 
   Future<MockHttpResponse> sendGetRequest(
     String path,
   ) async {
-    assert(commonServerApi != null);
     final uri = Uri.parse('/api/$path');
     final request = MockHttpRequest('POST', uri);
     request.headers.add('content-type', jsonContentType);
     await request.close();
-    await shelf_io.handleRequest(request, commonServerApi!.router);
+    await shelf_io.handleRequest(request, commonServerApi.router);
     return request.response;
   }
 
   group('CommonServerProto JSON', () {
+    final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
+
     setUp(() async {
       container = MockContainer();
       cache = MockCache();
-      final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
       final sdk = Sdk.create(channel);
-      commonServerImpl = CommonServerImpl(container, cache, sdk, false);
+      commonServerImpl = CommonServerImpl(container, cache, sdk, true);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 
@@ -157,9 +156,29 @@ void defineTests() {
       }
     });
 
+    test('analyze code with constructor-tearoffs features', () async {
+      for (final version in versions) {
+        final jsonData = {
+          'source': '''
+void main() {
+  List<int>;
+}
+'''
+        };
+        final response =
+            await sendPostRequest('dartservices/$version/analyze', jsonData);
+        expect(response.statusCode, 200);
+        final data = await response.transform(utf8.decoder).join();
+        expect(json.decode(data), <dynamic, dynamic>{});
+      }
+    },
+        // TODO(srawlins): Change to `channel == old` when Flutter stable has
+        // Dart 2.15.
+        skip: channel != 'beta');
+
     test('analyze counterApp', () async {
       for (final version in versions) {
-        final jsonData = {'source': sampleCodeFlutterCounter};
+        final jsonData = {'source': sampleCodeFlutterCounterNullSafe};
         final response =
             await sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 200);
@@ -172,7 +191,7 @@ void defineTests() {
 
     test('analyze draggableAndPhysicsApp', () async {
       for (final version in versions) {
-        final jsonData = {'source': sampleCodeFlutterDraggableCard};
+        final jsonData = {'source': sampleCodeFlutterDraggableCardNullSafe};
         final response =
             await sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 200);

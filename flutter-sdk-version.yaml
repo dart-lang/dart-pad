@@ -6,7 +6,15 @@
 # In order to update the SDK manually, run 'dart tool/update_sdk.dart'.
 
 flutter_sdk:
-  stable_version: 2.5.3
-  beta_version: 2.7.0-3.0.pre
-  dev_version: 2.6.0-11.0.pre
-  old_version: 2.5.1
+  stable:
+    flutter_version: 2.5.3
+    dart_language_version: 2.14.0
+  beta:
+    flutter_version: 2.7.0-3.0.pre
+    dart_language_version: 2.15.0-0
+  dev:
+    flutter_version: 2.6.0-11.0.pre
+    dart_language_version: 2.15.0-0
+  old:
+    flutter_version: 2.5.1
+    dart_language_version: 2.13.0

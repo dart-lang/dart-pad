@@ -164,6 +164,7 @@ void buildProjectTemplates() async {
       sdk,
       templatesPath,
       isNullSafe: nullSafety,
+      dartLanguageVersion: readDartLanguageVersion(_channel),
       dependenciesFile: _pubDependenciesFile(channel: _channel),
       log: log,
     );
@@ -210,6 +211,7 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   final pubspec = createPubspec(
     includeFlutterWeb: true,
     nullSafety: nullSafety,
+    dartLanguageVersion: readDartLanguageVersion(_channel),
     dependencies: parsePubDependenciesFile(dependenciesFile: dependenciesFile),
   );
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
@@ -425,6 +427,7 @@ Future<void> _updateDependenciesFile({
   final pubspec = createPubspec(
     includeFlutterWeb: true,
     nullSafety: true,
+    dartLanguageVersion: readDartLanguageVersion(_channel),
     dependencies: {
       // pkg:lints and pkg:flutter_lints
       'lints': 'any',
