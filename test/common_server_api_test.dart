@@ -19,6 +19,8 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 
+import 'utils.dart';
+
 const versions = ['v1', 'v2'];
 
 const quickFixesCode = r'''
@@ -63,7 +65,7 @@ void defineTests() {
   MockContainer container;
   MockCache cache;
 
-  Future<MockHttpResponse> _sendPostRequest(
+  Future<MockHttpResponse> sendPostRequest(
     String path,
     dynamic jsonData,
   ) async {
@@ -77,7 +79,7 @@ void defineTests() {
     return request.response;
   }
 
-  Future<MockHttpResponse> _sendGetRequest(
+  Future<MockHttpResponse> sendGetRequest(
     String path,
   ) async {
     assert(commonServerApi != null);
@@ -109,7 +111,7 @@ void defineTests() {
         final jsonData = {'source': sampleCodeError};
         while (decodedJson.isEmpty) {
           final response =
-              await _sendPostRequest('dartservices/v2/analyze', jsonData);
+              await sendPostRequest('dartservices/v2/analyze', jsonData);
           expect(response.statusCode, 200);
           expect(response.headers['content-type'],
               ['application/json; charset=utf-8']);
@@ -135,7 +137,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': sampleCode};
         final response =
-            await _sendPostRequest('dartservices/$version/analyze', jsonData);
+            await sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 200);
         final data = await response.transform(utf8.decoder).join();
         expect(json.decode(data), <dynamic, dynamic>{});
@@ -146,7 +148,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': sampleCodeFlutter};
         final response =
-            await _sendPostRequest('dartservices/$version/analyze', jsonData);
+            await sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 200);
         final data = await response.transform(utf8.decoder).join();
         expect(json.decode(data), {
@@ -159,7 +161,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': sampleCodeFlutterCounter};
         final response =
-            await _sendPostRequest('dartservices/$version/analyze', jsonData);
+            await sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 200);
         final data = await response.transform(utf8.decoder).join();
         expect(json.decode(data), {
@@ -172,7 +174,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': sampleCodeFlutterDraggableCard};
         final response =
-            await _sendPostRequest('dartservices/$version/analyze', jsonData);
+            await sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 200);
         final data = await response.transform(utf8.decoder).join();
         expect(json.decode(data), {
@@ -184,26 +186,35 @@ void defineTests() {
     test('analyze errors', () async {
       for (final version in versions) {
         final jsonData = {'source': sampleCodeError};
-        final response =
-            await _sendPostRequest('dartservices/$version/analyze', jsonData);
-        expect(response.statusCode, 200);
-        expect(response.headers['content-type'],
-            ['application/json; charset=utf-8']);
-        final data = await response.transform(utf8.decoder).join();
-        final expectedJson = {
-          'issues': [
-            {
-              'kind': 'error',
-              'line': 2,
-              'sourceName': 'main.dart',
-              'message': "Expected to find ';'.",
-              'hasFixes': true,
-              'charStart': 29,
-              'charLength': 1
-            }
-          ]
-        };
-        expect(json.decode(data), expectedJson);
+        late Map<String, Object> dataMap;
+        await tryWithReruns(() async {
+          final response =
+              await sendPostRequest('dartservices/$version/analyze', jsonData);
+          expect(response.statusCode, 200);
+          expect(response.headers['content-type'],
+              ['application/json; charset=utf-8']);
+          final data = await response.transform(utf8.decoder).join();
+          dataMap = (json.decode(data) as Map).cast<String, Object>();
+          if (dataMap.isEmpty) {
+            throw StateError('Flaky result');
+          }
+        });
+        expect(
+          dataMap,
+          {
+            'issues': [
+              {
+                'kind': 'error',
+                'line': 2,
+                'sourceName': 'main.dart',
+                'message': "Expected to find ';'.",
+                'hasFixes': true,
+                'charStart': 29,
+                'charLength': 1,
+              }
+            ]
+          },
+        );
       }
     });
 
@@ -211,7 +222,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = <dynamic, dynamic>{};
         final response =
-            await _sendPostRequest('dartservices/$version/analyze', jsonData);
+            await sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 400);
       }
     });
@@ -220,7 +231,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': sampleCode};
         final response =
-            await _sendPostRequest('dartservices/$version/compile', jsonData);
+            await sendPostRequest('dartservices/$version/compile', jsonData);
         expect(response.statusCode, 200);
         final data = await response.transform(utf8.decoder).join();
         expect(json.decode(data), isNotEmpty);
@@ -231,13 +242,13 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': sampleCode};
         final response1 =
-            await _sendPostRequest('dartservices/$version/compile', jsonData);
+            await sendPostRequest('dartservices/$version/compile', jsonData);
         expect(response1.statusCode, 200);
         final data1 = await response1.transform(utf8.decoder).join();
         expect(json.decode(data1), isNotEmpty);
 
         final response2 =
-            await _sendPostRequest('dartservices/$version/compile', jsonData);
+            await sendPostRequest('dartservices/$version/compile', jsonData);
         expect(response2.statusCode, 200);
         final data2 = await response2.transform(utf8.decoder).join();
         expect(json.decode(data2), isNotEmpty);
@@ -248,7 +259,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': sampleCodeError};
         final response =
-            await _sendPostRequest('dartservices/$version/compile', jsonData);
+            await sendPostRequest('dartservices/$version/compile', jsonData);
         expect(response.statusCode, 400);
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
@@ -262,7 +273,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = <dynamic, dynamic>{};
         final response =
-            await _sendPostRequest('dartservices/$version/compile', jsonData);
+            await sendPostRequest('dartservices/$version/compile', jsonData);
         expect(response.statusCode, 400);
       }
     });
@@ -270,8 +281,8 @@ void defineTests() {
     test('compileDDC', () async {
       for (final version in versions) {
         final jsonData = {'source': sampleCode};
-        final response = await _sendPostRequest(
-            'dartservices/$version/compileDDC', jsonData);
+        final response =
+            await sendPostRequest('dartservices/$version/compileDDC', jsonData);
         expect(response.statusCode, 200);
         final data = await response.transform(utf8.decoder).join();
         expect(json.decode(data), isNotEmpty);
@@ -281,14 +292,14 @@ void defineTests() {
     test('compileDDC with cache', () async {
       for (final version in versions) {
         final jsonData = {'source': sampleCode};
-        final response1 = await _sendPostRequest(
-            'dartservices/$version/compileDDC', jsonData);
+        final response1 =
+            await sendPostRequest('dartservices/$version/compileDDC', jsonData);
         expect(response1.statusCode, 200);
         final data1 = await response1.transform(utf8.decoder).join();
         expect(json.decode(data1), isNotEmpty);
 
-        final response2 = await _sendPostRequest(
-            'dartservices/$version/compileDDC', jsonData);
+        final response2 =
+            await sendPostRequest('dartservices/$version/compileDDC', jsonData);
         expect(response2.statusCode, 200);
         final data2 = await response2.transform(utf8.decoder).join();
         expect(json.decode(data2), isNotEmpty);
@@ -299,7 +310,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': 'void main() {print("foo");}', 'offset': 1};
         final response =
-            await _sendPostRequest('dartservices/$version/complete', jsonData);
+            await sendPostRequest('dartservices/$version/complete', jsonData);
         expect(response.statusCode, 200);
         final data = json.decode(await response.transform(utf8.decoder).join());
         expect(data, isNotEmpty);
@@ -308,7 +319,7 @@ void defineTests() {
 
     test('complete no data', () async {
       for (final version in versions) {
-        final response = await _sendPostRequest(
+        final response = await sendPostRequest(
             'dartservices/$version/complete', <dynamic, dynamic>{});
         expect(response.statusCode, 400);
       }
@@ -318,7 +329,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'offset': 1};
         final response =
-            await _sendPostRequest('dartservices/$version/complete', jsonData);
+            await sendPostRequest('dartservices/$version/complete', jsonData);
         expect(response.statusCode, 400);
       }
     });
@@ -327,7 +338,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': 'void main() {print("foo");}'};
         final response =
-            await _sendPostRequest('dartservices/$version/complete', jsonData);
+            await sendPostRequest('dartservices/$version/complete', jsonData);
         expect(response.statusCode, 400);
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
@@ -343,7 +354,7 @@ void defineTests() {
           'offset': 17
         };
         final response =
-            await _sendPostRequest('dartservices/$version/document', jsonData);
+            await sendPostRequest('dartservices/$version/document', jsonData);
         expect(response.statusCode, 200);
         final data = json.decode(await response.transform(utf8.decoder).join());
         expect(data, isNotEmpty);
@@ -354,7 +365,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': 'void main() {print("foo");}', 'offset': 2};
         final response =
-            await _sendPostRequest('dartservices/$version/document', jsonData);
+            await sendPostRequest('dartservices/$version/document', jsonData);
         expect(response.statusCode, 200);
         final data = json.decode(await response.transform(utf8.decoder).join());
         expect(data, {
@@ -370,7 +381,7 @@ void defineTests() {
           'offset': 12
         };
         final response =
-            await _sendPostRequest('dartservices/$version/document', jsonData);
+            await sendPostRequest('dartservices/$version/document', jsonData);
         expect(response.statusCode, 200);
         final data = json.decode(await response.transform(utf8.decoder).join());
         expect(data, {'info': <dynamic, dynamic>{}});
@@ -381,7 +392,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'offset': 12};
         final response =
-            await _sendPostRequest('dartservices/$version/document', jsonData);
+            await sendPostRequest('dartservices/$version/document', jsonData);
         expect(response.statusCode, 400);
       }
     });
@@ -390,7 +401,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': 'void main() {print("foo");}'};
         final response =
-            await _sendPostRequest('dartservices/$version/document', jsonData);
+            await sendPostRequest('dartservices/$version/document', jsonData);
         expect(response.statusCode, 400);
       }
     });
@@ -399,7 +410,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': preFormattedCode};
         final response =
-            await _sendPostRequest('dartservices/$version/format', jsonData);
+            await sendPostRequest('dartservices/$version/format', jsonData);
         expect(response.statusCode, 200);
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
@@ -411,7 +422,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': formatBadCode};
         final response =
-            await _sendPostRequest('dartservices/$version/format', jsonData);
+            await sendPostRequest('dartservices/$version/format', jsonData);
         expect(response.statusCode, 200);
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
@@ -423,7 +434,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': preFormattedCode, 'offset': 21};
         final response =
-            await _sendPostRequest('dartservices/$version/format', jsonData);
+            await sendPostRequest('dartservices/$version/format', jsonData);
         expect(response.statusCode, 200);
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
@@ -436,7 +447,7 @@ void defineTests() {
       for (final version in versions) {
         final jsonData = {'source': quickFixesCode, 'offset': 10};
         final response =
-            await _sendPostRequest('dartservices/$version/fixes', jsonData);
+            await sendPostRequest('dartservices/$version/fixes', jsonData);
         expect(response.statusCode, 200);
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
@@ -460,7 +471,7 @@ void main() {
           'offset': 67,
         };
         final response =
-            await _sendPostRequest('dartservices/$version/fixes', jsonData);
+            await sendPostRequest('dartservices/$version/fixes', jsonData);
         expect(response.statusCode, 200);
         final data = json.decode(await response.transform(utf8.decoder).join());
         expect(data, {
@@ -487,7 +498,7 @@ void main() {
       for (final version in versions) {
         final jsonData = {'source': assistCode, 'offset': 15};
         final response =
-            await _sendPostRequest('dartservices/$version/assists', jsonData);
+            await sendPostRequest('dartservices/$version/assists', jsonData);
         expect(response.statusCode, 200);
 
         final encoded = await response.transform(utf8.decoder).join();
@@ -506,7 +517,7 @@ void main() {
 
     test('version', () async {
       for (final version in versions) {
-        final response = await _sendGetRequest('dartservices/$version/version');
+        final response = await sendGetRequest('dartservices/$version/version');
         expect(response.statusCode, 200);
         final encoded = await response.transform(utf8.decoder).join();
         final data = json.decode(encoded) as Map<String, dynamic>;
