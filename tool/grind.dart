@@ -5,12 +5,14 @@
 library services.grind;
 
 import 'dart:async';
-import 'dart:convert' show jsonDecode, JsonEncoder;
+import 'dart:convert' show JsonEncoder;
 import 'dart:io';
 
 import 'package:dart_services/src/project.dart';
+import 'package:dart_services/src/project_creator.dart';
 import 'package:dart_services/src/pub.dart';
 import 'package:dart_services/src/sdk.dart';
+import 'package:dart_services/src/utils.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
@@ -26,12 +28,12 @@ void sdkInit() {}
 @Task()
 @Depends(buildProjectTemplates)
 void analyze() async {
-  await runWithLogging('dart', arguments: ['analyze']);
+  await _run('dart', arguments: ['analyze']);
 }
 
 @Task()
 @Depends(buildStorageArtifacts)
-Future<void> test() => runWithLogging(Platform.executable, arguments: ['test']);
+Future<void> test() => _run(Platform.executable, arguments: ['test']);
 
 @DefaultTask()
 @Depends(analyze, test)
@@ -40,7 +42,7 @@ void analyzeTest() {}
 @Task()
 @Depends(buildStorageArtifacts)
 Future<void> serve() async {
-  await runWithLogging(Platform.executable, arguments: [
+  await _run(Platform.executable, arguments: [
     'bin/server_dev.dart',
     '--channel',
     _channel,
@@ -52,7 +54,7 @@ Future<void> serve() async {
 @Task()
 @Depends(buildStorageArtifacts)
 Future<void> serveNullSafety() async {
-  await runWithLogging(Platform.executable, arguments: [
+  await _run(Platform.executable, arguments: [
     'bin/server_dev.dart',
     '--channel',
     _channel,
@@ -139,196 +141,43 @@ Future<void> _validateExists(Uri url) async {
   }
 }
 
-/// Builds the SIX project templates:
+/// Builds the EIGHT project templates:
 ///
 /// * the Dart project template (both null safe and pre-null safe),
 /// * the Flutter project template (both null safe and pre-null safe),
 /// * the Firebase project template (both null safe and pre-null safe).
+/// * the deprecated Firebase project template (both null safe and pre-null
+///   safe).
 @Task('build the project templates')
 @Depends(sdkInit)
 void buildProjectTemplates() async {
-  final templatesPath =
-      Directory(path.join(Directory.current.path, 'project_templates'));
-  final exists = await templatesPath.exists();
+  final templatesPath = path.join(Directory.current.path, 'project_templates');
+  final templatesDirectory = Directory(templatesPath);
+  final exists = await templatesDirectory.exists();
   if (exists) {
-    await templatesPath.delete(recursive: true);
+    await templatesDirectory.delete(recursive: true);
   }
 
   final sdk = _getSdk();
   for (final nullSafety in [true, false]) {
-    await _buildDartProjectTemplate(
-      dartSdkPath: sdk.dartSdkPath,
-      nullSafety: nullSafety,
-      channel: _channel,
-      templatePath: templatesPath.path,
+    final projectCreator = ProjectCreator(
+      sdk,
+      templatesPath,
+      isNullSafe: nullSafety,
+      dependenciesFile: _pubDependenciesFile(channel: _channel),
+      log: log,
     );
-
-    await _buildFlutterProjectTemplate(
-      sdk: sdk,
-      nullSafety: nullSafety,
-      channel: _channel,
-      templatePath: templatesPath.path,
+    await projectCreator.buildDartProjectTemplate();
+    await projectCreator.buildFlutterProjectTemplate(
       firebaseStyle: FirebaseStyle.none,
     );
-
-    await _buildFlutterProjectTemplate(
-      sdk: sdk,
-      nullSafety: nullSafety,
-      channel: _channel,
-      templatePath: templatesPath.path,
+    await projectCreator.buildFlutterProjectTemplate(
       firebaseStyle: FirebaseStyle.deprecated,
     );
-
-    await _buildFlutterProjectTemplate(
-      sdk: sdk,
-      nullSafety: nullSafety,
-      channel: _channel,
-      templatePath: templatesPath.path,
+    await projectCreator.buildFlutterProjectTemplate(
       firebaseStyle: FirebaseStyle.flutterFire,
     );
   }
-}
-
-Map<String, String> _dependencyVersions(Iterable<String> packages,
-    {required String channel}) {
-  final allVersions = _parsePubDependenciesFile(channel: channel);
-  return {
-    for (var package in packages) package: allVersions[package] ?? 'any',
-  };
-}
-
-/// Builds a basic Dart project template directory, complete with `pubspec.yaml`
-/// and `analysis_options.yaml`.
-Future<void> _buildDartProjectTemplate({
-  required String dartSdkPath,
-  required bool nullSafety,
-  required String channel,
-  required String templatePath,
-}) async {
-  final projectPath = Directory(path.join(
-      templatePath, nullSafety ? 'null-safe' : 'null-unsafe', 'dart_project'));
-  final projectDir = await projectPath.create(recursive: true);
-  final dependencies =
-      _dependencyVersions(supportedBasicDartPackages, channel: channel);
-  joinFile(projectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
-    includeFlutterWeb: false,
-    nullSafety: nullSafety,
-    dependencies: dependencies,
-  ));
-  await _runDartPubGet(dartSdkPath, projectDir);
-  joinFile(projectDir, ['analysis_options.yaml']).writeAsStringSync('''
-include: package:lints/recommended.yaml
-linter:
-  rules:
-    avoid_print: false
-''');
-}
-
-enum FirebaseStyle {
-  /// Indicates that no Firebase is used.
-  none,
-
-  /// Indicates that the deprecated Firebase packages are used.
-  deprecated,
-
-  /// Indicates that the "pure Dart" Flutterfire packages are used.
-  flutterFire,
-}
-
-/// Builds a Flutter project template directory, complete with `pubspec.yaml`,
-/// `analysis_options.yaml`, and `web/index.html`.
-///
-/// Depending on [includeFirebase], Firebase packages are included in
-/// `pubspec.yaml` which affects how `flutter packages get` will register
-/// plugins.
-Future<void> _buildFlutterProjectTemplate({
-  required Sdk sdk,
-  required bool nullSafety,
-  required String channel,
-  required String templatePath,
-  required FirebaseStyle firebaseStyle,
-}) async {
-  final projectDirName = firebaseStyle == FirebaseStyle.none
-      ? 'flutter_project'
-      : firebaseStyle == FirebaseStyle.deprecated
-          ? 'firebase_deprecated_project'
-          : 'firebase_project';
-  final projectPath = path.join(
-    templatePath,
-    nullSafety ? 'null-safe' : 'null-unsafe',
-    projectDirName,
-  );
-  final projectDir = await Directory(projectPath).create(recursive: true);
-  await Directory(path.join(projectPath, 'lib')).create();
-  await Directory(path.join(projectPath, 'web')).create();
-  await File(path.join(projectPath, 'web', 'index.html')).create();
-  var packages = {
-    ...supportedBasicDartPackages,
-    ...supportedFlutterPackages,
-    if (firebaseStyle != FirebaseStyle.none) ...coreFirebasePackages,
-    if (firebaseStyle == FirebaseStyle.deprecated)
-      ...deprecatedFirebasePackages,
-    if (firebaseStyle == FirebaseStyle.flutterFire)
-      ...registerableFirebasePackages,
-  };
-  final dependencies = _dependencyVersions(packages, channel: channel);
-  joinFile(projectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
-    includeFlutterWeb: true,
-    nullSafety: nullSafety,
-    dependencies: dependencies,
-  ));
-  await _runFlutterPackagesGet(sdk.flutterToolPath, projectDir);
-  if (firebaseStyle != FirebaseStyle.none) {
-    // `flutter packages get` has been run with a _subset_ of all supported
-    // Firebase packages, the ones that don't require a Firebase app to be
-    // configured in JavaScript, before executing Dart. Now add the full set of
-    // supported Firebase pacakges. This workaround is a very fragile hack.
-    packages = {
-      ...supportedBasicDartPackages,
-      ...supportedFlutterPackages,
-      ...firebasePackages,
-    };
-    final dependencies = _dependencyVersions(packages, channel: channel);
-    joinFile(projectDir, ['pubspec.yaml']).writeAsStringSync(createPubspec(
-      includeFlutterWeb: true,
-      nullSafety: nullSafety,
-      dependencies: dependencies,
-    ));
-    await _runDartPubGet(sdk.dartSdkPath, projectDir);
-  }
-  joinFile(projectDir, ['analysis_options.yaml']).writeAsStringSync('''
-include: package:flutter_lints/flutter.yaml
-linter:
-  rules:
-    avoid_print: false
-    use_key_in_widget_constructors: false
-''');
-}
-
-Future<void> _runDartPubGet(String dartSdkPath, Directory dir) async {
-  await runWithLogging(
-    path.join(dartSdkPath, 'bin', 'dart'),
-    arguments: ['pub', 'get'],
-    workingDirectory: dir.path,
-    environment: {'PUB_CACHE': _pubCachePath},
-  );
-}
-
-Future<void> _runFlutterPackagesGet(
-    String flutterToolPath, Directory dir) async {
-  await runWithLogging(
-    flutterToolPath,
-    arguments: ['packages', 'get'],
-    workingDirectory: dir.path,
-    environment: {'PUB_CACHE': _pubCachePath},
-  );
-}
-
-/// Builds the local pub cache directory and returns the path.
-String get _pubCachePath {
-  final pubCachePath = path.join(Directory.current.path, 'local_pub_cache');
-  Directory(pubCachePath).createSync();
-  return pubCachePath;
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
@@ -357,13 +206,15 @@ void buildStorageArtifacts() async {
 
 Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
     {required bool nullSafety, required String channel}) async {
+  final dependenciesFile = _pubDependenciesFile(channel: channel);
   final pubspec = createPubspec(
-      includeFlutterWeb: true,
-      nullSafety: nullSafety,
-      dependencies: _parsePubDependenciesFile(channel: channel));
+    includeFlutterWeb: true,
+    nullSafety: nullSafety,
+    dependencies: parsePubDependenciesFile(dependenciesFile: dependenciesFile),
+  );
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
-  await _runFlutterPackagesGet(sdk.flutterToolPath, dir);
+  await runFlutterPackagesGet(sdk.flutterToolPath, dir.path, log: log);
 
   // locate the artifacts
   final flutterPackages = ['flutter', 'flutter_test'];
@@ -395,7 +246,7 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
 
   // Make sure flutter-sdk/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
   // is installed.
-  await runWithLogging(
+  await _run(
     sdk.flutterToolPath,
     arguments: ['precache', '--web'],
     workingDirectory: dir.path,
@@ -424,7 +275,7 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
     ...flutterLibraries
   ];
 
-  await runWithLogging(
+  await _run(
     compilerPath,
     arguments: args,
     workingDirectory: dir.path,
@@ -465,17 +316,17 @@ void setupFlutterSdk() async {
   // Set up the Flutter SDK the way dart-services needs it.
 
   final flutterBinFlutter = path.join(flutterSdkPath, 'bin', 'flutter');
-  await runWithLogging(
+  await _run(
     flutterBinFlutter,
     arguments: ['doctor'],
   );
 
-  await runWithLogging(
+  await _run(
     flutterBinFlutter,
     arguments: ['config', '--enable-web'],
   );
 
-  await runWithLogging(
+  await _run(
     flutterBinFlutter,
     arguments: [
       'precache',
@@ -508,22 +359,24 @@ void buildbot() {}
 
 @Task('Generate Protobuf classes')
 void generateProtos() async {
-  await runWithLogging(
-    'protoc',
-    arguments: ['--dart_out=lib/src', 'protos/dart_services.proto'],
-    onErrorMessage:
-        'Error running "protoc"; make sure the Protocol Buffer compiler is '
-        'installed (see README.md)',
-  );
+  try {
+    await _run(
+      'protoc',
+      arguments: ['--dart_out=lib/src', 'protos/dart_services.proto'],
+    );
+  } catch (e) {
+    print('Error running "protoc"; make sure the Protocol Buffer compiler is '
+        'installed (see README.md)');
+  }
 
   // reformat generated classes so travis dart format test doesn't fail
-  await runWithLogging(
+  await _run(
     'dart',
     arguments: ['format', '--fix', 'lib/src/protos'],
   );
 
   // And reformat again, for $REASONS
-  await runWithLogging(
+  await _run(
     'dart',
     arguments: ['format', '--fix', 'lib/src/protos'],
   );
@@ -532,69 +385,21 @@ void generateProtos() async {
   Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
 }
 
-Future<void> runWithLogging(String executable,
-    {List<String> arguments = const [],
-    String? workingDirectory,
-    Map<String, String> environment = const {},
-    String? onErrorMessage}) async {
-  log([
-    'Running $executable ${arguments.join(' ')}',
-    if (workingDirectory != null) "from directory: '$workingDirectory'",
-    if (environment.isNotEmpty) 'with additional environment: $environment',
-  ].join('\n  '));
-
-  final runOptions =
-      RunOptions(workingDirectory: workingDirectory, environment: environment);
-  Process proc;
-  try {
-    proc = await Process.start(executable, arguments,
-        workingDirectory: runOptions.workingDirectory,
-        environment: runOptions.environment,
-        includeParentEnvironment: runOptions.includeParentEnvironment,
-        runInShell: runOptions.runInShell);
-  } catch (e) {
-    if (onErrorMessage != null) {
-      print(onErrorMessage);
-    }
-    rethrow;
-  }
-
-  proc.stdout.listen((out) => log(runOptions.stdoutEncoding.decode(out)));
-  proc.stderr.listen((err) => log(runOptions.stdoutEncoding.decode(err)));
-  final exitCode = await proc.exitCode;
-
+Future<void> _run(
+  String executable, {
+  List<String> arguments = const [],
+  String? workingDirectory,
+  Map<String, String> environment = const {},
+}) async {
+  final process = await runWithLogging(executable,
+      arguments: arguments,
+      workingDirectory: workingDirectory,
+      environment: environment,
+      log: log);
+  final exitCode = await process.exitCode;
   if (exitCode != 0) {
     fail('Unable to exec $executable, failed with code $exitCode');
   }
-}
-
-const String _samplePackageName = 'dartpad_sample';
-
-String createPubspec({
-  required bool includeFlutterWeb,
-  required bool nullSafety,
-  Map<String, String> dependencies = const {},
-}) {
-  var content = '''
-name: $_samplePackageName
-environment:
-  sdk: '>=${nullSafety ? '2.14.0' : '2.10.0'} <3.0.0'
-dependencies:
-''';
-
-  if (includeFlutterWeb) {
-    content += '''
-  flutter:
-    sdk: flutter
-  flutter_test:
-    sdk: flutter
-''';
-  }
-  dependencies.forEach((name, version) {
-    content += '  $name: $version\n';
-  });
-
-  return content;
 }
 
 @Task('Update pubspec dependency versions')
@@ -630,7 +435,7 @@ Future<void> _updateDependenciesFile({
     },
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
-  await _runFlutterPackagesGet(flutterToolPath, tempDir);
+  await runFlutterPackagesGet(flutterToolPath, tempDir.path, log: log);
   final packageVersions = packageVersionsFromPubspecLock(tempDir.path);
 
   _pubDependenciesFile(channel: channel)
@@ -647,12 +452,4 @@ const JsonEncoder _jsonEncoder = JsonEncoder.withIndent('  ');
 File _pubDependenciesFile({required String channel}) {
   final versionsFileName = 'pub_dependencies_$channel.json';
   return File(path.join(Directory.current.path, 'tool', versionsFileName));
-}
-
-/// Parses [_pubDependenciesFile] as a JSON Map of Strings.
-Map<String, String> _parsePubDependenciesFile({required String channel}) {
-  final packageVersions =
-      jsonDecode(_pubDependenciesFile(channel: channel).readAsStringSync())
-          as Map;
-  return packageVersions.cast<String, String>();
 }

@@ -31,7 +31,7 @@ class Sdk {
   final String version;
 
   factory Sdk.create(String channel) {
-    final sdkPath = path.join(Sdk.flutterSdksPath, channel);
+    final sdkPath = path.join(Sdk._flutterSdksPath, channel);
     final flutterBinPath = path.join(sdkPath, 'bin');
     final dartSdkPath = path.join(flutterBinPath, 'cache', 'dart-sdk');
     return _instance ??= Sdk._(
@@ -63,7 +63,7 @@ class Sdk {
       (File(path.join(filePath, 'version')).readAsStringSync()).trim();
 
   /// Get the path to the Flutter SDKs.
-  static String get flutterSdksPath =>
+  static String get _flutterSdksPath =>
       path.join(Directory.current.path, 'flutter-sdks');
 }
 
@@ -127,7 +127,7 @@ class DownloadingSdkManager {
   }
 
   Future<_DownloadedFlutterSdk> _cloneSdkIfNecessary(String channel) async {
-    final sdkPath = path.join(Sdk.flutterSdksPath, channel);
+    final sdkPath = path.join(Sdk._flutterSdksPath, channel);
     final sdk = _DownloadedFlutterSdk(sdkPath);
 
     if (!Directory(sdk.flutterSdkPath).existsSync()) {

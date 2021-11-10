@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:path/path.dart' as path;
 
 /// Normalizes any "paths" from [text], replacing the segments before the last
@@ -39,6 +41,29 @@ String normalizeFilePaths(String text) {
 
     return basename;
   });
+}
+
+Future<Process> runWithLogging(
+  String executable, {
+  List<String> arguments = const [],
+  String? workingDirectory,
+  Map<String, String> environment = const {},
+  required void Function(String) log,
+}) async {
+  log([
+    'Running $executable ${arguments.join(' ')}',
+    if (workingDirectory != null) "from directory: '$workingDirectory'",
+    if (environment.isNotEmpty) 'with additional environment: $environment',
+  ].join('\n  '));
+
+  final process = await Process.start(executable, arguments,
+      workingDirectory: workingDirectory,
+      environment: environment,
+      includeParentEnvironment: true,
+      runInShell: Platform.isWindows);
+  process.stdout.listen((out) => log(systemEncoding.decode(out)));
+  process.stderr.listen((err) => log(systemEncoding.decode(err)));
+  return process;
 }
 
 /// A pattern which matches a possible path.

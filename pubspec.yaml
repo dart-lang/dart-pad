@@ -32,6 +32,7 @@ dev_dependencies:
   shelf_router_generator: ^1.0.0
   synchronized: ^3.0.0
   test: ^1.6.4
+  test_descriptor: ^2.0.0
 
 executables:
   services: null
