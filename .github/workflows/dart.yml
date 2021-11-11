@@ -18,12 +18,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: [stable, beta, dev]
+        sdk: [stable, beta, dev, old]
     steps:
       - uses: actions/checkout@v2
       - uses: dart-lang/setup-dart@v1.0
         with:
-          sdk: ${{ matrix.sdk }}
+          sdk: stable
       - name: Install dependencies
         run: sudo apt-get install -y protobuf-compiler redis
       - name: Install dependencies
