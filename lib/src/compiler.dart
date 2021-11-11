@@ -78,6 +78,7 @@ class Compiler {
         if (_nullSafety) ...[
           '--sound-null-safety',
         ],
+        '--enable-asserts',
         ...['-o', '$kMainDart.js'],
         path.join('lib', kMainDart),
       ];
@@ -168,6 +169,7 @@ class Compiler {
         ],
         ...['-o', path.join(temp.path, '$kMainDart.js')],
         ...['--module-name', 'dartpad_main'],
+        '--enable-asserts',
         if (_nullSafety) '--sound-null-safety',
         bootstrapPath,
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
