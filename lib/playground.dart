@@ -262,17 +262,23 @@ class Playground extends EditorUi implements GistContainer, GistController {
     List<Sample> samples;
     if (nullSafe) {
       samples = [
-        Sample('c0f7c578204d61e08ec0fbc4d63456cd', 'Hello World', Layout.dart),
-        Sample(
-            'a93a8de8eab0da9a07edd242df05e71f', 'Int to Double', Layout.dart),
-        Sample('21304866bcdc7b7d4d853e635f90f3e1', 'Mixins', Layout.dart),
-        Sample('d3bd83918d21b6d5f778bdc69c3d36d6', 'Fibonacci', Layout.dart),
         Sample('e75b493dae1287757c5e1d77a0dc73f1', 'Counter', Layout.flutter),
         Sample('5c0e154dd50af4a9ac856908061291bc', 'Sunflower', Layout.flutter),
         Sample('a1d5666d6b54a45eb170b897895cf757', 'Draggables & physics',
             Layout.flutter),
         Sample('85e77d36533b16647bf9b6eb8c03296d', 'Implicit animations',
             Layout.flutter),
+        Sample('d57c6c898dabb8c6fb41018588b8cf73', 'Firebase Nanochat',
+            Layout.flutter),
+        Sample(
+            '493c8b3ef8931cbac3fbbe5c04b9c4cf', 'Google Fonts', Layout.flutter),
+        Sample('a133148221a8cbacbcef8bc77a6c82ec', 'Provider', Layout.flutter),
+        Sample(
+            'fdd369962f4ff6700a83c8a540fd6c4c', 'Flutter Bloc', Layout.flutter),
+        Sample('c0f7c578204d61e08ec0fbc4d63456cd', 'Hello World', Layout.dart),
+        Sample('d3bd83918d21b6d5f778bdc69c3d36d6', 'Fibonacci', Layout.dart),
+        Sample(
+            '4a68e553746602d851ab3da6aeafc3dd', 'HTTP requests', Layout.dart),
       ];
     } else {
       samples = [
