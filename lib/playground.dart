@@ -277,7 +277,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
             'fdd369962f4ff6700a83c8a540fd6c4c', 'Flutter Bloc', Layout.flutter),
         Sample('c0f7c578204d61e08ec0fbc4d63456cd', 'Hello World', Layout.dart),
         Sample('d3bd83918d21b6d5f778bdc69c3d36d6', 'Fibonacci', Layout.dart),
-        Sample('4a68e553746602d851ab3da6aeafc3dd', 'HTTP requests', Layout.dart),
+        Sample(
+            '4a68e553746602d851ab3da6aeafc3dd', 'HTTP requests', Layout.dart),
       ];
     } else {
       samples = [
