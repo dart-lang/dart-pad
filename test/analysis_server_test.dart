@@ -73,6 +73,11 @@ void main() => defineTests();
 void defineTests() {
   late AnalysisServerWrapper analysisServer;
 
+  /// Returns whether the completion [response] contains [expected].
+  bool completionsContains(proto.CompleteResponse response, String expected) =>
+      response.completions
+          .any((completion) => completion.completion['completion'] == expected);
+
   for (final nullSafety in [false, true]) {
     group('Null ${nullSafety ? 'Safe' : 'Unsafe'} Platform SDK analysis_server',
         () {
@@ -90,7 +95,9 @@ void defineTests() {
         final results = await analysisServer.complete(completionCode, 32);
         expect(results.replacementLength, 0);
         expect(results.replacementOffset, 32);
-        expectCompletionsContains(results, 'abs');
+        final completions =
+            results.completions.map((c) => c.completion['completion']).toList();
+        expect(completions, contains('abs'));
         expect(completionsContains(results, 'codeUnitAt'), false);
       });
 
@@ -211,13 +218,6 @@ void defineTests() {
         expect(results.issues, hasLength(1));
       });
 
-      test('analyze strong', () async {
-        final results = await analysisServer.analyze(sampleStrongError);
-        expect(results.issues, hasLength(1));
-        final issue = results.issues.first;
-        expect(issue.kind, 'error');
-      });
-
       test('filter completions', () async {
         // just after A
         final idx = 61;
@@ -255,15 +255,4 @@ void defineTests() {
       });
     });
   }
-}
-
-bool completionsContains(proto.CompleteResponse response, String expected) =>
-    response.completions
-        .any((completion) => completion.completion['completion'] == expected);
-
-void expectCompletionsContains(
-    proto.CompleteResponse response, String expected) {
-  final completions =
-      response.completions.map((c) => c.completion['completion']).toList();
-  expect(completions, contains(expected));
 }

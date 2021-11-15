@@ -980,16 +980,6 @@ void main() {
 }
 ''';
 
-const sampleStrongError = """
-void main() {
-  foo('whoops');
-}
-
-void foo(int i) {
-  print(i);
-}
-""";
-
 const sampleDart2Error = '''
 class Foo {
   final bool isAlwaysNull;
