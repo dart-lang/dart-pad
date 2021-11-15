@@ -222,7 +222,7 @@ class TabExpandController {
     consoleButton.toggleClass('active', false);
 
     // Clear listeners
-    for (var s in _subscriptions) {
+    for (final s in _subscriptions) {
       s.cancel();
     }
     _subscriptions.clear();

@@ -8,7 +8,6 @@ import 'dart:convert' as convert show htmlEscape;
 import 'dart:html';
 import 'dart:math' as math;
 
-import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:markdown/markdown.dart' as markdown;
 
 import 'context.dart';
@@ -17,6 +16,7 @@ import 'editing/editor.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'src/util.dart';
+import 'util/detect_flutter.dart';
 
 class DocHandler {
   static const Set<int> cursorKeys = {
