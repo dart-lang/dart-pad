@@ -8,13 +8,14 @@ import 'dart:convert' show json;
 import 'dart:convert';
 
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:dart_pad/sharing/exercise_metadata.dart';
-import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:fluttering_phrases/fluttering_phrases.dart' as phrases;
 import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart' as yaml;
+
+import '../src/sample.dart' as sample;
 import '../util/detect_flutter.dart' as detect_flutter;
 import '../util/github.dart';
+import 'exercise_metadata.dart';
 
 final String _dartpadLink = '[dartpad.dev](https://dartpad.dev)';
 
@@ -86,7 +87,7 @@ Gist createSampleFlutterGist() {
 GistFile? chooseGistFile(Gist gist, List<String> names, [Function? matcher]) {
   final files = gist.files;
 
-  for (var name in names) {
+  for (final name in names) {
     final file = files.firstWhereOrNull((f) => f.name == name);
     if (file != null) return file;
   }
@@ -391,7 +392,7 @@ class Gist {
     if (key == 'html_url') return htmlUrl;
     if (key == 'public') return public;
     if (key == 'summary') return summary;
-    for (var file in files) {
+    for (final file in files) {
       if (file.name == key) return file.content;
     }
     return null;
@@ -427,7 +428,7 @@ class Gist {
     if (public != null) m['public'] = public;
     if (summary != null) m['summary'] = summary;
     m['files'] = {};
-    for (var file in files) {
+    for (final file in files) {
       if (file.hasContent) {
         m['files'][file.name] = {'content': file.content};
       }

@@ -157,7 +157,7 @@ build() {
   // Remove .dart files.
   var count = 0;
 
-  for (var entity in getDir('build/packages')
+  for (final entity in getDir('build/packages')
       .listSync(recursive: true, followLinks: false)) {
     if (entity is! File) continue;
     if (!entity.path.endsWith('.dart')) continue;
@@ -218,7 +218,7 @@ deploy() async {
   final handlers = app['handlers'];
   var isSecure = false;
 
-  for (var m in handlers) {
+  for (final m in handlers) {
     if (m['url'] == '.*') {
       isSecure = m['secure'] == 'always';
     }

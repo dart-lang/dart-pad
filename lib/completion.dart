@@ -42,8 +42,8 @@ class DartCompleter extends CodeCompleter {
       final completions = <Completion>[];
       final fixesFuture =
           servicesApi.fixes(request).then((ds.FixesResponse response) {
-        for (var problemFix in response.fixes) {
-          for (var fix in problemFix.fixes) {
+        for (final problemFix in response.fixes) {
+          for (final fix in problemFix.fixes) {
             final fixes = fix.edits.map((edit) {
               return SourceEdit(edit.length, edit.offset, edit.replacement);
             }).toList();
@@ -59,7 +59,7 @@ class DartCompleter extends CodeCompleter {
       });
       final assistsFuture =
           servicesApi.assists(request).then((ds.AssistsResponse response) {
-        for (var assist in response.assists) {
+        for (final assist in response.assists) {
           final sourceEdits = assist.edits
               .map((edit) =>
                   SourceEdit(edit.length, edit.offset, edit.replacement))
@@ -155,8 +155,8 @@ class DartCompleter extends CodeCompleter {
         }).toList();
 
         // Removes duplicates when a completion is both a getter and a setter.
-        for (var completion in completions) {
-          for (var other in completions) {
+        for (final completion in completions) {
+          for (final other in completions) {
             if (completion.isSetterAndMatchesGetter(other)) {
               completions.removeWhere((c) => completion == c);
               other.type = 'type-getter_and_setter';

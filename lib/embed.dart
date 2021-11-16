@@ -6,9 +6,6 @@ import 'dart:async';
 import 'dart:html' hide Document, Console;
 import 'dart:math' as math;
 
-import 'package:dart_pad/elements/material_tab_controller.dart';
-import 'package:dart_pad/src/ga.dart';
-import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 
@@ -26,6 +23,7 @@ import 'elements/console.dart';
 import 'elements/counter.dart';
 import 'elements/dialog.dart';
 import 'elements/elements.dart';
+import 'elements/material_tab_controller.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'services/common.dart';
@@ -33,6 +31,8 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_ui.dart';
 import 'sharing/gists.dart';
+import 'src/ga.dart';
+import 'util/detect_flutter.dart';
 import 'util/query_params.dart' show queryParams;
 
 const int defaultSplitterWidth = 6;
@@ -156,7 +156,7 @@ class Embed extends EditorUi {
         ? const ['editor', 'html', 'css', 'solution', 'test']
         : const ['editor', 'solution', 'test'];
 
-    for (var name in tabNames) {
+    for (final name in tabNames) {
       tabController.registerTab(
         TabElement(querySelector('#$name-tab')!, name: name, onSelect: () {
           editorTabView.setSelected(name == 'editor');

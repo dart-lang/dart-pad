@@ -5,10 +5,11 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:dart_pad/elements/button.dart';
-import 'package:dart_pad/elements/elements.dart';
-import 'package:dart_pad/services/dartservices.dart';
 import 'package:mdc_web/mdc_web.dart';
+
+import '../services/dartservices.dart';
+import 'button.dart';
+import 'elements.dart';
 
 class AnalysisResultsController {
   static const String _noIssuesMsg = 'no issues';
@@ -73,9 +74,8 @@ class AnalysisResultsController {
     message.text = '$amount ${amount == 1 ? 'issue' : 'issues'}';
 
     flash.clearChildren();
-    for (var issue in issues) {
-      final elem = _createIssueElement(issue);
-      flash.add(elem);
+    for (final issue in issues) {
+      flash.add(_createIssueElement(issue));
     }
   }
 
@@ -112,9 +112,8 @@ class AnalysisResultsController {
     }
 
     // TODO: This should likely be named contextMessages.
-    for (var diagnostic in issue.diagnosticMessages) {
-      final diagnosticElement = _createDiagnosticElement(diagnostic);
-      columnElem.children.add(diagnosticElement);
+    for (final diagnostic in issue.diagnosticMessages) {
+      columnElem.children.add(_createDiagnosticElement(diagnostic));
     }
 
     elem.children.add(columnElem);

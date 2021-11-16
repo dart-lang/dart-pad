@@ -7,7 +7,6 @@ library playground;
 import 'dart:async';
 import 'dart:html' hide Console;
 
-import 'package:dart_pad/editing/editor_codemirror.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
@@ -22,6 +21,7 @@ import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'documentation.dart';
 import 'editing/codemirror_options.dart';
+import 'editing/editor_codemirror.dart';
 import 'elements/analysis_results_controller.dart';
 import 'elements/bind.dart';
 import 'elements/button.dart';
@@ -299,7 +299,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     final listElement = _mdcList();
     element.children.add(listElement);
 
-    for (var sample in samples) {
+    for (final sample in samples) {
       final menuElement = _mdcListItem(children: [
         ImageElement()
           ..classes.add('mdc-list-item__graphic')
@@ -362,7 +362,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     final currentChannel = queryParams.channel;
 
-    for (var channel in channels) {
+    for (final channel in channels) {
       final checkmark = SpanElement()
         ..id = ('${channel.name}-checkmark')
         ..classes.add('channel-menu-left')
@@ -449,7 +449,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       ..classes.add('mdc-list-item')
       ..classes.add('channel-menu-list')
       ..attributes.addAll({'role': 'menuitem'});
-    for (var child in children) {
+    for (final child in children) {
       element.children.add(child);
     }
     return element;
@@ -523,7 +523,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   MaterialTabController _initTabs() {
     final webLayoutTabController =
         MaterialTabController(MDCTabBar(_webTabBar.element));
-    for (var name in ['dart', 'html', 'css']) {
+    for (final name in ['dart', 'html', 'css']) {
       webLayoutTabController.registerTab(
           TabElement(querySelector('#$name-tab')!, name: name, onSelect: () {
         ga.sendEvent('edit', name);
@@ -750,7 +750,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       _editableGist.setBackingGist(storedGist);
 
       _editableGist.description = storedGist.description;
-      for (var file in storedGist.files) {
+      for (final file in storedGist.files) {
         _editableGist.getGistFile(file.name)!.content = file.content;
       }
       return LoadGistResult.storage;
@@ -801,7 +801,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
         final storedGist = _gistStorage.getStoredGist()!;
         _editableGist.description = storedGist.description;
-        for (var file in storedGist.files) {
+        for (final file in storedGist.files) {
           _editableGist.getGistFile(file.name)!.content = file.content;
         }
       }
@@ -987,7 +987,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     performAnalysis();
 
     // Re-create the channels menu to show the correct checkmark
-    for (var channelName in Channel.urlMapping.keys) {
+    for (final channelName in Channel.urlMapping.keys) {
       final checkmark = document.querySelector('#$channelName-checkmark');
       if (checkmark == null) {
         continue;

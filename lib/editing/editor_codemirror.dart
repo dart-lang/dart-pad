@@ -343,16 +343,16 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
 
   @override
   void setAnnotations(List<Annotation> annotations) {
-    for (var marker in doc!.getAllMarks()) {
+    for (final marker in doc!.getAllMarks()) {
       marker.clear();
     }
 
-    for (var widget in widgets) {
+    for (final widget in widgets) {
       widget.clear();
     }
     widgets.clear();
 
-    for (var e in nodes) {
+    for (final e in nodes) {
       e.parent!.children.remove(e);
     }
     nodes.clear();
@@ -362,7 +362,7 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
 
     var lastLine = -1;
 
-    for (var an in annotations) {
+    for (final an in annotations) {
       // Create in-line squiggles.
       doc!.markText(_posToPos(an.start), _posToPos(an.end),
           className: 'squiggle-${an.type}', title: an.message);

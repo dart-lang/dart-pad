@@ -1,15 +1,16 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:html' hide Console;
 
-import 'package:dart_pad/context.dart';
-import 'package:dart_pad/src/util.dart';
-import 'package:dart_pad/util/detect_flutter.dart';
-import 'package:dart_pad/util/query_params.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:split/split.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import 'completion.dart';
+import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
@@ -32,6 +33,9 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_ui.dart';
 import 'src/ga.dart';
+import 'src/util.dart';
+import 'util/detect_flutter.dart';
+import 'util/query_params.dart';
 import 'workshops/workshops.dart';
 
 WorkshopUi? _workshopUi;

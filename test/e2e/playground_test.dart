@@ -46,7 +46,7 @@ void main() async {
     // Start the Chromedriver process
     chromedriverProcess = await startChromedriver();
 
-    await for (String browserOut in const LineSplitter()
+    await for (final browserOut in const LineSplitter()
         .bind(utf8.decoder.bind(chromedriverProcess.stdout))) {
       if (browserOut.contains('Starting ChromeDriver')) {
         break;

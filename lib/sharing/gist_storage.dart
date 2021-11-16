@@ -5,7 +5,7 @@
 import 'dart:convert' show json;
 import 'dart:convert';
 import 'dart:html';
-import 'package:dart_pad/sharing/gists.dart';
+import 'gists.dart';
 
 /// A class to store gists in html's localStorage.
 class GistStorage {

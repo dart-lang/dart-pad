@@ -1,10 +1,6 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:dart_pad/elements/button.dart';
-import 'package:dart_pad/elements/dialog.dart';
-import 'package:dart_pad/services/execution.dart';
-import 'package:dart_pad/util/keymap.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -13,9 +9,13 @@ import '../context.dart';
 import '../dart_pad.dart';
 import '../editing/editor.dart';
 import '../elements/analysis_results_controller.dart';
+import '../elements/button.dart';
+import '../elements/dialog.dart';
 import '../elements/elements.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
+import '../services/execution.dart';
+import '../util/keymap.dart';
 
 abstract class EditorUi {
   final Logger logger = Logger('dartpad');
@@ -73,7 +73,7 @@ abstract class EditorUi {
   void showPackageVersionsDialog() {
     final directlyImportableList = StringBuffer('<dl>');
     final indirectList = StringBuffer('<dl>');
-    for (var package in _packageInfo) {
+    for (final package in _packageInfo) {
       final packageUrl = 'https://pub.dev/packages/${package.name}';
       final packageLink = AnchorElement()
         ..href = packageUrl

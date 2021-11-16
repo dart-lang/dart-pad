@@ -4,10 +4,10 @@
 
 import 'dart:html';
 
-import 'package:dart_pad/util/logging.dart';
 import 'package:html_unescape/html_unescape.dart';
 import 'package:logging/logging.dart';
 
+import '../util/logging.dart';
 import 'inject_parser.dart';
 
 Logger _logger = Logger('dartpad-embed');
@@ -21,7 +21,7 @@ var iframePrefix = 'https://dartpad.dev/';
 void main() {
   _logger.onRecord.listen(logToJsConsole);
   final snippets = querySelectorAll('code');
-  for (var snippet in snippets) {
+  for (final snippet in snippets) {
     if (snippet.classes.isEmpty) {
       continue;
     }

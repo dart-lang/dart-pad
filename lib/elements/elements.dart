@@ -568,7 +568,7 @@ class TabController {
   void selectTab(String? tabName) {
     final tab = tabs.firstWhere((t) => t.name == tabName);
 
-    for (var t in tabs) {
+    for (final t in tabs) {
       t.toggleAttr('selected', t == tab);
     }
 

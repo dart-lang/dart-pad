@@ -98,7 +98,7 @@ class LanguageStringParser {
     }
 
     final matches = _optionsExp.allMatches(input);
-    for (var match in matches) {
+    for (final match in matches) {
       if (match.groupCount != 2) {
         continue;
       }

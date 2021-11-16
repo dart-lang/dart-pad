@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:dart_pad/elements/elements.dart';
+import 'elements.dart';
 
 typedef ConsoleFilter = String Function(String line);
 

@@ -4,7 +4,7 @@
 
 import 'dart:html';
 
-import 'package:dart_pad/core/keys.dart';
+import '../core/keys.dart';
 
 // HTML for keyboard shortcuts dialog
 String? keyMapToHtml(Map<Action, Set<String>> keyMap) {
