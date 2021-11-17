@@ -51,7 +51,7 @@ serveLocalAppEngine() async {
   ConstTaskArgs('build', flags: {
     _debugFlag: true,
   }, options: {
-    _nullSafetyServerUrlOption: 'http://127.0.0.1:8084/',
+    _serverUrlOption: 'http://127.0.0.1:8084/',
   }),
 ))
 serveLocalBackend() async {
@@ -95,18 +95,16 @@ serveDevBackend() async {
 /// use DDC instead of dart2js.
 const _debugFlag = 'debug';
 
-/// A grinder option which specifies the URL of the null safety back-end
-/// server.
-const _nullSafetyServerUrlOption = 'null-safety-server-url';
+/// A grinder option which specifies the URL of the back-end server.
+const _serverUrlOption = 'server-url';
 
 @Task('Build the `web/index.html` entrypoint')
 @Depends(generateProtos)
 build() {
   final args = context.invocation.arguments;
   final compilerArgs = {
-    if (args.hasOption(_nullSafetyServerUrlOption))
-      nullSafetyServerUrlEnvironmentVar:
-          args.getOption(_nullSafetyServerUrlOption),
+    if (args.hasOption(_serverUrlOption))
+      serverUrlEnvironmentVar: args.getOption(_serverUrlOption),
   };
   PubApp.local('build_runner').run([
     'build',

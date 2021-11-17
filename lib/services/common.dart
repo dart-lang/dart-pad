@@ -9,13 +9,12 @@
 /// The `grind build` task specifies each of these options.
 library dart_pad.common;
 
-/// The environment variable name which specifies the URL of the null safety
-/// back-end server.
-const nullSafetyServerUrlEnvironmentVar = 'NULL_SAFETY_SERVER_URL';
+/// The environment variable name which specifies the URL of the back-end
+/// server.
+const serverUrlEnvironmentVar = 'NULL_SAFETY_SERVER_URL';
 
-/// The URL of the null safety back-end server.
-const nullSafetyServerUrl =
-    String.fromEnvironment(nullSafetyServerUrlEnvironmentVar);
+/// The URL of the back-end server.
+const serverUrl = String.fromEnvironment(serverUrlEnvironmentVar);
 
 /// The environment variable name which specifies the URL of the back-end
 /// server serving "Flutter stable".
