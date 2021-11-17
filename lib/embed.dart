@@ -242,7 +242,8 @@ class Embed extends EditorUi {
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(menuButton.element);
     menu.listen('MDCMenu:selected', (e) {
-      final selectedIndex = (e as CustomEvent).detail['index'] as int?;
+      final detail = (e as CustomEvent).detail as Map;
+      final selectedIndex = detail['index'] as int?;
       switch (selectedIndex) {
         case 0:
           // Show test code
@@ -385,7 +386,7 @@ class Embed extends EditorUi {
       });
 
     if (options.mode == EmbedMode.flutter || options.mode == EmbedMode.html) {
-      final controller = ConsoleExpandController(
+      final controller = _ConsoleExpandController(
           expandButton: querySelector('#console-output-header')!,
           footer: querySelector('#console-output-footer')!,
           expandIcon: querySelector('#console-expand-icon')!,
@@ -430,8 +431,8 @@ class Embed extends EditorUi {
   /// Initializes a listener for messages from the parent window. Allows this
   /// embedded iframe to display and run arbitrary Dart code.
   void _initHostListener() {
-    window.addEventListener('message', (dynamic event) {
-      final data = event.data;
+    window.addEventListener('message', (Object? event) {
+      final data = (event as MessageEvent).data;
       if (data is! Map) {
         // Ignore unexpected messages
         return;
@@ -1083,28 +1084,27 @@ class FlashBox {
   }
 }
 
-class ConsoleExpandController extends Console {
+class _ConsoleExpandController extends Console {
   final DElement expandButton;
   final DElement footer;
   final DElement expandIcon;
   final Counter unreadCounter;
-  final Function? onSizeChanged;
-  final EditorUi? editorUi;
+  final void Function() onSizeChanged;
+  final EditorUi editorUi;
   late Splitter _splitter;
-  bool _expanded;
+  var _expanded = false;
 
-  ConsoleExpandController({
+  _ConsoleExpandController({
     required Element expandButton,
     required Element footer,
     required Element expandIcon,
     required Element consoleElement,
     required this.unreadCounter,
-    this.onSizeChanged,
-    this.editorUi,
+    required this.editorUi,
+    required this.onSizeChanged,
   })  : expandButton = DElement(expandButton),
         footer = DElement(footer),
         expandIcon = DElement(expandIcon),
-        _expanded = false,
         super(DElement(consoleElement),
             errorClass: 'text-red', filter: filterCloudUrls) {
     super.element.setAttr('hidden');
@@ -1159,7 +1159,7 @@ class ConsoleExpandController extends Console {
         // TODO(ryjohn): why does this happen?
       }
     }
-    onSizeChanged!();
+    onSizeChanged();
   }
 
   void _initSplitter() {
@@ -1175,7 +1175,7 @@ class ConsoleExpandController extends Console {
       sizes: [60, 40],
       minSize: [32, 32],
     );
-    editorUi!.listenForResize(editorContainer);
+    editorUi.listenForResize(editorContainer);
   }
 }
 

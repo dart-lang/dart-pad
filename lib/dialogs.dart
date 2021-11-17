@@ -14,7 +14,7 @@ import 'src/util.dart';
 
 /// Show an OK / Cancel dialog and return the option that the user selected.
 class OkCancelDialog extends DDialog {
-  OkCancelDialog(String title, String message, Function okAction,
+  OkCancelDialog(String title, String message, Future<void> Function() okAction,
       {String okText = 'OK', String cancelText = 'Cancel'})
       : super(title: title) {
     element.classes.toggle('sharing-dialog', true);
