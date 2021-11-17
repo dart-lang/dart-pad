@@ -25,7 +25,7 @@ class Keys {
   /// Bind a list of keys to an action. The key is a string, with a specific
   /// format. Some examples of this format:
   ///     `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
-  void bind(List<String> keys, Function onInvoke, String description,
+  void bind(List<String> keys, void Function() onInvoke, String description,
       {bool hidden = false}) {
     for (final key in keys) {
       _bindings[key] = Action(onInvoke, description, hidden: hidden);
@@ -78,13 +78,13 @@ class Keys {
 }
 
 class Action {
-  final Function function;
+  final void Function() function;
   final String description;
   final bool hidden;
 
   Action(this.function, this.description, {this.hidden = false});
 
-  dynamic call() => function();
+  void call() => function();
 
   @override
   String toString() => description;
