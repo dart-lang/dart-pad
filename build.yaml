@@ -16,9 +16,8 @@ targets:
           dart2js_args:
           - --minify
           - --fast-startup
-          - -DPRE_NULL_SAFETY_SERVER_URL=https://v1.api.dartpad.dev/
-          - -DNULL_SAFETY_SERVER_URL=https://nullsafety.api.dartpad.dev/
-          - -DSTABLE_SERVER_URL=https://v1.api.dartpad.dev/
+          - -DSERVER_URL=https://nullsafety.api.dartpad.dev/
+          - -DSTABLE_SERVER_URL=https://nullsafety.api.dartpad.dev/
           - -DBETA_SERVER_URL=https://beta.api.dartpad.dev/
           - -DDEV_SERVER_URL=https://dev.api.dartpad.dev/
           - -DOLD_SERVER_URL=https://old.api.dartpad.dev/
@@ -33,8 +32,7 @@ global_options:
   build_web_compilers:ddc:
     options:
       environment:
-        PRE_NULL_SAFETY_SERVER_URL: https://v1.api.dartpad.dev/
-        NULL_SAFETY_SERVER_URL: https://nullsafety.api.dartpad.dev/
+        SERVER_URL: https://nullsafety.api.dartpad.dev/
         STABLE_SERVER_URL: https://nullsafety.api.dartpad.dev/
         BETA_SERVER_URL: https://beta.api.dartpad.dev/
         DEV_SERVER_URL: https://dev.api.dartpad.dev/

@@ -9,9 +9,9 @@
 /// The `grind build` task specifies each of these options.
 library dart_pad.common;
 
-/// The environment variable name which specifies the URL of the back-end
+/// The environment variable name which specifies the URL of the base back-end
 /// server.
-const serverUrlEnvironmentVar = 'NULL_SAFETY_SERVER_URL';
+const serverUrlEnvironmentVar = 'SERVER_URL';
 
 /// The URL of the back-end server.
 const serverUrl = String.fromEnvironment(serverUrlEnvironmentVar);
