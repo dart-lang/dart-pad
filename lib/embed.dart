@@ -508,41 +508,6 @@ class Embed extends EditorUi {
   bool get githubParamsPresent =>
       githubOwner.isNotEmpty && githubRepo.isNotEmpty && githubPath.isNotEmpty;
 
-<<<<<<< HEAD
-=======
-  void _initNullSafety() {
-    if (queryParams.hasNullSafety && queryParams.nullSafety) {
-      nullSafetyEnabled = true;
-    }
-  }
-
-  @override
-  set nullSafetyEnabled(bool enabled) {
-    _nullSafetyEnabled = enabled;
-    _handleNullSafetySwitched(enabled);
-    featureMessage.text = 'Null safety';
-    featureMessage.toggleAttr('hidden', !enabled);
-    nullSafetyCheckmark.toggleClass('hide', !enabled);
-  }
-
-  @override
-  bool get nullSafetyEnabled {
-    return _nullSafetyEnabled;
-  }
-
-  void _handleNullSafetySwitched(bool enabled) {
-    final api = deps[DartservicesApi] as DartservicesApi?;
-    if (enabled) {
-      api!.rootUrl = nullSafetyServerUrl;
-      window.localStorage['null_safety'] = 'true';
-    } else {
-      api!.rootUrl = preNullSafetyServerUrl;
-      window.localStorage['null_safety'] = 'false';
-    }
-    unawaited(performAnalysis());
-  }
-
->>>>>>> master
   Future<void> _initModules() async {
     final modules = ModuleManager();
 
