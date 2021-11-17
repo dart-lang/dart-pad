@@ -461,7 +461,7 @@ class GistFile {
 }
 
 abstract class GistController {
-  Future createNewGist();
+  Future<void> createNewGist();
 }
 
 class GistSummary {
