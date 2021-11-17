@@ -16,6 +16,10 @@ linter:
     - always_declare_return_types
     - avoid_private_typedef_functions
     - directives_ordering
+    - prefer_final_in_for_each
+    - prefer_final_locals
     - prefer_mixin
+    - prefer_relative_imports
     - prefer_single_quotes
+    - sort_pub_dependencies
     - unawaited_futures

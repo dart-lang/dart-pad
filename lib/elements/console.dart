@@ -5,7 +5,7 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:dart_pad/elements/elements.dart';
+import 'elements.dart';
 
 typedef ConsoleFilter = String Function(String line);
 
@@ -38,7 +38,11 @@ class Console {
       message = filter(message);
     }
 
-    var div = DivElement()..text = '$message\n';
+    final div = DivElement()..text = '$message\n';
+
+    // Prevent long lines of text from expanding the console panel.
+    div.style.width = '0';
+
     div.classes.add(error ? errorClass : 'normal');
 
     // Buffer the console output so that heavy writing to stdout does not starve
@@ -49,7 +53,7 @@ class Console {
         element.element.children.addAll(_bufferedOutput);
         // Using scrollIntoView(ScrollAlignment.BOTTOM) causes the parent page
         // to scroll, so set the scrollTop instead.
-        var last = element.element.children.last;
+        final last = element.element.children.last;
         element.element.scrollTop = last.offsetTop;
         _bufferedOutput.clear();
       });

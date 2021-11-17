@@ -58,7 +58,7 @@ class CodeMirrorFactory extends EditorFactory {
       'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
     };
 
-    var editor = CodeMirror.fromElement(element, options: options);
+    final editor = CodeMirror.fromElement(element, options: options);
     CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
     return _CodeMirrorEditor._(this, editor);
   }
@@ -78,15 +78,15 @@ class CodeMirrorFactory extends EditorFactory {
 
   Future<HintResults> _completionHelper(
       CodeMirror editor, CodeCompleter completer, HintsOptions? options) {
-    var ed = _CodeMirrorEditor._fromExisting(this, editor);
+    final ed = _CodeMirrorEditor._fromExisting(this, editor);
 
     return completer
         .complete(ed, onlyShowFixes: ed._lookingForQuickFix)
         .then((CompletionResult result) {
-      var doc = editor.getDoc()!;
-      var from = doc.posFromIndex(result.replaceOffset);
-      var to = doc.posFromIndex(result.replaceOffset + result.replaceLength);
-      var stringToReplace = doc.getValue()!.substring(
+      final doc = editor.getDoc()!;
+      final from = doc.posFromIndex(result.replaceOffset);
+      final to = doc.posFromIndex(result.replaceOffset + result.replaceLength);
+      final stringToReplace = doc.getValue()!.substring(
           result.replaceOffset, result.replaceOffset + result.replaceLength);
 
       var hints = result.completions.map((completion) {
@@ -108,13 +108,13 @@ class CodeMirrorFactory extends EditorFactory {
               doc.setCursor(
                   doc.posFromIndex(completion.absoluteCursorPosition!));
             } else if (completion.cursorOffset != null) {
-              var diff = hint.text!.length - completion.cursorOffset!;
+              final diff = hint.text!.length - completion.cursorOffset!;
               doc.setCursor(pos.Position(
                   editor.getCursor().line, editor.getCursor().ch! - diff));
             }
           },
           hintRenderer: (html.Element element, HintResult hint) {
-            var escapeHtml = HtmlEscape().convert as String Function(String?);
+            final escapeHtml = HtmlEscape().convert as String Function(String?);
             if (completion.type != 'type-quick_fix') {
               element.innerHtml = escapeHtml(completion.displayString)
                   .replaceFirst(escapeHtml(stringToReplace),
@@ -207,10 +207,11 @@ class _CodeMirrorEditor extends Editor {
 
   @override
   bool get completionActive {
-    if (cm.jsProxy!['state']['completionActive'] == null) {
-      return false;
+    final completionActive = _jsProxyState['completionActive'];
+    if (completionActive is Map) {
+      return completionActive['widget'] != null;
     } else {
-      return cm.jsProxy!['state']['completionActive']['widget'] != null;
+      return false;
     }
   }
 
@@ -234,7 +235,7 @@ class _CodeMirrorEditor extends Editor {
   set theme(String str) => cm.setTheme(str);
 
   @override
-  bool get hasFocus => cm.jsProxy!['state']['focused'] as bool;
+  bool get hasFocus => _jsProxyState['focused'] as bool;
 
   @override
   Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
@@ -279,6 +280,11 @@ class _CodeMirrorEditor extends Editor {
   void dispose() {
     _instances.remove(cm.jsProxy);
   }
+
+  Map<Object?, Object?> get _jsProxy => cm.jsProxy as Map<Object?, Object?>;
+
+  Map<Object?, Object?> get _jsProxyState =>
+      _jsProxy['state'] as Map<Object?, Object?>;
 }
 
 class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
@@ -343,16 +349,16 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
 
   @override
   void setAnnotations(List<Annotation> annotations) {
-    for (var marker in doc!.getAllMarks()) {
+    for (final marker in doc!.getAllMarks()) {
       marker.clear();
     }
 
-    for (var widget in widgets) {
+    for (final widget in widgets) {
       widget.clear();
     }
     widgets.clear();
 
-    for (var e in nodes) {
+    for (final e in nodes) {
       e.parent!.children.remove(e);
     }
     nodes.clear();
@@ -362,7 +368,7 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
 
     var lastLine = -1;
 
-    for (var an in annotations) {
+    for (final an in annotations) {
       // Create in-line squiggles.
       doc!.markText(_posToPos(an.start), _posToPos(an.end),
           className: 'squiggle-${an.type}', title: an.message);

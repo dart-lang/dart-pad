@@ -5,8 +5,9 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:dart_pad/src/util.dart';
 import 'package:mdc_web/mdc_web.dart';
+
+import '../src/util.dart';
 
 enum DialogResult {
   yes,

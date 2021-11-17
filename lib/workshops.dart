@@ -1,15 +1,16 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:html' hide Console;
 
-import 'package:dart_pad/context.dart';
-import 'package:dart_pad/src/util.dart';
-import 'package:dart_pad/util/detect_flutter.dart';
-import 'package:dart_pad/util/query_params.dart';
 import 'package:markdown/markdown.dart' as markdown;
 import 'package:split/split.dart';
 import 'package:stream_transform/stream_transform.dart';
 
 import 'completion.dart';
+import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
@@ -32,6 +33,9 @@ import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
 import 'sharing/editor_ui.dart';
 import 'src/ga.dart';
+import 'src/util.dart';
+import 'util/detect_flutter.dart';
+import 'util/query_params.dart';
 import 'workshops/workshops.dart';
 
 WorkshopUi? _workshopUi;
@@ -103,7 +107,7 @@ class WorkshopUi extends EditorUi {
   }
 
   Future<void> _initModules() async {
-    var modules = ModuleManager();
+    final modules = ModuleManager();
 
     modules.register(DartPadModule());
     modules.register(DartServicesModule());
@@ -215,14 +219,14 @@ class WorkshopUi extends EditorUi {
   }
 
   Future<void> _loadWorkshop() async {
-    var fetcher = _createWorkshopFetcher();
+    final fetcher = _createWorkshopFetcher();
     _workshopState = WorkshopState(await fetcher.fetch());
   }
 
   void _initSplitters() {
-    var stepsPanel = querySelector('#steps-panel');
-    var rightPanel = querySelector('#right-panel');
-    var editorPanel = querySelector('#editor-panel')!;
+    final stepsPanel = querySelector('#steps-panel');
+    final rightPanel = querySelector('#right-panel');
+    final editorPanel = querySelector('#editor-panel')!;
 
     splitter = flexSplit(
       [stepsPanel!, rightPanel!],
@@ -304,7 +308,7 @@ class WorkshopUi extends EditorUi {
   }
 
   void _updateInstructions() {
-    var div = querySelector('#markdown-content')!;
+    final div = querySelector('#markdown-content')!;
     div.children.clear();
     div.setInnerHtml(
         markdown.markdownToHtml(_workshopState.currentStep.instructions,
@@ -321,15 +325,15 @@ class WorkshopUi extends EditorUi {
   }
 
   WorkshopFetcher _createWorkshopFetcher() {
-    var webServer = queryParams.webServer;
+    final webServer = queryParams.webServer;
     if (webServer != null && webServer.isNotEmpty) {
-      var uri = Uri.parse(webServer);
+      final uri = Uri.parse(webServer);
       return WebServerWorkshopFetcher(uri);
     }
-    var ghOwner = queryParams.githubOwner;
-    var ghRepo = queryParams.githubRepo;
-    var ghRef = queryParams.githubRef;
-    var ghPath = queryParams.githubPath;
+    final ghOwner = queryParams.githubOwner;
+    final ghRepo = queryParams.githubRepo;
+    final ghRef = queryParams.githubRef;
+    final ghPath = queryParams.githubPath;
     if (ghOwner != null &&
         ghOwner.isNotEmpty &&
         ghRepo != null &&
@@ -346,11 +350,11 @@ class WorkshopUi extends EditorUi {
   }
 
   Future<void> _format() {
-    var originalSource = context.dartSource;
-    var input = SourceRequest()..source = originalSource;
+    final originalSource = context.dartSource;
+    final input = SourceRequest()..source = originalSource;
     formatButton.disabled = true;
 
-    var request = dartServices.format(input).timeout(serviceCallTimeout);
+    final request = dartServices.format(input).timeout(serviceCallTimeout);
     return request.then((FormatResponse result) {
       busyLight.reset();
       formatButton.disabled = false;
@@ -415,7 +419,7 @@ class WorkshopUi extends EditorUi {
   }
 
   Future<void> _handleShowSolution() async {
-    var result = await dialog.showOkCancel(
+    final result = await dialog.showOkCancel(
         'Show solution',
         'Are you sure you want to show the solution? Your changes for this '
             'step will be lost.');
@@ -436,11 +440,11 @@ class WorkshopUi extends EditorUi {
 
   /// Return true if the current cursor position is in a whitespace char.
   bool _cursorPositionIsWhitespace() {
-    var document = editor.document;
-    var str = document.value;
-    var index = document.indexFromPos(document.cursor);
+    final document = editor.document;
+    final str = document.value;
+    final index = document.indexFromPos(document.cursor);
     if (index < 0 || index >= str.length) return false;
-    var char = str[index];
+    final char = str[index];
     return char != char.trim();
   }
 }

@@ -14,17 +14,17 @@ import 'src/util.dart';
 
 /// Show an OK / Cancel dialog and return the option that the user selected.
 class OkCancelDialog extends DDialog {
-  OkCancelDialog(String title, String message, Function okAction,
+  OkCancelDialog(String title, String message, Future<void> Function() okAction,
       {String okText = 'OK', String cancelText = 'Cancel'})
       : super(title: title) {
     element.classes.toggle('sharing-dialog', true);
     content.add(ParagraphElement()).text = message;
 
-    var cancelButton = buttonArea.add(DButton.button(text: cancelText));
+    final cancelButton = buttonArea.add(DButton.button(text: cancelText));
     buttonArea.add(SpanElement()..attributes['flex'] = '');
     cancelButton.onClick.listen((_) => hide());
 
-    var okButton =
+    final okButton =
         buttonArea.add(DButton.button(text: okText, classes: 'default'));
     okButton.onClick.listen((_) {
       okAction();
@@ -35,13 +35,13 @@ class OkCancelDialog extends DDialog {
 
 class AboutDialog extends DDialog {
   AboutDialog([String? versionText]) : super(title: 'About DartPad') {
-    var p = content.add(ParagraphElement());
+    final p = content.add(ParagraphElement());
     var text = privacyText;
     if (versionText != null) text += ' Based on Dart SDK $versionText.';
     p.setInnerHtml(text, validator: PermissiveNodeValidator());
 
     buttonArea.add(SpanElement()..attributes['flex'] = '');
-    var okButton =
+    final okButton =
         buttonArea.add(DButton.button(text: 'OK', classes: 'default'));
     okButton.onClick.listen((_) => hide());
   }
@@ -130,13 +130,15 @@ class SharingDialog extends DDialog {
     _embedArea = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
-    var _leftArea = _embedArea.add(DElement.tag('div')
+    final _leftArea = _embedArea.add(DElement.tag('div')
       ..layoutVertical()
       ..flex()
       ..element.style.paddingLeft = '16px');
-    var _rightArea = _embedArea.add(DElement.tag('div'));
-    var _embedDartArea = _leftArea.add(DElement.tag('div')..layoutHorizontal());
-    var _embedHtmlArea = _leftArea.add(DElement.tag('div')..layoutHorizontal());
+    final _rightArea = _embedArea.add(DElement.tag('div'));
+    final _embedDartArea =
+        _leftArea.add(DElement.tag('div')..layoutHorizontal());
+    final _embedHtmlArea =
+        _leftArea.add(DElement.tag('div')..layoutHorizontal());
     _embedDartRadio = _embedDartArea.add(RadioButtonInputElement()
       ..name = 'embed'
       ..id = 'dart-radio');
@@ -224,7 +226,7 @@ class SharingDialog extends DDialog {
       _text.text =
           'Share the DartPad link or view the source at gist.github.com:';
       _textArea.style.display = 'none';
-      var gist = gistContainer.mutableGist;
+      final gist = gistContainer.mutableGist;
       content.add(_div);
       _padUrl.value = 'https://dartpad.dev/${gist.id}';
       _gistUrl.value = gist.htmlUrl;
@@ -246,7 +248,7 @@ class KeysDialog extends DDialog {
   }
 
   DListElement get keyMapToHtml {
-    var dl = DListElement();
+    final dl = DListElement();
     keyMap.forEach((Action action, Set<String> keys) {
       if (!action.hidden) {
         var string = '';

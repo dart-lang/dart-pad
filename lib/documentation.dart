@@ -8,7 +8,6 @@ import 'dart:convert' as convert show htmlEscape;
 import 'dart:html';
 import 'dart:math' as math;
 
-import 'package:dart_pad/util/detect_flutter.dart';
 import 'package:markdown/markdown.dart' as markdown;
 
 import 'context.dart';
@@ -17,6 +16,7 @@ import 'editing/editor.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'src/util.dart';
+import 'util/detect_flutter.dart';
 
 class DocHandler {
   static const Set<int> cursorKeys = {
@@ -93,31 +93,31 @@ class DocHandler {
   }
 
   String _sourceWithCompletionInserted(String source, int offset) {
-    var completionText = querySelector('.CodeMirror-hint-active')!.text!;
-    var lastSpace = source.substring(0, offset).lastIndexOf(' ') + 1;
-    var lastDot = source.substring(0, offset).lastIndexOf('.') + 1;
-    var insertOffset = math.max(lastSpace, lastDot);
+    final completionText = querySelector('.CodeMirror-hint-active')!.text!;
+    final lastSpace = source.substring(0, offset).lastIndexOf(' ') + 1;
+    final lastDot = source.substring(0, offset).lastIndexOf('.') + 1;
+    final insertOffset = math.max(lastSpace, lastDot);
     return _sourceProvider.dartSource.substring(0, insertOffset) +
         completionText +
         _sourceProvider.dartSource.substring(offset);
   }
 
   _DocResult _getHtmlTextFor(DocumentResponse result) {
-    var info = result.info;
+    final info = result.info;
 
     if (info['description'] == null && info['dartdoc'] == null) {
       return _DocResult('');
     }
 
-    var libraryName = info['libraryName'];
-    var kind = info['kind']!;
-    var hasDartdoc = info['dartdoc'] != null;
-    var isVariable = kind.contains('variable');
+    final libraryName = info['libraryName'];
+    final kind = info['kind']!;
+    final hasDartdoc = info['dartdoc'] != null;
+    final isVariable = kind.contains('variable');
 
-    var apiLink = _dartApiLink(libraryName);
+    final apiLink = _dartApiLink(libraryName);
 
-    var propagatedType = info['propagatedType'];
-    var _mdDocs = '''# `${info['description']}`\n\n
+    final propagatedType = info['propagatedType'];
+    final _mdDocs = '''# `${info['description']}`\n\n
 ${hasDartdoc ? "${info['dartdoc']}\n\n" : ''}
 ${isVariable ? "$kind\n\n" : ''}
 ${(isVariable && propagatedType != null) ? "**Propagated type:** $propagatedType\n\n" : ''}
@@ -192,7 +192,7 @@ class InlineBracketsColon extends markdown.InlineSyntax {
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
-    var element = markdown.Element.text('code', htmlEscape(match[1]!));
+    final element = markdown.Element.text('code', htmlEscape(match[1]!));
     parser.addNode(element);
     return true;
   }
@@ -212,7 +212,7 @@ class InlineBrackets extends markdown.InlineSyntax {
 
   @override
   bool onMatch(markdown.InlineParser parser, Match match) {
-    var element =
+    final element =
         markdown.Element.text('code', '<em>${htmlEscape(match[1]!)}</em>');
     parser.addNode(element);
     return true;

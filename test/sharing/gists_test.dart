@@ -49,8 +49,8 @@ void defineTests() {
       });
 
       test('should return body content with external scripts or resources', () {
-        var js = 'https://cdn.com/bootstrap.js';
-        var css = 'https://cdn.com/bootstrap.css';
+        final js = 'https://cdn.com/bootstrap.js';
+        final css = 'https://cdn.com/bootstrap.css';
         expect(extractHtmlBody('<link rel="stylesheet" href="$css">'),
             equals('<link rel="stylesheet" href="$css">'));
         expect(extractHtmlBody('<script src="$js"></script>'),
@@ -106,8 +106,8 @@ void defineTests() {
     });
 
     test('clone', () {
-      var gist = Gist(id: '2342jh2jh3g4', description: 'test gist');
-      var clone = gist.clone();
+      final gist = Gist(id: '2342jh2jh3g4', description: 'test gist');
+      final clone = gist.clone();
       expect(clone.id, gist.id);
       expect(clone.description, gist.description);
     });
@@ -115,7 +115,7 @@ void defineTests() {
 
   group('GistStorage', () {
     test('store', () {
-      var storage = GistStorage();
+      final storage = GistStorage();
       storage.setStoredGist(createSampleDartGist());
       expect(storage.hasStoredGist, true);
       expect(storage.getStoredGist(), isNotNull);
@@ -123,7 +123,7 @@ void defineTests() {
     });
 
     test('clear', () {
-      var storage = GistStorage();
+      final storage = GistStorage();
       storage.setStoredGist(createSampleDartGist());
       expect(storage.hasStoredGist, true);
       storage.clearStoredGist();

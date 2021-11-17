@@ -1,10 +1,6 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:dart_pad/elements/button.dart';
-import 'package:dart_pad/elements/dialog.dart';
-import 'package:dart_pad/services/execution.dart';
-import 'package:dart_pad/util/keymap.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -13,9 +9,13 @@ import '../context.dart';
 import '../dart_pad.dart';
 import '../editing/editor.dart';
 import '../elements/analysis_results_controller.dart';
+import '../elements/button.dart';
+import '../elements/dialog.dart';
 import '../elements/elements.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
+import '../services/execution.dart';
+import '../util/keymap.dart';
 
 abstract class EditorUi {
   final Logger logger = Logger('dartpad');
@@ -63,22 +63,22 @@ abstract class EditorUi {
   /// Each package name links to its page at pub.dev; each package version
   /// links to the version page at pub.dev; Each link opens in a new tab.
   void showPackageVersionsDialog() {
-    var directlyImportableList = StringBuffer('<dl>');
-    var indirectList = StringBuffer('<dl>');
-    for (var package in _packageInfo) {
-      var packageUrl = 'https://pub.dev/packages/${package.name}';
-      var packageLink = AnchorElement()
+    final directlyImportableList = StringBuffer('<dl>');
+    final indirectList = StringBuffer('<dl>');
+    for (final package in _packageInfo) {
+      final packageUrl = 'https://pub.dev/packages/${package.name}';
+      final packageLink = AnchorElement()
         ..href = packageUrl
         ..setAttribute('target', '_blank')
         ..text = package.name;
-      var dt = '<dt>${packageLink.outerHtml}</dt>';
-      var packageVersion = package.version;
-      var versionLink = SpanElement()
+      final dt = '<dt>${packageLink.outerHtml}</dt>';
+      final packageVersion = package.version;
+      final versionLink = SpanElement()
         ..children.add(AnchorElement()
           ..href = '$packageUrl/versions/$packageVersion'
           ..setAttribute('target', '_blank')
           ..text = packageVersion);
-      var dd = '<dd>${versionLink.outerHtml}</dd>';
+      final dd = '<dd>${versionLink.outerHtml}</dd>';
       if (package.supported) {
         directlyImportableList.write(dt);
         directlyImportableList.write(dd);
@@ -89,18 +89,22 @@ abstract class EditorUi {
     }
     directlyImportableList.write('</dl>');
     indirectList.write('</dl>');
-    var directDl = Element.html(directlyImportableList.toString(),
+    final directDl = Element.html(directlyImportableList.toString(),
         treeSanitizer: NodeTreeSanitizer.trusted);
-    var indirectDl = Element.html(indirectList.toString(),
+    final indirectDl = Element.html(indirectList.toString(),
         treeSanitizer: NodeTreeSanitizer.trusted);
 
-    var div = DivElement()
+    final div = DivElement()
       ..children.add(DivElement()
         ..children
             .add(ParagraphElement()..text = 'Directly importable packages')
         ..children.add(directDl)
-        ..children
-            .add(ParagraphElement()..text = 'Packages available transitively')
+        ..children.add(ParagraphElement()
+          ..text = 'Packages available transitively'
+          ..children.add(BRElement())
+          ..children.add(SpanElement()
+            ..text = '(These are not directly importable.)'
+            ..classes.add('muted')))
         ..children.add(indirectDl)
         ..classes.add('keys-dialog'));
     dialog.showOk('Pub package versions', div.innerHtml);
@@ -115,15 +119,15 @@ abstract class EditorUi {
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
   Future<bool> performAnalysis() async {
-    var input = SourceRequest()..source = fullDartSource;
+    final input = SourceRequest()..source = fullDartSource;
 
-    var lines = Lines(input.source);
+    final lines = Lines(input.source);
 
-    var request = dartServices.analyze(input).timeout(serviceCallTimeout);
+    final request = dartServices.analyze(input).timeout(serviceCallTimeout);
     analysisRequest = request;
 
     try {
-      var result = await request;
+      final result = await request;
       // Discard if we requested another analysis.
       if (analysisRequest != request) return false;
 
@@ -135,21 +139,21 @@ abstract class EditorUi {
       displayIssues(result.issues);
 
       currentDocument.setAnnotations(result.issues.map((AnalysisIssue issue) {
-        var startLine = lines.getLineForOffset(issue.charStart);
-        var endLine =
+        final startLine = lines.getLineForOffset(issue.charStart);
+        final endLine =
             lines.getLineForOffset(issue.charStart + issue.charLength);
-        var offsetForStartLine = lines.offsetForLine(startLine);
+        final offsetForStartLine = lines.offsetForLine(startLine);
 
-        var start = Position(startLine, issue.charStart - offsetForStartLine);
-        var end = Position(
+        final start = Position(startLine, issue.charStart - offsetForStartLine);
+        final end = Position(
             endLine, issue.charStart + issue.charLength - offsetForStartLine);
 
         return Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
       }).toList());
 
-      var hasErrors = result.issues.any((issue) => issue.kind == 'error');
-      var hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
+      final hasErrors = result.issues.any((issue) => issue.kind == 'error');
+      final hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
       return !hasErrors && !hasWarnings;
     } catch (e) {
       if (e is! TimeoutException) {
@@ -229,9 +233,9 @@ abstract class EditorUi {
   /// Updates the Flutter and Dart SDK versions in the bottom right.
   void updateVersions() async {
     try {
-      var response = await dartServices.version();
+      final response = await dartServices.version();
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
-      var versionText = 'Based on Flutter ${response.flutterVersion}'
+      final versionText = 'Based on Flutter ${response.flutterVersion}'
           ' Dart SDK ${response.sdkVersionFull}';
       querySelector('#dartpad-version')!.text = versionText;
       if (response.packageVersions.isNotEmpty) {
@@ -277,8 +281,8 @@ class Channel {
     // default to the stable channel.
     rootUrl ??= stableServerUrl;
 
-    var dartservicesApi = DartservicesApi(browserClient, rootUrl: rootUrl);
-    var versionResponse = await dartservicesApi.version();
+    final dartservicesApi = DartservicesApi(browserClient, rootUrl: rootUrl);
+    final versionResponse = await dartservicesApi.version();
     return Channel._(
       name: name,
       dartVersion: versionResponse.sdkVersionFull,

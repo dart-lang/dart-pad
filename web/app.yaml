@@ -8,6 +8,12 @@ handlers:
   - url: /example
     static_dir: example
 
+  - url: /scripts/assets/AssetManifest.json
+    static_files: scripts/assets/AssetManifest.json
+    upload: scripts/assets/AssetManifest\.json
+    http_headers:
+      Access-Control-Allow-Origin: "*"
+
   - url: /scripts/assets/FontManifest.json
     static_files: scripts/assets/FontManifest.json
     upload: scripts/assets/FontManifest\.json

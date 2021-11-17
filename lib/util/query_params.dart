@@ -1,3 +1,7 @@
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:html';
 
 /// Enables retrieving and setting browser query parameters.
@@ -14,7 +18,7 @@ class _QueryParams {
 
   set gistId(String? gistId) {
     var url = Uri.parse(window.location.toString());
-    var params = Map<String, String?>.from(url.queryParameters);
+    final params = Map<String, String?>.from(url.queryParameters);
     params['id'] = gistId;
     url = url.replace(queryParameters: params);
     window.history.replaceState({}, 'DartPad', url.toString());

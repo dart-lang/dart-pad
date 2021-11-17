@@ -3,8 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:dart_pad/elements/elements.dart';
 import 'package:mdc_web/mdc_web.dart';
+
+import 'elements.dart';
 
 /// Implementation of [TabController] for usage with mdc_web tabs.
 class MaterialTabController extends TabController {
@@ -13,12 +14,12 @@ class MaterialTabController extends TabController {
 
   @override
   Future selectTab(String? tabName) async {
-    var tab = tabs.firstWhere((t) => t.name == tabName);
-    var idx = tabs.indexOf(tab);
+    final tab = tabs.firstWhere((t) => t.name == tabName);
+    final idx = tabs.indexOf(tab);
 
     tabBar.activateTab(idx);
 
-    for (var t in tabs) {
+    for (final t in tabs) {
       t.toggleAttr('aria-selected', t == tab);
     }
 

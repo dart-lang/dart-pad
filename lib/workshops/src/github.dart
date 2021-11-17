@@ -1,6 +1,10 @@
-import 'package:dart_pad/util/github.dart';
+// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'package:http/http.dart' as http;
 
+import '../../util/github.dart';
 import 'exceptions.dart';
 import 'fetcher_impl.dart';
 
@@ -21,10 +25,10 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
 
   @override
   Future<String> loadFileContents(List<String> relativePath) async {
-    var url = _buildFileUrl(relativePath);
-    var res = await http.get(url);
+    final url = _buildFileUrl(relativePath);
+    final res = await http.get(url);
 
-    var statusCode = res.statusCode;
+    final statusCode = res.statusCode;
     if (statusCode == 404) {
       throw WorkshopFetchException(WorkshopFetchExceptionType.contentNotFound);
     } else if (statusCode == 403) {
@@ -38,8 +42,8 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
   }
 
   Uri _buildFileUrl(List<String> pathSegments) {
-    var p = path;
-    var filePath = <String>[if (p != null) p, ...pathSegments];
+    final p = path;
+    final filePath = <String>[if (p != null) p, ...pathSegments];
     return Uri(
       scheme: 'https',
       host: _apiHostname,

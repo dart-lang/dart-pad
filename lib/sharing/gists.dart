@@ -8,13 +8,14 @@ import 'dart:convert' show json;
 import 'dart:convert';
 
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:dart_pad/sharing/exercise_metadata.dart';
-import 'package:dart_pad/src/sample.dart' as sample;
 import 'package:fluttering_phrases/fluttering_phrases.dart' as phrases;
 import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart' as yaml;
+
+import '../src/sample.dart' as sample;
 import '../util/detect_flutter.dart' as detect_flutter;
 import '../util/github.dart';
+import 'exercise_metadata.dart';
 
 final String _dartpadLink = '[dartpad.dev](https://dartpad.dev)';
 
@@ -40,17 +41,17 @@ String? extractHtmlBody(String? html) {
   if (html == null || !html.contains('<html')) {
     return html;
   } else {
-    var body = r'body(?:\s[^>]*)?'; // Body tag with its attributes
-    var any = r'[\s\S]'; // Any character including new line
-    var bodyRegExp = RegExp('<$body>($any*)</$body>(?:(?!</$body>)$any)*',
+    final body = r'body(?:\s[^>]*)?'; // Body tag with its attributes
+    final any = r'[\s\S]'; // Any character including new line
+    final bodyRegExp = RegExp('<$body>($any*)</$body>(?:(?!</$body>)$any)*',
         multiLine: true, caseSensitive: false);
-    var match = bodyRegExp.firstMatch(html);
+    final match = bodyRegExp.firstMatch(html);
     return match == null ? '' : match.group(1)!.trim();
   }
 }
 
 Gist createSampleDartGist() {
-  var gist = Gist(description: phrases.generate());
+  final gist = Gist(description: phrases.generate());
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCode));
   gist.files.add(GistFile(
       name: 'readme.md',
@@ -60,7 +61,7 @@ Gist createSampleDartGist() {
 }
 
 Gist createSampleHtmlGist() {
-  var gist = Gist(description: phrases.generate());
+  final gist = Gist(description: phrases.generate());
   gist.files.add(GistFile(name: 'main.dart', content: sample.dartCodeHtml));
   gist.files.add(GistFile(name: 'index.html', content: sample.htmlCode));
   gist.files.add(GistFile(name: 'styles.css', content: sample.cssCode));
@@ -72,7 +73,7 @@ Gist createSampleHtmlGist() {
 }
 
 Gist createSampleFlutterGist() {
-  var gist = Gist(description: phrases.generate());
+  final gist = Gist(description: phrases.generate());
   gist.files.add(GistFile(name: 'main.dart', content: sample.flutterCode));
   gist.files.add(GistFile(
       name: 'readme.md',
@@ -84,10 +85,10 @@ Gist createSampleFlutterGist() {
 /// Find the best match for the given file names in the gist file info; return
 /// the file (or `null` if no match is found).
 GistFile? chooseGistFile(Gist gist, List<String> names, [Function? matcher]) {
-  var files = gist.files;
+  final files = gist.files;
 
-  for (var name in names) {
-    var file = files.firstWhereOrNull((f) => f.name == name);
+  for (final name in names) {
+    final file = files.firstWhereOrNull((f) => f.name == name);
     if (file != null) return file;
   }
 
@@ -129,26 +130,26 @@ class GistLoader {
     // Update files based on our preferred file names.
     if (gist.getFile('body.html') != null &&
         gist.getFile('index.html') == null) {
-      var file = gist.getFile('body.html')!;
+      final file = gist.getFile('body.html')!;
       file.name = 'index.html';
     }
 
     if (gist.getFile('style.css') != null &&
         gist.getFile('styles.css') == null) {
-      var file = gist.getFile('style.css')!;
+      final file = gist.getFile('style.css')!;
       file.name = 'styles.css';
     }
 
     if (gist.getFile('main.dart') == null &&
         gist.files.where((f) => f.name?.endsWith('.dart') ?? false).length ==
             1) {
-      var file =
+      final file =
           gist.files.firstWhere((f) => f.name?.endsWith('.dart') ?? false);
       file.name = 'main.dart';
     }
 
     // Extract the body out of the html file.
-    var htmlFile = gist.getFile('index.html');
+    final htmlFile = gist.getFile('index.html');
     if (htmlFile != null) {
       htmlFile.content = extractHtmlBody(htmlFile.content);
     }
@@ -156,16 +157,16 @@ class GistLoader {
 
   static void _defaultSaveHook(Gist gist) {
     // Create a full html file on save.
-    var hasStyles = gist.getFile('styles.css') != null;
-    var styleRef =
+    final hasStyles = gist.getFile('styles.css') != null;
+    final styleRef =
         hasStyles ? '    <link rel="stylesheet" href="styles.css">\n' : '';
 
-    var hasDart = gist.getFile('main.dart') != null;
-    var dartRef = hasDart
+    final hasDart = gist.getFile('main.dart') != null;
+    final dartRef = hasDart
         ? '    <script type="application/dart" src="main.dart"></script>\n'
         : '';
 
-    var htmlFile = gist.getFile('index.html');
+    final htmlFile = gist.getFile('index.html');
     if (htmlFile != null) {
       htmlFile.content = '''
 <!DOCTYPE html>
@@ -185,7 +186,7 @@ $styleRef$dartRef  </head>
     }
 
     // Update the readme for this gist.
-    var readmeFile = GistFile(
+    final readmeFile = GistFile(
         name: 'readme.md',
         content: _createReadmeContents(
             title: gist.description,
@@ -391,7 +392,7 @@ class Gist {
     if (key == 'html_url') return htmlUrl;
     if (key == 'public') return public;
     if (key == 'summary') return summary;
-    for (var file in files) {
+    for (final file in files) {
       if (file.name == key) return file.content;
     }
     return null;
@@ -421,13 +422,13 @@ class Gist {
   }
 
   Map<String, dynamic> toMap() {
-    var m = <String, dynamic>{};
+    final m = <String, dynamic>{};
     if (id != null) m['id'] = id;
     if (description != null) m['description'] = description;
     if (public != null) m['public'] = public;
     if (summary != null) m['summary'] = summary;
     m['files'] = {};
-    for (var file in files) {
+    for (final file in files) {
       if (file.hasContent) {
         m['files'][file.name] = {'content': file.content};
       }
@@ -460,7 +461,7 @@ class GistFile {
 }
 
 abstract class GistController {
-  Future createNewGist();
+  Future<void> createNewGist();
 }
 
 class GistSummary {

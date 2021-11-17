@@ -5,11 +5,6 @@
  */
 
 replaceJavaScript = function (value) {
-    // Remove canvaskit from this page, This can be removed when this PR lands
-    // in dart-services:
-    // https://github.com/flutter/engine/pull/26059
-    removeCanvaskit();
-
     // Remove the old node.
     var oldNode = document.getElementById('compiledJsScript');
     if (oldNode && oldNode.parentNode) {
@@ -58,10 +53,18 @@ removeScript = function (id) {
 }
 
 addFirebase = function () {
-    addScript('firebase-app', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js');
-    addScript('firebase-auth', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-auth.js');
-    addScript('firebase-database', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-database.js');
-    addScript('firestore', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-firestore.js');
+    addScript('firebase-app', 'https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js');
+    addScript('firebase-auth', 'https://www.gstatic.com/firebasejs/8.6.1/firebase-auth.js');
+    addScript('firebase-database', 'https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js',
+    function() {
+        // To prevent poor interaction between a firebase iframe, and the
+        // sandboxed render iframe, use this one weird trick. Otherwise, you
+        // get sandboxed iframe security errors. See:
+        // * https://github.com/dart-lang/dart-pad/issues/1946,
+        // * https://github.com/firebase/firebase-js-sdk/issues/123.
+        firebase.database.INTERNAL.forceWebSockets();
+    });
+    addScript('firestore', 'https://www.gstatic.com/firebasejs/8.6.1/firebase-firestore.js');
 }
 
 removeFirebase = function () {

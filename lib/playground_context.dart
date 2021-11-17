@@ -81,7 +81,7 @@ class PlaygroundContext extends Context {
 
   @override
   void switchTo(String name) {
-    var oldMode = activeMode;
+    final oldMode = activeMode;
 
     if (name == 'dart') {
       editor.swapDocument(_dartDoc);
@@ -136,11 +136,11 @@ class PlaygroundContext extends Context {
 
   /// Return true if the current cursor position is in a whitespace char.
   bool cursorPositionIsWhitespace() {
-    var document = editor.document;
-    var str = document.value;
-    var index = document.indexFromPos(document.cursor);
+    final document = editor.document;
+    final str = document.value;
+    final index = document.indexFromPos(document.cursor);
     if (index < 0 || index >= str.length) return false;
-    var char = str[index];
+    final char = str[index];
     return char != char.trim();
   }
 }
