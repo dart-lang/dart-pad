@@ -207,7 +207,7 @@ class _CodeMirrorEditor extends Editor {
 
   @override
   bool get completionActive {
-    final completionActive = _jsProxyState['completionActive'];
+    final completionActive = _jsProxyState!['completionActive'];
     if (completionActive is Map) {
       return completionActive['widget'] != null;
     } else {
@@ -235,7 +235,7 @@ class _CodeMirrorEditor extends Editor {
   set theme(String str) => cm.setTheme(str);
 
   @override
-  bool get hasFocus => _jsProxyState['focused'] as bool;
+  bool get hasFocus => _jsProxyState?['focused'] == true;
 
   @override
   Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
@@ -246,8 +246,8 @@ class _CodeMirrorEditor extends Editor {
     if (position == null) {
       js = cm.call('cursorCoords') as JsObject?;
     } else {
-      js = cm.callArg('cursorCoords', _document._posToPos(position).toProxy())
-          as JsObject?;
+      final proxyPos = _document._posToPos(position).toProxy();
+      js = cm.callArg('cursorCoords', proxyPos) as JsObject?;
     }
     return Point(js!['left'] as num, js['top'] as num);
   }
@@ -281,10 +281,9 @@ class _CodeMirrorEditor extends Editor {
     _instances.remove(cm.jsProxy);
   }
 
-  Map<Object?, Object?> get _jsProxy => cm.jsProxy as Map<Object?, Object?>;
+  JsObject? get _jsProxy => cm.jsProxy;
 
-  Map<Object?, Object?> get _jsProxyState =>
-      _jsProxy['state'] as Map<Object?, Object?>;
+  JsObject? get _jsProxyState => _jsProxy?['state'] as JsObject?;
 }
 
 class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
