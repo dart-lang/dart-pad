@@ -23,7 +23,6 @@ final RegExp _gistRegex = RegExp(r'^[0-9a-f]+$');
 
 enum FlutterSdkChannel {
   master,
-  dev,
   beta,
   stable,
 }
@@ -232,7 +231,7 @@ $styleRef$dartRef  </head>
 
   Future<Gist> loadGistFromAPIDocs(
       String sampleId, FlutterSdkChannel channel) async {
-    if (channel == FlutterSdkChannel.beta || channel == FlutterSdkChannel.dev) {
+    if (channel == FlutterSdkChannel.beta) {
       throw ArgumentError('Only stable and master channels are supported!');
     }
 

@@ -485,8 +485,6 @@ class Embed extends EditorUi {
 
     if (channelStr == 'master') {
       return FlutterSdkChannel.master;
-    } else if (channelStr == 'dev') {
-      return FlutterSdkChannel.dev;
     } else if (channelStr == 'beta') {
       return FlutterSdkChannel.beta;
     } else {

@@ -353,7 +353,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
     channels = await Future.wait([
       Channel.fromVersion('stable'),
       Channel.fromVersion('beta'),
-      Channel.fromVersion('dev'),
       Channel.fromVersion('old'),
     ]);
 
