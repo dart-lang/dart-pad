@@ -293,7 +293,6 @@ class Channel {
   static const urlMapping = {
     'stable': stableServerUrl,
     'beta': betaServerUrl,
-    'dev': devServerUrl,
     'old': oldServerUrl,
   };
 

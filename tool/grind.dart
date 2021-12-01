@@ -77,6 +77,7 @@ serveBetaBackend() async {
   });
 }
 
+// TODO(srawlins): Remove this task if the 'dev' channel becomes unsupported.
 @Task('Serve locally on port 8000 and use dev server URL for pre null-safe')
 @Depends(ConstTaskInvocation(
   'build',

@@ -30,6 +30,9 @@ const betaServerUrlEnvironmentVar = 'BETA_SERVER_URL';
 /// The URL of the "Flutter beta" back-end server.
 const betaServerUrl = String.fromEnvironment(betaServerUrlEnvironmentVar);
 
+// TODO(srawlins): remove these 'dev' channel tasks if that channel becomes
+// unsupported.
+
 /// The environment variable name which specifies the URL of the back-end
 /// server serving "Flutter dev".
 const devServerUrlEnvironmentVar = 'DEV_SERVER_URL';
