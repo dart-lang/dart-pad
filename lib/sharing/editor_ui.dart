@@ -32,14 +32,6 @@ abstract class EditorUi {
   /// The dialog box for information like Keyboard shortcuts.
   final Dialog dialog = Dialog();
 
-  /// The source-of-truth for whether null safety is enabled.
-  ///
-  /// On page load, this may be originally derived from local storage.
-  late bool nullSafetyEnabled;
-
-  /// Whether null safety was enabled for the previous execution.
-  bool nullSafetyWasPreviouslyEnabled = false;
-
   String get fullDartSource => context.dartSource;
 
   bool get shouldCompileDDC;
@@ -189,10 +181,6 @@ abstract class EditorUi {
 
     final compilationTimer = Stopwatch()..start();
     final compileRequest = CompileRequest()..source = fullDartSource;
-    // If the null safety toggle has changed from the last execution to this
-    // one, destroy the frame.
-    final shouldDestroyFrame =
-        nullSafetyWasPreviouslyEnabled == !nullSafetyEnabled;
 
     try {
       if (shouldCompileDDC) {
@@ -210,7 +198,9 @@ abstract class EditorUi {
           modulesBaseUrl: response.modulesBaseUrl,
           addRequireJs: true,
           addFirebaseJs: shouldAddFirebaseJs,
-          destroyFrame: shouldDestroyFrame,
+          // TODO(srawlins): Determine if we need to destroy the frame when
+          // changing channels.
+          destroyFrame: false,
         );
       } else {
         final response = await dartServices
@@ -224,14 +214,9 @@ abstract class EditorUi {
           context.htmlSource,
           context.cssSource,
           response.result,
-          destroyFrame: shouldDestroyFrame,
+          destroyFrame: false,
         );
       }
-      // Only after successful execution can we safely set the "previous" null
-      // safety state. If compilation or execution threw, we leave the previous
-      // null safety state so that we know to still destroy the frame on the
-      // next attempt.
-      nullSafetyWasPreviouslyEnabled = nullSafetyEnabled;
       return true;
     } catch (e) {
       ga.sendException('${e.runtimeType}');

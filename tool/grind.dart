@@ -51,8 +51,7 @@ serveLocalAppEngine() async {
   ConstTaskArgs('build', flags: {
     _debugFlag: true,
   }, options: {
-    _preNullSafetyServerUrlOption: 'http://127.0.0.1:8082/',
-    _nullSafetyServerUrlOption: 'http://127.0.0.1:8084/',
+    _serverUrlOption: 'http://127.0.0.1:8084/',
   }),
 ))
 serveLocalBackend() async {
@@ -67,9 +66,7 @@ serveLocalBackend() async {
 @Task('Serve locally on port 8000 and use beta server URL for pre null-safe')
 @Depends(ConstTaskInvocation(
   'build',
-  ConstTaskArgs('build', options: {
-    _preNullSafetyServerUrlOption: 'http://beta.api.dartpad.dev/',
-  }),
+  ConstTaskArgs('build', options: {}),
 ))
 serveBetaBackend() async {
   log('\nServing dart-pad on http://localhost:8000');
@@ -83,9 +80,7 @@ serveBetaBackend() async {
 @Task('Serve locally on port 8000 and use dev server URL for pre null-safe')
 @Depends(ConstTaskInvocation(
   'build',
-  ConstTaskArgs('build', options: {
-    _preNullSafetyServerUrlOption: 'http://dev.api.dartpad.dev/',
-  }),
+  ConstTaskArgs('build', options: {}),
 ))
 serveDevBackend() async {
   log('\nServing dart-pad on http://localhost:8000');
@@ -100,25 +95,16 @@ serveDevBackend() async {
 /// use DDC instead of dart2js.
 const _debugFlag = 'debug';
 
-/// A grinder option which specifies the URL of the pre-null safety back-end
-/// server.
-const _preNullSafetyServerUrlOption = 'pre-null-safety-server-url';
-
-/// A grinder option which specifies the URL of the null safety back-end
-/// server.
-const _nullSafetyServerUrlOption = 'null-safety-server-url';
+/// A grinder option which specifies the URL of the back-end server.
+const _serverUrlOption = 'server-url';
 
 @Task('Build the `web/index.html` entrypoint')
 @Depends(generateProtos)
 build() {
   final args = context.invocation.arguments;
   final compilerArgs = {
-    if (args.hasOption(_preNullSafetyServerUrlOption))
-      preNullSafetyServerUrlEnvironmentVar:
-          args.getOption(_preNullSafetyServerUrlOption),
-    if (args.hasOption(_nullSafetyServerUrlOption))
-      nullSafetyServerUrlEnvironmentVar:
-          args.getOption(_nullSafetyServerUrlOption),
+    if (args.hasOption(_serverUrlOption))
+      serverUrlEnvironmentVar: args.getOption(_serverUrlOption),
   };
   PubApp.local('build_runner').run([
     'build',
