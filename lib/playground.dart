@@ -1090,7 +1090,7 @@ class NewPadDialog {
     });
 
     final cancelSub = _cancelButton.onClick.listen((_) {
-      completer.complete(selectedLayout);
+      completer.complete(null);
     });
 
     final createSub = _createButton.onClick.listen((_) {
