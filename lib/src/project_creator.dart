@@ -69,7 +69,7 @@ linter:
   /// Builds a Flutter project template directory, complete with `pubspec.yaml`,
   /// `analysis_options.yaml`, and `web/index.html`.
   ///
-  /// Depending on [includeFirebase], Firebase packages are included in
+  /// Depending on [firebaseStyle], Firebase packages are included in
   /// `pubspec.yaml` which affects how `flutter packages get` will register
   /// plugins.
   Future<void> buildFlutterProjectTemplate({
@@ -77,9 +77,7 @@ linter:
   }) async {
     final projectDirName = firebaseStyle == FirebaseStyle.none
         ? 'flutter_project'
-        : firebaseStyle == FirebaseStyle.deprecated
-            ? 'firebase_deprecated_project'
-            : 'firebase_project';
+        : 'firebase_project';
     final projectPath = path.join(
       _templatesPath,
       _isNullSafe ? 'null-safe' : 'null-unsafe',
@@ -93,8 +91,6 @@ linter:
       ...supportedBasicDartPackages,
       ...supportedFlutterPackages,
       if (firebaseStyle != FirebaseStyle.none) ...coreFirebasePackages,
-      if (firebaseStyle == FirebaseStyle.deprecated)
-        ...deprecatedFirebasePackages,
       if (firebaseStyle == FirebaseStyle.flutterFire)
         ...registerableFirebasePackages,
     };
@@ -217,9 +213,6 @@ String get _pubCachePath {
 enum FirebaseStyle {
   /// Indicates that no Firebase is used.
   none,
-
-  /// Indicates that the deprecated Firebase packages are used.
-  deprecated,
 
   /// Indicates that the "pure Dart" Flutterfire packages are used.
   flutterFire,

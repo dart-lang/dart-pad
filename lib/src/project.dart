@@ -65,30 +65,19 @@ const Set<String> coreFirebasePackages = {
   'firebase_core',
 };
 
-/// The set of deprecated Firebase packages.
-const Set<String> deprecatedFirebasePackages = {
-  'firebase',
-};
-
 /// The set of Firebase packages which can be registered in the generated
 /// registrant file. Theoretically this should be _all_ plugins, but there
 /// are bugs. See https://github.com/dart-lang/dart-pad/issues/2033 and
 /// https://github.com/FirebaseExtended/flutterfire/issues/3962.
 const Set<String> registerableFirebasePackages = {
   'cloud_firestore',
-  'cloud_functions',
   'firebase_auth',
-  'firebase_database',
-  'firebase_storage',
 };
 
 /// The set of Firebase packages which indicate that Firebase is being used.
 const Set<String> firebasePackages = {
-  'firebase_analytics',
-  'firebase_messaging',
   ...coreFirebasePackages,
   ...registerableFirebasePackages,
-  ...deprecatedFirebasePackages,
 };
 
 /// The set of packages which indicate that Flutter Web is being used.
@@ -159,18 +148,6 @@ bool usesFlutterWeb(Iterable<ImportDirective> imports) {
     final packageName = _packageNameFromPackageUri(uriString);
     return packageName != null &&
         _packagesIndicatingFlutter.contains(packageName);
-  });
-}
-
-/// Returns whether [imports] denote use of deprecated Firebase.
-bool usesDeprecatedFirebase(Iterable<ImportDirective> imports) {
-  return imports.any((import) {
-    final uriString = import.uri.stringValue;
-    if (uriString == null) return false;
-
-    final packageName = _packageNameFromPackageUri(uriString);
-    return packageName != null &&
-        deprecatedFirebasePackages.contains(packageName);
   });
 }
 

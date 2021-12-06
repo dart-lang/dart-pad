@@ -242,85 +242,8 @@ void defineTests() {
               'generated_plugin_registrant.dart',
               allOf([
                 matches('FirebaseFirestoreWeb.registerWith'),
-                matches('FirebaseFunctionsWeb.registerWith'),
-                matches('FirebaseFunctionsWeb.registerWith'),
                 matches('FirebaseAuthWeb.registerWith'),
                 matches('FirebaseCoreWeb.registerWith'),
-                matches('FirebaseDatabaseWeb.registerWith'),
-                matches('FirebaseStorageWeb.registerWith'),
-                matches('UrlLauncherPlugin.registerWith'),
-              ])),
-        ]),
-      ]).validate();
-    });
-  });
-
-  group('deprecated Firebase project template', () {
-    setUpAll(() async {
-      await (await projectCreator())
-          .buildFlutterProjectTemplate(firebaseStyle: FirebaseStyle.deprecated);
-    });
-
-    test('project directory is created', () async {
-      await d.dir('project_templates', [
-        d.dir('null-safe', [
-          d.dir('firebase_deprecated_project'),
-        ]),
-      ]).validate();
-    });
-
-    test('Flutter Web directories are created', () async {
-      await d.dir('project_templates/null-safe', [
-        d.dir('firebase_deprecated_project', [
-          d.dir('lib'),
-          d.dir('web', [d.file('index.html', isEmpty)]),
-        ])
-      ]).validate();
-    });
-
-    test('pubspec is created', () async {
-      await d.dir('project_templates/null-safe', [
-        d.dir('firebase_deprecated_project', [
-          d.file(
-              'pubspec.yaml',
-              allOf([
-                matches("sdk: '>=$languageVersion <3.0.0'"),
-                matches('meta: 1.7.0'),
-                matches('sdk: flutter'),
-              ])),
-        ]),
-      ]).validate();
-    });
-
-    test('pub get creates pubspec.lock', () async {
-      await d.dir('project_templates/null-safe', [
-        d.dir('firebase_deprecated_project',
-            [d.file('pubspec.lock', isNotEmpty)]),
-      ]).validate();
-    });
-
-    test('flutter lints are enabled', () async {
-      await d.dir('project_templates/null-safe', [
-        d.dir('firebase_deprecated_project', [
-          d.file('analysis_options.yaml',
-              matches('include: package:flutter_lints/flutter.yaml')),
-        ]),
-      ]).validate();
-    });
-
-    test('plugins are registered', () async {
-      await d.dir('project_templates/null-safe', [
-        d.dir('firebase_deprecated_project/lib', [
-          d.file(
-              'generated_plugin_registrant.dart',
-              allOf([
-                isNot(matches('FirebaseFirestoreWeb.registerWith')),
-                isNot(matches('FirebaseFunctionsWeb.registerWith')),
-                isNot(matches('FirebaseFunctionsWeb.registerWith')),
-                isNot(matches('FirebaseAuthWeb.registerWith')),
-                matches('FirebaseCoreWeb.registerWith'),
-                isNot(matches('FirebaseDatabaseWeb.registerWith')),
-                isNot(matches('FirebaseStorageWeb.registerWith')),
                 matches('UrlLauncherPlugin.registerWith'),
               ])),
         ]),

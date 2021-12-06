@@ -141,13 +141,11 @@ Future<void> _validateExists(Uri url) async {
   }
 }
 
-/// Builds the EIGHT project templates:
+/// Builds the six project templates:
 ///
 /// * the Dart project template (both null safe and pre-null safe),
 /// * the Flutter project template (both null safe and pre-null safe),
 /// * the Firebase project template (both null safe and pre-null safe).
-/// * the deprecated Firebase project template (both null safe and pre-null
-///   safe).
 @Task('build the project templates')
 @Depends(sdkInit)
 void buildProjectTemplates() async {
@@ -171,9 +169,6 @@ void buildProjectTemplates() async {
     await projectCreator.buildDartProjectTemplate();
     await projectCreator.buildFlutterProjectTemplate(
       firebaseStyle: FirebaseStyle.none,
-    );
-    await projectCreator.buildFlutterProjectTemplate(
-      firebaseStyle: FirebaseStyle.deprecated,
     );
     await projectCreator.buildFlutterProjectTemplate(
       firebaseStyle: FirebaseStyle.flutterFire,
