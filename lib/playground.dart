@@ -142,8 +142,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   MDCMenu get _samplesMenu => _initSamplesMenu();
 
-  Element? get _channelsDropdownButton =>
-      querySelector('#channels-dropdown-button');
+  ButtonElement get _channelsDropdownButton =>
+      querySelector('#channels-dropdown-button') as ButtonElement;
 
   bool get _isCompletionActive => editor.completionActive;
 
@@ -209,12 +209,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
         .listen((_) => showPackageVersionsDialog());
 
     _initChannelsMenu();
-    final channelsButton = _channelsDropdownButton;
-    if (channelsButton is ButtonElement) {
-      MDCButton(channelsButton)
-          .onClick
-          .listen((e) => _toggleMenu(_channelsMenu));
-    }
+    MDCButton(_channelsDropdownButton)
+        .onClick
+        .listen((e) => _toggleMenu(_channelsMenu));
   }
 
   MDCMenu _initSamplesMenu() {
@@ -367,7 +364,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _channelsMenu?.unlisten('MDCMenu:selected', _handleChannelsMenuSelected);
     _channelsMenu = MDCMenu(menuElement)
       ..setAnchorCorner(AnchorCorner.bottomLeft)
-      ..setAnchorElement(_channelsDropdownButton as ButtonElement)
+      ..setAnchorElement(_channelsDropdownButton)
       ..hoistMenuToBody();
 
     _channelsMenu?.listen('MDCMenu:selected', _handleChannelsMenuSelected);
@@ -892,6 +889,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
       return;
     }
     queryParams.channel = channel;
+    final buttonText =
+        _channelsDropdownButton.querySelector('.mdc-button__label')!;
+    buttonText.text = '$channel channel';
     dartServices.rootUrl = Channel.urlMapping[channel]!;
     updateVersions();
     performAnalysis();
