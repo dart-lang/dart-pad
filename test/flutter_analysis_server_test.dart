@@ -21,59 +21,52 @@ final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
 void main() => defineTests();
 
 void defineTests() {
-  for (final nullSafety in [false, true]) {
-    final nullSafetyDescription = 'Null ${nullSafety ? 'Safe' : 'Unsafe'}';
+  group('Flutter SDK analysis_server', () {
+    late AnalysisServerWrapper analysisServer;
 
-    group('$nullSafetyDescription Flutter SDK analysis_server', () {
-      late AnalysisServerWrapper analysisServer;
-
-      setUp(() async {
-        final sdk = Sdk.create(channel);
-        analysisServer = FlutterAnalysisServerWrapper(
-            dartSdkPath: sdk.dartSdkPath, nullSafety: nullSafety);
-        await analysisServer.init();
-        await analysisServer.warmup();
-      });
-
-      tearDown(() async {
-        await analysisServer.shutdown();
-      });
-
-      test('analyze counter app', () async {
-        final results = await analysisServer.analyze(nullSafety
-            ? sampleCodeFlutterCounterNullSafe
-            : sampleCodeFlutterCounter);
-        expect(results.issues, isEmpty);
-      });
-
-      test('analyze Draggable Physics sample', () async {
-        final results = await analysisServer.analyze(nullSafety
-            ? sampleCodeFlutterDraggableCardNullSafe
-            : sampleCodeFlutterDraggableCard);
-        expect(results.issues, isEmpty);
-      });
+    setUp(() async {
+      final sdk = Sdk.create(channel);
+      analysisServer =
+          FlutterAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
+      await analysisServer.init();
+      await analysisServer.warmup();
     });
 
-    group(
-        '$nullSafetyDescription Flutter SDK analysis_server with analysis '
-        'servers', () {
-      late AnalysisServersWrapper analysisServersWrapper;
+    tearDown(() async {
+      await analysisServer.shutdown();
+    });
 
-      setUp(() async {
-        final sdk = Sdk.create(channel);
-        analysisServersWrapper =
-            AnalysisServersWrapper(sdk.dartSdkPath, nullSafety);
-        await analysisServersWrapper.warmup();
-      });
+    test('analyze counter app', () async {
+      final results = await analysisServer.analyze(sampleCodeFlutterCounter);
+      expect(results.issues, isEmpty);
+    });
 
-      tearDown(() async {
-        await analysisServersWrapper.shutdown();
-      });
+    test('analyze Draggable Physics sample', () async {
+      final results =
+          await analysisServer.analyze(sampleCodeFlutterDraggableCard);
+      expect(results.issues, isEmpty);
+    });
+  });
 
-      test('reports errors with Flutter code', () async {
-        late AnalysisResults results;
-        await tryWithReruns(() async {
-          results = await analysisServersWrapper.analyze('''
+  group(
+      'Flutter SDK analysis_server with analysis '
+      'servers', () {
+    late AnalysisServersWrapper analysisServersWrapper;
+
+    setUp(() async {
+      final sdk = Sdk.create(channel);
+      analysisServersWrapper = AnalysisServersWrapper(sdk.dartSdkPath);
+      await analysisServersWrapper.warmup();
+    });
+
+    tearDown(() async {
+      await analysisServersWrapper.shutdown();
+    });
+
+    test('reports errors with Flutter code', () async {
+      late AnalysisResults results;
+      await tryWithReruns(() async {
+        results = await analysisServersWrapper.analyze('''
 import 'package:flutter/material.dart';
 
 String x = 7;
@@ -89,25 +82,25 @@ class HelloWorld extends StatelessWidget {
   Widget build(context) => const Center(child: Text('Hello world'));
 }
 ''');
-          if (results.issues.isEmpty) {
-            throw StateError('Flaky result');
-          }
-        });
-        expect(results.issues, hasLength(1));
-        final issue = results.issues[0];
-        expect(issue.line, 3);
-        expect(issue.kind, 'error');
-        expect(
-            issue.message,
-            "A value of type 'int' can't be assigned to a variable of type "
-            "'String'.");
+        if (results.issues.isEmpty) {
+          throw StateError('Flaky result');
+        }
       });
+      expect(results.issues, hasLength(1));
+      final issue = results.issues[0];
+      expect(issue.line, 3);
+      expect(issue.kind, 'error');
+      expect(
+          issue.message,
+          "A value of type 'int' can't be assigned to a variable of type "
+          "'String'.");
+    });
 
-      // https://github.com/dart-lang/dart-pad/issues/2005
-      test('reports lint with Flutter code', () async {
-        late AnalysisResults results;
-        await tryWithReruns(() async {
-          results = await analysisServersWrapper.analyze('''
+    // https://github.com/dart-lang/dart-pad/issues/2005
+    test('reports lint with Flutter code', () async {
+      late AnalysisResults results;
+      await tryWithReruns(() async {
+        results = await analysisServersWrapper.analyze('''
 import 'package:flutter/material.dart';
 
 void main() async {
@@ -123,68 +116,73 @@ class HelloWorld extends StatelessWidget {
   Widget build(context) => const Center(child: Text('Hello world'));
 }
 ''');
-          if (results.issues.isEmpty) {
-            throw StateError('Flaky result');
-          }
-        });
-        expect(results.issues, hasLength(1));
-        final issue = results.issues[0];
-        expect(issue.line, 4);
-        expect(issue.kind, 'info');
-        expect(
-            issue.message, 'Prefer typing uninitialized variables and fields.');
+        if (results.issues.isEmpty) {
+          throw StateError('Flaky result');
+        }
       });
-
-      test('analyze counter app', () async {
-        final results = await analysisServersWrapper.analyze(nullSafety
-            ? sampleCodeFlutterCounterNullSafe
-            : sampleCodeFlutterCounter);
-        expect(results.issues, isEmpty);
-      });
-
-      test('analyze Draggable Physics sample', () async {
-        final results = await analysisServersWrapper.analyze(nullSafety
-            ? sampleCodeFlutterDraggableCardNullSafe
-            : sampleCodeFlutterDraggableCard);
-        expect(results.issues, isEmpty);
-      });
+      expect(results.issues, hasLength(1));
+      final issue = results.issues[0];
+      expect(issue.line, 4);
+      expect(issue.kind, 'info');
+      expect(
+          issue.message, 'Prefer typing uninitialized variables and fields.');
     });
 
-    group('$nullSafetyDescription CommonServerImpl flutter analyze', () {
-      late CommonServerImpl commonServerImpl;
-
-      _MockContainer container;
-      _MockCache cache;
-
-      setUp(() async {
-        container = _MockContainer();
-        cache = _MockCache();
-        final sdk = Sdk.create(channel);
-        commonServerImpl = CommonServerImpl(container, cache, sdk, nullSafety);
-        await commonServerImpl.init();
-      });
-
-      tearDown(() async {
-        await commonServerImpl.shutdown();
-      });
-
-      test('counter app', () async {
-        final results = await commonServerImpl.analyze(SourceRequest()
-          ..source = nullSafety
-              ? sampleCodeFlutterCounterNullSafe
-              : sampleCodeFlutterCounter);
-        expect(results.issues, isEmpty);
-      });
-
-      test('Draggable Physics sample', () async {
-        final results = await commonServerImpl.analyze(SourceRequest()
-          ..source = nullSafety
-              ? sampleCodeFlutterDraggableCardNullSafe
-              : sampleCodeFlutterDraggableCard);
-        expect(results.issues, isEmpty);
-      });
+    test('analyze counter app', () async {
+      final results =
+          await analysisServersWrapper.analyze(sampleCodeFlutterCounter);
+      expect(results.issues, isEmpty);
     });
-  }
+
+    test('analyze Draggable Physics sample', () async {
+      final results =
+          await analysisServersWrapper.analyze(sampleCodeFlutterDraggableCard);
+      expect(results.issues, isEmpty);
+    });
+
+    test('analyze counter app', () async {
+      final results =
+          await analysisServersWrapper.analyze(sampleCodeFlutterCounter);
+      expect(results.issues, isEmpty);
+    });
+
+    test('analyze Draggable Physics sample', () async {
+      final results =
+          await analysisServersWrapper.analyze(sampleCodeFlutterDraggableCard);
+      expect(results.issues, isEmpty);
+    });
+  });
+
+  group('CommonServerImpl flutter analyze', () {
+    late CommonServerImpl commonServerImpl;
+
+    _MockContainer container;
+    _MockCache cache;
+
+    setUp(() async {
+      container = _MockContainer();
+      cache = _MockCache();
+      final sdk = Sdk.create(channel);
+      commonServerImpl = CommonServerImpl(container, cache, sdk);
+      await commonServerImpl.init();
+    });
+
+    tearDown(() async {
+      await commonServerImpl.shutdown();
+    });
+
+    test('counter app', () async {
+      final results = await commonServerImpl
+          .analyze(SourceRequest()..source = sampleCodeFlutterCounter);
+      expect(results.issues, isEmpty);
+    });
+
+    test('Draggable Physics sample', () async {
+      final results = await commonServerImpl
+          .analyze(SourceRequest()..source = sampleCodeFlutterDraggableCard);
+      expect(results.issues, isEmpty);
+    });
+  });
 }
 
 class _MockContainer implements ServerContainer {

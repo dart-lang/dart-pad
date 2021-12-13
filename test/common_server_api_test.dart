@@ -96,7 +96,7 @@ void defineTests() {
       container = MockContainer();
       cache = MockCache();
       final sdk = Sdk.create(channel);
-      commonServerImpl = CommonServerImpl(container, cache, sdk, true);
+      commonServerImpl = CommonServerImpl(container, cache, sdk);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 
@@ -178,7 +178,7 @@ void main() {
 
     test('analyze counterApp', () async {
       for (final version in versions) {
-        final jsonData = {'source': sampleCodeFlutterCounterNullSafe};
+        final jsonData = {'source': sampleCodeFlutterCounter};
         final response =
             await sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 200);
@@ -191,7 +191,7 @@ void main() {
 
     test('analyze draggableAndPhysicsApp', () async {
       for (final version in versions) {
-        final jsonData = {'source': sampleCodeFlutterDraggableCardNullSafe};
+        final jsonData = {'source': sampleCodeFlutterDraggableCard};
         final response =
             await sendPostRequest('dartservices/$version/analyze', jsonData);
         expect(response.statusCode, 200);

@@ -32,13 +32,8 @@ const String _warmupSrc = 'main() { int b = 2;  b++;   b. }';
 const Duration _analysisServerTimeout = Duration(seconds: 35);
 
 class DartAnalysisServerWrapper extends AnalysisServerWrapper {
-  DartAnalysisServerWrapper({
-    required String dartSdkPath,
-    required bool nullSafety,
-  })  : _sourceDirPath = (nullSafety
-                ? ProjectTemplates.nullSafe
-                : ProjectTemplates.nullUnsafe)
-            .dartPath,
+  DartAnalysisServerWrapper({required String dartSdkPath})
+      : _sourceDirPath = ProjectTemplates.projectTemplates.dartPath,
         super(dartSdkPath);
 
   @override
@@ -49,12 +44,9 @@ class DartAnalysisServerWrapper extends AnalysisServerWrapper {
 }
 
 class FlutterAnalysisServerWrapper extends AnalysisServerWrapper {
-  FlutterAnalysisServerWrapper({
-    required String dartSdkPath,
-    required bool nullSafety,
-  })  : _sourceDirPath = (nullSafety
-                ? ProjectTemplates.nullSafe
-                : ProjectTemplates.nullUnsafe)
+  FlutterAnalysisServerWrapper({required String dartSdkPath})
+      : _sourceDirPath = ProjectTemplates
+            .projectTemplates
             // During analysis, we use the Firebase project template. The
             // Firebase template is separate from the Flutter template only to
             // keep Firebase references out of app initialization code at

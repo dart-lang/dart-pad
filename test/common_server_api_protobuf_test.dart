@@ -94,7 +94,7 @@ void defineTests() {
       cache = MockCache();
       final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
       final sdk = Sdk.create(channel);
-      commonServerImpl = CommonServerImpl(container, cache, sdk, false);
+      commonServerImpl = CommonServerImpl(container, cache, sdk);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 

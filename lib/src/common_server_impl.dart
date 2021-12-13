@@ -38,7 +38,6 @@ class CommonServerImpl {
   final ServerContainer _container;
   final ServerCache _cache;
   final Sdk _sdk;
-  final bool _nullSafety;
 
   late Compiler _compiler;
   late AnalysisServersWrapper _analysisServers;
@@ -51,7 +50,6 @@ class CommonServerImpl {
     this._container,
     this._cache,
     this._sdk,
-    this._nullSafety,
   ) {
     hierarchicalLoggingEnabled = true;
     log.level = Level.ALL;
@@ -59,8 +57,8 @@ class CommonServerImpl {
 
   Future<void> init() async {
     log.info('Beginning CommonServer init().');
-    _analysisServers = AnalysisServersWrapper(_sdk.dartSdkPath, _nullSafety);
-    _compiler = Compiler(_sdk, _nullSafety);
+    _analysisServers = AnalysisServersWrapper(_sdk.dartSdkPath);
+    _compiler = Compiler(_sdk);
 
     await _compiler.warmup();
     await _analysisServers.warmup();
@@ -154,7 +152,7 @@ class CommonServerImpl {
   }
 
   Future<proto.VersionResponse> version(proto.VersionRequest _) {
-    final packageVersions = getPackageVersions(nullSafe: _nullSafety);
+    final packageVersions = getPackageVersions();
     final packageInfos = [
       for (var packageName in packageVersions.keys)
         proto.PackageInfo()

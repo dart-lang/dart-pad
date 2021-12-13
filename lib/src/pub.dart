@@ -26,18 +26,14 @@ const _flutterPackages = [
   'sky_engine',
 ];
 
-/// Each of these is expensive to calculate; they require reading from disk.
+/// This is expensive to calculate; they require reading from disk.
 /// None of them changes during execution.
 late final Map<String, String> _nullSafePackageVersions =
     packageVersionsFromPubspecLock(
-        project.ProjectTemplates.nullSafe.firebasePath);
-late final Map<String, String> _preNullSafePackageVersions =
-    packageVersionsFromPubspecLock(
-        project.ProjectTemplates.nullUnsafe.firebasePath);
+        project.ProjectTemplates.projectTemplates.firebasePath);
 
 /// Returns a mapping of Pub package name to package version.
-Map<String, String> getPackageVersions({bool nullSafe = true}) =>
-    nullSafe ? _nullSafePackageVersions : _preNullSafePackageVersions;
+Map<String, String> getPackageVersions() => _nullSafePackageVersions;
 
 /// Returns a mapping of Pub package name to package version, retrieving data
 /// from the project template's `pubspec.lock` file.

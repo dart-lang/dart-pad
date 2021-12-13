@@ -17,11 +17,10 @@ class ProjectTemplates {
     required this.summaryFilePath,
   });
 
-  factory ProjectTemplates({required bool nullSafety}) {
-    final basePath = _baseTemplateProject(nullSafety: nullSafety);
+  factory ProjectTemplates() {
+    final basePath = _baseTemplateProject();
     final summaryFilePath = path.join(
       'artifacts',
-      nullSafety ? 'null-safe' : 'null-unsafe',
       'flutter_web.dill',
     );
     return ProjectTemplates._(
@@ -49,14 +48,10 @@ class ProjectTemplates {
   /// The path to summary files.
   final String summaryFilePath;
 
-  static ProjectTemplates nullUnsafe = ProjectTemplates(nullSafety: false);
-  static ProjectTemplates nullSafe = ProjectTemplates(nullSafety: true);
+  static ProjectTemplates projectTemplates = ProjectTemplates();
 
-  static String _baseTemplateProject({required bool nullSafety}) => path.join(
-        Directory.current.path,
-        'project_templates',
-        nullSafety ? 'null-safe' : 'null-unsafe',
-      );
+  static String _baseTemplateProject() =>
+      path.join(Directory.current.path, 'project_templates');
 }
 
 /// The set of Firebase packages which are used in both deprecated Firebase

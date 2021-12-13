@@ -65,7 +65,6 @@ class EndpointsServer {
       _ServerContainer(),
       _Cache(),
       sdk,
-      nullSafety,
     );
     commonServerApi = CommonServerApi(commonServerImpl);
     commonServerImpl.init();

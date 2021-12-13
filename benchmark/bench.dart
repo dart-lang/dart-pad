@@ -14,12 +14,10 @@ import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:dart_services/src/sdk.dart';
 import 'package:logging/logging.dart';
 
-const nullSafe = false;
-
 void main(List<String> args) async {
   final json = args.contains('--json');
   final harness = BenchmarkHarness(asJson: json);
-  final compiler = Compiler(Sdk.create(stableChannel), nullSafe);
+  final compiler = Compiler(Sdk.create(stableChannel));
 
   Logger.root.level = Level.WARNING;
   Logger.root.onRecord.listen((LogRecord record) {
@@ -58,8 +56,7 @@ class AnalyzerBenchmark extends Benchmark {
     String name,
     this.source,
   )   : analysisServer = DartAnalysisServerWrapper(
-            dartSdkPath: Sdk.create(stableChannel).dartSdkPath,
-            nullSafety: nullSafe),
+            dartSdkPath: Sdk.create(stableChannel).dartSdkPath),
         super('analyzer.$name');
 
   @override
@@ -108,8 +105,7 @@ class AnalysisServerBenchmark extends Benchmark {
 
   AnalysisServerBenchmark(String name, this.source)
       : analysisServer = DartAnalysisServerWrapper(
-            dartSdkPath: Sdk.create(stableChannel).dartSdkPath,
-            nullSafety: nullSafe),
+            dartSdkPath: Sdk.create(stableChannel).dartSdkPath),
         super('completion.$name');
 
   @override

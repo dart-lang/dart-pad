@@ -13,89 +13,84 @@ import 'package:test/test.dart';
 void main() => defineTests();
 
 void defineTests() {
-  for (final nullSafety in [false, true]) {
-    final projectTemplates =
-        nullSafety ? ProjectTemplates.nullSafe : ProjectTemplates.nullUnsafe;
+  final projectTemplates = ProjectTemplates.projectTemplates;
 
-    group('Null ${nullSafety ? 'Safe' : 'Unsafe'} FlutterWebManager', () {
-      final dartHtmlImport = _FakeImportDirective('dart:html');
-      final dartUiImport = _FakeImportDirective('dart:ui');
-      final packageFlutterImport = _FakeImportDirective('package:flutter/');
+  group('FlutterWebManager', () {
+    final dartHtmlImport = _FakeImportDirective('dart:html');
+    final dartUiImport = _FakeImportDirective('dart:ui');
+    final packageFlutterImport = _FakeImportDirective('package:flutter/');
 
-      test('inited', () async {
-        expect(await Directory(projectTemplates.flutterPath).exists(), isTrue);
-        final file = File(path.join(
-            projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));
-        expect(await file.exists(), isTrue);
-      });
-
-      test('usesFlutterWeb', () {
-        expect(usesFlutterWeb({_FakeImportDirective('')}), isFalse);
-        expect(usesFlutterWeb({dartHtmlImport}), isFalse);
-        expect(usesFlutterWeb({dartUiImport}), isTrue);
-        expect(usesFlutterWeb({packageFlutterImport}), isTrue);
-      });
-
-      test('getUnsupportedImport allows dart:html', () {
-        expect(getUnsupportedImports([_FakeImportDirective('dart:html')]),
-            isEmpty);
-      });
-
-      test('getUnsupportedImport allows dart:ui', () {
-        expect(getUnsupportedImports([dartUiImport]), isEmpty);
-      });
-
-      test('getUnsupportedImport allows package:flutter', () {
-        expect(getUnsupportedImports([packageFlutterImport]), isEmpty);
-      });
-
-      test('getUnsupportedImport allows package:path', () {
-        final packagePathImport = _FakeImportDirective('package:path');
-        expect(getUnsupportedImports([packagePathImport]), isEmpty);
-      });
-
-      test('getUnsupportedImport does now allow package:unsupported', () {
-        final usupportedPackageImport =
-            _FakeImportDirective('package:unsupported');
-        expect(getUnsupportedImports([usupportedPackageImport]),
-            contains(usupportedPackageImport));
-      });
-
-      test('getUnsupportedImport does now allow local imports', () {
-        final localFooImport = _FakeImportDirective('foo.dart');
-        expect(
-            getUnsupportedImports([localFooImport]), contains(localFooImport));
-      });
-
-      test('getUnsupportedImport does not allow VM-only imports', () {
-        final dartIoImport = _FakeImportDirective('dart:io');
-        expect(getUnsupportedImports([dartIoImport]), contains(dartIoImport));
-      });
+    test('inited', () async {
+      expect(await Directory(projectTemplates.flutterPath).exists(), isTrue);
+      final file = File(path.join(
+          projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));
+      expect(await file.exists(), isTrue);
     });
 
-    group('Null ${nullSafety ? 'Safe' : 'Unsafe'} project inited', () {
-      test('packagesFilePath', () async {
-        final packageConfig = File(path.join(
-            projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));
-        expect(await packageConfig.exists(), true);
-        final encoded = await packageConfig.readAsString();
-        final contents = jsonDecode(encoded) as Map<String, dynamic>;
-        expect(contents['packages'], isNotEmpty);
-        final packages = contents['packages'] as List<dynamic>;
-        expect(
-            packages.where((element) => (element as Map)['name'] == 'flutter'),
-            isNotEmpty);
-      });
-
-      test('summaryFilePath', () {
-        final summaryFilePath = projectTemplates.summaryFilePath;
-        expect(summaryFilePath, isNotEmpty);
-
-        final file = File(summaryFilePath);
-        expect(file.existsSync(), isTrue);
-      });
+    test('usesFlutterWeb', () {
+      expect(usesFlutterWeb({_FakeImportDirective('')}), isFalse);
+      expect(usesFlutterWeb({dartHtmlImport}), isFalse);
+      expect(usesFlutterWeb({dartUiImport}), isTrue);
+      expect(usesFlutterWeb({packageFlutterImport}), isTrue);
     });
-  }
+
+    test('getUnsupportedImport allows dart:html', () {
+      expect(
+          getUnsupportedImports([_FakeImportDirective('dart:html')]), isEmpty);
+    });
+
+    test('getUnsupportedImport allows dart:ui', () {
+      expect(getUnsupportedImports([dartUiImport]), isEmpty);
+    });
+
+    test('getUnsupportedImport allows package:flutter', () {
+      expect(getUnsupportedImports([packageFlutterImport]), isEmpty);
+    });
+
+    test('getUnsupportedImport allows package:path', () {
+      final packagePathImport = _FakeImportDirective('package:path');
+      expect(getUnsupportedImports([packagePathImport]), isEmpty);
+    });
+
+    test('getUnsupportedImport does now allow package:unsupported', () {
+      final usupportedPackageImport =
+          _FakeImportDirective('package:unsupported');
+      expect(getUnsupportedImports([usupportedPackageImport]),
+          contains(usupportedPackageImport));
+    });
+
+    test('getUnsupportedImport does now allow local imports', () {
+      final localFooImport = _FakeImportDirective('foo.dart');
+      expect(getUnsupportedImports([localFooImport]), contains(localFooImport));
+    });
+
+    test('getUnsupportedImport does not allow VM-only imports', () {
+      final dartIoImport = _FakeImportDirective('dart:io');
+      expect(getUnsupportedImports([dartIoImport]), contains(dartIoImport));
+    });
+  });
+
+  group('project inited', () {
+    test('packagesFilePath', () async {
+      final packageConfig = File(path.join(
+          projectTemplates.flutterPath, '.dart_tool', 'package_config.json'));
+      expect(await packageConfig.exists(), true);
+      final encoded = await packageConfig.readAsString();
+      final contents = jsonDecode(encoded) as Map<String, dynamic>;
+      expect(contents['packages'], isNotEmpty);
+      final packages = contents['packages'] as List<dynamic>;
+      expect(packages.where((element) => (element as Map)['name'] == 'flutter'),
+          isNotEmpty);
+    });
+
+    test('summaryFilePath', () {
+      final summaryFilePath = projectTemplates.summaryFilePath;
+      expect(summaryFilePath, isNotEmpty);
+
+      final file = File(summaryFilePath);
+      expect(file.existsSync(), isTrue);
+    });
+  });
 }
 
 class _FakeImportDirective implements ImportDirective {

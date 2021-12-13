@@ -124,18 +124,18 @@ Future<void> setupTools(Sdk sdk) async {
 
   container = MockContainer();
   cache = MockCache();
-  commonServerImpl = CommonServerImpl(container, cache, sdk, false);
+  commonServerImpl = CommonServerImpl(container, cache, sdk);
   await commonServerImpl.init();
 
-  analysisServer = analysis_server.DartAnalysisServerWrapper(
-      dartSdkPath: sdk.dartSdkPath, nullSafety: false);
+  analysisServer =
+      analysis_server.DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
   await analysisServer!.init();
 
   print('Warming up analysis server');
   await analysisServer!.warmup();
 
   print('Warming up compiler');
-  compiler = comp.Compiler(sdk, false);
+  compiler = comp.Compiler(sdk);
   await compiler.warmup();
   print('SetupTools done');
 }

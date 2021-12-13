@@ -25,8 +25,7 @@ Future<void> main(List<String> args) async {
   final parser = ArgParser()
     ..addOption('channel', mandatory: true)
     ..addOption('port', abbr: 'p')
-    ..addOption('redis-url')
-    ..addFlag('null-safety');
+    ..addOption('redis-url');
   final results = parser.parse(args);
 
   final channel = results['channel'] as String;
@@ -43,7 +42,6 @@ Future<void> main(List<String> args) async {
   }
 
   final redisServerUri = results['redis-url'] as String;
-  final nullSafety = results['null-safety'] as bool;
 
   Logger.root.level = Level.FINER;
   Logger.root.onRecord.listen((LogRecord record) {
@@ -60,18 +58,17 @@ Future<void> main(List<String> args) async {
     port: $port
     sdkPath: ${sdk.dartSdkPath}
     redisServerUri: $redisServerUri
-    nullSafety: $nullSafety
     Cloud Run Environment variables:
     $cloudRunEnvVars''');
 
-  await EndpointsServer.serve(port, redisServerUri, sdk, nullSafety);
+  await EndpointsServer.serve(port, redisServerUri, sdk);
   _logger.info('Listening on port $port');
 }
 
 class EndpointsServer {
   static Future<EndpointsServer> serve(
-      int port, String redisServerUri, Sdk sdk, bool nullSafety) async {
-    final endpointsServer = EndpointsServer._(redisServerUri, sdk, nullSafety);
+      int port, String redisServerUri, Sdk sdk) async {
+    final endpointsServer = EndpointsServer._(redisServerUri, sdk);
 
     await endpointsServer.init();
     endpointsServer.server = await shelf.serve(
@@ -90,7 +87,7 @@ class EndpointsServer {
   late final CommonServerApi commonServerApi;
   late final CommonServerImpl _commonServerImpl;
 
-  EndpointsServer._(String? redisServerUri, Sdk sdk, bool nullSafety) {
+  EndpointsServer._(String? redisServerUri, Sdk sdk) {
     _commonServerImpl = CommonServerImpl(
       _ServerContainer(),
       redisServerUri == null
@@ -103,7 +100,6 @@ class EndpointsServer {
               Platform.environment['K_REVISION'],
             ),
       sdk,
-      nullSafety,
     );
     commonServerApi = CommonServerApi(_commonServerImpl);
 
