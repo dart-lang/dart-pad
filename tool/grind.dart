@@ -117,14 +117,10 @@ void validateStorageArtifacts() async {
   print('validate-storage-artifacts version: ${sdk.version}');
   final version = sdk.versionFull;
 
-  const nullUnsafeUrlBase =
-      'https://storage.googleapis.com/compilation_artifacts/';
-  const nullSafeUrlBase = 'https://storage.googleapis.com/nnbd_artifacts/';
+  const urlBase = 'https://storage.googleapis.com/nnbd_artifacts/';
 
-  for (final urlBase in [nullUnsafeUrlBase, nullSafeUrlBase]) {
-    for (final artifact in compilationArtifacts) {
-      await _validateExists(Uri.parse('$urlBase$version/$artifact'));
-    }
+  for (final artifact in compilationArtifacts) {
+    await _validateExists(Uri.parse('$urlBase$version/$artifact'));
   }
 }
 

@@ -10,11 +10,11 @@ flutter_sdk:
     flutter_version: 2.8.0
     dart_language_version: 2.15.0
   beta:
-    flutter_version: 2.8.0-3.3.pre
-    dart_language_version: 2.15.0-0
+    flutter_version: 2.9.0-0.1.pre
+    dart_language_version: 2.16.0-0
   dev:
-    flutter_version: 2.6.0-11.0.pre
-    dart_language_version: 2.15.0-0
+    flutter_version: 2.9.0-0.1.pre
+    dart_language_version: 2.16.0-0
   old:
     flutter_version: 2.5.3
     dart_language_version: 2.14.0
