@@ -22,13 +22,6 @@ import 'package:test/test.dart';
 
 import 'utils.dart';
 
-const quickFixesCode = r'''
-import 'dart:async';
-void main() {
-  int i = 0;
-}
-''';
-
 const preFormattedCode = r'''
 void main()
 {
@@ -49,20 +42,11 @@ void main()
 }
 ''';
 
-const assistCode = r'''
-main() {
-  int v = 0;
-}
-''';
-
 void main() => defineTests();
 
 void defineTests() {
   late CommonServerApi commonServerApi;
   late CommonServerImpl commonServerImpl;
-
-  MockContainer container;
-  MockCache cache;
 
   Future<MockHttpResponse> sendPostRequest(
     String path,
@@ -90,8 +74,8 @@ void defineTests() {
 
   group('CommonServerProto JSON', () {
     setUpAll(() async {
-      container = MockContainer();
-      cache = MockCache();
+      final container = MockContainer();
+      final cache = MockCache();
       final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
       final sdk = Sdk.create(channel);
       commonServerImpl = CommonServerImpl(container, cache, sdk);
@@ -341,6 +325,12 @@ void defineTests() {
     });
 
     test('fix', () async {
+      final quickFixesCode = '''
+import 'dart:async';
+void main() {
+  int i = 0;
+}
+''';
       final request = proto.SourceRequest()
         ..source = quickFixesCode
         ..offset = 10;
@@ -378,6 +368,11 @@ void main() {
     });
 
     test('assist', () async {
+      final assistCode = '''
+main() {
+  int v = 0;
+}
+''';
       final request = proto.SourceRequest()
         ..source = assistCode
         ..offset = 15;
