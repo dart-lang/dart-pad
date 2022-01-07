@@ -85,7 +85,7 @@ abstract class Document<E extends Editor> {
 
   /// Update the value on behalf of a user action, performing
   /// save, etc.
-  void updateValue(String? str);
+  void updateValue(String str);
 
   Position get cursor;
 
