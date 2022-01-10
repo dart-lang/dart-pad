@@ -102,6 +102,7 @@ class WorkshopUi extends EditorUi {
     _initConsoles();
     _initButtons();
     _updateCode();
+    _updateSolutionButton();
     _focusEditor();
     _initOutputPanelTabs();
   }
