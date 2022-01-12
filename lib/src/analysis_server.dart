@@ -113,14 +113,10 @@ abstract class AnalysisServerWrapper {
       await analysisServer.server.setSubscriptions(<String>['STATUS']);
 
       listenForCompletions();
-      listenForAnalysisComplete();
-      listenForErrors();
 
-      final analysisComplete = getAnalysisCompleteCompleter();
-      await analysisServer.analysis
-          .setAnalysisRoots(<String>[_sourceDirPath], <String>[]);
-      await _sendAddOverlays(<String, String>{mainPath: _warmupSrc});
-      await analysisComplete.future;
+      await analysisServer.analysis.setAnalysisRoots([_sourceDirPath], []);
+      // Warmup.
+      await _sendAddOverlays({mainPath: _warmupSrc});
       await _sendRemoveOverlays();
     } catch (err, st) {
       _logger.severe('Error starting analysis server ($sdkPath): $err.\n$st');
@@ -242,9 +238,7 @@ abstract class AnalysisServerWrapper {
     _logger.fine('dartdoc: Scheduler queue: ${serverScheduler.queueCount}');
 
     return serverScheduler.schedule(ClosureTask<Map<String, String>>(() async {
-      final analysisCompleter = getAnalysisCompleteCompleter();
       await _loadSources(<String, String>{mainPath: source});
-      await analysisCompleter.future;
 
       final result = await analysisServer.analysis.getHover(mainPath, offset);
       await _unloadSources();
@@ -280,15 +274,13 @@ abstract class AnalysisServerWrapper {
 
     return serverScheduler
         .schedule(ClosureTask<proto.AnalysisResults>(() async {
-      clearErrors();
-
-      final analysisCompleter = getAnalysisCompleteCompleter();
       sources = _getOverlayMapWithPaths(sources);
       await _loadSources(sources);
-      await analysisCompleter.future;
+      final errors = (await analysisServer.analysis.getErrors(mainPath)).errors;
+      await _unloadSources();
 
-      // Calculate the issues.
-      final issues = getErrors().map((AnalysisError error) {
+      // Convert the issues to protos.
+      final issues = errors.map((error) {
         final issue = proto.AnalysisIssue()
           ..kind = error.severity.toLowerCase()
           ..line = error.location.startLine
@@ -344,13 +336,14 @@ abstract class AnalysisServerWrapper {
     }
 
     return serverScheduler.schedule(ClosureTask<AssistsResult>(() async {
-      final analysisCompleter = getAnalysisCompleteCompleter();
       await _loadSources(sources);
-      await analysisCompleter.future;
-      const length = 1;
-      final assists =
-          await analysisServer.edit.getAssists(path, offset, length);
-      await _unloadSources();
+      final AssistsResult assists;
+      try {
+        assists =
+            await analysisServer.edit.getAssists(path, offset, 1 /* length */);
+      } finally {
+        await _unloadSources();
+      }
       return assists;
     }, timeoutDuration: _analysisServerTimeout));
   }
@@ -475,8 +468,12 @@ abstract class AnalysisServerWrapper {
         _getPathFromName(sourceName),
         offset,
       );
-      final results = await getCompletionResults(id.id);
-      await _unloadSources();
+      final CompletionResults results;
+      try {
+        results = await getCompletionResults(id.id);
+      } finally {
+        await _unloadSources();
+      }
       return results;
     }, timeoutDuration: _analysisServerTimeout));
   }
@@ -492,11 +489,13 @@ abstract class AnalysisServerWrapper {
     }
 
     return serverScheduler.schedule(ClosureTask<FixesResult>(() async {
-      final analysisCompleter = getAnalysisCompleteCompleter();
       await _loadSources(sources);
-      await analysisCompleter.future;
-      final fixes = await analysisServer.edit.getFixes(path, offset);
-      await _unloadSources();
+      final FixesResult fixes;
+      try {
+        fixes = await analysisServer.edit.getFixes(path, offset);
+      } finally {
+        await _unloadSources();
+      }
       return fixes;
     }, timeoutDuration: _analysisServerTimeout));
   }
@@ -505,9 +504,13 @@ abstract class AnalysisServerWrapper {
     _logger.fine('FormatImpl: Scheduler queue: ${serverScheduler.queueCount}');
 
     return serverScheduler.schedule(ClosureTask<FormatResult>(() async {
-      await _loadSources(<String, String>{mainPath: src});
-      final result = await analysisServer.edit.format(mainPath, offset, 0);
-      await _unloadSources();
+      await _loadSources({mainPath: src});
+      final FormatResult result;
+      try {
+        result = await analysisServer.edit.format(mainPath, offset, 0);
+      } finally {
+        await _unloadSources();
+      }
       return result;
     }, timeoutDuration: _analysisServerTimeout));
   }
@@ -523,48 +526,50 @@ abstract class AnalysisServerWrapper {
   String _getPathFromName(String sourceName) =>
       path.join(_sourceDirPath, sourceName);
 
-  /// Warm up the analysis server to be ready for use.
-  Future<void> warmup() => complete(_warmupSrc, 10);
-
   final Set<String> _overlayPaths = <String>{};
 
+  /// Loads [sources] as file system overlays to the analysis server.
+  ///
+  /// The analysis server then begins to analyze these as priority files.
   Future<void> _loadSources(Map<String, String> sources) async {
     if (_overlayPaths.isNotEmpty) {
-      await _sendRemoveOverlays();
+      throw StateError(
+          'There should be no overlay paths while loading sources, but we '
+          'have: $_overlayPaths');
     }
     await _sendAddOverlays(sources);
     await analysisServer.analysis.setPriorityFiles(sources.keys.toList());
   }
 
-  Future<dynamic> _unloadSources() {
-    return Future.wait(<Future<dynamic>>[
-      _sendRemoveOverlays(),
-      analysisServer.analysis.setPriorityFiles(<String>[]),
-    ]);
+  Future<void> _unloadSources() async {
+    await _sendRemoveOverlays();
+    await analysisServer.analysis.setPriorityFiles([]);
   }
 
-  Future<dynamic> _sendAddOverlays(Map<String, String> overlays) {
-    final params = overlays.map((overlayPath, content) =>
+  /// Sends [overlays] to the analysis server.
+  Future<void> _sendAddOverlays(Map<String, String> overlays) async {
+    final contentOverlays = overlays.map((overlayPath, content) =>
         MapEntry(overlayPath, AddContentOverlay(content)));
 
     _logger.fine('About to send analysis.updateContent');
-    _logger.fine('  ${params.keys}');
+    _logger.fine('  ${contentOverlays.keys}');
 
-    _overlayPaths.addAll(params.keys);
+    _overlayPaths.addAll(contentOverlays.keys);
 
-    return analysisServer.analysis.updateContent(params);
+    await analysisServer.analysis.updateContent(contentOverlays);
   }
 
-  Future<dynamic> _sendRemoveOverlays() {
+  Future<void> _sendRemoveOverlays() async {
     _logger.fine('About to send analysis.updateContent remove overlays:');
     _logger.fine('  $_overlayPaths');
 
-    final params = {
+    final contentOverlays = {
       for (final overlayPath in _overlayPaths)
         overlayPath: RemoveContentOverlay()
     };
     _overlayPaths.clear();
-    return analysisServer.analysis.updateContent(params);
+
+    await analysisServer.analysis.updateContent(contentOverlays);
   }
 
   final Map<String, Completer<CompletionResults>> _completionCompleters =
@@ -585,50 +590,6 @@ abstract class AnalysisServerWrapper {
     final completer = Completer<CompletionResults>();
     _completionCompleters[id] = completer;
     return completer.future;
-  }
-
-  final List<Completer<void>> _analysisCompleters = [];
-
-  void listenForAnalysisComplete() {
-    analysisServer.server.onStatus.listen((ServerStatus status) {
-      final analysis = status.analysis;
-      if (analysis == null) return;
-
-      if (!analysis.isAnalyzing) {
-        for (final completer in _analysisCompleters) {
-          completer.complete();
-        }
-
-        _analysisCompleters.clear();
-      }
-    });
-  }
-
-  Completer<void> getAnalysisCompleteCompleter() {
-    final completer = Completer<void>();
-    _analysisCompleters.add(completer);
-    return completer;
-  }
-
-  final Map<String, List<AnalysisError>> _errors =
-      <String, List<AnalysisError>>{};
-
-  void listenForErrors() {
-    analysisServer.analysis.onErrors.listen((AnalysisErrors result) {
-      if (result.errors.isEmpty) {
-        _errors.remove(result.file);
-      } else {
-        _errors[result.file] = result.errors;
-      }
-    });
-  }
-
-  void clearErrors() => _errors.clear();
-
-  List<AnalysisError> getErrors() {
-    return [
-      for (final errors in _errors.values) ...errors,
-    ];
   }
 }
 

@@ -19,8 +19,6 @@ import 'package:logging/logging.dart';
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:test/test.dart';
 
-import 'utils.dart';
-
 const versions = ['v1', 'v2'];
 
 const preFormattedCode = r'''
@@ -189,19 +187,13 @@ void main() {
     test('analyze errors', () async {
       for (final version in versions) {
         final jsonData = {'source': sampleCodeError};
-        late Map<String, Object> dataMap;
-        await tryWithReruns(() async {
-          final response =
-              await sendPostRequest('dartservices/$version/analyze', jsonData);
-          expect(response.statusCode, 200);
-          expect(response.headers['content-type'],
-              ['application/json; charset=utf-8']);
-          final data = await response.transform(utf8.decoder).join();
-          dataMap = (json.decode(data) as Map).cast<String, Object>();
-          if (dataMap.isEmpty) {
-            throw StateError('Flaky result');
-          }
-        });
+        final response =
+            await sendPostRequest('dartservices/$version/analyze', jsonData);
+        expect(response.statusCode, 200);
+        expect(response.headers['content-type'],
+            ['application/json; charset=utf-8']);
+        final data = await response.transform(utf8.decoder).join();
+        final dataMap = (json.decode(data) as Map).cast<String, Object>();
         expect(
           dataMap,
           {

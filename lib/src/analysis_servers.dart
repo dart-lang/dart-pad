@@ -39,7 +39,7 @@ class AnalysisServersWrapper {
   bool get isHealthy => (_restartingSince == null ||
       DateTime.now().difference(_restartingSince!).inMinutes < 30);
 
-  Future<List<void>> warmup() async {
+  Future<void> warmup() async {
     _logger.info('Beginning AnalysisServersWrapper init().');
     _dartAnalysisServer = DartAnalysisServerWrapper(dartSdkPath: _dartSdkPath);
     _flutterAnalysisServer =
@@ -66,11 +66,6 @@ class AnalysisServersWrapper {
     }));
 
     _restartingSince = null;
-
-    return Future.wait([
-      _flutterAnalysisServer.warmup(),
-      _dartAnalysisServer.warmup(),
-    ]);
   }
 
   Future<void> _restart() async {
