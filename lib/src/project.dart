@@ -75,7 +75,7 @@ const Set<String> firebasePackages = {
   ...registerableFirebasePackages,
 };
 
-/// The set of packages which indicate that Flutter Web is being used.
+/// The set of supported Flutter-oriented packages.
 const Set<String> supportedFlutterPackages = {
   'flutter_bloc',
   'flutter_hooks',
