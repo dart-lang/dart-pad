@@ -38,14 +38,8 @@ class MutableGist implements PropertyOwner {
 
   bool? get public => _backingGist.public;
 
-  MutableGistFile getGistFile(String name) {
-    var fileWithName = _files[name];
-    if (fileWithName == null) {
-      fileWithName = MutableGistFile._(this, name);
-      _files[name] = fileWithName;
-    }
-    return fileWithName;
-  }
+  MutableGistFile getGistFile(String name) =>
+      _files[name] ??= MutableGistFile._(this, name);
 
   List<MutableGistFile> getFiles() {
     return [for (final f in _backingGist.files) getGistFile(f.name)];
