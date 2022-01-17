@@ -55,7 +55,7 @@ class FunctionProperty implements Property {
 
 /// An object that can own a set of properties.
 abstract class PropertyOwner {
-  List<String?> get propertyNames;
+  List<String> get propertyNames;
   Property property(String name);
 }
 

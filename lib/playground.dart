@@ -526,20 +526,20 @@ class Playground extends EditorUi implements GistContainer, GistController {
     context.onDartReconcile.listen((_) => performAnalysis());
 
     final Property htmlFile =
-        GistFileProperty(_editableGist.getGistFile('index.html')!);
+        GistFileProperty(_editableGist.getGistFile('index.html'));
     final Property htmlDoc =
         EditorDocumentProperty(context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
     final Property cssFile =
-        GistFileProperty(_editableGist.getGistFile('styles.css')!);
+        GistFileProperty(_editableGist.getGistFile('styles.css'));
     final Property cssDoc = EditorDocumentProperty(context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
     final Property dartFile =
-        GistFileProperty(_editableGist.getGistFile('main.dart')!);
+        GistFileProperty(_editableGist.getGistFile('main.dart'));
     final Property dartDoc =
         EditorDocumentProperty(context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
@@ -691,7 +691,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
       _editableGist.description = storedGist.description;
       for (final file in storedGist.files) {
-        _editableGist.getGistFile(file.name)!.content = file.content;
+        _editableGist.getGistFile(file.name).content = file.content;
       }
       return LoadGistResult.storage;
     }
@@ -705,7 +705,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     if (!isLegalGistId(gistId)) {
       showHome();
       return;
-    } else if (_editableGist.backingGist!.id == gistId) {
+    } else if (_editableGist.backingGist.id == gistId) {
       return;
     }
 
@@ -742,7 +742,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
         final storedGist = _gistStorage.getStoredGist()!;
         _editableGist.description = storedGist.description;
         for (final file in storedGist.files) {
-          _editableGist.getGistFile(file.name)!.content = file.content;
+          _editableGist.getGistFile(file.name).content = file.content;
         }
       }
 

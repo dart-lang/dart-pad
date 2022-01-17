@@ -50,34 +50,40 @@ String? extractHtmlBody(String? html) {
 }
 
 Gist createSampleDartGist() {
-  final gist = Gist(description: phrases.generate());
-  gist.files.add(GistFile(name: 'main.dart', content: sample.dartCode));
-  gist.files.add(GistFile(
-      name: 'readme.md',
-      content: _createReadmeContents(
-          title: gist.description, withLink: _dartpadLink)));
+  final description = phrases.generate();
+  final gist = Gist(description: description, files: [
+    GistFile(name: 'main.dart', content: sample.dartCode),
+    GistFile(
+        name: 'readme.md',
+        content:
+            _createReadmeContents(title: description, withLink: _dartpadLink)),
+  ]);
   return gist;
 }
 
 Gist createSampleHtmlGist() {
-  final gist = Gist(description: phrases.generate());
-  gist.files.add(GistFile(name: 'main.dart', content: sample.dartCodeHtml));
-  gist.files.add(GistFile(name: 'index.html', content: sample.htmlCode));
-  gist.files.add(GistFile(name: 'styles.css', content: sample.cssCode));
-  gist.files.add(GistFile(
-      name: 'readme.md',
-      content: _createReadmeContents(
-          title: gist.description, withLink: _dartpadLink)));
+  final description = phrases.generate();
+  final gist = Gist(description: description, files: [
+    GistFile(name: 'main.dart', content: sample.dartCodeHtml),
+    GistFile(name: 'index.html', content: sample.htmlCode),
+    GistFile(name: 'styles.css', content: sample.cssCode),
+    GistFile(
+        name: 'readme.md',
+        content:
+            _createReadmeContents(title: description, withLink: _dartpadLink)),
+  ]);
   return gist;
 }
 
 Gist createSampleFlutterGist() {
-  final gist = Gist(description: phrases.generate());
-  gist.files.add(GistFile(name: 'main.dart', content: sample.flutterCode));
-  gist.files.add(GistFile(
-      name: 'readme.md',
-      content: _createReadmeContents(
-          title: gist.description, withLink: _dartpadLink)));
+  final description = phrases.generate();
+  final gist = Gist(description: description, files: [
+    GistFile(name: 'main.dart', content: sample.flutterCode),
+    GistFile(
+        name: 'readme.md',
+        content:
+            _createReadmeContents(title: description, withLink: _dartpadLink)),
+  ]);
   return gist;
 }
 
@@ -108,8 +114,8 @@ enum GistLoaderFailureType {
 }
 
 class GistLoaderException implements Exception {
-  final String? message;
   final GistLoaderFailureType failureType;
+  final String? message;
 
   const GistLoaderException(this.failureType, [this.message]);
 }
@@ -140,10 +146,8 @@ class GistLoader {
     }
 
     if (gist.getFile('main.dart') == null &&
-        gist.files.where((f) => f.name?.endsWith('.dart') ?? false).length ==
-            1) {
-      final file =
-          gist.files.firstWhere((f) => f.name?.endsWith('.dart') ?? false);
+        gist.files.where((f) => f.name.endsWith('.dart')).length == 1) {
+      final file = gist.files.firstWhere((f) => f.name.endsWith('.dart'));
       file.name = 'main.dart';
     }
 
@@ -290,7 +294,7 @@ $styleRef$dartRef  </head>
 
     final metadataContent = extractGitHubResponseBody(metadataResponse.body);
 
-    ExerciseMetadata metadata;
+    final ExerciseMetadata metadata;
 
     try {
       final yamlMap = yaml.loadYaml(metadataContent);
@@ -344,9 +348,7 @@ $styleRef$dartRef  </head>
       description: metadata.name,
     );
 
-    if (afterLoadHook != null) {
-      afterLoadHook!(gist);
-    }
+    afterLoadHook?.call(gist);
 
     return gist;
   }
@@ -359,19 +361,19 @@ class Gist {
   final String? htmlUrl;
   final String? summary;
 
-  final bool? public;
+  final bool public;
 
-  late final List<GistFile> files;
+  final List<GistFile> files;
 
   Gist(
       {this.id,
       this.description,
-      this.public = true,
       this.htmlUrl,
       this.summary,
-      List<GistFile>? files}) {
-    this.files = files ?? [];
-  }
+      bool? public,
+      List<GistFile>? files})
+      : public = public ?? true,
+        files = files ?? [];
 
   Gist.fromMap(Map<String, dynamic> map)
       : this(
@@ -400,7 +402,7 @@ class Gist {
   GistFile? getFile(String name, {bool ignoreCase = false}) {
     if (ignoreCase) {
       name = name.toLowerCase();
-      return files.firstWhereOrNull((f) => f.name?.toLowerCase() == name);
+      return files.firstWhereOrNull((f) => f.name.toLowerCase() == name);
     } else {
       return files.firstWhereOrNull((f) => f.name == name);
     }
@@ -408,8 +410,8 @@ class Gist {
 
   bool hasWebContent() {
     return files.any((GistFile file) {
-      final isWebFile =
-          file.name!.endsWith('.html') || file.name!.endsWith('.css');
+      final name = file.name;
+      final isWebFile = name.endsWith('.html') || name.endsWith('.css');
       return isWebFile && file.content!.trim().isNotEmpty;
     });
   }
@@ -421,18 +423,16 @@ class Gist {
   }
 
   Map<String, dynamic> toMap() {
-    final m = <String, dynamic>{};
-    if (id != null) m['id'] = id;
-    if (description != null) m['description'] = description;
-    if (public != null) m['public'] = public;
-    if (summary != null) m['summary'] = summary;
-    m['files'] = {};
-    for (final file in files) {
-      if (file.hasContent) {
-        m['files'][file.name] = {'content': file.content};
+    return {
+      if (id != null) 'id': id,
+      if (description != null) 'description': description,
+      'public': public,
+      if (summary != null) 'summary': summary,
+      'files': {
+        for (final file in files)
+          if (file.hasContent) file.name: {'content': file.content}
       }
-    }
-    return m;
+    };
   }
 
   String toJson() => json.encode(toMap());
@@ -444,10 +444,10 @@ class Gist {
 }
 
 class GistFile {
-  String? name;
+  String name;
   String? content;
 
-  GistFile({this.name, this.content});
+  GistFile({required this.name, this.content});
 
   GistFile.fromMap(this.name, data) {
     content = data['content'] as String?;
