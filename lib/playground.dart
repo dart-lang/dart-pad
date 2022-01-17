@@ -67,9 +67,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
   final DElement _editorPanelFooter =
       DElement(querySelector('#editor-panel-footer') as DivElement);
   final NewPadDialog _newPadDialog = NewPadDialog();
+  late final MDCMenu _samplesMenu = _buildSamplesMenu();
   final DElement _titleElement =
       DElement(querySelector('header .header-gist-name')!);
-  late final MaterialTabController _webLayoutTabController = _initTabs();
+  late final MaterialTabController _webLayoutTabController = _buildTabs();
   final DElement _webTabBar = DElement(querySelector('#web-tab-bar')!);
   final DElement _webOutputLabel =
       DElement(querySelector('#web-output-label')!);
@@ -108,10 +109,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _initGistStorage();
     _initLayoutDetection();
     _initButtons();
-    _initSamplesMenu();
     _initMoreMenu();
     _initSplitters();
-    _initTabs();
     showHome();
   }
 
@@ -139,8 +138,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   ButtonElement get _samplesDropdownButton =>
       querySelector('#samples-dropdown-button') as ButtonElement;
-
-  MDCMenu get _samplesMenu => _initSamplesMenu();
 
   ButtonElement get _channelsDropdownButton =>
       querySelector('#channels-dropdown-button') as ButtonElement;
@@ -214,11 +211,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
         .listen((e) => _toggleMenu(_channelsMenu));
   }
 
-  MDCMenu _initSamplesMenu() {
+  MDCMenu _buildSamplesMenu() {
     final element = querySelector('#samples-menu')!;
     element.children.clear();
 
-    final samples = [
+    const samples = [
       Sample('e75b493dae1287757c5e1d77a0dc73f1', 'Counter', Layout.flutter),
       Sample('5c0e154dd50af4a9ac856908061291bc', 'Sunflower', Layout.flutter),
       Sample('a1d5666d6b54a45eb170b897895cf757', 'Draggables & physics',
@@ -460,7 +457,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _tabExpandController = null;
   }
 
-  MaterialTabController _initTabs() {
+  MaterialTabController _buildTabs() {
     final webLayoutTabController =
         MaterialTabController(MDCTabBar(_webTabBar.element));
     for (final name in ['dart', 'html', 'css']) {
@@ -1116,5 +1113,5 @@ class Sample {
   final String name;
   final Layout layout;
 
-  Sample(this.gistId, this.name, this.layout);
+  const Sample(this.gistId, this.name, this.layout);
 }
