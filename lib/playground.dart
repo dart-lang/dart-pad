@@ -920,13 +920,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
   }
 
   Future<void> _showCreateGistDialog() async {
-    final result = await dialog.showOkCancel(
-        'Create New Pad', 'Discard changes to the current pad?');
-    if (result == DialogResult.ok) {
-      final layout = await _newPadDialog.show();
-      if (layout == null) return;
-      await createGistForLayout(layout);
-    }
+    final layout = await _newPadDialog.show();
+    if (layout == null) return;
+    await createGistForLayout(layout);
   }
 
   Future<void> _showResetDialog() async {
