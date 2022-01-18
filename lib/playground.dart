@@ -1091,13 +1091,20 @@ class NewPadDialog {
 
     _mdcDialog.open();
 
-    return completer.future.then((v) {
+    void handleClosing(Event _) {
       _flutterButton.root.classes.remove('selected');
       _dartButton.root.classes.remove('selected');
+      _htmlSwitchContainer.toggleClass('hide', true);
       dartSub.cancel();
       flutterSub.cancel();
       cancelSub.cancel();
       createSub.cancel();
+      _mdcDialog.unlisten('MDCDialog:closing', handleClosing);
+    }
+
+    _mdcDialog.listen('MDCDialog:closing', handleClosing);
+
+    return completer.future.then((v) {
       _mdcDialog.close();
       return v;
     });
