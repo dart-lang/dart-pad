@@ -9,7 +9,7 @@ import 'gists.dart';
 
 /// A class to store gists in html's localStorage.
 class GistStorage {
-  static final String _key = 'gist';
+  static const String _key = 'gist';
 
   String? _storedId;
 
@@ -24,8 +24,7 @@ class GistStorage {
 
   /// Return the id of the stored gist. This will return `null` if there is no
   /// gist stored.
-  String? get storedId =>
-      _storedId == null || _storedId!.isEmpty ? null : _storedId;
+  String? get storedId => _storedId?.isEmpty ?? true ? null : _storedId;
 
   Gist? getStoredGist() {
     final data = window.localStorage[_key];
