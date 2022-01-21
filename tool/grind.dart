@@ -413,7 +413,7 @@ Future<void> _updateDependenciesFile({
       for (var package in supportedFlutterPackages) package: 'any',
       for (var package in supportedBasicDartPackages) package: 'any',
       // Overwrite with important constraints:
-      ..._packageVersionConstraints,
+      ...packageVersionConstraints,
     },
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
@@ -423,14 +423,6 @@ Future<void> _updateDependenciesFile({
   _pubDependenciesFile(channel: channel)
       .writeAsStringSync(_jsonEncoder.convert(packageVersions));
 }
-
-/// A mapping of version constraints for certain packages.
-const _packageVersionConstraints = {
-  // Ensure that pub version solving keeps these at sane minimum versions.
-  'cloud_firestore': '^3.1.0',
-  'firebase_auth': '^3.3.0',
-  'firebase_core': '^1.10.0',
-};
 
 /// An encoder which indents nested elements by two spaces.
 const JsonEncoder _jsonEncoder = JsonEncoder.withIndent('  ');

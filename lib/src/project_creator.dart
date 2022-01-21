@@ -141,9 +141,19 @@ linter:
         parsePubDependenciesFile(dependenciesFile: _dependenciesFile);
     return {
       for (var package in packages) package: allVersions[package] ?? 'any',
+      // Overwrite with important constraints:
+      ...packageVersionConstraints,
     };
   }
 }
+
+/// A mapping of version constraints for certain packages.
+const packageVersionConstraints = {
+  // Ensure that pub version solving keeps these at sane minimum versions.
+  'cloud_firestore': '^3.1.0',
+  'firebase_auth': '^3.3.0',
+  'firebase_core': '^1.10.0',
+};
 
 /// Parses [dependenciesFile] as a JSON Map of Strings.
 Map<String, String> parsePubDependenciesFile({required File dependenciesFile}) {
