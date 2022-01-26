@@ -59,11 +59,11 @@
   "url_launcher_android": "6.0.14",
   "url_launcher_ios": "6.0.14",
   "url_launcher_linux": "2.0.3",
-  "url_launcher_macos": "2.0.2",
+  "url_launcher_macos": "2.0.3",
   "url_launcher_platform_interface": "2.0.5",
   "url_launcher_web": "2.0.6",
   "url_launcher_windows": "2.0.2",
   "vector_math": "2.1.1",
-  "win32": "2.3.6",
+  "win32": "2.3.8",
   "xdg_directories": "0.2.0"
 }
