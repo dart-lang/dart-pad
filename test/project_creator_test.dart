@@ -76,8 +76,8 @@ void defineTests() {
 
   group('basic Flutter project template', () {
     setUpAll(() async {
-      await (await projectCreator())
-          .buildFlutterProjectTemplate(firebaseStyle: FirebaseStyle.none);
+      await (await projectCreator()).buildFlutterProjectTemplate(
+          firebaseStyle: FirebaseStyle.none, devMode: false);
     });
 
     test('project directory is created', () async {
@@ -137,7 +137,7 @@ void defineTests() {
   group('Firebase project template', () {
     setUpAll(() async {
       await (await projectCreator()).buildFlutterProjectTemplate(
-          firebaseStyle: FirebaseStyle.flutterFire);
+          firebaseStyle: FirebaseStyle.flutterFire, devMode: false);
     });
 
     test('project directory is created', () async {

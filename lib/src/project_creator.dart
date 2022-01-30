@@ -68,6 +68,7 @@ linter:
   /// plugins.
   Future<void> buildFlutterProjectTemplate({
     required FirebaseStyle firebaseStyle,
+    required bool devMode,
   }) async {
     final projectDirName = firebaseStyle == FirebaseStyle.none
         ? 'flutter_project'
@@ -82,7 +83,7 @@ linter:
     await File(path.join(projectPath, 'web', 'index.html')).create();
     var packages = {
       ...supportedBasicDartPackages,
-      ...supportedFlutterPackages,
+      ...supportedFlutterPackages(devMode: devMode),
       if (firebaseStyle != FirebaseStyle.none) ...coreFirebasePackages,
       if (firebaseStyle == FirebaseStyle.flutterFire)
         ...registerableFirebasePackages,
@@ -102,7 +103,7 @@ linter:
       // supported Firebase pacakges. This workaround is a very fragile hack.
       packages = {
         ...supportedBasicDartPackages,
-        ...supportedFlutterPackages,
+        ...supportedFlutterPackages(devMode: devMode),
         ...firebasePackages,
       };
       final dependencies = _dependencyVersions(packages);

@@ -154,9 +154,8 @@ void main() {
         expect(json.decode(data), <dynamic, dynamic>{});
       }
     },
-        // TODO(srawlins): Change to `channel == old` when Flutter stable has
-        // Dart 2.15.
-        skip: channel != 'beta');
+        // TODO(srawlins): delete when channel `old` >= 2.15
+        skip: channel == 'old');
 
     test('analyze counterApp', () async {
       for (final version in versions) {

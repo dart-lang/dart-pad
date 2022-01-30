@@ -77,7 +77,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _analysisServers.analyze(request.source);
+    return _analysisServers.analyze(request.source, devMode: _sdk.devMode);
   }
 
   Future<proto.CompileResponse> compile(proto.CompileRequest request) {
@@ -105,7 +105,8 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServers.complete(request.source, request.offset);
+    return _analysisServers.complete(request.source, request.offset,
+        devMode: _sdk.devMode);
   }
 
   Future<proto.FixesResponse> fixes(proto.SourceRequest request) {
@@ -116,7 +117,8 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServers.getFixes(request.source, request.offset);
+    return _analysisServers.getFixes(request.source, request.offset,
+        devMode: _sdk.devMode);
   }
 
   Future<proto.AssistsResponse> assists(proto.SourceRequest request) {
@@ -127,7 +129,8 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'offset\'');
     }
 
-    return _analysisServers.getAssists(request.source, request.offset);
+    return _analysisServers.getAssists(request.source, request.offset,
+        devMode: _sdk.devMode);
   }
 
   Future<proto.FormatResponse> format(proto.SourceRequest request) {
@@ -135,7 +138,8 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _analysisServers.format(request.source, request.offset);
+    return _analysisServers.format(request.source, request.offset,
+        devMode: _sdk.devMode);
   }
 
   Future<proto.DocumentResponse> document(proto.SourceRequest request) async {
@@ -147,8 +151,8 @@ class CommonServerImpl {
     }
 
     return proto.DocumentResponse()
-      ..info.addAll(
-          await _analysisServers.dartdoc(request.source, request.offset));
+      ..info.addAll(await _analysisServers
+          .dartdoc(request.source, request.offset, devMode: _sdk.devMode));
   }
 
   Future<proto.VersionResponse> version(proto.VersionRequest _) {
@@ -158,7 +162,7 @@ class CommonServerImpl {
         proto.PackageInfo()
           ..name = packageName
           ..version = packageVersions[packageName]!
-          ..supported = isSupportedPackage(packageName),
+          ..supported = isSupportedPackage(packageName, devMode: _sdk.devMode),
     ];
 
     return Future.value(

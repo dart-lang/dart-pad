@@ -76,7 +76,7 @@ class HelloWorld extends StatelessWidget {
   @override
   Widget build(context) => const Center(child: Text('Hello world'));
 }
-''');
+''', devMode: false);
       expect(results.issues, hasLength(1));
       final issue = results.issues[0];
       expect(issue.line, 3);
@@ -105,7 +105,7 @@ class HelloWorld extends StatelessWidget {
   @override
   Widget build(context) => const Center(child: Text('Hello world'));
 }
-''');
+''', devMode: false);
       expect(results.issues, hasLength(1));
       final issue = results.issues[0];
       expect(issue.line, 4);
@@ -115,26 +115,26 @@ class HelloWorld extends StatelessWidget {
     });
 
     test('analyze counter app', () async {
-      final results =
-          await analysisServersWrapper.analyze(sampleCodeFlutterCounter);
+      final results = await analysisServersWrapper
+          .analyze(sampleCodeFlutterCounter, devMode: false);
       expect(results.issues, isEmpty);
     });
 
     test('analyze Draggable Physics sample', () async {
-      final results =
-          await analysisServersWrapper.analyze(sampleCodeFlutterDraggableCard);
+      final results = await analysisServersWrapper
+          .analyze(sampleCodeFlutterDraggableCard, devMode: false);
       expect(results.issues, isEmpty);
     });
 
     test('analyze counter app', () async {
-      final results =
-          await analysisServersWrapper.analyze(sampleCodeFlutterCounter);
+      final results = await analysisServersWrapper
+          .analyze(sampleCodeFlutterCounter, devMode: false);
       expect(results.issues, isEmpty);
     });
 
     test('analyze Draggable Physics sample', () async {
-      final results =
-          await analysisServersWrapper.analyze(sampleCodeFlutterDraggableCard);
+      final results = await analysisServersWrapper
+          .analyze(sampleCodeFlutterDraggableCard, devMode: false);
       expect(results.issues, isEmpty);
     });
   });
