@@ -83,7 +83,14 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'flutter_riverpod',
       'hooks_riverpod',
       'url_launcher',
-      if (devMode) 'english_words',
+      if (devMode) ...[
+        'english_words',
+        'flame',
+        'flame_fire_atlas',
+        'flame_forge2d',
+        'flame_splash_screen',
+        'flame_tiled',
+      ],
     };
 
 /// The set of packages which indicate that Flutter Web is being used.
