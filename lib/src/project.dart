@@ -85,6 +85,10 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'url_launcher',
       if (devMode) ...[
         'english_words',
+        'firebase_analytics',
+        'firebase_database',
+        'firebase_messaging',
+        'firebase_storage',
         'flame',
         'flame_fire_atlas',
         'flame_forge2d',
