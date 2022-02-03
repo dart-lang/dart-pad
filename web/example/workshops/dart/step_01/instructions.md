@@ -21,7 +21,36 @@ Change the code to do something:
 Try using a function:
 
 ```dart
-void myFunction() {
-  
+@Awesome('an annotation')
+class SomeClass<S extends Iterable> extends BaseClass<S> implements Comparable {
+  factory SomeClass(num param);
+  SomeClass._internal(int q) : super() {
+    // Assert something
+    assert(q != 1);
+    double z = 0.0;
+  }
+
+  /// Sum function
+  int sum(int a, int b) => a + b;
+
+  ElementList els() => querySelectorAll('.dart');
 }
+```
+
+```dart
+class MyWidget {
+  Widget build(BuildContext context) {
+    return Text(
+      'This is a bit of text!',
+      textDirection: TextDirection.ltr,
+      style: TextStyle(
+        fontSize: 48,
+        fontWeight: FontWeight.bold,
+        fontStyle: FontStyle.italic,
+        color: Colors.blue,
+      ),
+    );
+  }
+}
+
 ```

@@ -15,6 +15,14 @@ $mdc-theme-error: $dark-red;
 @import 'package:mdc_web/material-components-web';
 @import 'shared';
 
+h1 { font-size: 2em; }
+h2 { font-size: 1.5em; }
+h3 { font-size: 1.17em; }
+h3 { font-size: 1em; }
+h4 { font-size: 1em; }
+h5 { font-size: 0.83em; }
+h6 { font-size: 0.75em; }
+
 header {
   background-color: $playground-header-background-color;
   height: 48px;
@@ -145,9 +153,14 @@ section.main-section {
     }
   }
 
+  code {
+    background-color: $workshop-code-bg-color;
+    border-radius: 4px;
+  }
+
   // Inline <code> elements, not code blocks.
   code:not(pre code) {
-    background-color: $workshop-snippet-bg-color;
+    background-color: $workshop-code-bg-color;
     color: opacify($dark-blue, 0.75);
     padding: 4px 6px 4px 6px;
     border-radius: 4px;

@@ -315,6 +315,7 @@ class WorkshopUi extends EditorUi {
         markdown.markdownToHtml(_workshopState.currentStep.instructions,
             blockSyntaxes: [markdown.TableSyntax()]),
         validator: _htmlValidator);
+    print('highlightAll()');
     hljs.highlightAll();
     div.scrollTop = 0;
   }
