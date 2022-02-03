@@ -66,5 +66,5 @@
   "url_launcher_windows": "2.0.2",
   "vector_math": "2.1.1",
   "win32": "2.3.10",
-  "xdg_directories": "0.2.0"
+  "xdg_directories": "0.2.0+1"
 }
