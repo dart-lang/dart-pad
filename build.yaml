@@ -14,8 +14,9 @@ targets:
           - web/example/workshops/**.dart
         options:
           dart2js_args:
-          - --minify
           - --fast-startup
+          - --minify
+          - --no-source-maps
           - -DSERVER_URL=https://stable.api.dartpad.dev/
           - -DSTABLE_SERVER_URL=https://stable.api.dartpad.dev/
           - -DBETA_SERVER_URL=https://beta.api.dartpad.dev/
