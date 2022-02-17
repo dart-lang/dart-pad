@@ -94,6 +94,8 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
         'flame_forge2d',
         'flame_splash_screen',
         'flame_tiled',
+        'go_router',
+        'rxdart',
       ],
     };
 
