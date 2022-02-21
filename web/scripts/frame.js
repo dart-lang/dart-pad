@@ -45,17 +45,6 @@ addScript = function (id, url, onload) {
     document.head.appendChild(scriptNode);
 }
 
-removeCanvaskit = function () {
-    var scripts = document.head.querySelectorAll('script');
-    for (var i = 0; i < scripts.length; i++) {
-        var script = scripts[i];
-        if (script.src.includes('canvaskit.js')) {
-            script.parentNode.removeChild(script);
-            return;
-        }
-    }
-}
-
 /**
  * Executes userJs, a user script, after first loading RequireJS.
  */
