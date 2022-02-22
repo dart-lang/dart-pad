@@ -43,7 +43,7 @@ void analyzeTest() {}
 @Depends(buildStorageArtifacts)
 Future<void> serve() async {
   await _run(Platform.executable, arguments: [
-    'bin/server_dev.dart',
+    path.join('bin', 'server_dev.dart'),
     '--channel',
     _channel,
     '--port',
@@ -55,7 +55,7 @@ Future<void> serve() async {
 @Depends(buildStorageArtifacts)
 Future<void> serveNullSafety() async {
   await _run(Platform.executable, arguments: [
-    'bin/server_dev.dart',
+    path.join('bin', 'server_dev.dart'),
     '--channel',
     _channel,
     '--port',

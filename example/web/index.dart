@@ -45,7 +45,7 @@ void setupAnalyze() {
   final output = querySelector('#analyzeSection-v2 .output')!;
   final button = querySelector('#analyzeSection-v2 button') as ButtonElement;
   button.onClick.listen((e) {
-    final source = {'source': editor.getDoc()!.getValue()};
+    final source = {'source': editor.doc.getValue()};
     final sw = Stopwatch()..start();
     post(
       '$_uriBase/dartservices/v2/analyze',
@@ -78,7 +78,7 @@ void setupCompile() {
   final output = querySelector('#compileSection-v2 .output')!;
   final button = querySelector('#compileSection-v2 button') as ButtonElement;
   button.onClick.listen((e) {
-    final source = editor.getDoc()!.getValue();
+    final source = editor.doc.getValue();
     final compile = {'source': source};
     final sw = Stopwatch()..start();
     post(
@@ -93,7 +93,7 @@ void setupCompileDDC() {
   final output = querySelector('#compileDDCSection-v2 .output')!;
   final button = querySelector('#compileDDCSection-v2 button') as ButtonElement;
   button.onClick.listen((e) {
-    final source = editor.getDoc()!.getValue();
+    final source = editor.doc.getValue();
     final compile = {'source': source};
     final sw = Stopwatch()..start();
     post(
@@ -193,12 +193,12 @@ String? get _uriBase =>
     (querySelector('input[type=text]') as InputElement).value;
 
 int? _getOffset(CodeMirror editor) {
-  final pos = editor.getDoc()!.getCursor();
-  return editor.getDoc()!.indexFromPos(pos);
+  final pos = editor.doc.getCursor();
+  return editor.doc.indexFromPos(pos);
 }
 
 Map<String, dynamic> _getSourceRequest(CodeMirror editor) => {
-      'source': editor.getDoc()!.getValue(),
+      'source': editor.doc.getValue(),
       'offset': _getOffset(editor),
     };
 

@@ -147,7 +147,7 @@ packages:
       name: codemirror
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.7+5.63.3"
+    version: "0.7.1+5.65.1"
   collection:
     dependency: transitive
     description:

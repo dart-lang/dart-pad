@@ -1,5 +1,5 @@
 {
-  "archive": "3.2.0",
+  "archive": "3.2.1",
   "async": "2.8.2",
   "bloc": "8.0.2",
   "boolean_selector": "2.1.0",
@@ -92,7 +92,7 @@
   "url_launcher_web": "2.0.8",
   "url_launcher_windows": "3.0.0",
   "vector_math": "2.1.1",
-  "win32": "2.4.0",
+  "win32": "2.4.1",
   "xdg_directories": "0.2.0+1",
   "xml": "5.3.1"
 }

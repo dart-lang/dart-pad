@@ -174,9 +174,9 @@ class _DownloadedFlutterSdk {
 
   Future<int> init() =>
       // `flutter --version` takes ~28s.
-      _execLog('bin/flutter', ['--version'], flutterSdkPath);
+      _execLog(path.join('bin', 'flutter'), ['--version'], flutterSdkPath);
 
-  String get sdkPath => path.join(flutterSdkPath, 'bin/cache/dart-sdk');
+  String get sdkPath => path.join(flutterSdkPath, 'bin', 'cache', 'dart-sdk');
 
   String get versionFull =>
       File(path.join(sdkPath, 'version')).readAsStringSync().trim();
