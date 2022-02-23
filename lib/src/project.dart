@@ -82,7 +82,6 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'flutter_lints',
       'flutter_riverpod',
       'hooks_riverpod',
-      'url_launcher',
       if (devMode) ...[
         'english_words',
         'firebase_analytics',

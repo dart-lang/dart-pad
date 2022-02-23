@@ -128,7 +128,7 @@ void defineTests() {
       await d.dir('project_templates', [
         d.dir('flutter_project/lib', [
           d.file('generated_plugin_registrant.dart',
-              matches('UrlLauncherPlugin.registerWith')),
+              matches('FirebaseCoreWeb.registerWith')),
         ]),
       ]).validate();
     });
@@ -193,7 +193,6 @@ void defineTests() {
                 matches('FirebaseFirestoreWeb.registerWith'),
                 matches('FirebaseAuthWeb.registerWith'),
                 matches('FirebaseCoreWeb.registerWith'),
-                matches('UrlLauncherPlugin.registerWith'),
               ])),
         ]),
       ]).validate();
