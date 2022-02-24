@@ -35,6 +35,7 @@
 
     <!-- codemirror themes -->
     <link href="styles/cm-scrollbars.css" rel="stylesheet" media="screen">
+    <link href="styles/cm-hints.css" rel="stylesheet" media="screen">
     <link href="styles/cm-dartpad-dark.css" rel="stylesheet" media="screen">
     <link href="styles/cm-dartpad-light.css" rel="stylesheet" media="screen">
 
@@ -207,7 +208,8 @@
         </div>
         <div id="output-panel">
             <span id="web-output-label" class="view-label absolute">UI Output</span>
-            <iframe id="frame" sandbox="allow-scripts" flex
+	    <!-- allow-popups allows plugins like url_launcher to open popups. -->
+            <iframe id="frame" sandbox="allow-scripts allow-popups" flex
                     src="scripts/frame_dark.html"></iframe>
             <div id="right-output-panel">
                 <span class="view-label">Console</span>
@@ -253,14 +255,13 @@
            target="repo">Send feedback</a>
     </div>
     <div class="footer-item">
-        <div id="null-safety-switch" class="mdc-switch" title="Null safety is currently disabled">
-            <div class="mdc-switch__track"></div>
-            <div class="mdc-switch__thumb-underlay">
-                <div class="mdc-switch__thumb"></div>
-                <input type="checkbox" id="basic-switch" class="mdc-switch__native-control" role="switch" aria-checked="false">
-            </div>
+        <div id="channel-switch">
+            <button type="button" id="channels-dropdown-button" class="mdc-button mdc-button-footer">
+                <span class="mdc-button__label">Channel</span>
+                <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
+            </button>
+            <div id="channels-menu" class="mdc-menu mdc-menu-surface"></div>
         </div>
-        <label for="basic-switch">Null Safety</label>
     </div>
     <div class="flex"></div>
     <div id="issues-message" class="info-message"></div>
@@ -300,7 +301,7 @@
      aria-describedby="my-dialog-content">
     <div class="mdc-dialog__container">
         <div class="mdc-dialog__surface">
-            <h2 class="mdc-dialog__title">New Pad</h2>
+            <h2 class="mdc-dialog__title">Create New Pad</h2>
             <div class="mdc-dialog__content">
                 <div class="dart-container">
                     <div id="new-pad-select-dart" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">

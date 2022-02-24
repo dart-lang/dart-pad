@@ -5,10 +5,11 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:dart_pad/elements/button.dart';
-import 'package:dart_pad/elements/elements.dart';
-import 'package:dart_pad/services/dartservices.dart';
 import 'package:mdc_web/mdc_web.dart';
+
+import '../services/dartservices.dart';
+import 'button.dart';
+import 'elements.dart';
 
 class AnalysisResultsController {
   static const String _noIssuesMsg = 'no issues';
@@ -73,24 +74,23 @@ class AnalysisResultsController {
     message.text = '$amount ${amount == 1 ? 'issue' : 'issues'}';
 
     flash.clearChildren();
-    for (var issue in issues) {
-      var elem = _createIssueElement(issue);
-      flash.add(elem);
+    for (final issue in issues) {
+      flash.add(_createIssueElement(issue));
     }
   }
 
   Element _createIssueElement(AnalysisIssue issue) {
-    var message = issue.message;
+    final message = issue.message;
 
-    var elem = DivElement()..classes.addAll(['issue', 'clickable']);
+    final elem = DivElement()..classes.addAll(['issue', 'clickable']);
 
     elem.children.add(SpanElement()
       ..text = issue.kind
       ..classes.addAll(_classesForType[issue.kind]!));
 
-    var columnElem = DivElement()..classes.add('issue-column');
+    final columnElem = DivElement()..classes.add('issue-column');
 
-    var messageSpan = DivElement()
+    final messageSpan = DivElement()
       ..text = 'line ${issue.line} • $message'
       ..classes.add('message');
     columnElem.children.add(messageSpan);
@@ -112,14 +112,13 @@ class AnalysisResultsController {
     }
 
     // TODO: This should likely be named contextMessages.
-    for (var diagnostic in issue.diagnosticMessages) {
-      var diagnosticElement = _createDiagnosticElement(diagnostic);
-      columnElem.children.add(diagnosticElement);
+    for (final diagnostic in issue.diagnosticMessages) {
+      columnElem.children.add(_createDiagnosticElement(diagnostic));
     }
 
     elem.children.add(columnElem);
 
-    var copyButton = MDCButton(ButtonElement(), isIcon: true);
+    final copyButton = MDCButton(ButtonElement(), isIcon: true);
     copyButton.buttonElement.setInnerHtml('content_copy');
     copyButton
       ..toggleClass('mdc-icon-button', true)
@@ -150,7 +149,7 @@ class AnalysisResultsController {
   Element _createDiagnosticElement(DiagnosticMessage diagnosticMessage) {
     final message = diagnosticMessage.message;
 
-    var elem = DivElement()..classes.addAll(['message', 'clickable']);
+    final elem = DivElement()..classes.addAll(['message', 'clickable']);
     elem.text = message;
     elem.onClick.listen((event) {
       // Stop the mouse event so the outer issue mouse handler doesn't process

@@ -44,7 +44,7 @@ class SanitizingBrowserClient extends BrowserClient {
   /// Strips all disallowed headers for an HTTP request before sending it.
   @override
   Future<StreamedResponse> send(BaseRequest request) {
-    for (var headerKey in disallowedHeaders) {
+    for (final headerKey in disallowedHeaders) {
       request.headers.remove(headerKey);
     }
 
@@ -60,10 +60,9 @@ class SanitizingBrowserClient extends BrowserClient {
 class DartServicesModule extends Module {
   @override
   Future init() {
-    var client = SanitizingBrowserClient();
+    final client = SanitizingBrowserClient();
     deps[BrowserClient] = client;
-    deps[DartservicesApi] =
-        DartservicesApi(client, rootUrl: preNullSafetyServerUrl);
+    deps[DartservicesApi] = DartservicesApi(client, rootUrl: serverUrl);
     return Future.value();
   }
 }

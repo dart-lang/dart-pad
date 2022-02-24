@@ -29,22 +29,22 @@ class DartCompleter extends CodeCompleter {
     // Cancel any open completion request.
     _lastCompleter?.operation.cancel();
 
-    var offset = editor.document.indexFromPos(editor.document.cursor);
+    final offset = editor.document.indexFromPos(editor.document.cursor);
 
-    var request = ds.SourceRequest()
+    final request = ds.SourceRequest()
       ..source = editor.document.value
       ..offset = offset;
 
-    var completer = CancelableCompleter<CompletionResult>();
+    final completer = CancelableCompleter<CompletionResult>();
     _lastCompleter = completer;
 
     if (onlyShowFixes) {
-      var completions = <Completion>[];
-      var fixesFuture =
+      final completions = <Completion>[];
+      final fixesFuture =
           servicesApi.fixes(request).then((ds.FixesResponse response) {
-        for (var problemFix in response.fixes) {
-          for (var fix in problemFix.fixes) {
-            var fixes = fix.edits.map((edit) {
+        for (final problemFix in response.fixes) {
+          for (final fix in problemFix.fixes) {
+            final fixes = fix.edits.map((edit) {
               return SourceEdit(edit.length, edit.offset, edit.replacement);
             }).toList();
 
@@ -57,10 +57,10 @@ class DartCompleter extends CodeCompleter {
           }
         }
       });
-      var assistsFuture =
+      final assistsFuture =
           servicesApi.assists(request).then((ds.AssistsResponse response) {
-        for (var assist in response.assists) {
-          var sourceEdits = assist.edits
+        for (final assist in response.assists) {
+          final sourceEdits = assist.edits
               .map((edit) =>
                   SourceEdit(edit.length, edit.offset, edit.replacement))
               .toList();
@@ -80,7 +80,7 @@ class DartCompleter extends CodeCompleter {
             absoluteCursorPosition = assist.selectionOffset;
           }
 
-          var completion = Completion(
+          final completion = Completion(
             '',
             displayString: assist.message,
             type: 'type-quick_fix',
@@ -100,14 +100,14 @@ class DartCompleter extends CodeCompleter {
       servicesApi.complete(request).then((ds.CompleteResponse response) {
         if (completer.isCanceled) return;
 
-        var replaceOffset = response.replacementOffset;
-        var replaceLength = response.replacementLength;
+        final replaceOffset = response.replacementOffset;
+        final replaceLength = response.replacementLength;
 
-        var responses = response.completions.map((completion) {
+        final responses = response.completions.map((completion) {
           return AnalysisCompletion(replaceOffset, replaceLength, completion);
         });
 
-        var completions = responses.map((completion) {
+        final completions = responses.map((completion) {
           // TODO: Move to using a LabelProvider; decouple the data and rendering.
           var displayString = completion.isMethod
               ? '${completion.text}${completion.parameters}'
@@ -126,7 +126,7 @@ class DartCompleter extends CodeCompleter {
             displayString += '()';
           }
 
-          var deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
+          final deprecatedClass = completion.isDeprecated ? ' deprecated' : '';
 
           if (completion.type == null) {
             return Completion(
@@ -155,8 +155,8 @@ class DartCompleter extends CodeCompleter {
         }).toList();
 
         // Removes duplicates when a completion is both a getter and a setter.
-        for (var completion in completions) {
-          for (var other in completions) {
+        for (final completion in completions) {
+          for (final other in completions) {
             if (completion.isSetterAndMatchesGetter(other)) {
               completions.removeWhere((c) => completion == c);
               other.type = 'type-getter_and_setter';
@@ -205,7 +205,7 @@ class AnalysisCompletion implements Comparable {
   String? get kind => _map['kind'] as String?;
 
   bool get isMethod {
-    var element = _map['element'];
+    final element = _map['element'];
     return element is Map
         ? (element['kind'] == 'FUNCTION' || element['kind'] == 'METHOD')
         : false;
@@ -220,7 +220,7 @@ class AnalysisCompletion implements Comparable {
       isMethod ? _map['parameterNames'].length as int? : null;
 
   String get text {
-    var str = _map['completion'] as String;
+    final str = _map['completion'] as String;
     if (str.startsWith('(') && str.endsWith(')')) {
       return str.substring(1, str.length - 1);
     } else {

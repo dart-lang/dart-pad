@@ -29,6 +29,7 @@ serve() async {
   await Process.start(Platform.executable, ['bin/serve.dart'])
       .then((Process process) {
     process.stdout.transform(utf8.decoder).listen(stdout.write);
+    process.stderr.transform(utf8.decoder).listen(stderr.write);
   });
 }
 
@@ -50,43 +51,10 @@ serveLocalAppEngine() async {
   ConstTaskArgs('build', flags: {
     _debugFlag: true,
   }, options: {
-    _preNullSafetyServerUrlOption: 'http://127.0.0.1:8082/',
-    _nullSafetyServerUrlOption: 'http://127.0.0.1:8084/',
+    _serverUrlOption: 'http://127.0.0.1:8084/',
   }),
 ))
 serveLocalBackend() async {
-  log('\nServing dart-pad on http://localhost:8000');
-
-  await Process.start(Platform.executable, ['bin/serve.dart'])
-      .then((Process process) {
-    process.stdout.transform(utf8.decoder).listen(stdout.write);
-  });
-}
-
-@Task('Serve locally on port 8000 and use beta server URL for pre null-safe')
-@Depends(ConstTaskInvocation(
-  'build',
-  ConstTaskArgs('build', options: {
-    _preNullSafetyServerUrlOption: 'http://beta.api.dartpad.dev/',
-  }),
-))
-serveBetaBackend() async {
-  log('\nServing dart-pad on http://localhost:8000');
-
-  await Process.start(Platform.executable, ['bin/serve.dart'])
-      .then((Process process) {
-    process.stdout.transform(utf8.decoder).listen(stdout.write);
-  });
-}
-
-@Task('Serve locally on port 8000 and use dev server URL for pre null-safe')
-@Depends(ConstTaskInvocation(
-  'build',
-  ConstTaskArgs('build', options: {
-    _preNullSafetyServerUrlOption: 'http://dev.api.dartpad.dev/',
-  }),
-))
-serveDevBackend() async {
   log('\nServing dart-pad on http://localhost:8000');
 
   await Process.start(Platform.executable, ['bin/serve.dart'])
@@ -99,25 +67,16 @@ serveDevBackend() async {
 /// use DDC instead of dart2js.
 const _debugFlag = 'debug';
 
-/// A grinder option which specifies the URL of the pre-null safety back-end
-/// server.
-const _preNullSafetyServerUrlOption = 'pre-null-safety-server-url';
-
-/// A grinder option which specifies the URL of the null safety back-end
-/// server.
-const _nullSafetyServerUrlOption = 'null-safety-server-url';
+/// A grinder option which specifies the URL of the back-end server.
+const _serverUrlOption = 'server-url';
 
 @Task('Build the `web/index.html` entrypoint')
 @Depends(generateProtos)
 build() {
-  var args = context.invocation.arguments;
-  var compilerArgs = {
-    if (args.hasOption(_preNullSafetyServerUrlOption))
-      preNullSafetyServerUrlEnvironmentVar:
-          args.getOption(_preNullSafetyServerUrlOption),
-    if (args.hasOption(_nullSafetyServerUrlOption))
-      nullSafetyServerUrlEnvironmentVar:
-          args.getOption(_nullSafetyServerUrlOption),
+  final args = context.invocation.arguments;
+  final compilerArgs = {
+    if (args.hasOption(_serverUrlOption))
+      serverUrlEnvironmentVar: args.getOption(_serverUrlOption),
   };
   PubApp.local('build_runner').run([
     'build',
@@ -133,18 +92,18 @@ build() {
     '--delete-conflicting-outputs',
   ]);
 
-  var mainFile = _buildDir.join('scripts/playground.dart.js');
+  final mainFile = _buildDir.join('scripts/playground.dart.js');
   log('$mainFile compiled to ${_printSize(mainFile)}');
 
-  var testFile = _buildDir.join('test', 'web.dart.js');
+  final testFile = _buildDir.join('test', 'web.dart.js');
   if (testFile.exists) {
     log('${testFile.path} compiled to ${_printSize(testFile)}');
   }
 
-  var newEmbedDartFile = _buildDir.join('scripts/embed_dart.dart.js');
+  final newEmbedDartFile = _buildDir.join('scripts/embed_dart.dart.js');
   log('$newEmbedDartFile compiled to ${_printSize(newEmbedDartFile)}');
 
-  var newEmbedFlutterFile = _buildDir.join('scripts/embed_flutter.dart.js');
+  final newEmbedFlutterFile = _buildDir.join('scripts/embed_flutter.dart.js');
   log('$newEmbedFlutterFile compiled to ${_printSize(newEmbedFlutterFile)}');
 
   var newEmbedFlutterShowcaseFile =
@@ -154,13 +113,13 @@ build() {
   var newEmbedHtmlFile = _buildDir.join('scripts/embed_html.dart.js');
   log('$newEmbedHtmlFile compiled to ${_printSize(newEmbedHtmlFile)}');
 
-  var newEmbedInlineFile = _buildDir.join('scripts/embed_inline.dart.js');
+  final newEmbedInlineFile = _buildDir.join('scripts/embed_inline.dart.js');
   log('$newEmbedInlineFile compiled to ${_printSize(newEmbedInlineFile)}');
 
   // Remove .dart files.
   var count = 0;
 
-  for (var entity in getDir('build/packages')
+  for (final entity in getDir('build/packages')
       .listSync(recursive: true, followLinks: false)) {
     if (entity is! File) continue;
     if (!entity.path.endsWith('.dart')) continue;
@@ -174,14 +133,14 @@ build() {
 /// Formats a map of argument key and values to be passed as `dart2js_args` for
 /// webdev.
 String _formatDart2jsArgs(Map<String, String?> args) {
-  var values = args.entries.map((entry) => '"-D${entry.key}=${entry.value}"');
+  final values = args.entries.map((entry) => '"-D${entry.key}=${entry.value}"');
   return '[${values.join(',')}]';
 }
 
 /// Formats a map of argument key and values to be passed as DDC environment
 /// variables.
 String _formatDdcArgs(Map<String, String?> args) {
-  var values = args.entries.map((entry) => '"${entry.key}":"${entry.value}"');
+  final values = args.entries.map((entry) => '"${entry.key}":"${entry.value}"');
   return '{${values.join(',')}}';
 }
 
@@ -192,7 +151,7 @@ coverage() {
     return;
   }
 
-  var coveralls = PubApp.global('dart_coveralls');
+  final coveralls = PubApp.global('dart_coveralls');
   coveralls.run([
     'report',
     '--token',
@@ -216,12 +175,12 @@ deploy() async {
   // `dev` is served from dev.dart-pad.appspot.com
   // `prod` is served from prod.dart-pad.appspot.com and from dartpad.dartlang.org.
 
-  var app = yaml.loadYaml(File('web/app.yaml').readAsStringSync()) as Map;
+  final app = yaml.loadYaml(File('web/app.yaml').readAsStringSync()) as Map;
 
-  var handlers = app['handlers'];
+  final handlers = app['handlers'];
   var isSecure = false;
 
-  for (var m in handlers) {
+  for (final m in handlers) {
     if (m['url'] == '.*') {
       isSecure = m['secure'] == 'always';
     }

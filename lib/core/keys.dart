@@ -25,7 +25,7 @@ class Keys {
   /// Bind a list of keys to an action. The key is a string, with a specific
   /// format. Some examples of this format:
   ///     `ctrl-space`, `f1`, `macctrl-a`, `shift-left`, `alt-.`
-  void bind(List<String> keys, Function onInvoke, String description,
+  void bind(List<String> keys, void Function() onInvoke, String description,
       {bool hidden = false}) {
     for (final key in keys) {
       _bindings[key] = Action(onInvoke, description, hidden: hidden);
@@ -38,7 +38,7 @@ class Keys {
 
   void _handleKeyEvent(KeyboardEvent event) {
     try {
-      var k = event;
+      final k = event;
 
       if (!k.altKey &&
           !k.ctrlKey &&
@@ -62,7 +62,7 @@ class Keys {
   }
 
   bool _handleKey(String key) {
-    var action = _bindings[key];
+    final action = _bindings[key];
     if (action != null) {
       Timer.run(() => action());
       return true;
@@ -78,13 +78,13 @@ class Keys {
 }
 
 class Action {
-  final Function function;
+  final void Function() function;
   final String description;
   final bool hidden;
 
   Action(this.function, this.description, {this.hidden = false});
 
-  dynamic call() => function();
+  void call() => function();
 
   @override
   String toString() => description;
@@ -99,7 +99,7 @@ class Action {
 
 /// Convert [event] into a string (e.g., `ctrl-s`).
 String printKeyEvent(KeyboardEvent event) {
-  var buf = StringBuffer();
+  final buf = StringBuffer();
 
   // shift ctrl alt
   if (event.shiftKey) buf.write('shift-');

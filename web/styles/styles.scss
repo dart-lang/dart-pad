@@ -353,6 +353,21 @@ a {
     margin-right: 14px;
 }
 
+.channel-item {
+  display: list-item;
+  height: auto;
+}
+
+.mdc-list-item__title {
+  font-weight: bold;
+  margin-bottom: 0;
+}
+
+p.mdc-list-item__details {
+  font-size: 14px;
+  margin-top: 0;
+}
+
 // Editor Tabs
 .editor-tab {
   @include mdc-button-ink-color($button-text-color);
@@ -422,4 +437,9 @@ a {
 .mdc-switch {
   @include mdc-switch-toggled-on-color($button-color);
   @include mdc-switch-toggled-off-color($secondary-color);
+}
+
+.muted {
+  font-size: 0.8em;
+  font-style: italic;
 }

@@ -24,6 +24,7 @@ BSD-style license that can be found in the LICENSE file. -->
     <link href="packages/codemirror/addon/lint/lint.css" rel="stylesheet" media="screen">
     <link href="packages/codemirror/addon/hint/show-hint.css" rel="stylesheet" media="screen">
     <link href="styles/cm-scrollbars.css" rel="stylesheet" media="screen">
+    <link href="styles/cm-hints.css" rel="stylesheet" media="screen">
     <link href="styles/cm-dartpad-dark.css" rel="stylesheet" media="screen">
     <link href="styles/cm-dartpad-light.css" rel="stylesheet" media="screen">
 
@@ -119,12 +120,6 @@ BSD-style license that can be found in the LICENSE file. -->
                         </span>
                         <span class="mdc-list-item__text">Editable test/solution</span>
                     </li>
-                    <li id="toggle-null-safety-menu-item" class="mdc-list-item" role="menuitem">
-                        <span id="toggle-null-safety-checkmark" class="mdc-list-item__graphic hide">
-                            <i class="material-icons mdc-select__icon" tabindex="-1" role="button">check</i>
-                        </span>
-                        <span class="mdc-list-item__text">Null Safety</span>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -154,7 +149,8 @@ BSD-style license that can be found in the LICENSE file. -->
         <div id="console-output-container" class="console custom-scrollbar"></div>
     </div>
     <div id="web-output" hidden>
-        <iframe id="frame" sandbox="allow-scripts" class="flex-auto">
+        <!-- allow-popups allows plugins like url_launcher to open popups. -->
+        <iframe id="frame" sandbox="allow-scripts allow-popups" class="flex-auto">
         </iframe>
     </div>
     <div class="mdc-snackbar">

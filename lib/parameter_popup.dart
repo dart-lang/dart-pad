@@ -70,7 +70,7 @@ class ParameterPopup {
 
   void _lookupParameterInfo() {
     var offset = editor.document.indexFromPos(editor.document.cursor);
-    var source = editor.document.value;
+    final source = editor.document.value;
     var parInfo = _parameterInfo(source, offset);
 
     if (parInfo == null) {
@@ -78,12 +78,12 @@ class ParameterPopup {
       return;
     }
 
-    var openingParenIndex = parInfo['openingParenIndex']!;
-    var parameterIndex = parInfo['parameterIndex'];
+    final openingParenIndex = parInfo['openingParenIndex']!;
+    final parameterIndex = parInfo['parameterIndex'];
     offset = openingParenIndex - 1;
 
     // We request documentation info of what is before the parenthesis.
-    var input = SourceRequest()
+    final input = SourceRequest()
       ..source = source
       ..offset = offset;
 
@@ -96,7 +96,7 @@ class ParameterPopup {
         return;
       }
 
-      var parameterInfo = result.info['parameters']!;
+      final parameterInfo = result.info['parameters']!;
       var outputString = '';
       if (parameterInfo.isEmpty) {
         outputString += '<code>&lt;no parameters&gt;</code>';
@@ -131,43 +131,43 @@ class ParameterPopup {
   }
 
   void _showParameterPopup(String string, int methodOffset) {
-    var editorDiv = querySelector('#editpanel .CodeMirror') as DivElement;
-    var lineHeightStr =
+    final editorDiv = querySelector('#editpanel .CodeMirror') as DivElement;
+    final lineHeightStr =
         editorDiv.getComputedStyle().getPropertyValue('line-height');
-    var lineHeight =
+    final lineHeight =
         int.parse(lineHeightStr.substring(0, lineHeightStr.indexOf('px')));
     // var charWidth = editorDiv.getComputedStyle().getPropertyValue('letter-spacing');
-    var charWidth = 8;
+    final charWidth = 8;
 
-    var methodPosition = editor.document.posFromIndex(methodOffset);
-    var cursorCoords = editor.getCursorCoords();
-    var methodCoords = editor.getCursorCoords(position: methodPosition);
-    var heightOfMethod = (methodCoords.y - lineHeight - 5).round();
+    final methodPosition = editor.document.posFromIndex(methodOffset);
+    final cursorCoords = editor.getCursorCoords();
+    final methodCoords = editor.getCursorCoords(position: methodPosition);
+    final heightOfMethod = (methodCoords.y - lineHeight - 5).round();
 
     DivElement parameterPopup;
     if (parPopupActive) {
-      var parameterHint = querySelector('.parameter-hint')!;
+      final parameterHint = querySelector('.parameter-hint')!;
       parameterHint.innerHtml = string;
 
       //update popup position
-      var newLeft = math
+      final newLeft = math
           .max(
               cursorCoords.x - (parameterHint.text!.length * charWidth / 2), 22)
           .round();
 
       parameterPopup = querySelector('.parameter-hints') as DivElement
         ..style.top = '${heightOfMethod}px';
-      var oldLeftString = parameterPopup.style.left;
-      var oldLeft =
+      final oldLeftString = parameterPopup.style.left;
+      final oldLeft =
           int.parse(oldLeftString.substring(0, oldLeftString.indexOf('px')));
       if ((newLeft - oldLeft).abs() > 50) {
         parameterPopup.style.left = '${newLeft}px';
       }
     } else {
-      var parameterHint = SpanElement()
+      final parameterHint = SpanElement()
         ..innerHtml = string
         ..classes.add('parameter-hint');
-      var left = math
+      final left = math
           .max(
               cursorCoords.x - (parameterHint.text!.length * charWidth / 2), 22)
           .round();
@@ -180,7 +180,7 @@ class ParameterPopup {
       parameterPopup.append(parameterHint);
       document.body!.append(parameterPopup);
     }
-    var activeParameter = querySelector('.parameter-hints em');
+    final activeParameter = querySelector('.parameter-hints em');
     if (activeParameter != null &&
         activeParameter.previousElementSibling != null) {
       parameterPopup.scrollLeft =

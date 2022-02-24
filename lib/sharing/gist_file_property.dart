@@ -14,12 +14,12 @@ class GistFileProperty implements Property<String> {
   String get() => file.content!;
 
   @override
-  void set(value) {
+  void set(String value) {
     if (file.content != value) {
       file.content = value;
     }
   }
 
   @override
-  Stream<String?> get onChanged => file.onChanged!.map((value) => value);
+  Stream<String?>? get onChanged => file.onChanged?.map((value) => value);
 }

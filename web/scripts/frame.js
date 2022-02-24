@@ -5,11 +5,6 @@
  */
 
 replaceJavaScript = function (value) {
-    // Remove canvaskit from this page, This can be removed when this PR lands
-    // in dart-services:
-    // https://github.com/flutter/engine/pull/26059
-    removeCanvaskit();
-
     // Remove the old node.
     var oldNode = document.getElementById('compiledJsScript');
     if (oldNode && oldNode.parentNode) {
@@ -50,27 +45,6 @@ addScript = function (id, url, onload) {
     document.head.appendChild(scriptNode);
 }
 
-removeScript = function (id) {
-    let existingScript = document.getElementById(id);
-    if (existingScript && existingScript.parentNode) {
-        existingScript.parentNode.removeChild(existingScript);
-    }
-}
-
-addFirebase = function () {
-    addScript('firebase-app', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-app.js');
-    addScript('firebase-auth', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-auth.js');
-    addScript('firebase-database', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-database.js');
-    addScript('firestore', 'https://www.gstatic.com/firebasejs/8.4.1/firebase-firestore.js');
-}
-
-removeFirebase = function () {
-    removeScript('firebase-app');
-    removeScript('firebase-auth');
-    removeScript('firebase-database');
-    removeScript('firestore');
-}
-
 removeCanvaskit = function () {
     var scripts = document.head.querySelectorAll('script');
     for (var i = 0; i < scripts.length; i++) {
@@ -79,24 +53,6 @@ removeCanvaskit = function () {
             script.parentNode.removeChild(script);
             return;
         }
-    }
-}
-
-executeWithFirebase = function (userJs) {
-    let existingFirebase = document.getElementById('firebase-app');
-    if (existingFirebase) {
-        // Keep existing RequireJS and Firebase.
-        replaceJavaScript(userJs);
-    } else {
-        // RequireJS must be added _after_ the Firebase JS. If a previous
-        // execution added RequireJS, then we must first remove it.
-        removeScript('require');
-        addFirebase();
-        // RequireJS must be added _after_ the Firebase JS.
-        addScript('require', 'require.js', function () {
-            // User script must be added after RequireJS loads.
-            replaceJavaScript(userJs);
-        });
     }
 }
 
@@ -129,9 +85,7 @@ messageHandler = function (e) {
         // Replace HTML, CSS, possible Firebase JS, RequireJS, and app.
         body.innerHTML = obj.html;
         document.getElementById('styleId').innerHTML = obj.css;
-        if (obj.addFirebaseJs) {
-            executeWithFirebase(obj.js);
-        } else if (obj.addRequireJs) {
+        if (obj.addRequireJs) {
             executeWithRequireJs(obj.js);
         } else {
             replaceJavaScript(obj.js);

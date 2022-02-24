@@ -14,16 +14,16 @@ void main() => defineTests();
 void defineTests() {
   group('MutableGist', () {
     test('mutation causes dirty', () {
-      var gist = Gist(description: 'foo');
-      var mgist = MutableGist(gist);
+      final gist = Gist(description: 'foo');
+      final mgist = MutableGist(gist);
       expect(mgist.dirty, false);
       mgist.description = 'bar';
       expect(mgist.dirty, true);
     });
 
     test('undoing mutation clear dirty', () {
-      var gist = Gist(description: 'foo');
-      var mgist = MutableGist(gist);
+      final gist = Gist(description: 'foo');
+      final mgist = MutableGist(gist);
       expect(mgist.dirty, false);
       mgist.description = 'bar';
       expect(mgist.dirty, true);
@@ -32,8 +32,8 @@ void defineTests() {
     });
 
     test('setBackingGist', () {
-      var gist = Gist(description: 'foo');
-      var mgist = MutableGist(gist);
+      final gist = Gist(description: 'foo');
+      final mgist = MutableGist(gist);
       expect(mgist.dirty, false);
       mgist.description = 'bar';
       expect(mgist.dirty, true);
@@ -42,10 +42,10 @@ void defineTests() {
     });
 
     test('createGist', () {
-      var gist = Gist(description: 'foo');
-      var mgist = MutableGist(gist);
+      final gist = Gist(description: 'foo');
+      final mgist = MutableGist(gist);
       mgist.description = 'bar';
-      var newGist = mgist.createGist();
+      final newGist = mgist.createGist();
       expect(newGist.description, 'bar');
     });
   });

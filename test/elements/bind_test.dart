@@ -14,8 +14,8 @@ void main() => defineTests();
 void defineTests() {
   group('bind', () {
     test('get stream changes', () {
-      var fromController = StreamController.broadcast();
-      var to = TestProperty();
+      final fromController = StreamController.broadcast();
+      final to = TestProperty();
       bind(fromController.stream, to);
       fromController.add('foo');
       return to.onChanged.first.then((_) {
@@ -24,8 +24,8 @@ void defineTests() {
     });
 
     test('get property changes', () {
-      var from = TestProperty('foo');
-      var to = TestProperty();
+      final from = TestProperty('foo');
+      final to = TestProperty();
       bind(from, to).flush();
       return to.onChanged.first.then((_) {
         expect(to.value, from.value);
@@ -33,15 +33,15 @@ void defineTests() {
     });
 
     test('target functions', () {
-      var from = TestProperty('foo');
+      final from = TestProperty('foo');
       Object? val;
       bind(from, (_val) => val = _val).flush();
       expect(val, from.value);
     });
 
     test('target properties', () {
-      var from = TestProperty('foo');
-      var to = TestProperty();
+      final from = TestProperty('foo');
+      final to = TestProperty();
       bind(from, to).flush();
       return to.onChanged.first.then((_) {
         expect(to.value, from.value);
@@ -49,9 +49,9 @@ void defineTests() {
     });
 
     test('can cancel', () {
-      var from = TestProperty();
-      var to = TestProperty();
-      var binding = bind(from, to);
+      final from = TestProperty();
+      final to = TestProperty();
+      final binding = bind(from, to);
       from.set('foo');
       binding.cancel();
       from.set('bar');

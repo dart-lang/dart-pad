@@ -9,21 +9,12 @@
 /// The `grind build` task specifies each of these options.
 library dart_pad.common;
 
-/// The environment variable name which specifies the URL of the pre-null safety
-/// back-end server.
-const preNullSafetyServerUrlEnvironmentVar = 'PRE_NULL_SAFETY_SERVER_URL';
+/// The environment variable name which specifies the URL of the base back-end
+/// server.
+const serverUrlEnvironmentVar = 'SERVER_URL';
 
-/// The URL of the pre-null safety back-end server.
-const preNullSafetyServerUrl =
-    String.fromEnvironment(preNullSafetyServerUrlEnvironmentVar);
-
-/// The environment variable name which specifies the URL of the null safety
-/// back-end server.
-const nullSafetyServerUrlEnvironmentVar = 'NULL_SAFETY_SERVER_URL';
-
-/// The URL of the null safety back-end server.
-const nullSafetyServerUrl =
-    String.fromEnvironment(nullSafetyServerUrlEnvironmentVar);
+/// The URL of the back-end server.
+const serverUrl = String.fromEnvironment(serverUrlEnvironmentVar);
 
 /// The environment variable name which specifies the URL of the back-end
 /// server serving "Flutter stable".
@@ -38,6 +29,9 @@ const betaServerUrlEnvironmentVar = 'BETA_SERVER_URL';
 
 /// The URL of the "Flutter beta" back-end server.
 const betaServerUrl = String.fromEnvironment(betaServerUrlEnvironmentVar);
+
+// TODO(srawlins): remove these 'dev' channel tasks if that channel becomes
+// unsupported.
 
 /// The environment variable name which specifies the URL of the back-end
 /// server serving "Flutter dev".
@@ -60,7 +54,7 @@ class Lines {
   final _starts = <int>[];
 
   Lines(String source) {
-    var units = source.codeUnits;
+    final units = source.codeUnits;
     var nextIsEol = true;
     for (var i = 0; i < units.length; i++) {
       if (nextIsEol) {

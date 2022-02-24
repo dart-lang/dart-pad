@@ -1,10 +1,6 @@
 import 'dart:async';
 import 'dart:html';
 
-import 'package:dart_pad/elements/button.dart';
-import 'package:dart_pad/elements/dialog.dart';
-import 'package:dart_pad/services/execution.dart';
-import 'package:dart_pad/util/keymap.dart';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
@@ -13,9 +9,13 @@ import '../context.dart';
 import '../dart_pad.dart';
 import '../editing/editor.dart';
 import '../elements/analysis_results_controller.dart';
+import '../elements/button.dart';
+import '../elements/dialog.dart';
 import '../elements/elements.dart';
 import '../services/common.dart';
 import '../services/dartservices.dart';
+import '../services/execution.dart';
+import '../util/keymap.dart';
 
 abstract class EditorUi {
   final Logger logger = Logger('dartpad');
@@ -31,14 +31,6 @@ abstract class EditorUi {
 
   /// The dialog box for information like Keyboard shortcuts.
   final Dialog dialog = Dialog();
-
-  /// The source-of-truth for whether null safety is enabled.
-  ///
-  /// On page load, this may be originally derived from local storage.
-  late bool nullSafetyEnabled;
-
-  /// Whether null safety was enabled for the previous execution.
-  bool nullSafetyWasPreviouslyEnabled = false;
 
   String get fullDartSource => context.dartSource;
 
@@ -71,29 +63,49 @@ abstract class EditorUi {
   /// Each package name links to its page at pub.dev; each package version
   /// links to the version page at pub.dev; Each link opens in a new tab.
   void showPackageVersionsDialog() {
-    var listOuterHtml = StringBuffer('<dl>');
-    for (var packageName in _packageVersions.keys) {
-      var packageUrl = 'https://pub.dev/packages/$packageName';
-      var packageLink = AnchorElement()
+    final directlyImportableList = StringBuffer('<dl>');
+    final indirectList = StringBuffer('<dl>');
+    for (final package in _packageInfo) {
+      final packageUrl = 'https://pub.dev/packages/${package.name}';
+      final packageLink = AnchorElement()
         ..href = packageUrl
         ..setAttribute('target', '_blank')
-        ..text = packageName;
-      listOuterHtml.write('<dt>${packageLink.outerHtml}</dt>');
-      var packageVersion = _packageVersions[packageName];
-      var versionLink = SpanElement()
+        ..text = package.name;
+      final dt = '<dt>${packageLink.outerHtml}</dt>';
+      final packageVersion = package.version;
+      final versionLink = SpanElement()
         ..children.add(AnchorElement()
           ..href = '$packageUrl/versions/$packageVersion'
           ..setAttribute('target', '_blank')
           ..text = packageVersion);
-      listOuterHtml.write('<dd>${versionLink.outerHtml}</dd>');
+      final dd = '<dd>${versionLink.outerHtml}</dd>';
+      if (package.supported) {
+        directlyImportableList.write(dt);
+        directlyImportableList.write(dd);
+      } else {
+        indirectList.write(dt);
+        indirectList.write(dd);
+      }
     }
-    listOuterHtml.write('</dl>');
-    var dl = Element.html(listOuterHtml.toString(),
+    directlyImportableList.write('</dl>');
+    indirectList.write('</dl>');
+    final directDl = Element.html(directlyImportableList.toString(),
+        treeSanitizer: NodeTreeSanitizer.trusted);
+    final indirectDl = Element.html(indirectList.toString(),
         treeSanitizer: NodeTreeSanitizer.trusted);
 
-    var div = DivElement()
+    final div = DivElement()
       ..children.add(DivElement()
-        ..children.add(dl)
+        ..children
+            .add(ParagraphElement()..text = 'Directly importable packages')
+        ..children.add(directDl)
+        ..children.add(ParagraphElement()
+          ..text = 'Packages available transitively'
+          ..children.add(BRElement())
+          ..children.add(SpanElement()
+            ..text = '(These are not directly importable.)'
+            ..classes.add('muted')))
+        ..children.add(indirectDl)
         ..classes.add('keys-dialog'));
     dialog.showOk('Pub package versions', div.innerHtml);
   }
@@ -106,15 +118,16 @@ abstract class EditorUi {
 
   /// Perform static analysis of the source code. Return whether the code
   /// analyzed cleanly (had no errors or warnings).
-  Future<bool> performAnalysis() {
-    var input = SourceRequest()..source = fullDartSource;
+  Future<bool> performAnalysis() async {
+    final input = SourceRequest()..source = fullDartSource;
 
-    var lines = Lines(input.source);
+    final lines = Lines(input.source);
 
-    var request = dartServices.analyze(input).timeout(serviceCallTimeout);
+    final request = dartServices.analyze(input).timeout(serviceCallTimeout);
     analysisRequest = request;
 
-    return request.then((AnalysisResults result) {
+    try {
+      final result = await request;
       // Discard if we requested another analysis.
       if (analysisRequest != request) return false;
 
@@ -126,27 +139,23 @@ abstract class EditorUi {
       displayIssues(result.issues);
 
       currentDocument.setAnnotations(result.issues.map((AnalysisIssue issue) {
-        var startLine = lines.getLineForOffset(issue.charStart);
-        var endLine =
+        final startLine = lines.getLineForOffset(issue.charStart);
+        final endLine =
             lines.getLineForOffset(issue.charStart + issue.charLength);
+        final offsetForStartLine = lines.offsetForLine(startLine);
 
-        var start = Position(
-            startLine, issue.charStart - lines.offsetForLine(startLine));
-        var end = Position(
-            endLine,
-            issue.charStart +
-                issue.charLength -
-                lines.offsetForLine(startLine));
+        final start = Position(startLine, issue.charStart - offsetForStartLine);
+        final end = Position(
+            endLine, issue.charStart + issue.charLength - offsetForStartLine);
 
         return Annotation(issue.kind, issue.message, issue.line,
             start: start, end: end);
       }).toList());
 
-      var hasErrors = result.issues.any((issue) => issue.kind == 'error');
-      var hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
-
-      return hasErrors == false && hasWarnings == false;
-    }).catchError((e) {
+      final hasErrors = result.issues.any((issue) => issue.kind == 'error');
+      final hasWarnings = result.issues.any((issue) => issue.kind == 'warning');
+      return !hasErrors && !hasWarnings;
+    } catch (e) {
       if (e is! TimeoutException) {
         final message = e is ApiRequestError ? e.message : '$e';
 
@@ -162,7 +171,8 @@ abstract class EditorUi {
 
       currentDocument.setAnnotations([]);
       busyLight.reset();
-    });
+      return false;
+    }
   }
 
   Future<bool> handleRun() async {
@@ -171,10 +181,6 @@ abstract class EditorUi {
 
     final compilationTimer = Stopwatch()..start();
     final compileRequest = CompileRequest()..source = fullDartSource;
-    // If the null safety toggle has changed from the last execution to this
-    // one, destroy the frame.
-    final shouldDestroyFrame =
-        nullSafetyWasPreviouslyEnabled == !nullSafetyEnabled;
 
     try {
       if (shouldCompileDDC) {
@@ -192,7 +198,9 @@ abstract class EditorUi {
           modulesBaseUrl: response.modulesBaseUrl,
           addRequireJs: true,
           addFirebaseJs: shouldAddFirebaseJs,
-          destroyFrame: shouldDestroyFrame,
+          // TODO(srawlins): Determine if we need to destroy the frame when
+          // changing channels.
+          destroyFrame: false,
         );
       } else {
         final response = await dartServices
@@ -206,14 +214,9 @@ abstract class EditorUi {
           context.htmlSource,
           context.cssSource,
           response.result,
-          destroyFrame: shouldDestroyFrame,
+          destroyFrame: false,
         );
       }
-      // Only after successful execution can we safely set the "previous" null
-      // safety state. If compilation or execution threw, we leave the previous
-      // null safety state so that we know to still destroy the frame on the
-      // next attempt.
-      nullSafetyWasPreviouslyEnabled = nullSafetyEnabled;
       return true;
     } catch (e) {
       ga.sendException('${e.runtimeType}');
@@ -230,26 +233,25 @@ abstract class EditorUi {
   /// Updates the Flutter and Dart SDK versions in the bottom right.
   void updateVersions() async {
     try {
-      var version = await dartServices.version();
+      final response = await dartServices.version();
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
-      var versionText = 'Based on Flutter ${version.flutterVersion}'
-          ' Dart SDK ${version.sdkVersionFull}';
+      final versionText = 'Based on Flutter ${response.flutterVersion}'
+          ' Dart SDK ${response.sdkVersionFull}';
       querySelector('#dartpad-version')!.text = versionText;
-      if (version.packageVersions.isNotEmpty) {
-        _packageVersions.clear();
-        _packageVersions.addAll(version.packageVersions);
+      if (response.packageVersions.isNotEmpty) {
+        _packageInfo.clear();
+        _packageInfo.addAll(response.packageInfo);
       }
     } catch (_) {
       // Don't crash the app.
     }
   }
 
-  /// A mapping from Pub package name to package version, in play on the
-  /// backend.
+  /// A list of each package's information.
   ///
-  /// This mapping is set on page load, and each time the Null Safety switch is
+  /// This list is set on page load, and each time the Null Safety switch is
   /// toggled.
-  final Map<String, String> _packageVersions = {};
+  final List<PackageInfo> _packageInfo = [];
 
   void _sendCompilationTiming(int milliseconds) {
     ga.sendTiming(
@@ -266,4 +268,37 @@ abstract class EditorUi {
       editor.resize();
     }).observe(element);
   }
+}
+
+class Channel {
+  final String name;
+  final String dartVersion;
+  final String flutterVersion;
+
+  static Future<Channel> fromVersion(String name) async {
+    var rootUrl = urlMapping[name];
+    // If the user provided bad URL query parameter (`?channel=nonsense`),
+    // default to the stable channel.
+    rootUrl ??= stableServerUrl;
+
+    final dartservicesApi = DartservicesApi(browserClient, rootUrl: rootUrl);
+    final versionResponse = await dartservicesApi.version();
+    return Channel._(
+      name: name,
+      dartVersion: versionResponse.sdkVersionFull,
+      flutterVersion: versionResponse.flutterVersion,
+    );
+  }
+
+  static const urlMapping = {
+    'stable': stableServerUrl,
+    'beta': betaServerUrl,
+    'old': oldServerUrl,
+  };
+
+  Channel._({
+    required this.name,
+    required this.dartVersion,
+    required this.flutterVersion,
+  });
 }
