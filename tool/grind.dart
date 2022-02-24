@@ -106,11 +106,11 @@ build() {
   final newEmbedFlutterFile = _buildDir.join('scripts/embed_flutter.dart.js');
   log('$newEmbedFlutterFile compiled to ${_printSize(newEmbedFlutterFile)}');
 
-  var newEmbedFlutterShowcaseFile =
+  final newEmbedFlutterShowcaseFile =
       _buildDir.join('scripts/embed_flutter_showcase.dart.js');
   log('$newEmbedFlutterShowcaseFile compiled to ${_printSize(newEmbedFlutterShowcaseFile)}');
 
-  var newEmbedHtmlFile = _buildDir.join('scripts/embed_html.dart.js');
+  final newEmbedHtmlFile = _buildDir.join('scripts/embed_html.dart.js');
   log('$newEmbedHtmlFile compiled to ${_printSize(newEmbedHtmlFile)}');
 
   final newEmbedInlineFile = _buildDir.join('scripts/embed_inline.dart.js');

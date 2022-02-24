@@ -196,7 +196,7 @@ class Embed extends EditorUi {
       ..onClick.listen((_) => handleRun());
 
     // Flutter showcase mode
-    var editorCodeInputTabButtonElement =
+    final editorCodeInputTabButtonElement =
         querySelector('#editor-panel-show-code-button');
     if (editorCodeInputTabButtonElement != null) {
       editorCodeInputTabButton = MDCButton(
@@ -393,7 +393,7 @@ class Embed extends EditorUi {
     if (options.mode == EmbedMode.flutter ||
         options.mode == EmbedMode.html ||
         options.mode == EmbedMode.flutter_showcase) {
-      var controller = ConsoleExpandController(
+      final controller = _ConsoleExpandController(
           expandButton: querySelector('#console-output-header')!,
           footer: querySelector('#console-output-footer')!,
           expandIcon: querySelector('#console-expand-icon')!,
@@ -809,11 +809,11 @@ class Embed extends EditorUi {
   }
 
   void _toggleCodeInput() {
-    var editorAndConsoleContainer =
+    final editorAndConsoleContainer =
         querySelector('#editor-and-console-container')!;
-    var webOutput = querySelector('#web-output')!;
+    final webOutput = querySelector('#web-output')!;
 
-    var isEditorHidden = editorAndConsoleContainer.hidden;
+    final isEditorHidden = editorAndConsoleContainer.hidden;
 
     if (isEditorHidden) {
       // show code input, hide UI output
@@ -834,8 +834,8 @@ class Embed extends EditorUi {
   }
 
   void _updateShowcase({bool isEditorVisible = false}) {
-    var webOutput = querySelector('#web-output')!;
-    var editorAndConsoleContainer =
+    final webOutput = querySelector('#web-output')!;
+    final editorAndConsoleContainer =
         querySelector('#editor-and-console-container')!;
 
     splitter = flexSplit(
