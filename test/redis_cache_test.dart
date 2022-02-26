@@ -11,7 +11,6 @@ import 'package:dart_services/src/common_server_impl.dart';
 import 'package:dart_services/src/sdk.dart';
 import 'package:dart_services/src/server_cache.dart';
 import 'package:logging/logging.dart';
-import 'package:pedantic/pedantic.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:test/test.dart';
 

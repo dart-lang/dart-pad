@@ -9,7 +9,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
-import 'package:pedantic/pedantic.dart';
 
 import 'analysis_server.dart';
 import 'common_server_impl.dart' show BadRequest;

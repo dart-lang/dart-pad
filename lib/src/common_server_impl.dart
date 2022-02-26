@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
-import 'package:pedantic/pedantic.dart';
 
 import '../version.dart';
 import 'analysis_servers.dart';
