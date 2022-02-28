@@ -337,7 +337,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
           ],
       ])
         ..classes.add('channel-item');
-      listElement.children.add(menuElement);
+
+      // The dev channel is hidden unless it's selected via a query parameter.
+      if (!channel.hidden || currentChannel == channel.name) {
+        listElement.children.add(menuElement);
+      }
     }
 
     return element;
@@ -348,6 +352,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       Channel.fromVersion('stable'),
       Channel.fromVersion('beta'),
       Channel.fromVersion('old'),
+      Channel.fromVersion('dev', hidden: true),
     ]);
 
     final element = _buildChannelsMenu(channels);
