@@ -274,8 +274,9 @@ class Channel {
   final String name;
   final String dartVersion;
   final String flutterVersion;
+  final bool hidden;
 
-  static Future<Channel> fromVersion(String name) async {
+  static Future<Channel> fromVersion(String name, {bool hidden = false}) async {
     var rootUrl = urlMapping[name];
     // If the user provided bad URL query parameter (`?channel=nonsense`),
     // default to the stable channel.
@@ -287,6 +288,7 @@ class Channel {
       name: name,
       dartVersion: versionResponse.sdkVersionFull,
       flutterVersion: versionResponse.flutterVersion,
+      hidden: hidden,
     );
   }
 
@@ -294,11 +296,13 @@ class Channel {
     'stable': stableServerUrl,
     'beta': betaServerUrl,
     'old': oldServerUrl,
+    'dev': devServerUrl,
   };
 
   Channel._({
     required this.name,
     required this.dartVersion,
     required this.flutterVersion,
+    required this.hidden,
   });
 }
