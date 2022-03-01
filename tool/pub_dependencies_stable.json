@@ -42,7 +42,6 @@
   "path_provider_macos": "2.0.5",
   "path_provider_platform_interface": "2.0.3",
   "path_provider_windows": "2.0.5",
-  "pedantic": "1.11.1",
   "platform": "3.1.0",
   "plugin_platform_interface": "2.1.2",
   "process": "4.2.4",

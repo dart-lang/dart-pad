@@ -119,7 +119,6 @@ const Set<String> supportedBasicDartPackages = {
   'lints',
   'meta',
   'path',
-  'pedantic',
   'provider',
   'riverpod',
   'vector_math',
