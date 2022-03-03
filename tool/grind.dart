@@ -15,6 +15,7 @@ import 'package:dart_services/src/sdk.dart';
 import 'package:dart_services/src/utils.dart';
 import 'package:grinder/grinder.dart';
 import 'package:http/http.dart' as http;
+import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as path;
 
 Future<void> main(List<String> args) async {
@@ -209,25 +210,18 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   final flutterPackages = ['flutter', 'flutter_test'];
 
   final flutterLibraries = <String>[];
-  final packageLines = joinFile(dir, ['.packages']).readAsLinesSync();
-  for (var line in packageLines) {
-    line = line.trim();
-    if (line.startsWith('#') || line.isEmpty) {
-      continue;
-    }
-    final index = line.indexOf(':');
-    if (index == -1) {
-      continue;
-    }
-    final packageName = line.substring(0, index);
-    final url = line.substring(index + 1);
-    if (flutterPackages.contains(packageName)) {
+  final config = await findPackageConfig(dir);
+  if (config == null) {
+    throw FileSystemException('package config not found', dir.toString());
+  }
+  for (final package in config.packages) {
+    if (flutterPackages.contains(package.name)) {
       // This is a package we're interested in - add all the public libraries to
       // the list.
-      final libPath = Uri.parse(url).toFilePath();
+      final libPath = package.packageUriRoot.toFilePath();
       for (final entity in getDir(libPath).listSync()) {
         if (entity is File && entity.path.endsWith('.dart')) {
-          flutterLibraries.add('package:$packageName/${fileName(entity)}');
+          flutterLibraries.add('package:${package.name}/${fileName(entity)}');
         }
       }
     }
@@ -254,7 +248,6 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
     '-s',
     dillPath,
     '--sound-null-safety',
-    '--enable-experiment=non-nullable',
     '--modules=amd',
     '--source-map',
     '-o',
