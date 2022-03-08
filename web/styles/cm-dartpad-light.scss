@@ -16,6 +16,7 @@
 .cm-s-dartpad .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: $light-gutter-line-number-color; }
 .cm-s-dartpad .CodeMirror-linenumber { color: $light-gutter-line-number-color; }
 .cm-s-dartpad .CodeMirror-cursor { border-left: 1px solid $light-editor-text; }
+.cm-s-dartpad .CodeMirror-cursors.CodeMirror-overwrite .CodeMirror-cursor { margin-top: 2px; width: 0.6em; border-left: none; background-color: rgba($light-editor-text,0.7); }
 .cm-s-dartpad { background-color: $light-code-background-color; color: $light-editor-text; }
 .cm-s-dartpad span.cm-builtin { color: $light-editor-text; }
 .cm-s-dartpad span.cm-comment { color: $light-comment; }
