@@ -89,6 +89,41 @@ body {
   padding-top: 8px;
 }
 
+.console {
+  .ansi-bold	{ font-weight: bold; }
+  .ansi-italic	{ font-style: italic; }
+  .ansi-underline { text-decoration: underline;  text-decoration-style:solid; }
+  .ansi-dim	{ opacity: 0.5; }
+  .ansi-hidden { opacity: 0; }
+  .ansi-blink { animation: code-blink-key 0.3s cubic-bezier(1, 0, 0, 1) infinite alternate; }
+  .ansi-rapid-blink { animation: code-blink-key 0.01s cubic-bezier(1, 0, 0, 1) infinite alternate; }
+  @keyframes code-blink-key {
+    to { opacity: 0; }
+  }
+  .ansi-double-underline { text-decoration: underline;  text-decoration-style:double; }
+  .ansi-strike-through { text-decoration:line-through;  text-decoration-style:solid; }
+  .ansi-overline { text-decoration:overline;  text-decoration-style:solid; }
+  .ansi-overline.code-underline.code-line-through { text-decoration: overline underline line-through; text-decoration-style:solid; }
+  .ansi-overline.code-underline { text-decoration: overline underline; text-decoration-style:solid; }
+  .ansi-overline.code-line-through { text-decoration: overline line-through; text-decoration-style:solid; }
+  .ansi-underline.code-line-through { text-decoration: underline line-through; text-decoration-style:solid; }
+  .ansi-overline.code-double-underline.code-line-through { text-decoration: overline underline line-through; text-decoration-style:double; }
+  .ansi-overline.code-double-underline { text-decoration: overline underline; text-decoration-style:double; }
+  .ansi-double-underline.code-line-through { text-decoration: underline line-through; text-decoration-style:double; }
+  .ansi-subscript { vertical-align: sub; font-size: smaller; line-height: normal; }
+  .ansi-superscript { vertical-align: super; font-size: smaller; line-height: normal; }
+  .ansi-font-1 { font-family: Verdana,Arial,sans-serif; }
+  .ansi-font-2 { font-family: Georgia,'Times New Roman',serif; }
+  .ansi-font-3 { font-family: Papyrus,Impact,fantasy; }
+  .ansi-font-4 { font-family: 'Cascadia Mono', 'Apple Chancery','Lucida Calligraphy',cursive; }
+  .ansi-font-5 { font-family: 'Courier New', 'Courier', monospace; }
+  .ansi-font-6 { font-size: 14px; font-family: 'Cascadia Code PL', 'Segoe WPC', 'Segoe UI',-apple-system, BlinkMacSystemFont, system-ui, "Ubuntu", "Droid Sans", sans-serif; }
+  .ansi-font-7 { font-size: 16px; font-family: 'Cascadia Mono PL', Menlo, Monaco, Consolas,"Droid Sans Mono", "Inconsolata", "Courier New", monospace, "Droid Sans Fallback"; }
+  .ansi-font-8 { font-size: 18px; font-family: 'Cascadia Code PL',"SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace; }
+  .ansi-font-9 { font-size: 20px; font-family: 'JetBrains Mono', "SF Mono", Monaco, Menlo, Consolas, "Ubuntu Mono", "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace; }
+  .ansi-font-10 { font-stretch: ultra-expanded; font-weight: bold; font-family: 'League Mono', 'F25 BlackletterTypewriter', UnifrakturCook, Luminari, Apple Chancery, fantasy, Papyrus; }
+}
+
 // Code annotations
 
 .squiggle-error {
