@@ -69,3 +69,22 @@
   right: 0;
   width: 100%;
 }
+
+// dialog used for vim
+.CodeMirror-dialog.CodeMirror-dialog-bottom {
+  margin-top: -82px;
+  margin-left: 36px;
+}
+
+
+.CodeMirror-dialog.CodeMirror-dialog-bottom {
+  border-top: 1px solid #eee;
+  background: yellow !important;
+}
+
+.CodeMirror-dialog .cm-vim-message {
+  border: 1px solid #e00;
+  background: orange !important;
+  margin-top: -82px;
+  margin-left: 36px;
+}

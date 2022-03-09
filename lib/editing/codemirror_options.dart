@@ -15,5 +15,6 @@ const codeMirrorOptions = {
   },
   'hintOptions': {'completeSingle': false},
   'scrollbarStyle': 'simple',
-  //THIS will currently crash codemirror // bug in getKeyMap() //'keyMap': 'vim',
+  //THIS will currently crash codemirror // bug in getKeyMap() //
+  'keyMap': 'vim',
 };
