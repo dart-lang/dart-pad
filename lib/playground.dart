@@ -793,7 +793,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       }
 
       if (originalSource != result.newString) {
-        editor.document.updateValue(result.newString);
+        context.dartSource = result.newString;
         showSnackbar('Format successful.');
       } else {
         showSnackbar('No formatting changes.');
