@@ -48,6 +48,18 @@ abstract class Editor {
 
   set theme(String str);
 
+  /// Retrieves the current value of the given option for this editor instance.
+  dynamic getOption(String option);
+  
+  /// Change the configuration of the editor. [option] should the name of an
+  /// option, and value should be a valid value for that option.
+  void setOption(String option, dynamic value);
+
+  String get keyMap;
+
+  set keyMap(String str);
+
+
   /// Returns the cursor coordinates in pixels. cursorCoords.x corresponds to
   /// left and cursorCoords.y corresponds to top.
   Point getCursorCoords({Position? position});

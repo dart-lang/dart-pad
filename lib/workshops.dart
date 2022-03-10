@@ -127,6 +127,7 @@ class WorkshopUi extends EditorUi {
         .createFromElement(_editorHost, options: codeMirrorOptions)
       ..theme = 'darkpad'
       ..mode = 'dart'
+      ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
       ..showLineNumbers = true;
 
     context = WorkshopDartSourceProvider(editor);

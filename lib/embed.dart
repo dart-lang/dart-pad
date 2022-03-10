@@ -275,6 +275,7 @@ class Embed extends EditorUi {
         options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
+      ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
       ..showLineNumbers = true;
     userCodeEditor.autoCloseBrackets = false;
 
@@ -282,6 +283,7 @@ class Embed extends EditorUi {
         options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
+      ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
       ..readOnly = !_editableTestSolution
       ..showLineNumbers = true;
 
@@ -290,6 +292,7 @@ class Embed extends EditorUi {
         options: codeMirrorOptions)
       ..theme = editorTheme
       ..mode = 'dart'
+      ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
       ..readOnly = !_editableTestSolution
       ..showLineNumbers = true;
 
@@ -298,6 +301,7 @@ class Embed extends EditorUi {
       htmlEditor = editorFactory.createFromElement(htmlEditorElement,
           options: codeMirrorOptions)
         ..theme = editorTheme
+        ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
         // TODO(ryjohn): why doesn't editorFactory.modes have html?
         ..mode = 'xml'
         ..showLineNumbers = true;
@@ -309,6 +313,7 @@ class Embed extends EditorUi {
           options: codeMirrorOptions)
         ..theme = editorTheme
         ..mode = 'css'
+        ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
         ..showLineNumbers = true;
     }
 

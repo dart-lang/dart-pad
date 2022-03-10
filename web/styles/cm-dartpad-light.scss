@@ -16,7 +16,7 @@
 .cm-s-dartpad .CodeMirror-foldgutter-open, .CodeMirror-foldgutter-folded { color: $light-gutter-line-number-color; }
 .cm-s-dartpad .CodeMirror-linenumber { color: $light-gutter-line-number-color; }
 .cm-s-dartpad .CodeMirror-cursor { border-left: 1px solid $light-editor-text; }
-.cm-s-dartpad .CodeMirror-cursors.CodeMirror-overwrite .CodeMirror-cursor { margin-top: 2px; width: 0.6em; border-left: none; background-color: rgba($light-editor-text,0.7); }
+.cm-s-dartpad .CodeMirror-cursors.CodeMirror-overwrite .CodeMirror-cursor { margin-top: 2px; width: auto; border-left: none; background-color: rgba($light-editor-text,0.7); }
 .cm-s-dartpad { background-color: $light-code-background-color; color: $light-editor-text; }
 .cm-s-dartpad span.cm-builtin { color: $light-editor-text; }
 .cm-s-dartpad span.cm-comment { color: $light-comment; }
@@ -42,4 +42,41 @@
 
 .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
   background-color: $light-code-background-color !important;
+}
+
+// dialogs used for vim keymapping
+
+.cm-s-dartpad .CodeMirror-dialog.CodeMirror-dialog-bottom {
+  border-top: 1px solid #eee;
+  position: absolute;
+  background:  $light-code-background-color;
+  color: $light-editor-text;
+  z-index: 990;
+  width: 100%;
+  bottom: 0px;
+  left: 0px;
+  padding-left: 35px;
+  padding-bottom: 3px;
+  padding-top: 3px;
+}
+
+.cm-s-dartpad .CodeMirror-dialog .cm-vim-message {
+  border-top: 1px solid $light-red;
+  border-bottom: 1px solid $light-red;
+  width: fit-content;
+  background:  $light-code-background-color;
+  color: $light-red;
+  font-weight: bold;
+  padding: 3px 35px 3px 35px;
+  margin-top: 2px;
+  margin-bottom: 2px;
+}
+
+.cm-s-dartpad .CodeMirror-dialog input {
+    margin-left: 4px;
+    margin-right: 8px;
+    width: 200px;
+    max-width: max-content;
+    background: rgba(255,255,255,0.9);
+    color: black;
 }

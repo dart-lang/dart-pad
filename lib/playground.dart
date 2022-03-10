@@ -89,8 +89,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
   Gist? _overrideNextRouteGist;
   late DocHandler _docHandler;
 
-  final Console _leftConsole = Console(DElement(_leftConsoleElement),darkMode:true);
-  final Console _rightConsole = Console(DElement(_rightConsoleContentElement),darkMode:true);
+  final Console _leftConsole = Console(DElement(_leftConsoleElement));
+  final Console _rightConsole = Console(DElement(_rightConsoleContentElement));
   final Counter _unreadConsoleCounter =
       Counter(querySelector('#unread-console-counter') as SpanElement);
 
@@ -514,6 +514,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
         .createFromElement(_editorHost, options: codeMirrorOptions)
       ..theme = 'darkpad'
       ..mode = 'dart'
+      ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
       ..showLineNumbers = true;
 
     initKeyBindings();
@@ -1115,6 +1116,7 @@ class NewPadDialog {
     });
   }
 }
+
 
 class Sample {
   final String gistId;

@@ -30,6 +30,8 @@ BSD-style license that can be found in the LICENSE file. -->
 
     <script src="packages/codemirror/codemirror.js" defer></script>
     <script src="packages/codemirror/addon/scroll/simplescrollbars.js" defer></script>
+    <script src="packages/codemirror/addon/dialog/dialog.js" defer></script>
+    <script src="packages/codemirror/keymap/vim.js" defer></script>
     <script src="packages/split/split.min.js" defer></script>
 
     <!-- check that local storage is enabled -->
@@ -199,6 +201,46 @@ BSD-style license that can be found in the LICENSE file. -->
                 </button>
                 <button type="button" id="dialog-right-button" class="mdc-button mdc-dialog__button">
                     <span class="mdc-button__label">Yes</span>
+                </button>
+            </footer>
+        </div>
+    </div>
+    <div class="mdc-dialog__scrim"></div>
+</div>
+
+<div id="keyboard-dialog"
+     class="mdc-dialog"
+     role="alertdialog"
+     aria-modal="true"
+     aria-labelledby="my-dialog-title"
+     aria-describedby="my-dialog-content">
+    <div class="mdc-dialog__container">
+        <div class="mdc-dialog__surface">
+            <h2 class="mdc-dialog__title">Keyboard shortcuts</h2>
+            <div class="mdc-dialog__content">
+                <div class="keyboard-container">
+                    <div id="keyboard-map-info">
+                    </div>
+                    <div id="vim-switch-container">
+                        <div class="mdc-switch">
+                            <div class="mdc-switch__track"></div>
+                            <div class="mdc-switch__thumb-underlay">
+                                <div class="mdc-switch__thumb">
+                                    <input type="checkbox"
+                                           id="vim-switch"
+                                           class="mdc-switch__native-control"
+                                           role="switch">
+                                </div>
+                            </div>
+                        </div>
+                        <label for="vim-switch">Use Vim Keyboard Mapping</label>                       
+                    </div>
+                </div>
+            </div>
+            <footer class="mdc-dialog__actions">
+                <button type="button" id="keyboard-ok-button"
+                        class="mdc-button mdc-dialog__button">
+                    <span class="mdc-button__label">OK</span>
                 </button>
             </footer>
         </div>

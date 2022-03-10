@@ -29,8 +29,11 @@ abstract class EditorUi {
   late final MDCButton runButton;
   late final ExecutionService executionService;
 
-  /// The dialog box for information like Keyboard shortcuts.
+  /// The dialog box for information like pub package versions.
   final Dialog dialog = Dialog();
+  
+  /// The dialog box for Keyboard shortcuts/settings.
+  final KeyboardDialog _keyboardDialog = KeyboardDialog();
 
   String get fullDartSource => context.dartSource;
 
@@ -54,8 +57,8 @@ abstract class EditorUi {
     }, 'Keyboard Shortcuts');
   }
 
-  void showKeyboardDialog() {
-    dialog.showOk('Keyboard shortcuts', keyMapToHtml(keys.inverseBindings));
+  Future<void> showKeyboardDialog() async {
+    await _keyboardDialog.show( editor );
   }
 
   /// Show the Pub package versions which are currently in play in [dialog].
@@ -305,4 +308,68 @@ class Channel {
     required this.flutterVersion,
     required this.hidden,
   });
+}
+
+
+
+class KeyboardDialog {
+  final MDCDialog _mdcDialog;
+  final MDCButton _okButton;
+  final MDCSwitch _vimSwitch;
+  final DElement _vimSwitchContainer;
+
+  KeyboardDialog()
+      : assert(querySelector('#keyboard-dialog') != null),
+        assert(querySelector('#keyboard-ok-button') != null),
+        assert(querySelector('#vim-switch-container') != null),
+        assert(querySelector('#vim-switch-container .mdc-switch') !=
+            null),
+        _mdcDialog = MDCDialog(querySelector('#keyboard-dialog')!),
+        _okButton =
+            MDCButton(querySelector('#keyboard-ok-button') as ButtonElement),
+        _vimSwitchContainer =
+            DElement(querySelector('#vim-switch-container')!),
+        _vimSwitch = MDCSwitch(
+            querySelector('#vim-switch-container .mdc-switch'));
+
+
+  String get selectedKeyboardLayout {
+    return _vimSwitch.checked! ? 'vim' : 'default';
+  }
+
+  Future<DialogResult> show( Editor editor ) {
+    // populate with the keymap info
+    final DElement _keyMapInfoDiv = DElement(querySelector('#keyboard-map-info')!);
+    Element info = Element.html(keyMapToHtml(keys.inverseBindings));
+    _keyMapInfoDiv.clearChildren();
+    _keyMapInfoDiv.add( info );
+
+	  // set switch according to keyboard state
+    final String? currentKeyMap = editor.keyMap;
+	  _vimSwitch.checked = (currentKeyMap=='vim');
+
+    final completer = Completer<DialogResult>();
+
+    final okSub = _okButton.onClick.listen((_) {
+
+      final bool vimset = _vimSwitch.checked!;
+
+      // change keyMap if needed and *remember* their choice for next startup
+      if (vimset) {
+        if(currentKeyMap!='vim') editor.keyMap = 'vim';
+        window.localStorage['codemirror_keymap'] = 'vim';
+      } else {  
+        if(currentKeyMap!='default') editor.keyMap = 'default';
+        window.localStorage['codemirror_keymap'] = 'default';
+      }
+      completer.complete(vimset ? DialogResult.yes : DialogResult.ok);
+    });
+
+    _mdcDialog.open();
+
+    return completer.future.then((v) {
+      _mdcDialog.close();
+      return v;
+    });
+  }
 }
