@@ -389,7 +389,6 @@ class Embed extends EditorUi {
           unreadCounter: unreadConsoleCounter,
           consoleElement: querySelector('#console-output-container')!,
           editorUi: this,
-          darkMode: isDarkMode,
           onSizeChanged: () {
             userCodeEditor.resize();
             testEditor.resize();
@@ -403,7 +402,7 @@ class Embed extends EditorUi {
       }
     } else {
       consoleExpandController =
-          Console(DElement(querySelector('#console-output-container')!),darkMode:isDarkMode);
+          Console(DElement(querySelector('#console-output-container')!));
     }
 
     final webOutputLabelElement = querySelector('#web-output-label');
@@ -1062,12 +1061,11 @@ class _ConsoleExpandController extends Console {
     required this.unreadCounter,
     required this.editorUi,
     required this.onSizeChanged,
-    required bool darkMode,
   })  : expandButton = DElement(expandButton),
         footer = DElement(footer),
         expandIcon = DElement(expandIcon),
         super(DElement(consoleElement),
-            errorClass: 'text-red', filter: filterCloudUrls, darkMode:darkMode) {
+            errorClass: 'text-red', filter: filterCloudUrls) {
     super.element.setAttr('hidden');
     footer.removeAttribute('hidden');
     expandButton.onClick.listen((_) => _toggleExpanded());

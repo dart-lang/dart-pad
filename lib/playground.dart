@@ -1117,7 +1117,6 @@ class NewPadDialog {
   }
 }
 
-
 class Sample {
   final String gistId;
   final String name;
