@@ -58,7 +58,7 @@ body {
 
 // Code Editor
 
-#user-code-editor, #solution-editor, #test-editor, #html-editor, #solution-editor {
+#user-code-editor, #test-editor {
   @include layout-fit;
 }
 
