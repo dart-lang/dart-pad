@@ -11,7 +11,8 @@ const codeMirrorOptions = {
   'extraKeys': {
     'Cmd-/': 'toggleComment',
     'Ctrl-/': 'toggleComment',
-    'Tab': 'insertSoftTab'
+    'Shift-Tab': 'indentLess',
+    'Tab': 'indentIfMultiLineSelectionElseInsertSoftTab',
   },
   'hintOptions': {'completeSingle': false},
   'scrollbarStyle': 'simple',
