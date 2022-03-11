@@ -203,6 +203,14 @@ a {
   }
 }
 
+#right-output-panel .view-label {
+  width: 100%;
+}
+
+#left-console-clear-button, #right-console-clear-button {
+  float: right;
+}
+
 .console {
   @include layout-flex;
   font-family: $editor-font;
@@ -407,6 +415,10 @@ p.mdc-list-item__details {
   }
 
   #install-button {
+    display: none;
+  }
+
+  #console-clear-button {
     display: none;
   }
 }
