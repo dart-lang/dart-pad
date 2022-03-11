@@ -236,23 +236,23 @@ class _CodeMirrorEditor extends Editor {
 
   @override
   dynamic getOption(String option) => cm.getOption(option);
-  
+
   @override
-  void setOption(String option, dynamic value) => cm.setOption(option,value);
+  void setOption(String option, dynamic value) => cm.setOption(option, value);
 
   @override
   String get keyMap {
     String? keymap = cm.getOption('keyMap') as String;
-    if( keymap==null || keymap.isEmpty ) keymap='default';
+    if (keymap == null || keymap.isEmpty) keymap = 'default';
     return keymap;
   }
 
-  /// Valid options are `default` or `vim` 
+  /// Valid options are `default` or `vim`
   /// (in order to use `emacs` or `sublime` we MUST also INCLUDE those keymaps.js files in the html containers)
   @override
   set keyMap(String? newkeymap) {
-    if( newkeymap==null || newkeymap.isEmpty ) newkeymap='default';
-    cm.setOption('keyMap',newkeymap);
+    if (newkeymap == null || newkeymap.isEmpty) newkeymap = 'default';
+    cm.setOption('keyMap', newkeymap);
   }
 
   @override

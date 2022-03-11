@@ -84,7 +84,6 @@ class Embed extends EditorUi {
 
   final CodeMirrorFactory editorFactory = codeMirrorFactory;
 
-
   @override
   late final EmbedContext context;
 
@@ -101,8 +100,7 @@ class Embed extends EditorUi {
 
   bool get editorIsBusy => _editorIsBusy;
 
-
- @override
+  @override
   Document get currentDocument => context.dartDocument;
 
   /// Toggles the state of several UI components based on whether the editor is
@@ -134,8 +132,6 @@ class Embed extends EditorUi {
               'target="_parent">dart.dev/tools/dartpad/troubleshoot</a>.');
     }
 
-
-
     tabController =
         EmbedTabController(MDCTabBar(querySelector('.mdc-tab-bar')!), dialog);
 
@@ -144,9 +140,10 @@ class Embed extends EditorUi {
         : const ['editor', 'solution', 'test'];
 
     for (final name in tabNames) {
-      final String contextName = (name=='editor') ? 'dart' : name;
+      final String contextName = (name == 'editor') ? 'dart' : name;
       tabController.registerTab(
-        TabElement(querySelector('#$name-tab')!, name: contextName, onSelect: () {
+        TabElement(querySelector('#$name-tab')!, name: contextName,
+            onSelect: () {
           ga.sendEvent('edit', name);
           context.switchTo(contextName);
           editor.resize();
@@ -438,7 +435,7 @@ class Embed extends EditorUi {
       dartServices.rootUrl = Channel.urlMapping[channel]!;
     }
 
-    context = EmbedContext( editor, !_editableTestSolution );
+    context = EmbedContext(editor, !_editableTestSolution);
 
     editorFactory.registerCompleter(
         'dart', DartCompleter(dartServices, context.dartDocument));
@@ -757,7 +754,9 @@ class Embed extends EditorUi {
   }
 
   void _handleAutoCompletion(KeyboardEvent e) {
-    if (context.focusedEditor=='dart' && editor.hasFocus && e.keyCode == KeyCode.PERIOD) {
+    if (context.focusedEditor == 'dart' &&
+        editor.hasFocus &&
+        e.keyCode == KeyCode.PERIOD) {
       editor.showCompletions(autoInvoked: true);
     }
   }
@@ -943,7 +942,7 @@ class _ConsoleExpandController extends Console {
   final EditorUi editorUi;
   late Splitter _splitter;
   var _expanded = false;
-  
+
   _ConsoleExpandController({
     required Element expandButton,
     required Element footer,
@@ -1040,9 +1039,7 @@ class EmbedContext extends Context {
   final Document _testDoc;
   final Document _solutionDoc;
 
-
   bool _testAndSolutionReadOnly;
-
 
   String hint = '';
 
@@ -1075,7 +1072,6 @@ class EmbedContext extends Context {
     _dartDoc.onChange.listen((_) => _dartDirtyController.add(null));
     _createReconciler(_dartDoc, _dartReconcileController, 1250);
   }
-  
 
   Document get dartDocument => _dartDoc;
 
@@ -1128,9 +1124,9 @@ class EmbedContext extends Context {
 
   bool get testAndSolutionReadOnly => _testAndSolutionReadOnly;
 
-  set testAndSolutionReadOnly( bool readOnly ) {
+  set testAndSolutionReadOnly(bool readOnly) {
     _testAndSolutionReadOnly = readOnly;
-    if( focusedEditor=='test' || focusedEditor=='solution' ) {
+    if (focusedEditor == 'test' || focusedEditor == 'solution') {
       editor.readOnly = testAndSolutionReadOnly;
     }
   }
@@ -1170,7 +1166,7 @@ class EmbedContext extends Context {
     editor.focus();
   }
 
-  /// return and indicator of the active tab one of these: EmbedContext.dartTabPrefix, 
+  /// return and indicator of the active tab one of these: EmbedContext.dartTabPrefix,
   @override
   String get focusedEditor {
     if (editor.document == _testDoc) return 'test';
@@ -1179,11 +1175,9 @@ class EmbedContext extends Context {
     if (editor.document == _cssDoc) return 'css';
     return 'dart';
   }
-  
+
   @override
   String get activeMode => editor.mode;
-
-
 
   Stream get onDartDirty => _dartDirtyController.stream;
 
