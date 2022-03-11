@@ -61,7 +61,8 @@ class CodeMirrorFactory extends EditorFactory {
 
     final editor = CodeMirror.fromElement(element, options: options);
     CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
-    CodeMirror.addCommand('indentIfMultiLineSelectionElseInsertSoftTab', _indentIfMultiLineSelectionElseInsertSoftTab);
+    CodeMirror.addCommand('indentIfMultiLineSelectionElseInsertSoftTab',
+        _indentIfMultiLineSelectionElseInsertSoftTab);
     return _CodeMirrorEditor._(this, editor);
   }
 
@@ -84,7 +85,7 @@ class CodeMirrorFactory extends EditorFactory {
   void _indentIfMultiLineSelectionElseInsertSoftTab(CodeMirror editor) {
     if (editor.doc.somethingSelected()) {
       final String? selection = editor.doc.getSelection('\n');
-      if(selection!=null && selection.contains('\n')) {
+      if (selection != null && selection.contains('\n')) {
         // Multi-line selection
         editor.execCommand('indentMore');
       } else {
