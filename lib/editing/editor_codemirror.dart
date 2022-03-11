@@ -242,8 +242,8 @@ class _CodeMirrorEditor extends Editor {
 
   @override
   String get keyMap {
-    String? keymap = cm.getOption('keyMap') as String;
-    if (keymap == null || keymap.isEmpty) keymap = 'default';
+    dynamic keymap = cm.getOption('keyMap');
+    if (keymap == null || (keymap as String).isEmpty) keymap = 'default';
     return keymap;
   }
 

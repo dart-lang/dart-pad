@@ -314,7 +314,6 @@ class KeyboardDialog {
   final MDCDialog _mdcDialog;
   final MDCButton _okButton;
   final MDCSwitch _vimSwitch;
-  final DElement _vimSwitchContainer;
 
   KeyboardDialog()
       : assert(querySelector('#keyboard-dialog') != null),
@@ -324,7 +323,6 @@ class KeyboardDialog {
         _mdcDialog = MDCDialog(querySelector('#keyboard-dialog')!),
         _okButton =
             MDCButton(querySelector('#keyboard-ok-button') as ButtonElement),
-        _vimSwitchContainer = DElement(querySelector('#vim-switch-container')!),
         _vimSwitch =
             MDCSwitch(querySelector('#vim-switch-container .mdc-switch'));
 
@@ -336,7 +334,7 @@ class KeyboardDialog {
     // populate with the keymap info
     final DElement _keyMapInfoDiv =
         DElement(querySelector('#keyboard-map-info')!);
-    Element info = Element.html(keyMapToHtml(keys.inverseBindings));
+    final Element info = Element.html(keyMapToHtml(keys.inverseBindings));
     _keyMapInfoDiv.clearChildren();
     _keyMapInfoDiv.add(info);
 
@@ -346,7 +344,7 @@ class KeyboardDialog {
 
     final completer = Completer<DialogResult>();
 
-    final okSub = _okButton.onClick.listen((_) {
+    _okButton.onClick.listen((_) {
       final bool vimset = _vimSwitch.checked!;
 
       // change keyMap if needed and *remember* their choice for next startup
