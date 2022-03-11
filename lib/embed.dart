@@ -492,7 +492,7 @@ class Embed extends EditorUi {
   @override
   void initKeyBindings() {
     keys.bind(const ['ctrl-space', 'macctrl-space'], () {
-      if (/*context.focusedEditor == 'dart' && */ editor.hasFocus) {
+      if (editor.hasFocus) {
         editor.showCompletions();
       }
     }, 'Completion');
