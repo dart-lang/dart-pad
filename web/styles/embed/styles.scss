@@ -89,12 +89,6 @@ body {
   padding-top: 8px;
 }
 
-button#console-clear-button {
-  float: right;
-  margin-top: -7px;
-  margin-right: 8px;
-}
-
 // Code annotations
 
 .squiggle-error {
@@ -176,13 +170,28 @@ button#console-clear-button {
   overflow: auto;
 }
 
-#console-expand-icon-container, .close-flash-container {
+.close-flash-container {
   height: 32px;
   width: 32px;
 }
 
+#console-expand-icon-container {
+  height: 32px;
+  width: 77px;
+  display: flex;
+}
+
 #console-expand-icon, .close-flash-container .close-flash-button {
   @include mdc-icon-button-size(16px, 16px, 8px);
+}
+
+#console-clear-button {
+  display: inline-block;
+  background: url('../../pictures/clear-console.svg') center no-repeat;
+  background-size: 14px 14px;
+  width: 32px;
+  height: 32px;
+  padding: 8px 8px;
 }
 
 #console-output-container {
@@ -304,6 +313,7 @@ button#console-clear-button {
 .view-label {
   margin-left: 8px;
   font-size: 12px;
+  width: 100%;
 }
 
 .hide {

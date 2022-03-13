@@ -109,6 +109,15 @@ $doc-console-padding: 8px 24px 8px 24px;
   margin-bottom: -1px;
 }
 
+#left-console-clear-button, #right-console-clear-button {
+  display: inline-block;
+  background: url('../../pictures/clear-console.svg') center no-repeat;
+  background-size: 14px 14px;
+  width: 32px;
+  height: 32px;
+  padding: 8px 8px;
+}
+
 // Buttons
 button.mdc-button {
   @include mdc-button-ink-color($button-text-color); // TODO

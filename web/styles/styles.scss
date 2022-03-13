@@ -207,8 +207,10 @@ a {
   width: 100%;
 }
 
-#left-console-clear-button, #right-console-clear-button {
+#right-console-clear-button {
   float: right;
+  margin-right: 10px;
+  margin-top: -8px;
 }
 
 .console {
@@ -418,7 +420,7 @@ p.mdc-list-item__details {
     display: none;
   }
 
-  #console-clear-button {
+  #left-console-clear-button, #right-console-clear-button {
     display: none;
   }
 }
@@ -454,4 +456,15 @@ p.mdc-list-item__details {
 .muted {
   font-size: 0.8em;
   font-style: italic;
+}
+
+#console-expand-icon-container {
+  height: 32px;
+  width: 77px;
+  display: flex;
+}
+
+.console-clear-icon {
+  // filter to make black SVG white for dark theme
+  filter: invert(100%);
 }

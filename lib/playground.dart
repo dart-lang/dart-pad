@@ -53,6 +53,10 @@ final Logger _logger = Logger('dartpad');
 class Playground extends EditorUi implements GistContainer, GistController {
   final MutableGist _editableGist = MutableGist(Gist());
   final GistStorage _gistStorage = GistStorage();
+  final DElement _consoleClearLeftButton =
+      DElement(querySelector('#left-console-clear-button')!);
+  final DElement _consoleClearRightButton =
+      DElement(querySelector('#right-console-clear-button')!);
   final MDCButton _formatButton =
       MDCButton(querySelector('#format-button') as ButtonElement);
   final MDCButton _editorConsoleTab =
@@ -186,6 +190,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
         .onClick
         .listen((_) => _showResetDialog());
     _formatButton.onClick.listen((_) => _format());
+    _consoleClearLeftButton.onClick.listen((_) => clearOutput());
+    _consoleClearRightButton.onClick.listen((_) => clearOutput());
     MDCButton(querySelector('#install-button') as ButtonElement)
         .onClick
         .listen((_) => _showInstallPage());

@@ -400,6 +400,13 @@ class Embed extends EditorUi {
           Console(DElement(querySelector('#console-output-container')!));
     }
 
+    final DElement _consoleClearButton =
+        DElement(querySelector('#console-clear-button')!);
+    _consoleClearButton.onClick.listen((event) {
+      clearOutput();
+      event.stopPropagation();
+    });
+
     final webOutputLabelElement = querySelector('#web-output-label');
     if (webOutputLabelElement != null) {
       webOutputLabel = DElement(webOutputLabelElement);
