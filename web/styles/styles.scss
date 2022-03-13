@@ -458,13 +458,3 @@ p.mdc-list-item__details {
   font-style: italic;
 }
 
-#console-expand-icon-container {
-  height: 32px;
-  width: 77px;
-  display: flex;
-}
-
-.console-clear-icon {
-  // filter to make black SVG white for dark theme
-  filter: invert(100%);
-}

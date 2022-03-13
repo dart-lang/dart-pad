@@ -118,6 +118,17 @@ $doc-console-padding: 8px 24px 8px 24px;
   padding: 8px 8px;
 }
 
+#console-expand-icon-container {
+  height: 32px;
+  width: 77px;
+  display: flex;
+}
+
+.console-clear-icon {
+  // filter to make black SVG white for dark theme
+  filter: invert(100%);
+}
+
 // Buttons
 button.mdc-button {
   @include mdc-button-ink-color($button-text-color); // TODO

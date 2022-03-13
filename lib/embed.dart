@@ -400,9 +400,10 @@ class Embed extends EditorUi {
           Console(DElement(querySelector('#console-output-container')!));
     }
 
-    final DElement _consoleClearButton =
-        DElement(querySelector('#console-clear-button')!);
-    _consoleClearButton.onClick.listen((event) {
+    final MDCButton clearConsoleButton = MDCButton(
+        querySelector('#console-clear-button') as ButtonElement,
+        isIcon: true);
+    clearConsoleButton.onClick.listen((event) {
       clearOutput();
       event.stopPropagation();
     });
