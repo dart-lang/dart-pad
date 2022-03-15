@@ -40,11 +40,12 @@ class ProjectCreator {
 
   /// Builds a basic Dart project template directory, complete with `pubspec.yaml`
   /// and `analysis_options.yaml`.
-  Future<void> buildDartProjectTemplate() async {
+  Future<void> buildDartProjectTemplate({required bool oldChannel}) async {
     final projectPath = path.join(_templatesPath, 'dart_project');
     final projectDirectory = Directory(projectPath);
     await projectDirectory.create(recursive: true);
-    final dependencies = _dependencyVersions(supportedBasicDartPackages);
+    final dependencies =
+        _dependencyVersions(supportedBasicDartPackages, oldChannel: oldChannel);
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: false,
@@ -69,6 +70,7 @@ linter:
   Future<void> buildFlutterProjectTemplate({
     required FirebaseStyle firebaseStyle,
     required bool devMode,
+    required bool oldChannel,
   }) async {
     final projectDirName = firebaseStyle == FirebaseStyle.none
         ? 'flutter_project'
@@ -88,7 +90,7 @@ linter:
       if (firebaseStyle == FirebaseStyle.flutterFire)
         ...registerableFirebasePackages,
     };
-    final dependencies = _dependencyVersions(packages);
+    final dependencies = _dependencyVersions(packages, oldChannel: oldChannel);
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: true,
@@ -106,7 +108,8 @@ linter:
         ...supportedFlutterPackages(devMode: devMode),
         ...firebasePackages,
       };
-      final dependencies = _dependencyVersions(packages);
+      final dependencies =
+          _dependencyVersions(packages, oldChannel: oldChannel);
       File(path.join(projectPath, 'pubspec.yaml'))
           .writeAsStringSync(createPubspec(
         includeFlutterWeb: true,
@@ -135,26 +138,33 @@ linter:
     await process.exitCode;
   }
 
-  Map<String, String> _dependencyVersions(
-    Iterable<String> packages,
-  ) {
+  Map<String, String> _dependencyVersions(Iterable<String> packages,
+      {required bool oldChannel}) {
     final allVersions =
         parsePubDependenciesFile(dependenciesFile: _dependenciesFile);
     return {
       for (var package in packages) package: allVersions[package] ?? 'any',
       // Overwrite with important constraints:
-      ...packageVersionConstraints,
+      ...packageVersionConstraints(oldChannel: oldChannel),
     };
   }
 }
 
 /// A mapping of version constraints for certain packages.
-const packageVersionConstraints = {
+Map<String, String> packageVersionConstraints({required bool oldChannel}) {
   // Ensure that pub version solving keeps these at sane minimum versions.
-  'cloud_firestore': '^3.1.0',
-  'firebase_auth': '^3.3.0',
-  'firebase_core': '^1.10.0',
-};
+  return {
+    // TODO(domesticmouse): Remove when old becomes 2.10.x
+    if (oldChannel) ...{
+      'cloud_firestore_web': "'>=2.6.0 <2.6.8'",
+      'cloud_firestore_platform_interface': "'>=5.4.0 <5.5.0'",
+      'firebase_auth_platform_interface': "'>=6.1.0 <6.2.0'",
+    },
+    'cloud_firestore': '^3.1.0',
+    'firebase_auth': '^3.3.0',
+    'firebase_core': '^1.10.0',
+  };
+}
 
 /// Parses [dependenciesFile] as a JSON Map of Strings.
 Map<String, String> parsePubDependenciesFile({required File dependenciesFile}) {

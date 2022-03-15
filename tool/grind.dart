@@ -160,14 +160,16 @@ void buildProjectTemplates() async {
     dependenciesFile: _pubDependenciesFile(channel: _channel),
     log: log,
   );
-  await projectCreator.buildDartProjectTemplate();
+  await projectCreator.buildDartProjectTemplate(oldChannel: sdk.oldChannel);
   await projectCreator.buildFlutterProjectTemplate(
     firebaseStyle: FirebaseStyle.none,
     devMode: sdk.devMode,
+    oldChannel: sdk.oldChannel,
   );
   await projectCreator.buildFlutterProjectTemplate(
     firebaseStyle: FirebaseStyle.flutterFire,
     devMode: sdk.devMode,
+    oldChannel: sdk.oldChannel,
   );
 }
 
@@ -410,7 +412,7 @@ Future<void> _updateDependenciesFile({
         package: 'any',
       for (var package in supportedBasicDartPackages) package: 'any',
       // Overwrite with important constraints:
-      ...packageVersionConstraints,
+      ...packageVersionConstraints(oldChannel: sdk.oldChannel),
     },
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
