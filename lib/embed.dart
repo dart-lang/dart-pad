@@ -400,6 +400,14 @@ class Embed extends EditorUi {
           Console(DElement(querySelector('#console-output-container')!));
     }
 
+    final MDCButton clearConsoleButton = MDCButton(
+        querySelector('#console-clear-button') as ButtonElement,
+        isIcon: true);
+    clearConsoleButton.onClick.listen((event) {
+      clearOutput();
+      event.stopPropagation();
+    });
+
     final webOutputLabelElement = querySelector('#web-output-label');
     if (webOutputLabelElement != null) {
       webOutputLabel = DElement(webOutputLabelElement);

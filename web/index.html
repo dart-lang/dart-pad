@@ -196,9 +196,12 @@
                                 class="editor-tab mdc-button">Documentation
                         </button>
                     </div>
-                    <button id="editor-panel-close-button"
-                            class="mdc-icon-button material-icons" hidden>close
-                    </button>
+                    <div id="console-expand-icon-container">
+                        <button id="left-console-clear-button" title="Clear console" class="console-clear-icon mdc-icon-button"></button>
+                        <button id="editor-panel-close-button"
+                                class="mdc-icon-button material-icons" hidden>close
+                        </button>
+                    </div>
                 </div>
                 <div id="editor-panel-tab-host">
                     <div id="left-output-panel" class="console custom-scrollbar"></div>
@@ -212,7 +215,9 @@
             <iframe id="frame" sandbox="allow-scripts allow-popups" flex
                     src="scripts/frame_dark.html"></iframe>
             <div id="right-output-panel">
-                <span class="view-label">Console</span>
+                <span class="view-label">Console
+                    <button id="right-console-clear-button" title="Clear console" class="console-clear-icon mdc-icon-button"></button>
+                </span>
                 <div id="right-output-panel-content" class="console custom-scrollbar"></div>
             </div>
             <div id="right-doc-panel">
