@@ -87,7 +87,7 @@ BSD-style license that can be found in the LICENSE file. -->
     </nav>
 </div>
 <section id="tab-container">
-    <div hidden id="editor-and-console-container">
+    <div id="editor-and-console-container">
         <div class="nav-buttons navbar-showcase">
             <div class="position-relative text-right pr-2">
                 <button id="menu-button" class="mdc-icon-button material-icons">more_vert</button>
@@ -142,6 +142,7 @@ BSD-style license that can be found in the LICENSE file. -->
                         expand_less
                     </button>
                 </div>
+                <button id="console-clear-button" title="Clear console" class="console-clear-icon mdc-icon-button material-icons"></button>
                 <span class="view-label">
                     Console <span id="unread-console-counter" class="Counter" hidden></span>
                 </span>
@@ -228,6 +229,47 @@ BSD-style license that can be found in the LICENSE file. -->
     </div>
     <div class="mdc-dialog__scrim"></div>
 </div>
+
+<div id="keyboard-dialog"
+     class="mdc-dialog"
+     role="alertdialog"
+     aria-modal="true"
+     aria-labelledby="my-dialog-title"
+     aria-describedby="my-dialog-content">
+    <div class="mdc-dialog__container">
+        <div class="mdc-dialog__surface">
+            <h2 class="mdc-dialog__title">Keyboard shortcuts</h2>
+            <div class="mdc-dialog__content">
+                <div class="keyboard-container">
+                    <div id="keyboard-map-info">
+                    </div>
+                    <div id="vim-switch-container">
+                        <div class="mdc-switch">
+                            <div class="mdc-switch__track"></div>
+                            <div class="mdc-switch__thumb-underlay">
+                                <div class="mdc-switch__thumb">
+                                    <input type="checkbox"
+                                           id="vim-switch"
+                                           class="mdc-switch__native-control"
+                                           role="switch">
+                                </div>
+                            </div>
+                        </div>
+                        <label for="vim-switch">Use Vim Keyboard Mapping</label>
+                    </div>
+                </div>
+            </div>
+            <footer class="mdc-dialog__actions">
+                <button type="button" id="keyboard-ok-button"
+                        class="mdc-button mdc-dialog__button">
+                    <span class="mdc-button__label">OK</span>
+                </button>
+            </footer>
+        </div>
+    </div>
+    <div class="mdc-dialog__scrim"></div>
+</div>
+
 
 </body>
 

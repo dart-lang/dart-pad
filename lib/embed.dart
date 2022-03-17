@@ -170,7 +170,7 @@ class Embed extends EditorUi {
         querySelector('#editor-panel-show-code-button');
     if (editorCodeInputTabButtonElement != null) {
       editorCodeInputTabButton = MDCButton(
-          querySelector('#editor-panel-show-code-button') as ButtonElement)
+          editorCodeInputTabButtonElement as ButtonElement)
         ..onClick.listen(
           (_) => _toggleCodeInput(),
         );
@@ -494,6 +494,7 @@ class Embed extends EditorUi {
 
     // Flutter showcase mode does not show code input by default
     if (options.mode == EmbedMode.flutter_showcase) {
+      querySelector('#editor-and-console-container')?.setAttribute('hidden', '');
       _updateShowcase();
     } else {
       splitter = flexSplit(
