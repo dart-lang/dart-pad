@@ -169,11 +169,11 @@ class Embed extends EditorUi {
     final editorCodeInputTabButtonElement =
         querySelector('#editor-panel-show-code-button');
     if (editorCodeInputTabButtonElement != null) {
-      editorCodeInputTabButton = MDCButton(
-          editorCodeInputTabButtonElement as ButtonElement)
-        ..onClick.listen(
-          (_) => _toggleCodeInput(),
-        );
+      editorCodeInputTabButton =
+          MDCButton(editorCodeInputTabButtonElement as ButtonElement)
+            ..onClick.listen(
+              (_) => _toggleCodeInput(),
+            );
     }
 
     reloadGistButton = MDCButton(querySelector('#reload-gist') as ButtonElement)
@@ -494,7 +494,8 @@ class Embed extends EditorUi {
 
     // Flutter showcase mode does not show code input by default
     if (options.mode == EmbedMode.flutter_showcase) {
-      querySelector('#editor-and-console-container')?.setAttribute('hidden', '');
+      querySelector('#editor-and-console-container')
+          ?.setAttribute('hidden', '');
       _updateShowcase();
     } else {
       splitter = flexSplit(
