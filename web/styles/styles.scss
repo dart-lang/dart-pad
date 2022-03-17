@@ -203,6 +203,16 @@ a {
   }
 }
 
+#right-output-panel .view-label {
+  width: 100%;
+}
+
+#right-console-clear-button {
+  float: right;
+  margin-right: 10px;
+  margin-top: -8px;
+}
+
 .console {
   @include layout-flex;
   font-family: $editor-font;
@@ -344,6 +354,21 @@ a {
 
   label[for=new-pad-html-switch] {
     margin-left: 8px;
+  }
+}
+
+#keyboard-dialog {
+
+  #vim-switch-container {
+    margin-top: 24px;
+    border-top: 1px $dark-blue solid;
+    padding-top: 10px;
+    border-bottom: 1px $dark-blue solid;
+    padding-bottom: 10px;
+  }
+
+  label[for=vim-switch] {
+    margin-left: 18px;
   }
 }
 
