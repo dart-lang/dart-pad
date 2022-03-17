@@ -191,7 +191,6 @@ class _CodeMirrorEditor extends Editor {
     if (mode == 'html') mode = 'text/html';
     content ??= '';
 
-    // TODO: For `html`, enable and disable the 'autoCloseTags' option.
     return _CodeMirrorDocument._(this, Doc(content, mode));
   }
 
