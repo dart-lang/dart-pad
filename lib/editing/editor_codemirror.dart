@@ -51,7 +51,8 @@ class CodeMirrorFactory extends EditorFactory {
       'extraKeys': {
         'Cmd-/': 'toggleComment',
         'Ctrl-/': 'toggleComment',
-        'Tab': 'insertSoftTab'
+        'Shift-Tab': 'indentLess',
+        'Tab': 'indentIfMultiLineSelectionElseInsertSoftTab',
       },
       'hintOptions': {'completeSingle': false},
       //'lint': true,
@@ -60,6 +61,8 @@ class CodeMirrorFactory extends EditorFactory {
 
     final editor = CodeMirror.fromElement(element, options: options);
     CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
+    CodeMirror.addCommand('indentIfMultiLineSelectionElseInsertSoftTab',
+        _indentIfMultiLineSelectionElseInsertSoftTab);
     return _CodeMirrorEditor._(this, editor);
   }
 
@@ -74,6 +77,23 @@ class CodeMirrorFactory extends EditorFactory {
   // Change the cmd-left behavior to move the cursor to the leftmost non-ws char.
   void _handleGoLineLeft(CodeMirror editor) {
     editor.execCommand('goLineLeftSmart');
+  }
+
+  // make it so that we can insertSoftTab when no selection or selection on 1 line
+  // but if there is multiline selection we indentMore
+  // (this gives us a more typical coding editor behavior)
+  void _indentIfMultiLineSelectionElseInsertSoftTab(CodeMirror editor) {
+    if (editor.doc.somethingSelected()) {
+      final String? selection = editor.doc.getSelection('\n');
+      if (selection != null && selection.contains('\n')) {
+        // Multi-line selection
+        editor.execCommand('indentMore');
+      } else {
+        editor.execCommand('insertSoftTab');
+      }
+    } else {
+      editor.execCommand('insertSoftTab');
+    }
   }
 
   Future<HintResults> _completionHelper(
@@ -233,6 +253,27 @@ class _CodeMirrorEditor extends Editor {
 
   @override
   set theme(String str) => cm.setTheme(str);
+
+  @override
+  dynamic getOption(String option) => cm.getOption(option);
+
+  @override
+  void setOption(String option, dynamic value) => cm.setOption(option, value);
+
+  @override
+  String get keyMap {
+    dynamic keymap = cm.getOption('keyMap');
+    if (keymap == null || (keymap as String).isEmpty) keymap = 'default';
+    return keymap;
+  }
+
+  /// Valid options are `default` or `vim`
+  /// (in order to use `emacs` or `sublime` we MUST also INCLUDE those keymaps.js files in the html containers)
+  @override
+  set keyMap(String? newkeymap) {
+    if (newkeymap == null || newkeymap.isEmpty) newkeymap = 'default';
+    cm.setOption('keyMap', newkeymap);
+  }
 
   @override
   bool get hasFocus => _jsProxyState?['focused'] == true;

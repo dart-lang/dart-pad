@@ -153,3 +153,8 @@ a {
 #console-expand-icon, .close-flash-container .close-flash-button {
   color: $light-label-color;
 }
+
+.console-clear-icon {
+  // filter to convert black svg icon to --mdc-theme-primary: #1967d2 color
+  filter: invert(28%) sepia(42%) saturate(2766%) hue-rotate(198deg) brightness(104%) contrast(96%);
+}

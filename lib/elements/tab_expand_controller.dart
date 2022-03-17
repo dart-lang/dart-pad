@@ -20,6 +20,7 @@ class TabExpandController {
   MDCButton? uiOutputButton;
   final MDCButton consoleButton;
   final MDCButton docsButton;
+  final MDCButton clearConsoleButton;
   final MDCButton closeButton;
   final DElement console;
   final DElement docs;
@@ -46,6 +47,7 @@ class TabExpandController {
     this.uiOutputButton,
     required this.consoleButton,
     required this.docsButton,
+    required this.clearConsoleButton,
     required this.closeButton,
     IFrameElement? iframeElement,
     required Element consoleElement,
@@ -80,6 +82,8 @@ class TabExpandController {
     _subscriptions.add(closeButton.onClick.listen((_) {
       _hidePanel();
     }));
+
+    clearConsoleButton.setAttr('style', 'visibility:hidden;');
   }
 
   void toggleIframe() {
@@ -152,6 +156,7 @@ class TabExpandController {
     uiOutputButton?.toggleClass('active', true);
     _initSplitter();
     closeButton.toggleAttr('hidden', false);
+    clearConsoleButton.setAttr('style', 'visibility:hidden;');
   }
 
   void _showConsole() {
@@ -162,6 +167,7 @@ class TabExpandController {
     consoleButton.toggleClass('active', true);
     _initSplitter();
     closeButton.toggleAttr('hidden', false);
+    clearConsoleButton.clearAttr('style');
   }
 
   void _hidePanel() {
@@ -175,6 +181,7 @@ class TabExpandController {
     consoleButton.toggleClass('active', false);
     docsButton.toggleClass('active', false);
     closeButton.toggleAttr('hidden', true);
+    clearConsoleButton.setAttr('style', 'visibility:hidden;');
   }
 
   void _showDocs() {
@@ -184,6 +191,7 @@ class TabExpandController {
     docsButton.toggleClass('active', true);
     _initSplitter();
     closeButton.toggleAttr('hidden', false);
+    clearConsoleButton.setAttr('style', 'visibility:hidden;');
   }
 
   void _initSplitter() {

@@ -63,6 +63,7 @@ class WorkshopUi extends EditorUi {
   late ContextBase context;
   late MDCButton formatButton;
   late final TabExpandController tabExpandController;
+  late final MDCButton clearConsoleButton;
   late final MDCButton closePanelButton;
   late final MDCButton editorUiOutputTab;
   late final MDCButton editorConsoleTab;
@@ -127,6 +128,7 @@ class WorkshopUi extends EditorUi {
         .createFromElement(_editorHost, options: codeMirrorOptions)
       ..theme = 'darkpad'
       ..mode = 'dart'
+      ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
       ..showLineNumbers = true;
 
     context = WorkshopDartSourceProvider(editor);
@@ -281,6 +283,10 @@ class WorkshopUi extends EditorUi {
           ..onClick.listen((_) => _handleShowSolution());
     formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
       ..onClick.listen((_) => _format());
+    clearConsoleButton = MDCButton(
+        querySelector('#left-console-clear-button') as ButtonElement,
+        isIcon: true)
+      ..onClick.listen((_) => clearOutput());
     closePanelButton = MDCButton(
         querySelector('#editor-panel-close-button') as ButtonElement,
         isIcon: true);
@@ -384,6 +390,7 @@ class WorkshopUi extends EditorUi {
       uiOutputButton: shouldCompileDDC ? editorUiOutputTab : null,
       consoleButton: editorConsoleTab,
       docsButton: editorDocsTab,
+      clearConsoleButton: clearConsoleButton,
       closeButton: closePanelButton,
       iframeElement: _frame,
       docsElement: _documentationElement,

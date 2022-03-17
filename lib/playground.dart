@@ -53,6 +53,9 @@ final Logger _logger = Logger('dartpad');
 class Playground extends EditorUi implements GistContainer, GistController {
   final MutableGist _editableGist = MutableGist(Gist());
   final GistStorage _gistStorage = GistStorage();
+  final MDCButton _consoleClearLeftButton = MDCButton(
+      querySelector('#left-console-clear-button') as ButtonElement,
+      isIcon: true);
   final MDCButton _formatButton =
       MDCButton(querySelector('#format-button') as ButtonElement);
   final MDCButton _editorConsoleTab =
@@ -186,6 +189,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
         .onClick
         .listen((_) => _showResetDialog());
     _formatButton.onClick.listen((_) => _format());
+    _consoleClearLeftButton.onClick.listen((_) => clearOutput());
+    MDCButton(querySelector('#right-console-clear-button') as ButtonElement,
+            isIcon: true)
+        .onClick
+        .listen((_) => clearOutput());
     MDCButton(querySelector('#install-button') as ButtonElement)
         .onClick
         .listen((_) => _showInstallPage());
@@ -337,7 +345,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
           ],
       ])
         ..classes.add('channel-item');
-      listElement.children.add(menuElement);
+
+      // The dev channel is hidden unless it's selected via a query parameter.
+      if (!channel.hidden || currentChannel == channel.name) {
+        listElement.children.add(menuElement);
+      }
     }
 
     return element;
@@ -348,6 +360,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       Channel.fromVersion('stable'),
       Channel.fromVersion('beta'),
       Channel.fromVersion('old'),
+      Channel.fromVersion('dev', hidden: true),
     ]);
 
     final element = _buildChannelsMenu(channels);
@@ -442,6 +455,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _tabExpandController = TabExpandController(
       consoleButton: _editorConsoleTab,
       docsButton: _editorDocsTab,
+      clearConsoleButton: _consoleClearLeftButton,
       closeButton: _closePanelButton,
       docsElement: _leftDocPanel,
       consoleElement: _leftConsoleElement,
@@ -509,6 +523,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
         .createFromElement(_editorHost, options: codeMirrorOptions)
       ..theme = 'darkpad'
       ..mode = 'dart'
+      ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
       ..showLineNumbers = true;
 
     initKeyBindings();
@@ -788,7 +803,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       }
 
       if (originalSource != result.newString) {
-        editor.document.updateValue(result.newString);
+        context.dartSource = result.newString;
         showSnackbar('Format successful.');
       } else {
         showSnackbar('No formatting changes.');

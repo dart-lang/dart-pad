@@ -58,7 +58,7 @@ body {
 
 // Code Editor
 
-#user-code-editor, #solution-editor, #test-editor, #html-editor, #solution-editor {
+#user-code-editor, #test-editor {
   @include layout-fit;
 }
 
@@ -110,6 +110,22 @@ body {
   height: 100%;
   font-family: $editor-font;
   font-size: $embed-editor-font-size;
+}
+
+
+#keyboard-dialog {
+
+  #vim-switch-container {
+    margin-top: 24px;
+    border-top: 1px $dark-blue solid;
+    padding-top: 10px;
+    border-bottom: 1px $dark-blue solid;
+    padding-bottom: 10px;
+  }
+
+  label[for=vim-switch] {
+    margin-left: 18px;
+  }
 }
 
 // Web output
@@ -170,13 +186,28 @@ body {
   overflow: auto;
 }
 
-#console-expand-icon-container, .close-flash-container {
+.close-flash-container {
   height: 32px;
   width: 32px;
 }
 
+#console-expand-icon-container {
+  height: 32px;
+  width: 77px;
+  display: flex;
+}
+
 #console-expand-icon, .close-flash-container .close-flash-button {
   @include mdc-icon-button-size(16px, 16px, 8px);
+}
+
+#console-clear-button {
+  display: inline-block;
+  background: url('../../pictures/clear-console.svg') center no-repeat;
+  background-size: 14px 14px;
+  width: 32px;
+  height: 32px;
+  padding: 8px 8px;
 }
 
 #console-output-container {
@@ -298,6 +329,7 @@ body {
 .view-label {
   margin-left: 8px;
   font-size: 12px;
+  width: 100%;
 }
 
 .hide {
