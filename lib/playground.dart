@@ -523,6 +523,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
         .createFromElement(_editorHost, options: codeMirrorOptions)
       ..theme = 'darkpad'
       ..mode = 'dart'
+      ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
       ..showLineNumbers = true;
 
     initKeyBindings();

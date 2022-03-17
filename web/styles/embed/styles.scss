@@ -58,7 +58,7 @@ body {
 
 // Code Editor
 
-#user-code-editor, #solution-editor, #test-editor, #html-editor, #solution-editor {
+#user-code-editor, #test-editor {
   @include layout-fit;
 }
 
@@ -110,6 +110,22 @@ body {
   height: 100%;
   font-family: $editor-font;
   font-size: $embed-editor-font-size;
+}
+
+
+#keyboard-dialog {
+
+  #vim-switch-container {
+    margin-top: 24px;
+    border-top: 1px $dark-blue solid;
+    padding-top: 10px;
+    border-bottom: 1px $dark-blue solid;
+    padding-bottom: 10px;
+  }
+
+  label[for=vim-switch] {
+    margin-left: 18px;
+  }
 }
 
 // Web output

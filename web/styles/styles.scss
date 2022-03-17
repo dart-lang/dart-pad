@@ -357,6 +357,21 @@ a {
   }
 }
 
+#keyboard-dialog {
+
+  #vim-switch-container {
+    margin-top: 24px;
+    border-top: 1px $dark-blue solid;
+    padding-top: 10px;
+    border-bottom: 1px $dark-blue solid;
+    padding-bottom: 10px;
+  }
+
+  label[for=vim-switch] {
+    margin-left: 18px;
+  }
+}
+
 #samples-menu .mdc-list-item__graphic {
     height: auto;
     width: 20px;
