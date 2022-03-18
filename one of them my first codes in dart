@@ -1,0 +1,20 @@
+import 'dart:math';
+
+
+void main() {
+
+int sayi=Random().nextInt(10+1);// rastgele sayı seçer
+  
+if (sayi>=1 && sayi<=2){
+  print('sayın:$sayi sen bir bilginsin');
+}else if(sayi>=3 && sayi<=4){
+  print('sayın: $sayi , sen bir zekisin');
+}else if(sayi>=5 && sayi<=6){
+   print('sayın: $sayi , sen normal bir insansın');
+}else if(sayi>=7){
+  print('sayın: $sayi , üzgünüm sen aptalsın');
+}
+
+  print('OYUN BİTİ');
+
+}
