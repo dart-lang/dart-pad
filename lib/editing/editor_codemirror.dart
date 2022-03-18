@@ -270,7 +270,7 @@ class _CodeMirrorEditor extends Editor {
         'curMatchNum': (jsobj['curMatchNum'] ?? -1) as int,
       };
     } else {
-      return {'total': 0, 'curMatchNum': -1 };
+      return {'total': 0, 'curMatchNum': -1};
     }
   }
 
@@ -309,7 +309,7 @@ class _CodeMirrorEditor extends Editor {
         'curMatchNum': (jsobj['curMatchNum'] ?? -1) as int,
       };
     } else {
-      return {'total': 0, 'curMatchNum': -1 };
+      return {'total': 0, 'curMatchNum': -1};
     }
   }
 

@@ -54,17 +54,12 @@ class SearchController {
   void editorUpdatedSearchAnnotationsCallback() {
     final Map<String, dynamic> res =
         editor.getMatchesFromSearchQueryUpdatedCallback();
-    int total = 0;
-    int curMatchNum = -1;
-    //List<Position> matches = [];
+    final int total = res['total'] as int;
+    final int curMatchNum = res['curMatchNum'] as int;
+    updateSearchResults(curMatchNum: curMatchNum, total: total);
+  }
 
-    total = res['total'] as int;
-    curMatchNum = res['curMatchNum'] as int;
-    //matches = res['matches'] as List<Position>;
-
-    //final int line= matches.length>2 ? matches[2].line : -1;
-    //final int ch = matches.length>2 ? matches[2].char : -1;
-    //showSnackbar( 'CALLBACK number of items in matches array is ${matches.length} [0] line=$line ch=$ch');
+  void updateSearchResults({int curMatchNum = -1, int total = 0}) {
     if (total == 0) {
       searchResultsSpan.innerText = 'No results';
       if (findText.isNotEmpty) {
@@ -86,7 +81,6 @@ class SearchController {
   bool get hidden => !_searchDialog.hasClass('revealed');
 
   void hide() {
-    //_searchDialog.setAttr('hidden');
     _searchDialog.toggleClass('revealed', false);
     clearSearch();
   }
@@ -195,6 +189,8 @@ class SearchController {
         findPreviousButton.disabled = findNextButton.disabled =
             replaceAndFindNextButton.disabled =
                 replaceAllButton.disabled = true;
+        clearSearch();
+        updateSearchResults();
       } else {
         findPreviousButton.disabled = findNextButton.disabled =
             replaceAndFindNextButton.disabled =
@@ -267,14 +263,12 @@ class SearchController {
 
   void arrowKeysNavigateFindTextHistory(int keyCode) {
     if (keyCode == keyCodeUp || keyCode == keyCodeDown) {
-      // UP or DOWN
       // first figure out where we are in the history
       if (!searchHistory.contains(findText)) {
         addFindTextToSearchHistory();
       }
       int searchHistoryPos = searchHistory.indexOf(findText);
       if (keyCode == keyCodeUp) {
-        // UP
         searchHistoryPos--;
       } else {
         searchHistoryPos++;
@@ -290,14 +284,12 @@ class SearchController {
 
   void arrowKeysNavigateReplaceTextHistory(int keyCode) {
     if (keyCode == keyCodeUp || keyCode == keyCodeDown) {
-      // UP or DOWN
       // first figure out where we are in the history
       if (!replaceHistory.contains(replaceText)) {
         addReplaceTextToReplaceHistory();
       }
       int replaceHistoryPos = replaceHistory.indexOf(replaceText);
       if (keyCode == keyCodeUp) {
-        // UP
         replaceHistoryPos--;
       } else {
         replaceHistoryPos++;
@@ -439,32 +431,15 @@ class SearchController {
   void executeFind({bool reverse = false, bool highlightOnly = true}) {
     final String query = findTextInput.value ?? '';
     if (query != '') {
-      //showSnackbar('Searching on "$query"');
-
       final Map<String, dynamic> res = editor.startSearch(
           query, reverse, highlightOnly, matchCase, wholeWord, regExMatch);
-      int total = 0;
-      int curMatchNum = -1;
-      //List<Position> matches = [];
-
-      total = res['total'] as int;
-      curMatchNum = res['curMatchNum'] as int;
-      //matches = res['matches'] as List<Position>;
-
-      //showSnackbar( 'number of items in matches array is ${matches.length} [0] line=$line ch=$ch');
-      if (total == 0) {
-        searchResultsSpan.innerText = 'No results';
-        searchResultsSpan.classes.add('no-results');
-      } else {
-        final String resultMsg =
-            '${(curMatchNum >= 0 ? (curMatchNum + 1).toString() : "?")} of $total';
-        searchResultsSpan.innerText = resultMsg;
-        searchResultsSpan.classes.remove('no-results');
-      }
+      final int total = res['total'] as int;
+      final int curMatchNum = res['curMatchNum'] as int;
+      updateSearchResults(curMatchNum: curMatchNum, total: total);
     } else {
-      //showSnackbar("Can't search for nothing");
+      clearSearch();
+      updateSearchResults();
     }
-    // update the history
   }
 
   ///  There is currently selected text that matches the findText, so execute
