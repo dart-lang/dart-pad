@@ -62,20 +62,13 @@
   /// All of our query strings will be regular expressions, and we only
   ///    return true here if it is marked as being case insensitive ('/i' or '/gi')
   function queryCaseInsensitive(query) {
-    //console.log(`caseInsen query=${query.toString()} typeof=${(typeof query)}`);
     if(typeof query == "object") {
       query = query.toString();
-      //console.log(`insen passed RegExp made str=${query}`);
     }
     var isRE = query.match(/^\/(.*)\/([a-z]*)$/);
     if (isRE) {
-      var ret = isRE[2].indexOf("i") != -1;
-      //console.log(`Regex and caseInset = ${ret}`); 
-
       return isRE[2].indexOf("i") != -1;
     } else {
-      var ret = (typeof query == "string") && query == query.toLowerCase();
-      //console.log(`string and caseInset = ${ret}`); 
       //if it is not a regular expression we return false, no string searching
       return (typeof query == "string") && query == query.toLowerCase();
     }
@@ -120,7 +113,6 @@
       if (state.annotate) { state.annotate.clear(); state.annotate = null; }
       state.annotate = cm.showMatchesOnScrollbar(state.query, queryCaseInsensitive(state.query));
       if( state.annotate ) {
-        //console.log('In startSearch and looking to hook %o', state.annotate );
         /*
             HERE is where we insert a hook into the SearchAnnotation() object of
             matchesonscrollbar.s (which uses annotatescrollbar.js)
@@ -133,12 +125,8 @@
           state.annotate.ourDartChangeHook = function() {
             this.origUpdateAfterChange();
             // Now try and call our dart code!
-            //console.log("OUR THIS hooked annonate object %o", this);
-
             cm.storedForDartAnnotationMatches = this.matches;
             CodeMirror.commands.ourSearchQueryUpdatedCallback(cm);
-
-            //console.log('BACK from calling our annotate stored %o for retrieval', cm.storedForDartAnnotationMatches);
           }
           state.annotate.updateAfterChange = state.annotate.ourDartChangeHook;
         }
@@ -150,7 +138,6 @@
     var queryText = (typeof query == "object") ? query.toString() : query;
     if( typeof query != "object" ) query = parseQuery(query);
 
-    //console.log('doSearch query=%o queryText=%s',  query, queryText);
     var state = getSearchState(cm);
     if (queryText != state.queryText) {
       startSearch(cm, state, query);
@@ -318,20 +305,15 @@
     }
     if( queryRegEx==undefined ) {
       // something went wrong, default to unmatchable..
-      //console.log("We go to end and queryRegEx was UNDEFINED, making it /^x/");
       return /x^/;
     }
-    //console.log(`Our Prep done typeof=${(typeof queryRegEx)} queryRegEx.toString=${queryRegEx.toString()}`);
-
     return queryRegEx;
   }
 
   CodeMirror.defineExtension("searchFromDart", function(query, reverse, highlightOnly, matchCase, wholeWord, regEx) {
      clearSearch(this);
 
-     //console.log(`got query=${query} rev=${reverse} matchCase=${matchCase} wholeWord=${wholeWord} regEx=${regEx}`);
      var queryToSend = makeOurRegExQuery(query, matchCase, wholeWord, regEx);
-     //console.log(`made query=${queryToSend}`);
 
      return doSearch( this, queryToSend, reverse, highlightOnly )
   });
@@ -339,9 +321,7 @@
   CodeMirror.defineExtension("replaceAllFromDart", function(query, replaceText, matchCase, wholeWord, regEx) {
      clearSearch(this);
 
-     //console.log(`replaceAllFromDart query=${query} matchCase=${matchCase} wholeWord=${wholeWord} regEx=${regEx}`);
      var queryToSend = makeOurRegExQuery(query, matchCase, wholeWord, regEx);
-     //console.log(`made query=${queryToSend}`);
 
      replaceAll( this, queryToSend, replaceText );
 
@@ -353,9 +333,7 @@
   CodeMirror.defineExtension("replaceNextFromDart", function(query, replaceText, matchCase, wholeWord, regEx) {
      clearSearch(this);
 
-     //console.log(`replaceNextFromDart query=${query} matchCase=${matchCase} wholeWord=${wholeWord} regEx=${regEx}`);
      var queryToSend = makeOurRegExQuery(query, matchCase, wholeWord, regEx);
-     //console.log(`made query=${queryToSend}`);
 
      // and end with a SEARCH to re-highlight orginal query
      return doReplace( this, queryToSend, replaceText );
@@ -382,54 +360,40 @@
   CodeMirror.defineExtension("getMatchesFromSearchQueryUpdatedCallback", function() {
     var matches = (this.storedForDartAnnotationMatches!=undefined) ?
                               this.storedForDartAnnotationMatches : [];
-
-    //console.log('getMatchesFromSearchQueryUpdatedCallback   matches=%o', matches);
-
     return getSearchResultInfoObjectFromMatches( this, matches );
   });
 
-
   function getSearchResultInfoObjectFromMatches(cm, matches) {
     var cursorAtFrom = cm.getCursor("from");
-
     var numMatches = matches.length;
     var hitWeAreOn = -1; // we might not find it
     if( matches && matches.length>0) {
       var cursorLine = cursorAtFrom.line;
       var cursorCh = cursorAtFrom.ch;
-            //console.log('Cursor is at line %d and ch %d', cursorLine, cursorCh );
       numMatches = matches.length;
       var m=0;
       for(;m<numMatches;m++) {
         var fromPos = matches[m].from;
         var toPos = matches[m].to;
-        //console.log('match %d is at FROM line %d ch %d TO line %d ch %d', m, fromPos.line, fromPos.ch,
-        //                                      toPos.line, toPos.ch );
         // Once we are AT or just PAST the last match then THAT is our match that
         //   we are 'on', it is the closest match we are at least at or past
         if( (fromPos.line==cursorLine && fromPos.ch<=cursorCh) &&
                   ((cursorCh<=toPos.ch && cursorLine==toPos.line) ||
                                         toPos.line>cursorLine) ) {
-          //console.log('AT or IN detected m=%d', m );
           // we are in/on this one
           hitWeAreOn = m;
           break;
         } else if( cursorLine<fromPos.line ||
                           (cursorLine==fromPos.line && cursorCh<fromPos.ch) ) {
-          //console.log('We detected this is PAST US, so place us before m-1=%d', (m-1) );
           // we are PAST (BEFORE) this one
           hitWeAreOn = m-1;
           break;
         }
       }
-      //console.log('After loop, m=%d  and hitWeAreOn=%d ', hitWeAreOn );
       if( m>=numMatches ) {
-        //console.log('Detected UNSET hitWeAreOn (because past emd), so setting to end ');
         hitWeAreOn = numMatches-1;
       }
     }
-    //console.log('hitNum=%d  matches = %o',hitWeAreOn, matches);
-    //console.log('matches = %o',matches);
     return { 'matches':matches, 'total':numMatches, 'curMatchNum':hitWeAreOn };
   }
 

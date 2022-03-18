@@ -254,10 +254,16 @@ class _CodeMirrorEditor extends Editor {
   void execCommand(String name) => cm.execCommand(name);
 
   @override
-  Map<String, dynamic> startSearch(String query, bool reverse, bool highlightOnly,
-      bool matchCase, bool wholeWord, bool regEx) {
-    final JsObject? jsobj = cm.callArgs('searchFromDart',
-        [query, reverse, highlightOnly, matchCase, wholeWord, regEx]) as JsObject?;
+  Map<String, dynamic> startSearch(String query, bool reverse,
+      bool highlightOnly, bool matchCase, bool wholeWord, bool regEx) {
+    final JsObject? jsobj = cm.callArgs('searchFromDart', [
+      query,
+      reverse,
+      highlightOnly,
+      matchCase,
+      wholeWord,
+      regEx
+    ]) as JsObject?;
     if (jsobj != null) {
       /* final List<ed.Position> outmatches = [];
 

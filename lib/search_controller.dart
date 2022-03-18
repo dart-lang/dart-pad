@@ -1,5 +1,5 @@
-import 'dart:html';
 import 'dart:async';
+import 'dart:html';
 
 import 'package:mdc_web/mdc_web.dart';
 import '../dart_pad.dart';
@@ -67,7 +67,12 @@ class SearchController {
     //showSnackbar( 'CALLBACK number of items in matches array is ${matches.length} [0] line=$line ch=$ch');
     if (total == 0) {
       searchResultsSpan.innerText = 'No results';
-      searchResultsSpan.classes.add('no-results');
+      if (findText.isNotEmpty) {
+        searchResultsSpan.classes.add('no-results');
+      } else {
+        searchResultsSpan.classes
+            .remove('no-results'); // leave it white when empty search
+      }
     } else {
       final String resultMsg =
           '${(curMatchNum >= 0 ? (curMatchNum + 1).toString() : "?")} of $total';
@@ -75,6 +80,8 @@ class SearchController {
       searchResultsSpan.classes.remove('no-results');
     }
   }
+
+  DElement get searchDialogDiv => _searchDialog;
 
   bool get hidden => !_searchDialog.hasClass('revealed');
 
@@ -88,6 +95,13 @@ class SearchController {
     _searchDialog.clearAttr('hidden');
     _searchDialog.toggleClass('revealed', true);
     //this should be happening anyway (from filling find input) executeFind();
+    if (findText.isEmpty) {
+      findPreviousButton.disabled = findNextButton.disabled =
+          replaceAndFindNextButton.disabled = replaceAllButton.disabled = true;
+    } else {
+      findPreviousButton.disabled = findNextButton.disabled =
+          replaceAndFindNextButton.disabled = replaceAllButton.disabled = false;
+    }
   }
 
   final DivElement replaceRowDiv = querySelector('#replace-row') as DivElement;
@@ -163,18 +177,18 @@ class SearchController {
         closeReplace();
       }
     });
-    // // disabled our buttons when no find text
-    // findTextInput.onChange.listen((event) {
-    //   if (findText.isEmpty) {
-    //     findPreviousButton.disabled = findNextButton.disabled =
-    //         replaceAndFindNextButton.disabled =
-    //             replaceAllButton.disabled = true;
-    //   } else {
-    //     findPreviousButton.disabled = findNextButton.disabled =
-    //         replaceAndFindNextButton.disabled =
-    //             replaceAllButton.disabled = false;
-    //   }
-    // });
+    // we put this on change and input to catch edge cases
+    findTextInput.onChange.listen((event) {
+      if (findText.isEmpty) {
+        findPreviousButton.disabled = findNextButton.disabled =
+            replaceAndFindNextButton.disabled =
+                replaceAllButton.disabled = true;
+      } else {
+        findPreviousButton.disabled = findNextButton.disabled =
+            replaceAndFindNextButton.disabled =
+                replaceAllButton.disabled = false;
+      }
+    });
     // update highlighted matches as user types
     findTextInput.onInput.listen((event) {
       if (findText.isEmpty) {
@@ -379,7 +393,7 @@ class SearchController {
     }
     // queue up a second attempt at select all because sometimes browser flakes on first
     //  (this sometimes happens on the first time the search dialog is opened)
-    Timer(Duration(milliseconds:20), (){
+    Timer(Duration(milliseconds: 20), () {
       findTextInput.focus();
       findTextInput.select();
     });
