@@ -265,20 +265,12 @@ class _CodeMirrorEditor extends Editor {
       regEx
     ]) as JsObject?;
     if (jsobj != null) {
-      /* final List<ed.Position> outmatches = [];
-
-      List<dynamic> matches = (jsobj['matches'] as List<dynamic>) ?? [];
-      for(int m=0;m<matches.length;m++) {
-        outmatches.add( ed.Position(matches[m]['from']['line'] as int, matches[m]!['from']['ch'] as int));
-      } */
-
       return {
         'total': (jsobj['total'] ?? 0) as int,
         'curMatchNum': (jsobj['curMatchNum'] ?? -1) as int,
-        //'matches': outmatches,
       };
     } else {
-      return {'total': 0, 'curMatchNum': -1 /*, 'matches':[]*/};
+      return {'total': 0, 'curMatchNum': -1 };
     }
   }
 
@@ -312,20 +304,12 @@ class _CodeMirrorEditor extends Editor {
     final JsObject? jsobj = cm.callArg(
         'getMatchesFromSearchQueryUpdatedCallback', null) as JsObject?;
     if (jsobj != null) {
-      /* final List<ed.Position> outmatches = [];
-
-      List<dynamic> matches = (jsobj['matches'] as List<dynamic>) ?? [];
-      for(int m=0;m<matches.length;m++) {
-        outmatches.add( ed.Position(matches[m]['from']['line'] as int, matches[m]!['from']['ch'] as int));
-      } */
-
       return {
         'total': (jsobj['total'] ?? 0) as int,
-        'curMatchNum': (jsobj['curMatchNum'] ?? -3) as int,
-        //'matches': outmatches,
+        'curMatchNum': (jsobj['curMatchNum'] ?? -1) as int,
       };
     } else {
-      return {'total': 0, 'curMatchNum': -2 /*, 'matches':[]*/};
+      return {'total': 0, 'curMatchNum': -1 };
     }
   }
 
