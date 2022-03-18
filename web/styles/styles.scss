@@ -136,6 +136,10 @@ a {
   @include layout-relative;
 }
 
+#editor-panel-header {
+  border-bottom: 1px solid $dark-gutter-background-color;
+}
+
 #editor-host {
   @include layout-flex;
   @include layout-relative;

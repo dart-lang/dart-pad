@@ -150,7 +150,7 @@ a {
 
 
 #search-dialog {
-  background-color: $dark-code-background-color;
+  background-color: $dark-gutter-background-color;//$dark-code-background-color;
   border-left: 2px solid #454545;
   color: inherit;
 }
@@ -222,23 +222,22 @@ span.cm-searching {
 }
 
 .cm-highlight-selection-matches {
-  background-color: rgba(41, 5, 245, 0.308);
+  background-color: rgba(66,123,214,.48); 
 }
-
-.cm-matchhighlight {
-  background-color: rgba(220, 0,0,0.8); //rgba(220, 220, 220, 0.4 );
-}
-
 
 // selection highlight a little transparent so search will show through
 .CodeMirror-selection-highlight-scrollbar {
-  background-color: rgb(255, 0, 0);
+  background-color: rgb(48,80,117);
+  border-top: 1px solid rgb(64,105,144);
+  border-bottom: 1px solid rgb(64,105,144);
+  width: 5px !important;
 }
 
 // LIGHT THEME active search scrollbar highlight
 .cm-s-dartpad .CodeMirror-search-match {
-  background: rgb(0, 211, 0);
-  border-top: 2px solid rgb(0,255,0);
-  border-bottom: 2px solid rgb(0,255,0);
+  border-top: 1px solid rgb(145, 255, 0);
+  border-bottom: 1px solid rgb(145, 255, 0);
+  border-left: 1px solid rgb(145, 255, 0);
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
 }
-
