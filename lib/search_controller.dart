@@ -1,4 +1,5 @@
 import 'dart:html';
+import 'dart:async';
 
 import 'package:mdc_web/mdc_web.dart';
 import '../dart_pad.dart';
@@ -376,6 +377,12 @@ class SearchController {
       }
       addFindTextToSearchHistory();
     }
+    // queue up a second attempt at select all because sometimes browser flakes on first
+    //  (this sometimes happens on the first time the search dialog is opened)
+    Timer(Duration(milliseconds:20), (){
+      findTextInput.focus();
+      findTextInput.select();
+    });
     findTextInput.focus();
     findTextInput.select();
   }
