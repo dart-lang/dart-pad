@@ -67,7 +67,7 @@ class CodeMirrorFactory extends EditorFactory {
         'Ctrl-F': 'weHandleElsewhere',
         'Ctrl-H': 'weHandleElsewhere',
         'Cmd-F': 'weHandleElsewhere',
-        'Cmd-H': 'weHandleElsewhere',        
+        'Cmd-H': 'weHandleElsewhere',
         'F4': 'weHandleElsewhere',
         'Shift-F4': 'weHandleElsewhere',
       },
