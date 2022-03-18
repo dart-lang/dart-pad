@@ -43,10 +43,10 @@ class SearchController {
     keys.bind(['ctrl-h', 'macctrl-h'], () {
       userOpenReplaceDialogHotkey();
     }, 'Replace');
-    keys.bind(['f4'], () {
+    keys.bind(['f4', 'ctrl-g', 'macctrl-g'], () {
       userFindNextHotkey();
     }, 'Find Next');
-    keys.bind(['shift-f4'], () {
+    keys.bind(['shift-f4', 'shift-ctrl-g', 'shift-macctrl-g'], () {
       userFindPreviousHotkey();
     }, 'Find Previous');
   }
