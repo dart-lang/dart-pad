@@ -66,6 +66,8 @@ class CodeMirrorFactory extends EditorFactory {
         'Tab': 'indentIfMultiLineSelectionElseInsertSoftTab',
         'Ctrl-F': 'weHandleElsewhere',
         'Ctrl-H': 'weHandleElsewhere',
+        'Cmd-F': 'weHandleElsewhere',
+        'Cmd-H': 'weHandleElsewhere',        
         'F4': 'weHandleElsewhere',
         'Shift-F4': 'weHandleElsewhere',
       },

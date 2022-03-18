@@ -24,6 +24,8 @@ const codeMirrorOptions = {
     'Ctrl-/': 'toggleComment',
     'Shift-Tab': 'indentLess',
     'Tab': 'indentIfMultiLineSelectionElseInsertSoftTab',
+    'Cmd-F': 'weHandleElsewhere',
+    'Cmd-H': 'weHandleElsewhere',
     'Ctrl-F': 'weHandleElsewhere',
     'Ctrl-H': 'weHandleElsewhere',
     'F4': 'weHandleElsewhere',
