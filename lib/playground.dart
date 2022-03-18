@@ -35,6 +35,7 @@ import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'playground_context.dart';
+import 'search_controller.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
@@ -217,6 +218,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
     MDCButton(_channelsDropdownButton)
         .onClick
         .listen((e) => _toggleMenu(_channelsMenu));
+
+    SearchController(editorFactory, editor, snackbar);
   }
 
   MDCMenu _buildSamplesMenu() {

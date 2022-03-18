@@ -23,6 +23,8 @@ final CodeMirrorFactory codeMirrorFactory = CodeMirrorFactory._();
 class CodeMirrorFactory extends EditorFactory {
   CodeMirrorFactory._();
 
+  SearchUpdateCallback? _searchUpdateCallback;
+
   String? get version => CodeMirror.version;
 
   @override
@@ -62,8 +64,17 @@ class CodeMirrorFactory extends EditorFactory {
         'Ctrl-/': 'toggleComment',
         'Shift-Tab': 'indentLess',
         'Tab': 'indentIfMultiLineSelectionElseInsertSoftTab',
+        'Ctrl-F': 'weHandleElsewhere',
+        'Ctrl-H': 'weHandleElsewhere',
+        'F4': 'weHandleElsewhere',
+        'Shift-F4': 'weHandleElsewhere',
       },
       'hintOptions': {'completeSingle': false},
+      'highlightSelectionMatches': {
+        'style': 'highlight-selection-matches',
+        'showToken': false,
+        'annotateScrollbar': true,
+      },
       //'lint': true,
       'theme': 'zenburn' // ambiance, vibrant-ink, monokai, zenburn
     };
@@ -72,6 +83,9 @@ class CodeMirrorFactory extends EditorFactory {
     CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
     CodeMirror.addCommand('indentIfMultiLineSelectionElseInsertSoftTab',
         _indentIfMultiLineSelectionElseInsertSoftTab);
+    CodeMirror.addCommand('weHandleElsewhere', _weHandleElsewhere);
+    CodeMirror.addCommand(
+        'ourSearchQueryUpdatedCallback', _ourSearchQueryUpdatedCallback);
     return _CodeMirrorEditor._(this, editor);
   }
 
@@ -81,6 +95,13 @@ class CodeMirrorFactory extends EditorFactory {
         [HintsOptions? options]) {
       return _completionHelper(editor, completer, options);
     });
+  }
+
+  /// used to set the search update callback that will be called when
+  /// the editors update their search annonations
+  @override
+  void registerSearchUpdateCallback(SearchUpdateCallback sac) {
+    _searchUpdateCallback = sac;
   }
 
   // Change the cmd-left behavior to move the cursor to the leftmost non-ws char.
@@ -102,6 +123,20 @@ class CodeMirrorFactory extends EditorFactory {
       }
     } else {
       editor.execCommand('insertSoftTab');
+    }
+  }
+
+  void _weHandleElsewhere(CodeMirror editor) {
+    // DO NOTHING HERE - we bind/handle this at the top level html page, not
+    //    within codemorror
+  }
+
+  void _ourSearchQueryUpdatedCallback(CodeMirror editor) {
+    // This is called by our codemirror extension when the search query
+    // results and annotation
+    if (_searchUpdateCallback != null) {
+      // they have a callback set, so get the info
+      _searchUpdateCallback!();
     }
   }
 
@@ -217,6 +252,81 @@ class _CodeMirrorEditor extends Editor {
 
   @override
   void execCommand(String name) => cm.execCommand(name);
+
+  @override
+  Map<String, dynamic> startSearch(String query, bool reverse, bool highlightOnly,
+      bool matchCase, bool wholeWord, bool regEx) {
+    final JsObject? jsobj = cm.callArgs('searchFromDart',
+        [query, reverse, highlightOnly, matchCase, wholeWord, regEx]) as JsObject?;
+    if (jsobj != null) {
+      /* final List<ed.Position> outmatches = [];
+
+      List<dynamic> matches = (jsobj['matches'] as List<dynamic>) ?? [];
+      for(int m=0;m<matches.length;m++) {
+        outmatches.add( ed.Position(matches[m]['from']['line'] as int, matches[m]!['from']['ch'] as int));
+      } */
+
+      return {
+        'total': (jsobj['total'] ?? 0) as int,
+        'curMatchNum': (jsobj['curMatchNum'] ?? -1) as int,
+        //'matches': outmatches,
+      };
+    } else {
+      return {'total': 0, 'curMatchNum': -1 /*, 'matches':[]*/};
+    }
+  }
+
+  @override
+  int searchAndReplace(String query, String replaceText, bool replaceAll,
+      bool matchCase, bool wholeWord, bool regEx) {
+    JsObject? jsobj;
+    if (replaceAll) {
+      jsobj = cm.callArgs('replaceAllFromDart',
+          [query, replaceText, matchCase, wholeWord, regEx]) as JsObject?;
+    } else {
+      jsobj = cm.callArgs('replaceNextFromDart',
+          [query, replaceText, matchCase, wholeWord, regEx]) as JsObject?;
+    }
+    if (jsobj != null) {
+      return (jsobj['total'] ?? 0) as int;
+    } else {
+      return 0;
+    }
+  }
+
+  @override
+  String? getTokenWeAreOnOrNear([String? regEx]) {
+    final String? foundToken =
+        cm.callArg('getTokenWeAreOnOrNear', regEx) as String?;
+    return foundToken;
+  }
+
+  @override
+  Map<String, dynamic> getMatchesFromSearchQueryUpdatedCallback() {
+    final JsObject? jsobj = cm.callArg(
+        'getMatchesFromSearchQueryUpdatedCallback', null) as JsObject?;
+    if (jsobj != null) {
+      /* final List<ed.Position> outmatches = [];
+
+      List<dynamic> matches = (jsobj['matches'] as List<dynamic>) ?? [];
+      for(int m=0;m<matches.length;m++) {
+        outmatches.add( ed.Position(matches[m]['from']['line'] as int, matches[m]!['from']['ch'] as int));
+      } */
+
+      return {
+        'total': (jsobj['total'] ?? 0) as int,
+        'curMatchNum': (jsobj['curMatchNum'] ?? -3) as int,
+        //'matches': outmatches,
+      };
+    } else {
+      return {'total': 0, 'curMatchNum': -2 /*, 'matches':[]*/};
+    }
+  }
+
+  @override
+  void clearActiveSearch() {
+    cm.callArg('clearActiveSearch', null);
+  }
 
   @override
   void showCompletions({bool autoInvoked = false, bool onlyShowFixes = false}) {
@@ -378,7 +488,18 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
   }
 
   @override
-  String get selection => doc.getSelection(value)!;
+
+  /// is there anything selected
+  bool get somethingSelected => doc.somethingSelected();
+
+  @override
+  String get selection => doc.getSelection(
+      value)!; //KLUDGE 'value' seems wrong, supposed to be line separator and value is THE ENTIRE DOCUMENT
+
+  @override
+  void replaceSelection(String replacement, [String? select]) {
+    doc.replaceSelection(replacement, value);
+  }
 
   @override
   String get mode => parent.mode;

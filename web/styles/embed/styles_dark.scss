@@ -146,3 +146,99 @@ a {
   // filter to make black SVG white for dark theme
   filter: invert(100%);
 }
+
+
+
+#search-dialog {
+  background-color: $dark-code-background-color;
+  border-left: 2px solid #454545;
+  color: inherit;
+}
+
+#search-dialog input {
+  background: #454545;
+  color: #cecece;
+}
+
+#find-options, #replace-options {
+  background: #454545;
+  color: #cecece; //#a6a6a6;
+}
+
+#find-text, #replace-text {
+  background: #454545;
+  color: #a6a6a6;
+}
+
+#find-text:focus, #replace-text:focus {
+  border: 2px solid #517ed1;
+}
+
+#search-results {
+  color: $dark-label-color
+}
+
+#search-results.no-results {
+  color: #d78a73;
+}
+
+#search-dialog button {
+  color: #ccc;
+}
+
+#search-dialog button[aria-pressed="true"] {
+  background-color: #b2a787; // Will invert to >>> #445778;
+}
+
+#find-match-case, #find-wholeword, #find-regex  {
+  // filter to make black SVG white for dark background of #find-options
+  filter: invert(100%);
+}
+
+#replace-once, #replace-all {
+  // filter to make black SVG white for dark theme
+  filter: invert(100%);
+}
+
+#find-previous[disabled], #find-next[disabled] {
+  filter: opacity(30%);
+}
+
+#replace-once[disabled], #replace-all[disabled] {
+  filter: opacity(30%);
+}
+
+
+.CodeMirror-focused .cm-matchhighlight {
+	text-decoration: underline !important;
+	text-decoration-color: #0f0 !important;
+}
+
+span.cm-searching {
+  color: #FFFFFF;
+  background-color: rgba( 0,255,0,0.3);//kind of yellow//168, 157, 77, 0.3 ); //brown like vscode rgba(127, 90, 59, .7);
+  font-weight: normal;
+  outline: solid 1px rgb(0,255,0,0.6);
+}
+
+.cm-highlight-selection-matches {
+  background-color: rgba(41, 5, 245, 0.308);
+}
+
+.cm-matchhighlight {
+  background-color: rgba(220, 0,0,0.8); //rgba(220, 220, 220, 0.4 );
+}
+
+
+// selection highlight a little transparent so search will show through
+.CodeMirror-selection-highlight-scrollbar {
+  background-color: rgb(255, 0, 0);
+}
+
+// LIGHT THEME active search scrollbar highlight
+.cm-s-dartpad .CodeMirror-search-match {
+  background: rgb(0, 211, 0);
+  border-top: 2px solid rgb(0,255,0);
+  border-bottom: 2px solid rgb(0,255,0);
+}
+
