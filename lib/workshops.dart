@@ -250,16 +250,45 @@ class WorkshopUi extends EditorUi {
     stepLabel = DElement(querySelector('#steps-label')!);
     previousStepButton = DElement(querySelector('#previous-step-btn')!)
       ..onClick.listen((event) {
-        _workshopState.currentStepIndex--;
+        window.location.hash = 'Step${_workshopState.currentStepIndex - 1 + 1}';
       });
     nextStepButton = DElement(querySelector('#next-step-btn')!)
       ..onClick.listen((event) {
-        _workshopState.currentStepIndex++;
+        window.location.hash = 'Step${_workshopState.currentStepIndex + 1 + 1}';
       });
+    _buildStepsPopupMenu();
     _updateStepButtons();
   }
 
+  final RegExp parseNumberOutRegExp = RegExp(r'^\D*(\d+)\D*');
+
   void _initStepListener() {
+    window.onHashChange.listen((event) {
+      bool badHash = false;
+      final RegExpMatch? match =
+          parseNumberOutRegExp.firstMatch(window.location.hash);
+      if (match != null) {
+        num? stepNum = num.tryParse(match[1]!);
+        if (stepNum != null &&
+            stepNum >= 1 &&
+            stepNum <= _workshopState.totalSteps) {
+          stepNum--;
+          if (_workshopState.currentStepIndex != stepNum) {
+            // valid step and not the current one, so change
+            _workshopState.currentStepIndex = stepNum.toInt();
+          }
+        } else {
+          // invalid step - so reset hash to actual step
+          badHash = true;
+        }
+      } else {
+        // hash doesnt even have a number
+        badHash = true;
+      }
+      if (badHash) {
+        window.location.hash = 'Step${_workshopState.currentStepIndex + 1}';
+      }
+    });
     _workshopState.onStepChanged.listen((event) {
       _updateInstructions();
       _updateStepButtons();
@@ -324,6 +353,20 @@ class WorkshopUi extends EditorUi {
     print('highlightAll()');
     hljs.highlightAll();
     div.scrollTop = 0;
+  }
+
+  void _buildStepsPopupMenu() {
+    final DivElement stepLabelContainer =
+        querySelector('#steps-menu-items')! as DivElement;
+    stepLabelContainer.children = [];
+    for (int step = _workshopState.totalSteps; step > 0; step--) {
+      final stepmenuitem = AnchorElement()
+        ..id = ('step-menu-$step')
+        ..classes.add('step-menu-item')
+        ..text = 'Step $step'
+        ..href = '#Step$step';
+      stepLabelContainer.children.add(stepmenuitem);
+    }
   }
 
   void _updateStepButtons() {
@@ -489,6 +532,8 @@ class WorkshopState {
   bool get hasNextStep => _currentStepIndex < workshop.steps.length - 1;
 
   bool get hasPreviousStep => _currentStepIndex > 0;
+
+  int get totalSteps => workshop.steps.length;
 }
 
 class WorkshopDartSourceProvider implements ContextBase {
