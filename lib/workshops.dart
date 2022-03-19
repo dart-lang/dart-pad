@@ -250,7 +250,7 @@ class WorkshopUi extends EditorUi {
   void _checkForInitialStepHash() {
     if (window.location.hash != '') {
       // force a hash event so it our hash handler can evaluate hash and jump to step
-      final String hash=window.location.hash;
+      final String hash = window.location.hash;
       window.location.hash = '';
       window.location.hash = hash;
     }
