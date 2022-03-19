@@ -106,6 +106,7 @@ class WorkshopUi extends EditorUi {
     _updateSolutionButton();
     _focusEditor();
     _initOutputPanelTabs();
+    _checkForInitialStepHash();
   }
 
   Future<void> _initModules() async {
@@ -246,6 +247,15 @@ class WorkshopUi extends EditorUi {
     querySelector('#workshop-name')!.text = _workshopState.workshop.name;
   }
 
+  void _checkForInitialStepHash() {
+    if (window.location.hash != '') {
+      // force a hash event so it our hash handler can evaluate hash and jump to step
+      final String hash=window.location.hash;
+      window.location.hash = '';
+      window.location.hash = hash;
+    }
+  }
+
   void _initStepButtons() {
     stepLabel = DElement(querySelector('#steps-label')!);
     previousStepButton = DElement(querySelector('#previous-step-btn')!)
@@ -264,7 +274,7 @@ class WorkshopUi extends EditorUi {
 
   void _initStepListener() {
     window.onHashChange.listen((event) {
-      if(window.location.hash.toLowerCase().startsWith('#step')) {
+      if (window.location.hash.toLowerCase().startsWith('#step')) {
         final RegExpMatch? match =
             parseNumberOutRegExp.firstMatch(window.location.hash);
         if (match != null) {
