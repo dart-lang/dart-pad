@@ -86,6 +86,10 @@ a {
   border-bottom: 3px solid $dark-gutter-background-color;
 }
 
+.navbar-showcase {
+  border-bottom: 3px solid $dark-gutter-background-color;
+}
+
 .nav-buttons button {
   @include mdc-button-ink-color($button-text-color);
 }
