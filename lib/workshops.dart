@@ -264,29 +264,21 @@ class WorkshopUi extends EditorUi {
 
   void _initStepListener() {
     window.onHashChange.listen((event) {
-      bool badHash = false;
-      final RegExpMatch? match =
-          parseNumberOutRegExp.firstMatch(window.location.hash);
-      if (match != null) {
-        num? stepNum = num.tryParse(match[1]!);
-        if (stepNum != null &&
-            stepNum >= 1 &&
-            stepNum <= _workshopState.totalSteps) {
-          stepNum--;
-          if (_workshopState.currentStepIndex != stepNum) {
-            // valid step and not the current one, so change
-            _workshopState.currentStepIndex = stepNum.toInt();
+      if(window.location.hash.toLowerCase().startsWith('#step')) {
+        final RegExpMatch? match =
+            parseNumberOutRegExp.firstMatch(window.location.hash);
+        if (match != null) {
+          num? stepNum = num.tryParse(match[1]!);
+          if (stepNum != null &&
+              stepNum >= 1 &&
+              stepNum <= _workshopState.totalSteps) {
+            stepNum--;
+            if (_workshopState.currentStepIndex != stepNum) {
+              // valid step and not the current one, so change
+              _workshopState.currentStepIndex = stepNum.toInt();
+            }
           }
-        } else {
-          // invalid step - so reset hash to actual step
-          badHash = true;
         }
-      } else {
-        // hash doesnt even have a number
-        badHash = true;
-      }
-      if (badHash) {
-        window.location.hash = 'Step${_workshopState.currentStepIndex + 1}';
       }
     });
     _workshopState.onStepChanged.listen((event) {
