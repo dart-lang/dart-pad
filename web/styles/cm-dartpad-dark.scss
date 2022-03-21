@@ -46,37 +46,36 @@
 
 // code folding styles
 
-.CodeMirror-foldmarker {
+.cm-s-darkpad .CodeMirror-foldmarker {
   background-color:rgb(82, 192, 155);
   color: #000;
   font-weight: bold !important;
   cursor: pointer;
 }
-.CodeMirror-foldgutter {
+.cm-s-darkpad .CodeMirror-foldgutter {
   width: .7em;
 }
-.CodeMirror-foldgutter-open,
-.CodeMirror-foldgutter-folded {
+.cm-s-darkpad .CodeMirror-foldgutter-open,
+.cm-s-darkpad .CodeMirror-foldgutter-folded {
   cursor: pointer;
 }
-.CodeMirror-foldgutter-open:after {
+.cm-s-darkpad .CodeMirror-foldgutter-open:after {
   content: "\25BE";
   font-size: 18px;
   position: absolute;
   top: -4px;
   left: -2px;
-  color: #606060;
+  color: $dark-gutter-line-number-color;
 }
-.CodeMirror-foldgutter-folded:after {
+.cm-s-darkpad .CodeMirror-foldgutter-folded:after {
   content: "\25B8";
   font-size: 18px;
   position: absolute;
   top: -4px;
   left: -2px;
-  color: #606060;
-  transform: none;
+  color: rgb(82, 192, 155);
 }
-span.CodeMirror-matchingtag {
+.cm-s-darkpad span.CodeMirror-matchingtag {
   background-color: #606060;
 }
 
