@@ -9,7 +9,7 @@
   font-weight: 400;
 }
 
-.cm-s-dartpad .CodeMirror-matchingbracket {color: $light-red !important;}
+.cm-s-dartpad .CodeMirror-matchingbracket {outline: 1px solid #606060;color: $light-red !important;}
 .cm-s-dartpad .CodeMirror-selected {background: $light-selection-color !important;}
 
 .cm-s-dartpad .CodeMirror-gutters { background: $light-code-background-color !important; border-right: none}
@@ -42,6 +42,42 @@
 
 .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
   background-color: $light-code-background-color !important;
+}
+
+// code folding styles
+
+.CodeMirror-foldmarker {
+  background-color:rgb(82, 192, 155);
+  color: #000;
+  font-weight: bold !important;
+  cursor: pointer;
+}
+.CodeMirror-foldgutter {
+  width: .7em;
+}
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded {
+  cursor: pointer;
+}
+.CodeMirror-foldgutter-open:after {
+  content: "\25BE";
+  font-size: 18px;
+  position: absolute;
+  top: -4px;
+  left: -2px;
+  color: #606060;
+}
+.CodeMirror-foldgutter-folded:after {
+  content: "\25B8";
+  font-size: 18px;
+  position: absolute;
+  top: -4px;
+  left: -2px;
+  color: #606060;
+  transform: none;
+}
+span.CodeMirror-matchingtag {
+  background-color: #606060;
 }
 
 // dialogs used for vim keymapping

@@ -9,7 +9,7 @@
   font-weight: 400;
 }
 
-.cm-s-darkpad .CodeMirror-matchingbracket {color: $dark-red !important;}
+.cm-s-darkpad .CodeMirror-matchingbracket {outline: 1px solid #606060;color: $dark-red !important;}
 .cm-s-darkpad .CodeMirror-selected {background: $dark-selection-color !important;}
 
 .cm-s-darkpad .CodeMirror-gutters { background: $dark-code-background-color !important; border-right: none}
@@ -42,6 +42,42 @@
 
 #editor-host .CodeMirror-scrollbar-filler {
   background-color: $playground-background-color !important;
+}
+
+// code folding styles
+
+.CodeMirror-foldmarker {
+  background-color:rgb(82, 192, 155);
+  color: #000;
+  font-weight: bold !important;
+  cursor: pointer;
+}
+.CodeMirror-foldgutter {
+  width: .7em;
+}
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded {
+  cursor: pointer;
+}
+.CodeMirror-foldgutter-open:after {
+  content: "\25BE";
+  font-size: 18px;
+  position: absolute;
+  top: -4px;
+  left: -2px;
+  color: #606060;
+}
+.CodeMirror-foldgutter-folded:after {
+  content: "\25B8";
+  font-size: 18px;
+  position: absolute;
+  top: -4px;
+  left: -2px;
+  color: #606060;
+  transform: none;
+}
+span.CodeMirror-matchingtag {
+  background-color: #606060;
 }
 
 // dialogs used for vim keymapping (set fallback and darkpad theme selectors)
@@ -83,3 +119,4 @@
     background: rgba(255,255,255,0.9);
     color: black;
 }
+
