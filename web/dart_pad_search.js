@@ -397,5 +397,42 @@
     return { 'matches':matches, 'total':numMatches, 'curMatchNum':hitWeAreOn };
   }
 
+  // our fold routines fold the code but place the cursor BEFORE the folded code, which is
+  //  how android studio and vscode behave
+  CodeMirror.commands.ourToggleFoldWithCursorToStart = function(cm) {
+    var foldfrom=undefined;
+
+    function rememberFoldStart(cm, from, to ) {
+      foldfrom = from;
+    }
+    // do the fold and catch where it started
+    cm.on( "fold", rememberFoldStart );
+    cm.foldCode(cm.getCursor(), { scanUp: true });
+    cm.off( "fold", rememberFoldStart );
+
+    if( foldfrom!=undefined ) {
+      var cur = cm.getCursor();
+      foldfrom.ch--;
+      cm.setCursor( foldfrom );
+    }
+  };
+
+  CodeMirror.commands.ourFoldWithCursorToStart = function(cm) {
+    var foldfrom=undefined;
+
+    function rememberFoldStart(cm, from, to ) {
+      foldfrom = from;
+    }
+    // do the fold and catch where it started
+    cm.on( "fold", rememberFoldStart );
+    cm.foldCode(cm.getCursor(), { scanUp: true }, "fold");
+    cm.off( "fold", rememberFoldStart );
+
+    if( foldfrom!=undefined ) {
+      var cur = cm.getCursor();
+      foldfrom.ch--;
+      cm.setCursor( foldfrom );
+    }
+  };
 
 });
