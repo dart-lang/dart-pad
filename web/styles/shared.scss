@@ -102,7 +102,7 @@ $doc-console-padding: 8px 24px 8px 24px;
 
 .launch-icon {
   display: inline-block;
-  background: url('../../pictures/launch.svg') center no-repeat;
+  background: url('../pictures/launch.svg') center no-repeat;
   background-size: 100%;
   width: 12px;
   height: 12px;
@@ -111,7 +111,7 @@ $doc-console-padding: 8px 24px 8px 24px;
 
 #left-console-clear-button, #right-console-clear-button {
   display: inline-block;
-  background: url('../../pictures/clear-console.svg') center no-repeat;
+  background: url('../pictures/clear-console.svg') center no-repeat;
   background-size: 14px 14px;
   width: 32px;
   height: 32px;
@@ -318,27 +318,27 @@ button#run-button {
 }
 
 #find-match-case {
-  background: url('../../pictures/matchcase.svg') center no-repeat;
+  background: url('../pictures/matchcase.svg') center no-repeat;
   background-size: 20px 20px;
 }
 
 #find-wholeword {
-  background: url('../../pictures/wholeword.svg') center no-repeat;
+  background: url('../pictures/wholeword.svg') center no-repeat;
   background-size: 20px 20px;
 }
 
 #find-regex {
-  background: url('../../pictures/regex.svg') center no-repeat;
+  background: url('../pictures/regex.svg') center no-repeat;
   background-size: 20px 20px;
 }
 
 #replace-once {
-  background: url('../../pictures/replace.svg') center no-repeat;
+  background: url('../pictures/replace.svg') center no-repeat;
   background-size: 22px 22px;
 }
 
 #replace-all {
-  background: url('../../pictures/replaceall.svg') center no-repeat;
+  background: url('../pictures/replaceall.svg') center no-repeat;
   background-size: 22px 22px;
 }
 
