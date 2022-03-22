@@ -269,7 +269,7 @@ class Embed extends EditorUi {
     executionService = ExecutionServiceIFrame(
         querySelector('#frame') as IFrameElement)
       ..frameSrc =
-          isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
+          isDarkMode ? 'scripts/frame_dark.html' : 'scripts/frame.html';
 
     executionService.onStderr.listen((err) {
       consoleExpandController.showOutput(err, error: true);
