@@ -279,7 +279,7 @@ class WorkshopUi extends EditorUi {
       ..onClick.listen((_) {
         tabExpandController.showUI();
         handleRun().then((success) {
-          if(!success) {
+          if (!success) {
             tabExpandController.toggleConsole();
           }
         });

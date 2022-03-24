@@ -86,11 +86,11 @@ class TabExpandController {
     clearConsoleButton.setAttr('style', 'visibility:hidden;');
   }
 
-  void showUI({bool maximize=true}) {
-    if( state!=TabState.ui) {
+  void showUI({bool maximize = true}) {
+    if (state != TabState.ui) {
       toggleIframe();
     }
-    if(maximize) {
+    if (maximize) {
       _splitter.collapse(0);
     }
   }
