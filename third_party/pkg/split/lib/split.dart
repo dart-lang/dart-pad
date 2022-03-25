@@ -65,7 +65,7 @@ class Splitter {
 
   external List getSizes();
 
-  external void collapse();
+  external void collapse(int indexToCollapse);
 
   external void destroy([bool? preserveStyles, bool? preserveGutters]);
 }

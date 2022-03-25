@@ -308,7 +308,14 @@ class WorkshopUi extends EditorUi {
 
   void _initButtons() {
     runButton = MDCButton(querySelector('#run-button') as ButtonElement)
-      ..onClick.listen((_) => handleRun());
+      ..onClick.listen((_) {
+        tabExpandController.showUI();
+        handleRun().then((success) {
+          if (!success) {
+            tabExpandController.toggleConsole();
+          }
+        });
+      });
 
     showSolutionButton =
         MDCButton(querySelector('#show-solution-btn') as ButtonElement)
