@@ -369,3 +369,52 @@ button#show-solution-btn {
 }
 
 .custom-scrollbar::-webkit-scrollbar-corner { background: transparent; }
+
+// Steps menu popup
+#steps-container {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+#steps-label {
+  user-select: none;
+}
+
+#steps-menu-items {
+  display: none;
+  position: absolute;
+  background-color: $playground-background-color;
+  color: $playground-text-color;
+  font-family: $normal-font;
+  text-align: center;
+  font-size: 14px;
+  outline: 1px solid $dark-gutter-background-color;
+  box-shadow: 0px 8px 8px 0px rgba(0,0,0,0.4);
+  z-index: 1;
+}
+
+#steps-menu-items a {
+  color: $playground-text-color;
+  padding: 10px 12px;
+  text-decoration: none;
+  display: block;
+  user-select: none;
+}
+
+#steps-menu-items a:hover {
+  background-color: $playground-footer-background-color;
+}
+
+#steps-container:hover #steps-menu-items {
+  display: block;
+  bottom:100%;
+}
+
+// search dialog different position on workshop
+div#search-dialog {
+  position: absolute;
+  top: 0px !important;
+  right: 114px !important;
+}
+

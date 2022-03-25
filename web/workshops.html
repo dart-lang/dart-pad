@@ -27,9 +27,9 @@
           rel="stylesheet">
 
     <!-- highlightjs -->
-    <link rel="stylesheet" href="/styles/hljs-dartpad-dark.css">
-    <script src="/third_party/highlight/highlight.min.js"></script>
-    <script src="/third_party/highlight/dart.min.js"></script>
+    <link rel="stylesheet" href="styles/hljs-dartpad-dark.css">
+    <script src="third_party/highlight/highlight.min.js"></script>
+    <script src="third_party/highlight/dart.min.js"></script>
 
     <!-- codemirror -->
     <link href="packages/codemirror/css/codemirror.css" rel="stylesheet"
@@ -45,6 +45,14 @@
             defer></script>
     <script src="packages/codemirror/addon/dialog/dialog.js" defer></script>
     <script src="packages/codemirror/keymap/vim.js" defer></script>
+    <script src="packages/codemirror/addon/scroll/annotatescrollbar.js"
+            defer></script>
+    <script src="packages/codemirror/addon/search/matchesonscrollbar.js"
+            defer></script>
+    <script src="packages/codemirror/addon/search/match-highlighter.js"
+            defer></script>
+    <script src="dart_pad_search.js"
+            defer></script>
         
     <!-- codemirror themes -->
     <link href="styles/cm-scrollbars.css" rel="stylesheet" media="screen">
@@ -94,7 +102,10 @@
                             class="mdc-icon-button material-icons">
                         keyboard_arrow_left
                     </button>
-                    <div id="steps-label">Step 1</div>
+                    <div id="steps-container">
+                        <div id="steps-label">Step 1</div>
+                        <div id="steps-menu-items"></div>
+                    </div>
                     <button id="next-step-btn"
                             class="mdc-icon-button material-icons">
                         keyboard_arrow_right
@@ -118,6 +129,59 @@
                     </button>
                 </div>
                 <div id="editor-host"></div>
+                <div id="search-dialog" class="search-workshop" hidden>
+                    <div id="find-col1">
+                        <button id="open-replace" title="Toggle Replace"
+                                class="mdc-icon-button material-icons">expand_more
+                        </button>
+                    </div>
+                    <div id="find-col2">
+                        <div id="find-row">
+                            <span id="find-options">
+                                <input type="text" id="find-text" placeholder="Find" 
+                                        tabindex="1" autocomplete="off" spellcheck="false">
+                                <button id="find-match-case" title="Match Case"
+                                        class="simple-icon-button"
+                                        aria-pressed="false">
+                                </button>
+                                <button id="find-wholeword" title="Match Whole Word"
+                                        class="simple-icon-button"
+                                        aria-pressed="false">
+                                </button>
+                                <button id="find-regex" title="Use Regular Expression"
+                                        class="simple-icon-button"
+                                        aria-pressed="false">
+                                </button>
+                            </span>
+                            <span id="search-results">
+                                No Results
+                            </span>
+                            <button id="find-previous" title="Previous Match (Shift-F4)"
+                                    class="mdc-icon-button material-icons">north
+                            </button>
+                            <button id="find-next" title="Next Match (F4)"
+                                class="mdc-icon-button material-icons">south
+                            </button>
+                            <button id="find-close" title="Close (Escape)"
+                                        class="mdc-icon-button material-icons">close
+                            </button>
+                        </div>
+                        <div id="replace-row">
+                            <span id="replace-options">
+                                <input type="text" id="replace-text" placeholder="Replace" 
+                                                tabindex="2" autocomplete="off" spellcheck="false">
+                            </span>
+                            <button id="replace-once" 
+                                    class="mdc-icon-button"
+                                    title="Replace (Enter)">
+                            </button>
+                            <button id="replace-all"
+                                    class="mdc-icon-button"
+                                    title="Replace All">
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div id="editor-panel-footer" class="editor-tab-host border-top">
                 <div class="editor-tabs">
