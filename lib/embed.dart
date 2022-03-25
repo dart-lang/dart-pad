@@ -26,6 +26,7 @@ import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
+import 'search_controller.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
@@ -345,6 +346,8 @@ class Embed extends EditorUi {
     _initBusyLights();
 
     _initModules().then((_) => _init()).then((_) => _emitReady());
+
+    SearchController(editorFactory, editor, snackbar);
   }
 
   /// Initializes a listener for messages from the parent window. Allows this

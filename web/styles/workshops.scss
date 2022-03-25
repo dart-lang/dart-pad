@@ -370,7 +370,6 @@ button#show-solution-btn {
 
 .custom-scrollbar::-webkit-scrollbar-corner { background: transparent; }
 
-
 // Steps menu popup
 #steps-container {
   position: relative;
@@ -411,3 +410,11 @@ button#show-solution-btn {
   display: block;
   bottom:100%;
 }
+
+// search dialog different position on workshop
+div#search-dialog {
+  position: absolute;
+  top: 0px !important;
+  right: 114px !important;
+}
+

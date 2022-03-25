@@ -35,6 +35,7 @@ import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
 import 'playground_context.dart';
+import 'search_controller.dart';
 import 'services/common.dart';
 import 'services/dartservices.dart';
 import 'services/execution_iframe.dart';
@@ -80,6 +81,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   MDCMenu? _channelsMenu;
   String? _gistIdInProgress;
 
+  late final SearchController _searchController;
   late Splitter _rightSplitter;
   bool _rightSplitterConfigured = false;
   TabExpandController? _tabExpandController;
@@ -217,6 +219,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
     MDCButton(_channelsDropdownButton)
         .onClick
         .listen((e) => _toggleMenu(_channelsMenu));
+
+    _searchController = SearchController(editorFactory, editor, snackbar);
   }
 
   MDCMenu _buildSamplesMenu() {
@@ -862,6 +866,12 @@ class Playground extends EditorUi implements GistContainer, GistController {
         _initRightSplitter();
         _editorPanelHeader.setAttr('hidden');
         _webOutputLabel.setAttr('hidden');
+        _searchController.searchDialogDiv
+            .toggleClass('search-playground-dart', true);
+        _searchController.searchDialogDiv
+            .toggleClass('search-playground-html', false);
+        _searchController.searchDialogDiv
+            .toggleClass('search-playground-flutter', false);
         break;
       case Layout.html:
         _disposeRightSplitter();
@@ -874,6 +884,12 @@ class Playground extends EditorUi implements GistContainer, GistController {
         _webLayoutTabController.selectTab('dart');
         _editorPanelHeader.clearAttr('hidden');
         _webOutputLabel.setAttr('hidden');
+        _searchController.searchDialogDiv
+            .toggleClass('search-playground-dart', false);
+        _searchController.searchDialogDiv
+            .toggleClass('search-playground-html', true);
+        _searchController.searchDialogDiv
+            .toggleClass('search-playground-flutter', false);
         break;
       case Layout.flutter:
         _disposeRightSplitter();
@@ -886,6 +902,12 @@ class Playground extends EditorUi implements GistContainer, GistController {
         _webLayoutTabController.selectTab('dart');
         _editorPanelHeader.setAttr('hidden');
         _webOutputLabel.clearAttr('hidden');
+        _searchController.searchDialogDiv
+            .toggleClass('search-playground-dart', false);
+        _searchController.searchDialogDiv
+            .toggleClass('search-playground-html', false);
+        _searchController.searchDialogDiv
+            .toggleClass('search-playground-flutter', true);
         break;
     }
   }

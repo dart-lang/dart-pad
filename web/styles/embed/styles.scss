@@ -69,6 +69,12 @@ body {
 .CodeMirror-simplescroll-vertical {
   margin-right: 4px;
 }
+.CodeMirror-selection-highlight-scrollbar {
+  margin-right: 4px;
+}
+.CodeMirror-search-match {
+  margin-right: 4px;
+}
 
 // Console
 
@@ -362,3 +368,202 @@ body {
 .console {
   white-space: pre !important;
 }
+
+
+// search dialog styles, for embed colors are in styles_dark and styles_light
+#search-dialog.search-embed-dart {
+  position: absolute;
+  top: 0px;
+  right: 22px;
+}
+#search-dialog.search-embed-html {
+  position: absolute;
+  top: 0px;
+  right: 22px;
+}
+#search-dialog.search-embed-flutter {
+  position: absolute;
+  top: 0px;
+  right: 22px;
+}
+#search-dialog.search-embed-inline {
+  position: absolute;
+  top: 0px;
+  right: 22px;
+}
+
+#search-dialog {
+  position: absolute;
+  top: 0px;
+  right: 16px;
+  z-index: 15;
+  overflow: hidden;
+  color: inherit;
+  display: flex;
+  flex-direction: row;
+  border-left: 2px solid #454545;
+  box-shadow: 4px 4px 7px rgba(0,0,0,0.7);
+  font-family: $normal-font;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+#search-dialog {
+  padding: 0;
+  max-height: 0;
+  transition: max-height 0.25s ease-out;
+}
+
+#search-dialog.revealed {
+  padding: 2px 0px;
+  max-height: 300px;
+  transition: max-height 0.35s ease-in;
+}
+
+#find-col1 {
+  width: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#find-row, #replace-row {
+  display: flex;
+  flex-direction: row;
+  height: 32px;
+}
+
+#replace-row[tim="hiding"]{
+  display: none;
+}
+
+#search-dialog input {
+  border: none;
+  outline: none;
+  width: 20em;
+  font-family: $normal-font;
+  font-size: 14px;
+  width: 100%;
+  height: 26px;
+  padding-left: 8px;
+  padding-right: 8px;
+  overflow: hidden;
+}
+
+#find-text {
+  margin-right: 4px;
+}
+
+#find-options, #replace-options {
+  width: 245px;
+  display: flex;
+  flex-direction: row;
+  margin-top: 2px;
+  margin-bottom: 2px;
+  padding-top: 1px;
+}
+
+#search-results {
+  color: $playground-text-color; //#ccc;
+  margin-top: 8px;
+  padding-left: 8px;
+  padding-right: 0px;
+  width: 80px;
+  font-family: $normal-font;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+#find-col2 {
+  display: flex;
+  flex-direction: column;
+}
+
+#open-replace, #find-previous, #find-next, #find-close {
+  @include mdc-icon-button-size(16px, 16px, 4px);
+  border-radius: 4px;
+  font-size: 16px;
+  margin: 1px 1px;
+}
+
+#find-match-case, #find-wholeword, #find-regex  {
+  display: inline-block;
+  border-radius: 4px;
+
+  height: 24px;
+  padding: 0px 0px;
+
+  width: 40px;
+  display: inline-block;
+  position: relative;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+#replace-once, #replace-all {
+  display: inline-block;
+  border-radius: 4px;
+
+  height: 24px;
+  padding: 0px 0px;
+  width: 34px;
+  display: inline-block;
+  position: relative;
+  box-sizing: border-box;
+  border: none;
+  outline: none;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+#find-match-case {
+  background: url('../../pictures/matchcase.svg') center no-repeat;
+  background-size: 20px 20px;
+}
+
+#find-wholeword {
+  background: url('../../pictures/wholeword.svg') center no-repeat;
+  background-size: 20px 20px;
+}
+
+#find-regex {
+  background: url('../../pictures/regex.svg') center no-repeat;
+  background-size: 20px 20px;
+}
+
+#replace-once {
+  background: url('../../pictures/replace.svg') center no-repeat;
+  background-size: 22px 22px;
+}
+
+#replace-all {
+  background: url('../../pictures/replaceall.svg') center no-repeat;
+  background-size: 22px 22px;
+}
+
+#find-match-case, #find-wholeword, #find-regex {
+  margin-top: 2px;
+}
+
+#find-previous, #find-next, #find-close {
+  margin-top: 2px;
+}
+
+#find-next {
+  margin-right: 10px;
+}
+
+#replace-once {
+  margin-top: 4px;
+}
+
+#replace-all {
+  margin-top: 4px;
+}
+
+
