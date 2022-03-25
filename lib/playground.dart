@@ -116,6 +116,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _initButtons();
     _initMoreMenu();
     _initSplitters();
+    _initChannelsMenu();
     showHome();
   }
 
@@ -215,7 +216,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
         ?.onClick
         .listen((_) => showPackageVersionsDialog());
 
-    _initChannelsMenu();
     MDCButton(_channelsDropdownButton)
         .onClick
         .listen((e) => _toggleMenu(_channelsMenu));

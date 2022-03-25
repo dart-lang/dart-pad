@@ -66,6 +66,11 @@ a {
   border-bottom: 3px solid $light-gutter-background-color;
 }
 
+.navbar-showcase {
+  background-color: $light-secondary-background-color;
+  border-bottom: 3px solid $light-gutter-background-color;
+}
+
 .mdc-tab {
   @include mdc-tab-text-label-color($light-tab-color);
   @include mdc-tab-active-text-label-color($light-tab-color-active);
