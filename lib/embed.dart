@@ -267,10 +267,10 @@ class Embed extends EditorUi {
       querySelector('#install-button')!.setAttribute('hidden', '');
     }
 
-    executionService = ExecutionServiceIFrame(
-        querySelector('#frame') as IFrameElement)
-      ..frameSrc =
-          isDarkMode ? '../scripts/frame_dark.html' : '../scripts/frame.html';
+    executionService =
+        ExecutionServiceIFrame(querySelector('#frame') as IFrameElement)
+          ..frameSrc =
+              isDarkMode ? 'scripts/frame_dark.html' : 'scripts/frame.html';
 
     executionService.onStderr.listen((err) {
       consoleExpandController.showOutput(err, error: true);
