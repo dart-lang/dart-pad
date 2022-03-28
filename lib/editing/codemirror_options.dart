@@ -34,7 +34,26 @@ const codeMirrorOptions = {
     'Shift-Cmd-G': 'weHandleElsewhere',
     'F4': 'weHandleElsewhere',
     'Shift-F4': 'weHandleElsewhere',
+    // vscode folding key combos (pc/mac)
+    'Shift-Ctrl-[': 'ourFoldWithCursorToStart',
+    'Cmd-Alt-[': 'ourFoldWithCursorToStart',
+    'Shift-Ctrl-]': 'unfold',
+    'Cmd-Alt-]': 'unfold',
+    'Shift-Ctrl-Alt-[':
+        'foldAll', // made our own keycombo since VSCode and AndroidStudio's
+    'Shift-Cmd-Alt-[': 'foldAll', //  are taken by browser
+    'Shift-Ctrl-Alt-]': 'unfoldAll',
+    'Shift-Cmd-Alt-]': 'unfoldAll',
   },
+  'foldGutter': true,
+  'foldOptions': {
+    'minFoldSize': 1,
+    'widget': '\u00b7\u00b7\u00b7', // like '...', but middle dots
+  },
+  'matchTags': {
+    'bothTags': true,
+  },
+  'gutters': ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
   'highlightSelectionMatches': {
     'style': 'highlight-selection-matches',
     'showToken': false,
