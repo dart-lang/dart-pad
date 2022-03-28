@@ -650,7 +650,7 @@ class Embed extends EditorUi {
     String paramStr = '';
     currentParams.forEach((key, value) {
       // get rest of original params to pass to new window
-      paramStr += (paramStr==''?'':'&') + '$key=$value';
+      paramStr += (paramStr == '' ? '' : '&') + '$key=$value';
     });
     final String uriStr = Uri.encodeFull('embed-$_modeName.html?$paramStr');
     window.open(uriStr, 'DartPad_$gistId');
