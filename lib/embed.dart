@@ -647,12 +647,13 @@ class Embed extends EditorUi {
 
   void _handleOpenInDartPad() {
     final Map<String, String> currentParams = queryParams.parameters;
-    String paramStr = 'id=$gistId'; // could have changed?
+    String paramStr = '';
     currentParams.forEach((key, value) {
       // get rest of original params to pass to new window
-      if (key != 'id') paramStr += '&$key=$value';
+      paramStr += (paramStr==''?'':'&') + '$key=$value';
     });
-    window.open('embed-$_modeName.html?$paramStr', 'DartPad_$gistId');
+    final String uriStr = Uri.encodeFull('embed-$_modeName.html?$paramStr');
+    window.open(uriStr, 'DartPad_$gistId');
   }
 
   /// Returns the name of the current embed mode
