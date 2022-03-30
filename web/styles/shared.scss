@@ -118,6 +118,44 @@ $doc-console-padding: 8px 24px 8px 24px;
   padding: 8px 8px;
 }
 
+#samples-menu,
+#github-menu,
+#more-menu {
+  z-index: 100;
+}
+
+#github-menu-button {
+  display: inline-block;
+  background: url('../pictures/github_icon.svg') center no-repeat;
+  background-size: 24px 24px;
+  width: 32px;
+  height: 32px;
+  padding: 4px 4px;
+  filter: invert(100%);
+  margin-left: 8px;
+}
+
+#github-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+#github-avatar[src] {
+  outline: grey 1px solid;
+  filter: invert(100%);
+}
+#logged_in_as {
+  text-align: center;
+  color:  grey;
+  font-size: 14px;
+}
+#logged_in_as_text {
+  user-select: none;
+}
+
 #console-expand-icon-container {
   height: 32px;
   width: 77px;

@@ -233,6 +233,357 @@ $styleRef$dartRef  </head>
     return gist;
   }
 
+
+
+
+
+  /// Load the gist with the given id.
+  Future<String> saveGist(Gist gistToSave,bool public,String authenticationToken) async {
+
+    if(beforeSaveHook!=null) beforeSaveHook!(gistToSave);
+
+    String retId='FAILED';
+    /*
+Create a gist
+Allows you to add a new gist with one or more files.
+
+Note: Don't name your files "gistfile" with a numerical suffix. 
+This is the format of the automatic naming scheme that Gist uses 
+internally.
+
+POST /gists
+Parameters
+Name      	Type    	In	        Description
+accept    	string  	header	   Setting toapplication/vnd.github.v3+json is recommended.
+
+description  string   body	      Description of the gist
+
+files       object	  body	      Required. Names and content for the files that make up the gist
+
+public	    boolean   body        Flag indicating whether the gist is public     
+            or string
+            
+Code samples
+curl \
+  -X POST \
+  -H "Accept: application/vnd.github.v3+json" \
+  https://api.github.com/gists \
+  -d '{"files":{}}'
+
+Response
+
+ Status: 201 Created
+ {
+  "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
+  "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
+  "commits_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/commits",
+  "id": "aa5a315d61ae9438b18d",
+  "node_id": "MDQ6R2lzdGFhNWEzMTVkNjFhZTk0MzhiMThk",
+  "git_pull_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+  "git_push_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+  "html_url": "https://gist.github.com/aa5a315d61ae9438b18d",
+  "created_at": "2010-04-14T02:15:15Z",
+  "updated_at": "2011-06-20T11:34:15Z",
+  "description": "Hello World Examples",
+  "comments": 0,
+  "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/"
+}
+
+
+created a gist 0b3d5d3024883c290c05c7f6290736d0
+
+
+created no auth gist  c2a93a3b0d76ce1ceb066a9bf822c8b0
+
+    */
+    final Map<String, dynamic> map = gistToSave.toMap();//;
+    map.remove('id');
+    map['public'] = public;
+    if(map['files']!=null) {
+      if(map['files']['.metadata.json']!=null) { 
+        // if it is present then remove metadata json file from gist when saving
+        map['files'].remove('.metadata.json');
+      }
+    }
+    final String bodydata = json.encode(map);
+    print(bodydata);
+
+    final response = await _client.post(Uri.parse(_gistApiUrl),
+                headers:{
+                    'Accept':'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json',
+                    if(authenticationToken.isNotEmpty) 'Authorization': 'Bearer $authenticationToken',
+                },
+                body:bodydata
+        ).then((http.Response response) {
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.contentLength}');
+    print(response.headers);
+    print(response.request);
+    if (response.statusCode == 201) {
+      /* example return
+        {
+        "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
+        "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
+        "commits_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/commits",
+        "id": "aa5a315d61ae9438b18d",
+        "node_id": "MDQ6R2lzdGFhNWEzMTVkNjFhZTk0MzhiMThk",
+        "git_pull_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+        "git_push_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+        "html_url": "https://gist.github.com/aa5a315d61ae9438b18d",
+        "created_at": "2010-04-14T02:15:15Z",
+        "updated_at": "2011-06-20T11:34:15Z",
+        "description": "Hello World Examples",
+        "comments": 0,
+        "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/"
+        }
+      */
+      print('CREATION WORKED!');
+      final retObj = jsonDecode(response.body);
+      print('ID = ${retObj['id']}');
+      retId = retObj['id'] as String;
+    } else if (response.statusCode == 404) {
+      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+    } else if (response.statusCode == 403) {
+      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+    } else if (response.statusCode != 200) {
+      throw const GistLoaderException(GistLoaderFailureType.unknown);
+    }
+  });
+    return retId;
+  }
+
+
+
+
+
+
+  /// Load the gist with the given id.
+  Future<String> updateGist(Gist gistToUpdate,String authenticationToken) async {
+    if(beforeSaveHook!=null) beforeSaveHook!(gistToUpdate);
+
+    String gistId = gistToUpdate.id ?? '';
+
+    String retId='FAILED';
+    /*
+      Allows you to update or delete a gist file and rename gist files. Files from the previous version of the gist that aren't explicitly changed during an edit are unchanged.
+
+      PATCH /gists/{gist_id}
+      Parameters
+      Name         Type      In       Description
+      accept      string   header    Setting toapplication/vnd.github.v3+json is recommended.
+      gist_id     string   path      gist_id parameter
+      description string   body      Description of the gist
+      files       object   body      Names of files to be update
+    */
+    final Map<String, dynamic> map = gistToUpdate.toMap();//;
+    map.remove('id');
+    map.remove('public');
+    final String bodydata = json.encode(map);
+    print(bodydata);
+
+    final response = await _client.patch(Uri.parse('$_gistApiUrl/$gistId'),
+                headers:{
+                    'Accept':'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json',
+                    if(authenticationToken.isNotEmpty) 'Authorization': 'Bearer $authenticationToken',
+                },
+                body:bodydata
+        ).then((http.Response response) {
+            print('Response status: ${response.statusCode}');
+            print('Response body: ${response.contentLength}');
+            print(response.headers);
+            print(response.request);
+            if (response.statusCode == 200) {
+              /* example return
+                {
+                  "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
+                  "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
+                  "commits_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/commits",
+                  "id": "aa5a315d61ae9438b18d",
+                  "node_id": "MDQ6R2lzdGFhNWEzMTVkNjFhZTk0MzhiMThk",
+                  "git_pull_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+                  "git_push_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+                  "html_url": "https://gist.github.com/aa5a315d61ae9438b18d",
+                  "created_at": "2010-04-14T02:15:15Z",
+                  "updated_at": "2011-06-20T11:34:15Z",
+                  "description": "Hello World Examples",
+                  "comments": 0,
+                  "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/"
+                }
+              */
+              print('update succeeded!');
+              final retObj = jsonDecode(response.body);
+              print('ID = ${retObj['id']}');
+              retId = retObj['id'] as String;
+            } else if (response.statusCode == 404) {
+              throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+            } else if (response.statusCode == 403) {
+              throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+            } else if (response.statusCode != 200) {
+              throw const GistLoaderException(GistLoaderFailureType.unknown);
+            }   
+          });
+    return retId;
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/// Load the gist with the given id.
+  Future<String> forkGist(Gist gistToSave,String authenticationToken) async {
+
+    if(beforeSaveHook!=null) beforeSaveHook!(gistToSave);
+
+    String gistId = gistToSave.id ?? '';
+    if(gistId.isEmpty) {
+      // we have no gistId to fork from, so SAVE instead
+      return saveGist(gistToSave,gistToSave.public,authenticationToken);
+    }
+
+    String retId='FAILED';
+    /*
+      POST /gists/{gist_id}/forks
+      Parameters
+      Name	     Type	     In	     Description
+      accept  	string	 header	   Setting toapplication/vnd.github.v3+json is recommended.
+      gist_id  	string	 path       gist_id parameter
+    */
+    final response = await _client.post(Uri.parse('$_gistApiUrl/$gistId/forks'),
+                headers:{
+                    'Accept':'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json',
+                    if(authenticationToken.isNotEmpty) 'Authorization': 'Bearer $authenticationToken',
+                },
+                //body:bodydata
+        ).then((http.Response response) {
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.contentLength}');
+    print(response.headers);
+    print(response.request);
+    if (response.statusCode == 201) {
+      /* example return
+       {
+          "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
+          "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
+          "commits_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/commits",
+          "id": "aa5a315d61ae9438b18d",
+          "node_id": "MDQ6R2lzdGFhNWEzMTVkNjFhZTk0MzhiMThk",
+          "git_pull_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+          "git_push_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+          "html_url": "https://gist.github.com/aa5a315d61ae9438b18d",
+          "files": {
+            "hello_world.rb": {
+              "filename": "hello_world.rb",
+              "type": "application/x-ruby",
+              "language": "Ruby",
+              "raw_url": "https://gist.githubusercontent.com/octocat/6cad326836d38bd3a7ae/raw/db9c55113504e46fa076e7df3a04ce592e2e86d8/hello_world.rb",
+              "size": 167
+            }
+          },
+          "public": true,
+          "created_at": "2010-04-14T02:15:15Z",
+          "updated_at": "2011-06-20T11:34:15Z",
+          "description": "Hello World Examples",
+          "comments": 0,
+          "user": null,
+          "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/",
+          "owner": {
+            "login": "octocat",
+            "id": 1,
+            "node_id": "MDQ6VXNlcjE=",
+            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/octocat",
+            "html_url": "https://github.com/octocat",
+            "followers_url": "https://api.github.com/users/octocat/followers",
+            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+            "organizations_url": "https://api.github.com/users/octocat/orgs",
+            "repos_url": "https://api.github.com/users/octocat/repos",
+            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/octocat/received_events",
+            "type": "User",
+            "site_admin": false
+          },
+          "truncated": false
+        }
+      */
+      print('FORKING WORKED!');
+      final retObj = jsonDecode(response.body);
+      print('Fork ID = ${retObj['id']}');
+      retId = retObj['id'] as String;
+    } else if (response.statusCode == 404) {
+      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+    } else if (response.statusCode == 403) {
+      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+    } else if (response.statusCode != 200) {
+      throw const GistLoaderException(GistLoaderFailureType.unknown);
+    }
+  });
+    return retId;
+  }
+
+/*
+const TOKEN = "YOUR_PERSONAL_ACCESS_TOKEN";
+const GIST_ID = "YOUR_GIST_ID";
+const GIST_FILENAME = "db.json";
+
+/* 
+ * Reads the JSON file inside of the gist
+ */
+async function getData() {
+  const req = await fetch(`https://api.github.com/gists/${GIST_ID}`);
+  const gist = await req.json();
+  return JSON.parse(gist.files[GIST_FILENAME].content);
+}
+
+/* 
+ * Puts the data you want to store back into the gist
+ */
+async function setData(data) {
+  const req = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${TOKEN}`,
+    },
+    body: JSON.stringify({
+      files: {
+        [GIST_FILENAME]: {
+          content: JSON.stringify(data),
+        },
+      },
+    }),
+  });
+
+  return req.json();
+}
+*/
   Future<Gist> loadGistFromAPIDocs(
       String sampleId, FlutterSdkChannel channel) async {
     if (channel == FlutterSdkChannel.beta) {
