@@ -89,13 +89,29 @@
             Install SDK
         </button>
     </div>
-    <div class="header-gist-name"></div>
+    <div id="header-name-holder"><div class="header-gist-name"></div><span id="gist_star_button" title="Star this gist"><i id="gist_star_inner_icon" class="material-icons mdc-button__icon" aria-hidden="true">star_outline</i></span></div>
     <div>
         <button type="button" id="samples-dropdown-button" class="mdc-button">
             <span class="mdc-button__label">Samples</span>
             <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
         </button>
         <div id="samples-menu" class="mdc-menu mdc-menu-surface"></div>
+    </div>
+    <div id="starred-gists" hidden>
+        <button type="button" id="starred-gists-dropdown-button" class="mdc-button">
+            <span class="mdc-button__label">
+                <i class="material-icons mdc-button__icon" aria-hidden="true">hotel_class</i>Gists
+            </span>
+            <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
+        </button>
+        <div id="starred-gists-menu" class="mdc-menu mdc-menu-surface"></div>
+    </div>
+    <div id="my-gists" hidden>
+        <button type="button" id="my-gists-dropdown-button" class="mdc-button">
+            <span class="mdc-button__label">My Gists</span>
+            <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
+        </button>
+        <div id="my-gists-menu" class="mdc-menu mdc-menu-surface"></div>
     </div>
     <div>
         <button id="github-menu-button" class="github-menu-icon mdc-icon-button">
@@ -107,49 +123,49 @@
                 <li id="logged_in_as" hidden>
                     <span id="logged_in_as_text">Logged in as XXXX</span>
                 </li>
-                <li class="mdc-list-item" role="menuitem">
+                <li id="github-login-item" class="mdc-list-item" role="menuitem">
                     <span class="mdc-list-item__graphic">
                         <i class="material-icons mdc-select__icon" tabindex="-1" role="button">login</i>
                     </span>
                     <span class="mdc-list-item__text">Login to Github</span>
                 </li>
-                <li class="mdc-list-item" role="menuitem">
+                <li id="github-createpublic-item" class="mdc-list-item" role="menuitem">
                     <span class="mdc-list-item__graphic">
                         <i class="material-icons mdc-select__icon" tabindex="-1" role="button">post_add</i>
                     </span>
                     <span class="mdc-list-item__text">Create Public Gist</span>
                 </li>
-                <li class="mdc-list-item" role="menuitem">
+                <li id="github-createprivate-item" class="mdc-list-item" role="menuitem">
                     <span class="mdc-list-item__graphic">
                         <i class="material-icons mdc-select__icon" tabindex="-1" role="button">post_add</i>
                     </span>
                     <span class="mdc-list-item__text">Create Private Gist</span>
                 </li>
-                <li class="mdc-list-item" role="menuitem">
+                <li id="github-fork-item" class="mdc-list-item" role="menuitem">
                     <span class="mdc-list-item__graphic">
                         <i class="material-icons mdc-select__icon" tabindex="-1" role="button">fork_right</i>
                     </span>
                     <span class="mdc-list-item__text">Fork Gist</span>
                 </li>
-                <li class="mdc-list-item" role="menuitem">
+                <li id="github-update-item" class="mdc-list-item" role="menuitem">
                     <span class="mdc-list-item__graphic">
                         <i class="material-icons mdc-select__icon" tabindex="-1" role="button">sync</i>
                     </span>
-                    <span class="mdc-list-item__text">Update gist</span>
+                    <span class="mdc-list-item__text">Update Gist</span>
                 </li>
-                <li class="mdc-list-item" role="menuitem">
+                <li id="github-star-item" class="mdc-list-item" role="menuitem">
                     <span class="mdc-list-item__graphic">
                         <i class="material-icons mdc-select__icon" tabindex="-1" role="button">star_outline</i>
                     </span>
                     <span class="mdc-list-item__text">Star Gist</span>
                 </li>
-                <li class="mdc-list-item" role="menuitem">
+                <li id="github-open-on-github-item" class="mdc-list-item" role="menuitem">
                     <span class="mdc-list-item__graphic">
-                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">insert_comment</i>
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">open_in_new</i>
                     </span>
-                    <span class="mdc-list-item__text">Add comment to gist</span>
+                    <span class="mdc-list-item__text">Open Gist on GitHub</span>
                 </li>
-                <li class="mdc-list-item" role="menuitem">
+                <li id="github-logout-item" class="mdc-list-item" role="menuitem">
                     <span class="mdc-list-item__graphic">
                         <i class="material-icons mdc-select__icon" tabindex="-1" role="button">logout</i>
                     </span>
