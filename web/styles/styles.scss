@@ -51,6 +51,7 @@ header {
     }
   }
 
+  #header-name-holder,
   .header-gist-name {
     @include layout-flex;
     @include layout-horizontal;
@@ -380,6 +381,43 @@ a {
     height: auto;
     width: 20px;
     margin-right: 14px;
+}
+
+#github-menu-button {
+  display: inline-block;
+  background: url('../pictures/github_icon.svg') center no-repeat;
+  background-size: 24px 24px;
+  width: 32px;
+  height: 32px;
+  padding: 4px 4px;
+  filter: invert(100%);
+  margin-left: 8px;
+}
+
+#gist_star_button {
+  display: inline-flex;
+  margin-right: 30px;
+}
+
+#github-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+#github-avatar[src] {
+  outline: grey 1px solid;
+  filter: invert(100%);
+}
+#logged_in_as {
+  text-align: center;
+  color:  grey;
+  font-size: 14px;
+}
+#logged_in_as_text {
+  user-select: none;
 }
 
 .channel-item {
