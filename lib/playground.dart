@@ -5,12 +5,8 @@
 library playground;
 
 import 'dart:async';
-import 'dart:convert' show json;
 import 'dart:html' hide Console;
-import 'dart:math';
-
 import 'package:logging/logging.dart';
-import 'package:http/http.dart' as http;
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 import 'package:stream_transform/stream_transform.dart';
@@ -34,6 +30,7 @@ import 'elements/dialog.dart';
 import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
 import 'elements/tab_expand_controller.dart';
+import 'github.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -88,7 +85,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
   late Splitter _rightSplitter;
   bool _rightSplitterConfigured = false;
   TabExpandController? _tabExpandController;
-  late GitHubLoginController _githubController;
+
+  late GitHubUIController _githubUIController;
 
   @override
   late PlaygroundContext context;
@@ -114,18 +112,16 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _checkLocalStorage();
     _initPlayground();
     _initBusyLights();
+
+    _githubUIController = GitHubUIController(this);
+
     _initGistNameHeader();
     _initGistStorage();
     _initLayoutDetection();
     _initButtons();
     _initMoreMenu();
-    _initGitHubMenu();
     _initSplitters();
     _initChannelsMenu();
-
-    window.console.log('window URL = ${window.location.href}');
-    _githubController = GitHubLoginController( Uri.dataFromString(window.location.href) );
-
     showHome();
   }
 
@@ -191,7 +187,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     });
   }
 
-  static void _toggleMenu(MDCMenu? menu) => menu?.open = !menu.open!;
+  static void toggleMenu(MDCMenu? menu) => menu?.open = !menu.open!;
 
   void _initButtons() {
     MDCButton(querySelector('#new-button') as ButtonElement)
@@ -212,7 +208,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     MDCButton(_samplesDropdownButton)
         .onClick
-        .listen((e) => _toggleMenu(_samplesMenu));
+        .listen((e) => toggleMenu(_samplesMenu));
 
     runButton = MDCButton(querySelector('#run-button') as ButtonElement)
       ..onClick.listen((_) {
@@ -227,7 +223,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     MDCButton(_channelsDropdownButton)
         .onClick
-        .listen((e) => _toggleMenu(_channelsMenu));
+        .listen((e) => toggleMenu(_channelsMenu));
 
     _searchController = SearchController(editorFactory, editor, snackbar);
   }
@@ -255,7 +251,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       Sample('4a68e553746602d851ab3da6aeafc3dd', 'HTTP requests', Layout.dart),
     ];
 
-    BuiltInSamplesList.addSamples( samples );
+    BuiltInSamplesList.addSamples(samples);
 
     final listElement = _mdcList();
     element.children.add(listElement);
@@ -294,7 +290,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       ..hoistMenuToBody();
     MDCButton(moreMenuButton, isIcon: true)
         .onClick
-        .listen((_) => _toggleMenu(moreMenu));
+        .listen((_) => toggleMenu(moreMenu));
     moreMenu.listen('MDCMenu:selected', (e) {
       final idx = (e as CustomEvent).detail['index'] as int?;
       switch (idx) {
@@ -744,6 +740,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
     if (_gistIdInProgress == gistId) {
       return;
     }
+
+    _githubUIController.hideGistStarredButton();
+
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
     var loadedFromSaved = false;
@@ -766,12 +765,16 @@ class Playground extends EditorUi implements GistContainer, GistController {
       if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
         loadedFromSaved = true;
 
+        showSnackbar('Loading local edit copy of this gist');
+
         final storedGist = _gistStorage.getStoredGist()!;
         _editableGist.description = storedGist.description;
         for (final file in storedGist.files) {
           _editableGist.getGistFile(file.name).content = file.content;
         }
       }
+
+      _githubUIController.getStarReportOnLoadingGist(gistId);
 
       clearOutput();
 
@@ -1050,125 +1053,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     editor.focus();
   }
-
-
-
-
-void _initGitHubMenu() {
-    final githubMenuButton = querySelector('#github-menu-button') as ButtonElement;
-    final githubMenu = MDCMenu(querySelector('#github-menu'))
-      ..setAnchorCorner(AnchorCorner.bottomLeft)
-      ..setAnchorElement(githubMenuButton)
-      ..hoistMenuToBody();
-    MDCButton(githubMenuButton, isIcon: true)
-        .onClick
-        .listen((_) => _toggleMenu(githubMenu));
-    githubMenu.listen('MDCMenu:selected', (e) {
-      final idx = (e as CustomEvent).detail['index'] as int?;
-      switch (idx) {
-        case 0:
-          _attempToAquireGitHubToken();
-          break;
-        case 1: // create public
-          _saveGist();
-          break;
-        case 2: // create private
-          _saveGist(public:false);
-          break;        
-        case 3:
-          _forkGist();
-          break;
-        case 4: //update
-          _updateGist();
-          break;
-        case 5:
-          //star gist;
-          break;
-        case 6:
-          //add comment;
-          break;
-        case 7:
-          //logout;
-          _githubController.logoutUnauthenticate();
-          break;
-      }
-    });
-  }
-
-  static const _chars = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
-  Random _rnd = Random();
-
-  String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
-      length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
-
-  final String googleCloudRunUrl='https://githubauth-brsyns7rna-uw.a.run.app';
-
-  void _attempToAquireGitHubToken() {
-    var state=getRandomString(24);
-
-    Uri ourUri = Uri.dataFromString(window.location.href);
-    if(ourUri.host.contains('localhost')) {
-      window.location.href = 'https://localhost:8080/initiate/$state';
-    } else {
-      window.location.href = '$googleCloudRunUrl/initiate/$state';
-    }
-  }
-
-  void _saveGist({bool public=true}) {
-    final String token = _githubController.githubOAuthAccessToken;
-    if(true || token.isNotEmpty) {
-
-      gistLoader.saveGist(mutableGist.createGist(),public,token).then((String createdGistId) {
-          window.console.log('Got created Gist ID =$createdGistId');
-          showOutput('Got created Gist ID =$createdGistId');
-          //queryParams.gistId = createdGistId;
-          _reloadPageWithNewGistId(createdGistId);
-      });
-    } else {
-      showSnackbar('Must be authenticated with GitHub in order to save gist');
-    }
-  }
-
-  void _updateGist() {
-    final String token = _githubController.githubOAuthAccessToken;
-    if(true || token.isNotEmpty) {
-      gistLoader.updateGist(mutableGist.createGist(),token).then((String updatedGistId) {
-          window.console.log('Got Updated Gist ID =$updatedGistId');
-          showOutput('Got Updated Gist ID =$updatedGistId');
-
-          showSnackbar('Gist successfully updated');
-          //queryParams.gistId = forkedGistId;
-          //_reloadPageWithNewGistId(updatedGistId);
-      });
-    } else {
-      showSnackbar('Must be authenticated with GitHub in order to fork gist');
-    }
-  }
-
-  void _forkGist() {
-    final String token = _githubController.githubOAuthAccessToken;
-    if(true || token.isNotEmpty) {
-      gistLoader.forkGist(mutableGist.createGist(),token).then((String forkedGistId) {
-          window.console.log('Got Forked Gist ID =$forkedGistId');
-          showOutput('Got forked Gist ID =$forkedGistId');
-
-          showSnackbar('Gist successfully forked');  // This wont have time to show KLUDGE
-
-          //queryParams.gistId = forkedGistId;
-          _reloadPageWithNewGistId(forkedGistId);
-      });
-    } else {
-      showSnackbar('Must be authenticated with GitHub in order to fork gist');
-    }
-  }
-
-  _reloadPageWithNewGistId(String gistId) {
-    var url = Uri.parse(window.location.toString());
-    final params = Map<String, String?>.from(url.queryParameters);
-    params['id'] = gistId;
-    url = url.replace(queryParameters: params);
-    window.location.href = url.toString();
-  }
 }
 
 enum LoadGistResult {
@@ -1286,14 +1170,14 @@ class BuiltInSamplesList {
   }
 
   static void addSamples(final List<Sample> samples) {
-    for(final sample in samples) {
+    for (final sample in samples) {
       builtinSamples.add(sample);
     }
   }
 
-  static bool isGistIDFromBuiltinSamples( final String gistId ) {
-    for(final sample in builtinSamples) {
-      if(gistId==sample.gistId) {
+  static bool isGistIDFromBuiltinSamples(final String gistId) {
+    for (final sample in builtinSamples) {
+      if (gistId == sample.gistId) {
         return true;
       }
     }
@@ -1301,6 +1185,53 @@ class BuiltInSamplesList {
   }
 }
 
+/*
+class MyGistsList {
+  static List<Gist> myGistsList = [];
+
+  static void addGist(final Gist gist) {
+    myGistsList.add(gist);
+  }
+
+  static void addGists(final List<Gist> gistlist) {
+    for (final gist in gistlist) {
+      myGistsList.add(gist);
+    }
+  }
+
+  static bool isGistIDFromMyGists(final String gistId) {
+    for (final gist in myGistsList) {
+      if (gistId == gist.id) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+class StarredGistsList {
+  static List<Gist> starredGistsList = [];
+
+  static void addGist(final Gist gist) {
+    starredGistsList.add(gist);
+  }
+
+  static void addGists(final List<Gist> gistlist) {
+    for (final gist in gistlist) {
+      starredGistsList.add(gist);
+    }
+  }
+
+  static bool isGistIDFromMyGists(final String gistId) {
+    for (final gist in starredGistsList) {
+      if (gistId == gist.id) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+*/
 class Sample {
   final String gistId;
   final String name;
@@ -1308,296 +1239,3 @@ class Sample {
 
   const Sample(this.gistId, this.name, this.layout);
 }
-
-
-/* 
-KLUDGE
-
-          (_) {
-    gistLoader.fuckSaveGist(mutableGist.backingGist).then((String createdGistId) {
-        window.console.log('Got created Gist ID =$createdGistId');
-        showOutput('Got created Gist ID =$createdGistId');
-        queryParams.gistId = createdGistId;
-    });
-
-
-
-created a gist 0b3d5d3024883c290c05c7f6290736d0
-
-
-created no auth gist  c2a93a3b0d76ce1ceb066a9bf822c8b0
-
-
-    */
-
-/*
-    GET https://api.github.com/user
-For example, in curl you can set the Authorization header like this:
-
-curl -H "Authorization: token OAUTH-TOKEN" https://api.github.com/user
-
-*/
-
-class GitHubLoginController {
-  static const String _githubApiUrl = 'https://api.github.com';
-  final Uri launchUri;
-  late final http.Client _client;
-
-  GitHubLoginController( this.launchUri, { http.Client? client } ) {
-    // check for parameters in rui
-    _client = client ?? http.Client();
-    Map<String,String> params = launchUri.queryParameters;
-
-
-    window.console.log('GitHubLoginController() Launch URI  ${launchUri.toString()}');
-
-    params.forEach((key,value) {
-      print('  param $key = "$value"');
-    });
-
-    if(params['gh']!=null) {
-      // provided a gh token
-      githubOAuthAccessToken = params['gh']!;
-      window.console.log('Calling getUserInfo()');
-      getUserInfo();
-    } else {
-      // Do we have a access token
-      if(githubOAuthAccessToken!='') {
-        String avUrl = avatarUrl;
-        avatarUrl = avUrl; // force loading image/KLUDGE
-      }
-    }
-  }
-
-
-  void logoutUnauthenticate() {
-    githubOAuthAccessToken = '';
-    avatarUrl = '';
-    userLogin = '';
-  }
-
-
-  /*
-     example of PUBLIC returned data
-
-     
-  "login": "octocat",
-  "id": 1,
-  "node_id": "MDQ6VXNlcjE=",
-  "avatar_url": "https://github.com/images/error/octocat_happy.gif",
-  "gravatar_id": "",
-  "url": "https://api.github.com/users/octocat",
-  "html_url": "https://github.com/octocat",
-  "followers_url": "https://api.github.com/users/octocat/followers",
-  "following_url": "https://api.github.com/users/octocat/following{/other_user}",
-  "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
-  "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
-  "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
-  "organizations_url": "https://api.github.com/users/octocat/orgs",
-  "repos_url": "https://api.github.com/users/octocat/repos",
-  "events_url": "https://api.github.com/users/octocat/events{/privacy}",
-  "received_events_url": "https://api.github.com/users/octocat/received_events",
-  "type": "User",
-  "site_admin": false,
-  "name": "monalisa octocat",
-  "company": "GitHub",
-  "blog": "https://github.com/blog",
-  "location": "San Francisco",
-  "email": "octocat@github.com",
-  "hireable": false,
-  "bio": "There once was...",
-  "twitter_username": "monatheoctocat",
-  "public_repos": 2,
-  "public_gists": 1,
-  "followers": 20,
-  "following": 0,
-  "created_at": "2008-01-14T04:33:35Z",
-  "updated_at": "2008-01-14T04:33:35Z"
-}
-
-  Example of scope USER returned data
-  {
-  "login": "octocat",
-  "id": 1,
-  "node_id": "MDQ6VXNlcjE=",
-  "avatar_url": "https://github.com/images/error/octocat_happy.gif",
-  "gravatar_id": "",
-  "url": "https://api.github.com/users/octocat",
-  "html_url": "https://github.com/octocat",
-  "followers_url": "https://api.github.com/users/octocat/followers",
-  "following_url": "https://api.github.com/users/octocat/following{/other_user}",
-  "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
-  "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
-  "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
-  "organizations_url": "https://api.github.com/users/octocat/orgs",
-  "repos_url": "https://api.github.com/users/octocat/repos",
-  "events_url": "https://api.github.com/users/octocat/events{/privacy}",
-  "received_events_url": "https://api.github.com/users/octocat/received_events",
-  "type": "User",
-  "site_admin": false,
-  "name": "monalisa octocat",
-  "company": "GitHub",
-  "blog": "https://github.com/blog",
-  "location": "San Francisco",
-  "email": "octocat@github.com",
-  "hireable": false,
-  "bio": "There once was...",
-  "twitter_username": "monatheoctocat",
-  "public_repos": 2,
-  "public_gists": 1,
-  "followers": 20,
-  "following": 0,
-  "created_at": "2008-01-14T04:33:35Z",
-  "updated_at": "2008-01-14T04:33:35Z",
-  "private_gists": 81,
-  "total_private_repos": 100,
-  "owned_private_repos": 100,
-  "disk_usage": 10000,
-  "collaborators": 8,
-  "two_factor_authentication": true,
-  "plan": {
-    "name": "Medium",
-    "space": 400,
-    "private_repos": 20,
-    "collaborators": 0
-  }
-}
-
-MY Public data:
-user data {login: timmaffett, 
-id: 3639881, 
-node_id: MDQ6VXNlcjM2Mzk4ODE=, 
-avatar_url: https://avatars.githubusercontent.com/u/3639881?v=4,
-gravatar_id: , 
-url: https://api.github.com/users/timmaffett, 
-html_url: https://github.com/timmaffett, 
-followers_url: https://api.github.com/users/timmaffett/followers, 
-following_url: https://api.github.com/users/timmaffett/following{/other_user},
- gists_url: https://api.github.com/users/timmaffett/gists{/gist_id}, 
- starred_url: https://api.github.com/users/timmaffett/starred{/owner}{/repo}, 
- subscriptions_url: https://api.github.com/users/timmaffett/subscriptions, 
- organizations_url: https://api.github.com/users/timmaffett/orgs, 
- repos_url: https://api.github.com/users/timmaffett/repos, 
- events_url: https://api.github.com/users/timmaffett/events{/privacy}, 
- received_events_url: https://api.github.com/users/timmaffett/received_events,
-  type: User, 
-  site_admin: false, 
-  name: Tim Maffett, 
-  company: null, 
-  blog: , 
-  location: null, 
-  email: timmaffett@gmail.com, 
-  hireable: true,
-   bio: null, 
-   twitter_username: null,
-    public_repos: 47, 
-    public_gists: 2, 
-    followers: 2, 
-    following: 1,
-     created_at: 2013-02-19T18:49:46Z, 
-     updated_at: 2022-03-24T19:26:44Z}
-
-
-*/
-  void getUserInfo() async {
-    final String accessToken = githubOAuthAccessToken;
-
-    window.console.log('getUserInfo  accessToken=$accessToken');
-
-    if(accessToken.isEmpty) return;
-
-    // Load the gist using the github gist API:
-    // https://developer.github.com/v3/gists/#get-a-single-gist.
-    final response = await _client.get(Uri.parse('$_githubApiUrl/user'),
-                        headers:{ 'accept':'application/vnd.github.v3+json',
-                                  'Authorization': 'token $accessToken'});
-
-    window.console.log('reponsestatusCode=${response.statusCode}');
-
-    if (response.statusCode == 404) {
-      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
-    } else if (response.statusCode == 403) {
-      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
-    } else if (response.statusCode != 200) {
-      throw const GistLoaderException(GistLoaderFailureType.unknown);
-    } else {
-      // statusCode 200 
-      final user = json.decode(response.body) as Map<String, dynamic>;
-      if(user!=null) {
-        window.console.log('user data ${user.toString()}');
-        window.console.log('avatarURL= ${user['avatar_url']}');
-
-        if(user.containsKey('avatar_url')) {
-          avatarUrl = user['avatar_url'] as String;
-        }
-        if(user.containsKey('login')) {
-          userLogin = user['login'] as String;
-        }
-      }
-    }
-
-  }
-
-  set githubOAuthAccessToken(String newtoken) {
-    window.console.log('Setting access token to $newtoken');
-    if( window.localStorage['github_oauth_token'] != newtoken) {
-      if(newtoken.isNotEmpty) {
-        window.console.log('putting into local storage');
-        window.localStorage['github_oauth_token'] = newtoken;
-        // get the user info for this token
-        window.console.log('calling getUserInfo');
-        getUserInfo();
-      } else {
-        window.localStorage.remove('github_oauth_token');
-      }
-    }
-  }
-
-  String get githubOAuthAccessToken => window.localStorage['github_oauth_token'] ?? '';
-
-  set avatarUrl(String url) {
-    final ImageElement avatarImg = querySelector('#github-avatar') as ImageElement;
-    window.console.log('setting avatar url to $url');
-    if(url.isNotEmpty) {
-      window.localStorage['github_avatar_url'] = url;
-
-      window.console.log('Avatar url = $url');
-      avatarImg.src=url;
-    } else {
-      window.localStorage.remove('github_avatar_url');
-      avatarImg.removeAttribute('src');
-    }
-  }
-
-  String get avatarUrl => window.localStorage['github_avatar_url'] ?? '';
-
-  set userLogin(String login) {
-    final LIElement loggedInAsLi = querySelector('#logged_in_as') as LIElement;
-    final SpanElement loggedInAsText = querySelector('#logged_in_as_text') as SpanElement;
-    window.console.log('setting loginl to $login');
-    if(login.isNotEmpty) {
-      window.localStorage['github_user_login'] = login;
-
-      window.console.log('login = $login');
-      loggedInAsText.innerText = 'Logged in as $login';
-      loggedInAsLi.removeAttribute('hidden');
-    } else {
-      window.localStorage.remove('github_user_login');
-      loggedInAsLi.setAttribute('hidden',true);
-    }
-  }
-
-  String get userLogin => window.localStorage['github_user_login'] ?? '';
-}
-
-
-/*
-
-example searches on
-https://gist.github.com/search?q=language%3Adart+%22dartpad%22+stars%3A%3E%3D1&ref=searchresults
-
-
-language:dart filename:main.dart "dartpad" stars:>=1
-
-
-*/

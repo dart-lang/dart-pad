@@ -4,7 +4,6 @@
 
 library gists;
 
-import 'dart:convert' show json;
 import 'dart:convert';
 
 import 'package:collection/collection.dart' show IterableExtension;
@@ -233,96 +232,35 @@ $styleRef$dartRef  </head>
     return gist;
   }
 
-
-
-
-
   /// Load the gist with the given id.
-  Future<String> saveGist(Gist gistToSave,bool public,String authenticationToken) async {
+  Future<String> createGist(
+      Gist gistToSave, bool public, String authenticationToken) async {
+    if (beforeSaveHook != null) beforeSaveHook!(gistToSave);
 
-    if(beforeSaveHook!=null) beforeSaveHook!(gistToSave);
-
-    String retId='FAILED';
     /*
-Create a gist
-Allows you to add a new gist with one or more files.
+      Create a gist
+      Allows you to add a new gist with one or more files.
 
-Note: Don't name your files "gistfile" with a numerical suffix. 
-This is the format of the automatic naming scheme that Gist uses 
-internally.
+      Note: Don't name your files "gistfile" with a numerical suffix. 
+      This is the format of the automatic naming scheme that Gist uses 
+      internally.
 
-POST /gists
-Parameters
-Name      	Type    	In	        Description
-accept    	string  	header	   Setting toapplication/vnd.github.v3+json is recommended.
+      POST /gists
+      Parameters
+      Name        Type    In      Description
+      accept      string  header  Setting toapplication/vnd.github.v3+json is recommended.
 
-description  string   body	      Description of the gist
+      description  string body    Description of the gist
 
-files       object	  body	      Required. Names and content for the files that make up the gist
+      files       object  body    Required. Names and content for the files that make up the gist
 
-public	    boolean   body        Flag indicating whether the gist is public     
-            or string
+      public      boolean body    Flag indicating whether the gist is public     
+                  or string
             
-Code samples
-curl \
-  -X POST \
-  -H "Accept: application/vnd.github.v3+json" \
-  https://api.github.com/gists \
-  -d '{"files":{}}'
+      Example Response
 
-Response
-
- Status: 201 Created
- {
-  "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
-  "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
-  "commits_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/commits",
-  "id": "aa5a315d61ae9438b18d",
-  "node_id": "MDQ6R2lzdGFhNWEzMTVkNjFhZTk0MzhiMThk",
-  "git_pull_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
-  "git_push_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
-  "html_url": "https://gist.github.com/aa5a315d61ae9438b18d",
-  "created_at": "2010-04-14T02:15:15Z",
-  "updated_at": "2011-06-20T11:34:15Z",
-  "description": "Hello World Examples",
-  "comments": 0,
-  "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/"
-}
-
-
-created a gist 0b3d5d3024883c290c05c7f6290736d0
-
-
-created no auth gist  c2a93a3b0d76ce1ceb066a9bf822c8b0
-
-    */
-    final Map<String, dynamic> map = gistToSave.toMap();//;
-    map.remove('id');
-    map['public'] = public;
-    if(map['files']!=null) {
-      if(map['files']['.metadata.json']!=null) { 
-        // if it is present then remove metadata json file from gist when saving
-        map['files'].remove('.metadata.json');
-      }
-    }
-    final String bodydata = json.encode(map);
-    print(bodydata);
-
-    final response = await _client.post(Uri.parse(_gistApiUrl),
-                headers:{
-                    'Accept':'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json',
-                    if(authenticationToken.isNotEmpty) 'Authorization': 'Bearer $authenticationToken',
-                },
-                body:bodydata
-        ).then((http.Response response) {
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.contentLength}');
-    print(response.headers);
-    print(response.request);
-    if (response.statusCode == 201) {
-      /* example return
-        {
+      Status: 201 Created
+      {
         "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
         "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
         "commits_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/commits",
@@ -336,35 +274,58 @@ created no auth gist  c2a93a3b0d76ce1ceb066a9bf822c8b0
         "description": "Hello World Examples",
         "comments": 0,
         "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/"
-        }
-      */
-      print('CREATION WORKED!');
-      final retObj = jsonDecode(response.body);
-      print('ID = ${retObj['id']}');
-      retId = retObj['id'] as String;
-    } else if (response.statusCode == 404) {
-      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
-    } else if (response.statusCode == 403) {
-      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
-    } else if (response.statusCode != 200) {
-      throw const GistLoaderException(GistLoaderFailureType.unknown);
+      }
+    */
+    final Map<String, dynamic> map = gistToSave.toMap(); //;
+    map.remove('id');
+    map['public'] = public;
+    if (map['files'] != null) {
+      if (map['files']['.metadata.json'] != null) {
+        // if it is present then remove metadata json file from gist when saving
+        map['files'].remove('.metadata.json');
+      }
     }
-  });
-    return retId;
+    final String bodydata = json.encode(map);
+    //print(bodydata);
+
+    return _client
+        .post(Uri.parse(_gistApiUrl),
+            headers: {
+              'Accept': 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json',
+              if (authenticationToken.isNotEmpty)
+                'Authorization': 'Bearer $authenticationToken',
+            },
+            body: bodydata)
+        .then((http.Response response) {
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.contentLength}');
+      print(response.headers);
+      print(response.request);
+      if (response.statusCode == 201) {
+        print('CREATION WORKED!');
+        final retObj = jsonDecode(response.body);
+        print('ID = ${retObj['id']}');
+        return retObj['id'] as String;
+      } else if (response.statusCode == 404) {
+        throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+      } else if (response.statusCode == 403) {
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
+      } else if (response.statusCode != 200) {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      }
+      return 'FAILED_CREATE_GIST';
+    });
   }
 
-
-
-
-
-
   /// Load the gist with the given id.
-  Future<String> updateGist(Gist gistToUpdate,String authenticationToken) async {
-    if(beforeSaveHook!=null) beforeSaveHook!(gistToUpdate);
+  Future<String> updateGist(
+      Gist gistToUpdate, String authenticationToken) async {
+    if (beforeSaveHook != null) beforeSaveHook!(gistToUpdate);
 
-    String gistId = gistToUpdate.id ?? '';
+    final String gistId = gistToUpdate.id ?? '';
 
-    String retId='FAILED';
     /*
       Allows you to update or delete a gist file and rename gist files. Files from the previous version of the gist that aren't explicitly changed during an edit are unchanged.
 
@@ -376,26 +337,28 @@ created no auth gist  c2a93a3b0d76ce1ceb066a9bf822c8b0
       description string   body      Description of the gist
       files       object   body      Names of files to be update
     */
-    final Map<String, dynamic> map = gistToUpdate.toMap();//;
+    final Map<String, dynamic> map = gistToUpdate.toMap(); //;
     map.remove('id');
     map.remove('public');
     final String bodydata = json.encode(map);
     print(bodydata);
 
-    final response = await _client.patch(Uri.parse('$_gistApiUrl/$gistId'),
-                headers:{
-                    'Accept':'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json',
-                    if(authenticationToken.isNotEmpty) 'Authorization': 'Bearer $authenticationToken',
-                },
-                body:bodydata
-        ).then((http.Response response) {
-            print('Response status: ${response.statusCode}');
-            print('Response body: ${response.contentLength}');
-            print(response.headers);
-            print(response.request);
-            if (response.statusCode == 200) {
-              /* example return
+    return _client
+        .patch(Uri.parse('$_gistApiUrl/$gistId'),
+            headers: {
+              'Accept': 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json',
+              if (authenticationToken.isNotEmpty)
+                'Authorization': 'Bearer $authenticationToken',
+            },
+            body: bodydata)
+        .then((http.Response response) {
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.contentLength}');
+      print(response.headers);
+      print(response.request);
+      if (response.statusCode == 200) {
+        /* example return
                 {
                   "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
                   "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
@@ -412,80 +375,202 @@ created no auth gist  c2a93a3b0d76ce1ceb066a9bf822c8b0
                   "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/"
                 }
               */
-              print('update succeeded!');
-              final retObj = jsonDecode(response.body);
-              print('ID = ${retObj['id']}');
-              retId = retObj['id'] as String;
-            } else if (response.statusCode == 404) {
-              throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
-            } else if (response.statusCode == 403) {
-              throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
-            } else if (response.statusCode != 200) {
-              throw const GistLoaderException(GistLoaderFailureType.unknown);
-            }   
-          });
-    return retId;
+        print('update succeeded!');
+        final retObj = jsonDecode(response.body);
+        print('ID = ${retObj['id']}');
+        return retObj['id'] as String;
+      } else if (response.statusCode == 404) {
+        throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+      } else if (response.statusCode == 403) {
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
+      } else if (response.statusCode != 200) {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      }
+      return 'FAILED_TO_UPDATE';
+    });
   }
 
+  /// Check to see if the user has starred the gist with the specified ID
+  Future<bool> checkIfGistIsStarred(
+      String gistIdToCheck, String authenticationToken) async {
+    /*
+        Check if a gist is starred
+
+        GET /gists/{gist_id}/star
+
+        Parameters
+        Name       Type      In     Description
+        accept    string    header  Setting toapplication/vnd.github.v3+json is recommended.
+        gist_id   string    path    gist_id parameter
 
 
+        Response Status codes
+        HTTP Status Code        Description
+            204                 Response if gist is starred
+            404                 Not Found if gist is not starred
+            304                 Not modified
+            403                 Forbidden
+
+       https://docs.github.com/en/rest/reference/gists#check-if-a-gist-is-starred
+    */
+    return _client.get(
+      Uri.parse('$_gistApiUrl/$gistIdToCheck/star'),
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        if (authenticationToken.isNotEmpty)
+          'Authorization': 'Bearer $authenticationToken',
+      },
+    ).then((http.Response response) {
+      print('checkIfGistIsStarred Response status: ${response.statusCode}');
+      print('checkIfGistIsStarred Response body: ${response.contentLength}');
+      print(response.headers);
+      print(response.request);
+      if (response.statusCode == 204) {
+        return true;
+      } else if (response.statusCode == 404) {
+        return false;
+      } else if (response.statusCode == 304) {
+        return false; // not modified
+      } else if (response.statusCode == 403) {
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
+      } else {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      }
+    });
+  }
+
+  /// Star the specified gist for the user
+  Future<bool> starGist(String gistIdToStar, String authenticationToken) async {
+    /*
+        Star the gist
+
+        PUT /gists/{gist_id}/star
+
+        Parameters
+        Name       Type      In     Description
+        accept    string    header  Setting toapplication/vnd.github.v3+json is recommended.
+        gist_id   string    path    gist_id parameter
 
 
+        Response Status codes
+        HTTP Status Code        Description
+            204                 No Content (it worked)
+            404                 Not Found if gist is not starred
+            304                 Not modified
+            403                 Forbidden
+
+       https://docs.github.com/en/rest/reference/gists#check-if-a-gist-is-starred
+    */
+    return _client.put(
+      Uri.parse('$_gistApiUrl/$gistIdToStar/star'),
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        if (authenticationToken.isNotEmpty)
+          'Authorization': 'Bearer $authenticationToken',
+      },
+    ).then((http.Response response) {
+      print('starGist Response status: ${response.statusCode}');
+      print('starGist Response body: ${response.contentLength}');
+      print(response.headers);
+      print(response.request);
+      if (response.statusCode == 204) {
+        return true;
+      } else if (response.statusCode == 404) {
+        // Gist not found
+      } else if (response.statusCode == 403) {
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
+      } else if (response.statusCode != 304) {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      }
+      return false;
+    });
+  }
+
+  /// Unstar the specified gist for the user
+  Future<bool> unstarGist(
+      String gistIdToStar, String authenticationToken) async {
+    /*
+        Star the gist
+
+        DELETE /gists/{gist_id}/star
+
+        Parameters
+        Name       Type      In     Description
+        accept    string    header  Setting toapplication/vnd.github.v3+json is recommended.
+        gist_id   string    path    gist_id parameter
 
 
+        Response Status codes
+        HTTP Status Code        Description
+            204                 No Content (it worked)
+            404                 Not Found if gist is not starred
+            304                 Not modified
+            403                 Forbidden
 
+       https://docs.github.com/en/rest/reference/gists#check-if-a-gist-is-starred
+    */
+    return _client.delete(
+      Uri.parse('$_gistApiUrl/$gistIdToStar/star'),
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        if (authenticationToken.isNotEmpty)
+          'Authorization': 'Bearer $authenticationToken',
+      },
+    ).then((http.Response response) {
+      print('unstarGist Response status: ${response.statusCode}');
+      print('unstarGist Response body: ${response.contentLength}');
+      print(response.headers);
+      print(response.request);
+      if (response.statusCode == 204) {
+        return true;
+      } else if (response.statusCode == 404) {
+        // Gist not found
+      } else if (response.statusCode == 403) {
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
+      } else if (response.statusCode != 304) {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      }
+      return false;
+    });
+  }
 
+  /// Load the gist with the given id.
+  Future<String> forkGist(Gist gistToSave, String authenticationToken) async {
+    if (beforeSaveHook != null) beforeSaveHook!(gistToSave);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/// Load the gist with the given id.
-  Future<String> forkGist(Gist gistToSave,String authenticationToken) async {
-
-    if(beforeSaveHook!=null) beforeSaveHook!(gistToSave);
-
-    String gistId = gistToSave.id ?? '';
-    if(gistId.isEmpty) {
+    final String gistId = gistToSave.id ?? '';
+    if (gistId.isEmpty) {
       // we have no gistId to fork from, so SAVE instead
-      return saveGist(gistToSave,gistToSave.public,authenticationToken);
+      return createGist(gistToSave, gistToSave.public, authenticationToken);
     }
 
-    String retId='FAILED';
     /*
       POST /gists/{gist_id}/forks
       Parameters
-      Name	     Type	     In	     Description
-      accept  	string	 header	   Setting toapplication/vnd.github.v3+json is recommended.
-      gist_id  	string	 path       gist_id parameter
+      Name       Type       In       Description
+      accept    string   header     Setting toapplication/vnd.github.v3+json is recommended.
+      gist_id    string   path       gist_id parameter
     */
-    final response = await _client.post(Uri.parse('$_gistApiUrl/$gistId/forks'),
-                headers:{
-                    'Accept':'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json',
-                    if(authenticationToken.isNotEmpty) 'Authorization': 'Bearer $authenticationToken',
-                },
-                //body:bodydata
-        ).then((http.Response response) {
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.contentLength}');
-    print(response.headers);
-    print(response.request);
-    if (response.statusCode == 201) {
-      /* example return
+    return _client.post(
+      Uri.parse('$_gistApiUrl/$gistId/forks'),
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        if (authenticationToken.isNotEmpty)
+          'Authorization': 'Bearer $authenticationToken',
+      },
+      //body:bodydata
+    ).then((http.Response response) {
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.contentLength}');
+      print(response.headers);
+      print(response.request);
+      if (response.statusCode == 201) {
+        /* example return
        {
           "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
           "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
@@ -534,56 +619,22 @@ created no auth gist  c2a93a3b0d76ce1ceb066a9bf822c8b0
           "truncated": false
         }
       */
-      print('FORKING WORKED!');
-      final retObj = jsonDecode(response.body);
-      print('Fork ID = ${retObj['id']}');
-      retId = retObj['id'] as String;
-    } else if (response.statusCode == 404) {
-      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
-    } else if (response.statusCode == 403) {
-      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
-    } else if (response.statusCode != 200) {
-      throw const GistLoaderException(GistLoaderFailureType.unknown);
-    }
-  });
-    return retId;
+        print('FORKING WORKED!');
+        final retObj = jsonDecode(response.body);
+        print('Fork ID = ${retObj['id']}');
+        return retObj['id'] as String;
+      } else if (response.statusCode == 404) {
+        throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+      } else if (response.statusCode == 403) {
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
+      } else if (response.statusCode != 200) {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      }
+      return 'FAILED_TO_FORK';
+    });
   }
 
-/*
-const TOKEN = "YOUR_PERSONAL_ACCESS_TOKEN";
-const GIST_ID = "YOUR_GIST_ID";
-const GIST_FILENAME = "db.json";
-
-/* 
- * Reads the JSON file inside of the gist
- */
-async function getData() {
-  const req = await fetch(`https://api.github.com/gists/${GIST_ID}`);
-  const gist = await req.json();
-  return JSON.parse(gist.files[GIST_FILENAME].content);
-}
-
-/* 
- * Puts the data you want to store back into the gist
- */
-async function setData(data) {
-  const req = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    method: "PATCH",
-    headers: {
-      Authorization: `Bearer ${TOKEN}`,
-    },
-    body: JSON.stringify({
-      files: {
-        [GIST_FILENAME]: {
-          content: JSON.stringify(data),
-        },
-      },
-    }),
-  });
-
-  return req.json();
-}
-*/
   Future<Gist> loadGistFromAPIDocs(
       String sampleId, FlutterSdkChannel channel) async {
     if (channel == FlutterSdkChannel.beta) {
@@ -759,11 +810,19 @@ class Gist {
     }
   }
 
+  bool hasDartContent() {
+    return files.any((GistFile file) {
+      final name = file.name;
+      final isDartFile = name.endsWith('.dart');
+      return isDartFile && file.hasContent;
+    });
+  }
+
   bool hasWebContent() {
     return files.any((GistFile file) {
       final name = file.name;
       final isWebFile = name.endsWith('.html') || name.endsWith('.css');
-      return isWebFile && file.content!.trim().isNotEmpty;
+      return isWebFile && file.hasContent;
     });
   }
 
@@ -781,7 +840,13 @@ class Gist {
       if (summary != null) 'summary': summary,
       'files': {
         for (final file in files)
-          if (file.hasContent) file.name: {'content': file.content}
+          if (file.hasContent)
+            file.name: {
+              if (file.content != null) 'content': file.content,
+              if (file.rawUrl != null) 'raw_url': file.rawUrl,
+              if (file.language != null) 'language': file.language,
+              if (file.size != null) 'size': file.size
+            }
       }
     };
   }
@@ -797,14 +862,27 @@ class Gist {
 class GistFile {
   String name;
   String? content;
+  String? rawUrl;
+  String? language;
+  int? size;
 
   GistFile({required this.name, this.content});
 
   GistFile.fromMap(this.name, data) {
     content = data['content'] as String?;
+    rawUrl = data['raw_url'] as String?;
+    language = data['language'] as String?;
+    size = data['size'] as int?;
   }
 
-  bool get hasContent => content?.trim().isNotEmpty ?? false;
+  bool get hasContent {
+    if (content != null) {
+      return content?.trim().isNotEmpty ?? false;
+    } else if (rawUrl != null && size != null) {
+      return rawUrl!.isNotEmpty && size! > 0;
+    }
+    return false;
+  }
 
   @override
   String toString() => '[$name, ${content?.length ?? 0} chars]';
