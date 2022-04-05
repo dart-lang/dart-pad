@@ -95,10 +95,8 @@ class TabExpandController {
     }
   }
 
-  void showCode({bool maximize = true}) {
-    if (state == TabState.ui) {
-      _splitter.collapse(1);
-    }
+  void showCode() {
+    _hidePanel();
   }
 
   void toggleIframe() {

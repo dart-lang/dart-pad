@@ -357,7 +357,7 @@ class WorkshopUi extends EditorUi {
 
   void _clearUIOutput() {
     tabExpandController.showCode();
-    executionService.tearDown();
+    executionService.replaceHtml('');
   }
 
   void _updateInstructions() {
