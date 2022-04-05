@@ -8,16 +8,14 @@ dependencies:
   checked_yaml: ^2.0.0
   codemirror: ^0.7.3+5.65.2
   collection: ^1.15.0
-  #encrypt: ^5.0.1
-  encrypt:
-    path: ../encrypt
+  encrypt: ^5.0.1
   fluttering_phrases: ^0.3.1
   html_unescape: ^2.0.0
   http: ^0.13.0
   js: ^0.6.0
   json_annotation: ^4.3.0
   logging: ^1.0.0
-  markdown: ^4.0.0
+  markdown: ^5.0.0
   mdc_web: ^0.6.0
   meta: ^1.2.4
   protobuf: ^2.0.0
