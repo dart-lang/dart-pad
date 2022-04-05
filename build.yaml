@@ -38,3 +38,6 @@ global_options:
         BETA_SERVER_URL: https://beta.api.dartpad.dev/
         DEV_SERVER_URL: https://dev.api.dartpad.dev/
         OLD_SERVER_URL: https://old.api.dartpad.dev/
+        GH_AUTH_INIT_BASE_URL: https://githubauth-brsyns7rna-uw.a.run.app
+        #Should be GitHub Init OAuth end point on Google Cloud Run
+        #GH_AUTH_INIT_BASE_URL: https://localhost:8080/initiate/
