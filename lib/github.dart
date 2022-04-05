@@ -129,7 +129,9 @@ class GitHubUIController {
 
   void setUnsavedLocalEdits(bool unsavedLocalEdits) {
     final SpanElement unsavedLocalEditsSpan = querySelector('#unsaved-local-edit') as SpanElement;
-    if(unsavedLocalEdits) {
+    // for now hard code the unsavedLocalEdits span to stay hidden
+    // we need more logic to do actual diffs against backing gist
+    if(true || unsavedLocalEdits) {
       unsavedLocalEditsSpan.removeAttribute('hidden');
     } else {
       unsavedLocalEditsSpan.setAttribute('hidden', true);
