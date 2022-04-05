@@ -646,7 +646,7 @@ class Embed extends EditorUi {
   }
 
   void _handleOpenInDartPad() {
-    window.open('/embed-$_modeName.html?id=$gistId', 'DartPad_$gistId');
+    window.open(window.location.href, 'DartPad_$gistId');
   }
 
   /// Returns the name of the current embed mode
