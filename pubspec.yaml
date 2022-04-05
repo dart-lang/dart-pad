@@ -8,6 +8,7 @@ dependencies:
   checked_yaml: ^2.0.0
   codemirror: ^0.7.3+5.65.2
   collection: ^1.15.0
+  encrypt: ^5.0.1
   fluttering_phrases: ^0.3.1
   html_unescape: ^2.0.0
   http: ^0.13.0
