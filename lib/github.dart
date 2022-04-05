@@ -38,7 +38,7 @@ class GitHubUIController {
       querySelector('#github-update-item') as LIElement;
   final LIElement _githubMenuItemStar =
       querySelector('#github-star-item') as LIElement;
-  final LIElement _githubMenuItemComment =
+  final LIElement _githubMenuItemOpenOnGithub =
       querySelector('#github-open-on-github-item') as LIElement;
   final LIElement _githubMenuItemLogout =
       querySelector('#github-logout-item') as LIElement;
@@ -127,12 +127,22 @@ class GitHubUIController {
     });
   }
 
+  void setUnsavedLocalEdits(bool unsavedLocalEdits) {
+    final SpanElement unsavedLocalEditsSpan = querySelector('#unsaved-local-edit') as SpanElement;
+    if(unsavedLocalEdits) {
+      unsavedLocalEditsSpan.removeAttribute('hidden');
+    } else {
+      unsavedLocalEditsSpan.setAttribute('hidden', true);
+    }
+  }
+
   void setupGithubGistListeners() {
     _playground.mutableGist.onChanged
         .debounce(Duration(milliseconds: 100))
         .listen((_) {
       window.console
           .log('setupGithubGistListeners mutableGist On Changed FIRED');
+      setUnsavedLocalEdits(true);
     });
     _playground.mutableGist.property('id').onChanged!.listen((_) {
       window.console.log('setupGithubGistListeners gist ID On Changed FIRED');
@@ -163,6 +173,7 @@ class GitHubUIController {
         .listen((_) {
       window.console.log('Title edited input event ${_titleElement.text}');
       _playground.mutableGist.description = _titleElement.text;
+      setUnsavedLocalEdits(true);
     });
   }
 
@@ -177,13 +188,12 @@ class GitHubUIController {
     _setMenuItemState(_githubMenuItemLogin, !loggedIn);
     _setMenuItemState(_githubMenuItemLogout, loggedIn);
 
-    _setMenuItemState(_githubMenuItemCreatePublic, loggedIn && !hasId);
-    _setMenuItemState(_githubMenuItemCreatePrivate,
-        loggedIn && true); // let then create private gist without forking
+    _setMenuItemState(_githubMenuItemCreatePublic, loggedIn /*&& !hasId*/ ); // now let them create public without forking
+    _setMenuItemState(_githubMenuItemCreatePrivate, loggedIn ); // let then create private gist without forking
     _setMenuItemState(_githubMenuItemFork, loggedIn && hasId);
     _setMenuItemState(_githubMenuItemUpdate, loggedIn && hasId);
     _setMenuItemState(_githubMenuItemStar, loggedIn && hasId);
-    _setMenuItemState(_githubMenuItemComment, loggedIn && hasId);
+    _setMenuItemState(_githubMenuItemOpenOnGithub, loggedIn && hasId);
   }
 
   void _updateMyGistMenuState() {
@@ -320,7 +330,7 @@ class GitHubUIController {
         _playground.showOutput('Got created Gist ID =$createdGistId');
         //queryParams.gistId = createdGistId;
         _reloadPageWithNewGistId(createdGistId);
-
+        setUnsavedLocalEdits(false);
         // now update our menus to reflect new gist
         _githubAuthController.updateUsersGistAndStarredGistsList();
       });
@@ -336,9 +346,9 @@ class GitHubUIController {
       gistLoader
           .updateGist(_playground.mutableGist.createGist(), token)
           .then((String updatedGistId) {
-        window.console.log('Got Updated Gist ID =$updatedGistId');
-        _playground.showOutput('Got Updated Gist ID =$updatedGistId');
-
+        //window.console.log('Got Updated Gist ID =$updatedGistId');
+        //_playground.showOutput('Got Updated Gist ID =$updatedGistId');
+        setUnsavedLocalEdits(false);
         _playground.showSnackbar('Gist successfully updated');
         //queryParams.gistId = forkedGistId;
         //_reloadPageWithNewGistId(updatedGistId);
@@ -355,9 +365,9 @@ class GitHubUIController {
       gistLoader
           .forkGist(_playground.mutableGist.createGist(), token)
           .then((String forkedGistId) {
-        window.console.log('Got Forked Gist ID =$forkedGistId');
-        _playground.showOutput('Got forked Gist ID =$forkedGistId');
-
+        //window.console.log('Got Forked Gist ID =$forkedGistId');
+        //_playground.showOutput('Got forked Gist ID =$forkedGistId');
+        setUnsavedLocalEdits(false);
         _playground.showSnackbar(
             'Gist successfully forked'); // This wont have time to show KLUDGE
 
@@ -624,6 +634,10 @@ class GitHubAuthenticationController {
   List<Gist> get myGistList => _myGistList;
   List<Gist> get starredGistList => _starredGistList;
 
+  String? _pendingUserInfoRequest;
+  String? _pendingUserGistRequest;
+  String? _pendingUserStarredGistRequest;
+
   GitHubAuthenticationController(this.launchUri, this.snackbar,
       {http.Client? client}) {
     // check for parameters in rui
@@ -762,44 +776,52 @@ class GitHubAuthenticationController {
       "updated_at": "2008-01-14T04:33:35Z"
     }
   */
-  void getUserInfo() async {
+  Future<void> getUserInfo() async {
     final String accessToken = githubOAuthAccessToken;
 
     window.console.log('getUserInfo  accessToken=$accessToken');
-
+      
     if (accessToken.isEmpty) return;
+
+    if(_pendingUserInfoRequest==accessToken) {
+      // already processing a request
+      window.console.log('getUserInfo DUPLICATE - skipping');
+      return;
+    }
+    _pendingUserInfoRequest=accessToken;
 
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
-    final response =
-        await _client.get(Uri.parse('$_githubApiUrl/user'), headers: {
+    return _client.get(Uri.parse('$_githubApiUrl/user'), headers: {
       'accept': 'application/vnd.github.v3+json',
       'Authorization': 'token $accessToken'
+    }).then((response) {
+      _pendingUserInfoRequest=null
+      ;
+      window.console.log('reponsestatusCode=${response.statusCode}');
+
+      if (response.statusCode == 404) {
+        throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+      } else if (response.statusCode == 403) {
+        throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+      } else if (response.statusCode != 200) {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      } else {
+        // statusCode 200
+        final user = json.decode(response.body) as Map<String, dynamic>;
+
+        window.console.log('user data ${user.toString()}');
+        window.console.log('avatarURL= ${user['avatar_url']}');
+
+        if (user.containsKey('avatar_url')) {
+          avatarUrl = user['avatar_url'] as String;
+        }
+        if (user.containsKey('login')) {
+          userLogin = user['login'] as String;
+        }
+        _authenticatedStateChangeController.add(true);
+      }
     });
-
-    window.console.log('reponsestatusCode=${response.statusCode}');
-
-    if (response.statusCode == 404) {
-      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
-    } else if (response.statusCode == 403) {
-      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
-    } else if (response.statusCode != 200) {
-      throw const GistLoaderException(GistLoaderFailureType.unknown);
-    } else {
-      // statusCode 200
-      final user = json.decode(response.body) as Map<String, dynamic>;
-
-      window.console.log('user data ${user.toString()}');
-      window.console.log('avatarURL= ${user['avatar_url']}');
-
-      if (user.containsKey('avatar_url')) {
-        avatarUrl = user['avatar_url'] as String;
-      }
-      if (user.containsKey('login')) {
-        userLogin = user['login'] as String;
-      }
-      _authenticatedStateChangeController.add(true);
-    }
   }
 
   /*
@@ -844,55 +866,63 @@ class GitHubAuthenticationController {
         }
       ]
   */
-  void getUsersGists() async {
+  Future<void> getUsersGists() async {
     final String accessToken = githubOAuthAccessToken;
 
-    window.console.log('getUserInfo  accessToken=$accessToken');
+    window.console.log('getUsersGists  accessToken=$accessToken');
 
     if (accessToken.isEmpty) return;
 
+    if(_pendingUserGistRequest==accessToken) {
+      // already processing a request
+      window.console.log('getUsersGists DUPLICATE - skipping');
+      return;
+    }
+    _pendingUserGistRequest=accessToken;
+
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
-    final response = await _client
+    return _client
         .get(Uri.parse('$_githubApiUrl/gists?per_page=100'), headers: {
       'accept': 'application/vnd.github.v3+json',
       'Authorization': 'token $accessToken'
-    });
+    }).then((response) {
+      _pendingUserGistRequest=null;
+      window.console.log('reponsestatusCode=${response.statusCode}');
 
-    window.console.log('reponsestatusCode=${response.statusCode}');
+      if (response.statusCode == 404) {
+        throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+      } else if (response.statusCode == 403) {
+        throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+      } else if (response.statusCode != 200) {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      } else {
+        // statusCode 200
+        //window.console.log('raw gistList JSON ${response.body}');
+        _myGistList.clear();
+        final List<dynamic> gistslist =
+            json.decode(response.body) as List<dynamic>;
 
-    if (response.statusCode == 404) {
-      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
-    } else if (response.statusCode == 403) {
-      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
-    } else if (response.statusCode != 200) {
-      throw const GistLoaderException(GistLoaderFailureType.unknown);
-    } else {
-      // statusCode 200
-      //window.console.log('raw gistList JSON ${response.body}');
-      _myGistList.clear();
-      final List<dynamic> gistslist =
-          json.decode(response.body) as List<dynamic>;
+        //window.console.log('SUCCESS gist list gistslist.length ${gistslist.length}');
+        if (gistslist.isNotEmpty) {
+          //window.console.log('gist list data ${gistslist.toString()}');
+          for (int i = 0; i < gistslist.length; i++) {
+            // Now decode each one
+            //window.console.log('GIST #$i');
+            //window.console.log('gistslist[i]=${gistslist[i].toString()}');
+            final gist = Gist.fromMap(gistslist[i] as Map<String, dynamic>);
 
-      //window.console.log('SUCCESS gist list gistslist.length ${gistslist.length}');
-      if (gistslist.isNotEmpty) {
-        //window.console.log('gist list data ${gistslist.toString()}');
-        for (int i = 0; i < gistslist.length; i++) {
-          // Now decode each one
-          //window.console.log('GIST #$i');
-          //window.console.log('gistslist[i]=${gistslist[i].toString()}');
-          final gist = Gist.fromMap(gistslist[i] as Map<String, dynamic>);
-
-          //window.console.log('CREATED OBJECT GIST #$i ::::');
-          //window.console.log('${gist.toJson()}');
-          if (gist.hasDartContent()) {
-            _myGistList.add(gist);
+            //window.console.log('CREATED OBJECT GIST #$i ::::');
+            //window.console.log('${gist.toJson()}');
+            if (gist.hasDartContent()) {
+              _myGistList.add(gist);
+            }
           }
+          //window.console.log('Gist WITH DART = _myGistList.length ${_myGistList.length}');
         }
-        //window.console.log('Gist WITH DART = _myGistList.length ${_myGistList.length}');
+        _myGistListUpdateController.add(null);
       }
-      _myGistListUpdateController.add(null);
-    }
+    });
   }
 
   /*
@@ -904,59 +934,67 @@ class GitHubAuthenticationController {
 
     https://docs.github.com/en/rest/reference/gists#list-starred-gists
   */
-  void getUsersStarredGists() async {
+  Future<void> getUsersStarredGists() async {
     final String accessToken = githubOAuthAccessToken;
 
-    window.console.log('getUserInfo  accessToken=$accessToken');
+    window.console.log('getUsersStarredGists  accessToken=$accessToken');
 
     if (accessToken.isEmpty) return;
 
+    if(_pendingUserStarredGistRequest==accessToken) {
+      // already processing a request
+      window.console.log('getUsersStarredGists DUPLICATE - skipping');
+      return;
+    }
+    _pendingUserStarredGistRequest=accessToken;
+
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
-    final response = await _client
+    return _client
         .get(Uri.parse('$_githubApiUrl/gists/starred?per_page=100'), headers: {
       'accept': 'application/vnd.github.v3+json',
       'Authorization': 'token $accessToken'
-    });
+    }).then((response) {
+      _pendingUserStarredGistRequest=null;
+      window.console.log('reponsestatusCode=${response.statusCode}');
 
-    window.console.log('reponsestatusCode=${response.statusCode}');
+      if (response.statusCode == 404) {
+        throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+      } else if (response.statusCode == 403) {
+        throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+      } else if (response.statusCode != 200) {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      } else {
+        // statusCode 200
+        //window.console.log('raw gistList JSON ${response.body}');
+        _starredGistList.clear();
+        final List<dynamic> gistslist =
+            json.decode(response.body) as List<dynamic>;
 
-    if (response.statusCode == 404) {
-      throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
-    } else if (response.statusCode == 403) {
-      throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
-    } else if (response.statusCode != 200) {
-      throw const GistLoaderException(GistLoaderFailureType.unknown);
-    } else {
-      // statusCode 200
-      //window.console.log('raw gistList JSON ${response.body}');
-      _starredGistList.clear();
-      final List<dynamic> gistslist =
-          json.decode(response.body) as List<dynamic>;
+        //window.console.log('SUCCESS starred gist list gistslist.length ${gistslist.length}');
+        if (gistslist.isNotEmpty) {
+          //window.console.log('starred gist list data ${gistslist.toString()}');
 
-      //window.console.log('SUCCESS starred gist list gistslist.length ${gistslist.length}');
-      if (gistslist.isNotEmpty) {
-        //window.console.log('starred gist list data ${gistslist.toString()}');
+          for (int i = 0; i < gistslist.length; i++) {
+            // Now decode each one
+            //window.console.log('STARRED GIST #$i');
 
-        for (int i = 0; i < gistslist.length; i++) {
-          // Now decode each one
-          //window.console.log('STARRED GIST #$i');
+            //window.console.log('gistslist[i]=${gistslist[i].toString()}');
 
-          //window.console.log('gistslist[i]=${gistslist[i].toString()}');
+            final gist = Gist.fromMap(gistslist[i] as Map<String, dynamic>);
 
-          final gist = Gist.fromMap(gistslist[i] as Map<String, dynamic>);
+            //window.console.log('CREATED OBJECT GIST #$i ::::');
+            //window.console.log('${gist.toJson()}');
 
-          //window.console.log('CREATED OBJECT GIST #$i ::::');
-          //window.console.log('${gist.toJson()}');
-
-          if (gist.hasDartContent()) {
-            _starredGistList.add(gist);
+            if (gist.hasDartContent()) {
+              _starredGistList.add(gist);
+            }
           }
+          //window.console.log('STARRED Gist WITH DART = _starredGistList.length ${_starredGistList.length}');
         }
-        //window.console.log('STARRED Gist WITH DART = _starredGistList.length ${_starredGistList.length}');
+        _starredGistListUpdateController.add(null);
       }
-      _starredGistListUpdateController.add(null);
-    }
+    });
   }
 
   set githubOAuthAccessToken(String newtoken) {
