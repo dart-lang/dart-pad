@@ -26,6 +26,48 @@ class GitHubUIController {
   final Playground _playground;
   late final GitHubAuthenticationController _githubAuthController;
 
+  final LIElement _githubMenuItemLogin =
+      querySelector('#github-login-item') as LIElement;
+  final LIElement _githubMenuItemCreatePublic =
+      querySelector('#github-createpublic-item') as LIElement;
+  final LIElement _githubMenuItemCreatePrivate =
+      querySelector('#github-createprivate-item') as LIElement;
+  final LIElement _githubMenuItemFork =
+      querySelector('#github-fork-item') as LIElement;
+  final LIElement _githubMenuItemUpdate =
+      querySelector('#github-update-item') as LIElement;
+  final LIElement _githubMenuItemStar =
+      querySelector('#github-star-item') as LIElement;
+  final LIElement _githubMenuItemComment =
+      querySelector('#github-open-on-github-item') as LIElement;
+  final LIElement _githubMenuItemLogout =
+      querySelector('#github-logout-item') as LIElement;
+  final SpanElement _starUnstarButton =
+      querySelector('#gist_star_button') as SpanElement;
+  final Element _starIconHolder = querySelector('#gist_star_inner_icon')!;
+  final Element _starMenuIconHolder =
+      querySelector('#github-star-item .mdc-select__icon')!;
+  final SpanElement _starMenuItemText =
+      querySelector('#github-star-item .mdc-list-item__text') as SpanElement;
+  final DElement _titleElement =
+      DElement(querySelector('header .header-gist-name')!);
+  final ButtonElement _myGistsDropdownButton =
+      querySelector('#my-gists-dropdown-button') as ButtonElement;
+  final ButtonElement _starredGistsDropdownButton =
+      querySelector('#starred-gists-dropdown-button') as ButtonElement;
+
+  // Get the base URL to use for the GH Authorization request from environment
+  //   (this is set in build.yaml)
+  static const String _googleCloudRunUrl =
+      String.fromEnvironment('GH_AUTH_INIT_BASE_URL');
+
+  MDCMenu? _starredGistsMenu;
+  MDCMenu? _myGistsMenu;
+
+  bool _prevAuthenticationState = false;
+
+  bool _inGithubAuthStateChangeHandler = false;
+
   String _gistIdOfLastStarredReport = '';
   bool _starredStateOfLastStarReport = false;
 
@@ -42,126 +84,6 @@ class GitHubUIController {
 
     _githubAuthController.postCreationFireAutheticatedStateChangeEvent();
   }
-
-  void hideGistStarredButton() {
-    final SpanElement starUnstarButton =
-        querySelector('#gist_star_button') as SpanElement;
-    starUnstarButton.hidden = true;
-  }
-
-  void starredButtonClickHandler(_) {
-    window.console.log('Star Unstar clicked!');
-    if (starUnstarButton.hidden ||
-        !_playground.mutableGist.hasId ||
-        _gistIdOfLastStarredReport.isEmpty ||
-        _gistIdOfLastStarredReport != _playground.mutableGist.id) {
-      // do nothing, don't know state of current gist
-      return;
-    }
-    final String gistIdWeAreToggling = _gistIdOfLastStarredReport;
-    // clear until we report back (prevents another click until done)
-    _gistIdOfLastStarredReport = '';
-    if (!_starredStateOfLastStarReport) {
-      // immediately set state to where we think it's going, and we will update after we get
-      // verification from API
-      _setStateOfStarredButton(true);
-      gistLoader
-          .starGist(
-              gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken)
-          .then((_) {
-        getStarReportOnLoadingGist(gistIdWeAreToggling, true);
-        // now update our menus to reflect change in starred gists
-        _githubAuthController.updateUsersGistAndStarredGistsList();
-      });
-    } else {
-      // immediately set state to where we think it's going, and we will update after we get
-      // verification from API
-      _setStateOfStarredButton(false);
-      gistLoader
-          .unstarGist(
-              gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken)
-          .then((_) {
-        getStarReportOnLoadingGist(gistIdWeAreToggling, true);
-        // now update our menus to reflect change in starred gists
-        _githubAuthController.updateUsersGistAndStarredGistsList();
-      });
-    }
-  }
-
-  void _setStateOfStarredButton(bool starred) {
-    starUnstarButton.hidden = false;
-    if (starred) {
-      // title bar gist star indicator
-      starIconHolder.innerText = 'star';
-      starUnstarButton.title = 'Click to Unstar this gist';
-      // menu item star gist action
-      starMenuIconHolder.innerText = 'star_outline';
-      starMenuItemText.innerText = 'Unstar Gist';
-    } else {
-      // title bar gist star indicator
-      starIconHolder.innerText = 'star_outline';
-      starUnstarButton.title = 'Click to Star this gist';
-      // menu item star gist action
-      starMenuIconHolder.innerText = 'star';
-      starMenuItemText.innerText = 'Star Gist';
-    }
-  }
-
-  void getStarReportOnLoadingGist(String gistId,
-      [bool dontHideStarButton = false]) {
-    if (!dontHideStarButton) hideGistStarredButton();
-    if (_githubAuthController.githubOAuthAccessToken.isNotEmpty &&
-        gistId.isNotEmpty) {
-      _gistIdOfLastStarredReport = '';
-      gistLoader
-          .checkIfGistIsStarred(
-              gistId, _githubAuthController.githubOAuthAccessToken)
-          .then((starred) {
-        window.console.log(
-            'check of STAR RETURNED On THEN  gistId=$gistId starred=$starred');
-        _gistIdOfLastStarredReport = gistId;
-        _starredStateOfLastStarReport = starred;
-        _setStateOfStarredButton(starred);
-      });
-    }
-  }
-
-  MDCMenu? _starredGistsMenu;
-  MDCMenu? _myGistsMenu;
-
-  final LIElement githubMenuItemLogin =
-      querySelector('#github-login-item') as LIElement;
-  final LIElement githubMenuItemCreatePublic =
-      querySelector('#github-createpublic-item') as LIElement;
-  final LIElement githubMenuItemCreatePrivate =
-      querySelector('#github-createprivate-item') as LIElement;
-  final LIElement githubMenuItemFork =
-      querySelector('#github-fork-item') as LIElement;
-  final LIElement githubMenuItemUpdate =
-      querySelector('#github-update-item') as LIElement;
-  final LIElement githubMenuItemStar =
-      querySelector('#github-star-item') as LIElement;
-  final LIElement githubMenuItemComment =
-      querySelector('#github-open-on-github-item') as LIElement;
-  final LIElement githubMenuItemLogout =
-      querySelector('#github-logout-item') as LIElement;
-
-  final SpanElement starUnstarButton =
-      querySelector('#gist_star_button') as SpanElement;
-  final Element starIconHolder = querySelector('#gist_star_inner_icon')!;
-
-  final Element starMenuIconHolder =
-      querySelector('#github-star-item .mdc-select__icon')!;
-  final SpanElement starMenuItemText =
-      querySelector('#github-star-item .mdc-list-item__text') as SpanElement;
-
-  final DElement _titleElement =
-      DElement(querySelector('header .header-gist-name')!);
-
-  final ButtonElement _myGistsDropdownButton =
-      querySelector('#my-gists-dropdown-button') as ButtonElement;
-  final ButtonElement _starredGistsDropdownButton =
-      querySelector('#starred-gists-dropdown-button') as ButtonElement;
 
   void initGitHubMenu() {
     final githubMenuButton =
@@ -192,7 +114,7 @@ class GitHubUIController {
           _updateGist();
           break;
         case 5: //star gists
-          starredButtonClickHandler(null);
+          _starredButtonClickHandler(null);
           break;
         case 6: //open on github
           window.open('https://gist.github.com/${_playground.mutableGist.id}',
@@ -215,12 +137,12 @@ class GitHubUIController {
     _playground.mutableGist.property('id').onChanged!.listen((_) {
       window.console.log('setupGithubGistListeners gist ID On Changed FIRED');
       // the gist Id has changed
-      setGithubMenuItemStates(_githubAuthController, _playground.mutableGist);
+      _setGithubMenuItemStates(_githubAuthController, _playground.mutableGist);
     });
     _githubAuthController.onAuthStateChanged.listen((authenticated) {
       window.console.log('GitHub Authentication State Changed FIRED');
 
-      setGithubMenuItemStates(_githubAuthController, _playground.mutableGist);
+      _setGithubMenuItemStates(_githubAuthController, _playground.mutableGist);
       _handleGithubAuthStateChange(authenticated);
     });
     _githubAuthController.onMyGistListChanged.listen((authenticated) {
@@ -231,9 +153,9 @@ class GitHubUIController {
       window.console.log('Starred Gist List Changed FIRED');
       _updateStarredGistMenuState();
     });
-    starUnstarButton.onClick
+    _starUnstarButton.onClick
         .debounce(Duration(milliseconds: 100))
-        .listen(starredButtonClickHandler);
+        .listen(_starredButtonClickHandler);
 
     // this will only happen when we make 'contenteditable' true while authenticated
     _titleElement.element.onInput
@@ -242,6 +164,26 @@ class GitHubUIController {
       window.console.log('Title edited input event ${_titleElement.text}');
       _playground.mutableGist.description = _titleElement.text;
     });
+  }
+
+  void _setGithubMenuItemStates(GitHubAuthenticationController githubController,
+      MutableGist mutableGist) {
+    final bool hasId = mutableGist.hasId;
+    final bool loggedIn = githubController.userLogin.isNotEmpty;
+
+    window.console
+        .log('setGithubMenuItemStates  hasId=$hasId loggedIn=$loggedIn');
+
+    _setMenuItemState(_githubMenuItemLogin, !loggedIn);
+    _setMenuItemState(_githubMenuItemLogout, loggedIn);
+
+    _setMenuItemState(_githubMenuItemCreatePublic, loggedIn && !hasId);
+    _setMenuItemState(_githubMenuItemCreatePrivate,
+        loggedIn && true); // let then create private gist without forking
+    _setMenuItemState(_githubMenuItemFork, loggedIn && hasId);
+    _setMenuItemState(_githubMenuItemUpdate, loggedIn && hasId);
+    _setMenuItemState(_githubMenuItemStar, loggedIn && hasId);
+    _setMenuItemState(_githubMenuItemComment, loggedIn && hasId);
   }
 
   void _updateMyGistMenuState() {
@@ -278,10 +220,6 @@ class GitHubUIController {
           .listen((e) => Playground.toggleMenu(_starredGistsMenu));
     }
   }
-
-  bool _prevAuthenticationState = false;
-
-  bool _inGithubAuthStateChangeHandler = false;
 
   void _handleGithubAuthStateChange(bool authenticated) {
     window.console.log('entering _handleGithubAuthStateChange()');
@@ -341,11 +279,6 @@ class GitHubUIController {
     window.console.log('leaving _handleGithubAuthStateChange()');
   }
 
-  // Get the base URL to use for the GH Authorization request from environment
-  //   (this is set in build.yaml)
-  static const String googleCloudRunUrl =
-      String.fromEnvironment('GH_AUTH_INIT_BASE_URL');
-
   void _attempToAquireGitHubToken() {
     // remember all of our current query params
     final Uri curUrl = Uri.parse(window.location.toString());
@@ -366,7 +299,7 @@ class GitHubUIController {
       // debug environment
       baseUrl = 'https://localhost:8080/initiate/';
     } else {
-      baseUrl = '$googleCloudRunUrl/initiate/';
+      baseUrl = '$_googleCloudRunUrl/initiate/';
     }
     final String redirectUrl =
         _githubAuthController.makeRandomSecureAuthInitiationUrl(baseUrl);
@@ -448,26 +381,6 @@ class GitHubUIController {
     window.location.href = url.toString();
   }
 
-  void setGithubMenuItemStates(GitHubAuthenticationController githubController,
-      MutableGist mutableGist) {
-    final bool hasId = mutableGist.hasId;
-    final bool loggedIn = githubController.userLogin.isNotEmpty;
-
-    window.console
-        .log('setGithubMenuItemStates  hasId=$hasId loggedIn=$loggedIn');
-
-    _setMenuItemState(githubMenuItemLogin, !loggedIn);
-    _setMenuItemState(githubMenuItemLogout, loggedIn);
-
-    _setMenuItemState(githubMenuItemCreatePublic, loggedIn && !hasId);
-    _setMenuItemState(githubMenuItemCreatePrivate,
-        loggedIn && true); // let then create private gist without forking
-    _setMenuItemState(githubMenuItemFork, loggedIn && hasId);
-    _setMenuItemState(githubMenuItemUpdate, loggedIn && hasId);
-    _setMenuItemState(githubMenuItemStar, loggedIn && hasId);
-    _setMenuItemState(githubMenuItemComment, loggedIn && hasId);
-  }
-
   void _setMenuItemState(LIElement menuitem, bool enabled) {
     if (enabled) {
       menuitem.classes.remove('mdc-list-item--disabled');
@@ -476,7 +389,7 @@ class GitHubUIController {
     }
   }
 
-  String truncateWithEllipsis(String text, int maxlength,
+  String _truncateWithEllipsis(String text, int maxlength,
       {String ellipsis = '...'}) {
     return (text.length < maxlength)
         ? text
@@ -502,7 +415,7 @@ class GitHubUIController {
           SpanElement()
             ..classes.add('mdc-list-item__text')
             ..setAttribute('title', '$menuTitle (${gist.id})')
-            ..text = truncateWithEllipsis(menuTitle, 24),
+            ..text = _truncateWithEllipsis(menuTitle, 24),
         ]);
         listElement.children.add(menuElement);
       }
@@ -535,8 +448,6 @@ class GitHubUIController {
     final List<Gist> starredGists = _githubAuthController.starredGistList;
 
     if (starredGists.isNotEmpty) {
-      //OBSOLETEStarredGistsList.addGists(starredGists);
-
       final listElement = _mdcList();
       element.children.add(listElement);
 
@@ -547,7 +458,7 @@ class GitHubUIController {
           SpanElement()
             ..classes.add('mdc-list-item__text')
             ..setAttribute('title', '$menuTitle (${gist.id})')
-            ..text = truncateWithEllipsis(menuTitle, 24),
+            ..text = _truncateWithEllipsis(menuTitle, 24),
         ]);
         listElement.children.add(menuElement);
       }
@@ -573,6 +484,94 @@ class GitHubUIController {
     return starredGistsMenu;
   }
 
+  /// This hides the star/not starred indicator (and toggle button)
+  /// This is called by playground when loading a new gist with no-known state
+  /// and it will reappear once correct state is known
+  void hideGistStarredButton() {
+    final SpanElement starUnstarButton =
+        querySelector('#gist_star_button') as SpanElement;
+    starUnstarButton.hidden = true;
+  }
+
+  void _starredButtonClickHandler(_) {
+    window.console.log('Star Unstar clicked!');
+    if (_starUnstarButton.hidden ||
+        !_playground.mutableGist.hasId ||
+        _gistIdOfLastStarredReport.isEmpty ||
+        _gistIdOfLastStarredReport != _playground.mutableGist.id) {
+      // do nothing, don't know state of current gist
+      return;
+    }
+    final String gistIdWeAreToggling = _gistIdOfLastStarredReport;
+    // clear until we report back (prevents another click until done)
+    _gistIdOfLastStarredReport = '';
+    if (!_starredStateOfLastStarReport) {
+      // immediately set state to where we think it's going, and we will update after we get
+      // verification from API
+      _setStateOfStarredButton(true);
+      gistLoader
+          .starGist(
+              gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken)
+          .then((_) {
+        getStarReportOnLoadingGist(gistIdWeAreToggling, true);
+        // now update our menus to reflect change in starred gists
+        _githubAuthController.updateUsersGistAndStarredGistsList();
+      });
+    } else {
+      // immediately set state to where we think it's going, and we will update after we get
+      // verification from API
+      _setStateOfStarredButton(false);
+      gistLoader
+          .unstarGist(
+              gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken)
+          .then((_) {
+        getStarReportOnLoadingGist(gistIdWeAreToggling, true);
+        // now update our menus to reflect change in starred gists
+        _githubAuthController.updateUsersGistAndStarredGistsList();
+      });
+    }
+  }
+
+  void _setStateOfStarredButton(bool starred) {
+    _starUnstarButton.hidden = false;
+    if (starred) {
+      // title bar gist star indicator
+      _starIconHolder.innerText = 'star';
+      _starUnstarButton.title = 'Click to Unstar this gist';
+      // menu item star gist action
+      _starMenuIconHolder.innerText = 'star_outline';
+      _starMenuItemText.innerText = 'Unstar Gist';
+    } else {
+      // title bar gist star indicator
+      _starIconHolder.innerText = 'star_outline';
+      _starUnstarButton.title = 'Click to Star this gist';
+      // menu item star gist action
+      _starMenuIconHolder.innerText = 'star';
+      _starMenuItemText.innerText = 'Star Gist';
+    }
+  }
+
+  /// Request a report on the state of this Gist's star status for the 
+  /// currently authenticated user, updates UI once known
+  void getStarReportOnLoadingGist(String gistId,
+      [bool dontHideStarButton = false]) {
+    if (!dontHideStarButton) hideGistStarredButton();
+    if (_githubAuthController.githubOAuthAccessToken.isNotEmpty &&
+        gistId.isNotEmpty) {
+      _gistIdOfLastStarredReport = '';
+      gistLoader
+          .checkIfGistIsStarred(
+              gistId, _githubAuthController.githubOAuthAccessToken)
+          .then((starred) {
+        window.console.log(
+            'check of STAR RETURNED On THEN  gistId=$gistId starred=$starred');
+        _gistIdOfLastStarredReport = gistId;
+        _starredStateOfLastStarReport = starred;
+        _setStateOfStarredButton(starred);
+      });
+    }
+  }
+
   UListElement _mdcList() => UListElement()
     ..classes.add('mdc-list')
     ..attributes.addAll({
@@ -593,8 +592,11 @@ class GitHubUIController {
   }
 }
 
-// This handles interacting with our authentication endpoint and
-// interacting with GitHub API endpoints for getting user info
+/// This handles interacting with our authentication initiation endpoint and
+/// interacting with GitHub API endpoints for getting user info.
+/// (The process of initiating and interacting with GitHub OAuth server
+/// must happen from the server.  Known secrets must be preserved there
+/// and cannot exist on the client side).
 class GitHubAuthenticationController {
   static const String _githubApiUrl = 'https://api.github.com';
   final Uri launchUri;
