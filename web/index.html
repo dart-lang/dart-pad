@@ -89,7 +89,9 @@
             Install SDK
         </button>
     </div>
-    <div id="header-name-holder"><div class="header-gist-name"></div><span id="gist_star_button" title="Star this gist"><i id="gist_star_inner_icon" class="material-icons mdc-button__icon" aria-hidden="true">star_outline</i></span></div>
+    <div id="header-name-holder"><div class="header-gist-name"></div>
+        <span id="unsaved-local-edit" title="Login to GitHub to save as gist" hidden>local edits</span>
+        <span id="gist_star_button" title="Star this gist" hidden><i id="gist_star_inner_icon" class="material-icons mdc-button__icon" aria-hidden="true">star_outline</i></span></div>
     <div>
         <button type="button" id="samples-dropdown-button" class="mdc-button">
             <span class="mdc-button__label">Samples</span>
@@ -129,7 +131,7 @@
                     </span>
                     <span class="mdc-list-item__text">Login to Github</span>
                 </li>
-                <li id="github-createpublic-item" class="mdc-list-item" role="menuitem">
+                <li id="github-createpublic-item" class="mdc-list-item" role="menuitem" title="Existing Gists must be forked or made private.">
                     <span class="mdc-list-item__graphic">
                         <i class="material-icons mdc-select__icon" tabindex="-1" role="button">post_add</i>
                     </span>

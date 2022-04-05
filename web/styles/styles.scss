@@ -383,6 +383,20 @@ a {
     margin-right: 14px;
 }
 
+#unsaved-local-edit {
+  display: inline-flex;
+  background-color: orangered;
+  color: white;
+  font-size: 10px;
+  /*line-height: 14px;*/
+  border-radius: 5px;
+  padding: 2px 4px;
+  /*vertical-align: middle;*/
+  height: 14px;
+  margin-top: 3px;
+  margin-right: 20px;
+}
+
 #github-menu-button {
   display: inline-block;
   background: url('../pictures/github_icon.svg') center no-repeat;
