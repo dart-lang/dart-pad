@@ -551,7 +551,7 @@ class GitHubUIController {
     }
   }
 
-  /// Request a report on the state of this Gist's star status for the 
+  /// Request a report on the state of this Gist's star status for the
   /// currently authenticated user, updates UI once known
   void getStarReportOnLoadingGist(String gistId,
       [bool dontHideStarButton = false]) {
