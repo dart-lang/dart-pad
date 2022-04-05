@@ -74,6 +74,7 @@ class MutableGist implements PropertyOwner {
   @override
   Property<String?> property(String name) => _MutableGistProperty(this, name);
 
+  /// Returns a deep copy of the current [Gist] this [MutableGist] wraps
   Gist createGist({String? summary}) {
     final gist = Gist(
         description: description,
