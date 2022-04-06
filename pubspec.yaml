@@ -26,7 +26,7 @@ dev_dependencies:
   async: ^2.9.0
   build_runner: ^2.0.4
   coverage: ^1.0.3
-  grinder: ^0.9.0
+  grinder: ^0.9.1
   lints: ^1.0.1
   package_config: ^2.0.2
   shelf_router_generator: ^1.0.0
