@@ -119,6 +119,10 @@ class GitHubUIController {
         case 6: //open on github
           window.open('https://gist.github.com/${_playground.mutableGist.id}',
               '_blank');
+          // and in 10 seconds check with github and update our my gists and starred menus
+          // This is just another wait to force a check with github to sync
+          // our menus up.  (the long delay in starred API results updating can be frustrating)
+          _githubAuthController.updateUsersGistAndStarredGistsList(starredCheckDelay:10000);
           break;
         case 7: //logout
           _githubAuthController.logoutUnauthenticate();
@@ -127,11 +131,11 @@ class GitHubUIController {
     });
   }
 
-  void setUnsavedLocalEdits(bool unsavedLocalEdits) {
-    final SpanElement unsavedLocalEditsSpan = querySelector('#unsaved-local-edit') as SpanElement;
-    // for now hard code the unsavedLocalEdits span to stay hidden
-    // we need more logic to do actual diffs against backing gist
-    if(true || unsavedLocalEdits) {
+  void setUnsavedLocalEdits([bool unsavedLocalEdits=false]) {
+    final SpanElement unsavedLocalEditsSpan =
+        querySelector('#unsaved-local-edit') as SpanElement;
+    unsavedLocalEdits = unsavedLocalEdits || _playground.mutableGist.dirty;
+    if (unsavedLocalEdits) {
       unsavedLocalEditsSpan.removeAttribute('hidden');
     } else {
       unsavedLocalEditsSpan.setAttribute('hidden', true);
@@ -144,7 +148,7 @@ class GitHubUIController {
         .listen((_) {
       window.console
           .log('setupGithubGistListeners mutableGist On Changed FIRED');
-      setUnsavedLocalEdits(true);
+      setUnsavedLocalEdits();
     });
     _playground.mutableGist.property('id').onChanged!.listen((_) {
       window.console.log('setupGithubGistListeners gist ID On Changed FIRED');
@@ -175,7 +179,7 @@ class GitHubUIController {
         .listen((_) {
       window.console.log('Title edited input event ${_titleElement.text}');
       _playground.mutableGist.description = _titleElement.text;
-      setUnsavedLocalEdits(true);
+      setUnsavedLocalEdits();
     });
   }
 
@@ -190,8 +194,10 @@ class GitHubUIController {
     _setMenuItemState(_githubMenuItemLogin, !loggedIn);
     _setMenuItemState(_githubMenuItemLogout, loggedIn);
 
-    _setMenuItemState(_githubMenuItemCreatePublic, loggedIn /*&& !hasId*/ ); // now let them create public without forking
-    _setMenuItemState(_githubMenuItemCreatePrivate, loggedIn ); // let then create private gist without forking
+    _setMenuItemState(_githubMenuItemCreatePublic,
+        loggedIn /*&& !hasId*/); // now let them create public without forking
+    _setMenuItemState(_githubMenuItemCreatePrivate,
+        loggedIn); // let then create private gist without forking
     _setMenuItemState(_githubMenuItemFork, loggedIn && hasId);
     _setMenuItemState(_githubMenuItemUpdate, loggedIn && hasId);
     _setMenuItemState(_githubMenuItemStar, loggedIn && hasId);
@@ -332,7 +338,7 @@ class GitHubUIController {
         _playground.showOutput('Got created Gist ID =$createdGistId');
         //queryParams.gistId = createdGistId;
         _reloadPageWithNewGistId(createdGistId);
-        setUnsavedLocalEdits(false);
+        setUnsavedLocalEdits();
         // now update our menus to reflect new gist
         _githubAuthController.updateUsersGistAndStarredGistsList();
       });
@@ -345,15 +351,22 @@ class GitHubUIController {
   void _updateGist() {
     final String token = _githubAuthController.githubOAuthAccessToken;
     if (token.isNotEmpty) {
+      final Gist clonedGist = _playground.mutableGist.createGist();
       gistLoader
-          .updateGist(_playground.mutableGist.createGist(), token)
+          .updateGist(clonedGist, token)
           .then((String updatedGistId) {
         //window.console.log('Got Updated Gist ID =$updatedGistId');
         //_playground.showOutput('Got Updated Gist ID =$updatedGistId');
-        setUnsavedLocalEdits(false);
+        setUnsavedLocalEdits();
         _playground.showSnackbar('Gist successfully updated');
         //queryParams.gistId = forkedGistId;
         //_reloadPageWithNewGistId(updatedGistId);
+
+        // update the backing gist because it is now in github
+        _playground.mutableGist.setBackingGist(clonedGist);
+
+        // now update our menus to reflect new gist (description could have changed)
+        _githubAuthController.updateUsersGistAndStarredGistsList();
       });
     } else {
       _playground.showSnackbar(
@@ -363,15 +376,26 @@ class GitHubUIController {
 
   void _forkGist() {
     final String token = _githubAuthController.githubOAuthAccessToken;
+    final bool unsavedLocalEdits = _playground.mutableGist.dirty;
     if (token.isNotEmpty) {
       gistLoader
-          .forkGist(_playground.mutableGist.createGist(), token)
+          .forkGist(_playground.mutableGist.createGist(), unsavedLocalEdits, token)
           .then((String forkedGistId) {
+
+        if(forkedGistId=='GIST_ALREADY_FORK') {
+          _playground.showSnackbar('Failed to fork gist - already a fork');
+          return;
+        } else if (forkedGistId=='GIST_NOT_FOUND') {
+          _playground.showSnackbar('Failed to fork gist - gist not found');
+          return;        
+        }
+
         //window.console.log('Got Forked Gist ID =$forkedGistId');
         //_playground.showOutput('Got forked Gist ID =$forkedGistId');
-        setUnsavedLocalEdits(false);
+        setUnsavedLocalEdits();
+
         _playground.showSnackbar(
-            'Gist successfully forked'); // This wont have time to show KLUDGE
+           unsavedLocalEdits ? 'Gist successfully forked and updated with local edits' : 'Gist successfully forked'); // This wont have time to show KLUDGE
 
         //queryParams.gistId = forkedGistId;
         _reloadPageWithNewGistId(forkedGistId);
@@ -408,15 +432,26 @@ class GitHubUIController {
         : text.replaceRange(maxlength, text.length, ellipsis);
   }
 
+  void _myGistMenuHandler(Event e) {
+    final index = (e as CustomEvent).detail['index'] as int;
+    window.console.log('My Gist #$index of ${_githubAuthController.myGistList.length} selected');
+    final List<Gist> mygists = _githubAuthController.myGistList;
+    if (index >= 0 && index <= mygists.length) {
+      final gistId = mygists.elementAt(index).id!;
+      _playground.showGist(gistId);
+    }
+  }
+
   MDCMenu _buildOrUpdateMyGistsMenu(MDCMenu? existingMenu) {
+    window.console.log('_buildOrUpdateMyGistsMenu() entered');
+    existingMenu?.destroy();
+
     final element = querySelector('#my-gists-menu')!;
     element.children.clear();
 
     final List<Gist> mygists = _githubAuthController.myGistList;
 
     if (mygists.isNotEmpty) {
-      //OBSDOLETEMyGistsList.addGists(mygists);
-
       final listElement = _mdcList();
       element.children.add(listElement);
 
@@ -433,27 +468,32 @@ class GitHubUIController {
       }
     }
 
-    final mygistsMenu = existingMenu ?? MDCMenu(element)
+    final mygistsMenu = MDCMenu(element)
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(_myGistsDropdownButton)
       ..hoistMenuToBody();
 
-    void menuHandler(Event e) {
-      final index = (e as CustomEvent).detail['index'] as int;
-      final List<Gist> mygists = _githubAuthController.myGistList;
-      if (index >= 0 && index <= mygists.length) {
-        final gistId = mygists.elementAt(index).id!;
-        _playground.showGist(gistId);
-      }
+    if (existingMenu == null) {
+      // only add the first time, tried unlisten() at top of each creation 
+      // but it did not work and resulted in multiple handlers
+      mygistsMenu.listen('MDCMenu:selected', _myGistMenuHandler);
     }
-
-    mygistsMenu.unlisten('MDCMenu:selected', menuHandler);
-    mygistsMenu.listen('MDCMenu:selected', menuHandler);
-
     return mygistsMenu;
   }
 
+  void _starredGistMenuHandler(Event e) {
+    final index = (e as CustomEvent).detail['index'] as int;
+    window.console.log('starred Gist #$index of ${_githubAuthController.starredGistList.length} selected');
+    final List<Gist> starredGists = _githubAuthController.starredGistList;
+    if (index >= 0 && index <= starredGists.length) {
+      final gistId = starredGists.elementAt(index).id!;
+      _playground.showGist(gistId);
+    }
+  }
+
   MDCMenu _buildOrUpdateStarredGistsMenu(MDCMenu? existingMenu) {
+    window.console.log('_buildOrUpdateStarredGistsMenu() entered');
+    existingMenu?.destroy();
     final element = querySelector('#starred-gists-menu')!;
     element.children.clear();
 
@@ -473,26 +513,20 @@ class GitHubUIController {
             ..text = _truncateWithEllipsis(menuTitle, 24),
         ]);
         listElement.children.add(menuElement);
+        window.console.log('Added starred item $menuTitle');
       }
     }
 
-    void menuHandler(Event e) {
-      final index = (e as CustomEvent).detail['index'] as int;
-      final List<Gist> starredGists = _githubAuthController.starredGistList;
-      if (index >= 0 && index <= starredGists.length) {
-        final gistId = starredGists.elementAt(index).id!;
-        _playground.showGist(gistId);
-      }
-    }
-
-    final starredGistsMenu = existingMenu ?? MDCMenu(element)
+    final starredGistsMenu = MDCMenu(element)
       ..setAnchorCorner(AnchorCorner.bottomLeft)
       ..setAnchorElement(_starredGistsDropdownButton)
       ..hoistMenuToBody();
 
-    starredGistsMenu.unlisten('MDCMenu:selected', menuHandler);
-    starredGistsMenu.listen('MDCMenu:selected', menuHandler);
-
+    if (existingMenu == null) {
+      // only add the first time, tried unlisten() at top of each creation 
+      // but it did not work and resulted in multiple handlers
+      starredGistsMenu.listen('MDCMenu:selected', _starredGistMenuHandler);
+    }
     return starredGistsMenu;
   }
 
@@ -525,9 +559,10 @@ class GitHubUIController {
           .starGist(
               gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken)
           .then((_) {
+        window.console.log('starGist.then()...');
         getStarReportOnLoadingGist(gistIdWeAreToggling, true);
         // now update our menus to reflect change in starred gists
-        _githubAuthController.updateUsersGistAndStarredGistsList();
+        _githubAuthController.updateUsersGistAndStarredGistsList(starredCheckDelay:60000);
       });
     } else {
       // immediately set state to where we think it's going, and we will update after we get
@@ -537,9 +572,10 @@ class GitHubUIController {
           .unstarGist(
               gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken)
           .then((_) {
+        window.console.log('unstarGist.then()...');
         getStarReportOnLoadingGist(gistIdWeAreToggling, true);
         // now update our menus to reflect change in starred gists
-        _githubAuthController.updateUsersGistAndStarredGistsList();
+        _githubAuthController.updateUsersGistAndStarredGistsList(starredCheckDelay:60000);
       });
     }
   }
@@ -595,7 +631,6 @@ class GitHubUIController {
   LIElement _mdcListItem({List<Element> children = const []}) {
     final element = LIElement()
       ..classes.add('mdc-list-item')
-      //KLUDGE..classes.add('channel-menu-list')
       ..attributes.addAll({'role': 'menuitem'});
     for (final child in children) {
       element.children.add(child);
@@ -714,18 +749,25 @@ class GitHubAuthenticationController {
 
   void postCreationFireAutheticatedStateChangeEvent() {
     _authenticatedStateChangeController.add(githubOAuthAccessToken != '');
-
     updateUsersGistAndStarredGistsList();
   }
 
-  void updateUsersGistAndStarredGistsList() {
+
+  Timer? starGistsChecklDelayTimer;
+
+  void updateUsersGistAndStarredGistsList({int starredCheckDelay=100}) {
     // Now go and get the lists of user's gists and starred gists
-    window.console
-        .log('updateUsersGistAndStarredGistsList calling getUsersGists');
+    window.console.log('updateUsersGistAndStarredGistsList calling getUsersGists');
     getUsersGists();
-    window.console
-        .log('updateUsersGistAndStarredGistsList calling getUsersStarredGists');
-    getUsersStarredGists();
+
+    // Github takes a while to update the returned list of starred gists
+    // after a star/unstar operation, so in those cases we wait
+    // and extra amount of time - 60seconds ? long enough?
+    starGistsChecklDelayTimer?.cancel();
+    starGistsChecklDelayTimer = Timer(Duration(milliseconds: starredCheckDelay), () {
+        window.console.log('updateUsersGistAndStarredGistsList calling getUsersStarredGists after waiting $starredCheckDelay milliseconds');
+        getUsersStarredGists();
+      });
   }
 
   void logoutUnauthenticate() {
@@ -782,15 +824,15 @@ class GitHubAuthenticationController {
     final String accessToken = githubOAuthAccessToken;
 
     window.console.log('getUserInfo  accessToken=$accessToken');
-      
+
     if (accessToken.isEmpty) return;
 
-    if(_pendingUserInfoRequest==accessToken) {
+    if (_pendingUserInfoRequest == accessToken) {
       // already processing a request
       window.console.log('getUserInfo DUPLICATE - skipping');
       return;
     }
-    _pendingUserInfoRequest=accessToken;
+    _pendingUserInfoRequest = accessToken;
 
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
@@ -798,14 +840,14 @@ class GitHubAuthenticationController {
       'accept': 'application/vnd.github.v3+json',
       'Authorization': 'token $accessToken'
     }).then((response) {
-      _pendingUserInfoRequest=null
-      ;
-      window.console.log('reponsestatusCode=${response.statusCode}');
+      _pendingUserInfoRequest = null;
+      window.console.log('getUserInfo() get reponsestatusCode=${response.statusCode}');
 
       if (response.statusCode == 404) {
         throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
       } else if (response.statusCode == 403) {
-        throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
       } else if (response.statusCode != 200) {
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       } else {
@@ -875,12 +917,12 @@ class GitHubAuthenticationController {
 
     if (accessToken.isEmpty) return;
 
-    if(_pendingUserGistRequest==accessToken) {
+    if (_pendingUserGistRequest == accessToken) {
       // already processing a request
       window.console.log('getUsersGists DUPLICATE - skipping');
       return;
     }
-    _pendingUserGistRequest=accessToken;
+    _pendingUserGistRequest = accessToken;
 
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
@@ -889,13 +931,14 @@ class GitHubAuthenticationController {
       'accept': 'application/vnd.github.v3+json',
       'Authorization': 'token $accessToken'
     }).then((response) {
-      _pendingUserGistRequest=null;
-      window.console.log('reponsestatusCode=${response.statusCode}');
+      _pendingUserGistRequest = null;
+      window.console.log('getUsersGists() reponsestatusCode=${response.statusCode}');
 
       if (response.statusCode == 404) {
         throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
       } else if (response.statusCode == 403) {
-        throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
       } else if (response.statusCode != 200) {
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       } else {
@@ -920,7 +963,7 @@ class GitHubAuthenticationController {
               _myGistList.add(gist);
             }
           }
-          //window.console.log('Gist WITH DART = _myGistList.length ${_myGistList.length}');
+          window.console.log('Gist WITH DART = _myGistList.length ${_myGistList.length}');
         }
         _myGistListUpdateController.add(null);
       }
@@ -943,12 +986,12 @@ class GitHubAuthenticationController {
 
     if (accessToken.isEmpty) return;
 
-    if(_pendingUserStarredGistRequest==accessToken) {
+    if (_pendingUserStarredGistRequest == accessToken) {
       // already processing a request
       window.console.log('getUsersStarredGists DUPLICATE - skipping');
       return;
     }
-    _pendingUserStarredGistRequest=accessToken;
+    _pendingUserStarredGistRequest = accessToken;
 
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
@@ -957,13 +1000,14 @@ class GitHubAuthenticationController {
       'accept': 'application/vnd.github.v3+json',
       'Authorization': 'token $accessToken'
     }).then((response) {
-      _pendingUserStarredGistRequest=null;
-      window.console.log('reponsestatusCode=${response.statusCode}');
+      _pendingUserStarredGistRequest = null;
+      window.console.log('getUsersStarredGists() reponsestatusCode=${response.statusCode}');
 
       if (response.statusCode == 404) {
         throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
       } else if (response.statusCode == 403) {
-        throw const GistLoaderException(GistLoaderFailureType.rateLimitExceeded);
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
       } else if (response.statusCode != 200) {
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       } else {
@@ -992,7 +1036,7 @@ class GitHubAuthenticationController {
               _starredGistList.add(gist);
             }
           }
-          //window.console.log('STARRED Gist WITH DART = _starredGistList.length ${_starredGistList.length}');
+          window.console.log('STARRED Gist WITH DART = _starredGistList.length ${_starredGistList.length}');
         }
         _starredGistListUpdateController.add(null);
       }

@@ -298,8 +298,8 @@ $styleRef$dartRef  </head>
             },
             body: bodydata)
         .then((http.Response response) {
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.contentLength}');
+      print('createGist() Response status: ${response.statusCode}');
+      print('createGist() Response body: ${response.contentLength}');
       print(response.headers);
       print(response.request);
       if (response.statusCode == 201) {
@@ -353,8 +353,8 @@ $styleRef$dartRef  </head>
             },
             body: bodydata)
         .then((http.Response response) {
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.contentLength}');
+      print('updateGist() Response status: ${response.statusCode}');
+      print('updateGist() Response body: ${response.contentLength}');
       print(response.headers);
       print(response.request);
       if (response.statusCode == 200) {
@@ -380,7 +380,7 @@ $styleRef$dartRef  </head>
         print('ID = ${retObj['id']}');
         return retObj['id'] as String;
       } else if (response.statusCode == 404) {
-        throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
+        return 'GIST_NOT_FOUND';
       } else if (response.statusCode == 403) {
         throw const GistLoaderException(
             GistLoaderFailureType.rateLimitExceeded);
@@ -388,6 +388,113 @@ $styleRef$dartRef  </head>
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       }
       return 'FAILED_TO_UPDATE';
+    });
+  }
+
+  /// Load the gist with the given id.
+  Future<String> forkGist(Gist gistToSave, bool localUnsavedEdits, String authenticationToken) async {
+    if (beforeSaveHook != null) beforeSaveHook!(gistToSave);
+
+    final String gistId = gistToSave.id ?? '';
+    if (gistId.isEmpty) {
+      // we have no gistId to fork from, so SAVE instead
+      return createGist(gistToSave, gistToSave.public, authenticationToken);
+    }
+
+    /*
+      POST /gists/{gist_id}/forks
+      Parameters
+      Name       Type       In       Description
+      accept    string   header     Setting toapplication/vnd.github.v3+json is recommended.
+      gist_id    string   path       gist_id parameter
+    */
+    return _client.post(
+      Uri.parse('$_gistApiUrl/$gistId/forks'),
+      headers: {
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+        if (authenticationToken.isNotEmpty)
+          'Authorization': 'Bearer $authenticationToken',
+      },
+      //body:bodydata
+    ).then((http.Response response) {
+      print('forkGist() Response status: ${response.statusCode}');
+      print('forkGist() Response body: ${response.contentLength}');
+      print(response.headers);
+      print(response.request);
+      if (response.statusCode == 201) {
+        /* example return
+       {
+          "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
+          "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
+          "commits_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/commits",
+          "id": "aa5a315d61ae9438b18d",
+          "node_id": "MDQ6R2lzdGFhNWEzMTVkNjFhZTk0MzhiMThk",
+          "git_pull_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+          "git_push_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+          "html_url": "https://gist.github.com/aa5a315d61ae9438b18d",
+          "files": {
+            "hello_world.rb": {
+              "filename": "hello_world.rb",
+              "type": "application/x-ruby",
+              "language": "Ruby",
+              "raw_url": "https://gist.githubusercontent.com/octocat/6cad326836d38bd3a7ae/raw/db9c55113504e46fa076e7df3a04ce592e2e86d8/hello_world.rb",
+              "size": 167
+            }
+          },
+          "public": true,
+          "created_at": "2010-04-14T02:15:15Z",
+          "updated_at": "2011-06-20T11:34:15Z",
+          "description": "Hello World Examples",
+          "comments": 0,
+          "user": null,
+          "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/",
+          "owner": {
+            "login": "octocat",
+            "id": 1,
+            "node_id": "MDQ6VXNlcjE=",
+            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/octocat",
+            "html_url": "https://github.com/octocat",
+            "followers_url": "https://api.github.com/users/octocat/followers",
+            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+            "organizations_url": "https://api.github.com/users/octocat/orgs",
+            "repos_url": "https://api.github.com/users/octocat/repos",
+            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/octocat/received_events",
+            "type": "User",
+            "site_admin": false
+          },
+          "truncated": false
+        }
+      */
+        print('FORKING WORKED!');
+        final retObj = jsonDecode(response.body);
+        print('Fork ID = ${retObj['id']}');
+        final String forkedGistId = retObj['id'] as String;
+
+        if(localUnsavedEdits) {
+          // There were UNSAVED local edits, so we also need to now
+          // UDPATE this new fork with those edits
+          final Gist forkedGist = gistToSave.cloneWithNewId(forkedGistId);
+          return updateGist(forkedGist,authenticationToken);
+        }
+        return forkedGistId;
+      } else if (response.statusCode == 422) {
+        return 'GIST_ALREADY_FORK';
+      } else if (response.statusCode == 404) {
+        return 'GIST_NOT_FOUND';
+      } else if (response.statusCode == 403) {
+        throw const GistLoaderException(
+            GistLoaderFailureType.rateLimitExceeded);
+      } else if (response.statusCode != 200) {
+        throw const GistLoaderException(GistLoaderFailureType.unknown);
+      }
+      return 'FAILED_TO_FORK';
     });
   }
 
@@ -535,103 +642,6 @@ $styleRef$dartRef  </head>
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       }
       return false;
-    });
-  }
-
-  /// Load the gist with the given id.
-  Future<String> forkGist(Gist gistToSave, String authenticationToken) async {
-    if (beforeSaveHook != null) beforeSaveHook!(gistToSave);
-
-    final String gistId = gistToSave.id ?? '';
-    if (gistId.isEmpty) {
-      // we have no gistId to fork from, so SAVE instead
-      return createGist(gistToSave, gistToSave.public, authenticationToken);
-    }
-
-    /*
-      POST /gists/{gist_id}/forks
-      Parameters
-      Name       Type       In       Description
-      accept    string   header     Setting toapplication/vnd.github.v3+json is recommended.
-      gist_id    string   path       gist_id parameter
-    */
-    return _client.post(
-      Uri.parse('$_gistApiUrl/$gistId/forks'),
-      headers: {
-        'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json',
-        if (authenticationToken.isNotEmpty)
-          'Authorization': 'Bearer $authenticationToken',
-      },
-      //body:bodydata
-    ).then((http.Response response) {
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.contentLength}');
-      print(response.headers);
-      print(response.request);
-      if (response.statusCode == 201) {
-        /* example return
-       {
-          "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
-          "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
-          "commits_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/commits",
-          "id": "aa5a315d61ae9438b18d",
-          "node_id": "MDQ6R2lzdGFhNWEzMTVkNjFhZTk0MzhiMThk",
-          "git_pull_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
-          "git_push_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
-          "html_url": "https://gist.github.com/aa5a315d61ae9438b18d",
-          "files": {
-            "hello_world.rb": {
-              "filename": "hello_world.rb",
-              "type": "application/x-ruby",
-              "language": "Ruby",
-              "raw_url": "https://gist.githubusercontent.com/octocat/6cad326836d38bd3a7ae/raw/db9c55113504e46fa076e7df3a04ce592e2e86d8/hello_world.rb",
-              "size": 167
-            }
-          },
-          "public": true,
-          "created_at": "2010-04-14T02:15:15Z",
-          "updated_at": "2011-06-20T11:34:15Z",
-          "description": "Hello World Examples",
-          "comments": 0,
-          "user": null,
-          "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/",
-          "owner": {
-            "login": "octocat",
-            "id": 1,
-            "node_id": "MDQ6VXNlcjE=",
-            "avatar_url": "https://github.com/images/error/octocat_happy.gif",
-            "gravatar_id": "",
-            "url": "https://api.github.com/users/octocat",
-            "html_url": "https://github.com/octocat",
-            "followers_url": "https://api.github.com/users/octocat/followers",
-            "following_url": "https://api.github.com/users/octocat/following{/other_user}",
-            "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
-            "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
-            "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
-            "organizations_url": "https://api.github.com/users/octocat/orgs",
-            "repos_url": "https://api.github.com/users/octocat/repos",
-            "events_url": "https://api.github.com/users/octocat/events{/privacy}",
-            "received_events_url": "https://api.github.com/users/octocat/received_events",
-            "type": "User",
-            "site_admin": false
-          },
-          "truncated": false
-        }
-      */
-        print('FORKING WORKED!');
-        final retObj = jsonDecode(response.body);
-        print('Fork ID = ${retObj['id']}');
-        return retObj['id'] as String;
-      } else if (response.statusCode == 404) {
-        throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
-      } else if (response.statusCode == 403) {
-        throw const GistLoaderException(
-            GistLoaderFailureType.rateLimitExceeded);
-      } else if (response.statusCode != 200) {
-        throw const GistLoaderException(GistLoaderFailureType.unknown);
-      }
-      return 'FAILED_TO_FORK';
     });
   }
 
@@ -854,6 +864,12 @@ class Gist {
   String toJson() => json.encode(toMap());
 
   Gist clone() => Gist.fromMap(json.decode(toJson()) as Map<String, dynamic>);
+
+  Gist cloneWithNewId(String newGistId) {
+    final Map<String, dynamic> map = toMap();
+    map['id'] = newGistId;
+    return Gist.fromMap(map);
+  }
 
   @override
   String toString() => id ?? '';

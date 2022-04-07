@@ -724,6 +724,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void showGist(String gistId) {
     clearOutput();
+    clearUI();
 
     if (!isLegalGistId(gistId)) {
       showHome();
@@ -846,6 +847,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _rightConsole.clear();
     _leftConsole.clear();
     _unreadConsoleCounter.clear();
+  }
+
+  void clearUI() {
+    executionService.replaceHtml('');
   }
 
   @override
