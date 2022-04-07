@@ -317,7 +317,14 @@ class GitHubUIController {
       // debug environment
       baseUrl = 'https://localhost:8080/initiate/';
     } else {
-      baseUrl = '$_googleCloudRunUrl/initiate/';
+      // check for build.yaml value making it in
+      String  googleCloudRunUrl=_googleCloudRunUrl;
+      if(googleCloudRunUrl.isEmpty) {
+        window.console.log('ERROR - missing GH_AUTH_INIT_BASE_URL define in build.yaml !!!');
+        window.console.log('defaulting to tims gcloud instance !!!');
+        googleCloudRunUrl='https://githubauth-brsyns7rna-uw.a.run.app';
+      }
+      baseUrl = '$googleCloudRunUrl/initiate/';
     }
     final String redirectUrl =
         _githubAuthController.makeRandomSecureAuthInitiationUrl(baseUrl);
@@ -513,7 +520,6 @@ class GitHubUIController {
             ..text = _truncateWithEllipsis(menuTitle, 24),
         ]);
         listElement.children.add(menuElement);
-        window.console.log('Added starred item $menuTitle');
       }
     }
 
