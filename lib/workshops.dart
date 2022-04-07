@@ -293,6 +293,7 @@ class WorkshopUi extends EditorUi {
       }
     });
     _workshopState.onStepChanged.listen((event) {
+      _clearUIOutput();
       _updateInstructions();
       _updateStepButtons();
       _updateCode();
@@ -352,6 +353,11 @@ class WorkshopUi extends EditorUi {
 
   void _updateCode() {
     editor.document.updateValue(_workshopState.currentStep.snippet);
+  }
+
+  void _clearUIOutput() {
+    tabExpandController.showCode();
+    executionService.replaceHtml('');
   }
 
   void _updateInstructions() {

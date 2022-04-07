@@ -95,6 +95,10 @@ class TabExpandController {
     }
   }
 
+  void showCode() {
+    _hidePanel();
+  }
+
   void toggleIframe() {
     switch (_state) {
       case TabState.closed:
