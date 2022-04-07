@@ -392,7 +392,8 @@ $styleRef$dartRef  </head>
   }
 
   /// Load the gist with the given id.
-  Future<String> forkGist(Gist gistToSave, bool localUnsavedEdits, String authenticationToken) async {
+  Future<String> forkGist(Gist gistToSave, bool localUnsavedEdits,
+      String authenticationToken) async {
     if (beforeSaveHook != null) beforeSaveHook!(gistToSave);
 
     final String gistId = gistToSave.id ?? '';
@@ -477,11 +478,11 @@ $styleRef$dartRef  </head>
         print('Fork ID = ${retObj['id']}');
         final String forkedGistId = retObj['id'] as String;
 
-        if(localUnsavedEdits) {
+        if (localUnsavedEdits) {
           // There were UNSAVED local edits, so we also need to now
           // UDPATE this new fork with those edits
           final Gist forkedGist = gistToSave.cloneWithNewId(forkedGistId);
-          return updateGist(forkedGist,authenticationToken);
+          return updateGist(forkedGist, authenticationToken);
         }
         return forkedGistId;
       } else if (response.statusCode == 422) {

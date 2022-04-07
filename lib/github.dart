@@ -122,7 +122,8 @@ class GitHubUIController {
           // and in 10 seconds check with github and update our my gists and starred menus
           // This is just another wait to force a check with github to sync
           // our menus up.  (the long delay in starred API results updating can be frustrating)
-          _githubAuthController.updateUsersGistAndStarredGistsList(starredCheckDelay:10000);
+          _githubAuthController.updateUsersGistAndStarredGistsList(
+              starredCheckDelay: 10000);
           break;
         case 7: //logout
           _githubAuthController.logoutUnauthenticate();
@@ -131,7 +132,7 @@ class GitHubUIController {
     });
   }
 
-  void setUnsavedLocalEdits([bool unsavedLocalEdits=false]) {
+  void setUnsavedLocalEdits([bool unsavedLocalEdits = false]) {
     final SpanElement unsavedLocalEditsSpan =
         querySelector('#unsaved-local-edit') as SpanElement;
     unsavedLocalEdits = unsavedLocalEdits || _playground.mutableGist.dirty;
@@ -318,11 +319,12 @@ class GitHubUIController {
       baseUrl = 'https://localhost:8080/initiate/';
     } else {
       // check for build.yaml value making it in
-      String  googleCloudRunUrl=_googleCloudRunUrl;
-      if(googleCloudRunUrl.isEmpty) {
-        window.console.log('ERROR - missing GH_AUTH_INIT_BASE_URL define in build.yaml !!!');
+      String googleCloudRunUrl = _googleCloudRunUrl;
+      if (googleCloudRunUrl.isEmpty) {
+        window.console.log(
+            'ERROR - missing GH_AUTH_INIT_BASE_URL define in build.yaml !!!');
         window.console.log('defaulting to tims gcloud instance !!!');
-        googleCloudRunUrl='https://githubauth-brsyns7rna-uw.a.run.app';
+        googleCloudRunUrl = 'https://githubauth-brsyns7rna-uw.a.run.app';
       }
       baseUrl = '$googleCloudRunUrl/initiate/';
     }
@@ -359,9 +361,7 @@ class GitHubUIController {
     final String token = _githubAuthController.githubOAuthAccessToken;
     if (token.isNotEmpty) {
       final Gist clonedGist = _playground.mutableGist.createGist();
-      gistLoader
-          .updateGist(clonedGist, token)
-          .then((String updatedGistId) {
+      gistLoader.updateGist(clonedGist, token).then((String updatedGistId) {
         //window.console.log('Got Updated Gist ID =$updatedGistId');
         //_playground.showOutput('Got Updated Gist ID =$updatedGistId');
         setUnsavedLocalEdits();
@@ -386,23 +386,24 @@ class GitHubUIController {
     final bool unsavedLocalEdits = _playground.mutableGist.dirty;
     if (token.isNotEmpty) {
       gistLoader
-          .forkGist(_playground.mutableGist.createGist(), unsavedLocalEdits, token)
+          .forkGist(
+              _playground.mutableGist.createGist(), unsavedLocalEdits, token)
           .then((String forkedGistId) {
-
-        if(forkedGistId=='GIST_ALREADY_FORK') {
+        if (forkedGistId == 'GIST_ALREADY_FORK') {
           _playground.showSnackbar('Failed to fork gist - already a fork');
           return;
-        } else if (forkedGistId=='GIST_NOT_FOUND') {
+        } else if (forkedGistId == 'GIST_NOT_FOUND') {
           _playground.showSnackbar('Failed to fork gist - gist not found');
-          return;        
+          return;
         }
 
         //window.console.log('Got Forked Gist ID =$forkedGistId');
         //_playground.showOutput('Got forked Gist ID =$forkedGistId');
         setUnsavedLocalEdits();
 
-        _playground.showSnackbar(
-           unsavedLocalEdits ? 'Gist successfully forked and updated with local edits' : 'Gist successfully forked'); // This wont have time to show KLUDGE
+        _playground.showSnackbar(unsavedLocalEdits
+            ? 'Gist successfully forked and updated with local edits'
+            : 'Gist successfully forked'); // This wont have time to show KLUDGE
 
         //queryParams.gistId = forkedGistId;
         _reloadPageWithNewGistId(forkedGistId);
@@ -441,7 +442,8 @@ class GitHubUIController {
 
   void _myGistMenuHandler(Event e) {
     final index = (e as CustomEvent).detail['index'] as int;
-    window.console.log('My Gist #$index of ${_githubAuthController.myGistList.length} selected');
+    window.console.log(
+        'My Gist #$index of ${_githubAuthController.myGistList.length} selected');
     final List<Gist> mygists = _githubAuthController.myGistList;
     if (index >= 0 && index <= mygists.length) {
       final gistId = mygists.elementAt(index).id!;
@@ -481,7 +483,7 @@ class GitHubUIController {
       ..hoistMenuToBody();
 
     if (existingMenu == null) {
-      // only add the first time, tried unlisten() at top of each creation 
+      // only add the first time, tried unlisten() at top of each creation
       // but it did not work and resulted in multiple handlers
       mygistsMenu.listen('MDCMenu:selected', _myGistMenuHandler);
     }
@@ -490,7 +492,8 @@ class GitHubUIController {
 
   void _starredGistMenuHandler(Event e) {
     final index = (e as CustomEvent).detail['index'] as int;
-    window.console.log('starred Gist #$index of ${_githubAuthController.starredGistList.length} selected');
+    window.console.log(
+        'starred Gist #$index of ${_githubAuthController.starredGistList.length} selected');
     final List<Gist> starredGists = _githubAuthController.starredGistList;
     if (index >= 0 && index <= starredGists.length) {
       final gistId = starredGists.elementAt(index).id!;
@@ -529,7 +532,7 @@ class GitHubUIController {
       ..hoistMenuToBody();
 
     if (existingMenu == null) {
-      // only add the first time, tried unlisten() at top of each creation 
+      // only add the first time, tried unlisten() at top of each creation
       // but it did not work and resulted in multiple handlers
       starredGistsMenu.listen('MDCMenu:selected', _starredGistMenuHandler);
     }
@@ -568,7 +571,8 @@ class GitHubUIController {
         window.console.log('starGist.then()...');
         getStarReportOnLoadingGist(gistIdWeAreToggling, true);
         // now update our menus to reflect change in starred gists
-        _githubAuthController.updateUsersGistAndStarredGistsList(starredCheckDelay:60000);
+        _githubAuthController.updateUsersGistAndStarredGistsList(
+            starredCheckDelay: 60000);
       });
     } else {
       // immediately set state to where we think it's going, and we will update after we get
@@ -581,7 +585,8 @@ class GitHubUIController {
         window.console.log('unstarGist.then()...');
         getStarReportOnLoadingGist(gistIdWeAreToggling, true);
         // now update our menus to reflect change in starred gists
-        _githubAuthController.updateUsersGistAndStarredGistsList(starredCheckDelay:60000);
+        _githubAuthController.updateUsersGistAndStarredGistsList(
+            starredCheckDelay: 60000);
       });
     }
   }
@@ -758,22 +763,24 @@ class GitHubAuthenticationController {
     updateUsersGistAndStarredGistsList();
   }
 
-
   Timer? starGistsChecklDelayTimer;
 
-  void updateUsersGistAndStarredGistsList({int starredCheckDelay=100}) {
+  void updateUsersGistAndStarredGistsList({int starredCheckDelay = 100}) {
     // Now go and get the lists of user's gists and starred gists
-    window.console.log('updateUsersGistAndStarredGistsList calling getUsersGists');
+    window.console
+        .log('updateUsersGistAndStarredGistsList calling getUsersGists');
     getUsersGists();
 
     // Github takes a while to update the returned list of starred gists
     // after a star/unstar operation, so in those cases we wait
     // and extra amount of time - 60seconds ? long enough?
     starGistsChecklDelayTimer?.cancel();
-    starGistsChecklDelayTimer = Timer(Duration(milliseconds: starredCheckDelay), () {
-        window.console.log('updateUsersGistAndStarredGistsList calling getUsersStarredGists after waiting $starredCheckDelay milliseconds');
-        getUsersStarredGists();
-      });
+    starGistsChecklDelayTimer =
+        Timer(Duration(milliseconds: starredCheckDelay), () {
+      window.console.log(
+          'updateUsersGistAndStarredGistsList calling getUsersStarredGists after waiting $starredCheckDelay milliseconds');
+      getUsersStarredGists();
+    });
   }
 
   void logoutUnauthenticate() {
@@ -847,7 +854,8 @@ class GitHubAuthenticationController {
       'Authorization': 'token $accessToken'
     }).then((response) {
       _pendingUserInfoRequest = null;
-      window.console.log('getUserInfo() get reponsestatusCode=${response.statusCode}');
+      window.console
+          .log('getUserInfo() get reponsestatusCode=${response.statusCode}');
 
       if (response.statusCode == 404) {
         throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -938,7 +946,8 @@ class GitHubAuthenticationController {
       'Authorization': 'token $accessToken'
     }).then((response) {
       _pendingUserGistRequest = null;
-      window.console.log('getUsersGists() reponsestatusCode=${response.statusCode}');
+      window.console
+          .log('getUsersGists() reponsestatusCode=${response.statusCode}');
 
       if (response.statusCode == 404) {
         throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -969,7 +978,8 @@ class GitHubAuthenticationController {
               _myGistList.add(gist);
             }
           }
-          window.console.log('Gist WITH DART = _myGistList.length ${_myGistList.length}');
+          window.console
+              .log('Gist WITH DART = _myGistList.length ${_myGistList.length}');
         }
         _myGistListUpdateController.add(null);
       }
@@ -1007,7 +1017,8 @@ class GitHubAuthenticationController {
       'Authorization': 'token $accessToken'
     }).then((response) {
       _pendingUserStarredGistRequest = null;
-      window.console.log('getUsersStarredGists() reponsestatusCode=${response.statusCode}');
+      window.console.log(
+          'getUsersStarredGists() reponsestatusCode=${response.statusCode}');
 
       if (response.statusCode == 404) {
         throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -1042,7 +1053,8 @@ class GitHubAuthenticationController {
               _starredGistList.add(gist);
             }
           }
-          window.console.log('STARRED Gist WITH DART = _starredGistList.length ${_starredGistList.length}');
+          window.console.log(
+              'STARRED Gist WITH DART = _starredGistList.length ${_starredGistList.length}');
         }
         _starredGistListUpdateController.add(null);
       }
