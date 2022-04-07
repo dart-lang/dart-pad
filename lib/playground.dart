@@ -6,6 +6,7 @@ library playground;
 
 import 'dart:async';
 import 'dart:html' hide Console;
+
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
@@ -250,8 +251,6 @@ class Playground extends EditorUi implements GistContainer, GistController {
       Sample('d3bd83918d21b6d5f778bdc69c3d36d6', 'Fibonacci', Layout.dart),
       Sample('4a68e553746602d851ab3da6aeafc3dd', 'HTTP requests', Layout.dart),
     ];
-
-    BuiltInSamplesList.addSamples(samples);
 
     final listElement = _mdcList();
     element.children.add(listElement);
@@ -1167,76 +1166,6 @@ class NewPadDialog {
   }
 }
 
-class BuiltInSamplesList {
-  static List<Sample> builtinSamples = [];
-
-  static void addSample(final Sample sample) {
-    builtinSamples.add(sample);
-  }
-
-  static void addSamples(final List<Sample> samples) {
-    for (final sample in samples) {
-      builtinSamples.add(sample);
-    }
-  }
-
-  static bool isGistIDFromBuiltinSamples(final String gistId) {
-    for (final sample in builtinSamples) {
-      if (gistId == sample.gistId) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
-
-/*
-class MyGistsList {
-  static List<Gist> myGistsList = [];
-
-  static void addGist(final Gist gist) {
-    myGistsList.add(gist);
-  }
-
-  static void addGists(final List<Gist> gistlist) {
-    for (final gist in gistlist) {
-      myGistsList.add(gist);
-    }
-  }
-
-  static bool isGistIDFromMyGists(final String gistId) {
-    for (final gist in myGistsList) {
-      if (gistId == gist.id) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
-
-class StarredGistsList {
-  static List<Gist> starredGistsList = [];
-
-  static void addGist(final Gist gist) {
-    starredGistsList.add(gist);
-  }
-
-  static void addGists(final List<Gist> gistlist) {
-    for (final gist in gistlist) {
-      starredGistsList.add(gist);
-    }
-  }
-
-  static bool isGistIDFromMyGists(final String gistId) {
-    for (final gist in starredGistsList) {
-      if (gistId == gist.id) {
-        return true;
-      }
-    }
-    return false;
-  }
-}
-*/
 class Sample {
   final String gistId;
   final String name;
