@@ -29,7 +29,7 @@ dev_dependencies:
   build_test: ^2.0.0
   build_web_compilers: ^3.0.0
   git: ^2.0.0
-  grinder: ^0.9.0
+  grinder: ^0.9.1
   json_serializable: ^6.0.1
   lints: ^1.0.0
   shelf: ^1.0.0
