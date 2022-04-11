@@ -34,7 +34,7 @@ dev_dependencies:
   lints: ^1.0.0
   shelf: ^1.0.0
   shelf_static: ^1.0.0
-  test: ^1.15.7
+  test: ^1.20.2
   webdriver: ^3.0.0
 
 # waiting for the next material-components-web release.
