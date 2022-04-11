@@ -11,7 +11,7 @@ dependencies:
   fluttering_phrases: ^0.3.1
   html_unescape: ^2.0.0
   http: ^0.13.0
-  js: ^0.6.0
+  js: ^0.6.4
   json_annotation: ^4.3.0
   logging: ^1.0.0
   markdown: ^5.0.0
