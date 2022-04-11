@@ -289,6 +289,13 @@ class Embed extends EditorUi {
         result.messages,
         result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
       );
+      if (result.success) {
+        window.parent?.postMessage({
+          'action': 'taskCompleted',
+          'recommendedReward': 'dash-hat',
+          'callbackId': 'string',
+        }, '*');
+      }
       ga.sendEvent(
           'execution', (result.success) ? 'test-success' : 'test-failure');
     });
