@@ -91,7 +91,7 @@ class TabExpandController {
       toggleIframe();
     }
     if (maximize) {
-      _splitter.collapse(0);
+      _splitter.setSizes([40, 60]);
     }
   }
 
