@@ -329,7 +329,7 @@ packages:
       name: json_serializable
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "6.1.3"
+    version: "6.1.6"
   lints:
     dependency: "direct dev"
     description:
