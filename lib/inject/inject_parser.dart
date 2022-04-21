@@ -81,10 +81,11 @@ class DartPadInjectException implements Exception {
 
 /// Parses the dartpad CSS class names to extract.
 class LanguageStringParser {
-  final String input;
-  final RegExp _validExp =
+  static final RegExp _validExp =
       RegExp(r'[a-z-]*(run|start|end)-dartpad(:?[a-z-]*)+');
-  late final RegExp _optionsExp = RegExp(r':([a-z_]*)-([a-z0-9%_.]*)');
+  static final RegExp _optionsExp = RegExp(r':([a-z_]*)-([a-z0-9%_.]*)');
+
+  final String input;
   late final RegExpMatch? _validMatch = _validExp.firstMatch(input);
   late final String? _type = _validMatch?.group(1);
 
