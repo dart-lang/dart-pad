@@ -10,29 +10,55 @@ import 'package:logging/logging.dart';
 import '../util/logging.dart';
 import 'inject_parser.dart';
 
-Logger _logger = Logger('dartpad-embed');
+final Logger _logger = Logger('dartpad-embed');
 
 // Use this prefix for local development:
 //var iframePrefix = '../';
 var iframePrefix = 'https://dartpad.dev/';
 
+final HtmlUnescape _htmlUnescape = HtmlUnescape();
+
 /// Replaces all code snippets marked with the 'run-dartpad' class with an
 /// instance of DartPad.
 void main() {
   _logger.onRecord.listen(logToJsConsole);
-  final snippets = querySelectorAll('code');
-  for (final snippet in snippets) {
+  final snippets = querySelectorAll('code').iterator;
+  while (snippets.moveNext()) {
+    final snippet = snippets.current;
     if (snippet.classes.isEmpty) {
       continue;
     }
 
     final className = snippet.classes.first;
     final parser = LanguageStringParser(className);
-    if (!parser.isValid) {
-      continue;
-    }
+    final parserOptions = parser.options;
+    if (parser.isRange) {
+      final rangeSnippets = [snippet];
+      final rangeOptions = [parserOptions];
+      var endFound = false;
+      while (snippets.moveNext() && !parser.isEnd) {
+        final rangedSnippet = snippets.current;
+        final rangedParser = LanguageStringParser(rangedSnippet.classes.first);
+        rangeSnippets.add(rangedSnippet);
+        rangeOptions.add(rangedParser.options);
+        if (parser.isEnd) {
+          endFound = true;
+          break;
+        }
+      }
 
-    _injectEmbed(snippet, parser.options);
+      if (!endFound) {
+        throw DartPadInjectException(
+            "Cannot find closing snippet with 'run-dartpad-end' class.");
+      }
+      _injectRangedEmbed(snippet, parserOptions, rangeSnippets, rangeOptions);
+    } else {
+      if (!parser.isValid) {
+        continue;
+      }
+
+      _injectEmbed(snippet, parserOptions);
+    }
   }
 }
 
@@ -57,12 +83,12 @@ String? _valueOr(Map<String, String> map, String value, String defaultValue) {
   return defaultValue;
 }
 
-/// Replaces [host] with an instance of DartPad as an embedded iframe.
+/// Replaces [snippet] with an instance of DartPad as an embedded iframe.
 ///
 /// Code snippets are assumed to be a div containing `pre` and `code` tags:
 ///
 /// <pre>
-///   <code class="run-dartpad langauge-run-dartpad">
+///   <code class="run-dartpad language-run-dartpad">
 ///     void main() => print("Hello, World!");
 ///   </code>
 /// </pre>
@@ -78,7 +104,7 @@ void _injectEmbed(Element snippet, Map<String, String> options) {
     return;
   }
 
-  final files = _parseFiles(HtmlUnescape().convert(snippet.innerHtml!));
+  final files = _parseFiles(_htmlUnescape.convert(snippet.innerHtml!));
 
   final hostIndex = preElement.parent!.children.indexOf(preElement);
   final host = DivElement();
@@ -89,6 +115,56 @@ void _injectEmbed(Element snippet, Map<String, String> options) {
 
 Map<String, String> _parseFiles(String snippet) {
   return InjectParser(snippet).read();
+}
+
+/// Replaces [firstSnippet] with an instance of DartPad as an embedded iframe
+/// using the files from the following snippets.
+void _injectRangedEmbed(Element firstSnippet, Map<String, String> firstOptions,
+    List<Element> snippets, List<Map<String, String>> options) {
+  if (snippets.length != options.length) {
+    _logUnexpectedHtml();
+    return;
+  }
+
+  final preElement = firstSnippet.parent;
+  if (preElement is! PreElement) {
+    _logUnexpectedHtml();
+    return;
+  }
+
+  final Map<String, String> files = {};
+
+  for (int i = 0; i < snippets.length; i++) {
+    final snippet = snippets[i];
+    final snippetName = options[i]['name'];
+    if (snippetName == null) {
+      throw DartPadInjectException(
+          'A ranged dartpad-embed snippet is missing a name option.');
+    }
+
+    final preElement = snippet.parent;
+    if (preElement is! PreElement) {
+      _logUnexpectedHtml();
+      return;
+    }
+
+    if (preElement.children.length != 1) {
+      _logUnexpectedHtml();
+      return;
+    }
+
+    files[snippetName] = _htmlUnescape.convert(snippet.innerHtml!);
+
+    snippet.parent!.remove();
+  }
+
+  final firstSiblings = preElement.parent!.children;
+
+  final hostIndex = firstSiblings.indexOf(preElement);
+  final host = DivElement();
+
+  firstSiblings[hostIndex] = host;
+  InjectedEmbed(host, files, firstOptions);
 }
 
 /// Clears children in [host], instantiates an iframe, and sends it a message

@@ -79,17 +79,23 @@ class DartPadInjectException implements Exception {
   String toString() => '$message';
 }
 
-/// Parses the dartpad CSS class names to extract
+/// Parses the dartpad CSS class names to extract.
 class LanguageStringParser {
   final String input;
-  final RegExp _validExp = RegExp(r'[a-z-]*run-dartpad(:?[a-z-]*)+');
-  final RegExp _optionsExp = RegExp(r':([a-z_]*)-([a-z0-9%_]*)');
+  final RegExp _validExp =
+      RegExp(r'[a-z-]*run-dartpad(-start)?(-end)?(:?[a-z-]*)+');
+  late final RegExp _optionsExp = RegExp(r':([a-z_]*)-([a-z0-9%_]*)');
+  late final RegExpMatch? _validMatch = _validExp.firstMatch(input);
+  late final bool isStart = _validMatch?.group(1) == 'start';
+  late final bool isEnd = _validMatch?.group(2) == 'end';
 
   LanguageStringParser(this.input);
 
-  bool get isValid {
-    return _validExp.hasMatch(input);
-  }
+  /// If this is a valid 'run-dartpad' code snippet
+  bool get isValid => _validMatch != null;
+
+  /// If this is the start or end of range based snippet
+  bool get isRange => isStart || isEnd;
 
   Map<String, String> get options {
     final opts = <String, String>{};
