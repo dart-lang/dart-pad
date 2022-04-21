@@ -98,7 +98,7 @@ packages:
       name: build_web_compilers
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.2.2"
+    version: "3.2.3"
   built_collection:
     dependency: transitive
     description:
