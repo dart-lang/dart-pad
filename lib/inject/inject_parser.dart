@@ -83,25 +83,26 @@ class DartPadInjectException implements Exception {
 class LanguageStringParser {
   final String input;
   final RegExp _validExp =
-      RegExp(r'[a-z-]*run-dartpad(-start)?(-end)?(:?[a-z-]*)+');
-  late final RegExp _optionsExp = RegExp(r':([a-z_]*)-([a-z0-9%_]*)');
+      RegExp(r'[a-z-]*(run|start|end)-dartpad(:?[a-z-]*)+');
+  late final RegExp _optionsExp = RegExp(r':([a-z_]*)-([a-z0-9%_.]*)');
   late final RegExpMatch? _validMatch = _validExp.firstMatch(input);
-  late final bool isStart = _validMatch?.group(1) == 'start';
-  late final bool isEnd = _validMatch?.group(2) == 'end';
+  late final String? _type = _validMatch?.group(1);
 
   LanguageStringParser(this.input);
 
   /// If this is a valid 'run-dartpad' code snippet
   bool get isValid => _validMatch != null;
 
-  /// If this is the start or end of range based snippet
-  bool get isRange => isStart || isEnd;
+  /// If this is the start of a multi-snippet embed
+  bool get isStart => _type == 'start';
 
+  /// If this is the end of a multi-snippet embed
+  bool get isEnd => _type == 'end';
+
+  /// Gets specified options,
+  /// even if this snippet is invalid.
   Map<String, String> get options {
     final opts = <String, String>{};
-    if (!isValid) {
-      return opts;
-    }
 
     final matches = _optionsExp.allMatches(input);
     for (final match in matches) {

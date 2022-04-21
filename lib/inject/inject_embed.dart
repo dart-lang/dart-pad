@@ -32,16 +32,20 @@ void main() {
     final className = snippet.classes.first;
     final parser = LanguageStringParser(className);
     final parserOptions = parser.options;
-    if (parser.isRange) {
+
+    // If this is the start of a multi-snippet embed ('start-dartpad')
+    // loop through remaining snippets
+    // until the last one is found ('end-dartpad').
+    if (parser.isValid && parser.isStart) {
       final rangeSnippets = [snippet];
       final rangeOptions = [parserOptions];
       var endFound = false;
-      while (snippets.moveNext() && !parser.isEnd) {
+      while (snippets.moveNext()) {
         final rangedSnippet = snippets.current;
         final rangedParser = LanguageStringParser(rangedSnippet.classes.first);
         rangeSnippets.add(rangedSnippet);
         rangeOptions.add(rangedParser.options);
-        if (parser.isEnd) {
+        if (rangedParser.isEnd) {
           endFound = true;
           break;
         }
@@ -49,8 +53,9 @@ void main() {
 
       if (!endFound) {
         throw DartPadInjectException(
-            "Cannot find closing snippet with 'run-dartpad-end' class.");
+            "Cannot find closing snippet with 'end-dartpad' class.");
       }
+
       _injectRangedEmbed(snippet, parserOptions, rangeSnippets, rangeOptions);
     } else {
       if (!parser.isValid) {
@@ -139,7 +144,7 @@ void _injectRangedEmbed(Element firstSnippet, Map<String, String> firstOptions,
     final snippetName = options[i]['name'];
     if (snippetName == null) {
       throw DartPadInjectException(
-          'A ranged dartpad-embed snippet is missing a name option.');
+          'A ranged dartpad-embed ranged snippet is missing a name option.');
     }
 
     final preElement = snippet.parent;
@@ -155,15 +160,17 @@ void _injectRangedEmbed(Element firstSnippet, Map<String, String> firstOptions,
 
     files[snippetName] = _htmlUnescape.convert(snippet.innerHtml!);
 
-    snippet.parent!.remove();
+    if (i != 0) {
+      snippet.parent!.remove();
+    }
   }
 
   final firstSiblings = preElement.parent!.children;
-
   final hostIndex = firstSiblings.indexOf(preElement);
-  final host = DivElement();
 
+  final host = DivElement();
   firstSiblings[hostIndex] = host;
+
   InjectedEmbed(host, files, firstOptions);
 }
 
