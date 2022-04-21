@@ -141,10 +141,10 @@ void _injectRangedEmbed(Element firstSnippet, Map<String, String> firstOptions,
 
   for (int i = 0; i < snippets.length; i++) {
     final snippet = snippets[i];
-    final snippetName = options[i]['name'];
+    final snippetName = options[i]['file'];
     if (snippetName == null) {
       throw DartPadInjectException(
-          'A ranged dartpad-embed ranged snippet is missing a name option.');
+          "A ranged dartpad-embed ranged snippet is missing a 'file-' option.");
     }
 
     final preElement = snippet.parent;
