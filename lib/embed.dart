@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:html' hide Document, Console;
 import 'dart:math' as math;
 
+import 'package:markdown/markdown.dart' as markdown;
 import 'package:mdc_web/mdc_web.dart';
 import 'package:split/split.dart';
 
@@ -15,6 +16,7 @@ import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
+import 'documentation.dart';
 import 'editing/codemirror_options.dart';
 import 'editing/editor_codemirror.dart';
 import 'elements/analysis_results_controller.dart';
@@ -196,7 +198,14 @@ class Embed extends EditorUi {
 
     showHintButton = MDCButton(querySelector('#show-hint') as ButtonElement)
       ..onClick.listen((_) {
-        final hintElement = DivElement()..text = context.hint;
+        final hintElement = DivElement();
+        print('${context.markdownHint}   |    ${context.hint}');
+        if (context.markdownHint) {
+          hintElement.setInnerHtml(markdown.markdownToHtml(context.hint,
+              inlineSyntaxes: [InlineBracketsColon(), InlineBrackets()]));
+        } else {
+          hintElement.text = context.hint;
+        }
         final showSolutionButton = AnchorElement()
           ..style.cursor = 'pointer'
           ..text = 'Show solution';
@@ -592,6 +601,7 @@ class Embed extends EditorUi {
         'styles.css': gist.getFile('styles.css')?.content ?? '',
         'solution.dart': gist.getFile('solution.dart')?.content ?? '',
         'test.dart': gist.getFile('test.dart')?.content ?? '',
+        'hint.md': gist.getFile('hint.md')?.content ?? '',
         'hint.txt': gist.getFile('hint.txt')?.content ?? '',
       });
 
@@ -687,7 +697,13 @@ class Embed extends EditorUi {
     context.testMethod = sources['test.dart'] ?? '';
     context.htmlSource = sources['index.html'] ?? '';
     context.cssSource = sources['styles.css'] ?? '';
-    context.hint = sources['hint.txt'] ?? '';
+    final markdownHint = sources['hint.md'];
+    if (markdownHint != null && markdownHint.isNotEmpty) {
+      context.markdownHint = true;
+      context.hint = markdownHint;
+    } else {
+      context.hint = sources['hint.txt'] ?? '';
+    }
     if (sources.containsKey('ga_id')) {
       _sendVirtualPageView(sources['ga_id']);
     }
@@ -1127,6 +1143,7 @@ class EmbedContext extends Context {
   bool _testAndSolutionReadOnly;
 
   String hint = '';
+  bool markdownHint = false;
 
   String _solution = '';
 
