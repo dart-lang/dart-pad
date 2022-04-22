@@ -1,0 +1,44 @@
+fruitCard
+steps = [
+  https://gist.githubusercontent.com/craiglabenz-g/ffb48fd8ddf74917f6a13ef04bcdface,
+  https://gist.githubusercontent.com/craiglabenz-g/8b28113c0fe55c3e53c38ac1795d6d82,
+  https://gist.githubusercontent.com/craiglabenz-g/01205c0884b95539d8bf7b1c2eb2f391,
+  https://gist.githubusercontent.com/craiglabenz-g/0d5ca85f4c5dbe879825f4de22bb2fa3,
+  https://gist.githubusercontent.com/craiglabenz-g/c6aa2c8b3ac6cd40a0e4ed200152d4cc,
+  https://gist.githubusercontent.com/craiglabenz-g/db3e6b3d9a2bd4e522efd8fdb9b8bb07,
+  https://gist.githubusercontent.com/craiglabenz-g/7dba51ac0525530189f839bba4d90aa4,
+  https://gist.githubusercontent.com/craiglabenz-g/14e17b17216b0885c3740420a797519c,
+  https://gist.githubusercontent.com/craiglabenz-g/e74ade8bee8e165372e98883e5e41830,
+  https://gist.githubusercontent.com/craiglabenz-g/2b6fd82e93da5f8a8444aa3b1addf65b
+]
+
+
+
+tabBar
+steps = [
+  https://gist.githubusercontent.com/craiglabenz-g/e453c5a56259dc6934d88de06f445da6,
+  https://gist.githubusercontent.com/craiglabenz-g/46af5f58210c6354b7ec86c7603cf7c4,
+  https://gist.githubusercontent.com/craiglabenz-g/6c7235161c25dc41a061d452ac13d0de,
+  https://gist.githubusercontent.com/craiglabenz-g/354623d4214ee28c1a73c9f4d19ff175,
+  https://gist.githubusercontent.com/craiglabenz-g/f89b4d24a1393b55b79e848f772e9f69,
+  https://gist.githubusercontent.com/craiglabenz-g/b5e05c8b5f310c91fc938cc6c0ecad74,
+  https://gist.githubusercontent.com/craiglabenz-g/84414cd134c465eb265ebe435dab7668
+]
+
+
+
+topCard
+steps = [
+  https://gist.githubusercontent.com/craiglabenz-g/e519f977c8d27a02afda23df66e6cf56,
+  https://gist.githubusercontent.com/craiglabenz-g/747d23bcd7d17324c294b8567878c975,
+  https://gist.githubusercontent.com/craiglabenz-g/e713b64438445707b83695885f0deb95,
+  https://gist.githubusercontent.com/craiglabenz-g/feb446427c28bc66740bbc94a52f3e2f,
+  https://gist.githubusercontent.com/craiglabenz-g/a9eb616e4dee45ee2a109279b8ad2a6e,
+  https://gist.githubusercontent.com/craiglabenz-g/c485273bbdde5e74ac073372637290f8
+]
+
+
+fullpage
+steps = [
+  https://gist.githubusercontent.com/craiglabenz-g/3c85cbcd8a260891f785b509a5841838
+]
