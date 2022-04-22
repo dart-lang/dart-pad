@@ -791,14 +791,6 @@ class Embed extends EditorUi {
     analysisResultsController.display(issues);
   }
 
-  WindowBase? get _hostWindow {
-    if (window.parent != null) {
-      return window.parent;
-    }
-
-    return window;
-  }
-
   void _showInstallPage() {
     if (_modeName == 'dart' || _modeName == 'html') {
       ga.sendEvent('main', 'install-dart');
