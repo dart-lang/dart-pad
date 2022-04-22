@@ -21,6 +21,4 @@ web/scripts/codemirror.js
 
 last_prod/
 
-# IDE-specific files
 .idea/
-.vscode
