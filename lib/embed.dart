@@ -802,10 +802,10 @@ class Embed extends EditorUi {
   void _showInstallPage() {
     if (_modeName == 'dart' || _modeName == 'html') {
       ga.sendEvent('main', 'install-dart');
-      _hostWindow!.location.href = 'https://dart.dev/get-dart';
+      window.open('https://dart.dev/get-dart', '_blank');
     } else {
       ga.sendEvent('main', 'install-flutter');
-      _hostWindow!.location.href = 'https://flutter.dev/get-started/install';
+      window.open('https://flutter.dev/get-started/install', '_blank');
     }
   }
 
