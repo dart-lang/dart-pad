@@ -312,7 +312,7 @@ class WorkshopUi extends EditorUi {
       ..onClick.listen((_) {
         tabExpandController.showUI();
         handleRun().then((success) {
-          if (!success) {
+          if (!success && tabExpandController.state != TabState.console) {
             tabExpandController.toggleConsole();
           }
         });
@@ -483,7 +483,7 @@ class WorkshopUi extends EditorUi {
   void showOutput(String message, {bool error = false}) {
     _console.showOutput(message, error: error);
     if (tabExpandController.state != TabState.console) {
-      unreadConsoleCounter.increment();
+      tabExpandController.toggleConsole();
     }
   }
 
