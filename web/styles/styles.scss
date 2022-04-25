@@ -51,14 +51,33 @@ header {
     }
   }
 
-  #header-name-holder,
-  .header-gist-name {
+  .header-actions {
     @include layout-flex;
     @include layout-horizontal;
     @include layout-center-justified;
+    flex-shrink: 0 !important;
+  }
+
+  #header-name-holder {
+    @include layout-flex;
+    @include layout-horizontal;
+    @include layout-center-justified;
+    @include layout-wrap;
+    font-size: 14pt;
+    margin-left: 1em;
+    margin-right: 1em;
+    user-select: none;
+    flex-shrink: 1;
+  }
+
+  .header-gist-name {
+    /*@include layout-flex;
+    @include layout-horizontal;
+    @include layout-center-justified;*/
     font-size: 14pt;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    /* not sure if this is better ? but for long names you can at least see and edit them)
+    /*white-space: pre-wrap;*/
     margin-left: 1em;
     margin-right: 1em;
     user-select: none;
