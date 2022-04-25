@@ -879,6 +879,8 @@ class GitHubAuthenticationController {
         }
         _authenticatedStateChangeController.add(true);
       }
+    }).catchError((e) {
+      window.console.log('Exception ${e.toString()}');
     });
   }
 
@@ -983,6 +985,8 @@ class GitHubAuthenticationController {
         }
         _myGistListUpdateController.add(null);
       }
+    }).catchError((e) {
+      window.console.log('Exception ${e.toString()}');
     });
   }
 
@@ -1058,6 +1062,8 @@ class GitHubAuthenticationController {
         }
         _starredGistListUpdateController.add(null);
       }
+    }).catchError((e) {
+      window.console.log('Exception ${e.toString()}');
     });
   }
 
