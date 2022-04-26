@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert' show json;
 import 'dart:html' hide Console;
 
 import 'package:markdown/markdown.dart' as markdown;
@@ -51,12 +52,17 @@ void init() {
 
 class WorkshopUi extends EditorUi {
   late final WorkshopState _workshopState;
+  late final String _workshopId;
+  late final WorkshopStepStorage _workshopStepStorage;
   late final Splitter splitter;
   late final Splitter rightSplitter;
   late final DElement stepLabel;
   late final DElement previousStepButton;
   late final DElement nextStepButton;
   late final Console _console;
+  late final MDCButton resetButton;
+  late final MDCButton revertButton;
+  late final MDCButton redoButton;
   late final MDCButton showSolutionButton;
   late final Counter unreadConsoleCounter;
   late final DocHandler docHandler;
@@ -136,6 +142,11 @@ class WorkshopUi extends EditorUi {
     context = WorkshopDartSourceProvider(editor);
     docHandler = DocHandler(editor, context);
 
+    // put onchange handler on document and if there are changes
+    // store them in local storage
+    editor.document.onChange
+        .debounce(Duration(milliseconds: 500))
+        .listen((_) => _handleChangeInUsersWork());
     editor.document.onChange.listen((_) => busyLight.on());
     editor.document.onChange
         .debounce(Duration(milliseconds: 1250))
@@ -153,6 +164,27 @@ class WorkshopUi extends EditorUi {
         }
       });
     });
+  }
+
+  void _handleChangeInUsersWork() {
+    if (fullDartSource != _workshopState.currentStep.snippet) {
+      _workshopStepStorage.setStoredWorkForStep(
+          _workshopState.currentStepIndex, fullDartSource);
+      revertButton.clearAttr('hidden');
+      redoButton.setAttr('hidden', 'true');
+      resetButton.clearAttr('disabled');
+    } else {
+      revertButton.setAttr('hidden', 'true');
+      redoButton.setAttr('hidden', 'true');
+      // current source is same as snippet, but maybe there is saved source to go back to ?
+      final String? usersWork = _workshopStepStorage
+          .getStoredWorkForStep(_workshopState.currentStepIndex);
+      if (usersWork != null &&
+          usersWork != _workshopState.currentStep.snippet) {
+        // let them go back to what they had
+        redoButton.clearAttr('hidden');
+      }
+    }
   }
 
   void _initWorkshopUi() {
@@ -225,6 +257,8 @@ class WorkshopUi extends EditorUi {
 
   Future<void> _loadWorkshop() async {
     final fetcher = _createWorkshopFetcher();
+    _workshopId = fetcher.workshopId;
+    _workshopStepStorage = WorkshopStepStorage(_workshopId);
     _workshopState = WorkshopState(await fetcher.fetch());
   }
 
@@ -318,9 +352,32 @@ class WorkshopUi extends EditorUi {
         });
       });
 
+    revertButton = MDCButton(querySelector('#revert-button') as ButtonElement,
+        isIcon: true)
+      ..setAttr('hidden', 'true')
+      ..onClick.listen((_) {
+        // go back to the original snippet code.
+        if (fullDartSource != _workshopState.currentStep.snippet) {
+          editor.document.updateValue(_workshopState.currentStep.snippet);
+        }
+      });
+    redoButton =
+        MDCButton(querySelector('#redo-button') as ButtonElement, isIcon: true)
+          ..setAttr('hidden', 'true')
+          ..onClick.listen((_) {
+            // go back to the users saved code
+            final String? usersWork = _workshopStepStorage
+                .getStoredWorkForStep(_workshopState.currentStepIndex);
+            if (usersWork != null) {
+              editor.document.updateValue(usersWork);
+            }
+          });
+
     showSolutionButton =
         MDCButton(querySelector('#show-solution-btn') as ButtonElement)
           ..onClick.listen((_) => _handleShowSolution());
+    resetButton = MDCButton(querySelector('#reset-button') as ButtonElement)
+      ..onClick.listen((_) => _showResetDialog());
     formatButton = MDCButton(querySelector('#format-button') as ButtonElement)
       ..onClick.listen((_) => _format());
     clearConsoleButton = MDCButton(
@@ -352,7 +409,14 @@ class WorkshopUi extends EditorUi {
   }
 
   void _updateCode() {
-    editor.document.updateValue(_workshopState.currentStep.snippet);
+    // check for code in the local storage for this step and use that instead of snippet
+    final String? usersWork = _workshopStepStorage
+        .getStoredWorkForStep(_workshopState.currentStepIndex);
+    if (usersWork != null) {
+      editor.document.updateValue(usersWork);
+    } else {
+      editor.document.updateValue(_workshopState.currentStep.snippet);
+    }
   }
 
   void _clearUIOutput() {
@@ -504,6 +568,16 @@ class WorkshopUi extends EditorUi {
     }
   }
 
+  Future<void> _showResetDialog() async {
+    final result = await dialog.showOkCancel(
+        'Reset Workshop', 'Discard saved work for all steps?');
+    if (result == DialogResult.ok) {
+      _workshopStepStorage.clearStoredWork();
+      _updateCode();
+      resetButton.setAttr('disabled', 'true');
+    }
+  }
+
   void _jumpTo(int line, int charStart, int charLength, {bool focus = false}) {
     final doc = editor.document;
 
@@ -569,4 +643,43 @@ class WorkshopDartSourceProvider implements ContextBase {
 
   @override
   bool get isFocused => true;
+}
+
+/// A class to store user's workshop steps in localStorage.
+class WorkshopStepStorage {
+  final String _storedWorkshopId;
+
+  WorkshopStepStorage(this._storedWorkshopId);
+
+  bool get hasStoredWork => window.localStorage.containsKey(_storedWorkshopId);
+
+  String get workshopId => _storedWorkshopId;
+
+  String stepKey(int stepNumber) => 'step#$stepNumber';
+
+  String? getStoredWorkForStep(int stepNumber) {
+    if (hasStoredWork) {
+      final data = window.localStorage[_storedWorkshopId]!;
+      final stepkey = stepKey(stepNumber);
+      final usersWorkshopSteps = json.decode(data) as Map<String, dynamic>;
+      if (usersWorkshopSteps.containsKey(stepkey)) {
+        return usersWorkshopSteps[stepkey] as String;
+      }
+    }
+    return null;
+  }
+
+  void setStoredWorkForStep(int stepNumber, String code) {
+    Map<String, dynamic> usersWorkshopSteps = {};
+    if (hasStoredWork) {
+      final String data = window.localStorage[_storedWorkshopId]!;
+      usersWorkshopSteps = json.decode(data) as Map<String, dynamic>;
+    }
+    usersWorkshopSteps[stepKey(stepNumber)] = code;
+    window.localStorage[_storedWorkshopId] = json.encode(usersWorkshopSteps);
+  }
+
+  void clearStoredWork() {
+    window.localStorage.remove(_storedWorkshopId);
+  }
 }
