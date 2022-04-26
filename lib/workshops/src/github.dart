@@ -41,6 +41,10 @@ class GithubWorkshopFetcher extends WorkshopFetcherImpl {
     return extractGitHubResponseBody(res.body);
   }
 
+  @override
+  String get workshopId =>
+      'githubworkshop-$owner-$repo-${ref ?? 'noref'}-${path ?? 'nopath'}';
+
   Uri _buildFileUrl(List<String> pathSegments) {
     final p = path;
     final filePath = <String>[if (p != null) p, ...pathSegments];
