@@ -62,6 +62,7 @@ class WorkshopUi extends EditorUi {
   late final Console _console;
   late final MDCButton resetButton;
   late final MDCButton revertButton;
+  late final MDCButton showSolutionIconButton;
   late final MDCButton redoButton;
   late final MDCButton showSolutionButton;
   late final Counter unreadConsoleCounter;
@@ -75,6 +76,7 @@ class WorkshopUi extends EditorUi {
   late final MDCButton editorUiOutputTab;
   late final MDCButton editorConsoleTab;
   late final MDCButton editorDocsTab;
+  bool solutionShownThisStep = false;
 
   WorkshopUi() {
     _init();
@@ -167,14 +169,31 @@ class WorkshopUi extends EditorUi {
   }
 
   void _handleChangeInUsersWork() {
-    if (fullDartSource != _workshopState.currentStep.snippet) {
+    if (fullDartSource != _workshopState.currentStep.snippet &&
+        fullDartSource != _workshopState.currentStep.solution) {
+      // not snippet or solution, so save as users work
       _workshopStepStorage.setStoredWorkForStep(
           _workshopState.currentStepIndex, fullDartSource);
       revertButton.clearAttr('hidden');
+      if (solutionShownThisStep) {
+        showSolutionIconButton.clearAttr('hidden');
+        showSolutionButton.disabled = false;
+      }
       redoButton.setAttr('hidden', 'true');
       resetButton.clearAttr('disabled');
     } else {
-      revertButton.setAttr('hidden', 'true');
+      if (fullDartSource == _workshopState.currentStep.solution) {
+        // currently showing solution
+        showSolutionIconButton.setAttr('hidden', 'true');
+        showSolutionButton.disabled = true;
+      } else {
+        // currently showing snippet
+        revertButton.setAttr('hidden', 'true');
+        if (solutionShownThisStep) {
+          showSolutionIconButton.clearAttr('hidden');
+          showSolutionButton.disabled = false;
+        }
+      }
       redoButton.setAttr('hidden', 'true');
       // current source is same as snippet, but maybe there is saved source to go back to ?
       final String? usersWork = _workshopStepStorage
@@ -372,6 +391,11 @@ class WorkshopUi extends EditorUi {
               editor.document.updateValue(usersWork);
             }
           });
+    showSolutionIconButton = MDCButton(
+        querySelector('#show-solution-icon-button') as ButtonElement,
+        isIcon: true)
+      ..setAttr('hidden', 'true')
+      ..onClick.listen((_) => _handleShowSolution());
 
     showSolutionButton =
         MDCButton(querySelector('#show-solution-btn') as ButtonElement)
@@ -406,6 +430,8 @@ class WorkshopUi extends EditorUi {
       showSolutionButton.element.style.visibility = null;
     }
     showSolutionButton.disabled = false;
+    solutionShownThisStep = false;
+    showSolutionIconButton.setAttr('hidden', 'true');
   }
 
   void _updateCode() {
@@ -557,14 +583,9 @@ class WorkshopUi extends EditorUi {
     if (solution == null) {
       showSnackbar('This step has no solution.');
     } else {
-      final result = await dialog.showOkCancel(
-          'Show solution',
-          'Are you sure you want to show the solution? Your changes for this '
-              'step will be lost.');
-      if (result == DialogResult.ok) {
-        editor.document.updateValue(solution);
-        showSolutionButton.disabled = true;
-      }
+      solutionShownThisStep = true;
+      editor.document.updateValue(solution);
+      showSolutionButton.disabled = true;
     }
   }
 
