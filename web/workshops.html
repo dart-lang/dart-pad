@@ -68,6 +68,10 @@
         <span>DartPad</span>
     </div>
     <div>
+        <button type="button" id="reset-button" class="mdc-button" disabled>
+            <i class="material-icons mdc-button__icon">refresh</i>
+            Reset
+        </button>
         <button type="button" id="format-button" class="mdc-button">
             <i class="material-icons mdc-button__icon">format_align_left</i>
             Format
@@ -106,6 +110,18 @@
             <div id="editor-panel">
                 <div class="button-group">
                     <div id="dartbusy" class="busylight"></div>
+                    <button type="button" id="revert-button"
+                            title="revert to original"
+                            hidden="true"
+                            class="mdc-icon-button material-icons">
+                            restart_alt
+                    </button>
+                    <button type="button" id="redo-button"
+                            title="restore last edit"
+                            hidden="true"
+                            class="mdc-icon-button material-icons">
+                            redo
+                    </button>
                     <button type="button" id="run-button"
                             class="mdc-button mdc-button--raised mdc-button--dense">
                         <i class="material-icons mdc-button__icon">play_arrow</i>
