@@ -380,6 +380,7 @@ class WorkshopUi extends EditorUi {
           editor.document.updateValue(_workshopState.currentStep.snippet);
         }
       });
+
     redoButton =
         MDCButton(querySelector('#redo-button') as ButtonElement, isIcon: true)
           ..setAttr('hidden', 'true')
@@ -583,6 +584,17 @@ class WorkshopUi extends EditorUi {
     if (solution == null) {
       showSnackbar('This step has no solution.');
     } else {
+      // check for special case where they press 'show solution' before even trying
+      // to type anything in the editor
+      if (!_workshopStepStorage.hasStoredWork ||
+          fullDartSource == _workshopState.currentStep.snippet) {
+        // do initial save, first making sure editor is different than
+        // initial snippet code.
+        final String snippetWithNL = _workshopState.currentStep.snippet + '\n';
+        editor.document.updateValue(snippetWithNL);
+        _workshopStepStorage.setStoredWorkForStep(
+            _workshopState.currentStepIndex, snippetWithNL);
+      }
       solutionShownThisStep = true;
       editor.document.updateValue(solution);
       showSolutionButton.disabled = true;
