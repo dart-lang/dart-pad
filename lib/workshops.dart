@@ -144,8 +144,8 @@ class WorkshopUi extends EditorUi {
     context = WorkshopDartSourceProvider(editor);
     docHandler = DocHandler(editor, context);
 
-    // put onchange handler on document and if there are changes
-    // store them in local storage
+    // Put onchange handler on document and if there are changes
+    // store them in local storage.
     editor.document.onChange
         .debounce(Duration(milliseconds: 500))
         .listen((_) => _handleChangeInUsersWork());
@@ -171,7 +171,7 @@ class WorkshopUi extends EditorUi {
   void _handleChangeInUsersWork() {
     if (fullDartSource != _workshopState.currentStep.snippet &&
         fullDartSource != _workshopState.currentStep.solution) {
-      // not snippet or solution, so save as users work
+      // Not snippet or solution, so save as users work.
       _workshopStepStorage.setStoredWorkForStep(
           _workshopState.currentStepIndex, fullDartSource);
       revertButton.clearAttr('hidden');
@@ -183,11 +183,16 @@ class WorkshopUi extends EditorUi {
       resetButton.clearAttr('disabled');
     } else {
       if (fullDartSource == _workshopState.currentStep.solution) {
-        // currently showing solution
+        // Currently showing solution.
         showSolutionIconButton.setAttr('hidden', 'true');
         showSolutionButton.disabled = true;
+        if (!_workshopStepStorage.hasStoredWork) {
+          // They showed the solution before ever making an edit, the only thing
+          // they can do is revert to original.
+          revertButton.clearAttr('hidden');
+        }
       } else {
-        // currently showing snippet
+        // Currently showing snippet.
         revertButton.setAttr('hidden', 'true');
         if (solutionShownThisStep) {
           showSolutionIconButton.clearAttr('hidden');
@@ -195,13 +200,18 @@ class WorkshopUi extends EditorUi {
         }
       }
       redoButton.setAttr('hidden', 'true');
-      // current source is same as snippet, but maybe there is saved source to go back to ?
+      // Current source is same as snippet, but maybe there is saved source to go back to ?
       final String? usersWork = _workshopStepStorage
           .getStoredWorkForStep(_workshopState.currentStepIndex);
       if (usersWork != null &&
-          usersWork != _workshopState.currentStep.snippet) {
-        // let them go back to what they had
+          usersWork != _workshopState.currentStep.snippet &&
+          usersWork != _workshopState.currentStep.solution) {
+        // Let them go back to what they had.
         redoButton.clearAttr('hidden');
+        if (solutionShownThisStep) {
+          // Don't show lightbulb when showing snippet if they have edit.
+          showSolutionIconButton.setAttr('hidden', 'true');
+        }
       }
     }
   }
@@ -338,7 +348,7 @@ class WorkshopUi extends EditorUi {
               stepNum <= _workshopState.totalSteps) {
             stepNum--;
             if (_workshopState.currentStepIndex != stepNum) {
-              // valid step and not the current one, so change
+              // Valid step and not the current one, so change.
               _workshopState.currentStepIndex = stepNum.toInt();
             }
           }
@@ -375,7 +385,7 @@ class WorkshopUi extends EditorUi {
         isIcon: true)
       ..setAttr('hidden', 'true')
       ..onClick.listen((_) {
-        // go back to the original snippet code.
+        // Go back to the original snippet code.
         if (fullDartSource != _workshopState.currentStep.snippet) {
           editor.document.updateValue(_workshopState.currentStep.snippet);
         }
@@ -385,7 +395,7 @@ class WorkshopUi extends EditorUi {
         MDCButton(querySelector('#redo-button') as ButtonElement, isIcon: true)
           ..setAttr('hidden', 'true')
           ..onClick.listen((_) {
-            // go back to the users saved code
+            // Go back to the users saved code.
             final String? usersWork = _workshopStepStorage
                 .getStoredWorkForStep(_workshopState.currentStepIndex);
             if (usersWork != null) {
@@ -436,7 +446,8 @@ class WorkshopUi extends EditorUi {
   }
 
   void _updateCode() {
-    // check for code in the local storage for this step and use that instead of snippet
+    // Check for code in the local storage for this step, and
+    // if found use that instead of snippet.
     final String? usersWork = _workshopStepStorage
         .getStoredWorkForStep(_workshopState.currentStepIndex);
     if (usersWork != null) {
@@ -584,17 +595,6 @@ class WorkshopUi extends EditorUi {
     if (solution == null) {
       showSnackbar('This step has no solution.');
     } else {
-      // check for special case where they press 'show solution' before even trying
-      // to type anything in the editor
-      if (!_workshopStepStorage.hasStoredWork ||
-          fullDartSource == _workshopState.currentStep.snippet) {
-        // do initial save, first making sure editor is different than
-        // initial snippet code.
-        final String snippetWithNL = _workshopState.currentStep.snippet + '\n';
-        editor.document.updateValue(snippetWithNL);
-        _workshopStepStorage.setStoredWorkForStep(
-            _workshopState.currentStepIndex, snippetWithNL);
-      }
       solutionShownThisStep = true;
       editor.document.updateValue(solution);
       showSolutionButton.disabled = true;
