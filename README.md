@@ -70,7 +70,7 @@ The server will run from port 8082 and export several JSON APIs, like
 
 To run tests:
 
-`grind test` for unit tests
+`FLUTTER_CHANNEL="stable" grind test` for unit tests
 
 or:
 
