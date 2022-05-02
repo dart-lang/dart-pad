@@ -154,15 +154,9 @@ linter:
 Map<String, String> packageVersionConstraints({required bool oldChannel}) {
   // Ensure that pub version solving keeps these at sane minimum versions.
   return {
-    // TODO(domesticmouse): Remove when old becomes 2.10.x
-    if (oldChannel) ...{
-      'cloud_firestore_web': "'>=2.6.0 <2.6.8'",
-      'cloud_firestore_platform_interface': "'>=5.4.0 <5.5.0'",
-      'firebase_auth_platform_interface': "'>=6.1.0 <6.2.0'",
-    },
     'cloud_firestore': '^3.1.0',
     'firebase_auth': '^3.3.0',
-    'firebase_core': '^1.10.0',
+    'firebase_core': '^1.15.0',
   };
 }
 
