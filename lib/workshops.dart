@@ -62,7 +62,6 @@ class WorkshopUi extends EditorUi {
   late final Console _console;
   late final MDCButton resetButton;
   late final MDCButton revertButton;
-  late final MDCButton showSolutionIconButton;
   late final MDCButton redoButton;
   late final MDCButton showSolutionButton;
   late final Counter unreadConsoleCounter;
@@ -169,23 +168,34 @@ class WorkshopUi extends EditorUi {
   }
 
   void _handleChangeInUsersWork() {
+    // If the code is modified (not the solution or the starting snippet)...
     if (fullDartSource != _workshopState.currentStep.snippet &&
         fullDartSource != _workshopState.currentStep.solution) {
-      // Not snippet or solution, so save as users work.
-      _workshopStepStorage.setStoredWorkForStep(
+      // Save
+      _workshopStepStorage.saveStep(
           _workshopState.currentStepIndex, fullDartSource);
+
+      // The Revert button resets the users edits to the original snippet.
       revertButton.clearAttr('hidden');
+
+      // If the user has previously shown the solution...
       if (solutionShownThisStep) {
-        showSolutionIconButton.clearAttr('hidden');
+        // Enable the show solution button
         showSolutionButton.disabled = false;
       }
+
+      // The redo button shows the user's edits again if they have previously
+      // shown the solution. Hide it.
       redoButton.setAttr('hidden', 'true');
       resetButton.clearAttr('disabled');
     } else {
+      // The code has not been modified.
+      // If the solution is being shown...
       if (fullDartSource == _workshopState.currentStep.solution) {
-        // Currently showing solution.
-        showSolutionIconButton.setAttr('hidden', 'true');
+        // Hide the Show Solution button.
         showSolutionButton.disabled = true;
+
+        // If they haven't made an edit yet,
         if (!_workshopStepStorage.hasStoredWork) {
           // They showed the solution before ever making an edit, the only thing
           // they can do is revert to original.
@@ -195,23 +205,18 @@ class WorkshopUi extends EditorUi {
         // Currently showing snippet.
         revertButton.setAttr('hidden', 'true');
         if (solutionShownThisStep) {
-          showSolutionIconButton.clearAttr('hidden');
           showSolutionButton.disabled = false;
         }
       }
       redoButton.setAttr('hidden', 'true');
       // Current source is same as snippet, but maybe there is saved source to go back to ?
-      final String? usersWork = _workshopStepStorage
-          .getStoredWorkForStep(_workshopState.currentStepIndex);
+      final String? usersWork =
+          _workshopStepStorage.loadStep(_workshopState.currentStepIndex);
       if (usersWork != null &&
           usersWork != _workshopState.currentStep.snippet &&
           usersWork != _workshopState.currentStep.solution) {
         // Let them go back to what they had.
         redoButton.clearAttr('hidden');
-        if (solutionShownThisStep) {
-          // Don't show lightbulb when showing snippet if they have edit.
-          showSolutionIconButton.setAttr('hidden', 'true');
-        }
       }
     }
   }
@@ -396,17 +401,12 @@ class WorkshopUi extends EditorUi {
           ..setAttr('hidden', 'true')
           ..onClick.listen((_) {
             // Go back to the users saved code.
-            final String? usersWork = _workshopStepStorage
-                .getStoredWorkForStep(_workshopState.currentStepIndex);
+            final String? usersWork =
+                _workshopStepStorage.loadStep(_workshopState.currentStepIndex);
             if (usersWork != null) {
               editor.document.updateValue(usersWork);
             }
           });
-    showSolutionIconButton = MDCButton(
-        querySelector('#show-solution-icon-button') as ButtonElement,
-        isIcon: true)
-      ..setAttr('hidden', 'true')
-      ..onClick.listen((_) => _handleShowSolution());
 
     showSolutionButton =
         MDCButton(querySelector('#show-solution-btn') as ButtonElement)
@@ -442,14 +442,13 @@ class WorkshopUi extends EditorUi {
     }
     showSolutionButton.disabled = false;
     solutionShownThisStep = false;
-    showSolutionIconButton.setAttr('hidden', 'true');
   }
 
   void _updateCode() {
     // Check for code in the local storage for this step, and
     // if found use that instead of snippet.
-    final String? usersWork = _workshopStepStorage
-        .getStoredWorkForStep(_workshopState.currentStepIndex);
+    final String? usersWork =
+        _workshopStepStorage.loadStep(_workshopState.currentStepIndex);
     if (usersWork != null) {
       editor.document.updateValue(usersWork);
     } else {
@@ -687,7 +686,7 @@ class WorkshopStepStorage {
 
   String stepKey(int stepNumber) => 'step#$stepNumber';
 
-  String? getStoredWorkForStep(int stepNumber) {
+  String? loadStep(int stepNumber) {
     if (hasStoredWork) {
       final data = window.localStorage[_storedWorkshopId]!;
       final stepkey = stepKey(stepNumber);
@@ -699,7 +698,7 @@ class WorkshopStepStorage {
     return null;
   }
 
-  void setStoredWorkForStep(int stepNumber, String code) {
+  void saveStep(int stepNumber, String code) {
     Map<String, dynamic> usersWorkshopSteps = {};
     if (hasStoredWork) {
       final String data = window.localStorage[_storedWorkshopId]!;
