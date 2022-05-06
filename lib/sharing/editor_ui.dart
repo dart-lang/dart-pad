@@ -203,7 +203,9 @@ abstract class EditorUi {
           addFirebaseJs: shouldAddFirebaseJs,
           // TODO(srawlins): Determine if we need to destroy the frame when
           // changing channels.
-          destroyFrame: false,
+          // TODO(ryjohn) Determine how to preserve the iframe
+          // https://github.com/dart-lang/dart-pad/issues/2269
+          destroyFrame: true,
         );
       } else {
         final response = await dartServices
@@ -217,7 +219,9 @@ abstract class EditorUi {
           context.htmlSource,
           context.cssSource,
           response.result,
-          destroyFrame: false,
+          // TODO(ryjohn) Determine how to preserve the iframe
+          // https://github.com/dart-lang/dart-pad/issues/2269
+          destroyFrame: true,
         );
       }
       return true;
