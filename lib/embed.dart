@@ -289,6 +289,13 @@ class Embed extends EditorUi {
         result.messages,
         result.success ? FlashBoxStyle.success : FlashBoxStyle.warn,
       );
+      if (result.success) {
+        window.parent?.postMessage({
+          'action': 'taskCompleted',
+          'recommendedReward': 'dash-hat',
+          'callbackId': 'string',
+        }, '*');
+      }
       ga.sendEvent(
           'execution', (result.success) ? 'test-success' : 'test-failure');
     });
@@ -784,21 +791,13 @@ class Embed extends EditorUi {
     analysisResultsController.display(issues);
   }
 
-  WindowBase? get _hostWindow {
-    if (window.parent != null) {
-      return window.parent;
-    }
-
-    return window;
-  }
-
   void _showInstallPage() {
     if (_modeName == 'dart' || _modeName == 'html') {
       ga.sendEvent('main', 'install-dart');
-      _hostWindow!.location.href = 'https://dart.dev/get-dart';
+      window.open('https://dart.dev/get-dart', '_blank');
     } else {
       ga.sendEvent('main', 'install-flutter');
-      _hostWindow!.location.href = 'https://flutter.dev/get-started/install';
+      window.open('https://flutter.dev/get-started/install', '_blank');
     }
   }
 
