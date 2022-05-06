@@ -372,13 +372,13 @@ class WorkshopUi extends EditorUi {
 
   void _initButtons() {
     runButton = MDCButton(querySelector('#run-button') as ButtonElement)
-      ..onClick.listen((_) {
-        tabExpandController.showUI();
-        handleRun().then((success) {
-          if (!success) {
-            tabExpandController.toggleConsole();
-          }
-        });
+      ..onClick.listen((_) async {
+        await handleRun();
+        if (_workshopState.workshop.type == WorkshopType.dart) {
+          tabExpandController.state = TabState.console;
+        } else {
+          tabExpandController.state = TabState.ui;
+        }
       });
 
     revertButton = MDCButton(querySelector('#revert-button') as ButtonElement,
@@ -458,7 +458,7 @@ class WorkshopUi extends EditorUi {
   }
 
   void _clearUIOutput() {
-    tabExpandController.showCode();
+    tabExpandController.hidePanel();
     executionService.replaceHtml('');
   }
 
@@ -554,7 +554,7 @@ class WorkshopUi extends EditorUi {
       docsButton: editorDocsTab,
       clearConsoleButton: clearConsoleButton,
       closeButton: closePanelButton,
-      iframeElement: _frame,
+      iFrameProvider: () => _frame,
       docsElement: _documentationElement,
       consoleElement: _consoleElement,
       topSplit: _editorPanel,
@@ -584,9 +584,6 @@ class WorkshopUi extends EditorUi {
   @override
   void showOutput(String message, {bool error = false}) {
     _console.showOutput(message, error: error);
-    if (tabExpandController.state != TabState.console) {
-      unreadConsoleCounter.increment();
-    }
   }
 
   Future<void> _handleShowSolution() async {
