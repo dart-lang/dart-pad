@@ -171,7 +171,6 @@ class WorkshopUi extends EditorUi {
     // If the code is modified (not the solution or the starting snippet)...
     if (fullDartSource != _workshopState.currentStep.snippet &&
         fullDartSource != _workshopState.currentStep.solution) {
-
       // Save
       _workshopStepStorage.saveStep(
           _workshopState.currentStepIndex, fullDartSource);
@@ -189,12 +188,10 @@ class WorkshopUi extends EditorUi {
       // shown the solution. Hide it.
       redoButton.setAttr('hidden', 'true');
       resetButton.clearAttr('disabled');
-
     } else {
       // The code has not been modified.
       // If the solution is being shown...
       if (fullDartSource == _workshopState.currentStep.solution) {
-
         // Hide the Show Solution button.
         showSolutionButton.disabled = true;
 
@@ -213,8 +210,8 @@ class WorkshopUi extends EditorUi {
       }
       redoButton.setAttr('hidden', 'true');
       // Current source is same as snippet, but maybe there is saved source to go back to ?
-      final String? usersWork = _workshopStepStorage
-          .loadStep(_workshopState.currentStepIndex);
+      final String? usersWork =
+          _workshopStepStorage.loadStep(_workshopState.currentStepIndex);
       if (usersWork != null &&
           usersWork != _workshopState.currentStep.snippet &&
           usersWork != _workshopState.currentStep.solution) {
@@ -404,8 +401,8 @@ class WorkshopUi extends EditorUi {
           ..setAttr('hidden', 'true')
           ..onClick.listen((_) {
             // Go back to the users saved code.
-            final String? usersWork = _workshopStepStorage
-                .loadStep(_workshopState.currentStepIndex);
+            final String? usersWork =
+                _workshopStepStorage.loadStep(_workshopState.currentStepIndex);
             if (usersWork != null) {
               editor.document.updateValue(usersWork);
             }
@@ -450,8 +447,8 @@ class WorkshopUi extends EditorUi {
   void _updateCode() {
     // Check for code in the local storage for this step, and
     // if found use that instead of snippet.
-    final String? usersWork = _workshopStepStorage
-        .loadStep(_workshopState.currentStepIndex);
+    final String? usersWork =
+        _workshopStepStorage.loadStep(_workshopState.currentStepIndex);
     if (usersWork != null) {
       editor.document.updateValue(usersWork);
     } else {
