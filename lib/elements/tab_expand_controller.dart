@@ -15,6 +15,8 @@ enum TabState {
   console,
 }
 
+typedef IFrameProvider = IFrameElement Function();
+
 /// Manages the bottom-left panel and tabs
 class TabExpandController {
   MDCButton? uiOutputButton;
@@ -25,7 +27,16 @@ class TabExpandController {
   final DElement console;
   final DElement docs;
   final Counter unreadCounter;
-  final DElement? iframe;
+  final IFrameProvider? iFrameProvider;
+
+  DElement? get iframe {
+    final provider = iFrameProvider;
+    if (provider == null) {
+      return null;
+    }
+    return DElement(provider());
+  }
+
   final EditorUi editorUi;
 
   /// The element to give the top half of the split when this panel
@@ -49,162 +60,155 @@ class TabExpandController {
     required this.docsButton,
     required this.clearConsoleButton,
     required this.closeButton,
-    IFrameElement? iframeElement,
     required Element consoleElement,
     required Element docsElement,
     required this.topSplit,
     required this.bottomSplit,
     required this.unreadCounter,
     required this.editorUi,
+    this.iFrameProvider,
   })  : console = DElement(consoleElement),
-        docs = DElement(docsElement),
-        iframe = iframeElement == null ? null : DElement(iframeElement) {
-    _state = TabState.closed;
-    iframe?.setAttr('hidden');
-    console.setAttr('hidden');
-    docs.setAttr('hidden');
+        docs = DElement(docsElement) {
+    state = TabState.closed;
 
     final uiOutputButton = this.uiOutputButton;
     if (uiOutputButton != null) {
       _subscriptions.add(uiOutputButton.onClick.listen((_) {
-        toggleIframe();
+        _toggleUiOutput();
       }));
     }
 
     _subscriptions.add(consoleButton.onClick.listen((_) {
-      toggleConsole();
+      _toggleConsole();
     }));
 
     _subscriptions.add(docsButton.onClick.listen((_) {
-      toggleDocs();
+      _toggleDocs();
     }));
 
     _subscriptions.add(closeButton.onClick.listen((_) {
-      _hidePanel();
+      hidePanel();
     }));
 
     clearConsoleButton.setAttr('style', 'visibility:hidden;');
   }
 
-  void showUI({bool maximize = true}) {
-    if (state != TabState.ui) {
-      toggleIframe();
-    }
-    if (maximize) {
-      _splitter.setSizes([40, 60]);
+  void _toggleUiOutput() => _toggleState(TabState.ui);
+  void _toggleConsole() => _toggleState(TabState.console);
+  void _toggleDocs() => _toggleState(TabState.docs);
+
+  void _toggleState(TabState state) {
+    if (this.state == state) {
+      this.state = TabState.closed;
+    } else {
+      this.state = state;
     }
   }
 
-  void showCode() {
-    _hidePanel();
-  }
-
-  void toggleIframe() {
+  set state(TabState state) {
+    _state = state;
     switch (_state) {
       case TabState.closed:
-        _showUiOutput();
+        hidePanel();
         break;
       case TabState.ui:
-        _hidePanel();
+        _selectUiOutputTab();
         break;
       case TabState.console:
-        _showUiOutput();
-        console.setAttr('hidden');
-        consoleButton.toggleClass('active', false);
+        _selectConsoleTab();
         break;
       case TabState.docs:
-        _showUiOutput();
-        docs.setAttr('hidden');
-        docsButton.toggleClass('active', false);
+        _selectDocsTab();
         break;
     }
   }
 
-  void toggleConsole() {
-    switch (_state) {
-      case TabState.closed:
-        _showConsole();
-        break;
-      case TabState.ui:
-        _showConsole();
-        iframe?.setAttr('hidden');
-        uiOutputButton?.toggleClass('active', false);
-        break;
-      case TabState.console:
-        _hidePanel();
-        break;
-      case TabState.docs:
-        _showConsole();
-        docs.setAttr('hidden');
-        docsButton.toggleClass('active', false);
-        break;
+  set _showIframe(bool show) {
+    if (show) {
+      iframe?.clearAttr('hidden');
+    } else {
+      iframe?.setAttr('hidden');
+    }
+    uiOutputButton?.toggleClass('active', show);
+  }
+
+  set _showConsole(bool show) {
+    console.toggleAttr('hidden', !show);
+    consoleButton.toggleClass('active', show);
+  }
+
+  set _showDocs(bool show) {
+    docs.toggleAttr('hidden', !show);
+    docsButton.toggleClass('active', show);
+  }
+
+  set _showClearConsoleButton(bool show) {
+    if (show) {
+      clearConsoleButton.clearAttr('style');
+    } else {
+      clearConsoleButton.setAttr('style', 'visibility:hidden;');
     }
   }
 
-  void toggleDocs() {
-    switch (_state) {
-      case TabState.closed:
-        _showDocs();
-        break;
-      case TabState.ui:
-        _showConsole();
-        iframe?.setAttr('hidden');
-        uiOutputButton?.toggleClass('active', false);
-        break;
-      case TabState.console:
-        _showDocs();
-        console.setAttr('hidden');
-        consoleButton.toggleClass('active', false);
-        break;
-      case TabState.docs:
-        _hidePanel();
-        break;
+  set _showSplitter(bool show) {
+    bottomSplit.classes.toggle('border-top', !show);
+    if (show) {
+      _initSplitter();
+    } else {
+      _destroySplitter();
     }
   }
 
-  void _showUiOutput() {
+  set _showCloseButtons(bool show) {
+    closeButton.toggleAttr('hidden', show);
+  }
+
+  void _selectUiOutputTab() {
     _state = TabState.ui;
-    iframe?.clearAttr('hidden');
-    bottomSplit.classes.remove('border-top');
-    uiOutputButton?.toggleClass('active', true);
-    _initSplitter();
-    closeButton.toggleAttr('hidden', false);
-    clearConsoleButton.setAttr('style', 'visibility:hidden;');
+
+    _showIframe = true;
+    _showConsole = false;
+    _showDocs = false;
+
+    _showSplitter = true;
+    _showCloseButtons = true;
+    _showClearConsoleButton = false;
   }
 
-  void _showConsole() {
-    unreadCounter.clear();
+  void _selectConsoleTab() {
     _state = TabState.console;
-    console.clearAttr('hidden');
-    bottomSplit.classes.remove('border-top');
-    consoleButton.toggleClass('active', true);
-    _initSplitter();
-    closeButton.toggleAttr('hidden', false);
-    clearConsoleButton.clearAttr('style');
+
+    unreadCounter.clear();
+
+    _showIframe = false;
+    _showConsole = true;
+    _showDocs = false;
+
+    _showSplitter = true;
+    _showCloseButtons = true;
+    _showClearConsoleButton = true;
   }
 
-  void _hidePanel() {
-    _destroySplitter();
-    _state = TabState.closed;
-    iframe?.setAttr('hidden');
-    console.setAttr('hidden');
-    docs.setAttr('hidden');
-    bottomSplit.classes.add('border-top');
-    uiOutputButton?.toggleClass('active', false);
-    consoleButton.toggleClass('active', false);
-    docsButton.toggleClass('active', false);
-    closeButton.toggleAttr('hidden', true);
-    clearConsoleButton.setAttr('style', 'visibility:hidden;');
-  }
-
-  void _showDocs() {
+  void _selectDocsTab() {
     _state = TabState.docs;
-    docs.clearAttr('hidden');
-    bottomSplit.classes.remove('border-top');
-    docsButton.toggleClass('active', true);
-    _initSplitter();
-    closeButton.toggleAttr('hidden', false);
-    clearConsoleButton.setAttr('style', 'visibility:hidden;');
+
+    _showIframe = false;
+    _showConsole = false;
+    _showDocs = true;
+
+    _showSplitter = true;
+    _showCloseButtons = true;
+    _showClearConsoleButton = false;
+  }
+
+  void hidePanel() {
+    _state = TabState.closed;
+    _showSplitter = false;
+    _showIframe = false;
+    _showConsole = false;
+    _showDocs = false;
+    _showCloseButtons = false;
+    _showClearConsoleButton = false;
   }
 
   void _initSplitter() {

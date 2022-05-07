@@ -25,6 +25,8 @@ class ExecutionServiceIFrame implements ExecutionService {
   late String _frameSrc;
   Completer<void> _readyCompleter = Completer();
 
+  IFrameElement get frame => _frame;
+
   ExecutionServiceIFrame(this._frame) {
     final src = _frame.src;
     if (src == null) {

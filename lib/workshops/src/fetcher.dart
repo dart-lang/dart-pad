@@ -3,6 +3,9 @@ import 'web_server.dart';
 import 'workshop.dart';
 
 abstract class WorkshopFetcher {
+  /// id to uniquely identify this workshop
+  String get workshopId;
+
   Future<Workshop> fetch();
 
   factory WorkshopFetcher.github({
