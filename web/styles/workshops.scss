@@ -436,3 +436,9 @@ div#search-dialog {
   right: 114px !important;
 }
 
+#revert-button, #redo-button, #show-solution-icon-button {
+  width: 48px;
+  height: 32px;
+  margin-top: -16px;
+  --mdc-ripple-top: 10px !important;
+}
