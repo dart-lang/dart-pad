@@ -14,4 +14,7 @@ class WebServerWorkshopFetcher extends WorkshopFetcherImpl {
     final response = await http.get(fileUri);
     return response.body;
   }
+
+  @override
+  String get workshopId => 'webserverworkshop-$uri';
 }
