@@ -91,8 +91,7 @@ class AnalysisResultsController {
     final columnElem = DivElement()..classes.add('issue-column');
 
     final messageSpan = DivElement()
-      // ignore: unnecessary_string_interpolations
-      ..text = issue.line >= 1 ? 'line ${issue.line} • $message' : '$message'
+      ..text = issue.line >= 1 ? 'line ${issue.line} • $message' : message
       ..classes.add('message');
     columnElem.children.add(messageSpan);
 
