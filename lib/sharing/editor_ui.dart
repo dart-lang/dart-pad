@@ -165,7 +165,8 @@ abstract class EditorUi {
         displayIssues([
           AnalysisIssue()
             ..kind = 'error'
-            ..line = 1
+            ..line =
+                -1 // set invalid line number, so NO line # will be displayed
             ..message = message
         ]);
       } else {
