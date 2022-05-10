@@ -17,14 +17,13 @@ targets:
           - --fast-startup
           - --minify
           - --no-source-maps
-          - -DSERVER_URL=https://stable.api.dartpad.dev/
-          - -DSTABLE_SERVER_URL=https://stable.api.dartpad.dev/
+          - -DSERVER_URL=http://localhost:8082/
+          - -DSTABLE_SERVER_URL=http://localhost:8082/
+          #- -DSERVER_URL=https://stable.api.dartpad.dev/
+          #- -DSTABLE_SERVER_URL=https://stable.api.dartpad.dev/
           - -DBETA_SERVER_URL=https://beta.api.dartpad.dev/
           - -DDEV_SERVER_URL=https://dev.api.dartpad.dev/
           - -DOLD_SERVER_URL=https://old.api.dartpad.dev/
-          - -DGH_AUTH_INIT_BASE_URL=https://githubauth-brsyns7rna-uw.a.run.app
-          #Should be GitHub Init OAuth end point on Google Cloud Run
-          #- -DGH_AUTH_INIT_BASE_URL=https://localhost:8080/initiate/
           
       json_serializable:
         # Ignore workshop samples.
@@ -41,6 +40,4 @@ global_options:
         BETA_SERVER_URL: https://beta.api.dartpad.dev/
         DEV_SERVER_URL: https://dev.api.dartpad.dev/
         OLD_SERVER_URL: https://old.api.dartpad.dev/
-        GH_AUTH_INIT_BASE_URL: https://githubauth-brsyns7rna-uw.a.run.app
-        #Should be GitHub Init OAuth end point on Google Cloud Run
-        #GH_AUTH_INIT_BASE_URL: https://localhost:8080/initiate/
+        
