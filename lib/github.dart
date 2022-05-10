@@ -282,16 +282,11 @@ class GitHubUIController {
 
     window.localStorage['gh_pre_auth_query_params'] = jsonParams;
 
-    // Now figure out where we are going.
-    late final String baseUrl;
-    final String ourHref = window.location.toString().toLowerCase();
+    // Use current dartServices root url and add the GitHub OAuth initiation
+    // end point to it.
+    final String baseUrl =
+        '${dartServices.rootUrl}$kEntryPointGitHubOAuthInitiate/';
 
-    if (ourHref.contains('localhost')) {
-      // Running in debug environment, use local dart-services default port.
-      baseUrl = 'http://localhost:8082/$kEntryPointGitHubOAuthInitiate/';
-    } else {
-      baseUrl = '${dartServices.rootUrl}$kEntryPointGitHubOAuthInitiate/';
-    }
     final String redirectUrl =
         _githubAuthController.makeRandomSecureAuthInitiationUrl(baseUrl);
     // Set our window to the redirect URL and get on our way to github OAuth.
