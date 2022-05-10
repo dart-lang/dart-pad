@@ -17,14 +17,12 @@ targets:
           - --fast-startup
           - --minify
           - --no-source-maps
-          - -DSERVER_URL=http://localhost:8082/
-          - -DSTABLE_SERVER_URL=http://localhost:8082/
-          #- -DSERVER_URL=https://stable.api.dartpad.dev/
-          #- -DSTABLE_SERVER_URL=https://stable.api.dartpad.dev/
+          - -DSERVER_URL=https://stable.api.dartpad.dev/
+          - -DSTABLE_SERVER_URL=https://stable.api.dartpad.dev/
           - -DBETA_SERVER_URL=https://beta.api.dartpad.dev/
           - -DDEV_SERVER_URL=https://dev.api.dartpad.dev/
           - -DOLD_SERVER_URL=https://old.api.dartpad.dev/
-          
+
       json_serializable:
         # Ignore workshop samples.
         generate_for:
