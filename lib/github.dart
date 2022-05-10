@@ -23,6 +23,8 @@ import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 
 class GitHubUIController {
+  static const kEntryPointGitHubOAuthInitiate = 'github_oauth_initiate';
+
   final Playground _playground;
   late final GitHubAuthenticationController _githubAuthController;
 
@@ -56,11 +58,6 @@ class GitHubUIController {
   final ButtonElement _starredGistsDropdownButton =
       querySelector('#starred-gists-dropdown-button') as ButtonElement;
 
-  // Get the base URL to use for the GH Authorization request from environment
-  //   (this is set in build.yaml)
-  static const String _googleCloudRunUrl =
-      String.fromEnvironment('GH_AUTH_INIT_BASE_URL');
-
   MDCMenu? _starredGistsMenu;
   MDCMenu? _myGistsMenu;
 
@@ -72,15 +69,10 @@ class GitHubUIController {
   bool _starredStateOfLastStarReport = false;
 
   GitHubUIController(this._playground) {
-    window.console.log(
-        'pre GitHubLoginController() window URL =${window.location.toString()}  win.loc.href=${window.location.href}');
     _githubAuthController = GitHubAuthenticationController(
         Uri.parse(window.location.toString()), _playground.snackbar);
     initGitHubMenu();
     setupGithubGistListeners();
-
-    window.console
-        .log('We are READY, asking GitHubLoginController() to post event!');
 
     _githubAuthController.postCreationFireAutheticatedStateChangeEvent();
   }
@@ -119,9 +111,10 @@ class GitHubUIController {
         case 6: //open on github
           window.open('https://gist.github.com/${_playground.mutableGist.id}',
               '_blank');
-          // and in 10 seconds check with github and update our my gists and starred menus
+          // And in 10 seconds check with github and update our my gists and starred menus.
           // This is just another wait to force a check with github to sync
-          // our menus up.  (the long delay in starred API results updating can be frustrating)
+          // our menus up.  (The long delay in starred API results updating can be frustrating
+          // on the client end waiting for the github server to report the change).
           _githubAuthController.updateUsersGistAndStarredGistsList(
               starredCheckDelay: 10000);
           break;
@@ -147,38 +140,30 @@ class GitHubUIController {
     _playground.mutableGist.onChanged
         .debounce(Duration(milliseconds: 100))
         .listen((_) {
-      window.console
-          .log('setupGithubGistListeners mutableGist On Changed FIRED');
       setUnsavedLocalEdits();
     });
     _playground.mutableGist.property('id').onChanged!.listen((_) {
-      window.console.log('setupGithubGistListeners gist ID On Changed FIRED');
-      // the gist Id has changed
+      // The gist Id has changed.
       _setGithubMenuItemStates(_githubAuthController, _playground.mutableGist);
     });
     _githubAuthController.onAuthStateChanged.listen((authenticated) {
-      window.console.log('GitHub Authentication State Changed FIRED');
-
       _setGithubMenuItemStates(_githubAuthController, _playground.mutableGist);
       _handleGithubAuthStateChange(authenticated);
     });
     _githubAuthController.onMyGistListChanged.listen((authenticated) {
-      window.console.log('My Gist List Changed FIRED');
       _updateMyGistMenuState();
     });
     _githubAuthController.onStarredGistListChanged.listen((authenticated) {
-      window.console.log('Starred Gist List Changed FIRED');
       _updateStarredGistMenuState();
     });
     _starUnstarButton.onClick
         .debounce(Duration(milliseconds: 100))
         .listen(_starredButtonClickHandler);
 
-    // this will only happen when we make 'contenteditable' true while authenticated
+    // This will only happen when we make 'contenteditable' true while authenticated.
     _titleElement.element.onInput
         .debounce(Duration(milliseconds: 100))
         .listen((_) {
-      window.console.log('Title edited input event ${_titleElement.text}');
       _playground.mutableGist.description = _titleElement.text;
       setUnsavedLocalEdits();
     });
@@ -189,16 +174,13 @@ class GitHubUIController {
     final bool hasId = mutableGist.hasId;
     final bool loggedIn = githubController.userLogin.isNotEmpty;
 
-    window.console
-        .log('setGithubMenuItemStates  hasId=$hasId loggedIn=$loggedIn');
-
     _setMenuItemState(_githubMenuItemLogin, !loggedIn);
     _setMenuItemState(_githubMenuItemLogout, loggedIn);
 
     _setMenuItemState(_githubMenuItemCreatePublic,
-        loggedIn /*&& !hasId*/); // now let them create public without forking
+        loggedIn /*&& !hasId*/); // Now let them create public without forking, uncomment `** hasId` for force forking.
     _setMenuItemState(_githubMenuItemCreatePrivate,
-        loggedIn); // let then create private gist without forking
+        loggedIn); // Let then create private gist without forking.
     _setMenuItemState(_githubMenuItemFork, loggedIn && hasId);
     _setMenuItemState(_githubMenuItemUpdate, loggedIn && hasId);
     _setMenuItemState(_githubMenuItemStar, loggedIn && hasId);
@@ -208,7 +190,7 @@ class GitHubUIController {
   void _updateMyGistMenuState() {
     final DivElement myGists = querySelector('#my-gists') as DivElement;
     if (_githubAuthController.myGistList.isEmpty) {
-      // hide the starred gist menu
+      // Hide the starred gist menu.
       myGists.setAttribute('hidden', true);
     } else {
       myGists.removeAttribute('hidden');
@@ -226,7 +208,7 @@ class GitHubUIController {
     final DivElement starredGists =
         querySelector('#starred-gists') as DivElement;
     if (_githubAuthController.starredGistList.isEmpty) {
-      // hide the starred gist menu
+      // Hide the starred gist menu.
       starredGists.setAttribute('hidden', true);
     } else {
       starredGists.removeAttribute('hidden');
@@ -241,11 +223,7 @@ class GitHubUIController {
   }
 
   void _handleGithubAuthStateChange(bool authenticated) {
-    window.console.log('entering _handleGithubAuthStateChange()');
-
     if (_inGithubAuthStateChangeHandler) {
-      window.console
-          .log('ALREADY IN _handleGithubAuthStateChange() - SKIPPING !!!!');
       return;
     }
     _inGithubAuthStateChangeHandler = true;
@@ -278,7 +256,7 @@ class GitHubUIController {
       loggedInAsLi.setAttribute('hidden', true);
     }
 
-    // if we have logged out then update the gists menus (remove items/hide them)
+    // If we have logged out then update the gists menus (remove items/hide them).
     if (_prevAuthenticationState && !authenticated) {
       _updateStarredGistMenuState();
       _updateMyGistMenuState();
@@ -294,46 +272,29 @@ class GitHubUIController {
 
     _prevAuthenticationState = loginUser.isNotEmpty;
     _inGithubAuthStateChangeHandler = false;
-
-    window.console.log('leaving _handleGithubAuthStateChange()');
   }
 
   void _attempToAquireGitHubToken() {
-    // remember all of our current query params
+    // Remember all of our current query params.
     final Uri curUrl = Uri.parse(window.location.toString());
     final params = Map<String, String?>.from(curUrl.queryParameters);
     final String jsonParams = json.encode(params);
 
-    window.console.log('encopded json = `$jsonParams`');
-
     window.localStorage['gh_pre_auth_query_params'] = jsonParams;
 
-    // now figure out where we are going
+    // Now figure out where we are going.
     late final String baseUrl;
     final String ourHref = window.location.toString().toLowerCase();
 
-    window.console.log('_attempToAquireGitHubToken  ourHref=$ourHref');
-
     if (ourHref.contains('localhost')) {
-      // debug environment
-      baseUrl = 'https://localhost:8080/initiate/';
+      // Running in debug environment, use local dart-services default port.
+      baseUrl = 'http://localhost:8082/$kEntryPointGitHubOAuthInitiate/';
     } else {
-      // check for build.yaml value making it in
-      String googleCloudRunUrl = _googleCloudRunUrl;
-      if (googleCloudRunUrl.isEmpty) {
-        window.console.log(
-            'ERROR - missing GH_AUTH_INIT_BASE_URL define in build.yaml !!!');
-        window.console.log('defaulting to tims gcloud instance !!!');
-        googleCloudRunUrl = 'https://githubauth-brsyns7rna-uw.a.run.app';
-      }
-      baseUrl = '$googleCloudRunUrl/initiate/';
+      baseUrl = '${dartServices.rootUrl}$kEntryPointGitHubOAuthInitiate/';
     }
     final String redirectUrl =
         _githubAuthController.makeRandomSecureAuthInitiationUrl(baseUrl);
-
-    window.console.log('_attempToAquireGitHubToken  redirectUrl=$redirectUrl');
-
-    // set our window to the redirect URL and get on our way to github OAuth
+    // Set our window to the redirect URL and get on our way to github OAuth.
     window.location.href = redirectUrl;
   }
 
@@ -343,12 +304,9 @@ class GitHubUIController {
       gistLoader
           .createGist(_playground.mutableGist.createGist(), public, token)
           .then((String createdGistId) {
-        window.console.log('Got created Gist ID =$createdGistId');
-        _playground.showOutput('Got created Gist ID =$createdGistId');
-        //queryParams.gistId = createdGistId;
         _reloadPageWithNewGistId(createdGistId);
         setUnsavedLocalEdits();
-        // now update our menus to reflect new gist
+        // Now update our menus to reflect new gist.
         _githubAuthController.updateUsersGistAndStarredGistsList();
       });
     } else {
@@ -362,17 +320,13 @@ class GitHubUIController {
     if (token.isNotEmpty) {
       final Gist clonedGist = _playground.mutableGist.createGist();
       gistLoader.updateGist(clonedGist, token).then((String updatedGistId) {
-        //window.console.log('Got Updated Gist ID =$updatedGistId');
-        //_playground.showOutput('Got Updated Gist ID =$updatedGistId');
         setUnsavedLocalEdits();
         _playground.showSnackbar('Gist successfully updated');
-        //queryParams.gistId = forkedGistId;
-        //_reloadPageWithNewGistId(updatedGistId);
 
-        // update the backing gist because it is now in github
+        // Update the backing gist because it is now in github.
         _playground.mutableGist.setBackingGist(clonedGist);
 
-        // now update our menus to reflect new gist (description could have changed)
+        // Now update our menus to reflect new gist (description could have changed).
         _githubAuthController.updateUsersGistAndStarredGistsList();
       });
     } else {
@@ -397,18 +351,15 @@ class GitHubUIController {
           return;
         }
 
-        //window.console.log('Got Forked Gist ID =$forkedGistId');
-        //_playground.showOutput('Got forked Gist ID =$forkedGistId');
         setUnsavedLocalEdits();
 
         _playground.showSnackbar(unsavedLocalEdits
             ? 'Gist successfully forked and updated with local edits'
             : 'Gist successfully forked'); // This wont have time to show KLUDGE
 
-        //queryParams.gistId = forkedGistId;
         _reloadPageWithNewGistId(forkedGistId);
 
-        // now update our menus to reflect new gist
+        // Now update our menus to reflect new gist.
         _githubAuthController.updateUsersGistAndStarredGistsList();
       });
     } else {
@@ -442,8 +393,6 @@ class GitHubUIController {
 
   void _myGistMenuHandler(Event e) {
     final index = (e as CustomEvent).detail['index'] as int;
-    window.console.log(
-        'My Gist #$index of ${_githubAuthController.myGistList.length} selected');
     final List<Gist> mygists = _githubAuthController.myGistList;
     if (index >= 0 && index <= mygists.length) {
       final gistId = mygists.elementAt(index).id!;
@@ -452,7 +401,6 @@ class GitHubUIController {
   }
 
   MDCMenu _buildOrUpdateMyGistsMenu(MDCMenu? existingMenu) {
-    window.console.log('_buildOrUpdateMyGistsMenu() entered');
     existingMenu?.destroy();
 
     final element = querySelector('#my-gists-menu')!;
@@ -483,8 +431,8 @@ class GitHubUIController {
       ..hoistMenuToBody();
 
     if (existingMenu == null) {
-      // only add the first time, tried unlisten() at top of each creation
-      // but it did not work and resulted in multiple handlers
+      // Only add the first time, tried unlisten() at top of each creation
+      // but it did not work and resulted in multiple handlers.
       mygistsMenu.listen('MDCMenu:selected', _myGistMenuHandler);
     }
     return mygistsMenu;
@@ -492,8 +440,6 @@ class GitHubUIController {
 
   void _starredGistMenuHandler(Event e) {
     final index = (e as CustomEvent).detail['index'] as int;
-    window.console.log(
-        'starred Gist #$index of ${_githubAuthController.starredGistList.length} selected');
     final List<Gist> starredGists = _githubAuthController.starredGistList;
     if (index >= 0 && index <= starredGists.length) {
       final gistId = starredGists.elementAt(index).id!;
@@ -502,7 +448,6 @@ class GitHubUIController {
   }
 
   MDCMenu _buildOrUpdateStarredGistsMenu(MDCMenu? existingMenu) {
-    window.console.log('_buildOrUpdateStarredGistsMenu() entered');
     existingMenu?.destroy();
     final element = querySelector('#starred-gists-menu')!;
     element.children.clear();
@@ -532,16 +477,16 @@ class GitHubUIController {
       ..hoistMenuToBody();
 
     if (existingMenu == null) {
-      // only add the first time, tried unlisten() at top of each creation
-      // but it did not work and resulted in multiple handlers
+      // Only add the first time, tried unlisten() at top of each creation
+      // but it did not work and resulted in multiple handlers.
       starredGistsMenu.listen('MDCMenu:selected', _starredGistMenuHandler);
     }
     return starredGistsMenu;
   }
 
-  /// This hides the star/not starred indicator (and toggle button)
+  /// This hides the star/not starred indicator (and toggle button).
   /// This is called by playground when loading a new gist with no-known state
-  /// and it will reappear once correct state is known
+  /// and it will reappear once correct state is known.
   void hideGistStarredButton() {
     final SpanElement starUnstarButton =
         querySelector('#gist_star_button') as SpanElement;
@@ -549,42 +494,39 @@ class GitHubUIController {
   }
 
   void _starredButtonClickHandler(_) {
-    window.console.log('Star Unstar clicked!');
     if (_starUnstarButton.hidden ||
         !_playground.mutableGist.hasId ||
         _gistIdOfLastStarredReport.isEmpty ||
         _gistIdOfLastStarredReport != _playground.mutableGist.id) {
-      // do nothing, don't know state of current gist
+      // Do nothing, don't know state of current gist.
       return;
     }
     final String gistIdWeAreToggling = _gistIdOfLastStarredReport;
-    // clear until we report back (prevents another click until done)
+    // Clear until we report back (prevents another click until done).
     _gistIdOfLastStarredReport = '';
     if (!_starredStateOfLastStarReport) {
-      // immediately set state to where we think it's going, and we will update after we get
-      // verification from API
+      // Immediately set state to where we think it's going, and we will update
+      // after we get verification from API.
       _setStateOfStarredButton(true);
       gistLoader
           .starGist(
               gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken)
           .then((_) {
-        window.console.log('starGist.then()...');
         getStarReportOnLoadingGist(gistIdWeAreToggling, true);
-        // now update our menus to reflect change in starred gists
+        // Now update our menus to reflect change in starred gists.
         _githubAuthController.updateUsersGistAndStarredGistsList(
             starredCheckDelay: 60000);
       });
     } else {
-      // immediately set state to where we think it's going, and we will update after we get
-      // verification from API
+      // Immediately set state to where we think it's going, and we will update
+      // after we get verification from API.
       _setStateOfStarredButton(false);
       gistLoader
           .unstarGist(
               gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken)
           .then((_) {
-        window.console.log('unstarGist.then()...');
         getStarReportOnLoadingGist(gistIdWeAreToggling, true);
-        // now update our menus to reflect change in starred gists
+        // Now update our menus to reflect change in starred gists.
         _githubAuthController.updateUsersGistAndStarredGistsList(
             starredCheckDelay: 60000);
       });
@@ -594,24 +536,24 @@ class GitHubUIController {
   void _setStateOfStarredButton(bool starred) {
     _starUnstarButton.hidden = false;
     if (starred) {
-      // title bar gist star indicator
+      // Title bar gist star indicator.
       _starIconHolder.innerText = 'star';
       _starUnstarButton.title = 'Click to Unstar this gist';
-      // menu item star gist action
+      // Menu item star gist action.
       _starMenuIconHolder.innerText = 'star_outline';
       _starMenuItemText.innerText = 'Unstar Gist';
     } else {
-      // title bar gist star indicator
+      // Title bar gist star indicator.
       _starIconHolder.innerText = 'star_outline';
       _starUnstarButton.title = 'Click to Star this gist';
-      // menu item star gist action
+      // Menu item star gist action.
       _starMenuIconHolder.innerText = 'star';
       _starMenuItemText.innerText = 'Star Gist';
     }
   }
 
   /// Request a report on the state of this Gist's star status for the
-  /// currently authenticated user, updates UI once known
+  /// currently authenticated user, updates UI once known.
   void getStarReportOnLoadingGist(String gistId,
       [bool dontHideStarButton = false]) {
     if (!dontHideStarButton) hideGistStarredButton();
@@ -622,8 +564,6 @@ class GitHubUIController {
           .checkIfGistIsStarred(
               gistId, _githubAuthController.githubOAuthAccessToken)
           .then((starred) {
-        window.console.log(
-            'check of STAR RETURNED On THEN  gistId=$gistId starred=$starred');
         _gistIdOfLastStarredReport = gistId;
         _starredStateOfLastStarReport = starred;
         _setStateOfStarredButton(starred);
@@ -688,33 +628,17 @@ class GitHubAuthenticationController {
 
   GitHubAuthenticationController(this.launchUri, this.snackbar,
       {http.Client? client}) {
-    // check for parameters in rui
+    // Check for parameters in query uri.
     _client = client ?? http.Client();
 
     final params = Map<String, String?>.from(launchUri.queryParameters);
     final String ghTokenFromUrl = params['gh'] ?? '';
     final String ghScope = params['scope'] ?? '';
 
-    // debug
-    window.console
-        .log('GitHubLoginController() Launch URI  ${launchUri.toString()}');
-    params.forEach((key, value) {
-      window.console.log('  param $key = "$value"');
-    });
-
     if (ghTokenFromUrl.isNotEmpty) {
       final String perAuthParamsJson =
           window.localStorage['gh_pre_auth_query_params'] ?? '';
 
-      window.console.log('from localStorage param json = `$perAuthParamsJson`');
-
-      try {
-        final jdec = json.decode(perAuthParamsJson);
-
-        window.console.log('jdec = ${jdec.toString()}');
-      } catch (e) {
-        window.console.log('Caught exception ${e.toString()}');
-      }
       try {
         final restoreParams = Map<String, String?>.from(
             json.decode(perAuthParamsJson) as Map<dynamic, dynamic>);
@@ -722,39 +646,35 @@ class GitHubAuthenticationController {
         final Uri restoredUrl =
             launchUri.replace(queryParameters: restoreParams);
         window.history.replaceState({}, 'DartPad', restoredUrl.toString());
-
-        window.console.log('Restored URL is now ${restoredUrl.toString()}');
       } catch (e) {
         window.console
             .log('Caught doing restoreParams exception ${e.toString()}');
       }
 
       if (ghTokenFromUrl == 'noauth' || ghTokenFromUrl == 'authfailed') {
-        // ERROR was encountered during trip to GH auth
+        // ERROR was encountered during trip to GH auth.
         snackbar.showMessage('Error encountered during GitHub OAuth Request');
         return;
       }
       if (!ghScope.contains('gists')) {
-        // give error message but continue in this case
+        // Give error message but continue in this case.
         snackbar.showMessage(
             'Error: The scope "gists" was not included with the GitHub OAuth Token');
       }
 
-      // now decrypt the GH token and try and init user
+      // Now decrypt the GH token and try and init user.
       final String ghAuthToken =
           decryptAuthTokenFromReturnedSecureAuthToken(ghTokenFromUrl);
 
-      window.console.log('Post decrypt the ghAuthToken=$ghAuthToken');
-
-      // set provided a gh token, if new this will do query on user info
+      // Set provided a gh token, if new this will do query on user info.
       githubOAuthAccessToken = ghAuthToken;
     } else {
-      // There was no gh token in the window URL, but we may have STORED GH authorization
-      // in local storage...
+      // There was no gh token in the window URL, but we may have STORED GH
+      // authorization in local storage...
       // so trigger an authentication state change anyway
-      window.console.log(
-          'No GH query param but do we have a STORED local storage token ?');
-      window.console.log('githubOAuthAccessToken = $githubOAuthAccessToken');
+      //window.console.log(
+      //    'No GH query param but do we have a STORED local storage token ?');
+      //window.console.log('githubOAuthAccessToken = $githubOAuthAccessToken');
     }
   }
 
@@ -766,19 +686,15 @@ class GitHubAuthenticationController {
   Timer? starGistsChecklDelayTimer;
 
   void updateUsersGistAndStarredGistsList({int starredCheckDelay = 100}) {
-    // Now go and get the lists of user's gists and starred gists
-    window.console
-        .log('updateUsersGistAndStarredGistsList calling getUsersGists');
+    // Now go and get the lists of user's gists and starred gists.
     getUsersGists();
 
     // Github takes a while to update the returned list of starred gists
     // after a star/unstar operation, so in those cases we wait
-    // and extra amount of time - 60seconds ? long enough?
+    // and extra amount of time... - 60seconds ? long enough?
     starGistsChecklDelayTimer?.cancel();
     starGistsChecklDelayTimer =
         Timer(Duration(milliseconds: starredCheckDelay), () {
-      window.console.log(
-          'updateUsersGistAndStarredGistsList calling getUsersStarredGists after waiting $starredCheckDelay milliseconds');
       getUsersStarredGists();
     });
   }
@@ -788,7 +704,7 @@ class GitHubAuthenticationController {
     _starredGistList.clear();
     avatarUrl = '';
     userLogin = '';
-    // set auth token last as it will fire event
+    // Set auth token last as it will fire event.
     githubOAuthAccessToken = '';
     _authenticatedStateChangeController.add(false);
   }
@@ -798,6 +714,7 @@ class GitHubAuthenticationController {
   }
 
   /*
+    Request user info from GitHub API.
     GET /user
 
     Parameters
@@ -836,13 +753,10 @@ class GitHubAuthenticationController {
   Future<void> getUserInfo() async {
     final String accessToken = githubOAuthAccessToken;
 
-    window.console.log('getUserInfo  accessToken=$accessToken');
-
     if (accessToken.isEmpty) return;
 
     if (_pendingUserInfoRequest == accessToken) {
-      // already processing a request
-      window.console.log('getUserInfo DUPLICATE - skipping');
+      // Already processing a request.
       return;
     }
     _pendingUserInfoRequest = accessToken;
@@ -854,8 +768,6 @@ class GitHubAuthenticationController {
       'Authorization': 'token $accessToken'
     }).then((response) {
       _pendingUserInfoRequest = null;
-      window.console
-          .log('getUserInfo() get reponsestatusCode=${response.statusCode}');
 
       if (response.statusCode == 404) {
         throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -865,12 +777,8 @@ class GitHubAuthenticationController {
       } else if (response.statusCode != 200) {
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       } else {
-        // statusCode 200
+        // statusCode 200.
         final user = json.decode(response.body) as Map<String, dynamic>;
-
-        window.console.log('user data ${user.toString()}');
-        window.console.log('avatarURL= ${user['avatar_url']}');
-
         if (user.containsKey('avatar_url')) {
           avatarUrl = user['avatar_url'] as String;
         }
@@ -880,11 +788,12 @@ class GitHubAuthenticationController {
         _authenticatedStateChangeController.add(true);
       }
     }).catchError((e) {
-      window.console.log('Exception ${e.toString()}');
+      window.console.log('getUserInfo Exception ${e.toString()}');
     });
   }
 
   /*
+      Request user's gist info from GitHub API.
       GET /gists
 
       Parameters
@@ -929,13 +838,10 @@ class GitHubAuthenticationController {
   Future<void> getUsersGists() async {
     final String accessToken = githubOAuthAccessToken;
 
-    window.console.log('getUsersGists  accessToken=$accessToken');
-
     if (accessToken.isEmpty) return;
 
     if (_pendingUserGistRequest == accessToken) {
-      // already processing a request
-      window.console.log('getUsersGists DUPLICATE - skipping');
+      // Already processing a request.
       return;
     }
     _pendingUserGistRequest = accessToken;
@@ -948,8 +854,6 @@ class GitHubAuthenticationController {
       'Authorization': 'token $accessToken'
     }).then((response) {
       _pendingUserGistRequest = null;
-      window.console
-          .log('getUsersGists() reponsestatusCode=${response.statusCode}');
 
       if (response.statusCode == 404) {
         throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -959,34 +863,24 @@ class GitHubAuthenticationController {
       } else if (response.statusCode != 200) {
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       } else {
-        // statusCode 200
-        //window.console.log('raw gistList JSON ${response.body}');
+        // StatusCode 200.
         _myGistList.clear();
         final List<dynamic> gistslist =
             json.decode(response.body) as List<dynamic>;
 
-        //window.console.log('SUCCESS gist list gistslist.length ${gistslist.length}');
         if (gistslist.isNotEmpty) {
-          //window.console.log('gist list data ${gistslist.toString()}');
           for (int i = 0; i < gistslist.length; i++) {
-            // Now decode each one
-            //window.console.log('GIST #$i');
-            //window.console.log('gistslist[i]=${gistslist[i].toString()}');
+            // Now decode each one.
             final gist = Gist.fromMap(gistslist[i] as Map<String, dynamic>);
-
-            //window.console.log('CREATED OBJECT GIST #$i ::::');
-            //window.console.log('${gist.toJson()}');
             if (gist.hasDartContent()) {
               _myGistList.add(gist);
             }
           }
-          window.console
-              .log('Gist WITH DART = _myGistList.length ${_myGistList.length}');
         }
         _myGistListUpdateController.add(null);
       }
     }).catchError((e) {
-      window.console.log('Exception ${e.toString()}');
+      window.console.log('getUsersGists Exception ${e.toString()}');
     });
   }
 
@@ -1002,13 +896,10 @@ class GitHubAuthenticationController {
   Future<void> getUsersStarredGists() async {
     final String accessToken = githubOAuthAccessToken;
 
-    window.console.log('getUsersStarredGists  accessToken=$accessToken');
-
     if (accessToken.isEmpty) return;
 
     if (_pendingUserStarredGistRequest == accessToken) {
-      // already processing a request
-      window.console.log('getUsersStarredGists DUPLICATE - skipping');
+      // Already processing a request.
       return;
     }
     _pendingUserStarredGistRequest = accessToken;
@@ -1021,8 +912,6 @@ class GitHubAuthenticationController {
       'Authorization': 'token $accessToken'
     }).then((response) {
       _pendingUserStarredGistRequest = null;
-      window.console.log(
-          'getUsersStarredGists() reponsestatusCode=${response.statusCode}');
 
       if (response.statusCode == 404) {
         throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -1032,49 +921,31 @@ class GitHubAuthenticationController {
       } else if (response.statusCode != 200) {
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       } else {
-        // statusCode 200
-        //window.console.log('raw gistList JSON ${response.body}');
+        // StatusCode 200.
         _starredGistList.clear();
         final List<dynamic> gistslist =
             json.decode(response.body) as List<dynamic>;
-
-        //window.console.log('SUCCESS starred gist list gistslist.length ${gistslist.length}');
         if (gistslist.isNotEmpty) {
-          //window.console.log('starred gist list data ${gistslist.toString()}');
-
           for (int i = 0; i < gistslist.length; i++) {
-            // Now decode each one
-            //window.console.log('STARRED GIST #$i');
-
-            //window.console.log('gistslist[i]=${gistslist[i].toString()}');
-
+            // Now decode each one.
             final gist = Gist.fromMap(gistslist[i] as Map<String, dynamic>);
-
-            //window.console.log('CREATED OBJECT GIST #$i ::::');
-            //window.console.log('${gist.toJson()}');
-
             if (gist.hasDartContent()) {
               _starredGistList.add(gist);
             }
           }
-          window.console.log(
-              'STARRED Gist WITH DART = _starredGistList.length ${_starredGistList.length}');
         }
         _starredGistListUpdateController.add(null);
       }
     }).catchError((e) {
-      window.console.log('Exception ${e.toString()}');
+      window.console.log('getUsersStarredGists Exception ${e.toString()}');
     });
   }
 
   set githubOAuthAccessToken(String newtoken) {
-    window.console.log('Setting access token to $newtoken');
     if (window.localStorage['github_oauth_token'] != newtoken) {
       if (newtoken.isNotEmpty) {
-        window.console.log('putting into local storage');
         window.localStorage['github_oauth_token'] = newtoken;
-        // get the user info for this token
-        window.console.log('calling getUserInfo');
+        // Get the user info for this token.
         getUserInfo();
       } else {
         window.localStorage.remove('github_oauth_token');
@@ -1088,7 +959,6 @@ class GitHubAuthenticationController {
       window.localStorage['github_oauth_token'] ?? '';
 
   set avatarUrl(String url) {
-    window.console.log('setting avatar url to $url');
     if (url.isNotEmpty) {
       window.localStorage['github_avatar_url'] = url;
     } else {
@@ -1099,13 +969,11 @@ class GitHubAuthenticationController {
   String get avatarUrl => window.localStorage['github_avatar_url'] ?? '';
 
   set userLogin(String login) {
-    window.console.log('setting login to $login');
     if (login.isNotEmpty) {
       window.localStorage['github_user_login'] = login;
     } else {
       window.localStorage.remove('github_user_login');
     }
-    //KLUDGE//_authenticatedStateChangeController.add(login.isNotEmpty);
   }
 
   String get userLogin => window.localStorage['github_user_login'] ?? '';
@@ -1118,12 +986,12 @@ class GitHubAuthenticationController {
       length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
 
   String makeRandomSecureAuthInitiationUrl(String baseUrl) {
-    // create random state string which will be used by GH OAuth and then by
-    // us to encrypt returned gh auth token
+    // Create random state string which will be used by GH OAuth and then by
+    // us to encrypt returned gh auth token.
     final String state = getRandomString(40);
 
     // Store state in localStorage, because we are going to need it to Decrypt
-    // the returned authorization token
+    // the returned authorization token.
     window.localStorage['github_random_state'] = state;
 
     if (baseUrl.endsWith('/')) {
@@ -1135,9 +1003,9 @@ class GitHubAuthenticationController {
 
   String decryptAuthTokenFromReturnedSecureAuthToken(
       String encryptedBase64AuthToken) {
-    // retrieve the random state string we made for the original request in
+    // Retrieve the random state string we made for the original request in
     // makeRandomSecureAuthInitiationUrl().  Our auth token was encrypted using
-    // this before sending it back to us, so use it to decrypt
+    // this before sending it back to us, so use it to decrypt.
     final String randomStateWeSent =
         window.localStorage['github_random_state'] ?? '';
 
@@ -1158,7 +1026,8 @@ class GitHubAuthenticationController {
 
       return decryptedAuthToken;
     } catch (e) {
-      window.console.log('CAUGHT EXCEPTION e=${e.toString()}');
+      window.console.log(
+          'decryptAuthTokenFromReturnedSecureAuthToken Exception e=${e.toString()}');
     }
     return 'ERROR';
   }
