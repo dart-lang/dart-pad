@@ -381,7 +381,7 @@ Future<void> _run(
 }
 
 @Task('Update pubspec dependency versions')
-@Depends(sdkInit)
+@Depends(sdkInit, buildProjectTemplates)
 void updatePubDependencies() async {
   final sdk = _getSdk();
   await _updateDependenciesFile(
