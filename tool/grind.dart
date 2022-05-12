@@ -75,7 +75,7 @@ const _dockerFileNames = [
 ];
 
 /// Returns the Flutter channel provided in environment variables.
-late final String _channel = () {
+final String _channel = () {
   final channel = Platform.environment['FLUTTER_CHANNEL'];
   if (channel == null) {
     throw StateError('Must provide FLUTTER_CHANNEL');
@@ -91,8 +91,8 @@ Sdk _getSdk() => Sdk.create(_channel);
 @Task('Update the docker and SDK versions')
 void updateDockerVersion() {
   final platformVersion = Platform.version.split(' ').first;
-  for (final _dockerFileName in _dockerFileNames) {
-    final dockerFile = File(_dockerFileName);
+  for (final dockerFileName in _dockerFileNames) {
+    final dockerFile = File(dockerFileName);
     final dockerImageLines = dockerFile.readAsLinesSync().map((String s) {
       if (s.contains(_dockerVersionMatcher)) {
         return 'FROM $_dartImageName:$platformVersion';

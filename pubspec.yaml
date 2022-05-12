@@ -2,7 +2,7 @@ name: dart_services
 publish_to: none
 
 environment:
-  sdk: ^2.13.0
+  sdk: ^2.17.0
 
 dependencies:
   analysis_server_lib: ^0.2.0
@@ -27,7 +27,7 @@ dev_dependencies:
   build_runner: ^2.1.10
   coverage: ^1.0.3
   grinder: ^0.9.1
-  lints: ^1.0.1
+  lints: ^2.0.0
   package_config: ^2.0.2
   shelf_router_generator: ^1.0.0
   synchronized: ^3.0.0

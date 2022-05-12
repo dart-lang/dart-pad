@@ -28,7 +28,7 @@ const _flutterPackages = [
 
 /// This is expensive to calculate; they require reading from disk.
 /// None of them changes during execution.
-late final Map<String, String> _nullSafePackageVersions =
+final Map<String, String> _nullSafePackageVersions =
     packageVersionsFromPubspecLock(
         project.ProjectTemplates.projectTemplates.firebasePath);
 

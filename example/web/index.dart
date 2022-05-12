@@ -11,7 +11,7 @@ import 'package:http/browser_client.dart';
 import 'package:http/http.dart';
 import 'services_utils.dart' as utils;
 
-late BrowserClient _client = utils.SanitizingBrowserClient();
+BrowserClient _client = utils.SanitizingBrowserClient();
 
 void main() {
   setupAnalyze();
