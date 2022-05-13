@@ -307,9 +307,9 @@ class Embed extends EditorUi {
       DElement(querySelector('#issues-toggle')!),
       snackbar,
     )..onItemClicked.listen((item) {
-        if(item.sourceName=='test.dart') {
+        if (item.sourceName == 'test.dart') {
           // must be test editor
-          if(!_showTestCode) {
+          if (!_showTestCode) {
             _showTestCode = true;
             showTestCodeCheckmark.toggleClass('hide', !_showTestCode);
             tabController.setTabVisibility('test', _showTestCode);
@@ -803,7 +803,8 @@ class Embed extends EditorUi {
     hintBox.hide();
 
     // Handle possiblity of issues in appended test code.
-    analysisResultsController.display(detectIssuesInTestSourceAndModifyIssuesAccordingly(issues));
+    analysisResultsController
+        .display(detectIssuesInTestSourceAndModifyIssuesAccordingly(issues));
   }
 
   // We append test source code to the user's source code, because of
@@ -813,7 +814,7 @@ class Embed extends EditorUi {
   // This can result in issues with line numbers that are
   // outside the user's dart source.  This would confusing to the users.
   // We are going to do one of two things:
-  // - If the test source is currently HIDDEN and the issue kind is 
+  // - If the test source is currently HIDDEN and the issue kind is
   // not and `error` (it is `info` or `warning`) then we will REMOVE
   // the issue from the list so as to "hide" it.
   // - If the test source is showing, *or* if the issue is an `error`, we are
@@ -824,31 +825,31 @@ class Embed extends EditorUi {
       List<AnalysisIssue> issues) {
     final int dartSourceLineCount = context.dartSourceLineCount;
     final int dartSourceCharCount = context.dartSource.length;
-    issues = issues.map((issue){
+    issues = issues.map((issue) {
       if (issue.line > dartSourceLineCount) {
         // This is in the test source, do we adjust or hide it ?
         // (We never hide errors).
         if (issue.kind != 'error' && !_showTestCode) {
           // We want to remove the message later so flag it.
-          return AnalysisIssue(line:-99);
+          return AnalysisIssue(line: -99);
         } else {
           // Adjust the line number, charStart and set sourceName
           // to indicate this issue is in the test code.
           return AnalysisIssue(
-            kind: issue.kind,
-            line: (issue.line-dartSourceLineCount-1),
-            message:issue.message,
-            sourceName:'test.dart',
-            hasFixes:issue.hasFixes,
-            charStart: (issue.charStart-dartSourceCharCount),
-            charLength:issue.charLength,
-            url:issue.url,
-            diagnosticMessages:issue.diagnosticMessages,
-            correction:issue.correction);
+              kind: issue.kind,
+              line: (issue.line - dartSourceLineCount - 1),
+              message: issue.message,
+              sourceName: 'test.dart',
+              hasFixes: issue.hasFixes,
+              charStart: (issue.charStart - dartSourceCharCount),
+              charLength: issue.charLength,
+              url: issue.url,
+              diagnosticMessages: issue.diagnosticMessages,
+              correction: issue.correction);
         }
       }
       return issue;
-    }).toList(); 
+    }).toList();
     issues.removeWhere((issue) => issue.line == -99);
     return issues;
   }
@@ -918,7 +919,8 @@ class Embed extends EditorUi {
     if (focus) context.focus();
   }
 
-  void _jumpToTest(int line, int charStart, int charLength, {bool focus = false}) {
+  void _jumpToTest(int line, int charStart, int charLength,
+      {bool focus = false}) {
     final doc = context.testDocument;
 
     doc.select(

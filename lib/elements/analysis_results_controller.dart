@@ -116,7 +116,7 @@ class AnalysisResultsController {
 
     // TODO: This should likely be named contextMessages.
     for (final diagnostic in issue.diagnosticMessages) {
-      columnElem.children.add(_createDiagnosticElement(diagnostic,issue));
+      columnElem.children.add(_createDiagnosticElement(diagnostic, issue));
     }
 
     elem.children.add(columnElem);
@@ -141,7 +141,7 @@ class AnalysisResultsController {
 
     elem.onClick.listen((_) {
       _onClickController.add(Location(
-          sourceName:issue.sourceName,
+          sourceName: issue.sourceName,
           line: issue.line,
           charStart: issue.charStart,
           charLength: issue.charLength));
@@ -150,7 +150,8 @@ class AnalysisResultsController {
     return elem;
   }
 
-  Element _createDiagnosticElement(DiagnosticMessage diagnosticMessage, AnalysisIssue parentIssue ) {
+  Element _createDiagnosticElement(
+      DiagnosticMessage diagnosticMessage, AnalysisIssue parentIssue) {
     final message = diagnosticMessage.message;
 
     final elem = DivElement()..classes.addAll(['message', 'clickable']);
@@ -162,25 +163,25 @@ class AnalysisResultsController {
 
       _onClickController.add(Location(
           //TODO: @timmaffett multi files will need -> diagnosticMessage.sourceName,
-          sourceName:parentIssue.sourceName, 
+          sourceName: parentIssue.sourceName,
           // For now if the source name is NOT main.dart then ASSUME that the
           // line number and charStart could have been adjust because of an
           // appended test, and use the information for the parentIssue instead.
           // (It would probably be safe to always do this, but by doing this
           // we DO NOT change any behavior except for when we have changed the
           // sourceName to `test.dart` (the only way the sourceName can currently
-          // change until multi file source merged)) 
+          // change until multi file source merged))
           //TODO: @timmaffett For now we assume only 2 possibilities, 'main.dart'
           // or 'test.dart' (and in that case we changed line# and charStart).
-          line: parentIssue.sourceName=='main.dart' ? 
-                  diagnosticMessage.line :
-                  parentIssue.line,
-          charStart: parentIssue.sourceName=='main.dart' ? 
-                  diagnosticMessage.charStart :
-                  parentIssue.charStart,
-          charLength: parentIssue.sourceName=='main.dart' ?
-                  diagnosticMessage.charLength :
-                  parentIssue.charLength ));
+          line: parentIssue.sourceName == 'main.dart'
+              ? diagnosticMessage.line
+              : parentIssue.line,
+          charStart: parentIssue.sourceName == 'main.dart'
+              ? diagnosticMessage.charStart
+              : parentIssue.charStart,
+          charLength: parentIssue.sourceName == 'main.dart'
+              ? diagnosticMessage.charLength
+              : parentIssue.charLength));
     });
 
     return elem;
