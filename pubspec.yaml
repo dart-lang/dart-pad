@@ -22,7 +22,7 @@ dependencies:
   split:
     path: third_party/pkg/split/
   stream_transform: ^2.0.0
-  yaml: ^3.0.0
+  yaml: ^3.1.1
 
 dev_dependencies:
   build_runner: ^2.1.10
