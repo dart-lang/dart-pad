@@ -1062,10 +1062,8 @@ class NewPadDialog {
   final MDCDialog _mdcDialog;
   final MDCRipple _dartButton;
   final MDCRipple _flutterButton;
-  final MDCButton _createButton;
   final MDCButton _cancelButton;
   final MDCSwitch _htmlSwitch;
-  final DElement _htmlSwitchContainer;
 
   NewPadDialog()
       : assert(querySelector('#new-pad-dialog') != null),
@@ -1073,70 +1071,34 @@ class NewPadDialog {
         assert(querySelector('#new-pad-select-flutter') != null),
         assert(querySelector('#new-pad-cancel-button') != null),
         assert(querySelector('#new-pad-create-button') != null),
-        assert(querySelector('#new-pad-html-switch-container') != null),
-        assert(querySelector('#new-pad-html-switch-container .mdc-switch') !=
-            null),
+        assert(querySelector('#new-pad-html-switch') != null),
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')!),
         _dartButton = MDCRipple(querySelector('#new-pad-select-dart')!),
         _flutterButton = MDCRipple(querySelector('#new-pad-select-flutter')!),
         _cancelButton =
             MDCButton(querySelector('#new-pad-cancel-button') as ButtonElement),
-        _createButton =
-            MDCButton(querySelector('#new-pad-create-button') as ButtonElement),
-        _htmlSwitchContainer =
-            DElement(querySelector('#new-pad-html-switch-container')!),
-        _htmlSwitch = MDCSwitch(
-            querySelector('#new-pad-html-switch-container .mdc-switch'));
-
-  Layout? get selectedLayout {
-    if (_dartButton.root.classes.contains('selected')) {
-      return _htmlSwitch.checked! ? Layout.html : Layout.dart;
-    }
-
-    if (_flutterButton.root.classes.contains('selected')) {
-      return Layout.flutter;
-    }
-
-    return null;
-  }
+        _htmlSwitch = MDCSwitch(querySelector('#new-pad-html-switch'));
 
   Future<Layout?> show() {
-    _createButton.toggleAttr('disabled', true);
-
     final completer = Completer<Layout?>();
     final dartSub = _dartButton.root.onClick.listen((_) {
-      _flutterButton.root.classes.remove('selected');
-      _dartButton.root.classes.add('selected');
-      _createButton.toggleAttr('disabled', false);
-      _htmlSwitchContainer.toggleClass('hide', false);
-      _htmlSwitch.disabled = false;
+      completer.complete(_htmlSwitch.checked! ? Layout.html : Layout.dart);
     });
 
     final flutterSub = _flutterButton.root.onClick.listen((_) {
-      _dartButton.root.classes.remove('selected');
-      _flutterButton.root.classes.add('selected');
-      _createButton.toggleAttr('disabled', false);
-      _htmlSwitchContainer.toggleClass('hide', true);
+      completer.complete(Layout.flutter);
     });
 
     final cancelSub = _cancelButton.onClick.listen((_) {
       completer.complete(null);
     });
 
-    final createSub = _createButton.onClick.listen((_) {
-      completer.complete(selectedLayout);
-    });
-
     _mdcDialog.open();
 
     void handleClosing(Event _) {
-      _flutterButton.root.classes.remove('selected');
-      _dartButton.root.classes.remove('selected');
-      _htmlSwitchContainer.toggleClass('hide', true);
       dartSub.cancel();
       flutterSub.cancel();
       cancelSub.cancel();
-      createSub.cancel();
       _mdcDialog.unlisten('MDCDialog:closing', handleClosing);
     }
 
