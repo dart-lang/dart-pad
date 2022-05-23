@@ -16,7 +16,7 @@ dependencies:
   logging: ^1.0.0
   markdown: ^5.0.0
   mdc_web: ^0.6.0
-  meta: ^1.2.4
+  meta: ^1.8.0
   protobuf: ^2.0.0
   sass_builder: ^2.1.0
   split:
