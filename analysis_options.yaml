@@ -23,3 +23,4 @@ linter:
     - prefer_single_quotes
     - sort_pub_dependencies
     - unawaited_futures
+    - use_super_parameters

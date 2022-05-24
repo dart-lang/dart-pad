@@ -92,7 +92,7 @@ class DElement {
 }
 
 class DButton extends DElement {
-  DButton(ButtonElement element) : super(element);
+  DButton(ButtonElement super.element);
 
   DButton.button({String? text, String? classes})
       : super.tag('button', classes: classes) {
@@ -114,7 +114,7 @@ class DButton extends DElement {
 }
 
 class DSplash extends DElement {
-  DSplash(Element element) : super(element);
+  DSplash(super.element);
 
   void hide({bool removeOnHide = true}) {
     if (removeOnHide) {
@@ -131,7 +131,7 @@ class DBusyLight extends DElement {
 
   int _count = 0;
 
-  DBusyLight(Element element) : super(element);
+  DBusyLight(super.element);
 
   void on() {
     _count++;
@@ -186,7 +186,7 @@ class DLabel extends DElement {
 }
 
 class DOverlay extends DElement {
-  DOverlay(Element element) : super(element);
+  DOverlay(super.element);
 
   bool get visible => element.classes.contains('visible');
 
@@ -211,7 +211,7 @@ class DContentEditable extends DElement {
 }
 
 class DInput extends DElement {
-  DInput(InputElement element) : super(element);
+  DInput(InputElement super.element);
 
   DInput.input({String? type}) : super(InputElement(type: type));
 
@@ -415,7 +415,7 @@ class TabElement extends DElement {
   final String? name;
   final Function? onSelect;
 
-  TabElement(Element element, {this.name, this.onSelect}) : super(element);
+  TabElement(super.element, {this.name, this.onSelect});
 
   void handleSelected() {
     if (onSelect != null) onSelect!();

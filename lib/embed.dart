@@ -882,7 +882,7 @@ class EmbedTabController extends MaterialTabController {
   final Dialog _dialog;
   bool _userHasSeenSolution = false;
 
-  EmbedTabController(MDCTabBar tabBar, this._dialog) : super(tabBar);
+  EmbedTabController(super.tabBar, this._dialog);
 
   @override
   void registerTab(TabElement tab) {
