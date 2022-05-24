@@ -336,14 +336,14 @@ class KeyboardDialog {
 
   Future<DialogResult> show(Editor editor) {
     // populate with the keymap info
-    final DElement _keyMapInfoDiv =
+    final DElement keyMapInfoDiv =
         DElement(querySelector('#keyboard-map-info')!);
     final Element info = Element.html(keyMapToHtml(keys.inverseBindings));
-    _keyMapInfoDiv.clearChildren();
-    _keyMapInfoDiv.add(info);
+    keyMapInfoDiv.clearChildren();
+    keyMapInfoDiv.add(info);
 
     // set switch according to keyboard state
-    final String? currentKeyMap = editor.keyMap;
+    final String currentKeyMap = editor.keyMap;
     _vimSwitch.checked = (currentKeyMap == 'vim');
 
     final completer = Completer<DialogResult>();
