@@ -135,10 +135,8 @@ class SharingDialog extends DDialog {
       ..flex()
       ..element.style.paddingLeft = '16px');
     final rightArea = _embedArea.add(DElement.tag('div'));
-    final embedDartArea =
-        leftArea.add(DElement.tag('div')..layoutHorizontal());
-    final embedHtmlArea =
-        leftArea.add(DElement.tag('div')..layoutHorizontal());
+    final embedDartArea = leftArea.add(DElement.tag('div')..layoutHorizontal());
+    final embedHtmlArea = leftArea.add(DElement.tag('div')..layoutHorizontal());
     _embedDartRadio = embedDartArea.add(RadioButtonInputElement()
       ..name = 'embed'
       ..id = 'dart-radio');
@@ -154,10 +152,9 @@ class SharingDialog extends DDialog {
       ..text = 'Dart + HTML'
       ..style.paddingLeft = '8px');
     _embedDartRadio.checked = true;
-    _embedPicture =
-        rightArea.add(ImageElement(src: _dartThumbnail, height: 100)
-          ..alt = 'Embed-dart'
-          ..style.paddingLeft = '16px');
+    _embedPicture = rightArea.add(ImageElement(src: _dartThumbnail, height: 100)
+      ..alt = 'Embed-dart'
+      ..style.paddingLeft = '16px');
     _embedDartRadio.onClick.listen((_) => _embedToDart());
     _embedHtmlRadio.onClick.listen((_) => _embedToHtml());
     _info = leftArea.add(DElement.tag('div')..layoutHorizontal());
@@ -257,8 +254,7 @@ class KeysDialog extends DDialog {
             string += '<span>${makeKeyPresentable(key)}</span>';
           }
         }
-        dl.innerHtml =
-            '${dl.innerHtml ?? ''}<dt>$action</dt><dd>$string</dd>';
+        dl.innerHtml = '${dl.innerHtml ?? ''}<dt>$action</dt><dd>$string</dd>';
       }
     });
     return dl;
