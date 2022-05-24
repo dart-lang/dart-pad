@@ -30,12 +30,12 @@ packages:
     source: hosted
     version: "2.3.0"
   async:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: async
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "2.8.2"
+    version: "2.9.0"
   bazel_worker:
     dependency: transitive
     description:
@@ -464,7 +464,7 @@ packages:
     source: hosted
     version: "1.0.1"
   shelf:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: shelf
       url: "https://pub.dartlang.org"
@@ -478,7 +478,7 @@ packages:
     source: hosted
     version: "3.0.0"
   shelf_static:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: shelf_static
       url: "https://pub.dartlang.org"
