@@ -174,7 +174,7 @@ void buildProjectTemplates() async {
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
-@Depends(sdkInit, buildProjectTemplates)
+@Depends(sdkInit, updatePubDependencies)
 void buildStorageArtifacts() async {
   final sdk = _getSdk();
   delete(getDir('artifacts'));
