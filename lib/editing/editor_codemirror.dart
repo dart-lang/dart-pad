@@ -248,7 +248,7 @@ class _CodeMirrorEditor extends Editor {
 
   late bool _lookingForQuickFix;
 
-  _CodeMirrorEditor._(CodeMirrorFactory factory, this.cm) : super(factory) {
+  _CodeMirrorEditor._(CodeMirrorFactory super.factory, this.cm) {
     _document = _CodeMirrorDocument._(this, cm.doc);
     _instances[cm.jsProxy] = this;
   }
@@ -471,7 +471,7 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
   /// programmatically change the `value` field.
   String? _lastSetValue;
 
-  _CodeMirrorDocument._(_CodeMirrorEditor editor, this.doc) : super(editor);
+  _CodeMirrorDocument._(super.editor, this.doc);
 
   _CodeMirrorEditor get parent => editor;
 

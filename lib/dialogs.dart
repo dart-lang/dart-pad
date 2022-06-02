@@ -130,37 +130,37 @@ class SharingDialog extends DDialog {
     _embedArea = div.add(DElement.tag('div'))
       ..layoutHorizontal()
       ..flex();
-    final _leftArea = _embedArea.add(DElement.tag('div')
+    final leftArea = _embedArea.add(DElement.tag('div')
       ..layoutVertical()
       ..flex()
       ..element.style.paddingLeft = '16px');
-    final _rightArea = _embedArea.add(DElement.tag('div'));
-    final _embedDartArea =
-        _leftArea.add(DElement.tag('div')..layoutHorizontal());
-    final _embedHtmlArea =
-        _leftArea.add(DElement.tag('div')..layoutHorizontal());
-    _embedDartRadio = _embedDartArea.add(RadioButtonInputElement()
+    final rightArea = _embedArea.add(DElement.tag('div'));
+    final embedDartArea =
+        leftArea.add(DElement.tag('div')..layoutHorizontal());
+    final embedHtmlArea =
+        leftArea.add(DElement.tag('div')..layoutHorizontal());
+    _embedDartRadio = embedDartArea.add(RadioButtonInputElement()
       ..name = 'embed'
       ..id = 'dart-radio');
-    _embedDartArea.add(LabelElement()
+    embedDartArea.add(LabelElement()
       ..htmlFor = 'dart-radio'
       ..text = 'Dart + documentation'
       ..style.paddingLeft = '8px');
-    _embedHtmlRadio = _embedHtmlArea.add(RadioButtonInputElement()
+    _embedHtmlRadio = embedHtmlArea.add(RadioButtonInputElement()
       ..name = 'embed'
       ..id = 'html-radio');
-    _embedHtmlArea.add(LabelElement()
+    embedHtmlArea.add(LabelElement()
       ..htmlFor = 'html-radio'
       ..text = 'Dart + HTML'
       ..style.paddingLeft = '8px');
     _embedDartRadio.checked = true;
     _embedPicture =
-        _rightArea.add(ImageElement(src: _dartThumbnail, height: 100)
+        rightArea.add(ImageElement(src: _dartThumbnail, height: 100)
           ..alt = 'Embed-dart'
           ..style.paddingLeft = '16px');
     _embedDartRadio.onClick.listen((_) => _embedToDart());
     _embedHtmlRadio.onClick.listen((_) => _embedToHtml());
-    _info = _leftArea.add(DElement.tag('div')..layoutHorizontal());
+    _info = leftArea.add(DElement.tag('div')..layoutHorizontal());
     _info.add(SpanElement()
       ..text = 'Check out our embedding '
       ..style.marginTop = '5px'
@@ -258,7 +258,7 @@ class KeysDialog extends DDialog {
           }
         }
         dl.innerHtml =
-            (dl.innerHtml ?? '') + '<dt>$action</dt><dd>$string</dd>';
+            '${dl.innerHtml ?? ''}<dt>$action</dt><dd>$string</dd>';
       }
     });
     return dl;
