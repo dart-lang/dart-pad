@@ -412,15 +412,15 @@ class TabController {
 }
 
 class TabElement extends DElement {
-  final String? name;
-  final Function? onSelect;
+  final String name;
+  final Function onSelect;
 
-  TabElement(super.element, {this.name, this.onSelect});
+  TabElement(super.element, {required this.name, required this.onSelect});
 
   void handleSelected() {
-    onSelect?.call();
+    onSelect.call();
   }
 
   @override
-  String toString() => '$name';
+  String toString() => name;
 }
