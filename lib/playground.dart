@@ -240,6 +240,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
           Layout.flutter),
       Sample('85e77d36533b16647bf9b6eb8c03296d', 'Implicit animations',
           Layout.flutter),
+      Sample('ecabed4a17a3aad8bee7c6327e472fc8', 'Padracing', Layout.flutter),
       Sample('d57c6c898dabb8c6fb41018588b8cf73', 'Firebase Nanochat',
           Layout.flutter),
       Sample(
