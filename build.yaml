@@ -38,4 +38,3 @@ global_options:
         BETA_SERVER_URL: https://beta.api.dartpad.dev/
         DEV_SERVER_URL: https://dev.api.dartpad.dev/
         OLD_SERVER_URL: https://old.api.dartpad.dev/
-        
