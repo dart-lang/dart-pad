@@ -82,8 +82,7 @@ class DartPadPicker {
     window.addEventListener('message', (Event event) {
       final messageEvent = event as MessageEvent;
       // Don't handle events from other iframe elements
-      if (messageEvent.data is Map &&
-          messageEvent.data['type'] == 'ready') {
+      if (messageEvent.data is Map && messageEvent.data['type'] == 'ready') {
         _sendSourceCode();
       }
     });
