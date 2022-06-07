@@ -803,7 +803,7 @@ class Embed extends EditorUi {
     }
   }
 
-  void _format() async {
+  Future<void> _format() async {
     final originalSource = context.dartSource;
     final input = SourceRequest()..source = originalSource;
 
@@ -884,7 +884,7 @@ class EmbedTabController extends MaterialTabController {
   final Dialog _dialog;
   bool _userHasSeenSolution = false;
 
-  EmbedTabController(MDCTabBar tabBar, this._dialog) : super(tabBar);
+  EmbedTabController(super.tabBar, this._dialog);
 
   @override
   void registerTab(TabElement tab) {

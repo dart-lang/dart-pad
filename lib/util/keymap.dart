@@ -17,7 +17,7 @@ String? keyMapToHtml(Map<Action, Set<String>> keyMap) {
           string += '<span>${makeKeyPresentable(key)}</span>';
         }
       }
-      dl.innerHtml = (dl.innerHtml ?? '') + '<dt>$action</dt><dd>$string</dd>';
+      dl.innerHtml = '${dl.innerHtml ?? ''}<dt>$action</dt><dd>$string</dd>';
     }
   });
 

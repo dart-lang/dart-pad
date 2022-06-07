@@ -479,7 +479,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   MaterialTabController _buildTabs() {
     final webLayoutTabController =
         MaterialTabController(MDCTabBar(_webTabBar.element));
-    for (final name in ['dart', 'html', 'css']) {
+    for (final name in const ['dart', 'html', 'css']) {
       webLayoutTabController.registerTab(
           TabElement(querySelector('#$name-tab')!, name: name, onSelect: () {
         ga.sendEvent('edit', name);
