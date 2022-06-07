@@ -1,6 +1,7 @@
 name: dart_pad
 description: The UI client for a web based interactive Dart service.
-homepage: https://github.com/dart-lang/dart-pad
+publish_to: none
+
 environment:
   sdk: '>=2.14.0 <3.0.0'
 
