@@ -239,7 +239,7 @@ abstract class EditorUi {
   }
 
   /// Updates the Flutter and Dart SDK versions in the bottom right.
-  void updateVersions() async {
+  Future<void> updateVersions() async {
     try {
       final response = await dartServices.version();
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
@@ -337,30 +337,30 @@ class KeyboardDialog {
 
   Future<DialogResult> show(Editor editor) {
     // populate with the keymap info
-    final DElement _keyMapInfoDiv =
+    final DElement keyMapInfoDiv =
         DElement(querySelector('#keyboard-map-info')!);
     final Element info = Element.html(keyMapToHtml(keys.inverseBindings));
-    _keyMapInfoDiv.clearChildren();
-    _keyMapInfoDiv.add(info);
+    keyMapInfoDiv.clearChildren();
+    keyMapInfoDiv.add(info);
 
     // set switch according to keyboard state
-    final String? currentKeyMap = editor.keyMap;
+    final String currentKeyMap = editor.keyMap;
     _vimSwitch.checked = (currentKeyMap == 'vim');
 
     final completer = Completer<DialogResult>();
 
     _okButton.onClick.listen((_) {
-      final bool vimset = _vimSwitch.checked!;
+      final bool vimSet = _vimSwitch.checked!;
 
       // change keyMap if needed and *remember* their choice for next startup
-      if (vimset) {
+      if (vimSet) {
         if (currentKeyMap != 'vim') editor.keyMap = 'vim';
         window.localStorage['codemirror_keymap'] = 'vim';
       } else {
         if (currentKeyMap != 'default') editor.keyMap = 'default';
         window.localStorage['codemirror_keymap'] = 'default';
       }
-      completer.complete(vimset ? DialogResult.yes : DialogResult.ok);
+      completer.complete(vimSet ? DialogResult.yes : DialogResult.ok);
     });
 
     _mdcDialog.open();
