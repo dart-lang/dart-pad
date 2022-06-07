@@ -65,7 +65,7 @@ void defineTests() {
   /// [expectation] The function used to verify the output.
   void expectSingleSequenceElement(
       String sequence, VoidCallbackWithSpan expectation) {
-    final SpanElement child = getSequenceOutput(sequence + 'fakecontent')!;
+    final SpanElement child = getSequenceOutput('${sequence}fakecontent')!;
     expect(child.text, 'fakecontent');
     expectation(child);
   }
@@ -95,35 +95,35 @@ void defineTests() {
         element.style.backgroundColor = cssColor;
         expect((styleBefore == element.style.backgroundColor),
             equals(colorShouldMatch),
-            reason: (message ?? '') +
-                'Incorrect $colorType color style found (found color: $styleBefore, expected $cssColor colorShouldMatch=$colorShouldMatch).');
+            reason:
+                '${message ?? ''} Incorrect $colorType color style found (found color: $styleBefore, expected $cssColor colorShouldMatch=$colorShouldMatch).');
       } else if (colorType == 'foreground') {
         final String styleBefore = element.style.color;
         element.style.color = cssColor;
         expect((styleBefore == element.style.color), equals(colorShouldMatch),
-            reason: (message ?? '') +
-                'Incorrect $colorType color style found (found color: $styleBefore, expected $cssColor colorShouldMatch=$colorShouldMatch).');
+            reason:
+                '${message ?? ''} Incorrect $colorType color style found (found color: $styleBefore, expected $cssColor colorShouldMatch=$colorShouldMatch).');
       } else {
         final String styleBefore = element.style.textDecorationColor;
         element.style.textDecorationColor = cssColor;
         expect((styleBefore == element.style.textDecorationColor),
             equals(colorShouldMatch),
-            reason: (message ?? '') +
-                'Incorrect $colorType color style found (found color: $styleBefore, expected $cssColor colorShouldMatch=$colorShouldMatch).');
+            reason:
+                '${message ?? ''} Incorrect $colorType color style found (found color: $styleBefore, expected $cssColor colorShouldMatch=$colorShouldMatch).');
       }
     } else {
       if (colorType == 'background') {
         expect(element.style.backgroundColor, isEmpty,
-            reason: (message ?? '') +
-                'Defined $colorType color style found when it should not have been defined');
+            reason:
+                '${message ?? ''} Defined $colorType color style found when it should not have been defined');
       } else if (colorType == 'foreground') {
         expect(element.style.color, isEmpty,
-            reason: (message ?? '') +
-                'Defined $colorType color style found when it should not have been defined');
+            reason:
+                '${message ?? ''} Defined $colorType color style found when it should not have been defined');
       } else {
         expect(element.style.textDecorationColor, isEmpty,
-            reason: (message ?? '') +
-                'Defined $colorType color style found when it should not have been defined');
+            reason:
+                '${message ?? ''} Defined $colorType color style found when it should not have been defined');
       }
     }
   }
@@ -1466,13 +1466,13 @@ void defineTests() {
         reason: 'Sequence should match text of element');
   }
 
-  const _chars =
+  const chars =
       r'\u001BAaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890`~!@#$%^&*()[]{}\;"/.,<>?'
       "'";
-  final Random _rnd = Random();
+  final Random rnd = Random();
 
   String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
-      length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+      length, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
 
   test('Invalid ESC and Bracket codes treated as regular text', () {
     // Individual components of ANSI code start are printed.
@@ -1498,7 +1498,7 @@ void defineTests() {
   /// contain ANSI codes only, and should not include actual text content
   /// as it is provided by this function.
   void expectEmptyOutput(String sequence) {
-    final SpanElement child = getSequenceOutput(sequence + 'content')!;
+    final SpanElement child = getSequenceOutput('${sequence}content')!;
     expect(child.text, 'content');
     expect(child.classes.length, 0);
   }
@@ -1521,7 +1521,7 @@ void defineTests() {
     final List<String> terminators = 'ABCDHIJKfhmpsu'.split('');
 
     for (final terminator in terminators) {
-      expectEmptyOutput('\u001B[content' + terminator);
+      expectEmptyOutput('\u001B[content$terminator');
     }
   });
 
