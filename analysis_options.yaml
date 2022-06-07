@@ -7,14 +7,15 @@ analyzer:
     - "build/**"
     - "doc/api/**"
     - "last_prod/**"
-    - "lib/bower/**"
     - "lib/src/protos/**"
     - "third_party/pkg/**"
     - "web/example/workshops/**"
+
 linter:
   rules:
     - always_declare_return_types
     - avoid_private_typedef_functions
+    - avoid_void_async
     - directives_ordering
     - prefer_final_in_for_each
     - prefer_final_locals
@@ -23,3 +24,5 @@ linter:
     - prefer_single_quotes
     - sort_pub_dependencies
     - unawaited_futures
+    - use_enums
+    - use_super_parameters

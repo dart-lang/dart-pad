@@ -37,7 +37,7 @@ packages:
     source: hosted
     version: "1.1.0"
   async:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: async
       url: "https://pub.dartlang.org"
@@ -182,7 +182,7 @@ packages:
       name: codemirror
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.7.5+5.65.4"
+    version: "0.7.6+5.65.5"
   collection:
     dependency: "direct main"
     description:
@@ -357,7 +357,7 @@ packages:
       name: lints
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.1"
+    version: "2.0.0"
   logging:
     dependency: "direct main"
     description:
@@ -492,7 +492,7 @@ packages:
     source: hosted
     version: "1.0.1"
   shelf:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: shelf
       url: "https://pub.dartlang.org"
@@ -506,7 +506,7 @@ packages:
     source: hosted
     version: "3.0.0"
   shelf_static:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: shelf_static
       url: "https://pub.dartlang.org"
@@ -688,4 +688,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.16.0 <3.0.0"
+  dart: ">=2.17.0 <3.0.0"

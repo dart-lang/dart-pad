@@ -59,7 +59,7 @@ class InjectParser {
       if (token == null) {
         _tokens[file] = line;
       } else {
-        _tokens[file] = token + '\n$line';
+        _tokens[file] = '$token\n$line';
       }
     }
   }
