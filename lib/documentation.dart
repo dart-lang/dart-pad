@@ -117,20 +117,20 @@ class DocHandler {
     final apiLink = _dartApiLink(libraryName);
 
     final propagatedType = info['propagatedType'];
-    final _mdDocs = '''# `${info['description']}`\n\n
+    final mdDocs = '''# `${info['description']}`\n\n
 ${hasDartdoc ? "${info['dartdoc']}\n\n" : ''}
 ${isVariable ? "$kind\n\n" : ''}
 ${(isVariable && propagatedType != null) ? "**Propagated type:** $propagatedType\n\n" : ''}
 $apiLink\n\n''';
 
-    var _htmlDocs = markdown.markdownToHtml(_mdDocs,
+    var htmlDocs = markdown.markdownToHtml(mdDocs,
         inlineSyntaxes: [InlineBracketsColon(), InlineBrackets()]);
 
     // Append a 'launch' icon to the 'Open library docs' link.
-    _htmlDocs = _htmlDocs.replaceAll('library docs</a>',
+    htmlDocs = htmlDocs.replaceAll('library docs</a>',
         "library docs <span class='launch-icon'></span></a>");
 
-    return _DocResult(_htmlDocs, kind.replaceAll(' ', '_'));
+    return _DocResult(htmlDocs, kind.replaceAll(' ', '_'));
   }
 
   String _dartApiLink(String? libraryName) {
