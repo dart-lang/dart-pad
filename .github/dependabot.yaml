@@ -1,7 +1,15 @@
+# Dependabot configuration file.
 version: 2
 enable-beta-ecosystems: true
+
 updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+
   - package-ecosystem: "pub"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    versioning-strategy: increase-if-necessary
