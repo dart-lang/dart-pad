@@ -90,11 +90,16 @@ class AnalysisResultsController {
 
     final columnElem = DivElement()..classes.add('issue-column');
 
-    final additionalSourceInfo =
-        (issue.sourceName == 'main.dart') ? '' : ' of ${issue.sourceName} ';
+    final weHaveLineNo = issue.line >= 0;
+    final lineNoInfo = weHaveLineNo ? 'line ${issue.line}' : '';
+    final additionalSourceInfo = (issue.sourceName == 'main.dart')
+        ? ''
+        : '${weHaveLineNo ? ' of ' : ''}${issue.sourceName} ';
+    final locationSeparator =
+        (additionalSourceInfo.isNotEmpty || lineNoInfo.isNotEmpty) ? ' • ' : '';
 
     final messageSpan = DivElement()
-      ..text = 'line ${issue.line}$additionalSourceInfo • $message'
+      ..text = '$lineNoInfo$additionalSourceInfo$locationSeparator$message'
       ..classes.add('message');
     columnElem.children.add(messageSpan);
 
