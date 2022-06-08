@@ -90,7 +90,7 @@ class AnalysisResultsController {
 
     final columnElem = DivElement()..classes.add('issue-column');
 
-    final weHaveLineNo = issue.line >= 0;
+    final weHaveLineNo = issue.line >= 1;
     final lineNoInfo = weHaveLineNo ? 'line ${issue.line}' : '';
     final additionalSourceInfo = (issue.sourceName == 'main.dart')
         ? ''
