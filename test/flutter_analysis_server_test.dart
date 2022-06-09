@@ -169,6 +169,173 @@ class HelloWorld extends StatelessWidget {
       expect(results.issues, isEmpty);
     });
   });
+
+  ///----------------------------------------------------------------
+  /// Beginning of multi file files={} tests group:
+  group('MULTI FILE files={} Tests', () {
+    group('Flutter SDK analysis_server files={} variation', () {
+      late AnalysisServerWrapper analysisServer;
+
+      setUp(() async {
+        final sdk = Sdk.create(channel);
+        analysisServer =
+            FlutterAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
+        await analysisServer.init();
+      });
+
+      tearDown(() async {
+        await analysisServer.shutdown();
+      });
+
+      test('analyzeFiles counter app files={}', () async {
+        final results = await analysisServer
+            .analyzeFiles({kMainDart: sampleCodeFlutterCounter});
+        expect(results.issues, isEmpty);
+      });
+
+      test('analyzeFiles Draggable Physics sample files={}', () async {
+        final results = await analysisServer
+            .analyzeFiles({kMainDart: sampleCodeFlutterDraggableCard});
+        expect(results.issues, isEmpty);
+      });
+    });
+
+    group(
+        'Flutter SDK analysis_server with analysis files={}'
+        'servers', () {
+      late AnalysisServersWrapper analysisServersWrapper;
+
+      setUp(() async {
+        final sdk = Sdk.create(channel);
+        analysisServersWrapper = AnalysisServersWrapper(sdk.dartSdkPath);
+        await analysisServersWrapper.warmup();
+      });
+
+      tearDown(() async {
+        await analysisServersWrapper.shutdown();
+      });
+
+      test('reports errors with Flutter code files={}', () async {
+        late AnalysisResults results;
+        results = await analysisServersWrapper.analyzeFiles({
+          kMainDart: '''
+import 'package:flutter/material.dart';
+
+String x = 7;
+
+void main() async {
+  runApp(MaterialApp(
+      debugShowCheckedModeBanner: false, home: Scaffold(body: HelloWorld())));
+}
+
+class HelloWorld extends StatelessWidget {
+  @override
+  Widget build(context) => const Center(child: Text('Hello world'));
+}
+'''
+        }, kMainDart, devMode: false);
+        expect(results.issues, hasLength(1));
+        final issue = results.issues[0];
+        expect(issue.line, 3);
+        expect(issue.kind, 'error');
+        expect(
+            issue.message,
+            "A value of type 'int' can't be assigned to a variable of type "
+            "'String'.");
+      });
+
+      // https://github.com/dart-lang/dart-pad/issues/2005
+      test('reports lint with Flutter code files={}', () async {
+        late AnalysisResults results;
+        results = await analysisServersWrapper.analyzeFiles({
+          kMainDart: '''
+import 'package:flutter/material.dart';
+
+void main() async {
+  var unknown;
+  print(unknown);
+
+  runApp(MaterialApp(
+      debugShowCheckedModeBanner: false, home: Scaffold(body: HelloWorld())));
+}
+
+class HelloWorld extends StatelessWidget {
+  @override
+  Widget build(context) => const Center(child: Text('Hello world'));
+}
+'''
+        }, kMainDart, devMode: false);
+        expect(results.issues, hasLength(1));
+        final issue = results.issues[0];
+        expect(issue.line, 4);
+        expect(issue.kind, 'info');
+        expect(
+            issue.message, 'Prefer typing uninitialized variables and fields.');
+      });
+
+      test('analyzeFiles counter app files={}', () async {
+        final results = await analysisServersWrapper.analyzeFiles(
+            {kMainDart: sampleCodeFlutterCounter}, kMainDart,
+            devMode: false);
+        expect(results.issues, isEmpty);
+      });
+
+      test('analyzeFiles Draggable Physics sample files={}', () async {
+        final results = await analysisServersWrapper.analyzeFiles(
+            {kMainDart: sampleCodeFlutterDraggableCard}, kMainDart,
+            devMode: false);
+        expect(results.issues, isEmpty);
+      });
+
+      test('analyzeFiles counter app files={}', () async {
+        final results = await analysisServersWrapper.analyzeFiles(
+            {kMainDart: sampleCodeFlutterCounter}, kMainDart,
+            devMode: false);
+        expect(results.issues, isEmpty);
+      });
+
+      test('analyzeFiles Draggable Physics sample files={}', () async {
+        final results = await analysisServersWrapper.analyzeFiles(
+            {kMainDart: sampleCodeFlutterDraggableCard}, kMainDart,
+            devMode: false);
+        expect(results.issues, isEmpty);
+      });
+    });
+
+    group('CommonServerImpl flutter analyzeFiles files={}', () {
+      late CommonServerImpl commonServerImpl;
+
+      _MockContainer container;
+      _MockCache cache;
+
+      setUp(() async {
+        container = _MockContainer();
+        cache = _MockCache();
+        final sdk = Sdk.create(channel);
+        commonServerImpl = CommonServerImpl(container, cache, sdk);
+        await commonServerImpl.init();
+      });
+
+      tearDown(() async {
+        await commonServerImpl.shutdown();
+      });
+
+      test('counter app files={}', () async {
+        final results = await commonServerImpl.analyzeFiles(SourceFilesRequest(
+            files: {kMainDart: sampleCodeFlutterCounter},
+            activeSourceName: kMainDart,
+            offset: 0));
+        expect(results.issues, isEmpty);
+      });
+
+      test('Draggable Physics sample files={}', () async {
+        final results = await commonServerImpl.analyzeFiles(SourceFilesRequest(
+            files: {kMainDart: sampleCodeFlutterDraggableCard},
+            activeSourceName: kMainDart));
+        expect(results.issues, isEmpty);
+      });
+    });
+  });
 }
 
 class _MockContainer implements ServerContainer {

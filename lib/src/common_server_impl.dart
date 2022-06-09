@@ -7,6 +7,7 @@ library services.common_server_impl;
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 
@@ -84,7 +85,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _compileDart2js(request.source,
+    return _compileDart2js({kMainDart: request.source},
         returnSourceMap: request.returnSourceMap);
   }
 
@@ -93,7 +94,7 @@ class CommonServerImpl {
       throw BadRequest('Missing parameter: \'source\'');
     }
 
-    return _compileDDC(request.source);
+    return _compileDDC({kMainDart: request.source});
   }
 
   Future<proto.CompleteResponse> complete(proto.SourceRequest request) {
@@ -154,6 +155,104 @@ class CommonServerImpl {
           .dartdoc(request.source, request.offset, devMode: _sdk.devMode));
   }
 
+  // Beginning of multi files map entry points:
+  Future<proto.AnalysisResults> analyzeFiles(proto.SourceFilesRequest request) {
+    if (request.files.isEmpty) {
+      throw BadRequest('Missing parameter: \'files\'');
+    }
+
+    return _analysisServers.analyzeFiles(
+        request.files, request.activeSourceName,
+        devMode: _sdk.devMode);
+  }
+
+  Future<proto.CompileResponse> compileFiles(
+      proto.CompileFilesRequest request) {
+    if (request.files.isEmpty) {
+      throw BadRequest('Missing parameter: \'files\'');
+    }
+
+    return _compileDart2js(request.files,
+        returnSourceMap: request.returnSourceMap);
+  }
+
+  Future<proto.CompileDDCResponse> compileFilesDDC(
+      proto.CompileFilesDDCRequest request) {
+    if (request.files.isEmpty) {
+      throw BadRequest('Missing parameter: \'files\'');
+    }
+
+    return _compileDDC(request.files);
+  }
+
+  Future<proto.CompleteResponse> completeFiles(
+      proto.SourceFilesRequest request) {
+    if (request.files.isEmpty) {
+      throw BadRequest('Missing parameter: \'files\'');
+    }
+    if (!request.hasActiveSourceName()) {
+      throw BadRequest('Missing parameter: \'activeSourceName\'');
+    }
+    if (!request.hasOffset()) {
+      throw BadRequest('Missing parameter: \'offset\'');
+    }
+
+    return _analysisServers.completeFiles(
+        request.files, request.activeSourceName, request.offset,
+        devMode: _sdk.devMode);
+  }
+
+  Future<proto.FixesResponse> fixesFiles(proto.SourceFilesRequest request) {
+    if (request.files.isEmpty) {
+      throw BadRequest('Missing parameter: \'files\'');
+    }
+    if (!request.hasActiveSourceName()) {
+      throw BadRequest('Missing parameter: \'activeSourceName\'');
+    }
+    if (!request.hasOffset()) {
+      throw BadRequest('Missing parameter: \'offset\'');
+    }
+
+    return _analysisServers.getFixesMulti(
+        request.files, request.activeSourceName, request.offset,
+        devMode: _sdk.devMode);
+  }
+
+  Future<proto.AssistsResponse> assistsFiles(proto.SourceFilesRequest request) {
+    if (request.files.isEmpty) {
+      throw BadRequest('Missing parameter: \'files\'');
+    }
+    if (!request.hasActiveSourceName()) {
+      throw BadRequest('Missing parameter: \'activeSourceName\'');
+    }
+    if (!request.hasOffset()) {
+      throw BadRequest('Missing parameter: \'offset\'');
+    }
+
+    return _analysisServers.getAssistsMulti(
+        request.files, request.activeSourceName, request.offset,
+        devMode: _sdk.devMode);
+  }
+
+  Future<proto.DocumentResponse> documentFiles(
+      proto.SourceFilesRequest request) async {
+    if (request.files.isEmpty) {
+      throw BadRequest('Missing parameter: \'files\'');
+    }
+    if (!request.hasActiveSourceName()) {
+      throw BadRequest('Missing parameter: \'activeSourceName\'');
+    }
+    if (!request.hasOffset()) {
+      throw BadRequest('Missing parameter: \'offset\'');
+    }
+
+    return proto.DocumentResponse()
+      ..info.addAll(await _analysisServers.dartdocMulti(
+          request.files, request.activeSourceName, request.offset,
+          devMode: _sdk.devMode));
+  }
+  // End of files map entry points.
+
   Future<proto.VersionResponse> version(proto.VersionRequest _) {
     final packageVersions = getPackageVersions();
     final packageInfos = [
@@ -180,11 +279,11 @@ class CommonServerImpl {
   }
 
   Future<proto.CompileResponse> _compileDart2js(
-    String source, {
+    Map<String, String> sources, {
     bool returnSourceMap = false,
   }) async {
     try {
-      final sourceHash = _hashSource(source);
+      final sourceHash = _hashSources(sources);
       final memCacheKey = '%%COMPILE:v0'
           ':returnSourceMap:$returnSourceMap:source:$sourceHash';
 
@@ -203,11 +302,11 @@ class CommonServerImpl {
       log.info('CACHE: MISS for compileDart2js');
       final watch = Stopwatch()..start();
 
-      final results =
-          await _compiler.compile(source, returnSourceMap: returnSourceMap);
+      final results = await _compiler.compileFiles(sources,
+          returnSourceMap: returnSourceMap);
 
       if (results.hasOutput) {
-        final lineCount = source.split('\n').length;
+        final lineCount = countLines(sources);
         final outputSize = (results.compiledJS?.length ?? 0 / 1024).ceil();
         final ms = watch.elapsedMilliseconds;
         log.info('PERF: Compiled $lineCount lines of Dart into '
@@ -233,15 +332,16 @@ class CommonServerImpl {
       }
     } catch (e, st) {
       if (e is! BadRequest) {
-        log.severe('Error during compile (dart2js) on "$source"', e, st);
+        log.severe('Error during compile (dart2js) on "$sources"', e, st);
       }
       rethrow;
     }
   }
 
-  Future<proto.CompileDDCResponse> _compileDDC(String source) async {
+  Future<proto.CompileDDCResponse> _compileDDC(
+      Map<String, String> sources) async {
     try {
-      final sourceHash = _hashSource(source);
+      final sourceHash = _hashSources(sources);
       final memCacheKey = '%%COMPILE_DDC:v0:source:$sourceHash';
 
       final result = await _checkCache(memCacheKey);
@@ -256,10 +356,10 @@ class CommonServerImpl {
       log.info('CACHE: MISS for compileDDC');
       final watch = Stopwatch()..start();
 
-      final results = await _compiler.compileDDC(source);
+      final results = await _compiler.compileFilesDDC(sources);
 
       if (results.hasOutput) {
-        final lineCount = source.split('\n').length;
+        final lineCount = countLines(sources);
         final outputSize = (results.compiledJS?.length ?? 0 / 1024).ceil();
         final ms = watch.elapsedMilliseconds;
         log.info('PERF: Compiled $lineCount lines of Dart into '
@@ -281,7 +381,7 @@ class CommonServerImpl {
       }
     } catch (e, st) {
       if (e is! BadRequest) {
-        log.severe('Error during compile (DDC) on "$source"', e, st);
+        log.severe('Error during compile (DDC) on "$sources"', e, st);
       }
       rethrow;
     }
@@ -295,6 +395,19 @@ class CommonServerImpl {
 
 String _printCompileProblem(CompilationProblem problem) => problem.message;
 
-String _hashSource(String str) {
-  return sha1.convert(str.codeUnits).toString();
+String _hashSources(Map<String, String> sources) {
+  if (sources.length == 1) {
+    // Special case optimized for single source file (and to work as before).
+    return sha1.convert(sources.values.first.codeUnits).toString();
+  } else {
+    // Use chunk hashing method for >1 source files.
+    final AccumulatorSink<Digest> hashoutput = AccumulatorSink<Digest>();
+    final ByteConversionSink sha1Chunker =
+        sha1.startChunkedConversion(hashoutput);
+    sources.forEach((_, filecontents) {
+      sha1Chunker.add(filecontents.codeUnits);
+    });
+    sha1Chunker.close();
+    return hashoutput.events.single.toString();
+  }
 }

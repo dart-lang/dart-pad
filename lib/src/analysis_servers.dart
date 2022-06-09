@@ -8,9 +8,11 @@ library services.analysis_servers;
 import 'dart:async';
 import 'dart:io';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:logging/logging.dart';
 
 import 'analysis_server.dart';
+import 'common.dart';
 import 'common_server_impl.dart' show BadRequest;
 import 'project.dart' as project;
 import 'protos/dart_services.pb.dart' as proto;
@@ -85,9 +87,8 @@ class AnalysisServersWrapper {
     ]);
   }
 
-  AnalysisServerWrapper _getCorrectAnalysisServer(String source,
+  AnalysisServerWrapper _getCorrectAnalysisServer(List<ImportDirective> imports,
       {required bool devMode}) {
-    final imports = getAllImportsFor(source);
     return project.usesFlutterWeb(imports, devMode: devMode)
         ? _flutterAnalysisServer
         : _dartAnalysisServer;
@@ -95,71 +96,127 @@ class AnalysisServersWrapper {
 
   Future<proto.AnalysisResults> analyze(String source,
           {required bool devMode}) =>
+      analyzeFiles({kMainDart: source}, kMainDart, devMode: devMode);
+
+  Future<proto.AnalysisResults> analyzeFiles(
+          Map<String, String> sources, String activeSourceName,
+          {required bool devMode}) =>
       _perfLogAndRestart(
-          source,
-          () => _getCorrectAnalysisServer(source, devMode: devMode)
-              .analyze(source),
+          sources,
+          activeSourceName,
+          0,
+          (List<ImportDirective> imports, Location location) =>
+              _getCorrectAnalysisServer(imports, devMode: devMode)
+                  .analyzeFiles(sources, imports: imports),
           'analysis',
-          'Error during analyze on "$source"',
+          'Error during analyze on "${sources[activeSourceName]}"',
           devMode: devMode);
 
   Future<proto.CompleteResponse> complete(String source, int offset,
           {required bool devMode}) =>
+      completeFiles({kMainDart: source}, kMainDart, offset, devMode: devMode);
+
+  Future<proto.CompleteResponse> completeFiles(
+          Map<String, String> sources, String activeSourceName, int offset,
+          {required bool devMode}) =>
       _perfLogAndRestart(
-          source,
-          () => _getCorrectAnalysisServer(source, devMode: devMode)
-              .complete(source, offset),
+          sources,
+          activeSourceName,
+          offset,
+          (List<ImportDirective> imports, Location location) =>
+              _getCorrectAnalysisServer(imports, devMode: devMode)
+                  .completeFiles(sources, location),
           'completions',
-          'Error during complete on "$source" at $offset',
+          'Error during complete on "${sources[activeSourceName]}" at $offset',
           devMode: devMode);
 
   Future<proto.FixesResponse> getFixes(String source, int offset,
           {required bool devMode}) =>
+      getFixesMulti({kMainDart: source}, kMainDart, offset, devMode: devMode);
+
+  Future<proto.FixesResponse> getFixesMulti(
+          Map<String, String> sources, String activeSourceName, int offset,
+          {required bool devMode}) =>
       _perfLogAndRestart(
-          source,
-          () => _getCorrectAnalysisServer(source, devMode: devMode)
-              .getFixes(source, offset),
+          sources,
+          activeSourceName,
+          offset,
+          (List<ImportDirective> imports, Location location) =>
+              _getCorrectAnalysisServer(imports, devMode: devMode)
+                  .getFixesMulti(sources, location),
           'fixes',
-          'Error during fixes on "$source" at $offset',
+          'Error during fixes on "${sources[activeSourceName]}" at $offset',
           devMode: devMode);
 
   Future<proto.AssistsResponse> getAssists(String source, int offset,
           {required bool devMode}) =>
+      getAssistsMulti({kMainDart: source}, kMainDart, offset, devMode: devMode);
+
+  Future<proto.AssistsResponse> getAssistsMulti(
+          Map<String, String> sources, String activeSourceName, int offset,
+          {required bool devMode}) =>
       _perfLogAndRestart(
-          source,
-          () => _getCorrectAnalysisServer(source, devMode: devMode)
-              .getAssists(source, offset),
+          sources,
+          activeSourceName,
+          offset,
+          (List<ImportDirective> imports, Location location) =>
+              _getCorrectAnalysisServer(imports, devMode: devMode)
+                  .getAssistsMulti(sources, location),
           'assists',
-          'Error during assists on "$source" at $offset',
+          'Error during assists on "${sources[activeSourceName]}" at $offset',
           devMode: devMode);
 
   Future<proto.FormatResponse> format(String source, int offset,
           {required bool devMode}) =>
+      _format2({kMainDart: source}, kMainDart, offset, devMode: devMode);
+
+  Future<proto.FormatResponse> _format2(
+          Map<String, String> sources, String activeSourceName, int offset,
+          {required bool devMode}) =>
       _perfLogAndRestart(
-          source,
-          () => _getCorrectAnalysisServer(source, devMode: devMode)
-              .format(source, offset),
+          sources,
+          activeSourceName,
+          offset,
+          (List<ImportDirective> imports, Location _) =>
+              _getCorrectAnalysisServer(imports, devMode: devMode)
+                  .format(sources[activeSourceName]!, offset),
           'format',
-          'Error during format on "$source" at $offset',
+          'Error during format on "${sources[activeSourceName]}" at $offset',
           devMode: devMode);
 
   Future<Map<String, String>> dartdoc(String source, int offset,
           {required bool devMode}) =>
+      dartdocMulti({kMainDart: source}, kMainDart, offset, devMode: devMode);
+
+  Future<Map<String, String>> dartdocMulti(
+          Map<String, String> sources, String activeSourceName, int offset,
+          {required bool devMode}) =>
       _perfLogAndRestart(
-          source,
-          () => _getCorrectAnalysisServer(source, devMode: devMode)
-              .dartdoc(source, offset),
+          sources,
+          activeSourceName,
+          offset,
+          (List<ImportDirective> imports, Location location) =>
+              _getCorrectAnalysisServer(imports, devMode: devMode)
+                  .dartdocMulti(sources, location),
           'dartdoc',
-          'Error during dartdoc on "$source" at $offset',
+          'Error during dartdoc on "${sources[activeSourceName]}" at $offset',
           devMode: devMode);
 
-  Future<T> _perfLogAndRestart<T>(String source, Future<T> Function() body,
-      String action, String errorDescription,
+  Future<T> _perfLogAndRestart<T>(
+      Map<String, String> sources,
+      String activeSourceName,
+      int offset,
+      Future<T> Function(List<ImportDirective>, Location) body,
+      String action,
+      String errorDescription,
       {required bool devMode}) async {
-    await _checkPackageReferences(source, devMode: devMode);
+    activeSourceName = sanitizeAndCheckFilenames(sources, activeSourceName);
+    final imports = getAllImportsForFiles(sources);
+    final location = Location(activeSourceName, offset);
+    await _checkPackageReferences(sources, imports, devMode: devMode);
     try {
       final watch = Stopwatch()..start();
-      final response = await body();
+      final response = await body(imports, location);
       _logger.info('PERF: Computed $action in ${watch.elapsedMilliseconds}ms.');
       return response;
     } catch (e, st) {
@@ -170,10 +227,11 @@ class AnalysisServersWrapper {
   }
 
   /// Check that the set of packages referenced is valid.
-  Future<void> _checkPackageReferences(String source,
+  Future<void> _checkPackageReferences(
+      Map<String, String> sources, List<ImportDirective> imports,
       {required bool devMode}) async {
-    final unsupportedImports = project
-        .getUnsupportedImports(getAllImportsFor(source), devMode: devMode);
+    final unsupportedImports = project.getUnsupportedImports(imports,
+        sourcesFileList: sources.keys.toList(), devMode: devMode);
 
     if (unsupportedImports.isNotEmpty) {
       // TODO(srawlins): Do the work so that each unsupported input is its own

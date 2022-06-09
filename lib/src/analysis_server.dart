@@ -10,6 +10,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:analysis_server_lib/analysis_server_lib.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -139,9 +140,11 @@ abstract class AnalysisServerWrapper {
   }
 
   Future<proto.CompleteResponse> complete(String src, int offset) async {
-    final sources = <String, String>{kMainDart: src};
-    final location = Location(kMainDart, offset);
+    return completeFiles({kMainDart: src}, Location(kMainDart, offset));
+  }
 
+  Future<proto.CompleteResponse> completeFiles(
+      Map<String, String> sources, Location location) async {
     final results =
         await _completeImpl(sources, location.sourceName, location.offset);
     var suggestions = results.results;
@@ -189,28 +192,36 @@ abstract class AnalysisServerWrapper {
   }
 
   Future<proto.FixesResponse> getFixes(String src, int offset) {
-    return getFixesMulti(
-      <String, String>{kMainDart: src},
-      Location(kMainDart, offset),
-    );
+    return getFixesMulti({kMainDart: src}, Location(kMainDart, offset));
   }
 
   Future<proto.FixesResponse> getFixesMulti(
       Map<String, String> sources, Location location) async {
     final results =
         await _getFixesImpl(sources, location.sourceName, location.offset);
-    final responseFixes = results.fixes.map(_convertAnalysisErrorFix);
+    final responseFixes = results.fixes.map((availableAnalysisErrorFixes) {
+      return _convertAnalysisErrorFix(
+          availableAnalysisErrorFixes, location.sourceName);
+    });
     return proto.FixesResponse()..fixes.addAll(responseFixes);
   }
 
   Future<proto.AssistsResponse> getAssists(String src, int offset) async {
-    final sources = {kMainDart: src};
-    final sourceName = Location(kMainDart, offset).sourceName;
-    final results = await _getAssistsImpl(sources, sourceName, offset);
-    final fixes = _convertSourceChangesToCandidateFixes(results.assists);
+    return getAssistsMulti({kMainDart: src}, Location(kMainDart, offset));
+  }
+
+  Future<proto.AssistsResponse> getAssistsMulti(
+      Map<String, String> sources, Location location) async {
+    final sourceName = location.sourceName;
+    final results = await _getAssistsImpl(sources, sourceName, location.offset);
+    final fixes =
+        _convertSourceChangesToCandidateFixes(results.assists, sourceName);
     return proto.AssistsResponse()..assists.addAll(fixes);
   }
 
+  /// Format the source [src] of the single passed in file.  The [offset] is
+  /// the current cursor location and a modified offset is returned if necessary
+  /// to maintain the cursors original position in the formatted code.
   Future<proto.FormatResponse> format(String src, int offset) {
     return _formatImpl(src, offset).then((FormatResult editResult) {
       final edits = editResult.edits;
@@ -234,13 +245,22 @@ abstract class AnalysisServerWrapper {
     });
   }
 
-  Future<Map<String, String>> dartdoc(String source, int offset) {
+  Future<Map<String, String>> dartdoc(String src, int offset) {
+    return dartdocMulti({kMainDart: src}, Location(kMainDart, offset));
+  }
+
+  Future<Map<String, String>> dartdocMulti(
+      Map<String, String> sources, Location location) {
     _logger.fine('dartdoc: Scheduler queue: ${serverScheduler.queueCount}');
 
-    return serverScheduler.schedule(ClosureTask<Map<String, String>>(() async {
-      await _loadSources(<String, String>{mainPath: source});
+    sources = _getOverlayMapWithPaths(sources);
+    final sourcepath = _getPathFromName(location.sourceName);
 
-      final result = await analysisServer.analysis.getHover(mainPath, offset);
+    return serverScheduler.schedule(ClosureTask<Map<String, String>>(() async {
+      await _loadSources(sources);
+
+      final result =
+          await analysisServer.analysis.getHover(sourcepath, location.offset);
       await _unloadSources();
 
       if (result.hovers.isEmpty) {
@@ -267,16 +287,26 @@ abstract class AnalysisServerWrapper {
     }, timeoutDuration: _analysisServerTimeout));
   }
 
-  Future<proto.AnalysisResults> analyze(String source) {
-    var sources = <String, String>{kMainDart: source};
+  Future<proto.AnalysisResults> analyze(String src) {
+    return analyzeFiles({kMainDart: src});
+  }
 
+  Future<proto.AnalysisResults> analyzeFiles(Map<String, String> sources,
+      {List<ImportDirective>? imports}) {
     _logger.fine('analyze: Scheduler queue: ${serverScheduler.queueCount}');
 
     return serverScheduler
         .schedule(ClosureTask<proto.AnalysisResults>(() async {
       sources = _getOverlayMapWithPaths(sources);
       await _loadSources(sources);
-      final errors = (await analysisServer.analysis.getErrors(mainPath)).errors;
+      final List<AnalysisError> errors = [];
+
+      // Loop over all files and collect errors (sources now has filenames
+      // with full paths as keys after _getOverlayMapWithPaths() call).
+      for (final sourcepath in sources.keys) {
+        errors.addAll(
+            (await analysisServer.analysis.getErrors(sourcepath)).errors);
+      }
       await _unloadSources();
 
       // Convert the issues to protos.
@@ -313,10 +343,12 @@ abstract class AnalysisServerWrapper {
         return a.charStart.compareTo(b.charStart);
       });
 
-      // Calculate the imports.
+      // Ensure we have imports if they were not passed in.
+      imports ??= getAllImportsForFiles(sources);
+
+      // Calculate the package: imports (and defensively sanitize).
       final packageImports = {
-        for (final source in sources.values)
-          ...getAllImportsFor(source).filterSafePackages(),
+        ...?imports?.filterSafePackages(),
       };
 
       return proto.AnalysisResults()
@@ -350,7 +382,7 @@ abstract class AnalysisServerWrapper {
 
   /// Convert between the Analysis Server type and the API protocol types.
   static proto.ProblemAndFixes _convertAnalysisErrorFix(
-      AnalysisErrorFixes analysisFixes) {
+      AnalysisErrorFixes analysisFixes, String filename) {
     final problemMessage = analysisFixes.error.message;
     final problemOffset = analysisFixes.error.location.offset;
     final problemLength = analysisFixes.error.location.length;
@@ -366,7 +398,7 @@ abstract class AnalysisServerWrapper {
       for (final sourceFileEdit in sourceChange.edits) {
         // TODO(lukechurch): replace this with a more reliable test based on the
         // psuedo file name in Analysis Server
-        if (!sourceFileEdit.file.endsWith('/main.dart')) {
+        if (!sourceFileEdit.file.endsWith('/$filename')) {
           invalidFix = true;
           break;
         }
@@ -393,12 +425,12 @@ abstract class AnalysisServerWrapper {
   }
 
   static List<proto.CandidateFix> _convertSourceChangesToCandidateFixes(
-      List<SourceChange> sourceChanges) {
+      List<SourceChange> sourceChanges, String filename) {
     final assists = <proto.CandidateFix>[];
 
     for (final sourceChange in sourceChanges) {
       for (final sourceFileEdit in sourceChange.edits) {
-        if (!sourceFileEdit.file.endsWith('/main.dart')) {
+        if (!sourceFileEdit.file.endsWith('/$filename')) {
           break;
         }
 

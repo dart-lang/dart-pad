@@ -107,6 +107,71 @@ class CommonServerApi {
           decodeFromProto: (bytes) => proto.VersionRequest.fromBuffer(bytes),
           transform: _impl.version);
 
+  // Beginning of multi file map end points:
+  @Route.post('$protoApiUrlPrefix/analyzeFiles')
+  Future<Response> analyzeFiles(Request request, String apiVersion) =>
+      _processRequest(request,
+          decodeFromJSON: (json) =>
+              proto.SourceFilesRequest.create()..mergeFromProto3Json(json),
+          decodeFromProto: (bytes) =>
+              proto.SourceFilesRequest.fromBuffer(bytes),
+          transform: _impl.analyzeFiles);
+
+  @Route.post('$protoApiUrlPrefix/compileFiles')
+  Future<Response> compileFiles(Request request, String apiVersion) =>
+      _processRequest(request,
+          decodeFromJSON: (json) =>
+              proto.CompileFilesRequest.create()..mergeFromProto3Json(json),
+          decodeFromProto: (bytes) =>
+              proto.CompileFilesRequest.fromBuffer(bytes),
+          transform: _impl.compileFiles);
+
+  @Route.post('$protoApiUrlPrefix/compileFilesDDC')
+  Future<Response> compileFilesDDC(Request request, String apiVersion) =>
+      _processRequest(request,
+          decodeFromJSON: (json) =>
+              proto.CompileFilesDDCRequest.create()..mergeFromProto3Json(json),
+          decodeFromProto: (bytes) =>
+              proto.CompileFilesDDCRequest.fromBuffer(bytes),
+          transform: _impl.compileFilesDDC);
+
+  @Route.post('$protoApiUrlPrefix/completeFiles')
+  Future<Response> completeFiles(Request request, String apiVersion) =>
+      _processRequest(request,
+          decodeFromJSON: (json) =>
+              proto.SourceFilesRequest.create()..mergeFromProto3Json(json),
+          decodeFromProto: (bytes) =>
+              proto.SourceFilesRequest.fromBuffer(bytes),
+          transform: _impl.completeFiles);
+
+  @Route.post('$protoApiUrlPrefix/fixesFiles')
+  Future<Response> fixesFiles(Request request, String apiVersion) =>
+      _processRequest(request,
+          decodeFromJSON: (json) =>
+              proto.SourceFilesRequest.create()..mergeFromProto3Json(json),
+          decodeFromProto: (bytes) =>
+              proto.SourceFilesRequest.fromBuffer(bytes),
+          transform: _impl.fixesFiles);
+
+  @Route.post('$protoApiUrlPrefix/assistsFiles')
+  Future<Response> assistsFiles(Request request, String apiVersion) =>
+      _processRequest(request,
+          decodeFromJSON: (json) =>
+              proto.SourceFilesRequest.create()..mergeFromProto3Json(json),
+          decodeFromProto: (bytes) =>
+              proto.SourceFilesRequest.fromBuffer(bytes),
+          transform: _impl.assistsFiles);
+
+  @Route.post('$protoApiUrlPrefix/documentFiles')
+  Future<Response> documentFiles(Request request, String apiVersion) =>
+      _processRequest(request,
+          decodeFromJSON: (json) =>
+              proto.SourceFilesRequest.create()..mergeFromProto3Json(json),
+          decodeFromProto: (bytes) =>
+              proto.SourceFilesRequest.fromBuffer(bytes),
+          transform: _impl.documentFiles);
+  // End of Multi file files={} file map end points.
+
   /// The (lazily-constructed) router.
   late final Router router = _$CommonServerApiRouter(this);
 

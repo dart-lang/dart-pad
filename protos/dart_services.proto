@@ -14,9 +14,24 @@ message CompileRequest {
   bool returnSourceMap = 2;
 }
 
+/// Compile request for a multiple file set.
+message CompileFilesRequest {
+  // The Dart source files set. map of { filename1:sourcecode1 .. filenameN:sourcecodeN }
+  map<string, string> files = 1;
+
+  // Return the Dart to JS source map; optional (defaults to false).
+  bool returnSourceMap = 2;
+}
+
 message CompileDDCRequest {
   // The Dart source.
   string source = 1;
+}
+
+/// DDC Compile request for a multiple file set.
+message CompileFilesDDCRequest {
+  // The Dart source files set. map of { filename1:sourcecode1 .. filenameN:sourcecodeN }
+  map<string, string> files = 1;
 }
 
 message SourceRequest {
@@ -25,6 +40,18 @@ message SourceRequest {
 
   // The offset within source to operate at.
   int32 offset = 2;
+}
+
+/// Multiple file set of dart source for analysis, completion, fixes, etc.
+message SourceFilesRequest {
+  // The Dart source files set. map of { filename1:sourcecode1 .. filenameN:sourcecodeN }
+  map<string, string> files = 1;
+
+  // active (within editor) source filename key within files map
+  string activeSourceName = 2;
+
+  // The offset within active source file to operate at.
+  int32 offset = 3;
 }
 
 message AnalysisResults {

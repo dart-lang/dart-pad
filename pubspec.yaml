@@ -9,6 +9,7 @@ dependencies:
   analyzer: ^3.2.0
   args: ^2.0.0
   bazel_worker: ^1.0.0
+  convert: ^3.0.2
   crypto: ^3.0.2
   http: ^0.13.3
   logging: ^1.0.0

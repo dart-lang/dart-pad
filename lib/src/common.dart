@@ -508,6 +508,24 @@ bar() {
 }
 ''';
 
+const sampleCodeLibraryMultiFoo = """
+library foofoo;
+
+part 'bar.dart';
+
+void main() {
+  print(bar());
+}
+""";
+
+const sampleCodePartMultiBar = '''
+part of foofoo;
+
+bar() {
+  return 4;
+}
+''';
+
 const sampleCodeAsync = """
 import 'dart:html';
 
@@ -546,6 +564,191 @@ void main(List<String> argv) {
 }
 ''';
 
+/// Code fragments for testing multi file compiling.
+/// These fragments are taken from [sampleCodeFlutterImplicitAnimations] and
+/// only separated and re-arranged to facilitate testing multi file tests.
+
+const sampleCode3PartFlutterImplicitAnimationsImports = r'''
+import 'dart:math';
+import 'package:flutter/material.dart';
+''';
+
+const sampleCode3PartFlutterImplicitAnimationsMain = r'''
+
+void main() async {
+  runApp(
+    MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Container(
+          color: const Color(0xFF15202D),
+          child: const SizedBox.expand(
+            child: VariousDiscs(50),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+''';
+
+const sampleCode3PartFlutterImplicitAnimationsDiscData = r'''
+
+class DiscData {
+  static final _rng = Random();
+
+  final double size;
+  final Color color;
+  final Alignment alignment;
+
+  DiscData()
+      : size = _rng.nextDouble() * 40 + 10,
+        color = Color.fromARGB(
+          _rng.nextInt(200),
+          _rng.nextInt(255),
+          _rng.nextInt(255),
+          _rng.nextInt(255),
+        ),
+        alignment = Alignment(
+          _rng.nextDouble() * 2 - 1,
+          _rng.nextDouble() * 2 - 1,
+        );
+}
+''';
+
+const sampleCode3PartFlutterImplicitAnimationsVarious = r'''
+
+class VariousDiscs extends StatefulWidget {
+  final int numberOfDiscs;
+
+  const VariousDiscs(this.numberOfDiscs);
+
+  @override
+  State<VariousDiscs> createState() => _VariousDiscsState();
+}
+
+class _VariousDiscsState extends State<VariousDiscs> {
+  final _discs = <DiscData>[];
+
+  @override
+  void initState() {
+    super.initState();
+    _makeDiscs();
+  }
+
+  void _makeDiscs() {
+    _discs.clear();
+    for (int i = 0; i < widget.numberOfDiscs; i++) {
+      _discs.add(DiscData());
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => setState(() {
+        _makeDiscs();
+      }),
+      child: Stack(
+        children: [
+          const Center(
+            child: Text(
+              'Click a disc!',
+              style: TextStyle(color: Colors.white, fontSize: 50),
+            ),
+          ),
+          for (final disc in _discs)
+            Positioned.fill(
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.easeInOut,
+                alignment: disc.alignment,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 500),
+                  decoration: BoxDecoration(
+                    color: disc.color,
+                    shape: BoxShape.circle,
+                  ),
+                  height: disc.size,
+                  width: disc.size,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+''';
+
+/// Create 2 files for multi file testing using imports.
+const sampleCode2PartImportMain = '''
+$sampleCode3PartFlutterImplicitAnimationsImports
+import 'various.dart';
+$sampleCode3PartFlutterImplicitAnimationsMain
+''';
+
+const sampleCode2PartImportVarious = '''
+$sampleCode3PartFlutterImplicitAnimationsImports
+$sampleCode3PartFlutterImplicitAnimationsDiscData
+$sampleCode3PartFlutterImplicitAnimationsVarious
+''';
+
+/// Create 3 separate files for multi file testing using imports.
+/// Here main.dart will be importing 'various.dart' and 'discdata.dart',
+/// and 'various.dart' importing 'discdata.dart'.
+const sampleCode3PartImportMain = '''
+$sampleCode3PartFlutterImplicitAnimationsImports
+import 'various.dart';
+import 'discdata.dart';
+$sampleCode3PartFlutterImplicitAnimationsMain
+''';
+
+const sampleCode3PartImportDiscData = '''
+$sampleCode3PartFlutterImplicitAnimationsImports
+$sampleCode3PartFlutterImplicitAnimationsDiscData
+''';
+
+const sampleCode3PartImportVarious = '''
+$sampleCode3PartFlutterImplicitAnimationsImports
+import 'discdata.dart';
+$sampleCode3PartFlutterImplicitAnimationsVarious
+''';
+
+/// Create 2 file test using "part 'various.dart'" to bring in second file.
+const sampleCode2PartLibraryMain = '''
+library testanim;
+$sampleCode3PartFlutterImplicitAnimationsImports
+part 'various.dart';
+$sampleCode3PartFlutterImplicitAnimationsMain
+''';
+
+const sampleCode2PartVariousAndDiscDataPartOfTestAnim = '''
+part of testanim;
+$sampleCode3PartFlutterImplicitAnimationsDiscData
+$sampleCode3PartFlutterImplicitAnimationsVarious
+''';
+
+/// Create 3 file test using "part 'various.dart'" and "part 'discdata.dart'"
+/// to bring in second and third files.
+const sampleCode3PartLibraryMain = '''
+library testanim;
+$sampleCode3PartFlutterImplicitAnimationsImports
+part 'discdata.dart';
+part 'various.dart';
+$sampleCode3PartFlutterImplicitAnimationsMain
+''';
+
+const sampleCode3PartDiscDataPartOfTestAnim = '''
+part of testanim;
+$sampleCode3PartFlutterImplicitAnimationsDiscData
+''';
+
+const sampleCode3PartVariousPartOfTestAnim = '''
+part of testanim;
+$sampleCode3PartFlutterImplicitAnimationsVarious
+''';
+
 class Lines {
   final List<int> _starts = <int>[];
 
@@ -582,4 +785,140 @@ String stripMatchingQuotes(String str) {
     str = str.substring(1, str.length - 1);
   }
   return str;
+}
+
+class _SourcesGroupFile {
+  String filename;
+  String content;
+
+  _SourcesGroupFile(this.filename, this.content);
+}
+
+///This RegExp matches a variety of possible `main` function definition formats
+///Like:
+/// - `Future<void> main(List<String> args) async {`
+/// - `void main(List<String> args) async {`
+/// - `void main() {`
+/// - `void main( List < String >  args ) async {`
+/// - `void main(Args arg) {`
+/// - `main() {`
+/// - `void main() {}`
+/// - `void main() => runApp(MyApp());`
+final RegExp mainFunctionDefinition = RegExp(
+    r'''[\s]*(Future)?[\<]?(void)?[\>]?[\s]*main[\s]*\((\s*\w*\s*\<?\s*\w*\s*\>?\s*\w*\s*)?\)\s*(async)?\s*[\{|\=]+''');
+
+/// Used to remove 2 or more '..' and any number of following slashes of '/' or '\'.
+final RegExp sanitizeUpDirectories = RegExp(r'[\.]{2,}[\\\/]*');
+
+/// Used to remove 'package:', 'dart:', 'http://', 'https://' etc.
+final RegExp sanitizePackageDartHttp = RegExp(r'[\w]*[\:][\/]*');
+
+/// Sanitizes [filename] by using the regular expressions
+/// [sanitizeUpDirectories] and [sanitizePackageDartHttp] to remove
+/// anything like 'package:', 'dart:' or 'http://', and then removing
+/// runs of more than a single '.' (do not allow '..' up directories to
+/// escape temp directory).
+String _sanitizeFileName(String filename) {
+  filename = filename.replaceAll(sanitizePackageDartHttp, '');
+  filename = filename.replaceAll(sanitizeUpDirectories, '');
+  return filename;
+}
+
+/// Goes through [sources] map of source files and sanitizes the filenames
+/// and ensures that the file containing the main entry point that bootstrap
+/// will be calling is called [kMainDart].
+/// [sources] is a map containing the source files in the format
+///   `{ "filename1":"sourcecode1" .. "filenameN":"sourcecodeN"}`.
+/// [activeSourceName] is the name of the source file active in the editor.
+/// Returns [activeSourceName] or a new name if sanitized or renamed.
+String sanitizeAndCheckFilenames(Map<String, String> sources,
+    [String activeSourceName = kMainDart]) {
+  activeSourceName = _sanitizeFileName(activeSourceName);
+
+  final List<_SourcesGroupFile> files =
+      sources.entries.map((e) => _SourcesGroupFile(e.key, e.value)).toList();
+
+  bool foundKMain = false;
+  // Check for kMainDart file and also sanitize filenames.
+  for (final sourceFile in files) {
+    sourceFile.filename = _sanitizeFileName(sourceFile.filename);
+    if (sourceFile.filename == kMainDart) {
+      foundKMain = true;
+    }
+  }
+  // One of the files must be named kMainDart. This is the file that the
+  // bootstrap dart file will import and call main() on.
+  if (!foundKMain && files.isNotEmpty) {
+    // We need to rename the file containing the main() function to kMainDart.
+    for (final sourceFile in files) {
+      if (mainFunctionDefinition.hasMatch(sourceFile.content)) {
+        // This file has a main() function, rename it to kMainDart
+        // and also change activeSourceName if that is the file being
+        // renamed.
+        if (sourceFile.filename == activeSourceName) {
+          activeSourceName = kMainDart;
+        }
+        sourceFile.filename = kMainDart;
+        foundKMain = true;
+        break;
+      }
+    }
+    if (!foundKMain) {
+      // No kMainDart was found so just change the first file to be kMainDart.
+      if (files[0].filename == activeSourceName) {
+        activeSourceName = kMainDart;
+      }
+      files[0].filename = kMainDart;
+    }
+  }
+
+  // Take our files list and create a new files {filename:content} map.
+  sources.clear();
+  for (final sourceFiles in files) {
+    sources[sourceFiles.filename] = sourceFiles.content;
+  }
+
+  return activeSourceName;
+}
+
+/// Count the total lines across all files in [sources] file map.
+int countLines(Map<String, String> sources) {
+  int totalLines = 0;
+  for (final filename in sources.keys) {
+    totalLines += countLinesInString(sources[filename]!);
+  }
+  return totalLines;
+}
+
+// Character constants.
+const int _lf = 10;
+const int _cr = 13;
+
+/// Count lines in string (CR, LF or CR-LF can be line separators).
+/// (Gives correct result as opposed to .split('\n').length, which
+/// reports 1 extra line in many cases, and this does so without the
+/// extra work .split() would do by creating the list of copied strings).
+int countLinesInString(String str) {
+  final List<int> data = str.codeUnits;
+  int lines = 0;
+  final int end = data.length;
+  int sliceStart = 0;
+  int char = 0;
+  for (int i = 0; i < end; i++) {
+    final int previousChar = char;
+    char = data[i];
+    if (char != _cr) {
+      if (char != _lf) continue;
+      if (previousChar == _cr) {
+        sliceStart = i + 1;
+        continue;
+      }
+    }
+    lines++;
+    sliceStart = i + 1;
+  }
+  if (sliceStart < end) {
+    lines++;
+  }
+  return lines;
 }

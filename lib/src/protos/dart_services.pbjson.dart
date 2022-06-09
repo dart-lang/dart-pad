@@ -21,6 +21,36 @@ const CompileRequest$json = {
 /// Descriptor for `CompileRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List compileRequestDescriptor = $convert.base64Decode(
     'Cg5Db21waWxlUmVxdWVzdBIWCgZzb3VyY2UYASABKAlSBnNvdXJjZRIoCg9yZXR1cm5Tb3VyY2VNYXAYAiABKAhSD3JldHVyblNvdXJjZU1hcA==');
+@$core.Deprecated('Use compileFilesRequestDescriptor instead')
+const CompileFilesRequest$json = {
+  '1': 'CompileFilesRequest',
+  '2': [
+    {
+      '1': 'files',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.dart_services.api.CompileFilesRequest.FilesEntry',
+      '10': 'files'
+    },
+    {'1': 'returnSourceMap', '3': 2, '4': 1, '5': 8, '10': 'returnSourceMap'},
+  ],
+  '3': [CompileFilesRequest_FilesEntry$json],
+};
+
+@$core.Deprecated('Use compileFilesRequestDescriptor instead')
+const CompileFilesRequest_FilesEntry$json = {
+  '1': 'FilesEntry',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
+  ],
+  '7': {'7': true},
+};
+
+/// Descriptor for `CompileFilesRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List compileFilesRequestDescriptor = $convert.base64Decode(
+    'ChNDb21waWxlRmlsZXNSZXF1ZXN0EkcKBWZpbGVzGAEgAygLMjEuZGFydF9zZXJ2aWNlcy5hcGkuQ29tcGlsZUZpbGVzUmVxdWVzdC5GaWxlc0VudHJ5UgVmaWxlcxIoCg9yZXR1cm5Tb3VyY2VNYXAYAiABKAhSD3JldHVyblNvdXJjZU1hcBo4CgpGaWxlc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAE=');
 @$core.Deprecated('Use compileDDCRequestDescriptor instead')
 const CompileDDCRequest$json = {
   '1': 'CompileDDCRequest',
@@ -32,6 +62,36 @@ const CompileDDCRequest$json = {
 /// Descriptor for `CompileDDCRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List compileDDCRequestDescriptor = $convert.base64Decode(
     'ChFDb21waWxlRERDUmVxdWVzdBIWCgZzb3VyY2UYASABKAlSBnNvdXJjZQ==');
+@$core.Deprecated('Use compileFilesDDCRequestDescriptor instead')
+const CompileFilesDDCRequest$json = {
+  '1': 'CompileFilesDDCRequest',
+  '2': [
+    {
+      '1': 'files',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.dart_services.api.CompileFilesDDCRequest.FilesEntry',
+      '10': 'files'
+    },
+  ],
+  '3': [CompileFilesDDCRequest_FilesEntry$json],
+};
+
+@$core.Deprecated('Use compileFilesDDCRequestDescriptor instead')
+const CompileFilesDDCRequest_FilesEntry$json = {
+  '1': 'FilesEntry',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
+  ],
+  '7': {'7': true},
+};
+
+/// Descriptor for `CompileFilesDDCRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List compileFilesDDCRequestDescriptor =
+    $convert.base64Decode(
+        'ChZDb21waWxlRmlsZXNERENSZXF1ZXN0EkoKBWZpbGVzGAEgAygLMjQuZGFydF9zZXJ2aWNlcy5hcGkuQ29tcGlsZUZpbGVzRERDUmVxdWVzdC5GaWxlc0VudHJ5UgVmaWxlcxo4CgpGaWxlc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAE=');
 @$core.Deprecated('Use sourceRequestDescriptor instead')
 const SourceRequest$json = {
   '1': 'SourceRequest',
@@ -44,6 +104,37 @@ const SourceRequest$json = {
 /// Descriptor for `SourceRequest`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List sourceRequestDescriptor = $convert.base64Decode(
     'Cg1Tb3VyY2VSZXF1ZXN0EhYKBnNvdXJjZRgBIAEoCVIGc291cmNlEhYKBm9mZnNldBgCIAEoBVIGb2Zmc2V0');
+@$core.Deprecated('Use sourceFilesRequestDescriptor instead')
+const SourceFilesRequest$json = {
+  '1': 'SourceFilesRequest',
+  '2': [
+    {
+      '1': 'files',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.dart_services.api.SourceFilesRequest.FilesEntry',
+      '10': 'files'
+    },
+    {'1': 'activeSourceName', '3': 2, '4': 1, '5': 9, '10': 'activeSourceName'},
+    {'1': 'offset', '3': 3, '4': 1, '5': 5, '10': 'offset'},
+  ],
+  '3': [SourceFilesRequest_FilesEntry$json],
+};
+
+@$core.Deprecated('Use sourceFilesRequestDescriptor instead')
+const SourceFilesRequest_FilesEntry$json = {
+  '1': 'FilesEntry',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
+  ],
+  '7': {'7': true},
+};
+
+/// Descriptor for `SourceFilesRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List sourceFilesRequestDescriptor = $convert.base64Decode(
+    'ChJTb3VyY2VGaWxlc1JlcXVlc3QSRgoFZmlsZXMYASADKAsyMC5kYXJ0X3NlcnZpY2VzLmFwaS5Tb3VyY2VGaWxlc1JlcXVlc3QuRmlsZXNFbnRyeVIFZmlsZXMSKgoQYWN0aXZlU291cmNlTmFtZRgCIAEoCVIQYWN0aXZlU291cmNlTmFtZRIWCgZvZmZzZXQYAyABKAVSBm9mZnNldBo4CgpGaWxlc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAE=');
 @$core.Deprecated('Use analysisResultsDescriptor instead')
 const AnalysisResults$json = {
   '1': 'AnalysisResults',

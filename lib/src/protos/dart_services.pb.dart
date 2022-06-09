@@ -98,6 +98,90 @@ class CompileRequest extends $pb.GeneratedMessage {
   void clearReturnSourceMap() => clearField(2);
 }
 
+class CompileFilesRequest extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'CompileFilesRequest',
+      package: const $pb.PackageName(
+          $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart_services.api'),
+      createEmptyInstance: create)
+    ..m<$core.String, $core.String>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'files',
+        entryClassName: 'CompileFilesRequest.FilesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('dart_services.api'))
+    ..aOB(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'returnSourceMap',
+        protoName: 'returnSourceMap')
+    ..hasRequiredFields = false;
+
+  CompileFilesRequest._() : super();
+  factory CompileFilesRequest({
+    $core.Map<$core.String, $core.String>? files,
+    $core.bool? returnSourceMap,
+  }) {
+    final _result = create();
+    if (files != null) {
+      _result.files.addAll(files);
+    }
+    if (returnSourceMap != null) {
+      _result.returnSourceMap = returnSourceMap;
+    }
+    return _result;
+  }
+  factory CompileFilesRequest.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory CompileFilesRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  CompileFilesRequest clone() => CompileFilesRequest()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  CompileFilesRequest copyWith(void Function(CompileFilesRequest) updates) =>
+      super.copyWith((message) => updates(message as CompileFilesRequest))
+          as CompileFilesRequest; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static CompileFilesRequest create() => CompileFilesRequest._();
+  CompileFilesRequest createEmptyInstance() => create();
+  static $pb.PbList<CompileFilesRequest> createRepeated() =>
+      $pb.PbList<CompileFilesRequest>();
+  @$core.pragma('dart2js:noInline')
+  static CompileFilesRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<CompileFilesRequest>(create);
+  static CompileFilesRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.Map<$core.String, $core.String> get files => $_getMap(0);
+
+  @$pb.TagNumber(2)
+  $core.bool get returnSourceMap => $_getBF(1);
+  @$pb.TagNumber(2)
+  set returnSourceMap($core.bool v) {
+    $_setBool(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasReturnSourceMap() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearReturnSourceMap() => clearField(2);
+}
+
 class CompileDDCRequest extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(
       const $core.bool.fromEnvironment('protobuf.omit_message_names')
@@ -163,6 +247,70 @@ class CompileDDCRequest extends $pb.GeneratedMessage {
   $core.bool hasSource() => $_has(0);
   @$pb.TagNumber(1)
   void clearSource() => clearField(1);
+}
+
+class CompileFilesDDCRequest extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'CompileFilesDDCRequest',
+      package: const $pb.PackageName(
+          $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart_services.api'),
+      createEmptyInstance: create)
+    ..m<$core.String, $core.String>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'files',
+        entryClassName: 'CompileFilesDDCRequest.FilesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('dart_services.api'))
+    ..hasRequiredFields = false;
+
+  CompileFilesDDCRequest._() : super();
+  factory CompileFilesDDCRequest({
+    $core.Map<$core.String, $core.String>? files,
+  }) {
+    final _result = create();
+    if (files != null) {
+      _result.files.addAll(files);
+    }
+    return _result;
+  }
+  factory CompileFilesDDCRequest.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory CompileFilesDDCRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  CompileFilesDDCRequest clone() =>
+      CompileFilesDDCRequest()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  CompileFilesDDCRequest copyWith(
+          void Function(CompileFilesDDCRequest) updates) =>
+      super.copyWith((message) => updates(message as CompileFilesDDCRequest))
+          as CompileFilesDDCRequest; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static CompileFilesDDCRequest create() => CompileFilesDDCRequest._();
+  CompileFilesDDCRequest createEmptyInstance() => create();
+  static $pb.PbList<CompileFilesDDCRequest> createRepeated() =>
+      $pb.PbList<CompileFilesDDCRequest>();
+  @$core.pragma('dart2js:noInline')
+  static CompileFilesDDCRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<CompileFilesDDCRequest>(create);
+  static CompileFilesDDCRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.Map<$core.String, $core.String> get files => $_getMap(0);
 }
 
 class SourceRequest extends $pb.GeneratedMessage {
@@ -252,6 +400,112 @@ class SourceRequest extends $pb.GeneratedMessage {
   $core.bool hasOffset() => $_has(1);
   @$pb.TagNumber(2)
   void clearOffset() => clearField(2);
+}
+
+class SourceFilesRequest extends $pb.GeneratedMessage {
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(
+      const $core.bool.fromEnvironment('protobuf.omit_message_names')
+          ? ''
+          : 'SourceFilesRequest',
+      package: const $pb.PackageName(
+          $core.bool.fromEnvironment('protobuf.omit_message_names')
+              ? ''
+              : 'dart_services.api'),
+      createEmptyInstance: create)
+    ..m<$core.String, $core.String>(
+        1,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'files',
+        entryClassName: 'SourceFilesRequest.FilesEntry',
+        keyFieldType: $pb.PbFieldType.OS,
+        valueFieldType: $pb.PbFieldType.OS,
+        packageName: const $pb.PackageName('dart_services.api'))
+    ..aOS(
+        2,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'activeSourceName',
+        protoName: 'activeSourceName')
+    ..a<$core.int>(
+        3,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'offset',
+        $pb.PbFieldType.O3)
+    ..hasRequiredFields = false;
+
+  SourceFilesRequest._() : super();
+  factory SourceFilesRequest({
+    $core.Map<$core.String, $core.String>? files,
+    $core.String? activeSourceName,
+    $core.int? offset,
+  }) {
+    final _result = create();
+    if (files != null) {
+      _result.files.addAll(files);
+    }
+    if (activeSourceName != null) {
+      _result.activeSourceName = activeSourceName;
+    }
+    if (offset != null) {
+      _result.offset = offset;
+    }
+    return _result;
+  }
+  factory SourceFilesRequest.fromBuffer($core.List<$core.int> i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromBuffer(i, r);
+  factory SourceFilesRequest.fromJson($core.String i,
+          [$pb.ExtensionRegistry r = $pb.ExtensionRegistry.EMPTY]) =>
+      create()..mergeFromJson(i, r);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.deepCopy] instead. '
+      'Will be removed in next major version')
+  SourceFilesRequest clone() => SourceFilesRequest()..mergeFromMessage(this);
+  @$core.Deprecated('Using this can add significant overhead to your binary. '
+      'Use [GeneratedMessageGenericExtensions.rebuild] instead. '
+      'Will be removed in next major version')
+  SourceFilesRequest copyWith(void Function(SourceFilesRequest) updates) =>
+      super.copyWith((message) => updates(message as SourceFilesRequest))
+          as SourceFilesRequest; // ignore: deprecated_member_use
+  $pb.BuilderInfo get info_ => _i;
+  @$core.pragma('dart2js:noInline')
+  static SourceFilesRequest create() => SourceFilesRequest._();
+  SourceFilesRequest createEmptyInstance() => create();
+  static $pb.PbList<SourceFilesRequest> createRepeated() =>
+      $pb.PbList<SourceFilesRequest>();
+  @$core.pragma('dart2js:noInline')
+  static SourceFilesRequest getDefault() => _defaultInstance ??=
+      $pb.GeneratedMessage.$_defaultFor<SourceFilesRequest>(create);
+  static SourceFilesRequest? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.Map<$core.String, $core.String> get files => $_getMap(0);
+
+  @$pb.TagNumber(2)
+  $core.String get activeSourceName => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set activeSourceName($core.String v) {
+    $_setString(1, v);
+  }
+
+  @$pb.TagNumber(2)
+  $core.bool hasActiveSourceName() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearActiveSourceName() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.int get offset => $_getIZ(2);
+  @$pb.TagNumber(3)
+  set offset($core.int v) {
+    $_setSignedInt32(2, v);
+  }
+
+  @$pb.TagNumber(3)
+  $core.bool hasOffset() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearOffset() => clearField(3);
 }
 
 class AnalysisResults extends $pb.GeneratedMessage {
