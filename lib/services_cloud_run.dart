@@ -15,6 +15,7 @@ import 'package:shelf/shelf_io.dart' as shelf;
 
 import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
+import 'src/github_oauth_handler.dart';
 import 'src/sdk.dart';
 import 'src/server_cache.dart';
 import 'src/shelf_cors.dart' as shelf_cors;
@@ -61,6 +62,8 @@ Future<void> main(List<String> args) async {
     Cloud Run Environment variables:
     $cloudRunEnvVars''');
 
+  await GitHubOAuthHandler.initFromEnvironmentalVars();
+
   await EndpointsServer.serve(port, redisServerUri, sdk);
   _logger.info('Listening on port $port');
 }
@@ -102,6 +105,18 @@ class EndpointsServer {
       sdk,
     );
     commonServerApi = CommonServerApi(_commonServerImpl);
+
+    // Set cache for GitHub OAuth and add GitHub OAuth routes to our router.
+    GitHubOAuthHandler.setCache(redisServerUri == null
+        ? InMemoryCache()
+        : RedisCache(
+            redisServerUri,
+            sdk,
+            // The name of the Cloud Run revision being run, for more detail please see:
+            // https://cloud.google.com/run/docs/reference/container-contract#env-vars
+            Platform.environment['K_REVISION'],
+          ));
+    GitHubOAuthHandler.addRoutes(commonServerApi.router);
 
     pipeline = const Pipeline()
         .addMiddleware(logRequests())

@@ -15,6 +15,7 @@ import 'package:shelf/shelf_io.dart' as shelf;
 
 import 'src/common_server_api.dart';
 import 'src/common_server_impl.dart';
+import 'src/github_oauth_handler.dart';
 import 'src/sdk.dart';
 import 'src/server_cache.dart';
 import 'src/shelf_cors.dart' as shelf_cors;
@@ -43,6 +44,8 @@ Future<void> main(List<String> args) async {
     if (record.stackTrace != null) print(record.stackTrace);
   });
 
+  await GitHubOAuthHandler.initFromEnvironmentalVars();
+
   await EndpointsServer.serve(port, Sdk.create(result['channel'] as String),
       result['null-safety'] as bool);
   _logger.info('Listening on port $port');
@@ -68,6 +71,10 @@ class EndpointsServer {
     );
     commonServerApi = CommonServerApi(commonServerImpl);
     commonServerImpl.init();
+
+    // Set cache for GitHub OAuth and add GitHub OAuth routes to our router.
+    GitHubOAuthHandler.setCache(InMemoryCache());
+    GitHubOAuthHandler.addRoutes(commonServerApi.router);
 
     pipeline = const Pipeline()
         .addMiddleware(logRequests())
