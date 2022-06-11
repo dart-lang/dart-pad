@@ -1,0 +1,36 @@
+void main() {
+  
+  //List
+  List <int> Numbers = [2,3,4,5,];
+  
+  //Change Item
+  Numbers[1]=9;
+  Numbers[3]=10;
+  
+  //Add Item
+  Numbers.add(20);
+  Numbers.add(12);
+  Numbers.add(5);
+  Numbers.add(6);
+  Numbers.add(8);
+  
+  //Add Multiple Items
+  Numbers.addAll([21,68,39,100]);
+  
+  //Remove Items
+  Numbers.remove(21);
+  
+  //Remove Items from specific Location
+  Numbers.removeAt(1);
+  Numbers.removeAt(0);
+  
+  print(Numbers);
+  
+  // List String
+  List <String> Students = List.from(["Ali,Ahmad,Khan"]);
+  Students.add('Shah');
+  Students.add('Faisal');
+  print(Students);
+  
+ 
+}
