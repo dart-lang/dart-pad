@@ -321,14 +321,16 @@ class Embed extends EditorUi {
           editorUi: this,
           onSizeChanged: () {
             editor.resize();
-          });
+          },
+          darkMode: isDarkMode);
       consoleExpandController = controller;
       if (shouldOpenConsole) {
         controller.open();
       }
     } else {
-      consoleExpandController =
-          Console(DElement(querySelector('#console-output-container')!));
+      consoleExpandController = Console(
+          DElement(querySelector('#console-output-container')!),
+          darkMode: isDarkMode);
     }
 
     final MDCButton clearConsoleButton = MDCButton(
@@ -801,7 +803,7 @@ class Embed extends EditorUi {
     }
   }
 
-  void _format() async {
+  Future<void> _format() async {
     final originalSource = context.dartSource;
     final input = SourceRequest()..source = originalSource;
 
@@ -882,7 +884,7 @@ class EmbedTabController extends MaterialTabController {
   final Dialog _dialog;
   bool _userHasSeenSolution = false;
 
-  EmbedTabController(MDCTabBar tabBar, this._dialog) : super(tabBar);
+  EmbedTabController(super.tabBar, this._dialog);
 
   @override
   void registerTab(TabElement tab) {
@@ -1028,11 +1030,14 @@ class _ConsoleExpandController extends Console {
     required this.unreadCounter,
     required this.editorUi,
     required this.onSizeChanged,
+    required bool darkMode,
   })  : expandButton = DElement(expandButton),
         footer = DElement(footer),
         expandIcon = DElement(expandIcon),
         super(DElement(consoleElement),
-            errorClass: 'text-red', filter: filterCloudUrls) {
+            errorClass: 'text-red',
+            filter: filterCloudUrls,
+            darkMode: darkMode) {
     super.element.setAttr('hidden');
     footer.removeAttribute('hidden');
     expandButton.onClick.listen((_) => _toggleExpanded());

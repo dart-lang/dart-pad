@@ -72,12 +72,11 @@ String iframeSrc(Map<String, String> options) {
   final theme = 'theme=${_valueOr(options, 'theme', 'light')}';
   final run = 'run=${_valueOr(options, 'run', 'false')}';
   final split = 'split=${_valueOr(options, 'split', 'false')}';
-  final nullSafety = 'null_safety=${_valueOr(options, 'null_safety', 'false')}';
   // A unique ID used to distinguish between DartPad instances in an article or
   // codelab.
   final analytics = 'ga_id=${_valueOr(options, 'ga_id', 'false')}';
 
-  return '$iframePrefix$prefix?$theme&$run&$split&$analytics&$nullSafety';
+  return '$iframePrefix$prefix?$theme&$run&$split&$analytics';
 }
 
 String? _valueOr(Map<String, String> map, String value, String defaultValue) {

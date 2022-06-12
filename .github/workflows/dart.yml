@@ -20,11 +20,11 @@ jobs:
         sdk: [stable, beta]
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: actions/checkout@v3
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: ${{ matrix.sdk }}
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
 
       - name: Print Dart SDK version
         run: dart --version
