@@ -535,7 +535,11 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
   @override
   void setAnnotations(List<Annotation> annotations) {
     for (final marker in doc.getAllMarks()) {
-      marker.clear();
+      if(marker.jsProxy!=null && marker.jsProxy!['atomic']==false) {
+        // Only clear non-atomic markers (atomic markers are collapse code
+        // blocks created by the user).
+        marker.clear();
+      }
     }
 
     for (final widget in widgets) {
