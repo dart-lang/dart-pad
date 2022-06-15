@@ -1019,7 +1019,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _gistStorage.clearStoredGist();
     _editableGist.reset();
     // Delay to give time for the model change event to propagate through
-    // to the editor component (which is where `_performAnalysis()` pulls
+    // to the editor component (which is where `performAnalysis()` pulls
     // the Dart source from).
     Timer.run(performAnalysis);
     clearOutput();
