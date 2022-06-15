@@ -97,7 +97,7 @@ class AnalysisResultsController {
         : '${hasLineNumber ? ' of ' : ''}${issue.sourceName} ';
     final locationSeparator =
         (additionalSourceInfo.isNotEmpty || lineNumberInfo.isNotEmpty)
-            ? ' • ' 
+            ? ' • '
             : '';
 
     final messageSpan = DivElement()
