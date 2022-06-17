@@ -1375,7 +1375,6 @@ class EmbedContext extends Context {
   /// Counts the number of lines in [str].
   static int countLinesInString(String str) =>
       LineSplitter().convert(str).length;
-
 }
 
 final RegExp _flutterUrlExp =
