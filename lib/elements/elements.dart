@@ -396,11 +396,11 @@ class TabController {
       tabs.firstWhere((tab) => tab.hasAttr('selected'));
 
   /// This method will throw if the tabName is not the name of a current tab.
-  void selectTab(String? tabName) {
+  void selectTab(String tabName) {
     final tab = tabs.firstWhere((t) => t.name == tabName);
 
     for (final t in tabs) {
-      t.toggleAttr('selected', t == tab);
+      t.toggleAttr('selected', t.name == tab.name);
     }
 
     tab.handleSelected();
