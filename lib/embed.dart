@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:html' hide Document, Console;
 import 'dart:math' as math;
 
@@ -1371,38 +1372,10 @@ class EmbedContext extends Context {
   @override
   bool get isFocused => focusedEditor == 'dart' && editor.hasFocus;
 
-  // Character constants.
-  static const int _lf = 10;
-  static const int _cr = 13;
+  /// Counts the number of lines in [str].
+  static int countLinesInString(String str) =>
+      LineSplitter().convert(str).length;
 
-  /// Count lines in string (CR, LF or CR-LF can be line separators).
-  /// (Gives correct result as opposed to .split('\n').length, which
-  /// reports 1 extra line in many cases, and this does so without the
-  /// extra work .split() would do by creating the list of copied strings).
-  int countLinesInString(String str) {
-    final List<int> data = str.codeUnits;
-    int lines = 0;
-    final int end = data.length;
-    int sliceStart = 0;
-    int char = 0;
-    for (int i = 0; i < end; i++) {
-      final int previousChar = char;
-      char = data[i];
-      if (char != _cr) {
-        if (char != _lf) continue;
-        if (previousChar == _cr) {
-          sliceStart = i + 1;
-          continue;
-        }
-      }
-      lines++;
-      sliceStart = i + 1;
-    }
-    if (sliceStart < end) {
-      lines++;
-    }
-    return lines;
-  }
 }
 
 final RegExp _flutterUrlExp =
