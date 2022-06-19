@@ -13,14 +13,14 @@ class MaterialTabController extends TabController {
   MaterialTabController(this.tabBar);
 
   @override
-  Future selectTab(String? tabName) async {
-    final tab = tabs.firstWhere((t) => t.name == tabName);
-    final idx = tabs.indexOf(tab);
+  Future<void> selectTab(String tabName) async {
+    final idx = tabs.indexWhere((t) => t.name == tabName);
+    final tab = tabs[idx];
 
     tabBar.activateTab(idx);
 
     for (final t in tabs) {
-      t.toggleAttr('aria-selected', t == tab);
+      t.toggleAttr('aria-selected', t.name == tab.name);
     }
 
     super.selectTab(tabName);
