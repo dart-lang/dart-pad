@@ -974,7 +974,7 @@ class EmbedTabController extends MaterialTabController {
 
   /// This method will throw if the tabName is not the name of a current tab.
   @override
-  Future selectTab(String? tabName, {bool force = false}) async {
+  Future<void> selectTab(String tabName, {bool force = false}) async {
     // Show a confirmation dialog if the solution tab is tapped
     if (tabName == 'solution' && !force) {
       final result = await _dialog.showYesNo(
@@ -985,7 +985,7 @@ class EmbedTabController extends MaterialTabController {
         noText: 'Cancel',
       );
       // Go back to the editor tab
-      if (result == DialogResult.no) {
+      if (result == DialogResult.no || result == DialogResult.cancel) {
         tabName = 'dart';
       }
     }
