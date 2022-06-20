@@ -21,7 +21,7 @@ dependencies:
   resp_client: ^1.2.0
   shelf: ^1.0.0
   shelf_router: ^1.0.0
-  yaml: ^3.0.0
+  yaml: ^3.1.1
 
 dev_dependencies:
   angel3_mock_request: ^6.0.0
