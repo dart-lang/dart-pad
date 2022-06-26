@@ -28,34 +28,34 @@ class GitHubUIController {
   final Playground _playground;
   late final GitHubAuthenticationController _githubAuthController;
 
-  final LIElement _githubMenuItemLogin =
+  final _githubMenuItemLogin =
       querySelector('#github-login-item') as LIElement;
-  final LIElement _githubMenuItemCreatePublic =
+  final _githubMenuItemCreatePublic =
       querySelector('#github-createpublic-item') as LIElement;
-  final LIElement _githubMenuItemCreatePrivate =
+  final _githubMenuItemCreatePrivate =
       querySelector('#github-createprivate-item') as LIElement;
-  final LIElement _githubMenuItemFork =
+  final _githubMenuItemFork =
       querySelector('#github-fork-item') as LIElement;
-  final LIElement _githubMenuItemUpdate =
+  final _githubMenuItemUpdate =
       querySelector('#github-update-item') as LIElement;
-  final LIElement _githubMenuItemStar =
+  final _githubMenuItemStar =
       querySelector('#github-star-item') as LIElement;
-  final LIElement _githubMenuItemOpenOnGithub =
+  final _githubMenuItemOpenOnGithub =
       querySelector('#github-open-on-github-item') as LIElement;
-  final LIElement _githubMenuItemLogout =
+  final _githubMenuItemLogout =
       querySelector('#github-logout-item') as LIElement;
-  final SpanElement _starUnstarButton =
+  final _starUnstarButton =
       querySelector('#gist_star_button') as SpanElement;
   final Element _starIconHolder = querySelector('#gist_star_inner_icon')!;
   final Element _starMenuIconHolder =
       querySelector('#github-star-item .mdc-select__icon')!;
-  final SpanElement _starMenuItemText =
+  final _starMenuItemText =
       querySelector('#github-star-item .mdc-list-item__text') as SpanElement;
-  final DElement _titleElement =
+  final _titleElement =
       DElement(querySelector('header .header-gist-name')!);
-  final ButtonElement _myGistsDropdownButton =
+  final _myGistsDropdownButton =
       querySelector('#my-gists-dropdown-button') as ButtonElement;
-  final ButtonElement _starredGistsDropdownButton =
+  final _starredGistsDropdownButton =
       querySelector('#starred-gists-dropdown-button') as ButtonElement;
 
   MDCMenu? _starredGistsMenu;
@@ -91,7 +91,7 @@ class GitHubUIController {
       final idx = (e as CustomEvent).detail['index'] as int?;
       switch (idx) {
         case 0: // login
-          _attempToAquireGitHubToken();
+          _attemptToAquireGitHubToken();
           break;
         case 1: // create public gist
           _saveGist();
@@ -274,7 +274,7 @@ class GitHubUIController {
     _inGithubAuthStateChangeHandler = false;
   }
 
-  void _attempToAquireGitHubToken() {
+  void _attemptToAquireGitHubToken() {
     // Remember all of our current query params.
     final Uri curUrl = Uri.parse(window.location.toString());
     final params = Map<String, String?>.from(curUrl.queryParameters);
@@ -388,7 +388,7 @@ class GitHubUIController {
 
   void _myGistMenuHandler(Event e) {
     final index = (e as CustomEvent).detail['index'] as int;
-    final List<Gist> mygists = _githubAuthController.myGistList;
+    final mygists = _githubAuthController.myGistList;
     if (index >= 0 && index <= mygists.length) {
       final gistId = mygists.elementAt(index).id!;
       _playground.showGist(gistId);
@@ -408,7 +408,7 @@ class GitHubUIController {
       element.children.add(listElement);
 
       for (final gist in mygists) {
-        String menuTitle = gist.description ?? 'no description';
+        var menuTitle = gist.description ?? 'no description';
         if (menuTitle.isEmpty) menuTitle = gist.files[0].name;
         final menuElement = _mdcListItem(children: [
           SpanElement()
