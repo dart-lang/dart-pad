@@ -28,38 +28,32 @@ const localStorageKeyForQueryParamsPreOAuthRequest = 'gh_pre_auth_query_params';
 const localStorageKeyForGitHubOAuthToken = 'github_oauth_token';
 const localStorageKeyForGitHubUserLogin = 'github_user_login';
 
-
 class GitHubUIController {
   static const entryPointGitHubOAuthInitiate = 'github_oauth_initiate';
 
   final Playground _playground;
   late final GitHubAuthenticationController _githubAuthController;
 
-  final _githubMenuItemLogin =
-      querySelector('#github-login-item') as LIElement;
+  final _githubMenuItemLogin = querySelector('#github-login-item') as LIElement;
   final _githubMenuItemCreatePublic =
       querySelector('#github-createpublic-item') as LIElement;
   final _githubMenuItemCreatePrivate =
       querySelector('#github-createprivate-item') as LIElement;
-  final _githubMenuItemFork =
-      querySelector('#github-fork-item') as LIElement;
+  final _githubMenuItemFork = querySelector('#github-fork-item') as LIElement;
   final _githubMenuItemUpdate =
       querySelector('#github-update-item') as LIElement;
-  final _githubMenuItemStar =
-      querySelector('#github-star-item') as LIElement;
+  final _githubMenuItemStar = querySelector('#github-star-item') as LIElement;
   final _githubMenuItemOpenOnGithub =
       querySelector('#github-open-on-github-item') as LIElement;
   final _githubMenuItemLogout =
       querySelector('#github-logout-item') as LIElement;
-  final _starUnstarButton =
-      querySelector('#gist_star_button') as SpanElement;
+  final _starUnstarButton = querySelector('#gist_star_button') as SpanElement;
   final Element _starIconHolder = querySelector('#gist_star_inner_icon')!;
   final Element _starMenuIconHolder =
       querySelector('#github-star-item .mdc-select__icon')!;
   final _starMenuItemText =
       querySelector('#github-star-item .mdc-list-item__text') as SpanElement;
-  final _titleElement =
-      DElement(querySelector('header .header-gist-name')!);
+  final _titleElement = DElement(querySelector('header .header-gist-name')!);
   final _myGistsDropdownButton =
       querySelector('#my-gists-dropdown-button') as ButtonElement;
   final _starredGistsDropdownButton =
@@ -287,7 +281,8 @@ class GitHubUIController {
     final params = Map<String, String?>.from(curUrl.queryParameters);
     final String jsonParams = json.encode(params);
 
-    window.localStorage[localStorageKeyForQueryParamsPreOAuthRequest] = jsonParams;
+    window.localStorage[localStorageKeyForQueryParamsPreOAuthRequest] =
+        jsonParams;
 
     // Use current dartServices root url and add the GitHub OAuth initiation
     // end point to it.
@@ -640,7 +635,8 @@ class GitHubAuthenticationController {
 
     if (ghTokenFromUrl.isNotEmpty) {
       final String perAuthParamsJson =
-          window.localStorage[localStorageKeyForQueryParamsPreOAuthRequest] ?? '';
+          window.localStorage[localStorageKeyForQueryParamsPreOAuthRequest] ??
+              '';
 
       try {
         final restoreParams = Map<String, String?>.from(
@@ -847,11 +843,12 @@ class GitHubAuthenticationController {
 
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
-    return _client
-        .get(Uri.parse('$_githubApiUrl/gists?per_page=$maxNumberOfGistToLoad'), headers: {
-      'accept': 'application/vnd.github.v3+json',
-      'Authorization': 'token $accessToken'
-    }).then((response) {
+    return _client.get(
+        Uri.parse('$_githubApiUrl/gists?per_page=$maxNumberOfGistToLoad'),
+        headers: {
+          'accept': 'application/vnd.github.v3+json',
+          'Authorization': 'token $accessToken'
+        }).then((response) {
       _pendingUserGistRequest = null;
 
       if (response.statusCode == 404) {
@@ -965,7 +962,8 @@ class GitHubAuthenticationController {
     }
   }
 
-  String get avatarUrl => window.localStorage[localStorageKeyForGitHubAvatarUrl] ?? '';
+  String get avatarUrl =>
+      window.localStorage[localStorageKeyForGitHubAvatarUrl] ?? '';
 
   set userLogin(String login) {
     if (login.isNotEmpty) {
@@ -975,7 +973,8 @@ class GitHubAuthenticationController {
     }
   }
 
-  String get userLogin => window.localStorage[localStorageKeyForGitHubUserLogin] ?? '';
+  String get userLogin =>
+      window.localStorage[localStorageKeyForGitHubUserLogin] ?? '';
 
   static const _chars =
       'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
@@ -1010,7 +1009,8 @@ class GitHubAuthenticationController {
 
     try {
       if (randomStateWeSent.isEmpty) {
-        throw Exception('ERROR - decryptAuthTokenFromReturnedSecureAuthToken() found no stored initial state.');
+        throw Exception(
+            'ERROR - decryptAuthTokenFromReturnedSecureAuthToken() found no stored initial state.');
       }
 
       final iv = IV.fromUtf8(randomStateWeSent.substring(0, 8));
@@ -1028,6 +1028,7 @@ class GitHubAuthenticationController {
       window.console.log(
           'decryptAuthTokenFromReturnedSecureAuthToken Exception e=${e.toString()}');
     }
-    throw Exception('ERROR - decryptAuthTokenFromReturnedSecureAuthToken() general decryption exception.');
+    throw Exception(
+        'ERROR - decryptAuthTokenFromReturnedSecureAuthToken() general decryption exception.');
   }
 }
