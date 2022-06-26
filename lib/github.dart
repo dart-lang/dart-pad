@@ -1010,7 +1010,7 @@ class GitHubAuthenticationController {
 
     try {
       if (randomStateWeSent.isEmpty) {
-        throw Exception('ERROR - decryptAuthTokenFromReturnedSecureAuthToken() had no stored initial state');
+        throw Exception('ERROR - decryptAuthTokenFromReturnedSecureAuthToken() found no stored initial state.');
       }
 
       final iv = IV.fromUtf8(randomStateWeSent.substring(0, 8));
@@ -1028,6 +1028,6 @@ class GitHubAuthenticationController {
       window.console.log(
           'decryptAuthTokenFromReturnedSecureAuthToken Exception e=${e.toString()}');
     }
-    throw Exception('ERROR Decrypting AuthToken From Returned Secure Auth Token.');
+    throw Exception('ERROR - decryptAuthTokenFromReturnedSecureAuthToken() general decryption exception.');
   }
 }
