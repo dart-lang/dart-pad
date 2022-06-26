@@ -22,8 +22,15 @@ import 'playground.dart';
 import 'sharing/gists.dart';
 import 'sharing/mutable_gist.dart';
 
+const localStorageKeyForGitHubRandomState = 'github_random_state';
+const localStorageKeyForGitHubAvatarUrl = 'github_avatar_url';
+const localStorageKeyForQueryParamsPreOAuthRequest = 'gh_pre_auth_query_params';
+const localStorageKeyForGitHubOAuthToken = 'github_oauth_token';
+const localStorageKeyForGitHubUserLogin = 'github_user_login';
+
+
 class GitHubUIController {
-  static const kEntryPointGitHubOAuthInitiate = 'github_oauth_initiate';
+  static const entryPointGitHubOAuthInitiate = 'github_oauth_initiate';
 
   final Playground _playground;
   late final GitHubAuthenticationController _githubAuthController;
@@ -280,12 +287,12 @@ class GitHubUIController {
     final params = Map<String, String?>.from(curUrl.queryParameters);
     final String jsonParams = json.encode(params);
 
-    window.localStorage['gh_pre_auth_query_params'] = jsonParams;
+    window.localStorage[localStorageKeyForQueryParamsPreOAuthRequest] = jsonParams;
 
     // Use current dartServices root url and add the GitHub OAuth initiation
     // end point to it.
     final String baseUrl =
-        '${dartServices.rootUrl}$kEntryPointGitHubOAuthInitiate/';
+        '${dartServices.rootUrl}$entryPointGitHubOAuthInitiate/';
 
     final String redirectUrl =
         _githubAuthController.makeRandomSecureAuthInitiationUrl(baseUrl);
@@ -338,10 +345,10 @@ class GitHubUIController {
           .forkGist(
               _playground.mutableGist.createGist(), unsavedLocalEdits, token)
           .then((String forkedGistId) {
-        if (forkedGistId == 'GIST_ALREADY_FORK') {
+        if (forkedGistId == GistLoader.gistAlreadyForked) {
           _playground.showSnackbar('Failed to fork gist - already a fork');
           return;
-        } else if (forkedGistId == 'GIST_NOT_FOUND') {
+        } else if (forkedGistId == GistLoader.gistNotFound) {
           _playground.showSnackbar('Failed to fork gist - gist not found');
           return;
         }
@@ -632,7 +639,7 @@ class GitHubAuthenticationController {
 
     if (ghTokenFromUrl.isNotEmpty) {
       final String perAuthParamsJson =
-          window.localStorage['gh_pre_auth_query_params'] ?? '';
+          window.localStorage[localStorageKeyForQueryParamsPreOAuthRequest] ?? '';
 
       try {
         final restoreParams = Map<String, String?>.from(
@@ -937,13 +944,13 @@ class GitHubAuthenticationController {
   }
 
   set githubOAuthAccessToken(String newtoken) {
-    if (window.localStorage['github_oauth_token'] != newtoken) {
+    if (window.localStorage[localStorageKeyForGitHubOAuthToken] != newtoken) {
       if (newtoken.isNotEmpty) {
-        window.localStorage['github_oauth_token'] = newtoken;
+        window.localStorage[localStorageKeyForGitHubOAuthToken] = newtoken;
         // Get the user info for this token.
         getUserInfo();
       } else {
-        window.localStorage.remove('github_oauth_token');
+        window.localStorage.remove(localStorageKeyForGitHubOAuthToken);
         avatarUrl = '';
         userLogin = '';
       }
@@ -951,27 +958,27 @@ class GitHubAuthenticationController {
   }
 
   String get githubOAuthAccessToken =>
-      window.localStorage['github_oauth_token'] ?? '';
+      window.localStorage[localStorageKeyForGitHubOAuthToken] ?? '';
 
   set avatarUrl(String url) {
     if (url.isNotEmpty) {
-      window.localStorage['github_avatar_url'] = url;
+      window.localStorage[localStorageKeyForGitHubAvatarUrl] = url;
     } else {
-      window.localStorage.remove('github_avatar_url');
+      window.localStorage.remove(localStorageKeyForGitHubAvatarUrl);
     }
   }
 
-  String get avatarUrl => window.localStorage['github_avatar_url'] ?? '';
+  String get avatarUrl => window.localStorage[localStorageKeyForGitHubAvatarUrl] ?? '';
 
   set userLogin(String login) {
     if (login.isNotEmpty) {
-      window.localStorage['github_user_login'] = login;
+      window.localStorage[localStorageKeyForGitHubUserLogin] = login;
     } else {
-      window.localStorage.remove('github_user_login');
+      window.localStorage.remove(localStorageKeyForGitHubUserLogin);
     }
   }
 
-  String get userLogin => window.localStorage['github_user_login'] ?? '';
+  String get userLogin => window.localStorage[localStorageKeyForGitHubUserLogin] ?? '';
 
   static const _chars =
       'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
@@ -987,7 +994,7 @@ class GitHubAuthenticationController {
 
     // Store state in localStorage, because we are going to need it to Decrypt
     // the returned authorization token.
-    window.localStorage['github_random_state'] = state;
+    window.localStorage[localStorageKeyForGitHubRandomState] = state;
 
     if (baseUrl.endsWith('/')) {
       return '$baseUrl$state';
@@ -1002,7 +1009,7 @@ class GitHubAuthenticationController {
     // makeRandomSecureAuthInitiationUrl().  Our auth token was encrypted using
     // this before sending it back to us, so use it to decrypt.
     final String randomStateWeSent =
-        window.localStorage['github_random_state'] ?? '';
+        window.localStorage[localStorageKeyForGitHubRandomState] ?? '';
 
     try {
       if (randomStateWeSent.isEmpty) {
