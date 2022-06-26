@@ -599,6 +599,7 @@ class GitHubUIController {
 /// and cannot exist on the client side).
 class GitHubAuthenticationController {
   static const String _githubApiUrl = 'https://api.github.com';
+  static const int maxNumberOfGistToLoad = 100;
   final Uri launchUri;
   late final http.Client _client;
   final MDCSnackbar snackbar;
@@ -672,11 +673,7 @@ class GitHubAuthenticationController {
       githubOAuthAccessToken = ghAuthToken;
     } else {
       // There was no gh token in the window URL, but we may have STORED GH
-      // authorization in local storage...
-      // so trigger an authentication state change anyway
-      //window.console.log(
-      //    'No GH query param but do we have a STORED local storage token ?');
-      //window.console.log('githubOAuthAccessToken = $githubOAuthAccessToken');
+      // authorization in local storage... so we trigger an authentication state change anyway.
     }
   }
 
@@ -851,7 +848,7 @@ class GitHubAuthenticationController {
     // Load the gist using the github gist API:
     // https://developer.github.com/v3/gists/#get-a-single-gist.
     return _client
-        .get(Uri.parse('$_githubApiUrl/gists?per_page=100'), headers: {
+        .get(Uri.parse('$_githubApiUrl/gists?per_page=$maxNumberOfGistToLoad'), headers: {
       'accept': 'application/vnd.github.v3+json',
       'Authorization': 'token $accessToken'
     }).then((response) {
@@ -1013,7 +1010,7 @@ class GitHubAuthenticationController {
 
     try {
       if (randomStateWeSent.isEmpty) {
-        return 'ERROR-no stored initial state';
+        throw Exception('ERROR - decryptAuthTokenFromReturnedSecureAuthToken() had no stored initial state');
       }
 
       final iv = IV.fromUtf8(randomStateWeSent.substring(0, 8));
@@ -1031,6 +1028,6 @@ class GitHubAuthenticationController {
       window.console.log(
           'decryptAuthTokenFromReturnedSecureAuthToken Exception e=${e.toString()}');
     }
-    return 'ERROR';
+    throw Exception('ERROR Decrypting AuthToken From Returned Secure Auth Token.');
   }
 }
