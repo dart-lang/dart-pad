@@ -292,7 +292,6 @@ $styleRef$dartRef  </head>
       }
     }
     final String bodydata = json.encode(map);
-    //print(bodydata);
 
     return _client
         .post(Uri.parse(_gistApiUrl),
@@ -304,14 +303,8 @@ $styleRef$dartRef  </head>
             },
             body: bodydata)
         .then((http.Response response) {
-      print('createGist() Response status: ${response.statusCode}');
-      print('createGist() Response body: ${response.contentLength}');
-      print(response.headers);
-      print(response.request);
       if (response.statusCode == 201) {
-        print('CREATION WORKED!');
         final retObj = jsonDecode(response.body);
-        print('ID = ${retObj['id']}');
         return retObj['id'] as String;
       } else if (response.statusCode == 404) {
         throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -347,7 +340,6 @@ $styleRef$dartRef  </head>
     map.remove('id');
     map.remove('public');
     final String bodydata = json.encode(map);
-    print(bodydata);
 
     return _client
         .patch(Uri.parse('$_gistApiUrl/$gistId'),
@@ -359,10 +351,6 @@ $styleRef$dartRef  </head>
             },
             body: bodydata)
         .then((http.Response response) {
-      print('updateGist() Response status: ${response.statusCode}');
-      print('updateGist() Response body: ${response.contentLength}');
-      print(response.headers);
-      print(response.request);
       if (response.statusCode == 200) {
         /* example return
                 {
@@ -381,9 +369,7 @@ $styleRef$dartRef  </head>
                   "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/"
                 }
               */
-        print('update succeeded!');
         final retObj = jsonDecode(response.body);
-        print('ID = ${retObj['id']}');
         return retObj['id'] as String;
       } else if (response.statusCode == 404) {
         return gistNotFound;
@@ -425,10 +411,6 @@ $styleRef$dartRef  </head>
       },
       //body:bodydata
     ).then((http.Response response) {
-      print('forkGist() Response status: ${response.statusCode}');
-      print('forkGist() Response body: ${response.contentLength}');
-      print(response.headers);
-      print(response.request);
       if (response.statusCode == 201) {
         /* example return
        {
@@ -479,9 +461,7 @@ $styleRef$dartRef  </head>
           "truncated": false
         }
       */
-        print('FORKING WORKED!');
         final retObj = jsonDecode(response.body);
-        print('Fork ID = ${retObj['id']}');
         final String forkedGistId = retObj['id'] as String;
 
         if (localUnsavedEdits) {
@@ -536,10 +516,6 @@ $styleRef$dartRef  </head>
           'Authorization': 'Bearer $authenticationToken',
       },
     ).then((http.Response response) {
-      print('checkIfGistIsStarred Response status: ${response.statusCode}');
-      print('checkIfGistIsStarred Response body: ${response.contentLength}');
-      print(response.headers);
-      print(response.request);
       if (response.statusCode == 204) {
         return true;
       } else if (response.statusCode == 404) {
@@ -585,10 +561,6 @@ $styleRef$dartRef  </head>
           'Authorization': 'Bearer $authenticationToken',
       },
     ).then((http.Response response) {
-      print('starGist Response status: ${response.statusCode}');
-      print('starGist Response body: ${response.contentLength}');
-      print(response.headers);
-      print(response.request);
       if (response.statusCode == 204) {
         return true;
       } else if (response.statusCode == 404) {
@@ -634,10 +606,6 @@ $styleRef$dartRef  </head>
           'Authorization': 'Bearer $authenticationToken',
       },
     ).then((http.Response response) {
-      print('unstarGist Response status: ${response.statusCode}');
-      print('unstarGist Response body: ${response.contentLength}');
-      print(response.headers);
-      print(response.request);
       if (response.statusCode == 204) {
         return true;
       } else if (response.statusCode == 404) {
