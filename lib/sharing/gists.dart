@@ -130,6 +130,12 @@ class GistLoader {
   static const String _masterApiDocsUrl =
       'https://master-api.flutter.dev/snippets';
 
+  static const String gistAlreadyForked = 'GIST_ALREADY_FORK';
+  static const String gistNotFound = 'GIST_NOT_FOUND';
+  static const String gistFailedToFork = 'FAILED_TO_FORK';
+  static const String gistFailedToCreate = 'FAILED_CREATE_GIST';
+  static const String gistFailedToUpdate = 'FAILED_TO_UPDATE';
+
   static void _defaultLoadHook(Gist gist) {
     // Update files based on our preferred file names.
     if (gist.getFile('body.html') != null &&
@@ -315,7 +321,7 @@ $styleRef$dartRef  </head>
       } else if (response.statusCode != 200) {
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       }
-      return 'FAILED_CREATE_GIST';
+      return gistFailedToCreate;
     });
   }
 
@@ -380,14 +386,14 @@ $styleRef$dartRef  </head>
         print('ID = ${retObj['id']}');
         return retObj['id'] as String;
       } else if (response.statusCode == 404) {
-        return 'GIST_NOT_FOUND';
+        return gistNotFound;
       } else if (response.statusCode == 403) {
         throw const GistLoaderException(
             GistLoaderFailureType.rateLimitExceeded);
       } else if (response.statusCode != 200) {
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       }
-      return 'FAILED_TO_UPDATE';
+      return gistFailedToUpdate;
     });
   }
 
@@ -486,16 +492,16 @@ $styleRef$dartRef  </head>
         }
         return forkedGistId;
       } else if (response.statusCode == 422) {
-        return 'GIST_ALREADY_FORK';
+        return gistAlreadyForked;
       } else if (response.statusCode == 404) {
-        return 'GIST_NOT_FOUND';
+        return gistNotFound;
       } else if (response.statusCode == 403) {
         throw const GistLoaderException(
             GistLoaderFailureType.rateLimitExceeded);
       } else if (response.statusCode != 200) {
         throw const GistLoaderException(GistLoaderFailureType.unknown);
       }
-      return 'FAILED_TO_FORK';
+      return gistFailedToFork;
     });
   }
 
