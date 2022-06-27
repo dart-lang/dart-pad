@@ -295,70 +295,66 @@ class GitHubUIController {
     window.location.href = redirectUrl;
   }
 
-  void _saveGist({bool public = true}) {
+  Future<void> _saveGist({bool public = true}) async {
     final String token = _githubAuthController.githubOAuthAccessToken;
     if (token.isNotEmpty) {
-      gistLoader
-          .createGist(_playground.mutableGist.createGist(), public, token)
-          .then((String createdGistId) {
-        _reloadPageWithNewGistId(createdGistId);
-        setUnsavedLocalEdits();
-        // Now update our menus to reflect new gist.
-        _githubAuthController.updateUsersGistAndStarredGistsList();
-      });
+      final createdGistId = await gistLoader.createGist(
+          _playground.mutableGist.createGist(), public, token);
+      _reloadPageWithNewGistId(createdGistId);
+      setUnsavedLocalEdits();
+      // Now update our menus to reflect new gist.
+      _githubAuthController.updateUsersGistAndStarredGistsList();
     } else {
       _playground.showSnackbar(
           'Must be authenticated with GitHub in order to save gist');
     }
   }
 
-  void _updateGist() {
+  Future<void> _updateGist() async {
     final String token = _githubAuthController.githubOAuthAccessToken;
     if (token.isNotEmpty) {
       final Gist clonedGist = _playground.mutableGist.createGist();
-      gistLoader.updateGist(clonedGist, token).then((String updatedGistId) {
-        setUnsavedLocalEdits();
-        _playground.showSnackbar('Gist successfully updated');
+      await gistLoader.updateGist(clonedGist, token);
 
-        // Update the backing gist because it is now in github.
-        _playground.mutableGist.setBackingGist(clonedGist);
+      setUnsavedLocalEdits();
+      _playground.showSnackbar('Gist successfully updated');
 
-        // Now update our menus to reflect new gist (description could have changed).
-        _githubAuthController.updateUsersGistAndStarredGistsList();
-      });
+      // Update the backing gist because it is now in github.
+      _playground.mutableGist.setBackingGist(clonedGist);
+
+      // Now update our menus to reflect new gist (description could have changed).
+      _githubAuthController.updateUsersGistAndStarredGistsList();
     } else {
       _playground.showSnackbar(
           'Must be authenticated with GitHub in order to fork gist');
     }
   }
 
-  void _forkGist() {
+  Future<void> _forkGist() async {
     final String token = _githubAuthController.githubOAuthAccessToken;
     final bool unsavedLocalEdits = _playground.mutableGist.dirty;
     if (token.isNotEmpty) {
-      gistLoader
-          .forkGist(
-              _playground.mutableGist.createGist(), unsavedLocalEdits, token)
-          .then((String forkedGistId) {
-        if (forkedGistId == GistLoader.gistAlreadyForked) {
-          _playground.showSnackbar('Failed to fork gist - already a fork');
-          return;
-        } else if (forkedGistId == GistLoader.gistNotFound) {
-          _playground.showSnackbar('Failed to fork gist - gist not found');
-          return;
-        }
+      final forkedGistId = await gistLoader.forkGist(
+          _playground.mutableGist.createGist(), unsavedLocalEdits, token);
 
-        setUnsavedLocalEdits();
+      if (forkedGistId == GistLoader.gistAlreadyForked) {
+        _playground.showSnackbar('Failed to fork gist - already a fork');
+        return;
+      } else if (forkedGistId == GistLoader.gistNotFound) {
+        _playground.showSnackbar('Failed to fork gist - gist not found');
+        return;
+      }
 
-        _playground.showSnackbar(unsavedLocalEdits
-            ? 'Gist successfully forked and updated with local edits'
-            : 'Gist successfully forked'); // This wont have time to show KLUDGE
+      setUnsavedLocalEdits();
 
-        _reloadPageWithNewGistId(forkedGistId);
+      _playground.showSnackbar(unsavedLocalEdits
+          ? 'Gist successfully forked and updated with local edits'
+          : 'Gist successfully forked'); // This wont have time to show KLUDGE
 
-        // Now update our menus to reflect new gist.
-        _githubAuthController.updateUsersGistAndStarredGistsList();
-      });
+      _reloadPageWithNewGistId(forkedGistId);
+
+      // Now update our menus to reflect new gist.
+      _githubAuthController.updateUsersGistAndStarredGistsList();
     } else {
       _playground.showSnackbar(
           'Must be authenticated with GitHub in order to fork gist');
@@ -490,7 +486,7 @@ class GitHubUIController {
     starUnstarButton.hidden = true;
   }
 
-  void _starredButtonClickHandler(_) {
+  Future<void> _starredButtonClickHandler(_) async {
     if (_starUnstarButton.hidden ||
         !_playground.mutableGist.hasId ||
         _gistIdOfLastStarredReport.isEmpty ||
@@ -505,28 +501,22 @@ class GitHubUIController {
       // Immediately set state to where we think it's going, and we will update
       // after we get verification from API.
       _setStateOfStarredButton(true);
-      gistLoader
-          .starGist(
-              gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken)
-          .then((_) {
-        getStarReportOnLoadingGist(gistIdWeAreToggling, true);
-        // Now update our menus to reflect change in starred gists.
-        _githubAuthController.updateUsersGistAndStarredGistsList(
-            starredCheckDelay: 60000);
-      });
+      await gistLoader.starGist(
+          gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken);
+      await getStarReportOnLoadingGist(gistIdWeAreToggling, true);
+      // Now update our menus to reflect change in starred gists.
+      _githubAuthController.updateUsersGistAndStarredGistsList(
+          starredCheckDelay: 60000);
     } else {
       // Immediately set state to where we think it's going, and we will update
       // after we get verification from API.
       _setStateOfStarredButton(false);
-      gistLoader
-          .unstarGist(
-              gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken)
-          .then((_) {
-        getStarReportOnLoadingGist(gistIdWeAreToggling, true);
-        // Now update our menus to reflect change in starred gists.
-        _githubAuthController.updateUsersGistAndStarredGistsList(
-            starredCheckDelay: 60000);
-      });
+      await gistLoader.unstarGist(
+          gistIdWeAreToggling, _githubAuthController.githubOAuthAccessToken);
+      await getStarReportOnLoadingGist(gistIdWeAreToggling, true);
+      // Now update our menus to reflect change in starred gists.
+      _githubAuthController.updateUsersGistAndStarredGistsList(
+          starredCheckDelay: 60000);
     }
   }
 
@@ -551,20 +541,17 @@ class GitHubUIController {
 
   /// Request a report on the state of this Gist's star status for the
   /// currently authenticated user, updates UI once known.
-  void getStarReportOnLoadingGist(String gistId,
-      [bool dontHideStarButton = false]) {
+  Future<void> getStarReportOnLoadingGist(String gistId,
+      [bool dontHideStarButton = false]) async {
     if (!dontHideStarButton) hideGistStarredButton();
     if (_githubAuthController.githubOAuthAccessToken.isNotEmpty &&
         gistId.isNotEmpty) {
       _gistIdOfLastStarredReport = '';
-      gistLoader
-          .checkIfGistIsStarred(
-              gistId, _githubAuthController.githubOAuthAccessToken)
-          .then((starred) {
-        _gistIdOfLastStarredReport = gistId;
-        _starredStateOfLastStarReport = starred;
-        _setStateOfStarredButton(starred);
-      });
+      final starred = await gistLoader.checkIfGistIsStarred(
+          gistId, _githubAuthController.githubOAuthAccessToken);
+      _gistIdOfLastStarredReport = gistId;
+      _starredStateOfLastStarReport = starred;
+      _setStateOfStarredButton(starred);
     }
   }
 
@@ -756,12 +743,14 @@ class GitHubAuthenticationController {
     }
     _pendingUserInfoRequest = accessToken;
 
-    // Load the gist using the github gist API:
-    // https://developer.github.com/v3/gists/#get-a-single-gist.
-    return _client.get(Uri.parse('$_githubApiUrl/user'), headers: {
-      'accept': 'application/vnd.github.v3+json',
-      'Authorization': 'token $accessToken'
-    }).then((response) {
+    try {
+      // Load the gist using the github gist API:
+      // https://developer.github.com/v3/gists/#get-a-single-gist.
+      final response =
+          await _client.get(Uri.parse('$_githubApiUrl/user'), headers: {
+        'accept': 'application/vnd.github.v3+json',
+        'Authorization': 'token $accessToken'
+      });
       _pendingUserInfoRequest = null;
 
       if (response.statusCode == 404) {
@@ -782,9 +771,9 @@ class GitHubAuthenticationController {
         }
         _authenticatedStateChangeController.add(true);
       }
-    }).catchError((e) {
+    } catch (e) {
       window.console.log('getUserInfo Exception ${e.toString()}');
-    });
+    }
   }
 
   /*
@@ -841,14 +830,15 @@ class GitHubAuthenticationController {
     }
     _pendingUserGistRequest = accessToken;
 
-    // Load the gist using the github gist API:
-    // https://developer.github.com/v3/gists/#get-a-single-gist.
-    return _client.get(
-        Uri.parse('$_githubApiUrl/gists?per_page=$maxNumberOfGistToLoad'),
-        headers: {
-          'accept': 'application/vnd.github.v3+json',
-          'Authorization': 'token $accessToken'
-        }).then((response) {
+    try {
+      // Load the gist using the github gist API:
+      // https://developer.github.com/v3/gists/#get-a-single-gist.
+      final response = await _client.get(
+          Uri.parse('$_githubApiUrl/gists?per_page=$maxNumberOfGistToLoad'),
+          headers: {
+            'accept': 'application/vnd.github.v3+json',
+            'Authorization': 'token $accessToken'
+          });
       _pendingUserGistRequest = null;
 
       if (response.statusCode == 404) {
@@ -875,9 +865,9 @@ class GitHubAuthenticationController {
         }
         _myGistListUpdateController.add(null);
       }
-    }).catchError((e) {
+    } catch (e) {
       window.console.log('getUsersGists Exception ${e.toString()}');
-    });
+    }
   }
 
   /*
@@ -900,13 +890,15 @@ class GitHubAuthenticationController {
     }
     _pendingUserStarredGistRequest = accessToken;
 
-    // Load the gist using the github gist API:
-    // https://developer.github.com/v3/gists/#get-a-single-gist.
-    return _client
-        .get(Uri.parse('$_githubApiUrl/gists/starred?per_page=100'), headers: {
-      'accept': 'application/vnd.github.v3+json',
-      'Authorization': 'token $accessToken'
-    }).then((response) {
+    try {
+      // Load the gist using the github gist API:
+      // https://developer.github.com/v3/gists/#get-a-single-gist.
+      final response = await _client.get(
+          Uri.parse('$_githubApiUrl/gists/starred?per_page=100'),
+          headers: {
+            'accept': 'application/vnd.github.v3+json',
+            'Authorization': 'token $accessToken'
+          });
       _pendingUserStarredGistRequest = null;
 
       if (response.statusCode == 404) {
@@ -932,9 +924,9 @@ class GitHubAuthenticationController {
         }
         _starredGistListUpdateController.add(null);
       }
-    }).catchError((e) {
+    } catch (e) {
       window.console.log('getUsersStarredGists Exception ${e.toString()}');
-    });
+    }
   }
 
   set githubOAuthAccessToken(String newtoken) {
