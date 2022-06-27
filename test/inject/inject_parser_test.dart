@@ -30,13 +30,22 @@ void main() {
   group('LanguageStringParser', () {
     test('recognizes run-dartpad class names', () {
       expect(LanguageStringParser('run-dartpad').isValid, isTrue);
+      expect(LanguageStringParser('start-dartpad').isValid, isTrue);
+      expect(LanguageStringParser('end-dartpad').isValid, isTrue);
       expect(LanguageStringParser('language-run-dartpad').isValid, isTrue);
       expect(LanguageStringParser('run-flutterpad').isValid, isFalse);
     });
 
+    test('parses multi-snippet dartpad types', () {
+      expect(LanguageStringParser('run-dartpad').isStart, isFalse);
+      expect(LanguageStringParser('run-dartpad').isEnd, isFalse);
+      expect(LanguageStringParser('start-dartpad').isStart, isTrue);
+      expect(LanguageStringParser('end-dartpad').isEnd, isTrue);
+    });
+
     test('supports options ', () {
       final options = LanguageStringParser('run-dartpad:mode-html:theme-dark'
-              ':run-true:split-50:width-100%:height-400px:ga_id-example1:null_safety-true')
+              ':run-true:split-50:width-100%:height-400px:ga_id-example1:file-main.dart')
           .options;
       expect(options, isNotEmpty);
       expect(options['mode'], equals('html'));
@@ -46,7 +55,7 @@ void main() {
       expect(options['width'], equals('100%'));
       expect(options['height'], equals('400px'));
       expect(options['ga_id'], equals('example1'));
-      expect(options['null_safety'], equals('true'));
+      expect(options['file'], equals('main.dart'));
     });
   });
 }
