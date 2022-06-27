@@ -59,7 +59,7 @@
         <img src="dart-192.png" alt="DartPad Logo" class="logo"/>
         <span>DartPad</span>
     </div>
-    <div>
+    <div class="header-actions">
         <button type="button" id="new-button" class="mdc-button">
             <i class="material-icons mdc-button__icon">code</i>
             New Pad
@@ -77,13 +77,92 @@
             Install SDK
         </button>
     </div>
-    <div class="header-gist-name"></div>
+    <div id="header-name-holder"><div class="header-gist-name"></div>
+        <span id="unsaved-local-edit" title="Login to GitHub to save as gist" hidden>local edits</span>
+        <span id="gist_star_button" title="Star this gist" hidden><i id="gist_star_inner_icon" class="material-icons mdc-button__icon" aria-hidden="true">star_outline</i></span></div>
     <div>
         <button type="button" id="samples-dropdown-button" class="mdc-button">
             <span class="mdc-button__label">Samples</span>
             <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
         </button>
         <div id="samples-menu" class="mdc-menu mdc-menu-surface"></div>
+    </div>
+    <div id="starred-gists" hidden>
+        <button type="button" id="starred-gists-dropdown-button" class="mdc-button">
+            <span class="mdc-button__label">
+                <i class="material-icons mdc-button__icon" aria-hidden="true">hotel_class</i>Gists
+            </span>
+            <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
+        </button>
+        <div id="starred-gists-menu" class="mdc-menu mdc-menu-surface"></div>
+    </div>
+    <div id="my-gists" hidden>
+        <button type="button" id="my-gists-dropdown-button" class="mdc-button">
+            <span class="mdc-button__label">My Gists</span>
+            <i class="material-icons mdc-button__icon" aria-hidden="true">expand_more</i>
+        </button>
+        <div id="my-gists-menu" class="mdc-menu mdc-menu-surface"></div>
+    </div>
+    <div>
+        <button id="github-menu-button" class="github-menu-icon mdc-icon-button">
+            <img id="github-avatar"/>
+        </button>
+        <div id="github-menu" class="mdc-menu mdc-menu-surface">
+            <ul class="mdc-list" role="menu" aria-hidden="true"
+                aria-orientation="vertical" tabindex="-1">
+                <li id="logged_in_as" hidden>
+                    <span id="logged_in_as_text">Logged in as XXXX</span>
+                </li>
+                <li id="github-login-item" class="mdc-list-item" role="menuitem">
+                    <span class="mdc-list-item__graphic">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">login</i>
+                    </span>
+                    <span class="mdc-list-item__text">Login to Github</span>
+                </li>
+                <li id="github-createpublic-item" class="mdc-list-item" role="menuitem" title="Existing Gists must be forked or made private.">
+                    <span class="mdc-list-item__graphic">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">post_add</i>
+                    </span>
+                    <span class="mdc-list-item__text">Create Public Gist</span>
+                </li>
+                <li id="github-createprivate-item" class="mdc-list-item" role="menuitem">
+                    <span class="mdc-list-item__graphic">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">post_add</i>
+                    </span>
+                    <span class="mdc-list-item__text">Create Private Gist</span>
+                </li>
+                <li id="github-fork-item" class="mdc-list-item" role="menuitem">
+                    <span class="mdc-list-item__graphic">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">fork_right</i>
+                    </span>
+                    <span class="mdc-list-item__text">Fork Gist</span>
+                </li>
+                <li id="github-update-item" class="mdc-list-item" role="menuitem">
+                    <span class="mdc-list-item__graphic">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">sync</i>
+                    </span>
+                    <span class="mdc-list-item__text">Update Gist</span>
+                </li>
+                <li id="github-star-item" class="mdc-list-item" role="menuitem">
+                    <span class="mdc-list-item__graphic">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">star_outline</i>
+                    </span>
+                    <span class="mdc-list-item__text">Star Gist</span>
+                </li>
+                <li id="github-open-on-github-item" class="mdc-list-item" role="menuitem">
+                    <span class="mdc-list-item__graphic">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">open_in_new</i>
+                    </span>
+                    <span class="mdc-list-item__text">Open Gist on GitHub</span>
+                </li>
+                <li id="github-logout-item" class="mdc-list-item" role="menuitem">
+                    <span class="mdc-list-item__graphic">
+                        <i class="material-icons mdc-select__icon" tabindex="-1" role="button">logout</i>
+                    </span>
+                    <span class="mdc-list-item__text">Logout</span>
+                </li>
+            </ul>
+        </div>
     </div>
     <div>
         <button id="more-menu-button" class="mdc-icon-button material-icons">
@@ -359,7 +438,7 @@
             <div class="mdc-dialog__content">
                 <div class="dart-container">
                     <div id="new-pad-select-dart" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">
-                        <img src="/pictures/logo_dart.png"/>
+                        <img src="pictures/logo_dart.png"/>
                         <span>Dart</span>
                     </div>
                     <div id="new-pad-html-switch" class="mdc-switch">
@@ -377,7 +456,7 @@
                 </div>
                 <div class="divider"></div>
                 <div id="new-pad-select-flutter" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">
-                    <img src="/pictures/logo_flutter.png"/>
+                    <img src="pictures/logo_flutter.png"/>
                     <span>Flutter</span>
                 </div>
             </div>
