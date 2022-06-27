@@ -31,6 +31,7 @@ import 'elements/dialog.dart';
 import 'elements/elements.dart';
 import 'elements/material_tab_controller.dart';
 import 'elements/tab_expand_controller.dart';
+import 'github.dart';
 import 'modules/codemirror_module.dart';
 import 'modules/dart_pad_module.dart';
 import 'modules/dartservices_module.dart';
@@ -86,6 +87,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
   bool _rightSplitterConfigured = false;
   TabExpandController? _tabExpandController;
 
+  late GitHubUIController _githubUIController;
+
   @override
   late PlaygroundContext context;
   Layout? _layout;
@@ -110,6 +113,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _checkLocalStorage();
     _initPlayground();
     _initBusyLights();
+
+    _githubUIController = GitHubUIController(this);
+
     _initGistNameHeader();
     _initGistStorage();
     _initLayoutDetection();
@@ -182,7 +188,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     });
   }
 
-  static void _toggleMenu(MDCMenu? menu) => menu?.open = !menu.open!;
+  static void toggleMenu(MDCMenu? menu) => menu?.open = !menu.open!;
 
   void _initButtons() {
     MDCButton(querySelector('#new-button') as ButtonElement)
@@ -203,7 +209,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     MDCButton(_samplesDropdownButton)
         .onClick
-        .listen((e) => _toggleMenu(_samplesMenu));
+        .listen((e) => toggleMenu(_samplesMenu));
 
     runButton = MDCButton(querySelector('#run-button') as ButtonElement)
       ..onClick.listen((_) {
@@ -218,7 +224,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
     MDCButton(_channelsDropdownButton)
         .onClick
-        .listen((e) => _toggleMenu(_channelsMenu));
+        .listen((e) => toggleMenu(_channelsMenu));
 
     _searchController = SearchController(editorFactory, editor, snackbar);
   }
@@ -284,7 +290,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       ..hoistMenuToBody();
     MDCButton(moreMenuButton, isIcon: true)
         .onClick
-        .listen((_) => _toggleMenu(moreMenu));
+        .listen((_) => toggleMenu(moreMenu));
     moreMenu.listen('MDCMenu:selected', (e) {
       final idx = (e as CustomEvent).detail['index'] as int?;
       switch (idx) {
@@ -718,6 +724,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void showGist(String gistId) {
     clearOutput();
+    clearUI();
 
     if (!isLegalGistId(gistId)) {
       showHome();
@@ -734,6 +741,9 @@ class Playground extends EditorUi implements GistContainer, GistController {
     if (_gistIdInProgress == gistId) {
       return;
     }
+
+    _githubUIController.hideGistStarredButton();
+
     // Don't auto-run if we're re-loading some unsaved edits; the gist might
     // have halting issues (#384).
     var loadedFromSaved = false;
@@ -756,12 +766,16 @@ class Playground extends EditorUi implements GistContainer, GistController {
       if (_gistStorage.hasStoredGist && _gistStorage.storedId == gistId) {
         loadedFromSaved = true;
 
+        showSnackbar('Loading local edit copy of this gist');
+
         final storedGist = _gistStorage.getStoredGist()!;
         _editableGist.description = storedGist.description;
         for (final file in storedGist.files) {
           _editableGist.getGistFile(file.name).content = file.content;
         }
       }
+
+      _githubUIController.getStarReportOnLoadingGist(gistId);
 
       clearOutput();
 
@@ -833,6 +847,10 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _rightConsole.clear();
     _leftConsole.clear();
     _unreadConsoleCounter.clear();
+  }
+
+  void clearUI() {
+    executionService.replaceHtml('');
   }
 
   @override

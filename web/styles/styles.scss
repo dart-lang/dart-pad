@@ -51,13 +51,33 @@ header {
     }
   }
 
-  .header-gist-name {
+  .header-actions {
     @include layout-flex;
     @include layout-horizontal;
     @include layout-center-justified;
+    flex-shrink: 0 !important;
+  }
+
+  #header-name-holder {
+    @include layout-flex;
+    @include layout-horizontal;
+    @include layout-center-justified;
+    @include layout-wrap;
+    font-size: 14pt;
+    margin-left: 1em;
+    margin-right: 1em;
+    user-select: none;
+    flex-shrink: 1;
+  }
+
+  .header-gist-name {
+    /*@include layout-flex;
+    @include layout-horizontal;
+    @include layout-center-justified;*/
     font-size: 14pt;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    /* not sure if this is better ? but for long names you can at least see and edit them)
+    /*white-space: pre-wrap;*/
     margin-left: 1em;
     margin-right: 1em;
     user-select: none;
@@ -414,6 +434,55 @@ a {
     height: auto;
     width: 20px;
     margin-right: 14px;
+}
+
+#unsaved-local-edit {
+  display: inline-flex;
+  background-color: orangered;
+  color: white;
+  font-size: 10px;
+  border-radius: 5px;
+  padding: 2px 4px;
+  height: 14px;
+  margin-top: 3px;
+  margin-right: 20px;
+}
+
+#github-menu-button {
+  display: inline-block;
+  background: url('../pictures/github_icon.svg') center no-repeat;
+  background-size: 24px 24px;
+  width: 32px;
+  height: 32px;
+  padding: 4px 4px;
+  filter: invert(100%);
+  margin-left: 8px;
+}
+
+#gist_star_button {
+  display: inline-flex;
+  margin-right: 30px;
+}
+
+#github-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  position: absolute;
+  top: 4px;
+  left: 4px;
+}
+#github-avatar[src] {
+  outline: grey 1px solid;
+  filter: invert(100%);
+}
+#logged_in_as {
+  text-align: center;
+  color:  grey;
+  font-size: 14px;
+}
+#logged_in_as_text {
+  user-select: none;
 }
 
 .channel-item {
