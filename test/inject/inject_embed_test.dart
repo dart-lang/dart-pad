@@ -26,5 +26,10 @@ void main() {
       expect(iframe.attributes['src'],
           'embed-flutter.html?theme=dark&run=false&split=false&ga_id=example1&null_safety=false');
     });
+
+    test('injects only one frame for multi-snippet embed', () async {
+      final iframes = querySelectorAll('iframe');
+      expect(iframes, hasLength(3));
+    });
   });
 }
