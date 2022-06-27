@@ -127,7 +127,7 @@ class GitHubUIController {
   }
 
   void setUnsavedLocalEdits([bool unsavedLocalEdits = false]) {
-    final SpanElement unsavedLocalEditsSpan =
+    final unsavedLocalEditsSpan =
         querySelector('#unsaved-local-edit') as SpanElement;
     unsavedLocalEdits = unsavedLocalEdits || _playground.mutableGist.dirty;
     if (unsavedLocalEdits) {
@@ -172,8 +172,8 @@ class GitHubUIController {
 
   void _setGithubMenuItemStates(GitHubAuthenticationController githubController,
       MutableGist mutableGist) {
-    final bool hasId = mutableGist.hasId;
-    final bool loggedIn = githubController.userLogin.isNotEmpty;
+    final hasId = mutableGist.hasId;
+    final loggedIn = githubController.userLogin.isNotEmpty;
 
     _setMenuItemState(_githubMenuItemLogin, !loggedIn);
     _setMenuItemState(_githubMenuItemLogout, loggedIn);
@@ -189,14 +189,14 @@ class GitHubUIController {
   }
 
   void _updateMyGistMenuState() {
-    final DivElement myGists = querySelector('#my-gists') as DivElement;
+    final myGists = querySelector('#my-gists') as DivElement;
     if (_githubAuthController.myGistList.isEmpty) {
       // Hide the starred gist menu.
       myGists.setAttribute('hidden', true);
     } else {
       myGists.removeAttribute('hidden');
     }
-    final bool firstTime = (_myGistsMenu == null);
+    final firstTime = (_myGistsMenu == null);
     _myGistsMenu = _buildOrUpdateMyGistsMenu(_myGistsMenu);
     if (firstTime) {
       MDCButton(_myGistsDropdownButton)
@@ -206,15 +206,14 @@ class GitHubUIController {
   }
 
   void _updateStarredGistMenuState() {
-    final DivElement starredGists =
-        querySelector('#starred-gists') as DivElement;
+    final starredGists = querySelector('#starred-gists') as DivElement;
     if (_githubAuthController.starredGistList.isEmpty) {
       // Hide the starred gist menu.
       starredGists.setAttribute('hidden', true);
     } else {
       starredGists.removeAttribute('hidden');
     }
-    final bool firstTime = (_starredGistsMenu == null);
+    final firstTime = (_starredGistsMenu == null);
     _starredGistsMenu = _buildOrUpdateStarredGistsMenu(_starredGistsMenu);
     if (firstTime) {
       MDCButton(_starredGistsDropdownButton)
@@ -229,16 +228,15 @@ class GitHubUIController {
     }
     _inGithubAuthStateChangeHandler = true;
 
-    final String avUrl = _githubAuthController.avatarUrl;
-    final String loginUser = _githubAuthController.userLogin;
+    final avUrl = _githubAuthController.avatarUrl;
+    final loginUser = _githubAuthController.userLogin;
 
     if (!_prevAuthenticationState && loginUser.isNotEmpty) {
       _playground.snackbar
           .showMessage('You are now logged into GitHub as $loginUser');
     }
 
-    final ImageElement avatarImg =
-        querySelector('#github-avatar') as ImageElement;
+    final avatarImg = querySelector('#github-avatar') as ImageElement;
     if (avUrl.isNotEmpty) {
       avatarImg.src = avUrl;
       avatarImg.removeAttribute('hidden');
@@ -247,9 +245,8 @@ class GitHubUIController {
       avatarImg.setAttribute('hidden', true);
     }
 
-    final LIElement loggedInAsLi = querySelector('#logged_in_as') as LIElement;
-    final SpanElement loggedInAsText =
-        querySelector('#logged_in_as_text') as SpanElement;
+    final loggedInAsLi = querySelector('#logged_in_as') as LIElement;
+    final loggedInAsText = querySelector('#logged_in_as_text') as SpanElement;
     if (loginUser.isNotEmpty) {
       loggedInAsText.innerText = 'Logged in as $loginUser';
       loggedInAsLi.removeAttribute('hidden');
@@ -277,26 +274,25 @@ class GitHubUIController {
 
   void _attemptToAquireGitHubToken() {
     // Remember all of our current query params.
-    final Uri curUrl = Uri.parse(window.location.toString());
+    final curUrl = Uri.parse(window.location.toString());
     final params = Map<String, String?>.from(curUrl.queryParameters);
-    final String jsonParams = json.encode(params);
+    final jsonParams = json.encode(params);
 
     window.localStorage[localStorageKeyForQueryParamsPreOAuthRequest] =
         jsonParams;
 
     // Use current dartServices root url and add the GitHub OAuth initiation
     // end point to it.
-    final String baseUrl =
-        '${dartServices.rootUrl}$entryPointGitHubOAuthInitiate/';
+    final baseUrl = '${dartServices.rootUrl}$entryPointGitHubOAuthInitiate/';
 
-    final String redirectUrl =
+    final redirectUrl =
         _githubAuthController.makeRandomSecureAuthInitiationUrl(baseUrl);
     // Set our window to the redirect URL and get on our way to github OAuth.
     window.location.href = redirectUrl;
   }
 
   Future<void> _saveGist({bool public = true}) async {
-    final String token = _githubAuthController.githubOAuthAccessToken;
+    final token = _githubAuthController.githubOAuthAccessToken;
     if (token.isNotEmpty) {
       final createdGistId = await gistLoader.createGist(
           _playground.mutableGist.createGist(), public, token);
@@ -311,7 +307,7 @@ class GitHubUIController {
   }
 
   Future<void> _updateGist() async {
-    final String token = _githubAuthController.githubOAuthAccessToken;
+    final token = _githubAuthController.githubOAuthAccessToken;
     if (token.isNotEmpty) {
       final Gist clonedGist = _playground.mutableGist.createGist();
       await gistLoader.updateGist(clonedGist, token);
@@ -331,8 +327,8 @@ class GitHubUIController {
   }
 
   Future<void> _forkGist() async {
-    final String token = _githubAuthController.githubOAuthAccessToken;
-    final bool unsavedLocalEdits = _playground.mutableGist.dirty;
+    final token = _githubAuthController.githubOAuthAccessToken;
+    final unsavedLocalEdits = _playground.mutableGist.dirty;
     if (token.isNotEmpty) {
       final forkedGistId = await gistLoader.forkGist(
           _playground.mutableGist.createGist(), unsavedLocalEdits, token);
@@ -399,7 +395,7 @@ class GitHubUIController {
     final element = querySelector('#my-gists-menu')!;
     element.children.clear();
 
-    final List<Gist> mygists = _githubAuthController.myGistList;
+    final mygists = _githubAuthController.myGistList;
 
     if (mygists.isNotEmpty) {
       final listElement = _mdcList();
@@ -433,7 +429,7 @@ class GitHubUIController {
 
   void _starredGistMenuHandler(Event e) {
     final index = (e as CustomEvent).detail['index'] as int;
-    final List<Gist> starredGists = _githubAuthController.starredGistList;
+    final starredGists = _githubAuthController.starredGistList;
     if (index >= 0 && index <= starredGists.length) {
       final gistId = starredGists.elementAt(index).id!;
       _playground.showGist(gistId);
@@ -445,14 +441,14 @@ class GitHubUIController {
     final element = querySelector('#starred-gists-menu')!;
     element.children.clear();
 
-    final List<Gist> starredGists = _githubAuthController.starredGistList;
+    final starredGists = _githubAuthController.starredGistList;
 
     if (starredGists.isNotEmpty) {
       final listElement = _mdcList();
       element.children.add(listElement);
 
       for (final gist in starredGists) {
-        String menuTitle = gist.description ?? 'no description';
+        var menuTitle = gist.description ?? 'no description';
         if (menuTitle.isEmpty) menuTitle = gist.files[0].name;
         final menuElement = _mdcListItem(children: [
           SpanElement()
@@ -481,8 +477,7 @@ class GitHubUIController {
   /// This is called by playground when loading a new gist with no-known state
   /// and it will reappear once correct state is known.
   void hideGistStarredButton() {
-    final SpanElement starUnstarButton =
-        querySelector('#gist_star_button') as SpanElement;
+    final starUnstarButton = querySelector('#gist_star_button') as SpanElement;
     starUnstarButton.hidden = true;
   }
 
@@ -494,7 +489,7 @@ class GitHubUIController {
       // Do nothing, don't know state of current gist.
       return;
     }
-    final String gistIdWeAreToggling = _gistIdOfLastStarredReport;
+    final gistIdWeAreToggling = _gistIdOfLastStarredReport;
     // Clear until we report back (prevents another click until done).
     _gistIdOfLastStarredReport = '';
     if (!_starredStateOfLastStarReport) {
@@ -580,8 +575,8 @@ class GitHubUIController {
 /// must happen from the server.  Known secrets must be preserved there
 /// and cannot exist on the client side).
 class GitHubAuthenticationController {
-  static const String _githubApiUrl = 'https://api.github.com';
-  static const int maxNumberOfGistToLoad = 100;
+  static const _githubApiUrl = 'https://api.github.com';
+  static const maxNumberOfGistToLoad = 100;
   final Uri launchUri;
   late final http.Client _client;
   final MDCSnackbar snackbar;
@@ -617,8 +612,8 @@ class GitHubAuthenticationController {
     _client = client ?? http.Client();
 
     final params = Map<String, String?>.from(launchUri.queryParameters);
-    final String ghTokenFromUrl = params['gh'] ?? '';
-    final String ghScope = params['scope'] ?? '';
+    final ghTokenFromUrl = params['gh'] ?? '';
+    final ghScope = params['scope'] ?? '';
 
     if (ghTokenFromUrl.isNotEmpty) {
       final String perAuthParamsJson =
@@ -649,7 +644,7 @@ class GitHubAuthenticationController {
       }
 
       // Now decrypt the GH token and try and init user.
-      final String ghAuthToken =
+      final ghAuthToken =
           decryptAuthTokenFromReturnedSecureAuthToken(ghTokenFromUrl);
 
       // Set provided a gh token, if new this will do query on user info.
@@ -733,7 +728,7 @@ class GitHubAuthenticationController {
     }
   */
   Future<void> getUserInfo() async {
-    final String accessToken = githubOAuthAccessToken;
+    final accessToken = githubOAuthAccessToken;
 
     if (accessToken.isEmpty) return;
 
@@ -820,7 +815,7 @@ class GitHubAuthenticationController {
       ]
   */
   Future<void> getUsersGists() async {
-    final String accessToken = githubOAuthAccessToken;
+    final accessToken = githubOAuthAccessToken;
 
     if (accessToken.isEmpty) return;
 
@@ -880,7 +875,7 @@ class GitHubAuthenticationController {
     https://docs.github.com/en/rest/reference/gists#list-starred-gists
   */
   Future<void> getUsersStarredGists() async {
-    final String accessToken = githubOAuthAccessToken;
+    final accessToken = githubOAuthAccessToken;
 
     if (accessToken.isEmpty) return;
 
@@ -978,7 +973,7 @@ class GitHubAuthenticationController {
   String makeRandomSecureAuthInitiationUrl(String baseUrl) {
     // Create random state string which will be used by GH OAuth and then by
     // us to encrypt returned gh auth token.
-    final String state = getRandomString(40);
+    final state = getRandomString(40);
 
     // Store state in localStorage, because we are going to need it to Decrypt
     // the returned authorization token.
