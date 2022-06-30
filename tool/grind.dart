@@ -218,8 +218,6 @@ void generateProtos() {
     throw 'Error generating the Protobuf classes\n${result.stderr}';
   }
 
-  // generate common_server_proto.g.dart
-  Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);
   Process.runSync('dart', ['format', 'lib/src/protos']);
 }
 
