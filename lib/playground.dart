@@ -1088,7 +1088,6 @@ class NewPadDialog {
         assert(querySelector('#new-pad-select-dart') != null),
         assert(querySelector('#new-pad-select-flutter') != null),
         assert(querySelector('#new-pad-cancel-button') != null),
-        assert(querySelector('#new-pad-create-button') != null),
         assert(querySelector('#new-pad-html-switch') != null),
         _mdcDialog = MDCDialog(querySelector('#new-pad-dialog')!),
         _dartButton = MDCRipple(querySelector('#new-pad-select-dart')!),
