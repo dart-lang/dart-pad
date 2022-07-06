@@ -246,7 +246,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       Sample(
           '493c8b3ef8931cbac3fbbe5c04b9c4cf', 'Google Fonts', Layout.flutter),
       Sample('a133148221a8cbacbcef8bc77a6c82ec', 'Provider', Layout.flutter),
-      Sample('c11ac941ebc1fcc0cf91c547a69c2a8c', 'Riverpod', Layout.flutter),
+      Sample('ef06ab3ce0b822e6cc5db0575248e6e2', 'Riverpod', Layout.flutter),
       Sample(
           'fdd369962f4ff6700a83c8a540fd6c4c', 'Flutter Bloc', Layout.flutter),
       Sample('c0f7c578204d61e08ec0fbc4d63456cd', 'Hello World', Layout.dart),
