@@ -26,7 +26,7 @@ dependencies:
 dev_dependencies:
   angel3_mock_request: ^6.0.0
   async: ^2.9.0
-  build_runner: ^2.1.11
+  build_runner: ^2.2.0
   coverage: ^1.5.0
   grinder: ^0.9.2
   lints: ^2.0.0
