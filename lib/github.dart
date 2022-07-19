@@ -308,7 +308,7 @@ class GitHubUIController {
       // defined by [queryParamRedirectBeforeLogin] to indicate that we
       // should initiate the GitHub login when we arrive at `dartpad.dev`.
       // That way to the user it is 'transparent' and the login automatically
-      // continues when they get there. 
+      // continues when they get there.
       params.addAll({queryParamRedirectBeforeLogin: 'true'});
       // Change scheme and port also in case those were different also.
       final newUrl = curUrl.replace(
@@ -679,8 +679,8 @@ class GitHubAuthenticationController {
             launchUri.replace(queryParameters: restoreParams);
         window.history.replaceState({}, 'DartPad', restoredUrl.toString());
       } catch (e) {
-        window.console
-            .log('Caught exception doing restoreParams : exception ${e.toString()}');
+        window.console.log(
+            'Caught exception doing restoreParams : exception ${e.toString()}');
       }
 
       if (ghTokenFromUrl == 'noauth' || ghTokenFromUrl == 'authfailed') {
