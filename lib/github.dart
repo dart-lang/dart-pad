@@ -27,6 +27,7 @@ const localStorageKeyForGitHubAvatarUrl = 'github_avatar_url';
 const localStorageKeyForQueryParamsPreOAuthRequest = 'gh_pre_auth_query_params';
 const localStorageKeyForGitHubOAuthToken = 'github_oauth_token';
 const localStorageKeyForGitHubUserLogin = 'github_user_login';
+const queryParamRedirectBeforeLogin = 'initiateGitHubLogin';
 
 class GitHubUIController {
   static const entryPointGitHubOAuthInitiate = 'github_oauth_initiate';
@@ -70,8 +71,21 @@ class GitHubUIController {
   bool _starredStateOfLastStarReport = false;
 
   GitHubUIController(this._playground) {
+    window.console.log(
+        'GitHubUIController() before gitauth init !!!!! window.location.toString()=${window.location.toString()}');
+
     _githubAuthController = GitHubAuthenticationController(
         Uri.parse(window.location.toString()), _playground.snackbar);
+
+    window.console.log(
+        '  _githubAuthController.delayedGitHubLoginRequested=${_githubAuthController.delayedGitHubLoginRequested}');
+
+    if (_githubAuthController.delayedGitHubLoginRequested) {
+      window.console.log('DELAYED login being RE-started!!!!!');
+      _attemptToAquireGitHubToken();
+      return;
+    }
+
     initGitHubMenu();
     setupGithubGistListeners();
 
@@ -274,10 +288,52 @@ class GitHubUIController {
 
   void _attemptToAquireGitHubToken() {
     // Remember all of our current query params.
-    final curUrl = Uri.parse(window.location.toString());
+    var curUrl = Uri.parse(window.location.toString());
     final params = Map<String, String?>.from(curUrl.queryParameters);
+    bool sawAndRemoved_queryParamRedirectBeforeLogin = false;
+
+    if (params.containsKey(queryParamRedirectBeforeLogin)) {
+      // Remove the [queryParamRedirectBeforeLogin] parameter from the URL,
+      // we have detected it (after redirect to dartpad.dev)
+      // and now we are initiating the GitHub login.  We no longer needed it,
+      // (and we want to prevent a 'loop').
+      params.remove(queryParamRedirectBeforeLogin);
+      curUrl = curUrl.replace(queryParameters: params);
+      sawAndRemoved_queryParamRedirectBeforeLogin = true;
+      window.console.log(
+          '_attemptToAquireGitHubToken() FOUND the "$queryParamRedirectBeforeLogin" key and REMOVED IT');
+    }
+
     final jsonParams = json.encode(params);
 
+    window.console.log('_attemptToAquireGitHubToken() curUrl=$curUrl');
+    window.console.log('_attemptToAquireGitHubToken() params=$params');
+    window.console.log('_attemptToAquireGitHubToken() jsonParams=$jsonParams');
+    window.console.log(
+        '_attemptToAquireGitHubToken() window.location.host=${window.location.host}');
+    window.console.log(
+        '_attemptToAquireGitHubToken() window.location.hostname=${window.location.hostname}');
+    if (window.location.hostname != 'dartpad.dev' &&
+        !sawAndRemoved_queryParamRedirectBeforeLogin) {
+      // We have to START our login from dartpad.dev as that's where we
+      // will be returning.  The additional
+      params.addAll({queryParamRedirectBeforeLogin: 'true'});
+      // Change scheme and port also in case those were different also.
+      final newUrl = curUrl.replace(
+          scheme: 'https',
+          host: 'dartpad.dev',
+          port: 443,
+          queryParameters: params);
+      //localhost testing:: final newUrl = curUrl.replace(host:'localhost',queryParameters: params);
+
+      window.console
+          .log('  currently -> window.location.href=${window.location.href}');
+
+      window.console.log(' changing url to =${newUrl.toString()}');
+
+      window.location.href = newUrl.toString();
+      return;
+    }
     window.localStorage[localStorageKeyForQueryParamsPreOAuthRequest] =
         jsonParams;
 
@@ -580,6 +636,7 @@ class GitHubAuthenticationController {
   final Uri launchUri;
   late final http.Client _client;
   final MDCSnackbar snackbar;
+  late final bool delayedGitHubLoginRequested;
 
   final _authenticatedStateChangeController =
       StreamController<bool>.broadcast();
@@ -614,6 +671,20 @@ class GitHubAuthenticationController {
     final params = Map<String, String?>.from(launchUri.queryParameters);
     final ghTokenFromUrl = params['gh'] ?? '';
     final ghScope = params['scope'] ?? '';
+    delayedGitHubLoginRequested =
+        (params[queryParamRedirectBeforeLogin] != null);
+
+    window.console.log('GitHubAuthenticationController launchUri = $launchUri');
+    window.console
+        .log('GitHubAuthenticationController params = ${params.toString()}');
+    window.console.log(
+        'GitHubAuthenticationController delayedGitHubLoginRequested = ${delayedGitHubLoginRequested}');
+
+    if (delayedGitHubLoginRequested) {
+      window.console.log(
+          'RETURN EARLY BECAUSE delayedGitHubLoginRequested = ${delayedGitHubLoginRequested}');
+      return;
+    }
 
     if (ghTokenFromUrl.isNotEmpty) {
       final String perAuthParamsJson =
@@ -621,11 +692,18 @@ class GitHubAuthenticationController {
               '';
 
       try {
+        window.console.log(
+            'GitHubAuthenticationController perAuthParamsJson = ${perAuthParamsJson.toString()}');
         final restoreParams = Map<String, String?>.from(
             json.decode(perAuthParamsJson) as Map<dynamic, dynamic>);
+        window.console.log(
+            'GitHubAuthenticationController restoreParams = ${restoreParams.toString()}');
 
         final Uri restoredUrl =
             launchUri.replace(queryParameters: restoreParams);
+        window.console.log(
+            'GitHubAuthenticationController restoredUrl = ${restoredUrl.toString()}');
+
         window.history.replaceState({}, 'DartPad', restoredUrl.toString());
       } catch (e) {
         window.console
