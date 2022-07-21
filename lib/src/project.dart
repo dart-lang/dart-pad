@@ -96,7 +96,18 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'flame_tiled',
       'go_router',
       'rxdart',
-      if (devMode) ...[],
+      if (devMode) ...[
+        'basics',
+        'flutter_processing',
+        'quiver',
+        'yaml',
+        'yaml_edit',
+        'tuple',
+        'animations',
+        'equatable',
+        'matcher',
+        'flutter_map'
+      ],
     };
 
 /// The set of packages which indicate that Flutter Web is being used.
