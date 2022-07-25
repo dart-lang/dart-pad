@@ -95,7 +95,6 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'flame_splash_screen',
       'flame_tiled',
       'go_router',
-      'rxdart',
       if (devMode) ...[
         'basics',
         'flutter_processing',
@@ -131,6 +130,7 @@ const Set<String> supportedBasicDartPackages = {
   'meta',
   'path',
   'riverpod',
+  'rxdart',
   'vector_math',
 };
 
