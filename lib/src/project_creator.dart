@@ -98,6 +98,18 @@ linter:
       dependencies: dependencies,
     ));
     await runFlutterPackagesGet(_flutterToolPath, projectPath, log: _log);
+
+    // Working around Flutter 3.3's deprecation of generated_plugin_registrant.dart
+    // Context: https://github.com/flutter/flutter/pull/106921
+
+    final pluginRegistrant = File(path.join(
+        projectPath, '.dart_tool', 'dartpad', 'web_plugin_registrant.dart'));
+    if (pluginRegistrant.existsSync()) {
+      Directory(path.join(projectPath, 'lib')).createSync();
+      pluginRegistrant.copySync(
+          path.join(projectPath, 'lib', 'generated_plugin_registrant.dart'));
+    }
+
     if (firebaseStyle != FirebaseStyle.none) {
       // `flutter packages get` has been run with a _subset_ of all supported
       // Firebase packages, the ones that don't require a Firebase app to be

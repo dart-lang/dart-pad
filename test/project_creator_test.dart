@@ -18,7 +18,7 @@ void defineTests() {
   Future<ProjectCreator> projectCreator() async {
     final dependenciesFile = d.file('dependencies.json', '''
 {
-  "meta": "1.7.0"
+  "meta": "^1.7.0"
 }
 ''');
     await dependenciesFile.create();
@@ -53,7 +53,6 @@ void defineTests() {
               'pubspec.yaml',
               allOf([
                 matches("sdk: '>=$languageVersion <3.0.0'"),
-                matches('meta: 1.7.0'),
               ])),
         ]),
       ]).validate();
@@ -105,7 +104,6 @@ void defineTests() {
               'pubspec.yaml',
               allOf([
                 matches("sdk: '>=$languageVersion <3.0.0'"),
-                matches('meta: 1.7.0'),
                 matches('sdk: flutter'),
               ])),
         ]),
@@ -167,7 +165,6 @@ void defineTests() {
               'pubspec.yaml',
               allOf([
                 matches("sdk: '>=$languageVersion <3.0.0'"),
-                matches('meta: 1.7.0'),
                 matches('sdk: flutter'),
               ])),
         ]),

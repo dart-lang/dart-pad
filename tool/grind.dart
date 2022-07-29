@@ -147,8 +147,8 @@ Future<void> _validateExists(Uri url) async {
 void buildProjectTemplates() async {
   final templatesPath = path.join(Directory.current.path, 'project_templates');
   final templatesDirectory = Directory(templatesPath);
-  final exists = await templatesDirectory.exists();
-  if (exists) {
+  if (await templatesDirectory.exists()) {
+    log('Removing ${templatesDirectory.path}');
     await templatesDirectory.delete(recursive: true);
   }
 
@@ -206,7 +206,21 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   );
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
+  // Make sure the tooling knows this is a Flutter Web project
+  File(path.join(dir.path, 'web', 'index.html')).createSync(recursive: true);
+
   await runFlutterPackagesGet(sdk.flutterToolPath, dir.path, log: log);
+
+  // Working around Flutter 3.3's deprecation of generated_plugin_registrant.dart
+  // Context: https://github.com/flutter/flutter/pull/106921
+
+  final pluginRegistrant = File(path.join(
+      dir.path, '.dart_tool', 'dartpad', 'web_plugin_registrant.dart'));
+  if (pluginRegistrant.existsSync()) {
+    Directory(path.join(dir.path, 'lib')).createSync();
+    pluginRegistrant.copySync(
+        path.join(dir.path, 'lib', 'generated_plugin_registrant.dart'));
+  }
 
   // locate the artifacts
   final flutterPackages = ['flutter', 'flutter_test'];
@@ -240,13 +254,14 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   // Build the artifacts using DDC:
   // dart-sdk/bin/dartdevc -s kernel/flutter_ddc_sdk.dill
   //     --modules=amd package:flutter/animation.dart ...
-  final compilerPath = path.join(sdk.dartSdkPath, 'bin', 'dartdevc');
+  final compilerPath = path.join(sdk.dartSdkPath, 'bin', 'dart');
   final dillPath = path.join(
     sdk.flutterWebSdkPath,
     'flutter_ddc_sdk_sound.dill',
   );
 
   final args = <String>[
+    path.join(sdk.dartSdkPath, 'bin', 'snapshots', 'dartdevc.dart.snapshot'),
     '-s',
     dillPath,
     '--sound-null-safety',
