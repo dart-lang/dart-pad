@@ -105,7 +105,8 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
         'animations',
         'equatable',
         'matcher',
-        'flutter_map'
+        'flutter_map',
+        'petitparser',
       ],
     };
 
