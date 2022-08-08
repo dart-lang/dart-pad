@@ -12,7 +12,7 @@ dependencies:
   convert: ^3.0.2
   crypto: ^3.0.2
   encrypt: ^5.0.1
-  http: ^0.13.3
+  http: ^0.13.5
   logging: ^1.0.0
   meta: ^1.8.0
   path: ^1.8.2
