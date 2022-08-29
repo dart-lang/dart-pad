@@ -27,6 +27,7 @@ const localStorageKeyForGitHubAvatarUrl = 'github_avatar_url';
 const localStorageKeyForQueryParamsPreOAuthRequest = 'gh_pre_auth_query_params';
 const localStorageKeyForGitHubOAuthToken = 'github_oauth_token';
 const localStorageKeyForGitHubUserLogin = 'github_user_login';
+const queryParamRedirectBeforeLogin = 'initiateGitHubLogin';
 
 class GitHubUIController {
   static const entryPointGitHubOAuthInitiate = 'github_oauth_initiate';
@@ -72,6 +73,19 @@ class GitHubUIController {
   GitHubUIController(this._playground) {
     _githubAuthController = GitHubAuthenticationController(
         Uri.parse(window.location.toString()), _playground.snackbar);
+
+    if (_githubAuthController.delayedGitHubLoginRequested) {
+      // A delayed GitHub login has been requested, so initiate it.
+      // This occurs when the user was on a NON `dartpad.dev` url,
+      // and selected the GitHub login menu.  We must initiate that
+      // starting from `dartpad.dev`, so we were redirected to `dartpad.dev`
+      // with an added query parameter (defined by [queryParamRedirectBeforeLogin]).
+      // This query parameter has been detected and indicates that we should
+      // continue as if the user has selected the 'GitHub login' menu.
+      _attemptToAquireGitHubToken();
+      return;
+    }
+
     initGitHubMenu();
     setupGithubGistListeners();
 
@@ -274,10 +288,37 @@ class GitHubUIController {
 
   void _attemptToAquireGitHubToken() {
     // Remember all of our current query params.
-    final curUrl = Uri.parse(window.location.toString());
+    var curUrl = Uri.parse(window.location.toString());
     final params = Map<String, String?>.from(curUrl.queryParameters);
+
+    if (params.containsKey(queryParamRedirectBeforeLogin)) {
+      // Remove the [queryParamRedirectBeforeLogin] parameter from the URL,
+      // we have detected it (after redirect to `dartpad.dev`)
+      // and now we are initiating the GitHub login.  We no longer needed it,
+      // (and we want to prevent a 'loop').
+      params.remove(queryParamRedirectBeforeLogin);
+      curUrl = curUrl.replace(queryParameters: params);
+    }
+
     final jsonParams = json.encode(params);
 
+    if (window.location.hostname != 'dartpad.dev') {
+      // We have to START our login from `dartpad.dev` as that's where we
+      // will be returning.  We add an additional query parameter
+      // defined by [queryParamRedirectBeforeLogin] to indicate that we
+      // should initiate the GitHub login when we arrive at `dartpad.dev`.
+      // That way to the user it is 'transparent' and the login automatically
+      // continues when they get there.
+      params.addAll({queryParamRedirectBeforeLogin: 'true'});
+      // Change scheme and port also in case those were different also.
+      final newUrl = curUrl.replace(
+          scheme: 'https',
+          host: 'dartpad.dev',
+          port: 443,
+          queryParameters: params);
+      window.location.href = newUrl.toString();
+      return;
+    }
     window.localStorage[localStorageKeyForQueryParamsPreOAuthRequest] =
         jsonParams;
 
@@ -580,6 +621,7 @@ class GitHubAuthenticationController {
   final Uri launchUri;
   late final http.Client _client;
   final MDCSnackbar snackbar;
+  late final bool delayedGitHubLoginRequested;
 
   final _authenticatedStateChangeController =
       StreamController<bool>.broadcast();
@@ -614,6 +656,15 @@ class GitHubAuthenticationController {
     final params = Map<String, String?>.from(launchUri.queryParameters);
     final ghTokenFromUrl = params['gh'] ?? '';
     final ghScope = params['scope'] ?? '';
+    delayedGitHubLoginRequested =
+        (params[queryParamRedirectBeforeLogin] != null);
+
+    if (delayedGitHubLoginRequested) {
+      // A delayed GitHub login has been requested, as we must arrived from
+      // a redirect from another dartpad url.  We return early here because
+      // a login to GitHub is going to be automatically initiated immediately.
+      return;
+    }
 
     if (ghTokenFromUrl.isNotEmpty) {
       final String perAuthParamsJson =
@@ -628,8 +679,8 @@ class GitHubAuthenticationController {
             launchUri.replace(queryParameters: restoreParams);
         window.history.replaceState({}, 'DartPad', restoredUrl.toString());
       } catch (e) {
-        window.console
-            .log('Caught doing restoreParams exception ${e.toString()}');
+        window.console.log(
+            'Caught exception doing restoreParams : exception ${e.toString()}');
       }
 
       if (ghTokenFromUrl == 'noauth' || ghTokenFromUrl == 'authfailed') {
