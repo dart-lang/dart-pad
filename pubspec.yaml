@@ -17,7 +17,7 @@ dependencies:
   js: ^0.6.4
   json_annotation: ^4.5.0
   logging: ^1.0.0
-  markdown: ^5.0.0
+  markdown: ^6.0.0
   mdc_web: ^0.6.0
   meta: ^1.8.0
   protobuf: ^2.0.0
