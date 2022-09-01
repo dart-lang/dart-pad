@@ -78,7 +78,7 @@ class Sdk {
       path.join(Directory.current.path, 'flutter-sdks');
 }
 
-const channels = ['stable', 'beta', 'dev', 'old'];
+const channels = ['stable', 'beta', 'dev', 'old', 'master'];
 
 class DownloadingSdkManager {
   final String channel;
@@ -126,9 +126,6 @@ class DownloadingSdkManager {
       // This takes perhaps ~20 seconds.
       await sdk.clone(
         [
-          '--depth',
-          '1',
-          '--no-single-branch',
           'https://github.com/flutter/flutter',
           sdk.flutterSdkPath,
         ],
