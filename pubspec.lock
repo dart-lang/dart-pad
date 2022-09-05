@@ -7,7 +7,7 @@ packages:
       name: _fe_analyzer_shared
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "38.0.0"
+    version: "47.0.0"
   analysis_server_lib:
     dependency: "direct main"
     description:
@@ -21,7 +21,7 @@ packages:
       name: analyzer
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.4.1"
+    version: "4.7.0"
   angel3_mock_request:
     dependency: "direct dev"
     description:
@@ -497,7 +497,7 @@ packages:
       name: synchronized
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.0.0+2"
+    version: "3.0.0+3"
   term_glyph:
     dependency: transitive
     description:
@@ -574,7 +574,7 @@ packages:
       name: webkit_inspection_protocol
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.1.0"
+    version: "1.2.0"
   yaml:
     dependency: "direct main"
     description:

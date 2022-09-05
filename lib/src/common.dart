@@ -121,7 +121,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             Text(
               '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+              style: Theme.of(context).textTheme.headlineMedium,
             ),
           ],
         ),
@@ -141,7 +141,7 @@ const sampleCodeFlutterSunflower = r'''
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-final Color primaryColor = Colors.orange;
+const Color primaryColor = Colors.orange;
 const TargetPlatform platform = TargetPlatform.android;
 
 void main() {
