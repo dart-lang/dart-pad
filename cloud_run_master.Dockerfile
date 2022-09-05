@@ -26,7 +26,7 @@ COPY --chown=dart:dart . /app
 RUN dart pub get --offline
 
 ENV PATH="/home/dart/.pub-cache/bin:${PATH}"
-ENV FLUTTER_CHANNEL="stable"
+ENV FLUTTER_CHANNEL="master"
 
 # Set the Flutter SDK up for web compilation.
 RUN dart pub run grinder setup-flutter-sdk
