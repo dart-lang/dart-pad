@@ -113,7 +113,13 @@ class _QueryParams {
     });
   }
 
-  static const List<String> _validChannels = ['stable', 'beta', 'old'];
+  static const List<String> _validChannels = [
+    'stable',
+    'beta',
+    'old',
+    'dev',
+    'master',
+  ];
 
   void _replaceQueryParameters(
       Map<String, String> Function(Map<String, String> params) fn) {

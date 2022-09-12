@@ -33,7 +33,7 @@ Meta _$MetaFromJson(Map json) => $checkedCreate(
 
 Map<String, dynamic> _$MetaToJson(Meta instance) => <String, dynamic>{
       'name': instance.name,
-      'type': _$WorkshopTypeEnumMap[instance.type],
+      'type': _$WorkshopTypeEnumMap[instance.type]!,
       'steps': instance.steps,
     };
 

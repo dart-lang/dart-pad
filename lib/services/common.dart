@@ -45,10 +45,10 @@ const oldServerUrlEnvironmentVar = 'OLD_SERVER_URL';
 const oldServerUrl = String.fromEnvironment(oldServerUrlEnvironmentVar);
 
 /// The environment variable name which specifies the URL of the back-end
-/// server serving "Flutter old" (stable -1).
+/// server serving "Flutter master".
 const masterServerUrlEnvironmentVar = 'MASTER_SERVER_URL';
 
-/// The URL of the "Flutter old" back-end server.
+/// The URL of the "Flutter master" back-end server.
 const masterServerUrl = String.fromEnvironment(masterServerUrlEnvironmentVar);
 
 const Duration serviceCallTimeout = Duration(seconds: 10);
