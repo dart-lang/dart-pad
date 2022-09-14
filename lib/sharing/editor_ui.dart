@@ -304,8 +304,8 @@ class Channel {
     'stable': stableServerUrl,
     'beta': betaServerUrl,
     'old': oldServerUrl,
-    'dev': devServerUrl,
     'master': masterServerUrl,
+    'dev': devServerUrl,
   };
 
   Channel._({
