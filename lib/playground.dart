@@ -395,7 +395,8 @@ class Playground extends EditorUi implements GistContainer, GistController {
 
   void _handleChannelsMenuSelected(e) {
     final index = (e as CustomEvent).detail['index'] as int;
-    final channel = Channel.urlMapping.keys.toList()[index];
+    // Use menu index BACK into channels array it was created from to get channel name.
+    final channel = channels[index].name;
     _handleChannelSwitched(channel);
   }
 
