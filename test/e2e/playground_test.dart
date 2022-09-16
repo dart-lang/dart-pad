@@ -85,6 +85,8 @@ void main() async {
         uri: Uri.parse('http://localhost:4444/wd/hub/'),
         desired: Capabilities.chrome);
 
+    await Future.delayed(Duration(milliseconds: 2000));
+
     // Go to your page
     await driver.get('http://localhost:8000/');
     await waitForPageToStabilize();
