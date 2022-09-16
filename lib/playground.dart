@@ -372,6 +372,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       Channel.fromVersion('stable'),
       Channel.fromVersion('beta'),
       Channel.fromVersion('old'),
+      Channel.fromVersion('master'),
       Channel.fromVersion('dev', hidden: true),
     ]);
 

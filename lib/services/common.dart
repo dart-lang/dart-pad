@@ -30,9 +30,6 @@ const betaServerUrlEnvironmentVar = 'BETA_SERVER_URL';
 /// The URL of the "Flutter beta" back-end server.
 const betaServerUrl = String.fromEnvironment(betaServerUrlEnvironmentVar);
 
-// TODO(srawlins): remove these 'dev' channel tasks if that channel becomes
-// unsupported.
-
 /// The environment variable name which specifies the URL of the back-end
 /// server serving "Flutter dev".
 const devServerUrlEnvironmentVar = 'DEV_SERVER_URL';
@@ -46,6 +43,13 @@ const oldServerUrlEnvironmentVar = 'OLD_SERVER_URL';
 
 /// The URL of the "Flutter old" back-end server.
 const oldServerUrl = String.fromEnvironment(oldServerUrlEnvironmentVar);
+
+/// The environment variable name which specifies the URL of the back-end
+/// server serving "Flutter master".
+const masterServerUrlEnvironmentVar = 'MASTER_SERVER_URL';
+
+/// The URL of the "Flutter master" back-end server.
+const masterServerUrl = String.fromEnvironment(masterServerUrlEnvironmentVar);
 
 const Duration serviceCallTimeout = Duration(seconds: 10);
 const Duration longServiceCallTimeout = Duration(seconds: 60);
