@@ -1101,12 +1101,37 @@ class NewPadDialog {
 
   Future<Layout?> show() {
     final completer = Completer<Layout?>();
-    final dartSub = _dartButton.root.onClick.listen((_) {
+
+    void completeDart() {
       completer.complete(_htmlSwitch.checked! ? Layout.html : Layout.dart);
+    }
+
+    final dartSub = _dartButton.root.onClick.listen((_) {
+      completeDart();
+    });
+    final dartKeydownSub = _dartButton.root.onKeyDown.listen((event) {
+      if (event.key == 'Enter') {
+        completeDart();
+      }
+    });
+    final dartKeyupSub = _dartButton.root.onKeyUp.listen((event) {
+      if (event.key == ' ' || event.key == 'Spacebar') {
+        completeDart();
+      }
     });
 
     final flutterSub = _flutterButton.root.onClick.listen((_) {
       completer.complete(Layout.flutter);
+    });
+    final flutterKeydownSub = _flutterButton.root.onKeyDown.listen((event) {
+      if (event.key == 'Enter') {
+        completer.complete(Layout.flutter);
+      }
+    });
+    final flutterKeyupSub = _flutterButton.root.onKeyUp.listen((event) {
+      if (event.key == ' ' || event.key == 'Spacebar') {
+        completer.complete(Layout.flutter);
+      }
     });
 
     final cancelSub = _cancelButton.onClick.listen((_) {
@@ -1117,7 +1142,11 @@ class NewPadDialog {
 
     void handleClosing(Event _) {
       dartSub.cancel();
+      dartKeydownSub.cancel();
+      dartKeyupSub.cancel();
       flutterSub.cancel();
+      flutterKeydownSub.cancel();
+      flutterKeyupSub.cancel();
       cancelSub.cancel();
       _mdcDialog.unlisten('MDCDialog:closing', handleClosing);
     }

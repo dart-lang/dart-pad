@@ -430,15 +430,15 @@
      class="mdc-dialog"
      role="alertdialog"
      aria-modal="true"
-     aria-labelledby="my-dialog-title"
+     aria-labelledby="new-pad-dialog-title"
      aria-describedby="my-dialog-content">
     <div class="mdc-dialog__container">
         <div class="mdc-dialog__surface">
-            <h2 class="mdc-dialog__title">Create New Pad</h2>
+            <h2 class="mdc-dialog__title" id="new-pad-dialog-title">Create New Pad</h2>
             <div class="mdc-dialog__content">
                 <div class="dart-container">
-                    <div id="new-pad-select-dart" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">
-                        <img src="pictures/logo_dart.png"/>
+                    <div id="new-pad-select-dart" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary" role="button" tabindex="0">
+                        <img src="pictures/logo_dart.png" alt="Dart logo"/>
                         <span>Dart</span>
                     </div>
                     <div id="new-pad-html-switch" class="mdc-switch">
@@ -446,7 +446,7 @@
                         <div class="mdc-switch__thumb-underlay">
                             <div class="mdc-switch__thumb">
                                 <input type="checkbox"
-                                        id="new-pad-html-switch"
+                                        id="new-pad-html-switch-control"
                                         class="mdc-switch__native-control"
                                         role="switch">
                             </div>
@@ -455,8 +455,8 @@
                     <label for="new-pad-html-switch">HTML</label>
                 </div>
                 <div class="divider"></div>
-                <div id="new-pad-select-flutter" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary">
-                    <img src="pictures/logo_flutter.png"/>
+                <div id="new-pad-select-flutter" class="select-project-button mdc-ripple-surface mdc-ripple-surface--primary" role="button" tabindex="0">
+                    <img src="pictures/logo_flutter.png" alt="Flutter logo"/>
                     <span>Flutter</span>
                 </div>
             </div>
