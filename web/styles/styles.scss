@@ -343,6 +343,7 @@ a {
 
 #issues-toggle, .issue-anchor {
   color: $mdc-theme-primary;
+  margin-right: 0;
   &:visited {
     color: $mdc-theme-primary;
   }
@@ -357,7 +358,6 @@ a {
   font-family: $normal-font;
   font-size: $playground-editor-font-size;
   cursor: default;
-  margin-right: 0px;
 }
 
 

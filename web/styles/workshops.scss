@@ -338,6 +338,7 @@ body>footer {
 
 #issues-toggle, .issue-anchor {
   color: $mdc-theme-primary;
+  margin-right: 0;
   &:visited {
     color: $mdc-theme-primary;
   }
