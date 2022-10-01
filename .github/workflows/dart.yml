@@ -24,7 +24,7 @@ jobs:
       - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: ${{ matrix.sdk }}
-      - uses: actions/setup-node@2fddd8803e2f5c9604345a0b591c3020ee971a93
+      - uses: actions/setup-node@969bd2663942d722d85b6a8626225850c2f7be4b
 
       - name: Print Dart SDK version
         run: dart --version
