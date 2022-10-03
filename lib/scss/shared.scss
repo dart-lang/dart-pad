@@ -56,16 +56,6 @@ a {
   font-weight: bolder;
 }
 
-#issues-toggle {
-  cursor: pointer;
-
-  // Prevent the layout from changing when toggling between show and hide
-  width: 48px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
 // Issues
 #issues {
   overflow-y: auto;
