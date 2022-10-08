@@ -177,6 +177,21 @@ void main() {
       expect(result.problems.length, 0);
     });
 
+    test('good import - empty', () async {
+      const code = '''
+import '' as foo;
+
+int bar = 2;
+
+void main() {
+  print(foo.bar);
+}
+
+''';
+      final result = await compiler.compile(code);
+      expect(result.problems.length, 0);
+    });
+
     test('bad import - local', () async {
       const code = '''
 import 'foo.dart';

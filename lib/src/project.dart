@@ -195,7 +195,7 @@ String? _packageNameFromPackageUri(String uriString) {
 /// be allowed).
 /// Note: The filenames in [sourcesFileList] were sanitized of any
 /// 'package:'/etc syntax as the file set arrives from the endpoint,
-/// and before being passed to [getUnsuppotedImports].
+/// and before being passed to [getUnsupportedImports].
 /// This is done so the list can't be used to bypass unsupported imports.
 /// The function [sanitizeAndCheckFilenames()] was used to sanitize the
 /// filenames.
@@ -203,7 +203,7 @@ List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports,
     {List<String>? sourcesFileList, required bool devMode}) {
   return imports.where((import) {
     final uriString = import.uri.stringValue;
-    if (uriString == null) {
+    if (uriString == null || uriString.isEmpty) {
       return false;
     }
     // All non-VM 'dart:' imports are ok.

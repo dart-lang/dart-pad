@@ -35,6 +35,11 @@ void defineTests() {
       expect(usesFlutterWeb({packageFlutterImport}, devMode: false), isTrue);
     });
 
+    test('getUnsupportedImport allows current library import', () {
+      expect(getUnsupportedImports([_FakeImportDirective('')], devMode: false),
+          isEmpty);
+    });
+
     test('getUnsupportedImport allows dart:html', () {
       expect(
           getUnsupportedImports([_FakeImportDirective('dart:html')],
