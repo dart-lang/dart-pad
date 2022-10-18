@@ -20,6 +20,9 @@ const codeMirrorOptions = {
   'cursorHeight': 0.85,
   'viewportMargin': 100,
   'extraKeys': {
+    'Esc': '...',
+    'Esc Tab': false,
+    'Esc Shift-Tab': false,
     'Cmd-/': 'toggleComment',
     'Ctrl-/': 'toggleComment',
     'Shift-Tab': 'indentLess',

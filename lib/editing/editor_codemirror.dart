@@ -60,6 +60,9 @@ class CodeMirrorFactory extends EditorFactory {
       'viewportMargin': 100,
       //'gutters': [_gutterId],
       'extraKeys': {
+        'Esc': '...',
+        'Esc Tab': false,
+        'Esc Shift-Tab': false,
         'Cmd-/': 'toggleComment',
         'Ctrl-/': 'toggleComment',
         'Shift-Tab': 'indentLess',
