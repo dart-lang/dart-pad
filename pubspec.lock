@@ -14,7 +14,7 @@ packages:
       name: analysis_server_lib
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.2.2"
+    version: "0.2.3"
   analyzer:
     dependency: "direct main"
     description:
