@@ -8,7 +8,7 @@ dependencies:
   analysis_server_lib: ^0.2.3
   analyzer: ^4.7.0
   args: ^2.3.1
-  bazel_worker: ^1.0.0
+  bazel_worker: ^1.0.2
   convert: ^3.1.1
   crypto: ^3.0.2
   encrypt: ^5.0.1
