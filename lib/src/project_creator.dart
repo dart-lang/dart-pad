@@ -166,9 +166,7 @@ linter:
 Map<String, String> packageVersionConstraints({required bool oldChannel}) {
   // Ensure that pub version solving keeps these at sane minimum versions.
   return {
-    'cloud_firestore': '^3.1.0',
-    'firebase_auth': '^3.3.0',
-    'firebase_core': '^1.15.0',
+    // 'package_name': '^x.y.0',
   };
 }
 
