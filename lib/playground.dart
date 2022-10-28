@@ -801,11 +801,26 @@ class Playground extends EditorUi implements GistContainer, GistController {
     });
   }
 
+  bool _firstRun = true;
+
+  void _showInstallSdkDialog() {
+    if (_firstRun) {
+      dialog.showOk(
+        'Install Flutter',
+        r'You ran your first Flutter app! Ready to get started? '
+        r'<a href="https://docs.flutter.dev/get-started/install">'
+            r'Install Flutter</a>.',
+      );
+      _firstRun = false;
+    }
+  }
+
   @override
   Future<bool> handleRun() async {
     final success = await super.handleRun();
     if (success) {
       _webOutputLabel.setAttr('hidden');
+      _showInstallSdkDialog();
     }
     return success;
   }
