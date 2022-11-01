@@ -79,20 +79,6 @@ dart-services requires the `redis` package, including the `redis-server` binary,
 to be installed to run tests.  `sudo apt-get install redis-server` will install
 this on Ubuntu, but see [Redis' Quick Start guide](https://redis.io/topics/quickstart) for other platforms.
 
-## Deploying
-
-To deploy the server to Dart on AppEngine, follow the instructions [here](https://www.dartlang.org/server/google-cloud-platform/app-engine/).
-
-Modify `warmup.dart` to point the BASE_URI to your AppEngine project.
-
-Then run
-
-```bash
-./tool/deploy.sh
-```
-
-The will deploy the server, and run the warmup sequence and sanity checks.
-
 ## Related projects
 
 See also the [dart-pad](https://github.com/dart-lang/dart-pad) repo.
