@@ -10,6 +10,10 @@ a {
   font-family: Roboto, sans-serif;
 }
 
+.link-bright {
+  color: $dark-blue;
+}
+
 // Flashes
 #flash-container > div + div {
   // Adds space between the flashes in the flash container, if more than one is displayed.

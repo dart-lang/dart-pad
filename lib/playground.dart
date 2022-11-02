@@ -801,17 +801,18 @@ class Playground extends EditorUi implements GistContainer, GistController {
     });
   }
 
-  bool _firstRun = true;
+  int _runCount = 0;
 
-  void _showInstallSdkDialog() {
-    if (_firstRun) {
+  void _maybeShowInstallSdkDialog() {
+    _runCount++;
+    if (_runCount == 3) {
       dialog.showOk(
         'Install Flutter',
-        r'You ran your first Flutter app! Ready to get started? '
-        r'<a href="https://docs.flutter.dev/get-started/install">'
-            r'Install Flutter</a>.',
+        r'Success! '
+            r'<a class="link-bright" href="https://docs.flutter.dev/get-started/install">'
+            r'click here</a>'
+            r' to install the Flutter SDK and unlock more features like Hot Reload.',
       );
-      _firstRun = false;
     }
   }
 
@@ -820,7 +821,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     final success = await super.handleRun();
     if (success) {
       _webOutputLabel.setAttr('hidden');
-      _showInstallSdkDialog();
+      _maybeShowInstallSdkDialog();
     }
     return success;
   }

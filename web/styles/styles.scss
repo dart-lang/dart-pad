@@ -119,7 +119,7 @@ a {
   fill: $playground-text-color;
 
   &:visited {
-    color: $playground-link-color;
+    color: darken($playground-link-color, 20%);
     fill: $playground-link-color;
   }
 
