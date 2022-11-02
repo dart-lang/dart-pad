@@ -20,7 +20,7 @@ jobs:
       matrix:
         sdk: [stable, beta, dev, old, master]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: dart-lang/setup-dart@v1.0
         with:
           sdk: stable
