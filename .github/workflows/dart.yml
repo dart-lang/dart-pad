@@ -21,7 +21,7 @@ jobs:
         sdk: [stable, beta, dev, old, master]
     steps:
       - uses: actions/checkout@v3
-      - uses: dart-lang/setup-dart@v1.0
+      - uses: dart-lang/setup-dart@v1.3
         with:
           sdk: stable
       - name: Install dependencies
