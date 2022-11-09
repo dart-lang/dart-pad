@@ -809,7 +809,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       dialog.showOk(
         'Install Flutter',
         r'Success! '
-            r'<a class="link-bright" href="https://docs.flutter.dev/get-started/install?utm_campaign=dartpad_install">'
+            r'<a class="link-bright" href="https://docs.flutter.dev/get-started/install?utm_source=dartpad.dev&utm_medium=referral&utm_campaign=dartpad_install">'
             r'click here</a>'
             r' to install the Flutter SDK and unlock more features like Hot Reload.',
       );
