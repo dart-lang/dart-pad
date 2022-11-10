@@ -79,8 +79,9 @@ void defineTests() {
           .any((completion) => completion.completion['completion'] == expected);
 
   group('Platform SDK analysis_server', () {
+    late Sdk sdk;
     setUp(() async {
-      final sdk = Sdk.create(channel);
+      sdk = Sdk.create(channel);
       analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
@@ -105,8 +106,13 @@ void defineTests() {
       final issue = results.issues[0];
       expect(issue.line, 2);
       expect(issue.kind, 'info');
-      expect(
-          issue.message, 'Prefer typing uninitialized variables and fields.');
+      if (sdk.channel == 'master') {
+        expect(issue.message,
+            'An uninitialized variable should have an explicit type annotation.');
+      } else {
+        expect(
+            issue.message, 'Prefer typing uninitialized variables and fields.');
+      }
     });
 
     test('repro #126 - completions polluted on second request', () async {
@@ -251,8 +257,9 @@ void defineTests() {
   //--------------------------------------------------------
   // Begin testing the multi file group files={} map entry points:
   group('Platform SDK analysis_server multifile files={}', () {
+    late Sdk sdk;
     setUp(() async {
-      final sdk = Sdk.create(channel);
+      sdk = Sdk.create(channel);
       analysisServer = DartAnalysisServerWrapper(dartSdkPath: sdk.dartSdkPath);
       await analysisServer.init();
     });
@@ -282,8 +289,13 @@ void defineTests() {
       final issue = results.issues[0];
       expect(issue.line, 2);
       expect(issue.kind, 'info');
-      expect(
-          issue.message, 'Prefer typing uninitialized variables and fields.');
+      if (sdk.channel == 'master') {
+        expect(issue.message,
+            'An uninitialized variable should have an explicit type annotation.');
+      } else {
+        expect(
+            issue.message, 'Prefer typing uninitialized variables and fields.');
+      }
     });
 
     test('files={} repro #126 - completions polluted on second request',

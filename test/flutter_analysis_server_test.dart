@@ -49,9 +49,9 @@ void defineTests() {
       'Flutter SDK analysis_server with analysis '
       'servers', () {
     late AnalysisServersWrapper analysisServersWrapper;
-
+    late Sdk sdk;
     setUp(() async {
-      final sdk = Sdk.create(channel);
+      sdk = Sdk.create(channel);
       analysisServersWrapper = AnalysisServersWrapper(sdk.dartSdkPath);
       await analysisServersWrapper.warmup();
     });
@@ -110,8 +110,13 @@ class HelloWorld extends StatelessWidget {
       final issue = results.issues[0];
       expect(issue.line, 4);
       expect(issue.kind, 'info');
-      expect(
-          issue.message, 'Prefer typing uninitialized variables and fields.');
+      if (sdk.channel == 'master') {
+        expect(issue.message,
+            'An uninitialized variable should have an explicit type annotation.');
+      } else {
+        expect(
+            issue.message, 'Prefer typing uninitialized variables and fields.');
+      }
     });
 
     test('analyze counter app', () async {
@@ -204,9 +209,9 @@ class HelloWorld extends StatelessWidget {
         'Flutter SDK analysis_server with analysis files={}'
         'servers', () {
       late AnalysisServersWrapper analysisServersWrapper;
-
+      late Sdk sdk;
       setUp(() async {
-        final sdk = Sdk.create(channel);
+        sdk = Sdk.create(channel);
         analysisServersWrapper = AnalysisServersWrapper(sdk.dartSdkPath);
         await analysisServersWrapper.warmup();
       });
@@ -269,8 +274,13 @@ class HelloWorld extends StatelessWidget {
         final issue = results.issues[0];
         expect(issue.line, 4);
         expect(issue.kind, 'info');
-        expect(
-            issue.message, 'Prefer typing uninitialized variables and fields.');
+        if (sdk.channel == 'master') {
+          expect(issue.message,
+              'An uninitialized variable should have an explicit type annotation.');
+        } else {
+          expect(issue.message,
+              'Prefer typing uninitialized variables and fields.');
+        }
       });
 
       test('analyzeFiles counter app files={}', () async {
