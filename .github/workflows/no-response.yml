@@ -23,7 +23,7 @@ jobs:
       - uses: godofredoc/no-response@0ce2dc0e63e1c7d2b87752ceed091f6d32c9df09
         with:
           responseRequiredLabel: "needs-info"
-          responseRequiredColor: bbbbbb
+          responseRequiredColor: 4774bc
           daysUntilClose: 14
           # Comment to post when closing an Issue for lack of response.
           closeComment: >
