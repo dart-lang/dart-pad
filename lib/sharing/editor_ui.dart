@@ -350,7 +350,7 @@ class KeyboardDialog {
 
     final completer = Completer<DialogResult>();
 
-    _okButton.onClick.listen((_) {
+    final okButtonSub = _okButton.onClick.listen((_) {
       final bool vimSet = _vimSwitch.checked!;
 
       // change keyMap if needed and *remember* their choice for next startup
@@ -364,9 +364,17 @@ class KeyboardDialog {
       completer.complete(vimSet ? DialogResult.yes : DialogResult.ok);
     });
 
+    void handleClosing(Event _) {
+      completer.complete(DialogResult.cancel);
+    }
+
+    _mdcDialog.listen('MDCDialog:closing', handleClosing);
+
     _mdcDialog.open();
 
     return completer.future.then((v) {
+      okButtonSub.cancel();
+      _mdcDialog.unlisten('MDCDialog:closing', handleClosing);
       _mdcDialog.close();
       return v;
     });
