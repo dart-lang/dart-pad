@@ -16,7 +16,6 @@ import 'context.dart';
 import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
-import 'editing/codemirror_options.dart';
 import 'editing/editor_codemirror.dart';
 import 'elements/analysis_results_controller.dart';
 import 'elements/button.dart';
@@ -257,13 +256,12 @@ class Embed extends EditorUi {
     hintBox = FlashBox(querySelector('#hint-box') as DivElement);
     final editorTheme = isDarkMode ? 'darkpad' : 'dartpad';
 
-    editor = editorFactory.createFromElement(
-        querySelector('#user-code-editor')!,
-        options: codeMirrorOptions)
-      ..theme = editorTheme
-      ..mode = 'dart'
-      ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
-      ..showLineNumbers = true;
+    editor =
+        editorFactory.createFromElement(querySelector('#user-code-editor')!)
+          ..theme = editorTheme
+          ..mode = 'dart'
+          ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
+          ..showLineNumbers = true;
 
     if (!showInstallButton) {
       querySelector('#install-button')!.setAttribute('hidden', '');

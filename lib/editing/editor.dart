@@ -77,6 +77,9 @@ abstract class Editor {
   /// that the editor should do no further handling.
   Stream<html.MouseEvent> get onMouseDown;
 
+  /// Fired when the current current vim mode changes.
+  Stream get onVimModeChange;
+
   void resize();
 
   void focus();

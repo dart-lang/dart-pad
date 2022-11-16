@@ -16,7 +16,6 @@ import 'core/dependencies.dart';
 import 'core/modules.dart';
 import 'dart_pad.dart';
 import 'documentation.dart';
-import 'editing/codemirror_options.dart';
 import 'editing/editor_codemirror.dart';
 import 'elements/analysis_results_controller.dart';
 import 'elements/button.dart';
@@ -133,8 +132,7 @@ class WorkshopUi extends EditorUi {
 
   void _initEditor() {
     // Set up CodeMirror
-    editor = (editorFactory as CodeMirrorFactory)
-        .createFromElement(_editorHost, options: codeMirrorOptions)
+    editor = (editorFactory as CodeMirrorFactory).createFromElement(_editorHost)
       ..theme = 'darkpad'
       ..mode = 'dart'
       ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
