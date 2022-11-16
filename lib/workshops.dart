@@ -133,8 +133,7 @@ class WorkshopUi extends EditorUi {
 
   void _initEditor() {
     // Set up CodeMirror
-    editor = (editorFactory as CodeMirrorFactory)
-        .createFromElement(_editorHost, options: codeMirrorOptions)
+    editor = (editorFactory as CodeMirrorFactory).createFromElement(_editorHost)
       ..theme = 'darkpad'
       ..mode = 'dart'
       ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'

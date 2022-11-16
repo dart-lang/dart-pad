@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 
 import '../context.dart';
 import '../dart_pad.dart';
+import '../editing/codemirror_options.dart';
 import '../editing/editor.dart';
 import '../elements/analysis_results_controller.dart';
 import '../elements/button.dart';
@@ -55,6 +56,20 @@ abstract class EditorUi {
     keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
       showKeyboardDialog();
     }, 'Keyboard Shortcuts');
+
+    _initEscapeTabSwitching();
+  }
+
+  // When switching to vim-insert mode, disable esc tab and esc shift-tab
+  // as the esc key is required to exit the mode
+  void _initEscapeTabSwitching() {
+    editor.onVimModeChange.listen((e) {
+      if (editor.keyMap == 'vim-insert') {
+        editor.setOption('extraKeys', extraKeysWithoutEscapeTab);
+      } else {
+        editor.setOption('extraKeys', extraKeysWithEscapeTab);
+      }
+    });
   }
 
   Future<void> showKeyboardDialog() async {
@@ -360,6 +375,7 @@ class KeyboardDialog {
       } else {
         if (currentKeyMap != 'default') editor.keyMap = 'default';
         window.localStorage['codemirror_keymap'] = 'default';
+        editor.setOption('extraKeys', extraKeysWithEscapeTab);
       }
       completer.complete(vimSet ? DialogResult.yes : DialogResult.ok);
     });

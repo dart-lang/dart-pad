@@ -534,8 +534,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     deps[GistLoader] = GistLoader.defaultFilters();
 
     // Set up CodeMirror
-    editor = (editorFactory as CodeMirrorFactory)
-        .createFromElement(_editorHost, options: codeMirrorOptions)
+    editor = (editorFactory as CodeMirrorFactory).createFromElement(_editorHost)
       ..theme = 'darkpad'
       ..mode = 'dart'
       ..keyMap = window.localStorage['codemirror_keymap'] ?? 'default'
