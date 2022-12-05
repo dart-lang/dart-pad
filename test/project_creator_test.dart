@@ -36,8 +36,7 @@ void defineTests() {
 
   group('basic dart project template', () {
     setUpAll(() async {
-      await (await projectCreator())
-          .buildDartProjectTemplate(oldChannel: channel == 'old');
+      await (await projectCreator()).buildDartProjectTemplate();
     });
 
     test('project directory is created', () async {
@@ -76,10 +75,8 @@ void defineTests() {
 
   group('basic Flutter project template', () {
     setUpAll(() async {
-      await (await projectCreator()).buildFlutterProjectTemplate(
-          firebaseStyle: FirebaseStyle.none,
-          devMode: false,
-          oldChannel: channel == 'old');
+      await (await projectCreator())
+          .buildFlutterProjectTemplate(firebaseStyle: FirebaseStyle.none);
     });
 
     test('project directory is created', () async {
@@ -138,9 +135,7 @@ void defineTests() {
   group('Firebase project template', () {
     setUpAll(() async {
       await (await projectCreator()).buildFlutterProjectTemplate(
-          firebaseStyle: FirebaseStyle.flutterFire,
-          devMode: false,
-          oldChannel: channel == 'old');
+          firebaseStyle: FirebaseStyle.flutterFire);
     });
 
     test('project directory is created', () async {

@@ -26,6 +26,11 @@ class ProjectCreator {
 
   final LogFunction _log;
 
+  // Channel selectors
+  final bool _devMode;
+  final bool _oldChannel;
+  final bool _masterChannel;
+
   ProjectCreator(
     Sdk sdk,
     this._templatesPath, {
@@ -36,16 +41,19 @@ class ProjectCreator {
         _flutterToolPath = sdk.flutterToolPath,
         _dartLanguageVersion = dartLanguageVersion,
         _dependenciesFile = dependenciesFile,
-        _log = log;
+        _log = log,
+        _devMode = sdk.devMode,
+        _oldChannel = sdk.oldChannel,
+        _masterChannel = sdk.masterChannel;
 
   /// Builds a basic Dart project template directory, complete with `pubspec.yaml`
   /// and `analysis_options.yaml`.
-  Future<void> buildDartProjectTemplate({required bool oldChannel}) async {
+  Future<void> buildDartProjectTemplate() async {
     final projectPath = path.join(_templatesPath, 'dart_project');
     final projectDirectory = Directory(projectPath);
     await projectDirectory.create(recursive: true);
-    final dependencies =
-        _dependencyVersions(supportedBasicDartPackages, oldChannel: oldChannel);
+    final dependencies = _dependencyVersions(supportedBasicDartPackages,
+        oldChannel: _oldChannel);
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: false,
@@ -53,12 +61,22 @@ class ProjectCreator {
       dependencies: dependencies,
     ));
     await _runDartPubGet(projectDirectory);
-    File(path.join(projectPath, 'analysis_options.yaml')).writeAsStringSync('''
+    var contents = '''
 include: package:lints/recommended.yaml
 linter:
   rules:
     avoid_print: false
-''');
+''';
+    if (_masterChannel) {
+      contents += '''
+analyzer:
+  enable-experiment:
+    - records
+    - patterns
+''';
+    }
+    File(path.join(projectPath, 'analysis_options.yaml'))
+        .writeAsStringSync(contents);
   }
 
   /// Builds a Flutter project template directory, complete with `pubspec.yaml`,
@@ -67,11 +85,8 @@ linter:
   /// Depending on [firebaseStyle], Firebase packages are included in
   /// `pubspec.yaml` which affects how `flutter packages get` will register
   /// plugins.
-  Future<void> buildFlutterProjectTemplate({
-    required FirebaseStyle firebaseStyle,
-    required bool devMode,
-    required bool oldChannel,
-  }) async {
+  Future<void> buildFlutterProjectTemplate(
+      {required FirebaseStyle firebaseStyle}) async {
     final projectDirName = firebaseStyle == FirebaseStyle.none
         ? 'flutter_project'
         : 'firebase_project';
@@ -85,12 +100,12 @@ linter:
     await File(path.join(projectPath, 'web', 'index.html')).create();
     var packages = {
       ...supportedBasicDartPackages,
-      ...supportedFlutterPackages(devMode: devMode),
+      ...supportedFlutterPackages(devMode: _devMode),
       if (firebaseStyle != FirebaseStyle.none) ...coreFirebasePackages,
       if (firebaseStyle == FirebaseStyle.flutterFire)
         ...registerableFirebasePackages,
     };
-    final dependencies = _dependencyVersions(packages, oldChannel: oldChannel);
+    final dependencies = _dependencyVersions(packages, oldChannel: _oldChannel);
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: true,
@@ -117,11 +132,11 @@ linter:
       // supported Firebase pacakges. This workaround is a very fragile hack.
       packages = {
         ...supportedBasicDartPackages,
-        ...supportedFlutterPackages(devMode: devMode),
+        ...supportedFlutterPackages(devMode: _devMode),
         ...firebasePackages,
       };
       final dependencies =
-          _dependencyVersions(packages, oldChannel: oldChannel);
+          _dependencyVersions(packages, oldChannel: _oldChannel);
       File(path.join(projectPath, 'pubspec.yaml'))
           .writeAsStringSync(createPubspec(
         includeFlutterWeb: true,
@@ -130,13 +145,23 @@ linter:
       ));
       await _runDartPubGet(projectDir);
     }
-    File(path.join(projectPath, 'analysis_options.yaml')).writeAsStringSync('''
+    var contents = '''
 include: package:flutter_lints/flutter.yaml
 linter:
   rules:
     avoid_print: false
     use_key_in_widget_constructors: false
-''');
+''';
+    if (_masterChannel) {
+      contents += '''
+analyzer:
+  enable-experiment:
+    - records
+    - patterns
+''';
+    }
+    File(path.join(projectPath, 'analysis_options.yaml'))
+        .writeAsStringSync(contents);
   }
 
   Future<void> _runDartPubGet(Directory dir) async {

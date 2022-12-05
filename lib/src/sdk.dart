@@ -36,6 +36,9 @@ class Sdk {
   /// Is this the old channel
   bool get oldChannel => channel == 'old';
 
+  /// Is this the master channel
+  bool get masterChannel => channel == 'master';
+
   // Which channel is this SDK?
   final String channel;
 

@@ -160,17 +160,11 @@ void buildProjectTemplates() async {
     dependenciesFile: _pubDependenciesFile(channel: _channel),
     log: log,
   );
-  await projectCreator.buildDartProjectTemplate(oldChannel: sdk.oldChannel);
+  await projectCreator.buildDartProjectTemplate();
   await projectCreator.buildFlutterProjectTemplate(
-    firebaseStyle: FirebaseStyle.none,
-    devMode: sdk.devMode,
-    oldChannel: sdk.oldChannel,
-  );
+      firebaseStyle: FirebaseStyle.none);
   await projectCreator.buildFlutterProjectTemplate(
-    firebaseStyle: FirebaseStyle.flutterFire,
-    devMode: sdk.devMode,
-    oldChannel: sdk.oldChannel,
-  );
+      firebaseStyle: FirebaseStyle.flutterFire);
 }
 
 @Task('build the sdk compilation artifacts for upload to google storage')
