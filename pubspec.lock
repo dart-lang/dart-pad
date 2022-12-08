@@ -420,7 +420,7 @@ packages:
       name: shelf_router_generator
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.0.4"
+    version: "1.0.5"
   shelf_static:
     dependency: transitive
     description:
