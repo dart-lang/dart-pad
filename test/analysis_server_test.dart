@@ -106,7 +106,7 @@ void defineTests() {
       final issue = results.issues[0];
       expect(issue.line, 2);
       expect(issue.kind, 'info');
-      if (sdk.channel == 'master') {
+      if (sdk.masterChannel || sdk.betaChannel) {
         expect(issue.message,
             'An uninitialized variable should have an explicit type annotation.');
       } else {
@@ -289,7 +289,7 @@ void defineTests() {
       final issue = results.issues[0];
       expect(issue.line, 2);
       expect(issue.kind, 'info');
-      if (sdk.channel == 'master') {
+      if (sdk.masterChannel || sdk.betaChannel) {
         expect(issue.message,
             'An uninitialized variable should have an explicit type annotation.');
       } else {

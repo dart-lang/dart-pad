@@ -110,7 +110,7 @@ class HelloWorld extends StatelessWidget {
       final issue = results.issues[0];
       expect(issue.line, 4);
       expect(issue.kind, 'info');
-      if (sdk.channel == 'master') {
+      if (sdk.masterChannel || sdk.betaChannel) {
         expect(issue.message,
             'An uninitialized variable should have an explicit type annotation.');
       } else {
@@ -274,7 +274,7 @@ class HelloWorld extends StatelessWidget {
         final issue = results.issues[0];
         expect(issue.line, 4);
         expect(issue.kind, 'info');
-        if (sdk.channel == 'master') {
+        if (sdk.masterChannel || sdk.betaChannel) {
           expect(issue.message,
               'An uninitialized variable should have an explicit type annotation.');
         } else {
