@@ -3,7 +3,7 @@
 //  source: protos/dart_services.proto
 //
 // @dart = 2.12
-// ignore_for_file: annotate_overrides,camel_case_types,unnecessary_const,non_constant_identifier_names,library_prefixes,unused_import,unused_shown_name,return_of_invalid_type,unnecessary_this,prefer_final_fields
+// ignore_for_file: annotate_overrides,camel_case_types,constant_identifier_names,directives_ordering,library_prefixes,non_constant_identifier_names,prefer_final_fields,return_of_invalid_type,unnecessary_const,unnecessary_import,unnecessary_this,unused_import,unused_shown_name
 
 import 'dart:core' as $core;
 
@@ -1996,7 +1996,7 @@ class LinkedEditGroup extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'positions',
-        $pb.PbFieldType.P3)
+        $pb.PbFieldType.K3)
     ..a<$core.int>(
         2,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -2439,6 +2439,11 @@ class VersionResponse extends $pb.GeneratedMessage {
         $pb.PbFieldType.PM,
         protoName: 'packageInfo',
         subBuilder: PackageInfo.create)
+    ..pPS(
+        11,
+        const $core.bool.fromEnvironment('protobuf.omit_field_names')
+            ? ''
+            : 'experiment')
     ..aOM<ErrorMessage>(
         99,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -2459,6 +2464,7 @@ class VersionResponse extends $pb.GeneratedMessage {
     $core.String? flutterDartVersionFull,
     $core.Map<$core.String, $core.String>? packageVersions,
     $core.Iterable<PackageInfo>? packageInfo,
+    $core.Iterable<$core.String>? experiment,
     ErrorMessage? error,
   }) {
     final _result = create();
@@ -2491,6 +2497,9 @@ class VersionResponse extends $pb.GeneratedMessage {
     }
     if (packageInfo != null) {
       _result.packageInfo.addAll(packageInfo);
+    }
+    if (experiment != null) {
+      _result.experiment.addAll(experiment);
     }
     if (error != null) {
       _result.error = error;
@@ -2626,19 +2635,22 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(10)
   $core.List<PackageInfo> get packageInfo => $_getList(9);
 
+  @$pb.TagNumber(11)
+  $core.List<$core.String> get experiment => $_getList(10);
+
   @$pb.TagNumber(99)
-  ErrorMessage get error => $_getN(10);
+  ErrorMessage get error => $_getN(11);
   @$pb.TagNumber(99)
   set error(ErrorMessage v) {
     setField(99, v);
   }
 
   @$pb.TagNumber(99)
-  $core.bool hasError() => $_has(10);
+  $core.bool hasError() => $_has(11);
   @$pb.TagNumber(99)
   void clearError() => clearField(99);
   @$pb.TagNumber(99)
-  ErrorMessage ensureError() => $_ensure(10);
+  ErrorMessage ensureError() => $_ensure(11);
 }
 
 class PackageInfo extends $pb.GeneratedMessage {

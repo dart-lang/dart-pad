@@ -234,6 +234,9 @@ message VersionResponse {
   // Each package found in `pubspec.lock` is included.
   repeated PackageInfo packageInfo = 10;
 
+  // Experiments that this server is running
+  repeated string experiment = 11;
+
   // Make this response compatible with BadRequest
   ErrorMessage error = 99;
 }

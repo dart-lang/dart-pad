@@ -274,7 +274,14 @@ class CommonServerImpl {
         ..flutterDartVersionFull = _sdk.versionFull
         ..flutterVersion = _sdk.flutterVersion
         ..packageVersions.addAll(packageVersions)
-        ..packageInfo.addAll(packageInfos),
+        ..packageInfo.addAll(packageInfos)
+        ..experiment.addAll(
+          [
+            // TODO(DomesticMouse): update when records and patterns experiments
+            // are modified or removed.
+            if (_sdk.masterChannel) ...['records', 'patterns'],
+          ],
+        ),
     );
   }
 
