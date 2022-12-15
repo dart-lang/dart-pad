@@ -181,16 +181,35 @@ void defineTests() {
       ]).validate();
     });
 
+    test('generated_plugin_registrant.dart is created', () async {
+      await d.dir('project_templates', [
+        d.dir('firebase_project', [
+          d.dir('lib', [
+            d.file(
+              'generated_plugin_registrant.dart',
+              isNotEmpty,
+            ),
+          ]),
+        ]),
+      ]).validate();
+    });
+
     test('plugins are registered', () async {
       await d.dir('project_templates', [
-        d.dir('firebase_project/lib', [
-          d.file(
+        d.dir('firebase_project', [
+          d.dir('lib', [
+            d.file(
               'generated_plugin_registrant.dart',
               allOf([
                 matches('FirebaseFirestoreWeb.registerWith'),
-                matches('FirebaseAuthWeb.registerWith'),
+                matches('FirebaseAnalyticsWeb.registerWith'),
                 matches('FirebaseCoreWeb.registerWith'),
-              ])),
+                matches('FirebaseDatabaseWeb.registerWith'),
+                matches('FirebaseMessagingWeb.registerWith'),
+                matches('FirebaseStorageWeb.registerWith'),
+              ]),
+            ),
+          ]),
         ]),
       ]).validate();
     });
