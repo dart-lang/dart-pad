@@ -194,10 +194,9 @@ class Compiler {
         ...['--module-name', 'dartpad_main'],
         '--enable-asserts',
         '--sound-null-safety',
-        if (_sdk.masterChannel) ...[
-          '--enable-experiment=patterns',
-          '--enable-experiment=records',
-        ],
+        if (_sdk.masterChannel)
+          ..._sdk.experiments
+              .map((experiment) => '--enable-experiment=$experiment'),
         bootstrapPath,
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];

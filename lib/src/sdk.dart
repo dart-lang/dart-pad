@@ -48,6 +48,12 @@ class Sdk {
   // Which channel is this SDK?
   final String _channel;
 
+  // Experiments that this SDK is configured with
+  List<String> get experiments {
+    if (masterChannel) return ['records', 'patterns'];
+    return [];
+  }
+
   factory Sdk.create(String channel) {
     final sdkPath = path.join(Sdk._flutterSdksPath, channel);
     final flutterBinPath = path.join(sdkPath, 'bin');

@@ -13,9 +13,7 @@ import 'utils.dart';
 typedef LogFunction = void Function(String);
 
 class ProjectCreator {
-  final String _dartSdkPath;
-
-  final String _flutterToolPath;
+  final Sdk _sdk;
 
   final String _templatesPath;
 
@@ -26,25 +24,15 @@ class ProjectCreator {
 
   final LogFunction _log;
 
-  // Channel selectors
-  final bool _devMode;
-  final bool _oldChannel;
-  final bool _masterChannel;
-
   ProjectCreator(
-    Sdk sdk,
+    this._sdk,
     this._templatesPath, {
     required String dartLanguageVersion,
     required File dependenciesFile,
     required LogFunction log,
-  })  : _dartSdkPath = sdk.dartSdkPath,
-        _flutterToolPath = sdk.flutterToolPath,
-        _dartLanguageVersion = dartLanguageVersion,
+  })  : _dartLanguageVersion = dartLanguageVersion,
         _dependenciesFile = dependenciesFile,
-        _log = log,
-        _devMode = sdk.devMode,
-        _oldChannel = sdk.oldChannel,
-        _masterChannel = sdk.masterChannel;
+        _log = log;
 
   /// Builds a basic Dart project template directory, complete with `pubspec.yaml`
   /// and `analysis_options.yaml`.
@@ -53,7 +41,7 @@ class ProjectCreator {
     final projectDirectory = Directory(projectPath);
     await projectDirectory.create(recursive: true);
     final dependencies = _dependencyVersions(supportedBasicDartPackages,
-        oldChannel: _oldChannel);
+        oldChannel: _sdk.oldChannel);
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: false,
@@ -67,12 +55,11 @@ linter:
   rules:
     avoid_print: false
 ''';
-    if (_masterChannel) {
+    if (_sdk.experiments.isNotEmpty) {
       contents += '''
 analyzer:
   enable-experiment:
-    - records
-    - patterns
+${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
 ''';
     }
     File(path.join(projectPath, 'analysis_options.yaml'))
@@ -100,19 +87,20 @@ analyzer:
     await File(path.join(projectPath, 'web', 'index.html')).create();
     var packages = {
       ...supportedBasicDartPackages,
-      ...supportedFlutterPackages(devMode: _devMode),
+      ...supportedFlutterPackages(devMode: _sdk.devMode),
       if (firebaseStyle != FirebaseStyle.none) ...coreFirebasePackages,
       if (firebaseStyle == FirebaseStyle.flutterFire)
         ...registerableFirebasePackages,
     };
-    final dependencies = _dependencyVersions(packages, oldChannel: _oldChannel);
+    final dependencies =
+        _dependencyVersions(packages, oldChannel: _sdk.oldChannel);
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: true,
       dartLanguageVersion: _dartLanguageVersion,
       dependencies: dependencies,
     ));
-    await runFlutterPackagesGet(_flutterToolPath, projectPath, log: _log);
+    await runFlutterPackagesGet(_sdk.flutterToolPath, projectPath, log: _log);
 
     // Working around Flutter 3.3's deprecation of generated_plugin_registrant.dart
     // Context: https://github.com/flutter/flutter/pull/106921
@@ -132,11 +120,11 @@ analyzer:
       // supported Firebase pacakges. This workaround is a very fragile hack.
       packages = {
         ...supportedBasicDartPackages,
-        ...supportedFlutterPackages(devMode: _devMode),
+        ...supportedFlutterPackages(devMode: _sdk.devMode),
         ...firebasePackages,
       };
       final dependencies =
-          _dependencyVersions(packages, oldChannel: _oldChannel);
+          _dependencyVersions(packages, oldChannel: _sdk.oldChannel);
       File(path.join(projectPath, 'pubspec.yaml'))
           .writeAsStringSync(createPubspec(
         includeFlutterWeb: true,
@@ -152,12 +140,11 @@ linter:
     avoid_print: false
     use_key_in_widget_constructors: false
 ''';
-    if (_masterChannel) {
+    if (_sdk.experiments.isNotEmpty) {
       contents += '''
 analyzer:
   enable-experiment:
-    - records
-    - patterns
+${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
 ''';
     }
     File(path.join(projectPath, 'analysis_options.yaml'))
@@ -166,7 +153,7 @@ analyzer:
 
   Future<void> _runDartPubGet(Directory dir) async {
     final process = await runWithLogging(
-      path.join(_dartSdkPath, 'bin', 'dart'),
+      path.join(_sdk.dartSdkPath, 'bin', 'dart'),
       arguments: ['pub', 'get'],
       workingDirectory: dir.path,
       environment: {'PUB_CACHE': _pubCachePath},
