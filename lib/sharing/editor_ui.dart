@@ -299,6 +299,9 @@ class Channel {
   final String flutterVersion;
   final bool hidden;
 
+  /// SDK experiment flags enabled for this channel.
+  final List<String> experiments;
+
   static Future<Channel> fromVersion(String name, {bool hidden = false}) async {
     var rootUrl = urlMapping[name];
     // If the user provided bad URL query parameter (`?channel=nonsense`),
@@ -312,6 +315,7 @@ class Channel {
       dartVersion: versionResponse.sdkVersionFull,
       flutterVersion: versionResponse.flutterVersion,
       hidden: hidden,
+      experiments: versionResponse.experiment,
     );
   }
 
@@ -328,6 +332,7 @@ class Channel {
     required this.dartVersion,
     required this.flutterVersion,
     required this.hidden,
+    required this.experiments,
   });
 }
 

@@ -321,6 +321,7 @@ a {
 
 .channel-menu-right {
   @include layout-flex();
+  margin-bottom: 12px;
 }
 
 // Misc
