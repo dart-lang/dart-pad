@@ -353,6 +353,11 @@ class Playground extends EditorUi implements GistContainer, GistController {
                   ..text =
                       'Use Flutter version ${channel.flutterVersion} and Dart '
                           'version ${channel.dartVersion}',
+                if (channel.experiments.isNotEmpty)
+                  ParagraphElement()
+                    ..classes.add('mdc-list-item__details')
+                    ..text = '+ Dart experiments: '
+                        "--enable-experiment=${channel.experiments.reduce((value, element) => '$value,$element')}",
               ],
           ],
       ])
