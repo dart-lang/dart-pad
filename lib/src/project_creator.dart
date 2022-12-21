@@ -178,7 +178,8 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
 Map<String, String> packageVersionConstraints({required bool oldChannel}) {
   // Ensure that pub version solving keeps these at sane minimum versions.
   return {
-    // 'package_name': '^x.y.0',
+    'firebase_auth': '^4.2.0',
+    'firebase_auth_web': '^5.2.0',
   };
 }
 
