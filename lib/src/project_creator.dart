@@ -180,6 +180,7 @@ Map<String, String> packageVersionConstraints({required bool oldChannel}) {
   return {
     'firebase_auth': '^4.2.0',
     'firebase_auth_web': '^5.2.0',
+    'cloud_firestore_platform_interface': '^5.10.0',
   };
 }
 
