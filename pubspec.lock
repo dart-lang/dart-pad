@@ -252,7 +252,7 @@ packages:
       name: fluttering_phrases
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.3.2"
+    version: "0.4.0"
   frontend_server_client:
     dependency: transitive
     description:
