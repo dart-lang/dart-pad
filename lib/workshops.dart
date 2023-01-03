@@ -102,8 +102,8 @@ class WorkshopUi extends EditorUi {
     _updateInstructions();
     await _initModules();
     _initWorkshopUi();
-    initKeyBindings();
     _initEditor();
+    initKeyBindings();
     _initSplitters();
     _initStepButtons();
     _initStepListener();
