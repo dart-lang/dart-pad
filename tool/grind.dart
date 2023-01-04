@@ -177,7 +177,7 @@ deploy() async {
 
   final app = yaml.loadYaml(File('web/app.yaml').readAsStringSync()) as Map;
 
-  final handlers = app['handlers'];
+  final handlers = app['handlers'] as List;
   var isSecure = false;
 
   for (final m in handlers) {

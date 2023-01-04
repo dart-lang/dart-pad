@@ -1,8 +1,8 @@
 include: package:lints/recommended.yaml
 
 analyzer:
-  strong-mode:
-    implicit-casts: false
+  language:
+    strict-casts: true
   exclude:
     - "build/**"
     - "doc/api/**"
