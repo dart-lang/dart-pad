@@ -121,7 +121,7 @@ class RedisCache implements ServerCache {
             _resetConnection();
             log.warning('$_logPrefix: connection terminated, reconnecting');
             _reconnect();
-          }).catchError((e) {
+          }).catchError((dynamic e) {
             _resetConnection();
             log.warning(
                 '$_logPrefix: connection terminated with error $e, reconnecting');

@@ -482,7 +482,7 @@ abstract class AnalysisServerWrapper {
         .timeout(const Duration(seconds: 1))
         // At runtime, it appears that [ServerDomain.shutdown] returns a
         // `Future<Map<dynamic, dynamic>>`.
-        .catchError((_) => {});
+        .catchError((_) => <dynamic, dynamic>{});
   }
 
   /// Internal implementation of the completion mechanism.
