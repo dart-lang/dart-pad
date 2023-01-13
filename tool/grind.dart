@@ -419,7 +419,8 @@ Future<void> _updateDependenciesFile({
       for (var package in firebasePackages) package: 'any',
       for (var package in supportedFlutterPackages(devMode: sdk.devMode))
         package: 'any',
-      for (var package in supportedBasicDartPackages) package: 'any',
+      for (var package in supportedBasicDartPackages(devMode: sdk.devMode))
+        package: 'any',
       // Overwrite with important constraints:
       ...packageVersionConstraints(oldChannel: sdk.oldChannel),
     },

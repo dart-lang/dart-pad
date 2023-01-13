@@ -107,15 +107,10 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'yaml_edit',
       if (devMode) ...[
         'flutter_adaptive_scaffold',
-        'dartz',
-        'fast_immutable_collections',
-        'timezone',
         'shared_preferences',
         'creator',
         'video_player',
-        'rohd',
         'riverpod_navigator',
-        'cross_file',
       ],
     };
 
@@ -129,21 +124,28 @@ Set<String> _packagesIndicatingFlutter({required bool devMode}) => {
 
 /// The set of basic Dart (non-Flutter) packages which can be directly imported
 /// into a script.
-const Set<String> supportedBasicDartPackages = {
-  'bloc',
-  'characters',
-  'collection',
-  'english_words',
-  'http',
-  'intl',
-  'js',
-  'lints',
-  'meta',
-  'path',
-  'riverpod',
-  'rxdart',
-  'vector_math',
-};
+Set<String> supportedBasicDartPackages({required bool devMode}) => {
+      'bloc',
+      'characters',
+      'collection',
+      'english_words',
+      'http',
+      'intl',
+      'js',
+      'lints',
+      'meta',
+      'path',
+      'riverpod',
+      'rxdart',
+      'vector_math',
+      if (devMode) ...[
+        'dartz',
+        'fast_immutable_collections',
+        'timezone',
+        'rohd',
+        'cross_file',
+      ]
+    };
 
 /// A set of all allowed `dart:` imports. Currently includes non-VM libraries
 /// listed as the [doc](https://api.dart.dev/stable/index.html) categories.
@@ -246,4 +248,4 @@ List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports,
 
 bool isSupportedPackage(String package, {required bool devMode}) =>
     _packagesIndicatingFlutter(devMode: devMode).contains(package) ||
-    supportedBasicDartPackages.contains(package);
+    supportedBasicDartPackages(devMode: devMode).contains(package);
