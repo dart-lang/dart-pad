@@ -13,11 +13,11 @@ flutter_sdk:
     flutter_version: 3.7.0-1.4.pre
     dart_language_version: 2.19.0-0
   dev:
-    flutter_version: 3.3.10
-    dart_language_version: 2.18.6
+    flutter_version: 3.7.0-1.4.pre
+    dart_language_version: 2.19.0-0
   old:
     flutter_version: 3.0.5
     dart_language_version: 2.17.6
   master:
-    flutter_version: 51c2af56c9f4b5728c771d229baa19a286c01aa0
+    flutter_version: 780563ce05e4bdc8b73c8ecb9da4ccc575a2d5ac
     dart_language_version: 2.19.0-0
