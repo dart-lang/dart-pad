@@ -50,7 +50,8 @@ class Sdk {
 
   // Experiments that this SDK is configured with
   List<String> get experiments {
-    if (masterChannel) return ['records', 'patterns'];
+    // TODO: re-enable once both DDC and Dart2JS support the same experiments
+    // if (masterChannel) return ['records', 'patterns'];
     return [];
   }
 
