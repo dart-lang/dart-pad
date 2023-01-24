@@ -842,7 +842,14 @@ class Playground extends EditorUi implements GistContainer, GistController {
   }
 
   @override
-  bool get shouldCompileDDC => hasFlutterContent(context.dartSource);
+  bool get shouldCompileDDC {
+    // Patterns and records aren't fully supported in dart2js yet
+    if (queryParams.channel == 'master') {
+      return true;
+    }
+
+    return hasFlutterContent(context.dartSource);
+  }
 
   @override
   bool get shouldAddFirebaseJs => hasFirebaseContent(context.dartSource);
