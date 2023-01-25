@@ -79,6 +79,7 @@ const Set<String> firebasePackages = {
 Set<String> supportedFlutterPackages({required bool devMode}) => {
       'animations',
       'basics',
+      'creator',
       'equatable',
       'firebase_analytics',
       'firebase_database',
@@ -89,6 +90,7 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'flame_forge2d',
       'flame_splash_screen',
       'flame_tiled',
+      'flutter_adaptive_scaffold',
       'flutter_bloc',
       'flutter_hooks',
       'flutter_lints',
@@ -102,16 +104,13 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'petitparser',
       'provider',
       'quiver',
+      'riverpod_navigator',
+      'shared_preferences',
       'tuple',
+      'video_player',
       'yaml',
       'yaml_edit',
-      if (devMode) ...[
-        'flutter_adaptive_scaffold',
-        'shared_preferences',
-        'creator',
-        'video_player',
-        'riverpod_navigator',
-      ],
+      if (devMode) ...[],
     };
 
 /// The set of packages which indicate that Flutter Web is being used.
@@ -128,7 +127,10 @@ Set<String> supportedBasicDartPackages({required bool devMode}) => {
       'bloc',
       'characters',
       'collection',
+      'cross_file',
+      'dartz',
       'english_words',
+      'fast_immutable_collections',
       'http',
       'intl',
       'js',
@@ -136,15 +138,11 @@ Set<String> supportedBasicDartPackages({required bool devMode}) => {
       'meta',
       'path',
       'riverpod',
+      'rohd',
       'rxdart',
+      'timezone',
       'vector_math',
-      if (devMode) ...[
-        'dartz',
-        'fast_immutable_collections',
-        'timezone',
-        'rohd',
-        'cross_file',
-      ]
+      if (devMode) ...[]
     };
 
 /// A set of all allowed `dart:` imports. Currently includes non-VM libraries
