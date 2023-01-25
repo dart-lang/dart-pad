@@ -88,6 +88,8 @@ class Compiler {
         '--packages=${path.join('.dart_tool', 'package_config.json')}',
         '--sound-null-safety',
         '--enable-asserts',
+        if (_sdk.experiments.isNotEmpty)
+          '--enable-experiment=${_sdk.experiments.join(",")}',
         '-o',
         '$kMainDart.js',
         path.join('lib', kMainDart),
@@ -194,8 +196,8 @@ class Compiler {
         ...['--module-name', 'dartpad_main'],
         '--enable-asserts',
         '--sound-null-safety',
-        ..._sdk.experiments
-            .map((experiment) => '--enable-experiment=$experiment'),
+        if (_sdk.experiments.isNotEmpty)
+          '--enable-experiment=${_sdk.experiments.join(",")}',
         bootstrapPath,
         '--packages=${path.join(temp.path, '.dart_tool', 'package_config.json')}',
       ];
