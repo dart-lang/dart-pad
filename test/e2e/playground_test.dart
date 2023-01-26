@@ -6,7 +6,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:grinder/grinder_sdk.dart';
 import 'package:test/test.dart';
-import 'package:webdriver/io.dart';
+import 'package:webdriver/async_io.dart';
 
 bool get runningInCi => Platform.environment.keys.contains('CI');
 
