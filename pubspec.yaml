@@ -8,6 +8,7 @@ environment:
 dependencies:
   async: ^2.9.0
   checked_yaml: ^2.0.0
+  charts_flutter: ^0.12.0
   codemirror: ^0.7.6+5.65.5
   collection: ^1.16.0
   encrypt: ^5.0.1
