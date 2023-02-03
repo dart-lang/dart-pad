@@ -73,7 +73,7 @@ class MyWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       'Hello, World!',
-      style: Theme.of(context).textTheme.headline4,
+      style: Theme.of(context).textTheme.headlineMedium,
     );
   }
 }
