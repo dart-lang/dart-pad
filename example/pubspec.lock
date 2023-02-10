@@ -21,10 +21,10 @@ packages:
     dependency: transitive
     description:
       name: archive
-      sha256: ed7cc591a948744994714375caf9a2ce89e1d82e8243997c8a2994d57181c212
+      sha256: d6347d54a2d8028e0437e3c099f66fdb8ae02c4720c1e7534c9f24c10351f85d
       url: "https://pub.dev"
     source: hosted
-    version: "3.3.5"
+    version: "3.3.6"
   args:
     dependency: transitive
     description:
@@ -157,10 +157,10 @@ packages:
     dependency: transitive
     description:
       name: collection
-      sha256: cfc915e6923fe5ce6e153b0723c753045de46de1b4d63771530504004a45fae0
+      sha256: "4a07be6cb69c84d677a6c3096fcf960cc3285a8330b4603e0d463d15d9bd934c"
       url: "https://pub.dev"
     source: hosted
-    version: "1.17.0"
+    version: "1.17.1"
   convert:
     dependency: transitive
     description:
@@ -197,10 +197,10 @@ packages:
     dependency: transitive
     description:
       name: fixnum
-      sha256: "04be3e934c52e082558cc9ee21f42f5c1cd7a1262f4c63cd0357c08d5bba81ec"
+      sha256: "25517a4deb0c03aa0f32fd12db525856438902d9c16536311e76cdc57b31d7d1"
       url: "https://pub.dev"
     source: hosted
-    version: "1.0.1"
+    version: "1.1.0"
   frontend_server_client:
     dependency: transitive
     description:
@@ -261,10 +261,10 @@ packages:
     dependency: transitive
     description:
       name: js
-      sha256: "323b7c70073cccf6b9b8d8b334be418a3293cfb612a560dc2737160a37bf61bd"
+      sha256: f2c445dce49627136094980615a031419f7f3eb393237e4ecd97ac15dea343f3
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.6"
+    version: "0.6.7"
   json_annotation:
     dependency: transitive
     description:
@@ -285,10 +285,10 @@ packages:
     dependency: transitive
     description:
       name: logging
-      sha256: c0bbfe94d46aedf9b8b3e695cf3bd48c8e14b35e3b2c639e0aa7755d589ba946
+      sha256: "04094f2eb032cbb06c6f6e8d3607edcfcb0455e2bb6cbc010cb01171dcb64e6d"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.0"
+    version: "1.1.1"
   matcher:
     dependency: transitive
     description:
@@ -301,10 +301,10 @@ packages:
     dependency: transitive
     description:
       name: meta
-      sha256: "6c268b42ed578a53088d834796959e4a1814b5e9e164f147f580a386e5decf42"
+      sha256: "12307e7f0605ce3da64cf0db90e5fcab0869f3ca03f76be6bb2991ce0a55e82b"
       url: "https://pub.dev"
     source: hosted
-    version: "1.8.0"
+    version: "1.9.0"
   mime:
     dependency: transitive
     description:
