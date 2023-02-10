@@ -186,6 +186,7 @@ class Compiler {
 
       final arguments = <String>[
         '--modules=amd',
+        '--no-summarize',
         if (usingFlutter) ...[
           '-s',
           _projectTemplates.summaryFilePath,
