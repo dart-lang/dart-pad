@@ -122,7 +122,7 @@ class EndpointsServer {
         .addMiddleware(logRequests())
         .addMiddleware(_createCustomCorsHeadersMiddleware());
 
-    handler = pipeline.addHandler(commonServerApi.router);
+    handler = pipeline.addHandler(commonServerApi.router.call);
   }
 
   Future<void> init() => _commonServerImpl.init();

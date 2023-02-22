@@ -87,20 +87,20 @@ because initialization of GitHubOAuthHandler failed earlier.''');
   static Future<bool> initFromEnvironmentalVars() async {
     if (initialized) return !initializationEndedInErrorState;
 
-    final String clientId =
+    final clientId =
         _stripQuotes(Platform.environment['PK_GITHUB_OAUTH_CLIENT_ID']) ??
             'MissingClientIdEnvironmentalVariable';
-    final String clientSecret =
+    final clientSecret =
         _stripQuotes(Platform.environment['PK_GITHUB_OAUTH_CLIENT_SECRET']) ??
             'MissingClientSecretEnvironmentalVariable';
-    String authReturnUrl =
+    var authReturnUrl =
         _stripQuotes(Platform.environment['K_GITHUB_OAUTH_AUTH_RETURN_URL']) ??
             '';
-    String returnToAppUrl = _stripQuotes(
+    var returnToAppUrl = _stripQuotes(
             Platform.environment['K_GITHUB_OAUTH_RETURN_TO_APP_URL']) ??
         '';
 
-    bool missingEnvVariables = false;
+    var missingEnvVariables = false;
     if (clientId == 'MissingClientIdEnvironmentalVariable') {
       _logger.severe(
           'PK_GITHUB_OAUTH_CLIENT_ID environmental variable not set! This is REQUIRED.');
@@ -151,7 +151,7 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
     _authReturnUrl = authReturnUrl;
     _returnToAppUrl = returnToAppUrl;
 
-    bool missingParameters = false;
+    var missingParameters = false;
     if (_clientId.isEmpty) {
       _logger.severe('GitHubOAuthHandler no client id passed to init().');
       missingParameters = true;
@@ -192,8 +192,8 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
   static Future<Response> _initiateHandler(
       Request request, String randomState) async {
     // See if we have anything stored for this random state.
-    String? timestampStr = await _cache.get(randomState);
-    bool newRequest = false;
+    var timestampStr = await _cache.get(randomState);
+    var newRequest = false;
 
     if (randomState.isEmpty || randomState.length < 40) {
       return Response.ok('Random token must be >=40 characters in length');
@@ -222,7 +222,7 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
       state=RANDOMSTR
     */
     if (newRequest) {
-      String url = 'https://github.com/login/oauth/authorize?';
+      var url = 'https://github.com/login/oauth/authorize?';
 
       url +=
           'client_id=$_clientId&redirect_uri=$_authReturnUrl&scope=gist&state=$randomState';
@@ -232,7 +232,7 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
     }
 
     // Return to app with 'authfailed' to indicate error.
-    String backToAppUrl = _returnToAppUrl;
+    var backToAppUrl = _returnToAppUrl;
     backToAppUrl += '?gh=authfailed';
     return Response(302, headers: {'location': backToAppUrl});
   }
@@ -251,16 +251,16 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
     */
     _logger.fine('Entered _returnAuthorizeHandler');
 
-    String backToAppUrl = _returnToAppUrl;
-    bool validCallback = false;
-    bool tokenAquired = false;
+    var backToAppUrl = _returnToAppUrl;
+    var validCallback = false;
+    var tokenAquired = false;
 
     try {
-      final String code = request.requestedUri.queryParameters['code'] ?? '';
-      final String state = request.requestedUri.queryParameters['state'] ?? '';
+      final code = request.requestedUri.queryParameters['code'] ?? '';
+      final state = request.requestedUri.queryParameters['state'] ?? '';
 
       // See if we have anything stored for this state value.
-      final String? timestampStr = await _cache.get(state);
+      final timestampStr = await _cache.get(state);
 
       if (timestampStr == null) {
         // ERROR!! We did not have a record of this initial request - ignore.
@@ -287,15 +287,15 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
             "token_type":"bearer"
           }
         */
-        final String githubExchangeCodeUri =
+        final githubExchangeCodeUri =
             'https://github.com/login/oauth/access_token';
-        final Map<String, dynamic> map = {
+        final map = <String, dynamic>{
           'client_id': _clientId,
           'client_secret': _clientSecret,
           'code': code,
           'redirect_uri': _authReturnUrl,
         };
-        final String bodydata = json.encode(map);
+        final bodydata = json.encode(map);
 
         await client
             .post(Uri.parse(githubExchangeCodeUri),
@@ -320,7 +320,7 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
             _cache.remove(state);
 
             // Encrypt the auth token using the original random state.
-            final String encrBase64AuthToken =
+            final encrBase64AuthToken =
                 _encryptAndBase64EncodeAuthToken(accessToken, state);
             // Build URL to redirect back to the app.
             backToAppUrl += '?gh=$encrBase64AuthToken&scope=$scope';

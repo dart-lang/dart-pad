@@ -147,7 +147,7 @@ void defineTests() {
         try {
           // Wait for a retry message.
           while (logMessages.length < 2) {
-            await (Future<void>.delayed(Duration(milliseconds: 50)));
+            await Future<void>.delayed(Duration(milliseconds: 50));
           }
           expect(
               logMessages.join('\n'),

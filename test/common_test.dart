@@ -56,7 +56,7 @@ void defineTests() {
   });
 
   test('countLines', () {
-    final Map<String, String> sources = {
+    final sources = <String, String>{
       'file1': '\n\n\n\n\n', // 5 lines,
       'file2': r'''THis is line 1,
                     This is line 2,
@@ -81,7 +81,7 @@ void defineTests() {
   });
 
   test('sanitizeAndCheckFilenames', () {
-    final Map<String, String> filesSanitize = {
+    final filesSanitize = <String, String>{
       '..\\.../../$kMainDart': '',
       '../various.dart': ''
     };
@@ -91,18 +91,18 @@ void defineTests() {
     expect(filesSanitize.keys.elementAt(1), 'various.dart');
 
     // Using "part 'various.dart'" to bring in second file.
-    final Map<String, String> filesVar2 = {
+    final filesVar2 = <String, String>{
       'mymain.dart': 'void main() => ();',
       'various.dart': '',
       'discdata.dart': ''
     };
 
-    String newmain = sanitizeAndCheckFilenames(filesVar2, 'mymain.dart');
+    var newmain = sanitizeAndCheckFilenames(filesVar2, 'mymain.dart');
     expect(newmain, kMainDart);
     expect(filesVar2.keys.elementAt(0), kMainDart);
     expect(filesVar2.keys.elementAt(1), 'various.dart');
 
-    final Map<String, String> filesVar3Sani = {
+    final filesVar3Sani = <String, String>{
       'package:$kMainDart': '',
       'dart:discdata.dart': '',
       'http://dart:http://various.dart': ''

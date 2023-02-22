@@ -42,9 +42,7 @@ class BenchmarkHarness {
     await Future.forEach(benchmarks, (Benchmark benchmark) => benchmark.init());
 
     return Future.forEach(benchmarks, (Benchmark benchmark) {
-      return benchmarkSingle(benchmark).then((BenchMarkResult result) {
-        results.add(result);
-      });
+      return benchmarkSingle(benchmark).then(results.add);
     }).then((_) {
       if (asJson) {
         logger(json.encode(results

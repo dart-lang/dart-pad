@@ -299,7 +299,7 @@ abstract class AnalysisServerWrapper {
         .schedule(ClosureTask<proto.AnalysisResults>(() async {
       sources = _getOverlayMapWithPaths(sources);
       await _loadSources(sources);
-      final List<AnalysisError> errors = [];
+      final errors = <AnalysisError>[];
 
       // Loop over all files and collect errors (sources now has filenames
       // with full paths as keys after _getOverlayMapWithPaths() call).

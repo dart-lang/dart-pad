@@ -298,8 +298,8 @@ void defineTests() {
 
     test('files={} repro #126 - completions polluted on second request',
         () async {
-      final Map<String, String> files = {kMainDart: completionFilterCode};
-      final Location location = Location(kMainDart, 17);
+      final files = <String, String>{kMainDart: completionFilterCode};
+      final location = Location(kMainDart, 17);
       // https://github.com/dart-lang/dart-services/issues/126
       return analysisServer.completeFiles(files, location).then((results) {
         return analysisServer.completeFiles(files, location).then((results) {

@@ -340,8 +340,8 @@ void main() { print ('foo'); }
 
     // Two separate files, illegal import in second file, test that
     // illegal imports within all files are detected.
-    final Map<String, String> filesVar2BadImports = {};
-    const String badImports = '''
+    final filesVar2BadImports = <String, String>{};
+    const badImports = '''
 import 'package:foo';
 import 'package:bar';
   ''';

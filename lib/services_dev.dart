@@ -80,7 +80,7 @@ class EndpointsServer {
         .addMiddleware(logRequests())
         .addMiddleware(_createCustomCorsHeadersMiddleware());
 
-    handler = pipeline.addHandler(commonServerApi.router);
+    handler = pipeline.addHandler(commonServerApi.router.call);
   }
 
   Middleware _createCustomCorsHeadersMiddleware() {

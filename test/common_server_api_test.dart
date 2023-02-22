@@ -54,7 +54,7 @@ void defineTests() {
     request.headers.add('content-type', jsonContentType);
     request.add(utf8.encode(json.encode(jsonData)));
     await request.close();
-    await shelf_io.handleRequest(request, commonServerApi.router);
+    await shelf_io.handleRequest(request, commonServerApi.router.call);
     return request.response;
   }
 
@@ -65,7 +65,7 @@ void defineTests() {
     final request = MockHttpRequest('GET', uri);
     request.headers.add('content-type', jsonContentType);
     await request.close();
-    await shelf_io.handleRequest(request, commonServerApi.router);
+    await shelf_io.handleRequest(request, commonServerApi.router.call);
     return request.response;
   }
 

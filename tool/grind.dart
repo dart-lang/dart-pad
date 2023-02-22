@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: unreachable_from_main
+
 import 'dart:async';
 import 'dart:convert' show JsonEncoder;
 import 'dart:io';
@@ -285,8 +287,8 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
 
   // Emit some good Google Storage upload instructions.
   final version = sdk.versionFull;
-  return ('  gsutil -h "Cache-Control: public, max-age=604800, immutable" cp -z js ${artifactsDir.path}/*.js*'
-      ' gs://nnbd_artifacts/$version/');
+  return '  gsutil -h "Cache-Control: public, max-age=604800, immutable" cp -z js ${artifactsDir.path}/*.js*'
+      ' gs://nnbd_artifacts/$version/';
 }
 
 @Task('Reinitialize the Flutter submodule.')

@@ -32,9 +32,9 @@ analysis_server.AnalysisServerWrapper? analysisServer;
 
 late comp.Compiler compiler;
 
-var random = Random(0);
-var maxMutations = 2;
-var iterations = 5;
+Random random = Random(0);
+int maxMutations = 2;
+int iterations = 5;
 String commandToRun = 'ALL';
 bool dumpServerComms = false;
 
@@ -191,7 +191,7 @@ Future<void> testPath(
           break;
 
         default:
-          throw 'Unknown command';
+          throw StateError('Unknown command: $commandToRun');
       }
     } catch (e, stacktrace) {
       print('===== FAILING OP: $lastExecuted, offset: $lastOffset  =====');
@@ -411,8 +411,6 @@ enum OperationType {
   fixes,
   format
 }
-
-final int termWidth = io.stdout.hasTerminal ? io.stdout.terminalColumns : 200;
 
 void log(dynamic obj) {
   if (verbose) {

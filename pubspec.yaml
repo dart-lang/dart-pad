@@ -28,8 +28,8 @@ dev_dependencies:
   async: ^2.10.0
   build_runner: ^2.3.3
   coverage: ^1.6.3
+  dart_flutter_team_lints: ^1.0.0
   grinder: ^0.9.3
-  lints: ^2.0.1
   package_config: ^2.1.0
   shelf_router_generator: ^1.0.5
   synchronized: ^3.0.1

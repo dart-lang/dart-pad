@@ -400,9 +400,8 @@ String _hashSources(Map<String, String> sources) {
     return sha1.convert(sources.values.first.codeUnits).toString();
   } else {
     // Use chunk hashing method for >1 source files.
-    final AccumulatorSink<Digest> hashoutput = AccumulatorSink<Digest>();
-    final ByteConversionSink sha1Chunker =
-        sha1.startChunkedConversion(hashoutput);
+    final hashoutput = AccumulatorSink<Digest>();
+    final sha1Chunker = sha1.startChunkedConversion(hashoutput);
     sources.forEach((_, filecontents) {
       sha1Chunker.add(filecontents.codeUnits);
     });

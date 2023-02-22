@@ -33,12 +33,13 @@ class AnalysisServersWrapper {
   // ready to handle requests.
   DateTime? _restartingSince = DateTime.now();
 
-  bool get isRestarting => (_restartingSince != null);
+  bool get isRestarting => _restartingSince != null;
 
   // If the server has been trying and failing to restart for more than a half
   // hour, something is seriously wrong.
-  bool get isHealthy => (_restartingSince == null ||
-      DateTime.now().difference(_restartingSince!).inMinutes < 30);
+  bool get isHealthy =>
+      _restartingSince == null ||
+      DateTime.now().difference(_restartingSince!).inMinutes < 30;
 
   Future<void> warmup() async {
     _logger.info('Beginning AnalysisServersWrapper init().');

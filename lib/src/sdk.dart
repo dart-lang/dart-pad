@@ -205,49 +205,36 @@ class _DownloadedFlutterSdk {
   /// Perform a git clone, logging the command and any output, and throwing an
   /// exception if there are any issues with the clone.
   Future<void> clone(List<String> args, {required String cwd}) async {
-    final result = await _execLog('git', ['clone', ...args], cwd);
-    if (result != 0) {
-      throw 'result from git clone: $result';
-    }
+    await _execLog('git', ['clone', ...args], cwd, throwOnError: true);
   }
 
   Future<void> checkout(String branch) async {
-    final result = await _execLog('git', ['checkout', branch], flutterSdkPath);
-    if (result != 0) {
-      throw 'result from git checkout: $result';
-    }
+    await _execLog('git', ['checkout', branch], flutterSdkPath,
+        throwOnError: true);
   }
 
   Future<void> fetchTags() async {
-    final result = await _execLog('git', ['fetch', '--tags'], flutterSdkPath);
-    if (result != 0) {
-      throw 'result from git fetch: $result';
-    }
+    await _execLog('git', ['fetch', '--tags'], flutterSdkPath,
+        throwOnError: true);
   }
 
   Future<void> pull() async {
-    final result = await _execLog('git', ['pull'], flutterSdkPath);
-    if (result != 0) {
-      throw 'result from git pull: $result';
-    }
+    await _execLog('git', ['pull'], flutterSdkPath, throwOnError: true);
   }
 
   Future<void> trackChannel(String channel) async {
     // git checkout --track -b beta origin/beta
-    final result = await _execLog(
-      'git',
-      [
-        'checkout',
-        '--track',
-        '-b',
-        channel,
-        'origin/$channel',
-      ],
-      flutterSdkPath,
-    );
-    if (result != 0) {
-      throw 'result from git checkout $channel: $result';
-    }
+    await _execLog(
+        'git',
+        [
+          'checkout',
+          '--track',
+          '-b',
+          channel,
+          'origin/$channel',
+        ],
+        flutterSdkPath,
+        throwOnError: true);
   }
 
   Future<bool> checkChannelAvailableLocally(String channel) async {
@@ -267,7 +254,11 @@ class _DownloadedFlutterSdk {
   }
 
   Future<int> _execLog(
-      String executable, List<String> arguments, String cwd) async {
+    String executable,
+    List<String> arguments,
+    String cwd, {
+    bool throwOnError = false,
+  }) async {
     print('$executable ${arguments.join(' ')}');
 
     final process = await Process.start(
@@ -282,6 +273,14 @@ class _DownloadedFlutterSdk {
         .transform<String>(utf8.decoder)
         .listen((string) => stderr.write(string));
 
-    return await process.exitCode;
+    final code = await process.exitCode;
+    if (throwOnError && code != 0) {
+      throw ProcessException(
+          executable,
+          arguments,
+          'Error running ${[executable, ...arguments].take(2).join(' ')}',
+          code);
+    }
+    return code;
   }
 }
