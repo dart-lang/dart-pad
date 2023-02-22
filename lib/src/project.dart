@@ -78,9 +78,7 @@ const Set<String> firebasePackages = {
 /// The set of supported Flutter-oriented packages.
 Set<String> supportedFlutterPackages({required bool devMode}) => {
       'animations',
-      'basics',
       'creator',
-      'equatable',
       'firebase_analytics',
       'firebase_database',
       'firebase_messaging',
@@ -100,16 +98,10 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'go_router',
       'google_fonts',
       'hooks_riverpod',
-      'matcher',
-      'petitparser',
       'provider',
-      'quiver',
       'riverpod_navigator',
       'shared_preferences',
-      'tuple',
       'video_player',
-      'yaml',
-      'yaml_edit',
       if (devMode) ...[],
     };
 
@@ -124,24 +116,32 @@ Set<String> _packagesIndicatingFlutter({required bool devMode}) => {
 /// The set of basic Dart (non-Flutter) packages which can be directly imported
 /// into a script.
 Set<String> supportedBasicDartPackages({required bool devMode}) => {
+      'basics',
       'bloc',
       'characters',
       'collection',
       'cross_file',
       'dartz',
       'english_words',
+      'equatable',
       'fast_immutable_collections',
       'http',
       'intl',
       'js',
       'lints',
+      'matcher',
       'meta',
       'path',
+      'petitparser',
+      'quiver',
       'riverpod',
       'rohd',
       'rxdart',
       'timezone',
+      'tuple',
       'vector_math',
+      'yaml',
+      'yaml_edit',
       if (devMode) ...[]
     };
 
