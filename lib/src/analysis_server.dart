@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A wrapper around an analysis server instance
-library services.analysis_server;
+library;
 
 import 'dart:async';
 import 'dart:convert';

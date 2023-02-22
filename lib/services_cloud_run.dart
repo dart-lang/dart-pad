@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A server for Cloud Run.
-library services_cloud_run;
+library;
 
 import 'dart:async';
 import 'dart:io';

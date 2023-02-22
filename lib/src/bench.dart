@@ -4,7 +4,7 @@
 
 /// A benchmark library. This library supports running benchmarks which can
 /// run asynchronously.
-library services.bench;
+library;
 
 import 'dart:async';
 import 'dart:convert' show json;

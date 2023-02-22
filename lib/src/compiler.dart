@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// This library is a wrapper around the Dart to JavaScript (dart2js) compiler.
-library services.compiler;
+library;
 
 import 'dart:async';
 import 'dart:io';

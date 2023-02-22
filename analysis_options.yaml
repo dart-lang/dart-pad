@@ -18,10 +18,13 @@ linter:
   rules:
     - always_declare_return_types
     - avoid_dynamic_calls
+    - dangling_library_doc_comments
     - directives_ordering
+    - library_annotations
     - prefer_final_in_for_each
     - prefer_final_locals
     - prefer_relative_imports
     - prefer_single_quotes
     - sort_pub_dependencies
     - unawaited_futures
+    - unnecessary_library_directive

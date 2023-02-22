@@ -4,8 +4,6 @@
 
 // ignore_for_file: prefer_single_quotes
 
-library services.common_test;
-
 import 'package:dart_services/src/common.dart';
 import 'package:test/test.dart';
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A dev-time only server.
-library services_dev;
+library;
 
 import 'dart:async';
 import 'dart:io';

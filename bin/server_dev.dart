@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// A dev-time only server; see `bin/server.dart` for the GAE server.
-library services.bin;
+library;
 
 import 'dart:async';
 

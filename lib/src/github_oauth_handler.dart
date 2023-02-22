@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-///
 /// This presents an API for initiating OAuth requests to github and then
 /// redirecting back to the calling Dart-Pad application.
 ///
@@ -14,7 +13,7 @@
 /// return to dart-pad app url should be stored in
 /// K_GITHUB_OAUTH_AUTH_RETURN_URL and K_GITHUB_OAUTH_RETURN_TO_APP_URL
 /// environmental variables respectively.
-///
+library;
 
 import 'dart:convert';
 import 'dart:io';

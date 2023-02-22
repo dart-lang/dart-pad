@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of services.common_server_api;
+part of 'common_server_api.dart';
 
 // **************************************************************************
 // ShelfRouterGenerator
