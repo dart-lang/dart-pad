@@ -79,12 +79,12 @@ class ExecutionServiceIFrame implements ExecutionService {
     _frameSrc = src;
   }
 
-  /// TODO(redbrogdon): Format message so internal double quotes are escaped.
   @override
   String get testResultDecoration => '''
 void _result(bool success, [List<String> messages = const []]) {
   // Join messages into a comma-separated list for inclusion in the JSON array.
-  final joinedMessages = messages.map((m) => '"\$m"').join(',');
+  final joinedMessages = 
+      messages.map((m) => '"\${m.replaceAll('"', '\\\\"')}"').join(',');
   print('$testKey{"success": \$success, "messages": [\$joinedMessages]}');
 }
 
@@ -92,7 +92,7 @@ void _result(bool success, [List<String> messages = const []]) {
 var resultFunction = _result;
 
 // Placeholder for unimplemented methods in dart-pad exercises.
-// ignore: non_constant_identifier_names, sdk_version_never
+// ignore: non_constant_identifier_names
 Never TODO([String message = '']) => throw UnimplementedError(message);
 ''';
 
