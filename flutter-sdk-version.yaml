@@ -7,14 +7,14 @@
 
 flutter_sdk:
   stable:
-    flutter_version: 3.7.6
-    dart_language_version: 2.19.3
+    flutter_version: 3.7.7
+    dart_language_version: 2.19.4
   beta:
     flutter_version: 3.8.0-10.1.pre
     dart_language_version: 3.0.0-0
   dev:
-    flutter_version: 3.7.6
-    dart_language_version: 2.19.3
+    flutter_version: 3.7.7
+    dart_language_version: 2.19.4
   old:
     flutter_version: 3.3.10
     dart_language_version: 2.18.6
