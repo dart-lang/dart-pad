@@ -32,7 +32,7 @@ Never TODO([String message = '']) => throw UnimplementedError(message);
       );
     });
 
-    test('frameTestResultDecoration functions as expected', () {
+    test('frameTestResultDecoration functions as expected', () async {
       final codeWithResultInserted = Uri.dataFromString(
         '''
 import 'dart:async';
@@ -57,15 +57,17 @@ void main(List<String> args, SendPort sendPort) {
         mimeType: 'application/dart',
       );
 
-      expect(() async {
-        final receivePort = ReceivePort();
-        await Isolate.spawnUri(
-            codeWithResultInserted, [], receivePort.sendPort);
-        print(await receivePort.first);
-        receivePort.close();
-      },
-          prints(
-              '__TESTRESULT__ {"success": false, "messages": ["The Text widget for the name should use the \\"headlineSmall\\" textStyle."]}\n'));
+      final receivePort = ReceivePort();
+      await Isolate.spawnUri(codeWithResultInserted, [], receivePort.sendPort);
+      final result = await receivePort.first;
+      receivePort.close();
+
+      expect(
+        result,
+        equals(
+          '__TESTRESULT__ {"success": false, "messages": ["The Text widget for the name should use the \\"headlineSmall\\" textStyle."]}',
+        ),
+      );
     });
   });
 }
