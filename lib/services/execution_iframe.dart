@@ -8,12 +8,11 @@ import 'dart:async';
 import 'dart:html';
 
 import 'execution.dart';
+import 'execution_result_util.dart' show frameTestResultDecoration, testKey;
 
 export 'execution.dart';
 
 class ExecutionServiceIFrame implements ExecutionService {
-  static const testKey = '__TESTRESULT__ ';
-
   final StreamController<String> _stdoutController =
       StreamController<String>.broadcast();
   final StreamController<String> _stderrController =
@@ -80,21 +79,7 @@ class ExecutionServiceIFrame implements ExecutionService {
   }
 
   @override
-  String get testResultDecoration => '''
-void _result(bool success, [List<String> messages = const []]) {
-  // Join messages into a comma-separated list for inclusion in the JSON array.
-  final joinedMessages = 
-      messages.map((m) => '"\${m.replaceAll('"', '\\\\"')}"').join(',');
-  print('$testKey{"success": \$success, "messages": [\$joinedMessages]}');
-}
-
-// Ensure we have at least one use of `_result`.
-var resultFunction = _result;
-
-// Placeholder for unimplemented methods in dart-pad exercises.
-// ignore: non_constant_identifier_names
-Never TODO([String message = '']) => throw UnimplementedError(message);
-''';
+  String get testResultDecoration => frameTestResultDecoration;
 
   String _decorateJavaScript(
     String javaScript, {
