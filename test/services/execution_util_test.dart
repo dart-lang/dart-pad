@@ -33,7 +33,7 @@ Never TODO([String message = '']) => throw UnimplementedError(message);
     });
 
     test('frameTestResultDecoration functions as expected', () {
-      final uri = Uri.dataFromString(
+      final codeWithResultInserted = Uri.dataFromString(
         '''
 import 'dart:async';
 import 'dart:isolate';
@@ -59,7 +59,8 @@ void main(List<String> args, SendPort sendPort) {
 
       expect(() async {
         final receivePort = ReceivePort();
-        await Isolate.spawnUri(uri, [], receivePort.sendPort);
+        await Isolate.spawnUri(
+            codeWithResultInserted, [], receivePort.sendPort);
         print(await receivePort.first);
         receivePort.close();
       },
