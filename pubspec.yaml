@@ -25,7 +25,7 @@ dependencies:
 
 dev_dependencies:
   angel3_mock_request: ^7.0.1
-  async: ^2.10.0
+  async: ^2.11.0
   build_runner: ^2.3.3
   coverage: ^1.6.3
   dart_flutter_team_lints: ^1.0.0
