@@ -237,7 +237,7 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
     }
   }
 
-  // Make sure flutter-sdk/bin/cache/flutter_web_sdk/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
+  // Make sure flutter-sdk/<channel>/bin/cache/flutter_web_sdk/kernel/flutter_ddc_sdk.dill
   // is installed.
   await _run(
     sdk.flutterToolPath,

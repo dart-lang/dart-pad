@@ -84,8 +84,17 @@ class Sdk {
   /// The path to the 'flutter' tool (binary).
   String get flutterToolPath => path.join(_flutterBinPath, 'flutter');
 
-  String get flutterWebSdkPath => path.join(
-      _flutterBinPath, 'cache', 'flutter_web_sdk', 'flutter_web_sdk', 'kernel');
+  String get flutterWebSdkPath {
+    // The Flutter web SDK path changed. The SDK version test here will go
+    // through the master, beta, stable, then old waterfall. Well, the last step
+    // is the removal of this test, but you get the idea.
+    if (masterChannel) {
+      return path.join(_flutterBinPath, 'cache', 'flutter_web_sdk', 'kernel');
+    }
+
+    return path.join(_flutterBinPath, 'cache', 'flutter_web_sdk',
+        'flutter_web_sdk', 'kernel');
+  }
 
   static String _readVersionFile(String filePath) =>
       (File(path.join(filePath, 'version')).readAsStringSync()).trim();
