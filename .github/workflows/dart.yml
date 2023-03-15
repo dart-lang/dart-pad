@@ -17,7 +17,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sdk: [stable, beta]
+        include:
+          - sdk: beta
+            # Allow skipping until we support Dart 3:
+            # https://github.com/dart-lang/dart-pad/issues/2467
+            experimental: true
+          - sdk: stable
+            experimental: false
 
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c
@@ -45,4 +51,5 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.pub-cache/bin
           dart pub global activate protoc_plugin
-          dart tool/grind.dart buildbot
+          dart run tool/grind.dart buildbot
+        continue-on-error: ${{ matrix.experimental }}
