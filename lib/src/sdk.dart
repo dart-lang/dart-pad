@@ -88,7 +88,7 @@ class Sdk {
     // The Flutter web SDK path changed. The SDK version test here will go
     // through the master, beta, stable, then old waterfall. Well, the last step
     // is the removal of this test, but you get the idea.
-    if (masterChannel) {
+    if (masterChannel || betaChannel) {
       return path.join(_flutterBinPath, 'cache', 'flutter_web_sdk', 'kernel');
     }
 
