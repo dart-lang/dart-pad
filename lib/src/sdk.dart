@@ -50,7 +50,8 @@ class Sdk {
 
   // Experiments that this SDK is configured with
   List<String> get experiments {
-    if (masterChannel) return ['records', 'patterns'];
+    // Waiting for the next experiment.
+    // if (masterChannel) return ['records', 'patterns'];
     return [];
   }
 
