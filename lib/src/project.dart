@@ -95,6 +95,7 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'flutter_map',
       'flutter_processing',
       'flutter_riverpod',
+      'flutter_svg',
       'go_router',
       'google_fonts',
       'hooks_riverpod',
@@ -102,7 +103,7 @@ Set<String> supportedFlutterPackages({required bool devMode}) => {
       'riverpod_navigator',
       'shared_preferences',
       'video_player',
-      if (devMode) ...['flutter_svg'],
+      if (devMode) ...[],
     };
 
 /// The set of packages which indicate that Flutter Web is being used.
@@ -136,13 +137,14 @@ Set<String> supportedBasicDartPackages({required bool devMode}) => {
       'quiver',
       'riverpod',
       'rohd',
+      'rohd_vf',
       'rxdart',
       'timezone',
       'tuple',
       'vector_math',
       'yaml',
       'yaml_edit',
-      if (devMode) ...['rohd_vf']
+      if (devMode) ...[]
     };
 
 /// A set of all allowed `dart:` imports. Currently includes non-VM libraries
