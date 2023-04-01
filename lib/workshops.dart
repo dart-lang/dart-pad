@@ -592,6 +592,7 @@ class WorkshopUi extends EditorUi {
       solutionShownThisStep = true;
       editor.document.updateValue(solution);
       showSolutionButton.disabled = true;
+      showSolutionButton.textColor = 'white';
     }
   }
 
