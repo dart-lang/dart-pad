@@ -111,6 +111,10 @@ class DButton extends DElement {
   set disabled(bool value) {
     buttonElement.disabled = value;
   }
+
+  set textColor(String color) {
+    buttonElement.style.color = 'white';
+  }
 }
 
 class DSplash extends DElement {
