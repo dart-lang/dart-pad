@@ -180,6 +180,7 @@ class WorkshopUi extends EditorUi {
       if (solutionShownThisStep) {
         // Enable the show solution button
         showSolutionButton.disabled = false;
+        showSolutionButton.textColor = 'blue';
       }
 
       // The redo button shows the user's edits again if they have previously
@@ -204,6 +205,7 @@ class WorkshopUi extends EditorUi {
         revertButton.setAttr('hidden', 'true');
         if (solutionShownThisStep) {
           showSolutionButton.disabled = false;
+          showSolutionButton.textColor = 'blue';
         }
       }
       redoButton.setAttr('hidden', 'true');
@@ -439,6 +441,7 @@ class WorkshopUi extends EditorUi {
       showSolutionButton.element.style.visibility = null;
     }
     showSolutionButton.disabled = false;
+    showSolutionButton.textColor = 'blue';
     solutionShownThisStep = false;
   }
 
