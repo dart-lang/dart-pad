@@ -197,7 +197,7 @@ abstract class EditorUi {
   Future<bool> handleRun() async {
     ga.sendEvent('main', 'run');
     runButton.disabled = true;
-
+    runButton.textColor = 'white';
     final compilationTimer = Stopwatch()..start();
     final compileRequest = CompileRequest()..source = fullDartSource;
 
@@ -250,6 +250,7 @@ abstract class EditorUi {
       return false;
     } finally {
       runButton.disabled = false;
+      runButton.textColor = 'blue';
     }
   }
 
