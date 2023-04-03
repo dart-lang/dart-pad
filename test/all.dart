@@ -7,6 +7,7 @@ library dart_pad.all_test;
 import 'core/dependencies_test.dart' as dependencies_test;
 import 'elements/bind_test.dart' as bind_test;
 import 'services/common_test.dart' as common_test;
+import 'services/execution_util_test.dart' as execution_util_test;
 
 void main() => defineTests();
 
@@ -14,4 +15,5 @@ void defineTests() {
   dependencies_test.defineTests();
   bind_test.defineTests();
   common_test.defineTests();
+  execution_util_test.defineTests();
 }
