@@ -3,7 +3,7 @@ description: The UI client for a web based interactive Dart service.
 publish_to: none
 
 environment:
-  sdk: '>=2.18.0 <3.0.0'
+  sdk: '>=2.19.0 <3.0.0'
 
 dependencies:
   async: ^2.9.0
@@ -17,7 +17,7 @@ dependencies:
   js: ^0.6.4
   json_annotation: ^4.5.0
   logging: ^1.0.0
-  markdown: ^6.0.0
+  markdown: ^7.0.1
   mdc_web: ^0.6.0
   meta: ^1.8.0
   protobuf: ^2.0.0
