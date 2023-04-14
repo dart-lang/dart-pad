@@ -98,7 +98,7 @@ class Sdk {
   }
 
   static String _readVersionFile(String filePath) =>
-      (File(path.join(filePath, 'version')).readAsStringSync()).trim();
+      File(path.join(filePath, 'version')).readAsStringSync().trim();
 
   /// Get the path to the Flutter SDKs.
   static String get _flutterSdksPath =>
