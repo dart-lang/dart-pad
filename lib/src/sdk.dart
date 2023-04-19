@@ -104,11 +104,8 @@ class Sdk {
         'flutter_web_sdk', 'kernel');
   }
 
-  static String _readFile(String filePath) =>
-      File(filePath).readAsStringSync().trim();
-
   static String _readVersionFile(String filePath) =>
-      File(path.join(filePath, 'version')).readAsStringSync().trim();
+      _readFile(path.join(filePath, 'version'));
 
   /// Get the path to the Flutter SDKs.
   static String get _flutterSdksPath =>
@@ -216,11 +213,9 @@ class _DownloadedFlutterSdk {
 
   String get sdkPath => path.join(flutterSdkPath, 'bin', 'cache', 'dart-sdk');
 
-  String get versionFull =>
-      File(path.join(sdkPath, 'version')).readAsStringSync().trim();
+  String get versionFull => _readFile(path.join(sdkPath, 'version'));
 
-  String get flutterVersion =>
-      File(path.join(flutterSdkPath, 'version')).readAsStringSync().trim();
+  String get flutterVersion => _readFile(path.join(flutterSdkPath, 'version'));
 
   /// Perform a git clone, logging the command and any output, and throwing an
   /// exception if there are any issues with the clone.
@@ -304,3 +299,5 @@ class _DownloadedFlutterSdk {
     return code;
   }
 }
+
+String _readFile(String filePath) => File(filePath).readAsStringSync().trim();
