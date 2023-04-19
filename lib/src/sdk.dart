@@ -27,6 +27,9 @@ class Sdk {
 
   final String flutterVersion;
 
+  /// The current version of the Flutter engine
+  final String engineVersion;
+
   /// The current version of the SDK, not including any `-dev` suffix.
   final String version;
 
@@ -59,12 +62,15 @@ class Sdk {
     final sdkPath = path.join(Sdk._flutterSdksPath, channel);
     final flutterBinPath = path.join(sdkPath, 'bin');
     final dartSdkPath = path.join(flutterBinPath, 'cache', 'dart-sdk');
+    final engineVersionPath =
+        path.join(flutterBinPath, 'internal', 'engine.version');
     return _instance ??= Sdk._(
       sdkPath: sdkPath,
       flutterBinPath: flutterBinPath,
       dartSdkPath: dartSdkPath,
       versionFull: _readVersionFile(dartSdkPath),
       flutterVersion: _readVersionFile(sdkPath),
+      engineVersion: _readFile(engineVersionPath),
       channel: channel,
     );
   }
@@ -75,6 +81,7 @@ class Sdk {
     required this.dartSdkPath,
     required this.versionFull,
     required this.flutterVersion,
+    required this.engineVersion,
     required String channel,
   })  : _flutterBinPath = flutterBinPath,
         _channel = channel,
@@ -96,6 +103,9 @@ class Sdk {
     return path.join(_flutterBinPath, 'cache', 'flutter_web_sdk',
         'flutter_web_sdk', 'kernel');
   }
+
+  static String _readFile(String filePath) =>
+      File(filePath).readAsStringSync().trim();
 
   static String _readVersionFile(String filePath) =>
       File(path.join(filePath, 'version')).readAsStringSync().trim();
