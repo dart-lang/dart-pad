@@ -20,6 +20,7 @@ dependencies:
   markdown: ^7.0.1
   mdc_web: ^0.6.0
   meta: ^1.8.0
+  path: ^1.8.0
   protobuf: ^2.1.0
   # ^2.1.5 is no longer compatible with our overridden sass version
   # https://github.com/dart-lang/dart-pad/issues/2388
