@@ -2444,12 +2444,6 @@ class VersionResponse extends $pb.GeneratedMessage {
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
             ? ''
             : 'experiment')
-    ..aOS(
-        12,
-        const $core.bool.fromEnvironment('protobuf.omit_field_names')
-            ? ''
-            : 'flutterEngineSha',
-        protoName: 'flutterEngineSha')
     ..aOM<ErrorMessage>(
         99,
         const $core.bool.fromEnvironment('protobuf.omit_field_names')
@@ -2471,7 +2465,6 @@ class VersionResponse extends $pb.GeneratedMessage {
     $core.Map<$core.String, $core.String>? packageVersions,
     $core.Iterable<PackageInfo>? packageInfo,
     $core.Iterable<$core.String>? experiment,
-    $core.String? flutterEngineSha,
     ErrorMessage? error,
   }) {
     final _result = create();
@@ -2507,9 +2500,6 @@ class VersionResponse extends $pb.GeneratedMessage {
     }
     if (experiment != null) {
       _result.experiment.addAll(experiment);
-    }
-    if (flutterEngineSha != null) {
-      _result.flutterEngineSha = flutterEngineSha;
     }
     if (error != null) {
       _result.error = error;
@@ -2648,31 +2638,19 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(11)
   $core.List<$core.String> get experiment => $_getList(10);
 
-  @$pb.TagNumber(12)
-  $core.String get flutterEngineSha => $_getSZ(11);
-  @$pb.TagNumber(12)
-  set flutterEngineSha($core.String v) {
-    $_setString(11, v);
-  }
-
-  @$pb.TagNumber(12)
-  $core.bool hasFlutterEngineSha() => $_has(11);
-  @$pb.TagNumber(12)
-  void clearFlutterEngineSha() => clearField(12);
-
   @$pb.TagNumber(99)
-  ErrorMessage get error => $_getN(12);
+  ErrorMessage get error => $_getN(11);
   @$pb.TagNumber(99)
   set error(ErrorMessage v) {
     setField(99, v);
   }
 
   @$pb.TagNumber(99)
-  $core.bool hasError() => $_has(12);
+  $core.bool hasError() => $_has(11);
   @$pb.TagNumber(99)
   void clearError() => clearField(99);
   @$pb.TagNumber(99)
-  ErrorMessage ensureError() => $_ensure(12);
+  ErrorMessage ensureError() => $_ensure(11);
 }
 
 class PackageInfo extends $pb.GeneratedMessage {
