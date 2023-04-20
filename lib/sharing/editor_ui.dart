@@ -262,8 +262,8 @@ abstract class EditorUi {
       final response = await dartServices.version();
 
       // Update the version information for this editor.
-      version = Version(response.flutterDartVersion,
-          response.flutterVersion, response.flutterEngineSha);
+      version = Version(response.flutterDartVersion, response.flutterVersion,
+          response.flutterEngineSha);
 
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
       final versionText = 'Based on Flutter ${response.flutterVersion}'
