@@ -35,6 +35,7 @@ abstract class ExecutionService {
     bool addRequireJs = false,
     bool addFirebaseJs = false,
     bool destroyFrame = false,
+    String canvasKitBaseUrl,
   });
 
   void replaceHtml(String html);
