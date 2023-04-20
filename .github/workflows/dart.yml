@@ -28,12 +28,6 @@ jobs:
         run: sudo apt-get install -y protobuf-compiler redis
       - name: Install dependencies
         run: dart pub get
-      - name: Analyze code (example/)
-        run: |
-          cd example
-          echo [Analyzing example]
-          dart pub get
-          dart analyze --fatal-infos .
       - name: Analyze code
         run: dart analyze --fatal-infos .
       - name: Prepare Flutter
