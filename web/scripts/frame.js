@@ -83,9 +83,14 @@ messageHandler = function (e) {
         //
         // See also:
         // https://github.com/flutter/engine/blob/master/lib/web_ui/lib/src/engine/configuration.dart
-        if (obj.canvasKitBaseUrl) {
+        if (obj.canvasKitBaseUrl && !obj.useLegacyCanvasKit) {
             window.flutterConfiguration = {
                 canvasKitBaseUrl: obj.canvasKitBaseUrl
+            };
+        } else {
+            // Use legacy CanvasKit URL
+            window.flutterConfiguration = {
+                canvasKitBaseUrl: "https://unpkg.com/canvaskit-wasm@0.37.1/bin/"
             };
         }
 

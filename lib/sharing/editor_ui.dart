@@ -5,6 +5,7 @@ import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart' as semver;
 
 import '../context.dart';
 import '../dart_pad.dart';
@@ -225,6 +226,7 @@ abstract class EditorUi {
             // TODO(ryjohn) Determine how to preserve the iframe
             // https://github.com/dart-lang/dart-pad/issues/2269
             destroyFrame: true,
+            useLegacyCanvasKit: _shouldUseLegacyCanvasKit(version.flutterSdkVersion),
             canvasKitBaseUrl: _createCanvasKitBaseUrl(version.engineVersion));
       } else {
         final response = await dartServices
@@ -303,6 +305,13 @@ abstract class EditorUi {
   static String _createCanvasKitBaseUrl(String engineSha) {
     const baseUrl = 'https://www.gstatic.com/flutter-canvaskit/';
     return path.join(baseUrl, '$engineSha/');
+  }
+
+  // A new URL for CanvasKit was introduced in 3.10, use the legacy
+  // version if the Flutter version is older than that.
+  static bool _shouldUseLegacyCanvasKit(String flutterVersion) {
+    final version = semver.Version.parse(flutterVersion);
+    return version.major == 3 && version.minor < 10;
   }
 }
 

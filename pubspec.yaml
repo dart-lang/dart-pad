@@ -22,6 +22,7 @@ dependencies:
   meta: ^1.8.0
   path: ^1.8.0
   protobuf: ^2.1.0
+  pub_semver: ^2.1.0
   # ^2.1.5 is no longer compatible with our overridden sass version
   # https://github.com/dart-lang/dart-pad/issues/2388
   sass_builder: 2.1.4
