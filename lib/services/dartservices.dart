@@ -79,7 +79,7 @@ class DartservicesApi {
     );
     final jsonBody = json.decode(response.body);
     result
-      ..mergeFromProto3Json(jsonBody)
+      ..mergeFromProto3Json(jsonBody, ignoreUnknownFields: true)
       ..freeze();
 
     // 99 is the tag number for error message.
