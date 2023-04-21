@@ -226,7 +226,8 @@ abstract class EditorUi {
             // TODO(ryjohn) Determine how to preserve the iframe
             // https://github.com/dart-lang/dart-pad/issues/2269
             destroyFrame: true,
-            useLegacyCanvasKit: _shouldUseLegacyCanvasKit(version.flutterSdkVersion),
+            useLegacyCanvasKit:
+                _shouldUseLegacyCanvasKit(version.flutterSdkVersion),
             canvasKitBaseUrl: _createCanvasKitBaseUrl(version.engineVersion));
       } else {
         final response = await dartServices
