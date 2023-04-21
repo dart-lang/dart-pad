@@ -237,6 +237,9 @@ message VersionResponse {
   // Experiments that this server is running
   repeated string experiment = 11;
 
+  // The Flutter engine SHA, located in bin/internal/engine.version.
+  string flutterEngineSha = 12;
+
   // Make this response compatible with BadRequest
   ErrorMessage error = 99;
 }

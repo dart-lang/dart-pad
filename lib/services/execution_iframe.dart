@@ -45,6 +45,8 @@ class ExecutionServiceIFrame implements ExecutionService {
     bool addRequireJs = false,
     bool addFirebaseJs = false,
     bool destroyFrame = false,
+    bool useLegacyCanvasKit = false,
+    String? canvasKitBaseUrl,
   }) async {
     if (destroyFrame) {
       await _reset();
@@ -57,6 +59,8 @@ class ExecutionServiceIFrame implements ExecutionService {
       'addRequireJs': addRequireJs,
       'addFirebaseJs': addFirebaseJs,
       'destroyFrame': destroyFrame,
+      'useLegacyCanvasKit': useLegacyCanvasKit,
+      'canvasKitBaseUrl': canvasKitBaseUrl,
     });
   }
 
@@ -205,7 +209,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   @override
   Stream<TestResult> get testResults => _testResultsController.stream;
 
-  Future<void> _send(String command, Map<String, Object> params) {
+  Future<void> _send(String command, Map<String, Object?> params) {
     final message = {
       'command': command,
       ...params,

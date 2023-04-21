@@ -74,6 +74,26 @@ messageHandler = function (e) {
         // Replace HTML, CSS, possible Firebase JS, RequireJS, and app.
         body.innerHTML = obj.html;
         document.getElementById('styleId').innerHTML = obj.css;
+
+        // Flutter 3.10 doesn't use `unpkg.com` to load CanvasKit anymore, so
+        // this sets the base URL to load CanvasKit from.
+        //
+        // The web engine appends "chromium/canvaskit.js" to this string to
+        // load CanvasKit.
+        //
+        // See also:
+        // https://github.com/flutter/engine/blob/master/lib/web_ui/lib/src/engine/configuration.dart
+        if (obj.canvasKitBaseUrl && !obj.useLegacyCanvasKit) {
+            window.flutterConfiguration = {
+                canvasKitBaseUrl: obj.canvasKitBaseUrl
+            };
+        } else {
+            // Use legacy CanvasKit URL
+            window.flutterConfiguration = {
+                canvasKitBaseUrl: "https://unpkg.com/canvaskit-wasm@0.37.1/bin/"
+            };
+        }
+
         if (obj.addRequireJs) {
             executeWithRequireJs(obj.js);
         } else {

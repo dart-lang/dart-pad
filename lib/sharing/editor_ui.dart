@@ -4,6 +4,8 @@ import 'dart:html';
 import 'package:logging/logging.dart';
 import 'package:mdc_web/mdc_web.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
+import 'package:pub_semver/pub_semver.dart' as semver;
 
 import '../context.dart';
 import '../dart_pad.dart';
@@ -29,6 +31,10 @@ abstract class EditorUi {
   late final Editor editor;
   late final MDCButton runButton;
   late final ExecutionService executionService;
+
+  /// The current SDK versions being used to compile Dart / Flutter code.
+  /// This value changes when the `updateVersions()` method is called.
+  late Version version;
 
   /// The dialog box for information like pub package versions.
   final Dialog dialog = Dialog();
@@ -211,18 +217,18 @@ abstract class EditorUi {
         clearOutput();
 
         await executionService.execute(
-          context.htmlSource,
-          context.cssSource,
-          response.result,
-          modulesBaseUrl: response.modulesBaseUrl,
-          addRequireJs: true,
-          addFirebaseJs: shouldAddFirebaseJs,
-          // TODO(srawlins): Determine if we need to destroy the frame when
-          // changing channels.
-          // TODO(ryjohn) Determine how to preserve the iframe
-          // https://github.com/dart-lang/dart-pad/issues/2269
-          destroyFrame: true,
-        );
+            context.htmlSource, context.cssSource, response.result,
+            modulesBaseUrl: response.modulesBaseUrl,
+            addRequireJs: true,
+            addFirebaseJs: shouldAddFirebaseJs,
+            // TODO(srawlins): Determine if we need to destroy the frame when
+            // changing channels.
+            // TODO(ryjohn) Determine how to preserve the iframe
+            // https://github.com/dart-lang/dart-pad/issues/2269
+            destroyFrame: true,
+            useLegacyCanvasKit:
+                _shouldUseLegacyCanvasKit(version.flutterSdkVersion),
+            canvasKitBaseUrl: _createCanvasKitBaseUrl(version.engineVersion));
       } else {
         final response = await dartServices
             .compile(compileRequest)
@@ -257,6 +263,11 @@ abstract class EditorUi {
   Future<void> updateVersions() async {
     try {
       final response = await dartServices.version();
+
+      // Update the version information for this editor.
+      version = Version(response.flutterDartVersion, response.flutterVersion,
+          response.flutterEngineSha);
+
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
       final versionText = 'Based on Flutter ${response.flutterVersion}'
           ' Dart SDK ${response.sdkVersionFull}';
@@ -291,12 +302,25 @@ abstract class EditorUi {
       editor.resize();
     }).observe(element);
   }
+
+  static String _createCanvasKitBaseUrl(String engineSha) {
+    const baseUrl = 'https://www.gstatic.com/flutter-canvaskit/';
+    return path.join(baseUrl, '$engineSha/');
+  }
+
+  // A new URL for CanvasKit was introduced in 3.10, use the legacy
+  // version if the Flutter version is older than that.
+  static bool _shouldUseLegacyCanvasKit(String flutterVersion) {
+    final version = semver.Version.parse(flutterVersion);
+    return version.major == 3 && version.minor < 10;
+  }
 }
 
 class Channel {
   final String name;
   final String dartVersion;
   final String flutterVersion;
+  final String engineVersion;
   final bool hidden;
 
   /// SDK experiment flags enabled for this channel.
@@ -316,6 +340,7 @@ class Channel {
       flutterVersion: versionResponse.flutterVersion,
       hidden: hidden,
       experiments: versionResponse.experiment,
+      engineVersion: versionResponse.flutterEngineSha,
     );
   }
 
@@ -331,6 +356,7 @@ class Channel {
     required this.name,
     required this.dartVersion,
     required this.flutterVersion,
+    required this.engineVersion,
     required this.hidden,
     required this.experiments,
   });
@@ -400,4 +426,12 @@ class KeyboardDialog {
       return v;
     });
   }
+}
+
+class Version {
+  final String dartSdkVersion;
+  final String flutterSdkVersion;
+  final String engineVersion;
+
+  Version(this.dartSdkVersion, this.flutterSdkVersion, this.engineVersion);
 }
