@@ -113,7 +113,7 @@ class DButton extends DElement {
   }
 
   set textColor(String color) {
-    buttonElement.style.color = 'white';
+    buttonElement.style.color = color;
   }
 }
 
