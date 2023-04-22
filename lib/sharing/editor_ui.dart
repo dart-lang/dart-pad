@@ -269,9 +269,9 @@ abstract class EditorUi {
           response.flutterEngineSha);
 
       // "Based on Flutter 1.19.0-4.1.pre Dart SDK 2.8.4"
-      final versionText = 'Based on Flutter ${response.flutterVersion}'
+      querySelector('#dartpad-version')?.text =
+          'Based on Flutter ${response.flutterVersion}'
           ' Dart SDK ${response.sdkVersionFull}';
-      querySelector('#dartpad-version')!.text = versionText;
       if (response.packageVersions.isNotEmpty) {
         _packageInfo.clear();
         _packageInfo.addAll(response.packageInfo);

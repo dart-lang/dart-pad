@@ -483,6 +483,8 @@ class Embed extends EditorUi {
       dartServices.rootUrl = Channel.urlMapping[channel]!;
     }
 
+    updateVersions();
+
     context = EmbedContext(editor, !_editableTestSolution);
 
     editorFactory.registerCompleter(
