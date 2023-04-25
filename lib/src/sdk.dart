@@ -51,11 +51,10 @@ class Sdk {
   // Which channel is this SDK?
   final String _channel;
 
-  // Experiments that this SDK is configured with
+  /// Experiments that this SDK is configured with
   List<String> get experiments {
-    // Waiting for the next experiment.
-    // if (masterChannel) return ['records', 'patterns'];
-    return [];
+    if (masterChannel) return const ['inline-class'];
+    return const [];
   }
 
   factory Sdk.create(String channel) {
