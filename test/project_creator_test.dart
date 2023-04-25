@@ -49,10 +49,11 @@ void defineTests() {
       await d.dir('project_templates', [
         d.dir('dart_project', [
           d.file(
-              'pubspec.yaml',
-              allOf([
-                matches("sdk: '>=$languageVersion <3.0.0'"),
-              ])),
+            'pubspec.yaml',
+            allOf([
+              matches('sdk: $languageVersion'),
+            ]),
+          ),
         ]),
       ]).validate();
     });
@@ -66,8 +67,10 @@ void defineTests() {
     test('recommended lints are enabled', () async {
       await d.dir('project_templates', [
         d.dir('dart_project', [
-          d.file('analysis_options.yaml',
-              matches('include: package:lints/recommended.yaml')),
+          d.file(
+            'analysis_options.yaml',
+            matches('include: package:lints/recommended.yaml'),
+          ),
         ]),
       ]).validate();
     });
@@ -98,11 +101,12 @@ void defineTests() {
       await d.dir('project_templates', [
         d.dir('flutter_project', [
           d.file(
-              'pubspec.yaml',
-              allOf([
-                matches("sdk: '>=$languageVersion <3.0.0'"),
-                matches('sdk: flutter'),
-              ])),
+            'pubspec.yaml',
+            allOf([
+              matches('sdk: $languageVersion'),
+              matches('sdk: flutter'),
+            ]),
+          ),
         ]),
       ]).validate();
     });
@@ -116,8 +120,10 @@ void defineTests() {
     test('flutter lints are enabled', () async {
       await d.dir('project_templates', [
         d.dir('flutter_project', [
-          d.file('analysis_options.yaml',
-              matches('include: package:flutter_lints/flutter.yaml')),
+          d.file(
+            'analysis_options.yaml',
+            matches('include: package:flutter_lints/flutter.yaml'),
+          ),
         ]),
       ]).validate();
     });
@@ -125,8 +131,10 @@ void defineTests() {
     test('plugins are registered', () async {
       await d.dir('project_templates', [
         d.dir('flutter_project/lib', [
-          d.file('generated_plugin_registrant.dart',
-              matches('FirebaseCoreWeb.registerWith')),
+          d.file(
+            'generated_plugin_registrant.dart',
+            matches('FirebaseCoreWeb.registerWith'),
+          ),
         ]),
       ]).validate();
     });
@@ -157,11 +165,12 @@ void defineTests() {
       await d.dir('project_templates', [
         d.dir('firebase_project', [
           d.file(
-              'pubspec.yaml',
-              allOf([
-                matches("sdk: '>=$languageVersion <3.0.0'"),
-                matches('sdk: flutter'),
-              ])),
+            'pubspec.yaml',
+            allOf([
+              matches('sdk: $languageVersion'),
+              matches('sdk: flutter'),
+            ]),
+          ),
         ]),
       ]).validate();
     });
@@ -175,8 +184,10 @@ void defineTests() {
     test('flutter lints are enabled', () async {
       await d.dir('project_templates', [
         d.dir('firebase_project', [
-          d.file('analysis_options.yaml',
-              matches('include: package:flutter_lints/flutter.yaml')),
+          d.file(
+            'analysis_options.yaml',
+            matches('include: package:flutter_lints/flutter.yaml'),
+          ),
         ]),
       ]).validate();
     });
