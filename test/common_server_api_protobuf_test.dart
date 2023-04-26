@@ -71,11 +71,11 @@ void defineTests() {
   }
 
   group('CommonServerProto JSON', () {
+    final sdk =
+        Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
     setUpAll(() async {
       final container = MockContainer();
       final cache = MockCache();
-      final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
-      final sdk = Sdk.create(channel);
       commonServerImpl = CommonServerImpl(container, cache, sdk);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
@@ -377,7 +377,11 @@ main() {
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.AssistsResponse()..mergeFromProto3Json(data);
       final assists = reply.assists;
-      expect(assists, hasLength(2));
+      if (sdk.masterChannel) {
+        expect(assists, hasLength(3));
+      } else {
+        expect(assists, hasLength(2));
+      }
       expect(assists.first.edits, isNotNull);
       expect(assists.first.edits, hasLength(1));
       expect(
@@ -408,11 +412,11 @@ main() {
   //-----------------------------------------------------------------
   // Beginning of multi file files={} group tests:
   group('CommonServerProto JSON Multi File Group files={}', () {
+    final sdk =
+        Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
     setUpAll(() async {
       final container = MockContainer();
       final cache = MockCache();
-      final channel = Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel;
-      final sdk = Sdk.create(channel);
       commonServerImpl = CommonServerImpl(container, cache, sdk);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
@@ -723,7 +727,11 @@ main() {
       final data = json.decode(await response.transform(utf8.decoder).join());
       final reply = proto.AssistsResponse()..mergeFromProto3Json(data);
       final assists = reply.assists;
-      expect(assists, hasLength(2));
+      if (sdk.masterChannel) {
+        expect(assists, hasLength(3));
+      } else {
+        expect(assists, hasLength(2));
+      }
       expect(assists.first.edits, isNotNull);
       expect(assists.first.edits, hasLength(1));
       expect(
