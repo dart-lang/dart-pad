@@ -8,7 +8,7 @@ environment:
 dependencies:
   async: ^2.9.0
   checked_yaml: ^2.0.0
-  codemirror: ^0.7.6+5.65.5
+  codemirror: ^0.7.10+5.65.13
   collection: ^1.16.0
   encrypt: ^5.0.1
   fluttering_phrases: ^0.4.0
