@@ -12,6 +12,9 @@ analyzer:
     - "web/example/workshops/**"
   errors:
     lines_longer_than_80_chars: ignore
+    # TODO: Remove these ignores once dart-lang/dart-pad/issues/2467 is addressed.
+    unnecessary_lambdas: ignore
+    unnecessary_parenthesis: ignore
 
 linter:
   rules:
