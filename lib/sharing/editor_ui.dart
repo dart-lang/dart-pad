@@ -59,9 +59,7 @@ abstract class EditorUi {
   @mustCallSuper
   void initKeyBindings() {
     keys.bind(['ctrl-enter', 'macctrl-enter'], handleRun, 'Run');
-    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], () {
-      showKeyboardDialog();
-    }, 'Keyboard Shortcuts');
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], showKeyboardDialog, 'Keyboard Shortcuts');
 
     _initEscapeTabSwitching();
   }
@@ -384,20 +382,20 @@ class KeyboardDialog {
 
   Future<DialogResult> show(Editor editor) {
     // populate with the keymap info
-    final DElement keyMapInfoDiv =
+    final keyMapInfoDiv =
         DElement(querySelector('#keyboard-map-info')!);
-    final Element info = Element.html(keyMapToHtml(keys.inverseBindings));
+    final info = Element.html(keyMapToHtml(keys.inverseBindings));
     keyMapInfoDiv.clearChildren();
     keyMapInfoDiv.add(info);
 
     // set switch according to keyboard state
-    final String currentKeyMap = editor.keyMap;
+    final currentKeyMap = editor.keyMap;
     _vimSwitch.checked = (currentKeyMap == 'vim');
 
     final completer = Completer<DialogResult>();
 
     final okButtonSub = _okButton.onClick.listen((_) {
-      final bool vimSet = _vimSwitch.checked!;
+      final vimSet = _vimSwitch.checked!;
 
       // change keyMap if needed and *remember* their choice for next startup
       if (vimSet) {

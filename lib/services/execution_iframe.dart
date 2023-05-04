@@ -29,7 +29,7 @@ class ExecutionServiceIFrame implements ExecutionService {
   ExecutionServiceIFrame(this._frame) {
     final src = _frame.src;
     if (src == null) {
-      throw ('invalid iframe src');
+      throw StateError('invalid iframe src');
     }
     _frameSrc = src;
 
@@ -241,7 +241,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   void _initListener() {
     window.addEventListener('message', (event) {
       if (event is MessageEvent) {
-        final data = event.data;
+        final data = event.data as Map<String, dynamic>;
         if (data['sender'] != 'frame') {
           return;
         }

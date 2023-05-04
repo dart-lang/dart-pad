@@ -48,7 +48,7 @@ class Console {
     final DivElement div;
 
     // Check message for possible ANSI escape codes.
-    final int ansiSeqPos = message.indexOf('\u001B[');
+    final ansiSeqPos = message.indexOf('\u001B[');
     if (_ansiConsoleHandler.ansiStylesActive || ansiSeqPos != -1) {
       // We either have ansi styles active or there is a possible ansi escape
       // code in this message...
@@ -186,7 +186,7 @@ class AnsiConsoleHandler {
       [String? fgColor, String? bgColor, String? underColor]) {
     if (buffer.isEmpty) return;
 
-    final SpanElement span = SpanElement()..text = buffer;
+    final span = SpanElement()..text = buffer;
     span.classes.addAll(appendAnsiStyleClassNames);
     span.style.color = fgColor;
     span.style.backgroundColor = bgColor;
@@ -217,7 +217,7 @@ class AnsiConsoleHandler {
   /// Caller should check [_colorsInverted] flag to make sure it is appropriate
   /// to turn ON or OFF (if it is already inverted don't call.
   void reverseForegroundAndBackgroundColors() {
-    final String? oldFgColor = _customFgColor;
+    final oldFgColor = _customFgColor;
     changeSpecifiedCustomColor('foreground', null,
         _customBgColor); // We have strings already, so pass those.
     changeSpecifiedCustomColor('background', null, oldFgColor);
@@ -234,11 +234,11 @@ class AnsiConsoleHandler {
       // Converts to one of 216 RGB colors.
       ansiColorNumber -= 16;
 
-      num blue = ansiColorNumber % 6;
+      var blue = ansiColorNumber % 6;
       ansiColorNumber = (ansiColorNumber - blue) / 6;
-      num green = ansiColorNumber % 6;
+      var green = ansiColorNumber % 6;
       ansiColorNumber = (ansiColorNumber - green) / 6;
-      num red = ansiColorNumber;
+      var red = ansiColorNumber;
 
       // Red, green, blue now range on [0, 5], need to map to [0,255].
       const num convFactor = 255 / 5;
@@ -250,7 +250,7 @@ class AnsiConsoleHandler {
     } else if (ansiColorNumber >= 232 && ansiColorNumber <= 255) {
       // Converts to a grayscale value.
       ansiColorNumber -= 232;
-      final int colorLevel = (ansiColorNumber / 23 * 255).round();
+      final colorLevel = (ansiColorNumber / 23 * 255).round();
       return rgba(colorLevel, colorLevel, colorLevel);
     } else {
       return null;
@@ -309,7 +309,7 @@ class AnsiConsoleHandler {
     }
     if (colorIndex != null && colorType != null) {
       // Look up the color in our theme arrays.
-      final int? color =
+      final color =
           (colorIndex >= 0 && colorIndex <= _themeModeAnsiColors.length)
               ? _themeModeAnsiColors[colorIndex]
               : null;
@@ -335,7 +335,7 @@ class AnsiConsoleHandler {
 
     if (colorIndex != null) {
       // Look up the color in our theme arrays.
-      final int? color =
+      final color =
           (colorIndex >= 0 && colorIndex <= _themeModeAnsiColors.length)
               ? _themeModeAnsiColors[colorIndex]
               : null;
@@ -351,7 +351,7 @@ class AnsiConsoleHandler {
   /// See https://en.wikipedia.org/wiki/ANSI_escape_code#3-bit_and_4-bit
   /// for more info.
   void set8BitAnsiColor(List<int> styleCodes, String colorType) {
-    int colorNumber = styleCodes[2];
+    var colorNumber = styleCodes[2];
     if (colorNumber >= 0 && colorNumber <= 15) {
       // Need to map to one of the four basic color ranges (30-37, 90-97,
       // 40-47, 100-107) depending on if colorType is 'foreground' or
@@ -367,7 +367,7 @@ class AnsiConsoleHandler {
       setBasicAnsiColor(colorNumber, overrideColorType: colorType);
     } else {
       // This is colorNumber in the range 16-255.
-      final int? color = calcAnsi8bitColor(colorNumber);
+      final color = calcAnsi8bitColor(colorNumber);
       if (color != null) {
         changeSpecifiedCustomColor(colorType, color);
       }
@@ -387,7 +387,7 @@ class AnsiConsoleHandler {
   /// New colors and backgrounds clear old ones; new formatting does not.
   /// See https://en.wikipedia.org/wiki/ANSI_escape_code#SGR_(Select_Graphic_Rendition)_parameters
   void setBasicAnsiFormatters(final List<int> styleCodes) {
-    for (final int code in styleCodes) {
+    for (final code in styleCodes) {
       switch (code) {
         case 0: // reset
           ansiStyleClassNames.clear();
@@ -410,7 +410,7 @@ class AnsiConsoleHandler {
           break;
         case 4: // underline
           ansiStyleClassNames.removeWhere((style) =>
-              (style == 'ansi-underline' || style == 'ansi-double-underline'));
+              style == 'ansi-underline' || style == 'ansi-double-underline');
           ansiStyleClassNames.add('ansi-underline');
           break;
         case 5: //blink
@@ -461,7 +461,7 @@ class AnsiConsoleHandler {
           break;
         case 21: // make double underline
           ansiStyleClassNames.removeWhere((style) =>
-              (style == 'ansi-underline' || style == 'ansi-double-underline'));
+              style == 'ansi-underline' || style == 'ansi-double-underline');
           ansiStyleClassNames.add('ansi-double-underline');
           break;
         case 22: // bold and dim Off
@@ -543,9 +543,9 @@ class AnsiConsoleHandler {
   /// styles to be applied to this [message]).
   DivElement handleAnsiOutput(
       final String message, final int posOfFirstFoundESCBracket) {
-    String buffer = '';
-    final int textLength = message.length;
-    int currentPos = (posOfFirstFoundESCBracket != -1)
+    var buffer = '';
+    final textLength = message.length;
+    var currentPos = (posOfFirstFoundESCBracket != -1)
         ? posOfFirstFoundESCBracket
         : textLength;
 
@@ -556,14 +556,14 @@ class AnsiConsoleHandler {
     if (currentPos > 0) buffer = message.substring(0, currentPos);
 
     while (currentPos < textLength) {
-      bool sequenceFound = false;
+      var sequenceFound = false;
 
       if (message.codeUnitAt(currentPos) == 27 &&
           message[currentPos + 1] == '[') {
-        final int startPos = currentPos;
+        final startPos = currentPos;
         currentPos += 2; // Ignore 'Esc[' as it's in every sequence.
 
-        String ansiSequence = '';
+        var ansiSequence = '';
 
         while (currentPos < textLength) {
           final char = message[currentPos++];
@@ -580,7 +580,7 @@ class AnsiConsoleHandler {
           buffer = '';
 
           if (_ansiMatcher.hasMatch(ansiSequence)) {
-            final List<int> styleCodes = ansiSequence
+            final styleCodes = ansiSequence
                 .substring(
                     0, ansiSequence.length - 1) // Remove final 'm' character.
                 .split(';') // Separate style codes.
@@ -596,7 +596,7 @@ class AnsiConsoleHandler {
               // like simple colors can.
               // Ignores invalid colors and additional info beyond what is
               // necessary.
-              final String colorType = (styleCodes[0] == 38)
+              final colorType = (styleCodes[0] == 38)
                   ? 'foreground'
                   : ((styleCodes[0] == 48) ? 'background' : 'underline');
               if (styleCodes[1] == 5) {
@@ -629,10 +629,10 @@ class AnsiConsoleHandler {
     // This allows Console() calls to completely AVOID calling us if there
     // are no ANSI ESC codes present in incoming messages and there are NO
     // active ANSI styles to be applied.
-    ansiStylesActive = (ansiStyleClassNames.isNotEmpty ||
+    ansiStylesActive = ansiStyleClassNames.isNotEmpty ||
         _customFgColor != null ||
         _customBgColor != null ||
-        _customUnderlineColor != null);
+        _customUnderlineColor != null;
 
     return div;
   }

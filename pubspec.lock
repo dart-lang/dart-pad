@@ -249,6 +249,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.17.2"
+  dart_flutter_team_lints:
+    dependency: "direct dev"
+    description:
+      name: dart_flutter_team_lints
+      sha256: ef6a8c7c93481fa9341d7aebf18c58f94842c6fa47f0ad86c501660318b29b92
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.0"
   dart_style:
     dependency: transitive
     description:
@@ -402,7 +410,7 @@ packages:
     source: hosted
     version: "6.6.1"
   lints:
-    dependency: "direct dev"
+    dependency: transitive
     description:
       name: lints
       sha256: "5e4a9cd06d447758280a8ac2405101e0e2094d2a1dbdd3756aec3fe7775ba593"
@@ -777,4 +785,4 @@ packages:
     source: hosted
     version: "3.1.1"
 sdks:
-  dart: ">=2.19.0 <4.0.0"
+  dart: ">=3.0.0 <4.0.0"

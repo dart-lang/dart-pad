@@ -208,7 +208,7 @@ class WorkshopUi extends EditorUi {
       }
       redoButton.setAttr('hidden', 'true');
       // Current source is same as snippet, but maybe there is saved source to go back to ?
-      final String? usersWork =
+      final usersWork =
           _workshopStepStorage.loadStep(_workshopState.currentStepIndex);
       if (usersWork != null &&
           usersWork != _workshopState.currentStep.snippet &&
@@ -264,9 +264,7 @@ class WorkshopUi extends EditorUi {
       editor.showCompletions();
     }, 'Completion');
 
-    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
-      _format();
-    }, 'Format');
+    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], _format, 'Format');
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||
@@ -317,7 +315,7 @@ class WorkshopUi extends EditorUi {
   void _checkForInitialStepHash() {
     if (window.location.hash != '') {
       // force a hash event so it our hash handler can evaluate hash and jump to step
-      final String hash = window.location.hash;
+      final hash = window.location.hash;
       window.location.hash = '';
       window.location.hash = hash;
     }
@@ -342,10 +340,9 @@ class WorkshopUi extends EditorUi {
   void _initStepListener() {
     window.onHashChange.listen((event) {
       if (window.location.hash.toLowerCase().startsWith('#step')) {
-        final RegExpMatch? match =
-            parseNumberOutRegExp.firstMatch(window.location.hash);
+        final match = parseNumberOutRegExp.firstMatch(window.location.hash);
         if (match != null) {
-          num? stepNum = num.tryParse(match[1]!);
+          var stepNum = num.tryParse(match[1]!);
           if (stepNum != null &&
               stepNum >= 1 &&
               stepNum <= _workshopState.totalSteps) {
@@ -399,7 +396,7 @@ class WorkshopUi extends EditorUi {
           ..setAttr('hidden', 'true')
           ..onClick.listen((_) {
             // Go back to the users saved code.
-            final String? usersWork =
+            final usersWork =
                 _workshopStepStorage.loadStep(_workshopState.currentStepIndex);
             if (usersWork != null) {
               editor.document.updateValue(usersWork);
@@ -445,7 +442,7 @@ class WorkshopUi extends EditorUi {
   void _updateCode() {
     // Check for code in the local storage for this step, and
     // if found use that instead of snippet.
-    final String? usersWork =
+    final usersWork =
         _workshopStepStorage.loadStep(_workshopState.currentStepIndex);
     if (usersWork != null) {
       editor.document.updateValue(usersWork);
@@ -472,10 +469,10 @@ class WorkshopUi extends EditorUi {
   }
 
   void _buildStepsPopupMenu() {
-    final DivElement stepLabelContainer =
+    final stepLabelContainer =
         querySelector('#steps-menu-items')! as DivElement;
     stepLabelContainer.children = [];
-    for (int step = _workshopState.totalSteps; step > 0; step--) {
+    for (var step = _workshopState.totalSteps; step > 0; step--) {
       final stepmenuitem = AnchorElement()
         ..id = ('step-menu-$step')
         ..classes.add('step-menu-item')
@@ -512,7 +509,7 @@ class WorkshopUi extends EditorUi {
         path: ghPath,
       );
     }
-    throw ('Invalid parameters provided. Use either "webserver" or '
+    throw StateError('Invalid parameters provided. Use either "webserver" or '
         '"gh_owner", "gh_repo", "gh_ref", and "gh_path"');
   }
 
@@ -641,7 +638,7 @@ class WorkshopState {
 
   set currentStepIndex(int stepIndex) {
     if (stepIndex < 0 || stepIndex >= workshop.steps.length) {
-      throw ('Invalid step index: $stepIndex');
+      throw StateError('Invalid step index: $stepIndex');
     }
     _currentStepIndex = stepIndex;
     _controller.add(workshop.steps[stepIndex]);
@@ -697,9 +694,9 @@ class WorkshopStepStorage {
   }
 
   void saveStep(int stepNumber, String code) {
-    Map<String, dynamic> usersWorkshopSteps = {};
+    var usersWorkshopSteps = <String, dynamic>{};
     if (hasStoredWork) {
-      final String data = window.localStorage[_storedWorkshopId]!;
+      final data = window.localStorage[_storedWorkshopId]!;
       usersWorkshopSteps = json.decode(data) as Map<String, dynamic>;
     }
     usersWorkshopSteps[stepKey(stepNumber)] = code;

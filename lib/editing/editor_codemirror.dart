@@ -72,7 +72,7 @@ class CodeMirrorFactory extends EditorFactory {
   // (this gives us a more typical coding editor behavior)
   void _indentIfMultiLineSelectionElseInsertSoftTab(CodeMirror editor) {
     if (editor.doc.somethingSelected()) {
-      final String? selection = editor.doc.getSelection('\n');
+      final selection = editor.doc.getSelection('\n');
       if (selection != null && selection.contains('\n')) {
         // Multi-line selection
         editor.execCommand('indentMore');
@@ -214,7 +214,7 @@ class _CodeMirrorEditor extends Editor {
   @override
   Map<String, dynamic> startSearch(String query, bool reverse,
       bool highlightOnly, bool matchCase, bool wholeWord, bool regEx) {
-    final JsObject? jsobj = cm.callArgs('searchFromDart', [
+    final jsobj = cm.callArgs('searchFromDart', [
       query,
       reverse,
       highlightOnly,
@@ -252,14 +252,14 @@ class _CodeMirrorEditor extends Editor {
 
   @override
   String? getTokenWeAreOnOrNear([String? regEx]) {
-    final String? foundToken =
+    final foundToken =
         cm.callArg('getTokenWeAreOnOrNear', regEx) as String?;
     return foundToken;
   }
 
   @override
   Map<String, dynamic> getMatchesFromSearchQueryUpdatedCallback() {
-    final JsObject? jsobj = cm.callArg(
+    final jsobj = cm.callArg(
         'getMatchesFromSearchQueryUpdatedCallback', null) as JsObject?;
     if (jsobj != null) {
       return {

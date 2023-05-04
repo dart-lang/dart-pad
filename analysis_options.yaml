@@ -1,4 +1,4 @@
-include: package:lints/recommended.yaml
+include: package:dart_flutter_team_lints/analysis_options.yaml
 
 analyzer:
   language:
@@ -10,6 +10,8 @@ analyzer:
     - "lib/src/protos/**"
     - "third_party/pkg/**"
     - "web/example/workshops/**"
+  errors:
+    lines_longer_than_80_chars: ignore
 
 linter:
   rules:

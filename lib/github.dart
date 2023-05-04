@@ -103,7 +103,7 @@ class GitHubUIController {
         .onClick
         .listen((_) => Playground.toggleMenu(githubMenu));
     githubMenu.listen('MDCMenu:selected', (e) {
-      final idx = (e as CustomEvent).detail['index'] as int?;
+      final idx = ((e as CustomEvent).detail as Map)['index'] as int?;
       switch (idx) {
         case 0: // login
           _attemptToAquireGitHubToken();
@@ -350,7 +350,7 @@ class GitHubUIController {
   Future<void> _updateGist() async {
     final token = _githubAuthController.githubOAuthAccessToken;
     if (token.isNotEmpty) {
-      final Gist clonedGist = _playground.mutableGist.createGist();
+      final clonedGist = _playground.mutableGist.createGist();
       await gistLoader.updateGist(clonedGist, token);
 
       setUnsavedLocalEdits();
@@ -422,7 +422,7 @@ class GitHubUIController {
   }
 
   void _myGistMenuHandler(Event e) {
-    final index = (e as CustomEvent).detail['index'] as int;
+    final index = ((e as CustomEvent).detail as Map)['index'] as int;
     final mygists = _githubAuthController.myGistList;
     if (index >= 0 && index <= mygists.length) {
       final gistId = mygists.elementAt(index).id!;
@@ -469,7 +469,7 @@ class GitHubUIController {
   }
 
   void _starredGistMenuHandler(Event e) {
-    final index = (e as CustomEvent).detail['index'] as int;
+    final index = ((e as CustomEvent).detail as Map)['index'] as int;
     final starredGists = _githubAuthController.starredGistList;
     if (index >= 0 && index <= starredGists.length) {
       final gistId = starredGists.elementAt(index).id!;
@@ -667,7 +667,7 @@ class GitHubAuthenticationController {
     }
 
     if (ghTokenFromUrl.isNotEmpty) {
-      final String perAuthParamsJson =
+      final perAuthParamsJson =
           window.localStorage[localStorageKeyForQueryParamsPreOAuthRequest] ??
               '';
 
@@ -675,8 +675,7 @@ class GitHubAuthenticationController {
         final restoreParams = Map<String, String?>.from(
             json.decode(perAuthParamsJson) as Map<dynamic, dynamic>);
 
-        final Uri restoredUrl =
-            launchUri.replace(queryParameters: restoreParams);
+        final restoredUrl = launchUri.replace(queryParameters: restoreParams);
         window.history.replaceState({}, 'DartPad', restoredUrl.toString());
       } catch (e) {
         window.console.log(
@@ -722,9 +721,7 @@ class GitHubAuthenticationController {
     // and extra amount of time... - 60seconds ? long enough?
     starGistsChecklDelayTimer?.cancel();
     starGistsChecklDelayTimer =
-        Timer(Duration(milliseconds: starredCheckDelay), () {
-      getUsersStarredGists();
-    });
+        Timer(Duration(milliseconds: starredCheckDelay), getUsersStarredGists);
   }
 
   void logoutUnauthenticate() {
@@ -897,11 +894,10 @@ class GitHubAuthenticationController {
       } else {
         // StatusCode 200.
         _myGistList.clear();
-        final List<dynamic> gistslist =
-            json.decode(response.body) as List<dynamic>;
+        final gistslist = json.decode(response.body) as List<dynamic>;
 
         if (gistslist.isNotEmpty) {
-          for (int i = 0; i < gistslist.length; i++) {
+          for (var i = 0; i < gistslist.length; i++) {
             // Now decode each one.
             final gist = Gist.fromMap(gistslist[i] as Map<String, dynamic>);
             if (gist.hasDartContent()) {
@@ -957,10 +953,9 @@ class GitHubAuthenticationController {
       } else {
         // StatusCode 200.
         _starredGistList.clear();
-        final List<dynamic> gistslist =
-            json.decode(response.body) as List<dynamic>;
+        final gistslist = json.decode(response.body) as List<dynamic>;
         if (gistslist.isNotEmpty) {
-          for (int i = 0; i < gistslist.length; i++) {
+          for (var i = 0; i < gistslist.length; i++) {
             // Now decode each one.
             final gist = Gist.fromMap(gistslist[i] as Map<String, dynamic>);
             if (gist.hasDartContent()) {
@@ -1042,7 +1037,7 @@ class GitHubAuthenticationController {
     // Retrieve the random state string we made for the original request in
     // makeRandomSecureAuthInitiationUrl().  Our auth token was encrypted using
     // this before sending it back to us, so use it to decrypt.
-    final String randomStateWeSent =
+    final randomStateWeSent =
         window.localStorage[localStorageKeyForGitHubRandomState] ?? '';
 
     try {

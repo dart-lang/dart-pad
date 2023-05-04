@@ -18,14 +18,14 @@ final FilePath _buildDir = FilePath('build');
 
 Map<String, String> get _env => Platform.environment;
 
-main(List<String> args) => grind(args);
+Future main(List<String> args) => grind(args);
 
 @Task()
-testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
+Future testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
 
 @Task('Serve locally on port 8000')
 @Depends(build)
-serve() async {
+Future serve() async {
   await Process.start(Platform.executable, ['bin/serve.dart'])
       .then((Process process) {
     process.stdout.transform(utf8.decoder).listen(stdout.write);
@@ -35,7 +35,7 @@ serve() async {
 
 @Task('Serve via local AppEngine on port 8080')
 @Depends(build)
-serveLocalAppEngine() async {
+Future serveLocalAppEngine() async {
   await Process.start(
     'dev_appserver.py',
     ['.'],
@@ -54,7 +54,7 @@ serveLocalAppEngine() async {
     _serverUrlOption: 'http://127.0.0.1:8084/',
   }),
 ))
-serveLocalBackend() async {
+Future serveLocalBackend() async {
   log('\nServing dart-pad on http://localhost:8000');
 
   await Process.start(Platform.executable, ['bin/serve.dart'])
@@ -72,7 +72,7 @@ const _serverUrlOption = 'server-url';
 
 @Task('Build the `web/index.html` entrypoint')
 @Depends(generateProtos)
-build() {
+void build() {
   final args = context.invocation.arguments;
   final compilerArgs = {
     if (args.hasOption(_serverUrlOption))
@@ -145,7 +145,7 @@ String _formatDdcArgs(Map<String, String?> args) {
 }
 
 @Task()
-coverage() {
+void coverage() {
   if (!_env.containsKey('COVERAGE_TOKEN')) {
     log("env var 'COVERAGE_TOKEN' not found");
     return;
@@ -169,7 +169,7 @@ void buildbot() {}
 
 @Task('Prepare the app for deployment')
 @Depends(buildbot)
-deploy() async {
+Future deploy() async {
   // Validate the deploy.
 
   // `dev` is served from dev.dart-pad.appspot.com
@@ -177,7 +177,7 @@ deploy() async {
 
   final app = yaml.loadYaml(File('web/app.yaml').readAsStringSync()) as Map;
 
-  final handlers = app['handlers'] as List;
+  final handlers = (app['handlers'] as List).cast<Map>();
   var isSecure = false;
 
   for (final m in handlers) {
@@ -202,7 +202,7 @@ deploy() async {
 }
 
 @Task()
-clean() => defaultClean();
+void clean() => defaultClean();
 
 String _printSize(FilePath file) =>
     '${(file.asFile.lengthSync() + 1023) ~/ 1024}k';
@@ -215,7 +215,7 @@ void generateProtos() {
   );
   print(result.stdout);
   if (result.exitCode != 0) {
-    throw 'Error generating the Protobuf classes\n${result.stderr}';
+    throw StateError('Error generating the Protobuf classes\n${result.stderr}');
   }
 
   Process.runSync('dart', ['format', 'lib/src/protos']);

@@ -145,7 +145,7 @@ class Embed extends EditorUi {
 
     for (final tabName in tabNames) {
       // The HTML ID and ga.sendEvent use 'editor' for the 'dart' tab.
-      final String contextName = (tabName == 'dart') ? 'editor' : tabName;
+      final contextName = (tabName == 'dart') ? 'editor' : tabName;
       tabController.registerTab(
         TabElement(querySelector('#$contextName-tab')!, name: tabName,
             onSelect: () {
@@ -345,7 +345,7 @@ class Embed extends EditorUi {
           darkMode: isDarkMode);
     }
 
-    final MDCButton clearConsoleButton = MDCButton(
+    final clearConsoleButton = MDCButton(
         querySelector('#console-clear-button') as ButtonElement,
         isIcon: true);
     clearConsoleButton.onClick.listen((event) {
@@ -562,9 +562,7 @@ class Embed extends EditorUi {
       }
     }, 'Quick fix');
 
-    keys.bind(const ['shift-ctrl-f', 'shift-macctrl-f'], () {
-      _format();
-    }, 'Format');
+    keys.bind(const ['shift-ctrl-f', 'shift-macctrl-f'], _format, 'Format');
 
     document.onKeyUp.listen(_handleAutoCompletion);
     super.initKeyBindings();
@@ -826,8 +824,8 @@ class Embed extends EditorUi {
   // `test.dart`.
   List<AnalysisIssue> detectIssuesInTestSourceAndModifyIssuesAccordingly(
       List<AnalysisIssue> issues) {
-    final int dartSourceLineCount = context.dartSourceLineCount;
-    final int dartSourceCharCount = context.dartSource.length;
+    final dartSourceLineCount = context.dartSourceLineCount;
+    final dartSourceCharCount = context.dartSource.length;
     issues = issues.map((issue) {
       if (issue.line > dartSourceLineCount) {
         // This is in the test source, do we adjust or hide it ?
@@ -840,11 +838,11 @@ class Embed extends EditorUi {
           // to indicate this issue is in the test code.
           return AnalysisIssue(
               kind: issue.kind,
-              line: (issue.line - dartSourceLineCount - 1),
+              line: issue.line - dartSourceLineCount - 1,
               message: issue.message,
               sourceName: 'test.dart',
               hasFixes: issue.hasFixes,
-              charStart: (issue.charStart - dartSourceCharCount),
+              charStart: issue.charStart - dartSourceCharCount,
               charLength: issue.charLength,
               url: issue.url,
               diagnosticMessages: issue.diagnosticMessages,
@@ -1159,6 +1157,7 @@ class _ConsoleExpandController extends Console {
       footer.toggleClass('footer-top-border', true);
       try {
         _splitter.destroy();
+        // ignore: avoid_catching_errors
       } on NoSuchMethodError {
         // dart2js throws NoSuchMethodError (dartdevc is ok)
         // TODO(ryjohn): why does this happen?
