@@ -265,7 +265,7 @@ $styleRef$dartRef  </head>
         "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/"
       }
     */
-    final map = gistToSave.toMap(); //;
+    final map = gistToSave.toMap();
     map.remove('id');
     map['public'] = public;
     if (map['files'] != null) {
