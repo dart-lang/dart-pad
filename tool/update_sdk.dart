@@ -6,7 +6,7 @@ import 'dart:io';
 
 import 'package:dart_services/src/sdk.dart';
 
-// This tool is used to manually update the `flutter-sdk/` Flutter SDK to match
+// This tool is used to manually update the `flutter-sdks/` Flutter SDK to match
 // the current configuration information in the `flutter-sdk-version.yaml` file.
 
 void main(List<String> args) async {

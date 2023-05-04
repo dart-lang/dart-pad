@@ -1,7 +1,7 @@
 # The versions of the Flutter SDK to use.
 
 # The dart-services server will automatically create or configure the
-# flutter-sdk/ directory based on this configuration file at startup.
+# flutter-sdks/ directory based on this configuration file at startup.
 
 # In order to update the SDK manually, run 'dart tool/update_sdk.dart'.
 

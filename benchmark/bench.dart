@@ -37,7 +37,9 @@ void main(List<String> args) async {
     Dart2jsBenchmark('hello', sampleCode, compiler),
     Dart2jsBenchmark('hellohtml', sampleCodeWeb, compiler),
     Dart2jsBenchmark('sunflower', _sunflower, compiler),
-    Dart2jsBenchmark('spinning_square', _spinningSquare, compiler),
+    // TODO: dart-services dart2js compile path doesn't currently support
+    // compiling Flutter apps.
+    // Dart2jsBenchmark('spinning_square', _spinningSquare, compiler),
     DevCompilerBenchmark('hello', sampleCode, compiler),
     DevCompilerBenchmark('hellohtml', sampleCodeWeb, compiler),
     DevCompilerBenchmark('sunflower', _sunflower, compiler),
@@ -126,48 +128,48 @@ import 'dart:html';
 import 'dart:math' as math;
 
 main() {
-  new Sunflower();
+  Sunflower();
 }
 
 class Sunflower {
-  static const String ORANGE = "orange";
-  static const SEED_RADIUS = 2;
-  static const SCALE_FACTOR = 4;
-  static const TAU = math.pi * 2;
-  static const MAX_D = 300;
+  static const String orange = "orange";
+  static const seedRadius = 2;
+  static const scaleFactor = 4;
+  static const tau = math.pi * 2;
+  static const maxD = 300;
 
-  CanvasRenderingContext2D ctx;
-  num xc, yc;
+  late CanvasRenderingContext2D ctx;
+  late num xc, yc;
   num seeds = 0;
-  num PHI;
+  late num phi;
 
   Sunflower() {
-    PHI = (math.sqrt(5) + 1) / 2;
+    phi = (math.sqrt(5) + 1) / 2;
 
-    CanvasElement canvas = querySelector("#canvas");
-    xc = yc = MAX_D / 2;
-    ctx = canvas.getContext("2d");
+    CanvasElement canvas = querySelector("#canvas") as CanvasElement;
+    xc = yc = maxD / 2;
+    ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
 
-    InputElement slider = querySelector("#slider");
+    var slider = querySelector("#slider") as InputElement;
     slider.onChange.listen((Event e) {
-      seeds = int.parse(slider.value);
+      seeds = int.parse(slider.value!);
       drawFrame();
     });
 
-    seeds = int.parse(slider.value);
+    seeds = int.parse(slider.value!);
 
     drawFrame();
   }
 
   // Draw the complete figure for the current number of seeds.
   void drawFrame() {
-    ctx.clearRect(0, 0, MAX_D, MAX_D);
-    for (var i=0; i<seeds; i++) {
-      var theta = i * TAU / PHI;
-      var r = math.sqrt(i) * SCALE_FACTOR;
+    ctx.clearRect(0, 0, maxD, maxD);
+    for (var i = 0; i < seeds; i++) {
+      var theta = i * tau / phi;
+      var r = math.sqrt(i) * scaleFactor;
       var x = xc + r * math.cos(theta);
       var y = yc - r * math.sin(theta);
-      drawSeed(x,y);
+      drawSeed(x, y);
     }
   }
 
@@ -175,9 +177,9 @@ class Sunflower {
   void drawSeed(num x, num y) {
     ctx.beginPath();
     ctx.lineWidth = 2;
-    ctx.fillStyle = ORANGE;
-    ctx.strokeStyle = ORANGE;
-    ctx.arc(x, y, SEED_RADIUS, 0, TAU, false);
+    ctx.fillStyle = orange;
+    ctx.strokeStyle = orange;
+    ctx.arc(x, y, seedRadius, 0, tau, false);
     ctx.fill();
     ctx.closePath();
     ctx.stroke();
@@ -186,22 +188,16 @@ class Sunflower {
 ''';
 
 final _spinningSquare = '''
-// Copyright 2018 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
-import 'dart:ui/ui.dart' as ui;
-
 import 'package:flutter/material.dart';
 
 class SpinningSquare extends StatefulWidget {
   @override
-  _SpinningSquareState createState() => new _SpinningSquareState();
+  SpinningSquareState createState() => SpinningSquareState();
 }
 
-class _SpinningSquareState extends State<SpinningSquare>
+class SpinningSquareState extends State<SpinningSquare>
     with SingleTickerProviderStateMixin {
-  AnimationController _animation;
+  late AnimationController _animation;
 
   @override
   void initState() {
@@ -209,7 +205,7 @@ class _SpinningSquareState extends State<SpinningSquare>
     // We use 3600 milliseconds instead of 1800 milliseconds because 0.0 -> 1.0
     // represents an entire turn of the square whereas in the other examples
     // we used 0.0 -> math.pi, which is only half a turn.
-    _animation = new AnimationController(
+    _animation = AnimationController(
       duration: const Duration(milliseconds: 3600),
       vsync: this,
     )..repeat();
@@ -217,13 +213,14 @@ class _SpinningSquareState extends State<SpinningSquare>
 
   @override
   Widget build(BuildContext context) {
-    return new RotationTransition(
-        turns: _animation,
-        child: new Container(
-          width: 200.0,
-          height: 200.0,
-          color: const Color(0xFF00FF00),
-        ));
+    return RotationTransition(
+      turns: _animation,
+      child: Container(
+        width: 200.0,
+        height: 200.0,
+        color: const Color(0xFF00FF00),
+      ),
+    );
   }
 
   @override
@@ -234,7 +231,6 @@ class _SpinningSquareState extends State<SpinningSquare>
 }
 
 main() async {
-  await ui.webOnlyInitializePlatform();
-  runApp(new Center(child: new SpinningSquare()));
+  runApp(Center(child: SpinningSquare()));
 }
 ''';

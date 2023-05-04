@@ -52,7 +52,10 @@ void defineTests() {
 
   test('vmVersion', () {
     expect(vmVersion, isNotNull);
-    expect(vmVersion, startsWith('2.'));
+    expect(
+      vmVersion,
+      anyOf(startsWith('2.'), startsWith('3.')),
+    );
   });
 
   test('countLines', () {

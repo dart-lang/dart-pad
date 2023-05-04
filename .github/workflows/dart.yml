@@ -41,3 +41,23 @@ jobs:
           export PATH=$PATH:$HOME/.pub-cache/bin
           dart pub global activate protoc_plugin
           ./tool/travis.sh ${{ matrix.sdk }}
+
+  # Run the benchmarks on the bots to ensure they don't regress.
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+      - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
+      - run: sudo apt-get install -y protobuf-compiler redis
+      - run: dart pub get
+      - name: Download the Flutter SDK
+        run: |
+          dart run tool/update_sdk.dart stable
+          export PATH=$PATH:$PWD/flutter-sdks/stable/bin
+          flutter doctor -v
+      - name: Prep the repo
+        env:
+          FLUTTER_CHANNEL: stable
+        run: dart pub run grinder buildbot
+      - name: Run benchmarks
+        run: dart benchmark/bench.dart
