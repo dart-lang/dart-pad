@@ -275,7 +275,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       ..hoistMenuToBody();
 
     samplesMenu.listen('MDCMenu:selected', (e) {
-      final index = (e as CustomEvent).detail['index'] as int;
+      final index = ((e as CustomEvent).detail as Map)['index'] as int;
       final gistId = samples.elementAt(index).gistId;
       showGist(gistId);
     });
@@ -293,7 +293,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
         .onClick
         .listen((_) => toggleMenu(moreMenu));
     moreMenu.listen('MDCMenu:selected', (e) {
-      final idx = (e as CustomEvent).detail['index'] as int?;
+      final idx = ((e as CustomEvent).detail as Map)['index'] as int?;
       switch (idx) {
         case 0:
           _showSharingPage();
@@ -399,7 +399,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
   }
 
   void _handleChannelsMenuSelected(e) {
-    final index = (e as CustomEvent).detail['index'] as int;
+    final index = ((e as CustomEvent).detail as Map)['index'] as int;
     // Use menu index BACK into channels array it was created from to get channel name.
     final channel = channels[index].name;
     _handleChannelSwitched(channel);
@@ -617,9 +617,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       editor.showCompletions();
     }, 'Completion');
 
-    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], () {
-      _format();
-    }, 'Format');
+    keys.bind(['shift-ctrl-f', 'shift-macctrl-f'], _format, 'Format');
 
     document.onKeyUp.listen((e) {
       if (editor.completionActive ||

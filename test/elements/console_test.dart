@@ -39,10 +39,9 @@ void defineTests() {
   tearDown(() async {});
 
   SpanElement? getSequenceOutput(String sequence) {
-    final int ansiSeqPos = sequence.indexOf('\u001B[');
+    final ansiSeqPos = sequence.indexOf('\u001B[');
 
-    final DivElement root =
-        ansiConsoleHandler().handleAnsiOutput(sequence, ansiSeqPos);
+    final root = ansiConsoleHandler().handleAnsiOutput(sequence, ansiSeqPos);
 
     final child = root.lastChild!;
 
@@ -65,7 +64,7 @@ void defineTests() {
   /// [expectation] The function used to verify the output.
   void expectSingleSequenceElement(
       String sequence, VoidCallbackWithSpan expectation) {
-    final SpanElement child = getSequenceOutput('${sequence}fakecontent')!;
+    final child = getSequenceOutput('${sequence}fakecontent')!;
     expect(child.text, 'fakecontent');
     expectation(child);
   }
@@ -91,22 +90,22 @@ void defineTests() {
     if (color != null) {
       cssColor = AnsiConsoleHandler.makeCSSColorString(color, null)!;
       if (colorType == 'background') {
-        final String styleBefore = element.style.backgroundColor;
+        final styleBefore = element.style.backgroundColor;
         element.style.backgroundColor = cssColor;
-        expect((styleBefore == element.style.backgroundColor),
+        expect(styleBefore == element.style.backgroundColor,
             equals(colorShouldMatch),
             reason:
                 '${message ?? ''} Incorrect $colorType color style found (found color: $styleBefore, expected $cssColor colorShouldMatch=$colorShouldMatch).');
       } else if (colorType == 'foreground') {
-        final String styleBefore = element.style.color;
+        final styleBefore = element.style.color;
         element.style.color = cssColor;
-        expect((styleBefore == element.style.color), equals(colorShouldMatch),
+        expect(styleBefore == element.style.color, equals(colorShouldMatch),
             reason:
                 '${message ?? ''} Incorrect $colorType color style found (found color: $styleBefore, expected $cssColor colorShouldMatch=$colorShouldMatch).');
       } else {
-        final String styleBefore = element.style.textDecorationColor;
+        final styleBefore = element.style.textDecorationColor;
         element.style.textDecorationColor = cssColor;
-        expect((styleBefore == element.style.textDecorationColor),
+        expect(styleBefore == element.style.textDecorationColor,
             equals(colorShouldMatch),
             reason:
                 '${message ?? ''} Incorrect $colorType color style found (found color: $styleBefore, expected $cssColor colorShouldMatch=$colorShouldMatch).');
@@ -129,7 +128,7 @@ void defineTests() {
   }
 
   test('appendStylizedStringToContainer', () {
-    final DivElement root = DivElement();
+    final root = DivElement();
 
     expect(root.children.length, equals(0));
 
@@ -141,22 +140,22 @@ void defineTests() {
 
     expect(root.children.length, equals(2));
     var child = root.firstChild!;
-    expect((child is SpanElement), equals(true));
+    expect(child is SpanElement, equals(true));
     if (child is SpanElement) {
       expect('content1', child.text);
       expect(child.classes, contains('class1'));
       expect(child.classes, contains('class2'));
     } else {
-      expect((child is SpanElement), equals(true));
+      expect(child is SpanElement, equals(true));
     }
     child = root.lastChild!;
-    expect((child is SpanElement), equals(true));
+    expect(child is SpanElement, equals(true));
     if (child is SpanElement) {
       expect('content2', child.text);
       expect(child.classes, contains('class2'));
       expect(child.classes, contains('class3'));
     } else {
-      expect((child is SpanElement), equals(true));
+      expect(child is SpanElement, equals(true));
     }
   });
 
@@ -182,8 +181,8 @@ void defineTests() {
       });
 
       // Foreground color codes.
-      for (int i = 30; i <= 37; i++) {
-        final int rgbcolor =
+      for (var i = 30; i <= 37; i++) {
+        final rgbcolor =
             ansiConsoleHandler().getColorFromBasicAnsiColorCode(i)!;
 
         // Foreground color, NO class.
@@ -205,8 +204,8 @@ void defineTests() {
       }
 
       // foreground BRIGHT color codes.
-      for (int i = 90; i <= 97; i++) {
-        final int rgbcolor =
+      for (var i = 90; i <= 97; i++) {
+        final rgbcolor =
             ansiConsoleHandler().getColorFromBasicAnsiColorCode(i)!;
 
         // Foreground color, NO class.
@@ -228,8 +227,8 @@ void defineTests() {
       }
 
       // Background color codes.
-      for (int i = 40; i <= 47; i++) {
-        final int rgbcolor =
+      for (var i = 40; i <= 47; i++) {
+        final rgbcolor =
             ansiConsoleHandler().getColorFromBasicAnsiColorCode(i)!;
 
         // Background color, NO class.
@@ -250,8 +249,8 @@ void defineTests() {
         });
       }
       // Background BRIGHT color codes.
-      for (int i = 100; i <= 107; i++) {
-        final int rgbcolor =
+      for (var i = 100; i <= 107; i++) {
+        final rgbcolor =
             ansiConsoleHandler().getColorFromBasicAnsiColorCode(i)!;
 
         // Background color, NO class.
@@ -274,8 +273,8 @@ void defineTests() {
 
       // Check all basic colors for underlines (full range is checked elsewhere,
       // here we check cancelation).
-      for (int i = 16; i <= 255; i++) {
-        final int rgbcolor = AnsiConsoleHandler.calcAnsi8bitColor(i)!;
+      for (var i = 16; i <= 255; i++) {
+        final rgbcolor = AnsiConsoleHandler.calcAnsi8bitColor(i)!;
 
         // Underline color class.
         expectSingleSequenceElement('\u001B[58;5;${i}m', (child) {
@@ -298,9 +297,9 @@ void defineTests() {
 
       // Different codes do not cancel each other.
       expectSingleSequenceElement('\u001B[1;3;4;30;41m', (child) {
-        final int fgRgbcolor =
+        final fgRgbcolor =
             ansiConsoleHandler().getColorFromBasicAnsiColorCode(30)!;
-        final int bgRgbcolor =
+        final bgRgbcolor =
             ansiConsoleHandler().getColorFromBasicAnsiColorCode(41)!;
         expect(child.classes.length, equals(3),
             reason:
@@ -383,9 +382,9 @@ void defineTests() {
       expectSingleSequenceElement('\u001B[40;31;42;33m', (child) {
         expect(child.classes.length, equals(0));
 
-        final int fgRgbcolor =
+        final fgRgbcolor =
             ansiConsoleHandler().getColorFromBasicAnsiColorCode(33)!;
-        final int bgRgbcolor =
+        final bgRgbcolor =
             ansiConsoleHandler().getColorFromBasicAnsiColorCode(42)!;
 
         expectInlineColor(child, 'foreground', fgRgbcolor,
@@ -426,9 +425,9 @@ void defineTests() {
 
     test('Expected single 8-bit color sequence operation', () {
       // Basic and bright color codes specified with 8-bit color code format.
-      for (int i = 0; i <= 15; i++) {
+      for (var i = 0; i <= 15; i++) {
         // USE DARK MODE THEME, that is what we instaniated the Class with.
-        final int rgbcolor = AnsiConsoleHandler.darkModeAnsiColors[i];
+        final rgbcolor = AnsiConsoleHandler.darkModeAnsiColors[i];
 
         // As these are controlled by theme, difficult to check actual
         // color value.
@@ -446,7 +445,7 @@ void defineTests() {
       }
 
       // 8-bit advanced colors.
-      for (int i = 16; i <= 255; i++) {
+      for (var i = 16; i <= 255; i++) {
         // Foreground codes should not add custom class only inline color style.
         expectSingleSequenceElement('\u001B[38;5;${i}m', (child) {
           expect(child.classes, isEmpty,
@@ -504,10 +503,10 @@ void defineTests() {
   group('Debug - ANSI 24 bit color sequence Handling', () {
     test('Expected single 24-bit color sequence operation', () {
       // 24-bit advanced colors.
-      for (int r = 0; r <= 255; r += 64) {
-        for (int g = 0; g <= 255; g += 64) {
-          for (int b = 0; b <= 255; b += 64) {
-            final int color = rgb(r, g, b);
+      for (var r = 0; r <= 255; r += 64) {
+        for (var g = 0; g <= 255; g += 64) {
+          for (var b = 0; b <= 255; b += 64) {
+            final color = rgb(r, g, b);
             // Foreground codes should add class and inline style.
             expectSingleSequenceElement('\u001B[38;2;$r;$g;${b}m', (child) {
               expect(child.style.color, isNotEmpty,
@@ -572,12 +571,11 @@ void defineTests() {
       List<VoidCallbackWithSpan> expectations, int? elementsExpected) {
     elementsExpected ??= expectations.length;
 
-    final int ansiSeqPos = sequence.indexOf('\u001B[');
-    final DivElement root =
-        ansiConsoleHandler().handleAnsiOutput(sequence, ansiSeqPos);
+    final ansiSeqPos = sequence.indexOf('\u001B[');
+    final root = ansiConsoleHandler().handleAnsiOutput(sequence, ansiSeqPos);
 
     expect(root.children.length, elementsExpected);
-    for (int i = 0; i < elementsExpected; i++) {
+    for (var i = 0; i < elementsExpected; i++) {
       final child = root.children[i];
       expect(child is SpanElement, true,
           reason: 'Unexpected expectation error - child should be SpanElement');
@@ -587,8 +585,7 @@ void defineTests() {
     }
   }
 
-  final int greencolor =
-      ansiConsoleHandler().getColorFromBasicAnsiColorCode(32)!;
+  final greencolor = ansiConsoleHandler().getColorFromBasicAnsiColorCode(32)!;
 
   test('Expected multiple sequence operation', () {
     // Multiple codes affect the same text.
@@ -1419,7 +1416,7 @@ void defineTests() {
         '\u001B[34msimple\u001B[38;2;101;102;103m24bit\u001B[38;5;3m8bitsimple\u001B[38;2;104;105;106m24bitAgain\u001B[38;5;101m8bitadvanced',
         [
           (simple) {
-            final int color34 =
+            final color34 =
                 ansiConsoleHandler().getColorFromBasicAnsiColorCode(34)!;
             expectInlineColor(
                 simple, 'foreground', color34, 'Simple color 34 should match');
@@ -1461,7 +1458,7 @@ void defineTests() {
   /// [sequence] The ANSI sequence to verify.
   ///
   void expectSequencestrictEqualToContent(String sequence) {
-    final SpanElement child = getSequenceOutput(sequence)!;
+    final child = getSequenceOutput(sequence)!;
     expect(child.text, sequence,
         reason: 'Sequence should match text of element');
   }
@@ -1469,7 +1466,7 @@ void defineTests() {
   const chars =
       r'\u001BAaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890`~!@#$%^&*()[]{}\;"/.,<>?'
       "'";
-  final Random rnd = Random();
+  final rnd = Random();
 
   String getRandomString(int length) => String.fromCharCodes(Iterable.generate(
       length, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
@@ -1498,13 +1495,13 @@ void defineTests() {
   /// contain ANSI codes only, and should not include actual text content
   /// as it is provided by this function.
   void expectEmptyOutput(String sequence) {
-    final SpanElement child = getSequenceOutput('${sequence}content')!;
+    final child = getSequenceOutput('${sequence}content')!;
     expect(child.text, 'content');
     expect(child.classes.length, 0);
   }
 
   test('Empty sequence output', () {
-    final List<String> sequences = [
+    final sequences = <String>[
       // No color codes.
       '',
       '\u001B[;m',
@@ -1518,7 +1515,7 @@ void defineTests() {
     }
 
     // Check other possible ANSI terminators.
-    final List<String> terminators = 'ABCDHIJKfhmpsu'.split('');
+    final terminators = 'ABCDHIJKfhmpsu'.split('');
 
     for (final terminator in terminators) {
       expectEmptyOutput('\u001B[content$terminator');
@@ -1550,15 +1547,15 @@ void defineTests() {
     for (num red = 0; red <= 5; red++) {
       for (num green = 0; green <= 5; green++) {
         for (num blue = 0; blue <= 5; blue++) {
-          final int? colorOut = AnsiConsoleHandler.calcAnsi8bitColor(
+          final colorOut = AnsiConsoleHandler.calcAnsi8bitColor(
               16 + red * 36 + green * 6 + blue);
           expect(colorOut, isNot(null));
           if (colorOut != null) {
-            expect(((colorOut >> 16) & 0xff), (red * (255 / 5)).round(),
+            expect((colorOut >> 16) & 0xff, (red * (255 / 5)).round(),
                 reason: 'Incorrect red value encountered for color');
-            expect(((colorOut >> 8) & 0xff), (green * (255 / 5)).round(),
+            expect((colorOut >> 8) & 0xff, (green * (255 / 5)).round(),
                 reason: 'Incorrect green value encountered for color');
-            expect((colorOut & 0xff), (blue * (255 / 5)).round(),
+            expect(colorOut & 0xff, (blue * (255 / 5)).round(),
                 reason: 'Incorrect balue value encountered for color');
           }
         }
@@ -1566,10 +1563,10 @@ void defineTests() {
     }
 
     // All grays.
-    for (int i = 232; i <= 255; i++) {
-      final int grayOut = AnsiConsoleHandler.calcAnsi8bitColor(i)!;
+    for (var i = 232; i <= 255; i++) {
+      final grayOut = AnsiConsoleHandler.calcAnsi8bitColor(i)!;
       expect((grayOut >> 16) & 0xff, (grayOut >> 8) & 0xff);
-      expect((grayOut >> 16) & 0xff, (grayOut & 0xff));
+      expect((grayOut >> 16) & 0xff, grayOut & 0xff);
       expect((grayOut >> 16) & 0xff, ((i - 232) / 23 * 255).round());
     }
   });

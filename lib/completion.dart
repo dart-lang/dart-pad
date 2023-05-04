@@ -178,7 +178,7 @@ class DartCompleter extends CodeCompleter {
   }
 }
 
-class AnalysisCompletion implements Comparable {
+class AnalysisCompletion implements Comparable<AnalysisCompletion> {
   final int offset;
   final int length;
 
@@ -191,8 +191,12 @@ class AnalysisCompletion implements Comparable {
     _convert('parameterNames');
     _convert('parameterTypes');
 
-    if (_map.containsKey('element')) _map['element'].remove('location');
+    if (_map.containsKey('element')) {
+      _element.remove('location');
+    }
   }
+
+  Map<String, dynamic> get _element => _map['element'] as Map<String, dynamic>;
 
   // Convert maps and lists that have been passed as json.
   void _convert(String key) {
@@ -204,19 +208,15 @@ class AnalysisCompletion implements Comparable {
   // KEYWORD, INVOCATION, ...
   String? get kind => _map['kind'] as String?;
 
-  bool get isMethod {
-    final element = _map['element'];
-    return element is Map
-        ? (element['kind'] == 'FUNCTION' || element['kind'] == 'METHOD')
-        : false;
-  }
+  bool get isMethod =>
+      _element['kind'] == 'FUNCTION' || _element['kind'] == 'METHOD';
 
   bool get isConstructor => type == 'CONSTRUCTOR';
 
-  String? get parameters =>
-      isMethod ? _map['element']['parameters'] as String? : null;
+  String? get parameters => isMethod ? _element['parameters'] as String? : null;
 
   int? get parameterCount =>
+      // ignore: avoid_dynamic_calls
       isMethod ? _map['parameterNames'].length as int? : null;
 
   String get text {
@@ -236,14 +236,11 @@ class AnalysisCompletion implements Comparable {
 
   // FUNCTION, GETTER, CLASS, ...
   String? get type =>
-      _map.containsKey('element') ? _map['element']['kind'] as String? : kind;
+      _map.containsKey('element') ? _element['kind'] as String? : kind;
 
   @override
-  int compareTo(other) {
-    if (other is AnalysisCompletion) {
-      return text.compareTo(other.text);
-    }
-    return -1;
+  int compareTo(AnalysisCompletion other) {
+    return text.compareTo(other.text);
   }
 
   @override

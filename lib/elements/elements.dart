@@ -359,7 +359,7 @@ abstract class DDialog extends DElement {
   bool get isShowing => document.body!.children.contains(element);
 }
 
-class _ElementTextProperty implements Property {
+class _ElementTextProperty implements Property<String?> {
   final Element element;
 
   _ElementTextProperty(this.element);
@@ -368,13 +368,12 @@ class _ElementTextProperty implements Property {
   String? get() => element.text;
 
   @override
-  void set(value) {
+  void set(String? value) {
     element.text = value == null ? '' : value.toString();
   }
 
-  // TODO:
   @override
-  Stream? get onChanged => null;
+  Stream<String?>? get onChanged => null;
 }
 
 class TabController {
@@ -411,14 +410,16 @@ class TabController {
   Stream<TabElement> get onTabSelect => _selectedTabController.stream;
 }
 
+typedef VoidFunction = void Function();
+
 class TabElement extends DElement {
   final String name;
-  final Function onSelect;
+  final VoidFunction onSelect;
 
   TabElement(super.element, {required this.name, required this.onSelect});
 
   void handleSelected() {
-    onSelect.call();
+    onSelect();
   }
 
   @override

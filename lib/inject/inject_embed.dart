@@ -14,7 +14,7 @@ final Logger _logger = Logger('dartpad-embed');
 
 // Use this prefix for local development:
 //var iframePrefix = '../';
-var iframePrefix = 'https://dartpad.dev/';
+String iframePrefix = 'https://dartpad.dev/';
 
 final HtmlUnescape _htmlUnescape = HtmlUnescape();
 
@@ -136,9 +136,9 @@ void _injectRangedEmbed(Element firstSnippet, Map<String, String> firstOptions,
     return;
   }
 
-  final Map<String, String> files = {};
+  final files = <String, String>{};
 
-  for (int i = 0; i < snippets.length; i++) {
+  for (var i = 0; i < snippets.length; i++) {
     final snippet = snippets[i];
     final snippetName = options[i]['file'];
     if (snippetName == null) {
@@ -199,8 +199,8 @@ class InjectedEmbed {
 
     host.children.add(iframe);
 
-    window.addEventListener('message', (dynamic e) {
-      if (e.data['type'] == 'ready') {
+    window.addEventListener('message', (Event e) {
+      if (e is MessageEvent && (e.data as Map)['type'] == 'ready') {
         final m = {'sourceCode': files, 'type': 'sourceCode'};
         iframe.contentWindow!.postMessage(m, '*');
       }

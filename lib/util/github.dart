@@ -6,7 +6,7 @@ String extractGitHubResponseBody(String githubResponse) {
   // GitHub's API returns file contents as the "contents" field in a JSON
   // object. The field's value is in base64 encoding, but with line ending
   // characters ('\n') included.
-  final contentJson = json.decode(githubResponse);
+  final contentJson = json.decode(githubResponse) as Map<String, dynamic>;
   final encodedContentStr =
       contentJson['content'].toString().replaceAll('\n', '');
   return utf8.decode(base64.decode(encodedContentStr));

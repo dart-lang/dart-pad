@@ -6,22 +6,9 @@ library dart_pad.bind;
 
 import 'dart:async';
 
-/// Bind changes from `from` to the target `to`. `from` can be a [Stream] or a
-/// [Property]. `to` can be a [Function] or a [Property].
-Binding bind(from, to) {
-  if (to is! Function && to is! Property) {
-    throw ArgumentError('`to` must be a Function or a Property');
-  }
-
-  // TODO: handle a Function - use polling (and the browser tick event?)
-
-  if (from is Stream) {
-    return _StreamBinding(from, to);
-  } else if (from is Property) {
-    return _PropertyBinding(from, to);
-  } else {
-    throw ArgumentError('`from` must be a Stream or a Property');
-  }
+/// Bind changes from `from` to the target `to`.
+Binding bind(Property from, Property to) {
+  return _PropertyBinding(from, to);
 }
 
 /// A `Property` is able to get its value, change its value, and report changes
@@ -30,27 +17,6 @@ abstract class Property<T> {
   T get();
   void set(T value);
   Stream<T?>? get onChanged;
-}
-
-/// A [Property] backed by a getter and setter pair. Currently it cannot report
-/// changes to its value.
-class FunctionProperty implements Property {
-  final Function getter;
-  final Function setter;
-
-  FunctionProperty(this.getter, this.setter);
-
-  @override
-  dynamic get() => getter();
-
-  @override
-  void set(value) {
-    setter(value);
-  }
-
-  // TODO:
-  @override
-  Stream? get onChanged => null;
 }
 
 /// An object that can own a set of properties.
@@ -72,32 +38,9 @@ abstract class Binding {
   void cancel();
 }
 
-class _StreamBinding implements Binding {
-  final Stream stream;
-  final dynamic target;
-
-  late StreamSubscription _sub;
-
-  _StreamBinding(this.stream, this.target) {
-    _sub = stream.listen(_handleEvent);
-  }
-
-  @override
-  void flush() {}
-
-  @override
-  void cancel() {
-    _sub.cancel();
-  }
-
-  void _handleEvent(e) {
-    _sendTo(target, e);
-  }
-}
-
 class _PropertyBinding implements Binding {
   final Property property;
-  final dynamic target;
+  final Property target;
 
   StreamSubscription? _sub;
 
@@ -117,10 +60,6 @@ class _PropertyBinding implements Binding {
   void _handleEvent(e) => _sendTo(target, e);
 }
 
-void _sendTo(target, e) {
-  if (target is Function) {
-    target(e);
-  } else if (target is Property) {
-    if (e != target.get()) target.set(e);
-  }
+void _sendTo(Property target, e) {
+  if (e != target.get()) target.set(e);
 }

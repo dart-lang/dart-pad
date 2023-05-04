@@ -37,25 +37,17 @@ class SearchController {
   }
 
   void initKeyBindings() {
-    keys.bind(['ctrl-f', 'macctrl-f'], () {
-      userOpenFindDialogHotkey();
-    }, 'Find');
-    keys.bind(['ctrl-h', 'macctrl-h'], () {
-      userOpenReplaceDialogHotkey();
-    }, 'Replace');
-    keys.bind(['f4', 'ctrl-g', 'macctrl-g'], () {
-      userFindNextHotkey();
-    }, 'Find Next');
-    keys.bind(['shift-f4', 'shift-ctrl-g', 'shift-macctrl-g'], () {
-      userFindPreviousHotkey();
-    }, 'Find Previous');
+    keys.bind(['ctrl-f', 'macctrl-f'], userOpenFindDialogHotkey, 'Find');
+    keys.bind(['ctrl-h', 'macctrl-h'], userOpenReplaceDialogHotkey, 'Replace');
+    keys.bind(['f4', 'ctrl-g', 'macctrl-g'], userFindNextHotkey, 'Find Next');
+    keys.bind(['shift-f4', 'shift-ctrl-g', 'shift-macctrl-g'],
+        userFindPreviousHotkey, 'Find Previous');
   }
 
   void editorUpdatedSearchAnnotationsCallback() {
-    final Map<String, dynamic> res =
-        editor.getMatchesFromSearchQueryUpdatedCallback();
-    final int total = res['total'] as int;
-    final int curMatchNum = res['curMatchNum'] as int;
+    final res = editor.getMatchesFromSearchQueryUpdatedCallback();
+    final total = res['total'] as int;
+    final curMatchNum = res['curMatchNum'] as int;
     updateSearchResults(curMatchNum: curMatchNum, total: total);
   }
 
@@ -69,8 +61,8 @@ class SearchController {
             .remove('no-results'); // leave it white when empty search
       }
     } else {
-      final String resultMsg =
-          '${(curMatchNum >= 0 ? (curMatchNum + 1).toString() : "?")} of $total';
+      final resultMsg =
+          '${curMatchNum >= 0 ? (curMatchNum + 1).toString() : "?"} of $total';
       searchResultsSpan.innerText = resultMsg;
       searchResultsSpan.classes.remove('no-results');
     }
@@ -144,21 +136,21 @@ class SearchController {
 
     // For each find search option we toggle it when pressed and update search highlights
     findMatchCaseButton.onClick.listen((_) {
-      final String stateBeforeToggle =
+      final stateBeforeToggle =
           findMatchCaseButton.getAttribute('aria-pressed') ?? 'false';
       findMatchCaseButton.setAttribute(
           'aria-pressed', (stateBeforeToggle == 'false') ? 'true' : 'false');
       executeFind(highlightOnly: true);
     });
     findWholeWordButton.onClick.listen((_) {
-      final String stateBeforeToggle =
+      final stateBeforeToggle =
           findWholeWordButton.getAttribute('aria-pressed') ?? 'false';
       findWholeWordButton.setAttribute(
           'aria-pressed', (stateBeforeToggle == 'false') ? 'true' : 'false');
       executeFind(highlightOnly: true);
     });
     findRegExButton.onClick.listen((_) {
-      final String stateBeforeToggle =
+      final stateBeforeToggle =
           findRegExButton.getAttribute('aria-pressed') ?? 'false';
       findRegExButton.setAttribute(
           'aria-pressed', (stateBeforeToggle == 'false') ? 'true' : 'false');
@@ -213,7 +205,7 @@ class SearchController {
           'placeholder', 'Replace (\u2191\u2193 for history)');
     });
     replaceTextInput.onBlur.listen((_) {
-      final String current = replaceText;
+      final current = replaceText;
       if (current.isEmpty) {
         replaceTextInput.setAttribute('placeholder', 'Replace');
       }
@@ -224,7 +216,7 @@ class SearchController {
     //    ESC closes dialog, we can only trap it on our inputs since
     //    editor needs it for vim..
     findTextInput.onKeyDown.listen((event) {
-      final int keyCode = event.keyCode;
+      final keyCode = event.keyCode;
       if (keyCode == keyCodeUp || keyCode == keyCodeDown) {
         arrowKeysNavigateFindTextHistory(keyCode);
         event
@@ -236,7 +228,7 @@ class SearchController {
       }
     });
     replaceTextInput.onKeyDown.listen((event) {
-      final int keyCode = event.keyCode;
+      final keyCode = event.keyCode;
       if (keyCode == keyCodeUp || keyCode == keyCodeDown) {
         arrowKeysNavigateReplaceTextHistory(keyCode);
         event
@@ -267,7 +259,7 @@ class SearchController {
       if (!searchHistory.contains(findText)) {
         addFindTextToSearchHistory();
       }
-      int searchHistoryPos = searchHistory.indexOf(findText);
+      var searchHistoryPos = searchHistory.indexOf(findText);
       if (keyCode == keyCodeUp) {
         searchHistoryPos--;
       } else {
@@ -288,7 +280,7 @@ class SearchController {
       if (!replaceHistory.contains(replaceText)) {
         addReplaceTextToReplaceHistory();
       }
-      int replaceHistoryPos = replaceHistory.indexOf(replaceText);
+      var replaceHistoryPos = replaceHistory.indexOf(replaceText);
       if (keyCode == keyCodeUp) {
         replaceHistoryPos--;
       } else {
@@ -429,12 +421,12 @@ class SearchController {
   }
 
   void executeFind({bool reverse = false, bool highlightOnly = true}) {
-    final String query = findTextInput.value ?? '';
+    final query = findTextInput.value ?? '';
     if (query != '') {
-      final Map<String, dynamic> res = editor.startSearch(
+      final res = editor.startSearch(
           query, reverse, highlightOnly, matchCase, wholeWord, regExMatch);
-      final int total = res['total'] as int;
-      final int curMatchNum = res['curMatchNum'] as int;
+      final total = res['total'] as int;
+      final curMatchNum = res['curMatchNum'] as int;
       updateSearchResults(curMatchNum: curMatchNum, total: total);
     } else {
       clearSearch();

@@ -77,5 +77,3 @@ Contributions welcome! Please read this short
 [guide](https://github.com/dart-lang/dart-pad/blob/master/CONTRIBUTING.md)
 first. You can view our license
 [here](https://github.com/dart-lang/dart-pad/blob/master/LICENSE).
-
-

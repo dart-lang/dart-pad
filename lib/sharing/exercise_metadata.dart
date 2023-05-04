@@ -41,7 +41,7 @@ class ExerciseFileMetadata {
 
     if (map['name'] == null ||
         map['name'] is! String ||
-        map['name']?.isEmpty as bool) {
+        (map['name'] as String).isEmpty) {
       throw MetadataException('The "name" field is required for each file.');
     }
 
@@ -61,14 +61,14 @@ class ExerciseMetadata {
   late ExerciseMode mode;
   late List<ExerciseFileMetadata> files;
 
-  ExerciseMetadata.fromMap(map) {
+  ExerciseMetadata.fromMap(Map? map) {
     if (map == null) {
       throw MetadataException('Null json was given to ExerciseMetadata().');
     }
 
     if (map['name'] == null ||
         map['name'] is! String ||
-        map['name'].isEmpty as bool) {
+        (map['name'] as String).isEmpty) {
       throw MetadataException('The "name" field is required for an exercise.');
     }
 
@@ -80,8 +80,8 @@ class ExerciseMetadata {
     }
 
     if (map['files'] == null ||
-        map['files'] is! List<dynamic> ||
-        map['files'].isEmpty as bool) {
+        map['files'] is! List ||
+        (map['files'] as List).isEmpty) {
       throw MetadataException('Each exercise must have at least one file in '
           'its "files" array.');
     }

@@ -64,7 +64,7 @@ class Keys {
   bool _handleKey(String key) {
     final action = _bindings[key];
     if (action != null) {
-      Timer.run(() => action());
+      Timer.run(action);
       return true;
     }
 
@@ -90,7 +90,7 @@ class Action {
   String toString() => description;
 
   @override
-  bool operator ==(other) =>
+  bool operator ==(Object other) =>
       other is Action && description == other.description;
 
   @override

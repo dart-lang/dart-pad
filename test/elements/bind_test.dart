@@ -13,16 +13,6 @@ void main() => defineTests();
 
 void defineTests() {
   group('bind', () {
-    test('get stream changes', () {
-      final fromController = StreamController.broadcast();
-      final to = TestProperty();
-      bind(fromController.stream, to);
-      fromController.add('foo');
-      return to.onChanged.first.then((_) {
-        expect(to.value, 'foo');
-      });
-    });
-
     test('get property changes', () {
       final from = TestProperty('foo');
       final to = TestProperty();
@@ -30,13 +20,6 @@ void defineTests() {
       return to.onChanged.first.then((_) {
         expect(to.value, from.value);
       });
-    });
-
-    test('target functions', () {
-      final from = TestProperty('foo');
-      Object? value;
-      bind(from, (val) => value = val).flush();
-      expect(value, from.value);
     });
 
     test('target properties', () {
@@ -62,7 +45,7 @@ void defineTests() {
   });
 }
 
-class TestProperty implements Property {
+class TestProperty implements Property<Object?> {
   final _controller = StreamController(sync: true);
   Object? value;
   int changedCount = 0;
@@ -70,10 +53,10 @@ class TestProperty implements Property {
   TestProperty([this.value]);
 
   @override
-  dynamic get() => value;
+  Object? get() => value;
 
   @override
-  void set(val) {
+  void set(Object? val) {
     value = val;
     changedCount++;
     _controller.add(value);

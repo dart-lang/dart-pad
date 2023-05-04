@@ -86,23 +86,6 @@ Gist createSampleFlutterGist() {
   return gist;
 }
 
-/// Find the best match for the given file names in the gist file info; return
-/// the file (or `null` if no match is found).
-GistFile? chooseGistFile(Gist gist, List<String> names, [Function? matcher]) {
-  final files = gist.files;
-
-  for (final name in names) {
-    final file = files.firstWhereOrNull((f) => f.name == name);
-    if (file != null) return file;
-  }
-
-  if (matcher != null) {
-    return files.firstWhereOrNull((f) => matcher(f.name) as bool);
-  } else {
-    return null;
-  }
-}
-
 typedef GistFilterHook = void Function(Gist gist);
 
 enum GistLoaderFailureType {
@@ -282,16 +265,16 @@ $styleRef$dartRef  </head>
         "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/"
       }
     */
-    final Map<String, dynamic> map = gistToSave.toMap(); //;
+    final map = gistToSave.toMap();
     map.remove('id');
     map['public'] = public;
     if (map['files'] != null) {
-      if (map['files']['.metadata.json'] != null) {
-        // if it is present then remove metadata json file from gist when saving
-        map['files'].remove('.metadata.json');
+      if ((map['files'] as Map)['.metadata.json'] != null) {
+        // If it is present then remove metadata json file from gist when saving.
+        (map['files'] as Map).remove('.metadata.json');
       }
     }
-    final String bodydata = json.encode(map);
+    final bodydata = json.encode(map);
 
     final response = await _client.post(Uri.parse(_gistApiUrl),
         headers: {
@@ -303,7 +286,7 @@ $styleRef$dartRef  </head>
         body: bodydata);
 
     if (response.statusCode == 201) {
-      final retObj = jsonDecode(response.body);
+      final retObj = jsonDecode(response.body) as Map<String, dynamic>;
       return retObj['id'] as String;
     } else if (response.statusCode == 404) {
       throw const GistLoaderException(GistLoaderFailureType.contentNotFound);
@@ -320,7 +303,7 @@ $styleRef$dartRef  </head>
       Gist gistToUpdate, String authenticationToken) async {
     if (beforeSaveHook != null) beforeSaveHook!(gistToUpdate);
 
-    final String gistId = gistToUpdate.id ?? '';
+    final gistId = gistToUpdate.id ?? '';
 
     /*
       Allows you to update or delete a gist file and rename gist files. Files from the previous version of the gist that aren't explicitly changed during an edit are unchanged.
@@ -333,10 +316,10 @@ $styleRef$dartRef  </head>
       description string   body      Description of the gist
       files       object   body      Names of files to be update
     */
-    final Map<String, dynamic> map = gistToUpdate.toMap(); //;
+    final map = gistToUpdate.toMap(); //;
     map.remove('id');
     map.remove('public');
-    final String bodydata = json.encode(map);
+    final bodydata = json.encode(map);
 
     final response = await _client.patch(Uri.parse('$_gistApiUrl/$gistId'),
         headers: {
@@ -365,7 +348,7 @@ $styleRef$dartRef  </head>
                 "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/"
               }
             */
-      final retObj = jsonDecode(response.body);
+      final retObj = jsonDecode(response.body) as Map<String, dynamic>;
       return retObj['id'] as String;
     } else if (response.statusCode == 404) {
       return gistNotFound;
@@ -382,7 +365,7 @@ $styleRef$dartRef  </head>
       String authenticationToken) async {
     if (beforeSaveHook != null) beforeSaveHook!(gistToSave);
 
-    final String gistId = gistToSave.id ?? '';
+    final gistId = gistToSave.id ?? '';
     if (gistId.isEmpty) {
       // we have no gistId to fork from, so SAVE instead
       return createGist(gistToSave, gistToSave.public, authenticationToken);
@@ -455,13 +438,13 @@ $styleRef$dartRef  </head>
         "truncated": false
       }
     */
-      final retObj = jsonDecode(response.body);
-      final String forkedGistId = retObj['id'] as String;
+      final retObj = jsonDecode(response.body) as Map<String, dynamic>;
+      final forkedGistId = retObj['id'] as String;
 
       if (localUnsavedEdits) {
         // There were UNSAVED local edits, so we also need to now
         // UDPATE this new fork with those edits
-        final Gist forkedGist = gistToSave.cloneWithNewId(forkedGistId);
+        final forkedGist = gistToSave.cloneWithNewId(forkedGistId);
         return updateGist(forkedGist, authenticationToken);
       }
       return forkedGistId;
@@ -757,7 +740,8 @@ class Gist {
             summary: map['summary'] as String?,
             files: (map['files'] as Map<String, dynamic>?)
                 ?.entries
-                .map((e) => GistFile.fromMap(e.key, e.value))
+                .map((e) =>
+                    GistFile.fromMap(e.key, e.value as Map<String, dynamic>))
                 .toList());
 
   dynamic operator [](String? key) {
@@ -827,7 +811,7 @@ class Gist {
   Gist clone() => Gist.fromMap(json.decode(toJson()) as Map<String, dynamic>);
 
   Gist cloneWithNewId(String newGistId) {
-    final Map<String, dynamic> map = toMap();
+    final map = toMap();
     map['id'] = newGistId;
     return Gist.fromMap(map);
   }
@@ -845,7 +829,7 @@ class GistFile {
 
   GistFile({required this.name, this.content});
 
-  GistFile.fromMap(this.name, data) {
+  GistFile.fromMap(this.name, Map<String, dynamic> data) {
     content = data['content'] as String?;
     rawUrl = data['raw_url'] as String?;
     language = data['language'] as String?;
