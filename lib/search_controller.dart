@@ -40,12 +40,12 @@ class SearchController {
     keys.bind(['ctrl-f', 'macctrl-f'], userOpenFindDialogHotkey, 'Find');
     keys.bind(['ctrl-h', 'macctrl-h'], userOpenReplaceDialogHotkey, 'Replace');
     keys.bind(['f4', 'ctrl-g', 'macctrl-g'], userFindNextHotkey, 'Find Next');
-    keys.bind(['shift-f4', 'shift-ctrl-g', 'shift-macctrl-g'], userFindPreviousHotkey, 'Find Previous');
+    keys.bind(['shift-f4', 'shift-ctrl-g', 'shift-macctrl-g'],
+        userFindPreviousHotkey, 'Find Previous');
   }
 
   void editorUpdatedSearchAnnotationsCallback() {
-    final res =
-        editor.getMatchesFromSearchQueryUpdatedCallback();
+    final res = editor.getMatchesFromSearchQueryUpdatedCallback();
     final total = res['total'] as int;
     final curMatchNum = res['curMatchNum'] as int;
     updateSearchResults(curMatchNum: curMatchNum, total: total);

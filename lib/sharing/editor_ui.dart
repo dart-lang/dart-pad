@@ -59,7 +59,8 @@ abstract class EditorUi {
   @mustCallSuper
   void initKeyBindings() {
     keys.bind(['ctrl-enter', 'macctrl-enter'], handleRun, 'Run');
-    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], showKeyboardDialog, 'Keyboard Shortcuts');
+    keys.bind(['shift-ctrl-/', 'shift-macctrl-/'], showKeyboardDialog,
+        'Keyboard Shortcuts');
 
     _initEscapeTabSwitching();
   }
@@ -382,8 +383,7 @@ class KeyboardDialog {
 
   Future<DialogResult> show(Editor editor) {
     // populate with the keymap info
-    final keyMapInfoDiv =
-        DElement(querySelector('#keyboard-map-info')!);
+    final keyMapInfoDiv = DElement(querySelector('#keyboard-map-info')!);
     final info = Element.html(keyMapToHtml(keys.inverseBindings));
     keyMapInfoDiv.clearChildren();
     keyMapInfoDiv.add(info);

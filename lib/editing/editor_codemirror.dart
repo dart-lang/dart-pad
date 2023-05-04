@@ -252,15 +252,14 @@ class _CodeMirrorEditor extends Editor {
 
   @override
   String? getTokenWeAreOnOrNear([String? regEx]) {
-    final foundToken =
-        cm.callArg('getTokenWeAreOnOrNear', regEx) as String?;
+    final foundToken = cm.callArg('getTokenWeAreOnOrNear', regEx) as String?;
     return foundToken;
   }
 
   @override
   Map<String, dynamic> getMatchesFromSearchQueryUpdatedCallback() {
-    final jsobj = cm.callArg(
-        'getMatchesFromSearchQueryUpdatedCallback', null) as JsObject?;
+    final jsobj = cm.callArg('getMatchesFromSearchQueryUpdatedCallback', null)
+        as JsObject?;
     if (jsobj != null) {
       return {
         'total': (jsobj['total'] ?? 0) as int,

@@ -41,8 +41,7 @@ void defineTests() {
   SpanElement? getSequenceOutput(String sequence) {
     final ansiSeqPos = sequence.indexOf('\u001B[');
 
-    final root =
-        ansiConsoleHandler().handleAnsiOutput(sequence, ansiSeqPos);
+    final root = ansiConsoleHandler().handleAnsiOutput(sequence, ansiSeqPos);
 
     final child = root.lastChild!;
 
@@ -573,8 +572,7 @@ void defineTests() {
     elementsExpected ??= expectations.length;
 
     final ansiSeqPos = sequence.indexOf('\u001B[');
-    final root =
-        ansiConsoleHandler().handleAnsiOutput(sequence, ansiSeqPos);
+    final root = ansiConsoleHandler().handleAnsiOutput(sequence, ansiSeqPos);
 
     expect(root.children.length, elementsExpected);
     for (var i = 0; i < elementsExpected; i++) {
@@ -587,8 +585,7 @@ void defineTests() {
     }
   }
 
-  final greencolor =
-      ansiConsoleHandler().getColorFromBasicAnsiColorCode(32)!;
+  final greencolor = ansiConsoleHandler().getColorFromBasicAnsiColorCode(32)!;
 
   test('Expected multiple sequence operation', () {
     // Multiple codes affect the same text.
