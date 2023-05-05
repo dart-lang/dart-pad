@@ -40,16 +40,19 @@ class ProjectCreator {
     final projectPath = path.join(_templatesPath, 'dart_project');
     final projectDirectory = Directory(projectPath);
     await projectDirectory.create(recursive: true);
-    final dependencies = _dependencyVersions(
-        supportedBasicDartPackages(devMode: _sdk.devMode),
-        oldChannel: _sdk.oldChannel);
+    final dependencies =
+        _dependencyVersions(supportedBasicDartPackages(devMode: _sdk.devMode));
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: false,
       dartLanguageVersion: _dartLanguageVersion,
       dependencies: dependencies,
     ));
-    await _runDartPubGet(projectDirectory);
+
+    // todo: run w/ the correct sdk
+    final exitCode = await _runDartPubGet(projectDirectory);
+    if (exitCode != 0) throw StateError('pub get failed ($exitCode)');
+
     var contents = '''
 include: package:lints/recommended.yaml
 linter:
@@ -82,7 +85,7 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
       _templatesPath,
       projectDirName,
     );
-    final projectDir = await Directory(projectPath).create(recursive: true);
+    await Directory(projectPath).create(recursive: true);
     await Directory(path.join(projectPath, 'lib')).create();
     await Directory(path.join(projectPath, 'web')).create();
     await File(path.join(projectPath, 'web', 'index.html')).create();
@@ -93,15 +96,20 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
       if (firebaseStyle == FirebaseStyle.flutterFire)
         ...registerableFirebasePackages,
     };
-    final dependencies =
-        _dependencyVersions(packages, oldChannel: _sdk.oldChannel);
+    final dependencies = _dependencyVersions(packages);
     File(path.join(projectPath, 'pubspec.yaml'))
         .writeAsStringSync(createPubspec(
       includeFlutterWeb: true,
       dartLanguageVersion: _dartLanguageVersion,
       dependencies: dependencies,
     ));
-    await runFlutterPackagesGet(_sdk.flutterToolPath, projectPath, log: _log);
+
+    final exitCode = await runFlutterPackagesGet(
+      _sdk.flutterToolPath,
+      projectPath,
+      log: _log,
+    );
+    if (exitCode != 0) throw StateError('flutter pub get failed ($exitCode)');
 
     // Working around Flutter 3.3's deprecation of generated_plugin_registrant.dart
     // Context: https://github.com/flutter/flutter/pull/106921
@@ -124,15 +132,20 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
         ...supportedFlutterPackages(devMode: _sdk.devMode),
         ...firebasePackages,
       };
-      final dependencies =
-          _dependencyVersions(packages, oldChannel: _sdk.oldChannel);
+      final dependencies = _dependencyVersions(packages);
       File(path.join(projectPath, 'pubspec.yaml'))
           .writeAsStringSync(createPubspec(
         includeFlutterWeb: true,
         dartLanguageVersion: _dartLanguageVersion,
         dependencies: dependencies,
       ));
-      await _runDartPubGet(projectDir);
+
+      final exitCode = await runFlutterPackagesGet(
+        _sdk.flutterToolPath,
+        projectPath,
+        log: _log,
+      );
+      if (exitCode != 0) throw StateError('flutter pub get failed ($exitCode)');
     }
     var contents = '''
 include: package:flutter_lints/flutter.yaml
@@ -152,7 +165,7 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
         .writeAsStringSync(contents);
   }
 
-  Future<void> _runDartPubGet(Directory dir) async {
+  Future<int> _runDartPubGet(Directory dir) async {
     final process = await runWithLogging(
       path.join(_sdk.dartSdkPath, 'bin', 'dart'),
       arguments: ['pub', 'get'],
@@ -160,23 +173,29 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
       environment: {'PUB_CACHE': _pubCachePath},
       log: _log,
     );
-    await process.exitCode;
+    return process.exitCode;
   }
 
-  Map<String, String> _dependencyVersions(Iterable<String> packages,
-      {required bool oldChannel}) {
+  Map<String, String> _dependencyVersions(Iterable<String> packages) {
     final allVersions =
         parsePubDependenciesFile(dependenciesFile: _dependenciesFile);
-    return {
+    final result = {
       for (var package in packages) package: allVersions[package] ?? 'any',
-      // Overwrite with important constraints:
-      ...packageVersionConstraints(oldChannel: oldChannel),
     };
+
+    // Overwrite with important constraints.
+    for (final entry in overrideVersionConstraints().entries) {
+      if (result.containsKey(entry.key)) {
+        result[entry.key] = entry.value;
+      }
+    }
+
+    return result;
   }
 }
 
 /// A mapping of version constraints for certain packages.
-Map<String, String> packageVersionConstraints({required bool oldChannel}) {
+Map<String, String> overrideVersionConstraints() {
   // Ensure that pub version solving keeps these at sane minimum versions.
   return {
     'firebase_auth': '^4.2.0',
@@ -220,7 +239,7 @@ dependencies:
   return content;
 }
 
-Future<void> runFlutterPackagesGet(
+Future<int> runFlutterPackagesGet(
   String flutterToolPath,
   String projectPath, {
   required LogFunction log,
@@ -230,7 +249,7 @@ Future<void> runFlutterPackagesGet(
       workingDirectory: projectPath,
       environment: {'PUB_CACHE': _pubCachePath},
       log: log);
-  await process.exitCode;
+  return process.exitCode;
 }
 
 /// Builds the local pub cache directory and returns the path.

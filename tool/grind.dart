@@ -411,20 +411,28 @@ Future<void> _updateDependenciesFile({
   required Sdk sdk,
 }) async {
   final tempDir = Directory.systemTemp.createTempSync('pubspec-scratch');
+
+  final dependencies = <String, String>{
+    'lints': 'any',
+    'flutter_lints': 'any',
+    for (var package in firebasePackages) package: 'any',
+    for (var package in supportedFlutterPackages(devMode: sdk.devMode))
+      package: 'any',
+    for (var package in supportedBasicDartPackages(devMode: sdk.devMode))
+      package: 'any',
+  };
+
+  // Overwrite with important constraints.
+  for (final entry in overrideVersionConstraints().entries) {
+    if (dependencies.containsKey(entry.key)) {
+      dependencies[entry.key] = entry.value;
+    }
+  }
+
   final pubspec = createPubspec(
     includeFlutterWeb: true,
     dartLanguageVersion: readDartLanguageVersion(_channel),
-    dependencies: {
-      'lints': 'any',
-      'flutter_lints': 'any',
-      for (var package in firebasePackages) package: 'any',
-      for (var package in supportedFlutterPackages(devMode: sdk.devMode))
-        package: 'any',
-      for (var package in supportedBasicDartPackages(devMode: sdk.devMode))
-        package: 'any',
-      // Overwrite with important constraints:
-      ...packageVersionConstraints(oldChannel: sdk.oldChannel),
-    },
+    dependencies: dependencies,
   );
   joinFile(tempDir, ['pubspec.yaml']).writeAsStringSync(pubspec);
   await runFlutterPackagesGet(flutterToolPath, tempDir.path, log: log);
