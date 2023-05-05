@@ -6,7 +6,7 @@ part of 'meta.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Meta _$MetaFromJson(Map json) => $checkedCreate(
+Meta _$MetaFromJson(Map<String, dynamic> json) => $checkedCreate(
       'Meta',
       json,
       ($checkedConvert) {
@@ -19,7 +19,8 @@ Meta _$MetaFromJson(Map json) => $checkedCreate(
           $checkedConvert(
               'steps',
               (v) => (v as List<dynamic>)
-                  .map((e) => StepConfiguration.fromJson(e as Map))
+                  .map((e) => StepConfiguration.fromJson(
+                      Map<String, dynamic>.from(e as Map)))
                   .toList()),
           type: $checkedConvert(
               'type',
@@ -42,7 +43,8 @@ const _$WorkshopTypeEnumMap = {
   WorkshopType.flutter: 'flutter',
 };
 
-StepConfiguration _$StepConfigurationFromJson(Map json) => $checkedCreate(
+StepConfiguration _$StepConfigurationFromJson(Map<String, dynamic> json) =>
+    $checkedCreate(
       'StepConfiguration',
       json,
       ($checkedConvert) {

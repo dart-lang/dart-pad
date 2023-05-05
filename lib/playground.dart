@@ -398,7 +398,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     _channelsMenu?.listen('MDCMenu:selected', _handleChannelsMenuSelected);
   }
 
-  void _handleChannelsMenuSelected(e) {
+  void _handleChannelsMenuSelected(Event e) {
     final index = ((e as CustomEvent).detail as Map)['index'] as int;
     // Use menu index BACK into channels array it was created from to get channel name.
     final channel = channels[index].name;
@@ -555,23 +555,18 @@ class Playground extends EditorUi implements GistContainer, GistController {
     context.onDartDirty.listen((_) => busyLight.on());
     context.onDartReconcile.listen((_) => performAnalysis());
 
-    final Property htmlFile =
-        GistFileProperty(_editableGist.getGistFile('index.html'));
-    final Property htmlDoc =
-        EditorDocumentProperty(context.htmlDocument, 'html');
+    final htmlFile = GistFileProperty(_editableGist.getGistFile('index.html'));
+    final htmlDoc = EditorDocumentProperty(context.htmlDocument, 'html');
     bind(htmlDoc, htmlFile);
     bind(htmlFile, htmlDoc);
 
-    final Property cssFile =
-        GistFileProperty(_editableGist.getGistFile('styles.css'));
-    final Property cssDoc = EditorDocumentProperty(context.cssDocument, 'css');
+    final cssFile = GistFileProperty(_editableGist.getGistFile('styles.css'));
+    final cssDoc = EditorDocumentProperty(context.cssDocument, 'css');
     bind(cssDoc, cssFile);
     bind(cssFile, cssDoc);
 
-    final Property dartFile =
-        GistFileProperty(_editableGist.getGistFile('main.dart'));
-    final Property dartDoc =
-        EditorDocumentProperty(context.dartDocument, 'dart');
+    final dartFile = GistFileProperty(_editableGist.getGistFile('main.dart'));
+    final dartDoc = EditorDocumentProperty(context.dartDocument, 'dart');
     bind(dartDoc, dartFile);
     bind(dartFile, dartDoc);
 
@@ -793,7 +788,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
           }
         }).catchError((e) => null);
       });
-    }).catchError((e) {
+    }).catchError((Object e) {
       final message = 'Error loading gist $gistId.';
       showSnackbar(message);
       _logger.severe('$message: $e');
@@ -832,7 +827,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
       } else {
         showSnackbar('No formatting changes.');
       }
-    }).catchError((e) {
+    }).catchError((Object e) {
       busyLight.reset();
       _formatButton.disabled = false;
       _logger.severe(e);

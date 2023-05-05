@@ -7,7 +7,7 @@ library dart_pad.bind;
 import 'dart:async';
 
 /// Bind changes from `from` to the target `to`.
-Binding bind(Property from, Property to) {
+Binding bind<T>(Property<T> from, Property<T> to) {
   return _PropertyBinding(from, to);
 }
 
@@ -16,13 +16,13 @@ Binding bind(Property from, Property to) {
 abstract class Property<T> {
   T get();
   void set(T value);
-  Stream<T?>? get onChanged;
+  Stream<T>? get onChanged;
 }
 
 /// An object that can own a set of properties.
-abstract class PropertyOwner {
+abstract class PropertyOwner<T> {
   List<String> get propertyNames;
-  Property property(String name);
+  Property<T> property(String name);
 }
 
 /// An instantiation of a binding from one element to another. [Binding]s can be
@@ -38,11 +38,11 @@ abstract class Binding {
   void cancel();
 }
 
-class _PropertyBinding implements Binding {
-  final Property property;
-  final Property target;
+class _PropertyBinding<T> implements Binding {
+  final Property<T> property;
+  final Property<T> target;
 
-  StreamSubscription? _sub;
+  StreamSubscription<T>? _sub;
 
   _PropertyBinding(this.property, this.target) {
     final stream = property.onChanged;
@@ -57,9 +57,9 @@ class _PropertyBinding implements Binding {
     if (_sub != null) _sub!.cancel();
   }
 
-  void _handleEvent(e) => _sendTo(target, e);
+  void _handleEvent(T e) => _sendTo(target, e);
 }
 
-void _sendTo(Property target, e) {
+void _sendTo<T>(Property<T> target, T e) {
   if (e != target.get()) target.set(e);
 }

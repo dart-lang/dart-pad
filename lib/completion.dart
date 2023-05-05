@@ -17,7 +17,7 @@ class DartCompleter extends CodeCompleter {
   final ds.DartservicesApi servicesApi;
   final Document document;
 
-  CancelableCompleter? _lastCompleter;
+  CancelableCompleter<CompletionResult>? _lastCompleter;
 
   DartCompleter(this.servicesApi, this.document);
 
@@ -169,8 +169,8 @@ class DartCompleter extends CodeCompleter {
           replaceOffset: replaceOffset,
           replaceLength: replaceLength,
         ));
-      }).catchError((e) {
-        completer.completeError(e as Object);
+      }).catchError((Object e) {
+        completer.completeError(e);
       });
     }
 

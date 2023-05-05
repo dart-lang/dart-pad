@@ -625,17 +625,18 @@ class GitHubAuthenticationController {
 
   final _authenticatedStateChangeController =
       StreamController<bool>.broadcast();
-  final _myGistListUpdateController = StreamController.broadcast();
-  final _starredGistListUpdateController = StreamController.broadcast();
-  final _gistStarredCheckerReportController = StreamController.broadcast();
+  final _myGistListUpdateController = StreamController<void>.broadcast();
+  final _starredGistListUpdateController = StreamController<void>.broadcast();
+  final _gistStarredCheckerReportController =
+      StreamController<void>.broadcast();
 
   Stream<bool> get onAuthStateChanged =>
       _authenticatedStateChangeController.stream;
 
-  Stream get onMyGistListChanged => _myGistListUpdateController.stream;
-  Stream get onStarredGistListChanged =>
+  Stream<void> get onMyGistListChanged => _myGistListUpdateController.stream;
+  Stream<void> get onStarredGistListChanged =>
       _starredGistListUpdateController.stream;
-  Stream get onGistStarredCheckerReport =>
+  Stream<void> get onGistStarredCheckerReport =>
       _gistStarredCheckerReportController.stream;
 
   final List<Gist> _myGistList = [];
@@ -648,8 +649,11 @@ class GitHubAuthenticationController {
   String? _pendingUserGistRequest;
   String? _pendingUserStarredGistRequest;
 
-  GitHubAuthenticationController(this.launchUri, this.snackbar,
-      {http.Client? client}) {
+  GitHubAuthenticationController(
+    this.launchUri,
+    this.snackbar, {
+    http.Client? client,
+  }) {
     // Check for parameters in query uri.
     _client = client ?? http.Client();
 
@@ -676,7 +680,8 @@ class GitHubAuthenticationController {
             json.decode(perAuthParamsJson) as Map<dynamic, dynamic>);
 
         final restoredUrl = launchUri.replace(queryParameters: restoreParams);
-        window.history.replaceState({}, 'DartPad', restoredUrl.toString());
+        window.history.replaceState(
+            <String, dynamic>{}, 'DartPad', restoredUrl.toString());
       } catch (e) {
         window.console.log(
             'Caught exception doing restoreParams : exception ${e.toString()}');

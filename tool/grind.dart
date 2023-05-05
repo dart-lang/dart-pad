@@ -18,14 +18,15 @@ final FilePath _buildDir = FilePath('build');
 
 Map<String, String> get _env => Platform.environment;
 
-Future main(List<String> args) => grind(args);
+Future<void> main(List<String> args) => grind(args);
 
 @Task()
-Future testCli() async => await TestRunner().testAsync(platformSelector: 'vm');
+Future<void> testCli() async =>
+    await TestRunner().testAsync(platformSelector: 'vm');
 
 @Task('Serve locally on port 8000')
 @Depends(build)
-Future serve() async {
+Future<void> serve() async {
   await Process.start(Platform.executable, ['bin/serve.dart'])
       .then((Process process) {
     process.stdout.transform(utf8.decoder).listen(stdout.write);
@@ -35,7 +36,7 @@ Future serve() async {
 
 @Task('Serve via local AppEngine on port 8080')
 @Depends(build)
-Future serveLocalAppEngine() async {
+Future<void> serveLocalAppEngine() async {
   await Process.start(
     'dev_appserver.py',
     ['.'],
@@ -54,7 +55,7 @@ Future serveLocalAppEngine() async {
     _serverUrlOption: 'http://127.0.0.1:8084/',
   }),
 ))
-Future serveLocalBackend() async {
+Future<void> serveLocalBackend() async {
   log('\nServing dart-pad on http://localhost:8000');
 
   await Process.start(Platform.executable, ['bin/serve.dart'])
@@ -169,7 +170,7 @@ void buildbot() {}
 
 @Task('Prepare the app for deployment')
 @Depends(buildbot)
-Future deploy() async {
+Future<void> deploy() async {
   // Validate the deploy.
 
   // `dev` is served from dev.dart-pad.appspot.com
@@ -177,6 +178,7 @@ Future deploy() async {
 
   final app = yaml.loadYaml(File('web/app.yaml').readAsStringSync()) as Map;
 
+  // ignore: strict_raw_type
   final handlers = (app['handlers'] as List).cast<Map>();
   var isSecure = false;
 

@@ -534,7 +534,7 @@ class WorkshopUi extends EditorUi {
       } else {
         showSnackbar('No formatting changes.');
       }
-    }).catchError((e) {
+    }).catchError((Object e) {
       busyLight.reset();
       formatButton.disabled = false;
       logger.severe(e);

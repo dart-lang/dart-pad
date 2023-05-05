@@ -5,16 +5,16 @@
 import '../elements/bind.dart';
 import 'mutable_gist.dart';
 
-class GistFileProperty implements Property<String> {
+class GistFileProperty implements Property<String?> {
   final MutableGistFile file;
 
   GistFileProperty(this.file);
 
   @override
-  String get() => file.content!;
+  String? get() => file.content;
 
   @override
-  void set(String value) {
+  void set(String? value) {
     if (file.content != value) {
       file.content = value;
     }

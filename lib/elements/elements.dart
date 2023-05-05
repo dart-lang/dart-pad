@@ -45,7 +45,7 @@ class DElement {
     element.text = value;
   }
 
-  Property get textProperty => _ElementTextProperty(element);
+  Property<String?> get textProperty => _ElementTextProperty(element);
 
   void layoutHorizontal() {
     setAttr('layout');
@@ -267,7 +267,7 @@ class DToast extends DElement {
 }
 
 class GlassPane extends DElement {
-  final _controller = StreamController.broadcast();
+  final _controller = StreamController<void>.broadcast();
 
   GlassPane() : super.tag('div') {
     element.classes.toggle('glass-pane', true);
@@ -293,7 +293,7 @@ class GlassPane extends DElement {
 
   bool get isShowing => document.body!.children.contains(element);
 
-  Stream get onCancel => _controller.stream;
+  Stream<void> get onCancel => _controller.stream;
 }
 
 abstract class DDialog extends DElement {

@@ -83,7 +83,7 @@ class Dialog {
     _rightButton!.text = rightButtonText;
 
     final completer = Completer<DialogResult>();
-    StreamSubscription? leftSub;
+    StreamSubscription<MouseEvent>? leftSub;
 
     if (showLeftButton) {
       _leftButton!.text = leftButtonText;

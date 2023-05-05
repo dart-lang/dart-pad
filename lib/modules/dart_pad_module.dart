@@ -11,7 +11,7 @@ import '../elements/state.dart';
 
 class DartPadModule extends Module {
   @override
-  Future init() {
+  Future<void> init() {
     Dependencies.setGlobalInstance(Dependencies());
 
     deps[Keys] = Keys();

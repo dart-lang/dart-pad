@@ -17,7 +17,10 @@ abstract class WorkshopFetcherImpl implements WorkshopFetcher {
 
   Future<Meta> fetchMeta() async {
     final contents = await loadFileContents(['meta.yaml']);
-    return checkedYamlDecode(contents, (Map? m) => Meta.fromJson(m!));
+    // ignore: strict_raw_type
+    return checkedYamlDecode(contents, (Map? m) {
+      return Meta.fromJson(m!.cast());
+    });
   }
 
   Future<List<Step>> fetchSteps(Meta metadata) async {

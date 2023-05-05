@@ -46,7 +46,7 @@ void defineTests() {
 }
 
 class TestProperty implements Property<Object?> {
-  final _controller = StreamController(sync: true);
+  final _controller = StreamController<Object?>(sync: true);
   Object? value;
   int changedCount = 0;
 
@@ -63,5 +63,5 @@ class TestProperty implements Property<Object?> {
   }
 
   @override
-  Stream get onChanged => _controller.stream;
+  Stream<Object?> get onChanged => _controller.stream;
 }

@@ -659,7 +659,7 @@ $styleRef$dartRef  </head>
         throw FormatException();
       }
 
-      metadata = ExerciseMetadata.fromMap(yamlMap);
+      metadata = ExerciseMetadata.fromMap(yamlMap.cast());
     } on MetadataException catch (ex) {
       throw GistLoaderException(GistLoaderFailureType.invalidExerciseMetadata,
           'Issue parsing metadata: $ex');

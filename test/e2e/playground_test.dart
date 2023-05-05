@@ -75,7 +75,7 @@ void main() async {
       if ((await versionsElement.text).isNotEmpty) {
         return;
       }
-      await Future.delayed(Duration(seconds: 1));
+      await Future<void>.delayed(Duration(seconds: 1));
     }
   }
 
@@ -85,7 +85,7 @@ void main() async {
         uri: Uri.parse('http://localhost:4444/wd/hub/'),
         desired: Capabilities.chrome);
 
-    await Future.delayed(Duration(milliseconds: 2000));
+    await Future<void>.delayed(Duration(milliseconds: 2000));
 
     // Go to your page
     await driver.get('http://localhost:8000/');
