@@ -19,7 +19,7 @@ class Meta {
 
   Meta(this.name, this.steps, {this.type = WorkshopType.dart});
 
-  factory Meta.fromJson(Map json) => _$MetaFromJson(json);
+  factory Meta.fromJson(Map<String, dynamic> json) => _$MetaFromJson(json);
 
   Map<String, dynamic> toJson() => _$MetaToJson(this);
 
@@ -44,7 +44,7 @@ class StepConfiguration {
     this.hasSolution = false,
   });
 
-  factory StepConfiguration.fromJson(Map json) =>
+  factory StepConfiguration.fromJson(Map<String, dynamic> json) =>
       _$StepConfigurationFromJson(json);
 
   Map<String, dynamic> toJson() => _$StepConfigurationToJson(this);

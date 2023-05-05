@@ -1213,9 +1213,9 @@ class EmbedContext extends Context {
     solutionSource = value;
   }
 
-  final _dartDirtyController = StreamController.broadcast();
+  final _dartDirtyController = StreamController<void>.broadcast();
 
-  final _dartReconcileController = StreamController.broadcast();
+  final _dartReconcileController = StreamController<void>.broadcast();
 
   EmbedContext(this.editor, this._testAndSolutionReadOnly)
       : _dartDoc = editor.document,
@@ -1339,16 +1339,20 @@ class EmbedContext extends Context {
   @override
   String get activeMode => editor.mode;
 
-  Stream get onDartDirty => _dartDirtyController.stream;
+  Stream<void> get onDartDirty => _dartDirtyController.stream;
 
-  Stream get onDartReconcile => _dartReconcileController.stream;
+  Stream<void> get onDartReconcile => _dartReconcileController.stream;
 
   void markDartClean() => _dartDoc.markClean();
 
   /// Restore the focus to the last focused editor.
   void focus() => editor.focus();
 
-  void _createReconciler(Document doc, StreamController controller, int delay) {
+  void _createReconciler(
+    Document doc,
+    StreamController<void> controller,
+    int delay,
+  ) {
     Timer? timer;
     doc.onChange.listen((_) {
       timer?.cancel();

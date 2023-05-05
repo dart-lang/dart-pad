@@ -16,13 +16,13 @@ class PlaygroundContext extends Context {
   final Document _htmlDoc;
   final Document _cssDoc;
 
-  final _cssDirtyController = StreamController.broadcast();
-  final _dartDirtyController = StreamController.broadcast();
-  final _htmlDirtyController = StreamController.broadcast();
+  final _cssDirtyController = StreamController<void>.broadcast();
+  final _dartDirtyController = StreamController<void>.broadcast();
+  final _htmlDirtyController = StreamController<void>.broadcast();
 
-  final _cssReconcileController = StreamController.broadcast();
-  final _dartReconcileController = StreamController.broadcast();
-  final _htmlReconcileController = StreamController.broadcast();
+  final _cssReconcileController = StreamController<void>.broadcast();
+  final _dartReconcileController = StreamController<void>.broadcast();
+  final _htmlReconcileController = StreamController<void>.broadcast();
 
   PlaygroundContext(this.editor)
       : _dartDoc = editor.document,
@@ -103,17 +103,17 @@ class PlaygroundContext extends Context {
     return 'dart';
   }
 
-  Stream get onCssDirty => _cssDirtyController.stream;
+  Stream<void> get onCssDirty => _cssDirtyController.stream;
 
-  Stream get onDartDirty => _dartDirtyController.stream;
+  Stream<void> get onDartDirty => _dartDirtyController.stream;
 
-  Stream get onHtmlDirty => _htmlDirtyController.stream;
+  Stream<void> get onHtmlDirty => _htmlDirtyController.stream;
 
-  Stream get onCssReconcile => _cssReconcileController.stream;
+  Stream<void> get onCssReconcile => _cssReconcileController.stream;
 
-  Stream get onDartReconcile => _dartReconcileController.stream;
+  Stream<void> get onDartReconcile => _dartReconcileController.stream;
 
-  Stream get onHtmlReconcile => _htmlReconcileController.stream;
+  Stream<void> get onHtmlReconcile => _htmlReconcileController.stream;
 
   void markCssClean() => _cssDoc.markClean();
 
@@ -124,7 +124,8 @@ class PlaygroundContext extends Context {
   /// Restore the focus to the last focused editor.
   void focus() => editor.focus();
 
-  void _createReconciler(Document doc, StreamController controller, int delay) {
+  void _createReconciler(
+      Document doc, StreamController<void> controller, int delay) {
     Timer? timer;
     doc.onChange.listen((_) {
       if (timer != null) timer!.cancel();

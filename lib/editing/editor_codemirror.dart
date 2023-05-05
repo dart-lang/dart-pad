@@ -35,8 +35,10 @@ class CodeMirrorFactory extends EditorFactory {
   List<String> get themes => CodeMirror.themes;
 
   @override
-  Editor createFromElement(html.Element element,
-      {Map options = codeMirrorOptions}) {
+  Editor createFromElement(
+    html.Element element, {
+    Map<String, Object> options = codeMirrorOptions,
+  }) {
     final editor = CodeMirror.fromElement(element, options: options);
     CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
     CodeMirror.addCommand('indentIfMultiLineSelectionElseInsertSoftTab',
@@ -347,7 +349,7 @@ class _CodeMirrorEditor extends Editor {
   Stream<html.MouseEvent> get onMouseDown => cm.onMouseDown;
 
   @override
-  Stream get onVimModeChange => cm.onEvent('vim-mode-change');
+  Stream<void> get onVimModeChange => cm.onEvent('vim-mode-change');
 
   @override
   Point getCursorCoords({ed.Position? position}) {
@@ -516,7 +518,7 @@ class _CodeMirrorDocument extends Document<_CodeMirrorEditor> {
       ed.Position(position.line!, position.ch!);
 
   @override
-  Stream get onChange {
+  Stream<void> get onChange {
     return doc.onChange.where((_) {
       if (value != _lastSetValue) {
         _lastSetValue = null;

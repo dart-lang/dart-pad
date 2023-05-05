@@ -184,7 +184,7 @@ class InjectedEmbed {
     _init();
   }
 
-  Future _init() async {
+  Future<void> _init() async {
     host.children.clear();
 
     final iframe = IFrameElement()..attributes = {'src': iframeSrc(options)};

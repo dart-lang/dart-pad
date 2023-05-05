@@ -12,7 +12,7 @@ class CodeMirrorModule extends Module {
   static String? get version => codeMirrorFactory.version;
 
   @override
-  Future init() async {
+  Future<void> init() async {
     deps[EditorFactory] = codeMirrorFactory;
   }
 }

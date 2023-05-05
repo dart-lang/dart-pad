@@ -34,7 +34,7 @@ class ExerciseFileMetadata {
 
   String get path => alternatePath.isEmpty ? name : alternatePath;
 
-  ExerciseFileMetadata.fromMap(Map? map) {
+  ExerciseFileMetadata.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
       throw MetadataException('Null json was given to ExerciseFileMetadata().');
     }
@@ -61,7 +61,7 @@ class ExerciseMetadata {
   late ExerciseMode mode;
   late List<ExerciseFileMetadata> files;
 
-  ExerciseMetadata.fromMap(Map? map) {
+  ExerciseMetadata.fromMap(Map<String, dynamic>? map) {
     if (map == null) {
       throw MetadataException('Null json was given to ExerciseMetadata().');
     }
@@ -89,7 +89,7 @@ class ExerciseMetadata {
     name = map['name'] as String;
     mode = exerciseModeNames[map['mode']]!;
     files = (map['files'] as yaml.YamlList)
-        .map((f) => ExerciseFileMetadata.fromMap(f as yaml.YamlMap))
+        .map((f) => ExerciseFileMetadata.fromMap((f as yaml.YamlMap).cast()))
         .toList();
   }
 }
