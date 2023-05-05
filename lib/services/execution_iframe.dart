@@ -241,7 +241,7 @@ require(["dartpad_main", "dart_sdk"], function(dartpad_main, dart_sdk) {
   void _initListener() {
     window.addEventListener('message', (event) {
       if (event is MessageEvent) {
-        final data = event.data as Map<String, dynamic>;
+        final data = (event.data as Map).cast<String, dynamic>();
         if (data['sender'] != 'frame') {
           return;
         }
