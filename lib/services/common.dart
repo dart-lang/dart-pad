@@ -51,8 +51,13 @@ const masterServerUrlEnvironmentVar = 'MASTER_SERVER_URL';
 /// The URL of the "Flutter master" back-end server.
 const masterServerUrl = String.fromEnvironment(masterServerUrlEnvironmentVar);
 
-const Duration serviceCallTimeout = Duration(seconds: 10);
-const Duration longServiceCallTimeout = Duration(seconds: 60);
+// Shorter service call timeouts.
+const Duration documentServiceTimeout = Duration(seconds: 10);
+const Duration formatServiceTimeout = Duration(seconds: 10);
+const Duration analyzeServiceTimeout = Duration(seconds: 10);
+
+// Longer service call timeouts.
+const Duration compileServiceTimeout = Duration(seconds: 60);
 
 class Lines {
   final _starts = <int>[];

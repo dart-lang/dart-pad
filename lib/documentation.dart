@@ -67,7 +67,7 @@ class DocHandler {
 
     dartServices
         .document(request)
-        .timeout(serviceCallTimeout)
+        .timeout(documentServiceTimeout)
         .then((DocumentResponse result) {
       final hash = result.hashCode;
       // If nothing has changed, don't need to parse Markdown and

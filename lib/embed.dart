@@ -872,7 +872,7 @@ class Embed extends EditorUi {
     try {
       formatButton.disabled = true;
       final result =
-          await dartServices.format(input).timeout(serviceCallTimeout);
+          await dartServices.format(input).timeout(formatServiceTimeout);
 
       busyLight.reset();
       formatButton.disabled = false;
