@@ -146,7 +146,7 @@ abstract class EditorUi {
 
     final lines = Lines(input.source);
 
-    final request = dartServices.analyze(input).timeout(serviceCallTimeout);
+    final request = dartServices.analyze(input).timeout(analyzeServiceTimeout);
     analysisRequest = request;
 
     try {
@@ -210,7 +210,7 @@ abstract class EditorUi {
       if (shouldCompileDDC) {
         final response = await dartServices
             .compileDDC(compileRequest)
-            .timeout(longServiceCallTimeout);
+            .timeout(compileServiceTimeout);
 
         _sendCompilationTiming(compilationTimer.elapsedMilliseconds);
         clearOutput();
@@ -231,7 +231,7 @@ abstract class EditorUi {
       } else {
         final response = await dartServices
             .compile(compileRequest)
-            .timeout(longServiceCallTimeout);
+            .timeout(compileServiceTimeout);
 
         _sendCompilationTiming(compilationTimer.elapsedMilliseconds);
         clearOutput();

@@ -518,7 +518,7 @@ class WorkshopUi extends EditorUi {
     final input = SourceRequest()..source = originalSource;
     formatButton.disabled = true;
 
-    final request = dartServices.format(input).timeout(serviceCallTimeout);
+    final request = dartServices.format(input).timeout(formatServiceTimeout);
     return request.then((FormatResponse result) {
       busyLight.reset();
       formatButton.disabled = false;

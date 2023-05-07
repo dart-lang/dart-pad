@@ -89,7 +89,7 @@ class ParameterPopup {
 
     dartServices
         .document(input)
-        .timeout(serviceCallTimeout)
+        .timeout(documentServiceTimeout)
         .then((DocumentResponse result) {
       if (!result.info.containsKey('parameters')) {
         remove();

@@ -811,7 +811,7 @@ class Playground extends EditorUi implements GistContainer, GistController {
     final input = SourceRequest()..source = originalSource;
     _formatButton.disabled = true;
 
-    final request = dartServices.format(input).timeout(serviceCallTimeout);
+    final request = dartServices.format(input).timeout(formatServiceTimeout);
     return request.then((FormatResponse result) {
       busyLight.reset();
       _formatButton.disabled = false;
