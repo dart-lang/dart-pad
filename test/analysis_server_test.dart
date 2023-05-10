@@ -104,13 +104,8 @@ void defineTests() {
       final issue = results.issues[0];
       expect(issue.line, 2);
       expect(issue.kind, 'info');
-      if (!sdk.oldChannel) {
-        expect(issue.message,
-            'An uninitialized variable should have an explicit type annotation.');
-      } else {
-        expect(
-            issue.message, 'Prefer typing uninitialized variables and fields.');
-      }
+      expect(issue.message,
+          'An uninitialized variable should have an explicit type annotation.');
     });
 
     test('repro #126 - completions polluted on second request', () async {
@@ -287,13 +282,8 @@ void defineTests() {
       final issue = results.issues[0];
       expect(issue.line, 2);
       expect(issue.kind, 'info');
-      if (!sdk.oldChannel) {
-        expect(issue.message,
-            'An uninitialized variable should have an explicit type annotation.');
-      } else {
-        expect(
-            issue.message, 'Prefer typing uninitialized variables and fields.');
-      }
+      expect(issue.message,
+          'An uninitialized variable should have an explicit type annotation.');
     });
 
     test('files={} repro #126 - completions polluted on second request',

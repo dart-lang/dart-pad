@@ -108,13 +108,8 @@ class HelloWorld extends StatelessWidget {
       final issue = results.issues[0];
       expect(issue.line, 4);
       expect(issue.kind, 'info');
-      if (!sdk.oldChannel) {
-        expect(issue.message,
-            'An uninitialized variable should have an explicit type annotation.');
-      } else {
-        expect(
-            issue.message, 'Prefer typing uninitialized variables and fields.');
-      }
+      expect(issue.message,
+          'An uninitialized variable should have an explicit type annotation.');
     });
 
     test('analyze counter app', () async {
@@ -272,13 +267,8 @@ class HelloWorld extends StatelessWidget {
         final issue = results.issues[0];
         expect(issue.line, 4);
         expect(issue.kind, 'info');
-        if (!sdk.oldChannel) {
-          expect(issue.message,
-              'An uninitialized variable should have an explicit type annotation.');
-        } else {
-          expect(issue.message,
-              'Prefer typing uninitialized variables and fields.');
-        }
+        expect(issue.message,
+            'An uninitialized variable should have an explicit type annotation.');
       });
 
       test('analyzeFiles counter app files={}', () async {
