@@ -4,7 +4,7 @@
 
 /// Thin JS interop wrapper around https://split.js.org/
 @JS()
-library splitter;
+library;
 
 import 'dart:async';
 import 'dart:html';
