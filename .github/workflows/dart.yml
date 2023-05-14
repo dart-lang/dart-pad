@@ -1,11 +1,11 @@
 name: Dart
 
 on:
-  # Run CI on pushes to the master branch, and on PRs against master.
+  # Run CI on pushes to the main branch, and on PRs against main.
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
   schedule:
     - cron: "0 0 * * *" # Every day at midnight
