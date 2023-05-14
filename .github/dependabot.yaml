@@ -7,6 +7,8 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    labels:
+      - "autosubmit"
 
   - package-ecosystem: "pub"
     directory: "/"
