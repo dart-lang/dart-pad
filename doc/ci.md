@@ -16,7 +16,7 @@ the developers that know how to run the unit tests or that remember to.
 
 CI systems typically write the build status back into a pull request.
 You can see in the PR whether the tests passed, and if that PR is safe to merge
-into master.
+into main.
 
 ### Getting it set up with Dart projects
 
@@ -26,5 +26,5 @@ GitHub Action.
 
 ### See also
 
-- The GitHub action workflow for [dart-pad](https://github.com/dart-lang/dart-pad/blob/master/.github/workflows/dart.yml).
+- The GitHub action workflow for [dart-pad](https://github.com/dart-lang/dart-pad/blob/main/.github/workflows/dart.yml).
 - Some sample [build output](https://github.com/dart-lang/dart-pad/actions/runs/1168537794).

@@ -16,7 +16,7 @@ post](https://medium.com/dartlang/a-brand-new-dartpad-dev-with-flutter-support-1
 Interested in embedding DartPad in your websites? Check out this [embedding
 guide](https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide).
 
-![DartPad](https://raw.githubusercontent.com/dart-lang/dart-pad/master/doc/images/Sunflower.png)
+![DartPad](https://raw.githubusercontent.com/dart-lang/dart-pad/main/doc/images/Sunflower.png)
 
 ## **Related projects**
 
@@ -74,6 +74,6 @@ Some examples of likely triage priorities:
 ## **License and Contributing**
 
 Contributions welcome! Please read this short
-[guide](https://github.com/dart-lang/dart-pad/blob/master/CONTRIBUTING.md)
+[guide](https://github.com/dart-lang/dart-pad/blob/main/CONTRIBUTING.md)
 first. You can view our license
-[here](https://github.com/dart-lang/dart-pad/blob/master/LICENSE).
+[here](https://github.com/dart-lang/dart-pad/blob/main/LICENSE).
