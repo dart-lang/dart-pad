@@ -2,7 +2,7 @@ name: dart_services
 publish_to: none
 
 environment:
-  sdk: ^2.19.0
+  sdk: ^3.0.0
 
 dependencies:
   analysis_server_lib: ^0.2.4
@@ -26,7 +26,7 @@ dependencies:
 dev_dependencies:
   angel3_mock_request: ^7.0.1
   async: ^2.11.0
-  build_runner: ^2.3.3
+  build_runner: ^2.4.4
   coverage: ^1.6.3
   dart_flutter_team_lints: ^1.0.0
   grinder: ^0.9.4
