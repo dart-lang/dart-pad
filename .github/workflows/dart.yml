@@ -19,9 +19,7 @@ jobs:
       matrix:
         include:
           - sdk: beta
-            # Allow skipping until we support Dart 3:
-            # https://github.com/dart-lang/dart-pad/issues/2467
-            experimental: true
+            experimental: false
           - sdk: stable
             experimental: false
 
