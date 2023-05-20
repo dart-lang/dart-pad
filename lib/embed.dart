@@ -4,7 +4,7 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html' hide Document, Console;
+import 'dart:html' hide Console, Document;
 import 'dart:math' as math;
 
 import 'package:mdc_web/mdc_web.dart';

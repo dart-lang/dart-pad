@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// ignore_for_file: always_declare_return_types
-
-library dart_pad.grind;
+// ignore_for_file: unreachable_from_main
 
 import 'dart:convert';
 import 'dart:io';
