@@ -463,7 +463,6 @@ class WorkshopUi extends EditorUi {
         markdown.markdownToHtml(_workshopState.currentStep.instructions,
             blockSyntaxes: [markdown.TableSyntax()]),
         validator: _htmlValidator);
-    print('highlightAll()');
     hljs.highlightAll();
     div.scrollTop = 0;
   }
@@ -473,12 +472,12 @@ class WorkshopUi extends EditorUi {
         querySelector('#steps-menu-items')! as DivElement;
     stepLabelContainer.children = [];
     for (var step = _workshopState.totalSteps; step > 0; step--) {
-      final stepmenuitem = AnchorElement()
+      final stepMenuItem = AnchorElement()
         ..id = ('step-menu-$step')
         ..classes.add('step-menu-item')
         ..text = 'Step $step'
         ..href = '#Step$step';
-      stepLabelContainer.children.add(stepmenuitem);
+      stepLabelContainer.children.add(stepMenuItem);
     }
   }
 
