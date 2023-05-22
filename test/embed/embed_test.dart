@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 @TestOn('browser')
+library;
+
 import 'dart:html';
 
 import 'package:dart_pad/embed.dart' as embed;
