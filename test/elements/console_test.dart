@@ -19,7 +19,6 @@ int rgb(int red, int green, int blue) {
   return red << 16 | green << 8 | blue;
 }
 
-typedef VoidCallback = void Function();
 typedef VoidCallbackWithSpan = void Function(SpanElement);
 
 void defineTests() {

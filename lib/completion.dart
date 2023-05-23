@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dartpad.completion;
-
 import 'dart:convert' show jsonDecode;
 import 'package:async/async.dart';
 
@@ -97,7 +95,7 @@ class DartCompleter extends CodeCompleter {
             replaceOffset: offset, replaceLength: 0));
       });
     } else {
-      servicesApi.complete(request).then((ds.CompleteResponse response) {
+      servicesApi.complete(request).then<void>((ds.CompleteResponse response) {
         if (completer.isCanceled) return;
 
         final replaceOffset = response.replacementOffset;
@@ -169,9 +167,7 @@ class DartCompleter extends CodeCompleter {
           replaceOffset: replaceOffset,
           replaceLength: replaceLength,
         ));
-      }).catchError((Object e) {
-        completer.completeError(e);
-      });
+      }).catchError(completer.completeError);
     }
 
     return completer.operation.value;

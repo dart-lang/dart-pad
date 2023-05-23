@@ -4,18 +4,17 @@
 
 /// Thin JS interop wrapper around https://split.js.org/
 @JS()
-library splitter;
+library;
 
 import 'dart:async';
 import 'dart:html';
 
-import 'package:meta/meta.dart';
 import 'package:js/js.dart';
 import 'package:js/js_util.dart' as js_util;
 
-typedef _ElementStyleCallback
-    = Function(Object? dimension, Object? size, num? gutterSize, [int? index]);
-typedef _GutterStyleCallback = Function(
+typedef _ElementStyleCallback = dynamic
+    Function(Object? dimension, Object? size, num? gutterSize, [int? index]);
+typedef _GutterStyleCallback = dynamic Function(
     Object? dimension, num? gutterSize, int? index);
 
 @JS()
@@ -48,8 +47,9 @@ class _SplitOptions {
 }
 
 @JS('Split')
-external Splitter _split(List parts, _SplitOptions options);
+external Splitter _split(List<dynamic> parts, _SplitOptions options);
 
+// ignore: avoid_private_typedef_functions
 typedef _SplitterBuilder = Splitter Function(
   List<Element> parts, {
   required bool horizontal,
@@ -61,9 +61,9 @@ typedef _SplitterBuilder = Splitter Function(
 @JS()
 @anonymous
 class Splitter {
-  external void setSizes(List sizes);
+  external void setSizes(List<num> sizes);
 
-  external List getSizes();
+  external List<num> getSizes();
 
   external void collapse(int indexToCollapse);
 
@@ -92,7 +92,7 @@ Splitter flexSplit(
 }) {
   // The splitter library will generate nonsense split percentages if called
   // on elements that are not yet attached to the document.
-  assert(parts.every(_isAttachedToDocument as bool Function(Element)));
+  assert(parts.every(_isAttachedToDocument));
 
   return _split(
     parts,
@@ -136,7 +136,7 @@ Splitter fixedSplit(
 }) {
   // The splitter library will generate nonsense split percentages if called
   // on elements that are not yet attached to the document.
-  assert(parts.every(_isAttachedToDocument as bool Function(Element)));
+  assert(parts.every(_isAttachedToDocument));
 
   return _split(
     parts,

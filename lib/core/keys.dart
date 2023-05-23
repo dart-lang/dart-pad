@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library core.keys;
-
 import 'dart:async';
 import 'dart:html';
 
@@ -64,7 +62,7 @@ class Keys {
   bool _handleKey(String key) {
     final action = _bindings[key];
     if (action != null) {
-      Timer.run(action);
+      Timer.run(action.call);
       return true;
     }
 

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart_pad.web_test;
-
 import 'core/dependencies_test.dart' as dependencies_test;
 import 'core/keys_test.dart' as keys_test;
 import 'services/common_test.dart' as common_test;
