@@ -4,7 +4,9 @@ analyzer:
   language:
     strict-casts: true
     strict-inference: true
-    strict-raw-types: true
+    # re-enable when this issue is fixed:
+    # https://github.com/google/json_serializable.dart/issues/1324
+    strict-raw-types: false
   exclude:
     - "build/**"
     - "doc/api/**"
