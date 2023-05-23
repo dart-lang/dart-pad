@@ -1,4 +1,4 @@
-runtime: python37
+runtime: python38
 default_expiration: "0d 0h 10m"
 
 handlers:
