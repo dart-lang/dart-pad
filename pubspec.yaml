@@ -38,7 +38,7 @@ dev_dependencies:
   dart_flutter_team_lints: ^1.0.0
   git: ^2.0.0
   grinder: ^0.9.4
-  json_serializable: ^6.6.1
+  json_serializable: ^6.7.0
   test: ^1.21.1
   webdriver: ^3.0.2
 
