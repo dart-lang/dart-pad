@@ -50,7 +50,7 @@ Future<void> serveLocalAppEngine() async {
   ConstTaskArgs('build', flags: {
     _debugFlag: true,
   }, options: {
-    _serverUrlOption: 'http://127.0.0.1:8084/',
+    _serverUrlOption: 'http://127.0.0.1:8082/',
   }),
 ))
 Future<void> serveLocalBackend() async {
