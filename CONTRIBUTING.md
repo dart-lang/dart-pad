@@ -71,7 +71,7 @@ grind serve &
 cd ../dart-pad
 # Begin serving the front-end locally on port 8000, with the given backend
 export DARTPAD_BACKEND=http://localhost:8082
-grind serve-custom-backend
+grind serve-local-backend
 ```
 
 You can adjust the DARTPAD_BACKEND variable to match different versions of the dart-pad backend
