@@ -30,6 +30,11 @@ targets:
           exclude:
           - web/example/workshops/**.dart
 
+      source_gen:combining_builder:
+        options:
+          ignore_for_file:
+            - strict_raw_type
+
 global_options:
   build_web_compilers:ddc:
     options:
