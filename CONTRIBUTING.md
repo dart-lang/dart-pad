@@ -69,8 +69,7 @@ grind update-docker-version
 FLUTTER_CHANNEL="stable" grind serve &
 
 cd ../dart-pad
-# Begin serving the front-end locally on port 8000, with the given backend
-export DARTPAD_BACKEND=http://localhost:8082
+# Begin serving the front-end locally on port 8000, with the given backend on the default port 8082 this is defined in tools/grind.dart
 grind serve-local-backend
 ```
 
