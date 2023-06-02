@@ -16,7 +16,7 @@ dependencies:
   http: ^0.13.0
   js: ^0.6.7
   json_annotation: ^4.8.0
-  logging: ^1.0.0
+  logging: ^1.2.0
   markdown: ^7.0.1
   mdc_web: ^0.6.0
   meta: ^1.8.0
