@@ -24,7 +24,7 @@ dependencies:
   yaml: ^3.1.2
 
 dev_dependencies:
-  angel3_mock_request: ^7.0.1
+  angel3_mock_request: ^8.0.0
   async: ^2.11.0
   build_runner: ^2.4.5
   coverage: ^1.6.3

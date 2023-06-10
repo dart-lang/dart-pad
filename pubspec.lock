@@ -29,10 +29,10 @@ packages:
     dependency: "direct dev"
     description:
       name: angel3_mock_request
-      sha256: a8fa6723a39ea3621f2a0436e662695f85eeef0baef16ebc80399d0271213f61
+      sha256: cd15efb464e9f877363b336a801c7d409d4b94a33e4ed4f2adef4b73e5774307
       url: "https://pub.dev"
     source: hosted
-    version: "7.0.1"
+    version: "8.0.0"
   args:
     dependency: "direct main"
     description:
