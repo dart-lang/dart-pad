@@ -1,8 +1,10 @@
 import 'dart:convert';
 
-import 'package:http/browser_client.dart';
+import 'package:http/http.dart';
 import 'package:protobuf/protobuf.dart';
+
 import '../src/protos/dart_services.pb.dart';
+
 export '../src/protos/dart_services.pb.dart';
 
 const _apiPath = 'api/dartservices/v2';
@@ -10,7 +12,7 @@ const _apiPath = 'api/dartservices/v2';
 class DartservicesApi {
   DartservicesApi(this._client, {required this.rootUrl});
 
-  final BrowserClient _client;
+  final Client _client;
   String rootUrl;
 
   Future<AnalysisResults> analyze(SourceRequest request) => _request(
