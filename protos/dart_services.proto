@@ -75,6 +75,8 @@ message AnalysisIssue {
   string url = 8;
   repeated DiagnosticMessage diagnosticMessages = 9;
   string correction = 10;
+  int32 column = 11;
+  string code = 12;
 }
 
 message DiagnosticMessage {
