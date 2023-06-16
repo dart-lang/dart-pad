@@ -16,7 +16,7 @@ dependencies:
   logging: ^1.2.0
   meta: ^1.9.1
   path: ^1.8.3
-  protobuf: ^2.1.0
+  protobuf: ^3.0.0
   quiver: ^3.2.1
   resp_client: ^1.2.0
   shelf: ^1.4.1
