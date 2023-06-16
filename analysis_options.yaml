@@ -9,7 +9,6 @@ analyzer:
     - "build/**"
     - "doc/api/**"
     - "last_prod/**"
-    - "lib/src/protos/**"
     - "third_party/pkg/**"
     - "web/example/workshops/**"
   errors:
