@@ -319,17 +319,17 @@ class HelloWorld extends StatelessWidget {
       });
 
       test('counter app files={}', () async {
-        final results = await commonServerImpl.analyzeFiles(SourceFilesRequest(
-            files: {kMainDart: sampleCodeFlutterCounter},
-            activeSourceName: kMainDart,
-            offset: 0));
+        final results = await commonServerImpl.analyzeFiles(SourceFilesRequest()
+          ..files.addAll({kMainDart: sampleCodeFlutterCounter})
+          ..activeSourceName = kMainDart
+          ..offset = 0);
         expect(results.issues, isEmpty);
       });
 
       test('Draggable Physics sample files={}', () async {
-        final results = await commonServerImpl.analyzeFiles(SourceFilesRequest(
-            files: {kMainDart: sampleCodeFlutterDraggableCard},
-            activeSourceName: kMainDart));
+        final results = await commonServerImpl.analyzeFiles(SourceFilesRequest()
+          ..files.addAll({kMainDart: sampleCodeFlutterDraggableCard})
+          ..activeSourceName = kMainDart);
         expect(results.issues, isEmpty);
       });
     });
