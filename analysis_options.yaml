@@ -8,9 +8,6 @@ analyzer:
   exclude:
     - doc/generated/**
     - flutter-sdks/**
-    # TODO(https://github.com/dart-lang/dart-pad/issues/1712): This seems to be
-    # hiding ~2 dozen legitimate analysis issues.
-    - lib/src/protos/**
     - local_pub_cache/**
     - project_templates/**
   errors:
