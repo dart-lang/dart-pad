@@ -832,21 +832,21 @@ class Embed extends EditorUi {
         // (We never hide errors).
         if (issue.kind != 'error' && !_showTestCode) {
           // We want to remove the message later so flag it.
-          return AnalysisIssue(line: -99);
+          return AnalysisIssue()..line = 99;
         } else {
           // Adjust the line number, charStart and set sourceName
           // to indicate this issue is in the test code.
-          return AnalysisIssue(
-              kind: issue.kind,
-              line: issue.line - dartSourceLineCount - 1,
-              message: issue.message,
-              sourceName: 'test.dart',
-              hasFixes: issue.hasFixes,
-              charStart: issue.charStart - dartSourceCharCount,
-              charLength: issue.charLength,
-              url: issue.url,
-              diagnosticMessages: issue.diagnosticMessages,
-              correction: issue.correction);
+          return AnalysisIssue()
+            ..kind = issue.kind
+            ..line = issue.line - dartSourceLineCount - 1
+            ..message = issue.message
+            ..sourceName = 'test.dart'
+            ..hasFixes = issue.hasFixes
+            ..charStart = issue.charStart - dartSourceCharCount
+            ..charLength = issue.charLength
+            ..url = issue.url
+            ..diagnosticMessages.addAll(issue.diagnosticMessages)
+            ..correction = issue.correction;
         }
       }
       return issue;
