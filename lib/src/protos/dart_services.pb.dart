@@ -488,6 +488,8 @@ class AnalysisIssue extends $pb.GeneratedMessage {
         9, _omitFieldNames ? '' : 'diagnosticMessages', $pb.PbFieldType.PM,
         protoName: 'diagnosticMessages', subBuilder: DiagnosticMessage.create)
     ..aOS(10, _omitFieldNames ? '' : 'correction')
+    ..a<$core.int>(11, _omitFieldNames ? '' : 'column', $pb.PbFieldType.O3)
+    ..aOS(12, _omitFieldNames ? '' : 'code')
     ..hasRequiredFields = false;
 
   @$core.Deprecated('Using this can add significant overhead to your binary. '
@@ -623,6 +625,30 @@ class AnalysisIssue extends $pb.GeneratedMessage {
   $core.bool hasCorrection() => $_has(9);
   @$pb.TagNumber(10)
   void clearCorrection() => clearField(10);
+
+  @$pb.TagNumber(11)
+  $core.int get column => $_getIZ(10);
+  @$pb.TagNumber(11)
+  set column($core.int v) {
+    $_setSignedInt32(10, v);
+  }
+
+  @$pb.TagNumber(11)
+  $core.bool hasColumn() => $_has(10);
+  @$pb.TagNumber(11)
+  void clearColumn() => clearField(11);
+
+  @$pb.TagNumber(12)
+  $core.String get code => $_getSZ(11);
+  @$pb.TagNumber(12)
+  set code($core.String v) {
+    $_setString(11, v);
+  }
+
+  @$pb.TagNumber(12)
+  $core.bool hasCode() => $_has(11);
+  @$pb.TagNumber(12)
+  void clearCode() => clearField(12);
 }
 
 class DiagnosticMessage extends $pb.GeneratedMessage {

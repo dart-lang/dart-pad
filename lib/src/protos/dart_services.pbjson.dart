@@ -206,6 +206,8 @@ const AnalysisIssue$json = {
       '10': 'diagnosticMessages'
     },
     {'1': 'correction', '3': 10, '4': 1, '5': 9, '10': 'correction'},
+    {'1': 'column', '3': 11, '4': 1, '5': 5, '10': 'column'},
+    {'1': 'code', '3': 12, '4': 1, '5': 9, '10': 'code'},
   ],
 };
 
@@ -217,7 +219,7 @@ final $typed_data.Uint8List analysisIssueDescriptor = $convert.base64Decode(
     'N0YXJ0Eh4KCmNoYXJMZW5ndGgYByABKAVSCmNoYXJMZW5ndGgSEAoDdXJsGAggASgJUgN1cmwS'
     'VAoSZGlhZ25vc3RpY01lc3NhZ2VzGAkgAygLMiQuZGFydF9zZXJ2aWNlcy5hcGkuRGlhZ25vc3'
     'RpY01lc3NhZ2VSEmRpYWdub3N0aWNNZXNzYWdlcxIeCgpjb3JyZWN0aW9uGAogASgJUgpjb3Jy'
-    'ZWN0aW9u');
+    'ZWN0aW9uEhYKBmNvbHVtbhgLIAEoBVIGY29sdW1uEhIKBGNvZGUYDCABKAlSBGNvZGU=');
 
 @$core.Deprecated('Use diagnosticMessageDescriptor instead')
 const DiagnosticMessage$json = {

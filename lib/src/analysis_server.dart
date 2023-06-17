@@ -313,19 +313,22 @@ abstract class AnalysisServerWrapper {
       final issues = errors.map((error) {
         final issue = proto.AnalysisIssue()
           ..kind = error.severity.toLowerCase()
+          ..code = error.code.toLowerCase()
           ..line = error.location.startLine
+          ..column = error.location.startColumn
           ..message = utils.normalizeFilePaths(error.message)
           ..sourceName = path.basename(error.location.file)
           ..hasFixes = error.hasFix ?? false
           ..charStart = error.location.offset
           ..charLength = error.location.length
           ..diagnosticMessages.addAll(
-              error.contextMessages?.map((m) => proto.DiagnosticMessage()
-                    ..message = utils.normalizeFilePaths(m.message)
-                    ..line = m.location.startLine
-                    ..charStart = m.location.offset
-                    ..charLength = m.location.length) ??
-                  []);
+            error.contextMessages?.map((m) => proto.DiagnosticMessage()
+                  ..message = utils.normalizeFilePaths(m.message)
+                  ..line = m.location.startLine
+                  ..charStart = m.location.offset
+                  ..charLength = m.location.length) ??
+                [],
+          );
 
         if (error.url != null) {
           issue.url = error.url!;

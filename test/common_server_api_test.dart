@@ -200,6 +200,8 @@ void main() {
                 'hasFixes': true,
                 'charStart': 29,
                 'charLength': 1,
+                'column': 16,
+                'code': 'expected_token',
               }
             ]
           },
@@ -677,6 +679,8 @@ void main() {
                 'hasFixes': true,
                 'charStart': 29,
                 'charLength': 1,
+                'column': 16,
+                'code': 'expected_token',
               }
             ]
           },

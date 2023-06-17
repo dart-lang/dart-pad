@@ -37,7 +37,7 @@ to generate Dart code. To install, please run:
 $ dart pub global activate protoc_plugin
 ```
 
-## Initialise Flutter
+## Initialize Flutter
 
 The Flutter SDK needs to be downloaded and setup.
 

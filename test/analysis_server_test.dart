@@ -103,9 +103,11 @@ void defineTests() {
       expect(results.issues.length, 1);
       final issue = results.issues[0];
       expect(issue.line, 2);
+      expect(issue.column, 7);
       expect(issue.kind, 'info');
       expect(issue.message,
           'An uninitialized variable should have an explicit type annotation.');
+      expect(issue.code, 'prefer_typing_uninitialized_variables');
     });
 
     test('repro #126 - completions polluted on second request', () async {
