@@ -29,3 +29,4 @@ linter:
     - unawaited_futures
     - use_enums
     - use_super_parameters
+    - library_private_types_in_public_api
