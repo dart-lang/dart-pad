@@ -1,6 +1,5 @@
 # Dependabot configuration file.
 version: 2
-enable-beta-ecosystems: true
 
 updates:
   - package-ecosystem: "github-actions"
@@ -11,7 +10,7 @@ updates:
       - "autosubmit"
 
   - package-ecosystem: "pub"
-    directory: "/"
+    directory: "/pkgs/dart_pad/"
     schedule:
       interval: "monthly"
     versioning-strategy: increase-if-necessary

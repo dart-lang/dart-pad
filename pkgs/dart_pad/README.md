@@ -2,5 +2,7 @@
 
 ## dart_pad
 
-This is the front end of DartPad (dartpad.dev). See
-https://github.com/dart-lang/dart-pad/blob/main/README.md for more information.
+This is the front end of DartPad (dartpad.dev).
+
+See https://github.com/dart-lang/dart-pad/blob/main/README.md for more
+information.
