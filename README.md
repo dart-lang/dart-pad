@@ -3,7 +3,11 @@
 DartPad is a free, open-source online editor to help developers learn about Dart
 and Flutter. You can access it at [dartpad.dev](http://dartpad.dev).
 
-**What is it? What does it do?**
+## What's here?
+
+| Package | Description | CI Status |
+| --- | --- | --- |
+| [dart_pad](pkgs/dart_pad/) | The front end of DartPad. | [![dart-pad](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml) |
 
 DartPad began as an online playground for the Dart language built by the Dart
 tools team in 2015. It compiles, analyzes, and displays the results of its
@@ -18,27 +22,24 @@ guide](https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide).
 
 ![DartPad](https://raw.githubusercontent.com/dart-lang/dart-pad/main/doc/Sunflower.png)
 
-## **Related projects**
+## Related projects
 
 See the [dart-services](https://github.com/dart-lang/dart-services) repo for the
 implementation of the backend service that powers compilation for DartPad.
 
-## **How did we build DartPad?**
+## Additional docs
 
-Interested in the tools we used to build DartPad? We used [Material
-components](https://material.io/develop/web/) for the web UI via
-[package:mdc_web](https://pub.dev/packages/mdc_web), and Dart for the [backend
-services](https://github.com/dart-lang/dart-services) to run compilation. We put
-together some [documentation](https://github.com/dart-lang/dart-pad/wiki) about
-the hosted services - continuous integration, code coverage, and cross-browser
-testing that we used to build DartPad.
+Some handy guides:
 
-## **Issues and bugs**
+- [Sharing Guide](https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide)
+- [Embedding Guide](https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide)
+
+## Issues and bugs
 
 Please file reports on the [GitHub Issue
 Tracker](https://github.com/dart-lang/dart-pad/issues).
 
-### **Bug triage priorities**
+### Bug triage priorities
 
 Each issue in the tracker will be assigned a priority based on the impact to
 users when the issue appears and the number of users impacted (widespread or
@@ -71,7 +72,7 @@ Some examples of likely triage priorities:
     *   JavaScript errors not resulting in visible problems outside of the console (edge cases)
     *   Enhancements that are speculative or where we are unsure of impacts/tradeoffs
 
-## **License and Contributing**
+## License and Contributing
 
 Contributions welcome! Please read this short
 [guide](https://github.com/dart-lang/dart-pad/blob/main/CONTRIBUTING.md)
