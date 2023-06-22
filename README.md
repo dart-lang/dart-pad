@@ -16,7 +16,7 @@ post](https://medium.com/dartlang/a-brand-new-dartpad-dev-with-flutter-support-1
 Interested in embedding DartPad in your websites? Check out this [embedding
 guide](https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide).
 
-![DartPad](https://raw.githubusercontent.com/dart-lang/dart-pad/main/doc/images/Sunflower.png)
+![DartPad](https://raw.githubusercontent.com/dart-lang/dart-pad/main/doc/Sunflower.png)
 
 ## **Related projects**
 
