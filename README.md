@@ -5,9 +5,19 @@ and Flutter. You can access it at [dartpad.dev](http://dartpad.dev).
 
 ## What's here?
 
+### Repo packages:
+
 | Package | Description | CI Status |
 | --- | --- | --- |
 | [dart_pad](pkgs/dart_pad/) | The front end of DartPad. | [![dart-pad](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml) |
+
+### Related repos:
+
+| Repository | Description |
+| --- | --- |
+| [dart-lang/dart-services](https://github.com/dart-lang/dart-services) | The backend service that powers compilation for DartPad. |
+
+## Background
 
 DartPad began as an online playground for the Dart language built by the Dart
 tools team in 2015. It compiles, analyzes, and displays the results of its
@@ -21,11 +31,6 @@ Interested in embedding DartPad in your websites? Check out this [embedding
 guide](https://github.com/dart-lang/dart-pad/wiki/Embedding-Guide).
 
 ![DartPad](https://raw.githubusercontent.com/dart-lang/dart-pad/main/doc/Sunflower.png)
-
-## Related projects
-
-See the [dart-services](https://github.com/dart-lang/dart-services) repo for the
-implementation of the backend service that powers compilation for DartPad.
 
 ## Additional docs
 
