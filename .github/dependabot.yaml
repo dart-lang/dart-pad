@@ -11,7 +11,7 @@ updates:
       - "autosubmit"
 
   - package-ecosystem: "pub"
-    directory: "/"
+    directory: "/pkgs/dart_pad/"
     schedule:
       interval: "monthly"
     versioning-strategy: increase-if-necessary
