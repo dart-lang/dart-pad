@@ -19,6 +19,9 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pkgs/sketch_pad/
     steps:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
       - uses: subosito/flutter-action@48cafc24713cca54bbe03cdc3a423187d413aafa
