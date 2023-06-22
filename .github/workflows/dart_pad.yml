@@ -1,7 +1,8 @@
-name: Dart
+name: package:dart_pad
+
+permissions: read-all
 
 on:
-  # Run on PRs and pushes to the default branch.
   push:
     branches: [ main ]
     paths:
@@ -13,7 +14,7 @@ on:
       - '.github/workflows/dart_pad.yml'
       - 'pkgs/dart_pad/**'
   schedule:
-    - cron: "0 0 * * 0"
+    - cron: '0 0 * * 0' # weekly
 
 jobs:
   build:
@@ -35,9 +36,6 @@ jobs:
         with:
           sdk: ${{ matrix.sdk }}
       - uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c
-
-      - name: Print Dart SDK version
-        run: dart --version
 
       - name: Install apt dependencies
         run: sudo apt-get install -y protobuf-compiler

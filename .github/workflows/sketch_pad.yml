@@ -1,0 +1,29 @@
+name: package:sketch_pad
+
+permissions: read-all
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/sketch_pad.yml'
+      - 'pkgs/sketch_pad/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/sketch_pad.yml'
+      - 'pkgs/sketch_pad/**'
+  schedule:
+    - cron: '0 0 * * 0' # weekly
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+      - uses: subosito/flutter-action@48cafc24713cca54bbe03cdc3a423187d413aafa
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: dart format --set-exit-if-changed .
+      - run: flutter build web
+      - run: flutter test
