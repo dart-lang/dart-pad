@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: pkgs/graphs/
+        working-directory: pkgs/dart_pad/
 
     strategy:
       fail-fast: false
