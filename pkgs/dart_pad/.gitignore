@@ -14,4 +14,8 @@ build/
 # Python generated files
 *.pyc
 
+web/scripts/codemirror.js
+
+last_prod/
+
 .idea/

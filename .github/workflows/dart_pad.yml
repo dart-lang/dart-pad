@@ -1,27 +1,33 @@
 name: Dart
 
 on:
-  # Run CI on pushes to the main branch, and on PRs against main.
+  # Run on PRs and pushes to the default branch.
   push:
-    branches: [main]
+    branches: [ main ]
+    paths:
+      - '.github/workflows/dart_pad.yml'
+      - 'pkgs/dart_pad/**'
   pull_request:
-    branches: [main]
-  workflow_dispatch:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/dart_pad.yml'
+      - 'pkgs/dart_pad/**'
   schedule:
-    - cron: "0 0 * * *" # Every day at midnight
+    - cron: "0 0 * * 0"
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pkgs/dart_pad/
 
     strategy:
       fail-fast: false
       matrix:
         include:
           - sdk: beta
-            experimental: false
           - sdk: stable
-            experimental: false
 
     steps:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
@@ -50,4 +56,3 @@ jobs:
           export PATH=$PATH:$HOME/.pub-cache/bin
           dart pub global activate protoc_plugin
           dart run tool/grind.dart buildbot
-        continue-on-error: ${{ matrix.experimental }}

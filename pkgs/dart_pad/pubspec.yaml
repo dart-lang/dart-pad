@@ -1,5 +1,5 @@
 name: dart_pad
-description: The UI client for a web based interactive Dart service.
+description: The front end of DartPad.
 publish_to: none
 
 environment:
@@ -26,8 +26,7 @@ dependencies:
   sass_builder: ^2.2.1
   shelf: ^1.3.0
   shelf_static: ^1.1.0
-  split:
-    path: third_party/pkg/split/
+  split: any
   stream_transform: ^2.0.0
   yaml: ^3.1.1
 
@@ -42,14 +41,17 @@ dev_dependencies:
   test: ^1.21.1
   webdriver: ^3.0.2
 
-# package:mdc_web needs to upgrade the version of material-components-web 12.0.0
-# or above, which includes this fix for the division operator:
-# https://github.com/material-components/material-components-web/pull/7158
-#
-# Until then, dart-sass produces a warning that this operator is being removed
-# in favor of calc().
-#
-# See this issue for details:
-# https://github.com/dart-lang/dart-pad/issues/2388
 dependency_overrides:
+  # package:mdc_web needs to upgrade the version of material-components-web 12.0.0
+  # or above, which includes this fix for the division operator:
+  # https://github.com/material-components/material-components-web/pull/7158
+  #
+  # Until then, dart-sass produces a warning that this operator is being removed
+  # in favor of calc().
+  #
+  # See this issue for details:
+  # https://github.com/dart-lang/dart-pad/issues/2388
   sass: ^1.62.0
+
+  split:
+    path: ../../third_party/pkg/split/
