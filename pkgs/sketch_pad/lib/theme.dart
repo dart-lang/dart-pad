@@ -21,6 +21,8 @@ const double toolbarHeight = 32.0;
 
 const Color subtleColor = Colors.grey;
 
+// TODO: Look into using ThemeData in places where we're currently using
+// subtleText.
 const TextStyle subtleText = TextStyle(color: subtleColor);
 
 const defaultGripSize = denseSpacing;

@@ -55,9 +55,6 @@ class DartPadApp extends StatefulWidget {
 }
 
 class _DartPadAppState extends State<DartPadApp> {
-  // todo:
-  // final Key pageKey = GlobalKey();
-
   @override
   void initState() {
     super.initState();
@@ -93,7 +90,6 @@ class _DartPadAppState extends State<DartPadApp> {
                   return DartPadMainPage(
                     title: appName,
                     gistId: id,
-                    // key: pageKey,
                   );
                 },
               ),
@@ -313,7 +309,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                             child: SectionWidget(
                               title: 'Code',
                               status: ProgressWidget(
-                                status: appModel.editingStatus,
+                                status: appModel.editingProgressController,
                               ),
                               actions: [
                                 ValueListenableBuilder<bool>(
@@ -370,7 +366,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                           SectionWidget(
                             title: 'App',
                             status: ProgressWidget(
-                              status: appModel.executionStatus,
+                              status: appModel.executionProgressController,
                             ),
                             actions: [
                               ValueListenableBuilder<TextEditingValue>(
@@ -400,7 +396,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                           ),
                           SectionWidget(
                             title: 'Console',
-                            child: ConsoleWidget(appModel: appModel),
+                            child: ConsoleWidget(
+                                consoleOutputController:
+                                    appModel.consoleOutputController),
                           ),
                         ],
                       ),
@@ -427,34 +425,35 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   Future<void> _handleFormatting() async {
     final value = appModel.sourceCodeController.text;
 
+    // TODO: catch and handle exceptions
     var result = await appServices.format(SourceRequest(source: value));
 
     if (result.hasError()) {
       // TODO: in practice we don't get errors back, just no formatting changes
-      appModel.editingStatus.showToast('Error formatting code');
+      appModel.editingProgressController.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: ${result.error.message}');
     } else if (result.newString == value) {
-      appModel.editingStatus.showToast('No formatting changes');
+      appModel.editingProgressController.showToast('No formatting changes');
     } else {
-      appModel.editingStatus.showToast('Format successful');
+      appModel.editingProgressController.showToast('Format successful');
       appModel.sourceCodeController.text = result.newString;
     }
   }
 
   Future<void> _handleCompiling() async {
     final value = appModel.sourceCodeController.text;
-    final progress =
-        appModel.executionStatus.showMessage(initialText: 'Compiling…');
+    final progress = appModel.executionProgressController
+        .showMessage(initialText: 'Compiling…');
     _clearConsole();
 
     try {
       final response = await appServices.compile(CompileRequest(source: value));
 
-      appModel.executionStatus
+      appModel.executionProgressController
           .showToast('Running…', duration: const Duration(seconds: 1));
       appServices.executeJavaScript(response.result);
     } catch (error) {
-      appModel.executionStatus.showToast('Compilation failed');
+      appModel.executionProgressController.showToast('Compilation failed');
 
       var message = error is ApiRequestError ? error.message : '$error';
       appModel.appendLineToConsole(message);

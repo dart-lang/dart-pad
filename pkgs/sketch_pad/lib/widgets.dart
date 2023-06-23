@@ -87,7 +87,7 @@ class MiniIconButton extends StatelessWidget {
 }
 
 class ProgressWidget extends StatelessWidget {
-  final Progress status;
+  final ProgressController status;
 
   const ProgressWidget({
     required this.status,

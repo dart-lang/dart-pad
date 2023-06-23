@@ -31,8 +31,8 @@ class AppModel {
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
 
-  final Progress editingStatus = Progress();
-  final Progress executionStatus = Progress();
+  final ProgressController editingProgressController = ProgressController();
+  final ProgressController executionProgressController = ProgressController();
 
   final ValueNotifier<VersionResponse> runtimeVersions =
       ValueNotifier(VersionResponse());
@@ -51,6 +51,7 @@ class AppServices {
   ExecutionService? _executionService;
   StreamSubscription<String>? stdoutSub;
 
+  // TODO: Consider using DebounceStreamTransformer from package:rxdart?
   Timer? reanalysisDebouncer;
 
   AppServices(this.appModel, this.services) {
@@ -88,7 +89,7 @@ class AppServices {
 
     final gistLoader = GistLoader();
     final progress =
-        appModel.editingStatus.showMessage(initialText: 'Loading…');
+        appModel.editingProgressController.showMessage(initialText: 'Loading…');
     try {
       final gist = await gistLoader.load(gistId);
       progress.close();
@@ -99,7 +100,7 @@ class AppServices {
 
       final source = gist.mainDartSource;
       if (source == null) {
-        appModel.editingStatus.showToast('main.dart not found');
+        appModel.editingProgressController.showToast('main.dart not found');
         appModel.sourceCodeController.text = fallbackSnippet;
       } else {
         appModel.sourceCodeController.text = source;
@@ -107,7 +108,7 @@ class AppServices {
 
       appModel.appReady.value = true;
     } catch (e) {
-      appModel.editingStatus.showToast('Error loading gist');
+      appModel.editingProgressController.showToast('Error loading gist');
       progress.close();
 
       appModel.appendLineToConsole('Error loading gist: $e');
@@ -156,27 +157,26 @@ class AppServices {
     _executionService?.execute(javaScript);
   }
 
-  void _reAnalyze() {
-    var future = services
-        .analyze(SourceRequest(source: appModel.sourceCodeController.text));
-    future.then((AnalysisResults results) {
+  Future<void> _reAnalyze() async {
+    try {
+      final results = await services
+          .analyze(SourceRequest(source: appModel.sourceCodeController.text));
       appModel.analysisIssues.value = results.issues.toList()
         ..sort(_compareIssues);
       _updateEditorProblemsStatus();
-      return null;
-    }).onError((error, stackTrace) {
+    } catch (error) {
       var message = error is ApiRequestError ? error.message : '$error';
       appModel.analysisIssues.value = [
         AnalysisIssue(kind: 'error', message: message),
       ];
       _updateEditorProblemsStatus();
-      return null;
-    });
+    }
   }
 
   void _updateEditorProblemsStatus() {
     final issues = appModel.analysisIssues.value;
-    final progress = appModel.editingStatus.getNamedMessage('problems');
+    final progress =
+        appModel.editingProgressController.getNamedMessage('problems');
 
     if (issues.isEmpty) {
       if (progress != null) {
@@ -185,7 +185,7 @@ class AppServices {
     } else {
       final message = '${issues.length} ${pluralize('issue', issues.length)}';
       if (progress == null) {
-        appModel.editingStatus
+        appModel.editingProgressController
             .showMessage(initialText: message, name: 'problems');
       } else {
         progress.updateText(message);

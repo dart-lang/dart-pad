@@ -4,14 +4,13 @@
 
 import 'package:flutter/material.dart';
 
-import 'model.dart';
 import 'theme.dart';
 
 class ConsoleWidget extends StatefulWidget {
-  final AppModel appModel;
+  final TextEditingController consoleOutputController;
 
   const ConsoleWidget({
-    required this.appModel,
+    required this.consoleOutputController,
     super.key,
   });
 
@@ -28,12 +27,12 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
 
     scrollController = ScrollController();
 
-    widget.appModel.consoleOutputController.addListener(_scrollToEnd);
+    widget.consoleOutputController.addListener(_scrollToEnd);
   }
 
   @override
   void dispose() {
-    widget.appModel.consoleOutputController.removeListener(_scrollToEnd);
+    widget.consoleOutputController.removeListener(_scrollToEnd);
     scrollController.dispose();
 
     super.dispose();
@@ -44,7 +43,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
     final theme = Theme.of(context);
 
     return TextField(
-      controller: widget.appModel.consoleOutputController,
+      controller: widget.consoleOutputController,
       scrollController: scrollController,
       maxLines: null,
       keyboardType: TextInputType.multiline,

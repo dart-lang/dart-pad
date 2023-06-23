@@ -35,7 +35,7 @@ String generateSnippetName() => fluttering_phrases.generate();
 /// Support a stack of progress and status messages.
 ///
 /// Fires a notification when the top-most status changes.
-class Progress {
+class ProgressController {
   final List<Message> messages = [];
 
   void showToast(
@@ -100,13 +100,13 @@ class Progress {
 }
 
 class Message {
-  final Progress _parent;
+  final ProgressController _parent;
   final String? name;
 
   String _message;
   MessageState _state = MessageState.opening;
 
-  Message._(Progress parent, String message, {this.name})
+  Message._(ProgressController parent, String message, {this.name})
       : _parent = parent,
         _message = message;
 
