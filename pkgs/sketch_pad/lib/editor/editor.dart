@@ -43,9 +43,8 @@ final Expando _expando = Expando(_viewType);
 bool _viewFactoryInitialized = false;
 
 void _initViewFactory() {
-  if (_viewFactoryInited) return;
-
-  _viewFactoryInited = true;
+  if (_viewFactoryInitialized) return;
+  _viewFactoryInitialized = true;
 
   ui_web.platformViewRegistry
       .registerViewFactory(_viewType, _codeMirrorFactory);
