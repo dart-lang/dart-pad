@@ -40,7 +40,7 @@ html.Element _codeMirrorFactory(int viewId) {
 const String _viewType = 'dartpad-editor';
 final Expando _expando = Expando(_viewType);
 
-bool _viewFactoryInited = false;
+bool _viewFactoryInitialized = false;
 
 void _initViewFactory() {
   if (_viewFactoryInited) return;

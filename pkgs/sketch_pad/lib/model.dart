@@ -139,7 +139,7 @@ class AppServices {
   }
 
   void registerExecutionService(ExecutionService? executionService) {
-    // unreister the old
+    // unregister the old
     stdoutSub?.cancel();
 
     // replace the service
@@ -202,16 +202,10 @@ int _compareIssues(AnalysisIssue a, AnalysisIssue b) {
 }
 
 extension AnalysisIssueExtension on AnalysisIssue {
-  int get severity {
-    switch (kind) {
-      case 'error':
-        return 3;
-      case 'warning':
-        return 2;
-      case 'info':
-        return 1;
-      default:
-        return 0;
-    }
-  }
+  int get severity => switch (kind) {
+        'error' => 3,
+        'warning' => 2,
+        'info' => 1,
+        _ => 0,
+      };
 }
