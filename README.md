@@ -9,7 +9,8 @@ and Flutter. You can access it at [dartpad.dev](http://dartpad.dev).
 
 | Package | Description | CI Status |
 | --- | --- | --- |
-| [dart_pad](pkgs/dart_pad/) | The front end of DartPad. | [![dart-pad](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml) |
+| [dart_pad](pkgs/dart_pad/) | The front end of DartPad. | [![dart_pad](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml) |
+| [sketch_pad](pkgs/sketch_pad/) | An experimental redux of the DartPad UI. | [![sketch_pad](https://github.com/dart-lang/dart-pad/actions/workflows/sketch_pad.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/sketch_pad.yml) |
 
 ### Related repos:
 
@@ -52,27 +53,27 @@ rare).
 
 Some examples of likely triage priorities:
 
-*   P0
+* P0
     *   Broken internal/external navigation links within DartPad
     *   JavaScript console errors indicating problems with DartPad functionality in many cases, widespread.
     *   App is down / not loading
     *   Interface bugs preventing all or almost all uses of the application
     *   Unable to compile or analyze valid Flutter/Dart code (widespread and/or with error messages that aren't retryable)
-*   P1
+* P1
     *   Unable to compile or analyze valid Flutter/Dart code in edge cases only, and/or retryable
     *   Incorrect or not up-to-date warning information for invalid Flutter/Dart code (widespread)
     *   Interface bugs interfering with common uses of the application, widespread
     *   JavaScript console errors indicating problems with DartPad functionality (edge cases / not widespread)
     *   Enhancements that have significant data around them indicating they are a big win
     *   User performance problem (e.g. app loading / run / analysis), widespread
-*   P2
+* P2
     *   Incorrect or not up-to-date warning information for invalid Flutter/Dart code (edge cases / not widespread)
     *   JavaScript errors not resulting in visible problems outside of the console (widespread)
     *   Interface bugs interfering with the use of the application in edge cases.
     *   User interface and display warts that are not significantly impacting functionality, widespread
     *   Enhancements that are agreed to be a good idea even if they don't have data around them indicating they are a big win
     *   User performance problem (e.g. app loading / run analysis), edge cases / not widespread
-*   P3
+* P3
     *   Minor user interface warts not significantly impacting functionality, on edge cases only.
     *   JavaScript errors not resulting in visible problems outside of the console (edge cases)
     *   Enhancements that are speculative or where we are unsure of impacts/tradeoffs
