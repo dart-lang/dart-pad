@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:split_view/split_view.dart';
 import 'package:url_strategy/url_strategy.dart';
 
@@ -34,19 +33,14 @@ import 'widgets.dart';
 
 const appName = 'SketchPad';
 
-final ValueNotifier<bool> darkMode = ValueNotifier(true);
-
 void main() async {
   setPathUrlStrategy();
 
-  runApp(DartPadApp(prefs: await SharedPreferences.getInstance()));
+  runApp(const DartPadApp());
 }
 
 class DartPadApp extends StatefulWidget {
-  final SharedPreferences prefs;
-
   const DartPadApp({
-    required this.prefs,
     super.key,
   });
 
@@ -56,56 +50,36 @@ class DartPadApp extends StatefulWidget {
 
 class _DartPadAppState extends State<DartPadApp> {
   @override
-  void initState() {
-    super.initState();
-
-    // Init the dark mode value notifier.
-    darkMode.value = widget.prefs.getBool('darkMode') ?? true;
-    darkMode.addListener(_storeThemeValue);
-  }
-
-  Future<void> _storeThemeValue() async {
-    await widget.prefs.setBool('darkMode', darkMode.value);
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder(
-      valueListenable: darkMode,
-      builder: (BuildContext context, bool value, _) {
-        return MaterialApp.router(
-          title: appName,
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSwatch(
-              brightness: value ? Brightness.dark : Brightness.light,
-            ),
+    return MaterialApp.router(
+      title: appName,
+      routerConfig: GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (BuildContext context, GoRouterState state) {
+              final idParam = state.queryParameters['id'];
+              final themeParam = state.queryParameters['theme'] ?? 'dark';
+              final bool darkMode = themeParam == 'dark';
+
+              return Theme(
+                data: ThemeData(
+                  colorScheme: ColorScheme.fromSwatch(
+                    brightness: darkMode ? Brightness.dark : Brightness.light,
+                  ),
+                ),
+                child: DartPadMainPage(
+                  title: appName,
+                  gistId: idParam,
+                ),
+              );
+            },
           ),
-          routerConfig: GoRouter(
-            initialLocation: '/',
-            routes: [
-              GoRoute(
-                path: '/',
-                builder: (BuildContext context, GoRouterState state) {
-                  final id = state.queryParameters['id'];
-                  return DartPadMainPage(
-                    title: appName,
-                    gistId: id,
-                  );
-                },
-              ),
-            ],
-          ),
-          debugShowCheckedModeBanner: false,
-        );
-      },
+        ],
+      ),
+      debugShowCheckedModeBanner: false,
     );
-  }
-
-  @override
-  void dispose() {
-    darkMode.removeListener(_storeThemeValue);
-
-    super.dispose();
   }
 }
 
@@ -195,21 +169,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
             icon: const Icon(Icons.download),
             label: const Text('Install SDK'),
             style: buttonStyle,
-          ),
-          const VerticalDivider(),
-          ValueListenableBuilder(
-            valueListenable: darkMode,
-            builder: (context, value, _) {
-              // todo: animate the icon changes
-              return IconButton(
-                iconSize: defaultIconSize,
-                splashRadius: defaultSplashRadius,
-                onPressed: () => darkMode.value = !value,
-                icon: value
-                    ? const Icon(Icons.light_mode_outlined)
-                    : const Icon(Icons.dark_mode_outlined),
-              );
-            },
           ),
           const SizedBox(width: denseSpacing),
         ],
@@ -474,7 +433,7 @@ class StatusLineWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    final darkTheme = colorScheme.brightness == Brightness.dark;
+    final darkTheme = colorScheme.darkMode;
     final textColor = colorScheme.onPrimaryContainer;
     final textStyle = TextStyle(color: textColor);
 
