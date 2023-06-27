@@ -67,7 +67,7 @@ class Compiler {
         sourcesFileList: files.keys.toList(), devMode: _sdk.devMode);
     if (unsupportedImports.isNotEmpty) {
       return CompilationResults(problems: [
-        for (var import in unsupportedImports)
+        for (final import in unsupportedImports)
           CompilationProblem._('unsupported import: ${import.uri.stringValue}'),
       ]);
     }
@@ -155,7 +155,7 @@ class Compiler {
         sourcesFileList: files.keys.toList(), devMode: _sdk.devMode);
     if (unsupportedImports.isNotEmpty) {
       return DDCCompilationResults.failed([
-        for (var import in unsupportedImports)
+        for (final import in unsupportedImports)
           CompilationProblem._('unsupported import: ${import.uri.stringValue}'),
       ]);
     }

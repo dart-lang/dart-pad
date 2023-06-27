@@ -254,7 +254,7 @@ class CommonServerImpl {
   Future<proto.VersionResponse> version(proto.VersionRequest _) {
     final packageVersions = getPackageVersions();
     final packageInfos = [
-      for (var packageName in packageVersions.keys)
+      for (final packageName in packageVersions.keys)
         proto.PackageInfo()
           ..name = packageName
           ..version = packageVersions[packageName]!

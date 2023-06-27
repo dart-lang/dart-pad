@@ -180,7 +180,7 @@ ${_sdk.experiments.map((experiment) => '    - $experiment').join('\n')}
     final allVersions =
         parsePubDependenciesFile(dependenciesFile: _dependenciesFile);
     final result = {
-      for (var package in packages) package: allVersions[package] ?? 'any',
+      for (final package in packages) package: allVersions[package] ?? 'any',
     };
 
     // Overwrite with important constraints.

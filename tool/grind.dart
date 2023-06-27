@@ -415,10 +415,10 @@ Future<void> _updateDependenciesFile({
   final dependencies = <String, String>{
     'lints': 'any',
     'flutter_lints': 'any',
-    for (var package in firebasePackages) package: 'any',
-    for (var package in supportedFlutterPackages(devMode: sdk.devMode))
+    for (final package in firebasePackages) package: 'any',
+    for (final package in supportedFlutterPackages(devMode: sdk.devMode))
       package: 'any',
-    for (var package in supportedBasicDartPackages(devMode: sdk.devMode))
+    for (final package in supportedBasicDartPackages(devMode: sdk.devMode))
       package: 'any',
   };
 
