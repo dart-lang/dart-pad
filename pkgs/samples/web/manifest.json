@@ -1,0 +1,11 @@
+{
+    "name": "samples",
+    "short_name": "samples",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "Sample code snippets for DartPad.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false
+}
