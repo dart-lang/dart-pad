@@ -54,4 +54,4 @@ dependency_overrides:
   sass: ^1.62.0
 
   split:
-    path: ../../third_party/pkg/split/
+    path: third_party/pkg/split/

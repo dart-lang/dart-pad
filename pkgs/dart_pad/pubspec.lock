@@ -636,7 +636,7 @@ packages:
   split:
     dependency: "direct main"
     description:
-      path: "../../third_party/pkg/split"
+      path: "third_party/pkg/split"
       relative: true
     source: path
     version: "0.0.7"
