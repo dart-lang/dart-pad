@@ -1,0 +1,32 @@
+name: package:samples
+
+permissions: read-all
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/samples.yml'
+      - 'pkgs/samples/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/samples.yml'
+      - 'pkgs/samples/**'
+  schedule:
+    - cron: '0 0 * * 0' # weekly
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pkgs/samples/
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: subosito/flutter-action@48cafc24713cca54bbe03cdc3a423187d413aafa
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: dart format --set-exit-if-changed .
+      - run: flutter build web
+      # - run: flutter test
