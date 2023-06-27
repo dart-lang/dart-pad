@@ -119,7 +119,7 @@ class Samples {
 
   String _generateTable() {
     return '''
-| Category | Name | | ID | Source |
+| Category | Name | ID | Source |
 | --- | --- | --- | --- |
 ${samples.map((s) => s.toTableRow()).join('\n')}
 ''';

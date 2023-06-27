@@ -5,7 +5,7 @@ Sample code snippets for DartPad.
 ## Samples
 
 <!-- samples -->
-| Category | Name | | ID | Source |
+| Category | Name | ID | Source |
 | --- | --- | --- | --- |
 | Dart | Hello world | `hello-world` | [lib/hello_world.dart](lib/hello_world.dart) |
 | Dart | Fibonacci | `fibonacci` | [lib/fibonacci.dart](lib/fibonacci.dart) |
