@@ -17,7 +17,7 @@ class ProjectCreator {
 
   final String _templatesPath;
 
-  /// The Dart Language Version to use for code using null safety.
+  /// The Dart language version to use.
   final String _dartLanguageVersion;
 
   final File _dependenciesFile;
@@ -220,7 +220,7 @@ String createPubspec({
   var content = '''
 name: dartpad_sample
 environment:
-  sdk: $dartLanguageVersion
+  sdk: ^$dartLanguageVersion
 dependencies:
 ''';
 
