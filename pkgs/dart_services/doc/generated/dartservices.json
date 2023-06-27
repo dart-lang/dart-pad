@@ -1,0 +1,466 @@
+{
+ "kind": "discovery#restDescription",
+ "etag": "89266e60165edb921ae3223edd57f8029631982b",
+ "discoveryVersion": "v1",
+ "id": "dartservices:v1",
+ "name": "dartservices",
+ "version": "v1",
+ "revision": "0",
+ "protocol": "rest",
+ "baseUrl": "/api/dartservices/v1/",
+ "basePath": "/api/dartservices/v1/",
+ "rootUrl": "/",
+ "servicePath": "api/dartservices/v1/",
+ "parameters": {},
+ "schemas": {
+  "SourceRequest": {
+   "id": "SourceRequest",
+   "type": "object",
+   "properties": {
+    "source": {
+     "type": "string",
+     "description": "The Dart source.",
+     "required": true
+    },
+    "offset": {
+     "type": "integer",
+     "description": "An optional offset into the source code.",
+     "format": "int32"
+    }
+   }
+  },
+  "AnalysisResults": {
+   "id": "AnalysisResults",
+   "type": "object",
+   "properties": {
+    "issues": {
+     "type": "array",
+     "items": {
+      "$ref": "AnalysisIssue"
+     }
+    },
+    "packageImports": {
+     "type": "array",
+     "description": "The package imports parsed from the source.",
+     "items": {
+      "type": "string"
+     }
+    }
+   }
+  },
+  "AnalysisIssue": {
+   "id": "AnalysisIssue",
+   "type": "object",
+   "properties": {
+    "kind": {
+     "type": "string"
+    },
+    "line": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "message": {
+     "type": "string"
+    },
+    "sourceName": {
+     "type": "string"
+    },
+    "hasFixes": {
+     "type": "boolean"
+    },
+    "charStart": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "charLength": {
+     "type": "integer",
+     "format": "int32"
+    }
+   }
+  },
+  "CompileRequest": {
+   "id": "CompileRequest",
+   "type": "object",
+   "properties": {
+    "source": {
+     "type": "string",
+     "description": "The Dart source.",
+     "required": true
+    },
+    "returnSourceMap": {
+     "type": "boolean",
+     "description": "Return the Dart to JS source map; optional (defaults to false)."
+    }
+   }
+  },
+  "CompileResponse": {
+   "id": "CompileResponse",
+   "type": "object",
+   "properties": {
+    "result": {
+     "type": "string"
+    },
+    "sourceMap": {
+     "type": "string"
+    }
+   }
+  },
+  "CompileDDCResponse": {
+   "id": "CompileDDCResponse",
+   "type": "object",
+   "properties": {
+    "result": {
+     "type": "string"
+    },
+    "modulesBaseUrl": {
+     "type": "string"
+    }
+   }
+  },
+  "CompleteResponse": {
+   "id": "CompleteResponse",
+   "type": "object",
+   "properties": {
+    "replacementOffset": {
+     "type": "integer",
+     "description": "The offset of the start of the text to be replaced.",
+     "format": "int32"
+    },
+    "replacementLength": {
+     "type": "integer",
+     "description": "The length of the text to be replaced.",
+     "format": "int32"
+    },
+    "completions": {
+     "type": "array",
+     "items": {
+      "type": "object",
+      "additionalProperties": {
+       "type": "string"
+      }
+     }
+    }
+   }
+  },
+  "FixesResponse": {
+   "id": "FixesResponse",
+   "type": "object",
+   "properties": {
+    "fixes": {
+     "type": "array",
+     "items": {
+      "$ref": "ProblemAndFixes"
+     }
+    }
+   }
+  },
+  "ProblemAndFixes": {
+   "id": "ProblemAndFixes",
+   "type": "object",
+   "properties": {
+    "fixes": {
+     "type": "array",
+     "items": {
+      "$ref": "CandidateFix"
+     }
+    },
+    "problemMessage": {
+     "type": "string"
+    },
+    "offset": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "length": {
+     "type": "integer",
+     "format": "int32"
+    }
+   }
+  },
+  "CandidateFix": {
+   "id": "CandidateFix",
+   "type": "object",
+   "properties": {
+    "message": {
+     "type": "string"
+    },
+    "edits": {
+     "type": "array",
+     "items": {
+      "$ref": "SourceEdit"
+     }
+    },
+    "selectionOffset": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "linkedEditGroups": {
+     "type": "array",
+     "items": {
+      "$ref": "LinkedEditGroup"
+     }
+    }
+   }
+  },
+  "SourceEdit": {
+   "id": "SourceEdit",
+   "type": "object",
+   "properties": {
+    "offset": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "length": {
+     "type": "integer",
+     "format": "int32"
+    },
+    "replacement": {
+     "type": "string"
+    }
+   }
+  },
+  "LinkedEditGroup": {
+   "id": "LinkedEditGroup",
+   "type": "object",
+   "properties": {
+    "positions": {
+     "type": "array",
+     "description": "The positions of the regions that should be edited simultaneously.",
+     "items": {
+      "type": "integer",
+      "format": "int32"
+     }
+    },
+    "length": {
+     "type": "integer",
+     "description": "The length of the regions that should be edited simultaneously.",
+     "format": "int32"
+    },
+    "suggestions": {
+     "type": "array",
+     "description": "Pre-computed suggestions for what every region might want to be changed to.",
+     "items": {
+      "$ref": "LinkedEditSuggestion"
+     }
+    }
+   }
+  },
+  "LinkedEditSuggestion": {
+   "id": "LinkedEditSuggestion",
+   "type": "object",
+   "properties": {
+    "value": {
+     "type": "string",
+     "description": "The value that could be used to replace all of the linked edit regions."
+    },
+    "kind": {
+     "type": "string",
+     "description": "The kind of value being proposed."
+    }
+   }
+  },
+  "AssistsResponse": {
+   "id": "AssistsResponse",
+   "type": "object",
+   "properties": {
+    "assists": {
+     "type": "array",
+     "items": {
+      "$ref": "CandidateFix"
+     }
+    }
+   }
+  },
+  "FormatResponse": {
+   "id": "FormatResponse",
+   "type": "object",
+   "properties": {
+    "newString": {
+     "type": "string",
+     "description": "The formatted source code."
+    },
+    "offset": {
+     "type": "integer",
+     "description": "The (optional) new offset of the cursor; can be `null`.",
+     "format": "int32"
+    }
+   }
+  },
+  "DocumentResponse": {
+   "id": "DocumentResponse",
+   "type": "object",
+   "properties": {
+    "info": {
+     "type": "object",
+     "additionalProperties": {
+      "type": "string"
+     }
+    }
+   }
+  },
+  "VersionResponse": {
+   "id": "VersionResponse",
+   "type": "object",
+   "properties": {
+    "sdkVersion": {
+     "type": "string",
+     "description": "The Dart SDK version that DartServices is compatible with. This will be a semver string."
+    },
+    "sdkVersionFull": {
+     "type": "string",
+     "description": "The full Dart SDK version that DartServices is compatible with."
+    },
+    "runtimeVersion": {
+     "type": "string",
+     "description": "The Dart SDK version that the server is running on. This will start with a semver string, and have a space and other build details appended."
+    },
+    "appEngineVersion": {
+     "type": "string",
+     "description": "The App Engine version."
+    },
+    "servicesVersion": {
+     "type": "string",
+     "description": "The dart-services backend version."
+    },
+    "flutterVersion": {
+     "type": "string",
+     "description": "The Flutter SDK version."
+    },
+    "flutterDartVersion": {
+     "type": "string",
+     "description": "The Flutter SDK's Dart version."
+    },
+    "flutterDartVersionFull": {
+     "type": "string",
+     "description": "The Flutter SDK's full Dart version."
+    }
+   }
+  }
+ },
+ "methods": {
+  "analyze": {
+   "id": "CommonServer.analyze",
+   "path": "analyze",
+   "httpMethod": "POST",
+   "description": "Analyze the given Dart source code and return any resulting analysis errors or warnings.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "AnalysisResults"
+   }
+  },
+  "compile": {
+   "id": "CommonServer.compile",
+   "path": "compile",
+   "httpMethod": "POST",
+   "description": "Compile the given Dart source code and return the resulting JavaScript; this uses the dart2js compiler.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "CompileRequest"
+   },
+   "response": {
+    "$ref": "CompileResponse"
+   }
+  },
+  "compileDDC": {
+   "id": "CommonServer.compileDDC",
+   "path": "compileDDC",
+   "httpMethod": "POST",
+   "description": "Compile the given Dart source code and return the resulting JavaScript; this uses the DDC compiler.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "CompileRequest"
+   },
+   "response": {
+    "$ref": "CompileDDCResponse"
+   }
+  },
+  "complete": {
+   "id": "CommonServer.complete",
+   "path": "complete",
+   "httpMethod": "POST",
+   "description": "Get the valid code completion results for the given offset.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "CompleteResponse"
+   }
+  },
+  "fixes": {
+   "id": "CommonServer.fixes",
+   "path": "fixes",
+   "httpMethod": "POST",
+   "description": "Get any quick fixes for the given source code location.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "FixesResponse"
+   }
+  },
+  "assists": {
+   "id": "CommonServer.assists",
+   "path": "assists",
+   "httpMethod": "POST",
+   "description": "Get assists for the given source code location.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "AssistsResponse"
+   }
+  },
+  "format": {
+   "id": "CommonServer.format",
+   "path": "format",
+   "httpMethod": "POST",
+   "description": "Format the given Dart source code and return the results. If an offset is supplied in the request, the new position for that offset in the formatted code will be returned.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "FormatResponse"
+   }
+  },
+  "document": {
+   "id": "CommonServer.document",
+   "path": "document",
+   "httpMethod": "POST",
+   "description": "Return the relevant dartdoc information for the element at the given offset.",
+   "parameters": {},
+   "parameterOrder": [],
+   "request": {
+    "$ref": "SourceRequest"
+   },
+   "response": {
+    "$ref": "DocumentResponse"
+   }
+  },
+  "version": {
+   "id": "CommonServer.version",
+   "path": "version",
+   "httpMethod": "GET",
+   "description": "Return the current SDK version for DartServices.",
+   "parameters": {},
+   "parameterOrder": [],
+   "response": {
+    "$ref": "VersionResponse"
+   }
+  }
+ },
+ "resources": {}
+}
