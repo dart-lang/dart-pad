@@ -86,6 +86,10 @@ class MiniIconButton extends StatelessWidget {
   }
 }
 
+// todo: have a background
+// todo: use rounded corners
+// todo: use an elevation
+
 class ProgressWidget extends StatelessWidget {
   final ProgressController status;
 
@@ -162,7 +166,7 @@ class _CompilingStatusWidgetState extends State<CompilingStatusWidget>
       valueListenable: widget.status,
       builder: (context, bool value, _) {
         return AnimatedOpacity(
-          opacity: value ? 0.8 : 0.2,
+          opacity: value ? 0.6 : 0.0,
           duration: animationDelay,
           child: AnimatedBuilder(
             animation: controller,
