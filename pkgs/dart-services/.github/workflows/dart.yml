@@ -1,0 +1,63 @@
+name: dart-services
+
+on:
+  # Run CI on pushes to the master branch, and on PRs against master.
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *" # Every day at midnight
+
+jobs:
+  # Check code formatting, static analysis, and build on a single OS (linux)
+  # against Dart stable and beta.
+  analyze:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sdk: [stable, beta, dev, old, master]
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
+        with:
+          sdk: stable
+      - name: Install dependencies
+        run: sudo apt-get install -y protobuf-compiler redis
+      - name: Install dependencies
+        run: dart pub get
+      - name: Analyze code
+        run: dart analyze --fatal-infos .
+      - name: Prepare Flutter
+        run: |
+          dart run tool/update_sdk.dart ${{ matrix.sdk }}
+          export PATH=$PATH:$PWD/flutter-sdks/${{ matrix.sdk }}/bin
+          flutter doctor -v
+          flutter config --enable-web
+      - name: Run tests
+        run: |
+          export PATH=$PATH:$HOME/.pub-cache/bin
+          dart pub global activate protoc_plugin
+          ./tool/travis.sh ${{ matrix.sdk }}
+
+  # Run the benchmarks on the bots to ensure they don't regress.
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
+      - uses: dart-lang/setup-dart@d6a63dab3335f427404425de0fbfed4686d93c4f
+      - run: sudo apt-get install -y protobuf-compiler redis
+      - run: dart pub get
+      - name: Download the Flutter SDK
+        run: |
+          dart run tool/update_sdk.dart stable
+          export PATH=$PATH:$PWD/flutter-sdks/stable/bin
+          flutter doctor -v
+      - name: Prep the repo
+        env:
+          FLUTTER_CHANNEL: stable
+        run: dart pub run grinder buildbot
+      - name: Run benchmarks
+        run: dart benchmark/bench.dart

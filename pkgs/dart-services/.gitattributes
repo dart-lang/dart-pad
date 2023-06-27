@@ -1,0 +1,10 @@
+# For a detailed description of the content in this file, please see:
+#    https://git-scm.com/docs/gitattributes
+
+*.css   text eol=lf
+*.dart  text eol=lf
+*.html  text eol=lf
+*.json  text eol=lf
+*.md    text eol=lf
+*.yaml  text eol=lf
+*.sh    text eol=lf
