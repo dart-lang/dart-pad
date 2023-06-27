@@ -153,8 +153,7 @@ class _CompilingStatusWidgetState extends State<CompilingStatusWidget>
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final darkMode = colorScheme.brightness == Brightness.dark;
+    final darkMode = theme.colorScheme.darkMode;
 
     final gearIcon =
         Image.asset('assets/gear-96-${darkMode ? 'light' : 'dark'}.png');

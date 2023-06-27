@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 
 import '../model.dart';
 import '../services/dartservices.dart';
+import '../theme.dart';
 
 // TODO: support code completion
 
@@ -109,8 +110,7 @@ class _EditorWidgetState extends State<EditorWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final darkMode = colorScheme.brightness == Brightness.dark;
+    final darkMode = theme.colorScheme.darkMode;
 
     _updateCodemirrorMode(darkMode);
 

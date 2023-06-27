@@ -26,3 +26,7 @@ const Color subtleColor = Colors.grey;
 const TextStyle subtleText = TextStyle(color: subtleColor);
 
 const defaultGripSize = denseSpacing;
+
+extension ColorSchemeExtension on ColorScheme {
+  bool get darkMode => brightness == Brightness.dark;
+}
