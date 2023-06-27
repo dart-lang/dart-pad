@@ -14,3 +14,9 @@ updates:
     schedule:
       interval: "monthly"
     versioning-strategy: increase-if-necessary
+
+  - package-ecosystem: "pub"
+    directory: "/pkgs/dart_services/"
+    schedule:
+      interval: "monthly"
+    versioning-strategy: increase-if-necessary
