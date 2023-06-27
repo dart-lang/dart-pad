@@ -79,10 +79,6 @@ dart-services requires the `redis` package, including the `redis-server` binary,
 to be installed to run tests.  `sudo apt-get install redis-server` will install
 this on Ubuntu, but see [Redis' Quick Start guide](https://redis.io/topics/quickstart) for other platforms.
 
-## Related projects
-
-See also the [dart-pad](https://github.com/dart-lang/dart-pad) repo.
-
 ## Issues and bugs
 
 Please file reports on the

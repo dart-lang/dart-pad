@@ -10,6 +10,7 @@ and Flutter. You can access it at [dartpad.dev](http://dartpad.dev).
 | Package | Description | CI Status |
 | --- | --- | --- |
 | [dart_pad](pkgs/dart_pad/) | The front end of DartPad. | [![dart_pad](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dart_pad.yml) |
+| [dart_services](pkgs/dart_services/) | A fork of the DartPad backend services. | [![dart_services](https://github.com/dart-lang/dart-pad/actions/workflows/dart_services.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/dart_services.yml) |
 | [sketch_pad](pkgs/sketch_pad/) | An experimental redux of the DartPad UI. | [![sketch_pad](https://github.com/dart-lang/dart-pad/actions/workflows/sketch_pad.yml/badge.svg)](https://github.com/dart-lang/dart-pad/actions/workflows/sketch_pad.yml) |
 
 ### Related repos:
