@@ -23,7 +23,7 @@ jobs:
       run:
         working-directory: pkgs/sketch_pad/
     steps:
-      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9
       - uses: subosito/flutter-action@48cafc24713cca54bbe03cdc3a423187d413aafa
         # TODO: Remove this after the next Flutter stable release.
         with:
