@@ -11,7 +11,12 @@
     },
     {
         "category": "Flutter",
-        "name": "Counter example",
+        "name": "Counter",
         "path": "lib/main.dart"
+    },
+    {
+        "category": "Flutter",
+        "name": "Sunflower",
+        "path": "lib/sunflower.dart"
     }
 ]

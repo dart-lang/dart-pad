@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'gists.dart';
+import 'samples.g.dart';
 import 'services/dartservices.dart';
 import 'utils.dart';
 
@@ -77,9 +78,21 @@ class AppServices {
   }
 
   Future<void> performInitialLoad({
+    String? sampleId,
     String? gistId,
     required String fallbackSnippet,
   }) async {
+    // Delay a bit for codemirror to initialize.
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+
+    var sample = Samples.getById(sampleId);
+    if (sample != null) {
+      appModel.title.value = sample.name;
+      appModel.sourceCodeController.text = sample.source;
+      appModel.appReady.value = true;
+      return;
+    }
+
     if (gistId == null) {
       appModel.sourceCodeController.text = fallbackSnippet;
       appModel.appReady.value = true;

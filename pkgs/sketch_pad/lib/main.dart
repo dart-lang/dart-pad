@@ -61,6 +61,7 @@ class _DartPadAppState extends State<DartPadApp> {
             path: '/',
             builder: (BuildContext context, GoRouterState state) {
               final idParam = state.queryParameters['id'];
+              final sampleParam = state.queryParameters['sample'];
               final themeParam = state.queryParameters['theme'] ?? 'dark';
               final bool darkMode = themeParam == 'dark';
 
@@ -72,6 +73,7 @@ class _DartPadAppState extends State<DartPadApp> {
                 ),
                 child: DartPadMainPage(
                   title: appName,
+                  sampleId: sampleParam,
                   gistId: idParam,
                 ),
               );
@@ -86,10 +88,12 @@ class _DartPadAppState extends State<DartPadApp> {
 
 class DartPadMainPage extends StatefulWidget {
   final String title;
+  final String? sampleId;
   final String? gistId;
 
   const DartPadMainPage({
     required this.title,
+    this.sampleId,
     this.gistId,
     super.key,
   });
@@ -120,6 +124,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     appServices.populateVersions();
 
     appServices.performInitialLoad(
+      sampleId: widget.sampleId,
       gistId: widget.gistId,
       fallbackSnippet: defaultSnippetSource,
     );
@@ -137,10 +142,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
       appBar: AppBar(
         title: Row(
           children: [
-            Image.asset(
-              'assets/dart_logo_128.png',
-              width: 32,
-            ),
+            dartLogo(width: 32),
             const SizedBox(width: denseSpacing),
             const Text(appName),
             const SizedBox(width: defaultSpacing),

@@ -76,15 +76,25 @@ class Samples {
     if (hadFailure) {
       exit(1);
     }
+
+    samples.sort();
   }
 
   void generate() {
+    // readme.md
     var readme = File('README.md');
     readme.writeAsStringSync(_generateReadmeContent());
 
     // print generation message
     print('');
     print('Wrote ${readme.path}');
+
+    // samples.g.dart
+    var codeFile = File('../sketch_pad/lib/samples.g.dart');
+    var contents = _generateSourceContent();
+    // TODO: format the source
+    codeFile.writeAsStringSync(contents);
+    print('Wrote ${codeFile.path}');
   }
 
   void verifyGeneration() {
@@ -119,14 +129,65 @@ class Samples {
 
   String _generateTable() {
     return '''
-| Category | Name | ID | Source |
+| Category | Name | Sample | ID |
 | --- | --- | --- | --- |
 ${samples.map((s) => s.toTableRow()).join('\n')}
 ''';
   }
-}
+
+  String _generateSourceContent() {
+    // ignore: prefer_interpolation_to_compose_strings
+    return '''
+// Copyright 2023 the Dart project authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license
+// that can be found in the LICENSE file.
+
+import 'package:collection/collection.dart';
 
 class Sample {
+  final String category;
+  final String name;
+  final String id;
+  final String source;
+
+  Sample({
+    required this.category,
+    required this.name,
+    required this.id,
+    required this.source,
+  });
+
+  bool get isDart => category == 'Dart';
+
+  @override
+  String toString() => '[\$category] \$name (\$id)';
+}
+
+class Samples {
+  static final List<Sample> all = [
+    ${samples.map((s) => s.sourceId).join(',\n    ')},
+  ];
+
+  static final Map<String, List<Sample>> categories = {
+    ${categories.map((category) => _mapForCategory(category)).join(',\n    ')},
+  };
+
+  static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);
+}
+
+''' +
+        samples.map((sample) => sample.sourceDef).join('\n');
+  }
+
+  String _mapForCategory(String category) {
+    var items = samples.where((s) => s.category == category);
+    return ''''$category': [
+      ${items.map((i) => i.sourceId).join(',\n      ')},
+    ]''';
+  }
+}
+
+class Sample implements Comparable<Sample> {
   final String category;
   final String name;
   final String id;
@@ -148,7 +209,43 @@ class Sample {
     );
   }
 
-  String toTableRow() => '| $category | $name | `$id` | [$path]($path) |';
+  String get sourceId {
+    var gen = id;
+    while (gen.contains('-')) {
+      var index = id.indexOf('-');
+      gen = gen.substring(0, index) +
+          gen.substring(index + 1, index + 2).toUpperCase() +
+          gen.substring(index + 2);
+    }
+    return '_$gen';
+  }
+
+  String get source => File(path).readAsStringSync();
+
+  String get sourceDef {
+    return '''
+final $sourceId = Sample(
+  category: '$category',
+  name: '$name',
+  id: '$id',
+  source: r\'\'\'
+${source.trimRight()}
+\'\'\',
+);
+''';
+  }
+
+  String toTableRow() =>
+      '| $category | $name | [${p.basename(path)}]($path) | `$id` |';
+
+  @override
+  int compareTo(Sample other) {
+    if (category == other.category) {
+      return name.compareTo(other.name);
+    } else {
+      return category.compareTo(other.category);
+    }
+  }
 
   @override
   String toString() => '[$category] $name ($id)';

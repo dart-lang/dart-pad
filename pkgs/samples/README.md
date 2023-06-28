@@ -5,11 +5,12 @@ Sample code snippets for DartPad.
 ## Samples
 
 <!-- samples -->
-| Category | Name | ID | Source |
+| Category | Name | Sample | ID |
 | --- | --- | --- | --- |
-| Dart | Hello world | `hello-world` | [lib/hello_world.dart](lib/hello_world.dart) |
-| Dart | Fibonacci | `fibonacci` | [lib/fibonacci.dart](lib/fibonacci.dart) |
-| Flutter | Counter example | `counter-example` | [lib/main.dart](lib/main.dart) |
+| Dart | Fibonacci | [fibonacci.dart](lib/fibonacci.dart) | `fibonacci` |
+| Dart | Hello world | [hello_world.dart](lib/hello_world.dart) | `hello-world` |
+| Flutter | Counter | [main.dart](lib/main.dart) | `counter` |
+| Flutter | Sunflower | [sunflower.dart](lib/sunflower.dart) | `sunflower` |
 <!-- samples -->
 
 ## Contributing
