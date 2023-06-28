@@ -263,21 +263,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                         children: [
                           SectionWidget(
                             title: 'App',
-                            actions: [
-                              ValueListenableBuilder<TextEditingValue>(
-                                valueListenable:
-                                    appModel.consoleOutputController,
-                                builder: (context, value, _) {
-                                  return MiniIconButton(
-                                    icon: Icons.playlist_remove,
-                                    tooltip: 'Clear console',
-                                    onPressed: value.text.isEmpty
-                                        ? null
-                                        : _clearConsole,
-                                  );
-                                },
-                              ),
-                            ],
                             child: Stack(
                               children: [
                                 ExecutionWidget(
@@ -297,6 +282,21 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                           ),
                           SectionWidget(
                             title: 'Console',
+                            actions: [
+                              ValueListenableBuilder<TextEditingValue>(
+                                valueListenable:
+                                    appModel.consoleOutputController,
+                                builder: (context, value, _) {
+                                  return MiniIconButton(
+                                    icon: Icons.playlist_remove,
+                                    tooltip: 'Clear console',
+                                    onPressed: value.text.isEmpty
+                                        ? null
+                                        : _clearConsole,
+                                  );
+                                },
+                              ),
+                            ],
                             child: ConsoleWidget(
                                 consoleOutputController:
                                     appModel.consoleOutputController),
