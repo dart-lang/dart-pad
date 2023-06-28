@@ -42,7 +42,7 @@ class SamplesDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text('Privacy notice'),
-            trailing: const Icon(Icons.link),
+            trailing: const Icon(Icons.launch),
             onTap: () {
               Navigator.pop(context);
               url.launchUrl(
@@ -52,7 +52,7 @@ class SamplesDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.feedback),
             title: const Text('Feedback'),
-            trailing: const Icon(Icons.link),
+            trailing: const Icon(Icons.launch),
             onTap: () {
               Navigator.pop(context);
               url.launchUrl(

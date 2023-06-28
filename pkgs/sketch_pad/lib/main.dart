@@ -198,44 +198,42 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                           Expanded(
                             child: SectionWidget(
                               title: 'Code',
-                              actions: [
-                                ValueListenableBuilder<bool>(
-                                  valueListenable: appModel.formattingBusy,
-                                  builder: (context, bool value, _) {
-                                    return MiniIconButton(
-                                      icon: Icons.format_align_left,
-                                      tooltip: 'Format',
-                                      onPressed:
-                                          value ? null : _handleFormatting,
-                                    );
-                                  },
-                                ),
-                                const SizedBox(width: denseSpacing),
-                                const SizedBox(
-                                    height: smallIconSize + 8,
-                                    child: VerticalDivider()),
-                                const SizedBox(width: denseSpacing),
-                                ValueListenableBuilder<bool>(
-                                  valueListenable: appModel.compilingBusy,
-                                  builder: (context, bool value, _) {
-                                    return MiniIconButton(
-                                      icon: Icons.play_arrow,
-                                      tooltip: 'Run',
-                                      onPressed:
-                                          value ? null : _handleCompiling,
-                                    );
-                                  },
-                                ),
-                              ],
                               child: Stack(
                                 children: [
                                   EditorWidget(appModel: appModel),
-                                  Container(
-                                    padding: const EdgeInsets.all(denseSpacing),
-                                    alignment: Alignment.topRight,
-                                    child: ProgressWidget(
-                                      status: appModel.statusController,
-                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Format action
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable:
+                                            appModel.formattingBusy,
+                                        builder: (context, bool value, _) {
+                                          return MiniIconButton(
+                                            icon: Icons.format_align_left,
+                                            tooltip: 'Format',
+                                            onPressed: value
+                                                ? null
+                                                : _handleFormatting,
+                                          );
+                                        },
+                                      ),
+                                      const SizedBox(width: defaultSpacing),
+                                      // Run action
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: appModel.compilingBusy,
+                                        builder: (context, bool value, _) {
+                                          return MiniIconButton(
+                                            icon: Icons.play_arrow,
+                                            tooltip: 'Run',
+                                            onPressed:
+                                                value ? null : _handleCompiling,
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -263,21 +261,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                         children: [
                           SectionWidget(
                             title: 'App',
-                            actions: [
-                              ValueListenableBuilder<TextEditingValue>(
-                                valueListenable:
-                                    appModel.consoleOutputController,
-                                builder: (context, value, _) {
-                                  return MiniIconButton(
-                                    icon: Icons.playlist_remove,
-                                    tooltip: 'Clear console',
-                                    onPressed: value.text.isEmpty
-                                        ? null
-                                        : _clearConsole,
-                                  );
-                                },
-                              ),
-                            ],
                             child: Stack(
                               children: [
                                 ExecutionWidget(
@@ -297,9 +280,30 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                           ),
                           SectionWidget(
                             title: 'Console',
-                            child: ConsoleWidget(
-                                consoleOutputController:
-                                    appModel.consoleOutputController),
+                            child: Stack(
+                              children: [
+                                ConsoleWidget(
+                                    consoleOutputController:
+                                        appModel.consoleOutputController),
+                                Container(
+                                  alignment: Alignment.topRight,
+                                  child:
+                                      ValueListenableBuilder<TextEditingValue>(
+                                    valueListenable:
+                                        appModel.consoleOutputController,
+                                    builder: (context, value, _) {
+                                      return MiniIconButton(
+                                        icon: Icons.playlist_remove,
+                                        tooltip: 'Clear console',
+                                        onPressed: value.text.isEmpty
+                                            ? null
+                                            : _clearConsole,
+                                      );
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
@@ -391,61 +395,44 @@ class StatusLineWidget extends StatelessWidget {
         horizontal: defaultSpacing,
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(
-            child: Row(
-              children: [
-                MiniIconButton(
-                  icon: Icons.keyboard,
-                  tooltip: 'Keybindings',
-                  onPressed: () => unimplemented(context, 'keybindings legend'),
-                  color: textColor,
-                ),
-                const Expanded(child: SizedBox(width: defaultSpacing)),
-                ValueListenableBuilder(
-                  valueListenable: appModel.runtimeVersions,
-                  builder: (content, version, _) {
-                    return Text(
-                      version.sdkVersion.isEmpty
-                          ? ''
-                          : 'Dart ${version.sdkVersion}',
-                      style: textStyle,
-                    );
-                  },
-                ),
-              ],
+          Tooltip(
+            message: 'Keybindinge',
+            waitDuration: tooltipDelay,
+            child: IconButton(
+              icon: const Icon(Icons.keyboard),
+              iconSize: smallIconSize,
+              splashRadius: defaultIconSize,
+              constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+              padding: const EdgeInsets.all(2),
+              visualDensity: VisualDensity.compact,
+              onPressed: () => unimplemented(context, 'keybindings legend'),
+              color: textColor,
             ),
           ),
+          const SizedBox(width: defaultSpacing),
+          ProgressWidget(status: appModel.statusController),
+          const Expanded(child: SizedBox(width: defaultSpacing)),
+          ValueListenableBuilder(
+            valueListenable: appModel.runtimeVersions,
+            builder: (content, version, _) {
+              return Text(
+                version.sdkVersion.isEmpty ? '' : 'Dart ${version.sdkVersion}',
+                style: textStyle,
+              );
+            },
+          ),
           Text(' • ', style: textStyle),
-          Expanded(
-            child: Row(
-              children: [
-                ValueListenableBuilder(
-                  valueListenable: appModel.runtimeVersions,
-                  builder: (content, version, _) {
-                    return Text(
-                      version.flutterVersion.isEmpty
-                          ? ''
-                          : 'Flutter ${version.flutterVersion}',
-                      style: textStyle,
-                    );
-                  },
-                ),
-                const Expanded(child: SizedBox(width: defaultSpacing)),
-                Hyperlink(
-                  url: 'https://dart.dev/tools/dartpad/privacy',
-                  displayText: 'Privacy notice',
-                  style: textStyle,
-                ),
-                const SizedBox(width: defaultSpacing),
-                Hyperlink(
-                  url: 'https://github.com/dart-lang/dart-pad/issues',
-                  displayText: 'Feedback',
-                  style: textStyle,
-                ),
-              ],
-            ),
+          ValueListenableBuilder(
+            valueListenable: appModel.runtimeVersions,
+            builder: (content, version, _) {
+              return Text(
+                version.flutterVersion.isEmpty
+                    ? ''
+                    : 'Flutter ${version.flutterVersion}',
+                style: textStyle,
+              );
+            },
           ),
         ],
       ),
