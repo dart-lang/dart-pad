@@ -69,26 +69,32 @@ class MiniIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final darkTheme = colorScheme.darkMode;
+    final backgroundColor =
+        darkTheme ? colorScheme.surface : colorScheme.primary;
+
     return Tooltip(
       message: tooltip,
       waitDuration: tooltipDelay,
-      child: IconButton(
-        icon: Icon(icon),
-        iconSize: smallIconSize,
-        splashRadius: defaultSplashRadius,
-        constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
-        padding: const EdgeInsets.all(2),
-        visualDensity: VisualDensity.compact,
-        onPressed: onPressed,
-        color: color,
+      child: Material(
+        elevation: 2,
+        type: MaterialType.circle,
+        color: backgroundColor,
+        child: IconButton(
+          icon: Icon(icon),
+          iconSize: smallIconSize,
+          splashRadius: 28,
+          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+          padding: const EdgeInsets.all(12),
+          visualDensity: VisualDensity.compact,
+          onPressed: onPressed,
+          color: color,
+        ),
       ),
     );
   }
 }
-
-// todo: have a background
-// todo: use rounded corners
-// todo: use an elevation
 
 class ProgressWidget extends StatelessWidget {
   final ProgressController status;

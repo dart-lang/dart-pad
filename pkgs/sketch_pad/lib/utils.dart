@@ -42,6 +42,18 @@ Image flutterLogo({double? width}) {
       width: width ?? defaultIconSize);
 }
 
+extension ColorExtension on Color {
+  Color get lighter {
+    final hsl = HSLColor.fromColor(this);
+    return hsl.withLightness((hsl.lightness + 0.1).clamp(0.0, 1.0)).toColor();
+  }
+
+  Color get darker {
+    final hsl = HSLColor.fromColor(this);
+    return hsl.withLightness((hsl.lightness - 0.1).clamp(0.0, 1.0)).toColor();
+  }
+}
+
 /// Support a stack of progress and status messages.
 ///
 /// Fires a notification when the top-most status changes.
