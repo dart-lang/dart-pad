@@ -32,6 +32,16 @@ void unimplemented(BuildContext context, String message) {
 
 String generateSnippetName() => fluttering_phrases.generate();
 
+Image dartLogo({double? width}) {
+  return Image.asset('assets/dart_logo_128.png',
+      width: width ?? defaultIconSize);
+}
+
+Image flutterLogo({double? width}) {
+  return Image.asset('assets/flutter_logo_192.png',
+      width: width ?? defaultIconSize);
+}
+
 /// Support a stack of progress and status messages.
 ///
 /// Fires a notification when the top-most status changes.

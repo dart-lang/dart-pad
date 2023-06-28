@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'gists.dart';
+import 'samples.g.dart';
 import 'services/dartservices.dart';
 import 'utils.dart';
 
@@ -31,8 +32,7 @@ class AppModel {
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
 
-  final ProgressController editingProgressController = ProgressController();
-  final ProgressController executionProgressController = ProgressController();
+  final ProgressController statusController = ProgressController();
 
   final ValueNotifier<VersionResponse> runtimeVersions =
       ValueNotifier(VersionResponse());
@@ -78,9 +78,21 @@ class AppServices {
   }
 
   Future<void> performInitialLoad({
+    String? sampleId,
     String? gistId,
     required String fallbackSnippet,
   }) async {
+    // Delay a bit for codemirror to initialize.
+    await Future<void>.delayed(const Duration(milliseconds: 1));
+
+    var sample = Samples.getById(sampleId);
+    if (sample != null) {
+      appModel.title.value = sample.name;
+      appModel.sourceCodeController.text = sample.source;
+      appModel.appReady.value = true;
+      return;
+    }
+
     if (gistId == null) {
       appModel.sourceCodeController.text = fallbackSnippet;
       appModel.appReady.value = true;
@@ -89,7 +101,7 @@ class AppServices {
 
     final gistLoader = GistLoader();
     final progress =
-        appModel.editingProgressController.showMessage(initialText: 'Loading…');
+        appModel.statusController.showMessage(initialText: 'Loading…');
     try {
       final gist = await gistLoader.load(gistId);
       progress.close();
@@ -100,7 +112,7 @@ class AppServices {
 
       final source = gist.mainDartSource;
       if (source == null) {
-        appModel.editingProgressController.showToast('main.dart not found');
+        appModel.statusController.showToast('main.dart not found');
         appModel.sourceCodeController.text = fallbackSnippet;
       } else {
         appModel.sourceCodeController.text = source;
@@ -108,7 +120,7 @@ class AppServices {
 
       appModel.appReady.value = true;
     } catch (e) {
-      appModel.editingProgressController.showToast('Error loading gist');
+      appModel.statusController.showToast('Error loading gist');
       progress.close();
 
       appModel.appendLineToConsole('Error loading gist: $e');
@@ -175,8 +187,7 @@ class AppServices {
 
   void _updateEditorProblemsStatus() {
     final issues = appModel.analysisIssues.value;
-    final progress =
-        appModel.editingProgressController.getNamedMessage('problems');
+    final progress = appModel.statusController.getNamedMessage('problems');
 
     if (issues.isEmpty) {
       if (progress != null) {
@@ -185,7 +196,7 @@ class AppServices {
     } else {
       final message = '${issues.length} ${pluralize('issue', issues.length)}';
       if (progress == null) {
-        appModel.editingProgressController
+        appModel.statusController
             .showMessage(initialText: message, name: 'problems');
       } else {
         progress.updateText(message);

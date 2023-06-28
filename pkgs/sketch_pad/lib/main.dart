@@ -14,6 +14,7 @@ import 'editor/editor.dart';
 import 'execution/execution.dart';
 import 'model.dart';
 import 'problems.dart';
+import 'samples.dart';
 import 'services/dartservices.dart';
 import 'theme.dart';
 import 'utils.dart';
@@ -60,6 +61,7 @@ class _DartPadAppState extends State<DartPadApp> {
             path: '/',
             builder: (BuildContext context, GoRouterState state) {
               final idParam = state.queryParameters['id'];
+              final sampleParam = state.queryParameters['sample'];
               final themeParam = state.queryParameters['theme'] ?? 'dark';
               final bool darkMode = themeParam == 'dark';
 
@@ -71,6 +73,7 @@ class _DartPadAppState extends State<DartPadApp> {
                 ),
                 child: DartPadMainPage(
                   title: appName,
+                  sampleId: sampleParam,
                   gistId: idParam,
                 ),
               );
@@ -85,10 +88,12 @@ class _DartPadAppState extends State<DartPadApp> {
 
 class DartPadMainPage extends StatefulWidget {
   final String title;
+  final String? sampleId;
   final String? gistId;
 
   const DartPadMainPage({
     required this.title,
+    this.sampleId,
     this.gistId,
     super.key,
   });
@@ -119,6 +124,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     appServices.populateVersions();
 
     appServices.performInitialLoad(
+      sampleId: widget.sampleId,
       gistId: widget.gistId,
       fallbackSnippet: defaultSnippetSource,
     );
@@ -136,10 +142,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
       appBar: AppBar(
         title: Row(
           children: [
-            Image.asset(
-              'assets/dart_logo_128.png',
-              width: 32,
-            ),
+            dartLogo(width: 32),
             const SizedBox(width: denseSpacing),
             const Text(appName),
             const SizedBox(width: defaultSpacing),
@@ -173,79 +176,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
           const SizedBox(width: denseSpacing),
         ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'Drawer Header',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Image.asset(
-                'assets/dart_logo_128.png',
-                width: defaultIconSize,
-              ),
-              title: const Text('Hello World'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push(Uri(path: '/', queryParameters: {
-                  'id': 'c0f7c578204d61e08ec0fbc4d63456cd',
-                }).toString());
-              },
-            ),
-            ListTile(
-              leading: Image.asset(
-                'assets/dart_logo_128.png',
-                width: defaultIconSize,
-              ),
-              title: const Text('Fibonacci'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push(Uri(path: '/', queryParameters: {
-                  'id': 'd3bd83918d21b6d5f778bdc69c3d36d6',
-                }).toString());
-              },
-            ),
-            ListTile(
-              leading: Image.asset(
-                'assets/flutter_logo_192.png',
-                width: defaultIconSize,
-              ),
-              title: const Text('Counter'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push(Uri(path: '/', queryParameters: {
-                  'id': 'e75b493dae1287757c5e1d77a0dc73f1',
-                }).toString());
-              },
-            ),
-            ListTile(
-              leading: Image.asset(
-                'assets/flutter_logo_192.png',
-                width: defaultIconSize,
-              ),
-              title: const Text('Sunflower'),
-              onTap: () {
-                Navigator.pop(context);
-                context.push(Uri(path: '/', queryParameters: {
-                  'id': '5c0e154dd50af4a9ac856908061291bc',
-                }).toString());
-              },
-            ),
-            const Divider(),
-            const AboutListTile(icon: Icon(Icons.info)),
-          ],
-        ),
-      ),
+      drawer: const SamplesDrawer(),
       body: Column(
         children: [
           Expanded(
@@ -267,9 +198,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                           Expanded(
                             child: SectionWidget(
                               title: 'Code',
-                              status: ProgressWidget(
-                                status: appModel.editingProgressController,
-                              ),
                               actions: [
                                 ValueListenableBuilder<bool>(
                                   valueListenable: appModel.formattingBusy,
@@ -299,7 +227,18 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                   },
                                 ),
                               ],
-                              child: EditorWidget(appModel: appModel),
+                              child: Stack(
+                                children: [
+                                  EditorWidget(appModel: appModel),
+                                  Container(
+                                    padding: const EdgeInsets.all(denseSpacing),
+                                    alignment: Alignment.topRight,
+                                    child: ProgressWidget(
+                                      status: appModel.statusController,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           ValueListenableBuilder<List<AnalysisIssue>>(
@@ -324,9 +263,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                         children: [
                           SectionWidget(
                             title: 'App',
-                            status: ProgressWidget(
-                              status: appModel.executionProgressController,
-                            ),
                             actions: [
                               ValueListenableBuilder<TextEditingValue>(
                                 valueListenable:
@@ -341,16 +277,22 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                   );
                                 },
                               ),
-                              const SizedBox(width: denseSpacing),
-                              const SizedBox(
-                                  height: smallIconSize + 8,
-                                  child: VerticalDivider()),
-                              const SizedBox(width: denseSpacing),
-                              CompilingStatusWidget(
-                                  status: appModel.compilingBusy),
                             ],
-                            child: ExecutionWidget(
-                              appServices: appServices,
+                            child: Stack(
+                              children: [
+                                ExecutionWidget(
+                                  appServices: appServices,
+                                ),
+                                Container(
+                                  alignment: Alignment.topRight,
+                                  child: SizedBox(
+                                    width: 32,
+                                    child: CompilingStatusWidget(
+                                      status: appModel.compilingBusy,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           SectionWidget(
@@ -389,30 +331,30 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     if (result.hasError()) {
       // TODO: in practice we don't get errors back, just no formatting changes
-      appModel.editingProgressController.showToast('Error formatting code');
+      appModel.statusController.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: ${result.error.message}');
     } else if (result.newString == value) {
-      appModel.editingProgressController.showToast('No formatting changes');
+      appModel.statusController.showToast('No formatting changes');
     } else {
-      appModel.editingProgressController.showToast('Format successful');
+      appModel.statusController.showToast('Format successful');
       appModel.sourceCodeController.text = result.newString;
     }
   }
 
   Future<void> _handleCompiling() async {
     final value = appModel.sourceCodeController.text;
-    final progress = appModel.executionProgressController
-        .showMessage(initialText: 'Compiling…');
+    final progress =
+        appModel.statusController.showMessage(initialText: 'Compiling…');
     _clearConsole();
 
     try {
       final response = await appServices.compile(CompileRequest(source: value));
 
-      appModel.executionProgressController
+      appModel.statusController
           .showToast('Running…', duration: const Duration(seconds: 1));
       appServices.executeJavaScript(response.result);
     } catch (error) {
-      appModel.executionProgressController.showToast('Compilation failed');
+      appModel.statusController.showToast('Compilation failed');
 
       var message = error is ApiRequestError ? error.message : '$error';
       appModel.appendLineToConsole(message);
@@ -515,13 +457,11 @@ class SectionWidget extends StatelessWidget {
   static const insets = 6.0;
 
   final String title;
-  final Widget? status;
   final List<Widget> actions;
   final Widget child;
 
   const SectionWidget({
     required this.title,
-    this.status,
     this.actions = const [],
     required this.child,
     super.key,
@@ -551,8 +491,6 @@ class SectionWidget extends StatelessWidget {
                     title,
                     style: theme.textTheme.titleSmall,
                   ),
-                  const SizedBox(width: defaultSpacing),
-                  if (status != null) status!,
                   const Expanded(child: SizedBox(width: defaultSpacing)),
                   ...actions
                 ],
