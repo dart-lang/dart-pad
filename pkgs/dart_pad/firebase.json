@@ -1,7 +1,7 @@
 {
   "hosting": {
-    "target": "sketchpad",
-    "public": "build/web",
+    "target": "dartpad",
+    "public": "build",
     "ignore": [
       "firebase.json",
       "**/.*",
