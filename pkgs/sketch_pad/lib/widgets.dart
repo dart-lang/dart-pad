@@ -72,7 +72,7 @@ class MiniIconButton extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final darkTheme = colorScheme.darkMode;
     final backgroundColor =
-        darkTheme ? colorScheme.surface : colorScheme.primary;
+        darkTheme ? colorScheme.surface.lighter : colorScheme.primary.darker;
 
     return Tooltip(
       message: tooltip,
@@ -84,9 +84,7 @@ class MiniIconButton extends StatelessWidget {
         child: IconButton(
           icon: Icon(icon),
           iconSize: smallIconSize,
-          splashRadius: 28,
-          constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-          padding: const EdgeInsets.all(12),
+          splashRadius: smallIconSize,
           visualDensity: VisualDensity.compact,
           onPressed: onPressed,
           color: color,
@@ -195,28 +193,5 @@ class _CompilingStatusWidgetState extends State<CompilingStatusWidget>
     controller.dispose();
 
     super.dispose();
-  }
-}
-
-class SplitViewDragWidget extends StatelessWidget {
-  final bool vertical;
-
-  const SplitViewDragWidget._(this.vertical, {super.key});
-
-  factory SplitViewDragWidget.vertical({Key? key}) {
-    return SplitViewDragWidget._(true, key: key);
-  }
-
-  factory SplitViewDragWidget.horizontal({Key? key}) {
-    return SplitViewDragWidget._(false, key: key);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: vertical
-          ? const VerticalDivider(thickness: 2)
-          : const Divider(thickness: 2),
-    );
   }
 }
