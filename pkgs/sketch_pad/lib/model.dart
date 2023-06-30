@@ -19,6 +19,10 @@ abstract class ExecutionService {
   Future<void> tearDown();
 }
 
+abstract class EditorService {
+  void showCompletions();
+}
+
 class AppModel {
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
@@ -49,6 +53,8 @@ class AppServices {
   final DartservicesApi services;
 
   ExecutionService? _executionService;
+  EditorService? _editorService;
+
   StreamSubscription<String>? stdoutSub;
 
   // TODO: Consider using DebounceStreamTransformer from package:rxdart?
@@ -57,6 +63,8 @@ class AppServices {
   AppServices(this.appModel, this.services) {
     appModel.sourceCodeController.addListener(_handleCodeChanged);
   }
+
+  EditorService? get editorService => _editorService;
 
   void _handleCodeChanged() {
     reanalysisDebouncer?.cancel();
@@ -163,6 +171,10 @@ class AppServices {
         appModel.appendLineToConsole(event);
       });
     }
+  }
+
+  void registerEditorService(EditorService? editorService) {
+    _editorService = editorService;
   }
 
   void executeJavaScript(String javaScript) {
