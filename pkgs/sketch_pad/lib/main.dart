@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
 import 'package:url_strategy/url_strategy.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'console.dart';
 import 'editor/editor.dart';
@@ -173,7 +174,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
             label: const Text('Install SDK'),
             style: buttonStyle,
           ),
+          const VerticalDivider(),
           const SizedBox(width: denseSpacing),
+          const OverflowMenu(),
         ],
       ),
       drawer: const SamplesDrawer(),
@@ -492,6 +495,53 @@ class SectionWidget extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class OverflowMenu extends StatelessWidget {
+  const OverflowMenu({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton(
+      icon: const Icon(Icons.more_vert),
+      itemBuilder: (context) {
+        return <PopupMenuEntry<String>>[
+          const PopupMenuItem(
+            value: 'https://dart.dev',
+            child: ListTile(
+              title: Text('dart.dev'),
+              trailing: Icon(Icons.launch),
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'https://flutter.dev',
+            child: ListTile(
+              title: Text('flutter.dev'),
+              trailing: Icon(Icons.launch),
+            ),
+          ),
+          const PopupMenuDivider(),
+          const PopupMenuItem(
+            value: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
+            child: ListTile(
+              title: Text('Share'),
+              trailing: Icon(Icons.launch),
+            ),
+          ),
+          const PopupMenuItem(
+            value: 'https://github.com/dart-lang/dart-pad',
+            child: ListTile(
+              title: Text('DartPad on GitHub'),
+              trailing: Icon(Icons.launch),
+            ),
+          ),
+        ];
+      },
+      onSelected: (url) {
+        url_launcher.launchUrl(Uri.parse(url));
+      },
     );
   }
 }
