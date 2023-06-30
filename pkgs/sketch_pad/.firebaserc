@@ -1,12 +1,12 @@
 {
   "projects": {
-    "default": "dartpad-experiments"
+    "default": "dart-pad"
   },
   "targets": {
-    "dartpad-experiments": {
+    "dart-pad": {
       "hosting": {
         "sketchpad": [
-          "dartpad-experiments"
+          "sketch-pad"
         ]
       }
     }
