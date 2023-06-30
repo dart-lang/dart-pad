@@ -11,8 +11,8 @@ gcloud builds submit \
 --project=dartpad-experiments \
 --substitutions \
     REPO_NAME=dart-pad \
-    COMMIT_SHA=4b32011ecbda8bb8cc29959d24148085e53e6610
+    COMMIT_SHA=$COMMIT_SHA
 ```
 
-Where `$FLUTTER_CHANNEL` is `stable`, `beta`, `dev`, `main`, or `old`.
+Where `$FLUTTER_CHANNEL` is `stable`, `beta`, `dev`, `main`, or `old`. The REPO_NAME and COMMIT_SHA are for adding tags to the Docker image.
 
