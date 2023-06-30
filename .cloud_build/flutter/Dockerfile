@@ -48,9 +48,6 @@ ENV ANDROID_HOME="${ANDROID_TOOLS_ROOT}"
 # Disable analytics and crash reporting on the builder.
 RUN flutter config  --no-analytics
 
-# Perform an artifact precache so that no extra assets need to be downloaded on demand.
-RUN flutter precache
-
 # Accept licenses.
 RUN yes "y" | flutter doctor --android-licenses
 
@@ -63,5 +60,8 @@ RUN flutter channel $channel
 
 # Perform a flutter upgrade
 RUN flutter upgrade
+
+# Perform an artifact precache so that no extra assets need to be downloaded on demand.
+RUN flutter precache --web
 
 ENTRYPOINT [ "flutter" ]
