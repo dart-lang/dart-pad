@@ -70,7 +70,6 @@ const _debugFlag = 'debug';
 const _serverUrlOption = 'server-url';
 
 @Task('Build the `web/index.html` entrypoint')
-@Depends(generateProtos)
 void build() {
   final args = context.invocation.arguments;
   final compilerArgs = {

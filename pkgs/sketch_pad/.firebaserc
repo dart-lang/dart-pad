@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "dart-pad"
+  },
+  "targets": {
+    "dart-pad": {
+      "hosting": {
+        "sketchpad": [
+          "sketch-pad"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}
