@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'gists.dart';
@@ -37,11 +38,36 @@ class AppModel {
   final ValueNotifier<VersionResponse> runtimeVersions =
       ValueNotifier(VersionResponse());
 
+  final ValueNotifier<bool> _consoleShowing = ValueNotifier(true);
+  ValueListenable<bool> get consoleShowing => _consoleShowing;
+
+  final ValueNotifier<bool> _appAreaShowing = ValueNotifier(true);
+  ValueListenable<bool> get appAreaShowing => _appAreaShowing;
+
+  bool _executableIsFlutter = true;
+
+  AppModel() {
+    consoleOutputController.addListener(() {
+      _updateExecutionAreasVisibility();
+    });
+  }
+
   void appendLineToConsole(String str) {
     consoleOutputController.text += '$str\n';
   }
 
   void clearConsole() => consoleOutputController.clear();
+
+  set executableIsFlutter(bool value) {
+    _executableIsFlutter = value;
+    _updateExecutionAreasVisibility();
+  }
+
+  void _updateExecutionAreasVisibility() {
+    _appAreaShowing.value = _executableIsFlutter;
+    _consoleShowing.value =
+        !_executableIsFlutter || consoleOutputController.text.isNotEmpty;
+  }
 }
 
 class AppServices {
