@@ -442,33 +442,41 @@ class OverflowMenu extends StatelessWidget {
       icon: const Icon(Icons.more_vert),
       itemBuilder: (context) {
         return <PopupMenuEntry<String>>[
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'https://dart.dev',
-            child: ListTile(
-              title: Text('dart.dev'),
-              trailing: Icon(Icons.launch),
+            child: PointerInterceptor(
+              child: const ListTile(
+                title: Text('dart.dev'),
+                trailing: Icon(Icons.launch),
+              ),
             ),
           ),
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'https://flutter.dev',
-            child: ListTile(
-              title: Text('flutter.dev'),
-              trailing: Icon(Icons.launch),
+            child: PointerInterceptor(
+              child: const ListTile(
+                title: Text('flutter.dev'),
+                trailing: Icon(Icons.launch),
+              ),
             ),
           ),
           const PopupMenuDivider(),
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
-            child: ListTile(
-              title: Text('Share'),
-              trailing: Icon(Icons.launch),
+            child: PointerInterceptor(
+              child: const ListTile(
+                title: Text('Share'),
+                trailing: Icon(Icons.launch),
+              ),
             ),
           ),
-          const PopupMenuItem(
+          PopupMenuItem(
             value: 'https://github.com/dart-lang/dart-pad',
-            child: ListTile(
-              title: Text('DartPad on GitHub'),
-              trailing: Icon(Icons.launch),
+            child: PointerInterceptor(
+              child: const ListTile(
+                title: Text('DartPad on GitHub'),
+                trailing: Icon(Icons.launch),
+              ),
             ),
           ),
         ];
