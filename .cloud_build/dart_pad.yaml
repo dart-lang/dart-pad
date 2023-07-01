@@ -1,0 +1,12 @@
+steps:
+  - name: gcr.io/$PROJECT_ID/flutter:stable
+    entrypoint: 'dart'
+    args: ['pub', 'get']
+    dir: pkgs/dart_pad
+  - name: gcr.io/$PROJECT_ID/flutter:stable
+    entrypoint: 'dart'
+    args: ['run', 'tool/grind.dart', 'build']
+    dir: pkgs/dart_pad
+  - name: gcr.io/$PROJECT_ID/firebase
+    args: ['deploy', '--project=$PROJECT_ID', '--only=hosting']
+    dir: pkgs/dart_pad

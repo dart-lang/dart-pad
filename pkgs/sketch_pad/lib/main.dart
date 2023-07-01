@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
 import 'package:url_strategy/url_strategy.dart';
@@ -179,140 +180,111 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
           const OverflowMenu(),
         ],
       ),
-      drawer: const SamplesDrawer(),
+      drawer: PointerInterceptor(child: const SamplesDrawer()),
       body: Column(
         children: [
           Expanded(
             child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: denseSpacing),
-                child: SplitView(
-                  viewMode: SplitViewMode.Horizontal,
-                  gripColor: theme.scaffoldBackgroundColor,
-                  gripColorActive: theme.scaffoldBackgroundColor,
-                  gripSize: defaultGripSize,
-                  controller: mainSplitter,
-                  activeIndicator: SplitViewDragWidget.vertical(),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: denseSpacing),
-                      child: Column(
-                        children: [
-                          Expanded(
-                            child: SectionWidget(
-                              title: 'Code',
-                              child: Stack(
-                                children: [
-                                  EditorWidget(appModel: appModel),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.end,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Format action
-                                      ValueListenableBuilder<bool>(
-                                        valueListenable:
-                                            appModel.formattingBusy,
-                                        builder: (context, bool value, _) {
-                                          return MiniIconButton(
+              child: SplitView(
+                viewMode: SplitViewMode.Horizontal,
+                gripColor: theme.scaffoldBackgroundColor,
+                gripColorActive: theme.scaffoldBackgroundColor,
+                gripSize: defaultGripSize,
+                controller: mainSplitter,
+                children: [
+                  Column(
+                    children: [
+                      Expanded(
+                        child: SectionWidget(
+                          child: Stack(
+                            children: [
+                              EditorWidget(appModel: appModel),
+                              Padding(
+                                padding: const EdgeInsets.all(denseSpacing),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Format action
+                                    ValueListenableBuilder<bool>(
+                                      valueListenable: appModel.formattingBusy,
+                                      builder: (context, bool value, _) {
+                                        return PointerInterceptor(
+                                          child: MiniIconButton(
                                             icon: Icons.format_align_left,
                                             tooltip: 'Format',
                                             onPressed: value
                                                 ? null
                                                 : _handleFormatting,
-                                          );
-                                        },
-                                      ),
-                                      const SizedBox(width: defaultSpacing),
-                                      // Run action
-                                      ValueListenableBuilder<bool>(
-                                        valueListenable: appModel.compilingBusy,
-                                        builder: (context, bool value, _) {
-                                          return MiniIconButton(
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    const SizedBox(width: defaultSpacing),
+                                    // Run action
+                                    ValueListenableBuilder<bool>(
+                                      valueListenable: appModel.compilingBusy,
+                                      builder: (context, bool value, _) {
+                                        return PointerInterceptor(
+                                          child: MiniIconButton(
                                             icon: Icons.play_arrow,
                                             tooltip: 'Run',
                                             onPressed:
                                                 value ? null : _handleCompiling,
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      ValueListenableBuilder<List<AnalysisIssue>>(
+                        valueListenable: appModel.analysisIssues,
+                        builder: (context, issues, _) {
+                          return ProblemsWidget(problems: issues);
+                        },
+                      ),
+                    ],
+                  ),
+                  // ),
+                  SplitView(
+                    viewMode: SplitViewMode.Vertical,
+                    gripColor: theme.scaffoldBackgroundColor,
+                    gripColorActive: theme.scaffoldBackgroundColor,
+                    gripSize: defaultGripSize,
+                    controller: uiConsoleSplitter,
+                    children: [
+                      SectionWidget(
+                        child: Stack(
+                          children: [
+                            ExecutionWidget(
+                              appServices: appServices,
+                            ),
+                            Container(
+                              alignment: Alignment.topRight,
+                              child: SizedBox(
+                                width: 40,
+                                child: CompilingStatusWidget(
+                                  status: appModel.compilingBusy,
+                                ),
                               ),
                             ),
-                          ),
-                          ValueListenableBuilder<List<AnalysisIssue>>(
-                            valueListenable: appModel.analysisIssues,
-                            builder: (context, issues, _) {
-                              return ProblemsWidget(problems: issues);
-                            },
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    // ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: denseSpacing),
-                      child: SplitView(
-                        viewMode: SplitViewMode.Vertical,
-                        gripColor: theme.scaffoldBackgroundColor,
-                        gripColorActive: theme.scaffoldBackgroundColor,
-                        gripSize: defaultGripSize,
-                        controller: uiConsoleSplitter,
-                        activeIndicator: SplitViewDragWidget.horizontal(),
-                        children: [
-                          SectionWidget(
-                            title: 'App',
-                            child: Stack(
-                              children: [
-                                ExecutionWidget(
-                                  appServices: appServices,
-                                ),
-                                Container(
-                                  alignment: Alignment.topRight,
-                                  child: SizedBox(
-                                    width: 32,
-                                    child: CompilingStatusWidget(
-                                      status: appModel.compilingBusy,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SectionWidget(
-                            title: 'Console',
-                            child: Stack(
-                              children: [
-                                ConsoleWidget(
-                                    consoleOutputController:
-                                        appModel.consoleOutputController),
-                                Container(
-                                  alignment: Alignment.topRight,
-                                  child:
-                                      ValueListenableBuilder<TextEditingValue>(
-                                    valueListenable:
-                                        appModel.consoleOutputController,
-                                    builder: (context, value, _) {
-                                      return MiniIconButton(
-                                        icon: Icons.playlist_remove,
-                                        tooltip: 'Clear console',
-                                        onPressed: value.text.isEmpty
-                                            ? null
-                                            : _clearConsole,
-                                      );
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      SectionWidget(
+                        child: ConsoleWidget(
+                          consoleOutputController:
+                              appModel.consoleOutputController,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
@@ -352,7 +324,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     final value = appModel.sourceCodeController.text;
     final progress =
         appModel.statusController.showMessage(initialText: 'Compiling…');
-    _clearConsole();
+    appModel.clearConsole();
 
     try {
       final response = await appServices.compile(CompileRequest(source: value));
@@ -368,10 +340,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     } finally {
       progress.close();
     }
-  }
-
-  void _clearConsole() {
-    appModel.clearConsole();
   }
 }
 
@@ -444,56 +412,22 @@ class StatusLineWidget extends StatelessWidget {
 }
 
 class SectionWidget extends StatelessWidget {
-  static const insets = 6.0;
-
-  final String title;
-  final List<Widget> actions;
   final Widget child;
 
   const SectionWidget({
-    required this.title,
-    this.actions = const [],
     required this.child,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Card(
       elevation: 2,
       margin: EdgeInsets.zero,
       shape: const RoundedRectangleBorder(),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(denseSpacing),
-            decoration: BoxDecoration(
-              border:
-                  Border(bottom: Divider.createBorderSide(context, width: 1)),
-            ),
-            child: SizedBox(
-              height: defaultIconSize,
-              child: Row(
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleSmall,
-                  ),
-                  const Expanded(child: SizedBox(width: defaultSpacing)),
-                  ...actions
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(denseSpacing),
-              child: child,
-            ),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(denseSpacing),
+        child: child,
       ),
     );
   }
