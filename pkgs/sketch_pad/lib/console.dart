@@ -19,21 +19,21 @@ class ConsoleWidget extends StatefulWidget {
 }
 
 class _ConsoleWidgetState extends State<ConsoleWidget> {
-  late ScrollController scrollController;
+  ScrollController? scrollController;
 
   @override
   void initState() {
     super.initState();
 
     scrollController = ScrollController();
-
     widget.consoleOutputController.addListener(_scrollToEnd);
   }
 
   @override
   void dispose() {
     widget.consoleOutputController.removeListener(_scrollToEnd);
-    scrollController.dispose();
+    scrollController?.dispose();
+    scrollController = null;
 
     super.dispose();
   }
@@ -42,23 +42,32 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return TextField(
-      controller: widget.consoleOutputController,
-      scrollController: scrollController,
-      maxLines: null,
-      keyboardType: TextInputType.multiline,
-      textInputAction: TextInputAction.newline,
-      expands: true,
-      decoration: null,
-      style: theme.textTheme.bodyMedium,
-      readOnly: true,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Output', style: subtleText),
+        const Divider(),
+        Expanded(
+          child: TextField(
+            controller: widget.consoleOutputController,
+            scrollController: scrollController,
+            maxLines: null,
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
+            expands: true,
+            decoration: null,
+            style: theme.textTheme.bodyMedium,
+            readOnly: true,
+          ),
+        ),
+      ],
     );
   }
 
   void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      scrollController.animateTo(
-        scrollController.position.maxScrollExtent,
+      scrollController?.animateTo(
+        scrollController!.position.maxScrollExtent,
         duration: animationDelay,
         curve: animationCurve,
       );

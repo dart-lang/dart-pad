@@ -142,6 +142,8 @@ ${samples.map((s) => s.toTableRow()).join('\n')}
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file.
 
+// This file has been automatically generated - please do not edit it manually.
+
 import 'package:collection/collection.dart';
 
 class Sample {
