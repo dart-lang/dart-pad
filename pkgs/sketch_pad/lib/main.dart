@@ -196,7 +196,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
           const OverflowMenu(),
         ],
       ),
-      // drawer: PointerInterceptor(child: const SamplesDrawer()),
       body: Column(
         children: [
           Expanded(
