@@ -2,21 +2,23 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
-import 'package:url_strategy/url_strategy.dart';
 import 'package:url_launcher/url_launcher.dart' as url_launcher;
+import 'package:url_strategy/url_strategy.dart';
+import 'package:vtable/vtable.dart';
 
 import 'console.dart';
 import 'editor/editor.dart';
 import 'execution/execution.dart';
 import 'model.dart';
 import 'problems.dart';
-import 'samples.dart';
+import 'samples.g.dart';
 import 'services/dartservices.dart';
 import 'theme.dart';
 import 'utils.dart';
@@ -34,7 +36,7 @@ import 'widgets.dart';
 
 // TODO: explore using the monaco editor
 
-const appName = 'SketchPad';
+const appName = 'DartPad';
 
 void main() async {
   setPathUrlStrategy();
@@ -128,7 +130,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     appServices.performInitialLoad(
       sampleId: widget.sampleId,
       gistId: widget.gistId,
-      fallbackSnippet: defaultSnippetSource,
+      fallbackSnippet: Samples.getDefault(type: 'dart'),
     );
   }
 
@@ -142,45 +144,59 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     final scaffold = Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            dartLogo(width: 32),
-            const SizedBox(width: denseSpacing),
-            const Text(appName),
-            const SizedBox(width: defaultSpacing),
-            Expanded(
-              child: Center(
-                child: ValueListenableBuilder<String>(
-                  valueListenable: appModel.title,
-                  builder: (BuildContext context, String value, _) {
-                    return Text(value);
-                  },
+        title: SizedBox(
+          height: toolbarItemHeight,
+          child: Row(
+            children: [
+              dartLogo(width: 32),
+              const SizedBox(width: denseSpacing),
+              const Text(appName),
+              const SizedBox(width: defaultSpacing * 4),
+              NewSnippetWidget(
+                appServices: appServices,
+                buttonStyle: buttonStyle,
+              ),
+              const SizedBox(width: denseSpacing),
+              ListSamplesWidget(buttonStyle: buttonStyle),
+              const SizedBox(width: defaultSpacing),
+              // title widget
+              Expanded(
+                child: Center(
+                  child: ValueListenableBuilder<String>(
+                    valueListenable: appModel.title,
+                    builder: (BuildContext context, String value, _) {
+                      return Text(value);
+                    },
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: defaultSpacing),
-          ],
+              const SizedBox(width: defaultSpacing),
+            ],
+          ),
         ),
         actions: [
-          TextButton.icon(
-            onPressed: () => unimplemented(context, 'new snippet'),
-            icon: const Icon(Icons.add_circle),
-            label: const Text('New'),
+          // install sdk
+          TextButton(
+            onPressed: () {
+              url_launcher.launchUrl(
+                Uri.parse('https://docs.flutter.dev/get-started/install'),
+              );
+            },
             style: buttonStyle,
-          ),
-          const VerticalDivider(),
-          TextButton.icon(
-            onPressed: () => unimplemented(context, 'install sdk'),
-            icon: const Icon(Icons.download),
-            label: const Text('Install SDK'),
-            style: buttonStyle,
+            child: const Row(
+              children: [
+                Text('Install SDK'),
+                SizedBox(width: denseSpacing),
+                Icon(Icons.launch, size: smallIconSize),
+              ],
+            ),
           ),
           const VerticalDivider(),
           const SizedBox(width: denseSpacing),
           const OverflowMenu(),
         ],
       ),
-      drawer: PointerInterceptor(child: const SamplesDrawer()),
+      // drawer: PointerInterceptor(child: const SamplesDrawer()),
       body: Column(
         children: [
           Expanded(
@@ -238,6 +254,20 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                   ],
                                 ),
                               ),
+                              Container(
+                                alignment: Alignment.topCenter,
+                                padding: const EdgeInsets.all(denseSpacing),
+                                child: ProgressWidget(
+                                  status: appModel.editorStatus,
+                                ),
+                              ),
+                              Container(
+                                alignment: Alignment.bottomRight,
+                                padding: const EdgeInsets.all(denseSpacing),
+                                child: ProgressWidget(
+                                  status: appModel.issuesStatus,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -245,7 +275,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                       ValueListenableBuilder<List<AnalysisIssue>>(
                         valueListenable: appModel.analysisIssues,
                         builder: (context, issues, _) {
-                          return ProblemsWidget(problems: issues);
+                          return ProblemsTableWidget(problems: issues);
                         },
                       ),
                     ],
@@ -261,16 +291,22 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                       SectionWidget(
                         child: Stack(
                           children: [
-                            ExecutionWidget(
-                              appServices: appServices,
-                            ),
+                            ExecutionWidget(appServices: appServices),
                             Container(
                               alignment: Alignment.topRight,
+                              padding: const EdgeInsets.all(denseSpacing),
                               child: SizedBox(
                                 width: 40,
                                 child: CompilingStatusWidget(
                                   status: appModel.compilingBusy,
                                 ),
+                              ),
+                            ),
+                            Container(
+                              alignment: Alignment.topCenter,
+                              padding: const EdgeInsets.all(denseSpacing),
+                              child: ProgressWidget(
+                                status: appModel.executionStatus,
                               ),
                             ),
                           ],
@@ -310,12 +346,12 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     if (result.hasError()) {
       // TODO: in practice we don't get errors back, just no formatting changes
-      appModel.statusController.showToast('Error formatting code');
+      appModel.editorStatus.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: ${result.error.message}');
     } else if (result.newString == value) {
-      appModel.statusController.showToast('No formatting changes');
+      appModel.editorStatus.showToast('No formatting changes');
     } else {
-      appModel.statusController.showToast('Format successful');
+      appModel.editorStatus.showToast('Format successful');
       appModel.sourceCodeController.text = result.newString;
     }
   }
@@ -323,17 +359,17 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   Future<void> _handleCompiling() async {
     final value = appModel.sourceCodeController.text;
     final progress =
-        appModel.statusController.showMessage(initialText: 'Compiling…');
+        appModel.executionStatus.showMessage(initialText: 'Compiling…');
     appModel.clearConsole();
 
     try {
       final response = await appServices.compile(CompileRequest(source: value));
 
-      appModel.statusController
+      appModel.executionStatus
           .showToast('Running…', duration: const Duration(seconds: 1));
       appServices.executeJavaScript(response.result);
     } catch (error) {
-      appModel.statusController.showToast('Compilation failed');
+      appModel.executionStatus.showToast('Compilation failed');
 
       var message = error is ApiRequestError ? error.message : '$error';
       appModel.appendLineToConsole(message);
@@ -352,7 +388,6 @@ class StatusLineWidget extends StatelessWidget {
 
     final darkTheme = colorScheme.darkMode;
     final textColor = colorScheme.onPrimaryContainer;
-    final textStyle = TextStyle(color: textColor);
 
     final appModel = Provider.of<AppModel>(context);
 
@@ -368,7 +403,7 @@ class StatusLineWidget extends StatelessWidget {
       child: Row(
         children: [
           Tooltip(
-            message: 'Keybindinge',
+            message: 'Keyboard shortcuts',
             waitDuration: tooltipDelay,
             child: IconButton(
               icon: const Icon(Icons.keyboard),
@@ -377,34 +412,34 @@ class StatusLineWidget extends StatelessWidget {
               constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
               padding: const EdgeInsets.all(2),
               visualDensity: VisualDensity.compact,
-              onPressed: () => unimplemented(context, 'keybindings legend'),
+              onPressed: () {
+                showDialog<void>(
+                  context: context,
+                  builder: (context) {
+                    // todo: implement the keyboard shortcuts dialog
+
+                    return const MediumDialog(
+                      title: 'Keyboard shortcuts',
+                      child: Text('todo:'),
+                    );
+                  },
+                );
+              },
               color: textColor,
             ),
           ),
           const SizedBox(width: defaultSpacing),
-          ProgressWidget(status: appModel.statusController),
+          const Hyperlink(
+            displayText: 'Privacy notice',
+            url: 'https://dart.dev/tools/dartpad/privacy',
+          ),
+          const SizedBox(width: defaultSpacing),
+          const Hyperlink(
+            displayText: 'Feedback',
+            url: 'https://github.com/dart-lang/dart-pad/issues',
+          ),
           const Expanded(child: SizedBox(width: defaultSpacing)),
-          ValueListenableBuilder(
-            valueListenable: appModel.runtimeVersions,
-            builder: (content, version, _) {
-              return Text(
-                version.sdkVersion.isEmpty ? '' : 'Dart ${version.sdkVersion}',
-                style: textStyle,
-              );
-            },
-          ),
-          Text(' • ', style: textStyle),
-          ValueListenableBuilder(
-            valueListenable: appModel.runtimeVersions,
-            builder: (content, version, _) {
-              return Text(
-                version.flutterVersion.isEmpty
-                    ? ''
-                    : 'Flutter ${version.flutterVersion}',
-                style: textStyle,
-              );
-            },
-          ),
+          VersionInfoWidget(appModel.runtimeVersions),
         ],
       ),
     );
@@ -433,57 +468,287 @@ class SectionWidget extends StatelessWidget {
   }
 }
 
+class NewSnippetWidget extends StatelessWidget {
+  final AppServices appServices;
+  final ButtonStyle buttonStyle;
+
+  const NewSnippetWidget({
+    required this.appServices,
+    required this.buttonStyle,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: toolbarItemHeight,
+      child: TextButton.icon(
+        icon: const Icon(Icons.add_circle),
+        label: const Text('New'),
+        style: buttonStyle,
+        onPressed: () async {
+          final selection =
+              await _showMenu(context, calculatePopupMenuPosition(context));
+          if (selection != null) {
+            _handleSelection(appServices, selection);
+          }
+        },
+      ),
+    );
+  }
+
+  Future<bool?> _showMenu(BuildContext context, RelativeRect position) {
+    return showMenu<bool>(
+      context: context,
+      position: position,
+      items: <PopupMenuEntry<bool>>[
+        PopupMenuItem(
+          value: true,
+          child: PointerInterceptor(
+            child: ListTile(
+              leading: dartLogo(),
+              title: const Text('New Dart snippet'),
+            ),
+          ),
+        ),
+        PopupMenuItem(
+          value: false,
+          child: PointerInterceptor(
+            child: ListTile(
+              leading: flutterLogo(),
+              title: const Text('New Flutter snippet'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleSelection(AppServices appServices, bool dartSample) {
+    appServices.resetTo(type: dartSample ? 'dart' : 'flutter');
+  }
+}
+
+class ListSamplesWidget extends StatelessWidget {
+  final ButtonStyle buttonStyle;
+
+  const ListSamplesWidget({
+    required this.buttonStyle,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: toolbarItemHeight,
+      child: TextButton.icon(
+        icon: const Icon(Icons.playlist_add_outlined),
+        label: const Text('Samples'),
+        style: buttonStyle,
+        onPressed: () async {
+          final selection =
+              await _showMenu(context, calculatePopupMenuPosition(context));
+          if (selection != null && context.mounted) {
+            _handleSelection(context, selection);
+          }
+        },
+      ),
+    );
+  }
+
+  Future<String?> _showMenu(BuildContext context, RelativeRect position) {
+    var categories = Samples.categories.keys;
+
+    final menuItems = <PopupMenuEntry<String?>>[
+      for (var category in categories) ...[
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: null,
+          enabled: false,
+          child: PointerInterceptor(
+            child: ListTile(title: Text(category)),
+          ),
+        ),
+        ...Samples.categories[category]!.map((sample) {
+          return PopupMenuItem(
+            value: sample.id,
+            child: PointerInterceptor(
+              child: ListTile(
+                leading: sample.isDart ? dartLogo() : flutterLogo(),
+                title: Text(sample.name),
+              ),
+            ),
+          );
+        }),
+      ],
+    ];
+
+    return showMenu<String?>(
+      context: context,
+      position: position,
+      items: menuItems.skip(1).toList(),
+    );
+  }
+
+  void _handleSelection(BuildContext context, String sampleId) {
+    final uri = Uri(path: '/', queryParameters: {'sample': sampleId});
+    context.push(uri.toString());
+  }
+}
+
 class OverflowMenu extends StatelessWidget {
   const OverflowMenu({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton(
+    return IconButton(
       icon: const Icon(Icons.more_vert),
-      itemBuilder: (context) {
-        return <PopupMenuEntry<String>>[
-          PopupMenuItem(
-            value: 'https://dart.dev',
-            child: PointerInterceptor(
-              child: const ListTile(
-                title: Text('dart.dev'),
-                trailing: Icon(Icons.launch),
-              ),
-            ),
-          ),
-          PopupMenuItem(
-            value: 'https://flutter.dev',
-            child: PointerInterceptor(
-              child: const ListTile(
-                title: Text('flutter.dev'),
-                trailing: Icon(Icons.launch),
-              ),
-            ),
-          ),
-          const PopupMenuDivider(),
-          PopupMenuItem(
-            value: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
-            child: PointerInterceptor(
-              child: const ListTile(
-                title: Text('Share'),
-                trailing: Icon(Icons.launch),
-              ),
-            ),
-          ),
-          PopupMenuItem(
-            value: 'https://github.com/dart-lang/dart-pad',
-            child: PointerInterceptor(
-              child: const ListTile(
-                title: Text('DartPad on GitHub'),
-                trailing: Icon(Icons.launch),
-              ),
-            ),
-          ),
-        ];
+      splashRadius: defaultSplashRadius,
+      onPressed: () async {
+        final selection =
+            await _showMenu(context, calculatePopupMenuPosition(context));
+        if (selection != null) {
+          url_launcher.launchUrl(Uri.parse(selection));
+        }
       },
-      onSelected: (url) {
-        url_launcher.launchUrl(Uri.parse(url));
+    );
+  }
+
+  Future<String?> _showMenu(BuildContext context, RelativeRect position) {
+    return showMenu<String?>(
+      context: context,
+      position: position,
+      items: <PopupMenuEntry<String?>>[
+        PopupMenuItem(
+          value: 'https://dart.dev',
+          child: PointerInterceptor(
+            child: const ListTile(
+              title: Text('dart.dev'),
+              trailing: Icon(Icons.launch),
+            ),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'https://flutter.dev',
+          child: PointerInterceptor(
+            child: const ListTile(
+              title: Text('flutter.dev'),
+              trailing: Icon(Icons.launch),
+            ),
+          ),
+        ),
+        const PopupMenuDivider(),
+        PopupMenuItem(
+          value: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
+          child: PointerInterceptor(
+            child: const ListTile(
+              title: Text('DartPad on GitHub'),
+              trailing: Icon(Icons.launch),
+            ),
+          ),
+        ),
+        PopupMenuItem(
+          value: 'https://github.com/dart-lang/dart-pad',
+          child: PointerInterceptor(
+            child: const ListTile(
+              title: Text('DartPad on GitHub'),
+              trailing: Icon(Icons.launch),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class VersionInfoWidget extends StatefulWidget {
+  final ValueListenable<VersionResponse> runtimeVersions;
+
+  const VersionInfoWidget(
+    this.runtimeVersions, {
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<VersionInfoWidget> createState() => _VersionInfoWidgetState();
+}
+
+class _VersionInfoWidgetState extends State<VersionInfoWidget> {
+  bool hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<VersionResponse>(
+      valueListenable: widget.runtimeVersions,
+      builder: (content, versions, _) {
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            child: Text(
+              'Dart ${versions.sdkVersion} • Flutter ${versions.flutterVersion}',
+            ),
+            onTap: () {
+              showDialog<void>(
+                context: context,
+                builder: (context) {
+                  return MediumDialog(
+                    title: 'Runtime Versions',
+                    child: VersionTable(versions: versions),
+                  );
+                },
+              );
+            },
+          ),
+        );
       },
+    );
+  }
+}
+
+class VersionTable extends StatelessWidget {
+  final VersionResponse versions;
+
+  const VersionTable({
+    required this.versions,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final packages = versions.packageInfo.where((p) => p.supported).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Divider(),
+        Text(
+          'Based on Dart SDK ${versions.sdkVersion} '
+          'and Flutter SDK ${versions.flutterVersion}.',
+        ),
+        const Divider(),
+        const SizedBox(height: defaultSpacing),
+        Expanded(
+          child: VTable<PackageInfo>(
+            showToolbar: false,
+            items: packages,
+            columns: [
+              VTableColumn(
+                label: 'Package',
+                width: 250,
+                grow: 0.7,
+                transformFunction: (p) => 'package:${p.name}',
+              ),
+              VTableColumn(
+                label: 'Version',
+                width: 70,
+                grow: 0.3,
+                transformFunction: (p) => p.version,
+                styleFunction: (p) => subtleText,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

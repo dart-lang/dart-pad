@@ -37,6 +37,7 @@ const Set<String> categories = {
 };
 
 class Samples {
+  late final Map<String, String> defaults;
   late final List<Sample> samples;
 
   void parse() {
@@ -44,13 +45,20 @@ class Samples {
     var json =
         jsonDecode(File(p.join('lib', 'samples.json')).readAsStringSync());
 
-    // do basic validation
-    samples = (json as List).map((j) => Sample.fromJson(j)).toList();
+    defaults = (json['defaults'] as Map).cast<String, String>();
+    samples = (json['samples'] as List).map((j) => Sample.fromJson(j)).toList();
 
+    // do basic validation
     var hadFailure = false;
     void fail(String message) {
       stderr.writeln(message);
       hadFailure = true;
+    }
+
+    for (var entry in defaults.entries) {
+      if (!File(entry.value).existsSync()) {
+        fail('File ${entry.value} not found.');
+      }
     }
 
     for (var sample in samples) {
@@ -92,7 +100,6 @@ class Samples {
     // samples.g.dart
     var codeFile = File('../sketch_pad/lib/samples.g.dart');
     var contents = _generateSourceContent();
-    // TODO: format the source
     codeFile.writeAsStringSync(contents);
     print('Wrote ${codeFile.path}');
   }
@@ -136,8 +143,7 @@ ${samples.map((s) => s.toTableRow()).join('\n')}
   }
 
   String _generateSourceContent() {
-    // ignore: prefer_interpolation_to_compose_strings
-    return '''
+    var buf = StringBuffer('''
 // Copyright 2023 the Dart project authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license
 // that can be found in the LICENSE file.
@@ -175,10 +181,24 @@ class Samples {
   };
 
   static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);
+
+  static String getDefault({required String type}) => _defaults[type]!;
 }
 
-''' +
-        samples.map((sample) => sample.sourceDef).join('\n');
+''');
+
+    buf.writeln('Map<String, String> _defaults = {');
+
+    for (var entry in defaults.entries) {
+      var source = File(entry.value).readAsStringSync().trimRight();
+      buf.writeln("  '${entry.key}': r'''\n$source\n''',");
+    }
+
+    buf.writeln('};\n');
+
+    buf.write(samples.map((sample) => sample.sourceDef).join('\n'));
+
+    return buf.toString();
   }
 
   String _mapForCategory(String category) {

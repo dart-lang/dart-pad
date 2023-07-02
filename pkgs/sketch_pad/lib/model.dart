@@ -33,7 +33,9 @@ class AppModel {
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
 
-  final ProgressController statusController = ProgressController();
+  final ProgressController issuesStatus = ProgressController();
+  final ProgressController editorStatus = ProgressController();
+  final ProgressController executionStatus = ProgressController();
 
   final ValueNotifier<VersionResponse> runtimeVersions =
       ValueNotifier(VersionResponse());
@@ -84,6 +86,24 @@ class AppServices {
     appModel.sourceCodeController.addListener(_handleCodeChanged);
   }
 
+  void resetTo({String? type}) {
+    type ??= 'dart';
+    final source = Samples.getDefault(type: type);
+
+    // reset the source
+    appModel.sourceCodeController.text = source;
+
+    // reset the title
+    appModel.title.value = generateSnippetName();
+
+    // reset the console
+    appModel.clearConsole();
+
+    // todo: reset the execution area
+
+    appModel.editorStatus.showToast('Created new ${titleCase(type)} snippet');
+  }
+
   void _handleCodeChanged() {
     reanalysisDebouncer?.cancel();
     reanalysisDebouncer = Timer(const Duration(milliseconds: 1000), () {
@@ -126,8 +146,7 @@ class AppServices {
     }
 
     final gistLoader = GistLoader();
-    final progress =
-        appModel.statusController.showMessage(initialText: 'Loading…');
+    final progress = appModel.editorStatus.showMessage(initialText: 'Loading…');
     try {
       final gist = await gistLoader.load(gistId);
       progress.close();
@@ -138,7 +157,7 @@ class AppServices {
 
       final source = gist.mainDartSource;
       if (source == null) {
-        appModel.statusController.showToast('main.dart not found');
+        appModel.editorStatus.showToast('main.dart not found');
         appModel.sourceCodeController.text = fallbackSnippet;
       } else {
         appModel.sourceCodeController.text = source;
@@ -146,7 +165,7 @@ class AppServices {
 
       appModel.appReady.value = true;
     } catch (e) {
-      appModel.statusController.showToast('Error loading gist');
+      appModel.editorStatus.showToast('Error loading gist');
       progress.close();
 
       appModel.appendLineToConsole('Error loading gist: $e');
@@ -211,9 +230,10 @@ class AppServices {
     }
   }
 
+  // todo: switch to listening to the issue count
   void _updateEditorProblemsStatus() {
     final issues = appModel.analysisIssues.value;
-    final progress = appModel.statusController.getNamedMessage('problems');
+    final progress = appModel.issuesStatus.getNamedMessage('problems');
 
     if (issues.isEmpty) {
       if (progress != null) {
@@ -222,7 +242,7 @@ class AppServices {
     } else {
       final message = '${issues.length} ${pluralize('issue', issues.length)}';
       if (progress == null) {
-        appModel.statusController
+        appModel.issuesStatus
             .showMessage(initialText: message, name: 'problems');
       } else {
         progress.updateText(message);
