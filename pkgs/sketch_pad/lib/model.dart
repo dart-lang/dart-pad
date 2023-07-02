@@ -33,7 +33,6 @@ class AppModel {
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
 
-  final ProgressController issuesStatus = ProgressController();
   final ProgressController editorStatus = ProgressController();
   final ProgressController executionStatus = ProgressController();
 
@@ -233,7 +232,7 @@ class AppServices {
   // todo: switch to listening to the issue count
   void _updateEditorProblemsStatus() {
     final issues = appModel.analysisIssues.value;
-    final progress = appModel.issuesStatus.getNamedMessage('problems');
+    final progress = appModel.editorStatus.getNamedMessage('problems');
 
     if (issues.isEmpty) {
       if (progress != null) {
@@ -242,7 +241,7 @@ class AppServices {
     } else {
       final message = '${issues.length} ${pluralize('issue', issues.length)}';
       if (progress == null) {
-        appModel.issuesStatus
+        appModel.editorStatus
             .showMessage(initialText: message, name: 'problems');
       } else {
         progress.updateText(message);

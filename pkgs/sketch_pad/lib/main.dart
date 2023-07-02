@@ -254,17 +254,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                 ),
                               ),
                               Container(
-                                alignment: Alignment.topCenter,
-                                padding: const EdgeInsets.all(denseSpacing),
-                                child: ProgressWidget(
-                                  status: appModel.editorStatus,
-                                ),
-                              ),
-                              Container(
                                 alignment: Alignment.bottomRight,
                                 padding: const EdgeInsets.all(denseSpacing),
                                 child: ProgressWidget(
-                                  status: appModel.issuesStatus,
+                                  status: appModel.editorStatus,
                                 ),
                               ),
                             ],
@@ -302,7 +295,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                               ),
                             ),
                             Container(
-                              alignment: Alignment.topCenter,
+                              alignment: Alignment.topLeft,
                               padding: const EdgeInsets.all(denseSpacing),
                               child: ProgressWidget(
                                 status: appModel.executionStatus,
