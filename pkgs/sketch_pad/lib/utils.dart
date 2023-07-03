@@ -155,7 +155,6 @@ class Message {
 }
 
 class MessageStatus {
-  // todo: or, state 'closed'?
   static final MessageStatus empty =
       MessageStatus(message: '', state: MessageState.closing);
 
