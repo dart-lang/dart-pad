@@ -1,22 +1,28 @@
-[
-    {
-        "category": "Dart",
-        "name": "Hello world",
-        "path": "lib/hello_world.dart"
+{
+    "defaults": {
+        "dart": "lib/default_dart.dart",
+        "flutter": "lib/default_flutter.dart"
     },
-    {
-        "category": "Dart",
-        "name": "Fibonacci",
-        "path": "lib/fibonacci.dart"
-    },
-    {
-        "category": "Flutter",
-        "name": "Counter",
-        "path": "lib/main.dart"
-    },
-    {
-        "category": "Flutter",
-        "name": "Sunflower",
-        "path": "lib/sunflower.dart"
-    }
-]
+    "samples": [
+        {
+            "category": "Dart",
+            "name": "Hello world",
+            "path": "lib/hello_world.dart"
+        },
+        {
+            "category": "Dart",
+            "name": "Fibonacci",
+            "path": "lib/fibonacci.dart"
+        },
+        {
+            "category": "Flutter",
+            "name": "Counter",
+            "path": "lib/main.dart"
+        },
+        {
+            "category": "Flutter",
+            "name": "Sunflower",
+            "path": "lib/sunflower.dart"
+        }
+    ]
+}

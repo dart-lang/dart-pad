@@ -12,16 +12,12 @@ import 'package:fluttering_phrases/fluttering_phrases.dart'
 
 import 'theme.dart';
 
-const defaultSnippetSource = r'''
-void main() {
-  for (int i = 0; i < 5; i++) {
-    print('hello ${i + 1}');
-  }
-}
-''';
-
 String pluralize(String word, int count) {
   return count == 1 ? word : '${word}s';
+}
+
+String titleCase(String phrase) {
+  return phrase.substring(0, 1).toUpperCase() + phrase.substring(1);
 }
 
 void unimplemented(BuildContext context, String message) {
@@ -40,6 +36,19 @@ Image dartLogo({double? width}) {
 Image flutterLogo({double? width}) {
   return Image.asset('assets/flutter_logo_192.png',
       width: width ?? defaultIconSize);
+}
+
+RelativeRect calculatePopupMenuPosition(BuildContext context) {
+  final render = context.findRenderObject() as RenderBox;
+  final size = render.size;
+  final offset = render.localToGlobal(Offset(0, size.height));
+
+  return RelativeRect.fromLTRB(
+    offset.dx,
+    offset.dy,
+    offset.dx + size.width,
+    offset.dy + size.height,
+  );
 }
 
 extension ColorExtension on Color {
@@ -91,6 +100,7 @@ class ProgressController {
 
   ValueListenable<MessageStatus> get state => _state;
 
+  // todo: we're no longer using named messages
   Message? getNamedMessage(String name) {
     return messages.firstWhereOrNull((message) {
       return message.name == name && message.state != MessageState.closing;
@@ -169,6 +179,5 @@ class MessageStatus {
 enum MessageState {
   opening,
   showing,
-  closing,
-  ;
+  closing;
 }

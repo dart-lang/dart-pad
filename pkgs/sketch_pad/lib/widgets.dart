@@ -6,7 +6,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart' as url;
+import 'package:pointer_interceptor/pointer_interceptor.dart';
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
 
 import 'theme.dart';
 import 'utils.dart';
@@ -43,7 +44,7 @@ class _HyperlinkState extends State<Hyperlink> {
         setState(() => hovered = false);
       },
       child: GestureDetector(
-        onTap: () => url.launchUrl(Uri.parse(widget.url)),
+        onTap: () => url_launcher.launchUrl(Uri.parse(widget.url)),
         child: Text(
           widget.displayText ?? widget.url,
           style: hovered ? underline.merge(widget.style) : widget.style,
@@ -104,16 +105,34 @@ class ProgressWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<MessageStatus>(
+    final colorScheme = Theme.of(context).colorScheme;
+    final darkTheme = colorScheme.darkMode;
+    final backgroundColor =
+        darkTheme ? colorScheme.surface.lighter : colorScheme.primary.darker;
+
+    return ValueListenableBuilder(
       valueListenable: status.state,
-      builder: (context, status, _) {
+      builder: (context, MessageStatus status, _) {
         return AnimatedOpacity(
           opacity: status.state == MessageState.closing ? 0.0 : 1.0,
           duration: status.state == MessageState.showing
               ? Duration.zero
               : animationDelay,
           curve: animationCurve,
-          child: Text(status.message, style: subtleText),
+          child: Material(
+            color: backgroundColor,
+            shape: const StadiumBorder(),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: denseSpacing,
+                vertical: 4.0,
+              ),
+              child: Text(
+                status.message,
+                // style: subtleText,
+              ),
+            ),
+          ),
         );
       },
     );
@@ -193,5 +212,50 @@ class _CompilingStatusWidgetState extends State<CompilingStatusWidget>
     controller.dispose();
 
     super.dispose();
+  }
+}
+
+class MediumDialog extends StatelessWidget {
+  final String title;
+  final Widget child;
+
+  const MediumDialog({
+    required this.title,
+    required this.child,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      // TODO: Make this responsive for small screens?
+      var width = 500.0; // constraints.maxWidth - 48 * 8;
+      var height = 400.0; // constraints.maxHeight - 48 * 8;
+
+      return PointerInterceptor(
+        child: AlertDialog(
+          title: Text(title),
+          contentTextStyle: Theme.of(context).textTheme.bodyMedium,
+          contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: width,
+                height: height,
+                child: ClipRect(child: child),
+              ),
+              const Divider(),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }

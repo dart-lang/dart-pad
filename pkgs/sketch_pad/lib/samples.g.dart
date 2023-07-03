@@ -45,7 +45,59 @@ class Samples {
   };
 
   static Sample? getById(String? id) => all.firstWhereOrNull((s) => s.id == id);
+
+  static String getDefault({required String type}) => _defaults[type]!;
 }
+
+Map<String, String> _defaults = {
+  'dart': r'''
+void main() {
+  for (int i = 0; i < 10; i++) {
+    print('hello ${i + 1}');
+  }
+}
+''',
+  'flutter': r'''
+import 'package:flutter/material.dart';
+
+const Color darkBlue = Color.fromARGB(255, 18, 32, 47);
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: darkBlue,
+      ),
+      debugShowCheckedModeBanner: false,
+      home: const Scaffold(
+        body: Center(
+          child: MyWidget(),
+        ),
+      ),
+    );
+  }
+}
+
+class MyWidget extends StatelessWidget {
+  const MyWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      'Hello, World!',
+      style: Theme.of(context).textTheme.headlineMedium,
+    );
+  }
+}
+''',
+};
 
 final _fibonacci = Sample(
   category: 'Dart',
@@ -79,8 +131,8 @@ final _helloWorld = Sample(
 // that can be found in the LICENSE file.
 
 void main() {
-  for (var i = 0; i < 4; i++) {
-    print('hello $i');
+  for (int i = 0; i < 10; i++) {
+    print('hello ${i + 1}');
   }
 }
 ''',

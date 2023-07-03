@@ -9,10 +9,12 @@ import 'package:flutter/material.dart';
 import 'services/dart_services.pb.dart';
 import 'theme.dart';
 
-class ProblemsWidget extends StatelessWidget {
+const _rowPadding = 2.0;
+
+class ProblemsTableWidget extends StatelessWidget {
   final List<AnalysisIssue> problems;
 
-  const ProblemsWidget({
+  const ProblemsTableWidget({
     required this.problems,
     super.key,
   });
@@ -23,12 +25,14 @@ class ProblemsWidget extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     const lineHeight = 44.0;
-    const rowPadding = 2.0;
+    const visibleIssues = 3;
 
     var height = 0.0;
     // ignore: prefer_is_empty
     if (problems.length > 0) {
-      height = lineHeight * math.min(problems.length, 3) + 1 + denseSpacing * 2;
+      height = lineHeight * math.min(problems.length, visibleIssues) +
+          1 +
+          denseSpacing * 2;
     }
 
     return AnimatedContainer(
@@ -45,69 +49,86 @@ class ProblemsWidget extends StatelessWidget {
           itemCount: problems.length,
           itemBuilder: (BuildContext context, int index) {
             final issue = problems[index];
-
-            return Padding(
-              padding: const EdgeInsets.only(bottom: rowPadding),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        issue.errorIcon,
-                        size: smallIconSize,
-                        color: issue.colorFor(
-                            darkMode:
-                                colorScheme.brightness == Brightness.dark),
-                      ),
-                      const SizedBox(width: denseSpacing),
-                      Expanded(
-                        child: Tooltip(
-                          message: issue.message,
-                          waitDuration: tooltipDelay,
-                          child: Text(
-                            issue.message,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            // style: theme.textTheme.bodyMedium,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        ' line ${issue.line}, col ${issue.column}',
-                        maxLines: 1,
-                        overflow: TextOverflow.clip,
-                        textAlign: TextAlign.end,
-                        // style: theme.textTheme.bodyMedium,
-                        style: subtleText,
-                      )
-                    ],
-                  ),
-                  if (issue.hasCorrection()) const SizedBox(height: rowPadding),
-                  if (issue.hasCorrection())
-                    Row(
-                      // crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox.square(dimension: smallIconSize),
-                        const SizedBox(width: denseSpacing),
-                        Expanded(
-                          child: Tooltip(
-                            waitDuration: tooltipDelay,
-                            message: issue.correction,
-                            child: Text(
-                              issue.correction,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              // style: theme.textTheme.bodyMedium,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
-              ),
-            );
+            return ProblemWidget(issue: issue);
           },
         ),
+      ),
+    );
+  }
+}
+
+// TODO: listen for mouse clicks, select the location in the editor
+
+class ProblemWidget extends StatelessWidget {
+  final AnalysisIssue issue;
+
+  const ProblemWidget({
+    required this.issue,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: _rowPadding),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(
+                issue.errorIcon,
+                size: smallIconSize,
+                color: issue.colorFor(
+                    darkMode: colorScheme.brightness == Brightness.dark),
+              ),
+              const SizedBox(width: denseSpacing),
+              Expanded(
+                child: Tooltip(
+                  message: issue.message,
+                  waitDuration: tooltipDelay,
+                  child: Text(
+                    issue.message,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    // style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+              ),
+              Text(
+                ' line ${issue.line}, col ${issue.column}',
+                maxLines: 1,
+                overflow: TextOverflow.clip,
+                textAlign: TextAlign.end,
+                // style: theme.textTheme.bodyMedium,
+                style: subtleText,
+              )
+            ],
+          ),
+          if (issue.hasCorrection()) const SizedBox(height: _rowPadding),
+          if (issue.hasCorrection())
+            Row(
+              // crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const SizedBox.square(dimension: smallIconSize),
+                const SizedBox(width: denseSpacing),
+                Expanded(
+                  child: Tooltip(
+                    waitDuration: tooltipDelay,
+                    message: issue.correction,
+                    child: Text(
+                      issue.correction,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      // style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
     );
   }
