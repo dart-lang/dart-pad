@@ -10,13 +10,13 @@ import 'dart:math' as math;
 import 'dart:ui_web' as ui_web;
 
 import 'package:codemirror/codemirror.dart';
+import 'package:codemirror/hints.dart';
 import 'package:flutter/material.dart';
 
 import '../model.dart';
-import '../services/dartservices.dart';
+import '../services/dartservices.dart' as services;
 import '../theme.dart';
-
-// TODO: support code completion
+import 'completion.dart';
 
 final Key _elementViewKey = UniqueKey();
 
@@ -25,13 +25,20 @@ html.Element _codeMirrorFactory(int viewId) {
     ..style.width = '100%'
     ..style.height = '100%';
 
-  // TODO: comments config, tab behavior, ...
   final codeMirror = CodeMirror.fromElement(div, options: <String, dynamic>{
-    'mode': 'dart',
-    'theme': 'monokai',
     'lineNumbers': true,
     'lineWrapping': true,
+    'mode': 'dart',
+    'theme': 'monokai',
+    ...codeMirrorOptions,
   });
+
+  CodeMirror.addCommand('goLineLeft', _handleGoLineLeft);
+  CodeMirror.addCommand(
+    'indentIfMultiLineSelectionElseInsertSoftTab',
+    _indentIfMultiLineSelectionElseInsertSoftTab,
+  );
+  CodeMirror.addCommand('weHandleElsewhere', _weHandleElsewhere);
 
   _expando[div] = codeMirror;
 
@@ -53,9 +60,11 @@ void _initViewFactory() {
 
 class EditorWidget extends StatefulWidget {
   final AppModel appModel;
+  final AppServices appServices;
 
   EditorWidget({
     required this.appModel,
+    required this.appServices,
     super.key,
   }) {
     _initViewFactory();
@@ -65,9 +74,14 @@ class EditorWidget extends StatefulWidget {
   State<EditorWidget> createState() => _EditorWidgetState();
 }
 
-class _EditorWidgetState extends State<EditorWidget> {
+class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   StreamSubscription<void>? listener;
   CodeMirror? codeMirror;
+
+  @override
+  void showCompletions() {
+    codeMirror?.execCommand('autocomplete');
+  }
 
   @override
   void initState() {
@@ -105,6 +119,15 @@ class _EditorWidgetState extends State<EditorWidget> {
     appModel.sourceCodeController.addListener(_updateCodemirrorFromModel);
     appModel.analysisIssues
         .addListener(() => _updateIssues(appModel.analysisIssues.value));
+
+    widget.appServices.registerEditorService(this);
+
+    Hints.registerHintsHelperAsync('dart', (
+      CodeMirror editor, [
+      HintsOptions? options,
+    ]) {
+      return _calculateCompletions();
+    });
   }
 
   @override
@@ -125,6 +148,9 @@ class _EditorWidgetState extends State<EditorWidget> {
   @override
   void dispose() {
     listener?.cancel();
+
+    widget.appServices.registerEditorService(null);
+
     widget.appModel.sourceCodeController
         .removeListener(_updateCodemirrorFromModel);
     widget.appModel.appReady.removeListener(_updateEditableStatus);
@@ -149,7 +175,7 @@ class _EditorWidgetState extends State<EditorWidget> {
     codeMirror?.setReadOnly(!widget.appModel.appReady.value);
   }
 
-  void _updateIssues(List<AnalysisIssue> issues) {
+  void _updateIssues(List<services.AnalysisIssue> issues) {
     final doc = codeMirror!.doc;
 
     for (final marker in doc.getAllMarks()) {
@@ -172,4 +198,146 @@ class _EditorWidgetState extends State<EditorWidget> {
   void _updateCodemirrorMode(bool darkMode) {
     codeMirror?.setTheme(darkMode ? 'monokai' : 'default');
   }
+
+  Future<HintResults> _calculateCompletions() async {
+    final editor = codeMirror!;
+    final doc = editor.doc;
+    final offset = doc.indexFromPos(doc.getCursor()) ?? 0;
+
+    final appServices = widget.appServices;
+    final response = await appServices.services
+        .complete(services.SourceRequest(
+          source: doc.getValue() ?? '',
+          offset: offset,
+        ))
+        .onError((error, st) => services.CompleteResponse(completions: []));
+
+    final replaceOffset = response.replacementOffset;
+    final replaceLength = response.replacementLength;
+    final completions = response.completions.map((completion) {
+      return AnalysisCompletion(replaceOffset, replaceLength, completion);
+    });
+
+    final hints =
+        completions.map((completion) => completion.toCodemirrorHint()).toList();
+
+    // Remove hints where both the replacement text and the display text is the
+    // same.
+    final memos = <String>{};
+    hints.retainWhere((hint) {
+      var memo = '${hint.text}:${hint.displayText}';
+      if (memos.contains(memo)) return false;
+
+      memos.add(memo);
+      return true;
+    });
+
+    final from = doc.posFromIndex(replaceOffset);
+    final to = doc.posFromIndex(replaceOffset + replaceLength);
+
+    return HintResults.fromHints(hints, from, to);
+  }
 }
+
+// codemirror commands
+
+void _handleGoLineLeft(CodeMirror editor) {
+  // Change the cmd-left behavior to move the cursor to the leftmost non-ws
+  // char.
+  editor.execCommand('goLineLeftSmart');
+}
+
+void _indentIfMultiLineSelectionElseInsertSoftTab(CodeMirror editor) {
+  // Make it so that we can insertSoftTab when no selection or selection on 1
+  // line but if there is multiline selection we indentMore (this gives us a
+  // more typical coding editor behavior).
+  if (editor.doc.somethingSelected()) {
+    final selection = editor.doc.getSelection('\n');
+    if (selection != null && selection.contains('\n')) {
+      // Multi-line selection
+      editor.execCommand('indentMore');
+    } else {
+      editor.execCommand('insertSoftTab');
+    }
+  } else {
+    editor.execCommand('insertSoftTab');
+  }
+}
+
+void _weHandleElsewhere(CodeMirror editor) {
+  // DO NOTHING HERE - we bind/handle this at the top level html page, not
+  // within codemorror.
+}
+
+// codemirror options
+
+const codeMirrorOptions = {
+  'autoCloseBrackets': true,
+  'autoCloseTags': {
+    'whenOpening': true,
+    'whenClosing': true,
+  },
+  'autofocus': false,
+  'cursorHeight': 0.85,
+  'continueComments': {
+    'continueLineComment': false,
+  },
+  'extraKeys': {
+    'Esc': '...',
+    'Esc Tab': false,
+    'Esc Shift-Tab': false,
+    'Cmd-/': 'toggleComment',
+    'Ctrl-/': 'toggleComment',
+    'Shift-Tab': 'indentLess',
+    'Tab': 'indentIfMultiLineSelectionElseInsertSoftTab',
+    'Cmd-F': 'weHandleElsewhere',
+    'Cmd-H': 'weHandleElsewhere',
+    'Ctrl-F': 'weHandleElsewhere',
+    'Ctrl-H': 'weHandleElsewhere',
+    'Cmd-G': 'weHandleElsewhere',
+    'Shift-Ctrl-G': 'weHandleElsewhere',
+    'Ctrl-G': 'weHandleElsewhere',
+    'Shift-Cmd-G': 'weHandleElsewhere',
+    'F4': 'weHandleElsewhere',
+    'Shift-F4': 'weHandleElsewhere',
+    'Shift-Ctrl-F': 'weHandleElsewhere',
+    'Shift-Cmd-F': 'weHandleElsewhere',
+    'Cmd-Alt-F': false,
+    // vscode folding key combos (pc/mac)
+    'Shift-Ctrl-[': 'ourFoldWithCursorToStart',
+    'Cmd-Alt-[': 'ourFoldWithCursorToStart',
+    'Shift-Ctrl-]': 'unfold',
+    'Cmd-Alt-]': 'unfold',
+    // made our own keycombo since VSCode and AndroidStudio's
+    'Shift-Ctrl-Alt-[': 'foldAll',
+    // are taken by browser
+    'Shift-Cmd-Alt-[': 'foldAll',
+    'Shift-Ctrl-Alt-]': 'unfoldAll',
+    'Shift-Cmd-Alt-]': 'unfoldAll',
+  },
+  'foldGutter': true,
+  'foldOptions': {
+    'minFoldSize': 1,
+    // like '...', but middle dots
+    'widget': '\u00b7\u00b7\u00b7',
+  },
+  'gutters': [
+    'CodeMirror-linenumbers',
+    'CodeMirror-foldgutter',
+  ],
+  'highlightSelectionMatches': {
+    'style': 'highlight-selection-matches',
+    'showToken': false,
+    'annotateScrollbar': true,
+  },
+  'hintOptions': {
+    'completeSingle': false,
+  },
+  'indentUnit': 2,
+  'matchBrackets': true,
+  'matchTags': {
+    'bothTags': true,
+  },
+  'tabSize': 2,
+  'viewportMargin': 100,
+};

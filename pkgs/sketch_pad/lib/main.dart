@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
@@ -21,8 +22,6 @@ import 'services/dartservices.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'widgets.dart';
-
-// TODO: have cmd-s re-run
 
 // TODO: combine the app and console views
 
@@ -198,7 +197,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                         child: SectionWidget(
                           child: Stack(
                             children: [
-                              EditorWidget(appModel: appModel),
+                              EditorWidget(
+                                appModel: appModel,
+                                appServices: appServices,
+                              ),
                               Padding(
                                 padding: const EdgeInsets.all(denseSpacing),
                                 child: Row(
@@ -229,8 +231,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                                           child: MiniIconButton(
                                             icon: Icons.play_arrow,
                                             tooltip: 'Run',
-                                            onPressed:
-                                                value ? null : _handleCompiling,
+                                            onPressed: value
+                                                ? null
+                                                : _performCompileAndRun,
                                           ),
                                         );
                                       },
@@ -297,7 +300,32 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
       value: appServices,
       child: Provider<AppModel>.value(
         value: appModel,
-        child: scaffold,
+        child: CallbackShortcuts(
+          bindings: <ShortcutActivator, VoidCallback>{
+            // handle cmd+s
+            const SingleActivator(LogicalKeyboardKey.keyS, meta: true): () {
+              if (!appModel.compilingBusy.value) {
+                _performCompileAndRun();
+              }
+            },
+            // handle cmd+f
+            const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () {
+              unimplemented(context, 'find');
+            },
+            // handle cmd+g
+            const SingleActivator(LogicalKeyboardKey.keyG, meta: true): () {
+              unimplemented(context, 'find next');
+            },
+            // handle ctrl+space
+            const SingleActivator(LogicalKeyboardKey.space, control: true): () {
+              appServices.editorService?.showCompletions();
+            },
+          },
+          child: Focus(
+            autofocus: true,
+            child: scaffold,
+          ),
+        ),
       ),
     );
   }
@@ -320,7 +348,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     }
   }
 
-  Future<void> _handleCompiling() async {
+  Future<void> _performCompileAndRun() async {
     final value = appModel.sourceCodeController.text;
     final progress =
         appModel.statusController.showMessage(initialText: 'Compiling…');
