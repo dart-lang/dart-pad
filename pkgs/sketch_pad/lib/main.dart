@@ -467,12 +467,12 @@ class StatusLineWidget extends StatelessWidget {
             url: 'https://github.com/dart-lang/dart-pad/issues',
           ),
           const Expanded(child: SizedBox(width: defaultSpacing)),
-          VersionInfoWidget(appModel.runtimeVersions),
-          const SizedBox(width: defaultSpacing),
           SizedBox(
             height: 26,
             child: SelectChannelWidget(buttonStyle: buttonStyle),
           ),
+          const SizedBox(width: defaultSpacing),
+          VersionInfoWidget(appModel.runtimeVersions),
         ],
       ),
     );
