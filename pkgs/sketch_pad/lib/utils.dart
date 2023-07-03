@@ -63,10 +63,10 @@ extension ColorExtension on Color {
   }
 }
 
-/// Support a stack of progress and status messages.
+/// Support a stack of status messages.
 ///
 /// Fires a notification when the top-most status changes.
-class ProgressController {
+class StatusController {
   final List<Message> messages = [];
 
   void showToast(
@@ -77,7 +77,7 @@ class ProgressController {
     messages.add(message);
 
     // Create in a 'opening' state.
-    _recalcProgressState();
+    _recalcStateValue();
 
     // Transition to a 'showing' state.
     Timer(animationDelay, () {
@@ -91,7 +91,7 @@ class ProgressController {
   Message showMessage({required String initialText, String? name}) {
     final message = Message._(this, initialText, name: name);
     messages.add(message);
-    _recalcProgressState();
+    _recalcStateValue();
     return message;
   }
 
@@ -100,14 +100,13 @@ class ProgressController {
 
   ValueListenable<MessageStatus> get state => _state;
 
-  // todo: we're no longer using named messages
   Message? getNamedMessage(String name) {
     return messages.firstWhereOrNull((message) {
       return message.name == name && message.state != MessageState.closing;
     });
   }
 
-  void _recalcProgressState() {
+  void _recalcStateValue() {
     if (messages.isEmpty) {
       _state.value = MessageStatus.empty;
     } else {
@@ -121,24 +120,24 @@ class ProgressController {
 
     Timer(animationDelay, () {
       messages.remove(message);
-      _recalcProgressState();
+      _recalcStateValue();
     });
   }
 
   void _updateMessageState(Message message, MessageState state) {
     message._state = state;
-    _recalcProgressState();
+    _recalcStateValue();
   }
 }
 
 class Message {
-  final ProgressController _parent;
+  final StatusController _parent;
   final String? name;
 
   String _message;
   MessageState _state = MessageState.opening;
 
-  Message._(ProgressController parent, String message, {this.name})
+  Message._(StatusController parent, String message, {this.name})
       : _parent = parent,
         _message = message;
 
@@ -148,7 +147,7 @@ class Message {
 
   void updateText(String newMessage) {
     _message = newMessage;
-    _parent._recalcProgressState();
+    _parent._recalcStateValue();
   }
 
   void close() => _parent._close(this);

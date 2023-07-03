@@ -84,6 +84,23 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
   }
 
   @override
+  void jumpTo(services.AnalysisIssue issue) {
+    final line = math.max(issue.line - 1, 0);
+    final column = math.max(issue.column - 1, 0);
+
+    if (issue.hasLine()) {
+      codeMirror!.doc.setSelection(
+        Position(line, column),
+        head: Position(line, column + issue.charLength),
+      );
+    } else {
+      codeMirror?.doc.setSelection(Position(0, 0));
+    }
+
+    codeMirror?.focus();
+  }
+
+  @override
   void initState() {
     super.initState();
 

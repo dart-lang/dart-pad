@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 const Duration tooltipDelay = Duration(milliseconds: 350);
 
 const Duration animationDelay = Duration(milliseconds: 180);
-const Curve animationCurve = Curves.ease; // Curves.easeOut
+const Curve animationCurve = Curves.ease;
 
 const double defaultIconSize = 24.0;
 const double defaultSplashRadius = defaultIconSize;

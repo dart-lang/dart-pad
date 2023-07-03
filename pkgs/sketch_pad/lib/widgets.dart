@@ -96,7 +96,7 @@ class MiniIconButton extends StatelessWidget {
 }
 
 class ProgressWidget extends StatelessWidget {
-  final ProgressController status;
+  final StatusController status;
 
   const ProgressWidget({
     required this.status,
@@ -217,10 +217,12 @@ class _CompilingStatusWidgetState extends State<CompilingStatusWidget>
 
 class MediumDialog extends StatelessWidget {
   final String title;
+  final bool smaller;
   final Widget child;
 
   const MediumDialog({
     required this.title,
+    this.smaller = false,
     required this.child,
     Key? key,
   }) : super(key: key);
@@ -228,9 +230,8 @@ class MediumDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
-      // TODO: Make this responsive for small screens?
-      var width = 500.0; // constraints.maxWidth - 48 * 8;
-      var height = 400.0; // constraints.maxHeight - 48 * 8;
+      var width = smaller ? 400.0 : 500.0;
+      var height = smaller ? 325.0 : 400.0;
 
       return PointerInterceptor(
         child: AlertDialog(
