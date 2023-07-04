@@ -125,6 +125,7 @@ class ProblemWidget extends StatelessWidget {
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
         child: widget,
         onTap: () {
           appServices.editorService?.jumpTo(issue);
