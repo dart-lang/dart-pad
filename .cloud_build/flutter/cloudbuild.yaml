@@ -34,8 +34,6 @@ steps:
     args: ['--help']
     dir: .cloud_build/flutter
 
-timeout: '1200s'
-
 images: [
   'gcr.io/$PROJECT_ID/flutter:main',
   'gcr.io/$PROJECT_ID/flutter:beta',
