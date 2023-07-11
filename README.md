@@ -74,7 +74,7 @@ Some examples of likely triage priorities:
     *   Interface bugs interfering with the use of the application in edge cases.
     *   User interface and display warts that are not significantly impacting functionality, widespread
     *   Enhancements that are agreed to be a good idea even if they don't have data around them indicating they are a big win
-    *   User performance problem (e.g. app loading / run analysis), edge cases / not widespread
+    *   User performance problem (for example, app loading / run analysis), edge cases / not widespread
 * P3
     *   Minor user interface warts not significantly impacting functionality, on edge cases only.
     *   JavaScript errors not resulting in visible problems outside of the console (edge cases)
