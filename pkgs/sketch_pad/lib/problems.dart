@@ -5,7 +5,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import 'model.dart';
 import 'services/dart_services.pb.dart';
 import 'theme.dart';
 
@@ -57,8 +59,6 @@ class ProblemsTableWidget extends StatelessWidget {
   }
 }
 
-// TODO: listen for mouse clicks, select the location in the editor
-
 class ProblemWidget extends StatelessWidget {
   final AnalysisIssue issue;
 
@@ -72,7 +72,7 @@ class ProblemWidget extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Padding(
+    final widget = Padding(
       padding: const EdgeInsets.only(bottom: _rowPadding),
       child: Column(
         children: [
@@ -86,15 +86,10 @@ class ProblemWidget extends StatelessWidget {
               ),
               const SizedBox(width: denseSpacing),
               Expanded(
-                child: Tooltip(
-                  message: issue.message,
-                  waitDuration: tooltipDelay,
-                  child: Text(
-                    issue.message,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    // style: theme.textTheme.bodyMedium,
-                  ),
+                child: Text(
+                  issue.message,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               Text(
@@ -102,7 +97,6 @@ class ProblemWidget extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.clip,
                 textAlign: TextAlign.end,
-                // style: theme.textTheme.bodyMedium,
                 style: subtleText,
               )
             ],
@@ -110,25 +104,32 @@ class ProblemWidget extends StatelessWidget {
           if (issue.hasCorrection()) const SizedBox(height: _rowPadding),
           if (issue.hasCorrection())
             Row(
-              // crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox.square(dimension: smallIconSize),
                 const SizedBox(width: denseSpacing),
                 Expanded(
-                  child: Tooltip(
-                    waitDuration: tooltipDelay,
-                    message: issue.correction,
-                    child: Text(
-                      issue.correction,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      // style: theme.textTheme.bodyMedium,
-                    ),
+                  child: Text(
+                    issue.correction,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
             ),
         ],
+      ),
+    );
+
+    final appServices = Provider.of<AppServices>(context);
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        child: widget,
+        onTap: () {
+          appServices.editorService?.jumpTo(issue);
+        },
       ),
     );
   }

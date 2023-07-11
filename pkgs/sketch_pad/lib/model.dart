@@ -22,6 +22,8 @@ abstract class ExecutionService {
 
 abstract class EditorService {
   void showCompletions();
+
+  void jumpTo(AnalysisIssue issue);
 }
 
 class AppModel {
@@ -37,8 +39,8 @@ class AppModel {
   final ValueNotifier<bool> formattingBusy = ValueNotifier(false);
   final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
 
-  final ProgressController editorStatus = ProgressController();
-  final ProgressController executionStatus = ProgressController();
+  final StatusController editorStatus = StatusController();
+  final StatusController executionStatus = StatusController();
 
   final ValueNotifier<VersionResponse> runtimeVersions =
       ValueNotifier(VersionResponse());
@@ -89,6 +91,7 @@ class AppServices {
 
   AppServices(this.appModel, this.services) {
     appModel.sourceCodeController.addListener(_handleCodeChanged);
+    appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
   }
 
   EditorService? get editorService => _editorService;
@@ -106,7 +109,7 @@ class AppServices {
     // reset the console
     appModel.clearConsole();
 
-    // todo: reset the execution area
+    // TODO: reset the execution area
 
     appModel.editorStatus.showToast('Created new ${titleCase(type)} snippet');
   }
@@ -120,8 +123,6 @@ class AppServices {
   }
 
   void dispose() {
-    // todo: call this
-
     appModel.sourceCodeController.removeListener(_handleCodeChanged);
   }
 
@@ -229,27 +230,22 @@ class AppServices {
     try {
       final results = await services
           .analyze(SourceRequest(source: appModel.sourceCodeController.text));
-      appModel.analysisIssues.value = results.issues.toList()
-        ..sort(_compareIssues);
-      _updateEditorProblemsStatus();
+      final issues = results.issues.toList()..sort(_compareIssues);
+      appModel.analysisIssues.value = issues;
     } catch (error) {
       var message = error is ApiRequestError ? error.message : '$error';
       appModel.analysisIssues.value = [
         AnalysisIssue(kind: 'error', message: message),
       ];
-      _updateEditorProblemsStatus();
     }
   }
 
-  // todo: switch to listening to the issue count
   void _updateEditorProblemsStatus() {
     final issues = appModel.analysisIssues.value;
     final progress = appModel.editorStatus.getNamedMessage('problems');
 
     if (issues.isEmpty) {
-      if (progress != null) {
-        progress.close();
-      }
+      progress?.close();
     } else {
       final message = '${issues.length} ${pluralize('issue', issues.length)}';
       if (progress == null) {

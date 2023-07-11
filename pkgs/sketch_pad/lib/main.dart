@@ -4,7 +4,6 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
@@ -17,6 +16,7 @@ import 'package:vtable/vtable.dart';
 import 'console.dart';
 import 'editor/editor.dart';
 import 'execution/execution.dart';
+import 'keys.dart' as keys;
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
@@ -34,6 +34,8 @@ import 'widgets.dart';
 // TODO: handle large console content
 
 // TODO: explore using the monaco editor
+
+// todo: have a theme toggle
 
 const appName = 'DartPad';
 
@@ -118,11 +120,14 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   void initState() {
     super.initState();
 
-    final services = DartservicesApi(http.Client(),
-        rootUrl: 'https://stable.api.dartpad.dev/');
-
     appModel = AppModel();
-    appServices = AppServices(appModel, services);
+    appServices = AppServices(
+      appModel,
+      DartservicesApi(
+        http.Client(),
+        rootUrl: 'https://stable.api.dartpad.dev/',
+      ),
+    );
 
     appServices.populateVersions();
 
@@ -131,6 +136,13 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
       gistId: widget.gistId,
       fallbackSnippet: Samples.getDefault(type: 'dart'),
     );
+  }
+
+  @override
+  void dispose() {
+    appServices.dispose();
+
+    super.dispose();
   }
 
   @override
@@ -190,7 +202,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
               ],
             ),
           ),
-          const VerticalDivider(),
           const SizedBox(width: denseSpacing),
           const OverflowMenu(),
         ],
@@ -330,22 +341,18 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
         value: appModel,
         child: CallbackShortcuts(
           bindings: <ShortcutActivator, VoidCallback>{
-            // handle cmd+s
-            const SingleActivator(LogicalKeyboardKey.keyS, meta: true): () {
+            keys.reloadKeyActivator: () {
               if (!appModel.compilingBusy.value) {
                 _performCompileAndRun();
               }
             },
-            // handle cmd+f
-            const SingleActivator(LogicalKeyboardKey.keyF, meta: true): () {
+            keys.findKeyActivator: () {
               unimplemented(context, 'find');
             },
-            // handle cmd+g
-            const SingleActivator(LogicalKeyboardKey.keyG, meta: true): () {
+            keys.findNextKeyActivator: () {
               unimplemented(context, 'find next');
             },
-            // handle ctrl+space
-            const SingleActivator(LogicalKeyboardKey.space, control: true): () {
+            keys.codeCompletionKeyActivator: () {
               appServices.editorService?.showCompletions();
             },
           },
@@ -365,7 +372,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     var result = await appServices.format(SourceRequest(source: value));
 
     if (result.hasError()) {
-      // TODO: in practice we don't get errors back, just no formatting changes
       appModel.editorStatus.showToast('Error formatting code');
       appModel.appendLineToConsole('Formatting issue: ${result.error.message}');
     } else if (result.newString == value) {
@@ -409,6 +415,9 @@ class StatusLineWidget extends StatelessWidget {
     final darkTheme = colorScheme.darkMode;
     final textColor = colorScheme.onPrimaryContainer;
 
+    final buttonStyle =
+        TextButton.styleFrom(foregroundColor: colorScheme.onPrimary);
+
     final appModel = Provider.of<AppModel>(context);
 
     return Container(
@@ -436,11 +445,10 @@ class StatusLineWidget extends StatelessWidget {
                 showDialog<void>(
                   context: context,
                   builder: (context) {
-                    // todo: implement the keyboard shortcuts dialog
-
-                    return const MediumDialog(
+                    return MediumDialog(
                       title: 'Keyboard shortcuts',
-                      child: Text('todo:'),
+                      smaller: true,
+                      child: KeyBindingsTable(bindings: keys.keyBindings),
                     );
                   },
                 );
@@ -459,6 +467,11 @@ class StatusLineWidget extends StatelessWidget {
             url: 'https://github.com/dart-lang/dart-pad/issues',
           ),
           const Expanded(child: SizedBox(width: defaultSpacing)),
+          SizedBox(
+            height: 26,
+            child: SelectChannelWidget(buttonStyle: buttonStyle),
+          ),
+          const SizedBox(width: defaultSpacing),
           VersionInfoWidget(appModel.runtimeVersions),
         ],
       ),
@@ -616,6 +629,62 @@ class ListSamplesWidget extends StatelessWidget {
   }
 }
 
+class SelectChannelWidget extends StatelessWidget {
+  final ButtonStyle buttonStyle;
+
+  const SelectChannelWidget({
+    required this.buttonStyle,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: toolbarItemHeight,
+      child: TextButton.icon(
+        icon: const Icon(Icons.keyboard_arrow_down),
+        label: const Text('SDK Channel'), // todo: 'stable channel' / ...
+        style: buttonStyle,
+        onPressed: () async {
+          final selection =
+              await _showMenu(context, calculatePopupMenuPosition(context));
+          if (selection != null && context.mounted) {
+            _handleSelection(context, selection);
+          }
+        },
+      ),
+    );
+  }
+
+  Future<String?> _showMenu(BuildContext context, RelativeRect position) {
+    var channels = ['stable', 'beta'];
+
+    final menuItems = <PopupMenuEntry<String?>>[
+      for (var channel in channels)
+        PopupMenuItem(
+          value: channel,
+          child: PointerInterceptor(
+            child: ListTile(
+              title: Text(channel),
+            ),
+          ),
+        )
+    ];
+
+    return showMenu<String?>(
+      context: context,
+      position: position,
+      items: menuItems,
+    );
+  }
+
+  void _handleSelection(BuildContext context, String channel) {
+    // TODO: switch channel
+
+    unimplemented(context, 'select channel: $channel');
+  }
+}
+
 class OverflowMenu extends StatelessWidget {
   const OverflowMenu({super.key});
 
@@ -674,6 +743,54 @@ class OverflowMenu extends StatelessWidget {
               title: Text('DartPad on GitHub'),
               trailing: Icon(Icons.launch),
             ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class KeyBindingsTable extends StatelessWidget {
+  final List<(String, ShortcutActivator)> bindings;
+
+  const KeyBindingsTable({
+    required this.bindings,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Divider(),
+        Expanded(
+          child: VTable<(String, ShortcutActivator)>(
+            showToolbar: false,
+            showHeaders: false,
+            startsSorted: true,
+            items: bindings,
+            columns: [
+              VTableColumn(
+                label: 'Command',
+                width: 100,
+                grow: 0.5,
+                transformFunction: (binding) => binding.$1,
+              ),
+              VTableColumn(
+                label: 'Keyboard shortcut',
+                width: 100,
+                grow: 0.5,
+                alignment: Alignment.centerRight,
+                transformFunction: (binding) =>
+                    (binding.$2 as SingleActivator).describe,
+                styleFunction: (binding) => subtleText,
+                renderFunction: (context, binding, _) {
+                  return (binding.$2 as SingleActivator)
+                      .renderToWidget(context);
+                },
+              ),
+            ],
           ),
         ),
       ],
