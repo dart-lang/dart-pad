@@ -25,10 +25,6 @@ import 'theme.dart';
 import 'utils.dart';
 import 'widgets.dart';
 
-// TODO: combine the app and console views
-
-// TODO: window.flutterConfiguration
-
 // TODO: support flutter snippets
 
 // TODO: handle large console content
@@ -110,8 +106,6 @@ class DartPadMainPage extends StatefulWidget {
 class _DartPadMainPageState extends State<DartPadMainPage> {
   final SplitViewController mainSplitter =
       SplitViewController(weights: [0.52, 0.48]);
-  final SplitViewController uiConsoleSplitter =
-      SplitViewController(weights: [0.64, 0.36]);
 
   late AppModel appModel;
   late AppServices appServices;
@@ -286,45 +280,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                       ),
                     ],
                   ),
-                  // ),
-                  SplitView(
-                    viewMode: SplitViewMode.Vertical,
-                    gripColor: theme.scaffoldBackgroundColor,
-                    gripColorActive: theme.scaffoldBackgroundColor,
-                    gripSize: defaultGripSize,
-                    controller: uiConsoleSplitter,
-                    children: [
-                      SectionWidget(
-                        child: Stack(
-                          children: [
-                            ExecutionWidget(appServices: appServices),
-                            Container(
-                              alignment: Alignment.topRight,
-                              padding: const EdgeInsets.all(denseSpacing),
-                              child: SizedBox(
-                                width: 40,
-                                child: CompilingStatusWidget(
-                                  status: appModel.compilingBusy,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              alignment: Alignment.topLeft,
-                              padding: const EdgeInsets.all(denseSpacing),
-                              child: ProgressWidget(
-                                status: appModel.executionStatus,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SectionWidget(
-                        child: ConsoleWidget(
-                          consoleOutputController:
-                              appModel.consoleOutputController,
-                        ),
-                      ),
-                    ],
+                  OutputAreaWidget(
+                    appServices: appServices,
+                    appModel: appModel,
                   ),
                 ],
               ),
@@ -402,6 +360,88 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     } finally {
       progress.close();
     }
+  }
+}
+
+class OutputAreaWidget extends StatelessWidget {
+  final AppModel appModel;
+  final AppServices appServices;
+
+  const OutputAreaWidget({
+    required this.appModel,
+    required this.appServices,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const dividerHeight = 16.0;
+
+    return SectionWidget(
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          return ValueListenableBuilder<ModeValue>(
+            valueListenable: appModel.outputAreaMode.showing,
+            builder: (BuildContext context, ModeValue mode, _) {
+              var height = constraints.maxHeight;
+
+              var iframeHeight = 0.0;
+              var consoleHeight = 0.0;
+              if (mode.appArea) {
+                iframeHeight = mode.bothVisible ? height * 0.70 : height;
+                if (mode.bothVisible) {
+                  height -= dividerHeight;
+                }
+                height -= iframeHeight;
+              }
+              consoleHeight = height;
+
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    height: iframeHeight,
+                    duration: animationDelay,
+                    curve: animationCurve,
+                    child: Stack(
+                      children: [
+                        ExecutionWidget(appServices: appServices),
+                        Container(
+                          alignment: Alignment.topRight,
+                          padding: const EdgeInsets.all(denseSpacing),
+                          child: SizedBox(
+                            width: 40,
+                            child: CompilingStatusWidget(
+                              status: appModel.compilingBusy,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          alignment: Alignment.topLeft,
+                          padding: const EdgeInsets.all(denseSpacing),
+                          child: ProgressWidget(
+                            status: appModel.executionStatus,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (mode.bothVisible) const Divider(height: dividerHeight),
+                  AnimatedContainer(
+                    height: consoleHeight,
+                    duration: animationDelay,
+                    curve: animationCurve,
+                    child: ConsoleWidget(
+                      consoleOutputController: appModel.consoleOutputController,
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 }
 

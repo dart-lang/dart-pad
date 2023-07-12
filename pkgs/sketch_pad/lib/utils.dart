@@ -51,6 +51,11 @@ RelativeRect calculatePopupMenuPosition(BuildContext context) {
   );
 }
 
+bool hasFlutterWebMarker(String javaScript) {
+  const marker = 'window.flutterConfiguration';
+  return javaScript.contains(marker);
+}
+
 extension ColorExtension on Color {
   Color get lighter {
     final hsl = HSLColor.fromColor(this);

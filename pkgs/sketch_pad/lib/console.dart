@@ -45,9 +45,7 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Output', style: subtleText),
-        const Divider(),
-        Expanded(
+        Flexible(
           child: TextField(
             controller: widget.consoleOutputController,
             scrollController: scrollController,

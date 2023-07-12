@@ -12,7 +12,7 @@ import 'samples.g.dart';
 import 'services/dartservices.dart';
 import 'utils.dart';
 
-// TODO: make sure that calls have built-in timeouts (10s, 60s, ...)
+// TODO: make sure that service calls have built-in timeouts (10s, 60s, ...)
 
 abstract class ExecutionService {
   Future<void> execute(String javaScript);
@@ -45,17 +45,11 @@ class AppModel {
   final ValueNotifier<VersionResponse> runtimeVersions =
       ValueNotifier(VersionResponse());
 
-  final ValueNotifier<bool> _consoleShowing = ValueNotifier(true);
-  ValueListenable<bool> get consoleShowing => _consoleShowing;
-
-  final ValueNotifier<bool> _appAreaShowing = ValueNotifier(true);
-  ValueListenable<bool> get appAreaShowing => _appAreaShowing;
-
-  bool _executableIsFlutter = true;
+  final OutputAreaMode outputAreaMode = OutputAreaMode();
 
   AppModel() {
     consoleOutputController.addListener(() {
-      _updateExecutionAreasVisibility();
+      outputAreaMode.hasStdout = consoleOutputController.text.isNotEmpty;
     });
   }
 
@@ -66,15 +60,57 @@ class AppModel {
   void clearConsole() => consoleOutputController.clear();
 
   set executableIsFlutter(bool value) {
+    outputAreaMode.executableIsFlutter = value;
+  }
+}
+
+class OutputAreaMode {
+  final ValueNotifier<ModeValue> _showing =
+      ValueNotifier(const ModeValue(appArea: false, console: true));
+
+  ValueListenable<ModeValue> get showing => _showing;
+
+  bool? _executableIsFlutter;
+  bool? outputHasContent;
+
+  set executableIsFlutter(bool value) {
     _executableIsFlutter = value;
     _updateExecutionAreasVisibility();
   }
 
-  void _updateExecutionAreasVisibility() {
-    _appAreaShowing.value = _executableIsFlutter;
-    _consoleShowing.value =
-        !_executableIsFlutter || consoleOutputController.text.isNotEmpty;
+  set hasStdout(bool value) {
+    outputHasContent = value;
+    _updateExecutionAreasVisibility();
   }
+
+  void _updateExecutionAreasVisibility() {
+    final appShowing = _executableIsFlutter ?? false;
+    final consoleShowing = !appShowing | (outputHasContent ?? true);
+
+    _showing.value = ModeValue(appArea: appShowing, console: consoleShowing);
+  }
+}
+
+class ModeValue {
+  final bool appArea;
+  final bool console;
+
+  const ModeValue({required this.appArea, required this.console});
+
+  @override
+  bool operator ==(Object other) {
+    return other is ModeValue &&
+        appArea == other.appArea &&
+        console == other.console;
+  }
+
+  bool get bothVisible => appArea && console;
+
+  @override
+  int get hashCode => Object.hash(appArea, console);
+
+  @override
+  String toString() => 'appArea: $appArea, console: $console';
 }
 
 class AppServices {
@@ -223,6 +259,8 @@ class AppServices {
   }
 
   void executeJavaScript(String javaScript) {
+    appModel.executableIsFlutter = hasFlutterWebMarker(javaScript);
+
     _executionService?.execute(javaScript);
   }
 

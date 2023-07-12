@@ -229,34 +229,32 @@ class MediumDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      var width = smaller ? 400.0 : 500.0;
-      var height = smaller ? 325.0 : 400.0;
+    var width = smaller ? 400.0 : 500.0;
+    var height = smaller ? 325.0 : 400.0;
 
-      return PointerInterceptor(
-        child: AlertDialog(
-          title: Text(title),
-          contentTextStyle: Theme.of(context).textTheme.bodyMedium,
-          contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SizedBox(
-                width: width,
-                height: height,
-                child: ClipRect(child: child),
-              ),
-              const Divider(),
-            ],
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
+    return PointerInterceptor(
+      child: AlertDialog(
+        title: Text(title),
+        contentTextStyle: Theme.of(context).textTheme.bodyMedium,
+        contentPadding: const EdgeInsets.fromLTRB(24, defaultSpacing, 24, 8),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              width: width,
+              height: height,
+              child: ClipRect(child: child),
             ),
+            const Divider(),
           ],
         ),
-      );
-    });
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 }
