@@ -25,10 +25,6 @@ import 'theme.dart';
 import 'utils.dart';
 import 'widgets.dart';
 
-// TODO: combine the app and console views
-
-// TODO: window.flutterConfiguration
-
 // TODO: support flutter snippets
 
 // TODO: handle large console content
@@ -295,30 +291,64 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                     controller: uiConsoleSplitter,
                     children: [
                       SectionWidget(
+                        title: 'App',
+                        actions: CompilingStatusWidget(
+                          size: defaultIconSize,
+                          status: appModel.compilingBusy,
+                        ),
                         child: Stack(
+                          fit: StackFit.expand,
                           children: [
-                            ExecutionWidget(appServices: appServices),
-                            Container(
-                              alignment: Alignment.topRight,
-                              padding: const EdgeInsets.all(denseSpacing),
-                              child: SizedBox(
-                                width: 40,
-                                child: CompilingStatusWidget(
-                                  status: appModel.compilingBusy,
-                                ),
-                              ),
+                            ExecutionWidget(
+                              appServices: appServices,
                             ),
-                            Container(
-                              alignment: Alignment.topLeft,
-                              padding: const EdgeInsets.all(denseSpacing),
-                              child: ProgressWidget(
-                                status: appModel.executionStatus,
-                              ),
+                            ValueListenableBuilder<bool>(
+                              valueListenable: appModel.compilingBusy,
+                              builder: (BuildContext context, bool value, _) {
+                                // todo:
+                                final isFlutter = appModel.appIsFlutter.value;
+
+                                return AnimatedContainer(
+                                  duration: animationDelay,
+                                  curve: animationCurve,
+                                  color: value
+                                      ? const Color.fromARGB(100, 158, 158, 158)
+                                      : const Color.fromARGB(0, 158, 158, 158),
+                                  child: Center(
+                                    child: Text(
+                                      isFlutter == false
+                                          ? 'snippet is Dart only'
+                                          : '',
+                                      style: subtleText,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
                       ),
                       SectionWidget(
+                        title: 'Console output',
+                        actions: Tooltip(
+                          message: 'Clear',
+                          waitDuration: tooltipDelay,
+                          child: ValueListenableBuilder<bool>(
+                            valueListenable: appModel.consoleHasOutput,
+                            builder: (BuildContext context, bool value, _) {
+                              return IconButton(
+                                icon: const Icon(Icons.playlist_remove),
+                                iconSize: smallIconSize,
+                                splashRadius: defaultIconSize,
+                                constraints: const BoxConstraints(
+                                    minWidth: 20, minHeight: 20),
+                                padding: const EdgeInsets.all(2),
+                                visualDensity: VisualDensity.compact,
+                                onPressed: value ? _clearConsole : null,
+                              );
+                            },
+                          ),
+                        ),
                         child: ConsoleWidget(
                           consoleOutputController:
                               appModel.consoleOutputController,
@@ -382,20 +412,24 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     }
   }
 
+  void _clearConsole() {
+    appModel.clearConsole();
+
+    appModel.editorStatus.showToast('Console cleared');
+  }
+
   Future<void> _performCompileAndRun() async {
     final value = appModel.sourceCodeController.text;
     final progress =
-        appModel.executionStatus.showMessage(initialText: 'Compiling…');
+        appModel.editorStatus.showMessage(initialText: 'Compiling…');
     appModel.clearConsole();
 
     try {
       final response = await appServices.compile(CompileRequest(source: value));
 
-      appModel.executionStatus
-          .showToast('Running…', duration: const Duration(seconds: 1));
       appServices.executeJavaScript(response.result);
     } catch (error) {
-      appModel.executionStatus.showToast('Compilation failed');
+      appModel.editorStatus.showToast('Compilation failed');
 
       var message = error is ApiRequestError ? error.message : '$error';
       appModel.appendLineToConsole(message);
@@ -480,22 +514,44 @@ class StatusLineWidget extends StatelessWidget {
 }
 
 class SectionWidget extends StatelessWidget {
+  final String? title;
+  final Widget? actions;
   final Widget child;
 
   const SectionWidget({
+    this.title,
+    this.actions,
     required this.child,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    var c = child;
+
+    if (title != null || actions != null) {
+      c = Column(
+        children: [
+          Row(
+            children: [
+              if (title != null) Text(title!, style: subtleText),
+              const Expanded(child: SizedBox(width: defaultSpacing)),
+              if (actions != null) actions!,
+            ],
+          ),
+          const Divider(),
+          Expanded(child: child),
+        ],
+      );
+    }
+
     return Card(
       elevation: 2,
       margin: EdgeInsets.zero,
       shape: const RoundedRectangleBorder(),
       child: Padding(
         padding: const EdgeInsets.all(denseSpacing),
-        child: child,
+        child: c,
       ),
     );
   }
@@ -731,7 +787,7 @@ class OverflowMenu extends StatelessWidget {
           value: 'https://github.com/dart-lang/dart-pad/wiki/Sharing-Guide',
           child: PointerInterceptor(
             child: const ListTile(
-              title: Text('DartPad on GitHub'),
+              title: Text('Sharing Guide'),
               trailing: Icon(Icons.launch),
             ),
           ),
