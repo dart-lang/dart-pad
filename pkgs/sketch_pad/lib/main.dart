@@ -305,7 +305,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                             ValueListenableBuilder<bool>(
                               valueListenable: appModel.compilingBusy,
                               builder: (BuildContext context, bool value, _) {
-                                // todo:
                                 final isFlutter = appModel.appIsFlutter.value;
 
                                 return AnimatedContainer(
