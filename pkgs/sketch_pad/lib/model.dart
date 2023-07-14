@@ -4,7 +4,9 @@
 
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 import 'gists.dart';
 import 'samples.g.dart';
@@ -61,17 +63,23 @@ class AppModel {
 
 class AppServices {
   final AppModel appModel;
-  final DartservicesApi services;
+  final Channel channel;
+
+  late final http.Client httpClient;
+  late final DartservicesApi services;
 
   ExecutionService? _executionService;
   EditorService? _editorService;
 
   StreamSubscription<String>? stdoutSub;
 
-  // TODO: Consider using DebounceStreamTransformer from package:rxdart?
+  // TODO: Consider using DebounceStreamTransformer from package:rxdart.
   Timer? reanalysisDebouncer;
 
-  AppServices(this.appModel, this.services) {
+  AppServices(this.appModel, this.channel) {
+    httpClient = http.Client();
+    services = DartservicesApi(httpClient, rootUrl: channel.url);
+
     appModel.sourceCodeController.addListener(_handleCodeChanged);
     appModel.analysisIssues.addListener(_updateEditorProblemsStatus);
   }
@@ -105,6 +113,8 @@ class AppServices {
   }
 
   void dispose() {
+    httpClient.close();
+
     appModel.sourceCodeController.removeListener(_handleCodeChanged);
   }
 
@@ -260,4 +270,22 @@ extension AnalysisIssueExtension on AnalysisIssue {
         'info' => 1,
         _ => 0,
       };
+}
+
+enum Channel {
+  stable('Stable', 'https://stable.api.dartpad.dev/'),
+  beta('Beta', 'https://beta.api.dartpad.dev/');
+
+  final String displayName;
+  final String url;
+
+  const Channel(this.displayName, this.url);
+
+  static const defaultChannel = Channel.stable;
+
+  static Channel? channelForName(String name) {
+    name = name.trim().toLowerCase();
+
+    return Channel.values.firstWhereOrNull((c) => c.name == name);
+  }
 }
