@@ -357,7 +357,7 @@ void generateProtos() async {
         'installed (see README.md)');
   }
 
-  // reformat generated classes so Ci checks don't fail
+  // reformat generated classes so CI checks don't fail
   await _run(
     'dart',
     arguments: ['format', '--fix', 'lib/src/protos'],
