@@ -140,9 +140,11 @@ class ProgressWidget extends StatelessWidget {
 }
 
 class CompilingStatusWidget extends StatefulWidget {
+  final double size;
   final ValueListenable<bool> status;
 
   const CompilingStatusWidget({
+    required this.size,
     required this.status,
     super.key,
   });
@@ -185,23 +187,26 @@ class _CompilingStatusWidgetState extends State<CompilingStatusWidget>
     final gearIcon =
         Image.asset('assets/gear-96-${darkMode ? 'light' : 'dark'}.png');
 
-    return ValueListenableBuilder<bool>(
-      valueListenable: widget.status,
-      builder: (context, bool value, _) {
-        return AnimatedOpacity(
-          opacity: value ? 0.6 : 0.0,
-          duration: animationDelay,
-          child: AnimatedBuilder(
-            animation: controller,
-            builder: (BuildContext context, Widget? child) {
-              return Transform.rotate(
-                angle: controller.value * 2 * math.pi,
-                child: gearIcon,
-              );
-            },
-          ),
-        );
-      },
+    return SizedBox.square(
+      dimension: widget.size,
+      child: ValueListenableBuilder<bool>(
+        valueListenable: widget.status,
+        builder: (context, bool value, _) {
+          return AnimatedOpacity(
+            opacity: value ? 0.6 : 0.0,
+            duration: animationDelay,
+            child: AnimatedBuilder(
+              animation: controller,
+              builder: (BuildContext context, Widget? child) {
+                return Transform.rotate(
+                  angle: controller.value * 2 * math.pi,
+                  child: gearIcon,
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 

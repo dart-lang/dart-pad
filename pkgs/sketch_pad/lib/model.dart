@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'gists.dart';
@@ -40,22 +39,16 @@ class AppModel {
   final ValueNotifier<bool> compilingBusy = ValueNotifier(false);
 
   final StatusController editorStatus = StatusController();
-  final StatusController executionStatus = StatusController();
 
   final ValueNotifier<VersionResponse> runtimeVersions =
       ValueNotifier(VersionResponse());
 
-  final ValueNotifier<bool> _consoleShowing = ValueNotifier(true);
-  ValueListenable<bool> get consoleShowing => _consoleShowing;
-
-  final ValueNotifier<bool> _appAreaShowing = ValueNotifier(true);
-  ValueListenable<bool> get appAreaShowing => _appAreaShowing;
-
-  bool _executableIsFlutter = true;
+  final ValueNotifier<bool?> appIsFlutter = ValueNotifier(null);
+  final ValueNotifier<bool> consoleHasOutput = ValueNotifier(false);
 
   AppModel() {
     consoleOutputController.addListener(() {
-      _updateExecutionAreasVisibility();
+      consoleHasOutput.value = consoleOutputController.text.isNotEmpty;
     });
   }
 
@@ -64,17 +57,6 @@ class AppModel {
   }
 
   void clearConsole() => consoleOutputController.clear();
-
-  set executableIsFlutter(bool value) {
-    _executableIsFlutter = value;
-    _updateExecutionAreasVisibility();
-  }
-
-  void _updateExecutionAreasVisibility() {
-    _appAreaShowing.value = _executableIsFlutter;
-    _consoleShowing.value =
-        !_executableIsFlutter || consoleOutputController.text.isNotEmpty;
-  }
 }
 
 class AppServices {
@@ -223,6 +205,9 @@ class AppServices {
   }
 
   void executeJavaScript(String javaScript) {
+    final usesFlutter = hasFlutterWebMarker(javaScript);
+    appModel.appIsFlutter.value = usesFlutter;
+
     _executionService?.execute(javaScript);
   }
 

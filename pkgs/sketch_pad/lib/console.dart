@@ -42,25 +42,16 @@ class _ConsoleWidgetState extends State<ConsoleWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Output', style: subtleText),
-        const Divider(),
-        Expanded(
-          child: TextField(
-            controller: widget.consoleOutputController,
-            scrollController: scrollController,
-            maxLines: null,
-            keyboardType: TextInputType.multiline,
-            textInputAction: TextInputAction.newline,
-            expands: true,
-            decoration: null,
-            style: theme.textTheme.bodyMedium,
-            readOnly: true,
-          ),
-        ),
-      ],
+    return TextField(
+      controller: widget.consoleOutputController,
+      scrollController: scrollController,
+      maxLines: null,
+      keyboardType: TextInputType.multiline,
+      textInputAction: TextInputAction.newline,
+      expands: true,
+      decoration: null,
+      style: theme.textTheme.bodyMedium,
+      readOnly: true,
     );
   }
 
