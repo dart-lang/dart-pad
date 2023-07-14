@@ -38,10 +38,14 @@ Image flutterLogo({double? width}) {
       width: width ?? defaultIconSize);
 }
 
-RelativeRect calculatePopupMenuPosition(BuildContext context) {
+RelativeRect calculatePopupMenuPosition(
+  BuildContext context, {
+  bool growUpwards = false,
+}) {
   final render = context.findRenderObject() as RenderBox;
   final size = render.size;
-  final offset = render.localToGlobal(Offset(0, size.height));
+  final offset =
+      render.localToGlobal(Offset(0, growUpwards ? -size.height : size.height));
 
   return RelativeRect.fromLTRB(
     offset.dx,

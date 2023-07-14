@@ -5,7 +5,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:provider/provider.dart';
 import 'package:split_view/split_view.dart';
@@ -65,11 +64,17 @@ class _DartPadAppState extends State<DartPadApp> {
               final sampleParam = state.queryParameters['sample'];
               final themeParam = state.queryParameters['theme'] ?? 'dark';
               final bool darkMode = themeParam == 'dark';
+              final colorScheme = ColorScheme.fromSwatch(
+                brightness: darkMode ? Brightness.dark : Brightness.light,
+              );
 
               return Theme(
                 data: ThemeData(
-                  colorScheme: ColorScheme.fromSwatch(
-                    brightness: darkMode ? Brightness.dark : Brightness.light,
+                  colorScheme: colorScheme,
+                  textButtonTheme: TextButtonThemeData(
+                    style: TextButton.styleFrom(
+                      foregroundColor: colorScheme.onPrimary,
+                    ),
                   ),
                 ),
                 child: DartPadMainPage(
@@ -117,13 +122,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     super.initState();
 
     appModel = AppModel();
-    appServices = AppServices(
-      appModel,
-      DartservicesApi(
-        http.Client(),
-        rootUrl: 'https://stable.api.dartpad.dev/',
-      ),
-    );
+    appServices = AppServices(appModel, Channel.defaultChannel);
 
     appServices.populateVersions();
 
@@ -144,10 +143,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
-    final buttonStyle =
-        TextButton.styleFrom(foregroundColor: colorScheme.onPrimary);
 
     final scaffold = Scaffold(
       appBar: AppBar(
@@ -159,12 +154,9 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
               const SizedBox(width: denseSpacing),
               const Text(appName),
               const SizedBox(width: defaultSpacing * 4),
-              NewSnippetWidget(
-                appServices: appServices,
-                buttonStyle: buttonStyle,
-              ),
+              NewSnippetWidget(appServices: appServices),
               const SizedBox(width: denseSpacing),
-              ListSamplesWidget(buttonStyle: buttonStyle),
+              const ListSamplesWidget(),
               const SizedBox(width: defaultSpacing),
               // title widget
               Expanded(
@@ -189,7 +181,6 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                 Uri.parse('https://docs.flutter.dev/get-started/install'),
               );
             },
-            style: buttonStyle,
             child: const Row(
               children: [
                 Text('Install SDK'),
@@ -304,19 +295,20 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
                             ),
                             ValueListenableBuilder<bool>(
                               valueListenable: appModel.compilingBusy,
-                              builder: (BuildContext context, bool value, _) {
+                              builder:
+                                  (BuildContext context, bool compiling, _) {
                                 final isFlutter = appModel.appIsFlutter.value;
 
                                 return AnimatedContainer(
                                   duration: animationDelay,
                                   curve: animationCurve,
-                                  color: value
+                                  color: compiling
                                       ? const Color.fromARGB(100, 158, 158, 158)
                                       : const Color.fromARGB(0, 158, 158, 158),
                                   child: Center(
                                     child: Text(
-                                      isFlutter == false
-                                          ? 'snippet is Dart only'
+                                      (isFlutter == false) && !compiling
+                                          ? 'Dart only snippet'
                                           : '',
                                       style: subtleText,
                                     ),
@@ -448,9 +440,6 @@ class StatusLineWidget extends StatelessWidget {
     final darkTheme = colorScheme.darkMode;
     final textColor = colorScheme.onPrimaryContainer;
 
-    final buttonStyle =
-        TextButton.styleFrom(foregroundColor: colorScheme.onPrimary);
-
     final appModel = Provider.of<AppModel>(context);
 
     return Container(
@@ -490,22 +479,28 @@ class StatusLineWidget extends StatelessWidget {
             ),
           ),
           const SizedBox(width: defaultSpacing),
-          const Hyperlink(
-            displayText: 'Privacy notice',
-            url: 'https://dart.dev/tools/dartpad/privacy',
+          TextButton(
+            onPressed: () {
+              const url = 'https://dart.dev/tools/dartpad/privacy';
+              url_launcher.launchUrl(Uri.parse(url));
+            },
+            child: const Text('Privacy notice'),
           ),
           const SizedBox(width: defaultSpacing),
-          const Hyperlink(
-            displayText: 'Feedback',
-            url: 'https://github.com/dart-lang/dart-pad/issues',
+          TextButton(
+            onPressed: () {
+              const url = 'https://github.com/dart-lang/dart-pad/issues';
+              url_launcher.launchUrl(Uri.parse(url));
+            },
+            child: const Text('Feedback'),
           ),
           const Expanded(child: SizedBox(width: defaultSpacing)),
-          SizedBox(
-            height: 26,
-            child: SelectChannelWidget(buttonStyle: buttonStyle),
-          ),
-          const SizedBox(width: defaultSpacing),
           VersionInfoWidget(appModel.runtimeVersions),
+          const SizedBox(width: defaultSpacing),
+          const SizedBox(
+            height: 26,
+            child: SelectChannelWidget(),
+          ),
         ],
       ),
     );
@@ -558,11 +553,9 @@ class SectionWidget extends StatelessWidget {
 
 class NewSnippetWidget extends StatelessWidget {
   final AppServices appServices;
-  final ButtonStyle buttonStyle;
 
   const NewSnippetWidget({
     required this.appServices,
-    required this.buttonStyle,
     super.key,
   });
 
@@ -573,7 +566,6 @@ class NewSnippetWidget extends StatelessWidget {
       child: TextButton.icon(
         icon: const Icon(Icons.add_circle),
         label: const Text('New'),
-        style: buttonStyle,
         onPressed: () async {
           final selection =
               await _showMenu(context, calculatePopupMenuPosition(context));
@@ -618,10 +610,7 @@ class NewSnippetWidget extends StatelessWidget {
 }
 
 class ListSamplesWidget extends StatelessWidget {
-  final ButtonStyle buttonStyle;
-
   const ListSamplesWidget({
-    required this.buttonStyle,
     super.key,
   });
 
@@ -632,7 +621,6 @@ class ListSamplesWidget extends StatelessWidget {
       child: TextButton.icon(
         icon: const Icon(Icons.playlist_add_outlined),
         label: const Text('Samples'),
-        style: buttonStyle,
         onPressed: () async {
           final selection =
               await _showMenu(context, calculatePopupMenuPosition(context));
@@ -685,24 +673,26 @@ class ListSamplesWidget extends StatelessWidget {
 }
 
 class SelectChannelWidget extends StatelessWidget {
-  final ButtonStyle buttonStyle;
-
   const SelectChannelWidget({
-    required this.buttonStyle,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    // TODO: Update this control when the channel changes.
+    final appServices = Provider.of<AppServices>(context);
+
     return SizedBox(
       height: toolbarItemHeight,
       child: TextButton.icon(
-        icon: const Icon(Icons.keyboard_arrow_down),
-        label: const Text('SDK Channel'), // todo: 'stable channel' / ...
-        style: buttonStyle,
+        icon: const Icon(Icons.tune, size: smallIconSize),
+        label: Text('${appServices.channel.displayName} channel'),
         onPressed: () async {
-          final selection =
-              await _showMenu(context, calculatePopupMenuPosition(context));
+          final selection = await _showMenu(
+            context,
+            calculatePopupMenuPosition(context, growUpwards: true),
+            appServices.channel,
+          );
           if (selection != null && context.mounted) {
             _handleSelection(context, selection);
           }
@@ -711,29 +701,30 @@ class SelectChannelWidget extends StatelessWidget {
     );
   }
 
-  Future<String?> _showMenu(BuildContext context, RelativeRect position) {
-    var channels = ['stable', 'beta'];
+  Future<Channel?> _showMenu(
+      BuildContext context, RelativeRect position, Channel current) {
+    const itemHeight = 46.0;
 
-    final menuItems = <PopupMenuEntry<String?>>[
-      for (var channel in channels)
-        PopupMenuItem(
+    final menuItems = <PopupMenuEntry<Channel>>[
+      for (var channel in Channel.values)
+        PopupMenuItem<Channel>(
           value: channel,
           child: PointerInterceptor(
             child: ListTile(
-              title: Text(channel),
+              title: Text(channel.displayName),
             ),
           ),
         )
     ];
 
-    return showMenu<String?>(
+    return showMenu<Channel>(
       context: context,
-      position: position,
+      position: position.shift(Offset(0, -1 * menuItems.length * itemHeight)),
       items: menuItems,
     );
   }
 
-  void _handleSelection(BuildContext context, String channel) {
+  void _handleSelection(BuildContext context, Channel channel) {
     // TODO: switch channel
 
     unimplemented(context, 'select channel: $channel');
@@ -873,23 +864,20 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
     return ValueListenableBuilder<VersionResponse>(
       valueListenable: widget.runtimeVersions,
       builder: (content, versions, _) {
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            child: Text(
-              'Dart ${versions.sdkVersion} • Flutter ${versions.flutterVersion}',
-            ),
-            onTap: () {
-              showDialog<void>(
-                context: context,
-                builder: (context) {
-                  return MediumDialog(
-                    title: 'Runtime Versions',
-                    child: VersionTable(versions: versions),
-                  );
-                },
-              );
-            },
+        return TextButton(
+          onPressed: () {
+            showDialog<void>(
+              context: context,
+              builder: (context) {
+                return MediumDialog(
+                  title: 'Runtime Versions',
+                  child: VersionTable(versions: versions),
+                );
+              },
+            );
+          },
+          child: Text(
+            'Dart ${versions.sdkVersion} • Flutter ${versions.flutterVersion}',
           ),
         );
       },
