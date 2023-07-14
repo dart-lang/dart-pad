@@ -65,7 +65,6 @@ class EndpointsServer {
 
   EndpointsServer._(Sdk sdk, bool nullSafety) {
     final commonServerImpl = CommonServerImpl(
-      _ServerContainer(),
       _Cache(),
       sdk,
     );
@@ -91,11 +90,6 @@ class EndpointsServer {
           'Origin, X-Requested-With, Content-Type, Accept, x-goog-api-client'
     });
   }
-}
-
-class _ServerContainer implements ServerContainer {
-  @override
-  String get version => '1.0';
 }
 
 class _Cache implements ServerCache {

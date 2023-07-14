@@ -9,7 +9,6 @@ import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:logging/logging.dart';
 
-import '../version.dart';
 import 'analysis_servers.dart';
 import 'common.dart';
 import 'compiler.dart';
@@ -28,12 +27,7 @@ class BadRequest implements Exception {
   BadRequest(this.cause);
 }
 
-abstract class ServerContainer {
-  String get version;
-}
-
 class CommonServerImpl {
-  final ServerContainer _container;
   final ServerCache _cache;
   final Sdk _sdk;
 
@@ -45,7 +39,6 @@ class CommonServerImpl {
   bool get isHealthy => _analysisServers.isHealthy;
 
   CommonServerImpl(
-    this._container,
     this._cache,
     this._sdk,
   ) {
@@ -266,8 +259,6 @@ class CommonServerImpl {
         ..sdkVersion = _sdk.version
         ..sdkVersionFull = _sdk.versionFull
         ..runtimeVersion = vmVersion
-        ..servicesVersion = servicesVersion
-        ..appEngineVersion = _container.version
         ..flutterDartVersion = _sdk.version
         ..flutterDartVersionFull = _sdk.versionFull
         ..flutterVersion = _sdk.flutterVersion

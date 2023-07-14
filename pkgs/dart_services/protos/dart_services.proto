@@ -208,11 +208,11 @@ message VersionResponse {
   // semver string, and have a space and other build details appended.
   string runtimeVersion = 3;
 
-  // The App Engine version.
-  string appEngineVersion = 4;
+  // Removed.
+  string appEngineVersion = 4 [deprecated = true];
 
-  // The dart-services backend version.
-  string servicesVersion = 5;
+  // Removed.
+  string servicesVersion = 5 [deprecated = true];
 
   // The Flutter SDK's version.
   string flutterVersion = 6;

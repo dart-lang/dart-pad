@@ -213,14 +213,17 @@ class AppServices {
 
   Future<void> _reAnalyze() async {
     try {
-      final results = await services
-          .analyze(SourceRequest(source: appModel.sourceCodeController.text));
+      final results = await services.analyze(
+        SourceRequest()..source = appModel.sourceCodeController.text,
+      );
       final issues = results.issues.toList()..sort(_compareIssues);
       appModel.analysisIssues.value = issues;
     } catch (error) {
       var message = error is ApiRequestError ? error.message : '$error';
       appModel.analysisIssues.value = [
-        AnalysisIssue(kind: 'error', message: message),
+        AnalysisIssue()
+          ..kind = 'error'
+          ..message = message,
       ];
     }
   }

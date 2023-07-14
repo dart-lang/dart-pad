@@ -47,7 +47,7 @@ jobs:
         run: |
           export PATH=$PATH:$HOME/.pub-cache/bin
           dart pub global activate protoc_plugin
-          ./tool/travis.sh ${{ matrix.sdk }}
+          ./tool/ci.sh ${{ matrix.sdk }}
 
   # Run the benchmarks on the bots to ensure they don't regress.
   benchmark:
