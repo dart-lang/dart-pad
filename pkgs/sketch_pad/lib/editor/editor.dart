@@ -223,11 +223,10 @@ class _EditorWidgetState extends State<EditorWidget> implements EditorService {
 
     final appServices = widget.appServices;
     final response = await appServices.services
-        .complete(services.SourceRequest(
-          source: doc.getValue() ?? '',
-          offset: offset,
-        ))
-        .onError((error, st) => services.CompleteResponse(completions: []));
+        .complete(services.SourceRequest()
+          ..source = doc.getValue() ?? ''
+          ..offset = offset)
+        .onError((error, st) => services.CompleteResponse());
 
     final replaceOffset = response.replacementOffset;
     final replaceLength = response.replacementLength;

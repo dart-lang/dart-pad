@@ -73,9 +73,8 @@ void defineTests() {
     final sdk =
         Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
     setUp(() async {
-      final container = MockContainer();
       final cache = MockCache();
-      commonServerImpl = CommonServerImpl(container, cache, sdk);
+      commonServerImpl = CommonServerImpl(cache, sdk);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 
@@ -539,9 +538,8 @@ main() {
     final sdk =
         Sdk.create(Platform.environment['FLUTTER_CHANNEL'] ?? stableChannel);
     setUp(() async {
-      final container = MockContainer();
       final cache = MockCache();
-      commonServerImpl = CommonServerImpl(container, cache, sdk);
+      commonServerImpl = CommonServerImpl(cache, sdk);
       commonServerApi = CommonServerApi(commonServerImpl);
       await commonServerImpl.init();
 
@@ -1236,11 +1234,6 @@ main() {
   });
   // End of multi file files={} tests group.
   //-------------------------------------------------------------------------
-}
-
-class MockContainer implements ServerContainer {
-  @override
-  String get version => vmVersion;
 }
 
 class MockCache implements ServerCache {

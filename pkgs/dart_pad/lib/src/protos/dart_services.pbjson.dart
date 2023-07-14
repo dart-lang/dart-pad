@@ -607,8 +607,22 @@ const VersionResponse$json = {
     {'1': 'sdkVersion', '3': 1, '4': 1, '5': 9, '10': 'sdkVersion'},
     {'1': 'sdkVersionFull', '3': 2, '4': 1, '5': 9, '10': 'sdkVersionFull'},
     {'1': 'runtimeVersion', '3': 3, '4': 1, '5': 9, '10': 'runtimeVersion'},
-    {'1': 'appEngineVersion', '3': 4, '4': 1, '5': 9, '10': 'appEngineVersion'},
-    {'1': 'servicesVersion', '3': 5, '4': 1, '5': 9, '10': 'servicesVersion'},
+    {
+      '1': 'appEngineVersion',
+      '3': 4,
+      '4': 1,
+      '5': 9,
+      '8': {'3': true},
+      '10': 'appEngineVersion',
+    },
+    {
+      '1': 'servicesVersion',
+      '3': 5,
+      '4': 1,
+      '5': 9,
+      '8': {'3': true},
+      '10': 'servicesVersion',
+    },
     {'1': 'flutterVersion', '3': 6, '4': 1, '5': 9, '10': 'flutterVersion'},
     {
       '1': 'flutterDartVersion',
@@ -674,18 +688,18 @@ const VersionResponse_PackageVersionsEntry$json = {
 final $typed_data.Uint8List versionResponseDescriptor = $convert.base64Decode(
     'Cg9WZXJzaW9uUmVzcG9uc2USHgoKc2RrVmVyc2lvbhgBIAEoCVIKc2RrVmVyc2lvbhImCg5zZG'
     'tWZXJzaW9uRnVsbBgCIAEoCVIOc2RrVmVyc2lvbkZ1bGwSJgoOcnVudGltZVZlcnNpb24YAyAB'
-    'KAlSDnJ1bnRpbWVWZXJzaW9uEioKEGFwcEVuZ2luZVZlcnNpb24YBCABKAlSEGFwcEVuZ2luZV'
-    'ZlcnNpb24SKAoPc2VydmljZXNWZXJzaW9uGAUgASgJUg9zZXJ2aWNlc1ZlcnNpb24SJgoOZmx1'
-    'dHRlclZlcnNpb24YBiABKAlSDmZsdXR0ZXJWZXJzaW9uEi4KEmZsdXR0ZXJEYXJ0VmVyc2lvbh'
-    'gHIAEoCVISZmx1dHRlckRhcnRWZXJzaW9uEjYKFmZsdXR0ZXJEYXJ0VmVyc2lvbkZ1bGwYCCAB'
-    'KAlSFmZsdXR0ZXJEYXJ0VmVyc2lvbkZ1bGwSYQoPcGFja2FnZVZlcnNpb25zGAkgAygLMjcuZG'
-    'FydF9zZXJ2aWNlcy5hcGkuVmVyc2lvblJlc3BvbnNlLlBhY2thZ2VWZXJzaW9uc0VudHJ5Ug9w'
-    'YWNrYWdlVmVyc2lvbnMSQAoLcGFja2FnZUluZm8YCiADKAsyHi5kYXJ0X3NlcnZpY2VzLmFwaS'
-    '5QYWNrYWdlSW5mb1ILcGFja2FnZUluZm8SHgoKZXhwZXJpbWVudBgLIAMoCVIKZXhwZXJpbWVu'
-    'dBIqChBmbHV0dGVyRW5naW5lU2hhGAwgASgJUhBmbHV0dGVyRW5naW5lU2hhEjUKBWVycm9yGG'
-    'MgASgLMh8uZGFydF9zZXJ2aWNlcy5hcGkuRXJyb3JNZXNzYWdlUgVlcnJvchpCChRQYWNrYWdl'
-    'VmVyc2lvbnNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6Aj'
-    'gB');
+    'KAlSDnJ1bnRpbWVWZXJzaW9uEi4KEGFwcEVuZ2luZVZlcnNpb24YBCABKAlCAhgBUhBhcHBFbm'
+    'dpbmVWZXJzaW9uEiwKD3NlcnZpY2VzVmVyc2lvbhgFIAEoCUICGAFSD3NlcnZpY2VzVmVyc2lv'
+    'bhImCg5mbHV0dGVyVmVyc2lvbhgGIAEoCVIOZmx1dHRlclZlcnNpb24SLgoSZmx1dHRlckRhcn'
+    'RWZXJzaW9uGAcgASgJUhJmbHV0dGVyRGFydFZlcnNpb24SNgoWZmx1dHRlckRhcnRWZXJzaW9u'
+    'RnVsbBgIIAEoCVIWZmx1dHRlckRhcnRWZXJzaW9uRnVsbBJhCg9wYWNrYWdlVmVyc2lvbnMYCS'
+    'ADKAsyNy5kYXJ0X3NlcnZpY2VzLmFwaS5WZXJzaW9uUmVzcG9uc2UuUGFja2FnZVZlcnNpb25z'
+    'RW50cnlSD3BhY2thZ2VWZXJzaW9ucxJACgtwYWNrYWdlSW5mbxgKIAMoCzIeLmRhcnRfc2Vydm'
+    'ljZXMuYXBpLlBhY2thZ2VJbmZvUgtwYWNrYWdlSW5mbxIeCgpleHBlcmltZW50GAsgAygJUgpl'
+    'eHBlcmltZW50EioKEGZsdXR0ZXJFbmdpbmVTaGEYDCABKAlSEGZsdXR0ZXJFbmdpbmVTaGESNQ'
+    'oFZXJyb3IYYyABKAsyHy5kYXJ0X3NlcnZpY2VzLmFwaS5FcnJvck1lc3NhZ2VSBWVycm9yGkIK'
+    'FFBhY2thZ2VWZXJzaW9uc0VudHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUg'
+    'V2YWx1ZToCOAE=');
 
 @$core.Deprecated('Use packageInfoDescriptor instead')
 const PackageInfo$json = {
