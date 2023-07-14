@@ -357,7 +357,7 @@ void generateProtos() async {
         'installed (see README.md)');
   }
 
-  // reformat generated classes so travis dart format test doesn't fail
+  // reformat generated classes so CI checks don't fail
   await _run(
     'dart',
     arguments: ['format', '--fix', 'lib/src/protos'],
@@ -368,6 +368,10 @@ void generateProtos() async {
     'dart',
     arguments: ['format', '--fix', 'lib/src/protos'],
   );
+
+  // Copy to the front-end packages.
+  copy(getDir('lib/src/protos'), getDir('../dart_pad/lib/src/protos'));
+  copy(getDir('lib/src/protos'), getDir('../sketch_pad/lib/services'));
 
   // generate common_server_proto.g.dart
   Pub.run('build_runner', arguments: ['build', '--delete-conflicting-outputs']);

@@ -92,7 +92,6 @@ class EndpointsServer {
 
   EndpointsServer._(String? redisServerUri, Sdk sdk) {
     _commonServerImpl = CommonServerImpl(
-      _ServerContainer(),
       redisServerUri == null
           ? InMemoryCache()
           : RedisCache(
@@ -135,9 +134,4 @@ class EndpointsServer {
           'Origin, X-Requested-With, Content-Type, Accept, x-goog-api-client'
     });
   }
-}
-
-class _ServerContainer implements ServerContainer {
-  @override
-  String get version => '1.0';
 }

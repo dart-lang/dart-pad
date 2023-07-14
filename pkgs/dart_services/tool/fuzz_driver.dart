@@ -12,7 +12,6 @@ import 'dart:io' as io;
 import 'dart:math';
 
 import 'package:dart_services/src/analysis_server.dart' as analysis_server;
-import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/common_server_impl.dart';
 import 'package:dart_services/src/compiler.dart' as comp;
 import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
@@ -26,7 +25,6 @@ bool dumpPerf = false;
 bool dumpDelta = false;
 
 late CommonServerImpl commonServerImpl;
-late MockContainer container;
 late MockCache cache;
 analysis_server.AnalysisServerWrapper? analysisServer;
 
@@ -121,9 +119,8 @@ Future<void> setupTools(Sdk sdk) async {
 
   print('SdKPath: ${sdk.dartSdkPath}');
 
-  container = MockContainer();
   cache = MockCache();
-  commonServerImpl = CommonServerImpl(container, cache, sdk);
+  commonServerImpl = CommonServerImpl(cache, sdk);
   await commonServerImpl.init();
 
   analysisServer =
@@ -381,11 +378,6 @@ String mutate(String src) {
   }
   final newStr = src.substring(0, i - 1) + s + src.substring(i);
   return newStr;
-}
-
-class MockContainer implements ServerContainer {
-  @override
-  String get version => vmVersion;
 }
 
 class MockCache implements ServerCache {

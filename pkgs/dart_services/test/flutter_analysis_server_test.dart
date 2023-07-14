@@ -140,14 +140,12 @@ class HelloWorld extends StatelessWidget {
   group('CommonServerImpl flutter analyze', () {
     late CommonServerImpl commonServerImpl;
 
-    _MockContainer container;
     _MockCache cache;
 
     setUp(() async {
-      container = _MockContainer();
       cache = _MockCache();
       final sdk = Sdk.create(channel);
-      commonServerImpl = CommonServerImpl(container, cache, sdk);
+      commonServerImpl = CommonServerImpl(cache, sdk);
       await commonServerImpl.init();
     });
 
@@ -303,14 +301,12 @@ class HelloWorld extends StatelessWidget {
     group('CommonServerImpl flutter analyzeFiles files={}', () {
       late CommonServerImpl commonServerImpl;
 
-      _MockContainer container;
       _MockCache cache;
 
       setUp(() async {
-        container = _MockContainer();
         cache = _MockCache();
         final sdk = Sdk.create(channel);
-        commonServerImpl = CommonServerImpl(container, cache, sdk);
+        commonServerImpl = CommonServerImpl(cache, sdk);
         await commonServerImpl.init();
       });
 
@@ -334,11 +330,6 @@ class HelloWorld extends StatelessWidget {
       });
     });
   });
-}
-
-class _MockContainer implements ServerContainer {
-  @override
-  String get version => vmVersion;
 }
 
 class _MockCache implements ServerCache {

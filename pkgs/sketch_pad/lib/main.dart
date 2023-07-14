@@ -390,7 +390,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     final value = appModel.sourceCodeController.text;
 
     // TODO: catch and handle exceptions
-    var result = await appServices.format(SourceRequest(source: value));
+    var result = await appServices.format(SourceRequest()..source = value);
 
     if (result.hasError()) {
       appModel.editorStatus.showToast('Error formatting code');
@@ -416,7 +416,8 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     appModel.clearConsole();
 
     try {
-      final response = await appServices.compile(CompileRequest(source: value));
+      final response =
+          await appServices.compile(CompileRequest()..source = value);
 
       appServices.executeJavaScript(response.result);
     } catch (error) {
