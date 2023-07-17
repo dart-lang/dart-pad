@@ -71,6 +71,8 @@ class _DartPadAppState extends State<DartPadApp> {
               return Theme(
                 data: ThemeData(
                   colorScheme: colorScheme,
+                  // TODO: We should switch to using material 3.
+                  useMaterial3: false,
                   textButtonTheme: TextButtonThemeData(
                     style: TextButton.styleFrom(
                       foregroundColor: colorScheme.onPrimary,
