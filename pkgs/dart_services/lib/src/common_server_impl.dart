@@ -88,6 +88,16 @@ class CommonServerImpl {
     return _compileDDC({kMainDart: request.source});
   }
 
+  Future<proto.FlutterBuildResponse> flutterBuild(
+    proto.FlutterBuildRequest request,
+  ) {
+    if (!request.hasSource()) {
+      throw BadRequest('Missing parameter: \'source\'');
+    }
+
+    return _flutterBuild(source: request.source);
+  }
+
   Future<proto.CompleteResponse> complete(proto.SourceRequest request) {
     if (!request.hasSource()) {
       throw BadRequest('Missing parameter: \'source\'');
@@ -375,6 +385,18 @@ class CommonServerImpl {
         log.severe('Error during compile (DDC) on "$sources"', e, st);
       }
       rethrow;
+    }
+  }
+
+  Future<proto.FlutterBuildResponse> _flutterBuild({
+    required String source,
+  }) async {
+    final results = await _compiler.flutterBuild(source);
+    if (results.hasOutput) {
+      return proto.FlutterBuildResponse()
+        ..artifacts['main.dart.js'] = results.compiledJavaScript!;
+    } else {
+      throw BadRequest(results.compilationIssues!);
     }
   }
 

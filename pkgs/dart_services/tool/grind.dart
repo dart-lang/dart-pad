@@ -201,7 +201,24 @@ Future<String> _buildStorageArtifacts(Directory dir, Sdk sdk,
   joinFile(dir, ['pubspec.yaml']).writeAsStringSync(pubspec);
 
   // Make sure the tooling knows this is a Flutter Web project
-  File(path.join(dir.path, 'web', 'index.html')).createSync(recursive: true);
+  final indexHtmlFile = File(path.join(dir.path, 'web', 'index.html'))
+    ..parent.createSync();
+  indexHtmlFile.writeAsStringSync('''
+<!DOCTYPE html>
+<html>
+<head>
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+
+  <script src="main.dart.js" defer></script>
+</head>
+
+<body>
+</body>
+</html>
+''');
 
   await runFlutterPackagesGet(sdk.flutterToolPath, dir.path, log: log);
 

@@ -32,7 +32,7 @@ html.Element _iFrameFactory(int viewId) {
   var frame = html.IFrameElement()
     ..sandbox!.add('allow-scripts')
     ..sandbox!.add('allow-popups')
-    ..src = 'impl/frame.html'
+    ..src = 'frame.html'
     ..style.border = 'none'
     ..style.width = '100%'
     ..style.height = '100%';

@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:protobuf/protobuf.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart';
@@ -49,6 +50,15 @@ class CommonServerApi {
               proto.CompileDDCRequest.create()..mergeFromProto3Json(json),
           decodeFromProto: proto.CompileDDCRequest.fromBuffer,
           transform: _impl.compileDDC);
+
+  @experimental
+  @Route.post('$protoApiUrlPrefix/_flutterBuild')
+  Future<Response> flutterBuild(Request request, String apiVersion) =>
+      _processRequest(request,
+          decodeFromJSON: (json) =>
+              proto.FlutterBuildRequest.create()..mergeFromProto3Json(json),
+          decodeFromProto: proto.FlutterBuildRequest.fromBuffer,
+          transform: _impl.flutterBuild);
 
   @Route.post('$protoApiUrlPrefix/complete')
   Future<Response> complete(Request request, String apiVersion) =>

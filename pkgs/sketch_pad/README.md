@@ -16,5 +16,5 @@ This is an experimental re-imagining of the DartPad UI. Goals include:
 To run this locally, run:
 
 ```
-flutter run -d chrome
+flutter run -d chrome --web-browser-flag "--disable-web-security"
 ```
