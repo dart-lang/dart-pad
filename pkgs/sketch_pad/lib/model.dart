@@ -186,14 +186,15 @@ class AppServices {
     }
   }
 
-  // Future<CompileResponse> compile(CompileRequest request) async {
-  //   try {
-  //     appModel.compilingBusy.value = true;
-  //     return await services.compile(request);
-  //   } finally {
-  //     appModel.compilingBusy.value = false;
-  //   }
-  // }
+  @Deprecated('prefer to use `build`')
+  Future<CompileResponse> compile(CompileRequest request) async {
+    try {
+      appModel.compilingBusy.value = true;
+      return await services.compile(request);
+    } finally {
+      appModel.compilingBusy.value = false;
+    }
+  }
 
   Future<FlutterBuildResponse> build(FlutterBuildRequest request) async {
     try {

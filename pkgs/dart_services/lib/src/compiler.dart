@@ -269,12 +269,14 @@ class Compiler {
         '--dart2js-optimization=O1',
 
         // With the web renderer, we don't need to load other (skiawasm) resources.
+        // TODO(devoncarew): Look into use the skiawasm backend.
         '--web-renderer=html',
 
         // This disables the service worker / caching path.
         '--pwa-strategy=none',
 
         '--no-tree-shake-icons',
+
         if (_sdk.experiments.isNotEmpty)
           '--enable-experiment=${_sdk.experiments.join(",")}',
       ];
