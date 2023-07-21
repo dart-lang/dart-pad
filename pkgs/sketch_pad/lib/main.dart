@@ -114,7 +114,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   final SplitViewController mainSplitter =
       SplitViewController(weights: [0.52, 0.48]);
   final SplitViewController uiConsoleSplitter =
-      SplitViewController(weights: [0.64, 0.36]);
+      SplitViewController(weights: [0.58, 0.42]);
 
   late AppModel appModel;
   late AppServices appServices;
@@ -124,7 +124,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     super.initState();
 
     appModel = AppModel();
-    appServices = AppServices(appModel, Channel.defaultChannel);
+    appServices = AppServices(
+      appModel,
+      Channel.stable, // Channel.localhost
+    );
 
     appServices.populateVersions();
 
@@ -391,8 +394,15 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
   Future<void> _handleFormatting() async {
     final value = appModel.sourceCodeController.text;
 
-    // TODO: catch and handle exceptions
-    var result = await appServices.format(SourceRequest()..source = value);
+    FormatResponse result;
+
+    try {
+      result = await appServices.format(SourceRequest()..source = value);
+    } catch (error) {
+      appModel.editorStatus.showToast('Error formatting code');
+      appModel.appendLineToConsole('Formatting issue: $error');
+      return;
+    }
 
     if (result.hasError()) {
       appModel.editorStatus.showToast('Error formatting code');
@@ -419,9 +429,10 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
 
     try {
       final response =
-          await appServices.compile(CompileRequest()..source = value);
+          await appServices.build(FlutterBuildRequest()..source = value);
 
-      appServices.executeJavaScript(response.result);
+      final artifacts = response.artifacts;
+      appServices.executeJavaScript(artifacts['main.dart.js']!);
     } catch (error) {
       appModel.editorStatus.showToast('Compilation failed');
 
@@ -709,7 +720,7 @@ class SelectChannelWidget extends StatelessWidget {
     const itemHeight = 46.0;
 
     final menuItems = <PopupMenuEntry<Channel>>[
-      for (var channel in Channel.values)
+      for (var channel in Channel.valuesWithoutLocalhost)
         PopupMenuItem<Channel>(
           value: channel,
           child: PointerInterceptor(

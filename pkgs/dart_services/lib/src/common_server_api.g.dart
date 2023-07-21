@@ -25,6 +25,11 @@ Router _$CommonServerApiRouter(CommonServerApi service) {
   );
   router.add(
     'POST',
+    r'/api/dartservices/<apiVersion>/_flutterBuild',
+    service.flutterBuild,
+  );
+  router.add(
+    'POST',
     r'/api/dartservices/<apiVersion>/complete',
     service.complete,
   );

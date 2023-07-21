@@ -105,6 +105,61 @@ final $typed_data.Uint8List compileFilesDDCRequestDescriptor = $convert.base64De
     '5hcGkuQ29tcGlsZUZpbGVzRERDUmVxdWVzdC5GaWxlc0VudHJ5UgVmaWxlcxo4CgpGaWxlc0Vu'
     'dHJ5EhAKA2tleRgBIAEoCVIDa2V5EhQKBXZhbHVlGAIgASgJUgV2YWx1ZToCOAE=');
 
+@$core.Deprecated('Use flutterBuildRequestDescriptor instead')
+const FlutterBuildRequest$json = {
+  '1': 'FlutterBuildRequest',
+  '2': [
+    {'1': 'source', '3': 1, '4': 1, '5': 9, '10': 'source'},
+  ],
+};
+
+/// Descriptor for `FlutterBuildRequest`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List flutterBuildRequestDescriptor =
+    $convert.base64Decode(
+        'ChNGbHV0dGVyQnVpbGRSZXF1ZXN0EhYKBnNvdXJjZRgBIAEoCVIGc291cmNl');
+
+@$core.Deprecated('Use flutterBuildResponseDescriptor instead')
+const FlutterBuildResponse$json = {
+  '1': 'FlutterBuildResponse',
+  '2': [
+    {
+      '1': 'artifacts',
+      '3': 1,
+      '4': 3,
+      '5': 11,
+      '6': '.dart_services.api.FlutterBuildResponse.ArtifactsEntry',
+      '10': 'artifacts'
+    },
+    {
+      '1': 'error',
+      '3': 99,
+      '4': 1,
+      '5': 11,
+      '6': '.dart_services.api.ErrorMessage',
+      '10': 'error'
+    },
+  ],
+  '3': [FlutterBuildResponse_ArtifactsEntry$json],
+};
+
+@$core.Deprecated('Use flutterBuildResponseDescriptor instead')
+const FlutterBuildResponse_ArtifactsEntry$json = {
+  '1': 'ArtifactsEntry',
+  '2': [
+    {'1': 'key', '3': 1, '4': 1, '5': 9, '10': 'key'},
+    {'1': 'value', '3': 2, '4': 1, '5': 9, '10': 'value'},
+  ],
+  '7': {'7': true},
+};
+
+/// Descriptor for `FlutterBuildResponse`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List flutterBuildResponseDescriptor = $convert.base64Decode(
+    'ChRGbHV0dGVyQnVpbGRSZXNwb25zZRJUCglhcnRpZmFjdHMYASADKAsyNi5kYXJ0X3NlcnZpY2'
+    'VzLmFwaS5GbHV0dGVyQnVpbGRSZXNwb25zZS5BcnRpZmFjdHNFbnRyeVIJYXJ0aWZhY3RzEjUK'
+    'BWVycm9yGGMgASgLMh8uZGFydF9zZXJ2aWNlcy5hcGkuRXJyb3JNZXNzYWdlUgVlcnJvcho8Cg'
+    '5BcnRpZmFjdHNFbnRyeRIQCgNrZXkYASABKAlSA2tleRIUCgV2YWx1ZRgCIAEoCVIFdmFsdWU6'
+    'AjgB');
+
 @$core.Deprecated('Use sourceRequestDescriptor instead')
 const SourceRequest$json = {
   '1': 'SourceRequest',

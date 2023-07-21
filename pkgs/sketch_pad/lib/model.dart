@@ -186,10 +186,20 @@ class AppServices {
     }
   }
 
+  @Deprecated('prefer to use `build`')
   Future<CompileResponse> compile(CompileRequest request) async {
     try {
       appModel.compilingBusy.value = true;
       return await services.compile(request);
+    } finally {
+      appModel.compilingBusy.value = false;
+    }
+  }
+
+  Future<FlutterBuildResponse> build(FlutterBuildRequest request) async {
+    try {
+      appModel.compilingBusy.value = true;
+      return await services.flutterBuild(request);
     } finally {
       appModel.compilingBusy.value = false;
     }
@@ -274,7 +284,9 @@ extension AnalysisIssueExtension on AnalysisIssue {
 
 enum Channel {
   stable('Stable', 'https://stable.api.dartpad.dev/'),
-  beta('Beta', 'https://beta.api.dartpad.dev/');
+  beta('Beta', 'https://beta.api.dartpad.dev/'),
+  // This channel is only used for local development.
+  localhost('Localhost', 'http://localhost:8082/');
 
   final String displayName;
   final String url;
@@ -282,6 +294,10 @@ enum Channel {
   const Channel(this.displayName, this.url);
 
   static const defaultChannel = Channel.stable;
+
+  static List<Channel> get valuesWithoutLocalhost {
+    return values.whereNot((channel) => channel == localhost).toList();
+  }
 
   static Channel? channelForName(String name) {
     name = name.trim().toLowerCase();

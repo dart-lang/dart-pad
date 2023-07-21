@@ -34,6 +34,18 @@ message CompileFilesDDCRequest {
   map<string, string> files = 1;
 }
 
+message FlutterBuildRequest {
+  // The Dart source.
+  string source = 1;
+}
+
+message FlutterBuildResponse {
+  map<string, string> artifacts = 1;
+
+  // Make this response compatible with BadRequest
+  ErrorMessage error = 99;
+}
+
 message SourceRequest {
   // The Dart source.
   string source = 1;

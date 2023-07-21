@@ -240,6 +240,69 @@ class Compiler {
     }
   }
 
+  /// Compile the given source file and return the resulting
+  /// [FlutterBuildResults].
+  Future<FlutterBuildResults> flutterBuild(String source) async {
+    final unsupportedImports = getUnsupportedImports(getAllImportsFor(source));
+    if (unsupportedImports.isNotEmpty) {
+      final message =
+          unsupportedImports.map((import) => import.uri.stringValue).join('\n');
+      return FlutterBuildResults.failed(message);
+    }
+
+    // TODO: Recycle this project directory.
+    final tempDir = await Directory.systemTemp.createTemp('dartpad');
+
+    try {
+      await copyPath(_projectTemplates.flutterPath, tempDir.path);
+
+      // Update lib/main.dart.
+      final sourceFile = File(path.join(tempDir.path, 'lib', kMainDart));
+      sourceFile.parent.createSync();
+      sourceFile.writeAsStringSync(source);
+
+      final arguments = <String>[
+        'build',
+        'web',
+
+        // This disables minification.
+        '--dart2js-optimization=O1',
+
+        // With the web renderer, we don't need to load other (skiawasm) resources.
+        // TODO(devoncarew): Look into use the skiawasm backend.
+        '--web-renderer=html',
+
+        // This disables the service worker / caching path.
+        '--pwa-strategy=none',
+
+        '--no-tree-shake-icons',
+
+        if (_sdk.experiments.isNotEmpty)
+          '--enable-experiment=${_sdk.experiments.join(",")}',
+      ];
+
+      // TODO: Serialize this request - only one can run at a time.
+      final result = await Process.run(
+        _sdk.flutterToolPath,
+        arguments,
+        workingDirectory: tempDir.path,
+      );
+
+      if (result.exitCode != 0) {
+        return FlutterBuildResults.failed(
+            '${result.stdout}\n${result.stderr}'.trim());
+      }
+
+      // Return the compiled build/web/main.dart.js file.
+      final jsOutFile =
+          File(path.join(tempDir.path, 'build', 'web', 'main.dart.js'));
+      return FlutterBuildResults.success(
+          compiledJavaScript: jsOutFile.readAsStringSync());
+    } finally {
+      await tempDir.delete(recursive: true);
+    }
+  }
+
   Future<void> dispose() async {
     return _ddcDriver.terminateWorkers();
   }
@@ -290,6 +353,21 @@ class DDCCompilationResults {
   String toString() => success
       ? 'CompilationResults: Success'
       : 'Compilation errors: ${problems.join('\n')}';
+}
+
+class FlutterBuildResults {
+  final String? compiledJavaScript;
+  final String? compilationIssues;
+
+  FlutterBuildResults.success({required this.compiledJavaScript})
+      : compilationIssues = null;
+
+  FlutterBuildResults.failed(this.compilationIssues)
+      : compiledJavaScript = null;
+
+  bool get hasOutput => compiledJavaScript != null;
+
+  bool get success => compilationIssues == null;
 }
 
 /// An issue associated with [CompilationResults].

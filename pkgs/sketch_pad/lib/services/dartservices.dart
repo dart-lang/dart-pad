@@ -43,6 +43,10 @@ class DartservicesApi {
         CompileDDCResponse(),
       );
 
+  /// Note that this call is experimental and can change at any time.
+  Future<FlutterBuildResponse> flutterBuild(FlutterBuildRequest request) =>
+      _request('_flutterBuild', request, FlutterBuildResponse());
+
   Future<CompleteResponse> complete(SourceRequest request) => _request(
         'complete',
         request,

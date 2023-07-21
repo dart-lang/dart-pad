@@ -213,7 +213,7 @@ String? _packageNameFromPackageUri(String uriString) {
 /// The function [sanitizeAndCheckFilenames()] was used to sanitize the
 /// filenames.
 List<ImportDirective> getUnsupportedImports(List<ImportDirective> imports,
-    {List<String>? sourcesFileList, required bool devMode}) {
+    {List<String>? sourcesFileList, bool devMode = false}) {
   return imports.where((import) {
     final uriString = import.uri.stringValue;
     if (uriString == null || uriString.isEmpty) {
