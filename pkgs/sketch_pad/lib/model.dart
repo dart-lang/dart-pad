@@ -10,7 +10,7 @@ import 'package:http/http.dart' as http;
 
 import 'gists.dart';
 import 'samples.g.dart';
-import 'services/dartservices.dart';
+import 'src/dart_services.dart';
 import 'utils.dart';
 
 // TODO: make sure that calls have built-in timeouts (10s, 60s, ...)

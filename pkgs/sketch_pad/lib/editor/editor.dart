@@ -14,7 +14,7 @@ import 'package:codemirror/hints.dart';
 import 'package:flutter/material.dart';
 
 import '../model.dart';
-import '../services/dartservices.dart' as services;
+import '../src/dart_services.dart' as services;
 import '../theme.dart';
 import 'completion.dart';
 
