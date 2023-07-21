@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'model.dart';
-import 'services/dart_services.pb.dart';
+import 'src/protos/dart_services.pb.dart';
 import 'theme.dart';
 
 const _rowPadding = 2.0;

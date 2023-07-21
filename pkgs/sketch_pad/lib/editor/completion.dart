@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:codemirror/hints.dart';
 
-import '../services/dartservices.dart' as services;
+import '../src/dart_services.dart' as services;
 
 class AnalysisCompletion implements Comparable<AnalysisCompletion> {
   final int offset;

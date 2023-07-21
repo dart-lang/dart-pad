@@ -19,7 +19,7 @@ import 'keys.dart' as keys;
 import 'model.dart';
 import 'problems.dart';
 import 'samples.g.dart';
-import 'services/dartservices.dart';
+import 'src/dart_services.dart';
 import 'theme.dart';
 import 'utils.dart';
 import 'widgets.dart';
