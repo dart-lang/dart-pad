@@ -1,11 +1,15 @@
+// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:convert';
 
+// ignore: implementation_imports
+import 'package:dart_services/src/protos/dart_services.pb.dart';
 import 'package:http/http.dart';
 import 'package:protobuf/protobuf.dart';
 
-import '../src/protos/dart_services.pb.dart';
-
-export '../src/protos/dart_services.pb.dart';
+export 'package:dart_services/src/protos/dart_services.pb.dart';
 
 const _apiPath = 'api/dartservices/v2';
 

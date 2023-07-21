@@ -4,12 +4,12 @@
 
 import 'dart:convert';
 
+// ignore: implementation_imports
+import 'package:dart_services/src/protos/dart_services.pb.dart';
 import 'package:http/http.dart';
 import 'package:protobuf/protobuf.dart';
 
-import 'dart_services.pb.dart';
-
-export 'dart_services.pb.dart';
+export 'package:dart_services/src/protos/dart_services.pb.dart';
 
 const _apiPath = 'api/dartservices/v2';
 

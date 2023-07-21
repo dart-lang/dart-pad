@@ -10,10 +10,11 @@ dependencies:
   checked_yaml: ^2.0.3
   codemirror: ^0.7.10+5.65.13
   collection: ^1.17.2
+  dart_services: any
   encrypt: ^5.0.1
   fluttering_phrases: ^0.5.0
   html_unescape: ^2.0.0
-  http: ^0.13.0
+  http: ^1.1.0
   js: ^0.6.7
   json_annotation: ^4.8.0
   logging: ^1.2.0
@@ -42,6 +43,11 @@ dev_dependencies:
   webdriver: ^3.0.2
 
 dependency_overrides:
+  dart_services:
+    path: ../dart_services
+  # Explicitly overridden to resolve constrain dfferences with our pinned
+  # version of sass.
+  http: ^1.1.0
   # package:mdc_web needs to upgrade the version of material-components-web 12.0.0
   # or above, which includes this fix for the division operator:
   # https://github.com/material-components/material-components-web/pull/7158
@@ -52,6 +58,5 @@ dependency_overrides:
   # See this issue for details:
   # https://github.com/dart-lang/dart-pad/issues/2388
   sass: ^1.62.0
-
   split:
     path: third_party/pkg/split/
