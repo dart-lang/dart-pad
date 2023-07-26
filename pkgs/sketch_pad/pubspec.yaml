@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   fluttering_phrases: any
-  go_router: any
+  go_router: ^10.0.0
   http: any
   pointer_interceptor: ^0.9.0
   protobuf: any

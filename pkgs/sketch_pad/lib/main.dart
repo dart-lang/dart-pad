@@ -61,9 +61,9 @@ class _DartPadAppState extends State<DartPadApp> {
           GoRoute(
             path: '/',
             builder: (BuildContext context, GoRouterState state) {
-              final idParam = state.queryParameters['id'];
-              final sampleParam = state.queryParameters['sample'];
-              final themeParam = state.queryParameters['theme'] ?? 'dark';
+              final idParam = state.uri.queryParameters['id'];
+              final sampleParam = state.uri.queryParameters['sample'];
+              final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
               final bool darkMode = themeParam == 'dark';
               final colorScheme = ColorScheme.fromSwatch(
                 brightness: darkMode ? Brightness.dark : Brightness.light,
