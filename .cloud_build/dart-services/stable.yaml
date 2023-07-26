@@ -35,7 +35,6 @@ timeout: 1200s
 images:
   - '$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME:$COMMIT_SHA'
 options:
-  # machineType: N1_HIGHCPU_8
   substitutionOption: ALLOW_LOOSE
 substitutions:
   _TRIGGER_ID: 6104a3eb-7116-4b2f-a864-2418bd8173bf

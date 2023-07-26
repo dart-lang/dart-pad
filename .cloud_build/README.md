@@ -2,19 +2,19 @@
 
 Cloud Build configuration files for dart-pad and dart-services.
 
-
 # Contents
 
 - `dart-services/` - Deploys the dart_services server to Cloud Run - `flutter/`
 - `dart_pad.yaml` - Deploys `dart_pad` to Firebase Hosting
 - `sketch_pad.yaml` - Deploys `sketch_pad` to Firebase Hosting
 
-This folder also has configuration files from [cloud-builders-community][], which are
-needed to build and deploy `dart_pad` and `sketch_pad` to Firebase Hosting:
+This folder also has configuration files from [cloud-builders-community][],
+which are needed to build and deploy `dart_pad` and `sketch_pad` to Firebase
+Hosting:
+
 - Uploads an image that contains the Flutter SDK to Container Registry -
   `firebase/`
-- Uploads an image that contains the Firebase SDK to Container
-  Registry
+- Uploads an image that contains the Firebase SDK to Container Registry
 
 # Deploying
 
@@ -44,6 +44,5 @@ Update the Firebase SDK images:
 ```bash
 gcloud builds submit . --config=.cloud_build/firebase/cloudbuild.yaml
 ```
-
 
 [cloud-builders-community]: https://github.com/GoogleCloudPlatform/cloud-builders-community/blob/master/flutter/Dockerfile
