@@ -589,26 +589,26 @@ packages:
     dependency: "direct dev"
     description:
       name: test
-      sha256: "13b41f318e2a5751c3169137103b60c584297353d4b1761b66029bae6411fe46"
+      sha256: b9a384c4b9c4966dbf7215e7c033a78db1da7e5dcaf8da9232c5f24735f65652
       url: "https://pub.dev"
     source: hosted
-    version: "1.24.3"
+    version: "1.24.5"
   test_api:
     dependency: transitive
     description:
       name: test_api
-      sha256: "75760ffd7786fffdfb9597c35c5b27eaeec82be8edfb6d71d32651128ed7aab8"
+      sha256: "5c2f730018264d276c20e4f1503fd1308dfbbae39ec8ee63c5236311ac06954b"
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.0"
+    version: "0.6.1"
   test_core:
     dependency: transitive
     description:
       name: test_core
-      sha256: "99806e9e6d95c7b059b7a0fc08f07fc53fabe54a829497f0d9676299f1e8637e"
+      sha256: c6a536288535efef8526eea8adfa4e25fdd2849fa7f457ecb2a52099998ce8f7
       url: "https://pub.dev"
     source: hosted
-    version: "0.5.3"
+    version: "0.5.5"
   test_descriptor:
     dependency: "direct dev"
     description:
