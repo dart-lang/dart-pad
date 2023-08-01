@@ -29,10 +29,10 @@ steps:
       - '--region=$_DEPLOY_REGION'
       - '--quiet'
       - '--min-instances=5'
+      - '--max-instances=1000'
       - '--cpu=2'
       - '--memory=4Gi'
       - '--concurrency=1'
-      - '--max-instances=1000'
     id: Deploy
     dir: pkgs/dart_services
 timeout: 1200s
