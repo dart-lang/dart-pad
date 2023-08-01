@@ -22,6 +22,7 @@ import 'samples.g.dart';
 import 'src/dart_services.dart';
 import 'theme.dart';
 import 'utils.dart';
+import 'versions.dart';
 import 'widgets.dart';
 
 // TODO: support flutter snippets
@@ -60,9 +61,9 @@ class _DartPadAppState extends State<DartPadApp> {
           GoRoute(
             path: '/',
             builder: (BuildContext context, GoRouterState state) {
-              final idParam = state.queryParameters['id'];
-              final sampleParam = state.queryParameters['sample'];
-              final themeParam = state.queryParameters['theme'] ?? 'dark';
+              final idParam = state.uri.queryParameters['id'];
+              final sampleParam = state.uri.queryParameters['sample'];
+              final themeParam = state.uri.queryParameters['theme'] ?? 'dark';
               final bool darkMode = themeParam == 'dark';
               final colorScheme = ColorScheme.fromSwatch(
                 brightness: darkMode ? Brightness.dark : Brightness.light,
@@ -126,7 +127,7 @@ class _DartPadMainPageState extends State<DartPadMainPage> {
     appModel = AppModel();
     appServices = AppServices(
       appModel,
-      Channel.stable, // Channel.localhost
+      Channel.beta, // Channel.beta, Channel.stable, Channel.localhost
     );
 
     appServices.populateVersions();
@@ -891,58 +892,10 @@ class _VersionInfoWidgetState extends State<VersionInfoWidget> {
             );
           },
           child: Text(
-            'Dart ${versions.sdkVersion} • Flutter ${versions.flutterVersion}',
+            'Dart ${versions.sdkVersionFull} • Flutter ${versions.flutterVersion}',
           ),
         );
       },
-    );
-  }
-}
-
-class VersionTable extends StatelessWidget {
-  final VersionResponse versions;
-
-  const VersionTable({
-    required this.versions,
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final packages = versions.packageInfo.where((p) => p.supported).toList();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const Divider(),
-        Text(
-          'Based on Dart SDK ${versions.sdkVersion} '
-          'and Flutter SDK ${versions.flutterVersion}.',
-        ),
-        const Divider(),
-        const SizedBox(height: defaultSpacing),
-        Expanded(
-          child: VTable<PackageInfo>(
-            showToolbar: false,
-            items: packages,
-            columns: [
-              VTableColumn(
-                label: 'Package',
-                width: 250,
-                grow: 0.7,
-                transformFunction: (p) => 'package:${p.name}',
-              ),
-              VTableColumn(
-                label: 'Version',
-                width: 70,
-                grow: 0.3,
-                transformFunction: (p) => p.version,
-                styleFunction: (p) => subtleText,
-              ),
-            ],
-          ),
-        ),
-      ],
     );
   }
 }
