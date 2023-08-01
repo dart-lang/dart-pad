@@ -17,6 +17,7 @@ steps:
     id: Push
     dir: pkgs/dart_services
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    entrypoint: gcloud
     args:
       - run
       - services
@@ -24,12 +25,14 @@ steps:
       - $_SERVICE_NAME
       - '--platform=managed'
       - '--image=$_GCR_HOSTNAME/$PROJECT_ID/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
-      - >-
-        --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID,$_LABELS
+      - '--labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID,$_LABELS'
       - '--region=$_DEPLOY_REGION'
       - '--quiet'
+      - '--min-instances=1'
+      - '--cpu=2'
+      - '--memory=4Gi'
+      - '--concurrency=1'
     id: Deploy
-    entrypoint: gcloud
     dir: pkgs/dart_services
 timeout: 1200s
 images:
