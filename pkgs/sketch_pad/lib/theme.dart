@@ -31,4 +31,6 @@ const defaultGripSize = denseSpacing;
 
 extension ColorSchemeExtension on ColorScheme {
   bool get darkMode => brightness == Brightness.dark;
+
+  Color get backgroundColor => darkMode ? surface : primary;
 }

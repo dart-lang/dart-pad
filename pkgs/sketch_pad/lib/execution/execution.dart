@@ -10,6 +10,7 @@ import 'dart:ui_web' as ui_web;
 import 'package:flutter/material.dart';
 
 import '../model.dart';
+import '../theme.dart';
 import 'frame.dart';
 
 final Key _elementViewKey = UniqueKey();
@@ -61,15 +62,21 @@ class ExecutionWidget extends StatefulWidget {
 class _ExecutionWidgetState extends State<ExecutionWidget> {
   @override
   Widget build(BuildContext context) {
-    return HtmlElementView(
-      key: _elementViewKey,
-      viewType: _viewType,
-      onPlatformViewCreated: (int id) {
-        final frame =
-            ui_web.platformViewRegistry.getViewById(id) as html.Element;
-        final executionService = _expando[frame] as ExecutionService;
-        widget.appServices.registerExecutionService(executionService);
-      },
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      color: colorScheme.surfaceVariant,
+      padding: const EdgeInsets.all(denseSpacing),
+      child: HtmlElementView(
+        key: _elementViewKey,
+        viewType: _viewType,
+        onPlatformViewCreated: (int id) {
+          final frame =
+              ui_web.platformViewRegistry.getViewById(id) as html.Element;
+          final executionService = _expando[frame] as ExecutionService;
+          widget.appServices.registerExecutionService(executionService);
+        },
+      ),
     );
   }
 

@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -18,16 +19,18 @@ import 'utils.dart';
 abstract class ExecutionService {
   Future<void> execute(String javaScript);
   Stream<String> get onStdout;
+  Future<void> reset();
   Future<void> tearDown();
 }
 
 abstract class EditorService {
   void showCompletions();
-
   void jumpTo(AnalysisIssue issue);
 }
 
 class AppModel {
+  bool? _appIsFlutter;
+
   final ValueNotifier<bool> appReady = ValueNotifier(false);
 
   final ValueNotifier<List<AnalysisIssue>> analysisIssues = ValueNotifier([]);
@@ -45,13 +48,11 @@ class AppModel {
   final ValueNotifier<VersionResponse> runtimeVersions =
       ValueNotifier(VersionResponse());
 
-  final ValueNotifier<bool?> appIsFlutter = ValueNotifier(null);
-  final ValueNotifier<bool> consoleHasOutput = ValueNotifier(false);
+  final ValueNotifier<LayoutMode> _layoutMode = ValueNotifier(LayoutMode.both);
+  ValueListenable<LayoutMode> get layoutMode => _layoutMode;
 
   AppModel() {
-    consoleOutputController.addListener(() {
-      consoleHasOutput.value = consoleOutputController.text.isNotEmpty;
-    });
+    consoleOutputController.addListener(_recalcLayout);
   }
 
   void appendLineToConsole(String str) {
@@ -59,6 +60,50 @@ class AppModel {
   }
 
   void clearConsole() => consoleOutputController.clear();
+
+  void dispose() {
+    consoleOutputController.removeListener(_recalcLayout);
+  }
+
+  void _recalcLayout() {
+    final hasConsoleText = consoleOutputController.text.isNotEmpty;
+    final isFlutter = _appIsFlutter;
+
+    if (isFlutter == null) {
+      _layoutMode.value = LayoutMode.both;
+    } else if (!isFlutter) {
+      _layoutMode.value = LayoutMode.justConsole;
+    } else {
+      _layoutMode.value = hasConsoleText ? LayoutMode.both : LayoutMode.justDom;
+    }
+  }
+}
+
+enum LayoutMode {
+  both(true, true),
+  justDom(true, false),
+  justConsole(false, true);
+
+  static const double _dividerSplit = 0.78;
+
+  final bool domIsVisible;
+  final bool consoleIsVisible;
+
+  const LayoutMode(this.domIsVisible, this.consoleIsVisible);
+
+  double calcDomHeight(double height) {
+    if (!domIsVisible) return 1;
+    if (!consoleIsVisible) return height;
+
+    return height * _dividerSplit;
+  }
+
+  double calcConsoleHeight(double height) {
+    if (!consoleIsVisible) return 0;
+    if (!domIsVisible) return height - 1;
+
+    return height * (1 - _dividerSplit);
+  }
 }
 
 class AppServices {
@@ -226,7 +271,8 @@ class AppServices {
 
   void executeJavaScript(String javaScript) {
     final usesFlutter = hasFlutterWebMarker(javaScript);
-    appModel.appIsFlutter.value = usesFlutter;
+    appModel._appIsFlutter = usesFlutter;
+    appModel._recalcLayout();
 
     _executionService?.execute(javaScript);
   }

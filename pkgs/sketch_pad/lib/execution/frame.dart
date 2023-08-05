@@ -38,6 +38,9 @@ class ExecutionServiceImpl implements ExecutionService {
   Stream<String> get onStdout => _stdoutController.stream;
 
   @override
+  Future<void> reset() => _reset();
+
+  @override
   Future<void> tearDown() => _reset();
 
   String _decorateJavaScript(String javaScript) {

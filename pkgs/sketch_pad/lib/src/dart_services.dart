@@ -71,11 +71,34 @@ class DartservicesApi {
         FormatResponse(),
       );
 
-  Future<VersionResponse> version() => _request(
+  Future<VersionResponse> version() => _requestGet(
         'version',
         VersionRequest(),
         VersionResponse(),
       );
+
+  Future<O> _requestGet<I extends GeneratedMessage, O extends GeneratedMessage>(
+    String action,
+    I request,
+    O result,
+  ) async {
+    final response = await _client.get(Uri.parse('$rootUrl$_apiPath/$action'));
+
+    final jsonBody = json.decode(response.body);
+    result
+      ..mergeFromProto3Json(jsonBody)
+      ..freeze();
+
+    // 99 is the tag number for error message.
+    if (result.getFieldOrNull(99) != null) {
+      final br = BadRequest()
+        ..mergeFromProto3Json(jsonBody)
+        ..freeze();
+      throw ApiRequestError(br.error.message);
+    } else {
+      return result;
+    }
+  }
 
   Future<O> _request<I extends GeneratedMessage, O extends GeneratedMessage>(
     String action,
@@ -87,20 +110,26 @@ class DartservicesApi {
       encoding: utf8,
       body: json.encode(request.toProto3Json()),
     );
-    final jsonBody = json.decode(response.body);
-    result
-      ..mergeFromProto3Json(jsonBody, ignoreUnknownFields: true)
-      ..freeze();
 
-    // 99 is the tag number for error message.
-    if (result.getFieldOrNull(99) != null) {
-      final br = BadRequest()
+    try {
+      final jsonBody = json.decode(response.body);
+      result
         ..mergeFromProto3Json(jsonBody)
         ..freeze();
-      throw ApiRequestError(br.error.message);
-    }
 
-    return result;
+      // 99 is the tag number for error message.
+      if (result.getFieldOrNull(99) != null) {
+        final br = BadRequest()
+          ..mergeFromProto3Json(jsonBody)
+          ..freeze();
+        throw ApiRequestError(br.error.message);
+      } else {
+        return result;
+      }
+    } on FormatException {
+      final message = '${response.statusCode} ${response.reasonPhrase}';
+      throw ApiRequestError('$message: ${response.body}');
+    }
   }
 }
 

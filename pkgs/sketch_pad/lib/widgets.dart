@@ -57,6 +57,7 @@ class _HyperlinkState extends State<Hyperlink> {
 class MiniIconButton extends StatelessWidget {
   final IconData icon;
   final String tooltip;
+  final bool small;
   final VoidCallback? onPressed;
   final Color? color;
 
@@ -65,11 +66,14 @@ class MiniIconButton extends StatelessWidget {
     required this.tooltip,
     this.onPressed,
     this.color,
+    this.small = false,
     super.key,
   });
 
   @override
   Widget build(BuildContext context) {
+    const smallIconContrants = BoxConstraints(minWidth: 30, minHeight: 30);
+
     final colorScheme = Theme.of(context).colorScheme;
     final darkTheme = colorScheme.darkMode;
     final backgroundColor =
@@ -84,9 +88,10 @@ class MiniIconButton extends StatelessWidget {
         color: backgroundColor,
         child: IconButton(
           icon: Icon(icon),
-          iconSize: smallIconSize,
-          splashRadius: smallIconSize,
+          iconSize: small ? 18 : smallIconSize,
+          splashRadius: small ? 18 : smallIconSize,
           visualDensity: VisualDensity.compact,
+          constraints: small ? smallIconContrants : null,
           onPressed: onPressed,
           color: color,
         ),
@@ -263,5 +268,43 @@ class MediumDialog extends StatelessWidget {
         ),
       );
     });
+  }
+}
+
+class GoldenRatioCenter extends StatelessWidget {
+  final Widget? child;
+
+  const GoldenRatioCenter({
+    required this.child,
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      alignment: const Alignment(0.0, -(1.618 / 4)),
+      child: child,
+    );
+  }
+}
+
+class ValueBuilder<T> extends StatelessWidget {
+  final ValueListenable<T> listenable;
+  final Widget Function(T value) builder;
+
+  const ValueBuilder(
+    this.listenable,
+    this.builder, {
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: listenable,
+      builder: (BuildContext context, T value, Widget? child) {
+        return builder(value);
+      },
+    );
   }
 }
