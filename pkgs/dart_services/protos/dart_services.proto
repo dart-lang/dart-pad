@@ -210,15 +210,16 @@ message AssistsResponse {
 
 // The response from the `/version` service call.
 message VersionResponse {
-  // The Dart SDK version that DartServices is compatible with.
+  // The Dart SDK version.
   string sdkVersion = 1;
 
-  // The full Dart SDK version that DartServices is compatible with.
+  // The full string of the Dart SDK version, including any channel name.
+  //
+  // E.g., `3.1.0-262.2.beta` vs `3.1.0`.
   string sdkVersionFull = 2;
 
-  // The Dart SDK version that the server is running on. This will start with a
-  // semver string, and have a space and other build details appended.
-  string runtimeVersion = 3;
+  // Removed.
+  string runtimeVersion = 3 [deprecated = true];
 
   // Removed.
   string appEngineVersion = 4 [deprecated = true];
@@ -226,29 +227,22 @@ message VersionResponse {
   // Removed.
   string servicesVersion = 5 [deprecated = true];
 
-  // The Flutter SDK's version.
+  // The Flutter SDK version.
   string flutterVersion = 6;
 
-  // The Flutter SDK's Dart version.
-  string flutterDartVersion = 7;
+  // Removed.
+  string flutterDartVersion = 7 [deprecated = true];
 
-  // The Flutter SDK's full Dart version.
-  string flutterDartVersionFull = 8;
+  // Removed.
+  string flutterDartVersionFull = 8 [deprecated = true];
 
-  // Package version numbers.
-  //
-  // Each package found in pubspec.lock is included, mapping the package name
-  // to the package version.
-  //
-  // Deprecated: Use `packageInfo` data if available.
-  map<string, string> packageVersions = 9;
+  // Removed.
+  map<string, string> packageVersions = 9 [deprecated = true];
 
-  // Package information.
-  //
-  // Each package found in `pubspec.lock` is included.
+  // Package information; each package found in `pubspec.lock` is included.
   repeated PackageInfo packageInfo = 10;
 
-  // Experiments that this server is running
+  // Experiments that this server is running.
   repeated string experiment = 11;
 
   // The Flutter engine SHA, located in bin/internal/engine.version.

@@ -1955,15 +1955,19 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(2)
   void clearSdkVersionFull() => clearField(2);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   $core.String get runtimeVersion => $_getSZ(2);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   set runtimeVersion($core.String v) {
     $_setString(2, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   $core.bool hasRuntimeVersion() => $_has(2);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(3)
   void clearRuntimeVersion() => clearField(3);
 
@@ -2011,30 +2015,39 @@ class VersionResponse extends $pb.GeneratedMessage {
   @$pb.TagNumber(6)
   void clearFlutterVersion() => clearField(6);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.String get flutterDartVersion => $_getSZ(6);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   set flutterDartVersion($core.String v) {
     $_setString(6, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   $core.bool hasFlutterDartVersion() => $_has(6);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(7)
   void clearFlutterDartVersion() => clearField(7);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.String get flutterDartVersionFull => $_getSZ(7);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   set flutterDartVersionFull($core.String v) {
     $_setString(7, v);
   }
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   $core.bool hasFlutterDartVersionFull() => $_has(7);
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(8)
   void clearFlutterDartVersionFull() => clearField(8);
 
+  @$core.Deprecated('This field is deprecated.')
   @$pb.TagNumber(9)
   $core.Map<$core.String, $core.String> get packageVersions => $_getMap(8);
 
