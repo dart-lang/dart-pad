@@ -53,7 +53,6 @@ void defineTests() {
       sdk = Sdk.create(channel);
       log.onRecord.listen((LogRecord rec) {
         logMessages.add('${rec.level.name}: ${rec.time}: ${rec.message}');
-        print(logMessages.last);
       });
       redisCache = RedisCache('redis://localhost:9501', sdk, 'aversion');
       redisCacheAlt = RedisCache('redis://localhost:9501', sdk, 'bversion');

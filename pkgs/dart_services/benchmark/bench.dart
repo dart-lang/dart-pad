@@ -10,6 +10,7 @@ import 'package:dart_services/src/analysis_server.dart';
 import 'package:dart_services/src/bench.dart';
 import 'package:dart_services/src/common.dart';
 import 'package:dart_services/src/compiler.dart';
+import 'package:dart_services/src/logging.dart';
 import 'package:dart_services/src/protos/dart_services.pb.dart' as proto;
 import 'package:dart_services/src/sdk.dart';
 import 'package:logging/logging.dart';
@@ -19,11 +20,8 @@ void main(List<String> args) async {
   final harness = BenchmarkHarness(asJson: json);
   final compiler = Compiler(Sdk.create(stableChannel));
 
-  Logger.root.level = Level.WARNING;
-  Logger.root.onRecord.listen((LogRecord record) {
-    print(record);
-    if (record.stackTrace != null) print(record.stackTrace);
-  });
+  Logger.root.level = Level.INFO;
+  emitLogsToStdout();
 
   final benchmarks = <Benchmark>[
     AnalyzerBenchmark('hello', sampleCode),

@@ -73,7 +73,7 @@ class Compiler {
     }
 
     final temp = await Directory.systemTemp.createTemp('dartpad');
-    _logger.info('Temp directory created: ${temp.path}');
+    _logger.fine('Temp directory created: ${temp.path}');
 
     try {
       await copyPath(_projectTemplates.dartPath, temp.path);
@@ -103,7 +103,7 @@ class Compiler {
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
       final mainSourceMap = File(path.join(temp.path, '$kMainDart.js.map'));
 
-      _logger.info('About to exec: $_dartPath ${arguments.join(' ')}');
+      _logger.fine('About to exec: $_dartPath ${arguments.join(' ')}');
 
       final result =
           await Process.run(_dartPath, arguments, workingDirectory: temp.path);
@@ -129,7 +129,7 @@ class Compiler {
       rethrow;
     } finally {
       await temp.delete(recursive: true);
-      _logger.info('temp folder removed: ${temp.path}');
+      _logger.fine('temp folder removed: ${temp.path}');
     }
   }
 
@@ -161,7 +161,7 @@ class Compiler {
     }
 
     final temp = await Directory.systemTemp.createTemp('dartpad');
-    _logger.info('Temp directory created: ${temp.path}');
+    _logger.fine('Temp directory created: ${temp.path}');
 
     try {
       final usingFlutter = usesFlutterWeb(imports, devMode: _sdk.devMode);
@@ -206,7 +206,7 @@ class Compiler {
 
       final mainJs = File(path.join(temp.path, '$kMainDart.js'));
 
-      _logger.info('About to exec dartdevc worker: ${arguments.join(' ')}"');
+      _logger.fine('About to exec dartdevc worker: ${arguments.join(' ')}"');
 
       final response =
           await _ddcDriver.doWork(WorkRequest()..arguments.addAll(arguments));
@@ -236,7 +236,7 @@ class Compiler {
       rethrow;
     } finally {
       await temp.delete(recursive: true);
-      _logger.info('temp folder removed: ${temp.path}');
+      _logger.fine('temp folder removed: ${temp.path}');
     }
   }
 

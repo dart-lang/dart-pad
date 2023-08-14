@@ -51,7 +51,7 @@ void defineTests() {
     setUp(() async {
       sdk = Sdk.create(channel);
       analysisServersWrapper = AnalysisServersWrapper(sdk.dartSdkPath);
-      await analysisServersWrapper.warmup();
+      await analysisServersWrapper.init();
     });
 
     tearDown(() async {
@@ -204,7 +204,7 @@ class HelloWorld extends StatelessWidget {
       setUp(() async {
         sdk = Sdk.create(channel);
         analysisServersWrapper = AnalysisServersWrapper(sdk.dartSdkPath);
-        await analysisServersWrapper.warmup();
+        await analysisServersWrapper.init();
       });
 
       tearDown(() async {

@@ -59,12 +59,12 @@ class GitHubOAuthHandler {
   static bool addRoutes(Router router) {
     if (!initializationEndedInErrorState) {
       // Add our routes to the router.
-      _logger.info('Adding GitHub OAuth routes to passed router.');
+      _logger.fine('Adding GitHub OAuth routes to passed router.');
       router.get('/$entryPointGitHubOAuthInitiate/<randomState|[a-zA-Z0-9]+>',
           _initiateHandler);
       router.get('/$entryPointGitHubReturnAuthorize', _returnAuthorizeHandler);
     } else {
-      _logger.info('''Attempt to add GitHub OAuth routes to router FAILED
+      _logger.fine('''Attempt to add GitHub OAuth routes to router FAILED
 because initialization of GitHubOAuthHandler failed earlier.''');
     }
     return !initializationEndedInErrorState;
@@ -118,8 +118,8 @@ because initialization of GitHubOAuthHandler failed earlier.''');
       return false;
     }
 
-    _logger.info(
-        '''Enviroment PK_GITHUB_OAUTH_CLIENT_ID=${_replaceAllButLastFour(clientId)}');
+    _logger.fine('''
+Enviroment PK_GITHUB_OAUTH_CLIENT_ID=${_replaceAllButLastFour(clientId)}');
 Enviroment PK_GITHUB_OAUTH_CLIENT_SECRET=${_replaceAllButLastFour(clientSecret)}
 Enviroment K_GITHUB_OAUTH_AUTH_RETURN_URL=$authReturnUrl'
 Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
@@ -128,13 +128,13 @@ Enviroment K_GITHUB_OAUTH_RETURN_TO_APP_URL=$returnToAppUrl'
     if (authReturnUrl.isEmpty) {
       // This would be the locally running dart-services server.
       authReturnUrl = 'http://localhost:8080/$entryPointGitHubReturnAuthorize';
-      _logger.info(
+      _logger.fine(
           'K_GITHUB_OAUTH_AUTH_RETURN_URL environmental variable not set - defaulting to "$authReturnUrl"');
     }
     if (returnToAppUrl.isEmpty) {
       // This would be the locally running dart-pad server.
       returnToAppUrl = 'http://localhost:8000/index.html';
-      _logger.info(
+      _logger.fine(
           'K_GITHUB_OAUTH_RETURN_TO_APP_URL environmental variable not set - defaulting to "$returnToAppUrl"');
     }
     return init(clientId, clientSecret, authReturnUrl, returnToAppUrl);

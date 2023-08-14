@@ -41,8 +41,8 @@ class AnalysisServersWrapper {
       _restartingSince == null ||
       DateTime.now().difference(_restartingSince!).inMinutes < 30;
 
-  Future<void> warmup() async {
-    _logger.info('Beginning AnalysisServersWrapper init().');
+  Future<void> init() async {
+    _logger.fine('Beginning AnalysisServersWrapper init().');
     _dartAnalysisServer = DartAnalysisServerWrapper(dartSdkPath: _dartSdkPath);
     _flutterAnalysisServer =
         FlutterAnalysisServerWrapper(dartSdkPath: _dartSdkPath);
@@ -75,7 +75,7 @@ class AnalysisServersWrapper {
     await shutdown();
     _logger.info('shutdown');
 
-    await warmup();
+    await init();
     _logger.warning('Restart complete');
   }
 
@@ -218,7 +218,7 @@ class AnalysisServersWrapper {
     try {
       final watch = Stopwatch()..start();
       final response = await body(imports, location);
-      _logger.info('PERF: Computed $action in ${watch.elapsedMilliseconds}ms.');
+      _logger.fine('PERF: Computed $action in ${watch.elapsedMilliseconds}ms.');
       return response;
     } catch (e, st) {
       _logger.severe(errorDescription, e, st);
