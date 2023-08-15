@@ -162,7 +162,7 @@ void coverage() {
 }
 
 @DefaultTask()
-@Depends(generateProtos, testCli, coverage, build)
+@Depends(testCli, coverage, build)
 void buildbot() {}
 
 @Task('Prepare the app for deployment')
@@ -205,20 +205,6 @@ void clean() => defaultClean();
 
 String _printSize(FilePath file) =>
     '${(file.asFile.lengthSync() + 1023) ~/ 1024}k';
-
-@Task('Generate Protobuf classes')
-void generateProtos() {
-  final result = Process.runSync(
-    'protoc',
-    ['--dart_out=lib/src', 'protos/dart_services.proto'],
-  );
-  print(result.stdout);
-  if (result.exitCode != 0) {
-    throw StateError('Error generating the Protobuf classes\n${result.stderr}');
-  }
-
-  Process.runSync('dart', ['format', 'lib/src/protos']);
-}
 
 /// An implementation of [TaskArgs] which can be used as a const value in an
 /// annotation.
