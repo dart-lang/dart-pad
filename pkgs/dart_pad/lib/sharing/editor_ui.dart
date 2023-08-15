@@ -282,8 +282,7 @@ abstract class EditorUi {
 
   /// A list of each package's information.
   ///
-  /// This list is set on page load, and each time the Null Safety switch is
-  /// toggled.
+  /// This list is set on page load and each time the SDK channel is updated.
   final List<PackageInfo> _packageInfo = [];
 
   void _sendCompilationTiming(int milliseconds) {
