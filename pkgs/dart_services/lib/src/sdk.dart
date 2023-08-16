@@ -111,7 +111,7 @@ class Sdk {
       path.join(Directory.current.path, 'flutter-sdks');
 }
 
-const channels = ['stable', 'beta', 'dev', 'old', 'master'];
+const channels = ['stable', 'beta', 'dev', 'old', 'main'];
 
 class DownloadingSdkManager {
   final String channel;
