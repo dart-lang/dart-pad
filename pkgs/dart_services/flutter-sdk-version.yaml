@@ -11,10 +11,10 @@ flutter_sdk:
     dart_language_version: 3.1.0
   beta:
     flutter_version: 3.13.0-0.2.pre
-    dart_language_version: 3.1.0-262.3.beta
+    dart_language_version: 3.1.0-262.2.beta
   dev:
     flutter_version: 3.13.0-0.2.pre
-    dart_language_version: 3.1.0-262.3.beta
+    dart_language_version: 3.1.0-262.2.beta
   old:
     flutter_version: 3.10.6
     dart_language_version: 3.0.6
